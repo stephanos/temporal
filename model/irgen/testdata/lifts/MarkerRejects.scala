@@ -55,7 +55,7 @@ object HopelessFailure extends Machine[Lamp, Outcome, Nothing], FailureModel:
       (query find properties.lit in scenario("flipped").actions(
         hand.flip
       ) limits markedLimits total 2)
-        .expect(
+        .live(
           RunExpectation(
             Conformance.conformant,
             PropertyOutcome.violated,

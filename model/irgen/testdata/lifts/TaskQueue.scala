@@ -5,9 +5,9 @@
 // compare the IR with expected/taskqueue.json, and tools/umpire/check pins every Query's answer.
 package fixture.taskqueue
 
-import temporal.foundations.taskqueue.*
+import temporal.foundations.taskqueue.*; import temporal.Bounds.{seven, twelve}
 import temporal.foundations.taskqueue.product.TaskQueueProduct
-import temporal.foundations.taskqueue.system.{ForgetfulQueue, TaskQueueSystem}
+import temporal.foundations.taskqueue.protocol.{ForgetfulQueue, TaskQueueProtocol}
 import framework.*; import framework.Finite.given
 
 // ### The job
@@ -86,7 +86,7 @@ val queueAny = JobOverQueue.scenario("any").free
 final case class OverMatching(job: JobState, queue: QueueDetail)
 
 object JobOverMatching
-    extends Composition[OverMatching](_.job -> Job, _.queue -> TaskQueueSystem),
+    extends Composition[OverMatching](_.job -> Job, _.queue -> TaskQueueProtocol),
       FailureModel: // format: off
   def end(s: State) = s.job.phase == JobPhase.settled
   object syncs extends Syncs: // format: on

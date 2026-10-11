@@ -23,7 +23,7 @@
 //     and its actions, the storage-loss assumption and the bounds);
 //   - product/Product.scala: TaskQueueProduct, the opaque contract, and TaskQueueProductUnderStorageLoss,
 //     its storage-loss variant;
-//   - system/System.scala: TaskQueueSystem, the detailed provider that refines it, and the providers
+//   - system/System.scala: TaskQueueProtocol, the detailed provider that refines it, and the providers
 //     derived from it, LossyMatchingQueue, ForgetfulQueue and VolatileQueue.
 //
 // A machine object reads its header (entity, init, end), then its sections in order: states,
@@ -72,6 +72,10 @@ final case class QueueDetail(custody: Custody, polled: Boolean, delivered: Deliv
 // The claims every provider of the detailed queue is held to, declared once by `queueClaims`.
 final case class QueueClaims(delivers: Property[QueueDetail], committedStays: Property[QueueDetail])
 
+// The task queue's facet vocabulary (fn-161), shared by its levels: each level is one facet.
+enum FacetName:
+  case queueing
+
 // ### Signature
 
 // Named by the task queue's name, as the worker that polls it is. Messages and their deliveries are
@@ -113,8 +117,3 @@ object fault extends Actor:
 // Committed storage may be lost. No machine makes the assumption of its own: a derivation that binds
 // the storage-loss step adds it.
 val storageLossAssumed = assume("storageLoss")
-
-val seven = Limits(steps = 7, actions = 7, search = 262144)
-
-// Past the depth of the detailed queue's table and of a design composed with it, which is ten.
-val twelve = Limits(steps = 12, actions = 12, search = 262144)

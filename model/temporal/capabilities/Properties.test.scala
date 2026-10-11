@@ -1,19 +1,22 @@
 package temporal.capabilities
+
+import temporal.capabilities.product.{Closable, Describable, Pausable, Pollable, Terminable}
+import temporal.capabilities.system.{Expirable, Retryable}
 // Every shared capability Property has two machines with their own state types.
 
 import framework.{
   Capabilities,
   CapabilityKind,
   CapabilityOf,
-  DeadlineFixture,
+  ExpirableFixture,
   Machine,
   Property,
   RetryFixture
 }
 import framework.outcomes.{Outcome, Rejection}
-import temporal.features.activity.standalone.{product, system}
-import temporal.features.nexus.standalone.system.NexusSystem
-import temporal.features.nexus.workflow.system.NexusSystem as WorkflowNexusSystem
+import temporal.features.activity.standalone.{product, protocol}
+import temporal.features.nexus.standalone.protocol.NexusProtocol
+import temporal.features.nexus.workflow.protocol.NexusProtocol as WorkflowNexusProtocol
 
 class CapabilityPropertiesTest extends munit.FunSuite:
   private def present(value: Any): Boolean = value match
@@ -33,41 +36,47 @@ class CapabilityPropertiesTest extends munit.FunSuite:
   )
 
   val companions =
-    Seq(Closable, Terminable, Pausable, Pollable, Describable, Retries, Deadline)
+    Seq(Closable, Terminable, Pausable, Pollable, Describable, Retryable, Expirable)
   val properties = Seq(
     Brought("Closable.terminalStatesAreFinal", Set(Closable)),
     Brought("Closable.closedIsRejectedUniformly", Set(Closable)),
     Brought("Terminable.terminateSettles", Set(Terminable)),
     Brought("Pausable.pausedIsNotDispatched", Set(Pausable, Pollable)),
-    Brought("Retries.failureReturnsToWaiting", Set(Retries)),
-    Brought("Retries.failureEndsFailed", Set(Retries)),
-    Brought("Retries.failurePauses", Set(Retries)),
-    Brought("Retries.failureCancels", Set(Retries)),
-    Brought("Retries.attemptCountIsWithinPolicy", Set(Retries)),
-    Brought("Deadline.firesInWindow", Set(Deadline)),
-    Brought("Deadline.deadlineTimesOut", Set(Deadline)),
-    Brought("Deadline.deadlineReturnsToWaiting", Set(Deadline)),
-    Brought("Deadline.deadlinePauses", Set(Deadline))
+    Brought("Retryable.failureReturnsToWaiting", Set(Retryable)),
+    Brought("Retryable.failureEndsFailed", Set(Retryable)),
+    Brought("Retryable.failurePauses", Set(Retryable)),
+    Brought("Retryable.failureCancels", Set(Retryable)),
+    Brought("Retryable.attemptCountIsWithinPolicy", Set(Retryable)),
+    Brought("Expirable.firesInWindow", Set(Expirable)),
+    Brought("Expirable.deadlineTimesOut", Set(Expirable)),
+    Brought("Expirable.deadlineReturnsToWaiting", Set(Expirable)),
+    Brought("Expirable.deadlinePauses", Set(Expirable))
   )
 
   def declaring[S, O, F](m: Machine[S, O, F], section: Capabilities[S, O, F]): Declared =
-    val bindings = section.getClass.getMethods
-      .filter(method => classOf[CapabilityOf[?, ?, ?]].isAssignableFrom(method.getReturnType))
-      .map(_.invoke(section))
+    // A machine of facets declares its facets' capabilities (fn-161).
+    def sections(c: Capabilities[S, O, F]): Seq[Capabilities[S, O, F]] = c match
+      case f: framework.FacetCapabilities[S, O, F] @unchecked => f.facets.flatMap(sections)
+      case other                                              => Seq(other)
+    val bindings = sections(section).flatMap(c =>
+      c.getClass.getMethods
+        .filter(method => classOf[CapabilityOf[?, ?, ?]].isAssignableFrom(method.getReturnType))
+        .map(_.invoke(c))
+    )
     val applicable = bindings.flatMap {
       case binding: Product =>
         val fields = binding.productElementNames.zip(binding.productIterator).toMap
         binding.productPrefix match
-          case "Retries" =>
+          case "Retryable" =>
             Seq("failureReturnsToWaiting", "failureEndsFailed", "attemptCountIsWithinPolicy")
               .concat(Option.when(present(fields("pendingPause")))("failurePauses"))
               .concat(Option.when(present(fields("pendingCancel")))("failureCancels"))
-              .map("Retries." + _)
-          case "Deadline" =>
+              .map("Retryable." + _)
+          case "Expirable" =>
             Seq("firesInWindow", "deadlineTimesOut")
               .concat(Option.when(enabled(fields("retryable")))("deadlineReturnsToWaiting"))
               .concat(Option.when(present(fields("pendingPause")))("deadlinePauses"))
-              .map("Deadline." + _)
+              .map("Expirable." + _)
           case _ => Seq.empty
       case _ => Seq.empty
     }.toSet
@@ -80,42 +89,46 @@ class CapabilityPropertiesTest extends munit.FunSuite:
 
   val declared = Seq(
     declaring(product.ActivityProduct, product.ActivityProduct.capabilities),
-    declaring(system.ActivityRecord, system.ActivityRecord.capabilities),
-    declaring(system.TrustingActivityRecord, system.TrustingActivityRecord.capabilities),
-    declaring(system.ActivitySystem, system.ActivitySystem.capabilities),
-    declaring(NexusSystem, NexusSystem.capabilities),
-    declaring(WorkflowNexusSystem, WorkflowNexusSystem.capabilities)
+    declaring(protocol.ActivityRecord, protocol.ActivityRecord.capabilities),
+    declaring(protocol.TrustingActivityRecord, protocol.TrustingActivityRecord.capabilities),
+    declaring(protocol.ActivityProtocol, protocol.ActivityProtocol.capabilities),
+    declaring(NexusProtocol, NexusProtocol.capabilities),
+    declaring(WorkflowNexusProtocol, WorkflowNexusProtocol.capabilities)
   )
 
   val conditionalFixtures = Seq(
     Declared(
       "retryFixture",
       classOf[RetryFixture.Snapshot].getName,
-      Set("Retries"),
-      Set("Retries.failurePauses", "Retries.failureCancels", "Retries.attemptCountIsWithinPolicy")
+      Set("Retryable"),
+      Set(
+        "Retryable.failurePauses",
+        "Retryable.failureCancels",
+        "Retryable.attemptCountIsWithinPolicy"
+      )
     ),
     Declared(
       "deadlineFixture",
-      classOf[DeadlineFixture.Snapshot].getName,
-      Set("Deadline"),
-      Set("Deadline.deadlineReturnsToWaiting", "Deadline.deadlinePauses")
+      classOf[ExpirableFixture.Snapshot].getName,
+      Set("Expirable"),
+      Set("Expirable.deadlineReturnsToWaiting", "Expirable.deadlinePauses")
     )
   )
 
-  test("Activity and workflow Nexus both declare Retries and Deadline") {
+  test("Activity and workflow Nexus both declare Retryable and Expirable") {
     for machine <- declared.filter(d =>
-        Set("activitySystem", "nexusSystem").contains(d.machine) &&
-          Set(classOf[system.State].getName, WorkflowNexusSystem.init.getClass.getName)
+        Set("activityProtocol", "nexusProtocol").contains(d.machine) &&
+          Set(classOf[protocol.State].getName, WorkflowNexusProtocol.init.getClass.getName)
             .contains(d.state)
       )
-    do assert(Set("Retries", "Deadline").subsetOf(machine.capabilities), s"$machine")
+    do assert(Set("Retryable", "Expirable").subsetOf(machine.capabilities), s"$machine")
   }
 
   def instantiating(p: Brought, machines: Seq[Declared]): Seq[String] =
     machines
       .filter(d =>
         p.by.map(_.name).subsetOf(d.capabilities) &&
-          (!(only(p.by, Retries) || only(p.by, Deadline)) || d.applicable.contains(p.name))
+          (!(only(p.by, Retryable) || only(p.by, Expirable)) || d.applicable.contains(p.name))
       )
       .map(_.state)
       .distinct
@@ -142,50 +155,50 @@ class CapabilityPropertiesTest extends munit.FunSuite:
   test("every capability Property has two declared machines with their own state types") {
     assertEquals(underInstantiated(properties, declared ++ conditionalFixtures), Seq.empty)
     val finitePolicy = properties
-      .find(_.name == "Retries.attemptCountIsWithinPolicy")
+      .find(_.name == "Retryable.attemptCountIsWithinPolicy")
       .get
     val finitePolicySites = declared.filterNot(
-      _.state == WorkflowNexusSystem.init.getClass.getName
+      _.state == WorkflowNexusProtocol.init.getClass.getName
     )
     assertEquals(
       instantiating(finitePolicy, finitePolicySites ++ conditionalFixtures),
-      Seq(classOf[system.State].getName, classOf[RetryFixture.Snapshot].getName)
+      Seq(classOf[protocol.State].getName, classOf[RetryFixture.Snapshot].getName)
     )
   }
 
   test("workflow Nexus brings only retry and deadline branches its bindings supply") {
     val nexus = declared
-      .find(_.state == WorkflowNexusSystem.init.getClass.getName)
+      .find(_.state == WorkflowNexusProtocol.init.getClass.getName)
       .get
     assertEquals(
       nexus.applicable,
       Set(
-        "Retries.failureReturnsToWaiting",
-        "Retries.failureEndsFailed",
-        "Retries.attemptCountIsWithinPolicy",
-        "Deadline.firesInWindow",
-        "Deadline.deadlineTimesOut"
+        "Retryable.failureReturnsToWaiting",
+        "Retryable.failureEndsFailed",
+        "Retryable.attemptCountIsWithinPolicy",
+        "Expirable.firesInWindow",
+        "Expirable.deadlineTimesOut"
       )
     )
     val activity =
-      declared.find(_.state == classOf[system.State].getName).get
+      declared.find(_.state == classOf[protocol.State].getName).get
     assertEquals(
       activity.applicable,
-      properties.filter(p => only(p.by, Retries) || only(p.by, Deadline)).map(_.name).toSet
+      properties.filter(p => only(p.by, Retryable) || only(p.by, Expirable)).map(_.name).toSet
     )
   }
 
   test("every Closable site binds only its rejection, including all four derived owners") {
     val closables = Seq(
-      product.ActivityProduct.capabilities.closable,
-      system.ActivityRecord.capabilities.closable,
-      system.TrustingActivityRecord.capabilities.closable,
-      system.RecordOverQueue.capabilities.closable,
-      system.RecordOverMatching.capabilities.closable,
-      system.TrustingRecordOverQueue.capabilities.closable,
-      system.TrustingRecordOverMatching.capabilities.closable,
-      system.RecordOverLossyMatching.capabilities.closable,
-      NexusSystem.capabilities.closable
+      product.ActivityProduct.lifecycle.capabilities.closable,
+      protocol.ActivityRecord.admission.capabilities.closable,
+      protocol.TrustingActivityRecord.capabilities.closable,
+      protocol.RecordOverQueue.capabilities.closable,
+      protocol.RecordOverMatching.capabilities.closable,
+      protocol.TrustingRecordOverQueue.capabilities.closable,
+      protocol.TrustingRecordOverMatching.capabilities.closable,
+      protocol.RecordOverLossyMatching.capabilities.closable,
+      NexusProtocol.operation.capabilities.closable
     )
     assertEquals(closables.size, 9)
     for closable <- closables do
@@ -195,29 +208,30 @@ class CapabilityPropertiesTest extends munit.FunSuite:
   }
 
   test("a composed shared rejection derives the capability outcome key") {
-    val rejected = system.RecordOverQueue.composedOutcome(
-      system.RecordMember,
+    val rejected = protocol.RecordOverQueue.composedOutcome(
+      protocol.RecordMember,
       Outcome.rejected(Rejection.notFound)
     )
     assertEquals(rejected, "activity_rejected-notFound")
-    assertEquals(system.RecordOverQueue.capabilities.closable.rejected, rejected)
+    assertEquals(protocol.RecordOverQueue.capabilities.closable.rejected, rejected)
   }
 
   test("every Pausable and Pollable site binds only actions, including all four derived owners") {
     val pausableAndPollable = Seq(
-      product.ActivityProduct.capabilities.pausable -> product.ActivityProduct.capabilities.pollable,
-      system.ActivityRecord.capabilities.pausable -> system.ActivityRecord.capabilities.pollable,
-      system.TrustingActivityRecord.capabilities.pausable ->
-        system.TrustingActivityRecord.capabilities.pollable,
-      system.RecordOverQueue.capabilities.pausable -> system.RecordOverQueue.capabilities.pollable,
-      system.TrustingRecordOverQueue.capabilities.pausable ->
-        system.TrustingRecordOverQueue.capabilities.pollable,
-      system.RecordOverMatching.capabilities.pausable ->
-        system.RecordOverMatching.capabilities.pollable,
-      system.TrustingRecordOverMatching.capabilities.pausable ->
-        system.TrustingRecordOverMatching.capabilities.pollable,
-      system.RecordOverLossyMatching.capabilities.pausable ->
-        system.RecordOverLossyMatching.capabilities.pollable
+      product.ActivityProduct.pausing.capabilities.pausable ->
+        product.ActivityProduct.dispatching.capabilities.pollable,
+      protocol.ActivityRecord.admission.capabilities.pausable -> protocol.ActivityRecord.admission.capabilities.pollable,
+      protocol.TrustingActivityRecord.capabilities.pausable ->
+        protocol.TrustingActivityRecord.capabilities.pollable,
+      protocol.RecordOverQueue.capabilities.pausable -> protocol.RecordOverQueue.capabilities.pollable,
+      protocol.TrustingRecordOverQueue.capabilities.pausable ->
+        protocol.TrustingRecordOverQueue.capabilities.pollable,
+      protocol.RecordOverMatching.capabilities.pausable ->
+        protocol.RecordOverMatching.capabilities.pollable,
+      protocol.TrustingRecordOverMatching.capabilities.pausable ->
+        protocol.TrustingRecordOverMatching.capabilities.pollable,
+      protocol.RecordOverLossyMatching.capabilities.pausable ->
+        protocol.RecordOverLossyMatching.capabilities.pollable
     )
     assertEquals(pausableAndPollable.size, 8)
     for (pausable, pollable) <- pausableAndPollable do
@@ -232,16 +246,16 @@ class CapabilityPropertiesTest extends munit.FunSuite:
 
   test("a Property brought to one state type fails by name; derived machines count once") {
     val record = declared.filter(
-      _.state == classOf[system.AdmissionState].getName
+      _.state == classOf[protocol.AdmissionState].getName
     )
     assertEquals(record.map(_.machine), Seq("activityRecord", "trustingActivityRecord"))
     assertEquals(
       underInstantiated(properties.filter(p => only(p.by, Closable)), record),
       Seq(
         "Closable.terminalStatesAreFinal is brought to 1 machine(s) with their own state type " +
-          "(temporal.features.activity.standalone.system.AdmissionState): a capability Property needs two",
+          "(temporal.features.activity.standalone.protocol.AdmissionState): a capability Property needs two",
         "Closable.closedIsRejectedUniformly is brought to 1 machine(s) with their own state type " +
-          "(temporal.features.activity.standalone.system.AdmissionState): a capability Property needs two"
+          "(temporal.features.activity.standalone.protocol.AdmissionState): a capability Property needs two"
       )
     )
   }
@@ -256,6 +270,6 @@ class CapabilityPropertiesTest extends munit.FunSuite:
     )
     assertEquals(
       instantiating(dispatch, declared),
-      Seq(classOf[product.State].getName, classOf[system.AdmissionState].getName)
+      Seq(classOf[product.State].getName, classOf[protocol.AdmissionState].getName)
     )
   }

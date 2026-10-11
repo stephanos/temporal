@@ -13,6 +13,3 @@ object operator extends Actor:
   val start = action(this)
 
 given Ok[Outcome] = Ok(Outcome.accepted)
-
-object exports:
-  val pump = irFile("pump")(PumpProduct, PumpProtocol)

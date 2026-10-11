@@ -1,5 +1,5 @@
 package framework.conventionfixtures
 
-import temporal.features.nexus.product.NexusProduct
+import temporal.features.nexus.shared.product.NexusProduct
 
 val forbiddenFeature = NexusProduct.name

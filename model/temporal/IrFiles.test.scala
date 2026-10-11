@@ -76,28 +76,28 @@ class IrFilesTest extends munit.FunSuite:
   }
 
   test("every model that names phases declares Phased") {
-    import features.activity.standalone.{product as activityProduct, system as activitySystem}
-    import features.nexus.product as nexusProduct
-    import features.nexus.standalone.system as nexusStandalone
-    import features.nexus.workflow.system as nexusWorkflow
+    import features.activity.standalone.{product as activityProduct, protocol as activityProtocol}
+    import features.nexus.shared.product as nexusProduct
+    import features.nexus.standalone.protocol as nexusStandalone
+    import features.nexus.workflow.protocol as nexusWorkflow
 
     val projected: Seq[AnyRef] = Seq(
       activityProduct.ActivityProduct,
-      activitySystem.ActivitySystem,
-      activitySystem.ActivityRecord,
-      activitySystem.HeldDispatch,
-      activitySystem.StandaloneActivity,
-      activitySystem.RecordOverQueue,
-      activitySystem.RecordOverMatching,
+      activityProtocol.ActivityProtocol,
+      activityProtocol.ActivityRecord,
+      activityProtocol.HeldDispatch,
+      activityProtocol.StandaloneActivity,
+      activityProtocol.RecordOverQueue,
+      activityProtocol.RecordOverMatching,
       nexusProduct.NexusProduct,
-      nexusStandalone.NexusSystem,
-      nexusWorkflow.NexusSystem,
+      nexusStandalone.NexusProtocol,
+      nexusWorkflow.NexusProtocol,
       nexusWorkflow.TrustingCaller,
       nexusWorkflow.RejectAfterClose,
       nexusWorkflow.NexusCaller,
       actors.worker.Polling,
       foundations.taskqueue.product.TaskQueueProduct,
-      foundations.taskqueue.system.TaskQueueSystem
+      foundations.taskqueue.protocol.TaskQueueProtocol
     )
     for model <- projected do
       model match

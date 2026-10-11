@@ -5,6 +5,11 @@ import framework.*
 import temporal.actors.client.Client
 
 // The handler's reply to the server's start request.
+// The Nexus kind's facet vocabulary (fn-161), shared by the Product and both forms' Protocols: each
+// machine is one facet for now; the close-policy designs and the forged control have their own.
+enum FacetName:
+  case operation, closing, forgedControl
+
 enum Reply derives Finite:
   case syncSuccess, async, operationFailed, operationCanceled
   case handlerError(retryable: Boolean)
@@ -13,7 +18,7 @@ enum Reply derives Finite:
 enum Resolution derives Finite:
   case succeeded, failed, canceled
 
-// The Product and System levels share the framework outcome, so a refinement reads the same value
+// The Product and Protocol levels share the framework outcome, so a refinement reads the same value
 // at both levels.
 
 val operation = Entity()

@@ -64,11 +64,11 @@ final private[irgen] class Lifting(val ctx: Context)
       fold(Ref(sym), Map.empty): Unit
 
   // Whether a symbol names the `queries` section of a machine or composition object.
-  private def queriesSection(sym: Symbol): Boolean =
+  private[irgen] def queriesSection(sym: Symbol): Boolean =
     val cls = moduleClassOf(sym)
-    !cls.isNoSymbol && cls.name.stripSuffix("$") == "queries" && objectForm(
-      cls.maybeOwner
-    )
+    // A facet's `queries` are its machine's (fn-161).
+    !cls.isNoSymbol && cls.name.stripSuffix("$") == "queries" &&
+    (objectForm(cls.maybeOwner) || facetObject(cls.maybeOwner))
 
   // Whether the IR file reads a val of a `queries` section at run time (`IrFile.queriesOf`): a
   // public one that is a Query or a sequence. One the lifter does not root is refused, so the IR and
@@ -84,7 +84,7 @@ final private[irgen] class Lifting(val ctx: Context)
       ))
 
   // Whether a val of a `queries` section is a root: a Query, a list of them or a progress claim.
-  private def claimRoot(t: TypeRepr): Boolean =
+  private[irgen] def claimRoot(t: TypeRepr): Boolean =
     val kind = t.widen.dealias
     val listed =
       isList(
@@ -93,41 +93,54 @@ final private[irgen] class Lifting(val ctx: Context)
     Set("framework.Query", "framework.Progress")(kind.typeSymbol.fullName) ||
     (listed && kind.typeArgs.headOption.exists(a => isNamed(a, "framework.Query")))
 
-  // The IR files the lifted sources declare, `val f = irFile("name")(root, ...)`: each file's name
-  // and its roots' fully qualified names, in the order written. A root is a reference to a val, so
-  // one that names nothing does not compile; the lift refuses it as it refuses a root of the command
-  // line that is not a declaration. A declaration that cannot be read is given to `refused`, each one.
+  // fn-160 R2, R10: one IR file per feature, collected from its package. A feature is a form under a
+  // kind (`temporal.features.activity.standalone`, file `activity-standalone`), a kind's own package
+  // (`temporal.features.nexus`, `nexus`), or a package under `foundations` or `actors`
+  // (`temporal.foundations.taskqueue`, `taskqueue`), under any root package. Its roots are every machine and composition
+  // object, `queries` section (a machine's or a facet's), machine `capabilities` section, progress
+  // claim and realization declared in the package and its sub-packages, but for a kind's forms,
+  // which are features of their own; everything they reach is lifted with them, so a foundation
+  // machine a feature composes is lifted into its file, its Queries into the foundation's own. A
+  // kind's package, foundation or actor that declares no Query, progress claim or realization writes
+  // no file. Nothing is listed, so nothing can be left out by omission.
   def irFiles(refused: LiftError => Unit): Seq[(String, Seq[String])] =
-    val declared = defs.values.toSeq
-      .collect { case v: ValDef if v.rhs.nonEmpty && isNamed(v.tpt.tpe, "framework.IrFile") => v }
-      .sortBy(v => (pos(v).file, pos(v).line))
-    val files = declared.flatMap: v =>
-      try
-        call(v.rhs.get) match
-          case Some(("irFile", List(List(name), roots))) =>
-            val file = name match
-              case Literal(StringConstant(n)) if n.nonEmpty && !n.contains('/') => n
-              case other                                                        =>
-                fail(other, "an IR file is named by a nonempty string literal without a `/`")
-            val named = roots
-              .flatMap(varargs)
-              .map:
-                case r: Ref if r.symbol.isValDef => r.symbol.fullName
-                case other                       =>
-                  fail(other, s"$file names its roots one by one, each a val that declares one")
-            Some((v, file, named))
-          case _ => fail(v, s"${v.name} declares an IR file with `irFile(name)(root, ...)`")
-      catch
-        case e: LiftError =>
-          refused(e)
-          None
-    val twice =
-      files.groupBy(_._2).collect { case (file, group) if group.size > 1 => file -> group }
-    for (file, group) <- twice.toSeq.sortBy(_._1); again <- group.tail do
-      refused(
-        LiftError(
-          where(again._1),
-          s"$file is declared twice, at ${where(group.head._1)} and here: an IR file is declared once"
-        )
-      )
-    files.collect { case (_, file, roots) if !twice.contains(file) => file -> roots }
+    val _ = refused
+    def packageOf(sym: Symbol): String =
+      Iterator
+        .iterate(sym)(_.maybeOwner)
+        .find(o => o.isNoSymbol || o.isPackageDef)
+        .filter(_.isPackageDef)
+        .fold("")(_.fullName)
+    // The feature a package belongs to, its file's name, and whether it is a form, which writes a
+    // file for anything it declares; a kind's own package, a foundation or an actor writes one only
+    // where it declares a Query, a progress claim or a realization (R10).
+    def featureOf(pkg: String): Option[(String, String, Boolean)] =
+      val parts = pkg.split('.').toList
+      val at = parts.indexWhere(Set("features", "foundations", "actors"))
+      if at < 0 || parts.sizeIs <= at + 1 then None
+      else
+        val root = parts.take(at + 2).mkString(".")
+        parts.drop(at) match
+          case "features" :: kind :: form :: _ if Structure.formFolders(form) =>
+            Some((s"$root.$form", s"$kind-$form", true))
+          case _ :: feature :: _ => Some((root, feature, false))
+          case _                 => None
+    def progress(v: ValDef) = isNamed(v.tpt.tpe, "framework.Progress")
+    val roots = defs.values.toSeq.collect {
+      case v: ValDef
+          if objectForm(v.symbol) || realizationObject(v.symbol) || queriesSection(v.symbol) ||
+            (capabilitiesObject(v.symbol) && objectForm(moduleClassOf(v.symbol).maybeOwner)) ||
+            (progress(v) && !v.symbol.flags.is(Flags.Module)) =>
+        v
+    }
+    val byFeature = roots
+      .flatMap(v => featureOf(packageOf(v.symbol)).map(f => f -> v))
+      .groupBy(_._1)
+    val asked = (v: ValDef) =>
+      queriesSection(v.symbol) || realizationObject(v.symbol) || progress(v)
+    byFeature.toSeq
+      .filter { case ((_, _, form), vs) => form || vs.exists((_, v) => asked(v)) }
+      .map { case ((_, file, _), vs) =>
+        file -> vs.map(_._2).sortBy(v => (pos(v).file, pos(v).line)).map(_.symbol.fullName).distinct
+      }
+      .sortBy(_._1)

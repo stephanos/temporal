@@ -25,7 +25,7 @@ final private[irgen] class ConventionInspector(prefixes: Map[String, String]) ex
     .map(_.split("=", 2) match
       case Array(jar, prefix) => jar -> prefix
       case Array(jar)         => jar -> "")
-  val scratch = Files.createTempDirectory("umpire-conventions")
+  val scratch = umpire.check.Scratch.directory("umpire-conventions")
   val prefixes = mutable.Map.empty[String, String]
   val batches = specs.zipWithIndex.map { case ((jar, prefix), i) =>
     val zip = ZipFile(jar)

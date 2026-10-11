@@ -85,6 +85,56 @@ final private[irgen] class Conventions(index: Index):
       collect.foldTree(found, tree)(Symbol.spliceOwner)
     )
 
+  private val phased = Symbol.requiredClass("framework.Phased")
+
+  // The phase types of the lifted sources: the `P` of every `Phased[S, P]` an object mixes in. A
+  // derived machine or composition reads its source's, which is among them.
+  private lazy val phaseTypes: Set[Symbol] =
+    object collect extends TreeAccumulator[Set[Symbol]]:
+      def foldTree(found: Set[Symbol], tree: Tree)(owner: Symbol): Set[Symbol] = tree match
+        case c: ClassDef =>
+          val phase = arguments(c.symbol.typeRef, phased).lift(1)
+          foldOverTree(found ++ phase.map(_.widen.dealias.typeSymbol), tree)(owner)
+        case _ => foldOverTree(found, tree)(owner)
+    index.trees.foldLeft(Set.empty[Symbol])((found, tree) =>
+      collect.foldTree(found, tree)(Symbol.spliceOwner)
+    )
+
+  // fn-159.3: every phase is named through its phase type, `Phase.scheduled`, so no source imports
+  // a phase type's members, wildcard or selective, at any level.
+  private def phaseImport(i: Import): Unit =
+    val imported = i.expr.symbol
+    val phase =
+      if imported.flags.is(Flags.Module) then imported.companionClass
+      else i.expr.tpe.widen.typeSymbol.companionClass
+    // An enum's own definition imports its cases into its companion; no source writes that.
+    val written = scala.util
+      .Try {
+        val lines = sourceLines.getOrElseUpdate(
+          fileOf(i),
+          Files.readString(Path.of(fileOf(i))).split("\\n", -1)
+        )
+        lines(i.pos.startLine).trim.startsWith("import")
+      }
+      .getOrElse(false)
+    if written && phaseTypes(phase) then
+      val names = i.selectors.map {
+        case SimpleSelector(n)    => if Set("_", "*")(n) then "*" else n
+        case RenameSelector(n, a) => s"$n as $a"
+        case OmitSelector(n)      => s"$n as _"
+        case _: GivenSelector     => "given"
+      }
+      val selected = names match
+        case List(one) => one
+        case several   => several.mkString("{", ", ", "}")
+      refuse(
+        i,
+        "R9.phase-import",
+        s"import ${i.expr.show}.$selected brings " +
+          s"the cases of the phase type ${phase.name} into scope: drop it and name each phase " +
+          s"through its type, `${phase.name}.<case>`"
+      )
+
   private lazy val finiteTypes: Set[Symbol] = index.defs.values
     .flatMap {
       case v: ValDef => arguments(v.tpt.tpe, finite).headOption
@@ -113,9 +163,24 @@ final private[irgen] class Conventions(index: Index):
   private def form(pkg: String): Option[String] =
     pkg.split('.').lift(3).filter(Structure.formFolders)
 
-  // A package always reads itself, as the code `derives` writes into it does.
+  // A feature's layers, which depend one way, realization -> protocol -> product (fn-160 R9).
+  private def layer(pkg: String): Option[Int] =
+    pkg.split('.').collectFirst {
+      case "product"             => 0
+      case "protocol" | "system" => 1
+      case "realization"         => 2
+    }
+
+  // A package always reads itself, as the code `derives` writes into it does. Within a feature, a
+  // layer imports only the layers below it, and only the realization layer reads the Temporal API.
   private def permitted(from: String, to: String, test: Boolean): Boolean =
     if to == from then true
+    else if !test && within(from, "temporal.features") && layer(from).forall(_ < 2) &&
+      (within(to, "io.temporal.api") || within(to, "temporal.server.api"))
+    then false
+    else if !test && within(from, "temporal.features") && feature(to) == feature(from) &&
+      layer(from).exists(f => layer(to).exists(_ > f))
+    then false
     else if within(to, "temporal.server.api") then !within(from, "framework")
     else if within(from, "framework") && within(to, "io.temporal") then false
     else if within(from, "temporal") && within(to, "io.temporal.server.api.umpire") then false
@@ -206,12 +271,24 @@ final private[irgen] class Conventions(index: Index):
     object importCheck extends TreeTraverser:
       override def traverseTree(t: Tree)(owner: Symbol): Unit =
         t match
-          case i: Import => imports(i, owner)
-          case _         => super.traverseTree(t)(owner)
+          case i: Import =>
+            imports(i, owner)
+            phaseImport(i)
+          case _ => super.traverseTree(t)(owner)
     checked.foreach(t => importCheck.traverseTree(t)(Symbol.spliceOwner))
+    // A Protocol's Describable capability names the realization's status table, the Temporal
+    // API's statuses by fact: the one read of the realization layer, and of the API, outside it
+    // (an open layering question, fn-160 R9).
+    def describable(t: Tree): Boolean = t match
+      case v: ValDef =>
+        v.rhs.exists(
+          _.tpe.widen.dealias.typeSymbol.fullName == "temporal.capabilities.product.Describable"
+        )
+      case _ => false
     object check extends TreeTraverser:
       override def traverseTree(t: Tree)(owner: Symbol): Unit =
         t match
+          case _ if describable(t)                                 => ()
           case _: Import                                           => ()
           case Match(scrutinee, cases) if modelType(scrutinee.tpe) =>
             for c <- cases if whole(c.pattern, scrutinee.tpe) do
@@ -233,7 +310,8 @@ final private[irgen] class Conventions(index: Index):
           case t: TypeTree => dependency(t, t.tpe.typeSymbol, owner)
           case _           => ()
         t match
-          case _: Import => ()
-          case _         => super.traverseTree(t)(owner)
+          case _: Import           => ()
+          case _ if describable(t) => ()
+          case _                   => super.traverseTree(t)(owner)
     checked.foreach(t => check.traverseTree(t)(Symbol.spliceOwner))
     refused.toSeq

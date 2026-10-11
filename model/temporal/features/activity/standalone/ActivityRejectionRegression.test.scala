@@ -2,11 +2,11 @@ package framework
 
 import framework.Finite.given
 
-import temporal.capabilities.Closable
-import temporal.features.activity.standalone.{client, product, system, worker}
+import temporal.capabilities.product.Closable
+import temporal.features.activity.standalone.{activityWorker, client, product, protocol}
 import temporal.features.activity.standalone.product.ActivityProduct
 import temporal.features.activity.standalone.product.ActivityProduct.phased
-import temporal.features.activity.standalone.system.ActivitySystem
+import temporal.features.activity.standalone.protocol.ActivityProtocol
 import framework.outcomes.{Outcome, Rejection}
 
 class ActivityRejectionRegression extends munit.FunSuite:
@@ -38,21 +38,21 @@ class ActivityRejectionRegression extends munit.FunSuite:
 
   test("forbidden live controls preserve every state field (model.go:232,251)") {
     for
-      s <- summon[Finite[system.State]].values
+      s <- summon[Finite[protocol.State]].values
       (action, forbidden) <- List(
-        client.pause -> Set[system.Phase](
-          system.Phase.paused,
-          system.Phase.pauseRequested,
-          system.Phase.cancelRequested
+        client.pause -> Set[protocol.Phase](
+          protocol.Phase.paused,
+          protocol.Phase.pauseRequested,
+          protocol.Phase.cancelRequested
         ),
-        client.unpause -> Set[system.Phase](
-          system.Phase.scheduled,
-          system.Phase.started,
-          system.Phase.cancelRequested
+        client.unpause -> Set[protocol.Phase](
+          protocol.Phase.scheduled,
+          protocol.Phase.started,
+          protocol.Phase.cancelRequested
         )
       )
       if forbidden(s.phase)
-    do rejectsUnchanged(ActivitySystem, s, action, Rejection.failedPrecondition)
+    do rejectsUnchanged(ActivityProtocol, s, action, Rejection.failedPrecondition)
 
     for
       s <- summon[Finite[product.State]].values
@@ -80,13 +80,13 @@ class ActivityRejectionRegression extends munit.FunSuite:
     assertEquals(rows(1).facts, List(product.Fact.statusPaused))
     assertEquals(rows.last.state, before)
     assertEquals(rows.last.facts, Nil)
-    for s <- summon[Finite[system.State]].values if s.phase == system.Phase.pauseRequested
+    for s <- summon[Finite[protocol.State]].values if s.phase == protocol.Phase.pauseRequested
     do
-      val result = take(ActivitySystem, s, client.pause).head
-      assertEquals(ActivitySystem.refinement.toProduct(s), before)
+      val result = take(ActivityProtocol, s, client.pause).head
+      assertEquals(ActivityProtocol.refinement.toProduct(s), before)
       assert(
         rows.exists(r =>
-          r.outcome == result.outcome && r.state == ActivitySystem.refinement
+          r.outcome == result.outcome && r.state == ActivityProtocol.refinement
             .toProduct(
               result.state
             )
@@ -96,27 +96,33 @@ class ActivityRejectionRegression extends munit.FunSuite:
 
   test("a worker cannot answer canceled before cancellation is requested (model.go:171)") {
     for
-      s <- summon[Finite[system.State]].values
-      if s.phase == system.Phase.started || s.phase == system.Phase.pauseRequested
-    do rejectsUnchanged(ActivitySystem, s, worker.respondCanceled, Rejection.invalidArgument)
+      s <- summon[Finite[protocol.State]].values
+      if s.phase == protocol.Phase.started || s.phase == protocol.Phase.pauseRequested
+    do
+      rejectsUnchanged(
+        ActivityProtocol,
+        s,
+        activityWorker.respondCanceled,
+        Rejection.invalidArgument
+      )
     rejectsUnchanged(
       ActivityProduct,
       product.State(product.Phase.started),
-      worker.respondCanceled,
+      activityWorker.respondCanceled,
       Rejection.invalidArgument
     )
   }
 
   test("a repeated RequestCancel rejects without recording another request (model.go:201-202)") {
-    val started = ActivitySystem.init.copy(phase = system.Phase.started, attempts = UpTo(1))
-    val requested = take(ActivitySystem, started, client.requestCancel).head
+    val started = ActivityProtocol.init.copy(phase = protocol.Phase.started, attempts = UpTo(1))
+    val requested = take(ActivityProtocol, started, client.requestCancel).head
     assertEquals(requested.outcome, Outcome.accepted)
-    assertEquals(requested.facts, List(system.Fact.statusCancelRequested))
-    assertEquals(requested.state.phase, system.Phase.cancelRequested)
-    for s <- summon[Finite[system.State]].values if s.phase == system.Phase.cancelRequested
-    do rejectsUnchanged(ActivitySystem, s, client.requestCancel, Rejection.failedPrecondition)
+    assertEquals(requested.facts, List(protocol.Fact.statusCancelRequested))
+    assertEquals(requested.state.phase, protocol.Phase.cancelRequested)
+    for s <- summon[Finite[protocol.State]].values if s.phase == protocol.Phase.cancelRequested
+    do rejectsUnchanged(ActivityProtocol, s, client.requestCancel, Rejection.failedPrecondition)
     rejectsUnchanged(
-      ActivitySystem,
+      ActivityProtocol,
       requested.state,
       client.requestCancel,
       Rejection.failedPrecondition
@@ -146,11 +152,11 @@ class ActivityRejectionRegression extends munit.FunSuite:
       assert(holds(s, rows.head))
       assert(!holds(s, Step(Outcome.rejected(Rejection.failedPrecondition), s)))
     for
-      s <- summon[Finite[system.State]].values if s.phase.in[Closed]
+      s <- summon[Finite[protocol.State]].values if s.phase.in[Closed]
       action <- controls
     do
       assertEquals(
-        take(ActivitySystem, s, action),
+        take(ActivityProtocol, s, action),
         List(Step(Outcome.rejected(Rejection.notFound), s))
       )
   }

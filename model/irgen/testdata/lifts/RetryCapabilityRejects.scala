@@ -1,7 +1,7 @@
 package fixture.retrycapabilityrejects
 
 import framework.*; import framework.Finite.given
-import temporal.capabilities.Retries
+import temporal.capabilities.system.Retryable
 import fixture.retrycapabilities.*
 import fixture.retrycapabilities.given
 
@@ -11,7 +11,7 @@ object NoPhase extends Machine[WaitingState, Answer, Nothing]:
   def end(s: WaitingState): Boolean = s.phase == SimplePhase.failed
   object rules extends Bindings(worker.fail ~> WaitingSteps.fail) // format: on
   object capabilities extends Capabilities:
-    val retries: Capability = Retries[WaitingState, SimplePhase, 2](
+    val retries: Capability = Retryable[WaitingState, SimplePhase, 2](
       worker.fail,
       true,
       WaitingSteps.attempts,
@@ -36,7 +36,7 @@ object NoWaiting
   def keep(s: WithoutWaiting): List[Step[WithoutWaiting, Answer, Nothing]] = stay(s)
   object rules extends Bindings(worker.fail ~> keep)
   object capabilities extends Capabilities:
-    val retries: Capability = Retries(worker.fail, true, zero, maximum, remaining)
+    val retries: Capability = Retryable(worker.fail, true, zero, maximum, remaining)
   object queries:
     capabilities.bound(three)
 
@@ -52,7 +52,7 @@ object NoFailed
   def keep(s: WithoutFailed): List[Step[WithoutFailed, Answer, Nothing]] = stay(s) // format: on
   object rules extends Bindings(worker.fail ~> keep)
   object capabilities extends Capabilities:
-    val retries: Capability = Retries(worker.fail, true, zero, maximum, remaining)
+    val retries: Capability = Retryable(worker.fail, true, zero, maximum, remaining)
   object queries:
     capabilities.bound(three)
 
@@ -62,7 +62,7 @@ object NoSuspended
   val init = WaitingState(SimplePhase.waiting, UpTo(0), UpTo(0))
   object rules extends Bindings(worker.fail ~> WaitingSteps.fail)
   object capabilities extends Capabilities:
-    val retries: Capability = Retries(
+    val retries: Capability = Retryable(
       worker.fail,
       true,
       WaitingSteps.attempts,
@@ -79,7 +79,7 @@ object NoCanceled
   val init = WaitingState(SimplePhase.waiting, UpTo(0), UpTo(0))
   object rules extends Bindings(worker.fail ~> WaitingSteps.fail)
   object capabilities extends Capabilities:
-    val retries: Capability = Retries(
+    val retries: Capability = Retryable(
       worker.fail,
       true,
       WaitingSteps.attempts,
@@ -96,7 +96,7 @@ object UnboundFailure
   val init = WaitingState(SimplePhase.waiting, UpTo(0), UpTo(0))
   object rules extends Bindings(worker.fail ~> WaitingSteps.fail)
   object capabilities extends Capabilities:
-    val retries: Capability = Retries(
+    val retries: Capability = Retryable(
       worker.foreignFailure,
       true,
       WaitingSteps.attempts,
@@ -112,7 +112,7 @@ object UnnamedCount
   val init = WaitingState(SimplePhase.waiting, UpTo(0), UpTo(0))
   object rules extends Bindings(worker.fail ~> WaitingSteps.fail)
   object capabilities extends Capabilities:
-    val retries: Capability = Retries(
+    val retries: Capability = Retryable(
       worker.fail,
       true,
       s => s.attempts + 1,
@@ -128,7 +128,7 @@ object UnnamedPause
   val init = ControlState(ControlPhase.waiting, UpTo(0), false, false)
   object rules extends Bindings(worker.fail ~> ControlSteps.fail)
   object capabilities extends Capabilities:
-    val retries: Capability = Retries(
+    val retries: Capability = Retryable(
       worker.fail,
       true,
       ControlSteps.attempts,
@@ -146,7 +146,7 @@ object MalformedPause
   def selectedPause: Option[WaitingState => Boolean] = Some(WaitingSteps.pending)
   object rules extends Bindings(worker.fail ~> WaitingSteps.fail)
   object capabilities extends Capabilities:
-    val retries: Capability = Retries(
+    val retries: Capability = Retryable(
       worker.fail,
       true,
       WaitingSteps.attempts,
@@ -163,7 +163,7 @@ object ComputedClassification
   val init = WaitingState(SimplePhase.waiting, UpTo(0), UpTo(0))
   object rules extends Bindings(worker.fail ~> WaitingSteps.fail)
   object capabilities extends Capabilities:
-    val retries: Capability = Retries(
+    val retries: Capability = Retryable(
       worker.fail,
       WaitingSteps.pending(init),
       WaitingSteps.attempts,
@@ -180,14 +180,14 @@ object AmbiguousWaiver
   object rules
       extends Bindings(worker.fail ~> WaitingSteps.fail, network.fault ~> WaitingSteps.fault)
   object capabilities extends Capabilities:
-    val first: Capability = Retries(
+    val first: Capability = Retryable(
       worker.fail,
       true,
       WaitingSteps.attempts,
       WaitingSteps.maxOne,
       WaitingSteps.remainingOne
     )
-    val second: Capability = Retries(
+    val second: Capability = Retryable(
       network.fault,
       true,
       WaitingSteps.otherAttempts,
@@ -195,7 +195,7 @@ object AmbiguousWaiver
       WaitingSteps.remainingUnlimited
     )
     except(
-      Retries.failureEndsFailed[WaitingState, SimplePhase],
+      Retryable.failureEndsFailed[WaitingState, SimplePhase],
       because = "a fixture's ambiguous waiver"
     )
   object queries:
@@ -208,14 +208,14 @@ object AmbiguousClaim
   object rules
       extends Bindings(worker.fail ~> WaitingSteps.fail, network.fault ~> WaitingSteps.fault)
   object capabilities extends Capabilities:
-    val first: Capability = Retries(
+    val first: Capability = Retryable(
       worker.fail,
       true,
       WaitingSteps.attempts,
       WaitingSteps.maxOne,
       WaitingSteps.remainingOne
     )
-    val second: Capability = Retries(
+    val second: Capability = Retryable(
       network.fault,
       true,
       WaitingSteps.otherAttempts,
@@ -226,7 +226,7 @@ object AmbiguousClaim
     capabilities.bound(three)
     val start = scenario.free
     val ambiguous = query verify capabilities.claim(
-      Retries.failureEndsFailed[WaitingState, SimplePhase]
+      Retryable.failureEndsFailed[WaitingState, SimplePhase]
     ) in start limits three
 
 final case class Foreign[S](own: S => Boolean, pending: Option[S => Boolean] = None)
@@ -274,12 +274,12 @@ def controlPauses(m: Declares[ControlState])(
     after.state.phase == ControlPhase.waiting
   )
 
-// Two Retries instances; only the first binds a pending pause, so it alone brings failurePauses.
+// Two Retryable instances; only the first binds a pending pause, so it alone brings failurePauses.
 abstract class TwoFailures(using
     Declaring[ControlState, Answer, Nothing],
     Phasing[ControlState, ControlPhase]
 ) extends Capabilities:
-  val first: Capability = Retries(
+  val first: Capability = Retryable(
     worker.fail,
     true,
     ControlSteps.attempts,
@@ -287,7 +287,7 @@ abstract class TwoFailures(using
     ControlSteps.remainingOne,
     pendingPause = Some(ControlSteps.pendingPause)
   )
-  val second: Capability = Retries(
+  val second: Capability = Retryable(
     worker.fatalFailure,
     false,
     ControlSteps.attempts,
@@ -303,7 +303,7 @@ object UnknownInstance
       extends Bindings(worker.fail ~> ControlSteps.fail, worker.fatalFailure ~> ControlSteps.fatal)
   object capabilities extends TwoFailures:
     overriding(
-      Retries.failureEndsFailed[ControlState, ControlPhase] -> controlEndsFailed,
+      Retryable.failureEndsFailed[ControlState, ControlPhase] -> controlEndsFailed,
       because = "a fixture's unknown instance",
       of = Seq(ControlledFailures.capabilities.eligible)
     )
@@ -318,7 +318,7 @@ object NonMatchingInstance
       extends Bindings(worker.fail ~> ControlSteps.fail, worker.fatalFailure ~> ControlSteps.fatal)
   object capabilities extends TwoFailures:
     overriding(
-      Retries.failurePauses[ControlState, ControlPhase] -> controlPauses,
+      Retryable.failurePauses[ControlState, ControlPhase] -> controlPauses,
       because = "a fixture's non-matching instance",
       of = Seq(second)
     )
@@ -333,7 +333,7 @@ object DuplicateInstance
       extends Bindings(worker.fail ~> ControlSteps.fail, worker.fatalFailure ~> ControlSteps.fatal)
   object capabilities extends TwoFailures:
     overriding(
-      Retries.failureEndsFailed[ControlState, ControlPhase] -> controlEndsFailed,
+      Retryable.failureEndsFailed[ControlState, ControlPhase] -> controlEndsFailed,
       because = "a fixture's duplicate instance",
       of = Seq(first, first)
     )
@@ -348,7 +348,7 @@ object EmptySelection
       extends Bindings(worker.fail ~> ControlSteps.fail, worker.fatalFailure ~> ControlSteps.fatal)
   object capabilities extends TwoFailures:
     overriding(
-      Retries.failureEndsFailed[ControlState, ControlPhase] -> controlEndsFailed,
+      Retryable.failureEndsFailed[ControlState, ControlPhase] -> controlEndsFailed,
       because = "a fixture's empty selection",
       of = Seq()
     )
@@ -363,7 +363,7 @@ object RedundantSelection
       extends Bindings(worker.fail ~> ControlSteps.fail, worker.fatalFailure ~> ControlSteps.fatal)
   object capabilities extends TwoFailures:
     overriding(
-      Retries.failurePauses[ControlState, ControlPhase] -> controlPauses,
+      Retryable.failurePauses[ControlState, ControlPhase] -> controlPauses,
       because = "a fixture's redundant selection",
       of = Seq(first)
     )

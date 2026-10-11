@@ -67,3 +67,51 @@ The user adopted the action-owning facet as the target. [user] Ownership by acti
 
 - How a facet's sections are expressed in Scala (traits with nested section objects vs another encoding) and whether the lifter can read them without new restrictions. The stage 1 implementation resolves this. [inferred]
 - Whether an interaction facet is needed for the standalone activity at all. Stage 2's migration resolves this. [inferred]
+
+## Standalone activity facet vocabulary (Batch 1d activity lane, 2026-10-11)
+
+One vocabulary for the standalone activity, shared by `ActivityProduct` and `ActivitySystem` (to be `ActivityProtocol`, fn-160.6). Facets own actions by binding them; a level holds only the facets it needs (R9). Nouns for what happens; `Retrying` matches the Nexus kind's name for the same area.
+
+| Facet | Owns (product) | Owns (protocol) | Capabilities it declares |
+|---|---|---|---|
+| `Dispatch` | `client.start`, `activityWorker.poll` | `client.start`, `activityWorker.poll`, `timers.startDelay`, `timers.backoff` | product and protocol: `Pollable` |
+| `Completion` | `activityWorker.respondCompleted`, `completionClient.respondCompletedByID` | same | |
+| `Retrying` | `activityWorker.respondFailed`, `completionClient.respondFailedByID` | same | protocol: the two `Retryable` declarations and their reset-aware overrides |
+| `Cancellation` | `client.requestCancel`, `activityWorker.respondCanceled`, `completionClient.respondCanceledByID` | same | |
+| `Pausing` | `client.pause`, `client.unpause` | same | product: `Pausable` and its override |
+| `Reset` | `client.reset` | same | |
+| `Heartbeat` | `activityWorker.heartbeat`, `deadline.heartbeat` | same | protocol: `heartbeatDeadline` (`Expirable`) and its overrides |
+| `Timeouts` | `timers.timeout` | `deadline.scheduleToClose`, `deadline.scheduleToStart`, `deadline.startToClose` | protocol: the three `Expirable` declarations and the start-to-close overrides |
+| `Lifecycle` | `client.terminate` | `client.terminate`, `process.stop` | product: `Closable`; protocol: `Terminable`, `Describable` |
+
+- The closed-state `notFound` blocks that today name several actions at once (`on(client.pause, client.unpause, client.requestCancel, client.terminate)`, the three By-ID answers) split by action into each owning facet; the rows stay the same.
+- A failure answer applies a pending reset before its retryability is read, so `Retrying` depends on `Reset` (`applyReset`, and the product's `failOrReset` choice stays in `Retrying`); `Heartbeat` and `Timeouts` depend on `Reset` and `Retrying` for `applyReset*` and the back-off steps. Shared steps (`keep`, `dispatchNow`) sit in `Dispatch` or `Lifecycle`.
+- The admission designs are protocol subjects with their own state, so the product/protocol same-owner rule does not reach them: `ActivityRecord` and `HeldDispatch` take one facet, `Admission`; `LostStartAnswer` takes `ResponseLoss`. Both names join the vocabulary. `TrustingActivityRecord`, `ActivityWorker`, `RecordMember`/`TrustingRecordMember` (derivations) and the compositions are exempt (R8).
+- Machine-wide (no facet): each machine's `State`, phase enum, `init`, `end`, phase projection and writer, refinement, `states` helpers, and the whole-feature `queries`.
+
+## Nexus facet vocabulary (Batch 1d nexus lane, 2026-10-11)
+
+One vocabulary for the kind, shared by the Product (`NexusProduct`) and both forms' Protocol machines (standalone and workflow `NexusSystem`, to be `NexusProtocol`). Facets own actions by binding them; a level holds only the facets it needs. Nouns for what happens:
+
+| Facet | Owns (product) | Owns (standalone protocol) | Owns (workflow protocol) | Capabilities it declares |
+|---|---|---|---|---|
+| `Scheduling` | (none: the product begins scheduled) | `client.start` | `caller.schedule` | |
+| `Starting` | `handler.reply` | `handler.reply` | `handler.reply` | workflow: the two `Retryable` handler-error declarations (their failure is a reply class) |
+| `Completion` | `handler.complete` | `handler.complete` | `handler.complete` | standalone: `Closable` with its `overriding` (closed rejection is the completion's promise), `Describable` |
+| `Retrying` | `disabled(network.fault, worker.stop)` | | `network.fault`, `worker.stop`, `timers.backoff` | workflow: `Retryable` for `network.fault` |
+| `Cancellation` | | `client.requestCancel` | | |
+| `Termination` | `client.terminate` | `client.terminate` | | standalone: `Terminable` |
+| `Timeouts` | `timers.timeout` | | `deadline.scheduleToClose`, `deadline.scheduleToStart`, `deadline.startToClose` | workflow: the three `Expirable` declarations |
+
+- `Starting` is the handler's answer to the start request (sync settle, async start, or a handler error); `handler.reply` is bound at all three machines, so it is `Starting` at all three (R9). The retryable reply class backs the operation off, but its rules stay with their action (ownership by action), and `Retrying` keeps the faults and the backoff timer that make a retry.
+- `Retrying` at the product holds only the `disabled` binding of the two faults, because the workflow protocol binds them and R9 requires the same owner at both levels.
+- Design and adversarial machines take one facet named after their concern: `ClosePolicy` for `RejectAfterClose` (its derived designs stay derived) and `ForgedControl` for `TrustingCaller`. They are workflow-protocol subjects with their own state, so the product/protocol same-owner rule does not reach them; the two names join the kind's vocabulary.
+- Machine-wide (no facet): each machine's `State`, phase enum, `init`, `end`, phase projection, refinement, `states` sets, and the whole-feature `queries`; `HandlerWorker` (a derivation) and `NexusCaller` (a composition) are exempt (R8).
+
+## Batch 1d implementation decisions (single worker, 2026-10-11)
+
+- Activity vocabulary as implemented: `dispatching` (not `Dispatch`: the System's `enum Dispatch`), `retry` (not `Retrying`: the framework role `Retrying`), `completion`, `cancellation`, `pausing`, `reset`, `heartbeat`, `timeouts`, `lifecycle`; design subjects `admission` (ActivityRecord), `heldAdmission` (HeldDispatch), `responseLoss` (LostStartAnswer).
+- Facets hold `effects`, `rules`, `capabilities` (listed by the machine's `FacetCapabilities(...)`), `properties` and `queries` (fn-162: each Property declared once in its facet; claim containers removed).
+- fn-161.4: every other declared machine is one facet: worker `serving`, task queue `queueing` (both levels), Nexus `operation` (Product and both Protocols), `closing` (RejectAfterClose), `forgedControl` (TrustingCaller). The Nexus lane's finer split (Scheduling, Starting, ...) is left for later.
+- `facets-only` and `facet-vocabulary` hold every Temporal Model by default; fixtures turn them on per run. R9 does not reach a design subject with a state type of its own.
+- A machine of facets binds its actions in facet order, so the binding order of ActivityProduct and ActivitySystem changed (pins updated; step-table equivalence shows it).

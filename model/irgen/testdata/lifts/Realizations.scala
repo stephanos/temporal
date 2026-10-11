@@ -298,7 +298,7 @@ private val awaitStarted = Command(
         _.attributes.workflowExecutionStartedEventAttributes
       )
     ),
-    250
+    Some(framework.realize.Elapsed.milliseconds(250))
   ),
   after = Some(After("start-workflow"))
 )
@@ -531,7 +531,7 @@ private val watched = Watched.scenario.starts(DoorState.closed).actions(push)
 // A Run's expected verdicts with each monitor named by value, beside the same verdicts with each
 // named by its name: one expected Run.
 val heldByValue: Query =
-  (query find watchedOpens in watched limits onePush total 2).expect(
+  (query find watchedOpens in watched limits onePush total 2).live(
     RunExpectation(
       Conformance.conformant,
       PropertyOutcome.satisfied,
@@ -545,7 +545,7 @@ val heldByValue: Query =
     )
   )
 val heldByName: Query =
-  (query find watchedOpens in watched limits onePush total 2).expect(
+  (query find watchedOpens in watched limits onePush total 2).live(
     RunExpectation(
       Conformance.conformant,
       property = PropertyOutcome.satisfied,
@@ -702,7 +702,7 @@ private def awaitListed(
         )
       ),
       reads,
-      250
+      Some(framework.realize.Elapsed.milliseconds(250))
     )
   )
 
@@ -979,7 +979,7 @@ val tallyRealization: Realization = Realization(
                   )
                 ),
                 Condition.equal(Field[ActivityExecutionInfo, Int](_.attempt), Operand.integer(1)),
-                250
+                Some(framework.realize.Elapsed.milliseconds(250))
               ),
               closes = Vector("fixture.realizations.tally.evidence.opened")
             )

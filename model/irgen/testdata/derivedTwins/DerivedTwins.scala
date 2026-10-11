@@ -1,7 +1,7 @@
 // One shared def that builds a Query of one name over two machines of one package, each instance in
 // an IR file of its own (fn-126 decision 23). The two records share the def's position, yet derive
 // one ID, `fixture.derivedtwins.query.anyLit`, over two machines: the run refuses the second.
-package fixture.derivedtwins
+package fixture.features.derivedtwins
 
 import framework.*
 
@@ -40,5 +40,3 @@ def litQueries(m: Machine[LampState, Outcome, Nothing]): Vector[Query] = Vector(
 val lampQueries = litQueries(Lamp)
 val plainLampQueries = litQueries(PlainLamp)
 
-val lampFile = irFile("lamp")(lampQueries)
-val plainLampFile = irFile("plainLamp")(plainLampQueries)

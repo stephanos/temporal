@@ -13,7 +13,7 @@ package fixture.hintsInvalid
 
 import io.temporal.api.workflowservice.v1.{DescribeActivityExecutionRequest, WorkflowServiceGrpc}
 import temporal.realize.*
-import temporal.features.activity.standalone.worker
+import temporal.features.activity.standalone.activityWorker
 
 private val start = WorkflowServiceGrpc.METHOD_START_ACTIVITY_EXECUTION
 private val describe = WorkflowServiceGrpc.METHOD_DESCRIBE_ACTIVITY_EXECUTION
@@ -30,5 +30,5 @@ val constructed = Visibility(CauseKind.activityAnswer, describe, Visible.atOnce)
 val bounded = CauseKind.delivery.boundedBy(WaitBound(100, 1000))
 val boundNoWait = CauseKind.delivery.boundedBy(Visible.atOnce)
 
-val step = ServerStep(worker.poll, CauseKind.delivery)
+val step = ServerStep(activityWorker.poll, CauseKind.delivery)
 val stepNoClass = ServerStep(CauseKind.delivery, CauseKind.delivery)

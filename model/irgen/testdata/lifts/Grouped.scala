@@ -1,5 +1,5 @@
-// Rules grouped by who acts (fn-139.3): `Grouped` writes its rules in `from` blocks, each opened by
-// its declarer's import, with `when` cases and an `on` of two classes; `Plain` writes the same rules
+// Rules grouped by who acts (fn-139.3): `Grouped` writes its rules in `from` blocks, each naming
+// its actions through their declarer (fn-159.1), with `when` cases and an `on` of two classes; `Plain` writes the same rules
 // with `on` blocks and `in` cases, one block per class. The lifter's tests lift both and require one
 // machine of the two, but for names and positions.
 package fixture.grouped
@@ -42,18 +42,16 @@ object Grouped extends Machine[Kettle, Outcome, Nothing], Phased[Kettle, Mode](_
 
   object rules extends Rules:
     from(cook) {
-      import cook.*
-      on(fill) {
+      on(cook.fill) {
         when(Mode.idle) ~> effects.heat // format: off
         when(Mode.busy).where(_.boils == 2) ~> effects.halt
       } // format: on
-      on(set(Dial.low), set(Dial.high)) {
+      on(cook.set(Dial.low), cook.set(Dial.high)) {
         when(Modes.working) ~> effects.refuse
       }
     }
     from(clock) {
-      import clock.*
-      on(cool)(when(Mode.busy, Mode.halted) ~> effects.rest)
+      on(clock.cool)(when(Mode.busy, Mode.halted) ~> effects.rest)
     }
 
 object Plain extends Machine[Kettle, Outcome, Nothing], Phased[Kettle, Mode](_.mode):

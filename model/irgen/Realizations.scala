@@ -460,10 +460,25 @@ private[irgen] trait Realizations:
       com.google.protobuf.duration.Duration(seconds, ((milliseconds % 1000) * 1000000).toInt)
     )
 
-  // The elapsed bound a term writes, an integer constant in milliseconds.
-  private def elapsedOf(b: Bound): Option[PMessage] =
-    val t = reduce(b).term
-    elapsed(constInt(t), t).map(_.toPMessage)
+  // The elapsed bound a term writes (fn-147): a protobuf Duration, `Elapsed.milliseconds(n)`, an
+  // `Option` of either, or an integer constant in milliseconds; none for `None` or a zero bound.
+  private def elapsedOf(b0: Bound): Option[PMessage] =
+    val b = reduce(b0)
+    val t = b.term
+    if Set("scala.Long", "scala.Int")(t.tpe.widen.dealias.typeSymbol.fullName) then
+      elapsed(constInt(t), t).map(_.toPMessage)
+    else if t.symbol.fullName == "scala.None" then None
+    else
+      val inner = applied(t) match
+        case Some((fn, List(x))) if fn.symbol.owner.fullName.startsWith("scala.Some") =>
+          Bound(x, b.env)
+        case _ => b
+      val d = durationValue(inner, com.google.protobuf.duration.Duration.scalaDescriptor)
+      val zero = d.value.values.forall {
+        case PLong(0) | PInt(0) => true
+        case _                  => false
+      }
+      Option.when(!zero)(d)
 
   def irMessage(f: FieldDescriptor, at: Tree): Descriptor = f.scalaType match
     case ScalaType.Message(d) => d
@@ -652,7 +667,7 @@ private[irgen] trait Realizations:
           case Some((fn, args)) if factory(fn, "Instruction", "readUntil") =>
             (
               "Poll",
-              List("evidence", "role", "assign", "until", "intervalMs")
+              List("evidence", "role", "assign", "until", "interval")
                 .zip(args)
                 .collect {
                   case (p, a) if !isDefault(a) => p -> Bound(a, b.env)
@@ -906,10 +921,41 @@ private[irgen] trait Realizations:
               case _ => fail(mapper, s"expected a one-argument map, got ${mapper.show}")
           case _ => fail(t, s"expected a sequence written out, got ${t.show}")
 
+  private def durationValue(b0: Bound, d: Descriptor): PMessage =
+    val b = reduce(b0)
+    def integer(t: Term): Long = constInt(reduce(Bound(t, b.env)).term)
+    val (seconds, nanos) = applied(b.term) match
+      case Some((fn, List(value)))
+          if fn.symbol.name == "milliseconds" && fn.symbol.owner.fullName.stripSuffix(
+            "$"
+          ) == "framework.realize.Elapsed" =>
+        val milliseconds = integer(value)
+        (milliseconds / 1000, (milliseconds % 1000) * 1000000)
+      case Some((fn, args))
+          if fn.symbol.name == "apply" && fn.symbol.owner.fullName.stripSuffix(
+            "$"
+          ) == "com.google.protobuf.duration.Duration" =>
+        def supplied(i: Int): Long = args.lift(i).filterNot(isDefault).fold(0L)(integer)
+        if args.drop(2).exists(a => !isDefault(a)) then
+          fail(b.term, "Duration unknown fields are not authored")
+        (supplied(0), supplied(1))
+      case _ => fail(b.term, "an elapsed bound is a native google.protobuf.Duration")
+    if seconds < -315576000000L || seconds > 315576000000L || nanos < -999999999L || nanos > 999999999L ||
+      (seconds > 0 && nanos < 0) || (seconds < 0 && nanos > 0)
+    then fail(b.term, "an elapsed bound is outside the protobuf Duration range")
+    if nanos % 1000000 != 0 then fail(b.term, "an elapsed bound contains exact whole milliseconds")
+    PMessage(
+      Map(
+        irField(d, "seconds", b.term) -> PLong(seconds),
+        irField(d, "nanos", b.term) -> PInt(nanos.toInt)
+      )
+    )
+
   // One value of a field: a message of the field's type, a class, or a constant.
   def valueOf(f: FieldDescriptor, b0: Bound): PValue =
     f.scalaType match
-      case ScalaType.Message(d) if d.name == "Command" =>
+      case ScalaType.Message(d) if d.fullName == "google.protobuf.Duration" => durationValue(b0, d)
+      case ScalaType.Message(d) if d.name == "Command"                      =>
         commandValue(b0, d)
       // A hint is written where it is called, never where the kit's helper builds it.
       case ScalaType.Message(d) if hintMessages(d.fullName) => hintValue(b0, d)
@@ -1093,6 +1139,9 @@ private[irgen] trait Realizations:
                 inner,
                 chosen.term
               )
+            // An expectation's reason is source text the IR never carries (fn-140 R4).
+            case None if p == "because" && Set("RunExpectation", "MonitorExpectation")(md.name) =>
+              ()
             case None => fail(at, s"${md.name} has no $p in the IR")
       member(name) match
         case Some(f) => write(f, args, b.term)
@@ -1906,7 +1955,16 @@ private[irgen] trait Realizations:
           if replaces then items.patch(at, added, 1) else items.patch(at + 1, added, 0)
         }
       }
-      b.copy(machine = machine, controller = items)
+      // Its header is the base's, but for the Queries it runs, which are its own.
+      val runs = parentArguments(c).flatten.drop(2).headOption.map {
+        case NamedArg(_, a) => a
+        case a              => a
+      }
+      b.copy(
+        machine = machine,
+        header = (b.header - "runs") ++ runs.filterNot(isDefault).map("runs" -> _),
+        controller = items
+      )
     else
       val params = realizesClass.primaryConstructor.paramSymss.flatten.filter(_.isTerm).map(_.name)
       val args = c.parents
@@ -2040,10 +2098,57 @@ private[irgen] trait Realizations:
           .withResetSettlements(reset.map(b => emit(ir.ActivityResetSettlement, b)))
         classesOfMachine(r, machine)
         distinctName("realizations", realizations.values.map(r => r.name -> r.id), r.name, id, at)
-        realizations(id) = r
-        r
+        val run = r.withQueries(runs(r.name, machineName, d.header.get("runs")))
+        realizations(id) = run
+        run
       }
     )
+
+  // The find Queries each realization runs, by the Query's name, and the realization that names it.
+  private val runBy = mutable.Map.empty[String, String]
+
+  // fn-162 R8: the find Queries a realization names in its header, `Realizes(machine, runs =
+  // Seq(...))`: a Query, a list of them, a machine's `queries` section, every find Query it
+  // declares, or its `capabilities` section, every find Query its capabilities generate. A find
+  // Query no realization names is model-only. A Query of another machine, or one a second
+  // realization names, is refused, naming both.
+  private def runs(realization: String, machine: String, named: Option[Term]): Seq[String] =
+    def names(d: Decl, t: Tree): List[String] = d match
+      case Decl.Declared(n) => List(n)
+      case Decl.Items(xs)   => xs.flatMap(names(_, t))
+      case Decl.Capable(m)  =>
+        queries.values
+          .filter(q =>
+            q.getProperty.machine == m &&
+              properties.get((m, q.getProperty.name)).exists(_.origin.nonEmpty)
+          )
+          .map(_.name)
+          .toList
+      case other =>
+        fail(t, s"$realization runs Queries, a queries or a capabilities section, not $other")
+    def of(t: Term): List[String] =
+      val sym = unwrapped(t).symbol
+      if queriesSection(sym) then
+        statements(objectBody(moduleClassOf(sym), t)).flatMap {
+          case v: ValDef if claimRoot(v.tpt.tpe) => names(fold(Ref(v.symbol), Map.empty), v)
+          case _                                 => Nil
+        }
+      else names(fold(t, Map.empty), t)
+    val listed = named.toList.flatMap(t =>
+      unwrapped(t) match
+        case Apply(_, List(arg)) => varargs(arg)
+        case other => fail(other, s"$realization runs `Seq(...)` of Queries, not ${other.show}")
+    )
+    val found = listed.flatMap(t => of(t).map(_ -> t)).distinctBy(_._1)
+    for (q, t) <- found do
+      val query = queries(q)
+      val scenarioMachine = query.getScenario.machine
+      if scenarioMachine != machine then
+        fail(t, s"$realization realizes $machine and names $q, a Query of $scenarioMachine")
+      for other <- runBy.get(q) if other != realization do
+        fail(t, s"$q is named by the realizations $other and $realization: one realization runs it")
+      runBy(q) = realization
+    found.map(_._1).filter(q => queries(q).form == ir.Query.Form.FORM_FIND)
 
   // The role ids a realization's scripts and controls name, and the environment bindings their
   // operands read, through which a role's resource is named.
@@ -2073,7 +2178,9 @@ private[irgen] trait Realizations:
       stated: List[(Bound, ir.ServerStep)],
       at: Tree
   ): Seq[ir.ServerStep] =
-    def timer(name: String) = elapsed(constInt(Ref(kitSymbol("Kit", name))), at)
+    val _ = at
+    def timer(name: String) = elapsedOf(Bound(Ref(kitSymbol("Kit", name)), Map.empty))
+      .map(com.google.protobuf.duration.Duration.messageReads.read)
     val position = Some(pos(at))
     val timers = machine.steps.map(_.action).filter(a => actions.get(a).exists(_.timer))
     val activities = r.scripts.filter(_.activation.isActivity)
@@ -2087,7 +2194,7 @@ private[irgen] trait Realizations:
           position,
           Some(ir.ActionClass(a)),
           ir.CauseKind.CAUSE_KIND_TIMER,
-          timer("firstRetryBackoffMs")
+          timer("firstRetryBackoff")
         )
       )
     val expired = (for
@@ -2111,7 +2218,7 @@ private[irgen] trait Realizations:
           position,
           Some(ir.ActionClass(a)),
           ir.CauseKind.CAUSE_KIND_TIMER,
-          timer("deadlineMs"),
+          timer("timerDeadline"),
           bases.head
         )
       }
@@ -2240,7 +2347,7 @@ private[irgen] trait Realizations:
       .getOrElse(fail(b.term, s"${b.term.show} names no id"))
 
   // The argument a declaration written out gives its parameter `name`, if it has one.
-  private def fieldOfDeclaration(b0: Bound, name: String): Option[Bound] =
+  private[irgen] def fieldOfDeclaration(b0: Bound, name: String): Option[Bound] =
     val b = reduce(b0)
     scriptCall(b.term) match
       case Some(("script", id :: _)) if name == "id" =>
@@ -2251,6 +2358,31 @@ private[irgen] trait Realizations:
           val params = fn.symbol.paramSymss.flatten.filter(_.isTerm).map(_.name)
           params.zip(args).collectFirst { case (`name`, a) => Bound(a, b.env) }
         }
+
+  // fn-140 R4: an expectation whose Property outcome or Contract verdict is short of satisfied, and
+  // each monitor expectation short of satisfied inside it, says why in `because`, source text the IR
+  // never carries. Refused at the expectation, naming `owner`, where it is missing or blank.
+  def explained(owner: String, b: Bound): Unit =
+    val r = reduce(b)
+    def outcome(x: Bound, field: String) =
+      fieldOfDeclaration(x, field).map(o => reduce(o).term.symbol.name)
+    def because(x: Bound) = fieldOfDeclaration(x, "because").map(textOfBound).getOrElse("")
+    val short = Seq("property", "contract").flatMap(outcome(r, _)).exists(_ != "satisfied")
+    if short && because(r).trim.isEmpty then
+      fail(
+        b.term,
+        s"$owner is short of satisfied and says no reason why: state it, `because = \"...\"`"
+      )
+    for
+      ms <- fieldOfDeclaration(r, "monitors").toList if !isDefault(reduce(ms).term)
+      m <- itemsOf(ms)
+    do
+      if outcome(m, "outcome").exists(_ != "satisfied") && because(m).trim.isEmpty then
+        fail(
+          m.term,
+          s"$owner expects a monitor short of satisfied and says no reason why: state it, " +
+            "`because = \"...\"`"
+        )
 
   // A fact a Model names by value: a case of an enum of the Models, or the companion of one with
   // fields, which names every value of it.
@@ -2374,7 +2506,7 @@ private[irgen] trait Realizations:
   private def commandValue(b0: Bound, d: Descriptor): PMessage =
     val b = reduce(b0)
     val m = Message(d)
-    val options = List("after", "timeoutMs", "regardless", "closes")
+    val options = List("after", "timeout", "regardless", "closes")
     def supplied(names: List[String], args: List[Term]) = names.zip(args).collect {
       case (p, a) if !isDefault(a) => p -> Bound(a, b.env)
     }
@@ -2461,7 +2593,7 @@ private[irgen] trait Realizations:
       )
     )
 
-  // A read written with `readUntil(evidence, role, until, intervalMs) { … }`.
+  // A read written with `readUntil(evidence, role, until, interval) { … }`.
   private def pollValue(b: Bound, d: Descriptor): PMessage = scriptCall(b.term) match
     case Some(("readUntil", List(evidence, role, until, interval, assign))) =>
       val (own, _) = scoped(Bound(assign, b.env), d, None)

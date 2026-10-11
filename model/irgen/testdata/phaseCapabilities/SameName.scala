@@ -1,7 +1,8 @@
 package fixture.phasecapabilities
 
 import framework.*
-import temporal.capabilities.*
+import temporal.capabilities.product.*
+import temporal.capabilities.system.*
 
 package first:
   enum ClosePhase derives Finite:

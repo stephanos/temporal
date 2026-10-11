@@ -191,7 +191,7 @@ A machine's table is derived from its declaration:
    Where both machines' phases take roles, a refinement also preserves closedness: a state is
    `Closed` exactly when its mapped product state is. The IR carries no roles, so this check is not
    the IR's: it runs in Scala, over every `Finite` state of the refining machine, in the model
-   tests, which find each such refinement among the machines the `irFile` exports reach
+   tests, which find each such refinement among the machines the features' packages reach
    (`model/temporal/ExportedLaws.test.scala`) and report every state whose role differs from its
    image's, with the image. A refinement whose machines carry no roles is reported as not checked.
 7. Its monitors ([Monitors](#monitors)) and its assumptions ([Assumptions](#assumptions)) are the
@@ -208,14 +208,26 @@ A machine object's `rules` holds one or more blocks that name actions, `on(a) { 
 `on(a(v)) { … }`, whose cases each say where the action fires and what it does there, `c ~> e`. An
 `on(a, b) { … }` block gives the same cases to each named action. Every `on`, including one with one
 case, is brace-delimited, with its cases on separate lines and its closing brace on a line of its
-own; `on(a)(case)` is no Model form. `from(actor) { import actor.*; on(a) { … } }` only groups the
-blocks of actions `actor` declares, so removing the group and qualifying each action preserves the
-table. The case `when(p1, …)` holds while the machine's phase projection,
+own; `on(a)(case)` is no Model form. Each target, and each `disabled` target, names its action
+through its declarer, `actor.a`; `from(actor) { on(actor.a) { … } }` only groups the blocks of
+actions `actor` declares and imports nothing, so removing the group preserves the table. Phases are
+named through their phase type, `Phase.p`. Both rules are spelling: they change no table. The
+case `when(Phase.p1, …)` holds while the machine's phase projection,
 `Phased[State, Phase](_.phase)`, is one of the phases listed, `when(set)` while it is in the named
 set `set`, `when[R]` while it has phase role `R`, `where(g)` while the guard `g` of the state holds,
 `when(…).where(g)` while both do and `always` in every state; `e` is an effect of the machine's
 `effects`, which says what happens and never whether: it gives at least one step. `disabled(a)`
 binds an action no state enables.
+
+`enters(p)` is the effect that only enters the phase `p`: the step function of the state alone
+`s => enter(w(s, p), status(p))`, where `w` is the writer the machine's projection declares,
+`Phased[State, Phase](_.phase, (s, p) => s.copy(phase = p))` (a derived machine's is its source's),
+and `status(p)` is the status fact `p`'s case declares where its enum is `Recorded`, and no fact
+otherwise. It is the step an effect block whose whole body is `phase = p` takes, so replacing such
+an effect by `enters(p)` keeps every row. A rule names it as its effect, `c ~> enters(p)`; a `choose`
+alternative applies it to the state, `t -> enters(p)(s)`, and lifts as the step written out. The
+writer must give a state whose projection is `p`: `enters` refuses one that does not, and a
+projection declared without a writer, when it is first stepped.
 
 `object rules extends Rules` takes no argument and reads the machine's `Phased` given. A derived
 machine or composition inherits its source's projection and phase type. A machine without
@@ -252,6 +264,17 @@ the source tells apart by their effects: two rules of the whole action, or two r
 with different effects. Rules that each fire another class may differ, since `e` reads the class's
 inputs. A machine of the IR generator's core fixtures may bind
 its step functions by hand, `object rules extends Bindings(a ~> f, …)`, which is what rules lower to.
+
+### Facets
+
+A machine may be assembled from facets (`model/framework/Facet.scala`): traits it mixes in, each
+holding an object whose `effects` and `rules` are sections of the machine. `object rules extends
+Facets(f1.rules, …, fn.rules)` is the machine whose `rules` holds the blocks of `f1`, then `f2`,
+…, then `fn`, each facet's in the order written, and whose effects are every facet's effects. Each
+action is bound by exactly one facet's rules: two facets binding one action are refused, naming the
+action and both facets. Since an action's rules sit in one facet, and the rules of one action class
+are disjoint ([Rules](#rules)), facet order fixes only the order of arms of the lowered functions and
+changes no row. A facet's `enters` writes through the writer of the machine that mixes it in.
 
 ### Modalities
 
@@ -463,7 +486,7 @@ rejected its result is the rejection. Only a `verify` reads through a refinement
 `through` is unsupported. A `find` of a transition Property and transition lowering to a Case remain
 refused.
 
-The typed Retries capability binds one failure class and its constant retryable classification,
+The typed Retryable capability binds one failure class and its constant retryable classification,
 named state reads for eligibility, count and policy maximum, and optional pending pause and cancel
 reads. Eligibility reads the state before failure. Fatal failure lands in Failed. Retryable pending
 cancellation lands in Canceled even at exhaustion; otherwise exhaustion lands in Failed, an eligible
@@ -474,7 +497,7 @@ is explicit unlimited policy and makes no finite-maximum claim about the count's
 The maximum's optional numeric value uses the existing finite `UpTo[N]` catalog. `N` bounds that
 catalog, independently of the supplied policy maximum and the attempt count's domain.
 
-Each Retries declaration brings its own Properties and free verify Queries under
+Each Retryable declaration brings its own Properties and free verify Queries under
 `<machine>.<val>.<property>`, retaining their companion origin. Fields bind first to that declaration.
 A bound override for a companion Property reaches every instance; a claim or waiver that names an
 ambiguous repeated companion Property is refused. An `overriding` with `of` names the instances it
@@ -546,7 +569,7 @@ assumption it read. A composition with a monitored member is unsupported, as its
 
 ## Realizations
 
-The standalone activity's three realizations live in `features/activity/standalone/system/Realization.scala`,
+The standalone activity's three realizations live in `features/activity/standalone/protocol/Realization.scala`,
 in the level of their subjects. Moving them changes their fully qualified IDs and the package-derived
 evidence, source and producer identities; it changes no transition, Query answer or evidence meaning.
 
@@ -1021,7 +1044,7 @@ is future work.
 Two narrowings came from the specimens' evidence:
 
 - **Machines 6.** A stutter records no fact the product sees only where the refinement names what the
-  product sees. `activitySystem` names nothing, so its 240 stutters that record a product fact
+  product sees. `activityProtocol` names nothing, so its 240 stutters that record a product fact
   (finding F3) are read as before.
 - **Expressions, `match`.** A value no case matches is an undeclared hole, apart from the admission
   errors a reader rejects and from declared holes (finding F4).

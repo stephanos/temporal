@@ -58,7 +58,7 @@ object BoundPrefix extends Machine[State, Outcome, Nothing]:
   val init = State(Kind.a, Handler.running)
   object rules extends Bindings()
   def end(s: State) = s.kind match
-    case x @ Kind.a                      => x == Kind.a
+    case x @ Kind.a => x == Kind.a
     case _: Kind.b.type | _: Kind.c.type => true
 
 enum Lifecycle derives Finite:
@@ -70,7 +70,7 @@ object RolePrefix extends Machine[RoleState, Outcome, Nothing]:
   val init = RoleState(Lifecycle.held)
   object rules extends Bindings()
   def end(s: RoleState) = s.phase match
-    case p: Held                                              => p != Lifecycle.closed
+    case p: Held => p != Lifecycle.closed
     case _: Lifecycle.waiting.type | _: Lifecycle.closed.type => false
 
 object Explicit extends Machine[State, Outcome, Nothing]:

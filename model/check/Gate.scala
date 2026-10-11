@@ -670,8 +670,8 @@ final class Gate(tools: Tools, log: PrintStream):
       ""
     val lifted = scratch("ir")
     val modelLifts = beside("lift every IR file the Models declare"):
-      // One lifter run reads the Models' TASTy once and writes every IR file they declare with
-      // `irFile`, each lifted apart; its refusals name the file they were lifting.
+      // One lifter run reads the Models' TASTy once and writes one IR file per feature, collected
+      // from its package, each lifted apart; its refusals name the file they were lifting.
       val arguments = Seq(
         "run",
         "model/irgen",
@@ -760,7 +760,7 @@ object Gate:
       files(produced).filterNot(_.endsWith(waiversSuffix))
     )
     val orphans = (held -- lifted).toSeq.sorted.map(file =>
-      s"${name(tree.resolve(file))} is checked in and nothing produces it: remove it or declare it with irFile"
+      s"${name(tree.resolve(file))} is checked in and nothing produces it: remove it, or declare its feature's Queries"
     )
     if update then
       if orphans.nonEmpty then throw GateError(orphans.mkString("\n"))

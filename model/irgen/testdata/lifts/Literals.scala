@@ -11,7 +11,7 @@ import framework.realize.*
 import temporal.realize.*
 import temporal.realize.WorkerInstruction.{AttemptFailure, NexusReply, WorkflowCommand}
 import temporal.features.activity.standalone.activity
-import temporal.features.activity.standalone.system.ActivitySystem as activitySystem
+import temporal.features.activity.standalone.protocol.ActivityProtocol as activityProtocol
 import io.temporal.api.command.v1.{Command as ApiCommand, ScheduleNexusOperationCommandAttributes}
 import io.temporal.api.common.v1.Payload
 import io.temporal.api.enums.v1.{CommandType, NexusHandlerErrorRetryBehavior}
@@ -28,7 +28,7 @@ import com.google.protobuf.ByteString
 import com.google.protobuf.duration.Duration
 
 private def literals(items: Item*) = temporalRealization(
-  machine = activitySystem,
+  machine = activityProtocol,
   operation = activity,
   roles = Vector(workflowService, nexusEndpoint),
   scripts = Vector(controller(items*)),

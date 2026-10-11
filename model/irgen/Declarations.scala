@@ -218,13 +218,24 @@ private[irgen] trait Declarations:
   // parent or, for a derived machine or derived composition, its source's, followed through every
   // derivation to the object it starts from. None where it declares none, as for a plain `Machine`.
   def phaseProjection(cls: Symbol, at: Tree): Option[Term] =
-    def from(cls: Symbol, seen: Set[Symbol]): Option[Term] =
+    phasedArguments(cls, at).flatMap(_.headOption)
+
+  // The writer an object form's `Phased[State, Phase](_.phase, (s, p) => s.copy(phase = p))` declares,
+  // its source's for a derived machine, or None where it declares no phase. A projection declared
+  // without a writer gives its default getter, which is no lambda.
+  def phaseWriter(cls: Symbol, at: Tree): Option[Term] =
+    phasedArguments(cls, at).flatMap(_.lift(1))
+
+  // The arguments of the `Phased` an object form mixes in, or for a derived machine or derived
+  // composition its source's, followed through every derivation to the object it starts from.
+  private def phasedArguments(cls: Symbol, at: Tree): Option[List[Term]] =
+    def from(cls: Symbol, seen: Set[Symbol]): Option[List[Term]] =
       val c = objectBody(cls, at)
       val own = c.parents.collectFirst {
         case t: Term if t.symbol.isClassConstructor && t.symbol.maybeOwner == phasedClass =>
           call(t).toList.flatMap(_._2.flatten)
       }
-      own.flatMap(_.headOption).orElse {
+      own.filter(_.nonEmpty).orElse {
         // A derivation, `Derived(m.op(...))` or `Composition(c.withMember(...))`, starts from an
         // object, which may itself be derived.
         def source(t: Term): Option[Symbol] = unwrapped(t) match
@@ -451,12 +462,44 @@ private[irgen] trait Declarations:
         fail(c, s"$name declares no rules: a machine object declares `object rules extends Rules`")
       )
       val core = rules.symbol.typeRef.derivesFrom(bindingsClass)
-      if !core && !rules.symbol.typeRef.derivesFrom(rulesClass) then
+      if !core && !rules.symbol.typeRef.derivesFrom(rulesClass) &&
+        !rules.symbol.typeRef.derivesFrom(facetsClass)
+      then
         fail(
           rules,
-          s"$name's rules is `object rules extends Rules`, which its rules are lifted from"
+          s"$name's rules is `object rules extends Rules`, or `Facets(...)` of its facets' rules, " +
+            "which its rules are lifted from"
         )
-      for effects <- sectionOf(c, "effects"); d <- statements(effects) do
+      // fn-161 R8, switched (Switches): a declared machine's effects and rules sit in its facets.
+      if Switches.facetsOnly(cls.fullName) && !core then
+        for e <- sectionOf(c, "effects") do
+          fail(
+            e,
+            s"$name declares effects outside its facets: each effect sits in the `object effects` " +
+              "of the facet that owns the actions whose rules use it"
+          )
+        if !rules.symbol.typeRef.derivesFrom(facetsClass) then
+          fail(
+            rules,
+            s"$name binds its actions outside its facets: its rules are its facets' rules, " +
+              "`object rules extends Facets(pausing.rules, ...)`, each action in one facet's rules"
+          )
+        for
+          section <- sectionOf(c, "capabilities")
+          if !section.symbol.typeRef.derivesFrom(
+            Symbol.requiredClass("framework.FacetCapabilities")
+          )
+        do
+          fail(
+            section,
+            s"$name declares capabilities outside its facets: each sits in the `object " +
+              "capabilities` of the facet that owns its actions, and the machine lists them, " +
+              "`object capabilities extends FacetCapabilities(pausing.capabilities, ...)`"
+          )
+      val facetEffects = facetRules(name, rules).flatMap((_, r) =>
+        sectionOf(objectBody(r.symbol.maybeOwner, r), "effects")
+      )
+      for effects <- sectionOf(c, "effects").toList ++ facetEffects; d <- statements(effects) do
         d match
           case f: DefDef if makesSteps(f.returnTpt.tpe) => givesNoEmpty(f)
           case _                                        => ()
@@ -467,7 +510,15 @@ private[irgen] trait Declarations:
             .filter(a => !isNamed(a.tpe, "framework.Owner"))
             .flatMap(varargs)
             .map(stepBinding(_, name, "a core binding is `action ~> function`"))
-        else ruleSteps(name, typeRef(s, c), rules, c.symbol)
+        else
+          val outer = liftingMachine
+          liftingMachine = Some(cls)
+          try ruleSteps(name, typeRef(s, c), rules, c.symbol)
+          finally liftingMachine = outer
+      // A design subject with a state of its own (`AdmissionState`), rather than its level's `State`,
+      // is a model of its own beside the level, so its facets are its own.
+      if Switches.facetVocabulary(cls.fullName) && s.dealias.typeSymbol.name == "State" then
+        sameFacets(name, refined.refines.map(_.product), c)
       val folded = inferredEntity(watched.addAllSteps(steps), c)
       val m = finished(folded, f, c, visible.toSeq, visibleOutcomes.toSeq)
       checkChannels(m, irTypeName(s.dealias.typeSymbol), c)
@@ -521,8 +572,8 @@ private[irgen] trait Declarations:
 
   // The step of each action a machine's `rules` name, in the order each is first named: its rules
   // lowered to one step function, or no step where it is `disabled`. An `on` block names one to
-  // four actions, or classes of them, each given its cases, and holds its cases alone; the blocks
-  // of a `from` follow its declarer's import. An action, or a class of it, may sit in several
+  // four actions, or classes of them, each named through its declarer and given its cases, and
+  // holds its cases alone; a `from` groups the blocks of its declarer's actions and imports nothing. An action, or a class of it, may sit in several
   // blocks: the framework refuses cases of one class that overlap.
   // A case's phases read the machine's `Phased[State, Phase](_.phase)`, placed at the rules'
   // declaration.
@@ -540,6 +591,18 @@ private[irgen] trait Declarations:
     val written = mutable.ArrayBuffer.empty[LiftedRule]
     val order = mutable.LinkedHashMap.empty[String, Tree]
     val off = mutable.Set.empty[String]
+    // The facet each action is bound in, where the rules are a facet's.
+    val bound = mutable.Map.empty[String, String]
+    var facet: Option[String] = None // scalafix:ok DisableSyntax.var
+    def owned(id: String, at: Tree): Unit =
+      for f <- facet do
+        for other <- bound.get(id) if other != f do
+          fail(
+            at,
+            s"${actions(id).name} is bound by the facets $other and $f of $machine: an action " +
+              "belongs to one facet, which holds all its rules"
+          )
+        bound(id) = f
     // One statement of the rules, or of the `from` they sit in: its declarer and its name.
     def rule(stat: Statement, within: Option[(Symbol, String)]): Unit =
       stat match
@@ -561,6 +624,7 @@ private[irgen] trait Declarations:
                   case r => action(r) -> None
                 (target, id, cls)
               }
+              for (target, _, _) <- fired do qualified(target, machine, within)
               for ((target, id, cls), i) <- fired.zipWithIndex do
                 if fired.take(i).exists((_, d, c) => d == id && c == cls)
                 then
@@ -582,16 +646,19 @@ private[irgen] trait Declarations:
                       "blocks of the actions its declarer declares"
                   )
               val read = cases(block, machine)
+              for (target, id, _) <- fired do owned(id, target)
               for (_, id, cls) <- fired do
                 for (heading, effect, at) <- read do
                   written += LiftedRule(written.size + 1, heading, id, cls, effect, at)
                 order.getOrElseUpdate(id, t): Unit
             case Some(("disabled", List(List(as)))) if within.isEmpty =>
               for a <- varargs(as) do
+                qualified(a, machine, None, "disabled")
                 val id = action(a)
                 if off(id) || written.exists(_.action == id)
                 then
                   fail(a, s"${actions(id).name} is disabled twice, or disabled and fired by a rule")
+                owned(id, a)
                 off += id
                 order.getOrElseUpdate(id, a): Unit
             case _ =>
@@ -600,7 +667,13 @@ private[irgen] trait Declarations:
           fail(stat, s"$machine's rules declare rules alone, not ${stat.show}")
         case other if within.isEmpty => fail(other, s"not a rule of $machine: ${other.show}")
         case other                   => fail(other, notRule(machine, other, within))
-    statements(rules).foreach(rule(_, None))
+    facetRules(machine, rules) match
+      case Nil   => statements(rules).foreach(rule(_, None))
+      case parts =>
+        for (name, r) <- parts do
+          facet = Some(name)
+          statements(r).foreach(rule(_, None))
+        facetOwners(machine) = bound.toMap
     for r <- written do
       if headingNames(r.heading).exists(_ == "when") && projection.isEmpty
       then
@@ -618,12 +691,99 @@ private[irgen] trait Declarations:
       ir.StepBinding(id, function, Some(pos(at)))
     }
 
+  // The facet that binds each action, by its Definition ID, of each machine lifted from facets.
+  val facetOwners = mutable.Map.empty[String, Map[String, String]]
+
+  // fn-161 R9: an action a machine binds and the machine it refines binds too is owned by the
+  // same-named facet at both levels, where both are made of facets.
+  private def sameFacets(machine: String, refined: Option[String], at: Tree): Unit =
+    for
+      product <- refined
+      below <- facetOwners.get(machine)
+      above <- facetOwners.get(product)
+      (id, facet) <- below.toSeq.sortBy(_._1)
+      other <- above.get(id) if other != facet
+    do
+      fail(
+        at,
+        s"${actions(id).name} is owned by the facet $facet of $machine and by the facet $other of " +
+          s"$product, which it refines: an action bound at both levels is owned by the same-named " +
+          "facet at both"
+      )
+
+  // fn-161 R9: the facet vocabulary of the feature a facet sits in, the cases of the nearest
+  // `enum FacetName` whose package holds the facet's, or None where no feature declares one.
+  private def vocabularyOf(facet: Symbol): Option[(Symbol, List[String])] =
+    def packageOf(s: Symbol): String =
+      Iterator
+        .iterate(s)(_.maybeOwner)
+        .find(o => o.isNoSymbol || o.isPackageDef)
+        .filter(_.isPackageDef)
+        .fold("")(_.fullName)
+    val pkg = packageOf(facet)
+    // The index holds the enum's companion val, whose class is the enum.
+    defs.keys
+      .filter(s => s.name == "FacetName" && s.flags.is(Flags.Module))
+      .map(_.companionClass)
+      .filter(s => s.isClassDef && s.flags.is(Flags.Enum))
+      .map(s => s -> packageOf(s))
+      .filter((_, p) => pkg == p || pkg.startsWith(p + "."))
+      .toSeq
+      .sortBy(-_._2.length)
+      .headOption
+      .map((e, _) => e -> e.children.map(_.name))
+
+  // The rules of each facet a machine's `object rules extends Facets(pausing.rules, ...)` lists,
+  // by the facet's name, in the order listed; none where its rules are its own.
+  def facetRules(machine: String, rules: ClassDef): List[(String, ClassDef)] =
+    if !rules.symbol.typeRef.derivesFrom(facetsClass) then Nil
+    else
+      parentArguments(rules).flatten
+        .filterNot(a => isNamed(a.tpe, "framework.Owner"))
+        .flatMap(varargs)
+        .map { a =>
+          val cls = moduleClassOf(unwrapped(a).symbol)
+          val facet = cls.maybeOwner
+          if !(cls.name.stripSuffix("$") == "rules" && facetObject(facet)) then
+            fail(
+              a,
+              s"$machine's Facets lists ${a.show}: it lists the rules of its facets, " +
+                "`Facets(pausing.rules, ...)`, each the `object rules` of a facet's object"
+            )
+          val name = facet.name.stripSuffix("$")
+          val written = facet.maybeOwner.name
+          if name != written.take(1).toLowerCase + written.drop(1) then
+            fail(
+              a,
+              s"$machine's facet $written holds its sections in object $name: a facet's object is " +
+                s"named after it, `object ${written.take(1).toLowerCase + written.drop(1)}`"
+            )
+          if Switches.facetVocabulary(facet.fullName) then
+            vocabularyOf(facet.maybeOwner) match
+              case None =>
+                fail(
+                  a,
+                  s"$machine's facet $name sits in a feature that declares no facet vocabulary: " +
+                    "its feature file names the facets of its levels once, `enum FacetName: case " +
+                    s"$name, ...`"
+                )
+              case Some((e, cases)) if !cases.contains(name) =>
+                fail(
+                  a,
+                  s"$machine's facet $name is not in its feature's facet vocabulary, " +
+                    s"${e.fullName} (${cases.mkString(", ")}): name the facet after one of them, " +
+                    "or add it there"
+                )
+              case _ => ()
+          name -> objectBody(cls, a)
+        }
+
   // A statement of a machine's rules, or of a `from` of them, that is no rule.
   private def notRule(machine: String, t: Tree, within: Option[(Symbol, String)]): String =
     within match
       case Some((_, name)) =>
-        s"not a rule of $machine's from($name): ${t.show}; a from holds its declarer's import, " +
-          "first, then `on(action) { case ~> effect }` blocks"
+        s"not a rule of $machine's from($name): ${t.show}; a from holds " +
+          s"`on($name.action) { case ~> effect }` blocks alone"
       case None =>
         s"not a rule of $machine: ${t.show}; its rules are `on(action) { case ~> effect }` " +
           "blocks and `disabled(action)`"
@@ -634,8 +794,9 @@ private[irgen] trait Declarations:
     val n = declarer.symbol.name.stripSuffix("$")
     n.take(1).toLowerCase + n.drop(1)
 
-  // The statements of `from(declarer) { import declarer.*; ... }` after its import, which is its
-  // first statement and its only one.
+  // The statements of `from(declarer) { ... }`: its `on` blocks, which name their actions through
+  // the declarer. A `from` only groups, so an import in it, of the declarer's members or any other,
+  // is refused, saying to qualify the actions instead.
   private def fromBlock(
       machine: String,
       declarer: Term,
@@ -646,16 +807,50 @@ private[irgen] trait Declarations:
       case Block(stats, Literal(UnitConstant())) => stats
       case Block(stats, last)                    => stats :+ last
       case other                                 => List(other)
-    stats match
-      case Import(expr, List(SimpleSelector("_"))) :: rest if expr.symbol == declarer.symbol =>
-        rest
-      case first :: _ =>
-        fail(
-          first,
-          s"not a rule of $machine's from($name): ${first.show}; a from begins with its " +
-            s"declarer's import, `import $name.*`"
-        )
-      case Nil => fail(body, s"from($name) in $machine's rules holds no import and no block")
+    for case i @ Import(expr, _) <- stats do
+      val what =
+        if expr.symbol == declarer.symbol then s"$name's members"
+        else expr.show
+      fail(
+        i,
+        s"from($name) in $machine's rules imports $what: a from only groups, so drop the " +
+          s"import and name each action through its declarer, `on($name.<action>)`"
+      )
+    if stats.isEmpty then fail(body, s"from($name) in $machine's rules holds no block")
+    stats
+
+  // The reference to the action a target names: the whole action, `worker.poll`, or the action a
+  // class applies, `worker.respondFailed(Failure.fatal)` or `start(scheduleToStart := expires)`;
+  // a class's arguments are not action references.
+  private def actionReference(target: Term): Option[Term] = unwrapped(target) match
+    case r: Ref if isNamed(r.tpe, "framework.Action") => Some(r)
+    case Select(q, "apply")                           => actionReference(q)
+    case TypeApply(fn, _)                             => actionReference(fn)
+    case Apply(fn, args)                              =>
+      actionReference(fn).orElse(
+        args.headOption.filter(a => isNamed(a.tpe, "framework.Action")).flatMap(actionReference)
+      )
+    case _ => None
+
+  // Refuses a target, of `on` or of `disabled`, whose action is written bare, `poll`, rather than
+  // through the object that declares it, `worker.poll`, inside a `from` or outside one.
+  private def qualified(
+      target: Term,
+      machine: String,
+      within: Option[(Symbol, String)],
+      form: String = "on"
+  ): Unit =
+    for case r: Ident <- actionReference(target) do
+      val owner = r.symbol.maybeOwner
+      val declarer =
+        if owner.flags.is(Flags.Module) && !owner.name.endsWith("$package$") then
+          owner.name.stripSuffix("$")
+        else within.fold("<declarer>")(_._2)
+      fail(
+        target,
+        s"$form(${r.name}) in $machine's rules names its action bare: name it through the object " +
+          s"that declares it, `$form($declarer.${r.name})`"
+      )
 
   // Whether the action a target fires, or the class of it, is a member of the object `owner`.
   private def declaredBy(target: Term, owner: Symbol): Boolean =
@@ -737,8 +932,11 @@ private[irgen] trait Declarations:
             case List(phase, role) => Heading.Role(test, phase, role, t)
             case _                 => fail(t, s"when tests a role, not ${test.show}")
         case Some(("when", List(List(first, rest), _))) if owner == rulesClass =>
-          Heading.In(first, first :: varargs(rest))
+          val phases = first :: varargs(rest)
+          phases.foreach(qualifiedPhase(_, machine))
+          Heading.In(first, phases)
         case Some(("when", List(List(set), _))) if owner == rulesClass =>
+          qualifiedPhase(set, machine)
           Heading.InSet(set, set)
         case Some(("where", List(_, List(g)))) if owner.fullName == syntaxPackage =>
           Heading.When(g)
@@ -752,6 +950,29 @@ private[irgen] trait Declarations:
           )
 
   private val syntaxPackage = "framework.Syntax$package$"
+
+  // Refuses a bare argument of the phase form of `when`: a phase is selected on its phase type,
+  // `when(Phase.scheduled)`, and a named set on the object that declares it, `when(states.terminal)`.
+  private def qualifiedPhase(arg: Term, machine: String): Unit = unwrapped(arg) match
+    case r: Ident =>
+      val through =
+        if isEnumCase(r.symbol) then s"its phase type, `when(${enumOf(r.symbol).name}.${r.name})`"
+        else s"the object that declares it, `when(states.${r.name})`"
+      fail(
+        arg,
+        s"when(${r.name}) in $machine's rules names a phase bare: name it through $through"
+      )
+    // A set named by a def arrives eta-expanded: the def it calls is the name written.
+    case Block(List(DefDef(_, _, _, Some(body))), _: Closure) =>
+      unwrapped(body) match
+        case Apply(fn: Ident, _) =>
+          fail(
+            arg,
+            s"when(${fn.name}) in $machine's rules names a phase set bare: name it through the " +
+              s"object that declares it, `when(states.${fn.name})`"
+          )
+        case _ => ()
+    case _ => ()
 
   // A term without the wrappers an argument arrives in.
   def unwrapped(t: Term): Term = t match
@@ -886,7 +1107,9 @@ private[irgen] trait Declarations:
     def chain(rs: Seq[LiftedRule]): ir.Expr =
       rs.foldRight(list(Nil, at))((r, rest) =>
         val g = guard(r)
-        val arm = rejection(r.effect, stateVar(r.at)).getOrElse(effect(r))
+        val arm = rejection(r.effect, stateVar(r.at))
+          .orElse(entering(r.effect, Left(stateName)))
+          .getOrElse(effect(r))
         expr(r.at)(E.If(ir.If(Some(g), Some(arm), Some(rest))))
       )
     def byInputs(i: Int, fixed: Seq[ir.Value]): ir.Expr =

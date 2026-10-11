@@ -55,6 +55,9 @@ message Realization {
   repeated RejectionCode rejection_codes = 18;
   repeated ActivityExternalSettlement external_settlements = 19;
   repeated ActivityResetSettlement reset_settlements = 20;
+  // The find Queries it runs, by name (fn-162 R8): the lowering and the assessment take a Query's
+  // realization from here. A find Query no realization names is model-only and is not lowered.
+  repeated string queries = 21;
 }
 
 // One local pending publication followed by a typed controller answer and bounded cleanup.

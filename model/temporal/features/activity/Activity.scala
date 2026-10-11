@@ -1,6 +1,6 @@
 // The activity kind: what its forms share, the deadline types, the worker's actions
 // on an activity, the timers and the deadlines. Each form owns its entity, its other declarations
-// and its exports, and binds the worker's actions to its entity (standalone/Standalone.scala).
+// and its exports, and binds the worker's actions to its entity (standalone/StandaloneActivity.scala).
 package temporal
 package features.activity
 
@@ -31,7 +31,7 @@ val retryableFailureExample = "ApplicationFailureRetryable"
 // The shared worker's actions on an activity: its poll receives the task for the current attempt,
 // and each answer is one RPC. The worker's stop is the worker's own action, `process.stop`:
 // nothing it records names the activity, so the activity's machines keep their state. Each form
-// binds them to its activity, as standalone/Standalone.scala does.
+// binds them to its activity, as standalone/StandaloneActivity.scala does.
 object worker:
   val poll = action(process)
   val heartbeat = action("recordHeartbeat", process)

@@ -127,7 +127,7 @@
   "functions": [ {
     "name": "controlledFailures.property.controlledFailures.eligible.attemptCountIsWithinPolicy",
     "position": {
-      "file": "model/temporal/capabilities/Retries.scala",
+      "file": "model/temporal/capabilities/Retryable.scala",
       "line": 102
     },
     "params": [ {
@@ -138,26 +138,26 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/capabilities/Retries.scala",
+        "file": "model/temporal/capabilities/Retryable.scala",
         "line": 103
       },
       "match": {
         "scrutinee": {
           "position": {
-            "file": "model/temporal/capabilities/Retries.scala",
+            "file": "model/temporal/capabilities/Retryable.scala",
             "line": 103
           },
           "call": {
             "function": "fixture.retrycapabilities.ControlSteps$.maxOne",
             "args": [ {
               "position": {
-                "file": "model/temporal/capabilities/Retries.scala",
+                "file": "model/temporal/capabilities/Retryable.scala",
                 "line": 103
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/capabilities/Retries.scala",
+                    "file": "model/temporal/capabilities/Retryable.scala",
                     "line": 103
                   },
                   "var": "after"
@@ -178,7 +178,7 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/capabilities/Retries.scala",
+              "file": "model/temporal/capabilities/Retryable.scala",
               "line": 104
             },
             "literal": {
@@ -202,27 +202,27 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/capabilities/Retries.scala",
+              "file": "model/temporal/capabilities/Retryable.scala",
               "line": 105
             },
             "binary": {
               "op": "OP_LE",
               "left": {
                 "position": {
-                  "file": "model/temporal/capabilities/Retries.scala",
+                  "file": "model/temporal/capabilities/Retryable.scala",
                   "line": 105
                 },
                 "call": {
                   "function": "fixture.retrycapabilities.ControlSteps$.attempts",
                   "args": [ {
                     "position": {
-                      "file": "model/temporal/capabilities/Retries.scala",
+                      "file": "model/temporal/capabilities/Retryable.scala",
                       "line": 105
                     },
                     "field": {
                       "base": {
                         "position": {
-                          "file": "model/temporal/capabilities/Retries.scala",
+                          "file": "model/temporal/capabilities/Retryable.scala",
                           "line": 105
                         },
                         "var": "after"
@@ -234,7 +234,7 @@
               },
               "right": {
                 "position": {
-                  "file": "model/temporal/capabilities/Retries.scala",
+                  "file": "model/temporal/capabilities/Retryable.scala",
                   "line": 105
                 },
                 "var": "maximum"
@@ -247,7 +247,7 @@
   }, {
     "name": "controlledFailures.property.controlledFailures.eligible.failureCancels",
     "position": {
-      "file": "model/temporal/capabilities/Retries.scala",
+      "file": "model/temporal/capabilities/Retryable.scala",
       "line": 92
     },
     "params": [ {
@@ -263,21 +263,21 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/capabilities/Retries.scala",
+        "file": "model/temporal/capabilities/Retryable.scala",
         "line": 93
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
-            "file": "model/temporal/capabilities/Retries.scala",
+            "file": "model/temporal/capabilities/Retryable.scala",
             "line": 93
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
-                "file": "model/temporal/capabilities/Retries.scala",
+                "file": "model/temporal/capabilities/Retryable.scala",
                 "line": 93
               },
               "binary": {
@@ -293,14 +293,14 @@
                 },
                 "right": {
                   "position": {
-                    "file": "model/temporal/capabilities/Retries.scala",
+                    "file": "model/temporal/capabilities/Retryable.scala",
                     "line": 93
                   },
                   "call": {
                     "function": "fixture.retrycapabilities.ControlSteps$.pendingCancel",
                     "args": [ {
                       "position": {
-                        "file": "model/temporal/capabilities/Retries.scala",
+                        "file": "model/temporal/capabilities/Retryable.scala",
                         "line": 93
                       },
                       "var": "before"
@@ -313,7 +313,7 @@
         },
         "right": {
           "position": {
-            "file": "model/temporal/capabilities/Retries.scala",
+            "file": "model/temporal/capabilities/Retryable.scala",
             "line": 94
           },
           "binary": {
@@ -326,13 +326,13 @@
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/capabilities/Retries.scala",
+                    "file": "model/temporal/capabilities/Retryable.scala",
                     "line": 94
                   },
                   "field": {
                     "base": {
                       "position": {
-                        "file": "model/temporal/capabilities/Retries.scala",
+                        "file": "model/temporal/capabilities/Retryable.scala",
                         "line": 94
                       },
                       "var": "after"
@@ -370,7 +370,7 @@
   }, {
     "name": "controlledFailures.property.controlledFailures.eligible.failureEndsFailed",
     "position": {
-      "file": "model/temporal/capabilities/Retries.scala",
+      "file": "model/temporal/capabilities/Retryable.scala",
       "line": 60
     },
     "params": [ {
@@ -386,28 +386,28 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/capabilities/Retries.scala",
+        "file": "model/temporal/capabilities/Retryable.scala",
         "line": 61
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
-            "file": "model/temporal/capabilities/Retries.scala",
+            "file": "model/temporal/capabilities/Retryable.scala",
             "line": 61
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
-                "file": "model/temporal/capabilities/Retries.scala",
+                "file": "model/temporal/capabilities/Retryable.scala",
                 "line": 61
               },
               "binary": {
                 "op": "OP_OR",
                 "left": {
                   "position": {
-                    "file": "model/temporal/capabilities/Retries.scala",
+                    "file": "model/temporal/capabilities/Retryable.scala",
                     "line": 61
                   },
                   "unary": {
@@ -425,28 +425,28 @@
                 },
                 "right": {
                   "position": {
-                    "file": "model/temporal/capabilities/Retries.scala",
+                    "file": "model/temporal/capabilities/Retryable.scala",
                     "line": 61
                   },
                   "binary": {
                     "op": "OP_AND",
                     "left": {
                       "position": {
-                        "file": "model/temporal/capabilities/Retries.scala",
+                        "file": "model/temporal/capabilities/Retryable.scala",
                         "line": 61
                       },
                       "unary": {
                         "op": "OP_NOT",
                         "operand": {
                           "position": {
-                            "file": "model/temporal/capabilities/Retries.scala",
+                            "file": "model/temporal/capabilities/Retryable.scala",
                             "line": 61
                           },
                           "call": {
                             "function": "fixture.retrycapabilities.ControlSteps$.pendingCancel",
                             "args": [ {
                               "position": {
-                                "file": "model/temporal/capabilities/Retries.scala",
+                                "file": "model/temporal/capabilities/Retryable.scala",
                                 "line": 61
                               },
                               "var": "before"
@@ -457,21 +457,21 @@
                     },
                     "right": {
                       "position": {
-                        "file": "model/temporal/capabilities/Retries.scala",
+                        "file": "model/temporal/capabilities/Retryable.scala",
                         "line": 61
                       },
                       "unary": {
                         "op": "OP_NOT",
                         "operand": {
                           "position": {
-                            "file": "model/temporal/capabilities/Retries.scala",
+                            "file": "model/temporal/capabilities/Retryable.scala",
                             "line": 61
                           },
                           "call": {
                             "function": "fixture.retrycapabilities.ControlSteps$.remainingOne",
                             "args": [ {
                               "position": {
-                                "file": "model/temporal/capabilities/Retries.scala",
+                                "file": "model/temporal/capabilities/Retryable.scala",
                                 "line": 61
                               },
                               "var": "before"
@@ -488,7 +488,7 @@
         },
         "right": {
           "position": {
-            "file": "model/temporal/capabilities/Retries.scala",
+            "file": "model/temporal/capabilities/Retryable.scala",
             "line": 62
           },
           "binary": {
@@ -501,13 +501,13 @@
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/capabilities/Retries.scala",
+                    "file": "model/temporal/capabilities/Retryable.scala",
                     "line": 62
                   },
                   "field": {
                     "base": {
                       "position": {
-                        "file": "model/temporal/capabilities/Retries.scala",
+                        "file": "model/temporal/capabilities/Retryable.scala",
                         "line": 62
                       },
                       "var": "after"
@@ -545,7 +545,7 @@
   }, {
     "name": "controlledFailures.property.controlledFailures.eligible.failurePauses",
     "position": {
-      "file": "model/temporal/capabilities/Retries.scala",
+      "file": "model/temporal/capabilities/Retryable.scala",
       "line": 77
     },
     "params": [ {
@@ -561,35 +561,35 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/capabilities/Retries.scala",
+        "file": "model/temporal/capabilities/Retryable.scala",
         "line": 78
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
-            "file": "model/temporal/capabilities/Retries.scala",
+            "file": "model/temporal/capabilities/Retryable.scala",
             "line": 78
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
-                "file": "model/temporal/capabilities/Retries.scala",
+                "file": "model/temporal/capabilities/Retryable.scala",
                 "line": 78
               },
               "binary": {
                 "op": "OP_AND",
                 "left": {
                   "position": {
-                    "file": "model/temporal/capabilities/Retries.scala",
+                    "file": "model/temporal/capabilities/Retryable.scala",
                     "line": 78
                   },
                   "binary": {
                     "op": "OP_AND",
                     "left": {
                       "position": {
-                        "file": "model/temporal/capabilities/Retries.scala",
+                        "file": "model/temporal/capabilities/Retryable.scala",
                         "line": 78
                       },
                       "binary": {
@@ -605,21 +605,21 @@
                         },
                         "right": {
                           "position": {
-                            "file": "model/temporal/capabilities/Retries.scala",
+                            "file": "model/temporal/capabilities/Retryable.scala",
                             "line": 78
                           },
                           "unary": {
                             "op": "OP_NOT",
                             "operand": {
                               "position": {
-                                "file": "model/temporal/capabilities/Retries.scala",
+                                "file": "model/temporal/capabilities/Retryable.scala",
                                 "line": 78
                               },
                               "call": {
                                 "function": "fixture.retrycapabilities.ControlSteps$.pendingCancel",
                                 "args": [ {
                                   "position": {
-                                    "file": "model/temporal/capabilities/Retries.scala",
+                                    "file": "model/temporal/capabilities/Retryable.scala",
                                     "line": 78
                                   },
                                   "var": "before"
@@ -632,14 +632,14 @@
                     },
                     "right": {
                       "position": {
-                        "file": "model/temporal/capabilities/Retries.scala",
+                        "file": "model/temporal/capabilities/Retryable.scala",
                         "line": 78
                       },
                       "call": {
                         "function": "fixture.retrycapabilities.ControlSteps$.remainingOne",
                         "args": [ {
                           "position": {
-                            "file": "model/temporal/capabilities/Retries.scala",
+                            "file": "model/temporal/capabilities/Retryable.scala",
                             "line": 78
                           },
                           "var": "before"
@@ -650,14 +650,14 @@
                 },
                 "right": {
                   "position": {
-                    "file": "model/temporal/capabilities/Retries.scala",
+                    "file": "model/temporal/capabilities/Retryable.scala",
                     "line": 78
                   },
                   "call": {
                     "function": "fixture.retrycapabilities.ControlSteps$.pendingPause",
                     "args": [ {
                       "position": {
-                        "file": "model/temporal/capabilities/Retries.scala",
+                        "file": "model/temporal/capabilities/Retryable.scala",
                         "line": 78
                       },
                       "var": "before"
@@ -670,7 +670,7 @@
         },
         "right": {
           "position": {
-            "file": "model/temporal/capabilities/Retries.scala",
+            "file": "model/temporal/capabilities/Retryable.scala",
             "line": 79
           },
           "binary": {
@@ -683,13 +683,13 @@
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/capabilities/Retries.scala",
+                    "file": "model/temporal/capabilities/Retryable.scala",
                     "line": 79
                   },
                   "field": {
                     "base": {
                       "position": {
-                        "file": "model/temporal/capabilities/Retries.scala",
+                        "file": "model/temporal/capabilities/Retryable.scala",
                         "line": 79
                       },
                       "var": "after"
@@ -727,7 +727,7 @@
   }, {
     "name": "controlledFailures.property.controlledFailures.eligible.failureReturnsToWaiting",
     "position": {
-      "file": "model/temporal/capabilities/Retries.scala",
+      "file": "model/temporal/capabilities/Retryable.scala",
       "line": 44
     },
     "params": [ {
@@ -743,35 +743,35 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/capabilities/Retries.scala",
+        "file": "model/temporal/capabilities/Retryable.scala",
         "line": 45
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
-            "file": "model/temporal/capabilities/Retries.scala",
+            "file": "model/temporal/capabilities/Retryable.scala",
             "line": 45
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
-                "file": "model/temporal/capabilities/Retries.scala",
+                "file": "model/temporal/capabilities/Retryable.scala",
                 "line": 45
               },
               "binary": {
                 "op": "OP_AND",
                 "left": {
                   "position": {
-                    "file": "model/temporal/capabilities/Retries.scala",
+                    "file": "model/temporal/capabilities/Retryable.scala",
                     "line": 45
                   },
                   "binary": {
                     "op": "OP_AND",
                     "left": {
                       "position": {
-                        "file": "model/temporal/capabilities/Retries.scala",
+                        "file": "model/temporal/capabilities/Retryable.scala",
                         "line": 45
                       },
                       "binary": {
@@ -787,21 +787,21 @@
                         },
                         "right": {
                           "position": {
-                            "file": "model/temporal/capabilities/Retries.scala",
+                            "file": "model/temporal/capabilities/Retryable.scala",
                             "line": 45
                           },
                           "unary": {
                             "op": "OP_NOT",
                             "operand": {
                               "position": {
-                                "file": "model/temporal/capabilities/Retries.scala",
+                                "file": "model/temporal/capabilities/Retryable.scala",
                                 "line": 45
                               },
                               "call": {
                                 "function": "fixture.retrycapabilities.ControlSteps$.pendingCancel",
                                 "args": [ {
                                   "position": {
-                                    "file": "model/temporal/capabilities/Retries.scala",
+                                    "file": "model/temporal/capabilities/Retryable.scala",
                                     "line": 45
                                   },
                                   "var": "before"
@@ -814,14 +814,14 @@
                     },
                     "right": {
                       "position": {
-                        "file": "model/temporal/capabilities/Retries.scala",
+                        "file": "model/temporal/capabilities/Retryable.scala",
                         "line": 45
                       },
                       "call": {
                         "function": "fixture.retrycapabilities.ControlSteps$.remainingOne",
                         "args": [ {
                           "position": {
-                            "file": "model/temporal/capabilities/Retries.scala",
+                            "file": "model/temporal/capabilities/Retryable.scala",
                             "line": 45
                           },
                           "var": "before"
@@ -832,21 +832,21 @@
                 },
                 "right": {
                   "position": {
-                    "file": "model/temporal/capabilities/Retries.scala",
+                    "file": "model/temporal/capabilities/Retryable.scala",
                     "line": 45
                   },
                   "unary": {
                     "op": "OP_NOT",
                     "operand": {
                       "position": {
-                        "file": "model/temporal/capabilities/Retries.scala",
+                        "file": "model/temporal/capabilities/Retryable.scala",
                         "line": 45
                       },
                       "call": {
                         "function": "fixture.retrycapabilities.ControlSteps$.pendingPause",
                         "args": [ {
                           "position": {
-                            "file": "model/temporal/capabilities/Retries.scala",
+                            "file": "model/temporal/capabilities/Retryable.scala",
                             "line": 45
                           },
                           "var": "before"
@@ -861,7 +861,7 @@
         },
         "right": {
           "position": {
-            "file": "model/temporal/capabilities/Retries.scala",
+            "file": "model/temporal/capabilities/Retryable.scala",
             "line": 46
           },
           "binary": {
@@ -874,13 +874,13 @@
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/capabilities/Retries.scala",
+                    "file": "model/temporal/capabilities/Retryable.scala",
                     "line": 46
                   },
                   "field": {
                     "base": {
                       "position": {
-                        "file": "model/temporal/capabilities/Retries.scala",
+                        "file": "model/temporal/capabilities/Retryable.scala",
                         "line": 46
                       },
                       "var": "after"
@@ -918,7 +918,7 @@
   }, {
     "name": "controlledFailures.property.controlledFailures.fatal.attemptCountIsWithinPolicy",
     "position": {
-      "file": "model/temporal/capabilities/Retries.scala",
+      "file": "model/temporal/capabilities/Retryable.scala",
       "line": 102
     },
     "params": [ {
@@ -929,26 +929,26 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/capabilities/Retries.scala",
+        "file": "model/temporal/capabilities/Retryable.scala",
         "line": 103
       },
       "match": {
         "scrutinee": {
           "position": {
-            "file": "model/temporal/capabilities/Retries.scala",
+            "file": "model/temporal/capabilities/Retryable.scala",
             "line": 103
           },
           "call": {
             "function": "fixture.retrycapabilities.ControlSteps$.maxOne",
             "args": [ {
               "position": {
-                "file": "model/temporal/capabilities/Retries.scala",
+                "file": "model/temporal/capabilities/Retryable.scala",
                 "line": 103
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/capabilities/Retries.scala",
+                    "file": "model/temporal/capabilities/Retryable.scala",
                     "line": 103
                   },
                   "var": "after"
@@ -969,7 +969,7 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/capabilities/Retries.scala",
+              "file": "model/temporal/capabilities/Retryable.scala",
               "line": 104
             },
             "literal": {
@@ -993,27 +993,27 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/capabilities/Retries.scala",
+              "file": "model/temporal/capabilities/Retryable.scala",
               "line": 105
             },
             "binary": {
               "op": "OP_LE",
               "left": {
                 "position": {
-                  "file": "model/temporal/capabilities/Retries.scala",
+                  "file": "model/temporal/capabilities/Retryable.scala",
                   "line": 105
                 },
                 "call": {
                   "function": "fixture.retrycapabilities.ControlSteps$.attempts",
                   "args": [ {
                     "position": {
-                      "file": "model/temporal/capabilities/Retries.scala",
+                      "file": "model/temporal/capabilities/Retryable.scala",
                       "line": 105
                     },
                     "field": {
                       "base": {
                         "position": {
-                          "file": "model/temporal/capabilities/Retries.scala",
+                          "file": "model/temporal/capabilities/Retryable.scala",
                           "line": 105
                         },
                         "var": "after"
@@ -1025,7 +1025,7 @@
               },
               "right": {
                 "position": {
-                  "file": "model/temporal/capabilities/Retries.scala",
+                  "file": "model/temporal/capabilities/Retryable.scala",
                   "line": 105
                 },
                 "var": "maximum"
@@ -1038,7 +1038,7 @@
   }, {
     "name": "controlledFailures.property.controlledFailures.fatal.failureCancels",
     "position": {
-      "file": "model/temporal/capabilities/Retries.scala",
+      "file": "model/temporal/capabilities/Retryable.scala",
       "line": 92
     },
     "params": [ {
@@ -1054,21 +1054,21 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/capabilities/Retries.scala",
+        "file": "model/temporal/capabilities/Retryable.scala",
         "line": 93
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
-            "file": "model/temporal/capabilities/Retries.scala",
+            "file": "model/temporal/capabilities/Retryable.scala",
             "line": 93
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
-                "file": "model/temporal/capabilities/Retries.scala",
+                "file": "model/temporal/capabilities/Retryable.scala",
                 "line": 93
               },
               "binary": {
@@ -1084,14 +1084,14 @@
                 },
                 "right": {
                   "position": {
-                    "file": "model/temporal/capabilities/Retries.scala",
+                    "file": "model/temporal/capabilities/Retryable.scala",
                     "line": 93
                   },
                   "call": {
                     "function": "fixture.retrycapabilities.ControlSteps$.pendingCancel",
                     "args": [ {
                       "position": {
-                        "file": "model/temporal/capabilities/Retries.scala",
+                        "file": "model/temporal/capabilities/Retryable.scala",
                         "line": 93
                       },
                       "var": "before"
@@ -1104,7 +1104,7 @@
         },
         "right": {
           "position": {
-            "file": "model/temporal/capabilities/Retries.scala",
+            "file": "model/temporal/capabilities/Retryable.scala",
             "line": 94
           },
           "binary": {
@@ -1117,13 +1117,13 @@
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/capabilities/Retries.scala",
+                    "file": "model/temporal/capabilities/Retryable.scala",
                     "line": 94
                   },
                   "field": {
                     "base": {
                       "position": {
-                        "file": "model/temporal/capabilities/Retries.scala",
+                        "file": "model/temporal/capabilities/Retryable.scala",
                         "line": 94
                       },
                       "var": "after"
@@ -1161,7 +1161,7 @@
   }, {
     "name": "controlledFailures.property.controlledFailures.fatal.failureEndsFailed",
     "position": {
-      "file": "model/temporal/capabilities/Retries.scala",
+      "file": "model/temporal/capabilities/Retryable.scala",
       "line": 60
     },
     "params": [ {
@@ -1177,28 +1177,28 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/capabilities/Retries.scala",
+        "file": "model/temporal/capabilities/Retryable.scala",
         "line": 61
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
-            "file": "model/temporal/capabilities/Retries.scala",
+            "file": "model/temporal/capabilities/Retryable.scala",
             "line": 61
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
-                "file": "model/temporal/capabilities/Retries.scala",
+                "file": "model/temporal/capabilities/Retryable.scala",
                 "line": 61
               },
               "binary": {
                 "op": "OP_OR",
                 "left": {
                   "position": {
-                    "file": "model/temporal/capabilities/Retries.scala",
+                    "file": "model/temporal/capabilities/Retryable.scala",
                     "line": 61
                   },
                   "unary": {
@@ -1216,28 +1216,28 @@
                 },
                 "right": {
                   "position": {
-                    "file": "model/temporal/capabilities/Retries.scala",
+                    "file": "model/temporal/capabilities/Retryable.scala",
                     "line": 61
                   },
                   "binary": {
                     "op": "OP_AND",
                     "left": {
                       "position": {
-                        "file": "model/temporal/capabilities/Retries.scala",
+                        "file": "model/temporal/capabilities/Retryable.scala",
                         "line": 61
                       },
                       "unary": {
                         "op": "OP_NOT",
                         "operand": {
                           "position": {
-                            "file": "model/temporal/capabilities/Retries.scala",
+                            "file": "model/temporal/capabilities/Retryable.scala",
                             "line": 61
                           },
                           "call": {
                             "function": "fixture.retrycapabilities.ControlSteps$.pendingCancel",
                             "args": [ {
                               "position": {
-                                "file": "model/temporal/capabilities/Retries.scala",
+                                "file": "model/temporal/capabilities/Retryable.scala",
                                 "line": 61
                               },
                               "var": "before"
@@ -1248,21 +1248,21 @@
                     },
                     "right": {
                       "position": {
-                        "file": "model/temporal/capabilities/Retries.scala",
+                        "file": "model/temporal/capabilities/Retryable.scala",
                         "line": 61
                       },
                       "unary": {
                         "op": "OP_NOT",
                         "operand": {
                           "position": {
-                            "file": "model/temporal/capabilities/Retries.scala",
+                            "file": "model/temporal/capabilities/Retryable.scala",
                             "line": 61
                           },
                           "call": {
                             "function": "fixture.retrycapabilities.ControlSteps$.remainingOne",
                             "args": [ {
                               "position": {
-                                "file": "model/temporal/capabilities/Retries.scala",
+                                "file": "model/temporal/capabilities/Retryable.scala",
                                 "line": 61
                               },
                               "var": "before"
@@ -1279,7 +1279,7 @@
         },
         "right": {
           "position": {
-            "file": "model/temporal/capabilities/Retries.scala",
+            "file": "model/temporal/capabilities/Retryable.scala",
             "line": 62
           },
           "binary": {
@@ -1292,13 +1292,13 @@
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/capabilities/Retries.scala",
+                    "file": "model/temporal/capabilities/Retryable.scala",
                     "line": 62
                   },
                   "field": {
                     "base": {
                       "position": {
-                        "file": "model/temporal/capabilities/Retries.scala",
+                        "file": "model/temporal/capabilities/Retryable.scala",
                         "line": 62
                       },
                       "var": "after"
@@ -1336,7 +1336,7 @@
   }, {
     "name": "controlledFailures.property.controlledFailures.fatal.failurePauses",
     "position": {
-      "file": "model/temporal/capabilities/Retries.scala",
+      "file": "model/temporal/capabilities/Retryable.scala",
       "line": 77
     },
     "params": [ {
@@ -1352,35 +1352,35 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/capabilities/Retries.scala",
+        "file": "model/temporal/capabilities/Retryable.scala",
         "line": 78
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
-            "file": "model/temporal/capabilities/Retries.scala",
+            "file": "model/temporal/capabilities/Retryable.scala",
             "line": 78
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
-                "file": "model/temporal/capabilities/Retries.scala",
+                "file": "model/temporal/capabilities/Retryable.scala",
                 "line": 78
               },
               "binary": {
                 "op": "OP_AND",
                 "left": {
                   "position": {
-                    "file": "model/temporal/capabilities/Retries.scala",
+                    "file": "model/temporal/capabilities/Retryable.scala",
                     "line": 78
                   },
                   "binary": {
                     "op": "OP_AND",
                     "left": {
                       "position": {
-                        "file": "model/temporal/capabilities/Retries.scala",
+                        "file": "model/temporal/capabilities/Retryable.scala",
                         "line": 78
                       },
                       "binary": {
@@ -1396,21 +1396,21 @@
                         },
                         "right": {
                           "position": {
-                            "file": "model/temporal/capabilities/Retries.scala",
+                            "file": "model/temporal/capabilities/Retryable.scala",
                             "line": 78
                           },
                           "unary": {
                             "op": "OP_NOT",
                             "operand": {
                               "position": {
-                                "file": "model/temporal/capabilities/Retries.scala",
+                                "file": "model/temporal/capabilities/Retryable.scala",
                                 "line": 78
                               },
                               "call": {
                                 "function": "fixture.retrycapabilities.ControlSteps$.pendingCancel",
                                 "args": [ {
                                   "position": {
-                                    "file": "model/temporal/capabilities/Retries.scala",
+                                    "file": "model/temporal/capabilities/Retryable.scala",
                                     "line": 78
                                   },
                                   "var": "before"
@@ -1423,14 +1423,14 @@
                     },
                     "right": {
                       "position": {
-                        "file": "model/temporal/capabilities/Retries.scala",
+                        "file": "model/temporal/capabilities/Retryable.scala",
                         "line": 78
                       },
                       "call": {
                         "function": "fixture.retrycapabilities.ControlSteps$.remainingOne",
                         "args": [ {
                           "position": {
-                            "file": "model/temporal/capabilities/Retries.scala",
+                            "file": "model/temporal/capabilities/Retryable.scala",
                             "line": 78
                           },
                           "var": "before"
@@ -1441,14 +1441,14 @@
                 },
                 "right": {
                   "position": {
-                    "file": "model/temporal/capabilities/Retries.scala",
+                    "file": "model/temporal/capabilities/Retryable.scala",
                     "line": 78
                   },
                   "call": {
                     "function": "fixture.retrycapabilities.ControlSteps$.pendingPause",
                     "args": [ {
                       "position": {
-                        "file": "model/temporal/capabilities/Retries.scala",
+                        "file": "model/temporal/capabilities/Retryable.scala",
                         "line": 78
                       },
                       "var": "before"
@@ -1461,7 +1461,7 @@
         },
         "right": {
           "position": {
-            "file": "model/temporal/capabilities/Retries.scala",
+            "file": "model/temporal/capabilities/Retryable.scala",
             "line": 79
           },
           "binary": {
@@ -1474,13 +1474,13 @@
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/capabilities/Retries.scala",
+                    "file": "model/temporal/capabilities/Retryable.scala",
                     "line": 79
                   },
                   "field": {
                     "base": {
                       "position": {
-                        "file": "model/temporal/capabilities/Retries.scala",
+                        "file": "model/temporal/capabilities/Retryable.scala",
                         "line": 79
                       },
                       "var": "after"
@@ -1518,7 +1518,7 @@
   }, {
     "name": "controlledFailures.property.controlledFailures.fatal.failureReturnsToWaiting",
     "position": {
-      "file": "model/temporal/capabilities/Retries.scala",
+      "file": "model/temporal/capabilities/Retryable.scala",
       "line": 44
     },
     "params": [ {
@@ -1534,35 +1534,35 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/capabilities/Retries.scala",
+        "file": "model/temporal/capabilities/Retryable.scala",
         "line": 45
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
-            "file": "model/temporal/capabilities/Retries.scala",
+            "file": "model/temporal/capabilities/Retryable.scala",
             "line": 45
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
-                "file": "model/temporal/capabilities/Retries.scala",
+                "file": "model/temporal/capabilities/Retryable.scala",
                 "line": 45
               },
               "binary": {
                 "op": "OP_AND",
                 "left": {
                   "position": {
-                    "file": "model/temporal/capabilities/Retries.scala",
+                    "file": "model/temporal/capabilities/Retryable.scala",
                     "line": 45
                   },
                   "binary": {
                     "op": "OP_AND",
                     "left": {
                       "position": {
-                        "file": "model/temporal/capabilities/Retries.scala",
+                        "file": "model/temporal/capabilities/Retryable.scala",
                         "line": 45
                       },
                       "binary": {
@@ -1578,21 +1578,21 @@
                         },
                         "right": {
                           "position": {
-                            "file": "model/temporal/capabilities/Retries.scala",
+                            "file": "model/temporal/capabilities/Retryable.scala",
                             "line": 45
                           },
                           "unary": {
                             "op": "OP_NOT",
                             "operand": {
                               "position": {
-                                "file": "model/temporal/capabilities/Retries.scala",
+                                "file": "model/temporal/capabilities/Retryable.scala",
                                 "line": 45
                               },
                               "call": {
                                 "function": "fixture.retrycapabilities.ControlSteps$.pendingCancel",
                                 "args": [ {
                                   "position": {
-                                    "file": "model/temporal/capabilities/Retries.scala",
+                                    "file": "model/temporal/capabilities/Retryable.scala",
                                     "line": 45
                                   },
                                   "var": "before"
@@ -1605,14 +1605,14 @@
                     },
                     "right": {
                       "position": {
-                        "file": "model/temporal/capabilities/Retries.scala",
+                        "file": "model/temporal/capabilities/Retryable.scala",
                         "line": 45
                       },
                       "call": {
                         "function": "fixture.retrycapabilities.ControlSteps$.remainingOne",
                         "args": [ {
                           "position": {
-                            "file": "model/temporal/capabilities/Retries.scala",
+                            "file": "model/temporal/capabilities/Retryable.scala",
                             "line": 45
                           },
                           "var": "before"
@@ -1623,21 +1623,21 @@
                 },
                 "right": {
                   "position": {
-                    "file": "model/temporal/capabilities/Retries.scala",
+                    "file": "model/temporal/capabilities/Retryable.scala",
                     "line": 45
                   },
                   "unary": {
                     "op": "OP_NOT",
                     "operand": {
                       "position": {
-                        "file": "model/temporal/capabilities/Retries.scala",
+                        "file": "model/temporal/capabilities/Retryable.scala",
                         "line": 45
                       },
                       "call": {
                         "function": "fixture.retrycapabilities.ControlSteps$.pendingPause",
                         "args": [ {
                           "position": {
-                            "file": "model/temporal/capabilities/Retries.scala",
+                            "file": "model/temporal/capabilities/Retryable.scala",
                             "line": 45
                           },
                           "var": "before"
@@ -1652,7 +1652,7 @@
         },
         "right": {
           "position": {
-            "file": "model/temporal/capabilities/Retries.scala",
+            "file": "model/temporal/capabilities/Retryable.scala",
             "line": 46
           },
           "binary": {
@@ -1665,13 +1665,13 @@
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/capabilities/Retries.scala",
+                    "file": "model/temporal/capabilities/Retryable.scala",
                     "line": 46
                   },
                   "field": {
                     "base": {
                       "position": {
-                        "file": "model/temporal/capabilities/Retries.scala",
+                        "file": "model/temporal/capabilities/Retryable.scala",
                         "line": 46
                       },
                       "var": "after"
@@ -3815,7 +3815,7 @@
   }, {
     "name": "waitingFailures.property.waitingFailures.eligible.attemptCountIsWithinPolicy",
     "position": {
-      "file": "model/temporal/capabilities/Retries.scala",
+      "file": "model/temporal/capabilities/Retryable.scala",
       "line": 102
     },
     "params": [ {
@@ -3826,26 +3826,26 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/capabilities/Retries.scala",
+        "file": "model/temporal/capabilities/Retryable.scala",
         "line": 103
       },
       "match": {
         "scrutinee": {
           "position": {
-            "file": "model/temporal/capabilities/Retries.scala",
+            "file": "model/temporal/capabilities/Retryable.scala",
             "line": 103
           },
           "call": {
             "function": "fixture.retrycapabilities.WaitingSteps$.maxOne",
             "args": [ {
               "position": {
-                "file": "model/temporal/capabilities/Retries.scala",
+                "file": "model/temporal/capabilities/Retryable.scala",
                 "line": 103
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/capabilities/Retries.scala",
+                    "file": "model/temporal/capabilities/Retryable.scala",
                     "line": 103
                   },
                   "var": "after"
@@ -3866,7 +3866,7 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/capabilities/Retries.scala",
+              "file": "model/temporal/capabilities/Retryable.scala",
               "line": 104
             },
             "literal": {
@@ -3890,27 +3890,27 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/capabilities/Retries.scala",
+              "file": "model/temporal/capabilities/Retryable.scala",
               "line": 105
             },
             "binary": {
               "op": "OP_LE",
               "left": {
                 "position": {
-                  "file": "model/temporal/capabilities/Retries.scala",
+                  "file": "model/temporal/capabilities/Retryable.scala",
                   "line": 105
                 },
                 "call": {
                   "function": "fixture.retrycapabilities.WaitingSteps$.attempts",
                   "args": [ {
                     "position": {
-                      "file": "model/temporal/capabilities/Retries.scala",
+                      "file": "model/temporal/capabilities/Retryable.scala",
                       "line": 105
                     },
                     "field": {
                       "base": {
                         "position": {
-                          "file": "model/temporal/capabilities/Retries.scala",
+                          "file": "model/temporal/capabilities/Retryable.scala",
                           "line": 105
                         },
                         "var": "after"
@@ -3922,7 +3922,7 @@
               },
               "right": {
                 "position": {
-                  "file": "model/temporal/capabilities/Retries.scala",
+                  "file": "model/temporal/capabilities/Retryable.scala",
                   "line": 105
                 },
                 "var": "maximum"
@@ -3935,7 +3935,7 @@
   }, {
     "name": "waitingFailures.property.waitingFailures.eligible.failureEndsFailed",
     "position": {
-      "file": "model/temporal/capabilities/Retries.scala",
+      "file": "model/temporal/capabilities/Retryable.scala",
       "line": 60
     },
     "params": [ {
@@ -3951,28 +3951,28 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/capabilities/Retries.scala",
+        "file": "model/temporal/capabilities/Retryable.scala",
         "line": 61
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
-            "file": "model/temporal/capabilities/Retries.scala",
+            "file": "model/temporal/capabilities/Retryable.scala",
             "line": 61
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
-                "file": "model/temporal/capabilities/Retries.scala",
+                "file": "model/temporal/capabilities/Retryable.scala",
                 "line": 61
               },
               "binary": {
                 "op": "OP_OR",
                 "left": {
                   "position": {
-                    "file": "model/temporal/capabilities/Retries.scala",
+                    "file": "model/temporal/capabilities/Retryable.scala",
                     "line": 61
                   },
                   "unary": {
@@ -3990,21 +3990,21 @@
                 },
                 "right": {
                   "position": {
-                    "file": "model/temporal/capabilities/Retries.scala",
+                    "file": "model/temporal/capabilities/Retryable.scala",
                     "line": 61
                   },
                   "binary": {
                     "op": "OP_AND",
                     "left": {
                       "position": {
-                        "file": "model/temporal/capabilities/Retries.scala",
+                        "file": "model/temporal/capabilities/Retryable.scala",
                         "line": 61
                       },
                       "unary": {
                         "op": "OP_NOT",
                         "operand": {
                           "position": {
-                            "file": "model/temporal/capabilities/Retries.scala",
+                            "file": "model/temporal/capabilities/Retryable.scala",
                             "line": 28
                           },
                           "literal": {
@@ -4015,21 +4015,21 @@
                     },
                     "right": {
                       "position": {
-                        "file": "model/temporal/capabilities/Retries.scala",
+                        "file": "model/temporal/capabilities/Retryable.scala",
                         "line": 61
                       },
                       "unary": {
                         "op": "OP_NOT",
                         "operand": {
                           "position": {
-                            "file": "model/temporal/capabilities/Retries.scala",
+                            "file": "model/temporal/capabilities/Retryable.scala",
                             "line": 61
                           },
                           "call": {
                             "function": "fixture.retrycapabilities.WaitingSteps$.remainingOne",
                             "args": [ {
                               "position": {
-                                "file": "model/temporal/capabilities/Retries.scala",
+                                "file": "model/temporal/capabilities/Retryable.scala",
                                 "line": 61
                               },
                               "var": "before"
@@ -4046,7 +4046,7 @@
         },
         "right": {
           "position": {
-            "file": "model/temporal/capabilities/Retries.scala",
+            "file": "model/temporal/capabilities/Retryable.scala",
             "line": 62
           },
           "binary": {
@@ -4059,13 +4059,13 @@
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/capabilities/Retries.scala",
+                    "file": "model/temporal/capabilities/Retryable.scala",
                     "line": 62
                   },
                   "field": {
                     "base": {
                       "position": {
-                        "file": "model/temporal/capabilities/Retries.scala",
+                        "file": "model/temporal/capabilities/Retryable.scala",
                         "line": 62
                       },
                       "var": "after"
@@ -4103,7 +4103,7 @@
   }, {
     "name": "waitingFailures.property.waitingFailures.eligible.failureReturnsToWaiting",
     "position": {
-      "file": "model/temporal/capabilities/Retries.scala",
+      "file": "model/temporal/capabilities/Retryable.scala",
       "line": 44
     },
     "params": [ {
@@ -4119,35 +4119,35 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/capabilities/Retries.scala",
+        "file": "model/temporal/capabilities/Retryable.scala",
         "line": 45
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
-            "file": "model/temporal/capabilities/Retries.scala",
+            "file": "model/temporal/capabilities/Retryable.scala",
             "line": 45
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
-                "file": "model/temporal/capabilities/Retries.scala",
+                "file": "model/temporal/capabilities/Retryable.scala",
                 "line": 45
               },
               "binary": {
                 "op": "OP_AND",
                 "left": {
                   "position": {
-                    "file": "model/temporal/capabilities/Retries.scala",
+                    "file": "model/temporal/capabilities/Retryable.scala",
                     "line": 45
                   },
                   "binary": {
                     "op": "OP_AND",
                     "left": {
                       "position": {
-                        "file": "model/temporal/capabilities/Retries.scala",
+                        "file": "model/temporal/capabilities/Retryable.scala",
                         "line": 45
                       },
                       "binary": {
@@ -4163,14 +4163,14 @@
                         },
                         "right": {
                           "position": {
-                            "file": "model/temporal/capabilities/Retries.scala",
+                            "file": "model/temporal/capabilities/Retryable.scala",
                             "line": 45
                           },
                           "unary": {
                             "op": "OP_NOT",
                             "operand": {
                               "position": {
-                                "file": "model/temporal/capabilities/Retries.scala",
+                                "file": "model/temporal/capabilities/Retryable.scala",
                                 "line": 28
                               },
                               "literal": {
@@ -4183,14 +4183,14 @@
                     },
                     "right": {
                       "position": {
-                        "file": "model/temporal/capabilities/Retries.scala",
+                        "file": "model/temporal/capabilities/Retryable.scala",
                         "line": 45
                       },
                       "call": {
                         "function": "fixture.retrycapabilities.WaitingSteps$.remainingOne",
                         "args": [ {
                           "position": {
-                            "file": "model/temporal/capabilities/Retries.scala",
+                            "file": "model/temporal/capabilities/Retryable.scala",
                             "line": 45
                           },
                           "var": "before"
@@ -4201,14 +4201,14 @@
                 },
                 "right": {
                   "position": {
-                    "file": "model/temporal/capabilities/Retries.scala",
+                    "file": "model/temporal/capabilities/Retryable.scala",
                     "line": 45
                   },
                   "unary": {
                     "op": "OP_NOT",
                     "operand": {
                       "position": {
-                        "file": "model/temporal/capabilities/Retries.scala",
+                        "file": "model/temporal/capabilities/Retryable.scala",
                         "line": 28
                       },
                       "literal": {
@@ -4223,7 +4223,7 @@
         },
         "right": {
           "position": {
-            "file": "model/temporal/capabilities/Retries.scala",
+            "file": "model/temporal/capabilities/Retryable.scala",
             "line": 46
           },
           "binary": {
@@ -4236,13 +4236,13 @@
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/capabilities/Retries.scala",
+                    "file": "model/temporal/capabilities/Retryable.scala",
                     "line": 46
                   },
                   "field": {
                     "base": {
                       "position": {
-                        "file": "model/temporal/capabilities/Retries.scala",
+                        "file": "model/temporal/capabilities/Retryable.scala",
                         "line": 46
                       },
                       "var": "after"
@@ -4280,7 +4280,7 @@
   }, {
     "name": "waitingFailures.property.waitingFailures.network.attemptCountIsWithinPolicy",
     "position": {
-      "file": "model/temporal/capabilities/Retries.scala",
+      "file": "model/temporal/capabilities/Retryable.scala",
       "line": 102
     },
     "params": [ {
@@ -4291,26 +4291,26 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/capabilities/Retries.scala",
+        "file": "model/temporal/capabilities/Retryable.scala",
         "line": 103
       },
       "match": {
         "scrutinee": {
           "position": {
-            "file": "model/temporal/capabilities/Retries.scala",
+            "file": "model/temporal/capabilities/Retryable.scala",
             "line": 103
           },
           "call": {
             "function": "fixture.retrycapabilities.WaitingSteps$.unlimited",
             "args": [ {
               "position": {
-                "file": "model/temporal/capabilities/Retries.scala",
+                "file": "model/temporal/capabilities/Retryable.scala",
                 "line": 103
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/capabilities/Retries.scala",
+                    "file": "model/temporal/capabilities/Retryable.scala",
                     "line": 103
                   },
                   "var": "after"
@@ -4331,7 +4331,7 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/capabilities/Retries.scala",
+              "file": "model/temporal/capabilities/Retryable.scala",
               "line": 104
             },
             "literal": {
@@ -4355,27 +4355,27 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/capabilities/Retries.scala",
+              "file": "model/temporal/capabilities/Retryable.scala",
               "line": 105
             },
             "binary": {
               "op": "OP_LE",
               "left": {
                 "position": {
-                  "file": "model/temporal/capabilities/Retries.scala",
+                  "file": "model/temporal/capabilities/Retryable.scala",
                   "line": 105
                 },
                 "call": {
                   "function": "fixture.retrycapabilities.WaitingSteps$.otherAttempts",
                   "args": [ {
                     "position": {
-                      "file": "model/temporal/capabilities/Retries.scala",
+                      "file": "model/temporal/capabilities/Retryable.scala",
                       "line": 105
                     },
                     "field": {
                       "base": {
                         "position": {
-                          "file": "model/temporal/capabilities/Retries.scala",
+                          "file": "model/temporal/capabilities/Retryable.scala",
                           "line": 105
                         },
                         "var": "after"
@@ -4387,7 +4387,7 @@
               },
               "right": {
                 "position": {
-                  "file": "model/temporal/capabilities/Retries.scala",
+                  "file": "model/temporal/capabilities/Retryable.scala",
                   "line": 105
                 },
                 "var": "maximum"
@@ -4400,7 +4400,7 @@
   }, {
     "name": "waitingFailures.property.waitingFailures.network.failureEndsFailed",
     "position": {
-      "file": "model/temporal/capabilities/Retries.scala",
+      "file": "model/temporal/capabilities/Retryable.scala",
       "line": 60
     },
     "params": [ {
@@ -4416,28 +4416,28 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/capabilities/Retries.scala",
+        "file": "model/temporal/capabilities/Retryable.scala",
         "line": 61
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
-            "file": "model/temporal/capabilities/Retries.scala",
+            "file": "model/temporal/capabilities/Retryable.scala",
             "line": 61
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
-                "file": "model/temporal/capabilities/Retries.scala",
+                "file": "model/temporal/capabilities/Retryable.scala",
                 "line": 61
               },
               "binary": {
                 "op": "OP_OR",
                 "left": {
                   "position": {
-                    "file": "model/temporal/capabilities/Retries.scala",
+                    "file": "model/temporal/capabilities/Retryable.scala",
                     "line": 61
                   },
                   "unary": {
@@ -4455,21 +4455,21 @@
                 },
                 "right": {
                   "position": {
-                    "file": "model/temporal/capabilities/Retries.scala",
+                    "file": "model/temporal/capabilities/Retryable.scala",
                     "line": 61
                   },
                   "binary": {
                     "op": "OP_AND",
                     "left": {
                       "position": {
-                        "file": "model/temporal/capabilities/Retries.scala",
+                        "file": "model/temporal/capabilities/Retryable.scala",
                         "line": 61
                       },
                       "unary": {
                         "op": "OP_NOT",
                         "operand": {
                           "position": {
-                            "file": "model/temporal/capabilities/Retries.scala",
+                            "file": "model/temporal/capabilities/Retryable.scala",
                             "line": 28
                           },
                           "literal": {
@@ -4480,21 +4480,21 @@
                     },
                     "right": {
                       "position": {
-                        "file": "model/temporal/capabilities/Retries.scala",
+                        "file": "model/temporal/capabilities/Retryable.scala",
                         "line": 61
                       },
                       "unary": {
                         "op": "OP_NOT",
                         "operand": {
                           "position": {
-                            "file": "model/temporal/capabilities/Retries.scala",
+                            "file": "model/temporal/capabilities/Retryable.scala",
                             "line": 61
                           },
                           "call": {
                             "function": "fixture.retrycapabilities.WaitingSteps$.remainingUnlimited",
                             "args": [ {
                               "position": {
-                                "file": "model/temporal/capabilities/Retries.scala",
+                                "file": "model/temporal/capabilities/Retryable.scala",
                                 "line": 61
                               },
                               "var": "before"
@@ -4511,7 +4511,7 @@
         },
         "right": {
           "position": {
-            "file": "model/temporal/capabilities/Retries.scala",
+            "file": "model/temporal/capabilities/Retryable.scala",
             "line": 62
           },
           "binary": {
@@ -4524,13 +4524,13 @@
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/capabilities/Retries.scala",
+                    "file": "model/temporal/capabilities/Retryable.scala",
                     "line": 62
                   },
                   "field": {
                     "base": {
                       "position": {
-                        "file": "model/temporal/capabilities/Retries.scala",
+                        "file": "model/temporal/capabilities/Retryable.scala",
                         "line": 62
                       },
                       "var": "after"
@@ -4568,7 +4568,7 @@
   }, {
     "name": "waitingFailures.property.waitingFailures.network.failureReturnsToWaiting",
     "position": {
-      "file": "model/temporal/capabilities/Retries.scala",
+      "file": "model/temporal/capabilities/Retryable.scala",
       "line": 44
     },
     "params": [ {
@@ -4584,35 +4584,35 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/capabilities/Retries.scala",
+        "file": "model/temporal/capabilities/Retryable.scala",
         "line": 45
       },
       "binary": {
         "op": "OP_OR",
         "left": {
           "position": {
-            "file": "model/temporal/capabilities/Retries.scala",
+            "file": "model/temporal/capabilities/Retryable.scala",
             "line": 45
           },
           "unary": {
             "op": "OP_NOT",
             "operand": {
               "position": {
-                "file": "model/temporal/capabilities/Retries.scala",
+                "file": "model/temporal/capabilities/Retryable.scala",
                 "line": 45
               },
               "binary": {
                 "op": "OP_AND",
                 "left": {
                   "position": {
-                    "file": "model/temporal/capabilities/Retries.scala",
+                    "file": "model/temporal/capabilities/Retryable.scala",
                     "line": 45
                   },
                   "binary": {
                     "op": "OP_AND",
                     "left": {
                       "position": {
-                        "file": "model/temporal/capabilities/Retries.scala",
+                        "file": "model/temporal/capabilities/Retryable.scala",
                         "line": 45
                       },
                       "binary": {
@@ -4628,14 +4628,14 @@
                         },
                         "right": {
                           "position": {
-                            "file": "model/temporal/capabilities/Retries.scala",
+                            "file": "model/temporal/capabilities/Retryable.scala",
                             "line": 45
                           },
                           "unary": {
                             "op": "OP_NOT",
                             "operand": {
                               "position": {
-                                "file": "model/temporal/capabilities/Retries.scala",
+                                "file": "model/temporal/capabilities/Retryable.scala",
                                 "line": 28
                               },
                               "literal": {
@@ -4648,14 +4648,14 @@
                     },
                     "right": {
                       "position": {
-                        "file": "model/temporal/capabilities/Retries.scala",
+                        "file": "model/temporal/capabilities/Retryable.scala",
                         "line": 45
                       },
                       "call": {
                         "function": "fixture.retrycapabilities.WaitingSteps$.remainingUnlimited",
                         "args": [ {
                           "position": {
-                            "file": "model/temporal/capabilities/Retries.scala",
+                            "file": "model/temporal/capabilities/Retryable.scala",
                             "line": 45
                           },
                           "var": "before"
@@ -4666,14 +4666,14 @@
                 },
                 "right": {
                   "position": {
-                    "file": "model/temporal/capabilities/Retries.scala",
+                    "file": "model/temporal/capabilities/Retryable.scala",
                     "line": 45
                   },
                   "unary": {
                     "op": "OP_NOT",
                     "operand": {
                       "position": {
-                        "file": "model/temporal/capabilities/Retries.scala",
+                        "file": "model/temporal/capabilities/Retryable.scala",
                         "line": 28
                       },
                       "literal": {
@@ -4688,7 +4688,7 @@
         },
         "right": {
           "position": {
-            "file": "model/temporal/capabilities/Retries.scala",
+            "file": "model/temporal/capabilities/Retryable.scala",
             "line": 46
           },
           "binary": {
@@ -4701,13 +4701,13 @@
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/capabilities/Retries.scala",
+                    "file": "model/temporal/capabilities/Retryable.scala",
                     "line": 46
                   },
                   "field": {
                     "base": {
                       "position": {
-                        "file": "model/temporal/capabilities/Retries.scala",
+                        "file": "model/temporal/capabilities/Retryable.scala",
                         "line": 46
                       },
                       "var": "after"
@@ -5227,9 +5227,9 @@
     },
     "holds": "controlledFailures.property.controlledFailures.eligible.attemptCountIsWithinPolicy",
     "origin": {
-      "name": "temporal.capabilities.Retries.attemptCountIsWithinPolicy",
+      "name": "temporal.capabilities.Retryable.attemptCountIsWithinPolicy",
       "position": {
-        "file": "model/temporal/capabilities/Retries.scala",
+        "file": "model/temporal/capabilities/Retryable.scala",
         "line": 98
       }
     }
@@ -5246,9 +5246,9 @@
     "holds": "controlledFailures.property.controlledFailures.eligible.failureCancels",
     "transition": true,
     "origin": {
-      "name": "temporal.capabilities.Retries.failureCancels",
+      "name": "temporal.capabilities.Retryable.failureCancels",
       "position": {
-        "file": "model/temporal/capabilities/Retries.scala",
+        "file": "model/temporal/capabilities/Retryable.scala",
         "line": 82
       }
     }
@@ -5265,9 +5265,9 @@
     "holds": "controlledFailures.property.controlledFailures.eligible.failureEndsFailed",
     "transition": true,
     "origin": {
-      "name": "temporal.capabilities.Retries.failureEndsFailed",
+      "name": "temporal.capabilities.Retryable.failureEndsFailed",
       "position": {
-        "file": "model/temporal/capabilities/Retries.scala",
+        "file": "model/temporal/capabilities/Retryable.scala",
         "line": 49
       }
     }
@@ -5284,9 +5284,9 @@
     "holds": "controlledFailures.property.controlledFailures.eligible.failurePauses",
     "transition": true,
     "origin": {
-      "name": "temporal.capabilities.Retries.failurePauses",
+      "name": "temporal.capabilities.Retryable.failurePauses",
       "position": {
-        "file": "model/temporal/capabilities/Retries.scala",
+        "file": "model/temporal/capabilities/Retryable.scala",
         "line": 65
       }
     }
@@ -5303,9 +5303,9 @@
     "holds": "controlledFailures.property.controlledFailures.eligible.failureReturnsToWaiting",
     "transition": true,
     "origin": {
-      "name": "temporal.capabilities.Retries.failureReturnsToWaiting",
+      "name": "temporal.capabilities.Retryable.failureReturnsToWaiting",
       "position": {
-        "file": "model/temporal/capabilities/Retries.scala",
+        "file": "model/temporal/capabilities/Retryable.scala",
         "line": 32
       }
     }
@@ -5318,9 +5318,9 @@
     },
     "holds": "controlledFailures.property.controlledFailures.fatal.attemptCountIsWithinPolicy",
     "origin": {
-      "name": "temporal.capabilities.Retries.attemptCountIsWithinPolicy",
+      "name": "temporal.capabilities.Retryable.attemptCountIsWithinPolicy",
       "position": {
-        "file": "model/temporal/capabilities/Retries.scala",
+        "file": "model/temporal/capabilities/Retryable.scala",
         "line": 98
       }
     }
@@ -5337,9 +5337,9 @@
     "holds": "controlledFailures.property.controlledFailures.fatal.failureCancels",
     "transition": true,
     "origin": {
-      "name": "temporal.capabilities.Retries.failureCancels",
+      "name": "temporal.capabilities.Retryable.failureCancels",
       "position": {
-        "file": "model/temporal/capabilities/Retries.scala",
+        "file": "model/temporal/capabilities/Retryable.scala",
         "line": 82
       }
     }
@@ -5356,9 +5356,9 @@
     "holds": "controlledFailures.property.controlledFailures.fatal.failureEndsFailed",
     "transition": true,
     "origin": {
-      "name": "temporal.capabilities.Retries.failureEndsFailed",
+      "name": "temporal.capabilities.Retryable.failureEndsFailed",
       "position": {
-        "file": "model/temporal/capabilities/Retries.scala",
+        "file": "model/temporal/capabilities/Retryable.scala",
         "line": 49
       }
     }
@@ -5375,9 +5375,9 @@
     "holds": "controlledFailures.property.controlledFailures.fatal.failurePauses",
     "transition": true,
     "origin": {
-      "name": "temporal.capabilities.Retries.failurePauses",
+      "name": "temporal.capabilities.Retryable.failurePauses",
       "position": {
-        "file": "model/temporal/capabilities/Retries.scala",
+        "file": "model/temporal/capabilities/Retryable.scala",
         "line": 65
       }
     }
@@ -5394,9 +5394,9 @@
     "holds": "controlledFailures.property.controlledFailures.fatal.failureReturnsToWaiting",
     "transition": true,
     "origin": {
-      "name": "temporal.capabilities.Retries.failureReturnsToWaiting",
+      "name": "temporal.capabilities.Retryable.failureReturnsToWaiting",
       "position": {
-        "file": "model/temporal/capabilities/Retries.scala",
+        "file": "model/temporal/capabilities/Retryable.scala",
         "line": 32
       }
     }
@@ -5425,9 +5425,9 @@
     },
     "holds": "waitingFailures.property.waitingFailures.eligible.attemptCountIsWithinPolicy",
     "origin": {
-      "name": "temporal.capabilities.Retries.attemptCountIsWithinPolicy",
+      "name": "temporal.capabilities.Retryable.attemptCountIsWithinPolicy",
       "position": {
-        "file": "model/temporal/capabilities/Retries.scala",
+        "file": "model/temporal/capabilities/Retryable.scala",
         "line": 98
       }
     }
@@ -5444,9 +5444,9 @@
     "holds": "waitingFailures.property.waitingFailures.eligible.failureEndsFailed",
     "transition": true,
     "origin": {
-      "name": "temporal.capabilities.Retries.failureEndsFailed",
+      "name": "temporal.capabilities.Retryable.failureEndsFailed",
       "position": {
-        "file": "model/temporal/capabilities/Retries.scala",
+        "file": "model/temporal/capabilities/Retryable.scala",
         "line": 49
       }
     }
@@ -5463,9 +5463,9 @@
     "holds": "waitingFailures.property.waitingFailures.eligible.failureReturnsToWaiting",
     "transition": true,
     "origin": {
-      "name": "temporal.capabilities.Retries.failureReturnsToWaiting",
+      "name": "temporal.capabilities.Retryable.failureReturnsToWaiting",
       "position": {
-        "file": "model/temporal/capabilities/Retries.scala",
+        "file": "model/temporal/capabilities/Retryable.scala",
         "line": 32
       }
     }
@@ -5478,9 +5478,9 @@
     },
     "holds": "waitingFailures.property.waitingFailures.network.attemptCountIsWithinPolicy",
     "origin": {
-      "name": "temporal.capabilities.Retries.attemptCountIsWithinPolicy",
+      "name": "temporal.capabilities.Retryable.attemptCountIsWithinPolicy",
       "position": {
-        "file": "model/temporal/capabilities/Retries.scala",
+        "file": "model/temporal/capabilities/Retryable.scala",
         "line": 98
       }
     }
@@ -5497,9 +5497,9 @@
     "holds": "waitingFailures.property.waitingFailures.network.failureEndsFailed",
     "transition": true,
     "origin": {
-      "name": "temporal.capabilities.Retries.failureEndsFailed",
+      "name": "temporal.capabilities.Retryable.failureEndsFailed",
       "position": {
-        "file": "model/temporal/capabilities/Retries.scala",
+        "file": "model/temporal/capabilities/Retryable.scala",
         "line": 49
       }
     }
@@ -5516,9 +5516,9 @@
     "holds": "waitingFailures.property.waitingFailures.network.failureReturnsToWaiting",
     "transition": true,
     "origin": {
-      "name": "temporal.capabilities.Retries.failureReturnsToWaiting",
+      "name": "temporal.capabilities.Retryable.failureReturnsToWaiting",
       "position": {
-        "file": "model/temporal/capabilities/Retries.scala",
+        "file": "model/temporal/capabilities/Retryable.scala",
         "line": 32
       }
     }

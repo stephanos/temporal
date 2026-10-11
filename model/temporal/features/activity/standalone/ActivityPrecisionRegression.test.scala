@@ -1,26 +1,18 @@
 package framework
 
+import temporal.features.activity.standalone.realization.*
 import framework.Finite.given
 
 import temporal.features.activity.{deadline, timers, Timeout}
 import temporal.features.activity.standalone.{
+  activityWorker,
   attemptCount,
   client,
   heartbeatDetails,
-  system,
-  worker,
+  protocol,
   MaxAttempts
 }
-import temporal.features.activity.standalone.system.{
-  ActivitySystem,
-  ExhaustAfterHeartbeat,
-  HeartbeatThenCompletion,
-  HeldDelivery,
-  LostAdmissionResponse,
-  RetryAfterHeartbeat,
-  RetryAfterTimeout,
-  Standalone
-}
+import temporal.features.activity.standalone.protocol.ActivityProtocol
 import framework.realize.Instruction
 import framework.outcomes.{Outcome, Rejection}
 import io.temporal.api.activity.v1.ActivityExecutionInfo
@@ -28,32 +20,36 @@ import io.temporal.api.common.v1.Payloads
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.METHOD_DESCRIBE_ACTIVITY_EXECUTION
 
 class ActivityPrecisionRegression extends munit.FunSuite:
-  val _ = () => summon[CanEqual[system.Phase, system.Phase]]
-  private def take(s: system.State, c: Class) =
-    val binding = ActivitySystem.bindings.find(_.decl == c.decl).get
-    effectOf[system.State, Outcome, system.Fact](binding.decl, binding.function)(s, c.values).head
+  val _ = () => summon[CanEqual[protocol.Phase, protocol.Phase]]
+  private def take(s: protocol.State, c: Class) =
+    val binding = ActivityProtocol.bindings.find(_.decl == c.decl).get
+    effectOf[protocol.State, Outcome, protocol.Fact](binding.decl, binding.function)(
+      s,
+      c.values
+    ).head
 
   test(
     "cancellation precedence exercises a refused pause, permits legal closure and rejects undo"
   ) {
-    val holds = ActivitySystem.properties.cancelIsNotUndone.decl.holds2.get
+    val holds = ActivityProtocol.properties.cancelIsNotUndone.decl.holds2.get
       .asInstanceOf[
-        (system.State, Step[system.State, Outcome, system.Fact]) => Boolean
+        (protocol.State, Step[protocol.State, Outcome, protocol.Fact]) => Boolean
       ] // scalafix:ok DisableSyntax.asInstanceOf
-    val started = take(take(ActivitySystem.init, client.start()).state, worker.poll()).state
+    val started =
+      take(take(ActivityProtocol.init, client.start()).state, activityWorker.poll()).state
     val requested = take(started, client.requestCancel()).state
-    assertEquals(requested.phase, system.Phase.cancelRequested)
+    assertEquals(requested.phase, protocol.Phase.cancelRequested)
     val pause = take(requested, client.pause())
     assertEquals(pause.outcome, Outcome.rejected(Rejection.failedPrecondition))
     assertEquals(pause.state, requested)
     assert(holds(requested, pause))
     assert(
-      !holds(requested, pause.copy(state = requested.copy(phase = system.Phase.pauseRequested)))
+      !holds(requested, pause.copy(state = requested.copy(phase = protocol.Phase.pauseRequested)))
     )
     val closures = List(
-      worker.respondCompleted(),
-      worker.respondFailed(temporal.features.activity.Failure.fatal),
-      worker.respondCanceled(),
+      activityWorker.respondCompleted(),
+      activityWorker.respondFailed(temporal.features.activity.Failure.fatal),
+      activityWorker.respondCanceled(),
       client.terminate(),
       deadline.startToClose()
     )
@@ -63,39 +59,39 @@ class ActivityPrecisionRegression extends munit.FunSuite:
       assert(closed.state.phase.in[Closed])
       assert(holds(armed, closed))
     for
-      before <- summon[Finite[system.State]].values
-      if before.phase == system.Phase.cancelRequested
-      binding <- ActivitySystem.bindings
+      before <- summon[Finite[protocol.State]].values
+      if before.phase == protocol.Phase.cancelRequested
+      binding <- ActivityProtocol.bindings
       inputs <- classesOf(binding.decl)
-      after <- effectOf[system.State, Outcome, system.Fact](binding.decl, binding.function)(
+      after <- effectOf[protocol.State, Outcome, protocol.Fact](binding.decl, binding.function)(
         before,
         inputs
       )
     do assert(holds(before, after), s"${binding.decl.name} in $before")
-    val checked = ActivitySystem.queries.cancellationKeepsPrecedence
+    val checked = ActivityProtocol.queries.cancellationKeepsPrecedence
     assertEquals(checked.form, QueryForm.verify)
     assert(checked.scenario.free)
     assertEquals(checked.limits.steps, 8)
   }
 
   test("all ten timer branches explain the nominal versus real time window") {
-    val scheduled = ActivitySystem.init.copy(phase = system.Phase.scheduled)
+    val scheduled = ActivityProtocol.init.copy(phase = protocol.Phase.scheduled)
     val held = scheduled.copy(
-      phase = system.Phase.started,
+      phase = protocol.Phase.started,
       attempts = UpTo(1),
       startToClose = Timeout.expires
     )
     val branches = List(
-      (scheduled.copy(dispatch = system.Dispatch.startDelay), timers.startDelay()),
-      (scheduled.copy(dispatch = system.Dispatch.backoff), timers.backoff()),
+      (scheduled.copy(dispatch = protocol.Dispatch.startDelay), timers.startDelay()),
+      (scheduled.copy(dispatch = protocol.Dispatch.backoff), timers.backoff()),
       (scheduled.copy(scheduleToClose = Timeout.expires), deadline.scheduleToClose()),
       (scheduled.copy(scheduleToStart = Timeout.expires), deadline.scheduleToStart()),
       (held, deadline.startToClose()),
-      (held.copy(phase = system.Phase.pauseRequested), deadline.startToClose()),
+      (held.copy(phase = protocol.Phase.pauseRequested), deadline.startToClose()),
       (held.copy(maxAttempts = MaxAttempts.one), deadline.startToClose()),
       (held.copy(heartbeat = Timeout.expires), deadline.heartbeat()),
       (
-        held.copy(phase = system.Phase.pauseRequested, heartbeat = Timeout.expires),
+        held.copy(phase = protocol.Phase.pauseRequested, heartbeat = Timeout.expires),
         deadline.heartbeat()
       ),
       (held.copy(maxAttempts = MaxAttempts.one, heartbeat = Timeout.expires), deadline.heartbeat())
@@ -108,17 +104,18 @@ class ActivityPrecisionRegression extends munit.FunSuite:
   }
 
   test("every realization declares a typed raw attempt observation and ends with a Describe read") {
-    val original = List(Standalone, RetryAfterTimeout, HeldDelivery, LostAdmissionResponse)
+    val original =
+      List(StandaloneActivityRun, RetryAfterTimeoutRun, HeldDispatchRun, LostStartAnswerRun)
     val realizations =
-      original ++ List(HeartbeatThenCompletion, RetryAfterHeartbeat, ExhaustAfterHeartbeat)
+      original ++ List(HeartbeatThenCompletionRun, RetryAfterHeartbeatRun, ExhaustAfterHeartbeatRun)
     val controllers = List(
-      Standalone.controller,
-      RetryAfterTimeout.controller,
-      HeldDelivery.controller,
-      LostAdmissionResponse.controller,
-      HeartbeatThenCompletion.controller,
-      RetryAfterHeartbeat.controller,
-      ExhaustAfterHeartbeat.controller
+      StandaloneActivityRun.controller,
+      RetryAfterTimeoutRun.controller,
+      HeldDispatchRun.controller,
+      LostStartAnswerRun.controller,
+      HeartbeatThenCompletionRun.controller,
+      RetryAfterHeartbeatRun.controller,
+      ExhaustAfterHeartbeatRun.controller
     )
     for (realization, controller) <- realizations.zip(controllers) do
       val observed = if original.contains(realization) then
@@ -139,7 +136,12 @@ class ActivityPrecisionRegression extends munit.FunSuite:
             METHOD_DESCRIBE_ACTIVITY_EXECUTION.getFullMethodName
           )
         case other => fail(s"final read is $other")
-    for realization <- List(HeartbeatThenCompletion, RetryAfterHeartbeat, ExhaustAfterHeartbeat) do
+    for realization <- List(
+        HeartbeatThenCompletionRun,
+        RetryAfterHeartbeatRun,
+        ExhaustAfterHeartbeatRun
+      )
+    do
       val details = realization.observations.filter(
         _.message == Payloads.scalaDescriptor.fullName
       )

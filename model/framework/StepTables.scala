@@ -63,7 +63,7 @@ object StepTables:
     case other           => other.toString
 
   // A model's key: its family, the package or object that declares it, and its name,
-  // `temporal.features.nexus.workflow.system.nexusSystem`, as the IR names it. A derivation made in
+  // `temporal.features.nexus.workflow.protocol.nexusProtocol`, as the IR names it. A derivation made in
   // place takes its source's.
   private def key(m: Model): String = m match
     case d: DerivedFrom[?] if !isDeclared(m) =>

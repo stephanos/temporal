@@ -19,7 +19,7 @@ class GateSuite extends munit.FunSuite:
   // records its command line in `log`, and scala-cli writes the file it is asked to package, as an
   // executable, since one of them is protoc's plugin.
   final private class Repository(scalaCli: String = "", go: String = passingVocabulary):
-    val root: Path = Files.createTempDirectory("umpire-gate-repository")
+    val root: Path = Scratch.directory("umpire-gate-repository")
     val log: Path = root.resolve("tools.log")
     val schema: Path = root.resolve(schemaFile)
     Files.createDirectories(schema.getParent)
@@ -300,7 +300,7 @@ class GateSuite extends munit.FunSuite:
     assertNotEquals(repository.stamp, before)
 
   test("real ScalaPB generation compiles a declaration imported by the IR root"):
-    val root = Files.createTempDirectory("umpire-gate-real-schema")
+    val root = Scratch.directory("umpire-gate-real-schema")
     val schema = root.resolve(schemaFile)
     Files.createDirectories(schema.getParent)
     Files.writeString(
@@ -828,7 +828,7 @@ class GateSuite extends munit.FunSuite:
 
   // A checked-in tree and a produced one, each with the given files.
   final private class Trees(checkedIn: Map[String, String], produced: Map[String, String]):
-    val root: Path = Files.createTempDirectory("umpire-gate-trees")
+    val root: Path = Scratch.directory("umpire-gate-trees")
     val tree: Path = Files.createDirectories(root.resolve("model/ir"))
     val lifted: Path = Files.createDirectories(root.resolve("model/build/lifted"))
     checkedIn.foreach((name, text) => Files.writeString(tree.resolve(name), text))
@@ -871,7 +871,7 @@ class GateSuite extends munit.FunSuite:
       message,
       s"""model/ir/a.json is stale: line 2 is `  "line": 1` and lifts to `  "line": 2`
          |model/ir/new.json is missing
-         |model/ir/old.json is checked in and nothing produces it: remove it or declare it with irFile
+         |model/ir/old.json is checked in and nothing produces it: remove it, or declare its feature's Queries
          |rerun with --update (make umpire-gen-model); the lifted files are in ${trees.lifted}""".stripMargin
     )
     assertEquals(trees.held, before)
@@ -910,7 +910,7 @@ class GateSuite extends munit.FunSuite:
     assertEquals(
       intercept[GateError](left.settle(update = true)).getMessage,
       "model/ir/a.laws.json is checked in and nothing produces it: " +
-        "remove it or declare it with irFile"
+        "remove it, or declare its feature's Queries"
     )
 
   test("an update writes nothing while a checked-in file is produced by nothing"):
@@ -919,7 +919,7 @@ class GateSuite extends munit.FunSuite:
     val message = intercept[GateError](trees.settle(update = true)).getMessage
     assertEquals(
       message,
-      "model/ir/old.json is checked in and nothing produces it: remove it or declare it with irFile"
+      "model/ir/old.json is checked in and nothing produces it: remove it, or declare its feature's Queries"
     )
     assertEquals(trees.held, before)
 

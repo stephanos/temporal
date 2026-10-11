@@ -1,7 +1,7 @@
 // A realization object: one realization of one machine, typed by it, its declarations in named
 // sections, as a machine object holds one machine (fn-133 Part C).
 //
-//   object Standalone extends Realizes(ActivitySystem):
+//   object Standalone extends Realizes(ActivityProtocol):
 //     object controller extends Controller(perform(…), onPath(…)(…), …)
 //     object workers extends Workers(attempts)
 //     object evidence extends Evidences(answered(Fact.statusScheduled, startActivity), …)
@@ -14,8 +14,8 @@
 // the operation is its machine's entity; its roles are the WorkflowService and the Case's task
 // queue, and each other kit role its scripts' calls, activations, faults, controls and protobuf
 // literals name; a delivery step is each class an activity script starts with, a timer step each
-// deadline timer of an input its `deadlines` declaration sets, at `deadlineMs`, and the machine's
-// backoff timer, at `firstRetryBackoffMs`, where an activity script runs the attempts it retries.
+// deadline timer of an input its `deadlines` declaration sets, at `timerDeadline`, and the machine's
+// backoff timer, at `firstRetryBackoff`, where an activity script runs the attempts it retries.
 // A `serverSteps` section adds steps or overrides a derived one; an override equal to the derived
 // step is refused. The lifter (model/irgen/Realizations.scala) reads the object and writes the
 // record `temporalRealization` writes.
@@ -29,7 +29,11 @@ abstract class Realizes[S, O, F <: AnyRef](
     val machine: Machine[S, O, F],
     val learned: Vector[Learned] = Vector.empty,
     val observations: Vector[Observed] = Vector(correlated),
-    val requiredSettings: Vector[RequiredSetting] = Vector.empty
+    val requiredSettings: Vector[RequiredSetting] = Vector.empty,
+    // The find Queries it runs (fn-162 R8): Queries, lists of them, or a `queries` or
+    // `capabilities` section of its machine, each standing for every find Query it declares or
+    // generates. A find Query no realization names is model-only.
+    val runs: Seq[AnyRef] = Seq.empty
 ):
   // What the server answered a call of the controller, where it succeeded, the kind named after
   // `fact`, a fact of the machine. The kit's `answered`, typed by the machine.
@@ -59,8 +63,9 @@ abstract class Realizes[S, O, F <: AnyRef](
 // changed. Its header is the base's.
 abstract class DerivesFrom[S, O, F <: AnyRef](
     val base: Realizes[?, ?, ?],
-    machine: Machine[S, O, F]
-) extends Realizes[S, O, F](machine)
+    machine: Machine[S, O, F],
+    runs: Seq[AnyRef] = Seq.empty
+) extends Realizes[S, O, F](machine, runs = runs)
 
 // The controller: the calls and controls of a Case, in the order its path makes them.
 abstract class Controller(val items: Item*)

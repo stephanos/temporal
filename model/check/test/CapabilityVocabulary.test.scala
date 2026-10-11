@@ -14,8 +14,8 @@ class CapabilityVocabularySuite extends munit.FunSuite:
       "Pausable",
       "Pollable",
       "Describable",
-      "Retries",
-      "Deadline"
+      "Retryable",
+      "Expirable"
     )
 
   private def scala(directory: Path, recursive: Boolean): Vector[Path] =

@@ -146,12 +146,26 @@ extension [A, B, C, D, E, G](a: Action[(A, B, C, D, E, G)])
 final class Owner[S, O, F] private[framework] (val machine: Machine[S, O, F])
 
 // The projection of a machine's or composition's state onto its phase, which its sections read as a
-// given: `when(placed)` in its `rules` tests it. The object's `Phased[State, Phase](_.phase)`
+// given: `when(Phase.placed)` in its `rules` tests it. The object's `Phased[State, Phase](_.phase)`
 // (model/framework/Syntax.scala) gives it, and a derived machine gives its source's, with the source's
 // phase type.
-final class Phasing[S, P] private[framework] (private[framework] val projection: S => P):
+final class Phasing[S, P] private[framework] (
+    private[framework] val projection: S => P,
+    private[framework] val writer: (S, P) => S = Phased.Unwritten
+):
   // Reads the phase a lifecycle reader tests, including a phase nested in a composed state.
   def phase(state: S): P = projection(state)
+
+  // The state with its phase replaced by `p`, through the writer its `Phased` declares, which must
+  // give a state the projection reads `p` of.
+  private[framework] def write(state: S, p: P): S =
+    val written = writer(state, p)
+    require(
+      java.util.Objects.equals(projection(written), p),
+      s"the phase writer gives $written for $p, whose phase it does not read as $p: write the " +
+        "field the projection reads, `Phased[State, Phase](_.phase, (s, p) => s.copy(phase = p))`"
+    )
+    written
 
   // The phase cases with a role, refused when none has it, naming the reader and the phase type.
   def roleCases[R](owner: String)(using
@@ -182,7 +196,8 @@ trait DerivedFrom[+M]:
 // from in turn, or, where it declares no phase, onto `Nothing`.
 final class Inherited[-T, S, P] private[framework] (
     private[framework] val projection: T => S => P,
-    private[framework] val end: T => S => Boolean
+    private[framework] val end: T => S => Boolean,
+    private[framework] val writer: T => (S, P) => S = (_: T) => Phased.Unwritten
 )
 
 object Inherited extends Inherited.Unphased:
@@ -190,11 +205,15 @@ object Inherited extends Inherited.Unphased:
   given derivation[S, P, M, T <: DerivedFrom[M]](using
       source: Inherited[M, S, P]
   ): Inherited[T, S, P] =
-    Inherited(t => source.projection(t.source), t => source.end(t.source))
+    Inherited(
+      t => source.projection(t.source),
+      t => source.end(t.source),
+      t => source.writer(t.source)
+    )
 
   // A derived machine, `object M extends Derived(m.rebind(...))`: its own, which is its source's.
   given derived[S, P, T <: Derived[S, ?, ?, P]]: Inherited[T, S, P] =
-    Inherited(_.sourcePhasing.projection, _.end)
+    Inherited(_.sourcePhasing.projection, _.end, _.sourcePhasing.writer)
 
   given composed[S <: Product, P, T <: DerivedComposition[S, P]]: Inherited[T, S, P] =
     Inherited(_.sourcePhasing.projection, _.end)
@@ -319,6 +338,11 @@ private[framework] def overlap[S, O, F](
 // The name of an action as its rule writes it, from the source the rule was given: the last name
 // of `clerk.ship`, or of the action a class applies, `buyer.change(Change.hold)`.
 private[framework] def writtenAction(code: String): String =
+  writtenPath(code).split('.').last
+
+// The reference to the action a rule's source names, as written: `clerk.ship`, the action
+// `buyer.change(Change.hold)` applies, or a bare `ship`.
+private[framework] def writtenPath(code: String): String =
   // The type arguments of a class written by name, `apply[(A, B)](action)(...)`, name no action.
   val untyped = code.replaceAll("\\[[^\\]]*\\]", "")
   val path = "[A-Za-z_][A-Za-z0-9_$]*(?:\\.[A-Za-z_][A-Za-z0-9_$]*)*".r
@@ -326,7 +350,7 @@ private[framework] def writtenAction(code: String): String =
     .findAllIn(untyped)
     .map(_.stripSuffix(".apply"))
     .find(p => p.nonEmpty && p != "framework" && p != "apply")
-    .fold(code)(_.split('.').last)
+    .getOrElse(code)
 
 // A machine: a transition relation over the finite state type `S` with outcomes `O` and facts `F`.
 // Declared as an object that is the machine, named after the object with its first letter lowered:
@@ -514,7 +538,8 @@ abstract class Derived[S, O, F, P](derivation: Machine[S, O, F])(using
   )
 
   // The phase projection its sections read: its source's, with its phase type.
-  private[framework] def sourcePhasing: Phasing[S, P] = Phasing(source.projection(derivation))
+  private[framework] def sourcePhasing: Phasing[S, P] =
+    Phasing(source.projection(derivation), source.writer(derivation))
 
   protected given derivedPhasing: Phasing[S, P] = sourcePhasing
 

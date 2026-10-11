@@ -40,12 +40,9 @@ class ConventionsFixtures extends munit.FunSuite:
 
   private def lift(jar: Path, stored: String, root: String): (Ran, Path) =
     val output = scratch.resolve(root.split('.').last + ".json")
-    val result = tools.run(
-      Path.of(System.getProperty("java.home"), "bin", "java").toString,
+    val result = InProcess.lift(
+      tools.directory,
       Seq(
-        "-cp",
-        System.getProperty("java.class.path"),
-        "umpire.irgen.lift",
         s"$jar=model/irgen/testdata/$stored/,${build.resolve("model-scala.jar")}=model/",
         build.resolve("model-scala.classpath").toString,
         output.toString,
@@ -67,6 +64,27 @@ class ConventionsFixtures extends munit.FunSuite:
     assert(!result.output.contains("WorkflowPhase unqualified"), result.output)
     assertEquals(result.output.linesIterator.count(_.contains("R4.dotted-in")), 2, result.output)
     assert(result.output.contains("Checks.scala:"), result.output)
+
+  test("an import of a phase type's members is refused at its line, at any level"):
+    val (result, output) = lift(negative, "conventions", "fixture.conventions.phases.Staged")
+    assertNotEquals(result.exit, 0, result.output)
+    assert(!Files.exists(output), result.output)
+    val refused = result.output.linesIterator
+      .filter(l => l.contains("/PhaseImports.scala:") && l.contains("R9.phase-import"))
+      .map(l => l.drop(l.indexOf("PhaseImports.scala:")).takeWhile(_ != ' '))
+      .toList
+    assertEquals(
+      refused.sorted,
+      List("PhaseImports.scala:24:", "PhaseImports.scala:29:", "PhaseImports.scala:6:"),
+      result.output
+    )
+    assert(
+      result.output.contains(
+        "brings the cases of the phase type Stage into scope: drop it and name each phase " +
+          "through its type, `Stage.<case>`"
+      ),
+      result.output
+    )
 
   test("typed imports reject forbidden edges and unqualified cross-level types"):
     val (result, _) = lift(negative, "conventions", "fixture.conventions.Checked")

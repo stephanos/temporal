@@ -45,3 +45,18 @@ A pattern becomes a named capability even with a single use: the name improves r
 
 - Bar for naming: one use suffices (owner), replacing the earlier "two uses" rule from TEMPORAL_PATTERNS for capabilities. [user]
 - Level split: system/ vs product/ packages (owner). [user]
+
+## Inventory and decisions (Batch 1d, 2026-10-11; R1, R3, R4)
+
+| Hand-written claim | Where | Capability | Law | IR |
+| --- | --- | --- | --- | --- |
+| `atMostOneActive` (state count) | ActivityRecord and its compositions | `Exclusive` | `Exclusive.atMostOneActive(m)(twoActive)` | Property, unchanged name |
+| `atMostOneActiveAttempt` (records count) | ActivityRecord, HeldDispatch monitors | `Exclusive` (history law) | stays a hand-written monitor | Monitor |
+| `staleDelivery*` (`staleDeliveryRejected`) | HeldDispatch | `Fenced` | `Fenced.staleDeliveryRejected(m)(deliver, rejected)` | Property, unchanged name |
+| `staleDelivery` verifies (`notPaused` on the stale path) | admission designs | `Fenced` | stay Queries of Pausable's claim on the stale path | Query |
+| `repeatedRequestsAnswer`, repeated RequestCancel/Terminate answered OK after close | standalone Nexus | `Idempotent` (action-targeted) | `Idempotent.closedRejectsOrRepeats(m)(closed, repeats, rejected, accepted)`, the machine's override of Closable's `closedIsRejectedUniformly`; `Idempotent.repeatedRequestsAnswer` its reason | Property |
+| `singleOutcome` | Nexus close-policy designs | single outcome (history law) | stays a hand-written monitor | Monitor |
+
+- System capabilities are named law definitions in `temporal.capabilities.system` (one definition each, a single use is enough), called where the Model states the promise. They are not `CapabilityKind` sections: a section generates a Query per law, which would add Queries and answers, while R5 keeps every answer.
+- History laws stay monitors written in the machine's `monitors` section, because the lifter lifts a monitor only there (a monitor built by a helper def is refused); synthesizing them is left for later (R4).
+- `Retryable` and `Expirable` are system capabilities (`capabilities/system/`), the rest product (`capabilities/product/`).

@@ -7,13 +7,10 @@ package features.activity
 package standalone
 package product
 
-import scala.annotation.unused
 import framework.*
 import framework.Finite.given
-import framework.outcomes.{Outcome, Rejection}
-import temporal.capabilities.*
+import framework.outcomes.Outcome
 import Bounds.three
-import actors.worker.worker as process
 
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 
@@ -37,245 +34,49 @@ enum Fact derives Finite:
   case statusCompleted, statusFailed, statusCanceled, statusTerminated, statusTimedOut
   case heartbeatReceived, heartbeatTimedOut
 
-// The accessors the blocks of ActivityProduct read and assign a state's phase by: the setter hands
-// the draft the phase it assigns, whose status the step records.
+// The accessor the blocks of ActivityProduct read a state's phase by. Its rules enter a phase by
+// `enters(Phase.x)`, which writes it through the machine's `Phased` writer and records the status
+// the phase declares.
 def phase(using v: View[State]): Phase = v.get(_.phase)
-def phase_=(p: Phase)(using d: Draft[State, ?, Fact]): Unit = d.set(p)(_.copy(phase = p))
 
 // ### The product machine: what DescribeActivityExecution shows, with no account of how. A retry
 // reads as scheduled again, a pause of a running attempt as started until the worker yields.
 
 // Every status the product machine records is confirmed by the status observation of its name.
-object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phase](_.phase):
-  import Phase.*
-
-  val init = product.State(scheduled)
+object ActivityProduct
+    extends Machine[State, Outcome, Fact],
+      Phased[State, Phase](_.phase, (s, p) => s.copy(phase = p)),
+      Dispatching,
+      Pausing,
+      Cancellation,
+      Lifecycle,
+      Reset,
+      Heartbeat,
+      Completion,
+      Retry,
+      Timeouts:
+  val init = product.State(Phase.scheduled)
   override def end(s: State) = s.phase.in[Closed]
 
   object states:
     def status(s: State) = s.phase
     val paused = is(phase == Phase.paused)
 
-  object effects:
-    val pauseApplied = choice
-    val pausePending = choice
-    val pauseAlreadyRequested = choice
-    def schedule(
-        s: State,
-        @unused scheduleToClose: Timeout,
-        @unused scheduleToStart: Timeout,
-        @unused startToClose: Timeout,
-        @unused heartbeat: Timeout,
-        @unused startDelay: Timeout,
-        @unused maxAttempts: MaxAttempts
-    ) = enter(s, Fact.statusScheduled)
-    val startAttempt = effect { phase = started }
-    val complete = effect { phase = completed }
-    val fail = effect { phase = failed }
-    val retry = effect { phase = scheduled }
-    val retryScheduled = choice
-    val retryExhausted = choice
-    val retryPaused = choice
-    def serviceRetry(s: State) = choose(
-      retryScheduled -> retry(s),
-      retryPaused -> pause(s),
-      retryExhausted -> fail(s)
-    )
-    val cancel = effect { phase = canceled }
-    val pause = effect { phase = Phase.paused }
-    // started also reads a held attempt whose pause is pending (System.refinement.toProduct).
-    def pauseHeld(s: State) = choose(
-      pauseApplied -> pause(s),
-      pausePending -> enter(s, Fact.statusPaused),
-      pauseAlreadyRequested -> reject(Outcome.rejected(Rejection.failedPrecondition), s)
-        .because(pauseAlreadyRequestedReason)
-    )
-    val resume = effect { phase = scheduled }
-    val pauseWithdrawn = choice
-    val unpauseNotRequested = choice
-    def unpauseHeld(s: State) = choose(
-      pauseWithdrawn -> startAttempt(s),
-      unpauseNotRequested -> reject(Outcome.rejected(Rejection.failedPrecondition), s)
-        .because(activityNotPaused)
-    )
-    val requestCancel = effect { phase = cancelRequested }
-    // A reset of a waiting activity applies at once; of a held attempt it waits for the attempt to
-    // end, which Describe still reads as started, or as pause-requested where a pause is kept.
-    def resetWaiting(s: State) = retry(s)
-    def resetKeepsPaused(s: State) = pause(s)
-    val resetPending = choice
-    val resetPausePending = choice
-    val resetAlreadyRequested = choice
-    def resetHeld(s: State) = choose(
-      resetPending -> startAttempt(s),
-      resetAlreadyRequested -> reject(Outcome.rejected(Rejection.failedPrecondition), s)
-        .because(resetAlreadyPending)
-    )
-    def resetHeldKeepingPause(s: State) = choose(
-      resetPending -> startAttempt(s),
-      resetPausePending -> enter(s, Fact.statusPaused),
-      resetAlreadyRequested -> reject(Outcome.rejected(Rejection.failedPrecondition), s)
-        .because(resetAlreadyPending)
-    )
-    // A held attempt's failure ends the activity, or applies a pending reset whatever the
-    // failure's retryability: the activity is scheduled again, or paused where a pause was kept.
-    val failureFatal = choice
-    val resetApplied = choice
-    val resetAppliedPaused = choice
-    def failOrReset(s: State) = choose(
-      failureFatal -> fail(s),
-      resetApplied -> retry(s),
-      resetAppliedPaused -> pause(s)
-    )
-    val terminate = effect { phase = terminated }
-    val timeOut = effect { phase = timedOut }
-    def heartbeat(s: State) = enter(s, Fact.heartbeatReceived)
-    val heartbeatRetry = choice
-    val heartbeatPaused = choice
-    val heartbeatExhausted = choice
-    def heartbeatExpires(s: State) = choose(
-      heartbeatRetry -> enter(
-        s.copy(phase = scheduled),
-        Fact.statusScheduled,
-        Fact.heartbeatTimedOut
-      ),
-      heartbeatPaused -> enter(
-        s.copy(phase = Phase.paused),
-        Fact.statusPaused,
-        Fact.heartbeatTimedOut
-      ),
-      heartbeatExhausted -> heartbeatTimeOut(s)
-    )
-    def heartbeatTimeOut(s: State) =
-      enter(s.copy(phase = timedOut), Fact.statusTimedOut, Fact.heartbeatTimedOut)
-
-  object rules extends Rules:
-    from(client) {
-      import client.*
-
-      on(start) {
-        when(scheduled) ~> effects.schedule
-      }
-
-      // Closed controls answer NotFound before the live-state checks (operator_commands.go:249-254).
-      on(pause, unpause, requestCancel, terminate) {
-        when[Closed] ~> rejects(Rejection.notFound)
-      }
-      on(pause) {
-        when(scheduled) ~> effects.pause
-        when(started) ~> effects.pauseHeld
-        when(paused, cancelRequested) ~> rejects(Rejection.failedPrecondition)
-          .because(pausedOrCancelPending)
-      }
-      on(unpause) {
-        where(states.paused) ~> effects.resume
-        when(started) ~> effects.unpauseHeld
-        when(scheduled, cancelRequested) ~> rejects(Rejection.failedPrecondition)
-          .because(activityNotPaused)
-      }
-      on(requestCancel) {
-        when(scheduled, paused) ~> effects.cancel
-        when(started) ~> effects.requestCancel
-        when(cancelRequested) ~> rejects(Rejection.failedPrecondition)
-          .because(cancellationAlreadyRequested)
-      }
-      on(terminate) {
-        when(scheduled, started, paused, cancelRequested) ~> effects.terminate
-      }
-      on(reset) {
-        when[Closed] ~> rejects(Rejection.notFound)
-        when(scheduled) ~> effects.resetWaiting
-        when(cancelRequested) ~> rejects(Rejection.failedPrecondition)
-          .because(resetWithPendingCancellation)
-      }
-      on(reset(ResetPause.resume)) {
-        where(states.paused) ~> effects.resume
-        when(started) ~> effects.resetHeld
-      }
-      on(reset(ResetPause.keepPaused)) {
-        where(states.paused) ~> effects.resetKeepsPaused
-        when(started) ~> effects.resetHeldKeepingPause
-      }
-    }
-
-    // Held completion, failure/reset/retry and cancellation settlement must match the By-ID rows.
-    from(temporal.features.activity.standalone.worker) {
-      import temporal.features.activity.standalone.worker.*
-
-      on(poll) {
-        when(scheduled) ~> effects.startAttempt
-      }
-      on(heartbeat) {
-        when[Held] ~> effects.heartbeat
-        when(scheduled, paused) ~> rejects(Rejection.notFound)
-        when[Closed] ~> rejects(Rejection.notFound)
-      }
-
-      // A worker's answer settles an attempt it holds. A retryable failure is retried, or canceled
-      // under a cancel request; a canceled answer settles only an activity whose cancellation was
-      // requested.
-      on(respondCompleted) {
-        when[Held] ~> effects.complete
-      }
-      on(respondFailed(Failure.fatal)) {
-        when(started) ~> effects.failOrReset
-        when(cancelRequested) ~> effects.fail
-      }
-
-      on(respondFailed(Failure.retryable)) {
-        when(started) ~> effects.serviceRetry
-        when(cancelRequested) ~> effects.cancel
-      }
-      on(respondCanceled) {
-        when(cancelRequested) ~> effects.cancel
-        when(started) ~> rejects(Rejection.invalidArgument)
-          .because(cancellationNotRequested)
-      }
-    }
-
-    // Held completion, failure/reset/retry and cancellation settlement must match the worker rows.
-    // By-ID keeps its notFound checks, broader Live completion and cancellation reason.
-    from(service) {
-      import service.*
-
-      on(respondCompletedByID, respondFailedByID, respondCanceledByID) {
-        when[Closed] ~> rejects(Rejection.notFound)
-      }
-      on(respondCompletedByID) {
-        when[Live] ~> effects.complete
-      }
-      on(respondFailedByID(Failure.fatal)) {
-        when(started) ~> effects.failOrReset
-        when(cancelRequested) ~> effects.fail
-      }
-      on(respondFailedByID(Failure.retryable)) {
-        when(started) ~> effects.serviceRetry
-        when(cancelRequested) ~> effects.cancel
-      }
-      on(respondFailedByID, respondCanceledByID) {
-        when(scheduled, paused) ~> rejects(Rejection.notFound)
-      }
-      on(respondCanceledByID) {
-        when(cancelRequested) ~> effects.cancel
-        when(started) ~> rejects(Rejection.invalidArgument)
-          .because(cancellationNotRequestedByID)
-      }
-    }
-
-    // The worker stopping is a fault the Run records and the activity does not feel.
-    disabled(process.stop)
-
-    from(timers) {
-      import timers.*
-
-      on(timeout) {
-        when(scheduled, started, paused, cancelRequested) ~> effects.timeOut
-      }
-    }
-    on(deadline.heartbeat) {
-      when(started) ~> effects.heartbeatExpires
-      when(cancelRequested) ~> effects.heartbeatTimeOut
-    }
+  // Each action's rules sit in the facet that owns it (fn-161), in this order. The worker process
+  // stopping is not the product's: a client reads nothing of it, so the product binds no stop, and
+  // the System keeps the stop as a step that changes nothing.
+  object rules
+      extends Facets(
+        dispatching.rules,
+        pausing.rules,
+        cancellation.rules,
+        lifecycle.rules,
+        reset.rules,
+        heartbeat.rules,
+        completion.rules,
+        retry.rules,
+        timeouts.rules
+      )
 
   object properties:
     // The public cancelRequested phase can mean either that a worker still holds an attempt or that
@@ -284,22 +85,16 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
     // machine has enough state to use Pausable's role-derived Property directly.
     def pausedDoesNotStartAttempt(m: Declares[State]): Property[State] =
       m.property
-        .never(s => s.state.phase == started)
-        .from(_.phase == paused)
+        .never(s => s.state.phase == Phase.started)
+        .from(_.phase == Phase.paused)
 
-  object capabilities extends Capabilities:
-    val closable: Capability = Closable(
-      rejected = Outcome.rejected(Rejection.notFound)
-    )
-    val pausable: Capability = Pausable(
-      pause = client.pause,
-      unpause = client.unpause
-    )
-    val pollable: Capability = Pollable(dispatch = worker.poll)
-    overriding(
-      Pausable.pausedIsNotDispatched[State, Phase] -> properties.pausedDoesNotStartAttempt,
-      because = "cancelRequested does not reveal whether a worker still holds an attempt"
-    )
+  // The capabilities each facet declares for the actions it owns.
+  object capabilities
+      extends FacetCapabilities(
+        dispatching.capabilities,
+        pausing.capabilities,
+        lifecycle.capabilities
+      )
 
   object queries:
     capabilities.bound(three)

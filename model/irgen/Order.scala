@@ -42,7 +42,7 @@ import scala.collection.mutable
 // descriptor (`WorkflowServiceGrpc.METHOD_*`), which every realization makes (through 3.10.0-RC3).
 //
 // A feature file is a source named after its folder, case aside, in a package under `features`,
-// `foundations` or `actors`, as every Model's is: `features/activity/standalone/Standalone.scala`. A file of a
+// `foundations` or `actors`, as every Model's is: `features/activity/standalone/StandaloneActivity.scala`. A file of a
 // level folder, `product/` or `system/` (fn-126 R20), reads as one too, the level's own file and each
 // subject's beside it, without `object exports`, which only the root feature file holds; only the
 // root feature file has siblings that declare no Model, such as `Realization.scala`. A file of
@@ -415,7 +415,9 @@ final private[irgen] class Order(index: Index):
   private def featureFile(path: String, trees: List[Tree]): Boolean =
     val parts = path.split('/')
     parts.length >= 2 && parts.last.endsWith(".scala") &&
-    parts.last.stripSuffix(".scala").equalsIgnoreCase(parts(parts.length - 2)) &&
+    Structure
+      .featureFileName(parts.toSeq.dropRight(1))
+      .exists(parts.last.stripSuffix(".scala").equalsIgnoreCase) &&
     modelPackage(trees)
 
   // The declarations at the top level of a source, in order: types, objects, definitions.
@@ -535,32 +537,26 @@ final private[irgen] class Order(index: Index):
     "its header",
     "its types",
     "its signature",
-    "its machine and composition objects",
-    "object exports"
+    "its machine and composition objects"
   )
 
   // A feature file's layout, or, where `level`, a level folder's file's, whose order ends with its
-  // machine and composition objects: its `object exports` is refused by the structure lint (R20).
+  // machine and composition objects (an IR file is collected from the feature's package, fn-160).
   private def featureLayout(declared: List[Definition], level: Boolean): Unit =
     // (c): the file's order, each top-level declaration by its rank in it.
     def rank(d: Definition): Int = objectOf(d) match
       case Some(c) =>
-        if plain(c.name) == "exports" then if level then -1 else 4
-        else if holdsModel(c) then 3
+        if holdsModel(c) then 3
         else 2
       case None =>
         d match
           case _: ClassDef | _: TypeDef => 1
           case _                        => 2
-    if level then ordered(declared, rank, fileOrder.init, "a level folder's file")
-    else ordered(declared, rank, fileOrder, "a feature file")
+    ordered(declared, rank, fileOrder, if level then "a level folder's file" else "a feature file")
 
     // (d): the top level declares no Model; a machine object and its sections hold them.
     for d <- declared do
       objectOf(d) match
-        case Some(c) if plain(c.name) == "exports" =>
-          for m <- members(c) if !kindOf(m).contains(Kind.File) do
-            refuse(m, s"${m.name} is declared in exports, which holds the feature's IR files alone")
         // A section of a machine object's name sits in it, not at the top level (R17).
         case Some(c) if sectionNamed(c).nonEmpty =>
           refuse(

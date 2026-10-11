@@ -7,10 +7,10 @@ import framework.realize.*
 import temporal.realize.*
 import temporal.realize.WorkerInstruction.Fault
 import temporal.features.activity.standalone.activity
-import temporal.features.activity.standalone.system.ActivitySystem as activitySystem
+import temporal.features.activity.standalone.protocol.ActivityProtocol as activityProtocol
 
 private def realizing(command: Command | Instruction) = temporalRealization(
-  machine = activitySystem,
+  machine = activityProtocol,
   operation = activity,
   roles = Vector(taskQueue),
   scripts = Vector(controller(everyCase(command))),

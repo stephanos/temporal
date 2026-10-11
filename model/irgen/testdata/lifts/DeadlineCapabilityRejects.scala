@@ -1,7 +1,7 @@
 package fixture.deadlinecapabilityrejects
 
 import framework.*; import framework.Finite.given
-import temporal.capabilities.Deadline
+import temporal.capabilities.system.Expirable
 import fixture.deadlinecapabilities.*
 import fixture.deadlinecapabilities.given
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
@@ -46,7 +46,7 @@ object CompleteSubtypeBinding extends Derived(DeadlineTimers.restrict(startExpir
   given Finite[Fact.timeout] =
     Finite.of(Fact.timeout(TimeoutType.schedule), Fact.timeout(TimeoutType.start))
   object capabilities extends Capabilities:
-    val deadline: Capability = Deadline[DeadlineState, Phase, Held, Fact.timeout](
+    val deadline: Capability = Expirable[DeadlineState, Phase, Held, Fact.timeout](
       startExpired,
       Steps.armed,
       Fact.timeout(TimeoutType.start),
@@ -75,7 +75,7 @@ object CompleteIntersectionBinding
     if armed(s) then enter(SimplePhase.timedOut, MarkedFact.timeout(TimeoutType.start)) else Nil
   object rules extends Bindings(startExpired ~> expire)
   object capabilities extends Capabilities:
-    val deadline: Capability = Deadline[SimplePhase, SimplePhase, Waiting, MarkedFact & Marker](
+    val deadline: Capability = Expirable[SimplePhase, SimplePhase, Waiting, MarkedFact & Marker](
       startExpired,
       armed,
       MarkedFact.timeout(TimeoutType.start),
@@ -88,7 +88,7 @@ object IncompleteIntersectionBinding
     extends Derived(CompleteIntersectionBinding.restrict(startExpired)):
   given Finite[MarkedFact & Marker] = Finite.of(MarkedFact.timeout(TimeoutType.start))
   object capabilities extends Capabilities:
-    val deadline: Capability = Deadline[SimplePhase, SimplePhase, Waiting, MarkedFact & Marker](
+    val deadline: Capability = Expirable[SimplePhase, SimplePhase, Waiting, MarkedFact & Marker](
       startExpired,
       CompleteIntersectionBinding.armed,
       MarkedFact.timeout(TimeoutType.start),
@@ -100,7 +100,7 @@ object IncompleteIntersectionBinding
 object IncompleteSubtypeBinding extends Derived(DeadlineTimers.restrict(startExpired)):
   given Finite[Fact.timeout] = Finite.of(Fact.timeout(TimeoutType.start))
   object capabilities extends Capabilities:
-    val deadline: Capability = Deadline[DeadlineState, Phase, Held, Fact.timeout](
+    val deadline: Capability = Expirable[DeadlineState, Phase, Held, Fact.timeout](
       startExpired,
       Steps.armed,
       Fact.timeout(TimeoutType.start),
@@ -111,7 +111,7 @@ object IncompleteSubtypeBinding extends Derived(DeadlineTimers.restrict(startExp
 // The cast supplies a foreign fact whose typed family the lifter must refuse.
 object WrongTypedFamily extends Derived(DeadlineTimers.restrict(startExpired)):
   object capabilities extends Capabilities:
-    val deadline: Capability = Deadline[DeadlineState, Phase, Held, Fact](
+    val deadline: Capability = Expirable[DeadlineState, Phase, Held, Fact](
       startExpired,
       Steps.armed,
       Fact.timeout(TimeoutType.start),
@@ -131,7 +131,7 @@ object NoPhase extends Machine[DeadlineState, Answer, Fact]:
   val evidence: PartialFunction[Fact, String] = { case Fact.timeout(_) => "timeout" } // format: on
   object rules extends Bindings(startExpired ~> Steps.start)
   object capabilities extends Capabilities:
-    val deadline: Capability = Deadline[DeadlineState, Phase, Held, Fact](
+    val deadline: Capability = Expirable[DeadlineState, Phase, Held, Fact](
       startExpired,
       Steps.armed,
       Fact.timeout(TimeoutType.start),
@@ -142,7 +142,7 @@ object NoPhase extends Machine[DeadlineState, Answer, Fact]:
 
 object NoCovered extends Derived(SimpleDeadlines.restrict(startExpired)):
   object capabilities extends Capabilities:
-    val deadline: Capability = Deadline[SimplePhase, SimplePhase, Held, Fact](
+    val deadline: Capability = Expirable[SimplePhase, SimplePhase, Held, Fact](
       startExpired,
       SimpleDeadlines.armed,
       Fact.timeout(TimeoutType.start),
@@ -165,7 +165,7 @@ object NoTimedOut
   def keep(s: WithoutTimedOut): List[Step[WithoutTimedOut, Answer, Fact]] = stay(s) // format: on
   object rules extends Bindings(startExpired ~> keep)
   object capabilities extends Capabilities:
-    val deadline: Capability = Deadline[WithoutTimedOut, WithoutTimedOut, Waiting, Fact](
+    val deadline: Capability = Expirable[WithoutTimedOut, WithoutTimedOut, Waiting, Fact](
       startExpired,
       armed,
       Fact.timeout(TimeoutType.start),
@@ -188,7 +188,7 @@ object NativeTerminalRoles
     if armed(s) then enter(WithoutWaiting.timedOut, Fact.timeout(TimeoutType.start)) else Nil
   object rules extends Bindings(startExpired ~> expire)
   object capabilities extends Capabilities:
-    val deadline: Capability = Deadline[WithoutWaiting, WithoutWaiting, Held, Fact](
+    val deadline: Capability = Expirable[WithoutWaiting, WithoutWaiting, Held, Fact](
       startExpired,
       armed,
       Fact.timeout(TimeoutType.start),
@@ -206,7 +206,7 @@ object NoWaiting
   def keep(s: WithoutWaiting): List[Step[WithoutWaiting, Answer, Fact]] = stay(s) // format: on
   object rules extends Bindings(startExpired ~> keep)
   object capabilities extends Capabilities:
-    val deadline: Capability = Deadline[WithoutWaiting, WithoutWaiting, Held, Fact](
+    val deadline: Capability = Expirable[WithoutWaiting, WithoutWaiting, Held, Fact](
       startExpired,
       armed,
       Fact.timeout(TimeoutType.start),
@@ -219,7 +219,7 @@ object NoWaiting
 
 object NoSuspended extends Derived(SimpleDeadlines.restrict(startExpired)):
   object capabilities extends Capabilities:
-    val deadline: Capability = Deadline[SimplePhase, SimplePhase, Waiting, Fact](
+    val deadline: Capability = Expirable[SimplePhase, SimplePhase, Waiting, Fact](
       startExpired,
       SimpleDeadlines.armed,
       Fact.timeout(TimeoutType.start),
@@ -233,7 +233,7 @@ object NoSuspended extends Derived(SimpleDeadlines.restrict(startExpired)):
 
 object ForeignTimer extends Derived(DeadlineTimers.restrict(startExpired)):
   object capabilities extends Capabilities:
-    val deadline: Capability = Deadline[DeadlineState, Phase, Held, Fact](
+    val deadline: Capability = Expirable[DeadlineState, Phase, Held, Fact](
       foreign.expired,
       Steps.armed,
       Fact.timeout(TimeoutType.start),
@@ -244,7 +244,7 @@ object ForeignTimer extends Derived(DeadlineTimers.restrict(startExpired)):
 
 object UnboundTimer extends Derived(DeadlineTimers.restrict(startExpired)):
   object capabilities extends Capabilities:
-    val deadline: Capability = Deadline[DeadlineState, Phase, Held, Fact](
+    val deadline: Capability = Expirable[DeadlineState, Phase, Held, Fact](
       unboundExpired,
       Steps.armed,
       Fact.timeout(TimeoutType.start),
@@ -255,7 +255,7 @@ object UnboundTimer extends Derived(DeadlineTimers.restrict(startExpired)):
 
 object NonTimer extends Derived(DeadlineTimers.restrict(observer.keep)):
   object capabilities extends Capabilities:
-    val deadline: Capability = Deadline[DeadlineState, Phase, Held, Fact](
+    val deadline: Capability = Expirable[DeadlineState, Phase, Held, Fact](
       observer.keep,
       Steps.armed,
       Fact.timeout(TimeoutType.start),
@@ -266,7 +266,7 @@ object NonTimer extends Derived(DeadlineTimers.restrict(observer.keep)):
 
 object RetryNoEligibility extends Derived(DeadlineTimers.restrict(startExpired)):
   object capabilities extends Capabilities:
-    val deadline: Capability = Deadline[DeadlineState, Phase, Held, Fact](
+    val deadline: Capability = Expirable[DeadlineState, Phase, Held, Fact](
       startExpired,
       Steps.armed,
       Fact.timeout(TimeoutType.start),
@@ -278,7 +278,7 @@ object RetryNoEligibility extends Derived(DeadlineTimers.restrict(startExpired))
 
 object EligibilityNonretry extends Derived(DeadlineTimers.restrict(startExpired)):
   object capabilities extends Capabilities:
-    val deadline: Capability = Deadline[DeadlineState, Phase, Held, Fact](
+    val deadline: Capability = Expirable[DeadlineState, Phase, Held, Fact](
       startExpired,
       Steps.armed,
       Fact.timeout(TimeoutType.start),
@@ -290,7 +290,7 @@ object EligibilityNonretry extends Derived(DeadlineTimers.restrict(startExpired)
 
 object ControlNonretry extends Derived(DeadlineTimers.restrict(startExpired)):
   object capabilities extends Capabilities:
-    val deadline: Capability = Deadline[DeadlineState, Phase, Held, Fact](
+    val deadline: Capability = Expirable[DeadlineState, Phase, Held, Fact](
       startExpired,
       Steps.armed,
       Fact.timeout(TimeoutType.start),
@@ -302,7 +302,7 @@ object ControlNonretry extends Derived(DeadlineTimers.restrict(startExpired)):
 
 object UnnamedArmed extends Derived(DeadlineTimers.restrict(startExpired)):
   object capabilities extends Capabilities:
-    val deadline: Capability = Deadline[DeadlineState, Phase, Held, Fact](
+    val deadline: Capability = Expirable[DeadlineState, Phase, Held, Fact](
       startExpired,
       s => s.armed,
       Fact.timeout(TimeoutType.start),
@@ -313,7 +313,7 @@ object UnnamedArmed extends Derived(DeadlineTimers.restrict(startExpired)):
 
 object UnnamedPause extends Derived(DeadlineTimers.restrict(startExpired)):
   object capabilities extends Capabilities:
-    val deadline: Capability = Deadline[DeadlineState, Phase, Held, Fact](
+    val deadline: Capability = Expirable[DeadlineState, Phase, Held, Fact](
       startExpired,
       Steps.armed,
       Fact.timeout(TimeoutType.start),
@@ -328,7 +328,7 @@ object UnnamedPause extends Derived(DeadlineTimers.restrict(startExpired)):
 object MalformedEligibility extends Derived(DeadlineTimers.restrict(startExpired)):
   def selected: Option[DeadlineState => Boolean] = Some(Steps.remaining)
   object capabilities extends Capabilities:
-    val deadline: Capability = Deadline[DeadlineState, Phase, Held, Fact](
+    val deadline: Capability = Expirable[DeadlineState, Phase, Held, Fact](
       startExpired,
       Steps.armed,
       Fact.timeout(TimeoutType.start),
@@ -341,7 +341,7 @@ object MalformedEligibility extends Derived(DeadlineTimers.restrict(startExpired
 
 object ComputedClassification extends Derived(DeadlineTimers.restrict(startExpired)):
   object capabilities extends Capabilities:
-    val deadline: Capability = Deadline[DeadlineState, Phase, Held, Fact](
+    val deadline: Capability = Expirable[DeadlineState, Phase, Held, Fact](
       startExpired,
       Steps.armed,
       Fact.timeout(TimeoutType.start),
@@ -354,7 +354,7 @@ object ComputedClassification extends Derived(DeadlineTimers.restrict(startExpir
 
 object EmptyFamily extends Derived(DeadlineTimers.restrict(startExpired)):
   object capabilities extends Capabilities:
-    val deadline: Capability = Deadline[DeadlineState, Phase, Held, Fact](
+    val deadline: Capability = Expirable[DeadlineState, Phase, Held, Fact](
       startExpired,
       Steps.armed,
       Fact.timeout(TimeoutType.start),
@@ -365,7 +365,7 @@ object EmptyFamily extends Derived(DeadlineTimers.restrict(startExpired)):
 
 object IncompleteFamily extends Derived(DeadlineTimers.restrict(startExpired)):
   object capabilities extends Capabilities:
-    val deadline: Capability = Deadline[DeadlineState, Phase, Held, Fact](
+    val deadline: Capability = Expirable[DeadlineState, Phase, Held, Fact](
       startExpired,
       Steps.armed,
       Fact.timeout(TimeoutType.start),
@@ -376,7 +376,7 @@ object IncompleteFamily extends Derived(DeadlineTimers.restrict(startExpired)):
 
 object DuplicateFamily extends Derived(DeadlineTimers.restrict(startExpired)):
   object capabilities extends Capabilities:
-    val deadline: Capability = Deadline[DeadlineState, Phase, Held, Fact](
+    val deadline: Capability = Expirable[DeadlineState, Phase, Held, Fact](
       startExpired,
       Steps.armed,
       Fact.timeout(TimeoutType.start),
@@ -391,7 +391,7 @@ object DuplicateFamily extends Derived(DeadlineTimers.restrict(startExpired)):
 
 object MixedFamily extends Derived(DeadlineTimers.restrict(startExpired)):
   object capabilities extends Capabilities:
-    val deadline: Capability = Deadline[DeadlineState, Phase, Held, Fact](
+    val deadline: Capability = Expirable[DeadlineState, Phase, Held, Fact](
       startExpired,
       Steps.armed,
       Fact.timeout(TimeoutType.start),
@@ -402,7 +402,7 @@ object MixedFamily extends Derived(DeadlineTimers.restrict(startExpired)):
 
 object WrongFamily extends Derived(DeadlineTimers.restrict(startExpired)):
   object capabilities extends Capabilities:
-    val deadline: Capability = Deadline[DeadlineState, Phase, Held, Fact](
+    val deadline: Capability = Expirable[DeadlineState, Phase, Held, Fact](
       startExpired,
       Steps.armed,
       Fact.timeout(TimeoutType.start),
@@ -414,7 +414,7 @@ object WrongFamily extends Derived(DeadlineTimers.restrict(startExpired)):
 object MalformedFamily extends Derived(DeadlineTimers.restrict(startExpired)):
   def selected: Seq[Fact] = timeoutFacts
   object capabilities extends Capabilities:
-    val deadline: Capability = Deadline[DeadlineState, Phase, Held, Fact](
+    val deadline: Capability = Expirable[DeadlineState, Phase, Held, Fact](
       startExpired,
       Steps.armed,
       Fact.timeout(TimeoutType.start),
@@ -426,7 +426,7 @@ object MalformedFamily extends Derived(DeadlineTimers.restrict(startExpired)):
 object NonconstantTimeout extends Derived(DeadlineTimers.restrict(startExpired)):
   def selected: Fact = Fact.timeout(TimeoutType.start)
   object capabilities extends Capabilities:
-    val deadline: Capability = Deadline[DeadlineState, Phase, Held, Fact](
+    val deadline: Capability = Expirable[DeadlineState, Phase, Held, Fact](
       startExpired,
       Steps.armed,
       selected,
@@ -437,13 +437,13 @@ object NonconstantTimeout extends Derived(DeadlineTimers.restrict(startExpired))
 
 object DuplicateTimeout extends Derived(DeadlineTimers.restrict(startExpired)):
   object capabilities extends Capabilities:
-    val first: Capability = Deadline[DeadlineState, Phase, Held, Fact](
+    val first: Capability = Expirable[DeadlineState, Phase, Held, Fact](
       startExpired,
       Steps.armed,
       Fact.timeout(TimeoutType.start),
       timeoutFacts
     )
-    val second: Capability = Deadline[DeadlineState, Phase, Held, Fact](
+    val second: Capability = Expirable[DeadlineState, Phase, Held, Fact](
       startExpired,
       Steps.armed,
       Fact.timeout(TimeoutType.start),
@@ -454,31 +454,31 @@ object DuplicateTimeout extends Derived(DeadlineTimers.restrict(startExpired)):
 
 object AmbiguousWaiver extends Derived(DeadlineTimers.restrict(startExpired, scheduleExpired)):
   object capabilities extends Capabilities:
-    val first: Capability = Deadline[DeadlineState, Phase, Held, Fact](
+    val first: Capability = Expirable[DeadlineState, Phase, Held, Fact](
       startExpired,
       Steps.armed,
       Fact.timeout(TimeoutType.start),
       timeoutFacts
     )
-    val second: Capability = Deadline[DeadlineState, Phase, Waiting, Fact](
+    val second: Capability = Expirable[DeadlineState, Phase, Waiting, Fact](
       scheduleExpired(true),
       Steps.dispatchArmed,
       Fact.timeout(TimeoutType.schedule),
       timeoutFacts
     )
-    except(Deadline.deadlineTimesOut[DeadlineState, Phase], because = "ambiguous fixture waiver")
+    except(Expirable.deadlineTimesOut[DeadlineState, Phase], because = "ambiguous fixture waiver")
   object queries:
     capabilities.bound(three)
 
 object AmbiguousClaim extends Derived(DeadlineTimers.restrict(startExpired, scheduleExpired)):
   object capabilities extends Capabilities:
-    val first: Capability = Deadline[DeadlineState, Phase, Held, Fact](
+    val first: Capability = Expirable[DeadlineState, Phase, Held, Fact](
       startExpired,
       Steps.armed,
       Fact.timeout(TimeoutType.start),
       timeoutFacts
     )
-    val second: Capability = Deadline[DeadlineState, Phase, Waiting, Fact](
+    val second: Capability = Expirable[DeadlineState, Phase, Waiting, Fact](
       scheduleExpired(true),
       Steps.dispatchArmed,
       Fact.timeout(TimeoutType.schedule),
@@ -488,5 +488,5 @@ object AmbiguousClaim extends Derived(DeadlineTimers.restrict(startExpired, sche
     capabilities.bound(three)
     val any = scenario.free
     val ambiguous = query verify capabilities.claim(
-      Deadline.deadlineTimesOut[DeadlineState, Phase]
+      Expirable.deadlineTimesOut[DeadlineState, Phase]
     ) in any limits three

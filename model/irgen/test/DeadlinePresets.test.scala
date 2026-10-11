@@ -48,12 +48,9 @@ class DeadlinePresetsSuite extends munit.FunSuite:
 
   private def lift(roots: String*): (Ran, Path) =
     val out = scratch.resolve(roots.head.split('.').last + ".json")
-    val ran = tools.run(
-      Path.of(System.getProperty("java.home"), "bin", "java").toString,
+    val ran = InProcess.lift(
+      tools.directory,
       Seq(
-        "-cp",
-        System.getProperty("java.class.path"),
-        "umpire.irgen.lift",
         s"$fixtureJar=$stored,$modelJar=model/",
         build.resolve("model-scala.classpath").toString,
         out.toString
@@ -72,7 +69,7 @@ class DeadlinePresetsSuite extends munit.FunSuite:
       .toSeq
 
   test("three retry presets retain all 48 distinct start classes and their command identities"):
-    val controller = items("temporal.features.activity.standalone.system.Standalone")
+    val controller = items("temporal.features.activity.standalone.protocol.Standalone")
     val itemCommands = controller.filter(_.has("command")).map(_.at("/command/id").asText())
     assertEquals(itemCommands.distinct.size, itemCommands.size)
     val starts = controller
@@ -143,13 +140,15 @@ class DeadlinePresetsSuite extends munit.FunSuite:
       assert(ran.failed, ran.output)
       assert(ran.output.contains(message), ran.output)
 
-  test("the timeout-retry machine keeps the base table and has only its own occurrence evidence"):
-    val prefix = "temporal.features.activity.standalone.system."
+  // fn-162: the retry after an attempt timeout runs on the activity Protocol itself, through its own
+  // realization, which names the Queries it runs.
+  test("the timeout retry's realization runs its Queries with only its own occurrence evidence"):
+    val prefix = "temporal.features.activity.standalone.protocol."
     val (ran, out) = lift(
-      prefix + "TimeoutRetry$.queries",
+      prefix + "Timeouts.timeouts$.queries",
       prefix + "RetryAfterTimeout",
-      prefix + "ActivitySystem$.queries",
-      prefix + "RetryFailures$.queries",
+      prefix + "ActivityProtocol$.queries",
+      prefix + "Retry.retry$.queries",
       prefix + "Standalone"
     )
     ran.orFail(): Unit
@@ -160,21 +159,6 @@ class DeadlinePresetsSuite extends munit.FunSuite:
       .asScala
       .find(_.path("name").asText() == name)
       .get
-    val base = named("machines", "activitySystem")
-    val derived = named("machines", "timeoutRetry")
-    for field <- Seq(
-        "stateType",
-        "outcomeType",
-        "factType",
-        "starts",
-        "ends",
-        "steps",
-        "evidence",
-        "unobservable"
-      )
-    do
-      assert(!base.path(field).isMissingNode, field)
-      assertEquals(derived.path(field), base.path(field), field)
     val failures = named("queries", "retryExhaustionByFailures")
     assertEquals(failures.path("form").asText(), "FORM_VERIFY")
     assert(!failures.has("expectedRun"))
@@ -182,12 +166,17 @@ class DeadlinePresetsSuite extends munit.FunSuite:
     assertEquals(failurePath.size, 6)
     assertEquals(failurePath.count(_.path("action").asText().endsWith("worker.respondFailed")), 2)
     val exhaustion = named("queries", "retryExhaustion")
-    assertEquals(exhaustion.at("/scenario/machine").asText(), "timeoutRetry")
+    assertEquals(exhaustion.at("/scenario/machine").asText(), "activityProtocol")
     val exhaustionPath = named("scenarios", "timedOutThenFailed").path("actions")
     assertEquals(exhaustionPath.size(), 6)
     assert(exhaustionPath.path(2).path("action").asText().endsWith("deadline.startToClose"))
     assert(exhaustionPath.path(5).path("action").asText().endsWith("worker.respondFailed"))
     val realization = named("realizations", "retryAfterTimeout")
+    assertEquals(realization.path("machine").asText(), "activityProtocol")
+    assertEquals(
+      realization.path("queries").elements().asScala.map(_.asText()).toSeq,
+      Seq("retryAfterTimeout", "retryExhaustion")
+    )
     val commands = realization.at("/scripts/1/items").elements().asScala.toSeq
     assert(commands.head.at("/command/attemptWithheld").isObject)
     assertEquals(commands.head.path("performs").size(), 0)

@@ -578,7 +578,7 @@ val omittedEmpty: Query = query verify reachLit in reachOnce limits one
 // A monitor a Query's expected Run names by a def, which no val declares.
 def flipWatch: Monitor[Flag, Outcome, Nothing, Boolean] =
   monitor[Flag, Outcome, Nothing, Boolean](false)((seen, _, _) => seen)(seen => seen)
-val watchUnnamed: Query = (query verify flips in secondFlips limits one).expect(
+val watchUnnamed: Query = (query verify flips in secondFlips limits one).live(
   framework.realize.RunExpectation(
     framework.realize.Conformance.conformant,
     framework.realize.PropertyOutcome.satisfied,
@@ -594,7 +594,7 @@ val watchUnnamed: Query = (query verify flips in secondFlips limits one).expect(
 // A monitor a Query's expected Run names by value, which no machine watches.
 val unwatched: Monitor[Flag, Outcome, Nothing, Boolean] =
   monitor[Flag, Outcome, Nothing, Boolean](false)((seen, _, _) => seen)(seen => seen)
-val watchUnwatched: Query = (query verify flips in secondFlips limits one).expect(
+val watchUnwatched: Query = (query verify flips in secondFlips limits one).live(
   framework.realize.RunExpectation(
     framework.realize.Conformance.conformant,
     framework.realize.PropertyOutcome.satisfied,
@@ -623,7 +623,7 @@ val watchElsewhere: Vector[Query] = Vector( // format: on
     .scenario("there")
     .starts(Flag(false))
     .actions(flip) limits one total 2,
-  (query("watchedHere") verify flips in secondFlips limits one total 2).expect(
+  (query("watchedHere") verify flips in secondFlips limits one total 2).live(
     framework.realize.RunExpectation(
       framework.realize.Conformance.conformant,
       framework.realize.PropertyOutcome.satisfied,

@@ -59,12 +59,9 @@ class ActivityHeartbeatFixtures extends munit.FunSuite:
     jar
 
   private def lift(roots: String*): Ran =
-    tools.run(
-      Path.of(System.getProperty("java.home"), "bin", "java").toString,
+    InProcess.lift(
+      tools.directory,
       Seq(
-        "-cp",
-        System.getProperty("java.class.path"),
-        "umpire.irgen.lift",
         s"$fixtureJar=$stored,${build.resolve("model-scala.jar")}=model/",
         build.resolve("model-scala.classpath").toString,
         scratch.resolve("out.json").toString
@@ -184,12 +181,9 @@ class ActivityHeartbeatFixtures extends munit.FunSuite:
         "unknownMode" -> "WithholdingMode"
       )
     do
-      val result = tools.run(
-        Path.of(System.getProperty("java.home"), "bin", "java").toString,
+      val result = InProcess.lift(
+        tools.directory,
         Seq(
-          "-cp",
-          System.getProperty("java.class.path"),
-          "umpire.irgen.lift",
           s"$jar=$storedEnums",
           build.resolve("model-scala.classpath").toString,
           scratch.resolve(s"$root.json").toString,
@@ -353,16 +347,10 @@ class Fixtures extends munit.FunSuite:
     ).orFail(): Unit
     jar
 
-  // The lifter is run as `lift` runs it, in a JVM of its own, since it ends the JVM on a refusal:
-  // this build's classes, and the arguments of its command line.
+  // The lifter is run as `lift` runs it, with the arguments of its command line, in this JVM
+  // (InProcess).
   private def lift(arguments: String*): Ran =
-    val java = Path.of(System.getProperty("java.home"), "bin", "java").toString
-    bounded(
-      tools.run(
-        java,
-        Seq("-cp", System.getProperty("java.class.path"), "umpire.irgen.lift") ++ arguments
-      )
-    )
+    bounded(InProcess.lift(tools.directory, arguments))
 
   private def refused(ran: Ran): Seq[String] =
     ran.output.linesIterator.filter(_.startsWith("lift:")).toSeq
@@ -611,9 +599,22 @@ class Fixtures extends munit.FunSuite:
     "OverrideWaived"
   ).map(o => s"fixture.capabilitysectionrejects.$o$$.capabilities")
 
-  // The refusals of fn-139.3's `from` blocks, each a machine object (lifts/RuleRejects.scala).
+  // The refusals of fn-139.3's `from` blocks, fn-159's bare actions, phases and imports in a
+  // `from`, and fn-159.7's unwritten `enters`, each a machine object (lifts/RuleRejects.scala).
   private val ruleRejects: Seq[String] =
-    Seq("NestedFrom", "Foreign", "ImportedTwice").map("fixture.rulerejects." + _)
+    Seq(
+      "NestedFrom",
+      "Foreign",
+      "ImportedInFrom",
+      "BareInFrom",
+      "BareImported",
+      "BareClass",
+      "BareDisabled",
+      "BarePhase",
+      "BareSet",
+      "Unwritten",
+      "TwiceFaceted"
+    ).map("fixture.rulerejects." + _)
   // The refusals of fn-135.2's `is { }` blocks and fn-135.3's `effect { }` blocks, each a machine
   // object (lifts/BlockRejects.scala).
   private val blockRejects: Seq[String] =
@@ -864,7 +865,6 @@ class Fixtures extends munit.FunSuite:
         "Crossed.scala:38:41",
         "Crossed.scala:41:24",
         "Crossed.scala:49:82",
-        "IrFile.scala:8:37",
         "NamedInput.scala:21:50",
         "NamedInput.scala:24:27",
         "NamedInput.scala:27:49",
@@ -1123,7 +1123,7 @@ class Fixtures extends munit.FunSuite:
     )
     assertEquals(byValue.toPrettyString, expected("heldByName").toPrettyString)
 
-  // fn-114.1: the IR files the sources declare with `irFile`, lifted by `lift --ir` in one run.
+  // fn-160: one IR file per feature, collected from its package by `lift --ir` in one run.
   private def liftIr(out: Path, jars: String, names: String*): Ran =
     lift((Seq("--ir", jars, modelClasspath.toString, out.toString) ++ names)*)
 
@@ -1133,58 +1133,6 @@ class Fixtures extends munit.FunSuite:
       val stream = Files.list(directory)
       try stream.iterator.asScala.map(_.getFileName.toString).toList.sorted
       finally stream.close()
-
-  concurrently("one run lifts each IR file apart, and a root of two files into both"):
-    val out = scratch.resolve("irFiles")
-    val result = liftIr(out, liftsJars, "shared-admission", "shared-presence")
-    assert(!result.failed, result.diagnostics)
-    assertEquals(listed(out), Seq("shared-admission.json", "shared-presence.json"))
-    // Lifted after the wider file, with state of its own: the presence fixture's IR, byte for byte.
-    assertEquals(Files.readString(out.resolve("shared-presence.json")), ir("presence"))
-    val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
-    def machines(json: String) =
-      mapper.readTree(json).path("machines").elements().asScala.map(_.path("name").asText()).toSet
-    val shared = Files.readString(out.resolve("shared-admission.json"))
-    assertEquals(machines(shared), machines(ir("presence")) ++ machines(ir("admission")))
-    assertEquals(
-      mapper.readTree(shared).path("source").asText(),
-      "model: fixture.presence.Presence, " +
-        "fixture.specimens.admission.Admission$package$.currentQueries, " +
-        "fixture.specimens.admission.Admission$package$.staleQueries"
-    )
-
-  concurrently("a refusal names the IR file it was lifting, and the run writes no file"):
-    val out = scratch.resolve("irFilesRefused")
-    val result = liftIr(out, liftsJars, "refused", "shared-presence", "nowhere")
-    assertNotEquals(result.exit, 0)
-    assertEquals(listed(out), Nil, "the lifter wrote an IR file of a run that failed")
-    val rejected = Files.readString(expected.resolve("rejects.txt")).linesIterator.toSet
-    refused(result) match
-      case Seq(nowhere, header, refusal) =>
-        assertEquals(
-          nowhere,
-          "lift: IR file nowhere: no irFile of the lifted sources declares it"
-        )
-        assertEquals(header, "lift: the roots of refused.json did not lift:")
-        assert(rejected(refusal), s"$refusal is not the rejected declaration's refusal")
-      case other => fail(s"one refusal under refused.json and an unknown file, not $other")
-
-  concurrently("the lifter refuses an IR file declaration it cannot read, at its line"):
-    val jar = packaged("irFileRefusals", materialize("irFileRefusals"))
-    val out = scratch.resolve("irFileRefusals-out")
-    val at = stored("irFileRefusals") + "IrFiles.scala"
-    val result = liftIr(out, s"$jar=${stored("irFileRefusals")},$modelJar=model/")
-    assertNotEquals(result.exit, 0)
-    assertEquals(listed(out), Nil)
-    assertEquals(
-      refused(result),
-      Seq(
-        s"lift: $at:14: an IR file is named by a nonempty string literal without a `/`",
-        s"lift: $at:17: an IR file is named by a nonempty string literal without a `/`",
-        s"lift: $at:22: splatted names its roots one by one, each a val that declares one",
-        s"lift: $at:9: twice is declared twice, at $at:6 and here: an IR file is declared once"
-      )
-    )
 
   // The phase projection a machine mixes in, with explicit Phased type arguments
   // (testdata/phasedMixin) or a typed lambda (testdata/phasedRules), lifts to one IR, byte for byte
@@ -1281,7 +1229,7 @@ class Fixtures extends munit.FunSuite:
       refused(result),
       Seq(
         s"lift: $at:35: this declaration over plainLamp and the one over lamp derive the ID " +
-          "fixture.derivedtwins.query.anyLit: name them apart, since an ID derived from a name is " +
+          "fixture.features.derivedtwins.query.anyLit: name them apart, since an ID derived from a name is " +
           "unique in its package"
       )
     )
@@ -1330,7 +1278,7 @@ class Fixtures extends munit.FunSuite:
           "rules, then properties, then capabilities, then queries",
         s"lift: $feature:71: Late belongs before Backwards at $feature:59: a feature file reads " +
           "its header, then its types, then its signature, then its machine and composition " +
-          "objects, then object exports",
+          "objects",
         // (d)
         s"lift: $feature:77: extras holds a Model declaration in Misplaced, and is none of its " +
           "sections, states, refinement, effects, monitors, rules, properties, capabilities, " +
@@ -1344,8 +1292,6 @@ class Fixtures extends munit.FunSuite:
           "its Scenarios, then its Queries",
         s"lift: $feature:100: borrowed is declared over flipped, which Switch.queries declares: " +
           "it belongs in Switch.queries",
-        // (d): a val in exports that is no IR file
-        s"lift: $feature:112: note is declared in exports, which holds the feature's IR files alone",
         // (b) through a base class: the body of the class a `capabilities` section extends
         s"lift: ${at}Realization.scala:16: an initialization cycle: Dimmer.capabilities -> " +
           "DimmerRealization -> Dimmer.capabilities, each read while the one before it " +
@@ -1665,6 +1611,122 @@ class Fixtures extends munit.FunSuite:
     assertEquals(
       machine("grouped").replace("fixture.grouped.Grouped$", "fixture.grouped.Plain$"),
       machine("plain")
+    )
+
+  // fn-159.7: `enters(Phase.x)` in a rule lifts as the steps of the effect it stands for, and in a
+  // choose alternative as the step written out (lifts/Entering.scala).
+  concurrently("enters lifts as the effect that sets the phase, in a rule and in a choose"):
+    import com.fasterxml.jackson.databind.JsonNode
+    import com.fasterxml.jackson.databind.node.ObjectNode
+    val (model, _, _) =
+      declarations("entering", Seq("Entering", "Cored").map(objectRoot("entering")))
+    def body(name: String): JsonNode =
+      val f = model
+        .path("functions")
+        .elements()
+        .asScala
+        .find(_.path("name").asText() == name)
+        .getOrElse(fail(s"no function $name"))
+        .deepCopy[ObjectNode]()
+      f.findParents("position").asScala.foreach {
+        case o: ObjectNode => o.remove("position"): Unit
+        case _             => ()
+      }
+      f.path("body")
+    def text(n: JsonNode) =
+      n.toPrettyString.replace("fixture.entering.Cored$", "fixture.entering.Entering$")
+    // The arm of each rule: the then of each `if` in the order the rules are written.
+    def arms(n: JsonNode): List[JsonNode] =
+      val cond = n.path("if")
+      if cond.isMissingNode then Nil else cond.path("then") :: arms(cond.path("else"))
+    val (entering, cored) = (arms(body("entering.rules.press")), arms(body("cored.rules.press")))
+    assertEquals(entering.size, 2)
+    assertEquals(text(entering.head), text(body("fixture.entering.Cored$.effects$.work")))
+    assertEquals(text(entering(1)), text(cored(1)))
+    assertEquals(
+      text(arms(body("entering.rules.drop")).head),
+      text(body("fixture.entering.Cored$.effects$.settle"))
+    )
+    assertEquals(
+      text(body("fixture.entering.Entering$.effects$.restOrRetry")),
+      text(body("fixture.entering.Cored$.effects$.restOrRetry"))
+    )
+
+  // fn-161.1: a machine assembled from facets lifts as the machine written as one object, but for
+  // the names of its effects, which each facet's object qualifies (lifts/Facets.scala).
+  concurrently("a machine of facets lifts as the machine written as one object"):
+    val (model, machine, property) = declarations(
+      "facets",
+      Seq("Faceted", "Whole").map(objectRoot("facets")) ++
+        Seq("Faceted", "Whole").flatMap(o =>
+          Seq(s"fixture.facets.$o$$.capabilities", s"fixture.facets.$o$$.queries")
+        )
+    )
+    def named(m: String) =
+      machine(m).replaceAll("fixture\\.facets\\.[A-Za-z$.]*effects\\$\\.", "effects.")
+    assertEquals(named("faceted"), named("whole"))
+    // A facet's capabilities and Property are its machine's, as Whole's own are.
+    assertEquals(property("smashes"), property("smashesWhole"))
+    def generated(m: String) = model
+      .path("properties")
+      .elements()
+      .asScala
+      .filter(_.path("machine").asText() == m)
+      .map(_.path("name").asText().stripPrefix(m + "."))
+      .toSeq
+      .sorted
+    assertEquals(
+      generated("faceted").filterNot(_.startsWith("smashes")),
+      Seq("closedIsRejectedUniformly", "terminalStatesAreFinal")
+    )
+    assertEquals(
+      generated("faceted").filterNot(_.startsWith("smashes")),
+      generated("whole").filterNot(_.startsWith("smashes"))
+    )
+
+  // fn-161 R8 and R9: the switched facet rules refuse nothing while off, and each refuses its
+  // specimen while on (facetRules/FacetRules.scala).
+  concurrently("facets-only and facet-vocabulary refuse their specimens when switched on"):
+    val jar = packaged("facetRules", materialize("facetRules"))
+    val at = stored("facetRules") + "FacetRules.scala"
+    def run(root: String, rules: String*): Ran =
+      bounded(
+        InProcess.lift(
+          tools.directory,
+          Seq(
+            s"$jar=${stored("facetRules")},$modelJar=model/",
+            modelClasspath.toString,
+            scratch.resolve(s"facetRules-$root.json").toString,
+            s"fixture.facetrules.$root"
+          ),
+          rules.toSet
+        )
+      )
+    for root <- Seq("Agreeing", "Unfaceted", "Unnamed", "Crossed") do
+      val off = run(root)
+      assert(!off.failed, s"$root:\n${off.diagnostics}")
+    val all = Seq("facets-only", "facet-vocabulary")
+    assert(!run("Agreeing", all*).failed)
+    def refusal(root: String, rules: String*): String =
+      val ran = run(root, rules*)
+      assert(ran.failed, s"$root lifted with ${rules.mkString(",")} on")
+      refused(ran).filter(_.contains(at)).mkString("\n")
+    assert(
+      refusal("Unfaceted", "facets-only").contains(
+        "unfaceted binds its actions outside its facets: its rules are its facets' rules"
+      )
+    )
+    assert(
+      refusal("Unnamed", "facet-vocabulary").contains(
+        "unnamed's facet smashing is not in its feature's facet vocabulary, " +
+          "fixture.facetrules.FacetName (pressing, breaking)"
+      )
+    )
+    assert(
+      refusal("Crossed", "facet-vocabulary").contains(
+        "press is owned by the facet breaking of crossed and by the facet pressing of agreeing, " +
+          "which it refines"
+      )
     )
 
   // Each sugar form beside its core spelling (lifts/Sugar.scala).
@@ -2238,7 +2300,7 @@ class Fixtures extends munit.FunSuite:
     import com.fasterxml.jackson.databind.JsonNode
     // Each design is an object, named as the composition is with the first letter raised: its
     // Queries in its `queries`, or the design itself where no Query runs over it.
-    val designs = "temporal.features.activity.standalone.system."
+    val designs = "temporal.features.activity.standalone.protocol."
     def designObject(d: String) = designs + d.head.toUpper + d.tail
     val overQueue = Seq("recordOverQueue", "trustingRecordOverQueue")
     val overMatching =
@@ -2326,9 +2388,9 @@ class Fixtures extends munit.FunSuite:
   concurrently("every Temporal realization carries the shared rejection-code table"):
     val rootGroups = Seq(
       Seq(
-        "temporal.features.activity.standalone.system.Standalone",
-        "temporal.features.activity.standalone.system.HeldDelivery",
-        "temporal.features.activity.standalone.system.LostAdmissionResponse"
+        "temporal.features.activity.standalone.protocol.Standalone",
+        "temporal.features.activity.standalone.protocol.HeldDelivery",
+        "temporal.features.activity.standalone.protocol.LostAdmissionResponse"
       ),
       Seq(
         "temporal.features.nexus.workflow.AsyncNexus",
@@ -2359,7 +2421,7 @@ class Fixtures extends munit.FunSuite:
   concurrently("the actual WithTaskQueue capability root folds its typed composed outcome"):
     val (model, _, _) = declarations(
       "withTaskQueueCapability",
-      Seq("temporal.features.activity.standalone.system.RecordOverQueue$.capabilities")
+      Seq("temporal.features.activity.standalone.protocol.RecordOverQueue$.capabilities")
     )
     assert(model.path("properties").size() > 0)
 
@@ -2380,7 +2442,7 @@ class Fixtures extends munit.FunSuite:
     assertEquals(named("actions", "enqueue").path("id").asText(), queue + "queue.enqueue")
     for (c, queue, target) <- Seq(
         ("jobOverQueue", "taskQueueProduct", ""),
-        ("jobOverMatching", "taskQueueSystem", "taskQueueProduct"),
+        ("jobOverMatching", "taskQueueProtocol", "taskQueueProduct"),
         ("jobOverForgetful", "forgetfulQueue", "taskQueueProduct")
       )
     do
@@ -2610,7 +2672,7 @@ class Fixtures extends munit.FunSuite:
       assertEquals(p.path("origin").path("position").path("file").asText(), at)
       assertEquals(p.path("position").path("file").asText(), at)
 
-  test("Retries instances bind their own fields and generate bounded free transition verifies"):
+  test("Retryable instances bind their own fields and generate bounded free transition verifies"):
     val model = new com.fasterxml.jackson.databind.ObjectMapper().readTree(ir("retryCapabilities"))
     val properties = model.path("properties").elements().asScala.toSeq
     val names = properties.map(_.path("name").asText()).toSet
@@ -2630,7 +2692,7 @@ class Fixtures extends munit.FunSuite:
       val property = p.path("name").asText().split('.').last
       assertEquals(
         p.path("origin").path("name").asText(),
-        s"temporal.capabilities.Retries.$property"
+        s"temporal.capabilities.system.Retryable.$property"
       )
       if property.startsWith("failure") then
         assert(p.path("transition").asBoolean())
@@ -2690,7 +2752,7 @@ class Fixtures extends munit.FunSuite:
     val overridden = property("selectedFailures.fatal.failureEndsFailed")
     assertEquals(
       overridden.path("origin").path("name").asText(),
-      "temporal.capabilities.Retries.failureEndsFailed"
+      "temporal.capabilities.system.Retryable.failureEndsFailed"
     )
     def body(name: String) =
       val f = functions(property(name).path("holds").asText())
@@ -2720,7 +2782,7 @@ class Fixtures extends munit.FunSuite:
       assertEquals(queries(name).path("total"), base.path("total"))
 
   test(
-    "Retries declarations refuse missing roles and invalid or ambiguous bindings at their lines"
+    "Retryable declarations refuse missing roles and invalid or ambiguous bindings at their lines"
   ):
     val cases = Seq(
       ("NoPhase", "capabilities", "noPhase", "no phase"),
@@ -2762,7 +2824,7 @@ class Fixtures extends munit.FunSuite:
       assert(error.contains(machine), error)
       assert(error.contains(field), error)
 
-  test("Deadline instances retain their selected timer, own role, armed predicate and typed fact"):
+  test("Expirable instances retain their selected timer, own role, armed predicate and typed fact"):
     val model =
       new com.fasterxml.jackson.databind.ObjectMapper().readTree(ir("deadlineCapabilities"))
     val properties = model.path("properties").elements().asScala.toSeq
@@ -2785,7 +2847,7 @@ class Fixtures extends munit.FunSuite:
       assert(p.has("whenClass"))
       assertEquals(
         p.path("origin").path("name").asText(),
-        s"temporal.capabilities.Deadline.${name.split('.').last}"
+        s"temporal.capabilities.system.Expirable.${name.split('.').last}"
       )
       assertEquals(
         p.path("position").path("file").asText(),
@@ -2793,7 +2855,7 @@ class Fixtures extends munit.FunSuite:
       )
       assertEquals(
         p.path("origin").path("position").path("file").asText(),
-        "model/temporal/capabilities/Deadline.scala"
+        "model/temporal/capabilities/Expirable.scala"
       )
     for (instance, predicate, phase, kind) <- Seq(
         ("schedule", "dispatchArmed", "waiting", "schedule"),
@@ -2871,7 +2933,7 @@ class Fixtures extends munit.FunSuite:
       val combinations = if name.startsWith("deadlineTimers.") then 128L * 15L else 2L
       assertEquals(q.path("total").asText().toLong, combinations * steps)
 
-  test("Deadline refuses missing roles, invalid timer bindings and malformed typed fact families"):
+  test("Expirable refuses missing roles, invalid timer bindings and malformed typed fact families"):
     for root <- Seq("NativeTerminalRoles", "CompleteSubtypeBinding", "CompleteIntersectionBinding")
     do
       val terminalOut = lifted(s"deadline-positive-$root")
@@ -3184,9 +3246,9 @@ class Fixtures extends munit.FunSuite:
     val result = liftIr(
       out,
       s"$jar=$tree/,$modelJar=model/",
-      "fixture-activity-standalone",
-      "fixture-nexus-standalone",
-      "fixture-nexus-workflow",
+      "activity-standalone",
+      "nexus-standalone",
+      "nexus-workflow",
       "relay-standalone",
       "relay-workflow"
     )
@@ -3195,9 +3257,9 @@ class Fixtures extends munit.FunSuite:
     assertEquals(
       listed(out),
       Seq(
-        "fixture-activity-standalone.json",
-        "fixture-nexus-standalone.json",
-        "fixture-nexus-workflow.json",
+        "activity-standalone.json",
+        "nexus-standalone.json",
+        "nexus-workflow.json",
         "relay-standalone.json",
         "relay-workflow.json"
       )
@@ -3291,17 +3353,20 @@ class Fixtures extends munit.FunSuite:
       Some(
         Files
           .readString(testdata.resolve("layout/kinds/relay/workflow/system/System.scala"))
-          .replace("fixture.features.relay.product", "fixture.features.nexus.workflow.product")
+          .replace(
+            "fixture.features.relay.shared.product",
+            "fixture.features.nexus.workflow.product"
+          )
           .replace("RelayProduct", "NexusProduct")
       ),
       "does not refine RelayProduct"
     ),
     (
       "foreign-single-level",
-      "nexus/standalone/Standalone.scala",
+      "nexus/standalone/StandaloneNexus.scala",
       Some(
         Files
-          .readString(testdata.resolve("layout/kinds/nexus/standalone/Standalone.scala"))
+          .readString(testdata.resolve("layout/kinds/nexus/standalone/StandaloneNexus.scala"))
           // Strict equality: the refinement compares phases with the evidence Finite supplies.
           .replace(
             "import framework.*\n",
@@ -3310,10 +3375,10 @@ class Fixtures extends munit.FunSuite:
           )
           .replace(
             "  object effects:",
-            "  object refinement extends Refinement(fixture.features.relay.product.RelayProduct):\n" +
-              "    def toProduct(s: State) = fixture.features.relay.product.State(\n" +
-              "      if s.phase == Phase.idle then fixture.features.relay.product.Phase.idle\n" +
-              "      else fixture.features.relay.product.Phase.done)\n\n" +
+            "  object refinement extends Refinement(fixture.features.relay.shared.product.RelayProduct):\n" +
+              "    def toProduct(s: State) = fixture.features.relay.shared.product.State(\n" +
+              "      if s.phase == Phase.idle then fixture.features.relay.shared.product.Phase.idle\n" +
+              "      else fixture.features.relay.shared.product.Phase.done)\n\n" +
               "  object effects:"
           )
       ),
@@ -3377,7 +3442,7 @@ class Fixtures extends munit.FunSuite:
     finally stream.close()
     val jar = packaged("shared-forms", tree, Seq("--server=false"))
     val out = scratch.resolve("shared-forms-out")
-    val result = liftIr(out, s"$jar=$tree/,$modelJar=model/", "fixture-nexus-workflow")
+    val result = liftIr(out, s"$jar=$tree/,$modelJar=model/", "nexus-workflow")
     assertNotEquals(result.exit, 0)
     assertEquals(listed(out), Nil)
     assert(
@@ -3395,7 +3460,7 @@ class Fixtures extends munit.FunSuite:
     )
     val jar = packaged("wrong-parent-kind", tree, Seq("--server=false"))
     val out = scratch.resolve("wrong-parent-kind-out")
-    val result = liftIr(out, s"$jar=$tree/,$modelJar=model/", "fixture-nexus-workflow")
+    val result = liftIr(out, s"$jar=$tree/,$modelJar=model/", "nexus-workflow")
     assertNotEquals(result.exit, 0)
     assertEquals(listed(out), Nil)
     assert(
@@ -3414,14 +3479,14 @@ class Fixtures extends munit.FunSuite:
           Files
             .readString(system)
             .replaceAll("(?s)  object refinement .*?(?=  object effects:)", "")
-            .replace("import fixture.features.relay.product.RelayProduct\n", "")
+            .replace("import fixture.features.relay.shared.product.RelayProduct\n", "")
         else
           "package fixture.features.relay.workflow\npackage system\nimport framework.*\n" +
-            "import fixture.features.relay.product.RelayProduct\nobject Copy extends Derived(RelayProduct.unmonitored)\n"
+            "import fixture.features.relay.shared.product.RelayProduct\nobject Copy extends Derived(RelayProduct.unmonitored)\n"
       Files.delete(system)
       Files.writeString(system.resolveSibling("Other.scala"), text)
       if variantName == "derived-sibling" then
-        val feature = tree.resolve("relay/workflow/Workflow.scala")
+        val feature = tree.resolve("relay/workflow/WorkflowRelay.scala")
         Files.writeString(
           feature,
           Files.readString(feature).replace("system.RelaySystem", "system.Copy")
@@ -3440,7 +3505,7 @@ class Fixtures extends munit.FunSuite:
     val tree = materializeTree("layout/kinds", "type-only-folders")
     val misplaced = Seq(
       "relay/extra/Extra.scala" -> "fixture.features.relay.extra",
-      "relay/product/extra/Extra.scala" -> "fixture.features.relay.product.extra",
+      "relay/shared/product/extra/Extra.scala" -> "fixture.features.relay.shared.product.extra",
       "relay/workflow/system/extra/Extra.scala" -> "fixture.features.relay.workflow.system.extra"
     )
     for (file, pkg) <- misplaced do
@@ -3472,8 +3537,8 @@ class Fixtures extends munit.FunSuite:
     assertEquals(listed(out), Nil)
     val two = "KettleSystem refines KettleProduct, so kettle has two levels, each in its folder: " +
       "the Product in product/Product.scala, the System in system/System.scala, beside the root " +
-      "feature file named after the feature's folder, which holds shared types, the signature and " +
-      "object exports (model/irgen/testdata/layout/lamp is the template)"
+      "feature file named after the feature's folder, which holds shared types and the signature " +
+      "(model/irgen/testdata/layout/lamp is the template)"
     val urn = two.replace(
       "KettleSystem refines KettleProduct, so kettle",
       "UrnSystem refines UrnProduct, so urn"
@@ -3482,7 +3547,7 @@ class Fixtures extends munit.FunSuite:
       refused(result),
       Seq(
         s"lift: ${at}kettle/Kettle.scala:28: Stray is a machine object in kettle's root folder, " +
-          s"${at}kettle/, whose feature file holds shared types, the signature and object exports " +
+          s"${at}kettle/, whose feature file holds shared types and the signature " +
           "alone: a feature with two levels declares its machines in product/ and system/",
         s"lift: ${at}kettle/system/Heater.scala:12: $two; ${at}kettle/system/System.scala is " +
           "missing",
@@ -3599,7 +3664,7 @@ class Fixtures extends munit.FunSuite:
   // R20 (c): a machine's sections by their closed names, which say what each holds, and
   // one object exports per feature, in its root feature file (layoutRefusals/c); a level folder's
   // file is held to a feature file's order, which has no exports there.
-  concurrently("the structure lint refuses an unnamed section and a misplaced exports"):
+  concurrently("the structure lint refuses an unnamed section"):
     val jar = packaged("layoutRefusals-c", materializeTree("layoutRefusals/c"))
     val out = scratch.resolve("layoutRefusals-c-out")
     val at = stored("layoutRefusals/c")
@@ -3614,16 +3679,10 @@ class Fixtures extends munit.FunSuite:
     assertEquals(
       refused(result),
       Seq(
-        s"lift: ${at}kiln/Kiln.scala:11: kiln declares no object exports in its root feature " +
-          s"file, ${at}kiln/Kiln.scala: a feature under features names its IR files there, in " +
-          "one object exports",
         s"lift: $product:17: timers is an object in KilnProduct $none",
         s"lift: $product:21: helpers is an object in KilnProduct $none",
         s"lift: ${at}pump/system/System.scala:21: Gauge belongs before PumpSystem at " +
           s"${at}pump/system/System.scala:7: a level folder's file reads its header, then its " +
-          "types, then its signature, then its machine and composition objects",
-        s"lift: ${at}pump/system/System.scala:24: object exports sits in " +
-          s"${at}pump/system/System.scala, not in pump's root feature file: a feature names its " +
-          "IR files in one object exports, there"
+          "types, then its signature, then its machine and composition objects"
       )
     )

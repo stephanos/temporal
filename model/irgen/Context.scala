@@ -88,7 +88,8 @@ final private[irgen] class Context(val index: Index):
     case Some(v @ ValDef(_, _, Some(rhs))) =>
       blockCall(rhs).map { call =>
         val section = sym.maybeOwner
-        if !(section.isClassDef && section.flags.is(Flags.Module) && objectForm(section.maybeOwner))
+        if !(section.isClassDef && section.flags.is(Flags.Module) &&
+            (objectForm(section.maybeOwner) || facetObject(section.maybeOwner)))
         then misplacedBlock(call.form, rhs)
         SectionBlock(v, call)
       }
@@ -387,6 +388,45 @@ final private[irgen] class Context(val index: Index):
     val cls = moduleClassOf(sym)
     !cls.isNoSymbol && cls.flags.is(Flags.Module) &&
     (cls.typeRef.derivesFrom(machineClass) || cls.typeRef.derivesFrom(compositionClass))
+
+  lazy val facetClass: Symbol = Symbol.requiredClass("framework.Facet")
+  lazy val facetsClass: Symbol = Symbol.requiredClass("framework.Facets")
+
+  // Whether `sym` names a facet's object, `object pausing` in `trait Pausing extends Facet[...]`,
+  // whose sections are its machine's (framework/Facet.scala).
+  def facetObject(sym: Symbol): Boolean =
+    val cls = moduleClassOf(sym)
+    !cls.isNoSymbol && cls.flags.is(Flags.Module) && {
+      val owner = cls.maybeOwner
+      owner.isClassDef && owner.flags.is(Flags.Trait) && owner.typeRef.derivesFrom(facetClass)
+    }
+
+  // Whether `sym` is a facet trait, `trait Pausing extends Facet[...]`.
+  def facetTrait(sym: Symbol): Boolean =
+    sym.isClassDef && sym.flags.is(Flags.Trait) && sym.typeRef.derivesFrom(facetClass)
+
+  // The one machine object that mixes the facet trait `facet` in, whose claims a facet's `properties`
+  // and `queries` declare: a facet is one machine's (fn-161).
+  def machineMixing(facet: Symbol, at: Tree): Symbol =
+    val mixing = defs.keys
+      .map(moduleClassOf)
+      .filter(c => !c.isNoSymbol && c.flags.is(Flags.Module) && objectForm(c))
+      .filter(c => !facetTrait(c) && c.typeRef.derivesFrom(facet))
+      .toSeq
+      .distinct
+    mixing match
+      case Seq(one) => one
+      case Seq()    => fail(at, s"no machine object mixes in the facet ${facet.name}")
+      case many     =>
+        fail(
+          at,
+          s"${many.map(_.name.stripSuffix("$")).sorted.mkString(" and ")} mix in the facet " +
+            s"${facet.name}: a facet is one machine's"
+        )
+
+  // The machine object being lifted, which a facet's sections are lifted for: a facet trait names
+  // no machine, and its `enters` writes through the projection of the machine that mixes it in.
+  var liftingMachine: Option[Symbol] = None // scalafix:ok DisableSyntax.var
 
   // An object form's name: its object's, with the first letter lowered.
   def objectFormName(sym: Symbol): String =

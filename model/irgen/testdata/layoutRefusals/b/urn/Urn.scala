@@ -13,6 +13,3 @@ object cook extends Actor:
   val boil = action(this)
 
 given Ok[Outcome] = Ok(Outcome.accepted)
-
-object exports:
-  val urn = irFile("urn")(UrnProduct, UrnSystem)

@@ -6,7 +6,7 @@ import java.nio.file.{Files, Path}
 class SyntaxRuleSuite extends munit.FunSuite:
   // A repository of the files given, each a path under its root and its text.
   private def repository(files: (String, String)*): Path =
-    val root = Files.createTempDirectory("umpire-syntax-rule")
+    val root = Scratch.directory("umpire-syntax-rule")
     for (file, text) <- files do
       val path = root.resolve(file)
       Files.createDirectories(path.getParent)
@@ -164,7 +164,7 @@ class SyntaxRuleSuite extends munit.FunSuite:
         |""".stripMargin
     val found = findings(
       "model/framework/Steps.scala" -> framework,
-      "model/temporal/features/activity/standalone/Standalone.scala" -> temporal,
+      "model/temporal/features/activity/standalone/StandaloneActivity.scala" -> temporal,
       "model/irgen/Matching.scala" -> lifter
     )
     assertEquals(
@@ -177,9 +177,9 @@ class SyntaxRuleSuite extends munit.FunSuite:
         "model/framework/Steps.scala:8:",
         "model/framework/Steps.scala:10:",
         "model/irgen/Matching.scala:5:",
-        "model/temporal/features/activity/standalone/Standalone.scala:5:",
-        "model/temporal/features/activity/standalone/Standalone.scala:6:",
-        "model/temporal/features/activity/standalone/Standalone.scala:8:"
+        "model/temporal/features/activity/standalone/StandaloneActivity.scala:5:",
+        "model/temporal/features/activity/standalone/StandaloneActivity.scala:6:",
+        "model/temporal/features/activity/standalone/StandaloneActivity.scala:8:"
       )
     )
     assert(found.head.contains("move it into model/framework/Syntax.scala"), found.head)

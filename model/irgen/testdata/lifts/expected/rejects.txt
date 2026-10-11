@@ -60,7 +60,7 @@ lift: model/irgen/testdata/lifts/Rejects.scala:1124: endless declares no end: a 
 lift: model/irgen/testdata/lifts/Rejects.scala:440: because explains the steps a step function writes out and does not explain, such as `enter(...)` or `List(Step(...))`: give each other step its explanation where it is written
 lift: model/irgen/testdata/lifts/Rejects.scala:374: extendBound extends oneStart by flip, which it binds already: rebind replaces the step function of an action the source binds
 lift: model/irgen/testdata/lifts/Rejects.scala:1111: extendedBare extends ruled, whose actions are bound by rules, by a bare binding: extend takes rules, `extend(on(action) { where(g) ~> effect })`
-lift: model/irgen/testdata/lifts/Rejects.scala:1092: not a rule of fromStatement's from(bulbHand): fixture.rejects.FromStatement.rules.disabled(fixture.rejects.bulbHand.twist); a from begins with its declarer's import, `import bulbHand.*`
+lift: model/irgen/testdata/lifts/Rejects.scala:1092: not a rule of fromStatement's from(bulbHand): fixture.rejects.FromStatement.rules.disabled(fixture.rejects.bulbHand.twist); a from holds `on(bulbHand.action) { case ~> effect }` blocks alone
 lift: model/irgen/testdata/lifts/Rejects.scala:359: two holes are named gap: fixture.rejects.GapA.gap and fixture.rejects.GapB.gap, and the IR names them by name
 lift: model/irgen/testdata/lifts/Rejects.scala:209: channel guessed's loss is framework.Loss.valueOf("reliable"), not a case of Loss: a channel names its loss as Loss.lossy or Loss.reliable
 lift: model/irgen/testdata/lifts/Rejects.scala:18: fixture.rejects.Unbounded.notes is a list, which has no bound: a state holds messages in a channel's Inbox
@@ -180,9 +180,17 @@ lift: model/irgen/testdata/lifts/RoleRejects.scala:142: a role test reads a phas
 lift: model/irgen/testdata/lifts/RoleRejects.scala:126: when names phases, and whenNoProjection reads no phase projection: mix it into the machine, `Phased[State, Phase](_.phase)`
 lift: model/irgen/testdata/lifts/RoleRejects.scala:134: fixture.roles.Audited is no role, so a test against it has no IR form: test a phase against a role of model/framework/Roles.scala, or a trait that extends one
 lift: model/irgen/testdata/lifts/RoleRejects.scala:71: failed of fixture.rolerejects.Ended is Failed and has fields, so the cases of Failed are no set of values: give the role to cases without fields
+lift: model/irgen/testdata/lifts/RuleRejects.scala:61: on(set) in bareClass's rules names its action bare: name it through the object that declares it, `on(cook.set)`
+lift: model/irgen/testdata/lifts/RuleRejects.scala:68: disabled(cool) in bareDisabled's rules names its action bare: name it through the object that declares it, `disabled(clock.cool)`
+lift: model/irgen/testdata/lifts/RuleRejects.scala:54: on(cool) in bareImported's rules names its action bare: name it through the object that declares it, `on(clock.cool)`
+lift: model/irgen/testdata/lifts/RuleRejects.scala:46: on(fill) in bareInFrom's rules names its action bare: name it through the object that declares it, `on(cook.fill)`
+lift: model/irgen/testdata/lifts/RuleRejects.scala:75: when(idle) in barePhase's rules names a phase bare: name it through its phase type, `when(Mode.idle)`
+lift: model/irgen/testdata/lifts/RuleRejects.scala:82: when(working) in bareSet's rules names a phase set bare: name it through the object that declares it, `when(states.working)`
 lift: model/irgen/testdata/lifts/RuleRejects.scala:28: on(cool) sits in from(cook), and cook declares no cool: a from holds the blocks of the actions its declarer declares
-lift: model/irgen/testdata/lifts/RuleRejects.scala:38: not a rule of importedTwice's from(cook): import fixture.grouped.clock.{_}; a from holds its declarer's import, first, then `on(action) { case ~> effect }` blocks
-lift: model/irgen/testdata/lifts/RuleRejects.scala:14: from(clock) sits in from(cook): a from holds on blocks alone
+lift: model/irgen/testdata/lifts/RuleRejects.scala:36: from(cook) in importedInFrom's rules imports cook's members: a from only groups, so drop the import and name each action through its declarer, `on(cook.<action>)`
+lift: model/irgen/testdata/lifts/RuleRejects.scala:16: from(clock) sits in from(cook): a from holds on blocks alone
+lift: model/irgen/testdata/lifts/RuleRejects.scala:100: fill is bound by the facets filling and refilling of twiceFaceted: an action belongs to one facet, which holds all its rules
+lift: model/irgen/testdata/lifts/RuleRejects.scala:89: enters(busy) writes the phase through the writer the machine's Phased declares, and it declares none: `Phased[State, Phase](_.phase, (s, p) => s.copy(phase = p))`
 lift: model/irgen/testdata/lifts/ScriptRejects.scala:198: Doubled holds a second realization, Inner: a realization object holds one, so declare it as an object of its own
 lift: model/irgen/testdata/lifts/ScriptRejects.scala:203: inspect is no action activitySystem binds: a realization binds its own machine's actions
 lift: model/irgen/testdata/lifts/ScriptRejects.scala:226: the base controller has no step whose command is stopped: a derived realization changes the steps its base has
@@ -195,8 +203,8 @@ lift: model/irgen/testdata/lifts/ScriptRejects.scala:105: expires is a case of T
 lift: model/irgen/testdata/lifts/ScriptRejects.scala:157: workflow_execution_started_event_attributes has no scheduled_event_id, the field the history keys each kind to its operation by
 lift: model/irgen/testdata/lifts/ScriptRejects.scala:110: the literal sets message twice: set each field of a protobuf literal once
 lift: model/irgen/testdata/lifts/ScriptRejects.scala:170: two commands of the realization are named stop: name each after its own val, or declare the shared name with `aliasOf(command)(instruction)`
-lift: model/irgen/testdata/lifts/ScriptRejects.scala:81: a request scope assigns the request's fields, `field(_.name) := operand`, and temporal.features.activity.standalone.Standalone$package.scheduleToStart is no field of the request
-lift: model/irgen/testdata/lifts/ScriptRejects.scala:93: a request scope assigns the request's fields, `field(_.name) := operand`, and temporal.features.activity.standalone.Standalone$package.scheduleToStart is no field of the request
+lift: model/irgen/testdata/lifts/ScriptRejects.scala:81: a request scope assigns the request's fields, `field(_.name) := operand`, and temporal.features.activity.standalone.StandaloneActivity$package.scheduleToStart is no field of the request
+lift: model/irgen/testdata/lifts/ScriptRejects.scala:93: a request scope assigns the request's fields, `field(_.name) := operand`, and temporal.features.activity.standalone.StandaloneActivity$package.scheduleToStart is no field of the request
 lift: model/irgen/testdata/lifts/ScriptRejects.scala:34: onPath names at least one class whose path carries the command
 lift: model/irgen/testdata/lifts/ScriptRejects.scala:31: perform names at least one class it binds
 lift: model/irgen/testdata/lifts/ScriptRejects.scala:40: the status table lists statusPaused twice

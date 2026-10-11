@@ -11,6 +11,3 @@ object user extends Actor:
   val flip = action(this)
 
 given Ok[Outcome] = Ok(Outcome.accepted)
-
-object exports:
-  val furnace = irFile("furnace")(product.FurnaceProduct, system.FurnaceSystem)

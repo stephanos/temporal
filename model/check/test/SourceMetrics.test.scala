@@ -4,7 +4,7 @@ import java.nio.file.Files
 
 class SourceMetricsSuite extends munit.FunSuite:
   test("each literal is classified by the code around it, and comments hold none"):
-    val dir = Files.createTempDirectory("metrics")
+    val dir = Scratch.directory("metrics")
     Files.writeString(
       dir.resolve("Model.scala"),
       """// "not a literal"

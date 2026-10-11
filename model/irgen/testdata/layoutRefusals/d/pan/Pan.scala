@@ -11,6 +11,3 @@ object user extends Actor:
   val flip = action(this)
 
 given Ok[Outcome] = Ok(Outcome.accepted)
-
-object exports:
-  val pan = irFile("pan")(system.PanImplementation)

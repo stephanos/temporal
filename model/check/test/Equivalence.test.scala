@@ -39,7 +39,7 @@ class EquivalenceSuite extends munit.FunSuite:
 
   // A directory of tables as StepTables.write writes it.
   private def tables(models: Map[String, Vector[String]]): Path =
-    val dir = Files.createTempDirectory("umpire-tables")
+    val dir = Scratch.directory("umpire-tables")
     val index = models.toVector
       .sortBy(_._1)
       .map: (key, lines) =>
@@ -56,7 +56,7 @@ class EquivalenceSuite extends munit.FunSuite:
     val renames = RenameMap.parse(map)
     val found = Equivalence.compareTables(tables(baseline), tables(now), renames)
     val (unused, _) =
-      Equivalence.unused(renames, found.removalsUsed, true, Files.createTempDirectory("b"))
+      Equivalence.unused(renames, found.removalsUsed, true, Scratch.directory("b"))
     found.differences ++ unused
 
   private def changed(f: Vector[String] => Vector[String]) =
@@ -152,7 +152,7 @@ class EquivalenceSuite extends munit.FunSuite:
   // ---- The projection.
 
   private def tree(files: (String, String)*): Path =
-    val dir = Files.createTempDirectory("umpire-projection")
+    val dir = Scratch.directory("umpire-projection")
     for (name, text) <- files do Files.writeString(dir.resolve(name), text)
     dir
 
@@ -178,7 +178,7 @@ class EquivalenceSuite extends munit.FunSuite:
   private def project(ir: Path, cases: Path, map: String): Vector[String] =
     val renames = RenameMap.parse(map)
     val found = Equivalence.compareProjection(baseIr, baseCases, ir, cases, renames)
-    found ++ Equivalence.unused(renames, Set.empty, true, Files.createTempDirectory("b"))._1
+    found ++ Equivalence.unused(renames, Set.empty, true, Scratch.directory("b"))._1
 
   test("the projection holds an unchanged tree equal"):
     assertEquals(project(baseIr, baseCases, ""), Vector.empty)

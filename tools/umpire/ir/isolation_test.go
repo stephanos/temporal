@@ -183,7 +183,7 @@ func TestIRSourcePositionsResolveInsideModel(t *testing.T) {
 }
 
 func TestSourceProblemRejectsPositionsOutsideModel(t *testing.T) {
-	inside := "model/temporal/features/nexus/workflow/Workflow.scala"
+	inside := "model/temporal/features/nexus/workflow/WorkflowNexus.scala"
 	require.Empty(t, sourceProblem(repoRoot, &umpirespb.Position{File: inside, Line: 1}))
 	for name, p := range map[string]*umpirespb.Position{
 		"legacy":       {File: legacyRoot + "/temporal/nexuscaller/NexusCaller.scala", Line: 1},
