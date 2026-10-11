@@ -145,8 +145,8 @@ object activityWorker:
 
 // A retry shows the client only the attempt count DescribeActivityExecution reports. The statuses
 // observe one status field; whether a catalog tells them apart is left to the realization.
-val attemptCount = Observation(on = activity, read = "attempt")
-val heartbeatDetails = Observation(on = activity, read = "heartbeatDetails")
+val attemptCount = Observation(on = activity)
+val heartbeatDetails = Observation(on = activity)
 
 // ### The checked-in IR files of the standalone activity Models (framework.irFile).
 
