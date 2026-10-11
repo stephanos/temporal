@@ -20,7 +20,7 @@ The protocol level with its composition, channel, derivations and claims (R2).
 - [ ] The protocol refines the product, a product Property verifies through the refinement, and the refinement check passes.
 - [ ] `scheduleToStart` is an input of both `start` and the queue's `schedule`; `backingOff` reports the same status fact as `scheduled`.
 - [ ] One composition with one `sync`, one bounded lossy channel, one `FailureModel` with a `NegativeControl` whose `find` finds, one `leadsTo` under `assume.fair`, one monitor, one hole, one assumption, `Retryable` and `Expirable` with one `overriding` and a reason.
-- [ ] `make mini` passes and the header comment lists every hard instance with its location.
+- [ ] `make model-mini` passes and the header comment lists every hard instance with its location.
 
 
 ## Done summary

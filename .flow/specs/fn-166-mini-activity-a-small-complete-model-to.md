@@ -47,7 +47,7 @@ MODEL_SOURCES := model/project.scala model/framework model/temporal/foundations 
 
 `MODEL_FEATURES=activity/mini` compiles, packages, lifts, checks and tests the mini Model alone. Parked features stay where they are, in git and on disk; they are not compiled, so a DSL change that breaks them does not block the loop.
 
-**The loop.** [inferred] `make mini`: compile, lift `activity-mini.json`, the Go checks on that file, the syntax lint, then `git diff --stat model/ir/activity-mini.json`. Target: under 90 seconds. For the mini Model the reviewed IR diff is the equivalence proof; no ledger, no native comparison, no mutation controls. The lifter fixture suite and the Model test suites run at the end of a task, not per edit.
+**The loop.** [inferred] `make model-mini`: compile, lift `activity-mini.json`, the Go checks on that file, the syntax lint, then `git diff --stat model/ir/activity-mini.json`. Target: under 90 seconds. For the mini Model the reviewed IR diff is the equivalence proof; no ledger, no native comparison, no mutation controls. The lifter fixture suite and the Model test suites run at the end of a task, not per edit.
 
 **The rules.** [inferred]
 - During a DSL spec, the parked Models are not edited. Each DSL change lands in the framework and the mini Model with a one-line migration note on the task (what the parked Models must change, and whether IR identities move).
@@ -58,7 +58,7 @@ MODEL_SOURCES := model/project.scala model/framework model/temporal/foundations 
 <!-- scope: technical -->
 
 - `MODEL_FEATURES` selects feature folders for compile, jar, gate, lint and the Scala test suites; the default is every feature, so no existing command changes meaning. [inferred]
-- `make mini` is `MODEL_FEATURES=activity/mini` plus compile, lift, Go checks, lint and the IR diff, in that order, stopping at the first failure. [inferred]
+- `make model-mini` is `MODEL_FEATURES=activity/mini` plus compile, lift, Go checks, lint and the IR diff, in that order, stopping at the first failure. [inferred]
 - The mini Model's IR file is `model/ir/activity-mini.json` with its lint acceptances beside it, discovered like any feature's. [inferred]
 - The mini Model's realization lowers to Cases like any other and may be run live by the existing commands, outside the loop. [inferred]
 
@@ -69,7 +69,7 @@ MODEL_SOURCES := model/project.scala model/framework model/temporal/foundations 
 - The mini Model's IR identities are its own; nothing pins them, so a DSL change that renames identities is an IR diff to read, not a seal to run. [inferred]
 - Generated Cases of the mini Model are regenerated with it and are not pinned by the functional tests or the canary until the owner decides to. [inferred]
 - `IrFilesTest` and `MachineTablePins` compare the exports the compiled Models declare with the files on disk; with `MODEL_FEATURES` narrowed they see only the mini Model's, and that must be what the test expects under the switch. [inferred]
-- The canonical Make route is blocked before execution by stale linked protobuf generation, which is owner-held; until it is restored, `make mini` and the per-spec seal run through the direct Scala route and record that. [paraphrase]
+- The canonical Make route is blocked before execution by stale linked protobuf generation, which is owner-held; until it is restored, `make model-mini` and the per-spec seal run through the direct Scala route and record that. [paraphrase]
 
 ## Acceptance Criteria
 <!-- scope: both -->
@@ -77,7 +77,7 @@ MODEL_SOURCES := model/project.scala model/framework model/temporal/foundations 
 - **R1:** `MODEL_FEATURES` narrows every Scala step (compile, jar, gate, lint, Scala test suites) to the named feature folders, with every feature as the default; with `activity/mini` alone, the parked features are neither compiled nor lifted and remain untouched on disk. [inferred] Errors: a parked feature that is referenced from a compiled file fails the compile naming the reference.
 - **R2:** `model/temporal/features/activity/mini/` holds product, protocol and realization levels within about 800 lines, lifts to `model/ir/activity-mini.json`, passes the Go checks and the lint, and every one of the hard instances in the table is present and named in the feature file's header comment. [user, inferred] Errors: a missing instance is a review finding on the task, not a gate failure.
 - **R3:** The mini Model's realization lowers to Cases and at least one Case runs live to a verdict once, recorded on the task, so the realization level is real and not a stub. [inferred] Errors: a Case that cannot run names the kit gap in the task's done summary.
-- **R4:** `make mini` runs compile, lift, Go checks, lint and the IR diff in under 90 seconds on the measured machine with warm caches, and stops at the first failure. [user, inferred] Errors: a run over 90 seconds records its stage times on the task.
+- **R4:** `make model-mini` runs compile, lift, Go checks, lint and the IR diff in under 90 seconds on the measured machine with warm caches, and stops at the first failure. [user, inferred] Errors: a run over 90 seconds records its stage times on the task.
 - **R5:** `MILESTONES.md` states the rules: the DSL batch iterates on the mini Model with the parked Models untouched; each DSL task carries a migration note; a DSL spec closes only after the parked Models are migrated under the existing seal. The README's "Writing a Model" names the mini Model as the smallest complete example. [inferred] Errors: none (documentation).
 - **R6:** The two IR-inventory tests (`IrFilesTest`, `MachineTablePins`) pass under both the default and the narrowed switch. [inferred] Errors: a test that reads a parked feature's file while narrowed is fixed to read the compiled set.
 
@@ -100,7 +100,7 @@ MODEL_SOURCES := model/project.scala model/framework model/temporal/foundations 
 
 ## Early proof point
 
-Task 2 (the build switch) and task 3 (the product level) together: if the narrowed build cannot lift one feature alone with the inventory tests passing, or `make mini` cannot get under 90 seconds with the product level alone, the approach is reconsidered before the protocol and realization levels are written.
+Task 2 (the build switch) and task 3 (the product level) together: if the narrowed build cannot lift one feature alone with the inventory tests passing, or `make model-mini` cannot get under 90 seconds with the product level alone, the approach is reconsidered before the protocol and realization levels are written.
 
 ## Execution
 
@@ -110,7 +110,7 @@ Order: build switch (1), product level (2), protocol level with composition, cha
 
 ```sh
 MODEL_FEATURES=activity/mini mise exec -- scala-cli compile model/project.scala model/framework model/temporal/foundations model/temporal/actors model/temporal/capabilities model/temporal/features/activity/mini
-make mini
+make model-mini
 make umpire-check-model                # default switch, at task end
 mise exec -- scala-cli test model/irgen  # at task end
 ```
@@ -122,6 +122,6 @@ mise exec -- scala-cli test model/irgen  # at task end
 | R1 | Build switch | 1 | |
 | R2 | Mini Model with the hard instances | 2, 3, 4 | |
 | R3 | Real realization, one live run | 4 | |
-| R4 | `make mini` under 90 s | 5 | |
+| R4 | `make model-mini` under 90 s | 5 | |
 | R5 | Rules in MILESTONES and README | 5 | |
 | R6 | Inventory tests under both switches | 1 | |

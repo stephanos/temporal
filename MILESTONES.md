@@ -62,7 +62,7 @@ facet vocabularies are recorded in fn-161.
 
 | Order | Spec | Scala scope |
 | --- | --- | --- |
-| 0 | fn-166 | mini activity proving ground: build switch, the mini Model, `make mini`; the batch below iterates on it with the big Models parked |
+| 0 | fn-166 | mini activity proving ground: build switch, the mini Model, `make model-mini`; the batch below iterates on it with the big Models parked |
 | 1 | fn-159 | qualified names, renames, `enters` (source integrated; proof/closure open) |
 | 2 | fn-161 | facets |
 | 3 | fn-162 | realizations name their Queries; claim containers removed |
@@ -90,7 +90,7 @@ input, a shared status fact, a cross-facet guard, a waiver and an override, a co
 `sync` and a channel, a failure model with a negative control, fair progress, a monitor, a hole, a
 real realization with a `.live` witness) so a DSL change proven on it transfers. A `MODEL_FEATURES`
 build switch compiles, lifts and tests the mini Model alone without moving the parked Models;
-`make mini` (compile, lift, Go checks, lint, IR diff) under 90 seconds is the loop, and the reviewed
+`make model-mini` (compile, lift, Go checks, lint, IR diff) under 90 seconds is the loop, and the reviewed
 IR diff is the proof. Rules: the DSL batch iterates on the mini Model; every DSL task carries a
 one-line migration note; a DSL spec closes only after the parked Models are migrated per its notes
 and the existing seal passes on them; the mini Model is never parked. Restoring the canonical Make
@@ -99,11 +99,11 @@ batch. Not marked ready. [Spec](.flow/specs/fn-166-mini-activity-a-small-complet
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-166.1 | ⬜ todo | `MODEL_FEATURES` narrows compile, jar, gate, lint and suites; inventory tests pass under both switches |
+| fn-166.1 | 🔄 in progress | `MODEL_FEATURES` narrows compile, jar, gate, lint and suites; inventory tests pass under both switches |
 | fn-166.2 | ⬜ todo | Feature file and product level by subtraction: two facets, cross-facet guard, `Closable`/`Pollable`, a waiver, `verify` and `find` |
 | fn-166.3 | ⬜ todo | Protocol level: refinement, shared input, shared status fact, composition with `sync`, channel, failure model, fair progress, monitor, hole, `Retryable`/`Expirable` with an override |
 | fn-166.4 | ⬜ todo | Realization and live witnesses; one Case run live once |
-| fn-166.5 | ⬜ todo | `make mini` under 90 s; the rules in MILESTONES, README and the batch specs |
+| fn-166.5 | ⬜ todo | `make model-mini` under 90 s; the rules in MILESTONES, README and the batch specs |
 
 ### fn-159: Qualified action names in rules
 
