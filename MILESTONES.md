@@ -207,7 +207,7 @@ CI, PR, or push authority.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-156.8](.flow/tasks/fn-156-wasm-gomad-productionization.8.md) | ⬜ Todo | In-helper runtime decisions, clock and network model; at least 5x faster guests |
+| [fn-156.8](.flow/tasks/fn-156-wasm-gomad-productionization.8.md) | 🚧 In progress | In-helper runtime decisions, clock and network model; at least 5x faster guests |
 | [fn-156.1](.flow/tasks/fn-156-wasm-gomad-productionization.1.md) | ⬜ Todo | Full scheduling qualification (map/GC/entropy, 32x100) and optional checkpoints |
 | [fn-156.2](.flow/tasks/fn-156-wasm-gomad-productionization.2.md) | ⬜ Todo | Bounded exploration, resume, minimization, and non-progress outcomes |
 | [fn-156.3](.flow/tasks/fn-156-wasm-gomad-productionization.3.md) | ⬜ Todo | Durable SQLite volumes, storage faults, crash recovery, and replay |
@@ -297,13 +297,13 @@ CI, PR, or push authority.
 | [fn-109.32](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.32.md) | ⬜ Todo | Preserve concrete error callback provenance in architecture checks |
 | [fn-109.33](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.33.md) | ⬜ Todo | Preserve artifact reflection helper coverage and clone isolation |
 | [fn-109.34](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.34.md) | ⬜ Todo | Check CLI private-mode fixture reader cleanup |
-| [fn-109.35](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.35.md) | ⬜ Todo | Preserve corpus reader cleanup and publication failures |
+| [fn-109.35](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.35.md) | ⛔ Blocked | Preserve corpus reader cleanup and publication failures |
 | [fn-109.36](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.36.md) | ⬜ Todo | Preserve Choice Exploration stopping predicates and round identities |
 | [fn-109.37](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.37.md) | ⬜ Todo | Qualification cleanup and import lint clean; original qualification open |
 | [fn-109.38](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.38.md) | ⬜ Todo | Target and pure-policy lint clean; original qualification remains open |
 | [fn-109.39](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.39.md) | ⬜ Todo | Cleanup lint repaired; fault, pin and original qualification remain open |
 | [fn-109.40](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.40.md) | 🚧 In progress | Command-test readiness repaired; retained mechanism acceptance remains open |
-| [fn-109.41](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.41.md) | ⬜ Todo | Canonical JSON exhaustive lint repaired; original qualification remains open |
+| [fn-109.41](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.41.md) | ⛔ Blocked | Canonical JSON exhaustive lint repaired; original qualification remains open |
 | [fn-109.42](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.42.md) | ⬜ Todo | Exact-pack exhaustive lint repaired; original qualification remains open |
 | [fn-109.43](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.43.md) | ⬜ Todo | Five-import admission repaired; original qualification remains open |
 | [fn-109.44](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.44.md) | ⬜ Todo | Four mechanical lint findings repaired; original qualification remains open |

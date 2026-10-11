@@ -16,6 +16,15 @@ import (
 
 func helperPath(t *testing.T) string {
 	t.Helper()
+	if override := os.Getenv("GOMAD_WASM_TEST_HELPER"); override != "" {
+		if !filepath.IsAbs(override) {
+			t.Fatal("GOMAD_WASM_TEST_HELPER must be absolute")
+		}
+		if _, err := os.Stat(override); err != nil {
+			t.Fatal(err)
+		}
+		return override
+	}
 	name, err := filepath.Abs("../wasmhost/target/release/gomad3-wasmhost")
 	if err != nil {
 		t.Fatal(err)
