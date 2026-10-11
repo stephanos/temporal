@@ -1,8 +1,6 @@
 package fixture.features.urn
 
 import framework.*
-import product.UrnProduct
-import system.UrnSystem
 
 final case class Urn(hot: Boolean) derives Finite
 

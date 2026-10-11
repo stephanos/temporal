@@ -19,7 +19,8 @@ trait Cancellation extends Facet[State, Outcome, Fact], Phased[State, Phase]:
   object cancellation:
 
     object effects:
-      def cancel(s: State) = enter(s.copy(phase = Phase.canceled), Fact.statusCanceled)
+      def cancel(s: State) =
+        enter(s.copy(phase = Phase.canceled), Fact.statusCanceled)
 
       def requestCancel(s: State) =
         enter(s.copy(phase = Phase.cancelRequested), Fact.statusCancelRequested)
@@ -42,7 +43,12 @@ trait Cancellation extends Facet[State, Outcome, Fact], Phased[State, Phase]:
       }
       on(activityWorker.respondCanceled) {
         when(Phase.cancelRequested) ~> effects.cancel
-        when(Phase.started, Phase.pauseRequested, Phase.resetRequested, Phase.resetKeepingPause) ~>
+        when(
+          Phase.started,
+          Phase.pauseRequested,
+          Phase.resetRequested,
+          Phase.resetKeepingPause
+        ) ~>
           rejects(Rejection.invalidArgument)
             .because(cancellationNotRequested)
       }
@@ -51,7 +57,12 @@ trait Cancellation extends Facet[State, Outcome, Fact], Phased[State, Phase]:
         when[Closed] ~> rejects(Rejection.notFound)
         when(Phase.scheduled, Phase.paused) ~> rejects(Rejection.notFound)
         when(Phase.cancelRequested) ~> effects.cancel
-        when(Phase.started, Phase.pauseRequested, Phase.resetRequested, Phase.resetKeepingPause) ~>
+        when(
+          Phase.started,
+          Phase.pauseRequested,
+          Phase.resetRequested,
+          Phase.resetKeepingPause
+        ) ~>
           rejects(Rejection.invalidArgument)
             .because(cancellationNotRequestedByID)
       }
@@ -59,7 +70,9 @@ trait Cancellation extends Facet[State, Outcome, Fact], Phased[State, Phase]:
     object properties:
       val cancelRequested =
         property when client.requestCancel holds { s =>
-          s.state.phase == Phase.cancelRequested && s.records(Fact.statusCancelRequested)
+          s.state.phase == Phase.cancelRequested && s.records(
+            Fact.statusCancelRequested
+          )
         }
 
       val canceledByWorker =
@@ -67,13 +80,12 @@ trait Cancellation extends Facet[State, Outcome, Fact], Phased[State, Phase]:
           s.state.phase == Phase.canceled && s.records(Fact.statusCanceled)
         }
 
-      val cancelIsRequested =
-        property("activityProtocol.cancelIsRequested") when client.requestCancel holds (
-          _.records(Fact.statusCancelRequested)
-        )
-      val canceledByID = property when completionClient.respondCanceledByID holds { after =>
-        after.state.phase == Phase.canceled && after.records(Fact.statusCanceled)
-      }
+      val canceledByID =
+        property when completionClient.respondCanceledByID holds { after =>
+          after.state.phase == Phase.canceled && after.records(
+            Fact.statusCanceled
+          )
+        }
 
     object queries:
       val cancelRequestedThenCanceled = scenario.actions(
@@ -107,7 +119,7 @@ trait Cancellation extends Facet[State, Outcome, Fact], Phased[State, Phase]:
       val cancelIsRequested =
         (query(
           "activityProtocol.cancelIsRequested"
-        ) find properties.cancelIsRequested in heldCancellation limits four)
+        ) find properties.cancelRequested in heldCancellation limits four)
           .total(22464)
           .live(
             inconclusive(

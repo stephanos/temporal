@@ -55,19 +55,24 @@ object NexusProtocol
     // Over, and a control repeats a request the operation took: a recorded cancel, or the
     // terminate that closed it.
     def closed(s: State): Boolean = s.phase.in[Closed]
-    def repeats(s: State): Boolean = s.cancelRequested || s.phase == Phase.terminated
+    def repeats(s: State): Boolean =
+      s.cancelRequested || s.phase == Phase.terminated
 
   object refinement extends Refinement(shared.product.NexusProduct):
     def toProduct(s: State): shared.product.State = s.phase match
-      case Phase.unstarted | Phase.scheduled => shared.product.State(shared.product.Phase.scheduled)
-      case Phase.started                     => shared.product.State(shared.product.Phase.started)
-      case Phase.succeeded                   => shared.product.State(shared.product.Phase.succeeded)
-      case Phase.failed                      => shared.product.State(shared.product.Phase.failed)
-      case Phase.canceled                    => shared.product.State(shared.product.Phase.canceled)
-      case Phase.terminated => shared.product.State(shared.product.Phase.terminated)
+      case Phase.unstarted | Phase.scheduled =>
+        shared.product.State(shared.product.Phase.scheduled)
+      case Phase.started   => shared.product.State(shared.product.Phase.started)
+      case Phase.succeeded =>
+        shared.product.State(shared.product.Phase.succeeded)
+      case Phase.failed     => shared.product.State(shared.product.Phase.failed)
+      case Phase.canceled   => shared.product.State(shared.product.Phase.canceled)
+      case Phase.terminated =>
+        shared.product.State(shared.product.Phase.terminated)
     def visible(f: Fact): Boolean = f match
       case Fact.statusScheduled | Fact.statusCancelRequested              => false
-      case _: NS.type | _: NC.type | _: NF.type | _: NX.type | _: NT.type => true
+      case _: NS.type | _: NC.type | _: NF.type | _: NX.type | _: NT.type =>
+        true
     def visibleOutcomes(@unused o: Outcome): Boolean = false
 
   object rules extends Facets(operation.rules)
@@ -81,11 +86,6 @@ object NexusProtocol
     // This does not promise cancellation, which only the work's answer settles, or a second request's
     // answer (Nexus answers ErrCancellationAlreadyRequested).
     // See chasm/lib/nexusoperation/operation.go.
-    val cancelIsRequested =
-      property("nexusProtocol.cancelIsRequested") when client.requestCancel holds (
-        _.records(Fact.statusCancelRequested)
-      )
-
     // A closed operation keeps its state, and answers a control alreadyCompleted, or OK where it
     // repeats a request the operation took, a recorded cancel or the terminate that closed it: the
     // operation's own reading of closedIsRejectedUniformly.
@@ -110,15 +110,15 @@ object NexusProtocol
       handler.reply(Reply.async),
       handler.complete(Resolution.succeeded)
     )
-    // The operation started, which no handler answers, then the cancel request.
-    val cancelRequest = scenario.actions(client.start, client.requestCancel)
-
     val terminalHolds =
       query verify shared.product.NexusProduct.properties.terminalIsFinal in asyncThenSucceeded limits three
     val cancelIsRequested =
-      (query(
-        "nexusProtocol.cancelIsRequested"
-      ) find properties.cancelIsRequested in cancelRequest limits three)
+      witness("nexusProtocol.cancelIsRequested")(
+        client.start,
+        client.requestCancel
+      )
+        .records(Fact.statusCancelRequested)
+        .limits(three)
         .total(28)
         .live(
           inconclusive(

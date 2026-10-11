@@ -12,7 +12,7 @@ import temporal.capabilities.system.*
 import temporal.realize.satisfied
 import Bounds.{eight, four}
 import Timeout.expires
-import ActivityProtocol.states.{exhausted, timesOut}
+import ActivityProtocol.states.exhausted
 
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 
@@ -25,7 +25,8 @@ trait Heartbeat extends Facet[State, Outcome, Fact], Phased[State, Phase]:
       def heartbeat(s: State) = enter(s, Fact.heartbeatReceived)
       def heartbeatBackOff(s: State) =
         enter(
-          ActivityProtocol.states.afterRetry(s, ActivityProtocol.states.landingPhase(s)),
+          ActivityProtocol.states
+            .afterRetry(s, ActivityProtocol.states.landingPhase(s)),
           ActivityProtocol.states.landingStatus(s),
           Fact.attemptCount,
           Fact.heartbeatTimedOut
@@ -54,29 +55,32 @@ trait Heartbeat extends Facet[State, Outcome, Fact], Phased[State, Phase]:
     object rules extends Rules:
       on(activityWorker.heartbeat) {
         when[Held] ~> effects.heartbeat
-        when(Phase.unstarted, Phase.scheduled, Phase.paused) ~> rejects(Rejection.notFound)
+        when(Phase.unstarted, Phase.scheduled, Phase.paused) ~> rejects(
+          Rejection.notFound
+        )
         when[Closed] ~> rejects(Rejection.notFound)
       }
       on(deadline.heartbeat) {
         when(Phase.started).where(s =>
-          ActivityProtocol.states.heartbeatArmed(s) && ActivityProtocol.states.retriesRemaining(s)
+          ActivityProtocol.states.heartbeatArmed(s) && ActivityProtocol.states
+            .retriesRemaining(s)
         ) ~> effects.heartbeatBackOff
         when(Phase.pauseRequested).where(s =>
-          ActivityProtocol.states.heartbeatArmed(s) && ActivityProtocol.states.retriesRemaining(s)
+          ActivityProtocol.states.heartbeatArmed(s) && ActivityProtocol.states
+            .retriesRemaining(s)
         ) ~> effects.heartbeatBackOff
         when(Phase.started, Phase.pauseRequested, Phase.cancelRequested).where(s =>
-          ActivityProtocol.states.heartbeatArmed(s) && ActivityProtocol.states.endsTerminally(s)
+          ActivityProtocol.states.heartbeatArmed(s) && ActivityProtocol.states
+            .endsTerminally(s)
         ) ~> effects.heartbeatTimeOut
-        when(Phase.resetRequested).where(ActivityProtocol.states.heartbeatArmed) ~>
+        when(Phase.resetRequested).where(
+          ActivityProtocol.states.heartbeatArmed
+        ) ~>
           effects.applyResetOnHeartbeat
-        when(Phase.resetKeepingPause).where(ActivityProtocol.states.heartbeatArmed) ~>
+        when(Phase.resetKeepingPause).where(
+          ActivityProtocol.states.heartbeatArmed
+        ) ~>
           effects.applyResetOnHeartbeat
-      }
-
-    object properties:
-      val heartbeatExhausts = property when deadline.heartbeat holds { after =>
-        after.records(Fact.heartbeatTimedOut) &&
-        (exhausted(after.state) implies timesOut(after, TimeoutType.heartbeat))
       }
 
     // A pending reset applies as the heartbeat deadline ends the held attempt, before its
@@ -119,19 +123,16 @@ trait Heartbeat extends Facet[State, Outcome, Fact], Phased[State, Phase]:
         activityWorker.respondCompleted
       )
       val heartbeatRetried = scenario.actions(
-        client.start(standalone.heartbeat := expires, maxAttempts := MaxAttempts.two),
+        client.start(
+          standalone.heartbeat := expires,
+          maxAttempts := MaxAttempts.two
+        ),
         activityWorker.poll,
         activityWorker.heartbeat,
         deadline.heartbeat,
         timers.backoff,
         activityWorker.poll,
         activityWorker.respondCompleted
-      )
-      val heartbeatExhausted = scenario.actions(
-        client.start(standalone.heartbeat := expires, maxAttempts := MaxAttempts.one),
-        activityWorker.poll,
-        activityWorker.heartbeat,
-        deadline.heartbeat
       )
       val heartbeatThenCompletes =
         (query find completion.properties.completes in heartbeatCompleted limits four)
@@ -142,6 +143,17 @@ trait Heartbeat extends Facet[State, Outcome, Fact], Phased[State, Phase]:
           .total(39312)
           .live(satisfied)
       val heartbeatTimeoutExhausts =
-        (query find properties.heartbeatExhausts in heartbeatExhausted limits four)
+        witness(
+          client.start(
+            standalone.heartbeat := expires,
+            maxAttempts := MaxAttempts.one
+          ),
+          activityWorker.poll,
+          activityWorker.heartbeat,
+          deadline.heartbeat
+        ).records(Fact.heartbeatTimedOut)
+          .recordsWhen(exhausted, Fact.statusTimedOut(TimeoutType.heartbeat))
+          .ends(s => !exhausted(s) || s.phase == Phase.timedOut)
+          .limits(four)
           .total(22464)
           .live(satisfied)

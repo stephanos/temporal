@@ -38,7 +38,9 @@ def stay[S, O, F](s: S)(using ok: Ok[O]): List[Step[S, O, F]] =
 
 // One step with the outcome `outcome` that keeps the state and records nothing, such as a request
 // the machine refuses: `reject(Outcome.notFound, s)`. Core form: `List(Step(Outcome.notFound, s))`.
-def reject[S, O](outcome: O, s: S): List[Step[S, O, Nothing]] = List(Step(outcome, s))
+def reject[S, O](outcome: O, s: S): List[Step[S, O, Nothing]] = List(
+  Step(outcome, s)
+)
 
 // No step: the action is disabled here. Core form: `Nil`.
 val disabled: List[Nothing] = Nil
@@ -160,7 +162,9 @@ final class Draft[S, O, F] private[framework] (start: S) extends View[S]:
 
 // `val held = is { phase == Phase.held }`: a predicate of the machine's state, its fields read by
 // name. Core form: `def held(s: State) = s.phase == Phase.held`.
-def is[S, O, F](using @unused owner: Owner[S, O, F])(body: View[S] ?=> Boolean): S => Boolean =
+def is[S, O, F](using
+    @unused owner: Owner[S, O, F]
+)(body: View[S] ?=> Boolean): S => Boolean =
   s => body(using Fixed(s))
 
 // `val pause = effect { phase = Phase.paused; record(statusPaused) }`: a step function of the
@@ -207,7 +211,8 @@ def record[S, O, F](using draft: Draft[S, O, F])(first: F, rest: F*): Unit =
 
 // `reject(Outcome.notFound)`, in an `effect { }` block: the step answers `outcome` and keeps the
 // state, recording nothing. Core form: `reject(Outcome.notFound, s)`.
-def reject[S, O, F](using draft: Draft[S, O, F])(outcome: O): Unit = draft.refuse(outcome)
+def reject[S, O, F](using draft: Draft[S, O, F])(outcome: O): Unit =
+  draft.refuse(outcome)
 
 // `phase.in(a, b, c)`: whether the value is one of the members listed, of which there is at least
 // one. Written dotted, never infix. Core form: `List(a, b, c).contains(phase)`.
@@ -277,25 +282,92 @@ def witness[S, O, F](name: String)(
 extension [S, O, F](builder: WitnessBuilder[S, O, F])
   def records[G](fact: G)(using G <:< F): Witness[S, O, F] =
     builder.recording(_.facts.contains(fact))
+  // Finishes with an absent primary fact. Core form:
+  // `m.property.when(last).holds(step => !step.facts.contains(fact))`.
+  def excludes[G](fact: G)(using G <:< F): Witness[S, O, F] =
+    builder.recording(step => !step.facts.contains(fact))
+
+// Appends typed after-step guards before the optional state ending. Core form:
+// `prior(step) && !step.facts.contains(fact)` or `prior(step) && (!condition(step.state) || step.facts.contains(fact))`.
+extension [S, O, F](claim: Witness[S, O, F])
+  // Requires an additional absent fact in written guard order. Core form:
+  // `prior(step) && !step.facts.contains(fact)`.
+  def excludes[G](fact: G)(using G <:< F): Witness[S, O, F] =
+    claim.requiring(step => !step.facts.contains(fact))
+  // Requires an additional fact only when its after-state condition holds. Core form:
+  // `prior(step) && (!condition(step.state) || step.facts.contains(fact))`.
+  def recordsWhen[G](condition: S => Boolean, fact: G)(using
+      G <:< F
+  ): Witness[S, O, F] =
+    claim.recordingWhen(condition, _.facts.contains(fact))
 
 // Finishes a composition's witness with the fact of its selected member, whose machine fixes the
 // fact type, as the composition's declaration selector does. Core form:
 // `c.property.when(last).holds(step => step.facts.contains("member_fact"))`.
 extension [S <: Product](builder: WitnessBuilder[S, String, String])
-  def records[MS, O, F](member: S => (MS, Machine[MS, O, F]), fact: F): Witness[S, String, String] =
-    val composition = builder.owner match
-      case c: Composition[S @unchecked] => c
-      case _ => throw IllegalArgumentException("a member fact belongs to a composition witness")
-    val machine = member(composition.mirror.fromProduct(Composition.Empty))._2
-    val fields = composition.mirror.fromProduct(Composition.Empty).productElementNames.toVector
-    val candidates =
-      fields.zip(composition.members).collect { case (field, m) if m eq machine => field }
-    require(
-      candidates.size == 1,
-      s"${machine.name} is not one unique member of ${composition.name}"
-    )
-    val key = s"${candidates.head}_${valueKey(fact)}"
+  // Finishes with an absent fact of the selected member. Core form:
+  // `c.property.when(last).holds(step => !step.facts.contains("member_fact"))`.
+  def excludes[MS, O, F](
+      member: S => (MS, Machine[MS, O, F]),
+      fact: F
+  ): Witness[S, String, String] =
+    val key = witnessMemberFact(builder.owner, member, fact)
+    builder.recording(step => !step.facts.contains(key))
+  // Finishes with a present fact of the selected member. Core form:
+  // `c.property.when(last).holds(step => step.facts.contains("member_fact"))`.
+  def records[MS, O, F](
+      member: S => (MS, Machine[MS, O, F]),
+      fact: F
+  ): Witness[S, String, String] =
+    val key = witnessMemberFact(builder.owner, member, fact)
     builder.recording(_.facts.contains(key))
+
+// Appends composed guards using the same unique typed member selector as the primary. Core form:
+// `prior(step) && !step.facts.contains("member_fact")` or `prior(step) && (!condition(step.state) || step.facts.contains("member_fact"))`.
+extension [S <: Product](claim: Witness[S, String, String])
+  // Requires an absent fact from the selected member. Core form:
+  // `prior(step) && !step.facts.contains("member_fact")`.
+  def excludes[MS, O, F](
+      member: S => (MS, Machine[MS, O, F]),
+      fact: F
+  ): Witness[S, String, String] =
+    val key = witnessMemberFact(claim.owner, member, fact)
+    claim.requiring(step => !step.facts.contains(key))
+  // Requires the selected member's fact under the composed after-state condition. Core form:
+  // `prior(step) && (!condition(step.state) || step.facts.contains("member_fact"))`.
+  def recordsWhen[MS, O, F](
+      condition: S => Boolean,
+      member: S => (MS, Machine[MS, O, F]),
+      fact: F
+  ): Witness[S, String, String] =
+    val key = witnessMemberFact(claim.owner, member, fact)
+    claim.recordingWhen(condition, _.facts.contains(key))
+
+private def witnessMemberFact[S <: Product, MS, O, F](
+    owner: Declares[S],
+    member: S => (MS, Machine[MS, O, F]),
+    fact: F
+): String =
+  val composition = owner match
+    case c: Composition[S @unchecked] => c
+    case _                            =>
+      throw IllegalArgumentException(
+        "a member fact belongs to a composition witness"
+      )
+  val machine = member(composition.mirror.fromProduct(Composition.Empty))._2
+  val fields = composition.mirror
+    .fromProduct(Composition.Empty)
+    .productElementNames
+    .toVector
+  val candidates =
+    fields.zip(composition.members).collect {
+      case (field, m) if m eq machine => field
+    }
+  require(
+    candidates.size == 1,
+    s"${machine.name} is not one unique member of ${composition.name}"
+  )
+  s"${candidates.head}_${valueKey(fact)}"
 
 // `m.property("terminalIsFinal").once(terminal).keeps(_.phase)`: once `over` holds of the state
 // before a step, the step keeps the value the projection selects. Core form:
@@ -315,7 +387,10 @@ extension [S, O, F](b: PropertyBuilder[S, O, F])
 
 // What `once(over)` leaves to say: the value it keeps. Core form: the `holdsAcross` lambda `keeps`
 // finishes.
-final class Once[S, O, F] private[framework] (b: PropertyBuilder[S, O, F], over: S => Boolean):
+final class Once[S, O, F] private[framework] (
+    b: PropertyBuilder[S, O, F],
+    over: S => Boolean
+):
   // The value a step from a state `over` holds of keeps, a field path such as `_.phase` or
   // `_.order.phase`. Core form:
   // `holdsAcross((before, after) => !over(before) || after.state.phase == before.phase)`.
@@ -338,7 +413,13 @@ final class Never[S, O, F] private[framework] (
     b: PropertyBuilder[S, O, F],
     to: Step[S, O, F] => Boolean
 ) extends Property[S](
-      PropertyDecl(b.name, b.m, b.when, Some((after: Step[S, O, F]) => !to(after)), None)
+      PropertyDecl(
+        b.name,
+        b.m,
+        b.when,
+        Some((after: Step[S, O, F]) => !to(after)),
+        None
+      )
     ):
   // No step from a state `before` holds of is one `to` holds of. Core form:
   // `holdsAcross((before, after) => !before(before) || !to(after))`.
@@ -355,8 +436,10 @@ final class Never[S, O, F] private[framework] (
 
 // `stays(p)`, a transition Property, which `unless` releases. Core form:
 // `holdsAcross((before, after) => !p(before) || p(after.state))`.
-final class Stays[S, O, F] private[framework] (b: PropertyBuilder[S, O, F], p: S => Boolean)
-    extends Property[S](
+final class Stays[S, O, F] private[framework] (
+    b: PropertyBuilder[S, O, F],
+    p: S => Boolean
+) extends Property[S](
       PropertyDecl(
         b.name,
         b.m,
@@ -401,18 +484,25 @@ extension [I <: NonEmptyTuple](a: Action[I])
         a.decl.tokens.contains(Some(s.slot)),
         s"an input supplied to ${a.name} is not its own"
       )
-      require(supplied.count(_.slot eq s.slot) == 1, s"an input of ${a.name} is supplied twice")
+      require(
+        supplied.count(_.slot eq s.slot) == 1,
+        s"an input of ${a.name} is supplied twice"
+      )
     val values = a.decl.tokens
       .zip(a.decl.domains)
       .map: (token, domain) =>
-        supplied.find(s => token.contains(s.slot)).fold(domain.values.head)(_.value)
+        supplied
+          .find(s => token.contains(s.slot))
+          .fold(domain.values.head)(_.value)
     Class(a.decl, values)
 
 // `val retainedOutcome = sticky(outcomePreserved)`: a monitor of a promise about every step that,
 // once a step breaks it, stays broken, named after its `val`. Its verdict is read after every step.
 // Core form:
 // `monitor[S, O, F, Boolean](false)((broken, before, after) => broken || !promise(after))(broken => broken)`.
-def sticky[S, O, F](promise: Step[S, O, F] => Boolean): Monitor[S, O, F, Boolean] =
+def sticky[S, O, F](
+    promise: Step[S, O, F] => Boolean
+): Monitor[S, O, F, Boolean] =
   monitor[S, O, F, Boolean](false)((broken, _, after) => broken || !promise(after))(broken =>
     broken
   )
@@ -420,7 +510,9 @@ def sticky[S, O, F](promise: Step[S, O, F] => Boolean): Monitor[S, O, F, Boolean
 // `val ownerAcknowledgment = stickyAcross(ackOnlyWhenKept)`: `sticky` of a promise about the state
 // before a step and the step. Core form:
 // `monitor[S, O, F, Boolean](false)((broken, before, after) => broken || !promise(before, after))(broken => broken)`.
-def stickyAcross[S, O, F](promise: (S, Step[S, O, F]) => Boolean): Monitor[S, O, F, Boolean] =
+def stickyAcross[S, O, F](
+    promise: (S, Step[S, O, F]) => Boolean
+): Monitor[S, O, F, Boolean] =
   monitor[S, O, F, Boolean](false)((broken, before, after) => broken || !promise(before, after))(
     broken => broken
   )
@@ -441,7 +533,9 @@ final class Case[S, O, F] private[framework] (
   // The effect of the block's action where this case holds, read of the state alone:
   // `when(Phase.placed) ~> effects.ship`. Core form: the arm `if g(s) then ship(s)` of the action's step
   // function.
-  infix def ~>(effect: S => List[Step[S, O, F]])(using firing: Firing[S, O, F, ?]): Unit =
+  infix def ~>(effect: S => List[Step[S, O, F]])(using
+      firing: Firing[S, O, F, ?]
+  ): Unit =
     firing.bind(this, (s, _) => effect(s))
 
   // The effect of the block's action, of one input, where this case holds, read of the state and
@@ -473,12 +567,16 @@ final class Case[S, O, F] private[framework] (
   ): Unit = firing.bind(this, effectOf(firing.decl, effect))
 
   @targetName("readsFive")
-  infix def ~>[A, B, C, D, E](effect: (S, A, B, C, D, E) => List[Step[S, O, F]])(using
+  infix def ~>[A, B, C, D, E](
+      effect: (S, A, B, C, D, E) => List[Step[S, O, F]]
+  )(using
       firing: Firing[S, O, F, (A, B, C, D, E)]
   ): Unit = firing.bind(this, effectOf(firing.decl, effect))
 
   @targetName("readsSix")
-  infix def ~>[A, B, C, D, E, G](effect: (S, A, B, C, D, E, G) => List[Step[S, O, F]])(using
+  infix def ~>[A, B, C, D, E, G](
+      effect: (S, A, B, C, D, E, G) => List[Step[S, O, F]]
+  )(using
       firing: Firing[S, O, F, (A, B, C, D, E, G)]
   ): Unit = firing.bind(this, effectOf(firing.decl, effect))
 
@@ -499,7 +597,9 @@ final class Firing[S, O, F, I <: Tuple] private[framework] (
 
 // A case that holds where `condition` holds of the state: `where(states.held) ~> effects.settle`.
 // Core form: `if condition(s) then e(s) else ...`.
-def where[S, O, F](using firing: Firing[S, O, F, ?])(condition: S => Boolean): Case[S, O, F] =
+def where[S, O, F](using
+    firing: Firing[S, O, F, ?]
+)(condition: S => Boolean): Case[S, O, F] =
   val _ = firing
   Case("where", condition)
 
@@ -591,7 +691,8 @@ abstract class Rules[S, O, F, P](using
   private val order = mutable.LinkedHashSet.empty[ActionDecl]
   private var open: Option[String] = None // scalafix:ok DisableSyntax.var
   // The `from` the rules are in, if any: its declarer's name and the actions it declares.
-  private var within: Option[(String, Set[ActionDecl])] = None // scalafix:ok DisableSyntax.var
+  private var within: Option[(String, Set[ActionDecl])] =
+    None // scalafix:ok DisableSyntax.var
 
   // Runs one block's cases, refusing a block in a block, and in a `from` an action its declarer
   // does not declare.
@@ -606,7 +707,10 @@ abstract class Rules[S, O, F, P](using
       s"on($action) names its action bare: name it through the object that declares it, " +
         s"`on(${within.fold("<declarer>")(_._1)}.$action)`"
     )
-    require(open.isEmpty, s"on($action) sits in on(${open.get}): a block holds cases alone")
+    require(
+      open.isEmpty,
+      s"on($action) sits in on(${open.get}): a block holds cases alone"
+    )
     require(!never.contains(decl), s"$action is disabled and fired by a rule")
     for (declarer, declared) <- within do
       require(
@@ -616,7 +720,12 @@ abstract class Rules[S, O, F, P](using
       )
     open = Some(action)
     val firing =
-      Firing[S, O, F, I](decl, values, action, (c, effect) => bind(decl, values, c, effect, code))
+      Firing[S, O, F, I](
+        decl,
+        values,
+        action,
+        (c, effect) => bind(decl, values, c, effect, code)
+      )
     try cases(using firing)
     finally open = None
 
@@ -628,21 +737,38 @@ abstract class Rules[S, O, F, P](using
       effect: (S, List[Any]) => List[Step[S, O, F]],
       code: String
   ): Unit =
-    val rule = Rule(written.size + 1, c.heading, writtenAction(code), decl, values, c.guard, effect)
-    for refused <- overlap(owner.machine.name, owner.machine.fs, written.toSeq, rule) do
-      throw IllegalArgumentException(refused)
+    val rule = Rule(
+      written.size + 1,
+      c.heading,
+      writtenAction(code),
+      decl,
+      values,
+      c.guard,
+      effect
+    )
+    for refused <- overlap(
+        owner.machine.name,
+        owner.machine.fs,
+        written.toSeq,
+        rule
+      )
+    do throw IllegalArgumentException(refused)
     written += rule
     order += decl
 
   // The cases of a whole action: `on(clerk.ship) { when(Phase.placed) ~> effects.send }`. Core form: the
   // action's step function, whose arms are the cases in order.
-  inline def on[I <: Tuple](inline a: Action[I])(cases: Firing[S, O, F, I] ?=> Unit): Unit =
+  inline def on[I <: Tuple](inline a: Action[I])(
+      cases: Firing[S, O, F, I] ?=> Unit
+  ): Unit =
     block[I](a.decl, None, codeOf(a))(cases)
 
   // The cases of one class of an action, whose effects read the state alone:
   // `on(courier.report(Report.delivered)) { when(sent) ~> effects.deliver }`. Core form: the arms
   // `if g(s) && result == Report.delivered then deliver(s)` of the action's step function.
-  inline def on(inline c: Class)(cases: Firing[S, O, F, EmptyTuple] ?=> Unit): Unit =
+  inline def on(inline c: Class)(
+      cases: Firing[S, O, F, EmptyTuple] ?=> Unit
+  ): Unit =
     block[EmptyTuple](c.decl, Some(c.values), codeOf(c))(cases)
 
   // The same cases for two actions, or classes of them, whose effects read the state alone:
@@ -670,7 +796,9 @@ abstract class Rules[S, O, F, P](using
       inline c: Action[?] | Class,
       inline d: Action[?] | Class
   )(cases: Firing[S, O, F, EmptyTuple] ?=> Unit): Unit =
-    each(List(a -> codeOf(a), b -> codeOf(b), c -> codeOf(c), d -> codeOf(d)))(cases)
+    each(List(a -> codeOf(a), b -> codeOf(b), c -> codeOf(c), d -> codeOf(d)))(
+      cases
+    )
 
   // Runs the cases once for each target, as its own block, refusing a target named twice. The
   // cases run once per target, so each binds its own rules.
@@ -682,7 +810,9 @@ abstract class Rules[S, O, F, P](using
       case (c: Class, code)     => (c.decl, Some(c.values), code)
     for ((decl, values, code), i) <- named.zipWithIndex do
       require(
-        !named.take(i).exists((d, v, _) => d == decl && java.util.Objects.equals(v, values)),
+        !named
+          .take(i)
+          .exists((d, v, _) => d == decl && java.util.Objects.equals(v, values)),
         s"${writtenAction(code)} is named twice in one on: name each action, or class of it, once"
       )
     for (decl, values, code) <- named do block[EmptyTuple](decl, values, code)(cases)
@@ -696,7 +826,10 @@ abstract class Rules[S, O, F, P](using
     val name = declarer match
       case a: Actor => a.name
       case other    => objectName(other)
-    require(open.isEmpty, s"from($name) sits in on(${open.get}): a block holds cases alone")
+    require(
+      open.isEmpty,
+      s"from($name) sits in on(${open.get}): a block holds cases alone"
+    )
     require(
       within.isEmpty,
       s"from($name) sits in from(${within.get._1}): a from holds on blocks alone"
@@ -709,7 +842,10 @@ abstract class Rules[S, O, F, P](using
   // no object that holds it, so the object's members are read.
   private def declaredBy(declarer: AnyRef): Set[ActionDecl] =
     declarer.getClass.getMethods.toSet
-      .filter(m => m.getParameterCount == 0 && classOf[Action[?]].isAssignableFrom(m.getReturnType))
+      .filter(m =>
+        m.getParameterCount == 0 && classOf[Action[?]]
+          .isAssignableFrom(m.getReturnType)
+      )
       .map(_.invoke(declarer))
       .collect { case a: Action[?] => a.decl }
 
@@ -723,7 +859,10 @@ abstract class Rules[S, O, F, P](using
   inline def in[R]: Nothing =
     error("in[R] is membership alone: write `when[R]` for a role rule case")
 
-  private[framework] def phases(set: P => Boolean, code: String): Case[S, O, F] =
+  private[framework] def phases(
+      set: P => Boolean,
+      code: String
+  ): Case[S, O, F] =
     Case(s"when(${code.trim})", s => set(phase(s)))
 
   // A case that holds in the phases listed, each named through its phase type:
@@ -735,7 +874,9 @@ abstract class Rules[S, O, F, P](using
 
   // A case that holds in a named set of phases: `when(states.terminal)`. Core
   // form: `terminal(s.phase)`.
-  inline def when(inline set: P => Boolean)(using PhasesOf[P, P]): Case[S, O, F] =
+  inline def when(inline set: P => Boolean)(using
+      PhasesOf[P, P]
+  ): Case[S, O, F] =
     phases(set, codeOf(set))
 
   // A case that holds in the phases with the role `R` (model/framework/Roles.scala), as the projection
@@ -747,7 +888,10 @@ abstract class Rules[S, O, F, P](using
       named: ClassTag[R],
       @unused projected: PhasesOf[P, P]
   ): Case[S, O, F] =
-    Case(s"when[${named.runtimeClass.getSimpleName}]", s => role.unapply(phase(s)).nonEmpty)
+    Case(
+      s"when[${named.runtimeClass.getSimpleName}]",
+      s => role.unapply(phase(s)).nonEmpty
+    )
 
   // Actions no state enables, which the machine binds all the same, such as a courier's strike it does
   // not feel. Core form: `action ~> (_ => Nil)`.
@@ -766,7 +910,8 @@ abstract class Rules[S, O, F, P](using
   // `phase.in[Closed]` in a condition, as outside the rules. Core form:
   // `List(<the cases of Closed, in declaration order>).contains(phase)`.
   extension [A](value: A)
-    def in[R](using role: TypeTest[A, R]): Boolean = role.unapply(value).nonEmpty
+    def in[R](using role: TypeTest[A, R]): Boolean =
+      role.unapply(value).nonEmpty
 
   private[framework] def table: Vector[(ActionDecl, Bound[S, O, F])] =
     order.toVector.map: decl =>
@@ -823,7 +968,8 @@ private[framework] def derivedRules[S, O, F, I <: Tuple](
     None,
     action,
     (c, effect) =>
-      val rule = Rule(rules.size + 1, c.heading, action, decl, None, c.guard, effect)
+      val rule =
+        Rule(rules.size + 1, c.heading, action, decl, None, c.guard, effect)
       for refused <- overlap(machine, owner.machine.fs, rules.toSeq, rule) do
         throw IllegalArgumentException(refused)
       rules += rule

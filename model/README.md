@@ -71,6 +71,16 @@ tests the recorded fact together with the `.ends` predicate. The generated Scena
 machine's init and pins the two classes in order. Keep the triple when a Property or Scenario is
 shared with another Query. The existing Nexus source currently spells this claim as the triple
 with `syncSucceeds` and `syncReplied`; the witness above is its equivalent authoring form.
+
+The primary `.records(fact)` may instead be `.excludes(fact)`, which requires that fact to be absent.
+After either primary, `.excludes(fact)` appends an unconditional absent-fact guard.
+After the primary, `.recordsWhen(condition, fact)` requires another fact only when the after-state
+condition is true. Its core is `!condition(after.state) || after.records(fact)`, conjoined with
+the primary fact, every earlier conditional clause and the optional `.ends` predicate. A composition
+uses `.recordsWhen(condition, _.member -> MemberMachine, fact)` to select that member's typed fact.
+Clauses accumulate in written order and survive `.ends`, `.limits`, `.live` and `.explore`;
+they do not finish a witness that has not stated its primary `.records` or `.excludes`.
+Composed `.excludes(_.member -> MemberMachine, fact)` keeps the selected member's fact identity.
 Keep `query verify` for invariants over every trace. If the last class occurs earlier in the
 path too, write a triple: a witness is refused because its same-step Property would test both.
 

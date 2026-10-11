@@ -2,8 +2,6 @@
 package fixture.features.reservoir
 
 import framework.*
-import product.ReservoirProduct
-import system.ReservoirSystem
 
 enum ProductPhase derives Finite:
   case empty, full

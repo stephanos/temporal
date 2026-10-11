@@ -2,7 +2,6 @@ package fixture.defaultends
 
 import framework.*
 import temporal.capabilities.product.*
-import temporal.capabilities.system.*
 
 val closingBounds = Limits(steps = 2, actions = 2, search = 32)
 
@@ -53,7 +52,9 @@ object ClosingDerivedPair extends DerivedComposition(ClosingPair.withMember(_.ri
     capabilities.bound(closingBounds)
 
 object ClosingDerivedAgain
-    extends DerivedComposition(ClosingDerivedPair.withMember(_.right -> WrittenEnd)):
+    extends DerivedComposition(
+      ClosingDerivedPair.withMember(_.right -> WrittenEnd)
+    ):
   object capabilities extends Capabilities:
     val closable: Capability = Closable(rejected = "left_accepted")
   object queries:
@@ -66,7 +67,8 @@ object ClosingUnphased extends Machine[Snapshot, Answer, Nothing]:
   object rules extends Rules:
     on(hand.touch)(always ~> DefaultEnd.effects.keep)
   object capabilities extends Capabilities:
-    val closable: Capability = Closable[Snapshot, Nothing, Answer](rejected = Answer.accepted)
+    val closable: Capability =
+      Closable[Snapshot, Nothing, Answer](rejected = Answer.accepted)
   object queries:
     capabilities.bound(closingBounds)
 

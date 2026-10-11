@@ -22,7 +22,11 @@ class StandaloneActivityPins extends munit.FunSuite:
   val _ = () => summon[CanEqual[protocol.Phase, protocol.Phase]]
   type Loss =
     protocol.AdmissionResponseState => List[
-      Step[protocol.AdmissionResponseState, Outcome, protocol.AdmissionResponseFact]
+      Step[
+        protocol.AdmissionResponseState,
+        Outcome,
+        protocol.AdmissionResponseFact
+      ]
     ]
 
   final case class ExpectedStep[S, F](
@@ -62,7 +66,9 @@ class StandaloneActivityPins extends munit.FunSuite:
   ): List[ExpectedStep[S, F]] =
     List(ExpectedStep(s"rejected($why)", state, because = because))
 
-  private def observed[S, O, F](steps: List[Step[S, O, F]]): List[ExpectedStep[S, F]] =
+  private def observed[S, O, F](
+      steps: List[Step[S, O, F]]
+  ): List[ExpectedStep[S, F]] =
     steps.map(s => ExpectedStep(s.outcome.toString, s.state, s.facts, s.because))
 
   private def run[S, O, F](
@@ -74,12 +80,19 @@ class StandaloneActivityPins extends munit.FunSuite:
     inputs match
       case Nil       => binding.function.asInstanceOf[S => List[Step[S, O, F]]](state)
       case List(one) =>
-        binding.function.asInstanceOf[(S, Any) => List[Step[S, O, F]]](state, one)
+        binding.function
+          .asInstanceOf[(S, Any) => List[Step[S, O, F]]](state, one)
       case List(one, two) =>
-        binding.function.asInstanceOf[(S, Any, Any) => List[Step[S, O, F]]](state, one, two)
+        binding.function
+          .asInstanceOf[(S, Any, Any) => List[Step[S, O, F]]](state, one, two)
       case List(one, two, three) =>
         binding.function
-          .asInstanceOf[(S, Any, Any, Any) => List[Step[S, O, F]]](state, one, two, three)
+          .asInstanceOf[(S, Any, Any, Any) => List[Step[S, O, F]]](
+            state,
+            one,
+            two,
+            three
+          )
       case List(one, two, three, four) =>
         binding.function
           .asInstanceOf[(S, Any, Any, Any, Any) => List[Step[S, O, F]]](
@@ -101,7 +114,9 @@ class StandaloneActivityPins extends munit.FunSuite:
           )
       case List(one, two, three, four, five, six) =>
         binding.function
-          .asInstanceOf[(S, Any, Any, Any, Any, Any, Any) => List[Step[S, O, F]]](
+          .asInstanceOf[(S, Any, Any, Any, Any, Any, Any) => List[
+            Step[S, O, F]
+          ]](
             state,
             one,
             two,
@@ -124,13 +139,15 @@ class StandaloneActivityPins extends munit.FunSuite:
     do
       val matches =
         rules.filter(r =>
-          r.decl == binding.decl && r.inputs.forall(_.equals(inputs)) && r.guard(state)
+          r.decl == binding.decl && r.inputs.forall(_.equals(inputs)) && r
+            .guard(state)
         )
       assert(
         matches.sizeIs <= 1,
         s"several pinned rows match ${binding.decl.name}$inputs in $state"
       )
-      val expected = matches.headOption.fold(List.empty[ExpectedStep[S, F]])(_.run(state))
+      val expected =
+        matches.headOption.fold(List.empty[ExpectedStep[S, F]])(_.run(state))
       assertEquals(
         observed(run(binding, state, inputs)),
         expected,
@@ -149,49 +166,87 @@ class StandaloneActivityPins extends munit.FunSuite:
         activityWorker.poll.decl,
         None,
         _.phase == product.Phase.scheduled,
-        s => accepted(s.copy(phase = product.Phase.started), product.Fact.statusStarted)
+        s =>
+          accepted(
+            s.copy(phase = product.Phase.started),
+            product.Fact.statusStarted
+          )
       ),
       ExpectedRule(
         activityWorker.respondCompleted.decl,
         None,
         s => s.phase == product.Phase.started || s.phase == product.Phase.cancelRequested,
-        s => accepted(s.copy(phase = product.Phase.completed), product.Fact.statusCompleted)
+        s =>
+          accepted(
+            s.copy(phase = product.Phase.completed),
+            product.Fact.statusCompleted
+          )
       ),
       ExpectedRule(
         activityWorker.respondFailed.decl,
         Some(List(Failure.fatal)),
         _.phase == product.Phase.started,
         s =>
-          accepted(s.copy(phase = product.Phase.failed), product.Fact.statusFailed) ++
-            accepted(s.copy(phase = product.Phase.scheduled), product.Fact.statusScheduled) ++
-            accepted(s.copy(phase = product.Phase.paused), product.Fact.statusPaused)
+          accepted(
+            s.copy(phase = product.Phase.failed),
+            product.Fact.statusFailed
+          ) ++
+            accepted(
+              s.copy(phase = product.Phase.scheduled),
+              product.Fact.statusScheduled
+            ) ++
+            accepted(
+              s.copy(phase = product.Phase.paused),
+              product.Fact.statusPaused
+            )
       ),
       ExpectedRule(
         activityWorker.respondFailed.decl,
         Some(List(Failure.fatal)),
         _.phase == product.Phase.cancelRequested,
-        s => accepted(s.copy(phase = product.Phase.failed), product.Fact.statusFailed)
+        s =>
+          accepted(
+            s.copy(phase = product.Phase.failed),
+            product.Fact.statusFailed
+          )
       ),
       ExpectedRule(
         activityWorker.respondFailed.decl,
         Some(List(Failure.retryable)),
         _.phase == product.Phase.started,
         s =>
-          accepted(s.copy(phase = product.Phase.scheduled), product.Fact.statusScheduled) ++
-            accepted(s.copy(phase = product.Phase.paused), product.Fact.statusPaused) ++
-            accepted(s.copy(phase = product.Phase.failed), product.Fact.statusFailed)
+          accepted(
+            s.copy(phase = product.Phase.scheduled),
+            product.Fact.statusScheduled
+          ) ++
+            accepted(
+              s.copy(phase = product.Phase.paused),
+              product.Fact.statusPaused
+            ) ++
+            accepted(
+              s.copy(phase = product.Phase.failed),
+              product.Fact.statusFailed
+            )
       ),
       ExpectedRule(
         activityWorker.respondFailed.decl,
         Some(List(Failure.retryable)),
         _.phase == product.Phase.cancelRequested,
-        s => accepted(s.copy(phase = product.Phase.canceled), product.Fact.statusCanceled)
+        s =>
+          accepted(
+            s.copy(phase = product.Phase.canceled),
+            product.Fact.statusCanceled
+          )
       ),
       ExpectedRule(
         activityWorker.respondCanceled.decl,
         None,
         _.phase == product.Phase.cancelRequested,
-        s => accepted(s.copy(phase = product.Phase.canceled), product.Fact.statusCanceled)
+        s =>
+          accepted(
+            s.copy(phase = product.Phase.canceled),
+            product.Fact.statusCanceled
+          )
       ),
       ExpectedRule(
         activityWorker.respondCanceled.decl,
@@ -232,14 +287,21 @@ class StandaloneActivityPins extends munit.FunSuite:
         client.pause.decl,
         None,
         _.phase == product.Phase.scheduled,
-        s => accepted(s.copy(phase = product.Phase.paused), product.Fact.statusPaused)
+        s =>
+          accepted(
+            s.copy(phase = product.Phase.paused),
+            product.Fact.statusPaused
+          )
       ),
       ExpectedRule(
         client.pause.decl,
         None,
         _.phase == product.Phase.started,
         s =>
-          accepted(s.copy(phase = product.Phase.paused), product.Fact.statusPaused) ++
+          accepted(
+            s.copy(phase = product.Phase.paused),
+            product.Fact.statusPaused
+          ) ++
             accepted(s, product.Fact.statusPaused) ++
             rejectedBecause(
               s,
@@ -262,7 +324,11 @@ class StandaloneActivityPins extends munit.FunSuite:
         client.unpause.decl,
         None,
         _.phase == product.Phase.paused,
-        s => accepted(s.copy(phase = product.Phase.scheduled), product.Fact.statusScheduled)
+        s =>
+          accepted(
+            s.copy(phase = product.Phase.scheduled),
+            product.Fact.statusScheduled
+          )
       ),
       ExpectedRule(
         client.unpause.decl,
@@ -291,7 +357,11 @@ class StandaloneActivityPins extends munit.FunSuite:
         client.requestCancel.decl,
         None,
         s => s.phase == product.Phase.scheduled || s.phase == product.Phase.paused,
-        s => accepted(s.copy(phase = product.Phase.canceled), product.Fact.statusCanceled)
+        s =>
+          accepted(
+            s.copy(phase = product.Phase.canceled),
+            product.Fact.statusCanceled
+          )
       ),
       ExpectedRule(
         client.requestCancel.decl,
@@ -318,13 +388,21 @@ class StandaloneActivityPins extends munit.FunSuite:
         client.terminate.decl,
         None,
         s => productLive(s.phase),
-        s => accepted(s.copy(phase = product.Phase.terminated), product.Fact.statusTerminated)
+        s =>
+          accepted(
+            s.copy(phase = product.Phase.terminated),
+            product.Fact.statusTerminated
+          )
       ),
       ExpectedRule(
         timers.timeout.decl,
         None,
         s => productLive(s.phase),
-        s => accepted(s.copy(phase = product.Phase.timedOut), product.Fact.statusTimedOut)
+        s =>
+          accepted(
+            s.copy(phase = product.Phase.timedOut),
+            product.Fact.statusTimedOut
+          )
       )
     ) ++ List[ExpectedRule[product.State, product.Fact]](
       ExpectedRule(
@@ -376,7 +454,12 @@ class StandaloneActivityPins extends munit.FunSuite:
   private def productResetRules: List[ExpectedRule[product.State, product.Fact]] =
     val pending = "a reset is already pending (operator_commands.go:460-464)"
     List[ExpectedRule[product.State, product.Fact]](
-      ExpectedRule(client.reset.decl, None, s => closedProduct(s.phase), rejectedNotFound),
+      ExpectedRule(
+        client.reset.decl,
+        None,
+        s => closedProduct(s.phase),
+        rejectedNotFound
+      ),
       ExpectedRule(
         client.reset.decl,
         None,
@@ -398,7 +481,11 @@ class StandaloneActivityPins extends munit.FunSuite:
         client.reset.decl,
         Some(List(ResetPause.resume)),
         _.phase == product.Phase.paused,
-        s => accepted(s.copy(phase = product.Phase.scheduled), product.Fact.statusScheduled)
+        s =>
+          accepted(
+            s.copy(phase = product.Phase.scheduled),
+            product.Fact.statusScheduled
+          )
       ),
       ExpectedRule(
         client.reset.decl,
@@ -422,7 +509,10 @@ class StandaloneActivityPins extends munit.FunSuite:
         Some(List(ResetPause.keepPaused)),
         _.phase == product.Phase.started,
         s =>
-          accepted(s, product.Fact.statusStarted) ++ accepted(s, product.Fact.statusPaused) ++
+          accepted(s, product.Fact.statusStarted) ++ accepted(
+            s,
+            product.Fact.statusPaused
+          ) ++
             rejectedBecause(s, "failedPrecondition", pending)
       )
     )
@@ -442,7 +532,10 @@ class StandaloneActivityPins extends munit.FunSuite:
             rejectedNotFound
           )
         )
-    val unheld = List(completionClient.respondFailedByID, completionClient.respondCanceledByID)
+    val unheld = List(
+      completionClient.respondFailedByID,
+      completionClient.respondCanceledByID
+    )
       .map(a =>
         ExpectedRule[product.State, product.Fact](
           a.decl,
@@ -456,49 +549,88 @@ class StandaloneActivityPins extends munit.FunSuite:
         completionClient.respondCompletedByID.decl,
         None,
         s => productLive(s.phase),
-        s => accepted(s.copy(phase = product.Phase.completed), product.Fact.statusCompleted)
+        s =>
+          accepted(
+            s.copy(phase = product.Phase.completed),
+            product.Fact.statusCompleted
+          )
       ),
       ExpectedRule(
         completionClient.respondFailedByID.decl,
         Some(List(Failure.fatal)),
         _.phase == product.Phase.started,
         s =>
-          accepted(s.copy(phase = product.Phase.failed), product.Fact.statusFailed) ++
-            accepted(s.copy(phase = product.Phase.scheduled), product.Fact.statusScheduled) ++
-            accepted(s.copy(phase = product.Phase.paused), product.Fact.statusPaused)
+          accepted(
+            s.copy(phase = product.Phase.failed),
+            product.Fact.statusFailed
+          ) ++
+            accepted(
+              s.copy(phase = product.Phase.scheduled),
+              product.Fact.statusScheduled
+            ) ++
+            accepted(
+              s.copy(phase = product.Phase.paused),
+              product.Fact.statusPaused
+            )
       ),
       ExpectedRule(
         completionClient.respondFailedByID.decl,
         Some(List(Failure.fatal)),
         _.phase == product.Phase.cancelRequested,
-        s => accepted(s.copy(phase = product.Phase.failed), product.Fact.statusFailed)
+        s =>
+          accepted(
+            s.copy(phase = product.Phase.failed),
+            product.Fact.statusFailed
+          )
       ),
       ExpectedRule(
         completionClient.respondFailedByID.decl,
         Some(List(Failure.retryable)),
         _.phase == product.Phase.started,
         s =>
-          accepted(s.copy(phase = product.Phase.scheduled), product.Fact.statusScheduled) ++
-            accepted(s.copy(phase = product.Phase.paused), product.Fact.statusPaused) ++
-            accepted(s.copy(phase = product.Phase.failed), product.Fact.statusFailed)
+          accepted(
+            s.copy(phase = product.Phase.scheduled),
+            product.Fact.statusScheduled
+          ) ++
+            accepted(
+              s.copy(phase = product.Phase.paused),
+              product.Fact.statusPaused
+            ) ++
+            accepted(
+              s.copy(phase = product.Phase.failed),
+              product.Fact.statusFailed
+            )
       ),
       ExpectedRule(
         completionClient.respondFailedByID.decl,
         Some(List(Failure.retryable)),
         _.phase == product.Phase.cancelRequested,
-        s => accepted(s.copy(phase = product.Phase.canceled), product.Fact.statusCanceled)
+        s =>
+          accepted(
+            s.copy(phase = product.Phase.canceled),
+            product.Fact.statusCanceled
+          )
       ),
       ExpectedRule(
         completionClient.respondCanceledByID.decl,
         None,
         _.phase == product.Phase.cancelRequested,
-        s => accepted(s.copy(phase = product.Phase.canceled), product.Fact.statusCanceled)
+        s =>
+          accepted(
+            s.copy(phase = product.Phase.canceled),
+            product.Fact.statusCanceled
+          )
       ),
       ExpectedRule(
         completionClient.respondCanceledByID.decl,
         None,
         _.phase == product.Phase.started,
-        s => rejectedBecause(s, "invalidArgument", "cancellation was not requested")
+        s =>
+          rejectedBecause(
+            s,
+            "invalidArgument",
+            "cancellation was not requested"
+          )
       )
     )
 
@@ -528,13 +660,21 @@ class StandaloneActivityPins extends munit.FunSuite:
         activityWorker.respondCompleted.decl,
         None,
         s => heldSystem(s.phase) || resetSystem(s.phase),
-        s => accepted(s.copy(phase = protocol.Phase.completed), protocol.Fact.statusCompleted)
+        s =>
+          accepted(
+            s.copy(phase = protocol.Phase.completed),
+            protocol.Fact.statusCompleted
+          )
       ),
       ExpectedRule(
         activityWorker.respondFailed.decl,
         Some(List(Failure.fatal)),
         s => heldSystem(s.phase),
-        s => accepted(s.copy(phase = protocol.Phase.failed), protocol.Fact.statusFailed)
+        s =>
+          accepted(
+            s.copy(phase = protocol.Phase.failed),
+            protocol.Fact.statusFailed
+          )
       ),
       ExpectedRule(
         activityWorker.respondFailed.decl,
@@ -542,7 +682,10 @@ class StandaloneActivityPins extends munit.FunSuite:
         s => s.phase == protocol.Phase.started && retriesRemain(s),
         s =>
           acceptedBecause(
-            s.copy(phase = protocol.Phase.scheduled, dispatch = protocol.Dispatch.backoff),
+            s.copy(
+              phase = protocol.Phase.scheduled,
+              dispatch = protocol.Dispatch.backoff
+            ),
             "a retryable attempt backs off; the client reads scheduled again",
             protocol.Fact.statusScheduled,
             protocol.Fact.attemptCount
@@ -552,7 +695,11 @@ class StandaloneActivityPins extends munit.FunSuite:
         activityWorker.respondFailed.decl,
         Some(List(Failure.retryable)),
         _.phase == protocol.Phase.cancelRequested,
-        s => accepted(s.copy(phase = protocol.Phase.canceled), protocol.Fact.statusCanceled)
+        s =>
+          accepted(
+            s.copy(phase = protocol.Phase.canceled),
+            protocol.Fact.statusCanceled
+          )
       ),
       ExpectedRule(
         activityWorker.respondFailed.decl,
@@ -563,7 +710,10 @@ class StandaloneActivityPins extends munit.FunSuite:
           ),
         s =>
           accepted(
-            s.copy(phase = protocol.Phase.paused, dispatch = protocol.Dispatch.backoff),
+            s.copy(
+              phase = protocol.Phase.paused,
+              dispatch = protocol.Dispatch.backoff
+            ),
             protocol.Fact.statusPaused,
             protocol.Fact.attemptCount
           )
@@ -575,13 +725,21 @@ class StandaloneActivityPins extends munit.FunSuite:
           (s.phase == protocol.Phase.started || s.phase == protocol.Phase.pauseRequested) && !retriesRemain(
             s
           ),
-        s => accepted(s.copy(phase = protocol.Phase.failed), protocol.Fact.statusFailed)
+        s =>
+          accepted(
+            s.copy(phase = protocol.Phase.failed),
+            protocol.Fact.statusFailed
+          )
       ),
       ExpectedRule(
         activityWorker.respondCanceled.decl,
         None,
         _.phase == protocol.Phase.cancelRequested,
-        s => accepted(s.copy(phase = protocol.Phase.canceled), protocol.Fact.statusCanceled)
+        s =>
+          accepted(
+            s.copy(phase = protocol.Phase.canceled),
+            protocol.Fact.statusCanceled
+          )
       ),
       ExpectedRule(
         activityWorker.respondCanceled.decl,
@@ -597,15 +755,39 @@ class StandaloneActivityPins extends munit.FunSuite:
             "cancellation was not requested (chasm/lib/activity/model/model.go:171)"
           )
       ),
-      ExpectedRule(client.pause.decl, None, s => closedSystem(s.phase), rejectedNotFound),
-      ExpectedRule(client.unpause.decl, None, s => closedSystem(s.phase), rejectedNotFound),
-      ExpectedRule(client.requestCancel.decl, None, s => closedSystem(s.phase), rejectedNotFound),
-      ExpectedRule(client.terminate.decl, None, s => closedSystem(s.phase), rejectedNotFound),
+      ExpectedRule(
+        client.pause.decl,
+        None,
+        s => closedSystem(s.phase),
+        rejectedNotFound
+      ),
+      ExpectedRule(
+        client.unpause.decl,
+        None,
+        s => closedSystem(s.phase),
+        rejectedNotFound
+      ),
+      ExpectedRule(
+        client.requestCancel.decl,
+        None,
+        s => closedSystem(s.phase),
+        rejectedNotFound
+      ),
+      ExpectedRule(
+        client.terminate.decl,
+        None,
+        s => closedSystem(s.phase),
+        rejectedNotFound
+      ),
       ExpectedRule(
         client.pause.decl,
         None,
         _.phase == protocol.Phase.scheduled,
-        s => accepted(s.copy(phase = protocol.Phase.paused), protocol.Fact.statusPaused)
+        s =>
+          accepted(
+            s.copy(phase = protocol.Phase.paused),
+            protocol.Fact.statusPaused
+          )
       ),
       ExpectedRule(
         client.pause.decl,
@@ -635,13 +817,21 @@ class StandaloneActivityPins extends munit.FunSuite:
         client.unpause.decl,
         None,
         _.phase == protocol.Phase.paused,
-        s => accepted(s.copy(phase = protocol.Phase.scheduled), protocol.Fact.statusScheduled)
+        s =>
+          accepted(
+            s.copy(phase = protocol.Phase.scheduled),
+            protocol.Fact.statusScheduled
+          )
       ),
       ExpectedRule(
         client.unpause.decl,
         None,
         _.phase == protocol.Phase.pauseRequested,
-        s => accepted(s.copy(phase = protocol.Phase.started), protocol.Fact.statusStarted)
+        s =>
+          accepted(
+            s.copy(phase = protocol.Phase.started),
+            protocol.Fact.statusStarted
+          )
       ),
       ExpectedRule(
         client.unpause.decl,
@@ -660,7 +850,11 @@ class StandaloneActivityPins extends munit.FunSuite:
         client.requestCancel.decl,
         None,
         s => s.phase == protocol.Phase.scheduled || s.phase == protocol.Phase.paused,
-        s => accepted(s.copy(phase = protocol.Phase.canceled), protocol.Fact.statusCanceled)
+        s =>
+          accepted(
+            s.copy(phase = protocol.Phase.canceled),
+            protocol.Fact.statusCanceled
+          )
       ),
       ExpectedRule(
         client.requestCancel.decl,
@@ -690,7 +884,11 @@ class StandaloneActivityPins extends munit.FunSuite:
         client.terminate.decl,
         None,
         s => liveSystem(s.phase),
-        s => accepted(s.copy(phase = protocol.Phase.terminated), protocol.Fact.statusTerminated)
+        s =>
+          accepted(
+            s.copy(phase = protocol.Phase.terminated),
+            protocol.Fact.statusTerminated
+          )
       ),
       ExpectedRule(process.stop.decl, None, _ => true, s => accepted(s)),
       ExpectedRule(
@@ -700,7 +898,11 @@ class StandaloneActivityPins extends munit.FunSuite:
           liveSystem(
             s.phase
           ) && s.dispatch == protocol.Dispatch.startDelay,
-        s => acceptedBecause(s.copy(dispatch = protocol.Dispatch.now), nominalTimeWindow)
+        s =>
+          acceptedBecause(
+            s.copy(dispatch = protocol.Dispatch.now),
+            nominalTimeWindow
+          )
       ),
       ExpectedRule(
         timers.backoff.decl,
@@ -709,7 +911,11 @@ class StandaloneActivityPins extends munit.FunSuite:
           liveSystem(
             s.phase
           ) && s.dispatch == protocol.Dispatch.backoff,
-        s => acceptedBecause(s.copy(dispatch = protocol.Dispatch.now), nominalTimeWindow)
+        s =>
+          acceptedBecause(
+            s.copy(dispatch = protocol.Dispatch.now),
+            nominalTimeWindow
+          )
       ),
       ExpectedRule(
         deadline.scheduleToClose.decl,
@@ -765,7 +971,10 @@ class StandaloneActivityPins extends munit.FunSuite:
           ),
         s =>
           acceptedBecause(
-            s.copy(phase = protocol.Phase.scheduled, dispatch = protocol.Dispatch.backoff),
+            s.copy(
+              phase = protocol.Phase.scheduled,
+              dispatch = protocol.Dispatch.backoff
+            ),
             nominalTimeWindow,
             protocol.Fact.statusScheduled,
             protocol.Fact.attemptCount
@@ -780,7 +989,10 @@ class StandaloneActivityPins extends munit.FunSuite:
           ),
         s =>
           acceptedBecause(
-            s.copy(phase = protocol.Phase.paused, dispatch = protocol.Dispatch.backoff),
+            s.copy(
+              phase = protocol.Phase.paused,
+              dispatch = protocol.Dispatch.backoff
+            ),
             nominalTimeWindow,
             protocol.Fact.statusPaused,
             protocol.Fact.attemptCount
@@ -824,7 +1036,10 @@ class StandaloneActivityPins extends munit.FunSuite:
           ),
         s =>
           acceptedBecause(
-            s.copy(phase = protocol.Phase.scheduled, dispatch = protocol.Dispatch.backoff),
+            s.copy(
+              phase = protocol.Phase.scheduled,
+              dispatch = protocol.Dispatch.backoff
+            ),
             nominalTimeWindow,
             protocol.Fact.statusScheduled,
             protocol.Fact.attemptCount,
@@ -840,7 +1055,10 @@ class StandaloneActivityPins extends munit.FunSuite:
           ),
         s =>
           acceptedBecause(
-            s.copy(phase = protocol.Phase.paused, dispatch = protocol.Dispatch.backoff),
+            s.copy(
+              phase = protocol.Phase.paused,
+              dispatch = protocol.Dispatch.backoff
+            ),
             nominalTimeWindow,
             protocol.Fact.statusPaused,
             protocol.Fact.attemptCount,
@@ -886,7 +1104,11 @@ class StandaloneActivityPins extends munit.FunSuite:
         client.reset.decl,
         None,
         _.phase == protocol.Phase.scheduled,
-        s => accepted(cleared(s, protocol.Phase.scheduled), protocol.Fact.statusScheduled)
+        s =>
+          accepted(
+            cleared(s, protocol.Phase.scheduled),
+            protocol.Fact.statusScheduled
+          )
       ),
       ExpectedRule(
         client.reset.decl,
@@ -925,7 +1147,11 @@ class StandaloneActivityPins extends munit.FunSuite:
         client.reset.decl,
         Some(List(ResetPause.resume)),
         _.phase == protocol.Phase.paused,
-        s => accepted(cleared(s, protocol.Phase.scheduled), protocol.Fact.statusScheduled)
+        s =>
+          accepted(
+            cleared(s, protocol.Phase.scheduled),
+            protocol.Fact.statusScheduled
+          )
       ),
       ExpectedRule(
         client.reset.decl,
@@ -942,7 +1168,11 @@ class StandaloneActivityPins extends munit.FunSuite:
         client.reset.decl,
         Some(List(ResetPause.keepPaused)),
         _.phase == protocol.Phase.paused,
-        s => accepted(cleared(s, protocol.Phase.paused), protocol.Fact.statusPaused)
+        s =>
+          accepted(
+            cleared(s, protocol.Phase.paused),
+            protocol.Fact.statusPaused
+          )
       ),
       ExpectedRule(
         client.reset.decl,
@@ -955,19 +1185,32 @@ class StandaloneActivityPins extends munit.FunSuite:
             protocol.Fact.statusPaused
           )
       )
-    ) ++ List(activityWorker.respondFailed, completionClient.respondFailedByID).map(a =>
-      ExpectedRule[protocol.State, protocol.Fact](
-        a.decl,
-        None,
-        s => resetSystem(s.phase),
-        s => acceptedBecause(restarted(s), ends, landingFact(s), protocol.Fact.attemptCount)
-      )
-    ) ++ List[ExpectedRule[protocol.State, protocol.Fact]](
+    ) ++ List(activityWorker.respondFailed, completionClient.respondFailedByID)
+      .map(a =>
+        ExpectedRule[protocol.State, protocol.Fact](
+          a.decl,
+          None,
+          s => resetSystem(s.phase),
+          s =>
+            acceptedBecause(
+              restarted(s),
+              ends,
+              landingFact(s),
+              protocol.Fact.attemptCount
+            )
+        )
+      ) ++ List[ExpectedRule[protocol.State, protocol.Fact]](
       ExpectedRule(
         deadline.startToClose.decl,
         None,
         s => resetSystem(s.phase) && s.startToClose == Timeout.expires,
-        s => acceptedBecause(restarted(s), ends, landingFact(s), protocol.Fact.attemptCount)
+        s =>
+          acceptedBecause(
+            restarted(s),
+            ends,
+            landingFact(s),
+            protocol.Fact.attemptCount
+          )
       ),
       ExpectedRule(
         deadline.heartbeat.decl,
@@ -1002,7 +1245,10 @@ class StandaloneActivityPins extends munit.FunSuite:
             rejectedNotFound
           )
         )
-    val unheld = List(completionClient.respondFailedByID, completionClient.respondCanceledByID)
+    val unheld = List(
+      completionClient.respondFailedByID,
+      completionClient.respondCanceledByID
+    )
       .map(a =>
         ExpectedRule[protocol.State, protocol.Fact](
           a.decl,
@@ -1011,18 +1257,28 @@ class StandaloneActivityPins extends munit.FunSuite:
           rejectedNotFound
         )
       )
-    absentOrClosed ++ unheld ++ List[ExpectedRule[protocol.State, protocol.Fact]](
+    absentOrClosed ++ unheld ++ List[
+      ExpectedRule[protocol.State, protocol.Fact]
+    ](
       ExpectedRule(
         completionClient.respondCompletedByID.decl,
         None,
         s => liveSystem(s.phase),
-        s => accepted(s.copy(phase = protocol.Phase.completed), protocol.Fact.statusCompleted)
+        s =>
+          accepted(
+            s.copy(phase = protocol.Phase.completed),
+            protocol.Fact.statusCompleted
+          )
       ),
       ExpectedRule(
         completionClient.respondFailedByID.decl,
         Some(List(Failure.fatal)),
         s => heldSystem(s.phase),
-        s => accepted(s.copy(phase = protocol.Phase.failed), protocol.Fact.statusFailed)
+        s =>
+          accepted(
+            s.copy(phase = protocol.Phase.failed),
+            protocol.Fact.statusFailed
+          )
       ),
       ExpectedRule(
         completionClient.respondFailedByID.decl,
@@ -1030,7 +1286,10 @@ class StandaloneActivityPins extends munit.FunSuite:
         s => s.phase == protocol.Phase.started && retriesRemain(s),
         s =>
           acceptedBecause(
-            s.copy(phase = protocol.Phase.scheduled, dispatch = protocol.Dispatch.backoff),
+            s.copy(
+              phase = protocol.Phase.scheduled,
+              dispatch = protocol.Dispatch.backoff
+            ),
             "a retryable attempt backs off; the client reads scheduled again",
             protocol.Fact.statusScheduled,
             protocol.Fact.attemptCount
@@ -1045,7 +1304,10 @@ class StandaloneActivityPins extends munit.FunSuite:
           ),
         s =>
           accepted(
-            s.copy(phase = protocol.Phase.paused, dispatch = protocol.Dispatch.backoff),
+            s.copy(
+              phase = protocol.Phase.paused,
+              dispatch = protocol.Dispatch.backoff
+            ),
             protocol.Fact.statusPaused,
             protocol.Fact.attemptCount
           )
@@ -1057,19 +1319,31 @@ class StandaloneActivityPins extends munit.FunSuite:
           (s.phase == protocol.Phase.started || s.phase == protocol.Phase.pauseRequested) && !retriesRemain(
             s
           ),
-        s => accepted(s.copy(phase = protocol.Phase.failed), protocol.Fact.statusFailed)
+        s =>
+          accepted(
+            s.copy(phase = protocol.Phase.failed),
+            protocol.Fact.statusFailed
+          )
       ),
       ExpectedRule(
         completionClient.respondFailedByID.decl,
         Some(List(Failure.retryable)),
         _.phase == protocol.Phase.cancelRequested,
-        s => accepted(s.copy(phase = protocol.Phase.canceled), protocol.Fact.statusCanceled)
+        s =>
+          accepted(
+            s.copy(phase = protocol.Phase.canceled),
+            protocol.Fact.statusCanceled
+          )
       ),
       ExpectedRule(
         completionClient.respondCanceledByID.decl,
         None,
         _.phase == protocol.Phase.cancelRequested,
-        s => accepted(s.copy(phase = protocol.Phase.canceled), protocol.Fact.statusCanceled)
+        s =>
+          accepted(
+            s.copy(phase = protocol.Phase.canceled),
+            protocol.Fact.statusCanceled
+          )
       ),
       ExpectedRule(
         completionClient.respondCanceledByID.decl,
@@ -1078,7 +1352,12 @@ class StandaloneActivityPins extends munit.FunSuite:
           s.phase == protocol.Phase.started || s.phase == protocol.Phase.pauseRequested || resetSystem(
             s.phase
           ),
-        s => rejectedBecause(s, "invalidArgument", "cancellation was not requested")
+        s =>
+          rejectedBecause(
+            s,
+            "invalidArgument",
+            "cancellation was not requested"
+          )
       )
     )
 
@@ -1092,14 +1371,17 @@ class StandaloneActivityPins extends munit.FunSuite:
       policy <- temporal.features.activity.standalone.MaxAttempts.values.toList
     yield ExpectedRule[protocol.State, protocol.Fact](
       client.start.decl,
-      Some(List(scheduleClose, scheduleStart, startClose, heartbeat, delay, policy)),
+      Some(
+        List(scheduleClose, scheduleStart, startClose, heartbeat, delay, policy)
+      ),
       _.phase == protocol.Phase.unstarted,
       _ =>
         accepted(
           protocol.State(
             phase = protocol.Phase.scheduled,
-            dispatch = if delay == Timeout.expires then protocol.Dispatch.startDelay
-            else protocol.Dispatch.now,
+            dispatch =
+              if delay == Timeout.expires then protocol.Dispatch.startDelay
+              else protocol.Dispatch.now,
             attempts = UpTo(0),
             scheduleToClose = scheduleClose,
             scheduleToStart = scheduleStart,
@@ -1139,7 +1421,8 @@ class StandaloneActivityPins extends munit.FunSuite:
     assertEquals(client.start.decl.creates, Some(activity))
     assertEquals(client.start.decl.domains.size, 6)
 
-    val controls = List(client.pause, client.unpause, client.requestCancel, client.terminate)
+    val controls =
+      List(client.pause, client.unpause, client.requestCancel, client.terminate)
     for control <- controls do
       assertEquals(control.decl.on, Some(activity))
       assertEquals(control.decl.inputs, Nil)
@@ -1165,63 +1448,68 @@ class StandaloneActivityPins extends munit.FunSuite:
     )
   }
 
-  test("the activity machines bind actions in actor-group order") {
+  test("the activity machines bind actions in their exact facet order") {
     assertEquals(
       product.ActivityProduct.bindings.map(_.decl),
       List(
         client.start,
+        activityWorker.poll,
         client.pause,
         client.unpause,
         client.requestCancel,
+        activityWorker.respondCanceled,
+        completionClient.respondCanceledByID,
         client.terminate,
         client.reset,
-        activityWorker.poll,
         activityWorker.heartbeat,
+        deadline.heartbeat,
         activityWorker.respondCompleted,
-        activityWorker.respondFailed,
-        activityWorker.respondCanceled,
         completionClient.respondCompletedByID,
+        activityWorker.respondFailed,
         completionClient.respondFailedByID,
-        completionClient.respondCanceledByID,
-        timers.timeout,
-        deadline.heartbeat
+        timers.timeout
       ).map(_.decl)
     )
     assertEquals(
       ActivityProtocol.bindings.map(_.decl),
       List(
         client.start,
+        activityWorker.poll,
+        timers.startDelay,
+        timers.backoff,
         client.pause,
         client.unpause,
         client.requestCancel,
-        client.terminate,
-        client.reset,
-        activityWorker.poll,
-        activityWorker.heartbeat,
-        activityWorker.respondCompleted,
-        activityWorker.respondFailed,
         activityWorker.respondCanceled,
-        completionClient.respondCompletedByID,
-        completionClient.respondFailedByID,
         completionClient.respondCanceledByID,
+        client.terminate,
         process.stop,
-        timers.startDelay,
-        timers.backoff,
+        client.reset,
+        activityWorker.heartbeat,
+        deadline.heartbeat,
+        activityWorker.respondCompleted,
+        completionClient.respondCompletedByID,
+        activityWorker.respondFailed,
+        completionClient.respondFailedByID,
         deadline.scheduleToClose,
         deadline.scheduleToStart,
-        deadline.startToClose,
-        deadline.heartbeat
+        deadline.startToClose
       ).map(_.decl)
     )
   }
 
-  test("the activity machines keep the recorded step table over every state and class") {
+  test(
+    "the activity machines keep the recorded step table over every state and class"
+  ) {
     assertStepTable(product.ActivityProduct, productRules)
     assertStepTable(ActivityProtocol, systemRules)
   }
 
-  test("one lost admission response consumes its budget for either durable outcome") {
-    val choices = LostStartAnswer.responseLoss.effects.loseResponse(LostStartAnswer.init)
+  test(
+    "one lost admission response consumes its budget for either durable outcome"
+  ) {
+    val choices =
+      LostStartAnswer.responseLoss.effects.loseResponse(LostStartAnswer.init)
     assertEquals(
       choices.map(_.state.record),
       ActivityRecord.admission.effects.admit(ActivityRecord.init).map(_.state)

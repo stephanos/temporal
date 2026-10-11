@@ -1,0 +1,213 @@
+package framework
+
+// Who takes an action: an object that extends it, `object caller extends Actor`, whose members are
+// the actions it takes, `val start = action(this)`, named after its object with the first letter
+// lowered; or one named in place, `Actor("fixture")`. `system` is reserved for the steps a machine
+// takes of its own: its timers, its internal steps and a channel's deliveries and losses.
+open class Actor(named: String = ""):
+  // The actor's name: the one it is given, or its object's with the first letter lowered.
+  def name: String = if named.nonEmpty then named else objectName(this)
+  override def toString: String = name
+
+object Actor:
+  // An actor named in place, rather than by an object of its own.
+  def apply(name: String): Actor = new Actor(name)
+
+  // `system` also takes the steps `internal` declares and a channel's deliveries and losses.
+  val system: Actor = Actor("system")
+
+// What a machine keeps state for, named after its `val` unless `name` names it. `key` names the
+// recorded field that identifies an instance; `refer` names the entities it refers to, by role.
+final case class Entity(name: String = "", key: String = "", refer: Map[String, Entity] = Map.empty)
+
+// A derived read used as evidence where no recorded event exists, named after its `val` unless
+// `name` names it: `val attemptCount = Observation(on = order, read = "attempt")`.
+final case class Observation(name: String = "", on: Entity, read: String)
+
+// An Abstraction Claim on one input class: the author's claim that every realized value of the
+// class behaves alike, with the example the functional Case runs.
+final case class ClassExample(value: Any, example: String)
+
+// One declared action's untyped part: an actor's side effect, or a timer the system owns. Its
+// inputs are finite domains; each assignment of them is one class.
+final case class ActionDecl(
+    name: String,
+    actor: Actor,
+    on: Option[Entity] = None,
+    creates: Option[Entity] = None,
+    inputs: List[String] = Nil,
+    results: String = "",
+    examples: List[ClassExample] = Nil,
+    timer: Boolean = false,
+    domains: List[Finite[?]] = Nil,
+    // The token of each input, in `inputs` order, where it is declared by one.
+    tokens: List[Option[Input[?]]] = Nil,
+    // Another step of the system: an internal step, or a channel's delivery or loss of a message,
+    // which `delivers` and `loses` name the channel of.
+    internal: Boolean = false,
+    delivers: String = "",
+    loses: String = ""
+) derives CanEqual:
+  // Equality is by declaration, as Go compares declaration pointers: two actions may share a name
+  // only across families, and a restriction keeps the declarations it names.
+  override def equals(that: Any): Boolean = that match
+    case a: ActionDecl => a eq this
+    case _             => false
+  override def hashCode: Int = System.identityHashCode(this)
+
+// An action with its typed, finite inputs. `I` is a tuple with one element per `input` line, so
+// `schedule` is `Action[(Timeout, Timeout, Timeout)]` and a timer is `Action[EmptyTuple]`; the step
+// function bound to an action must take exactly those inputs.
+final class Action[I <: Tuple] private[framework] (val decl: ActionDecl):
+  def name: String = decl.name
+
+  infix def on(e: Entity): Action[I] = Action(decl.copy(on = Some(e)))
+  infix def creates(e: Entity): Action[I] = Action(decl.copy(creates = Some(e)))
+
+  // Retired (fn-133.8): an action names no protobuf message. What performing a class of it carries
+  // is derived from the realization's binding of the class (tools/umpire/realization, Carriers).
+  inline def schema[M]: Action[I] = compiletime.error(
+    "`.schema[T]` is retired: what a class carries is derived from the realization's binding of " +
+      "it (`perform(class -> instruction)`); delete the schema"
+  )
+
+  // The domain of results the action reports, by name.
+  infix def results(name: String): Action[I] = Action(decl.copy(results = name))
+
+  // One more input, by name. The tuple type grows by one.
+  def input[A](name: String)(using f: Finite[A]): Action[Tuple.Append[I, A]] =
+    Action(
+      decl.copy(
+        inputs = decl.inputs :+ name,
+        domains = decl.domains :+ f,
+        tokens = decl.tokens :+ None
+      )
+    )
+
+  // One more input, declared by its token: `action("start", caller).input(scheduleToStart)`. The
+  // input takes the token's name, which the lifter reads from the token's `val`, so it is empty
+  // here. The tuple type grows by one.
+  def input[A](token: Input[A]): Action[Tuple.Append[I, A]] =
+    Action(
+      decl.copy(
+        inputs = decl.inputs :+ "",
+        domains = decl.domains :+ token.domain,
+        tokens = decl.tokens :+ Some(token)
+      )
+    )
+
+  // The class of every input at its domain's first value, `start()` for `start(unset, unset,
+  // unset)`: the one class of an action with no input, or of a timer.
+  def apply(): Class = Class(decl, decl.domains.map(_.values.head))
+
+  // The positional calls are members, typed by the inputs at each position, so that a call of
+  // another form may be an extension: Scala tries the named call of Syntax.scala where these do not
+  // apply, and allows no top-level extension `apply` beside one of another file.
+
+  // The class of this input value.
+  def apply(x: InputAt[I, 1, 0]): Class = Class(decl, List(x))
+
+  // The class of these input values, in declaration order.
+  def apply(x: InputAt[I, 2, 0], y: InputAt[I, 2, 1]): Class = Class(decl, List(x, y))
+
+  // The class of these input values, in declaration order.
+  def apply(x: InputAt[I, 3, 0], y: InputAt[I, 3, 1], z: InputAt[I, 3, 2]): Class =
+    Class(decl, List(x, y, z))
+
+  // The class of these input values, in declaration order.
+  def apply(
+      x: InputAt[I, 4, 0],
+      y: InputAt[I, 4, 1],
+      z: InputAt[I, 4, 2],
+      w: InputAt[I, 4, 3]
+  ): Class = Class(decl, List(x, y, z, w))
+
+  def apply(
+      x: InputAt[I, 5, 0],
+      y: InputAt[I, 5, 1],
+      z: InputAt[I, 5, 2],
+      w: InputAt[I, 5, 3],
+      v: InputAt[I, 5, 4]
+  ): Class = Class(decl, List(x, y, z, w, v))
+
+  def apply(
+      x: InputAt[I, 6, 0],
+      y: InputAt[I, 6, 1],
+      z: InputAt[I, 6, 2],
+      w: InputAt[I, 6, 3],
+      v: InputAt[I, 6, 4],
+      u: InputAt[I, 6, 5]
+  ): Class = Class(decl, List(x, y, z, w, v, u))
+
+  override def toString: String = decl.name
+
+extension [A](a: Action[A *: EmptyTuple])
+  // An Abstraction Claim on one class of the input. Its value is typed by the input,
+  // so an example of another type does not compile. Claims keep declaration order, which is the
+  // order exploration targets list them in.
+  def example(value: A, example: String): Action[A *: EmptyTuple] =
+    Action(a.decl.copy(examples = a.decl.examples :+ ClassExample(value, example)))
+
+// The type of the input at position `N` of an action whose inputs are `I`, where it has `Size` of
+// them: what its positional call takes there. For an action with another number of inputs it is
+// `OtherInputs`, which no value has, so that call does not compile.
+type InputAt[I <: Tuple, Size <: Int, N <: Int] = (I, Size, N) match
+  case (a *: EmptyTuple, 1, 0)    => a
+  case ((a, b), 2, 0)             => a
+  case ((a, b), 2, 1)             => b
+  case ((a, b, c), 3, 0)          => a
+  case ((a, b, c), 3, 1)          => b
+  case ((a, b, c), 3, 2)          => c
+  case ((a, b, c, d), 4, 0)       => a
+  case ((a, b, c, d), 4, 1)       => b
+  case ((a, b, c, d), 4, 2)       => c
+  case ((a, b, c, d), 4, 3)       => d
+  case ((a, b, c, d, e), 5, 0)    => a
+  case ((a, b, c, d, e), 5, 1)    => b
+  case ((a, b, c, d, e), 5, 2)    => c
+  case ((a, b, c, d, e), 5, 3)    => d
+  case ((a, b, c, d, e), 5, 4)    => e
+  case ((a, b, c, d, e, f), 6, 0) => a
+  case ((a, b, c, d, e, f), 6, 1) => b
+  case ((a, b, c, d, e, f), 6, 2) => c
+  case ((a, b, c, d, e, f), 6, 3) => d
+  case ((a, b, c, d, e, f), 6, 4) => e
+  case ((a, b, c, d, e, f), 6, 5) => f
+  case _                          => OtherInputs
+
+// What a positional call takes where the action has another number of inputs: no value.
+sealed trait OtherInputs
+
+// A named place that receives a value of type `A`: an action's input. `:=`
+// (model/framework/Syntax.scala) gives one its value.
+trait Slot[A]
+
+// One input of an action, named after the `val` that declares it: `val scheduleToStart =
+// input[Timeout]`. An action declares it with `.input(scheduleToStart)`, and its values are the
+// domain's. Tokens are compared by identity, as declarations are, so two tokens of one type are two
+// inputs.
+final class Input[A] private[framework] (val domain: Finite[A]) extends Slot[A]
+
+// Declares an input token of type `A`, named after the `val` that declares it.
+def input[A](using f: Finite[A]): Input[A] = Input(f)
+
+// Declares an action an actor takes.
+def action(name: String, actor: Actor): Action[EmptyTuple] = Action(ActionDecl(name, actor))
+
+// Declares an action an actor takes, named after the `val` that declares it. The name is read by
+// the lifter, so the declaration's own `name` is empty here.
+def action(actor: Actor): Action[EmptyTuple] = Action(ActionDecl("", actor))
+
+// Declares a timer, an action with no input that the system performs, named after the `val` that
+// declares it.
+def timer: Action[EmptyTuple] = Action(ActionDecl("", Actor.system, timer = true))
+
+// Declares a step of the system that is not a timer, such as a dispatch or a commit, named after
+// the `val` that declares it.
+def internal: Action[EmptyTuple] = Action(ActionDecl("", Actor.system, internal = true))
+
+// One class of an action: the action with one assignment of its inputs.
+final case class Class(decl: ActionDecl, values: List[Any]) derives CanEqual
+
+// What a Scenario lists: a class, or an action with no input written bare.
+type ClassRef = Class | Action[EmptyTuple]

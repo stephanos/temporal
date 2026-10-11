@@ -44,7 +44,12 @@ object Job extends Machine[JobState, Outcome, Fact]:
   val init = JobState(Phase.idle, Active.none) // format: off
   def end(j: State) = j.phase == Phase.done
   // format: on
-  object rules extends Bindings(start ~> startStep, pause ~> pauseStep, finish ~> finishStep)
+  object rules
+      extends Bindings(
+        start ~> startStep,
+        pause ~> pauseStep,
+        finish ~> finishStep
+      )
 
 // The lamp's state, named apart from the machine object `Lamp`.
 final case class LampState(lit: Boolean) derives Finite
@@ -130,7 +135,8 @@ val pairDoneKeepsCore = Pair.property holdsAcross { (before, after) => // format
 val pairNoTwo = Pair.property.never(pairTwoStep)
 val pairNoTwoCore = Pair.property holds (after => !pairTwoStep(after))
 
-val pairNotStartedWhilePaused = Pair.property.never(pairStartedStep).from(pairPaused)
+val pairNotStartedWhilePaused =
+  Pair.property.never(pairStartedStep).from(pairPaused)
 val pairNotStartedWhilePausedCore = Pair.property holdsAcross { (before, after) =>
   !pairPaused(before) || !pairStartedStep(after)
 }
@@ -146,11 +152,15 @@ val pairActiveStaysCore = Pair.property holdsAcross { (before, after) =>
 }
 
 // A member's fact, by its selector and by the composed key a composition records it under.
-val pairStarted = Pair.property holds (after => after.records(_.job, Fact.started))
-val pairStartedCore = Pair.property holds (after => after.facts.contains("job_started"))
+val pairStarted =
+  Pair.property holds (after => after.records(_.job, Fact.started))
+val pairStartedCore =
+  Pair.property holds (after => after.facts.contains("job_started"))
 
-val lampFlipped = Pair.property holds (after => after.records(_.lamp, LampFact.flipped))
-val lampFlippedCore = Pair.property holds (after => after.facts.contains("lamp_flipped"))
+val lampFlipped =
+  Pair.property holds (after => after.records(_.lamp, LampFact.flipped))
+val lampFlippedCore =
+  Pair.property holds (after => after.facts.contains("lamp_flipped"))
 
 // ### Each pattern with a lambda of its own, lifted as `holds` lifts one
 // format: off
@@ -192,20 +202,23 @@ def terminalStays[S, P](m: Declares[S])(terminal: S => Boolean, phase: S => P)(u
   m.property("terminalStays").once(terminal).keeps(phase)
 
 val jobNotAdmitted = notAdmittedWhilePaused(Job)(isPaused, isRunning)
-val jobNotAdmittedCore = Job.property("notAdmittedWhilePausedCore") holdsAcross { (before, after) =>
-  !isPaused(before) || !isRunning(after.state)
-}
+val jobNotAdmittedCore =
+  Job.property("notAdmittedWhilePausedCore") holdsAcross { (before, after) =>
+    !isPaused(before) || !isRunning(after.state)
+  }
 val jobOneActive = atMostOneActive(Job)(twoActive)
-val jobOneActiveCore = Job.property("atMostOneActiveCore") holds (after => !twoActive(after.state))
+val jobOneActiveCore =
+  Job.property("atMostOneActiveCore") holds (after => !twoActive(after.state))
 val jobTerminal = terminalStays(Job)(isDone, jobPhase) // format: off
 val jobTerminalCore = Job.property("terminalStaysCore") holdsAcross { (before, after) =>
   !isDone(before) || after.state.phase == before.phase
 } // format: on
 
 val pairNotAdmitted = notAdmittedWhilePaused(Pair)(pairPaused, pairRunning)
-val pairNotAdmittedCore = Pair.property("notAdmittedWhilePausedCore") holdsAcross {
-  (before, after) => !pairPaused(before) || !pairRunning(after.state)
-}
+val pairNotAdmittedCore =
+  Pair.property("notAdmittedWhilePausedCore") holdsAcross { (before, after) =>
+    !pairPaused(before) || !pairRunning(after.state)
+  }
 val pairOneActive = atMostOneActive(Pair)(pairTwo)
 val pairOneActiveCore =
   Pair.property("atMostOneActiveCore") holds (after => !pairTwo(after.state))
@@ -225,51 +238,68 @@ def onJob(name: String, p: Property[JobState]): Query =
 def onPair(name: String, p: Property[PairState]): Query =
   query(name) verify p in pairAny limits run total 192
 
-val claims: Vector[Query] = Vector(
+val patternClaims: Vector[Query] = Vector(
   onJob("doneKeeps", doneKeeps),
-  onJob("doneKeepsCore", doneKeepsCore),
   onJob("noTwo", noTwo),
-  onJob("noTwoCore", noTwoCore),
   onJob("notStartedWhilePaused", notStartedWhilePaused),
-  onJob("notStartedWhilePausedCore", notStartedWhilePausedCore),
   onJob("doneStays", doneStays),
-  onJob("doneStaysCore", doneStaysCore),
   onJob("activeStays", activeStays),
-  onJob("activeStaysCore", activeStaysCore),
-  onJob("doneKeepsInline", doneKeepsInline),
-  onJob("doneKeepsInlineCore", doneKeepsInlineCore),
-  onJob("noTwoInline", noTwoInline),
-  onJob("noTwoInlineCore", noTwoInlineCore),
-  onJob("notStartedInline", notStartedInline),
-  onJob("notStartedInlineCore", notStartedInlineCore),
-  onJob("doneStaysInline", doneStaysInline),
-  onJob("doneStaysInlineCore", doneStaysInlineCore),
-  onJob("activeStaysInline", activeStaysInline),
-  onJob("activeStaysInlineCore", activeStaysInlineCore),
-  onJob("jobNotAdmitted", jobNotAdmitted),
-  onJob("jobNotAdmittedCore", jobNotAdmittedCore),
-  onJob("jobOneActive", jobOneActive),
-  onJob("jobOneActiveCore", jobOneActiveCore),
-  onJob("jobTerminal", jobTerminal),
-  onJob("jobTerminalCore", jobTerminalCore),
   onPair("pairDoneKeeps", pairDoneKeeps),
-  onPair("pairDoneKeepsCore", pairDoneKeepsCore),
   onPair("pairNoTwo", pairNoTwo),
-  onPair("pairNoTwoCore", pairNoTwoCore),
   onPair("pairNotStartedWhilePaused", pairNotStartedWhilePaused),
-  onPair("pairNotStartedWhilePausedCore", pairNotStartedWhilePausedCore),
   onPair("pairDoneStays", pairDoneStays),
-  onPair("pairDoneStaysCore", pairDoneStaysCore),
   onPair("pairActiveStays", pairActiveStays),
-  onPair("pairActiveStaysCore", pairActiveStaysCore),
   onPair("pairStarted", pairStarted),
-  onPair("pairStartedCore", pairStartedCore),
-  onPair("lampFlipped", lampFlipped),
-  onPair("lampFlippedCore", lampFlippedCore),
+  onPair("lampFlipped", lampFlipped)
+)
+
+val inlineClaims: Vector[Query] = Vector(
+  onJob("doneKeepsInline", doneKeepsInline),
+  onJob("noTwoInline", noTwoInline),
+  onJob("notStartedInline", notStartedInline),
+  onJob("doneStaysInline", doneStaysInline),
+  onJob("activeStaysInline", activeStaysInline)
+)
+
+val sharedClaims: Vector[Query] = Vector(
+  onJob("jobNotAdmitted", jobNotAdmitted),
+  onJob("jobOneActive", jobOneActive),
+  onJob("jobTerminal", jobTerminal),
   onPair("pairNotAdmitted", pairNotAdmitted),
-  onPair("pairNotAdmittedCore", pairNotAdmittedCore),
   onPair("pairOneActive", pairOneActive),
+  onPair("pairTerminal", pairTerminal)
+)
+
+val coreClaims: Vector[Query] = Vector(
+  onJob("doneKeepsCore", doneKeepsCore),
+  onJob("noTwoCore", noTwoCore),
+  onJob("notStartedWhilePausedCore", notStartedWhilePausedCore),
+  onJob("doneStaysCore", doneStaysCore),
+  onJob("activeStaysCore", activeStaysCore),
+  onPair("pairDoneKeepsCore", pairDoneKeepsCore),
+  onPair("pairNoTwoCore", pairNoTwoCore),
+  onPair("pairNotStartedWhilePausedCore", pairNotStartedWhilePausedCore),
+  onPair("pairDoneStaysCore", pairDoneStaysCore),
+  onPair("pairActiveStaysCore", pairActiveStaysCore),
+  onPair("pairStartedCore", pairStartedCore),
+  onPair("lampFlippedCore", lampFlippedCore)
+)
+
+val inlineCoreClaims: Vector[Query] = Vector(
+  onJob("doneKeepsInlineCore", doneKeepsInlineCore),
+  onJob("noTwoInlineCore", noTwoInlineCore),
+  onJob("notStartedInlineCore", notStartedInlineCore),
+  onJob("doneStaysInlineCore", doneStaysInlineCore),
+  onJob("activeStaysInlineCore", activeStaysInlineCore)
+)
+
+val sharedCoreClaims: Vector[Query] = Vector(
+  onJob("jobNotAdmittedCore", jobNotAdmittedCore),
+  onJob("jobOneActiveCore", jobOneActiveCore),
+  onJob("jobTerminalCore", jobTerminalCore),
+  onPair("pairNotAdmittedCore", pairNotAdmittedCore),
   onPair("pairOneActiveCore", pairOneActiveCore),
-  onPair("pairTerminal", pairTerminal),
   onPair("pairTerminalCore", pairTerminalCore)
 )
+
+val claims: Vector[Query] = Vector(onJob("doneKeeps", doneKeeps), onJob("doneKeepsCore", doneKeepsCore))

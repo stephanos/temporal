@@ -39,15 +39,27 @@ val keptBehavior: Realization = temporalRealization(
   evidence = Vector.empty,
   serverSteps = Vector(
     ServerStep(activityWorker.poll, CauseKind.delivery),
-    ServerStep(deadline.scheduleToStart, CauseKind.timer, Some(temporal.realize.timerDeadline))
+    ServerStep(
+      deadline.scheduleToStart,
+      CauseKind.timer,
+      Some(temporal.realize.timerDeadline)
+    )
   )
 )
 
 // Named by value below, and written here.
 private val pauseSeen =
-  METHOD_PAUSE_ACTIVITY_EXECUTION.visibleTo(METHOD_DESCRIBE_ACTIVITY_EXECUTION, Visible.atOnce)
+  METHOD_PAUSE_ACTIVITY_EXECUTION.visibleTo(
+    METHOD_DESCRIBE_ACTIVITY_EXECUTION,
+    Visible.atOnce
+  )
 
-private val slowly = Visible.eventually(WaitBound(interval = framework.realize.Elapsed.milliseconds(100), atMost = framework.realize.Elapsed.milliseconds(1500L)))
+private val slowly = Visible.eventually(
+  WaitBound(
+    interval = framework.realize.Elapsed.milliseconds(100),
+    atMost = framework.realize.Elapsed.milliseconds(1500L)
+  )
+)
 
 // A behavior of its own, which bounds each kind of its server steps.
 val ownBehavior: Realization = realizing(
@@ -57,17 +69,36 @@ val ownBehavior: Realization = realizing(
   ),
   ApiBehavior(
     visibility = Vector(
-      METHOD_START_ACTIVITY_EXECUTION.visibleTo(METHOD_DESCRIBE_ACTIVITY_EXECUTION, Visible.atOnce),
+      METHOD_START_ACTIVITY_EXECUTION
+        .visibleTo(METHOD_DESCRIBE_ACTIVITY_EXECUTION, Visible.atOnce),
       CauseKind.activityAnswer.visibleTo(
         METHOD_DESCRIBE_ACTIVITY_EXECUTION,
-        Visible.eventually(WaitBound(interval = framework.realize.Elapsed.milliseconds(50), atMost = framework.realize.Elapsed.milliseconds(500L)))
+        Visible.eventually(
+          WaitBound(
+            interval = framework.realize.Elapsed.milliseconds(50),
+            atMost = framework.realize.Elapsed.milliseconds(500L)
+          )
+        )
       ),
       pauseSeen,
-      METHOD_TERMINATE_ACTIVITY_EXECUTION.visibleTo(METHOD_DESCRIBE_ACTIVITY_EXECUTION, slowly)
+      METHOD_TERMINATE_ACTIVITY_EXECUTION.visibleTo(
+        METHOD_DESCRIBE_ACTIVITY_EXECUTION,
+        slowly
+      )
     ),
     causes = Vector(
-      CauseKind.delivery.boundedBy(WaitBound(interval = framework.realize.Elapsed.milliseconds(100), atMost = framework.realize.Elapsed.milliseconds(1000L))),
-      CauseKind.timer.boundedBy(WaitBound(interval = framework.realize.Elapsed.milliseconds(100), atMost = framework.realize.Elapsed.milliseconds(2000L)))
+      CauseKind.delivery.boundedBy(
+        WaitBound(
+          interval = framework.realize.Elapsed.milliseconds(100),
+          atMost = framework.realize.Elapsed.milliseconds(1000L)
+        )
+      ),
+      CauseKind.timer.boundedBy(
+        WaitBound(
+          interval = framework.realize.Elapsed.milliseconds(100),
+          atMost = framework.realize.Elapsed.milliseconds(2000L)
+        )
+      )
     )
   )
 )
@@ -79,7 +110,14 @@ val zeroInterval: Realization = realizing(
   Vector.empty,
   ApiBehavior(
     visibility = Vector.empty,
-    causes = Vector(CauseKind.delivery.boundedBy(WaitBound(interval = framework.realize.Elapsed.milliseconds(0), atMost = framework.realize.Elapsed.milliseconds(1000))))
+    causes = Vector(
+      CauseKind.delivery.boundedBy(
+        WaitBound(
+          interval = framework.realize.Elapsed.milliseconds(0),
+          atMost = framework.realize.Elapsed.milliseconds(1000)
+        )
+      )
+    )
   )
 )
 
@@ -90,10 +128,22 @@ val nonPositiveBound: Realization = realizing(
     visibility = Vector(
       CauseKind.activityAnswer.visibleTo(
         METHOD_DESCRIBE_ACTIVITY_EXECUTION,
-        Visible.eventually(WaitBound(interval = framework.realize.Elapsed.milliseconds(100), atMost = framework.realize.Elapsed.milliseconds(-1)))
+        Visible.eventually(
+          WaitBound(
+            interval = framework.realize.Elapsed.milliseconds(100),
+            atMost = framework.realize.Elapsed.milliseconds(-1)
+          )
+        )
       )
     ),
-    causes = Vector(CauseKind.timer.boundedBy(WaitBound(interval = framework.realize.Elapsed.milliseconds(100), atMost = framework.realize.Elapsed.milliseconds(0))))
+    causes = Vector(
+      CauseKind.timer.boundedBy(
+        WaitBound(
+          interval = framework.realize.Elapsed.milliseconds(100),
+          atMost = framework.realize.Elapsed.milliseconds(0)
+        )
+      )
+    )
   )
 )
 
@@ -102,7 +152,14 @@ val intervalOverBound: Realization = realizing(
   Vector.empty,
   ApiBehavior(
     visibility = Vector.empty,
-    causes = Vector(CauseKind.timer.boundedBy(WaitBound(interval = framework.realize.Elapsed.milliseconds(2000), atMost = framework.realize.Elapsed.milliseconds(1000))))
+    causes = Vector(
+      CauseKind.timer.boundedBy(
+        WaitBound(
+          interval = framework.realize.Elapsed.milliseconds(2000),
+          atMost = framework.realize.Elapsed.milliseconds(1000)
+        )
+      )
+    )
   )
 )
 
@@ -111,17 +168,29 @@ val unboundedStep: Realization = realizing(
   Vector(ServerStep(activityWorker.poll, CauseKind.delivery)),
   ApiBehavior(
     visibility = Vector.empty,
-    causes = Vector(CauseKind.timer.boundedBy(WaitBound(interval = framework.realize.Elapsed.milliseconds(100), atMost = framework.realize.Elapsed.milliseconds(2000))))
+    causes = Vector(
+      CauseKind.timer.boundedBy(
+        WaitBound(
+          interval = framework.realize.Elapsed.milliseconds(100),
+          atMost = framework.realize.Elapsed.milliseconds(2000)
+        )
+      )
+    )
   )
 )
 
 // A timer step that names no deadline.
 val timerNoDeadline: Realization =
-  realizing(Vector(ServerStep(deadline.scheduleToStart, CauseKind.timer)), temporalBehavior)
+  realizing(
+    Vector(ServerStep(deadline.scheduleToStart, CauseKind.timer)),
+    temporalBehavior
+  )
 
 // A delivery step that names a deadline, which only a timer has.
 val deliveryDeadline: Realization =
   realizing(
-    Vector(ServerStep(activityWorker.poll, CauseKind.delivery, Some(timerDeadline))),
+    Vector(
+      ServerStep(activityWorker.poll, CauseKind.delivery, Some(timerDeadline))
+    ),
     temporalBehavior
   )

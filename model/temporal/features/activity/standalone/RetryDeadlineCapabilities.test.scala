@@ -28,34 +28,40 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
   ) {
     for (section, name, failure, retryable, controlled) <- Seq(
         (
-          activity.ActivityProtocol.capabilities,
+          activity.ActivityProtocol.retry.capabilities,
           "retryableFailure",
           activityWorker.respondFailed(Failure.retryable),
           true,
           true
         ),
         (
-          activity.ActivityProtocol.capabilities,
+          activity.ActivityProtocol.retry.capabilities,
           "fatalFailure",
           activityWorker.respondFailed(Failure.fatal),
           false,
           true
         ),
         (
-          nexus.NexusProtocol.capabilities,
+          nexus.NexusProtocol.operation.capabilities,
           "retryableHandlerError",
           handler.reply(Reply.handlerError(true)),
           true,
           false
         ),
         (
-          nexus.NexusProtocol.capabilities,
+          nexus.NexusProtocol.operation.capabilities,
           "fatalHandlerError",
           handler.reply(Reply.handlerError(false)),
           false,
           false
         ),
-        (nexus.NexusProtocol.capabilities, "networkFailure", network.fault, true, false)
+        (
+          nexus.NexusProtocol.operation.capabilities,
+          "networkFailure",
+          network.fault,
+          true,
+          false
+        )
       )
     do
       val binding = fields(section, name)
@@ -65,49 +71,49 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
       assertEquals(present(binding("pendingCancel")), controlled)
     for (section, name, timer, timeout, retryable) <- Seq(
         (
-          activity.ActivityProtocol.capabilities,
+          activity.ActivityProtocol.timeouts.capabilities,
           "scheduleToCloseDeadline",
           activityDeadline.scheduleToClose,
           activity.Fact.statusTimedOut(TimeoutType.scheduleToClose),
           false
         ),
         (
-          activity.ActivityProtocol.capabilities,
+          activity.ActivityProtocol.timeouts.capabilities,
           "scheduleToStartDeadline",
           activityDeadline.scheduleToStart,
           activity.Fact.statusTimedOut(TimeoutType.scheduleToStart),
           false
         ),
         (
-          activity.ActivityProtocol.capabilities,
+          activity.ActivityProtocol.timeouts.capabilities,
           "startToCloseDeadline",
           activityDeadline.startToClose,
           activity.Fact.statusTimedOut(TimeoutType.startToClose),
           true
         ),
         (
-          activity.ActivityProtocol.capabilities,
+          activity.ActivityProtocol.heartbeat.capabilities,
           "heartbeatDeadline",
           activityDeadline.heartbeat,
           activity.Fact.statusTimedOut(TimeoutType.heartbeat),
           true
         ),
         (
-          nexus.NexusProtocol.capabilities,
+          nexus.NexusProtocol.operation.capabilities,
           "scheduleToCloseDeadline",
           nexusDeadline.scheduleToClose,
           nexus.Fact.nexusOperationTimedOut(nexus.TimeoutType.scheduleToClose),
           false
         ),
         (
-          nexus.NexusProtocol.capabilities,
+          nexus.NexusProtocol.operation.capabilities,
           "scheduleToStartDeadline",
           nexusDeadline.scheduleToStart,
           nexus.Fact.nexusOperationTimedOut(nexus.TimeoutType.scheduleToStart),
           false
         ),
         (
-          nexus.NexusProtocol.capabilities,
+          nexus.NexusProtocol.operation.capabilities,
           "startToCloseDeadline",
           nexusDeadline.startToClose,
           nexus.Fact.nexusOperationTimedOut(nexus.TimeoutType.startToClose),
@@ -146,7 +152,9 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
           ) // scalafix:ok DisableSyntax.asInstanceOf
         case None =>
           property.decl.holds.get
-            .asInstanceOf[Step[S, O, F] => Boolean](after) // scalafix:ok DisableSyntax.asInstanceOf
+            .asInstanceOf[Step[S, O, F] => Boolean](
+              after
+            ) // scalafix:ok DisableSyntax.asInstanceOf
     }
 
   test(
@@ -161,7 +169,11 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
     for (count, expected) <- Seq(1 -> true, 2 -> false) do
       val state = RetryFixture.Record.init.copy(attempts = UpTo[2](count))
       assertEquals(
-        holds(Seq(finitePolicy), state, Step(RetryFixture.Answer.accepted, state)),
+        holds(
+          Seq(finitePolicy),
+          state,
+          Step(RetryFixture.Answer.accepted, state)
+        ),
         expected
       )
     val retryProperties = Seq(
@@ -173,11 +185,16 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
         RetryFixture.pendingCancel
       ),
       Retryable
-        .failureCancels(RetryFixture.Record)(RetryFixture.failure, true, RetryFixture.pendingCancel)
+        .failureCancels(RetryFixture.Record)(
+          RetryFixture.failure,
+          true,
+          RetryFixture.pendingCancel
+        )
     )
     for cancel <- Seq(false, true) do
       val before = RetryFixture.Record.init.copy(pause = true, cancel = cancel)
-      val expected = if cancel then RetryFixture.Phase.canceled else RetryFixture.Phase.paused
+      val expected = if cancel then RetryFixture.Phase.canceled
+      else RetryFixture.Phase.paused
       for landing <- summon[Finite[RetryFixture.Phase]].values do
         assertEquals(
           holds(
@@ -209,7 +226,8 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
     )
     for pause <- Seq(false, true) do
       val before = ExpirableFixture.Record.init.copy(pause = pause)
-      val expected = if pause then ExpirableFixture.Phase.paused else ExpirableFixture.Phase.waiting
+      val expected = if pause then ExpirableFixture.Phase.paused
+      else ExpirableFixture.Phase.waiting
       for landing <- summon[Finite[ExpirableFixture.Phase]].values do
         assertEquals(
           holds(
@@ -222,12 +240,15 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
   }
 
   // The laws the Activity keeps: its own reset-aware failure laws, and Retryable's cancellation law.
-  private def activityRetries(retryable: Boolean): Seq[Property[activity.State]] =
+  private def activityRetries(
+      retryable: Boolean
+  ): Seq[Property[activity.State]] =
     import activity.ActivityProtocol.given
     val machine = activity.ActivityProtocol
     val own = machine.properties
     val failure =
-      activityWorker.respondFailed(if retryable then Failure.retryable else Failure.fatal)
+      activityWorker.respondFailed(if retryable then Failure.retryable
+      else Failure.fatal)
     Seq(
       own.resetFailureReturnsToWaiting(machine)(
         failure,
@@ -249,15 +270,22 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
         machine.states.pendingPause,
         machine.states.pendingCancel
       ),
-      Retryable.failureCancels(machine)(failure, retryable, machine.states.pendingCancel)
+      Retryable.failureCancels(machine)(
+        failure,
+        retryable,
+        machine.states.pendingCancel
+      )
     )
 
   // Retryable's companion failure laws as the capability states them.
-  private def companionRetries(retryable: Boolean): Seq[Property[activity.State]] =
+  private def companionRetries(
+      retryable: Boolean
+  ): Seq[Property[activity.State]] =
     import activity.ActivityProtocol.given
     val machine = activity.ActivityProtocol
     val failure =
-      activityWorker.respondFailed(if retryable then Failure.retryable else Failure.fatal)
+      activityWorker.respondFailed(if retryable then Failure.retryable
+      else Failure.fatal)
     Seq(
       Retryable.failureReturnsToWaiting(machine)(
         failure,
@@ -279,7 +307,11 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
         machine.states.pendingPause,
         machine.states.pendingCancel
       ),
-      Retryable.failureCancels(machine)(failure, retryable, machine.states.pendingCancel)
+      Retryable.failureCancels(machine)(
+        failure,
+        retryable,
+        machine.states.pendingCancel
+      )
     )
 
   // The laws the Activity keeps for a deadline: its own reset-aware laws for the per-attempt
@@ -377,24 +409,34 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
       )
       val properties = activityRetries(retryable)
       val action =
-        activityWorker.respondFailed(if retryable then Failure.retryable else Failure.fatal)
+        activityWorker.respondFailed(if retryable then Failure.retryable
+        else Failure.fatal)
       assert(properties.forall(_.decl.when.contains(action)))
       val after = take(activity.ActivityProtocol, before, action).head
       assert(holds(properties, before, after), s"before=$before after=$after")
-      for landing <- summon[Finite[activity.Phase]].values if landing != after.state.phase
+      for
+        landing <- summon[Finite[activity.Phase]].values
+        if landing != after.state.phase
       do
         assert(
-          !holds(properties, before, after.copy(state = after.state.copy(phase = landing))),
+          !holds(
+            properties,
+            before,
+            after.copy(state = after.state.copy(phase = landing))
+          ),
           s"wrong landing before=$before landing=$landing"
         )
   }
 
-  test("the Activity's own laws equal the companions without a pending reset and differ with one") {
+  test(
+    "the Activity's own laws equal the companions without a pending reset and differ with one"
+  ) {
     import activity.ActivityProtocol.given
     val pending = activity.ActivityProtocol.states.pendingReset
     val failures = Seq(false, true).map(retryable =>
       (
-        activityWorker.respondFailed(if retryable then Failure.retryable else Failure.fatal),
+        activityWorker.respondFailed(if retryable then Failure.retryable
+        else Failure.fatal),
         activityRetries(retryable).take(3),
         companionRetries(retryable).take(3)
       )
@@ -405,8 +447,16 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
     ).map((timer, kind) =>
       (
         timer,
-        activityDeadlineSettlement(timer, activity.Fact.statusTimedOut(kind), true),
-        companionDeadlineSettlement(timer, activity.Fact.statusTimedOut(kind), true)
+        activityDeadlineSettlement(
+          timer,
+          activity.Fact.statusTimedOut(kind),
+          true
+        ),
+        companionDeadlineSettlement(
+          timer,
+          activity.Fact.statusTimedOut(kind),
+          true
+        )
       )
     )
     val rows = for
@@ -421,15 +471,31 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
       val withTimeout =
         after.copy(facts = after.facts :+ activity.Fact.statusTimedOut(TimeoutType.startToClose))
       if pending(before) then
-        assert(holds(own, before, after), s"$action before=$before after=$after")
+        assert(
+          holds(own, before, after),
+          s"$action before=$before after=$after"
+        )
         for wrong <- landings if wrong.state != after.state do
-          assert(!holds(own, before, wrong), s"$action before=$before wrong=$wrong")
+          assert(
+            !holds(own, before, wrong),
+            s"$action before=$before wrong=$wrong"
+          )
         if deadlines.exists((timer, _, _) => timer == action) then
-          assert(!holds(own, before, withTimeout), s"$action before=$before wrong=$withTimeout")
-        else assert(holds(own, before, withTimeout), s"$action before=$before after=$withTimeout")
+          assert(
+            !holds(own, before, withTimeout),
+            s"$action before=$before wrong=$withTimeout"
+          )
+        else
+          assert(
+            holds(own, before, withTimeout),
+            s"$action before=$before after=$withTimeout"
+          )
       else
         for candidate <- after +: (landings :+ withTimeout) do
-          assertEquals(holds(own, before, candidate), holds(companion, before, candidate))
+          assertEquals(
+            holds(own, before, candidate),
+            holds(companion, before, candidate)
+          )
     val resets = rows.filter((before, _, _, _, _) => pending(before))
     assert(resets.nonEmpty)
     // A fatal failure, an exhausted policy and a kept pause each break a companion law; an eligible
@@ -449,7 +515,9 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
     )
   }
 
-  test("Nexus handler and network retry bindings remain unlimited at represented saturation") {
+  test(
+    "Nexus handler and network retry bindings remain unlimited at represented saturation"
+  ) {
     import nexus.NexusProtocol.given
     val machine = nexus.NexusProtocol
     for (action, retryable) <- Seq(
@@ -460,11 +528,20 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
     do
       val properties = Seq(
         Retryable
-          .failureReturnsToWaiting(machine)(action, retryable, machine.states.retriesRemaining),
-        Retryable.failureEndsFailed(machine)(action, retryable, machine.states.retriesRemaining)
+          .failureReturnsToWaiting(machine)(
+            action,
+            retryable,
+            machine.states.retriesRemaining
+          ),
+        Retryable.failureEndsFailed(machine)(
+          action,
+          retryable,
+          machine.states.retriesRemaining
+        )
       )
       for count <- 0 to nexus.attemptBound do
-        val before = machine.init.copy(phase = nexus.Phase.scheduled, attempts = count)
+        val before =
+          machine.init.copy(phase = nexus.Phase.scheduled, attempts = count)
         val after = take(machine, before, action).head
         assert(holds(properties, before, after))
         assertEquals(
@@ -473,86 +550,147 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
         )
         for landing <- summon[Finite[nexus.Phase]].values do
           assertEquals(
-            holds(properties, before, after.copy(state = after.state.copy(phase = landing))),
+            holds(
+              properties,
+              before,
+              after.copy(state = after.state.copy(phase = landing))
+            ),
             if retryable then landing.in[Waiting] else landing.in[Failed]
           )
   }
 
-  test("the finite maximum rejects count two under max one while unlimited accepts saturation") {
-    val activityPolicy = Retryable.attemptCountIsWithinPolicy(activity.ActivityProtocol)(
-      activity.ActivityProtocol.states.attemptCount,
-      activity.ActivityProtocol.states.maximumAttempts
-    )
+  test(
+    "the finite maximum rejects count two under max one while unlimited accepts saturation"
+  ) {
+    val activityPolicy =
+      Retryable.attemptCountIsWithinPolicy(activity.ActivityProtocol)(
+        activity.ActivityProtocol.states.attemptCount,
+        activity.ActivityProtocol.states.maximumAttempts
+      )
     for (policy, expected) <- Seq(
         MaxAttempts.one -> false,
         MaxAttempts.two -> true,
         MaxAttempts.unlimited -> true
       )
     do
-      val state = activity.ActivityProtocol.init.copy(attempts = UpTo(2), maxAttempts = policy)
-      assertEquals(holds(Seq(activityPolicy), state, Step(Outcome.accepted, state)), expected)
+      val state = activity.ActivityProtocol.init
+        .copy(attempts = UpTo(2), maxAttempts = policy)
+      assertEquals(
+        holds(Seq(activityPolicy), state, Step(Outcome.accepted, state)),
+        expected
+      )
     val nexusPolicy = Retryable.attemptCountIsWithinPolicy(nexus.NexusProtocol)(
       nexus.NexusProtocol.states.attemptCount,
       nexus.NexusProtocol.states.maximumAttempts
     )
     val saturated = nexus.NexusProtocol.init.copy(attempts = nexus.attemptBound)
-    assert(holds(Seq(nexusPolicy), saturated, Step(Outcome.accepted, saturated)))
+    assert(
+      holds(Seq(nexusPolicy), saturated, Step(Outcome.accepted, saturated))
+    )
   }
 
-  test("every native timer window rejects unarmed phases and Activity dispatch delays") {
+  test(
+    "every native timer window rejects unarmed phases and Activity dispatch delays"
+  ) {
     import activity.ActivityProtocol.given
     val activityWindows = Seq(
       activityDeadline
-        .scheduleToClose() -> Expirable.firesInWindow[activity.State, activity.Phase, Live](
-        activity.ActivityProtocol
-      )(activityDeadline.scheduleToClose, activity.ActivityProtocol.states.scheduleToCloseArmed),
+        .scheduleToClose() -> Expirable
+        .firesInWindow[activity.State, activity.Phase, Live](
+          activity.ActivityProtocol
+        )(
+          activityDeadline.scheduleToClose,
+          activity.ActivityProtocol.states.scheduleToCloseArmed
+        ),
       activityDeadline
-        .scheduleToStart() -> Expirable.firesInWindow[activity.State, activity.Phase, Waiting](
-        activity.ActivityProtocol
-      )(activityDeadline.scheduleToStart, activity.ActivityProtocol.states.scheduleToStartArmed),
+        .scheduleToStart() -> Expirable
+        .firesInWindow[activity.State, activity.Phase, Waiting](
+          activity.ActivityProtocol
+        )(
+          activityDeadline.scheduleToStart,
+          activity.ActivityProtocol.states.scheduleToStartArmed
+        ),
       activityDeadline
-        .startToClose() -> Expirable.firesInWindow[activity.State, activity.Phase, Held](
-        activity.ActivityProtocol
-      )(activityDeadline.startToClose, activity.ActivityProtocol.states.startToCloseArmed),
+        .startToClose() -> Expirable
+        .firesInWindow[activity.State, activity.Phase, Held](
+          activity.ActivityProtocol
+        )(
+          activityDeadline.startToClose,
+          activity.ActivityProtocol.states.startToCloseArmed
+        ),
       activityDeadline
-        .heartbeat() -> Expirable.firesInWindow[activity.State, activity.Phase, Held](
-        activity.ActivityProtocol
-      )(activityDeadline.heartbeat, activity.ActivityProtocol.states.heartbeatArmed)
+        .heartbeat() -> Expirable
+        .firesInWindow[activity.State, activity.Phase, Held](
+          activity.ActivityProtocol
+        )(
+          activityDeadline.heartbeat,
+          activity.ActivityProtocol.states.heartbeatArmed
+        )
     )
-    for before <- summon[Finite[activity.State]].values; (timer, property) <- activityWindows do
+    for
+      before <- summon[Finite[activity.State]].values;
+      (timer, property) <- activityWindows
+    do
       val enabled = take(activity.ActivityProtocol, before, timer).nonEmpty
-      val unrelatedAfter = Step(Outcome.accepted, activity.ActivityProtocol.init)
-      assertEquals(holds(Seq(property), before, unrelatedAfter), enabled, s"$timer before=$before")
+      val unrelatedAfter =
+        Step(Outcome.accepted, activity.ActivityProtocol.init)
+      assertEquals(
+        holds(Seq(property), before, unrelatedAfter),
+        enabled,
+        s"$timer before=$before"
+      )
 
     import nexus.NexusProtocol.given
     val nexusWindows = Seq(
-      nexusDeadline.scheduleToClose() -> Expirable.firesInWindow[nexus.State, nexus.Phase, Live](
-        nexus.NexusProtocol
-      )(nexusDeadline.scheduleToClose, nexus.NexusProtocol.states.scheduleToCloseArmed),
-      nexusDeadline.scheduleToStart() -> Expirable.firesInWindow[nexus.State, nexus.Phase, Waiting](
-        nexus.NexusProtocol
-      )(nexusDeadline.scheduleToStart, nexus.NexusProtocol.states.scheduleToStartArmed),
-      nexusDeadline.startToClose() -> Expirable.firesInWindow[nexus.State, nexus.Phase, Held](
-        nexus.NexusProtocol
-      )(nexusDeadline.startToClose, nexus.NexusProtocol.states.startToCloseArmed)
+      nexusDeadline.scheduleToClose() -> Expirable
+        .firesInWindow[nexus.State, nexus.Phase, Live](
+          nexus.NexusProtocol
+        )(
+          nexusDeadline.scheduleToClose,
+          nexus.NexusProtocol.states.scheduleToCloseArmed
+        ),
+      nexusDeadline.scheduleToStart() -> Expirable
+        .firesInWindow[nexus.State, nexus.Phase, Waiting](
+          nexus.NexusProtocol
+        )(
+          nexusDeadline.scheduleToStart,
+          nexus.NexusProtocol.states.scheduleToStartArmed
+        ),
+      nexusDeadline.startToClose() -> Expirable
+        .firesInWindow[nexus.State, nexus.Phase, Held](
+          nexus.NexusProtocol
+        )(
+          nexusDeadline.startToClose,
+          nexus.NexusProtocol.states.startToCloseArmed
+        )
     )
-    for before <- summon[Finite[nexus.State]].values; (timer, property) <- nexusWindows do
+    for
+      before <- summon[Finite[nexus.State]].values;
+      (timer, property) <- nexusWindows
+    do
       val enabled = take(nexus.NexusProtocol, before, timer).nonEmpty
       assertEquals(
-        holds(Seq(property), before, Step(Outcome.accepted, nexus.NexusProtocol.init)),
+        holds(
+          Seq(property),
+          before,
+          Step(Outcome.accepted, nexus.NexusProtocol.init)
+        ),
         enabled,
         s"$timer before=$before"
       )
   }
 
-  test("Activity deadlines reject extra retries wrong landing and terminal timeout-family facts") {
+  test(
+    "Activity deadlines reject extra retries wrong landing and terminal timeout-family facts"
+  ) {
     val timers = Seq(
       activityDeadline.scheduleToClose() -> TimeoutType.scheduleToClose,
       activityDeadline.scheduleToStart() -> TimeoutType.scheduleToStart,
       activityDeadline.startToClose() -> TimeoutType.startToClose,
       activityDeadline.heartbeat() -> TimeoutType.heartbeat
     )
-    for before <- summon[Finite[activity.State]].values; (timer, kind) <- timers do
+    for before <- summon[Finite[activity.State]].values; (timer, kind) <- timers
+    do
       for after <- take(activity.ActivityProtocol, before, timer) do
         val timeout = activity.Fact.statusTimedOut(kind)
         val properties =
@@ -561,19 +699,41 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
             timeout,
             kind == TimeoutType.startToClose || kind == TimeoutType.heartbeat
           )
-        assert(holds(properties, before, after), s"$timer before=$before after=$after")
-        for landing <- summon[Finite[activity.Phase]].values if landing != after.state.phase
-        do assert(!holds(properties, before, after.copy(state = after.state.copy(phase = landing))))
+        assert(
+          holds(properties, before, after),
+          s"$timer before=$before after=$after"
+        )
+        for
+          landing <- summon[Finite[activity.Phase]].values
+          if landing != after.state.phase
+        do
+          assert(
+            !holds(
+              properties,
+              before,
+              after.copy(state = after.state.copy(phase = landing))
+            )
+          )
         if after.state.phase == activity.Phase.timedOut then
           assert(!holds(properties, before, after.copy(facts = Nil)))
-          for other <- activity.ActivityProtocol.states.timeoutFacts if other != timeout
+          for
+            other <- activity.ActivityProtocol.states.timeoutFacts
+            if other != timeout
           do assert(!holds(properties, before, after.copy(facts = List(other))))
         else
           for terminalFact <- activity.ActivityProtocol.states.timeoutFacts do
-            assert(!holds(properties, before, after.copy(facts = after.facts :+ terminalFact)))
+            assert(
+              !holds(
+                properties,
+                before,
+                after.copy(facts = after.facts :+ terminalFact)
+              )
+            )
   }
 
-  test("Nexus deadlines all settle terminally and require their own exact timeout fact") {
+  test(
+    "Nexus deadlines all settle terminally and require their own exact timeout fact"
+  ) {
     import nexus.NexusProtocol.given
     val timers = Seq(
       nexusDeadline.scheduleToClose() -> nexus.TimeoutType.scheduleToClose,
@@ -583,12 +743,19 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
     for before <- summon[Finite[nexus.State]].values; (timer, kind) <- timers do
       for after <- take(nexus.NexusProtocol, before, timer) do
         val timeout = nexus.Fact.nexusOperationTimedOut(kind)
-        val property = Expirable.deadlineTimesOut(nexus.NexusProtocol)(timer, false, timeout)
+        val property =
+          Expirable.deadlineTimesOut(nexus.NexusProtocol)(timer, false, timeout)
         assert(holds(Seq(property), before, after))
-        for landing <- summon[Finite[nexus.Phase]].values if landing != nexus.Phase.timedOut
+        for
+          landing <- summon[Finite[nexus.Phase]].values
+          if landing != nexus.Phase.timedOut
         do
           assert(
-            !holds(Seq(property), before, after.copy(state = after.state.copy(phase = landing)))
+            !holds(
+              Seq(property),
+              before,
+              after.copy(state = after.state.copy(phase = landing))
+            )
           )
         assert(!holds(Seq(property), before, after.copy(facts = Nil)))
         for other <- nexus.NexusProtocol.states.timeoutFacts if other != timeout

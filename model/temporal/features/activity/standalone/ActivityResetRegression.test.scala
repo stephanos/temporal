@@ -52,6 +52,61 @@ class ActivityResetRegression extends munit.FunSuite:
     attempts = UpTo(0)
   )
 
+  test("migrated reset promises preserve their original absent-fact guards on equal full states") {
+    def predicate(q: Query): ActivityStep => Boolean =
+      q.property.holds.get
+        .asInstanceOf[ActivityStep => Boolean] // scalafix:ok DisableSyntax.asInstanceOf
+    val fresh = ActivityProtocol.init.copy(phase = protocol.Phase.scheduled)
+    val timeout = fresh.copy(startToClose = Timeout.expires, maxAttempts = MaxAttempts.one)
+    val requested = fresh.copy(phase = protocol.Phase.resetRequested)
+    val fatal = predicate(ActivityProtocol.reset.queries.resetFatality)
+    val timed = predicate(ActivityProtocol.reset.queries.resetTimeout)
+    val pause = predicate(ActivityProtocol.reset.queries.resetOutranksPause)
+    for forbidden <- List(false, true) do
+      val fatalStep: ActivityStep = Step(
+        Outcome.accepted,
+        fresh,
+        List(protocol.Fact.statusScheduled) ++ (if forbidden then List(protocol.Fact.statusFailed)
+                                                else Nil)
+      )
+      val timeoutStep: ActivityStep = Step(
+        Outcome.accepted,
+        timeout,
+        List(
+          protocol.Fact.statusScheduled
+        ) ++ (if forbidden then List(protocol.Fact.statusTimedOut(TimeoutType.startToClose))
+              else Nil)
+      )
+      val pausedStep: ActivityStep = Step(
+        Outcome.accepted,
+        requested,
+        if forbidden then List(protocol.Fact.statusPaused) else Nil
+      )
+      assertEquals(
+        fatal(fatalStep),
+        fatalStep.state == fresh && fatalStep.records(protocol.Fact.statusScheduled) && !fatalStep
+          .records(protocol.Fact.statusFailed)
+      )
+      assertEquals(
+        timed(timeoutStep),
+        timeoutStep.state == timeout && timeoutStep.records(
+          protocol.Fact.statusScheduled
+        ) && !timeoutStep.records(protocol.Fact.statusTimedOut(TimeoutType.startToClose))
+      )
+      assertEquals(
+        pause(pausedStep),
+        pausedStep.state.phase == protocol.Phase.resetRequested && !pausedStep.records(
+          protocol.Fact.statusPaused
+        )
+      )
+      assertEquals(fatal(fatalStep), !forbidden)
+      assertEquals(timed(timeoutStep), !forbidden)
+      assertEquals(pause(pausedStep), !forbidden)
+    assert(!fatal(Step(Outcome.accepted, fresh)))
+    assert(!timed(Step(Outcome.accepted, timeout)))
+    assert(!pause(Step(Outcome.accepted, requested.copy(phase = protocol.Phase.paused))))
+  }
+
   test("reset is one per-RPC client action whose one input is keep_paused") {
     assertEquals(client.reset.decl.tokens, List(Some(pausing)))
     assertEquals(client.reset.decl.domains.map(_.values.toList), List(ResetPause.values.toList))

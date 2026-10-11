@@ -9,8 +9,6 @@
 package fixture.features.kettle
 
 import framework.*
-import product.KettleProduct
-import system.KettleSystem
 
 final case class Kettle(hot: Boolean) derives Finite
 

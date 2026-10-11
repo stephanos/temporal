@@ -29,7 +29,8 @@ final class PropertyBuilder[S, O, F] private[framework] (
 
   // Restricts the Property to every class of an action, including a composition's synchronized
   // step of that name.
-  def whenAction(action: String): PropertyBuilder[S, O, F] = PropertyBuilder(name, m, Some(action))
+  def whenAction(action: String): PropertyBuilder[S, O, F] =
+    PropertyBuilder(name, m, Some(action))
 
   // Restricts a composition's Property to every class of one composed action: a sync,
   // `whenAction(c.synced(_.member -> action))`, or a member's own action,
@@ -61,7 +62,11 @@ final class Scenario[S] private[framework] (val decl: ScenarioDecl):
   def name: String = decl.name
 
 // Declares a Scenario.
-final class ScenarioBuilder[S] private[framework] (name: String, m: Model, start: Option[S]):
+final class ScenarioBuilder[S] private[framework] (
+    name: String,
+    m: Model,
+    start: Option[S]
+):
   // The state the Scenario starts in.
   infix def starts(s: S): ScenarioBuilder[S] = ScenarioBuilder(name, m, Some(s))
 
@@ -71,12 +76,19 @@ final class ScenarioBuilder[S] private[framework] (name: String, m: Model, start
     Scenario(ScenarioDecl(name, m, start, cs.toVector, free = false))
 
   // Admits any action at every step, within the Query's step limit.
-  def free: Scenario[S] = Scenario(ScenarioDecl(name, m, start, Vector.empty, free = true))
+  def free: Scenario[S] = Scenario(
+    ScenarioDecl(name, m, start, Vector.empty, free = true)
+  )
 
 // Bounds a Query: `steps` is the depth bound, `actions` the schedule length, and `search` the
 // number of product states the search may visit before it reports limit-reached. Declared with
 // named arguments and no `name`, the bounds are named after the `val` that declares them.
-final case class Limits(name: String = "", steps: Int, actions: Int, search: Int)
+final case class Limits(
+    name: String = "",
+    steps: Int,
+    actions: Int,
+    search: Int
+)
 
 enum QueryForm:
   // One trace of the Scenario on which the Property holds.
@@ -100,17 +112,44 @@ class Query private[framework] (
   // Marks a Query as one that generates a live Case, and states what its Run is expected to show
   // (fn-140 R3): a Query without it is checked in the model alone.
   def live(expected: realize.RunExpectation): Query =
-    Query(name, form, property, scenario, limits, Some(expected), exploration, total)
+    Query(
+      name,
+      form,
+      property,
+      scenario,
+      limits,
+      Some(expected),
+      exploration,
+      total
+    )
 
   def explore(space: realize.Exploration): Query =
-    Query(name, form, property, scenario, limits, expectedRun, Some(space), total)
+    Query(
+      name,
+      form,
+      property,
+      scenario,
+      limits,
+      expectedRun,
+      Some(space),
+      total
+    )
 
   // Asserts the Query's static combination count, which the lifter requires on every Query and Go
   // recomputes: the Scenario machine's states times the scheduled slots within the step limit when
   // the Scenario is pinned, or states times action classes times steps when it is free (see
   // model/SEMANTICS.md, "Query totals"). Written `... limits four total 48` or `(...).total(48)`.
   infix def total(n: Long): Query =
-    Query(name, form, property, scenario, limits, expectedRun, exploration, Some(n))
+    Query(
+      name,
+      form,
+      property,
+      scenario,
+      limits,
+      expectedRun,
+      exploration,
+      Some(n)
+    )
 
   override def toString: String = name
 
@@ -119,10 +158,16 @@ class Query private[framework] (
 // as an item of a list, is named `<machine>.<scenario>.<property>` after its Scenario's machine, its
 // Scenario and its Property.
 final class QueryDecl private[framework] (name: String):
-  infix def find[P](p: Property[P]): QueryOn[P] = QueryOn(name, QueryForm.find, p)
-  infix def verify[P](p: Property[P]): QueryOn[P] = QueryOn(name, QueryForm.verify, p)
+  infix def find[P](p: Property[P]): QueryOn[P] =
+    QueryOn(name, QueryForm.find, p)
+  infix def verify[P](p: Property[P]): QueryOn[P] =
+    QueryOn(name, QueryForm.verify, p)
 
-final class QueryOn[P] private[framework] (name: String, form: QueryForm, p: Property[P]):
+final class QueryOn[P] private[framework] (
+    name: String,
+    form: QueryForm,
+    p: Property[P]
+):
   // The Scenario's machine is the Property's, or refines it: a Property of the refined machine is
   // read through the refinement the Scenario's machine declares. `Machine[S, O, F]` does not carry
   // the type it refines, so the lifter, not the compiler, refuses a pair of unrelated machines.
@@ -146,12 +191,15 @@ final class WitnessBuilder[S, O, F] private[framework] (
     private[framework] val name: String,
     private[framework] val path: Vector[ClassRef | Composed]
 ):
-  private[framework] def recording(recorded: Step[S, O, F] => Boolean): Witness[S, O, F] =
+  private[framework] def recording(
+      recorded: Step[S, O, F] => Boolean
+  ): Witness[S, O, F] =
     Witness(
       owner,
       name,
       path,
       recorded,
+      Vector.empty,
       None,
       Limits(steps = path.size, actions = path.size, search = 512)
     )
@@ -163,6 +211,7 @@ final class Witness[S, O, F] private[framework] (
     named: String,
     private[framework] val path: Vector[ClassRef | Composed],
     private[framework] val recorded: Step[S, O, F] => Boolean,
+    private[framework] val conditional: Vector[Step[S, O, F] => Boolean],
     private[framework] val ending: Option[S => Boolean],
     bounds: Limits,
     expected: Option[realize.RunExpectation] = None,
@@ -174,7 +223,11 @@ final class Witness[S, O, F] private[framework] (
         named,
         owner,
         path.lastOption,
-        Some((step: Step[S, O, F]) => recorded(step) && ending.forall(_(step.state))),
+        Some((step: Step[S, O, F]) =>
+          recorded(step) && conditional.forall(_(step)) && ending.forall(
+            _(step.state)
+          )
+        ),
         None
       ),
       ScenarioDecl(named, owner, None, path, free = false),
@@ -182,14 +235,73 @@ final class Witness[S, O, F] private[framework] (
       expected,
       space
     ):
+  private[framework] def recordingWhen(
+      condition: S => Boolean,
+      fact: Step[S, O, F] => Boolean
+  ): Witness[S, O, F] =
+    requiring(step => !condition(step.state) || fact(step))
+
+  private[framework] def requiring(clause: Step[S, O, F] => Boolean): Witness[S, O, F] =
+    Witness(
+      owner,
+      name,
+      path,
+      recorded,
+      conditional :+ clause,
+      ending,
+      limits,
+      expectedRun,
+      exploration
+    )
+
   def ends(predicate: S => Boolean): Witness[S, O, F] =
-    Witness(owner, name, path, recorded, Some(predicate), limits, expectedRun, exploration)
+    Witness(
+      owner,
+      name,
+      path,
+      recorded,
+      conditional,
+      Some(predicate),
+      limits,
+      expectedRun,
+      exploration
+    )
 
   def limits(bounds: Limits): Witness[S, O, F] =
-    Witness(owner, name, path, recorded, ending, bounds, expectedRun, exploration)
+    Witness(
+      owner,
+      name,
+      path,
+      recorded,
+      conditional,
+      ending,
+      bounds,
+      expectedRun,
+      exploration
+    )
 
   override def live(expected: realize.RunExpectation): Witness[S, O, F] =
-    Witness(owner, name, path, recorded, ending, limits, Some(expected), exploration)
+    Witness(
+      owner,
+      name,
+      path,
+      recorded,
+      conditional,
+      ending,
+      limits,
+      Some(expected),
+      exploration
+    )
 
   override def explore(space: realize.Exploration): Witness[S, O, F] =
-    Witness(owner, name, path, recorded, ending, limits, expectedRun, Some(space))
+    Witness(
+      owner,
+      name,
+      path,
+      recorded,
+      conditional,
+      ending,
+      limits,
+      expectedRun,
+      Some(space)
+    )

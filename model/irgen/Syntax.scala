@@ -53,6 +53,8 @@ private[irgen] trait Syntax:
       name: Option[Term],
       path: List[Term],
       fact: Option[(Option[Term], Term)] = None,
+      excluded: Boolean = false,
+      conditional: List[(Option[Term], Option[Term], Term)] = Nil,
       ending: Option[Term] = None,
       limits: Option[Term] = None,
       expected: Option[Term] = None,
@@ -62,7 +64,10 @@ private[irgen] trait Syntax:
   // Hook: whether a term declares a witness. Core form: `query(name) find p in s limits l`.
   def witnessDeclaration(t: Term): Boolean = t match
     case _: Apply =>
-      isNamed(t.tpe, "framework.Witness") || isNamed(t.tpe, "framework.WitnessBuilder")
+      isNamed(t.tpe, "framework.Witness") || isNamed(
+        t.tpe,
+        "framework.WitnessBuilder"
+      )
     case _ => false
 
   private def witnessSource(t: Term): WitnessSource = t match
@@ -78,6 +83,26 @@ private[irgen] trait Syntax:
         case _         => fail(t, s"$modifier is no witness modifier")
     case _ =>
       sugarCall(t) match
+        case Some(
+              ("recordsWhen", List(List(base), List(condition, fact), _))
+            ) =>
+          val source = witnessSource(base)
+          source.copy(conditional = source.conditional :+ ((Some(condition), None, fact)))
+        case Some(
+              ("recordsWhen", List(List(base), List(condition, member, fact)))
+            ) =>
+          val source = witnessSource(base)
+          source.copy(conditional = source.conditional :+ ((Some(condition), Some(member), fact)))
+        case Some(("excludes", List(List(base), List(fact), _))) =>
+          val source = witnessSource(base)
+          if isNamed(base.tpe, "framework.WitnessBuilder") then
+            source.copy(fact = Some(None -> fact), excluded = true)
+          else source.copy(conditional = source.conditional :+ ((None, None, fact)))
+        case Some(("excludes", List(List(base), List(member, fact)))) =>
+          val source = witnessSource(base)
+          if isNamed(base.tpe, "framework.WitnessBuilder") then
+            source.copy(fact = Some(Some(member) -> fact), excluded = true)
+          else source.copy(conditional = source.conditional :+ ((None, Some(member), fact)))
         case Some(("records", List(List(builder), List(fact), _))) =>
           witnessSource(builder).copy(fact = Some(None -> fact))
         case Some(("records", List(List(builder), List(member, fact)))) =>
@@ -92,16 +117,22 @@ private[irgen] trait Syntax:
               (witnessOwner(declaring), None, first :: varargs(rest))
             case List(List(name), List(first, rest), List(declaring)) =>
               (witnessOwner(declaring), Some(name), first :: varargs(rest))
-            case _ => fail(t, s"a witness lists its path classes directly: ${t.show}")
+            case _ =>
+              fail(t, s"a witness lists its path classes directly: ${t.show}")
           WitnessSource(owner, name, path)
-        case _ => fail(t, s"a witness chains its records and modifiers onto its path: ${t.show}")
+        case _ =>
+          fail(
+            t,
+            s"a witness chains its records and modifiers onto its path: ${t.show}"
+          )
 
   private def witnessOwner(t: Term): Term = t match
     case Select(owner, _) => owner
     case r: Ident         =>
       onThis(r) match
         case Select(owner, _) => owner
-        case _                => fail(t, "a witness needs its declaring machine or composition")
+        case _                =>
+          fail(t, "a witness needs its declaring machine or composition")
     case _ => fail(t, "a witness needs its declaring machine or composition")
 
   // A witness's existing declarations. Core form: `m.property(name).when(last) holds predicate`,
@@ -109,25 +140,35 @@ private[irgen] trait Syntax:
   def witness(t: Term, env: Map[Symbol, Decl], named: Option[Symbol]): Decl =
     val source = witnessSource(t)
     val owner = modelName(fold(source.owner, env), source.owner)
-    val name = source.name.fold(captured(named, "a witness", "`witness(\"...\")(...)`", t))(n =>
-      textOf(fold(n, env), n)
-    )
+    val name = source.name.fold(
+      captured(named, "a witness", "`witness(\"...\")(...)`", t)
+    )(n => textOf(fold(n, env), n))
     if name.trim.isEmpty then fail(t, "a witness needs a non-empty name")
     if source.path.isEmpty then fail(t, s"witness $name has no path classes")
-    val (member, fact) = source.fact.getOrElse(fail(t, s"witness $name has no records"))
-    val value = member.fold {
-      val machine = machineNamed(owner).getOrElse(
-        fail(t, s"witness $name of $owner records a member fact with `_.member -> MemberMachine`")
-      )
-      val value = literalValue(fact)
-      val factType = value.kind match
-        case ir.Value.Kind.Enum(e) => e.`type`
-        case _                     => irTypeName(fact.tpe.widen.dealias.typeSymbol)
-      if factType != machine.factType then
-        fail(fact, s"witness $name records a $factType fact which $owner does not record")
-      value
-    }(selector => ir.Value(ir.Value.Kind.Text(memberFact(owner, selector, fact, env))))
-    val path = scheduled(ir.Scenario(machine = owner, name = name), source.path, env)
+    val (member, fact) =
+      source.fact.getOrElse(fail(t, s"witness $name has no records"))
+    def recordedValue(member: Option[Term], fact: Term): ir.Value =
+      member.fold {
+        val machine = machineNamed(owner).getOrElse(
+          fail(
+            t,
+            s"witness $name of $owner records a member fact with `_.member -> MemberMachine`"
+          )
+        )
+        val value = literalValue(fact)
+        val factType = value.kind match
+          case ir.Value.Kind.Enum(e) => e.`type`
+          case _                     => irTypeName(fact.tpe.widen.dealias.typeSymbol)
+        if factType != machine.factType then
+          fail(
+            fact,
+            s"witness $name records a $factType fact which $owner does not record"
+          )
+        value
+      }(selector => ir.Value(ir.Value.Kind.Text(memberFact(owner, selector, fact, env))))
+    val value = recordedValue(member, fact)
+    val path =
+      scheduled(ir.Scenario(machine = owner, name = name), source.path, env)
     if path.keys.isEmpty then
       if machineNamed(owner).isEmpty then
         fail(t, s"witness $name of $owner needs composed path classes")
@@ -141,14 +182,19 @@ private[irgen] trait Syntax:
       else path.actions.dropRight(1).indexOf(path.actions.last)
     if repeated >= 0 then
       val key = if path.keys.nonEmpty then path.keys.last
-      else path.actions.last.action + path.actions.last.inputs.map("-" + valueKey(_)).mkString
+      else
+        path.actions.last.action + path.actions.last.inputs
+          .map("-" + valueKey(_))
+          .mkString
       fail(
         source.path.last,
         s"witness $name repeats its last class $key at path positions ${repeated + 1} and ${source.path.size}, " +
           s"at ${where(source.path(repeated))} and ${where(source.path.last)}: write the core triple"
       )
     val bounds =
-      source.limits.fold(ir.Limits(name, source.path.size, source.path.size, 512)) { term =>
+      source.limits.fold(
+        ir.Limits(name, source.path.size, source.path.size, 512)
+      ) { term =>
         fold(term, env) match
           case Decl.Bounds(limits) => limits
           case other               => fail(term, s"witness $name takes Limits, not $other")
@@ -164,21 +210,70 @@ private[irgen] trait Syntax:
     val fn = s"$owner.property.$name"
     def after = expr(t)(E.Var("after"))
     val facts = expr(t)(E.Field(ir.FieldAccess(Some(after), "facts")))
-    val recorded = binary(ir.Binary.Op.OP_CONTAINS, expr(fact)(E.Literal(value)), facts, t)
-    val body = source.ending.fold(recorded) { ending =>
+    val primary =
+      binary(ir.Binary.Op.OP_CONTAINS, expr(fact)(E.Literal(value)), facts, t)
+    val recorded = if source.excluded then
+      expr(t)(E.Unary(ir.Unary(ir.Unary.Op.OP_NOT, Some(primary))))
+    else primary
+    val conditional = source.conditional.zipWithIndex.foldLeft(recorded) {
+      case (body, ((condition, selected, fact), i)) =>
+        val state = expr(t)(E.Field(ir.FieldAccess(Some(after), "state")))
+        val contains = binary(
+          ir.Binary.Op.OP_CONTAINS,
+          expr(fact)(E.Literal(recordedValue(selected, fact))),
+          facts,
+          fact
+        )
+        val clause =
+          condition.fold(expr(fact)(E.Unary(ir.Unary(ir.Unary.Op.OP_NOT, Some(contains))))) {
+            condition =>
+              val test = expr(condition)(
+                E.Call(
+                  ir.Call(
+                    stepFunction(condition, fn, s"recordsWhen${i + 1}"),
+                    Seq(state)
+                  )
+                )
+              )
+              val absent =
+                expr(condition)(E.Unary(ir.Unary(ir.Unary.Op.OP_NOT, Some(test))))
+              binary(ir.Binary.Op.OP_OR, absent, contains, condition)
+          }
+        binary(ir.Binary.Op.OP_AND, body, clause, t)
+    }
+    val body = source.ending.fold(conditional) { ending =>
       val state = expr(t)(E.Field(ir.FieldAccess(Some(after), "state")))
-      val end = expr(ending)(E.Call(ir.Call(stepFunction(ending, fn, "ends"), Seq(state))))
-      binary(ir.Binary.Op.OP_AND, recorded, end, t)
+      val end = expr(ending)(
+        E.Call(ir.Call(stepFunction(ending, fn, "ends"), Seq(state)))
+      )
+      binary(ir.Binary.Op.OP_AND, conditional, end, t)
     }
     functions(fn) = ir.Function(fn, Some(pos(t)), Seq(stepParam), body = Some(body))
     val when =
       if path.keys.nonEmpty then
-        ir.Property.When.WhenAction(exactComposedClass(source.path.last, owner, env))
+        ir.Property.When.WhenAction(
+          exactComposedClass(source.path.last, owner, env)
+        )
       else ir.Property.When.WhenClass(path.actions.last)
     val property = ir.Property(owner, name, Some(pos(t)), when, fn)
-    register(properties, (owner, name), property, t, s"Property $name of $owner", witness = true)
-    val scenario = path.withPosition(pos(t)).withStart(declaredStart(owner, name, t))
-    register(scenarios, (owner, name), scenario, t, s"Scenario $name of $owner", witness = true)
+    register(
+      properties,
+      (owner, name),
+      property,
+      t,
+      s"Property $name of $owner",
+      witness = true
+    )
+    val scenario =
+      path.withPosition(pos(t)).withStart(declaredStart(owner, name, t))
+    register(
+      scenarios,
+      (owner, name),
+      scenario,
+      t,
+      s"Scenario $name of $owner",
+      witness = true
+    )
     val declared =
       query(
         Some(name),
@@ -189,16 +284,19 @@ private[irgen] trait Syntax:
         t,
         witness = true
       )
-    witnessed(owner, name, value, t)
+    if !source.excluded then witnessed(owner, name, value, t)
     source.expected.foreach(expectedRun(name, _))
     source.exploration.foreach(space =>
-      queries(name) = queries(name).withExploration(emit(ir.Exploration, Bound(space, Map.empty)))
+      queries(name) = queries(name).withExploration(
+        emit(ir.Exploration, Bound(space, Map.empty))
+      )
     )
     declared
 
   // Hook: whether the term applies a sugar form, which `sugar` lifts. Core form: none of its own;
   // `lift` asks it of every term before `sugar` lowers one, as in `case _ if sugared(t) => sugar(t)`.
-  def sugared(t: Term): Boolean = sugarCall(t).nonEmpty || entersApplied(t).nonEmpty
+  def sugared(t: Term): Boolean =
+    sugarCall(t).nonEmpty || entersApplied(t).nonEmpty
 
   // `enters(p)(s)`, the step function `enters(p)` applied to a state: the call and the state.
   private def entersApplied(t: Term): Option[(Term, Term)] = t match
@@ -225,13 +323,27 @@ private[irgen] trait Syntax:
           "enters(Phase.x)`, or applied to the state in a step function, `enters(Phase.x)(s)`"
       )
     case Some(("enter", List(List(state, facts), List(ok)))) =>
-      list(Seq(step(outcomeOf(ok, "enter"), lift(state), lift(facts), text("", t), t)), t)
+      list(
+        Seq(
+          step(outcomeOf(ok, "enter"), lift(state), lift(facts), text("", t), t)
+        ),
+        t
+      )
     case Some(("stay", List(List(state), List(ok)))) =>
-      list(Seq(step(outcomeOf(ok, "stay"), lift(state), list(Nil, t), text("", t), t)), t)
+      list(
+        Seq(
+          step(outcomeOf(ok, "stay"), lift(state), list(Nil, t), text("", t), t)
+        ),
+        t
+      )
     case Some(("reject", List(List(outcome, state)))) =>
-      list(Seq(step(lift(outcome), lift(state), list(Nil, t), text("", t), t)), t)
-    case Some(("disabled", Nil))                            => list(Nil, t)
-    case Some(("in", List(List(value), List(_))))           => roleTest(value, typeArgs(t).head, t)
+      list(
+        Seq(step(lift(outcome), lift(state), list(Nil, t), text("", t), t)),
+        t
+      )
+    case Some(("disabled", Nil))                  => list(Nil, t)
+    case Some(("in", List(List(value), List(_)))) =>
+      roleTest(value, typeArgs(t).head, t)
     case Some(("in", List(List(value), List(first, rest)))) =>
       val member = typeArgs(t).headOption
       val members = rest match
@@ -241,7 +353,12 @@ private[irgen] trait Syntax:
             other,
             "in lists its members, so a list passed as `xs*` has no IR form: write them out"
           )
-      binary(ir.Binary.Op.OP_CONTAINS, lift(value), list(members.map(lift(_, member)), t), t)
+      binary(
+        ir.Binary.Op.OP_CONTAINS,
+        lift(value),
+        list(members.map(lift(_, member)), t),
+        t
+      )
     case Some(("implies", List(List(a), List(b)))) =>
       binary(
         ir.Binary.Op.OP_OR,
@@ -252,7 +369,12 @@ private[irgen] trait Syntax:
     // A composition's step records the member's fact under the composed key `<field>_<fact>`.
     case Some(("records", List(List(after), List(member, fact)))) =>
       val facts = expr(t)(E.Field(ir.FieldAccess(Some(lift(after)), "facts")))
-      binary(ir.Binary.Op.OP_CONTAINS, text(composedFact(member, fact, t), t), facts, t)
+      binary(
+        ir.Binary.Op.OP_CONTAINS,
+        text(composedFact(member, fact, t), t),
+        facts,
+        t
+      )
     case Some(("records", List(List(after), List(fact), _))) =>
       val facts = expr(t)(E.Field(ir.FieldAccess(Some(lift(after)), "facts")))
       binary(ir.Binary.Op.OP_CONTAINS, lift(fact), facts, t)
@@ -300,17 +422,22 @@ private[irgen] trait Syntax:
           case Apply(fn, args) if fn.symbol == phase.primaryConstructor =>
             args.lift(index)
           case _ => foldOverTree(None, tree)(owner))
-    val declared = defs.get(caseSym).orElse(scala.util.Try(caseSym.tree).toOption)
+    val declared =
+      defs.get(caseSym).orElse(scala.util.Try(caseSym.tree).toOption)
     declared
       .flatMap(d => constructed.foldTree(None, d)(caseSym))
-      .getOrElse(fail(at, s"${caseSym.name} of ${phase.name} declares no status"))
+      .getOrElse(
+        fail(at, s"${caseSym.name} of ${phase.name} declares no status")
+      )
 
   private def syntaxCall(fn: Term, name: String): Boolean =
     fn.symbol.name == name && fn.symbol.maybeOwner.fullName == sugarOwner
 
   // The statement of an effect block a term is, if it is one. A call of a def that takes the
   // block's draft and is no getter is a setter of the fixed shape, or refused, naming it.
-  private def effectStatement(t: Term): Option[EffectStatement] = unwrapped(t) match
+  private def effectStatement(t: Term): Option[EffectStatement] = unwrapped(
+    t
+  ) match
     case c @ Apply(Apply(TypeApply(fn, _), List(_)), List(first, rest))
         if syntaxCall(fn, "record") =>
       Some(EffectStatement.Record(first :: varargs(rest), c))
@@ -359,7 +486,9 @@ private[irgen] trait Syntax:
     // The first statement written inside a tree.
     def within(t: Tree): Option[(Term, EffectStatement)] =
       object first extends TreeAccumulator[Option[(Term, EffectStatement)]]:
-        def foldTree(found: Option[(Term, EffectStatement)], tree: Tree)(owner: Symbol) =
+        def foldTree(found: Option[(Term, EffectStatement)], tree: Tree)(
+            owner: Symbol
+        ) =
           found.orElse(tree match
             case term: Term if effectStatement(term).nonEmpty =>
               Some(term -> effectStatement(term).get)
@@ -371,8 +500,9 @@ private[irgen] trait Syntax:
       case _: If                                    => "an `if`"
       case _: Match                                 => "a `match`"
       case _: While                                 => "a loop"
-      case c: Apply if isNamed(c.tpe, "scala.Unit") => s"the call of ${c.symbol.name}"
-      case _                                        => "a bare expression"
+      case c: Apply if isNamed(c.tpe, "scala.Unit") =>
+        s"the call of ${c.symbol.name}"
+      case _ => "a bare expression"
     def inside(at: Tree, s: EffectStatement, place: String): Nothing =
       fail(
         at,
@@ -395,14 +525,19 @@ private[irgen] trait Syntax:
               "and `reject(...)` and nothing else"
           )
     }
-    for r <- lifted.collectFirst { case r: Reject => r }; other <- lifted.find(_ ne r) do
+    for
+      r <- lifted.collectFirst { case r: Reject => r };
+      other <- lifted.find(_ ne r)
+    do
       fail(
         other.at,
         s"$block rejects at ${where(r.at)}, so it holds that one `reject(...)` and nothing else, " +
           s"not ${other.written}"
       )
     val assigns = lifted.collect { case a: Assign => a }
-    for (a, i) <- assigns.zipWithIndex; first <- assigns.take(i).find(_.field == a.field)
+    for
+      (a, i) <- assigns.zipWithIndex;
+      first <- assigns.take(i).find(_.field == a.field)
     do
       fail(
         a.at,
@@ -426,9 +561,16 @@ private[irgen] trait Syntax:
     def state = expr(at)(E.Var("s"))
     lifted match
       case List(Reject(outcome, call)) =>
-        list(Seq(step(lift(outcome), state, list(Nil, call), text("", call), call)), call)
+        list(
+          Seq(
+            step(lift(outcome), state, list(Nil, call), text("", call), call)
+          ),
+          call
+        )
       case _ =>
-        val ok = b.call.usings.lift(1).getOrElse(fail(at, s"$block is given no ok outcome"))
+        val ok = b.call.usings
+          .lift(1)
+          .getOrElse(fail(at, s"$block is given no ok outcome"))
         val outcome = outcomeOf(ok, "effect")
         val values = assigns.map(a => a.field -> a.value).toMap
         val updates = fieldTypes(b.state.widen.typeSymbol).collect {
@@ -436,15 +578,19 @@ private[irgen] trait Syntax:
             ir.NamedExpr(field, Some(lift(values(field), Some(tpe))))
         }
         val entered =
-          if updates.isEmpty then state else expr(at)(E.Copy(ir.Copy(Some(state), updates)))
+          if updates.isEmpty then state
+          else expr(at)(E.Copy(ir.Copy(Some(state), updates)))
         val fact = b.call.types.lift(2)
-        val recorded = lifted.collect { case r: Record => r.facts.map(f => (r, lift(f, fact))) }
+        val recorded = lifted.collect { case r: Record =>
+          r.facts.map(f => (r, lift(f, fact)))
+        }
         // Each assignment of a field whose values declare their status records the status of the
         // case it names, after the facts the block records.
         val statuses = assigns.filter(_.recorded).map { a =>
           val declared = resolve(a.value) match
-            case r: Ref if isEnumCase(r.symbol) => declaredStatus(r.symbol, a.at)
-            case _                              =>
+            case r: Ref if isEnumCase(r.symbol) =>
+              declaredStatus(r.symbol, a.at)
+            case _ =>
               fail(
                 a.value,
                 s"$block assigns ${a.field} a value that names no case: the status it records " +
@@ -476,22 +622,35 @@ private[irgen] trait Syntax:
           if sel.symbol.maybeOwner.fullName == "framework.Rejects" =>
         (unwrapped(inner), constString(r))
       case other => (other, "")
-    sugarCall(rejects).collect { case ("rejects", List(List(why), _)) => why }.map { why =>
-      val rejected = sharedOutcome.children
-        .find(_.name == "rejected")
-        .getOrElse(fail(effect, "the shared Outcome has no case rejected"))
-      declareType(sharedOutcome, effect)
-      val outcome = expr(effect)(
-        E.Construct(
-          ir.Construct(
-            `type` = irTypeName(sharedOutcome),
-            `case` = rejected.name,
-            args = Seq(lift(why, fieldTypes(rejected).headOption.map(_._2)))
+    sugarCall(rejects)
+      .collect { case ("rejects", List(List(why), _)) => why }
+      .map { why =>
+        val rejected = sharedOutcome.children
+          .find(_.name == "rejected")
+          .getOrElse(fail(effect, "the shared Outcome has no case rejected"))
+        declareType(sharedOutcome, effect)
+        val outcome = expr(effect)(
+          E.Construct(
+            ir.Construct(
+              `type` = irTypeName(sharedOutcome),
+              `case` = rejected.name,
+              args = Seq(lift(why, fieldTypes(rejected).headOption.map(_._2)))
+            )
           )
         )
-      )
-      list(Seq(step(outcome, state, list(Nil, effect), text(reason, effect), effect)), effect)
-    }
+        list(
+          Seq(
+            step(
+              outcome,
+              state,
+              list(Nil, effect),
+              text(reason, effect),
+              effect
+            )
+          ),
+          effect
+        )
+      }
 
   // Hook: a rule's effect written `enters(Phase.x)`, or the steps of `enters(Phase.x)(s)`, lowered to
   // the steps its core form lifts to from the state `state`, the rules' state variable by its name
@@ -519,8 +678,8 @@ private[irgen] trait Syntax:
         case other                      => other.typeSymbol
       // A facet's sections read the projection of the machine that mixes the facet in.
       val owner =
-        if declared.typeRef.derivesFrom(facetClass) && !objectForm(declared) then
-          liftingMachine.getOrElse(declared)
+        if declared.typeRef.derivesFrom(facetClass) && !objectForm(declared)
+        then liftingMachine.getOrElse(declared)
         else declared
       val (sp, pp, body) = phaseWriter(owner, at).flatMap(lambda) match
         case Some((List(sp, pp), body)) => (sp, pp, body)
@@ -542,7 +701,18 @@ private[irgen] trait Syntax:
         if phase.tpe.widen.derivesFrom(recordedClass) then
           List(lift(declaredStatus(written, phase), fact))
         else Nil
-      list(Seq(step(outcomeOf(ok, "enters"), entered, list(facts, at), text("", at), at)), at)
+      list(
+        Seq(
+          step(
+            outcomeOf(ok, "enters"),
+            entered,
+            list(facts, at),
+            text("", at),
+            at
+          )
+        ),
+        at
+      )
     }
 
   // Hook: whether a class is written with inputs supplied by name, which `named` lifts. Core form:
@@ -565,7 +735,10 @@ private[irgen] trait Syntax:
         val input = slot match
           case r: Ref => resolveSymbol(r)
           case other  =>
-            fail(s, s"an input supplied by name is named by its token's val, not ${other.show}")
+            fail(
+              s,
+              s"an input supplied by name is named by its token's val, not ${other.show}"
+            )
         if !tokens.contains(Some(input)) then
           val own = tokens.flatten.map(_.name)
           val inputs =
@@ -577,13 +750,17 @@ private[irgen] trait Syntax:
               "action declares"
           )
         if done.contains(input) then
-          fail(s, s"${declared.name} is given ${input.name} twice: supply each input once")
+          fail(
+            s,
+            s"${declared.name} is given ${input.name} twice: supply each input once"
+          )
         done + (input -> value)
       val values = tokens
         .zip(declared.inputs)
         .map:
-          case (Some(input), _) if supplied.contains(input) => literalValue(supplied(input))
-          case (_, param)                                   => firstInput(param, declared.name, t)
+          case (Some(input), _) if supplied.contains(input) =>
+            literalValue(supplied(input))
+          case (_, param) => firstInput(param, declared.name, t)
       ir.ActionClass(id, values)
     case _ => fail(t, s"outside the liftable subset: ${t.show}")
 
@@ -596,7 +773,11 @@ private[irgen] trait Syntax:
   // `{target: "name", value: operand}`, and `field(_.getTimeout) := duration(2)` as
   // `Assignment.typed(Field[Req, Long](_.getTimeout.seconds), Operand.number(2))`.
   // `Realizations.scoped` asks it of every line before it reads a core one.
-  def requestAssignment(line: Bound, root: TypeRepr, into: Descriptor): Option[List[PMessage]] =
+  def requestAssignment(
+      line: Bound,
+      root: TypeRepr,
+      into: Descriptor
+  ): Option[List[PMessage]] =
     val t = follow(line).term
     val sugared = sugarCall(t).collect { case (":=", List(List(slot), List(value))) =>
       (slot, value, false)
@@ -607,7 +788,8 @@ private[irgen] trait Syntax:
         (slot, value, isNamed(value.tpe, "framework.realize.TypedProto"))
     }
     sugared.orElse(message).map { (slot, value, written) =>
-      val target = selectorPath(root, kitSelector(slot, root, t, requestScope), slot)
+      val target =
+        selectorPath(root, kitSelector(slot, root, t, requestScope), slot)
       if written then
         val proto = Message(ir.Proto.scalaDescriptor)
         declaration(Bound(value, line.env), proto)
@@ -618,7 +800,10 @@ private[irgen] trait Syntax:
             Map(
               irField(into, "target", t) -> PString(target),
               irField(into, "value", t) ->
-                typedOperandValue(Bound(value, line.env), irMessage(irField(into, "value", t), t))
+                typedOperandValue(
+                  Bound(value, line.env),
+                  irMessage(irField(into, "value", t), t)
+                )
             )
           )
         )
@@ -631,7 +816,12 @@ private[irgen] trait Syntax:
 
   // The selector of `field(_.name)` written in a scope whose message type is `root`: refused, with
   // `refusal` naming the slot, where the field is not of that message.
-  private def kitSelector(slot: Term, root: TypeRepr, at: Term, refusal: String): Term =
+  private def kitSelector(
+      slot: Term,
+      root: TypeRepr,
+      at: Term,
+      refusal: String
+  ): Term =
     val (scopes, selectors) = applied(slot)
       .filter((fn, _) => fn.symbol.maybeOwner.fullName == kitSugar && fn.symbol.name == "field")
       .map(_._2)
@@ -641,7 +831,9 @@ private[irgen] trait Syntax:
       case (List(s), List(selector))
           if s.tpe
             .baseType(
-              s.tpe.baseClasses.find(_.fullName == "temporal.realize.FieldScope").get
+              s.tpe.baseClasses
+                .find(_.fullName == "temporal.realize.FieldScope")
+                .get
             )
             .typeArgs
             .headOption
@@ -673,8 +865,9 @@ private[irgen] trait Syntax:
         f.value(irField(fieldD, "value", at)) match
           case v: PMessage =>
             v.value.get(irField(valueD, "message", at)) match
-              case Some(nested: PMessage) => assignedMessage(path, nested, into, at)
-              case _                      =>
+              case Some(nested: PMessage) =>
+                assignedMessage(path, nested, into, at)
+              case _ =>
                 List(
                   PMessage(
                     Map(
@@ -697,7 +890,11 @@ private[irgen] trait Syntax:
   // is a field of the call's response, `response`; an observation written by value is observed
   // into. Core form: `ResponseRead.typed(path, cardinality, Vector(Target.Observe(id), …))` lifts as
   // `{path, cardinality, targets: [{observe: id}, …]}`. `Realizations.scoped` asks it of every line.
-  def responseRead(line: Bound, response: Option[TypeRepr], into: Descriptor): Option[PMessage] =
+  def responseRead(
+      line: Bound,
+      response: Option[TypeRepr],
+      into: Descriptor
+  ): Option[PMessage] =
     val t = follow(line).term
     applied(t)
       .collect {
@@ -710,10 +907,16 @@ private[irgen] trait Syntax:
           .filter((fn, _) => fn.symbol.maybeOwner.fullName == kitSugar && fn.symbol.name == "read")
           .collect { case (_, path :: cardinality :: _) => (path, cardinality) }
           .getOrElse(
-            fail(t, s"into finishes the `read(path, cardinality)` before it, not ${t.show}")
+            fail(
+              t,
+              s"into finishes the `read(path, cardinality)` before it, not ${t.show}"
+            )
           )
         val rsp = response.getOrElse(
-          fail(t, "a read reads the response of a call, so it is written in `rpc(...) { ... }`")
+          fail(
+            t,
+            "a read reads the response of a call, so it is written in `rpc(...) { ... }`"
+          )
         )
         val root = path.tpe.widen.dealias.typeArgs.headOption
         if !root.exists(_ =:= rsp) then
@@ -724,16 +927,24 @@ private[irgen] trait Syntax:
           )
         val targetsField = irField(into, "targets", t)
         val targetD = irMessage(targetsField, t)
-        val written = targets.flatMap(a => itemsOf(Bound(a, line.env))).map { item =>
-          if isNamed(item.term.tpe, "framework.realize.Observed") then
-            PMessage(Map(irField(targetD, "observe", t) -> PString(observedId(item))))
-          else valueOf(targetsField, item)
-        }
+        val written =
+          targets.flatMap(a => itemsOf(Bound(a, line.env))).map { item =>
+            if isNamed(item.term.tpe, "framework.realize.Observed") then
+              PMessage(
+                Map(irField(targetD, "observe", t) -> PString(observedId(item)))
+              )
+            else valueOf(targetsField, item)
+          }
         PMessage(
           Map(
-            irField(into, "path", t) -> PString(fieldPath(Bound(path, line.env))),
+            irField(into, "path", t) -> PString(
+              fieldPath(Bound(path, line.env))
+            ),
             irField(into, "cardinality", t) ->
-              valueOf(irField(into, "cardinality", t), Bound(cardinality, line.env)),
+              valueOf(
+                irField(into, "cardinality", t),
+                Bound(cardinality, line.env)
+              ),
             targetsField -> PRepeated(written.toVector)
           )
         )
@@ -767,15 +978,26 @@ private[irgen] trait Syntax:
       }
 
   // The Proto a literal scope over `message` writes.
-  private def literal(message: TypeRepr, build: Bound, into: Descriptor, at: Term): PMessage =
+  private def literal(
+      message: TypeRepr,
+      build: Bound,
+      into: Descriptor,
+      at: Term
+  ): PMessage =
     val fieldD = irMessage(irField(into, "fields", at), at)
     val descriptor = messageDescriptor(message, at)
     val set = mutable.LinkedHashMap.empty[String, PMessage]
     for (line, name, value) <- literalLines(message, build) do
       if set.contains(name) then
-        fail(line, s"the literal sets $name twice: set each field of a protobuf literal once")
+        fail(
+          line,
+          s"the literal sets $name twice: set each field of a protobuf literal once"
+        )
       set(name) = PMessage(
-        Map(irField(fieldD, "name", line) -> PString(name), irField(fieldD, "value", line) -> value)
+        Map(
+          irField(fieldD, "name", line) -> PString(name),
+          irField(fieldD, "value", line) -> value
+        )
       )
     PMessage(
       Map(
@@ -787,7 +1009,10 @@ private[irgen] trait Syntax:
 
   // The lines of a literal scope over `message`: each line, the protobuf name of the field it sets
   // and the IR ProtoValue it sets it to.
-  private def literalLines(message: TypeRepr, build: Bound): List[(Term, String, PMessage)] =
+  private def literalLines(
+      message: TypeRepr,
+      build: Bound
+  ): List[(Term, String, PMessage)] =
     val b = follow(build)
     b.term match
       case Block(List(d: DefDef), _: Closure) =>
@@ -795,7 +1020,11 @@ private[irgen] trait Syntax:
           case Block(stats, e) =>
             stats.map {
               case s: Term => Bound(s, t.env)
-              case other   => fail(other, "a protobuf literal sets fields, and declares nothing")
+              case other   =>
+                fail(
+                  other,
+                  "a protobuf literal sets fields, and declares nothing"
+                )
             } ++ lines(Bound(e, t.env))
           case Typed(e, _)             => lines(Bound(e, t.env))
           case Inlined(_, Nil, e)      => lines(Bound(e, t.env))
@@ -803,7 +1032,10 @@ private[irgen] trait Syntax:
           case _                       => List(t)
         val valueD = irMessage(
           irField(
-            irMessage(irField(ir.Proto.scalaDescriptor, "fields", b.term), b.term),
+            irMessage(
+              irField(ir.Proto.scalaDescriptor, "fields", b.term),
+              b.term
+            ),
             "value",
             b.term
           ),
@@ -815,7 +1047,13 @@ private[irgen] trait Syntax:
             case Some((fn @ Select(slot, ":="), List(value, _)))
                 if fn.symbol.maybeOwner.fullName == "temporal.realize.LiteralField" =>
               val (name, field) = literalField(slot, message, t)
-              List((t, name, literalValue(Bound(value, line.env), field, valueD, t)))
+              List(
+                (
+                  t,
+                  name,
+                  literalValue(Bound(value, line.env), field, valueD, t)
+                )
+              )
             case Some((fn @ Select(slot, "apply"), List(nested)))
                 if fn.symbol.maybeOwner.fullName == "temporal.realize.LiteralField" =>
               val (name, field) = literalField(slot, message, t)
@@ -826,8 +1064,14 @@ private[irgen] trait Syntax:
                 irMessage(irField(valueD, "message", t), t),
                 t
               )
-              if field.scalaType != ScalaType.Message(messageDescriptor(inner, t))
-              then fail(t, s"${field.name} holds no message, so no scope writes it")
+              if field.scalaType != ScalaType.Message(
+                  messageDescriptor(inner, t)
+                )
+              then
+                fail(
+                  t,
+                  s"${field.name} holds no message, so no scope writes it"
+                )
               List((t, name, PMessage(Map(irField(valueD, "message", t) -> m))))
             // A scope passed in, applied where it is written.
             case Some((Select(fn, "apply"), _)) if passedScope(Bound(fn, line.env)) =>
@@ -850,14 +1094,23 @@ private[irgen] trait Syntax:
     case _                                  => false
 
   // The protobuf name and descriptor of the field `field(_.name)` names in a literal over `message`.
-  private def literalField(slot: Term, message: TypeRepr, at: Term): (String, FieldDescriptor) =
-    val path = selectorPath(message, kitSelector(slot, message, at, literalScope), slot)
+  private def literalField(
+      slot: Term,
+      message: TypeRepr,
+      at: Term
+  ): (String, FieldDescriptor) =
+    val path =
+      selectorPath(message, kitSelector(slot, message, at, literalScope), slot)
     val name = path match
       case direct if !direct.exists(c => c == '.' || c == '[' || c == '<') =>
         direct
       case oneof if oneof.matches("[^.\\[<>]+<[^<>]+>") =>
         oneof.substring(oneof.indexOf('<') + 1, oneof.length - 1)
-      case _ => fail(at, s"$path is no field of ${message.show}: a literal sets its own fields")
+      case _ =>
+        fail(
+          at,
+          s"$path is no field of ${message.show}: a literal sets its own fields"
+        )
     val field = messageDescriptor(message, at).fields
       .find(_.name == name)
       .getOrElse(fail(at, s"$name is no field of ${message.show}"))
@@ -871,11 +1124,14 @@ private[irgen] trait Syntax:
       at: Term
   ): PMessage =
     val tpe = follow(value).term.tpe
-    def kind(name: String, v: PValue) = PMessage(Map(irField(valueD, name, at) -> v))
+    def kind(name: String, v: PValue) = PMessage(
+      Map(irField(valueD, name, at) -> v)
+    )
     if isNamed(tpe, "framework.realize.TypedProto") then
       kind("message", valueOf(irField(valueD, "message", at), value))
     else if isNamed(tpe, "framework.realize.TypedProtoValue") then typedProtoValue(value, valueD)
-    else if tpe.widen.dealias.baseClasses.exists(_.fullName == "framework.realize.Addressee")
+    else if tpe.widen.dealias.baseClasses
+        .exists(_.fullName == "framework.realize.Addressee")
     then kind("role_id", PString(textOfBound(value)))
     else if isNamed(tpe, "framework.realize.Name") then
       kind("named", valueOf(irField(valueD, "named", at), value))
@@ -886,35 +1142,67 @@ private[irgen] trait Syntax:
       val pairs = applied(r.term) match
         case Some((fn, args)) if fn.symbol.name == "apply" =>
           args.flatMap(varargs)
-        case _ => fail(r.term, s"a map is written out, `Map(key -> text, ...)`, not ${r.term.show}")
+        case _ =>
+          fail(
+            r.term,
+            s"a map is written out, `Map(key -> text, ...)`, not ${r.term.show}"
+          )
       val entries = pairs.map { p =>
         p match
-          case Apply(TypeApply(arrow @ Select(Apply(_, List(k)), "->"), _), List(v))
-              if arrow.symbol.owner.name == "ArrowAssoc" =>
+          case Apply(
+                TypeApply(arrow @ Select(Apply(_, List(k)), "->"), _),
+                List(v)
+              ) if arrow.symbol.owner.name == "ArrowAssoc" =>
             PMessage(
               Map(
-                irField(entry, "key", p) -> PString(textOfBound(Bound(k, r.env))),
+                irField(entry, "key", p) -> PString(
+                  textOfBound(Bound(k, r.env))
+                ),
                 irField(entry, "value", p) ->
-                  PMessage(Map(irField(valueD, "utf8", p) -> PString(textOfBound(Bound(v, r.env)))))
+                  PMessage(
+                    Map(
+                      irField(valueD, "utf8", p) -> PString(
+                        textOfBound(Bound(v, r.env))
+                      )
+                    )
+                  )
               )
             )
-          case other => fail(other, s"a map entry is written `key -> text`, not ${other.show}")
+          case other =>
+            fail(
+              other,
+              s"a map entry is written `key -> text`, not ${other.show}"
+            )
       }
-      kind("mapping", PMessage(Map(irField(map, "entries", at) -> PRepeated(entries.toVector))))
+      kind(
+        "mapping",
+        PMessage(
+          Map(irField(map, "entries", at) -> PRepeated(entries.toVector))
+        )
+      )
     else
       field.scalaType match
         case ScalaType.String     => kind("text", PString(textOfBound(value)))
         case ScalaType.ByteString => kind("utf8", PString(textOfBound(value)))
-        case ScalaType.Boolean    => kind("flag", valueOf(irField(valueD, "flag", at), value))
+        case ScalaType.Boolean    =>
+          kind("flag", valueOf(irField(valueD, "flag", at), value))
         case ScalaType.Int | ScalaType.Long =>
           val number = reduce(value).term match
             case Literal(LongConstant(v)) => v
             case other                    => constInt(other)
           kind("number", PLong(number))
-        case ScalaType.Enum(_)    => kind("enum_name", PString(generatedEnumName(value)))
+        case ScalaType.Enum(_) =>
+          kind("enum_name", PString(generatedEnumName(value)))
         case ScalaType.Message(d) =>
-          fail(at, s"${field.name} holds a ${d.fullName}: write it out, `proto[...] { ... }`")
-        case other => fail(at, s"${field.name} of kind ${kindName(other)} has no literal value")
+          fail(
+            at,
+            s"${field.name} holds a ${d.fullName}: write it out, `proto[...] { ... }`"
+          )
+        case other =>
+          fail(
+            at,
+            s"${field.name} of kind ${kindName(other)} has no literal value"
+          )
 
   // `token := value`, as a call writes it: the token and the value.
   private def assigned(t: Term): (Term, Term) = t match
@@ -938,7 +1226,9 @@ private[irgen] trait Syntax:
   private def composedFact(member: Term, fact: Term, at: Term): String =
     val (field, state) = lambda(member)
       .collect { case (List(p), body) => (fieldPath(p, body), p.tpt.tpe) }
-      .collect { case (Some(List(field)), tpe) => (field, instantiated(tpe).widen.dealias) }
+      .collect { case (Some(List(field)), tpe) =>
+        (field, instantiated(tpe).widen.dealias)
+      }
       .getOrElse(
         fail(
           at,
@@ -955,11 +1245,15 @@ private[irgen] trait Syntax:
       val m = c.members
         .find(_.field == field)
         .getOrElse(
-          fail(at, s"records reads the facts of $field, and no member of ${c.name} fills it")
+          fail(
+            at,
+            s"records reads the facts of $field, and no member of ${c.name} fills it"
+          )
         )
       for machine <- machineNamed(m.machine) if machine.factType != factType
       do
-        val records = if machine.factType.isEmpty then "no" else machine.factType
+        val records =
+          if machine.factType.isEmpty then "no" else machine.factType
         fail(
           at,
           s"records reads the $factType fact ${valueKey(value)} of $field, and its member " +
@@ -975,9 +1269,14 @@ private[irgen] trait Syntax:
 
   // The claim patterns: the words that begin one on a PropertyBuilder, and the word that finishes
   // each, a method of the class the beginning returns.
-  private val finishers = Map("once" -> "keeps", "never" -> "from", "stays" -> "unless")
+  private val finishers =
+    Map("once" -> "keeps", "never" -> "from", "stays" -> "unless")
   private val finished =
-    Map("framework.Once" -> "keeps", "framework.Never" -> "from", "framework.Stays" -> "unless")
+    Map(
+      "framework.Once" -> "keeps",
+      "framework.Never" -> "from",
+      "framework.Stays" -> "unless"
+    )
 
   // Hook: whether a declaration applies a claim pattern, which `pattern` folds. Core form: none of
   // its own; `fold` asks it beside `holds`, as in `case _ if patterned(t) => pattern(t, env, named)`.
@@ -1010,16 +1309,20 @@ private[irgen] trait Syntax:
   def pattern(t: Term, env: Map[Symbol, Decl], named: Option[Symbol]): Decl =
     // The word that finishes the pattern and its argument, if one does, and the call it finishes.
     val (start, finish) = t match
-      case Apply(call @ Apply(TypeApply(Select(r, w @ "keeps"), _), List(x)), List(_))
-          if call.symbol.maybeOwner.fullName == "framework.Once" && (call.tpe match
+      case Apply(
+            call @ Apply(TypeApply(Select(r, w @ "keeps"), _), List(x)),
+            List(_)
+          ) if call.symbol.maybeOwner.fullName == "framework.Once" && (call.tpe match
             case m: MethodType =>
               m.isImplicit && m.paramTypes.size == 1 &&
               m.paramTypes.head.typeSymbol.fullName == "scala.CanEqual"
             case _ => false) =>
         (r, Some(w -> x))
-      case Apply(TypeApply(Select(r, w @ "keeps"), _), List(x)) => (r, Some(w -> x))
-      case Apply(Select(r, w @ ("from" | "unless")), List(x))   => (r, Some(w -> x))
-      case _                                                    => (t, None)
+      case Apply(TypeApply(Select(r, w @ "keeps"), _), List(x)) =>
+        (r, Some(w -> x))
+      case Apply(Select(r, w @ ("from" | "unless")), List(x)) =>
+        (r, Some(w -> x))
+      case _ => (t, None)
     val (word, builder, state, arg) = begun(start).getOrElse {
       val w = finish.fold(t.symbol.name)(_._1)
       val begins = finishers
@@ -1035,7 +1338,10 @@ private[irgen] trait Syntax:
       )
     }
     if word == "once" && finish.isEmpty then
-      fail(t, "once declares nothing until `.keeps(...)` finishes it, written directly after it")
+      fail(
+        t,
+        "once declares nothing until `.keeps(...)` finishes it, written directly after it"
+      )
     val (m, name) = fold(builder, env, named) match
       case Decl.PropertyOn(m, name, None)    => (m, name)
       case Decl.PropertyOn(_, name, Some(_)) =>
@@ -1047,7 +1353,8 @@ private[irgen] trait Syntax:
       case other => fail(t, s"$word finishes a Property, not $other")
     val fn = s"$m.property.$name"
     def variable(n: String) = expr(t)(E.Var(n))
-    def not(e: ir.Expr) = expr(t)(E.Unary(ir.Unary(ir.Unary.Op.OP_NOT, Some(e))))
+    def not(e: ir.Expr) =
+      expr(t)(E.Unary(ir.Unary(ir.Unary.Op.OP_NOT, Some(e))))
     def or(l: ir.Expr, r: ir.Expr) = binary(ir.Binary.Op.OP_OR, l, r, t)
     def field(e: ir.Expr, path: List[String]) =
       path.foldLeft(e)((e, f) => expr(t)(E.Field(ir.FieldAccess(Some(e), f))))
@@ -1068,12 +1375,18 @@ private[irgen] trait Syntax:
         )
         or(
           not(call(begins, before)),
-          binary(ir.Binary.Op.OP_EQ, field(afterState, path), field(before, path), t)
+          binary(
+            ir.Binary.Op.OP_EQ,
+            field(afterState, path),
+            field(before, path),
+            t
+          )
         )
       case ("never", None)         => not(call(begins, after))
       case ("never", Some((w, b))) =>
         or(not(call(stepFunction(b, fn, w), before)), not(call(begins, after)))
-      case ("stays", None)         => or(not(call(begins, before)), call(begins, afterState))
+      case ("stays", None) =>
+        or(not(call(begins, before)), call(begins, afterState))
       case ("stays", Some((w, r))) =>
         // Left-nested, as `!p(before) || p(after.state) || r(after)` parses.
         or(
@@ -1084,9 +1397,14 @@ private[irgen] trait Syntax:
     val transition =
       !(word == "never" && finish.isEmpty)
     val params =
-      (if transition then Seq(ir.Param("before", Some(typeRef(state, t)))) else Nil) :+ stepParam
-    functions(fn) =
-      ir.Function(name = fn, position = Some(pos(t)), params = params, body = Some(body))
+      (if transition then Seq(ir.Param("before", Some(typeRef(state, t))))
+       else Nil) :+ stepParam
+    functions(fn) = ir.Function(
+      name = fn,
+      position = Some(pos(t)),
+      params = params,
+      body = Some(body)
+    )
     val p = ir.Property(
       machine = m,
       name = name,
@@ -1102,7 +1420,9 @@ private[irgen] trait Syntax:
   // its name and its position, as it does the core form's. Core form: `sticky(p)` lifts as
   // `monitor[S, O, F, Boolean](false)((broken, before, after) => broken || !p(after))(broken => broken)`
   // and `stickyAcross(p)` as the same monitor with `!p(before, after)`.
-  def stickyMonitor(t: Term, id: String): Option[ir.Monitor] = sugarCall(t) match
+  def stickyMonitor(t: Term, id: String): Option[ir.Monitor] = sugarCall(
+    t
+  ) match
     case Some((word @ ("sticky" | "stickyAcross"), List(List(promise)))) =>
       val state = typeArgs(t).head
       val bool = ir.TypeRef(ir.TypeRef.Ref.Bool(Empty()))
@@ -1110,7 +1430,8 @@ private[irgen] trait Syntax:
       // The author's predicate, by the def it names, or as a function of its own named after the word.
       val kept = stepFunction(promise, id, word)
       val read =
-        (if word == "stickyAcross" then Seq(variable("before")) else Nil) :+ variable(
+        (if word == "stickyAcross" then Seq(variable("before"))
+         else Nil) :+ variable(
           "after"
         )
       val broken = ir.Param("broken", Some(bool))
@@ -1124,7 +1445,12 @@ private[irgen] trait Syntax:
             ir.Binary.Op.OP_OR,
             variable("broken"),
             expr(t)(
-              E.Unary(ir.Unary(ir.Unary.Op.OP_NOT, Some(expr(t)(E.Call(ir.Call(kept, read))))))
+              E.Unary(
+                ir.Unary(
+                  ir.Unary.Op.OP_NOT,
+                  Some(expr(t)(E.Call(ir.Call(kept, read))))
+                )
+              )
             ),
             t
           )
@@ -1154,15 +1480,17 @@ private[irgen] trait Syntax:
   // forwards to or is bound to, whose body is a field path over its one parameter.
   private def keptPath(x: Term): Option[List[String]] =
     def defPath(sym: Symbol): Option[List[String]] = defs.get(sym) match
-      case Some(DefDef(_, List(TermParamClause(List(p))), _, Some(body))) => fieldPath(p, body)
-      case _                                                              => None
+      case Some(DefDef(_, List(TermParamClause(List(p))), _, Some(body))) =>
+        fieldPath(p, body)
+      case _ => None
     lambda(x)
       .collect { case (List(p), body) => fieldPath(p, body) }
       .flatten
       .orElse(forwardedDef(x).flatMap(defPath))
 
   // The shared outcomes of the framework (framework.outcomes), which no lifted source declares.
-  private lazy val sharedOutcome = Symbol.requiredClass("framework.outcomes.Outcome")
+  private lazy val sharedOutcome =
+    Symbol.requiredClass("framework.outcomes.Outcome")
 
   // The outcome a `given Ok[O] = Ok(o)` names: `o`; for the shared outcomes, the framework's own
   // given, `Outcome.accepted`.
@@ -1172,7 +1500,9 @@ private[irgen] trait Syntax:
           if resolveSymbol(r).maybeOwner == Symbol
             .requiredModule("framework.Ok")
             .moduleClass =>
-        Some(enumLiteral(sharedOutcome.companionModule.fieldMember("accepted"), ok))
+        Some(
+          enumLiteral(sharedOutcome.companionModule.fieldMember("accepted"), ok)
+        )
       case _ => None
     shared.getOrElse(declaredOutcome(ok, form))
 

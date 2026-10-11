@@ -4,7 +4,7 @@ import scala.collection.mutable
 
 // A facet: one behaviour area of one feature's machine at one level, named as a noun for what
 // happens (`Pausing`, `Cancellation`), distinct from a capability, a cross-Temporal contract named
-// as an adjective for what an entity can be (`Pausable`), which a facet declares. A facet owns the
+// as an adjective for what an entity can be (`Holdable`), which a facet declares. A facet owns the
 // actions it binds: their rules, the effects those rules use and, beside it in its file, the claims
 // that check them. The machine stays one machine, assembled from its facets.
 //
@@ -44,7 +44,9 @@ trait Facet[S, O, F] extends Machine[S, O, F]:
 // the cases of the one facet that binds it. An action bound by two facets is refused as the rules
 // construct, naming the action and both facets. Core form: one `object rules extends Rules` holding
 // every facet's blocks in facet order.
-abstract class Facets[S, O, F](using @scala.annotation.unused owner: Owner[S, O, F])(
+abstract class Facets[S, O, F](using
+    @scala.annotation.unused owner: Owner[S, O, F]
+)(
     facets: RuleBook[S, O, F]*
 ) extends RuleBook[S, O, F]:
   private[framework] lazy val table: Vector[(ActionDecl, Bound[S, O, F])] =
@@ -68,7 +70,13 @@ abstract class Facets[S, O, F](using @scala.annotation.unused owner: Owner[S, O,
 object Facets:
   // The facet a facet's `rules` belongs to: the object named after the facet that holds it.
   private[framework] def nameOf(rules: AnyRef): String =
-    rules.getClass.getName.split('$').filter(_.nonEmpty).reverse.drop(1).headOption.getOrElse("?")
+    rules.getClass.getName
+      .split('$')
+      .filter(_.nonEmpty)
+      .reverse
+      .drop(1)
+      .headOption
+      .getOrElse("?")
 
 // A machine's capabilities assembled from its facets' `capabilities` sections, in the order listed:
 // each facet's vals and waivers are the section's, so the machine's Queries bound them as one

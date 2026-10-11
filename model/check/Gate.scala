@@ -51,7 +51,8 @@ final class Gate(tools: Tools, log: PrintStream):
   private val root = tools.directory
   private val model = root.resolve("model")
   private val build = model.resolve("build")
-  private val schemaFile = "proto/internal/temporal/server/api/umpire/v1/ir.proto"
+  private val schemaFile =
+    "proto/internal/temporal/server/api/umpire/v1/ir.proto"
   private val schema = root.resolve(schemaFile)
   // The schema imports the rest of the IR from this directory, under proto/internal.
   private val schemaDirectory = "temporal/server/api/umpire/"
@@ -95,7 +96,10 @@ final class Gate(tools: Tools, log: PrintStream):
 
   // Every step is waited for, so none outlives the gate, and is reported in the order given, so the
   // log reads the same whichever ended first. Every one that failed is reported, after `failed`.
-  private def report(steps: Seq[Beside], failed: Option[Throwable] = None): Unit =
+  private def report(
+      steps: Seq[Beside],
+      failed: Option[Throwable] = None
+  ): Unit =
     val failures = failed.toSeq ++ steps.flatMap: (title, running) =>
       val (result, took) = Await.result(running, Duration.Inf)
       log.println(s"== $title")
@@ -118,7 +122,10 @@ final class Gate(tools: Tools, log: PrintStream):
   // Scratch directories are made fresh under the ignored model/build/history and kept for
   // inspection: nothing is deleted, so another process's build state is never removed.
   private def scratch(name: String): Path =
-    Files.createTempDirectory(Files.createDirectories(build.resolve("history")), s"$name.")
+    Files.createTempDirectory(
+      Files.createDirectories(build.resolve("history")),
+      s"$name."
+    )
 
   // The IR schema's files by their paths under proto/internal, sorted: the root,
   // proto/internal/temporal/server/api/umpire/v1/ir.proto, and every file of the IR it imports,
@@ -127,19 +134,23 @@ final class Gate(tools: Tools, log: PrintStream):
     if !Files.isRegularFile(schema) then throw GateError(s"the IR schema $schema is missing")
     val internal = root.resolve("proto/internal")
     @annotation.tailrec
-    def visit(pending: List[String], seen: Set[String]): Set[String] = pending match
-      case Nil          => seen
-      case file :: rest =>
-        val imported = Files
-          .readAllLines(internal.resolve(file))
-          .asScala
-          .flatMap(line => schemaImport.findFirstMatchIn(line).map(_.group(1)))
-          .filter(name => name.startsWith(schemaDirectory) && !seen.contains(name))
-          .distinct
-          .toList
-        for name <- imported if !Files.isRegularFile(internal.resolve(name)) do
-          throw GateError(s"the IR schema proto/internal/$file imports $name, which is missing")
-        visit(imported ++ rest, seen ++ imported)
+    def visit(pending: List[String], seen: Set[String]): Set[String] =
+      pending match
+        case Nil          => seen
+        case file :: rest =>
+          val imported = Files
+            .readAllLines(internal.resolve(file))
+            .asScala
+            .flatMap(line => schemaImport.findFirstMatchIn(line).map(_.group(1)))
+            .filter(name => name.startsWith(schemaDirectory) && !seen.contains(name))
+            .distinct
+            .toList
+          for name <- imported if !Files.isRegularFile(internal.resolve(name))
+          do
+            throw GateError(
+              s"the IR schema proto/internal/$file imports $name, which is missing"
+            )
+          visit(imported ++ rest, seen ++ imported)
     val rootName = schemaFile.stripPrefix("proto/internal/")
     visit(List(rootName), Set(rootName)).toSeq.sorted
 
@@ -157,9 +168,14 @@ final class Gate(tools: Tools, log: PrintStream):
     val digest = MessageDigest.getInstance("SHA-256")
     // Each file's path and length is hashed before its content, so no two closures hash alike.
     for name <- closure do
-      val bytes = Files.readAllBytes(root.resolve("proto/internal").resolve(name))
-      digest.update((name + "\n").getBytes(java.nio.charset.StandardCharsets.UTF_8))
-      digest.update(java.nio.ByteBuffer.allocate(8).putLong(bytes.length.toLong).array())
+      val bytes =
+        Files.readAllBytes(root.resolve("proto/internal").resolve(name))
+      digest.update(
+        (name + "\n").getBytes(java.nio.charset.StandardCharsets.UTF_8)
+      )
+      digest.update(
+        java.nio.ByteBuffer.allocate(8).putLong(bytes.length.toLong).array()
+      )
       digest.update(bytes)
     val hash = digest.digest().map("%02x".format(_)).mkString
     val stamp = s"$hash scalapb:$scalapb scala:$scala"
@@ -198,8 +214,11 @@ final class Gate(tools: Tools, log: PrintStream):
         )
         .orFail()
       val plugin = root.relativize(scalaPlugin)
-      if !Files.isRegularFile(scalaPlugin) || !Files.isExecutable(scalaPlugin) then
-        throw GateError(s"the ScalaPB plugin $plugin is missing: scala-cli did not package it")
+      if !Files.isRegularFile(scalaPlugin) || !Files.isExecutable(scalaPlugin)
+      then
+        throw GateError(
+          s"the ScalaPB plugin $plugin is missing: scala-cli did not package it"
+        )
 
       val classes = Files.createDirectories(sources.resolve("ir"))
       // flat_package leaves the file's name out of the package, so the classes sit in the schema's
@@ -234,7 +253,9 @@ final class Gate(tools: Tools, log: PrintStream):
 
       val jar = root.relativize(irJar)
       if !Files.isRegularFile(irJar) then
-        throw GateError(s"$jar is missing: the IR schema $schemaFile was not packaged")
+        throw GateError(
+          s"$jar is missing: the IR schema $schemaFile was not packaged"
+        )
       Files.writeString(stampFile, stamp + "\n")
       log.println(s"generated $jar")
 
@@ -277,7 +298,9 @@ final class Gate(tools: Tools, log: PrintStream):
       )
       .orFail()
     if !Files.isRegularFile(internal) then
-      throw GateError("current internal descriptors are missing; run make protoc")
+      throw GateError(
+        "current internal descriptors are missing; run make protoc"
+      )
     val descriptor = sources.resolve("linked.binpb")
     val linked = tools
       .run(
@@ -298,7 +321,10 @@ final class Gate(tools: Tools, log: PrintStream):
     if !Files.isRegularFile(descriptor) ||
       !names.contains("temporal/api/workflowservice/v1/service.proto") ||
       !names.exists(_.startsWith("temporal/server/api/testpilot/"))
-    then throw GateError("linked API descriptor is incomplete; run make proto/api.binpb")
+    then
+      throw GateError(
+        "linked API descriptor is incomplete; run make proto/api.binpb"
+      )
 
     val digest = MessageDigest.getInstance("SHA-256")
     val inputs = Seq(
@@ -314,9 +340,12 @@ final class Gate(tools: Tools, log: PrintStream):
     )
     for source <- inputs do
       val bytes = Files.readAllBytes(source)
-      digest.update(java.nio.ByteBuffer.allocate(8).putLong(bytes.length.toLong).array())
+      digest.update(
+        java.nio.ByteBuffer.allocate(8).putLong(bytes.length.toLong).array()
+      )
       digest.update(bytes)
-    val protocVersion = tools.run("protoc", Seq("--version")).orFail().output.trim
+    val protocVersion =
+      tools.run("protoc", Seq("--version")).orFail().output.trim
     val cliVersion = tools.run("scala-cli", Seq("version")).orFail().output.trim
     digest.update(
       s"scalapb:$scalapb scala:$scala protoc:$protocVersion scala-cli:$cliVersion options:$apiOptions runtime-grpc:$scalapb"
@@ -399,8 +428,13 @@ final class Gate(tools: Tools, log: PrintStream):
       )
       val ran = tools.run("go", arguments).orFail()
       // A name that matches no test passes too, so the check is required to have run.
-      if !ran.output.linesIterator.exists(_.startsWith(s"--- PASS: $vocabulary ")) then
-        throw GateError(s"the vocabulary check $vocabulary did not run:\n${ran.diagnostics}")
+      if !ran.output.linesIterator.exists(
+          _.startsWith(s"--- PASS: $vocabulary ")
+        )
+      then
+        throw GateError(
+          s"the vocabulary check $vocabulary did not run:\n${ran.diagnostics}"
+        )
 
     step("reject free-text protobuf names in Models"):
       ProtoLiterals.check(model.resolve("temporal"), root)
@@ -409,9 +443,17 @@ final class Gate(tools: Tools, log: PrintStream):
     // build and the lifts. An update lowers the IR it has just written.
     val cases =
       if update then Nil
-      else Seq(beside("check every lowered Case and the Query manifest")(lower(update)))
+      else
+        Seq(
+          beside("check every lowered Case and the Query manifest")(
+            lower(update)
+          )
+        )
     report(cases, Try(build(update)).failed.toOption)
-    if update then step("generate every lowered Case and the Query manifest")(lower(update)): Unit
+    if update then
+      step("generate every lowered Case and the Query manifest")(
+        lower(update)
+      ): Unit
 
     // Not one of the Go checks a run may skip: it is the gate's check of the IR it settled.
     // It fails on a finding no acceptance matches and on a stale acceptance, never on a count. The
@@ -425,7 +467,11 @@ final class Gate(tools: Tools, log: PrintStream):
     if goChecks then
       step("interpret the IR in Go and hold it to its goldens"):
         tools
-          .run("go", Seq("vet", "-tags", "test_dep", "./tools/umpire/..."), Output.Shown)
+          .run(
+            "go",
+            Seq("vet", "-tags", "test_dep", "./tools/umpire/..."),
+            Output.Shown
+          )
           .orFail()
         tools
           .run(
@@ -449,7 +495,9 @@ final class Gate(tools: Tools, log: PrintStream):
         )
       )
       .orFail()
-    ran.output.linesIterator.filter(_.startsWith("wrote ")).foreach(l => log.println(s"   $l"))
+    ran.output.linesIterator
+      .filter(_.startsWith("wrote "))
+      .foreach(l => log.println(s"   $l"))
 
   private val tablePins = "model/testdata/table-pins/replay.py"
 
@@ -458,13 +506,20 @@ final class Gate(tools: Tools, log: PrintStream):
   // the dumper and the IR are held to the table pins (model/testdata/table-pins).
   def captureBaseline(out: Path, dumper: Option[Path]): Unit =
     if Files.exists(out) && Files.list(out).findAny().isPresent then
-      throw GateError(s"$out is not empty: capture a baseline into a new directory")
+      throw GateError(
+        s"$out is not empty: capture a baseline into a new directory"
+      )
     Files.createDirectories(out): Unit
     val started = System.currentTimeMillis()
     val commit =
-      Try(tools.run("git", Seq("rev-parse", "HEAD")).orFail().output.trim).getOrElse("unknown")
+      Try(tools.run("git", Seq("rev-parse", "HEAD")).orFail().output.trim)
+        .getOrElse("unknown")
     val dirty = Try(
-      tools.run("git", Seq("status", "--porcelain", "--", "model")).orFail().output.stripTrailing
+      tools
+        .run("git", Seq("status", "--porcelain", "--", "model"))
+        .orFail()
+        .output
+        .stripTrailing
     )
       .getOrElse("unknown")
     step("write the step tables"):
@@ -510,10 +565,18 @@ final class Gate(tools: Tools, log: PrintStream):
 
   // Compares the tree with the baseline in `base` under `map` (Equivalence.scala), and fails on
   // every difference the map does not explain and every entry of the map that explains nothing.
-  def checkEquivalence(base: Path, mapFile: Path, stepsOnly: Boolean, dumper: Option[Path]): Unit =
+  def checkEquivalence(
+      base: Path,
+      mapFile: Path,
+      stepsOnly: Boolean,
+      dumper: Option[Path]
+  ): Unit =
     val map = RenameMap.read(mapFile)
+    val ledger = StepLedger.forComparison(mapFile, stepsOnly)
     if !Files.isDirectory(base.resolve(Equivalence.stepTables)) then
-      throw GateError(s"$base is no baseline: it has no ${Equivalence.stepTables}")
+      throw GateError(
+        s"$base is no baseline: it has no ${Equivalence.stepTables}"
+      )
     val now = scratch("steps")
     step("write the step tables"):
       writeStepTables(now.resolve(Equivalence.stepTables))
@@ -521,12 +584,15 @@ final class Gate(tools: Tools, log: PrintStream):
       Equivalence.compareTables(
         base.resolve(Equivalence.stepTables),
         now.resolve(Equivalence.stepTables),
-        map
+        map,
+        ledger
       )
     val projected =
       if stepsOnly then Vector.empty
       else
-        step("compare the IR, its lint findings, the Cases and the manifest with the baseline's"):
+        step(
+          "compare the IR, its lint findings, the Cases and the manifest with the baseline's"
+        ):
           Equivalence.compareProjection(
             base.resolve("ir"),
             base.resolve("cases"),
@@ -537,7 +603,9 @@ final class Gate(tools: Tools, log: PrintStream):
     val (native, nativeUsed, nativeRemovals) = dumper match
       case Some(d) if !stepsOnly =>
         if !Files.isDirectory(base.resolve("native")) then
-          throw GateError(s"$base holds no interpreter streams: capture it with --dumper")
+          throw GateError(
+            s"$base holds no interpreter streams: capture it with --dumper"
+          )
         step("compare the interpreter tables of model/ir with the baseline's"):
           val receipt = now.resolve("native-receipt.json")
           val ran = tools.run(
@@ -559,10 +627,15 @@ final class Gate(tools: Tools, log: PrintStream):
             )
           )
           if !Files.isRegularFile(receipt) then
-            throw GateError(s"the interpreter tables were not compared:\n${ran.diagnostics}")
-          val fields = Json.fields(Json.parse(Files.readString(receipt)), receipt.toString)
+            throw GateError(
+              s"the interpreter tables were not compared:\n${ran.diagnostics}"
+            )
+          val fields =
+            Json.fields(Json.parse(Files.readString(receipt)), receipt.toString)
           def texts(name: String) =
-            Json.items(fields.getOrElse(name, Vector()), name).map(Json.text(_, name))
+            Json
+              .items(fields.getOrElse(name, Vector()), name)
+              .map(Json.text(_, name))
           (
             texts("differences").map("interpreter " + _),
             texts("used").toSet,
@@ -571,7 +644,12 @@ final class Gate(tools: Tools, log: PrintStream):
       case _ => (Vector.empty, Set.empty[String], Set.empty[String])
     map.used ++= nativeUsed
     val (unused, deferred) =
-      Equivalence.unused(map, tables.removalsUsed ++ nativeRemovals, !stepsOnly, base)
+      Equivalence.unused(
+        map,
+        tables.removalsUsed ++ nativeRemovals,
+        !stepsOnly,
+        base
+      )
     deferred.foreach(d => log.println(s"   $d"))
     val all = tables.differences ++ projected ++ native ++ unused
     if all.nonEmpty then
@@ -595,10 +673,18 @@ final class Gate(tools: Tools, log: PrintStream):
   private def lower(update: Boolean): String =
     if update then
       tools
-        .run("go", Seq("run", "./tools/umpire/cmd/umpire-gen-cases", "--update"), Output.Shown)
+        .run(
+          "go",
+          Seq("run", "./tools/umpire/cmd/umpire-gen-cases", "--update"),
+          Output.Shown
+        )
         .orFail()
       ""
-    else tools.run("go", Seq("run", "./tools/umpire/cmd/umpire-gen-cases")).orFail().output
+    else
+      tools
+        .run("go", Seq("run", "./tools/umpire/cmd/umpire-gen-cases"))
+        .orFail()
+        .output
 
   // Generates and compiles what the lifter reads, then builds its fixtures and lifts the Models.
   private def build(update: Boolean): Unit =
@@ -610,7 +696,11 @@ final class Gate(tools: Tools, log: PrintStream):
         val generated =
           root
             .resolve("api")
-            .resolve(name.stripPrefix("temporal/server/api/").stripSuffix(".proto") + ".pb.go")
+            .resolve(
+              name
+                .stripPrefix("temporal/server/api/")
+                .stripSuffix(".proto") + ".pb.go"
+            )
         if !Files.isRegularFile(generated) then
           throw GateError(
             s"${root.relativize(generated)} is missing for the IR schema $file; run make protoc"
@@ -636,7 +726,12 @@ final class Gate(tools: Tools, log: PrintStream):
     step("package the Models' TASTy"):
       tools
         .scalaCli(
-          Seq("--power", "package", "--server=false", "--library") ++ models ++ Seq(
+          Seq(
+            "--power",
+            "package",
+            "--server=false",
+            "--library"
+          ) ++ models ++ Seq(
             "-f",
             "-o",
             modelJar.toString
@@ -684,7 +779,10 @@ final class Gate(tools: Tools, log: PrintStream):
         lifted.toString
       )
       val ran = tools.scalaCli(arguments)
-      if ran.failed then throw GateError(s"the Models' IR files did not lift:\n${ran.diagnostics}")
+      if ran.failed then
+        throw GateError(
+          s"the Models' IR files did not lift:\n${ran.diagnostics}"
+        )
       ""
     report(Seq(fixtures, modelLifts))
     // After both, so an update rewrites model/ir only once the lifter's fixtures passed too.
@@ -704,13 +802,16 @@ object Gate:
   ): Option[(String, Seq[Path], Boolean, Option[Path])] =
     def flags(rest: Seq[String]): Option[(Boolean, Option[Path])] = rest match
       case Seq()                  => Some((false, None))
-      case "--steps-only" +: more => flags(more).filter(!_._1).map((_, d) => (true, d))
+      case "--steps-only" +: more =>
+        flags(more).filter(!_._1).map((_, d) => (true, d))
       case "--dumper" +: path +: more if !path.startsWith("--") =>
         flags(more).filter(_._2.isEmpty).map((s, _) => (s, Some(Path.of(path))))
       case _ => None
     arguments match
       case "--capture-baseline" +: out +: rest if !out.startsWith("--") =>
-        flags(rest).filter(!_._1).map((s, d) => ("capture", Seq(Path.of(out)), s, d))
+        flags(rest)
+          .filter(!_._1)
+          .map((s, d) => ("capture", Seq(Path.of(out)), s, d))
       case "--check-equivalence" +: base +: map +: rest
           if !base.startsWith("--") && !map.startsWith("--") =>
         flags(rest).map((s, d) => ("check", Seq(Path.of(base), Path.of(map)), s, d))
@@ -724,19 +825,25 @@ object Gate:
 
   private def files(directory: Path): Set[String] =
     val stream = Files.list(directory)
-    try stream.iterator.asScala.filter(Files.isRegularFile(_)).map(_.getFileName.toString).toSet
+    try
+      stream.iterator.asScala
+        .filter(Files.isRegularFile(_))
+        .map(_.getFileName.toString)
+        .toSet
     finally stream.close()
 
   // Where two texts first differ, which is enough to see what moved; both files are kept whole.
   private def difference(checkedIn: String, lifted: String): String =
-    val (was, now) = (checkedIn.linesIterator.toVector, lifted.linesIterator.toVector)
+    val (was, now) =
+      (checkedIn.linesIterator.toVector, lifted.linesIterator.toVector)
     val at = was
       .map(Some(_))
       .zipAll(now.map(Some(_)), None, None)
       .indexWhere(
         _ != _
       )
-    def line(text: Vector[String]) = text.lift(at).fold("nothing")(l => s"`${l.take(200)}`")
+    def line(text: Vector[String]) =
+      text.lift(at).fold("nothing")(l => s"`${l.take(200)}`")
     if at < 0 then "its lines are the same and its line endings differ"
     else s"line ${at + 1} is ${line(was)} and lifts to ${line(now)}"
 
@@ -773,7 +880,8 @@ object Gate:
         if !Files.isRegularFile(target) then Some(s"${name(target)} is missing")
         else if same(target, source) then None
         else
-          val differs = difference(Files.readString(target), Files.readString(source))
+          val differs =
+            difference(Files.readString(target), Files.readString(source))
           Some(s"${name(target)} is stale: $differs")
       if stale.nonEmpty || orphans.nonEmpty then
         val remedy =
@@ -785,32 +893,50 @@ object Gate:
   // `<machine>.<property>`, for its reason (`withWaivers`). An update writes the findings that
   // differ; a check writes nothing and fails on each file missing a waiver's acceptance or holding
   // a stale one. A file that would accept nothing is not created.
-  def acceptWaivers(tree: Path, produced: Path, root: Path, update: Boolean): Unit =
-    val differing = files(produced).filter(_.endsWith(waiversSuffix)).toSeq.sorted.flatMap { file =>
-      val (machines, waivers) = Accepted.waivers(Files.readString(produced.resolve(file)))
-      val target = tree.resolve(file.stripSuffix(waiversSuffix) + acceptedSuffix)
-      val held =
-        if Files.isRegularFile(target) then Accepted.read(Files.readString(target)) else Vector()
-      val accepted = Accepted.withWaivers(held, machines, waivers)
-      if accepted == held then None
-      else if update then
-        Files.writeString(target, Accepted.encode(accepted)): Unit
-        None
-      else
-        val (was, now) = (held.toSet, accepted.toSet)
-        val missing = accepted.filterNot(was).flatMap(_.subjects)
-        val stale = held.filterNot(now).flatMap(_.subjects)
-        Some(
-          s"${root.relativize(target)} does not carry the waivers its capabilities sections " +
-            s"state: missing ${Some(missing).filter(_.nonEmpty).fold("none")(_.mkString(", "))}, " +
-            s"stale ${Some(stale).filter(_.nonEmpty).fold("none")(_.mkString(", "))}"
-        )
-    }
+  def acceptWaivers(
+      tree: Path,
+      produced: Path,
+      root: Path,
+      update: Boolean
+  ): Unit =
+    val differing =
+      files(produced).filter(_.endsWith(waiversSuffix)).toSeq.sorted.flatMap { file =>
+        val (machines, waivers) =
+          Accepted.waivers(Files.readString(produced.resolve(file)))
+        val target =
+          tree.resolve(file.stripSuffix(waiversSuffix) + acceptedSuffix)
+        val held =
+          if Files.isRegularFile(target) then Accepted.read(Files.readString(target))
+          else Vector()
+        val accepted = Accepted.withWaivers(held, machines, waivers)
+        if accepted == held then None
+        else if update then
+          Files.writeString(target, Accepted.encode(accepted)): Unit
+          None
+        else
+          val (was, now) = (held.toSet, accepted.toSet)
+          val missing = accepted.filterNot(was).flatMap(_.subjects)
+          val stale = held.filterNot(now).flatMap(_.subjects)
+          Some(
+            s"${root.relativize(target)} does not carry the waivers its capabilities sections " +
+              s"state: missing ${Some(missing).filter(_.nonEmpty).fold("none")(_.mkString(", "))}, " +
+              s"stale ${Some(stale).filter(_.nonEmpty).fold("none")(_.mkString(", "))}"
+          )
+      }
     if differing.nonEmpty then
-      throw GateError((differing :+ "rerun with --update (make umpire-gen-model)").mkString("\n"))
+      throw GateError(
+        (differing :+ "rerun with --update (make umpire-gen-model)").mkString(
+          "\n"
+        )
+      )
 
   // Runs the gate as its command line says and answers its exit status.
-  def main(arguments: Seq[String], tools: => Tools, out: PrintStream, err: PrintStream): Int =
+  def main(
+      arguments: Seq[String],
+      tools: => Tools,
+      out: PrintStream,
+      err: PrintStream
+  ): Int =
     if arguments.headOption.exists(a =>
         a.equals("--capture-baseline") || a.equals("--check-equivalence")
       )
@@ -875,7 +1001,10 @@ object Gate:
       2
     else
       try
-        if flags("--check-syntax") || flags("--check-comments") || flags("--check-block-form") then
+        if flags("--check-syntax") || flags("--check-comments") || flags(
+            "--check-block-form"
+          )
+        then
           // A finding is a line of its own, `file:line: reason`, so an editor opens it.
           val findings =
             if flags("--check-syntax") then SyntaxRule.findings(tools.directory)
@@ -899,8 +1028,12 @@ object Gate:
           1
 
 // An accepted lint finding, as umpire-lint reads and writes one (tools/umpire/lint/accept.go).
-final case class Acceptance(kind: String, owner: String, subjects: Vector[String], because: String)
-    derives CanEqual
+final case class Acceptance(
+    kind: String,
+    owner: String,
+    subjects: Vector[String],
+    because: String
+) derives CanEqual
 
 // The accepted findings beside an IR file, `<file>.lint.json`, read and written as umpire-lint's
 // encoder writes them, and the waivers the lifter writes beside the IR file it lifted a
@@ -941,12 +1074,16 @@ object Accepted:
   def waivers(text: String): (Set[String], Seq[(String, String, String)]) =
     val fields = Json.fields(Json.parse(text), "the waivers")
     val machines =
-      Json.items(fields.getOrElse("machines", Vector()), "machines").map(Json.text(_, "a machine"))
-    val waivers = Json.items(fields.getOrElse("waivers", Vector()), "waivers").map { w =>
-      val f = Json.fields(w, "a waiver")
-      def text(name: String) = Json.text(f.getOrElse(name, ""), s"a waiver's $name")
-      (text("machine"), text("subject"), text("because"))
-    }
+      Json
+        .items(fields.getOrElse("machines", Vector()), "machines")
+        .map(Json.text(_, "a machine"))
+    val waivers =
+      Json.items(fields.getOrElse("waivers", Vector()), "waivers").map { w =>
+        val f = Json.fields(w, "a waiver")
+        def text(name: String) =
+          Json.text(f.getOrElse(name, ""), s"a waiver's $name")
+        (text("machine"), text("subject"), text("because"))
+      }
     (machines.toSet, waivers)
 
   // The acceptances of a `<file>.lint.json`.
@@ -954,11 +1091,14 @@ object Accepted:
     val fields = Json.fields(Json.parse(text), "the accepted findings")
     Json.items(fields.getOrElse("accepted", Vector()), "accepted").map { a =>
       val f = Json.fields(a, "an acceptance")
-      def text(name: String) = Json.text(f.getOrElse(name, ""), s"an acceptance's $name")
+      def text(name: String) =
+        Json.text(f.getOrElse(name, ""), s"an acceptance's $name")
       Acceptance(
         text("kind"),
         text("owner"),
-        Json.items(f.getOrElse("subjects", Vector()), "subjects").map(Json.text(_, "a subject")),
+        Json
+          .items(f.getOrElse("subjects", Vector()), "subjects")
+          .map(Json.text(_, "a subject")),
         text("because")
       )
     }
@@ -968,7 +1108,10 @@ object Accepted:
     def text(s: String) = Json.quoted(s)
     def list(items: Vector[String], indent: String) =
       if items.isEmpty then "[]"
-      else items.map(i => s"$indent  ${text(i)}").mkString("[\n", ",\n", s"\n$indent]")
+      else
+        items
+          .map(i => s"$indent  ${text(i)}")
+          .mkString("[\n", ",\n", s"\n$indent]")
     val entries = accepted.map { a =>
       s"""    {
          |      "kind": ${text(a.kind)},
@@ -977,7 +1120,8 @@ object Accepted:
          |      "because": ${text(a.because)}
          |    }""".stripMargin
     }
-    val body = if entries.isEmpty then "[]" else entries.mkString("[\n", ",\n", "\n  ]")
+    val body =
+      if entries.isEmpty then "[]" else entries.mkString("[\n", ",\n", "\n  ]")
     s"{\n  \"accepted\": $body\n}\n"
 
 // The JSON the gate reads with the standard library alone: a value is a Map of its fields, a Vector
@@ -1022,7 +1166,8 @@ private[check] object Json:
 
   @scala.annotation.tailrec
   private def space(text: String, i: Int): Int =
-    if i < text.length && " \t\r\n".contains(text(i)) then space(text, i + 1) else i
+    if i < text.length && " \t\r\n".contains(text(i)) then space(text, i + 1)
+    else i
 
   private def value(text: String, i: Int): (Any, Int) =
     if i >= text.length then fail(i, "a value is missing")
@@ -1031,15 +1176,28 @@ private[check] object Json:
       case '[' => elements(text, space(text, i + 1), Vector())
       case '"' => string(text, i + 1, StringBuilder())
       case _   =>
-        val end = Iterator.from(i).find(j => j >= text.length || ",]} \t\r\n".contains(text(j))).get
+        val end = Iterator
+          .from(i)
+          .find(j => j >= text.length || ",]} \t\r\n".contains(text(j)))
+          .get
         text.substring(i, end) match
           case "true"  => (true, end)
           case "false" => (false, end)
           case "null"  => (None, end)
-          case n => (scala.util.Try(BigDecimal(n)).getOrElse(fail(i, s"not a value: $n")), end)
+          case n       =>
+            (
+              scala.util
+                .Try(BigDecimal(n))
+                .getOrElse(fail(i, s"not a value: $n")),
+              end
+            )
 
   @scala.annotation.tailrec
-  private def members(text: String, i: Int, done: Vector[(String, Any)]): (Any, Int) =
+  private def members(
+      text: String,
+      i: Int,
+      done: Vector[(String, Any)]
+  ): (Any, Int) =
     if i < text.length && text(i).equals('}') && done.isEmpty
     then
       (
@@ -1053,6 +1211,7 @@ private[check] object Json:
           "a field name is missing"
         )
       val (key, afterKey) = string(text, i + 1, StringBuilder())
+      if done.exists(_._1 == key.toString) then fail(i, s"duplicate field $key")
       val colon = space(text, afterKey)
       if colon >= text.length || text(colon) != ':' then
         fail(
@@ -1105,7 +1264,13 @@ private[check] object Json:
             out += Integer.parseInt(text.substring(i + 2, i + 6), 16).toChar
             string(text, i + 6, out)
           case c =>
-            out += Map('n' -> '\n', 't' -> '\t', 'r' -> '\r', 'b' -> '\b', 'f' -> '\f')
+            out += Map(
+              'n' -> '\n',
+              't' -> '\t',
+              'r' -> '\r',
+              'b' -> '\b',
+              'f' -> '\f'
+            )
               .getOrElse(c, c)
             string(text, i + 2, out)
       case c =>

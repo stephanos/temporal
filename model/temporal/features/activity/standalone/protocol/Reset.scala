@@ -75,7 +75,9 @@ trait Reset extends Facet[State, Outcome, Fact], Phased[State, Phase]:
         when(Phase.started) ~> effects.requestReset
         when(Phase.cancelRequested) ~> rejects(Rejection.failedPrecondition)
           .because(resetWithPendingCancellation)
-        when(Phase.resetRequested, Phase.resetKeepingPause) ~> rejects(Rejection.failedPrecondition)
+        when(Phase.resetRequested, Phase.resetKeepingPause) ~> rejects(
+          Rejection.failedPrecondition
+        )
           .because(resetWithPendingReset)
       }
       on(client.reset(ResetPause.resume)) {
@@ -97,74 +99,16 @@ trait Reset extends Facet[State, Outcome, Fact], Phased[State, Phase]:
       // A first attempt again, dispatched at once, of an activity with no deadline set.
       val restarted =
         ActivityProtocol.init.copy(phase = Phase.scheduled)
-      val resetOnFatal = property when activityWorker.respondFailed(Failure.fatal) holds { s =>
-        s.state == restarted && s.records(Fact.statusScheduled) && !s.records(Fact.statusFailed)
-      }
-      val resetOnExhaustion = property when activityWorker.respondFailed(Failure.retryable) holds {
-        s =>
-          s.state == restarted.copy(maxAttempts = MaxAttempts.one) && s.records(
-            Fact.statusScheduled
-          )
-      }
-      val resetOnTimeout = property when deadline.startToClose holds { s =>
-        s.state == restarted.copy(startToClose = Timeout.expires, maxAttempts = MaxAttempts.one) &&
-        s.records(Fact.statusScheduled) &&
-        !s.records(Fact.statusTimedOut(TimeoutType.startToClose))
-      }
-      val resetKeepsPause = property when activityWorker.respondFailed(Failure.retryable) holds {
-        s =>
-          s.state == restarted.copy(phase = Phase.paused) && s.records(Fact.statusPaused)
-      }
-      val completionWins = property when activityWorker.respondCompleted holds { s =>
-        s.state.phase == Phase.completed && s.state.attempts == 1 &&
-        s.records(Fact.statusCompleted)
-      }
-      val pauseLeavesResetPending = property when client.pause holds { s =>
-        s.state.phase == Phase.resetRequested && !s.records(Fact.statusPaused)
-      }
-      val resetStaysPending = property when client.reset(ResetPause.resume) holds { s =>
-        s.state.phase == Phase.resetRequested
-      }
+      val resetStaysPending =
+        property when client.reset(ResetPause.resume) holds { s =>
+          s.state.phase == Phase.resetRequested
+        }
 
       // Paused before any attempt, with no deadline set, its count restarted.
       val keptPaused =
         ActivityProtocol.init.copy(phase = Phase.paused)
-      val resetKeptPaused = property when client.reset(ResetPause.keepPaused) holds { s =>
-        s.state == keptPaused && s.records(Fact.statusPaused)
-      }
 
     object queries:
-      val resetThenFatal = scenario.actions(
-        client.start(),
-        activityWorker.poll,
-        client.reset(ResetPause.resume),
-        activityWorker.respondFailed(Failure.fatal)
-      )
-      val resetThenExhausted = scenario.actions(
-        client.start(maxAttempts := MaxAttempts.one),
-        activityWorker.poll,
-        client.reset(ResetPause.resume),
-        activityWorker.respondFailed(Failure.retryable)
-      )
-      val resetThenTimedOut = scenario.actions(
-        client.start(startToClose := expires, maxAttempts := MaxAttempts.one),
-        activityWorker.poll,
-        client.reset(ResetPause.resume),
-        deadline.startToClose
-      )
-      val pausedResetThenFailed = scenario.actions(
-        client.start(),
-        activityWorker.poll,
-        client.pause,
-        client.reset(ResetPause.keepPaused),
-        activityWorker.respondFailed(Failure.retryable)
-      )
-      val resetThenCompleted = scenario.actions(
-        client.start(),
-        activityWorker.poll,
-        client.reset(ResetPause.resume),
-        activityWorker.respondCompleted
-      )
       val resetThenScheduleToClose = scenario.actions(
         client.start(scheduleToClose := expires),
         activityWorker.poll,
@@ -177,22 +121,11 @@ trait Reset extends Facet[State, Outcome, Fact], Phased[State, Phase]:
         client.reset(ResetPause.resume),
         client.requestCancel
       )
-      val resetThenPaused = scenario.actions(
-        client.start(),
-        activityWorker.poll,
-        client.reset(ResetPause.resume),
-        client.pause
-      )
       val resetTwice = scenario.actions(
         client.start(),
         activityWorker.poll,
         client.reset(ResetPause.resume),
         client.reset(ResetPause.resume)
-      )
-      val pausedThenReset = scenario.actions(
-        client.start(),
-        client.pause,
-        client.reset(ResetPause.keepPaused)
       )
       // A reset of a held attempt, applied when the attempt's heartbeat deadline ends it: the
       // server's next delivery is a first attempt again, which completes, though the policy allowed
@@ -205,21 +138,69 @@ trait Reset extends Facet[State, Outcome, Fact], Phased[State, Phase]:
         activityWorker.poll,
         activityWorker.respondCompleted
       )
-      val resetFatality = query find properties.resetOnFatal in resetThenFatal limits four
-      val resetExhaustion =
-        query find properties.resetOnExhaustion in resetThenExhausted limits four
-      val resetTimeout = query find properties.resetOnTimeout in resetThenTimedOut limits four
-      val resetKeptPause =
-        query find properties.resetKeepsPause in pausedResetThenFailed limits five
-      val resetCompletion = query find properties.completionWins in resetThenCompleted limits four
+      val resetFatality = witness(
+        client.start(),
+        activityWorker.poll,
+        client.reset(ResetPause.resume),
+        activityWorker.respondFailed(Failure.fatal)
+      ).records(Fact.statusScheduled)
+        .excludes(Fact.statusFailed)
+        .ends(_ == properties.restarted)
+        .limits(four)
+      val resetExhaustion = witness(
+        client.start(maxAttempts := MaxAttempts.one),
+        activityWorker.poll,
+        client.reset(ResetPause.resume),
+        activityWorker.respondFailed(Failure.retryable)
+      ).records(Fact.statusScheduled)
+        .ends(_ == properties.restarted.copy(maxAttempts = MaxAttempts.one))
+        .limits(four)
+      val resetTimeout = witness(
+        client.start(startToClose := expires, maxAttempts := MaxAttempts.one),
+        activityWorker.poll,
+        client.reset(ResetPause.resume),
+        deadline.startToClose
+      ).records(Fact.statusScheduled)
+        .excludes(Fact.statusTimedOut(TimeoutType.startToClose))
+        .ends(
+          _ == properties.restarted
+            .copy(startToClose = expires, maxAttempts = MaxAttempts.one)
+        )
+        .limits(four)
+      val resetKeptPause = witness(
+        client.start(),
+        activityWorker.poll,
+        client.pause,
+        client.reset(ResetPause.keepPaused),
+        activityWorker.respondFailed(Failure.retryable)
+      ).records(Fact.statusPaused)
+        .ends(_ == properties.restarted.copy(phase = Phase.paused))
+        .limits(five)
+      val resetCompletion = witness(
+        client.start(),
+        activityWorker.poll,
+        client.reset(ResetPause.resume),
+        activityWorker.respondCompleted
+      ).records(Fact.statusCompleted)
+        .ends(s => s.phase == Phase.completed && s.attempts == 1)
+        .limits(four)
       val resetScheduleToClose =
         query find timeouts.properties.scheduleToCloseTimesOut in resetThenScheduleToClose limits four
       val resetCancellation =
         query find cancellation.properties.cancelRequested in resetThenCanceled limits four
       val resetOutranksPause =
-        query find properties.pauseLeavesResetPending in resetThenPaused limits four
-      val resetRepeated = query find properties.resetStaysPending in resetTwice limits four
-      val keepPausedReset = query find properties.resetKeptPaused in pausedThenReset limits three
+        witness(client.start(), activityWorker.poll, client.reset(ResetPause.resume), client.pause)
+          .excludes(Fact.statusPaused).ends(_.phase == Phase.resetRequested).limits(four)
+      val resetRepeated =
+        query find properties.resetStaysPending in resetTwice limits four
+      val keepPausedReset = witness(
+        client.start(),
+        client.pause,
+        client.reset(ResetPause.keepPaused)
+      )
+        .records(Fact.statusPaused)
+        .ends(_ == properties.keptPaused)
+        .limits(three)
       val deferredResetCompletes =
         (query find completion.properties.completes in resetThenHeartbeatTimedOut limits six)
           .live(satisfied)

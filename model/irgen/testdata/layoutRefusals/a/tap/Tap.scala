@@ -2,7 +2,6 @@
 package fixture.features.tap
 
 import framework.*
-import product.Faucet
 
 final case class Tap(open: Boolean) derives Finite
 

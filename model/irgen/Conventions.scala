@@ -59,7 +59,9 @@ final private[irgen] class Conventions(index: Index):
           pos.endColumn
         )
       else
-        (selected.head.drop(pos.startColumn) +: selected.tail.init :+ selected.last.take(
+        (selected.head.drop(
+          pos.startColumn
+        ) +: selected.tail.init :+ selected.last.take(
           pos.endColumn
         )).mkString("\n")
       "(?s).*\\.\\s*`?in`?\\s*$".r.matches(written) ||
@@ -69,18 +71,22 @@ final private[irgen] class Conventions(index: Index):
     .left
     .map(_.getMessage)
 
-  private def arguments(t: TypeRepr, base: Symbol): List[TypeRepr] = t.baseType(base) match
-    case AppliedType(_, args) => args
-    case _                    => Nil
+  private def arguments(t: TypeRepr, base: Symbol): List[TypeRepr] =
+    t.baseType(base) match
+      case AppliedType(_, args) => args
+      case _                    => Nil
 
   private lazy val states: Set[Symbol] =
     object collect extends TreeAccumulator[Set[Symbol]]:
-      def foldTree(found: Set[Symbol], tree: Tree)(owner: Symbol): Set[Symbol] = tree match
-        case c: ClassDef =>
-          val state = arguments(c.symbol.typeRef, machine).headOption
-            .orElse(arguments(c.symbol.typeRef, composition).headOption)
-          foldOverTree(found ++ state.map(_.widen.dealias.typeSymbol), tree)(owner)
-        case _ => foldOverTree(found, tree)(owner)
+      def foldTree(found: Set[Symbol], tree: Tree)(owner: Symbol): Set[Symbol] =
+        tree match
+          case c: ClassDef =>
+            val state = arguments(c.symbol.typeRef, machine).headOption
+              .orElse(arguments(c.symbol.typeRef, composition).headOption)
+            foldOverTree(found ++ state.map(_.widen.dealias.typeSymbol), tree)(
+              owner
+            )
+          case _ => foldOverTree(found, tree)(owner)
     index.trees.foldLeft(Set.empty[Symbol])((found, tree) =>
       collect.foldTree(found, tree)(Symbol.spliceOwner)
     )
@@ -91,11 +97,14 @@ final private[irgen] class Conventions(index: Index):
   // derived machine or composition reads its source's, which is among them.
   private lazy val phaseTypes: Set[Symbol] =
     object collect extends TreeAccumulator[Set[Symbol]]:
-      def foldTree(found: Set[Symbol], tree: Tree)(owner: Symbol): Set[Symbol] = tree match
-        case c: ClassDef =>
-          val phase = arguments(c.symbol.typeRef, phased).lift(1)
-          foldOverTree(found ++ phase.map(_.widen.dealias.typeSymbol), tree)(owner)
-        case _ => foldOverTree(found, tree)(owner)
+      def foldTree(found: Set[Symbol], tree: Tree)(owner: Symbol): Set[Symbol] =
+        tree match
+          case c: ClassDef =>
+            val phase = arguments(c.symbol.typeRef, phased).lift(1)
+            foldOverTree(found ++ phase.map(_.widen.dealias.typeSymbol), tree)(
+              owner
+            )
+          case _ => foldOverTree(found, tree)(owner)
     index.trees.foldLeft(Set.empty[Symbol])((found, tree) =>
       collect.foldTree(found, tree)(Symbol.spliceOwner)
     )
@@ -158,8 +167,10 @@ final private[irgen] class Conventions(index: Index):
   private def within(pkg: String, parent: String): Boolean =
     pkg == parent || pkg.startsWith(parent + ".")
 
-  private def category(pkg: String): String = pkg.split('.').lift(1).getOrElse("")
-  private def feature(pkg: String): String = pkg.split('.').take(3).mkString(".")
+  private def category(pkg: String): String =
+    pkg.split('.').lift(1).getOrElse("")
+  private def feature(pkg: String): String =
+    pkg.split('.').take(3).mkString(".")
   private def form(pkg: String): Option[String] =
     pkg.split('.').lift(3).filter(Structure.formFolders)
 
@@ -175,16 +186,28 @@ final private[irgen] class Conventions(index: Index):
   // layer imports only the layers below it, and only the realization layer reads the Temporal API.
   private def permitted(from: String, to: String, test: Boolean): Boolean =
     if to == from then true
-    else if !test && within(from, "temporal.features") && layer(from).forall(_ < 2) &&
+    else if !test && within(from, "temporal.features") && layer(from).forall(
+        _ < 2
+      ) &&
       (within(to, "io.temporal.api") || within(to, "temporal.server.api"))
     then false
-    else if !test && within(from, "temporal.features") && feature(to) == feature(from) &&
+    else if !test && within(from, "temporal.features") && feature(
+        to
+      ) == feature(from) &&
       layer(from).exists(f => layer(to).exists(_ > f))
     then false
     else if within(to, "temporal.server.api") then !within(from, "framework")
     else if within(from, "framework") && within(to, "io.temporal") then false
-    else if within(from, "temporal") && within(to, "io.temporal.server.api.umpire") then false
-    else if !(within(to, "framework") || within(to, "temporal") || within(to, "umpire")) then true
+    else if within(from, "temporal") && within(
+        to,
+        "io.temporal.server.api.umpire"
+      )
+    then false
+    else if !(within(to, "framework") || within(to, "temporal") || within(
+        to,
+        "umpire"
+      ))
+    then true
     else if within(from, "framework") then within(to, "framework")
     else if within(from, "temporal") then
       if within(to, "framework") then true
@@ -201,7 +224,9 @@ final private[irgen] class Conventions(index: Index):
               from
             ) || to == "temporal"
           case "features" =>
-            Set("capabilities", "realize", "actors", "foundations")(category(to)) ||
+            Set("capabilities", "realize", "actors", "foundations")(
+              category(to)
+            ) ||
             to == "temporal" || (feature(to) == feature(
               from
             ) &&
@@ -226,11 +251,21 @@ final private[irgen] class Conventions(index: Index):
     val test = fileOf(i).endsWith(".test.scala")
     if !permitted(from, target, test) then
       importedRefusals += ((fileOf(i), from, target))
-      refuse(i, "R4.module-import", s"$from may not import $target under the Scala module map")
-    if levelOwner(target).nonEmpty && levelOwner(packageOf(owner)) != levelOwner(target)
+      refuse(
+        i,
+        "R4.module-import",
+        s"$from may not import $target under the Scala module map"
+      )
+    if levelOwner(target).nonEmpty && levelOwner(
+        packageOf(owner)
+      ) != levelOwner(target)
     then
-      val omitted = i.selectors.collect { case OmitSelector(name) => name }.toSet
-      val renamed = i.selectors.collect { case RenameSelector(name, _) => name }.toSet
+      val omitted = i.selectors.collect { case OmitSelector(name) =>
+        name
+      }.toSet
+      val renamed = i.selectors.collect { case RenameSelector(name, _) =>
+        name
+      }.toSet
       val names = i.selectors
         .flatMap {
           case SimpleSelector(name) if Set("_", "*")(name) =>
@@ -264,7 +299,11 @@ final private[irgen] class Conventions(index: Index):
       if !permitted(from, to, file.endsWith(".test.scala")) &&
         !importedRefusals((file, from, to))
       then
-        refuse(t, "R4.module-reference", s"$from may not reference $to under the Scala module map")
+        refuse(
+          t,
+          "R4.module-reference",
+          s"$from may not reference $to under the Scala module map"
+        )
 
   def refusals(exempt: String => Boolean): Seq[(String, Int, LiftError)] =
     val checked = index.trees.filterNot(t => exempt(fileOf(t)))
@@ -276,19 +315,57 @@ final private[irgen] class Conventions(index: Index):
             phaseImport(i)
           case _ => super.traverseTree(t)(owner)
     checked.foreach(t => importCheck.traverseTree(t)(Symbol.spliceOwner))
-    // A Protocol's Describable capability names the realization's status table, the Temporal
-    // API's statuses by fact: the one read of the realization layer, and of the API, outside it
-    // (an open layering question, fn-160 R9).
-    def describable(t: Tree): Boolean = t match
-      case v: ValDef =>
-        v.rhs.exists(
-          _.tpe.widen.dealias.typeSymbol.fullName == "temporal.capabilities.product.Describable"
-        )
+    // fn-160 R9: the recorded status-table seam, independent of a feature's capability kind.
+    // Only a genuine capabilities binding's sole constructor field may cross that layer.
+    val capability = Symbol.requiredClass("framework.CapabilityOf")
+    val section = Symbol.requiredClass("framework.Capabilities")
+    val statusTable = Symbol.requiredClass("framework.realize.StatusTable")
+    def statusBinding(t: Tree): Boolean = t match
+      case v: ValDef
+          if v.symbol.maybeOwner.name.stripSuffix("$") == "capabilities" &&
+            v.symbol.maybeOwner.typeRef.derivesFrom(section) =>
+        v.rhs.exists { rhs =>
+          val binding = rhs.tpe.widen.dealias
+          val cls = binding.typeSymbol
+          def stable(t: Term): Boolean = t match
+            case NamedArg(_, value) => stable(value)
+            case Typed(value, _)    => stable(value)
+            case r: Ref             =>
+              stableChain(r) && r.tpe.widen.dealias.derivesFrom(statusTable)
+            case _ => false
+          def stableChain(t: Term): Boolean = t match
+            case r: Ident =>
+              (r.symbol.isValDef && !r.symbol.flags.is(
+                Flags.Mutable
+              )) || r.symbol.flags.is(Flags.Module) || r.symbol.isPackageDef
+            case Select(qualifier, _) =>
+              (t.symbol.isValDef && !t.symbol.flags.is(
+                Flags.Mutable
+              ) || t.symbol.flags.is(
+                Flags.Module
+              ) || t.symbol.isPackageDef) && stableChain(qualifier)
+            case _: This => true
+            case _       => false
+          def factory(t: Term): Boolean = t match
+            case TypeApply(fn, _) => factory(fn)
+            case fn: Ref          =>
+              fn.symbol.name == "apply" && fn.symbol.maybeOwner == cls.companionModule.moduleClass
+            case _ => false
+          binding.derivesFrom(capability) && cls.flags.is(Flags.Case) &&
+          cls.caseFields.size == 1 && binding
+            .memberType(cls.caseFields.head)
+            .widen
+            .dealias
+            .derivesFrom(statusTable) &&
+          (rhs match
+            case Apply(fn, List(argument)) => factory(fn) && stable(argument)
+            case _                         => false)
+        }
       case _ => false
     object check extends TreeTraverser:
       override def traverseTree(t: Tree)(owner: Symbol): Unit =
         t match
-          case _ if describable(t)                                 => ()
+          case _ if statusBinding(t)                               => ()
           case _: Import                                           => ()
           case Match(scrutinee, cases) if modelType(scrutinee.tpe) =>
             for c <- cases if whole(c.pattern, scrutinee.tpe) do
@@ -299,19 +376,29 @@ final private[irgen] class Conventions(index: Index):
               )
           case r: Ref
               if r.symbol.name == "in" &&
-                Set("framework.Syntax$package$", "framework.Rules")(r.symbol.maybeOwner.fullName) =>
+                Set("framework.Syntax$package$", "framework.Rules")(
+                  r.symbol.maybeOwner.fullName
+                ) =>
             dotted(r) match
               case Right(false) =>
-                refuse(r, "R4.dotted-in", "write the membership test dotted, value.in(...)")
+                refuse(
+                  r,
+                  "R4.dotted-in",
+                  "write the membership test dotted, value.in(...)"
+                )
               case Left(reason) =>
-                refuse(r, "R4.dotted-in", s"cannot inspect the membership test's source: $reason")
+                refuse(
+                  r,
+                  "R4.dotted-in",
+                  s"cannot inspect the membership test's source: $reason"
+                )
               case Right(true) => ()
           case r: Ref      => dependency(r, r.symbol, owner)
           case t: TypeTree => dependency(t, t.tpe.typeSymbol, owner)
           case _           => ()
         t match
-          case _: Import           => ()
-          case _ if describable(t) => ()
-          case _                   => super.traverseTree(t)(owner)
+          case _: Import             => ()
+          case _ if statusBinding(t) => ()
+          case _                     => super.traverseTree(t)(owner)
     checked.foreach(t => check.traverseTree(t)(Symbol.spliceOwner))
     refused.toSeq

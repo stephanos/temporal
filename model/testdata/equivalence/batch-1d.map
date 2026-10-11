@@ -1,4 +1,5 @@
 # Batch 1d rename map (old new, or old -), compared with STEPS_ONLY=1 against the fn160 baseline
+# step-ledger batch-1d.ledger.json
 # (.flow/tmp/fn160/baseline-ae3f36ee51); see model/README.md "Sealing a batch".
 #
 # fn-159.5/.8: the capability kind and bound renames change no step table. Bound renames for the IR
@@ -65,8 +66,6 @@ nexus-workflow-close nexus-workflow
 # fn-163.1: capabilities split into product/ and system/ (IR: capability origins).
 temporal.capabilities.Closable temporal.capabilities.product.Closable
 temporal.capabilities.Pausable temporal.capabilities.product.Pausable
-temporal.capabilities.Pollable temporal.capabilities.product.Pollable
 temporal.capabilities.Terminable temporal.capabilities.product.Terminable
-temporal.capabilities.Describable temporal.capabilities.product.Describable
-temporal.capabilities.Retryable temporal.capabilities.system.Retryable
-temporal.capabilities.Expirable temporal.capabilities.system.Expirable
+temporal.capabilities.Retries temporal.capabilities.system.Retryable
+temporal.capabilities.Deadline temporal.capabilities.system.Expirable

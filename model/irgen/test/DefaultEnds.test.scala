@@ -193,15 +193,26 @@ class DefaultEndsSuite extends munit.FunSuite:
       then assertEquals(phase.path("base").path("field").path("field").asText(), "left")
 
   test("Closable refuses a missing Phased and a missing Closed by machine name"):
-    for (root, line, message) <- Seq(
+    val authored = Files.readAllLines(tools.directory.resolve(stored + "Closing.scala")).asScala
+    def declarationLine(root: String, fragment: String): Int =
+      val first = authored.indexWhere(_.startsWith("object " + root))
+      assert(first >= 0, root)
+      val next = authored.indexWhere(_.startsWith("object "), first + 1)
+      val last = if next < 0 then authored.size else next
+      val calls = authored.zipWithIndex
+        .slice(first, last)
+        .filter((text, _) => text.contains(fragment))
+      assertEquals(calls.size, 1, root)
+      calls.head._2 + 1
+    for (root, fragment, message) <- Seq(
         (
           "ClosingUnphased",
-          68,
+          "Closable[Snapshot",
           "closingUnphased declares Closable but no phase: mix in Phased[State, Phase](_.phase)"
         ),
         (
           "ClosingOpen",
-          74,
+          "Phased[OpenSnapshot",
           "closingOpen's phase type fixture.defaultends.OpenPhase has no Closed case"
         )
       )
@@ -210,5 +221,5 @@ class DefaultEndsSuite extends munit.FunSuite:
       assert(ran.failed, ran.output)
       assertEquals(
         ran.output.linesIterator.filter(_.startsWith("lift:")).toSeq,
-        Seq(s"lift: ${stored}Closing.scala:$line: $message")
+        Seq(s"lift: ${stored}Closing.scala:${declarationLine(root, fragment)}: $message")
       )

@@ -1,8 +1,6 @@
 package fixture.features.boiler
 
 import framework.*
-import product.BoilerContract
-import system.BoilerImplementation
 
 final case class Boiler(hot: Boolean) derives Finite
 

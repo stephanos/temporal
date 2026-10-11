@@ -13,7 +13,8 @@ enum Lit derives Finite:
   case off, on
   case broken extends Lit, Terminated
 
-final case class Lamp(light: Lit) derives Finite
+final case class State(light: Lit) derives Finite
+final case class AdmissionState(light: Lit) derives Finite
 
 enum Said derives Finite:
   case ok
@@ -23,55 +24,71 @@ given Ok[Said] = Ok(Said.ok)
 object hand extends Actor:
   val press = action(this)
 
-trait Pressing extends Facet[Lamp, Said, Nothing], Phased[Lamp, Lit]:
+trait Pressing extends Facet[State, Said, Nothing], Phased[State, Lit]:
   object pressing:
     object rules extends Rules:
       on(hand.press) {
         when(Lit.off) ~> enters(Lit.on)
       }
 
-trait Breaking extends Facet[Lamp, Said, Nothing], Phased[Lamp, Lit]:
+trait Breaking extends Facet[State, Said, Nothing], Phased[State, Lit]:
   object breaking:
     object rules extends Rules:
       on(hand.press) {
         when(Lit.off) ~> enters(Lit.broken)
       }
 
-trait Smashing extends Facet[Lamp, Said, Nothing], Phased[Lamp, Lit]:
+trait Smashing extends Facet[State, Said, Nothing], Phased[State, Lit]:
   object smashing:
     object rules extends Rules:
       on(hand.press) {
         when(Lit.off) ~> enters(Lit.broken)
       }
 
+trait DesignBreaking extends Facet[AdmissionState, Said, Nothing], Phased[AdmissionState, Lit]:
+  object breaking:
+    object rules extends Rules:
+      on(hand.press) {
+        when(Lit.off) ~> enters(Lit.on)
+      }
+
 object Agreeing
-    extends Machine[Lamp, Said, Nothing],
-      Phased[Lamp, Lit](_.light, (s, p) => s.copy(light = p)),
+    extends Machine[State, Said, Nothing],
+      Phased[State, Lit](_.light, (s, p) => s.copy(light = p)),
       Pressing:
-  val init = Lamp(Lit.off)
+  val init = State(Lit.off)
   object rules extends Facets(pressing.rules)
 
 object Unfaceted
-    extends Machine[Lamp, Said, Nothing],
-      Phased[Lamp, Lit](_.light, (s, p) => s.copy(light = p)):
-  val init = Lamp(Lit.off)
+    extends Machine[State, Said, Nothing],
+      Phased[State, Lit](_.light, (s, p) => s.copy(light = p)):
+  val init = State(Lit.off)
   object rules extends Rules:
     on(hand.press) {
       when(Lit.off) ~> enters(Lit.on)
     }
 
 object Unnamed
-    extends Machine[Lamp, Said, Nothing],
-      Phased[Lamp, Lit](_.light, (s, p) => s.copy(light = p)),
+    extends Machine[State, Said, Nothing],
+      Phased[State, Lit](_.light, (s, p) => s.copy(light = p)),
       Smashing:
-  val init = Lamp(Lit.off)
+  val init = State(Lit.off)
   object rules extends Facets(smashing.rules)
 
 object Crossed
-    extends Machine[Lamp, Said, Nothing],
-      Phased[Lamp, Lit](_.light, (s, p) => s.copy(light = p)),
+    extends Machine[State, Said, Nothing],
+      Phased[State, Lit](_.light, (s, p) => s.copy(light = p)),
       Breaking:
-  val init = Lamp(Lit.off)
+  val init = State(Lit.off)
   object refinement extends Refinement(Agreeing):
-    def toProduct(s: Lamp) = s
+    def toProduct(s: State) = s
+  object rules extends Facets(breaking.rules)
+
+object Design
+    extends Machine[AdmissionState, Said, Nothing],
+      Phased[AdmissionState, Lit](_.light, (s, p) => s.copy(light = p)),
+      DesignBreaking:
+  val init = AdmissionState(Lit.off)
+  object refinement extends Refinement(Agreeing):
+    def toProduct(s: AdmissionState) = State(s.light)
   object rules extends Facets(breaking.rules)

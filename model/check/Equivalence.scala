@@ -39,7 +39,10 @@ import scala.util.matching.Regex
 //
 // All renames apply at once, the longest first where several match at one place, so `a b` and
 // `b a` swap two names.
-final case class RenameMap(renames: Vector[(String, String)], removals: Vector[String]):
+final case class RenameMap(
+    renames: Vector[(String, String)],
+    removals: Vector[String]
+):
   private val ordered = renames.sortBy(-_._1.length)
   private val byOld = renames.toMap
   private val pattern: Option[Regex] =
@@ -65,7 +68,9 @@ final case class RenameMap(renames: Vector[(String, String)], removals: Vector[S
 
   // Whether `text` holds the old name of the entry `from` as a word.
   def mentions(text: String, from: String): Boolean =
-    s"(?<![A-Za-z0-9_])${Regex.quote(from)}(?![A-Za-z0-9_])".r.findFirstIn(text).nonEmpty
+    s"(?<![A-Za-z0-9_])${Regex.quote(from)}(?![A-Za-z0-9_])".r
+      .findFirstIn(text)
+      .nonEmpty
 
 object RenameMap:
   val empty: RenameMap = RenameMap(Vector.empty, Vector.empty)
@@ -78,17 +83,28 @@ object RenameMap:
         line.split("\\s+").toList match
           case List(from, to) => (from, to)
           case _              =>
-            throw GateError(s"rename map line $at is `old new` or `old -`, got `$line`")
+            throw GateError(
+              s"rename map line $at is `old new` or `old -`, got `$line`"
+            )
       .toVector
-    val repeated = entries.groupBy(_._1).filter(_._2.sizeIs > 1).keys.toVector.sorted
+    val repeated =
+      entries.groupBy(_._1).filter(_._2.sizeIs > 1).keys.toVector.sorted
     if repeated.nonEmpty then
-      throw GateError(s"the rename map names ${repeated.mkString(", ")} more than once")
-    RenameMap(entries.filterNot(_._2.equals("-")), entries.filter(_._2.equals("-")).map(_._1))
+      throw GateError(
+        s"the rename map names ${repeated.mkString(", ")} more than once"
+      )
+    RenameMap(
+      entries.filterNot(_._2.equals("-")),
+      entries.filter(_._2.equals("-")).map(_._1)
+    )
 
   def read(file: Path): RenameMap = parse(Files.readString(file))
 
 // What a comparison found: the differences, each a message, and the entries a removal used.
-final case class Compared(differences: Vector[String], removalsUsed: Set[String])
+final case class Compared(
+    differences: Vector[String],
+    removalsUsed: Set[String]
+)
 
 object Equivalence:
   val stepTables = "step-tables"
@@ -100,7 +116,7 @@ object Equivalence:
   def index(dir: Path): Vector[(String, (String, Long))] =
     val file = dir.resolve("index.tsv")
     if !Files.isRegularFile(file) then throw GateError(s"$dir holds no step tables (index.tsv)")
-    Files
+    val entries = Files
       .readAllLines(file)
       .asScala
       .toVector
@@ -109,11 +125,16 @@ object Equivalence:
         line.split('\t') match
           case Array(key, digest, count) => key -> (digest, count.toLong)
           case _                         => throw GateError(s"$file has a malformed line: $line")
+    if entries.map(_._1).distinct.size != entries.size then
+      throw GateError(s"$file has duplicate table keys")
+    entries
 
   private def tableLines(dir: Path, digest: String): Iterator[String] & AutoCloseable =
     val reader = BufferedReader(
       InputStreamReader(
-        GZIPInputStream(Files.newInputStream(dir.resolve(digest + tableSuffix))),
+        GZIPInputStream(
+          Files.newInputStream(dir.resolve(digest + tableSuffix))
+        ),
         UTF_8
       ),
       1 << 16
@@ -129,11 +150,17 @@ object Equivalence:
 
   // The action a row or the binding order names: `step\t<action>[...]`.
   private def rowAction(line: String): Option[String] =
-    if line.startsWith("step\t") then Some(line.drop(5).takeWhile(c => !c.equals('['))) else None
+    if line.startsWith("step\t") then Some(line.drop(5).takeWhile(c => !c.equals('[')))
+    else None
 
   // The tables of `current` against those of `base` under `map`: a table gone, a table new, and a
   // table whose lines differ, each line renamed before it is compared.
-  def compareTables(base: Path, current: Path, map: RenameMap): Compared =
+  def compareTables(
+      base: Path,
+      current: Path,
+      map: RenameMap,
+      ledger: Option[StepLedger] = None
+  ): Compared =
     val was = index(base)
     val now = index(current).toMap
     val removedTables = map.removals.filterNot(_.contains('/')).toSet
@@ -145,7 +172,10 @@ object Equivalence:
     val removalsUsed = mutable.Set.empty[String]
     val differences = mutable.ArrayBuffer.empty[String]
     val matched = mutable.Set.empty[String]
-    val compared = mutable.Map.empty[(String, String, Set[String]), Vector[String]]
+    val compared =
+      mutable.Map.empty[(String, String, Set[String], String), Vector[String]]
+    val ordersUsed = mutable.Set.empty[String]
+    val additionsUsed = mutable.Set.empty[String]
     for (key, (digest, _)) <- was do
       if removedTables(key) then removalsUsed += key: Unit
       else
@@ -155,10 +185,26 @@ object Equivalence:
             differences += s"table $key (as $renamed) is gone: map it to a table of the change or remove it ($key -)"
           case Some((currentDigest, _)) =>
             matched += renamed
-            val dropped = removedRows.collect { case (`key`, action) => action }.toSet
+            val dropped = removedRows.collect { case (`key`, action) =>
+              action
+            }.toSet
+            val order = ledger.toVector
+              .flatMap(_.orders)
+              .find(o => o.baselineKey == key && o.currentKey == renamed)
+            order.foreach(o => ordersUsed += o.baselineKey)
             val found = compared.getOrElseUpdate(
-              (digest, currentDigest, dropped),
-              compareTable(base, digest, current, currentDigest, map, dropped, removalsUsed, key)
+              (digest, currentDigest, dropped, key),
+              compareTable(
+                base,
+                digest,
+                current,
+                currentDigest,
+                map,
+                dropped,
+                removalsUsed,
+                key,
+                order
+              )
             )
             differences ++= found.map(d => s"table $renamed: $d")
     for (key, action) <- removedRows if !was.exists(_._1.equals(key)) do
@@ -166,7 +212,56 @@ object Equivalence:
     for removed <- removedTables if !was.exists(_._1.equals(removed)) do
       differences += s"the removal $removed names no baseline table"
     for key <- now.keys.toVector.sorted if !matched(key) do
-      differences += s"table $key is new: map a baseline table to it or account for it"
+      ledger.toVector.flatMap(_.additions).find(_.currentKey == key) match
+        case None =>
+          differences += s"table $key is new: map a baseline table to it or account for it"
+        case Some(addition) =>
+          additionsUsed += key
+          val original =
+            index(addition.originalTables).toMap.get(addition.originalKey)
+          if !original.contains(
+              addition.originalDigest -> addition.originalCount
+            )
+          then
+            differences += s"table $key: addition digest/count is not its independent original entry"
+          else
+            val (currentDigest, currentCount) = now(key)
+            if currentCount != addition.originalCount then
+              differences += s"table $key: addition line count differs"
+            def authenticated(dir: Path, digest: String, count: Long): Boolean =
+              val lines = tableLines(dir, digest)
+              try
+                val payload = lines.toVector
+                payload.size == count && StepLedger.rowsHash(payload) == digest
+              finally lines.close()
+            if !authenticated(
+                addition.originalTables,
+                addition.originalDigest,
+                addition.originalCount
+              )
+            then differences += s"table $key: original payload digest/count changed"
+            if !authenticated(current, currentDigest, currentCount) then
+              differences += s"table $key: current payload digest/count changed"
+            val found = compareTable(
+              addition.originalTables,
+              addition.originalDigest,
+              current,
+              currentDigest,
+              addition.renames,
+              Set.empty,
+              mutable.Set.empty,
+              addition.originalKey,
+              forceRead = true
+            )
+            differences ++= found.map(d => s"table $key: independently authenticated addition $d")
+    for
+      order <- ledger.toVector.flatMap(_.orders)
+      if !ordersUsed(order.baselineKey)
+    do differences += s"unused binding-order seal ${order.baselineKey} -> ${order.currentKey}"
+    for
+      addition <- ledger.toVector.flatMap(_.additions)
+      if !additionsUsed(addition.currentKey)
+    do differences += s"unused authenticated addition ${addition.currentKey}"
     Compared(differences.toVector, removalsUsed.toSet)
 
   private def compareTable(
@@ -177,31 +272,56 @@ object Equivalence:
       map: RenameMap,
       dropped: Set[String],
       removalsUsed: mutable.Set[String],
-      key: String
+      key: String,
+      order: Option[BindingOrder] = None,
+      forceRead: Boolean = false
   ): Vector[String] =
     // Without renames or removals, equal digests are equal tables; the lines are read anyway
     // where a rename might apply, so that the map's use is counted.
-    if map.renames.isEmpty && dropped.isEmpty && digest.equals(currentDigest) then Vector.empty
+    if !forceRead && order.isEmpty && map.renames.isEmpty && dropped.isEmpty && digest
+        .equals(currentDigest)
+    then Vector.empty
     else
       val left = tableLines(base, digest)
       val right = tableLines(current, currentDigest)
       try
-        val kept = left
+        val normalized = left
           .filter: l =>
             val drop = rowAction(l).exists(dropped)
             if drop then removalsUsed ++= rowAction(l).map(a => s"$key/$a")
             !drop
           .map: l =>
             if l.startsWith("bindings\t") && dropped.nonEmpty then
-              "bindings\t" + l.drop(9).split(' ').filterNot(dropped).mkString(" ")
+              "bindings\t" + l
+                .drop(9)
+                .split(' ')
+                .filterNot(dropped)
+                .mkString(" ")
             else l
           .map(map.apply)
+        val (kept, currentRows) = order match
+          case None       => (normalized, right)
+          case Some(seal) =>
+            // The original stream is not consumed by the lazy normalization above.
+            val raw = left.toVector
+            val actual = right.toVector
+            val reordered =
+              StepLedger.reorder(seal, raw, actual, map, dropped, digest)
+            for
+              action <- dropped
+              if raw.exists(l => rowAction(l).contains(action))
+            do removalsUsed += s"$key/$action"
+            (reordered.iterator, actual.iterator)
         // The lines in step, each pair compared; then what either has left.
         @scala.annotation.tailrec
-        def walk(line: Long, differing: Long, found: Vector[String]): (Long, Vector[String]) =
-          if !(kept.hasNext && right.hasNext) then (differing, found)
+        def walk(
+            line: Long,
+            differing: Long,
+            found: Vector[String]
+        ): (Long, Vector[String]) =
+          if !(kept.hasNext && currentRows.hasNext) then (differing, found)
           else
-            val (w, n) = (kept.next(), right.next())
+            val (w, n) = (kept.next(), currentRows.next())
             if w.equals(n) then walk(line + 1, differing, found)
             else
               val shownLine =
@@ -212,7 +332,8 @@ object Equivalence:
                 if found.size < shown then found :+ shownLine else found
               )
         val (differing, found) = walk(0, 0, Vector.empty)
-        val (extraLeft, extraRight) = (kept.size.toLong, right.size.toLong)
+        val (extraLeft, extraRight) =
+          (kept.size.toLong, currentRows.size.toLong)
         val more =
           if differing > found.size then Vector(s"${differing - found.size} more lines differ")
           else Vector.empty
@@ -221,6 +342,7 @@ object Equivalence:
           else if extraRight > 0 then Vector(s"it has $extraRight more lines than the baseline")
           else Vector.empty
         found ++ more ++ sizes
+      catch case e: GateError => Vector(e.getMessage)
       finally
         left.close()
         right.close()
@@ -252,7 +374,8 @@ object Equivalence:
       else
         fields.collect:
           case (k, x) if !k.equals("position") && !k.equals("Position") =>
-            k -> (if k.endsWith("Fingerprint") then "<fingerprint>" else normalize(x, map))
+            k -> (if k.endsWith("Fingerprint") then "<fingerprint>"
+                  else normalize(x, map))
     case xs: Vector[?] => xs.map(normalize(_, map))
     case s: String     => map(s)
     case other         => other
@@ -270,16 +393,27 @@ object Equivalence:
 
   // Every declaration of the IR files in `dir`, keyed by its section and its identity, normalized.
   // A declaration two files hold is one, where both hold it alike.
-  def declarations(dir: Path, map: RenameMap): (Map[String, String], Vector[String]) =
+  def declarations(
+      dir: Path,
+      map: RenameMap
+  ): (Map[String, String], Vector[String]) =
     val found = mutable.LinkedHashMap.empty[String, (String, String)]
     val conflicts = mutable.ArrayBuffer.empty[String]
     def strings(v: Any): Map[String, String] = v match
-      case m: Map[?, ?] => m.collect { case (k: String, s: String) => k -> s }.toMap
-      case _            => Map.empty
-    for file <- jsonFiles(dir, n => n.endsWith(".json") && !n.endsWith(".lint.json")) do
+      case m: Map[?, ?] =>
+        m.collect { case (k: String, s: String) => k -> s }.toMap
+      case _ => Map.empty
+    for file <- jsonFiles(
+        dir,
+        n => n.endsWith(".json") && !n.endsWith(".lint.json")
+      )
+    do
       val name = map(file.getFileName.toString)
       val sections = Json
-        .fields(normalize(Json.parse(Files.readString(file)), map), file.toString)
+        .fields(
+          normalize(Json.parse(Files.readString(file)), map),
+          file.toString
+        )
         .filterNot(_._1.equals("source"))
         .map((section, items) =>
           section -> (items match
@@ -303,15 +437,31 @@ object Equivalence:
         fields
           .get("family")
           .orElse(fields.get("machine").flatMap(families.get))
-          .orElse(nested.flatMap(n => strings(n).get("machine")).flatMap(families.get).headOption)
-          .orElse(fields.get("name").map(_.takeWhile(c => !c.equals('.'))).flatMap(families.get))
+          .orElse(
+            nested
+              .flatMap(n => strings(n).get("machine"))
+              .flatMap(families.get)
+              .headOption
+          )
+          .orElse(
+            fields
+              .get("name")
+              .map(_.takeWhile(c => !c.equals('.')))
+              .flatMap(families.get)
+          )
           .getOrElse("")
       for (section, items) <- sections.toVector; item <- items do
         val fields = strings(item)
         val identity =
           if fields.isEmpty then canonical(item)
           else
-            (s"in=${family(item)}" +: Seq("family", "machine", "owner", "name", "id")
+            (s"in=${family(item)}" +: Seq(
+              "family",
+              "machine",
+              "owner",
+              "name",
+              "id"
+            )
               .flatMap(f => fields.get(f).map(s => s"$f=$s"))).mkString(" ")
         val key = s"$section $identity"
         val text = canonical(item)
@@ -346,8 +496,10 @@ object Equivalence:
     val entries =
       if !Files.isRegularFile(manifest) then Vector.empty
       else
-        val root = Json.fields(Json.parse(Files.readString(manifest)), manifest.toString)
-        val version = "manifest version" -> canonical(root.getOrElse("version", None))
+        val root =
+          Json.fields(Json.parse(Files.readString(manifest)), manifest.toString)
+        val version =
+          "manifest version" -> canonical(root.getOrElse("version", None))
         version +: Json
           .items(root.getOrElse("queries", Vector()), "manifest queries")
           .map: q =>
@@ -365,7 +517,11 @@ object Equivalence:
       casesDir: Path,
       map: RenameMap
   ): Vector[String] =
-    def against(what: String, was: Map[String, String], now: Map[String, String]): Vector[String] =
+    def against(
+        what: String,
+        was: Map[String, String],
+        now: Map[String, String]
+    ): Vector[String] =
       val keys = (was.keySet ++ now.keySet).toVector.sorted
       keys.flatMap: k =>
         (was.get(k), now.get(k)) match
@@ -378,11 +534,12 @@ object Equivalence:
     val (nowDeclared, nowConflicts) = declarations(irDir, RenameMap.empty)
     val wasAccepted = acceptances(baseIr, map)
     val nowAccepted = acceptances(irDir, RenameMap.empty)
-    val lintDifferences = (wasAccepted.keySet ++ nowAccepted.keySet).toVector.sorted.flatMap: a =>
-      val (w, n) = (wasAccepted.getOrElse(a, 0), nowAccepted.getOrElse(a, 0))
-      Option.when(!w.equals(n))(
-        s"accepted lint finding $a: $w in the baseline, $n now"
-      )
+    val lintDifferences =
+      (wasAccepted.keySet ++ nowAccepted.keySet).toVector.sorted.flatMap: a =>
+        val (w, n) = (wasAccepted.getOrElse(a, 0), nowAccepted.getOrElse(a, 0))
+        Option.when(!w.equals(n))(
+          s"accepted lint finding $a: $w in the baseline, $n now"
+        )
     wasConflicts.map("baseline: " + _) ++ nowConflicts.map("now: " + _) ++
       against("IR", wasDeclared, nowDeclared) ++ lintDifferences ++
       against("Case", cases(baseCases, map), cases(casesDir, RenameMap.empty))
@@ -405,15 +562,23 @@ object Equivalence:
       base: Path
   ): (Vector[String], Vector[String]) =
     val renames = map.renames.map(_._1).filterNot(map.used)
-    val removals = map.removals.filterNot(removalsUsed).map(r => s"the removal $r removes nothing")
+    val removals = map.removals
+      .filterNot(removalsUsed)
+      .map(r => s"the removal $r removes nothing")
     if projected then
-      (renames.map(r => s"the rename $r matches nothing in the baseline") ++ removals, Vector.empty)
+      (
+        renames.map(r => s"the rename $r matches nothing in the baseline") ++ removals,
+        Vector.empty
+      )
     else
       val texts = jsonFiles(base.resolve("ir"), _.endsWith(".json")) ++
         jsonFiles(base.resolve("cases"), _.endsWith(".json"))
       val (later, none) = renames.partition: r =>
         texts.exists(f =>
-          map.mentions(f.getFileName.toString, r) || map.mentions(Files.readString(f), r)
+          map.mentions(f.getFileName.toString, r) || map.mentions(
+            Files.readString(f),
+            r
+          )
         )
       (
         none.map(r => s"the rename $r matches nothing in the baseline") ++ removals,

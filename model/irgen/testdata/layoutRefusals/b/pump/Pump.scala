@@ -1,8 +1,6 @@
 package fixture.features.pump
 
 import framework.*
-import product.PumpProduct
-import system.PumpProtocol
 
 final case class Pump(on: Boolean) derives Finite
 

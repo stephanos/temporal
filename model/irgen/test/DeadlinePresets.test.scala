@@ -20,7 +20,8 @@ class DeadlinePresetsSuite extends munit.FunSuite:
   private val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
 
   override def beforeAll(): Unit =
-    val stream = Files.newDirectoryStream(tools.directory.resolve(stored), "*.scala")
+    val stream =
+      Files.newDirectoryStream(tools.directory.resolve(stored), "*.scala")
     try
       for from <- stream.asScala do
         Files.writeString(
@@ -28,7 +29,10 @@ class DeadlinePresetsSuite extends munit.FunSuite:
           Files
             .readString(from)
             .replace("../../../build/model-scala.jar", modelJar.toString)
-            .replace("../../../build/api-scalapb.jar", build.resolve("api-scalapb.jar").toString)
+            .replace(
+              "../../../build/api-scalapb.jar",
+              build.resolve("api-scalapb.jar").toString
+            )
         )
     finally stream.close()
     tools
@@ -68,9 +72,14 @@ class DeadlinePresetsSuite extends munit.FunSuite:
       .asScala
       .toSeq
 
-  test("three retry presets retain all 48 distinct start classes and their command identities"):
-    val controller = items("temporal.features.activity.standalone.protocol.Standalone")
-    val itemCommands = controller.filter(_.has("command")).map(_.at("/command/id").asText())
+  test(
+    "three retry presets retain all 48 distinct start classes and their command identities"
+  ):
+    val controller = items(
+      "temporal.features.activity.standalone.realization.StandaloneActivityRun"
+    )
+    val itemCommands =
+      controller.filter(_.has("command")).map(_.at("/command/id").asText())
     assertEquals(itemCommands.distinct.size, itemCommands.size)
     val starts = controller
       .flatMap(_.path("performs").elements().asScala)
@@ -79,11 +88,18 @@ class DeadlinePresetsSuite extends munit.FunSuite:
     val classes = starts.map(_.path("step"))
     assertEquals(classes.distinct.size, 48)
     val policyCounts =
-      starts.groupBy(_.at("/step/inputs/5/enum/case").asText()).view.mapValues(_.size).toMap
+      starts
+        .groupBy(_.at("/step/inputs/5/enum/case").asText())
+        .view
+        .mapValues(_.size)
+        .toMap
     assertEquals(policyCounts, Map("unlimited" -> 16, "one" -> 16, "two" -> 16))
     for step <- starts do
       val assignments = step.at("/command/rpc/assign").elements().asScala.toSeq
-      assertEquals(assignments.map(_.path("target").asText()).distinct.size, assignments.size)
+      assertEquals(
+        assignments.map(_.path("target").asText()).distinct.size,
+        assignments.size
+      )
       val maximum =
         assignments
           .find(_.path("target").asText() == "retry_policy.maximum_attempts")
@@ -116,7 +132,8 @@ class DeadlinePresetsSuite extends munit.FunSuite:
       val expected = inputs
         .zip(Seq("start_delay.seconds", "start_to_close_timeout.seconds"))
         .collect {
-          case (input, field) if input.at("/enum/case").asText() == "expires" => field
+          case (input, field) if input.at("/enum/case").asText() == "expires" =>
+            field
         }
         .toSet
       val assignments = step.at("/command/rpc/assign").elements().asScala.toSeq
@@ -124,8 +141,10 @@ class DeadlinePresetsSuite extends munit.FunSuite:
         assignments.map(_.path("target").asText()).toSet,
         expected ++ Set("namespace", "activity_id")
       )
-      for assignment <- assignments if expected(assignment.path("target").asText()) do
-        assertEquals(assignment.at("/value/literal/number").asText(), "2")
+      for
+        assignment <- assignments
+        if expected(assignment.path("target").asText())
+      do assertEquals(assignment.at("/value/literal/number").asText(), "2")
 
   test(
     "non-Timeout presets are explicit, Timeout defaults unambiguous, and duplicate classes refused"
@@ -142,14 +161,16 @@ class DeadlinePresetsSuite extends munit.FunSuite:
 
   // fn-162: the retry after an attempt timeout runs on the activity Protocol itself, through its own
   // realization, which names the Queries it runs.
-  test("the timeout retry's realization runs its Queries with only its own occurrence evidence"):
+  test(
+    "the timeout retry's realization runs its Queries with only its own occurrence evidence"
+  ):
     val prefix = "temporal.features.activity.standalone.protocol."
     val (ran, out) = lift(
       prefix + "Timeouts.timeouts$.queries",
-      prefix + "RetryAfterTimeout",
+      "temporal.features.activity.standalone.realization.RetryAfterTimeoutRun",
       prefix + "ActivityProtocol$.queries",
       prefix + "Retry.retry$.queries",
-      prefix + "Standalone"
+      "temporal.features.activity.standalone.realization.StandaloneActivityRun"
     )
     ran.orFail(): Unit
     val model = mapper.readTree(Files.readString(out))
@@ -162,16 +183,37 @@ class DeadlinePresetsSuite extends munit.FunSuite:
     val failures = named("queries", "retryExhaustionByFailures")
     assertEquals(failures.path("form").asText(), "FORM_VERIFY")
     assert(!failures.has("expectedRun"))
-    val failurePath = named("scenarios", "exhausted").path("actions").elements().asScala.toSeq
+    val failurePath =
+      named("scenarios", "exhausted").path("actions").elements().asScala.toSeq
     assertEquals(failurePath.size, 6)
-    assertEquals(failurePath.count(_.path("action").asText().endsWith("worker.respondFailed")), 2)
+    assertEquals(
+      failurePath.count(
+        _.path("action").asText().endsWith("worker.respondFailed")
+      ),
+      2
+    )
     val exhaustion = named("queries", "retryExhaustion")
-    assertEquals(exhaustion.at("/scenario/machine").asText(), "activityProtocol")
-    val exhaustionPath = named("scenarios", "timedOutThenFailed").path("actions")
+    assertEquals(
+      exhaustion.at("/scenario/machine").asText(),
+      "activityProtocol"
+    )
+    val exhaustionPath = named("scenarios", "retryExhaustion").path("actions")
     assertEquals(exhaustionPath.size(), 6)
-    assert(exhaustionPath.path(2).path("action").asText().endsWith("deadline.startToClose"))
-    assert(exhaustionPath.path(5).path("action").asText().endsWith("worker.respondFailed"))
-    val realization = named("realizations", "retryAfterTimeout")
+    assert(
+      exhaustionPath
+        .path(2)
+        .path("action")
+        .asText()
+        .endsWith("deadline.startToClose")
+    )
+    assert(
+      exhaustionPath
+        .path(5)
+        .path("action")
+        .asText()
+        .endsWith("worker.respondFailed")
+    )
+    val realization = named("realizations", "retryAfterTimeoutRun")
     assertEquals(realization.path("machine").asText(), "activityProtocol")
     assertEquals(
       realization.path("queries").elements().asScala.map(_.asText()).toSeq,
@@ -198,6 +240,11 @@ class DeadlinePresetsSuite extends munit.FunSuite:
     )
     assertEquals(confirms.map(_.path("occurrence").asText()), Seq("1", "2"))
     assert(!realization.path("evidence").toString.contains("statusTimedOut"))
-    val proof = tools.directory.resolve(".flow/tmp/activity-batch/fn1283-focused.json")
+    val proof =
+      tools.directory.resolve(".flow/tmp/activity-batch/fn1283-focused.json")
     Files.createDirectories(proof.getParent)
-    Files.copy(out, proof, java.nio.file.StandardCopyOption.REPLACE_EXISTING): Unit
+    Files.copy(
+      out,
+      proof,
+      java.nio.file.StandardCopyOption.REPLACE_EXISTING
+    ): Unit

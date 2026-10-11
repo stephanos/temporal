@@ -2,7 +2,6 @@ package fixture.phasecapabilities
 
 import framework.*
 import temporal.capabilities.product.*
-import temporal.capabilities.system.*
 
 val bounds = Limits(steps = 2, actions = 3, search = 64)
 
@@ -38,7 +37,8 @@ object Direct
   object rules extends Rules:
     on(user.pause, user.unpause, worker.poll)(always ~> effects.keep)
   object capabilities extends Capabilities:
-    val pausable: Capability = Pausable(pause = user.pause, unpause = user.unpause)
+    val pausable: Capability =
+      Pausable(pause = user.pause, unpause = user.unpause)
     val pollable: Capability = Pollable(dispatch = worker.poll)
   object queries:
     capabilities.bound(bounds)
@@ -52,14 +52,16 @@ object OtherDirect
   object rules extends Rules:
     on(user.pause, user.unpause, worker.poll)(always ~> effects.keep)
   object capabilities extends Capabilities:
-    val pausable: Capability = Pausable(pause = user.pause, unpause = user.unpause)
+    val pausable: Capability =
+      Pausable(pause = user.pause, unpause = user.unpause)
     val pollable: Capability = Pollable(dispatch = worker.poll)
   object queries:
     capabilities.bound(bounds)
 
 object DirectDerived extends Derived(Direct.unmonitored):
   object capabilities extends Capabilities:
-    val pausable: Capability = Pausable(pause = user.pause, unpause = user.unpause)
+    val pausable: Capability =
+      Pausable(pause = user.pause, unpause = user.unpause)
     val pollable: Capability = Pollable(dispatch = worker.poll)
   object queries:
     capabilities.bound(bounds)
@@ -103,7 +105,8 @@ object MissingSuspended
   object rules extends Rules:
     on(user.pause, user.unpause, worker.poll)(always ~> effects.keep)
   object capabilities extends Capabilities:
-    val pausable: Capability = Pausable(pause = user.pause, unpause = user.unpause)
+    val pausable: Capability =
+      Pausable(pause = user.pause, unpause = user.unpause)
   object queries:
     capabilities.bound(bounds)
 
@@ -121,7 +124,8 @@ object MissingHeld extends Machine[NoHeld, Result, Nothing], Phased[NoHeld, NoHe
   object rules extends Rules:
     on(user.pause, user.unpause, worker.poll)(always ~> effects.keep)
   object capabilities extends Capabilities:
-    val pausable: Capability = Pausable(pause = user.pause, unpause = user.unpause)
+    val pausable: Capability =
+      Pausable(pause = user.pause, unpause = user.unpause)
     val pollable: Capability = Pollable(dispatch = worker.poll)
   object queries:
     capabilities.bound(bounds)

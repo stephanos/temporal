@@ -40,24 +40,19 @@ object TrustingCaller
 
   object rules extends Facets(forgedControl.rules)
 
-  object properties:
-    // A failed completion is recorded as completed: what the control predicts and no runtime sends.
-    val forgedSuccess = property when handler.complete(Resolution.failed) holds
-      (_.records(Fact.nexusOperationCompleted))
-
   object queries:
-    val inspectedFailure = scenario.actions(
-      caller.schedule(),
-      caller.inspect,
-      handler.reply(Reply.async),
-      caller.inspect,
-      handler.complete(Resolution.failed)
-    )
-
     // The forged control, which every modeled execution that explains the evidence refutes, on a
     // path that inspects the operation around a failed completion.
     val forgedCompletion =
-      (query find properties.forgedSuccess in inspectedFailure limits eight)
+      witness(
+        caller.schedule(),
+        caller.inspect,
+        handler.reply(Reply.async),
+        caller.inspect,
+        handler.complete(Resolution.failed)
+      )
+        .records(Fact.nexusOperationCompleted)
+        .limits(eight)
         .live(
           RunExpectation(
             Conformance.inconclusive,
@@ -78,7 +73,11 @@ object TrustingCaller
               Variation(
                 1,
                 Vector(
-                  Alternative("twice", 20, Vector(caller.inspect, caller.inspect)),
+                  Alternative(
+                    "twice",
+                    20,
+                    Vector(caller.inspect, caller.inspect)
+                  ),
                   Alternative("once", 10, Vector(caller.inspect)),
                   Alternative("none", 0, Vector.empty)
                 )

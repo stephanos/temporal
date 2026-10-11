@@ -3,7 +3,7 @@ package framework
 import temporal.features.activity.standalone.realization.*
 import framework.Finite.given
 
-import temporal.features.activity.{deadline, timers, Failure, Timeout}
+import temporal.features.activity.{deadline, timers, Failure, Timeout, TimeoutType}
 import temporal.features.activity.standalone.*
 import temporal.features.activity.standalone.protocol.ActivityProtocol
 import temporal.actors.worker.worker as process
@@ -19,8 +19,12 @@ class ActivitySubjectRegression extends munit.FunSuite:
   private type ActivityStep = Step[protocol.State, Outcome, protocol.Fact]
   private type Predicate = (protocol.State, ActivityStep) => Boolean
 
-  private def coreProperty(q: Query): Property[protocol.State] = Property(q.property)
-  private def coreScenario(q: Query): Scenario[protocol.State] = Scenario(q.scenario)
+  private def coreProperty(q: Query): Property[protocol.State] = Property(
+    q.property
+  )
+  private def coreScenario(q: Query): Scenario[protocol.State] = Scenario(
+    q.scenario
+  )
 
   private def predicate(property: Property[protocol.State]): Predicate =
     property.decl.holds2 match
@@ -28,7 +32,9 @@ class ActivitySubjectRegression extends munit.FunSuite:
         holds.asInstanceOf[Predicate] // scalafix:ok DisableSyntax.asInstanceOf
       case None =>
         val holds = property.decl.holds.get
-          .asInstanceOf[ActivityStep => Boolean] // scalafix:ok DisableSyntax.asInstanceOf
+          .asInstanceOf[
+            ActivityStep => Boolean
+          ] // scalafix:ok DisableSyntax.asInstanceOf
         (_, after) => holds(after)
 
   // fn-162 R3: no two Properties of the machine with the same `when` agree on every row.
@@ -43,7 +49,6 @@ class ActivitySubjectRegression extends munit.FunSuite:
       coreProperty(p.retry.queries.heldFailedByID),
       p.cancellation.properties.cancelRequested,
       p.cancellation.properties.canceledByWorker,
-      p.cancellation.properties.cancelIsRequested,
       p.cancellation.properties.canceledByID,
       p.dispatching.properties.dispatchRequiresReady,
       p.dispatching.properties.scheduleToStartRequiresDispatch,
@@ -52,21 +57,29 @@ class ActivitySubjectRegression extends munit.FunSuite:
       p.timeouts.properties.scheduleToCloseTimesOut,
       coreProperty(p.timeouts.queries.retryAfterTimeout),
       coreProperty(p.timeouts.queries.retryExhaustion),
-      p.heartbeat.properties.heartbeatExhausts,
-      p.reset.properties.resetOnFatal,
-      p.reset.properties.resetOnExhaustion,
-      p.reset.properties.resetOnTimeout,
-      p.reset.properties.resetKeepsPause,
-      p.reset.properties.completionWins,
-      p.reset.properties.pauseLeavesResetPending,
+      coreProperty(p.heartbeat.queries.heartbeatTimeoutExhausts),
+      coreProperty(p.reset.queries.resetFatality),
+      coreProperty(p.reset.queries.resetExhaustion),
+      coreProperty(p.reset.queries.resetTimeout),
+      coreProperty(p.reset.queries.resetKeptPause),
+      coreProperty(p.reset.queries.resetCompletion),
+      coreProperty(p.reset.queries.resetOutranksPause),
       p.reset.properties.resetStaysPending,
-      p.reset.properties.resetKeptPaused
+      coreProperty(p.reset.queries.keepPausedReset)
     )
+    assertEquals(properties.size, 25)
     assertEquals(properties.map(_.decl).distinct.size, properties.size)
     for property <- properties do
       assert(property.decl.machine eq ActivityProtocol, property.decl.name)
+    assertDistinct(properties)
+  }
+
+  private def assertDistinct(properties: List[Property[protocol.State]]): Unit =
     val catalog = ActivityProtocol.bindings.flatMap { binding =>
-      val step = effectOf[protocol.State, Outcome, protocol.Fact](binding.decl, binding.function)
+      val step = effectOf[protocol.State, Outcome, protocol.Fact](
+        binding.decl,
+        binding.function
+      )
       classesOf(binding.decl).map(inputs => inputs -> step)
     }
     val rows = for
@@ -74,15 +87,89 @@ class ActivitySubjectRegression extends munit.FunSuite:
       (inputs, step) <- catalog
       after <- step(before, inputs)
     yield before -> after
+    val delayed = ActivityProtocol.init.copy(
+      phase = protocol.Phase.scheduled,
+      dispatch = protocol.Dispatch.startDelay
+    )
+    val offNative: Vector[(protocol.State, ActivityStep)] = Vector(
+      delayed -> Step(
+        Outcome.accepted,
+        delayed.copy(phase = protocol.Phase.started),
+        List(protocol.Fact.statusStarted)
+      ),
+      ActivityProtocol.init -> Step(
+        Outcome.accepted,
+        ActivityProtocol.init,
+        List(protocol.Fact.statusTimedOut(TimeoutType.scheduleToStart))
+      )
+    )
+    val dispatch = predicate(
+      ActivityProtocol.dispatching.properties.dispatchRequiresReady
+    )
+    val timeout = predicate(
+      ActivityProtocol.dispatching.properties.scheduleToStartRequiresDispatch
+    )
+    assertEquals(
+      offNative.map((before, after) => dispatch(before, after) -> timeout(before, after)),
+      Vector(false -> true, true -> false)
+    )
+    def label(p: Property[protocol.State]): String =
+      if p.decl eq ActivityProtocol.cancellation.properties.cancelRequested.decl
+      then "cancelRequested"
+      else if p.decl eq ActivityProtocol.dispatching.properties.dispatchRequiresReady.decl
+      then "dispatchRequiresReady"
+      else if p.decl eq ActivityProtocol.dispatching.properties.scheduleToStartRequiresDispatch.decl
+      then "scheduleToStartRequiresDispatch"
+      else p.decl.name
     for
       (when, group) <- properties.groupBy(_.decl.when)
       pair <- group.combinations(2)
     do
       val (a, b) = (predicate(pair(0)), predicate(pair(1)))
       assert(
-        rows.exists((before, after) => a(before, after) != b(before, after)),
-        s"${pair(0).decl.name} and ${pair(1).decl.name} state one promise when $when"
+        (if when.isEmpty then rows ++ offNative else rows).exists((before, after) =>
+          a(before, after) != b(before, after)
+        ),
+        s"${label(pair(0))} and ${label(pair(1))} state one promise when $when"
       )
+
+  test(
+    "a separately seeded equal cancel predicate fails the native duplicate control"
+  ) {
+    val p = ActivityProtocol
+    val duplicate =
+      p.property("seededDuplicate") when client.requestCancel holds { after =>
+        after.state.phase == protocol.Phase.cancelRequested &&
+        after.records(protocol.Fact.statusCancelRequested)
+      }
+    val error = intercept[munit.FailException] {
+      assertDistinct(List(p.cancellation.properties.cancelRequested, duplicate))
+    }
+    assert(
+      error.getMessage.contains("seededDuplicate state one promise"),
+      error.getMessage
+    )
+    assert(
+      error.getMessage.contains(
+        "cancelRequested and seededDuplicate state one promise when Some"
+      ),
+      error.getMessage
+    )
+    val originalWeak =
+      p.property("originalWeak") when client.requestCancel holds (_.records(
+        protocol.Fact.statusCancelRequested
+      ))
+    val inherited = intercept[munit.FailException] {
+      assertDistinct(
+        List(p.cancellation.properties.cancelRequested, originalWeak)
+      )
+    }
+    assert(
+      inherited.getMessage.contains(
+        "cancelRequested and originalWeak state one promise when Some"
+      ),
+      inherited.getMessage
+    )
   }
 
   private case class Receipt(
@@ -97,7 +184,9 @@ class ActivitySubjectRegression extends munit.FunSuite:
       free: Boolean = false
   )
 
-  test("focused query receipts retain exact scenarios bounds and live expectations") {
+  test(
+    "focused query receipts retain exact scenarios bounds and live expectations"
+  ) {
     val canceled = Vector[ClassRef](
       client.start(),
       activityWorker.poll,
@@ -114,7 +203,11 @@ class ActivitySubjectRegression extends munit.FunSuite:
         ActivityProtocol,
         ActivityProtocol.completion.properties.completes,
         ActivityProtocol.completion.queries.completed,
-        Vector(client.start(), activityWorker.poll, activityWorker.respondCompleted),
+        Vector(
+          client.start(),
+          activityWorker.poll,
+          activityWorker.respondCompleted
+        ),
         three,
         16848L,
         Some(satisfied)
@@ -124,7 +217,11 @@ class ActivitySubjectRegression extends munit.FunSuite:
         ActivityProtocol,
         coreProperty(ActivityProtocol.retry.queries.nonRetryableFailure),
         coreScenario(ActivityProtocol.retry.queries.nonRetryableFailure),
-        Vector(client.start(), activityWorker.poll, activityWorker.respondFailed(Failure.fatal)),
+        Vector(
+          client.start(),
+          activityWorker.poll,
+          activityWorker.respondFailed(Failure.fatal)
+        ),
         three,
         16848L,
         Some(satisfied)
@@ -251,7 +348,10 @@ class ActivitySubjectRegression extends munit.FunSuite:
         coreProperty(ActivityProtocol.timeouts.queries.startToCloseTimeout),
         coreScenario(ActivityProtocol.timeouts.queries.startToCloseTimeout),
         Vector(
-          client.start(startToClose := Timeout.expires, maxAttempts := MaxAttempts.one),
+          client.start(
+            startToClose := Timeout.expires,
+            maxAttempts := MaxAttempts.one
+          ),
           activityWorker.poll,
           deadline.startToClose
         ),
@@ -281,7 +381,10 @@ class ActivitySubjectRegression extends munit.FunSuite:
     assertEquals(ActivityProtocol.timeouts.queries.competingTimers.size, 2)
     assertEquals(
       ActivityProtocol.timeouts.queries.competingTimers.map(_.name),
-      Vector("competingTimers.scheduleToStartFirst", "competingTimers.scheduleToCloseFirst")
+      Vector(
+        "competingTimers.scheduleToStartFirst",
+        "competingTimers.scheduleToCloseFirst"
+      )
     )
     val verifies = Set(
       ActivityProtocol.retry.queries.retryExhaustionByFailures,
@@ -290,7 +393,10 @@ class ActivitySubjectRegression extends munit.FunSuite:
     )
     for receipt <- receipts do
       val q = receipt.query
-      assertEquals(q.form, if verifies(q) then QueryForm.verify else QueryForm.find)
+      assertEquals(
+        q.form,
+        if verifies(q) then QueryForm.verify else QueryForm.find
+      )
       assertEquals(q.property, receipt.property.decl)
       assertEquals(q.scenario, receipt.scenario.decl)
       assert(q.property.machine eq receipt.owner)
@@ -333,10 +439,18 @@ class ActivitySubjectRegression extends munit.FunSuite:
         p.timeouts.queries.retryAfterTimeout,
         p.timeouts.queries.retryExhaustion
       ),
-      HeartbeatThenCompletionRun -> Seq(p.heartbeat.queries.heartbeatThenCompletes),
-      RetryAfterHeartbeatRun -> Seq(p.heartbeat.queries.heartbeatTimeoutRetriesThenCompletes),
-      ExhaustAfterHeartbeatRun -> Seq(p.heartbeat.queries.heartbeatTimeoutExhausts),
-      ScheduledCompletionByIDRun -> Seq(p.completion.queries.scheduledCompletedByID),
+      HeartbeatThenCompletionRun -> Seq(
+        p.heartbeat.queries.heartbeatThenCompletes
+      ),
+      RetryAfterHeartbeatRun -> Seq(
+        p.heartbeat.queries.heartbeatTimeoutRetriesThenCompletes
+      ),
+      ExhaustAfterHeartbeatRun -> Seq(
+        p.heartbeat.queries.heartbeatTimeoutExhausts
+      ),
+      ScheduledCompletionByIDRun -> Seq(
+        p.completion.queries.scheduledCompletedByID
+      ),
       HeldFailureByIDRun -> Seq(p.retry.queries.heldFailedByID),
       HeldCancellationByIDRun -> Seq(
         p.cancellation.queries.heldCanceledByID,

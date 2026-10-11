@@ -24,7 +24,9 @@ given Ok[Outcome] = Ok(Outcome.accepted)
 val flip = action(Actor("user"))
 val dim = action(Actor("user")).input[Dim]("level")
 
-def flipStep(l: LampState): List[Step[LampState, Outcome, Nothing]] = enter(LampState(!l.lit))
+def flipStep(l: LampState): List[Step[LampState, Outcome, Nothing]] = enter(
+  LampState(!l.lit)
+)
 def dimStep(l: LampState, level: Dim): List[Step[LampState, Outcome, Nothing]] =
   if l.lit then enter(l) else disabled
 
@@ -44,7 +46,9 @@ object PlainLamp extends Machine[LampState, Outcome, Nothing]:
 
 val two = Limits(steps = 2, actions = 2, search = 64)
 
-val litOnce = Lamp.property holds (after => after.state.lit)
+val litOnce = Lamp.property("lamp.lit") holds (after => after.state.lit)
+val plainLit =
+  PlainLamp.property("plainLamp.lit") holds (after => after.state.lit)
 val flipTwice = Lamp.scenario.actions(flip, flip)
 
 // Pinned: 2 states x min(2 steps, 2 scheduled flips) = 4.
@@ -58,55 +62,82 @@ val run = realize.RunExpectation(
   realize.Disposition.completed,
   realize.Cleanup.succeeded
 )
-val totalThenExpect = (query find litOnce in flipTwice limits two total 4).live(run)
-val expectThenTotal = (query find litOnce in flipTwice limits two).live(run).total(4)
+val totalThenExpect =
+  (query find litOnce in flipTwice limits two total 4).live(run)
+val expectThenTotal =
+  (query find litOnce in flipTwice limits two).live(run).total(4)
 
 // A Query declared once over a machine, whose total each call supplies. Free: 2 states x the
 // machine's action classes x 2 steps, so 12 on `lamp` (3 classes) and 4 on `plainLamp` (1 class).
-def lampQueries(m: Machine[LampState, Outcome, Nothing], total: Int): Vector[Query] = Vector(
-  query(s"${m.name}.anyLit") find (m.property(s"${m.name}.lit") holds (after =>
-    after.state.lit
-  )) in m.scenario("any").free limits two total total
+def lampQueries(
+    m: Machine[LampState, Outcome, Nothing],
+    lit: Property[LampState],
+    total: Int
+): Vector[Query] = Vector(
+  query(s"${m.name}.anyLit") find lit in m
+    .scenario("any")
+    .free limits two total total
 )
 
 // No total: the lifter counts the 4 the author writes for `infixTotal`.
 val countedTotal = query find litOnce in flipTwice limits two
 
 // The shared def's Query with no total: the lifter counts 12 on `lamp` and 4 on `plainLamp`.
-def countedQueries(m: Machine[LampState, Outcome, Nothing]): Vector[Query] = Vector(
-  query(s"${m.name}.anyLit") find (m.property(s"${m.name}.lit") holds (after =>
-    after.state.lit
-  )) in m.scenario("any").free limits two
+def countedQueries(
+    m: Machine[LampState, Outcome, Nothing],
+    lit: Property[LampState]
+): Vector[Query] = Vector(
+  query(s"${m.name}.anyLit") find lit in m.scenario("any").free limits two
 )
 
 val queries: Vector[Query] =
-  Vector(infixTotal, dottedTotal, totalThenExpect, expectThenTotal, countedTotal)
-val lampTotals: Vector[Query] = lampQueries(Lamp, 12)
-val plainLampTotals: Vector[Query] = lampQueries(PlainLamp, 4)
-val lampCounted: Vector[Query] = countedQueries(Lamp)
-val plainLampCounted: Vector[Query] = countedQueries(PlainLamp)
+  Vector(
+    infixTotal,
+    dottedTotal,
+    totalThenExpect,
+    expectThenTotal,
+    countedTotal
+  )
+val lampTotals: Vector[Query] = lampQueries(Lamp, litOnce, 12)
+val plainLampTotals: Vector[Query] = lampQueries(PlainLamp, plainLit, 4)
+val lampCounted: Vector[Query] = countedQueries(Lamp, litOnce)
+val plainLampCounted: Vector[Query] = countedQueries(PlainLamp, plainLit)
 
 // ### Two claims a shared def declares together, as a bundle read back by field
 
 // The claims every lamp is held to, declared together by `lampClaims`.
-final case class LampClaims(lit: Property[LampState], unlit: Property[LampState])
-
-def lampClaims(m: Machine[LampState, Outcome, Nothing]): LampClaims = LampClaims(
-  m.property("bundledLit") holds (after => after.state.lit),
-  m.property("bundledUnlit") holds (after => !after.state.lit)
+final case class LampClaims(
+    lit: Property[LampState],
+    unlit: Property[LampState]
 )
 
+def lampClaims(m: Machine[LampState, Outcome, Nothing]): LampClaims =
+  LampClaims(
+    m.property("bundledLit") holds (after => after.state.lit),
+    m.property("bundledUnlit") holds (after => !after.state.lit)
+  )
+
 // The claims of `m`, each read from the bundle by field. Free, so 12 on `lamp` and 4 on `plainLamp`.
-def bundledClaimQueries(m: Machine[LampState, Outcome, Nothing], total: Int): Vector[Query] =
+def bundledClaimQueries(
+    m: Machine[LampState, Outcome, Nothing],
+    total: Int
+): Vector[Query] =
   val claims = lampClaims(m)
   val any = m.scenario("bundledAny").free
   Vector(
-    query(s"${m.name}.bundledLit") find claims.lit in any limits two total total,
-    query(s"${m.name}.bundledUnlit") find claims.unlit in any limits two total total
+    query(
+      s"${m.name}.bundledLit"
+    ) find claims.lit in any limits two total total,
+    query(
+      s"${m.name}.bundledUnlit"
+    ) find claims.unlit in any limits two total total
   )
 
 // The same claims declared directly.
-def directClaimQueries(m: Machine[LampState, Outcome, Nothing], total: Int): Vector[Query] =
+def directClaimQueries(
+    m: Machine[LampState, Outcome, Nothing],
+    total: Int
+): Vector[Query] =
   val any = m.scenario("directAny").free
   Vector(
     query(s"${m.name}.directLit") find (m.property("directLit") holds (after =>

@@ -12,7 +12,12 @@ import scala.jdk.CollectionConverters.*
 import umpire.check.{Ran, Tools}
 
 private object LayoutSources:
-  def materialize(from: Path, to: Path, modelJar: Path, excluding: Set[String]): Path =
+  def materialize(
+      from: Path,
+      to: Path,
+      modelJar: Path,
+      excluding: Set[String]
+  ): Path =
     Files.createDirectories(to)
     val jar = java.util.regex.Matcher.quoteReplacement(modelJar.toString)
     val stream = Files.walk(from)
@@ -26,7 +31,9 @@ private object LayoutSources:
         Files.createDirectories(copy.getParent)
         Files.writeString(
           copy,
-          Files.readString(source).replaceAll("""(\.\./)+build/model-scala\.jar""", jar)
+          Files
+            .readString(source)
+            .replaceAll("""(\.\./)+build/model-scala\.jar""", jar)
         )
     finally stream.close()
     to
@@ -36,7 +43,9 @@ class LayoutWitnessFixtures extends munit.FunSuite:
   private val tools = Tools.here
   private val build = tools.directory.resolve("model/build")
 
-  test("the layout witness lifts its exact core alongside verify and refinement"):
+  test(
+    "the layout witness lifts its exact core alongside verify and refinement"
+  ):
     val scratch = Files.createTempDirectory(
       Files.createDirectories(build.resolve("history")),
       "layout-witness."
@@ -83,10 +92,15 @@ class LayoutWitnessFixtures extends munit.FunSuite:
     assertEquals(rows("queries").size, 2)
     val verify = rows("queries").find(_.path("name").asText() == "lights").get
     assertEquals(verify.path("form").asText(), "FORM_VERIFY")
-    assertEquals(verify.path("property").path("name").asText(), "switchingOnLights")
-    val system = rows("machines").find(_.path("name").asText() == "lampSystem").get
+    assertEquals(
+      verify.path("property").path("name").asText(),
+      "switchingOnLights"
+    )
+    val system =
+      rows("machines").find(_.path("name").asText() == "lampSystem").get
     assertEquals(system.path("refines").path("product").asText(), "lampProduct")
-    val query = rows("queries").find(_.path("name").asText() == "switchedOff").get
+    val query =
+      rows("queries").find(_.path("name").asText() == "switchedOff").get
     assertEquals(query.path("form").asText(), "FORM_FIND")
     for kind <- Seq("property", "scenario") do
       assertEquals(query.path(kind).path("machine").asText(), "lampProduct")
@@ -97,7 +111,8 @@ class LayoutWitnessFixtures extends munit.FunSuite:
     assertEquals(query.path("limits").path("search").asInt(), 512)
     assertEquals(query.path("total").asText(), "4")
     assert(!query.has("expectedRun"))
-    val scenario = rows("scenarios").find(_.path("name").asText() == "switchedOff").get
+    val scenario =
+      rows("scenarios").find(_.path("name").asText() == "switchedOff").get
     assertEquals(scenario.path("machine").asText(), "lampProduct")
     assertEquals(
       scenario.path("start").path("construct").path("type").asText(),
@@ -116,17 +131,30 @@ class LayoutWitnessFixtures extends munit.FunSuite:
       "dark"
     )
     assertEquals(
-      scenario.path("actions").elements().asScala.map(_.path("action").asText()).toList,
-      List("fixture.features.lamp.user.switchOn", "fixture.features.lamp.user.switchOff")
+      scenario
+        .path("actions")
+        .elements()
+        .asScala
+        .map(_.path("action").asText())
+        .toList,
+      List(
+        "fixture.features.lamp.user.switchOn",
+        "fixture.features.lamp.user.switchOff"
+      )
     )
-    val property = rows("properties").find(_.path("name").asText() == "switchedOff").get
+    val property =
+      rows("properties").find(_.path("name").asText() == "switchedOff").get
     assertEquals(property.path("machine").asText(), "lampProduct")
     assertEquals(
       property.path("whenClass").path("action").asText(),
       "fixture.features.lamp.user.switchOff"
     )
-    assertEquals(property.path("holds").asText(), "lampProduct.property.switchedOff")
-    val holds = rows("functions").find(_.path("name") == property.path("holds")).get
+    assertEquals(
+      property.path("holds").asText(),
+      "lampProduct.property.switchedOff"
+    )
+    val holds =
+      rows("functions").find(_.path("name") == property.path("holds")).get
     val predicate = holds.path("body").path("binary")
     assertEquals(predicate.path("op").asText(), "OP_AND")
     val records = predicate.path("left").path("binary")
@@ -139,20 +167,43 @@ class LayoutWitnessFixtures extends munit.FunSuite:
       records.path("left").path("literal").path("enum").path("case").asText(),
       "switchedOff"
     )
-    assertEquals(records.path("right").path("field").path("field").asText(), "facts")
+    assertEquals(
+      records.path("right").path("field").path("field").asText(),
+      "facts"
+    )
     val ending = predicate.path("right").path("call")
-    assertEquals(ending.path("function").asText(), "lampProduct.property.switchedOff.ends")
-    assertEquals(ending.path("args").get(0).path("field").path("field").asText(), "state")
-    val ends = rows("functions").find(_.path("name") == ending.path("function")).get
+    assertEquals(
+      ending.path("function").asText(),
+      "lampProduct.property.switchedOff.ends"
+    )
+    assertEquals(
+      ending.path("args").get(0).path("field").path("field").asText(),
+      "state"
+    )
+    val ends =
+      rows("functions").find(_.path("name") == ending.path("function")).get
     val statePredicate = ends.path("body").path("binary")
     assertEquals(statePredicate.path("op").asText(), "OP_EQ")
-    assertEquals(statePredicate.path("left").path("field").path("field").asText(), "phase")
     assertEquals(
-      statePredicate.path("right").path("literal").path("enum").path("type").asText(),
+      statePredicate.path("left").path("field").path("field").asText(),
+      "phase"
+    )
+    assertEquals(
+      statePredicate
+        .path("right")
+        .path("literal")
+        .path("enum")
+        .path("type")
+        .asText(),
       "fixture.features.lamp.product.Phase"
     )
     assertEquals(
-      statePredicate.path("right").path("literal").path("enum").path("case").asText(),
+      statePredicate
+        .path("right")
+        .path("literal")
+        .path("enum")
+        .path("case")
+        .asText(),
       "dark"
     )
 
@@ -173,15 +224,22 @@ class WitnessFixtures extends munit.FunSuite:
   )
   private lazy val jar: Path =
     val sources = Files.createDirectories(scratch.resolve("sources"))
-    val stream = Files.newDirectoryStream(tools.directory.resolve(stored), "*.scala")
+    val stream =
+      Files.newDirectoryStream(tools.directory.resolve(stored), "*.scala")
     try
       for file <- stream.asScala do
         Files.writeString(
           sources.resolve(file.getFileName),
           Files
             .readString(file)
-            .replace("../../../build/model-scala.jar", build.resolve("model-scala.jar").toString)
-            .replace("../../../build/api-scalapb.jar", build.resolve("api-scalapb.jar").toString)
+            .replace(
+              "../../../build/model-scala.jar",
+              build.resolve("model-scala.jar").toString
+            )
+            .replace(
+              "../../../build/api-scalapb.jar",
+              build.resolve("api-scalapb.jar").toString
+            )
         ): Unit
     finally stream.close()
     val out = scratch.resolve("witness.jar")
@@ -216,7 +274,9 @@ class WitnessFixtures extends munit.FunSuite:
     new com.fasterxml.jackson.databind.ObjectMapper()
       .readTree(Files.readString(scratch.resolve(s"$name.json")))
 
-  test("witness roots lift machine, derived, composition, list and section declarations"):
+  test(
+    "witness roots lift machine, derived, composition, list and section declarations"
+  ):
     val lifted = model(
       "positive",
       Seq(
@@ -241,13 +301,18 @@ class WitnessFixtures extends munit.FunSuite:
       assertEquals(query.path(kind).path("machine").asText(), "subject")
       assertEquals(query.path(kind).path("name").asText(), "discovered")
     for kind <- Seq("properties", "scenarios") do
-      assertEquals(section.path(kind).get(0).path("name").asText(), "discovered")
+      assertEquals(
+        section.path(kind).get(0).path("name").asText(),
+        "discovered"
+      )
     assertEquals(query.path("limits").path("name").asText(), "discovered")
     assertEquals(query.path("limits").path("steps").asInt(), 2)
     assertEquals(query.path("limits").path("actions").asInt(), 2)
     assertEquals(query.path("limits").path("search").asInt(), 512)
 
-  test("witness modifiers preserve live, exploration, bounds and total in either order"):
+  test(
+    "witness modifiers preserve live, exploration, bounds and total in either order"
+  ):
     val original = model("modifiers", root("machine"))
     val reordered = model("reorderedModifiers", root("machineReordered"))
     for field <- Seq(
@@ -268,9 +333,56 @@ class WitnessFixtures extends munit.FunSuite:
       )
     assertEquals(original.path("queries").get(0).path("total").asText(), "4")
 
+  test(
+    "conditional recorded facts lower to ordered ordinary fact/state clauses"
+  ):
+    val lifted = model("conditional", root("conditional"))
+    val core = model("conditionalCore", root("conditionalCore"))
+    val member = model("conditionalMember", root("conditionalMember"))
+    assertEquals(
+      lifted.path("queries").get(0).path("property"),
+      core.path("queries").get(0).path("property")
+    )
+    assertEquals(
+      lifted.path("scenarios").get(0).path("actions"),
+      core.path("scenarios").get(0).path("actions")
+    )
+    val fn = lifted
+      .path("functions")
+      .elements()
+      .asScala
+      .find(_.path("name").asText() == "subject.property.conditional")
+      .get
+    assertEquals(fn.path("params").size(), 1)
+    assert(fn.path("body").toString.contains("OP_OR"), fn.toString)
+    assert(fn.path("body").toString.contains("other"), fn.toString)
+    assert(
+      member.path("functions").toString.contains("right_other"),
+      member.toString
+    )
+    assert(
+      !member.path("functions").toString.contains("left_other"),
+      member.toString
+    )
+
+  test("absent primary and subsequent fact guards lift without positive duplicate credit"):
+    val absent = model("absent", root("absent"))
+    val core = model("absentCore", root("absentCore"))
+    assertEquals(absent.path("queries").get(0).path("property"), core.path("queries").get(0).path("property"))
+    assertEquals(absent.path("properties").get(0).path("whenClass"), core.path("properties").get(0).path("whenClass"))
+    assert(absent.path("functions").toString.contains("OP_NOT"), absent.toString)
+    val guarded = model("guarded", root("guarded"))
+    assert(guarded.path("functions").toString.contains("OP_NOT"), guarded.toString)
+    val member = model("absentMember", root("absentMember"))
+    assert(member.path("functions").toString.contains("right_completed"), member.toString)
+    val distinct = model("capabilityAbsent", "fixture.witness.Capable$.capabilities", "fixture.witness.Capabilities$package$.capabilityAbsent")
+    assertEquals(distinct.path("queries").size(), 2)
+
   test("witness source refusals retain the authored positions"):
     val authored =
-      Files.readAllLines(tools.directory.resolve(stored + "WitnessRejects.scala")).asScala
+      Files
+        .readAllLines(tools.directory.resolve(stored + "WitnessRejects.scala"))
+        .asScala
     for (name, message) <- Seq(
         "repeatedTail" -> "last class",
         "unnamed" -> "no val",
@@ -290,7 +402,10 @@ class WitnessFixtures extends munit.FunSuite:
     do
       val ran = lift(name, s"fixture.witness.WitnessRejects$$package$$.$name")
       assertNotEquals(ran.exit, 0, ran.output)
-      assert(ran.output.contains(s"lift: ${stored}WitnessRejects.scala:"), ran.output)
+      assert(
+        ran.output.contains(s"lift: ${stored}WitnessRejects.scala:"),
+        ran.output
+      )
       assert(ran.output.contains(message), ran.output)
       val start = authored.indexWhere(_.startsWith("val " + name))
       assert(start >= 0, name)
@@ -304,14 +419,18 @@ class WitnessFixtures extends munit.FunSuite:
       )
       if name.startsWith("repeated") then
         val (key, positions) = name match
-          case "repeatedTail"     => ("fixture.witness.worker.finish-first", "2 and 3")
+          case "repeatedTail" =>
+            ("fixture.witness.worker.finish-first", "2 and 3")
           case "repeatedComposed" => ("left_finish-first", "1 and 2")
           case "repeatedSync"     => ("both", "1 and 2")
           case _                  => ("finishBoth-first", "1 and 2")
         assert(ran.output.contains("last class " + key), ran.output)
         assert(ran.output.contains("path positions " + positions), ran.output)
         val positioned = s"${stored}WitnessRejects.scala:"
-        assert(ran.output.sliding(positioned.length).count(_ == positioned) >= 3, ran.output)
+        assert(
+          ran.output.sliding(positioned.length).count(_ == positioned) >= 3,
+          ran.output
+        )
         val token = name match
           case "repeatedTail"     => "finish(Input.first)"
           case "repeatedComposed" => "Together.own("
@@ -324,7 +443,9 @@ class WitnessFixtures extends munit.FunSuite:
           )
         assertEquals(arguments.size, 2, name)
         assert(
-          ran.output.contains(s"at $positioned${arguments.head} and $positioned${arguments.last}"),
+          ran.output.contains(
+            s"at $positioned${arguments.head} and $positioned${arguments.last}"
+          ),
           ran.output
         )
 
@@ -336,26 +457,48 @@ class WitnessFixtures extends munit.FunSuite:
       )
     do
       for roots <- Seq(Seq(ordinary, witness), Seq(witness, ordinary)) do
-        val ran = lift(witness, roots.map(n => s"fixture.witness.WitnessRejects$$package$$.$n")*)
+        val ran = lift(
+          witness,
+          roots.map(n => s"fixture.witness.WitnessRejects$$package$$.$n")*
+        )
         assertNotEquals(ran.exit, 0, ran.output)
-        assert(ran.output.contains("both would share one Definition ID"), ran.output)
         assert(
-          ran.output.contains("here and at model/irgen/testdata/witness/WitnessRejects.scala:"),
+          ran.output.contains("both would share one Definition ID"),
+          ran.output
+        )
+        assert(
+          ran.output.contains(
+            "here and at model/irgen/testdata/witness/WitnessRejects.scala:"
+          ),
           ran.output
         )
         val source =
-          Files.readAllLines(tools.directory.resolve(stored + "WitnessRejects.scala")).asScala
+          Files
+            .readAllLines(
+              tools.directory.resolve(stored + "WitnessRejects.scala")
+            )
+            .asScala
         val declaration = ordinary match
           case "collisionPropertyQuery" => "collisionProperty"
           case "collisionScenarioQuery" => "collisionScenario"
           case _                        => "collisionNamedQuery: Query"
-        val original = source.indexWhere(_.startsWith("val " + declaration + " =")) + 1
+        val original =
+          source.indexWhere(_.startsWith("val " + declaration + " =")) + 1
         val start = source.indexWhere(_.startsWith("val " + witness + " ="))
-        val generated = source.indexWhere(_.contains("Subject.witness("), start) + 1
-        assert(ran.output.contains(s"${stored}WitnessRejects.scala:$original"), ran.output)
-        assert(ran.output.contains(s"${stored}WitnessRejects.scala:$generated"), ran.output)
+        val generated =
+          source.indexWhere(_.contains("Subject.witness("), start) + 1
+        assert(
+          ran.output.contains(s"${stored}WitnessRejects.scala:$original"),
+          ran.output
+        )
+        assert(
+          ran.output.contains(s"${stored}WitnessRejects.scala:$generated"),
+          ran.output
+        )
 
-  test("witness duplicates read generated capability triples with exact inputs and members"):
+  test(
+    "witness duplicates read generated capability triples with exact inputs and members"
+  ):
     for (owner, name) <- Seq(
         "Capable" -> "capabilityDuplicate",
         "CapableTogether" -> "capabilityMemberDuplicate"
@@ -368,7 +511,9 @@ class WitnessFixtures extends munit.FunSuite:
         assertNotEquals(ran.exit, 0, ran.output)
         assert(ran.output.contains("repeats capability Query"), ran.output)
         assert(
-          ran.output.contains("here and at model/irgen/testdata/witness/Capabilities.scala:"),
+          ran.output.contains(
+            "here and at model/irgen/testdata/witness/Capabilities.scala:"
+          ),
           ran.output
         )
     val lifted = model(
@@ -387,15 +532,21 @@ class WitnessFixtures extends munit.FunSuite:
     )
     assertEquals(alternative.path("queries").size(), 2)
 
-  test("witness default-start identity ignores only synthetic constructor positions"):
+  test(
+    "witness default-start identity ignores only synthetic constructor positions"
+  ):
     import io.temporal.server.api.umpire.v1 as ir
     def field(value: String) = ir.Expr().withLiteral(ir.Value().withText(value))
     def start(at: Int, values: Seq[String], stateType: String = "Joined") =
       ir.Expr()
         .withPosition(ir.Position("source.scala", at))
-        .withConstruct(ir.Construct(`type` = stateType, args = values.map(field)))
+        .withConstruct(
+          ir.Construct(`type` = stateType, args = values.map(field))
+        )
     val initial = start(1, Seq("open", "closed"))
-    assert(WitnessIdentity.sameDefaultStart(initial, start(9, Seq("open", "closed"))))
+    assert(
+      WitnessIdentity.sameDefaultStart(initial, start(9, Seq("open", "closed")))
+    )
     for different <- Seq(
         start(9, Seq("closed", "closed")),
         start(9, Seq("closed", "open")),
@@ -403,10 +554,16 @@ class WitnessFixtures extends munit.FunSuite:
       )
     do assert(!WitnessIdentity.sameDefaultStart(initial, different))
 
-  test("witness empty paths, missing records and foreign facts are compiler refusals"):
+  test(
+    "witness empty paths, missing records and foreign facts are compiler refusals"
+  ):
     val sources = Files.createDirectories(scratch.resolve("compiler"))
-    val from = tools.directory.resolve(stored + "compiler/CompilerRejects.scala")
-    Files.writeString(sources.resolve("CompilerRejects.scala"), Files.readString(from)): Unit
+    val from =
+      tools.directory.resolve(stored + "compiler/CompilerRejects.scala")
+    Files.writeString(
+      sources.resolve("CompilerRejects.scala"),
+      Files.readString(from)
+    ): Unit
     val ran = tools.scalaCli(
       Seq(
         "compile",
@@ -426,9 +583,13 @@ class WitnessFixtures extends munit.FunSuite:
     for line <- Seq(7, 8, 9, 12, 14) do
       assert(ran.output.contains(s"CompilerRejects.scala:$line:"), ran.output)
 
-  test("witness source placement shares the Query order without moving invariant triples"):
+  test(
+    "witness source placement shares the Query order without moving invariant triples"
+  ):
     val authored =
-      Files.readString(tools.directory.resolve(stored + "layout/placement/Placement.scala"))
+      Files.readString(
+        tools.directory.resolve(stored + "layout/placement/Placement.scala")
+      )
     for (name, source, refusal) <- Seq(
         ("placed", authored, None),
         (
@@ -449,7 +610,8 @@ class WitnessFixtures extends munit.FunSuite:
         )
       )
     do
-      val directory = Files.createDirectories(scratch.resolve(name).resolve("placement"))
+      val directory =
+        Files.createDirectories(scratch.resolve(name).resolve("placement"))
       Files.writeString(directory.resolve("Placement.scala"), source): Unit
       val out = scratch.resolve(name + ".jar")
       tools
@@ -489,7 +651,12 @@ class WitnessFixtures extends munit.FunSuite:
           val lifted = new com.fasterxml.jackson.databind.ObjectMapper()
             .readTree(Files.readString(scratch.resolve(name + ".json")))
           assertEquals(
-            lifted.path("queries").elements().asScala.map(_.path("form").asText()).toSet,
+            lifted
+              .path("queries")
+              .elements()
+              .asScala
+              .map(_.path("form").asText())
+              .toSet,
             Set("FORM_FIND", "FORM_VERIFY")
           )
         case Some(message) =>
@@ -497,9 +664,17 @@ class WitnessFixtures extends munit.FunSuite:
           assert(result.output.contains("Placement.scala:"), result.output)
           assert(result.output.contains(message), result.output)
 
-  test("exact-composed witness selectors match an independently derived complete class catalog"):
+  test(
+    "exact-composed witness selectors match an independently derived complete class catalog"
+  ):
     val lifted =
-      model("exact", root("composed"), root("distinctMembers"), root("sync"), root("distinctSync"))
+      model(
+        "exact",
+        root("composed"),
+        root("distinctMembers"),
+        root("sync"),
+        root("distinctSync")
+      )
     val inputs = Seq("first", "second")
     val own = for
       field <- Seq("left", "right"); action <- Seq("begin", "finish")
@@ -524,7 +699,8 @@ class WitnessFixtures extends munit.FunSuite:
       assertEquals(selector, "@exact-composed-class:" + expected(name))
       val key = selector.stripPrefix("@exact-composed-class:")
       assert(catalogs(property.path("machine").asText())(key))
-      val legacy = catalogs(property.path("machine").asText()).map(_.takeWhile(_ != '-'))
+      val legacy =
+        catalogs(property.path("machine").asText()).map(_.takeWhile(_ != '-'))
       assert(!legacy(selector))
     for (source, key) <- Seq(
         "composedWrongInput" -> "left_finish-second",
@@ -532,12 +708,17 @@ class WitnessFixtures extends munit.FunSuite:
       )
     do
       val seeded = model(source, root(source))
-      val selected = seeded.path("properties").get(0).path("whenAction").asText()
+      val selected =
+        seeded.path("properties").get(0).path("whenAction").asText()
       assertEquals(selected, "@exact-composed-class:" + key)
       assertNotEquals(selected, "@exact-composed-class:" + expected("composed"))
 
-  test("witness and ordinary core twins preserve their complete declaration metadata"):
-    val source = Files.readAllLines(tools.directory.resolve(stored + "Witnesses.scala")).asScala
+  test(
+    "witness and ordinary core twins preserve their complete declaration metadata"
+  ):
+    val source = Files
+      .readAllLines(tools.directory.resolve(stored + "Witnesses.scala"))
+      .asScala
     def line(declaration: String, fragment: String = ""): Int =
       val start = source.indexWhere(_.startsWith("val " + declaration + " "))
       assert(start >= 0, declaration)
@@ -546,10 +727,16 @@ class WitnessFixtures extends munit.FunSuite:
         val next = source.indexWhere(_.startsWith("val "), start + 1)
         val end = if next < 0 then source.size else next
         val matches =
-          source.zipWithIndex.slice(start, end).filter((text, _) => text.contains(fragment))
+          source.zipWithIndex
+            .slice(start, end)
+            .filter((text, _) => text.contains(fragment))
         assertEquals(matches.size, 1, declaration + ": " + fragment)
         matches.head._2 + 1
-    def compare(witness: String, core: String, spans: Seq[(String, Int, Int)]): Unit =
+    def compare(
+        witness: String,
+        core: String,
+        spans: Seq[(String, Int, Int)]
+    ): Unit =
       val actual = model(witness + "Twin", root(witness))
       val expected = model(witness + "Core", root(core))
       assertEquals(actual.path("source").asText(), "model: " + root(witness))
@@ -558,7 +745,11 @@ class WitnessFixtures extends munit.FunSuite:
         .put("source", "model: " + root(core)): Unit
       for (pointer, from, to) <- spans do
         val position = actual.at(pointer)
-        assertEquals(position.path("file").asText(), stored + "Witnesses.scala", pointer)
+        assertEquals(
+          position.path("file").asText(),
+          stored + "Witnesses.scala",
+          pointer
+        )
         assertEquals(position.path("line").asInt(), from, pointer)
         assertEquals(expected.at(pointer).path("line").asInt(), to, pointer)
         position
@@ -574,18 +765,26 @@ class WitnessFixtures extends munit.FunSuite:
       "machine",
       "core",
       Seq(
-        (function + "/position", machine, line("coreProperty")),
+        (function + "/position", machine, line("coreProperty", "Subject.property(")),
         (function + "/body/position", machine, body),
         (function + "/body/binary/left/position", machine, body),
         (function + "/body/binary/left/binary/left/position", records, body),
         (function + "/body/binary/left/binary/right/position", machine, body),
-        (function + "/body/binary/left/binary/right/field/base/position", machine, body),
+        (
+          function + "/body/binary/left/binary/right/field/base/position",
+          machine,
+          body
+        ),
         (function + "/body/binary/right/position", ends, body),
         (function + "/body/binary/right/call/args/0/position", machine, body),
-        (function + "/body/binary/right/call/args/0/field/base/position", machine, body),
-        ("/properties/0/position", machine, line("coreProperty")),
-        ("/scenarios/0/position", machine, line("coreScenario")),
-        ("/queries/0/position", machine, line("core:"))
+        (
+          function + "/body/binary/right/call/args/0/field/base/position",
+          machine,
+          body
+        ),
+        ("/properties/0/position", machine, line("coreProperty", "Subject.property(")),
+        ("/scenarios/0/position", machine, line("coreScenario", "Subject.scenario(")),
+        ("/queries/0/position", machine, line("core:", "query("))
       )
     )
     val composed = line("composed")
@@ -596,13 +795,21 @@ class WitnessFixtures extends munit.FunSuite:
       Seq(
         (function + "/position", composed, line("composedProperty", ".when(")),
         (function + "/body/position", composed, composedBody),
-        (function + "/body/binary/left/position", line("composed", ".records("), composedBody),
+        (
+          function + "/body/binary/left/position",
+          line("composed", ".records("),
+          composedBody
+        ),
         (function + "/body/binary/right/position", composed, composedBody),
-        (function + "/body/binary/right/field/base/position", composed, composedBody),
+        (
+          function + "/body/binary/right/field/base/position",
+          composed,
+          composedBody
+        ),
         ("/properties/0/position", composed, line("composedProperty")),
         ("/scenarios/0/position", composed, line("composedScenario")),
         ("/scenarios/0/start/position", composed, line("composedScenario")),
-        ("/queries/0/position", composed, line("composedCore:"))
+        ("/queries/0/position", composed, line("composedCore:", "query("))
       )
     )
 
@@ -619,15 +826,22 @@ class ActivityHeartbeatFixtures extends munit.FunSuite:
 
   private lazy val fixtureJar: Path =
     val sources = Files.createDirectories(scratch.resolve("sources"))
-    val stream = Files.newDirectoryStream(tools.directory.resolve(stored), "*.scala")
+    val stream =
+      Files.newDirectoryStream(tools.directory.resolve(stored), "*.scala")
     try
       for file <- stream.asScala do
         Files.writeString(
           sources.resolve(file.getFileName),
           Files
             .readString(file)
-            .replace("../../../../build/model-scala.jar", build.resolve("model-scala.jar").toString)
-            .replace("../../../../build/api-scalapb.jar", build.resolve("api-scalapb.jar").toString)
+            .replace(
+              "../../../../build/model-scala.jar",
+              build.resolve("model-scala.jar").toString
+            )
+            .replace(
+              "../../../../build/api-scalapb.jar",
+              build.resolve("api-scalapb.jar").toString
+            )
         )
     finally stream.close()
     val jar = scratch.resolve("heartbeat.jar")
@@ -660,7 +874,10 @@ class ActivityHeartbeatFixtures extends munit.FunSuite:
   test(
     "external settlement references and publication bind without a timer or a learned-kind escape"
   ):
-    val result = lift("fixture.heartbeat.ExternalBindings", "fixture.heartbeat.ScheduledBindings")
+    val result = lift(
+      "fixture.heartbeat.ExternalBindings",
+      "fixture.heartbeat.ScheduledBindings"
+    )
     assertEquals(result.exit, 0, result.output)
     val model = new com.fasterxml.jackson.databind.ObjectMapper()
       .readTree(Files.readString(scratch.resolve("out.json")))
@@ -682,7 +899,10 @@ class ActivityHeartbeatFixtures extends munit.FunSuite:
     assertEquals(binding.path("held").asText(), "external-held")
     assertEquals(binding.path("answer").asText(), "external-answer")
     assertEquals(binding.path("settlement").asText(), "external-terminal")
-    assertEquals(binding.path("cleanup").path("id").asText(), "external-cleanup")
+    assertEquals(
+      binding.path("cleanup").path("id").asText(),
+      "external-cleanup"
+    )
     assertEquals(binding.path("cleanup").path("regardless").asBoolean(), true)
     assertEquals(external.path("learned").size(), 0)
     assertEquals(external.path("serverSteps").size(), 0)
@@ -693,15 +913,16 @@ class ActivityHeartbeatFixtures extends munit.FunSuite:
       controllerCommands(1).path("awaitActivityPublication").asText(),
       "pending-activity"
     )
-    val pending = scripts(1).path("items").get(0).path("command").path("attemptWithheld")
+    val pending =
+      scripts(1).path("items").get(0).path("command").path("attemptWithheld")
     assertEquals(pending.path("mode").asText(), "WITHHOLDING_MODE_SDK_PENDING")
     assertEquals(pending.path("externalSettlement").asText(), "external-answer")
     val scheduled = realizations("scheduledBindings")
     assertEquals(scheduled.path("scripts").size(), 1)
     val scheduledBasis = scheduled.path("externalSettlements").get(0)
     assertEquals(scheduledBasis.path("answer").asText(), "scheduled-answer")
-    for absent <- Seq("activity", "attempt", "pending", "held", "requestCancel") do
-      assert(!scheduledBasis.has(absent), absent)
+    for absent <- Seq("activity", "attempt", "pending", "held", "requestCancel")
+    do assert(!scheduledBasis.has(absent), absent)
 
   test("controller-only completion refuses a typed failure method and request"):
     val result = tools.scalaCli(
@@ -713,10 +934,18 @@ class ActivityHeartbeatFixtures extends munit.FunSuite:
     )
     assertNotEquals(result.exit, 0)
     assert(result.output.contains("Wrong.scala:"), result.output)
-    assert(result.output.contains("RespondActivityTaskFailedByIdRequest"), result.output)
-    assert(result.output.contains("RespondActivityTaskCompletedByIdRequest"), result.output)
+    assert(
+      result.output.contains("RespondActivityTaskFailedByIdRequest"),
+      result.output
+    )
+    assert(
+      result.output.contains("RespondActivityTaskCompletedByIdRequest"),
+      result.output
+    )
 
-  test("deadline basis comes from the selected request field, not the input name"):
+  test(
+    "deadline basis comes from the selected request field, not the input name"
+  ):
     val result = lift(
       "fixture.heartbeat.FieldBasis",
       "fixture.heartbeat.HeartbeatBasis",
@@ -748,7 +977,9 @@ class ActivityHeartbeatFixtures extends munit.FunSuite:
       )
     )
 
-  test("unknown timeout basis and withholding mode are refused at their declarations"):
+  test(
+    "unknown timeout basis and withholding mode are refused at their declarations"
+  ):
     val storedEnums = "model/irgen/testdata/realizationRefusals/enumRefusals/"
     val jar = scratch.resolve("enums.jar")
     tools
@@ -780,13 +1011,22 @@ class ActivityHeartbeatFixtures extends munit.FunSuite:
         )
       )
       assertNotEquals(result.exit, 0)
-      val refusal = result.output.linesIterator.filter(_.startsWith("lift:")).toSeq
+      val refusal =
+        result.output.linesIterator.filter(_.startsWith("lift:")).toSeq
       assertEquals(refusal.size, 1, result.output)
-      assert(refusal.head.startsWith(s"lift: ${storedEnums}Refusals.scala:"), result.output)
-      assert(refusal.head.endsWith(s"unknown is no $enumName of the IR"), result.output)
+      assert(
+        refusal.head.startsWith(s"lift: ${storedEnums}Refusals.scala:"),
+        result.output
+      )
+      assert(
+        refusal.head.endsWith(s"unknown is no $enumName of the IR"),
+        result.output
+      )
       assert(!Files.exists(scratch.resolve(s"$root.json")))
 
-  test("heartbeat details and both withholding modes retain their distinct wire meanings"):
+  test(
+    "heartbeat details and both withholding modes retain their distinct wire meanings"
+  ):
     val result = lift("fixture.heartbeat.Commands")
     assertEquals(result.exit, 0, result.output)
     val model = new com.fasterxml.jackson.databind.ObjectMapper()
@@ -851,13 +1091,20 @@ class ActivityHeartbeatFixtures extends munit.FunSuite:
       commands(2).path("attemptWithheld").path("mode").asText(),
       "WITHHOLDING_MODE_SDK_PENDING"
     )
-    val hints = realization.path("behavior").path("visibility").elements().asScala.toSeq
+    val hints =
+      realization.path("behavior").path("visibility").elements().asScala.toSeq
     val heartbeat = hints.filter(
       _.path("cause").asText() == "CAUSE_KIND_ACTIVITY_HEARTBEAT"
     )
     assertEquals(heartbeat.size, 1)
-    assertEquals(heartbeat.head.path("eventuallyWithin").path("interval").asText(), "0.250s")
-    assertEquals(heartbeat.head.path("eventuallyWithin").path("atMost").asText(), "2s")
+    assertEquals(
+      heartbeat.head.path("eventuallyWithin").path("interval").asText(),
+      "0.250s"
+    )
+    assertEquals(
+      heartbeat.head.path("eventuallyWithin").path("atMost").asText(),
+      "2s"
+    )
 
 class ExpectationFixtures extends munit.FunSuite:
   override val munitTimeout: Duration = 5.minutes
@@ -871,20 +1118,29 @@ class ExpectationFixtures extends munit.FunSuite:
     )
   private lazy val fixtureJar: Path =
     val sources = Files.createDirectories(scratch.resolve("sources"))
-    val stream = Files.newDirectoryStream(tools.directory.resolve(stored), "*.scala")
+    val stream =
+      Files.newDirectoryStream(tools.directory.resolve(stored), "*.scala")
     try
       for file <- stream.asScala do
         Files.writeString(
           sources.resolve(file.getFileName),
           Files
             .readString(file)
-            .replace("../../../build/model-scala.jar", build.resolve("model-scala.jar").toString)
-            .replace("../../../build/api-scalapb.jar", build.resolve("api-scalapb.jar").toString)
+            .replace(
+              "../../../build/model-scala.jar",
+              build.resolve("model-scala.jar").toString
+            )
+            .replace(
+              "../../../build/api-scalapb.jar",
+              build.resolve("api-scalapb.jar").toString
+            )
         )
     finally stream.close()
     Files.writeString(
       sources.resolve("Realizations.scala"),
-      Files.readString(tools.directory.resolve("model/irgen/testdata/lifts/Realizations.scala"))
+      Files.readString(
+        tools.directory.resolve("model/irgen/testdata/lifts/Realizations.scala")
+      )
     ): Unit
     val jar = scratch.resolve("expectations.jar")
     tools
@@ -903,7 +1159,8 @@ class ExpectationFixtures extends munit.FunSuite:
       .orFail(): Unit
     jar
 
-  private def root(name: String) = "fixture.expectations.Expectations$package$." + name
+  private def root(name: String) =
+    "fixture.expectations.Expectations$package$." + name
   private def lift(name: String, roots: String*): Ran = InProcess.lift(
     tools.directory,
     Seq(
@@ -917,24 +1174,33 @@ class ExpectationFixtures extends munit.FunSuite:
     assertEquals(result.exit, 0, result.output)
     new com.fasterxml.jackson.databind.ObjectMapper()
       .readTree(Files.readString(scratch.resolve(s"$name.json")))
-  private def query(name: String) = model(name, root(name)).path("queries").get(0)
+  private def query(name: String) =
+    model(name, root(name)).path("queries").get(0)
   private def authoredLine(needle: String, after: String) =
-    val lines = Files.readAllLines(tools.directory.resolve(stored + "Expectations.scala")).asScala
+    val lines = Files
+      .readAllLines(tools.directory.resolve(stored + "Expectations.scala"))
+      .asScala
     val start = lines.indexWhere(_.contains(needle))
     assert(start >= 0, needle)
     val offset = lines.drop(start).indexWhere(_.contains(after))
     assert(offset >= 0, after)
     start + offset + 1
 
-  test("expectation live and total retain triple and witness metadata in either order"):
+  test(
+    "expectation live and total retain triple and witness metadata in either order"
+  ):
     val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
-    val expectedLimits = mapper.readTree("""{"name":"one","steps":1,"actions":1,"search":32}""")
+    val expectedLimits =
+      mapper.readTree("""{"name":"one","steps":1,"actions":1,"search":32}""")
     val expectedSatisfied = mapper.readTree("""{
       "conformance":"CONFORMANCE_CONFORMANT", "property":"OUTCOME_SATISFIED",
       "contract":"OUTCOME_SATISFIED", "disposition":"DISPOSITION_COMPLETED",
       "cleanup":"CLEANUP_SUCCEEDED"
     }""")
-    val triples = model("triples", Seq("modelOnly", "liveThenTotal", "totalThenLive").map(root)*)
+    val triples = model(
+      "triples",
+      Seq("modelOnly", "liveThenTotal", "totalThenLive").map(root)*
+    )
       .path("queries")
       .elements()
       .asScala
@@ -962,7 +1228,10 @@ class ExpectationFixtures extends munit.FunSuite:
       assertEquals(q.path("limits"), expectedLimits)
       assertEquals(q.path("expectedRun"), expectedSatisfied)
       for kind <- Seq("property", "scenario") do
-        assertEquals(q.path(kind).path("name").asText(), q.path("name").asText())
+        assertEquals(
+          q.path(kind).path("name").asText(),
+          q.path("name").asText()
+        )
         assertEquals(q.path(kind).path("machine").asText(), "subject")
     assertEquals(first.path("expectedRun"), second.path("expectedRun"))
     assertEquals(first.path("limits"), second.path("limits"))
@@ -971,7 +1240,9 @@ class ExpectationFixtures extends munit.FunSuite:
       triples.find(_.has("expectedRun")).get.path("expectedRun")
     )
 
-  test("expectation source explanations emit identical complete expectation IR"):
+  test(
+    "expectation source explanations emit identical complete expectation IR"
+  ):
     val first = query("first")
     val second = query("second")
     assertEquals(first.path("name").asText(), "explained")
@@ -980,7 +1251,10 @@ class ExpectationFixtures extends munit.FunSuite:
     assertEquals(first.path("expectedRun"), second.path("expectedRun"))
     val expected = first.path("expectedRun")
     assertEquals(expected.path("monitors").size(), 1)
-    assertEquals(expected.path("monitors").get(0).path("reason").asText(), "REASON_NEVER_EVALUATED")
+    assertEquals(
+      expected.path("monitors").get(0).path("reason").asText(),
+      "REASON_NEVER_EVALUATED"
+    )
     assert(!expected.toString.contains("because"))
     assert(!expected.toString.contains("the monitor"))
     val complete = query("completeFirst")
@@ -988,7 +1262,8 @@ class ExpectationFixtures extends munit.FunSuite:
     assertEquals(complete.path("name"), twin.path("name"))
     assertEquals(complete.has("expectedRun"), twin.has("expectedRun"))
     assertEquals(complete.path("expectedRun"), twin.path("expectedRun"))
-    val expectedComplete = new com.fasterxml.jackson.databind.ObjectMapper().readTree("""{
+    val expectedComplete =
+      new com.fasterxml.jackson.databind.ObjectMapper().readTree("""{
       "conformance": "CONFORMANCE_INCONCLUSIVE",
       "property": "OUTCOME_INCONCLUSIVE",
       "contract": "OUTCOME_VIOLATED",
@@ -1002,7 +1277,9 @@ class ExpectationFixtures extends munit.FunSuite:
     assertEquals(complete.path("expectedRun"), expectedComplete)
     assert(!complete.path("expectedRun").toString.contains("because"))
 
-  test("expectation existing monitor declarations lift by value and name alike"):
+  test(
+    "expectation existing monitor declarations lift by value and name alike"
+  ):
     val queries = model(
       "existingMonitors",
       "fixture.realizations.Realizations$package$.heldByValue",
@@ -1024,7 +1301,9 @@ class ExpectationFixtures extends munit.FunSuite:
       List("opensOnce", "staysOpen")
     )
 
-  test("expectation missing blank and whitespace explanations refuse with the authored Query"):
+  test(
+    "expectation missing blank and whitespace explanations refuse with the authored Query"
+  ):
     val results = Seq(
       "missing",
       "empty",
@@ -1039,44 +1318,66 @@ class ExpectationFixtures extends munit.FunSuite:
     ).map(name => name -> lift(name, root(name)))
     assert(
       results.forall(_._2.exit != 0),
-      results.map((name, result) => s"$name exited ${result.exit}").mkString(", ")
+      results
+        .map((name, result) => s"$name exited ${result.exit}")
+        .mkString(", ")
     )
     for (name, result) <- results do
       assert(result.output.contains(s"$name's live expectation"), result.output)
       assert(result.output.contains("says no reason why"), result.output)
       val line = name match
-        case "monitorMissing" => authoredLine("val monitorMissing", "MonitorExpectation(")
+        case "monitorMissing" =>
+          authoredLine("val monitorMissing", "MonitorExpectation(")
         case "monitorEmpty" | "monitorWhitespace" | "monitorUnicode" =>
           authoredLine("def watched", "MonitorExpectation(")
         case "missing" | "contractMissing" | "witnessMissing" =>
           authoredLine(s"val $name =", "RunExpectation(")
         case _ => authoredLine(s"val $name =", ".live(")
-      assert(result.output.contains(s"lift: ${stored}Expectations.scala:$line:"), result.output)
+      assert(
+        result.output.contains(s"lift: ${stored}Expectations.scala:$line:"),
+        result.output
+      )
       assert(!Files.exists(scratch.resolve(s"$name.json")))
 
-  test("expectation capability helpers require reasons and preserve live metadata"):
+  test(
+    "expectation capability helpers require reasons and preserve live metadata"
+  ):
     val results =
-      Seq("MissingCapability", "EmptyCapability", "WhitespaceCapability", "UnicodeCapability")
+      Seq(
+        "MissingCapability",
+        "EmptyCapability",
+        "WhitespaceCapability",
+        "UnicodeCapability"
+      )
         .map(name => name -> lift(name, s"fixture.expectations.$name$$.capabilities"))
     assert(
       results.forall(_._2.exit != 0),
-      results.map((name, result) => s"$name exited ${result.exit}").mkString(", ")
+      results
+        .map((name, result) => s"$name exited ${result.exit}")
+        .mkString(", ")
     )
     for (name, result) <- results do
       val owner = s"${name.head.toLower}${name.tail}"
-      assert(result.output.contains(s"$owner.closes's live expectation"), result.output)
+      assert(
+        result.output.contains(s"$owner.closes's live expectation"),
+        result.output
+      )
       assert(result.output.contains("says no reason why"), result.output)
       val line = if name == "MissingCapability" then
         authoredLine(s"object $name", "RunExpectation(")
       else authoredLine(s"object $name", "inconclusive(")
-      assert(result.output.contains(s"lift: ${stored}Expectations.scala:$line:"), result.output)
+      assert(
+        result.output.contains(s"lift: ${stored}Expectations.scala:$line:"),
+        result.output
+      )
     val helper = query("helperValid")
-    val capability = model("capability", "fixture.expectations.ValidCapability$.capabilities")
-      .path("queries")
-      .elements()
-      .asScala
-      .find(_.has("expectedRun"))
-      .get
+    val capability =
+      model("capability", "fixture.expectations.ValidCapability$.capabilities")
+        .path("queries")
+        .elements()
+        .asScala
+        .find(_.has("expectedRun"))
+        .get
     assertEquals(helper.path("expectedRun"), capability.path("expectedRun"))
     assertEquals(capability.path("form").asText(), "FORM_FIND")
     assertEquals(capability.path("name").asText(), "validCapability.closes")
@@ -1097,7 +1398,10 @@ class Fixtures extends munit.FunSuite:
   // Each run builds in a directory of its own under the ignored model/build/history, which is kept
   // for inspection: nothing is deleted, so another process's build state is never removed.
   private lazy val scratch =
-    Files.createTempDirectory(Files.createDirectories(build.resolve("history")), "lifter.")
+    Files.createTempDirectory(
+      Files.createDirectories(build.resolve("history")),
+      "lifter."
+    )
   private def lifted(name: String) = scratch.resolve(s"$name.json")
 
   // Every build and lifter JVM holds one of these while it runs, so the tests run side by side
@@ -1111,7 +1415,9 @@ class Fixtures extends munit.FunSuite:
   // A test that builds or lifts is started in beforeAll, after the fixtures' lifts, and runs beside
   // the others; the test awaits it, so its assertions and its failure stay its own.
   private val started = mutable.ArrayBuffer.empty[() => Unit]
-  private def concurrently(name: String)(body: => Unit)(using munit.Location): Unit =
+  private def concurrently(name: String)(body: => Unit)(using
+      munit.Location
+  ): Unit =
     lazy val running = Future(blocking(body))
     started += (() => running: Unit)
     test(name)(Await.result(running, munitTimeout))
@@ -1130,7 +1436,10 @@ class Fixtures extends munit.FunSuite:
           Files
             .readString(from)
             .replace("../../../build/model-scala.jar", modelJar.toString)
-            .replace("../../../build/api-scalapb.jar", build.resolve("api-scalapb.jar").toString)
+            .replace(
+              "../../../build/api-scalapb.jar",
+              build.resolve("api-scalapb.jar").toString
+            )
         )
     finally stream.close()
     to
@@ -1140,19 +1449,36 @@ class Fixtures extends munit.FunSuite:
 
   // The lines of the stored files at which the fixture's build fails, as `<file>:<line>:<column>`.
   private def refusals(fixture: String): Seq[String] =
-    val built = bounded(tools.scalaCli(Seq("compile", materialize(fixture).toString)))
+    val built = bounded(
+      tools.scalaCli(Seq("compile", materialize(fixture).toString))
+    )
     assert(built.failed, s"model/irgen/testdata/$fixture built")
     val at = """\[error\] \S*/([^/\s:]+\.scala):(\d+):(\d+)""".r
     built.errors.collect { case at(file, line, column) =>
-      assert(Files.isRegularFile(testdata.resolve(fixture).resolve(file)), built.output)
+      assert(
+        Files.isRegularFile(testdata.resolve(fixture).resolve(file)),
+        built.output
+      )
       s"$file:$line:$column"
     }
 
-  private def packaged(name: String, sources: Path, options: Seq[String] = Nil): Path =
+  private def packaged(
+      name: String,
+      sources: Path,
+      options: Seq[String] = Nil
+  ): Path =
     val jar = scratch.resolve(s"$name.jar")
     bounded(
       tools.scalaCli(
-        Seq("--power", "package", "--library", sources.toString, "-f", "-o", jar.toString) ++
+        Seq(
+          "--power",
+          "package",
+          "--library",
+          sources.toString,
+          "-f",
+          "-o",
+          jar.toString
+        ) ++
           options
       )
     ).orFail(): Unit
@@ -1212,7 +1538,9 @@ class Fixtures extends munit.FunSuite:
     // twins (lifts/StatusFacts.scala).
     "statusFacts" -> Seq("Derived", "Written").map(o => s"fixture.statusfacts.$o"),
     // fn-136.1, fn-136.4: role tests beside the case sets they stand for (lifts/Roles.scala).
-    "roles" -> Seq("Roled", "Listed", "Shortened", "Written").map("fixture.roles." + _),
+    "roles" -> Seq("Roled", "Listed", "Shortened", "Written").map(
+      "fixture.roles." + _
+    ),
     "captured" -> Seq(
       "queries",
       "diskQueries",
@@ -1222,11 +1550,14 @@ class Fixtures extends munit.FunSuite:
       "PutOnly",
       "durableEventually"
     ).map(r =>
-      if r.head.isUpper then s"fixture.captured.$r" else s"fixture.captured.Captured$$package$$.$r"
+      if r.head.isUpper then s"fixture.captured.$r"
+      else s"fixture.captured.Captured$$package$$.$r"
     ),
     // fn-118.2: API behavior hints and server steps (lifts/Hints.scala). The reader admits the
     // first and refuses each realization of the second at its line (tools/umpire/realization).
-    "hints" -> Seq("keptBehavior", "ownBehavior").map("fixture.hints.Hints$package$." + _),
+    "hints" -> Seq("keptBehavior", "ownBehavior").map(
+      "fixture.hints.Hints$package$." + _
+    ),
     // fn-126 decision 23: the objects that group actions, named after where they are declared
     // (lifts/Sections.scala).
     "sections" -> Seq("fixture.sections.Switch", "fixture.sections.Clapper"),
@@ -1250,7 +1581,11 @@ class Fixtures extends munit.FunSuite:
     )),
     // fn-139.1: machines on the shared outcomes, `rejects` beside its core spelling, a refinement
     // and a capability's `rejected` (lifts/Rejections.scala).
-    "rejections" -> (Seq("DoorProduct", "DoorSystem$.capabilities", "DoorSystem$.queries")
+    "rejections" -> (Seq(
+      "DoorProduct",
+      "DoorSystem$.capabilities",
+      "DoorSystem$.queries"
+    )
       .map("fixture.rejections." + _)),
     // fn-150: a composition's progress claims and the composed steps their assumptions make fair
     // (lifts/ComposedProgress.scala).
@@ -1339,7 +1674,8 @@ class Fixtures extends munit.FunSuite:
   )
 
   // The refusals of fn-120.2's unnamed branching: several results written without a choose.
-  private val unnamedRejects: Seq[String] = Seq("UnnamedList", "UnnamedJoin", "UnnamedInHelper")
+  private val unnamedRejects: Seq[String] =
+    Seq("UnnamedList", "UnnamedJoin", "UnnamedInHelper")
 
   // The refusals of fn-120.5's levels: a step made where no step function is, one per declaration
   // kind whose Scala type admits one (model/SEMANTICS.md, Levels).
@@ -1394,7 +1730,9 @@ class Fixtures extends munit.FunSuite:
 
   // The refusals of fn-133.6's realization objects, each an object of lifts/ScriptRejects.scala.
   private val realizationObjectRejects: Seq[String] =
-    Seq("Unordered", "Doubled", "Foreign", "Restated", "Replaced").map("fixture.scriptrejects." + _)
+    Seq("Unordered", "Doubled", "Foreign", "Restated", "Replaced").map(
+      "fixture.scriptrejects." + _
+    )
 
   // The refusals of fn-134.2's capabilities sections, each a machine's section
   // (lifts/CapabilitySectionRejects.scala).
@@ -1504,7 +1842,9 @@ class Fixtures extends munit.FunSuite:
     "pairedOwn",
     "unpairedSync",
     "noStep"
-  ).map("fixture.composedprogressrejects.ComposedProgressRejects$package$." + _) :+
+  ).map(
+    "fixture.composedprogressrejects.ComposedProgressRejects$package$." + _
+  ) :+
     "fixture.composedprogressrejects.AssumingFlow"
 
   // A root of lifts/Rejects.scala: a machine or composition object, or an object nested in one of its
@@ -1554,10 +1894,13 @@ class Fixtures extends munit.FunSuite:
     "Aliased",
     "Splatted",
     "Explained"
-  ).map(rejectsRoot) ++ (selectorRejects ++ patternRejects ++ inputRejects ++ totalRejects ++
-    choiceRejects ++ unnamedRejects ++ bundleRejects ++ defaultRejects ++ levelRejects).map(
+  ).map(
     rejectsRoot
-  ) ++ Seq(
+  ) ++ (selectorRejects ++ patternRejects ++ inputRejects ++ totalRejects ++
+    choiceRejects ++ unnamedRejects ++ bundleRejects ++ defaultRejects ++ levelRejects)
+    .map(
+      rejectsRoot
+    ) ++ Seq(
     // A name the compiler made up and a computed ok outcome, refused in objects of their own.
     "Anonymous$.anonymous",
     "ComputedOk$.ComputedOk"
@@ -1596,7 +1939,15 @@ class Fixtures extends munit.FunSuite:
     val jars = liftsJars
     (fixtures :+ ("rejects" -> rejected)).map { (name, roots) =>
       name -> Future(
-        blocking(lift((Seq(jars, modelClasspath.toString, lifted(name).toString) ++ roots)*))
+        blocking(
+          lift(
+            (Seq(
+              jars,
+              modelClasspath.toString,
+              lifted(name).toString
+            ) ++ roots)*
+          )
+        )
       )
     }.toMap
   private def ran(name: String): Ran = Await.result(lifts(name), munitTimeout)
@@ -1604,7 +1955,10 @@ class Fixtures extends munit.FunSuite:
   // The IR a fixture lifted to.
   private def ir(name: String): String =
     val lift = ran(name)
-    assert(!lift.failed, s"the $name fixture did not lift:\n${lift.diagnostics}")
+    assert(
+      !lift.failed,
+      s"the $name fixture did not lift:\n${lift.diagnostics}"
+    )
     Files.readString(lifted(name))
 
   // The waivers a fixture's capabilities sections wrote beside its IR.
@@ -1630,7 +1984,9 @@ class Fixtures extends munit.FunSuite:
       try stream.iterator.asScala.map(_.getFileName.toString).toList.sorted
       finally stream.close()
     held.diff(
-      fixtures.map(_._1 + ".json") ++ waived.map(_ + ".waivers.json") :+ "rejects.txt"
+      fixtures.map(_._1 + ".json") ++ waived.map(
+        _ + ".waivers.json"
+      ) :+ "rejects.txt"
     )
 
   // An update rewrites the expected files only once every fixture lifted, every rejected
@@ -1640,7 +1996,11 @@ class Fixtures extends munit.FunSuite:
     fixtures.foreach((name, _) => ir(name))
     waived.foreach(waivers)
     rejections(): Unit
-    assertEquals(leftOver(), Nil, s"${root.relativize(expected)} holds files no fixture lifts to")
+    assertEquals(
+      leftOver(),
+      Nil,
+      s"${root.relativize(expected)} holds files no fixture lifts to"
+    )
 
   private def expect(file: String, lifted: => String): Unit =
     val path = expected.resolve(file)
@@ -1665,7 +2025,9 @@ class Fixtures extends munit.FunSuite:
     lifts: Unit
     started.foreach(_())
 
-  concurrently("the build refuses a warning -Werror makes an error, at its line"):
+  concurrently(
+    "the build refuses a warning -Werror makes an error, at its line"
+  ):
     assertEquals(refusals("werror"), Seq("Steps.scala:21:58"))
 
   concurrently("the build refuses crossed types, at their lines"):
@@ -1700,7 +2062,9 @@ class Fixtures extends munit.FunSuite:
 
   // fn-126 R15: a machine object declares its init, its end and its rules, and a derived machine
   // has none of its own.
-  concurrently("the build refuses a machine object without init, end or rules, at its line"):
+  concurrently(
+    "the build refuses a machine object without init, end or rules, at its line"
+  ):
     assertEquals(
       refusals("objectForms").sorted,
       Seq(
@@ -1712,8 +2076,13 @@ class Fixtures extends munit.FunSuite:
     )
 
   // fn-133 R9: a realization object is typed by its machine (testdata/typedRealizations).
-  concurrently("the build refuses a realization object's evidence or status of another machine"):
-    assertEquals(refusals("typedRealizations").sorted, Seq("Typed.scala:16:46", "Typed.scala:25:3"))
+  concurrently(
+    "the build refuses a realization object's evidence or status of another machine"
+  ):
+    assertEquals(
+      refusals("typedRealizations").sorted,
+      Seq("Typed.scala:16:46", "Typed.scala:25:3")
+    )
 
   // fn-133.8: `.schema[T]` is retired with a migration diagnostic (testdata/retiredSchema).
   concurrently("the build refuses a retired schema, at its line"):
@@ -1721,7 +2090,9 @@ class Fixtures extends munit.FunSuite:
 
   // fn-139.7: `in(...)` is membership alone; rule cases use `when(...)`.
   concurrently("the build refuses a retired rule-case in with its replacement"):
-    val built = bounded(tools.scalaCli(Seq("compile", materialize("retiredRuleCase").toString)))
+    val built = bounded(
+      tools.scalaCli(Seq("compile", materialize("retiredRuleCase").toString))
+    )
     assert(built.failed, "model/irgen/testdata/retiredRuleCase built")
     assertEquals(
       built.errors.collect {
@@ -1734,7 +2105,9 @@ class Fixtures extends munit.FunSuite:
       built.output
     )
 
-  concurrently("the lifter refuses a compiled retired rule-case in with its replacement"):
+  concurrently(
+    "the lifter refuses a compiled retired rule-case in with its replacement"
+  ):
     val fixture = "retiredRuleCaseLifter"
     val jar = packaged("retired-rule-case-lifter", materialize(fixture))
     val out = lifted("retired-rule-case-lifter")
@@ -1745,7 +2118,10 @@ class Fixtures extends munit.FunSuite:
       "fixture.retiredrulecaselifter.Retired"
     )
     assert(result.failed, "the lifter accepted the retired rule-case in")
-    assert(!Files.exists(out), "the lifter wrote IR for the retired rule-case in")
+    assert(
+      !Files.exists(out),
+      "the lifter wrote IR for the retired rule-case in"
+    )
     val diagnostic = refused(result).mkString("\n")
     assert(diagnostic.contains("Retired.scala:30:"), diagnostic)
     assert(
@@ -1759,7 +2135,9 @@ class Fixtures extends munit.FunSuite:
   concurrently("the build refuses a non-finite state field, at its line"):
     assertEquals(refusals("nonfinite"), Seq("NonFinite.scala:5:47"))
 
-  concurrently("typed API declarations and direct constructors refuse mismatched roots"):
+  concurrently(
+    "typed API declarations and direct constructors refuse mismatched roots"
+  ):
     assertEquals(
       refusals("typedInvalid").sorted,
       Seq(
@@ -1790,7 +2168,9 @@ class Fixtures extends munit.FunSuite:
       ).sorted
     )
 
-  concurrently("a realization's reference by value to a missing declaration fails to compile"):
+  concurrently(
+    "a realization's reference by value to a missing declaration fails to compile"
+  ):
     assertEquals(
       refusals("referenceInvalid").sorted,
       Seq(
@@ -1805,7 +2185,9 @@ class Fixtures extends munit.FunSuite:
     )
 
   // fn-114 R3: each string-named or string-keyed form the DSL retired, written as it was.
-  concurrently("the retired string-named and string-keyed declaration forms do not compile"):
+  concurrently(
+    "the retired string-named and string-keyed declaration forms do not compile"
+  ):
     assertEquals(
       refusals("retiredNames").sorted,
       Seq(
@@ -1825,33 +2207,53 @@ class Fixtures extends munit.FunSuite:
       ).sorted
     )
 
-  concurrently("only the unknown projected origin admits a dynamic message root"):
+  concurrently(
+    "only the unknown projected origin admits a dynamic message root"
+  ):
     assertEquals(refusals("dynamicInvalid"), Seq("Invalid.scala:10:16"))
 
   // fn-118.2: a hint of a method the generated API lacks, or whose write, read, `when` or bound has
   // the wrong type, a hint built by its constructor, and a server step of no class.
-  concurrently("API behavior hints refuse unknown methods and mistyped arguments, at their lines"):
+  concurrently(
+    "API behavior hints refuse unknown methods and mistyped arguments, at their lines"
+  ):
     assertEquals(
       refusals("hintsInvalid").sorted,
       Seq(
         "Invalid.scala:22:20", // WorkflowServiceGrpc.METHOD_DESCRIBE_NOTHING
         "Invalid.scala:23:21", // "StartActivityExecution".visibleTo(...)
         "Invalid.scala:24:36", // start.visibleTo(DescribeActivityExecutionRequest, ...)
-        "Invalid.scala:27:66", // visibleTo(describe, WaitBound(100, 1000))
+        "Invalid.scala:27:76", // visibleTo(describe, WaitBound(100, 1000)): interval
+        "Invalid.scala:27:81", // its atMost
         "Invalid.scala:28:19", // Visibility(...)
+        "Invalid.scala:30:54", // cause bound: interval
+        "Invalid.scala:30:59", // its atMost
         "Invalid.scala:31:48", // boundedBy(Visible.atOnce)
         "Invalid.scala:34:30" // ServerStep(CauseKind.delivery, ...)
       ).sorted
     )
 
-  concurrently("retired string proto constructors refuse direct and helper-built names"):
+  concurrently(
+    "retired string proto constructors refuse direct and helper-built names"
+  ):
     val positions = refusals("retiredInvalid")
     assert(positions.size >= 12, positions.mkString(", "))
-    assert(positions.exists(_.startsWith("Invalid.scala:15:")), positions.mkString(", "))
-    assert(positions.exists(_.startsWith("Invalid.scala:16:")), positions.mkString(", "))
-    assert(positions.exists(_.startsWith("Invalid.scala:29:")), positions.mkString(", "))
+    assert(
+      positions.exists(_.startsWith("Invalid.scala:15:")),
+      positions.mkString(", ")
+    )
+    assert(
+      positions.exists(_.startsWith("Invalid.scala:16:")),
+      positions.mkString(", ")
+    )
+    assert(
+      positions.exists(_.startsWith("Invalid.scala:29:")),
+      positions.mkString(", ")
+    )
 
-  concurrently("typed protobuf constants refuse mismatched fields, values and forged carriers"):
+  concurrently(
+    "typed protobuf constants refuse mismatched fields, values and forged carriers"
+  ):
     assertEquals(
       refusals("typedProtoInvalid").sorted,
       Seq(
@@ -1874,20 +2276,30 @@ class Fixtures extends munit.FunSuite:
   // The typed selectors no live Model writes (lifts/Typed.scala); model/ir pins the rest.
   concurrently("typed paths and bound constants lift to their protobuf names"):
     val out = lifted("typed")
-    val roots = Seq("fixture.typed.Typed", "fixture.typed.Typed$package$.typedRealization")
-    val result = lift((Seq(liftsJars, modelClasspath.toString, out.toString) ++ roots)*)
+    val roots = Seq(
+      "fixture.typed.Typed",
+      "fixture.typed.Typed$package$.typedRealization"
+    )
+    val result =
+      lift((Seq(liftsJars, modelClasspath.toString, out.toString) ++ roots)*)
     assert(!result.failed, result.diagnostics)
     val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
     val model = mapper.readTree(Files.readString(out))
     val actions = model.path("actions")
     assertEquals(actions.size(), 1)
     // fn-133.8: an action names no carrier; the realization's binding derives it.
-    assert(actions.get(0).path("schemas").isMissingNode, actions.get(0).toPrettyString)
+    assert(
+      actions.get(0).path("schemas").isMissingNode,
+      actions.get(0).toPrettyString
+    )
     val realizations = model.path("realizations")
     assertEquals(realizations.size(), 1)
     val typed = realizations.get(0)
     val call = typed.at("/scripts/0/items/0/command/rpc")
-    assertEquals(call.at("/assign/0/target").asText(), "heartbeat_timeout.seconds")
+    assertEquals(
+      call.at("/assign/0/target").asText(),
+      "heartbeat_timeout.seconds"
+    )
     assertEquals(call.at("/assign/0/value/literal/number").asText(), "5")
     assertEquals(call.at("/reads/0/path").asText(), "run_id")
     assertEquals(
@@ -1895,7 +2307,10 @@ class Fixtures extends munit.FunSuite:
       "history.events[*].event_id"
     )
     // Through `Option.map` the optional message is selected, not indexed as repeated.
-    assertEquals(typed.at("/evidence/0/fields/0/path").asText(), "delivery_admission.delivery_id")
+    assertEquals(
+      typed.at("/evidence/0/fields/0/path").asText(),
+      "delivery_admission.delivery_id"
+    )
 
   test("typed repeated reads preserve bare paths"):
     val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
@@ -1912,11 +2327,16 @@ class Fixtures extends munit.FunSuite:
 
   // fn-112.10: a monitor of a Query's expected Run named by value, as by its name. Lifted apart
   // from the realizations fixture: no realization runs the watched door.
-  concurrently("a monitor expectation names its monitor by value as by its name"):
+  concurrently(
+    "a monitor expectation names its monitor by value as by its name"
+  ):
     val out = lifted("monitorExpectations")
     val roots =
-      Seq("heldByValue", "heldByName").map("fixture.realizations.Realizations$package$." + _)
-    val result = lift((Seq(liftsJars, modelClasspath.toString, out.toString) ++ roots)*)
+      Seq("heldByValue", "heldByName").map(
+        "fixture.realizations.Realizations$package$." + _
+      )
+    val result =
+      lift((Seq(liftsJars, modelClasspath.toString, out.toString) ++ roots)*)
     assert(!result.failed, result.diagnostics)
     val queries = new com.fasterxml.jackson.databind.ObjectMapper()
       .readTree(Files.readString(out))
@@ -1929,7 +2349,12 @@ class Fixtures extends munit.FunSuite:
       .path("expectedRun")
     val byValue = expected("heldByValue")
     assertEquals(
-      byValue.path("monitors").elements().asScala.map(_.path("name").asText()).toList,
+      byValue
+        .path("monitors")
+        .elements()
+        .asScala
+        .map(_.path("name").asText())
+        .toList,
       List("opensOnce", "staysOpen")
     )
     assertEquals(byValue.toPrettyString, expected("heldByName").toPrettyString)
@@ -1948,9 +2373,12 @@ class Fixtures extends munit.FunSuite:
   // The phase projection a machine mixes in, with explicit Phased type arguments
   // (testdata/phasedMixin) or a typed lambda (testdata/phasedRules), lifts to one IR, byte for byte
   // (phasedRules/expected.json). Both are lifted at phasedRules' positions on the same lines.
-  private lazy val phasedMixinJar = packaged("phasedMixin", materialize("phasedMixin"))
+  private lazy val phasedMixinJar =
+    packaged("phasedMixin", materialize("phasedMixin"))
 
-  concurrently("Phased with type arguments or a typed lambda lifts byte for byte"):
+  concurrently(
+    "Phased with type arguments or a typed lambda lifts byte for byte"
+  ):
     val at = stored("phasedRules")
     def switchOf(fixture: String, jar: Path): String =
       val out = scratch.resolve(s"$fixture-out.json")
@@ -1963,7 +2391,10 @@ class Fixtures extends munit.FunSuite:
         )
       assert(!result.failed, result.diagnostics)
       Files.readString(out)
-    val written = switchOf("phasedRules", packaged("phasedRules", materialize("phasedRules")))
+    val written = switchOf(
+      "phasedRules",
+      packaged("phasedRules", materialize("phasedRules"))
+    )
     assertEquals(switchOf("phasedMixin", phasedMixinJar), written)
     val shared = testdata.resolve("phasedRules/expected.json")
     if update then Files.writeString(shared, written): Unit
@@ -1994,7 +2425,9 @@ class Fixtures extends munit.FunSuite:
   // A derived machine reads its source's projection, through each derivation, and a derived
   // composition its source's; derivation rules name no phase, so the lifter's record is read, in a
   // lift run here.
-  concurrently("a derived machine's and a derived composition's projection is their source's"):
+  concurrently(
+    "a derived machine's and a derived composition's projection is their source's"
+  ):
     val tastys = Files.createDirectories(scratch.resolve("phasedTasty"))
     val zip = java.util.zip.ZipFile(phasedMixinJar.toFile)
     val files =
@@ -2013,10 +2446,13 @@ class Fixtures extends munit.FunSuite:
       .trim
       .split(java.io.File.pathSeparator)
       .toList
-    val roots = Seq("Switch", "Stiffer", "Twins", "Lopsided").map("fixture.phased." + _)
-    val lifter = Lifter(Target.Roots(roots), files.map(_ -> stored("phasedMixin")).toMap)
+    val roots =
+      Seq("Switch", "Stiffer", "Twins", "Lopsided").map("fixture.phased." + _)
+    val lifter =
+      Lifter(Target.Roots(roots), files.map(_ -> stored("phasedMixin")).toMap)
     bounded(
-      scala.tasty.inspector.TastyInspector.inspectAllTastyFiles(files, Nil, classpath)(lifter)
+      scala.tasty.inspector.TastyInspector
+        .inspectAllTastyFiles(files, Nil, classpath)(lifter)
     ): Unit
     assertEquals(lifter.errors.toList, Nil)
     val phases = lifter.phases
@@ -2039,7 +2475,7 @@ class Fixtures extends munit.FunSuite:
     assertEquals(
       refused(result),
       Seq(
-        s"lift: $at:35: this declaration over plainLamp and the one over lamp derive the ID " +
+        s"lift: $at:32: this declaration over plainLamp and the one over lamp derive the ID " +
           "fixture.features.derivedtwins.query.anyLit: name them apart, since an ID derived from a name is " +
           "unique in its package"
       )
@@ -2113,7 +2549,9 @@ class Fixtures extends munit.FunSuite:
 
   // fn-126 R4 (e) and R17: each kind at its line, and none of the correct object forms beside them,
   // nor two objects' timers of one name, which their objects name apart (sectionOrder/SectionOrder.scala).
-  concurrently("the declaration-order lint refuses sections out of order or out of place"):
+  concurrently(
+    "the declaration-order lint refuses sections out of order or out of place"
+  ):
     val jar = packaged("sectionOrder", materialize("sectionOrder"))
     val out = scratch.resolve("sectionOrder-out")
     val at = stored("sectionOrder")
@@ -2121,10 +2559,12 @@ class Fixtures extends munit.FunSuite:
     assertNotEquals(result.exit, 0)
     assertEquals(listed(out), Nil)
     val f = s"${at}SectionOrder.scala"
-    val order = "object Backwards reads its header, then states, then refinement, then effects, " +
-      "then monitors, then rules, then properties, then capabilities, then queries"
-    val handBound = "a machine object says when each action fires in its `rules`, " +
-      "`on(action) { when(p) ~> effects.x }`, and a derivation binds one in `rebind`"
+    val order =
+      "object Backwards reads its header, then states, then refinement, then effects, " +
+        "then monitors, then rules, then properties, then capabilities, then queries"
+    val handBound =
+      "a machine object says when each action fires in its `rules`, " +
+        "`on(action) { when(p) ~> effects.x }`, and a derivation binds one in `rebind`"
     assertEquals(
       refused(result),
       Seq(
@@ -2161,15 +2601,18 @@ class Fixtures extends munit.FunSuite:
 
   // A Model folder must name its feature file after itself (misnamed/Lamp.scala): a file of another
   // name in a folder with no feature file would otherwise be held to no reading order.
-  concurrently("the declaration-order lint refuses a Model in a folder with no feature file"):
+  concurrently(
+    "the declaration-order lint refuses a Model in a folder with no feature file"
+  ):
     val jar = packaged("misnamed", materialize("misnamed"))
     val out = scratch.resolve("misnamed-out")
     val at = stored("misnamed")
     val result = liftIr(out, s"$jar=$at,$modelJar=model/")
     assertNotEquals(result.exit, 0)
     assertEquals(listed(out), Nil)
-    val home = "a Model folder declares its Models in its feature file, the file named after " +
-      s"the folder, in $at"
+    val home =
+      "a Model folder declares its Models in its feature file, the file named after " +
+        s"the folder, in $at"
     assertEquals(
       refused(result),
       Seq(
@@ -2193,11 +2636,15 @@ class Fixtures extends munit.FunSuite:
     assertNotEquals(result.exit, 0)
     assert(!Files.exists(out), "the lifter wrote an invalid mapped read")
     assert(
-      refused(result).exists(_.contains("Recorded.read must end at a repeated message field")),
+      refused(result).exists(
+        _.contains("Recorded.read must end at a repeated message field")
+      ),
       result.diagnostics
     )
 
-  concurrently("a generated enum helper refuses an unknown value before writing IR"):
+  concurrently(
+    "a generated enum helper refuses an unknown value before writing IR"
+  ):
     val out = lifted("typedUnknownEnum")
     val result = lift(
       liftsJars,
@@ -2216,20 +2663,39 @@ class Fixtures extends munit.FunSuite:
   // reads a refinement with no given; expected/captured.json pins its IR. Every symbol-based
   // Definition ID is its declaration's fully qualified name, the objects it sits in included, every
   // top-level type is named in its package and every family is that package (fn-126 decision 23).
-  test("the captured fixture's IDs, type names and families are where each is declared"):
-    val model = new com.fasterxml.jackson.databind.ObjectMapper().readTree(ir("captured"))
+  test(
+    "the captured fixture's IDs, type names and families are where each is declared"
+  ):
+    val model =
+      new com.fasterxml.jackson.databind.ObjectMapper().readTree(ir("captured"))
     val pkg = "fixture.captured."
     for
-      kind <- Seq("actions", "monitors", "assumptions", "holes", "channels", "realizations")
+      kind <- Seq(
+        "actions",
+        "monitors",
+        "assumptions",
+        "holes",
+        "channels",
+        "realizations"
+      )
       declared = model.path(kind)
     do
       assert(declared.size() > 0, s"Captured.scala declares no $kind")
       for d <- declared.elements().asScala do
         val id = d.path("id").asText()
-        assert(id.startsWith(pkg) && !id.contains("$"), s"$id is not a qualified name in $pkg")
+        assert(
+          id.startsWith(pkg) && !id.contains("$"),
+          s"$id is not a qualified name in $pkg"
+        )
     // A monitor at the top level, and one in `object Watched`.
     assertEquals(
-      model.path("monitors").elements().asScala.map(_.path("id").asText()).toList.sorted,
+      model
+        .path("monitors")
+        .elements()
+        .asScala
+        .map(_.path("id").asText())
+        .toList
+        .sorted,
       List("Watched.storedTwice", "storedOnce").map(pkg + _)
     )
     // Its actions sit in an actor object and in plain objects, which each name; the actor object
@@ -2252,17 +2718,28 @@ class Fixtures extends munit.FunSuite:
         "wire.lose" -> "system"
       ).map((name, actor) => (pkg + name) -> actor).sorted
     )
-    val types = model.path("types").elements().asScala.map(_.path("name").asText()).toList
+    val types =
+      model.path("types").elements().asScala.map(_.path("name").asText()).toList
     assert(types.nonEmpty, "Captured.scala declares no types")
     for name <- types do assert(name.startsWith(pkg), s"$name is not named in $pkg")
-    for kind <- Seq("machines", "compositions"); m <- model.path(kind).elements().asScala do
-      assertEquals(m.path("family").asText(), "fixture.captured", m.path("name").asText())
+    for
+      kind <- Seq("machines", "compositions");
+      m <- model.path(kind).elements().asScala
+    do
+      assertEquals(
+        m.path("family").asText(),
+        "fixture.captured",
+        m.path("name").asText()
+      )
 
   // Sections.scala: a top-level action is named in its package, one in a top-level object by the
   // object too, and one in an actor directly in a machine's object by both objects; two objects tell
   // their actions of one name apart (fn-126 decision 23).
-  test("an action is named after the package and the objects it is declared in"):
-    val model = new com.fasterxml.jackson.databind.ObjectMapper().readTree(ir("sections"))
+  test(
+    "an action is named after the package and the objects it is declared in"
+  ):
+    val model =
+      new com.fasterxml.jackson.databind.ObjectMapper().readTree(ir("sections"))
     val actions = model
       .path("actions")
       .elements()
@@ -2282,9 +2759,12 @@ class Fixtures extends munit.FunSuite:
 
   // A machine object's members name its state type through the machine, `State`, as the type it
   // stands for: `def broken(s: State)` lifts as `def brokenLamp(s: Lamp)` does (lifts/Rules.scala).
-  test("a state type named through its machine, State, lifts as the type it stands for"):
+  test(
+    "a state type named through its machine, State, lifts as the type it stands for"
+  ):
     import com.fasterxml.jackson.databind.node.ObjectNode
-    val model = new com.fasterxml.jackson.databind.ObjectMapper().readTree(ir("rules"))
+    val model =
+      new com.fasterxml.jackson.databind.ObjectMapper().readTree(ir("rules"))
     def function(name: String) =
       val f = model
         .path("functions")
@@ -2314,7 +2794,11 @@ class Fixtures extends munit.FunSuite:
   private def declarations(
       fixture: String,
       roots: Seq[String]
-  ): (com.fasterxml.jackson.databind.JsonNode, String => String, String => String) =
+  ): (
+      com.fasterxml.jackson.databind.JsonNode,
+      String => String,
+      String => String
+  ) =
     import com.fasterxml.jackson.databind.JsonNode
     import com.fasterxml.jackson.databind.node.ObjectNode
     val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
@@ -2322,15 +2806,19 @@ class Fixtures extends munit.FunSuite:
     val out = lifted(s"$fixture-pairs")
     val named =
       roots.map(r =>
-        if r.startsWith("temporal.") || r.startsWith("fixture.") then r else s"$pkg.$r"
+        if r.startsWith("temporal.") || r.startsWith("fixture.") then r
+        else s"$pkg.$r"
       )
-    val result = lift((Seq(liftsJars, modelClasspath.toString, out.toString) ++ named)*)
+    val result = lift(
+      (Seq(liftsJars, modelClasspath.toString, out.toString) ++ named)*
+    )
     assert(!result.failed, result.diagnostics)
     val model = mapper.readTree(Files.readString(out))
     def strip(n: JsonNode): Unit =
       n match
-        case o: ObjectNode => o.remove(java.util.List.of("position", "source")): Unit
-        case _             => ()
+        case o: ObjectNode =>
+          o.remove(java.util.List.of("position", "source")): Unit
+        case _ => ()
       n.elements().asScala.foreach(strip)
     val functions = model
       .path("functions")
@@ -2384,7 +2872,10 @@ class Fixtures extends munit.FunSuite:
       "stiffPressOnly" -> "stiffPressOnlySpelled"
     )
     val (model, machine, _) =
-      declarations("derived", pairs.flatMap((a, b) => Seq(a, b)).map(objectRoot("derived")))
+      declarations(
+        "derived",
+        pairs.flatMap((a, b) => Seq(a, b)).map(objectRoot("derived"))
+      )
     for (derived, spelled) <- pairs do assertEquals(machine(derived), machine(spelled), derived)
     def named(name: String) =
       model
@@ -2399,15 +2890,29 @@ class Fixtures extends munit.FunSuite:
       .asScala
       .map(s => s.path("action").asText().split('.').last)
       .toList
-    assertEquals(actions("stiffLamp"), List("press", "wear"), "a rebound action keeps its place")
+    assertEquals(
+      actions("stiffLamp"),
+      List("press", "wear"),
+      "a rebound action keeps its place"
+    )
     assertEquals(actions("faultyLamp"), List("press", "wear", "burnOut"))
     assertEquals(named("faultyLamp").path("family").asText(), "fixture.derived")
     assertEquals(
-      named("faultyLamp").path("assumes").elements().asScala.map(_.asText().split('.').last).toList,
+      named("faultyLamp")
+        .path("assumes")
+        .elements()
+        .asScala
+        .map(_.asText().split('.').last)
+        .toList,
       List("lampOpaque", "burnOutAssumed")
     )
-    assertEquals(named("faultyLamp").path("refines").path("product").asText(), "viewUnderFaults")
-    assert(!named("plainLamp").has("monitors") && !named("plainLamp").has("refines"))
+    assertEquals(
+      named("faultyLamp").path("refines").path("product").asText(),
+      "viewUnderFaults"
+    )
+    assert(
+      !named("plainLamp").has("monitors") && !named("plainLamp").has("refines")
+    )
     assertEquals(
       named("plainStiffLamp").path("steps").get(1).path("function").asText(),
       "plainStiffLamp.wear",
@@ -2418,19 +2923,28 @@ class Fixtures extends munit.FunSuite:
   // classes, beside `Plain`'s, in `on` blocks with `in` cases (lifts/Grouped.scala).
   concurrently("from, when and an on of several targets lift as on and in do"):
     val (_, machine, _) =
-      declarations("grouped", Seq("Grouped", "Plain").map(objectRoot("grouped")))
+      declarations(
+        "grouped",
+        Seq("Grouped", "Plain").map(objectRoot("grouped"))
+      )
     assertEquals(
-      machine("grouped").replace("fixture.grouped.Grouped$", "fixture.grouped.Plain$"),
+      machine("grouped")
+        .replace("fixture.grouped.Grouped$", "fixture.grouped.Plain$"),
       machine("plain")
     )
 
   // fn-159.7: `enters(Phase.x)` in a rule lifts as the steps of the effect it stands for, and in a
   // choose alternative as the step written out (lifts/Entering.scala).
-  concurrently("enters lifts as the effect that sets the phase, in a rule and in a choose"):
+  concurrently(
+    "enters lifts as the effect that sets the phase, in a rule and in a choose"
+  ):
     import com.fasterxml.jackson.databind.JsonNode
     import com.fasterxml.jackson.databind.node.ObjectNode
     val (model, _, _) =
-      declarations("entering", Seq("Entering", "Cored").map(objectRoot("entering")))
+      declarations(
+        "entering",
+        Seq("Entering", "Cored").map(objectRoot("entering"))
+      )
     def body(name: String): JsonNode =
       val f = model
         .path("functions")
@@ -2445,14 +2959,22 @@ class Fixtures extends munit.FunSuite:
       }
       f.path("body")
     def text(n: JsonNode) =
-      n.toPrettyString.replace("fixture.entering.Cored$", "fixture.entering.Entering$")
+      n.toPrettyString.replace(
+        "fixture.entering.Cored$",
+        "fixture.entering.Entering$"
+      )
     // The arm of each rule: the then of each `if` in the order the rules are written.
     def arms(n: JsonNode): List[JsonNode] =
       val cond = n.path("if")
-      if cond.isMissingNode then Nil else cond.path("then") :: arms(cond.path("else"))
-    val (entering, cored) = (arms(body("entering.rules.press")), arms(body("cored.rules.press")))
+      if cond.isMissingNode then Nil
+      else cond.path("then") :: arms(cond.path("else"))
+    val (entering, cored) =
+      (arms(body("entering.rules.press")), arms(body("cored.rules.press")))
     assertEquals(entering.size, 2)
-    assertEquals(text(entering.head), text(body("fixture.entering.Cored$.effects$.work")))
+    assertEquals(
+      text(entering.head),
+      text(body("fixture.entering.Cored$.effects$.work"))
+    )
     assertEquals(text(entering(1)), text(cored(1)))
     assertEquals(
       text(arms(body("entering.rules.drop")).head),
@@ -2465,16 +2987,24 @@ class Fixtures extends munit.FunSuite:
 
   // fn-161.1: a machine assembled from facets lifts as the machine written as one object, but for
   // the names of its effects, which each facet's object qualifies (lifts/Facets.scala).
-  concurrently("a machine of facets lifts as the machine written as one object"):
+  concurrently(
+    "a machine of facets lifts as the machine written as one object"
+  ):
     val (model, machine, property) = declarations(
       "facets",
       Seq("Faceted", "Whole").map(objectRoot("facets")) ++
         Seq("Faceted", "Whole").flatMap(o =>
-          Seq(s"fixture.facets.$o$$.capabilities", s"fixture.facets.$o$$.queries")
+          Seq(
+            s"fixture.facets.$o$$.capabilities",
+            s"fixture.facets.$o$$.queries"
+          )
         )
     )
     def named(m: String) =
-      machine(m).replaceAll("fixture\\.facets\\.[A-Za-z$.]*effects\\$\\.", "effects.")
+      machine(m).replaceAll(
+        "fixture\\.facets\\.[A-Za-z$.]*effects\\$\\.",
+        "effects."
+      )
     assertEquals(named("faceted"), named("whole"))
     // A facet's capabilities and Property are its machine's, as Whole's own are.
     assertEquals(property("smashes"), property("smashesWhole"))
@@ -2497,7 +3027,9 @@ class Fixtures extends munit.FunSuite:
 
   // fn-161 R8 and R9: the switched facet rules refuse nothing while off, and each refuses its
   // specimen while on (facetRules/FacetRules.scala).
-  concurrently("facets-only and facet-vocabulary refuse their specimens when switched on"):
+  concurrently(
+    "facets-only and facet-vocabulary refuse their specimens when switched on"
+  ):
     val jar = packaged("facetRules", materialize("facetRules"))
     val at = stored("facetRules") + "FacetRules.scala"
     def run(root: String, rules: String*): Ran =
@@ -2518,6 +3050,8 @@ class Fixtures extends munit.FunSuite:
       assert(!off.failed, s"$root:\n${off.diagnostics}")
     val all = Seq("facets-only", "facet-vocabulary")
     assert(!run("Agreeing", all*).failed)
+    val design = run("Design", all*)
+    assert(!design.failed, "a custom-state design keeps its deliberate facet-owner exemption\n" + design.diagnostics)
     def refusal(root: String, rules: String*): String =
       val ran = run(root, rules*)
       assert(ran.failed, s"$root lifted with ${rules.mkString(",")} on")
@@ -2547,7 +3081,12 @@ class Fixtures extends munit.FunSuite:
     val (model, machine, property) =
       declarations(
         "sugar",
-        Seq("fixture.sugar.Sugared", "fixture.sugar.Cored", "claims", "fixture.sugar.Watched")
+        Seq(
+          "fixture.sugar.Sugared",
+          "fixture.sugar.Cored",
+          "claims",
+          "fixture.sugar.Watched"
+        )
       )
     assertEquals(machine("sugared"), machine("cored"))
     for form <- Seq("records", "implies", "paused") do
@@ -2589,8 +3128,16 @@ class Fixtures extends munit.FunSuite:
         "retriedLost" -> "retriedLostSpelled"
       )
     do assertEquals(monitor(sugar), monitor(spelled), sugar)
-    assert(monitor("refusedOnce").contains("neverRefused"), monitor("refusedOnce"))
-    val functions = model.path("functions").elements().asScala.map(_.path("name").asText()).toList
+    assert(
+      monitor("refusedOnce").contains("neverRefused"),
+      monitor("refusedOnce")
+    )
+    val functions = model
+      .path("functions")
+      .elements()
+      .asScala
+      .map(_.path("name").asText())
+      .toList
     assert(
       functions.forall(!_.startsWith("framework.")),
       s"a framework definition was lifted as a function: ${functions.mkString(", ")}"
@@ -2625,8 +3172,9 @@ class Fixtures extends munit.FunSuite:
     val model = mapper.readTree(ir("blocks"))
     def strip(n: JsonNode): Unit =
       n match
-        case o: ObjectNode => o.remove(java.util.List.of("position", "source")): Unit
-        case _             => ()
+        case o: ObjectNode =>
+          o.remove(java.util.List.of("position", "source")): Unit
+        case _ => ()
       n.elements().asScala.foreach(strip)
     // The declarations of each kind that name the machine, as the other machine's, by their names.
     def declarations(machine: String): Map[String, Map[String, String]] =
@@ -2641,7 +3189,9 @@ class Fixtures extends munit.FunSuite:
           .map { d =>
             val copy = mapper.readTree(named(d.toString))
             strip(copy)
-            Seq("name", "id").map(copy.path(_).asText()).mkString("/") -> copy.toPrettyString
+            Seq("name", "id")
+              .map(copy.path(_).asText())
+              .mkString("/") -> copy.toPrettyString
           }
           .toMap
       }.toMap
@@ -2667,15 +3217,18 @@ class Fixtures extends munit.FunSuite:
   // beside the def of `Written` that records it by hand (lifts/StatusFacts.scala). Every machine and
   // function of one, with the other's name in its place and no positions, is the other's, and the
   // phase enum that declares the statuses lifts as an enum of cases with no fields.
-  test("an effect block's derived status facts lift as the facts its method form writes"):
+  test(
+    "an effect block's derived status facts lift as the facts its method form writes"
+  ):
     import com.fasterxml.jackson.databind.JsonNode
     import com.fasterxml.jackson.databind.node.ObjectNode
     val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
     val model = mapper.readTree(ir("statusFacts"))
     def strip(n: JsonNode): Unit =
       n match
-        case o: ObjectNode => o.remove(java.util.List.of("position", "source")): Unit
-        case _             => ()
+        case o: ObjectNode =>
+          o.remove(java.util.List.of("position", "source")): Unit
+        case _ => ()
       n.elements().asScala.foreach(strip)
     def declarations(machine: String): Map[String, String] =
       Seq("machines", "functions").flatMap { kind =>
@@ -2727,19 +3280,28 @@ class Fixtures extends munit.FunSuite:
       Seq("-cp", classpath, "fixture.roles.verifyRolePrefixes")
     )
     assertEquals(result.exit, 0, result.output)
-    assert(result.output.contains("role prefixes equivalent: 8 phases, 64 states"), result.output)
+    assert(
+      result.output.contains("role prefixes equivalent: 8 phases, 64 states"),
+      result.output
+    )
 
-  test("a role test lifts as the explicit list or alternatives of cases that have the role"):
+  test(
+    "a role test lifts as the explicit list or alternatives of cases that have the role"
+  ):
     import com.fasterxml.jackson.databind.JsonNode
     import com.fasterxml.jackson.databind.node.ObjectNode
     val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
     val model = mapper.readTree(ir("roles"))
     def strip(n: JsonNode): Unit =
       n match
-        case o: ObjectNode => o.remove(java.util.List.of("position", "source")): Unit
-        case _             => ()
+        case o: ObjectNode =>
+          o.remove(java.util.List.of("position", "source")): Unit
+        case _ => ()
       n.elements().asScala.foreach(strip)
-    def declarations(machine: String, as: String): Map[String, Map[String, String]] =
+    def declarations(
+        machine: String,
+        as: String
+    ): Map[String, Map[String, String]] =
       val named = (s: String) => s.replace(machine, as).replace(machine.toLowerCase, as.toLowerCase)
       Seq("machines", "functions").map { kind =>
         kind -> model
@@ -2754,7 +3316,8 @@ class Fixtures extends munit.FunSuite:
           }
           .toMap
       }.toMap
-    val (roled, listed) = (declarations("Roled", "Listed"), declarations("Listed", "Listed"))
+    val (roled, listed) =
+      (declarations("Roled", "Listed"), declarations("Listed", "Listed"))
     for kind <- roled.keys do assertEquals(roled(kind), listed(kind), kind)
     val (short, written) =
       (declarations("Shortened", "Written"), declarations("Written", "Written"))
@@ -2766,7 +3329,15 @@ class Fixtures extends munit.FunSuite:
     )
     assertEquals(
       roled("functions").keySet.filter(_.contains("states")),
-      Set("closed", "waiting", "live", "expiring", "over", "settled", "stopping")
+      Set(
+        "closed",
+        "waiting",
+        "live",
+        "expiring",
+        "over",
+        "settled",
+        "stopping"
+      )
         .map(p => s"fixture.roles.Listed$$.states$$.$p"),
       "each role test is lifted"
     )
@@ -2784,23 +3355,36 @@ class Fixtures extends munit.FunSuite:
   // `DoorProduct`'s, whose rules name effects that spell `reject(Outcome.rejected(r), s)`: with each
   // call of such an effect replaced by its body, and no names or positions, the two are one but for
   // the explanation `because` gives (lifts/Rejections.scala).
-  test("rejects lifts as the reject of the shared rejected outcome, explained by its because"):
+  test(
+    "rejects lifts as the reject of the shared rejected outcome, explained by its because"
+  ):
     import com.fasterxml.jackson.databind.JsonNode
     import com.fasterxml.jackson.databind.node.ObjectNode
     val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
     val model = mapper.readTree(ir("rejections"))
     val functions =
-      model.path("functions").elements().asScala.map(f => f.path("name").asText() -> f).toMap
+      model
+        .path("functions")
+        .elements()
+        .asScala
+        .map(f => f.path("name").asText() -> f)
+        .toMap
     val effects = "fixture.rejections.DoorProduct$.effects$."
     // Each node without positions, and each call of a rejecting effect replaced by its body, whose
     // parameter reads as the argument the call passes.
-    def spelled(n: JsonNode, vars: Map[String, JsonNode] = Map.empty): JsonNode =
+    def spelled(
+        n: JsonNode,
+        vars: Map[String, JsonNode] = Map.empty
+    ): JsonNode =
       val callee = n.path("call").path("function").asText()
       if Seq("locked", "missing").exists(e => callee == effects + e)
       then
         val f = functions(callee)
         val param = f.path("params").get(0).path("name").asText()
-        spelled(f.path("body"), Map(param -> spelled(n.path("call").path("args").get(0), vars)))
+        spelled(
+          f.path("body"),
+          Map(param -> spelled(n.path("call").path("args").get(0), vars))
+        )
       else
         n match
           case o: ObjectNode if vars.contains(o.path("var").asText()) =>
@@ -2823,13 +3407,20 @@ class Fixtures extends munit.FunSuite:
       spelled(functions(s"$machine.rules.$action")).toPrettyString
         .replace("DoorSystem$", "DoorProduct$")
     val explained = "\"text\" : \"the door is locked\""
-    assert(step("doorSystem", "open").contains(explained), step("doorSystem", "open"))
+    assert(
+      step("doorSystem", "open").contains(explained),
+      step("doorSystem", "open")
+    )
     assertEquals(
       step("doorSystem", "open").replace(explained, "\"text\" : \"\""),
       step("doorProduct", "open")
     )
     for action <- Seq("close", "ring") do
-      assertEquals(step("doorSystem", action), step("doorProduct", action), action)
+      assertEquals(
+        step("doorSystem", action),
+        step("doorProduct", action),
+        action
+      )
     assert(step("doorProduct", "ring").contains("\"case\" : \"rejected\""))
 
   // fn-112.9: the script helpers and the Temporal kit beside the core records they stand for, and
@@ -2841,10 +3432,13 @@ class Fixtures extends munit.FunSuite:
     import com.fasterxml.jackson.databind.node.ObjectNode
     val pkg = "fixture.scripts.Scripts$package$."
     val out = lifted("scripts-pairs")
-    val roots = Seq("helpers", "records", "sugaredRequest", "coredRequest").map(pkg + _)
-    val result = lift((Seq(liftsJars, modelClasspath.toString, out.toString) ++ roots)*)
+    val roots =
+      Seq("helpers", "records", "sugaredRequest", "coredRequest").map(pkg + _)
+    val result =
+      lift((Seq(liftsJars, modelClasspath.toString, out.toString) ++ roots)*)
     assert(!result.failed, result.diagnostics)
-    val model = new com.fasterxml.jackson.databind.ObjectMapper().readTree(Files.readString(out))
+    val model = new com.fasterxml.jackson.databind.ObjectMapper()
+      .readTree(Files.readString(out))
     def strip(n: JsonNode): Unit =
       n match
         case o: ObjectNode => o.remove("position"): Unit
@@ -2868,20 +3462,27 @@ class Fixtures extends munit.FunSuite:
     assertEquals(helpers.toPrettyString, realization("records").toPrettyString)
     def request(name: String) =
       realization(name).at("/scripts/0/items/0/command/rpc").toPrettyString
-    assert(request("sugaredRequest").contains("task_queue.name"), request("sugaredRequest"))
+    assert(
+      request("sugaredRequest").contains("task_queue.name"),
+      request("sugaredRequest")
+    )
     assertEquals(request("sugaredRequest"), request("coredRequest"))
 
   // fn-133.1: the kit's literal and call scopes beside the core records they stand for
   // (lifts/Literals.scala).
-  concurrently("proto, read, extended and a message for a request field lift as their core forms"):
+  concurrently(
+    "proto, read, extended and a message for a request field lift as their core forms"
+  ):
     import com.fasterxml.jackson.databind.JsonNode
     import com.fasterxml.jackson.databind.node.ObjectNode
     val pkg = "fixture.literals.Literals$package$."
     val out = lifted("literals-pairs")
     val roots = Seq("literalSugared", "literalCored").map(pkg + _)
-    val result = lift((Seq(liftsJars, modelClasspath.toString, out.toString) ++ roots)*)
+    val result =
+      lift((Seq(liftsJars, modelClasspath.toString, out.toString) ++ roots)*)
     assert(!result.failed, result.diagnostics)
-    val model = new com.fasterxml.jackson.databind.ObjectMapper().readTree(Files.readString(out))
+    val model = new com.fasterxml.jackson.databind.ObjectMapper()
+      .readTree(Files.readString(out))
     def strip(n: JsonNode): Unit =
       n match
         case o: ObjectNode => o.remove("position"): Unit
@@ -2899,11 +3500,37 @@ class Fixtures extends munit.FunSuite:
       strip(r)
       r
     val sugared = realization("literalSugared")
-    assertEquals(sugared.at("/scripts/0/items").size(), 7, sugared.toPrettyString)
-    assertEquals(sugared.toPrettyString, realization("literalCored").toPrettyString)
+    assertEquals(
+      sugared.at("/scripts/0/items").size(),
+      7,
+      sugared.toPrettyString
+    )
+    assertEquals(
+      sugared.toPrettyString,
+      realization("literalCored").toPrettyString
+    )
+
+  concurrently(
+    "equivalent authored comparison populations retain strict duplicate refusals"
+  ):
+    for (fixture, roots) <- Seq(
+        "inputs" -> Seq("urgentByNameQuery", "urgentByPositionQuery"),
+        "patterns" -> Seq("claims")
+      )
+    do
+      val out = lifted(s"$fixture-combined-duplicate")
+      val owner = if fixture == "inputs" then "Inputs" else "Patterns"
+      val result = lift(
+        (Seq(liftsJars, modelClasspath.toString, out.toString) ++
+          roots.map(name => s"fixture.$fixture.$owner$$package$$.$name"))*
+      )
+      assert(result.failed, s"$fixture combined equivalent declarations lifted")
+      assert(result.output.contains("states the promise"), result.output)
 
   // fn-112.5: input tokens, inputs supplied by name and a bounded counter (lifts/Inputs.scala).
-  concurrently("inputs supplied by name lift as their positional calls, and UpTo as the Int range"):
+  concurrently(
+    "inputs supplied by name lift as their positional calls, and UpTo as the Int range"
+  ):
     import com.fasterxml.jackson.databind.JsonNode
     val (model, _, property) = declarations(
       "inputs",
@@ -2911,11 +3538,12 @@ class Fixtures extends munit.FunSuite:
         "byNameQuery",
         "byPositionQuery",
         "urgentByNameQuery",
-        "urgentByPositionQuery",
         "omittedQuery",
         "omittedByPositionQuery"
       )
     )
+    val (_, _, positionalProperty) =
+      declarations("inputs", Seq("urgentByPositionQuery"))
     def named(kind: String, name: String): JsonNode = model
       .path(kind)
       .elements()
@@ -2928,23 +3556,37 @@ class Fixtures extends munit.FunSuite:
     assertEquals(actionsOf("byName"), actionsOf("byPosition"))
     // fn-112.10: a call that omits every input is its positional twin at every first value.
     assertEquals(actionsOf("omitted"), actionsOf("omittedByPosition"))
-    assertEquals(property("urgentByName"), property("urgentByPosition"))
+    assertEquals(
+      property("urgentByName"),
+      positionalProperty("urgentByPosition")
+    )
     val respond = named("actions", "respond")
     assertEquals(
-      respond.path("inputs").elements().asScala.map(_.path("name").asText()).toList,
+      respond
+        .path("inputs")
+        .elements()
+        .asScala
+        .map(_.path("name").asText())
+        .toList,
       List("answer", "urgent"),
       "an input takes its token's val name"
     )
     // The control action reports results by name with no enum declared of that name.
     assertEquals(named("actions", "steer").path("results").asText(), "Delivery")
     assert(
-      !model.path("types").elements().asScala.exists(_.path("name").asText().endsWith(".Delivery")),
+      !model
+        .path("types")
+        .elements()
+        .asScala
+        .exists(_.path("name").asText().endsWith(".Delivery")),
       "results named a type"
     )
     // UpTo[2] lifts as the Int range 0..2, the record the live protocol state's attempt counter
     // lifts to in model/ir/activity-standalone.json, which the gate holds.
     assertEquals(
-      named("types", "fixture.inputs.CountedState").at("/record/fields/1/type").toString,
+      named("types", "fixture.inputs.CountedState")
+        .at("/record/fields/1/type")
+        .toString,
       """{"intRange":{"high":"2"}}"""
     )
 
@@ -2953,7 +3595,8 @@ class Fixtures extends munit.FunSuite:
     "a Query's total lifts infix, dotted, around expect and from a shared def's argument"
   ):
     import com.fasterxml.jackson.databind.node.ObjectNode
-    val (model, _, _) = declarations("totals", Seq("queries", "lampTotals", "plainLampTotals"))
+    val (model, _, _) =
+      declarations("totals", Seq("queries", "lampTotals", "plainLampTotals"))
     def record(name: String): ObjectNode =
       val q = model
         .path("queries")
@@ -2969,10 +3612,21 @@ class Fixtures extends munit.FunSuite:
       val q = record(name)
       q.remove("total")
       q.toPrettyString
-    for name <- Seq("infixTotal", "dottedTotal", "totalThenExpect", "expectThenTotal") do
-      assertEquals(total(name), "4", name)
-    assertEquals(record("dottedTotal").toPrettyString, record("infixTotal").toPrettyString)
-    assertEquals(record("expectThenTotal").toPrettyString, record("totalThenExpect").toPrettyString)
+    for name <- Seq(
+        "infixTotal",
+        "dottedTotal",
+        "totalThenExpect",
+        "expectThenTotal"
+      )
+    do assertEquals(total(name), "4", name)
+    assertEquals(
+      record("dottedTotal").toPrettyString,
+      record("infixTotal").toPrettyString
+    )
+    assertEquals(
+      record("expectThenTotal").toPrettyString,
+      record("totalThenExpect").toPrettyString
+    )
     val unexpected = record("totalThenExpect")
     assert(unexpected.has("expectedRun"), "expect left no expected run")
     unexpected.remove("expectedRun")
@@ -2980,9 +3634,15 @@ class Fixtures extends munit.FunSuite:
     // Each instance of the shared def carries the total its call supplied, and nothing else apart.
     assertEquals(total("lamp.anyLit"), "12")
     assertEquals(total("plainLamp.anyLit"), "4")
-    assertEquals(without("plainLamp.anyLit").replace("plainLamp", "lamp"), without("lamp.anyLit"))
+    assertEquals(
+      without("plainLamp.anyLit").replace("plainLamp", "lamp"),
+      without("lamp.anyLit")
+    )
     // A Query that asserts no total takes the count the lifter computes, the one an author writes.
-    assertEquals(record("countedTotal").toPrettyString, record("infixTotal").toPrettyString)
+    assertEquals(
+      record("countedTotal").toPrettyString,
+      record("infixTotal").toPrettyString
+    )
     val (counted, _, _) = declarations("totals", Seq("lampCounted"))
     val (plainCounted, _, _) = declarations("totals", Seq("plainLampCounted"))
     def countedTotal(m: com.fasterxml.jackson.databind.JsonNode, name: String) =
@@ -2997,20 +3657,24 @@ class Fixtures extends munit.FunSuite:
 
   // fn-112.12: claims one shared def declares together as a case-class bundle, read back by field
   // (lifts/Totals.scala), lift to the IR of the same claims declared directly on each machine.
-  concurrently("a bundle of claims built by its constructor and read by field lifts as its claims"):
+  concurrently(
+    "a bundle of claims built by its constructor and read by field lifts as its claims"
+  ):
     import com.fasterxml.jackson.databind.JsonNode
     import com.fasterxml.jackson.databind.node.ObjectNode
     val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
     def lifting(spelling: String): JsonNode =
       val out = lifted(s"bundle-$spelling")
       val roots = Seq("Lamp", "PlainLamp").map(m => s"fixture.totals.Totals$$package$$.$spelling$m")
-      val result = lift((Seq(liftsJars, modelClasspath.toString, out.toString) ++ roots)*)
+      val result =
+        lift((Seq(liftsJars, modelClasspath.toString, out.toString) ++ roots)*)
       assert(!result.failed, result.diagnostics)
       mapper.readTree(Files.readString(out).replace(spelling, "direct"))
     def strip(n: JsonNode): Unit =
       n match
-        case o: ObjectNode => o.remove(java.util.List.of("position", "source")): Unit
-        case _             => ()
+        case o: ObjectNode =>
+          o.remove(java.util.List.of("position", "source")): Unit
+        case _ => ()
       n.elements().asScala.foreach(strip)
     val (bundled, direct) = (lifting("bundled"), lifting("direct"))
     val names = bundled
@@ -3020,7 +3684,12 @@ class Fixtures extends munit.FunSuite:
       .map(p => s"${p.path("machine").asText()}.${p.path("name").asText()}")
     assertEquals(
       names.toList.sorted,
-      List("lamp.directLit", "lamp.directUnlit", "plainLamp.directLit", "plainLamp.directUnlit")
+      List(
+        "lamp.directLit",
+        "lamp.directUnlit",
+        "plainLamp.directLit",
+        "plainLamp.directUnlit"
+      )
     )
     strip(bundled)
     strip(direct)
@@ -3030,7 +3699,9 @@ class Fixtures extends munit.FunSuite:
   // wrote, in the order written; an alternative that calls a function calls a copy of it, named
   // `<function>$<choice>`, whose every step carries the name, through the functions it calls in
   // turn, while the function itself keeps its unnamed steps for the other calls.
-  concurrently("choose names each alternative's step, and a copy of the function it calls"):
+  concurrently(
+    "choose names each alternative's step, and a copy of the function it calls"
+  ):
     import com.fasterxml.jackson.databind.JsonNode
     import com.fasterxml.jackson.databind.node.ObjectNode
     val (model, _, _) = declarations("choices", Seq("fixture.choices.Chosen"))
@@ -3044,13 +3715,18 @@ class Fixtures extends munit.FunSuite:
       )
       .getOrElse(fail(s"the choices fixture lifted no function $name"))
     def all(n: JsonNode, keep: JsonNode => Boolean): List[JsonNode] =
-      (if keep(n) then List(n) else Nil) ++ n.elements().asScala.toList.flatMap(all(_, keep))
+      (if keep(n) then List(n) else Nil) ++ n
+        .elements()
+        .asScala
+        .toList
+        .flatMap(all(_, keep))
     def steps(f: JsonNode) = all(
       f,
       _.at("/construct/type").asText() == "framework.Step"
     )
     def choices(f: JsonNode) = steps(f).map(_.at("/construct/choice").asText())
-    def calls(f: JsonNode) = all(f, _.has("call")).map(_.at("/call/function").asText())
+    def calls(f: JsonNode) =
+      all(f, _.has("call")).map(_.at("/call/function").asText())
     val written = Seq(
       "admitNamed" -> List("committed", "redelivered"),
       "pauseNamed" -> List("held", "dropped", "refused", "committed"),
@@ -3085,7 +3761,10 @@ class Fixtures extends munit.FunSuite:
           case o: ObjectNode =>
             o.remove(java.util.List.of("choice", "name")): Unit
             if o.has("function") then
-              o.put("function", o.path("function").asText().stripSuffix("$" + choice)): Unit
+              o.put(
+                "function",
+                o.path("function").asText().stripSuffix("$" + choice)
+              ): Unit
           case _ => ()
         n.elements().asScala.foreach(strip)
       strip(copy)
@@ -3107,7 +3786,9 @@ class Fixtures extends munit.FunSuite:
   // selectors and derived by `withMember`, keep their exact members, syncs, replacement targets and
   // Scenario keys; and the keys of names that carry separators, over two members that bind actions
   // spelled alike.
-  concurrently("typed members, syncs, replaces, withMember, synced and own keep the composed keys"):
+  concurrently(
+    "typed members, syncs, replaces, withMember, synced and own keep the composed keys"
+  ):
     import com.fasterxml.jackson.databind.JsonNode
     // Each design is an object, named as the composition is with the first letter raised: its
     // Queries in its `queries`, or the design itself where no Query runs over it.
@@ -3115,7 +3796,11 @@ class Fixtures extends munit.FunSuite:
     def designObject(d: String) = designs + d.head.toUpper + d.tail
     val overQueue = Seq("recordOverQueue", "trustingRecordOverQueue")
     val overMatching =
-      Seq("recordOverMatching", "trustingRecordOverMatching", "recordOverLossyMatching")
+      Seq(
+        "recordOverMatching",
+        "trustingRecordOverMatching",
+        "recordOverLossyMatching"
+      )
     val unqueried = Seq("recordOverForgetful", "recordOverVolatile")
     val roots =
       (overQueue ++ overMatching).map(d => s"${designObject(d)}$$.queries$$.${d}Queries") ++
@@ -3137,10 +3822,23 @@ class Fixtures extends munit.FunSuite:
       "recordOverLossyMatching" -> "taskQueueProductUnderStorageLoss"
     )
     for (d, target) <- replaced do
-      val c = all("compositions").find(named(d)).getOrElse(fail(s"no composition $d"))
-      assertEquals(texts(c.path("members"), "field"), List("activity", "queue"), d)
-      assertEquals(texts(c.path("syncs"), "name"), List("dispatch", "admit", "settle"), d)
-      assertEquals(c.path("members").get(1).path("replaces").asText(), target, d)
+      val c =
+        all("compositions").find(named(d)).getOrElse(fail(s"no composition $d"))
+      assertEquals(
+        texts(c.path("members"), "field"),
+        List("activity", "queue"),
+        d
+      )
+      assertEquals(
+        texts(c.path("syncs"), "name"),
+        List("dispatch", "admit", "settle"),
+        d
+      )
+      assertEquals(
+        c.path("members").get(1).path("replaces").asText(),
+        target,
+        d
+      )
     def scenarioKeys(machine: String, name: String) = all("scenarios")
       .find(s => s.path("machine").asText() == machine && named(name)(s))
       .getOrElse(fail(s"no Scenario $name of $machine"))
@@ -3152,13 +3850,28 @@ class Fixtures extends munit.FunSuite:
     val pause = "activity_pause"
     val invoked = List("dispatch", "queue_addActivityTask")
     for d <- overQueue do
-      assertEquals(scenarioKeys(d, "staleDeliveryAfterPause"), List("dispatch", pause, "admit"))
-      assertEquals(scenarioKeys(d, "admittedBeforePause"), List("dispatch", "admit", pause))
-      assertEquals(scenarioKeys(d, "duplicateDelivery"), List("dispatch", "admit", "admit"))
+      assertEquals(
+        scenarioKeys(d, "staleDeliveryAfterPause"),
+        List("dispatch", pause, "admit")
+      )
+      assertEquals(
+        scenarioKeys(d, "admittedBeforePause"),
+        List("dispatch", "admit", pause)
+      )
+      assertEquals(
+        scenarioKeys(d, "duplicateDelivery"),
+        List("dispatch", "admit", "admit")
+      )
     for d <- overMatching do
       val persisted = invoked :+ "queue_persistTask"
-      assertEquals(scenarioKeys(d, "staleDeliveryAfterPause"), persisted ++ List(pause, "admit"))
-      assertEquals(scenarioKeys(d, "admittedBeforePause"), persisted ++ List("admit", pause))
+      assertEquals(
+        scenarioKeys(d, "staleDeliveryAfterPause"),
+        persisted ++ List(pause, "admit")
+      )
+      assertEquals(
+        scenarioKeys(d, "admittedBeforePause"),
+        persisted ++ List("admit", pause)
+      )
       assertEquals(
         scenarioKeys(d, "deliveredAgainAfterLostAck"),
         persisted ++ List("admit", "queue_ackLoss", "admit")
@@ -3166,13 +3879,31 @@ class Fixtures extends munit.FunSuite:
       val matched = invoked :+ "queue_syncMatch"
       assertEquals(
         scenarioKeys(d, "crashAfterAdmissionCommit"),
-        matched ++ List("admit", "queue_crash", "queue_addActivityTask", "queue_syncMatch", "admit")
+        matched ++ List(
+          "admit",
+          "queue_crash",
+          "queue_addActivityTask",
+          "queue_syncMatch",
+          "admit"
+        )
       )
     def keys(name: String) =
-      all("scenarios").find(named(name)).get.path("keys").elements().asScala.map(_.asText()).toList
+      all("scenarios")
+        .find(named(name))
+        .get
+        .path("keys")
+        .elements()
+        .asScala
+        .map(_.asText())
+        .toList
     assertEquals(
       keys("switchSchedule"),
-      List("tap_both-ways", "left_side_turn-on-high", "left_side_flick", "right_side_flick")
+      List(
+        "tap_both-ways",
+        "left_side_turn-on-high",
+        "left_side_flick",
+        "right_side_flick"
+      )
     )
     def whenAction(name: String) =
       all("properties").find(named(name)).get.path("whenAction").asText()
@@ -3181,7 +3912,8 @@ class Fixtures extends munit.FunSuite:
     // fn-112.10: a sync named after its first member's action, kept by `withMember` and selected
     // by `synced` from either member.
     for d <- Seq("flicks", "leftFlicks") do
-      val c = all("compositions").find(named(d)).getOrElse(fail(s"no composition $d"))
+      val c =
+        all("compositions").find(named(d)).getOrElse(fail(s"no composition $d"))
       assertEquals(texts(c.path("syncs"), "name"), List("flick"), d)
     assertEquals(keys("bothFlick"), List("flick"))
     assertEquals(whenAction("flickedBoth"), "flick")
@@ -3196,18 +3928,20 @@ class Fixtures extends munit.FunSuite:
     assertEquals(bound("leftSwitch"), List("Left.tap", "Left.flick", "turnOn"))
     assertEquals(bound("rightSwitch"), List("Right.tap", "Right.flick"))
 
-  concurrently("every Temporal realization carries the shared rejection-code table"):
+  concurrently(
+    "every Temporal realization carries the shared rejection-code table"
+  ):
     val rootGroups = Seq(
       Seq(
-        "temporal.features.activity.standalone.protocol.Standalone",
-        "temporal.features.activity.standalone.protocol.HeldDelivery",
-        "temporal.features.activity.standalone.protocol.LostAdmissionResponse"
+        "temporal.features.activity.standalone.realization.StandaloneActivityRun",
+        "temporal.features.activity.standalone.realization.HeldDispatchRun",
+        "temporal.features.activity.standalone.realization.LostStartAnswerRun"
       ),
       Seq(
-        "temporal.features.nexus.workflow.AsyncNexus",
-        "temporal.features.nexus.workflow.ForgedControl"
+        "temporal.features.nexus.workflow.realization.WorkflowNexusRun",
+        "temporal.features.nexus.workflow.realization.TrustingCallerRun"
       ),
-      Seq("temporal.features.nexus.standalone.Standalone")
+      Seq("temporal.features.nexus.standalone.realization.StandaloneNexusRun")
     )
     val expected = List(
       "REJECTION_NOT_FOUND" -> "NOT_FOUND",
@@ -3229,28 +3963,45 @@ class Fixtures extends munit.FunSuite:
         .toList
       assertEquals(codes, expected, realization.path("name").asText())
 
-  concurrently("the actual WithTaskQueue capability root folds its typed composed outcome"):
+  concurrently(
+    "the actual WithTaskQueue capability root folds its typed composed outcome"
+  ):
     val (model, _, _) = declarations(
       "withTaskQueueCapability",
-      Seq("temporal.features.activity.standalone.protocol.RecordOverQueue$.capabilities")
+      Seq(
+        "temporal.features.activity.standalone.protocol.RecordOverQueue$.capabilities"
+      )
     )
     assert(model.path("properties").size() > 0)
 
   // fn-112.12: an independent consumer of the shared task queue (lifts/TaskQueue.scala).
-  test("a consumer of temporal/foundations/taskqueue lifts the queue and nothing of the activity"):
+  test(
+    "a consumer of temporal/foundations/taskqueue lifts the queue and nothing of the activity"
+  ):
     import com.fasterxml.jackson.databind.JsonNode
-    val model = new com.fasterxml.jackson.databind.ObjectMapper().readTree(ir("taskqueue"))
+    val model = new com.fasterxml.jackson.databind.ObjectMapper()
+      .readTree(ir("taskqueue"))
     def all(kind: String) = model.path(kind).elements().asScala.toList
     def named(kind: String, name: String) =
       all(kind)
         .find(_.path("name").asText() == name)
         .getOrElse(fail(s"no $kind $name"))
-    def names(n: JsonNode, field: String) = n.elements().asScala.map(_.path(field).asText()).toList
+    def names(n: JsonNode, field: String) =
+      n.elements().asScala.map(_.path(field).asText()).toList
     // The queue's declarations are named where they are declared, temporal/foundations/taskqueue.
     val queue = "temporal.foundations.taskqueue."
-    assertEquals(named("machines", "taskQueueProduct").path("entity").asText(), "taskQueue")
-    assertEquals(named("machines", "taskQueueProduct").path("family").asText(), queue + "product")
-    assertEquals(named("actions", "enqueue").path("id").asText(), queue + "queue.enqueue")
+    assertEquals(
+      named("machines", "taskQueueProduct").path("entity").asText(),
+      "taskQueue"
+    )
+    assertEquals(
+      named("machines", "taskQueueProduct").path("family").asText(),
+      queue + "product"
+    )
+    assertEquals(
+      named("actions", "enqueue").path("id").asText(),
+      queue + "queue.enqueue"
+    )
     for (c, queue, target) <- Seq(
         ("jobOverQueue", "taskQueueProduct", ""),
         ("jobOverMatching", "taskQueueProtocol", "taskQueueProduct"),
@@ -3263,7 +4014,9 @@ class Fixtures extends munit.FunSuite:
     // No name of the activity's package is lifted, only the shared queue's.
     val fromActivity = model.toString.linesIterator
       .flatMap(
-        """"(temporal\.features\.activity\.standalone[^"]*)"""".r.findAllMatchIn(_).map(_.group(1))
+        """"(temporal\.features\.activity\.standalone[^"]*)"""".r
+          .findAllMatchIn(_)
+          .map(_.group(1))
       )
       .toSet
     assert(fromActivity.isEmpty, fromActivity.mkString(", "))
@@ -3277,9 +4030,28 @@ class Fixtures extends munit.FunSuite:
   ):
     import com.fasterxml.jackson.databind.JsonNode
     import com.fasterxml.jackson.databind.node.{ArrayNode, ObjectNode}
-    val (model, _, _) = declarations("patterns", Seq("claims"))
+    def population(roots: Seq[String]): JsonNode =
+      val pieces = roots.map(root => declarations("patterns", Seq(root))._1)
+      assertEquals(pieces.map(_.path("queries").size()).sum, 23)
+      val combined = pieces.head
+      for piece <- pieces.tail; kind <- Seq("properties", "functions") do
+        val rows = combined.path(kind).asInstanceOf[ArrayNode] // scalafix:ok DisableSyntax.asInstanceOf
+        piece.path(kind).elements().asScala.foreach(row => rows.add(row): Unit)
+      combined
+    val model = population(Seq("patternClaims", "inlineClaims", "sharedClaims"))
+    val cores = population(Seq("coreClaims", "inlineCoreClaims", "sharedCoreClaims"))
+    for kind <- Seq("properties", "functions") do
+      val rows = model
+        .path(kind)
+        .asInstanceOf[ArrayNode] // scalafix:ok DisableSyntax.asInstanceOf
+      cores.path(kind).elements().asScala.foreach(row => rows.add(row): Unit)
     val functions =
-      model.path("functions").elements().asScala.map(f => f.path("name").asText() -> f).toMap
+      model
+        .path("functions")
+        .elements()
+        .asScala
+        .map(f => f.path("name").asText() -> f)
+        .toMap
     // Each child of a tree rewritten, the tree itself kept unless `f` replaces it.
     def rewrite(n: JsonNode)(f: PartialFunction[JsonNode, JsonNode]): JsonNode =
       f.applyOrElse(
@@ -3303,21 +4075,28 @@ class Fixtures extends munit.FunSuite:
         val param = f.path("params").get(0).path("name").asText()
         val arg = inlined(o.path("call").path("args").get(0), holds)
         rewrite(f.path("body").deepCopy[JsonNode]()) {
-          case v: ObjectNode if v.path("var").asText() == param => arg.deepCopy[JsonNode]()
+          case v: ObjectNode if v.path("var").asText() == param =>
+            arg.deepCopy[JsonNode]()
         }
     }
     def strip(n: JsonNode): Unit =
       n match
-        case o: ObjectNode => o.remove(java.util.List.of("position", "source")): Unit
-        case _             => ()
+        case o: ObjectNode =>
+          o.remove(java.util.List.of("position", "source")): Unit
+        case _ => ()
       n.elements().asScala.foreach(strip)
     def found(machine: String, name: String): JsonNode =
       model
         .path("properties")
         .elements()
         .asScala
-        .find(p => p.path("machine").asText() == machine && p.path("name").asText() == name)
-        .getOrElse(fail(s"the patterns fixture lifted no Property $name of $machine"))
+        .find(p =>
+          p.path("machine")
+            .asText() == machine && p.path("name").asText() == name
+        )
+        .getOrElse(
+          fail(s"the patterns fixture lifted no Property $name of $machine")
+        )
     def property(machine: String, name: String): String =
       val p = found(machine, name).deepCopy[ObjectNode]()
       val holds = p.path("holds").asText()
@@ -3336,18 +4115,42 @@ class Fixtures extends munit.FunSuite:
       ("activeStays", "pairActiveStays", true)
     )
     val shared =
-      Seq("notAdmittedWhilePaused" -> true, "atMostOneActive" -> false, "terminalStays" -> true)
+      Seq(
+        "notAdmittedWhilePaused" -> true,
+        "atMostOneActive" -> false,
+        "terminalStays" -> true
+      )
     for
       (onJob, onPair, transition) <- forms
       (machine, name) <- Seq("job" -> onJob, "pair" -> onPair)
     do
-      assertEquals(property(machine, name), property(machine, s"${name}Core"), name)
-      assertEquals(found(machine, name).path("transition").asBoolean, transition, name)
+      assertEquals(
+        property(machine, name),
+        property(machine, s"${name}Core"),
+        name
+      )
+      assertEquals(
+        found(machine, name).path("transition").asBoolean,
+        transition,
+        name
+      )
     for name <- Seq("pairStarted", "lampFlipped") do
-      assertEquals(property("pair", name), property("pair", s"${name}Core"), name)
+      assertEquals(
+        property("pair", name),
+        property("pair", s"${name}Core"),
+        name
+      )
     for (name, transition) <- shared; machine <- Seq("job", "pair") do
-      assertEquals(property(machine, name), property(machine, s"${name}Core"), s"$machine.$name")
-      assertEquals(found(machine, name).path("transition").asBoolean, transition, name)
+      assertEquals(
+        property(machine, name),
+        property(machine, s"${name}Core"),
+        s"$machine.$name"
+      )
+      assertEquals(
+        found(machine, name).path("transition").asBoolean,
+        transition,
+        name
+      )
     for (name, transition) <- Seq(
         "doneKeepsInline" -> true,
         "noTwoInline" -> false,
@@ -3357,14 +4160,20 @@ class Fixtures extends munit.FunSuite:
       )
     do
       assertEquals(property("job", name), property("job", s"${name}Core"), name)
-      assertEquals(found("job", name).path("transition").asBoolean, transition, name)
+      assertEquals(
+        found("job", name).path("transition").asBoolean,
+        transition,
+        name
+      )
     val names = functions.keys.toList.sorted
     assert(
       names.forall(!_.startsWith("framework.")),
       s"a framework definition was lifted as a function: ${names.mkString(", ")}"
     )
 
-  concurrently("the lifter refuses unrelated machines with one state type, at the Query line"):
+  concurrently(
+    "the lifter refuses unrelated machines with one state type, at the Query line"
+  ):
     val jar = packaged("samestate", materialize("samestate"))
     val lift = this.lift(
       s"$jar=${stored("samestate")}",
@@ -3380,7 +4189,9 @@ class Fixtures extends munit.FunSuite:
       )
     )
 
-  concurrently("the lifter refuses a construct outside the subset, at its line"):
+  concurrently(
+    "the lifter refuses a construct outside the subset, at its line"
+  ):
     val jar = packaged("unsupported", materialize("unsupported"))
     val lift = this.lift(
       s"$jar=${stored("unsupported")}",
@@ -3397,7 +4208,9 @@ class Fixtures extends munit.FunSuite:
 
   // fn-133.3: a feature file writes instructions in the kit's lower-case forms and names commands
   // after their vals (testdata/features).
-  concurrently("a feature file's upper-case instruction and written-out command are refused"):
+  concurrently(
+    "a feature file's upper-case instruction and written-out command are refused"
+  ):
     val jar = packaged("features", materialize("features"))
     val at = stored("features") + "Features.scala"
     val cases = Seq(
@@ -3418,8 +4231,11 @@ class Fixtures extends munit.FunSuite:
       assertNotEquals(lift.exit, 0)
       assertEquals(refused(lift), Seq(expected))
 
-  concurrently("the realization emitter refuses unknown constructors and fields at their lines"):
-    val jar = packaged("realizationRefusals", materialize("realizationRefusals"))
+  concurrently(
+    "the realization emitter refuses unknown constructors and fields at their lines"
+  ):
+    val jar =
+      packaged("realizationRefusals", materialize("realizationRefusals"))
     val cases = Seq(
       (
         "unknownConstructor",
@@ -3447,15 +4263,20 @@ class Fixtures extends munit.FunSuite:
       expect(s"$name.json", ir(name))
 
   for name <- waived do
-    test(s"the $name fixture writes the waivers its capabilities sections state"):
+    test(
+      s"the $name fixture writes the waivers its capabilities sections state"
+    ):
       expect(s"$name.waivers.json", waivers(name))
 
   // fn-134.2 (R4): a Property expanded from a capability Property carries the def's fully
   // qualified name and position as its origin, an overriding def's keeps the one it replaces, and
   // no other Property carries one. Holdable's Property, which reads Takeable's field too, is
   // brought to the machines that declare both, and not to Chore.
-  test("a generated Property's origin is the capability Property it was expanded from"):
-    val model = new com.fasterxml.jackson.databind.ObjectMapper().readTree(ir("capabilitySections"))
+  test(
+    "a generated Property's origin is the capability Property it was expanded from"
+  ):
+    val model = new com.fasterxml.jackson.databind.ObjectMapper()
+      .readTree(ir("capabilitySections"))
     val origins = model
       .path("properties")
       .elements()
@@ -3473,9 +4294,13 @@ class Fixtures extends munit.FunSuite:
         "task.sealedIsRefused" -> Some(kind + "Sealable.sealedIsRefused"),
         "task.heldIsNotTaken" -> Some(kind + "Holdable.heldIsNotTaken"),
         "chore.sealedIsRefused" -> Some(kind + "Sealable.sealedIsRefused"),
-        "taskPair.sealedStaysSealed" -> Some(kind + "Sealable.sealedStaysSealed"),
+        "taskPair.sealedStaysSealed" -> Some(
+          kind + "Sealable.sealedStaysSealed"
+        ),
         "taskPair.heldIsNotTaken" -> Some(kind + "Holdable.heldIsNotTaken"),
-        "mirrorPair.sealedStaysSealed" -> Some(kind + "Sealable.sealedStaysSealed")
+        "mirrorPair.sealedStaysSealed" -> Some(
+          kind + "Sealable.sealedStaysSealed"
+        )
       )
     )
     val at = "model/irgen/testdata/lifts/CapabilitySections.scala"
@@ -3483,21 +4308,32 @@ class Fixtures extends munit.FunSuite:
       assertEquals(p.path("origin").path("position").path("file").asText(), at)
       assertEquals(p.path("position").path("file").asText(), at)
 
-  test("Retryable instances bind their own fields and generate bounded free transition verifies"):
-    val model = new com.fasterxml.jackson.databind.ObjectMapper().readTree(ir("retryCapabilities"))
+  test(
+    "Retryable instances bind their own fields and generate bounded free transition verifies"
+  ):
+    val model = new com.fasterxml.jackson.databind.ObjectMapper()
+      .readTree(ir("retryCapabilities"))
     val properties = model.path("properties").elements().asScala.toSeq
     val names = properties.map(_.path("name").asText()).toSet
-    val ordinary = Set("attemptCountIsWithinPolicy", "failureEndsFailed", "failureReturnsToWaiting")
+    val ordinary = Set(
+      "attemptCountIsWithinPolicy",
+      "failureEndsFailed",
+      "failureReturnsToWaiting"
+    )
     val controlled = ordinary ++ Set("failurePauses", "failureCancels")
     val expected =
       (for instance <- Set("eligible", "network"); property <- ordinary
       yield s"waitingFailures.$instance.$property") ++
         (for instance <- Set("eligible", "fatal"); property <- controlled
         yield s"controlledFailures.$instance.$property") ++
-        Set("waitingFailures.terminalStatesAreFinal", "waitingFailures.closedIsRejectedUniformly")
+        Set(
+          "waitingFailures.terminalStatesAreFinal",
+          "waitingFailures.closedIsRejectedUniformly"
+        )
     assertEquals(names, expected)
     for
-      p <- properties if !p.path("name").asText().startsWith("waitingFailures.terminal") &&
+      p <- properties
+      if !p.path("name").asText().startsWith("waitingFailures.terminal") &&
         !p.path("name").asText().endsWith("closedIsRejectedUniformly")
     do
       val property = p.path("name").asText().split('.').last
@@ -3518,9 +4354,12 @@ class Fixtures extends munit.FunSuite:
     for q <- queries do
       assertEquals(q.path("form").asText(), "FORM_VERIFY")
       assert(!q.has("expectedRun"))
-      val steps = if q.path("name").asText().endsWith("failureReturnsToWaiting") then 2 else 3
+      val steps =
+        if q.path("name").asText().endsWith("failureReturnsToWaiting") then 2
+        else 3
       assertEquals(q.path("limits").path("steps").asInt(), steps)
-      val slots = if q.path("name").asText().startsWith("waitingFailures.") then 54L else 240L
+      val slots = if q.path("name").asText().startsWith("waitingFailures.") then 54L
+      else 240L
       assertEquals(q.path("total").asText().toLong, slots * steps)
     val functions = model
       .path("functions")
@@ -3541,25 +4380,43 @@ class Fixtures extends munit.FunSuite:
         )
         .get
       val read =
-        functions(property.path("holds").asText()).findValuesAsText("function").asScala.toSet
+        functions(property.path("holds").asText())
+          .findValuesAsText("function")
+          .asScala
+          .toSet
       assert(read.exists(_.endsWith(s"WaitingSteps$$.$count")), read.toString)
       assert(read.exists(_.endsWith(s"WaitingSteps$$.$maximum")), read.toString)
     val selected = properties.filter(p =>
       p.path("name").asText().startsWith("waitingFailures.") &&
         p.path("name").asText().endsWith("failureEndsFailed")
     )
-    assertEquals(selected.map(_.path("whenClass").path("action").asText()).toSet.size, 2)
+    assertEquals(
+      selected.map(_.path("whenClass").path("action").asText()).toSet.size,
+      2
+    )
 
-  test("an override naming one instance replaces it alone and keeps every other instance's IR"):
-    val model = new com.fasterxml.jackson.databind.ObjectMapper().readTree(ir("retrySelection"))
+  test(
+    "an override naming one instance replaces it alone and keeps every other instance's IR"
+  ):
+    val model = new com.fasterxml.jackson.databind.ObjectMapper()
+      .readTree(ir("retrySelection"))
     val properties = model.path("properties").elements().asScala.toSeq
     val functions =
-      model.path("functions").elements().asScala.toSeq.map(f => f.path("name").asText() -> f).toMap
+      model
+        .path("functions")
+        .elements()
+        .asScala
+        .toSeq
+        .map(f => f.path("name").asText() -> f)
+        .toMap
     def property(name: String) = properties
       .find(_.path("name").asText() == name)
       .get
     def reads(name: String) =
-      functions(property(name).path("holds").asText()).findValuesAsText("function").asScala.toSet
+      functions(property(name).path("holds").asText())
+        .findValuesAsText("function")
+        .asScala
+        .toSet
     val overridden = property("selectedFailures.fatal.failureEndsFailed")
     assertEquals(
       overridden.path("origin").path("name").asText(),
@@ -3569,7 +4426,9 @@ class Fixtures extends munit.FunSuite:
       val f = functions(property(name).path("holds").asText())
         .deepCopy[com.fasterxml.jackson.databind.node.ObjectNode]()
       f.remove("name")
-      f.toString.replace("selectedFailures", "").replace("controlledFailures", "")
+      f.toString
+        .replace("selectedFailures", "")
+        .replace("controlledFailures", "")
     assertNotEquals(
       body("selectedFailures.fatal.failureEndsFailed"),
       body("controlledFailures.fatal.failureEndsFailed")
@@ -3580,15 +4439,28 @@ class Fixtures extends munit.FunSuite:
       )
     do
       def shape(name: String) =
-        val p = property(name).deepCopy[com.fasterxml.jackson.databind.node.ObjectNode]()
-        p.remove(java.util.List.of("name", "machine", "position", "holds", "holds2"))
+        val p = property(name)
+          .deepCopy[com.fasterxml.jackson.databind.node.ObjectNode]()
+        p.remove(
+          java.util.List.of("name", "machine", "position", "holds", "holds2")
+        )
         p
       assertEquals(shape(selected), shape(base))
       assertEquals(reads(selected), reads(base))
     val queries =
-      model.path("queries").elements().asScala.toSeq.map(q => q.path("name").asText() -> q).toMap
-    for name <- properties.map(_.path("name").asText()) if name.startsWith("selectedFailures.") do
-      val base = queries(name.replace("selectedFailures.", "controlledFailures."))
+      model
+        .path("queries")
+        .elements()
+        .asScala
+        .toSeq
+        .map(q => q.path("name").asText() -> q)
+        .toMap
+    for
+      name <- properties.map(_.path("name").asText())
+      if name.startsWith("selectedFailures.")
+    do
+      val base =
+        queries(name.replace("selectedFailures.", "controlledFailures."))
       assertEquals(queries(name).path("limits"), base.path("limits"))
       assertEquals(queries(name).path("total"), base.path("total"))
 
@@ -3605,12 +4477,27 @@ class Fixtures extends munit.FunSuite:
       ("UnnamedCount", "capabilities", "unnamedCount", "attemptCount"),
       ("UnnamedPause", "capabilities", "unnamedPause", "pendingPause"),
       ("MalformedPause", "capabilities", "malformedPause", "pendingPause"),
-      ("ComputedClassification", "capabilities", "computedClassification", "retryable"),
+      (
+        "ComputedClassification",
+        "capabilities",
+        "computedClassification",
+        "retryable"
+      ),
       ("AmbiguousWaiver", "capabilities", "ambiguousWaiver", "ambiguous"),
       ("AmbiguousClaim", "queries", "ambiguousClaim", "ambiguous"),
       ("AmbiguousForeign", "capabilities", "ambiguousForeign", "shared"),
-      ("UnknownInstance", "capabilities", "unknownInstance", "no capability its section declares"),
-      ("NonMatchingInstance", "capabilities", "nonMatchingInstance", "second does not bring"),
+      (
+        "UnknownInstance",
+        "capabilities",
+        "unknownInstance",
+        "no capability its section declares"
+      ),
+      (
+        "NonMatchingInstance",
+        "capabilities",
+        "nonMatchingInstance",
+        "second does not bring"
+      ),
       ("DuplicateInstance", "capabilities", "duplicateInstance", "first twice"),
       ("EmptySelection", "capabilities", "emptySelection", "no instance"),
       ("RedundantSelection", "capabilities", "redundantSelection", "drop `of`")
@@ -3629,15 +4516,20 @@ class Fixtures extends munit.FunSuite:
       assertEquals(errors.size, 1, ran.diagnostics)
       val error = errors.head
       assert(
-        error.matches("lift: model/irgen/testdata/lifts/RetryCapabilityRejects.scala:[0-9]+: .*"),
+        error.matches(
+          "lift: model/irgen/testdata/lifts/RetryCapabilityRejects.scala:[0-9]+: .*"
+        ),
         error
       )
       assert(error.contains(machine), error)
       assert(error.contains(field), error)
 
-  test("Expirable instances retain their selected timer, own role, armed predicate and typed fact"):
+  test(
+    "Expirable instances retain their selected timer, own role, armed predicate and typed fact"
+  ):
     val model =
-      new com.fasterxml.jackson.databind.ObjectMapper().readTree(ir("deadlineCapabilities"))
+      new com.fasterxml.jackson.databind.ObjectMapper()
+        .readTree(ir("deadlineCapabilities"))
     val properties = model.path("properties").elements().asScala.toSeq
     val common = Set("firesInWindow", "deadlineTimesOut")
     val retries = common + "deadlineReturnsToWaiting"
@@ -3666,7 +4558,7 @@ class Fixtures extends munit.FunSuite:
       )
       assertEquals(
         p.path("origin").path("position").path("file").asText(),
-        "model/temporal/capabilities/Expirable.scala"
+        "model/temporal/capabilities/system/Expirable.scala"
       )
     for (instance, predicate, phase, kind) <- Seq(
         ("schedule", "dispatchArmed", "waiting", "schedule"),
@@ -3683,11 +4575,20 @@ class Fixtures extends munit.FunSuite:
           .asText()
       )
       val window = body("firesInWindow")
-      assert(window.findValuesAsText("function").asScala.exists(_.endsWith(s"Steps$$.$predicate")))
-      assert(window.findValuesAsText("case").asScala.contains(phase), window.toString)
+      assert(
+        window
+          .findValuesAsText("function")
+          .asScala
+          .exists(_.endsWith(s"Steps$$.$predicate"))
+      )
+      assert(
+        window.findValuesAsText("case").asScala.contains(phase),
+        window.toString
+      )
       val terminalBody = body("deadlineTimesOut")
       if instance == "schedule" then
-        val classification = terminalBody.findValues("literal").asScala.filter(_.has("bool"))
+        val classification =
+          terminalBody.findValues("literal").asScala.filter(_.has("bool"))
         assertEquals(classification.count(_.path("bool").asBoolean()), 0)
         val declaration = properties
           .find(
@@ -3701,7 +4602,10 @@ class Fixtures extends munit.FunSuite:
           .asScala
           .filter(e => e.path("literal").has("bool") && e.path("position") == declaration)
         assertEquals(defaults.size, 1)
-        assertEquals(defaults.head.path("literal").path("bool").asBoolean(), false)
+        assertEquals(
+          defaults.head.path("literal").path("bool").asBoolean(),
+          false
+        )
       val terminal = terminalBody.findValuesAsText("case").asScala
       assert(terminal.contains(kind), terminal.toString)
       assert(
@@ -3728,24 +4632,39 @@ class Fixtures extends munit.FunSuite:
       val p = properties
         .find(_.path("name").asText() == s"deadlineTimers.start.$property")
         .get
-      val facts = functions(p.path("holds").asText()).findValuesAsText("case").asScala
-      assert(facts.contains("schedule") && facts.contains("start"), facts.toString)
+      val facts =
+        functions(p.path("holds").asText()).findValuesAsText("case").asScala
+      assert(
+        facts.contains("schedule") && facts.contains("start"),
+        facts.toString
+      )
     val scenarios = model.path("scenarios").elements().asScala.toSeq
     assertEquals(scenarios.map(_.path("name").asText()).toSet, names)
-    assert(scenarios.forall(s => s.path("free").asBoolean() && !s.has("actions")))
+    assert(
+      scenarios.forall(s => s.path("free").asBoolean() && !s.has("actions"))
+    )
     val queries = model.path("queries").elements().asScala.toSeq
     assertEquals(queries.map(_.path("name").asText()).toSet, names)
     for q <- queries do
       val name = q.path("name").asText()
       assertEquals(q.path("form").asText(), "FORM_VERIFY")
       val steps =
-        if name.startsWith("deadlineTimers.") && name.endsWith("firesInWindow") then 2 else 3
+        if name.startsWith("deadlineTimers.") && name.endsWith("firesInWindow")
+        then 2
+        else 3
       assertEquals(q.path("limits").path("steps").asInt(), steps)
-      val combinations = if name.startsWith("deadlineTimers.") then 128L * 15L else 2L
+      val combinations =
+        if name.startsWith("deadlineTimers.") then 128L * 15L else 2L
       assertEquals(q.path("total").asText().toLong, combinations * steps)
 
-  test("Expirable refuses missing roles, invalid timer bindings and malformed typed fact families"):
-    for root <- Seq("NativeTerminalRoles", "CompleteSubtypeBinding", "CompleteIntersectionBinding")
+  test(
+    "Expirable refuses missing roles, invalid timer bindings and malformed typed fact families"
+  ):
+    for root <- Seq(
+        "NativeTerminalRoles",
+        "CompleteSubtypeBinding",
+        "CompleteIntersectionBinding"
+      )
     do
       val terminalOut = lifted(s"deadline-positive-$root")
       val terminal = lift(
@@ -3756,11 +4675,20 @@ class Fixtures extends munit.FunSuite:
       )
       assertEquals(terminal.exit, 0, terminal.diagnostics)
       val terminalModel =
-        new com.fasterxml.jackson.databind.ObjectMapper().readTree(Files.readString(terminalOut))
+        new com.fasterxml.jackson.databind.ObjectMapper()
+          .readTree(Files.readString(terminalOut))
       val machine = root.head.toLower.toString + root.tail
       assertEquals(
-        terminalModel.path("properties").elements().asScala.map(_.path("name").asText()).toSet,
-        Set(s"$machine.deadline.firesInWindow", s"$machine.deadline.deadlineTimesOut")
+        terminalModel
+          .path("properties")
+          .elements()
+          .asScala
+          .map(_.path("name").asText())
+          .toSet,
+        Set(
+          s"$machine.deadline.firesInWindow",
+          s"$machine.deadline.deadlineTimesOut"
+        )
       )
     val cases = Seq(
       "PositiveFamily" -> "negated records",
@@ -3795,7 +4723,9 @@ class Fixtures extends munit.FunSuite:
       "AmbiguousClaim" -> "ambiguous"
     )
     val source =
-      Files.readAllLines(testdata.resolve("lifts/DeadlineCapabilityRejects.scala")).asScala
+      Files
+        .readAllLines(testdata.resolve("lifts/DeadlineCapabilityRejects.scala"))
+        .asScala
     for (root, field) <- cases do
       val out = lifted(s"deadline-refused-$root")
       val section =
@@ -3831,7 +4761,9 @@ class Fixtures extends munit.FunSuite:
           error
         )
 
-  test("every rejected declaration is refused at its line, and no IR is written"):
+  test(
+    "every rejected declaration is refused at its line, and no IR is written"
+  ):
     expect("rejects.txt", rejections())
 
   test("the expected files are the ones the fixtures lift to"):
@@ -3845,7 +4777,10 @@ class Fixtures extends munit.FunSuite:
       "// A line the declarations move down by.\n" * 3
         + Files.readString(scratch.resolve("lifts/Declarations.scala"))
     )
-    Files.copy(scratch.resolve("lifts/project.scala"), shifted.resolve("project.scala"))
+    Files.copy(
+      scratch.resolve("lifts/project.scala"),
+      shifted.resolve("project.scala")
+    )
     val jar = packaged("shifted", shifted)
     val roots = fixtures.toMap.apply("declarations")
     val arguments =
@@ -3858,7 +4793,11 @@ class Fixtures extends munit.FunSuite:
     assert(!lift.failed, lift.diagnostics)
     val now = Files.readString(lifted("shifted"))
     def lines(ir: String) = ir.replaceAll("\"line\": [0-9]+", "\"line\": _")
-    assertNotEquals(now, was, "moving the declarations did not move their lines")
+    assertNotEquals(
+      now,
+      was,
+      "moving the declarations did not move their lines"
+    )
     assert(
       lines(now) == lines(was),
       "moving the declarations down changed more than their lines"
@@ -3867,26 +4806,42 @@ class Fixtures extends munit.FunSuite:
   concurrently("a jar's prefix may be an argument of its own"):
     val out = lifted("presence-prefix-argument")
     val lift = this.lift(
-      (Seq(liftsJar.toString, modelClasspath.toString, out.toString, stored("lifts"))
+      (Seq(
+        liftsJar.toString,
+        modelClasspath.toString,
+        out.toString,
+        stored("lifts")
+      )
         ++ fixtures.toMap.apply("presence"))*
     )
     assert(!lift.failed, lift.diagnostics)
     assertEquals(Files.readString(out), ir("presence"))
 
   concurrently("a lift without roots, or without its arguments, is refused"):
-    val none = lift(s"$modelJar=model/", modelClasspath.toString, lifted("no-roots").toString)
+    val none = lift(
+      s"$modelJar=model/",
+      modelClasspath.toString,
+      lifted("no-roots").toString
+    )
     assertEquals(none.exit, 1)
-    assertEquals(refused(none), Seq("lift: no roots: name the declarations to lift"))
+    assertEquals(
+      refused(none),
+      Seq("lift: no roots: name the declarations to lift")
+    )
     val usage = lift("only-one")
     assertEquals(usage.exit, 2)
     assert(
-      usage.output.contains("usage: lift <jar=prefix>,... <classpath file> <out.json> <root>..."),
+      usage.output.contains(
+        "usage: lift <jar=prefix>,... <classpath file> <out.json> <root>..."
+      ),
       usage.output
     )
 
   // ### fn-126 R20: the structure lint, over fixtures of features with their level folders
 
-  concurrently("a form binds a shared action's entity without redeclaring its identity"):
+  concurrently(
+    "a form binds a shared action's entity without redeclaring its identity"
+  ):
     val jar = packaged("binding", materialize("binding"), Seq("--server=false"))
     val out = lifted("binding")
     val result = lift(
@@ -3897,7 +4852,8 @@ class Fixtures extends munit.FunSuite:
       "fixture.binding.StandaloneForm"
     )
     assert(!result.failed, result.diagnostics)
-    val json = new com.fasterxml.jackson.databind.ObjectMapper().readTree(Files.readString(out))
+    val json = new com.fasterxml.jackson.databind.ObjectMapper()
+      .readTree(Files.readString(out))
     val shared = json
       .path("actions")
       .elements()
@@ -3910,8 +4866,14 @@ class Fixtures extends munit.FunSuite:
     assertEquals(shared.head.path("on").asText(), "job")
     assertEquals(shared.head.path("name").asText(), "take")
     assertEquals(shared.head.path("actor").asText(), "worker")
-    assertEquals(shared.head.path("inputs").get(0).path("name").asText(), "ready")
-    assertEquals(shared.head.path("inputs").get(1).path("name").asText(), "resolution")
+    assertEquals(
+      shared.head.path("inputs").get(0).path("name").asText(),
+      "ready"
+    )
+    assertEquals(
+      shared.head.path("inputs").get(1).path("name").asText(),
+      "resolution"
+    )
     assertEquals(shared.head.path("results").asText(), "Delivery")
     val respond = json
       .path("actions")
@@ -3952,7 +4914,10 @@ class Fixtures extends munit.FunSuite:
     )
     assertNotEquals(rejected.exit, 0)
     assert(!Files.exists(refusedOut))
-    assert(refused(rejected).exists(_.contains("actions are on alien, job")), rejected.diagnostics)
+    assert(
+      refused(rejected).exists(_.contains("actions are on alien, job")),
+      rejected.diagnostics
+    )
     val conflictOut = lifted("conflicting-bindings")
     val conflict = lift(
       s"$jar=${stored("binding")},$modelJar=model/",
@@ -3964,7 +4929,9 @@ class Fixtures extends munit.FunSuite:
     assertNotEquals(conflict.exit, 0)
     assert(!Files.exists(conflictOut))
     assert(
-      refused(conflict).exists(_.contains("conflicting entity bindings in this export")),
+      refused(conflict).exists(
+        _.contains("conflicting entity bindings in this export")
+      ),
       conflict.diagnostics
     )
     val cycleOut = lifted("cyclic-binding")
@@ -3976,7 +4943,10 @@ class Fixtures extends munit.FunSuite:
     )
     assertEquals(cycle.exit, 1)
     assert(!Files.exists(cycleOut))
-    assert(refused(cycle).exists(_.contains("cyclic action binding")), cycle.diagnostics)
+    assert(
+      refused(cycle).exists(_.contains("cyclic action binding")),
+      cycle.diagnostics
+    )
     assert(!cycle.diagnostics.contains("StackOverflowError"))
 
   // A fixture whose features have folders, copied with them, its jar's path resolved.
@@ -4018,15 +4988,28 @@ class Fixtures extends munit.FunSuite:
     )
     val jar = packaged("layout", tree, Seq("--server=false"))
     val out = scratch.resolve("layout-out")
-    val result = liftIr(out, s"$jar=${stored("layout")},$modelJar=model/", "lamp")
+    val result =
+      liftIr(out, s"$jar=${stored("layout")},$modelJar=model/", "lamp")
     assertEquals(refused(result), Nil)
     assert(!result.failed, result.diagnostics)
     assertEquals(listed(out), Seq("lamp.json"))
     val lifted = Files.readString(out.resolve("lamp.json"))
-    for machine <- Seq("lampProduct", "onlyOn", "lampSystem", "onlyClosed", "bulb") do
-      assert(lifted.contains(s"\"$machine\""), s"lamp.json lifts no machine $machine")
-    val parsed = new com.fasterxml.jackson.databind.ObjectMapper().readTree(lifted)
-    val realization = Option(parsed.get("realizations")).toSeq.flatMap(_.elements().asScala.toSeq)
+    for machine <- Seq(
+        "lampProduct",
+        "onlyOn",
+        "lampSystem",
+        "onlyClosed",
+        "bulb"
+      )
+    do
+      assert(
+        lifted.contains(s"\"$machine\""),
+        s"lamp.json lifts no machine $machine"
+      )
+    val parsed =
+      new com.fasterxml.jackson.databind.ObjectMapper().readTree(lifted)
+    val realization = Option(parsed.get("realizations")).toSeq
+      .flatMap(_.elements().asScala.toSeq)
     assertEquals(realization.size, 1)
     assertEquals(
       realization.head.get("id").asText(),
@@ -4038,7 +5021,9 @@ class Fixtures extends munit.FunSuite:
       "model/irgen/testdata/layout/lamp/system/Realization.scala"
     )
 
-  concurrently("kind scaffolds and their one or two forms lift with local or kind Products"):
+  concurrently(
+    "kind scaffolds and their one or two forms lift with local or kind Products"
+  ):
     val tree = materializeTree("layout/kinds", "kind-layout")
     val jar = packaged("kind-layout", tree, Seq("--server=false"))
     val out = scratch.resolve("kind-layout-out")
@@ -4057,8 +5042,11 @@ class Fixtures extends munit.FunSuite:
       listed(out),
       Seq(
         "activity-standalone.json",
+        "activity-standalone.waivers.json",
         "nexus-standalone.json",
+        "nexus-standalone.waivers.json",
         "nexus-workflow.json",
+        "nexus-workflow.waivers.json",
         "relay-standalone.json",
         "relay-workflow.json"
       )
@@ -4067,11 +5055,17 @@ class Fixtures extends munit.FunSuite:
       val json = new com.fasterxml.jackson.databind.ObjectMapper()
         .readTree(Files.readString(out.resolve(s"relay-$form.json")))
       val machines = json.get("machines").elements().asScala.toSeq
-      assertEquals(machines.map(_.get("name").asText()).toSet, Set("relayProduct", "relaySystem"))
+      assertEquals(
+        machines.map(_.get("name").asText()).toSet,
+        Set("relayProduct", "relaySystem")
+      )
       val actions = json.get("actions").elements().asScala.toSeq
       assertEquals(
         actions.map(_.get("id").asText()).toSet,
-        Set("fixture.features.relay.user.start", "fixture.features.relay.user.complete")
+        Set(
+          "fixture.features.relay.user.start",
+          "fixture.features.relay.user.complete"
+        )
       )
       assertEquals(
         actions
@@ -4092,7 +5086,11 @@ class Fixtures extends munit.FunSuite:
       assert(
         actions.forall(_.get("actor").asText() == "user")
       )
-      assert(actions.forall(_.get("position").get("file").asText().endsWith("relay/Relay.scala")))
+      assert(
+        actions.forall(
+          _.get("position").get("file").asText().endsWith("relay/Relay.scala")
+        )
+      )
       assert(
         machines.forall(_.get("entity").asText() == "task")
       )
@@ -4109,7 +5107,12 @@ class Fixtures extends munit.FunSuite:
       )
 
   private lazy val kindRefusals = Seq(
-    ("missing-header", "nexus/Nexus.scala", None, "has no general feature file"),
+    (
+      "missing-header",
+      "nexus/Nexus.scala",
+      None,
+      "has no general feature file"
+    ),
     (
       "wrong-header-package",
       "nexus/Nexus.scala",
@@ -4133,7 +5136,9 @@ class Fixtures extends munit.FunSuite:
     (
       "wrong-form-package",
       "nexus/standalone/Mismatch.scala",
-      Some("package fixture.features.nexus.workflow\nfinal case class Marker(value: Boolean)\n"),
+      Some(
+        "package fixture.features.nexus.workflow\nfinal case class Marker(value: Boolean)\n"
+      ),
       "does not mirror"
     ),
     (
@@ -4151,7 +5156,9 @@ class Fixtures extends munit.FunSuite:
       "relay/workflow/system/System.scala",
       Some(
         Files
-          .readString(testdata.resolve("layout/kinds/relay/workflow/system/System.scala"))
+          .readString(
+            testdata.resolve("layout/kinds/relay/workflow/system/System.scala")
+          )
           .replace(
             "fixture.features.relay.shared.product",
             "fixture.features.nexus.workflow.product"
@@ -4165,7 +5172,11 @@ class Fixtures extends munit.FunSuite:
       "nexus/standalone/StandaloneNexus.scala",
       Some(
         Files
-          .readString(testdata.resolve("layout/kinds/nexus/standalone/StandaloneNexus.scala"))
+          .readString(
+            testdata.resolve(
+              "layout/kinds/nexus/standalone/StandaloneNexus.scala"
+            )
+          )
           // Strict equality: the refinement compares phases with the evidence Finite supplies.
           .replace(
             "import framework.*\n",
@@ -4189,7 +5200,10 @@ class Fixtures extends munit.FunSuite:
       val variant = materializeTree("layout/kinds", s"kind-$name")
       val changed = variant.resolve(file)
       if name == "case-variant-header" then
-        assume(!Files.exists(changed), "case-variant headers require a case-sensitive filesystem")
+        assume(
+          !Files.exists(changed),
+          "case-variant headers require a case-sensitive filesystem"
+        )
       contents match
         case Some(text) =>
           Files.createDirectories(changed.getParent)
@@ -4206,9 +5220,24 @@ class Fixtures extends munit.FunSuite:
       )
 
   for (name, file, line, diagnostic) <- Seq(
-      ("form-outside-kind", "standalone/Standalone.scala", 3, "a form belongs inside a kind"),
-      ("machine-in-general-file", "nexus/Nexus.scala", 5, "Misplaced is a machine object"),
-      ("second-general-file", "nexus/Extra.scala", 1, "one general feature file")
+      (
+        "form-outside-kind",
+        "standalone/Standalone.scala",
+        3,
+        "a form belongs inside a kind"
+      ),
+      (
+        "machine-in-general-file",
+        "nexus/Nexus.scala",
+        5,
+        "Misplaced is a machine object"
+      ),
+      (
+        "second-general-file",
+        "nexus/Extra.scala",
+        1,
+        "one general feature file"
+      )
     )
   do
     concurrently(s"R4 refuses $name at its source line"):
@@ -4216,13 +5245,19 @@ class Fixtures extends munit.FunSuite:
       val specimen = testdata.resolve(s"layout/r4/$name/$file")
       val changed = tree.resolve(file)
       Files.createDirectories(changed.getParent)
-      Files.copy(specimen, changed, java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+      Files.copy(
+        specimen,
+        changed,
+        java.nio.file.StandardCopyOption.REPLACE_EXISTING
+      )
       val jar = packaged(s"r4-$name", tree, Seq("--server=false"))
       val out = scratch.resolve(s"r4-$name-out")
       val result = liftIr(out, s"$jar=$tree/,$modelJar=model/")
       assert(
         refused(result).exists(message =>
-          message.startsWith(s"lift: $tree/$file:$line:") && message.contains(diagnostic)
+          message.startsWith(s"lift: $tree/$file:$line:") && message.contains(
+            diagnostic
+          )
         ),
         s"$name did not report $file:$line: $diagnostic:\n${result.diagnostics}"
       )
@@ -4236,7 +5271,9 @@ class Fixtures extends munit.FunSuite:
       for file <- stream.iterator.asScala.toList if Files.isRegularFile(file) do
         Files.writeString(
           file,
-          Files.readString(file).replace("fixture.features.nexus", "fixture.foundations.nexus")
+          Files
+            .readString(file)
+            .replace("fixture.features.nexus", "fixture.foundations.nexus")
         )
     finally stream.close()
     val jar = packaged("shared-forms", tree, Seq("--server=false"))
@@ -4246,12 +5283,16 @@ class Fixtures extends munit.FunSuite:
     assertEquals(listed(out), Nil)
     assert(
       refused(result).exists(message =>
-        message.contains("nexus/workflow/") && message.contains("no level folder")
+        message.contains("nexus/workflow/") && message.contains(
+          "no level folder"
+        )
       ),
       result.diagnostics
     )
 
-  concurrently("a form's package mirrors its original parent kind before rebasing"):
+  concurrently(
+    "a form's package mirrors its original parent kind before rebasing"
+  ):
     val tree = materializeTree("layout/kinds", "wrong-parent-kind")
     Files.move(
       tree.resolve("nexus/workflow"),
@@ -4264,13 +5305,17 @@ class Fixtures extends munit.FunSuite:
     assertEquals(listed(out), Nil)
     assert(
       refused(result).exists(message =>
-        message.contains("other/workflow/") && message.contains("does not mirror")
+        message.contains("other/workflow/") && message.contains(
+          "does not mirror"
+        )
       ),
       result.diagnostics
     )
 
   for variantName <- Seq("unrefined-sibling", "derived-sibling") do
-    concurrently(s"an inherited System requires its canonical primary with $variantName"):
+    concurrently(
+      s"an inherited System requires its canonical primary with $variantName"
+    ):
       val tree = materializeTree("layout/kinds", variantName)
       val system = tree.resolve("relay/workflow/system/System.scala")
       val text =
@@ -4278,7 +5323,10 @@ class Fixtures extends munit.FunSuite:
           Files
             .readString(system)
             .replaceAll("(?s)  object refinement .*?(?=  object effects:)", "")
-            .replace("import fixture.features.relay.shared.product.RelayProduct\n", "")
+            .replace(
+              "import fixture.features.relay.shared.product.RelayProduct\n",
+              ""
+            )
         else
           "package fixture.features.relay.workflow\npackage system\nimport framework.*\n" +
             "import fixture.features.relay.shared.product.RelayProduct\nobject Copy extends Derived(RelayProduct.unmonitored)\n"
@@ -4292,7 +5340,8 @@ class Fixtures extends munit.FunSuite:
         ): Unit
       val jar = packaged(variantName, tree, Seq("--server=false"))
       val out = scratch.resolve(s"$variantName-out")
-      val result = liftIr(out, s"$jar=$tree/,$modelJar=model/", "relay-workflow")
+      val result =
+        liftIr(out, s"$jar=$tree/,$modelJar=model/", "relay-workflow")
       assertNotEquals(result.exit, 0)
       assertEquals(listed(out), Nil)
       assert(
@@ -4300,7 +5349,9 @@ class Fixtures extends munit.FunSuite:
         result.diagnostics
       )
 
-  concurrently("kind cores and forms refuse unknown or deeper folders containing only types"):
+  concurrently(
+    "kind cores and forms refuse unknown or deeper folders containing only types"
+  ):
     val tree = materializeTree("layout/kinds", "type-only-folders")
     val misplaced = Seq(
       "relay/extra/Extra.scala" -> "fixture.features.relay.extra",
@@ -4310,7 +5361,10 @@ class Fixtures extends munit.FunSuite:
     for (file, pkg) <- misplaced do
       val path = tree.resolve(file)
       Files.createDirectories(path.getParent)
-      Files.writeString(path, s"package $pkg\nfinal case class Extra(value: Boolean)\n")
+      Files.writeString(
+        path,
+        s"package $pkg\nfinal case class Extra(value: Boolean)\n"
+      )
     val jar = packaged("type-only-folders", tree, Seq("--server=false"))
     val out = scratch.resolve("type-only-folders-out")
     val result = liftIr(out, s"$jar=$tree/,$modelJar=model/", "relay-workflow")
@@ -4327,17 +5381,20 @@ class Fixtures extends munit.FunSuite:
   // R20 (a): the folders of a feature with two levels, a missing root feature file or level file,
   // a feature of one level with a subfolder, and a package that does not mirror its folder
   // (layoutRefusals/a).
-  concurrently("the structure lint refuses a feature's levels out of their folders"):
+  concurrently(
+    "the structure lint refuses a feature's levels out of their folders"
+  ):
     val jar = packaged("layoutRefusals-a", materializeTree("layoutRefusals/a"))
     val out = scratch.resolve("layoutRefusals-a-out")
     val at = stored("layoutRefusals/a")
     val result = liftIr(out, s"$jar=$at,$modelJar=model/")
     assertNotEquals(result.exit, 0)
     assertEquals(listed(out), Nil)
-    val two = "KettleSystem refines KettleProduct, so kettle has two levels, each in its folder: " +
-      "the Product in product/Product.scala, the System in system/System.scala, beside the root " +
-      "feature file named after the feature's folder, which holds shared types and the signature " +
-      "(model/irgen/testdata/layout/lamp is the template)"
+    val two =
+      "KettleSystem refines KettleProduct, so kettle has two levels, each in its folder: " +
+        "the Product in product/Product.scala, the System in system/System.scala, beside the root " +
+        "feature file named after the feature's folder, which holds shared types and the signature " +
+        "(model/irgen/testdata/layout/lamp is the template)"
     val urn = two.replace(
       "KettleSystem refines KettleProduct, so kettle",
       "UrnSystem refines UrnProduct, so urn"
@@ -4345,7 +5402,7 @@ class Fixtures extends munit.FunSuite:
     assertEquals(
       refused(result),
       Seq(
-        s"lift: ${at}kettle/Kettle.scala:28: Stray is a machine object in kettle's root folder, " +
+        s"lift: ${at}kettle/Kettle.scala:26: Stray is a machine object in kettle's root folder, " +
           s"${at}kettle/, whose feature file holds shared types and the signature " +
           "alone: a feature with two levels declares its machines in product/ and system/",
         s"lift: ${at}kettle/system/Heater.scala:12: $two; ${at}kettle/system/System.scala is " +
@@ -4370,7 +5427,9 @@ class Fixtures extends munit.FunSuite:
 
   // R20 (b): the level files name the feature's Product and System machines and own their
   // Phase, State and Fact vocabulary rather than leaving prefixed level types in the root.
-  concurrently("the structure lint refuses invalid level names and root-owned level vocabulary"):
+  concurrently(
+    "the structure lint refuses invalid level names and root-owned level vocabulary"
+  ):
     val jar = packaged("layoutRefusals-b", materializeTree("layoutRefusals/b"))
     val out = scratch.resolve("layoutRefusals-b-out")
     val at = stored("layoutRefusals/b")
@@ -4391,22 +5450,22 @@ class Fixtures extends munit.FunSuite:
           "Product level",
         s"lift: ${at}pump/system/System.scala:7: PumpProtocol is the System machine in pump's " +
           "system/System.scala: name it PumpSystem, with the same prefix as PumpProduct",
-        s"lift: ${at}reservoir/Reservoir.scala:8: ProductPhase is Product level vocabulary " +
+        s"lift: ${at}reservoir/Reservoir.scala:6: ProductPhase is Product level vocabulary " +
           "declared in reservoir's root feature file: declare it as Phase in " +
           "product/Product.scala",
-        s"lift: ${at}reservoir/Reservoir.scala:11: ProductState is Product level vocabulary " +
+        s"lift: ${at}reservoir/Reservoir.scala:9: ProductState is Product level vocabulary " +
           "declared in reservoir's root feature file: declare it as State in " +
           "product/Product.scala",
-        s"lift: ${at}reservoir/Reservoir.scala:13: ProductFact is Product level vocabulary " +
+        s"lift: ${at}reservoir/Reservoir.scala:11: ProductFact is Product level vocabulary " +
           "declared in reservoir's root feature file: declare it as Fact in " +
           "product/Product.scala",
-        s"lift: ${at}reservoir/Reservoir.scala:16: Phase is level vocabulary declared in " +
+        s"lift: ${at}reservoir/Reservoir.scala:14: Phase is level vocabulary declared in " +
           "reservoir's root feature file: declare it in product/Product.scala or " +
           "system/System.scala",
-        s"lift: ${at}reservoir/Reservoir.scala:19: SystemState is System level vocabulary " +
+        s"lift: ${at}reservoir/Reservoir.scala:17: SystemState is System level vocabulary " +
           "declared in reservoir's root feature file: declare it as State in " +
           "system/System.scala",
-        s"lift: ${at}reservoir/Reservoir.scala:21: SystemFact is System level vocabulary " +
+        s"lift: ${at}reservoir/Reservoir.scala:19: SystemFact is System level vocabulary " +
           "declared in reservoir's root feature file: declare it as Fact in " +
           "system/System.scala",
         s"lift: ${at}reservoir/product/Product.scala:6: ReservoirProduct is reservoir's Product " +
@@ -4432,7 +5491,9 @@ class Fixtures extends munit.FunSuite:
       )
     )
 
-  concurrently("the structure lint requires independent unambiguous primary level machines"):
+  concurrently(
+    "the structure lint requires independent unambiguous primary level machines"
+  ):
     val jar = packaged("layoutRefusals-d", materializeTree("layoutRefusals/d"))
     val out = scratch.resolve("layoutRefusals-d-out")
     val at = stored("layoutRefusals/d")
@@ -4471,10 +5532,11 @@ class Fixtures extends munit.FunSuite:
     assertNotEquals(result.exit, 0)
     assertEquals(listed(out), Nil)
     val product = s"${at}kiln/product/Product.scala"
-    val none = "and none of its sections, states, refinement, effects, monitors, rules, syncs, " +
-      "properties, capabilities, queries: a section of another name sits at the top " +
-      "level of the " +
-      "file, in the signature, and anything else in one of these"
+    val none =
+      "and none of its sections, states, refinement, effects, monitors, rules, syncs, " +
+        "properties, capabilities, queries: a section of another name sits at the top " +
+        "level of the " +
+        "file, in the signature, and anything else in one of these"
     assertEquals(
       refused(result),
       Seq(

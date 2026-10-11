@@ -56,6 +56,8 @@ object CapableTogether extends Composition[Joined](_.left -> Subject, _.right ->
 val capabilityDuplicate = Capable
   .witness("capabilityDuplicate")(begin(), finish(Input.first))
   .records(Note.completed)
+
+val capabilityAbsent = Capable.witness("capabilityAbsent")(begin(), finish(Input.first)).excludes(Note.completed)
   .ends(closed)
   .limits(bounded)
   .live(expected)

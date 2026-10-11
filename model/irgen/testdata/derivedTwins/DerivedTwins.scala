@@ -12,31 +12,38 @@ enum Outcome derives Finite:
 
 given Ok[Outcome] = Ok(Outcome.accepted)
 
-val flip = action(Actor("user"))
+object user extends Actor:
+  val flip = action(this)
 
-def flipStep(l: LampState): List[Step[LampState, Outcome, Nothing]] = enter(LampState(!l.lit))
+val two = Limits(steps = 2, actions = 2, search = 64)
 
 object Lamp extends Machine[LampState, Outcome, Nothing]:
   val init = LampState(false)
   def end(lamp: State) = true
-
-  object rules extends Bindings(flip ~> flipStep)
+  object effects:
+    def flipStep(l: LampState): List[Step[LampState, Outcome, Nothing]] = enter(
+      LampState(!l.lit)
+    )
+  object rules extends Rules:
+    on(user.flip)(always ~> effects.flipStep)
+  object queries:
+    def litQueries(m: Machine[LampState, Outcome, Nothing]): Vector[Query] =
+      Vector(
+        query("anyLit") find (m.property(s"${m.name}.lit") holds (after => after.state.lit)) in m
+          .scenario("any")
+          .free limits two
+      )
+    val lampQueries = litQueries(Lamp)
 
 object PlainLamp extends Machine[LampState, Outcome, Nothing]:
   val init = LampState(true)
   def end(lamp: State) = true
 
-  object rules extends Bindings(flip ~> flipStep)
-
-val two = Limits(steps = 2, actions = 2, search = 64)
-
-// The Query each machine gets from one declaration, named alike for both.
-def litQueries(m: Machine[LampState, Outcome, Nothing]): Vector[Query] = Vector(
-  query("anyLit") find (m.property(s"${m.name}.lit") holds (after => after.state.lit)) in m
-    .scenario("any")
-    .free limits two
-)
-
-val lampQueries = litQueries(Lamp)
-val plainLampQueries = litQueries(PlainLamp)
-
+  object effects:
+    def flipStep(l: LampState): List[Step[LampState, Outcome, Nothing]] = enter(
+      LampState(!l.lit)
+    )
+  object rules extends Rules:
+    on(user.flip)(always ~> effects.flipStep)
+  object queries:
+    val plainLampQueries = Lamp.queries.litQueries(PlainLamp)

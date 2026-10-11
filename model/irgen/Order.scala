@@ -63,9 +63,15 @@ final private[irgen] class Order(index: Index):
     // A source is compiled to a tree per top-level type and one for its top-level definitions.
     val sources = checked.groupBy(fileOf).toSeq.sortBy(_._1)
     sources.foreach((path, trees) => layout(path, trees, sources.map(_._1)))
-    refused ++= Structure(index).refusals(exempt) // R20, the folders and sections of a feature
+    eligibleWitnesses()
+    refused ++= Structure(index).refusals(
+      exempt
+    ) // R20, the folders and sections of a feature
     refused ++= Conventions(index).refusals(exempt)
-    refused.toSeq.sortBy((file, line, e) => (file, line, e.message)).map(_._3).distinct
+    refused.toSeq
+      .sortBy((file, line, e) => (file, line, e.message))
+      .map(_._3)
+      .distinct
 
   // ### Positions
 
@@ -74,13 +80,195 @@ final private[irgen] class Order(index: Index):
       .Try(t.pos.sourceFile.path)
       .map(p => index.sourceRoots.getOrElse(p, "") + p)
       .getOrElse("")
-  private def lineOf(t: Tree): Int = scala.util.Try(t.pos.startLine + 1).getOrElse(0)
+  private def lineOf(t: Tree): Int =
+    scala.util.Try(t.pos.startLine + 1).getOrElse(0)
   private def at(t: Tree): String = s"${fileOf(t)}:${lineOf(t)}"
   private def refuse(t: Tree, message: String): Unit =
     refused += ((fileOf(t), lineOf(t), LiftError(at(t), message)))
 
   private def exempt(file: String): Boolean =
     file.startsWith("model/irgen/testdata/") && file.endsWith("Rejects.scala")
+
+  // R5 is about authored declarations and their semantic readers, not generated IR names.
+  // Resolve the actual typed symbols, and compare every input of the selected tail class.
+  private def eligibleWitnesses(): Unit =
+    val readers = mutable.Map.empty[Symbol, mutable.Set[Symbol]]
+    val declarations = index.defs.values.collect {
+      case v: ValDef
+          if !v.symbol.flags.is(Flags.Synthetic) && !exempt(
+            fileOf(v)
+          ) && !fileOf(v).endsWith(".test.scala") =>
+        v
+    }.toVector
+    val semanticDefinitions = index.defs.values.filter(d =>
+      !d.symbol.flags.is(Flags.Synthetic) &&
+        !d.symbol.flags.is(Flags.FieldAccessor) && !exempt(
+          fileOf(d)
+        ) && !fileOf(d).endsWith(".test.scala")
+    )
+    for
+      d <- semanticDefinitions;
+      rhs <- d match
+        case v: ValDef => v.rhs
+        case f: DefDef => f.rhs
+        case _         => None
+    do
+      object refs extends TreeTraverser:
+        override def traverseTree(t: Tree)(owner: Symbol): Unit =
+          t match
+            case r: Ref =>
+              readers.getOrElseUpdate(r.symbol, mutable.Set.empty) += d.symbol
+            case _ => ()
+          super.traverseTree(t)(owner)
+      refs.traverseTree(rhs)(d.symbol)
+    def privateTo(ref: Term, q: ValDef): Option[ValDef] =
+      index.defs.get(ref.symbol).collect {
+        case v: ValDef if readers.get(ref.symbol).exists(_.toSet == Set(q.symbol)) =>
+          v
+      }
+    def plain(t: Term): Term = t match
+      case Typed(e, _)        => plain(e)
+      case Inlined(_, Nil, e) => plain(e)
+      case Block(Nil, e)      => plain(e)
+      case _                  => t
+    def call(t: Term, owner: String, name: String): Option[(Term, List[Term])] =
+      plain(t) match
+        case Apply(fn, args) if fn.symbol.name == name && fn.symbol.maybeOwner.fullName == owner =>
+          def receiver(f: Term): Option[Term] = f match
+            case TypeApply(g, _) => receiver(g)
+            case Select(on, _)   => Some(on)
+            case _               => None
+          receiver(fn).map(_ -> args)
+        case _ => None
+    def chain(
+        t: Term,
+        owner: String,
+        name: String
+    ): Option[(Term, List[Term])] =
+      call(t, owner, name).orElse(plain(t) match
+        case Apply(fn, _) =>
+          fn match
+            case TypeApply(Select(on, _), _) => chain(on, owner, name)
+            case Select(on, _)               => chain(on, owner, name)
+            case _                           => None
+        case _ => None)
+    def key(t: Term): Option[String] = plain(t) match
+      case Apply(Select(action, "apply"), Nil)
+          if action.tpe.widen.dealias.derivesFrom(
+            Symbol.requiredClass("framework.Action")
+          ) =>
+        key(action)
+      case NamedArg(name, value) => key(value).map(name + "=" + _)
+      case r: Ref                => Some(r.symbol.fullName)
+      case Literal(value)        => Some(value.show)
+      case TypeApply(fn, _)      => key(fn)
+      case Apply(fn, args)       =>
+        val values = args.map(key)
+        if values.forall(_.nonEmpty) then key(fn).map(_ + values.flatten.mkString("(", ",", ")"))
+        else None
+      case _ => None
+    def expanded(t: Term, depth: Int = 0): Term =
+      if depth >= 8 then plain(t)
+      else
+        def applied(term: Term): (Term, List[Term]) = plain(term) match
+          case Apply(fn, args) =>
+            val (base, previous) = applied(fn)
+            (base, previous ++ args)
+          case TypeApply(fn, _) => applied(fn)
+          case other            => (other, Nil)
+        val (fn, args) = applied(t)
+        index.defs.get(fn.symbol) match
+          case Some(d: DefDef) if args.nonEmpty && d.rhs.nonEmpty =>
+            val params = d.paramss.collect { case TermParamClause(values) =>
+              values
+            }.flatten
+            if params.size != args.size then plain(t)
+            else
+              val actual = params.map(_.symbol).zip(args).toMap
+              object substitute extends TreeMap:
+                override def transformTerm(term: Term)(owner: Symbol): Term =
+                  term match
+                    case r: Ref if actual.contains(r.symbol) => actual(r.symbol)
+                    case _                                   => super.transformTerm(term)(owner)
+              expanded(substitute.transformTerm(d.rhs.get)(d.symbol), depth + 1)
+          case _ => plain(t)
+    def recorded(body: Term): Boolean =
+      def stepFactsContains(fn: Term): Boolean = fn match
+        case TypeApply(base, _)             => stepFactsContains(base)
+        case Select(collection, "contains") =>
+          Symbol
+            .requiredClass("scala.collection.immutable.List")
+            .methodMember("contains")
+            .contains(fn.symbol) &&
+          collection.symbol.name == "facts" && collection.symbol.maybeOwner.fullName == "framework.Step"
+        case _ => false
+      var positive = false
+      var negative = false
+      object facts extends TreeTraverser:
+        private var negated = false
+        override def traverseTree(t: Tree)(owner: Symbol): Unit =
+          t match
+            case Select(on, "unary_!") if t.symbol.maybeOwner.fullName == "scala.Boolean" =>
+              negated = !negated
+              traverseTree(on)(owner)
+              negated = !negated
+            case Apply(fn, _)
+                if fn.symbol.name == "records" &&
+                  fn.symbol.maybeOwner.fullName == "framework.Syntax$package$" =>
+              if negated then negative = true else positive = true
+              super.traverseTree(t)(owner)
+            case Apply(fn, _) if stepFactsContains(fn) =>
+              if negated then negative = true else positive = true
+              super.traverseTree(t)(owner)
+            case _ => super.traverseTree(t)(owner)
+      facts.traverseTree(body)(Symbol.spliceOwner)
+      positive || negative
+    for
+      q <- declarations if kindOf(q).contains(Kind.Query) &&
+        q.symbol.fullName
+          .split('.')
+          .exists(Set("features", "foundations", "actors"));
+      rhs <- q.rhs
+    do
+      for
+        (find, scenarioArgs) <- chain(rhs, "framework.QueryOn", "in")
+        (_, propertyArgs) <- call(find, "framework.QueryDecl", "find")
+        propertyRef <- propertyArgs.headOption
+        scenarioRef <- scenarioArgs.headOption
+        property <- privateTo(propertyRef, q)
+        scenario <- privateTo(scenarioRef, q)
+        propertyBody <- property.rhs
+        scenarioBody <- scenario.rhs
+        (builder, claim) <- call(
+          expanded(propertyBody),
+          "framework.PropertyBuilder",
+          "holds"
+        )
+        (_, selected) <- call(builder, "framework.PropertyBuilder", "when")
+        (start, actionArgs) <- call(
+          scenarioBody,
+          "framework.ScenarioBuilder",
+          "actions"
+        )
+      do
+        val path = actionArgs.flatMap(t =>
+          plain(t) match
+            case Repeated(items, _) => items
+            case other              => List(other)
+        )
+        val keys = path.map(key)
+        val tail = selected.headOption.flatMap(key)
+        val custom =
+          chain(start, "framework.ScenarioBuilder", "starts").nonEmpty
+        if path.nonEmpty && keys.forall(
+            _.nonEmpty
+          ) && tail.nonEmpty && keys.last == tail &&
+          keys.count(_ == tail) == 1 && !custom && claim.exists(recorded)
+        then
+          refuse(
+            q,
+            s"R5.eligible-witness: `${q.name}` is a private pinned find over `${property.name}` and `${scenario.name}`: write its ordered witness, recorded fact and full-state ending here"
+          )
 
   private def treeOf(s: Symbol): Option[Tree] = scala.util.Try(s.tree).toOption
 
@@ -94,7 +282,9 @@ final private[irgen] class Order(index: Index):
 
   // Whether `c` is an object that is a machine or a composition: `object M extends Machine[...]`.
   private def objectForm(c: Symbol): Boolean =
-    isOwner(c) && (c.typeRef.derivesFrom(machineClass) || c.typeRef.derivesFrom(compositionClass))
+    isOwner(c) && (c.typeRef.derivesFrom(machineClass) || c.typeRef.derivesFrom(
+      compositionClass
+    ))
 
   // ### (a) and (b): what each owner reads while it initializes
 
@@ -103,11 +293,18 @@ final private[irgen] class Order(index: Index):
 
   // An owner's name as its source writes it: `Protocol.properties`, or `Model$package` for a file's.
   private def nameOf(owner: Symbol): String =
-    val pkg = Iterator.iterate(owner)(_.maybeOwner).find(o => o.isNoSymbol || o.isPackageDef)
+    val pkg = Iterator
+      .iterate(owner)(_.maybeOwner)
+      .find(o => o.isNoSymbol || o.isPackageDef)
     val prefix = pkg.filter(_.isPackageDef).fold("")(_.fullName + ".")
-    owner.fullName.stripPrefix(prefix).split('.').map(_.stripSuffix("$")).mkString(".")
+    owner.fullName
+      .stripPrefix(prefix)
+      .split('.')
+      .map(_.stripSuffix("$"))
+      .mkString(".")
 
-  private def lazily(s: Symbol): Boolean = s.flags.is(Flags.Lazy) || s.flags.is(Flags.Module)
+  private def lazily(s: Symbol): Boolean =
+    s.flags.is(Flags.Lazy) || s.flags.is(Flags.Module)
 
   // A `final val` of a literal, which the compiler writes in place of each read.
   private def constant(s: Symbol): Boolean =
@@ -120,7 +317,8 @@ final private[irgen] class Order(index: Index):
     }
 
   // The owners each owner reads while it initializes, with the first read of each.
-  private val reads = mutable.LinkedHashMap.empty[Symbol, mutable.LinkedHashMap[Symbol, Tree]]
+  private val reads =
+    mutable.LinkedHashMap.empty[Symbol, mutable.LinkedHashMap[Symbol, Tree]]
 
   private def initialization(file: Tree): Unit =
     object owners extends TreeTraverser:
@@ -133,7 +331,9 @@ final private[irgen] class Order(index: Index):
 
   private def initializes(cls: ClassDef): Unit =
     val owner = cls.symbol
-    val order = cls.body.zipWithIndex.collect { case (v: ValDef, i) => v.symbol -> i }.toMap
+    val order = cls.body.zipWithIndex.collect { case (v: ValDef, i) =>
+      v.symbol -> i
+    }.toMap
     // The parents' constructor arguments run first, then the body of each class of the lifted
     // sources it extends, such as the shared set a `capabilities` section extends, then its own
     // body, statement by statement.
@@ -188,11 +388,12 @@ final private[irgen] class Order(index: Index):
             traverseTree(fn)(o)
             def atOnce(a: Tree): Unit = a match
               case Lambda(_, body)   => traverseTree(body)(o)
-              case Inlined(_, bs, e) => bs.foreach(traverseTree(_)(o)); atOnce(e)
-              case Typed(e, _)       => atOnce(e)
-              case Block(Nil, e)     => atOnce(e)
-              case NamedArg(_, e)    => atOnce(e)
-              case other             => traverseTree(other)(o)
+              case Inlined(_, bs, e) =>
+                bs.foreach(traverseTree(_)(o)); atOnce(e)
+              case Typed(e, _)    => atOnce(e)
+              case Block(Nil, e)  => atOnce(e)
+              case NamedArg(_, e) => atOnce(e)
+              case other          => traverseTree(other)(o)
             args.foreach(atOnce)
           case Apply(fn, args) =>
             traverseTree(fn)(o)
@@ -245,7 +446,9 @@ final private[irgen] class Order(index: Index):
       .flatMap(treeOf)
       .collect { case base: ClassDef if !exempt(fileOf(base)) => base }
       .flatMap { base =>
-        base.parents.collect { case t: Term => t } ++ inherited(base) ++ base.body.flatMap {
+        base.parents.collect { case t: Term => t } ++ inherited(
+          base
+        ) ++ base.body.flatMap {
           case v: ValDef if !lazily(v.symbol)        => v.rhs
           case _: Definition | _: Import | _: Export => None
           case t                                     => Some(t)
@@ -270,7 +473,8 @@ final private[irgen] class Order(index: Index):
   // Each cycle of owners, once, at its first read in source order: the owners of one strongly
   // connected part of the reads, written from that read round to where it began.
   private def cycles(): Unit =
-    def edges(s: Symbol): Seq[Symbol] = reads.get(s).fold(Seq.empty[Symbol])(_.keys.toSeq)
+    def edges(s: Symbol): Seq[Symbol] =
+      reads.get(s).fold(Seq.empty[Symbol])(_.keys.toSeq)
     val indexOf = mutable.Map.empty[Symbol, Int]
     val low = mutable.Map.empty[Symbol, Int]
     val stack = mutable.ArrayBuffer.empty[Symbol]
@@ -294,9 +498,13 @@ final private[irgen] class Order(index: Index):
         from <- part.toSeq
         (to, read) <- reads(from) if part(to)
       yield (from, to, read)
-      val (from, to, read) = inside.minBy((_, _, r) => (fileOf(r), lineOf(r), r.pos.start))
+      val (from, to, read) =
+        inside.minBy((_, _, r) => (fileOf(r), lineOf(r), r.pos.start))
       // The way back from `to` to `from` through the part, each owner by the one it was reached from.
-      @tailrec def search(frontier: List[Symbol], from: Map[Symbol, Symbol]): Map[Symbol, Symbol] =
+      @tailrec def search(
+          frontier: List[Symbol],
+          from: Map[Symbol, Symbol]
+      ): Map[Symbol, Symbol] =
         frontier match
           case Nil       => from
           case s :: rest =>
@@ -320,11 +528,27 @@ final private[irgen] class Order(index: Index):
 
   // The kinds of declaration whose place the order gives, by the type a val or def declares.
   private enum Kind(val written: String, val belongs: String) derives CanEqual:
-    case Step extends Kind("a step function", "the `effects` object of its machine's object")
-    case Watch extends Kind("a monitor, assumption, hole or channel", "its machine's object itself")
+    case Step
+        extends Kind(
+          "a step function",
+          "the `effects` object of its machine's object"
+        )
+    case Watch
+        extends Kind(
+          "a monitor, assumption, hole or channel",
+          "its machine's object itself"
+        )
     case Machine extends Kind("a machine or composition", "an object of its own")
-    case Claim extends Kind("a Property", "the `properties` object of its machine's object")
-    case Scenario extends Kind("a Scenario", "the `queries` object of its machine's object")
+    case Claim
+        extends Kind(
+          "a Property",
+          "the `properties` object of its machine's object"
+        )
+    case Scenario
+        extends Kind(
+          "a Scenario",
+          "the `queries` object of its machine's object"
+        )
     case Query extends Kind("a Query", "the `queries` object of its machine's object")
     case File extends Kind("an IR file", "`object exports`")
 
@@ -342,12 +566,13 @@ final private[irgen] class Order(index: Index):
           case "framework.Monitor" | "framework.Assumption" | "framework.Hole" |
               "framework.Channel" =>
             Some(Kind.Watch)
-          case "framework.Machine" | "framework.Composition" => Some(Kind.Machine)
-          case "framework.Property" | "framework.Progress"   => Some(Kind.Claim)
-          case "framework.Scenario"                          => Some(Kind.Scenario)
-          case "framework.Query" | "framework.Witness"       => Some(Kind.Query)
-          case "framework.IrFile"                            => Some(Kind.File)
-          case _ if w.derivesFrom(iterable)                  =>
+          case "framework.Machine" | "framework.Composition" =>
+            Some(Kind.Machine)
+          case "framework.Property" | "framework.Progress" => Some(Kind.Claim)
+          case "framework.Scenario"                        => Some(Kind.Scenario)
+          case "framework.Query" | "framework.Witness"     => Some(Kind.Query)
+          case "framework.IrFile"                          => Some(Kind.File)
+          case _ if w.derivesFrom(iterable)                =>
             w.baseType(iterable).typeArgs.headOption.flatMap(kindOf(_, seen))
           case _ if w.derivesFrom(option) =>
             w.baseType(option).typeArgs.headOption.flatMap(kindOf(_, seen))
@@ -355,7 +580,9 @@ final private[irgen] class Order(index: Index):
           case name
               if sym.flags.is(Flags.Case) && !seen(sym) &&
                 !name.startsWith("framework.") && !name.startsWith("scala.") =>
-            sym.caseFields.view.flatMap(f => kindOf(w.memberType(f), seen + sym)).headOption
+            sym.caseFields.view
+              .flatMap(f => kindOf(w.memberType(f), seen + sym))
+              .headOption
           case _ => None
 
   private def kindOf(d: Definition): Option[Kind] = d match
@@ -377,8 +604,9 @@ final private[irgen] class Order(index: Index):
 
   // The place a kind belongs in: in an object form, a monitor's is the `monitors` section.
   private def belongs(k: Kind, inObjectForm: Boolean): String = k match
-    case Kind.Watch if inObjectForm => "the `monitors` object of its machine's object"
-    case _                          => k.belongs
+    case Kind.Watch if inObjectForm =>
+      "the `monitors` object of its machine's object"
+    case _ => k.belongs
 
   // The sections of a machine or composition object, in R2's order (Structure.formSections).
   private val formSections = Structure.formSections
@@ -392,7 +620,10 @@ final private[irgen] class Order(index: Index):
   // A member declaration of an owner: no synthetic one, no object's own val, no constructor.
   private def members(cls: ClassDef): List[Definition] = cls.body.flatMap {
     case v: ValDef if v.symbol.flags.is(Flags.Module) => None
-    case d: Definition if !d.symbol.flags.is(Flags.Synthetic) && !d.symbol.isClassConstructor =>
+    case d: Definition
+        if !d.symbol.flags.is(
+          Flags.Synthetic
+        ) && !d.symbol.isClassConstructor =>
       Some(d)
     case _ => None
   }
@@ -427,10 +658,14 @@ final private[irgen] class Order(index: Index):
       case c: ClassDef if c.symbol.flags.is(Flags.Module) && c.name.endsWith("$package$") =>
         members(c)
       // An object that is a type's companion is read as part of the type, by `companions`.
-      case c: ClassDef if c.symbol.flags.is(Flags.Module) && c.symbol.companionClass.exists => Nil
-      case v: ValDef if v.symbol.flags.is(Flags.Module)                                     => Nil
-      case d: Definition => List(d)
-      case _             => Nil
+      case c: ClassDef
+          if c.symbol.flags.is(
+            Flags.Module
+          ) && c.symbol.companionClass.exists =>
+        Nil
+      case v: ValDef if v.symbol.flags.is(Flags.Module) => Nil
+      case d: Definition                                => List(d)
+      case _                                            => Nil
     trees.flatMap(in).sortBy(d => scala.util.Try(d.pos.start).getOrElse(0))
 
   // The objects at the top level of a source that are a type's companions.
@@ -438,15 +673,18 @@ final private[irgen] class Order(index: Index):
     def in(t: Tree): List[ClassDef] = t match
       case PackageClause(_, stats) => stats.flatMap(in)
       case c: ClassDef
-          if c.symbol.flags.is(Flags.Module) && c.symbol.companionClass.exists &&
+          if c.symbol.flags.is(
+            Flags.Module
+          ) && c.symbol.companionClass.exists &&
             !c.name.endsWith("$package$") =>
         List(c)
       case _ => Nil
     trees.flatMap(in)
 
-  private def holdsModel(c: ClassDef): Boolean = objectForm(c.symbol) || members(c).exists { m =>
-    kindOf(m).nonEmpty || objectOf(m).exists(o => formSections.contains(plain(o.name)))
-  }
+  private def holdsModel(c: ClassDef): Boolean =
+    objectForm(c.symbol) || members(c).exists { m =>
+      kindOf(m).nonEmpty || objectOf(m).exists(o => formSections.contains(plain(o.name)))
+    }
 
   // Whether an object holds a Model declaration, or a section, at any depth.
   private def holdsModelWithin(c: ClassDef): Boolean =
@@ -482,7 +720,11 @@ final private[irgen] class Order(index: Index):
     case v: ValDef => names(v.tpt.tpe.widen.dealias.typeSymbol.fullName)
     case _         => false
 
-  private def layout(path: String, trees: List[Tree], sources: Seq[String]): Unit =
+  private def layout(
+      path: String,
+      trees: List[Tree],
+      sources: Seq[String]
+  ): Unit =
     val folder = path.take(path.lastIndexOf('/') + 1)
     def inFolder(other: String) =
       other.startsWith(folder) && !other.drop(folder.length).contains('/')
@@ -512,8 +754,9 @@ final private[irgen] class Order(index: Index):
           (topLevel(trees) ++ companions(trees)).foreach(misplaced)
         // A Model folder with no feature file: its declarations would be held to no reading order.
         case None if modelPackage(trees) =>
-          val home = "a Model folder declares its Models in its feature file, the file named " +
-            s"after the folder, in $folder"
+          val home =
+            "a Model folder declares its Models in its feature file, the file named " +
+              s"after the folder, in $folder"
           for d <- topLevel(trees) ++ companions(trees) do
             objectOf(d) match
               case Some(c) if holdsModelWithin(c) =>
@@ -552,7 +795,12 @@ final private[irgen] class Order(index: Index):
         d match
           case _: ClassDef | _: TypeDef => 1
           case _                        => 2
-    ordered(declared, rank, fileOrder, if level then "a level folder's file" else "a feature file")
+    ordered(
+      declared,
+      rank,
+      fileOrder,
+      if level then "a level folder's file" else "a feature file"
+    )
 
     // (d): the top level declares no Model; a machine object and its sections hold them.
     for d <- declared do
@@ -572,7 +820,8 @@ final private[irgen] class Order(index: Index):
               "a machine is `object M extends Machine[S, O, F]` or `Derived(...)`, a composition " +
               "`object C extends Composition[S](...)`, and their declarations sit in their sections"
           )
-        case Some(c) => noModelIn(c, s"${plain(c.name)}, an object of the signature")
+        case Some(c) =>
+          noModelIn(c, s"${plain(c.name)}, an object of the signature")
         // An assumption no machine makes of its own, which a derivation adds with `assuming` or
         // a progress claim names with `under`, is the feature's: it sits in the signature.
         case None if typed(d, Set("framework.Assumption")) => ()
@@ -590,16 +839,21 @@ final private[irgen] class Order(index: Index):
   private def formObject(c: ClassDef): Unit =
     val owner = nameOf(c.symbol)
     val composed = c.symbol.typeRef.derivesFrom(compositionClass)
-    val sectionNames = formSections.map(n => if n == "rules" && composed then "syncs" else n)
+    val sectionNames =
+      formSections.map(n => if n == "rules" && composed then "syncs" else n)
     // A machine that refines nothing names its unobservable timers among its header members; one
     // that refines another names them in its `refinement`.
     val refines = members(c)
       .flatMap(objectOf)
       .exists(o => plain(o.name) == "refinement")
-    val header = Set("init", "end", "entity", "evidence") ++ Option.when(!refines)("unobservable")
+    val header = Set("init", "end", "entity", "evidence") ++ Option.when(
+      !refines
+    )("unobservable")
     def headed(d: Definition) = header(d.name)
     val refinement =
-      Set("refines", "visible", "visibleOutcomes", "toProduct") ++ Option.when(refines)(
+      Set("refines", "visible", "visibleOutcomes", "toProduct") ++ Option.when(
+        refines
+      )(
         "unobservable"
       )
     def rank(d: Definition): Int = objectOf(d) match
@@ -682,14 +936,20 @@ final private[irgen] class Order(index: Index):
       case "rules"                 => Set.empty // statements alone, or a composition's syncs
       case "properties"            => Set(Kind.Claim)
       case "capabilities"          => Set.empty // capabilities and waivers
-      case "states" | "refinement" => Set.empty // vocabulary, and the machine's refinement
-      case _                       => Set(Kind.Scenario, Kind.Query)
+      case "states" | "refinement" =>
+        Set.empty // vocabulary, and the machine's refinement
+      case _ => Set(Kind.Scenario, Kind.Query)
     if name == "queries" then
       def rank(d: Definition) = kindOf(d) match
         case Some(Kind.Scenario) => 0
         case Some(Kind.Query)    => 1
         case _                   => -1
-      ordered(members(s), rank, Seq("its Scenarios", "its Queries"), s"$owner.queries")
+      ordered(
+        members(s),
+        rank,
+        Seq("its Scenarios", "its Queries"),
+        s"$owner.queries"
+      )
     val written = plain(s.name)
     for o <- members(s).flatMap(objectOf) do
       if sectionNamed(o).nonEmpty then
@@ -713,7 +973,10 @@ final private[irgen] class Order(index: Index):
           val declaring =
             if objectForm(named) then s"${nameOf(named)}, a machine object"
             else s"${named.name}, which ${nameOf(named.maybeOwner)} declares"
-          refuse(m, s"${m.name} is declared over $declaring: it belongs in ${nameOf(home)}$where")
+          refuse(
+            m,
+            s"${m.name} is declared over $declaring: it belongs in ${nameOf(home)}$where"
+          )
 
   // The machines and Scenarios a declaration names that are declared elsewhere than it must sit
   // beside: each, the owner it belongs in, and that owner's section to name.
@@ -725,12 +988,15 @@ final private[irgen] class Order(index: Index):
     val found = mutable.ArrayBuffer.empty[(Symbol, Symbol, String)]
     // A member of an object, not a parameter or a local of a declaring function.
     def declared(r: Term, kind: Kind) =
-      r.symbol.isValDef && isOwner(r.symbol.maybeOwner) && kindOf(r.tpe).contains(kind)
+      r.symbol.isValDef && isOwner(r.symbol.maybeOwner) && kindOf(r.tpe)
+        .contains(kind)
     def machine(m: Term, where: String): Unit =
       if declared(m, Kind.Machine) && m.symbol.maybeOwner != machineObject
       then found += ((m.symbol, m.symbol.maybeOwner, where))
       // A machine or composition object named by its object: its own declarations sit in it.
-      else if m.symbol.flags.is(Flags.Module) && objectForm(m.symbol.moduleClass) &&
+      else if m.symbol.flags.is(Flags.Module) && objectForm(
+          m.symbol.moduleClass
+        ) &&
         m.symbol.moduleClass != machineObject
       then found += ((m.symbol.moduleClass, m.symbol.moduleClass, where))
     // A Scenario or a Query whose Scenario is written in it may sit with another machine object of
@@ -738,7 +1004,9 @@ final private[irgen] class Order(index: Index):
     // since the ID derived from it hangs off that package either way.
     def samePackage(m: Term) =
       def pkg(s: Symbol) =
-        Iterator.iterate(s)(_.maybeOwner).find(o => o.isNoSymbol || o.isPackageDef)
+        Iterator
+          .iterate(s)(_.maybeOwner)
+          .find(o => o.isNoSymbol || o.isPackageDef)
       kindOf(d).exists(Set(Kind.Query, Kind.Scenario)) && pkg(m.symbol) == pkg(
         machineObject
       )
@@ -746,7 +1014,8 @@ final private[irgen] class Order(index: Index):
       override def traverseTree(t: Tree)(o: Symbol): Unit =
         t match
           case Select(m, "property")                    => machine(m, ".properties")
-          case Select(m, "scenario") if !samePackage(m) => machine(m, ".queries")
+          case Select(m, "scenario") if !samePackage(m) =>
+            machine(m, ".queries")
           case r: Ref
               if kindOf(d).contains(Kind.Query) && declared(r, Kind.Scenario) &&
                 r.symbol.maybeOwner != section =>

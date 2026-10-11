@@ -5,7 +5,6 @@ package standalone
 package protocol
 
 import framework.*
-import temporal.capabilities.system.*
 import framework.Finite.given
 import framework.outcomes.Outcome
 import framework.realize.{Cleanup, Conformance, Disposition, MonitorExpectation, PropertyOutcome}
@@ -16,8 +15,10 @@ import product.ActivityProduct
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 
 // The record with the one response-loss budget a lost admission response consumes.
-final case class AdmissionResponseState(record: AdmissionState, lossAvailable: Boolean)
-    derives Finite
+final case class AdmissionResponseState(
+    record: AdmissionState,
+    lossAvailable: Boolean
+) derives Finite
 
 enum AdmissionResponseFact derives Finite:
   case dispatchSent, attemptAdmitted
@@ -44,7 +45,8 @@ object HeldDispatch
 
   // It refines the product as the corrected design does.
   object refinement extends Refinement(ActivityProduct):
-    def toProduct(s: State): product.State = ActivityRecord.refinement.toProduct(s)
+    def toProduct(s: State): product.State =
+      ActivityRecord.refinement.toProduct(s)
     def visible(f: AdmissionFact) = ActivityRecord.refinement.visible(f)
 
   // The corrected design's monitors watch the race too.
@@ -54,47 +56,38 @@ object HeldDispatch
 
   object rules extends Facets(heldAdmission.rules)
 
-  // What the machine a server's Run is checked against promises.
-  object properties:
-    // Admission met the stale message and rejected it: the record is Fenced
-    // (temporal.capabilities.system).
-    val staleDeliveryRejected =
-      Fenced.staleDeliveryRejected(HeldDispatch)(
-        activityWorker.poll,
-        AdmissionFact.admissionRejected
-      )
-
   // The held race, as a server's Run is checked.
   object queries:
-    val heldStaleDelivery = scenario.actions(
-      history.dispatch,
-      client.pause,
-      activityWorker.poll
-    )
     val heldStaleDeliveryQuery =
-      (query("heldDispatch.staleDelivery") find properties.staleDeliveryRejected in
-        heldStaleDelivery limits three).live(
-        RunExpectation(
-          Conformance.conformant,
-          PropertyOutcome.satisfied,
-          contract = PropertyOutcome.satisfied,
-          disposition = Disposition.completed,
-          cleanup = Cleanup.succeeded,
-          monitors = Vector(
-            MonitorExpectation(
-              ActivityRecord.monitors.atMostOneActiveAttempt,
-              PropertyOutcome.inconclusive,
-              Some(Reason.neverEvaluated),
-              because =
-                "the held race admits no attempt, and the monitor is read only after a step that admits one"
-            ),
-            MonitorExpectation(
-              ActivityRecord.monitors.terminalFinality,
-              PropertyOutcome.satisfied
+      witness("heldDispatch.staleDelivery")(
+        history.dispatch,
+        client.pause,
+        activityWorker.poll
+      )
+        .records(AdmissionFact.admissionRejected)
+        .limits(three)
+        .live(
+          RunExpectation(
+            Conformance.conformant,
+            PropertyOutcome.satisfied,
+            contract = PropertyOutcome.satisfied,
+            disposition = Disposition.completed,
+            cleanup = Cleanup.succeeded,
+            monitors = Vector(
+              MonitorExpectation(
+                ActivityRecord.monitors.atMostOneActiveAttempt,
+                PropertyOutcome.inconclusive,
+                Some(Reason.neverEvaluated),
+                because =
+                  "the held race admits no attempt, and the monitor is read only after a step that admits one"
+              ),
+              MonitorExpectation(
+                ActivityRecord.monitors.terminalFinality,
+                PropertyOutcome.satisfied
+              )
             )
           )
         )
-      )
 
 // ### A lost admission response. The one response-loss budget is consumed whether the update
 // committed or failed: the client's missing answer distinguishes neither. The in-process actuator
