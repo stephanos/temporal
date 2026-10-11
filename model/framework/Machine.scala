@@ -338,6 +338,11 @@ private[framework] def overlap[S, O, F](
 // The name of an action as its rule writes it, from the source the rule was given: the last name
 // of `clerk.ship`, or of the action a class applies, `buyer.change(Change.hold)`.
 private[framework] def writtenAction(code: String): String =
+  writtenPath(code).split('.').last
+
+// The reference to the action a rule's source names, as written: `clerk.ship`, the action
+// `buyer.change(Change.hold)` applies, or a bare `ship`.
+private[framework] def writtenPath(code: String): String =
   // The type arguments of a class written by name, `apply[(A, B)](action)(...)`, name no action.
   val untyped = code.replaceAll("\\[[^\\]]*\\]", "")
   val path = "[A-Za-z_][A-Za-z0-9_$]*(?:\\.[A-Za-z_][A-Za-z0-9_$]*)*".r
@@ -345,7 +350,7 @@ private[framework] def writtenAction(code: String): String =
     .findAllIn(untyped)
     .map(_.stripSuffix(".apply"))
     .find(p => p.nonEmpty && p != "framework" && p != "apply") // scalafix:ok DisableSyntax.!=
-    .fold(code)(_.split('.').last)
+    .getOrElse(code)
 
 // A machine: a transition relation over the finite state type `S` with outcomes `O` and facts `F`.
 // Declared as an object that is the machine, named after the object with its first letter lowered:

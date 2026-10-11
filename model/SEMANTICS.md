@@ -208,9 +208,11 @@ A machine object's `rules` holds one or more blocks that name actions, `on(a) { 
 `on(a(v)) { … }`, whose cases each say where the action fires and what it does there, `c ~> e`. An
 `on(a, b) { … }` block gives the same cases to each named action. Every `on`, including one with one
 case, is brace-delimited, with its cases on separate lines and its closing brace on a line of its
-own; `on(a)(case)` is no Model form. `from(actor) { import actor.*; on(a) { … } }` only groups the
-blocks of actions `actor` declares, so removing the group and qualifying each action preserves the
-table. The case `when(p1, …)` holds while the machine's phase projection,
+own; `on(a)(case)` is no Model form. Each target, and each `disabled` target, names its action
+through its declarer, `actor.a`; `from(actor) { on(actor.a) { … } }` only groups the blocks of
+actions `actor` declares and imports nothing, so removing the group preserves the table. Phases are
+named through their phase type, `Phase.p`. Both rules are spelling: they change no table. The
+case `when(Phase.p1, …)` holds while the machine's phase projection,
 `Phased[State, Phase](_.phase)`, is one of the phases listed, `when(set)` while it is in the named
 set `set`, `when[R]` while it has phase role `R`, `where(g)` while the guard `g` of the state holds,
 `when(…).where(g)` while both do and `always` in every state; `e` is an effect of the machine's

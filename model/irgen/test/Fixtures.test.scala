@@ -607,9 +607,21 @@ class Fixtures extends munit.FunSuite:
     "OverrideWaived"
   ).map(o => s"fixture.capabilitysectionrejects.$o$$.capabilities")
 
-  // The refusals of fn-139.3's `from` blocks, each a machine object (lifts/RuleRejects.scala).
+  // The refusals of fn-139.3's `from` blocks, fn-159's bare actions, phases and imports in a
+  // `from`, and fn-159.7's unwritten `enters`, each a machine object (lifts/RuleRejects.scala).
   private val ruleRejects: Seq[String] =
-    Seq("NestedFrom", "Foreign", "ImportedTwice", "Unwritten").map("fixture.rulerejects." + _)
+    Seq(
+      "NestedFrom",
+      "Foreign",
+      "ImportedInFrom",
+      "BareInFrom",
+      "BareImported",
+      "BareClass",
+      "BareDisabled",
+      "BarePhase",
+      "BareSet",
+      "Unwritten"
+    ).map("fixture.rulerejects." + _)
   // The refusals of fn-135.2's `is { }` blocks and fn-135.3's `effect { }` blocks, each a machine
   // object (lifts/BlockRejects.scala).
   private val blockRejects: Seq[String] =

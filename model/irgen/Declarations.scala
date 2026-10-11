@@ -533,8 +533,8 @@ private[irgen] trait Declarations:
 
   // The step of each action a machine's `rules` name, in the order each is first named: its rules
   // lowered to one step function, or no step where it is `disabled`. An `on` block names one to
-  // four actions, or classes of them, each given its cases, and holds its cases alone; the blocks
-  // of a `from` follow its declarer's import. An action, or a class of it, may sit in several
+  // four actions, or classes of them, each named through its declarer and given its cases, and
+  // holds its cases alone; a `from` groups the blocks of its declarer's actions and imports nothing. An action, or a class of it, may sit in several
   // blocks: the framework refuses cases of one class that overlap.
   // A case's phases read the machine's `Phased[State, Phase](_.phase)`, placed at the rules'
   // declaration.
@@ -573,6 +573,7 @@ private[irgen] trait Declarations:
                   case r => action(r) -> None
                 (target, id, cls)
               }
+              for (target, _, _) <- fired do qualified(target, machine, within)
               for ((target, id, cls), i) <- fired.zipWithIndex do
                 // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
                 if fired.take(i).exists((_, d, c) => d == id && c == cls)
@@ -602,6 +603,7 @@ private[irgen] trait Declarations:
                 order.getOrElseUpdate(id, t): Unit
             case Some(("disabled", List(List(as)))) if within.isEmpty =>
               for a <- varargs(as) do
+                qualified(a, machine, None, "disabled")
                 val id = action(a)
                 // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
                 if off(id) || written.exists(_.action == id)
@@ -640,8 +642,8 @@ private[irgen] trait Declarations:
   private def notRule(machine: String, t: Tree, within: Option[(Symbol, String)]): String =
     within match
       case Some((_, name)) =>
-        s"not a rule of $machine's from($name): ${t.show}; a from holds its declarer's import, " +
-          "first, then `on(action) { case ~> effect }` blocks"
+        s"not a rule of $machine's from($name): ${t.show}; a from holds " +
+          s"`on($name.action) { case ~> effect }` blocks alone"
       case None =>
         s"not a rule of $machine: ${t.show}; its rules are `on(action) { case ~> effect }` " +
           "blocks and `disabled(action)`"
@@ -652,8 +654,9 @@ private[irgen] trait Declarations:
     val n = declarer.symbol.name.stripSuffix("$")
     n.take(1).toLowerCase + n.drop(1)
 
-  // The statements of `from(declarer) { import declarer.*; ... }` after its import, which is its
-  // first statement and its only one.
+  // The statements of `from(declarer) { ... }`: its `on` blocks, which name their actions through
+  // the declarer. A `from` only groups, so an import in it, of the declarer's members or any other,
+  // is refused, saying to qualify the actions instead.
   private def fromBlock(
       machine: String,
       declarer: Term,
@@ -664,16 +667,50 @@ private[irgen] trait Declarations:
       case Block(stats, Literal(UnitConstant())) => stats
       case Block(stats, last)                    => stats :+ last
       case other                                 => List(other)
-    stats match
-      case Import(expr, List(SimpleSelector("_"))) :: rest if expr.symbol == declarer.symbol => // scalafix:ok DisableSyntax.==; typed equality
-        rest
-      case first :: _ =>
-        fail(
-          first,
-          s"not a rule of $machine's from($name): ${first.show}; a from begins with its " +
-            s"declarer's import, `import $name.*`"
-        )
-      case Nil => fail(body, s"from($name) in $machine's rules holds no import and no block")
+    for case i @ Import(expr, _) <- stats do
+      val what =
+        if expr.symbol == declarer.symbol then s"$name's members" // scalafix:ok DisableSyntax.==; typed equality
+        else expr.show
+      fail(
+        i,
+        s"from($name) in $machine's rules imports $what: a from only groups, so drop the " +
+          s"import and name each action through its declarer, `on($name.<action>)`"
+      )
+    if stats.isEmpty then fail(body, s"from($name) in $machine's rules holds no block")
+    stats
+
+  // The reference to the action a target names: the whole action, `worker.poll`, or the action a
+  // class applies, `worker.respondFailed(Failure.fatal)` or `start(scheduleToStart := expires)`;
+  // a class's arguments are not action references.
+  private def actionReference(target: Term): Option[Term] = unwrapped(target) match
+    case r: Ref if isNamed(r.tpe, "framework.Action") => Some(r)
+    case Select(q, "apply")                           => actionReference(q)
+    case TypeApply(fn, _)                             => actionReference(fn)
+    case Apply(fn, args)                              =>
+      actionReference(fn).orElse(
+        args.headOption.filter(a => isNamed(a.tpe, "framework.Action")).flatMap(actionReference)
+      )
+    case _ => None
+
+  // Refuses a target, of `on` or of `disabled`, whose action is written bare, `poll`, rather than
+  // through the object that declares it, `worker.poll`, inside a `from` or outside one.
+  private def qualified(
+      target: Term,
+      machine: String,
+      within: Option[(Symbol, String)],
+      form: String = "on"
+  ): Unit =
+    for case r: Ident <- actionReference(target) do
+      val owner = r.symbol.maybeOwner
+      val declarer =
+        if owner.flags.is(Flags.Module) && !owner.name.endsWith("$package$") then
+          owner.name.stripSuffix("$")
+        else within.fold("<declarer>")(_._2)
+      fail(
+        target,
+        s"$form(${r.name}) in $machine's rules names its action bare: name it through the object " +
+          s"that declares it, `$form($declarer.${r.name})`"
+      )
 
   // Whether the action a target fires, or the class of it, is a member of the object `owner`.
   private def declaredBy(target: Term, owner: Symbol): Boolean =
@@ -755,8 +792,11 @@ private[irgen] trait Declarations:
             case List(phase, role) => Heading.Role(test, phase, role, t)
             case _                 => fail(t, s"when tests a role, not ${test.show}")
         case Some(("when", List(List(first, rest), _))) if owner == rulesClass => // scalafix:ok DisableSyntax.==; typed equality
-          Heading.In(first, first :: varargs(rest))
+          val phases = first :: varargs(rest)
+          phases.foreach(qualifiedPhase(_, machine))
+          Heading.In(first, phases)
         case Some(("when", List(List(set), _))) if owner == rulesClass =>
+          qualifiedPhase(set, machine)
           Heading.InSet(set, set) // scalafix:ok DisableSyntax.==; typed equality
         case Some(("where", List(_, List(g)))) if owner.fullName == syntaxPackage =>
           Heading.When(g) // scalafix:ok DisableSyntax.==; typed equality
@@ -770,6 +810,29 @@ private[irgen] trait Declarations:
           )
 
   private val syntaxPackage = "framework.Syntax$package$"
+
+  // Refuses a bare argument of the phase form of `when`: a phase is selected on its phase type,
+  // `when(Phase.scheduled)`, and a named set on the object that declares it, `when(states.terminal)`.
+  private def qualifiedPhase(arg: Term, machine: String): Unit = unwrapped(arg) match
+    case r: Ident =>
+      val through =
+        if isEnumCase(r.symbol) then s"its phase type, `when(${enumOf(r.symbol).name}.${r.name})`"
+        else s"the object that declares it, `when(states.${r.name})`"
+      fail(
+        arg,
+        s"when(${r.name}) in $machine's rules names a phase bare: name it through $through"
+      )
+    // A set named by a def arrives eta-expanded: the def it calls is the name written.
+    case Block(List(DefDef(_, _, _, Some(body))), _: Closure) =>
+      unwrapped(body) match
+        case Apply(fn: Ident, _) =>
+          fail(
+            arg,
+            s"when(${fn.name}) in $machine's rules names a phase set bare: name it through the " +
+              s"object that declares it, `when(states.${fn.name})`"
+          )
+        case _ => ()
+    case _ => ()
 
   // A term without the wrappers an argument arrives in.
   def unwrapped(t: Term): Term = t match
