@@ -7,6 +7,7 @@ package standalone
 package protocol
 
 import framework.*
+import temporal.capabilities.system.*
 import framework.Finite.given
 import framework.outcomes.{Outcome, Rejection}
 import temporal.capabilities.product.*
@@ -126,6 +127,9 @@ object ActivityRecord
       s.copy(phase = AdmissionPhase.started, active = oneMore(s.active), answer = Answer.owed)
 
     // The active attempts after a step, counted from what it records.
+    def admitsAnAttempt(after: Step[State, Outcome, AdmissionFact]) =
+      after.records(AdmissionFact.attemptAdmitted)
+
     def countActive(active: Active, after: Step[State, Outcome, AdmissionFact]) =
       if after.records(attemptAdmitted) then oneMore(active)
       else if after.records(statusCompleted) then oneLess(active) // format: off
@@ -161,10 +165,13 @@ object ActivityRecord
 
   // Monitors, which count from what a step records whatever the design's state says.
   object monitors:
+    // Exclusive's history law (temporal.capabilities.system): no run admits a second attempt while
+    // one is active, as the steps' records count them. It stays written here, as a monitor of the
+    // machine: the lifter lifts a monitor only where a `monitors` section writes it (fn-163 R4).
     val atMostOneActiveAttempt =
       monitor[State, Outcome, AdmissionFact, Active](Active.none)((active, _, after) =>
         states.countActive(active, after) // format: off
-      )(_ == Active.two).readAfter(after => after.records(AdmissionFact.attemptAdmitted)) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      )(_ == Active.two).readAfter(after => states.admitsAnAttempt(after)) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
       // format: on
     val terminalFinality =
       monitor[State, Outcome, AdmissionFact, Finality](Finality.open)((f, _, after) =>
@@ -178,10 +185,6 @@ object ActivityRecord
   // takes the states it speaks of as predicates, so one definition serves the record and a
   // composition, which reads the record through its `activity` member.
   object properties:
-    // No step leaves two admitted attempts active.
-    def atMostOneActive[S](m: Declares[S])(twoActive: S => Boolean): Property[S] =
-      m.property("atMostOneActive").never(s => twoActive(s.state))
-
     def admissionClaims(
         m: Machine[State, Outcome, AdmissionFact],
         declared: Capabilities[State, Outcome, AdmissionFact]
@@ -194,7 +197,7 @@ object ActivityRecord
       )
       AdmissionClaims(
         declared.claim(Pausable.pausedIsNotDispatched[State, AdmissionPhase]),
-        atMostOneActive(m)(states.twoActive),
+        Exclusive.atMostOneActive(m)(states.twoActive),
         scheduleToStartTimesOut,
         scheduleToCloseTimesOut
       )

@@ -5,6 +5,7 @@ package standalone
 package protocol
 
 import framework.*
+import temporal.capabilities.system.*
 import framework.Finite.given
 import framework.outcomes.Outcome
 import framework.realize.{Cleanup, Conformance, Disposition, MonitorExpectation, PropertyOutcome}
@@ -54,9 +55,10 @@ object HeldDispatch
 
   // What the machine a server's Run is checked against promises.
   object properties:
-    // Admission met the stale message and rejected it.
+    // Admission met the stale message and rejected it: the record is Fenced
+    // (temporal.capabilities.system).
     val staleDeliveryRejected =
-      property when activityWorker.poll holds (_.records(AdmissionFact.admissionRejected))
+      Fenced.staleDeliveryRejected(HeldDispatch)(activityWorker.poll, AdmissionFact.admissionRejected)
 
   // The held race, as a server's Run is checked.
   object queries:

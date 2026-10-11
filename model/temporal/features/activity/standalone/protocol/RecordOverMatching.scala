@@ -3,6 +3,7 @@ package features.activity
 package standalone
 package protocol
 import framework.*
+import temporal.capabilities.system.*
 import framework.Finite.given
 import temporal.capabilities.product.*
 import Bounds.{eight, five, seven, twelve}
@@ -30,7 +31,7 @@ object RecordOverMatching
     def overMatchingClaims(c: Composition[State], declared: Capabilities[State, String, String]) =
       OverMatchingClaims(
         declared.claim(Pausable.pausedIsNotDispatched[State, AdmissionPhase]),
-        ActivityRecord.properties.atMostOneActive(c)(
+        Exclusive.atMostOneActive(c)(
           through(_.activity, ActivityRecord.states.twoActive)
         )
       )

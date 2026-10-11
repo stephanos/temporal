@@ -3,6 +3,7 @@ package features.activity
 package standalone
 package protocol
 import framework.*
+import temporal.capabilities.system.*
 import framework.Finite.given
 import temporal.capabilities.product.*
 import Bounds.{five, three}
@@ -30,7 +31,7 @@ object RecordOverQueue
       )
       OverQueueClaims(
         declared.claim(Pausable.pausedIsNotDispatched[State, AdmissionPhase]),
-        ActivityRecord.properties.atMostOneActive(c)(
+        Exclusive.atMostOneActive(c)(
           through(_.activity, ActivityRecord.states.twoActive)
         ),
         failedCommitKeepsTheMessage

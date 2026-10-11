@@ -5,6 +5,7 @@ package protocol
 
 import scala.annotation.unused
 import framework.*
+import temporal.capabilities.system.*
 import framework.Finite.given CanEqual[?, ?]
 import framework.outcomes.Outcome
 import framework.realize.Reason
@@ -48,9 +49,10 @@ object NexusProtocol extends Machine[State, Outcome, Fact], Phased[State, Phase]
     // Every phase after the start, live or over: the phases a control is answered in.
     def created(p: Phase): Boolean = p.in[Live] || p.in[Closed]
 
-    // A control that repeats an accepted request id is answered OK even after close.
-    val repeatedRequestsAnswer =
-      "a repeated request id is answered OK after close: operation.go RequestCancel and Terminate"
+    // Over, and a control repeats a request the operation took: a recorded cancel, or the
+    // terminate that closed it.
+    def closed(s: State): Boolean = s.phase.in[Closed]
+    def repeats(s: State): Boolean = s.cancelRequested || s.phase == Phase.terminated // scalafix:ok DisableSyntax.==; typed equality
 
   object refinement extends Refinement(shared.product.NexusProduct):
     def toProduct(s: State): shared.product.State = s.phase match
@@ -87,11 +89,8 @@ object NexusProtocol extends Machine[State, Outcome, Fact], Phased[State, Phase]
     def closedRejectsOrRepeats(m: Machine[State, Outcome, Fact])(
         rejected: Outcome
     ): Property[State] =
-      m.property holdsAcross ((before, after) =>
-        !before.phase.in[Closed] ||
-          (after.state == before && (after.outcome == rejected || after.outcome == Outcome.accepted && // scalafix:ok DisableSyntax.==; typed equality
-            (before.cancelRequested || before.phase == Phase.terminated))) // scalafix:ok DisableSyntax.==; typed equality
-      )
+      // The operation's controls are Idempotent (temporal.capabilities.system).
+      Idempotent.closedRejectsOrRepeats(m)(states.closed, states.repeats, rejected, Outcome.accepted)
   object capabilities extends FacetCapabilities(operation.capabilities)
   // format: on
   object queries:

@@ -6,6 +6,7 @@ package standalone
 package protocol
 import scala.annotation.unused
 import framework.*
+import temporal.capabilities.system.*
 import framework.Finite.given CanEqual[?, ?]
 import framework.outcomes.{Outcome, Rejection}
 import framework.realize.Reason
@@ -111,5 +112,5 @@ trait Operation extends Facet[State, Outcome, Fact], Phased[State, Phase]:
       val describable: Capability = Describable(statusTable = realization.operationStatus)
       overriding(
         Closable.closedIsRejectedUniformly[State, Phase, Outcome] -> NexusProtocol.properties.closedRejectsOrRepeats,
-        because = NexusProtocol.states.repeatedRequestsAnswer
+        because = Idempotent.repeatedRequestsAnswer
       )

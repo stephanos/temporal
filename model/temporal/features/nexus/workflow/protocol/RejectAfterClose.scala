@@ -386,6 +386,8 @@ object RejectAfterClose
       case Outcomes.one(x)  => if x == r then seen else Outcomes.several // scalafix:ok DisableSyntax.==; typed equality
       case Outcomes.several => Outcomes.several
     // format: on
+    def outcomesSeen(seen: Outcomes, s: CloseResetState) = outcomesAfter(seen, s.known)
+
     def outcomesAfter(seen: Outcomes, k: Knowledge) = k match
       case Knowledge.original(r)                              => withOutcome(seen, r)
       case Knowledge.successor(r)                             => withOutcome(seen, r)
@@ -411,9 +413,12 @@ object RejectAfterClose
     // the operation retained it.
     val ownerAcknowledgment = stickyAcross(states.ackOnlyWhenKept)
 
+    // A single outcome, a system promise with a history law: no run records two outcomes. It stays
+    // a monitor written here, as the lifter lifts one only where a `monitors` section writes it
+    // (fn-163 R4).
     val singleOutcome =
       monitor[CloseResetState, Answer, CloseFact, Outcomes](Outcomes.none)((seen, _, after) =>
-        states.outcomesAfter(seen, after.state.known)
+        states.outcomesSeen(seen, after.state)
       )(seen => seen == Outcomes.several) // scalafix:ok DisableSyntax.==; typed equality
 
     // The cancellation principal is lost: a request made is no longer in the owner's history as
