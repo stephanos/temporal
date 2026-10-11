@@ -13,8 +13,8 @@ regenerated IR and Cases (`a3f3a545bc`; its gates, live run and Run companions r
 the owner paused all validation gates until the test tooling is optimized: one shared interpretation
 per Model per test process, in-process lifter fixture tests, fail-fast IR loading, `export`'s
 whole-Model tests opt-in, Go's test cache (no `-count=1`) and one Bloop daemon. Go validation is skipped
-entirely while the Scala DSL work runs (owner, 2026-10-11); Go failures are fixed once, at Batch
-5b's regeneration and full gate. Batch 1d continues as one worker with Scala compile-only checks.
+entirely while the Scala DSL work runs (owner, 2026-10-11); Go failures are fixed once, at batch
+G's regeneration and full gate. Batch S runs as one worker with Scala compile-only checks.
 
 ## Keeping this page current
 
@@ -151,9 +151,8 @@ The DSL framework (`model/framework`) stays Temporal-agnostic as far as is reali
 vocabulary, properties, realization vocabulary and kit live under `model/temporal/`, and the lifter and Testpilot IR
 are the parts that are Temporal's driver tooling by design (fn-114.12, fn-122.8).
 
-Next, batch the compiler/lint rollout alongside the coordinated Testpilot format migration.
-Overlap Scala authoring work where file ownership permits; complete its baseline reconciliation
-before accepting the format batch, then finish lifter and Activity coverage integration.
+Next: batch S finishes every Scala DSL, authoring and lifter change in one worker; batch G then does
+all Go-side work, the one regeneration, the full gate, review and live run (see Batches).
 
 ## Specs
 
@@ -184,7 +183,7 @@ and the pending-control remodel.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-155.6 | 🔄 in progress | R7 proof complete on fn-155.5 base `551bf89c68`: Nexus IR byte-identical, projection differences only the 4 mapped effect merges (7 bodies proven equal phase by phase, 25 controls), 46 tables/13,891,948 records equal (nil/empty slice normalization accepted), 31 Case files reconciled (21 controls); full gates deferred to Batch 5b |
+| fn-155.6 | 🔄 in progress | R7 proof complete on fn-155.5 base `551bf89c68`: Nexus IR byte-identical, projection differences only the 4 mapped effect merges (7 bodies proven equal phase by phase, 25 controls), 46 tables/13,891,948 records equal (nil/empty slice normalization accepted), 31 Case files reconciled (21 controls); full gates deferred to batch G |
 
 Final validation remains deferred, not passed. Canonical generation attempts retain at least
 2,380 executed seconds and a 3h46m unresolved wall span; the fourth wrapper receipt is missing.
@@ -443,8 +442,8 @@ half of the realization lifter's lines net of what it adds.
 
 ### Batch 5, activity model: fn-128 → fn-138 → fn-129
 
-**Paused (owner, 2026-10-10):** remaining activity edits wait for Batch 1d's activity lane, then
-finish on the new DSL before Batch 5b (see Batches 1d and 5b below).
+**In batch S (owner, 2026-10-11):** the remaining activity edits (fn-128.7/.8, fn-129.3/.4) run in
+batch S after fn-123's DSL, on the new DSL; their gates and live run are batch G's.
 
 Moved last on 2026-10-08 at the owner's request: starts after batch 4 closes. Its done and joined
 tasks (fn-128.1–.5, fn-138, fn-129.1–.2 and fn-129.3's joined source) stay in the tree; the remaining tasks re-read their files
@@ -541,11 +540,11 @@ generation for compositions is outside this spec.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-150.1 | ⏸️ deferred | Quick rerun no longer OOMs (23.8 s, 5.75 GB free); exits 1 only on stale `model/ir` loads; green after Batch 5b regeneration |
-| fn-150.2 | 🔄 in progress | Structured fairness references end to end (Scala schema, lifter, Go admission/binding; engine 101 tests); full gates at Batch 5b |
-| fn-150.3 | 🔄 in progress | Composition `leadsTo` and composed `fair` authoring/lifting with located refusals (lifter 111/0, framework 60/0); gates at Batch 5b |
-| fn-150.4 | 🔄 in progress | Boundary, replay and fairness checkpoints plus lifted-fixture admission test; full gates/review at Batch 5b |
-| fn-150.5 | 🔄 in progress | `ServedDispatch`/`UnservedDispatch` example (passes / deadlock witness) and docs merged (`d6428e905b`); gates at Batch 5b |
+| fn-150.1 | ⏸️ deferred | Quick rerun no longer OOMs (23.8 s, 5.75 GB free); exits 1 only on stale `model/ir` loads; green after batch G |
+| fn-150.2 | 🔄 in progress | Structured fairness references end to end (Scala schema, lifter, Go admission/binding; engine 101 tests); full gates at batch G |
+| fn-150.3 | 🔄 in progress | Composition `leadsTo` and composed `fair` authoring/lifting with located refusals (lifter 111/0, framework 60/0); gates at batch G |
+| fn-150.4 | 🔄 in progress | Boundary, replay and fairness checkpoints plus lifted-fixture admission test; full gates/review at batch G |
+| fn-150.5 | 🔄 in progress | `ServedDispatch`/`UnservedDispatch` example (passes / deadlock witness) and docs merged (`d6428e905b`); gates at batch G |
 
 Integration order: `.1` then `.2`; `.3` and `.4` join before `.5`. Source work may overlap
 under the batch-first strategy rather than waiting for per-task closure.
@@ -799,13 +798,9 @@ The last canonical command was `mise exec -- go test -tags test_dep -p 2 -timeou
   `inconclusive(explanationsDisagree)`: the Model's NotFound rows let a silent rejected repeat explain the
   same evidence, as for `terminate` and `cancelIsRequested` (fn-129.2). Sharper witnesses would need
   repeated-call rejection to be observable.
-- Batch integration order retains Flow's predecessor dependencies; the batch-first strategy above
-  permits documented parallel implementation ahead of those closures. Do not restore per-spec
-  regenerations or task-by-task review barriers. The activity model batch integrates after the
-  other feature batches at the owner's request, followed only by Batch 5b (fn-159–fn-162's single
-  regeneration; owner, 2026-10-10; their Scala changes land earlier, in Batch 1d): until it closes, batches 2 and 3's live runs include activity Cases with
-  its three inherited failures (ordinary completion ambiguity, non-retryable failure visibility,
-  pause/resume work ceiling), which those runs report but do not own.
+- Batch order is S then G (owner, 2026-10-11). Until batch G closes, live runs include activity Cases
+  with the three inherited failures (ordinary completion ambiguity, non-retryable failure visibility,
+  pause/resume work ceiling), which batch S's activity edits own.
 
 ## fn-153: Checked property examples pilot
 
@@ -839,75 +834,28 @@ Tasks run in order. Re-anchor against the actual baseline after the delivery cha
 hypothetical violations, actual model failures and live coverage separate. Mechanical checks
 do not establish developer comprehension, and absent feedback must remain explicit.
 
-## Batches 1d and 5b: Scala DSL now, one regeneration last (fn-159–fn-162)
+## Batch S details: Scala DSL (fn-159–fn-163 first)
 
-**Owner decision (2026-10-10):** the Scala DSL changes go in immediately. The IR, Cases, Go
-consumers and other downstream artifacts may stay broken until one final regeneration. So the four
-Model-readability specs split by language, not by spec:
+Batch S started as "Batch 1d" (2026-10-10) and absorbed the other Scala work on 2026-10-11. Its
+first part, fn-159–fn-163, runs on branch `w-1d`; the four parallel lanes that started it are
+merged there and stopped. Checked-in IR and Cases stay stale until batch G.
 
-- **Batch 1d, Scala DSL (immediate; shared close fn-161.1):** every Scala change of fn-159–fn-162
-  (framework, lifter rules, model migrations, renames, file layout) lands now, in dependency order,
-  ahead of the other batches. Checked-in IR and Cases go stale and the model gate fails. That is
-  expected and is not a regression to fix inside 1d.
-- **Batch 5b, one regeneration (last; shared close fn-160.2):** the IR schema change, the lowering
-  and Go assessment of realization-to-Query bindings, the Go and fixture consumers of renamed ids and moved files,
-  then **one** regeneration of IR, Cases, lint acceptances and pinned fixture trees, an IR-level
-  equivalence check under the batch's rename map, full gate, review and one live run. It waits for
-  Batch 3 (which owns the IR/Case schema) and integrates after Batch 5.
+**Verification without IR:** before the first edit, `make umpire-capture-baseline` captured the
+baseline at `.flow/tmp/fn160/baseline-ae3f36ee51/` (59 step tables, IR, Cases, interpreter dumps).
+Each spec ends with `make umpire-check-equivalence BASE=<baseline> MAP=model/testdata/equivalence/batch-1d.map
+STEPS_ONLY=1` and the Scala tests; steps in between compile only. Batch G's IR check is the same
+command with `DUMPER=<fn-155 dump>` and without `STEPS_ONLY`, which adds the IR, lint, Case and
+manifest projection and the interpreter tables.
 
-**How 1d is verified without IR:** before the first 1d edit, `make umpire-capture-baseline` captured
-the baseline at `.flow/tmp/fn160/baseline-ae3f36ee51/` (59 step tables, IR, Cases, interpreter dumps).
-Each 1d change seals with `make umpire-check-equivalence BASE=<baseline> MAP=<batch map> STEPS_ONLY=1`,
-plus the Scala build, framework tests and model tests; the lifter builds again, so its fixtures run too.
-Batch 5b's IR equivalence check is `make umpire-check-equivalence BASE=<baseline> MAP=<batch map>
-DUMPER=<fn-155 dump>`, which adds the IR, lint, Case and manifest projection and the interpreter tables.
-The tasks' `make umpire-check-model` / lint / fixture criteria are met by Batch 5b's shared close
-evidence, as the batch rules allow.
+**Decisions (owner and conductor, 2026-10-10/11):** capability kinds `Retries` → `Retryable`,
+`Deadline` → `Expirable`; every bound in `Bounds`, the close policy's wider budgets as
+`fourWide`/`fiveWide`/`twelveWide`, nexus `control` merged into `eight`; `disabled(...)` targets are
+qualified like `on`; the System level is named Protocol; a form's file is `<Form><Kind>.scala`; parts
+two forms share live under the kind's `shared/`; a form's main realization is `<Form><Kind>Run`;
+facet vocabularies are recorded in fn-161.
 
-**Interactions with other batches:**
-- **Batch 4 (fn-141, not started)** now comes after 1d, so it describes only the final DSL (qualified
-  forms, `enters`, facets, per-feature collection, realization-to-Query bindings).
-- **Batch 2 (authoring):** fn-140 and fn-162.2 are co-designed by one owner (owner, 2026-10-10), since
-  both define what a Query says. Batch 2's remaining Scala work lands on the 1d DSL.
-- **Batch 5 (activity model) is paused (owner, 2026-10-10)** for its remaining activity edits (fn-129's
-  in-progress task and its two todo tasks, fn-128's three todo tasks) until Batch 1d's activity lane
-  lands. They then finish on the new DSL (qualified names, `enters`, facets, realization-to-Query bindings,
-  flat layout) before Batch 5b. Work already done stays; Batch 1d's activity lane migrates it.
-
-**Batch 1d order (Scala only):**
-
-Rows run in order; fn-160.1, fn-162.1 and fn-160.5 (baseline and step-table comparison) are done.
-
-| Name | Status | What |
-| --- | --- | --- |
-| fn-159.1, fn-159.3, fn-159.6 | ⬜ todo | Qualified `on` targets and phases (framework runtime check for `on`, lifter rules written), `activityWorker`; `Observation` drops `read` |
-| fn-159.2, .4, .5, .8 | ⬜ todo | `completionClient`; drop the product's `disabled(process.stop)`; bounds into `Bounds`; `Retryable`/`Expirable` |
-| fn-159.7 | ⬜ todo | `enters(Phase.X)` construct and its migration in every model |
-| fn-161.1 | ⬜ todo | Facet construct, ownership and vocabulary checks |
-| fn-161.2 + .3, fn-161.4 | ⬜ todo | Activity facets in one pass; every other machine wrapped |
-| fn-162.2 (Scala part), fn-162.3 | ⬜ todo | Realizations name the Queries they run; claim-container subjects removed; Properties declared once |
-| fn-160.3, fn-160.4, fn-160.6 | ⬜ todo | One object per file, flat prefix layout, `realization/` layer, `<Subject>Run`, one-way layer dependencies; System level renamed Protocol |
-| fn-160.2 (Scala part) | ⬜ todo | Collection by feature package; `irFile`/`exports` removed |
-| fn-163 (Scala) | ⬜ todo | Capabilities split into `system/`/`product/`; named system capabilities replace hand-written fencing, exclusivity, idempotency and single-outcome claims |
-
-**Batch 1d execution (owner, 2026-10-11):** one worker on one branch, in the order above, then
-fn-163's Scala (capability `system/`/`product/` split and the named system capabilities). One combined
-rename map, `model/testdata/equivalence/batch-1d.map`. Light process: short commits, no per-task
-evidence write-ups or reviews; Flow and this page are updated at the end. The four parallel lanes that
-started 1d (framework, activity, nexus, shared) are merged and stopped.
-
-**Batch 5b order:** fn-162.2's IR schema, lowering and Go assessment (with fn-140's owner); fn-160.5's
-IR projection; Go tests, canary harness and fixture trees updated for renamed ids and moved files;
-then fn-160.2 closes with the single regeneration, IR equivalence check, full gate, review and live run.
-
-**Decisions (conductor, 2026-10-10, under the owner's recommendation mandate):** capability kinds
-`Retries` → `Retryable` and `Deadline` → `Expirable`; every bound in `Bounds`, the close policy's wider
-budgets as `fourWide`/`fiveWide`/`twelveWide` and nexus `control` merged into `eight`; `disabled(...)`
-targets are qualified like `on`; each feature lane picks its facet vocabulary and `<Subject>Run` names
-from the spec guidance and records them in fn-161/fn-160.
-
-Flow refuses task dependencies across specs, so the cross-spec order above is held here and by
-the conductor. Within each spec, Flow records it.
+Flow refuses task dependencies across specs, so the cross-spec order is held here and by the
+conductor.
 
 ## fn-159: Qualified action names in rules
 
@@ -923,16 +871,16 @@ only. The IR-regenerating tasks wait on the tree's IR `Duration` migration. Not 
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-159.1 | ⬜ todo | Require qualified `on` targets in irgen and the framework; refuse `import X.*` in `from`; rename the bound `worker` to `activityWorker`; migrate models, tests and README |
-| fn-159.2 | ⬜ todo | Rename the standalone activity's By-ID actor `service` to `completionClient`; regenerate the activity IR |
-| fn-159.3 | ⬜ todo | Qualify every phase reference (`when(Phase.scheduled)`, `phase = Phase.started`); irgen refuses phase-member imports |
-| fn-159.4 | ⬜ todo | Remove `disabled(process.stop)` from the activity product; needs the tree's IR `Duration` migration to build for the lift check |
-| fn-159.5 | ⬜ todo | Move every `Limits` bound into `Bounds`; resolve the clashing names `four`/`five`/`twelve` and merge `eight`/`control` |
-| fn-159.6 | ⬜ todo | Drop `Observation`'s free-text `read`; name the response field beside each realization's typed read |
-| fn-159.7 | ⬜ todo | `enters(Phase.X)` framework step replaces the ~29 effects that only set a phase (after fn-159.1, fn-159.3) |
-| fn-159.8 | ⬜ todo | Rename capability kinds `Retries` → `Retryable`, `Deadline` → `Expirable` (names to confirm); IR capability ids change |
+| fn-159.1 | 🔄 in progress | Require qualified `on` targets in irgen and the framework; refuse `import X.*` in `from`; rename the bound `worker` to `activityWorker`; migrate models, tests and README (done on `w-1d`) |
+| fn-159.2 | 🔄 in progress | Rename the standalone activity's By-ID actor `service` to `completionClient`; regenerate the activity IR (done on `w-1d`) |
+| fn-159.3 | 🔄 in progress | Qualify every phase reference (`when(Phase.scheduled)`, `phase = Phase.started`); irgen refuses phase-member imports (done on `w-1d`) |
+| fn-159.4 | 🔄 in progress | Remove `disabled(process.stop)` from the activity product; needs the tree's IR `Duration` migration to build for the lift check (done on `w-1d`) |
+| fn-159.5 | 🔄 in progress | Move every `Limits` bound into `Bounds`; resolve the clashing names `four`/`five`/`twelve` and merge `eight`/`control` (done on `w-1d`) |
+| fn-159.6 | 🔄 in progress | Drop `Observation`'s free-text `read`; name the response field beside each realization's typed read (done on `w-1d`) |
+| fn-159.7 | 🔄 in progress | `enters(Phase.X)` framework step replaces the ~29 effects that only set a phase (after fn-159.1, fn-159.3) (product/nexus/workflow done on `w-1d`; worker polling left) |
+| fn-159.8 | 🔄 in progress | Rename capability kinds `Retries` → `Retryable`, `Deadline` → `Expirable` (names to confirm); IR capability ids change (done on `w-1d`) |
 
-Open: whether `disabled(...)` targets fall under the same rule.
+`disabled(...)` targets are qualified like `on` (decided 2026-10-10).
 
 ## fn-160: One IR file per feature, collected from the feature's package
 
@@ -985,8 +933,8 @@ declared once in its facet, under its existing name, so the copies go. Query ans
 
 ## fn-163: System capabilities: distributed-systems patterns as named capabilities
 
-Folded into Batch 1d (Scala now) and Batch 5b (its IR in the single regeneration) by the owner on
-2026-10-11, instead of a separate pass after 5b. Not planned yet; the 1d worker plans and implements it
+Folded into batch S (Scala) and batch G (its IR in the single regeneration) by the owner on
+2026-10-11. Not planned yet; the 1d worker plans and implements it
 after fn-160. [Spec](.flow/specs/fn-163-system-capabilities-distributed-systems.md).
 
 Name the distributed-systems promises the Models still write by hand (fencing of stale attempts, a
