@@ -8,12 +8,12 @@ same seed produces the same run and a retained artifact replays byte-exactly.
 [GOMAD_NEXT.md](.plans/GOMAD_NEXT.md) remains the capability roadmap across all four tracks.
 
 The WASM backend lives alongside Gomad v3 in `tools/gomad_wasm` and shares its
-campaign, artifact, replay, and choice owners. [fn-151](.flow/specs/fn-151-wasm-gomad-execution-backend.md)
-is the determinism prototype (`.5 → .6 → .7 → .8` go/no-go);
-[fn-156](.flow/specs/fn-156-wasm-gomad-productionization.md) productionizes it only after a recorded "go".
-Read [the WASM README](tools/gomad_wasm/README.md) before working on that backend.
-Stock-WASI repetition does not establish forced scheduling replay, strict virtual
-time, modeled fault recovery, or multi-node isolation.
+campaign, artifact, replay, and choice owners. The completed
+[fn-151](.flow/specs/fn-151-wasm-gomad-execution-backend.md) determinism prototype recorded
+**GO** on 2026-10-10 ([report](.flow/artifacts/fn151-prototype-report-2026-10-10.md));
+[fn-156](.flow/specs/fn-156-wasm-gomad-productionization.md) productionizes it, starting with `.8`.
+Read [the WASM README](tools/gomad_wasm/README.md) before working on that backend;
+`make -C tools/gomad_wasm prototype` revalidates the prototype in a few minutes.
 
 ## Work tracking
 
@@ -29,12 +29,10 @@ validation, source review and other independent acceptance remain required. Nati
 execution stays with the native owner; portable coverage does not substitute for that gate.
 Both platforms remain unverified for the current candidate until their owners retain native proof.
 No PR, push or CI action is authorized by the deferral or its revival.
-fn-151 migrated from the retired `temporal_wasm` checkout on 2026-10-10. Task 12's
-standalone extraction is cancelled: both backends are developed together here,
-and `tools/gomad3` remains a shared owner. Preserve historical acceptance;
-relocation does not qualify a new source candidate. The owner requested a stop
-after in-flight work; task 5's unfinished qualification remains open and no
-further feature task starts without a new owner request.
+fn-151 migrated from the retired `temporal_wasm` checkout on 2026-10-10 and is complete;
+both backends are developed together here, and `tools/gomad3` remains a shared owner.
+The GO decision was recorded under the owner's instruction to follow Claude's
+recommendations; the owner may override it before fn-156 work starts.
 List every task of each open spec below, including completed tasks; remove a spec's
 entire section only when the spec is complete. Keep descriptions to one line and
 spec sections to task tables—no progress prose. Refresh statuses from `flowctl list --json`;
@@ -205,24 +203,11 @@ CI, PR, or push authority.
 
 ## Specs
 
-## WASM determinism prototype — [fn-151](.flow/specs/fn-151-wasm-gomad-execution-backend.md)
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-151.1](.flow/tasks/fn-151-wasm-gomad-execution-backend.1.md) | ✅ Done | Isolated Wasmtime helper, typed protocol, import preflight, and bounded execution |
-| [fn-151.2](.flow/tasks/fn-151-wasm-gomad-execution-backend.2.md) | ✅ Done | Captured file namespace, seeded entropy, modeled clock/poll, and capacity limits |
-| [fn-151.3](.flow/tasks/fn-151-wasm-gomad-execution-backend.3.md) | ✅ Done | Selected unchanged SQLite and one-box Temporal tests in a sealed guest |
-| [fn-151.4](.flow/tasks/fn-151-wasm-gomad-execution-backend.4.md) | ✅ Done | Preparation, campaign artifacts, observed replay, resume, and native-byte preservation |
-| [fn-151.5](.flow/tasks/fn-151-wasm-gomad-execution-backend.5.md) | 🚧 In progress | Seeded cooperative scheduling, same-seed identical runs, and exact tape replay (prototype gate) |
-| [fn-151.6](.flow/tasks/fn-151-wasm-gomad-execution-backend.6.md) | ⬜ Todo | Strict virtual time with quiescence-only time skipping |
-| [fn-151.7](.flow/tasks/fn-151-wasm-gomad-execution-backend.7.md) | ⬜ Todo | Simulated in-guest network: deterministic delivery, delay, partition/heal, reset |
-| [fn-151.8](.flow/tasks/fn-151-wasm-gomad-execution-backend.8.md) | ⬜ Todo | Integrated determinism gate on one-box smoke suites, measured costs, go/no-go |
-| [fn-151.12](.flow/tasks/fn-151-wasm-gomad-execution-backend.12.md) | ✅ Done | Cancelled by owner: standalone extraction and deletion of gomad3 |
-
 ## WASM productionization — [fn-156](.flow/specs/fn-156-wasm-gomad-productionization.md)
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
+| [fn-156.8](.flow/tasks/fn-156-wasm-gomad-productionization.8.md) | ⬜ Todo | In-helper runtime decisions, clock and network model; at least 5x faster guests |
 | [fn-156.1](.flow/tasks/fn-156-wasm-gomad-productionization.1.md) | ⬜ Todo | Full scheduling qualification (map/GC/entropy, 32x100) and optional checkpoints |
 | [fn-156.2](.flow/tasks/fn-156-wasm-gomad-productionization.2.md) | ⬜ Todo | Bounded exploration, resume, minimization, and non-progress outcomes |
 | [fn-156.3](.flow/tasks/fn-156-wasm-gomad-productionization.3.md) | ⬜ Todo | Durable SQLite volumes, storage faults, crash recovery, and replay |

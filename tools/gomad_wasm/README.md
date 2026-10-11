@@ -129,14 +129,28 @@ GOMAD_WASM_PROTOTYPE_ROOT=/absolute/evidence \
   make -C tools/gomad_wasm prototype GOMAD_WASM_STOCK_GO=/absolute/stock/go1.27.1
 ```
 
-`GOMAD_WASM_PROTOTYPE_ONLY` narrows the Temporal gates to `long-timers`,
-`network`, `smoke` or `smoke-<suite>`; `GOMAD_WASM_PROTOTYPE_INSTANCES` sets fresh
-instances per seed; `GOMAD_WASM_PROTOTYPE_MIRROR` names a file that receives a
-live copy of guest stdout. Each gate writes a `*-report.json` with per-run wall
-time, memory, decisions, virtual time and evidence digests. Temporal guests need
-several GiB of host memory each; run them one at a time on small hosts.
+The default run covers the fixture gates (scheduling, virtual time, network),
+a Temporal one-box workflow with sleeps, retries, a reset and a partition, and
+the unchanged `tests/gomadfunctional` `TestFrontendSystemInfo`. Every Temporal
+gate runs two seeds and replays the first in a fresh guest; the evidence must
+match byte for byte. With a warm compile cache it takes about 2–3 minutes on a
+12-core host. The helper keeps compiled modules in
+`$GOMAD_WASM_PROTOTYPE_ROOT/compile-cache`; the first compile of a 240–340 MB
+module takes minutes and up to 6 GiB of memory.
+
+`GOMAD_WASM_PROTOTYPE_ONLY` selects `workflow`, `smoke` (all suites) or
+`smoke-<suite>` (`frontend`, `workflow`, `activity`, `child`, `update`, `timers`;
+all but `frontend` use the unchanged `./tests` package).
+`GOMAD_WASM_PROTOTYPE_INSTANCES` sets fresh Temporal guests per seed,
+`GOMAD_WASM_PROTOTYPE_PARALLEL` and `GOMAD_WASM_PROTOTYPE_HEAVY` bound concurrent
+fixture and Temporal guests, and `GOMAD_WASM_PROTOTYPE_MIRROR` is a path prefix
+for live copies of guest stdout. Each gate writes a `*-report.json` with per-run
+wall time, memory, host calls, decisions, clock jumps, virtual time and evidence
+digests. Results and the go decision are in
+[the fn-151 report](../../.flow/artifacts/fn151-prototype-report-2026-10-10.md).
 
 The implementation plan is
 [wasm-gomad-execution-backend.md](../../.turbo/plans/wasm-gomad-execution-backend.md).
-Flow spec `fn-151-wasm-gomad-execution-backend` owns task state and retained
-acceptance. Native qualification remains with its existing owners.
+Flow spec `fn-151-wasm-gomad-execution-backend` retains the completed
+prototype's acceptance; `fn-156-wasm-gomad-productionization` owns the remaining
+work. Native qualification remains with its existing owners.

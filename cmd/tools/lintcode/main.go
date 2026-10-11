@@ -408,6 +408,8 @@ func (p ownership) classify(path string, modules []string) (source, error) {
 		entry.disposition = "WASM runtime qualification fixture"
 	case within(path, wasmModule+"/testdata/frontend_namespace"), within(path, wasmModule+"/testdata/sqlite_contention"):
 		entry.disposition = "WASM Temporal diagnostic fixture"
+	case within(path, wasmModule+"/testdata/time_probes"), within(path, wasmModule+"/testdata/network_probes"), within(path, wasmModule+"/testdata/prototype_temporal"):
+		entry.disposition = "WASM determinism prototype fixture"
 	case within(path, wasmModule):
 		relative := strings.TrimPrefix(path, wasmModule+"/")
 		for part := range strings.SplitSeq(filepath.ToSlash(filepath.Dir(relative)), "/") {

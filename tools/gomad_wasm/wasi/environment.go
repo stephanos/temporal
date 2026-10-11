@@ -38,7 +38,7 @@ type Config struct {
 	EntropyKey          [32]byte
 	Clock               ClockPolicy
 	Limits              Limits
-	Network             *NetworkModel
+	Network             *NetworkModel `json:",omitempty"`
 }
 type Call struct {
 	Type  string          `json:"type"`

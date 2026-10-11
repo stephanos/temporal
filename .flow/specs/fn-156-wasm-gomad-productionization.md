@@ -2,6 +2,8 @@
 
 Productionize the WASM Gomad execution backend after the [fn-151](fn-151-wasm-gomad-execution-backend.md) determinism prototype records a "go" decision. Do not start before that decision. All fn-151 constraints apply: hermetically sealed guest I/O, preserved production defaults and native overlays, native qualification deferred under fn-128/fn-149, no commits or publication without explicit owner request.
 
+fn-151 recorded **GO** on 2026-10-10 ([report](../artifacts/fn151-prototype-report-2026-10-10.md)). Start with fn-156.8: the prototype's wall time is dominated by helper/model round trips.
+
 ## Acceptance Criteria
 
 - **R1:** WASM runtime choices, stable identities, independent entropy and diagnostics support alternate outcomes and exact forced replay at the full 32x100 budget; any optional checkpoint profile has a separate safety/site/identity gate. (was fn-151 R5)

@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-151-wasm-gomad-execution-backend",
   "spec_path": ".flow/tasks/fn-151-wasm-gomad-execution-backend.7.md",
-  "status": "todo",
+  "status": "done",
   "title": "Simulated in-guest network (prototype)",
-  "updated_at": "2026-10-10T23:14:47.986406Z"
+  "updated_at": "2026-10-11T03:16:17.240339Z"
 }

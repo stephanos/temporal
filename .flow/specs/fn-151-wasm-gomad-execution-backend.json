@@ -14,7 +14,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-151-wasm-gomad-execution-backend.md",
-  "status": "open",
+  "status": "done",
   "title": "WASM Gomad determinism prototype",
   "tracker": {
     "baseHashFlow": null,
@@ -27,5 +27,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-10T23:14:47.986406Z"
+  "updated_at": "2026-10-11T03:16:33.054438Z"
 }

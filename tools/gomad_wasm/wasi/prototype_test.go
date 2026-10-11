@@ -196,8 +196,8 @@ func digest(data []byte) string {
 // Guests run concurrently in bounded pools: whole-program Temporal guests need
 // GiBs of host memory each, fixture guests very little.
 var (
-	prototypeLight = make(chan struct{}, prototypeLimit("GOMAD_WASM_PROTOTYPE_PARALLEL", 8))
-	prototypeHeavy = make(chan struct{}, prototypeLimit("GOMAD_WASM_PROTOTYPE_HEAVY", 2))
+	prototypeLight = make(chan struct{}, prototypeLimit("GOMAD_WASM_PROTOTYPE_PARALLEL", 4))
+	prototypeHeavy = make(chan struct{}, prototypeLimit("GOMAD_WASM_PROTOTYPE_HEAVY", 4))
 	prototypeWarm  sync.Mutex
 )
 
@@ -298,8 +298,8 @@ func requireExit(t *testing.T, label string, result Result, codes ...uint32) {
 
 // prototypeDeterminism runs seeds x instances fresh guests, requires identical
 // evidence per seed, and replays the first seed's tape exactly in another fresh
-// guest. The first guest runs alone so that it fills the compiled-module cache;
-// the rest run concurrently. It returns the per-seed baselines.
+// guest. Recorded guests run concurrently after a large module's compiled code
+// is cached. It returns the per-seed baselines.
 func prototypeDeterminism(t *testing.T, report *prototypeReport, guest, variant string, request Request, seeds []uint64, instances int, codes ...uint32) map[uint64]Result {
 	t.Helper()
 	withSeed := func(seed uint64, tape *choice.ReplayPlan) Request {
@@ -327,51 +327,29 @@ func prototypeDeterminism(t *testing.T, report *prototypeReport, guest, variant 
 			t.Fatalf("warm compile cache: %v %s %s", err, result.Termination, result.Message)
 		}
 	}
-	first, err := prototypeRunOne(report, guest, variant, 0, withSeed(seeds[0], nil))
-	if err != nil {
-		t.Fatal(err)
-	}
-	requireExit(t, fmt.Sprintf("%s/%s seed %d instance 0", guest, variant, seeds[0]), first, codes...)
-	tape, err := choice.ProjectReplayPlan(first.ChoiceTrace, request.Runtime.Choice.ExecutionIdentity)
-	if err != nil {
-		t.Fatal(err)
-	}
 	type job struct {
 		seed     uint64
 		instance int
-		replay   bool
 		result   Result
 		err      error
 	}
-	jobs := []*job{{seed: seeds[0], replay: true}}
+	var jobs []*job
 	for _, seed := range seeds {
 		for instance := range instances {
-			if seed != seeds[0] || instance != 0 {
-				jobs = append(jobs, &job{seed: seed, instance: instance})
-			}
+			jobs = append(jobs, &job{seed: seed, instance: instance})
 		}
 	}
 	var wg sync.WaitGroup
 	for _, j := range jobs {
 		wg.Go(func() {
-			if j.replay {
-				j.result, j.err = prototypeRunOne(report, guest, variant+"-replay", 0, withSeed(j.seed, &tape))
-			} else {
-				j.result, j.err = prototypeRunOne(report, guest, variant, j.instance, withSeed(j.seed, nil))
-			}
+			j.result, j.err = prototypeRunOne(report, guest, variant, j.instance, withSeed(j.seed, nil))
 		})
 	}
 	wg.Wait()
-	baselines := map[uint64]Result{seeds[0]: first}
+	baselines := map[uint64]Result{}
 	for _, j := range jobs {
 		if j.err != nil {
 			t.Fatal(j.err)
-		}
-		if j.replay {
-			if stream := sameEvidence(first, j.result); stream != "" {
-				t.Fatalf("%s/%s exact replay diverged in %s: %s %s", guest, variant, stream, j.result.Termination, j.result.Message)
-			}
-			continue
 		}
 		requireExit(t, fmt.Sprintf("%s/%s seed %d instance %d", guest, variant, j.seed, j.instance), j.result, codes...)
 		if j.instance == 0 {
@@ -379,11 +357,21 @@ func prototypeDeterminism(t *testing.T, report *prototypeReport, guest, variant 
 		}
 	}
 	for _, j := range jobs {
-		if !j.replay && j.instance > 0 {
+		if j.instance > 0 {
 			if stream := sameEvidence(baselines[j.seed], j.result); stream != "" {
 				t.Fatalf("%s/%s seed %d fresh instance %d diverged in %s", guest, variant, j.seed, j.instance, stream)
 			}
 		}
+	}
+	// The replay is another fresh guest forced through the first seed's tape.
+	first := baselines[seeds[0]]
+	tape, err := choice.ProjectReplayPlan(first.ChoiceTrace, request.Runtime.Choice.ExecutionIdentity)
+	if err != nil {
+		t.Fatal(err)
+	}
+	replayed := prototypeExecute(t, report, guest, variant+"-replay", 0, withSeed(seeds[0], &tape))
+	if stream := sameEvidence(first, replayed); stream != "" {
+		t.Fatalf("%s/%s exact replay diverged in %s: %s %s", guest, variant, stream, replayed.Termination, replayed.Message)
 	}
 	return baselines
 }

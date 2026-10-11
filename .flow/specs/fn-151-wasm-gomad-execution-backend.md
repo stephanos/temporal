@@ -4,7 +4,7 @@ Implement the complete approved execution-backend plan at `.turbo/plans/wasm-gom
 
 The user requires hermetically sealed guest execution. Every guest file, network, clock and entropy operation uses captured immutable inputs or in-memory models. Deny live host resources and native I/O fallbacks. Build preparation, module loading and retained evidence publication remain outside guest semantics.
 
-Current owner direction (2026-10-10): develop tools/gomad_wasm and tools/gomad3 together in this temporal repository. Task fn-151.12 is cancelled; no standalone extraction or deletion of gomad3 is planned. Tasks 1–4 retain historical acceptance, task 5 remains in progress with incomplete qualification, and tasks 6–11 remain queued. The owner requested a stop after in-flight work: this migration does not authorize further feature work, task5 qualification, commits or publication. Historical receipts bind their original source candidate, not this integrated checkout. Native qualification remains deferred under fn-128/fn-149. [MILESTONES.md](../../MILESTONES.md) is the operative guide.
+Owner direction (2026-10-10): develop tools/gomad_wasm and tools/gomad3 together in this temporal repository; task fn-151.12 is cancelled. Historical receipts of tasks 1–4 bind their original source candidate, not this integrated checkout. Native qualification remains deferred under fn-128/fn-149. [MILESTONES.md](../../MILESTONES.md) is the operative guide.
 
 ## Acceptance Criteria
 
@@ -25,3 +25,6 @@ The active checkout is temporal. tools/gomad_wasm remains a nested module beside
 
 fn-151 is now the **determinism prototype**: does Temporal's unchanged test stack run deterministically under WASM with controlled scheduling, time skipping and a simulated network, at an acceptable cost? Bug-yield is not the prototype's goal. Tasks 5–7 are reduced-gate versions of plan Phases 4, 5 and 7; task 8 is the integrated gate and go/no-go. Everything else — full scheduling/GC/entropy qualification, checkpoints, exploration/resume/minimization, storage faults, full network model, multi-node broker, qualification, optimization and documentation — moved to [fn-156](fn-156-wasm-gomad-productionization.md), which starts only after a recorded "go". Original R5–R11 now live there as R1–R7. The approved plan text moved to fn-156 unchanged and remains the technical reference for both specs (also at `.turbo/plans/wasm-gomad-execution-backend.md`).
 
+## Outcome (2026-10-10)
+
+All prototype gates pass: same-seed determinism, exact replay and tape rejection (R5), strict virtual time (R6), the simulated network with resets and partitions (R7), and a Temporal one-box workflow plus unchanged functional suites under two seeds with exact replay (R8). The default validation (`make -C tools/gomad_wasm prototype`) takes 141 s warm. Recommendation and recorded decision: **GO** — see [the report](../artifacts/fn151-prototype-report-2026-10-10.md); fn-156 continues the work.
