@@ -396,6 +396,37 @@ attach typed rows to the earlier IR-based labels. This source seal and fn-149
 admission remain unproven; the original continuation deadline and two-strike
 limit are unchanged.
 
+
+### Reproduced bare-statement reader omission (2026-10-11)
+
+The conductor's independent source-anchored reader regression is terminal exit1:
+both original and current typed graphs omit all three authored `overriding`
+references in `activity/standalone/protocol/Retry.scala`, at lines 124, 130 and
+135, to `resetFailureReturnsToWaiting`, `resetFailureEndsFailed` and
+`resetFailurePauses`. These are ordinary non-inline calls whose arguments name
+Property factories. The collector visits ValDef/DefDef right-hand sides, not
+bare ClassDef body statements. Exact compiler identities and zero unresolved
+targets do not prove that every authored reader was collected.
+Regression: `.flow/tmp/scala-dsl/fn140-10-root-bare-reader-audit.py`;
+red evidence: `fn140-10-root-bare-reader-red.log`.
+
+Earlier private-boundary results are therefore declaration-RHS graph evidence,
+not full source-reader completeness. Add source-identified bare statement reader
+nodes without treating a whole ClassDef body as an extra reader of its private
+members. Recapture both complete graphs, independently verify known overriding,
+except and bound calls, and repeat all private and retained decisions. Generated
+aliases, case-class fields and native/reflected capability laws require concrete
+typed boundary explanations; a generic outside-Query label is insufficient.
+
+Order.scala's eligibleWitnesses pass uses the same RHS-only traversal. Prove
+whether a bare statement naming an otherwise private triple causes a false R5
+refusal using an independent retained-reader fixture before changing that pass;
+if reproduced, repair reader coverage within its existing scoped source lint.
+Preserve all original private refusal and shared/verify/monitor/repeated-tail
+controls. This clarifies existing all-reader acceptance; it grants no additional
+worker time, third retry, unrelated implementation or deferred-consumer authority.
+Fn-149 remains gated on the verified committed complete seal.
+
 ## Acceptance
 - [ ] Complete eligible/retained inventories cover all Model packages, with concrete reader/boundary justifications; every eligible private pinned triple is a witness (R5).
 - [ ] Source-aware lint and focused positive/refusal fixtures cover private/shared/verify/monitor/repeated-input-tail forms with exact source ownership and unchanged other refusal classes (R5).
