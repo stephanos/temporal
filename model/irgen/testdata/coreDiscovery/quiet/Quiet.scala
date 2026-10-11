@@ -5,9 +5,9 @@ import framework.*
 enum Outcome derives Finite:
   case accepted
 
+val unrelated = Vector("ordinary data")
+
 object Idle extends Machine[Boolean, Outcome, Nothing]:
   val init = false
   def end(s: State) = true
   object rules extends Rules
-
-val unrelated = Vector("ordinary data")

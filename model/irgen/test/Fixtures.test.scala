@@ -5127,7 +5127,13 @@ class Fixtures extends munit.FunSuite:
     val out = scratch.resolve("coreDiscovery-out")
     val result = liftIr(out, s"$jar=${stored("coreDiscovery")},$modelJar=model/")
     assertEquals(result.exit, 0, result.diagnostics)
-    assertEquals(listed(out), Seq("coreonly.json"))
+    assert(Files.isRegularFile(out.resolve("coreonly.json")), "the realization-only foundation was not collected")
+    assertEquals(listed(out), Seq(
+      "activity-standalone.json", "activity-standalone.waivers.json", "coreonly.json",
+      "nexus-standalone.json", "nexus-standalone.waivers.json",
+      "nexus-workflow.json", "nexus-workflow.waivers.json", "taskqueue.json"
+    ))
+    assert(!Files.exists(out.resolve("quiet.json")), "an unrelated value requested an actor file")
     val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
     val collected = mapper.readTree(Files.readString(out.resolve("coreonly.json")))
     val explicit = scratch.resolve("coreDiscovery-explicit.json")

@@ -6,11 +6,6 @@ import framework.realize.*
 enum Outcome derives Finite:
   case accepted
 
-object Idle extends Machine[Boolean, Outcome, Nothing]:
-  val init = false
-  def end(s: State) = true
-  object rules extends Rules
-
 object Runs:
   val only = Realization(
     machine = Idle,
@@ -21,3 +16,8 @@ object Runs:
     scripts = Vector.empty
   )
   val unrelated = Vector("ordinary data")
+
+object Idle extends Machine[Boolean, Outcome, Nothing]:
+  val init = false
+  def end(s: State) = true
+  object rules extends Rules
