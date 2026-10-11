@@ -12,9 +12,9 @@ formatting commit, fn-150's source, fn-155.6's regeneration proof and Batch 3's 
 regenerated IR and Cases (`a3f3a545bc`; its gates, live run and Run companions remain). On 2026-10-11
 the owner paused all validation gates until the test tooling is optimized: one shared interpretation
 per Model per test process, in-process lifter fixture tests, fail-fast IR loading, `export`'s
-whole-Model tests opt-in, Go's test cache (no `-count=1`) and one Bloop daemon. A Scala-only change
-whose IR bytes are unchanged runs no Go suite. Batch 1d continues as one worker with compile-only
-checks until then.
+whole-Model tests opt-in, Go's test cache (no `-count=1`) and one Bloop daemon. Go validation is skipped
+entirely while the Scala DSL work runs (owner, 2026-10-11); Go failures are fixed once, at Batch
+5b's regeneration and full gate. Batch 1d continues as one worker with Scala compile-only checks.
 
 ## Keeping this page current
 

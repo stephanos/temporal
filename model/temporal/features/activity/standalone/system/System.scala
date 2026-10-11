@@ -100,6 +100,10 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
     def exhausted(s: State): Boolean = !retriesRemaining(s)
     def endsTerminally(s: State): Boolean = pendingCancel(s) || exhausted(s)
 
+    // The step times the activity out on the timeout `t`.
+    def timesOut(after: Step[State, Outcome, Fact], t: TimeoutType): Boolean =
+      after.state.phase == Phase.timedOut && after.records(Fact.statusTimedOut(t))
+
     def attemptCount(s: State): Int = s.attempts
 
     def maximumAttempts(s: State): Option[UpTo[MaxAttempts.Bound]] = s.maxAttempts match

@@ -9,6 +9,7 @@ import framework.Finite.given
 import temporal.realize.satisfied
 import Bounds.four
 import Timeout.expires
+import ActivitySystem.states.{exhausted, timesOut}
 
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 
@@ -58,9 +59,7 @@ object HeartbeatExhaustion extends Derived(ActivitySystem.unmonitored):
   object properties:
     val heartbeatExhausts = property when deadline.heartbeat holds { after =>
       after.records(Fact.heartbeatTimedOut) &&
-      (ActivitySystem.states.exhausted(after.state) implies
-        (after.state.phase == Phase.timedOut &&
-          after.records(Fact.statusTimedOut(TimeoutType.heartbeat))))
+      (exhausted(after.state) implies timesOut(after, TimeoutType.heartbeat))
     }
 
   object queries:
