@@ -37,13 +37,9 @@ class DefaultEndsSuite extends munit.FunSuite:
 
   private def lift(roots: String*): (Ran, Path) =
     val out = scratch.resolve(roots.head + ".json")
-    val java = Path.of(System.getProperty("java.home"), "bin", "java").toString
-    val ran = tools.run(
-      java,
+    val ran = InProcess.lift(
+      tools.directory,
       Seq(
-        "-cp",
-        System.getProperty("java.class.path"),
-        "umpire.irgen.lift",
         s"$fixtureJar=$stored,$modelJar=model/",
         build.resolve("model-scala.classpath").toString,
         out.toString

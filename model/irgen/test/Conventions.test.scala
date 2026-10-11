@@ -40,12 +40,9 @@ class ConventionsFixtures extends munit.FunSuite:
 
   private def lift(jar: Path, stored: String, root: String): (Ran, Path) =
     val output = scratch.resolve(root.split('.').last + ".json")
-    val result = tools.run(
-      Path.of(System.getProperty("java.home"), "bin", "java").toString,
+    val result = InProcess.lift(
+      tools.directory,
       Seq(
-        "-cp",
-        System.getProperty("java.class.path"),
-        "umpire.irgen.lift",
         s"$jar=model/irgen/testdata/$stored/,${build.resolve("model-scala.jar")}=model/",
         build.resolve("model-scala.classpath").toString,
         output.toString,

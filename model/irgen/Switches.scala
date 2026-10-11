@@ -17,12 +17,19 @@ object Switches:
 
   val known: Set[String] = Set("facets-only", "facet-vocabulary", "layout")
 
-  lazy val on: Set[String] =
+  // The rules `UMPIRE_LIFT_RULES` turns on for a lifter JVM.
+  def fromEnvironment: Set[String] =
     val asked =
       sys.env.get("UMPIRE_LIFT_RULES").toSeq.flatMap(_.split(',')).map(_.trim).filter(_.nonEmpty)
     for name <- asked if !known(name) do
       sys.error(s"UMPIRE_LIFT_RULES names $name, which is none of ${known.toSeq.sorted.mkString(", ")}")
-    defaults ++ asked
+    asked.toSet
+
+  // The rules turned on for the lift running on this thread, beside the defaults: a lift run
+  // in-process (LiftRun.run) names its own, so lifts side by side in one JVM keep theirs apart.
+  private val asked = scala.util.DynamicVariable(Set.empty[String])
+  def within[A](rules: Set[String])(body: => A): A = asked.withValue(rules)(body)
+  def on: Set[String] = defaults ++ asked.value
 
   def facetsOnly: Boolean = on("facets-only")
   def facetVocabulary: Boolean = on("facet-vocabulary")

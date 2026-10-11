@@ -1,6 +1,6 @@
 package umpire.irgen
 
-import java.nio.file.{Files, Path}
+import java.nio.file.Files
 import scala.concurrent.{blocking, Await, Future}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.*
@@ -96,12 +96,7 @@ class QualifiedNames extends munit.FunSuite:
       java.util.regex.Matcher.quoteReplacement(s"package $pkg\npackage moved\n")
     )
 
-  private def lift(arguments: String*): Ran =
-    val java = Path.of(System.getProperty("java.home"), "bin", "java").toString
-    tools.run(
-      java,
-      Seq("-cp", System.getProperty("java.class.path"), "umpire.irgen.lift") ++ arguments
-    )
+  private def lift(arguments: String*): Ran = InProcess.lift(tools.directory, arguments)
 
   private val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
 

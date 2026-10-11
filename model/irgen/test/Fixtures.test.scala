@@ -59,12 +59,9 @@ class ActivityHeartbeatFixtures extends munit.FunSuite:
     jar
 
   private def lift(roots: String*): Ran =
-    tools.run(
-      Path.of(System.getProperty("java.home"), "bin", "java").toString,
+    InProcess.lift(
+      tools.directory,
       Seq(
-        "-cp",
-        System.getProperty("java.class.path"),
-        "umpire.irgen.lift",
         s"$fixtureJar=$stored,${build.resolve("model-scala.jar")}=model/",
         build.resolve("model-scala.classpath").toString,
         scratch.resolve("out.json").toString
@@ -184,12 +181,9 @@ class ActivityHeartbeatFixtures extends munit.FunSuite:
         "unknownMode" -> "WithholdingMode"
       )
     do
-      val result = tools.run(
-        Path.of(System.getProperty("java.home"), "bin", "java").toString,
+      val result = InProcess.lift(
+        tools.directory,
         Seq(
-          "-cp",
-          System.getProperty("java.class.path"),
-          "umpire.irgen.lift",
           s"$jar=$storedEnums",
           build.resolve("model-scala.classpath").toString,
           scratch.resolve(s"$root.json").toString,
@@ -353,16 +347,10 @@ class Fixtures extends munit.FunSuite:
     ).orFail(): Unit
     jar
 
-  // The lifter is run as `lift` runs it, in a JVM of its own, since it ends the JVM on a refusal:
-  // this build's classes, and the arguments of its command line.
+  // The lifter is run as `lift` runs it, with the arguments of its command line, in this JVM
+  // (InProcess).
   private def lift(arguments: String*): Ran =
-    val java = Path.of(System.getProperty("java.home"), "bin", "java").toString
-    bounded(
-      tools.run(
-        java,
-        Seq("-cp", System.getProperty("java.class.path"), "umpire.irgen.lift") ++ arguments
-      )
-    )
+    bounded(InProcess.lift(tools.directory, arguments))
 
   private def refused(ran: Ran): Seq[String] =
     ran.output.linesIterator.filter(_.startsWith("lift:")).toSeq
@@ -1736,22 +1724,17 @@ class Fixtures extends munit.FunSuite:
     val jar = packaged("facetRules", materialize("facetRules"))
     val at = stored("facetRules") + "FacetRules.scala"
     def run(root: String, rules: String*): Ran =
-      val java = Path.of(System.getProperty("java.home"), "bin", "java").toString
       bounded(
-        tools
-          .withEnvironment("UMPIRE_LIFT_RULES" -> rules.mkString(","))
-          .run(
-            java,
-            Seq(
-              "-cp",
-              System.getProperty("java.class.path"),
-              "umpire.irgen.lift",
-              s"$jar=${stored("facetRules")},$modelJar=model/",
-              modelClasspath.toString,
-              scratch.resolve(s"facetRules-$root.json").toString,
-              s"fixture.facetrules.$root"
-            )
-          )
+        InProcess.lift(
+          tools.directory,
+          Seq(
+            s"$jar=${stored("facetRules")},$modelJar=model/",
+            modelClasspath.toString,
+            scratch.resolve(s"facetRules-$root.json").toString,
+            s"fixture.facetrules.$root"
+          ),
+          rules.toSet
+        )
       )
     for root <- Seq("Agreeing", "Unfaceted", "Unnamed", "Crossed") do
       val off = run(root)
@@ -3416,17 +3399,17 @@ class Fixtures extends munit.FunSuite:
       Some(
         Files
           .readString(testdata.resolve("layout/kinds/relay/workflow/system/System.scala"))
-          .replace("fixture.features.relay.product", "fixture.features.nexus.workflow.product")
+          .replace("fixture.features.relay.shared.product", "fixture.features.nexus.workflow.product")
           .replace("RelayProduct", "NexusProduct")
       ),
       "does not refine RelayProduct"
     ),
     (
       "foreign-single-level",
-      "nexus/standalone/Standalone.scala",
+      "nexus/standalone/StandaloneNexus.scala",
       Some(
         Files
-          .readString(testdata.resolve("layout/kinds/nexus/standalone/Standalone.scala"))
+          .readString(testdata.resolve("layout/kinds/nexus/standalone/StandaloneNexus.scala"))
           // Strict equality: the refinement compares phases with the evidence Finite supplies.
           .replace(
             "import framework.*\n",
@@ -3435,10 +3418,10 @@ class Fixtures extends munit.FunSuite:
           )
           .replace(
             "  object effects:",
-            "  object refinement extends Refinement(fixture.features.relay.product.RelayProduct):\n" +
-              "    def toProduct(s: State) = fixture.features.relay.product.State(\n" +
-              "      if s.phase == Phase.idle then fixture.features.relay.product.Phase.idle\n" +
-              "      else fixture.features.relay.product.Phase.done)\n\n" +
+            "  object refinement extends Refinement(fixture.features.relay.shared.product.RelayProduct):\n" +
+              "    def toProduct(s: State) = fixture.features.relay.shared.product.State(\n" +
+              "      if s.phase == Phase.idle then fixture.features.relay.shared.product.Phase.idle\n" +
+              "      else fixture.features.relay.shared.product.Phase.done)\n\n" +
               "  object effects:"
           )
       ),
@@ -3539,14 +3522,14 @@ class Fixtures extends munit.FunSuite:
           Files
             .readString(system)
             .replaceAll("(?s)  object refinement .*?(?=  object effects:)", "")
-            .replace("import fixture.features.relay.product.RelayProduct\n", "")
+            .replace("import fixture.features.relay.shared.product.RelayProduct\n", "")
         else
           "package fixture.features.relay.workflow\npackage system\nimport framework.*\n" +
-            "import fixture.features.relay.product.RelayProduct\nobject Copy extends Derived(RelayProduct.unmonitored)\n"
+            "import fixture.features.relay.shared.product.RelayProduct\nobject Copy extends Derived(RelayProduct.unmonitored)\n"
       Files.delete(system)
       Files.writeString(system.resolveSibling("Other.scala"), text)
       if variantName == "derived-sibling" then // scalafix:ok DisableSyntax.==; typed equality
-        val feature = tree.resolve("relay/workflow/Workflow.scala")
+        val feature = tree.resolve("relay/workflow/WorkflowRelay.scala")
         Files.writeString(
           feature,
           Files.readString(feature).replace("system.RelaySystem", "system.Copy")
@@ -3565,7 +3548,7 @@ class Fixtures extends munit.FunSuite:
     val tree = materializeTree("layout/kinds", "type-only-folders")
     val misplaced = Seq(
       "relay/extra/Extra.scala" -> "fixture.features.relay.extra",
-      "relay/product/extra/Extra.scala" -> "fixture.features.relay.product.extra",
+      "relay/shared/product/extra/Extra.scala" -> "fixture.features.relay.shared.product.extra",
       "relay/workflow/system/extra/Extra.scala" -> "fixture.features.relay.workflow.system.extra"
     )
     for (file, pkg) <- misplaced do
