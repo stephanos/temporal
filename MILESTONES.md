@@ -52,7 +52,7 @@ facet vocabularies are recorded in fn-161.
 
 | Order | Spec | Scala scope |
 | --- | --- | --- |
-| 1 | fn-159 | qualified names, renames, `enters` (mostly done on `w-1d`) |
+| 1 | fn-159 | qualified names, renames, `enters` (source integrated; proof/closure open) |
 | 2 | fn-161 | facets |
 | 3 | fn-162 | realizations name their Queries; claim containers removed |
 | 4 | fn-160 | layout, Protocol level, per-feature collection |
@@ -81,14 +81,14 @@ only. The IR-regenerating tasks wait on the tree's IR `Duration` migration. Not 
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-159.1 | 🔄 in progress | Require qualified `on` targets in irgen and the framework; refuse `import X.*` in `from`; rename the bound `worker` to `activityWorker`; migrate models, tests and README (done on `w-1d`) |
-| fn-159.2 | 🔄 in progress | Rename the standalone activity's By-ID actor `service` to `completionClient`; regenerate the activity IR (done on `w-1d`) |
-| fn-159.3 | 🔄 in progress | Qualify every phase reference (`when(Phase.scheduled)`, `phase = Phase.started`); irgen refuses phase-member imports (done on `w-1d`) |
-| fn-159.4 | 🔄 in progress | Remove `disabled(process.stop)` from the activity product; needs the tree's IR `Duration` migration to build for the lift check (done on `w-1d`) |
-| fn-159.5 | 🔄 in progress | Move every `Limits` bound into `Bounds`; resolve the clashing names `four`/`five`/`twelve` and merge `eight`/`control` (done on `w-1d`) |
-| fn-159.6 | 🔄 in progress | Drop `Observation`'s free-text `read`; name the response field beside each realization's typed read (done on `w-1d`) |
-| fn-159.7 | 🔄 in progress | `enters(Phase.X)` replaces phase-only effects, including worker stop/resume in Serving.scala; source integrated, equivalence/shared closure still open |
-| fn-159.8 | 🔄 in progress | Rename capability kinds `Retries` → `Retryable`, `Deadline` → `Expirable` (names to confirm); IR capability ids change (done on `w-1d`) |
+| fn-159.1 | ⬜ todo | Qualified `on`/grouping-only `from`, `activityWorker`, models/tests/docs source integrated; refusal/equivalence evidence and closure still open |
+| fn-159.2 | ⬜ todo | By-ID actor renamed to `completionClient` in source; validation open, managed regeneration deferred |
+| fn-159.3 | ⬜ todo | Qualified phases and phase-import refusals integrated in source; focused proof and closure open |
+| fn-159.4 | ⬜ todo | `disabled(process.stop)` removed in source; lift/equivalence proof and closure open |
+| fn-159.5 | ⬜ todo | Bounds/name moves integrated in source; inventory/equivalence proof and closure open |
+| fn-159.6 | ⬜ todo | Free-text Observation `read` removed in source; typed response-field/lift proof and closure open |
+| fn-159.7 | ⬜ todo | `enters(Phase.X)` integrated, including worker stop/resume in Serving.scala; equivalence/shared closure still open |
+| fn-159.8 | ⬜ todo | Confirmed `Retryable`/`Expirable` renames integrated in source; identity/equivalence proof open, managed regeneration deferred |
 
 `disabled(...)` targets are qualified like `on` (decided 2026-10-10).
 
@@ -143,8 +143,10 @@ level folders grouped by name prefix, and realizations get their own `realizatio
 
 ### fn-163: System capabilities: distributed-systems patterns as named capabilities
 
-Open for its Scala part (owner, 2026-10-11); its IR changes wait for the deferred regeneration. Not planned yet; the 1d worker plans and implements it
-after fn-160. [Spec](.flow/specs/fn-163-system-capabilities-distributed-systems.md).
+Open for its Scala part (owner, 2026-10-11); three tasks and the pattern inventory are recorded.
+The package split and named law source are integrated, but complete naming, history-law,
+equivalence and documentation proofs remain open; IR changes wait for deferred regeneration.
+[Spec](.flow/specs/fn-163-system-capabilities-distributed-systems.md).
 
 Name the distributed-systems promises the Models still write by hand (fencing of stale attempts, a
 single active attempt, idempotent requests, a single outcome) as first-class capabilities, declared once
@@ -155,18 +157,24 @@ arrive. Idempotency targets actions rather than entities, and fencing/single out
 some laws may need synthesized monitors; verdicts, answers and Case outcomes stay unchanged under a
 checked rename map.
 
+| Name | Status | What |
+| --- | --- | --- |
+| fn-163.1 | ⬜ todo | System/product package split integrated; complete placement/module/lint proof and closure open |
+| fn-163.2 | ⬜ todo | Exclusive/Fenced/Idempotent laws integrated; complete inventory/naming/history-law and unchanged-answer proof open; singleOutcome remains hand-written under the recorded history exception |
+| fn-163.3 | ⬜ todo | Verify author docs and single-use naming rule against the final source, preserving the existing SEMANTICS draft |
+
 ### fn-147 (Scala part): Duration-typed elapsed-time authoring
 
-From Batch 3's format migration: the IR and Testpilot already carry protobuf `Duration`, and the lifter
-converts the authored whole milliseconds (`timeoutMs`, `intervalMs`, `atMostMs`, `deadlineMs`) with
-checked conversion. The unapplied `duration-authoring.patch` (framework/realize, temporal/realize,
-the activity realization, irgen and fixtures; `.worktrees/fn-146-adopt-cel-for-runtime-predicates-and/.flow/tmp/fn146/batch/scala-patches/`)
-makes authors write durations directly; `runtime-semantics.patch` updates `model/README.md` and
-`model/SEMANTICS.md`. Re-anchor both on the current DSL. The rest of fn-146/147/148 is deferred below.
+From Batch 3's format migration: the IR and Testpilot already carry protobuf `Duration`. The
+framework/realization/lifter source now accepts native Duration authoring, including optional timeout
+and interval fields and typed timer/backoff values. Independent presence/range/refusal, fixture,
+equivalence and documentation evidence still needs closure on the current DSL; the older
+duration-authoring/runtime-semantics patches are provenance, not unapplied work to replay.
+The rest of fn-146/147/148 is deferred below.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-147.2 (Scala) | ⬜ todo | Apply and re-anchor Duration-typed authoring and its docs; lifter and fixtures follow |
+| fn-147.2 (Scala) | ⬜ todo | Native Duration source integrated; close focused presence/range/refusal, fixture, equivalence and author-doc proof; shared Go/artifact closure deferred |
 
 ### fn-140: One-sentence witness Queries with explicit live expectations
 
