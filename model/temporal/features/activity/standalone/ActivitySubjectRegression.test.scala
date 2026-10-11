@@ -1,20 +1,12 @@
 package framework
 
+import temporal.features.activity.standalone.realization.*
 import framework.Finite.given
 
 import temporal.features.activity.{deadline, timers, Failure, Timeout}
 import temporal.features.activity.standalone.*
 import temporal.features.activity.standalone.protocol.{
-  ActivityProtocol,
-  ExhaustAfterHeartbeat,
-  HeartbeatThenCompletion,
-  HeldCancellationByID,
-  HeldFailureByID,
-  ResetAfterHeartbeat,
-  RetryAfterHeartbeat,
-  RetryAfterTimeout,
-  ScheduledCompletionByID,
-  Standalone
+  ActivityProtocol
 }
 import temporal.actors.worker.worker as process
 import temporal.Bounds.{eight, four, six, three}
@@ -318,7 +310,7 @@ class ActivitySubjectRegression extends munit.FunSuite:
   test("each activity realization names the Queries it runs") {
     val p = ActivityProtocol
     val runs: List[(Realizes[?, ?, ?], Seq[AnyRef])] = List(
-      Standalone -> Seq(
+      StandaloneActivityRun -> Seq(
         p.queries,
         p.capabilities,
         p.completion.queries.completion,
@@ -331,17 +323,17 @@ class ActivitySubjectRegression extends munit.FunSuite:
         p.timeouts.queries.scheduleToStartTimeout,
         p.timeouts.queries.startToCloseTimeout
       ),
-      RetryAfterTimeout -> Seq(p.timeouts.queries.retryAfterTimeout, p.timeouts.queries.retryExhaustion),
-      HeartbeatThenCompletion -> Seq(p.heartbeat.queries.heartbeatThenCompletes),
-      RetryAfterHeartbeat -> Seq(p.heartbeat.queries.heartbeatTimeoutRetriesThenCompletes),
-      ExhaustAfterHeartbeat -> Seq(p.heartbeat.queries.heartbeatTimeoutExhausts),
-      ScheduledCompletionByID -> Seq(p.completion.queries.scheduledCompletedByID),
-      HeldFailureByID -> Seq(p.retry.queries.heldFailedByID),
-      HeldCancellationByID -> Seq(
+      RetryAfterTimeoutRun -> Seq(p.timeouts.queries.retryAfterTimeout, p.timeouts.queries.retryExhaustion),
+      HeartbeatThenCompletionRun -> Seq(p.heartbeat.queries.heartbeatThenCompletes),
+      RetryAfterHeartbeatRun -> Seq(p.heartbeat.queries.heartbeatTimeoutRetriesThenCompletes),
+      ExhaustAfterHeartbeatRun -> Seq(p.heartbeat.queries.heartbeatTimeoutExhausts),
+      ScheduledCompletionByIDRun -> Seq(p.completion.queries.scheduledCompletedByID),
+      HeldFailureByIDRun -> Seq(p.retry.queries.heldFailedByID),
+      HeldCancellationByIDRun -> Seq(
         p.cancellation.queries.heldCanceledByID,
         p.cancellation.queries.cancelIsRequested
       ),
-      ResetAfterHeartbeat -> Seq(p.reset.queries.deferredResetCompletes)
+      ResetAfterHeartbeatRun -> Seq(p.reset.queries.deferredResetCompletes)
     )
     for (realization, expected) <- runs do
       assert(realization.machine eq ActivityProtocol)

@@ -1,5 +1,6 @@
 package framework
 
+import temporal.features.activity.standalone.realization.*
 import framework.Finite.given
 
 import temporal.capabilities.Expirable
@@ -13,11 +14,7 @@ import temporal.features.activity.standalone.{
   MaxAttempts
 }
 import temporal.features.activity.standalone.protocol.ActivityProtocol
-import temporal.features.activity.standalone.protocol.{
-  ExhaustAfterHeartbeat,
-  HeartbeatThenCompletion,
-  RetryAfterHeartbeat
-}
+
 import framework.realize.{
   EvidenceRef,
   FieldRole,
@@ -357,9 +354,9 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
 
   test("local heartbeat invocation confirms only delivery and keeps attempt and delivery roles") {
     for declarations <- List(
-        HeartbeatThenCompletion.evidence,
-        RetryAfterHeartbeat.evidence,
-        ExhaustAfterHeartbeat.evidence
+        HeartbeatThenCompletionRun.evidence,
+        RetryAfterHeartbeatRun.evidence,
+        ExhaustAfterHeartbeatRun.evidence
       )
     do
       val delivery = declarations
@@ -392,9 +389,9 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
 
   test("heartbeat realizers retain a second-delivery count kind without another first record") {
     for declarations <- List(
-        HeartbeatThenCompletion.evidence,
-        RetryAfterHeartbeat.evidence,
-        ExhaustAfterHeartbeat.evidence
+        HeartbeatThenCompletionRun.evidence,
+        RetryAfterHeartbeatRun.evidence,
+        ExhaustAfterHeartbeatRun.evidence
       )
     do
       val count = declarations.items.collect {
@@ -424,7 +421,7 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
   }
 
   test("heartbeat retry confirms both timer and second poll with their common attempt fact") {
-    val selected = RetryAfterHeartbeat.evidence.items.collect {
+    val selected = RetryAfterHeartbeatRun.evidence.items.collect {
       case evidence: TypedEvidence[?]
           if evidence.evidence.confirms.nonEmpty &&
             // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
@@ -450,7 +447,7 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
       take(expired.state.copy(dispatch = protocol.Dispatch.now), activityWorker.poll()).head
     assert(expired.facts.contains(selected.records))
     assert(second.facts.contains(selected.records))
-    val unusedKind = RetryAfterHeartbeat.evidence.items.collect {
+    val unusedKind = RetryAfterHeartbeatRun.evidence.items.collect {
       case evidence: TypedEvidence[?] if heartbeatTimeout(evidence.evidence.records) =>
         evidence.evidence
     }
@@ -460,7 +457,7 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
   }
 
   test("heartbeat exhaustion declares the complete timeout kind but selects its typed timer read") {
-    val reads = ExhaustAfterHeartbeat.evidence.items.collect { case evidence: EvidenceRef[?, ?] =>
+    val reads = ExhaustAfterHeartbeatRun.evidence.items.collect { case evidence: EvidenceRef[?, ?] =>
       evidence.evidence
     }
     val timeout = reads.find(_.records eq temporal.realize.everyValue(protocol.Fact.statusTimedOut))
@@ -472,9 +469,9 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
 
   test("first heartbeat delivery requires the authored local disposition enum") {
     for (declarations, expected) <- List(
-        HeartbeatThenCompletion.evidence -> ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED,
-        RetryAfterHeartbeat.evidence -> ACTIVITY_ATTEMPT_RESPONSE_PENDING,
-        ExhaustAfterHeartbeat.evidence -> ACTIVITY_ATTEMPT_RESPONSE_PENDING
+        HeartbeatThenCompletionRun.evidence -> ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED,
+        RetryAfterHeartbeatRun.evidence -> ACTIVITY_ATTEMPT_RESPONSE_PENDING,
+        ExhaustAfterHeartbeatRun.evidence -> ACTIVITY_ATTEMPT_RESPONSE_PENDING
       )
     do
       val delivery = declarations
@@ -505,7 +502,7 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
   test(
     "heartbeat timeout reads require actual typed HEARTBEAT failure rather than retry inference"
   ) {
-    for controller <- List(RetryAfterHeartbeat.controller, ExhaustAfterHeartbeat.controller) do
+    for controller <- List(RetryAfterHeartbeatRun.controller, ExhaustAfterHeartbeatRun.controller) do
       val polls = controller.items.flatMap(_.command.map(_.instruction)).collect {
         case poll: Instruction.TypedPoll[?, ?] => poll
       }

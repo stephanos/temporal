@@ -257,18 +257,3 @@ object ActivityRecord
 
 // ### The deliberately faulty design: admission trusts the eligibility the message was sent with,
 // so every delivery is admitted as one that meets a scheduled activity is.
-
-object TrustingActivityRecord
-    extends Derived(
-      ActivityRecord.rebind(on(activityWorker.poll) {
-        always ~> ActivityRecord.admission.effects.admit
-      })
-    ),
-      NegativeControl:
-
-  object capabilities extends AdmissionCapabilities
-
-  object queries:
-    capabilities.bound(five)
-    val trustingActivityRecordQueries =
-      ActivityRecord.queries.admissionQueries(TrustingActivityRecord, capabilities)

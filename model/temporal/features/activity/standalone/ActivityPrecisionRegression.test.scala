@@ -1,5 +1,6 @@
 package framework
 
+import temporal.features.activity.standalone.realization.*
 import framework.Finite.given
 
 import temporal.features.activity.{deadline, timers, Timeout}
@@ -12,14 +13,7 @@ import temporal.features.activity.standalone.{
   MaxAttempts
 }
 import temporal.features.activity.standalone.protocol.{
-  ActivityProtocol,
-  ExhaustAfterHeartbeat,
-  HeartbeatThenCompletion,
-  HeldDelivery,
-  LostAdmissionResponse,
-  RetryAfterHeartbeat,
-  RetryAfterTimeout,
-  Standalone
+  ActivityProtocol
 }
 import framework.realize.Instruction
 import framework.outcomes.{Outcome, Rejection}
@@ -108,17 +102,17 @@ class ActivityPrecisionRegression extends munit.FunSuite:
   }
 
   test("every realization declares a typed raw attempt observation and ends with a Describe read") {
-    val original = List(Standalone, RetryAfterTimeout, HeldDelivery, LostAdmissionResponse)
+    val original = List(StandaloneActivityRun, RetryAfterTimeoutRun, HeldDispatchRun, LostStartAnswerRun)
     val realizations =
-      original ++ List(HeartbeatThenCompletion, RetryAfterHeartbeat, ExhaustAfterHeartbeat)
+      original ++ List(HeartbeatThenCompletionRun, RetryAfterHeartbeatRun, ExhaustAfterHeartbeatRun)
     val controllers = List(
-      Standalone.controller,
-      RetryAfterTimeout.controller,
-      HeldDelivery.controller,
-      LostAdmissionResponse.controller,
-      HeartbeatThenCompletion.controller,
-      RetryAfterHeartbeat.controller,
-      ExhaustAfterHeartbeat.controller
+      StandaloneActivityRun.controller,
+      RetryAfterTimeoutRun.controller,
+      HeldDispatchRun.controller,
+      LostStartAnswerRun.controller,
+      HeartbeatThenCompletionRun.controller,
+      RetryAfterHeartbeatRun.controller,
+      ExhaustAfterHeartbeatRun.controller
     )
     for (realization, controller) <- realizations.zip(controllers) do
       val observed = if original.contains(realization) then
@@ -139,7 +133,7 @@ class ActivityPrecisionRegression extends munit.FunSuite:
             METHOD_DESCRIBE_ACTIVITY_EXECUTION.getFullMethodName
           )
         case other => fail(s"final read is $other")
-    for realization <- List(HeartbeatThenCompletion, RetryAfterHeartbeat, ExhaustAfterHeartbeat) do
+    for realization <- List(HeartbeatThenCompletionRun, RetryAfterHeartbeatRun, ExhaustAfterHeartbeatRun) do
       val details = realization.observations.filter(
         _.message == Payloads.scalaDescriptor.fullName
       ) // scalafix:ok DisableSyntax.==

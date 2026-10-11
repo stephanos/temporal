@@ -28,14 +28,3 @@ object TaskQueueProduct
     val queueOpaque = assume("taskQueueProduct.opaque")
 
   object rules extends Facets(queueing.rules)
-
-// The interface under the storage-loss assumption: a committed message may also vanish.
-object TaskQueueProductUnderStorageLoss
-    extends Derived(
-      TaskQueueProduct
-        .extend(on(fault.storageLoss) {
-          where(TaskQueueProduct.states.holding) ~> TaskQueueProduct.queueing.effects.storageLossView
-        })
-        .assuming(storageLossAssumed)
-    ),
-      FailureModel

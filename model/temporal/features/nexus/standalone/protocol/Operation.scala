@@ -106,7 +106,9 @@ trait Operation extends Facet[State, Outcome, Fact], Phased[State, Phase]:
         reach = Seq(client.start),
         expect = inconclusive(Reason.explanationsDisagree)
       )
-      val describable: Capability = Describable(statusTable = operationStatus)
+      // The status table is the realization's; the one Protocol read of the realization layer (an
+      // open layering question, fn-160 R9).
+      val describable: Capability = Describable(statusTable = realization.operationStatus)
       overriding(
         Closable.closedIsRejectedUniformly[State, Phase, Outcome] -> NexusProtocol.properties.closedRejectsOrRepeats,
         because = NexusProtocol.states.repeatedRequestsAnswer

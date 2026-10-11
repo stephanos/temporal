@@ -15,6 +15,7 @@
 package temporal
 package features.nexus
 package workflow
+package realization
 
 import framework.*
 import framework.realize.*
@@ -30,7 +31,6 @@ import io.temporal.api.enums.v1.{
 import io.temporal.api.nexus.v1.{HandlerError, StartOperationResponse}
 import temporal.actors.worker.worker
 
-import protocol.{NexusProtocol, TrustingCaller}
 
 // The declarations the Nexus caller realizations share.
 private object CallerDeclarations:
@@ -285,27 +285,3 @@ private object CallerDeclarations:
       )
     )
 
-import CallerDeclarations.*
-
-// One Nexus operation scheduled by a controller-started workflow and answered by a handler inside
-// the Case's own worker. Its server steps are derived: a timeout class fires at the deadline its
-// schedule command sets.
-object AsyncNexus
-    extends Realizes(
-      NexusProtocol,
-      learned = Vector(completionAuthority),
-      observations = Vector(historyEvent, correlated)
-    ):
-
-  object controller extends Controller(callerItems*)
-
-  object workers extends Workers(workflowScript, handlerScript)
-
-  object evidence extends Evidences((Vector(scheduled) ++ historyKinds.evidence :+ pending)*)
-
-// The forged control's realization: AsyncNexus, with the workflow inspected after the scheduled
-// event.
-object ForgedControl extends DerivesFrom(AsyncNexus, TrustingCaller):
-
-  object changes
-      extends Changes(inserting(after = awaitScheduled)(perform(caller.inspect -> inspectWorkflow)))

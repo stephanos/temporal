@@ -7,6 +7,7 @@
 package temporal
 package features.nexus
 package standalone
+package realization
 
 import protocol.{Fact as OperationFact, NexusProtocol}
 import framework.realize.*
@@ -67,21 +68,3 @@ private val terminateOperation =
 // (chasm/lib/nexusoperation/frontend.go isStandaloneNexusOperationEnabled); a Case is refused at
 // preparation in an environment that leaves it off.
 private val standaloneEnabled = RequiredSetting(key = settingKey, value = "true")
-
-// One standalone operation a controller starts on the Case's endpoint.
-object Standalone extends Realizes(NexusProtocol, requiredSettings = Vector(standaloneEnabled)):
-
-  object controller
-      extends Controller(
-        perform(client.start -> startOperation),
-        perform(client.requestCancel -> requestCancelOperation),
-        perform(client.terminate -> terminateOperation),
-        onPath(client.terminate)(described.await(OperationFact.nexusOperationTerminated))
-      )
-
-  object evidence
-      extends Evidences(
-        answered(OperationFact.statusScheduled, startOperation),
-        answered(OperationFact.statusCancelRequested, requestCancelOperation),
-        described(OperationFact.nexusOperationTerminated)
-      )

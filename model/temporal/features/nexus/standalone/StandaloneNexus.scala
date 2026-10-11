@@ -46,5 +46,5 @@ object exports:
     NexusProtocol,
     NexusProtocol.capabilities,
     NexusProtocol.queries,
-    Standalone
+    realization.StandaloneNexusRun
   )

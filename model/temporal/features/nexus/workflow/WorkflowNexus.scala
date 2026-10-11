@@ -27,7 +27,7 @@ package workflow
 
 import framework.*
 import shared.product.NexusProduct
-import protocol.{HandlerWorker, NexusCaller, NexusProtocol, TrustingCaller}
+import protocol.{HandlerWorker, NexusCaller, NexusProtocol}
 
 // ### Types
 //
@@ -115,13 +115,13 @@ object exports:
     temporal.actors.worker.Polling,
     NexusProtocol.queries,
     NexusCaller.queries,
-    AsyncNexus,
+    realization.WorkflowNexusRun,
     NexusProtocol.capabilities
   )
 
   // The forged completion a caller must refuse, and the realization that offers it.
   val nexusWorkflowControl =
-    irFile("nexus-workflow-control")(TrustingCaller.queries, ForgedControl)
+    irFile("nexus-workflow-control")(protocol.TrustingCaller.queries, realization.TrustingCallerRun)
 
   // The close and reset designs. Each design's Queries are a root, and so is each progress claim.
   val nexusWorkflowClose = irFile("nexus-workflow-close")(

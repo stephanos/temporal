@@ -38,4 +38,7 @@ trait Lifecycle extends Facet[State, Outcome, Fact], Phased[State, Phase]:
         reach = Seq(client.start(), process.stop),
         expect = inconclusive(Reason.explanationsDisagree)
       )
-      val describable: Capability = Describable(statusTable = activityStatus)
+      // The status table is the realization's: what DescribeActivityExecution reports while each
+      // fact holds. It is the one Protocol read of the realization layer (an open layering
+      // question, fn-160 R9).
+      val describable: Capability = Describable(statusTable = realization.activityStatus)

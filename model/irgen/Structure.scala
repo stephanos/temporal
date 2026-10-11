@@ -664,7 +664,7 @@ object Structure:
   val formFolders = Set("workflow", "standalone")
 
   // A feature's level folders, by audience (fn-126 decision 16).
-  val levels = Set("product", "protocol", "system")
+  val levels = Set("product", "protocol", "realization", "system")
 
   // The sections of a machine or composition object, in R2's order: its vocabulary, its refinement,
   // then its declarations by kind; a composition's `syncs` takes the place of `rules`. The order

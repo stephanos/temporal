@@ -9,7 +9,7 @@ package protocol
 import framework.*
 import framework.Finite.given
 import Bounds.{seven, twelve}
-import product.{TaskQueueProduct, TaskQueueProductUnderStorageLoss}
+import product.TaskQueueProduct
 import QueueOutcome.given
 
 val _ = () => summon[CanEqual[Custody, Custody]]
@@ -145,54 +145,3 @@ object TaskQueueProtocol
       )
 
     val matchingQueueQueries = providerQueries(TaskQueueProtocol)
-// format: off
-// The detailed provider with the storage-loss fault, which only its assumption allows. It refines
-// the interface that allows the loss.
-object LossyMatchingQueue
-    extends Derived(
-      TaskQueueProtocol
-        .extend(on(fault.storageLoss) {
-          where(TaskQueueProtocol.states.held) ~> TaskQueueProtocol.queueing.effects.storageLossDetail
-        })
-        .refining(TaskQueueProductUnderStorageLoss)(TaskQueueProtocol.refinement.toProduct)
-        .assuming(storageLossAssumed)
-    ),
-      FailureModel:
-  object properties:
-    // Storage loss drops a committed message, and the queue records that it did. Only the lossy
-    // provider binds the loss, so this is its own Property, not a claim of every provider.
-    val storageLossDrops =
-      property when fault.storageLoss holds { after =>
-        after.state.custody == Custody.nowhere && after.records(QueueFact.storageLost) // scalafix:ok DisableSyntax.==; typed equality
-      }
-// format: on
-  // The crash cuts of every provider, and the storage loss.
-  object queries:
-    val persistedThenLost = scenario.actions(
-      queue.enqueue,
-      queue.addActivityTask,
-      queue.persistTask,
-      fault.storageLoss
-    )
-    val lossyMatchingQueueQueries =
-      TaskQueueProtocol.queries.providerQueries(LossyMatchingQueue)
-    val storageLossQuery =
-      query("lossyMatchingQueue.storageLoss") find properties.storageLossDrops in
-        persistedThenLost limits seven
-
-// A crash that loses the message history dropped on invoking AddActivityTask.
-object ForgetfulQueue
-    extends Derived(TaskQueueProtocol.rebind(fault.crash ~> TaskQueueProtocol.queueing.effects.forgetfulCrash)),
-      NegativeControl:
-
-  object queries:
-    val forgetfulQueueQueries =
-      TaskQueueProtocol.queries.providerQueries(ForgetfulQueue)
-
-// A crash that wipes the tasks matching persisted.
-object VolatileQueue
-    extends Derived(TaskQueueProtocol.rebind(fault.crash ~> TaskQueueProtocol.queueing.effects.volatileCrash)),
-      NegativeControl:
-
-  object queries:
-    val volatileQueueQueries = TaskQueueProtocol.queries.providerQueries(VolatileQueue)

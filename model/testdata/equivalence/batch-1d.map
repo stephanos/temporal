@@ -47,3 +47,12 @@ temporal.features.activity.standalone.system temporal.features.activity.standalo
 temporal.foundations.taskqueue.system temporal.foundations.taskqueue.protocol
 activitySystem activityProtocol
 taskQueueSystem taskQueueProtocol
+# fn-160.3/.4: one machine per file and a realization/ layer; realizations are `<Form><Kind>Run` or
+# `<Subject>Run` (IR only: their ids and names; their short names, e.g. `standalone`, are listed in
+# the handoff for Batch 5b).
+temporal.features.activity.standalone.system.Standalone temporal.features.activity.standalone.realization.StandaloneActivityRun
+temporal.features.activity.standalone.system.HeldDelivery temporal.features.activity.standalone.realization.HeldDispatchRun
+temporal.features.activity.standalone.system.LostAdmissionResponse temporal.features.activity.standalone.realization.LostStartAnswerRun
+temporal.features.nexus.standalone.Standalone temporal.features.nexus.standalone.realization.StandaloneNexusRun
+temporal.features.nexus.workflow.AsyncNexus temporal.features.nexus.workflow.realization.WorkflowNexusRun
+temporal.features.nexus.workflow.ForgedControl temporal.features.nexus.workflow.realization.TrustingCallerRun

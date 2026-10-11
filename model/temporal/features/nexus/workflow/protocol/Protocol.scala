@@ -15,7 +15,7 @@ import framework.outcomes.Outcome
 import framework.realize.{Alternative, Exploration, Reason, Variation}
 import temporal.realize.{inconclusive, satisfied}
 import temporal.Bounds.{eight, four, three, two}
-import temporal.actors.worker.{worker, Phase as WorkerPhase, State as WorkerState}
+import temporal.actors.worker.{worker, State as WorkerState}
 import shared.product.NexusProduct
 import Timeout.expires
 
@@ -322,48 +322,3 @@ object NexusProtocol
 // The caller's view of the handler's worker: it stops and it serves. It never resumes, because an
 // action no sync line names would stay executable on its own and admit a stop, a resume and then a
 // reply; the operation's timers settle every state a stop leaves.
-
-object HandlerWorker
-    extends Derived(temporal.actors.worker.Polling.restrict(worker.stop, worker.serve))
-
-// ### The operation and the handler's worker
-//
-// The Protocol machine's worker stop is a stutter row: the operation cannot see its handler's
-// worker, so the schedule-to-start Scenario orders the stop before the request explicitly.
-// Composed with the worker of the handler's task queue, the stop is the worker's own phase change
-// and every reply is the worker serving, so a reply has a row only while the worker polls. No
-// functional Query reads the composition; it is what the cross-entity claim is verified over.
-
-object NexusCaller
-    extends Composition[NexusCallerState](
-      _.operation -> NexusProtocol,
-      _.worker -> HandlerWorker
-    ),
-      Phased[NexusCallerState, Phase](_.operation.phase):
-
-  object syncs extends Syncs:
-    sync(_.operation -> worker.stop, _.worker -> worker.stop)
-    sync(_.operation -> handler.reply, _.worker -> worker.serve)
-  // format: off
-  object properties:
-    // The cross-entity claim: every reply, of any class, leaves the handler's worker polling, so no
-    // handler replies while its worker is stopped.
-    val repliedByPollingWorker = property
-      .whenAction(synced(_.operation -> handler.reply))
-      .holds(_.state.worker.phase == WorkerPhase.polling) // scalafix:ok DisableSyntax.==; typed equality
-  // format: on
-  object queries:
-    // The cross-entity claim, verified over the path on which a retryable reply backs the operation
-    // off; the handler's worker then stops, so the retried attempt is never answered and the
-    // schedule-to-start deadline fires. The start is stated: a default would take the worker's from
-    // actors/worker/Worker.scala.
-    val repliedThenStopped = scenario
-      .starts(NexusCallerState(NexusProtocol.init, WorkerState(WorkerPhase.polling)))
-      .actions(
-        own(_.operation, caller.schedule(scheduleToStart := expires)),
-        synced(_.operation -> handler.reply(Reply.handlerError(true))),
-        synced(_.operation -> worker.stop),
-        own(_.operation, deadline.scheduleToStart)
-      )
-    val stoppedWorkerRepliesNothing =
-      query verify properties.repliedByPollingWorker in repliedThenStopped limits four

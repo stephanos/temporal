@@ -171,15 +171,15 @@ object exports:
     protocol.ServedDispatch.properties.startsWithinOneStep,
     protocol.UnservedDispatch.queries,
     protocol.UnservedDispatch.properties.startsWithinOneStep,
-    protocol.Standalone,
-    protocol.RetryAfterTimeout,
-    protocol.HeartbeatThenCompletion,
-    protocol.RetryAfterHeartbeat,
-    protocol.ExhaustAfterHeartbeat,
-    protocol.ScheduledCompletionByID,
-    protocol.HeldFailureByID,
-    protocol.HeldCancellationByID,
-    protocol.ResetAfterHeartbeat
+    realization.StandaloneActivityRun,
+    realization.RetryAfterTimeoutRun,
+    realization.HeartbeatThenCompletionRun,
+    realization.RetryAfterHeartbeatRun,
+    realization.ExhaustAfterHeartbeatRun,
+    realization.ScheduledCompletionByIDRun,
+    realization.HeldFailureByIDRun,
+    realization.HeldCancellationByIDRun,
+    realization.ResetAfterHeartbeatRun
   )
 
   // Its history record, the admission designs, and the shared task queue's providers it composes.
@@ -204,7 +204,7 @@ object exports:
   // own, so the history record's Queries are the ones its checkers were given.
   val activityStandaloneRace = irFile("activity-standalone-race")(
     protocol.HeldDispatch.queries,
-    protocol.HeldDelivery,
+    realization.HeldDispatchRun,
     protocol.LostStartAnswer.queries,
-    protocol.LostAdmissionResponse
+    realization.LostStartAnswerRun
   )
