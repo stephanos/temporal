@@ -64,6 +64,6 @@ The local framework jar was rebuilt to eliminate a stale pre-witness API cache. 
 
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
+- Commits: bc3653ae49300c82696ababa9c78bb0ebe23b2c7
 - Tests: mise exec -- scala-cli test model/irgen --test-only '*Fixtures*' -- --tests '*witness*', mise exec -- scala-cli test model/irgen --test-only '*WitnessFixtures*' -- --tests '*exact-composed*', mise exec -- scala-cli test model/irgen --test-only '*WitnessFixtures*', make lint-model-syntax, mise exec -- scala-cli fmt --scalafmt-conf model/.scalafmt.conf --check model/framework/Claims.scala model/irgen/Claims.scala model/irgen/Syntax.scala model/irgen/Capabilities.scala model/irgen/Compositions.scala model/irgen/Order.scala model/irgen/Lifting.scala model/irgen/test/Fixtures.test.scala model/irgen/testdata/witness, git diff --check
 - PRs:
