@@ -4,11 +4,11 @@ import framework.Finite.given
 
 import temporal.features.activity.{deadline, timers, Timeout}
 import temporal.features.activity.standalone.{
+  activityWorker,
   attemptCount,
   client,
   heartbeatDetails,
   system,
-  worker,
   MaxAttempts
 }
 import temporal.features.activity.standalone.system.{
@@ -40,7 +40,7 @@ class ActivityPrecisionRegression extends munit.FunSuite:
       .asInstanceOf[
         (system.State, Step[system.State, Outcome, system.Fact]) => Boolean
       ] // scalafix:ok DisableSyntax.asInstanceOf
-    val started = take(take(ActivitySystem.init, client.start()).state, worker.poll()).state
+    val started = take(take(ActivitySystem.init, client.start()).state, activityWorker.poll()).state
     val requested = take(started, client.requestCancel()).state
     assertEquals(requested.phase, system.Phase.cancelRequested)
     val pause = take(requested, client.pause())
@@ -51,9 +51,9 @@ class ActivityPrecisionRegression extends munit.FunSuite:
       !holds(requested, pause.copy(state = requested.copy(phase = system.Phase.pauseRequested)))
     )
     val closures = List(
-      worker.respondCompleted(),
-      worker.respondFailed(temporal.features.activity.Failure.fatal),
-      worker.respondCanceled(),
+      activityWorker.respondCompleted(),
+      activityWorker.respondFailed(temporal.features.activity.Failure.fatal),
+      activityWorker.respondCanceled(),
       client.terminate(),
       deadline.startToClose()
     )

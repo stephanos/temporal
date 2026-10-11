@@ -22,7 +22,7 @@ import temporal.features.activity.standalone.system.{
   TimeoutsExecution
 }
 import temporal.actors.worker.worker as process
-import temporal.Bounds.{four, three}
+import temporal.Bounds.{eight, four, six, three}
 import temporal.realize.{inconclusive, satisfied, DerivesFrom, Realizes}
 import framework.outcomes.Outcome
 import framework.realize.{Reason, RunExpectation}
@@ -113,18 +113,28 @@ class ActivitySubjectRegression extends munit.FunSuite:
         system.Fact.statusTimedOut(kind)
       ) // scalafix:ok DisableSyntax.==
     val claims = List(
-      Claim(Completion, Completion.properties.completes, Some(worker.respondCompleted), completes),
-      Claim(Pausing, Pausing.properties.completes, Some(worker.respondCompleted), completes),
+      Claim(
+        Completion,
+        Completion.properties.completes,
+        Some(activityWorker.respondCompleted),
+        completes
+      ),
+      Claim(
+        Pausing,
+        Pausing.properties.completes,
+        Some(activityWorker.respondCompleted),
+        completes
+      ),
       Claim(
         DispatchEligibility,
         DispatchEligibility.properties.completes,
-        Some(worker.respondCompleted),
+        Some(activityWorker.respondCompleted),
         completes
       ),
       Claim(
         RetryFailures,
         RetryFailures.properties.nonRetryableFails,
-        Some(worker.respondFailed(Failure.fatal)),
+        Some(activityWorker.respondFailed(Failure.fatal)),
         (_, after) =>
           after.state.phase == system.Phase.failed && after.records(
             system.Fact.statusFailed
@@ -133,7 +143,7 @@ class ActivitySubjectRegression extends munit.FunSuite:
       Claim(
         RetryFailures,
         RetryFailures.properties.retryCompletes,
-        Some(worker.respondCompleted),
+        Some(activityWorker.respondCompleted),
         (_, after) =>
           after.state == completedOnRetry && after.records(
             system.Fact.statusCompleted
@@ -142,7 +152,7 @@ class ActivitySubjectRegression extends munit.FunSuite:
       Claim(
         RetryFailures,
         RetryFailures.properties.retryExhausts,
-        Some(worker.respondFailed(Failure.retryable)),
+        Some(activityWorker.respondFailed(Failure.retryable)),
         (_, after) =>
           (after.state == completedOnRetry.copy( // scalafix:ok DisableSyntax.==
             phase = system.Phase.scheduled,
@@ -168,7 +178,7 @@ class ActivitySubjectRegression extends munit.FunSuite:
       Claim(
         Cancellation,
         Cancellation.properties.canceledByWorker,
-        Some(worker.respondCanceled),
+        Some(activityWorker.respondCanceled),
         (_, after) =>
           after.state.phase == system.Phase.canceled && after.records(
             system.Fact.statusCanceled
@@ -256,9 +266,9 @@ class ActivitySubjectRegression extends munit.FunSuite:
   test("focused query receipts retain exact scenarios bounds and live expectations") {
     val canceled = Vector[ClassRef](
       client.start(),
-      worker.poll,
+      activityWorker.poll,
       client.requestCancel,
-      worker.respondCanceled
+      activityWorker.respondCanceled
     )
     val bothDeadlines = client.start(
       scheduleToClose := Timeout.expires,
@@ -270,7 +280,7 @@ class ActivitySubjectRegression extends munit.FunSuite:
         Completion,
         Completion.properties.completes,
         Completion.queries.completed,
-        Vector(client.start(), worker.poll, worker.respondCompleted),
+        Vector(client.start(), activityWorker.poll, activityWorker.respondCompleted),
         three,
         16848L,
         Some(satisfied)
@@ -280,7 +290,7 @@ class ActivitySubjectRegression extends munit.FunSuite:
         RetryFailures,
         RetryFailures.properties.nonRetryableFails,
         RetryFailures.queries.nonRetryable,
-        Vector(client.start(), worker.poll, worker.respondFailed(Failure.fatal)),
+        Vector(client.start(), activityWorker.poll, activityWorker.respondFailed(Failure.fatal)),
         three,
         16848L,
         Some(satisfied)
@@ -292,11 +302,11 @@ class ActivitySubjectRegression extends munit.FunSuite:
         RetryFailures.queries.retriedThenCompleted,
         Vector(
           client.start(),
-          worker.poll,
-          worker.respondFailed(Failure.retryable),
+          activityWorker.poll,
+          activityWorker.respondFailed(Failure.retryable),
           timers.backoff,
-          worker.poll,
-          worker.respondCompleted
+          activityWorker.poll,
+          activityWorker.respondCompleted
         ),
         six,
         33696L,
@@ -309,11 +319,11 @@ class ActivitySubjectRegression extends munit.FunSuite:
         RetryFailures.queries.exhausted,
         Vector(
           client.start(maxAttempts := MaxAttempts.two),
-          worker.poll,
-          worker.respondFailed(Failure.retryable),
+          activityWorker.poll,
+          activityWorker.respondFailed(Failure.retryable),
           timers.backoff,
-          worker.poll,
-          worker.respondFailed(Failure.retryable)
+          activityWorker.poll,
+          activityWorker.respondFailed(Failure.retryable)
         ),
         six,
         33696L
@@ -341,7 +351,13 @@ class ActivitySubjectRegression extends munit.FunSuite:
         Pausing,
         Pausing.properties.completes,
         Pausing.queries.pausedThenCompleted,
-        Vector(client.start(), client.pause, client.unpause, worker.poll, worker.respondCompleted),
+        Vector(
+          client.start(),
+          client.pause,
+          client.unpause,
+          activityWorker.poll,
+          activityWorker.respondCompleted
+        ),
         six,
         28080L,
         Some(satisfied)
@@ -354,8 +370,8 @@ class ActivitySubjectRegression extends munit.FunSuite:
         Vector(
           client.start(startDelay := Timeout.expires),
           timers.startDelay,
-          worker.poll,
-          worker.respondCompleted
+          activityWorker.poll,
+          activityWorker.respondCompleted
         ),
         four,
         22464L,
@@ -402,7 +418,7 @@ class ActivitySubjectRegression extends munit.FunSuite:
         Timeouts.queries.startToCloseExpires,
         Vector(
           client.start(startToClose := Timeout.expires, maxAttempts := MaxAttempts.one),
-          worker.poll,
+          activityWorker.poll,
           deadline.startToClose
         ),
         three,

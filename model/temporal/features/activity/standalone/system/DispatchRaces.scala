@@ -61,23 +61,21 @@ object HeldDispatch
     val terminalFinality = ActivityRecord.monitors.terminalFinality
 
   object rules extends Rules:
-    import AdmissionPhase.*
-
     on(history.dispatch) {
-      when(scheduled) ~> ActivityRecord.effects.sendDispatch
+      when(AdmissionPhase.scheduled) ~> ActivityRecord.effects.sendDispatch
     }
     on(client.pause) {
-      when(scheduled) ~> ActivityRecord.effects.pause
-      when(started) ~> ActivityRecord.effects.pauseHeld
+      when(AdmissionPhase.scheduled) ~> ActivityRecord.effects.pause
+      when(AdmissionPhase.started) ~> ActivityRecord.effects.pauseHeld
     }
-    on(worker.poll) {
-      when(scheduled) ~> effects.admitCommitted
+    on(activityWorker.poll) {
+      when(AdmissionPhase.scheduled) ~> effects.admitCommitted
       when(
-        paused,
-        pausedWhileHeld,
-        started,
-        completed,
-        timedOut
+        AdmissionPhase.paused,
+        AdmissionPhase.pausedWhileHeld,
+        AdmissionPhase.started,
+        AdmissionPhase.completed,
+        AdmissionPhase.timedOut
       ) ~> ActivityRecord.effects.rejectDelivery
     }
     on(history.answerMatching) { // format: off
@@ -88,14 +86,14 @@ object HeldDispatch
   object properties:
     // Admission met the stale message and rejected it.
     val staleDeliveryRejected =
-      property when worker.poll holds (_.records(AdmissionFact.admissionRejected))
+      property when activityWorker.poll holds (_.records(AdmissionFact.admissionRejected))
 
   // The held race, as a server's Run is checked.
   object queries:
     val heldStaleDelivery = scenario.actions(
       history.dispatch,
       client.pause,
-      worker.poll
+      activityWorker.poll
     )
     val heldStaleDeliveryQuery =
       (query("heldDispatch.staleDelivery") find properties.staleDeliveryRejected in

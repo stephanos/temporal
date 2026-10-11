@@ -13,7 +13,7 @@
 //
 //   - ../Activity.scala: the kind's types, the worker's actions, its timers and deadlines;
 //   - this file: the form's types; the signature (the activity and its inputs; the client and its
-//     actions, the worker's actions bound to the activity; and the bounds); and last exports, its
+//     actions, the worker's actions bound to the activity); and last exports, its
 //     IR files;
 //   - product/Product.scala: Product Phase, State and Fact; ActivityProduct, the product machine,
 //     what a client reads;
@@ -122,7 +122,10 @@ object client extends Client:
   val terminate = action(this).on(activity).results("Delivery")
   val reset = action(this).input(pausing).on(activity).results("Delivery")
 
-object service extends Client:
+// A client that settles an activity asynchronously by its activity id, without the task token and
+// independent of the worker process: the Java SDK's ActivityCompletionClient, the Go SDK's
+// client.CompleteActivityByID.
+object completionClient extends Client:
   val respondCompletedByID = action(this).on(activity)
   val respondFailedByID = action(this)
     .input(failure)
@@ -131,24 +134,19 @@ object service extends Client:
     .on(activity)
   val respondCanceledByID = action(this).on(activity)
 
-// The kind's worker actions (../Activity.scala) bound to this activity. The timers and deadlines
-// are the kind's.
-object worker:
-  val poll = temporal.features.activity.worker.poll.on(activity)
-  val heartbeat = temporal.features.activity.worker.heartbeat.on(activity)
-  val respondCompleted = temporal.features.activity.worker.respondCompleted.on(activity)
-  val respondFailed = temporal.features.activity.worker.respondFailed.on(activity)
-  val respondCanceled = temporal.features.activity.worker.respondCanceled.on(activity)
+// The activity kind's worker actions (../Activity.scala, `worker`) bound to this form's `activity`.
+// The timers and deadlines are the kind's.
+object activityWorker:
+  val poll = worker.poll.on(activity)
+  val heartbeat = worker.heartbeat.on(activity)
+  val respondCompleted = worker.respondCompleted.on(activity)
+  val respondFailed = worker.respondFailed.on(activity)
+  val respondCanceled = worker.respondCanceled.on(activity)
 
 // A retry shows the client only the attempt count DescribeActivityExecution reports. The statuses
 // observe one status field; whether a catalog tells them apart is left to the realization.
-val attemptCount = Observation(on = activity, read = "attempt")
-val heartbeatDetails = Observation(on = activity, read = "heartbeatDetails")
-
-// The bounds of the levels' Queries and the history record's, beside three and four (Bounds).
-val five = Limits(steps = 5, actions = 5, search = 65536)
-val six = Limits(steps = 6, actions = 6, search = 262144)
-val eight = Limits(steps = 8, actions = 8, search = 262144)
+val attemptCount = Observation(on = activity)
+val heartbeatDetails = Observation(on = activity)
 
 // ### The checked-in IR files of the standalone activity Models (framework.irFile).
 

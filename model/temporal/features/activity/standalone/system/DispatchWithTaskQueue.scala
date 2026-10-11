@@ -21,7 +21,7 @@ import framework.*
 import framework.Finite.given
 import framework.outcomes.{Outcome, Rejection}
 import temporal.capabilities.*
-import Bounds.{seven, three, twelve}
+import Bounds.{eight, five, seven, three, twelve}
 import foundations.taskqueue.{fault, queue, Outstanding, QueueDetail, QueueView}
 import foundations.taskqueue.product.TaskQueueProduct
 import foundations.taskqueue.system.{
@@ -64,7 +64,7 @@ abstract class OverQueueCapabilities(c: Composition[OverQueue])(using
     unpause = c.own(_.activity, client.unpause)
   )
   val pollable: Capability = Pollable(
-    dispatch = c.synced(_.activity -> worker.poll)
+    dispatch = c.synced(_.activity -> activityWorker.poll)
   ) // format: off
   except(Closable.closedIsRejectedUniformly[OverQueue, AdmissionPhase, String], because = dispatchWaivers.queueStepsOn) // format: on
 
@@ -80,7 +80,7 @@ abstract class OverMatchingCapabilities(c: Composition[OverMatching])(using
     unpause = c.own(_.activity, client.unpause)
   )
   val pollable: Capability = Pollable(
-    dispatch = c.synced(_.activity -> worker.poll)
+    dispatch = c.synced(_.activity -> activityWorker.poll)
   ) // format: off
   except(Closable.closedIsRejectedUniformly[OverMatching, AdmissionPhase, String], because = dispatchWaivers.queueStepsOn) // format: on
 
@@ -102,7 +102,7 @@ object RecordOverQueue
 
   object syncs extends Syncs:
     sync(_.activity -> history.dispatch, _.queue -> queue.enqueue)
-    sync("admit", _.activity -> worker.poll, _.queue -> queue.deliver)
+    sync("admit", _.activity -> activityWorker.poll, _.queue -> queue.deliver)
     sync("settle", _.activity -> history.answerMatching, _.queue -> queue.acknowledge)
 
   object properties:
@@ -131,17 +131,17 @@ object RecordOverQueue
       val staleDeliveryAfterPause = c.scenario.actions(
         c.synced(_.activity -> history.dispatch),
         c.own(_.activity, client.pause),
-        c.synced(_.activity -> worker.poll)
+        c.synced(_.activity -> activityWorker.poll)
       )
       val admittedBeforePause = c.scenario.actions(
         c.synced(_.activity -> history.dispatch),
-        c.synced(_.activity -> worker.poll),
+        c.synced(_.activity -> activityWorker.poll),
         c.own(_.activity, client.pause)
       )
       val duplicateDelivery = c.scenario.actions(
         c.synced(_.activity -> history.dispatch),
-        c.synced(_.activity -> worker.poll),
-        c.synced(_.activity -> worker.poll)
+        c.synced(_.activity -> activityWorker.poll),
+        c.synced(_.activity -> activityWorker.poll)
       )
       val any = c.scenario.free
       Vector(
@@ -181,7 +181,7 @@ object RecordOverMatching
 
   object syncs extends Syncs:
     sync(_.activity -> history.dispatch, _.queue -> queue.enqueue)
-    sync("admit", _.activity -> worker.poll, _.queue -> queue.deliver)
+    sync("admit", _.activity -> activityWorker.poll, _.queue -> queue.deliver)
     sync("settle", _.activity -> history.answerMatching, _.queue -> queue.acknowledge)
     replaces(_.queue, TaskQueueProduct)
 
@@ -207,13 +207,13 @@ object RecordOverMatching
         c.own(_.queue, queue.addActivityTask),
         c.own(_.queue, queue.persistTask),
         c.own(_.activity, client.pause),
-        c.synced(_.activity -> worker.poll)
+        c.synced(_.activity -> activityWorker.poll)
       )
       val admittedBeforePause = c.scenario.actions(
         c.synced(_.activity -> history.dispatch),
         c.own(_.queue, queue.addActivityTask),
         c.own(_.queue, queue.persistTask),
-        c.synced(_.activity -> worker.poll),
+        c.synced(_.activity -> activityWorker.poll),
         c.own(_.activity, client.pause)
       )
       // The answer to the poller is lost after the commit, so the persisted task is handed out again.
@@ -221,9 +221,9 @@ object RecordOverMatching
         c.synced(_.activity -> history.dispatch),
         c.own(_.queue, queue.addActivityTask),
         c.own(_.queue, queue.persistTask),
-        c.synced(_.activity -> worker.poll),
+        c.synced(_.activity -> activityWorker.poll),
         c.own(_.queue, fault.ackLoss),
-        c.synced(_.activity -> worker.poll)
+        c.synced(_.activity -> activityWorker.poll)
       )
       // A crash after the admission commit, before the acknowledgment: history retries the sync
       // match.
@@ -231,11 +231,11 @@ object RecordOverMatching
         c.synced(_.activity -> history.dispatch),
         c.own(_.queue, queue.addActivityTask),
         c.own(_.queue, queue.syncMatch),
-        c.synced(_.activity -> worker.poll),
+        c.synced(_.activity -> activityWorker.poll),
         c.own(_.queue, fault.crash),
         c.own(_.queue, queue.addActivityTask),
         c.own(_.queue, queue.syncMatch),
-        c.synced(_.activity -> worker.poll)
+        c.synced(_.activity -> activityWorker.poll)
       )
       val any = c.scenario.free
       Vector(

@@ -19,16 +19,16 @@ object Cancellation extends Derived(ActivitySystem.rebind()):
       } // format: on
 
     val canceledByWorker =
-      property when worker.respondCanceled holds { s => // format: off
+      property when activityWorker.respondCanceled holds { s => // format: off
         s.state.phase == Phase.canceled && s.records(Fact.statusCanceled) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
       } // format: on
 
   object queries:
     val cancelRequestedThenCanceled = scenario.actions(
       client.start(),
-      worker.poll,
+      activityWorker.poll,
       client.requestCancel,
-      worker.respondCanceled
+      activityWorker.respondCanceled
     )
 
     val cancel =

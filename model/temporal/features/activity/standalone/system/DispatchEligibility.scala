@@ -7,7 +7,7 @@ package system
 import framework.*
 import framework.Finite.given
 import temporal.realize.satisfied
-import Bounds.four
+import Bounds.{eight, four}
 import Timeout.expires
 
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
@@ -28,7 +28,7 @@ object DispatchEligibility extends Derived(ActivitySystem.rebind()):
     }
 
     val completes =
-      property when worker.respondCompleted holds { s => // format: off
+      property when activityWorker.respondCompleted holds { s => // format: off
         s.state.phase == Phase.completed && s.records(Fact.statusCompleted) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
       } // format: on
 
@@ -38,8 +38,8 @@ object DispatchEligibility extends Derived(ActivitySystem.rebind()):
     val delayedThenCompleted = scenario.actions(
       client.start(startDelay := expires),
       timers.startDelay,
-      worker.poll,
-      worker.respondCompleted
+      activityWorker.poll,
+      activityWorker.respondCompleted
     )
 
     val delayedAttemptsAreNotDispatched =

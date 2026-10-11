@@ -38,9 +38,10 @@ make umpire-check-lint
 
 
 ## Done summary
-TBD
+Batch 1d (Scala only): `object service` is `object completionClient`, documented as the client that settles an activity asynchronously by activity id without a task token, independent of the worker process (Java ActivityCompletionClient, Go CompleteActivityByID). Every rule, derived model, realization, test and comment that named the actor moved; `effects.serviceRetry` (the server's retry) keeps its name. Declared IR change for 5b: the actor name and the qualified action ids `...standalone.service.*` become `...standalone.completionClient.*`; the step tables rename `service.respond*ByID` to `completionClient.respond*ByID` (activity.map). Outside the activity: model/testdata/binding-order.tsv updated.
 
 ## Evidence
-- Commits:
-- Tests:
+- Commits: ebc9a2a698, ea62e94b16 (branch w-1d-activity)
+- Tests: activity test classes (framework.Activity*, StandaloneActivityPins, RoleRefinements, CapabilityRetryDeadlineFeatures) 66 passed, 0 failed (.flow/tmp/1d-activity/test-step1.log); full model suite: only MachineTablePins' stale-IR subject count fails (IR regenerates in 5b); ExportedMachineLawsTest passes after the binding-order pin update.
+- Equivalence: `make umpire-check-equivalence BASE=.flow/tmp/fn160/baseline-ae3f36ee51 MAP=model/testdata/equivalence/batch-1d/activity.map STEPS_ONLY=1` equivalent (.flow/tmp/1d-activity/equiv-step1.log, equiv-step2.log).
 - PRs:

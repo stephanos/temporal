@@ -15,15 +15,15 @@ object Completion extends Derived(ActivitySystem.rebind()):
 
   object properties:
     val completes =
-      property when worker.respondCompleted holds { s => // format: off
+      property when activityWorker.respondCompleted holds { s => // format: off
         s.state.phase == Phase.completed && s.records(Fact.statusCompleted) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
       } // format: on
 
   object queries:
     val completed = scenario.actions(
       client.start(),
-      worker.poll,
-      worker.respondCompleted
+      activityWorker.poll,
+      activityWorker.respondCompleted
     )
 
     val completion =

@@ -4,12 +4,12 @@ import framework.Finite.given
 
 import temporal.features.activity.{deadline, Failure, Timeout, TimeoutType}
 import temporal.features.activity.standalone.{
+  activityWorker,
   client,
+  completionClient,
   pausing,
   product,
-  service,
   system,
-  worker,
   MaxAttempts,
   ResetPause
 }
@@ -122,10 +122,10 @@ class ActivityResetRegression extends munit.FunSuite:
 
   test("a pending reset is applied, outranked or kept by every settlement and control") {
     val failures = List(
-      worker.respondFailed(Failure.fatal),
-      worker.respondFailed(Failure.retryable),
-      service.respondFailedByID(Failure.fatal),
-      service.respondFailedByID(Failure.retryable)
+      activityWorker.respondFailed(Failure.fatal),
+      activityWorker.respondFailed(Failure.retryable),
+      completionClient.respondFailedByID(Failure.fatal),
+      completionClient.respondFailedByID(Failure.retryable)
     )
     for before <- states if pending.contains(before.phase) do
       for c <- failures do
@@ -158,7 +158,7 @@ class ActivityResetRegression extends munit.FunSuite:
         assertEquals(step.state, before.copy(phase = system.Phase.timedOut))
         assertEquals(step.facts, List(system.Fact.statusTimedOut(TimeoutType.scheduleToClose)))
       assertEquals(
-        take(before, worker.respondCompleted()).map(_.state),
+        take(before, activityWorker.respondCompleted()).map(_.state),
         List(before.copy(phase = system.Phase.completed))
       )
       assertEquals(
@@ -174,21 +174,22 @@ class ActivityResetRegression extends munit.FunSuite:
           take(before, c),
           List(Step(Outcome.rejected(Rejection.failedPrecondition), before, Nil))
         )
-      for c <- List[Class](worker.respondCanceled(), service.respondCanceledByID()) do
+      for c <- List[Class](activityWorker.respondCanceled(), completionClient.respondCanceledByID())
+      do
         assertEquals(
           take(before, c),
           List(Step(Outcome.rejected(Rejection.invalidArgument), before, Nil))
         )
-      assertEquals(take(before, worker.heartbeat()).map(_.state), List(before))
+      assertEquals(take(before, activityWorker.heartbeat()).map(_.state), List(before))
   }
 
   test("every reset row and every settlement of a pending reset has a Product carrier") {
     val classes = resets ++ List(
-      worker.respondFailed(Failure.fatal),
-      worker.respondFailed(Failure.retryable),
-      service.respondFailedByID(Failure.fatal),
-      service.respondFailedByID(Failure.retryable),
-      worker.respondCompleted(),
+      activityWorker.respondFailed(Failure.fatal),
+      activityWorker.respondFailed(Failure.retryable),
+      completionClient.respondFailedByID(Failure.fatal),
+      completionClient.respondFailedByID(Failure.retryable),
+      activityWorker.respondCompleted(),
       client.requestCancel(),
       deadline.heartbeat()
     )
@@ -337,11 +338,16 @@ class ActivityResetRegression extends munit.FunSuite:
     assertEquals(query.property, RetryFailures.properties.nonRetryableFails.decl)
     assertEquals(
       query.scenario.actions,
-      Vector[ClassRef](client.start(), worker.poll, worker.respondFailed(Failure.fatal))
+      Vector[ClassRef](
+        client.start(),
+        activityWorker.poll,
+        activityWorker.respondFailed(Failure.fatal)
+      )
     )
     assertEquals(query.expectedRun, Some(temporal.realize.satisfied))
-    val held = take(take(ActivitySystem.init, client.start()).head.state, worker.poll()).head.state
-    val failed = take(held, worker.respondFailed(Failure.fatal)).head
+    val held =
+      take(take(ActivitySystem.init, client.start()).head.state, activityWorker.poll()).head.state
+    val failed = take(held, activityWorker.respondFailed(Failure.fatal)).head
     assert(holds(RetryFailures.properties.nonRetryableFails, held, failed))
   }
 

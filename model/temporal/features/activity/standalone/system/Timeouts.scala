@@ -37,7 +37,7 @@ object Timeouts extends Derived(ActivitySystem.rebind()):
     )
     val startToCloseExpires = scenario.actions(
       client.start(startToClose := expires, maxAttempts := MaxAttempts.one),
-      worker.poll,
+      activityWorker.poll,
       deadline.startToClose
     )
 

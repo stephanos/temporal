@@ -8,6 +8,7 @@ import framework.*
 import framework.Finite.given
 import actors.worker.{worker as process, Phase as WorkerPhase, State as WorkerState}
 import Timeout.expires
+import Bounds.six
 
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 // The System machine and its worker, as the standalone activity composition holds them.
@@ -29,12 +30,12 @@ object StandaloneActivity
 
   object syncs extends Syncs:
     sync(_.activity -> process.stop, _.worker -> process.stop)
-    sync(_.activity -> worker.poll, _.worker -> process.serve)
+    sync(_.activity -> activityWorker.poll, _.worker -> process.serve)
 
   object properties:
     // The cross-entity claim: no stopped worker starts an attempt.
     val startedByPollingWorker = property
-      .whenAction(synced(_.activity -> worker.poll)) // format: off
+      .whenAction(synced(_.activity -> activityWorker.poll)) // format: off
       .holds(_.state.worker.phase == WorkerPhase.polling) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
       // format: on
   object queries:
@@ -47,8 +48,8 @@ object StandaloneActivity
       .starts(StandaloneActivityState(ActivitySystem.init, WorkerState(WorkerPhase.polling)))
       .actions(
         own(_.activity, client.start(scheduleToStart := expires)),
-        synced(_.activity -> worker.poll),
-        own(_.activity, worker.respondFailed(Failure.retryable)),
+        synced(_.activity -> activityWorker.poll),
+        own(_.activity, activityWorker.respondFailed(Failure.retryable)),
         own(_.activity, timers.backoff),
         synced(_.activity -> process.stop),
         own(_.activity, deadline.scheduleToStart)

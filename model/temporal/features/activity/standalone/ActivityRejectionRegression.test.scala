@@ -3,7 +3,7 @@ package framework
 import framework.Finite.given
 
 import temporal.capabilities.Closable
-import temporal.features.activity.standalone.{client, product, system, worker}
+import temporal.features.activity.standalone.{activityWorker, client, product, system}
 import temporal.features.activity.standalone.product.ActivityProduct
 import temporal.features.activity.standalone.product.ActivityProduct.phased
 import temporal.features.activity.standalone.system.ActivitySystem
@@ -102,11 +102,12 @@ class ActivityRejectionRegression extends munit.FunSuite:
     for
       s <- summon[Finite[system.State]].values
       if s.phase == system.Phase.started || s.phase == system.Phase.pauseRequested // scalafix:ok DisableSyntax.==
-    do rejectsUnchanged(ActivitySystem, s, worker.respondCanceled, Rejection.invalidArgument)
+    do
+      rejectsUnchanged(ActivitySystem, s, activityWorker.respondCanceled, Rejection.invalidArgument)
     rejectsUnchanged(
       ActivityProduct,
       product.State(product.Phase.started),
-      worker.respondCanceled,
+      activityWorker.respondCanceled,
       Rejection.invalidArgument
     )
   }

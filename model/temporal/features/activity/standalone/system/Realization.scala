@@ -74,6 +74,7 @@ val activityStatus = described.table
 
 // Raw API data: Describe counts scheduling, while the independent Model counts delivery. Even
 // zero-delivery Cases can report public attempt 1. This is no correlated count-equality claim.
+// `attemptCount` stands for DescribeActivityExecution's `info.attempt`.
 private val publicAttemptCount = Observed[ActivityExecutionInfo](attemptCount.name)
 
 private val readAttemptCount = rpc(calls, METHOD_DESCRIBE_ACTIVITY_EXECUTION) {
@@ -81,6 +82,7 @@ private val readAttemptCount = rpc(calls, METHOD_DESCRIBE_ACTIVITY_EXECUTION) {
     .into(publicAttemptCount)
 }
 
+// `heartbeatDetails` stands for DescribeActivityExecution's `info.heartbeatDetails`.
 private val rawHeartbeatDetails = Observed[Payloads](heartbeatDetails.name)
 
 private val readHeartbeatDetails = rpc(calls, METHOD_DESCRIBE_ACTIVITY_EXECUTION) {
@@ -233,7 +235,12 @@ private val stopWorker = fault(taskQueue, FaultKind.workerStop)
 private val activityType = perCase("activity")
 
 private val activation =
-  WorkerActivation.Activity(activityType, caseWorker, taskQueue, starts = Vector(worker.poll))
+  WorkerActivation.Activity(
+    activityType,
+    caseWorker,
+    taskQueue,
+    starts = Vector(activityWorker.poll)
+  )
 
 // The start every class of the start action makes, under the run's id; a class adds the deadlines
 // it sets.
@@ -279,7 +286,7 @@ private val terminateActivity = rpc(calls, METHOD_TERMINATE_ACTIVITY_EXECUTION) 
 // A pause path releases it only after the unpause; a schedule-to-start timeout leaves cleanup to
 // cancel it after the deadline fires. Neither depends on SDK-worker shutdown or matching unloads.
 private val unstartedDispatch =
-  Actuator("unstarted-dispatch", ControlKind.HoldDispatched(worker.poll), taskQueue)
+  Actuator("unstarted-dispatch", ControlKind.HoldDispatched(activityWorker.poll), taskQueue)
 
 private val holdDispatchBeforePause = hold(unstartedDispatch)
 private val holdDispatchBeforeTimeout = hold(unstartedDispatch)
@@ -303,10 +310,10 @@ private val attempts = script(
   activation
 )(
   perform(
-    worker.respondCompleted -> completeAttempt,
-    worker.respondFailed(Failure.retryable) -> failAttempt,
-    worker.respondFailed(Failure.fatal) -> failActivity,
-    worker.respondCanceled -> cancelAttempt
+    activityWorker.respondCompleted -> completeAttempt,
+    activityWorker.respondFailed(Failure.retryable) -> failAttempt,
+    activityWorker.respondFailed(Failure.fatal) -> failActivity,
+    activityWorker.respondCanceled -> cancelAttempt
   )
 )
 
@@ -316,8 +323,8 @@ private val timeoutAttempts = script(
 )(
   onPath(deadline.startToClose)(withholdAttempt),
   perform(
-    worker.respondCompleted -> completeAttempt,
-    worker.respondFailed(Failure.retryable) -> failAttempt
+    activityWorker.respondCompleted -> completeAttempt,
+    activityWorker.respondFailed(Failure.retryable) -> failAttempt
   )
 )
 
@@ -332,9 +339,9 @@ private val heartbeatAttempts = script(
   "heartbeat-attempts",
   activation
 )(
-  perform(worker.heartbeat -> heartbeatAttempt),
+  perform(activityWorker.heartbeat -> heartbeatAttempt),
   onPath(deadline.heartbeat)(pendingHeartbeatAttempt),
-  perform(worker.respondCompleted -> completeAttempt)
+  perform(activityWorker.respondCompleted -> completeAttempt)
 )
 
 // The kind of the unpause's answer, which confirms that the activity was scheduled again.
@@ -403,13 +410,13 @@ object Standalone
         onPath(client.unpause)(releaseDispatchAfterPause),
         perform(client.requestCancel -> requestCancelActivity),
         perform(client.terminate -> terminateActivity),
-        onPath(worker.respondCompleted)(
+        onPath(activityWorker.respondCompleted)(
           described.await(system.Fact.statusCompleted)
         ),
-        onPath(worker.respondFailed(Failure.fatal))(
+        onPath(activityWorker.respondFailed(Failure.fatal))(
           described.await(system.Fact.statusFailed)
         ),
-        onPath(worker.respondCanceled)(described.await(system.Fact.statusCanceled)),
+        onPath(activityWorker.respondCanceled)(described.await(system.Fact.statusCanceled)),
         onPath(client.terminate)(described.await(system.Fact.statusTerminated)),
         onPath(
           deadline.scheduleToStart,
@@ -430,7 +437,7 @@ object Standalone
           attempts,
           attempt = 1,
           after = startActivity,
-          Taking(worker.poll, 1)
+          Taking(activityWorker.poll, 1)
         ),
         described(system.Fact.statusPaused),
         answered(system.Fact.statusCancelRequested, requestCancelActivity),
@@ -444,8 +451,8 @@ object Standalone
           attempts,
           attempt = 2,
           after = startActivity,
-          Taking(worker.respondFailed(Failure.retryable), 1),
-          Taking(worker.poll, 2)
+          Taking(activityWorker.respondFailed(Failure.retryable), 1),
+          Taking(activityWorker.poll, 2)
         ),
         answeredAs(
           kind = scheduledAgain,
@@ -487,8 +494,10 @@ object RetryAfterTimeout
           startToClose.sets(_.getStartToCloseTimeout),
           heartbeat.sets(_.getHeartbeatTimeout)
         ),
-        onPath(worker.respondCompleted)(described.await(system.Fact.statusCompleted)),
-        onPath(worker.respondFailed(Failure.retryable))(described.await(system.Fact.statusFailed)),
+        onPath(activityWorker.respondCompleted)(described.await(system.Fact.statusCompleted)),
+        onPath(activityWorker.respondFailed(Failure.retryable))(
+          described.await(system.Fact.statusFailed)
+        ),
         everyCase(readAttemptCount)
       )
 
@@ -502,7 +511,7 @@ object RetryAfterTimeout
           timeoutAttempts,
           attempt = 1,
           after = startActivity,
-          Taking(worker.poll, 1)
+          Taking(activityWorker.poll, 1)
         ),
         delivered(
           system.Fact.attemptCount,
@@ -510,7 +519,7 @@ object RetryAfterTimeout
           attempt = 2,
           after = startActivity,
           Taking(deadline.startToClose, 1),
-          Taking(worker.poll, 2)
+          Taking(activityWorker.poll, 2)
         ),
         described(system.Fact.statusCompleted),
         described(system.Fact.statusFailed)
@@ -535,9 +544,9 @@ object HeartbeatThenCompletion
           startToClose.sets(_.getStartToCloseTimeout),
           heartbeat.sets(_.getHeartbeatTimeout)
         ),
-        onPath(worker.heartbeat)(awaitHeartbeatReceipt),
-        onPath(worker.heartbeat)(readHeartbeatDetails),
-        onPath(worker.respondCompleted)(described.await(system.Fact.statusCompleted)),
+        onPath(activityWorker.heartbeat)(awaitHeartbeatReceipt),
+        onPath(activityWorker.heartbeat)(readHeartbeatDetails),
+        onPath(activityWorker.respondCompleted)(described.await(system.Fact.statusCompleted)),
         everyCase(readAttemptCount)
       )
 
@@ -556,7 +565,7 @@ object HeartbeatThenCompletion
           "statusStarted",
           system.Fact.statusStarted,
           extraFields = Vector(heartbeatInvokedField),
-          confirms = Vector(Taking(worker.poll, 1))
+          confirms = Vector(Taking(activityWorker.poll, 1))
         ),
         heartbeatReceipt,
         described(system.Fact.statusCompleted),
@@ -582,9 +591,9 @@ object RetryAfterHeartbeat
           startToClose.sets(_.getStartToCloseTimeout),
           heartbeat.sets(_.getHeartbeatTimeout)
         ),
-        onPath(worker.heartbeat)(awaitHeartbeatReceipt),
-        onPath(worker.heartbeat)(readHeartbeatDetails),
-        onPath(worker.respondCompleted)(awaitHeartbeatRetryCompletion),
+        onPath(activityWorker.heartbeat)(awaitHeartbeatReceipt),
+        onPath(activityWorker.heartbeat)(readHeartbeatDetails),
+        onPath(activityWorker.respondCompleted)(awaitHeartbeatRetryCompletion),
         everyCase(readHeartbeatAttemptCount)
       )
 
@@ -603,13 +612,13 @@ object RetryAfterHeartbeat
           "statusStarted",
           system.Fact.statusStarted,
           extraFields = Vector(heartbeatInvokedField),
-          confirms = Vector(Taking(worker.poll, 1))
+          confirms = Vector(Taking(activityWorker.poll, 1))
         ),
         heartbeatReceipt,
         attemptRecord(heartbeatAttempts, 2, startActivity)(
           "heartbeatTimedOut",
           system.Fact.attemptCount,
-          confirms = Vector(Taking(deadline.heartbeat, 1), Taking(worker.poll, 2))
+          confirms = Vector(Taking(deadline.heartbeat, 1), Taking(activityWorker.poll, 2))
         ),
         heartbeatCompleted,
         delivered(system.Fact.attemptCount, heartbeatAttempts, attempt = 2, after = startActivity),
@@ -638,8 +647,8 @@ object ExhaustAfterHeartbeat
           startToClose.sets(_.getStartToCloseTimeout),
           heartbeat.sets(_.getHeartbeatTimeout)
         ),
-        onPath(worker.heartbeat)(awaitHeartbeatReceipt),
-        onPath(worker.heartbeat)(readHeartbeatDetails),
+        onPath(activityWorker.heartbeat)(awaitHeartbeatReceipt),
+        onPath(activityWorker.heartbeat)(readHeartbeatDetails),
         onPath(deadline.heartbeat)(awaitHeartbeatExpiration),
         everyCase(readHeartbeatAttemptCount)
       )
@@ -659,7 +668,7 @@ object ExhaustAfterHeartbeat
           "statusStarted",
           system.Fact.statusStarted,
           extraFields = Vector(heartbeatInvokedField),
-          confirms = Vector(Taking(worker.poll, 1))
+          confirms = Vector(Taking(activityWorker.poll, 1))
         ),
         heartbeatReceipt,
         heartbeatExpired,
@@ -717,7 +726,7 @@ private val externalCleanup = command(terminateExternal, regardless = true)
 private val externalStarted = describeRead(
   "externalStarted",
   system.Fact.statusStarted,
-  Taking(worker.poll, 1)
+  Taking(activityWorker.poll, 1)
 )
 
 private val externalCancelRequested = describeRead(
@@ -729,19 +738,19 @@ private val externalCancelRequested = describeRead(
 private val externalCompleted = describeRead(
   "externalCompleted",
   system.Fact.statusCompleted,
-  Taking(service.respondCompletedByID, 1)
+  Taking(completionClient.respondCompletedByID, 1)
 )
 
 private val externalFailed = describeRead(
   "externalFailed",
   system.Fact.statusFailed,
-  Taking(service.respondFailedByID(Failure.fatal), 1)
+  Taking(completionClient.respondFailedByID(Failure.fatal), 1)
 )
 
 private val externalCanceled = describeRead(
   "externalCanceled",
   system.Fact.statusCanceled,
-  Taking(service.respondCanceledByID, 1)
+  Taking(completionClient.respondCanceledByID, 1)
 )
 
 private val running = statusIs(ACTIVITY_EXECUTION_STATUS_RUNNING)
@@ -798,12 +807,12 @@ private val cancellationPending = attemptPending(respondCanceledById)
 private val externalFailureAttempts = script(
   "external-failure-attempts",
   activation
-)(onPath(service.respondFailedByID(Failure.fatal))(failurePending))
+)(onPath(completionClient.respondFailedByID(Failure.fatal))(failurePending))
 
 private val externalCancellationAttempts = script(
   "external-cancellation-attempts",
   activation
-)(onPath(service.respondCanceledByID)(cancellationPending))
+)(onPath(completionClient.respondCanceledByID)(cancellationPending))
 
 private val scheduledExternalSettlement = ActivityExternalSettlement.Scheduled(
   carrier = startExternal,
@@ -845,7 +854,7 @@ object ScheduledCompletionByID
   object controller
       extends Controller(
         perform(client.start() -> startExternal),
-        perform(service.respondCompletedByID -> respondCompletedById),
+        perform(completionClient.respondCompletedByID -> respondCompletedById),
         everyCase(awaitExternalCompleted),
         everyCase(readExternalAttemptCount)
       )
@@ -870,7 +879,7 @@ object HeldFailureByID
         perform(client.start() -> startExternal),
         everyCase(awaitFailurePublication),
         everyCase(awaitExternalStarted),
-        perform(service.respondFailedByID(Failure.fatal) -> respondFailedById),
+        perform(completionClient.respondFailedByID(Failure.fatal) -> respondFailedById),
         everyCase(awaitExternalFailed),
         everyCase(readExternalAttemptCount)
       )
@@ -906,7 +915,7 @@ object HeldCancellationByID
         everyCase(awaitExternalStarted),
         perform(client.requestCancel -> requestExternalCancellation),
         everyCase(awaitExternalCancelRequested),
-        perform(service.respondCanceledByID -> respondCanceledById),
+        perform(completionClient.respondCanceledByID -> respondCanceledById),
         everyCase(awaitExternalCanceled),
         everyCase(readExternalAttemptCount)
       )
@@ -951,14 +960,14 @@ private val resetPublication = ActivityPublication("reset-pending")
 private val awaitResetPublication = awaitActivityPublication(resetPublication)
 
 private val resetStarted =
-  describeRead("resetStarted", system.Fact.statusStarted, Taking(worker.poll, 1))
+  describeRead("resetStarted", system.Fact.statusStarted, Taking(activityWorker.poll, 1))
 
 private val awaitResetHeld = await(resetStarted, runCalls)(heldStarted) {}
 
 private val resetCompleted = describeRead(
   "resetCompleted",
   system.Fact.statusCompleted,
-  Taking(worker.respondCompleted, 1)
+  Taking(activityWorker.respondCompleted, 1)
 )
 
 private val awaitResetCompleted = await(resetCompleted, runCalls)(
@@ -972,7 +981,7 @@ private val resetAttempts = script(
   activation
 )(
   onPath(deadline.heartbeat)(pendingResetAttempt),
-  perform(worker.respondCompleted -> completeAttempt)
+  perform(activityWorker.respondCompleted -> completeAttempt)
 )
 
 private val deferredResetSettlement = ActivityResetSettlement(
@@ -1028,7 +1037,7 @@ object ResetAfterHeartbeat
         )(
           "attemptCount",
           system.Fact.attemptCount,
-          confirms = Vector(Taking(deadline.heartbeat, 1), Taking(worker.poll, 2))
+          confirms = Vector(Taking(deadline.heartbeat, 1), Taking(activityWorker.poll, 2))
         ),
         attemptRecord(
           resetAttempts,
@@ -1120,7 +1129,7 @@ object HeldDelivery
         perform(history.dispatch -> holdDispatch),
         perform(client.pause -> pauseActivity),
         onPath(client.pause)(pauseDescribed.await(AdmissionFact.statusPaused)),
-        perform(worker.poll -> releaseDispatch),
+        perform(activityWorker.poll -> releaseDispatch),
         everyCase(readAttemptCount)
       )
 
