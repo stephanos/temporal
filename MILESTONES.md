@@ -43,6 +43,13 @@ MAP=model/testdata/equivalence/batch-1d.map STEPS_ONLY=1`). Checked-in IR and Ca
 equivalence also runs once before fn-123, so a fault or activity change cannot hide inside the
 meaning-preserving migrations before it. Rows marked "Go part deferred" finish their Go half later.
 
+If Make prerequisites require owner-held linked-API generation, record that failure and run the
+same Scala `--check-equivalence ... --steps-only` gate directly using independently validated jars
+and the immutable baseline's absolute main-checkout path. This does not earn canonical Make credit.
+Fn-140.4's pre-edit historical comparison has 34 inherited differences; its required zero-difference
+incremental pre/post proof cannot replace reconciliation at fn-140.10 and the pre-fault seal.
+Strict native admission failures remain source debt, separate from deferred Go assessments.
+
 **Decisions (owner and conductor, 2026-10-10/11):** capability kinds `Retries` → `Retryable`,
 `Deadline` → `Expirable`; every bound in `Bounds`, the close policy's wider budgets as
 `fourWide`/`fiveWide`/`twelveWide`, nexus `control` merged into `eight`; `disabled(...)` targets are
