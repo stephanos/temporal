@@ -16,8 +16,18 @@ class PropertyGroupsFixtures extends munit.FunSuite:
     Files.createTempDirectory(build.resolve("history"), "property-groups.")
   private val mapper = ObjectMapper()
   private lazy val commonJar = packaged("common")
+  private val expectedProperties = List(
+    "joined.memberClosed",
+    "subject.aliased",
+    "subject.bundledClosed",
+    "subject.bundledOpen",
+    "subject.closed",
+    "subject.stable"
+  )
+  private val expectedProgress =
+    List("subject.eventuallyClosed", "subject.factoryProgress")
 
-  private def packaged(variant: String): Path =
+  private def packaged(variant: String, accepted: Boolean = true): Path =
     val sources =
       Files.createDirectories(scratch.resolve(variant).resolve("sources"))
     for part <- Seq(variant) do
@@ -49,7 +59,7 @@ class PropertyGroupsFixtures extends munit.FunSuite:
         "--scala",
         "3.9.0"
       )
-    tools
+    val result = tools
       .scalaCli(
         Seq(
           "--power",
@@ -62,8 +72,195 @@ class PropertyGroupsFixtures extends munit.FunSuite:
           jar.toString
         ) ++ extra
       )
-      .orFail(): Unit
+    Files.writeString(scratch.resolve(variant).resolve("compile.log"), result.output): Unit
+    Files.writeString(scratch.resolve(variant).resolve("compile.rc"), result.exit.toString): Unit
+    if accepted then result.orFail(): Unit
+    else assertEquals(result.exit, 1, result.output)
     jar
+
+  private def placementLift(variant: String, file: String): umpire.check.Ran =
+    Files.writeString(scratch.resolve("runtime-classpath"), sys.props("java.class.path")): Unit
+    Files.writeString(
+      scratch.resolve("tested-class-root"),
+      classOf[PropertyGroupsFixtures].getProtectionDomain.getCodeSource.getLocation.toString
+    ): Unit
+    val jar = packaged(variant)
+    val out = scratch.resolve(variant).resolve("ir")
+    val result = InProcess.lift(
+      tools.directory,
+      Seq(
+        "--ir",
+        s"$jar=$stored$variant/,$commonJar=${stored}common/,${build.resolve("model-scala.jar")}=model/",
+        build.resolve("model-scala.classpath").toString,
+        out.toString,
+        file
+      )
+    )
+    Files.writeString(scratch.resolve(variant).resolve("lift.log"), result.output): Unit
+    Files.writeString(scratch.resolve(variant).resolve("lift.rc"), result.exit.toString): Unit
+    result
+
+  test("placement admits valid empty omitted and one-sided groups with an independent inventory") {
+    val result = placementLift("placement", "placement")
+    assertEquals(result.exit, 0, result.output)
+    val model = mapper.readTree(Files.readString(scratch.resolve("placement/ir/placement.json")))
+    assertEquals(
+      inventory(model, "properties"),
+      List(
+        "owner.aliased",
+        "owner.bundleNever",
+        "owner.bundleStays",
+        "owner.direct",
+        "owner.never",
+        "owner.stays",
+        "owner.unless",
+        "safetyOnly.only"
+      )
+    )
+    assertEquals(
+      inventory(model, "progress"),
+      List("livenessOnly.only", "owner.directProgress", "owner.factoryProgress")
+    )
+    assertEquals(model.path("monitors").size(), 1)
+    val owner =
+      model.path("machines").elements().asScala.find(_.path("name").asText().equals("owner")).get
+    assertEquals(owner.path("monitors"), mapper.readTree("""["propertygroups.seal"]"""))
+    assertEquals(model.path("machines").size(), 5)
+    for p <- model.path("progress").elements().asScala do
+      val name = p.path("name").asText()
+      assertEquals(
+        p.path("within").asInt(),
+        Map("directProgress" -> 1, "factoryProgress" -> 2, "only" -> 3)(name)
+      )
+      assertEquals(p.path("assumptions"), mapper.readTree("""["propertygroups.fair"]"""))
+  }
+
+  test(
+    "placement refuses every crossed direct alias factory bundle field subtype and monitor binding"
+  ) {
+    val result = placementLift("crossed", "crossed")
+    assertEquals(result.exit, 1, result.output)
+    val path = stored + "crossed/foundations/crossed/Crossed.scala"
+    val expected = List(
+      (14, "directProgress", "a progress claim", "liveness"),
+      (16, "aliasProgress", "a progress claim", "liveness"),
+      (17, "factoryProgress", "a progress claim", "liveness"),
+      (18, "mixedBundle.progress", "a progress claim", "liveness"),
+      (19, "reversedBundle.progress", "a progress claim", "liveness"),
+      (20, "bundleAlias.progress", "a progress claim", "liveness"),
+      (21, "selectedProgress", "a progress claim", "liveness"),
+      (22, "scenarioBundle.scenario", "a Scenario", "queries"),
+      (24, "directProperty", "a Property", "safety"),
+      (25, "aliasProperty", "a Property", "safety"),
+      (26, "factoryProperty", "a Property", "safety"),
+      (27, "neverProperty", "a Property", "safety"),
+      (28, "neverAlias", "a Property", "safety"),
+      (29, "staysProperty", "a Property", "safety"),
+      (30, "staysAlias", "a Property", "safety"),
+      (31, "unlessProperty", "a Property", "safety"),
+      (34, "subtypeBundle.never", "a Property", "safety"),
+      (34, "subtypeBundle.stays", "a Property", "safety"),
+      (35, "subtypeAlias.never", "a Property", "safety"),
+      (35, "subtypeAlias.stays", "a Property", "safety"),
+      (36, "selectedNever", "a Property", "safety"),
+      (37, "mixedBundle.safety", "a Property", "safety"),
+      (38, "reversedBundle.safety", "a Property", "safety"),
+      (39, "watched", "a safety monitor reference", "safety"),
+      (40, "monitorAlias", "a safety monitor reference", "safety"),
+      (41, "monitorFactory", "a safety monitor reference", "safety"),
+      (42, "queryBundle.query", "a Query", "queries"),
+      (43, "misplacedEffect", "a step function", "effects"),
+      (44, "misplacedStep", "a step function", "effects")
+    )
+    val actual = result.output.linesIterator.filter(_.startsWith("lift: ")).toList
+    val diagnostics = expected.map { (line, binding, kind, group) =>
+      val written = if line <= 22 then "safety" else "liveness"
+      s"lift: $path:$line: $binding is $kind, declared in Crossed.properties.$written: it belongs in the `$group` object of its machine's `properties`" match
+        case text if Set("queries", "effects")(group) =>
+          text.replace("of its machine's `properties`", "of its machine's object")
+        case text => text
+    }
+    assertEquals(actual.sorted, diagnostics.sorted, result.output)
+    assert(!Files.exists(scratch.resolve("crossed/ir/crossed.json")))
+  }
+
+  test("placement retains source-attributed zero and negative progress bound refusal") {
+    for (variant, file, owner, bound) <- List(
+        ("zero", "zero", "Zero", 0),
+        ("negativeBound", "negativebound", "Negativebound", -1)
+      )
+    do
+      val result = placementLift(variant, file)
+      assertEquals(result.exit, 1, result.output)
+      assertEquals(
+        result.output.linesIterator.filter(_.startsWith("lift: ")).toList,
+        s"lift: the roots of $file.json did not lift:" :: List.fill(3)(
+          s"lift: ${stored}$variant/foundations/$file/${
+              if owner.equals("Zero") then "Zero" else "Negativebound"
+            }.scala:12: progress invalid bounds itself within $bound steps; a bound is at least one step"
+        )
+      )
+      assert(!Files.exists(scratch.resolve(s"$variant/ir/$file.json")))
+  }
+
+  test("missing bounds and incompatible Property and Progress factory owners fail compilation") {
+    for (variant, fragments) <- List(
+        "missing" -> List("Missing.scala:11:46", "within"),
+        "incompatible" -> List(
+          "Incompatible.scala:14:27",
+          "Incompatible.scala:16:29",
+          "propertygroups.State",
+          "propertygroups.foundations.incompatible.Incompatible"
+        )
+      )
+    do
+      val _ = packaged(variant, accepted = false)
+      val output = Files.readString(scratch.resolve(variant).resolve("compile.log"))
+      for fragment <- fragments do assert(output.contains(fragment), output)
+      val errors = output.linesIterator.filter(_.startsWith("-- [E")).toList
+      val expected = if variant.equals("missing") then List("[E171]") else List("[E007]", "[E007]")
+      assertEquals(errors.map(_.takeWhile(_ != ':').stripPrefix("-- ").take(6)), expected, output)
+  }
+
+  test("resolved Property and Progress factories and aliases retain their original owner") {
+    val jar = packaged("wrongOwner")
+    val cases = List(
+      ("safety", "misplaced", 22, "a Property"),
+      ("safety", "alias", 23, "a Property"),
+      ("safety", "bundle", 24, "a Property"),
+      ("safety", "laterOwner", 25, "a Property"),
+      ("liveness", "misplaced", 27, "a progress claim"),
+      ("liveness", "alias", 28, "a progress claim"),
+      ("liveness", "laterOwner", 29, "a progress claim")
+    )
+    val results = cases.map { (group, binding, line, kind) =>
+      val out = scratch.resolve(s"wrongOwner/$group-$binding.json")
+      val result = InProcess.lift(
+        tools.directory,
+        Seq(
+          s"$jar=${stored}wrongOwner/,$commonJar=${stored}common/,${build.resolve("model-scala.jar")}=model/",
+          build.resolve("model-scala.classpath").toString,
+          out.toString,
+          s"propertygroups.foundations.wrongowner.WrongOwner$$.properties$$.$group$$.$binding"
+        )
+      )
+      Files.writeString(scratch.resolve(s"wrongOwner/$group-$binding.log"), result.output): Unit
+      (group, binding, line, kind, out, result)
+    }
+    for (group, binding, line, kind, out, result) <- results do
+      assertEquals(result.exit, 1, result.output)
+      val name = if binding.equals("bundle") then "bundle.never"
+      else if binding.equals("laterOwner") then
+        if group.equals("safety") then "laterOwner.closed" else "laterOwner.last"
+      else binding
+      assertEquals(
+        result.output.linesIterator.filter(_.startsWith("lift: ")).toList,
+        List(
+          s"lift: ${stored}wrongOwner/foundations/wrongowner/Wrongowner.scala:$line: $name is $kind of home, declared in wrongOwner.properties.$group: it belongs in home.properties.$group"
+        )
+      )
+      assert(!Files.exists(out))
+  }
 
   private lazy val flatJar = packaged("flat")
   private lazy val groupedJar = packaged("grouped")
@@ -88,16 +285,6 @@ class PropertyGroupsFixtures extends munit.FunSuite:
       .map(name => name -> mapper.readTree(Files.readString(out.resolve(s"$name.json"))))
       .toMap
 
-  private val expectedProperties = List(
-    "joined.memberClosed",
-    "subject.aliased",
-    "subject.bundledClosed",
-    "subject.bundledOpen",
-    "subject.closed",
-    "subject.stable"
-  )
-  private val expectedProgress =
-    List("subject.eventuallyClosed", "subject.factoryProgress")
   private lazy val models =
     Seq("flat", "grouped").map(v => v -> lifted(v)).toMap
   private def inventory(model: JsonNode, kind: String): List[String] =
@@ -160,7 +347,7 @@ class PropertyGroupsFixtures extends munit.FunSuite:
     ): Unit
     assertEquals(result.exit, 1, result.output)
     assert(result.output.contains("Hidden.properties.helper"), result.output)
-    assert(result.output.contains("ignored is a Property"), result.output)
+    assert(result.output.contains("ignored is a progress claim"), result.output)
     assert(
       result.output.contains(
         "unexpected is a monitor, assumption, hole or channel"

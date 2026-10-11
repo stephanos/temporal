@@ -42,8 +42,9 @@ private enum Decl:
   )
   case Bounds(limits: ir.Limits)
 
-  // A declared Query or progress claim.
+  // A declared Query.
   case Declared(name: String)
+  case Progress(ref: ir.ClaimRef)
 
   // A function-valued argument: the def of the lifted sources it names, by its full name.
   case FunctionRef(name: String)
@@ -52,7 +53,7 @@ private enum Decl:
   case Number(value: Long)
 
   // A bundle of claims a shared def declares together, by field.
-  case Bundle(fields: Map[String, Decl])
+  case Bundle(fields: List[(String, Decl)])
 
   // A capability declaration, by the machine or composition it declares the capabilities of.
   case Capable(model: String)
@@ -520,17 +521,19 @@ private[irgen] trait Claims:
         if bundle(companion.tpe.typeSymbol.companionClass) =>
       val fields =
         companion.tpe.typeSymbol.companionClass.caseFields.map(_.name)
-      Decl.Bundle(fields.zip(args.map(fold(_, env))).toMap)
+      Decl.Bundle(fields.zip(args.map(fold(_, env))))
     case Select(b, field) if bundle(b.tpe.widen.dealias.typeSymbol) =>
       fold(b, env) match
         case Decl.Bundle(fields) =>
-          fields.getOrElse(
-            field,
-            fail(
-              t,
-              s"$field reads no claim of the bundle: its claims are its fields"
+          fields
+            .find(_._1 == field)
+            .map(_._2)
+            .getOrElse(
+              fail(
+                t,
+                s"$field reads no claim of the bundle: its claims are its fields"
+              )
             )
-          )
         case other =>
           fail(
             t,
@@ -570,7 +573,7 @@ private[irgen] trait Claims:
             s"${ref.composition} fair: a progress claim's fairness selects steps of its own composition"
         )
       register(progress, (machine, n), p, t, s"progress $n of $machine")
-      Decl.Declared(n)
+      Decl.Progress(claim(machine, n))
 
     // A value declared elsewhere, folded once: a machine or composition by its name, anything else
     // by its definition.
@@ -578,7 +581,7 @@ private[irgen] trait Claims:
       val sym = defs.get(r.symbol) match
         case Some(_: ValDef) => r.symbol
         case _               => resolveSymbol(r)
-      folded.getOrElseUpdate(
+      val value = folded.getOrElseUpdate(
         sym,
         valDef(sym, r, "a declaration") match
           case _ if objectForm(sym) =>
@@ -590,6 +593,9 @@ private[irgen] trait Claims:
             Decl.Model(compositionOf(sym, r).name)
           case d => fold(d.rhs.get, Map.empty, Some(sym))
       )
+      defs.get(sym) match
+        case Some(d: ValDef) => placed(value, d)
+        case _               => value
     // A helper function of the lifted sources that declares: its body, with its arguments bound.
     case Apply(fn, _) if isFunction(fn.symbol) =>
       // A case class built by its constructor or its companion's apply: one that bundles claims is
@@ -618,6 +624,29 @@ private[irgen] trait Claims:
           )
     case other =>
       fail(other, s"not a declaration the IR carries: ${other.show}")
+
+  private def placed(value: Decl, d: ValDef): Decl =
+    val section = moduleClassOf(d.symbol.maybeOwner)
+    val grouped = propertyGroup(section)
+    val propertiesOwner = if grouped then section.maybeOwner else section
+    if propertiesSection(propertiesOwner) then
+      val expected = modelOfObject(propertiesOwner.maybeOwner, d)
+      val written = if grouped then s"properties.${section.name.stripSuffix("$")}" else "properties"
+      def check(ref: ir.ClaimRef, binding: String, kind: String, group: String): Unit =
+        if ref.machine != expected then
+          fail(
+            d,
+            s"$binding is $kind of ${ref.machine}, declared in $expected.$written: it belongs in ${ref.machine}.properties.$group"
+          )
+      def claims(value: Decl, binding: String): Unit = value match
+        case Decl.Claim(ref) if properties.contains((ref.machine, ref.name)) =>
+          check(ref, binding, "a Property", "safety")
+        case Decl.Progress(ref)  => check(ref, binding, "a progress claim", "liveness")
+        case Decl.Bundle(fields) =>
+          fields.foreach((field, claim) => claims(claim, s"$binding.$field"))
+        case _ => ()
+      claims(value, d.name)
+    value
 
   // Records the Run the Query `name` expects of a server, `expected`, as `.live` declares it.
   def expectedRun(name: String, expected: Term): Unit =

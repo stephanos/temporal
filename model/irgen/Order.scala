@@ -560,6 +560,11 @@ final private[irgen] class Order(index: Index):
           "a Property",
           "the `properties` object of its machine's object"
         )
+    case Progress
+        extends Kind(
+          "a progress claim",
+          "the `properties` object of its machine's object"
+        )
     case Scenario
         extends Kind(
           "a Scenario",
@@ -572,42 +577,59 @@ final private[irgen] class Order(index: Index):
   private val option = Symbol.requiredClass("scala.Option")
 
   private def kindOf(t: TypeRepr, seen: Set[Symbol] = Set.empty): Option[Kind] =
+    kindsOf(t, seen).headOption.map(_._2)
+
+  private def kindsOf(
+      t: TypeRepr,
+      seen: Set[Symbol] = Set.empty
+  ): List[(String, Kind)] =
     t.widen.dealias match
-      case m: MethodType => kindOf(m.resType, seen)
-      case p: PolyType   => kindOf(p.resType, seen)
+      case m: MethodType => kindsOf(m.resType, seen)
+      case p: PolyType   => kindsOf(p.resType, seen)
       case w             =>
         val sym = w.typeSymbol
+        def one(k: Kind) = List("" -> k)
         sym.fullName match
-          case "framework.Step" => Some(Kind.Step)
+          case "framework.Step" => one(Kind.Step)
           case "framework.Monitor" | "framework.Assumption" | "framework.Hole" |
               "framework.Channel" =>
-            Some(Kind.Watch)
+            one(Kind.Watch)
           case "framework.Machine" | "framework.Composition" =>
-            Some(Kind.Machine)
-          case "framework.Property" | "framework.Progress" => Some(Kind.Claim)
-          case "framework.Scenario"                        => Some(Kind.Scenario)
-          case "framework.Query" | "framework.Witness"     => Some(Kind.Query)
-          case "framework.IrFile"                          => Some(Kind.File)
-          case _ if w.derivesFrom(iterable)                =>
-            w.baseType(iterable).typeArgs.headOption.flatMap(kindOf(_, seen))
+            one(Kind.Machine)
+          case "framework.Property"                                          => one(Kind.Claim)
+          case "framework.Progress"                                          => one(Kind.Progress)
+          case "framework.Scenario"                                          => one(Kind.Scenario)
+          case "framework.Query" | "framework.Witness"                       => one(Kind.Query)
+          case "framework.IrFile"                                            => one(Kind.File)
+          case _ if w.baseClasses.exists(_.fullName == "framework.Property") =>
+            one(Kind.Claim)
+          case _ if w.baseClasses.exists(_.fullName == "framework.Progress") =>
+            one(Kind.Progress)
+          case _ if w.derivesFrom(iterable) =>
+            w.baseType(iterable).typeArgs.headOption.toList.flatMap(kindsOf(_, seen))
           case _ if w.derivesFrom(option) =>
-            w.baseType(option).typeArgs.headOption.flatMap(kindOf(_, seen))
+            w.baseType(option).typeArgs.headOption.toList.flatMap(kindsOf(_, seen))
           // A bundle of a Model's own, such as the claims a design is held to, is its fields' kind.
           case name
               if sym.flags.is(Flags.Case) && !seen(sym) &&
                 !name.startsWith("framework.") && !name.startsWith("scala.") =>
-            sym.caseFields.view
-              .flatMap(f => kindOf(w.memberType(f), seen + sym))
-              .headOption
-          case _ => None
+            sym.caseFields.flatMap(f =>
+              kindsOf(w.memberType(f), seen + sym).map { (field, kind) =>
+                (f.name + Option.when(field.nonEmpty)("." + field).getOrElse(""), kind)
+              }
+            )
+          case _ => Nil
 
-  private def kindOf(d: Definition): Option[Kind] = d match
-    case v: ValDef if v.rhs.exists(effectBlock)        => Some(Kind.Step)
-    case v: ValDef if !v.symbol.flags.is(Flags.Module) => kindOf(v.tpt.tpe)
-    case f: DefDef if !f.symbol.isClassConstructor     => kindOf(f.returnTpt.tpe)
+  private def kindOf(d: Definition): Option[Kind] =
+    kindsOf(d).headOption.map(_._2)
+
+  private def kindsOf(d: Definition): List[(String, Kind)] = d match
+    case v: ValDef if v.rhs.exists(effectBlock)        => List("" -> Kind.Step)
+    case v: ValDef if !v.symbol.flags.is(Flags.Module) => kindsOf(v.tpt.tpe)
+    case f: DefDef if !f.symbol.isClassConstructor     => kindsOf(f.returnTpt.tpe)
     // An object that is a machine or a composition, read as its own declaration.
-    case c: ClassDef if objectForm(c.symbol) => Some(Kind.Machine)
-    case _                                   => None
+    case c: ClassDef if objectForm(c.symbol) => List("" -> Kind.Machine)
+    case _                                   => Nil
 
   // `effect { ... }`, the framework's block a val declares a step function by (model/framework/Syntax.scala).
   private def effectBlock(t: Term): Boolean = t match
@@ -952,10 +974,12 @@ final private[irgen] class Order(index: Index):
     else sectionNamed(s).getOrElse(plain(s.name))
     val owner = nameOf(machineObject.symbol)
     val allowed: Set[Kind] = name match
-      case "effects"               => Set(Kind.Step)
-      case "monitors"              => Set(Kind.Watch)
-      case "rules"                 => Set.empty // statements alone, or a composition's syncs
-      case "properties"            => Set(Kind.Claim)
+      case "effects"  => Set(Kind.Step)
+      case "monitors" => Set(Kind.Watch)
+      case "rules"    => Set.empty // statements alone, or a composition's syncs
+      case "properties" if propertyGroup && plain(s.name) == "safety" => Set(Kind.Claim)
+      case "properties" if propertyGroup                              => Set(Kind.Progress)
+      case "properties"            => Set(Kind.Claim, Kind.Progress)
       case "capabilities"          => Set.empty // capabilities and waivers
       case "states" | "refinement" =>
         Set.empty // vocabulary, and the machine's refinement
@@ -971,20 +995,36 @@ final private[irgen] class Order(index: Index):
         Seq("its Scenarios", "its Queries"),
         s"$owner.queries"
       )
-    def monitorOrigin(
-        d: Definition,
-        seen: Set[Symbol] = Set.empty
-    ): Option[Symbol] = d match
-      case v: ValDef if !seen(v.symbol) && typed(v, Set("framework.Monitor")) =>
-        v.rhs match
-          case Some(r: Ref) =>
-            treeOf(r.symbol).flatMap {
-              case next: Definition => monitorOrigin(next, seen + v.symbol)
-              case _                => None
-            }
-          case Some(_) => Some(v.symbol)
-          case _       => None
-      case _ => None
+    def monitorOrigin(d: Definition): Option[Symbol] =
+      def origin(t: Term, seen: Set[Symbol], env: Map[Symbol, Term]): Option[Symbol] = t match
+        case Typed(e, _)                      => origin(e, seen, env)
+        case Inlined(_, Nil, e)               => origin(e, seen, env)
+        case Block(Nil, e)                    => origin(e, seen, env)
+        case r: Ref if env.contains(r.symbol) => origin(env(r.symbol), seen, env)
+        case r: Ref if !seen(r.symbol)        =>
+          treeOf(r.symbol).flatMap {
+            case v: ValDef if typed(v, Set("framework.Monitor")) =>
+              v.rhs.flatMap(rhs => origin(rhs, seen + r.symbol, env).orElse(Some(v.symbol)))
+            case f: DefDef => f.rhs.flatMap(origin(_, seen + r.symbol, env))
+            case _         => None
+          }
+        case Apply(fn, args) if !seen(fn.symbol) =>
+          treeOf(fn.symbol).flatMap {
+            case f: DefDef =>
+              f.rhs.flatMap(
+                origin(
+                  _,
+                  seen + fn.symbol,
+                  env ++ f.termParamss.flatMap(_.params).map(_.symbol).zip(args)
+                )
+              )
+            case _ => None
+          }
+        case _ => None
+      d match
+        case v: ValDef if typed(v, Set("framework.Monitor")) =>
+          origin(Ref(v.symbol), Set.empty, Map.empty)
+        case _ => None
     val attached = members(machineObject)
       .flatMap(objectOf)
       .filter(o => plain(o.name) == "monitors")
@@ -993,9 +1033,7 @@ final private[irgen] class Order(index: Index):
       .toSet
     def monitorReference(d: Definition): Boolean = d match
       case v: ValDef if name == "properties" =>
-        v.rhs match
-          case Some(_: Ref) => monitorOrigin(v).exists(attached)
-          case _            => false
+        monitorOrigin(v).exists(attached)
       case _ => false
     val written =
       if propertyGroup then s"properties.${plain(s.name)}" else plain(s.name)
@@ -1011,12 +1049,30 @@ final private[irgen] class Order(index: Index):
             "sections sit directly in its object, never in another section"
         )
       else noModelIn(o, s"$owner.$written.${plain(o.name)}")
-    for m <- members(s); k <- kindOf(m) do
-      if !allowed(k) && !monitorReference(m) then
+    val declarations = members(s).filterNot {
+      case f: DefDef =>
+        propertyGroup && kindsOf(f.returnTpt.tpe).forall { (_, kind) =>
+          Set(Kind.Claim, Kind.Progress, Kind.Scenario, Kind.Query)(kind)
+        }
+      case _ => false
+    }
+    for
+      m <- declarations
+      (field, k) <- kindsOf(m)
+    do
+      val binding = plain(m.name) + Option.when(field.nonEmpty)("." + field).getOrElse("")
+      val reference = monitorReference(m)
+      def groupHome(group: String) = s"the `$group` object of its machine's `properties`"
+      val crossedMonitor = reference && propertyGroup && plain(s.name) == "liveness"
+      if crossedMonitor || (!allowed(k) && !reference) then
+        val destination = if crossedMonitor then groupHome("safety")
+        else if name == "properties" && k == Kind.Claim then groupHome("safety")
+        else if name == "properties" && k == Kind.Progress then groupHome("liveness")
+        else belongs(k, true)
+        val kind = if crossedMonitor then "a safety monitor reference" else k.written
         refuse(
           m,
-          s"${plain(m.name)} is ${k.written}, declared in $owner.$written: it belongs in " +
-            belongs(k, true)
+          s"$binding is $kind, declared in $owner.$written: it belongs in $destination"
         )
       else
         // A declaration over a machine sits with that machine's object, and a Query with its
