@@ -236,6 +236,35 @@ at its Scala line. It fails on a finding until you fix the Model or accept the f
 in `model/temporal/features/<feature>/generated/ir.lint.json`, and on an acceptance that no longer matches a finding. The coverage
 summary it prints per machine is informational; no count fails the gate.
 
+### Declaring source gaps (staged)
+
+The framework now admits typed, repeatable source annotations, one per reason:
+
+```scala
+@gap(silent(client.cancel, in = Phase.running))(
+  because = "cancellation after dispatch is not decided here", until = "fn-167 R2")
+@gap(unconstrained(client.submit))(because = "the result claim is still missing")
+object JobProtocol extends Machine[State, Outcome, Fact]: ...
+```
+
+`model/framework/Gaps.scala` declares a subject constructor for each current lint kind,
+including `unreachableBinding` and optional `mustNotPinned`. Arguments are the Model's
+actions, classes, choices, finite values, observations and typed API values or poll commands;
+they do not spell finding identities as strings. `witnessOnly`, `unasked`, `unfired`,
+`unrealized` and `unread` name the annotated declaration. `because` and optional `until`
+are literal strings; the reason must be non-blank and a gap must name at least one subject.
+
+The typed convention check admits machine, composition, facet, realization, Property,
+Query and refinement declarations, refuses helper and test placements, lookalike acceptance
+annotations and foreign subject factories, and permits ordinary compiler annotations such
+as `unused`, `targetName` and `unchecked`. Internal TASTy extraction retains source order
+and emits object/module mirrors once; genuinely repeated authored annotations remain distinct.
+
+This is source admission only. Owner-relative subject resolution, duplicate finding checks,
+expiry resolution and shared IR transport are subsequent work. A source `@gap` does not yet
+accept a Go lint finding: existing `.lint.json` and capability-waiver transport remain required.
+No IR, Case, fingerprint or pin format changes in this stage.
+
 Three kinds read a machine's table for what can happen in its reachable states, each at the Scala
 line of what it names:
 

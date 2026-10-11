@@ -438,6 +438,15 @@ each cell MAY with its results, MUST NOT with its guard, or `?` for a hole.
 
 A finding fails the gate until fixed or accepted with a reason in `model/ir/<file>.lint.json`.
 
+`@gap(subjects*)(because = "...", until = "...")` is the staged source declaration of a
+known lint gap (`framework/Gaps.scala`). It is metadata, with typed subject references and
+one annotation per reason. Source admission checks placement, constructor ownership, a
+non-empty subject list and a non-blank literal reason, preserving ordinary compiler annotations.
+Extraction keeps authored order and collapses only synthetic object/module mirrors. The
+current source stage does not resolve finding owners, reject duplicate finding keys, check
+expiry or serialize gap metadata to the shared IR; Go still judges the existing acceptance file.
+The annotation does not change a machine's rules or a claim's predicate.
+
 **Design note.** The table is the one artifact everything else reads; the step tables
 (`framework/StepTables.scala`) dump it from Scala for the equivalence check, so a refactor that
 keeps the Models' meaning can be sealed by comparing tables while the IR is stale.

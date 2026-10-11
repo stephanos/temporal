@@ -4,6 +4,144 @@ import scala.collection.mutable
 import java.nio.file.{Files, Path}
 import scala.jdk.CollectionConverters.*
 
+final private[irgen] class GapAnnotations(val index: Index):
+  val quotes: index.quotes.type = index.quotes
+  import quotes.reflect.*
+  import index.given
+
+  final case class Declaration(
+      owner: Symbol,
+      at: Position,
+      subjects: List[Term],
+      because: String,
+      until: String
+  )
+
+  private val refused = mutable.ArrayBuffer.empty[(String, Int, LiftError)]
+  private lazy val subjectClass = Symbol.classSymbol("framework.Subject")
+  private lazy val constructors =
+    if subjectClass.isNoSymbol then Set.empty[String]
+    else subjectClass.children.map(_.fullName.stripSuffix("$")).toSet
+
+  private def fileOf(t: Tree): String =
+    val source = t.pos.sourceFile.path
+    index.sourceRoots.getOrElse(source, "") + source
+
+  private def refuse(t: Tree, message: String): Unit =
+    val path = fileOf(t)
+    val line = scala.util
+      .Try(index.sourceLine(path, t.pos.start))
+      .getOrElse(t.pos.startLine + 1)
+    refused += ((path, line, LiftError(s"$path:$line", s"R8.gap: $message")))
+
+  private def derives(t: TypeRepr, name: String): Boolean =
+    val base = Symbol.classSymbol(name)
+    !base.isNoSymbol && t.widen.dealias.derivesFrom(base)
+
+  private def supportedObject(s: Symbol): Boolean =
+    (s.flags.is(Flags.Trait) && derives(s.typeRef, "framework.Facet")) ||
+      (s.flags.is(Flags.Module) &&
+        List(
+          "framework.Machine",
+          "framework.Composition",
+          "framework.Refinement",
+          "temporal.realize.Realizes"
+        ).exists(derives(s.typeRef, _)))
+
+  private def supported(d: Definition): Boolean =
+    if fileOf(d).endsWith(".test.scala") then false
+    else
+      d match
+        case c: ClassDef                                  => supportedObject(c.symbol)
+        case v: ValDef if v.symbol.flags.is(Flags.Module) =>
+          supportedObject(v.symbol.moduleClass)
+        case v: ValDef =>
+          !v.symbol.flags.is(Flags.Mutable) && !v.symbol.maybeOwner.isDefDef &&
+          List("framework.Property", "framework.Query", "framework.realize.Realization")
+            .exists(derives(v.tpt.tpe, _))
+        case _ => false
+
+  private def unwrapped(t: Term): Term = t match
+    case Typed(value, _)        => unwrapped(value)
+    case NamedArg(_, value)     => unwrapped(value)
+    case Inlined(_, Nil, value) => unwrapped(value)
+    case Block(Nil, value)      => unwrapped(value)
+    case _                      => t
+
+  private def arguments(t: Term): List[List[Term]] = unwrapped(t) match
+    case Apply(fn, args)  => arguments(fn) :+ args.map(unwrapped)
+    case TypeApply(fn, _) => arguments(fn)
+    case _                => Nil
+
+  private def repeated(t: Term): List[Term] = unwrapped(t) match
+    case Repeated(values, _) => values.map(unwrapped)
+    case _                   => List(unwrapped(t))
+
+  private def string(t: Term): Option[String] = unwrapped(t) match
+    case Literal(StringConstant(value)) => Some(value)
+    case _
+        if t.symbol.name.contains("default") &&
+          t.symbol.maybeOwner.fullName.stripSuffix("$") == "framework.gap" =>
+      Some("")
+    case _ => None
+
+  private def frameworkSubject(t: Term): Boolean = unwrapped(t) match
+    case Apply(fn, _)     => frameworkSubject(fn)
+    case TypeApply(fn, _) => frameworkSubject(fn)
+    case ref: Ref         =>
+      val name = ref.symbol.fullName.stripSuffix("$")
+      constructors(name) || (Set("apply", "<init>")(ref.symbol.name) &&
+        constructors(ref.symbol.maybeOwner.fullName.stripSuffix("$")))
+    case _ => false
+
+  private def canonical(s: Symbol): Symbol =
+    if s.flags.is(Flags.Module) && !s.isClassDef then s.moduleClass else s
+
+  val declarations: List[Declaration] =
+    val found = mutable.ArrayBuffer.empty[Declaration]
+    val seen = mutable.Set.empty[(Symbol, String, Int, Int)]
+    object collect extends TreeTraverser:
+      override def traverseTree(tree: Tree)(owner: Symbol): Unit =
+        tree match
+          case definition: Definition =>
+            for
+              annotation <- definition.symbol.annotations
+              if Set("gap", "accepted", "ignored", "waived")(
+                annotation.tpe.typeSymbol.name.stripSuffix("$")
+              )
+            do
+              val at = annotation.pos
+              val key = (canonical(definition.symbol), at.sourceFile.path, at.start, at.end)
+              if seen.add(key) then
+                if annotation.tpe.typeSymbol.fullName != "framework.gap" then
+                  refuse(
+                    annotation,
+                    s"${annotation.tpe.typeSymbol.fullName} is not the framework gap annotation"
+                  )
+                else
+                  if !supported(definition) then
+                    refuse(annotation, s"unsupported placement on ${key._1.fullName}")
+                  arguments(annotation) match
+                    case List(subjects, List(because, until)) =>
+                      val values = subjects.flatMap(repeated)
+                      if values.isEmpty then refuse(annotation, "a gap names at least one subject")
+                      for value <- values if !frameworkSubject(value) do
+                        refuse(value, s"${value.show} is not a framework subject constructor")
+                      (string(because), string(until)) match
+                        case (Some(reason), Some(expiry)) =>
+                          if reason.isBlank then
+                            refuse(annotation, "a gap needs a non-blank reason")
+                          found += Declaration(key._1, at, values, reason, expiry)
+                        case _ => refuse(annotation, "because and until must be literal strings")
+                    case _ => refuse(annotation, "unsupported curried annotation arguments")
+          case _ => ()
+        super.traverseTree(tree)(owner)
+    index.trees.foreach(t => collect.traverseTree(t)(Symbol.spliceOwner))
+    found.toList.sortBy(d => (d.at.sourceFile.path, d.at.start))
+
+  def refusals(exempt: String => Boolean): Seq[(String, Int, LiftError)] =
+    refused.toSeq.filterNot((file, _, _) => exempt(file))
+
 final private[irgen] class Conventions(index: Index):
   import index.quotes.reflect.*
   import index.given
@@ -304,6 +442,7 @@ final private[irgen] class Conventions(index: Index):
         )
 
   def refusals(exempt: String => Boolean): Seq[(String, Int, LiftError)] =
+    refused ++= GapAnnotations(index).refusals(exempt)
     val checked = index.trees.filterNot(t => exempt(fileOf(t)))
     object importCheck extends TreeTraverser:
       override def traverseTree(t: Tree)(owner: Symbol): Unit =
