@@ -12,8 +12,8 @@ import framework.{
 }
 import framework.outcomes.{Outcome, Rejection}
 import temporal.features.activity.standalone.{product, system}
-import temporal.features.nexus.standalone.system.NexusSystem
-import temporal.features.nexus.workflow.system.NexusSystem as WorkflowNexusSystem
+import temporal.features.nexus.standalone.protocol.NexusProtocol
+import temporal.features.nexus.workflow.protocol.NexusProtocol as WorkflowNexusProtocol
 
 class CapabilityPropertiesTest extends munit.FunSuite:
   private def present(value: Any): Boolean = value match
@@ -83,8 +83,8 @@ class CapabilityPropertiesTest extends munit.FunSuite:
     declaring(system.ActivityRecord, system.ActivityRecord.capabilities),
     declaring(system.TrustingActivityRecord, system.TrustingActivityRecord.capabilities),
     declaring(system.ActivitySystem, system.ActivitySystem.capabilities),
-    declaring(NexusSystem, NexusSystem.capabilities),
-    declaring(WorkflowNexusSystem, WorkflowNexusSystem.capabilities)
+    declaring(NexusProtocol, NexusProtocol.capabilities),
+    declaring(WorkflowNexusProtocol, WorkflowNexusProtocol.capabilities)
   )
 
   val conditionalFixtures = Seq(
@@ -92,7 +92,11 @@ class CapabilityPropertiesTest extends munit.FunSuite:
       "retryFixture",
       classOf[RetryFixture.Snapshot].getName,
       Set("Retryable"),
-      Set("Retryable.failurePauses", "Retryable.failureCancels", "Retryable.attemptCountIsWithinPolicy")
+      Set(
+        "Retryable.failurePauses",
+        "Retryable.failureCancels",
+        "Retryable.attemptCountIsWithinPolicy"
+      )
     ),
     Declared(
       "deadlineFixture",
@@ -104,8 +108,8 @@ class CapabilityPropertiesTest extends munit.FunSuite:
 
   test("Activity and workflow Nexus both declare Retryable and Expirable") {
     for machine <- declared.filter(d =>
-        Set("activitySystem", "nexusSystem").contains(d.machine) &&
-          Set(classOf[system.State].getName, WorkflowNexusSystem.init.getClass.getName)
+        Set("activitySystem", "nexusProtocol").contains(d.machine) &&
+          Set(classOf[system.State].getName, WorkflowNexusProtocol.init.getClass.getName)
             .contains(d.state)
       )
     do assert(Set("Retryable", "Expirable").subsetOf(machine.capabilities), s"$machine")
@@ -145,7 +149,7 @@ class CapabilityPropertiesTest extends munit.FunSuite:
       .find(_.name == "Retryable.attemptCountIsWithinPolicy")
       .get // scalafix:ok DisableSyntax.==
     val finitePolicySites = declared.filterNot(
-      _.state == WorkflowNexusSystem.init.getClass.getName
+      _.state == WorkflowNexusProtocol.init.getClass.getName
     ) // scalafix:ok DisableSyntax.==
     assertEquals(
       instantiating(finitePolicy, finitePolicySites ++ conditionalFixtures),
@@ -155,7 +159,7 @@ class CapabilityPropertiesTest extends munit.FunSuite:
 
   test("workflow Nexus brings only retry and deadline branches its bindings supply") {
     val nexus = declared
-      .find(_.state == WorkflowNexusSystem.init.getClass.getName)
+      .find(_.state == WorkflowNexusProtocol.init.getClass.getName)
       .get // scalafix:ok DisableSyntax.==
     assertEquals(
       nexus.applicable,
@@ -185,7 +189,7 @@ class CapabilityPropertiesTest extends munit.FunSuite:
       system.TrustingRecordOverQueue.capabilities.closable,
       system.TrustingRecordOverMatching.capabilities.closable,
       system.RecordOverLossyMatching.capabilities.closable,
-      NexusSystem.capabilities.closable
+      NexusProtocol.capabilities.closable
     )
     assertEquals(closables.size, 9)
     for closable <- closables do

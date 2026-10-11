@@ -7,7 +7,7 @@
 //
 // Every machine here is an authored design. No server has a close policy, an operation-level
 // retention or a reset that reapplies it, and the two faulty policies are deliberate controls, not
-// claims about a known server defect. nexusProduct and nexusSystem model neither close nor reset,
+// claims about a known server defect. nexusProduct and nexusProtocol model neither close nor reset,
 // and no design refines them.
 //
 // Three identities stay apart. The logical operation is the entity, named by a request identity
@@ -18,14 +18,14 @@
 // handler's actions, the bounds, and the assumptions the designs add or their progress claims are
 // conditional on); then one object per design -- RejectAfterClose, the first, whose status sets,
 // effects, monitors and declaring functions every design reads, and the eight designs derived from
-// it, each with its own progress claim and Queries. A subject of the System level, beside
-// system/System.scala (fn-126 decisions 16 and 22); its IR file is among the feature's exports, in
+// it, each with its own progress claim and Queries. A subject of the Protocol level, beside
+// protocol/Protocol.scala (fn-126 decisions 16 and 22); its IR file is among the feature's exports, in
 // WorkflowNexus.scala. The faulty policies and resets are deliberately wrong designs, marked as
 // negative controls.
 package temporal
 package features.nexus
 package workflow
-package system
+package protocol
 
 // `Answer` here is the designs' delivery answer.
 import framework.*
@@ -92,7 +92,7 @@ enum Answer derives Finite:
   case accepted, retained, rejectedTransient, rejectedPermanent
 
 object Answer:
-  // Kept in the companion, and imported by this file alone: the System level's other subjects, in
+  // Kept in the companion, and imported by this file alone: the Protocol level's other subjects, in
   // this package, answer the feature's Outcome.
   given Ok[Answer] = Ok(Answer.accepted)
 
@@ -605,7 +605,7 @@ object RejectAfterClose
   // What the designs promise. Every promise below is an authored design promise, written once and
   // declared as a Property on each design by the claims below. The monitors' promises are the
   // vocabulary's, read by the monitors. Two of the Properties are the baseline's,
-  // completionSucceeds and completionFails, which an open caller keeps as nexusSystem does. A
+  // completionSucceeds and completionFails, which an open caller keeps as nexusProtocol does. A
   // design names its monitors, and a verify also reports the first violation a watching monitor
   // meets, whatever Property it asks.
   object properties:

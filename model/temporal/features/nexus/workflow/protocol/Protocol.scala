@@ -1,12 +1,12 @@
-// The Nexus caller's System: how the server gets there (fn-126 decision 16). The level's own file
-// holds the System machine, NexusSystem, whose refinement says what the Product reads of it;
-// HandlerWorker, the handler's worker; and NexusCaller, the System with that worker. Beside it,
+// The Nexus caller's Protocol: how the server gets there (fn-126 decision 16). The level's own file
+// holds the Protocol machine, NexusProtocol, whose refinement says what the Product reads of it;
+// HandlerWorker, the handler's worker; and NexusCaller, the Protocol with that worker. Beside it,
 // one file per subject: TrustingCaller.scala, the forged control a caller must refuse, and
 // ClosePolicy.scala, the close and reset designs.
 package temporal
 package features.nexus
 package workflow
-package system
+package protocol
 
 import scala.annotation.unused
 import framework.*
@@ -17,7 +17,7 @@ import temporal.capabilities.*
 import temporal.realize.{inconclusive, satisfied}
 import temporal.Bounds.{eight, four, three, two}
 import temporal.actors.worker.{worker, Phase as WorkerPhase, State as WorkerState}
-import product.NexusProduct
+import shared.product.NexusProduct
 import Timeout.expires
 
 val _ = () => summon[CanEqual[Phase, Phase]]
@@ -62,17 +62,17 @@ enum Fact derives Finite:
   // The attempt count, read through the observation of that name: no history event records it.
   case pendingAttempts
 
-// The System machine and its worker, as the Nexus caller composition holds them.
+// The Protocol machine and its worker, as the Nexus caller composition holds them.
 final case class NexusCallerState(operation: State, worker: WorkerState)
 
-// The finite bound of the System's attempt count.
+// The finite bound of the Protocol's attempt count.
 val attemptBound = 2
 
 given Finite[State] =
   given Finite[Int] = Finite.upTo(attemptBound)
   Finite.derived
 
-// ### The System machine
+// ### The Protocol machine
 //
 // How the server gets there: the retry the product machine cannot see, the three timers the
 // schedule command sets, and the attempt count a retryable failure raises. Written against the same
@@ -85,9 +85,9 @@ given Finite[State] =
 // Not here, for reasons recorded rather than silent: the cancel field and its rows (fn-79), and the
 // concurrency-limit rejection, which names no operation and is not modeled until a Query needs it.
 
-object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_.phase):
+object NexusProtocol extends Machine[State, Outcome, Fact], Phased[State, Phase](_.phase):
   // Where every path begins: before the operation exists, with every deadline at its first value.
-  val init = system.State(
+  val init = protocol.State(
     phase = Phase.unscheduled,
     attempts = 0,
     scheduleToClose = Timeout.unset,
@@ -102,7 +102,7 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
     case Fact.pendingAttempts           => pendingAttempts.name
   }
 
-  // The System's phase sets and its attempt count's arithmetic.
+  // The Protocol's phase sets and its attempt count's arithmetic.
   object states:
     def validAttempts(a: Int) = 0 <= a && a <= attemptBound
 
@@ -128,20 +128,20 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
     // Every phase once the operation is scheduled, running or over: what a completion answers.
     def created(p: Phase) = p.in[Live] || p.in[Closed]
 
-  // The System refines the product: what each of its states reads as there.
+  // The Protocol refines the product: what each of its states reads as there.
   object refinement extends Refinement(NexusProduct):
     // A phase of the same name is that phase; backing off is still scheduled, because the product
     // machine cannot see a retry; and an operation not yet scheduled reads as scheduled, because the
     // product machine begins there. Every other field is hidden, which is what a map that does not
     // read it says.
-    def toProduct(s: State): product.State = s.phase match
+    def toProduct(s: State): shared.product.State = s.phase match
       case Phase.unscheduled | Phase.scheduled | Phase.backingOff =>
-        product.State(product.Phase.scheduled)
-      case Phase.started   => product.State(product.Phase.started)
-      case Phase.succeeded => product.State(product.Phase.succeeded)
-      case Phase.failed    => product.State(product.Phase.failed)
-      case Phase.canceled  => product.State(product.Phase.canceled)
-      case Phase.timedOut  => product.State(product.Phase.timedOut)
+        shared.product.State(shared.product.Phase.scheduled)
+      case Phase.started   => shared.product.State(shared.product.Phase.started)
+      case Phase.succeeded => shared.product.State(shared.product.Phase.succeeded)
+      case Phase.failed    => shared.product.State(shared.product.Phase.failed)
+      case Phase.canceled  => shared.product.State(shared.product.Phase.canceled)
+      case Phase.timedOut  => shared.product.State(shared.product.Phase.timedOut)
 
     // The backoff timer records nothing a Run can read: a retry writes no history event.
     def visible(f: Fact): Boolean = f match
@@ -163,7 +163,7 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
         startToClose: Timeout
     ) =
       enter(
-        system.State(
+        protocol.State(
           phase = Phase.scheduled,
           attempts = 0,
           scheduleToClose = scheduleToClose,
@@ -309,7 +309,7 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
     // Succeeded on the second attempt of an operation with no deadline set. A claim fixes one state,
     // so every field is named.
     val succeededOnRetry =
-      system.State(
+      protocol.State(
         phase = Phase.succeeded,
         attempts = 1,
         scheduleToClose = Timeout.unset,
@@ -476,7 +476,7 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
       (query find properties.startToCloseFires in startToCloseExpires limits three)
         .expect(inconclusive(Reason.neverEvaluated))
 
-    // A Product claim on a System path, read through the refinement the System machine declares.
+    // A Product claim on a Protocol path, read through the refinement the Protocol machine declares.
     val terminalHolds =
       query verify NexusProduct.properties.terminalIsFinal in asyncThenSucceeded limits three
 
@@ -491,7 +491,7 @@ object HandlerWorker
 
 // ### The operation and the handler's worker
 //
-// The System machine's worker stop is a stutter row: the operation cannot see its handler's
+// The Protocol machine's worker stop is a stutter row: the operation cannot see its handler's
 // worker, so the schedule-to-start Scenario orders the stop before the request explicitly.
 // Composed with the worker of the handler's task queue, the stop is the worker's own phase change
 // and every reply is the worker serving, so a reply has a row only while the worker polls. No
@@ -499,7 +499,7 @@ object HandlerWorker
 
 object NexusCaller
     extends Composition[NexusCallerState](
-      _.operation -> NexusSystem,
+      _.operation -> NexusProtocol,
       _.worker -> HandlerWorker
     ),
       Phased[NexusCallerState, Phase](_.operation.phase):
@@ -521,7 +521,7 @@ object NexusCaller
     // schedule-to-start deadline fires. The start is stated: a default would take the worker's from
     // actors/worker/Worker.scala.
     val repliedThenStopped = scenario
-      .starts(NexusCallerState(NexusSystem.init, WorkerState(WorkerPhase.polling)))
+      .starts(NexusCallerState(NexusProtocol.init, WorkerState(WorkerPhase.polling)))
       .actions(
         own(_.operation, caller.schedule(scheduleToStart := expires)),
         synced(_.operation -> handler.reply(Reply.handlerError(true))),

@@ -1,5 +1,5 @@
 // The Nexus caller-side Model: one workflow-scheduled Nexus operation, as the caller sees it. The
-// Product machine says what an operation does, the System machine says how the server gets there
+// Product machine says what an operation does, the Protocol machine says how the server gets there
 // and refines it, and the functional Queries are one per side effect that settles the operation.
 // No cancellation (fn-79) and no concurrency-limit setup parameter.
 //
@@ -11,13 +11,13 @@
 //
 //   - this file: the shared types; the signature (the entities, the inputs, the actors with their
 //     actions, the derived observation and the timers); and last exports, its IR files;
-//   - ../product/Product.scala: Product Phase, State and Fact; NexusProduct, the kind's machine, what
-//     an operation does;
-//   - system/System.scala: System Phase, State, Fact, timer and composition types; NexusSystem, the
-//     System machine that refines it; HandlerWorker, the handler's worker; and NexusCaller, the
-//     System with that worker;
-//   - system/TrustingCaller.scala: TrustingCaller, the forged control a caller must refuse;
-//   - system/ClosePolicy.scala: the close and reset designs.
+//   - ../shared/product/Product.scala: Product Phase, State and Fact; NexusProduct, the kind's
+//     machine, what an operation does;
+//   - protocol/Protocol.scala: Protocol Phase, State, Fact, timer and composition types;
+//     NexusProtocol, the Protocol machine that refines it; HandlerWorker, the handler's worker; and
+//     NexusCaller, the Protocol with that worker;
+//   - protocol/TrustingCaller.scala: TrustingCaller, the forged control a caller must refuse;
+//   - protocol/ClosePolicy.scala: the close and reset designs.
 //
 // A machine object reads its header (entity, init, end, evidence), then its sections in order:
 // states, refinement, effects, rules, properties and queries. Realization.scala realizes it.
@@ -26,8 +26,8 @@ package features.nexus
 package workflow
 
 import framework.*
-import product.NexusProduct
-import system.{HandlerWorker, NexusCaller, NexusSystem, TrustingCaller}
+import shared.product.NexusProduct
+import protocol.{HandlerWorker, NexusCaller, NexusProtocol, TrustingCaller}
 
 // ### Types
 //
@@ -67,7 +67,7 @@ object caller extends Actor:
     .input(startToClose)
     .creates(operation)
 
-  // The caller's inspection of its workflow, which only the forged control (system/) takes.
+  // The caller's inspection of its workflow, which only the forged control (protocol/) takes.
   val inspect = action(this).on(operation)
 
 // The endpoint's handler, which replies to the start and completes the operation.
@@ -94,7 +94,7 @@ object timers:
   val timeout = temporal.features.nexus.timers.timeout
   val backoff = timer
 
-// The System's three deadlines, each armed by the schedule's input of its name.
+// The Protocol's three deadlines, each armed by the schedule's input of its name.
 object deadline:
   val scheduleToClose = timer
   val scheduleToStart = timer
@@ -105,18 +105,18 @@ object deadline:
 object exports:
   // The functional Queries and the realization that runs them are roots beside the machines: Go
   // lowers each Query's witness through the realization into a Testpilot Case (tools/umpire/lower).
-  // The product claim read on a System path and the cross-entity Query, which carries the
+  // The product claim read on a Protocol path and the cross-entity Query, which carries the
   // composition with the handler's worker and its claim, are roots too.
   val nexusWorkflow = irFile("nexus-workflow")(
     NexusProduct,
-    NexusSystem,
+    NexusProtocol,
     HandlerWorker,
     NexusCaller,
     temporal.actors.worker.Polling,
-    NexusSystem.queries,
+    NexusProtocol.queries,
     NexusCaller.queries,
     AsyncNexus,
-    NexusSystem.capabilities
+    NexusProtocol.capabilities
   )
 
   // The forged completion a caller must refuse, and the realization that offers it.
@@ -125,23 +125,23 @@ object exports:
 
   // The close and reset designs. Each design's Queries are a root, and so is each progress claim.
   val nexusWorkflowClose = irFile("nexus-workflow-close")(
-    system.RejectAfterClose.queries,
-    system.AckByOriginal.queries,
-    system.RetainAndRoute.queries,
-    system.ForgetsCancelOnReset.queries,
-    system.TruncatesOnReset.queries,
-    system.RetainAndRouteBoundedRetry.queries,
-    system.RejectAfterCloseWithDeadline.queries,
-    system.AckByOriginalWithDeadline.queries,
-    system.RetainAndRouteWithDeadline.queries,
-    system.RejectAfterClose.properties.rejectAfterCloseProgress,
-    system.AckByOriginal.properties.ackByOriginalProgress,
-    system.RetainAndRoute.properties.retainAndRouteProgress,
-    system.RetainAndRouteBoundedRetry.properties.retainAndRouteBoundedRetryProgress,
-    system.RejectAfterCloseWithDeadline.properties.rejectAfterCloseWithDeadlineProgress,
-    system.AckByOriginalWithDeadline.properties.ackByOriginalWithDeadlineProgress,
-    system.RetainAndRouteWithDeadline.properties.retainAndRouteWithDeadlineProgress,
-    system.RetainAndRoute.properties.retainedReachesOwner,
-    system.RetainAndRoute.properties.retainedWaitsWithoutRecovery,
-    system.RetainAndRouteBoundedRetry.properties.retainedReachesOwnerBoundedRetry
+    protocol.RejectAfterClose.queries,
+    protocol.AckByOriginal.queries,
+    protocol.RetainAndRoute.queries,
+    protocol.ForgetsCancelOnReset.queries,
+    protocol.TruncatesOnReset.queries,
+    protocol.RetainAndRouteBoundedRetry.queries,
+    protocol.RejectAfterCloseWithDeadline.queries,
+    protocol.AckByOriginalWithDeadline.queries,
+    protocol.RetainAndRouteWithDeadline.queries,
+    protocol.RejectAfterClose.properties.rejectAfterCloseProgress,
+    protocol.AckByOriginal.properties.ackByOriginalProgress,
+    protocol.RetainAndRoute.properties.retainAndRouteProgress,
+    protocol.RetainAndRouteBoundedRetry.properties.retainAndRouteBoundedRetryProgress,
+    protocol.RejectAfterCloseWithDeadline.properties.rejectAfterCloseWithDeadlineProgress,
+    protocol.AckByOriginalWithDeadline.properties.ackByOriginalWithDeadlineProgress,
+    protocol.RetainAndRouteWithDeadline.properties.retainAndRouteWithDeadlineProgress,
+    protocol.RetainAndRoute.properties.retainedReachesOwner,
+    protocol.RetainAndRoute.properties.retainedWaitsWithoutRecovery,
+    protocol.RetainAndRouteBoundedRetry.properties.retainedReachesOwnerBoundedRetry
   )

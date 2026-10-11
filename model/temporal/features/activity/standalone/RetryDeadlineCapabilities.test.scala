@@ -8,7 +8,7 @@ import temporal.features.activity.standalone.{worker, MaxAttempts}
 import temporal.features.activity.standalone.system as activity
 import temporal.features.nexus.Reply
 import temporal.features.nexus.workflow.{deadline as nexusDeadline, handler, network}
-import temporal.features.nexus.workflow.system as nexus
+import temporal.features.nexus.workflow.protocol as nexus
 import framework.outcomes.Outcome
 
 class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
@@ -42,20 +42,20 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
           true
         ),
         (
-          nexus.NexusSystem.capabilities,
+          nexus.NexusProtocol.capabilities,
           "retryableHandlerError",
           handler.reply(Reply.handlerError(true)),
           true,
           false
         ),
         (
-          nexus.NexusSystem.capabilities,
+          nexus.NexusProtocol.capabilities,
           "fatalHandlerError",
           handler.reply(Reply.handlerError(false)),
           false,
           false
         ),
-        (nexus.NexusSystem.capabilities, "networkFailure", network.fault, true, false)
+        (nexus.NexusProtocol.capabilities, "networkFailure", network.fault, true, false)
       )
     do
       val binding = fields(section, name)
@@ -93,21 +93,21 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
           true
         ),
         (
-          nexus.NexusSystem.capabilities,
+          nexus.NexusProtocol.capabilities,
           "scheduleToCloseDeadline",
           nexusDeadline.scheduleToClose,
           nexus.Fact.nexusOperationTimedOut(nexus.TimeoutType.scheduleToClose),
           false
         ),
         (
-          nexus.NexusSystem.capabilities,
+          nexus.NexusProtocol.capabilities,
           "scheduleToStartDeadline",
           nexusDeadline.scheduleToStart,
           nexus.Fact.nexusOperationTimedOut(nexus.TimeoutType.scheduleToStart),
           false
         ),
         (
-          nexus.NexusSystem.capabilities,
+          nexus.NexusProtocol.capabilities,
           "startToCloseDeadline",
           nexusDeadline.startToClose,
           nexus.Fact.nexusOperationTimedOut(nexus.TimeoutType.startToClose),
@@ -154,7 +154,10 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
   ) {
     import RetryFixture.Record.given
     val finitePolicy =
-      Retryable.attemptCountIsWithinPolicy(RetryFixture.Record)(RetryFixture.count, RetryFixture.one)
+      Retryable.attemptCountIsWithinPolicy(RetryFixture.Record)(
+        RetryFixture.count,
+        RetryFixture.one
+      )
     for (count, expected) <- Seq(1 -> true, 2 -> false) do
       val state = RetryFixture.Record.init.copy(attempts = UpTo[2](count))
       assertEquals(
@@ -446,8 +449,8 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
   }
 
   test("Nexus handler and network retry bindings remain unlimited at represented saturation") {
-    import nexus.NexusSystem.given
-    val machine = nexus.NexusSystem
+    import nexus.NexusProtocol.given
+    val machine = nexus.NexusProtocol
     for (action, retryable) <- Seq(
         handler.reply(Reply.handlerError(true)) -> true,
         handler.reply(Reply.handlerError(false)) -> false,
@@ -487,11 +490,11 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
     do
       val state = activity.ActivitySystem.init.copy(attempts = UpTo(2), maxAttempts = policy)
       assertEquals(holds(Seq(activityPolicy), state, Step(Outcome.accepted, state)), expected)
-    val nexusPolicy = Retryable.attemptCountIsWithinPolicy(nexus.NexusSystem)(
-      nexus.NexusSystem.states.attemptCount,
-      nexus.NexusSystem.states.maximumAttempts
+    val nexusPolicy = Retryable.attemptCountIsWithinPolicy(nexus.NexusProtocol)(
+      nexus.NexusProtocol.states.attemptCount,
+      nexus.NexusProtocol.states.maximumAttempts
     )
-    val saturated = nexus.NexusSystem.init.copy(attempts = nexus.attemptBound)
+    val saturated = nexus.NexusProtocol.init.copy(attempts = nexus.attemptBound)
     assert(holds(Seq(nexusPolicy), saturated, Step(Outcome.accepted, saturated)))
   }
 
@@ -520,22 +523,22 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
       val unrelatedAfter = Step(Outcome.accepted, activity.ActivitySystem.init)
       assertEquals(holds(Seq(property), before, unrelatedAfter), enabled, s"$timer before=$before")
 
-    import nexus.NexusSystem.given
+    import nexus.NexusProtocol.given
     val nexusWindows = Seq(
       nexusDeadline.scheduleToClose() -> Expirable.firesInWindow[nexus.State, nexus.Phase, Live](
-        nexus.NexusSystem
-      )(nexusDeadline.scheduleToClose, nexus.NexusSystem.states.scheduleToCloseArmed),
+        nexus.NexusProtocol
+      )(nexusDeadline.scheduleToClose, nexus.NexusProtocol.states.scheduleToCloseArmed),
       nexusDeadline.scheduleToStart() -> Expirable.firesInWindow[nexus.State, nexus.Phase, Waiting](
-        nexus.NexusSystem
-      )(nexusDeadline.scheduleToStart, nexus.NexusSystem.states.scheduleToStartArmed),
+        nexus.NexusProtocol
+      )(nexusDeadline.scheduleToStart, nexus.NexusProtocol.states.scheduleToStartArmed),
       nexusDeadline.startToClose() -> Expirable.firesInWindow[nexus.State, nexus.Phase, Held](
-        nexus.NexusSystem
-      )(nexusDeadline.startToClose, nexus.NexusSystem.states.startToCloseArmed)
+        nexus.NexusProtocol
+      )(nexusDeadline.startToClose, nexus.NexusProtocol.states.startToCloseArmed)
     )
     for before <- summon[Finite[nexus.State]].values; (timer, property) <- nexusWindows do
-      val enabled = take(nexus.NexusSystem, before, timer).nonEmpty
+      val enabled = take(nexus.NexusProtocol, before, timer).nonEmpty
       assertEquals(
-        holds(Seq(property), before, Step(Outcome.accepted, nexus.NexusSystem.init)),
+        holds(Seq(property), before, Step(Outcome.accepted, nexus.NexusProtocol.init)),
         enabled,
         s"$timer before=$before"
       )
@@ -574,16 +577,16 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
   }
 
   test("Nexus deadlines all settle terminally and require their own exact timeout fact") {
-    import nexus.NexusSystem.given
+    import nexus.NexusProtocol.given
     val timers = Seq(
       nexusDeadline.scheduleToClose() -> nexus.TimeoutType.scheduleToClose,
       nexusDeadline.scheduleToStart() -> nexus.TimeoutType.scheduleToStart,
       nexusDeadline.startToClose() -> nexus.TimeoutType.startToClose
     )
     for before <- summon[Finite[nexus.State]].values; (timer, kind) <- timers do
-      for after <- take(nexus.NexusSystem, before, timer) do
+      for after <- take(nexus.NexusProtocol, before, timer) do
         val timeout = nexus.Fact.nexusOperationTimedOut(kind)
-        val property = Expirable.deadlineTimesOut(nexus.NexusSystem)(timer, false, timeout)
+        val property = Expirable.deadlineTimesOut(nexus.NexusProtocol)(timer, false, timeout)
         assert(holds(Seq(property), before, after))
         // scalafix:off DisableSyntax.!=; strictEquality checks native comparisons
         for landing <- summon[Finite[nexus.Phase]].values if landing != nexus.Phase.timedOut
@@ -594,7 +597,7 @@ class CapabilityRetryDeadlineFeatures extends munit.FunSuite:
           )
         assert(!holds(Seq(property), before, after.copy(facts = Nil)))
         // scalafix:off DisableSyntax.!=; strictEquality checks native comparisons
-        for other <- nexus.NexusSystem.states.timeoutFacts if other != timeout
+        for other <- nexus.NexusProtocol.states.timeoutFacts if other != timeout
         // scalafix:on DisableSyntax.!=
         do assert(!holds(Seq(property), before, after.copy(facts = List(other))))
   }

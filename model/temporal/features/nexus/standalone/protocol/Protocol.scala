@@ -1,7 +1,7 @@
 package temporal
 package features.nexus
 package standalone
-package system
+package protocol
 
 import scala.annotation.unused
 import framework.*
@@ -35,8 +35,8 @@ enum Fact derives Finite:
 
 import Fact.nexusOperationTerminated as NT
 
-object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_.phase):
-  val init = system.State(phase = Phase.unstarted, cancelRequested = false)
+object NexusProtocol extends Machine[State, Outcome, Fact], Phased[State, Phase](_.phase):
+  val init = protocol.State(phase = Phase.unstarted, cancelRequested = false)
   // A path ends where the operation is over: `end` reads the Closed role.
   override def end(s: State) = s.phase.in[Closed]
 
@@ -51,14 +51,14 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
     val repeatedRequestsAnswer =
       "a repeated request id is answered OK after close: operation.go RequestCancel and Terminate"
 
-  object refinement extends Refinement(product.NexusProduct):
-    def toProduct(s: State): product.State = s.phase match
-      case Phase.unstarted | Phase.scheduled => product.State(product.Phase.scheduled)
-      case Phase.started                     => product.State(product.Phase.started)
-      case Phase.succeeded                   => product.State(product.Phase.succeeded)
-      case Phase.failed                      => product.State(product.Phase.failed)
-      case Phase.canceled                    => product.State(product.Phase.canceled)
-      case Phase.terminated                  => product.State(product.Phase.terminated)
+  object refinement extends Refinement(shared.product.NexusProduct):
+    def toProduct(s: State): shared.product.State = s.phase match
+      case Phase.unstarted | Phase.scheduled => shared.product.State(shared.product.Phase.scheduled)
+      case Phase.started                     => shared.product.State(shared.product.Phase.started)
+      case Phase.succeeded                   => shared.product.State(shared.product.Phase.succeeded)
+      case Phase.failed                      => shared.product.State(shared.product.Phase.failed)
+      case Phase.canceled                    => shared.product.State(shared.product.Phase.canceled)
+      case Phase.terminated => shared.product.State(shared.product.Phase.terminated)
     def visible(f: Fact): Boolean = f match
       case Fact.statusScheduled | Fact.statusCancelRequested              => false
       case _: NS.type | _: NC.type | _: NF.type | _: NX.type | _: NT.type => true
@@ -68,7 +68,7 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
     import Fact.*
 
     def start(@unused s: State) =
-      enter(system.State(phase = Phase.scheduled, cancelRequested = false), statusScheduled)
+      enter(protocol.State(phase = Phase.scheduled, cancelRequested = false), statusScheduled)
 
     // TransitionStarted, or a synchronous completion straight from scheduled; a canceled answer
     // settles it canceled (operation.go invocationResultCancel, onCanceled).
@@ -143,7 +143,7 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
     // answer (Nexus answers ErrCancellationAlreadyRequested).
     // See chasm/lib/nexusoperation/operation.go.
     val cancelIsRequested =
-      property("nexusSystem.cancelIsRequested") when client.requestCancel holds (
+      property("nexusProtocol.cancelIsRequested") when client.requestCancel holds (
         _.records(Fact.statusCancelRequested)
       )
 
@@ -161,7 +161,7 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
   // format: off
   // What the operation is, as the Properties in model/temporal/capabilities read it: it closes, a client
   // terminates it, and DescribeNexusOperationExecution reports its status.
-  // It receives the Properties without listing them, each named `nexusSystem.<property>`. It reads the
+  // It receives the Properties without listing them, each named `nexusProtocol.<property>`. It reads the
   // realization, which reads this machine, so it waits in a section, which initializes on its first
   // use.
   //
@@ -199,10 +199,10 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
     val cancelRequest = scenario.actions(client.start, client.requestCancel)
 
     val terminalHolds =
-      query verify product.NexusProduct.properties.terminalIsFinal in asyncThenSucceeded limits three
+      query verify shared.product.NexusProduct.properties.terminalIsFinal in asyncThenSucceeded limits three
     val cancelIsRequested =
       (query(
-        "nexusSystem.cancelIsRequested"
+        "nexusProtocol.cancelIsRequested"
       ) find properties.cancelIsRequested in cancelRequest limits three)
         .total(28)
         .expect(inconclusive(Reason.explanationsDisagree))

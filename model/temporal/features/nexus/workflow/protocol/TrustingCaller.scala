@@ -1,13 +1,13 @@
 // The Nexus caller's control: a caller design that predicts success for a failed completion, which
-// the forged-completion Query must refuse. A subject of the System level, beside
-// system/System.scala (fn-126 decisions 16 and 22). It is the System machine without its
+// the forged-completion Query must refuse. A subject of the Protocol level, beside
+// protocol/Protocol.scala (fn-126 decisions 16 and 22). It is the Protocol machine without its
 // refinement, its completion forged and the caller's inspection added, declared rather than derived
-// from NexusSystem: a derivation lifts its source machines, and nexus-workflow-control.json holds this
+// from NexusProtocol: a derivation lifts its source machines, and nexus-workflow-control.json holds this
 // machine alone.
 package temporal
 package features.nexus
 package workflow
-package system
+package protocol
 
 import framework.*
 import framework.Finite.given
@@ -28,10 +28,10 @@ val sent = choice
 // ### The control
 
 object TrustingCaller
-    extends Machine[system.State, Outcome, system.Fact],
-      Phased[system.State, Phase](_.phase),
+    extends Machine[protocol.State, Outcome, protocol.Fact],
+      Phased[protocol.State, Phase](_.phase),
       NegativeControl:
-  val init = NexusSystem.init
+  val init = NexusProtocol.init
   val evidence: PartialFunction[Fact, String] = {
     case Fact.nexusOperationTimedOut(_) => "nexusOperationTimedOut"
     case Fact.pendingAttempts           => pendingAttempts.name
@@ -40,12 +40,12 @@ object TrustingCaller
 
   object effects:
     def inspect(s: State) = stay(s)
-    // The System's completion of an operation once scheduled: not found once it is over, and
+    // The Protocol's completion of an operation once scheduled: not found once it is over, and
     // resolved while it runs. One effect rather than two rules, because the forged completion names
     // both alternatives of a failed callback in every such phase, the not-found ones included.
     def settle(s: State, resolution: Resolution) =
       if s.phase.in[Closed] then reject(Outcome.rejected(Rejection.notFound), s)
-      else NexusSystem.effects.complete(s, resolution)
+      else NexusProtocol.effects.complete(s, resolution)
     // The control deliberately predicts success for a failed callback. The runtime still sends
     // failure.
     def forgedComplete(s: State, resolution: Resolution) = // format: off
@@ -53,43 +53,43 @@ object TrustingCaller
         choose(forged -> settle(s, Resolution.succeeded), sent -> settle(s, resolution)) // format: on
       else settle(s, resolution)
 
-  // The System machine's rules, its completion forged and the inspection added.
+  // The Protocol machine's rules, its completion forged and the inspection added.
   object rules extends Rules:
     on(caller.schedule) {
-      when(Phase.unscheduled) ~> NexusSystem.effects.schedule
+      when(Phase.unscheduled) ~> NexusProtocol.effects.schedule
     }
     on(handler.reply) {
-      when(Phase.scheduled) ~> NexusSystem.effects.reply
+      when(Phase.scheduled) ~> NexusProtocol.effects.reply
     }
     on(handler.complete) {
-      when(NexusSystem.states.created) ~> effects.forgedComplete
+      when(NexusProtocol.states.created) ~> effects.forgedComplete
     }
     on(caller.inspect) {
       always ~> effects.inspect
     }
     on(network.fault) {
-      when(Phase.scheduled) ~> NexusSystem.effects.backOff
+      when(Phase.scheduled) ~> NexusProtocol.effects.backOff
     }
     on(worker.stop) {
-      always ~> NexusSystem.effects.keep
+      always ~> NexusProtocol.effects.keep
     }
     on(timers.backoff) {
-      when(Phase.backingOff) ~> NexusSystem.effects.retry
+      when(Phase.backingOff) ~> NexusProtocol.effects.retry
     }
     on(deadline.scheduleToClose) {
       when[Live].where(
         _.scheduleToClose == Timeout.expires // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-      ) ~> (NexusSystem.effects.timeOut(_, TimeoutType.scheduleToClose))
+      ) ~> (NexusProtocol.effects.timeOut(_, TimeoutType.scheduleToClose))
     }
     on(deadline.scheduleToStart) {
       when[Waiting].where(
         _.scheduleToStart == Timeout.expires // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-      ) ~> (NexusSystem.effects.timeOut(_, TimeoutType.scheduleToStart))
+      ) ~> (NexusProtocol.effects.timeOut(_, TimeoutType.scheduleToStart))
     }
     on(deadline.startToClose) {
       where(s =>
         s.phase == Phase.started && s.startToClose == Timeout.expires // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-      ) ~> (NexusSystem.effects.timeOut(_, TimeoutType.startToClose))
+      ) ~> (NexusProtocol.effects.timeOut(_, TimeoutType.startToClose))
     }
 
   object properties:

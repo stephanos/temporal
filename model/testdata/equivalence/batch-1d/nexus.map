@@ -6,3 +6,10 @@
 #   nexus workflow `control`              -> Bounds.eight      (same budget 8/8/262144)
 #   close policy `four`/`five`/`twelve`   -> fourWide/fiveWide/twelveWide (budgets unchanged)
 #   nexus workflow `two`                  -> Bounds.two        (name unchanged)
+#
+# fn-160 R13 and fn-160.6 (owner): the Nexus Product moves to shared/product, and the System level
+# becomes Protocol (system/ -> protocol/, NexusSystem -> NexusProtocol).
+temporal.features.nexus.product temporal.features.nexus.shared.product
+temporal.features.nexus.standalone.system temporal.features.nexus.standalone.protocol
+temporal.features.nexus.workflow.system temporal.features.nexus.workflow.protocol
+nexusSystem nexusProtocol

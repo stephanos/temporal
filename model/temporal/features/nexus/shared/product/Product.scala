@@ -1,9 +1,10 @@
 // The Nexus Product: what an operation does in either form (fn-126 decision 16). This level's
-// own file holds NexusProduct, which refines nothing; the workflow and standalone System
+// own file holds NexusProduct, which refines nothing; the workflow and standalone Protocol
 // machines refine it. The package clauses read the kind's package as well as this one,
 // so its shared types and signature are in scope.
 package temporal
 package features.nexus
+package shared
 package product
 
 import framework.*
@@ -31,7 +32,7 @@ enum Fact derives Finite:
 // ### The product machine
 //
 // What an operation does, with no account of how. Every Property written against it is carried to
-// the System machine by the refinement declared there.
+// the Protocol machine by the refinement declared there.
 
 object NexusProduct extends Machine[State, Outcome, Fact], Phased[State, Phase](_.phase):
   val init = product.State(Phase.scheduled)
@@ -66,14 +67,14 @@ object NexusProduct extends Machine[State, Outcome, Fact], Phased[State, Phase](
 
     def cancel(s: State) = enter(s.copy(phase = Phase.canceled), nexusOperationCanceled)
 
-    // One of the operation's deadlines firing. Which deadline is the System's account of how, so
+    // One of the operation's deadlines firing. Which deadline is the Protocol's account of how, so
     // the product machine has one timer.
     def timeOut(s: State) = enter(s.copy(phase = Phase.timedOut), nexusOperationTimedOut)
 
   object rules extends Rules:
     // The handler's reply to the server's start request moves only an operation that has not
     // started yet. A retryable handler error leaves the operation where it is, so no rule fires it:
-    // the product machine does not know about backing off, which is the whole of what the System
+    // the product machine does not know about backing off, which is the whole of what the Protocol
     // machine adds.
     on(handler.reply(Reply.syncSuccess)) {
       when(Phase.scheduled) ~> effects.succeed
@@ -111,7 +112,7 @@ object NexusProduct extends Machine[State, Outcome, Fact], Phased[State, Phase](
 
     // A transport fault is an ordinary action of the network, and the handler's worker stopping is a
     // fault the Run records. The product machine sees neither: whether a delivery was retried is the
-    // System's account of how, not what, and a step that kept the state and recorded nothing would
+    // Protocol's account of how, not what, and a step that kept the state and recorded nothing would
     // be indistinguishable from a stutter, which the refinement would read as this step.
     disabled(network.fault, worker.stop)
     on(client.terminate) {
@@ -130,5 +131,5 @@ object NexusProduct extends Machine[State, Outcome, Fact], Phased[State, Phase](
 
   object properties:
     // Once an operation is over, no step changes its phase. Declared on the product machine and read
-    // on the System machine through the map.
+    // on the Protocol machine through the map.
     val terminalIsFinal = property.once(states.productTerminal).keeps(_.phase)

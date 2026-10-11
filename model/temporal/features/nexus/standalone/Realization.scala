@@ -8,7 +8,7 @@ package temporal
 package features.nexus
 package standalone
 
-import system.{Fact as OperationFact, NexusSystem}
+import protocol.{Fact as OperationFact, NexusProtocol}
 import framework.realize.*
 import temporal.realize.*
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
@@ -22,7 +22,7 @@ private val calls =
 // The status DescribeNexusOperationExecution reports while each fact holds
 // (operationExecutionStatus), read once the operation stays in it.
 private val described = DescribedStatus(
-  NexusSystem,
+  NexusProtocol,
   calls,
   METHOD_DESCRIBE_NEXUS_OPERATION_EXECUTION,
   Field(_.getInfo),
@@ -69,7 +69,7 @@ private val terminateOperation =
 private val standaloneEnabled = RequiredSetting(key = settingKey, value = "true")
 
 // One standalone operation a controller starts on the Case's endpoint.
-object Standalone extends Realizes(NexusSystem, requiredSettings = Vector(standaloneEnabled)):
+object Standalone extends Realizes(NexusProtocol, requiredSettings = Vector(standaloneEnabled)):
 
   object controller
       extends Controller(
