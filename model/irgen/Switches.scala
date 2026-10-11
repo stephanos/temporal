@@ -32,7 +32,6 @@ object Switches:
   // in-process (LiftRun.run) names its own, so lifts side by side in one JVM keep theirs apart.
   private val asked = scala.util.DynamicVariable(Set.empty[String])
   def within[A](rules: Set[String])(body: => A): A = asked.withValue(rules)(body)
-  def on: Set[String] = asked.value
 
   // Whether the rule holds the declaration of the fully qualified name `of`.
   private def holds(rule: String, of: String): Boolean =

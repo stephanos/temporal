@@ -85,7 +85,7 @@ enum QueryForm:
   case verify
 
 // A bounded question about a machine: a Property, a Scenario and Limits.
-final class Query private[framework] (
+class Query private[framework] (
     val name: String,
     val form: QueryForm,
     val property: PropertyDecl,
@@ -138,3 +138,57 @@ final class QueryIn private[framework] (
 def query(name: String): QueryDecl = QueryDecl(name)
 
 def query: QueryDecl = QueryDecl("")
+
+// The unfinished path claim: it becomes an ordinary find Query only when a fact is stated.
+final class WitnessBuilder[S, O, F] private[framework] (
+    private[framework] val owner: Declares[S],
+    private[framework] val name: String,
+    private[framework] val path: Vector[ClassRef | Composed]
+):
+  private[framework] def recording(recorded: Step[S, O, F] => Boolean): Witness[S, O, F] =
+    Witness(
+      owner,
+      name,
+      path,
+      recorded,
+      None,
+      Limits(steps = path.size, actions = path.size, search = 512)
+    )
+
+// A completed path claim, usable at every Query root. Its ordinary core declarations carry the
+// same name; as with property and scenario, a blank name is captured from the source val by lifting.
+final class Witness[S, O, F] private[framework] (
+    private[framework] val owner: Declares[S],
+    named: String,
+    private[framework] val path: Vector[ClassRef | Composed],
+    private[framework] val recorded: Step[S, O, F] => Boolean,
+    private[framework] val ending: Option[S => Boolean],
+    bounds: Limits,
+    expected: Option[realize.RunExpectation] = None,
+    space: Option[realize.Exploration] = None
+) extends Query(
+      named,
+      QueryForm.find,
+      PropertyDecl(
+        named,
+        owner,
+        path.lastOption,
+        Some((step: Step[S, O, F]) => recorded(step) && ending.forall(_(step.state))),
+        None
+      ),
+      ScenarioDecl(named, owner, None, path, free = false),
+      bounds,
+      expected,
+      space
+    ):
+  def ends(predicate: S => Boolean): Witness[S, O, F] =
+    Witness(owner, name, path, recorded, Some(predicate), limits, expectedRun, exploration)
+
+  def limits(bounds: Limits): Witness[S, O, F] =
+    Witness(owner, name, path, recorded, ending, bounds, expectedRun, exploration)
+
+  override def live(expected: realize.RunExpectation): Witness[S, O, F] =
+    Witness(owner, name, path, recorded, ending, limits, Some(expected), exploration)
+
+  override def explore(space: realize.Exploration): Witness[S, O, F] =
+    Witness(owner, name, path, recorded, ending, limits, expectedRun, Some(space))

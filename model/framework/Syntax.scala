@@ -236,6 +236,67 @@ extension [S, O](step: Step[S, O, String])
   def records[M](@unused member: S => M, fact: Any): Boolean =
     step.facts.exists(_.endsWith(s"_$fact"))
 
+// `m.witness(a, b).records(fact)`: one path-and-outcome declaration, implicitly on the enclosing
+// machine or composition. Its default search budget is 512, with depth and schedule length equal
+// to the path length. Core form:
+// `query find m.property.when(b).holds(_.facts.contains(fact)) in m.scenario.actions(a, b) limits bounds`.
+extension [S](owner: Declares[S])
+  def witness(
+      first: ClassRef | Composed,
+      rest: (ClassRef | Composed)*
+  ): WitnessBuilder[S, owner.Outcome, owner.Fact] =
+    WitnessBuilder(owner, "", first +: rest.toVector)
+
+  // A witness named explicitly, such as one in a list. Core form:
+  // `query("done") find m.property("done").when(b).holds(_.facts.contains(fact)) in m.scenario("done").actions(a, b) limits bounds`.
+  def witness(name: String)(
+      first: ClassRef | Composed,
+      rest: (ClassRef | Composed)*
+  ): WitnessBuilder[S, owner.Outcome, owner.Fact] =
+    WitnessBuilder(owner, name, first +: rest.toVector)
+
+// A witness on the enclosing machine or composition, named after its val. Core form:
+// `query find property.when(last).holds(_.facts.contains(fact)) in scenario.actions(path*) limits bounds`.
+def witness[S, O, F](
+    first: ClassRef | Composed,
+    rest: (ClassRef | Composed)*
+)(using declaring: Declaring[S, O, F]): WitnessBuilder[S, O, F] =
+  WitnessBuilder(declaring.model, "", first +: rest.toVector)
+
+// A witness on the enclosing owner with an explicit name. Core form:
+// `query(name) find property(name).when(last).holds(_.facts.contains(fact)) in scenario(name).actions(path*) limits bounds`.
+def witness[S, O, F](name: String)(
+    first: ClassRef | Composed,
+    rest: (ClassRef | Composed)*
+)(using declaring: Declaring[S, O, F]): WitnessBuilder[S, O, F] =
+  WitnessBuilder(declaring.model, name, first +: rest.toVector)
+
+// Finishes a witness with a fact of its declaring machine. Core form:
+// `m.property.when(last).holds(step => step.facts.contains(fact))`, joined to the pinned Scenario
+// by a find Query.
+extension [S, O, F](builder: WitnessBuilder[S, O, F])
+  def records[G](fact: G)(using G <:< F): Witness[S, O, F] =
+    builder.recording(_.facts.contains(fact))
+
+// Finishes a composition's witness with the fact of its selected member, whose machine fixes the
+// fact type, as the composition's declaration selector does. Core form:
+// `c.property.when(last).holds(step => step.facts.contains("member_fact"))`.
+extension [S <: Product](builder: WitnessBuilder[S, String, String])
+  def records[MS, O, F](member: S => (MS, Machine[MS, O, F]), fact: F): Witness[S, String, String] =
+    val composition = builder.owner match
+      case c: Composition[S @unchecked] => c
+      case _ => throw IllegalArgumentException("a member fact belongs to a composition witness")
+    val machine = member(composition.mirror.fromProduct(Composition.Empty))._2
+    val fields = composition.mirror.fromProduct(Composition.Empty).productElementNames.toVector
+    val candidates =
+      fields.zip(composition.members).collect { case (field, m) if m eq machine => field }
+    require(
+      candidates.size == 1,
+      s"${machine.name} is not one unique member of ${composition.name}"
+    )
+    val key = s"${candidates.head}_${valueKey(fact)}"
+    builder.recording(_.facts.contains(key))
+
 // `m.property("terminalIsFinal").once(terminal).keeps(_.phase)`: once `over` holds of the state
 // before a step, the step keeps the value the projection selects. Core form:
 // `holdsAcross((before, after) => !over(before) || after.state.phase == before.phase)`.
@@ -465,7 +526,7 @@ def always[S, O, F](using firing: Firing[S, O, F, ?]): Case[S, O, F] =
 // as it initializes. Core form: the given `Phasing(_.phase)` the object's sections read.
 trait Phased[S, P](
     private[framework] val projection: S => P,
-    private[framework] val writer: (S, P) => S = Phased.Unwritten
+    private[framework] val writer: (S, P) => S = Phasing.Unwritten
 )(using
     Finite[P],
     TypeTest[P, Closed],
@@ -490,14 +551,6 @@ object Phased extends Inherited.Unphased:
   // Core form: the source's `Phasing(_.phase)`.
   given source[S, P, T <: Phased[S, P]]: Inherited[T, S, P] =
     Inherited(_.projection, _.end, _.writer)
-
-  // The writer of a projection declared without one: `enters` has no phase to write through it.
-  private[framework] object Unwritten extends ((Any, Any) => Nothing):
-    def apply(state: Any, phase: Any): Nothing =
-      throw IllegalStateException(
-        s"enters($phase) writes the phase through the writer the machine's Phased declares, and " +
-          "it declares none: `Phased[State, Phase](_.phase, (s, p) => s.copy(phase = p))`"
-      )
 
 // When each action of a machine fires, written as the machine object's `object rules extends
 // Rules`, whose cases may name phases where the machine mixes in `Phased[State, Phase](_.phase)`
