@@ -11,11 +11,10 @@ package protocol
 
 import framework.*
 import framework.Finite.given
-import framework.outcomes.{Outcome, Rejection}
+import framework.outcomes.Outcome
 import framework.realize.{Alternative, Cleanup, Conformance, Disposition, Exploration, Reason}
 import framework.realize.{PropertyOutcome, RunExpectation, Variation}
 import temporal.Bounds.eight
-import temporal.actors.worker.worker
 
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 // ### Signature
@@ -30,7 +29,7 @@ val sent = choice
 object TrustingCaller
     extends Machine[protocol.State, Outcome, protocol.Fact],
       Phased[protocol.State, Phase](_.phase, (s, p) => s.copy(phase = p)),
-      NegativeControl:
+      NegativeControl, ForgedControl:
   val init = NexusProtocol.init
   val evidence: PartialFunction[Fact, String] = {
     case Fact.nexusOperationTimedOut(_) => "nexusOperationTimedOut"
@@ -38,59 +37,7 @@ object TrustingCaller
   }
   val unobservable = List(timers.backoff)
 
-  object effects:
-    def inspect(s: State) = stay(s)
-    // The Protocol's completion of an operation once scheduled: not found once it is over, and
-    // resolved while it runs. One effect rather than two rules, because the forged completion names
-    // both alternatives of a failed callback in every such phase, the not-found ones included.
-    def settle(s: State, resolution: Resolution) =
-      if s.phase.in[Closed] then reject(Outcome.rejected(Rejection.notFound), s)
-      else NexusProtocol.effects.complete(s, resolution)
-    // The control deliberately predicts success for a failed callback. The runtime still sends
-    // failure.
-    def forgedComplete(s: State, resolution: Resolution) = // format: off
-      if resolution == Resolution.failed then // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-        choose(forged -> settle(s, Resolution.succeeded), sent -> settle(s, resolution)) // format: on
-      else settle(s, resolution)
-
-  // The Protocol machine's rules, its completion forged and the inspection added.
-  object rules extends Rules:
-    on(caller.schedule) {
-      when(Phase.unscheduled) ~> NexusProtocol.effects.schedule
-    }
-    on(handler.reply) {
-      when(Phase.scheduled) ~> NexusProtocol.effects.reply
-    }
-    on(handler.complete) {
-      when(NexusProtocol.states.created) ~> effects.forgedComplete
-    }
-    on(caller.inspect) {
-      always ~> effects.inspect
-    }
-    on(network.fault) {
-      when(Phase.scheduled) ~> NexusProtocol.effects.backOff
-    }
-    on(worker.stop) {
-      always ~> NexusProtocol.effects.keep
-    }
-    on(timers.backoff) {
-      when(Phase.backingOff) ~> enters(Phase.scheduled)
-    }
-    on(deadline.scheduleToClose) {
-      when[Live].where(
-        _.scheduleToClose == Timeout.expires // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-      ) ~> (NexusProtocol.effects.timeOut(_, TimeoutType.scheduleToClose))
-    }
-    on(deadline.scheduleToStart) {
-      when[Waiting].where(
-        _.scheduleToStart == Timeout.expires // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-      ) ~> (NexusProtocol.effects.timeOut(_, TimeoutType.scheduleToStart))
-    }
-    on(deadline.startToClose) {
-      where(s =>
-        s.phase == Phase.started && s.startToClose == Timeout.expires // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-      ) ~> (NexusProtocol.effects.timeOut(_, TimeoutType.startToClose))
-    }
+  object rules extends Facets(forgedControl.rules)
 
   object properties:
     // A failed completion is recorded as completed: what the control predicts and no runtime sends.

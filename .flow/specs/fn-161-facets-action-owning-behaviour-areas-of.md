@@ -107,3 +107,11 @@ One vocabulary for the kind, shared by the Product (`NexusProduct`) and both for
 - `Retrying` at the product holds only the `disabled` binding of the two faults, because the workflow protocol binds them and R9 requires the same owner at both levels.
 - Design and adversarial machines take one facet named after their concern: `ClosePolicy` for `RejectAfterClose` (its derived designs stay derived) and `ForgedControl` for `TrustingCaller`. They are workflow-protocol subjects with their own state, so the product/protocol same-owner rule does not reach them; the two names join the kind's vocabulary.
 - Machine-wide (no facet): each machine's `State`, phase enum, `init`, `end`, phase projection, refinement, `states` sets, and the whole-feature `queries`; `HandlerWorker` (a derivation) and `NexusCaller` (a composition) are exempt (R8).
+
+## Batch 1d implementation decisions (single worker, 2026-10-11)
+
+- Activity vocabulary as implemented: `dispatching` (not `Dispatch`: the System's `enum Dispatch`), `retry` (not `Retrying`: the framework role `Retrying`), `completion`, `cancellation`, `pausing`, `reset`, `heartbeat`, `timeouts`, `lifecycle`; design subjects `admission` (ActivityRecord), `heldAdmission` (HeldDispatch), `responseLoss` (LostStartAnswer).
+- Facets hold `effects`, `rules`, `capabilities` (listed by the machine's `FacetCapabilities(...)`), `properties` and `queries` (fn-162: each Property declared once in its facet; claim containers removed).
+- fn-161.4: every other declared machine is one facet: worker `serving`, task queue `queueing` (both levels), Nexus `operation` (Product and both Protocols), `closing` (RejectAfterClose), `forgedControl` (TrustingCaller). The Nexus lane's finer split (Scheduling, Starting, ...) is left for later.
+- `facets-only` and `facet-vocabulary` hold every Temporal Model by default; fixtures turn them on per run. R9 does not reach a design subject with a state type of its own.
+- A machine of facets binds its actions in facet order, so the binding order of ActivityProduct and ActivitySystem changed (pins updated; step-table equivalence shows it).

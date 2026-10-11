@@ -34,7 +34,7 @@ val failedThenLost = choice
 
 object HeldDispatch
     extends Machine[AdmissionState, Outcome, AdmissionFact],
-      Phased[AdmissionState, AdmissionPhase](_.phase):
+      Phased[AdmissionState, AdmissionPhase](_.phase), HeldAdmission:
   val init = ActivityRecord.init
   override def end(s: State) = ActivityRecord.end(s)
   val evidence: PartialFunction[AdmissionFact, String] = { case AdmissionFact.statusTimedOut(_) =>
@@ -46,41 +46,12 @@ object HeldDispatch
     def toProduct(s: State): product.State = ActivityRecord.refinement.toProduct(s)
     def visible(f: AdmissionFact) = ActivityRecord.refinement.visible(f)
 
-  object effects:
-    // Admission as the corrected design decides it, with no failure of its durable update.
-    def admitCommitted(s: State) =
-      enter(
-        ActivityRecord.states.admitted(s),
-        AdmissionFact.statusStarted,
-        AdmissionFact.attemptAdmitted
-      )
-
   // The corrected design's monitors watch the race too.
   object monitors:
     val atMostOneActiveAttempt = ActivityRecord.monitors.atMostOneActiveAttempt
     val terminalFinality = ActivityRecord.monitors.terminalFinality
 
-  object rules extends Rules:
-    on(history.dispatch) {
-      when(AdmissionPhase.scheduled) ~> ActivityRecord.effects.sendDispatch
-    }
-    on(client.pause) {
-      when(AdmissionPhase.scheduled) ~> ActivityRecord.effects.pause
-      when(AdmissionPhase.started) ~> ActivityRecord.effects.pauseHeld
-    }
-    on(activityWorker.poll) {
-      when(AdmissionPhase.scheduled) ~> effects.admitCommitted
-      when(
-        AdmissionPhase.paused,
-        AdmissionPhase.pausedWhileHeld,
-        AdmissionPhase.started,
-        AdmissionPhase.completed,
-        AdmissionPhase.timedOut
-      ) ~> ActivityRecord.effects.rejectDelivery
-    }
-    on(history.answerMatching) { // format: off
-      where(_.answer == Answer.owed) ~> ActivityRecord.effects.answerMatching // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-    } // format: on
+  object rules extends Facets(heldAdmission.rules)
 
   // What the machine a server's Run is checked against promises.
   object properties:
@@ -124,34 +95,12 @@ object HeldDispatch
 
 object LostStartAnswer
     extends Machine[AdmissionResponseState, Outcome, AdmissionResponseFact],
-      FailureModel:
+      FailureModel, ResponseLoss:
   val entity = activity
   val init = AdmissionResponseState(record = ActivityRecord.init, lossAvailable = true)
   def end(s: State) = !s.lossAvailable
 
-  object effects:
-    def sendDispatch(s: State) = enter(s, AdmissionResponseFact.dispatchSent)
-
-    def loseResponse(s: State) = choose(
-      committedThenLost -> enter(
-        AdmissionResponseState(
-          record = ActivityRecord.states.admitted(s.record),
-          lossAvailable = false
-        ),
-        AdmissionResponseFact.attemptAdmitted
-      ),
-      failedThenLost -> enter(s.copy(lossAvailable = false))
-        .because("the durable update failed before its answer was lost")
-    )
-
-  // Both steps take the budget's state: once a loss consumes it, neither fires.
-  object rules extends Rules:
-    on(history.dispatch) {
-      where(_.lossAvailable) ~> effects.sendDispatch
-    }
-    on(foundations.taskqueue.fault.ackLoss) {
-      where(_.lossAvailable) ~> effects.loseResponse
-    }
+  object rules extends Facets(responseLoss.rules)
 
   object properties:
     // A lost response still leaves the attempt admitted when the update committed.

@@ -260,7 +260,7 @@ val recovery = assume("currentOwnerEventuallyRecoversAndReappliesRetainedOutcome
 object RejectAfterClose
     extends Machine[CloseResetState, Answer, CloseFact],
       Phased[CloseResetState, Caller](_.caller),
-      NegativeControl:
+      NegativeControl, Closing:
   val entity = nexusRequest
   val init = CloseResetState(
     caller = Caller.open,
@@ -401,132 +401,6 @@ object RejectAfterClose
       case Asked.by(p)  => if i == Intent.requested(p) then asked else Asked.lost // scalafix:ok DisableSyntax.==; typed equality
       case Asked.lost   => Asked.lost
     // format: on
-  // What each step does. Where it fires is the rules'.
-  object effects:
-    def close(s: State) = enter(s.copy(caller = Caller.closed), CloseFact.workflowClosed)
-
-    // One cancellation, by the principal that asks for it.
-    def requestCancel(s: State, p: Principal) =
-      enter(s.copy(intent = Intent.requested(p)), CloseFact.cancelRequested(p))
-
-    // The request in flight reaches the handler, which it obliges to nothing.
-    def deliverCancel(s: State) =
-      enter(s.copy(handler = Handler.cancelReceived), CloseFact.cancelReceived)
-
-    // The handler's irreversible effect, and its first report.
-    def finish(s: State, r: Resolution) =
-      enter(
-        s.copy(handler = Handler.done(r), channel = Completion.inFlight(r)),
-        CloseFact.handlerFinished(r)
-      )
-
-    // The owner commits the outcome. Transient rejection keeps the report in flight; a lost
-    // acknowledgment commits and keeps it in flight too, so the report arrives again.
-    def committed(
-        d: Redelivery,
-        s: State,
-        k: Knowledge,
-        r: Resolution
-    ) =
-      if states.redelivers(d, s.channel, r) then
-        choose(
-          states.taken -> enter(
-            s.copy(known = k, channel = Completion.none),
-            states.recordedOnce(s, k, r)*
-          ),
-          states.rejectedForNow -> List(
-            Step(Answer.rejectedTransient, s.copy(channel = states.again(d, r)))
-          ),
-          states.ackLost -> enter(
-            s.copy(known = k, channel = states.again(d, r)),
-            states.recordedOnce(s, k, r)*
-          )
-            .because("the acknowledgment is lost")
-        )
-      else enter(s.copy(known = k, channel = Completion.none), states.recordedOnce(s, k, r)*)
-
-    def keptAtOperation(d: Redelivery, s: State, r: Resolution) =
-      if states.redelivers(d, s.channel, r) then
-        choose(
-          states.taken -> List(
-            Step(
-              Answer.retained,
-              s.copy(retained = Retained.pending(r), channel = Completion.none),
-              List(CloseFact.outcomeRetained)
-            )
-          ),
-          states.rejectedForNow -> List(
-            Step(Answer.rejectedTransient, s.copy(channel = states.again(d, r)))
-          ),
-          states.ackLost -> List(
-            Step(
-              Answer.retained,
-              s.copy(retained = Retained.pending(r), channel = states.again(d, r)),
-              List(CloseFact.outcomeRetained)
-            )
-          ).because("the acknowledgment is lost")
-        )
-      else
-        List(
-          Step(
-            Answer.retained,
-            s.copy(retained = Retained.pending(r), channel = Completion.none),
-            List(CloseFact.outcomeRetained)
-          )
-        )
-
-    // A permanent rejection ends the report: the handler stops reporting.
-    def dropped(s: State) =
-      List(
-        Step(
-          Answer.rejectedPermanent,
-          s.copy(channel = Completion.none),
-          List(CloseFact.completionDropped)
-        )
-      )
-
-    def rejectedByClosed(d: Redelivery, s: State, r: Resolution) =
-      if states.redelivers(d, s.channel, r) then
-        choose(
-          states.refused -> dropped(s),
-          states.rejectedForNow -> List(
-            Step(Answer.rejectedTransient, s.copy(channel = states.again(d, r)))
-          )
-        )
-      else dropped(s)
-    // format: off
-    // A delivery of the report the channel carries, `r`, as the policy and the channel take it.
-    def deliver(p: Policy, d: Redelivery, s: State, r: Resolution) =
-      // The deadline resolved the operation: a completion after it finds nothing to complete.
-      if s.known == Knowledge.expired then dropped(s) // scalafix:ok DisableSyntax.==; typed equality
-      else
-        s.caller match
-          case Caller.open   => committed(d, s, Knowledge.original(r), r)
-          case Caller.closed =>
-            if p == Policy.rejectAfterClose then rejectedByClosed(d, s, r) // scalafix:ok DisableSyntax.==; typed equality
-            else keptAtOperation(d, s, r)
-          case Caller.resetOpen =>
-            if p == Policy.ackByOriginal then // scalafix:ok DisableSyntax.==; typed equality
-              enter(s.copy(channel = Completion.none)).because("the original run acknowledges it")
-            else committed(d, s, Knowledge.successor(r), r)
-    // format: on
-    // Reset builds the successor from a point after the start and before the close. It transfers
-    // ownership, reapplies the outcome the original run recorded or the operation retained, and
-    // keeps the cancel intent. It cannot undo the handler's effect.
-    def reset(rule: Reset, s: State) =
-      enter(
-        s.copy(
-          caller = Caller.resetOpen,
-          intent = states.carried(rule, s.intent),
-          known = states.reapplied(rule, s),
-          retained = Retained.none
-        ),
-        states.resetFacts(states.reapplied(rule, s))*
-      )
-
-    // The schedule-to-close deadline resolves an operation whose owner knows no outcome.
-    def expire(s: State) =
-      enter(s.copy(known = Knowledge.expired), CloseFact.nexusOperationTimedOut)
 
   // Monitors: the outcome stays where an owner can learn it, an acknowledgment keeps it, no run
   // records two outcomes, and a cancel request stays its principal's. Every design watches them.
@@ -550,57 +424,7 @@ object RejectAfterClose
         states.askedAfter(asked, after.state.intent)
       )(asked => asked == Asked.lost) // scalafix:ok DisableSyntax.==; typed equality
 
-  object rules extends Rules:
-    on(callerSide.close) {
-      when(Caller.open) ~> effects.close
-    }
-    on(callerSide.reset) {
-      when(Caller.open, Caller.closed) ~> (effects.reset(Reset.reapplies, _))
-    }
-    on(callerSide.requestCancel) {
-      where(states.cancellable) ~> effects.requestCancel
-    }
-    on(history.deliverCancel) {
-      where(states.cancelInFlight) ~> effects.deliverCancel
-    }
-    // format: off
-    // A canceled result needs the handler to have received the cancel request; having received it,
-    // the handler may still succeed or fail.
-    on(handlerSide.finish(Resolution.succeeded)) {
-      where(_.handler == Handler.running) ~> (effects.finish(_, Resolution.succeeded)) // scalafix:ok DisableSyntax.==; typed equality
-    }
-    on(handlerSide.finish(Resolution.failed)) {
-      where(_.handler == Handler.running) ~> (effects.finish(_, Resolution.failed)) // scalafix:ok DisableSyntax.==; typed equality
-    }
-    on(handlerSide.finish) {
-      where(_.handler == Handler.cancelReceived) ~> effects.finish // scalafix:ok DisableSyntax.==; typed equality
-    }
-    // format: on
-    // A completion is delivered while the channel carries its result.
-    on(handler.complete(Resolution.succeeded)) {
-      where(s => states.carries(s.channel, Resolution.succeeded)) ~> (effects.deliver(
-        Policy.rejectAfterClose,
-        Redelivery.untilAck,
-        _,
-        Resolution.succeeded
-      ))
-    }
-    on(handler.complete(Resolution.failed)) {
-      where(s => states.carries(s.channel, Resolution.failed)) ~> (effects.deliver(
-        Policy.rejectAfterClose,
-        Redelivery.untilAck,
-        _,
-        Resolution.failed
-      ))
-    }
-    on(handler.complete(Resolution.canceled)) {
-      where(s => states.carries(s.channel, Resolution.canceled)) ~> (effects.deliver(
-        Policy.rejectAfterClose,
-        Redelivery.untilAck,
-        _,
-        Resolution.canceled
-      ))
-    }
+  object rules extends Facets(closing.rules)
 
   // What the designs promise. Every promise below is an authored design promise, written once and
   // declared as a Property on each design by the claims below. The monitors' promises are the
@@ -996,7 +820,7 @@ object AckByOriginal
       RejectAfterClose
         .assuming(retentionDurable)
         .rebind(
-          handler.complete ~> (RejectAfterClose.effects
+          handler.complete ~> (RejectAfterClose.closing.effects
             .deliver(Policy.ackByOriginal, Redelivery.untilAck, _, _))
         )
     ),
@@ -1020,7 +844,7 @@ object RetainAndRoute
       RejectAfterClose
         .assuming(retentionDurable)
         .rebind(
-          handler.complete ~> (RejectAfterClose.effects
+          handler.complete ~> (RejectAfterClose.closing.effects
             .deliver(Policy.retainAndRoute, Redelivery.untilAck, _, _))
         )
     ):
@@ -1060,7 +884,7 @@ object RetainAndRoute
 object ForgetsCancelOnReset
     extends Derived(
       RetainAndRoute.rebind(
-        callerSide.reset ~> (RejectAfterClose.effects.reset(Reset.forgetsCancel, _))
+        callerSide.reset ~> (RejectAfterClose.closing.effects.reset(Reset.forgetsCancel, _))
       )
     ),
       NegativeControl:
@@ -1073,7 +897,7 @@ object ForgetsCancelOnReset
 object TruncatesOnReset
     extends Derived(
       RetainAndRoute.rebind(
-        callerSide.reset ~> (RejectAfterClose.effects.reset(Reset.truncates, _))
+        callerSide.reset ~> (RejectAfterClose.closing.effects.reset(Reset.truncates, _))
       )
     ),
       NegativeControl:
@@ -1087,7 +911,7 @@ object RetainAndRouteBoundedRetry
       RetainAndRoute
         .assuming(retryFair)
         .rebind(
-          handler.complete ~> (RejectAfterClose.effects
+          handler.complete ~> (RejectAfterClose.closing.effects
             .deliver(Policy.retainAndRoute, Redelivery.once, _, _))
         )
     ):
@@ -1124,12 +948,12 @@ object RejectAfterCloseWithDeadline
       RejectAfterClose
         .assuming(retryFair, deadlineExpires)
         .rebind(
-          handler.complete ~> (RejectAfterClose.effects
+          handler.complete ~> (RejectAfterClose.closing.effects
             .deliver(Policy.rejectAfterClose, Redelivery.once, _, _))
         )
         .extend(
           on(deadline.scheduleToClose) {
-            where(RejectAfterClose.states.expirable) ~> RejectAfterClose.effects.expire
+            where(RejectAfterClose.states.expirable) ~> RejectAfterClose.closing.effects.expire
           }
         )
     ),
@@ -1155,12 +979,12 @@ object AckByOriginalWithDeadline
       AckByOriginal
         .assuming(retryFair, deadlineExpires)
         .rebind(
-          handler.complete ~> (RejectAfterClose.effects
+          handler.complete ~> (RejectAfterClose.closing.effects
             .deliver(Policy.ackByOriginal, Redelivery.once, _, _))
         )
         .extend(
           on(deadline.scheduleToClose) {
-            where(RejectAfterClose.states.expirable) ~> RejectAfterClose.effects.expire
+            where(RejectAfterClose.states.expirable) ~> RejectAfterClose.closing.effects.expire
           }
         )
     ),
@@ -1187,7 +1011,7 @@ object RetainAndRouteWithDeadline
         .assuming(deadlineExpires)
         .extend(
           on(deadline.scheduleToClose) {
-            where(RejectAfterClose.states.expirable) ~> RejectAfterClose.effects.expire
+            where(RejectAfterClose.states.expirable) ~> RejectAfterClose.closing.effects.expire
           }
         )
     ):

@@ -1221,10 +1221,10 @@ class StandaloneActivityPins extends munit.FunSuite:
   }
 
   test("one lost admission response consumes its budget for either durable outcome") {
-    val choices = LostStartAnswer.effects.loseResponse(LostStartAnswer.init)
+    val choices = LostStartAnswer.responseLoss.effects.loseResponse(LostStartAnswer.init)
     assertEquals(
       choices.map(_.state.record),
-      ActivityRecord.effects.admit(ActivityRecord.init).map(_.state)
+      ActivityRecord.admission.effects.admit(ActivityRecord.init).map(_.state)
     )
     assertEquals(choices.map(_.state.lossAvailable), List(false, false))
     val loss = LostStartAnswer.bindings

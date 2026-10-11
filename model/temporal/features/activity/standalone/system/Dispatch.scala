@@ -99,7 +99,7 @@ object history:
 // The corrected design, whose status sets a composition reads through `activity`.
 object ActivityRecord
     extends Machine[AdmissionState, Outcome, AdmissionFact],
-      Phased[AdmissionState, AdmissionPhase](_.phase):
+      Phased[AdmissionState, AdmissionPhase](_.phase), Admission:
   import AdmissionFact.*
   val init =
     AdmissionState(phase = AdmissionPhase.scheduled, active = Active.none, answer = Answer.settled)
@@ -159,38 +159,6 @@ object ActivityRecord
           AdmissionFact.deliveryAnswered =>
         false
 
-  object effects:
-    def sendDispatch(s: State) = enter(s, dispatchSent)
-
-    // A pause keeps whatever message is in flight: nothing recalls it.
-    def pause(s: State) = enter(s.copy(phase = AdmissionPhase.paused), statusPaused)
-
-    // A pause after admission: the attempt it holds was admitted before it.
-    def pauseHeld(s: State) =
-      enter(s.copy(phase = AdmissionPhase.pausedWhileHeld), statusPaused)
-
-    // Its durable update commits or fails; a failed commit owes no answer, so its delivery stays.
-    def admit(s: State) = choose(
-      admissionCommits -> enter(states.admitted(s), statusStarted, attemptAdmitted),
-      admissionCommitFails -> enter(s, admissionCommitFailed)
-        .because("the durable update fails: nothing is admitted and the message stays deliverable")
-    )
-
-    // A delivery that meets a paused activity or an admitted attempt is answered and admits nothing.
-    def rejectDelivery(s: State) = enter(s.copy(answer = Answer.owed), admissionRejected)
-
-    def answerMatching(s: State) =
-      enter(s.copy(answer = Answer.settled), deliveryAnswered)
-
-    def complete(s: State) =
-      enter(
-        s.copy(phase = AdmissionPhase.completed, active = states.oneLess(s.active)),
-        statusCompleted
-      )
-
-    def timeOut(s: State, t: TimeoutType) =
-      enter(s.copy(phase = AdmissionPhase.timedOut, active = Active.none), statusTimedOut(t))
-
   // Monitors, which count from what a step records whatever the design's state says.
   object monitors:
     val atMostOneActiveAttempt =
@@ -203,52 +171,7 @@ object ActivityRecord
         states.finality(f, after) // format: off
       )(_ == Finality.reopened) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
       // format: on
-  object rules extends Rules:
-    on(history.dispatch) {
-      when(AdmissionPhase.scheduled) ~> effects.sendDispatch
-    }
-
-    // A pause of a paused or closed record has no rule, and the other controls are out of scope.
-    on(client.pause) {
-      when(AdmissionPhase.scheduled) ~> effects.pause
-      when(AdmissionPhase.started) ~> effects.pauseHeld
-    }
-
-    // The corrected design re-reads current eligibility: only a scheduled activity admits.
-    on(activityWorker.poll) {
-      when(AdmissionPhase.scheduled) ~> effects.admit
-      when(
-        AdmissionPhase.paused,
-        AdmissionPhase.pausedWhileHeld,
-        AdmissionPhase.started,
-        AdmissionPhase.completed,
-        AdmissionPhase.timedOut
-      ) ~> effects.rejectDelivery
-    }
-    on(history.answerMatching) { // format: off
-      where(_.answer == Answer.owed) ~> effects.answerMatching // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-    } // format: on
-    on(activityWorker.respondCompleted) {
-      when(AdmissionPhase.started) ~> effects.complete
-    }
-
-    // Schedule-to-start covers the wait for a worker, so it fires only before an attempt is
-    // admitted; schedule-to-close covers the whole activity, so it competes with the other deadline
-    // while none has fired.
-    on(deadline.scheduleToStart) {
-      when(AdmissionPhase.scheduled) ~> (effects.timeOut(_, TimeoutType.scheduleToStart))
-    }
-    on(deadline.scheduleToClose) {
-      when(
-        AdmissionPhase.scheduled,
-        AdmissionPhase.paused,
-        AdmissionPhase.pausedWhileHeld,
-        AdmissionPhase.started
-      ) ~> (effects.timeOut(
-        _,
-        TimeoutType.scheduleToClose
-      ))
-    }
+  object rules extends Facets(admission.rules)
 
   // The history record's promises are declared on each admission design and each composition with
   // the record: the Properties its capabilities bring, and the record's own count of active attempts. Each
@@ -276,7 +199,7 @@ object ActivityRecord
         scheduleToCloseTimesOut
       )
 
-  object capabilities extends AdmissionCapabilities
+  object capabilities extends FacetCapabilities(admission.capabilities)
 
   object queries:
     capabilities.bound(five)
@@ -338,7 +261,7 @@ object ActivityRecord
 object TrustingActivityRecord
     extends Derived(
       ActivityRecord.rebind(on(activityWorker.poll) {
-        always ~> ActivityRecord.effects.admit
+        always ~> ActivityRecord.admission.effects.admit
       })
     ),
       NegativeControl:

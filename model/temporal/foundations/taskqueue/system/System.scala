@@ -6,7 +6,6 @@ package temporal
 package foundations.taskqueue
 package system
 
-import scala.annotation.unused
 import framework.*
 import framework.Finite.given
 import Bounds.{seven, twelve}
@@ -23,7 +22,7 @@ val _ = () => summon[CanEqual[Custody, Custody]]
 object TaskQueueSystem
     extends Machine[QueueDetail, QueueOutcome, QueueFact],
       Phased[QueueDetail, Custody](_.custody),
-      FailureModel:
+      FailureModel, Queueing:
   val init = states.idleQueue
   override def end(d: State) = states.queueEnds(d)
   object states:
@@ -69,106 +68,8 @@ object TaskQueueSystem
     // format: off
     def visibleOutcomes(o: QueueOutcome) = o != QueueOutcome.internal // scalafix:ok DisableSyntax.!=; typed equality
     // format: on
-  object effects:
-    def enqueueDetail(s: State) =
-      choose(
-        enqueueCommits -> List(
-          Step(
-            QueueOutcome.committed,
-            QueueDetail(custody = Custody.history, polled = false, delivered = Delivered.never),
-            List(QueueFact.enqueueCommitted)
-          )
-        ),
-        enqueueFails -> List(Step(QueueOutcome.failed, s, List(QueueFact.enqueueFailed)))
-          .because("the durable write fails and no message is outstanding")
-      )
 
-    // An invocation implies no receiver effect: nothing durable changes until matching persists.
-    def invokeDetail(s: State) =
-      enter(s.copy(custody = Custody.invoked), QueueFact.addInvoked)
-
-    def persistDetail(s: State) =
-      enter(s.copy(custody = Custody.persisted), QueueFact.taskPersisted)
-
-    def reserveDetail(s: State) =
-      enter(s.copy(custody = Custody.reserved), QueueFact.matchReserved)
-
-    def deliverDetail(s: State) =
-      List(
-        Step(
-          QueueOutcome.delivered,
-          s.copy(polled = true, delivered = states.oneMoreDelivery(s.delivered)),
-          List(QueueFact.delivered)
-        )
-      )
-
-    // Matching completes the task, which discharges every custodian's obligation.
-    def acknowledgeDetail(@unused s: State) =
-      List(Step(QueueOutcome.acknowledged, states.idleQueue, List(QueueFact.acknowledged)))
-
-    // The answer to the poller is lost. A persisted task stays queued; a sync match fails back to the
-    // invocation, which history retries.
-    def ackLossDetail(s: State) =
-      if s.custody == Custody.reserved then // scalafix:ok DisableSyntax.==; typed equality
-        enter(s.copy(custody = Custody.invoked, polled = false), QueueFact.ackLost)
-      else enter(s.copy(polled = false), QueueFact.ackLost)
-
-    // An ordinary crash loses what is only in memory, the poll, the invocation and a sync match, and
-    // nothing durable: history still holds its dispatch task and retries, and a persisted task is
-    // still queued.
-    def crashDetail(s: State) = s.custody match
-      case Custody.invoked | Custody.reserved =>
-        enter(s.copy(custody = Custody.history, polled = false), QueueFact.crashed)
-      case Custody.nowhere | Custody.history | Custody.persisted =>
-        enter(s.copy(polled = false), QueueFact.crashed)
-
-    // Bound by LossyMatchingQueue alone.
-    def storageLossDetail(@unused s: State) =
-      List(Step(QueueOutcome.lost, states.idleQueue, List(QueueFact.storageLost)))
-
-    // Bound by ForgetfulQueue alone. History drops its dispatch task when it invokes
-    // AddActivityTask, before matching persists anything, so a crash there leaves no custodian for a
-    // message the interface still calls committed.
-    def forgetfulCrash(s: State) = s.custody match
-      case Custody.invoked | Custody.reserved => enter(states.idleQueue, QueueFact.crashed)
-      case Custody.nowhere | Custody.history | Custody.persisted =>
-        enter(s.copy(polled = false), QueueFact.crashed)
-
-    // Bound by VolatileQueue alone. A crash wipes the tasks matching persisted, which history no
-    // longer backs.
-    def volatileCrash(s: State) = s.custody match
-      case Custody.persisted                  => enter(states.idleQueue, QueueFact.crashed)
-      case Custody.invoked | Custody.reserved =>
-        enter(s.copy(custody = Custody.history, polled = false), QueueFact.crashed)
-      case Custody.nowhere | Custody.history => enter(s.copy(polled = false), QueueFact.crashed)
-
-  // Each step of the route takes the message from the custodian before it; a poll takes a task
-  // matching holds, and the consumer's answer completes it. A crash may fall anywhere.
-  object rules extends Rules:
-    on(queue.enqueue) {
-      when(Custody.nowhere) ~> effects.enqueueDetail
-    }
-    on(queue.addActivityTask) {
-      when(Custody.history) ~> effects.invokeDetail
-    }
-    on(queue.persistTask) {
-      when(Custody.invoked) ~> effects.persistDetail
-    }
-    on(queue.syncMatch) {
-      when(Custody.invoked) ~> effects.reserveDetail
-    }
-    on(queue.deliver) {
-      where(states.deliverable) ~> effects.deliverDetail
-    }
-    on(queue.acknowledge) {
-      where(states.answerable) ~> effects.acknowledgeDetail
-    }
-    on(fault.ackLoss) {
-      where(_.polled) ~> effects.ackLossDetail
-    }
-    on(fault.crash) {
-      always ~> effects.crashDetail
-    }
+  object rules extends Facets(queueing.rules)
 
   // What a provider promises.
   object properties:
@@ -251,7 +152,7 @@ object LossyMatchingQueue
     extends Derived(
       TaskQueueSystem
         .extend(on(fault.storageLoss) {
-          where(TaskQueueSystem.states.held) ~> TaskQueueSystem.effects.storageLossDetail
+          where(TaskQueueSystem.states.held) ~> TaskQueueSystem.queueing.effects.storageLossDetail
         })
         .refining(TaskQueueProductUnderStorageLoss)(TaskQueueSystem.refinement.toProduct)
         .assuming(storageLossAssumed)
@@ -281,7 +182,7 @@ object LossyMatchingQueue
 
 // A crash that loses the message history dropped on invoking AddActivityTask.
 object ForgetfulQueue
-    extends Derived(TaskQueueSystem.rebind(fault.crash ~> TaskQueueSystem.effects.forgetfulCrash)),
+    extends Derived(TaskQueueSystem.rebind(fault.crash ~> TaskQueueSystem.queueing.effects.forgetfulCrash)),
       NegativeControl:
 
   object queries:
@@ -290,7 +191,7 @@ object ForgetfulQueue
 
 // A crash that wipes the tasks matching persisted.
 object VolatileQueue
-    extends Derived(TaskQueueSystem.rebind(fault.crash ~> TaskQueueSystem.effects.volatileCrash)),
+    extends Derived(TaskQueueSystem.rebind(fault.crash ~> TaskQueueSystem.queueing.effects.volatileCrash)),
       NegativeControl:
 
   object queries:

@@ -42,6 +42,12 @@ import framework.*
 import product.ActivityProduct
 import system.{ActivitySystem, StandaloneActivity}
 
+// The standalone activity's facet vocabulary (fn-161), shared by the Product and the System; the
+// admission designs and the lost-answer race have their own.
+enum FacetName:
+  case dispatching, pausing, cancellation, lifecycle, reset, heartbeat, completion, retry, timeouts
+  case admission, heldAdmission, responseLoss
+
 // ### Signature
 
 enum MaxAttempts derives Finite:

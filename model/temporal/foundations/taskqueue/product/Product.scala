@@ -6,7 +6,6 @@ package temporal
 package foundations.taskqueue
 package product
 
-import scala.annotation.unused
 import framework.*
 import framework.Finite.given
 
@@ -16,7 +15,7 @@ val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Out
 // The opaque provider.
 object TaskQueueProduct
     extends Machine[QueueView, QueueOutcome, QueueFact],
-      Phased[QueueView, Outstanding](_.outstanding):
+      Phased[QueueView, Outstanding](_.outstanding), Queueing:
   val init = QueueView(Outstanding.empty) // format: off
   override def end(q: State) = q.outstanding == Outstanding.empty // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
   object states: // format: on
@@ -24,74 +23,18 @@ object TaskQueueProduct
     def holding(s: State) =
       s.outstanding.in(Outstanding.committed, Outstanding.deliveredOnce, Outstanding.deliveredTwice)
 
-  object effects:
-    def enqueueView(s: State) =
-      choose(
-        enqueueCommits -> List(
-          Step(
-            QueueOutcome.committed,
-            QueueView(Outstanding.committed),
-            List(QueueFact.enqueueCommitted)
-          )
-        ),
-        enqueueFails -> List(Step(QueueOutcome.failed, s, List(QueueFact.enqueueFailed)))
-          .because("the durable write fails and no message is outstanding")
-      )
-
-    def deliverView(s: State) = // format: off
-      if s.outstanding == Outstanding.committed then // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-        List( // format: on
-          Step(
-            QueueOutcome.delivered,
-            QueueView(Outstanding.deliveredOnce),
-            List(QueueFact.delivered)
-          )
-        )
-      else
-        List(
-          Step(
-            QueueOutcome.delivered,
-            QueueView(Outstanding.deliveredTwice),
-            List(QueueFact.delivered)
-          )
-        ).because("a message not yet acknowledged may be delivered again")
-
-    def acknowledgeView(@unused s: State) =
-      List(
-        Step(
-          QueueOutcome.acknowledged,
-          QueueView(Outstanding.empty),
-          List(QueueFact.acknowledged)
-        )
-      )
-
-    // Bound by TaskQueueProductUnderStorageLoss alone.
-    def storageLossView(@unused s: State) =
-      List(Step(QueueOutcome.lost, QueueView(Outstanding.empty), List(QueueFact.storageLost)))
-
   object monitors:
     // A check over the opaque queue rests on the interface alone.
     val queueOpaque = assume("taskQueueProduct.opaque")
 
-  // An empty queue takes an enqueue; a committed message is delivered up to twice; a delivered one
-  // is acknowledged.
-  object rules extends Rules:
-    on(queue.enqueue) {
-      when(Outstanding.empty) ~> effects.enqueueView
-    }
-    on(queue.deliver) {
-      when(Outstanding.committed, Outstanding.deliveredOnce) ~> effects.deliverView
-    }
-    on(queue.acknowledge) {
-      when(Outstanding.deliveredOnce, Outstanding.deliveredTwice) ~> effects.acknowledgeView
-    }
+  object rules extends Facets(queueing.rules)
 
 // The interface under the storage-loss assumption: a committed message may also vanish.
 object TaskQueueProductUnderStorageLoss
     extends Derived(
       TaskQueueProduct
         .extend(on(fault.storageLoss) {
-          where(TaskQueueProduct.states.holding) ~> TaskQueueProduct.effects.storageLossView
+          where(TaskQueueProduct.states.holding) ~> TaskQueueProduct.queueing.effects.storageLossView
         })
         .assuming(storageLossAssumed)
     ),

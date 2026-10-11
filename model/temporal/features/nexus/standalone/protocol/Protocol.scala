@@ -6,9 +6,8 @@ package protocol
 import scala.annotation.unused
 import framework.*
 import framework.Finite.given CanEqual[?, ?]
-import framework.outcomes.{Outcome, Rejection}
+import framework.outcomes.Outcome
 import framework.realize.Reason
-import temporal.capabilities.*
 import temporal.realize.inconclusive
 import temporal.Bounds.three
 
@@ -35,7 +34,9 @@ enum Fact derives Finite:
 
 import Fact.nexusOperationTerminated as NT
 
-object NexusProtocol extends Machine[State, Outcome, Fact], Phased[State, Phase](_.phase):
+val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
+
+object NexusProtocol extends Machine[State, Outcome, Fact], Phased[State, Phase](_.phase), Operation:
   val init = protocol.State(phase = Phase.unstarted, cancelRequested = false)
   // A path ends where the operation is over: `end` reads the Closed role.
   override def end(s: State) = s.phase.in[Closed]
@@ -64,74 +65,7 @@ object NexusProtocol extends Machine[State, Outcome, Fact], Phased[State, Phase]
       case _: NS.type | _: NC.type | _: NF.type | _: NX.type | _: NT.type => true
     def visibleOutcomes(@unused o: Outcome): Boolean = false
 
-  object effects:
-    import Fact.*
-
-    def start(@unused s: State) =
-      enter(protocol.State(phase = Phase.scheduled, cancelRequested = false), statusScheduled)
-
-    // TransitionStarted, or a synchronous completion straight from scheduled; a canceled answer
-    // settles it canceled (operation.go invocationResultCancel, onCanceled).
-    def syncSuccess(s: State) = enter(s.copy(phase = Phase.succeeded), nexusOperationCompleted)
-    def syncFailure(s: State) = enter(s.copy(phase = Phase.failed), nexusOperationFailed)
-    def syncCanceled(s: State) = enter(s.copy(phase = Phase.canceled), nexusOperationCanceled)
-    def async(s: State) = enter(s.copy(phase = Phase.started), nexusOperationStarted)
-
-    // An async operation's completion; a canceled failure settles it canceled.
-    def complete(s: State, r: Resolution) =
-      r match
-        case Resolution.succeeded => enter(s.copy(phase = Phase.succeeded), nexusOperationCompleted)
-        case Resolution.failed    => enter(s.copy(phase = Phase.failed), nexusOperationFailed)
-        case Resolution.canceled  => enter(s.copy(phase = Phase.canceled), nexusOperationCanceled)
-
-    // RequestCancel records the request and leaves the operation live: it is sent to the handler
-    // only once started (operation.go RequestCancel).
-    def requestCancel(s: State) = enter(s.copy(cancelRequested = true), statusCancelRequested)
-
-    // Terminate settles a live operation terminated (TransitionTerminated).
-    def terminate(s: State) = enter(s.copy(phase = Phase.terminated), nexusOperationTerminated)
-
-    // A control that repeats a request the operation took is the same request, answered OK.
-    def repeated(s: State) = stay(s)
-
-  object rules extends Rules:
-    on(client.start) {
-      when(Phase.unstarted) ~> effects.start
-    }
-    on(handler.reply(Reply.syncSuccess)) {
-      when(Phase.scheduled) ~> effects.syncSuccess
-    }
-    on(handler.reply(Reply.operationFailed)) {
-      when(Phase.scheduled) ~> effects.syncFailure
-    }
-    on(handler.reply(Reply.operationCanceled)) {
-      when(Phase.scheduled) ~> effects.syncCanceled
-    }
-    on(handler.reply(Reply.async)) {
-      when(Phase.scheduled) ~> effects.async
-    }
-    on(handler.complete) {
-      when(Phase.started) ~> effects.complete
-    }
-
-    // A repeated cancel request is the same request; one of a closed operation is alreadyCompleted,
-    // unless it repeats one the operation took (operation.go RequestCancel).
-    on(client.requestCancel) {
-      when(states.created).where(_.cancelRequested) ~> effects.repeated
-      when[Closed].where(!_.cancelRequested) ~>
-        rejects(Rejection.failedPrecondition).because("operation already completed")
-      // Started and not over: the phases a control settles or records a request in.
-      when[Live].where(!_.cancelRequested) ~> effects.requestCancel
-    }
-
-    // A repeated terminate of a terminated operation is the same request, answered OK; any other
-    // control of a closed one is alreadyCompleted (operation.go Terminate).
-    on(client.terminate) {
-      when(Phase.terminated) ~> effects.repeated
-      when(Phase.succeeded, Phase.failed, Phase.canceled) ~>
-        rejects(Rejection.failedPrecondition).because("operation already completed")
-      when(Phase.scheduled, Phase.started) ~> effects.terminate
-    }
+  object rules extends Facets(operation.rules)
 
   // What the operation promises of its own: its reading of closed rejection, which its capabilities
   // put in place of the shared Property, and its recorded cancel request.
@@ -158,34 +92,7 @@ object NexusProtocol extends Machine[State, Outcome, Fact], Phased[State, Phase]
           (after.state == before && (after.outcome == rejected || after.outcome == Outcome.accepted && // scalafix:ok DisableSyntax.==; typed equality
             (before.cancelRequested || before.phase == Phase.terminated))) // scalafix:ok DisableSyntax.==; typed equality
       )
-  // format: off
-  // What the operation is, as the Properties in model/temporal/capabilities read it: it closes, a client
-  // terminates it, and DescribeNexusOperationExecution reports its status.
-  // It receives the Properties without listing them, each named `nexusProtocol.<property>`. It reads the
-  // realization, which reads this machine, so it waits in a section, which initializes on its first
-  // use.
-  //
-  // The rejection is the operation's own: alreadyCompleted, a FailedPrecondition, where the activity
-  // answers NotFound (operation.go ErrOperationAlreadyCompleted). Each same-step Property's find starts
-  // the operation, which no handler answers, so it stays running, then takes the control. A Run
-  // explains an unobserved control of a closed operation too, which records nothing, so a Run of a
-  // terminate or cancel find leaves the claim inconclusive: its explanations disagree. The cancel
-  // find is the operation's own, cancelIsRequested in queries.
-  object capabilities extends Capabilities:
-    val closable: Capability = Closable(
-      rejected = Outcome.rejected(Rejection.failedPrecondition)
-    )
-    val terminable: Capability = Terminable(
-      terminate = client.terminate,
-      settled = Fact.nexusOperationTerminated,
-      reach = Seq(client.start),
-      expect = inconclusive(Reason.explanationsDisagree)
-    )
-    val describable: Capability = Describable(statusTable = operationStatus)
-    overriding(
-      Closable.closedIsRejectedUniformly[State, Phase, Outcome] -> properties.closedRejectsOrRepeats,
-      because = states.repeatedRequestsAnswer
-    )
+  object capabilities extends FacetCapabilities(operation.capabilities)
   // format: on
   object queries:
     capabilities.bound(three)

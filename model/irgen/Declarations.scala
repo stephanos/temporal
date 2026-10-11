@@ -473,7 +473,7 @@ private[irgen] trait Declarations:
             "which its rules are lifted from"
         )
       // fn-161 R8, switched (Switches): a declared machine's effects and rules sit in its facets.
-      if Switches.facetsOnly && !core then
+      if Switches.facetsOnly(cls.fullName) && !core then
         for e <- sectionOf(c, "effects") do
           fail(
             e,
@@ -514,7 +514,10 @@ private[irgen] trait Declarations:
           liftingMachine = Some(cls)
           try ruleSteps(name, typeRef(s, c), rules, c.symbol)
           finally liftingMachine = outer
-      if Switches.facetVocabulary then sameFacets(name, refined.refines.map(_.product), c)
+      // A design subject with a state of its own (`AdmissionState`), rather than its level's `State`,
+      // is a model of its own beside the level, so its facets are its own.
+      if Switches.facetVocabulary(cls.fullName) && s.dealias.typeSymbol.name == "State" then // scalafix:ok DisableSyntax.==; typed equality
+        sameFacets(name, refined.refines.map(_.product), c)
       val folded = inferredEntity(watched.addAllSteps(steps), c)
       val m = finished(folded, f, c, visible.toSeq, visibleOutcomes.toSeq)
       checkChannels(m, irTypeName(s.dealias.typeSymbol), c)
@@ -757,7 +760,7 @@ private[irgen] trait Declarations:
               s"$machine's facet $written holds its sections in object $name: a facet's object is " +
                 s"named after it, `object ${written.take(1).toLowerCase + written.drop(1)}`"
             )
-          if Switches.facetVocabulary then
+          if Switches.facetVocabulary(facet.fullName) then
             vocabularyOf(facet.maybeOwner) match
               case None =>
                 fail(

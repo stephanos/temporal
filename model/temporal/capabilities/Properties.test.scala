@@ -188,14 +188,14 @@ class CapabilityPropertiesTest extends munit.FunSuite:
   test("every Closable site binds only its rejection, including all four derived owners") {
     val closables = Seq(
       product.ActivityProduct.lifecycle.capabilities.closable,
-      system.ActivityRecord.capabilities.closable,
+      system.ActivityRecord.admission.capabilities.closable,
       system.TrustingActivityRecord.capabilities.closable,
       system.RecordOverQueue.capabilities.closable,
       system.RecordOverMatching.capabilities.closable,
       system.TrustingRecordOverQueue.capabilities.closable,
       system.TrustingRecordOverMatching.capabilities.closable,
       system.RecordOverLossyMatching.capabilities.closable,
-      NexusProtocol.capabilities.closable
+      NexusProtocol.operation.capabilities.closable
     )
     assertEquals(closables.size, 9)
     for closable <- closables do
@@ -217,7 +217,7 @@ class CapabilityPropertiesTest extends munit.FunSuite:
     val pausableAndPollable = Seq(
       product.ActivityProduct.pausing.capabilities.pausable ->
         product.ActivityProduct.dispatching.capabilities.pollable,
-      system.ActivityRecord.capabilities.pausable -> system.ActivityRecord.capabilities.pollable,
+      system.ActivityRecord.admission.capabilities.pausable -> system.ActivityRecord.admission.capabilities.pollable,
       system.TrustingActivityRecord.capabilities.pausable ->
         system.TrustingActivityRecord.capabilities.pollable,
       system.RecordOverQueue.capabilities.pausable -> system.RecordOverQueue.capabilities.pollable,

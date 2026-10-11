@@ -1320,7 +1320,7 @@ are its sections:
 
 ```scala
 trait Pausing extends Facet[State, Outcome, Fact], Phased[State, Phase]:
-  this: Dispatch => // the facets whose steps it uses
+  this: Completion => // the facets whose steps or claims it uses
   object pausing:
     object effects:
       def pauseHeld(s: State) = choose(pauseApplied -> enters(Phase.paused)(s), ...)
@@ -1329,41 +1329,47 @@ trait Pausing extends Facet[State, Outcome, Fact], Phased[State, Phase]:
         when(Phase.scheduled) ~> enters(Phase.paused)
         when(Phase.started) ~> effects.pauseHeld
       }
+    object capabilities extends Capabilities:
+      val pausable: Capability = Pausable(pause = client.pause, unpause = client.unpause)
+    object queries:
+      val pauseResume = query find completion.properties.completes in pausedThenCompleted limits six
 ```
 
-The machine mixes in its facets and lists their rules in facet order:
+The machine mixes in its facets and lists their rules and capabilities in facet order:
 
 ```scala
 object ActivitySystem
     extends Machine[State, Outcome, Fact],
       Phased[State, Phase](_.phase, (s, p) => s.copy(phase = p)),
-      Dispatch,
-      Pausing:
-  object rules extends Facets(dispatch.rules, pausing.rules)
+      Dispatching,
+      Pausing,
+      Completion:
+  object rules extends Facets(dispatching.rules, pausing.rules, completion.rules)
+  object capabilities extends FacetCapabilities(pausing.capabilities)
 ```
 
 A facet that calls another facet's step names it in its self-type, so a machine that does not mix
 the depended-on facet in does not compile; steps many facets use sit in a base facet. Two facets
 that both bind an action are refused when the rules construct and by the IR generator, naming the
 action and both facets; one facet per file, named after it, is the structure lint's rule for the
-Temporal Models. A machine may consist of a single facet. Each facet's Properties and Queries stay
-in their own derived claim object beside the facet, in its file, so their names keep their
-identities. The machine lifts as if every facet's sections were written in it, in facet order
-(model/SEMANTICS.md, Machines, Facets): rows, outcomes and facts are those of the same machine
-written as one object; only function names and positions differ.
+Temporal Models. A machine may consist of a single facet. A facet's `properties` and `queries`
+are its machine's claims: each Property is declared once, in the facet whose promise it states, and
+keeps its name; a Query asks a Property of any facet it depends on. The machine lifts as if every
+facet's sections were written in it, in facet order (model/SEMANTICS.md, Machines, Facets): rows,
+outcomes and facts are those of the same machine written as one object; only function names,
+positions and the order the machine binds its actions in (facet order) differ.
 
-Two rules land switched off (`model/irgen/Switches.scala`; `UMPIRE_LIFT_RULES` turns them on for a
-run) and are turned on once every machine is migrated (fn-161.4):
+Two lifter rules hold every Temporal Model (`model/irgen/Switches.scala`; `UMPIRE_LIFT_RULES` turns
+them on for a fixture's run):
 
-- `facets-only`: a declared `Machine` declares rules and effects only in facets; its `rules` is
-  `Facets(...)`. Derived machines and compositions are exempt.
+- `facets-only`: a declared `Machine` declares rules, effects and capabilities only in facets; its
+  `rules` is `Facets(...)` and its `capabilities` `FacetCapabilities(...)`. Derived machines and
+  compositions are exempt.
 - `facet-vocabulary`: each feature file names the facets of its levels once, `enum FacetName: case
   completion, pausing, ...`; every facet's object takes its name from it, a level holds only the
   facets it needs, and an action bound at both the Product and the Protocol level is owned by the
-  same-named facet at both.
-
-A facet holds `effects` and `rules`; its machine's `capabilities` stay in the machine object until
-the lifter reads a facet's own `capabilities` section.
+  same-named facet at both. A design subject with a state type of its own (`AdmissionState`) is a
+  model beside its level, and its facets are its own.
 
 ### Capabilities and their Properties
 

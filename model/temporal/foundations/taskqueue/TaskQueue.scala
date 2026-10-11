@@ -72,6 +72,10 @@ final case class QueueDetail(custody: Custody, polled: Boolean, delivered: Deliv
 // The claims every provider of the detailed queue is held to, declared once by `queueClaims`.
 final case class QueueClaims(delivers: Property[QueueDetail], committedStays: Property[QueueDetail])
 
+// The task queue's facet vocabulary (fn-161), shared by its levels: each level is one facet.
+enum FacetName:
+  case queueing
+
 // ### Signature
 
 // Named by the task queue's name, as the worker that polls it is. Messages and their deliveries are
