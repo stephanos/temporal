@@ -208,6 +208,10 @@ source/consumer partition follows the owner's Scala-only mode and its review rem
 The Go report lane (.3) is held at its existing checkpoint. Scala grouping follows fn-140.10's
 committed witness source seal, then releases fn-164 before the pre-fault comparison and fn-123.
 Consumer closure remains shared at fn-123.8.
+Discovery source/closure commits `b751748cae`/`1c6ee11392` are integrated locally.
+The independently authenticated 792-file source seal proves six Properties/four Progress claims,
+native initialization and full six-file scratch-lift parity; native step tables remain unchanged.
+This releases placement task .2, not consumer closure or the final grouping seal.
 The report checkpoint is integrated as `da8f78204a`: classification is derived, and progress
 receipts expose their declared `within` separately from exploration limits. Focused integrated
 checks preserve witness verdicts and independent safety failures; the full checker gate remains open.
@@ -223,7 +227,6 @@ shared gate/review/live proofs at fn-123.8; source results substitute for none o
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-149.1 | 🔄 in progress (Scala) | Admitted from committed fn-140.10 seal; designated-group discovery and independent native initialization/lifter inventory proof underway; consumer outcomes retained in .4/.5 |
 | fn-149.2 | ⬜ todo | Declaration-kind placement checks and source-attributed refusals |
 | fn-149.3 | ⏸️ deferred (Go) | Reporting checkpoint integrated; focused classification, distinct bounds and safety/progress coexistence checks pass; full gates/review held |
 | fn-149.6 | ⬜ todo | Scala Model/capability migration, native row/inventory pins and exact scratch-lift identity/span seal |
