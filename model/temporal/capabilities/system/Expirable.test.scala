@@ -2,7 +2,7 @@ package framework
 
 import framework.Finite.given
 
-import temporal.capabilities.Expirable
+import temporal.capabilities.system.Expirable
 
 object ExpirableFixture:
   enum Phase derives Finite:

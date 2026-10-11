@@ -8,7 +8,7 @@ import scala.annotation.unused
 import framework.*
 import framework.Finite.given
 import framework.outcomes.{Outcome, Rejection}
-import temporal.capabilities.*
+import temporal.capabilities.system.*
 import temporal.actors.worker.worker
 
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]

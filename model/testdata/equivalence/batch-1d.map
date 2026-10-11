@@ -62,3 +62,11 @@ activity-standalone-record activity-standalone
 activity-standalone-race activity-standalone
 nexus-workflow-control nexus-workflow
 nexus-workflow-close nexus-workflow
+# fn-163.1: capabilities split into product/ and system/ (IR: capability origins).
+temporal.capabilities.Closable temporal.capabilities.product.Closable
+temporal.capabilities.Pausable temporal.capabilities.product.Pausable
+temporal.capabilities.Pollable temporal.capabilities.product.Pollable
+temporal.capabilities.Terminable temporal.capabilities.product.Terminable
+temporal.capabilities.Describable temporal.capabilities.product.Describable
+temporal.capabilities.Retryable temporal.capabilities.system.Retryable
+temporal.capabilities.Expirable temporal.capabilities.system.Expirable

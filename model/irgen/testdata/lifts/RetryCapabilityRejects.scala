@@ -1,7 +1,7 @@
 package fixture.retrycapabilityrejects
 
 import framework.*; import framework.Finite.given
-import temporal.capabilities.Retryable
+import temporal.capabilities.system.Retryable
 import fixture.retrycapabilities.*
 import fixture.retrycapabilities.given
 

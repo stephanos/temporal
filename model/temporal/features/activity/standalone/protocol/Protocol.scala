@@ -9,7 +9,7 @@ import framework.*
 import framework.Finite.given
 import framework.outcomes.Outcome
 import framework.realize.Reason
-import temporal.capabilities.*
+import temporal.capabilities.system.*
 import temporal.realize.inconclusive
 import Bounds.{eight, three}
 import actors.worker.worker as process

@@ -20,7 +20,7 @@ package protocol
 import framework.*
 import framework.Finite.given
 import framework.outcomes.{Outcome, Rejection}
-import temporal.capabilities.*
+import temporal.capabilities.product.*
 import foundations.taskqueue.{QueueDetail, QueueView}
 
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]

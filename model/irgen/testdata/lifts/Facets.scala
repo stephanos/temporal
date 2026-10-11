@@ -6,7 +6,7 @@
 package fixture.facets
 
 import framework.*
-import temporal.capabilities.Closable
+import temporal.capabilities.product.Closable
 
 val two = Limits(steps = 2, actions = 2, search = 64)
 

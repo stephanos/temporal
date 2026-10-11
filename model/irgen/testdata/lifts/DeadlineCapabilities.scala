@@ -1,7 +1,7 @@
 package fixture.deadlinecapabilities
 
 import framework.*; import framework.Finite.given
-import temporal.capabilities.Expirable
+import temporal.capabilities.system.Expirable
 
 enum Phase derives Finite:
   case waiting extends Phase, Waiting

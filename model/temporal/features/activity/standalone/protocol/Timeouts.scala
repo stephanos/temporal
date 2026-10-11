@@ -9,7 +9,7 @@ package protocol
 import framework.*
 import framework.Finite.given
 import framework.outcomes.Outcome
-import temporal.capabilities.*
+import temporal.capabilities.system.*
 import framework.realize.Reason
 import temporal.realize.inconclusive
 import Bounds.{six, three}

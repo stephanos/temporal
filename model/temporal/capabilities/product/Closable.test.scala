@@ -2,7 +2,7 @@ package framework
 
 import framework.Finite.given
 
-import temporal.capabilities.Closable
+import temporal.capabilities.product.Closable
 
 object ClosingFixture:
   enum Phase derives Finite:
@@ -29,7 +29,7 @@ class ClosableSuite extends munit.FunSuite:
   test("an abstract phase cannot declare Closable without its runtime type witness"):
     val errors = scala.compiletime.testing.typeCheckErrors("""
       import framework.*
-      import temporal.capabilities.Closable
+      import temporal.capabilities.product.Closable
       def closing[S, P](using Phasing[S, P], Finite[P]) = Closable[S, P, String]("rejected")
     """)
     assert(errors.exists(_.message.contains("ClassTag")), errors.toString)

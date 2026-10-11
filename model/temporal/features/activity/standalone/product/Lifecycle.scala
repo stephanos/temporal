@@ -6,7 +6,7 @@ package product
 
 import framework.*
 import framework.outcomes.{Outcome, Rejection}
-import temporal.capabilities.*
+import temporal.capabilities.product.*
 
 trait Lifecycle extends Facet[State, Outcome, Fact], Phased[State, Phase]:
   object lifecycle:

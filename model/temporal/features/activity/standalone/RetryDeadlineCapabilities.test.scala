@@ -2,7 +2,7 @@ package framework
 
 import framework.Finite.given
 
-import temporal.capabilities.{Expirable, Retryable}
+import temporal.capabilities.system.{Expirable, Retryable}
 import temporal.features.activity.{deadline as activityDeadline, Failure, TimeoutType}
 import temporal.features.activity.standalone.{activityWorker, MaxAttempts}
 import temporal.features.activity.standalone.protocol as activity

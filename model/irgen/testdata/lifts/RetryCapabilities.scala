@@ -1,7 +1,8 @@
 package fixture.retrycapabilities
 
 import framework.*; import framework.Finite.given
-import temporal.capabilities.{Closable, Retryable}
+import temporal.capabilities.product.Closable
+import temporal.capabilities.system.Retryable
 
 enum SimplePhase derives Finite:
   case waiting extends SimplePhase, Waiting

@@ -2,7 +2,7 @@ package framework
 
 import framework.Finite.given
 
-import temporal.capabilities.Closable
+import temporal.capabilities.product.Closable
 import temporal.features.activity.standalone.{activityWorker, client, product, protocol}
 import temporal.features.activity.standalone.product.ActivityProduct
 import temporal.features.activity.standalone.product.ActivityProduct.phased

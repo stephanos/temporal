@@ -7,7 +7,7 @@ package protocol
 
 import framework.*
 import framework.outcomes.{Outcome, Rejection}
-import temporal.capabilities.*
+import temporal.capabilities.product.*
 import framework.realize.Reason
 import temporal.realize.inconclusive
 import actors.worker.worker as process

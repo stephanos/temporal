@@ -285,7 +285,7 @@ final private[irgen] class Conventions(index: Index):
     // (an open layering question, fn-160 R9).
     def describable(t: Tree): Boolean = t match
       case v: ValDef =>
-        v.rhs.exists(_.tpe.widen.dealias.typeSymbol.fullName == "temporal.capabilities.Describable") // scalafix:ok DisableSyntax.==; typed equality
+        v.rhs.exists(_.tpe.widen.dealias.typeSymbol.fullName == "temporal.capabilities.product.Describable") // scalafix:ok DisableSyntax.==; typed equality
       case _ => false
     object check extends TreeTraverser:
       override def traverseTree(t: Tree)(owner: Symbol): Unit =

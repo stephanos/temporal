@@ -2698,7 +2698,7 @@ class Fixtures extends munit.FunSuite:
       val property = p.path("name").asText().split('.').last
       assertEquals(
         p.path("origin").path("name").asText(),
-        s"temporal.capabilities.Retryable.$property"
+        s"temporal.capabilities.system.Retryable.$property"
       )
       if property.startsWith("failure") then
         assert(p.path("transition").asBoolean())
@@ -2758,7 +2758,7 @@ class Fixtures extends munit.FunSuite:
     val overridden = property("selectedFailures.fatal.failureEndsFailed")
     assertEquals(
       overridden.path("origin").path("name").asText(),
-      "temporal.capabilities.Retryable.failureEndsFailed"
+      "temporal.capabilities.system.Retryable.failureEndsFailed"
     )
     def body(name: String) =
       val f = functions(property(name).path("holds").asText())
@@ -2853,7 +2853,7 @@ class Fixtures extends munit.FunSuite:
       assert(p.has("whenClass"))
       assertEquals(
         p.path("origin").path("name").asText(),
-        s"temporal.capabilities.Expirable.${name.split('.').last}"
+        s"temporal.capabilities.system.Expirable.${name.split('.').last}"
       )
       assertEquals(
         p.path("position").path("file").asText(),

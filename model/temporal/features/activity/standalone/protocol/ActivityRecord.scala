@@ -9,7 +9,7 @@ package protocol
 import framework.*
 import framework.Finite.given
 import framework.outcomes.{Outcome, Rejection}
-import temporal.capabilities.*
+import temporal.capabilities.product.*
 import Bounds.{five, four, three}
 import product.ActivityProduct
 import product.ActivityProduct.phased

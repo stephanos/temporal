@@ -2,7 +2,7 @@ package framework
 
 import framework.Finite.given
 
-import temporal.capabilities.{Pausable, Pollable}
+import temporal.capabilities.product.{Pausable, Pollable}
 
 object PausingFixture:
   enum Phase derives Finite:
@@ -56,13 +56,13 @@ class PausableSuite extends munit.FunSuite:
   test("an abstract phase cannot declare Pausable or Pollable without runtime type witnesses"):
     val pausableErrors = scala.compiletime.testing.typeCheckErrors("""
       import framework.*
-      import temporal.capabilities.Pausable
+      import temporal.capabilities.product.Pausable
       def pausing[S, P](pause: ClassRef, unpause: ClassRef)(using Phasing[S, P], Finite[P]) =
         Pausable[S, P](pause, unpause)
     """)
     val pollableErrors = scala.compiletime.testing.typeCheckErrors("""
       import framework.*
-      import temporal.capabilities.Pollable
+      import temporal.capabilities.product.Pollable
       def polling[S, P](dispatch: ClassRef)(using Phasing[S, P], Finite[P]) =
         Pollable[S, P](dispatch)
     """)

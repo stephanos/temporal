@@ -1,7 +1,7 @@
 package fixture.deadlinecapabilityrejects
 
 import framework.*; import framework.Finite.given
-import temporal.capabilities.Expirable
+import temporal.capabilities.system.Expirable
 import fixture.deadlinecapabilities.*
 import fixture.deadlinecapabilities.given
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]

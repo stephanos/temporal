@@ -1,5 +1,5 @@
 // Closing an entity; Closed phases define the terminal statuses its Properties read.
-package temporal.capabilities
+package temporal.capabilities.product
 
 import framework.*
 import framework.Finite.given

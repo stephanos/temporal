@@ -8,7 +8,7 @@ package protocol
 import framework.*
 import framework.Finite.given
 import framework.outcomes.{Outcome, Rejection}
-import temporal.capabilities.*
+import temporal.capabilities.system.*
 import temporal.realize.satisfied
 import Bounds.{eight, four}
 import Timeout.expires

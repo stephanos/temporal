@@ -1,5 +1,5 @@
 // Polling hands an entity's work to a worker; Held phases say where the worker owns it.
-package temporal.capabilities
+package temporal.capabilities.product
 
 import framework.*
 import scala.annotation.unused

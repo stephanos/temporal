@@ -1,5 +1,5 @@
 // The realization's table from each recorded fact to the status a description reads.
-package temporal.capabilities
+package temporal.capabilities.product
 
 import framework.*
 import framework.realize.StatusTable

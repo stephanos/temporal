@@ -7,7 +7,7 @@ package product
 import framework.*
 import framework.outcomes.Outcome
 import scala.annotation.unused
-import temporal.capabilities.*
+import temporal.capabilities.product.*
 
 trait Dispatching extends Facet[State, Outcome, Fact], Phased[State, Phase]:
   object dispatching:

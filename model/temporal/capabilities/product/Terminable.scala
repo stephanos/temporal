@@ -1,5 +1,5 @@
 // Terminating a live entity settles it in the same step.
-package temporal.capabilities
+package temporal.capabilities.product
 
 import framework.*
 import framework.realize.RunExpectation

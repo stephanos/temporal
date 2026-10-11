@@ -3,7 +3,7 @@ package framework
 import temporal.features.activity.standalone.realization.*
 import framework.Finite.given
 
-import temporal.capabilities.Expirable
+import temporal.capabilities.system.Expirable
 import temporal.features.activity.{deadline, Timeout, TimeoutType}
 import temporal.features.activity.standalone.{
   activityWorker,

@@ -161,7 +161,7 @@ class DefaultEndsSuite extends munit.FunSuite:
     for p <- properties if p.path("name").asText().endsWith("terminalStatesAreFinal") do
       assertEquals(
         p.path("origin").path("name").asText(),
-        "temporal.capabilities.Closable.terminalStatesAreFinal"
+        "temporal.capabilities.product.Closable.terminalStatesAreFinal"
       )
       val function =
         model

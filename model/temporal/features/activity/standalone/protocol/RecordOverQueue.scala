@@ -4,7 +4,7 @@ package standalone
 package protocol
 import framework.*
 import framework.Finite.given
-import temporal.capabilities.*
+import temporal.capabilities.product.*
 import Bounds.{five, three}
 import foundations.taskqueue.{queue, Outstanding}
 import foundations.taskqueue.product.TaskQueueProduct

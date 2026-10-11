@@ -1433,7 +1433,8 @@ repeat its projection.
 file collects each capability section as a root:
 
 ```scala
-import temporal.capabilities.*
+import temporal.capabilities.product.*
+import temporal.capabilities.system.*
 
 // In ActivityProduct:
 object capabilities extends Capabilities:

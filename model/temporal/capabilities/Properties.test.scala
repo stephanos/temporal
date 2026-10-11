@@ -1,4 +1,7 @@
 package temporal.capabilities
+
+import temporal.capabilities.product.{Closable, Describable, Pausable, Pollable, Terminable}
+import temporal.capabilities.system.{Expirable, Retryable}
 // Every shared capability Property has two machines with their own state types.
 
 import framework.{

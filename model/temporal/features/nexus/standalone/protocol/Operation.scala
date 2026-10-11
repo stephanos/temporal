@@ -9,7 +9,7 @@ import framework.*
 import framework.Finite.given CanEqual[?, ?]
 import framework.outcomes.{Outcome, Rejection}
 import framework.realize.Reason
-import temporal.capabilities.*
+import temporal.capabilities.product.*
 import temporal.realize.inconclusive
 
 trait Operation extends Facet[State, Outcome, Fact], Phased[State, Phase]:

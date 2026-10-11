@@ -1,5 +1,5 @@
 // A selected timer fires only inside its armed role and settles from before-state retry policy.
-package temporal.capabilities
+package temporal.capabilities.system
 
 import framework.*
 import framework.Finite.given

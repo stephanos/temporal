@@ -1,5 +1,5 @@
 // Pausing and unpausing an entity. Suspended phases say where dispatch must remain blocked.
-package temporal.capabilities
+package temporal.capabilities.product
 
 import framework.*
 import scala.annotation.unused

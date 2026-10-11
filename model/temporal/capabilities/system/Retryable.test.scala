@@ -2,7 +2,7 @@ package framework
 
 import framework.Finite.given
 
-import temporal.capabilities.Retryable
+import temporal.capabilities.system.Retryable
 import scala.annotation.unused
 
 object RetryFixture:

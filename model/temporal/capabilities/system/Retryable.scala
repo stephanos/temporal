@@ -1,5 +1,5 @@
 // Failure settlement and the entity's retry policy. Eligibility reads the state before failure.
-package temporal.capabilities
+package temporal.capabilities.system
 
 import framework.*
 import scala.annotation.unused
