@@ -59,6 +59,6 @@ Verification remains Scala-only. The full model gate, Go checks, managed artifac
 
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests: mise exec -- scala-cli test model/project.scala model/framework --test-only '*Witness*' (4 passed), mise exec -- scala-cli test model/project.scala model/framework --test-only '*Effects*' (8 passed), mise exec -- scala-cli test model/project.scala model/framework --test-only '*Phased*' (5 passed), make lint-model-syntax (passed; red inherited baseline repaired), mise exec -- scala-cli fmt --scalafmt-conf model/.scalafmt.conf --check model/framework/Claims.scala model/framework/Machine.scala model/framework/Syntax.scala model/framework/Witness.test.scala model/irgen/Switches.scala, git diff --check, DEFERRED: full model gate, Go checks, managed regeneration, independent review and live equivalence per owner
+- Commits: c95a18c8d1fe9d49c166b46eee7324ec88982648
+- Tests: mise exec -- scala-cli test model/project.scala model/framework --test-only '*Witness*', mise exec -- scala-cli test model/project.scala model/framework --test-only '*Effects*', mise exec -- scala-cli test model/project.scala model/framework --test-only '*Phased*', make lint-model-syntax, mise exec -- scala-cli fmt --scalafmt-conf model/.scalafmt.conf --check model/framework/Claims.scala model/framework/Machine.scala model/framework/Syntax.scala model/framework/Witness.test.scala model/irgen/Switches.scala, git diff --check
 - PRs:
