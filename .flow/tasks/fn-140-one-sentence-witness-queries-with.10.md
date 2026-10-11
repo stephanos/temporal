@@ -110,7 +110,7 @@ and the independently committed dispatch population; do not fabricate a passing 
 
 The strict Activity duplicate pair is confirmed in Cancellation.scala. Both Properties select
 `client.requestCancel`; cancelRequested tests the phase and fact, while cancelIsRequested tests
-the fact alone. Existing readers are cancelRequest and Reset's cancellationReplacesReset for
+the fact alone. Existing readers are cancelRequest and Reset's resetCancellation for
 the stronger Property, and the live cancelIsRequested Query for the weaker Property. The latter
 is named in HeldCancellationByIDRun. A repair must retain the stronger claim, preserve every
 Query identity and metadata, record the actual property-reader identity change and prove both
