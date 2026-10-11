@@ -183,6 +183,29 @@ Tests precede implementation: native/compiler controls for negative-primary and 
 
 This refinement uses the already scoped framework/lifter/test/docs files and retains the original120-minute worker cap, size L and all held consumer/generation restrictions. The user-owned main SEMANTICS draft remains untouched.
 
+### Verified intermediate native checkpoint (2026-10-11)
+
+The final focused native `framework.WitnessTest` campaign in
+`fn140-10-excludes-native-final2.log` executes all six tests successfully, including
+independent single-member absent/present controls, live/exploration preservation
+and ordered mixed-clause short-circuit counters. The complete original/current
+native captures in `fn140-10-all-native-pre20.tsv` and
+`fn140-10-all-native-post20.tsv` are byte-identical (SHA256
+`0574109cbab5cef0aa95d89fc8c8d100927e0630c717314769b3e0f326091fcb`).
+The conductor independently verified the exact 20-Query population, all 52,244
+applicable rows, 27,540 enabled results and nonempty enabled coverage per Query.
+This includes all 19 witness migrations, including resetOutranksPause, and the
+separately classified cancellation redirect. Root audit:
+`.flow/tmp/scala-dsl/fn140-10-root-native20-audit.json`.
+
+This is native-row equality evidence, not the completed source seal or a substitute
+for off-native forbidden-fact controls. Full original/rewritten Boolean core,
+generated helper/body/parameter/source-span parity and its mutation controls remain
+unverified. The latest complete lifter campaign has 11 source failures requiring
+repair, separately from nine owner-held managed snapshot comparisons; neither
+source failures nor excluded assertions earn passing credit. Fn-149 remains gated
+on this task's verified committed closure, and the original worker cap is unchanged.
+
 ## Acceptance
 - [ ] Complete eligible/retained inventories cover all Model packages, with concrete reader/boundary justifications; every eligible private pinned triple is a witness (R5).
 - [ ] Source-aware lint and focused positive/refusal fixtures cover private/shared/verify/monitor/repeated-input-tail forms with exact source ownership and unchanged other refusal classes (R5).
