@@ -57,7 +57,7 @@ facet vocabularies are recorded in fn-161.
 | 3 | fn-162 | realizations name their Queries; claim containers removed |
 | 4 | fn-160 | layout, Protocol level, per-feature collection |
 | 5 | fn-163 | system/product capabilities, named system capabilities |
-| 6 | fn-147 | Duration-typed elapsed-time authoring (Batch 3's unapplied Scala patch) |
+| 6 | fn-147 | Duration-typed elapsed-time authoring (source integrated; proof/closure open) |
 | 7 | fn-140 | witness Queries and `.live` |
 | 8 | fn-149 | safety and liveness groups |
 | 9 | fn-164 | `expect:` blocks for Properties and consistent colon style |
@@ -187,8 +187,7 @@ is sequential; task .10's committed Scala seal releases later source work withou
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-140.2 | 🔄 in progress | Scala witness lifting, names, bounds, composed facts and capability duplicate refusals; exact Go selector proof retained in .7 |
-| fn-140.3 | ⬜ todo | Verify Query `.live`, source-only reasons/refusals and all Scala caller/fixture spellings; Go Case selection retained in .8 |
+| fn-140.3 | 🔄 in progress | Verify Query `.live`, source-only reasons/refusals and all Scala caller/fixture spellings; Go Case selection retained in .8 |
 | fn-140.4 | ⬜ todo | First Activity source conversion and all-row predicate equivalence; duplicate terminate source removed; actual assessment/Case proof retained in .9 |
 | fn-140.5 | ⬜ todo | Author docs, core form and layout template witness |
 | fn-140.10 | ⬜ todo | Remaining eligible Models, source-aware triple lint and committed Scala source equivalence seal; releases fn-149 |

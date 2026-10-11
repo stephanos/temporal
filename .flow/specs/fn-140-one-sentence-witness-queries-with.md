@@ -130,7 +130,7 @@ Scala implementation consumes fn-151's split, fn-155's actual committed abstract
 
 The owner inserted fn-164 expectation/colon migration after fn-149's committed grouping source seal and before fault work. Therefore the source admission chain is fn-140 → fn-149 → fn-164 → fn-123, with no whole-spec dependency on their pending shared non-Scala closures. fn-141 runs last on that final DSL and includes witness and expectation sugar in its generic lowering contract.
 
-The completed moves place the DSL in `model/framework`, the shared queue in `model/temporal/foundations/taskqueue`, and Activity verification in its subject files. Before implementation, consume the integrated fn-151/fn-155 mappings and fn-156 closure receipt, then re-anchor source ownership without expanding scope. Preparing these task files does not authorize implementation before fn-156's committed closure.
+The completed moves place the DSL in `model/framework`, the shared queue in `model/temporal/foundations/taskqueue`, and Activity verification in its subject files. Before implementation, consume the integrated fn-151/fn-155 mappings and fn-156 closure receipt, then re-anchor source ownership without expanding scope. Scala implementation is admitted from fn-156's committed source receipts; its full artifact/gate closure remains a prerequisite for deferred consumer tasks .6/.9, not for the owner-approved Scala lane.
 
 ## Quick commands
 
