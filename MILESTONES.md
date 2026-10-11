@@ -6,13 +6,12 @@ Flow (`.flow/`, `flowctl`) is the record for specs and tasks; this page is the o
 As of 2026-10-10.
 
 Execution resumed on 2026-10-10 under the owner's instruction to complete all milestone work,
-taking the conductor's recommendations without further questions. The compiler, format and
-fairness checkpoints are merged into `umpire` (`ae3f36ee51`), as are fn-156's source close
-(`39b7580104`) and fn-160.5's equivalence check (`ab8e0f25fa`), plus a model formatting commit
-(`2ddc86bc32`). Parallel lanes: Batch 3's format close; Batch 1d core (framework/lifter), activity,
-nexus and shared-model lanes, with the decisions recorded under Batches 1d and 5b; fn-150; fn-155.6's
-canonical regeneration retry. JVM/Go work shares three slots (`.flow/tmp/bin/slot`); full gates are
-exclusive.
+taking the conductor's recommendations without further questions. Merged into `umpire`: the compiler,
+format and fairness checkpoints, fn-156's source close, fn-160.5's equivalence check, a model
+formatting commit and fn-150's source. On 2026-10-11 the owner chose speed over parallelism for the
+Scala work: Batch 1d's lanes merge into one `w-1d` branch and one worker finishes fn-161, fn-162,
+fn-160 and fn-163's Scala in order, with Scala build/tests per step and one step-table equivalence
+check per spec. Alongside it run only Batch 3's close and fn-155.6's regeneration.
 
 ## Keeping this page current
 
@@ -907,15 +906,13 @@ Rows run in order; fn-160.1, fn-162.1 and fn-160.5 (baseline and step-table comp
 | fn-162.2 (Scala part), fn-162.3 | ⬜ todo | Realizations name the Queries they run; claim-container subjects removed; Properties declared once |
 | fn-160.3, fn-160.4, fn-160.6 | ⬜ todo | One object per file, flat prefix layout, `realization/` layer, `<Subject>Run`, one-way layer dependencies; System level renamed Protocol |
 | fn-160.2 (Scala part) | ⬜ todo | Collection by feature package; `irFile`/`exports` removed |
+| fn-163 (Scala) | ⬜ todo | Capabilities split into `system/`/`product/`; named system capabilities replace hand-written fencing, exclusivity, idempotency and single-outcome claims |
 
-**Batch 1d lanes** (disjoint files run in parallel; only the activity lane is a chain):
-
-| Lane | Tasks | Files |
-| --- | --- | --- |
-| Framework and lifter | fn-159.1/.3/.6/.7 constructs, fn-161.1, fn-162.2 (Scala), fn-160.2–.4 rules | `model/framework`, `model/irgen`, `model/check` |
-| Activity | fn-159 migrations → fn-161.2+.3 → fn-162.3 → fn-160.3/.4 moves | `features/activity/` |
-| Nexus | fn-159 migrations → fn-161.4 (nexus) → moves | `features/nexus/` |
-| Task queue and worker | fn-159 migrations → fn-161.4 parts → moves | `foundations/`, `actors/` |
+**Batch 1d execution (owner, 2026-10-11):** one worker on one branch, in the order above, then
+fn-163's Scala (capability `system/`/`product/` split and the named system capabilities). One combined
+rename map, `model/testdata/equivalence/batch-1d.map`. Light process: short commits, no per-task
+evidence write-ups or reviews; Flow and this page are updated at the end. The four parallel lanes that
+started 1d (framework, activity, nexus, shared) are merged and stopped.
 
 **Batch 5b order:** fn-162.2's IR schema, lowering and Go assessment (with fn-140's owner); fn-160.5's
 IR projection; Go tests, canary harness and fixture trees updated for renamed ids and moved files;
@@ -1006,8 +1003,9 @@ declared once in its facet, under its existing name, so the copies go. Query ans
 
 ## fn-163: System capabilities: distributed-systems patterns as named capabilities
 
-Scheduled after Batch 5b (owner, 2026-10-10), on the facet, realization-binding and lifter baseline.
-Not planned yet. [Spec](.flow/specs/fn-163-system-capabilities-distributed-systems.md).
+Folded into Batch 1d (Scala now) and Batch 5b (its IR in the single regeneration) by the owner on
+2026-10-11, instead of a separate pass after 5b. Not planned yet; the 1d worker plans and implements it
+after fn-160. [Spec](.flow/specs/fn-163-system-capabilities-distributed-systems.md).
 
 Name the distributed-systems promises the Models still write by hand (fencing of stale attempts, a
 single active attempt, idempotent requests, a single outcome) as first-class capabilities, declared once
