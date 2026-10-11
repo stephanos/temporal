@@ -45,6 +45,20 @@ Closes the spec: one regeneration, the projection proof, Go test and fixture upd
 - [ ] TBD
 
 ## Done summary
+fn-155.6 lane `w-fn1556` (2026-10-11): the complete R7 equivalence proof now holds; the full gates are deferred to Batch 5b.
+
+The joined candidate is `551bf89c68`. Its Model tree equals the integrated fn-155.5 state, and between it and the sealed fn-151 baseline `999fb4fdc4` only the Activity Model sources differ. Lifter, lowering, interpreter and protos are the original ones, so neither the positions nor the Duration encoding needs normalizing. It was regenerated in scratch with the gate's own build steps (`--server=false`, 70 s, 1.3 GB peak). The production `umpire-gen-cases` ran under `GOMEMLIMIT` (101 s, 5.0 GB peak); without that limit, a global OOM killed it at 7.7 GB.
+
+- IR: the 4 Nexus IR files are byte-identical and the 4 lint acceptance sets are unchanged. Under Task2's 4-entry effect-merge map, the projection leaves 45 raw differences, all in 7 function bodies. The structural review accounts for each one: Product `reset`/`unpause` are equal per phase across 9 phases x 3 files, and `resetSettles` is equal across 13 phases. All 25 mutation controls are rejected.
+- Step tables: 46 tables and 13,891,948 records are equal, covering 36 machine tables, 8 composition tables and both Pins tables. The Pins test bytes are unchanged. The comparison applies one new normalization: an empty `interp.Value` Fields/Items slice counts the same as a nil one. Rows produced by the Recorded setter differ only that way, and `Value.Equal`/`Key` read only `len()`. Three controls show the normalization still rejects real changes.
+- Cases: all 31 files are present. 22 are byte-equal. The other 8 Cases and the manifest differ only in the 11 waitHint lines and the one manifest refusal Position (`Realization.scala:310` -> `:278`). Both coordinates of every leaf are rederived from the lifted ServerStep or Script and from the Scala text. Restoring those leaves recovers every original byte. All 21 mutation controls are rejected.
+- Unchanged producer: the same binary run on the original IR reproduces all 31 original files byte for byte.
+- No-Detail-consumer scan: 0 consumers. The 20 Activity Cases are byte-identical to Task5's fresh Cases, so Task5's production-derived identities, crossed-binding rejections and timeout Detail values carry over as they are.
+- The mapping and the downstream re-anchor are in `/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/w-fn1556/.flow/tmp/fn1556/proof/mapping.md`.
+
+Gates are deferred to Batch 5b on the root's instruction. The partial Go suite (`logs/gosuite.jsonl`) shows no failure from a renamed effect or a changed shape. `export` had 207 passes before it timed out, `check` timed out, and a global OOM killed `conformance`. `lint` has two pins to refresh at the regeneration: api_test expects Realization.scala:408 where the joined lift gives :375, and the coverage summary pin predates fn-151. lower, testpilot and canary were not reached. The model gate and lint-model were not run.
+
+### Earlier deferral (retained)
 Blocked:
 # Deferred fn-155 final validation
 
@@ -75,6 +89,6 @@ The later read-only diagnosis confirmed both Go kills as host-wide OOM. Kernel r
 
 Partial checkpoint `2250d1f9ae4ca7c5b64a5641901511978d25819e` remains recoverable on `agent/fn155-task6`. It carries updated hint fixtures, the README's existing reset reason and a Construct/Copy test setup adapter. The task-unique `resumed-handover-summary.md` and `resumed-handover-evidence.json` record bounded setup-only greens and all unmet acceptance. This checkpoint has not been integrated or implementation-reviewed because producer/full validation remains RED or inconclusive. It supplies no closure credit.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 2f4242abb9 (withholding fixture reads a Copy-based expected state; README cites states.pendingResetReason)
+- Tests: /Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/w-fn1556/.flow/tmp/fn1556/proof/{projection,structural-review,table-comparison,twelve-leaf,nil-empty-controls,detail-consumer-scan}.json; logs/{lift551,native,pins-dump,gen-cases-2,gen-cases-original-2,table-compare-2,gosuite}.json[l]
 - PRs:

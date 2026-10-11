@@ -42,7 +42,13 @@ func withheldTimeoutRetry(t *testing.T) *umpirespb.Model {
 	}
 	for _, function := range m.GetFunctions() {
 		if function.GetName() == "retryFailures.property.retryCompletes" {
-			function.GetBody().GetBinary().GetLeft().GetBinary().GetRight().GetConstruct().Args[timeoutArgument].GetLiteral().GetEnum().Case = "expires"
+			expected := function.GetBody().GetBinary().GetLeft().GetBinary().GetRight()
+			if copied := expected.GetCopy(); copied != nil {
+				expected = copied.GetBase()
+			}
+			state := expected.GetConstruct()
+			require.NotNil(t, state)
+			state.Args[timeoutArgument].GetLiteral().GetEnum().Case = "expires"
 		}
 		// The checked-in fixture predates timeout retries; this isolates the bridge from model regeneration.
 		if !hasMaxAttempts && function.GetName() == "activitySystem.rules.startToClose" {
