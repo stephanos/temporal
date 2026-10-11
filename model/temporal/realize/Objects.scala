@@ -29,7 +29,11 @@ abstract class Realizes[S, O, F <: AnyRef](
     val machine: Machine[S, O, F],
     val learned: Vector[Learned] = Vector.empty,
     val observations: Vector[Observed] = Vector(correlated),
-    val requiredSettings: Vector[RequiredSetting] = Vector.empty
+    val requiredSettings: Vector[RequiredSetting] = Vector.empty,
+    // The find Queries it runs (fn-162 R8): Queries, lists of them, or a `queries` or
+    // `capabilities` section of its machine, each standing for every find Query it declares or
+    // generates. A find Query no realization names is model-only.
+    val runs: Seq[AnyRef] = Seq.empty
 ):
   // What the server answered a call of the controller, where it succeeded, the kind named after
   // `fact`, a fact of the machine. The kit's `answered`, typed by the machine.
@@ -59,8 +63,9 @@ abstract class Realizes[S, O, F <: AnyRef](
 // changed. Its header is the base's.
 abstract class DerivesFrom[S, O, F <: AnyRef](
     val base: Realizes[?, ?, ?],
-    machine: Machine[S, O, F]
-) extends Realizes[S, O, F](machine)
+    machine: Machine[S, O, F],
+    runs: Seq[AnyRef] = Seq.empty
+) extends Realizes[S, O, F](machine, runs = runs)
 
 // The controller: the calls and controls of a Case, in the order its path makes them.
 abstract class Controller(val items: Item*)

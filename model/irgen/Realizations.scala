@@ -1936,7 +1936,16 @@ private[irgen] trait Realizations:
           if replaces then items.patch(at, added, 1) else items.patch(at + 1, added, 0)
         }
       }
-      b.copy(machine = machine, controller = items)
+      // Its header is the base's, but for the Queries it runs, which are its own.
+      val runs = parentArguments(c).flatten.drop(2).headOption.map {
+        case NamedArg(_, a) => a
+        case a              => a
+      }
+      b.copy(
+        machine = machine,
+        header = (b.header - "runs") ++ runs.filterNot(isDefault).map("runs" -> _),
+        controller = items
+      )
     else
       val params = realizesClass.primaryConstructor.paramSymss.flatten.filter(_.isTerm).map(_.name)
       val args = c.parents
@@ -2070,10 +2079,58 @@ private[irgen] trait Realizations:
           .withResetSettlements(reset.map(b => emit(ir.ActivityResetSettlement, b)))
         classesOfMachine(r, machine)
         distinctName("realizations", realizations.values.map(r => r.name -> r.id), r.name, id, at)
-        realizations(id) = r
-        r
+        val run = r.withQueries(runs(r.name, machineName, d.header.get("runs")))
+        realizations(id) = run
+        run
       }
     )
+
+  // The find Queries each realization runs, by the Query's name, and the realization that names it.
+  private val runBy = mutable.Map.empty[String, String]
+
+  // fn-162 R8: the find Queries a realization names in its header, `Realizes(machine, runs =
+  // Seq(...))`: a Query, a list of them, a machine's `queries` section, every find Query it
+  // declares, or its `capabilities` section, every find Query its capabilities generate. A find
+  // Query no realization names is model-only. A Query of another machine, or one a second
+  // realization names, is refused, naming both.
+  private def runs(realization: String, machine: String, named: Option[Term]): Seq[String] =
+    def names(d: Decl, t: Tree): List[String] = d match
+      case Decl.Declared(n) => List(n)
+      case Decl.Items(xs)   => xs.flatMap(names(_, t))
+      case Decl.Capable(m)  =>
+        queries.values
+          .filter(q =>
+            q.getProperty.machine == m && // scalafix:ok DisableSyntax.==; typed equality
+              properties.get((m, q.getProperty.name)).exists(_.origin.nonEmpty)
+          )
+          .map(_.name)
+          .toList
+      case other => fail(t, s"$realization runs Queries, a queries or a capabilities section, not $other")
+    def of(t: Term): List[String] =
+      val sym = unwrapped(t).symbol
+      if queriesSection(sym) then
+        statements(objectBody(moduleClassOf(sym), t)).flatMap {
+          case v: ValDef if claimRoot(v.tpt.tpe) => names(fold(Ref(v.symbol), Map.empty), v)
+          case _                                 => Nil
+        }
+      else names(fold(t, Map.empty), t)
+    val listed = named.toList.flatMap(t =>
+      unwrapped(t) match
+        case Apply(_, List(arg)) => varargs(arg)
+        case other               => fail(other, s"$realization runs `Seq(...)` of Queries, not ${other.show}")
+    )
+    val found = listed.flatMap(t => of(t).map(_ -> t)).distinctBy(_._1)
+    for (q, t) <- found do
+      val query = queries(q)
+      val scenarioMachine = query.getScenario.machine
+      // scalafix:off DisableSyntax.!=; strictEquality checks native comparisons
+      if scenarioMachine != machine then
+        fail(t, s"$realization realizes $machine and names $q, a Query of $scenarioMachine")
+      for other <- runBy.get(q) if other != realization do
+        fail(t, s"$q is named by the realizations $other and $realization: one realization runs it")
+      // scalafix:on DisableSyntax.!=
+      runBy(q) = realization
+    found.map(_._1).filter(q => queries(q).form == ir.Query.Form.FORM_FIND)
 
   // The role ids a realization's scripts and controls name, and the environment bindings their
   // operands read, through which a role's resource is named.
