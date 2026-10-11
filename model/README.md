@@ -811,7 +811,11 @@ A machine object is the machine: `object ActivityProduct extends Machine[State, 
 
 1. its header: where its rules name phases, the parent `Phased[State, Phase](_.phase)` names the
    projection once; a composition may name a nested phase, `Phased[OverQueue, Phase](_.activity.phase)`,
-   and a derived object inherits its source's projection and phase type. Then `val init`, the state
+   and a derived object inherits its source's projection and phase type. A machine that enters
+   phases by `enters(Phase.x)` also names the writer that replaces the phase the projection reads,
+   `Phased[State, Phase](_.phase, (s, p) => s.copy(phase = p))`; `enters` refuses a step through a
+   projection without one, or through a writer whose state the projection does not read as the
+   phase entered. Then `val init`, the state
    it starts in (`init` as Quint and TLA+ name it, its fields by
    name, `system.State(phase = unstarted, attempts = UpTo(0), …)`). `Phased` supplies `end` as the
    `Closed` phases; a different stopping point declares `override def end(s)`. An omitted `end`
@@ -847,6 +851,12 @@ A machine object is the machine: `object ActivityProduct extends Machine[State, 
    gives. An effect of the state alone may be a block instead, `val startAttempt = effect { phase =
    started }`, `val notFound = effect { reject(Outcome.rejected(Rejection.notFound)) }`, which a rule binds as it binds
    a def, `~> effects.startAttempt`; an effect that takes arguments beyond the state stays a def.
+   An effect whose whole work is entering a phase is not declared: a rule enters it by the framework
+   step `enters(Phase.completed)`, `when[Held] ~> enters(Phase.completed)`, and a `choose`
+   alternative by the same step applied to the state, `retryPaused -> enters(Phase.paused)(s)`. It
+   records the status the phase's case declares where its enum is `Recorded`, and nothing
+   otherwise; its core form is `enter(s.copy(phase = Phase.completed), Fact.statusCompleted)`. So
+   `effects` keeps the steps with logic: those that record other facts, reject or choose.
    Machines that share request outcomes import `framework.outcomes.{Outcome, Rejection}`: `accepted`
    is the common success and `rejected(why)` carries `notFound`, `alreadyExists`,
    `failedPrecondition` or `invalidArgument`. In their rules,

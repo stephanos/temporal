@@ -609,7 +609,7 @@ class Fixtures extends munit.FunSuite:
 
   // The refusals of fn-139.3's `from` blocks, each a machine object (lifts/RuleRejects.scala).
   private val ruleRejects: Seq[String] =
-    Seq("NestedFrom", "Foreign", "ImportedTwice").map("fixture.rulerejects." + _)
+    Seq("NestedFrom", "Foreign", "ImportedTwice", "Unwritten").map("fixture.rulerejects." + _)
   // The refusals of fn-135.2's `is { }` blocks and fn-135.3's `effect { }` blocks, each a machine
   // object (lifts/BlockRejects.scala).
   private val blockRejects: Seq[String] =
@@ -1647,6 +1647,45 @@ class Fixtures extends munit.FunSuite:
     assertEquals(
       machine("grouped").replace("fixture.grouped.Grouped$", "fixture.grouped.Plain$"),
       machine("plain")
+    )
+
+  // fn-159.7: `enters(Phase.x)` in a rule lifts as the steps of the effect it stands for, and in a
+  // choose alternative as the step written out (lifts/Entering.scala).
+  concurrently("enters lifts as the effect that sets the phase, in a rule and in a choose"):
+    import com.fasterxml.jackson.databind.JsonNode
+    import com.fasterxml.jackson.databind.node.ObjectNode
+    val (model, _, _) =
+      declarations("entering", Seq("Entering", "Cored").map(objectRoot("entering")))
+    def body(name: String): JsonNode =
+      val f = model
+        .path("functions")
+        .elements()
+        .asScala
+        .find(_.path("name").asText() == name) // scalafix:ok DisableSyntax.==; typed equality
+        .getOrElse(fail(s"no function $name"))
+        .deepCopy[ObjectNode]()
+      f.findParents("position").asScala.foreach {
+        case o: ObjectNode => o.remove("position"): Unit
+        case _             => ()
+      }
+      f.path("body")
+    def text(n: JsonNode) =
+      n.toPrettyString.replace("fixture.entering.Cored$", "fixture.entering.Entering$")
+    // The arm of each rule: the then of each `if` in the order the rules are written.
+    def arms(n: JsonNode): List[JsonNode] =
+      val cond = n.path("if")
+      if cond.isMissingNode then Nil else cond.path("then") :: arms(cond.path("else"))
+    val (entering, cored) = (arms(body("entering.rules.press")), arms(body("cored.rules.press")))
+    assertEquals(entering.size, 2)
+    assertEquals(text(entering.head), text(body("fixture.entering.Cored$.effects$.work")))
+    assertEquals(text(entering(1)), text(cored(1)))
+    assertEquals(
+      text(arms(body("entering.rules.drop")).head),
+      text(body("fixture.entering.Cored$.effects$.settle"))
+    )
+    assertEquals(
+      text(body("fixture.entering.Entering$.effects$.restOrRetry")),
+      text(body("fixture.entering.Cored$.effects$.restOrRetry"))
     )
 
   // Each sugar form beside its core spelling (lifts/Sugar.scala).
