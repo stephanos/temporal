@@ -122,6 +122,8 @@ class Lifter(target: Target, prefixes: Map[String, String]) extends Inspector:
     errors ++= marked.map(file -> _)
     refutations ++= asked
 
+    errors ++= duplicateProperties(functions, properties.values.toSeq).map(file -> _)
+
     def sorted[K: Ordering, V](m: collection.Map[K, V]): Seq[V] = m.toSeq.sortBy(_._1).map(_._2)
     models(file) = ir.Model(
       source = "model: " + roots.toList.sorted.mkString(", "),
@@ -292,6 +294,41 @@ object LiftRun:
     val scratch = Files.createTempDirectory("umpire-lift")
     try inScratch(scratch)
     finally umpire.check.Scratch.delete(scratch)
+
+// fn-162 R3: each Property is declared once. An author's Property of a machine whose `when` and
+// predicate equal another's of the same machine, up to names and positions, is refused, naming
+// both; a capability's generated Properties keep their own identities and are not compared.
+private def duplicateProperties(
+    functions: collection.Map[String, ir.Function],
+    properties: Seq[ir.Property]
+): Seq[LiftError] =
+  def where(p: ir.Property) = p.position.fold("")(at => s"${at.file}:${at.line}")
+  def body(p: ir.Property): String =
+    functions.get(p.holds).fold(p.holds) { f =>
+      val text = f.body.fold("")(_.toProtoString).replaceAll("(?s)position \\{[^{}]*\\}", "")
+      f.params.zipWithIndex.foldLeft(text) { case (t, (param, i)) =>
+        t.replace("\"" + param.name + "\"", "\"$" + i + "\"")
+      }
+    }
+  def key(p: ir.Property) =
+    (p.machine, p.when.whenClass.map(_.toProtoString), p.when.whenAction, p.transition, body(p))
+  properties
+    .filter(_.origin.isEmpty)
+    .groupBy(key)
+    .values
+    .filter(_.sizeIs > 1)
+    .toSeq
+    .flatMap { same =>
+      val ordered = same.sortBy(where)
+      ordered.tail.map(p =>
+        LiftError(
+          where(p),
+          s"${p.name} states the promise ${ordered.head.name} states at ${where(ordered.head)}, of " +
+            s"${p.machine}: declare each Property once, in the facet whose promise it states, and " +
+            "ask it from there"
+        )
+      )
+    }
 
 // Whether a jar entry is of the lifted sources: a Model's, never the framework's.
 private def lifted(entry: String): Boolean = !entry.startsWith("framework/")
