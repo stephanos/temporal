@@ -481,6 +481,23 @@ Property of the machine the Scenario's machine refines through that refinement: 
 an outcome and facts by name. Two Properties, Scenarios or Queries under one key would share a
 Definition ID.
 
+A source witness names a pinned path and its last step's claim in one declaration:
+`witness(class, ...).records(fact)`, optionally `.ends(statePredicate)`, `.limits(bounds)`,
+`.explore(space)` and `.live(expectation)`. It lifts to an ordinary Scenario, same-step Property
+and `find` Query, all named after the Query and owned by the witness's machine or composition.
+No new IR declaration kind is added; these use ordinary same-step Property semantics. The
+Property selects the last listed class and tests `records(fact) && statePredicate` on its
+resulting state, or `records(fact)` alone without `.ends`. A composition lists its `own` or
+`synced` classes and records a typed member fact with
+`.records(_.member -> MemberMachine, fact)`.
+
+Derived Limits have `steps = actions = path length` and `search = 512`; `.limits` replaces them.
+A repeated last class is refused because a same-step Property would test its earlier occurrences
+too. Keep a shared Property or Scenario, and `query verify`, as a triple. A `val` names the Query;
+`witness("name")(...)` supplies an explicit name when no val does, including list or helper
+results. `.live` is the authored Query switch for Case generation; without it the Query is
+model-only. Capability expectation bindings make their generated Queries live.
+
 A Query with `through` is answered only where that refinement holds: over a refinement that is
 rejected its result is the rejection. Only a `verify` reads through a refinement; a `find` with
 `through` is unsupported. A `find` of a transition Property and transition lowering to a Case remain
@@ -1050,6 +1067,16 @@ Two narrowings came from the specimens' evidence:
   errors a reader rejects and from declared holes (finding F4).
 
 ## Generated Case expectations
+
+Source `.live(expectation)` marks an authored Query for live Case generation and supplies
+`expected_run`; capability expectation bindings supply it on generated Queries. An authored
+Query without `.live` generates no live Case. Convenience expectations and full `RunExpectation`
+values whose Property or Contract outcome is not satisfied require non-blank `because` text,
+as does each non-satisfied nested `MonitorExpectation`. A full Run whose Property and Contract
+are both satisfied cannot supply that text, even if its conformance is short of conformant;
+satisfied monitor values also take none. The text explains the author's expectation only and
+remains source-only: it adds no IR, Case or assessment field and cannot supply or change judge
+explanations. Existing reason IDs and `expected_run` fields below are still emitted and compared.
 
 A Query's optional `expected_run` is test metadata, not a transition, search assumption, refinement,
 or evidence filter. Every Query that generates a live Case must supply it. It declares the Contract's
