@@ -48,25 +48,23 @@ object worker extends Actor:
 // ### The machine
 
 // The worker. A worker has no natural end: it may be left polling or stopped.
-object Polling extends Machine[State, Outcome, Fact], Phased[State, Phase](_.phase):
+object Polling
+    extends Machine[State, Outcome, Fact],
+      Phased[State, Phase](_.phase, (s, p) => s.copy(phase = p)):
   val init = State(Phase.polling)
   override def end(@unused state: State) = true
 
   object effects:
-    def stop(@unused s: State) = enter(State(Phase.stopped))
-
-    def resume(@unused s: State) = enter(State(Phase.polling))
-
     // A polling worker serves and keeps polling.
     def serve(s: State) = stay(s)
 
   // A polling worker stops and serves; a stopped one resumes, and has nothing to stop or serve.
   object rules extends Rules:
     on(worker.stop) {
-      when(Phase.polling) ~> effects.stop
+      when(Phase.polling) ~> enters(Phase.stopped)
     }
     on(worker.resume) {
-      when(Phase.stopped) ~> effects.resume
+      when(Phase.stopped) ~> enters(Phase.polling)
     }
     on(worker.serve) {
       when(Phase.polling) ~> effects.serve
