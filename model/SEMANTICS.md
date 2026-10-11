@@ -230,7 +230,9 @@ object JobProduct
   object effects: ...       // what each action does
   object monitors: ...      // monitors it names, assumptions it makes
   object rules extends Rules: ...   // when each action fires (required)
-  object properties: ...    // its promises
+  object properties:        // its promises, grouped by declaration kind
+    object safety: ...      // Properties and attached safety-monitor references
+    object liveness: ...    // bounded Progress claims
   object capabilities extends Capabilities: ...
   object queries: ...       // Scenarios, then Queries
 ```
@@ -250,8 +252,9 @@ The header:
   `unobservable` lists timers whose step records nothing a Run can read.
 
 The sections are objects named for what they hold and come in the order above; the IR generator's
-declaration-order lint refuses any other order and any section nested elsewhere. Inside the object
-`State` names the state type and `property`, `scenario` name the machine implicitly.
+declaration-order lint refuses any other order and any section nested elsewhere. The two designated
+claim groups are the exception: `safety` and `liveness` sit directly inside `properties`. Inside the
+object `State` names the state type and `property`, `scenario` name the machine implicitly.
 
 **Refused.** Two machines of one name in a package; a machine whose object name differs from its
 file's (structure lint); a section object of any other name; a `val` read before it is declared
@@ -450,21 +453,29 @@ selector narrows which steps it is about: every step, the steps of one class (`w
 class of an action (`whenAction`). An unrelated step stays on the path but neither reads nor
 exercises the Property.
 
-**Writing it.** In `object properties`, named after the `val`:
+**Writing it.** In `object properties.safety`, named after the `val`:
 
 ```scala
 object properties:
-  // same-step, one class
-  val finishSucceeds = property when worker.finish(Result.ok) holds { after =>
-    after.state.phase == Phase.done && after.records(Fact.finished)
-  }
-  // same-step, every step
-  val neverTwoHeld = property.never(s => s.state.attempts == 2)
-  // transition
-  val closedIsFinal = property.once(_.phase.in[Closed]).keeps(_.phase)
-  val heldStaysHeld = property.stays(_.phase == Phase.running).unless(_.records(Fact.finished))
-  val noStartFromPaused = property.never(_.state.phase == Phase.running).from(_.phase == Phase.paused)
+  object safety:
+    // same-step, one class
+    val finishSucceeds = property when worker.finish(Result.ok) holds { after =>
+      after.state.phase == Phase.done && after.records(Fact.finished)
+    }
+    // same-step, every step
+    val neverTwoHeld = property.never(s => s.state.attempts == 2)
+    // transition
+    val closedIsFinal = property.once(_.phase.in[Closed]).keeps(_.phase)
+    val heldStaysHeld = property.stays(_.phase == Phase.running).unless(_.records(Fact.finished))
+    val noStartFromPaused = property.never(_.state.phase == Phase.running).from(_.phase == Phase.paused)
 ```
+
+The checker classifies a declaration by its resolved kind, never by its name or predicate body.
+A `Property` and a reference that attaches a safety monitor belong in `safety`; a `Progress`
+belongs in `liveness`. A claim directly in `properties`, or in the other group, is refused at its
+authored source line with the binding, resolved kind and expected group. Plain helper defs are not
+claims and may remain directly in `properties`. Omit an empty group, or the whole section when it
+has no claims; an omitted group neither invents nor duplicates a shared law or monitor attachment.
 
 The patterns are sugar over the two core forms, `holds(after => ...)` and
 `holdsAcross((before, after) => ...)`:
@@ -513,9 +524,9 @@ object queries:
   val any = scenario.free
   // `.starts(s)` fixes another start; without it the machine's init
 
-  val completion = (query find properties.finishSucceeds in submittedThenFinished limits three)
+  val completion = (query find properties.safety.finishSucceeds in submittedThenFinished limits three)
     .live(satisfied)                                     // this find becomes a Case; see Realizations
-  val closedStaysClosed = query verify properties.closedIsFinal in any limits five
+  val closedStaysClosed = query verify properties.safety.closedIsFinal in any limits five
 ```
 
 A Query named by its `val`, by `query("name")`, or, inside a list or a def over a machine, by
@@ -549,7 +560,7 @@ for a free one states × classes × steps. An author may state it, `limits three
 check of their own reading; it is a review figure, not a prediction, and nothing else reads it.
 
 **Through a refinement.** A Query may verify a Property of the machine its Scenario's machine
-refines: `query verify NexusProduct.properties.terminalIsFinal in asyncThenSucceeded limits three`
+refines: `query verify NexusProduct.properties.safety.terminalIsFinal in asyncThenSucceeded limits three`
 in the Nexus workflow Protocol's `queries`. The Property is read through the refinement map; only a
 `verify` may, and only where the refinement holds. A Property of an unrelated machine is refused at
 the Query's line.
@@ -618,17 +629,28 @@ nothing by itself: a finite bound holds only where the graph leaves no path that
 elsewhere, which is why the dispatch designs *restrict* the actions that could, rather than assume
 them away.
 
-**Writing it.** In `object properties`, always named:
+**Writing it.** In `object properties.liveness`, always named, with an explicit finite bound and
+the assumptions on which the claim relies:
 
 ```scala
-val startsWithinOneStep = ServedDispatch.leadsTo("startsWithinOneStep")(
-  states.dispatchable, states.started, within = 1, servedDispatchRuns
-)
+object properties:
+  object liveness:
+    val startsWithinOneStep = ServedDispatch.leadsTo("startsWithinOneStep")(
+      states.dispatchable, states.started, within = 1, servedDispatchRuns
+    )
 ```
+
+A safety postcondition such as `properties.safety.finishSucceeds` assumes no future action: it
+must hold whenever its selected response step occurs, but does not say that response will occur.
+The progress claim is universal over every admitted path from `from`; it states its `within` bound
+and fairness or recovery assumptions separately. A `find` Query supplies one witness path and is
+therefore not evidence that this universal progress claim holds.
 
 A composition's claim reads the composed state and counts composed steps, a sync's once. Its
 assumptions select composed steps by structure: `assume.fair(c.synced(_.activity -> worker.poll),
-c.own(_.queue, queue.persist))`. Progress is a model check only: no Case is generated from it.
+c.own(_.queue, queue.persist))`. The Scala authoring, lifting and model-check path supports this
+composition form today. Progress is a model check only: no Case is generated from it, and that
+source support does not by itself close fn-150's pending generated-consumer, gate or live evidence.
 
 ## 12. Holes
 
@@ -757,7 +779,8 @@ trait Pausing extends Facet[State, Outcome, Fact], Phased[State, Phase]:
       }
     object capabilities extends Capabilities:
       val pausable: Capability = Pausable(pause = client.pause, unpause = client.unpause)
-    object properties: ...                // each Property declared once, in the facet whose promise it is
+    object properties:
+      object safety: ...                  // each Property declared once, in its promise's facet
     object queries: ...
 ```
 
@@ -814,8 +837,8 @@ object capabilities extends Capabilities:
     attemptCount = states.attemptCount, maximumAttempts = states.maximumAttempts,
     retriesRemaining = states.retriesRemaining)
   except(Closable.closedIsRejectedUniformly[State, Phase, Outcome], because = "...")
-  overriding(Pausable.pausedIsNotDispatched[State, Phase] -> properties.ownVersion, because = "...")
-  overriding(Retryable.failureEndsFailed[State, Phase] -> properties.resetFirst, because = "...",
+  overriding(Pausable.pausedIsNotDispatched[State, Phase] -> properties.safety.ownVersion, because = "...")
+  overriding(Retryable.failureEndsFailed[State, Phase] -> properties.safety.resetFirst, because = "...",
     of = Seq(retryable, fatal))             // only these instances
 
 object queries:
@@ -859,17 +882,18 @@ object RecordOverQueue
     sync("admit", _.activity -> worker.poll, _.queue -> queue.deliver)
     replaces(_.queue, TaskQueueProduct)                               // where a member stands in
   object properties:
-    val failedCommitKeepsTheMessage = property holds (after =>
-      after.records(_.activity, AdmissionFact.admissionCommitFailed) implies
-        after.state.queue.outstanding != Outstanding.empty)
-    val startedByPolling = property.whenAction(synced(_.activity -> worker.poll))
-      .holds(_.state.worker.phase == WorkerPhase.polling)
+    object safety:
+      val failedCommitKeepsTheMessage = property holds (after =>
+        after.records(_.activity, AdmissionFact.admissionCommitFailed) implies
+          after.state.queue.outstanding != Outstanding.empty)
+      val startedByPolling = property.whenAction(synced(_.activity -> worker.poll))
+        .holds(_.state.worker.phase == WorkerPhase.polling)
   object queries:
     val stale = scenario.actions(
       synced(_.activity -> history.dispatch),     // the sync that pairs this member action
       own(_.activity, client.pause),              // a member's own, unpaired action
       synced(_.activity -> worker.poll))
-    val staleDelivery = query verify properties.failedCommitKeepsTheMessage in stale limits three
+    val staleDelivery = query verify properties.safety.failedCommitKeepsTheMessage in stale limits three
 
 object TrustingRecordOverQueue extends Composition(RecordOverQueue.withMember(_.activity -> TrustingRecordMember))
 ```

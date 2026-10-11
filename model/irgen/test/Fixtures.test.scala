@@ -96,6 +96,53 @@ class LayoutWitnessFixtures extends munit.FunSuite:
       verify.path("property").path("name").asText(),
       "switchingOnLights"
     )
+    assertEquals(
+      rows("properties")
+        .map(p => p.path("machine").asText() -> p.path("name").asText())
+        .sorted,
+      Seq(
+        "lampProduct" -> "switchedOff",
+        "lampProduct" -> "switchingOnLights"
+      )
+    )
+    val progress = rows("progress")
+    assertEquals(progress.size, 1)
+    val eventuallyLit = progress.head
+    assertEquals(eventuallyLit.path("machine").asText(), "lampProduct")
+    assertEquals(eventuallyLit.path("name").asText(), "eventuallyLit")
+    assertEquals(eventuallyLit.path("within").asInt(), 1)
+    assertEquals(
+      eventuallyLit.path("from").asText(),
+      "fixture.features.lamp.product.LampProduct$.states$.dark"
+    )
+    assertEquals(
+      eventuallyLit.path("to").asText(),
+      "fixture.features.lamp.product.LampProduct$.states$.lit"
+    )
+    assertEquals(
+      eventuallyLit
+        .path("assumptions")
+        .elements()
+        .asScala
+        .map(_.asText())
+        .toSeq,
+      Seq("fixture.features.lamp.switchOnRuns")
+    )
+    val assumptions = rows("assumptions")
+    assertEquals(assumptions.size, 1)
+    assertEquals(
+      assumptions.head.path("id").asText(),
+      "fixture.features.lamp.switchOnRuns"
+    )
+    assertEquals(
+      assumptions.head
+        .path("fair")
+        .elements()
+        .asScala
+        .map(_.asText())
+        .toSeq,
+      Seq("fixture.features.lamp.user.switchOn")
+    )
     val system =
       rows("machines").find(_.path("name").asText() == "lampSystem").get
     assertEquals(system.path("refines").path("product").asText(), "lampProduct")
