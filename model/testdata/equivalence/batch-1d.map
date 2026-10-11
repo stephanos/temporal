@@ -15,26 +15,26 @@ temporal.features.nexus.product temporal.features.nexus.shared.product
 temporal.features.nexus.standalone.system temporal.features.nexus.standalone.protocol
 temporal.features.nexus.workflow.system temporal.features.nexus.workflow.protocol
 nexusSystem nexusProtocol
-# fn-162.3: the claim-container subjects are gone; their Properties and Queries are ActivityProtocol's
+# fn-162.3: the claim-container subjects are gone; their Properties and Queries are ActivitySystem's
 # facets' (Property and Query ids change in the IR: the merged duplicates below; machine-scoped ids
-# of a moved Case read activityProtocol).
-temporal.features.activity.standalone.protocol.byIDCancellation -
-temporal.features.activity.standalone.protocol.byIDCompletion -
-temporal.features.activity.standalone.protocol.byIDFailure -
-temporal.features.activity.standalone.protocol.cancellation -
-temporal.features.activity.standalone.protocol.competingTimeouts -
-temporal.features.activity.standalone.protocol.completion -
-temporal.features.activity.standalone.protocol.deferredReset -
-temporal.features.activity.standalone.protocol.dispatchEligibility -
-temporal.features.activity.standalone.protocol.heartbeatCompletion -
-temporal.features.activity.standalone.protocol.heartbeatExhaustion -
-temporal.features.activity.standalone.protocol.heartbeatRetry -
-temporal.features.activity.standalone.protocol.pausing -
-temporal.features.activity.standalone.protocol.resetKeepingPause -
-temporal.features.activity.standalone.protocol.resetSettlement -
-temporal.features.activity.standalone.protocol.retryFailures -
-temporal.features.activity.standalone.protocol.timeoutRetry -
-temporal.features.activity.standalone.protocol.timeouts -
+# of a moved Case read activitySystem, then activityProtocol).
+temporal.features.activity.standalone.system.byIDCancellation -
+temporal.features.activity.standalone.system.byIDCompletion -
+temporal.features.activity.standalone.system.byIDFailure -
+temporal.features.activity.standalone.system.cancellation -
+temporal.features.activity.standalone.system.competingTimeouts -
+temporal.features.activity.standalone.system.completion -
+temporal.features.activity.standalone.system.deferredReset -
+temporal.features.activity.standalone.system.dispatchEligibility -
+temporal.features.activity.standalone.system.heartbeatCompletion -
+temporal.features.activity.standalone.system.heartbeatExhaustion -
+temporal.features.activity.standalone.system.heartbeatRetry -
+temporal.features.activity.standalone.system.pausing -
+temporal.features.activity.standalone.system.resetKeepingPause -
+temporal.features.activity.standalone.system.resetSettlement -
+temporal.features.activity.standalone.system.retryFailures -
+temporal.features.activity.standalone.system.timeoutRetry -
+temporal.features.activity.standalone.system.timeouts -
 heartbeatCompletes completes
 heartbeatRetryCompletes completes
 resetAttemptCompletes completes
