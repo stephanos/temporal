@@ -31,7 +31,7 @@ val two = Limits(steps = 2, actions = 2, search = 4096)
 
 object hand extends Actor:
   val press = action(this)
-  val turn = action(this).input(knob)
+  val turn: Action[Knob *: EmptyTuple] = action(this).input(knob)
 
 object clock:
   val tick = timer

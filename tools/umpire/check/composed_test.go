@@ -17,7 +17,7 @@ import (
 func TestAComposedReadingIsTheCompositionCheckReads(t *testing.T) {
 	for _, name := range []string{"activity-standalone", "activity-standalone-record"} {
 		t.Run(name, func(t *testing.T) {
-			m, err := ir.Load(filepath.Join("..", "..", "..", "model", "ir", name+".json"))
+			m, err := ir.Load(ir.ModelPath(filepath.Join("..", "..", ".."), name+".json"))
 			require.NoError(t, err)
 			r, err := NewRealizer(m, DefaultScope)
 			require.NoError(t, err)
@@ -75,7 +75,7 @@ func isComposition(m *umpirespb.Model, name string) bool {
 // as strings. Its Properties are the Model's, read as Check reads them: the stale design over the
 // queue violates atMostOneActive on the last step of Check's own counterexample, and on no earlier one.
 func TestAComposedReadingDecodesStatesStepsAndProperties(t *testing.T) {
-	m, err := ir.Load(filepath.Join("..", "..", "..", "model", "ir", "activity-standalone-record.json"))
+	m, err := ir.Load(ir.ModelPath(filepath.Join("..", "..", ".."), "activity-standalone-record.json"))
 	require.NoError(t, err)
 	r, err := NewRealizer(m, DefaultScope)
 	require.NoError(t, err)
@@ -134,7 +134,7 @@ func TestAComposedReadingDecodesStatesStepsAndProperties(t *testing.T) {
 // A composition past the scope's ceiling has no reading, and the error is the one Check's
 // resource-limit receipt is made of; a name that is no composition names nothing.
 func TestAComposedReadingKeepsTheCeilingAndTheNames(t *testing.T) {
-	m, err := ir.Load(filepath.Join("..", "..", "..", "model", "ir", "activity-standalone.json"))
+	m, err := ir.Load(ir.ModelPath(filepath.Join("..", "..", ".."), "activity-standalone.json"))
 	require.NoError(t, err)
 	scope := DefaultScope
 	scope.Compose.States = 3

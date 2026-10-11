@@ -145,13 +145,13 @@ func harnessFixture(t *testing.T) (*testpilotcore.ModelCase, testpilot.ProfileSp
 
 func generatedHarnessCase(t *testing.T, file string) (*testpilotcore.ModelCase, error) {
 	t.Helper()
-	directory := filepath.Join("..", "..", "..", "model", "cases")
+	directory := filepath.Join("..", "..", "..", "model", "temporal", "features")
 	entries, err := testpilotcore.GeneratedCases(directory)
 	if err != nil {
 		return nil, err
 	}
 	for _, entry := range entries {
-		if entry.File == file {
+		if testpilotcore.GeneratedCaseName(entry)+"-case.json" == file {
 			return testpilotcore.LoadGeneratedCase(directory, entry)
 		}
 	}

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"maps"
 	"os"
 	"path/filepath"
@@ -66,6 +67,7 @@ func generateCases(irDirectory string, produce func(path string, m *umpirespb.Mo
 	if len(paths) == 0 {
 		return nil, fmt.Errorf("no IR Models in %s", irDirectory)
 	}
+	slices.SortFunc(paths, func(a, b string) int { return strings.Compare(ir.ModelName(a), ir.ModelName(b)) })
 	files := map[string][]byte{}
 	manifest := Manifest{Version: 1}
 	for _, path := range paths {
@@ -80,7 +82,7 @@ func generateCases(irDirectory string, produce func(path string, m *umpirespb.Mo
 		queries := slices.Clone(model.GetQueries())
 		slices.SortFunc(queries, func(a, b *umpirespb.Query) int { return strings.Compare(a.GetName(), b.GetName()) })
 		for _, query := range queries {
-			entry, encoded, err := generateCase(producer, filepath.Base(path), query)
+			entry, encoded, err := generateCase(producer, ir.ModelName(path), query)
 			if err != nil {
 				return nil, err
 			}
@@ -258,32 +260,49 @@ func FindGeneratedCase(directory string, source *testpilotspb.Case) (*GeneratedC
 	if err != nil {
 		return nil, err
 	}
-	encoded, err := os.ReadFile(filepath.Join(directory, "manifest.json"))
-	if err != nil {
+	manifests := []string{}
+	if err := filepath.WalkDir(directory, func(path string, entry fs.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		if !entry.IsDir() && entry.Name() == "manifest.json" {
+			manifests = append(manifests, path)
+		}
+		return nil
+	}); err != nil {
 		return nil, err
 	}
-	manifest, err := DecodeManifest(encoded)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", filepath.Join(directory, "manifest.json"), err)
+	if len(manifests) == 0 {
+		return nil, fmt.Errorf("no generated Case manifest.json in %s: %w", directory, os.ErrNotExist)
 	}
-	for _, entry := range manifest.Queries {
-		if entry.Standing != Lowered {
-			continue
-		}
-		encoded, err := os.ReadFile(filepath.Join(directory, entry.File))
+	for _, manifestPath := range manifests {
+		encoded, err := os.ReadFile(manifestPath)
 		if err != nil {
 			return nil, err
 		}
-		generated, err := runtime.DecodeCaseProtoJSON(encoded)
+		manifest, err := DecodeManifest(encoded)
 		if err != nil {
-			return nil, fmt.Errorf("%s: %w", entry.File, err)
+			return nil, fmt.Errorf("%s: %w", manifestPath, err)
 		}
-		other, err := runtime.CaseFingerprint(generated)
-		if err != nil {
-			return nil, err
-		}
-		if other == fingerprint {
-			return &entry, nil
+		for _, entry := range manifest.Queries {
+			if entry.Standing != Lowered {
+				continue
+			}
+			encoded, err := os.ReadFile(filepath.Join(filepath.Dir(manifestPath), entry.File))
+			if err != nil {
+				return nil, err
+			}
+			generated, err := runtime.DecodeCaseProtoJSON(encoded)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %w", entry.File, err)
+			}
+			other, err := runtime.CaseFingerprint(generated)
+			if err != nil {
+				return nil, err
+			}
+			if other == fingerprint {
+				return &entry, nil
+			}
 		}
 	}
 	return nil, fmt.Errorf("%w: case %q is none of the lowered Cases in %s", ErrNotGenerated, source.GetCaseId(), directory)
@@ -438,6 +457,14 @@ func validateCaseFiles(manifest *Manifest, files map[string][]byte) error {
 
 // SyncCases validates a complete temporary tree before checking or replacing the managed directory.
 func SyncCases(directory string, files map[string][]byte, update bool) (result error) {
+	feature := featureGenerated(directory)
+	if feature {
+		var err error
+		files, err = colocatedCases(files)
+		if err != nil {
+			return err
+		}
+	}
 	manifest, err := DecodeManifest(files["manifest.json"])
 	if err != nil {
 		return err
@@ -479,7 +506,91 @@ func SyncCases(directory string, files map[string][]byte, update bool) (result e
 	if !update {
 		return checkCaseTree(directory, files)
 	}
+	if feature {
+		for _, name := range []string{"ir.json", "ir.lint.json", "legacy"} {
+			from := filepath.Join(directory, name)
+			if _, err := os.Lstat(from); os.IsNotExist(err) {
+				continue
+			} else if err != nil {
+				return err
+			}
+			if err := copyPreserved(from, filepath.Join(temporary, name)); err != nil {
+				return err
+			}
+		}
+	}
 	return publishCaseTree(directory, temporary)
+}
+
+func featureGenerated(directory string) bool {
+	if filepath.Base(directory) != "generated" {
+		return false
+	}
+	for parent := filepath.Dir(directory); parent != filepath.Dir(parent); parent = filepath.Dir(parent) {
+		if filepath.Base(parent) == "features" {
+			return true
+		}
+	}
+	return false
+}
+
+func colocatedCases(files map[string][]byte) (map[string][]byte, error) {
+	manifest, err := DecodeManifest(files["manifest.json"])
+	if err != nil {
+		return nil, err
+	}
+	if err := validateCaseFiles(manifest, files); err != nil {
+		return nil, err
+	}
+	result := make(map[string][]byte, len(files))
+	for i := range manifest.Queries {
+		entry := &manifest.Queries[i]
+		if entry.Standing != Lowered {
+			continue
+		}
+		name := entry.Query.Name + ".case.json"
+		if !bareJSON(name) || result[name] != nil {
+			return nil, fmt.Errorf("invalid or duplicate feature Case filename %s", name)
+		}
+		result[name] = files[entry.File]
+		entry.File = name
+	}
+	encoded, err := json.MarshalIndent(manifest, "", "  ")
+	if err != nil {
+		return nil, err
+	}
+	result["manifest.json"] = append(encoded, '\n')
+	return result, nil
+}
+
+func copyPreserved(from, to string) error {
+	info, err := os.Lstat(from)
+	if err != nil {
+		return err
+	}
+	if info.IsDir() {
+		if err := os.Mkdir(to, info.Mode().Perm()); err != nil {
+			return err
+		}
+		entries, err := os.ReadDir(from)
+		if err != nil {
+			return err
+		}
+		for _, entry := range entries {
+			if err := copyPreserved(filepath.Join(from, entry.Name()), filepath.Join(to, entry.Name())); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+	if !info.Mode().IsRegular() {
+		return fmt.Errorf("preserved generated entry must be regular: %s", from)
+	}
+	encoded, err := os.ReadFile(from)
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(to, encoded, info.Mode().Perm())
 }
 
 func validateCaseTree(directory string, manifest *Manifest) error {
@@ -509,6 +620,11 @@ func checkCaseTree(directory string, files map[string][]byte) error {
 	existing, err := os.ReadDir(directory)
 	if err != nil {
 		return err
+	}
+	if featureGenerated(directory) {
+		existing = slices.DeleteFunc(existing, func(entry os.DirEntry) bool {
+			return entry.Name() == "ir.json" || entry.Name() == "ir.lint.json" || entry.Name() == "legacy"
+		})
 	}
 	if len(existing) != len(files) {
 		return errors.New("generated Case inventory is stale")

@@ -386,7 +386,7 @@ func TestWithoutTotalsClearsOnlyTotals(t *testing.T) {
 //	  and still counted on activityRecord, 36 states; staleDeliveryAfterPause schedules 3 actions
 //	  under limits three: 36 × min(3, 3) = 108
 func TestTheActivityModelsTotalsAreStatesTimesSlots(t *testing.T) {
-	m, err := Load(filepath.Join("..", "..", "..", "model", "ir", "activity-standalone.json"))
+	m, err := Load(ModelPath(filepath.Join("..", "..", ".."), "activity-standalone.json"))
 	require.NoError(t, err)
 	require.Equal(t, interp.CountOf(5616), totalOf(t, m, "completion").States)
 	actions := make(map[string]*umpirespb.Action)

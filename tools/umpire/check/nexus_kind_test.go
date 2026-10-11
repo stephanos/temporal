@@ -11,7 +11,7 @@ import (
 func TestBothProductionNexusFormsRefineKindProduct(t *testing.T) {
 	for _, form := range []string{"workflow", "standalone"} {
 		t.Run(form, func(t *testing.T) {
-			m, err := ir.Load(filepath.Join("..", "..", "..", "model", "ir", "nexus-"+form+".json"))
+			m, err := ir.Load(ir.ModelPath(filepath.Join("..", "..", ".."), "nexus-"+form+".json"))
 			require.NoError(t, err)
 			machines := built(t, m)
 			product, system := machines["nexusProduct"], machines["nexusSystem"]

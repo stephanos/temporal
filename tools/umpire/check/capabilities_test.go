@@ -81,7 +81,7 @@ func TestIRPathsRefuseLawSidecarsAndLeaveOutAcceptedFindings(t *testing.T) {
 // its terminal statuses are final, its own reading of closed rejection (a repeated request id is
 // answered OK) holds, and its same-step Properties are found from its start (fn-122 R6, R11).
 func TestNexusOperationReceivesTheCapabilityProperties(t *testing.T) {
-	path := filepath.Join("..", "..", "..", "model", "ir", "nexus-standalone.json")
+	path := ir.ModelPath(filepath.Join("..", "..", ".."), "nexus-standalone.json")
 	m, err := ir.Load(path)
 	require.NoError(t, err)
 	c, err := checkedOnce(m)

@@ -17,6 +17,7 @@ import (
 
 	"go.temporal.io/server/common/testing/testpilot/publish"
 	"go.temporal.io/server/tools/umpire/internal/cli"
+	"go.temporal.io/server/tools/umpire/ir/paths"
 )
 
 // Exit codes, as the other Umpire commands rank them: a failed iteration outranks a stop, because
@@ -42,7 +43,7 @@ const (
 // fingerprintRoots are the directories whose tracked and untracked files the live tests read at run
 // time, relative to the repository root; fingerprintBinaries are the IR bridge binaries they execute.
 var (
-	fingerprintRoots    = []string{"tests", "common/testing/testpilot", "tools/umpire", "model/ir", "model/cases"}
+	fingerprintRoots    = []string{"tests", "common/testing/testpilot", "tools/umpire", paths.FeatureDirectory}
 	fingerprintBinaries = []string{".build/umpire-ir-bridge"}
 )
 

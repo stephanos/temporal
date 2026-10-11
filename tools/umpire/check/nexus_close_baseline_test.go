@@ -1,7 +1,7 @@
 package check
 
 // What the close and reset designs share with the Nexus caller Model, the baseline here, and what they
-// do not. The baseline (model/ir/nexus-workflow.json, the Scala port of the Go Model the tests are named
+// do not. The baseline (model/temporal/features/nexus/workflow/generated/ir.json, the Scala port of the Go Model the tests are named
 // after) models one run and neither a close nor a reset, so the one behavior both have is an open
 // caller accepting an asynchronous completion: the baseline's `complete` rows of a started operation.
 // That is compared here, row by row and Query by Query. Everything else the designs claim is an

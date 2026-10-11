@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"go.temporal.io/server/tools/umpire/ir"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -41,7 +42,7 @@ func TestTestpilotUmpireRunRunsACheckedInCaseAgainstAnyEndpoint(t *testing.T) {
 	defer cancel()
 
 	arguments := []string{
-		"--case", filepath.Join("..", "model", "cases", "nexus-workflow-asyncCompletion-case.json"),
+		"--case", ir.CasePath(filepath.Join(".."), "nexus-workflow.json", "asyncCompletion"),
 		"--grpc", env.FrontendGRPCAddress(),
 		"--http", env.HttpAPIAddress(),
 		"--namespace", namespaceName,

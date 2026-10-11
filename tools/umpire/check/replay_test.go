@@ -25,7 +25,7 @@ func TestEveryReportedWitnessReplaysUnderItsDefinitionIDs(t *testing.T) {
 		"nexus-workflow":      {"asyncCompletion", "asyncFailure", "handlerError", "retry", "scheduleToStartTimeout", "startToCloseTimeout", "syncCompletion"},
 	}
 	for _, name := range []string{"activity-standalone", "nexus-workflow"} {
-		model, err := ir.Load(filepath.Join(root, "model", "ir", name+".json"))
+		model, err := ir.Load(ir.ModelPath(filepath.Join(root), name+".json"))
 		require.NoError(t, err)
 		realizer, err := NewRealizer(model, DefaultScope)
 		require.NoError(t, err)

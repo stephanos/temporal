@@ -224,7 +224,7 @@ func TestActivityEveryClaimDeclarationIsLifted(t *testing.T) {
 				at["model/temporal/features/activity/standalone/"+file] = true
 			}
 			require.Equal(t, exported.capabilities, sections)
-			m, err := ir.Load(filepath.Join("..", "..", "..", "model", "ir", exported.ir))
+			m, err := ir.Load(ir.ModelPath(filepath.Join("..", "..", ".."), exported.ir))
 			require.NoError(t, err)
 			families := map[string]string{}
 			for _, machine := range m.GetMachines() {

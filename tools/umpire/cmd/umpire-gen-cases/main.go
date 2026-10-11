@@ -28,7 +28,7 @@ type kind struct {
 // The functional and canary trees pin Queries of the complete tree, so a consumer's Case is the
 // model tree's Case byte for byte. A Query enters a pinned tree only when its Model lowers it.
 var kinds = map[string]kind{
-	"model": {directory: "model/cases", target: "umpire-gen-model"},
+	"model": {directory: ir.FeatureDirectory, target: "umpire-gen-model"},
 	"functional": {directory: "tests/testcore/testpilot/testdata/generated", target: "umpire-gen-fixtures", pinned: []lower.Selected{
 		{Model: "nexus-workflow.json", Query: "asyncCompletion"},
 		{Model: "nexus-workflow.json", Query: "asyncFailure"},
@@ -91,9 +91,17 @@ func main() {
 		flag.Usage()
 		os.Exit(2)
 	}
-	complete, err := lower.GenerateCases("model/ir")
+	scope := ir.FeatureRoot(".")
+	if *name == "model" {
+		if err := modelCases(scope, *update); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		return
+	}
+	complete, err := lower.GenerateCases(scope)
 	if err == nil {
-		if err = requireTotals("model/ir"); err != nil {
+		if err = requireTotals(scope); err != nil {
 			fmt.Fprintf(os.Stderr, "%v; every Query declares its total\n", err)
 			os.Exit(1)
 		}
@@ -103,4 +111,36 @@ func main() {
 		fmt.Fprintf(os.Stderr, "%s: %v; make %s publishes it\n", selected.directory, err, selected.target)
 		os.Exit(1)
 	}
+}
+
+func modelCases(scope string, update bool) error {
+	paths, err := ir.IRPaths(scope)
+	if err != nil {
+		return err
+	}
+	if len(paths) == 0 {
+		return fmt.Errorf("no managed IR tree in %s", scope)
+	}
+	managed := 0
+	for _, path := range paths {
+		if filepath.Base(path) != "ir.json" {
+			continue
+		}
+		directory := filepath.Dir(path)
+		managed++
+		if err := requireTotals(directory); err != nil {
+			return fmt.Errorf("%s: %w", directory, err)
+		}
+		files, err := lower.GenerateCases(directory)
+		if err != nil {
+			return fmt.Errorf("%s: %w", directory, err)
+		}
+		if err := lower.SyncCases(directory, files, update); err != nil {
+			return fmt.Errorf("%s: %w", directory, err)
+		}
+	}
+	if managed == 0 {
+		return fmt.Errorf("no primary managed IR tree in %s", scope)
+	}
+	return nil
 }

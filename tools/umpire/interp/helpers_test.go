@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	umpirespb "go.temporal.io/server/api/umpire/v1"
+	irpaths "go.temporal.io/server/tools/umpire/ir/paths"
 )
 
 func admLiteral(at *umpirespb.Expr, v *umpirespb.Value) *umpirespb.Expr {
@@ -24,7 +25,7 @@ func function(m *umpirespb.Model, suffix string) *umpirespb.Function {
 	return nil
 }
 
-const activityIR = "../../../model/ir/activity-standalone.json"
+var activityIR = irpaths.ModelPath("../../..", "activity-standalone.json")
 
 // stuck is the first reachable state that is not an end and has no row with a result, or "". It reads
 // the rows themselves, not the table's index of them, which a test that edits the rows leaves stale.

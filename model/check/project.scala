@@ -3,6 +3,7 @@
 // It is built without -Werror: scala-cli exits 0 when -Werror turns a warning into an error and
 // then runs the classes it wrote, and nothing stands in front of the gate to read its own build.
 //> using scala 3.9.0
+//> using file ../OutputPaths.scala
 //> using jvm 27
 //> using options -deprecation -feature -unchecked -Wunused:imports -language:strictEquality
 // Two entry points: `run`, the gate, and `metrics` (Metrics.scala), which scala-cli runs with

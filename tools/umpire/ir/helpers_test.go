@@ -9,7 +9,7 @@ import (
 	"go.temporal.io/server/tools/umpire/interp"
 )
 
-const activitySystemIR = "../../../model/ir/activity-standalone-record.json"
+var activitySystemIR = ModelPath("../../..", "activity-standalone-record.json")
 
 // realizationNamed is the realization a Model declares under a name: a Model declares several.
 func realizationNamed(t testing.TB, m *umpirespb.Model, name string) *umpirespb.Realization {
@@ -52,9 +52,9 @@ func built(t *testing.T, m *umpirespb.Model) map[string]*interp.Machine {
 	return out
 }
 
-const nexusCloseIR = "../../../model/ir/nexus-workflow-close.json"
+var nexusCloseIR = ModelPath("../../..", "nexus-workflow-close.json")
 
-const irPath = "../../../model/ir/nexus-workflow.json"
+var irPath = ModelPath("../../..", "nexus-workflow.json")
 
 // BuildWithin is Build within explicit ceilings.
 func BuildWithin(m *umpirespb.Model, c interp.Ceilings) (map[string]*interp.Machine, error) {
@@ -62,7 +62,7 @@ func BuildWithin(m *umpirespb.Model, c interp.Ceilings) (map[string]*interp.Mach
 	return in.Build(m)
 }
 
-const activityIR = "../../../model/ir/activity-standalone.json"
+var activityIR = ModelPath("../../..", "activity-standalone.json")
 
 var activityBaseline = sync.OnceValues(func() (*umpirespb.Model, error) { return Load(activityIR) })
 

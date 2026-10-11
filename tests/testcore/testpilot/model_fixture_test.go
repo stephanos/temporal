@@ -12,6 +12,7 @@ import (
 	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/common/testing/testpilot/temporal"
 	"go.temporal.io/server/tools/umpire/check"
+	"go.temporal.io/server/tools/umpire/ir"
 	"go.temporal.io/server/tools/umpire/lower"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
@@ -26,7 +27,7 @@ func TestModelCasesLowerForExistingConsumers(t *testing.T) {
 		{"nexus-workflow", "temporal.features.nexus.workflow.system", "nexusSystem", "nexusCallerTests", "asyncCompletion"},
 	} {
 		t.Run(item.query, func(t *testing.T) {
-			path := filepath.Join("..", "..", "..", "model", "ir", item.model+".json")
+			path := ir.ModelPath(filepath.Join("..", "..", ".."), item.model+".json")
 			key := check.ClaimKey{Family: item.family, Owner: item.owner, Name: item.query}
 			fixture, err := LoadModelCase(path, key, item.set)
 			require.NoError(t, err)
@@ -52,7 +53,7 @@ func TestModelCasesLowerForExistingConsumers(t *testing.T) {
 // a Profile derived from a server without it is refused at preparation, naming the setting, the
 // value it must take and that it is unset; one derived from a server that sets it admits them.
 func TestGeneratedNexusOperationCasesRequireTheStandaloneFlag(t *testing.T) {
-	directory := filepath.Join("..", "..", "..", "model", "cases")
+	directory := filepath.Join("..", "..", "..", "model", "temporal", "features")
 	entries, err := GeneratedCases(directory)
 	require.NoError(t, err)
 	catalog, err := temporal.NewWorkflowServiceCatalog()
@@ -107,7 +108,7 @@ func TestGeneratedNexusOperationCasesRequireTheStandaloneFlag(t *testing.T) {
 // Run of it is assessed for, and names its durable kinds, so a harness can take the commit evidence
 // out of a recorded Run without knowing the Case.
 func TestTheHeldRaceIsLoadedWithItsClaimAndItsDurableKinds(t *testing.T) {
-	fixture, err := LoadModelCase(filepath.Join("..", "..", "..", "model", "ir", "activity-standalone-race.json"),
+	fixture, err := LoadModelCase(ir.ModelPath(filepath.Join("..", "..", ".."), "activity-standalone-race.json"),
 		check.ClaimKey{Family: "temporal.features.activity.standalone.system", Owner: "heldDispatch", Name: "heldDispatch.staleDelivery"}, "standaloneActivityRace")
 	require.NoError(t, err)
 	require.Equal(t, "staleDeliveryRejected", fixture.Property)

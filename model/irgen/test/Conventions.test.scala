@@ -13,20 +13,7 @@ class ConventionsFixtures extends munit.FunSuite:
     Files.createTempDirectory(Files.createDirectories(build.resolve("history")), "conventions.")
 
   private def fixture(name: String): Path =
-    val sources = Files.createDirectories(scratch.resolve(name))
-    val stream = Files.newDirectoryStream(
-      tools.directory.resolve(s"model/irgen/testdata/$name"),
-      "*.scala"
-    )
-    try
-      for from <- stream.asScala do
-        Files.writeString(
-          sources.resolve(from.getFileName),
-          Files
-            .readString(from)
-            .replace("../../../build/model-scala.jar", build.resolve("model-scala.jar").toString)
-        ): Unit
-    finally stream.close()
+    val sources = tools.directory.resolve(s"model/irgen/testdata/$name")
     val jar = scratch.resolve(s"$name.jar")
     tools
       .scalaCli(
@@ -37,6 +24,23 @@ class ConventionsFixtures extends munit.FunSuite:
 
   private lazy val negative = fixture("conventions")
   private lazy val patterns = fixture("enumPatterns")
+
+  test("relocated production TASTy retains authored dotted membership"):
+    val result = tools.run(
+      Path.of(System.getProperty("java.home"), "bin", "java").toString,
+      Seq(
+        "-cp",
+        System.getProperty("java.class.path"),
+        "umpire.irgen.lintConventions",
+        s"${build.resolve("model-scala.jar")}=model/",
+        build.resolve("model-scala.classpath").toString
+      )
+    )
+    assertEquals(result.exit, 0, result.output)
+    assert(
+      !result.output.contains("R4.dotted-in"),
+      result.output
+    )
 
   private def lift(jar: Path, stored: String, root: String): (Ran, Path) =
     val output = scratch.resolve(root.split('.').last + ".json")

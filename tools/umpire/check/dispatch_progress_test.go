@@ -19,13 +19,13 @@ import (
 )
 
 // dispatchProgressIR is the checked-in IR the example lifts into; UMPIRE_MODEL_IR names another
-// directory of lifted IR files, such as one lifted before model/ir is regenerated.
+// directory of lifted IR files, such as one lifted before the feature's generated IR is regenerated.
 func dispatchProgressIR(t *testing.T) *umpirespb.Model {
-	dir := os.Getenv("UMPIRE_MODEL_IR")
-	if dir == "" {
-		dir = filepath.Join("..", "..", "..", "model", "ir")
+	path := ir.ModelPath("../../..", "activity-standalone.json")
+	if dir := os.Getenv("UMPIRE_MODEL_IR"); dir != "" {
+		path = filepath.Join(dir, "activity-standalone.json")
 	}
-	m, err := ir.Load(filepath.Join(dir, "activity-standalone.json"))
+	m, err := ir.Load(path)
 	require.NoError(t, err)
 	return m
 }

@@ -708,7 +708,7 @@ func TestTheAttemptARunEventRecordsIsOfAnActivitysScript(t *testing.T) {
 				"a Run records it once the attempt is answered, and the realization says which attempt that is"},
 	} {
 		t.Run(name, func(t *testing.T) {
-			m, err := Load(filepath.Join("..", "..", "..", "model", "ir", "activity-standalone.json"))
+			m, err := Load(ModelPath(filepath.Join("..", "..", ".."), "activity-standalone.json"))
 			require.NoError(t, err)
 			test.change(m, source(t, m))
 			err = Validate(m)
@@ -728,7 +728,7 @@ func TestTheAttemptARunEventRecordsIsOfAnActivitysScript(t *testing.T) {
 // Any other command does not read the record, and closes nothing.
 func TestTheRunsOwnRecordIsClosedByTheCommandItRecords(t *testing.T) {
 	race := func(t *testing.T) (*umpirespb.Model, *umpirespb.Realization) {
-		m, err := Load(filepath.Join("..", "..", "..", "model", "ir", "activity-standalone-race.json"))
+		m, err := Load(ModelPath(filepath.Join("..", "..", ".."), "activity-standalone-race.json"))
 		require.NoError(t, err)
 		for _, r := range m.GetRealizations() {
 			if r.GetName() == "heldDelivery" {

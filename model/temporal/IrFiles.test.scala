@@ -4,34 +4,22 @@ package temporal
 // machine an IR file lifts must be among those constructed, so none escapes that check.
 
 import java.nio.file.{Files, Path}
-import scala.jdk.CollectionConverters.*
 import temporal.actors.client.Client
 import framework.IrFile
 
 class IrFilesTest extends munit.FunSuite:
   val declared: Vector[IrFile] = CompiledInventory.files
 
-  // The checked-in IR files, by name: model/ir/<name>.json, beside no sidecar.
-  def checkedIn: Set[String] =
-    val ir = Path.of("model/ir")
-    assert(
-      Files.isDirectory(ir),
-      "model/ir is missing: the Models' tests run at the repository's root"
-    )
-    val stream = Files.list(ir)
-    try
-      val names = stream.iterator.asScala
-        .map(_.getFileName.toString)
-        .filter(n => n.endsWith(".json") && !n.endsWith(".lint.json"))
-        .map(_.stripSuffix(".json"))
-        .toSet
-      names.intersect(declared.map(_.name).toSet)
-    finally stream.close()
+  lazy val checkedIn: Set[String] =
+    val names = IrFile.inventory(Path.of(".")).map(_._1).toSet
+    for name <- (names -- declared.map(_.name).toSet).toVector.sorted do
+      println(s"feature $name: not in compiled scope")
+    names.intersect(declared.map(_.name).toSet)
 
   // The names of the machines an IR file lifts: its `machines`, each by its `name`.
   def liftedMachines(file: String): Vector[String] =
     import org.json4s.*
-    val ir = org.json4s.jackson.JsonMethods.parse(Files.readString(Path.of(s"model/ir/$file.json")))
+    val ir = org.json4s.jackson.JsonMethods.parse(Files.readString(IrFile.path(Path.of("."), file)))
     val rows = (ir \ "machines").children ++ (ir \ "compositions").children
     rows
       .map(row =>

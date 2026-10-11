@@ -31,7 +31,7 @@ func TestIRBridgeProtocol(t *testing.T) {
 	build.Dir = root
 	output, err := build.CombinedOutput()
 	require.NoError(t, err, "%s", output)
-	m, err := ir.Load(filepath.Join(root, "model", "ir", "nexus-workflow.json"))
+	m, err := ir.Load(ir.ModelPath(filepath.Join(root), "nexus-workflow.json"))
 	require.NoError(t, err)
 	var query *umpirespb.Query
 	for _, q := range m.Queries {
@@ -57,10 +57,11 @@ func TestIRBridgeProtocol(t *testing.T) {
 	candidate := plan.Candidates[1]
 	require.Empty(t, candidate.Rejection)
 	modelRoot := t.TempDir()
-	require.NoError(t, os.Mkdir(filepath.Join(modelRoot, "ir"), 0755))
+	generated := filepath.Join(modelRoot, "temporal", "features", "nexus", "workflow", "generated")
+	require.NoError(t, os.MkdirAll(generated, 0755))
 	encoded, err := protojson.Marshal(m)
 	require.NoError(t, err)
-	require.NoError(t, os.WriteFile(filepath.Join(modelRoot, "ir", "model.json"), encoded, 0644))
+	require.NoError(t, os.WriteFile(filepath.Join(generated, "ir.json"), encoded, 0644))
 	options := campaign.Options{Executable: binary, Dir: modelRoot}
 
 	t.Run("campaign", func(t *testing.T) {

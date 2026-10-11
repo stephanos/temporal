@@ -30,7 +30,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-const nexusCloseIR = "../../../model/ir/nexus-workflow-close.json"
+var nexusCloseIR = ir.ModelPath("../../..", "nexus-workflow-close.json")
 
 var nexusClose = sync.OnceValues(func() (*checkedModel, error) {
 	m, err := ir.Load(nexusCloseIR)

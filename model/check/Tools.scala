@@ -59,6 +59,8 @@ final class Tools(val directory: Path, environment: Map[String, String]):
 
   def withEnvironment(more: (String, String)*): Tools = Tools(directory, environment ++ more)
 
+  def inDirectory(path: Path): Tools = Tools(path, environment)
+
   // The executable a name stands for; a name with a separator is a path and is taken as given.
   def find(tool: String): Path =
     val searched = environment

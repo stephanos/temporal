@@ -36,7 +36,7 @@ const (
 
 func nexusModel(t testing.TB) *umpirespb.Model {
 	t.Helper()
-	m, err := ir.Load(filepath.Join("..", "..", "..", "model", "ir", "nexus-workflow.json"))
+	m, err := ir.Load(ir.ModelPath(filepath.Join("..", "..", ".."), "nexus-workflow.json"))
 	require.NoError(t, err)
 	return m
 }

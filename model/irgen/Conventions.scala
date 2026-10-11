@@ -12,7 +12,7 @@ final private[irgen] class Conventions(index: Index):
   private val machine = Symbol.requiredClass("framework.Machine")
   private val composition = Symbol.requiredClass("framework.Composition")
   private val finite = Symbol.requiredClass("framework.Finite")
-  private val sourceLines = mutable.Map.empty[String, Array[String]]
+  private val sourceText = mutable.Map.empty[String, String]
   private val importedRefusals = mutable.Set.empty[(String, String, String)]
   private val temporalRoot = Path.of("model/temporal").toAbsolutePath.normalize
 
@@ -26,6 +26,14 @@ final private[irgen] class Conventions(index: Index):
   private def fileOf(t: Tree): String =
     val source = t.pos.sourceFile.path
     index.sourceRoots.getOrElse(source, "") + source
+
+  private def textOf(t: Tree): String =
+    sourceText.getOrElseUpdate(fileOf(t), Files.readString(Path.of(fileOf(t))))
+
+  private def lineOf(t: Tree): Int =
+    scala.util
+      .Try(textOf(t).take(t.pos.start).count(_ == '\n') + 1)
+      .getOrElse(t.pos.startLine + 1)
 
   private def moduleOf(t: Tree, owner: Symbol): String =
     val file = fileOf(t)
@@ -42,30 +50,20 @@ final private[irgen] class Conventions(index: Index):
 
   private def refuse(t: Tree, rule: String, message: String): Unit =
     val path = fileOf(t)
-    val line = t.pos.startLine + 1
+    val line = lineOf(t)
     refused += ((path, line, LiftError(s"$path:$line", s"$rule: $message")))
 
   private def dotted(r: Ref): Either[String, Boolean] = scala.util
     .Try {
-      val lines = sourceLines.getOrElseUpdate(
-        fileOf(r),
-        Files.readString(Path.of(fileOf(r))).split("\\n", -1)
-      )
+      val text = textOf(r)
       val pos = r.pos
-      val selected = lines.slice(pos.startLine, pos.endLine + 1)
-      val written = if selected.length == 1 then
-        selected.head.slice(
-          pos.startColumn,
-          pos.endColumn
-        )
-      else
-        (selected.head.drop(
-          pos.startColumn
-        ) +: selected.tail.init :+ selected.last.take(
-          pos.endColumn
-        )).mkString("\n")
+      require(
+        pos.start >= 0 && pos.end >= pos.start && pos.end <= text.length,
+        "membership source span is outside its source file"
+      )
+      val written = text.substring(pos.start, pos.end)
       "(?s).*\\.\\s*`?in`?\\s*$".r.matches(written) ||
-      lines(pos.startLine).take(pos.startColumn).trim.endsWith(".")
+      text.substring(0, pos.start).reverse.takeWhile(_ != '\n').reverse.trim.endsWith(".")
     }
     .toEither
     .left
@@ -119,11 +117,7 @@ final private[irgen] class Conventions(index: Index):
     // An enum's own definition imports its cases into its companion; no source writes that.
     val written = scala.util
       .Try {
-        val lines = sourceLines.getOrElseUpdate(
-          fileOf(i),
-          Files.readString(Path.of(fileOf(i))).split("\\n", -1)
-        )
-        lines(i.pos.startLine).trim.startsWith("import")
+        textOf(i).linesIterator.drop(lineOf(i) - 1).next().trim.startsWith("import")
       }
       .getOrElse(false)
     if written && phaseTypes(phase) then
@@ -186,6 +180,10 @@ final private[irgen] class Conventions(index: Index):
   // layer imports only the layers below it, and only the realization layer reads the Temporal API.
   private def permitted(from: String, to: String, test: Boolean): Boolean =
     if to == from then true
+    else if to == "umpire.paths" then true
+    else if from == "umpire.paths" &&
+      (within(to, "framework") || within(to, "temporal") || within(to, "umpire"))
+    then false
     else if !test && within(from, "temporal.features") && layer(from).forall(
         _ < 2
       ) &&

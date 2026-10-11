@@ -1,6 +1,6 @@
 package check
 
-// The Nexus caller Model, as model/ir/nexus-workflow.json carries it: the sizes, rows and answers its
+// The Nexus caller Model, as model/temporal/features/nexus/workflow/generated/ir.json carries it: the sizes, rows and answers its
 // Scala pins asserted, read off the tables and receipts Go derives from the IR.
 
 import (

@@ -26,7 +26,7 @@ import (
 	"go.temporal.io/server/tools/umpire/lower"
 )
 
-var generatedCaseDirectory = filepath.Join("..", "model", "cases")
+var generatedCaseDirectory = filepath.Join("..", "model", "temporal", "features")
 
 func generatedFixture(t *testing.T, file string) *testpilotcore.ModelCase {
 	t.Helper()

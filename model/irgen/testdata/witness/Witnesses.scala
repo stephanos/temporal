@@ -16,7 +16,7 @@ val _ = () => summon[CanEqual[Phase, Phase]]
 
 object worker extends Actor:
   val begin = action(this)
-  val finish = action(this).input[Input]("input")
+  val finish: Action[Input *: EmptyTuple] = action(this).input[Input]("input")
   val outside = action(this)
 import worker.{begin, finish}
 

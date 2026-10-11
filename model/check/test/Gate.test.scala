@@ -4,6 +4,170 @@ import java.io.{ByteArrayOutputStream, PrintStream}
 import java.nio.file.{Files, Path}
 import java.nio.file.attribute.FileTime
 import scala.jdk.CollectionConverters.*
+import umpire.paths.OutputPaths
+
+class GateEquivalenceOutputsSuite extends munit.FunSuite:
+  test("selected equivalence outputs do not read another owner's corrupt manifest") {
+    val root = Scratch.directory("umpire-selected-equivalence")
+    for owner <- Vector("lamp", "sibling") do
+      val directory = Files.createDirectories(root.resolve(s"model/temporal/features/$owner"))
+      Files.writeString(directory.resolve(owner.capitalize + ".scala"), s"package fixture.$owner\n")
+      val generated = Files.createDirectories(directory.resolve("generated"))
+      Files.writeString(generated.resolve("ir.json"), "{}")
+      Files.writeString(
+        generated.resolve("manifest.json"),
+        if owner.equals("lamp") then "{\"version\":1,\"queries\":[]}"
+        else "corrupt sibling manifest"
+      )
+    val out = root.resolve("logical-view")
+    Gate(Tools(root, Map("FEATURES" -> "lamp")), PrintStream(ByteArrayOutputStream()))
+      .equivalenceOutputs(out)
+    assertEquals(Files.readString(out.resolve("ir/lamp.json")), "{}")
+    assert(!Files.exists(out.resolve("ir/sibling.json")))
+    val baseline = Files.createDirectories(root.resolve("protected-baseline"))
+    val tables = Files.createDirectories(baseline.resolve(Equivalence.stepTables))
+    val original = Vector(
+      "temporal.features.lamp.present\tpresent\t1\n",
+      "temporal.features.lamp.removed\tremoved\t1\n",
+      "temporal.foundations.shared.reached\tshared\t1\n",
+      "temporal.features.sibling.other\tsibling\t1\n"
+    ).mkString
+    Files.writeString(tables.resolve("index.tsv"), original)
+    for digest <- Vector("present", "removed", "shared", "sibling") do
+      Files.writeString(tables.resolve(digest + ".steps.gz"), digest)
+    val current = Files.createDirectories(root.resolve("current-tables"))
+    Files.writeString(
+      current.resolve("index.tsv"),
+      "temporal.features.lamp.present\tpresent\t1\n" +
+        "temporal.foundations.shared.reached\tshared\t1\n"
+    )
+    val baselineIr = Files.createDirectories(baseline.resolve("ir"))
+    Files.writeString(baselineIr.resolve("lamp.json"), "{}")
+    Files.writeString(baselineIr.resolve("sibling.json"), "corrupt sibling IR")
+    val baselineCases = Files.createDirectories(baseline.resolve("cases"))
+    val selectedRow = Map[String, Any](
+      "model" -> "lamp.json",
+      "query" -> Map("Name" -> "answer"),
+      "file" -> "lamp-answer-case.json",
+      "expected" -> Map("cleanup" -> "succeeded")
+    )
+    val siblingRow =
+      selectedRow.updated("model", "sibling.json").updated("file", "sibling-answer-case.json")
+    val originalManifest = Equivalence.canonical(
+      Map("version" -> BigDecimal(1), "queries" -> Vector(selectedRow, siblingRow))
+    )
+    Files.writeString(baselineCases.resolve("manifest.json"), originalManifest)
+    Files.writeString(baselineCases.resolve("lamp-answer-case.json"), "selected Case bytes")
+    Files.writeString(baselineCases.resolve("sibling-answer-case.json"), "sibling Case bytes")
+    val scoped = root.resolve("baseline-view")
+    val map = RenameMap.empty
+    Gate(Tools(root, Map("FEATURES" -> "lamp")), PrintStream(ByteArrayOutputStream()))
+      .equivalenceBaseline(baseline, scoped, current, map)
+    assertEquals(
+      Equivalence.index(scoped.resolve(Equivalence.stepTables)).map(_._1),
+      Vector(
+        "temporal.features.lamp.present",
+        "temporal.features.lamp.removed",
+        "temporal.foundations.shared.reached"
+      )
+    )
+    assertEquals(Files.readString(tables.resolve("index.tsv")), original)
+    assert(!Files.exists(scoped.resolve("ir/sibling.json")))
+    assertEquals(
+      Files.readString(scoped.resolve("cases/lamp-answer-case.json")),
+      "selected Case bytes"
+    )
+    assert(!Files.exists(scoped.resolve("cases/sibling-answer-case.json")))
+    val scopedManifest =
+      Json.fields(Json.parse(Files.readString(scoped.resolve("cases/manifest.json"))), "manifest")
+    assertEquals(Json.items(scopedManifest("queries"), "queries"), Vector(selectedRow))
+    assertEquals(Files.readString(baselineCases.resolve("manifest.json")), originalManifest)
+    val compared = Equivalence.compareTables(scoped.resolve(Equivalence.stepTables), current, map)
+    assertEquals(compared.differences.size, 1)
+    assert(compared.differences.head.contains("temporal.features.lamp.removed"))
+    val pinsDirectory = Files.createDirectories(root.resolve("model/testdata/table-pins"))
+    val pin = Map[String, Any](
+      "artifact" -> "lamp.json",
+      "ir_sha256" -> "original",
+      "subjects" -> Vector.empty
+    )
+    val pinMetadata = Map[String, Any](
+      "format_version" -> BigDecimal(1),
+      "seam" -> Map("binary_sha256" -> "unchanged")
+    )
+    val originalPins = Equivalence.canonical(
+      pinMetadata.updated("artifacts", Vector(pin, pin.updated("artifact", "sibling.json")))
+    )
+    Files.writeString(pinsDirectory.resolve("pins.json"), originalPins)
+    val selectedPins =
+      Gate(Tools(root, Map("FEATURES" -> "lamp")), PrintStream(ByteArrayOutputStream()))
+        .equivalencePins(out)
+    assertEquals(
+      Json.fields(Json.parse(Files.readString(selectedPins)), "pins"),
+      pinMetadata.updated("artifacts", Vector(pin))
+    )
+    assertEquals(Files.readString(pinsDirectory.resolve("pins.json")), originalPins)
+  }
+
+  test("equivalence reads relocated bytes through the original logical artifact view") {
+    val root = Scratch.directory("umpire-equivalence-outputs")
+    val generated = Files.createDirectories(
+      root.resolve("model/temporal/features/lamp/workflow/generated")
+    )
+    val legacy = Files.createDirectories(generated.resolve("legacy"))
+    val ir = "{\"source\":\"unchanged IR\"}\n"
+    val lint = "{\"accepted\":[]}\n"
+    val caseBytes = "{\"id\":\"original-case-identity\"}\n"
+    Files.writeString(generated.resolve("ir.json"), ir)
+    Files.writeString(generated.resolve("ir.lint.json"), lint)
+    Files.writeString(generated.resolve("owner.answer.case.json"), caseBytes)
+    Files.writeString(generated.resolve("owner.stale.case.json"), caseBytes)
+    Files.writeString(legacy.resolve("lamp-workflow-control.json"), ir)
+    Files.writeString(legacy.resolve("lamp-workflow-control-old-case.json"), caseBytes)
+    val primary = Map[String, Any](
+      "model" -> "lamp-workflow.json",
+      "query" -> Map("Name" -> "owner.answer"),
+      "standing" -> "lowered",
+      "file" -> "owner.answer.case.json",
+      "expected" -> Map("cleanup" -> "succeeded")
+    )
+    val retained = Map[String, Any](
+      "model" -> "lamp-workflow-control.json",
+      "query" -> Map("Name" -> "old"),
+      "standing" -> "lowered",
+      "file" -> "lamp-workflow-control-old-case.json"
+    )
+    for (directory, row) <- Vector(generated -> primary, legacy -> retained) do
+      Files.writeString(
+        directory.resolve("manifest.json"),
+        Equivalence.canonical(Map("version" -> BigDecimal(1), "queries" -> Vector(row)))
+      )
+    val out = root.resolve("logical-view")
+    Gate(Tools(root, Map.empty), PrintStream(ByteArrayOutputStream())).equivalenceOutputs(out)
+    assertEquals(Files.readString(out.resolve("ir/lamp-workflow.json")), ir)
+    assertEquals(Files.readString(out.resolve("ir/lamp-workflow.lint.json")), lint)
+    assertEquals(Files.readString(out.resolve("ir/lamp-workflow-control.json")), ir)
+    assertEquals(
+      Files.readString(out.resolve("cases/lamp-workflow-owner.answer-case.json")),
+      caseBytes
+    )
+    assertEquals(
+      Files.readString(out.resolve("cases/lamp-workflow-owner.stale-case.json")),
+      caseBytes
+    )
+    assertEquals(
+      Files.readString(out.resolve("cases/lamp-workflow-control-old-case.json")),
+      caseBytes
+    )
+    val manifest =
+      Json.fields(Json.parse(Files.readString(out.resolve("cases/manifest.json"))), "manifest")
+    assertEquals(manifest("version"), BigDecimal(1))
+    val rows = Json.items(manifest("queries"), "queries").map(Json.fields(_, "query")).toSet
+    assertEquals(
+      rows,
+      Set(primary.updated("file", "lamp-workflow-owner.answer-case.json"), retained)
+    )
+  }
 
 class GateSuite extends munit.FunSuite:
   private val schemaFile = "proto/internal/temporal/server/api/umpire/v1/ir.proto"
@@ -71,6 +235,16 @@ class GateSuite extends munit.FunSuite:
     def apiJar: Path = root.resolve("model/build/api-scalapb.jar")
     def apiStampFile: Path = root.resolve("model/build/api.stamp")
     def apiStamp: String = Files.readString(apiStampFile)
+    def feature(name: String): Path =
+      val folder = Files.createDirectories(root.resolve("model/temporal/features/" + name))
+      Files.writeString(folder.resolve(name.capitalize + ".scala"), "package temporal.features\n")
+      folder
+    def irFiles: Seq[String] = ModelSources(root, None).features.map(_ + ".json")
+    def ir(file: String): Path = OutputPaths.ir(root, file.stripSuffix(".json"))
+    def cases(update: Boolean): Seq[String] = ModelSources(root, None).features.map: feature =>
+      s"go run ${root.resolve("tools/umpire/cmd/umpire-gen-cases")}" +
+        (if update then " --update" else "")
+    def lint: String = lintRun + irFiles.map(ir).mkString(" ", " ", "")
 
     // Adds a file of the IR to the schema, imported by the file `by`, with its Go code newer than
     // it; the importer's Go code stays newer than the importer.
@@ -557,16 +731,44 @@ class GateSuite extends munit.FunSuite:
       )
     )
 
-  test("a narrowed update refuses before any unscoped Go publication"):
-    val repository = Repository()
-    for form <- Seq("alpha", "beta") do
-      val folder =
-        Files.createDirectories(repository.root.resolve("model/temporal/features/kind/" + form))
-      Files.writeString(folder.resolve(form.capitalize + "Kind.scala"), "package example\n"): Unit
-    val answer = gate(repository.tools.withEnvironment("FEATURES" -> "kind/alpha"), "--update")
-    assertEquals(answer.status, 1)
-    assert(answer.err.contains("refusing to check or rewrite unlisted features"), answer.err)
-    assertEquals(repository.ran, Seq.empty)
+  test("a narrowed update publishes only the selected feature and preserves unselected bytes"):
+    val publishing =
+      """case " $* " in *"/umpire-gen-cases --update "*) printf 'selected\n' > answer.case.json;; esac
+        |""".stripMargin
+    val repository = Repository(scalaCli = lifting, go = publishing + passingVocabulary)
+    initializeFeatures(repository, "{}\n")
+    for file <- repository.irFiles do
+      Files.writeString(repository.ir(file).resolveSibling("answer.case.json"), "unchanged\n"): Unit
+    val before = checkedIn(repository)
+    val selected = ModelSources(repository.root, None).features.head
+    val selectedIr = repository.ir(selected + ".json")
+    val unselected = repository.irFiles.filterNot(_ == selected + ".json")
+    val unchanged = unselected.map(f => f -> Files.getLastModifiedTime(repository.ir(f))).toMap
+    val caseTimes = unselected
+      .map(file =>
+        file -> Files.getLastModifiedTime(repository.ir(file).resolveSibling("answer.case.json"))
+      )
+      .toMap
+    val answer = gate(repository.tools.withEnvironment("FEATURES" -> selected), "--update")
+    assertEquals(answer.status, 0, answer.err)
+    assertEquals(Files.readString(selectedIr), "{\"lifted\": true}\n")
+    assertEquals(Files.readString(selectedIr.resolveSibling("answer.case.json")), "selected\n")
+    for file <- unselected do
+      assertEquals(Files.readString(repository.ir(file)), before(file))
+      assertEquals(Files.getLastModifiedTime(repository.ir(file)), unchanged(file))
+      val unselectedCase = repository.ir(file).resolveSibling("answer.case.json")
+      assertEquals(Files.readString(unselectedCase), "unchanged\n")
+      assertEquals(Files.getLastModifiedTime(unselectedCase), caseTimes(file))
+    val publication = repository.ran.filter(_.contains("/umpire-gen-cases"))
+    assertEquals(publication, repository.cases(update = true).take(1))
+    assertEquals(repository.ran.filter(_.startsWith(lintRun)), Seq(lintRun + " " + selectedIr))
+    assert(
+      !repository.ran.exists(line =>
+        line.startsWith("go vet ") || line.startsWith(
+          "go test -count=1 -tags test_dep ./tools/umpire/"
+        )
+      )
+    )
 
   test("a feature that fails compilation is reported behind by name"):
     val repository = Repository(scalaCli =
@@ -580,6 +782,8 @@ class GateSuite extends munit.FunSuite:
     assertEquals(answer.status, 1)
     assert(answer.out.contains("feature kind/broken: behind (compile)"), answer.out)
     assert(!answer.out.contains("feature kind/working: behind"), answer.out)
+    assert(answer.out.contains("feature kind/broken: missing"), answer.out)
+    assert(answer.out.contains("feature kind/working: missing"), answer.out)
     assert(answer.err.contains("feature kind/broken is behind"), answer.err)
     assert(answer.err.contains("unlisted.Shared"), answer.err)
     assert(repository.ran.exists(_.contains("features/kind/working")))
@@ -597,59 +801,59 @@ class GateSuite extends munit.FunSuite:
       s"gate: api/umpire/v1/ir.pb.go is older than the IR schema $schemaFile; run make protoc\n"
     )
 
-  // The IR files the stand-in lifter writes, as the Models declare them with `irFile`.
-  private val irFiles = Seq(
-    "nexus-workflow.json",
-    "nexus-workflow-control.json",
-    "nexus-standalone.json",
-    "activity-standalone.json",
-    "activity-standalone-record.json",
-    "activity-standalone-race.json",
-    "nexus-workflow-close.json"
-  )
-
   // As the lifter's one run (`lift --ir <jars> <classpath> <directory>`), scala-cli writes every IR
   // file into the directory its fourth argument names, or, when FAILING_LIFTS names some of them,
   // refuses each under a line naming it and writes none; it also records the update its test of the
   // lifter was given.
   private val lifting =
     s"""case " $$* " in *" test model/irgen "*) echo "lifter update=[$$UMPIRE_LIFTER_UPDATE]" >> "$$TOOLS_LOG";; esac
-      |program=; n=0
+      |program=; n=0; lifted=; names=
       |for a in "$$@"; do
       |  if [ -n "$$program" ]; then
       |    n=$$((n + 1))
-      |    if [ $$n -eq 4 ]; then
-      |      if [ -n "$$FAILING_LIFTS" ]; then
-      |        for f in $$FAILING_LIFTS; do echo "lift: the roots of $$f did not lift:"; echo "lift: $$f: no IR form"; done
-      |        exit 1
-      |      fi
-      |      for f in ${irFiles.mkString(" ")}; do echo '{"lifted": true}' > "$$a/$$f"; done
-      |    fi
+      |    [ $$n -eq 4 ] && lifted=$$a
+      |    [ $$n -gt 4 ] && names="$$names $$a"
       |  fi
       |  [ "$$a" = -- ] && program=yes
       |done
+      |if [ -n "$$lifted" ]; then
+      |  if [ -n "$$FAILING_LIFTS" ]; then
+      |    for f in $$FAILING_LIFTS; do echo "lift: the roots of $$f did not lift:"; echo "lift: $$f: no IR form"; done
+      |    exit 1
+      |  fi
+      |  for name in $$names; do echo '{"lifted": true}' > "$$lifted/$$name.json"; done
+      |fi
       |exit 0""".stripMargin
 
   private def checkedIn(repository: Repository): Map[String, String] =
-    irFiles
-      .map(file => file -> Files.readString(repository.root.resolve("model/ir").resolve(file)))
+    repository.irFiles
+      .map(file => file -> Files.readString(repository.ir(file)))
       .toMap
 
-  // A repository whose model/ir holds every file the gate lifts, each of them stale.
+  // A repository whose generated IR holds every file the gate lifts, each of them stale.
   private def staleRepository(): Repository =
     val repository = Repository(scalaCli = lifting)
-    val ir = Files.createDirectories(repository.root.resolve("model/ir"))
-    irFiles.foreach(file => Files.writeString(ir.resolve(file), "{}\n"))
+    initializeFeatures(repository, "{}\n")
     repository
+
+  private def initializeFeatures(repository: Repository, content: String): Unit =
+    for feature <- Seq("bell", "door", "lamp") do repository.feature(feature): Unit
+    for file <- repository.irFiles do
+      val ir = repository.ir(file)
+      Files.createDirectories(ir.getParent)
+      Files.writeString(ir, content): Unit
 
   test("a check of a stale tree fails, names every stale file and rewrites nothing"):
     val repository = staleRepository()
     val answer =
       gate(repository.tools.withEnvironment("UMPIRE_LIFTER_UPDATE" -> "1"), "--skip-go-checks")
     assertEquals(answer.status, 1)
-    for file <- irFiles do
-      assert(answer.err.contains(s"model/ir/$file is stale: line 1 is `{}`"), answer.err)
-    assert(answer.err.contains("rerun with --update (make umpire-gen-model)"), answer.err)
+    for file <- repository.irFiles do
+      assert(
+        answer.err.contains(s"feature ${file.stripSuffix(".json")}: behind (line 1 is `{}`"),
+        answer.err
+      )
+    assert(answer.err.contains("rerun with --update; lifted files are in "), answer.err)
     assertEquals(checkedIn(repository).values.toSet, Set("{}\n"))
     // An update the environment asks for does not reach a check's test of the lifter.
     assert(repository.ran.contains("lifter update=[]"), repository.ran.mkString("\n"))
@@ -657,7 +861,7 @@ class GateSuite extends munit.FunSuite:
     // not linted while it is stale.
     assertEquals(
       repository.ran.filter(line => line.startsWith("go ") && !line.contains("--linked-api")),
-      Seq(vocabularyCheck, "go run ./tools/umpire/cmd/umpire-gen-cases")
+      Seq(vocabularyCheck) ++ repository.cases(update = false)
     )
 
   test(
@@ -669,10 +873,8 @@ class GateSuite extends munit.FunSuite:
     assert(repository.ran.contains("lifter update=[1]"), repository.ran.mkString("\n"))
     assertEquals(
       repository.ran.filter(line => line.startsWith("go ") && !line.contains("--linked-api")),
-      Seq(
-        vocabularyCheck,
-        "go run ./tools/umpire/cmd/umpire-gen-cases --update",
-        lintRun,
+      Seq(vocabularyCheck) ++ repository.cases(update = true) ++ Seq(
+        repository.lint,
         "go vet -tags test_dep ./tools/umpire/...",
         "go test -count=1 -tags test_dep ./tools/umpire/..."
       )
@@ -683,16 +885,15 @@ class GateSuite extends munit.FunSuite:
     assertEquals(
       repository.ran
         .filter(line => line.startsWith("go ") && !line.contains("--linked-api"))
-        .takeRight(3),
-      Seq(vocabularyCheck, "go run ./tools/umpire/cmd/umpire-gen-cases", lintRun)
+        .takeRight(repository.cases(update = false).size + 2),
+      Seq(vocabularyCheck) ++ repository.cases(update = false) ++ Seq(repository.lint)
     )
     assert(check.out.contains("== lint every IR file and print its coverage"), check.out)
 
-  // A repository whose model/ir is current, so only the vocabulary check can stop the gate.
+  // A repository whose generated IR is current, so only the vocabulary check can stop the gate.
   private def currentRepository(go: String): Repository =
     val repository = Repository(scalaCli = lifting, go = go)
-    val ir = Files.createDirectories(repository.root.resolve("model/ir"))
-    irFiles.foreach(file => Files.writeString(ir.resolve(file), "{\"lifted\": true}\n"))
+    initializeFeatures(repository, "{\"lifted\": true}\n")
     repository
 
   test("package-only Model headers use the normal compiler, without ignoring compiler errors"):
@@ -710,8 +911,7 @@ class GateSuite extends munit.FunSuite:
         |;; esac
         |""".stripMargin
     val repository = Repository(scalaCli = headerCompiler + lifting)
-    val ir = Files.createDirectories(repository.root.resolve("model/ir"))
-    irFiles.foreach(file => Files.writeString(ir.resolve(file), "{\"lifted\": true}\n"))
+    initializeFeatures(repository, "{\"lifted\": true}\n")
     val answer = gate(repository.tools, "--skip-go-checks")
     assertEquals(answer.status, 0, answer.err)
     val packaged = repository.ran.find(_.contains("model-scala.jar")).get
@@ -764,28 +964,30 @@ class GateSuite extends munit.FunSuite:
     val repository = staleRepository()
     val failing =
       repository.tools.withEnvironment(
-        "FAILING_LIFTS" -> "activity-standalone.json nexus-workflow-close.json"
+        "FAILING_LIFTS" -> "bell.json lamp.json"
       )
     val answer = gate(failing, "--update", "--skip-go-checks")
     assertEquals(answer.status, 1)
     assert(
       answer.err.contains(
-        "the Models' IR files did not lift:\nlift: the roots of activity-standalone.json did not lift:\n" +
-          "lift: activity-standalone.json: no IR form"
+        "the Models' IR files did not lift:\nlift: the roots of bell.json did not lift:\n" +
+          "lift: bell.json: no IR form"
       ),
       answer.err
     )
     assert(
-      answer.err.contains("lift: the roots of nexus-workflow-close.json did not lift:"),
+      answer.err.contains("lift: the roots of lamp.json did not lift:"),
       answer.err
     )
-    assert(!answer.err.contains("nexus-workflow.json"), answer.err)
-    // The gate names no root: the lifter finds the IR files the Models declare.
+    assert(!answer.err.contains("door.json"), answer.err)
+    for feature <- ModelSources(repository.root, None).features do
+      assert(answer.out.contains(s"feature $feature: behind"), answer.out)
+    // Positional IR names scope the lifter without naming Model declaration roots.
     val lifts = repository.ran.filter(_.contains("--main-class umpire.irgen.lift"))
     assertEquals(lifts.size, 1, lifts.mkString("\n"))
     assert(
       lifts.head.matches(
-        """scala-cli run model/irgen --main-class umpire.irgen.lift .*-- --ir \S+=model/ \S+ \S+"""
+        """scala-cli run model/irgen --main-class umpire.irgen.lift .*-- --ir \S+=model/ \S+ \S+ bell door lamp"""
       ),
       lifts.head
     )
@@ -793,26 +995,25 @@ class GateSuite extends munit.FunSuite:
 
   test("a check reports Cases that fail with their output, with every other failure"):
     val cases =
-      s"""case " $$* " in *"/umpire-gen-cases "*) echo "model/cases/a.json is stale"; exit 1;; esac
+      s"""case " $$* " in *"/umpire-gen-cases "*) echo "generated/answer.case.json is stale"; exit 1;; esac
          |$passingVocabulary""".stripMargin
     val current = currentRepository(cases)
     val answer = gate(current.tools, "--skip-go-checks")
     assertEquals(answer.status, 1)
     assert(answer.err.startsWith("gate: go exited 1 in "), answer.err)
-    assert(answer.err.contains("model/cases/a.json is stale"), answer.err)
+    assert(answer.err.contains("generated/answer.case.json is stale"), answer.err)
     // The lifts beside it ended and were reported before the Cases.
     assert(
-      answer.out.indexOf("== lift every IR file the Models declare") <
+      answer.out.indexOf("== lift each selected feature's IR") <
         answer.out.indexOf("== check every lowered Case"),
       answer.out
     )
     val stale = Repository(scalaCli = lifting, go = cases)
-    val ir = Files.createDirectories(stale.root.resolve("model/ir"))
-    irFiles.foreach(file => Files.writeString(ir.resolve(file), "{}\n"))
+    initializeFeatures(stale, "{}\n")
     val both = gate(stale.tools, "--skip-go-checks")
     assertEquals(both.status, 1)
-    assert(both.err.contains("model/ir/activity-standalone.json is stale"), both.err)
-    assert(both.err.contains("model/cases/a.json is stale"), both.err)
+    assert(both.err.contains("feature bell: behind"), both.err)
+    assert(both.err.contains("generated/answer.case.json is stale"), both.err)
 
   test("a check lints the settled IR before the Go checks, and a failing lint fails the gate"):
     val current = currentRepository(passingVocabulary)
@@ -820,10 +1021,8 @@ class GateSuite extends munit.FunSuite:
     assertEquals(check.status, 0, check.err)
     assertEquals(
       current.ran.filter(line => line.startsWith("go ") && !line.contains("--linked-api")),
-      Seq(
-        vocabularyCheck,
-        "go run ./tools/umpire/cmd/umpire-gen-cases",
-        lintRun,
+      Seq(vocabularyCheck) ++ current.cases(update = false) ++ Seq(
+        current.lint,
         "go vet -tags test_dep ./tools/umpire/...",
         "go test -count=1 -tags test_dep ./tools/umpire/..."
       )
@@ -837,26 +1036,34 @@ class GateSuite extends munit.FunSuite:
       assertEquals(answer.status, 1, arguments.mkString(" "))
       assert(answer.err.startsWith("gate: go exited 1 in "), answer.err)
       // Updating the accepted waiver metadata is the gate's job, not lint's.
-      assert(answer.err.endsWith(s"$lintRun\n"), answer.err)
+      assert(answer.err.endsWith(s"${failing.lint}\n"), answer.err)
       // The Go checks follow the lint, and do not run after it failed.
       assertEquals(
         failing.ran.filter(line => line.startsWith("go ") && !line.contains("--linked-api")).last,
-        lintRun
+        failing.lint
       )
 
-  test("a file the gate cannot read fails with its path, not a stack trace"):
-    val repository = Repository(scalaCli = lifting)
+  test("a missing checked-in IR fails with its path and an update remedy"):
+    val repository = currentRepository(passingVocabulary)
+    val ir = repository.ir(repository.irFiles.head)
+    Files.delete(ir)
     val answer = gate(repository.tools, "--skip-go-checks")
     assertEquals(answer.status, 1)
+    val stream = Files.list(repository.root.resolve("model/build/history"))
+    val lifted =
+      try stream.iterator.asScala.find(_.getFileName.toString.startsWith("ir.")).get
+      finally stream.close()
     assertEquals(
       answer.err,
-      s"gate: java.nio.file.NoSuchFileException: ${repository.root.resolve("model/ir")}\n"
+      s"gate: feature ${repository.irFiles.head.stripSuffix(".json")}: missing $ir\n" +
+        s"rerun with --update; lifted files are in $lifted\n"
     )
 
   // A checked-in tree and a produced one, each with the given files.
+  private val treePath = "model/temporal/features/fixture/generated/legacy"
   final private class Trees(checkedIn: Map[String, String], produced: Map[String, String]):
     val root: Path = Scratch.directory("umpire-gate-trees")
-    val tree: Path = Files.createDirectories(root.resolve("model/ir"))
+    val tree: Path = Files.createDirectories(root.resolve(treePath))
     val lifted: Path = Files.createDirectories(root.resolve("model/build/lifted"))
     checkedIn.foreach((name, text) => Files.writeString(tree.resolve(name), text))
     produced.foreach((name, text) => Files.writeString(lifted.resolve(name), text))
@@ -896,9 +1103,9 @@ class GateSuite extends munit.FunSuite:
     val message = intercept[GateError](trees.settle(update = false)).getMessage
     assertEquals(
       message,
-      s"""model/ir/a.json is stale: line 2 is `  "line": 1` and lifts to `  "line": 2`
-         |model/ir/new.json is missing
-         |model/ir/old.json is checked in and nothing produces it: remove it, or declare its feature's Queries
+      s"""$treePath/a.json is stale: line 2 is `  "line": 1` and lifts to `  "line": 2`
+         |$treePath/new.json is missing
+         |$treePath/old.json is checked in and nothing produces it: remove it, or declare its feature's Queries
          |rerun with --update (make umpire-gen-model); the lifted files are in ${trees.lifted}""".stripMargin
     )
     assertEquals(trees.held, before)
@@ -936,7 +1143,7 @@ class GateSuite extends munit.FunSuite:
     )
     assertEquals(
       intercept[GateError](left.settle(update = true)).getMessage,
-      "model/ir/a.laws.json is checked in and nothing produces it: " +
+      s"$treePath/a.laws.json is checked in and nothing produces it: " +
         "remove it, or declare its feature's Queries"
     )
 
@@ -946,7 +1153,7 @@ class GateSuite extends munit.FunSuite:
     val message = intercept[GateError](trees.settle(update = true)).getMessage
     assertEquals(
       message,
-      "model/ir/old.json is checked in and nothing produces it: remove it, or declare its feature's Queries"
+      s"$treePath/old.json is checked in and nothing produces it: remove it, or declare its feature's Queries"
     )
     assertEquals(trees.held, before)
 
@@ -971,12 +1178,14 @@ class GateSuite extends munit.FunSuite:
     )
 
   test("the accepted findings file is read and written as umpire-lint writes it"):
-    val ir = Tools.here.directory.resolve("model/ir")
-    val stream = Files.list(ir)
-    val accepted =
-      try stream.iterator.asScala.filter(_.toString.endsWith(".lint.json")).toVector.sorted
-      finally stream.close()
-    assert(accepted.nonEmpty, s"$ir holds no accepted findings")
+    val root = Tools.here.directory
+    val accepted = OutputPaths
+      .inventory(root)
+      .map((name, _) => OutputPaths.lint(root, name))
+      .filter(Files.isRegularFile(_))
+      .distinct
+      .sorted
+    assert(accepted.nonEmpty, s"$root holds no accepted findings beside generated IR")
     for file <- accepted do
       val text = Files.readString(file)
       assertEquals(Accepted.encode(Accepted.read(text)), text, file.toString)
@@ -1020,7 +1229,7 @@ class GateSuite extends munit.FunSuite:
     ).getMessage
     assertEquals(
       message,
-      "model/ir/a.lint.json does not carry the waivers its capabilities sections state: missing " +
+      s"$treePath/a.lint.json does not carry the waivers its capabilities sections state: missing " +
         "task.p, stale task.gone\nrerun with --update (make umpire-gen-model)"
     )
     assertEquals(Files.readString(trees.tree.resolve("a.lint.json")), held)

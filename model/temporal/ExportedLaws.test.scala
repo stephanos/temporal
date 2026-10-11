@@ -26,6 +26,12 @@ object ExportedLaws:
         val fields = line.split("\t", -1)
         fields(0) -> fields(1).split(",").filter(_.nonEmpty).toVector
       }
+      .filter: (identity, _) =>
+        !identity.startsWith("temporal.features.") || IrFile
+          .featureOf(identity.split('.').dropRight(1).mkString("."))
+          .exists(name =>
+            files.exists(file => file.name == name || file.name.startsWith(name + "-"))
+          )
       .toMap
 
   lazy val results: Vector[MachineLaws.Result] =

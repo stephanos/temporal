@@ -7,23 +7,49 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	runtime "go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/tools/umpire/ir"
 )
 
 func generatedFiles(t *testing.T) map[string][]byte {
 	t.Helper()
-	paths, err := filepath.Glob(filepath.Join("..", "..", "..", "model", "cases", "*.json"))
+	root := filepath.Join("..", "..", "..")
+	var paths []string
+	err := filepath.WalkDir(filepath.Join(root, "model", "temporal", "features"), func(path string, entry os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if !entry.IsDir() && entry.Name() == "manifest.json" {
+			paths = append(paths, path)
+		}
+		return nil
+	})
 	require.NoError(t, err)
+	require.NotEmpty(t, paths)
 	files := map[string][]byte{}
+	combined := Manifest{Version: 1}
 	for _, path := range paths {
-		files[filepath.Base(path)], err = os.ReadFile(path)
+		encoded, err := os.ReadFile(path)
 		require.NoError(t, err)
+		manifest, err := DecodeManifest(encoded)
+		require.NoError(t, err)
+		for _, entry := range manifest.Queries {
+			if entry.Standing == Lowered {
+				entry.File = strings.TrimSuffix(entry.Model, ".json") + "-" + entry.Query.Name + "-case.json"
+				files[entry.File], err = os.ReadFile(ir.CasePath(root, entry.Model, entry.Query.Name))
+				require.NoError(t, err)
+			}
+			combined.Queries = append(combined.Queries, entry)
+		}
 	}
+	files["manifest.json"], err = json.Marshal(combined)
+	require.NoError(t, err)
 	return files
 }
 
@@ -387,7 +413,7 @@ func manifestStanding(manifest *Manifest, query Selected) Standing {
 // the manifest beside it; a Case none of them is, a hand-written one or one regenerated since, is
 // ErrNotGenerated.
 func TestFindGeneratedCaseFindsALoweredCaseByItsFingerprint(t *testing.T) {
-	directory := filepath.Join("..", "..", "..", "model", "cases")
+	directory := filepath.Join("..", "..", "..", "model", "temporal", "features")
 	read := func(path string) *testpilotspb.Case {
 		encoded, err := os.ReadFile(path)
 		require.NoError(t, err)
@@ -395,7 +421,7 @@ func TestFindGeneratedCaseFindsALoweredCaseByItsFingerprint(t *testing.T) {
 		require.NoError(t, err)
 		return source
 	}
-	source := read(filepath.Join(directory, "nexus-workflow-control-forgedCompletion-case.json"))
+	source := read(ir.CasePath("../../..", "nexus-workflow-control.json", "forgedCompletion"))
 	entry, err := FindGeneratedCase(directory, source)
 	require.NoError(t, err)
 	require.Equal(t, "nexus-workflow-control.json", entry.Model)
@@ -403,7 +429,7 @@ func TestFindGeneratedCaseFindsALoweredCaseByItsFingerprint(t *testing.T) {
 	require.Equal(t, "nexus-workflow-control-forgedCompletion-case.json", entry.File)
 	require.Equal(t, "inconclusive", entry.Expected.Conformance)
 
-	regenerated := read(filepath.Join(directory, "nexus-workflow-control-forgedCompletion-case.json"))
+	regenerated := read(ir.CasePath("../../..", "nexus-workflow-control.json", "forgedCompletion"))
 	regenerated.Provenance.ProducerVersion += "+1"
 	for name, other := range map[string]*testpilotspb.Case{
 		"a hand-written Case":      read(filepath.Join("..", "..", "..", "tests", "testcore", "testpilot", "testdata", "nexusPairTests-bothComplete-case.json")),

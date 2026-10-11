@@ -21,6 +21,7 @@ import (
 	"go.temporal.io/server/common/testing/testpilot/recordedrun"
 	testpilotdriver "go.temporal.io/server/common/testing/testpilot/temporal"
 	"go.temporal.io/server/tools/umpire/internal/cli"
+	"go.temporal.io/server/tools/umpire/ir"
 )
 
 const (
@@ -535,7 +536,7 @@ func TestRunRefusesARecordOfANoncanonicalFixtureBeforeRunning(t *testing.T) {
 }
 
 func TestRunSkipsMissingDeliveryCapabilityBeforeOpening(t *testing.T) {
-	arguments := []string{"--case", "../../../../model/cases/activity-standalone-race-heldDispatch.staleDelivery-case.json", "--grpc", "localhost:1", "--http", "localhost:2", "--namespace", "ns", "--task-queue", "q"}
+	arguments := []string{"--case", ir.CasePath("../../../..", "activity-standalone-race.json", "heldDispatch.staleDelivery"), "--grpc", "localhost:1", "--http", "localhost:2", "--namespace", "ns", "--task-queue", "q"}
 	var stdout, stderr bytes.Buffer
 	opened := false
 	code := Run(arguments, &stdout, &stderr, func(context.Context, config, *testpilotspb.Case) (*session, error) {
@@ -547,10 +548,9 @@ func TestRunSkipsMissingDeliveryCapabilityBeforeOpening(t *testing.T) {
 	require.Contains(t, stderr.String(), "skipped: prepare Case: unsupported at controller.hold-dispatch")
 }
 
-const (
-	modelRoot              = "../../../../model"
-	activityCompletionCase = "../../../../model/cases/activity-standalone-completion-case.json"
-)
+const modelRoot = "../../../../model"
+
+var activityCompletionCase = ir.CasePath("../../../..", "activity-standalone.json", "completion")
 
 // modelFlags run the generated activity completion Case, which expects a satisfied Contract and a
 // conformant Run with its `completes` property satisfied, with its Model's assessment.

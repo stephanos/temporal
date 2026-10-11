@@ -32,7 +32,7 @@ const (
 
 func activityModel(t testing.TB) *umpirespb.Model {
 	t.Helper()
-	m, err := ir.Load(filepath.Join("..", "..", "..", "model", "ir", "activity-standalone.json"))
+	m, err := ir.Load(ir.ModelPath(filepath.Join("..", "..", ".."), "activity-standalone.json"))
 	require.NoError(t, err)
 	return m
 }

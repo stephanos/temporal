@@ -17,10 +17,10 @@ import (
 const caseNameGoldensVariable = "UMPIRE_CASE_NAME_GOLDENS"
 
 // Every lowered Case runs as TestTestpilotGeneratedCases/<name>, the depth-2 name CI shards by and
-// the salt optimizer times, so the names are pinned: each is its file's stem, unique, a single
+// the salt optimizer times, so the names are pinned: each is its logical model-and-query name, unique, a single
 // path segment, and the sorted set is the committed golden.
 func TestGeneratedCaseNames(t *testing.T) {
-	entries, err := GeneratedCases(filepath.Join("..", "..", "..", "model", "cases"))
+	entries, err := GeneratedCases(filepath.Join("..", "..", "..", "model", "temporal", "features"))
 	require.NoError(t, err)
 	var names []string
 	seen := map[string]bool{}
@@ -29,10 +29,12 @@ func TestGeneratedCaseNames(t *testing.T) {
 			continue
 		}
 		name := GeneratedCaseName(entry)
-		// The stem, and the `<model>-<query>` the lowering names the file after, from fields the name
-		// is not derived from.
-		require.True(t, strings.HasSuffix(entry.File, "-case.json"), entry.File)
-		require.Equal(t, strings.TrimSuffix(entry.File, "-case.json"), name)
+		// Physical filenames retain the Query; the functional name also retains its logical Model.
+		if strings.Contains(entry.File, "/legacy/") {
+			require.Equal(t, name+"-case.json", filepath.Base(entry.File))
+		} else {
+			require.Equal(t, entry.Query.Name+".case.json", filepath.Base(entry.File))
+		}
 		require.Equal(t, strings.TrimSuffix(entry.Model, ".json")+"-"+entry.Query.Name, name)
 		require.NotEmpty(t, name, entry.File)
 		require.NotContains(t, name, "/", "a / would split the depth-2 test name")

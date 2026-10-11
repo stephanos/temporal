@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -95,7 +96,11 @@ func TestNamedChoicesLowerTheSameCases(t *testing.T) {
 		"model/irgen/testdata/lifts/expected/realizations.json",
 	} {
 		t.Run(filepath.Base(path), func(t *testing.T) {
-			plain, err := ir.Load(filepath.Join("..", "..", "..", path))
+			file := filepath.Join("..", "..", "..", path)
+			if strings.HasPrefix(path, "model/ir/") {
+				file = ir.ModelPath("../../..", filepath.Base(path))
+			}
+			plain, err := ir.Load(file)
 			require.NoError(t, err)
 			named, n := namedChoices(t, plain)
 			require.Positive(t, n)

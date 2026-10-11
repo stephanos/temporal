@@ -72,7 +72,7 @@ func TestWithholdingRequiresOneActivityScriptServerTimer(t *testing.T) {
 		}, "without an armed bounded server timer"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			m, err := Load(filepath.Join("..", "..", "..", "model", "ir", "activity-standalone.json"))
+			m, err := Load(ModelPath(filepath.Join("..", "..", ".."), "activity-standalone.json"))
 			require.NoError(t, err)
 			index := slices.IndexFunc(m.GetRealizations(), func(r *umpirespb.Realization) bool { return r.GetName() == "standalone" })
 			require.NotEqual(t, -1, index)

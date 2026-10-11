@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 	"time"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
@@ -68,7 +67,7 @@ type config struct {
 	Run         string
 	Profile     *evaluation.Profile
 	ReceiptRoot string
-	// Model, when named, is the model directory (its `cases/` and `ir/`) whose Model assesses the
+	// Model, when named, is the model directory whose Model assesses the
 	// recorded Run beside its Verdict; empty assesses nothing.
 	Model string
 }
@@ -194,11 +193,11 @@ func assessRecorded(root string, caseBytes, runBytes []byte) (*testpilot.Assessm
 	if err != nil {
 		return nil, statusInternalError, err
 	}
-	entry, err := lower.FindGeneratedCase(filepath.Join(root, "cases"), source)
+	entry, err := lower.FindGeneratedCase(ir.FeatureRoot(root), source)
 	if err != nil {
 		return nil, statusModelUnassessable, err
 	}
-	model, err := ir.Load(filepath.Join(root, "ir", entry.Model))
+	model, err := ir.Load(ir.ModelPath(root, entry.Model))
 	if err != nil {
 		return nil, statusModelUnassessable, err
 	}
@@ -348,7 +347,7 @@ func parseConfig(arguments []string, stderr io.Writer) (config, error) {
 	flags.StringVar(&profile, "profile", "", "the exact name of an Evaluation Profile the model declares")
 	flags.StringVar(&receiptRoot, "receipt-root", "", "an existing directory outside the model to publish the receipt under")
 	flags.StringVar(&modelRoot, "model-root", defaultModelRoot, "the model package, which never receives a receipt")
-	flags.StringVar(&configuration.Model, "model", "", "assess the recorded Run against the Model of the generated Case in this model directory (its cases/ and ir/), beside its Verdict")
+	flags.StringVar(&configuration.Model, "model", "", "assess the recorded Run against the Model of the generated Case in this model directory, beside its Verdict")
 	if err := flags.Parse(arguments[1:]); err != nil {
 		return config{}, err
 	}

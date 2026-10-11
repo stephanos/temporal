@@ -110,3 +110,8 @@
 
 # This generated file has no code owner to allow automated updates by CI.
 /tests/testcore/shard_salt.txt
+
+/model/temporal/features/activity/standalone/
+/model/temporal/features/nexus/standalone/
+/model/temporal/features/nexus/workflow/
+/model/temporal/features/activity_mini/

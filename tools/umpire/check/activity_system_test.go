@@ -2,7 +2,7 @@ package check
 
 // The standalone activity's system contract, lifted from model/temporal/features/activity/standalone/system/
 // Dispatch.scala, DispatchRaces.scala and DispatchWithTaskQueue.scala
-// and the shared task queue it composes, model/temporal/foundations/taskqueue, into ir/activity-standalone-record.json and
+// and the shared task queue it composes, model/temporal/foundations/taskqueue, into generated/legacy/activity-standalone-record.json and
 // checked here through Check alone: the provider checks below are the queue's own. What each test expects is the
 // trace oracle of model/specimens/activity.md it names, in the keys of the lifted Model: the
 // specimen's supported sketch folds the delivery into the record's state, and this Model keeps the
@@ -24,7 +24,7 @@ import (
 	"go.temporal.io/server/tools/umpire/ir"
 )
 
-const activitySystemIR = "../../../model/ir/activity-standalone-record.json"
+var activitySystemIR = ir.ModelPath("../../..", "activity-standalone-record.json")
 
 type checkedModel struct {
 	model  *umpirespb.Model

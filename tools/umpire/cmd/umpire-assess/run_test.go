@@ -18,6 +18,7 @@ import (
 	"go.temporal.io/server/common/testing/testpilot/evaluation"
 	"go.temporal.io/server/common/testing/testpilot/publish"
 	"go.temporal.io/server/common/testing/testpilot/recordedrun"
+	"go.temporal.io/server/tools/umpire/ir"
 	"go.temporal.io/server/tools/umpire/lower"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
@@ -367,7 +368,8 @@ func TestAssessNamesTheSelfCheckAndPublicationFailures(t *testing.T) {
 
 const modelRoot = "../../../../model"
 
-const currentControlCasePath = modelRoot + "/cases/nexus-workflow-control-forgedCompletion-case.json"
+var currentControlCasePath = ir.CasePath("../../../..", "nexus-workflow-control.json", "forgedCompletion")
+
 const currentControlRunPath = "../../../../common/testing/testpilot/replay/testdata/nexus-workflow-control-forgedCompletion-run.json"
 
 // generatedControl is the generated Case of the control's Query: the pinned control Run is a Run of
@@ -378,7 +380,7 @@ func generatedControl(t *testing.T) (*testpilotspb.Case, *lower.GeneratedCase) {
 	require.NoError(t, err)
 	source, err := testpilot.DecodeCaseProtoJSON(encoded)
 	require.NoError(t, err)
-	entry, err := lower.FindGeneratedCase(filepath.Join(modelRoot, "cases"), source)
+	entry, err := lower.FindGeneratedCase(filepath.Join(modelRoot, "temporal", "features"), source)
 	require.NoError(t, err)
 	require.Equal(t, "nexus-workflow-control-forgedCompletion-case.json", entry.File)
 	return source, entry

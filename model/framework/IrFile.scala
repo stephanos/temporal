@@ -6,7 +6,7 @@ import java.util.jar.JarFile
 import scala.jdk.CollectionConverters.*
 import framework.realize.Realization
 
-// A checked-in IR file, `model/ir/<name>.json`: one per feature, collected from the feature's
+// A checked-in IR file beside its Model in `generated/ir.json`: one per feature, collected from the feature's
 // package (fn-160), as the IR generator (model/irgen) collects it: its machines, compositions,
 // realizations and their `properties`, `queries` and `capabilities` sections, and everything they reach. Nothing
 // lists them, so no declaration is left out by omission. The step tables and the model tests read
@@ -92,6 +92,10 @@ final class IrFile private[framework] (
     declarations.map(_.name).toSet
 
 object IrFile:
+
+  def path(root: Path, name: String): Path = umpire.paths.OutputPaths.ir(root, name)
+
+  def inventory(root: Path): Vector[(String, Path)] = umpire.paths.OutputPaths.inventory(root)
 
   def identity(model: Model): String =
     model.getClass.getName.stripSuffix("$").replace('$', '.')
@@ -191,7 +195,7 @@ object IrFile:
       parts.drop(at) match
         case "features" :: kind :: form :: _ if Set("workflow", "standalone")(form) =>
           Some(s"$kind-$form")
-        case _ :: feature :: _ => Some(feature)
+        case _ :: feature :: _ => Some(feature.replace('_', '-'))
         case _                 => None
 
   // The Queries and lists of Queries a `queries` section declares, read as the members it declares

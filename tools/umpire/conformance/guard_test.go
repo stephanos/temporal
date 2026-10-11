@@ -19,10 +19,10 @@ import (
 
 // activitySource is the Run Event source of one kind of evidence of the standalone activity Model's
 // realization, by the last part of the kind's id, as the lifter emitted it
-// (model/ir/activity-standalone.json).
+// (model/temporal/features/activity/standalone/generated/ir.json).
 func activitySource(t testing.TB, kind string) *umpirespb.RunEventSource {
 	t.Helper()
-	m, err := ir.Load(filepath.Join("..", "..", "..", "model", "ir", "activity-standalone.json"))
+	m, err := ir.Load(ir.ModelPath(filepath.Join("..", "..", ".."), "activity-standalone.json"))
 	require.NoError(t, err)
 	for _, e := range realizationNamed(t, m, "standalone").GetEvidence() {
 		if e.GetId() == activityEvidence+kind {

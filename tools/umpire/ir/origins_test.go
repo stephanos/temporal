@@ -17,7 +17,7 @@ import (
 // The reader admits a Property with an origin and one without; WithoutOrigins clears only the
 // origins, and leaves its argument alone.
 func TestWithoutOriginsClearsOnlyOrigins(t *testing.T) {
-	plain, err := Load(filepath.Join("..", "..", "..", "model", "ir", "activity-standalone.json"))
+	plain, err := Load(ModelPath(filepath.Join("..", "..", ".."), "activity-standalone.json"))
 	require.NoError(t, err)
 	expected := proto.CloneOf(plain)
 	require.NotEmpty(t, expected.GetProperties())

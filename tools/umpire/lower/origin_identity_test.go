@@ -21,7 +21,7 @@ import (
 
 func loadModel(t *testing.T, name string) *umpirespb.Model {
 	t.Helper()
-	m, err := ir.Load(filepath.Join("..", "..", "..", "model", "ir", name))
+	m, err := ir.Load(ir.ModelPath(filepath.Join("..", "..", ".."), name))
 	require.NoError(t, err)
 	return m
 }

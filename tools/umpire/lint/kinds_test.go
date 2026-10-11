@@ -16,8 +16,8 @@ import (
 
 // The checked-in IR the kinds are read over, each loaded once and cloned before any mutation.
 var (
-	activityIR     = loaded("../../../model/ir/activity-standalone.json")
-	nexusControlIR = loaded("../../../model/ir/nexus-workflow-control.json")
+	activityIR     = loaded(ir.ModelPath("../../..", "activity-standalone.json"))
+	nexusControlIR = loaded(ir.ModelPath("../../..", "nexus-workflow-control.json"))
 	capturedIR     = loaded("../../../model/irgen/testdata/lifts/expected/captured.json")
 	declarationsIR = loaded("../../../model/irgen/testdata/lifts/expected/declarations.json")
 )

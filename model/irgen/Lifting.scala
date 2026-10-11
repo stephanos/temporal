@@ -168,7 +168,7 @@ final private[irgen] class Lifting(val ctx: Context)
         parts.drop(at) match
           case "features" :: kind :: form :: _ if Structure.formFolders(form) =>
             Some((s"$root.$form", s"$kind-$form", true))
-          case _ :: feature :: _ => Some((root, feature, false))
+          case _ :: feature :: _ => Some((root, feature.replace('_', '-'), false))
           case _                 => None
     def progress(v: ValDef) =
       val owner = v.symbol.maybeOwner

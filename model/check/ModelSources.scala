@@ -2,6 +2,7 @@ package umpire.check
 
 import java.nio.file.{Files, Path}
 import scala.jdk.CollectionConverters.*
+import umpire.paths.OutputPaths
 
 final private[check] class ModelSources(root: Path, selection: Option[String]):
   private val temporal = root.resolve("model/temporal")
@@ -14,15 +15,21 @@ final private[check] class ModelSources(root: Path, selection: Option[String]):
       finally stream.close()
   private def scalaFiles(path: Path): Vector[Path] = children(path)
     .filter(p => Files.isRegularFile(p) && p.toString.endsWith(".scala"))
+  private def featureFolder(path: Path): Boolean =
+    val name = path.getFileName.toString.toLowerCase(java.util.Locale.ROOT)
+    Files.isDirectory(path) && !name.startsWith(".") &&
+    !Set("shared", "product", "protocol", "generated").contains(name)
   private def hasFeatureFile(path: Path): Boolean = scalaFiles(path).exists: file =>
     val name = file.getFileName.toString.stripSuffix(".scala")
     val folder = path.getFileName.toString
     !file.toString.endsWith(".test.scala") &&
-    name.equalsIgnoreCase(folder + path.getParent.getFileName.toString)
+    (name.equalsIgnoreCase(folder) ||
+      (!path.getParent.equals(featureRoot) &&
+        name.equalsIgnoreCase(folder + path.getParent.getFileName.toString)))
   val discovered: Vector[String] = children(featureRoot)
-    .filter(Files.isDirectory(_))
+    .filter(featureFolder)
     .flatMap: kind =>
-      val forms = children(kind).filter(p => Files.isDirectory(p) && hasFeatureFile(p))
+      val forms = children(kind).filter(p => featureFolder(p) && hasFeatureFile(p))
       (if forms.nonEmpty then forms else Vector(kind).filter(hasFeatureFile))
         .map(p => featureRoot.relativize(p).toString)
   val features: Vector[String] =
@@ -33,7 +40,17 @@ final private[check] class ModelSources(root: Path, selection: Option[String]):
     )
   val narrowed: Boolean = features.toSet != discovered.toSet
   private val selectedPaths = features.map(featureRoot.resolve(_))
-  private val ancestors = selectedPaths.map(_.getParent).filterNot(_.equals(featureRoot)).distinct
+  private val flatKinds = features
+    .filterNot(_.contains('/'))
+    .flatMap: feature =>
+      feature
+        .split('_')
+        .headOption
+        .filter(_ != feature)
+        .map(featureRoot.resolve(_))
+        .filter(Files.isDirectory(_))
+  private val ancestors =
+    (selectedPaths.map(_.getParent).filterNot(_.equals(featureRoot)) ++ flatKinds).distinct
   private val shared = ancestors
     .flatMap(children)
     .filter(p =>
@@ -68,9 +85,10 @@ final private[check] class ModelSources(root: Path, selection: Option[String]):
     (!absolute.startsWith(featureRoot.toAbsolutePath.normalize) ||
       modelPaths.exists(p => absolute.startsWith(p.toAbsolutePath.normalize)))
 
-  def states(held: Path, lifted: Path): Vector[(String, String)] = features.map: feature =>
-    val name = feature.replace('/', '-') + ".json"
-    val before = held.resolve(name)
+  def states(lifted: Path): Vector[(String, String)] = features.map: feature =>
+    val logical = feature.replace('/', '-').replace('_', '-')
+    val name = logical + ".json"
+    val before = OutputPaths.ir(root, logical)
     val after = lifted.resolve(name)
     val state =
       if !Files.isRegularFile(before) then "missing"

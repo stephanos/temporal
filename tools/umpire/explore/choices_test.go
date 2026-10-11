@@ -53,7 +53,7 @@ func namedSteps(t *testing.T, m *umpirespb.Model) *umpirespb.Model {
 // proposal re-answered from the named Model are the unnamed Model's, though the named Model's own
 // bytes differ: its candidates are digested without the names.
 func TestNamedChoicesExploreTheSameCandidates(t *testing.T) {
-	plain, err := ir.Load("../../../model/ir/nexus-workflow.json")
+	plain, err := ir.Load(ir.ModelPath("../../..", "nexus-workflow.json"))
 	require.NoError(t, err)
 	named := namedSteps(t, plain)
 	require.False(t, proto.Equal(plain, named))

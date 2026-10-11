@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-167-gaps-declared-in-the-model-gap-replaces",
+  "created_at": "2026-10-11T19:22:31.996531Z",
+  "depends_on_epics": [],
+  "id": "fn-167-gaps-declared-in-the-model-gap-replaces",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-167-gaps-declared-in-the-model-gap-replaces.md",
+  "status": "open",
+  "title": "Gaps declared in the Model: @gap replaces the lint file",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-11T19:22:32.014740Z"
+}

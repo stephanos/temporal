@@ -11,6 +11,72 @@ import scala.concurrent.duration.*
 import scala.jdk.CollectionConverters.*
 import umpire.check.{Ran, Tools}
 
+private object FixtureIdentityContract:
+  private val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
+  private val contracts = mapper.readTree(
+    Files.readString(
+      Tools.here.directory.resolve("model/irgen/testdata/lifts/identity-contracts.json")
+    )
+  )
+
+  val names: Seq[String] = contracts.fieldNames().asScala.toSeq
+
+  def check(name: String, text: String, current: Boolean = true): Unit =
+    val contract = contracts.path(name)
+    require(!contract.isMissingNode, s"no identity contract for $name")
+    val identities = contract
+      .path("identities")
+      .fields()
+      .asScala
+      .map(row => row.getKey -> row.getValue.asText())
+      .toMap
+    require(identities.values.toSet.size == identities.size, s"$name identities are not bijective")
+    val original = identities.map((before, after) => after -> before)
+    val seen = mutable.Set.empty[String]
+    def canonical(
+        node: com.fasterxml.jackson.databind.JsonNode
+    ): com.fasterxml.jackson.databind.JsonNode =
+      if node.isObject then
+        val result = mapper.createObjectNode()
+        for row <- node.fields().asScala.toSeq.sortBy(_.getKey) if row.getKey != "position" do
+          result
+            .set[com.fasterxml.jackson.databind.JsonNode](row.getKey, canonical(row.getValue)): Unit
+        result
+      else if node.isArray then
+        val result = mapper.createArrayNode()
+        node.elements().asScala.foreach(value => result.add(canonical(value)): Unit)
+        result
+      else if current && node.isTextual && original.contains(node.asText()) then
+        seen += node.asText()
+        mapper.getNodeFactory.textNode(original(node.asText()))
+      else node
+    val bytes = mapper.writeValueAsBytes(canonical(mapper.readTree(text)))
+    val hash = java.util.HexFormat
+      .of()
+      .formatHex(java.security.MessageDigest.getInstance("SHA-256").digest(bytes))
+    if current then
+      require(
+        seen.toSet == original.keySet,
+        s"$name has unused identity mappings: ${original.keySet -- seen}"
+      )
+    require(
+      hash == contract.path("sha256").asText(),
+      s"$name changed beyond its explicit identity mapping and source positions"
+    )
+
+class FixtureIdentityContractSuite extends munit.FunSuite:
+  test(
+    "fixture maintenance preserves every non-position value modulo explicit bijective identities"
+  ):
+    for name <- FixtureIdentityContract.names do
+      FixtureIdentityContract.check(
+        name,
+        Files.readString(
+          Tools.here.directory.resolve(s"model/irgen/testdata/lifts/expected/$name.json")
+        ),
+        current = false
+      )
+
 private object LayoutSources:
   def materialize(
       from: Path,
@@ -1597,11 +1663,12 @@ class Fixtures extends munit.FunSuite:
   private def stored(fixture: String) = s"model/irgen/testdata/$fixture/"
 
   // The lines of the stored files at which the fixture's build fails, as `<file>:<line>:<column>`.
-  private def refusals(fixture: String): Seq[String] =
+  private def refusals(fixture: String, because: Option[String] = None): Seq[String] =
     val built = bounded(
       tools.scalaCli(Seq("compile", materialize(fixture).toString))
     )
     assert(built.failed, s"model/irgen/testdata/$fixture built")
+    because.foreach(message => assert(built.output.contains(message), built.output))
     val at = """\[error\] \S*/([^/\s:]+\.scala):(\d+):(\d+)""".r
     built.errors.collect { case at(file, line, column) =>
       assert(
@@ -2153,7 +2220,12 @@ class Fixtures extends munit.FunSuite:
 
   private def expect(file: String, lifted: => String): Unit =
     val path = expected.resolve(file)
-    if update then
+    val name = file.stripSuffix(".json")
+    if FixtureIdentityContract.names.contains(name) then
+      FixtureIdentityContract.check(name, lifted)
+      assert(Files.isRegularFile(path), s"$path is missing")
+      FixtureIdentityContract.check(name, Files.readString(path), current = false)
+    else if update then
       everyLift
       if !Files.exists(path) || Files.readString(path) != lifted
       then Files.writeString(path, lifted): Unit
@@ -2282,7 +2354,7 @@ class Fixtures extends munit.FunSuite:
     )
 
   concurrently("the build refuses a non-finite state field, at its line"):
-    assertEquals(refusals("nonfinite"), Seq("NonFinite.scala:5:47"))
+    assertEquals(refusals("nonfinite", Some("has no finite catalog")), Seq("NonFinite.scala:8:34"))
 
   concurrently(
     "typed API declarations and direct constructors refuse mismatched roots"
@@ -5437,7 +5509,7 @@ class Fixtures extends munit.FunSuite:
       "general-vocabulary",
       "activity/Activity.scala",
       Some(
-        "package fixture.features.activity\nimport framework.Finite\nenum Phase:\n  case idle\n"
+        "package fixture.features.activity\n\nenum Phase:\n  case idle\n"
       ),
       "Phase is level vocabulary declared in activity's root feature file"
     ),

@@ -40,7 +40,7 @@ const (
 
 func raceModel(t testing.TB) *umpirespb.Model {
 	t.Helper()
-	m, err := ir.Load(filepath.Join("..", "..", "..", "model", "ir", "activity-standalone-race.json"))
+	m, err := ir.Load(ir.ModelPath(filepath.Join("..", "..", ".."), "activity-standalone-race.json"))
 	require.NoError(t, err)
 	return m
 }

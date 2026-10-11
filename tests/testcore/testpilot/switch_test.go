@@ -46,7 +46,7 @@ func TestNexusImplementationSwitchSetsEachImplementationsSettings(t *testing.T) 
 // generatedSources is every lowered Case under model/cases, decoded, by its run name.
 func generatedSources(t *testing.T) map[string]*testpilotspb.Case {
 	t.Helper()
-	directory := filepath.Join("..", "..", "..", "model", "cases")
+	directory := filepath.Join("..", "..", "..", "model", "temporal", "features")
 	entries, err := GeneratedCases(directory)
 	require.NoError(t, err)
 	sources := map[string]*testpilotspb.Case{}

@@ -1,15 +1,16 @@
 package interp
 
-// The Nexus caller Model, lifted from model/temporal into model/ir/nexus-workflow.json and interpreted
+// The Nexus caller Model, lifted into model/temporal/features/nexus/workflow/generated/ir.json and interpreted
 // here. The IR carries the Model whole: nothing of the Scala code is run to get these tables.
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	irpaths "go.temporal.io/server/tools/umpire/ir/paths"
 )
 
-const irPath = "../../../model/ir/nexus-workflow.json"
+var irPath = irpaths.ModelPath("../../..", "nexus-workflow.json")
 
 func machines(t *testing.T) map[string]*Machine {
 	t.Helper()

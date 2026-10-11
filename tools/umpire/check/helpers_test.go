@@ -250,7 +250,7 @@ func positions(m proto.Message) []*umpirespb.Position {
 	return out
 }
 
-const irPath = "../../../model/ir/nexus-workflow.json"
+var irPath = ir.ModelPath("../../..", "nexus-workflow.json")
 
 func machines(t *testing.T) map[string]*interp.Machine {
 	t.Helper()

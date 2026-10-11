@@ -25,6 +25,16 @@ Each module's README describes it for its users: `model/README.md` for the whole
 `tools/umpire/README.md` for the Go tooling, and the READMEs beside Testpilot, the Temporal Driver,
 the functional fixtures and the canary.
 
+`model/OutputPaths.scala` (`umpire.paths.OutputPaths`) is a neutral filesystem leaf shared by
+authoring, the IR generator and the gate. It resolves logical Model names to generated artifacts
+beside their source owners under features, foundations and actors, including nested and flat
+owner folders. Supplemental retained IR and lint files keep their original names under the
+owner's `generated/legacy`; generated Cases and their manifest sit directly in `generated`,
+and retained Cases and their manifest sit directly in `generated/legacy`. The leaf imports only
+the standard library and imports no DSL, Model, IR generator or gate. The DSL's `IrFile`
+delegates its artifact readers to this exact leaf;
+this permitted dependency does not authorize other imports between the three Scala projects.
+
 | Module and destination | One job | Public interface | Permitted domain dependencies |
 | --- | --- | --- | --- |
 | Umpire IR, `api/umpire/v1`, `proto/internal/temporal/server/api/umpire/v1` | Represent a lifted Model. | Existing protobuf messages under the new package names. | Protobuf support; no Testpilot schema dependency added. |

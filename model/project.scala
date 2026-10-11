@@ -3,6 +3,7 @@
 // (`scala-cli compile project.scala framework`); the Temporal Models in temporal/ build on top of it.
 
 //> using scala 3.9.0
+//> using file OutputPaths.scala
 //> using jvm 27
 //> using options -Werror -deprecation -feature -unchecked -Wunused:all -Wvalue-discard -Wnonunit-statement -Wsafe-init -Wimplausible-patterns -language:strictEquality
 //> using dep com.thesamet.scalapb::scalapb-runtime-grpc:0.11.20

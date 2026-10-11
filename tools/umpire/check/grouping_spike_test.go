@@ -17,7 +17,7 @@ import (
 // groupingModel reads the production form that the source-derived grouping spike became.
 func groupingModel(t *testing.T, form string) *umpirespb.Model {
 	t.Helper()
-	m, err := ir.Load(filepath.Join("..", "..", "..", "model", "ir", form+".json"))
+	m, err := ir.Load(ir.ModelPath(filepath.Join("..", "..", ".."), form+".json"))
 	require.NoError(t, err)
 	require.NoError(t, ir.Validate(m))
 	return m

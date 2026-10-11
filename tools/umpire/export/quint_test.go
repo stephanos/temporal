@@ -27,7 +27,7 @@ var irFiles = []string{"activity-standalone", "activity-standalone-record", "nex
 
 func loadModel(t *testing.T, name string) *umpirespb.Model {
 	t.Helper()
-	m, err := ir.Load(filepath.Join("..", "..", "..", "model", "ir", name+".json"))
+	m, err := ir.Load(ir.ModelPath(filepath.Join("..", "..", ".."), name+".json"))
 	require.NoError(t, err)
 	return m
 }

@@ -71,7 +71,7 @@ facet vocabularies are recorded in fn-161.
 
 | Order | Spec | Scala scope |
 | --- | --- | --- |
-| 0 | fn-166 | the feature as the unit (`FEATURES`, discovered by default), the mini feature `activity/mini`, `make model-mini`; the batch below iterates on it and migrates the real features by rule |
+| 0 | fn-166 | the feature as the unit (`FEATURES`, discovered by default), the mini feature `activity_mini`, `make model-mini`; the batch below iterates on it and migrates the real features by rule |
 | 1 | fn-159 | qualified names, renames, `enters` (source integrated; proof/closure open) |
 | 2 | fn-161 | facets |
 | 3 | fn-162 | realizations name their Queries; claim containers removed |
@@ -96,26 +96,53 @@ time; the complete source seal is 20 to 30 minutes and scales with Model size, a
 it is where fn-149.6 went. The spec makes the feature the unit of every model operation (`FEATURES`
 on compile, jar, gate, lint, suites and equivalence, discovered from the tree by default, never
 listed; `make model-mini` is the alias for the mini feature) and adds the smallest complete feature,
-`features/activity/mini`: three real levels, about 800 lines against 4,600, holding one of each hard
+`features/activity_mini`: three real levels, about 800 lines against 4,600, holding one of each hard
 instance the real features have (refinement with a verify through it, a shared input, a shared status
 fact, a cross-facet guard, a waiver and an override, a composition with a `sync` and a channel, a
 failure model with a negative control, fair progress, a monitor, a hole, a real realization with a
 `.live` witness). A real feature not yet migrated to a DSL change is *behind*, a per-feature gate
 state; nothing is parked or deleted. A DSL change ships its migration as a scalafix rule proven on
 the mini feature, so moving it into the real features is running the rule. The guide uses the mini
-feature as its running example. Each feature keeps its outputs in its own `generated/` tree (`ir.json`, `ir.lint.json`, `manifest.json`,
+feature as its running example. Excluding the real features from a run is on demand only, `FEATURES=activity_mini`,
+with no persistent state; the default build is red while they are behind, until the batch-end sweep migrates them
+(owner, 2026-10-11). Each feature keeps its outputs in its own `generated/` tree (`ir.json`, `ir.lint.json`, `manifest.json`,
 `<query>.case.json`), discovered by glob, so the scope of a run is the folder and CODEOWNERS covers a feature with
-one line; the central `model/ir` and `model/cases` go away. That relocation is the spec's one Go change (fn-166.1). Restoring the canonical Make route (`make protoc`, owner-held) is
+one line; the central `model/ir` and `model/cases` go away. Extra historical payloads stay losslessly under
+their owning feature's `generated/legacy/` until fn-160 merges them; pins and equivalence baselines stay unchanged
+(owner, 2026-10-11). That relocation is the spec's one Go change (fn-166.1). Restoring the canonical Make route (`make protoc`, owner-held) is
 the first thing to do and is not a task here. First in the batch. Not marked ready.
 [Spec](.flow/specs/fn-166-mini-activity-a-small-complete-model-to.md).
 
+Lint checks and manual acceptance work are set aside for this run at the owner's request
+(2026-10-11). Existing lint files are preserved; deferred checks are not reported as passing.
+
 | Name | Status | What |
 | --- | --- | --- |
-| fn-166.1 | 🔄 in progress | `FEATURES` plumbing and focused inventory tests pass under default and single-feature sets; compile-failure reporting and selected Case generation remain |
+| fn-166.1 | 🔄 in progress | All 44 historical payloads and 340 manifest rows preserved; default/selected Scala and scoped equivalence checks pass; two lifter fixture goldens contain inherited behavioral drift requiring an owner decision; review remains, canonical route owner-held |
+| fn-166.6 | ⬜ todo | Path-only move of Case manifests and payloads to `generated/cases/`, historical Cases to `generated/cases/legacy/`; after task 1, before realization and final loop proof |
 | fn-166.2 | ⬜ todo | Feature file and product level by subtraction: two facets, cross-facet guard, `Closable`/`Pollable`, a waiver, `verify` and `find` |
 | fn-166.3 | ⬜ todo | Protocol level: refinement, shared input, shared status fact, composition with `sync`, channel, failure model, fair progress, monitor, hole, `Retryable`/`Expirable` with an override |
 | fn-166.4 | ⬜ todo | Realization and live witnesses; one Case run live once |
 | fn-166.5 | ⬜ todo | Loop under 90 s; migration as scalafix rules with a worked example; SEMANTICS and README written against the mini feature |
+
+### fn-167: Gaps declared in the Model: `@gap` replaces the lint file
+
+Captured 2026-10-11 after the owner found the standalone activity's hand-written lint acceptance
+file at six thousand lines: 179 entries and 5,089 owner-by-subject pairs that collapse to about 120
+reasons, most of them the same inherited rows repeated for every derived owner because the IR does
+not record derivation. The spec makes `@gap(subjects*)(because, until)` the one way a Model declares
+a known gap, repeatable, on the declaration that owns the finding, with one inert subject
+constructor per lint kind taking typed references (`silent(action, in = ...)`, `unconstrained(classes*)`,
+`unperformed(actions*)`, `witnessOnly`, ...). The lifter lowers gaps and derivation into the IR as
+inert metadata, outside the fingerprint, equivalence and table pins; `except` and `overriding` lower
+the same way. The Go lint reports an inherited finding once, on the base, matches the rest against
+the IR's gaps, fails a stale gap at its source position and an `until` whose spec is done, and no
+longer reads an acceptance file beside a feature with sources (legacy payloads keep theirs until
+fn-160). Migration is a mechanical rule proven on the mini feature. The Scala side (framework,
+lifter, IR schema, gate source rule) is open now; the lint, the file's retirement and the real
+features' migration wait for the owner's sweep. Placed after fn-166 because its proof runs on the
+mini feature (my sequencing; the owner may move it). Not planned, not marked ready.
+[Spec](.flow/specs/fn-167-gaps-declared-in-the-model-gap-replaces.md).
 
 ### fn-159: Qualified action names in rules
 
@@ -185,7 +212,7 @@ Replace the hand-written `irFile` root lists, three files each for the standalon
 workflow, with one IR file per feature folder, collected from the feature's package. Nothing is listed,
 so no section can be forgotten. The model content stays the same; file boundaries and derived names
 (Cases, lint acceptances, export slices) change. Since 2026-10-11 the file lives in the feature's `generated/` tree (fn-166.1). Each Model file then holds at most one machine, in flat
-level folders grouped by name prefix, and realizations get their own `realization/` layer. Not marked ready.
+level folders grouped by name prefix, and realizations get their own `realization/` layer. Since 2026-10-11 the tree is flat: a kind folder holds only shared parts and each form is a `<kind>_<form>` folder (fn-160.7). Not marked ready.
 [Spec](.flow/specs/fn-160-one-ir-file-per-feature-collected-from.md).
 
 | Name | Status | What |
@@ -194,6 +221,7 @@ level folders grouped by name prefix, and realizations get their own `realizatio
 | fn-160.3 | ⬜ todo | One machine per file, named after it; flat level folders grouped by name prefix (no nested packages); forms' files `<Form><Kind>.scala`; forms' shared parts under the kind's `shared/` (Nexus Product → `nexus/shared/product/`); the lifter enforces it |
 | fn-160.4 | ⬜ todo | Realization layer: flat `realization/` folder, `<Subject>Run` naming, one-way layer dependencies, API only in realizations (after fn-160.3) |
 | fn-160.6 | ⬜ todo | Rename the System level to Protocol (folders, packages, machines, files, lint vocabulary, docs), so the levels read Product / Protocol / Realization |
+| fn-160.7 | ⬜ todo | Flatten `features/`: `activity/` and `nexus/` hold only shared parts; forms are `activity_standalone/`, `activity_mini/`, `nexus_workflow/`, `nexus_standalone/`; packages follow; lint refuses nesting (added 2026-10-11, after fn-160.3) |
 
 ### fn-163: System capabilities: distributed-systems patterns as named capabilities
 

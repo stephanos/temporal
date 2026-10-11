@@ -12,7 +12,7 @@ import (
 )
 
 func TestModelRuntimeInputsInvalidateRepeatRecords(t *testing.T) {
-	for _, directory := range []string{"model/ir", "model/cases"} {
+	for _, directory := range []string{"model/temporal/features/activity/standalone/generated", "model/temporal/features/activity/standalone/generated/legacy"} {
 		t.Run(directory, func(t *testing.T) {
 			root := t.TempDir()
 			initialize := exec.CommandContext(t.Context(), "git", "init", "--quiet", root)

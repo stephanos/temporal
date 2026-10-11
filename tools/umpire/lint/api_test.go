@@ -104,7 +104,7 @@ func apiWalk(md protoreflect.MessageDescriptor, path string) (protoreflect.Field
 // test the instruction's outcome, a field of the run's own record that no count includes.
 func apiActivityIR(t *testing.T) (*umpirespb.Model, *umpirespb.Realization) {
 	t.Helper()
-	m, err := ir.Load("../../../model/ir/activity-standalone.json")
+	m, err := ir.Load(ir.ModelPath("../../..", "activity-standalone.json"))
 	require.NoError(t, err)
 	m = proto.Clone(m).(*umpirespb.Model)
 	r := realizationNamed(t, m, "standalone")

@@ -29,6 +29,33 @@ const WaiverSuffix = ".waivers.json"
 // and transient capability waivers beside them. Any other JSON file, including a retired
 // sidecar, is loaded and refused if it is not an IR Model.
 func IRPaths(dir string) ([]string, error) {
+	var managed []string
+	err := filepath.WalkDir(dir, func(path string, entry os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if entry.IsDir() {
+			return nil
+		}
+		if entry.Name() == "ir.json" && filepath.Base(filepath.Dir(path)) == "generated" {
+			managed = append(managed, path)
+		}
+		if filepath.Base(dir) != "generated" && filepath.Base(filepath.Dir(path)) == "legacy" &&
+			filepath.Base(filepath.Dir(filepath.Dir(path))) == "generated" &&
+			strings.HasSuffix(path, ".json") && !strings.HasSuffix(path, AcceptedSuffix) &&
+			!strings.HasSuffix(path, WaiverSuffix) && !strings.HasSuffix(path, "-case.json") &&
+			entry.Name() != "manifest.json" {
+			managed = append(managed, path)
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	if len(managed) != 0 {
+		slices.Sort(managed)
+		return managed, nil
+	}
 	paths, err := filepath.Glob(filepath.Join(dir, "*.json"))
 	if err != nil {
 		return nil, err

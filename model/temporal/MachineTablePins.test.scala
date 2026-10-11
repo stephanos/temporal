@@ -61,7 +61,7 @@ class MachineTablePins extends munit.FunSuite:
       artifacts
         .find(a => string(a \ "artifact").equals(file.name + ".json"))
         .exists(artifact =>
-          val path = Path.of(s"model/ir/${file.name}.json")
+          val path = IrFile.path(Path.of("."), file.name)
           val current = Files.isRegularFile(path) && hash(Files.readAllBytes(path))
             .equals(string(artifact \ "ir_sha256"))
           if !current then println(s"feature ${file.name}: behind (IR/independent native baseline)")
@@ -71,7 +71,7 @@ class MachineTablePins extends munit.FunSuite:
     for file <- sealedFiles do
       val artifact = artifacts.find(a => string(a \ "artifact").equals(file.name + ".json")).get
       val pinned = subjects(artifact \ "subjects")
-      val bytes = Files.readAllBytes(Path.of(s"model/ir/${file.name}.json"))
+      val bytes = Files.readAllBytes(IrFile.path(Path.of("."), file.name))
       assertEquals(
         hash(bytes),
         string(artifact \ "ir_sha256"),

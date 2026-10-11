@@ -128,9 +128,9 @@ IR. The Scala DSL supplies types and step functions for authoring; Go is the sin
 ```mermaid
 flowchart TD
     scala["Scala Models<br/>model/temporal, written with model/framework"]
-    uir[("Umpire IR<br/>model/ir/*.json")]
+    uir[("Umpire IR<br/>model/temporal/features/<feature>/generated/ir.json")]
     reader["Tables, Query answers, witnesses<br/>tools/umpire/{ir,interp,check,realization}"]
-    tir[("Testpilot IR: Cases<br/>model/cases/*-case.json")]
+    tir[("Testpilot IR: Cases<br/>model/temporal/features/<feature>/generated/<query>.case.json")]
     run["Run and Contract Verdict<br/>common/testing/testpilot"]
     assessment["Model assessment<br/>tools/umpire/conformance"]
     other["Quint<br/>tools/umpire/export"]
@@ -149,7 +149,7 @@ Two IRs sit between the layers, and each has one writer side and one reader side
 - The **Umpire IR** is a lifted Model. Scala writes it (the IR generator); Go reads it (the reader,
   lowering, conformance, export and exploration under `tools/umpire`). Its schema is
   the nine-file closure rooted at `proto/internal/temporal/server/api/umpire/v1/ir.proto`.
-  The checked-in files are `model/ir/*.json`. Go never runs Scala code: everything it knows about a Model comes from
+  The checked-in files are `model/temporal/features/<feature>/generated/ir.json`. Go never runs Scala code: everything it knows about a Model comes from
   this file.
 - The **Testpilot IR** is the Case, Run and Verdict format. Lowering writes Cases; Testpilot, the
   Case runtime, reads them and writes Runs and Verdicts. Its schema is
@@ -168,11 +168,11 @@ authorization. Historical Case formats and Runs are not relabeled or interpreted
 | Layer | What happens | Module | Command |
 | --- | --- | --- | --- |
 | Authoring | Models are written in Scala with a small DSL (a library of declarations such as `machine`, `property` and `query`) | DSL `model/framework`, Models `model/temporal` | `make lint-model`, `make fmt-model` |
-| Lifting | The compiled Models are translated to the Umpire IR, built as the ScalaPB classes of its schema and written as ProtoJSON. A construct outside the supported subset is refused at its source line | `model/irgen`, run by the gate `model/check` | `make umpire-gen-model` writes `model/ir`; `make umpire-check-model` requires it to be current |
-| Umpire IR | The checked-in lifted Models | `model/ir`; schema in `api/umpire/v1` | `make protoc` after a schema change |
+| Lifting | The compiled Models are translated to the Umpire IR, built as the ScalaPB classes of its schema and written as ProtoJSON. A construct outside the supported subset is refused at its source line | `model/irgen`, run by the gate `model/check` | `make umpire-gen-model` writes `model/temporal/features/<feature>/generated`; `make umpire-check-model` requires it to be current |
+| Umpire IR | The checked-in lifted Models | `model/temporal/features/<feature>/generated`; schema in `api/umpire/v1` | `make protoc` after a schema change |
 | Reading and checking | Go loads and validates the IR, builds each machine's table, and answers every Property, Query and refinement | `tools/umpire/{ir,interp,check,realization}` | `go test -tags test_dep ./tools/umpire/...` |
-| Lowering | A `find` Query's witness becomes a Case through its realization | `tools/umpire/lower` | `make umpire-gen-cases` writes `model/cases`; `make umpire-check-cases` requires it to be current |
-| Testpilot IR | The checked-in Cases, and `manifest.json`, which accounts for every Query | `model/cases`; schema in `api/testpilot/v1` | |
+| Lowering | A `find` Query's witness becomes a Case through its realization | `tools/umpire/lower` | `make umpire-gen-cases` writes `model/temporal/features/<feature>/generated`; `make umpire-check-cases` requires it to be current |
+| Testpilot IR | The checked-in Cases, and `manifest.json`, which accounts for every Query | `model/temporal/features/<feature>/generated`; schema in `api/testpilot/v1` | |
 | Running | Testpilot admits a Case, runs its Program through the Temporal Driver, records the Run and evaluates the Contract into a Verdict | `common/testing/testpilot`, `common/testing/testpilot/temporal` | `make umpire-check-live-tests` (in-process server); `make umpire-run` builds `.build/umpire-run` for any deployment |
 | Assessing | The Run's evidence is compared with the whole Model | `tools/umpire/conformance` | part of the live tests above |
 | Export | The IR is written for Quint, and its answers are compared with Go's | `tools/umpire/export` | `make umpire-check-backends` (needs the tools its README names) |
@@ -217,23 +217,23 @@ make umpire-check-model
 It is a Scala program, `model/check`. In order, it checks that the files under `model/` keep to the
 model's own vocabulary, compiles and tests the DSL and the Models, runs the IR generator's own tests,
 lifts every IR file the Models declare in one IR generator run (which first holds every Model to its
-declaration order, [below](#the-reading-order-and-its-lint)), requires every file of `model/ir` and
-`model/cases` to equal what it just produced, lints every IR file, and runs `go vet` and `go test` over `./tools/umpire/...`. It stops at the first failure
+declaration order, [below](#the-reading-order-and-its-lint)), requires each feature's generated IR and
+Cases to equal what it just produced, lints every IR file, and runs `go vet` and `go test` over `./tools/umpire/...`. It stops at the first failure
 and changes no checked-in file. scala-cli, the JDK, protoc and Go come from the repository's
 `mise.toml`.
 
 After you change a Model, regenerate the checked-in files with the same program:
 
 ```sh
-make umpire-gen-model     # the gate with --update: rewrites model/ir and model/cases
+make umpire-gen-model     # the gate with --update: rewrites each feature's generated IR and Cases
 ```
 
-Then read the diff of `model/ir` and `model/cases` like any other code change.
+Then read the diff of each feature's `generated/` directory like any other code change.
 
 The gate then lints every IR file (`make umpire-check-lint` runs the lint alone): what a Model
 declares that nothing reaches, takes, asks, evidences or realizes, and its specification holes, each
 at its Scala line. It fails on a finding until you fix the Model or accept the finding with a reason
-in `model/ir/<file>.lint.json`, and on an acceptance that no longer matches a finding. The coverage
+in `model/temporal/features/<feature>/generated/ir.lint.json`, and on an acceptance that no longer matches a finding. The coverage
 summary it prints per machine is informational; no count fails the gate.
 
 Three kinds read a machine's table for what can happen in its reachable states, each at the Scala
@@ -255,7 +255,7 @@ Capability waivers are not lint findings. The lifter writes their owner, Propert
 check fails when the accepted file omits a current waiver or retains one the capabilities section
 no longer states.
 
-Each file of `model/ir` is one feature's, collected from its package (fn-160): a form under a kind
+Each feature's `generated/ir.json` is collected from its package (fn-160): a form under a kind
 (`features/activity/standalone`, file `activity-standalone`), or a kind's own package, a foundation
 or an actor (`foundations/taskqueue`, file `taskqueue`) where it declares Queries or realizations.
 Its roots are every machine, composition, `queries` section (a machine's or a facet's), machine
@@ -288,14 +288,14 @@ files) is sealed by comparing the tree after it with a baseline captured before 
 
 ```sh
 make umpire-capture-baseline OUT=/abs/new/dir            # on the clean tree, before the first edit
-make umpire-check-equivalence BASE=/abs/new/dir MAP=renames.txt STEPS_ONLY=1   # while model/ir is stale
+make umpire-check-equivalence BASE=/abs/new/dir MAP=renames.txt STEPS_ONLY=1   # while the generated IR is stale
 make umpire-check-equivalence BASE=/abs/new/dir MAP=renames.txt                # after the regeneration
 make umpire-check-equivalence BASE=/abs/new/dir MAP=/dev/null                  # an unchanged tree passes
 ```
 
 The baseline (`model/check/Equivalence.scala`) holds `baseline.txt` (commit, whether `model/` was
-clean, counts), `step-tables/`, copies of `model/ir` (IR files and accepted lint findings) and
-`model/cases` (Cases and `manifest.json`), and the Models' sources for reference. The check fails on
+clean, counts), `step-tables/`, copies of the lifted IR and accepted lint findings under the baseline
+`ir/`, and Cases and `manifest.json` under the baseline `cases/`, and the Models' sources for reference. The check fails on
 every difference the rename map does not explain, and on every map entry that explains nothing.
 
 - **Step tables.** `model/framework/StepTables.scala` writes, for every machine and composition the
@@ -322,7 +322,7 @@ reported as left to the projection rather than as unused.
 
 ## Following the example to a Verdict
 
-**Lifted.** `make umpire-gen-model` lifts the Query into `model/ir/nexus-workflow.json`. For the
+**Lifted.** `make umpire-gen-model` lifts the Query into `model/temporal/features/nexus/workflow/generated/ir.json`. For the
 witness spelling above, its ordinary Query entry has this shape, with source positions and
 exploration omitted. The existing ordinary source instead names its Property `syncSucceeds`
 and its Scenario `syncReplied`:
@@ -365,7 +365,7 @@ it finds the two-step path and confirms that the completion Property holds on it
 That path is the witness.
 
 **Lowered.** `tools/umpire/lower` turns the witness into the Case
-`model/cases/nexus-workflow-syncCompletion-case.json`, with the Case ID
+`model/temporal/features/nexus/workflow/generated/syncCompletion.case.json`, with the Case ID
 `temporal.case.scala.nexus-workflow.syncCompletion`. Its Program has three parts: a workflow that
 schedules a Nexus operation, a handler that replies synchronously, and a controller that starts
 the workflow and reads its history. Its Contract holds one rule. This is the rule, with the two
@@ -383,7 +383,7 @@ comparisons left out:
 The trigger matches the step whose action is `schedule-unset-unset-unset`, and the response matches
 a step whose fact is `nexusOperationCompleted`. In words: once the Run shows the operation
 scheduled, the completed fact must follow within one more transition of that operation.
-`model/cases/manifest.json` lists the Query as `lowered` and repeats what `.live(...)` declared.
+`model/temporal/features/nexus/workflow/generated/manifest.json` lists the Query as `lowered` and repeats what `.live(...)` declared.
 
 **Run.** `tools/canary/assessment/testdata/nexus-workflow-syncCompletion-run.json` is a recorded Run
 of exactly this Case against the in-process test server. It holds 27 events and ends with this
@@ -452,8 +452,7 @@ by id.
 | `model/framework` | The DSL: what an author writes a Model with. It names no Temporal concept. Realization declarations any system needs, the open traits a system's kit extends and the script helpers are in `framework/realize` |
 | `model/temporal` | The Models: `features`, grouped by kind (`nexus`, `activity`) and form (`workflow`, `standalone`), with one general file per kind and the form's feature file below it; `foundations/taskqueue`, the task queue features compose; `actors`, the shared worker and client; `Bounds.scala`, every Query bound; `capabilities`, shared capability Properties; and `realize`, Temporal's realization vocabulary (`Realize.scala`) and shared kit modules |
 | `model/irgen` | The IR generator. `testdata` holds Models it must lift and Models it must refuse |
-| `model/ir` | The checked-in Umpire IR, one file per feature, collected from its package |
-| `model/cases` | The checked-in Cases and `manifest.json` |
+| `model/temporal/features/<feature>/generated` | The feature's checked-in `ir.json`, accepted lint findings, Cases and `manifest.json`; retained supplemental outputs live in `legacy/` |
 | `model/check` | The gate program. It generates the IR's ScalaPB classes from the schema into `model/build` (`--generate-ir`) and runs the IR generator once over every IR file the Models declare. Its second entry point, `umpire.check.metrics`, prints the source metrics of the Model folders it is given |
 | `model/project.scala` | The build settings of the DSL and the Models |
 | [SEMANTICS.md](SEMANTICS.md) | The evaluation rules of the Umpire IR: what every construct means |
@@ -491,10 +490,19 @@ its public interface and what it may import. Each module outside this directory 
 Model targets accept `FEATURES`, space-separated form folders relative to
 `model/temporal/features/` (for example, `FEATURES=nexus/workflow`). The default
 discovers every feature file; selected forms keep their kind-level signatures,
-shared code, framework and foundations. `make model-mini` delegates to
-`make model FEATURES=activity/mini`. Inventory tests report feature drift as
+shared code, framework and foundations. Each feature owns its generated IR,
+accepted lint findings, manifest and Cases in its own `generated/` directory.
+On a warm build, `make model-mini` delegates to `make model FEATURES=activity/mini`
+and reuses the schema and API build outputs. Inventory tests report feature drift as
 `behind` and absent IR as `missing`, without changing the independent native
 baseline; a full gate must still be current before a DSL batch closes.
+
+The current layout is transitional: each feature keeps `generated/ir.json`,
+`generated/ir.lint.json`, `generated/manifest.json` and `generated/<query>.case.json`.
+Supplemental historical IR, Cases and their manifest retain their original names
+and bytes under the owner's `generated/legacy/` until fn-160 completes. The later
+fn-166.6 task moves current Cases under `generated/cases/`; that layout is not
+implemented here.
 
 `make lint-model` checks formatting and lint rules for the DSL, the Models, the IR generator and the
 gate; `make fmt-model` formats them and `make fix-model` applies the lint rewrites. A construct a
@@ -502,12 +510,12 @@ lint rule forbids where no rewrite keeps the behavior carries a line-scoped
 `// scalafix:ok <rule>`.
 
 Model lint reads what the IR generator made of a Model, not its Scala. After `make umpire-gen-model`,
-`make umpire-check-lint` lints every file of `model/ir` as the gate does: each finding at its Scala
+`make umpire-check-lint` lints every feature's generated IR as the gate does: each finding at its Scala
 line, then each machine's coverage summary. `go run ./tools/umpire/cmd/umpire-lint --tables
-model/ir/<file>.json` adds each machine's table by class in the terms of model/SEMANTICS.md
+model/temporal/features/<feature>/generated/ir.json` adds each machine's table by class in the terms of model/SEMANTICS.md
 ("Modalities"), each cell MAY with its results, MUST NOT with its guard or `?` for a hole, beside the
 claims that pin it. Fix a finding in the Model, or accept it with an entry of
-`model/ir/<file>.lint.json` that names its `kind`, its `owner`, its `subjects` as lint prints them
+`model/temporal/features/<feature>/generated/ir.lint.json` that names its `kind`, its `owner`, its `subjects` as lint prints them
 and, under `because`, the reason; the gate fails on a finding neither fixed nor accepted and on an
 acceptance that matches none.
 
@@ -1687,7 +1695,7 @@ not an integer literal or a parameter supplied as one, each at its line, and a Q
 the reader at the Query's line with both numbers and the factors, for example
 `query syncCompletion declares a total of 380, and its static combination count is 192 states × 2
 scheduled slots (the least of 2 steps and 2 scheduled actions) = 384`. IR lifted before totals
-existed has none and is still read; generating Cases from `model/ir` requires one on every Query.
+existed has none and is still read; generating Cases from `model/temporal/features/<feature>/generated` requires one on every Query.
 
 Anything else, such as a `var` or a loop, stops the lift with its source line. The IR generator works on
 the compiler's typed trees (TASTy) and not as a macro, because a macro sees a function's body only
@@ -1792,7 +1800,7 @@ what it waits for; a read after a write with no declared visibility is refused, 
 (SEMANTICS.md, Realizations). No Temporal realization writes an interval or a deadline of its own:
 every read is written with `await` and its wait is derived. A poll that writes its own interval in a
 realization that declares a behavior is lint's `explicit-wait` finding, kept only where
-`model/ir/<file>.lint.json` accepts it with the reason no hint covers its wait. The waits that stay
+`model/temporal/features/<feature>/generated/ir.lint.json` accepts it with the reason no hint covers its wait. The waits that stay
 explicit are no reads: the Driver's own awaits (`AwaitLearned`, `AwaitCommand`, its controls) and the
 Nexus caller's closing long poll take the instruction defaults the kit declares
 (.plans/API_BEHAVIOR_HINTS.md, "As built by task 5").
@@ -1871,8 +1879,8 @@ request; Go still checks the lifted IR against descriptors and executes the Case
 
 ## Generated Cases
 
-`make umpire-gen-model` and `make umpire-gen-cases` write `model/cases/*-case.json` and
-`model/cases/manifest.json`. The manifest gives every Query of every checked-in IR file one
+`make umpire-gen-model` and `make umpire-gen-cases` write `model/temporal/features/<feature>/generated/<query>.case.json` and
+`model/temporal/features/<feature>/generated/manifest.json`. Each manifest gives every Query of its feature's IR one
 standing: `lowered`, `nothing-to-realize`, `no-realization`, or `unsupported` with located reasons.
 The generator builds and validates a complete tree before it replaces anything, and the check
 fails on a changed, missing or left-over file. Ordinary Go tests never rewrite the tree.
@@ -1889,7 +1897,7 @@ each Nexus implementation, and compares the Contract Verdict and the declared as
 replayed. A Case that needs a capability the environment lacks is reported before any resource is
 provisioned.
 
-`.build/umpire-run --case model/cases/<file>` with `--grpc`, `--http`, `--namespace` and
+`.build/umpire-run --case model/temporal/features/<feature>/generated/<query>.case.json` with `--grpc`, `--http`, `--namespace` and
 `--task-queue` runs one Case against any deployment and reports its Verdict. A Case that needs
 delivery control is skipped there with its preparation reason, before anything is dialed, and the
 command exits with status 3.
@@ -1907,7 +1915,7 @@ declarations. `tools/umpire/explore` enumerates their combinations and has the s
 lowering produce a Case for every candidate. Enumerating the candidates is exact model coverage;
 running one is a single sampled execution. Neither is an exhaustive search of server schedules.
 
-`make umpire-ir-bridge` builds `.build/umpire-ir-bridge`, which serves candidates from `model/ir`
+`make umpire-ir-bridge` builds `.build/umpire-ir-bridge`, which serves candidates from `model/temporal/features/<feature>/generated`
 to the campaign and replay commands. `make umpire-fuzz-run` and `make umpire-replay-run` build it
 and run those commands; both need a deployment. Replay first requires two fresh Runs that
 reproduce the original failure, then tries the declared deletions and keeps an edit only when two

@@ -8,7 +8,7 @@ The protocol level with its composition, channel, derivations and claims ((R3)).
 
 **Size:** M
 **Files:** `mini/protocol/Protocol.scala` (phases including `backingOff` reporting the same status as `scheduled`; attempts as `UpTo[2]`; refinement to the product with `query verify` through it), `mini/protocol/Dispatching.scala` and `Completion.scala` (facets), `mini/protocol/Queue.scala` (composition over the task queue foundation with one `sync`; the worker's answers on one bounded lossy channel), `mini/protocol/Faults.scala` (one `FailureModel` with `NegativeControl`: a dispatch that trusts a stale answer; one `assume.fair` progress claim; one monitor; one hole; one assumption), capabilities `Retryable` and `Expirable` with one `overriding` and its reason
-**Touches:** [model/temporal/features/activity/mini/protocol/**, model/temporal/features/activity/mini/MiniActivity.scala, model/temporal/Bounds.scala, model/ir/activity-mini.*, model/cases/activity-mini-*, model/cases/manifest.json]
+**Touches:** [model/temporal/features/activity_mini/protocol/**, model/temporal/features/activity_mini/MiniActivity.scala, model/temporal/features/activity_mini/generated/**, model/temporal/Bounds.scala]
 
 ### Approach
 - Subtract from `standalone/protocol/` as task 2 did from the product; keep the shared-input case by letting the queue's `schedule` take `scheduleToStart` as `start` does.

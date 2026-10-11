@@ -43,7 +43,7 @@ type config struct {
 	// RecordPath, when named, receives the closed Run with the identity it was prepared under,
 	// the recorded Run a replay reads; empty records nothing.
 	RecordPath string
-	// ModelRoot, when named, is the model directory (its `cases/` and `ir/`) whose Model assesses
+	// ModelRoot, when named, is the model directory whose Model assesses
 	// the Run beside its Contract; empty assesses nothing.
 	ModelRoot string
 	Timeout   time.Duration
@@ -169,11 +169,11 @@ type modelAssessment struct {
 // an assessment is bound to, and prepares its Query's assessment under the shared ceilings, as the
 // live tests do.
 func prepareAssessment(root string, source *testpilotspb.Case) (*modelAssessment, error) {
-	entry, err := lower.FindGeneratedCase(filepath.Join(root, "cases"), source)
+	entry, err := lower.FindGeneratedCase(ir.FeatureRoot(root), source)
 	if err != nil {
 		return nil, err
 	}
-	model, err := ir.Load(filepath.Join(root, "ir", entry.Model))
+	model, err := ir.Load(ir.ModelPath(root, entry.Model))
 	if err != nil {
 		return nil, err
 	}
@@ -192,7 +192,7 @@ func parseConfig(arguments []string, stderr io.Writer) (config, error) {
 	binding.RegisterFlags(flags, &configuration.Deployment, "the Case")
 	flags.DurationVar(&configuration.Timeout, "timeout", defaultTimeout, "bound on the whole Run")
 	flags.StringVar(&configuration.RecordPath, "record", "", "write the closed Run with the identity it was prepared under to this file, which must not exist yet in a directory that does")
-	flags.StringVar(&configuration.ModelRoot, "model", "", "assess the Run against the Model of the generated Case in this model directory (its cases/ and ir/), beside the Contract")
+	flags.StringVar(&configuration.ModelRoot, "model", "", "assess the Run against the Model of the generated Case in this model directory, beside the Contract")
 	if err := flags.Parse(arguments); err != nil {
 		return config{}, err
 	}

@@ -89,6 +89,42 @@ object DiscoveryFixtures:
 class IrFileDiscoveryTest extends munit.FunSuite:
   import DiscoveryFixtures.*
 
+  test("IR output paths are co-located without changing logical file identities") {
+    val root = java.nio.file.Files.createTempDirectory("ir-output-paths.")
+    val generated = root.resolve("model/temporal/features/activity/standalone/generated")
+    java.nio.file.Files.createDirectories(generated): Unit
+    assertEquals(IrFile.path(root, "activity-standalone"), generated.resolve("ir.json"))
+    assertEquals(
+      IrFile.path(root, "activity-standalone-record"),
+      generated.resolve("legacy/activity-standalone-record.json")
+    )
+    assertEquals(
+      IrFile.path(root, "uncompiled-feature"),
+      root.resolve("model/temporal/features/uncompiled_feature/generated/ir.json")
+    )
+    java.nio.file.Files.writeString(generated.resolve("ir.json"), "{}"): Unit
+    java.nio.file.Files.createDirectories(generated.resolve("legacy")): Unit
+    java.nio.file.Files.writeString(
+      generated.resolve("legacy/activity-standalone-record.json"),
+      "{}"
+    ): Unit
+    java.nio.file.Files.writeString(generated.resolve("ir.lint.json"), "{}"): Unit
+    for name <- Vector("manifest.json", "old-query-case.json", "new-query.case.json") do
+      java.nio.file.Files.writeString(generated.resolve("legacy").resolve(name), "{}"): Unit
+    assertEquals(
+      IrFile.inventory(root).map(_._1),
+      Vector("activity-standalone", "activity-standalone-record")
+    )
+    val flat = root.resolve("model/temporal/features/nexus_workflow")
+    java.nio.file.Files.createDirectories(flat): Unit
+    assertEquals(IrFile.path(root, "nexus-workflow"), flat.resolve("generated/ir.json"))
+    assertEquals(
+      IrFile.path(root, "nexus-workflow-close"),
+      flat.resolve("generated/legacy/nexus-workflow-close.json")
+    )
+    val _ = intercept[IllegalArgumentException](IrFile.path(root, "../escape"))
+  }
+
   test("IR construction initializes only designated property groups once") {
     val initialized = scala.collection.mutable.ArrayBuffer.empty[String]
     final case class Bundle(progress: Progress[State])
@@ -224,6 +260,7 @@ class IrFileDiscoveryTest extends munit.FunSuite:
       Some("taskqueue")
     )
     assertEquals(IrFile.featureOf("temporal.actors.worker"), Some("worker"))
+    assertEquals(IrFile.featureOf("temporal.features.activity_mini.product"), Some("activity-mini"))
     assertEquals(IrFile.featureOf("framework"), None)
     val subjects = IrFile("discovery", Seq(Added)).subjects()
     assertEquals(

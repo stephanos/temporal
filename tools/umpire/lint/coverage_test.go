@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.temporal.io/server/tools/umpire/ir"
 )
 
 var updateCoverage = flag.Bool("update-coverage", false, "rewrite testdata/coverage.golden")
@@ -34,7 +35,11 @@ func fixtureLowering() Lowering {
 
 func lintFixture(t *testing.T, file string) *Result {
 	t.Helper()
-	m, err := Read(filepath.Join("..", "..", "..", filepath.FromSlash(file)), fixtureLowering(), Options{})
+	path := filepath.Join("..", "..", "..", filepath.FromSlash(file))
+	if strings.HasPrefix(file, "model/ir/") {
+		path = ir.ModelPath("../../..", filepath.Base(file))
+	}
+	m, err := Read(path, fixtureLowering(), Options{})
 	require.NoError(t, err)
 	m.File = file
 	r, err := m.Lint()

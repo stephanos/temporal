@@ -18,7 +18,7 @@ import (
 
 func realizationOf(t *testing.T, file, name string) *umpirespb.Realization {
 	t.Helper()
-	m, err := ir.Load("../../../model/ir/" + file)
+	m, err := ir.Load(ir.ModelPath("../../..", file))
 	require.NoError(t, err)
 	i := slices.IndexFunc(m.GetRealizations(), func(r *umpirespb.Realization) bool { return r.GetName() == name })
 	require.GreaterOrEqual(t, i, 0, "%s has no realization %s", file, name)
@@ -135,7 +135,7 @@ func TestCarriersOfTheNexusCaller(t *testing.T) {
 	require.NotContains(t, async, "inspect()")
 
 	controlFile := "nexus-workflow-control.json"
-	m, err := ir.Load("../../../model/ir/" + controlFile)
+	m, err := ir.Load(ir.ModelPath("../../..", controlFile))
 	require.NoError(t, err)
 	control := carried(t, m.GetRealizations()[0])
 	require.Equal(t, []string{"rpc temporal.api.workflowservice.v1.DescribeWorkflowExecutionRequest"}, control["inspect()"])

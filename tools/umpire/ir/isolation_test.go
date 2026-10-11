@@ -134,7 +134,7 @@ func positions(m proto.Message) []*umpirespb.Position {
 const refusedFixture = "hintsRefused.json"
 
 func TestIRSourcePositionsResolveInsideModel(t *testing.T) {
-	models, err := IRPaths(filepath.Join("..", "..", "..", "model", "ir"))
+	models, err := IRPaths(filepath.Join("..", "..", "..", "model", "temporal", "features"))
 	require.NoError(t, err)
 	expected, err := IRPaths(filepath.Join("..", "..", "..", "model", "irgen", "testdata", "lifts", "expected"))
 	require.NoError(t, err)

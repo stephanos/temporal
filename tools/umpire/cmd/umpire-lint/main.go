@@ -4,7 +4,7 @@
 //
 //	umpire-lint [--must-not-pinned] [--tables] [ir files...]
 //
-// With no file it lints every IR file of model/ir, run from the repository root as the model gate
+// With no file it lints every generated feature IR, run from the repository root as the model gate
 // runs it. The accepted findings of `<file>.json` are in `<file>.lint.json` beside it, each with
 // its reason; one beside no IR file accepts nothing and fails the run.
 package main
@@ -20,7 +20,7 @@ import (
 	"slices"
 	"strings"
 
-	// The realizations of model/ir read Temporal API messages by name; the workflow service links
+	// The feature realizations read Temporal API messages by name; the workflow service links
 	// every one of them, and lowering links the rest.
 	_ "go.temporal.io/api/workflowservice/v1"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
@@ -30,7 +30,7 @@ import (
 	"go.temporal.io/server/tools/umpire/lower"
 )
 
-const irDirectory = "model/ir"
+const irDirectory = umpireir.FeatureDirectory
 
 func main() {
 	os.Exit(run(os.Args[1:], os.Stdout, os.Stderr))
@@ -103,14 +103,14 @@ func run(arguments []string, stdout, stderr io.Writer) int {
 }
 
 // irFiles is the IR files a run lints, sorted, and the directories whose acceptance files it holds
-// to an IR file: model/ir and every IR file of it, or the files named and their directories.
+// to an IR file: generated feature IR, or the files named and their directories.
 func irFiles(named []string) (paths, directories []string, err error) {
 	if len(named) == 0 {
 		paths, err := umpireir.IRPaths(irDirectory)
 		if err != nil {
 			return nil, nil, err
 		}
-		// A gate that lints nothing must not pass: model/ir is read from the repository root.
+		// A gate that lints nothing must not pass.
 		if len(paths) == 0 {
 			return nil, nil, fmt.Errorf("no IR file in %s; run umpire-lint from the repository root", irDirectory)
 		}
@@ -167,7 +167,16 @@ func report(stderr io.Writer, path string, err error) {
 
 // orphans is every acceptance file of a directory beside which there is no IR file.
 func orphans(directory string) ([]string, error) {
-	accepted, err := filepath.Glob(filepath.Join(directory, "*"+lint.AcceptedSuffix))
+	var accepted []string
+	err := filepath.WalkDir(directory, func(path string, entry fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if !entry.IsDir() && strings.HasSuffix(entry.Name(), lint.AcceptedSuffix) {
+			accepted = append(accepted, path)
+		}
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}

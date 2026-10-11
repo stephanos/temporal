@@ -18,6 +18,7 @@ enum Outcome:
   case accepted
 
 val _ = () => summon[CanEqual[Kind, Kind]]
+val kindFinite: Finite[Kind] = summon[Finite[Kind]]
 val aliased = List(classOf[WorkflowPhase], classOf[WorkflowFact], classOf[WorkflowState])
 val qualified = classOf[temporal.features.nexus.standalone.protocol.State]
 

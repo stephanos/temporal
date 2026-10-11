@@ -1,0 +1,78 @@
+{
+  "version": 1,
+  "queries": [
+    {
+      "model": "nexus-standalone.json",
+      "query": {
+        "Family": "temporal.features.nexus.standalone.system",
+        "Owner": "nexusSystem",
+        "Name": "nexusSystem.cancelIsRequested"
+      },
+      "standing": "lowered",
+      "file": "nexusSystem.cancelIsRequested.case.json",
+      "expected": {
+        "contract": "satisfied",
+        "disposition": "completed",
+        "cleanup": "succeeded",
+        "conformance": "conformant",
+        "properties": [
+          {
+            "id": "nexusSystem.cancelIsRequested",
+            "status": "inconclusive",
+            "reason": "explanations_disagree"
+          }
+        ]
+      }
+    },
+    {
+      "model": "nexus-standalone.json",
+      "query": {
+        "Family": "temporal.features.nexus.standalone.system",
+        "Owner": "nexusSystem",
+        "Name": "nexusSystem.closedIsRejectedUniformly"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-standalone.json",
+      "query": {
+        "Family": "temporal.features.nexus.standalone.system",
+        "Owner": "nexusSystem",
+        "Name": "nexusSystem.terminalStatesAreFinal"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "nexus-standalone.json",
+      "query": {
+        "Family": "temporal.features.nexus.standalone.system",
+        "Owner": "nexusSystem",
+        "Name": "nexusSystem.terminateSettles"
+      },
+      "standing": "lowered",
+      "file": "nexusSystem.terminateSettles.case.json",
+      "expected": {
+        "contract": "satisfied",
+        "disposition": "completed",
+        "cleanup": "succeeded",
+        "conformance": "conformant",
+        "properties": [
+          {
+            "id": "nexusSystem.terminateSettles",
+            "status": "inconclusive",
+            "reason": "explanations_disagree"
+          }
+        ]
+      }
+    },
+    {
+      "model": "nexus-standalone.json",
+      "query": {
+        "Family": "temporal.features.nexus.standalone.system",
+        "Owner": "nexusSystem",
+        "Name": "terminalHolds"
+      },
+      "standing": "nothing-to-realize"
+    }
+  ]
+}

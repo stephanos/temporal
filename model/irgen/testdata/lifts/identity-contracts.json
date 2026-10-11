@@ -1,0 +1,85 @@
+{
+  "admission": {
+    "sha256": "456e3b3ae6248a19affec27381b2104f9d1700d26441d384627e465f004accaf",
+    "identities": {}
+  },
+  "realizations": {
+    "sha256": "f8433cc59441298e966ca4f88f9e8e9186e38ef51c5c75eb2ba73f92e2ef001e",
+    "identities": {}
+  },
+  "rules": {
+    "sha256": "1c09529d7811581cb2307b7a93fa82f63a812bdd6d95cd28a5c90aefe85ca5db",
+    "identities": {}
+  },
+  "rejections": {
+    "sha256": "4bbeef5ce6f7a8dbee6c8e6530c69aeb701daabda62328506a9c4ef8d133fcda",
+    "identities": {}
+  },
+  "taskqueue": {
+    "sha256": "6f27605db7ddf3fa34ccf8c0afcd5a4266fa1876db8eae57b2e91befcb336927",
+    "identities": {
+      "taskQueueSystem": "taskQueueProtocol",
+      "taskQueueSystem.evidence": "taskQueueProtocol.evidence",
+      "taskQueueSystem.rules.ackLoss": "taskQueueProtocol.rules.ackLoss",
+      "taskQueueSystem.rules.acknowledge": "taskQueueProtocol.rules.acknowledge",
+      "taskQueueSystem.rules.addActivityTask": "taskQueueProtocol.rules.addActivityTask",
+      "taskQueueSystem.rules.crash": "taskQueueProtocol.rules.crash",
+      "taskQueueSystem.rules.deliver": "taskQueueProtocol.rules.deliver",
+      "taskQueueSystem.rules.enqueue": "taskQueueProtocol.rules.enqueue",
+      "taskQueueSystem.rules.persistTask": "taskQueueProtocol.rules.persistTask",
+      "taskQueueSystem.rules.syncMatch": "taskQueueProtocol.rules.syncMatch",
+      "temporal.foundations.taskqueue.product.TaskQueueProduct$.effects$.acknowledgeView": "temporal.foundations.taskqueue.product.Queueing.queueing$.effects$.acknowledgeView",
+      "temporal.foundations.taskqueue.product.TaskQueueProduct$.effects$.deliverView": "temporal.foundations.taskqueue.product.Queueing.queueing$.effects$.deliverView",
+      "temporal.foundations.taskqueue.product.TaskQueueProduct$.effects$.enqueueView": "temporal.foundations.taskqueue.product.Queueing.queueing$.effects$.enqueueView",
+      "temporal.foundations.taskqueue.system": "temporal.foundations.taskqueue.protocol",
+      "temporal.foundations.taskqueue.system.TaskQueueSystem$.effects$.ackLossDetail": "temporal.foundations.taskqueue.protocol.Queueing.queueing$.effects$.ackLossDetail",
+      "temporal.foundations.taskqueue.system.TaskQueueSystem$.effects$.acknowledgeDetail": "temporal.foundations.taskqueue.protocol.Queueing.queueing$.effects$.acknowledgeDetail",
+      "temporal.foundations.taskqueue.system.TaskQueueSystem$.effects$.crashDetail": "temporal.foundations.taskqueue.protocol.Queueing.queueing$.effects$.crashDetail",
+      "temporal.foundations.taskqueue.system.TaskQueueSystem$.effects$.deliverDetail": "temporal.foundations.taskqueue.protocol.Queueing.queueing$.effects$.deliverDetail",
+      "temporal.foundations.taskqueue.system.TaskQueueSystem$.effects$.enqueueDetail": "temporal.foundations.taskqueue.protocol.Queueing.queueing$.effects$.enqueueDetail",
+      "temporal.foundations.taskqueue.system.TaskQueueSystem$.effects$.forgetfulCrash": "temporal.foundations.taskqueue.protocol.Queueing.queueing$.effects$.forgetfulCrash",
+      "temporal.foundations.taskqueue.system.TaskQueueSystem$.effects$.invokeDetail": "temporal.foundations.taskqueue.protocol.Queueing.queueing$.effects$.invokeDetail",
+      "temporal.foundations.taskqueue.system.TaskQueueSystem$.effects$.persistDetail": "temporal.foundations.taskqueue.protocol.Queueing.queueing$.effects$.persistDetail",
+      "temporal.foundations.taskqueue.system.TaskQueueSystem$.effects$.reserveDetail": "temporal.foundations.taskqueue.protocol.Queueing.queueing$.effects$.reserveDetail",
+      "temporal.foundations.taskqueue.system.TaskQueueSystem$.refinement$.toProduct": "temporal.foundations.taskqueue.protocol.TaskQueueProtocol$.refinement$.toProduct",
+      "temporal.foundations.taskqueue.system.TaskQueueSystem$.refinement$.visible": "temporal.foundations.taskqueue.protocol.TaskQueueProtocol$.refinement$.visible",
+      "temporal.foundations.taskqueue.system.TaskQueueSystem$.refinement$.visibleOutcomes": "temporal.foundations.taskqueue.protocol.TaskQueueProtocol$.refinement$.visibleOutcomes",
+      "temporal.foundations.taskqueue.system.TaskQueueSystem$.states$.answerable": "temporal.foundations.taskqueue.protocol.TaskQueueProtocol$.states$.answerable",
+      "temporal.foundations.taskqueue.system.TaskQueueSystem$.states$.deliverable": "temporal.foundations.taskqueue.protocol.TaskQueueProtocol$.states$.deliverable",
+      "temporal.foundations.taskqueue.system.TaskQueueSystem$.states$.matchable": "temporal.foundations.taskqueue.protocol.TaskQueueProtocol$.states$.matchable",
+      "temporal.foundations.taskqueue.system.TaskQueueSystem$.states$.oneMoreDelivery": "temporal.foundations.taskqueue.protocol.TaskQueueProtocol$.states$.oneMoreDelivery",
+      "temporal.foundations.taskqueue.system.TaskQueueSystem$.states$.queueEnds": "temporal.foundations.taskqueue.protocol.TaskQueueProtocol$.states$.queueEnds"
+    }
+  },
+  "retryCapabilities": {
+    "sha256": "d20f27bb494264f6aa8b8a549f7e81ed1122110272b49c79970fe57e38d61667",
+    "identities": {
+      "temporal.capabilities.Closable.closedIsRejectedUniformly": "temporal.capabilities.product.Closable.closedIsRejectedUniformly",
+      "temporal.capabilities.Closable.terminalStatesAreFinal": "temporal.capabilities.product.Closable.terminalStatesAreFinal",
+      "temporal.capabilities.Retryable.attemptCountIsWithinPolicy": "temporal.capabilities.system.Retryable.attemptCountIsWithinPolicy",
+      "temporal.capabilities.Retryable.failureCancels": "temporal.capabilities.system.Retryable.failureCancels",
+      "temporal.capabilities.Retryable.failureEndsFailed": "temporal.capabilities.system.Retryable.failureEndsFailed",
+      "temporal.capabilities.Retryable.failurePauses": "temporal.capabilities.system.Retryable.failurePauses",
+      "temporal.capabilities.Retryable.failureReturnsToWaiting": "temporal.capabilities.system.Retryable.failureReturnsToWaiting"
+    }
+  },
+  "retrySelection": {
+    "sha256": "95baa5a57674ca34aeb982580a232656d000fca6873a1c844abc984534ad5367",
+    "identities": {
+      "temporal.capabilities.Retryable.attemptCountIsWithinPolicy": "temporal.capabilities.system.Retryable.attemptCountIsWithinPolicy",
+      "temporal.capabilities.Retryable.failureCancels": "temporal.capabilities.system.Retryable.failureCancels",
+      "temporal.capabilities.Retryable.failureEndsFailed": "temporal.capabilities.system.Retryable.failureEndsFailed",
+      "temporal.capabilities.Retryable.failurePauses": "temporal.capabilities.system.Retryable.failurePauses",
+      "temporal.capabilities.Retryable.failureReturnsToWaiting": "temporal.capabilities.system.Retryable.failureReturnsToWaiting"
+    }
+  },
+  "deadlineCapabilities": {
+    "sha256": "a17b629c7fa92696e27e96aecd2b4263ea7461d51766b29756b803183522301f",
+    "identities": {
+      "temporal.capabilities.Expirable.deadlinePauses": "temporal.capabilities.system.Expirable.deadlinePauses",
+      "temporal.capabilities.Expirable.deadlineReturnsToWaiting": "temporal.capabilities.system.Expirable.deadlineReturnsToWaiting",
+      "temporal.capabilities.Expirable.deadlineTimesOut": "temporal.capabilities.system.Expirable.deadlineTimesOut",
+      "temporal.capabilities.Expirable.firesInWindow": "temporal.capabilities.system.Expirable.firesInWindow"
+    }
+  }
+}

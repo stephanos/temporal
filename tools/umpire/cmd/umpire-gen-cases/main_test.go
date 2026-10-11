@@ -1,12 +1,15 @@
 package main
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/tools/umpire/ir"
 	"go.temporal.io/server/tools/umpire/lower"
 	"google.golang.org/protobuf/encoding/protojson"
@@ -16,17 +19,129 @@ import (
 
 const repository = "../../../.."
 
+func TestFeaturePublicationPreservesIRLegacyAndSiblingTrees(t *testing.T) {
+	complete := modelTree(t)
+	selected, err := lower.SelectCases(complete, kinds["canary"].pinned)
+	require.NoError(t, err)
+	root := t.TempDir()
+	directory := filepath.Join(root, "model", "temporal", "features", "nexus", "workflow", "generated")
+	sibling := filepath.Join(root, "model", "temporal", "features", "future_form", "generated")
+	for _, dir := range []string{directory, sibling, filepath.Join(directory, "legacy")} {
+		require.NoError(t, os.MkdirAll(dir, 0o755))
+	}
+	preserved := map[string][]byte{
+		filepath.Join(directory, "ir.json"):                     []byte("immutable IR"),
+		filepath.Join(directory, "ir.lint.json"):                []byte("immutable lint"),
+		filepath.Join(directory, "legacy", "supplemental.json"): []byte("immutable historical payload"),
+		filepath.Join(sibling, "ir.json"):                       []byte("unselected sibling"),
+	}
+	for path, data := range preserved {
+		require.NoError(t, os.WriteFile(path, data, 0o644))
+	}
+	require.NoError(t, lower.SyncCases(directory, selected, true))
+	require.NoError(t, lower.SyncCases(directory, selected, false))
+	for path, data := range preserved {
+		actual, err := os.ReadFile(path)
+		require.NoError(t, err)
+		require.Equal(t, data, actual, path)
+	}
+	encoded, err := os.ReadFile(filepath.Join(directory, "manifest.json"))
+	require.NoError(t, err)
+	manifest, err := lower.DecodeManifest(encoded)
+	require.NoError(t, err)
+	for _, entry := range manifest.Queries {
+		require.Equal(t, entry.Query.Name+".case.json", entry.File)
+		actual, err := os.ReadFile(filepath.Join(directory, entry.File))
+		require.NoError(t, err)
+		require.Equal(t, complete[strings.TrimSuffix(entry.Model, ".json")+"-"+entry.Query.Name+"-case.json"], actual)
+	}
+}
+
+func TestUnscopedPublicationDiscoversEveryAddedFeature(t *testing.T) {
+	root := t.TempDir()
+	model, err := ir.Load(ir.ModelPath(repository, "nexus-workflow.json"))
+	require.NoError(t, err)
+	model.Queries = slices.DeleteFunc(model.Queries, func(q *umpirespb.Query) bool { return q.GetName() != "syncCompletion" })
+	require.Len(t, model.Queries, 1)
+	encoded, err := protojson.Marshal(model)
+	require.NoError(t, err)
+	write := func(name string) string {
+		directory := filepath.Join(root, ir.FeatureDirectory, name, "generated")
+		require.NoError(t, os.MkdirAll(directory, 0o755))
+		require.NoError(t, os.WriteFile(filepath.Join(directory, "ir.json"), encoded, 0o644))
+		return directory
+	}
+	first, second := write("first_form"), write("second")
+	require.NoError(t, modelCases(ir.FeatureRoot(root), true))
+	require.NoError(t, modelCases(ir.FeatureRoot(root), false))
+	third := write("new_feature")
+	require.NoError(t, modelCases(ir.FeatureRoot(root), true))
+	for _, directory := range []string{first, second, third} {
+		manifestBytes, err := os.ReadFile(filepath.Join(directory, "manifest.json"))
+		require.NoError(t, err)
+		manifest, err := lower.DecodeManifest(manifestBytes)
+		require.NoError(t, err)
+		require.Len(t, manifest.Queries, 1)
+		require.Equal(t, ir.ModelName(filepath.Join(directory, "ir.json")), manifest.Queries[0].Model)
+		require.FileExists(t, filepath.Join(directory, "syncCompletion.case.json"))
+	}
+	siblingBytes, err := os.ReadFile(filepath.Join(second, "manifest.json"))
+	require.NoError(t, err)
+	siblingInfo, err := os.Stat(filepath.Join(second, "manifest.json"))
+	require.NoError(t, err)
+	require.NoError(t, modelCases(first, true))
+	after, err := os.ReadFile(filepath.Join(second, "manifest.json"))
+	require.NoError(t, err)
+	afterInfo, err := os.Stat(filepath.Join(second, "manifest.json"))
+	require.NoError(t, err)
+	require.Equal(t, siblingBytes, after)
+	require.Equal(t, siblingInfo.ModTime(), afterInfo.ModTime())
+}
+
 // modelTree is the checked-in complete tree, which the lowering package's own test holds equal to
 // what the checked IR lowers to.
 func modelTree(t *testing.T) map[string][]byte {
 	t.Helper()
-	paths, err := filepath.Glob(filepath.Join(repository, kinds["model"].directory, "*.json"))
-	require.NoError(t, err)
 	files := map[string][]byte{}
-	for _, path := range paths {
-		files[filepath.Base(path)], err = os.ReadFile(path)
-		require.NoError(t, err)
-	}
+	manifest := lower.Manifest{Version: 1}
+	err := filepath.WalkDir(filepath.Join(repository, ir.FeatureDirectory), func(path string, entry os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if entry.IsDir() || entry.Name() != "manifest.json" {
+			return nil
+		}
+		encoded, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		part, err := lower.DecodeManifest(encoded)
+		if err != nil {
+			return err
+		}
+		for _, item := range part.Queries {
+			if item.Standing == lower.Lowered {
+				physical := filepath.Join(filepath.Dir(path), item.File)
+				item.File = strings.TrimSuffix(item.Model, ".json") + "-" + item.Query.Name + "-case.json"
+				files[item.File], err = os.ReadFile(physical)
+				if err != nil {
+					return err
+				}
+			}
+			manifest.Queries = append(manifest.Queries, item)
+		}
+		return nil
+	})
+	require.NoError(t, err)
+	slices.SortFunc(manifest.Queries, func(a, b lower.GeneratedCase) int {
+		if a.Model != b.Model {
+			return strings.Compare(a.Model, b.Model)
+		}
+		return strings.Compare(a.Query.Name, b.Query.Name)
+	})
+	files["manifest.json"], err = json.MarshalIndent(manifest, "", "  ")
+	require.NoError(t, err)
+	files["manifest.json"] = append(files["manifest.json"], '\n')
 	return files
 }
 
@@ -41,6 +156,11 @@ func TestEveryPinnedTreeIsCheckedInAsTheModelTreesSelection(t *testing.T) {
 		}
 		pinned++
 		t.Run(name, func(t *testing.T) {
+			pinnedFiles, err := lower.SelectCases(complete, selected.pinned)
+			require.NoError(t, err)
+			original, err := os.ReadFile(filepath.Join(repository, selected.directory, "manifest.json"))
+			require.NoError(t, err)
+			require.Equal(t, string(original), string(pinnedFiles["manifest.json"]))
 			require.NoError(t, sync(repository, complete, selected, false))
 			encoded, err := os.ReadFile(filepath.Join(repository, selected.directory, "manifest.json"))
 			require.NoError(t, err)
@@ -103,7 +223,7 @@ func TestEveryQueryWithoutATotalIsRefused(t *testing.T) {
 	directory := t.TempDir()
 	queries := 0
 	for _, name := range []string{"nexus-workflow.json", "nexus-workflow-control.json"} {
-		m, err := ir.Load(filepath.Join(repository, "model/ir", name))
+		m, err := ir.Load(ir.ModelPath(repository, name))
 		require.NoError(t, err)
 		m = ir.WithoutTotals(m)
 		queries += len(m.GetQueries())

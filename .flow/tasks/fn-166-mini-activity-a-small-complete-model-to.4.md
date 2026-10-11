@@ -8,7 +8,7 @@ The realization level and the live witnesses, so the mini feature's third level 
 
 **Size:** M
 **Files:** `mini/realization/MiniActivityRun.scala` (`Realizes` with controller, workers, evidence for every fact, one `deadlines` use), `mini/realization/Kit.scala` (only what the mini feature's actions need, by subtraction from the standalone kit), witnesses in the protocol or product level: one `.live` witness with a `satisfied` expectation and one with an `inconclusive` expectation and its reason
-**Touches:** [model/temporal/features/activity/mini/realization/**, model/temporal/features/activity/mini/**, model/ir/activity-mini.*, model/cases/activity-mini-*, model/cases/manifest.json]
+**Touches:** [model/temporal/features/activity_mini/**]
 
 ### Approach
 - Subtract from `standalone/realization/`; keep the kit's typed API reads and the evidence kinds the mini feature's facts need; drop every by-ID, pause and heartbeat helper.

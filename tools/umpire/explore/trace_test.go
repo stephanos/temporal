@@ -9,7 +9,7 @@ import (
 )
 
 func TestTraceRenderingIsStableAndSourceLinked(t *testing.T) {
-	m, err := ir.Load("../../../model/ir/nexus-workflow.json")
+	m, err := ir.Load(ir.ModelPath("../../..", "nexus-workflow.json"))
 	require.NoError(t, err)
 	plan, err := New(m, "nexusDeadlines")
 	require.NoError(t, err)

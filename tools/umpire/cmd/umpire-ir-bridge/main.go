@@ -33,12 +33,13 @@ func run() error {
 	if len(os.Args) != 1 {
 		return errors.New("usage: umpire-ir-bridge [proposal <regression.json>]; bridge runs in model")
 	}
-	paths, err := ir.IRPaths("ir")
+	directory := ir.FeatureRoot(".")
+	paths, err := ir.IRPaths(directory)
 	if err != nil {
 		return err
 	}
 	if len(paths) == 0 {
-		return errors.New("no IR Models in ir/")
+		return fmt.Errorf("no IR Models in %s", directory)
 	}
 	var models []*umpirespb.Model
 	for _, path := range paths {

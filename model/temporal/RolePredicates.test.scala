@@ -22,7 +22,10 @@ class RolePredicatesTest extends munit.FunSuite:
       model <- framework.IrFile.discover("temporal").flatMap(_.subjects()).distinct
       names <- retired.get(framework.IrFile.identity(model))
     do
-      val states = model.getClass.getMethod("states").invoke(model)
+      val states = Class
+        .forName(model.getClass.getName + "states$")
+        .getField("MODULE$")
+        .get(null) // scalafix:ok DisableSyntax.null
       assertEquals(
         states.getClass.getDeclaredMethods.map(_.getName).toSet.intersect(names),
         Set.empty[String]
