@@ -22,8 +22,6 @@
 package fixture.features.lamp
 
 import framework.*
-import product.{LampProduct, OnlyOn}
-import system.{Bulb, LampRealization, LampSystem, OnlyClosed}
 
 // ### Types
 // Every type the levels genuinely share sits here. Phase, State and Fact belong to the level files;
