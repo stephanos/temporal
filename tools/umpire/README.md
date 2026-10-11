@@ -11,7 +11,7 @@ terms; this page says what each package is for.
 | --- | --- |
 | `ir` | Loads and validates IR Models, computes totals and admits exploration declarations |
 | `interp` | Interprets Values, Machines, Channels and decision traces into finite tables |
-| `check` | Binds and answers Properties, Queries, compositions, refinements and progress claims; owns `Realizer` and the bound declarations used by lowering |
+| `check` | Binds and answers Properties, Queries, compositions, refinements and progress claims, a composition's over its composed table and scoped fairness; owns `Realizer` and the bound declarations used by lowering |
 | `realization` | Admits executable realizations and types their guards, operands and payloads |
 | `internal/engine` | Evaluates finite table claims; private to `interp` and `check` |
 | `lower` | Lowering: turns a `find` Query's witness, through the realization its machine declares, into a Testpilot Case, and generates the managed Case trees. Its Program and Contract builder is private, in `lower/internal/producer` |
