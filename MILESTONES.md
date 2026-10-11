@@ -167,7 +167,7 @@ checked rename map.
 | Name | Status | What |
 | --- | --- | --- |
 | fn-163.1 | ⬜ todo | System/product package split integrated; complete placement/module/lint proof and closure open |
-| fn-163.2 | ⬜ todo | Exclusive/Fenced/Idempotent laws integrated; complete inventory/naming/history-law and unchanged-answer proof open; singleOutcome remains hand-written under the recorded history exception |
+| fn-163.2 | ⬜ todo | Exclusive/Fenced/Idempotent laws integrated; complete inventory/naming/history-law, observable realization-evidence and unchanged-answer proof open; singleOutcome remains hand-written under the recorded history exception |
 | fn-163.3 | ⬜ todo | Verify author docs and single-use naming rule against the final source, preserving the existing SEMANTICS draft |
 
 ### fn-147 (Scala part): Duration-typed elapsed-time authoring
