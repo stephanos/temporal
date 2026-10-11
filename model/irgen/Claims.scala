@@ -246,6 +246,8 @@ private[irgen] trait Claims:
       }
       fold(e, inner, named)
     case This(_) if objectForm(t.symbol) => Decl.Model(modelOfObject(moduleClassOf(t.symbol), t))
+    // A facet's claims are its machine's.
+    case This(_) if facetTrait(t.symbol) => Decl.Model(modelOfObject(machineMixing(t.symbol, t), t))
     case Ident(_) if declared(t)         => fold(onThis(t), env, named)
     case Apply(fn: Ident, args) if declared(t) => fold(Apply(onThis(fn), args), env, named)
     case Literal(StringConstant(s))            => Decl.Text(s)

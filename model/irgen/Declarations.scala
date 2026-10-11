@@ -486,6 +486,15 @@ private[irgen] trait Declarations:
             s"$name binds its actions outside its facets: its rules are its facets' rules, " +
               "`object rules extends Facets(pausing.rules, ...)`, each action in one facet's rules"
           )
+        for section <- sectionOf(c, "capabilities")
+          if !section.symbol.typeRef.derivesFrom(Symbol.requiredClass("framework.FacetCapabilities"))
+        do
+          fail(
+            section,
+            s"$name declares capabilities outside its facets: each sits in the `object " +
+              "capabilities` of the facet that owns its actions, and the machine lists them, " +
+              "`object capabilities extends FacetCapabilities(pausing.capabilities, ...)`"
+          )
       val facetEffects = facetRules(name, rules).flatMap((_, r) =>
         sectionOf(objectBody(r.symbol.maybeOwner, r), "effects")
       )
@@ -711,8 +720,11 @@ private[irgen] trait Declarations:
       Iterator.iterate(s)(_.maybeOwner).find(o => o.isNoSymbol || o.isPackageDef)
         .filter(_.isPackageDef).fold("")(_.fullName)
     val pkg = packageOf(facet)
+    // The index holds the enum's companion val, whose class is the enum.
     defs.keys
-      .filter(s => s.isClassDef && s.name == "FacetName" && s.flags.is(Flags.Enum)) // scalafix:ok DisableSyntax.==; typed equality
+      .filter(s => s.name == "FacetName" && s.flags.is(Flags.Module)) // scalafix:ok DisableSyntax.==; typed equality
+      .map(_.companionClass)
+      .filter(s => s.isClassDef && s.flags.is(Flags.Enum))
       .map(s => s -> packageOf(s))
       .filter((_, p) => pkg == p || pkg.startsWith(p + ".")) // scalafix:ok DisableSyntax.==; typed equality
       .toSeq

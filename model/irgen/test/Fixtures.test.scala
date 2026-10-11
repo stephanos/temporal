@@ -1712,11 +1712,28 @@ class Fixtures extends munit.FunSuite:
   // fn-161.1: a machine assembled from facets lifts as the machine written as one object, but for
   // the names of its effects, which each facet's object qualifies (lifts/Facets.scala).
   concurrently("a machine of facets lifts as the machine written as one object"):
-    val (_, machine, _) =
-      declarations("facets", Seq("Faceted", "Whole").map(objectRoot("facets")))
+    val (model, machine, property) = declarations(
+      "facets",
+      Seq("Faceted", "Whole").map(objectRoot("facets")) ++
+        Seq("Faceted", "Whole").flatMap(o =>
+          Seq(s"fixture.facets.$o$$.capabilities", s"fixture.facets.$o$$.queries")
+        )
+    )
     def named(m: String) =
       machine(m).replaceAll("fixture\\.facets\\.[A-Za-z$.]*effects\\$\\.", "effects.")
     assertEquals(named("faceted"), named("whole"))
+    // A facet's capabilities and Property are its machine's, as Whole's own are.
+    assertEquals(property("smashes"), property("smashesWhole"))
+    def generated(m: String) = model
+      .path("properties")
+      .elements()
+      .asScala
+      .filter(_.path("machine").asText() == m) // scalafix:ok DisableSyntax.==; typed equality
+      .map(_.path("name").asText().stripPrefix(m + "."))
+      .toSeq
+      .sorted
+    assertEquals(generated("faceted").filterNot(_.startsWith("smashes")), Seq("closedIsRejectedUniformly", "terminalStatesAreFinal"))
+    assertEquals(generated("faceted").filterNot(_.startsWith("smashes")), generated("whole").filterNot(_.startsWith("smashes")))
 
   // fn-161 R8 and R9: the switched facet rules refuse nothing while off, and each refuses its
   // specimen while on (facetRules/FacetRules.scala).

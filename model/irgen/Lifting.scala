@@ -64,11 +64,11 @@ final private[irgen] class Lifting(val ctx: Context)
       fold(Ref(sym), Map.empty): Unit
 
   // Whether a symbol names the `queries` section of a machine or composition object.
-  private def queriesSection(sym: Symbol): Boolean =
+  private[irgen] def queriesSection(sym: Symbol): Boolean =
     val cls = moduleClassOf(sym)
-    !cls.isNoSymbol && cls.name.stripSuffix("$") == "queries" && objectForm(
-      cls.maybeOwner
-    ) // scalafix:ok DisableSyntax.==; typed equality
+    // A facet's `queries` are its machine's (fn-161).
+    !cls.isNoSymbol && cls.name.stripSuffix("$") == "queries" && // scalafix:ok DisableSyntax.==; typed equality
+    (objectForm(cls.maybeOwner) || facetObject(cls.maybeOwner))
 
   // Whether the IR file reads a val of a `queries` section at run time (`IrFile.queriesOf`): a
   // public one that is a Query or a sequence. One the lifter does not root is refused, so the IR and
@@ -84,7 +84,7 @@ final private[irgen] class Lifting(val ctx: Context)
       )) // scalafix:ok DisableSyntax.==; typed equality
 
   // Whether a val of a `queries` section is a root: a Query, a list of them or a progress claim.
-  private def claimRoot(t: TypeRepr): Boolean =
+  private[irgen] def claimRoot(t: TypeRepr): Boolean =
     val kind = t.widen.dealias
     val listed =
       isList(

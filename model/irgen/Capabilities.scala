@@ -202,6 +202,7 @@ private[irgen] trait Capabilities:
   private lazy val capabilitiesClass = Symbol.requiredClass("framework.Capabilities")
   private lazy val capabilityOfClass = Symbol.requiredClass("framework.CapabilityOf")
   private lazy val declaringClass = Symbol.requiredClass("framework.Declaring")
+  private lazy val facetCapabilitiesClass = Symbol.requiredClass("framework.FacetCapabilities")
 
   // Whether a symbol names a `capabilities` section, `object capabilities extends Capabilities`.
   def capabilitiesObject(sym: Symbol): Boolean =
@@ -271,6 +272,22 @@ private[irgen] trait Capabilities:
     val parent = c.parents.collectFirst { case t: Term => t }
     val base = parent.map(_.symbol).filter(_.isClassConstructor).map(_.maybeOwner)
     base match
+      // A machine of facets lists its facets' sections (fn-161): their members, in order.
+      case Some(b) if b == facetCapabilitiesClass => // scalafix:ok DisableSyntax.==; typed equality
+        parentArguments(c).flatten
+          .filterNot(a => a.tpe.derivesFrom(declaringClass))
+          .flatMap(varargs)
+          .foldLeft(own) { (m, a) =>
+            val section = moduleClassOf(unwrapped(a).symbol)
+            if !(capabilitiesObject(section) && facetObject(section.maybeOwner)) then
+              fail(
+                a,
+                s"$name lists ${a.show}: a machine of facets lists their sections, " +
+                  "`FacetCapabilities(pausing.capabilities, ...)`"
+              )
+            val inner = membersOf(objectBody(section, a), env)
+            Members(m.vals ++ inner.vals, m.waivers ++ inner.waivers, m.env ++ inner.env)
+          }
       case Some(b) if b != capabilitiesClass && b.typeRef.derivesFrom(capabilitiesClass) => // scalafix:ok DisableSyntax.!=; typed equality
         val bc = objectBody(b, parent.get)
         val params = bc.constructor.termParamss.flatMap(_.params)
