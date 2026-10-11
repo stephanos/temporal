@@ -5677,26 +5677,7 @@
     "name": "answerDispatch.property.backoffCancellation",
     "position": {
       "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
-      "line": 27
-    },
-    "params": [ {
-      "name": "step",
-      "type": {
-        "named": "framework.Step"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
-        "line": 27
-      },
-      "hole": "temporal.features.activity.mini.protocol.AnswerDispatch.monitors.cancelDuringBackoff"
-    }
-  }, {
-    "name": "answerDispatch.property.failedAnswer",
-    "position": {
-      "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
-      "line": 37
+      "line": 28
     },
     "params": [ {
       "name": "after",
@@ -5707,144 +5688,11 @@
     "body": {
       "position": {
         "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
-        "line": 37
-      },
-      "binary": {
-        "op": "OP_AND",
-        "left": {
-          "position": {
-            "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
-            "line": 37
-          },
-          "binary": {
-            "op": "OP_CONTAINS",
-            "left": {
-              "position": {
-                "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
-                "line": 38
-              },
-              "literal": {
-                "enum": {
-                  "type": "temporal.features.activity.mini.protocol.AnswerFact",
-                  "case": "acceptedCurrent"
-                }
-              }
-            },
-            "right": {
-              "position": {
-                "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
-                "line": 37
-              },
-              "field": {
-                "base": {
-                  "position": {
-                    "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
-                    "line": 37
-                  },
-                  "var": "after"
-                },
-                "field": "facts"
-              }
-            }
-          }
-        },
-        "right": {
-          "position": {
-            "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
-            "line": 38
-          },
-          "call": {
-            "function": "answerDispatch.property.failedAnswer.ends",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
-                "line": 37
-              },
-              "field": {
-                "base": {
-                  "position": {
-                    "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
-                    "line": 37
-                  },
-                  "var": "after"
-                },
-                "field": "state"
-              }
-            } ]
-          }
-        }
-      }
-    }
-  }, {
-    "name": "answerDispatch.property.failedAnswer.ends",
-    "position": {
-      "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
-      "line": 38
-    },
-    "params": [ {
-      "name": "answerState",
-      "type": {
-        "named": "temporal.features.activity.mini.protocol.AnswerState"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
-        "line": 38
-      },
-      "binary": {
-        "op": "OP_EQ",
-        "left": {
-          "position": {
-            "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
-            "line": 38
-          },
-          "field": {
-            "base": {
-              "position": {
-                "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
-                "line": 38
-              },
-              "var": "answerState"
-            },
-            "field": "phase"
-          }
-        },
-        "right": {
-          "position": {
-            "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
-            "line": 38
-          },
-          "literal": {
-            "enum": {
-              "type": "temporal.features.activity.mini.protocol.AnswerPhase",
-              "case": "failed"
-            }
-          }
-        }
-      }
-    }
-  }, {
-    "name": "answerDispatch.property.lostAnswerLeavesBufferEmpty",
-    "position": {
-      "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
-      "line": 28
-    },
-    "params": [ {
-      "name": "step",
-      "type": {
-        "named": "framework.Step"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
         "line": 28
       },
-      "inbox": {
-        "op": "OP_IS_EMPTY",
-        "channel": "temporal.features.activity.mini.protocol.AnswerDispatch.monitors.answers",
-        "contents": {
+      "binary": {
+        "op": "OP_LE",
+        "left": {
           "position": {
             "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
             "line": 28
@@ -5860,6 +5708,194 @@
                   "position": {
                     "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
                     "line": 28
+                  },
+                  "var": "after"
+                },
+                "field": "state"
+              }
+            },
+            "field": "attempts"
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
+            "line": 28
+          },
+          "literal": {
+            "int": "2"
+          }
+        }
+      }
+    }
+  }, {
+    "name": "answerDispatch.property.failedAnswer",
+    "position": {
+      "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
+      "line": 38
+    },
+    "params": [ {
+      "name": "after",
+      "type": {
+        "named": "framework.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
+        "line": 38
+      },
+      "binary": {
+        "op": "OP_AND",
+        "left": {
+          "position": {
+            "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
+            "line": 38
+          },
+          "binary": {
+            "op": "OP_CONTAINS",
+            "left": {
+              "position": {
+                "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
+                "line": 39
+              },
+              "literal": {
+                "enum": {
+                  "type": "temporal.features.activity.mini.protocol.AnswerFact",
+                  "case": "acceptedCurrent"
+                }
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
+                "line": 38
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
+                    "line": 38
+                  },
+                  "var": "after"
+                },
+                "field": "facts"
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
+            "line": 39
+          },
+          "call": {
+            "function": "answerDispatch.property.failedAnswer.ends",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
+                "line": 38
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
+                    "line": 38
+                  },
+                  "var": "after"
+                },
+                "field": "state"
+              }
+            } ]
+          }
+        }
+      }
+    }
+  }, {
+    "name": "answerDispatch.property.failedAnswer.ends",
+    "position": {
+      "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
+      "line": 39
+    },
+    "params": [ {
+      "name": "answerState",
+      "type": {
+        "named": "temporal.features.activity.mini.protocol.AnswerState"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
+        "line": 39
+      },
+      "binary": {
+        "op": "OP_EQ",
+        "left": {
+          "position": {
+            "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
+            "line": 39
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
+                "line": 39
+              },
+              "var": "answerState"
+            },
+            "field": "phase"
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
+            "line": 39
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.features.activity.mini.protocol.AnswerPhase",
+              "case": "failed"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "answerDispatch.property.lostAnswerLeavesBufferEmpty",
+    "position": {
+      "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
+      "line": 29
+    },
+    "params": [ {
+      "name": "step",
+      "type": {
+        "named": "framework.Step"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
+        "line": 29
+      },
+      "inbox": {
+        "op": "OP_IS_EMPTY",
+        "channel": "temporal.features.activity.mini.protocol.AnswerDispatch.monitors.answers",
+        "contents": {
+          "position": {
+            "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
+            "line": 29
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
+                "line": 29
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
+                    "line": 29
                   },
                   "var": "step"
                 },
@@ -6100,7 +6136,7 @@
     "name": "answerDispatch.rules.answersDelivery",
     "position": {
       "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-      "line": 59
+      "line": 60
     },
     "params": [ {
       "name": "s",
@@ -6116,20 +6152,20 @@
     "body": {
       "position": {
         "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-        "line": 60
+        "line": 61
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-            "line": 60
+            "line": 61
           },
           "call": {
             "function": "temporal.features.activity.mini.protocol.Answering.answering$.states$.held",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                "line": 60
+                "line": 61
               },
               "var": "s"
             } ]
@@ -6138,20 +6174,20 @@
         "then": {
           "position": {
             "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-            "line": 60
+            "line": 61
           },
           "call": {
             "function": "temporal.features.activity.mini.protocol.Answering.answering$.effects$.receive",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                "line": 60
+                "line": 61
               },
               "var": "s"
             }, {
               "position": {
                 "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                "line": 60
+                "line": 61
               },
               "var": "message"
             } ]
@@ -6160,7 +6196,7 @@
         "else": {
           "position": {
             "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-            "line": 59
+            "line": 60
           },
           "list": { }
         }
@@ -6170,7 +6206,7 @@
     "name": "answerDispatch.rules.answersLoss",
     "position": {
       "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-      "line": 62
+      "line": 63
     },
     "params": [ {
       "name": "s",
@@ -6186,13 +6222,13 @@
     "body": {
       "position": {
         "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-        "line": 63
+        "line": 64
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-            "line": 63
+            "line": 64
           },
           "literal": {
             "bool": true
@@ -6201,20 +6237,20 @@
         "then": {
           "position": {
             "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-            "line": 63
+            "line": 64
           },
           "call": {
             "function": "temporal.features.activity.mini.protocol.Answering.answering$.effects$.lose",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                "line": 63
+                "line": 64
               },
               "var": "s"
             }, {
               "position": {
                 "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                "line": 63
+                "line": 64
               },
               "var": "message"
             } ]
@@ -6223,7 +6259,7 @@
         "else": {
           "position": {
             "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-            "line": 62
+            "line": 63
           },
           "list": { }
         }
@@ -6233,7 +6269,7 @@
     "name": "answerDispatch.rules.backoff",
     "position": {
       "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-      "line": 56
+      "line": 57
     },
     "params": [ {
       "name": "s",
@@ -6244,26 +6280,26 @@
     "body": {
       "position": {
         "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-        "line": 57
+        "line": 58
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-            "line": 57
+            "line": 58
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                "line": 57
+                "line": 58
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                    "line": 57
+                    "line": 58
                   },
                   "var": "s"
                 },
@@ -6273,7 +6309,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                "line": 57
+                "line": 58
               },
               "literal": {
                 "enum": {
@@ -6287,14 +6323,14 @@
         "then": {
           "position": {
             "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-            "line": 57
+            "line": 58
           },
           "call": {
             "function": "temporal.features.activity.mini.protocol.Answering.answering$.effects$.resume",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                "line": 57
+                "line": 58
               },
               "var": "s"
             } ]
@@ -6303,7 +6339,7 @@
         "else": {
           "position": {
             "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-            "line": 56
+            "line": 57
           },
           "list": { }
         }
@@ -6313,7 +6349,7 @@
     "name": "answerDispatch.rules.delayAnswer",
     "position": {
       "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-      "line": 53
+      "line": 54
     },
     "params": [ {
       "name": "s",
@@ -6324,27 +6360,27 @@
     "body": {
       "position": {
         "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-        "line": 54
+        "line": 55
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-            "line": 54
+            "line": 55
           },
           "binary": {
             "op": "OP_AND",
             "left": {
               "position": {
                 "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                "line": 54
+                "line": 55
               },
               "call": {
                 "function": "temporal.features.activity.mini.protocol.Answering.answering$.states$.held",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                    "line": 54
+                    "line": 55
                   },
                   "var": "s"
                 } ]
@@ -6353,20 +6389,20 @@
             "right": {
               "position": {
                 "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                "line": 54
+                "line": 55
               },
               "binary": {
                 "op": "OP_LT",
                 "left": {
                   "position": {
                     "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                    "line": 54
+                    "line": 55
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                        "line": 54
+                        "line": 55
                       },
                       "var": "s"
                     },
@@ -6376,7 +6412,7 @@
                 "right": {
                   "position": {
                     "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                    "line": 54
+                    "line": 55
                   },
                   "literal": {
                     "int": "2"
@@ -6389,14 +6425,14 @@
         "then": {
           "position": {
             "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-            "line": 54
+            "line": 55
           },
           "call": {
             "function": "temporal.features.activity.mini.protocol.Answering.answering$.effects$.backOff",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                "line": 54
+                "line": 55
               },
               "var": "s"
             } ]
@@ -6405,7 +6441,7 @@
         "else": {
           "position": {
             "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-            "line": 53
+            "line": 54
           },
           "list": { }
         }
@@ -6415,7 +6451,7 @@
     "name": "answerDispatch.rules.interruptBackoff",
     "position": {
       "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-      "line": 65
+      "line": 66
     },
     "params": [ {
       "name": "s",
@@ -6426,26 +6462,26 @@
     "body": {
       "position": {
         "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-        "line": 66
+        "line": 67
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-            "line": 66
+            "line": 67
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
                 "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                "line": 66
+                "line": 67
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                    "line": 66
+                    "line": 67
                   },
                   "var": "s"
                 },
@@ -6455,7 +6491,7 @@
             "right": {
               "position": {
                 "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                "line": 66
+                "line": 67
               },
               "literal": {
                 "enum": {
@@ -6469,14 +6505,14 @@
         "then": {
           "position": {
             "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-            "line": 66
+            "line": 67
           },
           "call": {
             "function": "temporal.features.activity.mini.protocol.Answering.answering$.effects$.interrupt",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                "line": 66
+                "line": 67
               },
               "var": "s"
             } ]
@@ -6485,7 +6521,7 @@
         "else": {
           "position": {
             "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-            "line": 65
+            "line": 66
           },
           "list": { }
         }
@@ -6495,7 +6531,7 @@
     "name": "answerDispatch.rules.poll",
     "position": {
       "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-      "line": 44
+      "line": 45
     },
     "params": [ {
       "name": "s",
@@ -6506,33 +6542,33 @@
     "body": {
       "position": {
         "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-        "line": 45
+        "line": 46
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-            "line": 45
+            "line": 46
           },
           "binary": {
             "op": "OP_AND",
             "left": {
               "position": {
                 "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                "line": 45
+                "line": 46
               },
               "binary": {
                 "op": "OP_EQ",
                 "left": {
                   "position": {
                     "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                    "line": 45
+                    "line": 46
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                        "line": 45
+                        "line": 46
                       },
                       "var": "s"
                     },
@@ -6542,7 +6578,7 @@
                 "right": {
                   "position": {
                     "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                    "line": 45
+                    "line": 46
                   },
                   "literal": {
                     "enum": {
@@ -6556,20 +6592,20 @@
             "right": {
               "position": {
                 "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                "line": 45
+                "line": 46
               },
               "binary": {
                 "op": "OP_LT",
                 "left": {
                   "position": {
                     "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                    "line": 45
+                    "line": 46
                   },
                   "field": {
                     "base": {
                       "position": {
                         "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                        "line": 45
+                        "line": 46
                       },
                       "var": "s"
                     },
@@ -6579,7 +6615,7 @@
                 "right": {
                   "position": {
                     "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                    "line": 45
+                    "line": 46
                   },
                   "literal": {
                     "int": "2"
@@ -6592,14 +6628,14 @@
         "then": {
           "position": {
             "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-            "line": 45
+            "line": 46
           },
           "call": {
             "function": "temporal.features.activity.mini.protocol.Answering.answering$.effects$.poll",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                "line": 45
+                "line": 46
               },
               "var": "s"
             } ]
@@ -6608,7 +6644,7 @@
         "else": {
           "position": {
             "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-            "line": 44
+            "line": 45
           },
           "list": { }
         }
@@ -6618,7 +6654,7 @@
     "name": "answerDispatch.rules.respondCompleted",
     "position": {
       "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-      "line": 47
+      "line": 48
     },
     "params": [ {
       "name": "s",
@@ -6629,27 +6665,27 @@
     "body": {
       "position": {
         "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-        "line": 48
+        "line": 49
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-            "line": 48
+            "line": 49
           },
           "binary": {
             "op": "OP_AND",
             "left": {
               "position": {
                 "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                "line": 48
+                "line": 49
               },
               "call": {
                 "function": "temporal.features.activity.mini.protocol.Answering.answering$.states$.held",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                    "line": 48
+                    "line": 49
                   },
                   "var": "s"
                 } ]
@@ -6658,14 +6694,14 @@
             "right": {
               "position": {
                 "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                "line": 48
+                "line": 49
               },
               "unary": {
                 "op": "OP_NOT",
                 "operand": {
                   "position": {
                     "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                    "line": 48
+                    "line": 49
                   },
                   "inbox": {
                     "op": "OP_IS_FULL",
@@ -6673,13 +6709,13 @@
                     "contents": {
                       "position": {
                         "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                        "line": 48
+                        "line": 49
                       },
                       "field": {
                         "base": {
                           "position": {
                             "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                            "line": 48
+                            "line": 49
                           },
                           "var": "s"
                         },
@@ -6695,14 +6731,14 @@
         "then": {
           "position": {
             "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-            "line": 48
+            "line": 49
           },
           "call": {
             "function": "temporal.features.activity.mini.protocol.Answering.answering$.effects$.complete",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                "line": 48
+                "line": 49
               },
               "var": "s"
             } ]
@@ -6711,7 +6747,7 @@
         "else": {
           "position": {
             "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-            "line": 47
+            "line": 48
           },
           "list": { }
         }
@@ -6721,7 +6757,7 @@
     "name": "answerDispatch.rules.respondFailed",
     "position": {
       "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-      "line": 50
+      "line": 51
     },
     "params": [ {
       "name": "s",
@@ -6737,27 +6773,27 @@
     "body": {
       "position": {
         "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-        "line": 51
+        "line": 52
       },
       "if": {
         "condition": {
           "position": {
             "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-            "line": 51
+            "line": 52
           },
           "binary": {
             "op": "OP_AND",
             "left": {
               "position": {
                 "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                "line": 51
+                "line": 52
               },
               "call": {
                 "function": "temporal.features.activity.mini.protocol.Answering.answering$.states$.held",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                    "line": 51
+                    "line": 52
                   },
                   "var": "s"
                 } ]
@@ -6766,14 +6802,14 @@
             "right": {
               "position": {
                 "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                "line": 51
+                "line": 52
               },
               "unary": {
                 "op": "OP_NOT",
                 "operand": {
                   "position": {
                     "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                    "line": 51
+                    "line": 52
                   },
                   "inbox": {
                     "op": "OP_IS_FULL",
@@ -6781,13 +6817,13 @@
                     "contents": {
                       "position": {
                         "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                        "line": 51
+                        "line": 52
                       },
                       "field": {
                         "base": {
                           "position": {
                             "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                            "line": 51
+                            "line": 52
                           },
                           "var": "s"
                         },
@@ -6803,20 +6839,20 @@
         "then": {
           "position": {
             "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-            "line": 51
+            "line": 52
           },
           "call": {
             "function": "temporal.features.activity.mini.protocol.Answering.answering$.effects$.fail",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                "line": 51
+                "line": 52
               },
               "var": "s"
             }, {
               "position": {
                 "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                "line": 51
+                "line": 52
               },
               "var": "failure"
             } ]
@@ -6825,7 +6861,7 @@
         "else": {
           "position": {
             "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-            "line": 50
+            "line": 51
           },
           "list": { }
         }
@@ -8806,51 +8842,9 @@
     "body": {
       "position": {
         "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-        "line": 42
+        "line": 43
       },
-      "list": {
-        "items": [ {
-          "position": {
-            "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-            "line": 42
-          },
-          "construct": {
-            "type": "framework.Step",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                "line": 42
-              },
-              "literal": {
-                "enum": {
-                  "type": "framework.outcomes.Outcome",
-                  "case": "accepted"
-                }
-              }
-            }, {
-              "position": {
-                "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                "line": 42
-              },
-              "var": "s"
-            }, {
-              "position": {
-                "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                "line": 42
-              },
-              "list": { }
-            }, {
-              "position": {
-                "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                "line": 42
-              },
-              "literal": {
-                "text": ""
-              }
-            } ]
-          }
-        } ]
-      }
+      "hole": "temporal.features.activity.mini.protocol.AnswerDispatch.monitors.cancelDuringBackoff"
     }
   }, {
     "name": "temporal.features.activity.mini.protocol.Answering.answering$.effects$.lose",
@@ -11895,14 +11889,14 @@
         "condition": {
           "position": {
             "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-            "line": 60
+            "line": 61
           },
           "call": {
             "function": "temporal.features.activity.mini.protocol.Answering.answering$.states$.held",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-                "line": 60
+                "line": 61
               },
               "var": "s"
             } ]
@@ -12677,56 +12671,56 @@
       "function": "answerDispatch.rules.poll",
       "position": {
         "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-        "line": 44
+        "line": 45
       }
     }, {
       "action": "temporal.features.activity.worker.respondCompleted",
       "function": "answerDispatch.rules.respondCompleted",
       "position": {
         "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-        "line": 47
+        "line": 48
       }
     }, {
       "action": "temporal.features.activity.worker.respondFailed",
       "function": "answerDispatch.rules.respondFailed",
       "position": {
         "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-        "line": 50
+        "line": 51
       }
     }, {
       "action": "temporal.features.activity.mini.protocol.fault.delayAnswer",
       "function": "answerDispatch.rules.delayAnswer",
       "position": {
         "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-        "line": 53
+        "line": 54
       }
     }, {
       "action": "temporal.features.activity.timers.backoff",
       "function": "answerDispatch.rules.backoff",
       "position": {
         "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-        "line": 56
+        "line": 57
       }
     }, {
       "action": "temporal.features.activity.mini.protocol.AnswerDispatch.monitors.answers.deliver",
       "function": "answerDispatch.rules.answersDelivery",
       "position": {
         "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-        "line": 59
+        "line": 60
       }
     }, {
       "action": "temporal.features.activity.mini.protocol.AnswerDispatch.monitors.answers.lose",
       "function": "answerDispatch.rules.answersLoss",
       "position": {
         "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-        "line": 62
+        "line": 63
       }
     }, {
       "action": "temporal.features.activity.mini.protocol.fault.interruptBackoff",
       "function": "answerDispatch.rules.interruptBackoff",
       "position": {
         "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-        "line": 65
+        "line": 66
       }
     } ],
     "evidence": "answerDispatch.evidence",
@@ -13467,35 +13461,35 @@
       "function": "answerDispatch.rules.poll",
       "position": {
         "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-        "line": 44
+        "line": 45
       }
     }, {
       "action": "temporal.features.activity.worker.respondCompleted",
       "function": "answerDispatch.rules.respondCompleted",
       "position": {
         "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-        "line": 47
+        "line": 48
       }
     }, {
       "action": "temporal.features.activity.worker.respondFailed",
       "function": "answerDispatch.rules.respondFailed",
       "position": {
         "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-        "line": 50
+        "line": 51
       }
     }, {
       "action": "temporal.features.activity.mini.protocol.fault.delayAnswer",
       "function": "answerDispatch.rules.delayAnswer",
       "position": {
         "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-        "line": 53
+        "line": 54
       }
     }, {
       "action": "temporal.features.activity.timers.backoff",
       "function": "answerDispatch.rules.backoff",
       "position": {
         "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-        "line": 56
+        "line": 57
       }
     }, {
       "action": "temporal.features.activity.mini.protocol.AnswerDispatch.monitors.answers.deliver",
@@ -13509,14 +13503,14 @@
       "function": "answerDispatch.rules.answersLoss",
       "position": {
         "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-        "line": 62
+        "line": 63
       }
     }, {
       "action": "temporal.features.activity.mini.protocol.fault.interruptBackoff",
       "function": "answerDispatch.rules.interruptBackoff",
       "position": {
         "file": "model/temporal/features/activity_mini/protocol/Answering.scala",
-        "line": 65
+        "line": 66
       }
     } ],
     "evidence": "answerDispatch.evidence",
@@ -13920,7 +13914,7 @@
     "name": "failedAnswer",
     "position": {
       "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
-      "line": 37
+      "line": 38
     },
     "whenClass": {
       "action": "temporal.features.activity.mini.protocol.AnswerDispatch.monitors.answers.deliver",
@@ -13937,7 +13931,7 @@
     "name": "lostAnswerLeavesBufferEmpty",
     "position": {
       "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
-      "line": 28
+      "line": 29
     },
     "whenClass": {
       "action": "temporal.features.activity.mini.protocol.AnswerDispatch.monitors.answers.lose",
@@ -14823,7 +14817,7 @@
     "name": "canceled",
     "position": {
       "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
-      "line": 32
+      "line": 33
     },
     "start": {
       "position": {
@@ -14874,7 +14868,7 @@
     "name": "failedAnswer",
     "position": {
       "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
-      "line": 37
+      "line": 38
     },
     "start": {
       "position": {
@@ -14937,7 +14931,7 @@
     "name": "lost",
     "position": {
       "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
-      "line": 33
+      "line": 34
     },
     "start": {
       "position": {
@@ -14994,7 +14988,7 @@
     "name": "stale",
     "position": {
       "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
-      "line": 30
+      "line": 31
     },
     "start": {
       "position": {
@@ -15445,7 +15439,7 @@
     "name": "answerLoss",
     "position": {
       "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
-      "line": 36
+      "line": 37
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -15467,7 +15461,7 @@
     "name": "cancellationUnknown",
     "position": {
       "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
-      "line": 35
+      "line": 36
     },
     "form": "FORM_VERIFY",
     "property": {
@@ -15511,7 +15505,7 @@
     "name": "failedAnswer",
     "position": {
       "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
-      "line": 37
+      "line": 38
     },
     "form": "FORM_FIND",
     "property": {
@@ -15643,7 +15637,7 @@
     "name": "staleIsFenced",
     "position": {
       "file": "model/temporal/features/activity_mini/protocol/AnswerDispatch.scala",
-      "line": 34
+      "line": 35
     },
     "form": "FORM_VERIFY",
     "property": {

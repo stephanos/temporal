@@ -39,7 +39,8 @@ trait Answering extends Facet[AnswerState, Outcome, AnswerFact]:
           else AnswerPhase.failed),
           if states.current(s, answer) then AnswerFact.acceptedCurrent else AnswerFact.acceptedStale)
       def lose(s: AnswerState, @unused answer: Answer) = stay(s)
-      def interrupt(s: AnswerState) = stay(s)
+      def interrupt(@unused s: AnswerState): List[Step[AnswerState, Outcome, AnswerFact]] =
+        AnswerDispatch.monitors.cancelDuringBackoff.reached
     object rules extends Rules:
       on(activityWorker.poll) {
         where(s => s.phase == AnswerPhase.waiting && s.attempts < 2) ~> effects.poll

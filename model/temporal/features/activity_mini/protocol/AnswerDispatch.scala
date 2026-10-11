@@ -24,7 +24,8 @@ object AnswerDispatch extends Machine[AnswerState, Outcome, AnswerFact], Failure
         before.attempts != 2 || (after.state.phase == before.phase &&
           after.state.attempts == before.attempts && after.outcome == Outcome.rejected(Rejection.notFound)))
     val noStaleSettlement = oldAnswerKeepsAttempt(AnswerDispatch)
-    val backoffCancellation = property when fault.interruptBackoff holds (_ => monitors.cancelDuringBackoff.reached)
+    val backoffCancellation = property when fault.interruptBackoff holds
+      (after => after.state.attempts <= 2)
     val lostAnswerLeavesBufferEmpty = property when answers.lose(Answer.firstCompleted) holds (_.state.answers.isEmpty)
   object queries:
     val stale = scenario.actions(activityWorker.poll, activityWorker.respondCompleted,

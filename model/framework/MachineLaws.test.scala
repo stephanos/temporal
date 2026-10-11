@@ -70,16 +70,24 @@ object MachineLaws:
       val states = machine.fs.values.toSet
       val outcomes = machine.fo.values.toSet
       val facts = machine.ff.values.toSet
+      var unknownRows = 0
+      def read(run: => List[Step[S, O, F]]): Either[Hole, List[Step[S, O, F]]] =
+        try Right(run)
+        catch case HoleReached(hole) => Left(hole)
       for binding <- machine.bindings do
         val run = effectOf[S, O, F](binding.decl, binding.function)
         for inputs <- classesOf(binding.decl); state <- machine.fs.values do
-          val first = run(state, inputs)
-          val second = run(state, inputs)
+          val first = read(run(state, inputs))
+          val second = read(run(state, inputs))
           require(
-            Objects.equals(first, second),
+            (first, second) match
+              case (Left(a), Left(b)) => a eq b
+              case (Right(a), Right(b)) => Objects.equals(a, b)
+              case _ => false,
             s"$state / $inputs repeats different ordered alternatives: $first / $second"
           )
-          for step <- first do
+          if first.isLeft then unknownRows += 1
+          for steps <- first.toOption; step <- steps do
             require(
               states.contains(step.state),
               s"$state / $inputs leaves the finite state domain: ${step.state}"
@@ -92,7 +100,8 @@ object MachineLaws:
               step.facts.forall(facts.contains),
               s"$state / $inputs records outside the fact domain: ${step.facts}"
             )
-      None
+      if unknownRows == 0 then None
+      else Some(s"$unknownRows declared row holes remain unknown; all known rows checked")
     val bindings = result("binding order"):
       val declarations = machine.bindings.map(_.decl)
       require(
