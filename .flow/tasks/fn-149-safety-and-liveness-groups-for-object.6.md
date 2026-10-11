@@ -72,9 +72,24 @@ Authorize the narrow `model/irgen/Conventions.scala` change and its focused regr
 - [ ] Nonempty Scala Quick checks and the source equivalence seal are committed for .7; the complete consumer receipt/Case/assessment proof stays open in legacy .4.
 
 ## Done summary
-TBD
+Migrated all 20 authored safety claims and 12 authored liveness claims in the Activity and Nexus models into their final property groups, updated every direct reference, and activated the flat-layout refusal while leaving helpers and omitted empty groups intact. Added fixed native/lift inventory oracles, independent omission and semantic mutation controls, and the narrowly authorized source-position distinction for compiler-synthetic `Syntax$package.in` references.
 
+Baseline: inherited red for `*PropertyGroupsFixtures*` after the stale pre-WIP model jar was invalidated; a fresh `63cd2f2b` package exposed the pre-existing source-impossible `R4.dotted-in` false positive. Compile, discovery, capability, Activity, syntax, and direct steps-only equivalence baselines were green. The conductor's scoped `Conventions.scala` amendment resolved that inherited incompatibility without suppressing authored undotted membership refusals.
+
+TDD evidence: the flat authored Property/Progress regression failed before `Order.scala` rejected direct claims and then passed; the production migration regression failed to compile before the safety/liveness objects existed and then passed 1/1; the compiler-synthetic membership regression failed at `ActivityRecord.scala:57` before the source-coordinate fix and then passed alongside the exact authored refusals at `Checks.scala:37` and `:38`.
+
+Native behavior is equal under the 20 safety/12 liveness runtime-path map plus 18 normalized runtime object addresses: 43 subjects, 163 properties, 12 progress claims, 246 queries, 5,299,233 applicable predicate rows, 1,776,924 enabled rows, and 3,937,539 disabled rows. Whole-group, predicate, bound, assumption, and Query-population mutations all fail. The four complete lifted models are semantically exact across 238 properties, 12 progress claims, 338 queries, 646 functions, 40 machines, and 11 compositions; all three waiver artifacts are byte-identical. The explicit frozen-to-user-WIP and user-WIP-to-grouped ledgers pin every changed JSON path and source span, and semantic-identity, source-root, and span mutations all fail.
+
+Final verification passed: Scala compile; PropertyGroupsFixtures 13/13; IrFileDiscoveryTest 7/7; CapabilityPropertiesTest 11/11; ActivitySubjectRegression 4/4; PropertyGroupMigrationTest 1/1; focused membership regressions 2/2; model syntax lint; scoped format and diff checks; the full production lift; and direct Scala steps-only equivalence over 46 nonempty tables. The canonical Make equivalence route remained held because its linked-API generation prerequisite is outside this Scala-only scope; the task-authorized direct Scala route used the immutable baseline at `/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn160/baseline-ae3f36ee51`.
+
+The complete Go consumer, managed artifacts, Cases/checksum, assessment, live/replay, and legacy `.4`/`.5` obligations remain open exactly as scoped.
+
+stage: impl-review - skipped(config: REVIEW_MODE=none; independent review held by task policy)
+
+Tier: session (jev-unavailable(no_key))
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 701e9281e6f77ef9cf42a51c840242811e606dee, 24dab46e73921d85c27a48f0c25b7663812d2c9e
+- Tests: mise exec -- scala-cli compile model/project.scala model/framework model/temporal, mise exec -- scala-cli test model/irgen --test-only '*PropertyGroupsFixtures*', mise exec -- scala-cli test model/project.scala model/framework --test-only '*IrFileDiscoveryTest', mise exec -- scala-cli test model/project.scala model/framework model/temporal --test-only '*CapabilityPropertiesTest', mise exec -- scala-cli test model/project.scala model/framework model/temporal --test-only '*ActivitySubjectRegression', mise exec -- scala-cli test model/project.scala model/framework model/temporal --test-only '*Activity*Regression*', mise exec -- scala-cli test --server=false --require-tests model/project.scala model/framework model/temporal --test-only '*PropertyGroupMigration*', mise exec -- scala-cli test --server=false --require-tests model/irgen --test-only '*ConventionsFixtures*' -- --tests '*membership*', make lint-model-syntax, mise exec -- scala-cli run --server=false model/check -- --check-equivalence /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn160/baseline-ae3f36ee51 model/testdata/equivalence/batch-1d.map --steps-only, mise exec -- scala-cli run --server=false --suppress-outdated-dependency-warning model/irgen -M umpire.irgen.lift -- --ir model/build/model-scala.jar=model/ model/build/model-scala.classpath .flow/tmp/scala-dsl/fn149-6-resume-proof/lift-final-green, python3 .flow/tmp/scala-dsl/fn149-6-resume-proof/compare-native.py, python3 .flow/tmp/scala-dsl/fn149-6-resume-proof/compare-lift.py, git diff --check
 - PRs:
