@@ -85,7 +85,9 @@ given Finite[State] =
 // Not here, for reasons recorded rather than silent: the cancel field and its rows (fn-79), and the
 // concurrency-limit rejection, which names no operation and is not modeled until a Query needs it.
 
-object NexusProtocol extends Machine[State, Outcome, Fact], Phased[State, Phase](_.phase):
+object NexusProtocol
+    extends Machine[State, Outcome, Fact],
+      Phased[State, Phase](_.phase, (s, p) => s.copy(phase = p)):
   // Where every path begins: before the operation exists, with every deadline at its first value.
   val init = protocol.State(
     phase = Phase.unscheduled,
@@ -220,9 +222,6 @@ object NexusProtocol extends Machine[State, Outcome, Fact], Phased[State, Phase]
         case Resolution.canceled =>
           enter(s.copy(phase = Phase.canceled), (startedFirst ++ List(nexusOperationCanceled))*)
     // format: on
-    // The backoff timer. It is what makes backingOff a phase the operation leaves rather than a state
-    // it is stuck in, and it records nothing: a retry writes no history event.
-    def retry(s: State) = enter(s.copy(phase = Phase.scheduled))
 
     // One of the three deadlines firing; the timed-out event records which.
     def timeOut(s: State, t: TimeoutType) =
@@ -250,8 +249,11 @@ object NexusProtocol extends Machine[State, Outcome, Fact], Phased[State, Phase]
     on(worker.stop) {
       always ~> effects.keep
     }
+    // The backoff timer. It is what makes backingOff a phase the operation leaves rather than a state
+    // it is stuck in, and it records nothing: a retry writes no history event, and no phase of this
+    // machine declares a fact.
     on(timers.backoff) {
-      when(Phase.backingOff) ~> effects.retry
+      when(Phase.backingOff) ~> enters(Phase.scheduled)
     }
     // format: off
     // Each deadline fires only when the schedule command set it. Schedule-to-close covers the whole

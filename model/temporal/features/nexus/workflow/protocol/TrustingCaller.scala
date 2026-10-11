@@ -29,7 +29,7 @@ val sent = choice
 
 object TrustingCaller
     extends Machine[protocol.State, Outcome, protocol.Fact],
-      Phased[protocol.State, Phase](_.phase),
+      Phased[protocol.State, Phase](_.phase, (s, p) => s.copy(phase = p)),
       NegativeControl:
   val init = NexusProtocol.init
   val evidence: PartialFunction[Fact, String] = {
@@ -74,7 +74,7 @@ object TrustingCaller
       always ~> NexusProtocol.effects.keep
     }
     on(timers.backoff) {
-      when(Phase.backingOff) ~> NexusProtocol.effects.retry
+      when(Phase.backingOff) ~> enters(Phase.scheduled)
     }
     on(deadline.scheduleToClose) {
       when[Live].where(

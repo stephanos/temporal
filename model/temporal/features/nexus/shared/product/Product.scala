@@ -12,15 +12,16 @@ import framework.Finite.given
 import framework.outcomes.{Outcome, Rejection}
 import temporal.actors.worker.worker
 
-// What an operation does.
-enum Phase derives Finite:
-  case scheduled extends Phase, Waiting
-  case started extends Phase, Held
-  case succeeded extends Phase, Succeeded
-  case failed extends Phase, Failed
-  case canceled extends Phase, Canceled
-  case timedOut extends Phase, TimedOut
-  case terminated extends Phase, Terminated
+// What an operation does. Each case declares the fact a step that enters it records, which
+// `enters(Phase.x)` records.
+enum Phase(val status: Fact) extends Recorded[Fact] derives Finite:
+  case scheduled extends Phase(Fact.nexusOperationScheduled), Waiting
+  case started extends Phase(Fact.nexusOperationStarted), Held
+  case succeeded extends Phase(Fact.nexusOperationCompleted), Succeeded
+  case failed extends Phase(Fact.nexusOperationFailed), Failed
+  case canceled extends Phase(Fact.nexusOperationCanceled), Canceled
+  case timedOut extends Phase(Fact.nexusOperationTimedOut), TimedOut
+  case terminated extends Phase(Fact.nexusOperationTerminated), Terminated
 
 final case class State(phase: Phase) derives Finite
 
@@ -34,7 +35,9 @@ enum Fact derives Finite:
 // What an operation does, with no account of how. Every Property written against it is carried to
 // the Protocol machine by the refinement declared there.
 
-object NexusProduct extends Machine[State, Outcome, Fact], Phased[State, Phase](_.phase):
+object NexusProduct
+    extends Machine[State, Outcome, Fact],
+      Phased[State, Phase](_.phase, (s, p) => s.copy(phase = p)):
   val init = product.State(Phase.scheduled)
   override def end(s: State) = s.phase.in[Closed]
 
@@ -43,11 +46,10 @@ object NexusProduct extends Machine[State, Outcome, Fact], Phased[State, Phase](
     // The five phases the product machine ends on.
     def productTerminal(s: State) = s.phase.in[Closed]
 
-  // Both forms record these facts through their history or Describe evidence.
+  // Both forms record these facts through their history or Describe evidence. A step whose only
+  // work is entering a phase is `enters(Phase.x)` at its rule, which records the phase's fact.
   object effects:
     import Fact.*
-
-    def succeed(s: State) = enter(s.copy(phase = Phase.succeeded), nexusOperationCompleted)
 
     def complete(s: State, resolution: Resolution) = // format: off
       val startedFirst = if s.phase != Phase.started then List(nexusOperationStarted) else Nil // scalafix:ok DisableSyntax.!=; strictEquality checks native comparisons
@@ -59,37 +61,25 @@ object NexusProduct extends Machine[State, Outcome, Fact], Phased[State, Phase](
         case Resolution.canceled =>
           enter(s.copy(phase = Phase.canceled), (startedFirst ++ List(nexusOperationCanceled))*)
 
-    def terminate(s: State) = enter(s.copy(phase = Phase.terminated), nexusOperationTerminated)
-
-    def start(s: State) = enter(s.copy(phase = Phase.started), nexusOperationStarted)
-
-    def fail(s: State) = enter(s.copy(phase = Phase.failed), nexusOperationFailed)
-
-    def cancel(s: State) = enter(s.copy(phase = Phase.canceled), nexusOperationCanceled)
-
-    // One of the operation's deadlines firing. Which deadline is the Protocol's account of how, so
-    // the product machine has one timer.
-    def timeOut(s: State) = enter(s.copy(phase = Phase.timedOut), nexusOperationTimedOut)
-
   object rules extends Rules:
     // The handler's reply to the server's start request moves only an operation that has not
     // started yet. A retryable handler error leaves the operation where it is, so no rule fires it:
     // the product machine does not know about backing off, which is the whole of what the Protocol
     // machine adds.
     on(handler.reply(Reply.syncSuccess)) {
-      when(Phase.scheduled) ~> effects.succeed
+      when(Phase.scheduled) ~> enters(Phase.succeeded)
     }
     on(handler.reply(Reply.async)) {
-      when(Phase.scheduled) ~> effects.start
+      when(Phase.scheduled) ~> enters(Phase.started)
     }
     on(handler.reply(Reply.operationFailed)) {
-      when(Phase.scheduled) ~> effects.fail
+      when(Phase.scheduled) ~> enters(Phase.failed)
     }
     on(handler.reply(Reply.operationCanceled)) {
-      when(Phase.scheduled) ~> effects.cancel
+      when(Phase.scheduled) ~> enters(Phase.canceled)
     }
     on(handler.reply(Reply.handlerError(false))) {
-      when(Phase.scheduled) ~> effects.fail
+      when(Phase.scheduled) ~> enters(Phase.failed)
     }
 
     // An asynchronous completion settles a running operation, and is not found once it is over.
@@ -116,12 +106,13 @@ object NexusProduct extends Machine[State, Outcome, Fact], Phased[State, Phase](
     // be indistinguishable from a stutter, which the refinement would read as this step.
     disabled(network.fault, worker.stop)
     on(client.terminate) {
-      when(Phase.scheduled, Phase.started) ~> effects.terminate
+      when(Phase.scheduled, Phase.started) ~> enters(Phase.terminated)
     }
 
-    // The deadline fires while the operation runs.
+    // One of the operation's deadlines fires while it runs. Which deadline is the Protocol's account
+    // of how, so the product machine has one timer.
     on(timers.timeout) {
-      when(Phase.scheduled, Phase.started) ~> effects.timeOut
+      when(Phase.scheduled, Phase.started) ~> enters(Phase.timedOut)
     }
 
   // A same-step claim names the action it is about under `when` and holds of the step that action
