@@ -2366,9 +2366,14 @@ private[irgen] trait Realizations:
     val r = reduce(b)
     def outcome(x: Bound, field: String) =
       fieldOfDeclaration(x, field).map(o => reduce(o).term.symbol.name)
-    def because(x: Bound) = fieldOfDeclaration(x, "because").map(textOfBound).getOrElse("")
+    def because(x: Bound) = fieldOfDeclaration(x, "because")
+      .filterNot(value => isDefault(reduce(value).term))
+      .map(textOfBound)
+      .getOrElse("")
+    def missingBecause(x: Bound) =
+      because(x).forall(c => Character.isWhitespace(c) || Character.isSpaceChar(c))
     val short = Seq("property", "contract").flatMap(outcome(r, _)).exists(_ != "satisfied")
-    if short && because(r).trim.isEmpty then
+    if short && missingBecause(r) then
       fail(
         b.term,
         s"$owner is short of satisfied and says no reason why: state it, `because = \"...\"`"
@@ -2377,7 +2382,7 @@ private[irgen] trait Realizations:
       ms <- fieldOfDeclaration(r, "monitors").toList if !isDefault(reduce(ms).term)
       m <- itemsOf(ms)
     do
-      if outcome(m, "outcome").exists(_ != "satisfied") && because(m).trim.isEmpty then
+      if outcome(m, "outcome").exists(_ != "satisfied") && missingBecause(m) then
         fail(
           m.term,
           s"$owner expects a monitor short of satisfied and says no reason why: state it, " +

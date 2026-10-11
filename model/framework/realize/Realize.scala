@@ -575,17 +575,75 @@ object ProtoValue:
 // `conformanceReason` the same way, and conformant names none. An expectation whose Property outcome
 // or Contract verdict is short of satisfied says why, in `because` (fn-140 R4): text that stays in
 // the source, which no IR field, Case or assessment carries.
-final case class RunExpectation(
-    conformance: Conformance,
-    property: PropertyOutcome,
-    contract: PropertyOutcome,
-    disposition: Disposition,
-    cleanup: Cleanup,
-    reason: Option[Reason] = None,
-    conformanceReason: Option[Reason] = None,
-    monitors: Vector[MonitorExpectation] = Vector.empty,
-    because: String = ""
-)
+final class RunExpectation private (
+    val conformance: Conformance,
+    val property: PropertyOutcome,
+    val contract: PropertyOutcome,
+    val disposition: Disposition,
+    val cleanup: Cleanup,
+    val reason: Option[Reason],
+    val conformanceReason: Option[Reason],
+    val monitors: Vector[MonitorExpectation],
+    val because: String
+) derives CanEqual:
+  private def fields =
+    (
+      conformance,
+      property,
+      contract,
+      disposition,
+      cleanup,
+      reason,
+      conformanceReason,
+      monitors,
+      because
+    )
+  override def equals(other: Any): Boolean = other match
+    case that: RunExpectation => fields.equals(that.fields)
+    case _                    => false
+  override def hashCode(): Int = fields.hashCode()
+  override def toString: String = s"RunExpectation$fields"
+  def copy(because: ""): RunExpectation =
+    new RunExpectation(
+      conformance,
+      property,
+      contract,
+      disposition,
+      cleanup,
+      reason,
+      conformanceReason,
+      monitors,
+      because
+    )
+
+object RunExpectation:
+  def apply[P <: PropertyOutcome & Singleton, C <: PropertyOutcome & Singleton](
+      conformance: Conformance,
+      property: P,
+      contract: C,
+      disposition: Disposition,
+      cleanup: Cleanup,
+      reason: Option[Reason] = None,
+      conformanceReason: Option[Reason] = None,
+      monitors: Vector[MonitorExpectation] = Vector.empty,
+      because: "" |
+        ((P, C) match
+          case (PropertyOutcome.satisfied.type, PropertyOutcome.satisfied.type)       => Nothing
+          case (PropertyOutcome.violated.type | PropertyOutcome.inconclusive.type, _) => String
+          case (_, PropertyOutcome.violated.type | PropertyOutcome.inconclusive.type) => String
+      ) = ""
+  ): RunExpectation =
+    new RunExpectation(
+      conformance,
+      property,
+      contract,
+      disposition,
+      cleanup,
+      reason,
+      conformanceReason,
+      monitors,
+      because
+    )
 
 enum Conformance:
   case conformant, nonconformant, inconclusive
@@ -614,9 +672,29 @@ enum Reason:
 // The verdict a completed live Run must support for one monitor of the Query's machine, named by
 // value, `MonitorExpectation(terminalFinality, PropertyOutcome.satisfied)`, or by its name, with
 // its reason when it is not satisfied.
-final case class MonitorExpectation(
-    name: String | Monitor[?, ?, ?, ?],
-    outcome: PropertyOutcome,
-    reason: Option[Reason] = None,
-    because: String = ""
-)
+final class MonitorExpectation private (
+    val name: String | Monitor[?, ?, ?, ?],
+    val outcome: PropertyOutcome,
+    val reason: Option[Reason],
+    val because: String
+) derives CanEqual:
+  private def fields = (name, outcome, reason, because)
+  override def equals(other: Any): Boolean = other match
+    case that: MonitorExpectation => fields.equals(that.fields)
+    case _                        => false
+  override def hashCode(): Int = fields.hashCode()
+  override def toString: String = s"MonitorExpectation$fields"
+  def copy(because: ""): MonitorExpectation =
+    new MonitorExpectation(name, outcome, reason, because)
+
+object MonitorExpectation:
+  def apply[O <: PropertyOutcome & Singleton](
+      name: String | Monitor[?, ?, ?, ?],
+      outcome: O,
+      reason: Option[Reason] = None,
+      because: "" |
+        (O match
+          case PropertyOutcome.satisfied.type                                    => Nothing
+          case PropertyOutcome.violated.type | PropertyOutcome.inconclusive.type => String
+      ) = ""
+  ): MonitorExpectation = new MonitorExpectation(name, outcome, reason, because)

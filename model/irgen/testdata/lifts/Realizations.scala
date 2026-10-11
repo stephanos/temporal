@@ -539,7 +539,12 @@ val heldByValue: Query =
       Disposition.completed,
       Cleanup.succeeded,
       monitors = Vector(
-        MonitorExpectation(opensOnce, PropertyOutcome.inconclusive, Some(Reason.neverEvaluated)),
+        MonitorExpectation(
+          opensOnce,
+          PropertyOutcome.inconclusive,
+          Some(Reason.neverEvaluated),
+          because = "it is read only after a step that opens the door"
+        ),
         MonitorExpectation(staysOpen, PropertyOutcome.satisfied)
       )
     )
@@ -553,7 +558,12 @@ val heldByName: Query =
       disposition = Disposition.completed,
       cleanup = Cleanup.succeeded,
       monitors = Vector(
-        MonitorExpectation("opensOnce", PropertyOutcome.inconclusive, Some(Reason.neverEvaluated)),
+        MonitorExpectation(
+          "opensOnce",
+          PropertyOutcome.inconclusive,
+          Some(Reason.neverEvaluated),
+          because = "it is read only after a step that opens the door"
+        ),
         MonitorExpectation("staysOpen", PropertyOutcome.satisfied)
       )
     )
