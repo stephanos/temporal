@@ -1,7 +1,7 @@
 package fixture.witness
 
 import framework.*
-import worker.{begin, finish}
+import fixture.witness.worker.{begin, finish}
 
 val repeatedTail =
   Subject.witness(begin(), finish(Input.first), finish(Input.first)).records(Note.completed)

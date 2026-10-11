@@ -20,12 +20,17 @@ final private[check] class ModelSources(root: Path, selection: Option[String]):
     Files.isDirectory(path) && !name.startsWith(".") &&
     !Set("shared", "product", "protocol", "generated").contains(name)
   private def hasFeatureFile(path: Path): Boolean = scalaFiles(path).exists: file =>
-    val name = file.getFileName.toString.stripSuffix(".scala")
+    def normalized(name: String): String =
+      name.replace("_", "").toLowerCase(java.util.Locale.ROOT)
+    val name = normalized(file.getFileName.toString.stripSuffix(".scala"))
     val folder = path.getFileName.toString
+    val parts = folder.split("_", 2)
     !file.toString.endsWith(".test.scala") &&
-    (name.equalsIgnoreCase(folder) ||
+    (name == normalized(folder) ||
+      (path.getParent.equals(featureRoot) && parts.length == 2 &&
+        name == normalized(parts(1) + parts(0))) ||
       (!path.getParent.equals(featureRoot) &&
-        name.equalsIgnoreCase(folder + path.getParent.getFileName.toString)))
+        name == normalized(folder + path.getParent.getFileName.toString)))
   val discovered: Vector[String] = children(featureRoot)
     .filter(featureFolder)
     .flatMap: kind =>

@@ -77,6 +77,115 @@ class FixtureIdentityContractSuite extends munit.FunSuite:
         current = false
       )
 
+private object HintFixtures:
+  val admitted = Seq("keptBehavior", "ownBehavior")
+  val refused = Seq(
+    "zeroInterval",
+    "nonPositiveBound",
+    "intervalOverBound",
+    "unboundedStep",
+    "timerNoDeadline",
+    "deliveryDeadline"
+  )
+  def roots(names: Seq[String]): Seq[String] =
+    names.map("fixture.hints.Hints$package$." + _)
+
+class HintSnapshotsSuite extends munit.FunSuite:
+  override val munitTimeout: Duration = 5.minutes
+  private val tools = Tools.here
+  private val root = tools.directory
+  private val build = root.resolve("model/build")
+  private val stored = "model/irgen/testdata/lifts/"
+  private lazy val scratch =
+    Files.createTempDirectory(
+      Files.createDirectories(build.resolve("history")),
+      "hint-snapshots."
+    )
+  private lazy val jar =
+    val sources = Files.createDirectories(scratch.resolve("sources"))
+    for name <- Seq(
+        "project.scala",
+        "Hints.scala",
+        "Rejects.scala",
+        "CollidingRejects.scala"
+      )
+    do
+      Files.writeString(
+        sources.resolve(name),
+        Files
+          .readString(root.resolve(stored + name))
+          .replace(
+            "../../../build/model-scala.jar",
+            build.resolve("model-scala.jar").toString
+          )
+          .replace(
+            "../../../build/api-scalapb.jar",
+            build.resolve("api-scalapb.jar").toString
+          )
+      ): Unit
+    val packaged = scratch.resolve("hints.jar")
+    tools
+      .scalaCli(
+        Seq(
+          "--power",
+          "package",
+          "--server=false",
+          "--library",
+          sources.toString,
+          "-f",
+          "-o",
+          packaged.toString
+        )
+      )
+      .orFail(): Unit
+    packaged
+
+  for (name, declarations) <- Seq(
+      "hints" -> HintFixtures.admitted,
+      "hintsRefused" -> HintFixtures.refused
+    )
+  do
+    test(
+      s"the $name snapshot exactly matches unchanged authored hint declarations"
+    ):
+      val out = scratch.resolve(name + ".json")
+      val result = InProcess.lift(
+        root,
+        Seq(
+          s"$jar=$stored,${build.resolve("model-scala.jar")}=model/",
+          build.resolve("model-scala.classpath").toString,
+          out.toString
+        ) ++ HintFixtures.roots(declarations)
+      )
+      assertEquals(result.exit, 0, result.output)
+      assertEquals(
+        Files.readString(out),
+        Files.readString(root.resolve(stored + s"expected/$name.json")),
+        s"actual snapshot: $out"
+      )
+
+  test(
+    "the closed Channel root retains its exact rejection identity under current vocabulary"
+  ):
+    val out = scratch.resolve("closed.json")
+    val result = InProcess.lift(
+      root,
+      Seq(
+        s"$jar=$stored,${build.resolve("model-scala.jar")}=model/",
+        build.resolve("model-scala.classpath").toString,
+        out.toString,
+        "fixture.rejects.Rejects$package$.closed"
+      )
+    )
+    assertNotEquals(result.exit, 0, result.output)
+    assert(!Files.exists(out))
+    assertEquals(
+      result.output.linesIterator.filter(_.startsWith("lift: ")).toVector,
+      Vector(
+        "lift: model/irgen/testdata/lifts/Rejects.scala:28: fixture.rejects.Rejects$package$.closed is a framework.Channel[fixture.rejects.Note]; a root is a machine, a composition, a Property, a Query, a list of Queries, a progress claim, a claim bundle, a realization, or a machine's `properties`, `capabilities` or `queries` section"
+      )
+    )
+
 private object LayoutSources:
   def materialize(
       from: Path,
@@ -1771,9 +1880,7 @@ class Fixtures extends munit.FunSuite:
     ),
     // fn-118.2: API behavior hints and server steps (lifts/Hints.scala). The reader admits the
     // first and refuses each realization of the second at its line (tools/umpire/realization).
-    "hints" -> Seq("keptBehavior", "ownBehavior").map(
-      "fixture.hints.Hints$package$." + _
-    ),
+    "hints" -> HintFixtures.roots(HintFixtures.admitted),
     // fn-126 decision 23: the objects that group actions, named after where they are declared
     // (lifts/Sections.scala).
     "sections" -> Seq("fixture.sections.Switch", "fixture.sections.Clapper"),
@@ -1807,14 +1914,7 @@ class Fixtures extends munit.FunSuite:
     // (lifts/ComposedProgress.scala).
     "composedProgress" -> Seq("drainsThrough", "gradedThrough")
       .map("fixture.composedprogress.ComposedProgress$package$." + _),
-    "hintsRefused" -> Seq(
-      "zeroInterval",
-      "nonPositiveBound",
-      "intervalOverBound",
-      "unboundedStep",
-      "timerNoDeadline",
-      "deliveryDeadline"
-    ).map("fixture.hints.Hints$package$." + _)
+    "hintsRefused" -> HintFixtures.roots(HintFixtures.refused)
   )
 
   // fn-134.2: the fixtures whose capabilities sections write the waivers they state beside their
@@ -2354,7 +2454,10 @@ class Fixtures extends munit.FunSuite:
     )
 
   concurrently("the build refuses a non-finite state field, at its line"):
-    assertEquals(refusals("nonfinite", Some("has no finite catalog")), Seq("NonFinite.scala:8:34"))
+    assertEquals(
+      refusals("nonfinite", Some("has no finite catalog")),
+      Seq("NonFinite.scala:8:35")
+    )
 
   concurrently(
     "typed API declarations and direct constructors refuse mismatched roots"
@@ -2605,13 +2708,13 @@ class Fixtures extends munit.FunSuite:
       val out = scratch.resolve(s"$fixture-out.json")
       val result =
         lift(
-          s"$jar=$at,$modelJar=model/",
+          s"$jar=${stored(fixture)},$modelJar=model/",
           modelClasspath.toString,
           out.toString,
           "fixture.phased.Switch"
         )
       assert(!result.failed, result.diagnostics)
-      Files.readString(out)
+      Files.readString(out).replace(stored(fixture), at)
     val written = switchOf(
       "phasedRules",
       packaged("phasedRules", materialize("phasedRules"))
@@ -4292,11 +4395,14 @@ class Fixtures extends munit.FunSuite:
       val combined = pieces.head
       for piece <- pieces.tail; kind <- Seq("properties", "functions") do
         val rows =
-          combined.path(kind).asInstanceOf[ArrayNode] // scalafix:ok DisableSyntax.asInstanceOf
+          combined
+            .path(kind)
+            .asInstanceOf[ArrayNode] // scalafix:ok DisableSyntax.asInstanceOf
         piece.path(kind).elements().asScala.foreach(row => rows.add(row): Unit)
       combined
     val model = population(Seq("patternClaims", "inlineClaims", "sharedClaims"))
-    val cores = population(Seq("coreClaims", "inlineCoreClaims", "sharedCoreClaims"))
+    val cores =
+      population(Seq("coreClaims", "inlineCoreClaims", "sharedCoreClaims"))
     for kind <- Seq("properties", "functions") do
       val rows = model
         .path(kind)
@@ -5023,16 +5129,18 @@ class Fixtures extends munit.FunSuite:
   ):
     val authored = rejections()
     Files.writeString(scratch.resolve("authored-rejects.txt"), authored): Unit
-    expect("rejects.txt", authored)
+    assertEquals(authored.linesIterator.toVector, authoredRefusals())
 
-  test("the complete authored refusal contract is independent of held managed comparisons"):
+  private def authoredRefusals(): Vector[String] =
     val historicalBytes = Files.readAllBytes(expected.resolve("rejects.txt"))
-    val digest = java.security.MessageDigest.getInstance("SHA-256").digest(historicalBytes)
+    val digest =
+      java.security.MessageDigest.getInstance("SHA-256").digest(historicalBytes)
     assertEquals(
       digest.map(b => f"${b & 0xff}%02x").mkString,
       "efdd6380f6266a955434f28a2c486065829f077e980b1136939bc1994112bf90"
     )
-    val historical = Files.readAllLines(expected.resolve("rejects.txt")).asScala.toVector
+    val historical =
+      Files.readAllLines(expected.resolve("rejects.txt")).asScala.toVector
     assertEquals(historical.size, 226)
     val prefix = "lift: model/irgen/testdata/lifts/"
     val adaptations = Map(
@@ -5041,10 +5149,13 @@ class Fixtures extends munit.FunSuite:
       (prefix + "ScriptRejects.scala:203: inspect is no action activitySystem binds: a realization binds its own machine's actions") ->
         (prefix + "ScriptRejects.scala:203: inspect is no action activityProtocol binds: a realization binds its own machine's actions"),
       (prefix + "ScriptRejects.scala:105: expires is a case of Timeout, and activitySystem records facts of temporal.features.activity.standalone.system.Fact: a realization names the facts its machine records") ->
-        (prefix + "ScriptRejects.scala:105: expires is a case of Timeout, and activityProtocol records facts of temporal.features.activity.standalone.protocol.Fact: a realization names the facts its machine records")
+        (prefix + "ScriptRejects.scala:105: expires is a case of Timeout, and activityProtocol records facts of temporal.features.activity.standalone.protocol.Fact: a realization names the facts its machine records"),
+      (prefix + "Rejects.scala:28: fixture.rejects.Rejects$package$.closed is a framework.Channel[fixture.rejects.Note]; a root is a machine, a composition, a Query, a list of Queries, a progress claim, a realization, or a machine's `capabilities` or `queries` section") ->
+        (prefix + "Rejects.scala:28: fixture.rejects.Rejects$package$.closed is a framework.Channel[fixture.rejects.Note]; a root is a machine, a composition, a Property, a Query, a list of Queries, a progress claim, a claim bundle, a realization, or a machine's `properties`, `capabilities` or `queries` section")
     )
     assert(adaptations.keys.forall(old => historical.count(_ == old) == 1))
-    val markerSource = Files.readAllLines(testdata.resolve("lifts/MarkerRejects.scala")).asScala
+    val markerSource =
+      Files.readAllLines(testdata.resolve("lifts/MarkerRejects.scala")).asScala
     val markerDeclarations = Map(
       35 -> "FaultUnmarked",
       41 -> "FaultlessFailure",
@@ -5081,6 +5192,12 @@ class Fixtures extends munit.FunSuite:
         case Some((from, to)) => to + vocabulary.drop(from.length)
         case None             => vocabulary
     }
+    authored
+
+  test(
+    "the complete authored refusal contract is independent of held managed comparisons"
+  ):
+    val authored = authoredRefusals()
     val actual = rejections().linesIterator.toVector
     Files.writeString(
       scratch.resolve("authored-refusal-contract.txt"),
@@ -5111,23 +5228,39 @@ class Fixtures extends munit.FunSuite:
     val roots = fixtures.toMap.apply("declarations")
     val arguments =
       Seq(
-        s"$jar=${stored("lifts")},$modelJar=model/",
+        s"$jar=$shifted/,$modelJar=model/",
         modelClasspath.toString,
         lifted("shifted").toString
       )
     val lift = this.lift((arguments ++ roots)*)
     assert(!lift.failed, lift.diagnostics)
     val now = Files.readString(lifted("shifted"))
-    def lines(ir: String) = ir.replaceAll("\"line\": [0-9]+", "\"line\": _")
     assertNotEquals(
       now,
       was,
       "moving the declarations did not move their lines"
     )
-    assert(
-      lines(now) == lines(was),
-      "moving the declarations down changed more than their lines"
-    )
+    val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
+    val before = mapper.readTree(was)
+    val after = mapper.readTree(now)
+    val authored = stored("lifts") + "Declarations.scala"
+    val moved = shifted.resolve("Declarations.scala").toString
+    def align(actual: com.fasterxml.jackson.databind.JsonNode, expected: com.fasterxml.jackson.databind.JsonNode): Unit =
+      if actual.isObject then
+        val position = actual.path("position")
+        val prior = expected.path("position")
+        if position.path("file").asText() == moved || prior.path("file").asText() == authored then
+          assertEquals(position.path("file").asText(), moved)
+          assertEquals(prior.path("file").asText(), authored)
+          assertEquals(position.path("line").asInt(), prior.path("line").asInt() + 3)
+          val fixed = position.asInstanceOf[com.fasterxml.jackson.databind.node.ObjectNode]
+          fixed.put("file", authored): Unit
+          fixed.put("line", prior.path("line").asInt()): Unit
+        actual.fields().asScala.foreach(row => align(row.getValue, expected.path(row.getKey)))
+      else if actual.isArray then
+        actual.elements().asScala.zipWithIndex.foreach((row, index) => align(row, expected.path(index)))
+    align(after, before)
+    assertEquals(after, before, "moving declarations changed more than their exact +3 source coordinates")
 
   concurrently("a jar's prefix may be an argument of its own"):
     val out = lifted("presence-prefix-argument")

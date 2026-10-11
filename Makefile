@@ -633,9 +633,10 @@ umpire-gen-cases:
 umpire-check-cases:
 	@mise exec -- go run ./tools/umpire/cmd/umpire-gen-cases
 
-# Lints every IR file of model/ir and prints its coverage; the model gate runs the same command.
+# Lints selected features' existing primary IR files and prints their coverage.
+MODEL_LINT_IR = $(wildcard $(addsuffix /generated/ir.json,$(MODEL_FEATURE_PATHS)))
 umpire-check-lint:
-	@mise exec -- go run ./tools/umpire/cmd/umpire-lint
+	@$(if $(MODEL_LINT_IR),mise exec -- go run ./tools/umpire/cmd/umpire-lint $(foreach file,$(MODEL_LINT_IR),$(call model_quote,$(file))),:)
 
 umpire-gen-fixtures:
 	@mise exec -- go run ./tools/umpire/cmd/umpire-gen-cases --kind functional --update
@@ -677,7 +678,7 @@ MODEL_SCALAFIX = $(MODEL_CLI) --power fix --jvm 25 --enable-built-in=false \
 	--scalafix-conf "$(CURDIR)/$(MODEL_ROOT)/.scalafix.conf" \
 	--scalac-option -Wunused:all --suppress-outdated-dependency-warning
 MODEL_FEATURE_ROOT := $(MODEL_ROOT)/temporal/features
-MODEL_DISCOVERED_FEATURES := $(shell find $(call model_quote,$(MODEL_FEATURE_ROOT)) -type d \( -name '.*' -o -iname shared -o -iname product -o -iname protocol -o -iname generated \) -prune -o -type f -name '*.scala' ! -name '*.test.scala' -print | awk -v root=$(call model_quote,$(MODEL_FEATURE_ROOT)/) '{ relative=substr($$0,length(root)+1); n=split(relative,parts,"/"); file=tolower(parts[n]); sub(/\.scala$$/,"",file); folder=tolower(parts[n-1]); kind=tolower(parts[1]); if ((n==2 && file==folder) || (n==3 && (file==folder || file==folder kind))) { feature=parts[1]; if (n==3) { forms[feature]=1; feature=feature "/" parts[2] } candidates[feature]=1 } } END { for (feature in candidates) if (!(feature in forms)) print feature }' | sort -u)
+MODEL_DISCOVERED_FEATURES := $(shell find $(call model_quote,$(MODEL_FEATURE_ROOT)) -type d \( -name '.*' -o -iname shared -o -iname product -o -iname protocol -o -iname generated \) -prune -o -type f -name '*.scala' ! -name '*.test.scala' -print | awk -v root=$(call model_quote,$(MODEL_FEATURE_ROOT)/) 'function normalized(name) { gsub(/_/,"",name); return tolower(name) } { relative=substr($$0,length(root)+1); n=split(relative,parts,"/"); file=parts[n]; sub(/\.scala$$/,"",file); file=normalized(file); folder=normalized(parts[n-1]); kind=normalized(parts[1]); separator=index(parts[n-1],"_"); reversed=normalized(substr(parts[n-1],separator+1) substr(parts[n-1],1,separator-1)); if ((n==2 && (file==folder || (separator && file==reversed))) || (n==3 && (file==folder || file==folder kind))) { feature=parts[1]; if (n==3) { forms[feature]=1; feature=feature "/" parts[2] } candidates[feature]=1 } } END { for (feature in candidates) if (!(feature in forms)) print feature }' | sort -u)
 FEATURES ?= $(MODEL_DISCOVERED_FEATURES)
 export FEATURES
 MODEL_UNKNOWN_FEATURES := $(filter-out $(MODEL_DISCOVERED_FEATURES),$(FEATURES))
@@ -748,7 +749,7 @@ test-model:
 	@$(MODEL_CLI) test --server=false $(MODEL_SOURCE_ARGS) $(MODEL_SOURCE_OPTIONS)
 
 model:
-	@$(MODEL_CLI) run --server=false --suppress-outdated-dependency-warning $(MODEL_ROOT)/check -M umpire.check.modelLoop --
+	@$(MODEL_CLI) run --server=false --suppress-outdated-dependency-warning $(MODEL_ROOT)/check -M umpire.check.modelLoop -- $(MODEL_GATE_ARGS)
 
 model-mini:
 	@$(MAKE) --no-print-directory model FEATURES=activity_mini

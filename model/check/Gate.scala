@@ -890,40 +890,80 @@ final class Gate(tools: Tools, log: PrintStream):
   private def selectedIr: Seq[Path] =
     selection.features.map(f => OutputPaths.ir(root, logicalFeature(f)))
 
-  def modelLoop(): Unit =
+  def modelLoop(skipLint: Boolean = false): Unit =
     val lifted = build(update = false, fast = true)
-    val fresh = selection.features.map(f => lifted.resolve(logicalFeature(f) + ".json"))
+    val fresh =
+      selection.features.map(f => lifted.resolve(logicalFeature(f) + ".json"))
     step("check selected lifted IR in Go"):
+      val checked = scratch("go-check")
       for feature <- selection.features do
-        val accepted = OutputPaths.lint(root, logicalFeature(feature))
-        if Files.isRegularFile(accepted) then
-          Files.copy(accepted, lifted.resolve(logicalFeature(feature) + ".lint.json")): Unit
-      tools
-        .run(
-          "go",
-          Seq("run", "./tools/umpire/cmd/umpire-lint") ++ fresh.map(_.toString),
-          Output.Shown
+        val directory = Files.createDirectories(
+          checked
+            .resolve("model/temporal/features")
+            .resolve(feature)
+            .resolve("generated")
         )
-        .orFail(): Unit
-      lower(update = false): Unit
-    step("check selected Scala syntax"):
-      val findings = SyntaxRule.findings(root, selection.includes) ++
-        CommentRule.findings(root, selection.includes) ++ BlockFormRule.findings(
-          root,
-          selection.includes
+        Files.copy(
+          lifted.resolve(logicalFeature(feature) + ".json"),
+          directory.resolve("ir.json")
         )
-      if findings.nonEmpty then throw GateError(findings.mkString("\n"))
+        tools
+          .inDirectory(directory)
+          .run(
+            "go",
+            Seq(
+              "run",
+              root.resolve("tools/umpire/cmd/umpire-gen-cases").toString,
+              "--update"
+            ),
+            Output.Shown
+          )
+          .orFail(): Unit
+    if skipLint then
+      log.println("== skipped selected IR lint (--skip-lint)")
+      log.println("== skipped selected Scala syntax/style (--skip-lint)")
+    else
+      step("lint selected lifted IR"):
+        for feature <- selection.features do
+          val accepted = OutputPaths.lint(root, logicalFeature(feature))
+          if Files.isRegularFile(accepted) then
+            Files.copy(
+              accepted,
+              lifted.resolve(logicalFeature(feature) + ".lint.json")
+            ): Unit
+        tools
+          .run(
+            "go",
+            Seq("run", "./tools/umpire/cmd/umpire-lint") ++ fresh.map(
+              _.toString
+            ),
+            Output.Shown
+          )
+          .orFail(): Unit
+      step("check selected Scala syntax"):
+        val findings = SyntaxRule.findings(root, selection.includes) ++
+          CommentRule.findings(root, selection.includes) ++ BlockFormRule
+            .findings(
+              root,
+              selection.includes
+            )
+        if findings.nonEmpty then throw GateError(findings.mkString("\n"))
     step("compare selected IR with checked-in outputs"):
       tools
         .run(
           "git",
           Seq("diff", "--stat", "--") ++
             selection.features
-              .map(f => root.relativize(OutputPaths.generated(root, logicalFeature(f))).toString),
+              .map(f =>
+                root
+                  .relativize(OutputPaths.generated(root, logicalFeature(f)))
+                  .toString
+              ),
           Output.Shown
         )
         .orFail(): Unit
       Gate.settleFeatures(root, lifted, selection.features, update = false)
+      lower(update = false): Unit
 
   // Generates and compiles what the lifter reads, then builds its fixtures and lifts the Models.
   private def build(update: Boolean, fast: Boolean = false): Path =
@@ -1601,9 +1641,23 @@ private[check] object Json:
 @main def run(arguments: String*): Unit =
   sys.exit(Gate.main(arguments, Tools.here, System.out, System.err))
 
-@main def modelLoop(): Unit =
-  try Gate(Tools.here, System.out).modelLoop()
-  catch
-    case e: (GateError | ToolError | java.io.IOException) =>
-      System.err.println(s"model: ${e.getMessage}")
-      sys.exit(1)
+private[check] def modelLoopStatus(
+    arguments: Seq[String],
+    tools: => Tools,
+    out: PrintStream,
+    err: PrintStream
+): Int =
+  if arguments.exists(_ != "--skip-lint") || arguments.size > 1 then
+    err.println("usage: modelLoop [--skip-lint]")
+    2
+  else
+    try
+      Gate(tools, out).modelLoop(skipLint = arguments.contains("--skip-lint"))
+      0
+    catch
+      case e: (GateError | ToolError | java.io.IOException) =>
+        err.println(s"model: ${e.getMessage}")
+        1
+
+@main def modelLoop(arguments: String*): Unit =
+  sys.exit(modelLoopStatus(arguments, Tools.here, System.out, System.err))

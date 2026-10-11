@@ -96,6 +96,8 @@ The owner wants a permanent small Model that drives fast feedback, with changes 
 - **R8:** The two IR-inventory tests pass under the default and under a single-feature set. [inferred] Errors: a test that reads an unlisted feature's file is fixed to read the compiled set.
 - **R9:** Case manifests and payloads live separately under each feature's `generated/cases/`, with historical Cases preserved under `generated/cases/legacy/`; shared readers and publication paths use that layout without changing IR/lint paths, payload bytes, logical identities, pins or equivalence baselines. A scoped Case publication touches neither sibling features nor non-Case artifacts. [user] Errors: tests refuse missing Case references and duplicate destination names.
 
+- **R10:** The model-side Make targets drop the `umpire-` prefix and follow the repo's verb-noun convention, with the runtime targets (`umpire-run`, `umpire-fuzz`, `umpire-repeat`, `umpire-replay`, `umpire-assess`, the backends, live-test and scratch targets) keeping their names: `umpire-check-model` becomes `check-model`, `umpire-gen-model` `gen-model`, `umpire-check-lint` `lint-ir` (the Scala source lint keeps `lint-model`; the two lint different things), `umpire-gen-cases`/`umpire-check-cases` `gen-cases`/`check-cases`, `umpire-gen-fixtures`/`umpire-check-fixtures` `gen-fixtures`/`check-fixtures`, `umpire-check-equivalence`/`umpire-capture-baseline` `check-equivalence`/`capture-baseline`; `model` and `model-mini` stay the loop's entry points. No alias for an old name remains, and every live reference (Makefile, CI workflows, `AGENTS.md`, the READMEs, `.plans/`, gate messages, Go and Scala comments) uses the new names; Flow's task and handoff history is not rewritten. [user, "using `model` is much clearer"; inferred] Errors: a leftover old name is a grep failure recorded on the task; a reference to a target that no longer exists fails `make` naming it.
+
 **Error cases (negative-cases discipline):** each criterion above states its error cases inline or records that it has none.
 
 ## Boundaries
@@ -119,6 +121,8 @@ The owner wants a permanent small Model that drives fast feedback, with changes 
 - Placement: first in the Scala batch, so fn-159 onward iterate on the mini feature. [user]
 
 **Lint work (owner, 2026-10-11):** "ignore the linting." Set lint checks, lint-debt remediation and manual acceptance bookkeeping aside for this fn-166 run. Preserve existing lint companions without changing project-wide lint policy. This overrides lint verification obligations below for the current run; report those checks as not run, never as passing. The feature-selection contract for existing lint targets remains, and compile/lift/Go correctness checks, scoped-output preservation, live execution and review are still required. [user]
+
+**Fixture gate repair (owner, 2026-10-11):** "approved," in response to the recorded inherited lifter-test blockers. Task 1 may refresh only the stale `hints` and `hintsRefused` test snapshots to match the existing, unchanged activity sources and correct diagnostic source-location extraction, with focused regression tests. Retain the eight other fixtures' explicit identity/position invariants. This is not authorization to change production Model behavior, regenerate real-feature IR/Cases or lint companions, alter table pins or equivalence baselines, weaken rejection assertions, or waive the required lifter suite. [user]
 
 ## Early proof point
 
@@ -149,3 +153,4 @@ mise exec -- scala-cli test model/irgen  # at task end
 | R7 | Guide and README use the mini feature | 5 | |
 | R8 | Inventory tests under both sets | 1 | |
 | R9 | Separate Case subtree; lossless scoped publication | 6 | |
+| R10 | Model-side targets drop the `umpire-` prefix | 7 | |

@@ -3,6 +3,7 @@ package umpire.irgen
 import scala.collection.mutable
 import scala.quoted.Quotes
 import scala.tasty.inspector.Tasty
+import java.nio.file.{Files, Path}
 import io.temporal.server.api.umpire.v1 as ir
 
 // What every IR file of one lifter run reads: every definition of the inspected files by symbol, and
@@ -19,6 +20,24 @@ final private[irgen] class Index(using val quotes: Quotes)(
 
   // The directory, relative to the repository, that each source's build-relative path is under.
   val sourceRoots = mutable.Map.empty[String, String]
+
+  private val sourceLines = mutable.Map.empty[String, (Int, Array[Int])]
+
+  def sourceLine(file: String, offset: Int): Int =
+    val (length, starts) = sourceLines.getOrElseUpdate(
+      file, {
+        val text = Files.readString(Path.of(file))
+        text.length -> (0 +: text.indices
+          .filter(text(_) == '\n')
+          .map(_ + 1)).toArray
+      }
+    )
+    require(
+      offset >= 0 && offset <= length,
+      s"source offset $offset is outside $file"
+    )
+    val found = java.util.Arrays.binarySearch(starts, offset)
+    if found >= 0 then found + 1 else -found - 1
 
   // Each inspected file's typed tree, in the order the files were given, for the declaration-order
   // lint (Order.scala), which reads whole files rather than declarations.
@@ -283,7 +302,8 @@ final private[irgen] class Context(val index: Index):
       val path = p.sourceFile.path
       val prefix =
         sourceRoots.getOrElse(path, if path.startsWith("framework/") then "model/" else "")
-      ir.Position(file = prefix + path, line = p.startLine + 1)
+      val file = prefix + path
+      ir.Position(file = file, line = index.sourceLine(file, p.start))
     }
     .getOrElse(ir.Position.defaultInstance)
 

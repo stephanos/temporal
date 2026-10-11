@@ -118,12 +118,13 @@ Lint checks and manual acceptance work are set aside for this run at the owner's
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-166.1 | 🔄 in progress | All 44 historical payloads and 340 manifest rows preserved; default/selected Scala and scoped equivalence checks pass; two lifter fixture goldens contain inherited behavioral drift requiring an owner decision; review remains, canonical route owner-held |
+| fn-166.1 | 🔄 in progress | All 44 historical payloads and 340 manifest rows preserved; final lifter (194), default Scala (183), selected Scala (99), gate (108) and scoped Go tests pass; implementation review remains; fresh real-feature IR is rejected by stale Go protobuf code (`Realization.queries`), canonical route owner-held |
 | fn-166.6 | ⬜ todo | Path-only move of Case manifests and payloads to `generated/cases/`, historical Cases to `generated/cases/legacy/`; after task 1, before realization and final loop proof |
 | fn-166.2 | ⬜ todo | Feature file and product level by subtraction: two facets, cross-facet guard, `Closable`/`Pollable`, a waiver, `verify` and `find` |
 | fn-166.3 | ⬜ todo | Protocol level: refinement, shared input, shared status fact, composition with `sync`, channel, failure model, fair progress, monitor, hole, `Retryable`/`Expirable` with an override |
 | fn-166.4 | ⬜ todo | Realization and live witnesses; one Case run live once |
 | fn-166.5 | ⬜ todo | Loop under 90 s; migration as scalafix rules with a worked example; SEMANTICS and README written against the mini feature |
+| fn-166.7 | ⬜ todo | Model-side Make targets drop the `umpire-` prefix (`check-model`, `gen-model`, `lint-ir`, `gen-cases`, ...); runtime targets keep theirs; no aliases; live references swept (R10, owner 2026-10-11); after task 1, in the sweep |
 
 ### fn-167: Gaps declared in the Model: `@gap` replaces the lint file
 
@@ -222,6 +223,7 @@ level folders grouped by name prefix, and realizations get their own `realizatio
 | fn-160.4 | ⬜ todo | Realization layer: flat `realization/` folder, `<Subject>Run` naming, one-way layer dependencies, API only in realizations (after fn-160.3) |
 | fn-160.6 | ⬜ todo | Rename the System level to Protocol (folders, packages, machines, files, lint vocabulary, docs), so the levels read Product / Protocol / Realization |
 | fn-160.7 | ⬜ todo | Flatten `features/`: `activity/` and `nexus/` hold only shared parts; forms are `activity_standalone/`, `activity_mini/`, `nexus_workflow/`, `nexus_standalone/`; packages follow; lint refuses nesting (added 2026-10-11, after fn-160.3) |
+| fn-160.8 | ⬜ todo | Drop the `scala.` vestige from Case ids, `explore.` prefixes, activity type names and provenance; the set derives from the feature package (`temporal.features.<feature>.case.<query>`); fixtures, canary binding and Driver Profile regenerated; baseline compared under a mapped identity (R15, owner 2026-10-11); after .2 and .7, in the sweep |
 
 ### fn-163: System capabilities: distributed-systems patterns as named capabilities
 

@@ -1,7 +1,7 @@
 package fixture.witness
 
 import framework.*
-import worker.{begin, finish}
+import fixture.witness.worker.{begin, finish}
 
 final case class Settling[S, F](
     settle: ClassRef | Composed,

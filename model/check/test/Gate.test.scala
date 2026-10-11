@@ -830,6 +830,177 @@ class GateSuite extends munit.FunSuite:
       .map(file => file -> Files.readString(repository.ir(file)))
       .toMap
 
+  private def loopTools(repository: Repository): Tools =
+    Stubs(repository.root.resolve("bin"))
+      .tool("git", "echo \"git $*\" >> \"$TOOLS_LOG\"")
+    val selected = ModelSources(repository.root, None).features.head
+    repository.tools.withEnvironment("FEATURES" -> selected)
+
+  test(
+    "model loop validates fresh selected IR in scratch before lint and output comparison"
+  ):
+    val freshGo =
+      """case " $* " in *"/umpire-gen-cases "*)
+        |  case " $* " in *" --update "*) ;; *) echo "held $PWD" >> "$TOOLS_LOG"; exit 0;; esac
+        |  case "$PWD" in */history/*/model/temporal/features/*/generated) ;; *) exit 7;; esac
+        |  [ "$(/bin/cat ir.json)" = '{"lifted": true}' ] || exit 8
+        |  case " $* " in *" --update "*) ;; *) exit 9;; esac
+        |  echo "fresh $PWD" >> "$TOOLS_LOG"
+        |esac
+        |""".stripMargin
+    val repository =
+      Repository(scalaCli = lifting, go = freshGo + passingVocabulary)
+    initializeFeatures(repository, "{}\n")
+    val before = checkedIn(repository)
+    val out = ByteArrayOutputStream()
+    val failed = intercept[GateError]:
+      Gate(loopTools(repository), PrintStream(out)).modelLoop()
+    assert(failed.getMessage.contains(": behind"), failed.getMessage)
+    val stages = out.toString.linesIterator.filter(_.startsWith("== ")).toVector
+    val go = stages.indexOf("== check selected lifted IR in Go")
+    val lint = stages.indexOf("== lint selected lifted IR")
+    val syntax = stages.indexOf("== check selected Scala syntax")
+    val compare =
+      stages.indexOf("== compare selected IR with checked-in outputs")
+    assert(
+      go >= 0 && lint > go && syntax > lint && compare > syntax,
+      stages.mkString("\n")
+    )
+    assertEquals(repository.ran.count(_.startsWith("fresh ")), 1)
+    assertEquals(repository.ran.count(_.contains("/umpire-gen-cases")), 1)
+    assert(!repository.ran.exists(_.startsWith("held ")))
+    assertEquals(repository.ran.count(_.startsWith(lintRun)), 1)
+    assertEquals(checkedIn(repository), before)
+
+  test(
+    "model loop skip-lint is per invocation and skips neither fresh Go nor checked outputs"
+  ):
+    val repository = Repository(scalaCli = lifting)
+    initializeFeatures(repository, "{\"lifted\": true}\n")
+    val selected = ModelSources(repository.root, None).features.head
+    Files.writeString(
+      repository.root.resolve(
+        s"model/temporal/features/$selected/Forbidden.scala"
+      ),
+      "package temporal.features\ndef implies(a: Boolean, b: Boolean): Boolean = a\n"
+    )
+    val scoped = loopTools(repository)
+    val before = checkedIn(repository)
+    val (out, err) = (ByteArrayOutputStream(), ByteArrayOutputStream())
+    assertEquals(
+      modelLoopStatus(
+        Seq("--skip-lint"),
+        scoped,
+        PrintStream(out),
+        PrintStream(err)
+      ),
+      0,
+      err.toString
+    )
+    assert(out.toString.contains("skipped selected IR lint (--skip-lint)"))
+    assert(
+      out.toString.contains("skipped selected Scala syntax/style (--skip-lint)")
+    )
+    assert(!out.toString.contains("== lint selected lifted IR"))
+    assertEquals(repository.ran.count(_.startsWith(lintRun)), 0)
+    assertEquals(
+      repository.ran.count(_.contains("/umpire-gen-cases --update")),
+      1
+    )
+    assertEquals(repository.ran.count(_.contains("/umpire-gen-cases")), 2)
+    assertEquals(checkedIn(repository), before)
+    val nextOut = ByteArrayOutputStream()
+    assertEquals(
+      modelLoopStatus(Nil, scoped, PrintStream(nextOut), PrintStream(err)),
+      1
+    )
+    assert(nextOut.toString.contains("== lint selected lifted IR"))
+    assert(nextOut.toString.contains("== check selected Scala syntax"))
+    assert(
+      !nextOut.toString.contains(
+        "== compare selected IR with checked-in outputs"
+      )
+    )
+
+  test(
+    "model loop refuses unsupported and duplicate flags before selecting tools"
+  ):
+    for flags <- Seq(
+        Seq("--skip-go-checks"),
+        Seq("--unknown"),
+        Seq("--skip-lint", "--skip-lint")
+      )
+    do
+      val (out, err) = (ByteArrayOutputStream(), ByteArrayOutputStream())
+      assertEquals(
+        modelLoopStatus(
+          flags,
+          fail("invalid flags must not select tools"),
+          PrintStream(out),
+          PrintStream(err)
+        ),
+        2
+      )
+      assertEquals(err.toString, "usage: modelLoop [--skip-lint]\n")
+      assertEquals(out.toString, "")
+
+  test(
+    "model loop fails fast on compile, lift, fresh Go, lint, or changed IR without publication"
+  ):
+    for failure <- Seq("compile", "lift", "go", "lint", "compare") do
+      val script = failure match
+        case "go" =>
+          """case " $* " in *"/umpire-gen-cases --update "*) exit 6;; esac"""
+        case "lint" => """case " $* " in *"/umpire-lint "*) exit 6;; esac"""
+        case _      => ""
+      val compile =
+        if failure == "compile" then
+          """case " $* " in *" compile "*"features/"*) exit 6;; esac""" + "\n"
+        else ""
+      val repository = Repository(
+        scalaCli = compile + lifting,
+        go = script + "\n" + passingVocabulary
+      )
+      initializeFeatures(
+        repository,
+        if failure == "compare" then "{}\n" else "{\"lifted\": true}\n"
+      )
+      val selected = ModelSources(repository.root, None).features.head
+      val before = checkedIn(repository)
+      val (out, err) = (ByteArrayOutputStream(), ByteArrayOutputStream())
+      val flags = if failure == "lint" then Nil else Seq("--skip-lint")
+      val tools = loopTools(repository)
+        .withEnvironment("FAILING_LIFTS" -> (if failure == "lift" then selected
+                                             else ""))
+      assertEquals(
+        modelLoopStatus(flags, tools, PrintStream(out), PrintStream(err)),
+        1,
+        failure
+      )
+      assertEquals(checkedIn(repository), before)
+      assert(
+        !repository.ran.exists(line => line.endsWith("/umpire-gen-cases")),
+        failure
+      )
+      if failure == "compile" || failure == "lift" then
+        assert(!out.toString.contains("== check selected lifted IR in Go"))
+        assert(!repository.ran.exists(_.contains("/umpire-gen-cases")))
+      if failure == "go" then
+        assert(!out.toString.contains("skipped selected IR lint"))
+        assert(
+          !out.toString.contains(
+            "== compare selected IR with checked-in outputs"
+          )
+        )
+      if failure == "lint" then
+        assert(!out.toString.contains("== check selected Scala syntax"))
+        assert(
+          !out.toString.contains(
+            "== compare selected IR with checked-in outputs"
+          )
+        )
+      if failure == "compare" then assert(err.toString.contains(s"feature $selected: behind"))
+
   // A repository whose generated IR holds every file the gate lifts, each of them stale.
   private def staleRepository(): Repository =
     val repository = Repository(scalaCli = lifting)

@@ -406,7 +406,7 @@ gate and the IR generator name none of them, so adding a root or an IR file edit
 | `make umpire-gen-model` | `umpire-gen-scala`; same program with `-- --update`. |
 | `make lint-model`, `fmt-model`, `fix-model` | Model formatting and language checks, explicit new roots; IR jar prerequisite uses the gate's schema-generation mode. |
 | `make umpire-check-cases`, `umpire-gen-cases` | Run `umpire-gen-cases` without/with `--update`; default managed tree is `model/cases`. |
-| `make umpire-check-lint` | Run `umpire-lint` over every IR file of `model/ir`, as the gate does; findings are fixed or accepted with a reason in `model/ir/<file>.lint.json`. |
+| `make umpire-check-lint` | Run `umpire-lint` over selected features' existing `generated/ir.json` files; default to all lifted primary models, skipping unlifted features and legacy IR. Findings are fixed or accepted with a reason in the feature's `generated/ir.lint.json`. |
 | `make umpire-check-fixtures`, `umpire-gen-fixtures` | Same generator with `--kind functional` without/with `--update`; only the explicitly supported R22 replacement subset is managed. |
 | `make canary-check-case`, `canary-gen-case` | Same generator with `--kind canary` without/with `--update`; one pinned Case and reviewed policy identity. |
 | `make umpire-ir-bridge` | Build the existing `cmd/umpire-ir-bridge` to `.build/umpire-ir-bridge`; default IR root becomes `model/ir`. |

@@ -82,7 +82,7 @@ final private[irgen] class Structure(index: Index):
       .Try(t.pos.sourceFile.path)
       .map(p => index.sourceRoots.getOrElse(p, "") + p)
       .getOrElse("")
-  private def lineOf(t: Tree): Int = scala.util.Try(t.pos.startLine + 1).getOrElse(0)
+  private def lineOf(t: Tree): Int = scala.util.Try(index.sourceLine(fileOf(t), t.pos.start)).getOrElse(0)
   private def refuse(t: Tree, message: String): Unit =
     refuse(fileOf(t), lineOf(t), message)
   private def refuse(path: String, line: Int, message: String): Unit =

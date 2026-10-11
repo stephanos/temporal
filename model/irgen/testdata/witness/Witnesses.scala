@@ -18,7 +18,7 @@ object worker extends Actor:
   val begin = action(this)
   val finish: Action[Input *: EmptyTuple] = action(this).input[Input]("input")
   val outside = action(this)
-import worker.{begin, finish}
+import fixture.witness.worker.{begin, finish}
 
 def beginStep(s: Phase): List[Step[Phase, Answer, Note]] = List(
   Step(Answer.accepted, s)

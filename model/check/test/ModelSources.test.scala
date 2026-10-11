@@ -9,7 +9,7 @@ class ModelSourcesSuite extends munit.FunSuite:
       val path = root.resolve("model/temporal/features/" + name)
       Files.createDirectories(path.getParent): Unit
       Files.writeString(path, content): Unit
-    file("activity_mini/Activity_mini.scala")
+    file("activity_mini/MiniActivity.scala")
     file("activity/Activity.scala")
     file("activity/standalone/StandaloneActivity.scala")
     file("activity/shared/Shared.scala")
@@ -21,6 +21,7 @@ class ModelSourcesSuite extends munit.FunSuite:
     file("kind/generated/Generated.scala")
     file("shared/Shared.scala")
     file("unrelated/Helper.scala")
+    file("unrelated_form/Helper.scala")
     val mini = ModelSources(root, Some("activity_mini"))
     assertEquals(mini.discovered, Vector("activity/standalone", "activity_mini", "kind/alpha"))
     assert(mini.sources.contains("model/temporal/features/activity_mini"))
@@ -45,9 +46,15 @@ class ModelSourcesSuite extends munit.FunSuite:
     val fresh = ModelSources(root, Some("fresh"))
     assert(fresh.includes(root.resolve("model/temporal/features/fresh/Fresh.scala")))
     assertEquals(fresh.options, Seq.empty)
-    for name <- Seq("absent", "unrelated", "shared", "kind/shared") do
+    for name <- Seq("absent", "unrelated", "unrelated_form", "shared", "kind/shared") do
       val failure = intercept[GateError](ModelSources(root, Some(name)))
       assert(failure.getMessage.contains(name))
+    Seq("ActivityMini", "Activity_mini", "Mini_Activity").foldLeft(
+      root.resolve("model/temporal/features/activity_mini/MiniActivity.scala")
+    ): (header, name) =>
+      val renamed = Files.move(header, header.resolveSibling(name + ".scala"))
+      assertEquals(ModelSources(root, Some("activity_mini")).discovered, full.discovered)
+      renamed
 
   test("discovery preserves prerequisites and excludes unlisted integration tests"):
     val root = Scratch.directory("model-source-selection")
@@ -74,7 +81,7 @@ class ModelSourcesSuite extends munit.FunSuite:
       )
     do assert(selected.sources.contains("model/temporal/" + source), source)
     assert(!selected.sources.contains("model/temporal/features/kind/beta"))
-    assert(!selected.includes(root.resolve("model/temporal/features/kind/beta/Model.scala")))
+    assert(!selected.includes(root.resolve("model/temporal/features/kind/beta/Beta.scala")))
     val integration = root.resolve("model/temporal/capabilities/Properties.test.scala")
     assert(!selected.includes(integration))
     assertEquals(selected.options, Seq("--exclude", integration.toAbsolutePath.toString))

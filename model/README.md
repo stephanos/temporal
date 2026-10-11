@@ -492,10 +492,13 @@ Model targets accept `FEATURES`, space-separated form folders relative to
 discovers every feature file; selected forms keep their kind-level signatures,
 shared code, framework and foundations. Each feature owns its generated IR,
 accepted lint findings, manifest and Cases in its own `generated/` directory.
-On a warm build, `make model-mini` delegates to `make model FEATURES=activity/mini`
+On a warm build, `make model-mini` delegates to `make model FEATURES=activity_mini`
 and reuses the schema and API build outputs. Inventory tests report feature drift as
 `behind` and absent IR as `missing`, without changing the independent native
 baseline; a full gate must still be current before a DSL batch closes.
+For a run that defers lint, `MODEL_GATE_ARGS=--skip-lint` skips IR and Scala
+syntax/style lint while retaining the fresh-IR Go reader and lowering checks;
+the default loop still runs lint.
 
 The current layout is transitional: each feature keeps `generated/ir.json`,
 `generated/ir.lint.json`, `generated/manifest.json` and `generated/<query>.case.json`.
