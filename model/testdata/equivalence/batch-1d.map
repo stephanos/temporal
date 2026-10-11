@@ -1,0 +1,17 @@
+# Batch 1d rename map (old new, or old -), compared with STEPS_ONLY=1 against the fn160 baseline
+# (.flow/tmp/fn160/baseline-ae3f36ee51); see model/README.md "Sealing a batch".
+#
+# fn-159.5/.8: the capability kind and bound renames change no step table. Bound renames for the IR
+# comparison after Batch 5b: nexus workflow control -> eight; close policy four/five/twelve ->
+# fourWide/fiveWide/twelveWide; the rest keep their names.
+#
+# fn-159.2: the By-ID actor `service` is `completionClient`; fn-159.4: the product binds no worker stop.
+service.respondCompletedByID completionClient.respondCompletedByID
+service.respondFailedByID completionClient.respondFailedByID
+service.respondCanceledByID completionClient.respondCanceledByID
+temporal.features.activity.standalone.product.activityProduct/worker.stop -
+# fn-160 R13 and fn-160.6: the Nexus Product moves to shared/product; the System level is Protocol.
+temporal.features.nexus.product temporal.features.nexus.shared.product
+temporal.features.nexus.standalone.system temporal.features.nexus.standalone.protocol
+temporal.features.nexus.workflow.system temporal.features.nexus.workflow.protocol
+nexusSystem nexusProtocol

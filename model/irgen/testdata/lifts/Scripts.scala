@@ -15,7 +15,7 @@ import framework.*
 import framework.realize.*
 import framework.realize.Instruction.Release, temporal.realize.WorkerInstruction.Fault
 import temporal.realize.*
-import temporal.features.activity.standalone.{activity, client, worker}
+import temporal.features.activity.standalone.{activity, activityWorker, client}
 import temporal.features.activity.standalone.system.Fact as ActivityFact
 import temporal.features.activity.standalone.system.ActivitySystem as activitySystem
 import io.temporal.api.workflowservice.v1.*
@@ -70,7 +70,7 @@ private val awaitPaused = await(statusPaused, workflowService)(
 }
 
 private val dispatchHold =
-  Actuator("hold-dispatch", ControlKind.HoldDispatched(worker.poll), taskQueue)
+  Actuator("hold-dispatch", ControlKind.HoldDispatched(activityWorker.poll), taskQueue)
 
 private val releaseDispatch =
   command(Release(dispatchHold), regardless = true, closes = Vector(statusPaused))
@@ -87,7 +87,7 @@ val helpers: Realization = temporalRealization(
         field(_.getStartToCloseTimeout.seconds) := unreachedDeadline
       }),
       perform(
-        worker.poll -> releaseDispatch,
+        activityWorker.poll -> releaseDispatch,
         client.terminate -> stopWorker
       ),
       // A command written out under its own id, around a call written in its scope.
@@ -231,7 +231,7 @@ val records: Realization = Realization(
         Item(performs =
           Vector(
             Performance(
-              worker.poll,
+              activityWorker.poll,
               Command(
                 "release-dispatch",
                 Instruction.Release("hold-dispatch"),
@@ -295,7 +295,7 @@ val records: Realization = Realization(
   controls = Vector(
     Actuator(
       "hold-dispatch",
-      ControlKind.HoldDispatched(worker.poll),
+      ControlKind.HoldDispatched(activityWorker.poll),
       role = "temporal.task-queue"
     )
   ),

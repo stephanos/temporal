@@ -1,11 +1,11 @@
 package temporal.capabilities.conventionfixtures
 
-import temporal.features.nexus.product.NexusProduct
+import temporal.features.nexus.shared.product.NexusProduct
 
 val forbiddenFeature = NexusProduct.name
 
 package level:
-  import temporal.features.nexus.workflow.system.{Fact, Phase, State}
-  import temporal.features.nexus.standalone.system.*
+  import temporal.features.nexus.workflow.protocol.{Fact, Phase, State}
+  import temporal.features.nexus.standalone.protocol.*
   val explicit = List(classOf[Phase], classOf[State], classOf[Fact])
-  val wildcard = NexusSystem.name
+  val wildcard = NexusProtocol.name

@@ -368,8 +368,10 @@ private[irgen] trait Syntax:
             s"enters names the case of the phase type it enters, `enters(Phase.paused)`, not " +
               phase.show
           )
+      // A facet's given is read through the facet's `this`, whose type's symbol is the facet trait.
       val declared = phasing.tpe match
-        case TermRef(prefix, _) => prefix.typeSymbol
+        case TermRef(ThisType(self), _) => self.typeSymbol
+        case TermRef(prefix, _)         => prefix.typeSymbol
         case other              => other.typeSymbol
       // A facet's sections read the projection of the machine that mixes the facet in.
       val owner =

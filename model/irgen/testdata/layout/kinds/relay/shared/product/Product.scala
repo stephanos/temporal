@@ -1,4 +1,5 @@
 package fixture.features.relay
+package shared
 package product
 
 import framework.*

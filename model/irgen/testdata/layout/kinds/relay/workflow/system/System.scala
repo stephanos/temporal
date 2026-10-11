@@ -3,7 +3,7 @@ package system
 
 import framework.*; import framework.Finite.given
 import fixture.features.relay.{given, *}
-import fixture.features.relay.product.RelayProduct
+import fixture.features.relay.shared.product.RelayProduct
 val _ = () => summon[CanEqual[Phase, Phase]]
 enum Phase derives Finite:
   case idle, done
@@ -19,9 +19,9 @@ object RelaySystem extends Machine[system.State, Outcome, Fact]:
 
   object refinement extends Refinement(RelayProduct):
     def toProduct(s: State) =
-      fixture.features.relay.product.State(if s.phase == Phase.idle then
-        fixture.features.relay.product.Phase.idle
-      else fixture.features.relay.product.Phase.done)
+      fixture.features.relay.shared.product.State(if s.phase == Phase.idle then
+        fixture.features.relay.shared.product.Phase.idle
+      else fixture.features.relay.shared.product.Phase.done)
 
   object effects:
     def start(s: State) = stay(s)

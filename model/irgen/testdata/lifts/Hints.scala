@@ -15,7 +15,7 @@ package fixture.hints
 import framework.realize.*
 import temporal.realize.*
 import temporal.features.activity.deadline
-import temporal.features.activity.standalone.{activity, worker}
+import temporal.features.activity.standalone.{activity, activityWorker}
 import temporal.features.activity.standalone.system.ActivitySystem as activitySystem
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
 
@@ -38,7 +38,7 @@ val keptBehavior: Realization = temporalRealization(
   scripts = Vector(controller()),
   evidence = Vector.empty,
   serverSteps = Vector(
-    ServerStep(worker.poll, CauseKind.delivery),
+    ServerStep(activityWorker.poll, CauseKind.delivery),
     ServerStep(deadline.scheduleToStart, CauseKind.timer, deadlineMs)
   )
 )
@@ -52,7 +52,7 @@ private val slowly = Visible.eventually(WaitBound(intervalMs = 100, atMostMs = 1
 // A behavior of its own, which bounds each kind of its server steps.
 val ownBehavior: Realization = realizing(
   Vector(
-    ServerStep(worker.poll, CauseKind.delivery),
+    ServerStep(activityWorker.poll, CauseKind.delivery),
     ServerStep(deadline.scheduleToStart, CauseKind.timer, deadlineMs)
   ),
   ApiBehavior(
@@ -108,7 +108,7 @@ val intervalOverBound: Realization = realizing(
 
 // A delivery step, and a behavior that bounds only timers.
 val unboundedStep: Realization = realizing(
-  Vector(ServerStep(worker.poll, CauseKind.delivery)),
+  Vector(ServerStep(activityWorker.poll, CauseKind.delivery)),
   ApiBehavior(
     visibility = Vector.empty,
     causes = Vector(CauseKind.timer.boundedBy(WaitBound(intervalMs = 100, atMostMs = 2000)))
@@ -122,6 +122,6 @@ val timerNoDeadline: Realization =
 // A delivery step that names a deadline, which only a timer has.
 val deliveryDeadline: Realization =
   realizing(
-    Vector(ServerStep(worker.poll, CauseKind.delivery, deadlineMs)),
+    Vector(ServerStep(activityWorker.poll, CauseKind.delivery, deadlineMs)),
     temporalBehavior
   )

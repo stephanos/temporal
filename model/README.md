@@ -24,13 +24,13 @@ workflow history records its completion. The example runs through the whole page
 A **Model** is the description of one feature: its state machines and everything declared about
 them. A **machine** is a finite state machine: its states, the actions that can happen, and a step
 function per action that says what the next state is and which facts the step records. The Nexus
-caller Model is in `model/temporal/features/nexus/workflow`, and its machine `nexusSystem` is declared in
-its System level's file, `system/System.scala`, as the object `NexusSystem`, which is the machine:
+caller Model is in `model/temporal/features/nexus/workflow`, and its machine `nexusProtocol` is declared in
+its Protocol level's file, `protocol/Protocol.scala`, as the object `NexusProtocol`, which is the machine:
 its rules say when each action fires and its effects what it does.
 
 A **Property** is one promise a machine makes: a condition its steps must meet. This is the
-example's Property (`model/temporal/features/nexus/workflow/system/System.scala`, line 224, in
-`NexusSystem.properties`), named after its `val`; inside the machine's object, `property` is the
+example's Property (`model/temporal/features/nexus/workflow/protocol/Protocol.scala`, in
+`NexusProtocol.properties`), named after its `val`; inside the machine's object, `property` is the
 machine's own:
 
 ```scala
@@ -50,8 +50,8 @@ The path starts where the machine does, in `unscheduled`, the state before the o
 `unset`; `caller.schedule(scheduleToStart := expires)` sets one by name.
 
 A **Query** is a bounded question that joins the two: find a path of this Scenario on which the
-Property is put to work, or verify that the Property holds on every path of it (line 313, in
-`NexusSystem.queries`, without its exploration settings). A Scenario is declared as a `val`, from
+Property is put to work, or verify that the Property holds on every path of it (in
+`NexusProtocol.queries`, without its exploration settings). A Scenario is declared as a `val`, from
 which it takes its name, before the Query that uses it:
 
 ```scala
@@ -291,16 +291,16 @@ entry there, without the `exploration` field:
 {
   "name": "syncCompletion",
   "position": {
-    "file": "model/temporal/features/nexus/workflow/system/System.scala",
+    "file": "model/temporal/features/nexus/workflow/protocol/Protocol.scala",
     "line": 288
   },
   "form": "FORM_FIND",
   "property": {
-    "machine": "nexusSystem",
+    "machine": "nexusProtocol",
     "name": "syncSucceeds"
   },
   "scenario": {
-    "machine": "nexusSystem",
+    "machine": "nexusProtocol",
     "name": "syncReplied"
   },
   "limits": {
@@ -323,7 +323,7 @@ The Property, the Scenario, the machine and its step functions are lifted into t
 same way, each with its Scala source position. Step functions become expression trees, which
 [SEMANTICS.md](SEMANTICS.md) defines how to evaluate.
 
-**Checked.** The Go reader builds the table of `nexusSystem` from the IR and answers the Query:
+**Checked.** The Go reader builds the table of `nexusProtocol` from the IR and answers the Query:
 it finds the two-step path and confirms that `syncSucceeds` holds on its last step. That path is
 the witness.
 
@@ -413,7 +413,7 @@ by id.
 | Path | What it holds |
 | --- | --- |
 | `model/framework` | The DSL: what an author writes a Model with. It names no Temporal concept. Realization declarations any system needs, the open traits a system's kit extends and the script helpers are in `framework/realize` |
-| `model/temporal` | The Models: `features`, grouped by kind (`nexus`, `activity`) and form (`workflow`, `standalone`), with one general file per kind and the form's feature file below it; `foundations/taskqueue`, the task queue features compose; `actors`, the shared worker and client; `Bounds.scala`, shared Query bounds; `capabilities`, shared capability Properties; and `realize`, Temporal's realization vocabulary (`Realize.scala`) and shared kit modules |
+| `model/temporal` | The Models: `features`, grouped by kind (`nexus`, `activity`) and form (`workflow`, `standalone`), with one general file per kind and the form's feature file below it; `foundations/taskqueue`, the task queue features compose; `actors`, the shared worker and client; `Bounds.scala`, every Query bound; `capabilities`, shared capability Properties; and `realize`, Temporal's realization vocabulary (`Realize.scala`) and shared kit modules |
 | `model/irgen` | The IR generator. `testdata` holds Models it must lift and Models it must refuse |
 | `model/ir` | The checked-in Umpire IR, one file per `irFile` the Models declare |
 | `model/cases` | The checked-in Cases and `manifest.json` |
@@ -727,7 +727,7 @@ features/
   activity/
     Activity.scala            Timeout, TimeoutType, AttemptResult, worker actions, timers, deadline
     standalone/
-      Standalone.scala         the form's types and signature, worker bindings; exports
+      StandaloneActivity.scala the form's types and signature, worker bindings; exports
       product/
         Product.scala          Product Phase, State and Fact, the phase accessors; ActivityProduct
       system/
@@ -751,21 +751,22 @@ features/
                                     PausingExecution, DispatchExecution, TimeoutsExecution
   nexus/
     Nexus.scala                shared Reply, Resolution, Outcome and signature; no form dependency
-    product/
-      Product.scala            Product Phase, State and Fact; NexusProduct, refined by both forms
+    shared/
+      product/
+        Product.scala          Product Phase, State and Fact; NexusProduct, refined by both forms
     workflow/
-      Workflow.scala           shared types and signature; workflow, control and close exports
+      WorkflowNexus.scala      shared types and signature; workflow, control and close exports
       Realization.scala
-      system/
-        System.scala           System Phase, State and Fact; NexusSystem, HandlerWorker, NexusCaller
+      protocol/
+        Protocol.scala         Protocol Phase, State and Fact; NexusProtocol, HandlerWorker, NexusCaller
         TrustingCaller.scala   TrustingCaller, the forged control
         ClosePolicy.scala      RejectAfterClose and the eight designs derived from it
     standalone/
-      Standalone.scala         local signature and immutable shared-action bindings; standalone export
+      StandaloneNexus.scala    local signature and immutable shared-action bindings; standalone export
       Realization.scala
-      system/
-        System.scala           System Phase, State and Fact; NexusSystem and its shared-Product refinement
-Bounds.scala                   the bounds more than one folder's Queries run under
+      protocol/
+        Protocol.scala         Protocol Phase, State and Fact; NexusProtocol and its shared-Product refinement
+Bounds.scala                   every bound the Queries run under
 foundations/
   taskqueue/
     TaskQueue.scala            types, signature (the queue's actions, its faults, the storage-loss assumption)
@@ -801,9 +802,11 @@ derived defaults are checked against that machine.
 
 A Model folder holds no file named by kind (`Model.scala`, `Properties.scala`, `Queries.scala`,
 `Capabilities.scala`, `IrFiles.scala`): `TestRetiredModelPathsStayRetired` in `tools/umpire/ir`
-fails on one, and on a live file that names one. A bound that two folders run their Queries under
-is declared once, in `Bounds.scala`, and keeps its name, which a Query's receipt reads; a
-bound whose name another folder gives another budget stays in its own feature file.
+fails on one, and on a live file that names one. Every bound a Query runs under is declared once,
+in `object Bounds` (`Bounds.scala`), and imported where a Query names it; no feature or foundation
+file declares one. A Query's receipt reads a bound's name, so each name means one budget: the name
+says the depth and the actions, and a `Wide` bound (`fourWide`, `twelveWide`) searches further than
+the bound of the same depth.
 
 A feature file reads in this order:
 
@@ -1381,18 +1384,18 @@ case classes and companion Properties are in `model/temporal/capabilities`:
 | `Terminable` | `terminate`, `settled`, `reach`, `expect` | `terminateSettles` |
 | `Pausable` with `Pollable` | `pause`, `unpause`; owns `Suspended`; `dispatch`; owns `Held` | `pausedIsNotDispatched`, brought by the pair |
 | `Describable` | `statusTable`, the realization's fact-to-status table | none; generated finds use the table for their awaits |
-| `Retries` | exact `failure` class, `retryable`, `attemptCount`, `maximumAttempts`, `retriesRemaining`, optional `pendingPause` and `pendingCancel` | `failureReturnsToWaiting`, `failureEndsFailed`, `attemptCountIsWithinPolicy`; `failurePauses` and `failureCancels` when their control is bound |
-| `Deadline` | `timer`, covered role type, `armed`, typed `timeout` and complete `timeoutFacts`; optional retry eligibility and controls | `firesInWindow`, `deadlineTimesOut`; `deadlineReturnsToWaiting` when retryable and `deadlinePauses` when pause is bound |
+| `Retryable` | exact `failure` class, `retryable`, `attemptCount`, `maximumAttempts`, `retriesRemaining`, optional `pendingPause` and `pendingCancel` | `failureReturnsToWaiting`, `failureEndsFailed`, `attemptCountIsWithinPolicy`; `failurePauses` and `failureCancels` when their control is bound |
+| `Expirable` | `timer`, covered role type, `armed`, typed `timeout` and complete `timeoutFacts`; optional retry eligibility and controls | `firesInWindow`, `deadlineTimesOut`; `deadlineReturnsToWaiting` when retryable and `deadlinePauses` when pause is bound |
 
-Retries reads eligibility and pending controls before the failure. Fatal failure lands in Failed.
+Retryable reads eligibility and pending controls before the failure. Fatal failure lands in Failed.
 A retryable failure with pending cancellation lands in Canceled, even at exhaustion. Otherwise,
 exhaustion lands in Failed, an eligible pending pause in Suspended and an ordinary retry in Waiting.
 `maximumAttempts` returns `Some(UpTo[N](maximum))` for a finite policy or `None` for unlimited.
 `N` bounds the policy value catalog, independently of the attempt counter's representation.
-ActivitySystem binds one and two as finite policies. NexusSystem uses unlimited policy and keeps
+ActivitySystem binds one and two as finite policies. NexusProtocol uses unlimited policy and keeps
 retrying at its saturating represented count of two; that count is no finite policy maximum.
 
-Deadline reads its armed predicate and covered role before every selected firing. A nonretryable
+Expirable reads its armed predicate and covered role before every selected firing. A nonretryable
 deadline, exhausted retry or pending cancellation lands in TimedOut and records the bound timeout
 fact. An eligible retry lands in Waiting or, with pending pause, Suspended, and records no member
 of the terminal timeout fact family. Cancellation therefore settles a deadline differently from
@@ -1450,11 +1453,11 @@ object queries:
   capabilities.bound(three)
 ```
 
-The System also declares repeated Retries and Deadline instances. For example, Activity's
+The System also declares repeated Retryable and Expirable instances. For example, Activity's
 retryable failure binds the named state reads without adding a failure rule:
 
 ```scala
-val retryableFailure: Capability = Retries[State, Phase, MaxAttempts.Bound](
+val retryableFailure: Capability = Retryable[State, Phase, MaxAttempts.Bound](
   failure = worker.respondFailed(Failure.retryable),
   retryable = true,
   attemptCount = states.attemptCount,
@@ -1467,7 +1470,7 @@ val retryableFailure: Capability = Retries[State, Phase, MaxAttempts.Bound](
 
 Each new instance generates `<machine>.<val>.<property>`, such as
 `activitySystem.retryableFailure.failureReturnsToWaiting` and
-`nexusSystem.scheduleToStartDeadline.firesInWindow`, with the companion definition as its origin.
+`nexusProtocol.scheduleToStartDeadline.firesInWindow`, with the companion definition as its origin.
 These are free verify Queries with nothing to realize. Their presence supplies Model checks,
 not new live Case evidence. Activity uses its existing `eight` and Nexus its existing `control`,
 both with steps 8, actions 8 and search 262144. Companion-Property bound overrides reach every
@@ -1490,7 +1493,7 @@ stops the worker and then takes the control; a find has a realization, so it low
 `Describable` table. The same-step Property sits on the System because a find lowers only through a
 realization, which is the System's. The activity's `activitySystem.cancelIsRequested` is its own,
 written on `ByIDCancellation` over the held cancellation's complete service path, and the Nexus
-operation writes its `nexusSystem.cancelIsRequested` in its own `properties` and `queries`, so no
+operation writes its `nexusProtocol.cancelIsRequested` in its own `properties` and `queries`, so no
 capability brings a cancel request. Neither `terminalIsFinal` nor `pausedIsNotDispatched` is written in the
 activity's own files any more; the admission designs and both composition families declare the same
 three capabilities on their record, and the Nexus operation (`features/nexus/standalone`) declares
@@ -1503,7 +1506,7 @@ function names a def of the lifted sources, or a member's def read with `through
 never a lambda. A same-step Property of one action class (`when`) is
 asked by a `find` from the start through the capability's path to a live state (its field that lists
 action classes, Terminable's `reach`) and that class, expecting of a server the Run its
-`RunExpectation` field names; transition Properties, including selected Retries and Deadline
+`RunExpectation` field names; transition Properties, including selected Retryable and Expirable
 Properties, and every other Property are verified over the free Scenario from the start under
 `limits`. The Query's total is computed as [below](#counting-a-querys-total). A field of an action
 class names an action the machine must bind. A capability is a case class extending `CapabilityOf`
@@ -1528,8 +1531,8 @@ operation answers a repeated request id OK after it closed, so its `capabilities
 `overriding(closedIsRejectedUniformly -> closedRejectsOrRepeats, because = repeatedRequestsAnswer)`.
 Both are protected members of `Capabilities`, so only the section's own body, including a shared
 capabilities base class, waives a Property.
-A Property several declared capabilities bring, such as Retries' `failureEndsFailed` of two failure
-instances, is overridden only by naming the instances: `overriding(Retries.failureEndsFailed[State,
+A Property several declared capabilities bring, such as Retryable' `failureEndsFailed` of two failure
+instances, is overridden only by naming the instances: `overriding(Retryable.failureEndsFailed[State,
 Phase] -> properties.resetFailureEndsFailed, because = …, of = Seq(retryableFailure, fatalFailure))`
 replaces those two, each under its own bindings, origin and bounds, and an instance `of` does not
 name keeps the companion's Property. The waiver metadata names each replaced instance. The
@@ -1548,7 +1551,7 @@ but are not lint findings.
    `except(Kind.property, because = …)` or `overriding(Kind.property -> ownDef, because = …)`.
 2. Bind it in the machine's `queries` section with `capabilities.bound(limits)` and explicitly
    include its capability section in the folder's `irFile` roots. A machine root or bound statement
-   alone does not expand capabilities. `exports.nexusWorkflow` roots `NexusSystem.capabilities`
+   alone does not expand capabilities. `exports.nexusWorkflow` roots `NexusProtocol.capabilities`
    after its existing roots, preserving their order.
    Pass `Kind.property -> otherLimits` after the default limits when one generated Query needs a
    different bound.
@@ -1818,7 +1821,7 @@ Runs reproduce the same failure again. An incomplete or unreproduced failure pro
 `TestTestpilotNexusControlReplaysThroughTheCommand` run both against an in-process server; set
 `UMPIRE_EXPLORATION_DIR` to keep their Cases, Runs, reports and HTML traces.
 
-The control machine `TrustingCaller` (`forgedCompletion`, `model/temporal/features/nexus/workflow/system/TrustingCaller.scala`)
+The control machine `TrustingCaller` (`forgedCompletion`, `model/temporal/features/nexus/workflow/protocol/TrustingCaller.scala`)
 deliberately admits a forged success beside the real failed callback. It is a negative control,
 marked `NegativeControl`, that shows a violated Verdict being found and replayed, not a server
 defect.

@@ -10,7 +10,8 @@ enum FacetName derives Finite:
   case pressing, breaking
 
 enum Lit derives Finite:
-  case off, on, broken extends Lit, Terminated
+  case off, on
+  case broken extends Lit, Terminated
 
 final case class Lamp(light: Lit) derives Finite
 

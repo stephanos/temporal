@@ -42,7 +42,7 @@ import scala.collection.mutable
 // descriptor (`WorkflowServiceGrpc.METHOD_*`), which every realization makes (through 3.10.0-RC3).
 //
 // A feature file is a source named after its folder, case aside, in a package under `features`,
-// `foundations` or `actors`, as every Model's is: `features/activity/standalone/Standalone.scala`. A file of a
+// `foundations` or `actors`, as every Model's is: `features/activity/standalone/StandaloneActivity.scala`. A file of a
 // level folder, `product/` or `system/` (fn-126 R20), reads as one too, the level's own file and each
 // subject's beside it, without `object exports`, which only the root feature file holds; only the
 // root feature file has siblings that declare no Model, such as `Realization.scala`. A file of
@@ -417,7 +417,9 @@ final private[irgen] class Order(index: Index):
   private def featureFile(path: String, trees: List[Tree]): Boolean =
     val parts = path.split('/')
     parts.length >= 2 && parts.last.endsWith(".scala") &&
-    parts.last.stripSuffix(".scala").equalsIgnoreCase(parts(parts.length - 2)) &&
+    Structure
+      .featureFileName(parts.toSeq.dropRight(1))
+      .exists(parts.last.stripSuffix(".scala").equalsIgnoreCase) &&
     modelPackage(trees)
 
   // The declarations at the top level of a source, in order: types, objects, definitions.

@@ -30,13 +30,13 @@ import actors.worker.{worker as process, Phase as WorkerPhase}
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 // The dispatch sync of each design, weakly fair: named in its claim's result, and no part of the
 // bound.
-val servedDispatchRuns = assume.fair(ServedDispatch.synced(_.activity -> worker.poll))
-val unservedDispatchRuns = assume.fair(UnservedDispatch.synced(_.activity -> worker.poll))
+val servedDispatchRuns = assume.fair(ServedDispatch.synced(_.activity -> activityWorker.poll))
+val unservedDispatchRuns = assume.fair(UnservedDispatch.synced(_.activity -> activityWorker.poll))
 
 // ### The members: the activity as far as dispatch, and a worker that never stops.
 
 object DispatchingActivity
-    extends Derived(ActivitySystem.restrict(client.start, worker.poll, worker.respondCompleted))
+    extends Derived(ActivitySystem.restrict(client.start, activityWorker.poll, activityWorker.respondCompleted))
 
 object ServingWorker extends Derived(actors.worker.Polling.restrict(process.serve))
 
@@ -58,13 +58,13 @@ object ServedDispatch
     // format: on
 
   object syncs extends Syncs:
-    sync(_.activity -> worker.poll, _.worker -> process.serve)
+    sync(_.activity -> activityWorker.poll, _.worker -> process.serve)
 
   object properties:
     // The cross-entity safety promise: only a polling worker starts an attempt.
     def startedByPollingWorker(c: Composition[State]) = c
       .property("startedByPollingWorker")
-      .whenAction(c.synced(_.activity -> worker.poll)) // format: off
+      .whenAction(c.synced(_.activity -> activityWorker.poll)) // format: off
       .holds(_.state.worker.phase == WorkerPhase.polling) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
       // format: on
 

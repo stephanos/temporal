@@ -486,7 +486,7 @@ rejected its result is the rejection. Only a `verify` reads through a refinement
 `through` is unsupported. A `find` of a transition Property and transition lowering to a Case remain
 refused.
 
-The typed Retries capability binds one failure class and its constant retryable classification,
+The typed Retryable capability binds one failure class and its constant retryable classification,
 named state reads for eligibility, count and policy maximum, and optional pending pause and cancel
 reads. Eligibility reads the state before failure. Fatal failure lands in Failed. Retryable pending
 cancellation lands in Canceled even at exhaustion; otherwise exhaustion lands in Failed, an eligible
@@ -497,7 +497,7 @@ is explicit unlimited policy and makes no finite-maximum claim about the count's
 The maximum's optional numeric value uses the existing finite `UpTo[N]` catalog. `N` bounds that
 catalog, independently of the supplied policy maximum and the attempt count's domain.
 
-Each Retries declaration brings its own Properties and free verify Queries under
+Each Retryable declaration brings its own Properties and free verify Queries under
 `<machine>.<val>.<property>`, retaining their companion origin. Fields bind first to that declaration.
 A bound override for a companion Property reaches every instance; a claim or waiver that names an
 ambiguous repeated companion Property is refused. An `overriding` with `of` names the instances it

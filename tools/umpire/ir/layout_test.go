@@ -39,9 +39,9 @@ var retiredModelDirectories = []string{
 
 func TestNexusFormsLayout(t *testing.T) {
 	for _, name := range []string{
-		"Nexus.scala", "workflow/Workflow.scala", "workflow/Realization.scala",
-		"product/Product.scala", "workflow/system/System.scala", "standalone/system/System.scala",
-		"workflow/system/TrustingCaller.scala", "standalone/Standalone.scala", "standalone/Realization.scala",
+		"Nexus.scala", "workflow/WorkflowNexus.scala", "workflow/Realization.scala",
+		"shared/product/Product.scala", "workflow/protocol/Protocol.scala", "standalone/protocol/Protocol.scala",
+		"workflow/protocol/TrustingCaller.scala", "standalone/StandaloneNexus.scala", "standalone/Realization.scala",
 	} {
 		_, err := os.Stat(filepath.Join(repoRoot, "model/temporal/features/nexus", name))
 		require.NoError(t, err, name)
@@ -536,7 +536,7 @@ func TestStandaloneActivityRealizationFollowsSystem(t *testing.T) {
 	root := filepath.Join(kind, "standalone")
 	require.NoDirExists(t, filepath.Join(repoRoot, "model", "temporal", "features", "standaloneactivity"))
 	require.FileExists(t, filepath.Join(kind, "Activity.scala"))
-	require.FileExists(t, filepath.Join(root, "Standalone.scala"))
+	require.FileExists(t, filepath.Join(root, "StandaloneActivity.scala"))
 	require.NoFileExists(t, filepath.Join(root, "Realization.scala"))
 	require.FileExists(t, filepath.Join(root, "system", "Realization.scala"))
 	require.NoFileExists(t, filepath.Join(root, "product", "Realization.scala"))
