@@ -188,7 +188,9 @@ def effect[S, O, F](using
 // `effect { phase = Phase.completed }`, does, so the rule shows the phase it enters and `effects`
 // keeps the steps with logic. Core form: `enter(s.copy(phase = Phase.completed), statusCompleted)`,
 // or `enter(s.copy(phase = p))` for a phase that declares no status.
-def enters[S, O, F, P](phase: P)(using
+// The phase's own type `C` may be narrower than the machine's phase type `P`, as a case that mixes
+// in its role is (`Phase & Held`): the machine's `Phasing` fixes `P`.
+def enters[S, O, F, P, C <: P](phase: C)(using
     @unused owner: Owner[S, O, F],
     ok: Ok[O],
     phasing: Phasing[S, P]
