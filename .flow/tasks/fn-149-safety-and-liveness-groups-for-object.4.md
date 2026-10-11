@@ -11,7 +11,7 @@ Migrate Model claims and capability references with behavior pins. Advances R1, 
 **Touches:** [model/temporal/**, model/irgen/Capabilities.scala, model/irgen/Structure.scala, model/irgen/testdata/**, tools/umpire/check/*test.go, .flow/tmp/fn149/task4/**]
 
 ### Approach
-- Freeze fn-140.6's independent witness seal as the grouping baseline. Inventory all current Activity subject/Dispatch owners and every Nexus declaration, including capabilities, inherited claims, helper bundles, derived designs and compositions. Classify by declaration kind, not names such as completes.
+- Freeze fn-140.10's independent witness seal as the grouping baseline. Inventory all current Activity subject/Dispatch owners and every Nexus declaration, including capabilities, inherited claims, helper bundles, derived designs and compositions. Classify by declaration kind, not names such as completes.
 - Migrate all live authored properties to groups, update references/export selections and activate flat-layout rejection. Keep monitors in their existing declaration/attachment sections and group only their claim references.
 - Consume fn-140's actually committed witness/`when`/`.live` vocabulary; do not recreate extracted witness-only Properties. Current package/schema moves and Activity split are baseline. Re-anchor again after fn-155/fn-156 source changes without guessing future APIs.
 - Use the independent nexus_close_baseline and declaration/Model pin helpers for a complete before/after grouping comparison of tables, predicates on every applicable row, Query/progress receipts, bounds/assumptions, expected and live/replay assessment meaning, and canonical Cases. Preserve negative controls and all focused owners. Account individually for qualified names, Definition/Case identities, checksums and source spans; compose authorized fn-140/fn-155 mappings without broad normalization. Seeded omission, predicate, bound, receipt and Case deltas must fail the seal.
@@ -28,7 +28,7 @@ Migrate Model claims and capability references with behavior pins. Advances R1, 
 - `model/irgen/Structure.scala` - final layout refusal.
 
 ### Key context
-Selected Batch 2 entry follows the committed fn-140.6 witness seal. Re-anchor to the actual fn-155 mapping, fn-156 enforcement and fn-140 vocabulary; future APIs remain unknown here. Fn-141 comes later. Root owns activation/readiness and source gates; .5's final grouping seal precedes fn-123.1, and closure waits fn-123.8. Shared heavy work uses the real `/tmp/umpire-heavy-gates.lock`.
+Selected Batch 2 entry follows the committed fn-140.10 witness seal. Re-anchor to the actual fn-155 mapping, fn-156 enforcement and fn-140 vocabulary; future APIs remain unknown here. Fn-141 comes later. Root owns activation/readiness and source gates; .5's final grouping seal precedes fn-123.1, and closure waits fn-123.8. Shared heavy work uses the real `/tmp/umpire-heavy-gates.lock`.
 
 ### Quick commands
 ```bash

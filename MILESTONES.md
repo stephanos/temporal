@@ -60,7 +60,7 @@ facet vocabularies are recorded in fn-161.
 | 6 | fn-147 | Duration-typed elapsed-time authoring (Batch 3's unapplied Scala patch) |
 | 7 | fn-140 | witness Queries and `.live` |
 | 8 | fn-149 | safety and liveness groups |
-| 9 | fn-164 | `expect { }` blocks for Properties |
+| 9 | fn-164 | `expect:` blocks for Properties and consistent colon style |
 | — | seal | step-table equivalence before the first meaning change |
 | 10 | fn-123 | fault declarations, durability, `crashes(...)` |
 | 11 | fn-128, fn-129 | remaining activity Model edits |
@@ -171,9 +171,9 @@ makes authors write durations directly; `runtime-semantics.patch` updates `model
 ### fn-140: One-sentence witness Queries with explicit live expectations
 
 It rewrites the Models' `properties` and `queries` sections and its R5 renames Definition
-IDs. Scala tasks .1-.6 carry the authoring migration; .7/.8 retain the owner-deferred consumer
-proofs split from .2/.3. Batch the foundations and caller migration. The current one-worker
-lane is sequential; task .6's committed Scala seal releases later source work while shared closure waits.
+IDs. Scala tasks .1-.5 and .10 carry the authoring migration; .7/.8/.9 retain the owner-deferred
+consumer proofs split from .2/.3/.4, and .6 retains shared closure. The current one-worker lane
+is sequential; task .10's committed Scala seal releases later source work without waiting on Go.
 
 `witness(<classes>).records(<fact>)` states a path-and-outcome claim in one declaration and lifts to the existing Scenario, Property and `find` Query, each named after it. `.live(<expectation>)` replaces `.expect` as the one word that generates a Case, and every non-satisfied expectation carries a reason. Pinned `find` Queries in every Model migrate, and the hand-written `terminate`, which repeats the capability-generated `terminateSettles`, is deleted. `query verify` and its triple are unchanged.
 
@@ -181,11 +181,13 @@ lane is sequential; task .6's committed Scala seal releases later source work wh
 | --- | --- | --- |
 | fn-140.2 | 🔄 in progress | Scala witness lifting, names, bounds, composed facts and capability duplicate refusals; exact Go selector proof retained in .7 |
 | fn-140.3 | ⬜ todo | Verify Query `.live`, source-only reasons/refusals and all Scala caller/fixture spellings; Go Case selection retained in .8 |
-| fn-140.4 | ⬜ todo | First Activity conversion and assessment equivalence proof; duplicate terminate removed |
+| fn-140.4 | ⬜ todo | First Activity source conversion and all-row predicate equivalence; duplicate terminate source removed; actual assessment/Case proof retained in .9 |
 | fn-140.5 | ⬜ todo | Author docs, core form and layout template witness |
-| fn-140.6 | ⬜ todo | Other eligible Models, source-aware triple lint, sealed regeneration diff and equivalence proof — regeneration diff deferred |
+| fn-140.10 | ⬜ todo | Remaining eligible Models, source-aware triple lint and committed Scala source equivalence seal; releases fn-149 |
+| fn-140.6 | ⏸️ deferred | Full consumer/regeneration/equivalence closure after .7/.8/.9/.10; links the shared fn-123.8 sweep |
 | fn-140.7 | ⏸️ deferred (Go) | Exact-composed selector admission/check/lint/export proof, split from .2 without relaxing its obligations |
 | fn-140.8 | ⏸️ deferred (Go) | Live/model-only Case generation switch and complete manifest/membership proof, split from .3 |
+| fn-140.9 | ⏸️ deferred (Go) | Original first-Activity assessment/retry differential, Query receipts and Case/regeneration proof, split from .4 |
 
 ### fn-149: Safety and liveness groups for object properties
 
@@ -226,9 +228,9 @@ Six sequential tasks now cover R1-R8, including short-circuit/hole behavior, typ
 core-IR parity, complete caller migration and the final colon-style enforcement.
 [Spec](.flow/specs/fn-164-expect-blocks-for-properties.md).
 
-A Property's predicate becomes an `expect { }` block that reads like the `effect { }` it checks: one
+A Property's predicate becomes an `expect:` block that reads like the `effect:` it checks: one
 requirement per line (`records(fact)`, `check(condition)`), `if` instead of `implies`, and a rare
-`oneOf { }` for the few genuine disjunctions. Temporal forms (Queries, claim patterns, `leadsTo`,
+`oneOf:` for the few genuine disjunctions. Temporal forms (Queries, claim patterns, `leadsTo`,
 monitors) stay outer combinators that take these blocks. The lowering adds no IR construct. Every
 `holds`/`holdsAcross` lambda Property migrates, and the lambda forms go with no compatibility layer.
 fn-141, which runs later, must keep the block's lowering within its "a sugar's

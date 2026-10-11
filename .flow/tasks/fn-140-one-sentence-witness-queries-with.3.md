@@ -3,8 +3,6 @@ satisfies: [R3, R4]
 ---
 # fn-140-one-sentence-witness-queries-with.3 Replace Query expect with live and validate source-only expectation reasons
 
-Touches: [model/framework/Claims.scala, model/framework/realize/Realize.scala, model/temporal/**/*.scala, model/irgen/Claims.scala, model/irgen/Realizations.scala, model/irgen/test/**, model/irgen/testdata/**, tools/umpire/lower/generated.go, tools/umpire/lower/generated_test.go]
-
 ## Description
 **Size:** M
 **Files:** Query/expectation authoring, source-only reason admission, Scala callers/fixtures.

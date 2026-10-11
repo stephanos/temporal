@@ -1,11 +1,17 @@
 ---
 satisfies: [R5, R7]
 ---
-# fn-140-one-sentence-witness-queries-with.6 Migrate remaining eligible Models, lint triples and close equivalence gates
-
-Touches: [model/temporal/features/nexus/**, model/temporal/features/activity/standalone/system/Dispatch.scala, model/temporal/features/activity/standalone/system/DispatchRaces.scala, model/temporal/features/activity/standalone/system/DispatchWithTaskQueue.scala, model/temporal/features/activity/standalone/system/DispatchWithWorker.scala, model/temporal/features/activity/standalone/system/RetryTimeouts.scala, model/temporal/features/activity/standalone/system/Heartbeat.scala, model/temporal/features/activity/standalone/system/ResponseByID.scala, model/temporal/features/activity/standalone/system/Reset.scala, model/temporal/features/activity/standalone/ActivitySubjectRegression.test.scala, model/temporal/features/activity/standalone/ActivityHeartbeatRegression.test.scala, model/temporal/features/activity/standalone/ActivityByIDRegression.test.scala, model/temporal/features/activity/standalone/ActivityResetRegression.test.scala, model/temporal/foundations/taskqueue/**, model/irgen/Order.scala, model/irgen/test/**, model/irgen/testdata/**, model/ir/**, model/cases/**, tools/umpire/check/*test.go, tools/umpire/lower/*test.go, tools/umpire/conformance/*test.go, tests/testcore/testpilot/testdata/generated/**, tools/canary/casebinding/testdata/**]
+# fn-140-one-sentence-witness-queries-with.6 Close deferred witness consumer and regeneration proof
 
 ## Description
+**Size:** M
+**Touches:** [model/ir/**, model/cases/**, model/irgen/testdata/lifts/expected/**, tools/umpire/check/*test.go, tools/umpire/lower/*test.go, tools/umpire/conformance/*test.go, tests/testcore/testpilot/testdata/generated/**, tools/canary/casebinding/testdata/**]
+
+Owner-deferred full closure. Scala authoring, source-aware lint, docs/template lifting and the committed source equivalence seal now live in .10, which depends on .4/.5 and can finish without the deferred consumers. This task depends on .10 and .7/.8/.9 and stays pending until the owner reopens Go, production regeneration, full gates/review/live. No source-seal evidence substitutes for actual consumer checks or assessment/replay.
+
+The original full contract below remains binding. Consume .10's frozen source/scratch baseline, complete inventory and explicit identity/span maps rather than remigrating source or changing protected assessments. Re-anchor historical system/ paths to actual protocol/facet ownership and the final Scala surface; only the deferred consumer/artifact paths above are writable here. The shared fn-123.8 sweep links every acceptance proof before this task may close.
+
+### Retained original closure contract
 Complete R5's remaining Model conversion, source-aware eligibility lint and the integrated R7 template checks. Own the sealed equivalence comparison and existing fixture-consumer checks after the .4 proof and .5 documentation join. Commit the independent witness seal and hand its frozen scratch IR, Cases, lift goldens and explicit identity/provenance mapping to fn-149.4's grouping migration and fn-149.5's final source/docs/layout grouping seal, before fn-123.1 starts fault changes. The selected fn-140/fn-149/fn-123 batch's single production regeneration, full gates, independent review and live run are shared at fn-123.8; this task remains pending that close and links its evidence without dropping any acceptance obligation.
 
 **Size:** M
@@ -46,6 +52,7 @@ go test -tags test_dep -p 2 -timeout 30m -json ./tools/umpire/... ./common/testi
 - [ ] Full Query/table/expectation/Case inventory comparison, per-row Property truth equivalence and an explicit edited-source position map prove R5 equivalence and only the R6 named deletion; final template lifting proves R7.
 - [ ] Regenerated IR, Cases, lift goldens and changed functional/canary pins pass their existing byte checks, with any unsupported difference reported to the owner.
 - [ ] Required model/lint/Go gates and relevant existing live/replay assessment checks are run with unchanged expectations, evidence paths and measured full-suite output, linking the shared fn-123.8 close evidence. Witness equivalence must pass. The strict inherited completion, fatal-failure and pause/resume assertions remain unchanged; their red results are recorded separately from migration regressions and remain Batch 5 obligations, never passing evidence. All other required gate and live/replay checks must pass.
+- [ ] The committed .10 source seal and .7/.8/.9 consumer proof handoffs are linked; no deferred obligation is counted complete solely by native Scala execution or scratch lifting.
 
 ## Done summary
 TBD

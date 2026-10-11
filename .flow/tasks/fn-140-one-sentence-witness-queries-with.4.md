@@ -3,44 +3,40 @@ satisfies: [R5, R6]
 ---
 # fn-140-one-sentence-witness-queries-with.4 Prove the first Activity witness migration and remove duplicate terminate
 
-Touches: [model/temporal/features/activity/standalone/system/System.scala, model/temporal/features/activity/standalone/system/Completion.scala, model/temporal/features/activity/standalone/system/RetryFailures.scala, model/temporal/features/activity/standalone/system/Cancellation.scala, model/temporal/features/activity/standalone/system/Pausing.scala, model/temporal/features/activity/standalone/system/DispatchEligibility.scala, model/temporal/features/activity/standalone/system/Timeouts.scala, model/temporal/features/activity/standalone/ActivitySubjectRegression.test.scala, model/temporal/features/activity/standalone/ActivityResetRegression.test.scala, tools/umpire/check/activity_system_test.go, tools/umpire/lower/activity_cases_test.go, tools/umpire/conformance/played_test.go, model/ir/**, model/cases/**]
-
 ## Description
-Apply the first real Model conversion and establish R5's semantic pin before the remaining Model migration. This task owns its baseline and regenerated proof outputs. Documentation task .5 may run beside it because it changes no production Model or managed output.
-
 **Size:** M
-**Files:** Activity lifecycle and focused subject files listed in Touches; `ActivitySubjectRegression.test.scala` and the fatal-Property references in `ActivityResetRegression.test.scala`; existing Activity check/lowering/assessment regression tests; affected generated IR/Cases.
+**Touches:** [model/temporal/features/activity/standalone/protocol/Protocol.scala, model/temporal/features/activity/standalone/protocol/Completion.scala, model/temporal/features/activity/standalone/protocol/Retry.scala, model/temporal/features/activity/standalone/protocol/Cancellation.scala, model/temporal/features/activity/standalone/protocol/Pausing.scala, model/temporal/features/activity/standalone/protocol/Dispatching.scala, model/temporal/features/activity/standalone/protocol/Timeouts.scala, model/temporal/features/activity/standalone/ActivitySubjectRegression.test.scala, model/temporal/features/activity/standalone/ActivityResetRegression.test.scala, model/temporal/features/activity/standalone/ActivityRetryRegression.test.scala]
+
+Apply the first real Activity witness conversion and prove its Scala source meaning before the remaining Model migration. The original full Go assessment/retry differential, Case membership and regenerated proof obligations are retained in deferred task .9. This task cannot claim those obligations using native execution or scratch lifting.
 
 ### Approach
-- Begin only after `fn-151-split-standalone-activity-into-smaller`, then `fn-155-name-the-standalone-activitys-repeated`, and then `fn-156-let-the-scala-compiler-and-lint-enforce` close with Flow closure committed in the integrated local branch. Re-read that closed source and receipt baseline. Re-anchor the file paths, owners and line references below at execution using the actual split-owner and abstraction identity maps. Inventory pinned finds and inbound Property/Scenario references before choosing conversions. Preserve the strict inherited completion, fatal-failure and pause/resume assertions and record their red results separately from migration regressions. Their correction remains in Batch 5; this task does not wait for that batch's closure or count its inherited failures as passing evidence.
-- Convert only eligible unshared path/fact claims. Inventory the actual split owners and all inbound readers. Completion and Pausing now own separate `completes` Properties; Cancellation still has two Queries reading `cancelRequestedThenCanceled`. Retain a triple when its actual readers require it. Update regression references to converted declarations while preserving their independent predicates, exact receipt assertions and negative checks. Preserve invariant and monitor-only forms.
-- For retry, first replay the baseline assessment with the records-only claim as a disposable differential, then retain the full terminal-state equality via ends where needed. The existing `RetryFailures.states.completedOnRetry` value includes the deadlines, so comparing only attempts is insufficient. Never alter expected assessments to fit the conversion.
-- Delete the hand-written terminate Query, its otherwise-unread Property/Scenario and its Case. Keep the capability-generated terminateSettles Query and all its dependencies. Update tests whose literal inventory currently counts the duplicate.
-- Record before/after complete Query receipts, tables, live expectations and Case filenames keyed by unchanged Query name. For each rewritten Property function, prove equal truth values on every applicable model row; map edited source positions explicitly to their declaration spans, never remove positions generically. Classify each regeneration difference under R5/R6; an unexplained semantic or artifact change stops this proof. Do not rewrite historical recorded Runs.
+- Begin after .3 and the integrated committed fn-151/fn-155/fn-156 closure baseline. Read their actual receipts, split-owner and abstraction mappings. Current ownership is ActivityProtocol plus facet traits under protocol/, not historical claim-container Systems or RetryFailures.scala. Freeze the integrated pre-conversion source/scratch lift, baseline-to-current identity mappings and declaration spans in task scratch; checked-in IR/Cases are intentionally stale and are not this source baseline.
+- Inventory every first-batch pinned find and all inbound Property/Scenario readers before choosing conversion. Completion and Pausing own distinct completes Properties; shared Cancellation declarations must stay shared. Preserve verify/invariant/monitor-only forms and paths whose exact tail class repeats earlier. A triple is retained when any actual reader or witness boundary requires it; record that reason rather than guessing from the old names.
+- Convert eligible private path/fact triples without changing Query names, paths/inputs/start values, limits, totals, live expectations or realization membership. Move runtime tests off deleted standalone declarations to the witness's generated core values while preserving independent original predicates, exact receipt assertions and negative checks.
+- Preserve the retry claim's full terminal-state equality, including deadlines and attempt count, using ends where required. Run a native records-only versus full-state differential and compare both against the independent old predicate on every applicable machine row. Save the same declaration/path/baseline data for .9's required actual assessment replay; native truth equality does not prove a live assessment. Do not change expected assessments to fit conversion.
+- Delete only the hand-written terminate Query and its otherwise-unread Property/Scenario. Keep capability-generated terminateSettles and all its dependencies and bindings. Deleting the managed Case is deferred to .9. Update literal source inventory assertions without weakening protected semantic assertions.
+- Capture the complete before/after Query/core/path/expectation/realization inventory keyed by unchanged Query name. Enumerate applicable model rows independently from machine bindings and finite state/input catalogs; compare original and generated predicates on every row, not just successful pinned paths. Preserve rewritten Property truth and row applicability. Map every edited source position to its declaration span and record all changed core identities/functions/derived Limits under R5, plus only the R6 named deletion.
+- Preserve strict inherited completion, fatal-failure and pause/resume assertions. Record baseline failures separately, verify their unchanged status after migration, and do not count them as passing checks or fix them under this meaning-preserving task; their correction remains Batch 5.
 
-### Investigation targets
-**Required:**
-- `model/temporal/features/activity/standalone/system/System.scala` - Properties, capabilities and pinned Queries.
-- The focused subject files listed in Touches - pinned claims and their current owners.
-- `model/temporal/features/activity/standalone/ActivitySubjectRegression.test.scala` and `ActivityResetRegression.test.scala` - direct Property/Scenario readers and independent semantic assertions.
-- `tools/umpire/check/activity_system_test.go` - Activity semantics pins.
-- `tools/umpire/lower/activity_cases_test.go:138-240` - inventory and retry Case members.
-- `tools/umpire/conformance/played_test.go:251-299` - independent baseline assessments.
-- `model/cases/manifest.json` - Case membership and expected assessments.
-**Optional:**
-- `model/temporal/features/activity/standalone/system/Dispatch.scala` - neighboring monitor-only claims.
-
-### Quick commands
-```bash
-go test -tags test_dep ./tools/umpire/check ./tools/umpire/lower ./tools/umpire/conformance -run 'Activity|Retry|LoweredActivity'
-make umpire-gen-model MODEL_GATE_ARGS=--skip-go-checks
-make umpire-check-cases
+### Quick commands (serialize heavy commands)
+```sh
+mise exec -- scala-cli compile model/project.scala model/framework model/temporal
+mise exec -- scala-cli test model/project.scala model/framework model/temporal --test-only '*ActivitySubjectRegression*'
+mise exec -- scala-cli test model/project.scala model/framework model/temporal --test-only '*ActivityRetryRegression*'
+mise exec -- scala-cli test model/project.scala model/framework model/temporal --test-only '*ActivityResetRegression*'
+make lint-model-syntax
+make umpire-check-equivalence BASE=.flow/tmp/fn160/baseline-ae3f36ee51 MAP=model/testdata/equivalence/batch-1d.map STEPS_ONLY=1
 ```
+
+Use the established lifter entry point for isolated before/after scratch IR with current jars. No Go commands/edits, production regeneration, full gates/review/live. New migration proofs must pass; separately evidenced inherited failures are not waived.
+
 ## Acceptance
-- [ ] An explicit eligibility inventory identifies each converted and retained Activity triple with its inbound readers (R5).
-- [ ] Records-only/full-state retry differential is recorded; final Query answers and live assessments match the committed fn-156 closure baseline, including the closed fn-151 Activity split and subsequent fn-155 abstraction mapping. Strict inherited completion, fatal-failure and pause/resume assertions remain unchanged; their red results are recorded separately from migration regressions and remain Batch 5 obligations.
-- [ ] Only hand-written terminate and its unshared declarations/Case disappear; generated terminateSettles remains and duplicate admission is tested (R6).
-- [ ] Complete Query receipts, table semantics, expected assessments and filenames satisfy the recorded equivalence pin; rewritten Property functions have equal truth values on every applicable row and edited source positions have an explicit declaration-span map, with only R5/R6-authorized changes in generated outputs.
+- [ ] A complete first-batch Activity eligibility inventory records converted and retained triples, exact inbound readers and actual Protocol/facet ownership (R5).
+- [ ] Native records-only/full-state retry differential covers every applicable machine row; the final witness preserves the old full-state predicate, including deadlines, with a frozen replay handoff to .9 for actual assessment proof (R5).
+- [ ] Only hand-written terminate and its unshared source declarations disappear; generated terminateSettles, its bindings/dependencies and protected semantic assertions remain. Managed Case removal stays deferred (R6).
+- [ ] Complete Query/core/path/expectation/realization inventories, all-row predicate truth comparison and explicit declaration-span/identity maps pass; differences are only R5/R6-authorized. Query names, live expectations and realization membership are unchanged except the named deletion (R5).
+- [ ] Scala compilation, nonempty new migration proofs, scratch lifting, syntax and step-table equivalence pass. Strict inherited completion/fatal-failure/pause-resume assertion results are independently recorded before/after, never relaxed or credited as green; .9 retains the complete consumer/regeneration/live obligations.
+
 ## Done summary
 TBD
 
