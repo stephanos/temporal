@@ -142,10 +142,10 @@ func requireWorkerOutageEvidence(t testing.TB, run *testpilotpb.Run, verdict *te
 	event := runEventAt(t, run, completed.GetSupportingEventSequences()[0])
 	require.Equal(t, "history", event.GetCoordinates().GetInstructionId())
 	var evidence testpilotpb.CorrelatedEvidence
-	require.NoError(t, observationValue(t, event, "correlated-evidence").GetMessageValue().UnmarshalTo(&evidence))
+	require.NoError(t, observationValue(t, event, "correlated-evidence").GetObjectValue().UnmarshalTo(&evidence))
 	require.Equal(t, "evidence.workflowExecutionCompleted", evidence.GetKind())
 	var historyEvent historypb.HistoryEvent
-	require.NoError(t, observationValue(t, event, "history-event").GetMessageValue().UnmarshalTo(&historyEvent))
+	require.NoError(t, observationValue(t, event, "history-event").GetObjectValue().UnmarshalTo(&historyEvent))
 	require.Equal(t, enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_COMPLETED, historyEvent.GetEventType())
 	require.Positive(t, historyEvent.GetWorkflowExecutionCompletedEventAttributes().GetWorkflowTaskCompletedEventId())
 	// The workflow is named by the task that completed it, which is the key the evidence carries.

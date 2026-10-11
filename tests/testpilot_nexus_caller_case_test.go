@@ -248,7 +248,7 @@ func requireReadEvidence(t testing.TB, run *testpilotpb.Run, sequence int64, ins
 	event := runEventAt(t, run, sequence)
 	require.Equal(t, instruction, event.GetCoordinates().GetInstructionId())
 	var evidence testpilotpb.CorrelatedEvidence
-	require.NoError(t, observationValue(t, event, "correlated-evidence").GetMessageValue().UnmarshalTo(&evidence))
+	require.NoError(t, observationValue(t, event, "correlated-evidence").GetObjectValue().UnmarshalTo(&evidence))
 	require.Equal(t, kind, evidence.GetKind())
 	require.Equal(t, strconv.FormatInt(scheduledID, 10), evidence.GetOperation())
 	require.Empty(t, evidence.GetFields())
@@ -263,7 +263,7 @@ func requireNexusTimedOutType(t testing.TB, run *testpilotpb.Run, timeoutType en
 				continue
 			}
 			var historyEvent historypb.HistoryEvent
-			require.NoError(t, observation.GetValue().GetMessageValue().UnmarshalTo(&historyEvent))
+			require.NoError(t, observation.GetValue().GetObjectValue().UnmarshalTo(&historyEvent))
 			if attributes := historyEvent.GetNexusOperationTimedOutEventAttributes(); attributes != nil {
 				require.Equal(t, timeoutType, attributes.GetFailure().GetCause().GetTimeoutFailureInfo().GetTimeoutType())
 				return

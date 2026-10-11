@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	celpb "cel.dev/expr"
 	"github.com/stretchr/testify/require"
 	enumspb "go.temporal.io/api/enums/v1"
 	historypb "go.temporal.io/api/history/v1"
@@ -72,7 +73,7 @@ func requireCorrelatedNexusPairEvidence(t testing.TB, run *testpilotpb.Run, sequ
 		require.Equal(t, "controller", event.GetCoordinates().GetEntrypointId())
 		require.Equal(t, "history", event.GetCoordinates().GetInstructionId())
 		var historyEvent historypb.HistoryEvent
-		require.NoError(t, observationValue(t, event, "history-event").GetMessageValue().UnmarshalTo(&historyEvent))
+		require.NoError(t, observationValue(t, event, "history-event").GetObjectValue().UnmarshalTo(&historyEvent))
 		events = append(events, &historyEvent)
 	}
 
@@ -90,7 +91,7 @@ func requireCorrelatedNexusPairEvidence(t testing.TB, run *testpilotpb.Run, sequ
 }
 
 // observationValue reads exactly one declared Observation off a recorded Run Event.
-func observationValue(t testing.TB, event *testpilotpb.RunEvent, observationID string) *testpilotpb.Value {
+func observationValue(t testing.TB, event *testpilotpb.RunEvent, observationID string) *celpb.Value {
 	t.Helper()
 	for _, observation := range event.GetObservations() {
 		if observation.GetObservationId() == observationID {

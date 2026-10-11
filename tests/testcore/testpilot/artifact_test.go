@@ -139,7 +139,8 @@ func syntheticProgramCeilings() *testpilotspb.ProgramLimits {
 func syntheticContractCeilings() *testpilotspb.ContractLimits {
 	return &testpilotspb.ContractLimits{
 		MaxRules: 1, MaxStates: 2, MaxTransitions: 1, MaxExpressionDepth: 8,
-		MaxWorkPerEvent: 32, MaxTotalWork: 64, MaxCaptures: 1, MaxCaptureBytes: 1024,
+		// Format 4.0 charges a native Boolean predicate 13 per event, 104 over the Run's 8 events.
+		MaxWorkPerEvent: 32, MaxTotalWork: 128, MaxCaptures: 1, MaxCaptureBytes: 1024,
 	}
 }
 

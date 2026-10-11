@@ -86,15 +86,20 @@ func Admit(ctx context.Context, caseInput, recordedInput []byte, prepare Prepare
 	if err != nil {
 		return nil, reject(ReasonNoncanonical, "the Case does not decode: %s", err)
 	}
-	decoded, err := recordedrun.Decode(recordedInput)
+	identity := recordedrun.Digest(canonical)
+	// The record's Case identity is checked before its Run payload is read, so a Run recorded under
+	// a retired format, whose Case no longer has its identity, is refused as crossed.
+	decoded, err := recordedrun.DecodeForCase(recordedInput, identity)
 	if errors.Is(err, recordedrun.ErrNoCase) {
 		return nil, reject(ReasonIncompatible, "%s", err)
+	}
+	if errors.Is(err, recordedrun.ErrCaseMismatch) {
+		return nil, reject(ReasonCrossed, "%s", err)
 	}
 	if err != nil {
 		return nil, reject(ReasonMalformed, "%s", err)
 	}
 	driver, run := decoded.Driver, decoded.Run
-	identity := recordedrun.Digest(canonical)
 	// IDs are names, not hashes: a Case regenerated under the same IDs is another Case, and a Run
 	// of the older one is not its Run.
 	if decoded.Case != identity {

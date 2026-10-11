@@ -86,11 +86,15 @@ func configurationOf(environment Environment) ([]testpilot.ConfigurationValue, e
 // DefaultCeilings returns fresh copies of the Temporal Profile's resource ceilings: the Program,
 // Contract and correlated limits every Temporal Profile admits a Case under. A Case declares none of
 // them. Each ceiling is the largest value any checked-in Temporal Case declared when the bounds moved
-// out of the Case, so no such Case is refused.
+// out of the Case, so no such Case is refused. Format 4.0 reserves native CEL work for a typed
+// payload's complete snapshot and charges the complete correlated states and results it expands, so
+// the per-event and total evaluation ceilings were raised: the workflow-start fixture's history-event
+// rules reserve 5803226 per event, and one correlated event of the generated asynchronous Nexus Case
+// costs 15760941. The ceilings keep twice that headroom, under the Driver's hard limits.
 func DefaultCeilings() (*testpilotspb.ProgramLimits, *testpilotspb.ContractLimits, *testpilotspb.CorrelatedLimits) {
 	return &testpilotspb.ProgramLimits{MaxEntrypoints: 4, MaxNodes: 16, MaxEdges: 24, MaxActivations: 8, MaxAttempts: 16, MaxRunEvents: 512, MaxExpressionDepth: 12, MaxPathFanout: 32, MaxRequestBytes: 32768, MaxResponseBytes: 8192, MaxDuration: durationpb.New(time.Duration(30000) * time.Millisecond), CleanupDuration: durationpb.New(time.Duration(20000) * time.Millisecond), MaxInstructionEmittedEvents: 128, MaxInstructionResponseBytes: 8192}, &testpilotspb.ContractLimits{
 		MaxRules: 4, MaxStates: 16, MaxTransitions: 64, MaxExpressionDepth: 12,
-		MaxWorkPerEvent: 4000000, MaxTotalWork: 1000000000, MaxCaptures: 64, MaxCaptureBytes: 65536,
+		MaxWorkPerEvent: 32000000, MaxTotalWork: 16384000000, MaxCaptures: 64, MaxCaptureBytes: 65536,
 	}, &testpilotspb.CorrelatedLimits{
 		MaxEvents: 64, MaxBuffered: 32, MaxKeys: 8, MaxSupport: 256, MaxProjectionWork: 1000000000,
 		MaxEventBytes: 512, MaxSemanticTransitions: 32, MaxObligations: 16, MaxObligationWork: 100000000,
