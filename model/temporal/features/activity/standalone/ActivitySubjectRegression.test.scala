@@ -19,6 +19,9 @@ class ActivitySubjectRegression extends munit.FunSuite:
   private type ActivityStep = Step[protocol.State, Outcome, protocol.Fact]
   private type Predicate = (protocol.State, ActivityStep) => Boolean
 
+  private def coreProperty(q: Query): Property[protocol.State] = Property(q.property)
+  private def coreScenario(q: Query): Scenario[protocol.State] = Scenario(q.scenario)
+
   private def predicate(property: Property[protocol.State]): Predicate =
     property.decl.holds2 match
       case Some(holds) =>
@@ -33,11 +36,11 @@ class ActivitySubjectRegression extends munit.FunSuite:
     val p = ActivityProtocol
     val properties = List(
       p.completion.properties.completes,
-      p.completion.properties.completedByID,
-      p.retry.properties.nonRetryableFails,
-      p.retry.properties.retryCompletes,
+      coreProperty(p.completion.queries.scheduledCompletedByID),
+      coreProperty(p.retry.queries.nonRetryableFailure),
+      coreProperty(p.retry.queries.retry),
       p.retry.properties.retryExhausts,
-      p.retry.properties.fatalFailureByID,
+      coreProperty(p.retry.queries.heldFailedByID),
       p.cancellation.properties.cancelRequested,
       p.cancellation.properties.canceledByWorker,
       p.cancellation.properties.cancelIsRequested,
@@ -45,10 +48,10 @@ class ActivitySubjectRegression extends munit.FunSuite:
       p.dispatching.properties.dispatchRequiresReady,
       p.dispatching.properties.scheduleToStartRequiresDispatch,
       p.timeouts.properties.scheduleToStartFires,
-      p.timeouts.properties.startToCloseFires,
+      coreProperty(p.timeouts.queries.startToCloseTimeout),
       p.timeouts.properties.scheduleToCloseTimesOut,
-      p.timeouts.properties.completesAfterTimeout,
-      p.timeouts.properties.failsAfterTimeout,
+      coreProperty(p.timeouts.queries.retryAfterTimeout),
+      coreProperty(p.timeouts.queries.retryExhaustion),
       p.heartbeat.properties.heartbeatExhausts,
       p.reset.properties.resetOnFatal,
       p.reset.properties.resetOnExhaustion,
@@ -119,8 +122,8 @@ class ActivitySubjectRegression extends munit.FunSuite:
       Receipt(
         ActivityProtocol.retry.queries.nonRetryableFailure,
         ActivityProtocol,
-        ActivityProtocol.retry.properties.nonRetryableFails,
-        ActivityProtocol.retry.queries.nonRetryable,
+        coreProperty(ActivityProtocol.retry.queries.nonRetryableFailure),
+        coreScenario(ActivityProtocol.retry.queries.nonRetryableFailure),
         Vector(client.start(), activityWorker.poll, activityWorker.respondFailed(Failure.fatal)),
         three,
         16848L,
@@ -129,8 +132,8 @@ class ActivitySubjectRegression extends munit.FunSuite:
       Receipt(
         ActivityProtocol.retry.queries.retry,
         ActivityProtocol,
-        ActivityProtocol.retry.properties.retryCompletes,
-        ActivityProtocol.retry.queries.retriedThenCompleted,
+        coreProperty(ActivityProtocol.retry.queries.retry),
+        coreScenario(ActivityProtocol.retry.queries.retry),
         Vector(
           client.start(),
           activityWorker.poll,
@@ -245,8 +248,8 @@ class ActivitySubjectRegression extends munit.FunSuite:
       Receipt(
         ActivityProtocol.timeouts.queries.startToCloseTimeout,
         ActivityProtocol,
-        ActivityProtocol.timeouts.properties.startToCloseFires,
-        ActivityProtocol.timeouts.queries.startToCloseExpires,
+        coreProperty(ActivityProtocol.timeouts.queries.startToCloseTimeout),
+        coreScenario(ActivityProtocol.timeouts.queries.startToCloseTimeout),
         Vector(
           client.start(startToClose := Timeout.expires, maxAttempts := MaxAttempts.one),
           activityWorker.poll,

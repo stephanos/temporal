@@ -309,7 +309,7 @@ class ActivityResetRegression extends munit.FunSuite:
   test("the ordinary fatal witness is unchanged and claims no reset coverage") {
     val query = ActivityProtocol.retry.queries.nonRetryableFailure
     assertEquals(query.form, QueryForm.find)
-    assertEquals(query.property, ActivityProtocol.retry.properties.nonRetryableFails.decl)
+    assertEquals(query.property.when, Some(activityWorker.respondFailed(Failure.fatal)))
     assertEquals(
       query.scenario.actions,
       Vector[ClassRef](
@@ -322,7 +322,7 @@ class ActivityResetRegression extends munit.FunSuite:
     val held =
       take(take(ActivityProtocol.init, client.start()).head.state, activityWorker.poll()).head.state
     val failed = take(held, activityWorker.respondFailed(Failure.fatal)).head
-    assert(holds(ActivityProtocol.retry.properties.nonRetryableFails, held, failed))
+    assert(holds(Property[protocol.State](query.property), held, failed))
   }
 
   test("reset witnesses keep Model-only checks apart from the realized deferred Case") {

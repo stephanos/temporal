@@ -6,6 +6,7 @@ import temporal.features.activity.{deadline, timers, Failure, Timeout, TimeoutTy
 import temporal.features.activity.standalone.{
   activityWorker,
   client,
+  completionClient,
   maxAttempts,
   protocol,
   startToClose,
@@ -19,6 +20,91 @@ class ActivityRetryRegression extends munit.FunSuite:
   private def take(s: protocol.State, c: Class): Step[protocol.State, Outcome, protocol.Fact] =
     val binding = ActivityProtocol.bindings.find(_.decl == c.decl).get
     effectOf(binding.decl, binding.function)(s, c.values).head
+
+  test("private Activity paths are witnesses retaining their full-state endings") {
+    val p = ActivityProtocol
+    for q <- List(
+        p.retry.queries.nonRetryableFailure,
+        p.retry.queries.retry,
+        p.timeouts.queries.startToCloseTimeout,
+        p.timeouts.queries.retryAfterTimeout,
+        p.timeouts.queries.retryExhaustion
+      )
+    do assert(q.isInstanceOf[Witness[?, ?, ?]])
+  }
+
+  test("all applicable rows preserve the independent original Activity predicates") {
+    type ActivityStep = Step[protocol.State, Outcome, protocol.Fact]
+    val p = ActivityProtocol
+    val completed = protocol.State(
+      protocol.Phase.completed,
+      protocol.Dispatch.now,
+      UpTo(2),
+      Timeout.unset,
+      Timeout.unset,
+      Timeout.unset,
+      Timeout.unset,
+      MaxAttempts.unlimited
+    )
+    val timedCompletion = completed.copy(startToClose = Timeout.expires, maxAttempts = MaxAttempts.two)
+    val claims: List[(Query, ClassRef, protocol.Fact, protocol.State => Boolean, Int, Int)] = List(
+      (p.completion.queries.scheduledCompletedByID, completionClient.respondCompletedByID,
+        protocol.Fact.statusCompleted, _.phase == protocol.Phase.completed, 5616, 0),
+      (p.retry.queries.nonRetryableFailure, activityWorker.respondFailed(Failure.fatal),
+        protocol.Fact.statusFailed, _.phase == protocol.Phase.failed, 2160, 0),
+      (p.retry.queries.retry, activityWorker.respondCompleted,
+        protocol.Fact.statusCompleted, _ == completed, 2160, 2155),
+      (p.retry.queries.heldFailedByID, completionClient.respondFailedByID(Failure.fatal),
+        protocol.Fact.statusFailed, _.phase == protocol.Phase.failed, 5616, 0),
+      (p.timeouts.queries.startToCloseTimeout, deadline.startToClose,
+        protocol.Fact.statusTimedOut(TimeoutType.startToClose), _.phase == protocol.Phase.timedOut,
+        1080, 0),
+      (p.timeouts.queries.retryAfterTimeout, activityWorker.respondCompleted,
+        protocol.Fact.statusCompleted, _ == timedCompletion, 2160, 2155),
+      (p.timeouts.queries.retryExhaustion, activityWorker.respondFailed(Failure.retryable),
+        protocol.Fact.statusFailed, _ == timedCompletion.copy(phase = protocol.Phase.failed),
+        2160, 286)
+    )
+    for (q, tail, fact, ending, expectedEnabled, expectedRecordsOnlyDifferences) <- claims do
+      assertEquals(q.property.when, Some(tail))
+      val generated = q.property.holds.get
+        .asInstanceOf[ActivityStep => Boolean] // scalafix:ok DisableSyntax.asInstanceOf
+      var applicable = 0
+      var enabled = 0
+      var recordsOnlyDifferences = 0
+      for
+        before <- Finite[protocol.State].values
+        binding <- p.bindings
+        inputs <- classesOf(binding.decl)
+        if tail match
+          case c: Class => c.decl == binding.decl && c.values.equals(inputs)
+          case a: Action[?] => a.decl == binding.decl
+      do
+        applicable += 1
+        for after <- effectOf[protocol.State, Outcome, protocol.Fact](binding.decl, binding.function)(before, inputs) do
+          enabled += 1
+          val old = ending(after.state) && after.records(fact)
+          assertEquals(generated(after), old, s"$before / $inputs / $after")
+          if after.records(fact) != old then recordsOnlyDifferences += 1
+          if old then
+            assert(!generated(after.copy(facts = Nil)))
+            if q eq p.retry.queries.retry then
+              val wrongStates = List(
+                completed.copy(phase = protocol.Phase.failed),
+                completed.copy(dispatch = protocol.Dispatch.backoff),
+                completed.copy(attempts = UpTo(1)),
+                completed.copy(scheduleToClose = Timeout.expires),
+                completed.copy(scheduleToStart = Timeout.expires),
+                completed.copy(startToClose = Timeout.expires),
+                completed.copy(heartbeat = Timeout.expires),
+                completed.copy(maxAttempts = MaxAttempts.two)
+              )
+              for wrong <- wrongStates do assert(!generated(after.copy(state = wrong)))
+      assertEquals(applicable, 5616)
+      assertEquals(enabled, expectedEnabled)
+      assertEquals(applicable - enabled, 5616 - expectedEnabled)
+      assertEquals(recordsOnlyDifferences, expectedRecordsOnlyDifferences)
+  }
 
   test("the start declares a retained retry-policy input") {
     assertEquals(client.start.decl.domains.size, 6)
