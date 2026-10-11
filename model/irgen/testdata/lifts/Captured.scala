@@ -30,7 +30,7 @@ enum Fact derives Finite:
 object Entities:
   val owner: Entity = Entity()
   val entry: Entity = Entity(key = "entryId", refer = Map("owner" -> owner))
-  val lostData: Observation = Observation(on = entry, read = "lost")
+  val lostData: Observation = Observation(on = entry)
 
 // The actions, grouped by who takes them (fn-126 R14). An actor object is the actor of its name, and
 // each action is named after where it is declared, fixture.captured.client.put, as the lifter's
