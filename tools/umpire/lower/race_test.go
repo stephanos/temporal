@@ -48,7 +48,7 @@ func TestTheHeldRaceLowers(t *testing.T) {
 		var operation string
 		if record.GetRunKeyed() {
 			require.Len(t, e.GetScope(), 1)
-			protorequire.ProtoEqual(t, e.GetScope()[0].GetValue(), e.GetOperation())
+			require.Nil(t, e.GetOperation())
 		} else {
 			require.Len(t, e.GetOperation().GetBindings(), 1)
 			operation = e.GetOperation().GetBindings()[0].GetPath()

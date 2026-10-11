@@ -64,7 +64,7 @@ func correlatedFacadeProfile(t testing.TB) testpilot.ProfileSpec {
 	descriptors := testsupport.DescriptorClosure(testpilotspb.File_temporal_server_api_testpilot_v1_case_proto)
 	descriptors.File = append(descriptors.File, &descriptorpb.FileDescriptorProto{
 		Name: proto.String("test/correlated/source.proto"), Package: proto.String("test.correlated"), Syntax: proto.String("proto3"),
-		Dependency: []string{testpilotspb.File_temporal_server_api_testpilot_v1_correlated_proto.Path()},
+		Dependency: []string{testpilotspb.File_temporal_server_api_testpilot_v1_evidence_proto.Path()},
 		Service: []*descriptorpb.ServiceDescriptorProto{{Name: proto.String("Source"), Method: []*descriptorpb.MethodDescriptorProto{{
 			Name: proto.String("Read"), InputType: proto.String(".temporal.server.api.testpilot.v1.CorrelatedEvidence"), OutputType: proto.String(".temporal.server.api.testpilot.v1.CorrelatedEvidence"),
 		}}}},
@@ -78,7 +78,7 @@ func correlatedFacadeProfile(t testing.TB) testpilot.ProfileSpec {
 		ProgramLimits: &testpilotspb.ProgramLimits{MaxEntrypoints: 4, MaxNodes: 256, MaxEdges: 256, MaxActivations: 256, MaxAttempts: 256, MaxRunEvents: 2048, MaxExpressionDepth: 8, MaxPathFanout: 256, MaxRequestBytes: 4096, MaxResponseBytes: 4096, MaxDuration: durationpb.New(time.Duration(10000) * time.Millisecond), CleanupDuration: durationpb.New(time.Duration(1000) * time.Millisecond), MaxInstructionEmittedEvents: 1, MaxInstructionResponseBytes: 4096},
 		ContractLimits: &testpilotspb.ContractLimits{
 			MaxRules: 16, MaxStates: 32, MaxTransitions: 64, MaxExpressionDepth: 16,
-			MaxWorkPerEvent: 1000000, MaxTotalWork: 1000000000, MaxCaptures: 32, MaxCaptureBytes: 65536,
+			MaxWorkPerEvent: 25000000, MaxTotalWork: 1000000000, MaxCaptures: 32, MaxCaptureBytes: 65536,
 		},
 		CorrelatedLimits: &testpilotspb.CorrelatedLimits{
 			MaxEvents: 16, MaxBuffered: 8, MaxKeys: 8, MaxSupport: 256, MaxProjectionWork: 1000000000,
@@ -280,7 +280,8 @@ func TestCorrelatedFacadeTenfoldLoad(t *testing.T) {
 					profile.CorrelatedLimits.MaxEvents = 32
 				}
 				if kind == "work" {
-					profile.CorrelatedLimits.MaxObligationWork = 200
+					// Format 4.0 charges an obligation 100 rather than 17, so two events need more than 200.
+				profile.CorrelatedLimits.MaxObligationWork = 1000
 				}
 				prepared, err := testpilot.Prepare(source, profile)
 				require.NoError(t, err)

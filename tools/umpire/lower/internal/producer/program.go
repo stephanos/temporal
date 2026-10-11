@@ -162,7 +162,9 @@ func (p *production) evidenceDeclarations(rules []EvidenceRule) []*testpilotspb.
 		case event != nil:
 			d.Guard = event.Guard
 			if event.RunKeyed {
-				d.Operation = Literal(Text(p.identity.RunScope))
+				// The Run is the operation: the runtime keys the evidence by it, and admits no
+				// operation expression beside run_keyed.
+				d.Operation = nil
 			}
 			d.Source = &testpilotspb.EvidenceDeclaration_RunEvent{RunEvent: &testpilotspb.RunEventSource{Kind: event.Kind,
 				Instruction: &testpilotspb.InstructionReference{EntrypointId: event.EntrypointID, InstructionId: event.InstructionID},

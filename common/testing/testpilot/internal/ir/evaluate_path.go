@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	celpb "cel.dev/expr"
+	"google.golang.org/protobuf/encoding/protowire"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/dynamicpb"
@@ -14,7 +15,7 @@ import (
 
 func decodeMessage(value *celpb.Value, descriptor protoreflect.MessageDescriptor) (protoreflect.Message, error) {
 	message := dynamicpb.NewMessage(descriptor)
-	if err := proto.Unmarshal(value.GetObjectValue().GetValue(), message); err != nil {
+	if err := unmarshalCatalog(value.GetObjectValue().GetValue(), message, protowire.DefaultRecursionLimit); err != nil {
 		return nil, err
 	}
 	return message.ProtoReflect(), nil

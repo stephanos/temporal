@@ -307,7 +307,7 @@ func (c *Catalog) checkMessage(value *celpb.Value, typ Type, b *budget, depth in
 		return err
 	}
 	message := dynamicpb.NewMessage(typ.message)
-	if err := (proto.UnmarshalOptions{RecursionLimit: int(b.limits.Depth)}).Unmarshal(envelope.Value, message); err != nil {
+	if err := unmarshalCatalog(envelope.Value, message, int(b.limits.Depth)); err != nil {
 		return Invalid(Malformed, "literal", "invalid message wire payload")
 	}
 	if typ.message.FullName() == "google.protobuf.Duration" {

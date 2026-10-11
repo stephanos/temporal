@@ -1,7 +1,7 @@
 {
   "caseId": "temporal.case.conformance.satisfied.run-event-evidence",
   "version": {
-    "major": 1
+    "major": 4
   },
   "provenance": {
     "producerId": "temporal.case.compiler",
@@ -72,7 +72,7 @@
               }
             },
             "limits": {
-              "timeoutMilliseconds": "5000"
+              "timeout": "5s"
             }
           }
         ]
@@ -92,11 +92,43 @@
           {
             "fieldId": "run",
             "value": {
-              "textValue": "conformance"
+              "cel": {
+                "expr": {
+                  "id": "1",
+                  "constExpr": {
+                    "stringValue": "conformance"
+                  }
+                }
+              }
             }
           }
         ],
-        "operation": "role_id"
+        "operation": {
+          "cel": {
+            "expr": {
+              "id": "1",
+              "callExpr": {
+                "target": {
+                  "id": "2",
+                  "identExpr": {
+                    "name": "v0"
+                  }
+                },
+                "function": "value"
+              }
+            }
+          },
+          "bindings": [
+            {
+              "variable": "v0",
+              "reference": {
+                "projectedValue": {}
+              },
+              "path": "role_id"
+            }
+          ]
+        },
+        "kind": "faultInjected"
       }
     ]
   },
@@ -105,7 +137,6 @@
     "rules": [
       {
         "ruleId": "result",
-        "kind": "CONTRACT_RULE_KIND_SAFETY",
         "initialStateId": "pending",
         "states": [
           {
@@ -122,20 +153,35 @@
             "transitionId": "complete",
             "sourceStateId": "pending",
             "targetStateId": "terminal",
-            "supportKind": "CONTRACT_SUPPORT_KIND_MATCHING_EVENT",
+            "supportsEvent": true,
             "eventFilter": {
               "kinds": [
                 "RUN_EVENT_KIND_FAULT_INJECTED"
               ]
             },
             "predicate": {
-              "present": {
-                "operand": {
+              "cel": {
+                "expr": {
+                  "id": "1",
+                  "callExpr": {
+                    "target": {
+                      "id": "2",
+                      "identExpr": {
+                        "name": "v0"
+                      }
+                    },
+                    "function": "hasValue"
+                  }
+                }
+              },
+              "bindings": [
+                {
+                  "variable": "v0",
                   "reference": {
                     "observationId": "evidence"
                   }
                 }
-              }
+              ]
             }
           }
         ]

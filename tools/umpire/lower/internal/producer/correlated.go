@@ -262,9 +262,16 @@ func (p *production) correlatedContract(plan projectionPlan, clauses []clause) *
 		return internResult(c, results, candidate)
 	}
 	c.InitialStateId = state(p.initial)
+	// The table authorizes each prior-state/result pair once: two rows of the machine that intern to
+	// one pair are one transition, and admission refuses a duplicate.
+	authorized := map[[2]string]bool{}
 	for _, row := range plan.transitions {
-		prior := state(row.prior)
-		c.Transitions = append(c.Transitions, &testpilotspb.CorrelatedTransition{PriorStateId: prior, ResultId: result(row.result)})
+		pair := [2]string{state(row.prior), result(row.result)}
+		if authorized[pair] {
+			continue
+		}
+		authorized[pair] = true
+		c.Transitions = append(c.Transitions, &testpilotspb.CorrelatedTransition{PriorStateId: pair[0], ResultId: pair[1]})
 	}
 	for _, r := range plan.rules {
 		rule := &testpilotspb.CorrelatedProjectionRule{Kind: r.Rule.Source.KindID, Meaning: testpilotspb.CORRELATED_EVIDENCE_MEANING_CONFIRMED}

@@ -17,9 +17,9 @@ func TestLiftedHintsAreRefusedAtTheirLines(t *testing.T) {
 	_, err := Load(filepath.Join("..", "..", "..", "model", "irgen", "testdata", "lifts", "expected", "hintsRefused.json"))
 	require.Error(t, err)
 	require.ElementsMatch(t, []string{
-		at + "82: realization zeroInterval: cause bound cause.delivery looks every 0 milliseconds; an interval is positive",
-		at + "93: realization nonPositiveBound: visibility visibility.activityAnswer.describeActivityExecution waits at most -1 milliseconds; a bound is positive",
-		at + "96: realization nonPositiveBound: cause bound cause.timer waits at most 0 milliseconds; a bound is positive",
+		at + "82: realization zeroInterval: cause bound cause.delivery.interval is required",
+		at + "93: realization nonPositiveBound: visibility visibility.activityAnswer.describeActivityExecution.at_most: Duration must be nonnegative",
+		at + "96: realization nonPositiveBound: cause bound cause.timer.at_most is required",
 		at + "105: realization intervalOverBound: cause bound cause.timer looks every 2000 milliseconds and waits at most 1000; " +
 			"an interval is no greater than its bound",
 		at + "111: realization unboundedStep: server step poll is a delivery, and the realization bounds no delivery",

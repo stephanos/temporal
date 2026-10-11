@@ -316,9 +316,9 @@ func requireCorrelatedNexusHistoryEvidence(t testing.TB, run *testpilotpb.Run, s
 		require.Equal(t, "controller", event.GetCoordinates().GetEntrypointId())
 		require.Equal(t, "history", event.GetCoordinates().GetInstructionId())
 		var historyEvent historypb.HistoryEvent
-		require.NoError(t, observationValue(t, event, "history-event").GetMessageValue().UnmarshalTo(&historyEvent))
+		require.NoError(t, observationValue(t, event, "history-event").GetObjectValue().UnmarshalTo(&historyEvent))
 		var evidence testpilotpb.CorrelatedEvidence
-		require.NoError(t, observationValue(t, event, "correlated-evidence").GetMessageValue().UnmarshalTo(&evidence))
+		require.NoError(t, observationValue(t, event, "correlated-evidence").GetObjectValue().UnmarshalTo(&evidence))
 		require.Equal(t, supporting[index], historyEvent.GetEventType())
 		// The lift names each evidence kind by the Case-local name the Case's provenance maps to
 		// its Definition ID, which is the event kind's own last segment.
@@ -381,7 +381,7 @@ func requireNexusHistoryEvent(t testing.TB, run *testpilotpb.Run, eventType enum
 				continue
 			}
 			var historyEvent historypb.HistoryEvent
-			require.NoError(t, observation.GetValue().GetMessageValue().UnmarshalTo(&historyEvent))
+			require.NoError(t, observation.GetValue().GetObjectValue().UnmarshalTo(&historyEvent))
 			if historyEvent.GetEventType() == eventType {
 				return
 			}
@@ -401,7 +401,7 @@ func requireScheduledNexusEndpoint(t testing.TB, run *testpilotpb.Run, scheduled
 				continue
 			}
 			var historyEvent historypb.HistoryEvent
-			require.NoError(t, observation.GetValue().GetMessageValue().UnmarshalTo(&historyEvent))
+			require.NoError(t, observation.GetValue().GetObjectValue().UnmarshalTo(&historyEvent))
 			if historyEvent.GetEventId() != scheduledID {
 				continue
 			}

@@ -2,6 +2,7 @@ package recordedrun
 
 import (
 	"encoding/json"
+	"errors"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/casefile"
 )
 
 func TestCompanionMigrationInventory(t *testing.T) {
@@ -23,6 +25,13 @@ func TestCompanionMigrationInventory(t *testing.T) {
 			Case string `json:"case"`
 			Run  string `json:"run"`
 		} `json:"companions"`
+		// Retired records were recorded under a retired Case format. Each is kept to prove that it
+		// is refused before its Run payload is read: its Case is of a retired format, or its Case
+		// was migrated and no longer has the identity the record names.
+		Retired []struct {
+			Case string `json:"case"`
+			Run  string `json:"run"`
+		} `json:"retired"`
 	}
 	require.NoError(t, json.Unmarshal(encoded, &inventory))
 	require.NotEmpty(t, inventory.CaseRoots)
@@ -80,6 +89,22 @@ func TestCompanionMigrationInventory(t *testing.T) {
 		require.NoError(t, err)
 		require.Empty(t, Crossed(source, decoded.Run))
 		inventoried = append(inventoried, companion.Run)
+	}
+	for _, retired := range inventory.Retired {
+		identity, exists := caseIdentities[retired.Case]
+		require.True(t, exists, "uninventoried Case %s", retired.Case)
+		encoded, err := os.ReadFile(filepath.Join(root, retired.Run))
+		require.NoError(t, err)
+		caseBytes, err := os.ReadFile(filepath.Join(root, retired.Case))
+		require.NoError(t, err)
+		_, caseErr := testpilot.DecodeCaseProtoJSON(caseBytes)
+		var format *casefile.FormatError
+		if !errors.As(caseErr, &format) {
+			require.NoError(t, caseErr)
+			_, err = DecodeForCase(encoded, identity)
+			require.ErrorIs(t, err, ErrCaseMismatch, "retired %s", retired.Run)
+		}
+		inventoried = append(inventoried, retired.Run)
 	}
 	slices.Sort(records)
 	slices.Sort(inventoried)

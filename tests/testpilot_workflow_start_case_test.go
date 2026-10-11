@@ -60,7 +60,7 @@ func requireSubmittedWorkflowTypeEvidence(t testing.TB, run *testpilotpb.Run, ve
 	require.Equal(t, "history", event.GetCoordinates().GetInstructionId())
 
 	var historyEvent historypb.HistoryEvent
-	require.NoError(t, observationValue(t, event, "history-event").GetMessageValue().UnmarshalTo(&historyEvent))
+	require.NoError(t, observationValue(t, event, "history-event").GetObjectValue().UnmarshalTo(&historyEvent))
 	require.Equal(t, enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_STARTED, historyEvent.GetEventType())
 	started := historyEvent.GetWorkflowExecutionStartedEventAttributes()
 	require.Equal(t, testpilotfixture.WorkflowStartWorkflowType, started.GetWorkflowType().GetName())

@@ -1,7 +1,7 @@
 {
   "caseId": "temporal.case.workflowStartTests.started",
   "version": {
-    "major": 1
+    "major": 4
   },
   "provenance": {
     "producerId": "temporal.workflow.start.testpilot",
@@ -208,41 +208,122 @@
                   {
                     "target": "namespace",
                     "value": {
-                      "reference": {
-                        "environmentBindingId": "temporal.worker.namespace"
-                      }
+                      "cel": {
+                        "expr": {
+                          "id": "1",
+                          "callExpr": {
+                            "target": {
+                              "id": "2",
+                              "identExpr": {
+                                "name": "v0"
+                              }
+                            },
+                            "function": "value"
+                          }
+                        }
+                      },
+                      "bindings": [
+                        {
+                          "variable": "v0",
+                          "reference": {
+                            "environmentBindingId": "temporal.worker.namespace"
+                          }
+                        }
+                      ]
                     }
                   },
                   {
                     "target": "workflow_id",
                     "value": {
-                      "reference": {
-                        "run": {}
-                      }
+                      "cel": {
+                        "expr": {
+                          "id": "1",
+                          "callExpr": {
+                            "target": {
+                              "id": "2",
+                              "identExpr": {
+                                "name": "v0"
+                              }
+                            },
+                            "function": "value"
+                          }
+                        }
+                      },
+                      "bindings": [
+                        {
+                          "variable": "v0",
+                          "reference": {
+                            "run": {}
+                          }
+                        }
+                      ]
                     }
                   },
                   {
                     "target": "workflow_type.name",
                     "value": {
-                      "literal": {
-                        "textValue": "umpire-workflowStartTests-started-workflow"
+                      "cel": {
+                        "expr": {
+                          "id": "1",
+                          "constExpr": {
+                            "stringValue": "umpire-workflowStartTests-started-workflow"
+                          }
+                        }
                       }
                     }
                   },
                   {
                     "target": "task_queue.name",
                     "value": {
-                      "reference": {
-                        "environmentBindingId": "temporal.task-queue.resource"
-                      }
+                      "cel": {
+                        "expr": {
+                          "id": "1",
+                          "callExpr": {
+                            "target": {
+                              "id": "2",
+                              "identExpr": {
+                                "name": "v0"
+                              }
+                            },
+                            "function": "value"
+                          }
+                        }
+                      },
+                      "bindings": [
+                        {
+                          "variable": "v0",
+                          "reference": {
+                            "environmentBindingId": "temporal.task-queue.resource"
+                          }
+                        }
+                      ]
                     }
                   },
                   {
                     "target": "request_id",
                     "value": {
-                      "reference": {
-                        "run": {}
-                      }
+                      "cel": {
+                        "expr": {
+                          "id": "1",
+                          "callExpr": {
+                            "target": {
+                              "id": "2",
+                              "identExpr": {
+                                "name": "v0"
+                              }
+                            },
+                            "function": "value"
+                          }
+                        }
+                      },
+                      "bindings": [
+                        {
+                          "variable": "v0",
+                          "reference": {
+                            "run": {}
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
@@ -259,43 +340,105 @@
                   {
                     "target": "namespace",
                     "value": {
-                      "reference": {
-                        "environmentBindingId": "temporal.worker.namespace"
-                      }
+                      "cel": {
+                        "expr": {
+                          "id": "1",
+                          "callExpr": {
+                            "target": {
+                              "id": "2",
+                              "identExpr": {
+                                "name": "v0"
+                              }
+                            },
+                            "function": "value"
+                          }
+                        }
+                      },
+                      "bindings": [
+                        {
+                          "variable": "v0",
+                          "reference": {
+                            "environmentBindingId": "temporal.worker.namespace"
+                          }
+                        }
+                      ]
                     }
                   },
                   {
                     "target": "execution.workflow_id",
                     "value": {
-                      "reference": {
-                        "run": {}
-                      }
+                      "cel": {
+                        "expr": {
+                          "id": "1",
+                          "callExpr": {
+                            "target": {
+                              "id": "2",
+                              "identExpr": {
+                                "name": "v0"
+                              }
+                            },
+                            "function": "value"
+                          }
+                        }
+                      },
+                      "bindings": [
+                        {
+                          "variable": "v0",
+                          "reference": {
+                            "run": {}
+                          }
+                        }
+                      ]
                     }
                   },
                   {
                     "target": "maximum_page_size",
                     "value": {
-                      "literal": {
-                        "signedIntegerValue": "64"
+                      "cel": {
+                        "expr": {
+                          "id": "1",
+                          "constExpr": {
+                            "int64Value": "64"
+                          }
+                        }
                       }
                     }
                   },
                   {
                     "target": "wait_new_event",
                     "value": {
-                      "literal": {
-                        "boolValue": true
+                      "cel": {
+                        "expr": {
+                          "id": "1",
+                          "constExpr": {
+                            "boolValue": true
+                          }
+                        }
                       }
                     }
                   },
                   {
                     "target": "history_event_filter_type",
                     "value": {
-                      "literal": {
-                        "enumValue": {
-                          "name": "HISTORY_EVENT_FILTER_TYPE_CLOSE_EVENT"
+                      "cel": {
+                        "expr": {
+                          "id": "1",
+                          "identExpr": {
+                            "name": "v0"
+                          }
                         }
-                      }
+                      },
+                      "bindings": [
+                        {
+                          "variable": "v0",
+                          "literal": {
+                            "enumValue": {
+                              "type": "temporal.api.enums.v1.HistoryEventFilterType",
+                              "value": 2
+                            }
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
@@ -312,32 +455,80 @@
                   {
                     "target": "namespace",
                     "value": {
-                      "reference": {
-                        "environmentBindingId": "temporal.worker.namespace"
-                      }
+                      "cel": {
+                        "expr": {
+                          "id": "1",
+                          "callExpr": {
+                            "target": {
+                              "id": "2",
+                              "identExpr": {
+                                "name": "v0"
+                              }
+                            },
+                            "function": "value"
+                          }
+                        }
+                      },
+                      "bindings": [
+                        {
+                          "variable": "v0",
+                          "reference": {
+                            "environmentBindingId": "temporal.worker.namespace"
+                          }
+                        }
+                      ]
                     }
                   },
                   {
                     "target": "execution.workflow_id",
                     "value": {
-                      "reference": {
-                        "run": {}
-                      }
+                      "cel": {
+                        "expr": {
+                          "id": "1",
+                          "callExpr": {
+                            "target": {
+                              "id": "2",
+                              "identExpr": {
+                                "name": "v0"
+                              }
+                            },
+                            "function": "value"
+                          }
+                        }
+                      },
+                      "bindings": [
+                        {
+                          "variable": "v0",
+                          "reference": {
+                            "run": {}
+                          }
+                        }
+                      ]
                     }
                   },
                   {
                     "target": "maximum_page_size",
                     "value": {
-                      "literal": {
-                        "signedIntegerValue": "64"
+                      "cel": {
+                        "expr": {
+                          "id": "1",
+                          "constExpr": {
+                            "int64Value": "64"
+                          }
+                        }
                       }
                     }
                   },
                   {
                     "target": "wait_new_event",
                     "value": {
-                      "literal": {
-                        "boolValue": true
+                      "cel": {
+                        "expr": {
+                          "id": "1",
+                          "constExpr": {
+                            "boolValue": true
+                          }
+                        }
                       }
                     }
                   }
@@ -345,7 +536,6 @@
                 "responseReads": [
                   {
                     "path": "history.events[*]",
-                    "cardinality": "READ_CARDINALITY_EMIT_EACH",
                     "targets": [
                       {
                         "observationId": "history-event"
@@ -353,10 +543,8 @@
                       {
                         "correlatedEvidence": {
                           "observationId": "correlated-evidence",
-                          "rules": [
-                            {
-                              "evidenceId": "evidence.workflowExecutionStarted"
-                            }
+                          "evidenceIds": [
+                            "evidence.workflowExecutionStarted"
                           ]
                         }
                       }
@@ -381,14 +569,19 @@
             "instruction": {
               "finish": {
                 "result": {
-                  "literal": {
-                    "textValue": "started"
+                  "cel": {
+                    "expr": {
+                      "id": "1",
+                      "constExpr": {
+                        "stringValue": "started"
+                      }
+                    }
                   }
                 }
               }
             },
             "limits": {
-              "timeoutMilliseconds": "5000"
+              "timeout": "5s"
             }
           }
         ]
@@ -408,15 +601,47 @@
           {
             "fieldId": "run",
             "value": {
-              "textValue": "workflowStartTests-started"
+              "cel": {
+                "expr": {
+                  "id": "1",
+                  "constExpr": {
+                    "stringValue": "workflowStartTests-started"
+                  }
+                }
+              }
             }
           }
         ],
-        "operation": "attributes<workflow_execution_started_event_attributes>.first_execution_run_id"
+        "operation": {
+          "cel": {
+            "expr": {
+              "id": "1",
+              "callExpr": {
+                "target": {
+                  "id": "2",
+                  "identExpr": {
+                    "name": "v0"
+                  }
+                },
+                "function": "value"
+              }
+            }
+          },
+          "bindings": [
+            {
+              "variable": "v0",
+              "reference": {
+                "projectedValue": {}
+              },
+              "path": "attributes<workflow_execution_started_event_attributes>.first_execution_run_id"
+            }
+          ]
+        },
+        "kind": "evidence.workflowExecutionStarted"
       }
     ],
     "instructionDefaults": {
-      "timeoutMilliseconds": "10000",
+      "timeout": "10s",
       "maxAttempts": "1"
     }
   },
@@ -425,7 +650,6 @@
     "rules": [
       {
         "ruleId": "relation",
-        "kind": "CONTRACT_RULE_KIND_SAFETY",
         "initialStateId": "pending",
         "states": [
           {
@@ -446,110 +670,187 @@
             "transitionId": "match-relation",
             "sourceStateId": "pending",
             "targetStateId": "satisfied",
-            "supportKind": "CONTRACT_SUPPORT_KIND_MATCHING_EVENT",
+            "supportsEvent": true,
             "eventFilter": {
               "kinds": [
                 "RUN_EVENT_KIND_INSTRUCTION_COMPLETED"
               ]
             },
             "predicate": {
-              "all": {
-                "operands": [
-                  {
-                    "present": {
-                      "operand": {
-                        "reference": {
-                          "observationId": "history-event"
-                        }
-                      }
-                    }
-                  },
-                  {
-                    "compare": {
-                      "operator": "COMPARISON_OPERATOR_EQUAL",
-                      "left": {
-                        "path": {
-                          "operand": {
-                            "reference": {
-                              "observationId": "history-event"
+              "cel": {
+                "expr": {
+                  "id": "1",
+                  "callExpr": {
+                    "function": "_&&_",
+                    "args": [
+                      {
+                        "id": "2",
+                        "callExpr": {
+                          "target": {
+                            "id": "3",
+                            "identExpr": {
+                              "name": "v0"
                             }
                           },
-                          "path": "attributes<workflow_execution_started_event_attributes>.workflow_type.name"
+                          "function": "hasValue"
                         }
                       },
-                      "right": {
-                        "literal": {
-                          "textValue": "umpire-workflowStartTests-started-workflow"
+                      {
+                        "id": "4",
+                        "callExpr": {
+                          "function": "_==_",
+                          "args": [
+                            {
+                              "id": "5",
+                              "callExpr": {
+                                "target": {
+                                  "id": "6",
+                                  "identExpr": {
+                                    "name": "v1"
+                                  }
+                                },
+                                "function": "value"
+                              }
+                            },
+                            {
+                              "id": "7",
+                              "constExpr": {
+                                "stringValue": "umpire-workflowStartTests-started-workflow"
+                              }
+                            }
+                          ]
                         }
                       }
-                    }
+                    ]
                   }
-                ]
-              }
+                }
+              },
+              "bindings": [
+                {
+                  "variable": "v0",
+                  "reference": {
+                    "observationId": "history-event"
+                  }
+                },
+                {
+                  "variable": "v1",
+                  "reference": {
+                    "observationId": "history-event"
+                  },
+                  "path": "attributes<workflow_execution_started_event_attributes>.workflow_type.name"
+                }
+              ]
             }
           },
           {
             "transitionId": "reject-relation",
             "sourceStateId": "pending",
             "targetStateId": "violated",
-            "supportKind": "CONTRACT_SUPPORT_KIND_MATCHING_EVENT",
+            "supportsEvent": true,
             "eventFilter": {
               "kinds": [
                 "RUN_EVENT_KIND_INSTRUCTION_COMPLETED"
               ]
             },
             "predicate": {
-              "all": {
-                "operands": [
-                  {
-                    "present": {
-                      "operand": {
-                        "reference": {
-                          "observationId": "history-event"
-                        }
-                      }
-                    }
-                  },
-                  {
-                    "present": {
-                      "operand": {
-                        "path": {
-                          "operand": {
-                            "reference": {
-                              "observationId": "history-event"
+              "cel": {
+                "expr": {
+                  "id": "1",
+                  "callExpr": {
+                    "function": "_&&_",
+                    "args": [
+                      {
+                        "id": "2",
+                        "callExpr": {
+                          "target": {
+                            "id": "3",
+                            "identExpr": {
+                              "name": "v0"
                             }
                           },
-                          "path": "attributes<workflow_execution_started_event_attributes>.workflow_type.name"
+                          "function": "hasValue"
+                        }
+                      },
+                      {
+                        "id": "4",
+                        "callExpr": {
+                          "function": "_&&_",
+                          "args": [
+                            {
+                              "id": "5",
+                              "callExpr": {
+                                "target": {
+                                  "id": "6",
+                                  "identExpr": {
+                                    "name": "v1"
+                                  }
+                                },
+                                "function": "hasValue"
+                              }
+                            },
+                            {
+                              "id": "7",
+                              "callExpr": {
+                                "function": "!_",
+                                "args": [
+                                  {
+                                    "id": "8",
+                                    "callExpr": {
+                                      "function": "_==_",
+                                      "args": [
+                                        {
+                                          "id": "9",
+                                          "callExpr": {
+                                            "target": {
+                                              "id": "10",
+                                              "identExpr": {
+                                                "name": "v2"
+                                              }
+                                            },
+                                            "function": "value"
+                                          }
+                                        },
+                                        {
+                                          "id": "11",
+                                          "constExpr": {
+                                            "stringValue": "umpire-workflowStartTests-started-workflow"
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          ]
                         }
                       }
-                    }
-                  },
-                  {
-                    "not": {
-                      "operand": {
-                        "compare": {
-                          "operator": "COMPARISON_OPERATOR_EQUAL",
-                          "left": {
-                            "path": {
-                              "operand": {
-                                "reference": {
-                                  "observationId": "history-event"
-                                }
-                              },
-                              "path": "attributes<workflow_execution_started_event_attributes>.workflow_type.name"
-                            }
-                          },
-                          "right": {
-                            "literal": {
-                              "textValue": "umpire-workflowStartTests-started-workflow"
-                            }
-                          }
-                        }
-                      }
-                    }
+                    ]
                   }
-                ]
-              }
+                }
+              },
+              "bindings": [
+                {
+                  "variable": "v0",
+                  "reference": {
+                    "observationId": "history-event"
+                  }
+                },
+                {
+                  "variable": "v1",
+                  "reference": {
+                    "observationId": "history-event"
+                  },
+                  "path": "attributes<workflow_execution_started_event_attributes>.workflow_type.name"
+                },
+                {
+                  "variable": "v2",
+                  "reference": {
+                    "observationId": "history-event"
+                  },
+                  "path": "attributes<workflow_execution_started_event_attributes>.workflow_type.name"
+                }
+              ]
             }
           }
         ]
@@ -566,24 +867,232 @@
       "sources": [
         "history"
       ],
-      "initialState": {
-        "definitionId": "pending",
-        "value": "pending"
-      },
+      "initialStateId": "s1",
       "transitions": [
         {
-          "priorState": {
+          "priorStateId": "s1",
+          "resultId": "r1"
+        }
+      ],
+      "projectionRules": [
+        {
+          "kind": "evidence.workflowExecutionStarted",
+          "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
+          "resultIds": [
+            "r1"
+          ]
+        }
+      ],
+      "rules": [
+        {
+          "ruleId": "fact-workflowExecutionStarted",
+          "trigger": {
+            "cel": {
+              "expr": {
+                "id": "1",
+                "callExpr": {
+                  "function": "@in",
+                  "args": [
+                    {
+                      "id": "2",
+                      "constExpr": {
+                        "stringValue": "startWorkflow"
+                      }
+                    },
+                    {
+                      "id": "3",
+                      "callExpr": {
+                        "target": {
+                          "id": "4",
+                          "identExpr": {
+                            "name": "v0"
+                          }
+                        },
+                        "function": "value"
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "bindings": [
+              {
+                "variable": "v0",
+                "reference": {
+                  "correlatedStep": {
+                    "field": "CORRELATED_STEP_FIELD_ACTION",
+                    "definitionId": "startWorkflow"
+                  }
+                }
+              }
+            ]
+          },
+          "response": {
+            "cel": {
+              "expr": {
+                "id": "1",
+                "callExpr": {
+                  "function": "@in",
+                  "args": [
+                    {
+                      "id": "2",
+                      "constExpr": {
+                        "stringValue": "workflowExecutionStarted"
+                      }
+                    },
+                    {
+                      "id": "3",
+                      "callExpr": {
+                        "target": {
+                          "id": "4",
+                          "identExpr": {
+                            "name": "v0"
+                          }
+                        },
+                        "function": "value"
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "bindings": [
+              {
+                "variable": "v0",
+                "reference": {
+                  "correlatedStep": {
+                    "field": "CORRELATED_STEP_FIELD_FACT",
+                    "definitionId": "workflowStart.workflowExecutionStarted"
+                  }
+                }
+              }
+            ]
+          },
+          "ending": "TRACE_ENDING_PARTIAL"
+        },
+        {
+          "ruleId": "state-started",
+          "trigger": {
+            "cel": {
+              "expr": {
+                "id": "1",
+                "callExpr": {
+                  "function": "@in",
+                  "args": [
+                    {
+                      "id": "2",
+                      "constExpr": {
+                        "stringValue": "startWorkflow"
+                      }
+                    },
+                    {
+                      "id": "3",
+                      "callExpr": {
+                        "target": {
+                          "id": "4",
+                          "identExpr": {
+                            "name": "v0"
+                          }
+                        },
+                        "function": "value"
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "bindings": [
+              {
+                "variable": "v0",
+                "reference": {
+                  "correlatedStep": {
+                    "field": "CORRELATED_STEP_FIELD_ACTION",
+                    "definitionId": "startWorkflow"
+                  }
+                }
+              }
+            ]
+          },
+          "response": {
+            "cel": {
+              "expr": {
+                "id": "1",
+                "callExpr": {
+                  "function": "@in",
+                  "args": [
+                    {
+                      "id": "2",
+                      "constExpr": {
+                        "stringValue": "started"
+                      }
+                    },
+                    {
+                      "id": "3",
+                      "callExpr": {
+                        "target": {
+                          "id": "4",
+                          "identExpr": {
+                            "name": "v0"
+                          }
+                        },
+                        "function": "value"
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "bindings": [
+              {
+                "variable": "v0",
+                "reference": {
+                  "correlatedStep": {
+                    "field": "CORRELATED_STEP_FIELD_STATE",
+                    "definitionId": "started"
+                  }
+                }
+              }
+            ]
+          },
+          "ending": "TRACE_ENDING_PARTIAL"
+        }
+      ],
+      "states": [
+        {
+          "stateId": "s1",
+          "atom": {
             "definitionId": "pending",
             "value": "pending"
           },
+          "fields": [
+            {
+              "definitionId": "phase",
+              "value": "pending"
+            }
+          ]
+        },
+        {
+          "stateId": "s2",
+          "atom": {
+            "definitionId": "started",
+            "value": "started"
+          },
+          "fields": [
+            {
+              "definitionId": "phase",
+              "value": "started"
+            }
+          ]
+        }
+      ],
+      "results": [
+        {
+          "resultId": "r1",
           "action": {
             "definitionId": "startWorkflow",
             "value": "startWorkflow"
           },
-          "state": {
-            "definitionId": "started",
-            "value": "started"
-          },
+          "stateId": "s2",
           "outcome": {
             "definitionId": "accepted",
             "value": "accepted"
@@ -593,143 +1102,7 @@
               "definitionId": "workflowStart.workflowExecutionStarted",
               "value": "workflowExecutionStarted"
             }
-          ],
-          "priorFields": [
-            {
-              "definitionId": "phase",
-              "value": "pending"
-            }
-          ],
-          "stateFields": [
-            {
-              "definitionId": "phase",
-              "value": "started"
-            }
           ]
-        }
-      ],
-      "projectionRules": [
-        {
-          "kind": "evidence.workflowExecutionStarted",
-          "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
-          "outputs": [
-            {
-              "action": {
-                "definitionId": "startWorkflow",
-                "value": "startWorkflow"
-              },
-              "state": {
-                "definitionId": "started",
-                "value": "started"
-              },
-              "outcome": {
-                "definitionId": "accepted",
-                "value": "accepted"
-              },
-              "facts": [
-                {
-                  "definitionId": "workflowStart.workflowExecutionStarted",
-                  "value": "workflowExecutionStarted"
-                }
-              ],
-              "stateFields": [
-                {
-                  "definitionId": "phase",
-                  "value": "started"
-                }
-              ]
-            }
-          ]
-        }
-      ],
-      "rules": [
-        {
-          "ruleId": "fact-workflowExecutionStarted",
-          "trigger": {
-            "compare": {
-              "operator": "COMPARISON_OPERATOR_EQUAL",
-              "left": {
-                "reference": {
-                  "correlatedStep": {
-                    "field": "CORRELATED_STEP_FIELD_ACTION",
-                    "definitionId": "startWorkflow"
-                  }
-                }
-              },
-              "right": {
-                "literal": {
-                  "textValue": "startWorkflow"
-                }
-              }
-            }
-          },
-          "response": {
-            "compare": {
-              "operator": "COMPARISON_OPERATOR_EQUAL",
-              "left": {
-                "reference": {
-                  "correlatedStep": {
-                    "field": "CORRELATED_STEP_FIELD_FACT",
-                    "definitionId": "workflowStart.workflowExecutionStarted"
-                  }
-                }
-              },
-              "right": {
-                "literal": {
-                  "textValue": "workflowExecutionStarted"
-                }
-              }
-            }
-          },
-          "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
-          "ending": "TRACE_ENDING_PARTIAL"
-        },
-        {
-          "ruleId": "state-started",
-          "trigger": {
-            "compare": {
-              "operator": "COMPARISON_OPERATOR_EQUAL",
-              "left": {
-                "reference": {
-                  "correlatedStep": {
-                    "field": "CORRELATED_STEP_FIELD_ACTION",
-                    "definitionId": "startWorkflow"
-                  }
-                }
-              },
-              "right": {
-                "literal": {
-                  "textValue": "startWorkflow"
-                }
-              }
-            }
-          },
-          "response": {
-            "compare": {
-              "operator": "COMPARISON_OPERATOR_EQUAL",
-              "left": {
-                "reference": {
-                  "correlatedStep": {
-                    "field": "CORRELATED_STEP_FIELD_STATE",
-                    "definitionId": "started"
-                  }
-                }
-              },
-              "right": {
-                "literal": {
-                  "textValue": "started"
-                }
-              }
-            }
-          },
-          "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
-          "ending": "TRACE_ENDING_PARTIAL"
-        }
-      ],
-      "initialStateFields": [
-        {
-          "definitionId": "phase",
-          "value": "pending"
         }
       ]
     }

@@ -1,7 +1,7 @@
 {
   "caseId": "temporal.case.workerOutageTests.survived",
   "version": {
-    "major": 1
+    "major": 4
   },
   "provenance": {
     "producerId": "temporal.workflow.outage.testpilot",
@@ -238,41 +238,122 @@
                   {
                     "target": "namespace",
                     "value": {
-                      "reference": {
-                        "environmentBindingId": "temporal.worker.namespace"
-                      }
+                      "cel": {
+                        "expr": {
+                          "id": "1",
+                          "callExpr": {
+                            "target": {
+                              "id": "2",
+                              "identExpr": {
+                                "name": "v0"
+                              }
+                            },
+                            "function": "value"
+                          }
+                        }
+                      },
+                      "bindings": [
+                        {
+                          "variable": "v0",
+                          "reference": {
+                            "environmentBindingId": "temporal.worker.namespace"
+                          }
+                        }
+                      ]
                     }
                   },
                   {
                     "target": "workflow_id",
                     "value": {
-                      "reference": {
-                        "run": {}
-                      }
+                      "cel": {
+                        "expr": {
+                          "id": "1",
+                          "callExpr": {
+                            "target": {
+                              "id": "2",
+                              "identExpr": {
+                                "name": "v0"
+                              }
+                            },
+                            "function": "value"
+                          }
+                        }
+                      },
+                      "bindings": [
+                        {
+                          "variable": "v0",
+                          "reference": {
+                            "run": {}
+                          }
+                        }
+                      ]
                     }
                   },
                   {
                     "target": "workflow_type.name",
                     "value": {
-                      "literal": {
-                        "textValue": "umpire-workerOutageTests-survived-workflow"
+                      "cel": {
+                        "expr": {
+                          "id": "1",
+                          "constExpr": {
+                            "stringValue": "umpire-workerOutageTests-survived-workflow"
+                          }
+                        }
                       }
                     }
                   },
                   {
                     "target": "task_queue.name",
                     "value": {
-                      "reference": {
-                        "environmentBindingId": "temporal.task-queue.resource"
-                      }
+                      "cel": {
+                        "expr": {
+                          "id": "1",
+                          "callExpr": {
+                            "target": {
+                              "id": "2",
+                              "identExpr": {
+                                "name": "v0"
+                              }
+                            },
+                            "function": "value"
+                          }
+                        }
+                      },
+                      "bindings": [
+                        {
+                          "variable": "v0",
+                          "reference": {
+                            "environmentBindingId": "temporal.task-queue.resource"
+                          }
+                        }
+                      ]
                     }
                   },
                   {
                     "target": "request_id",
                     "value": {
-                      "reference": {
-                        "run": {}
-                      }
+                      "cel": {
+                        "expr": {
+                          "id": "1",
+                          "callExpr": {
+                            "target": {
+                              "id": "2",
+                              "identExpr": {
+                                "name": "v0"
+                              }
+                            },
+                            "function": "value"
+                          }
+                        }
+                      },
+                      "bindings": [
+                        {
+                          "variable": "v0",
+                          "reference": {
+                            "run": {}
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
@@ -298,43 +379,105 @@
                   {
                     "target": "namespace",
                     "value": {
-                      "reference": {
-                        "environmentBindingId": "temporal.worker.namespace"
-                      }
+                      "cel": {
+                        "expr": {
+                          "id": "1",
+                          "callExpr": {
+                            "target": {
+                              "id": "2",
+                              "identExpr": {
+                                "name": "v0"
+                              }
+                            },
+                            "function": "value"
+                          }
+                        }
+                      },
+                      "bindings": [
+                        {
+                          "variable": "v0",
+                          "reference": {
+                            "environmentBindingId": "temporal.worker.namespace"
+                          }
+                        }
+                      ]
                     }
                   },
                   {
                     "target": "execution.workflow_id",
                     "value": {
-                      "reference": {
-                        "run": {}
-                      }
+                      "cel": {
+                        "expr": {
+                          "id": "1",
+                          "callExpr": {
+                            "target": {
+                              "id": "2",
+                              "identExpr": {
+                                "name": "v0"
+                              }
+                            },
+                            "function": "value"
+                          }
+                        }
+                      },
+                      "bindings": [
+                        {
+                          "variable": "v0",
+                          "reference": {
+                            "run": {}
+                          }
+                        }
+                      ]
                     }
                   },
                   {
                     "target": "maximum_page_size",
                     "value": {
-                      "literal": {
-                        "signedIntegerValue": "64"
+                      "cel": {
+                        "expr": {
+                          "id": "1",
+                          "constExpr": {
+                            "int64Value": "64"
+                          }
+                        }
                       }
                     }
                   },
                   {
                     "target": "wait_new_event",
                     "value": {
-                      "literal": {
-                        "boolValue": true
+                      "cel": {
+                        "expr": {
+                          "id": "1",
+                          "constExpr": {
+                            "boolValue": true
+                          }
+                        }
                       }
                     }
                   },
                   {
                     "target": "history_event_filter_type",
                     "value": {
-                      "literal": {
-                        "enumValue": {
-                          "name": "HISTORY_EVENT_FILTER_TYPE_CLOSE_EVENT"
+                      "cel": {
+                        "expr": {
+                          "id": "1",
+                          "identExpr": {
+                            "name": "v0"
+                          }
                         }
-                      }
+                      },
+                      "bindings": [
+                        {
+                          "variable": "v0",
+                          "literal": {
+                            "enumValue": {
+                              "type": "temporal.api.enums.v1.HistoryEventFilterType",
+                              "value": 2
+                            }
+                          }
+                        }
+                      ]
                     }
                   }
                 ]
@@ -351,32 +494,80 @@
                   {
                     "target": "namespace",
                     "value": {
-                      "reference": {
-                        "environmentBindingId": "temporal.worker.namespace"
-                      }
+                      "cel": {
+                        "expr": {
+                          "id": "1",
+                          "callExpr": {
+                            "target": {
+                              "id": "2",
+                              "identExpr": {
+                                "name": "v0"
+                              }
+                            },
+                            "function": "value"
+                          }
+                        }
+                      },
+                      "bindings": [
+                        {
+                          "variable": "v0",
+                          "reference": {
+                            "environmentBindingId": "temporal.worker.namespace"
+                          }
+                        }
+                      ]
                     }
                   },
                   {
                     "target": "execution.workflow_id",
                     "value": {
-                      "reference": {
-                        "run": {}
-                      }
+                      "cel": {
+                        "expr": {
+                          "id": "1",
+                          "callExpr": {
+                            "target": {
+                              "id": "2",
+                              "identExpr": {
+                                "name": "v0"
+                              }
+                            },
+                            "function": "value"
+                          }
+                        }
+                      },
+                      "bindings": [
+                        {
+                          "variable": "v0",
+                          "reference": {
+                            "run": {}
+                          }
+                        }
+                      ]
                     }
                   },
                   {
                     "target": "maximum_page_size",
                     "value": {
-                      "literal": {
-                        "signedIntegerValue": "64"
+                      "cel": {
+                        "expr": {
+                          "id": "1",
+                          "constExpr": {
+                            "int64Value": "64"
+                          }
+                        }
                       }
                     }
                   },
                   {
                     "target": "wait_new_event",
                     "value": {
-                      "literal": {
-                        "boolValue": true
+                      "cel": {
+                        "expr": {
+                          "id": "1",
+                          "constExpr": {
+                            "boolValue": true
+                          }
+                        }
                       }
                     }
                   }
@@ -384,7 +575,6 @@
                 "responseReads": [
                   {
                     "path": "history.events[*]",
-                    "cardinality": "READ_CARDINALITY_EMIT_EACH",
                     "targets": [
                       {
                         "observationId": "history-event"
@@ -392,10 +582,8 @@
                       {
                         "correlatedEvidence": {
                           "observationId": "correlated-evidence",
-                          "rules": [
-                            {
-                              "evidenceId": "evidence.workflowExecutionCompleted"
-                            }
+                          "evidenceIds": [
+                            "evidence.workflowExecutionCompleted"
                           ]
                         }
                       }
@@ -420,14 +608,19 @@
             "instruction": {
               "finish": {
                 "result": {
-                  "literal": {
-                    "textValue": "completed"
+                  "cel": {
+                    "expr": {
+                      "id": "1",
+                      "constExpr": {
+                        "stringValue": "completed"
+                      }
+                    }
                   }
                 }
               }
             },
             "limits": {
-              "timeoutMilliseconds": "5000"
+              "timeout": "5s"
             }
           }
         ]
@@ -447,15 +640,47 @@
           {
             "fieldId": "run",
             "value": {
-              "textValue": "workerOutageTests-survived"
+              "cel": {
+                "expr": {
+                  "id": "1",
+                  "constExpr": {
+                    "stringValue": "workerOutageTests-survived"
+                  }
+                }
+              }
             }
           }
         ],
-        "operation": "attributes<workflow_execution_completed_event_attributes>.workflow_task_completed_event_id"
+        "operation": {
+          "cel": {
+            "expr": {
+              "id": "1",
+              "callExpr": {
+                "target": {
+                  "id": "2",
+                  "identExpr": {
+                    "name": "v0"
+                  }
+                },
+                "function": "value"
+              }
+            }
+          },
+          "bindings": [
+            {
+              "variable": "v0",
+              "reference": {
+                "projectedValue": {}
+              },
+              "path": "attributes<workflow_execution_completed_event_attributes>.workflow_task_completed_event_id"
+            }
+          ]
+        },
+        "kind": "evidence.workflowExecutionCompleted"
       }
     ],
     "instructionDefaults": {
-      "timeoutMilliseconds": "10000",
+      "timeout": "10s",
       "maxAttempts": "1"
     }
   },
@@ -464,7 +689,6 @@
     "rules": [
       {
         "ruleId": "worker-outage-order",
-        "kind": "CONTRACT_RULE_KIND_BOUNDED_LIVENESS",
         "initialStateId": "awaiting-stop",
         "states": [
           {
@@ -489,126 +713,208 @@
             "transitionId": "observe-stop",
             "sourceStateId": "awaiting-stop",
             "targetStateId": "stopped",
-            "supportKind": "CONTRACT_SUPPORT_KIND_MATCHING_EVENT",
+            "supportsEvent": true,
             "eventFilter": {
               "kinds": [
                 "RUN_EVENT_KIND_FAULT_INJECTED"
               ]
             },
             "predicate": {
-              "all": {
-                "operands": [
-                  {
-                    "compare": {
-                      "operator": "COMPARISON_OPERATOR_EQUAL",
-                      "left": {
-                        "path": {
-                          "operand": {
-                            "reference": {
-                              "runEvent": {
-                                "payload": {}
+              "cel": {
+                "expr": {
+                  "id": "1",
+                  "callExpr": {
+                    "function": "_&&_",
+                    "args": [
+                      {
+                        "id": "2",
+                        "callExpr": {
+                          "function": "_==_",
+                          "args": [
+                            {
+                              "id": "3",
+                              "callExpr": {
+                                "target": {
+                                  "id": "4",
+                                  "identExpr": {
+                                    "name": "v0"
+                                  }
+                                },
+                                "function": "value"
+                              }
+                            },
+                            {
+                              "id": "5",
+                              "constExpr": {
+                                "stringValue": "temporal.task-queue"
                               }
                             }
-                          },
-                          "path": "fault_injected.role_id"
+                          ]
                         }
                       },
-                      "right": {
-                        "literal": {
-                          "textValue": "temporal.task-queue"
+                      {
+                        "id": "6",
+                        "callExpr": {
+                          "function": "_==_",
+                          "args": [
+                            {
+                              "id": "7",
+                              "callExpr": {
+                                "target": {
+                                  "id": "8",
+                                  "identExpr": {
+                                    "name": "v1"
+                                  }
+                                },
+                                "function": "value"
+                              }
+                            },
+                            {
+                              "id": "9",
+                              "identExpr": {
+                                "name": "v2"
+                              }
+                            }
+                          ]
                         }
                       }
+                    ]
+                  }
+                }
+              },
+              "bindings": [
+                {
+                  "variable": "v0",
+                  "reference": {
+                    "runEvent": {
+                      "payload": {}
                     }
                   },
-                  {
-                    "compare": {
-                      "operator": "COMPARISON_OPERATOR_EQUAL",
-                      "left": {
-                        "path": {
-                          "operand": {
-                            "reference": {
-                              "runEvent": {
-                                "payload": {}
-                              }
-                            }
-                          },
-                          "path": "fault_injected.kind"
-                        }
-                      },
-                      "right": {
-                        "literal": {
-                          "enumValue": {
-                            "name": "FAULT_KIND_WORKER_STOP"
-                          }
-                        }
-                      }
+                  "path": "fault_injected.role_id"
+                },
+                {
+                  "variable": "v1",
+                  "reference": {
+                    "runEvent": {
+                      "payload": {}
+                    }
+                  },
+                  "path": "fault_injected.kind"
+                },
+                {
+                  "variable": "v2",
+                  "literal": {
+                    "enumValue": {
+                      "type": "temporal.server.api.testpilot.v1.FaultKind",
+                      "value": 1
                     }
                   }
-                ]
-              }
+                }
+              ]
             }
           },
           {
             "transitionId": "observe-resume",
             "sourceStateId": "stopped",
             "targetStateId": "resumed",
-            "supportKind": "CONTRACT_SUPPORT_KIND_MATCHING_EVENT",
+            "supportsEvent": true,
             "eventFilter": {
               "kinds": [
                 "RUN_EVENT_KIND_FAULT_INJECTED"
               ]
             },
             "predicate": {
-              "all": {
-                "operands": [
-                  {
-                    "compare": {
-                      "operator": "COMPARISON_OPERATOR_EQUAL",
-                      "left": {
-                        "path": {
-                          "operand": {
-                            "reference": {
-                              "runEvent": {
-                                "payload": {}
+              "cel": {
+                "expr": {
+                  "id": "1",
+                  "callExpr": {
+                    "function": "_&&_",
+                    "args": [
+                      {
+                        "id": "2",
+                        "callExpr": {
+                          "function": "_==_",
+                          "args": [
+                            {
+                              "id": "3",
+                              "callExpr": {
+                                "target": {
+                                  "id": "4",
+                                  "identExpr": {
+                                    "name": "v0"
+                                  }
+                                },
+                                "function": "value"
+                              }
+                            },
+                            {
+                              "id": "5",
+                              "constExpr": {
+                                "stringValue": "temporal.task-queue"
                               }
                             }
-                          },
-                          "path": "fault_injected.role_id"
+                          ]
                         }
                       },
-                      "right": {
-                        "literal": {
-                          "textValue": "temporal.task-queue"
+                      {
+                        "id": "6",
+                        "callExpr": {
+                          "function": "_==_",
+                          "args": [
+                            {
+                              "id": "7",
+                              "callExpr": {
+                                "target": {
+                                  "id": "8",
+                                  "identExpr": {
+                                    "name": "v1"
+                                  }
+                                },
+                                "function": "value"
+                              }
+                            },
+                            {
+                              "id": "9",
+                              "identExpr": {
+                                "name": "v2"
+                              }
+                            }
+                          ]
                         }
                       }
+                    ]
+                  }
+                }
+              },
+              "bindings": [
+                {
+                  "variable": "v0",
+                  "reference": {
+                    "runEvent": {
+                      "payload": {}
                     }
                   },
-                  {
-                    "compare": {
-                      "operator": "COMPARISON_OPERATOR_EQUAL",
-                      "left": {
-                        "path": {
-                          "operand": {
-                            "reference": {
-                              "runEvent": {
-                                "payload": {}
-                              }
-                            }
-                          },
-                          "path": "fault_injected.kind"
-                        }
-                      },
-                      "right": {
-                        "literal": {
-                          "enumValue": {
-                            "name": "FAULT_KIND_WORKER_RESUME"
-                          }
-                        }
-                      }
+                  "path": "fault_injected.role_id"
+                },
+                {
+                  "variable": "v1",
+                  "reference": {
+                    "runEvent": {
+                      "payload": {}
+                    }
+                  },
+                  "path": "fault_injected.kind"
+                },
+                {
+                  "variable": "v2",
+                  "literal": {
+                    "enumValue": {
+                      "type": "temporal.server.api.testpilot.v1.FaultKind",
+                      "value": 2
                     }
                   }
-                ]
-              }
+                }
+              ]
             }
           }
         ],
@@ -629,35 +935,237 @@
       "sources": [
         "history"
       ],
-      "initialState": {
-        "definitionId": "pending",
-        "value": "pending"
-      },
+      "initialStateId": "s1",
       "transitions": [
         {
-          "priorState": {
+          "priorStateId": "s1",
+          "resultId": "r1"
+        },
+        {
+          "priorStateId": "s1",
+          "resultId": "r2"
+        },
+        {
+          "priorStateId": "s1",
+          "resultId": "r3"
+        },
+        {
+          "priorStateId": "s2",
+          "resultId": "r4"
+        },
+        {
+          "priorStateId": "s2",
+          "resultId": "r5"
+        },
+        {
+          "priorStateId": "s2",
+          "resultId": "r6"
+        },
+        {
+          "priorStateId": "s3",
+          "resultId": "r7"
+        },
+        {
+          "priorStateId": "s3",
+          "resultId": "r8"
+        }
+      ],
+      "projectionRules": [
+        {
+          "kind": "evidence.workflowExecutionCompleted",
+          "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
+          "resultIds": [
+            "r1",
+            "r2",
+            "r5",
+            "r6"
+          ]
+        }
+      ],
+      "rules": [
+        {
+          "ruleId": "fact-workflowExecutionCompleted",
+          "trigger": {
+            "cel": {
+              "expr": {
+                "id": "1",
+                "callExpr": {
+                  "function": "@in",
+                  "args": [
+                    {
+                      "id": "2",
+                      "constExpr": {
+                        "stringValue": "workerStop"
+                      }
+                    },
+                    {
+                      "id": "3",
+                      "callExpr": {
+                        "target": {
+                          "id": "4",
+                          "identExpr": {
+                            "name": "v0"
+                          }
+                        },
+                        "function": "value"
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "bindings": [
+              {
+                "variable": "v0",
+                "reference": {
+                  "correlatedStep": {
+                    "field": "CORRELATED_STEP_FIELD_ACTION",
+                    "definitionId": "workerStop"
+                  }
+                }
+              }
+            ]
+          },
+          "response": {
+            "cel": {
+              "expr": {
+                "id": "1",
+                "callExpr": {
+                  "function": "@in",
+                  "args": [
+                    {
+                      "id": "2",
+                      "constExpr": {
+                        "stringValue": "workflowExecutionCompleted"
+                      }
+                    },
+                    {
+                      "id": "3",
+                      "callExpr": {
+                        "target": {
+                          "id": "4",
+                          "identExpr": {
+                            "name": "v0"
+                          }
+                        },
+                        "function": "value"
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "bindings": [
+              {
+                "variable": "v0",
+                "reference": {
+                  "correlatedStep": {
+                    "field": "CORRELATED_STEP_FIELD_FACT",
+                    "definitionId": "workflowOutage.workflowExecutionCompleted"
+                  }
+                }
+              }
+            ]
+          },
+          "bound": "3",
+          "ending": "TRACE_ENDING_PARTIAL"
+        },
+        {
+          "ruleId": "state-completed",
+          "trigger": {
+            "cel": {
+              "expr": {
+                "id": "1",
+                "callExpr": {
+                  "function": "@in",
+                  "args": [
+                    {
+                      "id": "2",
+                      "constExpr": {
+                        "stringValue": "workerStop"
+                      }
+                    },
+                    {
+                      "id": "3",
+                      "callExpr": {
+                        "target": {
+                          "id": "4",
+                          "identExpr": {
+                            "name": "v0"
+                          }
+                        },
+                        "function": "value"
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "bindings": [
+              {
+                "variable": "v0",
+                "reference": {
+                  "correlatedStep": {
+                    "field": "CORRELATED_STEP_FIELD_ACTION",
+                    "definitionId": "workerStop"
+                  }
+                }
+              }
+            ]
+          },
+          "response": {
+            "cel": {
+              "expr": {
+                "id": "1",
+                "callExpr": {
+                  "function": "@in",
+                  "args": [
+                    {
+                      "id": "2",
+                      "constExpr": {
+                        "stringValue": "completed"
+                      }
+                    },
+                    {
+                      "id": "3",
+                      "callExpr": {
+                        "target": {
+                          "id": "4",
+                          "identExpr": {
+                            "name": "v0"
+                          }
+                        },
+                        "function": "value"
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "bindings": [
+              {
+                "variable": "v0",
+                "reference": {
+                  "correlatedStep": {
+                    "field": "CORRELATED_STEP_FIELD_STATE",
+                    "definitionId": "completed"
+                  }
+                }
+              }
+            ]
+          },
+          "bound": "3",
+          "ending": "TRACE_ENDING_PARTIAL"
+        }
+      ],
+      "states": [
+        {
+          "stateId": "s1",
+          "atom": {
             "definitionId": "pending",
             "value": "pending"
           },
-          "action": {
-            "definitionId": "workerStop",
-            "value": "workerStop"
-          },
-          "state": {
-            "definitionId": "pending",
-            "value": "pending"
-          },
-          "outcome": {
-            "definitionId": "accepted",
-            "value": "accepted"
-          },
-          "priorFields": [
-            {
-              "definitionId": "phase",
-              "value": "pending"
-            }
-          ],
-          "stateFields": [
+          "fields": [
             {
               "definitionId": "phase",
               "value": "pending"
@@ -665,138 +1173,100 @@
           ]
         },
         {
-          "priorState": {
-            "definitionId": "pending",
-            "value": "pending"
+          "stateId": "s2",
+          "atom": {
+            "definitionId": "started",
+            "value": "started"
           },
+          "fields": [
+            {
+              "definitionId": "phase",
+              "value": "started"
+            }
+          ]
+        },
+        {
+          "stateId": "s3",
+          "atom": {
+            "definitionId": "completed",
+            "value": "completed"
+          },
+          "fields": [
+            {
+              "definitionId": "phase",
+              "value": "completed"
+            }
+          ]
+        }
+      ],
+      "results": [
+        {
+          "resultId": "r1",
+          "action": {
+            "definitionId": "workerStop",
+            "value": "workerStop"
+          },
+          "stateId": "s1",
+          "outcome": {
+            "definitionId": "accepted",
+            "value": "accepted"
+          }
+        },
+        {
+          "resultId": "r2",
           "action": {
             "definitionId": "startWorkflow",
             "value": "startWorkflow"
           },
-          "state": {
-            "definitionId": "started",
-            "value": "started"
-          },
+          "stateId": "s2",
           "outcome": {
             "definitionId": "accepted",
             "value": "accepted"
-          },
-          "priorFields": [
-            {
-              "definitionId": "phase",
-              "value": "pending"
-            }
-          ],
-          "stateFields": [
-            {
-              "definitionId": "phase",
-              "value": "started"
-            }
-          ]
+          }
         },
         {
-          "priorState": {
-            "definitionId": "pending",
-            "value": "pending"
-          },
+          "resultId": "r3",
           "action": {
             "definitionId": "workerResume",
             "value": "workerResume"
           },
-          "state": {
-            "definitionId": "pending",
-            "value": "pending"
-          },
+          "stateId": "s1",
           "outcome": {
             "definitionId": "accepted",
             "value": "accepted"
-          },
-          "priorFields": [
-            {
-              "definitionId": "phase",
-              "value": "pending"
-            }
-          ],
-          "stateFields": [
-            {
-              "definitionId": "phase",
-              "value": "pending"
-            }
-          ]
+          }
         },
         {
-          "priorState": {
-            "definitionId": "started",
-            "value": "started"
-          },
+          "resultId": "r4",
           "action": {
             "definitionId": "workerStop",
             "value": "workerStop"
           },
-          "state": {
-            "definitionId": "started",
-            "value": "started"
-          },
+          "stateId": "s2",
           "outcome": {
             "definitionId": "accepted",
             "value": "accepted"
-          },
-          "priorFields": [
-            {
-              "definitionId": "phase",
-              "value": "started"
-            }
-          ],
-          "stateFields": [
-            {
-              "definitionId": "phase",
-              "value": "started"
-            }
-          ]
+          }
         },
         {
-          "priorState": {
-            "definitionId": "started",
-            "value": "started"
-          },
+          "resultId": "r5",
           "action": {
             "definitionId": "workerResume",
             "value": "workerResume"
           },
-          "state": {
-            "definitionId": "started",
-            "value": "started"
-          },
+          "stateId": "s2",
           "outcome": {
             "definitionId": "accepted",
             "value": "accepted"
-          },
-          "priorFields": [
-            {
-              "definitionId": "phase",
-              "value": "started"
-            }
-          ],
-          "stateFields": [
-            {
-              "definitionId": "phase",
-              "value": "started"
-            }
-          ]
+          }
         },
         {
-          "priorState": {
-            "definitionId": "started",
-            "value": "started"
-          },
+          "resultId": "r6",
           "action": {
             "definitionId": "awaitCompletion",
             "value": "awaitCompletion"
           },
-          "state": {
-            "definitionId": "completed",
-            "value": "completed"
-          },
+          "stateId": "s3",
           "outcome": {
             "definitionId": "accepted",
             "value": "accepted"
@@ -806,265 +1276,31 @@
               "definitionId": "workflowOutage.workflowExecutionCompleted",
               "value": "workflowExecutionCompleted"
             }
-          ],
-          "priorFields": [
-            {
-              "definitionId": "phase",
-              "value": "started"
-            }
-          ],
-          "stateFields": [
-            {
-              "definitionId": "phase",
-              "value": "completed"
-            }
           ]
         },
         {
-          "priorState": {
-            "definitionId": "completed",
-            "value": "completed"
-          },
+          "resultId": "r7",
           "action": {
             "definitionId": "workerStop",
             "value": "workerStop"
           },
-          "state": {
-            "definitionId": "completed",
-            "value": "completed"
-          },
+          "stateId": "s3",
           "outcome": {
             "definitionId": "accepted",
             "value": "accepted"
-          },
-          "priorFields": [
-            {
-              "definitionId": "phase",
-              "value": "completed"
-            }
-          ],
-          "stateFields": [
-            {
-              "definitionId": "phase",
-              "value": "completed"
-            }
-          ]
+          }
         },
         {
-          "priorState": {
-            "definitionId": "completed",
-            "value": "completed"
-          },
+          "resultId": "r8",
           "action": {
             "definitionId": "workerResume",
             "value": "workerResume"
           },
-          "state": {
-            "definitionId": "completed",
-            "value": "completed"
-          },
+          "stateId": "s3",
           "outcome": {
             "definitionId": "accepted",
             "value": "accepted"
-          },
-          "priorFields": [
-            {
-              "definitionId": "phase",
-              "value": "completed"
-            }
-          ],
-          "stateFields": [
-            {
-              "definitionId": "phase",
-              "value": "completed"
-            }
-          ]
-        }
-      ],
-      "projectionRules": [
-        {
-          "kind": "evidence.workflowExecutionCompleted",
-          "meaning": "CORRELATED_EVIDENCE_MEANING_CONFIRMED",
-          "outputs": [
-            {
-              "action": {
-                "definitionId": "workerStop",
-                "value": "workerStop"
-              },
-              "state": {
-                "definitionId": "pending",
-                "value": "pending"
-              },
-              "outcome": {
-                "definitionId": "accepted",
-                "value": "accepted"
-              },
-              "stateFields": [
-                {
-                  "definitionId": "phase",
-                  "value": "pending"
-                }
-              ]
-            },
-            {
-              "action": {
-                "definitionId": "startWorkflow",
-                "value": "startWorkflow"
-              },
-              "state": {
-                "definitionId": "started",
-                "value": "started"
-              },
-              "outcome": {
-                "definitionId": "accepted",
-                "value": "accepted"
-              },
-              "stateFields": [
-                {
-                  "definitionId": "phase",
-                  "value": "started"
-                }
-              ]
-            },
-            {
-              "action": {
-                "definitionId": "workerResume",
-                "value": "workerResume"
-              },
-              "state": {
-                "definitionId": "started",
-                "value": "started"
-              },
-              "outcome": {
-                "definitionId": "accepted",
-                "value": "accepted"
-              },
-              "stateFields": [
-                {
-                  "definitionId": "phase",
-                  "value": "started"
-                }
-              ]
-            },
-            {
-              "action": {
-                "definitionId": "awaitCompletion",
-                "value": "awaitCompletion"
-              },
-              "state": {
-                "definitionId": "completed",
-                "value": "completed"
-              },
-              "outcome": {
-                "definitionId": "accepted",
-                "value": "accepted"
-              },
-              "facts": [
-                {
-                  "definitionId": "workflowOutage.workflowExecutionCompleted",
-                  "value": "workflowExecutionCompleted"
-                }
-              ],
-              "stateFields": [
-                {
-                  "definitionId": "phase",
-                  "value": "completed"
-                }
-              ]
-            }
-          ]
-        }
-      ],
-      "rules": [
-        {
-          "ruleId": "fact-workflowExecutionCompleted",
-          "trigger": {
-            "compare": {
-              "operator": "COMPARISON_OPERATOR_EQUAL",
-              "left": {
-                "reference": {
-                  "correlatedStep": {
-                    "field": "CORRELATED_STEP_FIELD_ACTION",
-                    "definitionId": "workerStop"
-                  }
-                }
-              },
-              "right": {
-                "literal": {
-                  "textValue": "workerStop"
-                }
-              }
-            }
-          },
-          "response": {
-            "compare": {
-              "operator": "COMPARISON_OPERATOR_EQUAL",
-              "left": {
-                "reference": {
-                  "correlatedStep": {
-                    "field": "CORRELATED_STEP_FIELD_FACT",
-                    "definitionId": "workflowOutage.workflowExecutionCompleted"
-                  }
-                }
-              },
-              "right": {
-                "literal": {
-                  "textValue": "workflowExecutionCompleted"
-                }
-              }
-            }
-          },
-          "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
-          "bound": "3",
-          "ending": "TRACE_ENDING_PARTIAL"
-        },
-        {
-          "ruleId": "state-completed",
-          "trigger": {
-            "compare": {
-              "operator": "COMPARISON_OPERATOR_EQUAL",
-              "left": {
-                "reference": {
-                  "correlatedStep": {
-                    "field": "CORRELATED_STEP_FIELD_ACTION",
-                    "definitionId": "workerStop"
-                  }
-                }
-              },
-              "right": {
-                "literal": {
-                  "textValue": "workerStop"
-                }
-              }
-            }
-          },
-          "response": {
-            "compare": {
-              "operator": "COMPARISON_OPERATOR_EQUAL",
-              "left": {
-                "reference": {
-                  "correlatedStep": {
-                    "field": "CORRELATED_STEP_FIELD_STATE",
-                    "definitionId": "completed"
-                  }
-                }
-              },
-              "right": {
-                "literal": {
-                  "textValue": "completed"
-                }
-              }
-            }
-          },
-          "clock": "CORRELATED_CLOCK_OPERATION_TRANSITIONS",
-          "bound": "3",
-          "ending": "TRACE_ENDING_PARTIAL"
-        }
-      ],
-      "initialStateFields": [
-        {
-          "definitionId": "phase",
-          "value": "pending"
+          }
         }
       ]
     }

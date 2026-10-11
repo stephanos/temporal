@@ -87,7 +87,7 @@ func snapshotMessage(source proto.Message, descriptor protoreflect.MessageDescri
 		return nil, err
 	}
 	result := dynamicpb.NewMessage(descriptor)
-	if err = (proto.UnmarshalOptions{RecursionLimit: int(b.limits.Depth)}).Unmarshal(wire, result); err != nil {
+	if err = unmarshalCatalog(wire, result, int(b.limits.Depth)); err != nil {
 		return nil, err
 	}
 	if err = inspect(result.ProtoReflect(), 1, b, "message"); err != nil {

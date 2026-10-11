@@ -32,9 +32,11 @@ type control struct {
 	recorded  []byte
 }
 
+// loadControl loads the control Case with its current-format record. The original record, recorded
+// under retired Case format 1.0, is kept only as a refused input.
 func loadControl(t *testing.T) control {
 	t.Helper()
-	return loadControlRun(t, controlRunPath)
+	return loadControlRun(t, currentControlRunPath)
 }
 
 func loadControlRun(t *testing.T, path string) control {
@@ -161,29 +163,28 @@ func TestAdmitCompanionIdentityRejectsBeforeRunPayload(t *testing.T) {
 	require.NotContains(t, rejection.Detail, "retiredPayload")
 }
 
-// The fresh companion admits under the current catalog; the historical record remains stale.
+// The current record admits under the current catalog; the record of retired Case format 1.0 names
+// a Case identity the migrated Case no longer has and is refused as crossed before its Run payload.
 func TestTheControlRecordIsCurrent(t *testing.T) {
 	catalog, err := testpilotdriver.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
-	current := loadControlRun(t, currentControlRunPath)
-	require.Equal(t, "12fa287d45f6e40502f05d1c89643a59d612ddd53e7fde025dc90abfb7c744f6", current.catalog())
+	current := loadControl(t)
+	require.Equal(t, "4d172cbbfbcb08fa8affe83b112ab710ad8d330328bfe38706909461fd153854", current.catalog())
 	require.Equal(t, current.catalog(), catalog.Identity())
 	subject, err := Admit(current.caseBytes, current.recorded, catalog.Identity())
 	require.NoError(t, err)
 	require.Equal(t, current.decoded.Driver, subject.Driver)
 	require.Equal(t, recordedrun.Digest(current.recorded), subject.RunIdentity)
 
-	historical := loadControl(t)
-	require.Equal(t, "3364057f225cf6fd6116023ef36573038a9acd29f0d13df2da98c76062e9c3c0", historical.catalog())
-	require.Equal(t, historical.caseBytes, current.caseBytes)
-	require.Equal(t, historical.decoded.Case, current.decoded.Case)
-	subject, err = Admit(historical.caseBytes, historical.recorded, catalog.Identity())
+	retired, err := os.ReadFile(controlRunPath)
+	require.NoError(t, err)
+	_, err = recordedrun.Decode(retired)
+	require.Error(t, err, "the retired record's Run payload is not format 4.0")
+	subject, err = Admit(current.caseBytes, retired, catalog.Identity())
 	require.Nil(t, subject)
 	rejection, ok := IsRejection(err)
 	require.True(t, ok, "not a rejection: %v", err)
-	require.Equal(t, ReasonStale, rejection.Reason)
-	require.Contains(t, rejection.Detail, historical.catalog())
-	require.Contains(t, rejection.Detail, current.catalog())
+	require.Equal(t, ReasonCrossed, rejection.Reason)
 }
 
 // Negative subjects that are well formed are admitted: a violated Run whose cleanup failed, a

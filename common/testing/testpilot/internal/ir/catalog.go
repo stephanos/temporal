@@ -259,6 +259,17 @@ func NewCatalog(source *descriptorpb.FileDescriptorSet) (*Catalog, error) {
 
 func (c *Catalog) Identity() string { return c.identity }
 
+// noExtensions resolves no extension: a Case's catalog, not the extensions the process happens to
+// link, is the authority over its payloads.
+var noExtensions = new(protoregistry.Types)
+
+// unmarshalCatalog decodes wire bytes into a message of a Case's catalog. An extension field stays
+// an unknown wire field the message retains, even where the process links an extension of that
+// number for a message of the same name.
+func unmarshalCatalog(wire []byte, message proto.Message, depth int) error {
+	return proto.UnmarshalOptions{RecursionLimit: depth, Resolver: noExtensions}.Unmarshal(wire, message)
+}
+
 func (c *Catalog) Method(name string) (protoreflect.MethodDescriptor, error) {
 	parts := strings.Split(name, "/")
 	if len(parts) != 3 || parts[0] != "" || !protoreflect.FullName(parts[1]).IsValid() || !protoreflect.Name(parts[2]).IsValid() {

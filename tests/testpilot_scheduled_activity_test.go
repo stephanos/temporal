@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	celpb "cel.dev/expr"
 	"github.com/stretchr/testify/require"
 	commandpb "go.temporal.io/api/command/v1"
 	commonpb "go.temporal.io/api/common/v1"
@@ -15,7 +16,11 @@ import (
 	failurepb "go.temporal.io/api/failure/v1"
 	taskqueuepb "go.temporal.io/api/taskqueue/v1"
 	testpilotpb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/common/testing/testpilot/casefile"
+	"go.temporal.io/server/common/testing/testpilot/cel"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/durationpb"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 const (
@@ -26,11 +31,15 @@ const (
 )
 
 func scheduledActivityReference(reference *testpilotpb.Reference) *testpilotpb.Expression {
-	return &testpilotpb.Expression{Expression: &testpilotpb.Expression_Reference{Reference: reference}}
+	return cel.Ref(reference)
 }
 
-func scheduledActivityLiteral(value *testpilotpb.Value) *testpilotpb.Expression {
-	return &testpilotpb.Expression{Expression: &testpilotpb.Expression_Literal{Literal: value}}
+func scheduledActivityLiteral(value *celpb.Value) *testpilotpb.Expression {
+	return cel.Literal(value)
+}
+
+func scheduledActivityText(text string) *celpb.Value {
+	return &celpb.Value{Kind: &celpb.Value_StringValue{StringValue: text}}
 }
 
 // scheduledActivityCase is a hand-built Case with no Model behind it: a controller starts a
@@ -40,19 +49,18 @@ func scheduledActivityLiteral(value *testpilotpb.Value) *testpilotpb.Expression 
 func scheduledActivityCase(attributes *commandpb.ScheduleActivityTaskCommandAttributes, finishWith testpilotpb.InstructionOutcomeField, script ...*testpilotpb.Instruction) *testpilotpb.Case {
 	namespace := scheduledActivityReference(&testpilotpb.Reference{Reference: &testpilotpb.Reference_EnvironmentBindingId{EnvironmentBindingId: scheduledActivityNamespaceBinding}})
 	queue := scheduledActivityReference(&testpilotpb.Reference{Reference: &testpilotpb.Reference_EnvironmentBindingId{EnvironmentBindingId: scheduledActivityQueueBinding}})
-	runID := scheduledActivityReference(&testpilotpb.Reference{Reference: &testpilotpb.Reference_Run{Run: &testpilotpb.RunReference{}}})
-	alwaysRuns := scheduledActivityLiteral(&testpilotpb.Value{Value: &testpilotpb.Value_BoolValue{BoolValue: true}})
-	limits := &testpilotpb.InstructionLimits{Timeout: &testpilotpb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: 20000}}
+	runID := scheduledActivityReference(&testpilotpb.Reference{Reference: &testpilotpb.Reference_Run{Run: &emptypb.Empty{}}})
+	alwaysRuns := scheduledActivityLiteral(&celpb.Value{Kind: &celpb.Value_BoolValue{BoolValue: true}})
+	limits := &testpilotpb.InstructionLimits{Timeout: durationpb.New(20 * time.Second)}
 	// The awaited value is present only once the Await succeeded; its status always is.
 	finishGuard := alwaysRuns
 	if finishWith == testpilotpb.INSTRUCTION_OUTCOME_FIELD_VALUE {
-		finishGuard = &testpilotpb.Expression{Expression: &testpilotpb.Expression_Compare{Compare: &testpilotpb.CompareExpression{
-			Operator: testpilotpb.COMPARISON_OPERATOR_EQUAL,
-			Left: scheduledActivityReference(&testpilotpb.Reference{Reference: &testpilotpb.Reference_Outcome{Outcome: &testpilotpb.InstructionOutcomeReference{
+		finishGuard = cel.Compare("==",
+			scheduledActivityReference(&testpilotpb.Reference{Reference: &testpilotpb.Reference_Outcome{Outcome: &testpilotpb.InstructionOutcomeReference{
 				Instruction: &testpilotpb.InstructionReference{EntrypointId: "workflow", InstructionId: "await"}, Field: testpilotpb.INSTRUCTION_OUTCOME_FIELD_STATUS,
 			}}}),
-			Right: scheduledActivityLiteral(&testpilotpb.Value{Value: &testpilotpb.Value_EnumValue{EnumValue: &testpilotpb.EnumValue{Name: "INSTRUCTION_OUTCOME_STATUS_SUCCEEDED"}}}),
-		}}}
+			scheduledActivityLiteral(cel.Enum(testpilotpb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED)),
+		)
 	}
 	attributes.ActivityType = &commonpb.ActivityType{Name: "scheduled-activity-type"}
 	attributes.TaskQueue = &taskqueuepb.TaskQueue{Name: "temporal.task-queue"}
@@ -64,15 +72,12 @@ func scheduledActivityCase(attributes *commandpb.ScheduleActivityTaskCommandAttr
 		activity.Instructions = append(activity.Instructions, &testpilotpb.InstructionNode{InstructionId: fmt.Sprintf("attempt-%d", index+1), Instruction: instruction, Limits: limits})
 	}
 	return &testpilotpb.Case{
-		Version: &testpilotpb.FormatVersion{Major: 1},
+		Version: &testpilotpb.FormatVersion{Major: casefile.CurrentMajor, Minor: casefile.CurrentMinor},
 		CaseId:  "scheduled-activity",
 		Program: &testpilotpb.Program{
 			ProgramId: "scheduled-activity",
 			// The limits of an instruction that writes none, as a Temporal realization declares them.
-			InstructionDefaults: &testpilotpb.InstructionLimits{
-				Timeout:  &testpilotpb.InstructionLimits_TimeoutMilliseconds{TimeoutMilliseconds: 10000},
-				Attempts: &testpilotpb.InstructionLimits_MaxAttempts{MaxAttempts: 1},
-			},
+			InstructionDefaults: &testpilotpb.InstructionLimits{Timeout: durationpb.New(10 * time.Second), MaxAttempts: proto.Int64(1)},
 			Roles: []*testpilotpb.Role{
 				{RoleId: "temporal.workflow-service", Kind: testpilotpb.ROLE_KIND_ENDPOINT},
 				{RoleId: "temporal.worker", Kind: testpilotpb.ROLE_KIND_WORKER, NamespaceBindingId: scheduledActivityNamespaceBinding},
@@ -80,14 +85,14 @@ func scheduledActivityCase(attributes *commandpb.ScheduleActivityTaskCommandAttr
 			},
 			Entrypoints: []*testpilotpb.Entrypoint{
 				{
-					EntrypointId: "controller", Activation: &testpilotpb.Entrypoint_Controller{Controller: &testpilotpb.ControllerActivation{}},
+					EntrypointId: "controller", Activation: &testpilotpb.Entrypoint_Controller{Controller: &emptypb.Empty{}},
 					Instructions: []*testpilotpb.InstructionNode{
 						{InstructionId: "start-workflow", Instruction: &testpilotpb.Instruction{Instruction: &testpilotpb.Instruction_InvokeRpc{InvokeRpc: &testpilotpb.InvokeRpc{
 							EndpointRoleId: "temporal.workflow-service", Method: scheduledActivityStartMethod,
 							RequestAssignments: []*testpilotpb.RequestAssignment{
 								{Target: "namespace", Value: namespace},
 								{Target: "workflow_id", Value: runID},
-								{Target: "workflow_type.name", Value: scheduledActivityLiteral(&testpilotpb.Value{Value: &testpilotpb.Value_TextValue{TextValue: "scheduled-activity-workflow"}})},
+								{Target: "workflow_type.name", Value: scheduledActivityLiteral(scheduledActivityText("scheduled-activity-workflow"))},
 								{Target: "task_queue.name", Value: queue},
 							},
 						}}}},
@@ -96,8 +101,8 @@ func scheduledActivityCase(attributes *commandpb.ScheduleActivityTaskCommandAttr
 							RequestAssignments: []*testpilotpb.RequestAssignment{
 								{Target: "namespace", Value: namespace},
 								{Target: "execution.workflow_id", Value: runID},
-								{Target: "wait_new_event", Value: scheduledActivityLiteral(&testpilotpb.Value{Value: &testpilotpb.Value_BoolValue{BoolValue: true}})},
-								{Target: "history_event_filter_type", Value: scheduledActivityLiteral(&testpilotpb.Value{Value: &testpilotpb.Value_EnumValue{EnumValue: &testpilotpb.EnumValue{Name: "HISTORY_EVENT_FILTER_TYPE_CLOSE_EVENT"}}})},
+								{Target: "wait_new_event", Value: scheduledActivityLiteral(&celpb.Value{Kind: &celpb.Value_BoolValue{BoolValue: true}})},
+								{Target: "history_event_filter_type", Value: scheduledActivityLiteral(cel.Enum(enumspb.HISTORY_EVENT_FILTER_TYPE_CLOSE_EVENT))},
 							},
 						}}}},
 					},
@@ -111,7 +116,7 @@ func scheduledActivityCase(attributes *commandpb.ScheduleActivityTaskCommandAttr
 							Attributes:  &commandpb.Command_ScheduleActivityTaskCommandAttributes{ScheduleActivityTaskCommandAttributes: attributes},
 						}}}}},
 						{InstructionId: "await", Limits: limits, Guard: alwaysRuns, Instruction: &testpilotpb.Instruction{Instruction: &testpilotpb.Instruction_AwaitInstruction{AwaitInstruction: &testpilotpb.AwaitInstruction{
-							Instruction: &testpilotpb.InstructionReference{EntrypointId: "workflow", InstructionId: "schedule"},
+							Instruction: &testpilotpb.LocalInstructionReference{InstructionId: "schedule"},
 						}}}},
 						{InstructionId: "finish", Limits: limits, Guard: finishGuard, Instruction: &testpilotpb.Instruction{Instruction: &testpilotpb.Instruction_Finish{Finish: &testpilotpb.Finish{
 							Result: scheduledActivityReference(&testpilotpb.Reference{Reference: &testpilotpb.Reference_Outcome{Outcome: &testpilotpb.InstructionOutcomeReference{
@@ -127,16 +132,16 @@ func scheduledActivityCase(attributes *commandpb.ScheduleActivityTaskCommandAttr
 		Contract: &testpilotpb.Contract{
 			ContractId: "scheduled-activity",
 			Rules: []*testpilotpb.ContractRule{{
-				RuleId: "closed", Kind: testpilotpb.CONTRACT_RULE_KIND_SAFETY, InitialStateId: "open",
+				RuleId: "closed", InitialStateId: "open",
 				States: []*testpilotpb.ContractState{
 					{StateId: "open", Status: testpilotpb.CONTRACT_STATE_STATUS_PENDING},
 					{StateId: "closed", Status: testpilotpb.CONTRACT_STATE_STATUS_SATISFIED},
 				},
 				Transitions: []*testpilotpb.ContractTransition{{
 					TransitionId: "close", SourceStateId: "open", TargetStateId: "closed",
-					EventFilter: &testpilotpb.RunEventFilter{Kinds: []testpilotpb.RunEventKind{testpilotpb.RUN_EVENT_KIND_RUN_CLOSED}},
-					Predicate:   alwaysRuns,
-					SupportKind: testpilotpb.CONTRACT_SUPPORT_KIND_MATCHING_EVENT,
+					EventFilter:   &testpilotpb.RunEventFilter{Kinds: []testpilotpb.RunEventKind{testpilotpb.RUN_EVENT_KIND_RUN_CLOSED}},
+					Predicate:     alwaysRuns,
+					SupportsEvent: proto.Bool(true),
 				}},
 			}},
 		},
@@ -150,7 +155,7 @@ func scheduledActivityCase(attributes *commandpb.ScheduleActivityTaskCommandAttr
 // answer until the server times the attempt out.
 func TestTestpilotScheduledActivityAttempts(t *testing.T) {
 	env := newTestpilotTestEnvironment(t)
-	completes := &testpilotpb.Instruction{Instruction: &testpilotpb.Instruction_Finish{Finish: &testpilotpb.Finish{Result: scheduledActivityLiteral(&testpilotpb.Value{Value: &testpilotpb.Value_TextValue{TextValue: "done"}})}}}
+	completes := &testpilotpb.Instruction{Instruction: &testpilotpb.Instruction_Finish{Finish: &testpilotpb.Finish{Result: scheduledActivityLiteral(scheduledActivityText("done"))}}}
 	fails := &testpilotpb.Instruction{Instruction: &testpilotpb.Instruction_ActivityAttemptFailure{ActivityAttemptFailure: &testpilotpb.ActivityAttemptFailure{
 		Failure: &failurepb.Failure{Message: "not yet", FailureInfo: &failurepb.Failure_ApplicationFailureInfo{ApplicationFailureInfo: &failurepb.ApplicationFailureInfo{Type: "transient"}}},
 	}}}

@@ -199,7 +199,7 @@ func TestUnmodeledAPIValueReportsAValueAPollWaitsThrough(t *testing.T) {
 		if f.Subject == apiActivityStatus+" ACTIVITY_EXECUTION_STATUS_RUNNING" {
 			require.Equal(t, UnmodeledAPIValue, f.Kind)
 			require.Equal(t, "ActivityExecutionInfo.status ACTIVITY_EXECUTION_STATUS_RUNNING is mapped to a fact by no poll or guard", f.Message)
-			require.Equal(t, "model/temporal/features/activity/standalone/system/Realization.scala:408", f.Position)
+			require.Equal(t, "model/temporal/features/activity/standalone/system/Realization.scala:375", f.Position)
 		}
 	}
 	for _, mapped := range []string{"PAUSED", "COMPLETED", "FAILED", "CANCELED", "TERMINATED", "TIMED_OUT"} {
@@ -287,7 +287,7 @@ func TestUnmodeledAPIValueCountsNoValueOfTheRunsOwnRecord(t *testing.T) {
 	// A guard over a oneof of the instruction outcome, the run's own record, as its status is.
 	scheduled := apiEvidence(t, r, ".statusScheduled").GetRunEvent()
 	scheduled.Guard = &umpirespb.Operand{Kind: &umpirespb.Operand_All{All: &umpirespb.All{Operands: []*umpirespb.Operand{
-		scheduled.GetGuard(), {Kind: &umpirespb.Operand_Present{Present: &umpirespb.Present{Of: apiProjected("value.value<enum_value>")}}}}}}}
+		scheduled.GetGuard(), {Kind: &umpirespb.Operand_Present{Present: &umpirespb.Present{Of: apiProjected("value.kind<enum_value>")}}}}}}}
 	tally := apiTallyOf(t, ir, apiRegistryLowering(nil))
 	require.Equal(t, 7, tally.Population)
 	for _, s := range apiSubjects(tally) {

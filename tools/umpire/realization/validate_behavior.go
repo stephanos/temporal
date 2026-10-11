@@ -133,7 +133,7 @@ func (a *realizing) serverStepKind(mm *umpirespb.Machine, s *umpirespb.ServerSte
 		declared[step] = true
 	}
 	kind := s.GetKind()
-	deadline := a.duration(at, "server_step.deadline", s.GetDeadline(), kind == umpirespb.CAUSE_KIND_TIMER, kind == umpirespb.CAUSE_KIND_TIMER)
+	deadline := a.duration(at, "server_step.deadline", s.GetDeadline(), false, false)
 	if _, known := umpirespb.TimeoutBasis_name[int32(s.GetTimeoutBasis())]; !known {
 		a.report(at, "%s has no known timeout basis", step)
 	} else if kind != umpirespb.CAUSE_KIND_TIMER && s.GetTimeoutBasis() != umpirespb.TIMEOUT_BASIS_UNSPECIFIED {
@@ -147,7 +147,7 @@ func (a *realizing) serverStepKind(mm *umpirespb.Machine, s *umpirespb.ServerSte
 	default:
 	}
 	switch {
-	case kind == umpirespb.CAUSE_KIND_TIMER && deadline <= 0:
+	case kind == umpirespb.CAUSE_KIND_TIMER && deadline == 0:
 		a.report(at, "%s is a timer and names no positive deadline", step)
 	case kind != umpirespb.CAUSE_KIND_TIMER && s.GetDeadline() != nil:
 		a.report(at, "%s names a deadline of %d milliseconds, and only a timer's step has one", step, durationMilliseconds(s.GetDeadline()))

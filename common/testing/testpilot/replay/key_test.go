@@ -59,20 +59,21 @@ func TestControlRecordPinsTheCorrelatedKey(t *testing.T) {
 	require.Equal(t, controlKey, subject.Key.String())
 }
 
-func TestHistoricalControlRecordIsStaleUnderCurrentDriver(t *testing.T) {
+// The original control record was recorded under retired Case format 1.0. Its Case has since been
+// migrated, so the record names a Case identity the Case no longer has, and it is refused as crossed
+// before its Run payload is read.
+func TestRetiredControlRecordIsRefusedBeforeItsRun(t *testing.T) {
 	caseBytes, err := os.ReadFile(controlCasePath)
 	require.NoError(t, err)
 	recorded, err := os.ReadFile(controlRunPath)
 	require.NoError(t, err)
-	decoded, err := recordedrun.Decode(recorded)
-	require.NoError(t, err)
-	require.Equal(t, "3364057f225cf6fd6116023ef36573038a9acd29f0d13df2da98c76062e9c3c0", decoded.Driver.Catalog)
+	_, err = recordedrun.Decode(recorded)
+	require.Error(t, err, "the retired record's Run payload is not format 4.0")
 
 	subject, err := Admit(t.Context(), caseBytes, recorded, controlPreparer(t))
 	require.Nil(t, subject)
 	rejection, ok := IsRejection(err)
 	require.True(t, ok, "not a rejection: %v", err)
-	require.Equal(t, ReasonStale, rejection.Reason)
-	require.Contains(t, rejection.Detail, decoded.Driver.Catalog)
-	require.Contains(t, rejection.Detail, "12fa287d45f6e40502f05d1c89643a59d612ddd53e7fde025dc90abfb7c744f6")
+	require.Equal(t, ReasonCrossed, rejection.Reason)
+	require.Contains(t, rejection.Detail, recordedrun.ErrCaseMismatch.Error())
 }

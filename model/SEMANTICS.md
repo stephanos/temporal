@@ -904,6 +904,27 @@ gives each declaration one of the [Results](#results). What `Check` does not ans
 `through`. A `find` of a transition Property remains a declaration error. Transition verify supports
 class and action selectors and preserves the before-state when it reads a selected step.
 
+The emitted Case is exactly format 4.0. Neutral runtime operands lower to native canonical CEL
+operators; they never replace the finite Model expression evaluator. Each reference binding has
+descriptor-exact type and presence, expressed through the pinned native CEL optional extension:
+`.hasValue()` tests true availability, `.value()` errors on absence, and boolean short-circuiting
+can guard a read. Missing map members and nested optional messages remain absent; ordinary protobuf
+scalar defaults remain values. Runtime errors, cancellation and exhausted cost budgets never mean
+a false predicate. Online execution, offline Contract replay and Run Event conformance use the same
+native evaluator and source-site diagnostics. Whole-millisecond protobuf Duration bounds are
+checked before integer arithmetic; omitted instruction bounds inherit defaults, omitted read
+intervals read once, explicit polling intervals must be positive, and recorded elapsed coordinates
+are present, nonnegative and monotonic. Evidence extraction declarations remain independent from
+Contract retention policy. Complete local states include ordered fields, results include action,
+destination, outcome and facts, and each prior-state/result transition independently authorizes them.
+Expanded payload work is charged before enumeration, so local interning never bypasses ceilings.
+Payloads decode through the Case's descriptor catalog alone: an extension field stays an unknown
+wire field the payload retains, whatever extensions the process links.
+Format 4 also applies Profile response-byte/fanout source ceilings to typed Run Event payloads
+before native snapshot. Raw-wire and decoded-member accounting excludes the adapter-generated
+canonical type URL; envelope/name, packed traversal and sorting work reserve separately. Over-cap
+inputs fail atomically with the same located LimitExceeded online and offline.
+
 `tools/umpire/lower` lowers a find Query through its [realization](#realizations) into a Testpilot Case
 with its private producer. The Query it gives the producer is the one `Check` answers,
 from the same binding (the reader's `Realizer`): one Property read on one step record, its explanation

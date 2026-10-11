@@ -96,7 +96,7 @@ func TestTestpilotAssessRecordedRuns(t *testing.T) {
 	require.Equal(t, recorded, unchanged, "assessment reads the recorded Run and never changes it")
 
 	controlCase := filepath.Join("..", "common", "testing", "testpilot", "replay", "testdata", "nexusCallerControl-forgedCompletion-case.json")
-	controlRun := filepath.Join("..", "common", "testing", "testpilot", "replay", "testdata", "nexusCallerControl-forgedCompletion-run.json")
+	controlRun := filepath.Join("..", "common", "testing", "testpilot", "replay", "testdata", "nexusCallerControl-forgedCompletion-current-run.json")
 	code, control := assess(t, ctx, assessBinary, controlCase, controlRun, root, modelRoot)
 	require.Equal(t, 1, code, "%+v", control)
 	require.Equal(t, evaluation.DecisionRejected, control.Status)

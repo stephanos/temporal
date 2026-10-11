@@ -14,19 +14,21 @@
     },
     {
       "case": "common/testing/testpilot/replay/testdata/nexusCallerControl-forgedCompletion-case.json",
-      "run": "common/testing/testpilot/replay/testdata/nexusCallerControl-forgedCompletion-run.json"
-    },
-    {
-      "case": "common/testing/testpilot/replay/testdata/nexusCallerControl-forgedCompletion-case.json",
       "run": "common/testing/testpilot/replay/testdata/nexusCallerControl-forgedCompletion-current-run.json"
-    },
-    {
-      "case": "tools/canary/assessment/testdata/nexus-caller-syncCompletion-historical-case.json",
-      "run": "tools/canary/assessment/testdata/nexus-caller-syncCompletion-historical-run.json"
     },
     {
       "case": "tools/canary/casebinding/testdata/nexus-workflow-syncCompletion-case.json",
       "run": "tools/canary/assessment/testdata/nexus-workflow-syncCompletion-current-run.json"
+    }
+  ],
+  "retired": [
+    {
+      "case": "common/testing/testpilot/replay/testdata/nexusCallerControl-forgedCompletion-case.json",
+      "run": "common/testing/testpilot/replay/testdata/nexusCallerControl-forgedCompletion-run.json"
+    },
+    {
+      "case": "tools/canary/assessment/testdata/nexus-caller-syncCompletion-historical-case.json",
+      "run": "tools/canary/assessment/testdata/nexus-caller-syncCompletion-historical-run.json"
     },
     {
       "case": "tools/canary/assessment/testdata/nexus-workflow-syncCompletion-historical-case.json",
