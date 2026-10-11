@@ -75,9 +75,9 @@ func (a *effectAnalysis) compressionSummary(fn *types.Func, receiver *abstractVa
 			a.report("unresolved-effect", pos, "compression writer callback mutations did not converge")
 		}
 	}
-	// flate's short-write path reads an exported error variable. Its native
-	// initializer is primitive, but application writes/address escapes cannot
-	// acquire that immutable provenance merely from the standard package name.
+	// Conservatively retain exported-error uncertainty around modeled writer
+	// implementations. Application writes/address escapes cannot acquire a
+	// primitive-error permission merely from the standard package name.
 	if a.compressionShortWriteMutation() {
 		a.report("unresolved-effect", pos, "compression exported short-write error has unproven mutable provenance")
 		state.fields["error"] = join(state.fields["error"], valueOf(types.Universe.Lookup("error").Type()))
