@@ -87,7 +87,7 @@ object network extends Actor:
 // DescribeWorkflowExecution. Every other evidence name resolves against the realization's catalog,
 // which is why only a derived observation is declared.
 
-val pendingAttempts = Observation(on = operation, read = "attempts")
+val pendingAttempts = Observation(on = operation)
 
 // One of the operation's deadlines firing, as the product machine sees it, and the backoff.
 object timers:

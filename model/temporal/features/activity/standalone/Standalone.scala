@@ -142,8 +142,8 @@ object worker:
 
 // A retry shows the client only the attempt count DescribeActivityExecution reports. The statuses
 // observe one status field; whether a catalog tells them apart is left to the realization.
-val attemptCount = Observation(on = activity, read = "attempt")
-val heartbeatDetails = Observation(on = activity, read = "heartbeatDetails")
+val attemptCount = Observation(on = activity)
+val heartbeatDetails = Observation(on = activity)
 
 // The bounds of the levels' Queries and the history record's, beside three and four (Bounds).
 val five = Limits(steps = 5, actions = 5, search = 65536)
