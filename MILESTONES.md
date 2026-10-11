@@ -12,9 +12,10 @@ formatting commit, fn-150's source, fn-155.6's regeneration proof and Batch 3's 
 regenerated IR and Cases (`a3f3a545bc`; its gates, live run and Run companions remain). On 2026-10-11
 the owner paused all validation gates until the test tooling is optimized: one shared interpretation
 per Model per test process, in-process lifter fixture tests, fail-fast IR loading, `export`'s
-whole-Model tests opt-in, Go's test cache (no `-count=1`) and one Bloop daemon. Go validation is skipped
-entirely while the Scala DSL work runs (owner, 2026-10-11); Go failures are fixed once, at batch
-G's regeneration and full gate. Batch S runs as one worker with Scala compile-only checks.
+whole-Model tests opt-in, Go's test cache (no `-count=1`) and one Bloop daemon. Until the owner explicitly lifts it
+(2026-10-11), only `model/` is iterated on and validated (Scala build, framework/model/lifter/gate
+Scala tests, step-table equivalence); nothing outside `model/` is edited or validated. The
+test-speed work on `w-perf` is parked. Everything outside `model/` changes later in batch G. Batch S runs as one worker with Scala compile-only checks.
 
 ## Keeping this page current
 
@@ -126,7 +127,7 @@ Apply these instructions when implementing the milestones:
 
 ## Batches
 
-**Current plan (owner, 2026-10-11): two batches, verified at the end.** All remaining Scala DSL,
+**Current plan (owner, 2026-10-11): two batches, verified at the end. Only `model/` is edited and validated until the owner lifts that.** All remaining Scala DSL,
 authoring and lifter work runs as one batch in one worker; all Go-side work, the single regeneration,
 the full gate, review and live run form the closing batch. Go validation is skipped until then.
 
