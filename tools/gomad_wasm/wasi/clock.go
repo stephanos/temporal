@@ -121,8 +121,8 @@ func (e *Environment) clockCall(call Call) (any, uint16, string, error) {
 				if d.node.directory {
 					event.Errno = errnoInval
 				} else if sub.Type == 1 {
-					if d.offset < uint64(len(d.node.data)) {
-						event.Nbytes = uint64(len(d.node.data)) - d.offset
+					if d.offset < nodeSize(d.node) {
+						event.Nbytes = nodeSize(d.node) - d.offset
 					} else {
 						event.Flags = 1
 					}

@@ -34,7 +34,9 @@ type ChoiceRequest struct {
 }
 
 type Result struct {
+	VirtualTimeElapsedNanos            uint64
 	Termination                        Termination
+	Message                            string
 	ExitCode                           int
 	Stdout, Stderr, Evidence           []byte
 	Reaped, Cancelled, WatchdogTimeout bool

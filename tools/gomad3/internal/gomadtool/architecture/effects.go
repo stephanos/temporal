@@ -6,6 +6,8 @@ import (
 	"go/constant"
 	"go/token"
 	"go/types"
+	"io"
+	"os"
 	"path/filepath"
 	"sort"
 	"strconv"
@@ -22,16 +24,21 @@ type abstractValue struct {
 	builtin   bool
 	text      string
 	truth     int
-	origin    token.Pos
+	// These unused facts describe only the exact represented type. They do not
+	// authorize branch pruning, callback suppression, or interface-nil queries.
+	nilness int
+	nilType types.Type
+	origin  token.Pos
 }
 type boundFunction struct {
-	fn          *function
-	literal     *ast.FuncLit
-	pkg         *SourcePackage
-	receiver    *abstractValue
-	capture     environment
-	signature   *types.Signature
-	assignments []ast.Expr
+	fn               *function
+	literal          *ast.FuncLit
+	pkg              *SourcePackage
+	receiver         *abstractValue
+	capture          environment
+	signature        *types.Signature
+	assignments      []ast.Expr
+	methodExpression bool
 }
 type environment map[types.Object]*abstractValue
 type expressionSite struct {
@@ -43,23 +50,120 @@ type callSite struct {
 	call *ast.CallExpr
 	pkg  *SourcePackage
 }
+type parameterOwner struct {
+	fn    *function
+	index int
+}
+
+func indexParameterOwners(functions map[string]*function) map[types.Object][]parameterOwner {
+	owners := make(map[types.Object][]parameterOwner)
+	for _, fn := range functions {
+		parameters := fn.object.Type().(*types.Signature).Params()
+		for index := 0; index < parameters.Len(); index++ {
+			parameter := parameters.At(index)
+			owners[parameter] = append(owners[parameter], parameterOwner{fn: fn, index: index})
+		}
+	}
+	return owners
+}
+
 type effectAnalysis struct {
-	program        *Program
-	root           string
-	chain          []string
-	active         map[string]bool
-	resolving      map[types.Object]bool
-	bindings       map[types.Object][]expressionSite
-	fields         map[*types.Var][]expressionSite
-	calls          map[string][]callSite
-	findings       map[string]Finding
-	memo           map[string]*abstractValue
-	previous       map[string]*abstractValue
-	bindingDepth   int
-	typeArguments  map[*types.TypeParam][]types.Type
-	recursive      bool
-	implicitActive map[*abstractValue]map[string]bool
-	checkedMemory  map[string]bool
+	program          *Program
+	root             string
+	chain            []string
+	active           map[string]bool
+	resolving        map[types.Object]bool
+	bindings         map[types.Object][]expressionSite
+	fields           map[*types.Var][]expressionSite
+	calls            map[string][]callSite
+	parameterOwners  map[types.Object][]parameterOwner
+	findings         map[string]Finding
+	memo             map[string]*abstractValue
+	previous         map[string]*abstractValue
+	bindingDepth     int
+	typeArguments    map[*types.TypeParam][]types.Type
+	recursive        bool
+	implicitActive   map[*abstractValue]map[string]bool
+	checkedMemory    map[string]bool
+	checkedSummaries map[string]summarySourceSnapshot
+	checkedJSON      *jsonSourceQualification
+	diagnostics      *effectDiagnostics
+}
+
+type effectDiagnostics struct {
+	output       io.Writer
+	calls        uint64
+	maxChain     int
+	samples      int
+	round        int
+	firstRuntime bool
+}
+
+func (a *effectAnalysis) diagnosticLine(format string, args ...any) {
+	if a.diagnostics == nil {
+		return
+	}
+	if _, err := fmt.Fprintf(a.diagnostics.output, format, args...); err != nil {
+		// Diagnostic output failures cannot change checker findings.
+		a.diagnostics = nil
+	}
+}
+
+func (a *effectAnalysis) diagnosticProgress(phase, id string, pos token.Pos) {
+	if a.diagnostics == nil {
+		return
+	}
+	chain := a.chain[max(0, len(a.chain)-6):]
+	d := a.diagnostics
+	a.diagnosticLine("effect-analysis %s root=%q function=%q position=%q calls=%d max_chain=%d memo_entries=%d active_context_entries=%d previous_context_entries=%d binding_depth=%d round=%d chain=%q\n",
+		phase, a.root, id, a.program.Files.Position(pos).String(), d.calls, d.maxChain,
+		len(a.memo), len(a.active), len(a.previous), a.bindingDepth, d.round, chain)
+}
+
+func (a *effectAnalysis) diagnosticCall(id string, pos token.Pos) {
+	if a.diagnostics == nil {
+		return
+	}
+	d := a.diagnostics
+	d.calls++
+	d.maxChain = max(d.maxChain, len(a.chain)+1)
+	if !d.firstRuntime && strings.HasPrefix(id, "runtime.") {
+		d.firstRuntime = true
+		a.diagnosticRuntimeEntry(id, pos)
+	}
+	if d.calls%10000 == 0 && d.samples < 256 {
+		d.samples++
+		a.diagnosticProgress("SAMPLE", id, pos)
+	}
+}
+
+func (a *effectAnalysis) diagnosticRuntimeEntry(id string, pos token.Pos) {
+	start := 0
+	if len(a.chain) > 0 && a.chain[0] == a.root {
+		start = 1
+	}
+	depth := 2 + len(a.chain) - start
+	chain := make([]string, 0, min(depth, 128))
+	chain = append(chain, a.root)
+	for _, caller := range a.chain[start:] {
+		if len(chain) == 128 {
+			break
+		}
+		chain = append(chain, caller)
+	}
+	if len(chain) < 128 {
+		chain = append(chain, id)
+	}
+	positions := make([]string, len(chain))
+	for index, caller := range chain {
+		if fn := a.program.Functions[caller]; fn != nil {
+			positions[index] = a.program.Files.Position(fn.declaration.Pos()).String()
+		} else {
+			positions[index] = caller
+		}
+	}
+	a.diagnosticLine("effect-analysis FIRST_RUNTIME_ENTRY root=%q function=%q position=%q chain_depth=%d truncated=%t chain=%q chain_positions=%q\n",
+		a.root, id, a.program.Files.Position(pos).String(), depth, depth > 128, chain, positions)
 }
 
 func (a *effectAnalysis) assign(pkg *SourcePackage, target ast.Expr, value *abstractValue, env environment) {
@@ -123,12 +227,15 @@ func zeroValue(typ types.Type) *abstractValue {
 	v := valueOf(typ)
 	v.unknown = false
 	switch underlying := typ.Underlying().(type) {
+	case *types.Pointer, *types.Interface, *types.Signature, *types.Chan:
+		v.nilness, v.nilType = -1, typ
 	case *types.Array:
 		v.elements = &abstractValue{}
 		if underlying.Len() > 0 {
 			v.elements = zeroValue(underlying.Elem())
 		}
 	case *types.Slice, *types.Map:
+		v.nilness, v.nilType = -1, typ
 		v.elements = &abstractValue{}
 	case *types.Struct:
 		v.fields = map[string]*abstractValue{}
@@ -145,6 +252,9 @@ func copyValue(value *abstractValue, typ types.Type) *abstractValue {
 		return nil
 	}
 	copy := *value
+	if copy.nilness == 0 || !types.Identical(copy.nilType, typ) {
+		copy.nilness, copy.nilType = 0, nil
+	}
 	switch underlying := typ.Underlying().(type) {
 	case *types.Array:
 		copy.elements = copyValue(value.elements, underlying.Elem())
@@ -162,6 +272,7 @@ func addressValue(value *abstractValue, typ types.Type, pos token.Pos) *abstract
 	copy := *value
 	copy.origin = pos
 	copy.types = []types.Type{typ}
+	copy.nilness, copy.nilType = 1, typ
 	copy.fields = map[string]*abstractValue{}
 	for key, child := range value.fields {
 		copy.fields[key] = child
@@ -194,6 +305,12 @@ func joinValues(left, right *abstractValue, seen map[[2]*abstractValue]*abstract
 	v.utc = left.utc && right.utc
 	v.unknown = left.unknown || right.unknown
 	v.builtin = left.builtin && right.builtin
+	if left.truth != right.truth {
+		v.truth = 0
+	}
+	if left.nilness != right.nilness || left.nilness == 0 || !types.Identical(left.nilType, right.nilType) {
+		v.nilness, v.nilType = 0, nil
+	}
 	if left.text != right.text {
 		v.text = ""
 	}
@@ -213,7 +330,7 @@ func joinValues(left, right *abstractValue, seen map[[2]*abstractValue]*abstract
 	for _, fn := range right.functions {
 		found := false
 		for _, existing := range v.functions {
-			if fn == existing || (fn.fn == existing.fn && fn.literal == existing.literal && bindingKey([]*abstractValue{fn.receiver}) == bindingKey([]*abstractValue{existing.receiver}) && captureKey(fn.capture) == captureKey(existing.capture)) {
+			if fn == existing || (fn.fn == existing.fn && fn.literal == existing.literal && fn.methodExpression == existing.methodExpression && bindingKey([]*abstractValue{fn.receiver}) == bindingKey([]*abstractValue{existing.receiver}) && captureKey(fn.capture) == captureKey(existing.capture)) {
 				found = true
 				break
 			}
@@ -234,6 +351,10 @@ func joinValues(left, right *abstractValue, seen map[[2]*abstractValue]*abstract
 
 func (p *Program) Effects() []Finding {
 	a := &effectAnalysis{program: p, active: map[string]bool{}, resolving: map[types.Object]bool{}, bindings: map[types.Object][]expressionSite{}, fields: map[*types.Var][]expressionSite{}, calls: map[string][]callSite{}, findings: map[string]Finding{}, typeArguments: map[*types.TypeParam][]types.Type{}}
+	a.parameterOwners = indexParameterOwners(p.Functions)
+	if os.Getenv("GOMAD3_EFFECT_DIAGNOSTICS") == "1" {
+		a.diagnostics = &effectDiagnostics{output: os.Stderr}
+	}
 	for _, pkg := range p.Packages {
 		if pkg.Metadata.Standard {
 			continue
@@ -377,8 +498,20 @@ func (p *Program) Effects() []Finding {
 func (a *effectAnalysis) analyze(pos token.Pos, run func()) {
 	a.chain = nil
 	a.previous = map[string]*abstractValue{}
+	if a.diagnostics != nil {
+		a.diagnostics.calls = 0
+		a.diagnostics.maxChain = 0
+		a.diagnostics.samples = 0
+		a.diagnostics.round = 0
+		a.diagnostics.firstRuntime = false
+		a.diagnosticLine("effect-analysis START root=%q position=%q\n", a.root, a.program.Files.Position(pos).String())
+		defer a.diagnosticProgress("END", a.root, pos)
+	}
 	allFindings := a.findings
 	for round := 0; round < 256; round++ {
+		if a.diagnostics != nil {
+			a.diagnostics.round = round + 1
+		}
 		before := summaryKeys(a.previous)
 		a.findings = map[string]Finding{}
 		a.memo = map[string]*abstractValue{}
@@ -415,8 +548,8 @@ func (p *Program) IsPureFile(path string) bool {
 			continue
 		}
 		switch {
-		case p.Module == "go.temporal.io/server/tools/gomad_wasm" && relative == "wasi":
-			return filepath.Base(path) != "process.go"
+		case p.Module == "go.temporal.io/server/tools/gomad_wasm" && Within(relative, "wasi"):
+			return relative != "wasi" || filepath.Base(path) != "process.go" && filepath.Base(path) != "broker_process.go"
 		case relative == "world", relative == "record", Within(relative, "world/mailbox"), Within(relative, "runner/internal/exploration"), Within(relative, "target/internal/capabilitypolicy"):
 			return true
 		case relative == "runner/internal/campaign":
@@ -477,18 +610,35 @@ func (a *effectAnalysis) resolve(obj types.Object) *abstractValue {
 	if result != nil {
 		return result
 	}
-	for _, fn := range a.program.Functions {
+	for _, owner := range a.parameterOwners[obj] {
+		fn := owner.fn
 		if fn.pkg.Types != obj.Pkg() {
 			continue
 		}
-		signature := fn.object.Type().(*types.Signature)
-		for i := 0; i < signature.Params().Len(); i++ {
-			if signature.Params().At(i) == obj {
-				for _, site := range a.calls[functionID(fn.object)] {
-					if i < len(site.call.Args) {
-						result = join(result, a.eval(site.pkg, site.call.Args[i], environment{}))
+		for _, site := range a.calls[functionID(fn.object)] {
+			actual := site.call.Args
+			if selector, ok := site.call.Fun.(*ast.SelectorExpr); ok {
+				if selection := site.pkg.Info.Selections[selector]; selection != nil && selection.Kind() == types.MethodExpr {
+					if len(actual) == 0 {
+						continue
 					}
+					actual = actual[1:]
 				}
+			}
+			signature := fn.object.Type().(*types.Signature)
+			if signature.Variadic() && owner.index == signature.Params().Len()-1 && !site.call.Ellipsis.IsValid() {
+				args := make([]*abstractValue, len(actual))
+				for index := owner.index; index < len(actual); index++ {
+					args[index] = a.eval(site.pkg, actual[index], environment{})
+				}
+				packed := sourceCallArguments(signature, args, false)
+				if owner.index < len(packed) {
+					result = join(result, packed[owner.index])
+				}
+				continue
+			}
+			if owner.index < len(actual) {
+				result = join(result, a.eval(site.pkg, actual[owner.index], environment{}))
 			}
 		}
 	}
@@ -612,6 +762,11 @@ func (a *effectAnalysis) eval(pkg *SourcePackage, expr ast.Expr, env environment
 			obj = pkg.Info.Defs[expr]
 		}
 		if obj != nil {
+			if _, ok := obj.(*types.Nil); ok {
+				v := valueOf(typ)
+				v.nilness, v.nilType = -1, typ
+				return v
+			}
 			if value := env[obj]; value != nil {
 				return value
 			}
@@ -632,8 +787,12 @@ func (a *effectAnalysis) eval(pkg *SourcePackage, expr ast.Expr, env environment
 				return valueOf(fn.Type())
 			}
 			bound := &boundFunction{fn: a.program.Functions[functionID(fn)], pkg: a.program.Packages[fn.Pkg().Path()]}
-			if selection := pkg.Info.Selections[expr]; selection != nil && selection.Kind() == types.MethodVal {
-				bound.receiver = a.eval(pkg, expr.X, env)
+			if selection := pkg.Info.Selections[expr]; selection != nil {
+				if selection.Kind() == types.MethodVal {
+					bound.receiver = a.eval(pkg, expr.X, env)
+				} else if selection.Kind() == types.MethodExpr {
+					bound.methodExpression = true
+				}
 			}
 			return &abstractValue{functions: []*boundFunction{bound}}
 		}
@@ -663,11 +822,17 @@ func (a *effectAnalysis) eval(pkg *SourcePackage, expr ast.Expr, env environment
 	case *ast.CompositeLit:
 		v := valueOf(typ)
 		switch typ.Underlying().(type) {
-		case *types.Array, *types.Slice, *types.Map:
+		case *types.Array, *types.Slice, *types.Map, *types.Struct:
 			v = zeroValue(typ)
 		}
+		switch typ.Underlying().(type) {
+		case *types.Slice, *types.Map:
+			v.nilness, v.nilType = 1, typ
+		}
 		v.origin = expr.Pos()
-		v.fields = map[string]*abstractValue{}
+		if v.fields == nil {
+			v.fields = map[string]*abstractValue{}
+		}
 		structure, _ := typ.Underlying().(*types.Struct)
 		for i, element := range expr.Elts {
 			if pair, ok := element.(*ast.KeyValueExpr); ok {
@@ -689,6 +854,11 @@ func (a *effectAnalysis) eval(pkg *SourcePackage, expr ast.Expr, env environment
 		if v != nil && expr.Op == token.AND {
 			return addressValue(v, typ, expr.Pos())
 		}
+		if v != nil && expr.Op == token.NOT {
+			copy := *v
+			copy.truth = -v.truth
+			return &copy
+		}
 		return v
 	case *ast.ParenExpr:
 		return a.eval(pkg, expr.X, env)
@@ -697,11 +867,15 @@ func (a *effectAnalysis) eval(pkg *SourcePackage, expr ast.Expr, env environment
 		if v == nil {
 			return valueOf(typ)
 		}
-		if pointee := v.fields["$pointee"]; pointee != nil {
+		pointee := v.fields["$pointee"]
+		if pointee != nil {
 			v = pointee
 		}
 		copy := *v
 		copy.types = []types.Type{typ}
+		if pointee == nil || !types.Identical(copy.nilType, typ) {
+			copy.nilness, copy.nilType = 0, nil
+		}
 		copy.fields = map[string]*abstractValue{}
 		for name, child := range v.fields {
 			if name != "$pointee" {
@@ -735,7 +909,9 @@ func (a *effectAnalysis) eval(pkg *SourcePackage, expr ast.Expr, env environment
 	case *ast.TypeAssertExpr:
 		v := a.eval(pkg, expr.X, env)
 		if v != nil && !v.unknown {
-			return v
+			copy := *v
+			copy.nilness, copy.nilType = 0, nil
+			return &copy
 		}
 		return valueOf(typ)
 	case *ast.BinaryExpr:
@@ -799,6 +975,7 @@ func (a *effectAnalysis) evaluateCall(pkg *SourcePackage, call *ast.CallExpr, en
 			}
 			converted := copyValue(args[0], pkg.Info.TypeOf(call.Args[0]))
 			converted.types = []types.Type{destination}
+			converted.nilness, converted.nilType = 0, nil
 			converted.builtin = false
 			converted.origin = call.Pos()
 			return converted
@@ -821,6 +998,9 @@ func (a *effectAnalysis) evaluateCall(pkg *SourcePackage, call *ast.CallExpr, en
 				if v == nil {
 					v = valueOf(pkg.Info.TypeOf(call))
 				}
+				copy := *v
+				v = &copy
+				v.nilness, v.nilType = 0, nil
 				for _, arg := range args[1:] {
 					if call.Ellipsis.IsValid() {
 						arg = elementValue(arg)
@@ -833,6 +1013,7 @@ func (a *effectAnalysis) evaluateCall(pkg *SourcePackage, call *ast.CallExpr, en
 				return addressValue(zeroValue(typ.Underlying().(*types.Pointer).Elem()), typ, call.Pos())
 			case "make":
 				v := zeroValue(pkg.Info.TypeOf(call))
+				v.nilness, v.nilType = 1, pkg.Info.TypeOf(call)
 				if slice, ok := pkg.Info.TypeOf(call).Underlying().(*types.Slice); ok {
 					size := pkg.Info.Types[call.Args[len(call.Args)-1]].Value
 					if size == nil || constant.Sign(size) > 0 {
@@ -848,30 +1029,34 @@ func (a *effectAnalysis) evaluateCall(pkg *SourcePackage, call *ast.CallExpr, en
 	fn := calledObject(pkg.Info, call.Fun)
 	var receiver *abstractValue
 	if selector, ok := call.Fun.(*ast.SelectorExpr); ok && pkg.Info.Selections[selector] != nil {
-		receiver = a.eval(pkg, selector.X, env)
+		if pkg.Info.Selections[selector].Kind() == types.MethodExpr {
+			receiver, args = a.methodExpressionArguments(args, call.Pos())
+		} else {
+			receiver = a.eval(pkg, selector.X, env)
+		}
 	}
 	if fn != nil {
+		if result, handled := a.standard(fn, receiver, args, call.Pos()); handled {
+			return result
+		}
 		if signature := fn.Type().(*types.Signature); signature.Recv() != nil && receiver != nil {
 			if _, dynamic := signature.Recv().Type().Underlying().(*types.Interface); dynamic {
-				result := a.implicit(receiver, []string{fn.Name()}, args, call.Pos(), map[types.Type]bool{})
+				result := a.implicit(receiver, []string{fn.Name()}, sourceCallArguments(signature, args, call.Ellipsis.IsValid()), call.Pos(), map[types.Type]bool{})
 				if result != nil {
 					return result
 				}
 				return tupleValue(signature.Results())
 			}
 		}
-		if result, handled := a.standard(fn, receiver, args, call.Pos()); handled {
-			return result
-		}
 		if declaration := a.program.Functions[functionID(fn)]; declaration != nil {
-			return a.call(&boundFunction{fn: declaration, pkg: declaration.pkg, receiver: receiver}, args, call.Pos())
+			return a.sourceCall(&boundFunction{fn: declaration, pkg: declaration.pkg, receiver: receiver}, args, call.Ellipsis.IsValid(), call.Pos())
 		}
 	}
 	value := a.eval(pkg, call.Fun, env)
 	var result *abstractValue
 	if value != nil {
 		for _, bound := range value.functions {
-			result = join(result, a.call(bound, args, call.Pos()))
+			result = join(result, a.sourceCall(bound, args, call.Ellipsis.IsValid(), call.Pos()))
 		}
 		if len(value.functions) > 0 && !value.unknown {
 			return result
@@ -883,6 +1068,65 @@ func (a *effectAnalysis) evaluateCall(pkg *SourcePackage, call *ast.CallExpr, en
 		a.report("unresolved-effect", call.Pos(), "unresolved callback")
 	}
 	return valueOf(pkg.Info.TypeOf(call))
+}
+
+// sourceCallArguments represents the slice supplied by an actual variadic AST
+// invocation. Root analyses and implicit callbacks do not imply an empty tail.
+func sourceCallArguments(signature *types.Signature, args []*abstractValue, expanded bool) []*abstractValue {
+	if signature == nil || !signature.Variadic() || expanded {
+		return args
+	}
+	fixed := signature.Params().Len() - 1
+	if len(args) < fixed {
+		return args
+	}
+	tail := zeroValue(signature.Params().At(fixed).Type())
+	if len(args) > fixed {
+		tail.nilness, tail.nilType = 1, signature.Params().At(fixed).Type()
+	}
+	for _, arg := range args[fixed:] {
+		tail.elements = join(tail.elements, arg)
+	}
+	packed := make([]*abstractValue, fixed, fixed+1)
+	copy(packed, args[:fixed])
+	return append(packed, tail)
+}
+
+func (a *effectAnalysis) sourceCall(bound *boundFunction, args []*abstractValue, expanded bool, pos token.Pos) *abstractValue {
+	if bound == nil || bound.pkg == nil || (bound.fn == nil && bound.literal == nil) {
+		return a.call(bound, args, pos)
+	}
+	if bound.methodExpression {
+		copy := *bound
+		copy.receiver, args = a.methodExpressionArguments(args, pos)
+		copy.methodExpression = false
+		bound = &copy
+	}
+	var signature *types.Signature
+	if bound.fn != nil {
+		// Standard summaries consume their existing flat actual argument list.
+		if result, handled := a.standard(bound.fn.object, bound.receiver, args, pos); handled {
+			return result
+		}
+		signature = bound.fn.object.Type().(*types.Signature)
+	} else {
+		signature = bound.signature
+		if signature == nil {
+			signature = bound.pkg.Info.TypeOf(bound.literal).(*types.Signature)
+		}
+	}
+	return a.call(bound, sourceCallArguments(signature, args, expanded), pos)
+}
+
+func (a *effectAnalysis) methodExpressionArguments(args []*abstractValue, pos token.Pos) (*abstractValue, []*abstractValue) {
+	if len(args) == 0 {
+		a.report("unresolved-effect", pos, "missing method-expression receiver")
+		return nil, args
+	}
+	if args[0] == nil || args[0].unknown {
+		a.report("unresolved-effect", pos, "unknown method-expression receiver")
+	}
+	return args[0], args[1:]
 }
 
 func (a *effectAnalysis) call(bound *boundFunction, args []*abstractValue, pos token.Pos) *abstractValue {
@@ -910,6 +1154,7 @@ func (a *effectAnalysis) call(bound *boundFunction, args []*abstractValue, pos t
 		}
 		id = a.program.Files.Position(bound.literal.Pos()).String()
 	}
+	a.diagnosticCall(id, pos)
 	if body == nil {
 		a.report("unresolved-effect", pos, "bodyless call "+id)
 		return nil
@@ -918,7 +1163,9 @@ func (a *effectAnalysis) call(bound *boundFunction, args []*abstractValue, pos t
 	if a.active[key] {
 		a.recursive = true
 		if previous, ok := a.previous[key]; ok {
-			return cloneValue(previous)
+			result := cloneValue(previous)
+			forgetNilFacts(result)
+			return result
 		}
 		return bottomResults(signature.Results())
 	}
@@ -961,10 +1208,14 @@ func (a *effectAnalysis) call(bound *boundFunction, args []*abstractValue, pos t
 				ast.Inspect(node.Init, inspect)
 			}
 			condition := a.eval(bound.pkg, node.Cond, env)
-			if condition == nil || condition.truth >= 0 {
+			truth := 0
+			if condition != nil {
+				truth = condition.truth
+			}
+			if truth >= 0 {
 				ast.Inspect(node.Body, inspect)
 			}
-			if node.Else != nil && (condition == nil || condition.truth <= 0) {
+			if node.Else != nil && truth <= 0 {
 				ast.Inspect(node.Else, inspect)
 			}
 			return false
@@ -992,6 +1243,7 @@ func (a *effectAnalysis) call(bound *boundFunction, args []*abstractValue, pos t
 					if value != nil {
 						copy := *value
 						narrowed = &copy
+						narrowed.nilness, narrowed.nilType = 0, nil
 						narrowed.types = []types.Type{obj.Type()}
 						_, narrowed.unknown = obj.Type().Underlying().(*types.Interface)
 						if len(clause.List) == 0 {
@@ -1026,6 +1278,7 @@ func (a *effectAnalysis) call(bound *boundFunction, args []*abstractValue, pos t
 					if source != nil {
 						copy := *source
 						value = &copy
+						value.nilness, value.nilType = 0, nil
 						value.types = []types.Type{target}
 						value.unknown = false
 					}
@@ -1077,11 +1330,7 @@ func (a *effectAnalysis) call(bound *boundFunction, args []*abstractValue, pos t
 				} else if i < len(node.Values) {
 					env[obj] = a.eval(bound.pkg, node.Values[i], env)
 				} else {
-					env[obj] = valueOf(obj.Type())
-					if _, ok := obj.Type().Underlying().(*types.Interface); ok {
-						env[obj].builtin = true
-						env[obj].unknown = false
-					}
+					env[obj] = zeroValue(obj.Type())
 				}
 			}
 			return false
@@ -1245,7 +1494,7 @@ func normalizeAllocations(value *abstractValue) *abstractValue {
 		for _, fn := range v.functions {
 			duplicate := false
 			for _, existing := range functions {
-				if fn.fn == existing.fn && fn.literal == existing.literal && bindingKey([]*abstractValue{fn.receiver}) == bindingKey([]*abstractValue{existing.receiver}) && captureKey(fn.capture) == captureKey(existing.capture) {
+				if fn.fn == existing.fn && fn.literal == existing.literal && fn.methodExpression == existing.methodExpression && bindingKey([]*abstractValue{fn.receiver}) == bindingKey([]*abstractValue{existing.receiver}) && captureKey(fn.capture) == captureKey(existing.capture) {
 					duplicate = true
 					break
 				}
@@ -1300,6 +1549,9 @@ func cloneValue(value *abstractValue) *abstractValue {
 			return existing
 		}
 		copy := *v
+		if copy.nilness == 0 {
+			copy.nilType = nil
+		}
 		result := &copy
 		seen[v] = result
 		result.types = append([]types.Type(nil), v.types...)
@@ -1326,6 +1578,31 @@ func cloneValue(value *abstractValue) *abstractValue {
 		return result
 	}
 	return clone(value)
+}
+
+// forgetNilFacts makes provisional recursive results incapable of retaining
+// stale represented-value facts. Other callback and heap provenance survives.
+func forgetNilFacts(value *abstractValue) {
+	seen := map[*abstractValue]bool{}
+	var forget func(*abstractValue)
+	forget = func(v *abstractValue) {
+		if v == nil || seen[v] {
+			return
+		}
+		seen[v] = true
+		v.nilness, v.nilType = 0, nil
+		for _, child := range v.fields {
+			forget(child)
+		}
+		forget(v.elements)
+		for _, fn := range v.functions {
+			forget(fn.receiver)
+			for _, captured := range fn.capture {
+				forget(captured)
+			}
+		}
+	}
+	forget(value)
 }
 func summaryKeys(values map[string]*abstractValue) map[string]string {
 	keys := map[string]string{}
@@ -1360,6 +1637,10 @@ func bindingKey(values []*abstractValue) string {
 		}
 		seen[v] = len(seen)
 		fmt.Fprintf(&out, "{%t,%t,%t,%q,%d;", v.utc, v.unknown, v.builtin, v.text, v.truth)
+		fmt.Fprintf(&out, "nilness%d;", v.nilness)
+		if v.nilness != 0 && v.nilType != nil {
+			fmt.Fprintf(&out, "niltype%q;", types.TypeString(v.nilType, func(p *types.Package) string { return p.Path() }))
+		}
 		var names []string
 		for _, typ := range v.types {
 			names = append(names, types.TypeString(typ, func(p *types.Package) string { return p.Path() }))
@@ -1367,6 +1648,7 @@ func bindingKey(values []*abstractValue) string {
 		sort.Strings(names)
 		fmt.Fprintf(&out, "types%q;", names)
 		for _, fn := range v.functions {
+			fmt.Fprintf(&out, "method-expression%t;", fn.methodExpression)
 			if fn.fn != nil {
 				out.WriteString(functionID(fn.fn.object))
 			} else if fn.literal != nil {

@@ -1,0 +1,368 @@
+//go:build wasip1
+
+package net
+
+import (
+	"context"
+	"internal/byteorder"
+	"io"
+	"os"
+	"syscall"
+	"time"
+	_ "unsafe"
+)
+
+const (
+	gomadStreamQuery = iota
+	gomadStreamListen
+	gomadStreamDial
+	gomadStreamAccept
+	gomadStreamRead
+	gomadStreamWrite
+	gomadStreamClose
+	gomadStreamCloseRead
+	gomadStreamCloseWrite
+	gomadStreamDeadline
+	gomadStreamReadDeadline
+	gomadStreamWriteDeadline
+	gomadStreamPoll
+	gomadStreamCancel
+	gomadStreamHeader = 64
+	gomadStreamChunk  = 64 << 10
+)
+
+//go:wasmimport gomad_wasm_v2 net_stream
+//go:noescape
+func gomadWasmNetStream(*byte, uint32) uint32
+
+//go:linkname gomadStreamRegisterPoll runtime.gomadWasmNetRegisterPoll
+func gomadStreamRegisterPoll(func() (bool, bool))
+
+//go:linkname gomadStreamNanotime runtime.nanotime
+func gomadStreamNanotime() int64
+
+type gomadStreamPending struct {
+	next   *gomadStreamPending
+	buffer []byte
+	done   chan struct{}
+	active bool
+}
+
+var gomadStreamState uint8
+var gomadStreamNextRequest uint64
+var gomadStreamPendingHead, gomadStreamPendingTail *gomadStreamPending
+
+func init() {
+	gomadStreamRegisterPoll(gomadStreamPollPending)
+}
+
+func gomadStreamInvoke(buffer []byte) {
+	if gomadWasmNetStream(&buffer[0], uint32(len(buffer))) != 0 {
+		panic("net: gomad stream model rejected operation")
+	}
+	if byteorder.BEUint32(buffer[40:]) > 2 || byteorder.BEUint32(buffer[36:]) > uint32(len(buffer)-gomadStreamHeader) {
+		panic("net: invalid gomad stream response")
+	}
+}
+
+func gomadStreamFrame(op uint32, handle uint64, port, local, count uint32, deadline uint64) []byte {
+	buffer := make([]byte, gomadStreamHeader+int(count))
+	if op != gomadStreamQuery {
+		gomadStreamNextRequest++
+		if gomadStreamNextRequest == 0 {
+			panic("net: gomad stream request identity exhausted")
+		}
+		byteorder.BEPutUint64(buffer[8:], gomadStreamNextRequest)
+	}
+	byteorder.BEPutUint32(buffer, 2)
+	byteorder.BEPutUint32(buffer[4:], op)
+	byteorder.BEPutUint64(buffer[16:], handle)
+	byteorder.BEPutUint64(buffer[24:], deadline)
+	byteorder.BEPutUint32(buffer[32:], port)
+	byteorder.BEPutUint32(buffer[36:], count)
+	byteorder.BEPutUint32(buffer[48:], local)
+	return buffer
+}
+
+func gomadStreamEnabled(fd *netFD) bool {
+	if fd.sotype != syscall.SOCK_STREAM || fd.net != "tcp" && fd.net != "tcp4" && fd.net != "tcp6" {
+		return false
+	}
+	if gomadStreamState == 0 {
+		buffer := gomadStreamFrame(gomadStreamQuery, 0, 0, 0, 0, 0)
+		gomadStreamInvoke(buffer)
+		gomadStreamState = 1
+		if byteorder.BEUint32(buffer[40:]) == 0 {
+			gomadStreamState = 2
+		}
+	}
+	return gomadStreamState == 2
+}
+
+func gomadStreamRemove(pending *gomadStreamPending) {
+	var previous *gomadStreamPending
+	for current := gomadStreamPendingHead; current != nil; current = current.next {
+		if current == pending {
+			if previous == nil {
+				gomadStreamPendingHead = current.next
+			} else {
+				previous.next = current.next
+			}
+			if gomadStreamPendingTail == current {
+				gomadStreamPendingTail = previous
+			}
+			current.active = false
+			return
+		}
+		previous = current
+	}
+}
+
+func gomadStreamPollPending() (bool, bool) {
+	woken := false
+	for pending := gomadStreamPendingHead; pending != nil; {
+		next := pending.next
+		clear(pending.buffer[40:gomadStreamHeader])
+		byteorder.BEPutUint32(pending.buffer[4:], gomadStreamPoll)
+		gomadStreamInvoke(pending.buffer)
+		if byteorder.BEUint32(pending.buffer[40:]) != 1 {
+			gomadStreamRemove(pending)
+			close(pending.done)
+			woken = true
+		}
+		pending = next
+	}
+	return woken, gomadStreamPendingHead != nil
+}
+
+func gomadStreamCancelRequest(buffer []byte) {
+	var cancel [gomadStreamHeader]byte
+	byteorder.BEPutUint32(cancel[:], 2)
+	byteorder.BEPutUint32(cancel[4:], gomadStreamCancel)
+	copy(cancel[8:16], buffer[8:16])
+	gomadStreamInvoke(cancel[:])
+}
+
+func gomadStreamDo(ctx context.Context, buffer []byte, block bool) error {
+	gomadStreamInvoke(buffer)
+	if byteorder.BEUint32(buffer[40:]) == 1 {
+		if !block {
+			gomadStreamCancelRequest(buffer)
+			return syscall.EAGAIN
+		}
+		pending := &gomadStreamPending{buffer: buffer, done: make(chan struct{}), active: true}
+		if gomadStreamPendingTail == nil {
+			gomadStreamPendingHead = pending
+		} else {
+			gomadStreamPendingTail.next = pending
+		}
+		gomadStreamPendingTail = pending
+		if ctx == nil {
+			<-pending.done
+		} else {
+			select {
+			case <-pending.done:
+			case <-ctx.Done():
+				if pending.active {
+					gomadStreamRemove(pending)
+					gomadStreamCancelRequest(buffer)
+				} else if handle := byteorder.BEUint64(buffer[16:]); byteorder.BEUint32(buffer[44:]) == 0 && handle != 0 {
+					gomadStreamDo(nil, gomadStreamFrame(gomadStreamClose, handle, 0, 0, 0, 0), true)
+				}
+				return mapErr(ctx.Err())
+			}
+		}
+	}
+	if byteorder.BEUint32(buffer[40:]) != 0 {
+		panic("net: gomad stream model disabled during operation")
+	}
+	errno := syscall.Errno(byteorder.BEUint32(buffer[44:]))
+	switch errno {
+	case 0:
+		return nil
+	case syscall.EBADF:
+		return ErrClosed
+	case syscall.ETIMEDOUT:
+		return os.ErrDeadlineExceeded
+	case syscall.ECANCELED:
+		return errCanceled
+	default:
+		return errno
+	}
+}
+
+func gomadStreamTime(t time.Time) uint64 {
+	if t.IsZero() {
+		return 0
+	}
+	now := gomadStreamNanotime()
+	delay := time.Until(t)
+	if delay > 0 && int64(delay) > int64(^uint64(0)>>1)-now {
+		return uint64(^uint64(0) >> 1)
+	}
+	deadline := now + int64(delay)
+	if deadline < 1 {
+		deadline = 1
+	}
+	return uint64(deadline)
+}
+
+func gomadStreamAddr(family int, port uint32) *TCPAddr {
+	ip := IPv4(127, 0, 0, 1).To4()
+	if family == syscall.AF_INET6 {
+		ip = IPv6loopback
+	}
+	if port == 0 || port >= 1<<16 {
+		panic("net: invalid gomad stream port")
+	}
+	return &TCPAddr{IP: ip, Port: int(port)}
+}
+
+func gomadStreamLocalPort(fd *netFD, addr sockaddr) (uint32, error) {
+	if addr == nil {
+		return 0, nil
+	}
+	tcp, ok := addr.(*TCPAddr)
+	if !ok {
+		return 0, syscall.EINVAL
+	}
+	if tcp == nil {
+		return 0, nil
+	}
+	if tcp.Port < 0 || tcp.Port >= 1<<16 {
+		return 0, syscall.EINVAL
+	}
+	if tcp.IP != nil {
+		resolved := matchIPFamily(fd.family, &TCPAddr{IP: tcp.IP, Port: 1, Zone: tcp.Zone})
+		if err := validateResolvedAddr(fd.net, fd.family, resolved); err != nil {
+			return 0, err
+		}
+	}
+	return uint32(tcp.Port), nil
+}
+
+func gomadStreamListenFD(fd *netFD, laddr sockaddr) error {
+	port, err := gomadStreamLocalPort(fd, laddr)
+	if err != nil {
+		return err
+	}
+	buffer := gomadStreamFrame(gomadStreamListen, 0, port, 0, 0, 0)
+	if err := gomadStreamDo(nil, buffer, true); err != nil {
+		return err
+	}
+	fd.gomadStreamHandle = byteorder.BEUint64(buffer[16:])
+	if fd.gomadStreamHandle == 0 {
+		panic("net: invalid gomad stream handle")
+	}
+	fd.laddr = gomadStreamAddr(fd.family, byteorder.BEUint32(buffer[48:]))
+	return nil
+}
+
+func gomadStreamConnectFD(ctx context.Context, fd *netFD, laddr, raddr sockaddr) error {
+	if fd.isConnected {
+		return syscall.EISCONN
+	}
+	if ctx.Err() != nil {
+		return mapErr(ctx.Err())
+	}
+	remote := matchIPFamily(fd.family, raddr)
+	if err := validateResolvedAddr(fd.net, fd.family, remote); err != nil {
+		return err
+	}
+	local, err := gomadStreamLocalPort(fd, laddr)
+	if err != nil {
+		return err
+	}
+	var deadline uint64
+	if t, ok := ctx.Deadline(); ok {
+		deadline = gomadStreamTime(t)
+	}
+	buffer := gomadStreamFrame(gomadStreamDial, 0, gomadNetPort(remote), local, 0, deadline)
+	if ip := remote.(*TCPAddr).IP.To4(); ip != nil {
+		byteorder.BEPutUint32(buffer[56:], byteorder.BEUint32(ip))
+	}
+	if err := gomadStreamDo(ctx, buffer, true); err != nil {
+		return err
+	}
+	fd.gomadStreamHandle = byteorder.BEUint64(buffer[16:])
+	if fd.gomadStreamHandle == 0 {
+		panic("net: invalid gomad stream handle")
+	}
+	fd.laddr = gomadStreamAddr(fd.family, byteorder.BEUint32(buffer[48:]))
+	fd.raddr = gomadStreamAddr(fd.family, byteorder.BEUint32(buffer[52:]))
+	fd.isConnected = true
+	return nil
+}
+
+func (ffd *fakeNetFD) gomadStreamAcceptFD() (*netFD, error) {
+	buffer := gomadStreamFrame(gomadStreamAccept, ffd.gomadStreamHandle, 0, 0, 0, 0)
+	if err := gomadStreamDo(nil, buffer, true); err != nil {
+		return nil, err
+	}
+	fd := &netFD{family: ffd.fd.family, sotype: ffd.fd.sotype, net: ffd.fd.net, isConnected: true}
+	fd.fakeNetFD = newFakeNetFD(fd)
+	fd.gomadStreamHandle = byteorder.BEUint64(buffer[16:])
+	if fd.gomadStreamHandle == 0 {
+		panic("net: invalid gomad stream handle")
+	}
+	fd.laddr = gomadStreamAddr(fd.family, byteorder.BEUint32(buffer[48:]))
+	fd.raddr = gomadStreamAddr(fd.family, byteorder.BEUint32(buffer[52:]))
+	return fd, nil
+}
+
+func (ffd *fakeNetFD) gomadStreamReadBytes(p []byte) (int, error) {
+	ffd.gomadStreamReadMu.Lock()
+	defer ffd.gomadStreamReadMu.Unlock()
+	n := 0
+	for n < len(p) {
+		count := min(len(p)-n, gomadStreamChunk)
+		buffer := gomadStreamFrame(gomadStreamRead, ffd.gomadStreamHandle, 0, 0, uint32(count), 0)
+		err := gomadStreamDo(nil, buffer, n == 0)
+		if err != nil {
+			if n > 0 && err == syscall.EAGAIN {
+				return n, nil
+			}
+		}
+		read := int(byteorder.BEUint32(buffer[36:]))
+		copy(p[n:], buffer[gomadStreamHeader:gomadStreamHeader+read])
+		n += read
+		if err != nil {
+			return n, err
+		}
+		if read == 0 {
+			if n == 0 {
+				return 0, io.EOF
+			}
+			return n, nil
+		}
+		if read < count {
+			break
+		}
+	}
+	return n, nil
+}
+
+func (ffd *fakeNetFD) gomadStreamWriteBytes(p []byte) (int, error) {
+	ffd.gomadStreamWriteMu.Lock()
+	defer ffd.gomadStreamWriteMu.Unlock()
+	n := 0
+	for n < len(p) {
+		count := min(len(p)-n, gomadStreamChunk)
+		buffer := gomadStreamFrame(gomadStreamWrite, ffd.gomadStreamHandle, 0, 0, uint32(count), 0)
+		copy(buffer[gomadStreamHeader:], p[n:n+count])
+		err := gomadStreamDo(nil, buffer, true)
+		written := int(byteorder.BEUint32(buffer[36:]))
+		n += written
+		if err != nil {
+			return n, err
+		}
+		if written == 0 {
+			return n, io.ErrShortWrite
+		}
+	}
+	return n, nil
+}
+
+func (ffd *fakeNetFD) gomadStreamOperation(op uint32, t time.Time) error {
+	return gomadStreamDo(nil, gomadStreamFrame(op, ffd.gomadStreamHandle, 0, 0, 0, gomadStreamTime(t)), true)
+}

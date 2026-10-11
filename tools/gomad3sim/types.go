@@ -16,6 +16,7 @@ const MaximumTerminalReasonBytes = 4096
 const (
 	BackendInProcess Backend = "in_process"
 	BackendProcess   Backend = "process"
+	BackendWASM      Backend = "wasm"
 )
 
 const (
@@ -456,6 +457,7 @@ type ClusterRecord struct {
 	Oracles              []OracleResult          `json:"oracles"`
 	Network              NetworkRecord           `json:"network"`
 	Volumes              VolumeRecord            `json:"volumes"`
+	WASM                 *WASMExecutionEvidence  `json:"wasm_execution,omitempty"`
 	Outputs              []OutputObservation     `json:"outputs"`
 	Limitations          []Limitation            `json:"limitations"`
 	Leaks                []LeakDiagnostic        `json:"leaks"`
@@ -484,27 +486,29 @@ type ReplayPlan struct {
 	Oracles              []OracleResult          `json:"oracles"`
 	Network              NetworkRecord           `json:"network"`
 	Volumes              VolumeRecord            `json:"volumes"`
+	WASM                 *WASMExecutionEvidence  `json:"wasm_execution,omitempty"`
 	Outputs              []OutputObservation     `json:"outputs"`
 	Leaks                []LeakDiagnostic        `json:"leaks"`
 	Identity             string                  `json:"identity"`
 }
 
 type Result struct {
-	Outcome         Outcome             `json:"outcome"`
-	Reason          string              `json:"reason,omitempty"`
-	FailureIdentity string              `json:"failure_identity,omitempty"`
-	Nodes           []NodeResult        `json:"nodes"`
-	Outputs         []OutputObservation `json:"outputs"`
-	Leaks           []LeakDiagnostic    `json:"leaks"`
-	Network         NetworkRecord       `json:"network"`
-	Volumes         VolumeRecord        `json:"volumes"`
-	Faults          []FaultRealization  `json:"faults"`
-	Scenarios       []ScenarioDecision  `json:"scenario_tape"`
-	History         []HistoryOperation  `json:"history"`
-	Observations    []Observation       `json:"observations"`
-	Oracles         []OracleResult      `json:"oracles"`
-	Divergence      *ReplayDivergence   `json:"divergence,omitempty"`
-	Record          ClusterRecord       `json:"record"`
+	Outcome         Outcome                `json:"outcome"`
+	Reason          string                 `json:"reason,omitempty"`
+	FailureIdentity string                 `json:"failure_identity,omitempty"`
+	Nodes           []NodeResult           `json:"nodes"`
+	Outputs         []OutputObservation    `json:"outputs"`
+	Leaks           []LeakDiagnostic       `json:"leaks"`
+	Network         NetworkRecord          `json:"network"`
+	Volumes         VolumeRecord           `json:"volumes"`
+	WASM            *WASMExecutionEvidence `json:"wasm_execution,omitempty"`
+	Faults          []FaultRealization     `json:"faults"`
+	Scenarios       []ScenarioDecision     `json:"scenario_tape"`
+	History         []HistoryOperation     `json:"history"`
+	Observations    []Observation          `json:"observations"`
+	Oracles         []OracleResult         `json:"oracles"`
+	Divergence      *ReplayDivergence      `json:"divergence,omitempty"`
+	Record          ClusterRecord          `json:"record"`
 }
 
 type NodeContext struct {

@@ -75,14 +75,22 @@ type inProcessCluster struct {
 	oracles               []OracleResult
 	scenarioEvidenceBytes uint64
 	processOutputs        []OutputObservation
+	wasm                  WASMExecution
 }
 
 func Run(ctx context.Context, spec Spec, scenario Scenario) (Result, error) {
+	return run(ctx, spec, scenario, nil)
+}
+
+func run(ctx context.Context, spec Spec, scenario Scenario, wasm WASMExecution) (Result, error) {
 	if ctx == nil {
 		return Result{}, errors.New("simulation context is nil")
 	}
 	if err := ValidateSpec(spec); err != nil {
 		return Result{}, err
+	}
+	if spec.Backend == BackendWASM && wasm == nil {
+		return Result{}, &BackendUnavailableError{Backend: BackendWASM}
 	}
 	if runPrivateProcessNodeIfPresent(ctx, spec) {
 		return Result{}, nil
@@ -118,42 +126,45 @@ func Run(ctx context.Context, spec Spec, scenario Scenario) (Result, error) {
 	if err != nil {
 		return Result{}, err
 	}
-	if !runtimeDomainAvailable() {
-		return Result{}, ErrRuntimeUnavailable
-	}
-	runtimeRun, err := runtimeDomainBegin(spec.Limits.ObservationBytes, spec.Limits.ScenarioActions)
-	if err != nil {
-		return Result{}, err
-	}
-	cluster.runtimeRun = runtimeRun
-	networkConfig, err := encodeRuntimeNetworkConfig(spec)
-	if err != nil {
-		_, finishErr := runtimeDomainFinish(runtimeRun)
-		return Result{}, errors.Join(err, finishErr)
-	}
-	if err := runtimeNetworkBegin(runtimeRun, networkConfig); err != nil {
-		_, finishErr := runtimeDomainFinish(runtimeRun)
-		return Result{}, errors.Join(fmt.Errorf("begin simulation network: %w", err), finishErr)
-	}
-	volumeConfig, err := encodeRuntimeVolumeConfig(spec)
-	if err != nil {
-		_, networkFinishErr := runtimeNetworkFinish(runtimeRun)
-		_, finishErr := runtimeDomainFinish(runtimeRun)
-		return Result{}, errors.Join(err, networkFinishErr, finishErr)
-	}
-	if err := runtimeVolumeBegin(runtimeRun, volumeConfig); err != nil {
-		_, networkFinishErr := runtimeNetworkFinish(runtimeRun)
-		_, finishErr := runtimeDomainFinish(runtimeRun)
-		return Result{}, errors.Join(fmt.Errorf("begin simulation volumes: %w", err), networkFinishErr, finishErr)
-	}
+	cluster.wasm = wasm
 	stopProcessModelBroker := func() error { return nil }
-	if spec.Backend == BackendProcess {
-		stopProcessModelBroker, err = beginProcessModelBroker(cluster.handleProcessModelOperation)
+	if wasm == nil {
+		if !runtimeDomainAvailable() {
+			return Result{}, ErrRuntimeUnavailable
+		}
+		runtimeRun, err := runtimeDomainBegin(spec.Limits.ObservationBytes, spec.Limits.ScenarioActions)
 		if err != nil {
-			_, volumeFinishErr := runtimeVolumeFinish(runtimeRun)
+			return Result{}, err
+		}
+		cluster.runtimeRun = runtimeRun
+		networkConfig, err := encodeRuntimeNetworkConfig(spec)
+		if err != nil {
+			_, finishErr := runtimeDomainFinish(runtimeRun)
+			return Result{}, errors.Join(err, finishErr)
+		}
+		if err := runtimeNetworkBegin(runtimeRun, networkConfig); err != nil {
+			_, finishErr := runtimeDomainFinish(runtimeRun)
+			return Result{}, errors.Join(fmt.Errorf("begin simulation network: %w", err), finishErr)
+		}
+		volumeConfig, err := encodeRuntimeVolumeConfig(spec)
+		if err != nil {
 			_, networkFinishErr := runtimeNetworkFinish(runtimeRun)
 			_, finishErr := runtimeDomainFinish(runtimeRun)
-			return Result{}, errors.Join(err, volumeFinishErr, networkFinishErr, finishErr)
+			return Result{}, errors.Join(err, networkFinishErr, finishErr)
+		}
+		if err := runtimeVolumeBegin(runtimeRun, volumeConfig); err != nil {
+			_, networkFinishErr := runtimeNetworkFinish(runtimeRun)
+			_, finishErr := runtimeDomainFinish(runtimeRun)
+			return Result{}, errors.Join(fmt.Errorf("begin simulation volumes: %w", err), networkFinishErr, finishErr)
+		}
+		if spec.Backend == BackendProcess {
+			stopProcessModelBroker, err = beginProcessModelBroker(cluster.handleProcessModelOperation)
+			if err != nil {
+				_, volumeFinishErr := runtimeVolumeFinish(runtimeRun)
+				_, networkFinishErr := runtimeNetworkFinish(runtimeRun)
+				_, finishErr := runtimeDomainFinish(runtimeRun)
+				return Result{}, errors.Join(err, volumeFinishErr, networkFinishErr, finishErr)
+			}
 		}
 	}
 	scenarioErr := scenario(ctx, cluster)
@@ -161,9 +172,20 @@ func Run(ctx context.Context, spec Spec, scenario Scenario) (Result, error) {
 	scenarioErr = errors.Join(scenarioErr, controllerErr)
 	cleanupErr := cluster.shutdown(ctx)
 	modelBrokerErr := stopProcessModelBroker()
-	volumes, volumeFinishErr := runtimeVolumeFinish(runtimeRun)
-	network, networkFinishErr := runtimeNetworkFinish(runtimeRun)
-	outputs, finishErr := runtimeDomainFinish(runtimeRun)
+	var volumes VolumeRecord
+	var network NetworkRecord
+	var outputs []OutputObservation
+	var wasmEvidence *WASMExecutionEvidence
+	var volumeFinishErr, networkFinishErr, finishErr error
+	if wasm != nil {
+		evidence, err := wasm.Finish()
+		volumes, network, outputs, finishErr = evidence.Volumes, evidence.Network, evidence.Outputs, err
+		wasmEvidence = cloneWASMExecution(evidence.Execution)
+	} else {
+		volumes, volumeFinishErr = runtimeVolumeFinish(cluster.runtimeRun)
+		network, networkFinishErr = runtimeNetworkFinish(cluster.runtimeRun)
+		outputs, finishErr = runtimeDomainFinish(cluster.runtimeRun)
+	}
 	if err := errors.Join(cleanupErr, modelBrokerErr, finishErr); err != nil {
 		return Result{}, errors.Join(fmt.Errorf("finish simulation: %w", err), scenarioErr)
 	}
@@ -176,6 +198,7 @@ func Run(ctx context.Context, spec Spec, scenario Scenario) (Result, error) {
 	sort.Slice(result.Outputs, func(left, right int) bool { return outputBefore(result.Outputs[left], result.Outputs[right]) })
 	result.Network = network
 	result.Volumes = volumes
+	result.WASM = wasmEvidence
 	if !applyReplayDivergence(&result, scenarioErr) && !applyReplayDivergence(&result, volumeFinishErr) && !applyReplayDivergence(&result, networkFinishErr) {
 		if volumeFinishErr != nil {
 			return Result{}, fmt.Errorf("finish simulation volumes: %w", volumeFinishErr)
@@ -369,7 +392,7 @@ func newInProcessCluster(spec Spec) (*inProcessCluster, error) {
 	}
 	for _, nodeSpec := range spec.Nodes {
 		boot, ok := RegisteredBoot(nodeSpec.Boot)
-		if !ok {
+		if !ok && spec.Backend != BackendWASM {
 			return nil, fmt.Errorf("node %q uses unregistered boot %q", nodeSpec.ID, nodeSpec.Boot)
 		}
 		config := append([]byte(nil), nodeSpec.Config...)
@@ -397,6 +420,9 @@ func (cluster *inProcessCluster) Wait(ctx context.Context, handle NodeHandle) (N
 		return NodeResult{}, err
 	}
 	defer cluster.endCall()
+	if cluster.wasm != nil {
+		return cluster.endWASM(ctx, handle, LifecycleWait)
+	}
 	if cluster.backend == BackendProcess {
 		return cluster.waitProcess(ctx, handle)
 	}
@@ -530,6 +556,10 @@ func (cluster *inProcessCluster) Stop(ctx context.Context, handle NodeHandle) er
 		return err
 	}
 	defer cluster.endCall()
+	if cluster.wasm != nil {
+		_, err := cluster.endWASM(ctx, handle, LifecycleStop)
+		return err
+	}
 	if cluster.backend == BackendProcess {
 		return cluster.stopProcess(ctx, handle)
 	}
@@ -717,6 +747,11 @@ func (cluster *inProcessCluster) crash(ctx context.Context, handle NodeHandle, p
 		cluster.mu.Unlock()
 		return ErrInvalidTransition
 	}
+	if cluster.wasm != nil {
+		cluster.mu.Unlock()
+		_, err := cluster.endWASM(ctx, handle, LifecycleCrash)
+		return err
+	}
 	if cluster.backend == BackendProcess {
 		err := cluster.crashProcessLocked(node, handle, persistedOnly)
 		cluster.mu.Unlock()
@@ -801,7 +836,7 @@ func (cluster *inProcessCluster) Restart(ctx context.Context, id NodeID) (NodeHa
 		return NodeHandle{}, err
 	}
 	cluster.commitTransition(transition)
-	if cluster.backend == BackendProcess {
+	if cluster.backend == BackendProcess || cluster.wasm != nil {
 		cluster.launchProcess(node, handle, domain)
 	} else {
 		cluster.launch(ctx, node, handle, domain)
@@ -814,6 +849,9 @@ func (cluster *inProcessCluster) Partition(ctx context.Context, left, right Node
 		return err
 	}
 	defer cluster.endCall()
+	if cluster.wasm != nil {
+		return cluster.wasm.Link("partition", left, right, 0, true)
+	}
 	return runtimeNetworkPartition(cluster.runtimeRun, left, right, true)
 }
 
@@ -822,6 +860,9 @@ func (cluster *inProcessCluster) Heal(ctx context.Context, left, right NodeID) e
 		return err
 	}
 	defer cluster.endCall()
+	if cluster.wasm != nil {
+		return cluster.wasm.Link("heal", left, right, 0, true)
+	}
 	return runtimeNetworkHeal(cluster.runtimeRun, left, right, true)
 }
 
@@ -830,6 +871,9 @@ func (cluster *inProcessCluster) SetDelay(ctx context.Context, left, right NodeI
 		return err
 	}
 	defer cluster.endCall()
+	if cluster.wasm != nil {
+		return cluster.wasm.Link("delay", left, right, delayNanos, true)
+	}
 	return runtimeNetworkDelay(cluster.runtimeRun, left, right, delayNanos, true)
 }
 
@@ -845,6 +889,10 @@ func (cluster *inProcessCluster) EnumerateCrashStates(ctx context.Context, handl
 		return VolumeCrashEnumeration{}, err
 	}
 	domain := node.domain
+	if cluster.wasm != nil {
+		cluster.mu.Unlock()
+		return VolumeCrashEnumeration{}, &UnsupportedWASMCapabilityError{Backend: BackendWASM, Capability: "live-volume-crash-enumeration"}
+	}
 	cluster.mu.Unlock()
 	return runtimeVolumeEnumerate(domain, volume, limits, frontier)
 }
@@ -864,7 +912,7 @@ func (cluster *inProcessCluster) startLocked(ctx context.Context, id NodeID, act
 		return NodeHandle{}, err
 	}
 	cluster.commitTransition(transition)
-	if cluster.backend == BackendProcess {
+	if cluster.backend == BackendProcess || cluster.wasm != nil {
 		cluster.launchProcess(node, handle, domain)
 	} else {
 		cluster.launch(ctx, node, handle, domain)
@@ -873,6 +921,9 @@ func (cluster *inProcessCluster) startLocked(ctx context.Context, id NodeID, act
 }
 
 func (cluster *inProcessCluster) prepareIncarnation(node *clusterNode, handle NodeHandle) (uint64, error) {
+	if cluster.wasm != nil {
+		return 0, cluster.wasm.Start(node.spec, handle)
+	}
 	if cluster.backend == BackendProcess {
 		if err := cluster.startProcessNode(node, handle); err != nil {
 			return 0, err
@@ -1070,6 +1121,9 @@ func (cluster *inProcessCluster) commitTerminal(node *clusterNode, state NodeSta
 }
 
 func (cluster *inProcessCluster) shutdown(ctx context.Context) error {
+	if cluster.wasm != nil {
+		return cluster.shutdownWASM(ctx)
+	}
 	if cluster.backend == BackendProcess {
 		return cluster.shutdownProcess(ctx)
 	}
@@ -1248,6 +1302,13 @@ func (cluster *inProcessCluster) result() (Result, error) {
 func (cluster *inProcessCluster) finishReplay(result Result) error {
 	if cluster.replay == nil {
 		return nil
+	}
+	if expected, err := hashCanonical("gomad3-wasm-execution/v1", cluster.replay.WASM); err != nil {
+		return err
+	} else if actual, err := hashCanonical("gomad3-wasm-execution/v1", result.WASM); err != nil {
+		return err
+	} else if expected != actual {
+		return &ReplayDivergenceError{Divergence: ReplayDivergence{Dimension: ReplayDimensionEvidence, ExpectedSHA256: expected, ActualSHA256: actual}}
 	}
 	actualTransitions := result.Record.Transitions
 	if len(actualTransitions) != len(cluster.replay.Transitions) {

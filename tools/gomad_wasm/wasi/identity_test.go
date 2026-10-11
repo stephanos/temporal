@@ -5,8 +5,8 @@ import (
 	"testing/fstest"
 )
 
-func TestImplementationIdentityPreservesCompiledModelDigest(t *testing.T) {
-	const expected = "sha256:26d1d15593e3c28e5ff6e74154d100439b9c6c497d6677d9570961cca2f7978a"
+func TestImplementationIdentityBindsCompiledModelDigest(t *testing.T) {
+	const expected = "sha256:4f0d27b92506aa39ef168279ddce40f58dd700edf575dc2655f0fb3c7429dcc1"
 	if got := ImplementationSHA256(); got != expected {
 		t.Fatalf("compiled model identity = %q, want %q", got, expected)
 	}

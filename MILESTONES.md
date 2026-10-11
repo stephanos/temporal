@@ -207,13 +207,13 @@ CI, PR, or push authority.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-156.8](.flow/tasks/fn-156-wasm-gomad-productionization.8.md) | 🚧 In progress | In-helper runtime decisions, clock and network model; at least 5x faster guests |
+| [fn-156.8](.flow/tasks/fn-156-wasm-gomad-productionization.8.md) | 🚧 In progress | Transport, Rust units and tiny ABI passed; Go-guest parity and speed gate open |
 | [fn-156.1](.flow/tasks/fn-156-wasm-gomad-productionization.1.md) | ⬜ Todo | Full scheduling qualification (map/GC/entropy, 32x100) and optional checkpoints |
 | [fn-156.2](.flow/tasks/fn-156-wasm-gomad-productionization.2.md) | ⬜ Todo | Bounded exploration, resume, minimization, and non-progress outcomes |
 | [fn-156.3](.flow/tasks/fn-156-wasm-gomad-productionization.3.md) | ⬜ Todo | Durable SQLite volumes, storage faults, crash recovery, and replay |
 | [fn-156.4](.flow/tasks/fn-156-wasm-gomad-productionization.4.md) | ⬜ Todo | Complete network model and reference checks |
-| [fn-156.5](.flow/tasks/fn-156-wasm-gomad-productionization.5.md) | ⬜ Todo | Independent guest nodes, broker/global clock, volumes/incarnations, and stale-handle rejection |
-| [fn-156.6](.flow/tasks/fn-156-wasm-gomad-productionization.6.md) | ⬜ Todo | Retained workload qualification and measured backend costs |
+| [fn-156.5](.flow/tasks/fn-156-wasm-gomad-productionization.5.md) | ⬜ Todo | Temporal record retained; recovery/replay open; architecture trace localized unfinished root |
+| [fn-156.6](.flow/tasks/fn-156-wasm-gomad-productionization.6.md) | ⬜ Todo | Retained small replay passed; final candidate, terminal operator receipts and corpus remain open |
 | [fn-156.7](.flow/tasks/fn-156-wasm-gomad-productionization.7.md) | ⬜ Todo | Supported-profile optimization, caching, installation, discovery, and operator documentation |
 
 <a id="open-findings"></a>

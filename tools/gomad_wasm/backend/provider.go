@@ -35,11 +35,31 @@ type Options struct {
 	CompilerPath, CompilerSHA256, HelperPath, HelperSHA256, ModelSHA256, CacheRoot string
 	GoVersion                                                                      string
 	RuntimeRoot                                                                    string
+	CompileCacheRoot                                                               string
+	ObserveExecution                                                               func(ExecutionMetrics)       `json:"-"`
+	ObserveCompilerCommand                                                         func(CompilerCommandMetrics) `json:"-"`
 	Engine                                                                         wasi.EngineIdentity
 	MemoryBytes, Fuel                                                              uint64
 	Config                                                                         wasi.Config
 }
 type Provider struct{ options Options }
+
+type ExecutionMetrics struct {
+	Telemetry                                                   *wasi.Telemetry
+	HelperResourceUsage                                         *hostexec.ResourceUsage
+	AuthorizationToTerminalNanos                                uint64
+	VirtualTimeElapsedNanos                                     uint64
+	WallElapsedNanos, FuelUsed, GuestPeakMemoryBytes, HostCalls uint64
+	WASIBytes, ChoiceBytes, DiagnosticBytes, TimeAdvances       uint64
+	StorageBytes, NetworkBytes                                  uint64
+}
+
+type CompilerCommandMetrics struct {
+	Arguments        []string
+	WallElapsedNanos uint64
+	ResourceUsage    *hostexec.ResourceUsage
+}
+type compilerObserverKey struct{}
 type sourceIdentity struct {
 	Path   string
 	SHA256 record.SHA256
@@ -66,6 +86,9 @@ func New(options Options) (*Provider, error) {
 	if (!stock && !cooperative) || options.Engine != wasi.PinnedEngine() || options.MemoryBytes == 0 || options.Fuel == 0 || options.ModelSHA256 != wasi.ImplementationSHA256() {
 		return nil, errors.New("explicit pinned WASM profile is required")
 	}
+	if options.CompileCacheRoot != "" && !filepath.IsAbs(options.CompileCacheRoot) {
+		return nil, errors.New("absolute WASM compiled module cache root is required")
+	}
 	for _, digest := range []string{options.CompilerSHA256, options.HelperSHA256, options.ModelSHA256} {
 		if _, err := record.ParseSHA256(digest); err != nil {
 			return nil, err
@@ -84,6 +107,9 @@ func New(options Options) (*Provider, error) {
 	return &Provider{options: options}, nil
 }
 func (p *Provider) Prepare(ctx context.Context, spec target.Spec) (preparedResult target.Prepared, retErr error) {
+	if p.options.ObserveCompilerCommand != nil {
+		ctx = context.WithValue(ctx, compilerObserverKey{}, p.options.ObserveCompilerCommand)
+	}
 	if spec.Backend != Name || spec.Kind != target.KindGoRun && spec.Kind != target.KindGoTest || spec.Source == "" || spec.BuildOverlay != "" || spec.BuildModFile != "" || len(spec.AdapterReplacements) != 0 || spec.Provenance != "" || spec.CapabilityMode != "" && spec.CapabilityMode != target.CapabilityModeClosure {
 		return target.Prepared{}, errors.New("unsupported WASM source preparation request")
 	}
@@ -302,7 +328,7 @@ func preparedFrom(pr provenance, data []byte) target.Prepared {
 	reference := record.BackendPayload{Schema: provenanceSchema, File: "backend/provenance.json", SHA256: record.HashBytes(data), Bytes: record.Uint64String(len(data))}
 	return target.Prepared{Kind: pr.Kind, Source: pr.Source, SHA256: pr.ModuleSHA256, Size: pr.ModuleBytes, Argv: append([]string{"gomad3-target"}, pr.Args...), BuildTags: pr.BuildTags, Adapters: []record.TargetAdapter{}, Compatibility: []record.CompatibilityPack{}, GoVersion: pr.GoVersion, BuildKey: pr.BuildKey, TargetGOOS: "wasip1", TargetGOARCH: "wasm", CapabilityMode: target.CapabilityModeClosure, BuildInfo: record.BuildInfo{GoVersion: pr.GoVersion, Path: pr.Source, Settings: []record.BuildSetting{}}, Backend: &record.BackendMetadata{Name: Name, ReplayMode: pr.ReplayMode, Provenance: reference}, BackendPayloads: []target.BackendPayload{{Reference: reference, Data: append([]byte(nil), data...)}}}
 }
-func (p *Provider) ValidatePrepared(spec target.Spec, prepared target.Prepared, _ []string) error {
+func (p *Provider) ValidatePrepared(spec target.Spec, prepared target.Prepared, environment []string) error {
 	if prepared.Backend == nil || prepared.Backend.Name != Name || spec.Backend != Name || prepared.Kind != spec.Kind || prepared.Source != spec.Source || !reflect.DeepEqual(prepared.Argv, append([]string{"gomad3-target"}, spec.Args...)) {
 		return errors.New("WASM prepared specification mismatch")
 	}
@@ -315,6 +341,24 @@ func (p *Provider) ValidatePrepared(spec target.Spec, prepared target.Prepared, 
 	}
 	if err := p.validateProvenance(pr, prepared); err != nil {
 		return err
+	}
+	choices := false
+	for _, entry := range environment {
+		name, value, _ := strings.Cut(entry, "=")
+		if name == "GOMAD3_CHOICE_PROFILE" || name == choice.DiagnosticProfileEnvironment {
+			if pr.Profile == wasi.StockProfile {
+				return errors.New("stock WASM preparation does not support runtime choices or diagnostics")
+			}
+			if name == "GOMAD3_CHOICE_PROFILE" {
+				if value != choice.Profile {
+					return errors.New("cooperative WASM preparation requires the supported choice profile")
+				}
+				choices = true
+			}
+		}
+	}
+	if environment != nil && pr.Profile == wasi.CooperativeProfile && !choices {
+		return errors.New("cooperative WASM preparation requires choice recording or replay")
 	}
 	return prepared.Verify()
 }
@@ -438,11 +482,31 @@ func (p *Provider) Run(ctx context.Context, request runnerbackend.Request) (runn
 	if !filepath.IsAbs(request.Target.Path) || !filepath.IsAbs(p.options.HelperPath) || len(pr.ModuleSHA256) != 71 || len(pr.HelperSHA256) != 71 {
 		return runnerbackend.Result{}, fmt.Errorf("invalid WASM launch paths or identities: target=%q helper=%q module-digest-bytes=%d helper-digest-bytes=%d", request.Target.Path, p.options.HelperPath, len(pr.ModuleSHA256), len(pr.HelperSHA256))
 	}
-	result, err := wasi.Run(ctx, wasi.Request{HelperPath: p.options.HelperPath, HelperSHA256: strings.TrimPrefix(pr.HelperSHA256, "sha256:"), ModulePath: request.Target.Path, ModuleSHA256: strings.TrimPrefix(pr.ModuleSHA256, "sha256:"), Engine: pr.Engine, Imports: pr.Imports, InitialMemoryPages: pr.InitialMemoryPages, MemoryBytes: pr.MemoryBytes, Fuel: pr.Fuel, Config: config, Timeout: request.Timeout, Runtime: runtimeControl})
+	var started time.Time
+	if p.options.ObserveExecution != nil {
+		started = time.Now()
+	}
+	result, err := wasi.Run(ctx, wasi.Request{HelperPath: p.options.HelperPath, HelperSHA256: strings.TrimPrefix(pr.HelperSHA256, "sha256:"), ModulePath: request.Target.Path, ModuleSHA256: strings.TrimPrefix(pr.ModuleSHA256, "sha256:"), Engine: pr.Engine, Imports: pr.Imports, InitialMemoryPages: pr.InitialMemoryPages, MemoryBytes: pr.MemoryBytes, Fuel: pr.Fuel, Config: config, Timeout: request.Timeout, Runtime: runtimeControl, CompileCache: p.options.CompileCacheRoot})
 	if err != nil {
 		return runnerbackend.Result{}, err
 	}
-	observed := runnerbackend.Result{Termination: runnerbackend.Termination(result.Termination), Stdout: result.Stdout, Stderr: result.Stderr, Evidence: result.Transcript, Reaped: result.Reaped, Cancelled: result.Cancelled, WatchdogTimeout: result.WatchdogTimeout, ChoiceTrace: result.ChoiceTrace, DiagnosticTrace: result.DiagnosticTrace, ChoiceDivergence: result.ChoiceDivergence}
+	if p.options.ObserveExecution != nil {
+		p.options.ObserveExecution(ExecutionMetrics{
+			HelperResourceUsage: result.HelperResourceUsage, AuthorizationToTerminalNanos: result.AuthorizationToTerminalNanos,
+			Telemetry:               result.Telemetry,
+			VirtualTimeElapsedNanos: result.VirtualTimeElapsedNanos,
+			WallElapsedNanos:        uint64(time.Since(started)), FuelUsed: pr.Fuel - result.FuelRemaining,
+			GuestPeakMemoryBytes: result.PeakMemoryBytes, HostCalls: result.Calls, WASIBytes: uint64(len(result.Transcript)),
+			ChoiceBytes: uint64(len(result.ChoiceTrace.Bytes)), DiagnosticBytes: uint64(len(result.DiagnosticTrace.Bytes)), TimeAdvances: result.TimeAdvances,
+			StorageBytes: uint64(len(result.StorageTranscript)), NetworkBytes: uint64(len(result.NetworkTranscript)),
+		})
+	}
+	observed := runnerbackend.Result{Termination: runnerbackend.Termination(result.Termination), Message: result.Message, Stdout: result.Stdout, Stderr: result.Stderr, Evidence: result.Transcript, Reaped: result.Reaped, Cancelled: result.Cancelled, WatchdogTimeout: result.WatchdogTimeout, ChoiceTrace: result.ChoiceTrace, DiagnosticTrace: result.DiagnosticTrace, ChoiceDivergence: result.ChoiceDivergence}
+	observed.Evidence, err = modelEvidence(result, request.TranscriptBytes)
+	if err != nil {
+		return runnerbackend.Result{Termination: runnerbackend.Capacity, Message: err.Error(), Reaped: result.Reaped}, nil
+	}
+	observed.VirtualTimeElapsedNanos = result.VirtualTimeElapsedNanos
 	if request.Choice != nil {
 		observed.ImplementationSHA256 = request.Choice.ExecutionIdentity.ImplementationSHA256
 	}
@@ -481,7 +545,15 @@ func checkFile(name, digest string, limit uint64) error {
 	return nil
 }
 func command(ctx context.Context, compiler string, args []string, dir string, env []string, limit uint64) ([]byte, error) {
-	result, err := hostexec.Run(ctx, hostexec.Request{Command: append([]string{compiler}, args...), Dir: dir, Env: env, Timeout: 10 * time.Minute, TerminateGrace: time.Second, OutputLimit: limit})
+	observer, _ := ctx.Value(compilerObserverKey{}).(func(CompilerCommandMetrics))
+	var started time.Time
+	if observer != nil {
+		started = time.Now()
+	}
+	result, err := hostexec.Run(ctx, hostexec.Request{Command: append([]string{compiler}, args...), Dir: dir, Env: env, Timeout: 10 * time.Minute, TerminateGrace: time.Second, OutputLimit: limit, CollectResourceUsage: observer != nil})
+	if observer != nil {
+		observer(CompilerCommandMetrics{Arguments: append([]string{}, args...), WallElapsedNanos: uint64(time.Since(started)), ResourceUsage: result.ResourceUsage})
+	}
 	if err != nil {
 		return nil, err
 	}

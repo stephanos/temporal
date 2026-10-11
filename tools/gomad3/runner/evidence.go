@@ -64,6 +64,7 @@ type ExecutionEvidence struct {
 	IOTranscriptSHA256      record.SHA256                    `json:"io_transcript_sha256"`
 	IOTranscriptRecords     record.Uint64String              `json:"io_transcript_records"`
 	IOTranscriptComplete    bool                             `json:"io_transcript_complete"`
+	BackendEvidenceSHA256   record.SHA256                    `json:"backend_evidence_sha256,omitempty"`
 	VirtualTimeElapsedNanos record.Uint64String              `json:"virtual_time_elapsed_nanos"`
 	Diagnostics             *DiagnosticEvidence              `json:"diagnostics,omitempty"`
 	Choices                 *ChoiceEvidence                  `json:"choices,omitempty"`
@@ -121,6 +122,16 @@ func executionEvidence(
 		VirtualTimeElapsedNanos: record.Uint64String(completion.result.VirtualTimeElapsedNanos),
 		World:                   cloneWorld(worldRecord),
 		SemanticCoverage:        coverage,
+	}
+	if prepared.Backend != nil {
+		backendProfile := record.BackendIOProfile(*prepared.Backend)
+		runRecord.IOProfile = deterministicio.Contract{
+			Name: backendProfile.Name, ImplementationSHA256: deterministicio.Digest(backendProfile.ImplementationSHA256), InventorySHA256: deterministicio.Digest(backendProfile.InventorySHA256),
+		}
+		runRecord.Target.Backend = recordedBackend(prepared, completion.result)
+		if len(completion.result.BackendEvidence) != 0 {
+			runRecord.BackendEvidenceSHA256 = record.HashBytes(completion.result.BackendEvidence)
+		}
 	}
 	if config.Diagnostics && len(completion.result.DiagnosticTrace.Bytes) != 0 {
 		trace := completion.result.DiagnosticTrace

@@ -29,6 +29,14 @@ type boundaryProvider struct {
 	err      error
 }
 
+func TestExternalVirtualTimeIsPreserved(t *testing.T) {
+	provider := &boundaryProvider{result: backend.Result{Termination: backend.Exit, Reaped: true, Evidence: []byte("observations"), VirtualTimeElapsedNanos: 1234}}
+	result, err := runBackend(t.Context(), provider, backend.Request{OutputBytes: 1024}, nil, nil)
+	if err != nil || result.VirtualTimeElapsedNanos != 1234 {
+		t.Fatalf("external virtual time lost: %+v %v", result, err)
+	}
+}
+
 func (p *boundaryProvider) Prepare(context.Context, target.Spec) (target.Prepared, error) {
 	return target.Prepared{}, nil
 }
@@ -171,10 +179,10 @@ func TestExternalBackendTransportPreservesPortableNativeCanonicalBytes(t *testin
 func TestExternalExecutionDoesNotClassifyNonExitAsApplicationFailure(t *testing.T) {
 	for _, termination := range []backend.Termination{backend.Capacity, backend.Unsupported, backend.Divergence, backend.Trap, backend.Infrastructure} {
 		t.Run(string(termination), func(t *testing.T) {
-			p := &boundaryProvider{result: backend.Result{Termination: termination, ExitCode: 1, Reaped: true, Evidence: []byte("fixture")}}
+			p := &boundaryProvider{result: backend.Result{Termination: termination, Message: "explicit bounded stop", ExitCode: 1, Reaped: true, Evidence: []byte("fixture")}}
 			result, err := runBackend(t.Context(), p, backend.Request{OutputBytes: 1024}, nil, nil)
 			var failure *backend.FailureError
-			if !errors.As(err, &failure) || failure.Termination != termination || result.Termination != "" {
+			if !errors.As(err, &failure) || failure.Termination != termination || failure.Message != p.result.Message || result.Termination != "" {
 				t.Fatalf("nonexit boundary: result=%#v err=%v", result, err)
 			}
 		})
@@ -236,6 +244,49 @@ func TestExternalCooperativeSeedAdmitsChoiceDiagnostics(t *testing.T) {
 	}
 	if len(want) != 0 {
 		t.Fatalf("missing recorded profiles: %v", want)
+	}
+}
+
+func TestExternalChoiceExplorationAdmitsOnlySupportedCoverage(t *testing.T) {
+	config, _ := testConfig(t, nil, nil, "7", PolicyAll, 1)
+	config.Target.Backend = "fixture-cooperative"
+	config.Backend = &boundaryProvider{}
+	config.Strategy = StrategyChoiceExploration
+	config.ChoiceTraceLimit = 4096
+	config.MaxExecutions, config.MaxChoiceDepth, config.MaxExplorationBytes = 8, 4, 1<<20
+	for _, coverage := range []CoverageMode{CoverageNone, CoverageChoice, CoverageSemantic, CoverageSemanticChoice} {
+		t.Run(string(coverage), func(t *testing.T) {
+			config.Coverage = coverage
+			_, _, err := validateConfig(config)
+			wantSupported := coverage == CoverageNone || coverage == CoverageChoice
+			if (err == nil) != wantSupported {
+				t.Fatalf("external coverage=%s supported=%v err=%v", coverage, wantSupported, err)
+			}
+		})
+	}
+	config.Coverage = CoverageNone
+	config.Diagnostics = true
+	if _, _, err := validateConfig(config); err == nil {
+		t.Fatal("choice exploration silently admitted unsupported diagnostic retention")
+	}
+}
+
+func TestExternalChoiceOutcomeBindsBackendEvidence(t *testing.T) {
+	outcome := execution.Classification{Domain: "success", Termination: "exit"}
+	result := processResult(0, "same output", "")
+	native, err := explorationOutcomeSHA256(outcome, result, record.World{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	result.BackendEvidence = []byte("first modeled outcome")
+	first, err := explorationOutcomeSHA256(outcome, result, record.World{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	result.BackendEvidence = []byte("second modeled outcome")
+	second, err := explorationOutcomeSHA256(outcome, result, record.World{})
+	if err != nil || first == second || first == native || second == native {
+		t.Fatalf("backend effects disappeared from the outcome: native=%s first=%s second=%s err=%v", native, first, second, err)
 	}
 }
 

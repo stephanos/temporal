@@ -33,8 +33,13 @@ var memorySymbols = symbolSet(map[string][]string{
 	"crypto/internal/fips140/sha256.*Digest": {"Write", "Sum", "Reset", "Size", "BlockSize"},
 	"crypto/internal/fips140/hmac.*HMAC":     {"Write", "Sum", "Reset", "Size", "BlockSize"},
 	"time.Time":                              {"Location", "Equal", "Before", "After", "Unix", "UnixNano", "IsZero", "Add", "Sub", "UTC"},
-	"encoding/json.RawMessage":               {"MarshalJSON"}, "encoding/json.*RawMessage": {"UnmarshalJSON"},
-	"encoding/json.Number": {"String", "Int64", "Float64"},
+	"encoding/json.Number":                   {"String", "Int64", "Float64"},
+})
+
+var reflectMetadataSymbols = symbolSet(map[string][]string{
+	"reflect":        {"TypeOf", "TypeFor", "PointerTo"},
+	"reflect.Value":  {"Type"},
+	"reflect.*rtype": {"Kind", "Elem", "Key", "NumField", "Field", "String", "Implements"},
 })
 
 func symbolSet(groups map[string][]string) map[string]bool {
@@ -48,15 +53,12 @@ func symbolSet(groups map[string][]string) map[string]bool {
 }
 
 var callbackSummarySources = map[string]string{
-	"errors/join.go":          "87da7c120f71d17e37f110ae1dc6af6493ec841a22ee825e13a6a8024a014dba",
-	"errors/wrap.go":          "098116636610ae87dd80e49c4dbe6a2b6c37918d7e1af35ded005be621d68a40",
-	"fmt/errors.go":           "01fd304868493a3aa1198cc79a56274930f687353e9405211ca063c1b8195ea6",
-	"fmt/print.go":            "10d7cd625d83a15f70b6e61641d3cebd4e4d49d7e0f2a24d5d2b59988074d2f7",
-	"encoding/json/stream.go": "065501364e4954cf1c8f1887900248d4c0983593b8c058b2fe7997d9635b793d",
-	"encoding/json/encode.go": "8ff45e82c60c6e29d11fe57ce0c59d79f40ef0d53be28ac36617482a7463b217",
-	"encoding/json/decode.go": "1632161a34c8286722716a48ba0b5e0c3d117a2e017e79ace676403808a16e6e",
-	"time/format.go":          "f2b75d1440a46231523d3be86925b52c59c5f23657658e24514f2daa588e575d",
-	"time/format_rfc3339.go":  "14b2a58fa295cca1a4f99467f5a5059418ed266a2298316124af97ffa014f271",
+	"errors/join.go":         "87da7c120f71d17e37f110ae1dc6af6493ec841a22ee825e13a6a8024a014dba",
+	"errors/wrap.go":         "098116636610ae87dd80e49c4dbe6a2b6c37918d7e1af35ded005be621d68a40",
+	"fmt/errors.go":          "01fd304868493a3aa1198cc79a56274930f687353e9405211ca063c1b8195ea6",
+	"fmt/print.go":           "10d7cd625d83a15f70b6e61641d3cebd4e4d49d7e0f2a24d5d2b59988074d2f7",
+	"time/format.go":         "f2b75d1440a46231523d3be86925b52c59c5f23657658e24514f2daa588e575d",
+	"time/format_rfc3339.go": "14b2a58fa295cca1a4f99467f5a5059418ed266a2298316124af97ffa014f271",
 }
 
 func (a *effectAnalysis) checkSummarySource(path string, pos token.Pos) bool {
@@ -67,11 +69,30 @@ func (a *effectAnalysis) checkSummarySource(path string, pos token.Pos) bool {
 		a.report("unresolved-effect", pos, "summary requires standard-library identity "+path)
 		return false
 	}
+	snapshot, bound := a.program.summarySources[path]
+	imported := a.program.Packages[packagePath]
+	expected, pinned := callbackSummarySources[path]
+	if !bound || !pinned || expected == "" || snapshot.digest != expected ||
+		imported == nil || imported != snapshot.pkg || imported.Types != snapshot.types ||
+		!snapshot.standard || snapshot.path != packagePath || pkg.ImportPath != snapshot.path || pkg.Dir != snapshot.dir ||
+		imported.Metadata.Standard != snapshot.standard || imported.Metadata.ImportPath != snapshot.path || imported.Metadata.Dir != snapshot.dir {
+		a.report("unresolved-effect", pos, "pinned summary source binding changed: "+path)
+		return false
+	}
+	if cached, found := a.checkedSummaries[path]; found && cached == snapshot {
+		return true
+	}
 	data, err := os.ReadFile(filepath.Join(pkg.Dir, parts[len(parts)-1]))
-	if err != nil || fmt.Sprintf("%x", sha256.Sum256(data)) != callbackSummarySources[path] {
+	if err != nil || fmt.Sprintf("%x", sha256.Sum256(data)) != snapshot.digest {
 		a.report("unresolved-effect", pos, "pinned summary source changed: "+path)
 		return false
 	}
+	if a.checkedSummaries == nil {
+		a.checkedSummaries = map[string]summarySourceSnapshot{}
+	}
+	// Success is local to this Effects invocation and its immutable parsed source.
+	// Subsequent analyses revalidate disk; rejected bindings never enter this cache.
+	a.checkedSummaries[path] = snapshot
 	return true
 }
 
@@ -143,6 +164,9 @@ func (a *effectAnalysis) standardUnchecked(fn *types.Func, receiver *abstractVal
 		}
 		return result, true
 	case memorySymbols[id]:
+		if path == "encoding/json" && !a.checkJSONSummarySource(fn, pos) {
+			return result, true
+		}
 		if !a.checkMemorySource(path, pos) {
 			return result, true
 		}
@@ -275,33 +299,48 @@ func (a *effectAnalysis) standardUnchecked(fn *types.Func, receiver *abstractVal
 		}
 		return result, true
 	case id == "encoding/json.NewEncoder" || id == "encoding/json.NewDecoder":
-		a.checkSummarySource("encoding/json/stream.go", pos)
+		if !a.checkJSONSummarySource(fn, pos) {
+			return result, true
+		}
 		result.fields = map[string]*abstractValue{"transport": arg(0)}
 		return result, true
 	case id == "encoding/json.*Encoder.Encode":
-		a.checkSummarySource("encoding/json/encode.go", pos)
-		a.checkSummarySource("encoding/json/stream.go", pos)
-		if receiver != nil {
-			result = join(result, callbackError(a.implicit(receiver.fields["transport"], []string{"Write"}, nil, pos, map[types.Type]bool{})))
+		if !a.checkJSONSummarySource(fn, pos) {
+			return result, true
+		}
+		if receiver != nil && receiver.fields["transport"] != nil {
+			writeError := callbackError(a.implicit(receiver.fields["transport"], []string{"Write"}, []*abstractValue{valueOf(types.NewSlice(types.Typ[types.Byte]))}, pos, map[types.Type]bool{}))
+			if writeError != nil {
+				a.jsonErrorCallbacks(writeError, pos)
+			}
+			result = join(result, writeError)
 		} else {
 			a.report("unresolved-effect", pos, "unknown JSON encoder writer")
 		}
-		result = join(result, callbackError(a.implicit(arg(0), []string{"MarshalJSON", "MarshalText"}, nil, pos, map[types.Type]bool{})))
+		result = join(result, a.jsonCallbacks(arg(0), false, pos))
 		return result, true
 	case id == "encoding/json.Marshal" || id == "encoding/json.MarshalIndent":
-		a.checkSummarySource("encoding/json/encode.go", pos)
-		result.fields["1"] = join(result.fields["1"], callbackError(a.implicit(arg(0), []string{"MarshalJSON", "MarshalText"}, nil, pos, map[types.Type]bool{})))
+		if !a.checkJSONSummarySource(fn, pos) {
+			return result, true
+		}
+		result.fields["1"] = join(result.fields["1"], a.jsonCallbacks(arg(0), false, pos))
 		return result, true
 	case id == "encoding/json.Unmarshal":
-		a.checkSummarySource("encoding/json/decode.go", pos)
-		result = join(result, callbackError(a.implicit(arg(1), []string{"UnmarshalJSON", "UnmarshalText"}, nil, pos, map[types.Type]bool{})))
+		if !a.checkJSONSummarySource(fn, pos) {
+			return result, true
+		}
+		result = join(result, a.jsonCallbacks(arg(1), true, pos))
 		a.decoded(arg(1))
 		return result, true
 	case symbolSet(map[string][]string{"encoding/json.*Decoder": {"Decode", "Token", "More"}})[id]:
-		a.checkSummarySource("encoding/json/stream.go", pos)
-		a.checkSummarySource("encoding/json/decode.go", pos)
-		if receiver != nil {
-			readError := callbackError(a.implicit(receiver.fields["transport"], []string{"Read"}, nil, pos, map[types.Type]bool{}))
+		if !a.checkJSONSummarySource(fn, pos) {
+			return result, true
+		}
+		if receiver != nil && receiver.fields["transport"] != nil {
+			readError := callbackError(a.implicit(receiver.fields["transport"], []string{"Read"}, []*abstractValue{valueOf(types.NewSlice(types.Typ[types.Byte]))}, pos, map[types.Type]bool{}))
+			if readError != nil {
+				a.jsonErrorCallbacks(readError, pos)
+			}
 			switch id {
 			case "encoding/json.*Decoder.Decode":
 				result = join(result, readError)
@@ -312,7 +351,7 @@ func (a *effectAnalysis) standardUnchecked(fn *types.Func, receiver *abstractVal
 			a.report("unresolved-effect", pos, "unknown JSON decoder reader")
 		}
 		if id == "encoding/json.*Decoder.Decode" {
-			result = join(result, callbackError(a.implicit(arg(0), []string{"UnmarshalJSON", "UnmarshalText"}, nil, pos, map[types.Type]bool{})))
+			result = join(result, a.jsonCallbacks(arg(0), true, pos))
 			a.decoded(arg(0))
 		} else if result != nil {
 			if result.fields["0"] != nil {
@@ -322,7 +361,19 @@ func (a *effectAnalysis) standardUnchecked(fn *types.Func, receiver *abstractVal
 		}
 		return result, true
 	case symbolSet(map[string][]string{"encoding/json.*Decoder": {"UseNumber", "DisallowUnknownFields"}, "encoding/json.*Encoder": {"SetEscapeHTML"}})[id]:
+		if !a.checkJSONSummarySource(fn, pos) {
+			return result, true
+		}
+		if receiver == nil || receiver.unknown || receiver.fields["transport"] == nil {
+			a.report("unresolved-effect", pos, "unknown JSON stream configuration receiver")
+		}
 		return result, true
+	case jsontextUnsupportedSymbols[id]:
+		if !a.checkJSONSummarySource(fn, pos) {
+			return jsonUnsupportedResults(fn.Type().(*types.Signature).Results()), true
+		}
+		a.report("unresolved-effect", pos, "unsupported JSONtext stream context "+id)
+		return jsonUnsupportedResults(fn.Type().(*types.Signature).Results()), true
 	case path == "sort" && symbolSet(map[string][]string{"sort": {"Slice", "SliceStable", "SliceIsSorted"}})[id]:
 		a.invoke(arg(1), []*abstractValue{valueOf(types.Typ[types.Int]), valueOf(types.Typ[types.Int])}, pos)
 		return result, true
@@ -342,7 +393,62 @@ func (a *effectAnalysis) standardUnchecked(fn *types.Func, receiver *abstractVal
 		result.unknown = false
 		result.elements = hash
 		return result, true
-	case path == "reflect" && symbolSet(map[string][]string{"reflect": {"ValueOf", "TypeOf"}, "reflect.Value": {"IsValid", "Kind", "IsNil", "Elem", "Type", "Pointer", "MapRange", "Len", "Index", "NumField", "Field", "String", "CanInterface", "Interface"}, "reflect.*MapIter": {"Next", "Key", "Value"}})[id]:
+	case id == "reflect.Value.MapIndex":
+		var represented, element *abstractValue
+		if receiver != nil {
+			represented = receiver.fields["represented"]
+		}
+		unresolved := represented == nil
+		if represented != nil {
+			unresolved = represented.unknown || len(represented.types) == 0
+			for _, typ := range represented.types {
+				if typ == nil {
+					unresolved = true
+					continue
+				}
+				mapType, ok := typ.Underlying().(*types.Map)
+				if !ok || !types.Comparable(mapType.Key()) {
+					unresolved = true
+					continue
+				}
+				element = join(element, valueOf(mapType.Elem()))
+			}
+			if represented.elements != nil {
+				element = represented.elements
+			}
+		}
+		if unresolved || element == nil || element.unknown || len(element.types) == 0 && len(element.functions) == 0 {
+			a.report("unresolved-effect", pos, "unknown represented map lookup binding")
+		}
+		result.fields = map[string]*abstractValue{"represented": element}
+		return result, true
+	case reflectMetadataSymbols[id]:
+		return a.reflectMetadataSummary(fn, receiver, args, result)
+	case id == "reflect.Value.Interface":
+		pkg := a.program.Packages["reflect"]
+		if pkg == nil || pkg.Types == nil || fn.Origin().Pkg() != pkg.Types {
+			return nil, false
+		}
+		value := pkg.Types.Scope().Lookup("Value")
+		if value == nil {
+			return nil, false
+		}
+		method := types.NewMethodSet(value.Type()).Lookup(nil, "Interface")
+		if method == nil || fn.Origin() != method.Obj().(*types.Func).Origin() {
+			return nil, false
+		}
+		if receiver == nil || receiver.fields["represented"] == nil {
+			a.report("unresolved-effect", pos, "unknown represented Interface binding")
+			return result, true
+		}
+		projected := *receiver.fields["represented"]
+		projected.unknown = projected.unknown || receiver.unknown
+		if projected.unknown || len(projected.types) == 0 && len(projected.functions) == 0 {
+			projected.unknown = true
+			a.report("unresolved-effect", pos, "unknown represented Interface binding")
+		}
+		return &projected, true
+	case path == "reflect" && symbolSet(map[string][]string{"reflect": {"ValueOf"}, "reflect.Value": {"IsValid", "Kind", "IsNil", "Elem", "Pointer", "MapRange", "Len", "Index", "NumField", "Field", "String", "CanInterface", "Interface", "Bool", "Int", "Uint", "CanAddr"}, "reflect.*MapIter": {"Next", "Key", "Value"}})[id]:
 		if id == "reflect.ValueOf" {
 			result.fields = map[string]*abstractValue{"represented": arg(0)}
 		} else if receiver != nil {
@@ -360,6 +466,162 @@ func (a *effectAnalysis) standardUnchecked(fn *types.Func, receiver *abstractVal
 		return result, true
 	}
 	return nil, false
+}
+
+func (a *effectAnalysis) reflectMetadataSummary(fn *types.Func, receiver *abstractValue, args []*abstractValue, result *abstractValue) (*abstractValue, bool) {
+	pkg := a.program.Packages["reflect"]
+	if pkg == nil || !pkg.Metadata.Standard || pkg.Types == nil || fn.Origin().Pkg() != pkg.Types {
+		return nil, false
+	}
+	object := pkg.Types.Scope().Lookup("rtype")
+	if object == nil {
+		return nil, false
+	}
+	native := types.NewPointer(object.Type())
+	arg := func(index int) *abstractValue {
+		if index < len(args) {
+			return args[index]
+		}
+		return nil
+	}
+	id := functionID(fn)
+	switch id {
+	case "reflect.TypeOf", "reflect.Value.Type":
+		value := arg(0)
+		if id == "reflect.Value.Type" {
+			value = nil
+			if receiver != nil {
+				value = receiver.fields["represented"]
+			}
+		}
+		var reflected *abstractValue
+		if value != nil {
+			reflected = &abstractValue{types: append([]types.Type(nil), value.types...), unknown: value.unknown}
+		}
+		return reflectMetadataValue(native, reflected, result.origin), true
+	case "reflect.TypeFor":
+		reflected := &abstractValue{}
+		parameters := fn.Origin().Type().(*types.Signature).TypeParams()
+		if parameters != nil && parameters.Len() == 1 {
+			reflected.types = append(reflected.types, a.typeArguments[parameters.At(0)]...)
+		}
+		return reflectMetadataValue(native, reflected, result.origin), true
+	case "reflect.PointerTo":
+		if !isNativeReflectMetadata(arg(0), native) {
+			return nil, false
+		}
+		reflected := reflectMetadataProjection(arg(0), func(typ types.Type) []types.Type {
+			return []types.Type{types.NewPointer(typ)}
+		})
+		return reflectMetadataValue(native, reflected, result.origin), true
+	}
+	if !isNativeReflectMetadata(receiver, native) {
+		return nil, false
+	}
+	switch id {
+	case "reflect.*rtype.Implements":
+		// The pinned method calls its argument's Kind before reading native metadata.
+		if !isNativeReflectMetadata(arg(0), native) {
+			return nil, false
+		}
+	case "reflect.*rtype.Elem", "reflect.*rtype.Key":
+		reflected := reflectMetadataProjection(receiver, func(typ types.Type) []types.Type {
+			switch typ := typ.Underlying().(type) {
+			case *types.Map:
+				if id == "reflect.*rtype.Key" {
+					return []types.Type{typ.Key()}
+				}
+				return []types.Type{typ.Elem()}
+			case *types.Array:
+				if id == "reflect.*rtype.Elem" {
+					return []types.Type{typ.Elem()}
+				}
+			case *types.Slice:
+				if id == "reflect.*rtype.Elem" {
+					return []types.Type{typ.Elem()}
+				}
+			case *types.Pointer:
+				if id == "reflect.*rtype.Elem" {
+					return []types.Type{typ.Elem()}
+				}
+			case *types.Chan:
+				if id == "reflect.*rtype.Elem" {
+					return []types.Type{typ.Elem()}
+				}
+			}
+			return nil
+		})
+		return reflectMetadataValue(native, reflected, result.origin), true
+	case "reflect.*rtype.Field":
+		result.fields = map[string]*abstractValue{}
+		if len(result.types) == 1 {
+			if structure, ok := result.types[0].Underlying().(*types.Struct); ok {
+				for index := 0; index < structure.NumFields(); index++ {
+					field := structure.Field(index)
+					result.fields[field.Name()] = valueOf(field.Type())
+				}
+			}
+		}
+		reflected := reflectMetadataProjection(receiver, func(typ types.Type) []types.Type {
+			structure, ok := typ.Underlying().(*types.Struct)
+			if !ok {
+				return nil
+			}
+			fields := make([]types.Type, structure.NumFields())
+			for index := range fields {
+				fields[index] = structure.Field(index).Type()
+			}
+			return fields
+		})
+		result.fields["Type"] = reflectMetadataValue(native, reflected, result.origin)
+	}
+	return result, true
+}
+
+func isNativeReflectMetadata(value *abstractValue, native types.Type) bool {
+	if value == nil || value.unknown || len(value.types) == 0 {
+		return false
+	}
+	for _, typ := range value.types {
+		if !types.Identical(typ, native) {
+			return false
+		}
+	}
+	return true
+}
+
+func reflectMetadataValue(native types.Type, reflected *abstractValue, origin token.Pos) *abstractValue {
+	if reflected == nil {
+		reflected = &abstractValue{unknown: true}
+	}
+	if len(reflected.types) == 0 {
+		reflected.unknown = true
+	}
+	return &abstractValue{types: []types.Type{native}, fields: map[string]*abstractValue{"$reflected": reflected}, origin: origin}
+}
+
+func reflectMetadataProjection(value *abstractValue, project func(types.Type) []types.Type) *abstractValue {
+	result := &abstractValue{}
+	reflected := value.fields["$reflected"]
+	if reflected == nil {
+		result.unknown = true
+		return result
+	}
+	result.unknown = reflected.unknown
+	for _, typ := range reflected.types {
+		if typ == nil {
+			result.unknown = true
+			continue
+		}
+		projected := project(typ)
+		if len(projected) == 0 {
+			result.unknown = true
+		}
+		for _, typ := range projected {
+			result = join(result, &abstractValue{types: []types.Type{typ}})
+		}
+	}
+	return result
 }
 
 func (a *effectAnalysis) checkMemorySource(path string, pos token.Pos) bool {

@@ -40,6 +40,10 @@ type Snapshot struct {
 func (w *Model) Snapshot() Snapshot {
 	w.mu.Lock()
 	defer w.mu.Unlock()
+	if w.detached {
+		// The detached handle exclusively owns the terminal snapshot.
+		return Snapshot{}
+	}
 	return w.snapshotLocked()
 }
 
@@ -195,6 +199,7 @@ func invalidSnapshot(field string) error {
 }
 
 func stateDigest(snapshot Snapshot) Digest {
+	hasher := sha256.New()
 	data := []byte("gomad3/world/state/v1\x00")
 	data = appendUint32(data, snapshot.SchemaVersion)
 	data = appendConfig(data, snapshot.Config)
@@ -204,25 +209,37 @@ func stateDigest(snapshot Snapshot) Digest {
 	data = appendUint64(data, uint64(snapshot.NextTransition))
 	data = appendUint64(data, snapshot.PayloadBytes)
 	data = appendUint64(data, uint64(len(snapshot.Requests)))
+	_, _ = hasher.Write(data)
 	for _, request := range snapshot.Requests {
+		data = data[:0]
 		data = appendUint64(data, uint64(request.ID))
 		data = appendRequest(data, request.Request)
 		data = appendString(data, string(request.State))
 		data = appendUint64(data, uint64(request.EventID))
+		_, _ = hasher.Write(data)
 	}
+	data = data[:0]
 	data = appendUint64(data, uint64(len(snapshot.Events)))
+	_, _ = hasher.Write(data)
 	for _, event := range snapshot.Events {
+		data = data[:0]
 		data = appendUint64(data, uint64(event.ID))
 		data = appendReadiness(data, event.Readiness)
 		data = appendString(data, string(event.State))
+		_, _ = hasher.Write(data)
 	}
+	data = data[:0]
 	data = appendUint64(data, uint64(len(snapshot.Transitions)))
+	_, _ = hasher.Write(data)
 	for _, transition := range snapshot.Transitions {
-		data = appendBytes(data, transitionBytes(transition, true))
+		encoded := transitionBytes(transition, true)
+		data = appendUint64(data[:0], uint64(len(encoded)))
+		_, _ = hasher.Write(data)
+		_, _ = hasher.Write(encoded)
 	}
-	data = appendString(data, string(snapshot.TranscriptDigest))
-	digest := sha256.Sum256(data)
-	return Digest(hex.EncodeToString(digest[:]))
+	data = appendString(data[:0], string(snapshot.TranscriptDigest))
+	_, _ = hasher.Write(data)
+	return Digest(hex.EncodeToString(hasher.Sum(nil)))
 }
 
 func appendConfig(data []byte, config Config) []byte {

@@ -60,12 +60,16 @@ func runResumeWith(arguments []string, stdout, stderr io.Writer, dependencies re
 		return 3
 	}
 	var regressionOverride *bool
+	if installed.replayCommand != "" {
+		reporter.replayCommand = installed.replayCommand
+	}
 	flags.Visit(func(value *flag.Flag) {
 		if value.Name == "guide-regression" {
 			regressionOverride = guideRegression
 		}
 	})
 	summary, err := dependencies.run(context.Background(), runner.ResumeSpec{
+		Backend:      installed.backend,
 		CampaignPath: flags.Arg(0), GuideRegression: regressionOverride, RunnerBuild: installed.runnerBuild, ToolchainRoot: installed.toolchainRoot,
 		SupervisorCommand: installed.supervisorCommand(), CoordinatorCommand: installed.coordinatorCommand(),
 		Progress: reporter.Progress, ProgressInterval: 5 * time.Second,

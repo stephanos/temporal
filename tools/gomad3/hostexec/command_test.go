@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"io"
+	"os"
 	"runtime"
 	"strings"
 	"testing"
@@ -11,6 +12,46 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/hostexec"
 )
+
+func TestCurrentProcessResourcesMeasureSelfWithoutChildren(t *testing.T) {
+	if runtime.GOOS != "linux" && runtime.GOOS != "darwin" {
+		t.Skip("platform resource usage not admitted")
+	}
+	before := hostexec.CurrentProcessResourceUsage()
+	started := time.Now()
+	for time.Since(started) < 20*time.Millisecond {
+	}
+	after := hostexec.CurrentProcessResourceUsage()
+	if before == nil || after == nil || after.UserNanos+after.SystemNanos <= before.UserNanos+before.SystemNanos || after.PeakRSSBytes == 0 {
+		t.Fatalf("actual operator self usage omitted: before=%+v after=%+v", before, after)
+	}
+}
+
+func TestPublicResourceUsageIsOptIn(t *testing.T) {
+	if os.Getenv("GOMAD_HOSTEXEC_RESOURCE_CHILD") == "yes" {
+		started := time.Now()
+		for time.Since(started) < 30*time.Millisecond {
+		}
+		return
+	}
+	if runtime.GOOS != "linux" && runtime.GOOS != "darwin" {
+		t.Skip("platform resource usage not admitted")
+	}
+	executable, err := os.Executable()
+	if err != nil {
+		t.Fatal(err)
+	}
+	request := hostexec.Request{Command: []string{executable, "-test.run=^TestPublicResourceUsageIsOptIn$"}, Dir: t.TempDir(), Env: append(os.Environ(), "GOMAD_HOSTEXEC_RESOURCE_CHILD=yes"), Timeout: time.Second, OutputLimit: 1024}
+	plain, err := hostexec.Run(t.Context(), request)
+	if err != nil || plain.ResourceUsage != nil {
+		t.Fatalf("default resource projection changed: %+v %v", plain, err)
+	}
+	request.CollectResourceUsage = true
+	measured, err := hostexec.Run(t.Context(), request)
+	if err != nil || measured.ResourceUsage == nil || measured.ResourceUsage.UserNanos+measured.ResourceUsage.SystemNanos == 0 || measured.ResourceUsage.PeakRSSBytes == 0 {
+		t.Fatalf("actual child resource usage omitted: %+v %v", measured, err)
+	}
+}
 
 type replySink struct {
 	bytes.Buffer

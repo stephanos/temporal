@@ -40,7 +40,7 @@ func cooperativeRequest(t *testing.T, fixture string) Request {
 		t.Fatal(err)
 	}
 	module := filepath.Join(t.TempDir(), "runtime.wasm")
-	command := exec.Command(filepath.Join(root, "bin/go"), "build", "-trimpath", "-overlay", overlay, "-o", module, fixture)
+	command := exec.Command(filepath.Join(root, "bin/go"), "build", "-trimpath", "-buildvcs=false", "-overlay", overlay, "-o", module, fixture)
 	command.Env = append(os.Environ(), "GOROOT="+root, "GOOS=wasip1", "GOARCH=wasm", "GOEXPERIMENT=nogreenteagc", "GOWORK=off", "GOENV=off", "GOFLAGS=", "GOTOOLCHAIN=local", "CGO_ENABLED=0")
 	if output, err := command.CombinedOutput(); err != nil {
 		t.Fatalf("build actual cooperative guest: %v\n%s", err, output)
@@ -55,7 +55,11 @@ func cooperativeRequest(t *testing.T, fixture string) Request {
 	config.Profile = CooperativeProfile
 	config.Clock.ReadStepNanos = 1000
 	execution := choice.ExecutionIdentity{TargetSHA256: sha256.Sum256(data), ToolchainBuildKey: identity, GOOS: "wasip1", GOARCH: "wasm", ImplementationSHA256: sha256.Sum256([]byte(identity))}
-	return Request{HelperPath: helper, HelperSHA256: fileHash(t, helper), ModulePath: module, ModuleSHA256: fileHash(t, module), Engine: PinnedEngine(), Imports: imports, InitialMemoryPages: pages, MemoryBytes: 256 << 20, Fuel: 4000000000, Config: config, Timeout: time.Minute, Runtime: &RuntimeControl{Seed: 7, Diagnostics: true, Choice: &runnerbackend.ChoiceRequest{Mode: choice.ModeRecord, ExecutionIdentity: execution, Limit: 1 << 20}}}
+	cache := t.TempDir()
+	if err := os.Chmod(cache, 0700); err != nil {
+		t.Fatal(err)
+	}
+	return Request{HelperPath: helper, HelperSHA256: fileHash(t, helper), ModulePath: module, ModuleSHA256: fileHash(t, module), Engine: PinnedEngine(), Imports: imports, InitialMemoryPages: pages, MemoryBytes: 256 << 20, Fuel: 4000000000, Config: config, Timeout: time.Minute, CompileCache: cache, Runtime: &RuntimeControl{Seed: 7, Diagnostics: true, Choice: &runnerbackend.ChoiceRequest{Mode: choice.ModeRecord, ExecutionIdentity: execution, Limit: 1 << 20}}}
 }
 
 func TestCooperativeGoGuestForcesExactReplay(t *testing.T) {

@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"runtime"
 	"slices"
 	"syscall"
 	"time"
@@ -219,7 +220,55 @@ func Run(ctx context.Context, request Request) (result Result, retErr error) {
 	if err := classifyWait(command, classificationErr, &result); err != nil {
 		return Result{}, err
 	}
+	if request.CollectResourceUsage {
+		result.ResourceUsage = processResourceUsage(command.ProcessState)
+	}
 	return result, nil
+}
+
+func processResourceUsage(state *os.ProcessState) *ResourceUsage {
+	if state == nil || runtime.GOOS != "linux" && runtime.GOOS != "darwin" {
+		return nil
+	}
+	usage, ok := state.SysUsage().(*syscall.Rusage)
+	if !ok || usage.Maxrss < 0 || state.UserTime() < 0 || state.SystemTime() < 0 {
+		return nil
+	}
+	rss, ok := peakRSSBytes(usage.Maxrss)
+	if !ok {
+		return nil
+	}
+	return &ResourceUsage{UserNanos: uint64(state.UserTime()), SystemNanos: uint64(state.SystemTime()), PeakRSSBytes: rss}
+}
+
+func peakRSSBytes(maxRSS int64) (uint64, bool) {
+	if maxRSS < 0 || runtime.GOOS != "linux" && runtime.GOOS != "darwin" {
+		return 0, false
+	}
+	rss := uint64(maxRSS)
+	if runtime.GOOS == "linux" {
+		if rss > ^uint64(0)/1024 {
+			return 0, false
+		}
+		rss *= 1024
+	} // Linux KiB; Darwin already reports bytes.
+	return rss, true
+}
+
+func CurrentProcessResourceUsage() *ResourceUsage {
+	var usage syscall.Rusage
+	if runtime.GOOS != "linux" && runtime.GOOS != "darwin" || syscall.Getrusage(syscall.RUSAGE_SELF, &usage) != nil {
+		return nil
+	}
+	rss, ok := peakRSSBytes(usage.Maxrss)
+	if !ok {
+		return nil
+	}
+	user, system := usage.Utime.Nano(), usage.Stime.Nano()
+	if user < 0 || system < 0 {
+		return nil
+	}
+	return &ResourceUsage{UserNanos: uint64(user), SystemNanos: uint64(system), PeakRSSBytes: rss}
 }
 
 func copyOutput(name string, capture io.Writer, reader io.Reader, results chan<- captureResult, done func()) {

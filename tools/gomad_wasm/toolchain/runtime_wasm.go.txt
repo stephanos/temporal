@@ -223,17 +223,31 @@ func gomadWasmNoteSleep(n *note, ns int64) bool {
 	return n.key != 0
 }
 
+var gomadWasmNetPoll func() (bool, bool)
+
+//go:linkname gomadWasmNetRegisterPoll
+func gomadWasmNetRegisterPoll(poll func() (bool, bool)) {
+	gomadWasmNetPoll = poll
+}
+
 func gomadWasmBeforeIdle(now, pollUntil int64) (*g, bool) {
+	networkPending := false
+	if gomadWasmNetPoll != nil {
+		var woken bool
+		woken, networkPending = gomadWasmNetPoll()
+		if woken { return nil, true }
+	}
 	deadline := pollUntil
 	for n := gomadWasmNotes; n != nil; n = n.next {
 		if n.status == 1 && n.deadline < maxWhen && (deadline == 0 || n.deadline < deadline) {
 			deadline = n.deadline
 		}
 	}
-	if deadline == 0 || deadline == maxWhen {
+	if (deadline == 0 || deadline == maxWhen) && !networkPending {
 		return nil, false
 	}
-	if now < deadline {
+	if deadline == maxWhen { deadline = 0 }
+	if now < deadline || networkPending {
 		clear(gomadWasmIdleBuffer[:])
 		gomadChoicePut32(gomadWasmIdleBuffer[:4], 1)
 		gomadChoicePut64(gomadWasmIdleBuffer[8:], uint64(deadline))
@@ -241,10 +255,15 @@ func gomadWasmBeforeIdle(now, pollUntil int64) (*g, bool) {
 			gomadChoiceDivergeCurrent(0)
 		}
 		now = int64(gomadChoiceRead64(gomadWasmIdleBuffer[8:]))
-		if now < deadline || now < gomadWasmLastTime {
+		flags := gomadChoiceRead32(gomadWasmIdleBuffer[4:8])
+		if (now < deadline && flags == 0) || now < gomadWasmLastTime {
 			gomadChoiceDivergeCurrent(0)
 		}
 		gomadWasmLastTime = now
+		if gomadWasmNetPoll != nil {
+			if woken, _ := gomadWasmNetPoll(); woken { return nil, true }
+		}
+		if flags == 2 { return nil, false }
 	}
 	for n := gomadWasmNotes; n != nil; n = n.next {
 		if n.status == 1 && n.deadline <= now {

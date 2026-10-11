@@ -238,11 +238,22 @@ func (opened *Opened) ReadPayload(relativePath string, maximum uint64) ([]byte, 
 	if uint64(expected.Size) > maximum {
 		return nil, fmt.Errorf("artifact payload %q exceeds its bound", relativePath)
 	}
+	if uint64(expected.Size) > uint64(^uint(0)>>1) {
+		return nil, fmt.Errorf("artifact payload %q exceeds addressable memory", relativePath)
+	}
 	file, err := opened.OpenPayload(relativePath, maximum)
 	if err != nil {
 		return nil, err
 	}
-	data, readErr := io.ReadAll(file)
+	data := make([]byte, int(expected.Size))
+	_, readErr := io.ReadFull(file, data)
+	if readErr == nil {
+		var trailing [1]byte
+		count, trailingErr := file.Read(trailing[:])
+		if count != 0 || !errors.Is(trailingErr, io.EOF) {
+			readErr = errors.Join(fmt.Errorf("artifact payload %q identity mismatch", relativePath), trailingErr)
+		}
+	}
 	closeErr := file.Close()
 	if readErr != nil || closeErr != nil {
 		return nil, errors.Join(readErr, closeErr)

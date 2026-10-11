@@ -16,6 +16,7 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner"
+	runnerbackend "go.temporal.io/server/tools/gomad3/runner/backend"
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
@@ -91,6 +92,44 @@ type targetInput struct {
 
 func Run(arguments []string, stdout, stderr io.Writer) int {
 	return hostApplication().run(arguments, stdout, stderr)
+}
+
+type BackendInstallation struct {
+	Name          string
+	Provider      runnerbackend.Provider
+	ReplayCommand []string
+}
+
+// RunWithBackend shares Gomad's grammar and reporting with an explicitly selected
+// external installation. Resolution stays after command input validation.
+func RunWithBackend(arguments []string, stdout, stderr io.Writer, resolve func() (BackendInstallation, error)) int {
+	return RunWithBackendReplay(arguments, stdout, stderr, resolve, nil)
+}
+
+// RunWithBackendReplay allows a retained backend artifact to handle replay after
+// the shared grammar validates, without resolving a build-time installation.
+// An unhandled artifact follows the unchanged installation and Runner path.
+func RunWithBackendReplay(arguments []string, stdout, stderr io.Writer, resolve func() (BackendInstallation, error), replay func(context.Context, runner.ReplaySpec) (runner.ReplayResult, bool, error)) int {
+	app := hostApplication()
+	if resolve == nil {
+		if _, err := fmt.Fprintln(stderr, "external backend resolver is required"); err != nil {
+			return 3
+		}
+		return 2
+	}
+	app.backend = resolve
+	app.replayHook = replay
+	if len(arguments) != 0 {
+		switch arguments[0] {
+		case "explore", "replay", "resume", "recover", "inspect":
+		default:
+			if _, err := fmt.Fprintf(stderr, "command %q is unavailable with an external backend installation; use explore, replay, resume, recover, or inspect\n", arguments[0]); err != nil {
+				return 3
+			}
+			return 2
+		}
+	}
+	return app.run(arguments, stdout, stderr)
 }
 
 func (app application) run(arguments []string, stdout, stderr io.Writer) int {
@@ -656,9 +695,11 @@ func parseCampaignRequest(operation campaignOperation, arguments []string, stdou
 		return campaignRequest{}, 2, false
 	}
 	var seedsSet, countSet, coverageSet, choiceLimitSet, maxRunsSet, maxChoiceDepthSet, choiceStartOrdinalSet, maxForcedDecisionsSet, maxExplorationBytesSet, maxExplorationResultBytesSet bool
-	var runtimeLimitSet, scenarioLimitSet, networkLimitSet, storageLimitSet, faultLimitSet, crashLimitSet bool
+	var runtimeLimitSet, scenarioLimitSet, networkLimitSet, storageLimitSet, faultLimitSet, crashLimitSet, clockTickSet bool
 	flags.Visit(func(visited *flag.Flag) {
 		switch visited.Name {
+		case "clock-tick":
+			clockTickSet = true
 		case "seeds":
 			seedsSet = true
 		case "count":
@@ -817,7 +858,14 @@ func parseCampaignRequest(operation campaignOperation, arguments []string, stdou
 		}
 		return campaignRequest{}, 3, false
 	}
+	if installed.replayCommand != "" {
+		reporter.replayCommand = installed.replayCommand
+	}
+	if installed.backend != nil && !clockTickSet {
+		*clockTick = ""
+	}
 	config := runner.CampaignSpec{
+		Backend:  installed.backend,
 		Strategy: resolvedStrategy, Seeds: resolvedSeeds, Parallel: *parallel, ExecutionTimeout: *runTimeout, OverallTimeout: *overallTimeout, TerminateGrace: *terminateGrace,
 		OnFailure: runner.FailurePolicy(*onFailure), FailureBudget: *failureBudget, OutputLimit: uint64(outputLimit), WorldTransitionLimit: uint64(worldLimit),
 		Diagnostics: *diagnostics, ChoiceTraceLimit: resolvedChoiceLimit, ClockTick: *clockTick, IOTranscriptLimit: uint64(transcriptLimit), MaxExecutions: *maxRuns, MaxChoiceDepth: *maxChoiceDepth, ChoiceStartOrdinal: *choiceStartOrdinal, MaxForcedDecisions: *maxForcedDecisions,
@@ -832,7 +880,8 @@ func parseCampaignRequest(operation campaignOperation, arguments []string, stdou
 		Guide: *guide, GuideRegression: *guideRegression, Corpus: *corpus,
 		Progress: reporter.Progress, ProgressInterval: 5 * time.Second,
 		Target: target.Spec{
-			Kind: parsedTarget.kind, Source: parsedTarget.source, Provenance: parsedTarget.provenance, Args: parsedTarget.arguments,
+			Backend: installed.backendName,
+			Kind:    parsedTarget.kind, Source: parsedTarget.source, Provenance: parsedTarget.provenance, Args: parsedTarget.arguments,
 			BuildTags: buildTags, WorkingDir: workingDirectory, ToolchainRoot: installed.toolchainRoot, CapabilityMode: resolvedCapabilityMode,
 		},
 	}
@@ -1032,12 +1081,13 @@ func resolveChoiceTrace(enabled bool, limit byteSize, limitSet bool) (uint64, er
 }
 
 type replayDependencies struct {
-	install func(string) (installation, error)
-	replay  func(context.Context, runner.ReplaySpec) (runner.ReplayResult, error)
+	install  func(string) (installation, error)
+	replay   func(context.Context, runner.ReplaySpec) (runner.ReplayResult, error)
+	retained func(context.Context, runner.ReplaySpec) (runner.ReplayResult, bool, error)
 }
 
 func (app application) runReplay(arguments []string, stdout, stderr io.Writer) int {
-	return runReplayWith(arguments, stdout, stderr, replayDependencies{install: app.install, replay: runner.Replay})
+	return runReplayWith(arguments, stdout, stderr, replayDependencies{install: app.install, replay: runner.Replay, retained: app.replayHook})
 }
 
 func runReplayWith(arguments []string, stdout, stderr io.Writer, dependencies replayDependencies) int {
@@ -1055,16 +1105,24 @@ func runReplayWith(arguments []string, stdout, stderr io.Writer, dependencies re
 		}
 		return 2
 	}
-	installed, err := dependencies.install(*toolchainRoot)
-	if err != nil {
-		if _, printErr := fmt.Fprintln(stderr, err); printErr != nil {
+	config := runner.ReplaySpec{ArtifactPath: flags.Arg(0), VerifyOnly: *verifyOnly, ToolchainRoot: *toolchainRoot, ObservedDir: *observedDir}
+	var result runner.ReplayResult
+	var err error
+	handled := false
+	if dependencies.retained != nil {
+		result, handled, err = dependencies.retained(context.Background(), config)
+	}
+	if !handled && err == nil {
+		installed, installErr := dependencies.install(*toolchainRoot)
+		if installErr != nil {
+			if _, printErr := fmt.Fprintln(stderr, installErr); printErr != nil {
+				return 3
+			}
 			return 3
 		}
-		return 3
+		config.Backend, config.ToolchainRoot, config.SupervisorCommand = installed.backend, installed.toolchainRoot, installed.supervisorCommand()
+		result, err = dependencies.replay(context.Background(), config)
 	}
-	result, err := dependencies.replay(context.Background(), runner.ReplaySpec{
-		ArtifactPath: flags.Arg(0), VerifyOnly: *verifyOnly, ToolchainRoot: installed.toolchainRoot, ObservedDir: *observedDir, SupervisorCommand: installed.supervisorCommand(),
-	})
 	if err != nil {
 		var preflightError *runner.ReplayPreflightError
 		if errors.As(err, &preflightError) {

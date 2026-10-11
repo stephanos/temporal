@@ -194,14 +194,14 @@ func ValidateSpec(spec Spec) error {
 		return fmt.Errorf("simulation spec schema = %q, want %q", spec.Schema, SpecSchema)
 	}
 	switch spec.Backend {
-	case BackendInProcess, BackendProcess:
+	case BackendInProcess, BackendProcess, BackendWASM:
 	default:
 		return fmt.Errorf("invalid simulation backend %q", spec.Backend)
 	}
 	switch spec.Fidelity {
 	case FidelitySimulationModel:
 	case FidelityHardIsolation:
-		if spec.Backend != BackendProcess {
+		if spec.Backend != BackendProcess && spec.Backend != BackendWASM {
 			return errors.New("hard isolation fidelity requires the process backend")
 		}
 	default:

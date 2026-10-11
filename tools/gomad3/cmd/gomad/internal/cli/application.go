@@ -1,14 +1,17 @@
 package cli
 
 import (
+	"context"
 	"crypto/sha256"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner"
+	runnerbackend "go.temporal.io/server/tools/gomad3/runner/backend"
 	"go.temporal.io/server/tools/gomad3/toolchain"
 )
 
@@ -34,6 +37,8 @@ const toolchainEnvironment = "GOMAD3_TOOLCHAIN_DIR"
 // only after it has validated its own input, so invalid input keeps precedence
 // over an unusable installation.
 type application struct {
+	backend     func() (BackendInstallation, error)
+	replayHook  func(context.Context, runner.ReplaySpec) (runner.ReplayResult, bool, error)
 	executable  func() (string, error)
 	environment func(string) string
 	cache       *installationCache
@@ -49,6 +54,9 @@ type application struct {
 // installation is what one operation runs with: the resolved toolchain root,
 // and the executable and Runner build that serve its private child modes.
 type installation struct {
+	replayCommand string
+	backend       runnerbackend.Provider
+	backendName   string
 	toolchainRoot string
 	executable    string
 	runnerBuild   string
@@ -72,10 +80,16 @@ func hostApplication() application {
 }
 
 func (installation installation) supervisorCommand() []string {
+	if installation.backend != nil {
+		return nil
+	}
 	return []string{installation.executable, supervisorMode}
 }
 
 func (installation installation) coordinatorCommand() []string {
+	if installation.backend != nil {
+		return nil
+	}
 	return []string{installation.executable, coordinatorMode}
 }
 
@@ -122,6 +136,31 @@ func (app application) resolveInstallation(executable, explicitToolchainRoot str
 // install resolves everything an operation needs to start the Runner's child
 // processes from this executable.
 func (app application) install(explicitToolchainRoot string) (installation, error) {
+	if app.backend != nil {
+		if explicitToolchainRoot != "" {
+			return installation{}, fmt.Errorf("--toolchain-root is unavailable with an external backend installation")
+		}
+		resolved, err := app.backend()
+		if err != nil {
+			return installation{}, err
+		}
+		if resolved.Name == "" || resolved.Provider == nil {
+			return installation{}, fmt.Errorf("external backend name and provider are required")
+		}
+		executable, err := app.executablePath()
+		if err != nil {
+			return installation{}, err
+		}
+		digest, err := digestRunner(executable)
+		if err != nil {
+			return installation{}, err
+		}
+		var quoted []string
+		for _, argument := range resolved.ReplayCommand {
+			quoted = append(quoted, quoteArgument(argument))
+		}
+		return installation{backend: resolved.Provider, backendName: resolved.Name, runnerBuild: string(digest), replayCommand: strings.Join(quoted, " ")}, nil
+	}
 	if app.cache != nil && app.cache.set && app.cache.explicitRoot == explicitToolchainRoot {
 		return app.cache.installed, nil
 	}

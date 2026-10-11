@@ -549,14 +549,15 @@ func temporalCaptureModule(t *testing.T, source string) readonlymount.CapturedIn
 func temporalCommand(t *testing.T, evidence, name, root string, environment, command []string) hostexec.Result {
 	t.Helper()
 	started := time.Now()
-	result, err := hostexec.Run(context.Background(), hostexec.Request{Command: command, Dir: root, Env: environment, Timeout: 15 * time.Minute, TerminateGrace: time.Second, OutputLimit: 64 << 20})
+	result, err := hostexec.Run(context.Background(), hostexec.Request{Command: command, Dir: root, Env: environment, Timeout: 15 * time.Minute, TerminateGrace: time.Second, OutputLimit: 64 << 20, CollectResourceUsage: true})
 	temporalWrite(t, filepath.Join(evidence, name+".stdout"), result.Stdout)
 	temporalWrite(t, filepath.Join(evidence, name+".stderr"), result.Stderr)
 	temporalJSON(t, filepath.Join(evidence, name+".json"), struct {
-		Command      []string
-		ExitCode     int
-		ElapsedNanos int64
-	}{command, result.ExitCode, time.Since(started).Nanoseconds()})
+		Command       []string
+		ExitCode      int
+		ElapsedNanos  int64
+		ResourceUsage *hostexec.ResourceUsage
+	}{command, result.ExitCode, time.Since(started).Nanoseconds(), result.ResourceUsage})
 	if err != nil || result.Termination != hostexec.TerminationExit || result.ExitCode != 0 || !result.GroupGone {
 		t.Fatalf("infrastructure command %v: %v, termination=%s exit=%d\n%s\n%s", command, err, result.Termination, result.ExitCode, result.Stdout, result.Stderr)
 	}

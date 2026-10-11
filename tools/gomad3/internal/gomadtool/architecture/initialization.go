@@ -105,6 +105,15 @@ func (a *effectAnalysis) initializers() {
 // This boundary checks exact Go 1.27.1 source identities, not function purity:
 // any typed call made by an application/dependency initializer is still traced.
 func (a *effectAnalysis) checkStartupSource(metadata Package, pos token.Pos) {
+	if !metadata.Standard {
+		a.report("unresolved-effect", pos, "standard startup requires standard-library identity: "+metadata.ImportPath)
+		return
+	}
+	expected, present := startupSources[metadata.ImportPath]
+	if !present || expected == "" {
+		a.report("unresolved-effect", pos, "standard startup source has no pinned inventory: "+metadata.ImportPath)
+		return
+	}
 	entries, err := os.ReadDir(metadata.Dir)
 	if err != nil {
 		a.report("unresolved-effect", pos, "cannot inspect standard startup source: "+metadata.ImportPath)
@@ -122,7 +131,7 @@ func (a *effectAnalysis) checkStartupSource(metadata Package, pos token.Pos) {
 		}
 		_, _ = digest.Write(fmt.Appendf(nil, "%x  %s\n", sha256.Sum256(data), entry.Name()))
 	}
-	if fmt.Sprintf("%x", digest.Sum(nil)) != startupSources[metadata.ImportPath] {
+	if fmt.Sprintf("%x", digest.Sum(nil)) != expected {
 		a.report("unresolved-effect", pos, "pinned standard startup source changed: "+metadata.ImportPath)
 	}
 }

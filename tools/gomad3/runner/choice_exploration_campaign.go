@@ -365,7 +365,7 @@ func processExplorationCompletion(
 		summary.ExecutionEvidence = &runRecord
 	}
 	if outcome.Domain == "success" {
-		retention, retentionErr := decideSuccessRetention(config, assessed, completion.result.IOTranscript.Complete, semanticProbes, choiceFeatures, summary.RetainedSuccesses, summary.RetainedSuccessBytes)
+		retention, retentionErr := decideSuccessRetention(config, assessed, completion.result.IOTranscript.Complete || len(completion.result.BackendEvidence) != 0, semanticProbes, choiceFeatures, summary.RetainedSuccesses, summary.RetainedSuccessBytes)
 		if retentionErr != nil {
 			return explorationRoundResult{}, retentionErr
 		}
@@ -538,6 +538,7 @@ func explorationOutcomeSHA256(outcome execution.Classification, result execution
 		StdoutSHA256       record.SHA256        `json:"stdout_sha256"`
 		StderrSHA256       record.SHA256        `json:"stderr_sha256"`
 		IOTranscriptSHA256 record.SHA256        `json:"io_transcript_sha256"`
+		BackendSHA256      record.SHA256        `json:"backend_evidence_sha256,omitempty"`
 		WorldTerminal      record.WorldTerminal `json:"world_terminal"`
 		WorldFinal         record.SHA256        `json:"world_final"`
 	}{
@@ -545,6 +546,9 @@ func explorationOutcomeSHA256(outcome execution.Classification, result execution
 		ExitCode: outcome.ExitCode, Signal: outcome.Signal,
 		StdoutSHA256: record.SHA256FromSum(result.Stdout.FullSHA256), StderrSHA256: record.SHA256FromSum(result.Stderr.FullSHA256),
 		IOTranscriptSHA256: record.SHA256FromSum(result.IOTranscript.SHA256), WorldTerminal: worldRecord.Terminal, WorldFinal: worldRecord.Final.SemanticDigest,
+	}
+	if len(result.BackendEvidence) != 0 {
+		projection.BackendSHA256 = record.HashBytes(result.BackendEvidence)
 	}
 	encoded, err := canonicaljson.CanonicalJSON(projection)
 	if err != nil {

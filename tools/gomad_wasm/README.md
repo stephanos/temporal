@@ -22,6 +22,10 @@ guest semantics.
 The Go module is pinned to Go 1.27.1. The helper uses Rust 1.94.1 and Wasmtime
 47.0.3, with locked dependencies and an explicit engine configuration.
 
+The [operator guide](CLI.md) describes installation, discovery, campaigns,
+retained replay and recovery. Feature availability is not a qualification claim;
+the corresponding retained gates must pass for the installed candidate.
+
 Run from this repository checkout, with `tools/gomad3` alongside this module:
 
 ```sh
@@ -72,6 +76,49 @@ Replay verifies retained module/provenance, helper, model and runtime implementa
 identities without reopening original source, compiler or runtime inputs. Runtime
 control frames remain separate from the application WASI transcript. The stock
 profile and diagnostics-off native canonical bytes retain their existing defaults.
+
+Seeded and forced decisions, observations, frozen-clock idle advances and the
+optional v1 network decisions execute inside the Rust helper. Bounded choice,
+diagnostic, WASI and network evidence streams are emitted once at termination;
+filesystem and other host-owned callbacks retain canonical transcript ordering.
+The Go owner remains the differential reference. V2 network and broker runs use
+the generated native host model rather than a second Rust transport algorithm.
+Modeled storage and broker crash/stop interruptions retain a separately typed unfinished choice prefix;
+they are never presented as complete traces or exact full-tape replay. Replaying
+such a prefix must also reproduce its fault, durable image and recovered history.
+
+| Explicit model | Contract boundary |
+| --- | --- |
+| Default namespace | Captured inputs and process-local writable files; no durability claim |
+| `Storage` volumes | Native-source projected persistence operations and bounded dependency-closed crash states |
+| `Storage.SQLiteLockDatabases` | Opt-in exact ncruces `.lock` and `-shm` process-owned artifacts are ephemeral; database, journal and WAL persistence is unchanged |
+| `Network` v1 | Seeded connect/write delays and reset/partition/heal decisions |
+| `NetworkV2` | Generated host stream model; cooperative frozen clock only |
+
+The SQLite policy does not delete arbitrary locks or imply POSIX/native-platform
+parity. Raw persistent files retain their existing behavior, including stale locks
+when no dependency-specific ephemeral-artifact policy is selected.
+Host crash-state enumeration uses an explicit deterministic visited-cursor `Work`
+budget rather than consulting wall time; the native overlay remains unchanged.
+
+Helper telemetry is separate from canonical evidence. It measures engine prepare,
+compile, cache load/publication, fresh instantiation and guest execution wall phases.
+CPU and peak RSS account for the whole helper process, not guest-only work. Parent
+wait accounting remains available after abrupt helper termination; missing Rust
+phase measurements remain unavailable.
+The Go transport also measures authorization through the validated terminal frame
+for both original and migrated helpers. This common boundary includes fresh
+instantiation and evidence flushing, excludes engine preparation and report writes,
+and is reported alongside full-run wall costs rather than replacing them.
+
+The opt-in compiled cache is a same-UID trusted host cache, inaccessible to guests.
+Its private directory and immutable entries require restrictive ownership, modes,
+link and no-follow checks. A versioned envelope binds module bytes, actual helper,
+engine configuration, platform and engine compilation compatibility. Compiled bytes
+are read once, bounded and verified before deserialization; malformed existing
+entries fail closed. Checksums detect corruption, not malicious cache-owner writes.
+The verified-buffer implementation can use more host RSS than mmap loading. Cold
+compilation, warm loading and fresh instance state must be measured separately.
 
 The mandatory cooperative qualification gate uses 32 representative seeds spaced
 by 1000003. Each seed records 100 fresh engine instances of the combined runtime

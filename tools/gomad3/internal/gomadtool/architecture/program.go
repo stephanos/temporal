@@ -1,11 +1,13 @@
 package architecture
 
 import (
+	"crypto/sha256"
 	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
 	"go/types"
+	"os"
 	"path/filepath"
 	"strings"
 )
@@ -23,6 +25,18 @@ type Program struct {
 	Metadata  map[string]Package
 	Packages  map[string]*SourcePackage
 	Functions map[string]*function
+	// Only pinned callback-summary files retain their exact parsed-byte identity.
+	summarySources map[string]summarySourceSnapshot
+	jsonSources    map[string]*jsonPackageSourceSnapshot
+}
+
+type summarySourceSnapshot struct {
+	pkg      *SourcePackage
+	types    *types.Package
+	path     string
+	dir      string
+	standard bool
+	digest   string
 }
 
 type function struct {
@@ -77,12 +91,33 @@ func (p *Program) Import(path string) (*types.Package, error) {
 			return nil, fmt.Errorf("package %s has no compiled cgo source metadata", path)
 		}
 	}
+	summarySources := map[string]string{}
+	jsonSources := map[string]string{}
 	for _, name := range names {
 		filename := name
 		if !filepath.IsAbs(filename) {
 			filename = filepath.Join(metadata.Dir, name)
 		}
-		file, err := parser.ParseFile(p.Files, filename, nil, 0)
+		var source any
+		summaryPath := path + "/" + filepath.Base(filename)
+		_, callbackPinned := callbackSummarySources[summaryPath]
+		_, jsonPinned := jsonSummarySourcePins[path][filepath.Base(filename)]
+		if (callbackPinned || jsonPinned) && filepath.Clean(filename) == filepath.Clean(filepath.Join(metadata.Dir, filepath.Base(filename))) {
+			data, err := os.ReadFile(filename)
+			if err != nil {
+				return nil, err
+			}
+			// Parse and bind the same bytes, rather than rereading after parsing.
+			source = data
+			digest := fmt.Sprintf("%x", sha256.Sum256(data))
+			if callbackPinned {
+				summarySources[summaryPath] = digest
+			}
+			if jsonPinned {
+				jsonSources[filepath.Base(filename)] = digest
+			}
+		}
+		file, err := parser.ParseFile(p.Files, filename, source, 0)
 		if err != nil {
 			return nil, err
 		}
@@ -95,6 +130,18 @@ func (p *Program) Import(path string) (*types.Package, error) {
 	}
 	pkg.Types = checked
 	p.Packages[path] = pkg
+	if len(jsonSources) != 0 {
+		if p.jsonSources == nil {
+			p.jsonSources = map[string]*jsonPackageSourceSnapshot{}
+		}
+		p.jsonSources[path] = bindJSONPackageSource(pkg, jsonSources)
+	}
+	if len(summarySources) != 0 && p.summarySources == nil {
+		p.summarySources = map[string]summarySourceSnapshot{}
+	}
+	for summaryPath, digest := range summarySources {
+		p.summarySources[summaryPath] = summarySourceSnapshot{pkg: pkg, types: checked, path: metadata.ImportPath, dir: metadata.Dir, standard: metadata.Standard, digest: digest}
+	}
 	for _, file := range pkg.Files {
 		for _, decl := range file.Decls {
 			if decl, ok := decl.(*ast.FuncDecl); ok {

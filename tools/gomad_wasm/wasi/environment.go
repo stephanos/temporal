@@ -38,7 +38,9 @@ type Config struct {
 	EntropyKey          [32]byte
 	Clock               ClockPolicy
 	Limits              Limits
-	Network             *NetworkModel `json:",omitempty"`
+	Network             *NetworkModel   `json:",omitempty"`
+	Storage             *StorageModel   `json:"storage,omitempty"`
+	NetworkV2           *NetworkModelV2 `json:"network_v2,omitempty"`
 }
 type Call struct {
 	Type  string          `json:"type"`
@@ -98,6 +100,9 @@ type Environment struct {
 	network          *networkState
 	mirror           io.Writer // observes guest stdout; never feeds back into the guest
 	advances         uint64    // idle wakeups that moved the clock
+	helperOwned      bool
+	networkV2        *networkV2State
+	brokerTime       *uint64
 }
 
 func NewEnvironment(config Config) (*Environment, error) {
@@ -113,6 +118,12 @@ func NewEnvironment(config Config) (*Environment, error) {
 	}
 	if config.Network != nil && config.Profile != CooperativeProfile {
 		return nil, invalid("network model requires cooperative profile")
+	}
+	if config.NetworkV2 != nil && (config.Profile != CooperativeProfile || config.Network != nil || config.Clock.ReadStepNanos != 0) {
+		return nil, invalid("network v2 requires cooperative profile without network v1")
+	}
+	if err := validateNetworkModelV2(config.NetworkV2); err != nil {
+		return nil, err
 	}
 	if err := validateNetworkModel(config.Network); err != nil {
 		return nil, err
@@ -156,6 +167,23 @@ func NewEnvironment(config Config) (*Environment, error) {
 	config.Environment = slices.Clone(config.Environment)
 	config.WritableDirectories = slices.Clone(config.WritableDirectories)
 	config.Stdin = slices.Clone(config.Stdin)
+	if config.Network != nil {
+		network := *config.Network
+		network.Faults = slices.Clone(network.Faults)
+		config.Network = &network
+	}
+	if config.NetworkV2 != nil {
+		network := *config.NetworkV2
+		network.Faults = slices.Clone(network.Faults)
+		config.NetworkV2 = &network
+	}
+	if config.Storage != nil {
+		storage := *config.Storage
+		storage.Volumes = slices.Clone(storage.Volumes)
+		storage.Faults = slices.Clone(storage.Faults)
+		storage.SQLiteLockDatabases = slices.Clone(storage.SQLiteLockDatabases)
+		config.Storage = &storage
+	}
 	data, err := json.Marshal(struct {
 		Profile, EntropyProfile string
 		Args, Environment       []string
@@ -167,8 +195,10 @@ func NewEnvironment(config Config) (*Environment, error) {
 		Clock                   ClockPolicy
 		Limits                  Limits
 		FrameBytes, BufferBytes uint64
-		Network                 *NetworkModel `json:",omitempty"`
-	}{config.Profile, entropyProfile, config.Args, config.Environment, config.WorkingDirectory, config.WritableDirectories, config.CapturedInputs.Manifest, config.Stdin, config.EntropyKey, config.Clock, config.Limits, frameLimit, bufferLimit, config.Network})
+		Network                 *NetworkModel   `json:",omitempty"`
+		Storage                 *StorageModel   `json:"storage,omitempty"`
+		NetworkV2               *NetworkModelV2 `json:"network_v2,omitempty"`
+	}{config.Profile, entropyProfile, config.Args, config.Environment, config.WorkingDirectory, config.WritableDirectories, config.CapturedInputs.Manifest, config.Stdin, config.EntropyKey, config.Clock, config.Limits, frameLimit, bufferLimit, config.Network, config.Storage, config.NetworkV2})
 	if err != nil {
 		return nil, err
 	}
@@ -180,6 +210,10 @@ func NewEnvironment(config Config) (*Environment, error) {
 	config.CapturedInputs = readonlymount.CapturedInputs{}
 	config.Stdin = nil
 	e := &Environment{config: config, namespace: namespace, identity: hex.EncodeToString(digest[:]), nextCall: 1, network: newNetworkState(config.Network)}
+	e.networkV2, err = newNetworkV2State(config.NetworkV2)
+	if err != nil {
+		return nil, err
+	}
 	if config.Profile == CooperativeProfile && config.Clock.ReadStepNanos == 0 {
 		e.now = 1
 	}
@@ -223,6 +257,10 @@ func (e *Environment) Output() ([]byte, []byte) {
 	return slices.Clone(e.stdout), slices.Clone(e.stderr)
 }
 func (e *Environment) Handle(call Call) (Reply, error) {
+	return e.handle(call, nil)
+}
+
+func (e *Environment) handle(call Call, validated *validatedInput) (Reply, error) {
 	if call.Type != "call" || call.ID != e.nextCall {
 		return Reply{}, invalid("callback sequence")
 	}
@@ -241,11 +279,14 @@ func (e *Environment) Handle(call Call) (Reply, error) {
 			return Reply{}, invalid("runtime import requires cooperative profile")
 		}
 		var result bytesOutput
-		if call.Op == "runtime_idle" {
+		switch call.Op {
+		case "runtime_idle":
 			result, err = e.runtimeIdle(call.Input)
-		} else if call.Op == "runtime_net" {
+		case "runtime_net":
 			result, err = e.runtimeNet(call.Input)
-		} else {
+		case "runtime_net_stream":
+			result, err = e.runtimeNetworkStream(call.Input)
+		default:
 			result, err = e.runtime.handle(call.Op, call.Input)
 		}
 		if err != nil {
@@ -258,7 +299,7 @@ func (e *Environment) Handle(call Call) (Reply, error) {
 		e.nextCall++
 		return Reply{Type: "reply", ID: call.ID, Output: encoded}, nil
 	}
-	reservation, err := e.responseReservation(call)
+	reservation, err := e.responseReservation(call, validated)
 	if err != nil {
 		return Reply{}, err
 	}
@@ -266,11 +307,15 @@ func (e *Environment) Handle(call Call) (Reply, error) {
 		return Reply{}, capacity("reply-frame")
 	}
 	// TranscriptBytes bounds retained bytes; a digest-only transcript retains none.
-	if !e.digestOnly && uint64(len(e.transcript))+uint64(len(callBytes))+reservation+2 > e.config.Limits.TranscriptBytes {
+	retained := uint64(len(e.transcript))
+	if e.helperOwned {
+		retained = e.transcriptLength
+	}
+	if !e.digestOnly && retained+uint64(len(callBytes))+reservation+2 > e.config.Limits.TranscriptBytes {
 		return Reply{}, capacity("transcript-bytes")
 	}
 	reply := Reply{Type: "reply", ID: call.ID, Output: json.RawMessage(`{}`)}
-	result, errno, unsupported, err := e.dispatch(call)
+	result, errno, unsupported, err := e.dispatch(call, validated)
 	if err != nil {
 		return Reply{}, err
 	}
@@ -306,17 +351,25 @@ func (e *Environment) Handle(call Call) (Reply, error) {
 	e.nextCall++
 	return reply, nil
 }
-func (e *Environment) responseReservation(call Call) (uint64, error) {
+func (e *Environment) responseReservation(call Call, validated *validatedInput) (uint64, error) {
 	if len(call.Input) > frameLimit {
 		return 0, capacity("input-frame")
 	}
-	if err := validateJSON(call.Input); err != nil {
-		return 0, err
-	}
 	// Reserving the maximum buffer before dispatch prevents a capacity result from committing a modeled mutation.
 	var fields map[string]json.RawMessage
-	if err := json.Unmarshal(call.Input, &fields); err != nil || fields == nil {
-		return 0, invalid("operation input")
+	if validated == nil {
+		if err := validateJSON(call.Input); err != nil {
+			return 0, err
+		}
+		if err := json.Unmarshal(call.Input, &fields); err != nil || fields == nil {
+			return 0, invalid("operation input")
+		}
+	} else {
+		var err error
+		fields, err = validated.fields()
+		if err != nil {
+			return 0, err
+		}
 	}
 	var length uint32
 	if raw, ok := fields["length"]; ok {
@@ -342,10 +395,10 @@ func (e *Environment) responseReservation(call Call) (uint64, error) {
 	}
 	return 1024 + extra, nil
 }
-func (e *Environment) dispatch(call Call) (any, uint16, string, error) {
+func (e *Environment) dispatch(call Call, validated *validatedInput) (any, uint16, string, error) {
 	switch call.Op {
 	case "args_sizes_get", "environ_sizes_get", "args_get", "environ_get", "sched_yield":
-		if err := decodeInput(call.Input, &struct{}{}); err != nil {
+		if err := decodeOperationInput(call.Input, validated, &struct{}{}); err != nil {
 			return nil, 0, "", err
 		}
 		values := e.config.Args
@@ -368,7 +421,7 @@ func (e *Environment) dispatch(call Call) (any, uint16, string, error) {
 		var input struct {
 			Length uint32 `json:"length"`
 		}
-		if err := decodeInput(call.Input, &input, "length"); err != nil {
+		if err := decodeOperationInput(call.Input, validated, &input, "length"); err != nil {
 			return nil, 0, "", err
 		}
 		if input.Length > bufferLimit || math.MaxUint64-e.entropyOffset < uint64(input.Length) {
@@ -387,6 +440,6 @@ func (e *Environment) dispatch(call Call) (any, uint16, string, error) {
 		e.entropyOffset += uint64(input.Length)
 		return bytesOutput{data}, 0, "", nil
 	default:
-		return e.namespaceCall(call)
+		return e.namespaceCall(call, validated)
 	}
 }

@@ -379,7 +379,7 @@ func (p ownership) moduleDirectories(root string, paths []string) ([]string, err
 			return nil, fmt.Errorf("uncovered module symlink %s", path)
 		}
 		directory := filepath.ToSlash(filepath.Dir(path))
-		if directory != "." && directory != gomadModule && directory != wasmModule && directory != mixedbrainModule && !p.modules[path] {
+		if directory != "." && directory != gomadModule && directory != wasmModule && directory != wasmModule+"/qualification/testdata/fixture" && directory != mixedbrainModule && !p.modules[path] {
 			return nil, fmt.Errorf("unclassified module %s", path)
 		}
 		modules = append(modules, directory)
@@ -410,6 +410,10 @@ func (p ownership) classify(path string, modules []string) (source, error) {
 		entry.disposition = "WASM Temporal diagnostic fixture"
 	case within(path, wasmModule+"/testdata/time_probes"), within(path, wasmModule+"/testdata/network_probes"), within(path, wasmModule+"/testdata/prototype_temporal"):
 		entry.disposition = "WASM determinism prototype fixture"
+	case within(path, wasmModule+"/testdata/storage_sqlite"), within(path, wasmModule+"/testdata/network_streams"), within(path, wasmModule+"/testdata/temporal_storage"), within(path, wasmModule+"/testdata/temporal_broker"), within(path, wasmModule+"/wasi/testdata/runtime_cost"), within(path, wasmModule+"/simulation/testdata/service"), within(path, wasmModule+"/cmd/gomad-wasm/testdata"):
+		entry.disposition = "WASM productionization fixture"
+	case within(path, wasmModule+"/qualification/testdata/fixture"):
+		entry.disposition = "WASM support and cost qualification fixture"
 	case within(path, wasmModule):
 		relative := strings.TrimPrefix(path, wasmModule+"/")
 		for part := range strings.SplitSeq(filepath.ToSlash(filepath.Dir(relative)), "/") {

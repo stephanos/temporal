@@ -1,12 +1,15 @@
 use crate::{
     engine::State,
-    protocol::{BUFFER_LIMIT, Outcome},
+    protocol::{BUFFER_LIMIT, CallbackInput, Outcome},
 };
 use base64::{Engine as _, engine::general_purpose::STANDARD};
 use serde_json::{Value, json};
 use wasmtime::{Caller, Error, Memory, Result, Val};
 
 pub fn signature(module: &str, name: &str) -> Option<(Vec<&'static str>, Vec<&'static str>)> {
+    if module == "gomad_wasm_v2" {
+        return (name == "net_stream").then(|| (vec!["i32", "i32"], vec!["i32"]));
+    }
     if module == "gomad_wasm_v1" {
         return match name {
             "config" | "decision" | "observation" | "finish" | "idle" | "net" => {
@@ -197,7 +200,9 @@ pub fn invoke(
     params: &[Val],
     results: &mut [Val],
 ) -> Result<()> {
-    if module == "gomad_wasm_v1" {
+    #[cfg(feature = "diagnostic-profile")]
+    let _abi = crate::diagnostic::AbiSpan::new(module, op, caller.data().model.is_some());
+    if module == "gomad_wasm_v1" || module == "gomad_wasm_v2" {
         return invoke_runtime(caller, op, params, results);
     }
     if op == "proc_exit" {
@@ -216,7 +221,19 @@ pub fn invoke(
     };
     let get = |n: usize| params[n].i32().unwrap() as u32;
     let wide = |n: usize| params[n].i64().unwrap() as u64;
+    if op == "clock_time_get" && guest.caller.data().model.is_some() {
+        if let Err(error) = guest.range(get(2), 8) {
+            return Err(guest.caller.data_mut().fail("trap", error.to_string()));
+        }
+        let timestamp = guest.caller.data_mut().clock_time_get(get(0), wide(1))?;
+        guest.put64(get(2), timestamp)?;
+        results[0] = Val::I32(0);
+        return Ok(());
+    }
     let mut iovecs = Vec::new();
+    let mut write_buffers = None;
+    #[cfg(feature = "diagnostic-profile")]
+    let encoding = crate::diagnostic::WallSpan::new(crate::diagnostic::Nested::Encoding);
     let input_result = (|| -> Result<Value> {
         let fd = || json!({"fd":get(0)});
         let path = || -> Result<Value> {
@@ -259,18 +276,24 @@ pub fn invoke(
                     }),
                     4,
                 )?;
-                let mut input = fd();
+                let mut input = Value::Null;
                 if op == "fd_write" || op == "fd_pwrite" {
-                    let mut bytes = Vec::new();
+                    let length = iovecs.iter().map(|&(_, length)| length).sum::<usize>();
+                    let buffers = write_buffers
+                        .insert(std::mem::take(&mut guest.caller.data_mut().write_scratch));
+                    buffers.begin(length)?;
                     for &(pointer, length) in &iovecs {
-                        bytes.extend(guest.bytes(pointer, length)?);
+                        let range = guest.range(pointer, length)?;
+                        buffers
+                            .bytes
+                            .extend_from_slice(&guest.memory.data(&*guest.caller)[range]);
                     }
-                    input["data_base64"] = json!(STANDARD.encode(&bytes));
+                    buffers.encode()?;
                     if (get(0) == 1 || get(0) == 2) && (op == "fd_write" || op == "fd_pwrite") {
                         let state = guest.caller.data_mut();
                         let total = state
                             .output_bytes
-                            .checked_add(bytes.len() as u64)
+                            .checked_add(buffers.bytes.len() as u64)
                             .ok_or_else(|| Error::msg("output capacity"))?;
                         if total > state.output_limit {
                             return Err(Error::msg("output capacity"));
@@ -278,10 +301,11 @@ pub fn invoke(
                         state.output_bytes = total;
                     }
                 } else {
+                    input = fd();
                     input["length"] =
                         json!(iovecs.iter().map(|&(_, length)| length).sum::<usize>());
                 }
-                if op == "fd_pread" || op == "fd_pwrite" {
+                if op == "fd_pread" {
                     input["offset"] = json!(wide(3));
                 }
                 input
@@ -388,9 +412,15 @@ pub fn invoke(
             _ => return Err(Error::msg("unsupported import")),
         })
     })();
+    #[cfg(feature = "diagnostic-profile")]
+    drop(encoding);
     let input = match input_result {
         Ok(value) => value,
         Err(error) => {
+            if let Some(mut buffers) = write_buffers.take() {
+                buffers.clear();
+                guest.caller.data_mut().write_scratch = buffers;
+            }
             let message = error.to_string();
             let kind = if message.contains("capacity") {
                 "capacity"
@@ -400,12 +430,36 @@ pub fn invoke(
             return Err(guest.caller.data_mut().fail(kind, message));
         }
     };
-    let reply = guest.caller.data_mut().callback(op, input)?;
+    let reply = if let Some(buffers) = &write_buffers {
+        let data_base64 = &buffers.encoded;
+        let callback = if op == "fd_pwrite" {
+            CallbackInput::PWrite {
+                fd: get(0),
+                data_base64,
+                offset: wide(3),
+            }
+        } else {
+            CallbackInput::Write {
+                fd: get(0),
+                data_base64,
+            }
+        };
+        guest.caller.data_mut().callback_input(callback)
+    } else {
+        guest.caller.data_mut().callback(op, input)
+    };
+    if let Some(mut buffers) = write_buffers {
+        buffers.clear();
+        guest.caller.data_mut().write_scratch = buffers;
+    }
+    let reply = reply?;
     if reply.errno != 0 {
         results[0] = Val::I32(reply.errno as i32);
         return Ok(());
     }
     let output = &reply.output;
+    #[cfg(feature = "diagnostic-profile")]
+    let _encoding = crate::diagnostic::WallSpan::new(crate::diagnostic::Nested::Encoding);
     let written = (|| -> Result<()> {
         match op {
             "args_sizes_get" | "environ_sizes_get" => {
@@ -587,10 +641,13 @@ fn invoke_runtime(
     };
     let pointer = params[0].i32().unwrap() as u32;
     let length = params[1].i32().unwrap() as u32 as usize;
-    let input = (|| -> Result<Value> {
+    #[cfg(feature = "diagnostic-profile")]
+    let encoding = crate::diagnostic::WallSpan::new(crate::diagnostic::Nested::Encoding);
+    let input = (|| -> Result<Vec<u8>> {
         let maximum = match op {
             "config" | "finish" | "idle" => 16,
             "net" => 32,
+            "net_stream" => 64 + 64 * 1024,
             "decision" => 32 + 256 * 32 + 96,
             "observation" => 192,
             _ => return Err(Error::msg("unsupported runtime import")),
@@ -602,6 +659,7 @@ fn invoke_runtime(
             "decision" => length >= 96 && (length - 32).is_multiple_of(32),
             "observation" => length == 96 || length == 192,
             "net" => length == 32,
+            "net_stream" => (64..=64 + 64 * 1024).contains(&length),
             _ => length == 16,
         };
         if !valid_length {
@@ -616,8 +674,10 @@ fn invoke_runtime(
                 return Err(Error::msg("invalid runtime decision buffer layout"));
             }
         }
-        Ok(json!({"data_base64":STANDARD.encode(bytes)}))
+        Ok(bytes)
     })();
+    #[cfg(feature = "diagnostic-profile")]
+    drop(encoding);
     let input = match input {
         Ok(input) => input,
         Err(error) => {
@@ -630,15 +690,36 @@ fn invoke_runtime(
             return Err(guest.caller.data_mut().fail(kind, message));
         }
     };
-    let reply = guest
-        .caller
-        .data_mut()
-        .callback(&format!("runtime_{op}"), input)?;
+    if guest.caller.data().model.is_some() && op != "net_stream" {
+        #[cfg(feature = "diagnostic-profile")]
+        if op == "decision" {
+            crate::diagnostic::decision_kind(u32::from_be_bytes(input[4..8].try_into().unwrap()));
+        }
+        let bytes = guest
+            .caller
+            .data_mut()
+            .runtime(&format!("runtime_{op}"), input)?;
+        if bytes.len() != length {
+            return Err(guest
+                .caller
+                .data_mut()
+                .fail("invalid", "runtime reply byte length mismatch"));
+        }
+        guest.write(pointer, &bytes)?;
+        results[0] = Val::I32(0);
+        return Ok(());
+    }
+    let reply = guest.caller.data_mut().callback(
+        &format!("runtime_{op}"),
+        json!({"data_base64":STANDARD.encode(input)}),
+    )?;
     if reply.errno != 0 {
         results[0] = Val::I32(reply.errno as i32);
         return Ok(());
     }
     let written = (|| -> Result<()> {
+        #[cfg(feature = "diagnostic-profile")]
+        let _encoding = crate::diagnostic::WallSpan::new(crate::diagnostic::Nested::Encoding);
         fields(&reply.output, &["data_base64"])?;
         let encoded = reply.output["data_base64"]
             .as_str()

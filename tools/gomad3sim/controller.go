@@ -218,6 +218,20 @@ func (cluster *inProcessCluster) applyResolvedFault(ctx context.Context, realiza
 			return err
 		}
 		defer cluster.endCall()
+		if cluster.wasm != nil {
+			actionName := "partition"
+			if action.Kind == FaultHeal {
+				actionName = "heal"
+			}
+			for _, from := range action.Left {
+				for _, to := range action.Right {
+					if err := cluster.wasm.Link(actionName, from, to, 0, true); err != nil {
+						return err
+					}
+				}
+			}
+			return nil
+		}
 		return runtimeNetworkGroup(cluster.runtimeRun, action.Left, action.Right, action.Kind == FaultHeal)
 	default:
 		return ErrFaultInapplicable
@@ -229,6 +243,20 @@ func (cluster *inProcessCluster) applyDirectionalNetworkFault(ctx context.Contex
 		return err
 	}
 	defer cluster.endCall()
+	if cluster.wasm != nil {
+		action := ""
+		switch kind {
+		case NetworkDisconnect:
+			action = "partition"
+		case NetworkReconnect:
+			action = "heal"
+		case NetworkDirectionalDelay:
+			action = "delay"
+		default:
+			return ErrFaultInapplicable
+		}
+		return cluster.wasm.Link(action, from, to, delayNanos, false)
+	}
 	switch kind {
 	case NetworkDisconnect:
 		return runtimeNetworkPartition(cluster.runtimeRun, from, to, false)

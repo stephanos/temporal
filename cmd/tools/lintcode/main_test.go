@@ -255,7 +255,7 @@ func TestWASMLintModuleRoutesHostSourcesAndRetainsClosedInventory(t *testing.T) 
 			}, repo.calls())
 		})
 	}
-	for _, path := range []string{"tools/gomad_wasm_extra/go.mod", "tools/gomad_wasm/testdata/unknown/main.go", "tools/gomad_wasm/testdata/environment/nested/go.mod"} {
+	for _, path := range []string{"tools/gomad_wasm_extra/go.mod", "tools/gomad_wasm/testdata/unknown/main.go", "tools/gomad_wasm/wasi/testdata/runtime_cost_extra/main.go", "tools/gomad_wasm/testdata/environment/nested/go.mod"} {
 		t.Run(path, func(t *testing.T) {
 			t.Parallel()
 			repo := newLintRepo(t)
@@ -315,6 +315,65 @@ func TestWASMLintRoutesRuntimeQualificationFixtures(t *testing.T) {
 			repo.write("tools/gomad_wasm/wasi/source.go", "package wasi\n")
 			repo.write("tools/gomad_wasm/"+fixture+"/main.go", "package main\n")
 			repo.make("lint-code-fast")
+			require.Equal(t, []lintCall{
+				{"golangci", "tools/gomad_wasm", repo.lintArgs("./wasi")},
+				{"vet", "tools/gomad_wasm", repo.vetArgs("./wasi")},
+			}, repo.calls())
+		})
+	}
+}
+
+func TestWASMLintRoutesProductionizationFixtures(t *testing.T) {
+	t.Parallel()
+	for _, fixture := range []string{"testdata/storage_sqlite", "testdata/network_streams", "testdata/temporal_storage", "testdata/temporal_broker", "wasi/testdata/runtime_cost", "simulation/testdata/service", "cmd/gomad-wasm/testdata"} {
+		t.Run(fixture, func(t *testing.T) {
+			t.Parallel()
+			repo := newLintRepo(t)
+			repo.write("tools/gomad_wasm/go.mod", "module example.invalid/wasm\n\ngo 1.27.0\n")
+			repo.write("tools/gomad_wasm/wasi/source.go", "package wasi\n")
+			repo.write("tools/gomad_wasm/"+fixture+"/main.go", "package main\n")
+			repo.make("lint-code-fast")
+			require.Equal(t, []lintCall{
+				{"golangci", "tools/gomad_wasm", repo.lintArgs("./wasi")},
+				{"vet", "tools/gomad_wasm", repo.vetArgs("./wasi")},
+			}, repo.calls())
+		})
+		t.Run(fixture+"/nested-module", func(t *testing.T) {
+			t.Parallel()
+			repo := newLintRepo(t)
+			repo.write("tools/gomad_wasm/go.mod", "module example.invalid/wasm\n\ngo 1.27.0\n")
+			fixtureModule := "tools/gomad_wasm/" + fixture + "/nested/go.mod"
+			repo.write(fixtureModule, "module example.invalid/unowned\n\ngo 1.27.0\n")
+			output, err := repo.runMake("lint-code-fast")
+			require.Error(t, err)
+			require.Contains(t, output, fixtureModule)
+			require.Empty(t, repo.calls())
+		})
+	}
+}
+
+func TestWASMLintAdmitsOnlyDeclaredQualificationFixtureModule(t *testing.T) {
+	t.Parallel()
+	for _, extra := range []string{"", "nested/go.mod", "../unknown/go.mod"} {
+		t.Run(extra, func(t *testing.T) {
+			t.Parallel()
+			repo := newLintRepo(t)
+			repo.write("tools/gomad_wasm/go.mod", "module example.invalid/wasm\n\ngo 1.27.0\n")
+			repo.write("tools/gomad_wasm/wasi/source.go", "package wasi\n")
+			fixture := "tools/gomad_wasm/qualification/testdata/fixture/"
+			repo.write(fixture+"go.mod", "module example.invalid/qualification\n\ngo 1.27.0\n")
+			repo.write(fixture+"main.go", "package main\n")
+			if extra != "" {
+				repo.write(fixture+extra, "module example.invalid/unowned\n\ngo 1.27.0\n")
+			}
+			output, err := repo.runMake("lint-code-fast")
+			if extra != "" {
+				require.Error(t, err, output)
+				require.Contains(t, output, "unclassified module")
+				require.Empty(t, repo.calls())
+				return
+			}
+			require.NoError(t, err, output)
 			require.Equal(t, []lintCall{
 				{"golangci", "tools/gomad_wasm", repo.lintArgs("./wasi")},
 				{"vet", "tools/gomad_wasm", repo.vetArgs("./wasi")},

@@ -537,7 +537,7 @@ func validateCampaignRequest(config campaignRequest) (SeedSelection, []record.En
 	default:
 		return SeedSelection{}, nil, fmt.Errorf("unknown successful-execution retention policy %q", config.KeepSuccesses)
 	}
-	if config.CollectExecutionEvidence && (selection.Count() != 1 || !coverageHasSemantic(config.Coverage)) {
+	if config.CollectExecutionEvidence && (selection.Count() != 1 || !coverageHasSemantic(config.Coverage) && config.Target.Backend == "") {
 		return SeedSelection{}, nil, errors.New("execution evidence requires exactly one seed and semantic coverage")
 	}
 	if config.Guide {
@@ -583,8 +583,9 @@ func validateCampaignRequest(config campaignRequest) (SeedSelection, []record.En
 	}
 	ioProfile := deterministicio.Deterministic
 	if config.Target.Backend != "" {
-		if config.Backend == nil || config.Preparer != nil || config.strategy() != StrategySeed || NormalizeCoverage(config.Coverage, false) != CoverageNone || config.Guide || len(config.IOROMounts) != 0 || config.ClockTick != "" || config.CollectExecutionEvidence {
-			return SeedSelection{}, nil, errors.New("external backend request requires its provider and a supported observed seed profile")
+		coverage := NormalizeCoverage(config.Coverage, false)
+		if config.Backend == nil || config.Preparer != nil || config.strategy() != StrategySeed && config.strategy() != StrategyChoiceExploration || coverage != CoverageNone && coverage != CoverageChoice || config.Guide || len(config.IOROMounts) != 0 || config.ClockTick != "" {
+			return SeedSelection{}, nil, errors.New("external backend request requires its provider and a supported seed or choice profile")
 		}
 		ioProfile = config.Target.Backend
 	} else if config.Backend != nil {
@@ -724,6 +725,12 @@ func runSeed(ctx context.Context, config campaignRequest, executor executionRunn
 		}
 		if prepared.Backend != nil {
 			completion.result, completion.err = runBackend(ctx, config.Backend, backend.Request{Target: prepared.CloneBackend(), Seed: job.seed, Environment: environmentStrings(environment), Timeout: config.ExecutionTimeout, OutputBytes: config.OutputLimit, TranscriptBytes: ioTranscriptLimit(config), Choice: backendChoiceRequest(choiceCapability), Diagnostics: config.Diagnostics}, stdoutHead, stderrHead)
+			if job.choiceMode == choice.ModePrefix && backendChoiceReplayDivergence(completion.err) {
+				var failure *backend.FailureError
+				if errors.As(completion.err, &failure) && failure.ChoiceDivergence != nil {
+					completion.err = &execution.ChoiceReplayDivergenceError{Divergence: *failure.ChoiceDivergence}
+				}
+			}
 		} else {
 			completion.result, completion.err = executor.Run(ctx, request)
 		}

@@ -60,6 +60,9 @@ func (w *Model) StartRecording(transitionByteLimit uint64) (*Recorder, error) {
 	}
 	w.mu.Lock()
 	defer w.mu.Unlock()
+	if w.detached {
+		return nil, invalidSnapshot("model.detached")
+	}
 	if w.recording != nil {
 		return nil, fmt.Errorf("World recording is already active")
 	}

@@ -15,6 +15,7 @@ const (
 )
 
 type Request struct {
+	CollectResourceUsage bool
 	Command              []string
 	Dir                  string
 	Env                  []string
@@ -29,6 +30,7 @@ type Request struct {
 }
 
 type Result struct {
+	ResourceUsage   *ResourceUsage `json:",omitempty"`
 	Termination     Termination
 	ExitCode        int
 	Signal          string
@@ -41,6 +43,14 @@ type Result struct {
 	Stdout          Output
 	Stderr          Output
 	CommandError    error
+}
+
+// ResourceUsage is wait's accounting for the reaped leader, including only
+// descendants whose usage the OS credits to that leader. It is not process-group
+// accounting for arbitrary detached/unwaited descendants. PeakRSSBytes follows
+// the platform wait-rusage high-water semantics, not a sum of concurrent RSS.
+type ResourceUsage struct {
+	UserNanos, SystemNanos, PeakRSSBytes uint64
 }
 
 func validateRequest(request Request) error {

@@ -28,8 +28,12 @@ func TestImplementationIdentityBindsCompiledBuilderAndGlue(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	netStreamGlue, err := os.ReadFile("net_stream_wasm.go.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
 	input := []byte("gomad-wasm-runtime-implementation/v1\x00")
-	for _, source := range [][]byte{builder, glue, netGlue} {
+	for _, source := range [][]byte{builder, glue, netGlue, netStreamGlue} {
 		var size [8]byte
 		binary.BigEndian.PutUint64(size[:], uint64(len(source)))
 		input = append(input, size[:]...)

@@ -48,14 +48,15 @@ type exploreEvent struct {
 }
 
 type exploreReporter struct {
-	json   bool
-	stdout io.Writer
-	stderr io.Writer
-	mu     sync.Mutex
+	replayCommand string
+	json          bool
+	stdout        io.Writer
+	stderr        io.Writer
+	mu            sync.Mutex
 }
 
 func newExploreReporter(jsonOutput bool, stdout, stderr io.Writer) *exploreReporter {
-	return &exploreReporter{json: jsonOutput, stdout: stdout, stderr: stderr}
+	return &exploreReporter{json: jsonOutput, stdout: stdout, stderr: stderr, replayCommand: "gomad replay"}
 }
 
 func (reporter *exploreReporter) Progress(progress runner.CampaignEvent) error {
@@ -92,14 +93,14 @@ func (reporter *exploreReporter) Result(summary runner.CampaignResult) error {
 		}
 		for _, path := range summary.Artifacts {
 			if err := reporter.writeEvent(exploreEvent{
-				Schema: exploreEventSchema, Type: "artifact", Classification: classification, Path: path, ReplayCommand: "gomad replay " + quoteArgument(path),
+				Schema: exploreEventSchema, Type: "artifact", Classification: classification, Path: path, ReplayCommand: reporter.replayCommand + " " + quoteArgument(path),
 			}); err != nil {
 				return err
 			}
 		}
 		for _, path := range summary.SuccessArtifacts {
 			if err := reporter.writeEvent(exploreEvent{
-				Schema: exploreEventSchema, Type: "artifact", Classification: "success", Path: path, ReplayCommand: "gomad replay " + quoteArgument(path),
+				Schema: exploreEventSchema, Type: "artifact", Classification: "success", Path: path, ReplayCommand: reporter.replayCommand + " " + quoteArgument(path),
 			}); err != nil {
 				return err
 			}
@@ -110,12 +111,12 @@ func (reporter *exploreReporter) Result(summary runner.CampaignResult) error {
 		return err
 	}
 	for _, path := range summary.Artifacts {
-		if _, err := fmt.Fprintf(reporter.stdout, "gomad: retained failure: %s\ngomad: replay: gomad replay %s\n", path, quoteArgument(path)); err != nil {
+		if _, err := fmt.Fprintf(reporter.stdout, "gomad: retained failure: %s\ngomad: replay: %s %s\n", path, reporter.replayCommand, quoteArgument(path)); err != nil {
 			return err
 		}
 	}
 	for _, path := range summary.SuccessArtifacts {
-		if _, err := fmt.Fprintf(reporter.stdout, "gomad: retained success: %s\ngomad: replay: gomad replay %s\n", path, quoteArgument(path)); err != nil {
+		if _, err := fmt.Fprintf(reporter.stdout, "gomad: retained success: %s\ngomad: replay: %s %s\n", path, reporter.replayCommand, quoteArgument(path)); err != nil {
 			return err
 		}
 	}

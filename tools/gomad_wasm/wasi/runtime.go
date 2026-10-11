@@ -271,19 +271,64 @@ func allZero(data []byte) bool {
 	return true
 }
 
-func (e *Environment) runtimeIdle(input json.RawMessage) (bytesOutput, error) {
+func (session *runtimeSession) interrupted() ([]byte, []byte, error) {
+	if !session.configured || session.finished {
+		return nil, nil, invalid("runtime interruption lifetime")
+	}
+	if session.tape != nil && session.cursor != uint64(len(session.tape.Decisions)) {
+		expected := session.tape.Decisions[session.cursor]
+		return nil, nil, session.diverge(choice.DivergenceTapeUnconsumed, &expected, nil)
+	}
+	validated, err := choice.BuildTrace(session.records, choice.TerminalComplete)
+	if err != nil {
+		return nil, nil, err
+	}
+	return validated.Bytes, slices.Clone(session.diagnostics), nil
+}
+
+func (e *Environment) runtimeIdleInput(input json.RawMessage) ([]byte, uint64, error) {
 	if !e.runtime.configured || e.runtime.finished {
-		return bytesOutput{}, invalid("runtime idle outside active lifetime")
+		return nil, 0, invalid("runtime idle outside active lifetime")
 	}
 	var request bytesOutput
 	if err := decodeInput(input, &request, "data_base64"); err != nil {
-		return bytesOutput{}, err
+		return nil, 0, err
 	}
 	data := slices.Clone(request.Data)
 	if len(data) != 16 || binary.BigEndian.Uint32(data) != 1 || binary.BigEndian.Uint32(data[4:]) != 0 {
-		return bytesOutput{}, invalid("runtime idle layout")
+		return nil, 0, invalid("runtime idle layout")
 	}
 	deadline := binary.BigEndian.Uint64(data[8:])
+	return data, deadline, nil
+}
+
+func (e *Environment) runtimeIdle(input json.RawMessage) (bytesOutput, error) {
+	data, deadline, err := e.runtimeIdleInput(input)
+	if err != nil {
+		return bytesOutput{}, err
+	}
+	if e.brokerTime != nil {
+		now := *e.brokerTime
+		e.brokerTime = nil
+		if now < e.now {
+			return bytesOutput{}, invalid("broker clock moved backwards")
+		}
+		if now > e.now {
+			e.advances++
+		}
+		e.now = now
+		if err = e.networkV2Advance(now); err != nil {
+			return bytesOutput{}, err
+		}
+		if e.networkV2 != nil {
+			binary.BigEndian.PutUint32(data[4:], 1)
+		}
+		binary.BigEndian.PutUint64(data[8:], now)
+		return bytesOutput{Data: data}, nil
+	}
+	if e.networkV2 != nil {
+		return e.networkV2Idle(data, deadline)
+	}
 	if deadline == 0 || deadline > math.MaxInt64-e.config.Clock.EpochNanos {
 		return bytesOutput{}, invalid("runtime idle deadline")
 	}

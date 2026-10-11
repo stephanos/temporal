@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"path/filepath"
 	"runtime"
 	"slices"
@@ -16,9 +17,71 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/choice"
+	"go.temporal.io/server/tools/gomad3/deterministicio/volume"
 	"go.temporal.io/server/tools/gomad3/hostexec"
 	"go.temporal.io/server/tools/gomad3/hostfs"
 )
+
+type helperInput struct {
+	reader, writer *os.File
+	ready          chan struct{}
+	bootstrapErr   error
+	closeOnce      sync.Once
+	closeErr       error
+	finishOnce     sync.Once
+	finishErr      error
+}
+
+func newHelperInput() (*helperInput, error) {
+	reader, writer, err := os.Pipe()
+	if err != nil {
+		return nil, err
+	}
+	return &helperInput{reader: reader, writer: writer, ready: make(chan struct{})}, nil
+}
+
+func (input *helperInput) start(initial []byte) {
+	go func() {
+		written, err := input.writer.Write(initial)
+		if err == nil && written != len(initial) {
+			err = io.ErrShortWrite
+		}
+		input.bootstrapErr = helperInputError(err)
+		close(input.ready)
+	}()
+}
+
+func (input *helperInput) Write(data []byte) (int, error) {
+	<-input.ready
+	if input.bootstrapErr != nil {
+		return 0, input.bootstrapErr
+	}
+	written, err := input.writer.Write(data)
+	return written, helperInputError(err)
+}
+
+func helperInputError(err error) error {
+	if errors.Is(err, os.ErrClosed) {
+		return io.ErrClosedPipe
+	}
+	return err
+}
+
+func (input *helperInput) closeInput() {
+	input.closeOnce.Do(func() { input.closeErr = input.writer.Close() })
+}
+
+func (input *helperInput) finish() error {
+	input.finishOnce.Do(func() {
+		input.closeInput()
+		<-input.ready
+		input.finishErr = errors.Join(input.closeErr, input.reader.Close())
+		if input.bootstrapErr != io.ErrClosedPipe {
+			input.finishErr = errors.Join(input.bootstrapErr, input.finishErr)
+		}
+	})
+	return input.finishErr
+}
 
 type EngineIdentity struct {
 	Name          string `json:"name"`
@@ -54,6 +117,10 @@ type Request struct {
 	Config                                             Config
 	Timeout                                            time.Duration
 	Runtime                                            *RuntimeControl
+	StorageImage                                       *StorageImage
+	StorageCrashSelection                              map[string][]uint64
+	StorageCrashLimits                                 *volume.CrashEnumerationLimits
+	Broker                                             *BrokerSession
 	// StdoutMirror receives a live copy of guest stdout for progress observation.
 	StdoutMirror io.Writer
 	// CompileCache names a host-local directory where the helper keeps compiled
@@ -62,6 +129,7 @@ type Request struct {
 	// DigestTranscript retains only the WASI transcript's SHA-256, bounding host
 	// memory for whole-program guests; Result.Transcript is then empty.
 	DigestTranscript bool
+	remoteModel      bool
 }
 type Result struct {
 	Termination                                        string
@@ -78,26 +146,60 @@ type Result struct {
 	ChoiceTrace                                        choice.Trace
 	DiagnosticTrace                                    choice.DiagnosticTrace
 	ChoiceDivergence                                   *choice.Divergence
-	runtimeTerminal                                    [16]byte
+	RuntimeInterrupted                                 bool
+	InterruptedChoiceBytes, InterruptedDiagnosticBytes []byte
+	VirtualTimeElapsedNanos                            uint64
+	StorageImage                                       *StorageImage
+	StorageTranscript                                  []byte
+	StorageSnapshots                                   []volume.VolumeSnapshot
+	StorageOperations                                  map[string][]volume.Operation
+	StorageCrashEnumeration                            map[string]volume.CrashEnumeration
+	Telemetry                                          *Telemetry
+	HelperResourceUsage                                *hostexec.ResourceUsage
+	// AuthorizationToTerminalNanos spans authorization through the validated
+	// terminal frame, including fresh instantiation and evidence transfer.
+	AuthorizationToTerminalNanos uint64
+	runtimeTerminal              [16]byte
+	helperStderr                 []byte
+}
+
+// Telemetry describes real helper costs, never inputs to modeled execution.
+// CPU and RSS describe the entire helper process, not guest-only execution.
+type Telemetry struct {
+	PrepareNanos           uint64 `json:"prepare_nanos"`
+	CompileNanos           uint64 `json:"compile_nanos"`
+	CacheLoadNanos         uint64 `json:"cache_load_nanos"`
+	CacheWriteNanos        uint64 `json:"cache_write_nanos"`
+	CacheHit               bool   `json:"cache_hit"`
+	InstantiateNanos       uint64 `json:"instantiate_nanos"`
+	ExecuteNanos           uint64 `json:"execute_nanos"`
+	ProcessUserNanos       uint64 `json:"process_user_nanos"`
+	ProcessSystemNanos     uint64 `json:"process_system_nanos"`
+	PeakRSSBytes           uint64 `json:"peak_rss_bytes"`
+	ResourceUsageAvailable bool   `json:"resource_usage_available"`
 }
 type executeFrame struct {
-	Schema       string `json:"schema"`
-	Type         string `json:"type"`
-	ModulePath   string `json:"module_path"`
-	ModuleSHA256 string `json:"module_sha256"`
-	MemoryBytes  uint64 `json:"memory_bytes"`
-	Fuel         uint64 `json:"fuel"`
-	OutputBytes  uint64 `json:"output_bytes"`
-	CompileCache string `json:"compile_cache,omitempty"`
+	Schema       string             `json:"schema"`
+	Type         string             `json:"type"`
+	ModulePath   string             `json:"module_path"`
+	ModuleSHA256 string             `json:"module_sha256"`
+	MemoryBytes  uint64             `json:"memory_bytes"`
+	Fuel         uint64             `json:"fuel"`
+	OutputBytes  uint64             `json:"output_bytes"`
+	CompileCache string             `json:"compile_cache,omitempty"`
+	LocalModel   *helperModelConfig `json:"local_model,omitempty"`
 }
 type resultFrame struct {
-	Type            string  `json:"type"`
-	Termination     string  `json:"termination"`
-	ExitCode        *uint32 `json:"exit_code,omitempty"`
-	Message         string  `json:"message"`
-	FuelRemaining   uint64  `json:"fuel_remaining"`
-	PeakMemoryBytes uint64  `json:"peak_memory_bytes"`
-	OutputBytes     uint64  `json:"output_bytes"`
+	Type            string             `json:"type"`
+	Termination     string             `json:"termination"`
+	ExitCode        *uint32            `json:"exit_code,omitempty"`
+	Message         string             `json:"message"`
+	FuelRemaining   uint64             `json:"fuel_remaining"`
+	PeakMemoryBytes uint64             `json:"peak_memory_bytes"`
+	OutputBytes     uint64             `json:"output_bytes"`
+	LocalModel      *helperModelResult `json:"local_model,omitempty"`
+	Divergence      *choice.Divergence `json:"divergence,omitempty"`
+	Metrics         *Telemetry         `json:"metrics,omitempty"`
 }
 
 func PinnedEngine() EngineIdentity {
@@ -132,11 +234,28 @@ func verifyFile(name, digest string) error {
 	}
 	return nil
 }
-func Run(ctx context.Context, request Request) (Result, error) {
+func Run(ctx context.Context, request Request) (result Result, runErr error) {
+	if request.Config.Storage == nil && (request.StorageCrashSelection != nil || request.StorageCrashLimits != nil) {
+		return Result{}, invalid("storage crash controls without storage model")
+	}
+	if request.Broker != nil {
+		defer func() {
+			if err := request.Broker.Finished(); err != nil {
+				result.Termination = "infrastructure"
+				result.Message = errors.Join(errors.New(result.Message), err).Error()
+			}
+		}()
+	}
 	if request.Timeout <= 0 || request.Engine.Name == "" || request.Engine.Version == "" || request.Engine.Configuration == "" || request.Engine.HostOS == "" || request.Engine.HostArch == "" || request.InitialMemoryPages == 0 || request.MemoryBytes == 0 || request.MemoryBytes > 1<<32 || request.MemoryBytes%65536 != 0 || request.Fuel == 0 {
 		return Result{}, invalid("execution configuration")
 	}
-	environment, err := NewEnvironment(request.Config)
+	var environment *Environment
+	var err error
+	if request.StorageImage != nil {
+		environment, err = NewRecoveredEnvironment(request.Config, request.StorageImage)
+	} else {
+		environment, err = NewEnvironment(request.Config)
+	}
 	if err != nil {
 		return Result{}, err
 	}
@@ -149,7 +268,7 @@ func Run(ctx context.Context, request Request) (Result, error) {
 		return Result{}, invalid("stock profile has cooperative runtime control")
 	}
 	for _, imported := range request.Imports {
-		if imported.Module == "gomad_wasm_v1" && environment.runtime == nil {
+		if (imported.Module == "gomad_wasm_v1" || imported.Module == "gomad_wasm_v2") && environment.runtime == nil {
 			return Result{}, invalid("cooperative import in stock profile")
 		}
 	}
@@ -158,6 +277,12 @@ func Run(ctx context.Context, request Request) (Result, error) {
 		// The network import is optional: guests without net never link it.
 		seenNet := false
 		for _, imported := range request.Imports {
+			if imported.Module == "gomad_wasm_v2" {
+				if imported.Name != "net_stream" || !slices.Equal(imported.Params, []string{"i32", "i32"}) || !slices.Equal(imported.Results, []string{"i32"}) {
+					return Result{}, invalid("network v2 import signature")
+				}
+				continue
+			}
 			if imported.Module != "gomad_wasm_v1" {
 				continue
 			}
@@ -185,7 +310,7 @@ func Run(ctx context.Context, request Request) (Result, error) {
 	if request.DigestTranscript {
 		environment.digestOnly, environment.transcriptHash = true, sha256.New()
 	}
-	result := Result{EnvironmentIdentity: environment.Identity()}
+	result = Result{EnvironmentIdentity: environment.Identity()}
 	if err := ctx.Err(); err != nil {
 		result.Termination = "infrastructure"
 		result.Message = err.Error()
@@ -195,20 +320,35 @@ func Run(ctx context.Context, request Request) (Result, error) {
 	if request.CompileCache != "" && !filepath.IsAbs(request.CompileCache) {
 		return Result{}, invalid("compile cache directory")
 	}
-	execute := executeFrame{"gomad3.wasm-host/v1", "execute", request.ModulePath, request.ModuleSHA256, request.MemoryBytes, request.Fuel, request.Config.Limits.OutputBytes, request.CompileCache}
+	execute := executeFrame{Schema: "gomad3.wasm-host/v1", Type: "execute", ModulePath: request.ModulePath, ModuleSHA256: request.ModuleSHA256, MemoryBytes: request.MemoryBytes, Fuel: request.Fuel, OutputBytes: request.Config.Limits.OutputBytes, CompileCache: request.CompileCache}
+	if environment.runtime != nil && !request.remoteModel && request.Config.NetworkV2 == nil && request.Broker == nil {
+		execute.LocalModel = helperConfig(environment, request.DigestTranscript)
+		environment.helperOwned = true
+	}
 	initial, err := json.Marshal(execute)
 	if err != nil {
 		return Result{}, err
 	}
 	initial = append(initial, '\n')
-	reader, writer := io.Pipe()
-	var closeOnce sync.Once
-	var closeErr error
-	closeInput := func() { closeOnce.Do(func() { closeErr = writer.Close() }) }
-	defer closeInput()
-	// The same deadline closes the stdin pump and bounds compilation, guest work, and engine teardown.
+	// Preparation waits share the execution watchdog, without sharing a Store.
 	executionContext, cancel := context.WithTimeout(ctx, request.Timeout)
 	defer cancel()
+	if request.Broker != nil {
+		if err := request.Broker.Prepare(executionContext); err != nil {
+			result.Termination, result.Message = "infrastructure", err.Error()
+			result.Cancelled = ctx.Err() != nil
+			result.WatchdogTimeout = !result.Cancelled && errors.Is(executionContext.Err(), context.DeadlineExceeded)
+			return result, nil
+		}
+		defer request.Broker.Prepared()
+	}
+	input, err := newHelperInput()
+	if err != nil {
+		return Result{}, err
+	}
+	input.start(initial)
+	closeInput := input.closeInput
+	// The same deadline closes the stdin pump and bounds compilation, guest work, and engine teardown.
 	finished := make(chan struct{})
 	watcherDone := make(chan struct{})
 	go func() {
@@ -219,22 +359,66 @@ func Run(ctx context.Context, request Request) (Result, error) {
 		case <-finished:
 		}
 	}()
-	stream := &frameSink{request: request, environment: environment, input: writer, cancel: cancel, closeInput: closeInput}
-	host, hostErr := hostexec.Run(executionContext, hostexec.Request{Command: []string{request.HelperPath}, Dir: filepath.Dir(request.HelperPath), Env: []string{}, Stdin: io.MultiReader(bytes.NewReader(initial), reader), StdoutSink: stream, StdoutDone: closeInput, Timeout: request.Timeout, TerminateGrace: 100 * time.Millisecond, OutputLimit: 64 << 10})
+	stream := &frameSink{request: request, environment: environment, input: input, cancel: cancel, closeInput: closeInput, context: executionContext}
+	host, hostErr := hostexec.Run(executionContext, hostexec.Request{Command: []string{request.HelperPath}, Dir: filepath.Dir(request.HelperPath), Env: []string{}, Stdin: input.reader, StdoutSink: stream, StdoutDone: closeInput, Timeout: request.Timeout, TerminateGrace: 100 * time.Millisecond, OutputLimit: 64 << 10, CollectResourceUsage: true})
 	close(finished)
 	<-watcherDone
-	closeInput()
-	closeErr = errors.Join(closeErr, reader.Close())
+	closeErr := input.finish()
+	result.HelperResourceUsage = host.ResourceUsage
+	result.helperStderr = host.Stderr
 	result.Stdout, result.Stderr = environment.Output()
 	result.Transcript = environment.Transcript()
 	result.NetworkTranscript = environment.NetworkTranscript()
+	var networkEvidenceErr error
+	if request.Config.NetworkV2 != nil {
+		result.NetworkTranscript, networkEvidenceErr = environment.NetworkV2Evidence()
+	}
 	result.Calls = environment.nextCall - 1
 	result.TranscriptSHA256 = environment.TranscriptSHA256()
 	result.TimeAdvances = environment.advances
+	if request.Config.Storage != nil {
+		result.StorageTranscript = environment.StorageTranscript()
+		result.StorageSnapshots = environment.StorageSnapshots()
+		result.StorageOperations = environment.StorageOperations()
+		if request.StorageCrashLimits != nil {
+			result.StorageCrashEnumeration = make(map[string]volume.CrashEnumeration)
+			for _, configured := range request.Config.Storage.Volumes {
+				enumeration, enumerateErr := environment.EnumerateStorageCrashStates(configured.ID, *request.StorageCrashLimits, nil)
+				if enumerateErr != nil {
+					result.Termination, result.Message = "invalid", enumerateErr.Error()
+					return result, nil
+				}
+				result.StorageCrashEnumeration[configured.ID] = enumeration
+			}
+		}
+		result.StorageImage, err = environment.CrashStorage(request.StorageCrashSelection)
+		if err != nil {
+			result.Termination, result.Message = "infrastructure", err.Error()
+			return result, nil
+		}
+	}
 	result.Started = stream.started
+	result.AuthorizationToTerminalNanos = stream.authorizationToTerminalNanos
 	result.Reaped = host.GroupGone
 	result.Cancelled = ctx.Err() != nil
 	result.WatchdogTimeout = !result.Cancelled && (errors.Is(executionContext.Err(), context.DeadlineExceeded) || host.WatchdogTimeout)
+	if networkEvidenceErr != nil {
+		var boundary *BoundaryError
+		result.Termination = "invalid"
+		if errors.As(networkEvidenceErr, &boundary) {
+			result.Termination = boundary.Kind
+		}
+		result.Message = networkEvidenceErr.Error()
+		return result, nil
+	}
+	if request.Broker != nil && modeledReapedCancellation(stream.err, request.Broker.Crashed() || request.Broker.Stopped(), host.GroupGone, result.Cancelled, result.WatchdogTimeout) {
+		result.Termination, result.Message = "crash", "modeled broker incarnation crash"
+		if request.Broker.Stopped() {
+			result.Termination, result.Message = "stop", "modeled broker incarnation stop"
+		}
+		result.collectInterrupted(environment.runtime)
+		return result, nil
+	}
 	if hostErr != nil || closeErr != nil || !host.GroupGone {
 		result.Termination = "infrastructure"
 		result.Message = fmt.Sprint(errors.Join(hostErr, closeErr))
@@ -243,11 +427,20 @@ func Run(ctx context.Context, request Request) (Result, error) {
 	if stream.err != nil {
 		var boundary *BoundaryError
 		var divergence *RuntimeReplayError
-		if errors.As(stream.err, &divergence) {
+		var storageCrash *StorageCrash
+		if errors.As(stream.err, &storageCrash) {
+			result.Termination = "storage_crash"
+			if !result.collectInterrupted(environment.runtime) {
+				return result, nil
+			}
+		} else if errors.As(stream.err, &divergence) {
 			result.Termination = "divergence"
 			result.ChoiceDivergence = &divergence.Divergence
 		} else if errors.As(stream.err, &boundary) {
 			result.Termination = boundary.Kind
+			if request.Broker != nil && (boundary.Kind == "crash" && request.Broker.Crashed() || boundary.Kind == "stop" && request.Broker.Stopped()) && !result.collectInterrupted(environment.runtime) {
+				return result, nil
+			}
 		} else {
 			result.Termination = "infrastructure"
 		}
@@ -271,9 +464,28 @@ func Run(ctx context.Context, request Request) (Result, error) {
 	result.FuelRemaining = terminal.FuelRemaining
 	result.PeakMemoryBytes = terminal.PeakMemoryBytes
 	result.OfferedOutputBytes = terminal.OutputBytes
+	result.Telemetry = terminal.Metrics
+	if terminal.Termination == "crash" || terminal.Termination == "stop" || terminal.Termination == "storage_crash" && !environment.helperOwned {
+		result.collectInterrupted(environment.runtime)
+		return result, nil
+	}
+	if environment.helperOwned {
+		if err := stream.collectHelper(&result); err != nil {
+			var divergence *RuntimeReplayError
+			if errors.As(err, &divergence) {
+				result.Termination = "divergence"
+				result.ChoiceDivergence = &divergence.Divergence
+			} else {
+				result.Termination = "invalid"
+			}
+			result.Message = err.Error()
+		}
+		return result, nil
+	}
 	if environment.runtime != nil && terminal.Termination == "exit" {
 		result.ChoiceTrace, result.DiagnosticTrace, err = environment.runtime.collect()
 		result.runtimeTerminal = environment.runtime.terminal
+		result.VirtualTimeElapsedNanos = environment.runtime.elapsed
 		if err != nil {
 			result.Termination = "invalid"
 			result.Message = err.Error()
@@ -282,16 +494,45 @@ func Run(ctx context.Context, request Request) (Result, error) {
 	return result, nil
 }
 
+func (result *Result) collectInterrupted(session *runtimeSession) bool {
+	if session == nil {
+		return true
+	}
+	var err error
+	result.InterruptedChoiceBytes, result.InterruptedDiagnosticBytes, err = session.interrupted()
+	if err != nil {
+		var divergence *RuntimeReplayError
+		result.Termination = "invalid"
+		if errors.As(err, &divergence) {
+			result.Termination, result.ChoiceDivergence = "divergence", &divergence.Divergence
+		}
+		result.Message = err.Error()
+		return false
+	}
+	result.RuntimeInterrupted = true
+	return true
+}
+
+func modeledReapedCancellation(err error, revoked, reaped, cancelled, watchdog bool) bool {
+	return revoked && reaped && cancelled && !watchdog && (err == nil || err == context.Canceled || err == io.ErrClosedPipe)
+}
+
 type frameSink struct {
-	request     Request
-	environment *Environment
-	input       io.Writer
-	cancel      context.CancelFunc
-	closeInput  func()
-	buffer      []byte
-	started     *Started
-	terminal    *resultFrame
-	err         error
+	request                      Request
+	environment                  *Environment
+	input                        io.Writer
+	cancel                       context.CancelFunc
+	closeInput                   func()
+	buffer                       []byte
+	started                      *Started
+	terminal                     *resultFrame
+	err                          error
+	helperEvidence               helperEvidence
+	context                      context.Context
+	storageInterrupted           bool
+	interruption                 string
+	authorizedAt                 time.Time
+	authorizationToTerminalNanos uint64
 }
 
 func (sink *frameSink) Write(data []byte) (int, error) {
@@ -324,6 +565,18 @@ func (sink *frameSink) Write(data []byte) (int, error) {
 	return written, nil
 }
 func (sink *frameSink) fail(err error) { sink.err = err; sink.closeInput(); sink.cancel() }
+func (sink *frameSink) interrupt(termination, message string) error {
+	if sink.interruption != "" || len(message) > 65536 {
+		return invalid("modeled interruption")
+	}
+	sink.interruption = termination
+	sink.storageInterrupted = termination == "storage_crash"
+	return sink.send(struct {
+		Type        string `json:"type"`
+		Termination string `json:"termination"`
+		Message     string `json:"message"`
+	}{"interrupt", termination, message})
+}
 func (sink *frameSink) send(value any) error {
 	data, err := json.Marshal(value)
 	if err != nil {
@@ -346,13 +599,11 @@ func (sink *frameSink) frame(data []byte) error {
 	if sink.terminal != nil {
 		return invalid("frame after terminal")
 	}
-	if err := validateJSON(data); err != nil {
+	frame, err := newValidatedFrame(data)
+	if err != nil {
 		return err
 	}
-	var fields map[string]json.RawMessage
-	if err := json.Unmarshal(data, &fields); err != nil {
-		return invalid("protocol object")
-	}
+	fields := frame.fields
 	var kind string
 	if err := json.Unmarshal(fields["type"], &kind); err != nil {
 		return invalid("protocol type")
@@ -363,7 +614,7 @@ func (sink *frameSink) frame(data []byte) error {
 			return invalid("duplicate started")
 		}
 		var started Started
-		if err := decodeInput(data, &started, "schema", "type", "engine", "module_sha256", "imports", "exports", "initial_memory_pages"); err != nil {
+		if err := frame.decode(&started, "schema", "type", "engine", "module_sha256", "imports", "exports", "initial_memory_pages"); err != nil {
 			return err
 		}
 		if started.Schema != "gomad3.wasm-host/v1" || started.Engine != sink.request.Engine || started.ModuleSHA256 != sink.request.ModuleSHA256 || started.InitialMemoryPages != sink.request.InitialMemoryPages || !sameImports(started.Imports, sink.request.Imports) {
@@ -382,34 +633,82 @@ func (sink *frameSink) frame(data []byte) error {
 			return invalid("guest exports")
 		}
 		sink.started = &started
-		return sink.send(struct {
+		if sink.request.Broker != nil {
+			sink.request.Broker.Prepared()
+			if err := sink.request.Broker.Activate(sink.context); err != nil {
+				return err
+			}
+		}
+		sink.authorizedAt = time.Now()
+		if err := sink.send(struct {
 			Type          string `json:"type"`
 			Module        string `json:"module_sha256"`
 			Configuration string `json:"configuration"`
-		}{"authorize", started.ModuleSHA256, started.Engine.Configuration})
+		}{"authorize", started.ModuleSHA256, started.Engine.Configuration}); err != nil {
+			return err
+		}
+		return sink.sendHelperTape()
 	case "call":
 		if sink.started == nil {
 			return invalid("callback before authorization")
 		}
-		var call Call
-		if err := decodeInput(data, &call, "type", "id", "op", "input"); err != nil {
-			return err
+		if sink.interruption != "" {
+			return invalid("callback after modeled interruption")
 		}
-		if len(call.Op) > 128 {
-			return invalid("operation name")
-		}
-		reply, err := sink.environment.Handle(call)
+		owned, state, err := frame.decodeCall(sink.environment.helperOwned)
 		if err != nil {
 			return err
 		}
-		return sink.send(reply)
+		call := owned.call
+		if len(call.Op) > 128 {
+			return invalid("operation name")
+		}
+		if state != nil {
+			return sink.helperCallback(owned, *state)
+		}
+		var reply Reply
+		if sink.request.Broker != nil {
+			reply, err = sink.request.Broker.Handle(sink.context, sink.environment, call)
+		} else {
+			reply, err = sink.environment.handleValidated(owned)
+		}
+		if err != nil {
+			var crash *StorageCrash
+			var boundary *BoundaryError
+			if errors.As(err, &crash) {
+				return sink.interrupt("storage_crash", crash.Error())
+			}
+			if errors.As(err, &boundary) && sink.request.Broker != nil && (boundary.Kind == "crash" && sink.request.Broker.Crashed() || boundary.Kind == "stop" && sink.request.Broker.Stopped()) {
+				return sink.interrupt(boundary.Kind, boundary.Error())
+			}
+			return err
+		}
+		if err := sink.send(reply); err != nil {
+			return err
+		}
+		if sink.request.Broker != nil {
+			err := sink.request.Broker.Delivered(call)
+			var boundary *BoundaryError
+			if errors.As(err, &boundary) && (boundary.Kind == "crash" && sink.request.Broker.Crashed() || boundary.Kind == "stop" && sink.request.Broker.Stopped()) {
+				return sink.interrupt(boundary.Kind, boundary.Error())
+			}
+			return err
+		}
+		return nil
+	case "evidence":
+		return sink.receiveHelperEvidence(frame)
 	case "result":
 		var result resultFrame
 		keys := []string{"type", "termination", "message", "fuel_remaining", "peak_memory_bytes", "output_bytes"}
 		if _, found := fields["exit_code"]; found {
 			keys = append(keys, "exit_code")
 		}
-		if err := decodeInput(data, &result, keys...); err != nil {
+		for _, key := range []string{"local_model", "divergence", "metrics"} {
+			if _, found := fields[key]; found {
+				keys = append(keys, key)
+			}
+		}
+		if err := frame.decode(&result, keys...); err != nil {
 			return err
 		}
 		switch result.Termination {
@@ -417,7 +716,7 @@ func (sink *frameSink) frame(data []byte) error {
 			if result.ExitCode == nil || sink.started == nil {
 				return invalid("exit terminal")
 			}
-		case "capacity", "unsupported", "invalid", "infrastructure":
+		case "capacity", "unsupported", "invalid", "infrastructure", "divergence", "storage_crash", "crash", "stop":
 			if result.ExitCode != nil {
 				return invalid("non-exit code")
 			}
@@ -428,10 +727,25 @@ func (sink *frameSink) frame(data []byte) error {
 		default:
 			return invalid("terminal classification")
 		}
+		if result.Termination == "divergence" && (!sink.environment.helperOwned || result.Divergence == nil) || result.Termination != "divergence" && result.Divergence != nil || !sink.environment.helperOwned && result.LocalModel != nil {
+			return invalid("helper model terminal classification")
+		}
+		if result.Termination == "storage_crash" && !sink.storageInterrupted {
+			return invalid("unsolicited storage crash terminal")
+		}
+		if sink.interruption != "" && (result.Termination == "exit" || result.Termination == "trap") {
+			return invalid("guest completion after modeled interruption")
+		}
+		if (result.Termination == "crash" || result.Termination == "stop") && (result.Termination != sink.interruption || sink.request.Broker == nil || result.Termination == "crash" && !sink.request.Broker.Crashed() || result.Termination == "stop" && !sink.request.Broker.Stopped()) {
+			return invalid("unsolicited broker interruption terminal")
+		}
 		if len(result.Message) > 65536 || result.FuelRemaining > sink.request.Fuel || result.PeakMemoryBytes > sink.request.MemoryBytes || result.OutputBytes > sink.request.Config.Limits.OutputBytes || result.OutputBytes != sink.environment.offeredOutput {
 			return invalid("terminal limits")
 		}
 		sink.terminal = &result
+		if !sink.authorizedAt.IsZero() {
+			sink.authorizationToTerminalNanos = uint64(time.Since(sink.authorizedAt).Nanoseconds())
+		}
 		sink.closeInput()
 		return nil
 	default:

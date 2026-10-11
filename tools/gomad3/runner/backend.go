@@ -51,9 +51,14 @@ func runBackend(ctx context.Context, provider backend.Provider, request backend.
 		return execution.Result{}, err
 	}
 	if observed.Termination != backend.Exit && !observed.Cancelled && !observed.WatchdogTimeout {
-		return execution.Result{}, &backend.FailureError{Termination: observed.Termination, Message: "execution stopped without a guest exit", ChoiceDivergence: observed.ChoiceDivergence}
+		message := observed.Message
+		if message == "" {
+			message = "execution stopped without a guest exit"
+		}
+		return execution.Result{}, &backend.FailureError{Termination: observed.Termination, Message: message, ChoiceDivergence: observed.ChoiceDivergence}
 	}
 	result := execution.Result{Captured: observed.Reaped, Termination: execution.TerminationExit, ExitCode: observed.ExitCode, GroupGone: observed.Reaped, Cancelled: observed.Cancelled, WatchdogTimeout: observed.WatchdogTimeout, BackendEvidence: append([]byte(nil), observed.Evidence...)}
+	result.VirtualTimeElapsedNanos = observed.VirtualTimeElapsedNanos
 	if request.Choice != nil && !observed.Cancelled && !observed.WatchdogTimeout {
 		if observed.ImplementationSHA256 != request.Choice.ExecutionIdentity.ImplementationSHA256 {
 			return execution.Result{}, execution.ErrChoiceTraceMalformed

@@ -14,6 +14,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/deterministicio"
 	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
 	"go.temporal.io/server/tools/gomad3/record"
+	"go.temporal.io/server/tools/gomad3/runner/backend"
 	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
 	simulationengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation"
 	simulationrecord "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulationrecord"
@@ -25,6 +26,7 @@ import (
 const maximumMinimizationAttempts = uint64(1_000_000)
 
 type MinimizeSpec struct {
+	Backend           backend.Provider `json:"-"`
 	ArtifactPath      string
 	OutputRoot        string
 	AttemptBudget     uint64
@@ -287,7 +289,7 @@ func openMinimizationSession(ctx context.Context, config MinimizeSpec, dependenc
 	if config.AttemptBudget == 0 || config.AttemptBudget > maximumMinimizationAttempts {
 		return nil, fmt.Errorf("minimization attempt budget must be between 1 and %d", maximumMinimizationAttempts)
 	}
-	opened, err := preflight(ReplaySpec{ArtifactPath: config.ArtifactPath, ToolchainRoot: config.ToolchainRoot})
+	opened, err := preflight(ReplaySpec{Backend: config.Backend, ArtifactPath: config.ArtifactPath, ToolchainRoot: config.ToolchainRoot})
 	if err != nil {
 		return nil, &ReplayPreflightError{Err: err}
 	}

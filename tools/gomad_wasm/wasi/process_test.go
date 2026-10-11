@@ -6,13 +6,276 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"syscall"
 	"testing"
 	"time"
 )
+
+func TestHelperInputLargeBootstrapStartsBeforeReader(t *testing.T) {
+	input, err := newHelperInput()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var sentDone chan struct{}
+	t.Cleanup(func() {
+		if err := input.finish(); err != nil {
+			t.Error(err)
+		}
+		if sentDone != nil {
+			<-sentDone
+		}
+	})
+	initial := bytes.Repeat([]byte("bootstrap"), 1<<18)
+	initial = append(initial, '\n')
+	started := make(chan struct{})
+	go func() { input.start(initial); close(started) }()
+	select {
+	case <-started:
+	case <-time.After(time.Second):
+		input.closeInput()
+		<-started
+		if err := input.finish(); err != nil {
+			t.Fatal(err)
+		}
+		t.Fatal("bootstrap blocked before the child could start reading")
+	}
+	reply := []byte("authorization\nreply\ninterrupt\n")
+	sent := make(chan error, 1)
+	sentDone = make(chan struct{})
+	go func() {
+		defer close(sentDone)
+		n, err := input.Write(reply)
+		if err == nil && n != len(reply) {
+			err = io.ErrShortWrite
+		}
+		sent <- err
+	}()
+	want := append(bytes.Clone(initial), reply...)
+	got := make([]byte, len(want))
+	if _, err := io.ReadFull(input.reader, got); err != nil {
+		t.Fatal(err)
+	}
+	if err := <-sent; err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(got, want) {
+		t.Fatal("reply interleaved with bootstrap bytes")
+	}
+}
+
+func TestHelperInputCloseUnblocksBootstrapAndReply(t *testing.T) {
+	for _, stage := range []string{"bootstrap", "reply"} {
+		t.Run(stage, func(t *testing.T) {
+			input, err := newHelperInput()
+			if err != nil {
+				t.Fatal(err)
+			}
+			var writtenDone chan struct{}
+			t.Cleanup(func() {
+				if err := input.finish(); err != nil {
+					t.Error(err)
+				}
+				if writtenDone != nil {
+					<-writtenDone
+				}
+			})
+			initial := []byte("execute\n")
+			if stage == "bootstrap" {
+				initial = bytes.Repeat([]byte("x"), 2<<20)
+			}
+			input.start(initial)
+			if stage == "reply" {
+				got := make([]byte, len(initial))
+				if _, err := io.ReadFull(input.reader, got); err != nil {
+					t.Fatal(err)
+				}
+			}
+			written := make(chan error, 1)
+			writtenDone = make(chan struct{})
+			go func() {
+				defer close(writtenDone)
+				_, err := input.Write(bytes.Repeat([]byte("y"), 2<<20))
+				written <- err
+			}()
+			input.closeInput()
+			select {
+			case err := <-written:
+				if err != io.ErrClosedPipe {
+					t.Fatalf("closed input changed the transport sentinel: %v", err)
+				}
+			case <-time.After(time.Second):
+				t.Fatal("closing input did not unblock writer")
+			}
+			if err := input.finish(); err != nil {
+				t.Fatal(err)
+			}
+			if err := input.finish(); err != nil {
+				t.Fatal("repeated cleanup: ", err)
+			}
+			if _, err := input.reader.Read(make([]byte, 1)); !errors.Is(err, os.ErrClosed) {
+				t.Fatalf("read descriptor not closed: %v", err)
+			}
+		})
+	}
+}
+
+func TestHelperInputBrokenPeerIsNotModeledCancellation(t *testing.T) {
+	input, err := newHelperInput()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		if err := input.finish(); !errors.Is(err, syscall.EPIPE) || !errors.Is(err, os.ErrClosed) {
+			t.Errorf("broken-peer cleanup: %v", err)
+		}
+	})
+	input.start(bytes.Repeat([]byte("x"), 2<<20))
+	if err := input.reader.Close(); err != nil {
+		t.Fatal(err)
+	}
+	// The read end was deliberately closed above; cleanup must retain that error.
+	<-input.ready
+	err = input.finish()
+	if !errors.Is(err, syscall.EPIPE) || !errors.Is(err, os.ErrClosed) || modeledReapedCancellation(err, true, true, true, false) {
+		t.Fatalf("cleanup concealed an independent bootstrap failure: %v", err)
+	}
+}
+
+type characterizedBootstrap struct {
+	*bytes.Reader
+	writeErr error
+}
+
+func (input *characterizedBootstrap) WriteTo(writer io.Writer) (int64, error) {
+	written, err := input.Reader.WriteTo(writer)
+	input.writeErr = err
+	return written, err
+}
+
+func TestTransportOldExecPumpBrokenPeerCharacterization(t *testing.T) {
+	ctx, cancel := context.WithTimeout(t.Context(), time.Second)
+	defer cancel()
+	command := exec.CommandContext(ctx, "/bin/sh", "-c", "exec 0<&-; exit 0")
+	input := &characterizedBootstrap{Reader: bytes.NewReader(bytes.Repeat([]byte("x"), 2<<20))}
+	command.Stdin = input
+	if err := command.Run(); err != nil || !errors.Is(input.writeErr, syscall.EPIPE) {
+		t.Fatalf("old os/exec pump precedence: exit=%v bootstrap=%v", err, input.writeErr)
+	}
+}
+
+type transportWriteFunc func([]byte) (int, error)
+
+func (write transportWriteFunc) Write(data []byte) (int, error) { return write(data) }
+
+func TestTransportReplyWriteErrorPrecedence(t *testing.T) {
+	failure := errors.New("writer failed")
+	for _, test := range []struct {
+		name string
+		err  error
+		want error
+	}{
+		{"short-write", nil, io.ErrShortWrite},
+		{"error-before-short-write", failure, failure},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			sink := frameSink{input: transportWriteFunc(func(data []byte) (int, error) {
+				if string(data) != "{\"type\":\"interrupt\",\"termination\":\"stop\",\"message\":\"modeled\"}\n" {
+					t.Fatalf("interrupt bytes changed: %q", data)
+				}
+				return len(data) - 1, test.err
+			})}
+			if err := sink.interrupt("stop", "modeled"); err != test.want {
+				t.Fatalf("write precedence = %v, want %v", err, test.want)
+			}
+		})
+	}
+}
+
+func TestTransportDirectInputHandlesLargeBootstrapBeforeFirstRead(t *testing.T) {
+	request := syntheticHelper(t, "read request\n")
+	request.CompileCache = "/" + strings.Repeat("x", 2<<20)
+	authorization := fmt.Sprintf(`{"type":"authorize","module_sha256":%q,"configuration":%q}`, request.ModuleSHA256, request.Engine.Configuration)
+	script := "#!/bin/sh\nprintf '%s\\n' '" + startedJSON(t, request) + "'\nread request\n" +
+		"test \"${#request}\" -gt 2097152 || exit 21\nread authorization\n" +
+		"test \"$authorization\" = '" + authorization + "' || exit 22\n" +
+		"printf '%s\\n' '{\"type\":\"result\",\"termination\":\"exit\",\"exit_code\":0,\"message\":\"\",\"fuel_remaining\":0,\"peak_memory_bytes\":65536,\"output_bytes\":0}'\n"
+	if err := os.WriteFile(request.HelperPath, []byte(script), 0700); err != nil {
+		t.Fatal(err)
+	}
+	request.HelperSHA256 = fileHash(t, request.HelperPath)
+	result, err := Run(t.Context(), request)
+	if err != nil || result.Termination != "exit" || result.ExitCode == nil || *result.ExitCode != 0 || !result.Reaped {
+		t.Fatalf("large bootstrap = %s %s reaped=%v err=%v", result.Termination, result.Message, result.Reaped, err)
+	}
+}
+
+func TestTransportDirectInputReapsBlockedBootstrapAndFailedStart(t *testing.T) {
+	for _, stage := range []string{"parent", "watchdog", "failed-start", "early-exit", "started-without-drain"} {
+		t.Run(stage, func(t *testing.T) {
+			request := syntheticHelper(t, "/bin/sleep 30\n")
+			request.CompileCache = "/" + strings.Repeat("x", 2<<20)
+			request.Timeout = time.Second
+			ctx, cancel := context.WithCancel(t.Context())
+			defer cancel()
+			switch stage {
+			case "parent":
+				timer := time.AfterFunc(50*time.Millisecond, cancel)
+				defer timer.Stop()
+			case "watchdog":
+				request.Timeout = 50 * time.Millisecond
+			case "failed-start", "early-exit", "started-without-drain":
+				script := "not an executable image\n"
+				if stage == "early-exit" {
+					script = "#!/bin/sh\nexit 0\n"
+				}
+				if stage == "started-without-drain" {
+					script = "#!/bin/sh\nprintf '%s\\n' '" + startedJSON(t, request) + "'\nexit 0\n"
+					request.Timeout = 50 * time.Millisecond
+				}
+				if err := os.WriteFile(request.HelperPath, []byte(script), 0700); err != nil {
+					t.Fatal(err)
+				}
+				request.HelperSHA256 = fileHash(t, request.HelperPath)
+			}
+			result, err := Run(ctx, request)
+			if err != nil || result.Termination != "infrastructure" || result.Message == "" || result.Reaped != (stage != "failed-start") || result.Cancelled != (stage == "parent") || result.WatchdogTimeout != (stage == "watchdog" || stage == "started-without-drain") || result.RuntimeInterrupted {
+				t.Fatalf("%s = %s %s reaped=%v cancelled=%v watchdog=%v interrupted=%v err=%v", stage, result.Termination, result.Message, result.Reaped, result.Cancelled, result.WatchdogTimeout, result.RuntimeInterrupted, err)
+			}
+		})
+	}
+}
+
+func TestModeledCancellationRequiresExactCauseAndReapedRevocation(t *testing.T) {
+	for _, test := range []struct {
+		name                                       string
+		err                                        error
+		revoked, reaped, cancelled, watchdog, want bool
+	}{
+		{"no-transport-error", nil, true, true, true, false, true},
+		{"cancel-sentinel", context.Canceled, true, true, true, false, true},
+		{"closed-pipe-sentinel", io.ErrClosedPipe, true, true, true, false, true},
+		{"ordinary-closed-pipe", io.ErrClosedPipe, false, true, true, false, false},
+		{"not-reaped", io.ErrClosedPipe, true, false, true, false, false},
+		{"unexpected-pipe-before-cancel", io.ErrClosedPipe, true, true, false, false, false},
+		{"watchdog", io.ErrClosedPipe, true, true, true, true, false},
+		{"invalid-terminal", invalid("terminal classification"), true, true, true, false, false},
+		{"arbitrary-error", errors.New("io: read/write on closed pipe"), true, true, true, false, false},
+		{"wrapped-cause", fmt.Errorf("transport: %w", io.ErrClosedPipe), true, true, true, false, false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			if got := modeledReapedCancellation(test.err, test.revoked, test.reaped, test.cancelled, test.watchdog); got != test.want {
+				t.Fatalf("modeled interruption = %v, want %v", got, test.want)
+			}
+		})
+	}
+}
 
 func helperPath(t *testing.T) string {
 	t.Helper()

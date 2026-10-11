@@ -1,17 +1,49 @@
 package artifact
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"reflect"
+	"runtime"
 	"strings"
 	"testing"
 	"unsafe"
 
 	"go.temporal.io/server/tools/gomad3/record"
 )
+
+func TestReadPayloadAvoidsGrowingBuffers(t *testing.T) {
+	data := bytes.Repeat([]byte("p"), 8<<20)
+	publication := artifactInput(t)
+	publication.Payloads = append(publication.Payloads, Payload{Path: "allocation-probe", Mode: 0o600, Data: data, SHA256: record.HashBytes(data), Size: record.Uint64String(len(data))})
+	published, err := (Store{Root: t.TempDir()}).PublishArtifact(publication)
+	if err != nil {
+		t.Fatal(err)
+	}
+	opened, err := OpenArtifact(published.Path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		if err := opened.Close(); err != nil {
+			t.Error(err)
+		}
+	}()
+	var before, after runtime.MemStats
+	runtime.ReadMemStats(&before)
+	observed, err := opened.ReadPayload("allocation-probe", 8<<20)
+	runtime.ReadMemStats(&after)
+	if err != nil || !bytes.Equal(observed, data) {
+		t.Fatalf("ReadPayload changed retained bytes: %v", err)
+	}
+	if allocated := after.TotalAlloc - before.TotalAlloc; allocated > 9<<20 {
+		t.Fatalf("reading an 8 MiB payload allocated %d bytes; limit is 9 MiB", allocated)
+	}
+	t.Logf("8 MiB payload read allocated %d bytes", after.TotalAlloc-before.TotalAlloc)
+}
 
 func TestArtifactReferenceHoldsNoOpenResource(t *testing.T) {
 	reference := reflect.TypeFor[Artifact]()

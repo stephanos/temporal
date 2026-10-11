@@ -19,6 +19,7 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
+	"go.temporal.io/server/tools/gomad3/hostexec"
 	runnerbackend "go.temporal.io/server/tools/gomad3/runner/backend"
 	"go.temporal.io/server/tools/gomad_wasm/toolchain"
 )
@@ -43,6 +44,9 @@ type prototypeRun struct {
 	VirtualNanos                      uint64
 	Calls, NetworkEvents, StdoutBytes int
 	TimeAdvances                      uint64
+	AuthorizationToTerminalNanos      uint64
+	Telemetry                         *Telemetry
+	HelperResourceUsage               *hostexec.ResourceUsage
 }
 
 type prototypeReport struct {
@@ -223,7 +227,7 @@ func prototypeRunOne(report *prototypeReport, guest, variant string, instance in
 		if err != nil {
 			return Result{}, err
 		}
-		defer mirror.Close()
+		defer func() { _ = mirror.Close() }()
 		request.StdoutMirror = mirror
 	}
 	started := time.Now()
@@ -233,6 +237,7 @@ func prototypeRunOne(report *prototypeReport, guest, variant string, instance in
 		return Result{}, fmt.Errorf("%s: %w", name, err)
 	}
 	run := prototypeRun{Guest: guest, Variant: variant, Seed: request.Runtime.Seed, Instance: instance, Mode: fmt.Sprint(request.Runtime.Choice.Mode), Termination: result.Termination, Message: result.Message, Calls: int(result.Calls), TimeAdvances: result.TimeAdvances, ExitCode: result.ExitCode, WallNanos: wall.Nanoseconds(), PeakMemoryBytes: result.PeakMemoryBytes, FuelUsed: request.Fuel - result.FuelRemaining, ChoiceRecords: len(result.ChoiceTrace.Records), ChoiceSHA256: hex.EncodeToString(result.ChoiceTrace.SHA256[:]), StdoutSHA256: digest(result.Stdout), WASISHA256: hex.EncodeToString(result.TranscriptSHA256[:]), NetworkSHA256: digest(result.NetworkTranscript), StdoutBytes: len(result.Stdout), NetworkEvents: bytes.Count(result.NetworkTranscript, []byte{'\n'})}
+	run.AuthorizationToTerminalNanos, run.Telemetry, run.HelperResourceUsage = result.AuthorizationToTerminalNanos, result.Telemetry, result.HelperResourceUsage
 	if result.Termination == "exit" {
 		run.VirtualNanos = uint64(int64FromTerminal(result.runtimeTerminal))
 	}

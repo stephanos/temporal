@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -143,6 +144,16 @@ func newClusterWithPersistenceTestBaseFactory(
 	logger log.Logger,
 	tbFactory persistenceTestBaseFactory,
 ) (*TestCluster, error) {
+	return newClusterWithPersistenceOptions(t, clusterConfig, logger, tbFactory, nil)
+}
+
+func newClusterWithPersistenceOptions(
+	t *testing.T,
+	clusterConfig *TestClusterConfig,
+	logger log.Logger,
+	tbFactory persistenceTestBaseFactory,
+	persistent *persistentClusterOptions,
+) (*TestCluster, error) {
 	const minNodes = 1
 	clusterConfig.FrontendConfig.NumFrontendHosts = max(minNodes, clusterConfig.FrontendConfig.NumFrontendHosts)
 	clusterConfig.HistoryConfig.NumHistoryHosts = max(minNodes, clusterConfig.HistoryConfig.NumHistoryHosts)
@@ -166,6 +177,10 @@ func newClusterWithPersistenceTestBaseFactory(
 		httpProtocol: {
 			primitives.FrontendService: {All: makeAddresses(clusterConfig.FrontendConfig.NumFrontendHosts)},
 		},
+	}
+	if persistent != nil {
+		hostsByProtocolByService[grpcProtocol] = persistent.grpcHosts
+		hostsByProtocolByService[httpProtocol][primitives.FrontendService] = static.Hosts{All: []string{persistent.httpHost}}
 	}
 
 	if len(clusterConfig.ClusterMetadata.ClusterInformation) > 0 {
@@ -193,6 +208,9 @@ func newClusterWithPersistenceTestBaseFactory(
 	clusterConfig.Persistence.FaultInjection = clusterConfig.FaultInjection
 
 	testBase := tbFactory.NewTestBase(&clusterConfig.Persistence)
+	if persistent != nil {
+		testBase.DefaultTestCluster = &persistentDatabase{PersistenceTestCluster: testBase.DefaultTestCluster, initialize: persistent.initialize}
+	}
 
 	testBase.Setup(clusterMetadataConfig)
 	var err error
@@ -229,6 +247,10 @@ func newClusterWithPersistenceTestBaseFactory(
 	clusterInfoMap := make(map[string]cluster.ClusterInformation)
 	for clusterName, clusterInfo := range clusterMetadataConfig.ClusterInformation {
 		clusterInfo.ShardCount = clusterConfig.HistoryConfig.NumHistoryShards
+		if persistent != nil && !persistent.initialize {
+			clusterInfoMap[clusterName] = clusterInfo
+			continue
+		}
 		clusterInfo.ClusterID = uuid.NewString()
 		clusterInfoMap[clusterName] = clusterInfo
 		_, err := testBase.ClusterMetadataManager.SaveClusterMetadata(context.Background(), &persistence.SaveClusterMetadataRequest{
@@ -250,6 +272,17 @@ func newClusterWithPersistenceTestBaseFactory(
 		}
 	}
 	clusterMetadataConfig.ClusterInformation = clusterInfoMap
+	if persistent != nil && persistent.initialize {
+		directory, err := os.Open(filepath.Dir(clusterConfig.Persistence.DBName))
+		if err != nil {
+			return nil, err
+		}
+		syncErr := directory.Sync()
+		closeErr := directory.Close()
+		if err := multierr.Combine(syncErr, closeErr); err != nil {
+			return nil, err
+		}
+	}
 
 	cfg := &config.Config{
 		Persistence:     pConfig,

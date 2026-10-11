@@ -287,7 +287,7 @@ func Owner(module, importPath string) string {
 		return ""
 	}
 	relative := strings.TrimPrefix(importPath, module+"/")
-	if relative == "cmd/gomad" || Within(relative, "cmd/gomad/internal/cli") {
+	if relative == "cmd/gomad" || relative == "cmd/gomad/api" || Within(relative, "cmd/gomad/internal/cli") {
 		return "cli"
 	}
 	if Within(relative, "cmd/gomadtool") || Within(relative, "internal/gomadtool") {

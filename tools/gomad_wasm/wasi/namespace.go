@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
+	"go.temporal.io/server/tools/gomad3/deterministicio/volume"
 )
 
 const (
@@ -48,6 +49,8 @@ type node struct {
 	data                []byte
 	children            map[string]*node
 	modified            uint64
+	storagePath         string
+	storageSize         uint64
 }
 type descriptor struct {
 	node               *node
@@ -56,12 +59,14 @@ type descriptor struct {
 	flags              uint16
 	preopen            string
 	std                uint32
+	storage            *volume.Handle
 }
 type namespace struct {
 	root                    *node
 	descriptors             map[uint32]*descriptor
 	nextFD                  uint32
 	nextInode, files, bytes uint64
+	storage                 *storageState
 }
 type fdInput struct {
 	FD uint32 `json:"fd"`
@@ -69,10 +74,6 @@ type fdInput struct {
 type fdLengthInput struct {
 	FD     uint32 `json:"fd"`
 	Length uint32 `json:"length"`
-}
-type pathInput struct {
-	FD   uint32 `json:"fd"`
-	Path []byte `json:"path_base64"`
 }
 type openInput struct {
 	FD         uint32 `json:"fd"`
@@ -196,6 +197,9 @@ func newNamespace(config Config) (*namespace, error) {
 		}
 		ns.descriptors[ns.nextFD] = &descriptor{node: n, rights: rightsAll, inheriting: rightsAll, preopen: name}
 		ns.nextFD++
+	}
+	if err := ns.initializeStorage(config, nil); err != nil {
+		return nil, err
 	}
 	return ns, nil
 }
@@ -325,13 +329,19 @@ func nodeType(n *node) uint8 {
 }
 func (e *Environment) stat(n *node) filestat {
 	timestamp := e.config.Clock.EpochNanos + n.modified
-	return filestat{1, n.ino, nodeType(n), 1, uint64(len(n.data)), timestamp, timestamp, timestamp}
+	return filestat{1, n.ino, nodeType(n), 1, nodeSize(n), timestamp, timestamp, timestamp}
 }
-func (e *Environment) namespaceCall(call Call) (any, uint16, string, error) {
+func nodeSize(n *node) uint64 {
+	if n.storagePath != "" {
+		return n.storageSize
+	}
+	return uint64(len(n.data))
+}
+func (e *Environment) namespaceCall(call Call, validated *validatedInput) (any, uint16, string, error) {
 	switch call.Op {
 	case "fd_prestat_get", "fd_fdstat_get", "fd_filestat_get", "fd_close", "fd_sync":
 		var input fdInput
-		if err := decodeInput(call.Input, &input, "fd"); err != nil {
+		if err := decodeOperationInput(call.Input, validated, &input, "fd"); err != nil {
 			return nil, 0, "", err
 		}
 		right := uint64(0)
@@ -362,12 +372,26 @@ func (e *Environment) namespaceCall(call Call) (any, uint16, string, error) {
 		case "fd_filestat_get":
 			return e.stat(d.node), 0, "", nil
 		case "fd_close":
+			if d.storage != nil {
+				if err := d.storage.Close(); err != nil {
+					return nil, storageErrno(err), "", nil
+				}
+			}
 			delete(e.namespace.descriptors, input.FD)
+		case "fd_sync":
+			if d.storage != nil {
+				_, errno, err := e.storageDecision(d.node.storagePath, "sync", 0)
+				if err != nil || errno != 0 {
+					return nil, errno, "", err
+				}
+				syncErr := d.storage.Sync()
+				return struct{}{}, storageErrno(syncErr), "", storageBoundary(syncErr)
+			}
 		}
 		return struct{}{}, 0, "", nil
 	case "fd_prestat_dir_name":
 		var input fdLengthInput
-		if err := decodeInput(call.Input, &input, "fd", "length"); err != nil {
+		if err := decodeOperationInput(call.Input, validated, &input, "fd", "length"); err != nil {
 			return nil, 0, "", err
 		}
 		d, errno := e.getFD(input.FD, 0)
@@ -386,7 +410,7 @@ func (e *Environment) namespaceCall(call Call) (any, uint16, string, error) {
 			FD    uint32 `json:"fd"`
 			Flags uint16 `json:"flags"`
 		}
-		if err := decodeInput(call.Input, &input, "fd", "flags"); err != nil {
+		if err := decodeOperationInput(call.Input, validated, &input, "fd", "flags"); err != nil {
 			return nil, 0, "", err
 		}
 		d, errno := e.getFD(input.FD, rightSetFlags)
@@ -408,7 +432,7 @@ func (e *Environment) namespaceCall(call Call) (any, uint16, string, error) {
 		if call.Op == "fd_pread" {
 			keys = append(keys, "offset")
 		}
-		if err := decodeInput(call.Input, &input, keys...); err != nil {
+		if err := decodeOperationInput(call.Input, validated, &input, keys...); err != nil {
 			return nil, 0, "", err
 		}
 		right := rightRead
@@ -430,6 +454,22 @@ func (e *Environment) namespaceCall(call Call) (any, uint16, string, error) {
 			return nil, errnoInval, "", nil
 		}
 		data := []byte{}
+		if d.storage != nil {
+			_, errno, err := e.storageDecision(d.node.storagePath, "read", uint64(input.Length))
+			if err != nil || errno != 0 {
+				return nil, errno, "", err
+			}
+			data = make([]byte, input.Length)
+			count, err := d.storage.ReadAt(data, int64(offset))
+			if errno := storageErrno(err); errno != 0 {
+				return nil, errno, "", storageBoundary(err)
+			}
+			data = data[:count]
+			if call.Op == "fd_read" {
+				d.offset += uint64(count)
+			}
+			return bytesOutput{data}, 0, "", nil
+		}
 		if offset < uint64(len(d.node.data)) {
 			end := min(uint64(len(d.node.data)), offset+uint64(input.Length))
 			data = slices.Clone(d.node.data[offset:end])
@@ -448,7 +488,7 @@ func (e *Environment) namespaceCall(call Call) (any, uint16, string, error) {
 		if call.Op == "fd_pwrite" {
 			keys = append(keys, "offset")
 		}
-		if err := decodeInput(call.Input, &input, keys...); err != nil {
+		if err := decodeOperationInput(call.Input, validated, &input, keys...); err != nil {
 			return nil, 0, "", err
 		}
 		if len(input.Data) > bufferLimit {
@@ -490,10 +530,25 @@ func (e *Environment) namespaceCall(call Call) (any, uint16, string, error) {
 			offset = input.Offset
 		}
 		if d.flags&1 != 0 {
-			offset = uint64(len(d.node.data))
+			offset = nodeSize(d.node)
 		}
 		if offset > math.MaxInt64 || uint64(len(input.Data)) > math.MaxInt64-offset {
 			return nil, errnoInval, "", nil
+		}
+		if d.storage != nil {
+			result, errno, unsupported, err := e.storageWrite(d, input.Data, offset)
+			if err == nil {
+				if refreshErr := e.refreshStorageNode(d); refreshErr != nil {
+					return nil, 0, "", refreshErr
+				}
+			}
+			if errno == 0 && err == nil {
+				written := result.(writtenOutput).Written
+				if call.Op == "fd_write" {
+					d.offset = offset + uint64(written)
+				}
+			}
+			return result, errno, unsupported, err
 		}
 		size := offset + uint64(len(input.Data))
 		if len(input.Data) == 0 {
@@ -515,7 +570,7 @@ func (e *Environment) namespaceCall(call Call) (any, uint16, string, error) {
 			FD   uint32 `json:"fd"`
 			Size uint64 `json:"size"`
 		}
-		if err := decodeInput(call.Input, &input, "fd", "size"); err != nil {
+		if err := decodeOperationInput(call.Input, validated, &input, "fd", "size"); err != nil {
 			return nil, 0, "", err
 		}
 		d, errno := e.getFD(input.FD, rightSetSize)
@@ -528,6 +583,22 @@ func (e *Environment) namespaceCall(call Call) (any, uint16, string, error) {
 		if d.node.readonly {
 			return nil, errnoRofs, "", nil
 		}
+		if d.storage != nil {
+			if input.Size > math.MaxInt64 {
+				return nil, errnoInval, "", nil
+			}
+			if err := e.storageResizeAllowed(d.node, input.Size); err != nil {
+				return nil, 0, "", err
+			}
+			_, errno, err := e.storageDecision(d.node.storagePath, "truncate", input.Size)
+			if err != nil || errno != 0 {
+				return nil, errno, "", err
+			}
+			if err := d.storage.Truncate(int64(input.Size)); err != nil {
+				return nil, storageErrno(err), "", storageBoundary(err)
+			}
+			return struct{}{}, 0, "", e.refreshStorageNode(d)
+		}
 		if err := e.resize(d.node, input.Size); err != nil {
 			return nil, 0, "", err
 		}
@@ -539,7 +610,7 @@ func (e *Environment) namespaceCall(call Call) (any, uint16, string, error) {
 			Offset int64  `json:"offset"`
 			Whence uint8  `json:"whence"`
 		}
-		if err := decodeInput(call.Input, &input, "fd", "offset", "whence"); err != nil {
+		if err := decodeOperationInput(call.Input, validated, &input, "fd", "offset", "whence"); err != nil {
 			return nil, 0, "", err
 		}
 		d, errno := e.getFD(input.FD, rightSeek)
@@ -555,7 +626,7 @@ func (e *Environment) namespaceCall(call Call) (any, uint16, string, error) {
 		case 1:
 			base = d.offset
 		case 2:
-			base = uint64(len(d.node.data))
+			base = nodeSize(d.node)
 		default:
 			return nil, errnoInval, "", nil
 		}
@@ -574,13 +645,13 @@ func (e *Environment) namespaceCall(call Call) (any, uint16, string, error) {
 		d.offset = base
 		return offsetOutput{base}, 0, "", nil
 	case "fd_readdir":
-		return e.readdir(call)
+		return e.readdir(call, validated)
 	case "path_open":
-		return e.open(call)
+		return e.open(call, validated)
 	case "path_create_directory", "path_remove_directory", "path_unlink_file", "path_filestat_get":
-		return e.pathOperation(call)
+		return e.pathOperation(call, validated)
 	case "path_rename":
-		return e.rename(call)
+		return e.rename(call, validated)
 	case "clock_time_get", "poll_oneoff":
 		return e.clockCall(call)
 	default:
@@ -600,9 +671,9 @@ func (e *Environment) resize(n *node, size uint64) error {
 	e.namespace.bytes = e.namespace.bytes - old + size
 	return nil
 }
-func (e *Environment) open(call Call) (any, uint16, string, error) {
+func (e *Environment) open(call Call, validated *validatedInput) (any, uint16, string, error) {
 	var input openInput
-	if err := decodeInput(call.Input, &input, "fd", "path_base64", "dirflags", "oflags", "rights_base", "rights_inheriting", "fdflags"); err != nil {
+	if err := decodeOperationInput(call.Input, validated, &input, "fd", "path_base64", "dirflags", "oflags", "rights_base", "rights_inheriting", "fdflags"); err != nil {
 		return nil, 0, "", err
 	}
 	d, errno := e.getFD(input.FD, rightPathOpen)
@@ -657,12 +728,24 @@ func (e *Environment) open(call Call) (any, uint16, string, error) {
 	if n == nil && ns.files == e.config.Limits.Files {
 		return nil, 0, "", capacity("files")
 	}
+	var storage *volume.Handle
+	if resource := ns.storagePath(parent, name); resource != "" {
+		_, errno, err := e.storageDecision(resource, "open", 0)
+		if err != nil || errno != 0 {
+			return nil, errno, "", err
+		}
+		storage, err = ns.storage.fs.Open(resource, volume.OpenFlags{Read: input.Base&rightRead != 0 || input.Oflags&2 != 0, Write: input.Base&rightWrite != 0, Create: input.Oflags&1 != 0, Exclusive: input.Oflags&4 != 0, Truncate: input.Oflags&8 != 0}, 0o666)
+		if err != nil {
+			return nil, storageErrno(err), "", storageBoundary(err)
+		}
+	}
 	if n == nil {
 		n = ns.newNode(false, false)
 		n.modified = e.now
 		parent.children[name] = n
+		n.storagePath = ns.storagePath(parent, name)
 	}
-	if input.Oflags&8 != 0 {
+	if input.Oflags&8 != 0 && storage == nil {
 		if err := e.resize(n, 0); err != nil {
 			return nil, 0, "", err
 		}
@@ -670,10 +753,15 @@ func (e *Environment) open(call Call) (any, uint16, string, error) {
 	}
 	fd := ns.nextFD
 	ns.nextFD++
-	ns.descriptors[fd] = &descriptor{node: n, rights: input.Base, inheriting: input.Inheriting, flags: input.Flags}
+	ns.descriptors[fd] = &descriptor{node: n, rights: input.Base, inheriting: input.Inheriting, flags: input.Flags, storage: storage}
+	if storage != nil {
+		if err := e.refreshStorageNode(ns.descriptors[fd]); err != nil {
+			return nil, 0, "", err
+		}
+	}
 	return fdOutput{fd}, 0, "", nil
 }
-func (e *Environment) pathOperation(call Call) (any, uint16, string, error) {
+func (e *Environment) pathOperation(call Call, validated *validatedInput) (any, uint16, string, error) {
 	var input struct {
 		FD    uint32 `json:"fd"`
 		Path  []byte `json:"path_base64"`
@@ -683,7 +771,7 @@ func (e *Environment) pathOperation(call Call) (any, uint16, string, error) {
 	if call.Op == "path_filestat_get" {
 		keys = append(keys, "flags")
 	}
-	if err := decodeInput(call.Input, &input, keys...); err != nil {
+	if err := decodeOperationInput(call.Input, validated, &input, keys...); err != nil {
 		return nil, 0, "", err
 	}
 	rights := map[string]uint64{"path_create_directory": rightCreateDirectory, "path_remove_directory": rightRemoveDirectory, "path_unlink_file": rightUnlink, "path_filestat_get": rightPathStat}
@@ -715,7 +803,18 @@ func (e *Environment) pathOperation(call Call) (any, uint16, string, error) {
 		if e.namespace.files == e.config.Limits.Files {
 			return nil, 0, "", capacity("files")
 		}
-		parent.children[name] = e.namespace.newNode(true, false)
+		if resource := e.namespace.storagePath(parent, name); resource != "" {
+			_, errno, err := e.storageDecision(resource, "mkdir", 0)
+			if err != nil || errno != 0 {
+				return nil, errno, "", err
+			}
+			if err := e.namespace.storage.fs.Mkdir(resource, 0o777); err != nil {
+				return nil, storageErrno(err), "", storageBoundary(err)
+			}
+		}
+		created := e.namespace.newNode(true, false)
+		created.storagePath = e.namespace.storagePath(parent, name)
+		parent.children[name] = created
 		return struct{}{}, 0, "", nil
 	}
 	if n == nil {
@@ -734,16 +833,25 @@ func (e *Environment) pathOperation(call Call) (any, uint16, string, error) {
 	} else if n.directory {
 		return nil, errnoIsdir, "", nil
 	}
+	if n.storagePath != "" {
+		_, errno, err := e.storageDecision(n.storagePath, "remove", 0)
+		if err != nil || errno != 0 {
+			return nil, errno, "", err
+		}
+		if err := e.namespace.storage.fs.Remove(n.storagePath); err != nil {
+			return nil, storageErrno(err), "", storageBoundary(err)
+		}
+	}
 	delete(parent.children, name)
 	return struct{}{}, 0, "", nil
 }
-func (e *Environment) readdir(call Call) (any, uint16, string, error) {
+func (e *Environment) readdir(call Call, validated *validatedInput) (any, uint16, string, error) {
 	var input struct {
 		FD     uint32 `json:"fd"`
 		Length uint32 `json:"length"`
 		Cookie uint64 `json:"cookie"`
 	}
-	if err := decodeInput(call.Input, &input, "fd", "length", "cookie"); err != nil {
+	if err := decodeOperationInput(call.Input, validated, &input, "fd", "length", "cookie"); err != nil {
 		return nil, 0, "", err
 	}
 	d, errno := e.getFD(input.FD, rightReaddir)
@@ -775,14 +883,14 @@ func (e *Environment) readdir(call Call) (any, uint16, string, error) {
 	}
 	return bytesOutput{data}, 0, "", nil
 }
-func (e *Environment) rename(call Call) (any, uint16, string, error) {
+func (e *Environment) rename(call Call, validated *validatedInput) (any, uint16, string, error) {
 	var input struct {
 		FD      uint32 `json:"fd"`
 		Path    []byte `json:"path_base64"`
 		NewFD   uint32 `json:"new_fd"`
 		NewPath []byte `json:"new_path_base64"`
 	}
-	if err := decodeInput(call.Input, &input, "fd", "path_base64", "new_fd", "new_path_base64"); err != nil {
+	if err := decodeOperationInput(call.Input, validated, &input, "fd", "path_base64", "new_fd", "new_path_base64"); err != nil {
 		return nil, 0, "", err
 	}
 	source, errno := e.getFD(input.FD, rightRenameSource)
@@ -831,6 +939,20 @@ func (e *Environment) rename(call Call) (any, uint16, string, error) {
 		if old.directory && len(old.children) > 0 {
 			return nil, errnoNotempty, "", nil
 		}
+	}
+	if n.storagePath != "" || newParent.storagePath != "" {
+		newResource := e.namespace.storagePath(newParent, newName)
+		if n.storagePath == "" || newResource == "" {
+			return nil, 75, "", nil
+		}
+		_, errno, err := e.storageDecision(n.storagePath, "rename", 0)
+		if err != nil || errno != 0 {
+			return nil, errno, "", err
+		}
+		if err := e.namespace.storage.fs.Rename(n.storagePath, newResource); err != nil {
+			return nil, storageErrno(err), "", storageBoundary(err)
+		}
+		relocateStorageNode(n, newResource)
 	}
 	delete(parent.children, name)
 	newParent.children[newName] = n

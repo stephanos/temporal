@@ -6,9 +6,11 @@ implementation or engine cache is linked. A helper handles one execution and exi
 
 Every frame is one UTF-8 JSON object followed by LF. Stdout carries protocol only.
 Integers are JSON integers, not floating-point strings. Byte strings use standard
-padded base64. Go owns environment, entropy, clocks, descriptors, files and models;
-Rust owns ABI decoding, bounds, memory writes and execution. Guest pointers never
-cross the protocol. Every import is an explicit callback, except `proc_exit`.
+padded base64. Go supplies the sealed environment and owns entropy, descriptors
+and files. The cooperative helper owns runtime choices, clocks and network
+decisions; Rust also owns ABI decoding, bounds, memory writes and execution.
+Guest pointers never cross the protocol. Stock imports use explicit callbacks,
+except `proc_exit`.
 No host arguments, environment, clocks, files, random source or sockets are inherited.
 
 The first input is:
@@ -17,7 +19,9 @@ The first input is:
 {"schema":"gomad3.wasm-host/v1","type":"execute","module_path":"/absolute/module.wasm","module_sha256":"64 lower-case hex digits","memory_bytes":268435456,"fuel":100000000,"output_bytes":8388608}
 ```
 
-All fields are required; extra fields are rejected. Memory is positive, at most
+The fields shown are required; optional `compile_cache` names an absolute
+host-local compiled-module cache directory. Optional `local_model` selects
+cooperative model execution. Extra fields are rejected. Memory is positive, at most
 4 GiB and a multiple of 64 KiB. Fuel is positive. Output is positive and at most
 1 GiB. Modules are bounded to 512 MiB. Input bytes are SHA-256 checked before
 compilation. Binary WASM and textual WAT are admitted; the digest binds the exact
@@ -40,6 +44,46 @@ The host validates the engine/module/import identity and then sends exactly
 `{"type":"authorize","module_sha256":"...","configuration":"cranelift-fuel-nan-canonical-v1"}`.
 Both identity fields must match `started`; unknown fields, mismatches and EOF
 terminate as `invalid` before instantiation or any guest start-section code.
+
+`local_model` contains `seed`, numeric choice `mode` (record 1, replay 2, prefix 3),
+`limit`, `diagnostics`, `tape_chunks`, `epoch_nanos`, `read_step_nanos`, `now`,
+`digest_only`, and `limits` with `calls`, `transcript_bytes`, `pending_events`.
+Optional `network` carries the seeded delay and fault schedule from the Go model.
+After authorization, Go sends exactly `tape_chunks` frames of
+`{"type":"tape","decisions":[...]}` using the canonical Go choice decision JSON
+field names. Each frame remains bounded to 8 MiB and the aggregate decision count
+must fit the choice limit. Replay with zero chunks has an empty tape.
+
+The helper handles all runtime controls, clock reads, clock-only polls and yields
+locally, maintaining the global callback ID sequence. Remote callback frames add
+`local_state` with `now`, `advances`, and the total canonical `transcript_bytes`.
+Go adopts this state before performing a remote operation. Replies add
+`local_state` with `now` and `advances`, plus `transcript_base64` containing the
+exact canonical Go call and reply JSON lines, without state metadata. The helper
+hashes these bytes alongside its local WASI lines; runtime controls remain
+excluded from the WASI transcript.
+For canonical remote transcripts exceeding 64 KiB, Go first sends
+`{"type":"remote_transcript","data_base64":"..."}` chunks of at most 64 KiB,
+then a reply with empty `transcript_base64`. The aggregate is bounded to 8 MiB
+and enters the helper transcript only after the matching reply is validated.
+While the helper waits for a remote reply, Go may instead send
+`{"type":"interrupt","termination":"storage_crash","message":"modeled storage crash: fault"}`.
+Only typed `storage_crash`, `crash` and `stop` reasons are admitted; unknown
+reasons, unknown fields and messages exceeding 64 KiB
+are invalid. The helper stops before returning the syscall to the guest, flushes
+partial evidence, and reports unfinished cooperative state. The interrupted
+operation does not count as a completed call. This modeled outcome is distinct
+from host watchdog termination.
+
+Evidence is sent without replies in bounded frames
+`{"type":"evidence","stream":"choice","data_base64":"..."}`. Streams are
+`choice` (raw 96-byte canonical records), `diagnostic` (raw 96-byte samples),
+`network` (canonical JSON lines), and `transcript` (canonical WASI JSON lines).
+Chunks contain at most 64 KiB decoded bytes and may split a record; each stream
+is concatenated in frame order. The helper retains at most one partial chunk per
+stream between imports and flushes every remaining chunk before the result.
+Digest-only execution hashes the complete WASI transcript without sending its
+bytes; choice and network capacity bounds remain active.
 
 Each callback emits `{"type":"call","id":1,"op":"fd_write","input":{...}}`.
 IDs increase by one, starting at one. The host sends exactly one corresponding
@@ -90,8 +134,8 @@ Rust validates the complete ABI input and output range before calling Go or writ
 reply data, including zero-length pointers, iovec counts and checked aggregate sizes.
 
 The `gomad_wasm_v1` namespace admits only `config`, `decision`, `observation`,
-`finish` and `idle`, each with signature `(i32 pointer, i32 length) -> i32 errno`.
-Go requires all five imports before authorizing a cooperative profile. The guest
+`finish`, `idle` and `net`, each with signature `(i32 pointer, i32 length) -> i32 errno`.
+Go requires the profile's imports before authorizing a cooperative profile. The guest
 uses bounded static buffers, including during runtime startup and nosplit paths.
 Rust validates the entire memory range and operation-specific size before copying.
 The protocol callback names are `runtime_config`, `runtime_decision`,
@@ -108,10 +152,25 @@ canonical choice/replay validation. Observation buffers contain one 96-byte choi
 record and optionally one 96-byte diagnostic sample. Oversized, truncated, unknown
 version or malformed semantic payloads fail closed. Finish marks complete tape
 consumption. Runtime control does not enter the application WASI evidence bytes.
+The `gomad_wasm_v2` namespace admits `net_stream` with the same function
+signature. It forwards `runtime_net_stream` to the Go owner using an in-place
+buffer of 64 through 65,600 bytes; the v2 network profile uses remote model
+execution.
 
 The final frame is `{"type":"result","termination":"exit","exit_code":0,"message":"","fuel_remaining":123,"peak_memory_bytes":65536,"output_bytes":2}`.
 Terminations are `exit`, `capacity`, `unsupported`, `trap`, `invalid`, and
-`infrastructure`. Exit code is present only for `exit`. Invalid input, unsupported
+`infrastructure`, plus `divergence` for cooperative forced-choice mismatch.
+`storage_crash` reports a validated modeled-storage interrupt; `crash` and `stop`
+report validated host-Broker interruptions. Graceful interrupts retain actual
+measured phases, fuel, peak guest memory and bounded partial owner evidence;
+they do not fabricate a completed trace or turn watchdog cancellation into an
+owner-observed terminal outcome.
+Cooperative results add `local_model` with the final clock, advances, global calls,
+record count, tape cursor, configured/finished state, peak goroutines, elapsed
+virtual time, raw runtime finish bytes, transcript and network byte counts, and
+the lowercase hexadecimal full-transcript SHA-256. Divergence results add
+`divergence`, preserving the Go choice `Ordinal`, `Reason`, `Expected`, `Observed`
+and `TapeRecords` fields. Exit code is present only for `exit`. Invalid input, unsupported
 imports, initial/grown memory limits, fuel, buffer, callback and output limits have
 separate explicit results. Host resource failures remain infrastructure outcomes;
 limits do not assert memory backing availability or a host peak-RSS bound.
@@ -120,10 +179,56 @@ size. It may exceed committed memory after allocation failure; it supplies no
 host RSS or backing-availability guarantee.
 The helper exits 0 when it successfully emits a result; transport-write failure exits 1.
 
+Results after module preparation include informational `metrics`, measured only
+by host clocks and resource counters. `prepare_nanos` covers module read/hash,
+engine configuration, compilation/cache and import/export validation.
+`compile_nanos` covers Wasmtime's binary/text builder and Cranelift compilation.
+`cache_load_nanos` measures cache identity, locking, bounded envelope read,
+verification and `Module::deserialize` from the verified private buffer;
+`cache_hit` distinguishes a successful load from compilation after a miss.
+`cache_write_nanos` covers serialization and cache publication on a miss.
+`instantiate_nanos` measures linker instantiation, including any Wasm start
+section; `execute_nanos` measures only the exported `_start` invocation.
+`process_user_nanos`, `process_system_nanos` and `peak_rss_bytes` come from
+`getrusage(RUSAGE_SELF)` on 64-bit x86-64/ARM64 Linux and macOS. Linux's KiB RSS
+is converted to bytes; macOS supplies bytes. `resource_usage_available` is false
+with zero resource fields when the platform or observation is unsupported.
+These measurements never enter modeled time, control decisions or canonical
+evidence and do not establish cross-host timing or memory guarantees.
+
+Compiled-code cache v2 is host-owned, guest-inaccessible storage: the configured
+directory must be owned by the helper's effective UID and mode 0700; it cannot
+itself be a symlink. Entries and per-key locks must be single-link regular files
+owned by that UID and mode 0600. A directory descriptor anchors all no-follow
+entry opens and publication renames; a per-key OS file lock serializes compilers.
+The same-UID host owner is trusted. Checksums detect corruption, not malicious
+artifacts forged by that owner, who already controls the host executable.
+
+The key is SHA-256 of exact JSON identity bytes binding guest source SHA-256,
+full helper executable SHA-256, Wasmtime version, configuration revision,
+host OS/architecture and engine precompile-compatibility hash. The helper digest
+binds its compiled Rust runtime model; the guest digest binds the embedded guest
+profile. Go callback model state/profile and execution limits are not immutable
+compilation inputs and cannot affect this artifact. Each filename ends in
+`.gomad-cache-v2`. Its single-file envelope is `GOMADC02`, u32 little-endian
+manifest length, u64 little-endian artifact length, 32-byte artifact SHA-256,
+exact JSON manifest and serialized artifact. Manifest bytes are limited to
+16 KiB and artifact bytes to 1 GiB, with checked fallible reservation before
+reading. Bad identities, corruption, unsafe file identities or stale envelopes
+terminate before `started`; they never silently compile around a poisoned entry.
+Only a missing v2 entry compiles. Legacy `.cwasm` files are ignored and preserved.
+
+Loading uses an exact verified private buffer, not a reopened path or mutable
+file-backed executable mapping. This temporarily holds the entire artifact in
+addition to Wasmtime's deserialized code, increasing peak RSS versus the old
+mapped cache (Temporal artifacts can exceed 500 MiB). The allocation bound is
+not a promise that the host can back that allocation. Stores and guest heaps
+are always newly instantiated, never cached.
+
 Result diagnostics are bounded to 64 KiB, with an explicit truncation marker.
 Every frame is at most 8 MiB including LF. Each transferred/ABI buffer is at most
 4 MiB, iovecs at most 4096, poll subscriptions at most 4096, and executions at most
-1,000,000 callbacks. Guest stdout/stderr bytes (fd 1/2 writes) consume `output_bytes`
+2^28 callbacks (the cooperative environment may impose a lower bound). Guest stdout/stderr bytes (fd 1/2 writes) consume `output_bytes`
 before callback delivery (including positional writes); overrun terminates without silently truncating output.
 Fuel counts engine work and supplies no goroutine preemption or virtual-time advance.
 A stalled callback is bounded by the Go adapter's process watchdog/cancellation.
@@ -146,3 +251,65 @@ is admitted. Updating these settings requires a new configuration revision.
 The helper transports bounded scheduling hooks; the Go runtime/profile owns their
 semantics. It does not claim server startup, native qualification or portable
 exact replay beyond the retained cooperative qualification profile.
+
+## Separate diagnostic builds
+
+The non-default Cargo feature `diagnostic-profile` compiles bounded attribution
+hooks. Normal builds contain no profiler module, clock sampling hooks, counters
+or diagnostic reporter. A diagnostic build must use a separate target directory
+and immutable helper path; never install it over a qualification helper. Source
+metadata can change a rebuilt default binary's digest even with hooks excluded;
+hash each actual artifact rather than assuming historical byte identity.
+
+A diagnostic helper writes exactly one LF-terminated stderr line prefixed
+`gomad-wasm-profile-v1 `, followed by JSON schema `gomad3.wasm-profile/v1`. The
+whole line is strictly smaller than 16 KiB. It adds no stdout protocol frame,
+terminal fields, guest fd2 data, configuration input or canonical evidence.
+Missing, duplicate, malformed or additional stderr remains an inconclusive
+diagnostic at the consuming driver; an abruptly killed process may emit none.
+The reporter samples actual `Instant` wall time and the existing platform
+`getrusage(RUSAGE_SELF)` implementation, without new dependencies or modeled-time
+feedback. Its engine attribution is `cranelift-jit`, not an interpreter.
+
+The fixed `phases` map contains `module_read`, `module_hash`, `engine_init`,
+`cache_identity`, `cache_read`, `envelope_verify`, `deserialize`, `compile`,
+`cache_write`, `instantiate` and `execute`. Each entry has `count`, `wall_nanos`,
+`user_nanos`, `system_nanos`, `cpu_samples` and `peak_rss_bytes_high_water`.
+CPU values are paired before/after process CPU deltas, not whole-process totals
+relabelled as a phase. Missing or regressing CPU samples do not count as observed
+CPU; RSS is the cumulative process high-water mark at the phase boundary, not
+memory allocated solely by that phase. Cache read includes validation and buffer
+allocation/read; envelope verification includes exact identity/length checks and
+artifact checksum; deserialization starts only after those checks succeed.
+Cache identity includes hashing the actual helper executable. Lock/setup costs
+outside those phase scopes are not silently attributed to deserialization.
+
+The disjoint full-import `abi` buckets are `clock`, `scheduler`, `select`,
+`observation`, `idle`, `other_local` and `remote_callback`; failed attempts are
+included. A remote-routed import is charged to the remote bucket for its whole
+ABI span. Entries contain `count`, `wall_nanos`, `instantiate_wall_nanos` and
+`execute_wall_nanos`; nested ABI attempts are rejected from double accounting
+and counted in `abi_overlap_errors`. Runtime decision kind 1 denotes scheduler,
+kind 2 ready-select; `poll_oneoff` also uses select. The `residual` map subtracts
+only disjoint ABI wall spans from the corresponding instantiate/execute wall
+phase. That residual includes unmeasured Wasmtime/trampoline work and profiling
+overhead. It is not guest CPU, nor does subtraction identify a cause.
+
+The separately nested `alternative_hash`, `encoding`, `transcript_hash`, `flush`,
+`remote_write` and `remote_read_wait` entries contain only `count` and
+`wall_nanos`. They overlap ABI and phase scopes and must never be summed as
+independent work. Encoding covers sampled codec, bounded copy and ABI memory
+projection spans, not every instruction that handles bytes. Remote write covers
+only frame write/flush after JSON serialization; read wait covers bounded frame
+reading before JSON decoding and may include several transcript chunks per
+callback. Flush includes evidence encoding/writing. Fixed counters saturate;
+there are no per-import diagnostic logs or unbounded operation labels.
+
+The ignored `diagnostic_calibration_preserves_model_bytes_without_timing_feedback`
+test compares three paired direct-model loops with an active profiler against the
+same diagnostic build with no active session. Inactive cfg hooks still check for
+a session, so this is not a feature-off binary timing control. It asserts exact
+concatenated evidence and metadata while retaining actual loop wall/CPU samples.
+It excludes Wasmtime guest execution, import trampolines, IPC, final flush and
+byte comparison. Calibration and any actual workload diagnostic require an
+exclusive owner-approved measurement window and are never qualification gates.

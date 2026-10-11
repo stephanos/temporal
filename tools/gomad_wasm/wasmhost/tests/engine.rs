@@ -55,6 +55,281 @@ fn termination(frames: &[Value]) -> &str {
     frames.last().unwrap()["termination"].as_str().unwrap()
 }
 
+#[cfg(feature = "diagnostic-profile")]
+fn diagnostic_run(wat: &str, malformed_reply: bool) -> (Vec<Value>, Value) {
+    use std::io::Read;
+    let path = std::env::temp_dir().join(format!("gomad-profile-{}.wat", std::process::id()));
+    std::fs::write(&path, wat).unwrap();
+    let hash = format!("{:x}", Sha256::digest(wat.as_bytes()));
+    let config = json!({"seed":7,"mode":1,"limit":4096,"diagnostics":false,"epoch_nanos":1000,"read_step_nanos":3,"now":1,"limits":{"calls":100,"transcript_bytes":65536,"pending_events":16}});
+    let mut child = Command::new(env!("CARGO_BIN_EXE_gomad3-wasmhost"))
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .unwrap();
+    let mut input = child.stdin.take().unwrap();
+    writeln!(input, "{}", json!({"schema":"gomad3.wasm-host/v1","type":"execute","module_path":path,
+        "module_sha256":hash,"memory_bytes":131072,"fuel":1000000,"output_bytes":1024,"local_model":config})).unwrap();
+    let mut frames = Vec::new();
+    for line in BufReader::new(child.stdout.take().unwrap()).lines() {
+        let frame: Value = serde_json::from_str(&line.unwrap()).unwrap();
+        if frame["type"] == "started" {
+            writeln!(input, "{}", json!({"type":"authorize","module_sha256":hash,"configuration":"cranelift-fuel-nan-canonical-v1"})).unwrap();
+        }
+        if frame["type"] == "call" {
+            let transcript = b"{\"type\":\"call\",\"id\":2,\"op\":\"fd_sync\",\"input\":{\"fd\":3}}\n{\"type\":\"reply\",\"id\":2,\"errno\":0,\"output\":{}}\n";
+            writeln!(input, "{}", json!({"type":"reply","id":frame["id"],"errno":0,
+                "output":if malformed_reply {json!([])} else {json!({})},
+                "local_state":{"now":4,"advances":0},"transcript_base64":STANDARD.encode(transcript)})).unwrap();
+        }
+        frames.push(frame);
+    }
+    let mut stderr = Vec::new();
+    child
+        .stderr
+        .take()
+        .unwrap()
+        .read_to_end(&mut stderr)
+        .unwrap();
+    assert!(child.wait().unwrap().success());
+    std::fs::remove_file(path).unwrap();
+    assert!(
+        stderr.len() < 16 * 1024,
+        "{}",
+        String::from_utf8_lossy(&stderr)
+    );
+    assert_eq!(stderr.iter().filter(|&&byte| byte == b'\n').count(), 1);
+    assert!(stderr.starts_with(b"gomad-wasm-profile-v1 "));
+    let profile = serde_json::from_slice(&stderr[b"gomad-wasm-profile-v1 ".len()..]).unwrap();
+    (frames, profile)
+}
+
+#[cfg(feature = "diagnostic-profile")]
+#[test]
+fn diagnostic_hooks_measure_real_boundaries_without_changing_evidence_or_failures() {
+    let guest = "(module (import \"wasi_snapshot_preview1\" \"clock_time_get\" (func $clock (param i32 i64 i32) (result i32))) (import \"wasi_snapshot_preview1\" \"fd_sync\" (func $sync (param i32) (result i32))) (memory (export \"memory\") 1) (func (export \"_start\") i32.const 0 i64.const 0 i32.const 8 call $clock drop i32.const 3 call $sync drop))";
+    let clock = b"{\"type\":\"call\",\"id\":1,\"op\":\"clock_time_get\",\"input\":{\"clock_id\":0,\"precision\":0}}\n{\"type\":\"reply\",\"id\":1,\"errno\":0,\"output\":{\"timestamp\":1001}}\n";
+    for (wat, bad_reply, want, remote_count) in [
+        (guest.to_owned(), false, "exit", 1),
+        (guest.to_owned(), true, "invalid", 1),
+        (
+            guest.replace("i32.const 8", "i32.const 65535"),
+            false,
+            "trap",
+            0,
+        ),
+    ] {
+        let (frames, profile) = diagnostic_run(&wat, bad_reply);
+        assert_eq!(termination(&frames), want, "{frames:?}");
+        assert_eq!(profile["schema"], "gomad3.wasm-profile/v1");
+        assert_eq!(profile["abi_overlap_errors"], 0);
+        for phase in [
+            "module_read",
+            "module_hash",
+            "engine_init",
+            "compile",
+            "instantiate",
+            "execute",
+        ] {
+            assert_eq!(profile["phases"][phase]["count"], 1, "missing {phase}");
+            assert!(profile["phases"][phase]["wall_nanos"].as_u64().unwrap() > 0);
+        }
+        assert_eq!(profile["abi"]["clock"]["count"], 1);
+        assert_eq!(profile["abi"]["remote_callback"]["count"], remote_count);
+        assert_eq!(profile["nested"]["remote_write"]["count"], remote_count);
+        assert_eq!(profile["nested"]["remote_read_wait"]["count"], remote_count);
+        let mut transcript = Vec::new();
+        for frame in frames.iter().filter(|frame| frame["type"] == "evidence") {
+            assert_eq!(frame["stream"], "transcript");
+            transcript.extend(
+                STANDARD
+                    .decode(frame["data_base64"].as_str().unwrap())
+                    .unwrap(),
+            );
+        }
+        let mut expected: Vec<u8> = Vec::new();
+        if want != "trap" {
+            expected.extend(clock);
+        }
+        if want == "exit" {
+            expected.extend(b"{\"type\":\"call\",\"id\":2,\"op\":\"fd_sync\",\"input\":{\"fd\":3}}\n{\"type\":\"reply\",\"id\":2,\"errno\":0,\"output\":{}}\n");
+        }
+        assert_eq!(transcript, expected);
+        assert_eq!(
+            frames.last().unwrap()["local_model"]["now"],
+            if want == "trap" { 1 } else { 4 }
+        );
+    }
+}
+
+#[test]
+fn local_clock_abi_preserves_literal_transcript_and_pointer_validation_priority() {
+    let config = json!({"local_model":{"seed":7,"mode":1,"limit":4096,"diagnostics":false,"epoch_nanos":1000,"read_step_nanos":3,"now":1,"limits":{"calls":100,"transcript_bytes":65536,"pending_events":16}}});
+    let guest = "(module (import \"wasi_snapshot_preview1\" \"clock_time_get\" (func $clock (param i32 i64 i32) (result i32))) (memory (export \"memory\") 1) (func (export \"_start\") i32.const 0 i64.const 0 i32.const 8 call $clock drop i32.const 8 i64.load i64.const 1001 i64.ne if unreachable end i32.const 1 i64.const -1 i32.const 16 call $clock drop i32.const 16 i64.load i64.const 4 i64.ne if unreachable end))";
+    let frames = run(guest, config.clone(), deny);
+    assert_eq!(termination(&frames), "exit", "{frames:?}");
+    let expected = b"{\"type\":\"call\",\"id\":1,\"op\":\"clock_time_get\",\"input\":{\"clock_id\":0,\"precision\":0}}\n{\"type\":\"reply\",\"id\":1,\"errno\":0,\"output\":{\"timestamp\":1001}}\n{\"type\":\"call\",\"id\":2,\"op\":\"clock_time_get\",\"input\":{\"clock_id\":1,\"precision\":18446744073709551615}}\n{\"type\":\"reply\",\"id\":2,\"errno\":0,\"output\":{\"timestamp\":4}}\n";
+    let mut transcript = Vec::new();
+    for frame in frames
+        .iter()
+        .filter(|frame| frame["type"] == "evidence" && frame["stream"] == "transcript")
+    {
+        transcript.extend(
+            STANDARD
+                .decode(frame["data_base64"].as_str().unwrap())
+                .unwrap(),
+        );
+    }
+    assert_eq!(transcript, expected);
+    let result = frames.last().unwrap();
+    assert_eq!(result["local_model"]["calls"], 2);
+    assert_eq!(result["local_model"]["now"], 7);
+    assert_eq!(
+        result["local_model"]["transcript_sha256"],
+        format!("{:x}", Sha256::digest(expected))
+    );
+    for (pointer, want, calls) in [(8, "unsupported", 1), (65535, "trap", 0)] {
+        let guest = format!(
+            "(module (import \"wasi_snapshot_preview1\" \"clock_time_get\" (func $clock (param i32 i64 i32) (result i32))) (memory (export \"memory\") 1) (func (export \"_start\") i32.const 2 i64.const 0 i32.const {pointer} call $clock drop unreachable))"
+        );
+        let frames = run(&guest, config.clone(), deny);
+        assert_eq!(termination(&frames), want, "{frames:?}");
+        let result = frames.last().unwrap();
+        assert_eq!(result["local_model"]["calls"], calls);
+        assert_eq!(result["local_model"]["now"], 1);
+        if calls == 0 {
+            assert_eq!(result["local_model"]["transcript_bytes"], 0);
+        }
+    }
+}
+
+#[test]
+fn forwards_bounded_v2_stream_import_to_remote_model() {
+    let guest = "(module (import \"gomad_wasm_v2\" \"net_stream\" (func $net (param i32 i32) (result i32))) (memory (export \"memory\") 1) (func (export \"_start\") i32.const 0 i32.const 64 call $net drop))";
+    for local in [false, true] {
+        let config = if local {
+            json!({"local_model":{"seed":7,"mode":1,"limit":4096,"diagnostics":false,
+        "epoch_nanos":1000,"read_step_nanos":0,"now":1,"limits":{"calls":100,"transcript_bytes":65536,"pending_events":16}}})
+        } else {
+            json!({})
+        };
+        let frames = run(guest, config, |call| {
+            assert_eq!(call["op"], "runtime_net_stream");
+            assert_eq!(
+                STANDARD
+                    .decode(call["input"]["data_base64"].as_str().unwrap())
+                    .unwrap()
+                    .len(),
+                64
+            );
+            let mut reply =
+                json!({"type":"reply","id":call["id"],"errno":0,"output":call["input"]});
+            if local {
+                reply["local_state"] = json!({"now":1,"advances":0});
+                reply["transcript_base64"] = json!("");
+            }
+            reply
+        });
+        assert_eq!(termination(&frames), "exit", "{frames:?}");
+        if local {
+            assert_eq!(frames.last().unwrap()["local_model"]["calls"], 1);
+            assert_eq!(frames.last().unwrap()["local_model"]["transcript_bytes"], 0);
+            assert!(!frames.iter().any(|frame| frame["type"] == "evidence"));
+        }
+    }
+}
+
+#[test]
+fn typed_interrupt_stops_before_syscall_resume_and_flushes_actual_state() {
+    let mut decision = [0u8; 192];
+    decision[..4].copy_from_slice(&1u32.to_be_bytes());
+    decision[4..8].copy_from_slice(&1u32.to_be_bytes());
+    decision[20..24].copy_from_slice(&2u32.to_be_bytes());
+    decision[32..64].fill(1);
+    decision[64..96].fill(2);
+    let literal: String = decision
+        .iter()
+        .map(|byte| format!("\\{byte:02x}"))
+        .collect();
+    for reason in ["storage_crash", "crash", "stop"] {
+        for local in [false, true] {
+            let guest = if local {
+                format!(
+                    "(module (import \"gomad_wasm_v1\" \"config\" (func $config (param i32 i32) (result i32))) (import \"gomad_wasm_v1\" \"decision\" (func $decision (param i32 i32) (result i32))) (import \"wasi_snapshot_preview1\" \"clock_time_get\" (func $clock (param i32 i64 i32) (result i32))) (import \"wasi_snapshot_preview1\" \"fd_sync\" (func $sync (param i32) (result i32))) (memory (export \"memory\") 1) (data (i32.const 32) \"{literal}\") (func (export \"_start\") i32.const 0 i32.const 16 call $config drop i32.const 32 i32.const 192 call $decision drop i32.const 1 i64.const 0 i32.const 256 call $clock drop i32.const 3 call $sync drop unreachable))"
+                )
+            } else {
+                "(module (import \"wasi_snapshot_preview1\" \"fd_sync\" (func $sync (param i32) (result i32))) (memory (export \"memory\") 1) (func (export \"_start\") i32.const 3 call $sync drop unreachable))".into()
+            };
+            let config = if local {
+                json!({"local_model":{"seed":7,"mode":1,"limit":4096,"diagnostics":true,
+            "epoch_nanos":1000,"read_step_nanos":0,"now":1,"limits":{"calls":100,"transcript_bytes":65536,"pending_events":16}}})
+            } else {
+                json!({})
+            };
+            let frames = run(&guest, config, |call| {
+                assert_eq!(call["op"], "fd_sync");
+                json!({"type":"interrupt","termination":reason,"message":"modeled interruption: fault"})
+            });
+            assert_eq!(termination(&frames), reason, "{frames:?}");
+            let result = frames.last().unwrap();
+            assert_eq!(result["message"], "modeled interruption: fault");
+            assert_eq!(result["peak_memory_bytes"], 65536);
+            let fuel = result["fuel_remaining"].as_u64().unwrap();
+            assert!(fuel > 0 && fuel < 1000000);
+            assert!(result["metrics"]["instantiate_nanos"].as_u64().unwrap() > 0);
+            assert!(result["metrics"]["execute_nanos"].as_u64().unwrap() > 0);
+            if local {
+                assert_eq!(result["local_model"]["calls"], 3);
+                assert_eq!(result["local_model"]["records"], 1);
+                assert_eq!(result["local_model"]["finished"], false);
+                let choice = frames
+                    .iter()
+                    .find(|frame| frame["type"] == "evidence" && frame["stream"] == "choice")
+                    .unwrap();
+                assert_eq!(
+                    STANDARD
+                        .decode(choice["data_base64"].as_str().unwrap())
+                        .unwrap()
+                        .len(),
+                    96
+                );
+                assert!(
+                frames
+                    .iter()
+                    .any(|frame| frame["type"] == "evidence" && frame["stream"] == "transcript")
+            );
+                let diagnostic = frames
+                    .iter()
+                    .find(|frame| frame["type"] == "evidence" && frame["stream"] == "diagnostic")
+                    .unwrap();
+                assert_eq!(
+                    STANDARD
+                        .decode(diagnostic["data_base64"].as_str().unwrap())
+                        .unwrap()
+                        .len(),
+                    96
+                );
+            }
+        }
+    }
+}
+
+#[test]
+fn typed_interrupt_rejects_unknown_termination_fields_and_oversized_message() {
+    let guest = "(module (import \"wasi_snapshot_preview1\" \"fd_sync\" (func $sync (param i32) (result i32))) (memory (export \"memory\") 1) (func (export \"_start\") i32.const 3 call $sync drop))";
+    for frame in [
+        json!({"type":"interrupt","termination":"watchdog","message":"fault"}),
+        json!({"type":"interrupt","termination":"CRASH","message":"fault"}),
+        json!({"type":"interrupt","termination":null,"message":"fault"}),
+        json!({"type":"interrupt","termination":"storage_crash","message":"fault","extra":true}),
+        json!({"type":"interrupt","termination":"storage_crash","message":"x".repeat(65537)}),
+    ] {
+        let frames = run(guest, json!({}), |_| frame.clone());
+        assert_eq!(termination(&frames), "invalid");
+    }
+}
+
 #[test]
 fn executes_tiny_guest_in_fresh_instances() {
     let guest = "(module (memory (export \"memory\") 1) (global $g (mut i32) (i32.const 0)) (func (export \"_start\") global.get $g if unreachable end i32.const 1 global.set $g))";
@@ -63,6 +338,240 @@ fn executes_tiny_guest_in_fresh_instances() {
         assert_eq!(termination(&frames), "exit", "{frames:?}");
         assert_eq!(frames[0]["engine"]["version"], "47.0.3");
     }
+}
+
+#[test]
+fn reports_compile_cache_execution_and_resource_metrics_separately() {
+    static NEXT: AtomicU64 = AtomicU64::new(0);
+    let cache = std::env::temp_dir().join(format!(
+        "gomad3-wasmhost-metrics-{}-{}",
+        std::process::id(),
+        NEXT.fetch_add(1, Ordering::Relaxed)
+    ));
+    std::fs::create_dir(&cache).unwrap();
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        std::fs::set_permissions(&cache, std::fs::Permissions::from_mode(0o700)).unwrap();
+    }
+    let guest = "(module (memory (export \"memory\") 1) (func (export \"_start\")))";
+    for warm in [false, true] {
+        let frames = run(guest, json!({"compile_cache":cache}), deny);
+        assert_eq!(termination(&frames), "exit", "{frames:?}");
+        let metrics = &frames.last().unwrap()["metrics"];
+        assert_eq!(metrics["cache_hit"], warm);
+        let number = |name: &str| metrics[name].as_u64().unwrap();
+        assert!(
+            number("prepare_nanos")
+                >= number("compile_nanos")
+                    + number("cache_load_nanos")
+                    + number("cache_write_nanos")
+        );
+        assert!(number("cache_load_nanos") > 0);
+        assert!(number("instantiate_nanos") > 0);
+        assert!(number("execute_nanos") > 0);
+        if warm {
+            assert_eq!(number("compile_nanos"), 0);
+            assert_eq!(number("cache_write_nanos"), 0);
+        } else {
+            assert!(number("compile_nanos") > 0);
+            assert!(number("cache_write_nanos") > 0);
+        }
+        if cfg!(all(
+            target_pointer_width = "64",
+            any(target_arch = "aarch64", target_arch = "x86_64"),
+            any(target_os = "linux", target_os = "macos")
+        )) {
+            assert_eq!(metrics["resource_usage_available"], true);
+            assert!(number("peak_rss_bytes") > 0);
+        }
+    }
+    std::fs::remove_dir_all(cache).unwrap();
+}
+#[cfg(unix)]
+#[test]
+fn cache_rejects_poison_stale_links_and_permissive_storage() {
+    use std::os::unix::fs::{PermissionsExt, symlink};
+    static NEXT: AtomicU64 = AtomicU64::new(0);
+    let guest = "(module (memory (export \"memory\") 1) (func (export \"_start\")))";
+    for case in [
+        "corrupt",
+        "stale",
+        "symlink",
+        "permissive",
+        "hardlink",
+        "directory_mode",
+        "directory_link",
+        "oversized",
+    ] {
+        let cache = std::env::temp_dir().join(format!(
+            "gomad-cache-security-{}-{}",
+            std::process::id(),
+            NEXT.fetch_add(1, Ordering::Relaxed)
+        ));
+        std::fs::create_dir(&cache).unwrap();
+        std::fs::set_permissions(&cache, std::fs::Permissions::from_mode(0o700)).unwrap();
+        let initial = run(guest, json!({"compile_cache":cache}), deny);
+        assert_eq!(termination(&initial), "exit", "{initial:?}");
+        let entry = std::fs::read_dir(&cache)
+            .unwrap()
+            .map(|entry| entry.unwrap().path())
+            .find(|path| {
+                path.extension()
+                    .is_some_and(|extension| extension == "cwasm" || extension == "gomad-cache-v2")
+            })
+            .unwrap();
+        let other = cache.with_extension("other");
+        let mut requested = cache.clone();
+        match case {
+            "corrupt" | "stale" => {
+                let mut bytes = std::fs::read(&entry).unwrap();
+                let offset = if case == "stale" { 60 } else { bytes.len() - 1 };
+                bytes[offset] ^= 1;
+                std::fs::write(&entry, bytes).unwrap();
+            }
+            "symlink" => {
+                std::fs::rename(&entry, &other).unwrap();
+                symlink(&other, &entry).unwrap();
+            }
+            "permissive" => {
+                std::fs::set_permissions(&entry, std::fs::Permissions::from_mode(0o666)).unwrap()
+            }
+            "hardlink" => std::fs::hard_link(&entry, &other).unwrap(),
+            "directory_mode" => {
+                std::fs::set_permissions(&cache, std::fs::Permissions::from_mode(0o777)).unwrap()
+            }
+            "directory_link" => {
+                symlink(&cache, &other).unwrap();
+                requested = other.clone();
+            }
+            "oversized" => std::fs::OpenOptions::new()
+                .write(true)
+                .open(&entry)
+                .unwrap()
+                .set_len(1024 * 1024 * 1024 + 1024 * 1024)
+                .unwrap(),
+            _ => unreachable!(),
+        }
+        let frames = run(guest, json!({"compile_cache":requested}), deny);
+        assert_eq!(
+            termination(&frames),
+            if case == "oversized" {
+                "capacity"
+            } else {
+                "invalid"
+            },
+            "case {case}: {frames:?}"
+        );
+        assert!(!frames.iter().any(|frame| frame["type"] == "started"));
+        std::fs::remove_dir_all(cache).unwrap();
+        if other.exists() || std::fs::symlink_metadata(&other).is_ok() {
+            std::fs::remove_file(other).unwrap();
+        }
+    }
+}
+#[cfg(unix)]
+#[test]
+fn cache_serializes_parallel_publication_without_preserving_guest_heap() {
+    use std::os::unix::fs::PermissionsExt;
+    let cache = std::env::temp_dir().join(format!("gomad-cache-parallel-{}", std::process::id()));
+    std::fs::create_dir(&cache).unwrap();
+    std::fs::set_permissions(&cache, std::fs::Permissions::from_mode(0o700)).unwrap();
+    let guest = "(module (memory (export \"memory\") 1) (data (i32.const 0) \"\\07\") (func (export \"_start\") i32.const 0 i32.load8_u i32.const 7 i32.ne if unreachable end i32.const 0 i32.const 18 i32.store8))";
+    let old = cache.join(format!(
+        "{:x}-wasmtime-47.0.3-cranelift-fuel-nan-canonical-v1.cwasm",
+        Sha256::digest(guest.as_bytes())
+    ));
+    std::fs::write(&old, b"legacy poison never deserialized").unwrap();
+    let threads: Vec<_> = (0..8)
+        .map(|_| {
+            let cache = cache.clone();
+            std::thread::spawn(move || run(guest, json!({"compile_cache":cache}), deny))
+        })
+        .collect();
+    let frames: Vec<_> = threads
+        .into_iter()
+        .map(|thread| thread.join().unwrap())
+        .collect();
+    for frames in &frames {
+        assert_eq!(termination(frames), "exit", "{frames:?}");
+    }
+    assert_eq!(
+        frames
+            .iter()
+            .filter(|frames| frames.last().unwrap()["metrics"]["cache_hit"] == false)
+            .count(),
+        1
+    );
+    assert_eq!(
+        std::fs::read(&old).unwrap(),
+        b"legacy poison never deserialized"
+    );
+    let entries: Vec<_> = std::fs::read_dir(&cache)
+        .unwrap()
+        .map(|entry| entry.unwrap().path())
+        .filter(|path| {
+            path.extension()
+                .is_some_and(|extension| extension == "gomad-cache-v2")
+        })
+        .collect();
+    assert_eq!(entries.len(), 1);
+    let different = run(
+        "(module (memory (export \"memory\") 1) (func (export \"_start\") nop))",
+        json!({"compile_cache":cache}),
+        deny,
+    );
+    assert_eq!(termination(&different), "exit");
+    assert_eq!(different.last().unwrap()["metrics"]["cache_hit"], false);
+    std::fs::remove_dir_all(cache).unwrap();
+}
+#[cfg(target_os = "linux")]
+#[test]
+fn cache_identity_uses_running_inode_after_atomic_helper_replacement() {
+    use std::os::unix::fs::PermissionsExt;
+    let cache = std::env::temp_dir().join(format!("gomad-cache-exe-race-{}", std::process::id()));
+    std::fs::create_dir(&cache).unwrap();
+    std::fs::set_permissions(&cache, std::fs::Permissions::from_mode(0o700)).unwrap();
+    let executable = cache.join("helper");
+    std::fs::copy(env!("CARGO_BIN_EXE_gomad3-wasmhost"), &executable).unwrap();
+    let original = format!("{:x}", Sha256::digest(std::fs::read(&executable).unwrap()));
+    let mut child = Command::new(&executable)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::inherit())
+        .spawn()
+        .unwrap();
+    let replacement = cache.join("replacement");
+    std::fs::write(&replacement, b"not the running helper").unwrap();
+    std::fs::rename(&replacement, &executable).unwrap();
+    let guest = "(module (memory (export \"memory\") 1) (func (export \"_start\")))";
+    let source = cache.join("guest.wat");
+    std::fs::write(&source, guest).unwrap();
+    let mut input = child.stdin.take().unwrap();
+    writeln!(input, "{}", json!({"schema":"gomad3.wasm-host/v1","type":"execute","module_path":source,"module_sha256":format!("{:x}", Sha256::digest(guest.as_bytes())),"memory_bytes":65536,"fuel":10000,"output_bytes":1024,"compile_cache":cache})).unwrap();
+    let mut frames = Vec::new();
+    for line in BufReader::new(child.stdout.take().unwrap()).lines() {
+        let frame: Value = serde_json::from_str(&line.unwrap()).unwrap();
+        if frame["type"] == "started" {
+            writeln!(input, "{}", json!({"type":"authorize","module_sha256":frame["module_sha256"],"configuration":frame["engine"]["configuration"]})).unwrap();
+        }
+        frames.push(frame);
+    }
+    assert!(child.wait().unwrap().success());
+    assert_eq!(termination(&frames), "exit", "{frames:?}");
+    let entry = std::fs::read_dir(&cache)
+        .unwrap()
+        .map(|entry| entry.unwrap().path())
+        .find(|path| {
+            path.extension()
+                .is_some_and(|extension| extension == "gomad-cache-v2")
+        })
+        .unwrap();
+    let envelope = std::fs::read(entry).unwrap();
+    let manifest_len = u32::from_le_bytes(envelope[8..12].try_into().unwrap()) as usize;
+    let manifest: Value = serde_json::from_slice(&envelope[52..52 + manifest_len]).unwrap();
+    assert_eq!(manifest["helper_sha256"], original);
+    std::fs::remove_dir_all(cache).unwrap();
 }
 #[test]
 fn bounds_infinite_loop_with_fuel() {

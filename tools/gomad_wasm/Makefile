@@ -1,4 +1,4 @@
-.PHONY: helper test test-helper test-go test-model qualify-runtime prototype lint-code
+.PHONY: helper test test-helper test-go test-model qualify-runtime qualify-workloads prototype lint-code
 
 GOMAD_WASM_STOCK_GO ?=
 
@@ -10,8 +10,11 @@ helper:
 	@if test -n "$$CARGO_TARGET_DIR"; then \
 		mkdir -p wasmhost/target/release && \
 		if ! cmp -s "$$CARGO_TARGET_DIR/release/gomad3-wasmhost" wasmhost/target/release/gomad3-wasmhost; then \
-			cp "$$CARGO_TARGET_DIR/release/gomad3-wasmhost" wasmhost/target/release/gomad3-wasmhost && \
-			cmp "$$CARGO_TARGET_DIR/release/gomad3-wasmhost" wasmhost/target/release/gomad3-wasmhost; \
+			helper_tmp="$$(mktemp wasmhost/target/release/gomad3-wasmhost.XXXXXX)" && \
+			cp "$$CARGO_TARGET_DIR/release/gomad3-wasmhost" "$$helper_tmp" && \
+			chmod 755 "$$helper_tmp" && \
+			cmp "$$CARGO_TARGET_DIR/release/gomad3-wasmhost" "$$helper_tmp" && \
+			mv -f "$$helper_tmp" wasmhost/target/release/gomad3-wasmhost; \
 		fi; \
 	fi
 
@@ -52,6 +55,32 @@ qualify-runtime: helper
 		GOMAD3_STOCK_GO='$(GOMAD_WASM_STOCK_GO)' \
 		'$(GOMAD_WASM_STOCK_GO)' test -v -tags test_dep -count=1 \
 		-run '^TestCooperativeRuntimeQualificationAggregate$$' ./wasi
+
+# Mandatory Phase 9 workload gate: each measured cell runs in a fresh process.
+# Missing durable/Temporal cells fail before starting expensive preparation;
+# the final aggregate rejects partial, provisional or budget-unmeasured reports.
+qualify-workloads: helper
+	@test -n "$(GOMAD_WASM_STOCK_GO)" && test -n "$$GOMAD_WASM_QUALIFICATION_ROOT" && \
+		test -n "$$GOMAD_WASM_INTEGRATED_SOURCE_MANIFEST" && test -n "$$GOMAD_WASM_INTEGRATED_SOURCE_SHA256" && \
+		test -n "$$GOMAD_WASM_TEMPORAL_QUALIFICATION_INPUTS" && test -n "$$GOMAD_WASM_TEMPORAL_PREPARATION_SOURCE"
+	@for name in TestActualMatchedFixtureQualification TestActualSQLiteDurableQualification TestActualOneboxQualification TestActualTemporalClusterQualification; do \
+		env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off \
+			'$(GOMAD_WASM_STOCK_GO)' test -tags test_dep -list "^$$name$$" ./qualification | rg -qx "$$name" || exit 1; \
+	done
+	@for entry in 'fixture controlled TestActualMatchedFixtureQualification' 'fixture cooperative TestActualMatchedFixtureQualification' \
+		'sqlite cooperative TestActualSQLiteDurableQualification' 'onebox cooperative TestActualOneboxQualification' \
+		'multi-instance cooperative TestActualTemporalClusterQualification'; do \
+		set -- $$entry; profile=$$2; name=$$3; \
+		for cell in success canary; do \
+			env -u GOROOT -u GOMADSEED -u GOMAD3_CHILD_SEED GOENV=off GOTOOLCHAIN=local GOWORK=off \
+				GOMAD3_STOCK_GO='$(GOMAD_WASM_STOCK_GO)' GOMAD_WASM_QUALIFY_WORKLOADS=1 \
+				GOMAD_WASM_QUALIFICATION_PROFILE="$$profile" GOMAD_WASM_QUALIFICATION_CELL="$$cell" \
+				'$(GOMAD_WASM_STOCK_GO)' test -v -tags test_dep -count=1 -timeout=90m -run "^$$name$$" ./qualification || exit $$?; \
+		done; \
+	done
+	@env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off \
+		GOMAD_WASM_QUALIFY_WORKLOADS=1 GOMAD_WASM_QUALIFICATION_CELL=success \
+		'$(GOMAD_WASM_STOCK_GO)' test -v -tags test_dep -count=1 -run '^TestActualMandatoryWorkloadCorpus$$' ./qualification
 
 # The fn-151 determinism prototype gates. GOMAD_WASM_PROTOTYPE_ROOT names an
 # absolute evidence directory; GOMAD_WASM_PROTOTYPE_ONLY narrows the Temporal

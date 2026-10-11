@@ -49,7 +49,9 @@ type replayState struct {
 }
 
 type Model struct {
-	mu sync.Mutex
+	mu                  sync.Mutex
+	detached            bool
+	detachedCardinality DiagnosticCardinality
 
 	config             Config
 	now                LogicalTime
@@ -92,6 +94,9 @@ func newModel(config Config) *Model {
 func (w *Model) Register(request Request) (RequestID, error) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
+	if w.detached {
+		return 0, invalidSnapshot("model.detached")
+	}
 	if err := validateRequest(w.config.Limits, request); err != nil {
 		return 0, err
 	}
@@ -129,6 +134,9 @@ func (w *Model) Register(request Request) (RequestID, error) {
 func (w *Model) Ready(readiness Readiness) (EventID, error) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
+	if w.detached {
+		return 0, invalidSnapshot("model.detached")
+	}
 	request, err := w.lookupPending(readiness.RequestID)
 	if err != nil {
 		return 0, err
@@ -183,6 +191,9 @@ func (w *Model) Ready(readiness Readiness) (EventID, error) {
 func (w *Model) Cancel(requestID RequestID) (Cancellation, error) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
+	if w.detached {
+		return Cancellation{}, invalidSnapshot("model.detached")
+	}
 	request, found := w.requests[requestID]
 	if requestID == 0 || !found {
 		return Cancellation{}, classifiedError(unknownRequest, "requestId")
@@ -226,6 +237,9 @@ func (w *Model) Cancel(requestID RequestID) (Cancellation, error) {
 func (w *Model) Quiesce() (Quiescence, error) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
+	if w.detached {
+		return Quiescence{}, invalidSnapshot("model.detached")
+	}
 	if err := w.checkTransition(); err != nil {
 		return Quiescence{}, err
 	}

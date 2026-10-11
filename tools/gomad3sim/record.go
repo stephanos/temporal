@@ -82,6 +82,7 @@ func ReplayPlanFor(record ClusterRecord) (ReplayPlan, error) {
 		Oracles:              cloneOracleResults(record.Oracles),
 		Network:              cloneNetworkRecord(record.Network),
 		Volumes:              cloneVolumeRecord(record.Volumes),
+		WASM:                 cloneWASMExecution(record.WASM),
 		Outputs:              cloneOutputs(record.Outputs),
 		Leaks:                append([]LeakDiagnostic(nil), record.Leaks...),
 	}
@@ -158,6 +159,7 @@ func buildClusterRecord(spec Spec, specSHA256 string, result Result) (ClusterRec
 		Oracles:              cloneOracleResults(result.Oracles),
 		Network:              network,
 		Volumes:              volumes,
+		WASM:                 cloneWASMExecution(result.WASM),
 		Outputs:              cloneOutputs(result.Outputs),
 		Limitations:          backendLimitations(spec.Backend),
 		Leaks:                append([]LeakDiagnostic(nil), result.Leaks...),
@@ -193,6 +195,9 @@ func emptyVolumeRecord() VolumeRecord {
 }
 
 func validateClusterRecord(record ClusterRecord) error {
+	if err := validateWASMExecution(record.WASM, record.Backend); err != nil {
+		return err
+	}
 	if record.Schema != ClusterRecordSchema {
 		return fmt.Errorf("cluster record schema = %q, want %q", record.Schema, ClusterRecordSchema)
 	}
@@ -202,7 +207,7 @@ func validateClusterRecord(record ClusterRecord) error {
 	if err := validateLimits(record.Limits); err != nil {
 		return err
 	}
-	if record.Backend != BackendInProcess && record.Backend != BackendProcess || record.Backend == BackendInProcess && record.Fidelity != FidelitySimulationModel || record.Backend == BackendProcess && record.Fidelity != FidelitySimulationModel && record.Fidelity != FidelityHardIsolation {
+	if record.Backend != BackendInProcess && record.Backend != BackendProcess && record.Backend != BackendWASM || record.Backend == BackendInProcess && record.Fidelity != FidelitySimulationModel || (record.Backend == BackendProcess || record.Backend == BackendWASM) && record.Fidelity != FidelitySimulationModel && record.Fidelity != FidelityHardIsolation {
 		return errors.New("cluster record contains an unsupported backend or fidelity")
 	}
 	if err := validateClusterStaticEvidence(record); err != nil {
@@ -420,6 +425,9 @@ func clusterStaticIdentities(spec Spec, models ClusterModelIdentities) (ClusterS
 }
 
 func validateReplayPlan(plan ReplayPlan, spec Spec) error {
+	if err := validateWASMExecution(plan.WASM, spec.Backend); err != nil {
+		return err
+	}
 	if plan.Schema != ClusterReplaySchema {
 		return fmt.Errorf("cluster replay schema = %q, want %q", plan.Schema, ClusterReplaySchema)
 	}
@@ -778,7 +786,7 @@ func validateBackendLeaks(backend Backend, leaks []LeakDiagnostic) error {
 	if err := validateLeaks(leaks); err != nil {
 		return err
 	}
-	if backend == BackendProcess && len(leaks) != 0 {
+	if (backend == BackendProcess || backend == BackendWASM) && len(leaks) != 0 {
 		return errors.New("process backend cannot contain in-process leak diagnostics")
 	}
 	return nil
@@ -1165,7 +1173,7 @@ func inProcessLimitations() []Limitation {
 }
 
 func backendLimitations(backend Backend) []Limitation {
-	if backend == BackendProcess {
+	if backend == BackendProcess || backend == BackendWASM {
 		return nil
 	}
 	return inProcessLimitations()
@@ -1227,6 +1235,7 @@ func validSHA256(value string) bool {
 }
 
 func cloneReplayPlan(plan ReplayPlan) ReplayPlan {
+	plan.WASM = cloneWASMExecution(plan.WASM)
 	plan.Nodes = append([]NodeResult(nil), plan.Nodes...)
 	plan.Transitions = append([]LifecycleTransition(nil), plan.Transitions...)
 	plan.FaultPlan = cloneFaultPlan(plan.FaultPlan)
