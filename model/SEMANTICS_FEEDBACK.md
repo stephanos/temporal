@@ -1,735 +1,741 @@
-# Feedback on SEMANTICS.md
+# Feedback on the Umpire DSL
 
-A review of `model/SEMANTICS.md` as of commit `2f0ba19b13`. Each point is numbered, has a
-severity, describes the problem as a reader of the guide meets it, and recommends one fix.
+A review of the Scala DSL in `model/framework`, as the Models under `model/temporal` use it and as
+`model/SEMANTICS.md` describes it, at commit `63cd2f2b2c` plus the working tree (the `derives
+Finite` removal). The subject is the language, not the guide: what an author has to write, what
+the words mean, where two words mean one thing or one word means two, and where the shape of a
+construct leads to wrong Models.
+
+The planned Scala batch (`MILESTONES.md`, "Open: Scala DSL work", fn-159 through fn-141) is taken
+as decided. A point a planned spec already settles is listed under **Settled** with the spec and
+not argued again. The rest of each section is what remains after the batch, or where a planned
+spec should go one step further, or where two planned specs pull against each other.
 
 Severities:
 
-- **High**: the guide is wrong, contradicts itself, or leaves a reader unable to write or read a
-  Model correctly.
-- **Medium**: the guide is right but costs the reader real effort, or the DSL name it documents
-  will keep causing mistakes.
-- **Low**: polish; worth doing when the section is next touched.
+- **High**: the form leads authors to a wrong Model, or blocks a planned spec, or has to be
+  resolved before fn-141 can make sugar definitions the only lowering.
+- **Medium**: a cost paid in every Model, or a name that will keep causing mistakes in review.
+- **Low**: polish; worth doing when the construct is next touched.
 
-Line numbers refer to the version reviewed.
-
----
-
-## Part A. Overall shape
-
-### 1. The guide is three documents
-
-**Severity:** High
-
-**Problem.** The introduction promises one guide "in the order you write it", where each section
-says what a concept means, how it is written and what is refused. That holds for sections 1 to 7.
-Sections 8 to 19 are a reference: longer, less uniform, written for someone who already knows the
-language. Sections 20 and 21 are an architecture note on the tooling and the DSL's layering. A
-newcomer reading top to bottom hits the change of register at section 8 without warning, and a
-maintainer looking up one rule has to know which of the three documents holds it.
-
-**Recommended solution.** Make the split explicit. Either three files (`SEMANTICS.md` for the
-tutorial through the table and claims, `REFERENCE.md` for the composite forms and realizations,
-`DESIGN.md` for levels, results, core and sugar) or three top-level parts in one file with the
-contents list grouped the same way. Keep the "Meaning / Writing it / Refused" template for the
-tutorial part only, and say so in the introduction.
-
-### 2. The running example is abandoned
-
-**Severity:** High
-
-**Problem.** Line 13 promises "one small feature throughout", the job. Sections 1 to 7 use it.
-Section 8 already uses `Phase.paused`, which the job never declared. Section 10 switches to
-`Active` and `Fact.attemptAdmitted` from the activity Model, section 11 to `ServedDispatch`,
-section 12 to `Stage.staged`, section 14 to `Lamp`, section 17 to `RecordOverQueue`, section 18
-to `Relay`, section 19 back to `JobRun` with members (`attempts`, `described`, `dispatchHold`)
-that appear from nowhere. The job's `Fact` enum also changes shape between section 1
-(`submitted, started, finished`) and section 2 (`statusQueued, ...`) without a word. A reader
-cannot build the promised mental model because the example keeps changing under them.
-
-**Recommended solution.** Pick one of two: either carry the job through every section, declaring
-each new case (`paused`, `unscheduled`, `backingOff`) at the point it is first needed, with a
-single consolidated listing at the end that a reader could compile; or drop the promise, and open
-each section with "this example is from `model/temporal/features/...`" so the reader knows where
-to look. The first is better for a guide; the second is cheaper.
-
-### 3. "Refused" paragraphs are inconsistent and duplicate section 20
-
-**Severity:** Medium
-
-**Problem.** A "Refused" paragraph appears in sections 1, 2, 3, 4, 10, 13 and 17, is inlined as
-prose in 5 and 6, and is absent from 7, 8, 9, 11, 12, 14, 15, 16, 18 and 19. Section 20's "Who
-refuses what" table then restates most of them. The reader never knows whether a section's
-silence means "nothing is refused here" or "see the table".
-
-**Recommended solution.** Make section 20's table the single authoritative list of what each
-stage refuses, and keep per-section "Refused" text only where it teaches a rule that is not
-obvious from the table (for example, that rule overlap is checked over every state of the
-catalog). Every remaining per-section paragraph should link to the table.
-
-### 4. Naming conventions are repeated eight times
-
-**Severity:** Low
-
-**Problem.** "Named after its `val`" is said at lines 135, 162, 174, 446, 514, 642, 934 and 1053.
-The authoritative statement, "Naming" at line 1053, sits at the very end, after the reader has
-already met every declaration. The three-symbol rule at line 1050 is likewise orientation, placed
-last.
-
-**Recommended solution.** Add a short "Conventions" section before section 1 holding the naming
-rule, the Definition ID rule, the three symbols and the capitalisation rule (point 40). Delete
-every later repetition, keeping only the exceptions ("a name is written as a string only where
-no `val` declares it").
+Each point: the problem, what is planned, and one recommendation.
 
 ---
 
-## Part B. Names in the DSL
-
-### 5. `when` means three things
-
-**Severity:** High
-
-**Problem.** `when(Phase.x)` and `when[Role]` are rule headings (section 6). `property when
-worker.finish(Result.ok) holds { ... }` is a Property selector (section 8). `whenAction` is a
-third selector form. A reader who has learned `when` as "the guard of a rule" then meets it as
-"the class a Property reads" and must re-learn it; a search for `when` in a Model finds both.
-
-**Recommended solution.** Give the Property selector its own word that does not appear in rules,
-for example `property.of(worker.finish(Result.ok))` and `property.ofAction(worker.finish)`.
-Reserve `when` for rule headings.
-
-### 6. `on` means three things
-
-**Severity:** Medium
-
-**Problem.** `on(client.submit) { ... }` opens a rule (section 6). `action(this).on(job)` says
-which entity an action targets (section 3). `Observation(on = job)` says which entity a read is
-of. The rule form is by far the most common and should own the word.
-
-**Recommended solution.** Rename the entity target to `.targets(job)` or `.of(job)` and the
-observation parameter to `of = job`. Keep `on` for rules only.
-
-### 7. `enter`/`enters` and `reject`/`rejects` differ by one letter
-
-**Severity:** High
-
-**Problem.** `enter(state, facts*)` is a value form used in an effect; `enters(Phase.p)` is a
-rule form that also records the phase's status fact. `reject(outcome, s)` is a value form;
-`rejects(rejection)` is a rule form over shared outcomes. The pair differ in kind, arity and what
-they record, but the names differ by a trailing `s`. This is the kind of distinction readers
-misread in review and misremember when writing.
-
-**Recommended solution.** Give the rule forms a visibly different shape, for example
-`entering(Phase.p)` and `rejecting(Rejection.notFound)`, or make them methods of a single object
-(`steps.enter(Phase.p)`, `steps.reject(r)`). Document the four in one table in section 5 with
-"used in an effect" versus "used after `~>`" as a column.
-
-### 8. `disabled` is defined twice and documented inconsistently
-
-**Severity:** High
-
-**Problem.** The sugar table (line 276) says `disabled` is `Nil` and "in an effect it is
-refused, in a rule use `disabled(a)`". Line 643 then uses `else disabled` inside an effect (the
-hole example) and calls it correct. Section 21 lists `disabled` under sugar twice, once as a rule
-form and once as an effect form. `framework/Syntax.scala` defines both `val disabled` and
-`def disabled(actions*)`. The reader cannot tell whether an effect may return `disabled`.
-
-**Recommended solution.** Decide, then say it once. If effects may return `Nil`, fix line 276 to
-"in an effect, gives no step" and keep the example at line 643. If they may not, fix the example.
-Either way rename the rule form so it is not an overload: `unbound(process.stop)` or
-`never(process.stop)`.
-
-### 9. `Rules`, `Bindings` and `Facets` are three superclasses for one section
-
-**Severity:** Medium
-
-**Problem.** `object rules extends Rules` (section 6), `object rules extends Bindings(...)`
-(section 18, the only place `Bindings` is introduced), and `object rules extends Facets(...)`
-(section 15). The section is always called `rules` but its superclass varies with how the rules
-were built. Section 21 lists `Bindings` as core and `Rules` as sugar without ever saying that one
-lowers to the other.
-
-**Recommended solution.** One base, `Rules`, with named constructors: `Rules` for authored cases,
-`Rules.bound(a ~> f, ...)` for direct bindings, `Rules.from(facet.rules, ...)` for assembly. Say in
-section 6 that the first two lower to the same IR, and move the `Bindings` form there.
-
-### 10. Four spellings of "derived from"
-
-**Severity:** Medium
-
-**Problem.** `Derived(...)` derives a machine (section 14), `DerivedComposition` and
-`withMember` derive a composition (section 17), `DerivesFrom(...)` derives a realization (section
-19). They do the same thing: one source, one change, everything else kept.
-
-**Recommended solution.** One word, `Derived(source.change(...))`, for all three, with the
-change methods (`rebind`, `restrict`, `withMember`, `inserting`) carried by the source's type.
-Section 14's table can then cover compositions and realizations as extra rows.
-
-### 11. `Declares[S]` says nothing
-
-**Severity:** Medium
-
-**Problem.** Section 8 introduces `Declares[S]` as "the supertype of a machine and a
-composition" and immediately describes its use as "declares the same Property on whichever
-*model* it is called with". The prose has the right name; the type does not.
-
-**Recommended solution.** Rename to `Model[S]`. The word "Model" is already used throughout the
-guide for exactly this thing.
-
-### 12. `Phased` versus `Phasing`
-
-**Severity:** Medium
-
-**Problem.** The machine mixin is `Phased[S, P]` (section 4). Capabilities take a given
-`Phasing[S, P]` (section 16, line 791) that the guide never introduces, and call
-`phasing.roleCases` and `phasing.phase` on it. A reader cannot tell whether these are one thing
-or two.
-
-**Recommended solution.** If `Phasing` is the typeclass that `Phased` provides, say so in section
-4 ("a `Phased` machine gives a `Phasing[S, P]`") and reference it from section 16. Better, use
-one name: make `Phased` the typeclass and let the mixin be `Phased.by(_.phase, writer)`.
-
-### 13. `limits` versus `bound`
-
-**Severity:** Low
-
-**Problem.** `query verify p in s limits three` bounds a Query. `capabilities.bound(three,
-Closable.terminalStatesAreFinal -> five)` bounds brought Queries. Same concept, two verbs, and
-`bound` is also the past tense the guide uses for "an action that is bound to a rule".
-
-**Recommended solution.** `capabilities.limits(three, ...)`.
-
-### 14. `except` and `overriding` are both "waivers"
-
-**Severity:** Low
-
-**Problem.** Line 818 calls both forms waivers and records them in `.waivers.json`, but the
-verbs do not say so. `except` reads as a list filter; `overriding` is a participle beside the
-imperative `except`.
-
-**Recommended solution.** `waive(P, because = ...)` and `replace(P -> properties.own, because =
-...)`. Both are imperatives, both say what they do, and the file name follows from the first.
-
-### 15. `never(to).from(before)` reads backwards
-
-**Severity:** Medium
-
-**Problem.** The core form is `!before(b) || !to(a)`: the precondition is on the state before,
-the prohibition on the step after. The sugar states the prohibition first and the precondition
-second, so a reader parses "never X" and then has to revise it to "never X, when coming from Y".
-`once(over).keeps(x)` has a related issue: "once" reads as "exactly once", where it means
-"from the point `over` holds".
-
-**Recommended solution.** Precondition first: `from(before).never(to)`, and `whenever(over)
-.keeps(x)` or `after(over).keeps(x)`. Keep the core-form table so the change is checkable.
-
-### 16. "level" means two things
-
-**Severity:** Medium
-
-**Problem.** Section 13 uses *level* for Product versus Protocol ("read at two levels"), and so
-do sections 3, 15 and 16 ("every level's machine", "one machine at one level",
-"split by level"). Section 20 uses *level* for the five expression strata (value, reading of a
-state, step, reading of a step, claim). Section 5 says a misplaced `Step` "is at the wrong
-*level*" and links to section 20, but a reader at section 5 has only met the Product/Protocol
-meaning.
-
-**Recommended solution.** Rename section 20's concept. "Place" is already the column header in
-its table; "stratum" or "tier" would also do. Keep "level" for Product and Protocol.
-
-### 17. "class" collides with Scala
-
-**Severity:** Medium
-
-**Problem.** "Class" means "one assignment of an action's inputs" and is used in nearly every
-section, in a document whose examples are full of `case class` and `final case class`. Phrases
-like "a `Recorded` case without a status", "one column per class" and "a case class whose every
-field is a Property" sit on the same page.
-
-**Recommended solution.** Rename to "variant" or "call" (`finish(Result.ok)` is a call of
-`finish`). If the IR key `name-key(i1)` makes renaming expensive, keep "class" but state the
-collision once in the Conventions section: "a *class* of an action is not a Scala class".
-
-### 18. `loss = Loss.reliable` and the unnamed order
-
-**Severity:** Low
-
-**Problem.** `channel[Note](capacity = 2, order = Order.fifo, loss = Loss.reliable,
-duplicates = 1)` says the loss is reliable. The prose says "ordered-or-not" but names only
-`Order.fifo`; the other value is never shown.
-
-**Recommended solution.** `delivery = Delivery.reliable` / `Delivery.lossy`, and name both order
-values in the text (`Order.fifo`, `Order.any`, or whatever the second is).
-
-### 19. `Evidences`
-
-**Severity:** Low
-
-**Problem.** "Evidence" is a mass noun; `Evidences` reads as a mistake and is the only plural
-of its kind in the realization sections (`Controls`, `Workers`, `ServerSteps` are countable).
-
-**Recommended solution.** `object evidence extends Evidence(...)`.
-
-### 20. "observation" means two things
-
-**Severity:** Medium
-
-**Problem.** Section 3: an observation is "a value no recorded event carries", a derived read
-such as an attempt count from a describe call. Section 19, line 943: "observations: a protobuf
-message a run records". The first is a read the test makes; the second is data the run keeps.
-They are not the same.
-
-**Recommended solution.** Keep "observation" for section 3's meaning (it has a declaration,
-`Observation(on = job)`). Call section 19's item "recorded messages" or fold it into "learned
-values", whichever the kit actually does.
-
-### 21. "witness" means three things
-
-**Severity:** Medium
-
-**Problem.** A witness is the path a `find` found (section 9), the counterexample a failed
-`verify` or refinement reports (section 20), and the `witness(class, ...).records(fact)` sugar
-that declares a pinned Scenario, Property and `find` Query in one (section 9, lines 517 to 532).
-The sugar's name describes what it hopes to get, not what it declares.
-
-**Recommended solution.** Rename the sugar to what it is: `path(class, ...).records(fact)` or
-`trace(...)`. Keep "witness" for the result.
+## 0. What the batch already settles
+
+| Concern | Settled by |
+| --- | --- |
+| Bare action names in rules (`on(poll)` inside `from(worker)`) | fn-159.1: every `on` and `disabled` target is qualified |
+| Bare phase names (`when(scheduled)`) and phase-member imports | fn-159.3 |
+| Hand-written phase-only effects | fn-159.7: `enters(Phase.x)` |
+| Capability kinds named as nouns (`Retries`, `Deadline`) | fn-159.8: `Retryable`, `Expirable` |
+| Bounds scattered through Models | fn-159.5: every `Limits` in `Bounds` |
+| `Observation.read` free text | fn-159.6 |
+| One machine object per level with unstructured effects | fn-161: action-owning facets |
+| Derived machines that change nothing and only hold claims | fn-162: Properties declared once, realizations name their Queries |
+| Hand-listed IR roots (`exports`, `irFile`) | fn-160 |
+| "System" as a level name | fn-160: the level is Protocol |
+| Distributed-systems claims written by hand per Model | fn-163: system capabilities |
+| Three declarations for one path-and-outcome claim; `.live` hidden | fn-140: witness Queries |
+| Safety and liveness mixed in `properties` | fn-149 |
+| Property bodies as one Boolean expression; `implies`; `when` reused for Properties | fn-164: `expect` blocks, `after(<class>)` |
+| Faults as ordinary actions with hand-written crash effects | fn-123 |
+| Sugar lowered twice (Scala body and lifter) and drifting | fn-141 Part A: the definition is the lowering |
+| Lifter refusing declaration-level Scala | fn-141 Part B: declarations export by running |
+| Same-type `==` without `CanEqual`, section order, wildcard cases | fn-156 |
+| Elapsed-time fields as integers | fn-147 (Scala part) |
 
 ---
 
-## Part C. Structure: consolidations and removals
+## 1. Types and domains
 
-### 22. Progress sits two sections away from Properties
-
-**Severity:** Medium
-
-**Problem.** A progress claim is written in `object properties` (line 614), but section 11
-comes after Monitors and assumptions and before Holes. A reader learning what may go in
-`properties` has to read past monitors to find the second thing that may.
-
-**Recommended solution.** Order: 8 Properties, 9 Progress, 10 Monitors and assumptions, 11
-Scenarios and Queries. Progress depends on assumptions, so add one sentence forward-referencing
-`assume.fair`.
-
-### 23. `.live` and Expectations belong in Realizations
+### 1.1 Catalogs are now implicit; the one place inference cannot follow is role-narrowed phases
 
 **Severity:** Medium
 
-**Problem.** `.live` is explained three times (lines 497 to 499, 531 to 532, 550 to 551) with
-nearly the same words. The Expectations paragraphs (550 to 564) talk about Runs, judges,
-dispositions, cleanup and conformance, none of which exist until section 19 defines a
-realization. Section 9 is the longest section in the guide because of it.
+**Problem.** With `derives Finite` gone, every enum and case class is a domain and `Finite[T]` is
+derived where it is first needed. That removes 76 clauses and no Model changes shape. The one cost
+is in equality: `CanEqual` is granted through `Finite[T]`, and when both operands are role-narrowed
+phases (`case q: Held => q != Phase.paused`, or `val landing = if c then Phase.paused else
+Phase.scheduled`), the compiler joins them to `Phase & Live`, for which no catalog can be derived.
+A companion instance used to pin the type; a generic given cannot. The author writes `(q: Phase)`.
 
-**Recommended solution.** Move `.live`, `.explore` and both Expectations paragraphs into section
-19 under a "Which Queries become Cases" heading. Section 9 keeps one sentence: "A `find` whose
-machine declares a realization may be marked `.live`; see Realizations."
+**Planned.** Nothing. fn-156 (equality) is done but assumed companion instances.
 
-### 24. The composite-machine sections are interleaved
+**Recommendation.** Accept the ascription for now; it is rare (one fixture, one test, no Model)
+and the lifter unwraps it. The real fix is in 2.2: roles should not be traits mixed into the case
+types, after which no value ever has type `Phase & Live` and the problem disappears with it.
 
-**Severity:** Low
-
-**Problem.** Sections 13 to 17 are Refinement, Derivations, Facets, Capabilities, Compositions.
-Facets split one machine; Refinement, Derivations and Compositions relate machines to each
-other; Capabilities are declared in facets and expand to Properties. Capabilities sitting between
-Facets and Compositions breaks both groupings.
-
-**Recommended solution.** Facets, then Capabilities (declared in facets), then Refinement,
-Derivations, Compositions. Or Facets, Refinement, Derivations, Compositions, then Capabilities
-with a note that a facet declares them.
-
-### 25. Modalities belong with the table
-
-**Severity:** Low
-
-**Problem.** "Modalities: what a row means" (lines 390 to 404) explains rows, disabled pairs and
-hole rows, which are what section 7 derives. It sits at the end of section 6 (Rules), so the
-reader meets "row" before "The table" has defined it.
-
-**Recommended solution.** Move Modalities into section 7 after the derivation list and before
-the lint table, which refers to it.
-
-### 26. Migration notes do not belong in a semantics guide
+### 1.2 `import framework.Finite.given` plus a dummy `summon` is a wart every file carries
 
 **Severity:** Medium
 
-**Problem.** Lines 72 to 74 ("Older Models bound a plain `Int`..."), line 121 ("Roles replace
-the named phase sets Models used to declare"), line 388 ("The old `in(...)` rule heading is
-retired and refused") and line 520 ("No new IR declaration kind is added") describe how the DSL
-used to be or how a change was made. Git holds that history. Worse, section 18 (line 914) still
-tells the reader to use `Finite.upTo(n)` after section 1 has retired it in favor of `UpTo[N]`.
+**Problem.** Strict equality needs the `CanEqual` given from `Finite`'s companion, so every Model
+file imports it, and a file that only uses it in `==` keeps the import alive with
+`val _ = () => summon[CanEqual[Phase, Phase]]`. That is a workaround for an unused-import warning
+(scala/scala3#25755) that has become a convention, repeated in every file that compares a shared
+outcome.
 
-**Recommended solution.** Delete the four notes. Fix line 914 to `UpTo[N]` or, if channels
-genuinely need the old form, say why. If retired forms must be listed for the lint, put them in
-one "Retired forms" appendix.
+**Planned.** fn-156.7 documents the enforcement; nothing removes the workaround.
 
-### 27. Lines 557 to 564 are pull-request text
+**Recommendation.** Put the `CanEqual` given where the compiler finds it without an import: in the
+companion of a marker every domain already has (`Phase` and `Fact` enums could extend a framework
+`Domain` trait whose companion holds `given [T <: Domain]: CanEqual[T, T]`), or export the givens
+from the `framework` package object so `import framework.*` suffices. Then delete the `summon`
+idiom and its lint.
 
-**Severity:** High
-
-**Problem.** The paragraph beginning "Convenience expectations and full `RunExpectation`
-values..." reads as the acceptance criteria of the change that introduced it: "This text ... adds
-no IR, Case or assessment field and cannot supply or change judge explanations. Existing judge
-reason IDs and `expected_run` metadata are still emitted and compared." A reader of a design
-guide has no use for "still emitted"; it is a statement about a diff.
-
-**Recommended solution.** Replace with two sentences in section 19: "An expectation whose
-Property or Contract outcome is not `satisfied` must say why in `because`. The text documents the
-author's expectation and reaches no IR." Drop the rest.
-
-### 28. Temporal-specific conventions are mixed into the DSL guide
-
-**Severity:** Medium
-
-**Problem.** The guide says at line 5 that it "covers the language". Yet it also carries the two
-lifter switches `facets-only` and `facet-vocabulary` (lines 767 to 771), the capability package
-split into `capabilities/product` and `capabilities/system` (783 to 785), the rule that every
-bound is declared in `temporal/Bounds.scala` (535 to 537), and the StepTables equivalence check
-(434 to 436). These are conventions of one set of Models and one build, not semantics.
-
-**Recommended solution.** Move them to the README's "Writing a Model" or to a
-`model/temporal/README.md`. Leave one pointer sentence in the guide where each was.
-
-### 29. Channels are a full section for a feature no Model uses
+### 1.3 Two spellings of a bounded integer
 
 **Severity:** Low
 
-**Problem.** Line 914 says channels "are used by the lifter's fixtures today, not by a Temporal
-Model". The feature still has section 18 of 21, a line in the Contents, and a bullet in section
-1's catalog list, and it is the only place `Bindings` is introduced (point 9).
+**Problem.** `attempts: UpTo[2]` is the current form. Channels and older Models bound an `Int`
+field with a local `given Finite[Int] = Finite.upTo(n)` beside the state, and fn-131 notes the
+consequence: the lifter reads one range per state type, not per field, so two bounded `Int`
+fields in one record cannot differ.
 
-**Recommended solution.** Move Channels to an appendix headed "Forms no Model uses yet", or into
-the fixture directory's own README. Keep the one-line mention in section 1.
+**Planned.** fn-131 records the gap; fn-123 and fn-125 add new bounded values (budgets, settings).
 
-### 30. The `CanEqual` workaround is a wart, not a rule
-
-**Severity:** Low
-
-**Problem.** Line 78 instructs the reader to write `val _ = () => summon[CanEqual[Phase,
-Phase]]` to keep an import alive. This is a workaround for an unused-import warning. Documenting
-it as part of the language makes it permanent.
-
-**Recommended solution.** Fix the cause (suppress the warning for `framework.Finite.given`, or
-export the givens from a package object) and delete the sentence.
-
-### 31. Section 21's lists duplicate every section's core-form table
-
-**Severity:** Low
-
-**Problem.** Lines 1036 to 1045 enumerate every core and every sugar form by name. Sections 5,
-8, 10 and 14 already have "Core form" tables. The list is a second place to update on every DSL
-change and will drift (it already lists `disabled` twice).
-
-**Recommended solution.** Keep the two rules (sugar lives in `Syntax.scala` files; each form
-documents its core form and has a fixture) and the `make lint-model` pointer. Delete the
-enumeration.
+**Recommendation.** Retire `Finite.upTo` as a field bound once channels take `UpTo[N]`, and make
+the lifter read ranges per field. Keep `UpTo[N]`: it states the bound at the field, reads as an
+`Int`, and lifts to the IR range with no new vocabulary. `0..2` is not a Scala type; the literal
+union `0 | 1 | 2` is, but it enumerates rather than bounds and `n + 1` comes back as `Int`. Do
+not rename it `Attempts`: it also counts presses, boils, heartbeats and deliveries.
 
 ---
 
-## Part D. Gaps
+## 2. Phases, roles and status facts
 
-### 32. Facts are never defined
+### 2.1 "Role" is the wrong word
+
+**Severity:** Medium
+
+**Problem.** A role is what a phase says about the entity independently of the entity: alive or
+over, waiting or held. "Role" reads as a part someone plays, and the signature has actors, which is
+where a reader expects roles. The `Closed` sub-roles (`Succeeded`, `Failed`, `Canceled`,
+`Terminated`, `TimedOut`) are exactly Temporal's `WorkflowExecutionStatus` values.
+
+**Planned.** Nothing.
+
+**Recommendation.** Rename role to **status**. Keep **phase** for where the entity is in its
+lifecycle and **state** for everything the machine carries; renaming phase to state would leave
+the record without its standard state-machine name. The rename touches `framework/Roles.scala`,
+`irgen/Roles.scala`, the IR's `roles` field and the Go validator; batch it with 2.3.
+
+### 2.2 Roles are traits mixed into case types, which leaks into Scala typing
 
 **Severity:** High
 
-**Problem.** Facts appear as an enum (section 1), a `status` on a phase case (section 2), an
-`evidence` line (section 4), the third field of `Step` (section 5), something a Property reads
-with `records` (section 8) and something a realization confirms (section 19). No paragraph says
-what a fact *is*: what a step records it for, whether `List[F]` is ordered or a set, whether one
-step may record the same fact twice, whether a fact's position in the list matters for the IR
-key, and what a fact case with fields means for the table.
+**Problem.** `case paused extends Phase(Fact.statusPaused), Suspended` gives the case the Scala type
+`Phase & Suspended`. The DSL then offers four spellings of one test: `case _: Closed`,
+`p.isInstanceOf[Closed]`, `p.in[Closed]` and `when[Closed]`, all lowering to case membership (the
+Models use the last three; the fixtures use `isInstanceOf` under a scalafix exemption). The
+typing has two costs. A role-typed binding compares only with an ascription (1.1). And role
+subtyping (`Retrying extends Waiting extends Live`) is Scala subtyping, so whether `when[Waiting]`
+includes `Retrying` is left to the reader's knowledge of the language.
 
-**Recommended solution.** A "Facts" subsection in section 5 (or section 3, beside Outcomes)
-answering those five questions, with the running example's `Fact` enum declared there once.
+**Planned.** fn-159.3 qualifies phase references; fn-141 lifts `case _: R` by one generic rule.
 
-### 33. Two `evidence` declarations, no stated relationship
+**Recommendation.** Declare a phase's status as data on the case, the way the status fact already
+is: `case paused extends Phase(Fact.statusPaused, Suspended)`, with `Suspended` a value of a
+framework enum rather than a trait. One test, `p.in[Suspended]` (or `p.is(Suspended)`), lowers
+to membership; the compiler never sees an intersection type; the lifter reads the role from the
+constructor argument as it reads the status fact today; and sub-statuses are declared as a value
+list, not as trait inheritance.
 
-**Severity:** High
-
-**Problem.** Section 4 declares `val evidence: PartialFunction[Fact, String]` on the machine,
-"only the exceptions: a fact is confirmed by evidence of its own name". Section 19 declares
-`object evidence extends Evidences(answered(Fact.submitted, startJob), ...)` on the realization,
-"kinds of recorded data that confirm facts". The reader cannot tell which one the lowering reads,
-whether the machine-level map is a default the realization overrides, or whether they are keyed
-to each other by the string.
-
-**Recommended solution.** Say in section 4 that the machine's `evidence` names the *kind* a fact
-expects, and in section 19 that the realization declares each kind once and the lowering joins
-them by name. If that is not how it works, say how it does.
-
-### 34. One start or many
+### 2.3 Status facts and roles are three parallel lists of one mapping
 
 **Severity:** Medium
 
-**Problem.** Line 236: "`init` is the one start state". Line 414: "the starts (the `init`)".
-Line 654: "every start maps to a start". Line 875: "the reader composes every start". Line 507:
-`.starts(s)` fixes another start for a Scenario. The guide uses singular and plural
-interchangeably and never says what the plural refers to.
+**Problem.** Each phase case declares its role (`Held`) and its status fact
+(`Fact.statusStarted`, through `enum Phase(val status: Fact) extends Recorded[Fact]`), and the
+`Fact` enum lists one `statusX` case per phase. Neither is the other: `started` and
+`cancelRequested` share the role `Held` with different status facts, and the Protocol's
+`backingOff` reports `statusQueued`, the same fact as `queued`. Both are projections of what the
+API reports for the phase, and that mapping is written per phase, per Model, in three lists that
+nothing checks against each other.
 
-**Recommended solution.** One sentence in section 4: "A machine has one start, `init`. A
-Scenario may start elsewhere with `.starts`. A composition's starts are the product of its
-members' starts, which is why the reader speaks of starts in the plural."
+**Planned.** fn-155 B uses the `Recorded` setter more; fn-159.7's `enters(<phase>)` records the
+status fact; fn-117 already types the API in the Models.
 
-### 35. What `end` means for a check is unsaid
-
-**Severity:** Medium
-
-**Problem.** Section 4 says `end` "says where a path may stop" and section 7 lists "the ends".
-Nothing says whether a search stops exploring at an end state, whether an end state may still
-have enabled rows (the lint table implies it may, since `silent-rejection` is reported only for
-"non-end" states), or whether a `verify` reads steps taken from an end state.
-
-**Recommended solution.** Three sentences in section 4 or 7: whether exploration continues past
-an end, whether rows from an end state are part of the table, and what `.readAtEnds` on a monitor
-therefore reads.
-
-### 36. Unbound classes of a bound action
-
-**Severity:** Medium
-
-**Problem.** Section 6 binds `on(worker.finish(Result.ok))`, one class of a two-class action.
-The guide does not say what the table holds for `finish(Result.failed)`: a disabled pair, a
-`never-enabled` lint finding, or a refusal at the `on`.
-
-**Recommended solution.** One sentence after the example, and a row in the lint table if it is a
-finding.
-
-### 37. Guards do not read inputs, but the guide never says so
-
-**Severity:** Medium
-
-**Problem.** Line 355's comment says the effect "reads the state and the inputs". Nothing says
-whether a `where(g)` guard may read inputs. Line 369's guard reads `_.startToClose`, which is a
-state field, but a reader who remembers `startToClose` as an input token from line 175 will think
-guards read inputs.
-
-**Recommended solution.** State it in the heading table: "`where(g)`: `g` reads the state only;
-an effect that must branch on an input does so in its body." Rename the state field in the
-example so it does not share a name with the input token.
-
-### 38. Two errors with no Result
-
-**Severity:** Medium
-
-**Problem.** Line 334: a call that violates a callee's `require` "is an error, not a disabled
-row". Line 413: "a result state outside the catalog is an error". Section 20's Results table has
-no row either maps to; `declaration-error` is the nearest but does not list them.
-
-**Recommended solution.** Add both to the `declaration-error` row, or to `admission-error` if
-the reader finds them before any check, and cross-reference from lines 334 and 413.
-
-### 39. `total` contradicts itself
-
-**Severity:** Medium
-
-**Problem.** Line 541 to 542: an authored total "is a review figure, not a prediction, and
-nothing else reads it". Line 1011 lists "a wrong total" as an admission error, so the reader does
-read it, and line 540 says "the reader checks" it.
-
-**Recommended solution.** "The IR generator computes every Query's total. An author may state
-it as a check of their own reading; the reader refuses an IR whose stated total differs from the
-computed one. Nothing else reads it."
-
-### 40. Undefined proper nouns
-
-**Severity:** High
-
-**Problem.** The following are used as defined terms and never defined or linked: Definition ID,
-Behavior Fingerprint, Testpilot, Case, Run, Contract, Program, Verdict, Known Gap, judge,
-disposition, cleanup, conformance, the `reach` path of a capability (line 823), `runs =` and
-`learned =` on `Realizes` (line 954), `origin` (line 780), "exercises" a Property (line 444).
-Most come from the Go tooling. A reader of the Scala guide has no way to find out what a
-Behavior Fingerprint is or why it is computed.
-
-**Recommended solution.** A glossary at the end of the guide with one line each and a link to
-the tool or README section that owns the term. Define `reach`, `runs`, `learned` and `origin` in
-place since they are DSL fields.
-
-### 41. Role subtyping is implied, never stated
-
-**Severity:** Low
-
-**Problem.** `Retrying extends Waiting` is shown, and a Model "may declare a role of its own by
-extending one". Whether `when[Waiting]` includes the `Retrying` cases, and whether a shared
-Property over `Closed` sees a Model-declared `Expired extends TimedOut`, is left to the reader's
-knowledge of Scala subtyping.
-
-**Recommended solution.** One sentence: "A role test includes every narrower role: `when[Live]`
-holds for a `Retrying` case."
-
-### 42. The `FailureModel` rule is ambiguous
-
-**Severity:** Low
-
-**Problem.** Line 728: a failure model "must bind a fault ... and not every Query of it may
-expect violation". This could mean "no Query may expect violation" or "at least one Query must
-not expect violation".
-
-**Recommended solution.** Say which. Presumably: "at least one Query of it must expect
-satisfaction, since it is the real design".
-
-### 43. `syncs` is missing from the section order; facets have no `states`
-
-**Severity:** Low
-
-**Problem.** Section 4 lists the sections of a machine in order and says the lint refuses any
-other order. Compositions add `object syncs` (section 17), which is in no order list. Facets
-(section 15) show `effects`, `rules`, `capabilities`, `properties`, `queries`; whether a facet may
-hold `states` is unsaid, though line 770 lists what stays machine-wide and omits `states`.
-
-**Recommended solution.** One order list per kind (machine, derived machine, facet, composition,
-realization) in a single table in section 4, each row naming the required and optional sections.
-
-### 44. `entity` "written only where ambiguous" with no example
-
-**Severity:** Low
-
-**Problem.** Line 242 says `entity` is derived from the actions and written only where that is
-ambiguous. There is no example of writing it and no statement of what counts as ambiguous.
-
-**Recommended solution.** One example line in the header listing, and the rule: "ambiguous when
-the bound actions target two entities".
+**Recommendation.** Make the API status a kit enum with its generic status declared once per
+entity kind (`enum ActivityStatus(val status: Status)`, in `model/temporal/foundations`), let a
+phase case name only what it reports (`case started extends Phase(Started)`), and replace the
+`statusX` fact cases by one `reported(status)` case. `enters`, `in`/`when`, `records` and the
+realization's evidence then all read the one declaration. Fact keys change
+(`statusCanceled` to `reported-Canceled`), so this is a batch item with a rename map, not an
+fn-159 task. A status fact with a field (`statusTimedOut(which)`) becomes `reported(TimedOut)`
+beside a fact of its own, or the phase takes the field.
 
 ---
 
-## Part E. Consistency
+## 3. The signature
 
-### 45. Capitalisation has no rule
+### 3.1 `on` means three things, and the batch fixes one
 
 **Severity:** Medium
 
-**Problem.** Property, Scenario, Query, Model, Case, Run, Product and Protocol are capitalised as
-terms. Monitor, assumption, hole, facet, capability, composition, channel, realization,
-derivation are not. A reader cannot tell whether the capital marks "a declaration with an IR
-kind" or is arbitrary.
+**Problem.** `on(client.submit) { ... }` opens a rule; `action(this).on(job)` names the entity an
+action targets; `Observation(on = job)` names the entity a read is of.
 
-**Recommended solution.** Pick one rule and state it in the Conventions section. The least
-surprising: capitalise a word only when it names a declaration the IR carries (Property, Scenario,
-Query, Monitor, Realization, Capability), lower-case everything else.
+**Planned.** fn-159 qualifies the rule form's target; the other two keep the word.
 
-### 46. "behaviour" and "behavior"
+**Recommendation.** Keep `on` for rules only. The entity target becomes `.of(job)` and the
+observation parameter `of = job`.
+
+### 3.2 `action(this)` is a self-reference an author writes on every action
 
 **Severity:** Low
 
-**Problem.** Line 734 has "behaviour"; lines 628, 946 and the term "Behavior Fingerprint" have
-"behavior".
+**Problem.** `val submit = action(this).on(job)` names the declaring actor by `this` inside the
+actor object, so the lifter can attribute the action. The author writes it on every line and it
+carries no information.
 
-**Recommended solution.** American spelling throughout, to match the tooling's identifiers.
+**Planned.** fn-141 R7: a declaration records its name and owner through a context parameter the
+framework supplies.
 
-### 47. Effects as `def` or `val`
+**Recommendation.** Once fn-141's capture exists, `val submit = action.on(job)` (or
+`action(job)`) takes its actor from the enclosing object. Retire the `this` form in the same step.
 
-**Severity:** Medium
-
-**Problem.** Line 279: effects are "defs of the state (and the class's inputs)". Line 296 shows
-`val start = effect { ... }`. Whether both are allowed, which is preferred, and whether the
-`val` block form may take inputs, are not said.
-
-**Recommended solution.** A sentence after the block example: "A `def` is the general form; the
-`effect { }` block is for an effect of the state alone, and the two lift to the same IR."
-
-### 48. "step function" versus "effect"
-
-**Severity:** Medium
-
-**Problem.** Section 5 opens with "a *step function* gives a list of steps" and then says
-"Effects live in `object effects`". Section 6 says the generator lowers rules and effects into
-"one step function". So a step function is sometimes the authored def and sometimes the lowered
-result.
-
-**Recommended solution.** Define once: "An *effect* is a function you write. A *step function*
-is what the IR binds to an action: the generator lowers an action's rules and their effects into
-one." Then use the words consistently.
-
-### 49. The example drifts between sections
-
-**Severity:** Medium
-
-**Problem.** `Phase` has `queued, running, done, timedOut` in section 2. Section 6 uses
-`Phase.unscheduled`, `client.pause`, `process.stop`; section 8 uses `Phase.paused`; section 13
-uses `Phase.backingOff` and `timers.backoff`. `Fact` is `submitted, started, finished` in
-section 1 and `statusQueued, statusRunning, ...` in section 2. None of these additions is
-declared. This is the detail behind point 2.
-
-**Recommended solution.** As in point 2. At minimum, every case used in a later example must
-be declared in an earlier one.
-
-### 50. The Contents descriptions are in three styles
+### 3.3 Three spellings of a class
 
 **Severity:** Low
 
-**Problem.** Entries read "finite domains, catalogs, counters" (a list), "the promises" (a noun
-phrase), "one thing changed" (a sentence fragment), "Product and Protocol" (two names), and
-section 10 has no description at all.
+**Problem.** A class of an action is written positionally (`finish(Result.ok)`), by name
+(`finish(result := Result.ok)`) and empty (`start()`), and the positional and empty forms leave
+other inputs at the domain's first value. The `:=` symbol is the third symbol an author learns
+(`~>`, `->`, `:=`), and it exists only for this.
 
-**Recommended solution.** One style, a noun phrase of what the section defines, for every entry.
+**Planned.** fn-141 R4 retires the hand-written lowering of named inputs.
+
+**Recommendation.** Keep positional and named, drop the empty parenthesised form in favour of the
+bare action name meaning "every class" and `a(first)` meaning the first class, so "first value of
+every input" is never a silent default.
+
+### 3.4 `given Ok[Outcome]` is an invisible default
+
+**Severity:** Medium
+
+**Problem.** A step that names no outcome takes it from a `given Ok[Outcome]` in scope, usually in
+the outcome's companion, sometimes imported per file. The guide has to explain it as "the outcome
+a step means when it says nothing". A reader of an effect cannot see which outcome a bare
+`enter(s)` produces without finding the given.
+
+**Planned.** Nothing.
+
+**Recommendation.** Make the default outcome a declaration of the machine (`val accepted =
+Outcome.accepted` or `Machine[S, O, F](ok = Outcome.accepted)`), read by the sugar, so it is one
+line in the machine header rather than an implicit resolution.
 
 ---
 
-## Part F. Clarity
+## 4. Effects
 
-### 51. Three ways to write a class, in one sentence
+### 4.1 `enter`/`enters` and `reject`/`rejects` differ by one letter and by kind
 
-**Severity:** Low
+**Severity:** High
 
-**Problem.** Lines 181 to 183 give the positional form, the named form with a parenthetical
-about defaults, and the empty form, all in one sentence with the `:=` note trailing.
+**Problem.** `enter(state, facts*)` is a step value written in an effect; `enters(Phase.p)` is a
+rule form after `~>` that also records the phase's status fact. `reject(outcome, s)` is a step
+value; `rejects(rejection)` is a rule form over shared rejections. The pairs differ in what they
+are, their arity and what they record, and the names differ by an `s`.
 
-**Recommended solution.** A three-row table: form, example, which inputs it leaves at the
-domain's first value.
+**Planned.** fn-159.7 makes `enters` the common form for trivial effects, which makes the pair
+more visible, not less.
 
-### 52. Five refusals in one sentence
+**Recommendation.** Give the rule forms a different shape: `~> Phase.p` for "enter the phase and
+record its status" (the phase alone is unambiguous after `~>`), and `~> Rejection.notFound` for a
+shared rejection. Then `enter`, `stay` and `reject` are the only step words and they appear only
+in effects.
 
-**Severity:** Low
+### 4.2 `disabled` is a value and a function, and fn-141 needs it to be one
 
-**Problem.** Lines 325 to 327 list what the IR generator refuses about `choose` as one sentence
-with four commas and a parenthetical.
+**Severity:** High
 
-**Recommended solution.** A bulleted list, each item naming who refuses it.
+**Problem.** `val disabled: List[Step]` (`Nil`) is returned from an effect to give no step, and
+`def disabled(actions*)` binds actions a machine refuses. `Syntax.scala` defines both; the guide
+documents them inconsistently. fn-141 R4 makes each sugar's definition its only lowering, which
+needs one definition per word.
 
-### 53. The refinement rule needs a list
+**Planned.** fn-159.4 removes one use (`disabled(process.stop)` in the activity product).
 
-**Severity:** Medium
+**Recommendation.** The effect form is `Nil`; call it `none` or `noStep`, or let an effect return
+`Nil` directly. Keep `disabled(a)` for the rule form. Resolve this before fn-141 Part A.
 
-**Problem.** Lines 652 to 656 state the refinement check as one sentence: starts map to starts,
-every row result is carried by a product row from mapped source to mapped target with the same
-outcome and the visible facts, or source and target map to one state and the step stutters, and
-closedness is preserved. This is the one rule in the section that a reader must get exactly
-right, and it is the hardest sentence in the guide.
+### 4.3 `effect { }` and `is { }` blocks change meaning silently
 
-**Recommended solution.** A numbered list of the three obligations (starts, carried steps,
-stutters) and the role condition, each with its witness kind, followed by one sentence on what
-`visible` narrows in each.
+**Severity:** High
 
-### 54. "A Property that reads two kinds ... Nobody calls it."
+**Problem.** fn-155's planning found that a block form "appends the assigned status after
+recorded facts, cannot assign a computed phase, and carries no `because`". A `because` passed as a
+parameter does not lift; one written directly in the effect does. The block looks like a shorter
+spelling of the `def` form and is not: fact order in the IR differs, so the step's identity
+differs.
 
-**Severity:** Low
+**Planned.** fn-155 works within these limits and defers the lifter change.
 
-**Problem.** Line 780 says "A Property that reads two kinds is brought only where both are
-declared. Nobody calls it." Neither "kinds" (of capability) nor "it" (the companion def) is
-resolved in the sentence.
+**Recommendation.** A block form must lower to exactly what the equivalent `def` lowers to, or be
+refused where it cannot. Fix the status-ordering difference (either both forms append the status
+last, or both put it first) before fn-155 collapses effects through the block form, since the
+equivalence seal would otherwise mask a fact-order change as a migration.
 
-**Recommended solution.** "A companion def that takes two capabilities is brought only where the
-machine declares both. The author never calls a companion def; declaring the capability does."
-
-### 55. "Its outcome and fact types are therefore `String`"
-
-**Severity:** Low
-
-**Problem.** Line 834's "therefore" does not follow from the preceding sentence, which is about
-reachability. The reason is the composed keys (`<field>_<fact>`) two sentences earlier.
-
-**Recommended solution.** Move the sentence up to follow the key definition: "...both members'
-facts (`<field>_<fact>`). Its outcome and fact types are therefore `String`, the composed keys."
-
-### 56. The guide reads as a spec by its author
+### 4.4 `require` inside a step is an error, not a disabled row, and nothing in the spelling says so
 
 **Severity:** Medium
 
-**Problem.** Sentences such as "`evidence` lists only the exceptions: a fact is confirmed by
-evidence of its own name unless a line says otherwise, and a fact case with fields needs a line
-that covers all its values" (line 240) are precise and complete and still hard to read on first
-pass, because they state the rule before the reader knows there is a question. The guide is dense
-with such sentences; the density is uniform, so there is nowhere for a reader to rest.
+**Problem.** A `require(cond)` at the head of an effect is a precondition: a rule whose guard admits
+a state the effect `require`s against is a declaration error at lift, not a silent disabled row.
+Authors reading Scala expect `require` to throw at run time; the DSL reads it as a static claim.
 
-**Recommended solution.** In the tutorial sections, lead each "Meaning" paragraph with the
-question the concept answers ("How does a Run know a fact happened?") before the rule. Keep the
-reference sections dense; that is what a reference is for.
+**Planned.** Nothing.
+
+**Recommendation.** Spell the precondition as DSL: `expects(cond)` or make guards the only place
+a condition is written, and refuse `require` in function bodies (it is in the liftable subset only
+for this).
+
+### 4.5 Named choices carry names the reader never sees
+
+**Severity:** Low
+
+**Problem.** `choose(enqueueCommits -> steps, enqueueFails -> steps)` pairs each alternative with
+a declared `choice` token, and the token's name is inert metadata: the IR strips it before
+identity hashing (fn-131). Authors declare and name things that nothing reads.
+
+**Planned.** fn-131 Part B marks inert fields once.
+
+**Recommendation.** Make the names reach the decision trace and the lint's explanation, or drop
+`choice` and take the names from the branch's `because`. Inert text the author must write is the
+worst of both.
+
+---
+
+## 5. Rules
+
+### 5.1 `when` means three things; fn-164 removes one
+
+**Severity:** Medium
+
+**Problem.** `when(Phase.x)` and `when[Role]` are rule headings; `property when <class> holds` is
+a Property selector; `whenAction` is a third form.
+
+**Planned.** fn-164 moves Properties to `after(<class>)` and `afterAction`.
+
+**Recommendation.** After fn-164, delete the Property `when` outright rather than keeping it as a
+deprecated spelling (fn-141 Part D retires unused spellings; put it on that list).
+
+### 5.2 `from(actor) { }` becomes a header with no content
+
+**Severity:** Medium
+
+**Problem.** Today `from(worker) { import worker.*; on(poll) ... }` brings an actor's actions into
+scope. After fn-159.1 every `on` target is qualified and `from` is "a grouping header with an
+ownership check", so a reader sees `from(worker) { on(worker.poll) ... }`: the actor twice, the
+second time doing the work.
+
+**Planned.** fn-159.1 keeps `from` as a grouping; fn-161 regroups rules by facet, where the actor
+grouping stops being the primary structure.
+
+**Recommendation.** Drop `from` in fn-161's stage 2. The per-actor view of "who can do what" is
+what the lint's table and fn-130's views are for, and fn-161's edge cases already say so.
+
+### 5.3 Silence is expressed by absence
+
+**Severity:** Medium
+
+**Problem.** A system action with no row is "MUST NOT"; an actor action with no row is silence,
+and only the `silent-rejection` lint finding tells an author the Model says nothing about a
+request. Two different modalities are written the same way, by not writing anything. `disabled(a)`
+exists for the explicit refusal but is optional.
+
+**Planned.** fn-161's ownership check requires every bound action to belong to a facet, which
+tightens "bound" but not "unbound".
+
+**Recommendation.** Make the actor case explicit: a machine declares the actor actions it
+`ignores(...)` (silence by design) and the lint refuses an actor action that is neither bound,
+disabled nor ignored. Then the table's modality is always read off a declaration.
+
+### 5.4 Guards read the state only, by convention
+
+**Severity:** Low
+
+**Problem.** `where(g)` takes a predicate of the state; an effect that must branch on an input does
+so in its body. Nothing in the spelling says that a guard may not read inputs, and the
+disjointness check runs over states only, so an input-dependent guard would be a silent
+narrowing if it ever compiled.
+
+**Planned.** Nothing.
+
+**Recommendation.** Type the guard as `S => Boolean` in the heading's signature (it may already
+be) and say so once in the guide. If class-level guards are wanted, give them a form,
+`on(a) { where((s, i) => ...) }`, and extend the overlap check to classes.
+
+---
+
+## 6. Properties and claims
+
+### 6.1 `never(to).from(before)` reads backwards
+
+**Severity:** Medium
+
+**Problem.** The core form is `!before(b) || !to(a)`: precondition first, prohibition second.
+The sugar states the prohibition first. `once(over).keeps(x)` has the related problem: "once"
+reads as "exactly once" where it means "from the point `over` holds".
+
+**Planned.** fn-164 keeps the claim patterns as the temporal layer above `expect` blocks and
+documents each with a core form.
+
+**Recommendation.** Fix the order in fn-164, since it rewrites the Property surface anyway:
+`from(before).never(to)` and `after(over).keeps(x)`. The `after` word then means the same thing
+in `property after(<class>)` and in `after(over)`: "from this point on".
+
+### 6.2 `Declares[S]` is the type of a Model and does not say so
+
+**Severity:** Low
+
+**Problem.** Shared Properties and capability laws are written over `Declares[S]`, the supertype of
+a machine and a composition, with `def` rather than lambda parameters so the lifter can read them.
+The word says nothing; the guide calls the thing a Model.
+
+**Planned.** fn-164 keeps `Declares` for generic constructors.
+
+**Recommendation.** Rename to `Model[S]`.
+
+### 6.3 Progress claims live in `properties` with no distinguishing word
+
+**Severity:** Low
+
+**Problem.** `m.leadsTo(name)(from, to, within, under*)` is written in `object properties` beside
+same-step and transition Properties; only its arity tells the reader it is liveness, and it takes a
+string name where every other claim is named by its `val`.
+
+**Planned.** fn-149 groups it under `properties.liveness`; fn-150 extends it to compositions.
+
+**Recommendation.** In fn-149, drop the string name (the `val` names it, as fn-141 R7 captures) and
+make the bound and assumptions named parameters (`within = eight, under = assume.fair(worker)`),
+since fn-150 adds composed assumptions and positional arguments will not scale.
+
+---
+
+## 7. Scenarios, Queries and bounds
+
+### 7.1 Bounds are named by their numbers
+
+**Severity:** Medium
+
+**Problem.** `Limits` values are `three`, `eight`, `twelve`, `fourWide`, `fiveWide`, `twelveWide`
+in `temporal/Bounds.scala`. A Query says `limits eight`; a reader learns the number and not why
+eight is enough for that Query, and two Queries with the same number for different reasons share a
+name.
+
+**Planned.** fn-159.5 moves every bound there; fn-140 derives a witness's bound from its path, so
+only `verify` Queries keep an explicit bound.
+
+**Recommendation.** Name a bound by what it covers (`oneRetryRound`, `closeAfterTwoAttempts`),
+with its numbers in the declaration and a `because`. A Query then reads as a claim about a
+situation, and a bound change is reviewed against its reason.
+
+### 7.2 "witness" will mean the declaration and the result
+
+**Severity:** Medium
+
+**Problem.** A witness is already the path a `find` reports and the counterexample a failed
+`verify` reports. fn-140 adds `witness(...)` as the one-sentence declaration of a path-and-outcome
+Query. The same word then names what the author asks for and what the tool answers with.
+
+**Planned.** fn-140 (in progress, 6/10 tasks done).
+
+**Recommendation.** If the declaration keeps the word, call the result a *trace* in results and
+reports, and say in the guide that a witness Query is answered by a trace. Renaming the result is
+cheaper than renaming the declaration at this point.
+
+### 7.3 `through` is a modifier only a `verify` may take
+
+**Severity:** Low
+
+**Problem.** `query verify P in s through refinement` reads a Property through a refinement map,
+and only `verify` may. A `find ... through` is refused at the Query, which the reader discovers
+by trying it.
+
+**Planned.** Nothing.
+
+**Recommendation.** Make it a property of the Property, not of the Query: a Property declared on
+the Product that a Protocol machine `verify`s is read through the refinement by construction.
+Then `through` disappears.
+
+---
+
+## 8. Monitors, assumptions and holes
+
+### 8.1 A monitor is a curried triple
+
+**Severity:** Low
+
+**Problem.** `monitor(initial)(next)(violated)` is three argument lists with no names, with a
+second overload `monitor(name, initial)(...)` that takes a string name; `sticky` and
+`stickyAcross` are sugar over it; `readAfter` and `readAtEnds` say when it reads. The shape is a
+fold, which is right, but a reader has to know the position of each list.
+
+**Planned.** fn-141 R4 retires the hand-written lowering of `sticky`/`stickyAcross`; fn-149 places
+safety monitors under `properties.safety`.
+
+**Recommendation.** Named parameters: `monitor(start = ..., step = ..., violated = ...)`. Keep the
+sugar.
+
+### 8.2 `assume` takes a string
+
+**Severity:** Low
+
+**Problem.** `assume("storageLoss")` names an assumption by string, which the derivation
+`assuming(...)` and fn-123's fault binding then repeat. Everything else is named by its `val`.
+
+**Planned.** fn-123 derives the storage-loss assumption from the fault's name; fn-141 R7 captures
+`val` names.
+
+**Recommendation.** `val storageLoss = assume` after fn-141's capture; refuse the string form.
+
+---
+
+## 9. Refinement and derivations
+
+### 9.1 Seven words for "the same, except"
+
+**Severity:** Medium
+
+**Problem.** `restrict`, `rebind`, `extend`, `refining`, `assuming` and `unmonitored` derive a
+machine, wrapped in `Derived(...)`; `DerivedComposition` and `withMember` derive a composition;
+`DerivesFrom(run, machine, runs = ...)` derives a realization. The marker traits `NegativeControl` and
+`FailureModel` say why a derivation exists.
+
+**Planned.** fn-162 removes the derivations that change nothing, which were most of them; the
+behaviour-changing six stay.
+
+**Recommendation.** One `Derived(source)` for all three kinds, with the change methods on the
+source's type, and the `FailureModel`/`NegativeControl` markers as a required `because` on the
+derivation rather than a mixin. Do this after fn-162, when the surviving uses are visible.
+
+### 9.2 The refinement map is a method with four optional parts
+
+**Severity:** Low
+
+**Problem.** `object refinement extends Refinement(Product)` with `toProduct`, `visible`,
+`visibleOutcomes` and `unobservable`, and the closedness check lives in the Model's tests rather
+than in the gate.
+
+**Planned.** Nothing.
+
+**Recommendation.** Move the closedness check into the lifter's refusals (fn-141 R12 gives each
+refusal one home), so a refinement that is not closed is refused where it is written.
+
+---
+
+## 10. Facets and capabilities
+
+### 10.1 Today's facets and fn-161's facets are two constructs with one name
+
+**Severity:** High
+
+**Problem.** The framework has `trait X extends Facet[...], Phased[...]` with an inner object
+holding `effects`, `rules`, `capabilities`, `properties` and `queries`, assembled by `Facets(...)`
+and `FacetCapabilities(...)`, with the lifter switches `facets-only` and `facet-vocabulary`.
+fn-161 defines a facet as a unit that *owns* actions, with the ownership check and cross-facet
+dependencies as self-types. The two agree on the name and on little else; fn-161 R1 asks for "a
+facet construct", which already exists in a different shape.
+
+**Planned.** fn-161 (0/4 done, next in order after fn-159).
+
+**Recommendation.** fn-161's first task should state which of today's facet forms survive, and
+the assembly should be one word (`Facets(a, b, c)` for every section, not `Facets` for some and
+`FacetCapabilities` for others). The lifter switches are configuration of a migration and should
+go with it.
+
+### 10.2 Capabilities are entity-level; fn-163 needs action-level
+
+**Severity:** High
+
+**Problem.** A capability is declared on a machine (`CapabilityOf`, `Capabilities` with `except`,
+`overriding(... of = ...)`, `claim`, `bound`) and its laws read a `Phasing[S, P]`. fn-163 wants
+`Idempotent(client.start, by = requestId)`, a promise about an action, and `Fenced`, a promise
+over history. Neither fits the kind-per-entity mechanism, and the spec says so.
+
+**Planned.** fn-163 is scheduled fifth; its R4 allows a law to "stay hand-written with a recorded
+reason".
+
+**Recommendation.** Design the action-targeted and history-scoped capability forms before fn-163
+starts, as a small spec of their own, so fn-163 is a migration and not a design. The alternative,
+most system capabilities staying hand-written with a reason, is what fn-163 exists to end.
+
+### 10.3 `except` and `overriding` are both waivers
+
+**Severity:** Low
+
+**Problem.** Both are recorded in `.waivers.json`; the verbs do not say so, and `overriding` is a
+participle beside the imperative `except`.
+
+**Planned.** fn-155 C shares one `because` across six `overriding` calls.
+
+**Recommendation.** `waive(P, because = ...)` and `replace(P -> own, because = ...)`.
+
+### 10.4 `Phased` and `Phasing`
+
+**Severity:** Low
+
+**Problem.** The machine mixin is `Phased[S, P](projection, writer)`; capability laws take a given
+`Phasing[S, P]` and call `phasing.roleCases` and `phasing.phase`. One concept, two names, one of
+them never introduced.
+
+**Planned.** Nothing.
+
+**Recommendation.** One name. `Phased` is the typeclass; the mixin provides it.
+
+---
+
+## 11. Compositions and channels
+
+### 11.1 A composition's outcomes and facts are strings
+
+**Severity:** Medium
+
+**Problem.** `Composition[S](_.a -> A, _.b -> B)` keys members by field, and its outcome and fact
+types are `String`: the composed keys `<field>_<fact>`. A composed Property reads facts by string,
+and fn-164's contract has to add `.records(_.member -> MemberMachine, fact)` to get the member's
+fact type back.
+
+**Planned.** fn-164 (the typed `records` form); fn-150 adds progress claims on compositions.
+
+**Recommendation.** Make the composed fact type a sum of the members' fact types (`A.Fact |
+B.Fact`, or a framework `Composed[A.Fact, B.Fact]`), keyed in the IR exactly as today. The string
+is a lowering artefact that should not be the author's type.
+
+### 11.2 Channels are the model for declared mechanisms, and still need a hand-written catalog
+
+**Severity:** Low
+
+**Problem.** `channel[M](capacity, order, loss, duplicates)` with `Inbox[M]` in the state is the
+pattern fn-123 follows for faults: declared once, rows derived. But a state that holds an `Inbox`
+is the one remaining place an author writes `given Finite[S] = { given Finite[Inbox[M]] =
+wire.contents; Finite.derived }`, and `loss = Loss.reliable` says the loss is reliable.
+
+**Planned.** fn-123 reuses the channel pattern; nothing touches the catalog block.
+
+**Recommendation.** Let `Inbox[M]` carry its channel in its type (`Inbox[wire.type]`), so its
+catalog derives like everything else, and rename the parameter `delivery = Delivery.reliable |
+.lossy`. Do it before fn-123 copies the shape for budgets.
+
+---
+
+## 12. Realizations
+
+### 12.1 The realization vocabulary is the largest in the DSL and the least Temporal-agnostic
+
+**Severity:** Medium
+
+**Problem.** `Realizes(machine, learned, observations, runs)` with `controller`, `workers`,
+`evidence`, `serverSteps`, `controls`; `DerivesFrom` with `changes`; `everyCase`, `onPath`,
+`perform`; `rpc`, `await`, `withFields`, `extended`, `statusTable`; `Evidences`. Most live under
+`model/temporal/realize`, which is right, but the shape is a second language an author learns
+after the first, and fn-141 notes its lifter alone is 1,373 lines.
+
+**Planned.** fn-141 Part B exports realizations first, by running them; fn-162 R8 adds `runs =
+Seq(...)`; fn-144, fn-125 and fn-146 add tags, settings and CEL operands to the same surface.
+
+**Recommendation.** Treat fn-141's realization step as the moment to cut the vocabulary: every
+realization helper that exists only to be recognised by the lifter (the `Typed*` constructors
+fn-141 R2 lists) goes, and what remains is plain data a kit builds. Before fn-144 and fn-125 add
+to the realization surface, agree the one shape they add to.
+
+### 12.2 Two `evidence` declarations, joined by name
+
+**Severity:** Medium
+
+**Problem.** A machine declares `val evidence: PartialFunction[Fact, String]`, "only the
+exceptions", and a realization declares `object evidence extends Evidences(answered(Fact.x,
+call), ...)`. The lowering joins them by the string. An author writing a new fact has to know
+both exist.
+
+**Planned.** fn-148 consolidates Testpilot evidence schemas on the Go side.
+
+**Recommendation.** One declaration, on the realization, keyed by fact: the machine never names
+evidence kinds. Where a machine must say "this fact is confirmed by nothing", that is a hole, not
+an evidence line.
+
+---
+
+## 13. Cross-cutting
+
+### 13.1 "level" and "class" collide with other meanings
+
+**Severity:** Medium
+
+**Problem.** *Level* is Product versus Protocol in every Model section, and the five expression
+strata (value, state reading, step, step reading, claim) in the reader. *Class* is one assignment
+of an action's inputs, in a language whose every example is a `case class`.
+
+**Planned.** fn-160 renames the System level to Protocol; fn-131 Part A makes the reader check the
+five expression levels, which makes the second meaning more prominent.
+
+**Recommendation.** Rename the expression strata (*tier* or *place*) in fn-131, since it names them
+in the reader's messages. Keep *class* but say once in the guide's conventions that a class of an
+action is not a Scala class; the IR key `name-key(i1)` makes a rename expensive.
+
+### 13.2 Sugar's core form is a comment until fn-141
+
+**Severity:** High
+
+**Problem.** Every sugar definition documents its `Core form:` in a comment, and the lifter has a
+hand-written lowering for each. The two can disagree, and the lint only checks that the comment is
+present. fn-141 R4 makes the definition the lowering, which is the fix, but fn-141 is last in the
+batch and every spec before it adds sugar (`enters`, witnesses, `expect` blocks, groups, fault
+declarations).
+
+**Planned.** fn-141 Part A, scheduled thirteenth.
+
+**Recommendation.** Pull fn-141 Part A (sugar once) forward to before fn-140, or require every
+sugar the batch adds to be written in core forms from the start so that Part A finds nothing to
+rewrite. Otherwise each new sugar is written three times and migrated once.
+
+### 13.3 Declaration order is a correctness condition
+
+**Severity:** Medium
+
+**Problem.** Machines are `object`s; a `val` read before it is declared is `null`, and the
+framework's overlap check and fn-141's export both depend on construction order. fn-156 adds
+`-Wsafe-init` and the declaration-order lint runs before export (fn-141 R14), but the author still
+learns the rule by hitting it.
+
+**Planned.** fn-156 (done except documentation), fn-141 R14.
+
+**Recommendation.** Make the sections `lazy` by construction (the framework's `Rules`, `Properties`
+and `Queries` bases can defer their bodies until the machine is complete), so order is a style
+rule the lint enforces and never a semantic one.
+
+### 13.4 Naming by `val` is the right rule, with two exceptions that should go
+
+**Severity:** Low
+
+**Problem.** Every declaration is named after its `val` or object, except assumptions (8.2),
+progress claims (6.3) and anything written as a string "where no `val` declares it". fn-141 R7
+captures the `val` name at the declaration, which makes the exceptions unnecessary.
+
+**Planned.** fn-141 R7.
+
+**Recommendation.** After fn-141, refuse string names everywhere a `val` can name the thing.
+
+---
+
+## 14. Order of work
+
+If the batch runs as `MILESTONES.md` lists it, the points above that have to land *before* a
+given spec are:
+
+| Before | Point |
+| --- | --- |
+| fn-159 (now) | 4.2 `disabled` as one definition; 4.1 the rule-form shape, since fn-159.7 spreads `enters` |
+| fn-161 | 10.1 which facet form survives; 5.2 whether `from` survives |
+| fn-163 | 10.2 action-targeted and history-scoped capabilities |
+| fn-140 | 7.2 the name of the result; 7.1 named bounds |
+| fn-164 | 6.1 pattern word order; 6.2 `Model[S]` |
+| fn-123 | 11.2 `Inbox` catalog and `delivery`; 1.3 per-field ranges |
+| fn-155 | 4.3 block-form equivalence |
+| fn-141 | 13.2 sugar in core forms from the start; 2.2 statuses as data, so one lifting rule covers role tests; 2.3 one status mapping per kind |
+
+Everything else can follow the batch.

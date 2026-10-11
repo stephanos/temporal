@@ -62,6 +62,7 @@ facet vocabularies are recorded in fn-161.
 
 | Order | Spec | Scala scope |
 | --- | --- | --- |
+| 0 | fn-166 | mini activity proving ground: build switch, the mini Model, `make mini`; the batch below iterates on it with the big Models parked |
 | 1 | fn-159 | qualified names, renames, `enters` (source integrated; proof/closure open) |
 | 2 | fn-161 | facets |
 | 3 | fn-162 | realizations name their Queries; claim containers removed |
@@ -76,6 +77,33 @@ facet vocabularies are recorded in fn-161.
 | 11 | fn-128, fn-129 | remaining activity Model edits |
 | 12 | fn-153 | Property illustrations in the DSL |
 | 13 | fn-141 | lifter refactor on the final DSL (byte-identical lifts) |
+| 14 | fn-165 | inputs as records: named classes, declared defaults, `:=` removed from classes (after fn-141) |
+
+### fn-166: Mini activity: a small, complete Model to iterate the DSL on
+
+Captured 2026-10-11 (owner: "put the current model aside for a moment and work with a simplified
+one"). The ordinary loop is about two minutes of tool time; the complete source seal is 20 to 30
+minutes and scales with Model size, and the time around it is where fn-149.6 went. A cut-down
+standalone activity (`features/activity/mini`, three levels, about 800 lines against 4,600) holds
+one of each hard instance the real Models have (refinement with a verify through it, a shared
+input, a shared status fact, a cross-facet guard, a waiver and an override, a composition with a
+`sync` and a channel, a failure model with a negative control, fair progress, a monitor, a hole, a
+real realization with a `.live` witness) so a DSL change proven on it transfers. A `MODEL_FEATURES`
+build switch compiles, lifts and tests the mini Model alone without moving the parked Models;
+`make mini` (compile, lift, Go checks, lint, IR diff) under 90 seconds is the loop, and the reviewed
+IR diff is the proof. Rules: the DSL batch iterates on the mini Model; every DSL task carries a
+one-line migration note; a DSL spec closes only after the parked Models are migrated per its notes
+and the existing seal passes on them; the mini Model is never parked. Restoring the canonical Make
+route (`make protoc`, owner-held) is the first thing to do and is not a task here. First in the
+batch. Not marked ready. [Spec](.flow/specs/fn-166-mini-activity-a-small-complete-model-to.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-166.1 | ⬜ todo | `MODEL_FEATURES` narrows compile, jar, gate, lint and suites; inventory tests pass under both switches |
+| fn-166.2 | ⬜ todo | Feature file and product level by subtraction: two facets, cross-facet guard, `Closable`/`Pollable`, a waiver, `verify` and `find` |
+| fn-166.3 | ⬜ todo | Protocol level: refinement, shared input, shared status fact, composition with `sync`, channel, failure model, fair progress, monitor, hole, `Retryable`/`Expirable` with an override |
+| fn-166.4 | ⬜ todo | Realization and live witnesses; one Case run live once |
+| fn-166.5 | ⬜ todo | `make mini` under 90 s; the rules in MILESTONES, README and the batch specs |
 
 ### fn-159: Qualified action names in rules
 
@@ -84,8 +112,10 @@ Readability and naming cleanups across the Models. Rule targets and phases are a
 Actors get clearer names (`activityWorker`, `completionClient`), as do the capability kinds `Retryable`
 and `Expirable` (fn-159.2, fn-159.8). Phase-only effects give way to `enters(Phase.X)` (fn-159.7). The
 product's never-enabled `disabled(process.stop)` binding goes, unless the lift needs it (fn-159.4), every `Limits` bound moves into
-`Bounds` (fn-159.5), and `Observation` drops its unchecked `read` text (fn-159.6). fn-159.1, fn-159.3
-and fn-159.6 leave the IR unchanged; the renames, bound moves and `enters` change ids or function names
+`Bounds` (fn-159.5), `Observation` drops its unchecked `read` text (fn-159.6), and a bounded integer has
+one spelling, `UpTo[N]` on the field, with the lifter reading ranges per field (fn-159.9), and an input a class may omit declares its
+default on its token, so `start()` reads as every default and no form reads catalog order (fn-159.10).
+fn-159.1, fn-159.3, fn-159.6, fn-159.9 and fn-159.10 leave the IR unchanged; the renames, bound moves and `enters` change ids or function names
 only. The IR-regenerating tasks wait on the tree's IR `Duration` migration. Not marked ready.
 [Spec](.flow/specs/fn-159-qualified-action-names-in-rules.md).
 
@@ -99,6 +129,8 @@ only. The IR-regenerating tasks wait on the tree's IR `Duration` migration. Not 
 | fn-159.6 | ⬜ todo | Free-text Observation `read` removed in source; typed response-field/lift proof and closure open |
 | fn-159.7 | ⬜ todo | `enters(Phase.X)` integrated, including worker stop/resume in Serving.scala; equivalence/shared closure still open |
 | fn-159.8 | ⬜ todo | Confirmed `Retryable`/`Expirable` renames integrated in source; identity/equivalence proof open, managed regeneration deferred |
+| fn-159.9 | ⬜ todo | `UpTo[N]` as the one bounded-integer spelling; per-state `given Finite[Int]` retired from the Model, fixtures and lifter; ranges read per field (added 2026-10-11 from `model/SEMANTICS_FEEDBACK.md` 1.3) |
+| fn-159.10 | ⬜ todo | `input[T](default = v)`; `start()` and named calls fill omitted inputs from declared defaults, never from catalog order (added 2026-10-11 from `model/SEMANTICS_FEEDBACK.md` 3.3) |
 
 `disabled(...)` targets are qualified like `on` (decided 2026-10-10).
 
@@ -397,6 +429,28 @@ half of the realization lifter's lines net of what it adds.
 | fn-141.12 | ⬜ todo | Properties, Scenarios, Queries and progress exported; the lifter's fold deleted; comprehension fixture |
 | fn-141.13 | ⬜ todo | Capability expansions exported, in the shape the current framework leaves |
 | fn-141.14 | ⬜ todo | Dead lifter code, rules of record, docs, backends check, size report; close — backends check deferred |
+
+### fn-165: Inputs as records: named classes, declared defaults, no `:=`
+
+Captured 2026-10-11 from `model/SEMANTICS_FEEDBACK.md` 3.3. An action's inputs become a case class
+(`final case class Start(scheduleToStart: Timeout = Timeout.unset, ...)`, declared with
+`action(this).inputs[Start]`), so a class is plain Scala: `start()` is every default,
+`start(maxAttempts = MaxAttempts.two)` names what differs, and a step function reads `in.startToClose`
+as it reads `s.phase`. Single-input actions keep `finish(Result.ok)`. A shared input across actions is
+a field with the same name and type, and a consumer that needs it writes a structural bound the
+compiler checks (option 1 of five weighed; see the spec's Decision Context). The IR, Cases and Go do
+not change; the equivalence seal proves it. Placed after fn-141 so the class lowering is written once
+against the final lifter; fn-159.10 (explicit defaults on tokens) is superseded by it or skipped
+(R10). Not marked ready. [Spec](.flow/specs/fn-165-inputs-as-records-named-classes.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-165.1 | ⬜ todo | Inventory: actions, class calls, input-reading steps, token-identity consumers; freeze field order, defaults and shapes |
+| fn-165.2 | ⬜ todo | Framework: `inputs[In]`, `(s, in)` step functions, structural shared inputs; proof that class order and `Param` names are identical |
+| fn-165.3 | ⬜ todo | Lifter: classes from record construction, `in.field` reads, refusals (positional, computed default, `copy`), fixtures |
+| fn-165.4 | ⬜ todo | Realization kit: `deadlines` and presets by field selector |
+| fn-165.5 | ⬜ todo | Migrate the Models, byte-identical IR, equivalence |
+| fn-165.6 | ⬜ todo | Remove the token form and `:=` on classes; README and SEMANTICS |
 
 ## Deferred for now
 

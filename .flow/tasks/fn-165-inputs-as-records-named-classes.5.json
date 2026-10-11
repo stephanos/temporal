@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-11T17:31:17.151253Z",
+  "depends_on": [
+    "fn-165-inputs-as-records-named-classes.3",
+    "fn-165-inputs-as-records-named-classes.4"
+  ],
+  "id": "fn-165-inputs-as-records-named-classes.5",
+  "priority": null,
+  "spec": "fn-165-inputs-as-records-named-classes",
+  "spec_path": ".flow/tasks/fn-165-inputs-as-records-named-classes.5.md",
+  "status": "todo",
+  "title": "Migrate the Models to input records with byte-identical IR",
+  "updated_at": "2026-10-11T17:31:17.151253Z"
+}
