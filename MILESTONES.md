@@ -136,8 +136,8 @@ the full gate, review and live run form the closing batch. Go validation is skip
 | G | Go and regeneration | fn-162.2 (IR schema, lowering, assessment), fn-160.5 (IR projection), fn-123 Go (crash rows, budgets, lowering, exports, report), fn-140/fn-149 Go, Batch 3 close (fn-146.7, fn-147.4, fn-148.7: Run companions, ceilings), test-speed work, fixes found by the gate | the optimized Go suite once IR is regenerated | one regeneration, IR equivalence under the batch map, full gate, review, live run; closes every spec above |
 
 The *seal* runs the step-table equivalence once before fn-123's first meaning change, so a fault or
-activity change cannot hide inside the meaning-preserving migrations before it. The older per-batch
-tables below (1b–5b) record each spec's original grouping; their gates are now met by batch G.
+activity change cannot hide inside the meaning-preserving migrations before it. The spec sections below
+keep their original batch headings (1b–5b) for reference; their gates are now met by batch G.
 
 ## Direction
 
