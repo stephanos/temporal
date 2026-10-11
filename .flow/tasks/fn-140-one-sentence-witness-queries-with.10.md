@@ -201,10 +201,57 @@ separately classified cancellation redirect. Root audit:
 This is native-row equality evidence, not the completed source seal or a substitute
 for off-native forbidden-fact controls. Full original/rewritten Boolean core,
 generated helper/body/parameter/source-span parity and its mutation controls remain
-unverified. The latest complete lifter campaign has 11 source failures requiring
-repair, separately from nine owner-held managed snapshot comparisons; neither
+unverified. The latest complete lifter campaign has eight source failures; three have subsequent
+focused passing repairs and five full-Fixtures contracts remain open, separately
+from nine owner-held managed snapshot comparisons; neither
 source failures nor excluded assertions earn passing credit. Fn-149 remains gated
 on this task's verified committed closure, and the original worker cap is unchanged.
+
+### Integrated partial and bounded continuation (2026-10-11)
+
+Checkpoint `6fc3878be702154a28d1c5d07e78587f2480d298` is integrated locally.
+The first implementation attempt returned terminal `BLOCKED:SCOPE_EXCEEDED` at
+its original timebox, with this task still `in_progress`, a clean workspace and
+no attributable live command. This is failure strike 1, classified as code present
+but not finalized. It is not a completed source seal or a new authority blocker.
+
+stage: worker-attempt-1 - failed(timebox: committed partial; exact core/span and five fixture contracts unresolved)
+
+The complete irgen campaign3 returned exit1: 156 passing tests, eight source
+failures, nine owner-held managed comparisons, and one pre-existing skipped test.
+Fresh focused DefaultEnds (5), PhaseCapabilities (3) and StatusTableSeam (2)
+campaigns subsequently passed. Five full-Fixtures obligations remain: the exact
+DerivedTwins per-machine derived-ID refusal, the independent custom-state design
+positive, the legacy layout template realization's count/ID/machine/source, and
+fresh verification of Kettle/Reservoir coordinate repairs. Do not change expected
+diagnostic stages or remove positive realization coverage to make these pass.
+
+Other fresh focused observations include WitnessTest (6), production Reset guards
+(9), checker tests (97, including eight strict StepLedger controls), actual
+`make lint-model-syntax`, and current-source lifting of all four production roots.
+These observations are not full acceptance. The complete main/helper/body/type/
+parameter/polarity/order parity proof, authenticated heartbeat `timesOut` export
+retirement and Construct-to-typed-literal timeout argument mapping, 26 edited spans
+and LostStartAnswer's start-position map, independent mutations, rejection
+reason/coordinate/no-IR controls, final format/idempotence and source/artifact/
+classpath reauthentication still require completion.
+
+Use one fresh-context re-anchoring continuation in the existing `w-1d` workspace,
+starting from the integrated local tip. Preserve the implemented decisions and
+original full task acceptance; independently re-verify evidence on the actual
+artifact. The continuation has its own explicit 120-minute budget, not an extension
+of attempt 1. Persist the exact start/deadline at dispatch. After a second non-done
+return, stop retrying this task and escalate; no third dispatch is permitted.
+
+Original handover:
+`.worktrees/w-1d/.flow/tmp/scala-dsl/fn140-10-summary.md` and
+`fn140-10-evidence.json`. Continuation handover uses separate
+`fn140-10-retry-summary.md` and `fn140-10-retry-evidence.json` files.
+Root native20, query-metadata and campaign3 failure audits remain under
+`.flow/tmp/scala-dsl/fn140-10-root-*.json`.
+No Go, managed regeneration, full gate, independent review, live run, publication
+or edits to the user-owned main SEMANTICS draft are authorized. Fn-149 remains
+gated on verified committed closure, not this checkpoint.
 
 ## Acceptance
 - [ ] Complete eligible/retained inventories cover all Model packages, with concrete reader/boundary justifications; every eligible private pinned triple is a witness (R5).

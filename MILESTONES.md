@@ -130,7 +130,7 @@ declared once in its facet, under its existing name, so the copies go. Query ans
 | Name | Status | What |
 | --- | --- | --- |
 | fn-162.2 | ⬜ todo | Realizations name the Queries they run (unnamed find Queries are model-only): framework, lifter, IR, lowering, assessment; duplicate-Property detection — Scala part open; Go part deferred |
-| fn-162.3 | ⬜ todo | Claim-container source integrated; strict native cancellation duplicate pin is red, deduplication/identity proof open; consumer closure deferred |
+| fn-162.3 | ⬜ todo | Claim-container source and cancellation deduplication integrated; strict native controls pass at the witness checkpoint, full identity/source proof open; consumer closure deferred |
 
 ### fn-160: One IR file per feature, collected from the feature's package
 
@@ -194,7 +194,7 @@ is sequential; task .10's committed Scala seal releases later source work withou
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-140.10 | 🔄 in progress | Remaining eligible Models, typed conditional/absent-fact witnesses, source-aware triple lint and committed Scala source equivalence seal; releases fn-149 |
+| fn-140.10 | 🔄 in progress | Partial witness checkpoint integrated; native/focused controls pass, full core/helper/span proof and five source-fixture contracts open; one bounded continuation retry, fn-149 still gated |
 | fn-140.6 | ⏸️ deferred | Full consumer/regeneration/equivalence closure after .7/.8/.9/.10; links the shared fn-123.8 sweep |
 | fn-140.7 | ⏸️ deferred (Go) | Exact-composed selector admission/check/lint/export proof, split from .2 without relaxing its obligations |
 | fn-140.8 | ⏸️ deferred (Go) | Live/model-only Case generation switch and complete manifest/membership proof, split from .3 |
