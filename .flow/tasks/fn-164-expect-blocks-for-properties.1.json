@@ -3,12 +3,14 @@
   "claim_note": "",
   "claimed_at": null,
   "created_at": "2026-10-11T05:28:57.926682Z",
-  "depends_on": [],
+  "depends_on": [
+    "fn-164-expect-blocks-for-properties.6"
+  ],
   "id": "fn-164-expect-blocks-for-properties.1",
   "priority": 90,
   "spec": "fn-164-expect-blocks-for-properties",
   "spec_path": ".flow/tasks/fn-164-expect-blocks-for-properties.1.md",
   "status": "todo",
   "title": "Use colon blocks consistently across the Scala DSL and enforce the style",
-  "updated_at": "2026-10-11T05:28:57.926682Z"
+  "updated_at": "2026-10-11T05:47:58.000020Z"
 }

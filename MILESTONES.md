@@ -178,7 +178,7 @@ documentation and disjoint conversion work may run in parallel. Task 6 joins the
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-140.2 | ⬜ todo | Scala witness lifting, names, bounds, composed facts and capability duplicate refusals; exact Go selector proof retained in .7 |
+| fn-140.2 | 🔄 in progress | Scala witness lifting, names, bounds, composed facts and capability duplicate refusals; exact Go selector proof retained in .7 |
 | fn-140.3 | ⬜ todo | Query `.live`; source-only non-satisfied reasons; all caller and fixture spellings |
 | fn-140.4 | ⬜ todo | First Activity conversion and assessment equivalence proof; duplicate terminate removed |
 | fn-140.5 | ⬜ todo | Author docs, core form and layout template witness |
@@ -202,7 +202,8 @@ and assumptions. Runtime registration and lifted discovery have independent inve
 shared capability-law counts cannot use the candidate scans as their oracle. Complete grouping
 comparisons preserve behavior, check results and Case/assessment meaning, with every identity and
 provenance change explained. Fn-149.5 stays pending until shared gates, review and live evidence are
-linked at fn-123.8, even after its committed source seal releases fault implementation.
+linked at fn-123.8, even after its committed source seal releases fn-164's expectation/colon migration;
+fn-164's seal then releases fault implementation.
 
 | Name | Status | What |
 | --- | --- | --- |
@@ -219,7 +220,8 @@ Heavy commands remain serialized. Composition progress belongs to fn-150, not th
 
 Added by the owner on 2026-10-11, after fn-149 and before the seal: a meaning-preserving
 migration whose IR differs only in source positions, so the seal's step-table equivalence covers it.
-The expectation implementation still needs task planning; the colon-style follow-up is recorded.
+Six sequential tasks now cover R1-R8, including short-circuit/hole behavior, typed contexts,
+core-IR parity, complete caller migration and the final colon-style enforcement.
 [Spec](.flow/specs/fn-164-expect-blocks-for-properties.md).
 
 A Property's predicate becomes an `expect { }` block that reads like the `effect { }` it checks: one
@@ -236,6 +238,11 @@ seal, using the pinned formatter's built-in rewrite where possible and focused l
 
 | Name | Status | What |
 | --- | --- | --- |
+| fn-164.2 | ⬜ todo | Typed expectation contexts and action heads; before/after reads; short-circuit alternatives; compiler scope refusals |
+| fn-164.3 | ⬜ todo | Exact core-IR lifting, temporal predicate bridges, source-positioned refusals and early parity proof |
+| fn-164.4 | ⬜ todo | Capability/foundation predicates migrated with full declaration/function parity |
+| fn-164.5 | ⬜ todo | Feature/actor Properties migrated, including readable heartbeat/reset alternatives and exact preserved IR |
+| fn-164.6 | ⬜ todo | Remove lambda finishers together; migrate fixtures/core forms; author docs and final expectation source seal |
 | fn-164.1 | ⬜ todo | Consistent colon blocks across the DSL, fixtures and docs; formatter/lint enforcement; source-only lift changes and unchanged step tables |
 
 ### fn-123: Declare faults as the environment's actions
