@@ -8,7 +8,7 @@ import scala.reflect.{ClassTag, TypeTest}
 
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 
-final case class Deadline[S, P, R, F <: Product](
+final case class Expirable[S, P, R, F <: Product](
     timer: ClassRef,
     armed: S => Boolean,
     timeout: F,
@@ -45,7 +45,7 @@ final case class Deadline[S, P, R, F <: Product](
     "timeout fact family must contain exactly every finite value of the bound timeout constructor" // format: on
   )
 
-object Deadline extends CapabilityKind:
+object Expirable extends CapabilityKind:
   private def noPending[S](@unused state: S): Boolean = false
 
   def firesInWindow[S, P, R](m: Declares[S])(

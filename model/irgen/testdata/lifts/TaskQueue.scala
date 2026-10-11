@@ -5,7 +5,7 @@
 // compare the IR with expected/taskqueue.json, and tools/umpire/check pins every Query's answer.
 package fixture.taskqueue
 
-import temporal.foundations.taskqueue.*
+import temporal.foundations.taskqueue.*; import temporal.Bounds.{seven, twelve}
 import temporal.foundations.taskqueue.product.TaskQueueProduct
 import temporal.foundations.taskqueue.system.{ForgetfulQueue, TaskQueueSystem}
 import framework.*; import framework.Finite.given

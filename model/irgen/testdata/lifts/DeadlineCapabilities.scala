@@ -1,7 +1,7 @@
 package fixture.deadlinecapabilities
 
 import framework.*; import framework.Finite.given
-import temporal.capabilities.Deadline
+import temporal.capabilities.Expirable
 
 enum Phase derives Finite:
   case waiting extends Phase, Waiting
@@ -134,13 +134,13 @@ object DeadlineTimers
         worker.prepare ~> Steps.prepare
       )
   object capabilities extends Capabilities:
-    val schedule: Capability = Deadline[DeadlineState, Phase, Waiting, Fact](
+    val schedule: Capability = Expirable[DeadlineState, Phase, Waiting, Fact](
       timer = scheduleExpired(true),
       armed = Steps.dispatchArmed,
       timeout = Fact.timeout(TimeoutType.schedule),
       timeoutFacts = timeoutFacts
     )
-    val start: Capability = Deadline[DeadlineState, Phase, Held, Fact](
+    val start: Capability = Expirable[DeadlineState, Phase, Held, Fact](
       timer = startExpired,
       armed = Steps.armed,
       timeout = Fact.timeout(TimeoutType.start),
@@ -151,7 +151,7 @@ object DeadlineTimers
       pendingCancel = Some(Steps.pendingCancel)
     )
   object queries:
-    capabilities.bound(three, Deadline.firesInWindow[DeadlineState, Phase, Waiting] -> two)
+    capabilities.bound(three, Expirable.firesInWindow[DeadlineState, Phase, Waiting] -> two)
 
 enum SimplePhase derives Finite:
   case waiting extends SimplePhase, Waiting
@@ -168,7 +168,7 @@ object SimpleDeadlines
     if armed(s) then enter(SimplePhase.waiting) else disabled
   object rules extends Bindings(startExpired ~> expire)
   object capabilities extends Capabilities:
-    val retry: Capability = Deadline[SimplePhase, SimplePhase, Waiting, Fact](
+    val retry: Capability = Expirable[SimplePhase, SimplePhase, Waiting, Fact](
       startExpired,
       armed,
       Fact.timeout(TimeoutType.start),

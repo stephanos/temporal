@@ -2,7 +2,7 @@ package framework
 
 import framework.Finite.given
 
-import temporal.capabilities.Deadline
+import temporal.capabilities.Expirable
 import temporal.features.activity.{deadline, Timeout, TimeoutType}
 import temporal.features.activity.standalone.{
   client,
@@ -173,7 +173,7 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
       )
   }
 
-  test("complete Deadline family rejects a heartbeat terminal fact on another timer's retry") {
+  test("complete Expirable family rejects a heartbeat terminal fact on another timer's retry") {
     import ActivitySystem.given
     assertEquals(
       ActivitySystem.states.timeoutFacts.toList,
@@ -184,7 +184,7 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
         system.Fact.statusTimedOut(TimeoutType.heartbeat)
       )
     )
-    val property = Deadline.deadlineReturnsToWaiting(ActivitySystem)(
+    val property = Expirable.deadlineReturnsToWaiting(ActivitySystem)(
       deadline.startToClose,
       true,
       ActivitySystem.states.retriesRemaining,
@@ -211,7 +211,7 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
     )
     val exhausted = before.copy(heartbeat = Timeout.expires, maxAttempts = MaxAttempts.one)
     val terminal = take(exhausted, deadline.heartbeat()).head
-    val typed = Deadline.deadlineTimesOut(ActivitySystem)(
+    val typed = Expirable.deadlineTimesOut(ActivitySystem)(
       deadline.heartbeat,
       true,
       system.Fact.statusTimedOut(TimeoutType.heartbeat),

@@ -76,16 +76,14 @@ object TaskQueueProduct
   // An empty queue takes an enqueue; a committed message is delivered up to twice; a delivered one
   // is acknowledged.
   object rules extends Rules:
-    import Outstanding.*
-
     on(queue.enqueue) {
-      when(empty) ~> effects.enqueueView
+      when(Outstanding.empty) ~> effects.enqueueView
     }
     on(queue.deliver) {
-      when(committed, deliveredOnce) ~> effects.deliverView
+      when(Outstanding.committed, Outstanding.deliveredOnce) ~> effects.deliverView
     }
     on(queue.acknowledge) {
-      when(deliveredOnce, deliveredTwice) ~> effects.acknowledgeView
+      when(Outstanding.deliveredOnce, Outstanding.deliveredTwice) ~> effects.acknowledgeView
     }
 
 // The interface under the storage-loss assumption: a committed message may also vanish.

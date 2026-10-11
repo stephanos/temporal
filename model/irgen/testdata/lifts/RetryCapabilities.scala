@@ -1,7 +1,7 @@
 package fixture.retrycapabilities
 
 import framework.*; import framework.Finite.given
-import temporal.capabilities.{Closable, Retries}
+import temporal.capabilities.{Closable, Retryable}
 
 enum SimplePhase derives Finite:
   case waiting extends SimplePhase, Waiting
@@ -115,14 +115,14 @@ object WaitingFailures
         observer.keep ~> WaitingSteps.keep
       )
   object capabilities extends Capabilities:
-    val eligible: Capability = Retries(
+    val eligible: Capability = Retryable(
       failure = worker.fail,
       retryable = true,
       attemptCount = WaitingSteps.attempts,
       maximumAttempts = WaitingSteps.maxOne,
       retriesRemaining = WaitingSteps.remainingOne
     )
-    val network: Capability = Retries(
+    val network: Capability = Retryable(
       failure = fixture.retrycapabilities.network.fault,
       retryable = true,
       attemptCount = WaitingSteps.otherAttempts,
@@ -131,7 +131,7 @@ object WaitingFailures
     )
     val closable: Capability = Closable(rejected = Answer.gone)
   object queries:
-    capabilities.bound(three, Retries.failureReturnsToWaiting[WaitingState, SimplePhase] -> two)
+    capabilities.bound(three, Retryable.failureReturnsToWaiting[WaitingState, SimplePhase] -> two)
 
 object ControlledFailures
     extends Machine[ControlState, Answer, Nothing],
@@ -146,7 +146,7 @@ object ControlledFailures
         client.cancel ~> ControlSteps.cancel
       )
   object capabilities extends Capabilities:
-    val eligible: Capability = Retries(
+    val eligible: Capability = Retryable(
       failure = worker.fail,
       retryable = true,
       attemptCount = ControlSteps.attempts,
@@ -155,7 +155,7 @@ object ControlledFailures
       pendingPause = Some(ControlSteps.pendingPause),
       pendingCancel = Some(ControlSteps.pendingCancel)
     )
-    val fatal: Capability = Retries(
+    val fatal: Capability = Retryable(
       failure = worker.fatalFailure,
       retryable = false,
       attemptCount = ControlSteps.attempts,
@@ -165,7 +165,7 @@ object ControlledFailures
       pendingCancel = Some(ControlSteps.pendingCancel)
     )
   object queries:
-    capabilities.bound(three, Retries.failureReturnsToWaiting[ControlState, ControlPhase] -> two)
+    capabilities.bound(three, Retryable.failureReturnsToWaiting[ControlState, ControlPhase] -> two)
 
 // The fatal instance's own exhaustion law, under the capability Property's parameters.
 def fatalEndsFailed(m: Declares[ControlState])(
@@ -192,7 +192,7 @@ object SelectedFailures
         client.cancel ~> ControlSteps.cancel
       )
   object capabilities extends Capabilities:
-    val eligible: Capability = Retries(
+    val eligible: Capability = Retryable(
       failure = worker.fail,
       retryable = true,
       attemptCount = ControlSteps.attempts,
@@ -201,7 +201,7 @@ object SelectedFailures
       pendingPause = Some(ControlSteps.pendingPause),
       pendingCancel = Some(ControlSteps.pendingCancel)
     )
-    val fatal: Capability = Retries(
+    val fatal: Capability = Retryable(
       failure = worker.fatalFailure,
       retryable = false,
       attemptCount = ControlSteps.attempts,
@@ -211,9 +211,9 @@ object SelectedFailures
       pendingCancel = Some(ControlSteps.pendingCancel)
     )
     overriding(
-      Retries.failureEndsFailed[ControlState, ControlPhase] -> fatalEndsFailed,
+      Retryable.failureEndsFailed[ControlState, ControlPhase] -> fatalEndsFailed,
       because = "a fixture's fatal instance states its own law",
       of = Seq(fatal)
     )
   object queries:
-    capabilities.bound(three, Retries.failureReturnsToWaiting[ControlState, ControlPhase] -> two)
+    capabilities.bound(three, Retryable.failureReturnsToWaiting[ControlState, ControlPhase] -> two)
