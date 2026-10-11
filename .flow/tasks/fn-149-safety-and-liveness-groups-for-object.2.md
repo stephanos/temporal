@@ -48,9 +48,27 @@ Only declared Scala source Touches plus worker lifecycle writes are authorized. 
 - [ ] Helper/bundle and shared-capability fixtures neither bypass placement checks nor duplicate registrations.
 
 ## Done summary
-TBD
+Model authors now get source-attributed safety/liveness placement refusals for resolved direct claims, aliases, factories, every bundle field, supported Property subtypes, and monitor references. The existing Order admission classifies all fields, Claims checks actual retained homes, helper claims stay unregistered, and effect-val/Step-def admission remains intact.
 
+Flat Property/Progress declarations remain accepted until task .6. The kind split deliberately changes the existing hidden-helper diagnostic from `a Property` to `a progress claim`; its position and refusal assertion remain fixed. No IR schema or DSL meaning changed.
+
+Baseline was green at a3417baac6b75b3d15cf0dae7e052b85eca9d5ea. The fresh nonzero PropertyGroupsFixtures Quick command exited 0 with seven tests before edits. Final Quick used `--server=false --require-tests` and exited 0 with 12 tests. Its independent inventories pin eight Properties, three Progress claims, five owners and one original monitor attachment; its exact negative matrix pins 29 authored-coordinate refusals, seven separately lifted foreign-owner roots including later-field controls, E171@11:46/E007@14:27,16:29 compiler dispositions, and zero/negative bound refusals. The original seven tests, six complete fixture IRs, fixed inventories/source maps and native 30 predicate plus eight monitor rows per variant remain supported.
+
+Frozen red5 exited 1 with nine passes and three intended failures. Effect-red2 exited 1 with eleven passes and one intended failure, exposing both silently omitted step controls. Earlier setup failures are recorded without regression credit. Immutable proofs remain at `.flow/tmp/scala-dsl/fn149-2-baseline-proof`, `fn149-2-red-proof` and `fn149-2-effect-red-proof`.
+
+Other terminal checks exited 0. IrFileDiscoveryTest selected 7; RulesTest 25; LayoutWitnessFixtures 1; ConventionsFixtures 9; QualifiedNames 4; Overlap 2. Source syntax, comment and block-form checks passed. Scoped formatting/check used the absolute model/.scalafmt.conf; git diff --check passed. Heavy commands ran serially under /tmp/umpire-heavy-gates.lock with foreground ownership.
+
+Final proof is `/Users/stephan/Workspace/skunkworks/umpire/temporal/.worktrees/w-1d/.flow/tmp/scala-dsl/fn149-2-final-proof`. PROVENANCE.md and provenance.json name exact commands, terminal dispositions and original paths. The final scratch, copied authored sources, actual runtime main/test compiler outputs, exact 1,894 model class/TASTy members, current model jar/classpath/dependencies and root-authored audits are frozen there. The fixed placement audit rerun on this frozen final scratch exited 0. Final Quick log SHA256 is 7e54ca35fe4c07a3ffdd5477acd00e947de8c31c489ae099981b7a89ecb1fdcf. The 3,654-file manifest.json SHA256 is 81c2def73044e66438d8973a8299fe2f222a09ff409f8feab589816f931cc1fc; SHA256SUMS also covers the manifest and its check exited 0.
+
+Original-admission and current-admission full-source scratch diagnostics both exited 0. All seven artifacts match byte-for-byte. Their compiler/source provenance and outputs are frozen. Root's separate witness bridge pins the historical discovery addition of 19 section roots plus the previously unqueried asyncStarts Property/function against fn140; task .6 must retain that ledger and the immutable witness seal.
+
+Source commit is 77825c5bd2ab402e9552f6c3a5def9570be23c0d. The approved metadata-only fccab0d7d6 was merged normally as 8e302728545c64ae8241184efbf989b193716c58. Gate classify returned FULL; owner-held full/consumer gates, managed regeneration, Go/report checkpoint .3, checker-result obligations in .4/.5, flat migration .6, final source seal .7, independent review, live runs and publication received no passing credit. No live command handles remain.
+
+stage: impl-review - skipped(config: REVIEW_MODE=none)
+Tier: session (jev-unavailable(no_key)); repository AGENTS implementer routing gpt-6.1-sol medium applies.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: fccab0d7d683c9ed4a071127933e08891a2bc6a7, 77825c5bd2ab402e9552f6c3a5def9570be23c0d, 8e302728545c64ae8241184efbf989b193716c58
+- Tests: mise exec -- scala-cli test model/irgen --server=false --require-tests --test-only '*PropertyGroupsFixtures*', mise exec -- scala-cli test model/project.scala model/framework --server=false --require-tests --test-only '*IrFileDiscoveryTest*', mise exec -- scala-cli test model/project.scala model/framework --server=false --require-tests --test-only '*RulesTest*', mise exec -- scala-cli test model/irgen --server=false --require-tests --test-only '*LayoutWitnessFixtures*', mise exec -- scala-cli test model/irgen --server=false --require-tests --test-only '*ConventionsFixtures*', mise exec -- scala-cli test model/irgen --server=false --require-tests --test-only '*QualifiedNames*', mise exec -- scala-cli test model/irgen --server=false --require-tests --test-only '*Overlap*', mise exec -- scala-cli run --server=false model/check -- --check-syntax, mise exec -- scala-cli run --server=false model/check -- --check-comments, mise exec -- scala-cli run --server=false model/check -- --check-block-form, git diff --check
 - PRs:
