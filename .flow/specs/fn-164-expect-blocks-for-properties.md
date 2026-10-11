@@ -68,6 +68,7 @@ The fix is an `expect { }` block that reads like the `effect { }` block it check
 - **R5:** [paraphrase] The IR generator lowers a block to the core Boolean expression it stands for, adding no IR construct. Each converted Property's IR equals its pre-conversion IR apart from source positions, and every machine's step table is unchanged. Errors: any other IR difference is explained before it is accepted.
 - **R6:** [inferred] Every Property of the Temporal Models written as a `holds`/`holdsAcross` lambda is migrated to `expect { }`, and the lambda forms are removed from the authoring surface together, with no compatibility layer. Errors: a Property that cannot be expressed is listed with its reason before the old form is removed.
 - **R7:** [inferred] The model README's authoring guidance and each sugar definition's `Core form:` describe `expect { }`, the field-reading rule of R2, and when to use `oneOf`.
+- **R8:** [user, 2026-10-10] Use Scala 3 colon-and-indentation blocks consistently across the Scala DSL, including `rules`, `on`, `from`, `effect`, `is`, `expect` and `oneOf`, wherever Scala admits that spelling. Migrate the Models, framework examples, fixtures and author documentation together, and enforce the style through the existing formatter/check workflow. Prefer the pinned Scalafmt's built-in optional-braces rewrite; add a focused existing gate or Scalafix check only for gaps the formatter cannot enforce. Required Scala braces (such as import selectors) remain. Errors: formatting/lint must reject a reintroduced optional brace block in the covered authoring surface, accept nested colon blocks, and distinguish DSL blocks from comments, strings and unrelated calls. Compilation, lifting and step-table equivalence must prove that the migration changes no behavior; lifted changes are limited to source positions.
 
 ## Boundaries
 <!-- scope: business -->
@@ -76,6 +77,7 @@ The fix is an `expect { }` block that reads like the `effect { }` block it check
 - [user] No `phase = x` assertion syntax ("too clever").
 - [paraphrase] No new temporal operators. Adding `eventually` or similar is separate work that would take these blocks as arguments.
 - [inferred] Query, Scenario and realization syntax stay with fn-140 and fn-162.
+- [user, 2026-10-10] Colon-block consistency is part of this Scala spec and runs after the `expect` implementation/migration, before the meaning-preserving seal. It adds no Go work or production regeneration to the current Scala-only mode.
 
 ## Decision Context
 <!-- scope: both -->
@@ -103,3 +105,4 @@ The fix is an `expect { }` block that reads like the `effect { }` block it check
 | R5 | TBD - populate via /flow-next:plan |
 | R6 | TBD - populate via /flow-next:plan |
 | R7 | TBD - populate via /flow-next:plan |
+| R8 | fn-164-expect-blocks-for-properties.1 |

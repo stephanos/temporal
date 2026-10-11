@@ -219,7 +219,8 @@ Heavy commands remain serialized. Composition progress belongs to fn-150, not th
 
 Added by the owner on 2026-10-11, after fn-149 and before the seal: a meaning-preserving
 migration whose IR differs only in source positions, so the seal's step-table equivalence covers it.
-Not planned yet. [Spec](.flow/specs/fn-164-expect-blocks-for-properties.md).
+The expectation implementation still needs task planning; the colon-style follow-up is recorded.
+[Spec](.flow/specs/fn-164-expect-blocks-for-properties.md).
 
 A Property's predicate becomes an `expect { }` block that reads like the `effect { }` it checks: one
 requirement per line (`records(fact)`, `check(condition)`), `if` instead of `implies`, and a rare
@@ -228,6 +229,14 @@ monitors) stay outer combinators that take these blocks. The lowering adds no IR
 `holds`/`holdsAcross` lambda Property migrates, and the lambda forms go with no compatibility layer.
 fn-141, which runs later, must keep the block's lowering within its "a sugar's
 definition is its only lowering" rule.
+
+The owner also requested consistent colon-and-indentation DSL blocks (`rules`, `on`, `effect`,
+`expect`, and the other optional blocks). This follows the expectation migration and precedes the
+seal, using the pinned formatter's built-in rewrite where possible and focused lint for any gaps.
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-164.1 | ⬜ todo | Consistent colon blocks across the DSL, fixtures and docs; formatter/lint enforcement; source-only lift changes and unchanged step tables |
 
 ### fn-123: Declare faults as the environment's actions
 
