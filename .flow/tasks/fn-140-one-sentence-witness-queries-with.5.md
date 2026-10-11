@@ -3,7 +3,7 @@ satisfies: [R7]
 ---
 # fn-140-one-sentence-witness-queries-with.5 Document witness authoring and update the layout template
 
-Touches: [model/README.md, model/SEMANTICS.md, model/irgen/testdata/layout/lamp/product/Product.scala, model/irgen/testdata/layout/lamp/system/System.scala, model/irgen/test/Fixtures.test.scala]
+Touches: [model/README.md, model/SEMANTICS.md, model/irgen/testdata/layout/lamp/Lamp.scala, model/irgen/testdata/layout/lamp/product/Product.scala, model/irgen/testdata/layout/lamp/system/System.scala, model/irgen/test/Fixtures.test.scala]
 
 ## Description
 Update author documentation and the existing layout template for R7. This task follows .4 in the owner's single-worker Scala lane. Only model/ authoring documents and template files are edited; module-map documentation, managed publication and full integration gates remain in deferred .6.
@@ -18,6 +18,9 @@ Update author documentation and the existing layout template for R7. This task f
 - Describe witness ownership and no-new-IR lifting in Model author documentation. Remove obsolete Query expect examples there. The matching .plans/UMPIRE_MODULES.md update stays in deferred .6, because the current owner mode allows source edits under model/ only.
 - Preserve .4's committed proof baseline; .10 includes this documentation/template in its final source seal. Run the template's focused Scala compile/lift assertions positively with a nonzero population, without a production regeneration or full gate. Deferred .6 consumes this source and closes the actual full checks once at fn-123.8.
 - Preserve the user's existing uncommitted model/SEMANTICS.md draft in the main checkout. Read it for overlap and reconcile required localized documentation edits with the conductor before changing or merging that file; do not copy or commit unrelated draft changes.
+
+### Narrow tooling checkpoint
+The isolated layout compile fails under the normal `-Werror` on the six symbols in Lamp.scala's two obsolete `product`/`system` imports. Remove only those unused import lines in a separate tooling checkpoint, retaining the package-only collection root and all declarations, compiler flags, assertions and diagnostics. Record the inherited red and a fresh positive layout compile before interpreting the new witness regression.
 
 ### Investigation targets
 **Required:**
@@ -48,3 +51,5 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+
