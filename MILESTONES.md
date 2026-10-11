@@ -194,7 +194,6 @@ is sequential; task .10's committed Scala seal releases later source work withou
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-140.5 | 🔄 in progress | Author docs, core form and layout template witness; preserve the user's uncommitted SEMANTICS draft |
 | fn-140.10 | ⬜ todo | Remaining eligible Models, source-aware triple lint and committed Scala source equivalence seal; releases fn-149 |
 | fn-140.6 | ⏸️ deferred | Full consumer/regeneration/equivalence closure after .7/.8/.9/.10; links the shared fn-123.8 sweep |
 | fn-140.7 | ⏸️ deferred (Go) | Exact-composed selector admission/check/lint/export proof, split from .2 without relaxing its obligations |

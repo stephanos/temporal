@@ -73,7 +73,55 @@ Library hash remains the exact prior .4 source jar: 3f1f1960d257db6b2a52f9c4d55e
 Main user SEMANTICS.md remains untouched with SHA256 c000b24118163766cf2f6bba7eeecd44796bf6266e127d826f1496a1092f7d1e. Root approved the exact localized worktree additions and matching user-draft patch at `.flow/tmp/scala-dsl/fn140-5-user-draft.patch` (SHA256 2b10a21f39ffac2dce5a3544d42a05ff1e1a053fa873d90bff885d75dea4e7b7). Read-only `git apply --check --unidiff-zero` against main passed; root owns applying it while preserving the uncommitted draft. No full draft was copied or committed.
 
 Docs distinguish authored .live from capability-generated live expectations, typed member selector composition, source-only non-satisfied because text versus existing emitted judge reasons/expected_run, and ordinary same-step Property semantics without a new IR declaration kind. Exact composed-selector downstream admission remains held .7. MODULES migration, Go, linked API/schema generation, production managed IR/Cases/goldens/mirrors, full gates, independent review and live work remain deferred; inherited Reset/Subject cancellation debt and historical source differences are not waived. All validation outputs are ignored Scala/scratch artifacts. No attributable command remains live.
+
+### Integrated conductor verification
+
+Root integrated the completed worker range at 50549b3ddb0628ff2ca2983865c8ba06155d22c8.
+The branch contains the separate import-only checkpoint, the author-doc/template implementation
+and both receipt commits. The worker returned terminal with a clean lane; root's process check
+found no attributable live command.
+
+Root re-read the full source diff, focused assertions, handovers and preserved layout projections.
+The raw preserved projection has exactly one difference, OnlyOn's Product.scala declaration
+position45-to48; the independently bounded adjusted projection compares byte-identically.
+All original framework/temporal/project source is unchanged since02d65d0c57. No .4 frozen
+source/predicate pin was rewritten.
+
+Root preserved the main user draft in recoverable scoped stash
+b0f5341ca5c607f64df49695795e88b285a10b03, whose SEMANTICS payload retains SHA256
+c000b24118163766cf2f6bba7eeecd44796bf6266e127d826f1496a1092f7d1e.
+After integration root restored every original draft character plus exactly the four approved,
+content-validated localized patch hunks using apply_patch. The actual restored59045-character
+file equals that computed result. Its new SHA256 is
+89e1fbcb204ae44fb2cbfe4129f3a89f826af00e666707bf8d639a0dd2774841.
+The draft remains uncommitted; no full user rewrite entered history.
+
+Root's first library/layout runs exited0, but dependency authentication found that main's cached
+API jar c1104c6f3d23637de0e3e1ab1eb315d71100090b7d9b7e412732fe791a048dae
+has5543 entries versus5570 in the pinned lane archive and775 payload-name/content differences.
+An attempted raw archive-order comparison also failed. Neither failed authentication earns
+same-input proof credit. Root preserved that ignored cache at
+.flow/tmp/scala-dsl/fn140-5-root-api-before.jar and copied the independently pinned ca66e139...
+API archive into main's ignored build cache. No API generation ran.
+Main's IR jar b9e0538afffad2b33b9fc8fc9eb2a3f4e63b10928fa38506b585747535e85c92
+differs from the lane's archive bytes, but all949 named entry SHA256 values are identical;
+their full sorted entry-hash manifest digest is
+febc20d7561c81bb3cc04a969474bdb317bc180808fa449eeb2e13053e6dceb6.
+
+Fresh terminal serverless main checks against the pinned API exited0:
+library packaging, printed classpath, LayoutWitnessFixtures (one executed compile/lift test),
+and the pinned formatter check on all three edited Scala files. Current library SHA256 is
+da8cc39c1ccf4790a4ecaa8130935fdf635faf263afe6b35ea88fc93791e36ba;
+classpath SHA256 is8150b8adc5b7f4f81eda6b2619093877278d65de327fe39767f50e8e813878f4.
+Logs are main .flow/tmp/scala-dsl/fn140-5-root-package-pinned-api.log,
+fn140-5-root-classpath.log, fn140-5-root-layout-pinned-api.log andfn140-5-root-format.log.
+git diff --check exited0. The obsolete Query .expect example search is empty, desiredexit1.
+Flow's full requirement-coverage validation is validtrue with10tasks and no errors/warnings.
+
+This receipt closes R7's scoped Scala author docs/template work only. The complete native source
+seal, strict Activity cancellation deduplication, historical table reconciliation and all
+owner-held consumer/regeneration/full-gate/review/live checks remain required.
 ## Evidence
-- Commits: 3ec7d8a47d4abf8ffce7153fb5afbd2d75dd2543, bd166d858697b71fdb3a32273d85efafe03abc5e
-- Tests: timeout 600 mise exec -- scala-cli --power package --server=false model/project.scala model/framework model/temporal --library -f -o model/build/model-scala.jar (exit 0), timeout 600 mise exec -- scala-cli compile --server=false model/project.scala model/framework model/temporal --print-classpath (exit 0), unzip -t model/build/api-scalapb.jar; unzip -t model/build/ir-scalapb.jar (both exit 0; independently hash-validated), timeout 600 mise exec -- scala-cli --power package --server=false --library model/irgen/testdata/layout --exclude 'kinds/**' --exclude 'r4/**' -f -o .flow/tmp/scala-dsl/fn140-5-layout-baseline.jar (exit 0), timeout 600 mise exec -- scala-cli run --server=false model/irgen -M umpire.irgen.lift -- --ir .flow/tmp/scala-dsl/fn140-5-layout-baseline.jar=model/irgen/testdata/layout/,model/build/model-scala.jar=model/ model/build/model-scala.classpath .flow/tmp/scala-dsl/fn140-5-layout-baseline-ir lamp (exit 0; 5 machines, 1 Query/Property/Scenario), timeout 600 mise exec -- scala-cli test --server=false model/irgen --test-only '*LayoutWitnessFixtures*' (final exit 0, 1 executed test; 5 machines, 2 Queries/Properties/Scenarios; earlier intended missing-witness red exit 1 retained), mise exec -- scala-cli fmt --scalafmt-conf model/.scalafmt.conf --check model/irgen/test/Fixtures.test.scala model/irgen/testdata/layout/lamp/Lamp.scala model/irgen/testdata/layout/lamp/product/Product.scala (two idempotent checks exit 0), rg -n '\.expect\(' model/README.md model/SEMANTICS.md (exit 1 expected; zero obsolete examples), git diff --check (exit 0), flowctl validate --spec fn-140-one-sentence-witness-queries-with --coverage --json (exit 0, valid true), cmp preserved layout projections after exact OnlyOn source-position 48-to-45 adjustment (exit 0), git apply --check --unidiff-zero fn140-5-user-draft.patch against main (exit 0; read-only)
+- Commits: 3ec7d8a47d4abf8ffce7153fb5afbd2d75dd2543, bd166d858697b71fdb3a32273d85efafe03abc5e, e3556f5696, 2cb5bc64ee4bbee61a313ba83b9992f5d96b8e95, 50549b3ddb0628ff2ca2983865c8ba06155d22c8
+- Tests: timeout 600 mise exec -- scala-cli --power package --server=false model/project.scala model/framework model/temporal --library -f -o model/build/model-scala.jar (exit 0), timeout 600 mise exec -- scala-cli compile --server=false model/project.scala model/framework model/temporal --print-classpath (exit 0), unzip -t model/build/api-scalapb.jar; unzip -t model/build/ir-scalapb.jar (both exit 0; independently hash-validated), timeout 600 mise exec -- scala-cli --power package --server=false --library model/irgen/testdata/layout --exclude 'kinds/**' --exclude 'r4/**' -f -o .flow/tmp/scala-dsl/fn140-5-layout-baseline.jar (exit 0), timeout 600 mise exec -- scala-cli run --server=false model/irgen -M umpire.irgen.lift -- --ir .flow/tmp/scala-dsl/fn140-5-layout-baseline.jar=model/irgen/testdata/layout/,model/build/model-scala.jar=model/ model/build/model-scala.classpath .flow/tmp/scala-dsl/fn140-5-layout-baseline-ir lamp (exit 0; 5 machines, 1 Query/Property/Scenario), timeout 600 mise exec -- scala-cli test --server=false model/irgen --test-only '*LayoutWitnessFixtures*' (final exit 0, 1 executed test; 5 machines, 2 Queries/Properties/Scenarios; earlier intended missing-witness red exit 1 retained), mise exec -- scala-cli fmt --scalafmt-conf model/.scalafmt.conf --check model/irgen/test/Fixtures.test.scala model/irgen/testdata/layout/lamp/Lamp.scala model/irgen/testdata/layout/lamp/product/Product.scala (two idempotent checks exit 0), rg -n '\.expect\(' model/README.md model/SEMANTICS.md (exit 1 expected; zero obsolete examples), git diff --check (exit 0), flowctl validate --spec fn-140-one-sentence-witness-queries-with --coverage --json (exit 0, valid true), cmp preserved layout projections after exact OnlyOn source-position 48-to-45 adjustment (exit 0), git apply --check --unidiff-zero fn140-5-user-draft.patch against main (exit 0; read-only), Root complete preserved-layout projection cmp after exact OnlyOn45-to48 mapping (exit0); raw diff has that one position only, Root actual user draft equals original56866-character payload plus exactlyfour approved validated hunks (verified59045characters); draft remainsuncommitted, originalrecoverable scopedstashb0f5341c, Root API archive authentication initiallyexit1 (775entry payload differences); oldcache preserved, pinnedca66e139 archive reused withoutgeneration, Root IR complete949named-entry SHA256 equality against independentlypinned worker archive (0differences), Root serverless current library package with pinnedAPI (exit0; fn140-5-root-package-pinned-api.log), Root serverless compile --print-classpath (exit0; fn140-5-root-classpath.log), Root serverless LayoutWitnessFixtures with pinnedAPI (exit0;1executed test; fn140-5-root-layout-pinned-api.log), Root pinnedformatter check all3edited Scala files (exit0; fn140-5-root-format.log), Root .expect example absence desiredexit1, gitdiffcheckexit0, originalframework/temporal/projectsource diffexit0, Root flowctlvalidate --specfn-140 --coverage --json (validtrue;10tasks;noerrors/warnings)
 - PRs:
