@@ -57,6 +57,7 @@ final private[irgen] class Structure(index: Index):
     val checked = index.trees.filterNot(t => exempt(fileOf(t)))
     val sources = checked.groupBy(fileOf).toSeq.sortBy(_._1).flatMap(source)
     facetFiles(sources)
+    layoutFiles(sources)
     for (_, group) <- sources.groupBy(_.feature).toSeq.sortBy(_._1) do
       val hasForms = group.exists(s => s.sub.headOption.exists(Structure.formFolders))
       val pkg = group.head.feature.split('.')
@@ -260,6 +261,54 @@ final private[irgen] class Structure(index: Index):
           )
         else if s.file != s"${c.name}.scala" then // scalafix:ok DisableSyntax.!=; typed equality
           refuse(c, s"${c.name} is a facet in ${s.file}: a facet's file is named after it, ${c.name}.scala")
+
+  // ### One machine per file, and the realization layer (fn-160 R7, R8)
+
+  private lazy val realizesClass =
+    scala.util.Try(Symbol.requiredClass("temporal.realize.Realizes")).getOrElse(Symbol.noSymbol)
+
+  private def realization(c: Symbol): Boolean =
+    !realizesClass.isNoSymbol && c.isClassDef && c.flags.is(Flags.Module) &&
+      c.typeRef.derivesFrom(realizesClass)
+
+  // Every Temporal Model file declares at most one machine, composition or derivation, in a file
+  // named after it; a level's own file, `product/Product.scala` or `protocol/Protocol.scala`, holds
+  // its primary machine. A realization sits in its feature's `realization/` folder, in a file named
+  // after it, and is named `<Form><Kind>Run` or `<Subject>Run`.
+  private def layoutFiles(sources: Seq[Source]): Unit =
+    for s <- sources if s.path.startsWith("model/temporal/") do
+      val forms = s.objects.filter(c => form(c.symbol))
+      // A level's own file, or the feature file of a feature of one level, holds its primary machine.
+      val folders = s.folder.split('/').filter(_.nonEmpty).toSeq
+      val levelFile =
+        (folders.lastOption.exists(Structure.levels) &&
+          Set("Product.scala", "Protocol.scala", "System.scala")(s.file)) ||
+          Structure.featureFileName(folders).exists(s.file.stripSuffix(".scala").equalsIgnoreCase)
+      for (c, i) <- forms.zipWithIndex do
+        if i > 0 then
+          refuse(
+            c,
+            s"${plain(c.name)} is a second machine, composition or derivation in ${s.path}, " +
+              s"beside ${plain(forms.head.name)}: each has a file of its own, ${plain(c.name)}.scala"
+          )
+        else if !levelFile && s.file != s"${plain(c.name)}.scala" then // scalafix:ok DisableSyntax.!=; typed equality
+          refuse(
+            c,
+            s"${plain(c.name)} is declared in ${s.path}: a machine, composition or derivation " +
+              s"sits in a file named after it, ${plain(c.name)}.scala"
+          )
+      for c <- s.objects if realization(c.symbol) do
+        val name = plain(c.name)
+        if !s.sub.lastOption.contains("realization") then
+          refuse(
+            c,
+            s"$name is a realization in ${s.folder}: realizations sit in the feature's " +
+              "realization/ folder"
+          )
+        else if !name.endsWith("Run") then
+          refuse(c, s"$name is a realization: name it after what it runs, `<Subject>Run`")
+        else if s.file != s"$name.scala" then // scalafix:ok DisableSyntax.!=; typed equality
+          refuse(c, s"$name is declared in ${s.path}: a realization sits in a file named after it")
 
   // ### Machine objects and their refinements
 

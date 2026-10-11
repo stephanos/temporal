@@ -165,9 +165,24 @@ final private[irgen] class Conventions(index: Index):
   private def form(pkg: String): Option[String] =
     pkg.split('.').lift(3).filter(Structure.formFolders)
 
-  // A package always reads itself, as the code `derives` writes into it does.
+  // A feature's layers, which depend one way, realization -> protocol -> product (fn-160 R9).
+  private def layer(pkg: String): Option[Int] =
+    pkg.split('.').collectFirst {
+      case "product"                => 0
+      case "protocol" | "system"    => 1
+      case "realization"            => 2
+    }
+
+  // A package always reads itself, as the code `derives` writes into it does. Within a feature, a
+  // layer imports only the layers below it, and only the realization layer reads the Temporal API.
   private def permitted(from: String, to: String, test: Boolean): Boolean =
     if to == from then true // scalafix:ok DisableSyntax.==; typed equality
+    else if !test && within(from, "temporal.features") && layer(from).forall(_ < 2) &&
+      (within(to, "io.temporal.api") || within(to, "temporal.server.api"))
+    then false
+    else if !test && within(from, "temporal.features") && feature(to) == feature(from) && // scalafix:ok DisableSyntax.==; typed equality
+      layer(from).exists(f => layer(to).exists(_ > f))
+    then false
     else if within(to, "temporal.server.api") then !within(from, "framework")
     else if within(from, "framework") && within(to, "io.temporal") then false
     else if within(from, "temporal") && within(to, "io.temporal.server.api.umpire") then false
@@ -265,9 +280,17 @@ final private[irgen] class Conventions(index: Index):
             phaseImport(i)
           case _         => super.traverseTree(t)(owner)
     checked.foreach(t => importCheck.traverseTree(t)(Symbol.spliceOwner))
+    // A Protocol's Describable capability names the realization's status table, the Temporal
+    // API's statuses by fact: the one read of the realization layer, and of the API, outside it
+    // (an open layering question, fn-160 R9).
+    def describable(t: Tree): Boolean = t match
+      case v: ValDef =>
+        v.rhs.exists(_.tpe.widen.dealias.typeSymbol.fullName == "temporal.capabilities.Describable") // scalafix:ok DisableSyntax.==; typed equality
+      case _ => false
     object check extends TreeTraverser:
       override def traverseTree(t: Tree)(owner: Symbol): Unit =
         t match
+          case _ if describable(t)                                 => ()
           case _: Import                                           => ()
           case Match(scrutinee, cases) if modelType(scrutinee.tpe) =>
             for c <- cases if whole(c.pattern, scrutinee.tpe) do
@@ -289,7 +312,8 @@ final private[irgen] class Conventions(index: Index):
           case t: TypeTree => dependency(t, t.tpe.typeSymbol, owner)
           case _           => ()
         t match
-          case _: Import => ()
-          case _         => super.traverseTree(t)(owner)
+          case _: Import             => ()
+          case _ if describable(t)   => ()
+          case _                     => super.traverseTree(t)(owner)
     checked.foreach(t => check.traverseTree(t)(Symbol.spliceOwner))
     refused.toSeq
