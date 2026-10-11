@@ -85,31 +85,9 @@ trait Timeouts extends Facet[State, Outcome, Fact], Phased[State, Phase]:
         s.records(Fact.statusTimedOut(TimeoutType.scheduleToStart))
       }
 
-      val startToCloseFires = property when deadline.startToClose holds { s =>
-        s.state.phase == Phase.timedOut &&
-        s.records(Fact.statusTimedOut(TimeoutType.startToClose))
-      }
-
       val scheduleToCloseTimesOut = property when deadline.scheduleToClose holds { s =>
         s.state.phase == Phase.timedOut &&
         s.records(Fact.statusTimedOut(TimeoutType.scheduleToClose))
-      }
-
-      // The second delivery after an attempt timeout: a realization whose second delivery confirms
-      // a timeout, not a failed answer, runs these.
-      val completesAfterTimeout = property when activityWorker.respondCompleted holds { s =>
-        s.state == ActivityProtocol.states.completedOnRetry.copy(
-          startToClose = Timeout.expires,
-          maxAttempts = MaxAttempts.two
-        ) && s.records(Fact.statusCompleted)
-      }
-      val failsAfterTimeout = property when activityWorker.respondFailed(Failure.retryable) holds {
-        s =>
-          s.state == ActivityProtocol.states.completedOnRetry.copy(
-            phase = Phase.failed,
-            startToClose = Timeout.expires,
-            maxAttempts = MaxAttempts.two
-          ) && s.records(Fact.statusFailed)
       }
 
     // The terminal scheduling deadlines and the attempt's own, retryable one; a pending reset
@@ -162,11 +140,6 @@ trait Timeouts extends Facet[State, Outcome, Fact], Phased[State, Phase]:
         process.stop,
         deadline.scheduleToStart
       )
-      val startToCloseExpires = scenario.actions(
-        client.start(startToClose := expires, maxAttempts := MaxAttempts.one),
-        activityWorker.poll,
-        deadline.startToClose
-      )
       // Neither scheduling deadline is ordered before the other, so each firing is a trace of its
       // own. Both deadlines are set and no attempt started, so either may fire first. No
       // realization runs them.
@@ -178,23 +151,6 @@ trait Timeouts extends Facet[State, Outcome, Fact], Phased[State, Phase]:
         client.start(scheduleToClose := Timeout.expires, scheduleToStart := Timeout.expires),
         deadline.scheduleToClose
       )
-      val timedOutThenCompleted = scenario.actions(
-        client.start(startToClose := expires, maxAttempts := MaxAttempts.two),
-        activityWorker.poll,
-        deadline.startToClose,
-        timers.backoff,
-        activityWorker.poll,
-        activityWorker.respondCompleted
-      )
-      val timedOutThenFailed = scenario.actions(
-        client.start(startToClose := expires, maxAttempts := MaxAttempts.two),
-        activityWorker.poll,
-        deadline.startToClose,
-        timers.backoff,
-        activityWorker.poll,
-        activityWorker.respondFailed(Failure.retryable)
-      )
-
       val scheduleToStartTimeout =
         (query find properties.scheduleToStartFires in scheduleToStartExpires limits three)
           .live(
@@ -205,7 +161,14 @@ trait Timeouts extends Facet[State, Outcome, Fact], Phased[State, Phase]:
             )
           )
       val startToCloseTimeout =
-        query find properties.startToCloseFires in startToCloseExpires limits three
+        witness(
+          client.start(startToClose := expires, maxAttempts := MaxAttempts.one),
+          activityWorker.poll,
+          deadline.startToClose
+        )
+          .records(Fact.statusTimedOut(TimeoutType.startToClose))
+          .ends(_.phase == Phase.timedOut)
+          .limits(three)
       val competingTimers = Vector(
         query("competingTimers.scheduleToStartFirst") find
           properties.scheduleToStartFires in
@@ -216,8 +179,23 @@ trait Timeouts extends Facet[State, Outcome, Fact], Phased[State, Phase]:
       )
       // Both full-State finds predict explanationsDisagree from status/attempt-only evidence.
       // The shared live gate must check actual Property assessments and reasons.
+      // The second delivery after an attempt timeout: a realization whose second delivery confirms
+      // a timeout, not a failed answer, runs these.
       val retryAfterTimeout =
-        (query find properties.completesAfterTimeout in timedOutThenCompleted limits six)
+        witness(
+          client.start(startToClose := expires, maxAttempts := MaxAttempts.two),
+          activityWorker.poll,
+          deadline.startToClose,
+          timers.backoff,
+          activityWorker.poll,
+          activityWorker.respondCompleted
+        )
+          .records(Fact.statusCompleted)
+          .ends(_ == ActivityProtocol.states.completedOnRetry.copy(
+            startToClose = Timeout.expires,
+            maxAttempts = MaxAttempts.two
+          ))
+          .limits(six)
           .live(
             inconclusive(
               Reason.explanationsDisagree,
@@ -226,7 +204,21 @@ trait Timeouts extends Facet[State, Outcome, Fact], Phased[State, Phase]:
             )
           )
       val retryExhaustion =
-        (query find properties.failsAfterTimeout in timedOutThenFailed limits six)
+        witness(
+          client.start(startToClose := expires, maxAttempts := MaxAttempts.two),
+          activityWorker.poll,
+          deadline.startToClose,
+          timers.backoff,
+          activityWorker.poll,
+          activityWorker.respondFailed(Failure.retryable)
+        )
+          .records(Fact.statusFailed)
+          .ends(_ == ActivityProtocol.states.completedOnRetry.copy(
+            phase = Phase.failed,
+            startToClose = Timeout.expires,
+            maxAttempts = MaxAttempts.two
+          ))
+          .limits(six)
           .live(
             inconclusive(
               Reason.explanationsDisagree,

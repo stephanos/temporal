@@ -81,17 +81,6 @@ trait Retry extends Facet[State, Outcome, Fact], Phased[State, Phase]:
       }
 
     object properties:
-      val nonRetryableFails =
-        property when activityWorker.respondFailed(Failure.fatal) holds { s =>
-          s.state.phase == Phase.failed && s.records(Fact.statusFailed)
-        }
-
-      // The attempt count saturates at `ActivityProtocol.states.attemptBound`, so the claim is bounded
-      // by it: a completion on any later attempt than the second reads as this one.
-      val retryCompletes =
-        property when activityWorker.respondCompleted holds { s =>
-          s.state == ActivityProtocol.states.completedOnRetry && s.records(Fact.statusCompleted)
-        }
       // The pinned exhaustion path takes this action twice, so both failures must satisfy the
       // Property: the exact first retry, then the exact exhausted settlement.
       val retryExhausts = property when activityWorker.respondFailed(Failure.retryable) holds { s =>
@@ -107,11 +96,6 @@ trait Retry extends Facet[State, Outcome, Fact], Phased[State, Phase]:
         ) &&
           s.records(Fact.statusFailed))
       }
-
-      val fatalFailureByID =
-        property when completionClient.respondFailedByID(Failure.fatal) holds { after =>
-          after.state.phase == Phase.failed && after.records(Fact.statusFailed)
-        }
 
     // The retryable and the fatal failure, each a Retryable instance; a pending reset applies first,
     // as a failure ends the held attempt, whatever its retryability or the policy left
@@ -154,19 +138,6 @@ trait Retry extends Facet[State, Outcome, Fact], Phased[State, Phase]:
       )
 
     object queries:
-      val nonRetryable = scenario.actions(
-        client.start(),
-        activityWorker.poll,
-        activityWorker.respondFailed(Failure.fatal)
-      )
-      val retriedThenCompleted = scenario.actions(
-        client.start(),
-        activityWorker.poll,
-        activityWorker.respondFailed(Failure.retryable),
-        timers.backoff,
-        activityWorker.poll,
-        activityWorker.respondCompleted
-      )
       val exhausted = scenario.actions(
         client.start(maxAttempts := MaxAttempts.two),
         activityWorker.poll,
@@ -175,16 +146,26 @@ trait Retry extends Facet[State, Outcome, Fact], Phased[State, Phase]:
         activityWorker.poll,
         activityWorker.respondFailed(Failure.retryable)
       )
-      val heldFatalFailure = scenario.actions(
-        client.start(),
-        activityWorker.poll,
-        completionClient.respondFailedByID(Failure.fatal)
-      )
-
       val nonRetryableFailure =
-        (query find properties.nonRetryableFails in nonRetryable limits three).live(satisfied)
+        witness(client.start(), activityWorker.poll, activityWorker.respondFailed(Failure.fatal))
+          .records(Fact.statusFailed)
+          .ends(_.phase == Phase.failed)
+          .limits(three)
+          .live(satisfied)
+      // The attempt count saturates at `ActivityProtocol.states.attemptBound`, so the claim is bounded
+      // by it: a completion on any later attempt than the second reads as this one.
       val retry =
-        (query find properties.retryCompletes in retriedThenCompleted limits six)
+        witness(
+          client.start(),
+          activityWorker.poll,
+          activityWorker.respondFailed(Failure.retryable),
+          timers.backoff,
+          activityWorker.poll,
+          activityWorker.respondCompleted
+        )
+          .records(Fact.statusCompleted)
+          .ends(_ == ActivityProtocol.states.completedOnRetry)
+          .limits(six)
           .live(
             inconclusive(
               Reason.explanationsDisagree,
@@ -197,7 +178,10 @@ trait Retry extends Facet[State, Outcome, Fact], Phased[State, Phase]:
       // A closed activity answers a repeated By-ID call NotFound and records nothing, so the
       // explanations of a By-ID witness disagree.
       val heldFailedByID =
-        (query find properties.fatalFailureByID in heldFatalFailure limits three)
+        witness(client.start(), activityWorker.poll, completionClient.respondFailedByID(Failure.fatal))
+          .records(Fact.statusFailed)
+          .ends(_.phase == Phase.failed)
+          .limits(three)
           .total(16848)
           .live(
             inconclusive(

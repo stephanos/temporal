@@ -39,10 +39,6 @@ trait Completion extends Facet[State, Outcome, Fact], Phased[State, Phase]:
           s.state.phase == Phase.completed && s.records(Fact.statusCompleted)
         }
 
-      val completedByID = property when completionClient.respondCompletedByID holds { after =>
-        after.state.phase == Phase.completed && after.records(Fact.statusCompleted)
-      }
-
     // A closed activity answers a repeated By-ID call NotFound and records nothing, so a Run cannot
     // rule out a silent rejected repeat: the explanations of each By-ID witness disagree, as
     // terminate's do.
@@ -52,13 +48,13 @@ trait Completion extends Facet[State, Outcome, Fact], Phased[State, Phase]:
         activityWorker.poll,
         activityWorker.respondCompleted
       )
-      val scheduledCompletion =
-        scenario.actions(client.start(), completionClient.respondCompletedByID)
-
       val completion =
         (query find properties.completes in completed limits three).live(satisfied)
       val scheduledCompletedByID =
-        (query find properties.completedByID in scheduledCompletion limits three)
+        witness(client.start(), completionClient.respondCompletedByID)
+          .records(Fact.statusCompleted)
+          .ends(_.phase == Phase.completed)
+          .limits(three)
           .total(11232)
           .live(
             inconclusive(

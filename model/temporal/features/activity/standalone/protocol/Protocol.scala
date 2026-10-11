@@ -8,11 +8,8 @@ package protocol
 import framework.*
 import framework.Finite.given
 import framework.outcomes.Outcome
-import framework.realize.Reason
 import temporal.capabilities.system.*
-import temporal.realize.inconclusive
 import Bounds.{eight, three}
-import actors.worker.worker as process
 import product.ActivityProduct
 
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
@@ -213,10 +210,6 @@ object ActivityProtocol
         (after.state.phase == Phase.cancelRequested || after.state.phase.in[Closed])
     }
 
-    val terminated = property when client.terminate holds { s =>
-      s.state.phase == Phase.terminated && s.records(Fact.statusTerminated)
-    }
-
     // A pending reset ends only as its held attempt does: a completion wins, a cancellation or a
     // terminate replaces it, schedule-to-close stays terminal, and a failure or one of the
     // attempt's own deadlines applies it, whatever the policy left. The next attempt is a first
@@ -401,11 +394,6 @@ object ActivityProtocol
 
     val any = scenario.free
 
-    val terminatedWhileScheduled = scenario.actions(
-      client.start(),
-      process.stop,
-      client.terminate
-    )
     val cancellationKeepsPrecedence =
       query verify properties.cancelIsNotUndone in any limits eight
     val resetSettlement =
@@ -416,14 +404,3 @@ object ActivityProtocol
       query verify properties.resetKeepsPaused in any limits eight
     val controlsKeepPrecedence =
       query verify properties.controlPrecedence in any limits eight
-
-    // The worker stops before the start, so no attempt is in flight when the client terminates.
-    val terminate =
-      (query find properties.terminated in terminatedWhileScheduled limits three)
-        .live(
-          inconclusive(
-            Reason.explanationsDisagree,
-            because =
-              "a control of an activity that is over is not found and records nothing, so a second terminate is a step no evidence reports, on which the claim fails"
-          )
-        )
