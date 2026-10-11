@@ -18,8 +18,18 @@ object ExportedLaws:
   lazy val machines: Vector[Machine[?, ?, ?]] = subjects.collect { case m: Machine[?, ?, ?] => m }
   lazy val orders: Map[String, Vector[String]] =
     val path = Path.of("model/testdata/binding-order.tsv")
-    Files
-      .readString(path)
+    scopeOrders(
+      Files.readString(path),
+      files.map(_.name).toSet,
+      machines.map(m => IrFile.identity(m).split('.').dropRight(1).mkString(".")).toSet
+    )
+
+  private[framework] def scopeOrders(
+      text: String,
+      features: Set[String],
+      packages: Set[String]
+  ): Map[String, Vector[String]] =
+    text
       .linesIterator
       .filter(_.nonEmpty)
       .map { line =>
@@ -27,11 +37,10 @@ object ExportedLaws:
         fields(0) -> fields(1).split(",").filter(_.nonEmpty).toVector
       }
       .filter: (identity, _) =>
-        !identity.startsWith("temporal.features.") || IrFile
-          .featureOf(identity.split('.').dropRight(1).mkString("."))
-          .exists(name =>
-            files.exists(file => file.name == name || file.name.startsWith(name + "-"))
-          )
+        val pkg = identity.split('.').dropRight(1).mkString(".")
+        if identity.startsWith("temporal.features.") then
+          IrFile.featureOf(pkg).exists(name => features.exists(file => file == name || file.startsWith(name + "-")))
+        else packages.contains(pkg)
       .toMap
 
   lazy val results: Vector[MachineLaws.Result] =
@@ -50,6 +59,24 @@ object ExportedLaws:
       )
 
 class ExportedMachineLawsTest extends munit.FunSuite:
+  test("binding inventory scoping retains missing extra and permuted selected entries") {
+    val selected = "fixture.actors.selected"
+    val machine = selected + ".Machine"
+    val expected = Map(machine -> Vector("caller.submit", "worker.take"))
+    val baseline = machine + "\tcaller.submit,worker.take\n"
+    val unselected = "fixture.actors.unselected.Machine\tworker.take\n"
+    assertEquals(ExportedLaws.scopeOrders(baseline + unselected, Set.empty, Set(selected)), expected)
+    for changed <- Seq(
+        baseline + selected + ".Unknown\tworker.take\n",
+        "",
+        machine + "\tworker.take,caller.submit\n"
+      )
+    do
+      intercept[munit.ComparisonFailException] {
+        assertEquals(ExportedLaws.scopeOrders(changed + unselected, Set.empty, Set(selected)), expected)
+      }
+  }
+
   test("every exported declaration enters each applicable law with an explicit disposition") {
     println(
       s"exported laws: ${ExportedLaws.files.size} exports, ${ExportedLaws.subjects.size} declarations, ${ExportedLaws.machines.size} machines"

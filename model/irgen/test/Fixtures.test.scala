@@ -210,6 +210,32 @@ class HintSnapshotsSuite extends munit.FunSuite:
       )
     )
 
+class MiniLayoutFixtures extends munit.FunSuite:
+  override val munitTimeout: Duration = 10.minutes
+  test("a mini form lifts its product before a protocol is authored"):
+    val tools = Tools.here
+    val build = tools.directory.resolve("model/build")
+    val stored = "model/irgen/testdata/layout/mini/"
+    val scratch = Files.createTempDirectory(build.resolve("history"), "mini-layout.")
+    val modelJar = build.resolve("model-scala.jar")
+    for layout <- Seq("nested", "flat", "flat-folder") do
+      val sources = LayoutSources.materialize(tools.directory.resolve(stored), scratch.resolve(layout), modelJar, Set.empty)
+      if layout != "nested" then
+        val form = Files.move(sources.resolve("activity/mini"), sources.resolve("activity_mini"))
+        if layout == "flat" then
+          val files = Files.walk(form)
+          try
+            for file <- files.iterator.asScala.filter(_.toString.endsWith(".scala")) do
+              Files.writeString(file, Files.readString(file).replace("fixture.features.activity.mini", "fixture.features.activity_mini")): Unit
+          finally files.close()
+      val jar = scratch.resolve(s"$layout.jar")
+      tools.scalaCli(Seq("--power", "package", "--server=false", "--library", sources.toString, "-f", "-o", jar.toString)).orFail(): Unit
+      val out = scratch.resolve(s"$layout-ir")
+      val result = InProcess.lift(tools.directory, Seq("--ir", s"$jar=$stored,$modelJar=model/", build.resolve("model-scala.classpath").toString, out.toString, "activity-mini"))
+      assertEquals(result.exit, 0, result.output)
+      val model = new com.fasterxml.jackson.databind.ObjectMapper().readTree(Files.readString(out.resolve("activity-mini.json")))
+      assertEquals(model.path("machines").elements().asScala.map(_.path("name").asText()).toVector, Vector("activityProduct"))
+
 private object LayoutSources:
   def materialize(
       from: Path,
@@ -255,7 +281,7 @@ class LayoutWitnessFixtures extends munit.FunSuite:
       tools.directory.resolve(stored),
       scratch.resolve("sources"),
       modelJar,
-      Set("kinds", "r4")
+      Set("kinds", "r4", "mini")
     )
     val jar = scratch.resolve("layout.jar")
     tools
@@ -5448,7 +5474,7 @@ class Fixtures extends munit.FunSuite:
   // The template a new feature copies (layout/lamp): a feature with its two levels and a zoom-in,
   // which the lint refuses nothing of and the lifter lifts.
   concurrently("the layout template lifts with no refusal"):
-    val tree = materializeTree("layout", excluding = Set("kinds", "r4"))
+    val tree = materializeTree("layout", excluding = Set("kinds", "r4", "mini"))
     val stream = Files.walk(tree)
     val inventory =
       try
@@ -5528,6 +5554,8 @@ class Fixtures extends munit.FunSuite:
     assertEquals(
       listed(out),
       Seq(
+        "activity-mini.json",
+        "activity-mini.waivers.json",
         "activity-standalone.json",
         "activity-standalone.waivers.json",
         "coreonly.json",

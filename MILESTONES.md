@@ -121,7 +121,7 @@ Lint checks and manual acceptance work are set aside for this run at the owner's
 | Name | Status | What |
 | --- | --- | --- |
 | fn-166.6 | ⬜ todo | Path-only move of Case manifests and payloads to `generated/cases/`, historical Cases to `generated/cases/legacy/`; after task 1, before realization and final loop proof |
-| fn-166.2 | ⬜ todo | Feature file and product level by subtraction: two facets, cross-facet guard, `Closable`/`Pollable`, a waiver, `verify` and `find` |
+| fn-166.2 | 🔄 in progress | Mini product compile/lift/Go query checks green; warm direct loop 36 s (no lint or canonical Make credit); full source/lifter validation and review remain |
 | fn-166.3 | ⬜ todo | Protocol level: refinement, shared input, shared status fact, composition with `sync`, channel, failure model, fair progress, monitor, hole, `Retryable`/`Expirable` with an override |
 | fn-166.4 | ⬜ todo | Realization and live witnesses; one Case run live once |
 | fn-166.5 | ⬜ todo | Loop under 90 s; migration as scalafix rules with a worked example; SEMANTICS and README written against the mini feature |
@@ -141,10 +141,23 @@ the same way. The Go lint reports an inherited finding once, on the base, matche
 the IR's gaps, fails a stale gap at its source position and an `until` whose spec is done, and no
 longer reads an acceptance file beside a feature with sources (legacy payloads keep theirs until
 fn-160). Migration is a mechanical rule proven on the mini feature. The Scala side (framework,
-lifter, IR schema, gate source rule) is open now; the lint, the file's retirement and the real
-features' migration wait for the owner's sweep. Placed after fn-166 because its proof runs on the
-mini feature (my sequencing; the owner may move it). Not planned, not marked ready.
+lifter collection, gate source rule and pure source migration) is open now. The IR uses the shared
+protobuf schema, so schema transport/generation, lint consumers, file retirement and real-feature
+migration wait for the owner's sweep. Seven tasks are planned; plan review is SHIP, not marked ready.
+The mini source proof consumes fn-166.3's committed closure; source groundwork needs no whole-spec
+dependency that would bind it to held live/lint work. Full transport-dependent requirements remain
+open after the Scala groundwork.
 [Spec](.flow/specs/fn-167-gaps-declared-in-the-model-gap-replaces.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-167.1 | ⬜ todo | Typed annotation/constructors and source admission; early TASTy order/mirror proof |
+| fn-167.2 | ⬜ todo | Internal gap/waiver metadata, canonical owner/subject keys and expiry references; current transport retained |
+| fn-167.3 | ⬜ todo | Derivation provenance and conservative inherited/local validation; no consumer suppression yet |
+| fn-167.4 | ⬜ todo | Pure migration transform and copied-mini source proof; after committed fn-166.3 |
+| fn-167.5 | ⏸️ deferred | Shared proto/ScalaPB/Go transport and independent metadata identity exclusions; owner sweep |
+| fn-167.6 | ⏸️ deferred | Gap-aware lint, proven inherited duplicates, stale/expiry errors and legacy compatibility; owner sweep |
+| fn-167.7 | ⏸️ deferred | Runnable migration adapter, actual mini proof and real-feature acceptance retirement/counts; owner sweep |
 
 ### fn-159: Qualified action names in rules
 

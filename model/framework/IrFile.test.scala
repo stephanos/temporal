@@ -261,6 +261,7 @@ class IrFileDiscoveryTest extends munit.FunSuite:
       Some("taskqueue")
     )
     assertEquals(IrFile.featureOf("temporal.actors.worker"), Some("worker"))
+    assertEquals(IrFile.featureOf("temporal.features.activity.mini.product"), Some("activity-mini"))
     assertEquals(IrFile.featureOf("examples.features.alpha_mini.product"), Some("alpha-mini"))
     assertEquals(IrFile.featureOf("framework"), None)
     val subjects = IrFile("discovery", Seq(Added)).subjects()

@@ -193,7 +193,7 @@ object IrFile:
     if at < 0 then None
     else
       parts.drop(at) match
-        case "features" :: kind :: form :: _ if Set("workflow", "standalone")(form) =>
+        case "features" :: kind :: form :: _ if Set("workflow", "standalone", "mini")(form) =>
           Some(s"$kind-$form")
         case _ :: feature :: _ => Some(feature.replace('_', '-'))
         case _                 => None

@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-11T21:52:08.561778Z",
+  "depends_on": [
+    "fn-167-gaps-declared-in-the-model-gap-replaces.2",
+    "fn-167-gaps-declared-in-the-model-gap-replaces.3"
+  ],
+  "id": "fn-167-gaps-declared-in-the-model-gap-replaces.4",
+  "priority": null,
+  "spec": "fn-167-gaps-declared-in-the-model-gap-replaces",
+  "spec_path": ".flow/tasks/fn-167-gaps-declared-in-the-model-gap-replaces.4.md",
+  "status": "todo",
+  "title": "Pure Scala gap migration transformation and copied-mini source proof",
+  "updated_at": "2026-10-11T21:59:12.730394Z"
+}

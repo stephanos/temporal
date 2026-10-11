@@ -8,7 +8,7 @@ The mini activity's feature file and product level, by subtraction from `feature
 
 **Size:** M
 **Files:** `model/temporal/features/activity_mini/MiniActivity.scala` (signature: `client.start` with `scheduleToStart`, `startToClose`, `maxAttempts` bounded at two; `client.cancel`; the worker's `poll`, `respondCompleted`, `respondFailed`; the two timers; entity, outcomes, `Bounds` entries), `mini/product/Product.scala` (phases with statuses and status facts, `init`, `end`, facets `Dispatching` and `Completion`, capabilities `Closable` and `Pollable`, one `except` waiver with a reason, Properties, one `verify`, one `find`)
-**Touches:** [model/temporal/features/activity_mini/**, model/temporal/Bounds.scala, model/framework/IrFile.scala, model/framework/IrFile.test.scala, model/irgen/Structure.scala, model/irgen/Lifting.scala, model/irgen/test/Fixtures.test.scala, model/irgen/testdata/layout/mini/**]
+**Touches:** [model/temporal/features/activity_mini/**, model/temporal/Bounds.scala, model/framework/IrFile.scala, model/framework/IrFile.test.scala, model/irgen/Structure.scala, model/irgen/Lifting.scala, model/irgen/test/Fixtures.test.scala, model/irgen/testdata/layout/mini/**, model/testdata/binding-order.tsv, model/temporal/ExportedLaws.test.scala]
 
 ### Approach
 - Add `mini` to the existing feature-form discovery and layout support, with focused regression coverage, so both compiled-root discovery and lifting name the form `activity-mini`. This enables the new example without changing the DSL's behavior or editing real features.
@@ -16,7 +16,8 @@ The mini activity's feature file and product level, by subtraction from `feature
 - Two facets at the product level, with one rule in `Completion` whose guard reads a `Dispatching` phase, so the cross-facet case exists from the start.
 - The feature file's header comment lists the hard instances the mini feature holds and where each is, and is updated by tasks 3 and 4.
 - Lift with `make model-mini`; read `activity_mini/generated/ir.json` end to end once and record its size on the task.
-
+- Add only the new mini machine's independently derived binding-order row to `model/testdata/binding-order.tsv`, because exported source laws require every newly exported machine to have one. Preserve every existing row byte-for-byte and leave table pins, equivalence maps/baselines and real-feature artifact inventories untouched. Derive the expected mini order from its declarations, not by copying the test's observed output; retain the existing mutation controls. This is required verification data for the new feature, not a revision of existing pins.
+- Repair scoped source-law inventory filtering for non-feature machines: retain all inventory rows within the packages of actually exported machine subjects, so a compiled but unqueried actor does not contaminate a selected mini run. Preserve full-scope coverage and exact missing/extra/order checks inside admitted packages, with negative controls. Do not add an unqueried actor to discovery merely to satisfy the test, alter real rows, or weaken the production DSL gate.
 ## Acceptance
 - [ ] The feature file and product level compile, lift to `features/activity_mini/generated/ir.json` and pass the Go checks and the lint under `FEATURES=activity_mini`.
 - [ ] The product level holds two facets with a cross-facet guard, `Closable` and `Pollable`, one waiver with a reason, one `verify` and one `find`, with bounds in `Bounds`.

@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "queries": [
+    {
+      "model": "activity-mini.json",
+      "query": {
+        "Family": "temporal.features.activity.mini.product",
+        "Owner": "activityProduct",
+        "Name": "activityProduct.terminalStatesAreFinal"
+      },
+      "standing": "nothing-to-realize"
+    },
+    {
+      "model": "activity-mini.json",
+      "query": {
+        "Family": "temporal.features.activity.mini.product",
+        "Owner": "activityProduct",
+        "Name": "completed"
+      },
+      "standing": "no-realization"
+    },
+    {
+      "model": "activity-mini.json",
+      "query": {
+        "Family": "temporal.features.activity.mini.product",
+        "Owner": "activityProduct",
+        "Name": "terminalIsFinal"
+      },
+      "standing": "nothing-to-realize"
+    }
+  ]
+}

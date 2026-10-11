@@ -30,3 +30,4 @@ temporal.foundations.taskqueue.protocol.ForgetfulQueue	system.enqueue,system.add
 temporal.foundations.taskqueue.protocol.LossyMatchingQueue	system.enqueue,system.addActivityTask,system.persistTask,system.syncMatch,system.deliver,system.acknowledge,fault.ackLoss,fault.crash,fault.storageLoss
 temporal.foundations.taskqueue.protocol.TaskQueueProtocol	system.enqueue,system.addActivityTask,system.persistTask,system.syncMatch,system.deliver,system.acknowledge,fault.ackLoss,fault.crash
 temporal.foundations.taskqueue.protocol.VolatileQueue	system.enqueue,system.addActivityTask,system.persistTask,system.syncMatch,system.deliver,system.acknowledge,fault.ackLoss,fault.crash
+temporal.features.activity.mini.product.ActivityProduct	client.start,worker.poll,client.cancel,worker.respondCompleted,worker.respondFailed,system.scheduleToStart,system.startToClose

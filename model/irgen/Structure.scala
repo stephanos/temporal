@@ -109,12 +109,14 @@ final private[irgen] class Structure(index: Index):
 
     // Whether its folders end with the feature's and its subpackage's, as its package names them.
     def mirrors: Boolean =
-      folder
-        .split('/')
-        .filter(_.nonEmpty)
-        .toList
-        .takeRight(sub.size + 1) ==
-        feature.split('.').last :: sub
+      val folders = folder.split('/').filter(_.nonEmpty).toList
+      val packages = feature.split('.').toList
+      val logical = packages.drop(packages.indexWhere(Set("features", "foundations", "actors")) + 1) ++ sub
+      val flat = logical match
+        case kind :: form :: rest if Structure.formFolders(form) => (kind + "_" + form) :: rest
+        case _ => logical
+      folders.takeRight(sub.size + 1) == (packages.last :: sub) ||
+        folders.takeRight(flat.size) == flat
 
   private def source(path: String, trees: List[Tree]): Option[Source] =
     val top = topLevel(trees)
@@ -365,7 +367,9 @@ final private[irgen] class Structure(index: Index):
     val root = rootOf(sources)
     // A form's root feature file is named after the form and its kind, `StandaloneActivity.scala`
     // (fn-160 R13); any other feature's after its folder.
-    val rootName = if kindForm then name + pkg.split('.').reverse(1) else name
+    val rootName =
+      if kindForm then name + pkg.split('.').reverse(1)
+      else Structure.featureFileName(Seq(name)).getOrElse(name)
     val rootFile =
       sources.find(s => s.sub.isEmpty && s.file.stripSuffix(".scala").equalsIgnoreCase(rootName))
     val forms = for s <- sources; c <- s.objects if form(c.symbol) yield (s, c)
@@ -394,7 +398,10 @@ final private[irgen] class Structure(index: Index):
       sources.exists(_.path == productPath)
     val kindLevels = general && hasProduct
     val inheritedLevels = inherited.nonEmpty && sources.exists(_.sub.headOption.contains(lower))
-    val twoLevels = pairs.nonEmpty || hasLevelFiles || kindLevels || inheritedLevels
+    val flatForm = name.split('_').toSeq
+    val productOnly = (kindForm || (flatForm.sizeIs == 2 && Structure.formFolders(flatForm.last))) &&
+      hasProduct && sources.forall(s => s.sub.isEmpty || s.sub == List("product"))
+    val twoLevels = pairs.nonEmpty || hasLevelFiles || kindLevels || inheritedLevels || productOnly
     if inheritedLevels && !sources.exists(_.path == systemPath)
     then
       for source <- sources.find(_.sub.headOption.contains(lower)); first <- source.top.headOption
@@ -444,7 +451,7 @@ final private[irgen] class Structure(index: Index):
           Option.when(inherited.isEmpty)(productPath)
         for level <- required if !sources.exists(_.path == level)
         do refuse(refinement, s"$two; $level is missing")
-      case None if hasLevelFiles || kindLevels || inheritedLevels => ()
+      case None if hasLevelFiles || kindLevels || inheritedLevels || productOnly => ()
       case None                                                   =>
         for s <- sources if s.sub.nonEmpty; first <- s.top.headOption do
           refuse(
@@ -674,7 +681,7 @@ final private[irgen] class Structure(index: Index):
     yield source -> product
 
 object Structure:
-  val formFolders = Set("workflow", "standalone")
+  val formFolders = Set("workflow", "standalone", "mini")
 
   // A feature's level folders, by audience (fn-126 decision 16).
   val levels = Set("product", "protocol", "realization", "system")
@@ -701,7 +708,10 @@ object Structure:
   // (`standalone/StandaloneActivity.scala`, fn-160 R13), any other's the folder's name.
   def featureFileName(folders: Seq[String]): Option[String] =
     folders.lastOption.map { last =>
-      if formFolders(last) && folders.sizeIs >= 2 then last + folders(folders.size - 2) else last
+      val flat = last.split('_').toSeq
+      if flat.sizeIs == 2 && formFolders(flat.last) then flat.last + flat.head
+      else if formFolders(last) && folders.sizeIs >= 2 then last + folders(folders.size - 2)
+      else last
     }
 
   // Whether a source sits in a level folder, `product/` or `system/`, so the order lint reads it
