@@ -51,9 +51,15 @@ class CapabilityPropertiesTest extends munit.FunSuite:
   )
 
   def declaring[S, O, F](m: Machine[S, O, F], section: Capabilities[S, O, F]): Declared =
-    val bindings = section.getClass.getMethods
-      .filter(method => classOf[CapabilityOf[?, ?, ?]].isAssignableFrom(method.getReturnType))
-      .map(_.invoke(section))
+    // A machine of facets declares its facets' capabilities (fn-161).
+    def sections(c: Capabilities[S, O, F]): Seq[Capabilities[S, O, F]] = c match
+      case f: framework.FacetCapabilities[S, O, F] @unchecked => f.facets.flatMap(sections)
+      case other                                    => Seq(other)
+    val bindings = sections(section).flatMap(c =>
+      c.getClass.getMethods
+        .filter(method => classOf[CapabilityOf[?, ?, ?]].isAssignableFrom(method.getReturnType))
+        .map(_.invoke(c))
+    )
     val applicable = bindings.flatMap {
       case binding: Product =>
         val fields = binding.productElementNames.zip(binding.productIterator).toMap
@@ -181,7 +187,7 @@ class CapabilityPropertiesTest extends munit.FunSuite:
 
   test("every Closable site binds only its rejection, including all four derived owners") {
     val closables = Seq(
-      product.ActivityProduct.capabilities.closable,
+      product.ActivityProduct.lifecycle.capabilities.closable,
       system.ActivityRecord.capabilities.closable,
       system.TrustingActivityRecord.capabilities.closable,
       system.RecordOverQueue.capabilities.closable,
@@ -209,7 +215,8 @@ class CapabilityPropertiesTest extends munit.FunSuite:
 
   test("every Pausable and Pollable site binds only actions, including all four derived owners") {
     val pausableAndPollable = Seq(
-      product.ActivityProduct.capabilities.pausable -> product.ActivityProduct.capabilities.pollable,
+      product.ActivityProduct.pausing.capabilities.pausable ->
+        product.ActivityProduct.dispatching.capabilities.pollable,
       system.ActivityRecord.capabilities.pausable -> system.ActivityRecord.capabilities.pollable,
       system.TrustingActivityRecord.capabilities.pausable ->
         system.TrustingActivityRecord.capabilities.pollable,

@@ -1,6 +1,5 @@
 package framework
 
-import scala.annotation.unused
 import scala.collection.mutable
 
 // A facet: one behaviour area of one feature's machine at one level, named as a noun for what
@@ -76,5 +75,5 @@ object Facets:
 // section, `capabilities.bound(three)`. Core form: one `object capabilities extends Capabilities`
 // holding every facet's capabilities and waivers in facet order.
 abstract class FacetCapabilities[S, O, F](using Declaring[S, O, F])(
-    @unused facets: Capabilities[S, O, F]*
+    val facets: Capabilities[S, O, F]*
 ) extends Capabilities[S, O, F]
