@@ -138,6 +138,9 @@ func modelImportProblem(file string, external bool, imported string) string {
 		return ""
 	}
 	if strings.HasPrefix(name, "tools/umpire/") {
+		if owner == "interp" && test && name == "tools/umpire/ir/paths" {
+			return ""
+		}
 		dependency := strings.TrimPrefix(name, "tools/umpire/")
 		dependency = strings.Split(dependency, "/")[0]
 		if dependency == owner || owner == "cmd" {
@@ -328,6 +331,11 @@ func TestModelDependencyGraphRejectsCrossedOwners(t *testing.T) {
 	}{
 		{file: "tools/umpire/ir/load.go", dependency: module + "api/umpire/v1", allowed: true},
 		{file: "tools/umpire/interp/eval.go", dependency: module + "tools/umpire/ir"},
+		{file: "tools/umpire/interp/helpers_test.go", dependency: module + "tools/umpire/ir/paths", allowed: true},
+		{file: "tools/umpire/interp/helpers_test.go", dependency: module + "tools/umpire/ir"},
+		{file: "tools/umpire/interp/eval.go", dependency: module + "tools/umpire/ir/paths"},
+		{file: "tools/umpire/interp/helpers_test.go", dependency: module + "tools/umpire/ir/paths/reader"},
+		{file: "tools/umpire/internal/engine/table_test.go", dependency: module + "tools/umpire/ir/paths"},
 		{file: "tools/umpire/realization/operand.go", dependency: module + "tools/umpire/ir"},
 		{file: "tools/umpire/ir/validate.go", dependency: module + "tools/umpire/check"},
 		{file: "tools/umpire/check/claims.go", dependency: module + "tools/umpire/realization"},

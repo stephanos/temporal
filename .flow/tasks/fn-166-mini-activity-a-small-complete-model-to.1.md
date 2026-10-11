@@ -4,11 +4,17 @@ satisfies: [R1, R2, R8]
 # fn-166-mini-activity-a-small-complete-model-to.1 The feature as the unit: FEATURES on every model target, discovered by default, per-feature gate report
 
 ## Description
+---
+satisfies: [R1, R2, R8]
+---
+# fn-166-mini-activity-a-small-complete-model-to.1 The feature as the unit: FEATURES on every model target, discovered by default, per-feature gate report
+
+### Description
 Make every model operation take a feature set whose default is discovered, and make the gate report each feature's state (R1, R2, R8). This is the mechanism the mini feature and every later DSL change rely on; no parking, no deletion, no list of features.
 
 **Size:** L
 **Files:** `tools/umpire/ir` (path helper), `tools/umpire/cmd/umpire-gen-cases`, `tools/umpire/cmd/umpire-repeat` and their tests, the Go tests that name `model/ir` or `model/cases`, `model/framework/IrFile.scala`, `.gitattributes`, `CODEOWNERS`, `Makefile` (`MODEL_SOURCES` and every target that uses it: jar, gate, lint, test, equivalence), `model/check/Gate.scala` (source enumeration, the per-feature report), `model/temporal/IrFiles.test.scala` and `MachineTablePins.test.scala` (read the compiled set), `model/README.md` (one paragraph)
-**Touches:** [Makefile, .gitattributes, .github/CODEOWNERS, .plans/UMPIRE_MODULES.md, model/OutputPaths.scala, model/OutputPaths.test.scala, model/check/*.scala, model/check/test/*.scala, model/framework/IrFile.scala, model/framework/IrFile.test.scala, model/irgen/*.scala, model/irgen/test/**, model/irgen/testdata/**, model/temporal/*.test.scala, model/temporal/features/**/generated/**, model/temporal/foundations/**/generated/**, model/temporal/actors/**/generated/**, model/ir/**, model/cases/**, model/README.md, tools/umpire/**/*.go, tools/umpire/lint/testdata/**, tools/umpire/export/README.md, tools/canary/**/*test.go, tests/**/*test.go, common/testing/testpilot/**/*test.go]
+**Touches:** [Makefile, .gitattributes, .github/CODEOWNERS, .plans/UMPIRE_MODULES.md, model/OutputPaths.scala, model/OutputPaths.test.scala, model/check/*.scala, model/check/test/*.scala, model/framework/IrFile.scala, model/framework/IrFile.test.scala, model/irgen/*.scala, model/irgen/test/**, model/irgen/testdata/**, model/temporal/*.test.scala, model/temporal/features/**/generated/**, model/temporal/foundations/**/generated/**, model/temporal/actors/**/generated/**, model/ir/**, model/cases/**, model/README.md, tools/umpire/**/*.go, tools/umpire/lint/testdata/**, tools/umpire/export/README.md, tools/canary/**/*test.go, tests/**/*test.go, tests/testcore/testpilot/model_fixture.go, common/testing/testpilot/**/*test.go]
 
 ### Approach
 - Discovery: a feature is a folder under `model/temporal/features/` that holds a feature file, the existing layout rule (`features/activity/standalone`, `features/nexus/workflow`, ...). The Makefile discovers them with `$(wildcard)`/`find` at run time; `FEATURES` (space-separated, relative to `features/`) narrows the discovered set. No variable, file or test holds a list of features.
@@ -20,6 +26,22 @@ Make every model operation take a feature set whose default is discovered, and m
 - `umpire-check-lint` takes `FEATURES` too (owner, 2026-10-11): the target names the selected features' IR files, `umpire-lint $(wildcard $(addsuffix /generated/ir.json,$(MODEL_FEATURE_PATHS)))`, as the gate's lint step names `selectedIr`. The default set still lints every feature that has an IR; a feature not yet lifted is skipped by the `wildcard`, not failed; a scoped run checks for orphan acceptance files only in its own folders. Naming files skips the frozen payloads under `generated/legacy/`, which the gate already skips and fn-160 retires, so the two routes agree. Fix the target's comment and the `make umpire-check-lint` row of `.plans/UMPIRE_MODULES.md`, which still say `model/ir`.
 - Prove with one discovered real feature alone: compiles, lifts, passes the Scala suites; `git status` shows no change under the other features; the report covers only the selected feature. Historical IR drift must be reported as behind, not hidden by regenerating preserved payloads. The full-set behind failure is a required negative proof (R2), not evidence that the whole spec is complete.
 
+### Acceptance
+- [ ] Every model target takes `FEATURES`; the default is discovered from the tree and no list of features exists in the build or the tests; `make model-mini` is the alias.
+- [ ] `make umpire-check-lint FEATURES=<feature>` lints only that feature's `generated/ir.json` and touches no other folder; the bare target lints every lifted feature; a listed feature without an IR is skipped.
+- [ ] With one feature listed, only it and the shared code are compiled, lifted, checked and tested; the others are untouched on disk.
+- [ ] The gate reports each discovered feature as current, behind or missing; a full-set run with a behind feature fails naming it.
+- [ ] `IrFilesTest` and `MachineTablePins` pass under the default and under a single-feature set.
+- [ ] Every feature's IR, lint acceptances and Cases live in `features/<feature>/generated/`; `model/ir/` and `model/cases/` are gone; every consumer resolves paths through the helper; a run scoped to one feature changes nothing outside its tree (Go test).
+- [ ] `.gitattributes` marks `generated/` trees as generated and CODEOWNERS has one line per feature folder.
+
+### Done summary
+TBD
+
+### Evidence
+- Commits:
+- Tests:
+- PRs:
 ## Acceptance
 - [ ] Every model target takes `FEATURES`; the default is discovered from the tree and no list of features exists in the build or the tests; `make model-mini` is the alias.
 - [ ] `make umpire-check-lint FEATURES=<feature>` lints only that feature's `generated/ir.json` and touches no other folder; the bare target lints every lifted feature; a listed feature without an IR is skipped.

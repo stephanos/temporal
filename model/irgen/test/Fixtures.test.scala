@@ -24,6 +24,7 @@ private object FixtureIdentityContract:
   def check(name: String, text: String, current: Boolean = true): Unit =
     val contract = contracts.path(name)
     require(!contract.isMissingNode, s"no identity contract for $name")
+    FixturePositions.check(name, mapper.readTree(text), current)
     val identities = contract
       .path("identities")
       .fields()
@@ -76,6 +77,29 @@ class FixtureIdentityContractSuite extends munit.FunSuite:
         ),
         current = false
       )
+
+  test("fixture contracts reject corruption of all 547 rules source positions"):
+    val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
+    val rules = mapper.readTree(Files.readString(
+      Tools.here.directory.resolve("model/irgen/testdata/lifts/expected/rules.json")
+    ))
+    FixtureIdentityContract.check("rules", mapper.writeValueAsString(rules), current = false)
+    var changed = 0
+    def corrupt(node: com.fasterxml.jackson.databind.JsonNode): Unit =
+      if node.isObject then
+        if node.has("position") then
+          val position = node.path("position").asInstanceOf[com.fasterxml.jackson.databind.node.ObjectNode]
+          position.put("file", "wrong.scala"): Unit
+          position.put("line", 999999): Unit
+          changed += 1
+        node.elements().asScala.foreach(corrupt)
+      else if node.isArray then node.elements().asScala.foreach(corrupt)
+    corrupt(rules)
+    assertEquals(changed, 547)
+    val refused = intercept[IllegalArgumentException](
+      FixtureIdentityContract.check("rules", mapper.writeValueAsString(rules), current = false)
+    )
+    assert(refused.getMessage.contains("source position"), refused.getMessage)
 
 private object HintFixtures:
   val admitted = Seq("keptBehavior", "ownBehavior")

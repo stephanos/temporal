@@ -91,21 +91,22 @@ class IrFileDiscoveryTest extends munit.FunSuite:
 
   test("IR output paths are co-located without changing logical file identities") {
     val root = java.nio.file.Files.createTempDirectory("ir-output-paths.")
-    val generated = root.resolve("model/temporal/features/activity/standalone/generated")
+    val features = IrFile.path(root, "uncompiled-feature").getParent.getParent.getParent
+    val generated = features.resolve("alpha/standalone/generated")
     java.nio.file.Files.createDirectories(generated): Unit
-    assertEquals(IrFile.path(root, "activity-standalone"), generated.resolve("ir.json"))
+    assertEquals(IrFile.path(root, "alpha-standalone"), generated.resolve("ir.json"))
     assertEquals(
-      IrFile.path(root, "activity-standalone-record"),
-      generated.resolve("legacy/activity-standalone-record.json")
+      IrFile.path(root, "alpha-standalone-record"),
+      generated.resolve("legacy/alpha-standalone-record.json")
     )
     assertEquals(
       IrFile.path(root, "uncompiled-feature"),
-      root.resolve("model/temporal/features/uncompiled_feature/generated/ir.json")
+      features.resolve("uncompiled_feature/generated/ir.json")
     )
     java.nio.file.Files.writeString(generated.resolve("ir.json"), "{}"): Unit
     java.nio.file.Files.createDirectories(generated.resolve("legacy")): Unit
     java.nio.file.Files.writeString(
-      generated.resolve("legacy/activity-standalone-record.json"),
+      generated.resolve("legacy/alpha-standalone-record.json"),
       "{}"
     ): Unit
     java.nio.file.Files.writeString(generated.resolve("ir.lint.json"), "{}"): Unit
@@ -113,14 +114,14 @@ class IrFileDiscoveryTest extends munit.FunSuite:
       java.nio.file.Files.writeString(generated.resolve("legacy").resolve(name), "{}"): Unit
     assertEquals(
       IrFile.inventory(root).map(_._1),
-      Vector("activity-standalone", "activity-standalone-record")
+      Vector("alpha-standalone", "alpha-standalone-record")
     )
-    val flat = root.resolve("model/temporal/features/nexus_workflow")
+    val flat = features.resolve("beta_flat")
     java.nio.file.Files.createDirectories(flat): Unit
-    assertEquals(IrFile.path(root, "nexus-workflow"), flat.resolve("generated/ir.json"))
+    assertEquals(IrFile.path(root, "beta-flat"), flat.resolve("generated/ir.json"))
     assertEquals(
-      IrFile.path(root, "nexus-workflow-close"),
-      flat.resolve("generated/legacy/nexus-workflow-close.json")
+      IrFile.path(root, "beta-flat-close"),
+      flat.resolve("generated/legacy/beta-flat-close.json")
     )
     val _ = intercept[IllegalArgumentException](IrFile.path(root, "../escape"))
   }
@@ -260,7 +261,7 @@ class IrFileDiscoveryTest extends munit.FunSuite:
       Some("taskqueue")
     )
     assertEquals(IrFile.featureOf("temporal.actors.worker"), Some("worker"))
-    assertEquals(IrFile.featureOf("temporal.features.activity_mini.product"), Some("activity-mini"))
+    assertEquals(IrFile.featureOf("examples.features.alpha_mini.product"), Some("alpha-mini"))
     assertEquals(IrFile.featureOf("framework"), None)
     val subjects = IrFile("discovery", Seq(Added)).subjects()
     assertEquals(

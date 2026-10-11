@@ -30,10 +30,11 @@ class GateEquivalenceOutputsSuite extends munit.FunSuite:
       "temporal.features.lamp.present\tpresent\t1\n",
       "temporal.features.lamp.removed\tremoved\t1\n",
       "temporal.foundations.shared.reached\tshared\t1\n",
+      "temporal.actors.shared.removed\tshared-removed\t1\n",
       "temporal.features.sibling.other\tsibling\t1\n"
     ).mkString
     Files.writeString(tables.resolve("index.tsv"), original)
-    for digest <- Vector("present", "removed", "shared", "sibling") do
+    for digest <- Vector("present", "removed", "shared", "shared-removed", "sibling") do
       Files.writeString(tables.resolve(digest + ".steps.gz"), digest)
     val current = Files.createDirectories(root.resolve("current-tables"))
     Files.writeString(
@@ -62,13 +63,14 @@ class GateEquivalenceOutputsSuite extends munit.FunSuite:
     val scoped = root.resolve("baseline-view")
     val map = RenameMap.empty
     Gate(Tools(root, Map("FEATURES" -> "lamp")), PrintStream(ByteArrayOutputStream()))
-      .equivalenceBaseline(baseline, scoped, current, map)
+      .equivalenceBaseline(baseline, scoped, map)
     assertEquals(
       Equivalence.index(scoped.resolve(Equivalence.stepTables)).map(_._1),
       Vector(
         "temporal.features.lamp.present",
         "temporal.features.lamp.removed",
-        "temporal.foundations.shared.reached"
+        "temporal.foundations.shared.reached",
+        "temporal.actors.shared.removed"
       )
     )
     assertEquals(Files.readString(tables.resolve("index.tsv")), original)
@@ -83,8 +85,9 @@ class GateEquivalenceOutputsSuite extends munit.FunSuite:
     assertEquals(Json.items(scopedManifest("queries"), "queries"), Vector(selectedRow))
     assertEquals(Files.readString(baselineCases.resolve("manifest.json")), originalManifest)
     val compared = Equivalence.compareTables(scoped.resolve(Equivalence.stepTables), current, map)
-    assertEquals(compared.differences.size, 1)
-    assert(compared.differences.head.contains("temporal.features.lamp.removed"))
+    assertEquals(compared.differences.size, 2)
+    assert(compared.differences.exists(_.contains("temporal.features.lamp.removed")))
+    assert(compared.differences.exists(_.contains("temporal.actors.shared.removed")))
     val pinsDirectory = Files.createDirectories(root.resolve("model/testdata/table-pins"))
     val pin = Map[String, Any](
       "artifact" -> "lamp.json",
@@ -107,6 +110,33 @@ class GateEquivalenceOutputsSuite extends munit.FunSuite:
       pinMetadata.updated("artifacts", Vector(pin))
     )
     assertEquals(Files.readString(pinsDirectory.resolve("pins.json")), originalPins)
+    val fullGate = Gate(
+      Tools(root, Map("FEATURES" -> ModelSources(root, None).features.mkString(" "))),
+      PrintStream(ByteArrayOutputStream())
+    )
+    assertEquals(fullGate.equivalencePins(out), pinsDirectory.resolve("pins.json"))
+  }
+
+  test("exporting all discovered FEATURES keeps the complete equivalence baseline") {
+    val root = Scratch.directory("umpire-full-equivalence-scope")
+    val owner = Files.createDirectories(root.resolve("model/temporal/features/lamp"))
+    Files.writeString(owner.resolve("Lamp.scala"), "package fixture.lamp\n")
+    val baseline = Files.createDirectories(root.resolve("baseline"))
+    val tables = Files.createDirectories(baseline.resolve(Equivalence.stepTables))
+    val disappeared = "temporal.features.retired.disappeared"
+    Files.writeString(tables.resolve("index.tsv"), s"$disappeared\tmissing\t1\n")
+    Files.writeString(tables.resolve("missing.steps.gz"), "unread removed table")
+    val map = root.resolve("rename.map")
+    Files.writeString(map, "")
+    val bin = Files.createDirectories(root.resolve("bin"))
+    val tools = Stubs(bin).tool("scala-cli",
+      "for directory in \"$@\"; do :; done\n/bin/mkdir -p \"$directory\"\n: > \"$directory/index.tsv\"")
+      .tools(root, "FEATURES" -> ModelSources(root, None).features.mkString(" "))
+    val failed = intercept[GateError]:
+      Gate(tools, PrintStream(ByteArrayOutputStream()))
+        .checkEquivalence(baseline, map, stepsOnly = true, dumper = None)
+    assert(failed.getMessage.contains(disappeared), failed.getMessage)
+    assertEquals(Files.readString(tables.resolve("index.tsv")), s"$disappeared\tmissing\t1\n")
   }
 
   test("equivalence reads relocated bytes through the original logical artifact view") {
@@ -835,6 +865,25 @@ class GateSuite extends munit.FunSuite:
       .tool("git", "echo \"git $*\" >> \"$TOOLS_LOG\"")
     val selected = ModelSources(repository.root, None).features.head
     repository.tools.withEnvironment("FEATURES" -> selected)
+
+  test("a scoped regular gate excludes full-set fixtures without compiling excluded Models"):
+    val fixtureFailure =
+      """case " $* " in *" test model/irgen "*) echo 'complete fixture requires every Model'; exit 6;; esac"""
+    for narrowed <- Seq(true, false) do
+      val repository = Repository(scalaCli = fixtureFailure + "\n" + lifting)
+      initializeFeatures(repository, "{\"lifted\": true}\n")
+      val all = ModelSources(repository.root, None).features
+      val selected = if narrowed then all.take(1) else all
+      val answer = gate(repository.tools.withEnvironment("FEATURES" -> selected.mkString(" ")), "--skip-go-checks")
+      assertEquals(answer.status, if narrowed then 0 else 1, answer.err)
+      val fixtures = repository.ran.filter(_.contains(" test model/irgen "))
+      assertEquals(fixtures.size, if narrowed then 0 else 1)
+      val packaged = repository.ran.find(_.contains("model-scala.jar")).get
+      for feature <- all do
+        assertEquals(packaged.contains("model/temporal/features/" + feature), selected.contains(feature))
+      if narrowed then
+        assert(!repository.ran.exists(_.contains("compile --test model/irgen")))
+        assert(answer.out.contains("skipped complete lifter fixture suite"))
 
   test(
     "model loop validates fresh selected IR in scratch before lint and output comparison"

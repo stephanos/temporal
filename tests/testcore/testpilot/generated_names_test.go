@@ -30,7 +30,7 @@ func TestGeneratedCaseNames(t *testing.T) {
 		}
 		name := GeneratedCaseName(entry)
 		// Physical filenames retain the Query; the functional name also retains its logical Model.
-		if strings.Contains(entry.File, "/legacy/") {
+		if strings.Contains(filepath.ToSlash(entry.File), "/legacy/") {
 			require.Equal(t, name+"-case.json", filepath.Base(entry.File))
 		} else {
 			require.Equal(t, entry.Query.Name+".case.json", filepath.Base(entry.File))

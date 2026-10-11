@@ -40,22 +40,23 @@ func TestFrameworkLayout(t *testing.T) {
 }
 
 var preservedUmpireProtobufNamespace = regexp.MustCompile(`(?:io\.)?temporal\.server\.api\.umpire\.v1\b`)
+var neutralOutputPathsNamespace = regexp.MustCompile(`\bumpire\.paths\b`)
 
 func retiredFrameworkMention(line string) bool {
 	allowed := strings.NewReplacer(
 		"umpire.irgen", "",
 		"umpire.check", "",
 		"umpire.case.service", "",
-	).Replace(preservedUmpireProtobufNamespace.ReplaceAllString(line, ""))
+	).Replace(neutralOutputPathsNamespace.ReplaceAllString(preservedUmpireProtobufNamespace.ReplaceAllString(line, ""), ""))
 	return strings.Contains(allowed, "model/umpire") || strings.Contains(allowed, "umpire.") ||
 		strings.TrimSpace(allowed) == "package umpire"
 }
 
 func TestFrameworkNamespaceDistinguishesPreservedProtobufFromRetiredDSL(t *testing.T) {
-	for _, line := range []string{"temporal.server.api.umpire.v1.Model", "io.temporal.server.api.umpire.v1.Model"} {
+	for _, line := range []string{"temporal.server.api.umpire.v1.Model", "io.temporal.server.api.umpire.v1.Model", "package umpire.paths", "import umpire.paths.OutputPaths"} {
 		require.False(t, retiredFrameworkMention(line), line)
 	}
-	for _, line := range []string{"import umpire.*", "umpire.Finite", "package umpire", "model/umpire", "temporal.server.api.umpire.v2.Model", "temporal.server.api.umpire.v10.Model", "temporal.server.api.umpire.v1other.Model", "temporal.server.api.umpire.v1.Model; umpire.Finite"} {
+	for _, line := range []string{"import umpire.*", "umpire.Finite", "package umpire", "model/umpire", "temporal.server.api.umpire.v2.Model", "temporal.server.api.umpire.v10.Model", "temporal.server.api.umpire.v1other.Model", "temporal.server.api.umpire.v1.Model; umpire.Finite", "package umpire.pathsOther", "import umpire.paths.OutputPaths; umpire.Finite"} {
 		require.True(t, retiredFrameworkMention(line), line)
 	}
 }

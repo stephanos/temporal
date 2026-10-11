@@ -118,7 +118,7 @@ Lint checks and manual acceptance work are set aside for this run at the owner's
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-166.1 | 🔄 in progress | All 44 historical payloads and 340 manifest rows preserved; final lifter (194), default Scala (183), selected Scala (99), gate (108) and scoped Go tests pass; implementation review remains; fresh real-feature IR is rejected by stale Go protobuf code (`Realization.queries`), canonical route owner-held |
+| fn-166.1 | 🔄 in progress | Seven review fixes verified: lifter 195, gate 111 and scoped Go tests pass; all 44 payloads and 340 manifest rows preserved; owner decision needed for subset-safe publication of global functional/canary pins (their Make targets still ignore FEATURES); re-review remains; held protobuf generation still blocks canonical/fresh real-feature Go validation |
 | fn-166.6 | ⬜ todo | Path-only move of Case manifests and payloads to `generated/cases/`, historical Cases to `generated/cases/legacy/`; after task 1, before realization and final loop proof |
 | fn-166.2 | ⬜ todo | Feature file and product level by subtraction: two facets, cross-facet guard, `Closable`/`Pollable`, a waiver, `verify` and `find` |
 | fn-166.3 | ⬜ todo | Protocol level: refinement, shared input, shared status fact, composition with `sync`, channel, failure model, fair progress, monitor, hole, `Retryable`/`Expirable` with an override |

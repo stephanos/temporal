@@ -507,7 +507,7 @@ final class Gate(tools: Tools, log: PrintStream):
   private val tablePins = "model/testdata/table-pins/replay.py"
 
   private def equivalenceOwned(name: String): Boolean =
-    tools.modelFeatures.isEmpty || selection.features.exists(feature =>
+    !selection.narrowed || selection.features.exists(feature =>
       OutputPaths.generated(root, logicalFeature(feature)).equals(OutputPaths.generated(root, name))
     )
 
@@ -592,17 +592,15 @@ final class Gate(tools: Tools, log: PrintStream):
   private[check] def equivalenceBaseline(
       base: Path,
       out: Path,
-      currentTables: Path,
       map: RenameMap
   ): Unit =
     val scopeMap = RenameMap(map.renames, map.removals)
-    val current = Equivalence.index(currentTables).map(_._1).toSet
     val prefixes = featureKeyPrefixes(selection.features)
     val entries = Equivalence
       .index(base.resolve(Equivalence.stepTables))
       .filter((key, _) =>
         val renamed = scopeMap(key)
-        current(renamed) || prefixes.exists(renamed.startsWith(_))
+        !renamed.startsWith("temporal.features.") || prefixes.exists(renamed.startsWith(_))
       )
     val tables = Files.createDirectories(out.resolve(Equivalence.stepTables))
     for (_, (digest, _)) <- entries.distinctBy(_._2._1) do
@@ -662,7 +660,7 @@ final class Gate(tools: Tools, log: PrintStream):
 
   private[check] def equivalencePins(out: Path): Path =
     val original = root.resolve("model/testdata/table-pins/pins.json")
-    if tools.modelFeatures.isEmpty then original
+    if !selection.narrowed then original
     else
       val fields = Json.fields(Json.parse(Files.readString(original)), original.toString)
       val artifacts = Json
@@ -774,10 +772,10 @@ final class Gate(tools: Tools, log: PrintStream):
     step("write the step tables"):
       writeStepTables(now.resolve(Equivalence.stepTables))
     val comparisonBase =
-      if tools.modelFeatures.isEmpty then base
+      if !selection.narrowed then base
       else
         val scoped = now.resolve("baseline")
-        equivalenceBaseline(base, scoped, now.resolve(Equivalence.stepTables), map)
+        equivalenceBaseline(base, scoped, map)
         scoped
     val tables = step("compare the step tables with the baseline's"):
       Equivalence.compareTables(
@@ -1057,13 +1055,15 @@ final class Gate(tools: Tools, log: PrintStream):
       Files.writeString(modelClasspath, classpath.output)
 
     // Compiled once here, so the steps below that run it side by side only read its classes.
-    if !fast then
+    if !fast && !selection.narrowed then
       step("compile the lifter and its tests"):
         tools.scalaCli(Seq("compile", "--test", "model/irgen")).orFail()
+    if !fast && selection.narrowed then
+      log.println("== skipped complete lifter fixture suite (narrowed FEATURES; run the full-set gate)")
 
     // Both read the packaged Models and the lifter, and neither reads what the other writes.
     val fixtures =
-      if fast then Seq.empty
+      if fast || selection.narrowed then Seq.empty
       else
         Seq(
           beside(

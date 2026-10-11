@@ -15,6 +15,7 @@ import (
 	"go.temporal.io/server/tools/umpire/check"
 	"go.temporal.io/server/tools/umpire/conformance"
 	"go.temporal.io/server/tools/umpire/ir"
+	irpaths "go.temporal.io/server/tools/umpire/ir/paths"
 	"go.temporal.io/server/tools/umpire/lower"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
@@ -85,7 +86,7 @@ func LoadModelCase(path string, query check.ClaimKey, set string) (*ModelCase, e
 }
 
 func LoadGeneratedCase(directory string, entry lower.GeneratedCase) (*ModelCase, error) {
-	encoded, err := os.ReadFile(filepath.Join(directory, entry.File))
+	encoded, err := os.ReadFile(irpaths.CasePath(directory, entry.Model, entry.Query.Name))
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +94,7 @@ func LoadGeneratedCase(directory string, entry lower.GeneratedCase) (*ModelCase,
 	if err != nil {
 		return nil, err
 	}
-	model, err := ir.Load(filepath.Join(directory, "..", "ir", entry.Model))
+	model, err := ir.Load(irpaths.ModelPath(directory, entry.Model))
 	if err != nil {
 		return nil, err
 	}
@@ -105,23 +106,61 @@ func LoadGeneratedCase(directory string, entry lower.GeneratedCase) (*ModelCase,
 	return fixture, nil
 }
 
-// GeneratedCaseName is the name a lowered Case runs under in the functional tests: its file's stem,
+// GeneratedCaseName is the name a lowered Case runs under in the functional tests:
 // `<model>-<query>`. It is the depth-2 test name the functional job shards and the salt optimizer
 // times, so a renamed Query renames a shard unit.
 func GeneratedCaseName(entry lower.GeneratedCase) string {
-	return strings.TrimSuffix(entry.File, "-case.json")
+	return strings.TrimSuffix(entry.Model, ".json") + "-" + entry.Query.Name
 }
 
 func GeneratedCases(directory string) ([]lower.GeneratedCase, error) {
-	encoded, err := os.ReadFile(filepath.Join(directory, "manifest.json"))
+	directory, err := filepath.Abs(directory)
 	if err != nil {
 		return nil, err
 	}
-	manifest, err := lower.DecodeManifest(encoded)
+	var entries []lower.GeneratedCase
+	found := false
+	err = filepath.WalkDir(irpaths.FeatureRoot(directory), func(path string, item os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if item.IsDir() || item.Name() != "manifest.json" {
+			return nil
+		}
+		found = true
+		encoded, err := os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+		manifest, err := lower.DecodeManifest(encoded)
+		if err != nil {
+			return fmt.Errorf("%s: %w", path, err)
+		}
+		prefix, err := filepath.Rel(directory, filepath.Dir(path))
+		if err != nil {
+			return err
+		}
+		for _, entry := range manifest.Queries {
+			if entry.File != "" {
+				entry.File = filepath.Join(prefix, entry.File)
+			}
+			entries = append(entries, entry)
+		}
+		return nil
+	})
 	if err != nil {
 		return nil, err
 	}
-	return manifest.Queries, nil
+	if !found {
+		return nil, fmt.Errorf("no generated Case manifest.json in %s: %w", directory, os.ErrNotExist)
+	}
+	slices.SortFunc(entries, func(a, b lower.GeneratedCase) int {
+		if order := strings.Compare(a.Model, b.Model); order != 0 {
+			return order
+		}
+		return strings.Compare(a.Query.Name, b.Query.Name)
+	})
+	return entries, nil
 }
 
 func prepareModelCase(model *umpirespb.Model, query check.ClaimKey, source *testpilotspb.Case) (*ModelCase, error) {

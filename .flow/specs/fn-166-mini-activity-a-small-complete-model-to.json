@@ -1,11 +1,120 @@
 {
   "branch_name": "fn-166-mini-activity-a-small-complete-model-to",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-11T17:43:01.287506Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-166-mini-activity-a-small-complete-model-to",
+  "impl_review_rounds": {
+    "fn-166-mini-activity-a-small-complete-model-to.1": 1
+  },
   "next_task": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "review_attempts": [
+    {
+      "artifact_sha256": "6bba607e3cc70aab8f8863945dee4e8845bb9e2978f38f31dab2b8d24afe208d",
+      "backend": "codex",
+      "base_sha": "47a2f69a23ad9fd6bbe7998257ff6918e3e794d0",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-847647a4f775c71612f7ee99a2e33791",
+            "classification": "introduced",
+            "findingId": "finding-847647a4f775c71612f7ee99a2e33791",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-bb9346a04a26cff37b8ff091d6ba7423",
+            "classification": "introduced",
+            "findingId": "finding-bb9346a04a26cff37b8ff091d6ba7423",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-3d34101d8bd089999bcb68477ab270ae",
+            "classification": "introduced",
+            "findingId": "finding-3d34101d8bd089999bcb68477ab270ae",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-e5b33edd3471d7d8dee8243212bdb5b4",
+            "classification": "introduced",
+            "findingId": "finding-e5b33edd3471d7d8dee8243212bdb5b4",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-826137e310641cc595e069767b2b4aa7",
+            "classification": "introduced",
+            "findingId": "finding-826137e310641cc595e069767b2b4aa7",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-2a72d82489e1a695e3bb3ba62429a902",
+            "classification": "introduced",
+            "findingId": "finding-2a72d82489e1a695e3bb3ba62429a902",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-526f7b33f58f421774adfee55dbb8c0e",
+            "classification": "introduced",
+            "findingId": "finding-526f7b33f58f421774adfee55dbb8c0e",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "9cb3fad5a6a4fd6adfa139b32c7ddded97b4ec52",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 5746,
+      "output_sha256": "343001500784235ff9fe394fa228a89d7ceff96aabb3da9fc0f9b73370480c24",
+      "reservation_id": "0df0e806029f4f6791e9dd33d28fe09f",
+      "round_consumed": true,
+      "scope": "impl:fn-166-mini-activity-a-small-complete-model-to.1",
+      "superseded_by": null,
+      "task": "fn-166-mini-activity-a-small-complete-model-to.1",
+      "timestamp": "2026-10-11T20:32:52.888600Z",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-166-mini-activity-a-small-complete-model-to.1": 0
+  },
   "spec_path": ".flow/specs/fn-166-mini-activity-a-small-complete-model-to.md",
   "status": "open",
   "title": "Mini activity: a small, complete Model to iterate the DSL on",
@@ -20,5 +129,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-11T19:49:49.485618Z"
+  "updated_at": "2026-10-11T20:32:52.893250Z"
 }

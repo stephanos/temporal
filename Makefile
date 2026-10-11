@@ -628,10 +628,14 @@ umpire-ir-bridge:
 	@mise exec -- go build -o ./.build/umpire-ir-bridge ./tools/umpire/cmd/umpire-ir-bridge
 
 umpire-gen-cases:
-	@mise exec -- go run ./tools/umpire/cmd/umpire-gen-cases --update
+	@for directory in $(foreach feature,$(MODEL_FEATURE_PATHS),$(call model_quote,$(feature)/generated)); do \
+		(cd "$$directory" && mise exec -- go run $(call model_quote,$(CURDIR)/tools/umpire/cmd/umpire-gen-cases) --update) || exit $$?; \
+	 done
 
 umpire-check-cases:
-	@mise exec -- go run ./tools/umpire/cmd/umpire-gen-cases
+	@for directory in $(foreach feature,$(MODEL_FEATURE_PATHS),$(call model_quote,$(feature)/generated)); do \
+		(cd "$$directory" && mise exec -- go run $(call model_quote,$(CURDIR)/tools/umpire/cmd/umpire-gen-cases)) || exit $$?; \
+	 done
 
 # Lints selected features' existing primary IR files and prints their coverage.
 MODEL_LINT_IR = $(wildcard $(addsuffix /generated/ir.json,$(MODEL_FEATURE_PATHS)))

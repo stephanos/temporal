@@ -1,6 +1,7 @@
 package testpilot
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -17,6 +18,35 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 )
+
+func TestGeneratedCaseReadersPreserveColocatedArtifacts(t *testing.T) {
+	directory := filepath.Join("..", "..", "..", "model", "temporal", "features")
+	entries, err := GeneratedCases(directory)
+	require.NoError(t, err)
+	for _, item := range []struct{ model, query, file string }{
+		{"nexus-workflow.json", "syncCompletion", "nexus/workflow/generated/syncCompletion.case.json"},
+		{"nexus-workflow-control.json", "forgedCompletion", "nexus/workflow/generated/legacy/nexus-workflow-control-forgedCompletion-case.json"},
+	} {
+		t.Run(item.model, func(t *testing.T) {
+			var selected *lower.GeneratedCase
+			for i := range entries {
+				if entries[i].Model == item.model && entries[i].Query.Name == item.query {
+					selected = &entries[i]
+					break
+				}
+			}
+			require.NotNil(t, selected)
+			require.Equal(t, filepath.FromSlash(item.file), selected.File)
+			encoded, err := os.ReadFile(filepath.Join(directory, filepath.FromSlash(item.file)))
+			require.NoError(t, err)
+			fixture, err := LoadGeneratedCase(directory, *selected)
+			require.NoError(t, err)
+			require.Equal(t, encoded, fixture.Bytes)
+			require.Equal(t, selected.Expected, fixture.Expected)
+			require.NotNil(t, fixture.Assessment)
+		})
+	}
+}
 
 func TestModelCasesLowerForExistingConsumers(t *testing.T) {
 	for _, item := range []struct{ model, family, owner, set, query string }{

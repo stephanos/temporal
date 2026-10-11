@@ -33,7 +33,7 @@ func generatedFixture(t *testing.T, file string) *testpilotcore.ModelCase {
 	entries, err := testpilotcore.GeneratedCases(generatedCaseDirectory)
 	require.NoError(t, err)
 	for _, entry := range entries {
-		if entry.File == file {
+		if testpilotcore.GeneratedCaseName(entry)+"-case.json" == file {
 			fixture, err := testpilotcore.LoadGeneratedCase(generatedCaseDirectory, entry)
 			require.NoError(t, err)
 			return fixture
@@ -250,7 +250,7 @@ func runGeneratedCaseOnCluster(t *testing.T, entry lower.GeneratedCase, fixture 
 			if round == 0 && i == 0 {
 				verdict = result.verdict
 				if os.Getenv("UMPIRE_EXPLORATION_DIR") != "" {
-					model, err := ir.Load(filepath.Join(generatedCaseDirectory, "..", "ir", entry.Model))
+					model, err := ir.Load(ir.ModelPath(generatedCaseDirectory, entry.Model))
 					require.NoError(t, err)
 					identity, err := recordedrun.CaseIdentity(fixture.Bytes)
 					require.NoError(t, err)
