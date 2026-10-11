@@ -503,7 +503,7 @@ The IR generator reads what an author wrote, as written:
   reads as the type the call applies it to. A case class whose every field is a Property, Scenario
   or Query bundles claims: built by its constructor in such a function, it lifts as its claims, and
   `x.field` reads one back. Shared capability Properties are lifted sources too, in
-  `model/temporal/capabilities`; the framework holds none.
+  `model/temporal/capabilities/product` and `.../system`; the framework holds none.
 - **Types:** enums with and without case fields, case classes, and bounded counters `UpTo[N]`: a
   field `attempts: UpTo[2]` has the values 0, 1 and 2, lifted as the IR int range 0..2, and a step
   writes one with `UpTo(n)`. It replaces integer fields bounded by the per-record
@@ -1384,8 +1384,17 @@ capability kinds is brought only when both are declared. The machine remains the
 capability declaration expands into Properties, Scenarios and Queries owned by it.
 
 The Temporal-agnostic mechanism is in `model/framework/Capabilities.scala`: `CapabilityOf`,
-`CapabilityKind`, `Capabilities`, `claim`, `except`, `overriding` and `bound`. Temporal's capability
-case classes and companion Properties are in `model/temporal/capabilities`:
+`CapabilityKind`, `Capabilities`, `claim`, `except`, `overriding` and `bound`. Temporal's capabilities
+split by level (fn-163): `model/temporal/capabilities/product/` holds what a user sees an entity can
+be (`Closable`, `Pausable`, `Pollable`, `Terminable`, `Describable`), and
+`model/temporal/capabilities/system/` the server-side protocol promises: `Retryable` and `Expirable`,
+declared in a `capabilities` section, and the distributed-systems patterns `Exclusive` (one active
+attempt), `Fenced` (a stale delivery is rejected) and `Idempotent` (a repeated request is answered as
+the first), each a named law a Model calls where it states the promise. A pattern is named even with
+a single use: the name says which promise a Model makes, the law has one definition, and a second
+use reuses it. A law that needs history (no run admits two active attempts as the steps' records
+count them, no run records two outcomes) stays a monitor written in the machine's `monitors`
+section. The capability case classes and companion Properties:
 
 | Capability | Fields | Properties it brings |
 | --- | --- | --- |
