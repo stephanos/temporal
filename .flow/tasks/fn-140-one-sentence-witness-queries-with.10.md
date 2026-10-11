@@ -487,6 +487,40 @@ and artifact/classpath authentication still require final acceptance. The nine
 held managed comparisons, consumer obligations and fn-149 gate remain unchanged.
 The original continuation deadline and two-strike limit still apply.
 
+
+### Independently verified final source campaign (2026-10-11)
+
+The final complete irgen campaign returns exit1 with 166 passing tests, ten
+stale managed comparisons, one pre-existing case-variant-header skip and no
+source test failures. All thirteen WitnessFixtures and both EligibleWitness
+fixtures execute. The complete authored refusal contract also executes and
+passes. It authenticates the original 226-row refusal table's SHA256, preserves
+its complete ordered reason population with three explicit vocabulary
+adaptations and source-anchored formatter coordinates, and requires a nonzero
+lift exit with no IR. The old managed rejects.txt comparison remains failing.
+
+The ten comparisons include the previous nine and newly stale rules.json.
+The conductor authenticates its original managed bytes and the complete
+Rules.scala source against committed base 45798d12bbfa726b32e7f7472f02412619d3490e.
+The only source edit joins Dimming's two-line object/extends header. Exactly
+94 explicit source-line shifts derive from that edit, and applying those
+shifts makes the complete original rules IR equal to the actual scratch IR.
+No other field, list order or metadata changes. This separately classified
+formatter drift earns no managed regeneration or golden equality credit.
+
+Audit: .flow/tmp/scala-dsl/fn140-10-root-retry-irgen-final3-audit.json.
+Terminal campaign SHA256:
+5096e0a4bf0c0991e0e962f2a7dd2068303107afbbd0500c2eb9547e168102b1.
+The conductor also re-executed all five independent typed-reader mutations;
+extra standalone reader, missing sole Query reader, missing overriding reader,
+wrong statement kind and unsupported compiler-clone classification are refused.
+
+Final framework/Model, checker, syntax, formatter idempotence, native inventory,
+historical equivalence and last source/artifact authentication remain separate
+acceptance gates. The full irgen campaign remains red on held comparisons.
+Fn-149 stays gated, and the original continuation deadline and two-strike limit
+are unchanged.
+
 ## Acceptance
 - [ ] Complete eligible/retained inventories cover all Model packages, with concrete reader/boundary justifications; every eligible private pinned triple is a witness (R5).
 - [ ] Source-aware lint and focused positive/refusal fixtures cover private/shared/verify/monitor/repeated-input-tail forms with exact source ownership and unchanged other refusal classes (R5).
