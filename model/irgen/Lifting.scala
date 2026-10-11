@@ -48,13 +48,13 @@ final private[irgen] class Lifting(val ctx: Context)
     else if isNamed(d.tpt.tpe, "framework.realize.Realization") then realizationOf(sym, d): Unit
     else
       val kind = d.tpt.tpe.widen.dealias
-      val claims = Set("framework.Query", "framework.Progress")
+      val claims = Set("framework.Query", "framework.Witness", "framework.Progress")
       val listed =
         isList(
           kind.typeSymbol
         ) || kind.typeSymbol.fullName == "scala.collection.immutable.Vector"
       if !claims(kind.typeSymbol.fullName) && !(listed && kind.typeArgs.headOption
-          .exists(a => isNamed(a, "framework.Query")))
+          .exists(a => Seq("framework.Query", "framework.Witness").exists(isNamed(a, _))))
       then
         fail(
           d,
@@ -90,8 +90,10 @@ final private[irgen] class Lifting(val ctx: Context)
       isList(
         kind.typeSymbol
       ) || kind.typeSymbol.fullName == "scala.collection.immutable.Vector"
-    Set("framework.Query", "framework.Progress")(kind.typeSymbol.fullName) ||
-    (listed && kind.typeArgs.headOption.exists(a => isNamed(a, "framework.Query")))
+    Set("framework.Query", "framework.Witness", "framework.Progress")(kind.typeSymbol.fullName) ||
+    (listed && kind.typeArgs.headOption.exists(a =>
+      Seq("framework.Query", "framework.Witness").exists(isNamed(a, _))
+    ))
 
   // fn-160 R2, R10: one IR file per feature, collected from its package. A feature is a form under a
   // kind (`temporal.features.activity.standalone`, file `activity-standalone`), a kind's own package

@@ -428,6 +428,7 @@ private[irgen] trait Capabilities:
       properties((machine, name)) = properties((machine, name))
         .withPosition(pos(at(p.bringing.head.key)))
         .withOrigin(origin)
+      checkWitnessDuplicates()
     for (v, d) <- declared do capabilityKinds(machine -> d.key) = where(v)
     capabilitySections += machine
 
@@ -1156,10 +1157,13 @@ private[irgen] trait Capabilities:
       val function = functions(property.holds)
       functions(property.holds) = function.withBody(anchorDefaults(function.getBody))
     val start = declaredStart(machine, name, at)
-    val scenario = (if property.transition then None else property.when.whenClass) match
-      case None         => ir.Scenario(machine, name, Some(pos(at)), Some(start), free = true)
-      case Some(class_) =>
-        if machineNamed(machine).isEmpty then
+    val class_ = if property.transition then None else property.when.whenClass
+    val exact = if property.transition then None
+    else property.when.whenAction.filter(_.startsWith(exactComposedPrefix))
+    val scenario = (class_, exact) match
+      case (None, None) => ir.Scenario(machine, name, Some(pos(at)), Some(start), free = true)
+      case _            =>
+        if class_.nonEmpty && machineNamed(machine).isEmpty then
           fail(
             at,
             s"$propertyName is asked of one class, which a composition's Scenario keys apart"
@@ -1173,12 +1177,18 @@ private[irgen] trait Capabilities:
               s"$propertyName is asked from a live state, and nothing that brings it declares the path to one"
             )
           )
+        val path = reached(reach)
         ir.Scenario(
           machine,
           name,
           Some(pos(at)),
           Some(start),
-          actions = reached(reach).map(classOf) :+ class_
+          actions = class_.fold(Seq.empty[ir.ActionClass])(last => path.map(classOf) :+ last),
+          keys = exact.fold(Seq.empty[String])(last =>
+            path.map(composedKey(_, machine, env, classes = true)) :+ last.stripPrefix(
+              exactComposedPrefix
+            )
+          )
         )
     register(scenarios, (machine, name), scenario, at, s"Scenario $name of $machine")
     val form = if scenario.free then ir.Query.Form.FORM_VERIFY else ir.Query.Form.FORM_FIND

@@ -2,6 +2,14 @@ package umpire.irgen
 
 import scala.collection.mutable
 import io.temporal.server.api.umpire.v1 as ir
+import io.temporal.server.api.umpire.v1.Expr.Kind as E
+
+private[irgen] object WitnessIdentity:
+  def sameDefaultStart(left: ir.Expr, right: ir.Expr): Boolean =
+    def value(e: ir.Expr): ir.Expr = e.kind match
+      case E.Construct(c) => e.clearPosition.withConstruct(c.withArgs(c.args.map(value)))
+      case _              => e
+    value(left).equals(value(right))
 
 // What a declaration folds to at lift time: a name or text the IR uses, or a declaration still being
 // built by the calls chained onto it.
@@ -94,12 +102,59 @@ private[irgen] trait Claims:
       key: K,
       value: V,
       at: Tree,
-      what: String
+      what: String,
+      witness: Boolean = false
   )(using CanEqual[V, V]): Unit =
     into.get(key) match
       case Some(existing) if existing != value =>
-        fail(at, s"$what is declared twice, and both would share one Definition ID")
-      case _ => into(key) = value
+        val previous = if witness || witnessDeclarations(what) then
+          s", here and at ${registeredAt(what)}"
+        else ""
+        fail(at, s"$what is declared twice$previous, and both would share one Definition ID")
+      case _ =>
+        into(key) = value
+        registeredAt.getOrElseUpdate(what, where(at)): Unit
+        if witness then witnessDeclarations += what: Unit
+
+  private val registeredAt = mutable.Map.empty[String, String]
+  private val witnessDeclarations = mutable.Set.empty[String]
+
+  private val witnessFacts = mutable.LinkedHashMap.empty[(String, String), (ir.Value, Tree)]
+
+  def witnessed(owner: String, name: String, fact: ir.Value, at: Tree): Unit =
+    witnessFacts((owner, name)) = fact -> at
+    checkWitnessDuplicates()
+
+  def checkWitnessDuplicates(): Unit =
+    def records(e: ir.Expr, fact: ir.Value, seen: Set[String] = Set.empty): Boolean = e.kind match
+      case E.Binary(b) if b.op.value == ir.Binary.Op.OP_CONTAINS.value =>
+        b.getLeft.kind.literal.contains(fact) && (b.getRight.kind match
+          case E.Field(f) => f.field == "facts"
+          case _          => false)
+      case E.Binary(b) if b.op.value == ir.Binary.Op.OP_AND.value =>
+        records(b.getLeft, fact, seen) || records(b.getRight, fact, seen)
+      case E.Call(c) if !seen(c.function) =>
+        functions.get(c.function).exists(f => records(f.getBody, fact, seen + c.function))
+      case _ => false
+    for
+      ((owner, name), (fact, at)) <- witnessFacts
+      property <- properties.values if property.machine == owner && property.origin.nonEmpty
+      generated <- queries.values
+      if generated.getProperty.machine == owner && generated.getProperty.name == property.name && generated.form == ir.Query.Form.FORM_FIND
+      scenario <- scenarios.get((owner, generated.getScenario.name))
+      witness <- scenarios.get((owner, name))
+      if !scenario.free && WitnessIdentity.sameDefaultStart(
+        scenario.getStart,
+        witness.getStart
+      ) && scenario.actions == witness.actions && scenario.keys == witness.keys
+      function <- functions.get(property.holds) if records(function.getBody, fact)
+    do
+      val position = property.getPosition
+      fail(
+        at,
+        s"witness $name repeats capability Query ${generated.name}, here and at ${position.file}:${position.line}: " +
+          "the default start, complete pinned path and recorded fact are identical"
+      )
 
   // Limits, named by their `name` or else by `named`, the val that declares them.
   def limitsOf(t: Term, named: => String): ir.Limits = arguments(t) match
@@ -161,7 +216,8 @@ private[irgen] trait Claims:
       p: ir.ClaimRef,
       s: ir.ClaimRef,
       limits: ir.Limits,
-      at: Tree
+      at: Tree,
+      witness: Boolean = false
   ): Decl =
     val name = named.getOrElse(defaultQueryName(p, s))
     val through = readsThrough(name, p, s, at)
@@ -182,7 +238,7 @@ private[irgen] trait Claims:
         s"this Query of ${p.name} in ${s.name} takes the name $name from its Scenario and " +
           "Property, which another Query has: name it with `query(\"...\")` or with a val"
       )
-    register(queries, name, q, at, s"Query $name")
+    register(queries, name, q, at, s"Query $name", witness)
     Decl.Declared(name)
 
   // The name of a Query neither `query("...")` nor a val names, such as an item of a list a shared
@@ -273,8 +329,10 @@ private[irgen] trait Claims:
       Decl.PropertyOn(machine, name, None)
     case Apply(Select(b, "when"), List(c)) =>
       fold(b, env, named) match
-        case p: Decl.PropertyOn => p.copy(when = Some(Left(classOf(c))))
-        case other              => fail(t, s"when restricts a Property, not $other")
+        case p: Decl.PropertyOn =>
+          p.copy(when = Some(if composed(c) then Right(exactComposedClass(c, p.machine, env))
+          else Left(classOf(c))))
+        case other => fail(t, s"when restricts a Property, not $other")
     case Apply(Select(b, "whenAction"), List(a)) =>
       fold(b, env, named) match
         case p: Decl.PropertyOn =>
@@ -299,7 +357,8 @@ private[irgen] trait Claims:
         case other => fail(t, s"$op finishes a Property, not $other")
     // `once(...).keeps(...)`, `never(...)`, `never(...).from(...)`, `stays(...)` and
     // `stays(...).unless(...)`, as the Properties they stand for.
-    case _ if patterned(t) => pattern(t, env, named)
+    case _ if witnessDeclaration(t) => witness(t, env, named)
+    case _ if patterned(t)          => pattern(t, env, named)
     // `capabilities.claim(property)`: the Property a capabilities section generated.
     case _ if capable(t) => capabilitiesOf(t, env)
 
@@ -471,7 +530,9 @@ private[irgen] trait Claims:
     cls.flags.is(Flags.Case) && !cls.flags.is(Flags.Enum) && cls.caseFields.nonEmpty &&
       fieldTypes(cls).forall((_, tpe) => claimType(tpe))
   def claimType(tpe: TypeRepr): Boolean =
-    Seq("framework.Property", "framework.Scenario", "framework.Query").exists(isNamed(tpe, _))
+    Seq("framework.Property", "framework.Scenario", "framework.Query", "framework.Witness").exists(
+      isNamed(tpe, _)
+    )
 
   // Records the total the Query `name` asserts, `n`: an integer literal, or a parameter of the
   // declaring def around it that each call supplies as one.

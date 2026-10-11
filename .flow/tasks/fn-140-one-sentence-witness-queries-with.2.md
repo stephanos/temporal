@@ -3,12 +3,10 @@ satisfies: [R1, R2, R6]
 ---
 # fn-140-one-sentence-witness-queries-with.2 Lift witnesses through existing declarations and enforce source refusals
 
-Touches: [model/framework/Claims.scala, model/irgen/Claims.scala, model/irgen/Capabilities.scala, model/irgen/Compositions.scala, model/irgen/Order.scala, model/irgen/Structure.scala, model/irgen/test/Fixtures.test.scala, model/irgen/testdata/witness/**, model/irgen/testdata/lifts/expected/**, tools/umpire/ir/validate_keys.go, tools/umpire/ir/*selector*.go, tools/umpire/ir/admission_test.go, tools/umpire/check/claims.go, tools/umpire/check/*composition*test.go, tools/umpire/check/transition_test.go, tools/umpire/lint/holes.go, tools/umpire/lint/holes_test.go, tools/umpire/export/composed.go, tools/umpire/export/slice.go, tools/umpire/export/quint.go, tools/umpire/export/*test.go]
-
 ## Description
 **Size:** M
 **Files:** `model/framework/Claims.scala`, `model/irgen/{Claims,Syntax,Capabilities,Compositions,Order,Structure}.scala`, witness fixtures and fixture harness.
-**Touches:** [model/framework/Claims.scala, model/irgen/Claims.scala, model/irgen/Syntax.scala, model/irgen/Capabilities.scala, model/irgen/Compositions.scala, model/irgen/Order.scala, model/irgen/Structure.scala, model/irgen/test/Fixtures.test.scala, model/irgen/testdata/witness/**, model/irgen/testdata/lifts/expected/**]
+**Touches:** [model/framework/Claims.scala, model/irgen/Claims.scala, model/irgen/Lifting.scala, model/irgen/Syntax.scala, model/irgen/Capabilities.scala, model/irgen/Compositions.scala, model/irgen/Order.scala, model/irgen/Structure.scala, model/irgen/test/Fixtures.test.scala, model/irgen/testdata/witness/**, model/irgen/testdata/lifts/expected/**]
 
 Implement the Scala/source half of R1/R2/R6 following .1. The former task's Go admission, checking, lint, export and exact-selector end-to-end proof are retained without relaxation in the new deferred consumer task; this task does not claim them. Checked-in IR/Cases stay untouched.
 
@@ -38,15 +36,34 @@ make lint-model-syntax
 
 Run focused exact-selector Scala fixtures in addition to the witness filter. Serialize heavy commands. Review, full gates, Go, production regeneration and live runs remain owner-deferred.
 ## Acceptance
-- [ ] Machine/derived/composition witnesses, explicit names, modifiers and discovery lift to the existing core triple with a precise source-position-mapped twin comparison (R1/R2).
-- [ ] Located source refusals cover path/records/naming/collisions/bounds and repeated complete tail identities, with both positions where required (R1/R2).
-- [ ] Exact member/fact binding and capability duplicate tests distinguish same fact names on distinct members and different input classes, including seeded wrong-selector detection (R1/R6).
-- [ ] Tagged exact-composed encoding is collision-free against admitted legacy names, canonical in core twins, and accompanied by the contract/fixture handoff to the deferred Go consumer task; no Go or full consumer equivalence completion is claimed.
-- [ ] Quick commands and focused Scala exact-selector fixtures pass; no schema or managed artifact changes.
+- [x] Machine/derived/composition witnesses, explicit names, modifiers and discovery lift to the existing core triple with a precise source-position-mapped twin comparison (R1/R2).
+- [x] Located source refusals cover path/records/naming/collisions/bounds and repeated complete tail identities, with both positions where required (R1/R2).
+- [x] Exact member/fact binding and capability duplicate tests distinguish same fact names on distinct members and different input classes, including seeded wrong-selector detection (R1/R6).
+- [x] Tagged exact-composed encoding is collision-free against admitted legacy names, canonical in core twins, and accompanied by the contract/fixture handoff to the deferred Go consumer task; no Go or full consumer equivalence completion is claimed.
+- [x] Quick commands and focused Scala exact-selector fixtures pass; no schema or managed artifact changes.
 ## Done summary
-TBD
+Scala authors can lift machine, derived and composed witnesses into the existing Property, Scenario and Query declarations. The lifter captures names and modifiers, checks the owning composition's exact member-machine binding, preserves authored refusals and rejects capability duplicates by default start, complete pinned path and mandatory recorded fact.
 
+The source contract emits `@exact-composed-class:<canonical class key>` through the existing Property selector. `model/irgen/testdata/witness/SELECTOR.md` records the disjoint-legacy-language proof and the deferred Go consumer requirements. The witness and ordinary core twins compare their complete IR artifacts after enumerated declaration and argument span mappings. Machine selector bytes, ordinary Query discovery and ordinary collision diagnostics retain their existing paths.
+
+Tier: session (jev-unavailable(no_key))
+stage: impl-review - skipped(config: REVIEW_MODE=none; owner deferred reviews)
+
+Verification and scope
+
+- Canonical Quick. `mise exec -- scala-cli test model/irgen --test-only '*Fixtures*' -- --tests '*witness*'`. Ten witness tests pass. Final output lives in `.flow/tmp/scala-dsl/fn140-2-quick-final.log`.
+- Focused exact selector. `mise exec -- scala-cli test model/irgen --test-only '*WitnessFixtures*' -- --tests '*exact-composed*'`. One test passes. Output lives in `.flow/tmp/scala-dsl/fn140-2-exact.log`.
+- Syntax. `make lint-model-syntax` passes after adding the required core-spelling comments to the two new Syntax hooks. Output lives in `.flow/tmp/scala-dsl/fn140-2-syntax2.log`.
+- Formatting. A scoped `scala-cli fmt --check` checks all fourteen changed/new Scala files. Output lives in `.flow/tmp/scala-dsl/fn140-2-format-check.log`. `git diff --check` passes.
+- Baseline. Syntax passed before edits. The pre-edit canonical witness command is inconclusive because its initial command handle was not retained and no witness test existed then. It is not counted as green. The task does not offer a pre-edit witness-baseline receipt.
+- Red-to-green controls. `fn140-2-focused8.log` exposed the composed capability duplicate missed through differing synthetic default-start constructor positions. `fn140-2-tail-red.log` exposed the missing exact class identity in a refusal. `fn140-2-placement-red.log` exposed a misplaced Witness accepted by the seeded pre-feature Query classifier. Restoring the classifier and implementing the two fixes produced the green focused suite in `fn140-2-focused13.log`.
+- Coverage includes exact field-machine ownership with two same-typed members and shared-state compositions; complete own/sync input identities; seeded input/member substitutions; all three generated-name collision namespaces in both root orders; authored argument/declaration lines; empty paths/records, missing records, foreign facts, unnamed witnesses and bounds; default bounds/names; `.total`, live and exploration modifier order; source placement; and capability OR-branch, input, fact, member and actual-start-value negative controls.
+- `gate classify` reports FULL for executable Scala changes. The owner's task-local Scala commands define this task's verification scope. Go changes/commands, schema changes, managed IR/Cases regeneration, full gates, reviews and live runs remain deferred. This closure makes no Go consumer or full end-to-end selector claim.
+
+The local framework jar was rebuilt to eliminate a stale pre-witness API cache. No managed artifact changed. The task's obsolete Go Touches line was removed through `task set-spec`; the current Scala Touches includes the authorized Query-subtype discovery change in `model/irgen/Lifting.scala`.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: bc3653ae49300c82696ababa9c78bb0ebe23b2c7
+- Tests: mise exec -- scala-cli test model/irgen --test-only '*Fixtures*' -- --tests '*witness*', mise exec -- scala-cli test model/irgen --test-only '*WitnessFixtures*' -- --tests '*exact-composed*', mise exec -- scala-cli test model/irgen --test-only '*WitnessFixtures*', make lint-model-syntax, mise exec -- scala-cli fmt --scalafmt-conf model/.scalafmt.conf --check model/framework/Claims.scala model/irgen/Claims.scala model/irgen/Syntax.scala model/irgen/Capabilities.scala model/irgen/Compositions.scala model/irgen/Order.scala model/irgen/Lifting.scala model/irgen/test/Fixtures.test.scala model/irgen/testdata/witness, git diff --check
 - PRs:

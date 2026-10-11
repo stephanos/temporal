@@ -48,6 +48,154 @@ private[irgen] trait Syntax:
     case TypeApply(_, targs) => targs.map(_.tpe)
     case _                   => Nil
 
+  private case class WitnessSource(
+      owner: Term,
+      name: Option[Term],
+      path: List[Term],
+      fact: Option[(Option[Term], Term)] = None,
+      ending: Option[Term] = None,
+      limits: Option[Term] = None,
+      expected: Option[Term] = None,
+      exploration: Option[Term] = None
+  )
+
+  // Hook: whether a term declares a witness. Core form: `query(name) find p in s limits l`.
+  def witnessDeclaration(t: Term): Boolean = t match
+    case _: Apply =>
+      isNamed(t.tpe, "framework.Witness") || isNamed(t.tpe, "framework.WitnessBuilder")
+    case _ => false
+
+  private def witnessSource(t: Term): WitnessSource = t match
+    case Typed(e, _)        => witnessSource(e)
+    case Inlined(_, Nil, e) => witnessSource(e)
+    case Apply(Select(base, modifier), List(value)) if isNamed(base.tpe, "framework.Witness") =>
+      val source = witnessSource(base)
+      modifier match
+        case "ends"    => source.copy(ending = Some(value))
+        case "limits"  => source.copy(limits = Some(value))
+        case "live"    => source.copy(expected = Some(value))
+        case "explore" => source.copy(exploration = Some(value))
+        case _         => fail(t, s"$modifier is no witness modifier")
+    case _ =>
+      sugarCall(t) match
+        case Some(("records", List(List(builder), List(fact), _))) =>
+          witnessSource(builder).copy(fact = Some(None -> fact))
+        case Some(("records", List(List(builder), List(member, fact)))) =>
+          witnessSource(builder).copy(fact = Some(Some(member) -> fact))
+        case Some(("witness", clauses)) =>
+          val (owner, name, path) = clauses match
+            case List(List(owner), List(first, rest)) if declares(owner.tpe) =>
+              (owner, None, first :: varargs(rest))
+            case List(List(owner), List(name), List(first, rest)) if declares(owner.tpe) =>
+              (owner, Some(name), first :: varargs(rest))
+            case List(List(first, rest), List(declaring)) =>
+              (witnessOwner(declaring), None, first :: varargs(rest))
+            case List(List(name), List(first, rest), List(declaring)) =>
+              (witnessOwner(declaring), Some(name), first :: varargs(rest))
+            case _ => fail(t, s"a witness lists its path classes directly: ${t.show}")
+          WitnessSource(owner, name, path)
+        case _ => fail(t, s"a witness chains its records and modifiers onto its path: ${t.show}")
+
+  private def witnessOwner(t: Term): Term = t match
+    case Select(owner, _) => owner
+    case r: Ident         =>
+      onThis(r) match
+        case Select(owner, _) => owner
+        case _                => fail(t, "a witness needs its declaring machine or composition")
+    case _ => fail(t, "a witness needs its declaring machine or composition")
+
+  // A witness's existing declarations. Core form: `m.property(name).when(last) holds predicate`,
+  // `m.scenario(name).actions(path*)` and `query(name) find p in s limits l`.
+  def witness(t: Term, env: Map[Symbol, Decl], named: Option[Symbol]): Decl =
+    val source = witnessSource(t)
+    val owner = modelName(fold(source.owner, env), source.owner)
+    val name = source.name.fold(captured(named, "a witness", "`witness(\"...\")(...)`", t))(n =>
+      textOf(fold(n, env), n)
+    )
+    if name.trim.isEmpty then fail(t, "a witness needs a non-empty name")
+    if source.path.isEmpty then fail(t, s"witness $name has no path classes")
+    val (member, fact) = source.fact.getOrElse(fail(t, s"witness $name has no records"))
+    val value = member.fold {
+      val machine = machineNamed(owner).getOrElse(
+        fail(t, s"witness $name of $owner records a member fact with `_.member -> MemberMachine`")
+      )
+      val value = literalValue(fact)
+      val factType = value.kind match
+        case ir.Value.Kind.Enum(e) => e.`type`
+        case _                     => irTypeName(fact.tpe.widen.dealias.typeSymbol)
+      if factType != machine.factType then
+        fail(fact, s"witness $name records a $factType fact which $owner does not record")
+      value
+    }(selector => ir.Value(ir.Value.Kind.Text(memberFact(owner, selector, fact, env))))
+    val path = scheduled(ir.Scenario(machine = owner, name = name), source.path, env)
+    if path.keys.isEmpty then
+      if machineNamed(owner).isEmpty then
+        fail(t, s"witness $name of $owner needs composed path classes")
+      for (class_, at) <- path.actions.zip(source.path) do
+        if !binds(owner, class_.action) then
+          fail(at, s"witness $name lists an action $owner does not bind")
+        if class_.inputs.size != actions(class_.action).inputs.size then
+          fail(at, s"witness $name lists an action without its input class")
+    val repeated =
+      if path.keys.nonEmpty then path.keys.dropRight(1).indexOf(path.keys.last)
+      else path.actions.dropRight(1).indexOf(path.actions.last)
+    if repeated >= 0 then
+      val key = if path.keys.nonEmpty then path.keys.last
+      else path.actions.last.action + path.actions.last.inputs.map("-" + valueKey(_)).mkString
+      fail(
+        source.path.last,
+        s"witness $name repeats its last class $key at path positions ${repeated + 1} and ${source.path.size}, " +
+          s"at ${where(source.path(repeated))} and ${where(source.path.last)}: write the core triple"
+      )
+    val bounds =
+      source.limits.fold(ir.Limits(name, source.path.size, source.path.size, 512)) { term =>
+        fold(term, env) match
+          case Decl.Bounds(limits) => limits
+          case other               => fail(term, s"witness $name takes Limits, not $other")
+      }
+    for
+      (unit, bound) <- Seq("steps" -> bounds.steps, "actions" -> bounds.actions)
+      if bound < source.path.size
+    do
+      fail(
+        source.limits.getOrElse(t),
+        s"witness $name has ${source.path.size} path classes but limits ${bounds.name} allow $bound $unit"
+      )
+    val fn = s"$owner.property.$name"
+    def after = expr(t)(E.Var("after"))
+    val facts = expr(t)(E.Field(ir.FieldAccess(Some(after), "facts")))
+    val recorded = binary(ir.Binary.Op.OP_CONTAINS, expr(fact)(E.Literal(value)), facts, t)
+    val body = source.ending.fold(recorded) { ending =>
+      val state = expr(t)(E.Field(ir.FieldAccess(Some(after), "state")))
+      val end = expr(ending)(E.Call(ir.Call(stepFunction(ending, fn, "ends"), Seq(state))))
+      binary(ir.Binary.Op.OP_AND, recorded, end, t)
+    }
+    functions(fn) = ir.Function(fn, Some(pos(t)), Seq(stepParam), body = Some(body))
+    val when =
+      if path.keys.nonEmpty then
+        ir.Property.When.WhenAction(exactComposedClass(source.path.last, owner, env))
+      else ir.Property.When.WhenClass(path.actions.last)
+    val property = ir.Property(owner, name, Some(pos(t)), when, fn)
+    register(properties, (owner, name), property, t, s"Property $name of $owner", witness = true)
+    val scenario = path.withPosition(pos(t)).withStart(declaredStart(owner, name, t))
+    register(scenarios, (owner, name), scenario, t, s"Scenario $name of $owner", witness = true)
+    val declared =
+      query(
+        Some(name),
+        ir.Query.Form.FORM_FIND,
+        claim(owner, name),
+        claim(owner, name),
+        bounds,
+        t,
+        witness = true
+      )
+    witnessed(owner, name, value, t)
+    source.expected.foreach(expectedRun(name, _))
+    source.exploration.foreach(space =>
+      queries(name) = queries(name).withExploration(emit(ir.Exploration, Bound(space, Map.empty)))
+    )
+    declared
+
   // Hook: whether the term applies a sugar form, which `sugar` lifts. Core form: none of its own;
   // `lift` asks it of every term before `sugar` lowers one, as in `case _ if sugared(t) => sugar(t)`.
   def sugared(t: Term): Boolean = sugarCall(t).nonEmpty || entersApplied(t).nonEmpty

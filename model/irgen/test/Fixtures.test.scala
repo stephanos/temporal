@@ -17,6 +17,450 @@ import umpire.check.{Ran, Tools}
 // The fixtures build against the framework and the Temporal Models the gate packaged into
 // model/build, so the gate runs these tests after it packaged them. With UMPIRE_LIFTER_UPDATE set,
 // as the gate's --update sets it, the expected files are rewritten instead of compared.
+class WitnessFixtures extends munit.FunSuite:
+  override val munitTimeout: Duration = 10.minutes
+  private val tools = Tools.here
+  private val build = tools.directory.resolve("model/build")
+  private val stored = "model/irgen/testdata/witness/"
+  private lazy val scratch = Files.createTempDirectory(
+    Files.createDirectories(build.resolve("history")),
+    "witness-lifter."
+  )
+  private lazy val jar: Path =
+    val sources = Files.createDirectories(scratch.resolve("sources"))
+    val stream = Files.newDirectoryStream(tools.directory.resolve(stored), "*.scala")
+    try
+      for file <- stream.asScala do
+        Files.writeString(
+          sources.resolve(file.getFileName),
+          Files
+            .readString(file)
+            .replace("../../../build/model-scala.jar", build.resolve("model-scala.jar").toString)
+            .replace("../../../build/api-scalapb.jar", build.resolve("api-scalapb.jar").toString)
+        ): Unit
+    finally stream.close()
+    val out = scratch.resolve("witness.jar")
+    tools
+      .scalaCli(
+        Seq(
+          "--power",
+          "package",
+          "--server=false",
+          "--library",
+          sources.toString,
+          "-f",
+          "-o",
+          out.toString
+        )
+      )
+      .orFail(): Unit
+    out
+
+  private def lift(name: String, roots: String*): Ran = InProcess.lift(
+    tools.directory,
+    Seq(
+      s"$jar=$stored,${build.resolve("model-scala.jar")}=model/",
+      build.resolve("model-scala.classpath").toString,
+      scratch.resolve(s"$name.json").toString
+    ) ++ roots
+  )
+  private def root(name: String) = s"fixture.witness.Witnesses$$package$$.$name"
+  private def model(name: String, roots: String*) =
+    val ran = lift(name, roots*)
+    assertEquals(ran.exit, 0, ran.output)
+    new com.fasterxml.jackson.databind.ObjectMapper()
+      .readTree(Files.readString(scratch.resolve(s"$name.json")))
+
+  test("witness roots lift machine, derived, composition, list and section declarations"):
+    val lifted = model(
+      "positive",
+      Seq(
+        "machine",
+        "derived",
+        "composed",
+        "repeated",
+        "reversed",
+        "sync",
+        "distinct",
+        "distinctMembers",
+        "listed",
+        "distinctSync"
+      ).map(root)*
+    )
+    assertEquals(lifted.path("queries").size(), 10)
+    val section = model("section", "fixture.witness.Subject$.queries")
+    val query = section.path("queries").get(0)
+    assertEquals(query.path("name").asText(), "discovered")
+    assertEquals(query.path("form").asText(), "FORM_FIND")
+    for kind <- Seq("property", "scenario") do
+      assertEquals(query.path(kind).path("machine").asText(), "subject")
+      assertEquals(query.path(kind).path("name").asText(), "discovered")
+    for kind <- Seq("properties", "scenarios") do
+      assertEquals(section.path(kind).get(0).path("name").asText(), "discovered")
+    assertEquals(query.path("limits").path("name").asText(), "discovered")
+    assertEquals(query.path("limits").path("steps").asInt(), 2)
+    assertEquals(query.path("limits").path("actions").asInt(), 2)
+    assertEquals(query.path("limits").path("search").asInt(), 512)
+
+  test("witness modifiers preserve live, exploration, bounds and total in either order"):
+    val original = model("modifiers", root("machine"))
+    val reordered = model("reorderedModifiers", root("machineReordered"))
+    for field <- Seq(
+        "name",
+        "form",
+        "property",
+        "scenario",
+        "limits",
+        "expectedRun",
+        "exploration",
+        "total"
+      )
+    do
+      assertEquals(
+        original.path("queries").get(0).path(field),
+        reordered.path("queries").get(0).path(field),
+        field
+      )
+    assertEquals(original.path("queries").get(0).path("total").asText(), "4")
+
+  test("witness source refusals retain the authored positions"):
+    val authored =
+      Files.readAllLines(tools.directory.resolve(stored + "WitnessRejects.scala")).asScala
+    for (name, message) <- Seq(
+        "repeatedTail" -> "last class",
+        "unnamed" -> "no val",
+        "shortSteps" -> "steps",
+        "shortActions" -> "actions",
+        "wrongOwner" -> "composed class",
+        "wrongComposition" -> "class of reversed",
+        "wrongMember" -> "fills right",
+        "wrongSharedState" -> "fills left",
+        "repeatedComposed" -> "last class",
+        "repeatedSync" -> "last class",
+        "repeatedSyncInput" -> "last class",
+        "unbound" -> "does not bind",
+        "emptyName" -> "non-empty name",
+        "noField" -> "names a member by one field"
+      )
+    do
+      val ran = lift(name, s"fixture.witness.WitnessRejects$$package$$.$name")
+      assertNotEquals(ran.exit, 0, ran.output)
+      assert(ran.output.contains(s"lift: ${stored}WitnessRejects.scala:"), ran.output)
+      assert(ran.output.contains(message), ran.output)
+      val start = authored.indexWhere(_.startsWith("val " + name))
+      assert(start >= 0, name)
+      val following = authored.indexWhere(_.startsWith("val "), start + 1)
+      val end = if following < 0 then authored.size else following
+      assert(
+        (start + 1 to end).exists(line =>
+          ran.output.contains(s"lift: ${stored}WitnessRejects.scala:$line:")
+        ),
+        ran.output
+      )
+      if name.startsWith("repeated") then
+        val (key, positions) = name match
+          case "repeatedTail"     => ("fixture.witness.worker.finish-first", "2 and 3")
+          case "repeatedComposed" => ("left_finish-first", "1 and 2")
+          case "repeatedSync"     => ("both", "1 and 2")
+          case _                  => ("finishBoth-first", "1 and 2")
+        assert(ran.output.contains("last class " + key), ran.output)
+        assert(ran.output.contains("path positions " + positions), ran.output)
+        val positioned = s"${stored}WitnessRejects.scala:"
+        assert(ran.output.sliding(positioned.length).count(_ == positioned) >= 3, ran.output)
+        val token = name match
+          case "repeatedTail"     => "finish(Input.first)"
+          case "repeatedComposed" => "Together.own("
+          case "repeatedSync"     => "Synced.synced("
+          case _                  => "SyncedInput.synced("
+        val arguments = authored.zipWithIndex
+          .slice(start, end)
+          .flatMap((text, index) =>
+            Seq.fill(text.sliding(token.length).count(_ == token))(index + 1)
+          )
+        assertEquals(arguments.size, 2, name)
+        assert(
+          ran.output.contains(s"at $positioned${arguments.head} and $positioned${arguments.last}"),
+          ran.output
+        )
+
+  test("witness generated-name collisions retain both authored positions"):
+    for (ordinary, witness) <- Seq(
+        "collisionPropertyQuery" -> "collision",
+        "collisionScenarioQuery" -> "collisionWithScenario",
+        "collisionNamedQuery" -> "collisionWithQuery"
+      )
+    do
+      for roots <- Seq(Seq(ordinary, witness), Seq(witness, ordinary)) do
+        val ran = lift(witness, roots.map(n => s"fixture.witness.WitnessRejects$$package$$.$n")*)
+        assertNotEquals(ran.exit, 0, ran.output)
+        assert(ran.output.contains("both would share one Definition ID"), ran.output)
+        assert(
+          ran.output.contains("here and at model/irgen/testdata/witness/WitnessRejects.scala:"),
+          ran.output
+        )
+        val source =
+          Files.readAllLines(tools.directory.resolve(stored + "WitnessRejects.scala")).asScala
+        val declaration = ordinary match
+          case "collisionPropertyQuery" => "collisionProperty"
+          case "collisionScenarioQuery" => "collisionScenario"
+          case _                        => "collisionNamedQuery: Query"
+        val original = source.indexWhere(_.startsWith("val " + declaration + " =")) + 1
+        val start = source.indexWhere(_.startsWith("val " + witness + " ="))
+        val generated = source.indexWhere(_.contains("Subject.witness("), start) + 1
+        assert(ran.output.contains(s"${stored}WitnessRejects.scala:$original"), ran.output)
+        assert(ran.output.contains(s"${stored}WitnessRejects.scala:$generated"), ran.output)
+
+  test("witness duplicates read generated capability triples with exact inputs and members"):
+    for (owner, name) <- Seq(
+        "Capable" -> "capabilityDuplicate",
+        "CapableTogether" -> "capabilityMemberDuplicate"
+      )
+    do
+      val capability = s"fixture.witness.$owner$$.capabilities"
+      val witness = s"fixture.witness.Capabilities$$package$$.$name"
+      for roots <- Seq(Seq(capability, witness), Seq(witness, capability)) do
+        val ran = lift(name, roots*)
+        assertNotEquals(ran.exit, 0, ran.output)
+        assert(ran.output.contains("repeats capability Query"), ran.output)
+        assert(
+          ran.output.contains("here and at model/irgen/testdata/witness/Capabilities.scala:"),
+          ran.output
+        )
+    val lifted = model(
+      "distinctCapabilities",
+      "fixture.witness.Capable$.capabilities",
+      "fixture.witness.CapableTogether$.capabilities",
+      "fixture.witness.Capabilities$package$.capabilityDifferentInput",
+      "fixture.witness.Capabilities$package$.capabilityDifferentFact",
+      "fixture.witness.Capabilities$package$.capabilityDifferentMember"
+    )
+    assertEquals(lifted.path("queries").size(), 5)
+    val alternative = model(
+      "alternativeCapability",
+      "fixture.witness.CapableAlternative$.capabilities",
+      "fixture.witness.Capabilities$package$.capabilityAlternative"
+    )
+    assertEquals(alternative.path("queries").size(), 2)
+
+  test("witness default-start identity ignores only synthetic constructor positions"):
+    import io.temporal.server.api.umpire.v1 as ir
+    def field(value: String) = ir.Expr().withLiteral(ir.Value().withText(value))
+    def start(at: Int, values: Seq[String], stateType: String = "Joined") =
+      ir.Expr()
+        .withPosition(ir.Position("source.scala", at))
+        .withConstruct(ir.Construct(`type` = stateType, args = values.map(field)))
+    val initial = start(1, Seq("open", "closed"))
+    assert(WitnessIdentity.sameDefaultStart(initial, start(9, Seq("open", "closed"))))
+    for different <- Seq(
+        start(9, Seq("closed", "closed")),
+        start(9, Seq("closed", "open")),
+        start(9, Seq("open", "closed"), "OtherJoined")
+      )
+    do assert(!WitnessIdentity.sameDefaultStart(initial, different))
+
+  test("witness empty paths, missing records and foreign facts are compiler refusals"):
+    val sources = Files.createDirectories(scratch.resolve("compiler"))
+    val from = tools.directory.resolve(stored + "compiler/CompilerRejects.scala")
+    Files.writeString(sources.resolve("CompilerRejects.scala"), Files.readString(from)): Unit
+    val ran = tools.scalaCli(
+      Seq(
+        "compile",
+        "--server=false",
+        sources.toString,
+        "--scala",
+        "3.9.0",
+        "--jvm",
+        "27",
+        "--jar",
+        jar.toString,
+        "--jar",
+        build.resolve("model-scala.jar").toString
+      )
+    )
+    assertNotEquals(ran.exit, 0, ran.output)
+    for line <- Seq(7, 8, 9, 12, 14) do
+      assert(ran.output.contains(s"CompilerRejects.scala:$line:"), ran.output)
+
+  test("witness source placement shares the Query order without moving invariant triples"):
+    val authored =
+      Files.readString(tools.directory.resolve(stored + "layout/placement/Placement.scala"))
+    for (name, source, refusal) <- Seq(
+        ("placed", authored, None),
+        (
+          "misplaced",
+          authored.replace(
+            "  object properties:",
+            "  object properties:\n    val misplaced = witness(worker.finish(Input.first)).records(Note.other)"
+          ),
+          Some("belongs in")
+        ),
+        (
+          "reordered",
+          authored.replace(
+            "    val checked =",
+            "    val late = scenario.actions(worker.begin())\n    val checked ="
+          ),
+          Some("its Scenarios")
+        )
+      )
+    do
+      val directory = Files.createDirectories(scratch.resolve(name).resolve("placement"))
+      Files.writeString(directory.resolve("Placement.scala"), source): Unit
+      val out = scratch.resolve(name + ".jar")
+      tools
+        .scalaCli(
+          Seq(
+            "--power",
+            "package",
+            "--server=false",
+            "--library",
+            directory.toString,
+            "--scala",
+            "3.9.0",
+            "--jvm",
+            "27",
+            "--jar",
+            jar.toString,
+            "--jar",
+            build.resolve("model-scala.jar").toString,
+            "-f",
+            "-o",
+            out.toString
+          )
+        )
+        .orFail(): Unit
+      val result = InProcess.lift(
+        tools.directory,
+        Seq(
+          s"$out=${stored}layout/placement/,$jar=$stored,${build.resolve("model-scala.jar")}=model/",
+          build.resolve("model-scala.classpath").toString,
+          scratch.resolve(name + ".json").toString,
+          "fixture.features.placement.Placed$.queries"
+        )
+      )
+      refusal match
+        case None =>
+          assertEquals(result.exit, 0, result.output)
+          val lifted = new com.fasterxml.jackson.databind.ObjectMapper()
+            .readTree(Files.readString(scratch.resolve(name + ".json")))
+          assertEquals(
+            lifted.path("queries").elements().asScala.map(_.path("form").asText()).toSet,
+            Set("FORM_FIND", "FORM_VERIFY")
+          )
+        case Some(message) =>
+          assertNotEquals(result.exit, 0, result.output)
+          assert(result.output.contains("Placement.scala:"), result.output)
+          assert(result.output.contains(message), result.output)
+
+  test("exact-composed witness selectors match an independently derived complete class catalog"):
+    val lifted =
+      model("exact", root("composed"), root("distinctMembers"), root("sync"), root("distinctSync"))
+    val inputs = Seq("first", "second")
+    val own = for
+      field <- Seq("left", "right"); action <- Seq("begin", "finish")
+      input <- if action == "finish" then inputs.map("-" + _) else Seq("")
+    yield s"${field}_$action$input"
+    val catalogs = Map(
+      "together" -> own.toSet,
+      "synced" -> (own.filterNot(_.endsWith("_begin")) :+ "both").toSet,
+      "syncedInput" -> (own.filterNot(key =>
+        key.startsWith("left_finish-") || key == "right_begin"
+      ) ++ inputs.map("finishBoth-" + _)).toSet
+    )
+    val expected = Map(
+      "composed" -> "left_finish-first",
+      "distinctMembers" -> "right_finish-first",
+      "sync" -> "both",
+      "distinctSync" -> "finishBoth-second"
+    )
+    for property <- lifted.path("properties").elements().asScala do
+      val name = property.path("name").asText()
+      val selector = property.path("whenAction").asText()
+      assertEquals(selector, "@exact-composed-class:" + expected(name))
+      val key = selector.stripPrefix("@exact-composed-class:")
+      assert(catalogs(property.path("machine").asText())(key))
+      val legacy = catalogs(property.path("machine").asText()).map(_.takeWhile(_ != '-'))
+      assert(!legacy(selector))
+    for (source, key) <- Seq(
+        "composedWrongInput" -> "left_finish-second",
+        "composedWrongMember" -> "right_finish-first"
+      )
+    do
+      val seeded = model(source, root(source))
+      val selected = seeded.path("properties").get(0).path("whenAction").asText()
+      assertEquals(selected, "@exact-composed-class:" + key)
+      assertNotEquals(selected, "@exact-composed-class:" + expected("composed"))
+
+  test("witness and ordinary core twins preserve their complete declaration metadata"):
+    val source = Files.readAllLines(tools.directory.resolve(stored + "Witnesses.scala")).asScala
+    def line(declaration: String, fragment: String = ""): Int =
+      val start = source.indexWhere(_.startsWith("val " + declaration + " "))
+      assert(start >= 0, declaration)
+      if fragment.isEmpty then start + 1
+      else
+        val next = source.indexWhere(_.startsWith("val "), start + 1)
+        val end = if next < 0 then source.size else next
+        val matches =
+          source.zipWithIndex.slice(start, end).filter((text, _) => text.contains(fragment))
+        assertEquals(matches.size, 1, declaration + ": " + fragment)
+        matches.head._2 + 1
+    def compare(witness: String, core: String, spans: Seq[(String, Int, Int)]): Unit =
+      val actual = model(witness + "Twin", root(witness))
+      val expected = model(witness + "Core", root(core))
+      assertEquals(actual.path("source").asText(), "model: " + root(witness))
+      actual
+        .asInstanceOf[com.fasterxml.jackson.databind.node.ObjectNode]
+        .put("source", "model: " + root(core)): Unit
+      for (pointer, from, to) <- spans do
+        val position = actual.at(pointer)
+        assertEquals(position.path("file").asText(), stored + "Witnesses.scala", pointer)
+        assertEquals(position.path("line").asInt(), from, pointer)
+        assertEquals(expected.at(pointer).path("line").asInt(), to, pointer)
+        position
+          .asInstanceOf[com.fasterxml.jackson.databind.node.ObjectNode]
+          .put("line", to): Unit
+      assertEquals(actual, expected)
+    val function = "/functions/4"
+    val machine = line("machine")
+    val records = line("machine", ".records(")
+    val ends = line("machine", ".ends(")
+    val body = line("coreProperty", "after.records")
+    compare(
+      "machine",
+      "core",
+      Seq(
+        (function + "/position", machine, line("coreProperty")),
+        (function + "/body/position", machine, body),
+        (function + "/body/binary/left/position", machine, body),
+        (function + "/body/binary/left/binary/left/position", records, body),
+        (function + "/body/binary/left/binary/right/position", machine, body),
+        (function + "/body/binary/left/binary/right/field/base/position", machine, body),
+        (function + "/body/binary/right/position", ends, body),
+        (function + "/body/binary/right/call/args/0/position", machine, body),
+        (function + "/body/binary/right/call/args/0/field/base/position", machine, body),
+        ("/properties/0/position", machine, line("coreProperty")),
+        ("/scenarios/0/position", machine, line("coreScenario")),
+        ("/queries/0/position", machine, line("core:"))
+      )
+    )
+    val composed = line("composed")
+    val composedBody = line("composedProperty", "after.facts.contains")
+    compare(
+      "composed",
+      "composedCore",
+      Seq(
+        (function + "/position", composed, line("composedProperty", ".when(")),
+        (function + "/body/position", composed, composedBody),
+        (function + "/body/binary/left/position", line("composed", ".records("), composedBody),
+        (function + "/body/binary/right/position", composed, composedBody),
+        (function + "/body/binary/right/field/base/position", composed, composedBody),
+        ("/properties/0/position", composed, line("composedProperty")),
+        ("/scenarios/0/position", composed, line("composedScenario")),
+        ("/scenarios/0/start/position", composed, line("composedScenario")),
+        ("/queries/0/position", composed, line("composedCore:"))
+      )
+    )
+
 class ActivityHeartbeatFixtures extends munit.FunSuite:
   override val munitTimeout: Duration = 5.minutes
   private val tools = Tools.here
