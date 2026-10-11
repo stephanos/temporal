@@ -13,6 +13,7 @@ Enforce safety and liveness declaration placement. Advances R1, R2, R3 of the pa
 ### Approach
 - Enforce placement from resolved declaration kind: Property and safety monitor references in safety, Progress in liveness. Resolve aliases and factory/bundle outputs before checking; attribute the misplaced authored binding to its source.
 - Check every resolved claim-bearing field of a shared bundle, not only its first classified field. Include mixed-kind and aliased/factory bundle negatives at the authored binding, with an independent expected population in the dedicated PropertyGroupsFixtures suite.
+- Include supported Property subtypes (for example `never` and `stays`/`unless`) in resolved-kind admission. Discovery task .1 exposed exact-type matching as a silent unqueried-claim omission; declaration placement must likewise use the existing resolved/base-kind machinery rather than missing or reclassifying these claims. Pin direct, aliased and bundle subtype bindings in both valid and crossed groups, without treating helper definitions as authored claims.
 - Reuse the actual section/order lint machinery left by fn-156, not a hypothetical fn-141 successor or a second semantic classifier. Accept omitted empty groups and allow helper definitions without treating them as claims.
 - Retain existing progress bound/assumption admission and compiler type checks. Add source-attributed negative specimens for crossed kinds, aliases that conceal a crossed kind, bad bounds and incompatible owners.
 - Prepare the final flat-layout refusal, activated with task .6's migration so intermediate tasks retain a usable tree.
@@ -33,7 +34,6 @@ Owner-mode source scope: the dedicated PropertyGroupsFixtures suite must execute
 ```bash
 mise exec -- scala-cli test model/irgen --test-only '*PropertyGroupsFixtures*'
 ```
-
 ## Acceptance
 - [ ] Valid, empty and omitted groups pass; direct and aliased kind mismatches fail at their source with the expected group.
 - [ ] Positive, missing and non-positive bound cases retain the correct compiler/lifter disposition, with checker-result obligations handed to deferred .4/.5.
