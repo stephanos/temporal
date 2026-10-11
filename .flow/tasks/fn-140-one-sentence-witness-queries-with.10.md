@@ -5,7 +5,7 @@ satisfies: [R5, R7]
 
 ## Description
 **Size:** L
-**Touches:** [model/temporal/**/*.scala, model/irgen/Order.scala, model/irgen/test/**, model/irgen/testdata/**, model/testdata/equivalence/batch-1d.map, model/testdata/equivalence/batch-1d.ledger.json, model/testdata/equivalence/dispatch-original/**, model/check/Equivalence.scala, model/check/Gate.scala, model/check/StepLedger.scala, model/check/test/Equivalence.test.scala, model/check/test/StepLedger.test.scala]
+**Touches:** [model/temporal/**/*.scala, model/framework/Facet.scala, model/irgen/Conventions.scala, model/irgen/Order.scala, model/irgen/test/**, model/irgen/testdata/**, model/testdata/equivalence/batch-1d.map, model/testdata/equivalence/batch-1d.ledger.json, model/testdata/equivalence/dispatch-original/**, model/check/Equivalence.scala, model/check/Gate.scala, model/check/StepLedger.scala, model/check/test/Equivalence.test.scala, model/check/test/StepLedger.test.scala]
 
 Complete the remaining Scala witness migration and source-aware eligible-triple lint after .4/.5. This is the independently completed, committed Scala source seal that releases fn-149 grouping under the owner's one-worker sequence. Deferred .6 retains full regeneration, Go, consumer/replay, full-gate/review/live closure and depends on this seal and consumer tasks .7/.8/.9. Do not wait for those owner-deferred tasks or claim they passed here.
 
@@ -133,6 +133,14 @@ An addition entry names one of dispatchingActivity, servingWorker, servedDispatc
 Write focused tests before checker implementation. Retain every existing ordinary mutation control. Add positive tests for the exact permitted permutation and authenticated addition, and negative tests for wrong old/current vectors, non-bijections, unused entries, another table sharing a digest, noncontiguous blocks, inner-row order, missing/duplicate pairs, changed results/alternative order/fact order/explanations, missing/extra added tables, changed addition payload/source hash, and unsupported or malformed sidecars. Run the controls with and without the ledger. No check, fixture assertion or baseline is relaxed to obtain a passing seal.
 
 The cancellation repair remains a separately classified fn-162.3 source identity change. Retain cancelRequested, redirect the existing cancelIsRequested Query to it, prove complete applicable-row equality of both original predicates and the retained predicate, and preserve the strict duplicate detector with a seeded duplicate control. Witness R5 allows only the separately inventoried witness changes; this repair does not broaden that allowance or close fn-162.3's consumers.
+
+### Scoped generic status-table source repair
+
+The gate baseline has a strict CapabilityVocabularySuite failure because Facet.scala's comment names a Temporal kind and Conventions.scala exempts an entire binding by the concrete Temporal capability name. Preserve the strict vocabulary check and the recorded fn-160 R9 status-table layering exception without concealing its name or waiving a source check. This is separately classified earlier-spec architecture debt, not a witness R5 allowance.
+
+Replace the concrete-kind exception with a narrow typed constructor seam: a binding inside a capabilities section whose RHS is exactly the companion apply of a CapabilityOf case class, with exactly one case field typed framework.realize.StatusTable and a stable StatusTable reference as that argument. Admit only this precisely recognized binding, including its status-type arguments. Do not exempt arbitrary status-table declarations, non-capabilities, extra constructor fields, blocks or calls hiding unrelated API/layer references. Existing Lifecycle.scala's statusTable binding remains byte-for-byte unchanged. Facet.scala changes only its generic adjective example, not runtime code.
+
+Write focused fixtures/tests first: a generic independently named positive proving no Temporal-kind identity is required; wrong section, extra field, hidden block/call and unrelated API/layer-reference negatives with exact authored R4 diagnostics. Preserve every existing convention refusal and native capability inventory. Run CapabilityVocabularySuite and focused conventions tests plus the complete source suites; compare production core/native inventories to prove no declaration, predicate, status mapping or Query meaning changed. Keep the full-consumer boundary unchanged.
 ## Acceptance
 - [ ] Complete eligible/retained inventories cover all Model packages, with concrete reader/boundary justifications; every eligible private pinned triple is a witness (R5).
 - [ ] Source-aware lint and focused positive/refusal fixtures cover private/shared/verify/monitor/repeated-input-tail forms with exact source ownership and unchanged other refusal classes (R5).
@@ -141,6 +149,7 @@ The cancellation repair remains a separately classified fn-162.3 source identity
 - [ ] Scala compilation and framework/Model/lifter/gate source checks, new migration proofs, syntax and historical-baseline step-table equivalence pass, with complete justified identity/row mappings and no unresolved strict-native admission failure. Held managed-golden/Go checks and protected Batch 5 Go assessment obligations are explicitly separate, never passing credit or a native/source waiver. Scratch artifacts and mappings are frozen for deferred consumer proofs; managed outputs remain untouched.
 - [ ] This Scala source seal is committed and its handoff to fn-149 is explicit; .6/.7/.8/.9 retain all full consumer/regeneration/assessment/gate/review/live obligations without claiming them complete.
 - [ ] The historical-step ledger passes exact mapped-permutation/addition positives and all independent mutation controls; ordinary unmapped ordering/new-table/unused-map checks remain strict. The complete original baseline and independently authenticated original dispatch population compare with every current table accounted for.
+- [ ] The strict framework/lifter capability-vocabulary check passes through a generic typed single-field status-table binding seam, with positive and exact-coordinate negative controls; Lifecycle's status table and all production declaration/native semantics remain unchanged. This is an explicitly separate fn-160 R9 source repair, not witness or consumer equivalence credit.
 ## Done summary
 TBD
 
