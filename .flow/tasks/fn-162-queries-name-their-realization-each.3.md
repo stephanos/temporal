@@ -27,6 +27,25 @@ make umpire-check-model
 make umpire-check-lint
 make umpire-check-fixtures
 ```
+
+### Current strict native closure debt
+
+The fn-140.4 independently frozen pre-edit source campaign observes an actual failure of
+ActivitySubjectRegression's same-when all-row predicate distinctness assertion. The reported
+pair is Cancellation's cancelRequested (phase and statusCancelRequested fact) versus explicit
+activityProtocol.cancelIsRequested (statusCancelRequested fact), both on client.requestCancel.
+The assertion compares truth over the complete native row population; blank native val names
+alone do not explain its failure. Confirm the exact pair and independent row semantics before
+repairing this task's already-required cancelRequested deduplication. Preserve Query names,
+paths/limits/live expectations and realization memberships, map the actual retained Property
+identity and all affected readers explicitly, and retain an independent duplicate-pair control.
+Do not exclude a Property or weaken the distinctness assertion to obtain green.
+
+Fn-140.4 deliberately leaves this earlier obligation unchanged while proving its own seven
+witness conversions. Its baseline/post logs and frozen inventories are provenance, not this
+task's closure. Repair and verify the Scala portion before fn-140.10's final source seal;
+managed IR/Cases/Go checks remain held for Batch 5b. Neither an unchanged inherited red nor
+native evidence closes the deferred consumer/Case proof.
 ## Acceptance
 - [ ] The standalone activity has no claim-container derivations; each Property is declared once; each Query is run by the realization that ran it before (listed in its `runs`), or by none (model-only) as before.
 - [ ] Every Query answer and total and every Case expected outcome is unchanged; differences are limited to the ids in the recorded rename map (Property, Query, realization binding, derived Case names, machine-scoped target/state/action/fact ids).

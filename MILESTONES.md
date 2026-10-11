@@ -130,7 +130,7 @@ declared once in its facet, under its existing name, so the copies go. Query ans
 | Name | Status | What |
 | --- | --- | --- |
 | fn-162.2 | ⬜ todo | Realizations name the Queries they run (unnamed find Queries are model-only): framework, lifter, IR, lowering, assessment; duplicate-Property detection — Scala part open; Go part deferred |
-| fn-162.3 | ⬜ todo | Migrate the standalone activity off claim-container subjects |
+| fn-162.3 | ⬜ todo | Claim-container source integrated; strict native cancellation duplicate pin is red, deduplication/identity proof open; consumer closure deferred |
 
 ### fn-160: One IR file per feature, collected from the feature's package
 
