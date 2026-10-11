@@ -65,6 +65,36 @@ class ConventionsFixtures extends munit.FunSuite:
     assertEquals(result.output.linesIterator.count(_.contains("R4.dotted-in")), 2, result.output)
     assert(result.output.contains("Checks.scala:"), result.output)
 
+  test("compiler-synthetic membership positions do not reject authored dotted calls"):
+    val output = scratch.resolve("activity-record.json")
+    val result = InProcess.lift(
+      tools.directory,
+      Seq(
+        s"${build.resolve("model-scala.jar")}=model/",
+        build.resolve("model-scala.classpath").toString,
+        output.toString,
+        "temporal.features.activity.standalone.protocol.ActivityRecord"
+      )
+    )
+    assertEquals(result.exit, 0, result.output)
+    assert(Files.isRegularFile(output), result.output)
+    assert(!result.output.contains("R4.dotted-in"), result.output)
+
+  test("authored undotted membership remains refused at its exact source lines"):
+    val (result, _) = lift(negative, "conventions", "fixture.conventions.Checked")
+    val refused = result.output.linesIterator
+      .filter(_.contains("R4.dotted-in"))
+      .map(_.dropWhile(_ != '/').takeWhile(_ != ' '))
+      .toList
+    assertEquals(
+      refused,
+      List(
+        "/irgen/testdata/conventions/Checks.scala:37:",
+        "/irgen/testdata/conventions/Checks.scala:38:"
+      ),
+      result.output
+    )
+
   test("an import of a phase type's members is refused at its line, at any level"):
     val (result, output) = lift(negative, "conventions", "fixture.conventions.phases.Staged")
     assertNotEquals(result.exit, 0, result.output)

@@ -95,16 +95,43 @@ class PropertyGroupMigrationTest extends FunSuite:
       List(
         List(features.activity.standalone.protocol.servedDispatchRuns),
         List(features.activity.standalone.protocol.unservedDispatchRuns),
-        List(features.nexus.workflow.protocol.reporting, features.nexus.workflow.protocol.deliveryFair),
-        List(features.nexus.workflow.protocol.reporting, features.nexus.workflow.protocol.deliveryFair),
-        List(features.nexus.workflow.protocol.reporting, features.nexus.workflow.protocol.deliveryFair),
-        List(features.nexus.workflow.protocol.reporting, features.nexus.workflow.protocol.deliveryFair),
-        List(features.nexus.workflow.protocol.reporting, features.nexus.workflow.protocol.deliveryFair),
-        List(features.nexus.workflow.protocol.deliveryFair, features.nexus.workflow.protocol.recovery),
+        List(
+          features.nexus.workflow.protocol.reporting,
+          features.nexus.workflow.protocol.deliveryFair
+        ),
+        List(
+          features.nexus.workflow.protocol.reporting,
+          features.nexus.workflow.protocol.deliveryFair
+        ),
+        List(
+          features.nexus.workflow.protocol.reporting,
+          features.nexus.workflow.protocol.deliveryFair
+        ),
+        List(
+          features.nexus.workflow.protocol.reporting,
+          features.nexus.workflow.protocol.deliveryFair
+        ),
+        List(
+          features.nexus.workflow.protocol.reporting,
+          features.nexus.workflow.protocol.deliveryFair
+        ),
+        List(
+          features.nexus.workflow.protocol.deliveryFair,
+          features.nexus.workflow.protocol.recovery
+        ),
         List(features.nexus.workflow.protocol.deliveryFair),
-        List(features.nexus.workflow.protocol.reporting, features.nexus.workflow.protocol.deliveryFair),
-        List(features.nexus.workflow.protocol.deliveryFair, features.nexus.workflow.protocol.recovery),
-        List(features.nexus.workflow.protocol.reporting, features.nexus.workflow.protocol.deliveryFair)
+        List(
+          features.nexus.workflow.protocol.reporting,
+          features.nexus.workflow.protocol.deliveryFair
+        ),
+        List(
+          features.nexus.workflow.protocol.deliveryFair,
+          features.nexus.workflow.protocol.recovery
+        ),
+        List(
+          features.nexus.workflow.protocol.reporting,
+          features.nexus.workflow.protocol.deliveryFair
+        )
       )
     )
   }

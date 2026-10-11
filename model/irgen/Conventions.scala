@@ -45,27 +45,39 @@ final private[irgen] class Conventions(index: Index):
     val line = t.pos.startLine + 1
     refused += ((path, line, LiftError(s"$path:$line", s"$rule: $message")))
 
-  private def dotted(r: Ref): Either[String, Boolean] = scala.util
+  private enum DottedSource derives CanEqual:
+    case Written(dotted: Boolean)
+    case CompilerSynthetic
+
+  private def dotted(r: Ref): Either[String, DottedSource] = scala.util
     .Try {
       val lines = sourceLines.getOrElseUpdate(
         fileOf(r),
         Files.readString(Path.of(fileOf(r))).split("\\n", -1)
       )
       val pos = r.pos
-      val selected = lines.slice(pos.startLine, pos.endLine + 1)
-      val written = if selected.length == 1 then
-        selected.head.slice(
-          pos.startColumn,
-          pos.endColumn
-        )
+      val possible =
+        pos.startLine >= 0 && pos.endLine >= pos.startLine && pos.endLine < lines.length &&
+          pos.startColumn >= 0 && pos.startColumn <= lines(pos.startLine).length &&
+          pos.endColumn >= 0 && pos.endColumn <= lines(pos.endLine).length
+      if !possible then DottedSource.CompilerSynthetic
       else
-        (selected.head.drop(
-          pos.startColumn
-        ) +: selected.tail.init :+ selected.last.take(
-          pos.endColumn
-        )).mkString("\n")
-      "(?s).*\\.\\s*`?in`?\\s*$".r.matches(written) ||
-      lines(pos.startLine).take(pos.startColumn).trim.endsWith(".")
+        val selected = lines.slice(pos.startLine, pos.endLine + 1)
+        val written = if selected.length == 1 then
+          selected.head.slice(
+            pos.startColumn,
+            pos.endColumn
+          )
+        else
+          (selected.head.drop(
+            pos.startColumn
+          ) +: selected.tail.init :+ selected.last.take(
+            pos.endColumn
+          )).mkString("\n")
+        DottedSource.Written(
+          "(?s).*\\.\\s*`?in`?\\s*$".r.matches(written) ||
+            lines(pos.startLine).take(pos.startColumn).trim.endsWith(".")
+        )
     }
     .toEither
     .left
@@ -380,7 +392,7 @@ final private[irgen] class Conventions(index: Index):
                   r.symbol.maybeOwner.fullName
                 ) =>
             dotted(r) match
-              case Right(false) =>
+              case Right(DottedSource.Written(false)) =>
                 refuse(
                   r,
                   "R4.dotted-in",
@@ -392,7 +404,8 @@ final private[irgen] class Conventions(index: Index):
                   "R4.dotted-in",
                   s"cannot inspect the membership test's source: $reason"
                 )
-              case Right(true) => ()
+              case Right(DottedSource.Written(true))     => ()
+              case Right(DottedSource.CompilerSynthetic) => ()
           case r: Ref      => dependency(r, r.symbol, owner)
           case t: TypeTree => dependency(t, t.tpe.typeSymbol, owner)
           case _           => ()

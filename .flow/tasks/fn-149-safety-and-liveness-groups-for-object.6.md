@@ -6,7 +6,7 @@ satisfies: [R1, R2, R3, R5]
 ## Description
 **Size:** M
 **Files:** grouped Model/capability declarations, runtime/lifter discovery, native behavior pins and scratch-lift fixtures.
-**Touches:** [model/temporal/**/*.scala, model/framework/IrFile.scala, model/framework/IrFile.test.scala, model/irgen/Capabilities.scala, model/irgen/Lifting.scala, model/irgen/Structure.scala, model/irgen/Order.scala, model/irgen/test/**, model/irgen/testdata/**]
+**Touches:** [model/temporal/**/*.scala, model/framework/IrFile.scala, model/framework/IrFile.test.scala, model/irgen/Capabilities.scala, model/irgen/Lifting.scala, model/irgen/Structure.scala, model/irgen/Order.scala, model/irgen/Conventions.scala, model/irgen/test/**, model/irgen/testdata/**]
 
 Implement the Scala migration after .1/.2 and the conductor-verified committed fn-140.10 witness source seal (R1/R2/R3/R5). Legacy .4 retains every complete consumer, assessment and Case comparison. This task changes no Go or managed artifact and does not satisfy .4's consumer proof.
 
@@ -60,6 +60,10 @@ Preserve the main user-owned SEMANTICS draft SHA89e1fbcb204ae44fb2cbfe4129f3a89f
 ### Owner cancellation — stopped before implementation (2026-10-11)
 
 The owner cleared the autonomous goal after requesting a stop boundary. The fresh worker stood down before grouping implementation, with no tracked source edits or task commits. Task .6 remains in_progress and resumable, not done; no later task was admitted. All owned handles 45490, 25556 and 51855 are terminal. Baseline-only handovers are w-1d .flow/tmp/scala-dsl/fn149-6-summary.md and fn149-6-evidence.json. Root authenticated all 511 archived source/config files against activation commit 7c5ebf831160c49fecab07fbdce67eb2cf87e3ee, the seven complete frozen IR artifacts and model jar. Scoped baseline compile, grouping12, discovery7, capability9, ActivitySubjectRegression4, syntax and direct source steps-only equivalence passed; the already-launched native laws suite passed2. A guessed empty selector and provisional native-capture compile error receive no credit. The required complete declaration/native/predicate oracle, grouping migration, both capability scans, flat refusal, caller/reference/export updates, exact identity/span mappings, mutation controls and final source seal remain unfinished. Original consumer failures and .4/.5 obligations remain open. Resumption requires an explicit owner instruction and fresh admission/timebox; the cancelled attempt grants no automatic retry or deadline extension.
+
+### Conductor scope amendment — current WIP TASTy compatibility (2026-10-11)
+
+Authorize the narrow `model/irgen/Conventions.scala` change and its focused regression under `model/irgen/test/**` needed to distinguish compiler-synthetic `framework.Syntax$package.in` references with source-impossible coordinates from authored undotted `in`. Preserve every real `R4.dotted-in` refusal and the exact migrated predicates; no broad suppression or source rewrite is allowed. This directly integrates the owner-committed `63cd2f2b` WIP baseline and does not expand into other convention rules.
 ## Acceptance
 - [ ] Every eligible authored Model and shared-law reference uses the final groups; retired flat, direct/aliased/factory crossed-kind and incompatible-owner refusals retain exact source coordinates.
 - [ ] Independent native initialization and lifted inventory preserve the complete frozen universe, including unqueried Progress and fixed capability-law counts; seeded whole-group and dual-scanner law omissions fail.

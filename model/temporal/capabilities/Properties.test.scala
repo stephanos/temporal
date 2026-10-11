@@ -1,5 +1,9 @@
 package temporal.capabilities
 
+import java.nio.file.{Files, Path}
+import scala.jdk.CollectionConverters.*
+import org.json4s.*
+import org.json4s.jackson.JsonMethods.parse
 import temporal.capabilities.product.{Closable, Describable, Pausable, Pollable, Terminable}
 import temporal.capabilities.system.{Expirable, Retryable}
 // Every shared capability Property has two machines with their own state types.
@@ -52,6 +56,37 @@ class CapabilityPropertiesTest extends munit.FunSuite:
     Brought("Expirable.deadlineReturnsToWaiting", Set(Expirable)),
     Brought("Expirable.deadlinePauses", Set(Expirable))
   )
+
+  private val expectedLawNames = properties.map(_.name).toSet
+
+  private def requireComplete(native: Set[String], lifted: Set[String]): Unit =
+    assertEquals(native, expectedLawNames, "native capability companion scan")
+    assertEquals(lifted, expectedLawNames, "lifted capability-origin scan")
+
+  private def nativeLawNames: Set[String] = companions.flatMap { companion =>
+    companion.getClass.getDeclaredMethods
+      .filter(_.getReturnType eq classOf[Property[?]])
+      .map(method => s"${companion.name}.${method.getName}")
+  }.toSet
+
+  private def liftedLawNames: Set[String] =
+    val stream = Files.list(Path.of("model/ir"))
+    val origins = try
+      stream.iterator.asScala
+        .filter(path => path.getFileName.toString.endsWith(".json"))
+        .flatMap(path => (parse(Files.readString(path)) \ "properties").children)
+        .flatMap(property =>
+          (property \ "origin" \ "name") match
+            case JString(name) if name.startsWith("temporal.capabilities.") => Some(name)
+            case _                                                          => None
+        )
+        .toSet
+    finally stream.close()
+    origins.map(
+      _.stripPrefix("temporal.capabilities.")
+        .replace("Retries.", "Retryable.")
+        .replace("Deadline.", "Expirable.")
+    )
 
   def declaring[S, O, F](m: Machine[S, O, F], section: Capabilities[S, O, F]): Declared =
     // A machine of facets declares its facets' capabilities (fn-161).
@@ -143,13 +178,19 @@ class CapabilityPropertiesTest extends munit.FunSuite:
     }
 
   test("capability companions define the Properties they bring") {
-    val defined = companions.flatMap { companion =>
-      companion.getClass.getDeclaredMethods
-        .filter(_.getReturnType eq classOf[Property[?]])
-        .map(method => s"${companion.name}.${method.getName}")
-    }
-    assertEquals(defined.sorted, properties.map(_.name).sorted)
-    assertEquals(defined.distinct.size, defined.size)
+    val defined = nativeLawNames
+    assertEquals(defined, expectedLawNames)
+    assertEquals(defined.size, 13)
+  }
+
+  test("native and lifted scans match the fixed thirteen-law universe") {
+    requireComplete(nativeLawNames, liftedLawNames)
+  }
+
+  test("the fixed universe rejects the same law omitted by both candidate scans") {
+    val omitted = expectedLawNames - "Closable.terminalStatesAreFinal"
+    val failure = intercept[munit.ComparisonFailException](requireComplete(omitted, omitted))
+    assert(failure.getMessage.contains("Closable.terminalStatesAreFinal"), failure.getMessage)
   }
 
   test("every capability Property has two declared machines with their own state types") {
