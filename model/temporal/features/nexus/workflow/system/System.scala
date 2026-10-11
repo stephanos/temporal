@@ -15,7 +15,7 @@ import framework.outcomes.{Outcome, Rejection}
 import framework.realize.{Alternative, Exploration, Reason, Variation}
 import temporal.capabilities.*
 import temporal.realize.{inconclusive, satisfied}
-import temporal.Bounds.{four, three}
+import temporal.Bounds.{eight, four, three, two}
 import temporal.actors.worker.{worker, Phase as WorkerPhase, State as WorkerState}
 import product.NexusProduct
 import Timeout.expires
@@ -383,7 +383,7 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
   // operation. A schedule that sets no deadline is `schedule()`, each input at `unset`. A path one
   // Query takes is written in it.
   object queries:
-    capabilities.bound(control)
+    capabilities.bound(eight)
 
     val asyncThenSucceeded = scenario
       .actions(

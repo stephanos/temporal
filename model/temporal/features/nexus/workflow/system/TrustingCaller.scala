@@ -14,6 +14,7 @@ import framework.Finite.given
 import framework.outcomes.{Outcome, Rejection}
 import framework.realize.{Alternative, Cleanup, Conformance, Disposition, Exploration, Reason}
 import framework.realize.{PropertyOutcome, RunExpectation, Variation}
+import temporal.Bounds.eight
 import temporal.actors.worker.worker
 
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
@@ -108,7 +109,7 @@ object TrustingCaller
     // The forged control, which every modeled execution that explains the evidence refutes, on a
     // path that inspects the operation around a failed completion.
     val forgedCompletion =
-      (query find properties.forgedSuccess in inspectedFailure limits control)
+      (query find properties.forgedSuccess in inspectedFailure limits eight)
         .expect(
           RunExpectation(
             Conformance.inconclusive,

@@ -10,7 +10,7 @@
 // (model/irgen/testdata/layout/lamp is the template):
 //
 //   - this file: the shared types; the signature (the entities, the inputs, the actors with their
-//     actions, the derived observation, the timers and the bounds); and last exports, its IR files;
+//     actions, the derived observation and the timers); and last exports, its IR files;
 //   - ../product/Product.scala: Product Phase, State and Fact; NexusProduct, the kind's machine, what
 //     an operation does;
 //   - system/System.scala: System Phase, State, Fact, timer and composition types; NexusSystem, the
@@ -99,13 +99,6 @@ object deadline:
   val scheduleToClose = timer
   val scheduleToStart = timer
   val startToClose = timer
-
-// The bounds of the Queries, beside three and four (temporal.Bounds). Nine actions are enabled before
-// the operation is scheduled and eleven once it is, so an exact sequence of two is found among
-// ninety-nine candidates, one of three among about a thousand and one of four among about ten
-// thousand.
-val two = Limits(steps = 2, actions = 2, search = 512)
-val control = Limits(steps = 8, actions = 8, search = 262144)
 
 // ### The checked-in IR files of the Nexus caller Model and its close and reset designs (framework.irFile).
 
