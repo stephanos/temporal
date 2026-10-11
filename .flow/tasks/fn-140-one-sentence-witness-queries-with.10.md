@@ -72,6 +72,25 @@ otherwise identify the real implementation gap and refine the repair scope befor
 closure. This native failure is not one of the protected Go assessment trio and is not waived
 as Batch 5. The final seal may report held managed-golden/Go checks separately, but it cannot
 report passing native/source admission by excluding or relaxing these assertions.
+### Verified dispatch-table provenance (conductor)
+
+The four additional dispatch subjects originate in commit
+`fb9ff2a09582b72dc5b703b19ff5b7c514359885` (`feat(model): bounded dispatch progress across the activity and its worker`, fn-150.5), which follows the immutable baseline capture
+`ea5264bc23a9d994ca9e1bea33dafd4341684cab`. That commit first introduces
+`system/DispatchProgress.scala` with DispatchingActivity, ServingWorker, ServedDispatch and
+UnservedDispatch. Commit `fa32b76586f66aa1fbd3b8404568dd0e381e42fe` then splits the already-existing
+Protocol declarations into their current one-machine-per-file layout; the file split is not
+provenance for new behavior. The original dispatch additions intentionally restrict the activity
+and worker catalogs and add served/unserved composition checks. They are not replacement names
+for the deleted dispatchEligibility claim container.
+
+This provenance does not waive any baseline difference or prove fn-150 closed: its current Flow
+state retains unfinished source/consumer tasks. Before the historical seal, authenticate those
+four complete declarations and every native row against their independently committed original
+source, compose only the verified earlier-spec mappings, and account for their additions explicitly
+alongside the untouched original-baseline population. Do not map unrelated tables together,
+recapture the baseline, or claim the later file move introduced equivalent replacement tables.
+
 ## Acceptance
 - [ ] Complete eligible/retained inventories cover all Model packages, with concrete reader/boundary justifications; every eligible private pinned triple is a witness (R5).
 - [ ] Source-aware lint and focused positive/refusal fixtures cover private/shared/verify/monitor/repeated-input-tail forms with exact source ownership and unchanged other refusal classes (R5).
