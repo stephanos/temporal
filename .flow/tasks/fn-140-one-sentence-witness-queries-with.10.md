@@ -253,6 +253,28 @@ No Go, managed regeneration, full gate, independent review, live run, publicatio
 or edits to the user-owned main SEMANTICS draft are authorized. Fn-149 remains
 gated on verified committed closure, not this checkpoint.
 
+### DerivedTwins collection-stage reconciliation
+
+The original shared-def fixture tested the whole-run `derivedIdTwins` check across
+two IR files of one package. Fn-160 now collects one IR file per feature, placing
+both named Queries in one context, where the existing strict Query registration
+correctly refuses the duplicate first. This is an explicitly classified fn-160
+collection-stage change, not permission to weaken either identity rule.
+
+Retain an automatic-root test requiring the exact duplicate-registration refusal
+at the authored shared-def position and no IR output. In addition, lift each
+actual shared-def instantiation separately through its explicit Query-list root,
+read both authentic source-derived IR Models, and run the unchanged whole-run
+`derivedIdTwins` check over them. Require the original exact per-machine ID
+collision reason, owning machines, source coordinate and one-error cardinality.
+The two models must independently contain the intended distinct machines and the
+same declared Query ID; no hand-constructed candidate Models or manufactured
+error message substitutes for this source integration control. Preserve the
+existing independent DerivedIds mutation/positive tests. No Claims.scala,
+Lift.scala, declaration/discovery implementation or public API change is needed
+or authorized by this repair. The automatic-root refusal alone does not pass the
+original cross-file contract.
+
 ## Acceptance
 - [ ] Complete eligible/retained inventories cover all Model packages, with concrete reader/boundary justifications; every eligible private pinned triple is a witness (R5).
 - [ ] Source-aware lint and focused positive/refusal fixtures cover private/shared/verify/monitor/repeated-input-tail forms with exact source ownership and unchanged other refusal classes (R5).
