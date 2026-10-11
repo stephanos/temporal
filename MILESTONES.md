@@ -126,39 +126,18 @@ Apply these instructions when implementing the milestones:
 
 ## Batches
 
-A batch is a coordinated implementation of related specs that share one baseline:
-one production regeneration, one full gate run
-(Go suite, model gate, goldens, lint, dependency checks), one independent review and, when the batch
-changes Cases or runtime behavior, one live run. Batching buys throughput with attribution, so a
-batch boundary falls where a failure must stay attributable: after a meaning-preserving refactor's
-equivalence proof that later work builds on, and at a format activation.
+**Current plan (owner, 2026-10-11): two batches, verified at the end.** All remaining Scala DSL,
+authoring and lifter work runs as one batch in one worker; all Go-side work, the single regeneration,
+the full gate, review and live run form the closing batch. Go validation is skipped until then.
 
-- Inside a batch, tasks run focused source, lowering and runtime checks and declare their IR change;
-  production artifacts, full gates, review and live evidence are batch-deferred.
-- A meaning-preserving spec seals its comparison (a scratch regeneration whose diff is exactly the
-  stated mapping) before integrating a later semantic change onto that baseline. Workers may
-  implement both concurrently against frozen inputs. The seal is focused evidence, not a full gate.
-- Shared close: the batch's final close task runs the regeneration, gates, review and live run once;
-  the other close tasks finish their own code and docs and link that evidence. No spec in a batch
-  closes before the batch boundary.
-- The conductor enforces source and acceptance dependencies at integration, documenting work-ahead
-  exceptions in Flow. Existing dependency edges are not blanket prohibitions on parallel source work.
-- Batch numbers describe integration order, not a global worker queue. Implement disjoint batches
-  concurrently and integrate continuously where ownership and interfaces permit. Reconcile shared
-  baselines before closure; serialize conflicting file edits and memory-heavy commands, not all
-  implementation. Fn-155's missing baseline proof holds final acceptance, not fn-156 or format
-  implementation. Batch 5 retains its final schema/authoring reconciliation obligations.
+| # | Batch | Specs (in order) | Checks during | Shared close |
+| --- | --- | --- | --- | --- |
+| S | Scala DSL | fn-159 rest, fn-161, fn-162 (Scala), fn-160 (Scala), fn-163 (Scala), fn-140, fn-149, *seal*, fn-123 (DSL/lifter), Batch 5 activity edits (fn-128.7/.8, fn-129.3/.4), fn-153 (authoring), fn-141 (lifter, byte-identical lifts) | Scala compile per step; Scala tests per spec; step-table equivalence per spec and as the seal before fn-123 | none (sources only) |
+| G | Go and regeneration | fn-162.2 (IR schema, lowering, assessment), fn-160.5 (IR projection), fn-123 Go (crash rows, budgets, lowering, exports, report), fn-140/fn-149 Go, Batch 3 close (fn-146.7, fn-147.4, fn-148.7: Run companions, ceilings), test-speed work, fixes found by the gate | the optimized Go suite once IR is regenerated | one regeneration, IR equivalence under the batch map, full gate, review, live run; closes every spec above |
 
-| # | Batch | Specs | Nature | Shared close | Live run |
-| --- | --- | --- | --- | --- | --- |
-| 1b | Activity abstractions | fn-155 (named repeated patterns) | meaning-preserving, mapped identities | fn-155.6 | none |
-| 1c | Compiler and lint | fn-156 | byte-identical | fn-156.7 | none |
-| 1d | Scala DSL (immediate) | fn-159, fn-160.3–.5, fn-161, fn-162.2–.3 (Scala parts); investigations fn-160.1, fn-162.1 | source only; IR left stale | fn-161.1 | none |
-| 2 | Authoring | fn-140 → fn-149 → fn-123 | two equivalence seals, then meaning | fn-140.6, fn-149.5, fn-123.8 | once |
-| 3 | Testpilot format | fn-146 → fn-147 → fn-148 | breaking format | fn-146.7, fn-147.4, fn-148.7 | once |
-| 4 | Lifter | fn-141 | byte-identical | fn-141.14 | none |
-| 5 | Activity model | fn-128 → fn-138 → fn-129 | meaning | fn-128.6, fn-129.5 | once |
-| 5b | One regeneration | fn-162.2 (IR schema, lowering, Go assessment), fn-160.5 (IR projection), fn-160.2 close; Go and fixture consumers | meaning-preserving, mapped identities | fn-160.2 | once |
+The *seal* runs the step-table equivalence once before fn-123's first meaning change, so a fault or
+activity change cannot hide inside the meaning-preserving migrations before it. The older per-batch
+tables below (1b–5b) record each spec's original grouping; their gates are now met by batch G.
 
 ## Direction
 
