@@ -54,6 +54,23 @@ Source bytes, an old receipt, native predicate equality or a passing unrelated n
 satisfy this execution obligation. Do not rewrite expected assessments to turn inherited reds green.
 The retained original source-operation prose describes .4's migration evidence; consume that frozen
 migration rather than re-performing or broadening source edits outside this task's consumer Touches.
+
+### Historical receipt availability (verified by conductor)
+
+The surviving historical disposition is preserved in main checkout
+`.flow/tmp/fn145-integrated-done-summary.md`, `fn145-integrated-done-evidence.json` and
+`fn145-integration-evidence.md`, and the retained fn-145.4 Flow Done summary. The referenced
+original `/tmp/umpire-fn1454.aTUadX/.flow/tmp/fn1454` detailed receipt directory is absent.
+Pin the surviving summary bytes and identify that missing-original limitation; summaries
+are not authenticated underlying execution receipts. They record canonical exit1, completion
+failed, fatal unfinished/OOM and pause unreached in that particular run, not three observed
+assertion failures. Fn-151.3's later candidate canonical has no RUN/terminal for the trio.
+
+Preserve the actual assertion route
+`tools/umpire/conformance/played_test.go: TestALoweredActivityCaseRunsLiveAndReplaysAlike`
+and its existing current-source replay seam, without running Go while held. The .9 consumer
+proof must execute BOTH frozen pre/post populations afresh and preserve actual per-child
+results. No historical summary or unrelated generated-Case test supplies that proof.
 ## Acceptance
 - [ ] An explicit eligibility inventory identifies each converted and retained Activity triple with its inbound readers (R5).
 - [ ] Records-only/full-state retry differential is recorded; final Query answers and live assessments match the committed fn-156 closure baseline, including the closed fn-151 Activity split and subsequent fn-155 abstraction mapping. Strict inherited completion, fatal-failure and pause/resume assertions remain unchanged; their red results are recorded separately from migration regressions and remain Batch 5 obligations.
