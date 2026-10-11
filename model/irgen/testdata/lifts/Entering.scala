@@ -1,7 +1,8 @@
 // `enters(Phase.x)`, the framework step that enters a phase (fn-159.7), beside the effects it
 // stands for: `Entering` enters its phases by `enters` in a rule and in a `choose` alternative,
 // `Cored` by the effects written out. The lifter's tests lift both and require each rule's arm to be
-// the steps of the effect it stands for, and the two choose functions one function.
+// the steps of the effect it stands for, and the two choose functions one function. `resting`
+// mixes in its role, so its type is narrower than the phase type, and still records its status.
 package fixture.entering
 
 import framework.*
@@ -12,7 +13,7 @@ enum Status derives Finite:
 enum Stage(val status: Status) extends Recorded[Status] derives Finite:
   case waiting extends Stage(Status.waiting)
   case working extends Stage(Status.working)
-  case resting extends Stage(Status.resting)
+  case resting extends Stage(Status.resting), Suspended
 
 final case class Task(stage: Stage, tries: UpTo[1]) derives Finite
 

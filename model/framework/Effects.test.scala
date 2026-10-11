@@ -67,7 +67,7 @@ object EffectsFixture:
   enum Stage(val status: Status) extends Recorded[Status] derives Finite:
     case waiting extends Stage(Status.waiting)
     case working extends Stage(Status.working)
-    case resting extends Stage(Status.resting)
+    case resting extends Stage(Status.resting), Suspended
 
   final case class Task(stage: Stage, attempts: UpTo[2]) derives Finite
 
