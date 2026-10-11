@@ -94,6 +94,31 @@ The bundle-only non-form Progress control additionally guards automatic file
 admission. Native registration/truth, whole-group omission refusal and complete
 identity/source-attribution proofs remain required before acceptance.
 
+### Conductor final-fixture audit checkpoint (2026-10-11 13:09 UTC)
+
+The conductor independently audited the final authored mixed specimen at
+`model/build/history/property-groups.10115162974975750254` in `w-1d`.
+All saved packaging sources match the authored bytes, allowing only the recorded
+project jar-path substitution. Complete class/TASTy member sets and bytes match
+the saved compiled directories: common 23, flat 31, grouped 36, negative 21.
+All six actual IR files match after the literal root-universe mapping and an
+independently token-authenticated source-line ledger; 534 source-position visits
+were checked against real authored files. The frozen inventory is six Properties
+and four Progress claims (bounds 1/2/3/4, `fair` assumptions), including private
+unqueried Progress and a bundle-only non-form owner. Query selection/limits and
+exact single-monitor attachment remain pinned. Both native logs report 30
+predicate and eight monitor rows. Root receipt:
+`.flow/tmp/scala-dsl/fn149-1-root-final-audit.json` in the main checkout.
+
+The dedicated green7 log contains seven selected passing tests, with whole-group
+omission, helper/new-monitor/unattached-reference refusal and independent lifted
+predicate/metadata controls. Reserved-section helper red2 separately reproduces
+accidental invocation of `def properties` and `def liveness`; the updated
+IrFileDiscoveryTest green run checks backed section access, flat reserved claim
+names and repeat initialization. These remain pre-acceptance evidence: rebuilding
+the current model jar, final focused Quick commands, immutable final proof,
+source commit and verified Flow completion receipt are still required. No
+consumer/full-gate/review/live closure or task .2 admission is claimed.
 ## Acceptance
 - [ ] A focused fixture discovers every nested claim exactly once, including Progress without a Query consumer; expected counts come from an independent declared baseline and no zero-selected proof passes.
 - [ ] Independent runtime initialization/registration and lifted grouped/flat baselines have the same source semantic inventory and native predicate truth; a dropped whole group fails, and every identity/source difference is explained.
