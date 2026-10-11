@@ -87,3 +87,23 @@ object Unwritten extends Machine[Kettle, Outcome, Nothing], Phased[Kettle, Mode]
   override def end(s: State) = true
   object rules extends Rules:
     on(cook.fill)(always ~> enters(Mode.busy))
+
+// Two facets that both bind the fill (fn-161.1).
+trait Filling extends Facet[Kettle, Outcome, Nothing], Phased[Kettle, Mode]:
+  object filling:
+    object rules extends Rules:
+      on(cook.fill)(when(Mode.idle) ~> Plain.effects.heat)
+
+trait Refilling extends Facet[Kettle, Outcome, Nothing], Phased[Kettle, Mode]:
+  object refilling:
+    object rules extends Rules:
+      on(cook.fill)(when(Mode.busy) ~> Plain.effects.heat)
+
+object TwiceFaceted
+    extends Machine[Kettle, Outcome, Nothing],
+      Phased[Kettle, Mode](_.mode),
+      Filling,
+      Refilling:
+  val init = Kettle(Mode.idle, UpTo(0))
+  override def end(s: State) = true
+  object rules extends Facets(filling.rules, refilling.rules)

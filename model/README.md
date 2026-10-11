@@ -1287,6 +1287,71 @@ object in a machine object named other than `states`, `refinement`, `effects`, `
 fixture once it has a `product/` or `system/` folder. A file of a level folder reads in a feature
 file's order, without `object exports`, which only the root feature file holds.
 
+### Facets
+
+A **facet** is one behaviour area of one feature's machine at one level, named as a noun for what
+happens: `Pausing`, `Cancellation`, `Timeouts`. A **capability** (below) is a cross-Temporal contract
+any entity can declare, named as an adjective for what the entity can be: `Pausable`, `Closable`. A
+facet declares capabilities; a capability never names a facet. The feature stays one machine per
+level, assembled from its facets (`model/framework/Facet.scala`).
+
+A facet owns actions by binding them: every action the machine binds, timers, faults and
+`disabled` bindings included, belongs to exactly one facet, which holds all of that action's rules
+and the effects they use. Actions stay declared by their actor in the feature's signature; a facet
+never declares one. A rule whose guard reads another facet's phase stays with its action's facet and
+names the phase. Phases, `State`, `init`, `end`, the projection, the refinement, monitors and
+whole-feature claims stay machine-wide, in the machine object.
+
+A facet is a trait in its own file, named after it, holding one object named after it whose members
+are its sections:
+
+```scala
+trait Pausing extends Facet[State, Outcome, Fact], Phased[State, Phase]:
+  this: Dispatch => // the facets whose steps it uses
+  object pausing:
+    object effects:
+      def pauseHeld(s: State) = choose(pauseApplied -> enters(Phase.paused)(s), ...)
+    object rules extends Rules:
+      on(client.pause) {
+        when(Phase.scheduled) ~> enters(Phase.paused)
+        when(Phase.started) ~> effects.pauseHeld
+      }
+```
+
+The machine mixes in its facets and lists their rules in facet order:
+
+```scala
+object ActivitySystem
+    extends Machine[State, Outcome, Fact],
+      Phased[State, Phase](_.phase, (s, p) => s.copy(phase = p)),
+      Dispatch,
+      Pausing:
+  object rules extends Facets(dispatch.rules, pausing.rules)
+```
+
+A facet that calls another facet's step names it in its self-type, so a machine that does not mix
+the depended-on facet in does not compile; steps many facets use sit in a base facet. Two facets
+that both bind an action are refused when the rules construct and by the IR generator, naming the
+action and both facets; one facet per file, named after it, is the structure lint's rule for the
+Temporal Models. A machine may consist of a single facet. Each facet's Properties and Queries stay
+in their own derived claim object beside the facet, in its file, so their names keep their
+identities. The machine lifts as if every facet's sections were written in it, in facet order
+(model/SEMANTICS.md, Machines, Facets): rows, outcomes and facts are those of the same machine
+written as one object; only function names and positions differ.
+
+Two rules land switched off (`model/irgen/Switches.scala`; `UMPIRE_LIFT_RULES` turns them on for a
+run) and are turned on once every machine is migrated (fn-161.4):
+
+- `facets-only`: a declared `Machine` declares rules and effects only in facets; its `rules` is
+  `Facets(...)`. Derived machines and compositions are exempt.
+- `facet-vocabulary`: each feature file names the facets of its levels once, `enum FacetName: case
+  completion, pausing, ...`; every facet's object takes its name from it, a level holds only the
+  facets it needs, and an action bound at both the Product and the Protocol level is owned by the
+  same-named facet at both.
+
+A facet holds `effects` and `rules`; its machine's `capabilities` stay in the machine object until
+the lifter reads a facet's own `capabilities` section.
+
 ### Capabilities and their Properties
 
 A capability binds a reusable protocol to one machine's vocabulary: for example, which outcome

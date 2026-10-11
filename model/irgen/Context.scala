@@ -88,7 +88,8 @@ final private[irgen] class Context(val index: Index):
     case Some(v @ ValDef(_, _, Some(rhs))) =>
       blockCall(rhs).map { call =>
         val section = sym.maybeOwner
-        if !(section.isClassDef && section.flags.is(Flags.Module) && objectForm(section.maybeOwner))
+        if !(section.isClassDef && section.flags.is(Flags.Module) &&
+            (objectForm(section.maybeOwner) || facetObject(section.maybeOwner)))
         then misplacedBlock(call.form, rhs)
         SectionBlock(v, call)
       }
@@ -387,6 +388,22 @@ final private[irgen] class Context(val index: Index):
     val cls = moduleClassOf(sym)
     !cls.isNoSymbol && cls.flags.is(Flags.Module) &&
     (cls.typeRef.derivesFrom(machineClass) || cls.typeRef.derivesFrom(compositionClass))
+
+  lazy val facetClass: Symbol = Symbol.requiredClass("framework.Facet")
+  lazy val facetsClass: Symbol = Symbol.requiredClass("framework.Facets")
+
+  // Whether `sym` names a facet's object, `object pausing` in `trait Pausing extends Facet[...]`,
+  // whose sections are its machine's (framework/Facet.scala).
+  def facetObject(sym: Symbol): Boolean =
+    val cls = moduleClassOf(sym)
+    !cls.isNoSymbol && cls.flags.is(Flags.Module) && {
+      val owner = cls.maybeOwner
+      owner.isClassDef && owner.flags.is(Flags.Trait) && owner.typeRef.derivesFrom(facetClass)
+    }
+
+  // The machine object being lifted, which a facet's sections are lifted for: a facet trait names
+  // no machine, and its `enters` writes through the projection of the machine that mixes it in.
+  var liftingMachine: Option[Symbol] = None // scalafix:ok DisableSyntax.var
 
   // An object form's name: its object's, with the first letter lowered.
   def objectFormName(sym: Symbol): String =

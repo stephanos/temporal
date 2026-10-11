@@ -620,7 +620,8 @@ class Fixtures extends munit.FunSuite:
       "BareDisabled",
       "BarePhase",
       "BareSet",
-      "Unwritten"
+      "Unwritten",
+      "TwiceFaceted"
     ).map("fixture.rulerejects." + _)
   // The refusals of fn-135.2's `is { }` blocks and fn-135.3's `effect { }` blocks, each a machine
   // object (lifts/BlockRejects.scala).
@@ -1698,6 +1699,65 @@ class Fixtures extends munit.FunSuite:
     assertEquals(
       text(body("fixture.entering.Entering$.effects$.restOrRetry")),
       text(body("fixture.entering.Cored$.effects$.restOrRetry"))
+    )
+
+  // fn-161.1: a machine assembled from facets lifts as the machine written as one object, but for
+  // the names of its effects, which each facet's object qualifies (lifts/Facets.scala).
+  concurrently("a machine of facets lifts as the machine written as one object"):
+    val (_, machine, _) =
+      declarations("facets", Seq("Faceted", "Whole").map(objectRoot("facets")))
+    def named(m: String) =
+      machine(m).replaceAll("fixture\\.facets\\.[A-Za-z$.]*effects\\$\\.", "effects.")
+    assertEquals(named("faceted"), named("whole"))
+
+  // fn-161 R8 and R9: the switched facet rules refuse nothing while off, and each refuses its
+  // specimen while on (facetRules/FacetRules.scala).
+  concurrently("facets-only and facet-vocabulary refuse their specimens when switched on"):
+    val jar = packaged("facetRules", materialize("facetRules"))
+    val at = stored("facetRules") + "FacetRules.scala"
+    def run(root: String, rules: String*): Ran =
+      val java = Path.of(System.getProperty("java.home"), "bin", "java").toString
+      bounded(
+        tools
+          .withEnvironment("UMPIRE_LIFT_RULES" -> rules.mkString(","))
+          .run(
+            java,
+            Seq(
+              "-cp",
+              System.getProperty("java.class.path"),
+              "umpire.irgen.lift",
+              s"$jar=${stored("facetRules")},$modelJar=model/",
+              modelClasspath.toString,
+              scratch.resolve(s"facetRules-$root.json").toString,
+              s"fixture.facetrules.$root"
+            )
+          )
+      )
+    for root <- Seq("Agreeing", "Unfaceted", "Unnamed", "Crossed") do
+      val off = run(root)
+      assert(!off.failed, s"$root:\n${off.diagnostics}")
+    val all = Seq("facets-only", "facet-vocabulary")
+    assert(!run("Agreeing", all*).failed)
+    def refusal(root: String, rules: String*): String =
+      val ran = run(root, rules*)
+      assert(ran.failed, s"$root lifted with ${rules.mkString(",")} on")
+      refused(ran).filter(_.contains(at)).mkString("\n")
+    assert(
+      refusal("Unfaceted", "facets-only").contains(
+        "unfaceted binds its actions outside its facets: its rules are its facets' rules"
+      )
+    )
+    assert(
+      refusal("Unnamed", "facet-vocabulary").contains(
+        "unnamed's facet smashing is not in its feature's facet vocabulary, " +
+          "fixture.facetrules.FacetName (pressing, breaking)"
+      )
+    )
+    assert(
+      refusal("Crossed", "facet-vocabulary").contains(
+        "press is owned by the facet breaking of crossed and by the facet pressing of agreeing, " +
+          "which it refines"
+      )
     )
 
   // Each sugar form beside its core spelling (lifts/Sugar.scala).

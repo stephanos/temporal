@@ -265,6 +265,17 @@ with different effects. Rules that each fire another class may differ, since `e`
 inputs. A machine of the IR generator's core fixtures may bind
 its step functions by hand, `object rules extends Bindings(a ~> f, …)`, which is what rules lower to.
 
+### Facets
+
+A machine may be assembled from facets (`model/framework/Facet.scala`): traits it mixes in, each
+holding an object whose `effects` and `rules` are sections of the machine. `object rules extends
+Facets(f1.rules, …, fn.rules)` is the machine whose `rules` holds the blocks of `f1`, then `f2`,
+…, then `fn`, each facet's in the order written, and whose effects are every facet's effects. Each
+action is bound by exactly one facet's rules: two facets binding one action are refused, naming the
+action and both facets. Since an action's rules sit in one facet, and the rules of one action class
+are disjoint ([Rules](#rules)), facet order fixes only the order of arms of the lowered functions and
+changes no row. A facet's `enters` writes through the writer of the machine that mixes it in.
+
 ### Modalities
 
 A machine's table says what may happen, and the claims about it what must. A row is permission with

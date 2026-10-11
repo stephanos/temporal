@@ -368,9 +368,14 @@ private[irgen] trait Syntax:
             s"enters names the case of the phase type it enters, `enters(Phase.paused)`, not " +
               phase.show
           )
-      val owner = phasing.tpe match
+      val declared = phasing.tpe match
         case TermRef(prefix, _) => prefix.typeSymbol
         case other              => other.typeSymbol
+      // A facet's sections read the projection of the machine that mixes the facet in.
+      val owner =
+        if declared.typeRef.derivesFrom(facetClass) && !objectForm(declared) then
+          liftingMachine.getOrElse(declared)
+        else declared
       val (sp, pp, body) = phaseWriter(owner, at).flatMap(lambda) match
         case Some((List(sp, pp), body)) => (sp, pp, body)
         case _                          =>

@@ -463,12 +463,32 @@ private[irgen] trait Declarations:
         fail(c, s"$name declares no rules: a machine object declares `object rules extends Rules`")
       )
       val core = rules.symbol.typeRef.derivesFrom(bindingsClass)
-      if !core && !rules.symbol.typeRef.derivesFrom(rulesClass) then
+      if !core && !rules.symbol.typeRef.derivesFrom(rulesClass) &&
+        !rules.symbol.typeRef.derivesFrom(facetsClass)
+      then
         fail(
           rules,
-          s"$name's rules is `object rules extends Rules`, which its rules are lifted from"
+          s"$name's rules is `object rules extends Rules`, or `Facets(...)` of its facets' rules, " +
+            "which its rules are lifted from"
         )
-      for effects <- sectionOf(c, "effects"); d <- statements(effects) do
+      // fn-161 R8, switched (Switches): a declared machine's effects and rules sit in its facets.
+      if Switches.facetsOnly && !core then
+        for e <- sectionOf(c, "effects") do
+          fail(
+            e,
+            s"$name declares effects outside its facets: each effect sits in the `object effects` " +
+              "of the facet that owns the actions whose rules use it"
+          )
+        if !rules.symbol.typeRef.derivesFrom(facetsClass) then
+          fail(
+            rules,
+            s"$name binds its actions outside its facets: its rules are its facets' rules, " +
+              "`object rules extends Facets(pausing.rules, ...)`, each action in one facet's rules"
+          )
+      val facetEffects = facetRules(name, rules).flatMap((_, r) =>
+        sectionOf(objectBody(r.symbol.maybeOwner, r), "effects")
+      )
+      for effects <- sectionOf(c, "effects").toList ++ facetEffects; d <- statements(effects) do
         d match
           case f: DefDef if makesSteps(f.returnTpt.tpe) => givesNoEmpty(f)
           case _                                        => ()
@@ -479,7 +499,12 @@ private[irgen] trait Declarations:
             .filter(a => !isNamed(a.tpe, "framework.Owner"))
             .flatMap(varargs)
             .map(stepBinding(_, name, "a core binding is `action ~> function`"))
-        else ruleSteps(name, typeRef(s, c), rules, c.symbol)
+        else
+          val outer = liftingMachine
+          liftingMachine = Some(cls)
+          try ruleSteps(name, typeRef(s, c), rules, c.symbol)
+          finally liftingMachine = outer
+      if Switches.facetVocabulary then sameFacets(name, refined.refines.map(_.product), c)
       val folded = inferredEntity(watched.addAllSteps(steps), c)
       val m = finished(folded, f, c, visible.toSeq, visibleOutcomes.toSeq)
       checkChannels(m, irTypeName(s.dealias.typeSymbol), c)
@@ -552,6 +577,18 @@ private[irgen] trait Declarations:
     val written = mutable.ArrayBuffer.empty[LiftedRule]
     val order = mutable.LinkedHashMap.empty[String, Tree]
     val off = mutable.Set.empty[String]
+    // The facet each action is bound in, where the rules are a facet's.
+    val bound = mutable.Map.empty[String, String]
+    var facet: Option[String] = None // scalafix:ok DisableSyntax.var
+    def owned(id: String, at: Tree): Unit =
+      for f <- facet do
+        for other <- bound.get(id) if other != f do // scalafix:ok DisableSyntax.!=; typed equality
+          fail(
+            at,
+            s"${actions(id).name} is bound by the facets $other and $f of $machine: an action " +
+              "belongs to one facet, which holds all its rules"
+          )
+        bound(id) = f
     // One statement of the rules, or of the `from` they sit in: its declarer and its name.
     def rule(stat: Statement, within: Option[(Symbol, String)]): Unit =
       stat match
@@ -597,6 +634,7 @@ private[irgen] trait Declarations:
                       "blocks of the actions its declarer declares"
                   )
               val read = cases(block, machine)
+              for (target, id, _) <- fired do owned(id, target)
               for (_, id, cls) <- fired do
                 for (heading, effect, at) <- read do
                   written += LiftedRule(written.size + 1, heading, id, cls, effect, at)
@@ -610,6 +648,7 @@ private[irgen] trait Declarations:
                 // scalafix:on DisableSyntax.==
                 then
                   fail(a, s"${actions(id).name} is disabled twice, or disabled and fired by a rule")
+                owned(id, a)
                 off += id
                 order.getOrElseUpdate(id, a): Unit
             case _ =>
@@ -618,7 +657,13 @@ private[irgen] trait Declarations:
           fail(stat, s"$machine's rules declare rules alone, not ${stat.show}")
         case other if within.isEmpty => fail(other, s"not a rule of $machine: ${other.show}")
         case other                   => fail(other, notRule(machine, other, within))
-    statements(rules).foreach(rule(_, None))
+    facetRules(machine, rules) match
+      case Nil   => statements(rules).foreach(rule(_, None))
+      case parts =>
+        for (name, r) <- parts do
+          facet = Some(name)
+          statements(r).foreach(rule(_, None))
+        facetOwners(machine) = bound.toMap
     for r <- written do
       // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
       if headingNames(r.heading).exists(_ == "when") && projection.isEmpty
@@ -637,6 +682,87 @@ private[irgen] trait Declarations:
       val function = lowered(machine, state, id, byAction.getOrElse(id, Vector.empty), at)
       ir.StepBinding(id, function, Some(pos(at)))
     }
+
+  // The facet that binds each action, by its Definition ID, of each machine lifted from facets.
+  val facetOwners = mutable.Map.empty[String, Map[String, String]]
+
+  // fn-161 R9: an action a machine binds and the machine it refines binds too is owned by the
+  // same-named facet at both levels, where both are made of facets.
+  private def sameFacets(machine: String, refined: Option[String], at: Tree): Unit =
+    for
+      product <- refined
+      below <- facetOwners.get(machine)
+      above <- facetOwners.get(product)
+      (id, facet) <- below.toSeq.sortBy(_._1)
+      other <- above.get(id) if other != facet // scalafix:ok DisableSyntax.!=; typed equality
+    do
+      fail(
+        at,
+        s"${actions(id).name} is owned by the facet $facet of $machine and by the facet $other of " +
+          s"$product, which it refines: an action bound at both levels is owned by the same-named " +
+          "facet at both"
+      )
+
+  // fn-161 R9: the facet vocabulary of the feature a facet sits in, the cases of the nearest
+  // `enum FacetName` whose package holds the facet's, or None where no feature declares one.
+  private def vocabularyOf(facet: Symbol): Option[(Symbol, List[String])] =
+    def packageOf(s: Symbol): String =
+      Iterator.iterate(s)(_.maybeOwner).find(o => o.isNoSymbol || o.isPackageDef)
+        .filter(_.isPackageDef).fold("")(_.fullName)
+    val pkg = packageOf(facet)
+    defs.keys
+      .filter(s => s.isClassDef && s.name == "FacetName" && s.flags.is(Flags.Enum)) // scalafix:ok DisableSyntax.==; typed equality
+      .map(s => s -> packageOf(s))
+      .filter((_, p) => pkg == p || pkg.startsWith(p + ".")) // scalafix:ok DisableSyntax.==; typed equality
+      .toSeq
+      .sortBy(-_._2.length)
+      .headOption
+      .map((e, _) => e -> e.children.map(_.name))
+
+  // The rules of each facet a machine's `object rules extends Facets(pausing.rules, ...)` lists,
+  // by the facet's name, in the order listed; none where its rules are its own.
+  def facetRules(machine: String, rules: ClassDef): List[(String, ClassDef)] =
+    if !rules.symbol.typeRef.derivesFrom(facetsClass) then Nil
+    else
+      parentArguments(rules).flatten
+        .filterNot(a => isNamed(a.tpe, "framework.Owner"))
+        .flatMap(varargs)
+        .map { a =>
+          val cls = moduleClassOf(unwrapped(a).symbol)
+          val facet = cls.maybeOwner
+          if !(cls.name.stripSuffix("$") == "rules" && facetObject(facet)) then // scalafix:ok DisableSyntax.==; typed equality
+            fail(
+              a,
+              s"$machine's Facets lists ${a.show}: it lists the rules of its facets, " +
+                "`Facets(pausing.rules, ...)`, each the `object rules` of a facet's object"
+            )
+          val name = facet.name.stripSuffix("$")
+          val written = facet.maybeOwner.name
+          if name != written.take(1).toLowerCase + written.drop(1) then // scalafix:ok DisableSyntax.!=; typed equality
+            fail(
+              a,
+              s"$machine's facet $written holds its sections in object $name: a facet's object is " +
+                s"named after it, `object ${written.take(1).toLowerCase + written.drop(1)}`"
+            )
+          if Switches.facetVocabulary then
+            vocabularyOf(facet.maybeOwner) match
+              case None =>
+                fail(
+                  a,
+                  s"$machine's facet $name sits in a feature that declares no facet vocabulary: " +
+                    "its feature file names the facets of its levels once, `enum FacetName: case " +
+                    s"$name, ...`"
+                )
+              case Some((e, cases)) if !cases.contains(name) =>
+                fail(
+                  a,
+                  s"$machine's facet $name is not in its feature's facet vocabulary, " +
+                    s"${e.fullName} (${cases.mkString(", ")}): name the facet after one of them, " +
+                    "or add it there"
+                )
+              case _ => ()
+          name -> objectBody(cls, a)
+        }
 
   // A statement of a machine's rules, or of a `from` of them, that is no rule.
   private def notRule(machine: String, t: Tree, within: Option[(Symbol, String)]): String =
