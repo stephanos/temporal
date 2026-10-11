@@ -34,6 +34,14 @@ Owner-mode source scope: the dedicated PropertyGroupsFixtures suite must execute
 ```bash
 mise exec -- scala-cli test model/irgen --test-only '*PropertyGroupsFixtures*'
 ```
+
+### Conductor activation — attempt 1 (2026-10-11)
+
+The committed discovery source/closure receipts b751748caef54e2ec8b7ffa666098a4443015658 / 1c6ee11392ffbb315d03ee04eba084477eca6294 are integrated in the local umpire history; root integration tracking is 77cb07ebb7. Root freshly authenticated all 792 final-seal files (manifest 630b1ef1a7c73993886dc9d6f608d26bbe7c4365b6e4d05ca3d07360278417b6), all 477 sealed source/config files against the committed checkout, six complete fixture IRs, and every native step-table compressed/decoded payload. Supplemental root native audit index remains 0d45f2096dcd804d197e35da02c227d4887b12d7e420f9f9c83799786ce63a4b. These immutable .1 proofs remain read-only.
+
+Task claimed 13:40:04.424395 UTC. A fresh-context single implementation worker owns w-1d; attempt 1 begins 13:41:00 UTC and expires 15:41:00 UTC (120 minutes), with at most two consecutive non-done returns and no third respawn. No inherited green baseline is handed off. Re-run the exact nonzero PropertyGroupsFixtures Quick baseline; use test-first crossed-kind/refusal controls and actual authored coordinates for direct, alias, every bundle field and supported Property subtype bindings.
+
+Only declared Scala source Touches plus worker lifecycle writes are authorized. Heavy commands serialize on /tmp/umpire-heavy-gates.lock. Root owns MILESTONES and admission. Go/report checkpoint .3, consumer .4/.5, migration .6, final .7 source seal, managed regeneration, full gates, independent review, live runs and publication stay held. Review mode none records a held skip, not SHIP. Existing flat declarations remain temporarily accepted until .6. Preserve the main user-owned SEMANTICS draft and protected Go bytes.
 ## Acceptance
 - [ ] Valid, empty and omitted groups pass; direct and aliased kind mismatches fail at their source with the expected group.
 - [ ] Positive, missing and non-positive bound cases retain the correct compiler/lifter disposition, with checker-result obligations handed to deferred .4/.5.

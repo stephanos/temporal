@@ -227,7 +227,7 @@ shared gate/review/live proofs at fn-123.8; source results substitute for none o
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-149.2 | ⬜ todo | Declaration-kind placement checks and source-attributed refusals |
+| fn-149.2 | 🔄 in progress (Scala) | Admitted from committed discovery receipt; resolved-kind placement and exact source-attributed direct/alias/bundle/subtype refusals |
 | fn-149.3 | ⏸️ deferred (Go) | Reporting checkpoint integrated; focused classification, distinct bounds and safety/progress coexistence checks pass; full gates/review held |
 | fn-149.6 | ⬜ todo | Scala Model/capability migration, native row/inventory pins and exact scratch-lift identity/span seal |
 | fn-149.7 | ⬜ todo | Scala author docs, executable layout and final committed grouping source seal; releases fn-164 |
