@@ -237,13 +237,15 @@ shared gate/review/live proofs at fn-123.8; source results substitute for none o
 | Name | Status | What |
 | --- | --- | --- |
 | fn-149.3 | ⏸️ deferred (Go) | Reporting checkpoint integrated; focused classification, distinct bounds and safety/progress coexistence checks pass; full gates/review held |
-| fn-149.6 | 🔄 in progress (Scala) | Admitted Model/capability migration; independent native predicate/inventory and exact scratch-lift identity/span proofs |
+| fn-149.6 | 🔄 in progress (paused) | Source baseline captured and authenticated; grouping implementation and complete native predicate/inventory proof remain unstarted |
 | fn-149.7 | ⬜ todo | Scala author docs, executable layout and final committed grouping source seal; releases fn-164 |
 | fn-149.4 | ⏸️ deferred (Go) | Original complete consumer behavior, Query/progress receipt, Case and expected/live-replay assessment proof; consumes .6 |
 | fn-149.5 | ⏸️ deferred | Consumer reporting docs and original integrated regeneration/gates/review/live closure; consumes .4/.7 at fn-123.8 |
 
-One Scala worker takes the remaining .6 → .7. The owner requested a pause after the current .6 task;
-.7 and later Scala tasks will not start in this run. Deferred .4 joins .1/.2/.3/.6; .5 joins .3/.4/.7.
+The owner cleared the autonomous goal before .6's implementation began. The worker is stopped with
+no source edits or live commands; .6 remains claimed and resumable, not complete. Its baseline-only
+handover is in w-1d `.flow/tmp/scala-dsl/fn149-6-summary.md` and `fn149-6-evidence.json`.
+.7 and later Scala tasks remain unstarted. Deferred .4 joins .1/.2/.3/.6; .5 joins .3/.4/.7.
 Heavy commands remain serialized. Composition progress belongs to fn-150, not this grouping change.
 
 ### fn-164: Expect blocks for Properties
