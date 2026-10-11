@@ -46,24 +46,65 @@ class ActivityRetryRegression extends munit.FunSuite:
       Timeout.unset,
       MaxAttempts.unlimited
     )
-    val timedCompletion = completed.copy(startToClose = Timeout.expires, maxAttempts = MaxAttempts.two)
+    val timedCompletion =
+      completed.copy(startToClose = Timeout.expires, maxAttempts = MaxAttempts.two)
     val claims: List[(Query, ClassRef, protocol.Fact, protocol.State => Boolean, Int, Int)] = List(
-      (p.completion.queries.scheduledCompletedByID, completionClient.respondCompletedByID,
-        protocol.Fact.statusCompleted, _.phase == protocol.Phase.completed, 5616, 0),
-      (p.retry.queries.nonRetryableFailure, activityWorker.respondFailed(Failure.fatal),
-        protocol.Fact.statusFailed, _.phase == protocol.Phase.failed, 2160, 0),
-      (p.retry.queries.retry, activityWorker.respondCompleted,
-        protocol.Fact.statusCompleted, _ == completed, 2160, 2155),
-      (p.retry.queries.heldFailedByID, completionClient.respondFailedByID(Failure.fatal),
-        protocol.Fact.statusFailed, _.phase == protocol.Phase.failed, 5616, 0),
-      (p.timeouts.queries.startToCloseTimeout, deadline.startToClose,
-        protocol.Fact.statusTimedOut(TimeoutType.startToClose), _.phase == protocol.Phase.timedOut,
-        1080, 0),
-      (p.timeouts.queries.retryAfterTimeout, activityWorker.respondCompleted,
-        protocol.Fact.statusCompleted, _ == timedCompletion, 2160, 2155),
-      (p.timeouts.queries.retryExhaustion, activityWorker.respondFailed(Failure.retryable),
-        protocol.Fact.statusFailed, _ == timedCompletion.copy(phase = protocol.Phase.failed),
-        2160, 286)
+      (
+        p.completion.queries.scheduledCompletedByID,
+        completionClient.respondCompletedByID,
+        protocol.Fact.statusCompleted,
+        _.phase == protocol.Phase.completed,
+        5616,
+        0
+      ),
+      (
+        p.retry.queries.nonRetryableFailure,
+        activityWorker.respondFailed(Failure.fatal),
+        protocol.Fact.statusFailed,
+        _.phase == protocol.Phase.failed,
+        2160,
+        0
+      ),
+      (
+        p.retry.queries.retry,
+        activityWorker.respondCompleted,
+        protocol.Fact.statusCompleted,
+        _ == completed,
+        2160,
+        2155
+      ),
+      (
+        p.retry.queries.heldFailedByID,
+        completionClient.respondFailedByID(Failure.fatal),
+        protocol.Fact.statusFailed,
+        _.phase == protocol.Phase.failed,
+        5616,
+        0
+      ),
+      (
+        p.timeouts.queries.startToCloseTimeout,
+        deadline.startToClose,
+        protocol.Fact.statusTimedOut(TimeoutType.startToClose),
+        _.phase == protocol.Phase.timedOut,
+        1080,
+        0
+      ),
+      (
+        p.timeouts.queries.retryAfterTimeout,
+        activityWorker.respondCompleted,
+        protocol.Fact.statusCompleted,
+        _ == timedCompletion,
+        2160,
+        2155
+      ),
+      (
+        p.timeouts.queries.retryExhaustion,
+        activityWorker.respondFailed(Failure.retryable),
+        protocol.Fact.statusFailed,
+        _ == timedCompletion.copy(phase = protocol.Phase.failed),
+        2160,
+        286
+      )
     )
     for (q, tail, fact, ending, expectedEnabled, expectedRecordsOnlyDifferences) <- claims do
       assertEquals(q.property.when, Some(tail))
@@ -77,11 +118,15 @@ class ActivityRetryRegression extends munit.FunSuite:
         binding <- p.bindings
         inputs <- classesOf(binding.decl)
         if tail match
-          case c: Class => c.decl == binding.decl && c.values.equals(inputs)
+          case c: Class     => c.decl == binding.decl && c.values.equals(inputs)
           case a: Action[?] => a.decl == binding.decl
       do
         applicable += 1
-        for after <- effectOf[protocol.State, Outcome, protocol.Fact](binding.decl, binding.function)(before, inputs) do
+        for after <- effectOf[protocol.State, Outcome, protocol.Fact](
+            binding.decl,
+            binding.function
+          )(before, inputs)
+        do
           enabled += 1
           val old = ending(after.state) && after.records(fact)
           assertEquals(generated(after), old, s"$before / $inputs / $after")
