@@ -25,7 +25,7 @@ import (
 
 const (
 	controlCasePath = "../../../../common/testing/testpilot/replay/testdata/nexusCallerControl-forgedCompletion-case.json"
-	controlRunPath  = "../../../../common/testing/testpilot/replay/testdata/nexusCallerControl-forgedCompletion-run.json"
+	controlRunPath  = "../../../../common/testing/testpilot/replay/testdata/nexusCallerControl-forgedCompletion-current-run.json"
 )
 
 // fixedCatalog is the catalog the control Run was recorded under, read from the record so that
