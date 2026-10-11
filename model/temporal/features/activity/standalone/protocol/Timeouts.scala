@@ -191,10 +191,12 @@ trait Timeouts extends Facet[State, Outcome, Fact], Phased[State, Phase]:
           activityWorker.respondCompleted
         )
           .records(Fact.statusCompleted)
-          .ends(_ == ActivityProtocol.states.completedOnRetry.copy(
-            startToClose = Timeout.expires,
-            maxAttempts = MaxAttempts.two
-          ))
+          .ends(
+            _ == ActivityProtocol.states.completedOnRetry.copy(
+              startToClose = Timeout.expires,
+              maxAttempts = MaxAttempts.two
+            )
+          )
           .limits(six)
           .live(
             inconclusive(
@@ -213,11 +215,13 @@ trait Timeouts extends Facet[State, Outcome, Fact], Phased[State, Phase]:
           activityWorker.respondFailed(Failure.retryable)
         )
           .records(Fact.statusFailed)
-          .ends(_ == ActivityProtocol.states.completedOnRetry.copy(
-            phase = Phase.failed,
-            startToClose = Timeout.expires,
-            maxAttempts = MaxAttempts.two
-          ))
+          .ends(
+            _ == ActivityProtocol.states.completedOnRetry.copy(
+              phase = Phase.failed,
+              startToClose = Timeout.expires,
+              maxAttempts = MaxAttempts.two
+            )
+          )
           .limits(six)
           .live(
             inconclusive(

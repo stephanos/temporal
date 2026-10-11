@@ -178,7 +178,11 @@ trait Retry extends Facet[State, Outcome, Fact], Phased[State, Phase]:
       // A closed activity answers a repeated By-ID call NotFound and records nothing, so the
       // explanations of a By-ID witness disagree.
       val heldFailedByID =
-        witness(client.start(), activityWorker.poll, completionClient.respondFailedByID(Failure.fatal))
+        witness(
+          client.start(),
+          activityWorker.poll,
+          completionClient.respondFailedByID(Failure.fatal)
+        )
           .records(Fact.statusFailed)
           .ends(_.phase == Phase.failed)
           .limits(three)

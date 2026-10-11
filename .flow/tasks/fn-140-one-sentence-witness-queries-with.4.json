@@ -1,7 +1,4 @@
 {
-  "assignee": null,
-  "claim_note": "",
-  "claimed_at": null,
   "created_at": "2026-10-08T03:42:01.384296Z",
   "depends_on": [
     "fn-140-one-sentence-witness-queries-with.3"
@@ -12,5 +9,5 @@
   "spec_path": ".flow/tasks/fn-140-one-sentence-witness-queries-with.4.md",
   "status": "todo",
   "title": "Prove the first Activity witness migration and remove duplicate terminate",
-  "updated_at": "2026-10-11T07:35:57.365443Z"
+  "updated_at": "2026-10-11T07:51:22.179436Z"
 }
