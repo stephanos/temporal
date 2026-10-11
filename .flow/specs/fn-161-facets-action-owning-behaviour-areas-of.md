@@ -67,3 +67,24 @@ The user adopted the action-owning facet as the target. [user] Ownership by acti
 
 - How a facet's sections are expressed in Scala (traits with nested section objects vs another encoding) and whether the lifter can read them without new restrictions. The stage 1 implementation resolves this. [inferred]
 - Whether an interaction facet is needed for the standalone activity at all. Stage 2's migration resolves this. [inferred]
+
+## Standalone activity facet vocabulary (Batch 1d activity lane, 2026-10-11)
+
+One vocabulary for the standalone activity, shared by `ActivityProduct` and `ActivitySystem` (to be `ActivityProtocol`, fn-160.6). Facets own actions by binding them; a level holds only the facets it needs (R9). Nouns for what happens; `Retrying` matches the Nexus kind's name for the same area.
+
+| Facet | Owns (product) | Owns (protocol) | Capabilities it declares |
+|---|---|---|---|
+| `Dispatch` | `client.start`, `activityWorker.poll` | `client.start`, `activityWorker.poll`, `timers.startDelay`, `timers.backoff` | product and protocol: `Pollable` |
+| `Completion` | `activityWorker.respondCompleted`, `completionClient.respondCompletedByID` | same | |
+| `Retrying` | `activityWorker.respondFailed`, `completionClient.respondFailedByID` | same | protocol: the two `Retryable` declarations and their reset-aware overrides |
+| `Cancellation` | `client.requestCancel`, `activityWorker.respondCanceled`, `completionClient.respondCanceledByID` | same | |
+| `Pausing` | `client.pause`, `client.unpause` | same | product: `Pausable` and its override |
+| `Reset` | `client.reset` | same | |
+| `Heartbeat` | `activityWorker.heartbeat`, `deadline.heartbeat` | same | protocol: `heartbeatDeadline` (`Expirable`) and its overrides |
+| `Timeouts` | `timers.timeout` | `deadline.scheduleToClose`, `deadline.scheduleToStart`, `deadline.startToClose` | protocol: the three `Expirable` declarations and the start-to-close overrides |
+| `Lifecycle` | `client.terminate` | `client.terminate`, `process.stop` | product: `Closable`; protocol: `Terminable`, `Describable` |
+
+- The closed-state `notFound` blocks that today name several actions at once (`on(client.pause, client.unpause, client.requestCancel, client.terminate)`, the three By-ID answers) split by action into each owning facet; the rows stay the same.
+- A failure answer applies a pending reset before its retryability is read, so `Retrying` depends on `Reset` (`applyReset`, and the product's `failOrReset` choice stays in `Retrying`); `Heartbeat` and `Timeouts` depend on `Reset` and `Retrying` for `applyReset*` and the back-off steps. Shared steps (`keep`, `dispatchNow`) sit in `Dispatch` or `Lifecycle`.
+- The admission designs are protocol subjects with their own state, so the product/protocol same-owner rule does not reach them: `ActivityRecord` and `HeldDispatch` take one facet, `Admission`; `LostStartAnswer` takes `ResponseLoss`. Both names join the vocabulary. `TrustingActivityRecord`, `ActivityWorker`, `RecordMember`/`TrustingRecordMember` (derivations) and the compositions are exempt (R8).
+- Machine-wide (no facet): each machine's `State`, phase enum, `init`, `end`, phase projection and writer, refinement, `states` helpers, and the whole-feature `queries`.
