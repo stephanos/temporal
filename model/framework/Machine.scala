@@ -37,9 +37,9 @@ def choose[S, O, F](
 ): List[Step[S, O, F]] =
   val alternatives = first +: second +: rest
   for (token, steps) <- alternatives do
-    require( // format: off
+    require(
       alternatives.count(_._1 eq token) == 1,
-      "a choice names one alternative of a choose" // format: on
+      "a choice names one alternative of a choose"
     )
     require(steps.sizeIs <= 1, "each alternative of a choose is at most one step")
   alternatives.flatMap(_._2).toList

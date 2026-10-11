@@ -14,9 +14,9 @@ object Pausing extends Derived(ActivitySystem.rebind()):
 
   object properties:
     val completes =
-      property when worker.respondCompleted holds { s => // format: off
+      property when worker.respondCompleted holds { s =>
         s.state.phase == Phase.completed && s.records(Fact.statusCompleted)
-      } // format: on
+      }
 
   object queries:
     val pausedThenCompleted = scenario.actions(

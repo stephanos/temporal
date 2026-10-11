@@ -50,9 +50,9 @@ object NexusProduct extends Machine[State, Outcome, Fact], Phased[State, Phase](
 
     def succeed(s: State) = enter(s.copy(phase = succeeded), nexusOperationCompleted)
 
-    def complete(s: State, resolution: Resolution) = // format: off
+    def complete(s: State, resolution: Resolution) =
       val startedFirst = if s.phase != started then List(nexusOperationStarted) else Nil
-      resolution match // format: on
+      resolution match
         case Resolution.succeeded =>
           enter(s.copy(phase = succeeded), (startedFirst ++ List(nexusOperationCompleted))*)
         case Resolution.failed =>

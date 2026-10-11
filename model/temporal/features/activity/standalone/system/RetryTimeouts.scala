@@ -18,18 +18,18 @@ val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Out
 object TimeoutRetry extends Derived(ActivitySystem.unmonitored):
 
   object properties:
-    val completesAfterTimeout = property when worker.respondCompleted holds { s => // format: off
+    val completesAfterTimeout = property when worker.respondCompleted holds { s =>
       s.state == RetryFailures.states.completedOnRetry.copy(
         startToClose = Timeout.expires,
         maxAttempts = MaxAttempts.two
-      ) && s.records(Fact.statusCompleted) // format: on
-    } // format: off
+      ) && s.records(Fact.statusCompleted)
+    }
     val failsAfterTimeout = property when worker.respondFailed(Failure.retryable) holds { s =>
       s.state == RetryFailures.states.completedOnRetry.copy(
         phase = Phase.failed,
         startToClose = Timeout.expires,
         maxAttempts = MaxAttempts.two
-      ) && s.records(Fact.statusFailed) // format: on
+      ) && s.records(Fact.statusFailed)
     }
 
   object queries:

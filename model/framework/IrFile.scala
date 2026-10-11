@@ -166,9 +166,7 @@ object IrFile:
   // object's own, as `Refinement.declaredBy` finds a machine's refinement.
   private def queriesOf(section: AnyRef): Seq[Any] =
     section.getClass.getDeclaredMethods.toSeq
-      .filter(m => // format: off
-        m.getParameterCount == 0 && java.lang.reflect.Modifier.isPublic(m.getModifiers)
-      ) // format: on
+      .filter(m => m.getParameterCount == 0 && java.lang.reflect.Modifier.isPublic(m.getModifiers))
       .filter(m =>
         classOf[Query].isAssignableFrom(m.getReturnType) ||
           classOf[scala.collection.Seq[?]].isAssignableFrom(m.getReturnType)

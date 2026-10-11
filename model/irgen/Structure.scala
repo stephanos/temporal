@@ -69,8 +69,7 @@ final private[irgen] class Structure(index: Index):
           )
       else if hasForms || held(group) then
         checkPackages(group)
-        if hasForms && group.head.feature.split('.').reverse(1) == "features" then
-          kind(group)
+        if hasForms && group.head.feature.split('.').reverse(1) == "features" then kind(group)
         else feature(group): Unit
     refused.toSeq
 
@@ -262,9 +261,7 @@ final private[irgen] class Structure(index: Index):
   private def refines(c: ClassDef): Option[(ClassDef, Symbol)] =
     // The refinement's own machine is named too, as the owner of its types; the other is refined.
     nested(c)
-      .find(o =>
-        plain(o.name) == "refinement" && o.symbol.typeRef.derivesFrom(refinementClass)
-      )
+      .find(o => plain(o.name) == "refinement" && o.symbol.typeRef.derivesFrom(refinementClass))
       .flatMap { r =>
         val named = mutable.ArrayBuffer.empty[Symbol]
         object machines extends TreeTraverser:
@@ -526,14 +523,12 @@ final private[irgen] class Structure(index: Index):
       // that named exception does not exempt another two-level feature under `foundations` or `actors`.
       val levelOwned =
         pkg != "temporal.foundations.taskqueue" && (general || (for
-            product <- productDef
-            system <- systemDef
-          yield
-            val productArguments = machineArguments(product).map(_.dealias.typeSymbol)
-            val systemArguments = machineArguments(system).map(_.dealias.typeSymbol)
-            Seq(0, 2).exists(i =>
-              productArguments.lift(i) != systemArguments.lift(i)
-            )
+          product <- productDef
+          system <- systemDef
+        yield
+          val productArguments = machineArguments(product).map(_.dealias.typeSymbol)
+          val systemArguments = machineArguments(system).map(_.dealias.typeSymbol)
+          Seq(0, 2).exists(i => productArguments.lift(i) != systemArguments.lift(i))
         ).getOrElse(false))
       if levelOwned then
         val vocabulary = Seq("Phase", "State", "Fact")
@@ -630,9 +625,7 @@ object Structure:
 
   // Every section name a machine or composition object may hold (R20 (c)): `syncs` with `rules`.
   val sections: Seq[String] =
-    formSections.flatMap(n =>
-      if n == "rules" then Seq(n, "syncs") else Seq(n)
-    )
+    formSections.flatMap(n => if n == "rules" then Seq(n, "syncs") else Seq(n))
 
   // Whether a source sits in a level folder, `product/` or `system/`, so the order lint reads it
   // as a feature file of its own, its level's file or a subject's (fn-126 decision 22).

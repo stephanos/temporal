@@ -347,9 +347,7 @@ private[check] object SyntaxRule:
 
   private def misplaced(file: Source): Vector[Finding] =
     file.definitions
-      .filter(d =>
-        d.place == Place.Sugar && d.name.exists(sugarNames)
-      )
+      .filter(d => d.place == Place.Sugar && d.name.exists(sugarNames))
       .map: d =>
         Finding(
           file.file,

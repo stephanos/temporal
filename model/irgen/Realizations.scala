@@ -54,9 +54,7 @@ private[irgen] trait Realizations:
     // Setting a member of a oneof clears the others.
     def set(f: FieldDescriptor, v: PValue): Unit =
       if f.containingOneof.nonEmpty then
-        values.filterInPlace((k, _) =>
-          k.containingOneof != f.containingOneof
-        )
+        values.filterInPlace((k, _) => k.containingOneof != f.containingOneof)
       values(f) = v
     def add(f: FieldDescriptor, v: PValue): Unit = values(f) = values.get(f) match
       case Some(PRepeated(items)) => PRepeated(items :+ v)
@@ -204,8 +202,7 @@ private[irgen] trait Realizations:
     then fail(t, s"${selected.name} is not a unary method")
     val full = method.getFullMethodName
     val parts = full.split("/", 2)
-    if parts.length != 2 then
-      fail(t, s"$full is no protobuf method")
+    if parts.length != 2 then fail(t, s"$full is no protobuf method")
     val service = parts(0)
     val packagePath = owner.take(owner.lastIndexOf('.')).replace('.', '/') + "/"
     val file = grpc.getProtectionDomain.getCodeSource.getLocation.toURI
@@ -229,14 +226,14 @@ private[irgen] trait Realizations:
       fail(t, s"$full is not a unary protobuf method")
     val args = t.tpe.widen.dealias.typeArgs
     if args.length != 2 ||
-    messageDescriptor(
-      args(0),
-      t
-    ).fullName != protoMethod.inputType.fullName ||
-    messageDescriptor(
-      args(1),
-      t
-    ).fullName != protoMethod.outputType.fullName
+      messageDescriptor(
+        args(0),
+        t
+      ).fullName != protoMethod.inputType.fullName ||
+      messageDescriptor(
+        args(1),
+        t
+      ).fullName != protoMethod.outputType.fullName
     then fail(t, s"$full has request or response types that disagree with its protobuf descriptor")
     "/" + full
 
@@ -404,9 +401,9 @@ private[irgen] trait Realizations:
           val (entryFn, entryArgs) = applied(resolved.term)
             .getOrElse(fail(resolved.term, "expected a typed map entry"))
           if entryFn.symbol.name != "typed" ||
-          entryFn.symbol.owner.fullName.stripSuffix(
-            "$"
-          ) != "framework.realize.ProtoEntry"
+            entryFn.symbol.owner.fullName.stripSuffix(
+              "$"
+            ) != "framework.realize.ProtoEntry"
           then fail(resolved.term, "expected a typed map entry")
           PMessage(
             Map(
@@ -583,8 +580,8 @@ private[irgen] trait Realizations:
     val t = b.term
     val (fn, args) = applied(t).getOrElse(fail(t, "expected a typed condition"))
     if fn.symbol.owner.fullName.stripSuffix(
-      "$"
-    ) != "framework.realize.Condition"
+        "$"
+      ) != "framework.realize.Condition"
     then fail(t, s"unsupported typed condition: ${t.show}")
     def argument(i: Int): Bound = Bound(args(i), b.env)
     fn.symbol.name match
@@ -845,8 +842,7 @@ private[irgen] trait Realizations:
       case Apply(
             Select(Apply(Select(sc, "apply"), List(parts)), "s"),
             List(args)
-          )
-          if sc.symbol.fullName == "scala.StringContext" =>
+          ) if sc.symbol.fullName == "scala.StringContext" =>
         val texts = varargs(args).map(a => textOfBound(Bound(a, b.env)))
         varargs(parts)
           .map(constString)
@@ -931,8 +927,7 @@ private[irgen] trait Realizations:
     val b = reduce(b0)
     f.scalaType match
       case ScalaType
-            .Message(d)
-          if d.name == "ActionClass" =>
+            .Message(d) if d.name == "ActionClass" =>
         classOf(b.term).toPMessage
       case ScalaType.Message(d) if isNamed(b.term.tpe, "framework.realize.TypedProtoValue") =>
         typedProtoValue(b, d)
@@ -999,7 +994,7 @@ private[irgen] trait Realizations:
     else if f.isRepeated then itemsOf(b).foreach(i => into.add(f, valueOf(f, i)))
     else
       reduce(b).term match
-        case r: Ref if r.symbol == noneModule => ()
+        case r: Ref if r.symbol == noneModule                                                 => ()
         case Apply(TypeApply(Select(some, "apply"), _), List(x)) if some.symbol == someModule =>
           into.set(f, valueOf(f, Bound(x, reduce(b).env)))
         case _ => into.set(f, valueOf(f, b))
@@ -1011,8 +1006,7 @@ private[irgen] trait Realizations:
     val d = into.descriptor
     val entry =
       if d.name == "Item" then deadlinesItem(b0, d)
-      else if d.name == "Evidence" then
-        entryEvidence(b0)
+      else if d.name == "Evidence" then entryEvidence(b0)
       else None
     entry match
       case Some(e) => e.value.foreach((f, v) => into.set(f, v))
@@ -1032,9 +1026,9 @@ private[irgen] trait Realizations:
     then
       val (fn, args) = applied(b.term).getOrElse(fail(b.term, "expected a typed observation"))
       if fn.symbol.name != "apply" ||
-      fn.symbol.owner.fullName.stripSuffix(
-        "$"
-      ) != "framework.realize.Observed"
+        fn.symbol.owner.fullName.stripSuffix(
+          "$"
+        ) != "framework.realize.Observed"
       then fail(b.term, "expected a typed observation")
       into.set(irField(d, "id", b.term), PString(textOfBound(Bound(args.head, b.env))))
       into.set(
@@ -1109,8 +1103,8 @@ private[irgen] trait Realizations:
     val d = into.descriptor
     val (fn, args) = applied(b.term).getOrElse(fail(b.term, "expected a typed proto"))
     if fn.symbol.name != "apply" ||
-    fn.symbol.owner.fullName
-      .stripSuffix("$") != "framework.realize.Proto"
+      fn.symbol.owner.fullName
+        .stripSuffix("$") != "framework.realize.Proto"
     then fail(b.term, "expected a typed proto")
     val message = b.term.tpe.widen.dealias.typeArgs.headOption
       .getOrElse(fail(b.term, "a typed proto needs a message type"))
@@ -1121,9 +1115,9 @@ private[irgen] trait Realizations:
       val (fieldFn, fieldArgs) = applied(field.term)
         .getOrElse(fail(field.term, "expected a typed protobuf field"))
       if fieldFn.symbol.name != "typed" ||
-      fieldFn.symbol.owner.fullName.stripSuffix(
-        "$"
-      ) != "framework.realize.ProtoField"
+        fieldFn.symbol.owner.fullName.stripSuffix(
+          "$"
+        ) != "framework.realize.ProtoField"
       then fail(field.term, "expected a typed protobuf field")
       val name = protoFieldName(Bound(fieldArgs(0), field.env))
       val value = typedProtoValue(
@@ -1298,9 +1292,7 @@ private[irgen] trait Realizations:
           .flatMap(m =>
             describedEntries(m)
               .find(_._3 == b.term)
-              .map((fact, _, at) =>
-                described(m, fact, at)
-              )
+              .map((fact, _, at) => described(m, fact, at))
           )
           .orElse(
             moduleOf(module, historyClass)
@@ -1718,9 +1710,7 @@ private[irgen] trait Realizations:
       if d.name == "Visibility" then "write.visibleTo(read, when)"
       else "cause.boundedBy(bound)"
     val (fn, args) = applied(t)
-      .filter((fn, _) =>
-        fn.symbol.maybeOwner.fullName == hintHelpers
-      )
+      .filter((fn, _) => fn.symbol.maybeOwner.fullName == hintHelpers)
       .getOrElse(fail(t, s"a ${d.name} hint is declared `$expected`, not ${t.show}"))
     def argument(i: Int): Bound = Bound(args(i), call.env)
     val m = Message(d)
@@ -2091,9 +2081,7 @@ private[irgen] trait Realizations:
       .flatMap(_.getActivity.starts)
       .map(c => ir.ServerStep(position, Some(c), ir.CauseKind.CAUSE_KIND_DELIVERY))
     val backoff = timers
-      .filter(a =>
-        activities.nonEmpty && actions(a).name == "backoff"
-      )
+      .filter(a => activities.nonEmpty && actions(a).name == "backoff")
       .map(a =>
         ir.ServerStep(
           position,
@@ -2108,9 +2096,7 @@ private[irgen] trait Realizations:
       p <- item.performs
       step <- p.step.toSeq
       (value, i) <- step.inputs.zipWithIndex
-      if value.kind.`enum`.exists(e =>
-        e.`type`.endsWith(".Timeout") && e.`case` == "expires"
-      )
+      if value.kind.`enum`.exists(e => e.`type`.endsWith(".Timeout") && e.`case` == "expires")
     yield actions(step.action).inputs(i).name -> deadlineBases.getOrElse(
       step.action -> i,
       ir.TimeoutBasis.TIMEOUT_BASIS_UNSPECIFIED

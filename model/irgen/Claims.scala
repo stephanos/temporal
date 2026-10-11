@@ -577,8 +577,7 @@ private[irgen] trait Claims:
   // A declaring def's name as written: an `apply` by its object's.
   def declaringName(d: DefDef): String =
     val owner = d.symbol.maybeOwner
-    if d.name == "apply" && owner.flags.is(Flags.Module) then
-      owner.name.stripSuffix("$")
+    if d.name == "apply" && owner.flags.is(Flags.Module) then owner.name.stripSuffix("$")
     else d.name
 
   def argument(p: ValDef, d: DefDef, a: Term, env: Map[Symbol, Decl]): Decl =

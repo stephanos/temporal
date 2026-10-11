@@ -192,8 +192,8 @@ class DefaultEndsSuite extends munit.FunSuite:
       val phase = membership.path("left").path("field")
       assertEquals(phase.path("field").asText(), "phase")
       if p.path("machine").asText().contains("Pair") || p
-        .path("machine")
-        .asText() == "closingDerivedAgain"
+          .path("machine")
+          .asText() == "closingDerivedAgain"
       then assertEquals(phase.path("base").path("field").path("field").asText(), "left")
 
   test("Closable refuses a missing Phased and a missing Closed by machine name"):

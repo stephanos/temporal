@@ -244,9 +244,9 @@ final class Once[S, O, F] private[framework] (b: PropertyBuilder[S, O, F], over:
         b.m,
         b.when,
         None,
-        Some((before: S, after: Step[S, O, F]) => // format: off
+        Some((before: S, after: Step[S, O, F]) =>
           !over(before) || projection(after.state) == projection(before)
-        ) // format: on
+        )
       )
     )
 
@@ -318,9 +318,9 @@ extension [I <: NonEmptyTuple](a: Action[I])
       require(
         a.decl.tokens.contains(Some(s.slot)),
         s"an input supplied to ${a.name} is not its own"
-      ) // format: off
+      )
       require(supplied.count(_.slot eq s.slot) == 1, s"an input of ${a.name} is supplied twice")
-    val values = a.decl.tokens // format: on
+    val values = a.decl.tokens
       .zip(a.decl.domains)
       .map: (token, domain) =>
         supplied.find(s => token.contains(s.slot)).fold(domain.values.head)(_.value)
@@ -583,9 +583,9 @@ abstract class Rules[S, O, F, P](using
       case (a: Action[?], code) => (a.decl, None, code)
       case (c: Class, code)     => (c.decl, Some(c.values), code)
     for ((decl, values, code), i) <- named.zipWithIndex do
-      require( // format: off
+      require(
         !named.take(i).exists((d, v, _) => d == decl && java.util.Objects.equals(v, values)),
-        s"${writtenAction(code)} is named twice in one on: name each action, or class of it, once" // format: on
+        s"${writtenAction(code)} is named twice in one on: name each action, or class of it, once"
       )
     for (decl, values, code) <- named do block[EmptyTuple](decl, values, code)(cases)
 
@@ -609,9 +609,9 @@ abstract class Rules[S, O, F, P](using
   // The actions an object declares: the `Action` values among its public vals. An action records
   // no object that holds it, so the object's members are read.
   private def declaredBy(declarer: AnyRef): Set[ActionDecl] =
-    declarer.getClass.getMethods.toSet // format: off
+    declarer.getClass.getMethods.toSet
       .filter(m => m.getParameterCount == 0 && classOf[Action[?]].isAssignableFrom(m.getReturnType))
-      .map(_.invoke(declarer)) // format: on
+      .map(_.invoke(declarer))
       .collect { case a: Action[?] => a.decl }
 
   // The retired rule-case spelling is refused where it is written, while `value.in(...)` remains
@@ -653,9 +653,9 @@ abstract class Rules[S, O, F, P](using
   // not feel. Core form: `action ~> (_ => Nil)`.
   def disabled(actions: Action[?]*): Unit =
     for a <- actions do
-      require( // format: off
+      require(
         !never.contains(a.decl) && !written.exists(_.decl == a.decl),
-        "an action is disabled twice, or disabled and bound by a rule" // format: on
+        "an action is disabled twice, or disabled and bound by a rule"
       )
       never += a.decl
       order += a.decl
@@ -668,11 +668,10 @@ abstract class Rules[S, O, F, P](using
   extension [A](value: A)
     def in[R](using role: TypeTest[A, R]): Boolean = role.unapply(value).nonEmpty
 
-  private[framework] def table: Vector[(ActionDecl, Bound[S, O, F])] = // format: off
+  private[framework] def table: Vector[(ActionDecl, Bound[S, O, F])] =
     order.toVector.map: decl =>
       decl -> (if never.contains(decl) then Bound.Disabled[S, O, F]()
                else Bound.Ruled(written.filter(_.decl == decl).toVector))
-               // format: on
 
 // Evidence that a case's phases are of the type the rules' projection reads: the rules of a machine
 // that mixes in `Phased[State, Phase](_.phase)` name phases with `when`, and the rules of

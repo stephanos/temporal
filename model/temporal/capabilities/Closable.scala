@@ -14,7 +14,7 @@ final case class Closable[S, P, O](rejected: O)(using
     @unused witness: TypeTest[P, Closed],
     @unused phaseType: ClassTag[P]
 ) extends CapabilityOf[S, O, Nothing]
-// format: off
+
 object Closable extends CapabilityKind:
   type Closed = framework.Closed
   // No step moves an entity out of a terminal status, or between terminal statuses.
@@ -29,8 +29,7 @@ object Closable extends CapabilityKind:
     m.property holdsAcross ((before, after) =>
       !phasing.roleCases[Closed](m.name).contains(phasing.phase(before)) ||
         phasing.phase(after.state) == phasing.phase(before)
-    ) // format: on
-  // format: off
+    )
   // Every step from a terminal status keeps the state and answers the entity's rejecting outcome.
   // The outcome is entity-specific: activity answers NotFound, Nexus and schedule FailedPrecondition.
   // This does not promise rejection of a repeated request id, which the server answers as the first.
@@ -42,9 +41,11 @@ object Closable extends CapabilityKind:
       phasing: Phasing[S, P],
       finite: Finite[P],
       witness: TypeTest[P, Closed],
-      phaseType: ClassTag[P], stateEquality: CanEqual[S, S], outcomeEquality: CanEqual[O, O]
+      phaseType: ClassTag[P],
+      stateEquality: CanEqual[S, S],
+      outcomeEquality: CanEqual[O, O]
   ): Property[S] =
     m.property holdsAcross ((before, after) =>
       !phasing.roleCases[Closed](m.name).contains(phasing.phase(before)) ||
         (after.state == before && after.outcome == rejected)
-    ) // format: on
+    )

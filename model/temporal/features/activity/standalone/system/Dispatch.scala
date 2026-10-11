@@ -109,18 +109,16 @@ object ActivityRecord
   }
 
   // The record's status sets, which a composition reads through `activity`, and its counts.
-  object states: // format: off
+  object states:
     def twoActive(s: State) = s.active == Active.two
-    def phase(s: State) = s.phase // format: on
+    def phase(s: State) = s.phase
 
     // No unpause is in scope, so a pause is where a path may end, as a completion is: `end` reads
     // this named predicate.
     def stopped(s: State) =
       !s.phase.in(AdmissionPhase.scheduled, AdmissionPhase.started)
-    // format: off
     def oneMore(a: Active) = if a == Active.none then Active.one else Active.two
     def oneLess(a: Active) = if a == Active.two then Active.one else Active.none
-    // format: on
     // The record once an attempt is admitted: started, one more active, its answer owed.
     def admitted(s: State) =
       s.copy(phase = AdmissionPhase.started, active = oneMore(s.active), answer = Answer.owed)
@@ -128,16 +126,16 @@ object ActivityRecord
     // The active attempts after a step, counted from what it records.
     def countActive(active: Active, after: Step[State, Outcome, AdmissionFact]) =
       if after.records(attemptAdmitted) then oneMore(active)
-      else if after.records(statusCompleted) then oneLess(active) // format: off
+      else if after.records(statusCompleted) then oneLess(active)
       else if after.state.phase == AdmissionPhase.timedOut then Active.none
-      else active // format: on
+      else active
 
     // Whether the activity is over after a step, and whether it left where it ended.
-    def finality(f: Finality, after: Step[State, Outcome, AdmissionFact]) = // format: off
+    def finality(f: Finality, after: Step[State, Outcome, AdmissionFact]) =
       if f == Finality.reopened then Finality.reopened
       else if after.state.phase.in[Closed] then Finality.closed
       else if f == Finality.closed then Finality.reopened
-      else Finality.open // format: on
+      else Finality.open
 
   // The record refines the product, which sees its statuses alone.
   object refinement extends Refinement(ActivityProduct):
@@ -195,14 +193,13 @@ object ActivityRecord
   object monitors:
     val atMostOneActiveAttempt =
       monitor[State, Outcome, AdmissionFact, Active](Active.none)((active, _, after) =>
-        states.countActive(active, after) // format: off
+        states.countActive(active, after)
       )(_ == Active.two).readAfter(after => after.records(AdmissionFact.attemptAdmitted))
-      // format: on
     val terminalFinality =
       monitor[State, Outcome, AdmissionFact, Finality](Finality.open)((f, _, after) =>
-        states.finality(f, after) // format: off
+        states.finality(f, after)
       )(_ == Finality.reopened)
-      // format: on
+
   object rules extends Rules:
     import AdmissionPhase.*
 
@@ -221,9 +218,9 @@ object ActivityRecord
       when(scheduled) ~> effects.admit
       when(paused, pausedWhileHeld, started, completed, timedOut) ~> effects.rejectDelivery
     }
-    on(history.answerMatching) { // format: off
+    on(history.answerMatching) {
       where(_.answer == Answer.owed) ~> effects.answerMatching
-    } // format: on
+    }
     on(worker.respondCompleted) {
       when(started) ~> effects.complete
     }

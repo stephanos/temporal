@@ -111,11 +111,9 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
     def attemptCount(s: State): Int = s.attempts
     def maximumAttempts(@unused s: State): Option[UpTo[2]] = None: Option[UpTo[2]]
     def retriesRemaining(@unused s: State): Boolean = true
-    // format: off
     def scheduleToCloseArmed(s: State): Boolean = s.scheduleToClose == Timeout.expires
     def scheduleToStartArmed(s: State): Boolean = s.scheduleToStart == Timeout.expires
     def startToCloseArmed(s: State): Boolean = s.startToClose == Timeout.expires
-    // format: on
     val timeoutFacts = Seq(
       Fact.nexusOperationTimedOut(TimeoutType.scheduleToClose),
       Fact.nexusOperationTimedOut(TimeoutType.scheduleToStart),
@@ -206,7 +204,6 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
     // the step keeps the state and records nothing. On a path it is confirmed by the evidence of the
     // step after it, and the Case says so in a Known Gap.
     def keep(s: State) = stay(s)
-    // format: off
     // An asynchronous completion. Before a start, the server records a Started event first, which is
     // why the evidence is two facts and not one -- and why the product machine, which has no
     // backingOff phase to have skipped, could write the completion alone.
@@ -220,7 +217,6 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
           enter(s.copy(phase = failed), (startedFirst ++ List(nexusOperationFailed))*)
         case Resolution.canceled =>
           enter(s.copy(phase = canceled), (startedFirst ++ List(nexusOperationCanceled))*)
-    // format: on
     // The backoff timer. It is what makes backingOff a phase the operation leaves rather than a state
     // it is stuck in, and it records nothing: a retry writes no history event.
     def retry(s: State) = enter(s.copy(phase = scheduled))
@@ -254,7 +250,6 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
     on(timers.backoff) {
       when(backingOff) ~> effects.retry
     }
-    // format: off
     // Each deadline fires only when the schedule command set it. Schedule-to-close covers the whole
     // operation, schedule-to-start the wait for the handler to accept, and start-to-close the
     // handler's own work.
@@ -288,7 +283,6 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
     val asyncStarts = property when handler.reply(Reply.async) holds { s =>
       s.state.phase == Phase.started && s.records(Fact.nexusOperationStarted)
     }
-    // format: on
     // A successful completion is recorded by the completed event. Neither the phase nor the outcome
     // is fixed: a completion resolves any running phase, and accepted is every earlier step's
     // outcome too, so a clause fixing it would be answered before the completion.
@@ -299,14 +293,12 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
     // A failed completion is recorded by the failed event.
     val completionFails = property when handler.complete(Resolution.failed) holds
       (_.records(Fact.nexusOperationFailed))
-    // format: off
     // A non-retryable handler error settles the operation as failed, and the failed event records
     // it.
     val handlerErrorFails =
       property when handler.reply(Reply.handlerError(false)) holds { s =>
         s.state.phase == Phase.failed && s.records(Fact.nexusOperationFailed)
       }
-    // format: on
     // Succeeded on the second attempt of an operation with no deadline set. A claim fixes one state,
     // so every field is named.
     val succeededOnRetry =
@@ -317,14 +309,12 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
         scheduleToStart = Timeout.unset,
         startToClose = Timeout.unset
       )
-    // format: off
     // A synchronous reply to the retried attempt settles the operation as succeeded on its second
     // attempt: the count the retryable failure raised is still one, and the completed event records
     // the reply.
     val retrySucceeds = property when handler.reply(Reply.syncSuccess) holds { s =>
       s.state == succeededOnRetry && s.records(Fact.nexusOperationCompleted)
     }
-    // format: on
     // The schedule-to-start deadline settles an operation no handler started as timed out, and the
     // timed-out event records which deadline it was.
     val scheduleToStartFires = property when deadline.scheduleToStart holds { s =>
@@ -508,14 +498,14 @@ object NexusCaller
   object syncs extends Syncs:
     sync(_.operation -> worker.stop, _.worker -> worker.stop)
     sync(_.operation -> handler.reply, _.worker -> worker.serve)
-  // format: off
+
   object properties:
     // The cross-entity claim: every reply, of any class, leaves the handler's worker polling, so no
     // handler replies while its worker is stopped.
     val repliedByPollingWorker = property
       .whenAction(synced(_.operation -> handler.reply))
       .holds(_.state.worker.phase == WorkerPhase.polling)
-  // format: on
+
   object queries:
     // The cross-entity claim, verified over the path on which a retryable reply backs the operation
     // off; the handler's worker then stops, so the retried attempt is never answered and the

@@ -792,8 +792,7 @@ object Gate:
       val held =
         if Files.isRegularFile(target) then Accepted.read(Files.readString(target)) else Vector()
       val accepted = Accepted.withWaivers(held, machines, waivers)
-      if accepted == held then
-        None
+      if accepted == held then None
       else if update then
         Files.writeString(target, Accepted.encode(accepted)): Unit
         None

@@ -48,8 +48,7 @@ final case class Ran(command: Seq[String], directory: Path, exit: Int, output: S
     else
       val verdict =
         if exit != 0 then s"exited $exit"
-        else
-          "printed an error and exited 0"
+        else "printed an error and exited 0"
       val shown = if diagnostics.isBlank then "" else s"\n$diagnostics"
       throw ToolError(s"$tool $verdict in $directory: ${command.mkString(" ")}$shown")
 

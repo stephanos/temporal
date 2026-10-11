@@ -17,9 +17,10 @@ val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Out
 object TaskQueueProduct
     extends Machine[QueueView, QueueOutcome, QueueFact],
       Phased[QueueView, Outstanding](_.outstanding):
-  val init = QueueView(Outstanding.empty) // format: off
+  val init = QueueView(Outstanding.empty)
   override def end(q: State) = q.outstanding == Outstanding.empty
-  object states: // format: on
+
+  object states:
     // A message is outstanding: committed, and not yet acknowledged.
     def holding(s: State) =
       s.outstanding.in(Outstanding.committed, Outstanding.deliveredOnce, Outstanding.deliveredTwice)
@@ -38,9 +39,9 @@ object TaskQueueProduct
           .because("the durable write fails and no message is outstanding")
       )
 
-    def deliverView(s: State) = // format: off
+    def deliverView(s: State) =
       if s.outstanding == Outstanding.committed then
-        List( // format: on
+        List(
           Step(
             QueueOutcome.delivered,
             QueueView(Outstanding.deliveredOnce),

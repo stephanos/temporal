@@ -51,11 +51,10 @@ object ServedDispatch
 
   object states:
     // The source reads both members: an attempt the worker may take now, while the worker polls.
-    def dispatchable(s: State): Boolean = // format: off
+    def dispatchable(s: State): Boolean =
       s.activity.phase == Phase.scheduled && s.activity.dispatch == Dispatch.now && s.worker.phase == WorkerPhase.polling
 
     def started(s: State): Boolean = s.activity.phase == Phase.started
-    // format: on
 
   object syncs extends Syncs:
     sync(_.activity -> worker.poll, _.worker -> process.serve)
@@ -64,9 +63,8 @@ object ServedDispatch
     // The cross-entity safety promise: only a polling worker starts an attempt.
     def startedByPollingWorker(c: Composition[State]) = c
       .property("startedByPollingWorker")
-      .whenAction(c.synced(_.activity -> worker.poll)) // format: off
+      .whenAction(c.synced(_.activity -> worker.poll))
       .holds(_.state.worker.phase == WorkerPhase.polling)
-      // format: on
 
     // The bounded progress promise, over both members.
     val startsWithinOneStep = ServedDispatch.leadsTo("startsWithinOneStep")(

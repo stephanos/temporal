@@ -2269,9 +2269,7 @@ class Fixtures extends munit.FunSuite:
       assertEquals(texts(c.path("syncs"), "name"), List("dispatch", "admit", "settle"), d)
       assertEquals(c.path("members").get(1).path("replaces").asText(), target, d)
     def scenarioKeys(machine: String, name: String) = all("scenarios")
-      .find(s =>
-        s.path("machine").asText() == machine && named(name)(s)
-      )
+      .find(s => s.path("machine").asText() == machine && named(name)(s))
       .getOrElse(fail(s"no Scenario $name of $machine"))
       .path("keys")
       .elements()
@@ -2828,9 +2826,7 @@ class Fixtures extends munit.FunSuite:
         val defaults = terminalBody
           .findParents("literal")
           .asScala
-          .filter(e =>
-            e.path("literal").has("bool") && e.path("position") == declaration
-          )
+          .filter(e => e.path("literal").has("bool") && e.path("position") == declaration)
         assertEquals(defaults.size, 1)
         assertEquals(defaults.head.path("literal").path("bool").asBoolean(), false)
       val terminal = terminalBody.findValuesAsText("case").asScala

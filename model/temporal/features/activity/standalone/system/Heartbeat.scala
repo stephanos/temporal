@@ -15,9 +15,9 @@ val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Out
 object HeartbeatCompletion extends Derived(ActivitySystem.unmonitored):
 
   object properties:
-    val heartbeatCompletes = property when worker.respondCompleted holds { s => // format: off
+    val heartbeatCompletes = property when worker.respondCompleted holds { s =>
       s.state.phase == Phase.completed && s.records(Fact.statusCompleted)
-    } // format: on
+    }
 
   object queries:
     val heartbeatCompleted = scenario.actions(
@@ -34,9 +34,9 @@ object HeartbeatCompletion extends Derived(ActivitySystem.unmonitored):
 object HeartbeatRetry extends Derived(ActivitySystem.unmonitored):
 
   object properties:
-    val heartbeatRetryCompletes = property when worker.respondCompleted holds { s => // format: off
+    val heartbeatRetryCompletes = property when worker.respondCompleted holds { s =>
       s.state.phase == Phase.completed && s.records(Fact.statusCompleted)
-    } // format: on
+    }
 
   object queries:
     val heartbeatRetried = scenario.actions(
@@ -58,10 +58,10 @@ object HeartbeatExhaustion extends Derived(ActivitySystem.unmonitored):
   object properties:
     val heartbeatExhausts = property.when(deadline.heartbeat) holds (after =>
       after.records(Fact.heartbeatTimedOut) &&
-        (ActivitySystem.states.retriesRemaining(after.state) || // format: off
+        (ActivitySystem.states.retriesRemaining(after.state) ||
           (after.state.phase == Phase.timedOut && after.records(
             Fact.statusTimedOut(TimeoutType.heartbeat)
-          ))) // format: on
+          )))
     )
 
   object queries:

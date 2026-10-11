@@ -505,8 +505,7 @@ private[irgen] trait Expressions:
         for (CaseDef(p, guard, body), i) <- cases.zipWithIndex
         yield ir.MatchCase(
           pattern = Some(
-            if remainder && i == cases.size - 1 then
-              ir.Pattern(P.Wildcard(Empty()))
+            if remainder && i == cases.size - 1 then ir.Pattern(P.Wildcard(Empty()))
             else pattern(p, scrutinee.tpe)
           ),
           body = Some(lift(body, expected.orElse(Some(t.tpe)))),
@@ -695,8 +694,7 @@ private[irgen] trait Expressions:
       do
         val by =
           if other == token then ""
-          else
-            s", by ${other.fullName} and ${token.fullName}"
+          else s", by ${other.fullName} and ${token.fullName}"
         fail(
           a,
           s"choose names ${token.name} twice$by: an alternative is named by its token's val, so " +

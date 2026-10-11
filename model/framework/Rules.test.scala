@@ -342,8 +342,7 @@ class RulesTest extends munit.FunSuite:
             else Lit.off))
           case Lit.on =>
             enter[Lamp, Said, Nothing](
-              if knob == Knob.up then
-                state.copy(presses = UpTo[2]((state.presses + 1).min(2)))
+              if knob == Knob.up then state.copy(presses = UpTo[2]((state.presses + 1).min(2)))
               else state.copy(light = Lit.off)
             )
         assertEquals(turn(Switch, state, knob), expected, (state, knob))

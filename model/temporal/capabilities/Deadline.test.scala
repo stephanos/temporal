@@ -154,8 +154,7 @@ class CapabilityDeadlineSuite extends munit.FunSuite:
         facts <- Nil +: Finite[Fact].values.map(List(_))
       do
         val expected =
-          if !retryable || before.cancel || before.attempts == 1 then
-            Phase.timedOut
+          if !retryable || before.cancel || before.attempts == 1 then Phase.timedOut
           else if before.pause then Phase.paused
           else Phase.waiting
         val validFacts =

@@ -54,8 +54,7 @@ private[irgen] trait Constants:
             _.name == field
           )
           if i < 0 then fail(t, s"cannot read .$field of this value")
-          else if field == "name" && namedByVal(cls) && isDefault(args(i)) then
-            constString(qual)
+          else if field == "name" && namedByVal(cls) && isDefault(args(i)) then constString(qual)
           else constString(args(i))
         case other => fail(t, s"cannot fold ${other.show} to a string")
     // `Entity(key = …)` and `Observation(on = …, read = …)`, named after their val.

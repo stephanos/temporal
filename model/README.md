@@ -1224,9 +1224,9 @@ or evidence between two levels' types, so `Phase == OtherPhase` stays a compile 
 (`model/framework/Equality.test.scala`). Scala 3.9 reports the `Finite.given` import unused where
 only the compiler's equality check reads it (scala/scala3#25755); such a file keeps it with a
 `val _ = () => summon[CanEqual[T, T]]` witness rather than a warning exemption. Scalafix's
-`DisableSyntax.noUniversalEquality` is on as well. A comparison the compiler has checked carries
-`// scalafix:ok DisableSyntax.==` (or `!=`) on the operator's own line; where the formatter would
-move that comment, a trailing `// format: off` … `// format: on` pair keeps the line whole.
+`DisableSyntax.noUniversalEquality` stays off: it is syntactic and flags every `==`, each of which
+strict equality has already checked, so it added a suppression to every comparison and caught
+nothing the compiler does not.
 
 `make lint-model-conventions`, part of `make lint-model`, reads the compiled TASTy of the framework,
 the Models, the IR generator and the gate, with their tests, and refuses, each at its file and line:

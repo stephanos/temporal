@@ -34,8 +34,7 @@ private[irgen] trait Types:
     val tpe = instantiated(declared)
     // An opaque type is read before its alias is resolved: its range is its own.
     val opaque = tpe.widen.typeSymbol
-    if opaque.fullName == upToType then
-      range(0, upToBound(tpe, at))
+    if opaque.fullName == upToType then range(0, upToBound(tpe, at))
     else if opaque.flags.is(Flags.Opaque) then
       val (lo, hi) = opaqueRanges.getOrElse(
         opaque.fullName,
@@ -49,10 +48,8 @@ private[irgen] trait Types:
     else
       val t = tpe.dealias.widen
       val sym = t.typeSymbol
-      if sym == defn.BooleanClass then
-        ir.TypeRef(ir.TypeRef.Ref.Bool(Empty()))
-      else if sym == defn.IntClass && owner.isEmpty then
-        ir.TypeRef(ir.TypeRef.Ref.Int(Empty()))
+      if sym == defn.BooleanClass then ir.TypeRef(ir.TypeRef.Ref.Bool(Empty()))
+      else if sym == defn.IntClass && owner.isEmpty then ir.TypeRef(ir.TypeRef.Ref.Int(Empty()))
       else if sym == defn.IntClass then
         val (lo, hi) = intRanges.getOrElse(
           owner,
@@ -64,8 +61,7 @@ private[irgen] trait Types:
         )
         range(lo, hi)
       else if isList(sym) then ir.TypeRef(ir.TypeRef.Ref.List(typeRef(t.typeArgs.head, at, owner)))
-      else if sym.fullName == "scala.Option" then
-        named(optionType(t.typeArgs.head, at))
+      else if sym.fullName == "scala.Option" then named(optionType(t.typeArgs.head, at))
       else if sym.fullName == "framework.Inbox" then
         if owner.isEmpty then
           fail(at, "an Inbox is held in a state field; a function reads it from the state")
@@ -78,8 +74,7 @@ private[irgen] trait Types:
           )
         )
         ir.TypeRef(ir.TypeRef.Ref.Channel(channelOf(channel, at)))
-      else if sym.fullName == stepType then
-        named(stepType)
+      else if sym.fullName == stepType then named(stepType)
       else
         declareType(sym, at)
         named(irTypeName(sym))

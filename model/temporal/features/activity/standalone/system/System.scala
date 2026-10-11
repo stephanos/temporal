@@ -106,14 +106,11 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       case MaxAttempts.unlimited => None
       case MaxAttempts.one       => Some(UpTo(1))
       case MaxAttempts.two       => Some(UpTo(MaxAttempts.bound))
-    // format: off
     def pendingPause(s: State): Boolean = s.phase == pauseRequested
     def pendingCancel(s: State): Boolean = s.phase == cancelRequested
     def pendingReset(s: State): Boolean = s.phase.in(resetRequested, resetKeepingPause)
-    // format: on
     def landingPhase(s: State): Phase =
       if s.phase.in(pauseRequested, resetKeepingPause) then paused else scheduled
-    // format: off
     def landingStatus(s: State): Fact =
       if landingPhase(s) == paused then Fact.statusPaused else Fact.statusScheduled
 
@@ -131,7 +128,6 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
       s.scheduleToStart == Timeout.expires && s.dispatch == Dispatch.now
     def startToCloseArmed(s: State): Boolean = s.startToClose == Timeout.expires
     def heartbeatArmed(s: State): Boolean = s.heartbeat == Timeout.expires
-    // format: on
     val timeoutFacts = Seq(
       Fact.statusTimedOut(TimeoutType.scheduleToClose),
       Fact.statusTimedOut(TimeoutType.scheduleToStart),
@@ -178,7 +174,6 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
 
   object effects:
     import Fact.*
-    // format: off
     // The start creates the activity, with the deadlines its inputs set.
     def schedule(
         @unused s: State,
@@ -202,7 +197,6 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
         ),
         statusScheduled
       )
-    // format: on
     // This independent counter advances on delivery; Describe counts an attempt from scheduling.
     def startAttempt(s: State) =
       enter(
@@ -384,7 +378,6 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
     // settlement must match the corresponding By-ID rows.
     from(temporal.features.activity.standalone.worker) {
       import temporal.features.activity.standalone.worker.*
-      // format: off
       on(poll) {
         when(scheduled).where(_.dispatch == Dispatch.now) ~> effects.startAttempt
       }
@@ -393,7 +386,6 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
         when(unstarted, scheduled, paused) ~> rejects(Rejection.notFound)
         when[Closed] ~> rejects(Rejection.notFound)
       }
-      // format: on
       // A worker's answer settles the attempt it holds. A retryable failure backs a started attempt
       // off, settles a cancel-requested one as canceled and lands a pause-requested one in paused
       // (TransitionAttemptFailedWhilePauseRequested). A canceled answer needs a cancel request.
@@ -471,7 +463,6 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
 
     from(timers) {
       import timers.*
-      // format: off
       on(startDelay) {
         when[Live].where(_.dispatch == Dispatch.startDelay) ~> effects.dispatchNow
       }
@@ -479,7 +470,6 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
         when[Live].where(_.dispatch == Dispatch.backoff) ~> effects.dispatchNow
       }
     }
-      // format: on
     from(deadline) {
       import deadline.*
 
@@ -525,7 +515,7 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
         when(resetKeepingPause).where(states.heartbeatArmed) ~> effects.applyResetOnHeartbeat
       }
     }
-  // format: off
+
   // The lifecycle-wide control and reset laws; focused settlement claims live in subject files.
   // The activity and worker's cross-entity claim is the composition's, and the dispatch record's
   // are Dispatch.scala's.
@@ -597,7 +587,6 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
           if before.phase == Phase.paused then Fact.statusPaused else Fact.statusScheduled
         ))
       }
-  // format: on
     // Retries' and Deadline's laws as the activity keeps them: a pending reset applies first, as
     // a failure or one of the attempt's own deadlines ends the held attempt, whatever the failure's
     // retryability or the policy left (attempt.go:201-216, statemachine.go:317-345). With no reset
@@ -691,14 +680,13 @@ object ActivitySystem extends Machine[State, Outcome, Fact], Phased[State, Phase
             pendingPause(before)) ||
           (after.state.phase.in[Suspended] && timeoutFacts.forall(f => !after.records(f)))
       )
-    // format: off
     // Cancel > Reset > Pause: no step makes a reset pending over a pending cancellation, and no
     // step turns a pending reset back into a pause request or a plain attempt (model.go:156-158).
     val controlPrecedence = property.holdsAcross { (before, after) =>
       (before.phase != Phase.cancelRequested || !states.pendingReset(after.state)) &&
       (!states.pendingReset(before) || !after.state.phase.in(Phase.started, Phase.pauseRequested))
     }
-    // format: on
+
   // A terminate settles it, and DescribeActivityExecution reports its status by `activityStatus`.
   // The terminate find starts the activity and stops the worker before the control. The held
   // cancellation-request claim is authored on ByIDCancellation's complete service path below.

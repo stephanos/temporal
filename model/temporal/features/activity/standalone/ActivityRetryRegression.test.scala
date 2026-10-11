@@ -98,11 +98,9 @@ class ActivityRetryRegression extends munit.FunSuite:
             (before.maxAttempts == MaxAttempts.one && before.attempts < 1))
       val after = take(before, deadline.startToClose())
       if retryAllowed then
-        val expectedPhase = if before.phase == system.Phase.pauseRequested then
-          system.Phase.paused
+        val expectedPhase = if before.phase == system.Phase.pauseRequested then system.Phase.paused
         else system.Phase.scheduled
-        val status = if before.phase == system.Phase.pauseRequested then
-          system.Fact.statusPaused
+        val status = if before.phase == system.Phase.pauseRequested then system.Fact.statusPaused
         else system.Fact.statusScheduled
         assertEquals(
           after.state,

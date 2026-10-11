@@ -344,9 +344,7 @@ private[irgen] trait Declarations:
           else ""
       )
       val members = statements(c).collect { case d: Definition => d }
-      def member(n: String) = members.find(d =>
-        d.name == n && !d.symbol.flags.is(Flags.Module)
-      )
+      def member(n: String) = members.find(d => d.name == n && !d.symbol.flags.is(Flags.Module))
       val start = member("init") match
         case Some(v: ValDef) if v.rhs.nonEmpty        => lift(v.rhs.get)
         case Some(d: DefDef) if d.termParamss.isEmpty => lift(d.rhs.get)
@@ -864,8 +862,7 @@ private[irgen] trait Declarations:
       val (params, body) = lambda(r.effect).getOrElse(
         fail(r.effect, s"the effect of a rule of $machine is a function, not ${r.effect.show}")
       )
-      if params.size == 1 then
-        bind(params, List(stateName))
+      if params.size == 1 then bind(params, List(stateName))
       else if params.size == 1 + a.inputs.size then
         bind(params, stateName :: a.inputs.map(_.name).toList)
       else
@@ -949,9 +946,9 @@ private[irgen] trait Declarations:
 
   // The action and the function of the core `action ~> function`, or a refusal.
   def coreBinding(binding: Term, should: => String): (Term, Term) = binding match
-    case Typed(e, _)        => coreBinding(e, should)
-    case Block(Nil, e)      => coreBinding(e, should)
-    case Inlined(_, Nil, e) => coreBinding(e, should)
+    case Typed(e, _)                                                       => coreBinding(e, should)
+    case Block(Nil, e)                                                     => coreBinding(e, should)
+    case Inlined(_, Nil, e)                                                => coreBinding(e, should)
     case t if t.symbol.maybeOwner.fullName == "framework.Machine$package$" =>
       call(t) match
         case Some(("~>", List(List(a), List(fn)))) => (a, fn)
@@ -1161,9 +1158,7 @@ private[irgen] trait Declarations:
       case source                   => Some(machineOf(resolveSymbol(source), source).name)
     for from <- sourceOf(rhs); kept <- rulesOf.get(from) do
       val own = rulesOf.getOrElse(name, Map.empty)
-      rulesOf(name) = kept.filter((id, _) =>
-        src.steps.exists(_.action == id)
-      ) ++ own
+      rulesOf(name) = kept.filter((id, _) => src.steps.exists(_.action == id)) ++ own
     val m = src.copy(family = family, name = name, position = Some(pos(rhs)))
     if binds(rhs) then
       distinctActionNames(m, rhs)

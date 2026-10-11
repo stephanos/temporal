@@ -98,8 +98,7 @@ private[irgen] trait Capabilities:
   private def factFamilies(machine: String, d: Declared): List[FactFamily] =
     d.fieldTypes.toList.flatMap { (field, tpe) =>
       val t = tpe.dealias
-      if !isList(t.typeSymbol) || t.typeArgs.size != 1 then
-        Nil
+      if !isList(t.typeSymbol) || t.typeArgs.size != 1 then Nil
       else
         d.fieldTypes.toList.collect {
           case (valueField, valueType)
@@ -132,14 +131,12 @@ private[irgen] trait Capabilities:
               case _ => refused("lists its finite fact family as literal Seq(...) or List(...)")
             val values = items.map(constant(_, field))
             val catalog = valuesOf(named(machineFact), d.at)
-              .filter(v =>
-                v.getEnum.`case` == selected.getEnum.`case`
-              )
+              .filter(v => v.getEnum.`case` == selected.getEnum.`case`)
             if values.isEmpty || values.distinct.size != values.size || !values
-              .contains(
-                selected
-              ) ||
-            values.toSet != catalog.toSet
+                .contains(
+                  selected
+                ) ||
+              values.toSet != catalog.toSet
             then
               refused(
                 "binds the nonempty complete distinct typed fact family containing its selected fact"
@@ -566,9 +563,7 @@ private[irgen] trait Capabilities:
           )
         )
         brought
-          .find(p =>
-            p.property.symbol == sym && p.bringing.head == declared
-          )
+          .find(p => p.property.symbol == sym && p.bringing.head == declared)
           .getOrElse(
             fail(i, s"${w.kind} of $machine: ${declared.declaration} does not bring $written")
           )
@@ -621,9 +616,7 @@ private[irgen] trait Capabilities:
       brought: Seq[Brought],
       excepted: Set[String]
   ): (Option[ir.Limits], Map[String, ir.Limits]) =
-    val statements = boundStatements.filter((receiver, _, _) =>
-      moduleClassOf(receiver) == section
-    )
+    val statements = boundStatements.filter((receiver, _, _) => moduleClassOf(receiver) == section)
     statements match
       case Nil                             => (None, Map.empty)
       case (_, statement, _) :: again :: _ =>

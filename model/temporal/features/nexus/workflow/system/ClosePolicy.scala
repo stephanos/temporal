@@ -261,7 +261,6 @@ val recovery = assume("currentOwnerEventuallyRecoversAndReappliesRetainedOutcome
 // RejectAfterClose is the first design: its status sets, effects, monitors and declaring functions
 // are every design's. Each design after it is derived from one before it, rebinding the effect its
 // policy, reset or channel changes and adding the assumptions it makes.
-// format: off
 // The faulty policy: a closed run rejects a completion permanently. A deliberately wrong design, kept
 // so that the checks that must refute it are seen to.
 object RejectAfterClose
@@ -282,6 +281,7 @@ object RejectAfterClose
     case CloseFact.cancelRequested(_) => "nexusOperationCancelRequested"
     case CloseFact.handlerFinished(_) => "handlerFinished"
   }
+
   // What the designs read of a state: the handler's work, the channel, the owner and the promises.
   object states:
     def working(h: Handler) = h.in(Handler.running, Handler.cancelReceived)
@@ -298,20 +298,16 @@ object RejectAfterClose
     // whose history is frozen.
     def expirable(s: State) =
       s.caller.in(Caller.open, Caller.resetOpen) && s.known == Knowledge.none
-// format: on
     // The history event that records an outcome, by the baseline's names.
     def recorded(r: Resolution) = r match
       case Resolution.succeeded => CloseFact.nexusOperationCompleted
       case Resolution.failed    => CloseFact.nexusOperationFailed
       case Resolution.canceled  => CloseFact.nexusOperationCanceled
-    // format: off
     // A history records an outcome once: a second delivery of it records nothing.
     def recordedOnce(s: State, k: Knowledge, r: Resolution) =
       if s.known == k then Nil else List(recorded(r))
-    // format: on
     def carries(c: Completion, r: Resolution) =
       c.in(Completion.inFlight(r), Completion.retried(r))
-    // format: off
     // Whether a delivery that does not end the report leaves it to be delivered again.
     def redelivers(d: Redelivery, c: Completion, r: Resolution) = d == Redelivery.untilAck ||
       c == Completion.inFlight(r)
@@ -319,7 +315,6 @@ object RejectAfterClose
     // The report as the channel holds it for its next delivery.
     def again(d: Redelivery, r: Resolution) =
       if d == Redelivery.untilAck then Completion.inFlight(r) else Completion.retried(r)
-    // format: on
     // The ways a delivery that leaves the report to be delivered again can go.
     val taken = choice
     val rejectedForNow = choice
@@ -329,7 +324,6 @@ object RejectAfterClose
     def fromRetention(x: Retained) = x match
       case Retained.pending(r) => Knowledge.successor(r)
       case Retained.none       => Knowledge.none
-    // format: off
     def reapplied(rule: Reset, s: State) = s.known match
       case Knowledge.original(r) =>
         if rule == Reset.truncates then fromRetention(s.retained) else Knowledge.successor(r)
@@ -343,10 +337,8 @@ object RejectAfterClose
       case Knowledge.successor(r) =>
         List(CloseFact.workflowReset, CloseFact.outcomeReapplied, recorded(r))
       case _: none.type | _: original | _: expired.type => List(CloseFact.workflowReset)
-    // format: on
     // Promises: the outcome stays where an owner can learn it, an acknowledgment keeps it, and a
     // path ends only where the outcome is settled.
-    // format: off
     // The run that owns the operation records this outcome.
     def ownerKnows(s: State, r: Resolution) =
       if s.caller == Caller.resetOpen then s.known == Knowledge.successor(r)
@@ -367,7 +359,6 @@ object RejectAfterClose
       after.outcome.in(Answer.accepted, Answer.retained) implies
         (after.state.channel != Completion.none || ownerKnows(after.state, r) ||
           after.state.retained == Retained.pending(r))
-    // format: on
     // An acknowledgment ends the handler's report only once the owner committed or the operation
     // retained the outcome.
     def ackOnlyWhenKept(before: State, after: Step[CloseResetState, Answer, CloseFact]) =
@@ -377,7 +368,6 @@ object RejectAfterClose
         case Completion.none        => true
 
     def isDone(s: State) = !working(s.handler)
-    // format: off
     // Where a path may end: the handler is still working, or its outcome reached the owner, or the
     // operation retained it for a successor a closed run may never get, or the deadline resolved the
     // wait. Any other state with no step is a lost outcome. `end` reads this named predicate.
@@ -393,7 +383,6 @@ object RejectAfterClose
       case Outcomes.none    => Outcomes.one(r)
       case Outcomes.one(x)  => if x == r then seen else Outcomes.several
       case Outcomes.several => Outcomes.several
-    // format: on
     def outcomesAfter(seen: Outcomes, k: Knowledge) = k match
       case Knowledge.original(r)                              => withOutcome(seen, r)
       case Knowledge.successor(r)                             => withOutcome(seen, r)
@@ -402,12 +391,11 @@ object RejectAfterClose
     def askedBy(i: Intent) = i match
       case Intent.requested(p) => Asked.by(p)
       case Intent.none         => Asked.nobody
-    // format: off
     def askedAfter(asked: Asked, i: Intent) = asked match
       case Asked.nobody => askedBy(i)
       case Asked.by(p)  => if i == Intent.requested(p) then asked else Asked.lost
       case Asked.lost   => Asked.lost
-    // format: on
+
   // What each step does. Where it fires is the rules'.
   object effects:
     def close(s: State) = enter(s.copy(caller = Caller.closed), CloseFact.workflowClosed)
@@ -501,7 +489,6 @@ object RejectAfterClose
           )
         )
       else dropped(s)
-    // format: off
     // A delivery of the report the channel carries, `r`, as the policy and the channel take it.
     def deliver(p: Policy, d: Redelivery, s: State, r: Resolution) =
       // The deadline resolved the operation: a completion after it finds nothing to complete.
@@ -516,7 +503,6 @@ object RejectAfterClose
             if p == Policy.ackByOriginal then
               enter(s.copy(channel = Completion.none)).because("the original run acknowledges it")
             else committed(d, s, Knowledge.successor(r), r)
-    // format: on
     // Reset builds the successor from a point after the start and before the close. It transfers
     // ownership, reapplies the outcome the original run recorded or the operation retained, and
     // keeps the cancel intent. It cannot undo the handler's effect.
@@ -570,7 +556,6 @@ object RejectAfterClose
     on(history.deliverCancel) {
       where(states.cancelInFlight) ~> effects.deliverCancel
     }
-    // format: off
     // A canceled result needs the handler to have received the cancel request; having received it,
     // the handler may still succeed or fail.
     on(handlerSide.finish(Resolution.succeeded)) {
@@ -582,7 +567,6 @@ object RejectAfterClose
     on(handlerSide.finish) {
       where(_.handler == Handler.cancelReceived) ~> effects.finish
     }
-    // format: on
     // A completion is delivered while the channel carries its result.
     on(handler.complete(Resolution.succeeded)) {
       where(s => states.carries(s.channel, Resolution.succeeded)) ~> (effects.deliver(
@@ -623,14 +607,12 @@ object RejectAfterClose
     ) =
       before.caller == Caller.closed && after.state.caller == Caller.closed implies
         (after.state.known == before.known && after.state.intent == before.intent)
-    // format: off
     // An outcome a history records is the handler's.
     def knownIsTheHandlersOutcome(after: Step[CloseResetState, Answer, CloseFact]) =
       after.state.known match
         case Knowledge.original(r)  => after.state.handler == Handler.done(r)
         case Knowledge.successor(r) => after.state.handler == Handler.done(r)
         case _: Knowledge.none.type | _: Knowledge.expired.type => true
-    // format: on
     def knows(k: Knowledge, r: Resolution) =
       k.in(Knowledge.original(r), Knowledge.successor(r))
 
@@ -640,12 +622,10 @@ object RejectAfterClose
         case Knowledge.original(r)                              => knows(after.state.known, r)
         case Knowledge.successor(r)                             => knows(after.state.known, r)
         case _: Knowledge.none.type | _: Knowledge.expired.type => true
-    // format: off
     // The handler's outcome is decided, and nothing holds or still carries it.
     def nothingOwed(s: CloseResetState) = s.handler match
       case Handler.done(_) => s.channel == Completion.none && s.retained == Retained.none
       case _: Handler.running.type | _: Handler.cancelReceived.type => false
-    // format: on
     // The deadline resolves only a wait that could still end otherwise: the handler is working, or
     // its report is still owed. A deadline that fires with nothing owed ends a wait for an outcome
     // the design already lost.
@@ -655,7 +635,6 @@ object RejectAfterClose
     ) =
       before.known != Knowledge.expired && after.state.known == Knowledge.expired implies
         !nothingOwed(before)
-    // format: off
     def designClaims(m: Machine[CloseResetState, Answer, CloseFact]) =
       // No step, a reset included, undoes what the handler did.
       val handlerEffectIsIrreversible = m.property.once(states.isDone).keeps(_.handler)
@@ -736,12 +715,10 @@ object RejectAfterClose
         reappliesRetained,
         routedToSuccessor
       )
-    // format: on
     def safetyClaims(m: Machine[CloseResetState, Answer, CloseFact]) = SafetyClaims(
       m.property("outcomePreserved") holds states.outcomePreserved,
       m.property("ackOnlyWhenKept") holdsAcross states.ackOnlyWhenKept
     )
-    // format: off
     def deadlineClaims(m: Machine[CloseResetState, Answer, CloseFact]) =
       val expiresWithNothingOwed = m.property when deadline.scheduleToClose holds
         (after => after.state.known == Knowledge.expired && nothingOwed(after.state))
@@ -770,7 +747,6 @@ object RejectAfterClose
         s.caller == Caller.closed && s.retained == Retained.pending(r) &&
         !states.ownerKnows(s, r)
       case _: Handler.running.type | _: Handler.cancelReceived.type => false
-    // format: on
     def ownerKnowsOutcome(s: CloseResetState) = s.handler match
       case Handler.done(r)                                          => states.ownerKnows(s, r)
       case _: Handler.running.type | _: Handler.cancelReceived.type => false

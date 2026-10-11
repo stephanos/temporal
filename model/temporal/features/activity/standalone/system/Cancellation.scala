@@ -14,14 +14,14 @@ object Cancellation extends Derived(ActivitySystem.rebind()):
 
   object properties:
     val cancelRequestedWhileStarted =
-      property when client.requestCancel holds { s => // format: off
+      property when client.requestCancel holds { s =>
         s.state.phase == Phase.cancelRequested && s.records(Fact.statusCancelRequested)
-      } // format: on
+      }
 
     val canceledByWorker =
-      property when worker.respondCanceled holds { s => // format: off
+      property when worker.respondCanceled holds { s =>
         s.state.phase == Phase.canceled && s.records(Fact.statusCanceled)
-      } // format: on
+      }
 
   object queries:
     val cancelRequestedThenCanceled = scenario.actions(

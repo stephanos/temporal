@@ -130,9 +130,7 @@ class QualifiedNames extends munit.FunSuite:
           .readString(from)
           .replace("../../../build/model-scala.jar", modelJar.toString)
           .replace("../../../build/api-scalapb.jar", build.resolve("api-scalapb.jar").toString)
-        val probe = probed.find((_, stem, _, _) =>
-          written == s"$stem.scala"
-        )
+        val probe = probed.find((_, stem, _, _) => written == s"$stem.scala")
         Files.writeString(
           dir.resolve(probe.fold(written)((_, stem, _, _) => file(stem))),
           probe.fold(source)((_, _, pkg, _) => move(source, pkg))

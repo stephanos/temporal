@@ -40,9 +40,9 @@ final case class Deadline[S, P, R, F <: Product](
     "timeout fact family contains duplicates"
   )
   require(timeoutFacts.contains(timeout), "timeout fact family must contain the bound timeout")
-  require( // format: off
+  require(
     timeoutFacts.toSet == finiteFact.values.filter(_.productPrefix == timeout.productPrefix).toSet,
-    "timeout fact family must contain exactly every finite value of the bound timeout constructor" // format: on
+    "timeout fact family must contain exactly every finite value of the bound timeout constructor"
   )
 
 object Deadline extends CapabilityKind:

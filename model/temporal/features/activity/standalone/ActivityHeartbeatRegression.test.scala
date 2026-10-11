@@ -92,8 +92,7 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
       assertEquals(steps.nonEmpty, enabled)
       for after <- steps if ActivitySystem.states.pendingReset(before) do
         val landing =
-          if before.phase == system.Phase.resetKeepingPause then
-            system.Phase.paused
+          if before.phase == system.Phase.resetKeepingPause then system.Phase.paused
           else system.Phase.scheduled
         assertEquals(
           after.state,
@@ -102,8 +101,7 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
         assertEquals(
           after.facts,
           List(
-            if landing == system.Phase.paused then
-              system.Fact.statusPaused
+            if landing == system.Phase.paused then system.Fact.statusPaused
             else system.Fact.statusScheduled,
             system.Fact.attemptCount,
             system.Fact.heartbeatTimedOut
@@ -115,8 +113,7 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
             (before.maxAttempts == MaxAttempts.two && before.attempts < 2) ||
             (before.maxAttempts == MaxAttempts.one && before.attempts < 1))
         val landing = if !retry then system.Phase.timedOut
-        else if before.phase == system.Phase.pauseRequested then
-          system.Phase.paused
+        else if before.phase == system.Phase.pauseRequested then system.Phase.paused
         else system.Phase.scheduled
         assertEquals(after.state.phase, landing)
         assertEquals(after.state.attempts, before.attempts)
@@ -125,8 +122,7 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
           List(system.Fact.statusTimedOut(TimeoutType.heartbeat), system.Fact.heartbeatTimedOut)
         else
           List(
-            if landing == system.Phase.paused then
-              system.Fact.statusPaused
+            if landing == system.Phase.paused then system.Fact.statusPaused
             else system.Fact.statusScheduled,
             system.Fact.attemptCount,
             system.Fact.heartbeatTimedOut
@@ -275,9 +271,7 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
       assert(
         !holds(
           before,
-          after.copy(facts =
-            after.facts.filterNot(_ == system.Fact.heartbeatTimedOut)
-          )
+          after.copy(facts = after.facts.filterNot(_ == system.Fact.heartbeatTimedOut))
         )
       )
     assertEquals(resets.size, 432)
@@ -297,9 +291,7 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
       assert(
         !holds(
           before,
-          after.copy(facts =
-            after.facts.filterNot(_ == system.Fact.heartbeatTimedOut)
-          )
+          after.copy(facts = after.facts.filterNot(_ == system.Fact.heartbeatTimedOut))
         ),
         "heartbeat evidence is mandatory for eligible and exhausted policies"
       )

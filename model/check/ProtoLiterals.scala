@@ -67,11 +67,11 @@ private[check] object ProtoLiterals:
       // A character literal, `'"'` or `'\''`, opens no string; a quote of Scala 3 (`'{`, `'[`) is
       // left to the characters after it.
       else if source(offset) == '\'' && offset + 2 < source.length && source(
-        offset + 2
-      ) == '\'' &&
-      source(
-        offset + 1
-      ) != '\\'
+          offset + 2
+        ) == '\'' &&
+        source(
+          offset + 1
+        ) != '\\'
       then scan(offset + 3, line, found, comments)
       else if source.startsWith("'\\", offset) && source.indexOf('\'', offset + 3) > 0 then
         scan(source.indexOf('\'', offset + 3) + 1, line, found, comments)

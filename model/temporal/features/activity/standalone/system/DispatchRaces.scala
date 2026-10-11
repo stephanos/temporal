@@ -80,9 +80,9 @@ object HeldDispatch
         timedOut
       ) ~> ActivityRecord.effects.rejectDelivery
     }
-    on(history.answerMatching) { // format: off
+    on(history.answerMatching) {
       where(_.answer == Answer.owed) ~> ActivityRecord.effects.answerMatching
-    } // format: on
+    }
 
   // What the machine a server's Run is checked against promises.
   object properties:

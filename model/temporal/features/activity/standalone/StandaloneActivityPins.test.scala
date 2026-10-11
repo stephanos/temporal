@@ -504,8 +504,7 @@ class StandaloneActivityPins extends munit.FunSuite:
       ExpectedRule(
         worker.poll.decl,
         None,
-        s =>
-          s.phase == scheduled && s.dispatch == system.Dispatch.now,
+        s => s.phase == scheduled && s.dispatch == system.Dispatch.now,
         s =>
           accepted(
             s.copy(phase = started, attempts = UpTo[2](((s.attempts: Int) + 1).min(2))),
@@ -927,8 +926,7 @@ class StandaloneActivityPins extends munit.FunSuite:
       ExpectedRule(
         deadline.startToClose.decl,
         None,
-        s =>
-          resetSystem(s.phase) && s.startToClose == Timeout.expires,
+        s => resetSystem(s.phase) && s.startToClose == Timeout.expires,
         s => acceptedBecause(restarted(s), ends, landingFact(s), system.Fact.attemptCount)
       ),
       ExpectedRule(

@@ -17,9 +17,9 @@ val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Out
 object ByIDCompletion extends Derived(ActivitySystem.unmonitored):
 
   object properties:
-    val completedByID = property when service.respondCompletedByID holds { after => // format: off
+    val completedByID = property when service.respondCompletedByID holds { after =>
       after.state.phase == Phase.completed && after.records(Fact.statusCompleted)
-    } // format: on
+    }
 
   object queries:
     val scheduledCompletion = scenario.actions(client.start(), service.respondCompletedByID)
@@ -30,10 +30,10 @@ object ByIDCompletion extends Derived(ActivitySystem.unmonitored):
 
 object ByIDFailure extends Derived(ActivitySystem.unmonitored):
 
-  object properties: // format: off
+  object properties:
     val fatalFailureByID = property when service.respondFailedByID(Failure.fatal) holds { after =>
       after.state.phase == Phase.failed && after.records(Fact.statusFailed)
-    } // format: on
+    }
 
   object queries:
     val heldFatalFailure = scenario.actions(
@@ -53,9 +53,9 @@ object ByIDCancellation extends Derived(ActivitySystem.unmonitored):
       property("activitySystem.cancelIsRequested") when client.requestCancel holds (
         _.records(Fact.statusCancelRequested)
       )
-    val canceledByID = property when service.respondCanceledByID holds { after => // format: off
+    val canceledByID = property when service.respondCanceledByID holds { after =>
       after.state.phase == Phase.canceled && after.records(Fact.statusCanceled)
-    } // format: on
+    }
 
   object queries:
     val heldCancellation = scenario.actions(

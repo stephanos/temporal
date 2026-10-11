@@ -17,7 +17,6 @@ val _ = () => summon[CanEqual[Custody, Custody]]
 // ### The detailed provider, and the providers derived from it. The violating providers each differ
 // from the detailed provider in what one ordinary crash does, and neither assumes storage loss. They
 // are negative controls a feature may compose its own design with: the replacement is what must fail.
-// format: off
 // The detailed provider, under ordinary crashes and lost answers to the poller.
 object TaskQueueSystem
     extends Machine[QueueDetail, QueueOutcome, QueueFact],
@@ -25,6 +24,7 @@ object TaskQueueSystem
       FailureModel:
   val init = states.idleQueue
   override def end(d: State) = states.queueEnds(d)
+
   object states:
     val idleQueue =
       QueueDetail(custody = Custody.nowhere, polled = false, delivered = Delivered.never)
@@ -32,21 +32,18 @@ object TaskQueueSystem
     def oneMoreDelivery(d: Delivered) = d match
       case Delivered.never                                  => Delivered.once
       case _: Delivered.once.type | _: Delivered.twice.type => Delivered.twice
-// format: on
     // Matching holds a task a poll can take: reserved for a waiting poller, or persisted.
     def matchable(c: Custody) = c.in(Custody.reserved, Custody.persisted)
-    // format: off
     // A custodian holds the message.
     def held(s: State) = s.custody != Custody.nowhere
 
     // Matching holds the task, no poller holds it, and it was not yet handed out twice.
     def deliverable(s: State) =
       matchable(s.custody) && !s.polled && s.delivered != Delivered.twice
-    // format: on
     // A poller holds a task matching handed out, whose consumer may now answer.
     def answerable(s: State) =
       s.polled && s.custody != Custody.nowhere && s.delivered != Delivered.never
-  // format: off
+
   object refinement extends Refinement(TaskQueueProduct):
     // The interface state a detailed state stands for: a message is outstanding while anyone holds
     // it.
@@ -57,7 +54,6 @@ object TaskQueueSystem
           case Delivered.never => QueueView(Outstanding.committed)
           case Delivered.once  => QueueView(Outstanding.deliveredOnce)
           case Delivered.twice => QueueView(Outstanding.deliveredTwice)
-  // format: on
     def visible(f: QueueFact) = f match
       case QueueFact.enqueueCommitted | QueueFact.enqueueFailed | QueueFact.delivered |
           QueueFact.acknowledged | QueueFact.storageLost =>
@@ -65,9 +61,8 @@ object TaskQueueSystem
       case QueueFact.addInvoked | QueueFact.taskPersisted | QueueFact.matchReserved |
           QueueFact.crashed | QueueFact.ackLost =>
         false
-    // format: off
     def visibleOutcomes(o: QueueOutcome) = o != QueueOutcome.internal
-    // format: on
+
   object effects:
     def enqueueDetail(s: State) =
       choose(
@@ -245,7 +240,7 @@ object TaskQueueSystem
       )
 
     val matchingQueueQueries = providerQueries(TaskQueueSystem)
-// format: off
+
 // The detailed provider with the storage-loss fault, which only its assumption allows. It refines
 // the interface that allows the loss.
 object LossyMatchingQueue
@@ -258,6 +253,7 @@ object LossyMatchingQueue
         .assuming(storageLossAssumed)
     ),
       FailureModel:
+
   object properties:
     // Storage loss drops a committed message, and the queue records that it did. Only the lossy
     // provider binds the loss, so this is its own Property, not a claim of every provider.
@@ -265,7 +261,7 @@ object LossyMatchingQueue
       property when fault.storageLoss holds { after =>
         after.state.custody == Custody.nowhere && after.records(QueueFact.storageLost)
       }
-// format: on
+
   // The crash cuts of every provider, and the storage loss.
   object queries:
     val persistedThenLost = scenario.actions(

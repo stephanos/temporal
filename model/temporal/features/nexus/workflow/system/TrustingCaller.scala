@@ -47,9 +47,9 @@ object TrustingCaller
       else NexusSystem.effects.complete(s, resolution)
     // The control deliberately predicts success for a failed callback. The runtime still sends
     // failure.
-    def forgedComplete(s: State, resolution: Resolution) = // format: off
+    def forgedComplete(s: State, resolution: Resolution) =
       if resolution == Resolution.failed then
-        choose(forged -> settle(s, Resolution.succeeded), sent -> settle(s, resolution)) // format: on
+        choose(forged -> settle(s, Resolution.succeeded), sent -> settle(s, resolution))
       else settle(s, resolution)
 
   // The System machine's rules, its completion forged and the inspection added.

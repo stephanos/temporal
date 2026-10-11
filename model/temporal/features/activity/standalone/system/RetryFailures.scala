@@ -24,17 +24,16 @@ object RetryFailures extends Derived(ActivitySystem.rebind()):
 
   object properties:
     val nonRetryableFails =
-      property when worker.respondFailed(Failure.fatal) holds { s => // format: off
+      property when worker.respondFailed(Failure.fatal) holds { s =>
         s.state.phase == Phase.failed && s.records(Fact.statusFailed)
-      } // format: on
+      }
 
     // The attempt count saturates at `ActivitySystem.states.attemptBound`, so the claim is bounded by it:
     // a completion on any later attempt than the second reads as this one.
     val retryCompletes =
-      property when worker.respondCompleted holds { s => // format: off
+      property when worker.respondCompleted holds { s =>
         s.state == states.completedOnRetry && s.records(Fact.statusCompleted)
-      } // format: on
-    // format: off
+      }
     // The pinned exhaustion path takes this action twice, so both failures must satisfy the
     // Property: the exact first retry, then the exact exhausted settlement.
     val retryExhausts = property when worker.respondFailed(Failure.retryable) holds { s =>
@@ -47,7 +46,7 @@ object RetryFailures extends Derived(ActivitySystem.rebind()):
       (s.state == states.completedOnRetry.copy(
         phase = Phase.failed,
         maxAttempts = MaxAttempts.two
-      ) && // format: on
+      ) &&
         s.records(Fact.statusFailed))
     }
 

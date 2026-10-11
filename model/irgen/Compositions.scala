@@ -70,9 +70,7 @@ private[irgen] trait Compositions:
     machineNamed(machine).flatMap(
       _.steps
         .map(_.action)
-        .find(id =>
-          actions.get(id).exists(_.name == name)
-        )
+        .find(id => actions.get(id).exists(_.name == name))
     )
 
   // Whether a machine binds the action of the Definition ID `id`: the declaration, not its name.
@@ -325,9 +323,7 @@ private[irgen] trait Compositions:
             )
           case product => product
     base.withMembers(
-      base.members.map(mb =>
-        if mb.field == field then ir.Member(field, m.name, replaces) else mb
-      )
+      base.members.map(mb => if mb.field == field then ir.Member(field, m.name, replaces) else mb)
     )
 
   // ### Composed classes: what `c.synced(...)` and `c.own(...)` select
@@ -490,9 +486,7 @@ private[irgen] trait Compositions:
         )
       Selected(c, op, field, cls, a, !isNamed(value.tpe.widen, "framework.Action"), None)
     def pairs(s: ir.Sync, field: String, action: String): Boolean =
-      Seq(s.getFirst, s.getSecond).exists(mv =>
-        mv.member == field && mv.action == action
-      )
+      Seq(s.getFirst, s.getSecond).exists(mv => mv.member == field && mv.action == action)
     op match
       case "synced" =>
         val sel = args.head

@@ -494,9 +494,7 @@ final private[irgen] class Order(index: Index):
       // level folder's files all read as feature files, so this holds for the root's siblings.
       val beside = sources
         .filter(inFolder)
-        .filter(other =>
-          featureFile(other, index.trees.filter(t => fileOf(t) == other))
-        )
+        .filter(other => featureFile(other, index.trees.filter(t => fileOf(t) == other)))
       beside.headOption match
         case Some(feature) =>
           def misplaced(d: Definition): Unit =
@@ -547,8 +545,7 @@ final private[irgen] class Order(index: Index):
     // (c): the file's order, each top-level declaration by its rank in it.
     def rank(d: Definition): Int = objectOf(d) match
       case Some(c) =>
-        if plain(c.name) == "exports" then
-          if level then -1 else 4
+        if plain(c.name) == "exports" then if level then -1 else 4
         else if holdsModel(c) then 3
         else 2
       case None =>
@@ -597,9 +594,7 @@ final private[irgen] class Order(index: Index):
   private def formObject(c: ClassDef): Unit =
     val owner = nameOf(c.symbol)
     val composed = c.symbol.typeRef.derivesFrom(compositionClass)
-    val sectionNames = formSections.map(n =>
-      if n == "rules" && composed then "syncs" else n
-    )
+    val sectionNames = formSections.map(n => if n == "rules" && composed then "syncs" else n)
     // A machine that refines nothing names its unobservable timers among its header members; one
     // that refines another names them in its `refinement`.
     val refines = members(c)
@@ -740,7 +735,7 @@ final private[irgen] class Order(index: Index):
       then found += ((m.symbol, m.symbol.maybeOwner, where))
       // A machine or composition object named by its object: its own declarations sit in it.
       else if m.symbol.flags.is(Flags.Module) && objectForm(m.symbol.moduleClass) &&
-      m.symbol.moduleClass != machineObject
+        m.symbol.moduleClass != machineObject
       then found += ((m.symbol.moduleClass, m.symbol.moduleClass, where))
     // A Scenario or a Query whose Scenario is written in it may sit with another machine object of
     // its package, the one the IR file it is exported to is about (fn-126 decisions 24 and 28),

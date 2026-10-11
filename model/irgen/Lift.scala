@@ -170,8 +170,7 @@ private[irgen] def derivedIdTwins(models: Seq[(String, ir.Model)]): Seq[LiftErro
         case (first, firstOver) +: again if again.nonEmpty =>
           again.map((where, over) =>
             val which =
-              if where == first then
-                s"this declaration over $over and the one over $firstOver"
+              if where == first then s"this declaration over $over and the one over $firstOver"
               else s"this declaration and the one at $first"
             LiftError(
               where,

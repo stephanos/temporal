@@ -107,8 +107,7 @@ class NexusOutcomePins extends munit.FunSuite:
       ExpectedRejection[standalone.system.State](
         standalone.client.terminate.decl,
         None,
-        s =>
-          s.phase == succeeded || s.phase == failed || s.phase == canceled,
+        s => s.phase == succeeded || s.phase == failed || s.phase == canceled,
         "rejected(failedPrecondition)",
         "operation already completed"
       )

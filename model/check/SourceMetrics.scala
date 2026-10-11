@@ -62,10 +62,10 @@ private[check] object SourceMetrics:
     then "composition key"
     else if ProtoLiterals.category(value, context, code).nonEmpty then "Temporal API name"
     else if lastVal
-      .findAllMatchIn(context)
-      .toSeq
-      .lastOption
-      .exists(_.group(1) == value)
+        .findAllMatchIn(context)
+        .toSeq
+        .lastOption
+        .exists(_.group(1) == value)
     then "own name"
     else if known(value) then "repeated name"
     else if context.matches(declaring) then "declared name"
@@ -113,8 +113,7 @@ private[check] object SourceMetrics:
       for (file, n) <- lines do
         out ++= f"$n%6d lines ${literals.count(_.file == file)}%5d literals  $file%n"
       out ++= f"${lines.map(_._2).sum}%6d lines ${literals.size}%5d literals  total%n"
-      for c <- categories do
-        out ++= f"${literals.count(_.category == c)}%5d $c%n"
+      for c <- categories do out ++= f"${literals.count(_.category == c)}%5d $c%n"
       if listed then
         for l <- literals do out ++= s"${l.file}:${l.line}: ${l.category}: ${l.value}\n"
     val all = directories.map(d => d -> sources(d))

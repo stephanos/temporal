@@ -48,8 +48,7 @@ class ActivityResetRegression extends munit.FunSuite:
   private val pending = List(system.Phase.resetRequested, system.Phase.resetKeepingPause)
   private def restarted(before: system.State): system.State = before.copy(
     phase =
-      if before.phase == system.Phase.resetKeepingPause then
-        system.Phase.paused
+      if before.phase == system.Phase.resetKeepingPause then system.Phase.paused
       else system.Phase.scheduled,
     dispatch = system.Dispatch.now,
     attempts = UpTo(0)
@@ -75,8 +74,7 @@ class ActivityResetRegression extends munit.FunSuite:
           val keeps =
             before.phase == system.Phase.paused && c == resets(1)
           val dispatch =
-            if before.dispatch == system.Dispatch.backoff then
-              system.Dispatch.now
+            if before.dispatch == system.Dispatch.backoff then system.Dispatch.now
             else before.dispatch
           val landing = if keeps then system.Phase.paused else system.Phase.scheduled
           assertEquals(
@@ -94,8 +92,7 @@ class ActivityResetRegression extends munit.FunSuite:
           assertEquals(after.map(_.facts), List(List(system.Fact.statusStarted)))
         case system.Phase.pauseRequested =>
           val (phase, fact) =
-            if c == resets(1) then
-              system.Phase.resetKeepingPause -> system.Fact.statusPaused
+            if c == resets(1) then system.Phase.resetKeepingPause -> system.Fact.statusPaused
             else system.Phase.resetRequested -> system.Fact.statusStarted
           assertEquals(after.map(_.state), List(before.copy(phase = phase)))
           assertEquals(after.map(_.facts), List(List(fact)))
@@ -104,8 +101,7 @@ class ActivityResetRegression extends munit.FunSuite:
             system.Phase.failed | system.Phase.canceled | system.Phase.terminated |
             system.Phase.timedOut) =>
           val why =
-            if phase == system.Phase.unstarted || phase.in[Closed] then
-              Rejection.notFound
+            if phase == system.Phase.unstarted || phase.in[Closed] then Rejection.notFound
             else Rejection.failedPrecondition
           assertEquals(after.map(_.state), List(before), s"rejected reset $before")
           assertEquals(after.map(_.facts), List(Nil))
@@ -127,8 +123,7 @@ class ActivityResetRegression extends munit.FunSuite:
           after.map(_.facts),
           List(
             List(
-              if before.phase == system.Phase.resetKeepingPause then
-                system.Fact.statusPaused
+              if before.phase == system.Phase.resetKeepingPause then system.Fact.statusPaused
               else system.Fact.statusScheduled,
               system.Fact.attemptCount
             )
@@ -207,9 +202,7 @@ class ActivityResetRegression extends munit.FunSuite:
     val settles = ActivitySystem.properties.resetSettles
     val precedence = ActivitySystem.properties.controlPrecedence
     // A held attempt was dispatched, so no reachable held state waits on a dispatch delay.
-    val dispatched = states.filter(s =>
-      !s.phase.in[Held] || s.dispatch == system.Dispatch.now
-    )
+    val dispatched = states.filter(s => !s.phase.in[Held] || s.dispatch == system.Dispatch.now)
     val all = dispatched.flatMap(before =>
       ActivitySystem.bindings
         .flatMap(b =>
@@ -227,8 +220,7 @@ class ActivityResetRegression extends munit.FunSuite:
         Outcome.accepted,
         restarted(before),
         List(
-          if before.phase == system.Phase.resetKeepingPause then
-            system.Fact.statusPaused
+          if before.phase == system.Phase.resetKeepingPause then system.Fact.statusPaused
           else system.Fact.statusScheduled
         )
       )
@@ -237,8 +229,7 @@ class ActivityResetRegression extends munit.FunSuite:
         "fatality recorded" -> applied.copy(facts = applied.facts :+ system.Fact.statusFailed),
         "keepPaused landing" -> applied.copy(state =
           applied.state.copy(phase =
-            if applied.state.phase == system.Phase.paused then
-              system.Phase.scheduled
+            if applied.state.phase == system.Phase.paused then system.Phase.scheduled
             else system.Phase.paused
           )
         ),

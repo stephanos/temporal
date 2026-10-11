@@ -44,10 +44,10 @@ final class Channel[M] private[framework] (
       (1 to n).foldLeft(List(List.empty[Delivery[M]])) { (prefixes, _) =>
         for prefix <- prefixes; e <- entries.toList yield prefix :+ e
       }
-    } // format: off
+    }
     val held = if order == Order.fifo then sequences
     else sequences.filter(s => s.map(index) == s.map(index).sorted)
-    Finite.of(held.map(Inbox(this, _))*) // format: on
+    Finite.of(held.map(Inbox(this, _))*)
 
   // The channel holding nothing.
   val empty: Inbox[M] = Inbox(this, Nil)
@@ -100,9 +100,9 @@ final case class Inbox[M] private[framework] (channel: Channel[M], deliveries: L
   // The contents with `m` added: at the end, or at its catalog position for an unordered channel.
   // Sending to a full channel leaves the channel's contents, so the step lands outside the domain.
   def send(m: M): Inbox[M] =
-    val d = Delivery(m, 0) // format: off
+    val d = Delivery(m, 0)
     if channel.order == Order.fifo then copy(deliveries = deliveries :+ d)
-    else // format: on
+    else
       val index = channel.entries.indexOf(d)
       val (before, after) = deliveries.span(e => channel.entries.indexOf(e) <= index)
       copy(deliveries = before ++ (d :: after))

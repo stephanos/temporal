@@ -202,7 +202,7 @@ and the pending-control remodel.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-155.6 | ⏸️ deferred | Canonical regeneration/validation exceeds the one-hour rule; scoped fixtures, tests and mapping preserved; complete R7/all31/whole-manifest proof and gates remain required |
+| fn-155.6 | 🔄 in progress | R7 proof complete on fn-155.5 base `551bf89c68`: Nexus IR byte-identical, projection differences only the 4 mapped effect merges (7 bodies proven equal phase by phase, 25 controls), 46 tables/13,891,948 records equal (nil/empty slice normalization accepted), 31 Case files reconciled (21 controls); full gates deferred to Batch 5b |
 
 Final validation remains deferred, not passed. Canonical generation attempts retain at least
 2,380 executed seconds and a 3h46m unresolved wall span; the fourth wrapper receipt is missing.

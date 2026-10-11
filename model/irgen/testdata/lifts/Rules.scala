@@ -152,8 +152,7 @@ object Steady extends Derived(Switch.rebind(clock.tick ~> Switch.effects.keep))
 object Loose extends Derived(Switch.rebind(on(hand.press)(always ~> Switch.effects.keep)))
 
 // A lamp that also dims while it is off: rules a derivation adds.
-object Dimming
-    extends Derived( // format: off
+object Dimming extends Derived( // format: off
       Switch.extend(on(clock.dim)(where(_.light == Light.off) ~> Switch.effects.keep))
     ) // format: on
 

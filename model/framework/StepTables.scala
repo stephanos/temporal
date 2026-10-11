@@ -41,9 +41,7 @@ object StepTables:
     val found = IrFile
       .discover(packagePrefix)
       .flatMap(_.reached())
-      .filter(m =>
-        seen.put(m, java.lang.Boolean.TRUE) == null
-      ) // scalafix:ok DisableSyntax.null
+      .filter(m => seen.put(m, java.lang.Boolean.TRUE) == null) // scalafix:ok DisableSyntax.null
     val declared = found.filter(isDeclared).map(m => key(m) -> m)
     val clashes = declared.groupBy(_._1).filter(_._2.sizeIs > 1)
     require(

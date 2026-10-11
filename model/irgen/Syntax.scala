@@ -421,9 +421,7 @@ private[irgen] trait Syntax:
       .filter((fn, _) => fn.symbol.maybeOwner.fullName == kitSugar && fn.symbol.name == "field")
       .map(_._2)
       .getOrElse(Nil)
-      .partition(a =>
-        a.tpe.baseClasses.exists(_.fullName == "temporal.realize.FieldScope")
-      )
+      .partition(a => a.tpe.baseClasses.exists(_.fullName == "temporal.realize.FieldScope"))
     (scopes, selectors) match
       case (List(s), List(selector))
           if s.tpe
@@ -494,9 +492,7 @@ private[irgen] trait Syntax:
       }
       .map { (readCall, targets) =>
         val (path, cardinality) = applied(readCall)
-          .filter((fn, _) =>
-            fn.symbol.maybeOwner.fullName == kitSugar && fn.symbol.name == "read"
-          )
+          .filter((fn, _) => fn.symbol.maybeOwner.fullName == kitSugar && fn.symbol.name == "read")
           .collect { case (_, path :: cardinality :: _) => (path, cardinality) }
           .getOrElse(
             fail(t, s"into finishes the `read(path, cardinality)` before it, not ${t.show}")
@@ -548,9 +544,7 @@ private[irgen] trait Syntax:
   // `Realizations.declaration` asks it before it reads a core Proto.
   def protoLiteral(b: Bound, into: Descriptor): Option[PMessage] =
     applied(b.term)
-      .filter((fn, _) =>
-        fn.symbol.maybeOwner.fullName == kitSugar && fn.symbol.name == "proto"
-      )
+      .filter((fn, _) => fn.symbol.maybeOwner.fullName == kitSugar && fn.symbol.name == "proto")
       .map { (_, args) =>
         val message = b.term.tpe.widen.dealias.typeArgs.headOption
           .getOrElse(fail(b.term, "a protobuf literal needs a message type"))

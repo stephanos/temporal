@@ -26,9 +26,7 @@ object Refinement:
       case _         => false
     states.values
       .map(s => s -> refinement.toProduct(s))
-      .filter((s, image) => // format: off
-        closed(phase(s)) != closed(productPhase(image))
-      ) // format: on
+      .filter((s, image) => closed(phase(s)) != closed(productPhase(image)))
 
   // The machine `machine`'s `object refinement` refines, where it declares one, for the gate's
   // construction of what an IR file lifts (IrFile.construct). The section is a member object a
