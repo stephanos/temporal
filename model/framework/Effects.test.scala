@@ -92,6 +92,42 @@ object EffectsFixture:
     object rules extends Rules:
       on(hand.press)(when(Stage.waiting) ~> effects.work)
 
+  // The rules and a choose enter a phase by `enters`, through the writer the projection declares.
+  object Entering
+      extends Machine[Task, Said, Status],
+        Phased[Task, Stage](_.stage, (s, p) => s.copy(stage = p)):
+    val init = Task(Stage.waiting, UpTo(0))
+    override def end(s: Task) = true
+
+    object effects:
+      val rested = choice
+      val worked = choice
+      def restOrWork(s: Task) = choose(rested -> enters(Stage.resting)(s), worked -> work(s))
+      val work = effect { stage = Stage.working }
+
+    object rules extends Rules:
+      on(hand.press) {
+        when(Stage.waiting) ~> enters(Stage.working)
+        when(Stage.working) ~> effects.restOrWork
+      }
+
+  // A machine whose projection declares no writer, and one whose writer writes another field.
+  object Unwritten extends Machine[Job, Said, Note], Phased[Job, Phase](_.phase):
+    val init = Job(Phase.idle, UpTo(0))
+    override def end(s: Job) = true
+
+    object rules extends Rules:
+      on(hand.press)(when(Phase.idle) ~> enters(Phase.busy))
+
+  object Miswritten
+      extends Machine[Job, Said, Note],
+        Phased[Job, Phase](_.phase, (s, _) => s.copy(tries = UpTo(1))):
+    val init = Job(Phase.idle, UpTo(0))
+    override def end(s: Job) = true
+
+    object rules extends Rules:
+      on(hand.press)(when(Phase.idle) ~> enters(Phase.busy))
+
 class EffectsTest extends munit.FunSuite:
   import EffectsFixture.*
   val _ = () => summon[CanEqual[Phase, Phase]]
@@ -191,4 +227,40 @@ class EffectsTest extends munit.FunSuite:
         "is { phase = }" -> compileErrors("is { phase = Phase.busy; true }")
       )
     do assert(errors.contains(draftOnly), s"$code: $errors")
+  }
+
+  test("enters takes the step its phase-only effect block takes, in a rule and in a choose") {
+    type Steps = Task => List[Step[Task, Said, Status]]
+    val press = Entering.bindings.head.function.asInstanceOf[Steps] // scalafix:ok DisableSyntax.asInstanceOf
+    for s <- Finite[Task].values do
+      val expected: List[Step[Task, Said, Status]] = s.stage match
+        case Stage.waiting => Tasker.effects.work(s)
+        case Stage.working =>
+          enter[Task, Said, Status](s.copy(stage = Stage.resting), Status.resting) ++
+            Tasker.effects.work(s)
+        case Stage.resting => Nil
+      assertEquals(press(s), expected, s)
+    // A phase whose enum declares no status records none.
+    given Owner[Job, Said, Note] = Owner(Subject)
+    given Phasing[Job, Phase] = Phasing(_.phase, (s, p) => s.copy(phase = p))
+    for s <- states do assertEquals(enters(Phase.paused)(s), Subject.effects.pause(s), s)
+  }
+
+  test("enters refuses a projection with no writer, and a writer that misses the phase") {
+    type Steps = Job => List[Step[Job, Said, Note]]
+    def press(m: Machine[Job, Said, Note]) =
+      m.bindings.head.function.asInstanceOf[Steps] // scalafix:ok DisableSyntax.asInstanceOf
+    val unwritten = intercept[IllegalStateException](press(Unwritten)(Unwritten.init))
+    assert(
+      unwritten.getMessage.contains(
+        "enters(busy) writes the phase through the writer the machine's Phased declares, and it " +
+          "declares none: `Phased[State, Phase](_.phase, (s, p) => s.copy(phase = p))`"
+      ),
+      unwritten.getMessage
+    )
+    val miswritten = intercept[IllegalArgumentException](press(Miswritten)(Miswritten.init))
+    assert(
+      miswritten.getMessage.contains("whose phase it does not read as busy"),
+      miswritten.getMessage
+    )
   }

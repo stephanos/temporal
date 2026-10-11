@@ -171,9 +171,10 @@ lift: model/irgen/testdata/lifts/RoleRejects.scala:142: a role test reads a phas
 lift: model/irgen/testdata/lifts/RoleRejects.scala:126: when names phases, and whenNoProjection reads no phase projection: mix it into the machine, `Phased[State, Phase](_.phase)`
 lift: model/irgen/testdata/lifts/RoleRejects.scala:134: fixture.roles.Audited is no role, so a test against it has no IR form: test a phase against a role of model/framework/Roles.scala, or a trait that extends one
 lift: model/irgen/testdata/lifts/RoleRejects.scala:71: failed of fixture.rolerejects.Ended is Failed and has fields, so the cases of Failed are no set of values: give the role to cases without fields
-lift: model/irgen/testdata/lifts/RuleRejects.scala:28: on(cool) sits in from(cook), and cook declares no cool: a from holds the blocks of the actions its declarer declares
-lift: model/irgen/testdata/lifts/RuleRejects.scala:38: not a rule of importedTwice's from(cook): import fixture.grouped.clock.{_}; a from holds its declarer's import, first, then `on(action) { case ~> effect }` blocks
-lift: model/irgen/testdata/lifts/RuleRejects.scala:14: from(clock) sits in from(cook): a from holds on blocks alone
+lift: model/irgen/testdata/lifts/RuleRejects.scala:30: on(cool) sits in from(cook), and cook declares no cool: a from holds the blocks of the actions its declarer declares
+lift: model/irgen/testdata/lifts/RuleRejects.scala:40: not a rule of importedTwice's from(cook): import fixture.grouped.clock.{_}; a from holds its declarer's import, first, then `on(action) { case ~> effect }` blocks
+lift: model/irgen/testdata/lifts/RuleRejects.scala:16: from(clock) sits in from(cook): a from holds on blocks alone
+lift: model/irgen/testdata/lifts/RuleRejects.scala:48: enters(busy) writes the phase through the writer the machine's Phased declares, and it declares none: `Phased[State, Phase](_.phase, (s, p) => s.copy(phase = p))`
 lift: model/irgen/testdata/lifts/ScriptRejects.scala:198: Doubled holds a second realization, Inner: a realization object holds one, so declare it as an object of its own
 lift: model/irgen/testdata/lifts/ScriptRejects.scala:203: inspect is no action activitySystem binds: a realization binds its own machine's actions
 lift: model/irgen/testdata/lifts/ScriptRejects.scala:226: the base controller has no step whose command is stopped: a derived realization changes the steps its base has
