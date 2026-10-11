@@ -5,7 +5,7 @@ satisfies: [R5, R7]
 
 ## Description
 **Size:** M
-**Touches:** [model/temporal/**/*.scala, model/irgen/Order.scala, model/irgen/test/**, model/irgen/testdata/**]
+**Touches:** [model/temporal/**/*.scala, model/irgen/Order.scala, model/irgen/test/**, model/irgen/testdata/**, model/testdata/equivalence/batch-1d.map]
 
 Complete the remaining Scala witness migration and source-aware eligible-triple lint after .4/.5. This is the independently completed, committed Scala source seal that releases fn-149 grouping under the owner's one-worker sequence. Deferred .6 retains full regeneration, Go, consumer/replay, full-gate/review/live closure and depends on this seal and consumer tasks .7/.8/.9. Do not wait for those owner-deferred tasks or claim they passed here.
 
@@ -91,6 +91,34 @@ source, compose only the verified earlier-spec mappings, and account for their a
 alongside the untouched original-baseline population. Do not map unrelated tables together,
 recapture the baseline, or claim the later file move introduced equivalent replacement tables.
 
+### Verified rename-map and duplicate-reader findings (conductor)
+
+The immutable baseline's actual capability origins are `temporal.capabilities.Retries` and
+`temporal.capabilities.Deadline`; it has no `Retryable`, `Expirable`, `Pollable` or
+`Describable` origin. The current batch map wrongly names the post-rename Retryable/Expirable
+origins as old names and includes unused Pollable/Describable entries. Correct the former to
+the authenticated old names and remove only the unjustified latter entries. Retain the
+strict unused-entry check and verify actual origins and every justified mapping independently.
+The map file is included in this task's narrow source write surface for this reconciliation.
+
+The current equivalence implementation compares binding and row order exactly and supports only
+renames and removals; its new-table diagnostic supplies no accounting syntax. Therefore neither
+a global table sort nor a claim that the existing map accepts the four additions can satisfy
+this seal. Any required checker extension needs an explicit scoped design and negative controls
+before implementation. Preserve ordinary strict comparison, the untouched historical population
+and the independently committed dispatch population; do not fabricate a passing map.
+
+The strict Activity duplicate pair is confirmed in Cancellation.scala. Both Properties select
+`client.requestCancel`; cancelRequested tests the phase and fact, while cancelIsRequested tests
+the fact alone. Existing readers are cancelRequest and Reset's cancellationReplacesReset for
+the stronger Property, and the live cancelIsRequested Query for the weaker Property. The latter
+is named in HeldCancellationByIDRun. A repair must retain the stronger claim, preserve every
+Query identity and metadata, record the actual property-reader identity change and prove both
+old predicates agree over every applicable native result. Retain the strict distinctness test
+and independently detect a seeded duplicate; removing a declaration from its asserted list
+without eliminating the actual duplicate is not a repair. This remains fn-162.3's earlier
+source obligation and does not close that task's held consumer acceptance.
+
 ## Acceptance
 - [ ] Complete eligible/retained inventories cover all Model packages, with concrete reader/boundary justifications; every eligible private pinned triple is a witness (R5).
 - [ ] Source-aware lint and focused positive/refusal fixtures cover private/shared/verify/monitor/repeated-input-tail forms with exact source ownership and unchanged other refusal classes (R5).
@@ -105,3 +133,5 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+
