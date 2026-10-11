@@ -30,7 +30,7 @@ class BlockFormRuleSuite extends munit.FunSuite:
     assertEquals(BlockFormRule.parenthesized(source), Vector.empty)
 
   test("the gate's --check-block-form reads the Temporal Models and names each finding"):
-    val root = Files.createTempDirectory("umpire-block-form-rule")
+    val root = Scratch.directory("umpire-block-form-rule")
     def write(file: String, text: String): Path =
       val path = root.resolve(file)
       Files.createDirectories(path.getParent)

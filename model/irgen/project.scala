@@ -11,7 +11,7 @@
 //> using jar ../build/api-scalapb.jar
 // The tests build the fixtures under testdata with scala-cli and run the lifter as its own JVM,
 // through the gate's one place for running a tool. scala-cli has no directive that adds a source to
-// the test scope only, so the file is compiled beside the lifter, which does not use it.
+// the test scope only, so the file is compiled beside the lifter, which uses only its `Scratch`.
 //> using file ../check/Tools.scala
 //> using test.dep org.scalameta::munit:1.2.0
 // The fixtures under testdata are their own builds, and some must not compile; the tests copy them

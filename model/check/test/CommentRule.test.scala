@@ -6,7 +6,7 @@ import java.nio.file.{Files, Path}
 class CommentRuleSuite extends munit.FunSuite:
   // A repository of the files given, each a path under its root and its text.
   private def repository(files: (String, String)*): Path =
-    val root = Files.createTempDirectory("umpire-comment-rule")
+    val root = Scratch.directory("umpire-comment-rule")
     for (file, text) <- files do
       val path = root.resolve(file)
       Files.createDirectories(path.getParent)

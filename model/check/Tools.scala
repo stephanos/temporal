@@ -125,3 +125,18 @@ object Tools:
           s"the gate runs inside the repository: no model/check/project.scala in $start or above it"
         )
       )
+
+// A temporary directory deleted, with everything in it, when the JVM exits, however it exits: a
+// lifter run or a test suite leaves no scratch behind (each one used to fill /tmp's inodes).
+object Scratch:
+  def directory(prefix: String): Path =
+    val made = Files.createTempDirectory(prefix)
+    Runtime.getRuntime.addShutdownHook(Thread(() => delete(made)))
+    made
+
+  // Deletes a file or a directory tree; what is already gone is skipped.
+  def delete(path: Path): Unit =
+    if Files.exists(path) then
+      val stream = Files.walk(path)
+      try stream.iterator.asScala.toList.reverse.foreach(p => Files.deleteIfExists(p): Unit)
+      finally stream.close()

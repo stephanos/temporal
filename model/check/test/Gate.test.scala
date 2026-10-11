@@ -19,7 +19,7 @@ class GateSuite extends munit.FunSuite:
   // records its command line in `log`, and scala-cli writes the file it is asked to package, as an
   // executable, since one of them is protoc's plugin.
   final private class Repository(scalaCli: String = "", go: String = passingVocabulary):
-    val root: Path = Files.createTempDirectory("umpire-gate-repository")
+    val root: Path = Scratch.directory("umpire-gate-repository")
     val log: Path = root.resolve("tools.log")
     val schema: Path = root.resolve(schemaFile)
     Files.createDirectories(schema.getParent)
@@ -300,7 +300,7 @@ class GateSuite extends munit.FunSuite:
     assertNotEquals(repository.stamp, before)
 
   test("real ScalaPB generation compiles a declaration imported by the IR root"):
-    val root = Files.createTempDirectory("umpire-gate-real-schema")
+    val root = Scratch.directory("umpire-gate-real-schema")
     val schema = root.resolve(schemaFile)
     Files.createDirectories(schema.getParent)
     Files.writeString(
@@ -828,7 +828,7 @@ class GateSuite extends munit.FunSuite:
 
   // A checked-in tree and a produced one, each with the given files.
   final private class Trees(checkedIn: Map[String, String], produced: Map[String, String]):
-    val root: Path = Files.createTempDirectory("umpire-gate-trees")
+    val root: Path = Scratch.directory("umpire-gate-trees")
     val tree: Path = Files.createDirectories(root.resolve("model/ir"))
     val lifted: Path = Files.createDirectories(root.resolve("model/build/lifted"))
     checkedIn.foreach((name, text) => Files.writeString(tree.resolve(name), text))

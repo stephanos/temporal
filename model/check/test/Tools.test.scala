@@ -15,8 +15,8 @@ final class Stubs(val directory: Path):
     Tools(in, Map("PATH" -> directory.toString) ++ environment)
 
 class ToolsSuite extends munit.FunSuite:
-  private def stubs() = Stubs(Files.createTempDirectory("umpire-gate-stubs"))
-  private val work = Files.createTempDirectory("umpire-gate-work")
+  private def stubs() = Stubs(Scratch.directory("umpire-gate-stubs"))
+  private val work = Scratch.directory("umpire-gate-work")
   private def refused(body: => Any): String = intercept[ToolError](body).getMessage
 
   // scala-cli prints a -Werror failure with the bracket's word colored, and exits 0.
@@ -118,7 +118,7 @@ class ToolsSuite extends munit.FunSuite:
     assertEquals(message, s"go cannot run in $gone: it is not a directory")
 
   test("the repository is the nearest directory above that holds the gate"):
-    val repository = Files.createTempDirectory("umpire-gate-repository")
+    val repository = Scratch.directory("umpire-gate-repository")
     Files.createDirectories(repository.resolve("model/check"))
     Files.writeString(repository.resolve("model/check/project.scala"), "")
     val inside = Files.createDirectories(repository.resolve("model/irgen/test"))
