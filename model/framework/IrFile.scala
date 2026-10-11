@@ -8,10 +8,13 @@ import framework.realize.Realization
 
 // A checked-in IR file, `model/ir/<name>.json`: one per feature, collected from the feature's
 // package (fn-160), as the IR generator (model/irgen) collects it: its machines, compositions,
-// realizations and their `queries` and `capabilities` sections, and everything they reach. Nothing
+// realizations and their `properties`, `queries` and `capabilities` sections, and everything they reach. Nothing
 // lists them, so no declaration is left out by omission. The step tables and the model tests read
 // the same collection (`discover`).
-final class IrFile private[framework] (val name: String, val roots: Seq[IrRoot]):
+final class IrFile private[framework] (
+    val name: String,
+    val roots: Seq[IrRoot]
+):
   // Every reachable declaration, retaining the typed instances and their finite witnesses.
   def subjects(): Vector[Model] = traverse()._2
 
@@ -40,6 +43,7 @@ final class IrFile private[framework] (val name: String, val roots: Seq[IrRoot])
             s"$name repeats declaration identity $id with distinct instances"
           )
           declarations.update(id, m)
+        IrFile.propertiesOf(m).foreach(root)
         m match
           case machine: Machine[?, ?, ?] =>
             machine.reaches.foreach(model)
@@ -50,13 +54,15 @@ final class IrFile private[framework] (val name: String, val roots: Seq[IrRoot])
               case Composition.Shape.With(source, _) => model(source)
               case Composition.Shape.Members(_)      => ()
           case _ => ()
-    def query(q: Query): Unit = Seq(q.scenario.machine, q.property.machine).foreach(model)
+    def query(q: Query): Unit =
+      Seq(q.scenario.machine, q.property.machine).foreach(model)
     def root(r: Any): Unit = r match
       case m: Machine[?, ?, ?]      => model(m)
       case c: Composition[?]        => model(c)
       case q: Query                 => query(q)
       case qs: Seq[?]               => qs.foreach { case q: Query => query(q); case _ => () }
       case p: Progress[?]           => model(p.machine)
+      case p: Property[?]           => model(p.decl.machine)
       case r: Realization           => model(r.machine)
       case c: Capabilities[?, ?, ?] => model(c.model)
       case section: AnyRef          =>
@@ -87,7 +93,8 @@ final class IrFile private[framework] (val name: String, val roots: Seq[IrRoot])
 
 object IrFile:
 
-  def identity(model: Model): String = model.getClass.getName.stripSuffix("$").replace('$', '.')
+  def identity(model: Model): String =
+    model.getClass.getName.stripSuffix("$").replace('$', '.')
 
   // The compiled declaration universe initializes owners, independently of any generated files.
   def discover(packagePrefix: String): Vector[IrFile] =
@@ -125,7 +132,10 @@ object IrFile:
           try
             jar.entries.asScala
               .filter(e => e.getName.startsWith(prefix) && e.getName.endsWith("$.class"))
-              .foreach(e => classes.add(e.getName.stripSuffix(".class").replace('/', '.')): Unit)
+              .foreach(e =>
+                classes
+                  .add(e.getName.stripSuffix(".class").replace('/', '.')): Unit
+              )
           finally jar.close()
     // fn-160 R2, R10: one file per feature, collected from its package (model/irgen/Lifting.scala,
     // `irFiles`): its machine, composition and realization objects and their `queries` and
@@ -134,7 +144,10 @@ object IrFile:
     def module(name: String): Option[AnyRef] =
       scala.util
         .Try(
-          java.lang.Class.forName(name, false, loader).getField("MODULE$").get(null)
+          java.lang.Class
+            .forName(name, false, loader)
+            .getField("MODULE$")
+            .get(null)
         ) // scalafix:ok DisableSyntax.null
         .toOption
         .collect { case o: AnyRef => o }
@@ -146,8 +159,12 @@ object IrFile:
     val roots = classes.toVector.flatMap: name =>
       val section = name.split('$').filter(_.nonEmpty)
       module(name).toVector.flatMap {
-        case m: Model                                        => Vector(name -> (m, false))
-        case c: Capabilities[?, ?, ?] if section.sizeIs == 2 => Vector(name -> (c, false))
+        case m: Model =>
+          Vector(name -> (m, false)) ++ IrFile.propertiesOf(m).collect { case p: Progress[?] =>
+            name -> (p, true)
+          }
+        case c: Capabilities[?, ?, ?] if section.sizeIs == 2 =>
+          Vector(name -> (c, false))
         case o if section.lastOption.contains("queries") && section.sizeIs == 2 =>
           Vector(name -> (o, true))
         case o if machineOf(o).nonEmpty => Vector(name -> (o, true))
@@ -182,7 +199,10 @@ object IrFile:
   // object's own, as `Refinement.declaredBy` finds a machine's refinement.
   private def queriesOf(section: AnyRef): Seq[Any] =
     section.getClass.getDeclaredMethods.toSeq
-      .filter(m => m.getParameterCount == 0 && java.lang.reflect.Modifier.isPublic(m.getModifiers))
+      .filter(m =>
+        m.getParameterCount == 0 && java.lang.reflect.Modifier
+          .isPublic(m.getModifiers)
+      )
       .filter(m =>
         classOf[Query].isAssignableFrom(m.getReturnType) ||
           classOf[scala.collection.Seq[?]].isAssignableFrom(m.getReturnType)
@@ -190,7 +210,72 @@ object IrFile:
       .sortBy(_.getName)
       .map(_.invoke(section))
 
+  private def propertiesOf(owner: Model): Seq[Any] =
+    def methods(o: AnyRef) = o.getClass.getDeclaredMethods.toSeq
+      .filter(_.getParameterCount == 0)
+      .sortBy(_.getName)
+    def section(o: AnyRef, name: String): Option[AnyRef] =
+      methods(o)
+        .find(m =>
+          m.getName.equals(name) && m.getReturnType.getName
+            .endsWith("$" + name + "$") && o.getClass.getDeclaredFields.exists(f =>
+            f.getName.equals(name) || f.getName.startsWith(name + "$lzy")
+          )
+        )
+        .map: m =>
+          m.setAccessible(true)
+          m.invoke(o)
+        .orElse(
+          o.getClass.getDeclaredFields
+            .find(f =>
+              f.getName.equals(name) && f.getType.getName
+                .endsWith("$" + name + "$")
+            )
+            .map(
+              _.getType.getField("MODULE$").get(null)
+            ) // scalafix:ok DisableSyntax.null
+        )
+    def claimType(t: java.lang.Class[?]): Boolean =
+      classOf[Property[?]].isAssignableFrom(t) ||
+        classOf[Progress[?]].isAssignableFrom(t) ||
+        classOf[Monitor[?, ?, ?, ?]].isAssignableFrom(t) ||
+        (classOf[Product].isAssignableFrom(t) &&
+          t.getDeclaredMethods.exists(f =>
+            classOf[Property[?]].isAssignableFrom(f.getReturnType) ||
+              classOf[Progress[?]].isAssignableFrom(f.getReturnType)
+          ))
+    def claims(o: AnyRef): Seq[Any] =
+      val fields = o.getClass.getDeclaredFields.toSeq
+      val getters = o.getClass.getDeclaredMethods.toSeq
+        .filter(m =>
+          m.getParameterCount == 0 && claimType(m.getReturnType) && fields
+            .exists(f =>
+              f.getName.equals(m.getName) || f.getName
+                .startsWith(m.getName + "$lzy")
+            )
+        )
+        .sortBy(_.getName)
+      val values = getters.map: m =>
+        m.setAccessible(true)
+        m.invoke(o)
+      val stored = fields
+        .filter(f => claimType(f.getType) && !getters.exists(_.getName.equals(f.getName)))
+        .sortBy(_.getName)
+        .map: f =>
+          f.setAccessible(true)
+          f.get(o)
+      (values ++ stored).flatMap: value =>
+        value match
+          case p: Property[?]         => Seq(p)
+          case p: Progress[?]         => Seq(p)
+          case m: Monitor[?, ?, ?, ?] => Seq(m)
+          case p: Product             => p.productIterator.toSeq
+          case value                  => Seq(value)
+    section(owner, "properties").toSeq.flatMap: properties =>
+      claims(properties) ++ Seq("safety", "liveness")
+        .flatMap(name => section(properties, name).toSeq.flatMap(claims))
+
 // What an IR file collects as a root: a machine, a composition, a Query, a list of Queries, a
-// progress claim, a realization, a `capabilities` section, or a `queries` section. A section is no
+// Property or progress claim, a realization, a `capabilities` section, or a `queries` section. A section is no
 // class of the framework, so the type admits any object.
 type IrRoot = AnyRef

@@ -943,8 +943,13 @@ final private[irgen] class Order(index: Index):
         case _ => super.traverseTree(t)(o)
     bindings.traverseTree(c)(c.symbol)
 
-  private def section(machineObject: ClassDef, s: ClassDef): Unit =
-    val name = sectionNamed(s).getOrElse(plain(s.name))
+  private def section(
+      machineObject: ClassDef,
+      s: ClassDef,
+      propertyGroup: Boolean = false
+  ): Unit =
+    val name = if propertyGroup then "properties"
+    else sectionNamed(s).getOrElse(plain(s.name))
     val owner = nameOf(machineObject.symbol)
     val allowed: Set[Kind] = name match
       case "effects"               => Set(Kind.Step)
@@ -966,9 +971,40 @@ final private[irgen] class Order(index: Index):
         Seq("its Scenarios", "its Queries"),
         s"$owner.queries"
       )
-    val written = plain(s.name)
+    def monitorOrigin(
+        d: Definition,
+        seen: Set[Symbol] = Set.empty
+    ): Option[Symbol] = d match
+      case v: ValDef if !seen(v.symbol) && typed(v, Set("framework.Monitor")) =>
+        v.rhs match
+          case Some(r: Ref) =>
+            treeOf(r.symbol).flatMap {
+              case next: Definition => monitorOrigin(next, seen + v.symbol)
+              case _                => None
+            }
+          case Some(_) => Some(v.symbol)
+          case _       => None
+      case _ => None
+    val attached = members(machineObject)
+      .flatMap(objectOf)
+      .filter(o => plain(o.name) == "monitors")
+      .flatMap(members)
+      .flatMap(monitorOrigin(_))
+      .toSet
+    def monitorReference(d: Definition): Boolean = d match
+      case v: ValDef if name == "properties" =>
+        v.rhs match
+          case Some(_: Ref) => monitorOrigin(v).exists(attached)
+          case _            => false
+      case _ => false
+    val written =
+      if propertyGroup then s"properties.${plain(s.name)}" else plain(s.name)
     for o <- members(s).flatMap(objectOf) do
-      if sectionNamed(o).nonEmpty then
+      if name == "properties" && !propertyGroup && Set("safety", "liveness")(
+          plain(o.name)
+        )
+      then section(machineObject, o, propertyGroup = true)
+      else if sectionNamed(o).nonEmpty then
         refuse(
           o,
           s"the section ${plain(o.name)} sits in the section $owner.$written: a machine's " +
@@ -976,7 +1012,7 @@ final private[irgen] class Order(index: Index):
         )
       else noModelIn(o, s"$owner.$written.${plain(o.name)}")
     for m <- members(s); k <- kindOf(m) do
-      if !allowed(k) then
+      if !allowed(k) && !monitorReference(m) then
         refuse(
           m,
           s"${plain(m.name)} is ${k.written}, declared in $owner.$written: it belongs in " +

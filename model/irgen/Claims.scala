@@ -7,8 +7,9 @@ import io.temporal.server.api.umpire.v1.Expr.Kind as E
 private[irgen] object WitnessIdentity:
   def sameDefaultStart(left: ir.Expr, right: ir.Expr): Boolean =
     def value(e: ir.Expr): ir.Expr = e.kind match
-      case E.Construct(c) => e.clearPosition.withConstruct(c.withArgs(c.args.map(value)))
-      case _              => e
+      case E.Construct(c) =>
+        e.clearPosition.withConstruct(c.withArgs(c.args.map(value)))
+      case _ => e
     value(left).equals(value(right))
 
 // What a declaration folds to at lift time: a name or text the IR uses, or a declaration still being
@@ -19,7 +20,11 @@ private enum Decl:
   // A machine or a composition, by name.
   case Model(name: String)
   case Items(items: List[Decl])
-  case PropertyOn(machine: String, name: String, when: Option[Either[ir.ActionClass, String]])
+  case PropertyOn(
+      machine: String,
+      name: String,
+      when: Option[Either[ir.ActionClass, String]]
+  )
   case ScenarioOn(machine: String, name: String, start: Option[ir.Expr])
 
   // A declared Property or Scenario.
@@ -69,13 +74,15 @@ private[irgen] trait Claims:
   def claimOf(d: Decl, at: Tree): ir.ClaimRef = d match
     case Decl.Claim(ref) => ref
     case other           => fail(at, s"expected a Property or a Scenario, got $other")
-  def claim(machine: String, name: String): ir.ClaimRef = ir.ClaimRef(machine, name)
+  def claim(machine: String, name: String): ir.ClaimRef =
+    ir.ClaimRef(machine, name)
 
   // One class of an action: the action bare, applied to one value per input, or applied to its inputs
   // by name, which `named` lifts.
   def classOf(t: Term): ir.ActionClass = t match
-    case Typed(e, _)                                      => classOf(e)
-    case r: Ref if boundValues.contains(r.symbol)         => classOf(boundValues(r.symbol))
+    case Typed(e, _)                              => classOf(e)
+    case r: Ref if boundValues.contains(r.symbol) =>
+      classOf(boundValues(r.symbol))
     case _ if namedClass(t)                               => named(t)
     case Apply(Select(a, "apply"), Nil) if isAction(a)    => firstClass(a, t)
     case Apply(Select(a, "apply"), values) if isAction(a) =>
@@ -87,12 +94,18 @@ private[irgen] trait Claims:
   // `start(unset, unset, unset)` writes it, and the one class of an action with no input.
   def firstClass(a: Term, at: Tree): ir.ActionClass =
     val id = action(a)
-    ir.ActionClass(id, actions(id).inputs.map(firstInput(_, actions(id).name, at)))
+    ir.ActionClass(
+      id,
+      actions(id).inputs.map(firstInput(_, actions(id).name, at))
+    )
 
   // The value an input a class omits takes, its domain's first, refused where it has none.
   def firstInput(input: ir.Param, action: String, at: Tree): ir.Value =
     firstValue(input.getType).getOrElse(
-      fail(at, s"input ${input.name} of $action has no values to default to: supply it")
+      fail(
+        at,
+        s"input ${input.name} of $action has no values to default to: supply it"
+      )
     )
 
   // Keeps the first declaration under a key and refuses a different second one, which would share
@@ -110,7 +123,10 @@ private[irgen] trait Claims:
         val previous = if witness || witnessDeclarations(what) then
           s", here and at ${registeredAt(what)}"
         else ""
-        fail(at, s"$what is declared twice$previous, and both would share one Definition ID")
+        fail(
+          at,
+          s"$what is declared twice$previous, and both would share one Definition ID"
+        )
       case _ =>
         into(key) = value
         registeredAt.getOrElseUpdate(what, where(at)): Unit
@@ -119,14 +135,19 @@ private[irgen] trait Claims:
   private val registeredAt = mutable.Map.empty[String, String]
   private val witnessDeclarations = mutable.Set.empty[String]
 
-  private val witnessFacts = mutable.LinkedHashMap.empty[(String, String), (ir.Value, Tree)]
+  private val witnessFacts =
+    mutable.LinkedHashMap.empty[(String, String), (ir.Value, Tree)]
 
   def witnessed(owner: String, name: String, fact: ir.Value, at: Tree): Unit =
     witnessFacts((owner, name)) = fact -> at
     checkWitnessDuplicates()
 
   def checkWitnessDuplicates(): Unit =
-    def records(e: ir.Expr, fact: ir.Value, seen: Set[String] = Set.empty): Boolean = e.kind match
+    def records(
+        e: ir.Expr,
+        fact: ir.Value,
+        seen: Set[String] = Set.empty
+    ): Boolean = e.kind match
       case E.Binary(b) if b.op.value == ir.Binary.Op.OP_CONTAINS.value =>
         b.getLeft.kind.literal.contains(fact) && (b.getRight.kind match
           case E.Field(f) => f.field == "facts"
@@ -134,11 +155,14 @@ private[irgen] trait Claims:
       case E.Binary(b) if b.op.value == ir.Binary.Op.OP_AND.value =>
         records(b.getLeft, fact, seen) || records(b.getRight, fact, seen)
       case E.Call(c) if !seen(c.function) =>
-        functions.get(c.function).exists(f => records(f.getBody, fact, seen + c.function))
+        functions
+          .get(c.function)
+          .exists(f => records(f.getBody, fact, seen + c.function))
       case _ => false
     for
       ((owner, name), (fact, at)) <- witnessFacts
-      property <- properties.values if property.machine == owner && property.origin.nonEmpty
+      property <- properties.values
+      if property.machine == owner && property.origin.nonEmpty
       generated <- queries.values
       if generated.getProperty.machine == owner && generated.getProperty.name == property.name && generated.form == ir.Query.Form.FORM_FIND
       scenario <- scenarios.get((owner, generated.getScenario.name))
@@ -147,7 +171,8 @@ private[irgen] trait Claims:
         scenario.getStart,
         witness.getStart
       ) && scenario.actions == witness.actions && scenario.keys == witness.keys
-      function <- functions.get(property.holds) if records(function.getBody, fact)
+      function <- functions.get(property.holds)
+      if records(function.getBody, fact)
     do
       val position = property.getPosition
       fail(
@@ -167,7 +192,11 @@ private[irgen] trait Claims:
         constInt(search).toInt
       )
       for
-        (bound, v) <- Seq("steps" -> l.steps, "actions" -> l.actions, "search" -> l.search)
+        (bound, v) <- Seq(
+          "steps" -> l.steps,
+          "actions" -> l.actions,
+          "search" -> l.search
+        )
         if v < 0
       do fail(t, s"limits ${l.name} declare $v $bound; a bound is at least 0")
       for (other, at) <- limitsNamed.get(l.name) if other != l
@@ -191,7 +220,12 @@ private[irgen] trait Claims:
   // Whether a Query reads its Property through a refinement: when the Property is of another machine
   // than the Scenario, the one the Scenario's machine declares it refines. `Machine[S, O, F]` does not
   // carry the type it refines, so this is where a Property of an unrelated machine is refused.
-  def readsThrough(name: String, p: ir.ClaimRef, s: ir.ClaimRef, at: Tree): Boolean =
+  def readsThrough(
+      name: String,
+      p: ir.ClaimRef,
+      s: ir.ClaimRef,
+      at: Tree
+  ): Boolean =
     if p.machine == s.machine then false
     else
       machineNamed(s.machine).map(_.getRefines.product).filter(_.nonEmpty) match
@@ -245,11 +279,17 @@ private[irgen] trait Claims:
   // def declares: `<machine>.<scenario>.<property>`, after the machine its Scenario is declared on,
   // its Scenario and its Property, so the Query of `notAdmittedWhilePaused` in the Scenario `any` of
   // `m` is `m.any.notAdmittedWhilePaused`.
-  def defaultQueryName(p: ir.ClaimRef, s: ir.ClaimRef): String = s"${s.machine}.${s.name}.${p.name}"
+  def defaultQueryName(p: ir.ClaimRef, s: ir.ClaimRef): String =
+    s"${s.machine}.${s.name}.${p.name}"
 
   // The name a declaration chain takes from the val that declares it, or a refusal where no val
   // declares it, such as in a list or in the body of a function.
-  def captured(named: Option[Symbol], kind: String, form: String, at: Tree): String =
+  def captured(
+      named: Option[Symbol],
+      kind: String,
+      form: String,
+      at: Tree
+  ): String =
     named match
       case Some(sym) => capturedName(sym, at, kind)
       case None      =>
@@ -271,12 +311,17 @@ private[irgen] trait Claims:
       case _                  => None
     of(t.tpe) match
       case Some(cls) => Select(This(cls), t.symbol)
-      case None => fail(t, s"${t.show} names no machine or composition object it is declared in")
+      case None      =>
+        fail(
+          t,
+          s"${t.show} names no machine or composition object it is declared in"
+        )
 
   // The name of a machine or composition object, lifting it on first use.
   def modelOfObject(cls: Symbol, at: Tree): String =
     val module = cls.companionModule
-    if isMachine(cls.typeRef) then machineOf(module, at).name else compositionOf(module, at).name
+    if isMachine(cls.typeRef) then machineOf(module, at).name
+    else compositionOf(module, at).name
 
   // Whether a call is one of `Declares`'s, `property` or `scenario`, which every model inherits.
   def declared(t: Term): Boolean =
@@ -285,42 +330,64 @@ private[irgen] trait Claims:
   // What a declaration of the lifted sources folds to, with the helper function parameters bound
   // in `env`. `named` is the name of the val whose right-hand side `t` is: a declaration that takes
   // its name from its val gets it through the calls chained onto it, and no argument gets it.
-  def fold(t: Term, env: Map[Symbol, Decl], named: Option[Symbol] = None): Decl = t match
+  def fold(
+      t: Term,
+      env: Map[Symbol, Decl],
+      named: Option[Symbol] = None
+  ): Decl = t match
     case Typed(e, _)                                => fold(e, env, named)
     case Inlined(_, Nil, e)                         => fold(e, env, named)
     case NamedArg(_, e)                             => fold(e, env, named)
-    case Block(stats, _: Apply) if synthetic(stats) => fold(arguments(t), env, named)
-    case Block(stats, e)                            =>
+    case Block(stats, _: Apply) if synthetic(stats) =>
+      fold(arguments(t), env, named)
+    case Block(stats, e) =>
       val inner = stats.foldLeft(env) {
         case (acc, v @ ValDef(_, _, Some(rhs))) =>
           acc + (v.symbol -> fold(rhs, acc, Some(v.symbol)))
         case (_, other) => fail(other, s"not a declaration: ${other.show}")
       }
       fold(e, inner, named)
-    case This(_) if objectForm(t.symbol) => Decl.Model(modelOfObject(moduleClassOf(t.symbol), t))
+    case This(_) if objectForm(t.symbol) =>
+      Decl.Model(modelOfObject(moduleClassOf(t.symbol), t))
     // A facet's claims are its machine's.
-    case This(_) if facetTrait(t.symbol) => Decl.Model(modelOfObject(machineMixing(t.symbol, t), t))
-    case Ident(_) if declared(t)         => fold(onThis(t), env, named)
-    case Apply(fn: Ident, args) if declared(t) => fold(Apply(onThis(fn), args), env, named)
-    case Literal(StringConstant(s))            => Decl.Text(s)
-    case Literal(IntConstant(i))               => Decl.Number(i)
-    case Literal(LongConstant(l))              => Decl.Number(l)
-    case _ if composedOutcome(t)               => Decl.Text(composedOutcomeKey(t, env))
-    case r: Ref if env.contains(r.symbol)      => env(r.symbol)
+    case This(_) if facetTrait(t.symbol) =>
+      Decl.Model(modelOfObject(machineMixing(t.symbol, t), t))
+    case Ident(_) if declared(t)               => fold(onThis(t), env, named)
+    case Apply(fn: Ident, args) if declared(t) =>
+      fold(Apply(onThis(fn), args), env, named)
+    case Literal(StringConstant(s))       => Decl.Text(s)
+    case Literal(IntConstant(i))          => Decl.Number(i)
+    case Literal(LongConstant(l))         => Decl.Number(l)
+    case _ if composedOutcome(t)          => Decl.Text(composedOutcomeKey(t, env))
+    case r: Ref if env.contains(r.symbol) => env(r.symbol)
     // `s"..."`, with each argument folded to its text.
     case Apply(Select(Apply(Select(sc, "apply"), List(parts)), "s"), List(args))
         if sc.symbol.fullName == "scala.StringContext" =>
       val texts = varargs(args).map(a => textOf(fold(a, env), a))
-      Decl.Text(varargs(parts).map(constString).zipAll(texts, "", "").map(_ + _).mkString)
-    case Select(m, "name") if declares(m.tpe) => Decl.Text(modelName(fold(m, env), m))
-    case Apply(TypeApply(Select(Ident("Vector" | "List"), "apply"), _), List(items)) =>
+      Decl.Text(
+        varargs(parts)
+          .map(constString)
+          .zipAll(texts, "", "")
+          .map(_ + _)
+          .mkString
+      )
+    case Select(m, "name") if declares(m.tpe) =>
+      Decl.Text(modelName(fold(m, env), m))
+    case Apply(
+          TypeApply(Select(Ident("Vector" | "List"), "apply"), _),
+          List(items)
+        ) =>
       Decl.Items(varargs(items).map(fold(_, env)))
 
     // A capability Property expansion names its Property `<machine>.<property>`, whatever its
     // body writes.
     case Apply(Select(m, "property"), List(name)) if declared(t) =>
       val machine = modelName(fold(m, env), m)
-      Decl.PropertyOn(machine, takeGenerated().getOrElse(textOf(fold(name, env), name)), None)
+      Decl.PropertyOn(
+        machine,
+        takeGenerated().getOrElse(textOf(fold(name, env), name)),
+        None
+      )
     case Select(m, "property") if declared(t) =>
       val machine = modelName(fold(m, env), m)
       val name = takeGenerated().getOrElse(
@@ -336,7 +403,8 @@ private[irgen] trait Claims:
     case Apply(Select(b, "whenAction"), List(a)) =>
       fold(b, env, named) match
         case p: Decl.PropertyOn =>
-          val action = if composed(a) then composedAction(a, p.machine, env) else constString(a)
+          val action = if composed(a) then composedAction(a, p.machine, env)
+          else constString(a)
           p.copy(when = Some(Right(action)))
         case other => fail(t, s"whenAction restricts a Property, not $other")
     case Apply(Select(b, op @ ("holds" | "holdsAcross")), List(f)) =>
@@ -349,7 +417,10 @@ private[irgen] trait Claims:
             holds = stepFunction(f, s"$m.property", name),
             transition = op == "holdsAcross",
             when = when.fold(ir.Property.When.Empty)(
-              _.fold(ir.Property.When.WhenClass(_), ir.Property.When.WhenAction(_))
+              _.fold(
+                ir.Property.When.WhenClass(_),
+                ir.Property.When.WhenAction(_)
+              )
             )
           )
           register(properties, (m, name), p, t, s"Property $name of $m")
@@ -363,10 +434,18 @@ private[irgen] trait Claims:
     case _ if capable(t) => capabilitiesOf(t, env)
 
     case Apply(Select(m, "scenario"), List(name)) if declared(t) =>
-      Decl.ScenarioOn(modelName(fold(m, env), m), textOf(fold(name, env), name), None)
+      Decl.ScenarioOn(
+        modelName(fold(m, env), m),
+        textOf(fold(name, env), name),
+        None
+      )
     case Select(m, "scenario") if declared(t) =>
       val machine = modelName(fold(m, env), m)
-      Decl.ScenarioOn(machine, captured(named, "a Scenario", "`.scenario(\"...\")`", t), None)
+      Decl.ScenarioOn(
+        machine,
+        captured(named, "a Scenario", "`.scenario(\"...\")`", t),
+        None
+      )
     case Apply(Select(b, "starts"), List(s)) =>
       fold(b, env, named) match
         case sc: Decl.ScenarioOn => sc.copy(start = Some(lift(s)))
@@ -378,7 +457,8 @@ private[irgen] trait Claims:
     case Apply(Ident("query"), List(name)) =>
       Decl.QueryNamed(Some(textOf(fold(name, env), name)))
     // Named after its val, or once its Scenario and Property are known, after them.
-    case Ident("query") => Decl.QueryNamed(named.map(capturedName(_, t, "a Query")))
+    case Ident("query") =>
+      Decl.QueryNamed(named.map(capturedName(_, t, "a Query")))
     case Apply(TypeApply(Select(q, form @ ("find" | "verify")), _), List(p)) =>
       fold(q, env, named) match
         case Decl.QueryNamed(name) =>
@@ -389,25 +469,37 @@ private[irgen] trait Claims:
         case other => fail(t, s"$form asks a Query, not $other")
     case Apply(TypeApply(Select(q, "in"), _), List(s)) =>
       fold(q, env, named) match
-        case Decl.QueryOn(name, form, p) => Decl.QueryIn(name, form, p, claimOf(fold(s, env), s))
-        case other                       => fail(t, s"in gives a Query its Scenario, not $other")
+        case Decl.QueryOn(name, form, p) =>
+          Decl.QueryIn(name, form, p, claimOf(fold(s, env), s))
+        case other => fail(t, s"in gives a Query its Scenario, not $other")
     case Apply(Select(q, "explore"), List(space)) =>
       fold(q, env, named) match
         case Decl.Declared(name) if queries.contains(name) =>
-          queries(name) =
-            queries(name).withExploration(emit(ir.Exploration, Bound(space, Map.empty)))
+          queries(name) = queries(name).withExploration(
+            emit(ir.Exploration, Bound(space, Map.empty))
+          )
           Decl.Declared(name)
-        case other => fail(t, s"explore declares a Query's finite variations, not $other")
+        case other =>
+          fail(t, s"explore declares a Query's finite variations, not $other")
     case Apply(Select(q, "live"), List(expected)) =>
       fold(q, env, named) match
         case Decl.Declared(name) if queries.contains(name) =>
           expectedRun(name, expected)
           Decl.Declared(name)
-        case other => fail(t, s"live declares a Query's live Case and its assessment, not $other")
+        case other =>
+          fail(
+            t,
+            s"live declares a Query's live Case and its assessment, not $other"
+          )
     case Apply(Select(q, "total"), List(n)) =>
       fold(q, env, named) match
-        case Decl.Declared(name) if queries.contains(name) => totalOf(name, n, env)
-        case other => fail(t, s"total asserts a Query's static combination count, not $other")
+        case Decl.Declared(name) if queries.contains(name) =>
+          totalOf(name, n, env)
+        case other =>
+          fail(
+            t,
+            s"total asserts a Query's static combination count, not $other"
+          )
     case Apply(Select(q, "limits"), List(l)) =>
       fold(q, env, named) match
         case Decl.QueryIn(name, form, p, s) =>
@@ -418,32 +510,45 @@ private[irgen] trait Claims:
         case other => fail(t, s"limits bounds a Query, not $other")
     case Apply(Select(companion, "apply"), _)
         if companion.tpe.typeSymbol.companionClass.fullName == "framework.Limits" =>
-      Decl.Bounds(limitsOf(t, captured(named, "Limits", "`Limits(\"...\", ...)`", t)))
+      Decl.Bounds(
+        limitsOf(t, captured(named, "Limits", "`Limits(\"...\", ...)`", t))
+      )
     // A bundle of claims one shared def declares together, such as `queueClaims(m)`
     // declares of a provider: built by its case class's constructor, each claim folded, and read
     // back by field.
     case Apply(Select(companion, "apply"), args)
         if bundle(companion.tpe.typeSymbol.companionClass) =>
-      val fields = companion.tpe.typeSymbol.companionClass.caseFields.map(_.name)
+      val fields =
+        companion.tpe.typeSymbol.companionClass.caseFields.map(_.name)
       Decl.Bundle(fields.zip(args.map(fold(_, env))).toMap)
     case Select(b, field) if bundle(b.tpe.widen.dealias.typeSymbol) =>
       fold(b, env) match
         case Decl.Bundle(fields) =>
           fields.getOrElse(
             field,
-            fail(t, s"$field reads no claim of the bundle: its claims are its fields")
+            fail(
+              t,
+              s"$field reads no claim of the bundle: its claims are its fields"
+            )
           )
         case other =>
-          fail(t, s"$field reads a claim of a bundle its constructor built, not of $other")
+          fail(
+            t,
+            s"$field reads a claim of a bundle its constructor built, not of $other"
+          )
 
     case Apply(
           Apply(Apply(TypeApply(Ident("leadsTo"), _), List(m)), List(name)),
           List(from, to, within, under)
         ) =>
-      val (machine, n) = (modelName(fold(m, env), m), textOf(fold(name, env), name))
+      val (machine, n) =
+        (modelName(fold(m, env), m), textOf(fold(name, env), name))
       val steps = constInt(within)
       if steps < 1 then
-        fail(t, s"progress $n bounds itself within $steps steps; a bound is at least one step")
+        fail(
+          t,
+          s"progress $n bounds itself within $steps steps; a bound is at least one step"
+        )
       val p = ir.Progress(
         machine = machine,
         name = n,
@@ -470,13 +575,17 @@ private[irgen] trait Claims:
     // A value declared elsewhere, folded once: a machine or composition by its name, anything else
     // by its definition.
     case r: Ref if !isFunction(r.symbol) && defs.contains(resolveSymbol(r)) =>
-      val sym = resolveSymbol(r)
+      val sym = defs.get(r.symbol) match
+        case Some(_: ValDef) => r.symbol
+        case _               => resolveSymbol(r)
       folded.getOrElseUpdate(
         sym,
         valDef(sym, r, "a declaration") match
-          case _ if objectForm(sym)         => Decl.Model(modelOfObject(moduleClassOf(sym), r))
-          case _ if capabilitiesObject(sym) => capabilitiesSectionOf(sym, r)
-          case d if isNamed(d.tpt.tpe, "framework.Machine") => Decl.Model(machineOf(sym, r).name)
+          case _ if objectForm(sym) =>
+            Decl.Model(modelOfObject(moduleClassOf(sym), r))
+          case _ if capabilitiesObject(sym)                 => capabilitiesSectionOf(sym, r)
+          case d if isNamed(d.tpt.tpe, "framework.Machine") =>
+            Decl.Model(machineOf(sym, r).name)
           case d if isNamed(d.tpt.tpe, "framework.Composition") =>
             Decl.Model(compositionOf(sym, r).name)
           case d => fold(d.rhs.get, Map.empty, Some(sym))
@@ -492,7 +601,9 @@ private[irgen] trait Claims:
         else Symbol.noSymbol
       defs(fn.symbol) match
         case _ if built.flags.is(Flags.Case) && !built.flags.is(Flags.Enum) =>
-          val others = fieldTypes(built).collect { case (f, tpe) if !claimType(tpe) => f }
+          val others = fieldTypes(built).collect {
+            case (f, tpe) if !claimType(tpe) => f
+          }
           fail(
             t,
             s"${built.fullName} bundles no claims, since ${others.mkString(", ")} holds no " +
@@ -500,8 +611,13 @@ private[irgen] trait Claims:
               "together when its every field holds one"
           )
         case d: DefDef if d.rhs.nonEmpty => declaring(d, t, env, named)
-        case _ => fail(t, s"${fn.symbol.fullName} is not a function of the lifted sources")
-    case other => fail(other, s"not a declaration the IR carries: ${other.show}")
+        case _                           =>
+          fail(
+            t,
+            s"${fn.symbol.fullName} is not a function of the lifted sources"
+          )
+    case other =>
+      fail(other, s"not a declaration the IR carries: ${other.show}")
 
   // Records the Run the Query `name` expects of a server, `expected`, as `.live` declares it.
   def expectedRun(name: String, expected: Term): Unit =
@@ -527,12 +643,18 @@ private[irgen] trait Claims:
   // Whether `cls` bundles claims: a case class of the lifted sources whose every field is a
   // Property, a Scenario or a Query.
   def bundle(cls: Symbol): Boolean =
-    cls.flags.is(Flags.Case) && !cls.flags.is(Flags.Enum) && cls.caseFields.nonEmpty &&
+    cls.flags.is(Flags.Case) && !cls.flags.is(
+      Flags.Enum
+    ) && cls.caseFields.nonEmpty &&
       fieldTypes(cls).forall((_, tpe) => claimType(tpe))
   def claimType(tpe: TypeRepr): Boolean =
-    Seq("framework.Property", "framework.Scenario", "framework.Query", "framework.Witness").exists(
-      isNamed(tpe, _)
-    )
+    Seq(
+      "framework.Property",
+      "framework.Progress",
+      "framework.Scenario",
+      "framework.Query",
+      "framework.Witness"
+    ).exists(name => tpe.widen.dealias.baseClasses.exists(_.fullName == name))
 
   // Records the total the Query `name` asserts, `n`: an integer literal, or a parameter of the
   // declaring def around it that each call supplies as one.
@@ -547,7 +669,10 @@ private[irgen] trait Claims:
     )
     val q = queries(name)
     for was <- q.total do
-      fail(n, s"Query $name asserts its total twice: $was and $total; a Query has one total")
+      fail(
+        n,
+        s"Query $name asserts its total twice: $was and $total; a Query has one total"
+      )
     if total < 0 then
       fail(
         n,
@@ -558,7 +683,9 @@ private[irgen] trait Claims:
 
   // An integer the author wrote: a literal, or a parameter of the declaring def around it bound to
   // one.
-  def numberOf(t: Term, env: Map[Symbol, Decl]): Option[Long] = unwidened(t) match
+  def numberOf(t: Term, env: Map[Symbol, Decl]): Option[Long] = unwidened(
+    t
+  ) match
     case Literal(IntConstant(i))  => Some(i.toLong)
     case Literal(LongConstant(l)) => Some(l)
     case r: Ref                   => env.get(r.symbol).collect { case Decl.Number(v) => v }
@@ -582,7 +709,12 @@ private[irgen] trait Claims:
   // the type the call applies it to, so a claim written once over `Declares[S]` and its predicates
   // reads the machine's own. A declaration the body ends in takes its name from `named`, the val
   // that declares the call.
-  def declaring(d: DefDef, t: Term, env: Map[Symbol, Decl], named: Option[Symbol]): Decl =
+  def declaring(
+      d: DefDef,
+      t: Term,
+      env: Map[Symbol, Decl],
+      named: Option[Symbol]
+  ): Decl =
     def parts(t: Term): (List[TypeTree], List[Term]) = t match
       case Apply(fn, args) =>
         parts(fn) match
@@ -591,7 +723,10 @@ private[irgen] trait Claims:
       case Inlined(_, Nil, e)  => parts(e)
       case _                   => (Nil, Nil)
     val (targs, args) = parts(t)
-    val types = d.leadingTypeParams.map(_.symbol).zip(targs.map(a => instantiated(a.tpe))).toMap
+    val types = d.leadingTypeParams
+      .map(_.symbol)
+      .zip(targs.map(a => instantiated(a.tpe)))
+      .toMap
     bodyOf(d, d.termParamss.flatMap(_.params).zip(args), types, env, named)
 
   // The body of `d` with each parameter bound to its argument: a function-valued one to the def of
@@ -606,7 +741,8 @@ private[irgen] trait Claims:
       phasings: Map[Symbol, (Term, String)] = Map.empty
   ): Decl =
     val functions = args.collect {
-      case (p, a) if p.tpt.tpe.dealias.isFunctionType => p.symbol -> boundDef(p, d, a)
+      case (p, a) if p.tpt.tpe.dealias.isFunctionType =>
+        p.symbol -> boundDef(p, d, a)
     }.toMap
     val values = binding(Map.empty, types)(args.collect {
       case (p, a) if !functions.contains(p.symbol) && valued(p) => p.symbol -> a
@@ -617,7 +753,9 @@ private[irgen] trait Claims:
           .get(p.symbol)
           .fold(argument(p, d, a, env))(f => Decl.FunctionRef(functionName(f)))
     }
-    binding(functions, types, values, phasings)(fold(d.rhs.get, bound.toMap, named))
+    binding(functions, types, values, phasings)(
+      fold(d.rhs.get, bound.toMap, named)
+    )
 
   // Whether a parameter takes a value an expression or a class reads, such as an outcome, a fact or
   // an action class, rather than one the fold reads: a model, a claim, Limits, a string, an integer,
@@ -660,13 +798,14 @@ private[irgen] trait Claims:
   // The def of the lifted sources an argument for the function-valued parameter `p` of `d` names: the
   // def itself, eta-expanded or called with the lambda's parameters, or the def a parameter of the
   // declaring function around it is bound to. A lambda with a body of its own has no def to bind.
-  def boundDef(p: ValDef, d: DefDef, arg: Term): Symbol = forwardedDef(arg).getOrElse(
-    fail(
-      arg,
-      s"${p.name} of ${declaringName(d)} names a def of the lifted sources, which the lifter binds, not " +
-        s"${arg.show}: declare it as `def ${p.name}(...)` and pass that"
+  def boundDef(p: ValDef, d: DefDef, arg: Term): Symbol =
+    forwardedDef(arg).getOrElse(
+      fail(
+        arg,
+        s"${p.name} of ${declaringName(d)} names a def of the lifted sources, which the lifter binds, not " +
+          s"${arg.show}: declare it as `def ${p.name}(...)` and pass that"
+      )
     )
-  )
 
   def scenario(d: Decl, at: Tree)(f: ir.Scenario => ir.Scenario): Decl = d match
     case Decl.ScenarioOn(m, name, start) =>
@@ -691,15 +830,28 @@ private[irgen] trait Claims:
         val c = compositions.values
           .find(_.name == m)
           .getOrElse(
-            fail(at, s"Scenario $scenario names $m, which is no lifted machine or composition")
+            fail(
+              at,
+              s"Scenario $scenario names $m, which is no lifted machine or composition"
+            )
           )
-        val fields = types.get(c.stateType).map(_.getRecord.fields.map(_.name)).getOrElse(Nil)
+        val fields = types
+          .get(c.stateType)
+          .map(_.getRecord.fields.map(_.name))
+          .getOrElse(Nil)
         val starts = fields.map { field =>
           val member = c.members
             .find(_.field == field)
             .getOrElse(
-              fail(at, s"Scenario $scenario of $m names no start, and no member fills $field")
+              fail(
+                at,
+                s"Scenario $scenario of $m names no start, and no member fills $field"
+              )
             )
           only(machineNamed(member.machine).get)
         }
-        expr(at)(ir.Expr.Kind.Construct(ir.Construct(`type` = c.stateType, args = starts)))
+        expr(at)(
+          ir.Expr.Kind.Construct(
+            ir.Construct(`type` = c.stateType, args = starts)
+          )
+        )

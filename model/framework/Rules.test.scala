@@ -41,7 +41,8 @@ object RulesFixture:
 
     object effects:
       Trace.initialized += "Switch.effects"
-      def light(s: Lamp) = enter[Lamp, Said, Nothing](s.copy(light = Lit.on, presses = presses(s)))
+      def light(s: Lamp) =
+        enter[Lamp, Said, Nothing](s.copy(light = Lit.on, presses = presses(s)))
       def dark(s: Lamp) = enter[Lamp, Said, Nothing](s.copy(light = Lit.off))
       def refuse(s: Lamp, @scala.annotation.unused k: Knob) = List(
         Step[Lamp, Said, Nothing](Said.refused, s)
@@ -72,7 +73,10 @@ object RulesFixture:
   object Stuck extends Derived(Switch.rebind(hand.press ~> Switch.effects.wear))
 
   // The switch whose press fires everywhere, under one rule.
-  object Loose extends Derived(Switch.rebind(on(hand.press)(always ~> Switch.effects.wear)))
+  object Loose
+      extends Derived(
+        Switch.rebind(on(hand.press)(always ~> Switch.effects.wear))
+      )
 
   object Overlapping extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
@@ -107,7 +111,8 @@ object RulesFixture:
             else Nil
           ),
           hand.turn ~> ((s: Lamp, k: Knob) =>
-            if List(Lit.off, Lit.broken).contains(s.light) then Switch.effects.refuse(s, k) else Nil
+            if List(Lit.off, Lit.broken).contains(s.light) then Switch.effects.refuse(s, k)
+            else Nil
           )
         )
 
@@ -154,7 +159,9 @@ object RulesFixture:
     object rules extends Rules:
       on(hand.press) {
         when(Lit.off) ~> effects.light
-        when(Lit.on) ~> rejects(Rejection.failedPrecondition).because("the lamp is lit")
+        when(Lit.on) ~> rejects(Rejection.failedPrecondition).because(
+          "the lamp is lit"
+        )
         when(Lit.broken) ~> rejects(Rejection.notFound)
       }
 
@@ -295,17 +302,65 @@ class RulesTest extends munit.FunSuite:
       .asInstanceOf[Press](s)
       .map(_.state) // scalafix:ok DisableSyntax.asInstanceOf
 
-  def turn(m: Machine[Lamp, Said, Nothing], s: Lamp, k: Knob): List[Step[Lamp, Said, Nothing]] =
-    step(m, hand.turn).asInstanceOf[Turn](s, k) // scalafix:ok DisableSyntax.asInstanceOf
+  def turn(
+      m: Machine[Lamp, Said, Nothing],
+      s: Lamp,
+      k: Knob
+  ): List[Step[Lamp, Said, Nothing]] =
+    step(m, hand.turn)
+      .asInstanceOf[Turn](s, k) // scalafix:ok DisableSyntax.asInstanceOf
 
   val off = Lamp(Lit.off, UpTo(0))
   val lit = Lamp(Lit.on, UpTo(1))
 
-  test("a machine object is named after its object, and its sections initialize on first use") {
+  test(
+    "grouped monitor references preserve lazy attachment and initialize one definition"
+  ) {
+    val initialized = scala.collection.mutable.ArrayBuffer.empty[String]
+    object Watched extends Machine[Lamp, Said, Nothing]:
+      val init = Lamp(Lit.off, UpTo(0))
+      def end(s: Lamp) = true
+      object monitors:
+        lazy val unchanged =
+          initialized += "monitor": Unit
+          monitor[Lamp, Said, Nothing, Boolean]("unchanged", false)((_, before, after) =>
+            before.light == after.state.light
+          )(identity)
+      object rules
+          extends Bindings(
+            hand.press ~> ((s: Lamp) => List(Step(Said.refused, s)))
+          )
+      object properties:
+        object safety:
+          lazy val observed =
+            initialized += "reference": Unit
+            monitors.unchanged
+          lazy val alias = observed
+        object helper:
+          lazy val ignored =
+            initialized += "helper": Unit
+            monitors.unchanged
+    assertEquals(Watched.init, off)
+    assertEquals(initialized.toList, Nil)
+    val file = IrFile("monitor-reference", Seq(Watched))
+    file.construct(): Unit
+    assertEquals(initialized.toList, List("reference", "monitor"))
+    assert(Watched.properties.safety.observed eq Watched.monitors.unchanged)
+    assert(Watched.properties.safety.alias eq Watched.monitors.unchanged)
+    file.construct(): Unit
+    assertEquals(initialized.toList, List("reference", "monitor"))
+  }
+
+  test(
+    "a machine object is named after its object, and its sections initialize on first use"
+  ) {
     assertEquals(Switch.name, "switch")
     assertEquals(Switch.init, off)
     assert(Trace.initialized.contains("Switch"))
-    assert(!Trace.initialized.contains("Switch.rules"), Trace.initialized.toString)
+    assert(
+      !Trace.initialized.contains("Switch.rules"),
+      Trace.initialized.toString
+    )
     Switch.bindings: Unit
     assertEquals(
       Trace.initialized.toList.filter(_.startsWith("Switch")).take(2),
@@ -313,8 +368,13 @@ class RulesTest extends munit.FunSuite:
     )
   }
 
-  test("each action's rules lower to one step function: the first rule that fires, else no step") {
-    assertEquals(Switch.bindings.map(_.decl), List(hand.press, hand.turn, clock.tick).map(_.decl))
+  test(
+    "each action's rules lower to one step function: the first rule that fires, else no step"
+  ) {
+    assertEquals(
+      Switch.bindings.map(_.decl),
+      List(hand.press, hand.turn, clock.tick).map(_.decl)
+    )
     assertEquals(press(Switch, off), List(Lamp(Lit.on, UpTo(1))))
     assertEquals(press(Switch, lit), List(lit.copy(light = Lit.off)))
     assertEquals(press(Switch, Lamp(Lit.broken, UpTo(0))), Nil)
@@ -328,16 +388,24 @@ class RulesTest extends munit.FunSuite:
     for state <- Finite[Lamp].values do
       val expected = state.light match
         case Lit.off =>
-          List(state.copy(light = Lit.on, presses = UpTo[2]((state.presses + 1).min(2))))
+          List(
+            state.copy(
+              light = Lit.on,
+              presses = UpTo[2]((state.presses + 1).min(2))
+            )
+          )
         case Lit.on     => List(state.copy(light = Lit.off))
         case Lit.broken => Nil
       assertEquals(press(Switch, state), expected, state)
       for knob <- Finite[Knob].values do
         val expected = state.light match
-          case Lit.broken => List(Step[Lamp, Said, Nothing](Said.refused, state))
-          case Lit.off    =>
-            enter[Lamp, Said, Nothing](state.copy(light = if knob == Knob.up then Lit.on
-            else Lit.off))
+          case Lit.broken =>
+            List(Step[Lamp, Said, Nothing](Said.refused, state))
+          case Lit.off =>
+            enter[Lamp, Said, Nothing](
+              state.copy(light = if knob == Knob.up then Lit.on
+              else Lit.off)
+            )
           case Lit.on =>
             enter[Lamp, Said, Nothing](
               if knob == Knob.up then state.copy(presses = UpTo[2]((state.presses + 1).min(2)))
@@ -347,22 +415,32 @@ class RulesTest extends munit.FunSuite:
   }
 
   test("disabled binds an action no state enables") {
-    assertEquals(Unfelt.bindings.map(_.decl), List(hand.press, clock.tick).map(_.decl))
+    assertEquals(
+      Unfelt.bindings.map(_.decl),
+      List(hand.press, clock.tick).map(_.decl)
+    )
     val tick =
-      Unfelt.bindings.last.function.asInstanceOf[Press] // scalafix:ok DisableSyntax.asInstanceOf
+      Unfelt.bindings.last.function
+        .asInstanceOf[Press] // scalafix:ok DisableSyntax.asInstanceOf
     assertEquals(Finite[Lamp].values.toList.flatMap(tick), Nil)
   }
 
-  test("a bare binding of a derivation keeps its action's rules and replaces their effect") {
+  test(
+    "a bare binding of a derivation keeps its action's rules and replaces their effect"
+  ) {
     assertEquals(Stuck.name, "stuck")
     assertEquals(press(Stuck, off).map(_.light), List(Lit.broken))
     assertEquals(press(Stuck, Lamp(Lit.broken, UpTo(0))), Nil)
-    assertEquals(press(Loose, Lamp(Lit.broken, UpTo(0))).map(_.light), List(Lit.broken))
+    assertEquals(
+      press(Loose, Lamp(Lit.broken, UpTo(0))).map(_.light),
+      List(Lit.broken)
+    )
     assertEquals(turn(Stuck, lit, Knob.down).map(_.state.light), List(Lit.off))
     for state <- Finite[Lamp].values do
       assertEquals(
         press(Stuck, state),
-        if state.light == Lit.broken then Nil else List(state.copy(light = Lit.broken))
+        if state.light == Lit.broken then Nil
+        else List(state.copy(light = Lit.broken))
       )
       assertEquals(press(Loose, state), List(state.copy(light = Lit.broken)))
       for knob <- Finite[Knob].values do
@@ -395,11 +473,16 @@ class RulesTest extends munit.FunSuite:
       for k <- knobs do assertEquals(turn(PhasedLamp, s, k), turn(Projected, s, k), (s, k))
     assertEquals(press(PhasedLamp, off), List(Lamp(Lit.on, UpTo(1))))
     assertEquals(press(PhasedLamp, lit), List(lit.copy(light = Lit.off)))
-    assertEquals(turn(PhasedLamp, off, Knob.up).map(_.outcome), List(Said.refused))
+    assertEquals(
+      turn(PhasedLamp, off, Knob.up).map(_.outcome),
+      List(Said.refused)
+    )
     assertEquals(turn(PhasedLamp, lit, Knob.up), Nil)
   }
 
-  test("an overlap through the Phased projection is refused as the rules construct") {
+  test(
+    "an overlap through the Phased projection is refused as the rules construct"
+  ) {
     val refused =
       try
         OverlappingPhased.bindings: Unit
@@ -465,7 +548,9 @@ class RulesTest extends munit.FunSuite:
     assert(named.contains(fix), named)
   }
 
-  test("a derived machine reads its source's phase projection, with its phase type") {
+  test(
+    "a derived machine reads its source's phase projection, with its phase type"
+  ) {
     assertEquals(PhasedStuck.phase.projection(lit), Lit.on)
     assertEquals(PhasedStucker.phase.projection(off), Lit.off)
     for state <- Finite[Lamp].values do
@@ -473,7 +558,9 @@ class RulesTest extends munit.FunSuite:
       assertEquals(PhasedStucker.phase.projection(state), state.light)
   }
 
-  test("a derived machine cannot replace its final source end with Phased's default") {
+  test(
+    "a derived machine cannot replace its final source end with Phased's default"
+  ) {
     val refused = compileErrors(
       "import framework.*\nimport framework.RulesFixture.*\n" +
         "object Rephased extends Derived(PhasedLamp.unmonitored), Phased[Lamp, Lit](_.light)"
@@ -482,7 +569,9 @@ class RulesTest extends munit.FunSuite:
     assert(refused.contains("end"), refused)
   }
 
-  test("a derived composition that mixes in Phased is refused as it initializes") {
+  test(
+    "a derived composition that mixes in Phased is refused as it initializes"
+  ) {
     for (derived, message) <- List(
         (() => Reprojected.name, "reprojected")
       )
@@ -514,7 +603,9 @@ class RulesTest extends munit.FunSuite:
     )
   }
 
-  test("a composition object is its members, and an IR file constructs what it reaches") {
+  test(
+    "a composition object is its members, and an IR file constructs what it reaches"
+  ) {
     assertEquals(Twins.name, "twins")
     assertEquals(Twins.members, Vector(Switch, Unfelt))
     assertEquals(Odd.name, "odd")
@@ -523,7 +614,9 @@ class RulesTest extends munit.FunSuite:
     IrFile("rules-test", Seq(Odd, Switch)).construct(): Unit
   }
 
-  test("a rejects row keeps the state and answers rejected, with its reason where one is given") {
+  test(
+    "a rejects row keeps the state and answers rejected, with its reason where one is given"
+  ) {
     import outcomes.{Outcome, Rejection}
     type Answered = Lamp => List[Step[Lamp, Outcome, Nothing]]
     val pressed =
@@ -532,7 +625,12 @@ class RulesTest extends munit.FunSuite:
     val broken = Lamp(Lit.broken, UpTo(0))
     assertEquals(
       pressed(off),
-      List(Step[Lamp, Outcome, Nothing](Outcome.accepted, lit.copy(presses = UpTo(0))))
+      List(
+        Step[Lamp, Outcome, Nothing](
+          Outcome.accepted,
+          lit.copy(presses = UpTo(0))
+        )
+      )
     )
     assertEquals(
       pressed(lit),
@@ -547,19 +645,32 @@ class RulesTest extends munit.FunSuite:
     )
     assertEquals(
       pressed(broken),
-      List(Step[Lamp, Outcome, Nothing](Outcome.rejected(Rejection.notFound), broken))
+      List(
+        Step[Lamp, Outcome, Nothing](
+          Outcome.rejected(Rejection.notFound),
+          broken
+        )
+      )
     )
     for state <- Finite[Lamp].values do
       val expected = state.light match
-        case Lit.off => Step[Lamp, Outcome, Nothing](Outcome.accepted, state.copy(light = Lit.on))
-        case Lit.on  =>
+        case Lit.off =>
+          Step[Lamp, Outcome, Nothing](
+            Outcome.accepted,
+            state.copy(light = Lit.on)
+          )
+        case Lit.on =>
           Step[Lamp, Outcome, Nothing](
             Outcome.rejected(Rejection.failedPrecondition),
             state,
             Nil,
             "the lamp is lit"
           )
-        case Lit.broken => Step[Lamp, Outcome, Nothing](Outcome.rejected(Rejection.notFound), state)
+        case Lit.broken =>
+          Step[Lamp, Outcome, Nothing](
+            Outcome.rejected(Rejection.notFound),
+            state
+          )
       assertEquals(pressed(state), List(expected), state)
   }
 
@@ -574,9 +685,14 @@ class RulesTest extends munit.FunSuite:
     yield
       // scalafix:off DisableSyntax.asInstanceOf
       val result = inputs match
-        case Nil       => b.function.asInstanceOf[Lamp => List[Step[Lamp, Said, Nothing]]](s)
+        case Nil =>
+          b.function.asInstanceOf[Lamp => List[Step[Lamp, Said, Nothing]]](s)
         case List(one) =>
-          b.function.asInstanceOf[(Lamp, Any) => List[Step[Lamp, Said, Nothing]]](s, one)
+          b.function
+            .asInstanceOf[(Lamp, Any) => List[Step[Lamp, Said, Nothing]]](
+              s,
+              one
+            )
         case _ => fail("the fixture's actions take at most one input")
       // scalafix:on DisableSyntax.asInstanceOf
       (b.decl.name, s, inputs, result)
@@ -606,26 +722,42 @@ class RulesTest extends munit.FunSuite:
     )
   }
 
-  test("from, when, when(set), when(...).where and on(a, b) build the qualified table") {
+  test(
+    "from, when, when(set), when(...).where and on(a, b) build the qualified table"
+  ) {
     assertEquals(Grouped.bindings.map(_.decl), Plain.bindings.map(_.decl))
     assertEquals(steps(Grouped), steps(Plain))
     assert(steps(Grouped).exists((_, _, _, result) => result.nonEmpty))
   }
 
-  test("an action or class sits in several blocks whose cases hold in no common state") {
-    assertEquals(Spread.bindings.map(_.decl), List(hand.press, clock.tick).map(_.decl))
+  test(
+    "an action or class sits in several blocks whose cases hold in no common state"
+  ) {
+    assertEquals(
+      Spread.bindings.map(_.decl),
+      List(hand.press, clock.tick).map(_.decl)
+    )
     assertEquals(press(Spread, off).map(_.light), List(Lit.on))
     assertEquals(press(Spread, lit).map(_.light), List(Lit.off))
-    assertEquals(press(Spread, Lamp(Lit.broken, UpTo(0))).map(_.light), List(Lit.broken))
+    assertEquals(
+      press(Spread, Lamp(Lit.broken, UpTo(0))).map(_.light),
+      List(Lit.broken)
+    )
     for state <- Finite[Lamp].values do
       val expected = state.light match
-        case Lit.off    => state.copy(light = Lit.on, presses = UpTo[2]((state.presses + 1).min(2)))
+        case Lit.off =>
+          state.copy(
+            light = Lit.on,
+            presses = UpTo[2]((state.presses + 1).min(2))
+          )
         case Lit.on     => state.copy(light = Lit.off)
         case Lit.broken => state
       assertEquals(press(Spread, state), List(expected), state)
   }
 
-  test("a block in a block, a from in a from and an action its declarer does not declare") {
+  test(
+    "a block in a block, a from in a from and an action its declarer does not declare"
+  ) {
     assertEquals(
       refusal(Nested),
       "requirement failed: on(tick) sits in on(press): a block holds cases alone"
@@ -665,11 +797,15 @@ class RulesTest extends munit.FunSuite:
   test("a rule names its action as written") {
     assertEquals(writtenAction("example.orders.clerk.ship"), "ship")
     assertEquals(
-      writtenAction("example.orders.buyer.change.apply(example.orders.Change.hold)"),
+      writtenAction(
+        "example.orders.buyer.change.apply(example.orders.Change.hold)"
+      ),
       "change"
     )
     assertEquals(
-      writtenAction("framework.apply[(A, B)](example.orders.buyer.place)(x := y)"),
+      writtenAction(
+        "framework.apply[(A, B)](example.orders.buyer.place)(x := y)"
+      ),
       "place"
     )
   }
@@ -679,7 +815,8 @@ class RulesTest extends munit.FunSuite:
   test("when[R] fires in exactly the phases with the role R") {
     import RoleRulesFixture.*
     val press =
-      Gate.bindings.head.function.asInstanceOf[Gate.Press] // scalafix:ok DisableSyntax.asInstanceOf
+      Gate.bindings.head.function
+        .asInstanceOf[Gate.Press] // scalafix:ok DisableSyntax.asInstanceOf
     assertEquals(
       Stage.values.toList.filter(p => press(Door(p)).nonEmpty),
       List(Stage.queued, Stage.backingOff, Stage.done)

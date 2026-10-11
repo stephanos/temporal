@@ -49,7 +49,9 @@ object DiscoveryFixtures:
     def end(s: DiscoveryFixtures.State) = s.equals(State.closed)
 
     object rules
-        extends Bindings(advance ~> ((s: DiscoveryFixtures.State) => List(Step(Outcome.done, s))))
+        extends Bindings(
+          advance ~> ((s: DiscoveryFixtures.State) => List(Step(Outcome.done, s)))
+        )
 
     object capabilities extends Capabilities
 
@@ -62,7 +64,10 @@ object DiscoveryFixtures:
         Phased[RolePhase, RolePhase](identity):
     def init = RolePhase.pending
 
-    object rules extends Bindings(advance ~> ((s: RolePhase) => List(Step(Outcome.done, s))))
+    object rules
+        extends Bindings(
+          advance ~> ((s: RolePhase) => List(Step(Outcome.done, s)))
+        )
   lazy val bounded = query("bounded")
     .verify(propertyOwner.property("holds").holds(_ => true))
     .in(queryOwner.scenario("free").free)
@@ -84,6 +89,122 @@ object DiscoveryFixtures:
 class IrFileDiscoveryTest extends munit.FunSuite:
   import DiscoveryFixtures.*
 
+  test("IR construction initializes only designated property groups once") {
+    val initialized = scala.collection.mutable.ArrayBuffer.empty[String]
+    final case class Bundle(progress: Progress[State])
+    object Grouped extends Machine[State, Outcome, Nothing]:
+      def init = State.open
+      def end(s: State) = s.equals(State.closed)
+      object rules
+          extends Bindings(
+            advance ~> ((_: State) => List(Step(Outcome.done, State.closed)))
+          )
+      object properties:
+        object safety:
+          def helperProperty =
+            initialized += "helper-def": Unit
+            property("helperDef").holds(_ => false)
+          lazy val finished =
+            initialized += "safety": Unit
+            property("finished").holds(_.state.equals(State.closed))
+        object liveness:
+          def helperProgress =
+            initialized += "progress-def": Unit
+            Grouped.leadsTo("helperProgress")(
+              _.equals(State.open),
+              _.equals(State.closed),
+              1
+            )
+          def helperBundle =
+            initialized += "bundle-def": Unit
+            Bundle(helperProgress)
+          lazy val reaches =
+            initialized += "liveness": Unit
+            Grouped.leadsTo("reaches")(
+              _.equals(State.open),
+              _.equals(State.closed),
+              1
+            )
+        object helper:
+          lazy val ignored =
+            initialized += "helper": Unit
+            property("ignored").holds(_ => false)
+    assertEquals(Grouped.init, State.open)
+    assertEquals(initialized.toList, Nil)
+    object HelperOwner extends Machine[State, Outcome, Nothing]:
+      def init = State.open
+      def end(s: State) = s.equals(State.closed)
+      object rules
+          extends Bindings(
+            advance ~> ((s: State) => List(Step(Outcome.done, s)))
+          )
+      def properties =
+        initialized += "properties-def": Unit
+        Grouped.properties
+    object HelperSection extends Machine[State, Outcome, Nothing]:
+      def init = State.open
+      def end(s: State) = s.equals(State.closed)
+      object rules
+          extends Bindings(
+            advance ~> ((s: State) => List(Step(Outcome.done, s)))
+          )
+      object properties:
+        lazy val safety =
+          initialized += "flat-name": Unit
+          property("flatSafety").holds(_ => true)
+        def liveness =
+          initialized += "liveness-def": Unit
+          Grouped.properties.liveness
+    object PrivateOwner extends Machine[State, Outcome, Nothing]:
+      def init = State.open
+      def end(s: State) = s.equals(State.closed)
+      object rules
+          extends Bindings(
+            advance ~> ((s: State) => List(Step(Outcome.done, s)))
+          )
+      private object properties:
+        private object safety:
+          lazy val finished =
+            initialized += "private-safety": Unit
+            property("privateFinished").holds(_.state.equals(State.closed))
+        private object liveness:
+          lazy val reaches =
+            initialized += "private-liveness": Unit
+            PrivateOwner.leadsTo("privateReaches")(
+              _.equals(State.open),
+              _.equals(State.closed),
+              1
+            )
+        def selected = (safety.finished, liveness.reaches)
+      def selected = properties.selected
+    val file = IrFile(
+      "grouped-runtime",
+      Seq(Grouped, HelperOwner, HelperSection, PrivateOwner)
+    )
+    val expectedOwners =
+      Set("grouped", "helperOwner", "helperSection", "privateOwner")
+    val expectedInitializations =
+      List(
+        "flat-name",
+        "liveness",
+        "private-liveness",
+        "private-safety",
+        "safety"
+      )
+    assertEquals(file.construct(), expectedOwners)
+    assertEquals(initialized.toList.sorted, expectedInitializations)
+    assertEquals(file.construct(), expectedOwners)
+    assertEquals(initialized.toList.sorted, expectedInitializations)
+    assert(PrivateOwner.selected._1 eq PrivateOwner.selected._1)
+    assert(PrivateOwner.selected._2 eq PrivateOwner.selected._2)
+    assert(
+      Grouped.properties.safety.finished eq Grouped.properties.safety.finished
+    )
+    assert(
+      Grouped.properties.liveness.reaches eq Grouped.properties.liveness.reaches
+    )
+  }
+
   // fn-160: an IR file is a feature's, named after its package; nothing lists its roots.
   test("a package's IR file is its feature's") {
     assertEquals(
@@ -94,8 +215,14 @@ class IrFileDiscoveryTest extends munit.FunSuite:
       IrFile.featureOf("temporal.features.nexus.workflow.realization"),
       Some("nexus-workflow")
     )
-    assertEquals(IrFile.featureOf("temporal.features.nexus.shared.product"), Some("nexus"))
-    assertEquals(IrFile.featureOf("temporal.foundations.taskqueue.protocol"), Some("taskqueue"))
+    assertEquals(
+      IrFile.featureOf("temporal.features.nexus.shared.product"),
+      Some("nexus")
+    )
+    assertEquals(
+      IrFile.featureOf("temporal.foundations.taskqueue.protocol"),
+      Some("taskqueue")
+    )
     assertEquals(IrFile.featureOf("temporal.actors.worker"), Some("worker"))
     assertEquals(IrFile.featureOf("framework"), None)
     val subjects = IrFile("discovery", Seq(Added)).subjects()
@@ -106,9 +233,13 @@ class IrFileDiscoveryTest extends munit.FunSuite:
     for subject <- subjects do
       subject match
         case machine: Machine[?, ?, ?] =>
-          val results = MachineLaws.check(machine, Some(Vector("tester.advance")))
+          val results =
+            MachineLaws.check(machine, Some(Vector("tester.advance")))
           assertEquals(results.size, 4)
-          assert(!results.exists(_.disposition.equals("failed")), results.toString)
+          assert(
+            !results.exists(_.disposition.equals("failed")),
+            results.toString
+          )
         case other => fail(other.toString)
   }
 
@@ -117,11 +248,16 @@ class IrFileDiscoveryTest extends munit.FunSuite:
       override def name = "duplicate"
       def init = State.open
       def end(s: State) = s.equals(State.closed)
-      object rules extends Bindings(advance ~> ((s: State) => List(Step(Outcome.done, s))))
+      object rules
+          extends Bindings(
+            advance ~> ((s: State) => List(Step(Outcome.done, s)))
+          )
     val a = instance
     val b = instance
     val duplicate =
-      intercept[IllegalArgumentException](IrFile("duplicate-fixture", Seq(a, b)).subjects())
+      intercept[IllegalArgumentException](
+        IrFile("duplicate-fixture", Seq(a, b)).subjects()
+      )
     assert(duplicate.getMessage.contains("repeats declaration identity"))
     object Collision extends Derived(Original.restrict(advance)):
       override def name = Original.name
@@ -131,7 +267,9 @@ class IrFileDiscoveryTest extends munit.FunSuite:
     assert(collision.getMessage.contains("colliding model names"))
   }
 
-  test("ordered alternatives pass and independent binding order rejects a permutation") {
+  test(
+    "ordered alternatives pass and independent binding order rejects a permutation"
+  ) {
     val results = MachineLaws.check(Added, Some(Vector("tester.advance")))
     assertEquals(
       results.find(_.law.equals("repeatable ordered relation")).get.disposition,
@@ -145,8 +283,14 @@ class IrFileDiscoveryTest extends munit.FunSuite:
             retreat ~> ((s: State) => List(Step(Outcome.done, s))),
             advance ~> ((s: State) => List(Step(Outcome.done, s)))
           )
-    val changed = MachineLaws.check(Permuted, Some(Vector("tester.advance", "tester.retreat")))
-    assertEquals(changed.find(_.law.equals("binding order")).get.disposition, "failed")
+    val changed = MachineLaws.check(
+      Permuted,
+      Some(Vector("tester.advance", "tester.retreat"))
+    )
+    assertEquals(
+      changed.find(_.law.equals("binding order")).get.disposition,
+      "failed"
+    )
     object DuplicateBinding extends Machine[State, Outcome, Nothing]:
       def init = State.open
       def end(s: State) = s.equals(State.closed)
@@ -187,26 +331,42 @@ class IrFileDiscoveryTest extends munit.FunSuite:
       propertyOwner,
       capabilityOwner
     )
-    assertEquals(file.subjects().map(IrFile.identity).toSet, expected.map(IrFile.identity).toSet)
+    assertEquals(
+      file.subjects().map(IrFile.identity).toSet,
+      expected.map(IrFile.identity).toSet
+    )
     assertEquals(file.subjects().distinct.size, expected.size)
     assertEquals(
-      MachineLaws.check(Mapped, Some(Vector("tester.advance"))).head.disposition,
+      MachineLaws
+        .check(Mapped, Some(Vector("tester.advance")))
+        .head
+        .disposition,
       "passed"
     )
     object ReboundMap
-        extends Derived(Mapped.rebind(advance ~> ((s: State) => List(Step(Outcome.done, s)))))
+        extends Derived(
+          Mapped.rebind(advance ~> ((s: State) => List(Step(Outcome.done, s))))
+        )
     assertEquals(
-      MachineLaws.check(ReboundMap, Some(Vector("tester.advance"))).head.disposition,
+      MachineLaws
+        .check(ReboundMap, Some(Vector("tester.advance")))
+        .head
+        .disposition,
       "passed"
     )
     object RestrictedMap extends Derived(Mapped.restrict(advance))
     assertEquals(
-      MachineLaws.check(RestrictedMap, Some(Vector("tester.advance"))).head.disposition,
+      MachineLaws
+        .check(RestrictedMap, Some(Vector("tester.advance")))
+        .head
+        .disposition,
       "inapplicable"
     )
   }
 
-  test("refinement images outside the target domain and nonrepeatable relations fail") {
+  test(
+    "refinement images outside the target domain and nonrepeatable relations fail"
+  ) {
     object Narrow
         extends Machine[State, Outcome, Nothing](using
           Finite.of(State.open),
@@ -215,7 +375,10 @@ class IrFileDiscoveryTest extends munit.FunSuite:
         ):
       def init = State.open
       def end(s: State) = s.equals(State.closed)
-      object rules extends Bindings(advance ~> ((s: State) => List(Step(Outcome.done, s))))
+      object rules
+          extends Bindings(
+            advance ~> ((s: State) => List(Step(Outcome.done, s)))
+          )
     object BadImage extends Derived(Original.refining(Narrow)(identity))
     val image = MachineLaws.check(BadImage, Some(Vector("tester.advance"))).head
     assertEquals(image.disposition, "failed")
@@ -227,7 +390,11 @@ class IrFileDiscoveryTest extends munit.FunSuite:
           Original.rebind(
             advance ~> ((s: State) =>
               List(
-                Step(Outcome.done, if counter.getAndIncrement().equals(0) then s else State.closed)
+                Step(
+                  Outcome.done,
+                  if counter.getAndIncrement().equals(0) then s
+                  else State.closed
+                )
               )
             )
           )
@@ -240,7 +407,9 @@ class IrFileDiscoveryTest extends munit.FunSuite:
     assert(relation.reason.contains("ordered alternatives"))
   }
 
-  test("closedness mismatches and partial refinement maps are reported as failures") {
+  test(
+    "closedness mismatches and partial refinement maps are reported as failures"
+  ) {
     object BadClosedness extends Derived(RoleSource.refining(RoleSource)(_ => RolePhase.pending))
     val closedness = MachineLaws
       .check(BadClosedness, Some(Vector("tester.advance")))
@@ -251,10 +420,12 @@ class IrFileDiscoveryTest extends munit.FunSuite:
     object Partial
         extends Derived(
           Original.refining(Original)(s =>
-            if s.equals(State.closed) then throw IllegalArgumentException("unmapped closed") else s
+            if s.equals(State.closed) then throw IllegalArgumentException("unmapped closed")
+            else s
           )
         )
-    val totality = MachineLaws.check(Partial, Some(Vector("tester.advance"))).head
+    val totality =
+      MachineLaws.check(Partial, Some(Vector("tester.advance"))).head
     assertEquals(totality.disposition, "failed")
     assert(totality.reason.contains("unmapped closed"))
   }

@@ -17,20 +17,36 @@ final private[irgen] class Lifting(val ctx: Context)
   import ctx.*
   import ctx.quotes.reflect.*
 
-  // A root: a machine, a composition, a Query, a list of Queries, a progress claim, a realization, a
-  // `capabilities` section, which is its object's, or a
+  // A root: a machine, a composition, a Property, a Query, a list of Queries, a progress claim, a
+  // claim bundle, a realization, a `properties` section with its designated safety/liveness groups,
+  // a `capabilities` section, which is its object's, or a
   // `queries` section, which roots every Query, list of Queries and progress claim it declares, in
   // the order written.
   def liftRoot(root: String): Unit =
     val sym = defs.keys
       .find(s => s.isValDef && s.fullName == root)
-      .getOrElse(throw LiftError(s"root $root", "names no declaration of the lifted sources"))
+      .getOrElse(
+        throw LiftError(
+          s"root $root",
+          "names no declaration of the lifted sources"
+        )
+      )
     val d = valDef(sym, sym.tree, "a declaration")
     // A machine or composition object is a root by its object, `irFile(...)(ActivityProduct)`.
     if realizationObject(sym) then realizationObjectOf(sym, d): Unit
     else if objectForm(sym) && isMachine(d.tpt.tpe) then machineOf(sym, d): Unit
     else if objectForm(sym) then compositionOf(sym, d): Unit
     else if capabilitiesObject(sym) then fold(Ref(sym), Map.empty): Unit
+    else if propertiesSection(sym) || propertyGroup(sym) then
+      for v <- statements(objectBody(moduleClassOf(sym), d)).collect {
+          case v: ValDef if propertyRoot(v.tpt.tpe) => v
+        }
+      do liftRoot(v.symbol.fullName)
+      if propertiesSection(sym) then
+        for v <- statements(objectBody(moduleClassOf(sym), d)).collect {
+            case v: ValDef if propertyGroup(v.symbol) => v
+          }
+        do liftRoot(v.symbol.fullName)
     else if queriesSection(sym) then
       for q <- statements(objectBody(moduleClassOf(sym), d)) do
         q match
@@ -48,20 +64,45 @@ final private[irgen] class Lifting(val ctx: Context)
     else if isNamed(d.tpt.tpe, "framework.realize.Realization") then realizationOf(sym, d): Unit
     else
       val kind = d.tpt.tpe.widen.dealias
-      val claims = Set("framework.Query", "framework.Witness", "framework.Progress")
+      val claims =
+        Set(
+          "framework.Query",
+          "framework.Witness",
+          "framework.Progress",
+          "framework.Property"
+        )
       val listed =
         isList(
           kind.typeSymbol
         ) || kind.typeSymbol.fullName == "scala.collection.immutable.Vector"
-      if !claims(kind.typeSymbol.fullName) && !(listed && kind.typeArgs.headOption
+      if !claims(kind.typeSymbol.fullName) && !propertyRoot(
+          kind
+        ) && !(listed && kind.typeArgs.headOption
           .exists(a => Seq("framework.Query", "framework.Witness").exists(isNamed(a, _))))
       then
         fail(
           d,
-          s"$root is a ${kind.show}; a root is a machine, a composition, a Query, a list of Queries, " +
-            "a progress claim, a realization, or a machine's `capabilities` or `queries` section"
+          s"$root is a ${kind.show}; a root is a machine, a composition, a Property, a Query, a list of Queries, " +
+            "a progress claim, a claim bundle, a realization, or a machine's `properties`, `capabilities` or `queries` section"
         )
       fold(Ref(sym), Map.empty): Unit
+
+  private[irgen] def propertiesSection(sym: Symbol): Boolean =
+    val cls = moduleClassOf(sym)
+    !cls.isNoSymbol && cls.name.stripSuffix("$") == "properties" && objectForm(
+      cls.maybeOwner
+    )
+
+  private[irgen] def propertyGroup(sym: Symbol): Boolean =
+    val cls = moduleClassOf(sym)
+    !cls.isNoSymbol && Set("safety", "liveness")(cls.name.stripSuffix("$")) &&
+    propertiesSection(cls.maybeOwner)
+
+  private def propertyRoot(tpe: TypeRepr): Boolean =
+    tpe.widen.dealias.baseClasses.exists(c =>
+      Set("framework.Property", "framework.Progress")(c.fullName)
+    ) ||
+      bundle(tpe.widen.dealias.typeSymbol)
 
   // Whether a symbol names the `queries` section of a machine or composition object.
   private[irgen] def queriesSection(sym: Symbol): Boolean =
@@ -90,7 +131,9 @@ final private[irgen] class Lifting(val ctx: Context)
       isList(
         kind.typeSymbol
       ) || kind.typeSymbol.fullName == "scala.collection.immutable.Vector"
-    Set("framework.Query", "framework.Witness", "framework.Progress")(kind.typeSymbol.fullName) ||
+    Set("framework.Query", "framework.Witness", "framework.Progress")(
+      kind.typeSymbol.fullName
+    ) ||
     (listed && kind.typeArgs.headOption.exists(a =>
       Seq("framework.Query", "framework.Witness").exists(isNamed(a, _))
     ))
@@ -127,24 +170,57 @@ final private[irgen] class Lifting(val ctx: Context)
             Some((s"$root.$form", s"$kind-$form", true))
           case _ :: feature :: _ => Some((root, feature, false))
           case _                 => None
-    def progress(v: ValDef) = isNamed(v.tpt.tpe, "framework.Progress")
+    def progress(v: ValDef) =
+      val owner = v.symbol.maybeOwner
+      isNamed(v.tpt.tpe, "framework.Progress") &&
+      (propertiesSection(owner) || propertyGroup(owner) || queriesSection(
+        owner
+      ) ||
+        owner.isPackageDef || owner.name.endsWith("$package$"))
+    def groupedProgress(v: ValDef): Boolean =
+      (propertiesSection(v.symbol) || propertyGroup(v.symbol)) &&
+        statements(objectBody(moduleClassOf(v.symbol), v)).exists {
+          case p: ValDef =>
+            progress(p) || (bundle(p.tpt.tpe.widen.dealias.typeSymbol) &&
+              fieldTypes(p.tpt.tpe.widen.dealias.typeSymbol).exists((_, tpe) =>
+                isNamed(tpe, "framework.Progress")
+              ))
+          case _ => false
+        }
     def coreRealization(v: ValDef) =
-      !v.symbol.flags.is(Flags.Module) && isNamed(v.tpt.tpe, "framework.realize.Realization")
+      !v.symbol.flags.is(Flags.Module) && isNamed(
+        v.tpt.tpe,
+        "framework.realize.Realization"
+      )
     val roots = defs.values.toSeq.collect {
       case v: ValDef
-          if objectForm(v.symbol) || realizationObject(v.symbol) || queriesSection(v.symbol) ||
-            (capabilitiesObject(v.symbol) && objectForm(moduleClassOf(v.symbol).maybeOwner)) ||
-            (progress(v) && !v.symbol.flags.is(Flags.Module)) || coreRealization(v) =>
+          if objectForm(v.symbol) || realizationObject(
+            v.symbol
+          ) || queriesSection(v.symbol) ||
+            propertiesSection(v.symbol) || propertyGroup(v.symbol) ||
+            (capabilitiesObject(v.symbol) && objectForm(
+              moduleClassOf(v.symbol).maybeOwner
+            )) ||
+            (progress(v) && !v.symbol.flags.is(
+              Flags.Module
+            )) || coreRealization(v) =>
         v
     }
     val byFeature = roots
       .flatMap(v => featureOf(packageOf(v.symbol)).map(f => f -> v))
       .groupBy(_._1)
     val asked = (v: ValDef) =>
-      queriesSection(v.symbol) || realizationObject(v.symbol) || progress(v) || coreRealization(v)
+      queriesSection(v.symbol) || realizationObject(v.symbol) || progress(v) ||
+        groupedProgress(v) || coreRealization(v)
     byFeature.toSeq
-      .filter { case ((_, _, form), vs) => form || vs.exists((_, v) => asked(v)) }
+      .filter { case ((_, _, form), vs) =>
+        form || vs.exists((_, v) => asked(v))
+      }
       .map { case ((_, file, _), vs) =>
-        file -> vs.map(_._2).sortBy(v => (pos(v).file, pos(v).line)).map(_.symbol.fullName).distinct
+        file -> vs
+          .map(_._2)
+          .sortBy(v => (pos(v).file, pos(v).line))
+          .map(_.symbol.fullName)
+          .distinct
       }
       .sortBy(_._1)
