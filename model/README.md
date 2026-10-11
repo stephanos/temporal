@@ -1435,7 +1435,8 @@ Both are protected members of `Capabilities`, so only the section's own body, in
 capabilities base class, waives a Property.
 A Property several declared capabilities bring, such as Retries' `failureEndsFailed` of two failure
 instances, is overridden only by naming the instances: `overriding(Retries.failureEndsFailed[State,
-Phase] -> properties.resetFailureEndsFailed, because = …, of = Seq(retryableFailure, fatalFailure))`
+Phase] -> properties.resetFailureEndsFailed, because = states.pendingResetReason,
+of = Seq(retryableFailure, fatalFailure))`
 replaces those two, each under its own bindings, origin and bounds, and an instance `of` does not
 name keeps the companion's Property. The waiver metadata names each replaced instance. The
 standalone activity overrides its failure and per-attempt deadline laws this way so a pending reset
