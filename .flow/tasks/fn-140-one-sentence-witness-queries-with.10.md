@@ -5,7 +5,7 @@ satisfies: [R1, R5, R7]
 
 ## Description
 **Size:** L
-**Touches:** [model/temporal/**/*.scala, model/framework/Facet.scala, model/framework/Claims.scala, model/framework/Syntax.scala, model/framework/Witness.test.scala, model/README.md, model/irgen/Syntax.scala, model/irgen/Conventions.scala, model/irgen/Order.scala, model/irgen/test/**, model/irgen/testdata/**, model/testdata/equivalence/batch-1d.map, model/testdata/equivalence/batch-1d.ledger.json, model/testdata/equivalence/dispatch-original/**, model/check/Equivalence.scala, model/check/Gate.scala, model/check/StepLedger.scala, model/check/test/Equivalence.test.scala, model/check/test/StepLedger.test.scala]
+**Touches:** [model/temporal/**/*.scala, model/framework/Facet.scala, model/framework/Claims.scala, model/framework/Syntax.scala, model/framework/Witness.test.scala, model/README.md, model/irgen/Syntax.scala, model/irgen/Conventions.scala, model/irgen/Order.scala, model/irgen/Lifting.scala, model/irgen/test/**, model/irgen/testdata/**, model/testdata/equivalence/batch-1d.map, model/testdata/equivalence/batch-1d.ledger.json, model/testdata/equivalence/dispatch-original/**, model/check/Equivalence.scala, model/check/Gate.scala, model/check/StepLedger.scala, model/check/test/Equivalence.test.scala, model/check/test/StepLedger.test.scala]
 
 Complete the remaining Scala witness migration and source-aware eligible-triple lint after .4/.5. This is the independently completed, committed Scala source seal that releases fn-149 grouping under the owner's one-worker sequence. Deferred .6 retains full regeneration, Go, consumer/replay, full-gate/review/live closure and depends on this seal and consumer tasks .7/.8/.9. Do not wait for those owner-deferred tasks or claim they passed here.
 
@@ -292,11 +292,45 @@ Lift.scala, declaration/discovery implementation or public API change is needed
 or authorized by this repair. The automatic-root refusal alone does not pass the
 original cross-file contract.
 
+### Generic realization collection repair
+
+Fresh original-template evidence localizes the layout failure to automatic root
+collection, not the generic realization declaration. The same original compiled
+`layout.jar` emits the complete core realization through the explicit typed root
+`fixture.features.lamp.system.LampRealization$.system`, but automatic collection
+omits it. `Lifting.liftRoot` already supports `framework.realize.Realization`
+values; `irFiles` omits these values both from its roots and from the `asked`
+predicate. Fn-160.2 requires every declared realization, including a feature
+whose only claim is that realization. Evidence: the continuation's
+`fn140-10-retry-layout-explicit2.log` and `fn140-10-retry-layout-explicit.json`
+(artifact SHA256 `a2e4722d22d843f8c909eb5c06fdc05091e1e97572dfbe7145f16a0f767a8a18`).
+
+Authorize only the corresponding typed core-value predicate in
+`model/irgen/Lifting.scala`'s root collection and `asked` filtering. Preserve the
+original generic layout payload, with no Temporal realization kit, Entity,
+roles, observations, cleanup or changed correlation bounds. Before the fix,
+add source integration assertions comparing the explicit and automatic complete
+realization payloads, including exact ID, owner and positions. Include an
+independent realization-only foundation or actor package so removing `asked`
+support fails, plus an unrelated value negative control so collection does not
+become an untyped value scan. Verify the original template and full source
+fixture contracts after the fix; no removal of assertions earns credit.
+
+This is a separately classified fn-160 collection repair needed for R7's positive
+layout proof, not a witness semantics rewrite. Re-lift all four production roots
+and confirm the frozen complete inventory is unchanged. Native
+`framework.IrFile.discover` also appears to omit wrapper-held generic realization
+getters; that distinct native boundary remains an explicit fn-160.2 source
+obligation and is not authorized or claimed fixed here. This refinement adds
+only Lifting.scala to implementation Touches and grants no extra worker budget,
+third retry, managed regeneration, Go, review, live or publication authority.
+
 ## Acceptance
 - [ ] Complete eligible/retained inventories cover all Model packages, with concrete reader/boundary justifications; every eligible private pinned triple is a witness (R5).
 - [ ] Source-aware lint and focused positive/refusal fixtures cover private/shared/verify/monitor/repeated-input-tail forms with exact source ownership and unchanged other refusal classes (R5).
 - [ ] Full Query/core/path/expectation/realization inventories, independently enumerated all-row truth equality and explicit source-span/identity maps prove only R5 rewrites and the R6 deletion; no protected expectation is changed (R5).
 - [ ] Final author docs and core-form/layout template are integrated and positively lifted, proving R7.
+- [ ] The original generic layout realization is collected automatically with its complete explicit-root payload and exact identity/source metadata; a realization-only package and unrelated-value control prove the typed roots and `asked` repair. Production inventories remain unchanged, and native reflection discovery is separately retained under fn-160.2 rather than claimed fixed (R7; separately classified fn-160 R2/R10).
 - [ ] Scala compilation and framework/Model/lifter/gate source checks, new migration proofs, syntax and historical-baseline step-table equivalence pass, with complete justified identity/row mappings and no unresolved strict-native admission failure. Held managed-golden/Go checks and protected Batch 5 Go assessment obligations are explicitly separate, never passing credit or a native/source waiver. Scratch artifacts and mappings are frozen for deferred consumer proofs; managed outputs remain untouched.
 - [ ] This Scala source seal is committed and its handoff to fn-149 is explicit; .6/.7/.8/.9 retain all full consumer/regeneration/assessment/gate/review/live obligations without claiming them complete.
 - [ ] The historical-step ledger passes exact mapped-permutation/addition positives and all independent mutation controls; ordinary unmapped ordering/new-table/unused-map checks remain strict. The complete original baseline and independently authenticated original dispatch population compare with every current table accounted for.
