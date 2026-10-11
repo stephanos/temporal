@@ -457,6 +457,16 @@ func validateCaseFiles(manifest *Manifest, files map[string][]byte) error {
 
 // SyncCases validates a complete temporary tree before checking or replacing the managed directory.
 func SyncCases(directory string, files map[string][]byte, update bool) (result error) {
+	return syncCases(directory, files, update, false)
+}
+
+// SyncSelectedCases checks or replaces only the supplied pinned identities, preserving the
+// remaining manifest rows and payload timestamps under the same lock as a full publication.
+func SyncSelectedCases(directory string, files map[string][]byte, update bool) error {
+	return syncCases(directory, files, update, true)
+}
+
+func syncCases(directory string, files map[string][]byte, update, subset bool) (result error) {
 	feature := featureGenerated(directory)
 	if feature {
 		var err error
@@ -487,6 +497,86 @@ func SyncCases(directory string, files map[string][]byte, update bool) (result e
 	} else if err != nil && !errors.Is(err, os.ErrNotExist) {
 		return err
 	}
+	preserved := map[string]os.FileInfo{}
+	if subset {
+		info, err := os.Lstat(filepath.Join(directory, "manifest.json"))
+		if err != nil {
+			return err
+		}
+		if !info.Mode().IsRegular() {
+			return errors.New("pinned manifest must be a regular file")
+		}
+		encoded, err := os.ReadFile(filepath.Join(directory, "manifest.json"))
+		if err != nil {
+			return err
+		}
+		existing, err := DecodeManifest(encoded)
+		if err != nil {
+			return err
+		}
+		inventory := map[string]bool{"manifest.json": true}
+		for _, entry := range existing.Queries {
+			if entry.Standing == Lowered {
+				inventory[entry.File] = true
+			}
+		}
+		entries, err := os.ReadDir(directory)
+		if err != nil {
+			return err
+		}
+		for _, entry := range entries {
+			if !inventory[entry.Name()] {
+				return fmt.Errorf("unexpected pinned Case entry %s", entry.Name())
+			}
+		}
+		replacements := make(map[Selected]GeneratedCase, len(manifest.Queries))
+		for _, entry := range manifest.Queries {
+			replacements[Selected{Model: entry.Model, Query: entry.Query.Name}] = entry
+		}
+		files = maps.Clone(files)
+		for i, entry := range existing.Queries {
+			key := Selected{Model: entry.Model, Query: entry.Query.Name}
+			if replacement, ok := replacements[key]; ok {
+				existing.Queries[i] = replacement
+				delete(replacements, key)
+				continue
+			}
+			if entry.Standing != Lowered {
+				continue
+			}
+			path := filepath.Join(directory, entry.File)
+			info, err := os.Lstat(path)
+			if err != nil {
+				return err
+			}
+			if !info.Mode().IsRegular() {
+				return fmt.Errorf("preserved Case must be regular: %s", path)
+			}
+			if _, collision := files[entry.File]; collision {
+				return fmt.Errorf("selected Case collides with unselected file %s", entry.File)
+			}
+			files[entry.File], err = os.ReadFile(path)
+			if err != nil {
+				return err
+			}
+			preserved[entry.File] = info
+		}
+		if len(replacements) != 0 {
+			return errors.New("selected Case identity is absent from pinned publication")
+		}
+		files["manifest.json"], err = json.MarshalIndent(existing, "", "  ")
+		if err != nil {
+			return err
+		}
+		files["manifest.json"] = append(files["manifest.json"], '\n')
+		manifest, err = DecodeManifest(files["manifest.json"])
+		if err != nil {
+			return err
+		}
+		if err := validateCaseFiles(manifest, files); err != nil {
+			return err
+		}
+	}
 	temporary, err := os.MkdirTemp(parent, ".cases-*")
 	if err != nil {
 		return err
@@ -495,6 +585,15 @@ func SyncCases(directory string, files map[string][]byte, update bool) (result e
 	for _, name := range slices.Sorted(maps.Keys(files)) {
 		if err := os.WriteFile(filepath.Join(temporary, name), files[name], 0644); err != nil {
 			return err
+		}
+		if info, ok := preserved[name]; ok {
+			path := filepath.Join(temporary, name)
+			if err := os.Chmod(path, info.Mode().Perm()); err != nil {
+				return err
+			}
+			if err := os.Chtimes(path, info.ModTime(), info.ModTime()); err != nil {
+				return err
+			}
 		}
 	}
 	if err := os.Chmod(temporary, 0755); err != nil {

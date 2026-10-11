@@ -47,14 +47,37 @@ var kinds = map[string]kind{
 // sync narrows the complete tree to what the kind pins and checks or publishes the kind's
 // directory under root.
 func sync(root string, complete map[string][]byte, selected kind, update bool) error {
-	files := complete
 	if len(selected.pinned) != 0 {
-		var err error
-		if files, err = lower.SelectCases(complete, selected.pinned); err != nil {
+		manifest, err := lower.DecodeManifest(complete["manifest.json"])
+		if err != nil {
 			return err
 		}
+		models := map[string]bool{}
+		for _, entry := range manifest.Queries {
+			models[entry.Model] = true
+		}
+		pins := slices.DeleteFunc(slices.Clone(selected.pinned), func(pin lower.Selected) bool { return !models[pin.Model] })
+		if len(pins) == 0 {
+			return nil
+		}
+		return syncPins(root, complete, selected, pins, update)
 	}
-	return lower.SyncCases(filepath.Join(root, filepath.FromSlash(selected.directory)), files, update)
+	return lower.SyncCases(filepath.Join(root, filepath.FromSlash(selected.directory)), complete, update)
+}
+
+func syncPins(root string, complete map[string][]byte, selected kind, pins []lower.Selected, update bool) error {
+	if len(pins) == 0 {
+		return nil
+	}
+	files, err := lower.SelectCases(complete, pins)
+	if err != nil {
+		return err
+	}
+	directory := filepath.Join(root, filepath.FromSlash(selected.directory))
+	if len(pins) != len(selected.pinned) {
+		return lower.SyncSelectedCases(directory, files, update)
+	}
+	return lower.SyncCases(directory, files, update)
 }
 
 // requireTotals refuses each Query of the current IR under irDirectory that declares no static
@@ -99,18 +122,76 @@ func main() {
 		}
 		return
 	}
-	complete, err := lower.GenerateCases(scope)
+	root, pins, err := pinnedScope(scope, selected.pinned)
+	if err == nil && len(pins) == 0 {
+		return
+	}
+	var complete map[string][]byte
 	if err == nil {
+		complete, err = lower.GenerateCases(scope)
+	}
+	if err == nil {
+		if _, err = lower.SelectCases(complete, pins); err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
 		if err = requireTotals(scope); err != nil {
 			fmt.Fprintf(os.Stderr, "%v; every Query declares its total\n", err)
 			os.Exit(1)
 		}
-		err = sync(".", complete, selected, *update)
+		err = syncPins(root, complete, selected, pins, *update)
 	}
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s: %v; make %s publishes it\n", selected.directory, err, selected.target)
 		os.Exit(1)
 	}
+}
+
+func pinnedScope(scope string, pins []lower.Selected) (string, []lower.Selected, error) {
+	absolute, err := filepath.Abs(scope)
+	if err != nil {
+		return "", nil, err
+	}
+	physical, err := filepath.EvalSymlinks(absolute)
+	if err != nil {
+		return "", nil, err
+	}
+	info, err := os.Stat(physical)
+	if err != nil {
+		return "", nil, err
+	}
+	if !info.IsDir() {
+		return "", nil, errors.New("pinned Case input must be a feature folder")
+	}
+	for features := absolute; features != filepath.Dir(features); features = filepath.Dir(features) {
+		if !strings.HasSuffix(filepath.ToSlash(features), "/"+ir.FeatureDirectory) {
+			continue
+		}
+		resolved, err := filepath.EvalSymlinks(features)
+		if err != nil {
+			return "", nil, err
+		}
+		relative, err := filepath.Rel(resolved, physical)
+		if err != nil || relative == ".." || strings.HasPrefix(relative, ".."+string(filepath.Separator)) {
+			return "", nil, fmt.Errorf("feature scope escapes %s", features)
+		}
+		root := filepath.Dir(filepath.Dir(filepath.Dir(features)))
+		if relative == "." {
+			return root, pins, nil
+		}
+		for _, part := range strings.Split(relative, string(filepath.Separator)) {
+			if part == "generated" {
+				return "", nil, errors.New("pinned Case input must be a source feature folder, not generated output")
+			}
+		}
+		owner := strings.TrimSuffix(ir.ModelName(filepath.Join(absolute, "generated", "ir.json")), ".json")
+		selected := slices.DeleteFunc(slices.Clone(pins), func(pin lower.Selected) bool {
+			model := strings.TrimSuffix(pin.Model, ".json")
+			return model != owner && !strings.HasPrefix(model, owner+"-")
+		})
+		return root, selected, nil
+	}
+	return "", nil, fmt.Errorf("pinned Case input must be a feature scope under %s", ir.FeatureDirectory)
 }
 
 func modelCases(scope string, update bool) error {

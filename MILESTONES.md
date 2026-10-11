@@ -10,8 +10,9 @@ work under `model/` is iterated on and validated within `model/`. Everything els
 Testpilot and tooling change, regeneration, full gate, review and live run, is deferred until the owner
 lifts this, and will then be done in one sweep.
 
-Fn-166 is running on its own branch under the current completion request; its feature selection and mini
-Model are being validated separately. The remaining DSL batch below stays paused. The canonical
+The current goal is to complete the Open: Scala DSL work section (owner, 2026-10-11), using the
+conductor's recommendations for routine decisions. Fn-166 is first; its approved Go exceptions
+remain bounded, and the remaining Scala batch resumes after the proving ground. The canonical
 Make gate currently fails on owner-held linked protobuf generation and stale real-feature artifacts;
 compiled exports also differ from their historical IR inventories. The spec permits the direct
 Scala route, whose failures are recorded rather than counted as passes.
@@ -42,13 +43,14 @@ full gate, review and live run.
 
 ## Open: Scala DSL work
 
-**The remaining batch is paused at the owner's request; fn-166 is in progress.** The last completed
-batch task is fn-149.2; fn-149.6 has baseline evidence only and remains incomplete. After the proving
-ground, resume the batch at fn-149.6.
+**The Scala batch is active again at the owner's request; fn-166 is in progress.** The last integrated
+batch task is fn-149.2. Flow records fn-149.6/.7 done on `w-1d`, but their closure commits are not yet
+in this branch. After the proving ground, integrate and verify that existing work rather than repeat it,
+close the earlier source-integrated tasks and resume the remaining work in dependency order.
 
-On resumption, one worker on branch `w-1d` takes the work below in this order. Only `model/` is edited
+One task owner at a time takes the overlapping model work below from the integrated local tip. Only `model/` is edited
 (one exception, granted 2026-10-11: fn-166.1 moves each feature's IR and Cases into its own `generated/` tree and
-re-points the Go readers, since a per-feature gate run would otherwise rewrite every feature's Cases)
+re-points the Go readers, and safely scopes existing functional/canary pin publication, since a per-feature run would otherwise rewrite unselected Cases)
 and validated: Scala compile per step; the framework, Model, lifter and gate Scala tests per spec; and the step-table
 equivalence per spec (`make umpire-check-equivalence BASE=.flow/tmp/fn160/baseline-ae3f36ee51
 MAP=model/testdata/equivalence/batch-1d.map STEPS_ONLY=1`). Checked-in IR and Cases stay stale. The
@@ -109,7 +111,7 @@ with no persistent state; the default build is red while they are behind, until 
 `<query>.case.json`), discovered by glob, so the scope of a run is the folder and CODEOWNERS covers a feature with
 one line; the central `model/ir` and `model/cases` go away. Extra historical payloads stay losslessly under
 their owning feature's `generated/legacy/` until fn-160 merges them; pins and equivalence baselines stay unchanged
-(owner, 2026-10-11). That relocation is the spec's one Go change (fn-166.1). Restoring the canonical Make route (`make protoc`, owner-held) is
+(owner, 2026-10-11). The Go exception also covers the narrowly required subset-safe publication of existing functional/canary pins (fn-166.1), approved without changing pin identities or unselected artifacts. Restoring the canonical Make route (`make protoc`, owner-held) is
 the first thing to do and is not a task here. First in the batch. Not marked ready.
 [Spec](.flow/specs/fn-166-mini-activity-a-small-complete-model-to.md).
 
@@ -118,7 +120,7 @@ Lint checks and manual acceptance work are set aside for this run at the owner's
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-166.1 | 🔄 in progress | Seven review fixes verified: lifter 195, gate 111 and scoped Go tests pass; all 44 payloads and 340 manifest rows preserved; owner decision needed for subset-safe publication of global functional/canary pins (their Make targets still ignore FEATURES); re-review remains; held protobuf generation still blocks canonical/fresh real-feature Go validation |
+| fn-166.1 | 🔄 in progress | Seven review fixes verified: lifter 195, gate 111 and scoped Go tests pass; four pinned Make entrypoints and partial/no-pin publisher tests pass; all 44 payloads and 340 manifest rows preserved; final guards and re-review remain; held protobuf generation still blocks canonical/fresh real-feature Go validation |
 | fn-166.6 | ⬜ todo | Path-only move of Case manifests and payloads to `generated/cases/`, historical Cases to `generated/cases/legacy/`; after task 1, before realization and final loop proof |
 | fn-166.2 | ⬜ todo | Feature file and product level by subtraction: two facets, cross-facet guard, `Closable`/`Pollable`, a waiver, `verify` and `find` |
 | fn-166.3 | ⬜ todo | Protocol level: refinement, shared input, shared status fact, composition with `sync`, channel, failure model, fair progress, monitor, hole, `Retryable`/`Expirable` with an override |
@@ -314,15 +316,16 @@ shared gate/review/live proofs at fn-123.8; source results substitute for none o
 | Name | Status | What |
 | --- | --- | --- |
 | fn-149.3 | ⏸️ deferred (Go) | Reporting checkpoint integrated; focused classification, distinct bounds and safety/progress coexistence checks pass; full gates/review held |
-| fn-149.6 | ⏸️ paused | Source baseline captured and authenticated; grouping implementation unstarted and complete native predicate/inventory proof unfinished |
-| fn-149.7 | ⬜ todo | Scala author docs, executable layout and final committed grouping source seal; releases fn-164 |
+| fn-149.6 | ✅ Flow done; integration pending | Grouping implementation and source proof committed on `w-1d`; closure `82a13a81c0` is not yet integrated locally |
+| fn-149.7 | ✅ Flow done; integration pending | Docs/layout source seal committed on `w-1d`; closure `f029037ec1` is not yet integrated locally; integration releases fn-164 |
 | fn-149.4 | ⏸️ deferred (Go) | Original complete consumer behavior, Query/progress receipt, Case and expected/live-replay assessment proof; consumes .6 |
 | fn-149.5 | ⏸️ deferred | Consumer reporting docs and original integrated regeneration/gates/review/live closure; consumes .4/.7 at fn-123.8 |
 
-The owner cleared the autonomous goal before .6's implementation began. The worker is stopped with
-no source edits or live commands; .6 remains claimed and resumable, not complete. Its baseline-only
-handover is in w-1d `.flow/tmp/scala-dsl/fn149-6-summary.md` and `fn149-6-evidence.json`.
-.7 and later Scala tasks remain unstarted. Deferred .4 joins .1/.2/.3/.6; .5 joins .3/.4/.7.
+An earlier invocation stopped before .6 implementation, but a later `w-1d` invocation completed
+.6 and .7 with committed Flow receipts. Their source and closure commits remain outside the current
+branch and must be integrated with the fn-166 path/discovery changes before successor admission;
+the old baseline-only handover is not their final evidence. Later Scala tasks remain unstarted.
+Deferred .4 joins .1/.2/.3/.6; .5 joins .3/.4/.7.
 Heavy commands remain serialized. Composition progress belongs to fn-150, not this grouping change.
 
 ### fn-164: Expect blocks for Properties

@@ -643,16 +643,24 @@ umpire-check-lint:
 	@$(if $(MODEL_LINT_IR),mise exec -- go run ./tools/umpire/cmd/umpire-lint $(foreach file,$(MODEL_LINT_IR),$(call model_quote,$(file))),:)
 
 umpire-gen-fixtures:
-	@mise exec -- go run ./tools/umpire/cmd/umpire-gen-cases --kind functional --update
+	@for directory in $(foreach feature,$(MODEL_FEATURE_PATHS),$(call model_quote,$(feature))); do \
+		(cd "$$directory" && mise exec -- go run $(call model_quote,$(CURDIR)/tools/umpire/cmd/umpire-gen-cases) --kind functional --update) || exit $$?; \
+	 done
 
 umpire-check-fixtures:
-	@mise exec -- go run ./tools/umpire/cmd/umpire-gen-cases --kind functional
+	@for directory in $(foreach feature,$(MODEL_FEATURE_PATHS),$(call model_quote,$(feature))); do \
+		(cd "$$directory" && mise exec -- go run $(call model_quote,$(CURDIR)/tools/umpire/cmd/umpire-gen-cases) --kind functional) || exit $$?; \
+	 done
 
 canary-gen-case:
-	@mise exec -- go run ./tools/umpire/cmd/umpire-gen-cases --kind canary --update
+	@for directory in $(foreach feature,$(MODEL_FEATURE_PATHS),$(call model_quote,$(feature))); do \
+		(cd "$$directory" && mise exec -- go run $(call model_quote,$(CURDIR)/tools/umpire/cmd/umpire-gen-cases) --kind canary --update) || exit $$?; \
+	 done
 
 canary-check-case:
-	@mise exec -- go run ./tools/umpire/cmd/umpire-gen-cases --kind canary
+	@for directory in $(foreach feature,$(MODEL_FEATURE_PATHS),$(call model_quote,$(feature))); do \
+		(cd "$$directory" && mise exec -- go run $(call model_quote,$(CURDIR)/tools/umpire/cmd/umpire-gen-cases) --kind canary) || exit $$?; \
+	 done
 
 # The backend agreement: Quint reads the lifted IR and is held to Go's reading of it. The tests
 # pin their tools and fail when one is missing; the pins are in tools/umpire/export/tools_test.go.
