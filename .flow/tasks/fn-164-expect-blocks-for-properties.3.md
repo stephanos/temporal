@@ -17,6 +17,7 @@ Implement R4/R5's lifting and reusable predicate bridges after the runtime task.
 - Implement and lift ordinary function predicate bridges for never, stays.unless, sticky, stickyAcross and Monitor.readAfter, inline and named; retain S=>Boolean predicates for once/stays/from/leadsTo. Include generic Declares capabilities and composition fixtures, and reject wrong-level uses rather than treating a path claim as a Boolean.
 - Reuse exact owner-specific composed fact binding, retaining machine type checks and verifying selectors with shared state types/two same-named facts. No suffix matching or all-member widening.
 - Located refusals cover empty block/branch, insufficient alternatives, bare final Boolean, malformed statements, nested unsupported forms and wrong-level expressions. Preserve existing errors and source placement.
+- Consume fn-140.10's committed conditional/absent-fact witness receipts: preserve primary polarity, every ordered required/forbidden fact, selected member, state-condition helper and generated core declaration. Prove expectation bridges do not recreate private triples or weaken these clauses; use complete expression/parameter/type/metadata comparisons and explicit source-span maps, not operator-name or fact-substring checks.
 - Record the settled sugar contract for fn-141's later generic definition expansion; no permanent independent lowering implementation is exempt from that refactor.
 
 ### Investigation targets

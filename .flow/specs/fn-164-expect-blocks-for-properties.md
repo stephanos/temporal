@@ -98,6 +98,8 @@ The first runtime/API task proves requirement short-circuiting, explicit alterna
 
 ## Execution
 
+The fn-140 source foundation now includes primary `.records` or `.excludes`, ordered conditional `.recordsWhen` clauses and additional absent-fact guards. Consume their actual committed native/core/helper/source-span receipts at admission, not the older positive-only witness API. Preserve those witnesses and their generated ordinary Properties; expectation migration must not recreate deleted private triples, drop forbidden facts, merge same-spelled composed facts or normalize conditional helper bodies/parameters. The readable heartbeat/reset fixture proofs remain mandatory even when those production Queries have become witnesses.
+
 Consume the committed fn-140 witness source seal and fn-149 grouping source seal, then implement expectation runtime, lifting/bridges, foundation migration, feature migration and final surface/docs cleanup. The existing colon-style task depends on that final cleanup and completes the pre-fault meaning-preserving seal. fn-123 Scala fault work starts only after this seal is committed.
 
 No whole-spec dependency on fn-140 or fn-149 is added: their final tasks still wait for owner-deferred shared non-Scala closure. These committed source gates are explicit conductor admission requirements, not full-spec completion. fn-141 later consumes this settled expect surface and must lower its sugar through the generic definition-expansion contract. No publication is required for local source admission. Go, full gates, managed regeneration, independent review and live runs remain deferred.
