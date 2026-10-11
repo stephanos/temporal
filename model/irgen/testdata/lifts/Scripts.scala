@@ -195,7 +195,7 @@ val records: Realization = Realization(
                   Field[ActivityExecutionInfo, ActivityExecutionStatus](_.status),
                   Operand.enumValue(ActivityExecutionStatus.ACTIVITY_EXECUTION_STATUS_PAUSED)
                 ),
-                0
+                Some(Elapsed.milliseconds(0))
               )
             )
           ),

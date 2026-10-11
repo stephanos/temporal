@@ -216,7 +216,7 @@ object Restated extends Realizes(activityProtocol):
       )
   object serverSteps
       extends ServerSteps(
-        ServerStep(temporal.features.activity.deadline.scheduleToStart, CauseKind.timer, Some(temporal.realize.deadline))
+        ServerStep(temporal.features.activity.deadline.scheduleToStart, CauseKind.timer, Some(temporal.realize.timerDeadline))
       )
 
 private val stopped = fault(taskQueue, FaultKind.workerStop)

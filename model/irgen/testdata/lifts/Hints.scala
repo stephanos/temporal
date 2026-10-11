@@ -39,7 +39,7 @@ val keptBehavior: Realization = temporalRealization(
   evidence = Vector.empty,
   serverSteps = Vector(
     ServerStep(activityWorker.poll, CauseKind.delivery),
-    ServerStep(deadline.scheduleToStart, CauseKind.timer, Some(temporal.realize.deadline))
+    ServerStep(deadline.scheduleToStart, CauseKind.timer, Some(temporal.realize.timerDeadline))
   )
 )
 
