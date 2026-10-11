@@ -378,6 +378,68 @@ class WitnessFixtures extends munit.FunSuite:
     val distinct = model("capabilityAbsent", "fixture.witness.Capable$.capabilities", "fixture.witness.Capabilities$package$.capabilityAbsent")
     assertEquals(distinct.path("queries").size(), 2)
 
+  test("conditional and absent core twins preserve exact functions, helpers and authored spans"):
+    import io.temporal.server.api.umpire.v1 as ir
+    import ir.Expr.Kind as E
+    val source = Files.readAllLines(tools.directory.resolve(stored + "Witnesses.scala")).asScala
+    def line(name: String) = source.indexWhere(_.startsWith(s"val $name =")) + 1
+    def expr(n: Int, e: E) = ir.Expr(Some(ir.Position(stored + "Witnesses.scala", n)), e)
+    def variable(n: Int, name: String = "after") = expr(n, E.Var(name))
+    def field(n: Int, base: ir.Expr, name: String) = expr(n, E.Field(ir.FieldAccess(Some(base), name)))
+    def binary(n: Int, op: ir.Binary.Op, left: ir.Expr, right: ir.Expr) =
+      expr(n, E.Binary(ir.Binary(op, Some(left), Some(right))))
+    def not(n: Int, value: ir.Expr) = expr(n, E.Unary(ir.Unary(ir.Unary.Op.OP_NOT, Some(value))))
+    def contains(n: Int, factLine: Int, stateLine: Int, fact: String, member: Boolean) =
+      val value = if member then ir.Value(ir.Value.Kind.Text(fact))
+      else ir.Value(ir.Value.Kind.Enum(ir.EnumValue("fixture.witness.Note", fact)))
+      binary(n, ir.Binary.Op.OP_CONTAINS, expr(factLine, E.Literal(value)), field(stateLine, variable(stateLine), "facts"))
+    val closed = "fixture.witness.Witnesses$package$.closed"
+    def calls(n: Int, fn: String, state: ir.Expr) = expr(n, E.Call(ir.Call(fn, Seq(state))))
+    def state(n: Int) = field(n, variable(n), "state")
+    def function(name: String, position: Int, body: ir.Expr) =
+      ir.Function(name, Some(ir.Position(stored + "Witnesses.scala", position)), Seq(ir.Param("after", Some(ir.TypeRef().withNamed("framework.Step")))), body = Some(body))
+    for name <- Seq("conditional", "conditionalMember", "absent", "guarded", "absentMember") do
+      val sugar = scalapb.json4s.JsonFormat.fromJsonString[ir.Model](model(name, root(name)).toString)
+      val core = scalapb.json4s.JsonFormat.fromJsonString[ir.Model](model(name + "Core", root(name + "Core")).toString)
+      val member = name.endsWith("Member")
+      val holds = (if member then "together" else "subject") + ".property." + name
+      val s = line(name)
+      val declaration = line(name + "Property")
+      val c = declaration + (if name == "conditional" then 2 else 1)
+      val corePosition = if name == "conditional" then declaration + 1 else declaration
+      val primaryFact = if name == "absent" then "other" else if member then (if name == "absentMember" then "right_completed" else "left_completed") else "completed"
+      def body(sugarForm: Boolean): ir.Expr =
+        val anchor = if sugarForm then s else c
+        val primaryLine = if sugarForm && name == "conditional" then s + 2 else if sugarForm && name == "conditionalMember" then s + 2 else if sugarForm && name == "absentMember" then s + 1 else anchor
+        val primary = contains(anchor, primaryLine, anchor, primaryFact, member)
+        var result = if name.startsWith("absent") then not(anchor, primary) else primary
+        if name == "guarded" then
+          val guardLine = if sugarForm then s + 1 else c
+          result = binary(anchor, ir.Binary.Op.OP_AND, result, not(guardLine, contains(guardLine, guardLine, anchor, "other", false)))
+        if name.startsWith("conditional") || name == "guarded" then
+          val n = if sugarForm then s + (if name == "guarded" then 1 else 3) else c
+          val condition = if member && sugarForm then calls(n, holds + ".recordsWhen1", state(anchor))
+          else calls(n, closed, if member then field(n, state(n), "right") else state(if sugarForm then anchor else n))
+          val selected = if member then "right_other" else if name == "guarded" then "completed" else "other"
+          val factLine = if !sugarForm && name == "conditional" then c + 1 else n
+          val recorded = contains(n, factLine, anchor, selected, member)
+          result = binary(anchor, ir.Binary.Op.OP_AND, result, binary(n, ir.Binary.Op.OP_OR, not(n, condition), recorded))
+        if name == "conditional" || name == "absent" then
+          val n = if sugarForm then (if name == "conditional" then s + 4 else s) else (if name == "conditional" then c + 2 else c)
+          result = binary(anchor, ir.Binary.Op.OP_AND, result, calls(n, closed, state(if sugarForm then anchor else n)))
+        result
+      assertEquals(sugar.functions.find(_.name == holds).get, function(holds, s, body(true)), name)
+      assertEquals(core.functions.find(_.name == holds).get, function(holds, corePosition, body(false)), name + "Core")
+      val helpers = sugar.functions.filter(_.name.startsWith(holds + "."))
+      if name == "conditionalMember" then
+        val n = s + 3
+        val helper = ir.Function(holds + ".recordsWhen1", Some(ir.Position(stored + "Witnesses.scala", n)), Seq(ir.Param("s", Some(ir.TypeRef().withNamed("fixture.witness.Joined")))), body = Some(calls(n, closed, field(n, variable(n, "s"), "right"))))
+        assertEquals(helpers, Seq(helper))
+      else assertEquals(helpers, Seq.empty)
+      assertEquals(sugar.functions.filterNot(f => f.name == holds || f.name.startsWith(holds + ".")), core.functions.filterNot(_.name == holds), name + " shared exports")
+      assertEquals(sugar.queries.head.getLimits, core.queries.head.getLimits, name + " bounds")
+      assertEquals(sugar.scenarios.head.actions, core.scenarios.head.actions, name + " ordered path")
+
   test("witness source refusals retain the authored positions"):
     val authored =
       Files
@@ -2474,6 +2536,34 @@ class Fixtures extends munit.FunSuite:
     assertEquals(listed(out), Nil)
     assertEquals(
       refused(result),
+      Seq(
+        "lift: the roots of derivedtwins.json did not lift:",
+        s"lift: $at:32: Query anyLit is declared twice, and both would share one Definition ID"
+      )
+    )
+    val models = Seq("Lamp" -> "lampQueries", "PlainLamp" -> "plainLampQueries").map {
+      (machine, queries) =>
+        val isolated = scratch.resolve(s"derivedTwins-$machine.json")
+        val lifted = lift(
+          s"$jar=${stored("derivedTwins")},$modelJar=model/",
+          modelClasspath.toString,
+          isolated.toString,
+          s"fixture.features.derivedtwins.$machine$$.queries$$.$queries"
+        )
+        assertEquals(lifted.exit, 0, lifted.diagnostics)
+        val model = scalapb.json4s.JsonFormat.fromJsonString[io.temporal.server.api.umpire.v1.Model](
+          Files.readString(isolated)
+        )
+        assertEquals(model.queries.size, 1)
+        assertEquals(model.queries.head.name, "anyLit")
+        assertEquals(model.queries.head.getScenario.machine, s"${machine.head.toLower}${machine.tail}")
+        assertEquals(model.queries.head.getPosition.file, at)
+        assertEquals(model.queries.head.getPosition.line, 32)
+        isolated.toString -> model
+    }
+    assertEquals(models.map(_._2.queries.size), Seq(1, 1))
+    assertEquals(
+      derivedIdTwins(models).map(e => s"lift: ${e.position}: ${e.message}"),
       Seq(
         s"lift: $at:32: this declaration over plainLamp and the one over lamp derive the ID " +
           "fixture.features.derivedtwins.query.anyLit: name them apart, since an ID derived from a name is " +
@@ -4987,6 +5077,14 @@ class Fixtures extends munit.FunSuite:
       )
     )
     val jar = packaged("layout", tree, Seq("--server=false"))
+    val explicit = scratch.resolve("layout-explicit.json")
+    val direct = lift(
+      s"$jar=${stored("layout")},$modelJar=model/",
+      modelClasspath.toString,
+      explicit.toString,
+      "fixture.features.lamp.system.LampRealization$.system"
+    )
+    assertEquals(direct.exit, 0, direct.diagnostics)
     val out = scratch.resolve("layout-out")
     val result =
       liftIr(out, s"$jar=${stored("layout")},$modelJar=model/", "lamp")
@@ -5011,6 +5109,8 @@ class Fixtures extends munit.FunSuite:
     val realization = Option(parsed.get("realizations")).toSeq
       .flatMap(_.elements().asScala.toSeq)
     assertEquals(realization.size, 1)
+    val explicitModel = new com.fasterxml.jackson.databind.ObjectMapper().readTree(Files.readString(explicit))
+    assertEquals(parsed.path("realizations"), explicitModel.path("realizations"))
     assertEquals(
       realization.head.get("id").asText(),
       "fixture.features.lamp.system.LampRealization.system"
@@ -5020,6 +5120,29 @@ class Fixtures extends munit.FunSuite:
       realization.head.get("position").get("file").asText(),
       "model/irgen/testdata/layout/lamp/system/Realization.scala"
     )
+
+  concurrently("typed generic realization alone requests a file while unrelated values do not"):
+    val tree = materializeTree("coreDiscovery")
+    val jar = packaged("coreDiscovery", tree, Seq("--server=false"))
+    val out = scratch.resolve("coreDiscovery-out")
+    val result = liftIr(out, s"$jar=${stored("coreDiscovery")},$modelJar=model/")
+    assertEquals(result.exit, 0, result.diagnostics)
+    assertEquals(listed(out), Seq("coreonly.json"))
+    val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
+    val collected = mapper.readTree(Files.readString(out.resolve("coreonly.json")))
+    val explicit = scratch.resolve("coreDiscovery-explicit.json")
+    val direct = lift(
+      s"$jar=${stored("coreDiscovery")},$modelJar=model/",
+      modelClasspath.toString,
+      explicit.toString,
+      "fixture.foundations.coreonly.Runs$.only"
+    )
+    assertEquals(direct.exit, 0, direct.diagnostics)
+    val expected = mapper.readTree(Files.readString(explicit))
+    assertEquals(collected.path("realizations"), expected.path("realizations"))
+    assertEquals(collected.path("realizations").size(), 1)
+    assertEquals(collected.path("realizations").get(0).path("id").asText(), "fixture.foundations.coreonly.Runs.only")
+    assertEquals(collected.path("realizations").get(0).path("machine").asText(), "idle")
 
   concurrently(
     "kind scaffolds and their one or two forms lift with local or kind Products"

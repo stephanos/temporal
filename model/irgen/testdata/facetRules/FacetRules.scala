@@ -45,12 +45,13 @@ trait Smashing extends Facet[State, Said, Nothing], Phased[State, Lit]:
         when(Lit.off) ~> enters(Lit.broken)
       }
 
-trait DesignBreaking extends Facet[AdmissionState, Said, Nothing], Phased[AdmissionState, Lit]:
-  object breaking:
-    object rules extends Rules:
-      on(hand.press) {
-        when(Lit.off) ~> enters(Lit.on)
-      }
+object custom:
+  trait Breaking extends Facet[AdmissionState, Said, Nothing], Phased[AdmissionState, Lit]:
+    object breaking:
+      object rules extends Rules:
+        on(hand.press) {
+          when(Lit.off) ~> enters(Lit.on)
+        }
 
 object Agreeing
     extends Machine[State, Said, Nothing],
@@ -87,7 +88,7 @@ object Crossed
 object Design
     extends Machine[AdmissionState, Said, Nothing],
       Phased[AdmissionState, Lit](_.light, (s, p) => s.copy(light = p)),
-      DesignBreaking:
+      custom.Breaking:
   val init = AdmissionState(Lit.off)
   object refinement extends Refinement(Agreeing):
     def toProduct(s: AdmissionState) = State(s.light)
