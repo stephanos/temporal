@@ -65,7 +65,7 @@ class NexusOutcomePins extends munit.FunSuite:
         val matches = rules.filter(r =>
           r.decl == binding.decl && r.inputs.forall(_.equals(inputs)) && r.guard(
             state
-          ) // scalafix:ok DisableSyntax.==
+          )
         )
         assert(
           matches.sizeIs <= 1,
@@ -86,7 +86,7 @@ class NexusOutcomePins extends munit.FunSuite:
         None,
         s =>
           s.phase == Phase.succeeded || s.phase == Phase.failed || s.phase == Phase.canceled ||
-            s.phase == Phase.timedOut || s.phase == Phase.terminated, // scalafix:ok DisableSyntax.==
+            s.phase == Phase.timedOut || s.phase == Phase.terminated,
         "rejected(notFound)"
       )
     )
@@ -100,15 +100,14 @@ class NexusOutcomePins extends munit.FunSuite:
         s =>
           !s.cancelRequested &&
             (s.phase == Phase.succeeded || s.phase == Phase.failed || s.phase == Phase.canceled ||
-              s.phase == Phase.terminated), // scalafix:ok DisableSyntax.==
+              s.phase == Phase.terminated),
         "rejected(failedPrecondition)",
         "operation already completed"
       ),
       ExpectedRejection[standalone.protocol.State](
         standalone.client.terminate.decl,
         None,
-        s =>
-          s.phase == Phase.succeeded || s.phase == Phase.failed || s.phase == Phase.canceled, // scalafix:ok DisableSyntax.==
+        s => s.phase == Phase.succeeded || s.phase == Phase.failed || s.phase == Phase.canceled,
         "rejected(failedPrecondition)",
         "operation already completed"
       )
@@ -122,7 +121,7 @@ class NexusOutcomePins extends munit.FunSuite:
         None,
         s =>
           s.phase == Phase.succeeded || s.phase == Phase.failed || s.phase == Phase.canceled ||
-            s.phase == Phase.timedOut, // scalafix:ok DisableSyntax.==
+            s.phase == Phase.timedOut,
         "rejected(notFound)"
       )
     )

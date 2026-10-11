@@ -2,11 +2,10 @@ package temporal
 package features.activity
 package standalone
 package protocol
+
 import framework.*
 import framework.Finite.given
-import foundations.taskqueue.protocol.{
-  ForgetfulQueue,
-}
+import foundations.taskqueue.protocol.ForgetfulQueue
 
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 

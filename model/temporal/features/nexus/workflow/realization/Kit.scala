@@ -31,7 +31,6 @@ import io.temporal.api.enums.v1.{
 import io.temporal.api.nexus.v1.{HandlerError, StartOperationResponse}
 import temporal.actors.worker.worker
 
-
 // The declarations the Nexus caller realizations share.
 private object CallerDeclarations:
   // ### Evidence
@@ -284,4 +283,3 @@ private object CallerDeclarations:
         handler.reply(Reply.handlerError(false)) -> respondError
       )
     )
-

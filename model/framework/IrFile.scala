@@ -133,7 +133,9 @@ object IrFile:
     // machine, which the machine object roots already.
     def module(name: String): Option[AnyRef] =
       scala.util
-        .Try(java.lang.Class.forName(name, false, loader).getField("MODULE$").get(null)) // scalafix:ok DisableSyntax.null
+        .Try(
+          java.lang.Class.forName(name, false, loader).getField("MODULE$").get(null)
+        ) // scalafix:ok DisableSyntax.null
         .toOption
         .collect { case o: AnyRef => o }
     def machineOf(o: AnyRef): Option[Model] =
@@ -144,12 +146,12 @@ object IrFile:
     val roots = classes.toVector.flatMap: name =>
       val section = name.split('$').filter(_.nonEmpty)
       module(name).toVector.flatMap {
-        case m: Model                                          => Vector(name -> (m, false))
-        case c: Capabilities[?, ?, ?] if section.sizeIs == 2   => Vector(name -> (c, false))
+        case m: Model                                        => Vector(name -> (m, false))
+        case c: Capabilities[?, ?, ?] if section.sizeIs == 2 => Vector(name -> (c, false))
         case o if section.lastOption.contains("queries") && section.sizeIs == 2 =>
           Vector(name -> (o, true))
-        case o if machineOf(o).nonEmpty                        => Vector(name -> (o, true))
-        case _                                                 => Vector.empty
+        case o if machineOf(o).nonEmpty => Vector(name -> (o, true))
+        case _                          => Vector.empty
       }
     val files = roots
       .groupBy((name, _) => IrFile.featureOf(name.take(name.lastIndexOf('.'))))
@@ -180,9 +182,7 @@ object IrFile:
   // object's own, as `Refinement.declaredBy` finds a machine's refinement.
   private def queriesOf(section: AnyRef): Seq[Any] =
     section.getClass.getDeclaredMethods.toSeq
-      .filter(m => // format: off
-        m.getParameterCount == 0 && java.lang.reflect.Modifier.isPublic(m.getModifiers) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-      ) // format: on
+      .filter(m => m.getParameterCount == 0 && java.lang.reflect.Modifier.isPublic(m.getModifiers))
       .filter(m =>
         classOf[Query].isAssignableFrom(m.getReturnType) ||
           classOf[scala.collection.Seq[?]].isAssignableFrom(m.getReturnType)

@@ -13,7 +13,9 @@ import temporal.realize.inconclusive
 import actors.worker.worker as process
 
 trait Lifecycle extends Facet[State, Outcome, Fact], Phased[State, Phase]:
+
   object lifecycle:
+
     object effects:
       def terminate(s: State) = enter(s.copy(phase = Phase.terminated), Fact.statusTerminated)
 
@@ -38,7 +40,8 @@ trait Lifecycle extends Facet[State, Outcome, Fact], Phased[State, Phase]:
         reach = Seq(client.start(), process.stop),
         expect = inconclusive(
           Reason.explanationsDisagree,
-          because = "a terminate of an activity that is over is not found and records nothing, so the executions that explain a Run of the terminate find disagree"
+          because =
+            "a terminate of an activity that is over is not found and records nothing, so the executions that explain a Run of the terminate find disagree"
         )
       )
       // The status table is the realization's: what DescribeActivityExecution reports while each

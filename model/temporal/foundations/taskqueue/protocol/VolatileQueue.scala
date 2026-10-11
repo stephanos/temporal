@@ -1,6 +1,7 @@
 package temporal
 package foundations.taskqueue
 package protocol
+
 import framework.*
 import framework.Finite.given
 
@@ -8,7 +9,9 @@ import framework.Finite.given
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 
 object VolatileQueue
-    extends Derived(TaskQueueProtocol.rebind(fault.crash ~> TaskQueueProtocol.queueing.effects.volatileCrash)),
+    extends Derived(
+      TaskQueueProtocol.rebind(fault.crash ~> TaskQueueProtocol.queueing.effects.volatileCrash)
+    ),
       NegativeControl:
 
   object queries:

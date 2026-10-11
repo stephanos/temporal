@@ -1,6 +1,7 @@
 package temporal
 package foundations.taskqueue
 package product
+
 import framework.*
 import framework.Finite.given
 
@@ -11,7 +12,9 @@ object TaskQueueProductUnderStorageLoss
     extends Derived(
       TaskQueueProduct
         .extend(on(fault.storageLoss) {
-          where(TaskQueueProduct.states.holding) ~> TaskQueueProduct.queueing.effects.storageLossView
+          where(
+            TaskQueueProduct.states.holding
+          ) ~> TaskQueueProduct.queueing.effects.storageLossView
         })
         .assuming(storageLossAssumed)
     ),

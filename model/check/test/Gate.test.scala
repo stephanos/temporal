@@ -941,7 +941,7 @@ class GateSuite extends munit.FunSuite:
       subject.takeWhile(_ != '.'),
       Vector(subject),
       because
-    ) // scalafix:ok DisableSyntax.!=; strictEquality checks this native comparison
+    )
 
   test("the accepted findings file is read and written as umpire-lint writes it"):
     val ir = Tools.here.directory.resolve("model/ir")

@@ -59,9 +59,9 @@ object ActivityProduct
   override def end(s: State) = s.phase.in[Closed]
 
   object states:
-    def status(s: State) = s.phase // format: off
-    val paused = is(phase == Phase.paused) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-    // format: on
+    def status(s: State) = s.phase
+    val paused = is(phase == Phase.paused)
+
   // Each action's rules sit in the facet that owns it (fn-161), in this order. The worker process
   // stopping is not the product's: a client reads nothing of it, so the product binds no stop, and
   // the System keeps the stop as a step that changes nothing.
@@ -84,10 +84,10 @@ object ActivityProduct
     // its pause property keeps the former, narrower meaning of "running": started. The protocol
     // machine has enough state to use Pausable's role-derived Property directly.
     def pausedDoesNotStartAttempt(m: Declares[State]): Property[State] =
-      m.property // format: off
-        .never(s => s.state.phase == Phase.started) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-        .from(_.phase == Phase.paused) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-        // format: on
+      m.property
+        .never(s => s.state.phase == Phase.started)
+        .from(_.phase == Phase.paused)
+
   // The capabilities each facet declares for the actions it owns.
   object capabilities
       extends FacetCapabilities(

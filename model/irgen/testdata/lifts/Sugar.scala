@@ -34,9 +34,9 @@ type JobStep = Step[Job, Outcome, Fact]
 
 // enter: one step with the ok outcome, its facts listed.
 def startSugar(j: Job): List[JobStep] = // format: off
-  if j.phase == Phase.idle then enter(j.copy(phase = Phase.running), Fact.started) else disabled // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  if j.phase == Phase.idle then enter(j.copy(phase = Phase.running), Fact.started) else disabled
 def startCore(j: Job): List[JobStep] =
-  if j.phase == Phase.idle then // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  if j.phase == Phase.idle then
     List(Step(Outcome.accepted, j.copy(phase = Phase.running), List(Fact.started))) // format: on
   else Nil
 
@@ -81,9 +81,9 @@ def pokeCore(j: Job): List[JobStep] = List(Step(Outcome.accepted, j))
 
 // implies whose right side reaches a hole only where its left side holds.
 def retrySugar(j: Job): List[JobStep] = // format: off
-  if j.phase == Phase.done && j.retried implies retryUnknown.reached then stay(j) else disabled // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  if j.phase == Phase.done && j.retried implies retryUnknown.reached then stay(j) else disabled
 def retryCore(j: Job): List[JobStep] =
-  if !(j.phase == Phase.done && j.retried) || retryUnknown.reached then // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  if !(j.phase == Phase.done && j.retried) || retryUnknown.reached then
     List(Step(Outcome.accepted, j)) // format: on
   else Nil
 
@@ -126,10 +126,10 @@ val recordsSugar = Sugared.property when start holds (after => after.records(Fac
 val recordsCore = Cored.property when start holds (after => after.facts.contains(Fact.started))
 
 val impliesSugar = Sugared.property holds (after => // format: off
-  after.state.phase == Phase.done implies after.records(Fact.finished) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  after.state.phase == Phase.done implies after.records(Fact.finished)
 ) // format: on
 val impliesCore = Cored.property holds (after => // format: off
-  !(after.state.phase == Phase.done) || after.facts.contains(Fact.finished) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  !(after.state.phase == Phase.done) || after.facts.contains(Fact.finished)
 ) // format: on
 
 val pausedSugar = Sugared.property holdsAcross { (before, after) =>
@@ -155,7 +155,7 @@ val claims: Vector[Query] = Vector(
 // format: off
 // sticky and stickyAcross: a promise that once broken stays broken, each beside the monitor it stands
 // for, all four watching one machine.
-def neverRefused(after: JobStep): Boolean = after.outcome != Outcome.refused // scalafix:ok DisableSyntax.!=; strictEquality checks native comparisons
+def neverRefused(after: JobStep): Boolean = after.outcome != Outcome.refused
 def retriedStays(before: Job, after: JobStep): Boolean = !before.retried || after.state.retried // format: on
 
 val refusedOnce = sticky(neverRefused)
@@ -170,7 +170,7 @@ val retriedLostSpelled = monitor[Job, Outcome, Fact, Boolean](false)((broken, be
 
 object Watched extends Machine[Job, Outcome, Fact]:
   val init = Job(Phase.idle, false) // format: off
-  def end(j: State) = j.phase == Phase.done // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  def end(j: State) = j.phase == Phase.done
   // format: on
   object monitors:
     val refused = refusedOnce

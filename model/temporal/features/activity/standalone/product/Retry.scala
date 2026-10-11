@@ -8,7 +8,9 @@ import framework.*
 import framework.outcomes.{Outcome, Rejection}
 
 trait Retry extends Facet[State, Outcome, Fact], Phased[State, Phase]:
+
   object retry:
+
     object effects:
       val retryScheduled = choice
       val retryExhausted = choice

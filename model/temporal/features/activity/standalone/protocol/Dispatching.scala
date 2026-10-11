@@ -17,9 +17,10 @@ val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Out
 
 trait Dispatching extends Facet[State, Outcome, Fact], Phased[State, Phase]:
   this: Completion =>
+
   object dispatching:
+
     object effects:
-      // format: off
       // The start creates the activity, with the deadlines its inputs set.
       def schedule(
           @unused s: State,
@@ -33,7 +34,7 @@ trait Dispatching extends Facet[State, Outcome, Fact], Phased[State, Phase]:
         enter(
           protocol.State(
             phase = Phase.scheduled,
-            dispatch = if startDelay == Timeout.expires then Dispatch.startDelay else Dispatch.now, // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+            dispatch = if startDelay == Timeout.expires then Dispatch.startDelay else Dispatch.now,
             attempts = UpTo(0),
             scheduleToClose = scheduleToClose,
             scheduleToStart = scheduleToStart,
@@ -43,11 +44,13 @@ trait Dispatching extends Facet[State, Outcome, Fact], Phased[State, Phase]:
           ),
           Fact.statusScheduled
         )
-      // format: on
       // This independent counter advances on delivery; Describe counts an attempt from scheduling.
       def startAttempt(s: State) =
         enter(
-          s.copy(phase = Phase.started, attempts = ActivityProtocol.states.saturatingSucc(s.attempts)),
+          s.copy(
+            phase = Phase.started,
+            attempts = ActivityProtocol.states.saturatingSucc(s.attempts)
+          ),
           Fact.statusStarted,
           Fact.attemptCount
         )
@@ -60,29 +63,27 @@ trait Dispatching extends Facet[State, Outcome, Fact], Phased[State, Phase]:
       on(client.start) {
         when(Phase.unstarted) ~> effects.schedule
       }
-      // format: off
       on(activityWorker.poll) {
-        when(Phase.scheduled).where(_.dispatch == Dispatch.now) ~> effects.startAttempt // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+        when(Phase.scheduled).where(_.dispatch == Dispatch.now) ~> effects.startAttempt
       }
       on(timers.startDelay) {
-        when[Live].where(_.dispatch == Dispatch.startDelay) ~> effects.dispatchNow // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+        when[Live].where(_.dispatch == Dispatch.startDelay) ~> effects.dispatchNow
       }
       on(timers.backoff) {
-        when[Live].where(_.dispatch == Dispatch.backoff) ~> effects.dispatchNow // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+        when[Live].where(_.dispatch == Dispatch.backoff) ~> effects.dispatchNow
       }
-      // format: on
 
     object properties:
       // A dispatch delay remains pending across pause/unpause (model.go:239-244,355-376).
-      val dispatchRequiresReady = property.holdsAcross { (before, after) => // format: off
-        (before.phase == Phase.scheduled && after.records(Fact.statusStarted)) implies // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-          (before.dispatch == Dispatch.now) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-      } // format: on
+      val dispatchRequiresReady = property.holdsAcross { (before, after) =>
+        (before.phase == Phase.scheduled && after.records(Fact.statusStarted)) implies
+          (before.dispatch == Dispatch.now)
+      }
 
       // Schedule-to-start counts from dispatch, after either delay (model.go:312-322).
       val scheduleToStartRequiresDispatch = property.holdsAcross { (before, after) =>
         after.records(Fact.statusTimedOut(TimeoutType.scheduleToStart)) implies
-          (before.phase == Phase.scheduled && before.dispatch == Dispatch.now) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+          (before.phase == Phase.scheduled && before.dispatch == Dispatch.now)
       }
 
     object queries:

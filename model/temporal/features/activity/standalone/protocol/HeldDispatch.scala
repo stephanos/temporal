@@ -34,7 +34,8 @@ val failedThenLost = choice
 
 object HeldDispatch
     extends Machine[AdmissionState, Outcome, AdmissionFact],
-      Phased[AdmissionState, AdmissionPhase](_.phase), HeldAdmission:
+      Phased[AdmissionState, AdmissionPhase](_.phase),
+      HeldAdmission:
   val init = ActivityRecord.init
   override def end(s: State) = ActivityRecord.end(s)
   val evidence: PartialFunction[AdmissionFact, String] = { case AdmissionFact.statusTimedOut(_) =>
@@ -58,7 +59,10 @@ object HeldDispatch
     // Admission met the stale message and rejected it: the record is Fenced
     // (temporal.capabilities.system).
     val staleDeliveryRejected =
-      Fenced.staleDeliveryRejected(HeldDispatch)(activityWorker.poll, AdmissionFact.admissionRejected)
+      Fenced.staleDeliveryRejected(HeldDispatch)(
+        activityWorker.poll,
+        AdmissionFact.admissionRejected
+      )
 
   // The held race, as a server's Run is checked.
   object queries:
@@ -81,7 +85,8 @@ object HeldDispatch
               ActivityRecord.monitors.atMostOneActiveAttempt,
               PropertyOutcome.inconclusive,
               Some(Reason.neverEvaluated),
-              because = "the held race admits no attempt, and the monitor is read only after a step that admits one"
+              because =
+                "the held race admits no attempt, and the monitor is read only after a step that admits one"
             ),
             MonitorExpectation(
               ActivityRecord.monitors.terminalFinality,

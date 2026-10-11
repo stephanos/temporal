@@ -17,7 +17,9 @@ val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Out
 
 trait Heartbeat extends Facet[State, Outcome, Fact], Phased[State, Phase]:
   this: Completion =>
+
   object heartbeat:
+
     object effects:
       def heartbeat(s: State) = enter(s, Fact.heartbeatReceived)
       def heartbeatBackOff(s: State) =
@@ -73,10 +75,10 @@ trait Heartbeat extends Facet[State, Outcome, Fact], Phased[State, Phase]:
     object properties:
       val heartbeatExhausts = property.when(deadline.heartbeat) holds (after =>
         after.records(Fact.heartbeatTimedOut) &&
-          (ActivityProtocol.states.retriesRemaining(after.state) || // format: off
-            (after.state.phase == Phase.timedOut && after.records( // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+          (ActivityProtocol.states.retriesRemaining(after.state) ||
+            (after.state.phase == Phase.timedOut && after.records(
               Fact.statusTimedOut(TimeoutType.heartbeat)
-            ))) // format: on
+            )))
       )
 
     // A pending reset applies as the heartbeat deadline ends the held attempt, before its

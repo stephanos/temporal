@@ -60,9 +60,7 @@ private[irgen] object Roles:
     val conflicts = roled.flatMap: (phase, roles) =>
       exclusive.collectFirst:
         case (group, rule) if group.count(roles.contains) > 1 =>
-          val declared = roles.filterNot(r =>
-            roles.exists(o => o != r && bases(o).contains(r))
-          ) // scalafix:ok DisableSyntax.!=; typed equality
+          val declared = roles.filterNot(r => roles.exists(o => o != r && bases(o).contains(r)))
           Conflict(phase, declared, group.filter(roles.contains), rule)
     Closure(holding.toMap, conflicts)
 
@@ -105,7 +103,7 @@ private[irgen] trait PhaseRoles:
   def checkRoles(e: Symbol, at: Tree): Unit =
     for c <- closureOf(e).conflicts.headOption do
       val tree = e.children
-        .find(_.name == c.phase) // scalafix:ok DisableSyntax.==; typed equality
+        .find(_.name == c.phase)
         .flatMap(s => scala.util.Try(s.tree).toOption)
         .getOrElse(at)
       fail(
@@ -147,9 +145,7 @@ private[irgen] trait PhaseRoles:
         s"no case of ${e.fullName} is ${r.name}, so the test never holds: give the role to the " +
           s"phases it names, `case p extends ${e.name}, ${r.name}`, or test another role"
       )
-    val cases = names.toList.map(n =>
-      e.children.find(_.name == n).get
-    ) // scalafix:ok DisableSyntax.==; typed equality
+    val cases = names.toList.map(n => e.children.find(_.name == n).get)
     // A case with fields is no one value, so its literal is no member of the set.
     for c <- cases.find(_.isClassDef) do
       fail(

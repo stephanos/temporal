@@ -83,7 +83,7 @@ object ExpirableFixture:
 
     object rules extends Rules
     def remaining(s: RetryState): Boolean =
-      s.phase == RetryPhase.active // scalafix:ok DisableSyntax.==
+      s.phase == RetryPhase.active
     val deadline = Expirable[RetryState, RetryPhase, Held, ExpirableFixture.Fact](
       expired,
       _ => true,
@@ -119,7 +119,7 @@ class CapabilityExpirableSuite extends munit.FunSuite:
     for before <- states; after <- states do
       assertEquals(
         holds(before, Step(Answer.accepted, after)),
-        before.phase == Phase.active && before.armed && before.ready, // scalafix:ok DisableSyntax.==
+        before.phase == Phase.active && before.armed && before.ready,
         s"before=$before after=$after"
       )
 
@@ -154,18 +154,15 @@ class CapabilityExpirableSuite extends munit.FunSuite:
         facts <- Nil +: Finite[Fact].values.map(List(_))
       do
         val expected =
-          // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
-          if !retryable || before.cancel || before.attempts == 1 then
-            // scalafix:on DisableSyntax.==
-            Phase.timedOut
+          if !retryable || before.cancel || before.attempts == 1 then Phase.timedOut
           else if before.pause then Phase.paused
           else Phase.waiting
         val validFacts =
-          if expected == Phase.timedOut then facts.contains(timeout) // scalafix:ok DisableSyntax.==
+          if expected == Phase.timedOut then facts.contains(timeout)
           else !timeoutFacts.exists(facts.contains)
         assertEquals(
           properties.map(transition).forall(_(before, Step(Answer.accepted, after, facts))),
-          after.phase == expected && validFacts, // scalafix:ok DisableSyntax.==
+          after.phase == expected && validFacts,
           s"retryable=$retryable before=$before after=$after facts=$facts expected=$expected"
         )
 
@@ -180,7 +177,7 @@ class CapabilityExpirableSuite extends munit.FunSuite:
     for before <- Finite[RetryState].values; after <- Finite[RetryState].values do
       assertEquals(
         holds(before, Step(Answer.accepted, after)),
-        before.phase != RetryPhase.active || after.phase == RetryPhase.waiting // scalafix:ok DisableSyntax.==, DisableSyntax.!=
+        before.phase != RetryPhase.active || after.phase == RetryPhase.waiting
       )
 
   test("constructor rejects incomplete duplicate mixed and unbound timeout families and controls"):

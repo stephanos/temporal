@@ -53,9 +53,9 @@ object Blocked extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
   override def end(s: State) = states.over(s)
 
   object states: // format: off
-    val paused = is(phase == Phase.paused) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    val paused = is(phase == Phase.paused)
     val busy = is(phase.in(Phase.running, Phase.paused))
-    val over = is(phase == Phase.done && !retried) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    val over = is(phase == Phase.done && !retried)
     // format: on
   object effects:
     val start = effect {
@@ -101,9 +101,9 @@ object Defined extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
   override def end(s: State) = states.over(s)
 
   object states: // format: off
-    def paused(s: Job) = s.phase == Phase.paused // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    def paused(s: Job) = s.phase == Phase.paused
     def busy(s: Job) = s.phase.in(Phase.running, Phase.paused)
-    def over(s: Job) = s.phase == Phase.done && !s.retried // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    def over(s: Job) = s.phase == Phase.done && !s.retried
     // format: on
   object effects:
     def start(s: Job) = enter(s.copy(phase = Phase.running), Fact.started)

@@ -15,10 +15,12 @@ val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Out
 // The opaque provider.
 object TaskQueueProduct
     extends Machine[QueueView, QueueOutcome, QueueFact],
-      Phased[QueueView, Outstanding](_.outstanding), Queueing:
-  val init = QueueView(Outstanding.empty) // format: off
-  override def end(q: State) = q.outstanding == Outstanding.empty // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-  object states: // format: on
+      Phased[QueueView, Outstanding](_.outstanding),
+      Queueing:
+  val init = QueueView(Outstanding.empty)
+  override def end(q: State) = q.outstanding == Outstanding.empty
+
+  object states:
     // A message is outstanding: committed, and not yet acknowledged.
     def holding(s: State) =
       s.outstanding.in(Outstanding.committed, Outstanding.deliveredOnce, Outstanding.deliveredTwice)

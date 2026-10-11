@@ -11,9 +11,7 @@ import temporal.features.activity.standalone.{
   product,
   protocol
 }
-import temporal.features.activity.standalone.protocol.{
-  ActivityProtocol,
-}
+import temporal.features.activity.standalone.protocol.ActivityProtocol
 import framework.outcomes.{Outcome, Rejection}
 
 class ActivityByIDRegression extends munit.FunSuite:
@@ -22,7 +20,7 @@ class ActivityByIDRegression extends munit.FunSuite:
     val answers =
       ActivityProtocol.bindings.filter(
         _.decl.actor.name == "completionClient"
-      ) // scalafix:ok DisableSyntax.==
+      )
     assertEquals(
       answers.map(_.decl),
       List(
@@ -45,12 +43,18 @@ class ActivityByIDRegression extends munit.FunSuite:
     assertNotEquals(completionClient.respondCanceledByID.decl, activityWorker.respondCanceled.decl)
   }
 
-  private def take(s: protocol.State, action: ClassRef): Step[protocol.State, Outcome, protocol.Fact] =
+  private def take(
+      s: protocol.State,
+      action: ClassRef
+  ): Step[protocol.State, Outcome, protocol.Fact] =
     val c = action match
       case c: Class              => c
       case a: Action[EmptyTuple] => a()
-    val binding = ActivityProtocol.bindings.find(_.decl == c.decl).get // scalafix:ok DisableSyntax.==
-    effectOf[protocol.State, Outcome, protocol.Fact](binding.decl, binding.function)(s, c.values).head
+    val binding = ActivityProtocol.bindings.find(_.decl == c.decl).get
+    effectOf[protocol.State, Outcome, protocol.Fact](binding.decl, binding.function)(
+      s,
+      c.values
+    ).head
 
   test("every completion client result is carried by Product without hiding a public status") {
     val classes = List(
@@ -68,7 +72,7 @@ class ActivityByIDRegression extends munit.FunSuite:
       val source = ActivityProtocol.refinement.toProduct(before)
       val target = ActivityProtocol.refinement.toProduct(after.state)
       val binding =
-        product.ActivityProduct.bindings.find(_.decl == c.decl).get // scalafix:ok DisableSyntax.==
+        product.ActivityProduct.bindings.find(_.decl == c.decl).get
       val carriers = effectOf[product.State, Outcome, product.Fact](binding.decl, binding.function)(
         source,
         c.values
@@ -79,12 +83,12 @@ class ActivityByIDRegression extends munit.FunSuite:
             _.toString
           ) == visible
         ) ||
-          (before.phase == protocol.Phase.unstarted && source == target && visible.isEmpty), // scalafix:ok DisableSyntax.==
+          (before.phase == protocol.Phase.unstarted && source == target && visible.isEmpty),
         s"completion client refinement $before -> $after"
       )
       // A failure answer applies a pending reset, which restarts the count; nothing else moves it.
       val restarts = ActivityProtocol.states.pendingReset(before) &&
-        c.decl == completionClient.respondFailedByID.decl // scalafix:ok DisableSyntax.==
+        c.decl == completionClient.respondFailedByID.decl
       assertEquals(after.state.attempts: Int, if restarts then 0 else before.attempts)
       assertEquals(after.state.scheduleToClose, before.scheduleToClose)
       assertEquals(after.state.scheduleToStart, before.scheduleToStart)
@@ -96,7 +100,7 @@ class ActivityByIDRegression extends munit.FunSuite:
   test("cancellation without held work settles before any by-ID disposition") {
     for
       before <- summon[Finite[protocol.State]].values
-      if before.phase == protocol.Phase.scheduled || before.phase == protocol.Phase.paused // scalafix:ok DisableSyntax.==
+      if before.phase == protocol.Phase.scheduled || before.phase == protocol.Phase.paused
     do
       val after = take(before, client.requestCancel)
       assertEquals(after.state, before.copy(phase = protocol.Phase.canceled))
@@ -104,7 +108,7 @@ class ActivityByIDRegression extends munit.FunSuite:
       assertEquals(after.outcome, Outcome.accepted)
       val binding = product.ActivityProduct.bindings
         .find(_.decl == client.requestCancel.decl)
-        .get // scalafix:ok DisableSyntax.==
+        .get
       val carriers = effectOf[product.State, Outcome, product.Fact](binding.decl, binding.function)(
         ActivityProtocol.refinement.toProduct(before),
         Nil
@@ -131,11 +135,16 @@ class ActivityByIDRegression extends munit.FunSuite:
     assert(query.property.when.contains(client.requestCancel))
     assertEquals(query.scenario.machine, ActivityProtocol)
     assertEquals(query.form, QueryForm.find)
-    assertEquals(query.scenario.actions, ActivityProtocol.cancellation.queries.heldCanceledByID.scenario.actions)
+    assertEquals(
+      query.scenario.actions,
+      ActivityProtocol.cancellation.queries.heldCanceledByID.scenario.actions
+    )
     assertEquals(query.total, Some(22464L))
     assertEquals(
       query.expectedRun.map(_.copy(because = "")),
-      Some(temporal.realize.inconclusive(framework.realize.Reason.explanationsDisagree, because = ""))
+      Some(
+        temporal.realize.inconclusive(framework.realize.Reason.explanationsDisagree, because = "")
+      )
     )
     val held = take(take(ActivityProtocol.init, client.start()).state, activityWorker.poll).state
     val requested = take(held, client.requestCancel)
@@ -191,7 +200,9 @@ class ActivityByIDRegression extends munit.FunSuite:
       assertEquals(query.total, Some(5616L * actions.size))
       assertEquals(
         query.expectedRun.map(_.copy(because = "")),
-        Some(temporal.realize.inconclusive(framework.realize.Reason.explanationsDisagree, because = ""))
+        Some(
+          temporal.realize.inconclusive(framework.realize.Reason.explanationsDisagree, because = "")
+        )
       )
       val before = actions.init.foldLeft(ActivityProtocol.init)((s, a) => take(s, a).state)
       val after = take(before, actions.last)

@@ -4,6 +4,7 @@ package temporal
 package features.nexus
 package standalone
 package protocol
+
 import scala.annotation.unused
 import framework.*
 import temporal.capabilities.system.*
@@ -14,7 +15,9 @@ import temporal.capabilities.product.*
 import temporal.realize.inconclusive
 
 trait Operation extends Facet[State, Outcome, Fact], Phased[State, Phase]:
+
   object operation:
+
     object effects:
       import Fact.*
 
@@ -31,9 +34,10 @@ trait Operation extends Facet[State, Outcome, Fact], Phased[State, Phase]:
       // An async operation's completion; a canceled failure settles it canceled.
       def complete(s: State, r: Resolution) =
         r match
-          case Resolution.succeeded => enter(s.copy(phase = Phase.succeeded), nexusOperationCompleted)
-          case Resolution.failed    => enter(s.copy(phase = Phase.failed), nexusOperationFailed)
-          case Resolution.canceled  => enter(s.copy(phase = Phase.canceled), nexusOperationCanceled)
+          case Resolution.succeeded =>
+            enter(s.copy(phase = Phase.succeeded), nexusOperationCompleted)
+          case Resolution.failed   => enter(s.copy(phase = Phase.failed), nexusOperationFailed)
+          case Resolution.canceled => enter(s.copy(phase = Phase.canceled), nexusOperationCanceled)
 
       // RequestCancel records the request and leaves the operation live: it is sent to the handler
       // only once started (operation.go RequestCancel).
@@ -84,7 +88,6 @@ trait Operation extends Facet[State, Outcome, Fact], Phased[State, Phase]:
         when(Phase.scheduled, Phase.started) ~> effects.terminate
       }
 
-    // format: off
     // What the operation is, as the Properties in model/temporal/capabilities read it: it closes, a client
     // terminates it, and DescribeNexusOperationExecution reports its status.
     // It receives the Properties without listing them, each named `nexusProtocol.<property>`. It reads the
@@ -107,13 +110,18 @@ trait Operation extends Facet[State, Outcome, Fact], Phased[State, Phase]:
         reach = Seq(client.start),
         expect = inconclusive(
           Reason.explanationsDisagree,
-          because = "a control of a closed operation is answered and records nothing, so a Run explains an unobserved one too, and the executions that explain it disagree"
+          because =
+            "a control of a closed operation is answered and records nothing, so a Run explains an unobserved one too, and the executions that explain it disagree"
         )
       )
       // The status table is the realization's; the one Protocol read of the realization layer (an
       // open layering question, fn-160 R9).
       val describable: Capability = Describable(statusTable = realization.operationStatus)
       overriding(
-        Closable.closedIsRejectedUniformly[State, Phase, Outcome] -> NexusProtocol.properties.closedRejectsOrRepeats,
+        Closable.closedIsRejectedUniformly[
+          State,
+          Phase,
+          Outcome
+        ] -> NexusProtocol.properties.closedRejectsOrRepeats,
         because = Idempotent.repeatedRequestsAnswer
       )

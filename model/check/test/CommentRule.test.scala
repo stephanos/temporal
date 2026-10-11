@@ -62,7 +62,7 @@ class CommentRuleSuite extends munit.FunSuite:
     assertEquals(
       printed.linesIterator
         .map(_.takeWhile(_ != ' '))
-        .toVector, // scalafix:ok DisableSyntax.!=; strictEquality checks this native comparison
+        .toVector,
       Vector("model/framework/Machine.scala:3:", "model/irgen/testdata/lifts/Fixture.scala:1:")
     )
     assert(printed.contains("comment rule: write the comment as // lines"), printed)

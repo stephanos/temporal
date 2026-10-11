@@ -8,7 +8,9 @@ import framework.*
 import framework.outcomes.{Outcome, Rejection}
 
 trait Reset extends Facet[State, Outcome, Fact], Phased[State, Phase]:
+
   object reset:
+
     object effects:
       val resetPending = choice
       val resetPausePending = choice

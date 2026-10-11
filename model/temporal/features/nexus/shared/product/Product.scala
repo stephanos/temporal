@@ -36,7 +36,8 @@ enum Fact derives Finite:
 
 object NexusProduct
     extends Machine[State, Outcome, Fact],
-      Phased[State, Phase](_.phase, (s, p) => s.copy(phase = p)), Operation:
+      Phased[State, Phase](_.phase, (s, p) => s.copy(phase = p)),
+      Operation:
   val init = product.State(Phase.scheduled)
   override def end(s: State) = s.phase.in[Closed]
 

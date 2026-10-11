@@ -33,7 +33,7 @@ def evidenceOf(f: Fact): String = f match
 // The opaque provider: all its clients may rely on.
 object Store extends Machine[StoreState, Outcome, Fact]:
   val init = StoreState(Kept.nothing) // format: off
-  def end(s: State) = s.kept == Kept.held // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  def end(s: State) = s.kept == Kept.held
   val evidence: Fact => String = evidenceOf // format: on
 
   object monitors:
@@ -42,7 +42,7 @@ object Store extends Machine[StoreState, Outcome, Fact]:
   object rules
       extends Bindings(
         put ~> (s => // format: off
-          if s.kept == Kept.nothing then // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+          if s.kept == Kept.nothing then
             List(Step(Outcome.accepted, StoreState(Kept.held), List(Fact.stored))) // format: on
           else Nil
         )
@@ -64,7 +64,7 @@ def flushStep(d: DiskState): List[Step[DiskState, Outcome, Fact]] = d.stage matc
 
 // What a crash does to staged data is left unknown; elsewhere a crash is disabled.
 def crashStep(d: DiskState): List[Step[DiskState, Outcome, Fact]] = // format: off
-  if d.stage == Stage.staged then crashUnmodeled.reached else Nil // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  if d.stage == Stage.staged then crashUnmodeled.reached else Nil
   // format: on
 enum Seen derives Finite:
   case never, once, twice
@@ -77,30 +77,30 @@ def countStored(seen: Seen, before: DiskState, after: Step[DiskState, Outcome, F
       case Seen.once | Seen.twice => Seen.twice
 
 val storedOnce: Monitor[DiskState, Outcome, Fact, Seen] = // format: off
-  monitor[DiskState, Outcome, Fact, Seen](Seen.never)(countStored)(seen => seen == Seen.twice) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  monitor[DiskState, Outcome, Fact, Seen](Seen.never)(countStored)(seen => seen == Seen.twice)
   // format: on
 val endsDurable: Monitor[DiskState, Outcome, Fact, Boolean] =
   monitor[DiskState, Outcome, Fact, Boolean](false)((_, _, after) =>
-    after.state.stage == Stage.durable // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    after.state.stage == Stage.durable
   )(durable => !durable).readAtEnds
 
 val stagedBeforeDurable: Monitor[DiskState, Outcome, Fact, Boolean] =
   monitor[DiskState, Outcome, Fact, Boolean](false)((seen, _, after) =>
     seen || after.facts.contains(Fact.staged) // format: off
-  )(seen => !seen).readAfter(after => after.state.stage == Stage.durable) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  )(seen => !seen).readAfter(after => after.state.stage == Stage.durable)
   // format: on
 // The detailed provider.
 object Disk extends Machine[DiskState, Outcome, Fact], FailureModel:
   val init = DiskState(Stage.empty) // format: off
-  def end(d: State) = d.stage != Stage.staged // scalafix:ok DisableSyntax.!=; strictEquality checks native comparisons
+  def end(d: State) = d.stage != Stage.staged
   val evidence: Fact => String = evidenceOf // format: on
 
   // What the store sees of a disk: whether it holds anything.
   object refinement extends Refinement(Store):
     def toProduct(d: DiskState): StoreState = // format: off
-      if d.stage == Stage.empty then StoreState(Kept.nothing) else StoreState(Kept.held) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-    val visible = (f: Fact) => f == Fact.stored // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-    val visibleOutcomes = (o: Outcome) => o == Outcome.accepted // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      if d.stage == Stage.empty then StoreState(Kept.nothing) else StoreState(Kept.held)
+    val visible = (f: Fact) => f == Fact.stored
+    val visibleOutcomes = (o: Outcome) => o == Outcome.accepted
       // format: on
   object monitors:
     val once = storedOnce
@@ -111,8 +111,8 @@ object Disk extends Machine[DiskState, Outcome, Fact], FailureModel:
 
 val durableEventually: Progress[DiskState] =
   Disk.leadsTo("durableEventually")( // format: off
-    d => d.stage == Stage.staged, // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-    d => d.stage == Stage.durable, // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    d => d.stage == Stage.staged,
+    d => d.stage == Stage.durable,
     within = 2, // format: on
     flushRuns
   )
@@ -122,29 +122,29 @@ final case class PairState(front: StoreState, back: StoreState)
 final case class DetailedPairState(front: StoreState, back: DiskState)
 
 object Pair extends Composition[PairState](_.front -> Store, _.back -> Store): // format: off
-  def end(p: State) = p.front.kept == p.back.kept // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  def end(p: State) = p.front.kept == p.back.kept
   object syncs extends Syncs: // format: on
     sync("putBoth", _.front -> put, _.back -> put)
 
 object DetailedPair
     extends Composition[DetailedPairState](_.front -> Store, _.back -> Disk),
       FailureModel: // format: off
-  def end(p: State) = p.front.kept == Kept.held // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  def end(p: State) = p.front.kept == Kept.held
   object syncs extends Syncs: // format: on
     sync("putBoth", _.front -> put, _.back -> put)
     replaces(_.back, Store)
 
 val durableStays: Property[DiskState] = Disk.property holdsAcross { (before, after) =>
-  before.stage != Stage.durable || after.state.stage == Stage.durable // scalafix:ok DisableSyntax.==, DisableSyntax.!=; strictEquality checks native comparisons
+  before.stage != Stage.durable || after.state.stage == Stage.durable
 }
 val putStores: Property[StoreState] =
   Store.property when put holds (after => after.facts.contains(Fact.stored))
 val putAccepted: Property[DiskState] = // format: off
-  Disk.property.whenAction("put") holds (after => after.outcome == Outcome.accepted) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  Disk.property.whenAction("put") holds (after => after.outcome == Outcome.accepted)
 val keptTogether: Property[PairState] =
-  Pair.property holds (after => after.state.front.kept == after.state.back.kept) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  Pair.property holds (after => after.state.front.kept == after.state.back.kept)
 val frontHeld: Property[DetailedPairState] =
-  DetailedPair.property holds (after => after.state.front.kept == Kept.held) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  DetailedPair.property holds (after => after.state.front.kept == Kept.held)
   // format: on
 val putThenFlush: Scenario[DiskState] =
   Disk.scenario.starts(DiskState(Stage.empty)).actions(put, flush)

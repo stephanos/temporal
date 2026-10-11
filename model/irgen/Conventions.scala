@@ -53,9 +53,7 @@ final private[irgen] class Conventions(index: Index):
       )
       val pos = r.pos
       val selected = lines.slice(pos.startLine, pos.endLine + 1)
-      // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
       val written = if selected.length == 1 then
-        // scalafix:on DisableSyntax.==
         selected.head.slice(
           pos.startColumn,
           pos.endColumn
@@ -158,7 +156,7 @@ final private[irgen] class Conventions(index: Index):
     case _ => false
 
   private def within(pkg: String, parent: String): Boolean =
-    pkg == parent || pkg.startsWith(parent + ".") // scalafix:ok DisableSyntax.==; typed equality
+    pkg == parent || pkg.startsWith(parent + ".")
 
   private def category(pkg: String): String = pkg.split('.').lift(1).getOrElse("")
   private def feature(pkg: String): String = pkg.split('.').take(3).mkString(".")
@@ -168,19 +166,19 @@ final private[irgen] class Conventions(index: Index):
   // A feature's layers, which depend one way, realization -> protocol -> product (fn-160 R9).
   private def layer(pkg: String): Option[Int] =
     pkg.split('.').collectFirst {
-      case "product"                => 0
-      case "protocol" | "system"    => 1
-      case "realization"            => 2
+      case "product"             => 0
+      case "protocol" | "system" => 1
+      case "realization"         => 2
     }
 
   // A package always reads itself, as the code `derives` writes into it does. Within a feature, a
   // layer imports only the layers below it, and only the realization layer reads the Temporal API.
   private def permitted(from: String, to: String, test: Boolean): Boolean =
-    if to == from then true // scalafix:ok DisableSyntax.==; typed equality
+    if to == from then true
     else if !test && within(from, "temporal.features") && layer(from).forall(_ < 2) &&
       (within(to, "io.temporal.api") || within(to, "temporal.server.api"))
     then false
-    else if !test && within(from, "temporal.features") && feature(to) == feature(from) && // scalafix:ok DisableSyntax.==; typed equality
+    else if !test && within(from, "temporal.features") && feature(to) == feature(from) &&
       layer(from).exists(f => layer(to).exists(_ > f))
     then false
     else if within(to, "temporal.server.api") then !within(from, "framework")
@@ -197,11 +195,11 @@ final private[irgen] class Conventions(index: Index):
           case "capabilities" | "realize" =>
             category(to) == category(
               from
-            ) || to == "temporal" // scalafix:ok DisableSyntax.==; typed equality
+            ) || to == "temporal"
           case "actors" | "foundations" =>
             feature(to) == feature(
               from
-            ) || to == "temporal" // scalafix:ok DisableSyntax.==; typed equality
+            ) || to == "temporal"
           case "features" =>
             Set("capabilities", "realize", "actors", "foundations")(category(to)) ||
             to == "temporal" || (feature(to) == feature(
@@ -209,8 +207,8 @@ final private[irgen] class Conventions(index: Index):
             ) &&
               (form(to).isEmpty || form(to) == form(
                 from
-              ))) // scalafix:ok DisableSyntax.==; typed equality
-          case _ => to == "temporal" // scalafix:ok DisableSyntax.==; typed equality
+              )))
+          case _ => to == "temporal"
     else if within(from, "umpire.irgen") || within(from, "umpire.check") then
       !within(to, "framework") && !within(to, "temporal") &&
       (test || !(within(to, "umpire.irgen") && within(from, "umpire.check")))
@@ -229,9 +227,7 @@ final private[irgen] class Conventions(index: Index):
     if !permitted(from, target, test) then
       importedRefusals += ((fileOf(i), from, target))
       refuse(i, "R4.module-import", s"$from may not import $target under the Scala module map")
-    // scalafix:off DisableSyntax.!=; strictEquality checks native comparisons
     if levelOwner(target).nonEmpty && levelOwner(packageOf(owner)) != levelOwner(target)
-    // scalafix:on DisableSyntax.!=
     then
       val omitted = i.selectors.collect { case OmitSelector(name) => name }.toSet
       val renamed = i.selectors.collect { case RenameSelector(name, _) => name }.toSet
@@ -248,7 +244,7 @@ final private[irgen] class Conventions(index: Index):
         .filterNot(n =>
           omitted(n) || (renamed(n) && !i.selectors.exists {
             case RenameSelector(original, alias) =>
-              original == n && levelTypes(alias) // scalafix:ok DisableSyntax.==; typed equality
+              original == n && levelTypes(alias)
             case _ => false
           })
         )
@@ -278,14 +274,16 @@ final private[irgen] class Conventions(index: Index):
           case i: Import =>
             imports(i, owner)
             phaseImport(i)
-          case _         => super.traverseTree(t)(owner)
+          case _ => super.traverseTree(t)(owner)
     checked.foreach(t => importCheck.traverseTree(t)(Symbol.spliceOwner))
     // A Protocol's Describable capability names the realization's status table, the Temporal
     // API's statuses by fact: the one read of the realization layer, and of the API, outside it
     // (an open layering question, fn-160 R9).
     def describable(t: Tree): Boolean = t match
       case v: ValDef =>
-        v.rhs.exists(_.tpe.widen.dealias.typeSymbol.fullName == "temporal.capabilities.product.Describable") // scalafix:ok DisableSyntax.==; typed equality
+        v.rhs.exists(
+          _.tpe.widen.dealias.typeSymbol.fullName == "temporal.capabilities.product.Describable"
+        )
       case _ => false
     object check extends TreeTraverser:
       override def traverseTree(t: Tree)(owner: Symbol): Unit =
@@ -300,7 +298,7 @@ final private[irgen] class Conventions(index: Index):
                 s"${owner.name} matches ${scrutinee.tpe.widen.dealias.show} with a whole-case wildcard: name its explicit cases"
               )
           case r: Ref
-              if r.symbol.name == "in" && // scalafix:ok DisableSyntax.==; typed equality
+              if r.symbol.name == "in" &&
                 Set("framework.Syntax$package$", "framework.Rules")(r.symbol.maybeOwner.fullName) =>
             dotted(r) match
               case Right(false) =>
@@ -312,8 +310,8 @@ final private[irgen] class Conventions(index: Index):
           case t: TypeTree => dependency(t, t.tpe.typeSymbol, owner)
           case _           => ()
         t match
-          case _: Import             => ()
-          case _ if describable(t)   => ()
-          case _                     => super.traverseTree(t)(owner)
+          case _: Import           => ()
+          case _ if describable(t) => ()
+          case _                   => super.traverseTree(t)(owner)
     checked.foreach(t => check.traverseTree(t)(Symbol.spliceOwner))
     refused.toSeq

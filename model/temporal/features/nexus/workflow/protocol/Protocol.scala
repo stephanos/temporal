@@ -86,7 +86,8 @@ given Finite[State] =
 
 object NexusProtocol
     extends Machine[State, Outcome, Fact],
-      Phased[State, Phase](_.phase, (s, p) => s.copy(phase = p)), Operation:
+      Phased[State, Phase](_.phase, (s, p) => s.copy(phase = p)),
+      Operation:
   // Where every path begins: before the operation exists, with every deadline at its first value.
   val init = protocol.State(
     phase = Phase.unscheduled,
@@ -110,11 +111,9 @@ object NexusProtocol
     def attemptCount(s: State): Int = s.attempts
     def maximumAttempts(@unused s: State): Option[UpTo[2]] = None: Option[UpTo[2]]
     def retriesRemaining(@unused s: State): Boolean = true
-    // format: off
-    def scheduleToCloseArmed(s: State): Boolean = s.scheduleToClose == Timeout.expires // scalafix:ok DisableSyntax.==; typed equality
-    def scheduleToStartArmed(s: State): Boolean = s.scheduleToStart == Timeout.expires // scalafix:ok DisableSyntax.==; typed equality
-    def startToCloseArmed(s: State): Boolean = s.startToClose == Timeout.expires // scalafix:ok DisableSyntax.==; typed equality
-    // format: on
+    def scheduleToCloseArmed(s: State): Boolean = s.scheduleToClose == Timeout.expires
+    def scheduleToStartArmed(s: State): Boolean = s.scheduleToStart == Timeout.expires
+    def startToCloseArmed(s: State): Boolean = s.startToClose == Timeout.expires
     val timeoutFacts = Seq(
       Fact.nexusOperationTimedOut(TimeoutType.scheduleToClose),
       Fact.nexusOperationTimedOut(TimeoutType.scheduleToStart),
@@ -156,14 +155,13 @@ object NexusProtocol
   object properties:
     // A synchronous reply settles the operation as succeeded, and the completed event records it.
     val syncSucceeds = property when handler.reply(Reply.syncSuccess) holds { s =>
-      s.state.phase == Phase.succeeded && s.records(Fact.nexusOperationCompleted) // scalafix:ok DisableSyntax.==; typed equality
+      s.state.phase == Phase.succeeded && s.records(Fact.nexusOperationCompleted)
     }
 
     // An asynchronous reply starts the operation, and the started event records it.
     val asyncStarts = property when handler.reply(Reply.async) holds { s =>
-      s.state.phase == Phase.started && s.records(Fact.nexusOperationStarted) // scalafix:ok DisableSyntax.==; typed equality
+      s.state.phase == Phase.started && s.records(Fact.nexusOperationStarted)
     }
-    // format: on
     // A successful completion is recorded by the completed event. Neither the phase nor the outcome
     // is fixed: a completion resolves any running phase, and accepted is every earlier step's
     // outcome too, so a clause fixing it would be answered before the completion.
@@ -174,14 +172,12 @@ object NexusProtocol
     // A failed completion is recorded by the failed event.
     val completionFails = property when handler.complete(Resolution.failed) holds
       (_.records(Fact.nexusOperationFailed))
-    // format: off
     // A non-retryable handler error settles the operation as failed, and the failed event records
     // it.
     val handlerErrorFails =
       property when handler.reply(Reply.handlerError(false)) holds { s =>
-        s.state.phase == Phase.failed && s.records(Fact.nexusOperationFailed) // scalafix:ok DisableSyntax.==; typed equality
+        s.state.phase == Phase.failed && s.records(Fact.nexusOperationFailed)
       }
-    // format: on
     // Succeeded on the second attempt of an operation with no deadline set. A claim fixes one state,
     // so every field is named.
     val succeededOnRetry =
@@ -192,24 +188,22 @@ object NexusProtocol
         scheduleToStart = Timeout.unset,
         startToClose = Timeout.unset
       )
-    // format: off
     // A synchronous reply to the retried attempt settles the operation as succeeded on its second
     // attempt: the count the retryable failure raised is still one, and the completed event records
     // the reply.
     val retrySucceeds = property when handler.reply(Reply.syncSuccess) holds { s =>
-      s.state == succeededOnRetry && s.records(Fact.nexusOperationCompleted) // scalafix:ok DisableSyntax.==; typed equality
+      s.state == succeededOnRetry && s.records(Fact.nexusOperationCompleted)
     }
-    // format: on
     // The schedule-to-start deadline settles an operation no handler started as timed out, and the
     // timed-out event records which deadline it was.
     val scheduleToStartFires = property when deadline.scheduleToStart holds { s =>
-      s.state.phase == Phase.timedOut && // scalafix:ok DisableSyntax.==; typed equality
+      s.state.phase == Phase.timedOut &&
       s.records(Fact.nexusOperationTimedOut(TimeoutType.scheduleToStart))
     }
 
     // The start-to-close deadline settles a started operation no handler completed as timed out.
     val startToCloseFires = property when deadline.startToClose holds { s =>
-      s.state.phase == Phase.timedOut && // scalafix:ok DisableSyntax.==; typed equality
+      s.state.phase == Phase.timedOut &&
       s.records(Fact.nexusOperationTimedOut(TimeoutType.startToClose))
     }
 
@@ -286,18 +280,42 @@ object NexusProtocol
       )
     val asyncCompletion =
       (query find properties.completionSucceeds in asyncThenSucceeded limits three)
-        .live(inconclusive(Reason.explanationsDisagree, because = "a completion that arrives after the operation is over is not found and records no fact, so no evidence excludes one, and the claim, about every completion, fails on it"))
+        .live(
+          inconclusive(
+            Reason.explanationsDisagree,
+            because =
+              "a completion that arrives after the operation is over is not found and records no fact, so no evidence excludes one, and the claim, about every completion, fails on it"
+          )
+        )
     val asyncFailure =
       (query find properties.completionFails in asyncThenFailed limits three)
-        .live(inconclusive(Reason.explanationsDisagree, because = "a completion that arrives after the operation is over is not found and records no fact, so no evidence excludes one, and the claim, about every completion, fails on it"))
+        .live(
+          inconclusive(
+            Reason.explanationsDisagree,
+            because =
+              "a completion that arrives after the operation is over is not found and records no fact, so no evidence excludes one, and the claim, about every completion, fails on it"
+          )
+        )
     val handlerError =
       (query find properties.handlerErrorFails in nonRetryableError limits two)
-        .live(inconclusive(Reason.neverEvaluated, because = "a failed reply records the same failed event as a non-retryable handler error, so on the failed reply the claim is never read"))
+        .live(
+          inconclusive(
+            Reason.neverEvaluated,
+            because =
+              "a failed reply records the same failed event as a non-retryable handler error, so on the failed reply the claim is never read"
+          )
+        )
 
     // The retryable error backs the operation off; the backoff timer fires and records nothing; the
     // retried attempt is answered synchronously.
     val retry = (query find properties.retrySucceeds in retriedThenSucceeded limits four)
-      .live(inconclusive(Reason.explanationsDisagree, because = "the pending-attempts poll stops at the first count it sees, and the claim also fixes the deadlines the scheduled event does not tell apart, so the executions that explain the Run disagree"))
+      .live(
+        inconclusive(
+          Reason.explanationsDisagree,
+          because =
+            "the pending-attempts poll stops at the first count it sees, and the claim also fixes the deadlines the scheduled event does not tell apart, so the executions that explain the Run disagree"
+        )
+      )
 
     // The schedule command sets the schedule-to-start deadline; the handler's worker stops, so
     // nothing answers the start request; the deadline fires. The worker stops after the schedule in
@@ -305,13 +323,25 @@ object NexusProtocol
     // workflow starts, where the stop cannot race the dispatch.
     val scheduleToStartTimeout =
       (query find properties.scheduleToStartFires in scheduleToStartExpires limits three)
-        .live(inconclusive(Reason.neverEvaluated, because = "the three deadlines record one timed-out fact, and the timeout type is an enum no evidence keeps as a field, so on an execution where another deadline fired the claim is never read"))
+        .live(
+          inconclusive(
+            Reason.neverEvaluated,
+            because =
+              "the three deadlines record one timed-out fact, and the timeout type is an enum no evidence keeps as a field, so on an execution where another deadline fired the claim is never read"
+          )
+        )
 
     // The schedule command sets the start-to-close deadline; the handler accepts asynchronously and
     // never completes; the deadline fires.
     val startToCloseTimeout =
       (query find properties.startToCloseFires in startToCloseExpires limits three)
-        .live(inconclusive(Reason.neverEvaluated, because = "the three deadlines record one timed-out fact, and the timeout type is an enum no evidence keeps as a field, so on an execution where another deadline fired the claim is never read"))
+        .live(
+          inconclusive(
+            Reason.neverEvaluated,
+            because =
+              "the three deadlines record one timed-out fact, and the timeout type is an enum no evidence keeps as a field, so on an execution where another deadline fired the claim is never read"
+          )
+        )
 
     // A Product claim on a Protocol path, read through the refinement the Protocol machine declares.
     val terminalHolds =

@@ -41,7 +41,7 @@ def flashStep(r: RelayState, s: Signal): List[Step[RelayState, Outcome, Nothing]
 
 // Receiving a note: the channel already dropped the delivered message.
 def hear(r: RelayState, n: Note): List[Step[RelayState, Outcome, Nothing]] = // format: off
-  if n == Note.ping then List(Step(Outcome.accepted, r.copy(heard = Heard.note))) else Nil // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  if n == Note.ping then List(Step(Outcome.accepted, r.copy(heard = Heard.note))) else Nil
   // format: on
 def tune(r: RelayState, s: Signal): List[Step[RelayState, Outcome, Nothing]] =
   List(Step(Outcome.accepted, r.copy(heard = Heard.signal)))
@@ -81,7 +81,7 @@ def countStep(t: Tally): List[Step[Tally, Outcome, Nothing]] =
   if t.counts.isEmpty then List(Step(Outcome.accepted, t.copy(counts = t.counts.send(2)))) else Nil
 
 def counted(t: Tally, n: Int): List[Step[Tally, Outcome, Nothing]] = // format: off
-  if n == 2 then List(Step(Outcome.accepted, t.copy(heard = Heard.note))) else Nil // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  if n == 2 then List(Step(Outcome.accepted, t.copy(heard = Heard.note))) else Nil
   // format: on
 object Tallying extends Machine[Tally, Outcome, Nothing]:
   val init = Tally(Heard.nothing, tally.empty)

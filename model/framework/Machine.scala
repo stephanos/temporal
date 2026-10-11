@@ -37,9 +37,9 @@ def choose[S, O, F](
 ): List[Step[S, O, F]] =
   val alternatives = first +: second +: rest
   for (token, steps) <- alternatives do
-    require( // format: off
-      alternatives.count(_._1 eq token) == 1, // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-      "a choice names one alternative of a choose" // format: on
+    require(
+      alternatives.count(_._1 eq token) == 1,
+      "a choice names one alternative of a choose"
     )
     require(steps.sizeIs <= 1, "each alternative of a choose is at most one step")
   alternatives.flatMap(_._2).toList
@@ -325,7 +325,7 @@ private[framework] def overlap[S, O, F](
     added: Rule[S, O, F]
 ): Option[String] =
   val pairs = for
-    earlier <- rules.view if earlier.decl == added.decl // scalafix:ok DisableSyntax.==
+    earlier <- rules.view if earlier.decl == added.decl
     inputs <- classesOf(added.decl).view if earlier.fires(inputs) && added.fires(inputs)
     s <- states.values.view if earlier.guard(s) && added.guard(s)
   yield (earlier, inputs, s)
@@ -349,7 +349,7 @@ private[framework] def writtenPath(code: String): String =
   path
     .findAllIn(untyped)
     .map(_.stripSuffix(".apply"))
-    .find(p => p.nonEmpty && p != "framework" && p != "apply") // scalafix:ok DisableSyntax.!=
+    .find(p => p.nonEmpty && p != "framework" && p != "apply")
     .getOrElse(code)
 
 // A machine: a transition relation over the finite state type `S` with outcomes `O` and facts `F`.

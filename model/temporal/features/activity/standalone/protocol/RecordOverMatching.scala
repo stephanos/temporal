@@ -2,6 +2,7 @@ package temporal
 package features.activity
 package standalone
 package protocol
+
 import framework.*
 import temporal.capabilities.system.*
 import framework.Finite.given
@@ -9,9 +10,7 @@ import temporal.capabilities.product.*
 import Bounds.{eight, five, seven, twelve}
 import foundations.taskqueue.{fault, queue}
 import foundations.taskqueue.product.TaskQueueProduct
-import foundations.taskqueue.protocol.{
-  TaskQueueProtocol,
-}
+import foundations.taskqueue.protocol.TaskQueueProtocol
 
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 

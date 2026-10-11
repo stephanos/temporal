@@ -8,7 +8,9 @@ import framework.*
 import framework.outcomes.Outcome
 
 trait Timeouts extends Facet[State, Outcome, Fact], Phased[State, Phase]:
+
   object timeouts:
+
     object rules extends Rules:
       on(timers.timeout) {
         when(Phase.scheduled, Phase.started, Phase.paused, Phase.cancelRequested) ~> enters(

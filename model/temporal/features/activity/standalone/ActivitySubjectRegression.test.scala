@@ -5,9 +5,7 @@ import framework.Finite.given
 
 import temporal.features.activity.{deadline, timers, Failure, Timeout}
 import temporal.features.activity.standalone.*
-import temporal.features.activity.standalone.protocol.{
-  ActivityProtocol
-}
+import temporal.features.activity.standalone.protocol.ActivityProtocol
 import temporal.actors.worker.worker as process
 import temporal.Bounds.{eight, four, six, three}
 import temporal.realize.{inconclusive, satisfied, Realizes}
@@ -62,7 +60,8 @@ class ActivitySubjectRegression extends munit.FunSuite:
       p.reset.properties.resetKeptPaused
     )
     assertEquals(properties.map(_.decl).distinct.size, properties.size)
-    for property <- properties do assert(property.decl.machine eq ActivityProtocol, property.decl.name)
+    for property <- properties do
+      assert(property.decl.machine eq ActivityProtocol, property.decl.name)
     val catalog = ActivityProtocol.bindings.flatMap { binding =>
       val step = effectOf[protocol.State, Outcome, protocol.Fact](binding.decl, binding.function)
       classesOf(binding.decl).map(inputs => inputs -> step)
@@ -78,7 +77,7 @@ class ActivitySubjectRegression extends munit.FunSuite:
     do
       val (a, b) = (predicate(pair(0)), predicate(pair(1)))
       assert(
-        rows.exists((before, after) => a(before, after) != b(before, after)), // scalafix:ok DisableSyntax.!=
+        rows.exists((before, after) => a(before, after) != b(before, after)),
         s"${pair(0).decl.name} and ${pair(1).decl.name} state one promise when $when"
       )
   }
@@ -298,7 +297,10 @@ class ActivitySubjectRegression extends munit.FunSuite:
       assertEquals(q.scenario.free, receipt.free)
       assertEquals(q.limits, receipt.limits)
       // The reason is source text (fn-140 R4); the expectation is compared without it.
-      assertEquals(q.expectedRun.map(_.copy(because = "")), receipt.expectedRun.map(_.copy(because = "")))
+      assertEquals(
+        q.expectedRun.map(_.copy(because = "")),
+        receipt.expectedRun.map(_.copy(because = ""))
+      )
       assertEquals(q.exploration, None)
       assertEquals(q.total, None)
       val slots = if receipt.free then 119L * q.limits.steps
@@ -324,7 +326,10 @@ class ActivitySubjectRegression extends munit.FunSuite:
         p.timeouts.queries.scheduleToStartTimeout,
         p.timeouts.queries.startToCloseTimeout
       ),
-      RetryAfterTimeoutRun -> Seq(p.timeouts.queries.retryAfterTimeout, p.timeouts.queries.retryExhaustion),
+      RetryAfterTimeoutRun -> Seq(
+        p.timeouts.queries.retryAfterTimeout,
+        p.timeouts.queries.retryExhaustion
+      ),
       HeartbeatThenCompletionRun -> Seq(p.heartbeat.queries.heartbeatThenCompletes),
       RetryAfterHeartbeatRun -> Seq(p.heartbeat.queries.heartbeatTimeoutRetriesThenCompletes),
       ExhaustAfterHeartbeatRun -> Seq(p.heartbeat.queries.heartbeatTimeoutExhausts),
@@ -339,5 +344,6 @@ class ActivitySubjectRegression extends munit.FunSuite:
     for (realization, expected) <- runs do
       assert(realization.machine eq ActivityProtocol)
       assertEquals(realization.runs.size, expected.size, realization.toString)
-      for (named, query) <- realization.runs.zip(expected) do assert(named eq query, realization.toString)
+      for (named, query) <- realization.runs.zip(expected) do
+        assert(named eq query, realization.toString)
   }

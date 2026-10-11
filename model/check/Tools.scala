@@ -36,7 +36,7 @@ final case class Ran(command: Seq[String], directory: Path, exit: Int, output: S
   // `test` run the rejected code. A scala-cli run fails whenever it exits nonzero or prints an
   // error, so every caller sees the compiler's verdict.
   def failed: Boolean =
-    exit != 0 || (tool == "scala-cli" && errors.nonEmpty) // scalafix:ok DisableSyntax.!=, DisableSyntax.==; strictEquality checks this native comparison
+    exit != 0 || (tool == "scala-cli" && errors.nonEmpty)
 
   // The output worth reading: without scala-cli's hints and the JVM's warnings.
   def diagnostics: String = output.linesIterator
@@ -48,8 +48,7 @@ final case class Ran(command: Seq[String], directory: Path, exit: Int, output: S
     else
       val verdict =
         if exit != 0 then s"exited $exit"
-        else
-          "printed an error and exited 0" // scalafix:ok DisableSyntax.!=; strictEquality checks this native comparison
+        else "printed an error and exited 0"
       val shown = if diagnostics.isBlank then "" else s"\n$diagnostics"
       throw ToolError(s"$tool $verdict in $directory: ${command.mkString(" ")}$shown")
 
@@ -106,7 +105,7 @@ final class Tools(val directory: Path, environment: Map[String, String]):
   def scalaCli(arguments: Seq[String], output: Output = Output.Kept): Ran =
     val (own, program) = arguments.span(
       _ != "--"
-    ) // scalafix:ok DisableSyntax.!=; strictEquality checks this native comparison
+    )
     run("scala-cli", (own :+ "--suppress-outdated-dependency-warning") ++ program, output)
 
 object Tools:

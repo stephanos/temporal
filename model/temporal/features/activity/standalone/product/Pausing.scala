@@ -9,7 +9,9 @@ import framework.outcomes.{Outcome, Rejection}
 import temporal.capabilities.product.*
 
 trait Pausing extends Facet[State, Outcome, Fact], Phased[State, Phase]:
+
   object pausing:
+
     object effects:
       val pauseApplied = choice
       val pausePending = choice

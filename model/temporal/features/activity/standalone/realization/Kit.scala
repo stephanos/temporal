@@ -23,13 +23,10 @@ package realization
 
 import protocol.{history, ActivityProtocol, AdmissionFact, HeldDispatch}
 
-
 import framework.*
 import framework.realize.{Fact as RealizationFact, *}
 import temporal.realize.*
-import io.temporal.api.workflowservice.v1.{
-  DescribeActivityExecutionResponse,
-}
+import io.temporal.api.workflowservice.v1.DescribeActivityExecutionResponse
 import io.temporal.api.activity.v1.ActivityExecutionInfo
 import io.temporal.api.common.v1.Payloads
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*

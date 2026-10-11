@@ -5,7 +5,6 @@ package realization
 
 import protocol.{history, AdmissionResponseFact, LostStartAnswer}
 
-
 import framework.realize.*
 import temporal.realize.*
 

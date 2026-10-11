@@ -12,7 +12,7 @@ class ActivityVisibilityRegression extends munit.FunSuite:
   val _ = () => summon[CanEqual[protocol.Phase, protocol.Phase]]
   private def take(a: Action[EmptyTuple], s: product.State) =
     ActivityProduct.bindings
-      .find(_.decl == a.decl) // scalafix:ok DisableSyntax.==
+      .find(_.decl == a.decl)
       .get
       .function
       .asInstanceOf[product.State => List[Step[product.State, Outcome, product.Fact]]](
@@ -23,7 +23,7 @@ class ActivityVisibilityRegression extends munit.FunSuite:
     for fact <- summon[Finite[protocol.Fact]].values do
       assertEquals(
         ActivityProtocol.refinement.visible(fact),
-        fact != protocol.Fact.attemptCount, // scalafix:ok DisableSyntax.!=
+        fact != protocol.Fact.attemptCount,
         fact.toString
       )
   }
@@ -32,7 +32,7 @@ class ActivityVisibilityRegression extends munit.FunSuite:
     val scheduled = product.State(product.Phase.scheduled)
     val started = product.State(product.Phase.started)
     val start =
-      ActivityProduct.bindings.find(_.decl == client.start.decl) // scalafix:ok DisableSyntax.==
+      ActivityProduct.bindings.find(_.decl == client.start.decl)
     assert(start.nonEmpty, "the Product must carry creation")
     val schedule = start.get.function.asInstanceOf[
       (product.State, Timeout, Timeout, Timeout, Timeout, Timeout, MaxAttempts) => List[

@@ -1,6 +1,5 @@
 package framework
 
-
 // Facets run as Scala: a machine assembled from facets binds what the same machine written as one
 // object binds, an action bound by two facets is refused, and a facet's self-type makes a machine
 // without the facet it depends on fail to compile.
@@ -26,7 +25,9 @@ object FacetsFixture:
 
   // The facet the others step through: pressing.
   trait Pressing extends Facet[Lamp, Said, Note], Phased[Lamp, Lit]:
+
     object pressing:
+
       object effects:
         def toggle(s: Lamp) = enter[Lamp, Said, Note](
           s.copy(light = if s.light.in(Lit.on) then Lit.off else Lit.on, presses = UpTo[1](1))
@@ -40,7 +41,9 @@ object FacetsFixture:
   // A facet that depends on Pressing's step.
   trait Breaking extends Facet[Lamp, Said, Note], Phased[Lamp, Lit]:
     this: Pressing =>
+
     object breaking:
+
       object effects:
         val smashed = choice
         val toggled = choice
@@ -86,7 +89,9 @@ object FacetsFixture:
 
   // Two facets that both bind the press.
   trait Pressing2 extends Facet[Lamp, Said, Note], Phased[Lamp, Lit]:
+
     object pressingAgain:
+
       object rules extends Rules:
         on(hand.press) {
           when(Lit.broken) ~> enters(Lit.broken)
@@ -109,7 +114,9 @@ class FacetsTest extends munit.FunSuite:
       b <- m.bindings
       s <- Finite[Lamp].values.toList
     yield
-      val f = b.function.asInstanceOf[Lamp => List[Step[Lamp, Said, Note]]] // scalafix:ok DisableSyntax.asInstanceOf
+      val f = b.function.asInstanceOf[Lamp => List[
+        Step[Lamp, Said, Note]
+      ]] // scalafix:ok DisableSyntax.asInstanceOf
       (b.decl.toString, s, f(s))
 
   test("a machine assembled from facets binds what the machine written as one object binds") {

@@ -23,7 +23,7 @@ final private[irgen] class Lifting(val ctx: Context)
   // the order written.
   def liftRoot(root: String): Unit =
     val sym = defs.keys
-      .find(s => s.isValDef && s.fullName == root) // scalafix:ok DisableSyntax.==; typed equality
+      .find(s => s.isValDef && s.fullName == root)
       .getOrElse(throw LiftError(s"root $root", "names no declaration of the lifted sources"))
     val d = valDef(sym, sym.tree, "a declaration")
     // A machine or composition object is a root by its object, `irFile(...)(ActivityProduct)`.
@@ -52,7 +52,7 @@ final private[irgen] class Lifting(val ctx: Context)
       val listed =
         isList(
           kind.typeSymbol
-        ) || kind.typeSymbol.fullName == "scala.collection.immutable.Vector" // scalafix:ok DisableSyntax.==; typed equality
+        ) || kind.typeSymbol.fullName == "scala.collection.immutable.Vector"
       if !claims(kind.typeSymbol.fullName) && !(listed && kind.typeArgs.headOption
           .exists(a => isNamed(a, "framework.Query")))
       then
@@ -67,7 +67,7 @@ final private[irgen] class Lifting(val ctx: Context)
   private[irgen] def queriesSection(sym: Symbol): Boolean =
     val cls = moduleClassOf(sym)
     // A facet's `queries` are its machine's (fn-161).
-    !cls.isNoSymbol && cls.name.stripSuffix("$") == "queries" && // scalafix:ok DisableSyntax.==; typed equality
+    !cls.isNoSymbol && cls.name.stripSuffix("$") == "queries" &&
     (objectForm(cls.maybeOwner) || facetObject(cls.maybeOwner))
 
   // Whether the IR file reads a val of a `queries` section at run time (`IrFile.queriesOf`): a
@@ -81,7 +81,7 @@ final private[irgen] class Lifting(val ctx: Context)
     ) ||
       kind.baseClasses.exists(
         _.fullName == "scala.collection.Seq"
-      )) // scalafix:ok DisableSyntax.==; typed equality
+      ))
 
   // Whether a val of a `queries` section is a root: a Query, a list of them or a progress claim.
   private[irgen] def claimRoot(t: TypeRepr): Boolean =
@@ -89,7 +89,7 @@ final private[irgen] class Lifting(val ctx: Context)
     val listed =
       isList(
         kind.typeSymbol
-      ) || kind.typeSymbol.fullName == "scala.collection.immutable.Vector" // scalafix:ok DisableSyntax.==; typed equality
+      ) || kind.typeSymbol.fullName == "scala.collection.immutable.Vector"
     Set("framework.Query", "framework.Progress")(kind.typeSymbol.fullName) ||
     (listed && kind.typeArgs.headOption.exists(a => isNamed(a, "framework.Query")))
 
@@ -144,4 +144,3 @@ final private[irgen] class Lifting(val ctx: Context)
         file -> vs.map(_._2).sortBy(v => (pos(v).file, pos(v).line)).map(_.symbol.fullName).distinct
       }
       .sortBy(_._1)
-

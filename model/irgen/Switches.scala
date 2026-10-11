@@ -23,7 +23,9 @@ object Switches:
     val asked =
       sys.env.get("UMPIRE_LIFT_RULES").toSeq.flatMap(_.split(',')).map(_.trim).filter(_.nonEmpty)
     for name <- asked if !known(name) do
-      sys.error(s"UMPIRE_LIFT_RULES names $name, which is none of ${known.toSeq.sorted.mkString(", ")}")
+      sys.error(
+        s"UMPIRE_LIFT_RULES names $name, which is none of ${known.toSeq.sorted.mkString(", ")}"
+      )
     asked.toSet
 
   // The rules turned on for the lift running on this thread, beside the defaults: a lift run

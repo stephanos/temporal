@@ -15,7 +15,9 @@ import Bounds.four
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 
 trait Cancellation extends Facet[State, Outcome, Fact], Phased[State, Phase]:
+
   object cancellation:
+
     object effects:
       def cancel(s: State) = enter(s.copy(phase = Phase.canceled), Fact.statusCanceled)
 
@@ -56,23 +58,22 @@ trait Cancellation extends Facet[State, Outcome, Fact], Phased[State, Phase]:
 
     object properties:
       val cancelRequested =
-        property when client.requestCancel holds { s => // format: off
-          s.state.phase == Phase.cancelRequested && s.records(Fact.statusCancelRequested) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-        } // format: on
+        property when client.requestCancel holds { s =>
+          s.state.phase == Phase.cancelRequested && s.records(Fact.statusCancelRequested)
+        }
 
       val canceledByWorker =
-        property when activityWorker.respondCanceled holds { s => // format: off
-          s.state.phase == Phase.canceled && s.records(Fact.statusCanceled) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-        } // format: on
+        property when activityWorker.respondCanceled holds { s =>
+          s.state.phase == Phase.canceled && s.records(Fact.statusCanceled)
+        }
 
       val cancelIsRequested =
         property("activityProtocol.cancelIsRequested") when client.requestCancel holds (
           _.records(Fact.statusCancelRequested)
         )
-      val canceledByID = property when completionClient.respondCanceledByID holds {
-        after => // format: off
-        after.state.phase == Phase.canceled && after.records(Fact.statusCanceled) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-      } // format: on
+      val canceledByID = property when completionClient.respondCanceledByID holds { after =>
+        after.state.phase == Phase.canceled && after.records(Fact.statusCanceled)
+      }
 
     object queries:
       val cancelRequestedThenCanceled = scenario.actions(
@@ -96,10 +97,22 @@ trait Cancellation extends Facet[State, Outcome, Fact], Phased[State, Phase]:
       val heldCanceledByID =
         (query find properties.canceledByID in heldCancellation limits four)
           .total(22464)
-          .live(inconclusive(Reason.explanationsDisagree, because = "a closed activity answers a repeated By-ID call NotFound and records nothing, so a Run cannot rule out a silent rejected repeat: the executions that explain it disagree"))
+          .live(
+            inconclusive(
+              Reason.explanationsDisagree,
+              because =
+                "a closed activity answers a repeated By-ID call NotFound and records nothing, so a Run cannot rule out a silent rejected repeat: the executions that explain it disagree"
+            )
+          )
       val cancelIsRequested =
         (query(
           "activityProtocol.cancelIsRequested"
         ) find properties.cancelIsRequested in heldCancellation limits four)
           .total(22464)
-          .live(inconclusive(Reason.explanationsDisagree, because = "a closed activity answers a repeated By-ID call NotFound and records nothing, so a Run cannot rule out a silent rejected repeat: the executions that explain it disagree"))
+          .live(
+            inconclusive(
+              Reason.explanationsDisagree,
+              because =
+                "a closed activity answers a repeated By-ID call NotFound and records nothing, so a Run cannot rule out a silent rejected repeat: the executions that explain it disagree"
+            )
+          )

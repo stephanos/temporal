@@ -5,13 +5,10 @@ package realization
 
 import protocol.ActivityProtocol
 
-
 import framework.*
 import framework.realize.*
 import temporal.realize.*
-import temporal.server.api.testpilot.v1.ActivityAttemptResponse.{
-  ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED,
-}
+import temporal.server.api.testpilot.v1.ActivityAttemptResponse.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED
 
 object ResetAfterHeartbeatRun
     extends Realizes(

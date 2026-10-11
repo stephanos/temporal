@@ -8,7 +8,9 @@ import framework.*
 import framework.outcomes.{Outcome, Rejection}
 
 trait Completion extends Facet[State, Outcome, Fact], Phased[State, Phase]:
+
   object completion:
+
     // Held completion must match the By-ID rows; By-ID keeps its notFound checks and its broader Live
     // completion.
     object rules extends Rules:

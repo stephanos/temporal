@@ -65,7 +65,7 @@ private[irgen] trait Markers:
     def objectOf(key: String): Option[Symbol] =
       defs.keys
         .find(s => s.fullName == key && objectForm(s))
-        .map(moduleClassOf) // scalafix:ok DisableSyntax.==; typed equality
+        .map(moduleClassOf)
     def marked(cls: Option[Symbol], marker: Symbol): Boolean =
       cls.exists(_.typeRef.derivesFrom(marker))
 
@@ -83,14 +83,14 @@ private[irgen] trait Markers:
     def over(name: String): Seq[ir.Query] =
       queries.values
         .filter(_.getScenario.machine == name)
-        .toSeq // scalafix:ok DisableSyntax.==; typed equality
+        .toSeq
     def violated(q: ir.Query): Boolean =
       q.expectedRun.exists(
         _.property == ir.RunExpectation.Outcome.OUTCOME_VIOLATED
-      ) // scalafix:ok DisableSyntax.==; typed equality
+      )
     def refutable(q: ir.Query): Boolean = q.form == ir.Query.Form.FORM_VERIFY || violated(
       q
-    ) // scalafix:ok DisableSyntax.==; typed equality
+    )
 
     def negativeControl(
         name: String,
@@ -102,9 +102,7 @@ private[irgen] trait Markers:
         val p = at.getOrElse(ir.Position())
         val refuted = refinementChecked || over(name).exists(refutable)
         refutations += Refutation(name, s"${p.file}:${p.line}", refuted)
-      // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
       for m <- machines.values if m.refines.exists(_.product == name)
-      // scalafix:on DisableSyntax.==
       do
         refuse(
           at,
@@ -176,4 +174,4 @@ private[irgen] trait Markers:
     actions.values
       .filter(_.actor == "fault")
       .map(_.id)
-      .toSet // scalafix:ok DisableSyntax.==; typed equality
+      .toSet

@@ -41,11 +41,11 @@ def startStep(j: JobState): List[JobStep] = j.phase match
   case JobPhase.idle | JobPhase.settled => disabled
 
 def settleStep(j: JobState): List[JobStep] = // format: off
-  if j.phase == JobPhase.started then enter(JobState(JobPhase.settled)) else disabled // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  if j.phase == JobPhase.started then enter(JobState(JobPhase.settled)) else disabled
   // format: on
 object Job extends Machine[JobState, JobOutcome, Nothing]:
   val init = JobState(JobPhase.idle) // format: off
-  def end(j: State) = j.phase == JobPhase.settled // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  def end(j: State) = j.phase == JobPhase.settled
   // format: on
   object rules extends Bindings(send ~> sendStep, start ~> startStep, settle ~> settleStep)
 
@@ -54,7 +54,7 @@ object Job extends Machine[JobState, JobOutcome, Nothing]:
 final case class OverQueue(job: JobState, queue: QueueView)
 // format: off
 object JobOverQueue extends Composition[OverQueue](_.job -> Job, _.queue -> TaskQueueProduct):
-  def end(s: State) = s.job.phase == JobPhase.settled // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  def end(s: State) = s.job.phase == JobPhase.settled
   object syncs extends Syncs: // format: on
     sync(_.job -> send, _.queue -> queue.enqueue)
     sync(_.job -> start, _.queue -> queue.deliver)
@@ -62,13 +62,13 @@ object JobOverQueue extends Composition[OverQueue](_.job -> Job, _.queue -> Task
 
 val queueSettles =
   JobOverQueue.property("settles").whenAction(JobOverQueue.synced(_.job -> settle)) holds
-    (_.state.job.phase == JobPhase.settled) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    (_.state.job.phase == JobPhase.settled)
 
 // Settling is the acknowledgment, so a settled job leaves no message outstanding.
 val queueSettledLeavesNothing = JobOverQueue
   .property("settledLeavesNothing")
   .never(after =>
-    after.state.job.phase == JobPhase.settled && after.state.queue.outstanding != Outstanding.empty // scalafix:ok DisableSyntax.==, DisableSyntax.!=; strictEquality checks native comparisons
+    after.state.job.phase == JobPhase.settled && after.state.queue.outstanding != Outstanding.empty
   )
 
 val duplicateDelivery = JobOverQueue.scenario
@@ -88,7 +88,7 @@ final case class OverMatching(job: JobState, queue: QueueDetail)
 object JobOverMatching
     extends Composition[OverMatching](_.job -> Job, _.queue -> TaskQueueProtocol),
       FailureModel: // format: off
-  def end(s: State) = s.job.phase == JobPhase.settled // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  def end(s: State) = s.job.phase == JobPhase.settled
   object syncs extends Syncs: // format: on
     sync(_.job -> send, _.queue -> queue.enqueue)
     sync(_.job -> start, _.queue -> queue.deliver)
@@ -103,10 +103,10 @@ object JobOverForgetful
 
 def overMatchingQueries(c: Composition[OverMatching]): Vector[Query] =
   val settles = c.property.whenAction(c.synced(_.job -> settle)) holds
-    (_.state.job.phase == JobPhase.settled) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    (_.state.job.phase == JobPhase.settled)
   val settledLeavesNothing = c.property
     .never(after =>
-      after.state.job.phase == JobPhase.settled && after.state.queue.custody != Custody.nowhere // scalafix:ok DisableSyntax.==, DisableSyntax.!=; strictEquality checks native comparisons
+      after.state.job.phase == JobPhase.settled && after.state.queue.custody != Custody.nowhere
     )
   // History still holds its dispatch task after the crash, so it invokes AddActivityTask again.
   val crashAfterInvocation = c.scenario

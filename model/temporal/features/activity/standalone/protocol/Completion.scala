@@ -15,7 +15,9 @@ import Bounds.three
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 
 trait Completion extends Facet[State, Outcome, Fact], Phased[State, Phase]:
+
   object completion:
+
     object effects:
       def complete(s: State) = enter(s.copy(phase = Phase.completed), Fact.statusCompleted)
 
@@ -33,14 +35,13 @@ trait Completion extends Facet[State, Outcome, Fact], Phased[State, Phase]:
 
     object properties:
       val completes: Property[State] =
-        property when activityWorker.respondCompleted holds { s => // format: off
-          s.state.phase == Phase.completed && s.records(Fact.statusCompleted) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-        } // format: on
+        property when activityWorker.respondCompleted holds { s =>
+          s.state.phase == Phase.completed && s.records(Fact.statusCompleted)
+        }
 
-      val completedByID = property when completionClient.respondCompletedByID holds {
-        after => // format: off
-        after.state.phase == Phase.completed && after.records(Fact.statusCompleted) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-      } // format: on
+      val completedByID = property when completionClient.respondCompletedByID holds { after =>
+        after.state.phase == Phase.completed && after.records(Fact.statusCompleted)
+      }
 
     // A closed activity answers a repeated By-ID call NotFound and records nothing, so a Run cannot
     // rule out a silent rejected repeat: the explanations of each By-ID witness disagree, as
@@ -59,4 +60,10 @@ trait Completion extends Facet[State, Outcome, Fact], Phased[State, Phase]:
       val scheduledCompletedByID =
         (query find properties.completedByID in scheduledCompletion limits three)
           .total(11232)
-          .live(inconclusive(Reason.explanationsDisagree, because = "a closed activity answers a repeated By-ID call NotFound and records nothing, so a Run cannot rule out a silent rejected repeat: the executions that explain it disagree"))
+          .live(
+            inconclusive(
+              Reason.explanationsDisagree,
+              because =
+                "a closed activity answers a repeated By-ID call NotFound and records nothing, so a Run cannot rule out a silent rejected repeat: the executions that explain it disagree"
+            )
+          )

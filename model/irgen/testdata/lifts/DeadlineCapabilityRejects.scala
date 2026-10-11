@@ -70,7 +70,7 @@ object CompleteIntersectionBinding
   val evidence: PartialFunction[MarkedFact, String] = { case MarkedFact.timeout(_) => "timeout" }
   given Finite[MarkedFact & Marker] = // format: off
     Finite.of(MarkedFact.timeout(TimeoutType.schedule), MarkedFact.timeout(TimeoutType.start))
-  def armed(s: SimplePhase): Boolean = s == SimplePhase.waiting // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  def armed(s: SimplePhase): Boolean = s == SimplePhase.waiting
   def expire(s: SimplePhase): List[Step[SimplePhase, Answer, MarkedFact]] = // format: on
     if armed(s) then enter(SimplePhase.timedOut, MarkedFact.timeout(TimeoutType.start)) else Nil
   object rules extends Bindings(startExpired ~> expire)
@@ -127,7 +127,7 @@ object WrongTypedFamily extends Derived(DeadlineTimers.restrict(startExpired)):
 object NoPhase extends Machine[DeadlineState, Answer, Fact]:
   import DeadlineTimers.given
   val init = DeadlineTimers.init // format: off
-  def end(s: DeadlineState): Boolean = s.phase == Phase.timedOut // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  def end(s: DeadlineState): Boolean = s.phase == Phase.timedOut
   val evidence: PartialFunction[Fact, String] = { case Fact.timeout(_) => "timeout" } // format: on
   object rules extends Bindings(startExpired ~> Steps.start)
   object capabilities extends Capabilities:
@@ -159,9 +159,9 @@ object NoTimedOut
     extends Machine[WithoutTimedOut, Answer, Fact],
       Phased[WithoutTimedOut, WithoutTimedOut](p => p):
   val init = WithoutTimedOut.waiting // format: off
-  override def end(s: WithoutTimedOut): Boolean = s == WithoutTimedOut.plain // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  override def end(s: WithoutTimedOut): Boolean = s == WithoutTimedOut.plain
   val evidence: PartialFunction[Fact, String] = { case Fact.timeout(_) => "timeout" }
-  def armed(s: WithoutTimedOut): Boolean = s == WithoutTimedOut.waiting // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  def armed(s: WithoutTimedOut): Boolean = s == WithoutTimedOut.waiting
   def keep(s: WithoutTimedOut): List[Step[WithoutTimedOut, Answer, Fact]] = stay(s) // format: on
   object rules extends Bindings(startExpired ~> keep)
   object capabilities extends Capabilities:
@@ -183,7 +183,7 @@ object NativeTerminalRoles
       Phased[WithoutWaiting, WithoutWaiting](p => p):
   val init = WithoutWaiting.held
   val evidence: PartialFunction[Fact, String] = { case Fact.timeout(_) => "timeout" } // format: off
-  def armed(s: WithoutWaiting): Boolean = s == WithoutWaiting.held // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  def armed(s: WithoutWaiting): Boolean = s == WithoutWaiting.held
   def expire(s: WithoutWaiting): List[Step[WithoutWaiting, Answer, Fact]] = // format: on
     if armed(s) then enter(WithoutWaiting.timedOut, Fact.timeout(TimeoutType.start)) else Nil
   object rules extends Bindings(startExpired ~> expire)
@@ -202,7 +202,7 @@ object NoWaiting
       Phased[WithoutWaiting, WithoutWaiting](p => p):
   val init = WithoutWaiting.held
   val evidence: PartialFunction[Fact, String] = { case Fact.timeout(_) => "timeout" } // format: off
-  def armed(s: WithoutWaiting): Boolean = s == WithoutWaiting.held // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  def armed(s: WithoutWaiting): Boolean = s == WithoutWaiting.held
   def keep(s: WithoutWaiting): List[Step[WithoutWaiting, Answer, Fact]] = stay(s) // format: on
   object rules extends Bindings(startExpired ~> keep)
   object capabilities extends Capabilities:

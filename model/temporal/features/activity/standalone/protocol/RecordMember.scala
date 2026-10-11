@@ -57,8 +57,11 @@ abstract class OverQueueCapabilities(c: Composition[OverQueue])(using
   )
   val pollable: Capability = Pollable(
     dispatch = c.synced(_.activity -> activityWorker.poll)
-  ) // format: off
-  except(Closable.closedIsRejectedUniformly[OverQueue, AdmissionPhase, String], because = dispatchWaivers.queueStepsOn) // format: on
+  )
+  except(
+    Closable.closedIsRejectedUniformly[OverQueue, AdmissionPhase, String],
+    because = dispatchWaivers.queueStepsOn
+  )
 
 abstract class OverMatchingCapabilities(c: Composition[OverMatching])(using
     Declaring[OverMatching, String, String],
@@ -73,8 +76,11 @@ abstract class OverMatchingCapabilities(c: Composition[OverMatching])(using
   )
   val pollable: Capability = Pollable(
     dispatch = c.synced(_.activity -> activityWorker.poll)
-  ) // format: off
-  except(Closable.closedIsRejectedUniformly[OverMatching, AdmissionPhase, String], because = dispatchWaivers.queueStepsOn) // format: on
+  )
+  except(
+    Closable.closedIsRejectedUniformly[OverMatching, AdmissionPhase, String],
+    because = dispatchWaivers.queueStepsOn
+  )
 
 // ### The record as a member: a composition's Queries are not answered while a member names
 // monitors, so the members are the designs without them. The designs are what refine the product.

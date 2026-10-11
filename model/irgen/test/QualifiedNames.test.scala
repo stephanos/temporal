@@ -67,7 +67,7 @@ class QualifiedNames extends munit.FunSuite:
         val line = lines(i)
         if line.startsWith("package ") then (i, false)
         else if line.startsWith("import ") then (i, line.contains("{") && !line.contains("}"))
-        else if inImport then (i, line.trim != "}") // scalafix:ok DisableSyntax.!=; typed equality
+        else if inImport then (i, line.trim != "}")
         else at
       ._1
     // The top-level statements after the header, each its first line and the indented ones after.
@@ -125,9 +125,7 @@ class QualifiedNames extends munit.FunSuite:
           .readString(from)
           .replace("../../../build/model-scala.jar", modelJar.toString)
           .replace("../../../build/api-scalapb.jar", build.resolve("api-scalapb.jar").toString)
-        val probe = probed.find((_, stem, _, _) =>
-          written == s"$stem.scala"
-        ) // scalafix:ok DisableSyntax.==; typed equality
+        val probe = probed.find((_, stem, _, _) => written == s"$stem.scala")
         Files.writeString(
           dir.resolve(probe.fold(written)((_, stem, _, _) => file(stem))),
           probe.fold(source)((_, _, pkg, _) => move(source, pkg))

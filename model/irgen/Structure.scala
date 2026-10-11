@@ -61,9 +61,7 @@ final private[irgen] class Structure(index: Index):
     for (_, group) <- sources.groupBy(_.feature).toSeq.sortBy(_._1) do
       val hasForms = group.exists(s => s.sub.headOption.exists(Structure.formFolders))
       val pkg = group.head.feature.split('.')
-      // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
       if pkg.reverse(1) == "features" && Structure.formFolders(pkg.last)
-      // scalafix:on DisableSyntax.==
       then
         for source <- group; first <- source.top.headOption do
           refuse(
@@ -73,10 +71,7 @@ final private[irgen] class Structure(index: Index):
           )
       else if hasForms || held(group) then
         checkPackages(group)
-        // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
-        if hasForms && group.head.feature.split('.').reverse(1) == "features" then
-          // scalafix:on DisableSyntax.==
-          kind(group)
+        if hasForms && group.head.feature.split('.').reverse(1) == "features" then kind(group)
         else feature(group): Unit
     refused.toSeq
 
@@ -110,7 +105,7 @@ final private[irgen] class Structure(index: Index):
       case c: ClassDef if c.symbol.flags.is(Flags.Module) => c
     }
     def level: Boolean =
-      sub.sizeIs == 1 && Structure.levels(sub.head) // scalafix:ok DisableSyntax.==; typed equality
+      sub.sizeIs == 1 && Structure.levels(sub.head)
 
     // Whether its folders end with the feature's and its subpackage's, as its package names them.
     def mirrors: Boolean =
@@ -118,7 +113,7 @@ final private[irgen] class Structure(index: Index):
         .split('/')
         .filter(_.nonEmpty)
         .toList
-        .takeRight(sub.size + 1) == // scalafix:ok DisableSyntax.==; typed equality
+        .takeRight(sub.size + 1) ==
         feature.split('.').last :: sub
 
   private def source(path: String, trees: List[Tree]): Option[Source] =
@@ -204,7 +199,7 @@ final private[irgen] class Structure(index: Index):
       )
     val empty = headers.headOption.toSeq.flatMap { file =>
       val path = file.toString
-      if sources.exists(_.path == path) then None // scalafix:ok DisableSyntax.==; typed equality
+      if sources.exists(_.path == path) then None
       else
         // Package-only compilation units emit no TASTy; the named source root supplies this header.
         val text =
@@ -212,9 +207,7 @@ final private[irgen] class Structure(index: Index):
         val clauses = text.split("[;\\n]").map(_.trim).filter(_.nonEmpty)
         val clause = "package ([a-zA-Z_][a-zA-Z_0-9]*(?:\\.[a-zA-Z_][a-zA-Z_0-9]*)*)".r
         val declared = clauses.collect { case clause(p) => p }
-        // scalafix:off DisableSyntax.!=; strictEquality checks native comparisons
         if declared.nonEmpty && declared.mkString(".") != pkg
-        // scalafix:on DisableSyntax.!=
         then
           refuse(
             path,
@@ -222,9 +215,7 @@ final private[irgen] class Structure(index: Index):
             s"$path declares package ${declared.mkString(".")}, which its folder, $root, does not mirror"
           )
           None
-        // scalafix:off DisableSyntax.!=; strictEquality checks native comparisons
         else if declared.length != clauses.length || declared.isEmpty
-        // scalafix:on DisableSyntax.!=
         then
           refuse(
             path,
@@ -249,7 +240,8 @@ final private[irgen] class Structure(index: Index):
   private def facetFiles(sources: Seq[Source]): Unit =
     for s <- sources if s.path.startsWith("model/temporal/") || s.level do
       val facets = s.top.collect {
-        case c: ClassDef if c.symbol.flags.is(Flags.Trait) && c.symbol.typeRef.derivesFrom(facetClass) =>
+        case c: ClassDef
+            if c.symbol.flags.is(Flags.Trait) && c.symbol.typeRef.derivesFrom(facetClass) =>
           c
       }
       for (c, i) <- facets.zipWithIndex do
@@ -259,8 +251,11 @@ final private[irgen] class Structure(index: Index):
             s"${c.name} is a second facet in ${s.path}, beside ${facets.head.name}: a facet has a " +
               s"file of its own, ${c.name}.scala"
           )
-        else if s.file != s"${c.name}.scala" then // scalafix:ok DisableSyntax.!=; typed equality
-          refuse(c, s"${c.name} is a facet in ${s.file}: a facet's file is named after it, ${c.name}.scala")
+        else if s.file != s"${c.name}.scala" then
+          refuse(
+            c,
+            s"${c.name} is a facet in ${s.file}: a facet's file is named after it, ${c.name}.scala"
+          )
 
   // ### One machine per file, and the realization layer (fn-160 R7, R8)
 
@@ -291,7 +286,7 @@ final private[irgen] class Structure(index: Index):
             s"${plain(c.name)} is a second machine, composition or derivation in ${s.path}, " +
               s"beside ${plain(forms.head.name)}: each has a file of its own, ${plain(c.name)}.scala"
           )
-        else if !levelFile && s.file != s"${plain(c.name)}.scala" then // scalafix:ok DisableSyntax.!=; typed equality
+        else if !levelFile && s.file != s"${plain(c.name)}.scala" then
           refuse(
             c,
             s"${plain(c.name)} is declared in ${s.path}: a machine, composition or derivation " +
@@ -307,7 +302,7 @@ final private[irgen] class Structure(index: Index):
           )
         else if !name.endsWith("Run") then
           refuse(c, s"$name is a realization: name it after what it runs, `<Subject>Run`")
-        else if s.file != s"$name.scala" then // scalafix:ok DisableSyntax.!=; typed equality
+        else if s.file != s"$name.scala" then
           refuse(c, s"$name is declared in ${s.path}: a realization sits in a file named after it")
 
   // ### Machine objects and their refinements
@@ -340,9 +335,7 @@ final private[irgen] class Structure(index: Index):
   private def refines(c: ClassDef): Option[(ClassDef, Symbol)] =
     // The refinement's own machine is named too, as the owner of its types; the other is refined.
     nested(c)
-      .find(o =>
-        plain(o.name) == "refinement" && o.symbol.typeRef.derivesFrom(refinementClass)
-      ) // scalafix:ok DisableSyntax.==; typed equality
+      .find(o => plain(o.name) == "refinement" && o.symbol.typeRef.derivesFrom(refinementClass))
       .flatMap { r =>
         val named = mutable.ArrayBuffer.empty[Symbol]
         object machines extends TreeTraverser:
@@ -350,7 +343,7 @@ final private[irgen] class Structure(index: Index):
             t match
               case ref: Ref
                   if ref.symbol.flags.is(Flags.Module) && form(ref.symbol.moduleClass) &&
-                    ref.symbol.moduleClass != c.symbol => // scalafix:ok DisableSyntax.!=; typed equality
+                    ref.symbol.moduleClass != c.symbol =>
                 named += ref.symbol.moduleClass
               case _ => ()
             super.traverseTree(t)(o)
@@ -383,7 +376,7 @@ final private[irgen] class Structure(index: Index):
       (_, c) <- forms; (r, product) <- refines(c)
       if within(product) || inherited.exists(
         _._2.symbol == product
-      ) // scalafix:ok DisableSyntax.==; typed equality
+      )
     yield (c, r, product)
     // A kind's Product, shared by its forms, sits under `shared/` (fn-160 R13). The level below the
     // Product is the Protocol (fn-160 R12), in `protocol/`; `system/` is its former name.
@@ -396,18 +389,15 @@ final private[irgen] class Structure(index: Index):
     val hasLevelFiles =
       sources.exists(_.path == productPath) && sources.exists(
         _.path == systemPath
-      ) // scalafix:ok DisableSyntax.==; typed equality
+      )
     val hasProduct =
-      sources.exists(_.path == productPath) // scalafix:ok DisableSyntax.==; typed equality
+      sources.exists(_.path == productPath)
     val kindLevels = general && hasProduct
     val inheritedLevels = inherited.nonEmpty && sources.exists(_.sub.headOption.contains(lower))
     val twoLevels = pairs.nonEmpty || hasLevelFiles || kindLevels || inheritedLevels
-    // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
     if inheritedLevels && !sources.exists(_.path == systemPath)
-    // scalafix:on DisableSyntax.==
     then
-      for
-        source <- sources.find(_.sub.headOption.contains(lower)); first <- source.top.headOption
+      for source <- sources.find(_.sub.headOption.contains(lower)); first <- source.top.headOption
       do
         refuse(
           first,
@@ -418,7 +408,7 @@ final private[irgen] class Structure(index: Index):
       for
         source <- sources
         if source.sub.nonEmpty &&
-          (if general then source.sub != productFolder // scalafix:ok DisableSyntax.!=; typed equality
+          (if general then source.sub != productFolder
            else !source.level)
         first <- source.top.headOption
       do
@@ -435,7 +425,7 @@ final private[irgen] class Structure(index: Index):
         (_, machine) <- forms; (refinement, product) <- refines(machine)
         if !within(product) && !inherited.exists(
           _._2.symbol == product
-        ) // scalafix:ok DisableSyntax.==; typed equality
+        )
       do
         refuse(
           refinement,
@@ -452,9 +442,7 @@ final private[irgen] class Structure(index: Index):
         if rootFile.isEmpty then refuse(refinement, s"$two; $root has no root feature file")
         val required = Option.when(!inheritedLevels)(systemPath).toSeq ++
           Option.when(inherited.isEmpty)(productPath)
-        // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
         for level <- required if !sources.exists(_.path == level)
-        // scalafix:on DisableSyntax.==
         do refuse(refinement, s"$two; $level is missing")
       case None if hasLevelFiles || kindLevels || inheritedLevels => ()
       case None                                                   =>
@@ -486,7 +474,7 @@ final private[irgen] class Structure(index: Index):
     def primary(path: String, level: String): Option[ClassDef] =
       val declarations = forms.collect {
         case (source, form) if source.path == path => form
-      } // scalafix:ok DisableSyntax.==; typed equality
+      }
       val named = declarations.filter(c => plain(c.name).endsWith(level))
       named match
         case Seq(one)              => Some(one)
@@ -501,9 +489,7 @@ final private[irgen] class Structure(index: Index):
           declarations match
             case Seq(one) => Some(one)
             case _        =>
-              // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
               for source <- sources.find(_.path == path); first <- source.top.headOption
-              // scalafix:on DisableSyntax.==
               do
                 refuse(
                   first,
@@ -553,15 +539,13 @@ final private[irgen] class Structure(index: Index):
       val systemName = plain(system.name)
       if productName.endsWith("Product") && systemName.endsWith(Lower) then
         val expected = productName.stripSuffix("Product") + Lower
-        if systemName != expected then // scalafix:ok DisableSyntax.!=; typed equality
+        if systemName != expected then
           refuse(
             system,
             s"$systemName is the $Lower machine in $name's $lower/$Lower.scala: name it " +
               s"$expected, with the same prefix as $productName"
           )
-      // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
       if !refines(system).exists(_._2 == product.symbol)
-      // scalafix:on DisableSyntax.==
       then
         val path = localProduct.fold(inherited.fold("product/Product.scala")(_._1.path))(_ =>
           "product/Product.scala"
@@ -592,7 +576,7 @@ final private[irgen] class Structure(index: Index):
       do
         val destination =
           if general && level == "System" then s"a form's $file"
-          else file // scalafix:ok DisableSyntax.==; typed equality
+          else file
         refuse(
           d,
           s"$written is $level level vocabulary declared in $name's root feature file: " +
@@ -619,15 +603,13 @@ final private[irgen] class Structure(index: Index):
       // Taskqueue deliberately keeps its cross-level QueueView/QueueDetail vocabulary in its root;
       // that named exception does not exempt another two-level feature under `foundations` or `actors`.
       val levelOwned =
-        pkg != "temporal.foundations.taskqueue" && (general || (for // scalafix:ok DisableSyntax.!=; typed equality
-            product <- productDef
-            system <- systemDef
-          yield
-            val productArguments = machineArguments(product).map(_.dealias.typeSymbol)
-            val systemArguments = machineArguments(system).map(_.dealias.typeSymbol)
-            Seq(0, 2).exists(i =>
-              productArguments.lift(i) != systemArguments.lift(i)
-            ) // scalafix:ok DisableSyntax.!=; typed equality
+        pkg != "temporal.foundations.taskqueue" && (general || (for
+          product <- productDef
+          system <- systemDef
+        yield
+          val productArguments = machineArguments(product).map(_.dealias.typeSymbol)
+          val systemArguments = machineArguments(system).map(_.dealias.typeSymbol)
+          Seq(0, 2).exists(i => productArguments.lift(i) != systemArguments.lift(i))
         ).getOrElse(false))
       if levelOwned then
         val vocabulary = Seq("Phase", "State", "Fact")
@@ -636,13 +618,13 @@ final private[irgen] class Structure(index: Index):
             ("Product", "product", productPath, productDef),
             (Lower, lower, systemPath, systemDef)
           )
-          source <- sources.find(_.path == path) // scalafix:ok DisableSyntax.==; typed equality
+          source <- sources.find(_.path == path)
           owner <- machine
           owned <- vocabulary
           if !source.top.exists(d =>
             d.symbol.isType && !d.symbol.flags.is(Flags.Module) && plain(
               d.name
-            ) == owned // scalafix:ok DisableSyntax.==; typed equality
+            ) == owned
           )
         do
           refuse(
@@ -656,13 +638,9 @@ final private[irgen] class Structure(index: Index):
             (Lower, lower, systemPath)
           )
           source <- sources
-          // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
           if source.sub == List(
-            // scalafix:on DisableSyntax.==
             folder
-            // scalafix:off DisableSyntax.!=; strictEquality checks native comparisons
           ) && source.path != path
-          // scalafix:on DisableSyntax.!=
           d <- source.top
           if d.symbol.isType && !d.symbol.flags.is(Flags.Module)
           written = plain(d.name)
@@ -684,7 +662,7 @@ final private[irgen] class Structure(index: Index):
       )
 
     // An IR file is collected from the feature's package (fn-160): nothing lists one.
-    for s <- sources; c <- s.objects if plain(c.name) == "exports" do // scalafix:ok DisableSyntax.==; typed equality
+    for s <- sources; c <- s.objects if plain(c.name) == "exports" do
       refuse(
         c,
         s"object exports sits in ${s.path}: a feature's IR file is collected from its package, " +
@@ -692,7 +670,7 @@ final private[irgen] class Structure(index: Index):
       )
     for
       product <- localProduct;
-      source <- sources.find(_.path == productPath) // scalafix:ok DisableSyntax.==; typed equality
+      source <- sources.find(_.path == productPath)
     yield source -> product
 
 object Structure:
@@ -717,9 +695,7 @@ object Structure:
 
   // Every section name a machine or composition object may hold (R20 (c)): `syncs` with `rules`.
   val sections: Seq[String] =
-    formSections.flatMap(n =>
-      if n == "rules" then Seq(n, "syncs") else Seq(n)
-    ) // scalafix:ok DisableSyntax.==; typed equality
+    formSections.flatMap(n => if n == "rules" then Seq(n, "syncs") else Seq(n))
 
   // The name of a feature file in a folder: a form's under a kind, `<Form><Kind>`
   // (`standalone/StandaloneActivity.scala`, fn-160 R13), any other's the folder's name.

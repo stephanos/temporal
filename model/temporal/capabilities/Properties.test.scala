@@ -27,7 +27,7 @@ class CapabilityPropertiesTest extends munit.FunSuite:
     case other         => fail(s"expected Boolean capability binding, got $other")
   final case class Brought(name: String, by: Set[CapabilityKind])
   private def only(by: Set[CapabilityKind], kind: CapabilityKind): Boolean =
-    by.size == 1 && by.contains(kind) // scalafix:ok DisableSyntax.==
+    by.size == 1 && by.contains(kind)
   final case class Declared(
       machine: String,
       state: String,
@@ -57,7 +57,7 @@ class CapabilityPropertiesTest extends munit.FunSuite:
     // A machine of facets declares its facets' capabilities (fn-161).
     def sections(c: Capabilities[S, O, F]): Seq[Capabilities[S, O, F]] = c match
       case f: framework.FacetCapabilities[S, O, F] @unchecked => f.facets.flatMap(sections)
-      case other                                    => Seq(other)
+      case other                                              => Seq(other)
     val bindings = sections(section).flatMap(c =>
       c.getClass.getMethods
         .filter(method => classOf[CapabilityOf[?, ?, ?]].isAssignableFrom(method.getReturnType))
@@ -156,10 +156,10 @@ class CapabilityPropertiesTest extends munit.FunSuite:
     assertEquals(underInstantiated(properties, declared ++ conditionalFixtures), Seq.empty)
     val finitePolicy = properties
       .find(_.name == "Retryable.attemptCountIsWithinPolicy")
-      .get // scalafix:ok DisableSyntax.==
+      .get
     val finitePolicySites = declared.filterNot(
       _.state == WorkflowNexusProtocol.init.getClass.getName
-    ) // scalafix:ok DisableSyntax.==
+    )
     assertEquals(
       instantiating(finitePolicy, finitePolicySites ++ conditionalFixtures),
       Seq(classOf[protocol.State].getName, classOf[RetryFixture.Snapshot].getName)
@@ -169,7 +169,7 @@ class CapabilityPropertiesTest extends munit.FunSuite:
   test("workflow Nexus brings only retry and deadline branches its bindings supply") {
     val nexus = declared
       .find(_.state == WorkflowNexusProtocol.init.getClass.getName)
-      .get // scalafix:ok DisableSyntax.==
+      .get
     assertEquals(
       nexus.applicable,
       Set(
@@ -181,7 +181,7 @@ class CapabilityPropertiesTest extends munit.FunSuite:
       )
     )
     val activity =
-      declared.find(_.state == classOf[protocol.State].getName).get // scalafix:ok DisableSyntax.==
+      declared.find(_.state == classOf[protocol.State].getName).get
     assertEquals(
       activity.applicable,
       properties.filter(p => only(p.by, Retryable) || only(p.by, Expirable)).map(_.name).toSet
@@ -247,7 +247,7 @@ class CapabilityPropertiesTest extends munit.FunSuite:
   test("a Property brought to one state type fails by name; derived machines count once") {
     val record = declared.filter(
       _.state == classOf[protocol.AdmissionState].getName
-    ) // scalafix:ok DisableSyntax.==
+    )
     assertEquals(record.map(_.machine), Seq("activityRecord", "trustingActivityRecord"))
     assertEquals(
       underInstantiated(properties.filter(p => only(p.by, Closable)), record),
@@ -263,7 +263,7 @@ class CapabilityPropertiesTest extends munit.FunSuite:
   test("Pausable's dispatch Property needs Pollable as well") {
     val dispatch = properties
       .find(_.name == "Pausable.pausedIsNotDispatched")
-      .get // scalafix:ok DisableSyntax.==
+      .get
     assertEquals(
       instantiating(dispatch, Seq(Declared("pausedOnly", "Paused", Set("Pausable")))),
       Seq.empty

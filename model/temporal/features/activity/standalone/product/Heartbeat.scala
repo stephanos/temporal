@@ -8,7 +8,9 @@ import framework.*
 import framework.outcomes.{Outcome, Rejection}
 
 trait Heartbeat extends Facet[State, Outcome, Fact], Phased[State, Phase]:
+
   object heartbeat:
+
     object effects:
       def heartbeat(s: State) = enter(s, Fact.heartbeatReceived)
       val heartbeatRetry = choice

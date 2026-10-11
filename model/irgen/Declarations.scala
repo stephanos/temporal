@@ -55,7 +55,7 @@ private[irgen] trait Declarations:
     case _ =>
       val declared = declaredAction(ref)
       actions.get(declared.id) match
-        case Some(prior) if prior.on != declared.on || prior.creates != declared.creates => // scalafix:ok DisableSyntax.!=; typed equality
+        case Some(prior) if prior.on != declared.on || prior.creates != declared.creates =>
           fail(
             ref,
             s"${declared.id} has conflicting entity bindings in this export: " +
@@ -118,7 +118,7 @@ private[irgen] trait Declarations:
     case r: Ref if r.symbol.flags.is(Flags.Module) && isActor(r.symbol.moduleClass) =>
       objectActor(r.symbol.moduleClass)
     case r: Ref if r.symbol.fullName == "framework.Actor$.system" =>
-      "system" // scalafix:ok DisableSyntax.==; typed equality
+      "system"
     case _ => constString(t)
 
   private lazy val actorClass = Symbol.requiredClass("framework.Actor")
@@ -232,7 +232,7 @@ private[irgen] trait Declarations:
     def from(cls: Symbol, seen: Set[Symbol]): Option[List[Term]] =
       val c = objectBody(cls, at)
       val own = c.parents.collectFirst {
-        case t: Term if t.symbol.isClassConstructor && t.symbol.maybeOwner == phasedClass => // scalafix:ok DisableSyntax.==; typed equality
+        case t: Term if t.symbol.isClassConstructor && t.symbol.maybeOwner == phasedClass =>
           call(t).toList.flatMap(_._2.flatten)
       }
       own.filter(_.nonEmpty).orElse {
@@ -284,7 +284,7 @@ private[irgen] trait Declarations:
   // A member section of an object form: `object effects` and the like.
   def sectionOf(c: ClassDef, name: String): Option[ClassDef] = c.body.collectFirst {
     case s: ClassDef if s.symbol.flags.is(Flags.Module) && s.name.stripSuffix("$") == name =>
-      s // scalafix:ok DisableSyntax.==; typed equality
+      s
   }
 
   // The statements of a section's body: no synthetic member, no constructor.
@@ -352,12 +352,10 @@ private[irgen] trait Declarations:
         outcomeType = typeRef(o, c).getNamed,
         factType =
           if f.dealias.typeSymbol != defn.NothingClass then typeRef(f, c).getNamed
-          else "" // scalafix:ok DisableSyntax.!=; typed equality
+          else ""
       )
       val members = statements(c).collect { case d: Definition => d }
-      def member(n: String) = members.find(d =>
-        d.name == n && !d.symbol.flags.is(Flags.Module)
-      ) // scalafix:ok DisableSyntax.==; typed equality
+      def member(n: String) = members.find(d => d.name == n && !d.symbol.flags.is(Flags.Module))
       val start = member("init") match
         case Some(v: ValDef) if v.rhs.nonEmpty        => lift(v.rhs.get)
         case Some(d: DefDef) if d.termParamss.isEmpty => lift(d.rhs.get)
@@ -372,7 +370,7 @@ private[irgen] trait Declarations:
       val visibleOutcomes = mutable.ArrayBuffer.empty[String]
       def function(d: Definition, kind: String): String = d match
         case f: DefDef if f.termParamss.flatMap(_.params).size == 1 =>
-          callee(f.symbol, f) // scalafix:ok DisableSyntax.==; typed equality
+          callee(f.symbol, f)
         case v: ValDef if v.rhs.nonEmpty => stepFunction(v.rhs.get, name, kind)
         case other => fail(other, s"$kind is a function of one argument: `def $kind(x: T) = ...`")
       def unobservable(b: ir.Machine, d: Definition): ir.Machine = d match
@@ -486,8 +484,11 @@ private[irgen] trait Declarations:
             s"$name binds its actions outside its facets: its rules are its facets' rules, " +
               "`object rules extends Facets(pausing.rules, ...)`, each action in one facet's rules"
           )
-        for section <- sectionOf(c, "capabilities")
-          if !section.symbol.typeRef.derivesFrom(Symbol.requiredClass("framework.FacetCapabilities"))
+        for
+          section <- sectionOf(c, "capabilities")
+          if !section.symbol.typeRef.derivesFrom(
+            Symbol.requiredClass("framework.FacetCapabilities")
+          )
         do
           fail(
             section,
@@ -516,7 +517,7 @@ private[irgen] trait Declarations:
           finally liftingMachine = outer
       // A design subject with a state of its own (`AdmissionState`), rather than its level's `State`,
       // is a model of its own beside the level, so its facets are its own.
-      if Switches.facetVocabulary(cls.fullName) && s.dealias.typeSymbol.name == "State" then // scalafix:ok DisableSyntax.==; typed equality
+      if Switches.facetVocabulary(cls.fullName) && s.dealias.typeSymbol.name == "State" then
         sameFacets(name, refined.refines.map(_.product), c)
       val folded = inferredEntity(watched.addAllSteps(steps), c)
       val m = finished(folded, f, c, visible.toSeq, visibleOutcomes.toSeq)
@@ -595,7 +596,7 @@ private[irgen] trait Declarations:
     var facet: Option[String] = None // scalafix:ok DisableSyntax.var
     def owned(id: String, at: Tree): Unit =
       for f <- facet do
-        for other <- bound.get(id) if other != f do // scalafix:ok DisableSyntax.!=; typed equality
+        for other <- bound.get(id) if other != f do
           fail(
             at,
             s"${actions(id).name} is bound by the facets $other and $f of $machine: an action " +
@@ -605,7 +606,7 @@ private[irgen] trait Declarations:
     // One statement of the rules, or of the `from` they sit in: its declarer and its name.
     def rule(stat: Statement, within: Option[(Symbol, String)]): Unit =
       stat match
-        case t: Term if t.symbol.maybeOwner == rulesClass => // scalafix:ok DisableSyntax.==; typed equality
+        case t: Term if t.symbol.maybeOwner == rulesClass =>
           call(t) match
             case Some(("from", List(List(declarer), List(body)))) =>
               val name = declarerName(declarer)
@@ -625,9 +626,7 @@ private[irgen] trait Declarations:
               }
               for (target, _, _) <- fired do qualified(target, machine, within)
               for ((target, id, cls), i) <- fired.zipWithIndex do
-                // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
                 if fired.take(i).exists((_, d, c) => d == id && c == cls)
-                // scalafix:on DisableSyntax.==
                 then
                   fail(
                     target,
@@ -656,9 +655,7 @@ private[irgen] trait Declarations:
               for a <- varargs(as) do
                 qualified(a, machine, None, "disabled")
                 val id = action(a)
-                // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
                 if off(id) || written.exists(_.action == id)
-                // scalafix:on DisableSyntax.==
                 then
                   fail(a, s"${actions(id).name} is disabled twice, or disabled and fired by a rule")
                 owned(id, a)
@@ -678,9 +675,7 @@ private[irgen] trait Declarations:
           statements(r).foreach(rule(_, None))
         facetOwners(machine) = bound.toMap
     for r <- written do
-      // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
       if headingNames(r.heading).exists(_ == "when") && projection.isEmpty
-      // scalafix:on DisableSyntax.==
       then
         fail(
           r.at,
@@ -707,7 +702,7 @@ private[irgen] trait Declarations:
       below <- facetOwners.get(machine)
       above <- facetOwners.get(product)
       (id, facet) <- below.toSeq.sortBy(_._1)
-      other <- above.get(id) if other != facet // scalafix:ok DisableSyntax.!=; typed equality
+      other <- above.get(id) if other != facet
     do
       fail(
         at,
@@ -720,16 +715,19 @@ private[irgen] trait Declarations:
   // `enum FacetName` whose package holds the facet's, or None where no feature declares one.
   private def vocabularyOf(facet: Symbol): Option[(Symbol, List[String])] =
     def packageOf(s: Symbol): String =
-      Iterator.iterate(s)(_.maybeOwner).find(o => o.isNoSymbol || o.isPackageDef)
-        .filter(_.isPackageDef).fold("")(_.fullName)
+      Iterator
+        .iterate(s)(_.maybeOwner)
+        .find(o => o.isNoSymbol || o.isPackageDef)
+        .filter(_.isPackageDef)
+        .fold("")(_.fullName)
     val pkg = packageOf(facet)
     // The index holds the enum's companion val, whose class is the enum.
     defs.keys
-      .filter(s => s.name == "FacetName" && s.flags.is(Flags.Module)) // scalafix:ok DisableSyntax.==; typed equality
+      .filter(s => s.name == "FacetName" && s.flags.is(Flags.Module))
       .map(_.companionClass)
       .filter(s => s.isClassDef && s.flags.is(Flags.Enum))
       .map(s => s -> packageOf(s))
-      .filter((_, p) => pkg == p || pkg.startsWith(p + ".")) // scalafix:ok DisableSyntax.==; typed equality
+      .filter((_, p) => pkg == p || pkg.startsWith(p + "."))
       .toSeq
       .sortBy(-_._2.length)
       .headOption
@@ -746,7 +744,7 @@ private[irgen] trait Declarations:
         .map { a =>
           val cls = moduleClassOf(unwrapped(a).symbol)
           val facet = cls.maybeOwner
-          if !(cls.name.stripSuffix("$") == "rules" && facetObject(facet)) then // scalafix:ok DisableSyntax.==; typed equality
+          if !(cls.name.stripSuffix("$") == "rules" && facetObject(facet)) then
             fail(
               a,
               s"$machine's Facets lists ${a.show}: it lists the rules of its facets, " +
@@ -754,7 +752,7 @@ private[irgen] trait Declarations:
             )
           val name = facet.name.stripSuffix("$")
           val written = facet.maybeOwner.name
-          if name != written.take(1).toLowerCase + written.drop(1) then // scalafix:ok DisableSyntax.!=; typed equality
+          if name != written.take(1).toLowerCase + written.drop(1) then
             fail(
               a,
               s"$machine's facet $written holds its sections in object $name: a facet's object is " +
@@ -811,7 +809,7 @@ private[irgen] trait Declarations:
       case other                                 => List(other)
     for case i @ Import(expr, _) <- stats do
       val what =
-        if expr.symbol == declarer.symbol then s"$name's members" // scalafix:ok DisableSyntax.==; typed equality
+        if expr.symbol == declarer.symbol then s"$name's members"
         else expr.show
       fail(
         i,
@@ -865,7 +863,7 @@ private[irgen] trait Declarations:
       case _                => None
     actionRef(target).exists(
       _.symbol.maybeOwner == owner.moduleClass
-    ) // scalafix:ok DisableSyntax.==; typed equality
+    )
 
   // The kinds of case a heading is made of, `when` where it names phases.
   private def headingNames(h: Heading): List[String] = h match
@@ -885,12 +883,12 @@ private[irgen] trait Declarations:
   // written. A case's phases are read with the rules' projection later, so here they read none.
   def cases(block: Term, machine: String): List[(Heading, Term, Term)] =
     def one(t: Term): (Heading, Term, Term) = unwrapped(t) match
-      case b if Set("on", "from")(b.symbol.name) && b.symbol.maybeOwner == rulesClass => // scalafix:ok DisableSyntax.==; typed equality
+      case b if Set("on", "from")(b.symbol.name) && b.symbol.maybeOwner == rulesClass =>
         fail(
           b,
           s"${b.symbol.name} sits in a block of $machine's rules: a block holds its cases alone"
         )
-      case b @ Apply(inner, List(_)) if b.symbol.name == "~>" && b.symbol.maybeOwner == caseClass => // scalafix:ok DisableSyntax.==; typed equality
+      case b @ Apply(inner, List(_)) if b.symbol.name == "~>" && b.symbol.maybeOwner == caseClass =>
         def effectOf(fn: Term): (Term, Term) = fn match
           case Apply(sel, List(effect)) => (receiverOf(sel), effect)
           case other => fail(other, s"not a case of $machine's rules: ${other.show}")
@@ -923,27 +921,27 @@ private[irgen] trait Declarations:
 
   // Where a case fires: `when(...)`, `where(g)`, `always`, or one of them `.where(g)`.
   private def heading(c: Term, machine: String): Heading = unwrapped(c) match
-    case w @ Apply(Select(inner, "where"), List(g)) if w.symbol.maybeOwner == caseClass => // scalafix:ok DisableSyntax.==; typed equality
+    case w @ Apply(Select(inner, "where"), List(g)) if w.symbol.maybeOwner == caseClass =>
       Heading.And(heading(inner, machine), g)
     case t =>
       val owner = t.symbol.maybeOwner
       call(t) match
         // `when[R]`: its role test's type, `TypeTest[P, R]`, names the phase type and the role.
-        case Some(("when", List(List(test, _, _)))) if owner == rulesClass => // scalafix:ok DisableSyntax.==; typed equality
+        case Some(("when", List(List(test, _, _)))) if owner == rulesClass =>
           test.tpe.widen.dealias.typeArgs match
             case List(phase, role) => Heading.Role(test, phase, role, t)
             case _                 => fail(t, s"when tests a role, not ${test.show}")
-        case Some(("when", List(List(first, rest), _))) if owner == rulesClass => // scalafix:ok DisableSyntax.==; typed equality
+        case Some(("when", List(List(first, rest), _))) if owner == rulesClass =>
           val phases = first :: varargs(rest)
           phases.foreach(qualifiedPhase(_, machine))
           Heading.In(first, phases)
         case Some(("when", List(List(set), _))) if owner == rulesClass =>
           qualifiedPhase(set, machine)
-          Heading.InSet(set, set) // scalafix:ok DisableSyntax.==; typed equality
+          Heading.InSet(set, set)
         case Some(("where", List(_, List(g)))) if owner.fullName == syntaxPackage =>
-          Heading.When(g) // scalafix:ok DisableSyntax.==; typed equality
+          Heading.When(g)
         case Some(("always", List(_))) if owner.fullName == syntaxPackage =>
-          Heading.Always // scalafix:ok DisableSyntax.==; typed equality
+          Heading.Always
         case _ =>
           fail(
             t,
@@ -1028,7 +1026,7 @@ private[irgen] trait Declarations:
     val name = s"$machine.rules.${a.name}"
     val stateName = Iterator("s", "state", "s0")
       .find(n => !a.inputs.exists(_.name == n))
-      .get // scalafix:ok DisableSyntax.==; typed equality
+      .get
     def stateVar(at: Tree) = expr(at)(E.Var(stateName))
     def bind(params: List[ValDef], names: List[String]): Unit =
       params.zip(names).foreach((p, n) => renamed(p.symbol) = n)
@@ -1085,11 +1083,8 @@ private[irgen] trait Declarations:
       val (params, body) = lambda(r.effect).getOrElse(
         fail(r.effect, s"the effect of a rule of $machine is a function, not ${r.effect.show}")
       )
-      // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
-      if params.size == 1 then
-        // scalafix:on DisableSyntax.==
-        bind(params, List(stateName))
-      else if params.size == 1 + a.inputs.size then // scalafix:ok DisableSyntax.==; typed equality
+      if params.size == 1 then bind(params, List(stateName))
+      else if params.size == 1 + a.inputs.size then
         bind(params, stateName :: a.inputs.map(_.name).toList)
       else
         fail(
@@ -1118,12 +1113,10 @@ private[irgen] trait Declarations:
         expr(r.at)(E.If(ir.If(Some(g), Some(arm), Some(rest))))
       )
     def byInputs(i: Int, fixed: Seq[ir.Value]): ir.Expr =
-      // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
       if i == a.inputs.size then
-        // scalafix:on DisableSyntax.==
         chain(
           rules.filter(_.cls.forall(_ == fixed))
-        ) // scalafix:ok DisableSyntax.==; typed equality
+        )
       else
         val input = a.inputs(i)
         val cases = valuesOf(input.getType, at).map(v =>
@@ -1154,7 +1147,7 @@ private[irgen] trait Declarations:
       case Match(_, cases)    => cases.flatMap(c => empty(c.rhs))
       case Ident("Nil")       => List(t)
       case r: Ref if r.symbol.fullName == "framework.Syntax$package$.disabled" =>
-        List(t) // scalafix:ok DisableSyntax.==; typed equality
+        List(t)
       case Apply(TypeApply(Select(Ident("List"), "apply"), _), List(items))
           if varargs(items).isEmpty =>
         List(t)
@@ -1176,10 +1169,10 @@ private[irgen] trait Declarations:
 
   // The action and the function of the core `action ~> function`, or a refusal.
   def coreBinding(binding: Term, should: => String): (Term, Term) = binding match
-    case Typed(e, _)        => coreBinding(e, should)
-    case Block(Nil, e)      => coreBinding(e, should)
-    case Inlined(_, Nil, e) => coreBinding(e, should)
-    case t if t.symbol.maybeOwner.fullName == "framework.Machine$package$" => // scalafix:ok DisableSyntax.==; typed equality
+    case Typed(e, _)                                                       => coreBinding(e, should)
+    case Block(Nil, e)                                                     => coreBinding(e, should)
+    case Inlined(_, Nil, e)                                                => coreBinding(e, should)
+    case t if t.symbol.maybeOwner.fullName == "framework.Machine$package$" =>
       call(t) match
         case Some(("~>", List(List(a), List(fn)))) => (a, fn)
         case _                                     => fail(t, s"$should, not ${t.show}")
@@ -1202,7 +1195,7 @@ private[irgen] trait Declarations:
     case Typed(e, _)        => onGroup(e)
     case Inlined(_, Nil, e) => onGroup(e)
     case Apply(Apply(Apply(TypeApply(Ident("on"), _), _), List(a)), List(block))
-        if t.symbol.maybeOwner.fullName == syntaxPackage => // scalafix:ok DisableSyntax.==; typed equality
+        if t.symbol.maybeOwner.fullName == syntaxPackage =>
       Some(a -> block)
     case _ => None
 
@@ -1257,7 +1250,7 @@ private[irgen] trait Declarations:
             val (a, effect) = coreBinding(b, s"$op takes `action ~> function` bindings")
             val id = action(a)
             rulesOf.get(src.name).flatMap(_.get(id)) match
-              case Some(kept) if op == "rebind" => // scalafix:ok DisableSyntax.==; typed equality
+              case Some(kept) if op == "rebind" =>
                 def effectOf(r: LiftedRule) =
                   forwardedDef(r.effect).fold(r.effect.show)(_.fullName)
                 // Rules that each fire another class may differ in effect: the new effect reads the
@@ -1286,7 +1279,7 @@ private[irgen] trait Declarations:
                     Some(pos(b))
                   ) -> b
                 )
-              case _ if op == "extend" && rulesOf.contains(src.name) => // scalafix:ok DisableSyntax.==; typed equality
+              case _ if op == "extend" && rulesOf.contains(src.name) =>
                 fail(
                   b,
                   s"$name extends ${src.name}, whose actions are bound by rules, by a bare " +
@@ -1294,9 +1287,7 @@ private[irgen] trait Declarations:
                 )
               case _ => Seq(stepBinding(b, name, s"$op takes `action ~> function` bindings") -> b)
       }
-      // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
       for (s, b) <- bindings if bindings.count(_._1.action == s.action) > 1
-      // scalafix:on DisableSyntax.==
       do fail(b, s"$name ${op}s ${actions(s.action).name} twice: a machine binds an action once")
       bindings
     def derive(t: Term): ir.Machine = t match
@@ -1308,9 +1299,7 @@ private[irgen] trait Declarations:
       case Derivation("rebind", source, List(items)) =>
         val src = derive(source)
         val replaced = bound(src, items, "rebind").map { (s, b) =>
-          // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
           if !src.steps.exists(_.action == s.action)
-          // scalafix:on DisableSyntax.==
           then
             fail(
               b,
@@ -1323,9 +1312,7 @@ private[irgen] trait Declarations:
       case Derivation("extend", source, List(items)) =>
         val src = derive(source)
         val added = bound(src, items, "extend").map { (s, b) =>
-          // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
           if src.steps.exists(_.action == s.action)
-          // scalafix:on DisableSyntax.==
           then
             fail(
               b,
@@ -1349,9 +1336,7 @@ private[irgen] trait Declarations:
           )
         def types(m: ir.Machine) =
           Seq(m.stateType, m.outcomeType, m.factType).map(t => if t.isEmpty then "Nothing" else t)
-        // scalafix:off DisableSyntax.!=; strictEquality checks native comparisons
         if types(replacement) != types(replaced)
-        // scalafix:on DisableSyntax.!=
         then
           fail(
             product,
@@ -1387,7 +1372,7 @@ private[irgen] trait Declarations:
       case Derivation(op, source, _) =>
         op == "rebind" || op == "extend" || binds(
           source
-        ) // scalafix:ok DisableSyntax.==; typed equality
+        )
       case _ => false
     val src = derive(rhs)
     // A derivation keeps the rules of the actions it binds as its source did.
@@ -1396,9 +1381,7 @@ private[irgen] trait Declarations:
       case source                   => Some(machineOf(resolveSymbol(source), source).name)
     for from <- sourceOf(rhs); kept <- rulesOf.get(from) do
       val own = rulesOf.getOrElse(name, Map.empty)
-      rulesOf(name) = kept.filter((id, _) =>
-        src.steps.exists(_.action == id)
-      ) ++ own // scalafix:ok DisableSyntax.==; typed equality
+      rulesOf(name) = kept.filter((id, _) => src.steps.exists(_.action == id)) ++ own
     val m = src.copy(family = family, name = name, position = Some(pos(rhs)))
     if binds(rhs) then
       distinctActionNames(m, rhs)
@@ -1426,18 +1409,14 @@ private[irgen] trait Declarations:
         at,
         s"${b.name} binds ${a.name}, and its state holds no ${channels(c).name} channel"
       )
-    // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
     for c <- held.toList.sorted if channels(c).lossy && !bound.exists(_.loses == c)
-    // scalafix:on DisableSyntax.==
     do
       fail(
         at,
         s"${b.name} holds the lossy channel ${channels(c).name} and binds no ${channels(c).name}Loss " +
           "step: a lossy channel's loss is a step whose meaning the machine says"
       )
-    // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
     for c <- held.toList.sorted if !channels(c).lossy && bound.exists(_.loses == c)
-    // scalafix:on DisableSyntax.==
     do
       fail(
         at,
@@ -1505,9 +1484,7 @@ private[irgen] trait Declarations:
   def evidenceDefaults(fn: ir.Function, f: TypeRepr, at: Tree): ir.Function =
     fn.getBody.kind match
       case ir.Expr.Kind.Match(m)
-          // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
           if fn.params.size == 1 && m.getScrutinee.kind.`var`.contains(
-            // scalafix:on DisableSyntax.==
             fn.params.head.name
           ) =>
         val fact = typeRef(f, at).getNamed
@@ -1573,12 +1550,12 @@ private[irgen] trait Declarations:
       id: String,
       at: Tree
   ): Unit =
-    for (_, other) <- declared.find(_._1 == name) do // scalafix:ok DisableSyntax.==; typed equality
+    for (_, other) <- declared.find(_._1 == name) do
       fail(at, s"two $kind are named $name: $other and $id, and the IR names them by name")
 
   // A lifted machine, by the name the IR gives it.
   def machineNamed(name: String): Option[ir.Machine] =
-    machines.values.find(_.name == name) // scalafix:ok DisableSyntax.==; typed equality
+    machines.values.find(_.name == name)
 
   def machineOf(sym: Symbol, at: Tree): ir.Machine =
     machines.get(sym.fullName) match
@@ -1612,14 +1589,10 @@ private[irgen] trait Declarations:
   def distinctModelName(name: String, sym: Symbol, at: ir.Position): Unit =
     val other = machines
       .collectFirst {
-        // scalafix:off DisableSyntax.!=, DisableSyntax.==; strictEquality checks native comparisons
         case (k, m) if k != sym.fullName && m.name == name => k
-        // scalafix:on DisableSyntax.!=, DisableSyntax.==
       }
       .orElse(compositions.collectFirst {
-        // scalafix:off DisableSyntax.!=, DisableSyntax.==; strictEquality checks native comparisons
         case (k, c) if k != sym.fullName && c.name == name =>
-          // scalafix:on DisableSyntax.!=, DisableSyntax.==
           k
       })
     for o <- other do
@@ -1653,7 +1626,7 @@ private[irgen] trait Declarations:
         case r: Ref
             if isEnumCase(r.symbol) && enumOf(
               r.symbol
-            ).fullName == s"framework.$enumName" => // scalafix:ok DisableSyntax.==; typed equality
+            ).fullName == s"framework.$enumName" =>
           cases(r.symbol.name)
         case other =>
           fail(
@@ -1685,9 +1658,7 @@ private[irgen] trait Declarations:
   // for any other Int or for a list, so those are refused at the declaration.
   def messageRef(message: TypeRepr, finite: Term, at: Tree, channel: String): ir.TypeRef =
     val t = message.dealias.widen
-    // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
     if !message.widen.typeSymbol.flags.is(Flags.Opaque) && t.typeSymbol == defn.IntClass
-    // scalafix:on DisableSyntax.==
     then
       resolve(finite) match
         case Apply(upTo @ Select(_, "upTo"), List(bound))
@@ -1721,9 +1692,7 @@ private[irgen] trait Declarations:
         inputs = Seq(ir.Param("message", Some(channel.getMessage)))
       )
       actions(id) =
-        // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
         if op == "deliver" then
-          // scalafix:on DisableSyntax.==
           a.withName(s"${channel.name}Delivery")
             .withDelivers(channel.id)
         else a.withName(s"${channel.name}Loss").withLoses(channel.id)
@@ -1742,7 +1711,7 @@ private[irgen] trait Declarations:
       channelFields
         .collect { case ((_, m), c) if m == message => c }
         .toList
-        .distinct // scalafix:ok DisableSyntax.==; typed equality
+        .distinct
     candidates match
       case List(c) => channelOf(c, recv)
       case Nil     => fail(recv, s"no state holds a channel of $message in an Inbox field")
@@ -1805,9 +1774,7 @@ private[irgen] trait Declarations:
       val m = walk(d.rhs.get)
       if m.getState.ref.isList || m.getState.ref.isInt then
         fail(d, s"monitor ${m.name}'s state has no finite catalog")
-      // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
       for other <- monitors.values if other.name == m.name
-      // scalafix:on DisableSyntax.==
       do
         fail(
           d,

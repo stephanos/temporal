@@ -2,6 +2,7 @@ package temporal
 package features.activity
 package standalone
 package protocol
+
 import framework.*
 import framework.Finite.given
 import framework.outcomes.Outcome
@@ -12,7 +13,8 @@ val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Out
 
 object LostStartAnswer
     extends Machine[AdmissionResponseState, Outcome, AdmissionResponseFact],
-      FailureModel, ResponseLoss:
+      FailureModel,
+      ResponseLoss:
   val entity = activity
   val init = AdmissionResponseState(record = ActivityRecord.init, lossAvailable = true)
   def end(s: State) = !s.lossAvailable

@@ -4,6 +4,7 @@ package temporal
 package features.nexus
 package workflow
 package protocol
+
 import framework.*
 import framework.Finite.given CanEqual[?, ?]
 import Answer.given
@@ -11,7 +12,9 @@ import Answer.given
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 
 trait Closing extends Facet[CloseResetState, Answer, CloseFact], Phased[CloseResetState, Caller]:
+
   object closing:
+
     // What each step does. Where it fires is the rules'.
     object effects:
       def close(s: State) = enter(s.copy(caller = Caller.closed), CloseFact.workflowClosed)
@@ -54,7 +57,11 @@ trait Closing extends Facet[CloseResetState, Answer, CloseFact], Phased[CloseRes
             )
               .because("the acknowledgment is lost")
           )
-        else enter(s.copy(known = k, channel = Completion.none), RejectAfterClose.states.recordedOnce(s, k, r)*)
+        else
+          enter(
+            s.copy(known = k, channel = Completion.none),
+            RejectAfterClose.states.recordedOnce(s, k, r)*
+          )
 
       def keptAtOperation(d: Redelivery, s: State, r: Resolution) =
         if RejectAfterClose.states.redelivers(d, s.channel, r) then
@@ -72,7 +79,10 @@ trait Closing extends Facet[CloseResetState, Answer, CloseFact], Phased[CloseRes
             RejectAfterClose.states.ackLost -> List(
               Step(
                 Answer.retained,
-                s.copy(retained = Retained.pending(r), channel = RejectAfterClose.states.again(d, r)),
+                s.copy(
+                  retained = Retained.pending(r),
+                  channel = RejectAfterClose.states.again(d, r)
+                ),
                 List(CloseFact.outcomeRetained)
               )
             ).because("the acknowledgment is lost")
@@ -105,22 +115,20 @@ trait Closing extends Facet[CloseResetState, Answer, CloseFact], Phased[CloseRes
             )
           )
         else dropped(s)
-      // format: off
       // A delivery of the report the channel carries, `r`, as the policy and the channel take it.
       def deliver(p: Policy, d: Redelivery, s: State, r: Resolution) =
         // The deadline resolved the operation: a completion after it finds nothing to complete.
-        if s.known == Knowledge.expired then dropped(s) // scalafix:ok DisableSyntax.==; typed equality
+        if s.known == Knowledge.expired then dropped(s)
         else
           s.caller match
             case Caller.open   => committed(d, s, Knowledge.original(r), r)
             case Caller.closed =>
-              if p == Policy.rejectAfterClose then rejectedByClosed(d, s, r) // scalafix:ok DisableSyntax.==; typed equality
+              if p == Policy.rejectAfterClose then rejectedByClosed(d, s, r)
               else keptAtOperation(d, s, r)
             case Caller.resetOpen =>
-              if p == Policy.ackByOriginal then // scalafix:ok DisableSyntax.==; typed equality
+              if p == Policy.ackByOriginal then
                 enter(s.copy(channel = Completion.none)).because("the original run acknowledges it")
               else committed(d, s, Knowledge.successor(r), r)
-      // format: on
       // Reset builds the successor from a point after the start and before the close. It transfers
       // ownership, reapplies the outcome the original run recorded or the operation retained, and
       // keeps the cancel intent. It cannot undo the handler's effect.
@@ -152,41 +160,42 @@ trait Closing extends Facet[CloseResetState, Answer, CloseFact], Phased[CloseRes
       on(history.deliverCancel) {
         where(RejectAfterClose.states.cancelInFlight) ~> effects.deliverCancel
       }
-      // format: off
       // A canceled result needs the handler to have received the cancel request; having received it,
       // the handler may still succeed or fail.
       on(handlerSide.finish(Resolution.succeeded)) {
-        where(_.handler == Handler.running) ~> (effects.finish(_, Resolution.succeeded)) // scalafix:ok DisableSyntax.==; typed equality
+        where(_.handler == Handler.running) ~> (effects.finish(_, Resolution.succeeded))
       }
       on(handlerSide.finish(Resolution.failed)) {
-        where(_.handler == Handler.running) ~> (effects.finish(_, Resolution.failed)) // scalafix:ok DisableSyntax.==; typed equality
+        where(_.handler == Handler.running) ~> (effects.finish(_, Resolution.failed))
       }
       on(handlerSide.finish) {
-        where(_.handler == Handler.cancelReceived) ~> effects.finish // scalafix:ok DisableSyntax.==; typed equality
+        where(_.handler == Handler.cancelReceived) ~> effects.finish
       }
-      // format: on
       // A completion is delivered while the channel carries its result.
       on(handler.complete(Resolution.succeeded)) {
-        where(s => RejectAfterClose.states.carries(s.channel, Resolution.succeeded)) ~> (effects.deliver(
-          Policy.rejectAfterClose,
-          Redelivery.untilAck,
-          _,
-          Resolution.succeeded
-        ))
+        where(s => RejectAfterClose.states.carries(s.channel, Resolution.succeeded)) ~> (effects
+          .deliver(
+            Policy.rejectAfterClose,
+            Redelivery.untilAck,
+            _,
+            Resolution.succeeded
+          ))
       }
       on(handler.complete(Resolution.failed)) {
-        where(s => RejectAfterClose.states.carries(s.channel, Resolution.failed)) ~> (effects.deliver(
-          Policy.rejectAfterClose,
-          Redelivery.untilAck,
-          _,
-          Resolution.failed
-        ))
+        where(s => RejectAfterClose.states.carries(s.channel, Resolution.failed)) ~> (effects
+          .deliver(
+            Policy.rejectAfterClose,
+            Redelivery.untilAck,
+            _,
+            Resolution.failed
+          ))
       }
       on(handler.complete(Resolution.canceled)) {
-        where(s => RejectAfterClose.states.carries(s.channel, Resolution.canceled)) ~> (effects.deliver(
-          Policy.rejectAfterClose,
-          Redelivery.untilAck,
-          _,
-          Resolution.canceled
-        ))
+        where(s => RejectAfterClose.states.carries(s.channel, Resolution.canceled)) ~> (effects
+          .deliver(
+            Policy.rejectAfterClose,
+            Redelivery.untilAck,
+            _,
+            Resolution.canceled
+          ))
       }

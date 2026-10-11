@@ -2,6 +2,7 @@ package temporal
 package features.activity
 package standalone
 package protocol
+
 import framework.*
 import framework.Finite.given
 import Bounds.three

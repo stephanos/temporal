@@ -10,7 +10,9 @@ import scala.annotation.unused
 import temporal.capabilities.product.*
 
 trait Dispatching extends Facet[State, Outcome, Fact], Phased[State, Phase]:
+
   object dispatching:
+
     object effects:
       def schedule(
           s: State,

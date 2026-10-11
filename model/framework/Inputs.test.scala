@@ -100,7 +100,7 @@ class Inputs extends munit.FunSuite:
     )
     object FiveInputs extends Machine[Counted, outcomes.Outcome, Answer]:
       val init = Counted(UpTo(0), Timeout.unset)
-      def end(s: Counted): Boolean = s.attempts == 1 // scalafix:ok DisableSyntax.==
+      def end(s: Counted): Boolean = s.attempts == 1
       object rules extends Rules:
         on(caller.five) {
           always ~> (
@@ -108,7 +108,7 @@ class Inputs extends munit.FunSuite:
               enter(
                 s.copy(attempts = UpTo(if flag && a == b then 1 else 0), timeout = c),
                 result
-              ) // scalafix:ok DisableSyntax.==
+              )
           )
         }
     val binding = FiveInputs.bindings.head
@@ -131,7 +131,7 @@ class Inputs extends munit.FunSuite:
           enter(
             state.copy(attempts = UpTo(if flag && a == b then 1 else 0), timeout = c),
             result
-          ) // scalafix:ok DisableSyntax.==
+          )
         case other => fail(s"unexpected five-input class $other")
       assertEquals(effectOf(binding.decl, binding.function)(state, values), expected)
     assert(
@@ -208,7 +208,7 @@ class Inputs extends munit.FunSuite:
       enter(
         s.copy(attempts = if flag && a == b then attempts else UpTo(0), timeout = c),
         result
-      ) // scalafix:ok DisableSyntax.==
+      )
     val execute = effectOf[Counted, outcomes.Outcome, Answer](six.decl, step)
     assertEquals(
       execute(Counted(UpTo(0), Timeout.unset), six().values).head.state,
@@ -228,7 +228,7 @@ class Inputs extends munit.FunSuite:
     )
     object SixInputs extends Machine[Counted, outcomes.Outcome, Answer]:
       val init = Counted(UpTo(0), Timeout.unset)
-      def end(s: Counted): Boolean = s.attempts == 2 // scalafix:ok DisableSyntax.==
+      def end(s: Counted): Boolean = s.attempts == 2
       object rules extends Rules:
         on(caller.six) {
           always ~> step

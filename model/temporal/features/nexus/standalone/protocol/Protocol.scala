@@ -37,7 +37,10 @@ import Fact.nexusOperationTerminated as NT
 
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 
-object NexusProtocol extends Machine[State, Outcome, Fact], Phased[State, Phase](_.phase), Operation:
+object NexusProtocol
+    extends Machine[State, Outcome, Fact],
+      Phased[State, Phase](_.phase),
+      Operation:
   val init = protocol.State(phase = Phase.unstarted, cancelRequested = false)
   // A path ends where the operation is over: `end` reads the Closed role.
   override def end(s: State) = s.phase.in[Closed]
@@ -52,7 +55,7 @@ object NexusProtocol extends Machine[State, Outcome, Fact], Phased[State, Phase]
     // Over, and a control repeats a request the operation took: a recorded cancel, or the
     // terminate that closed it.
     def closed(s: State): Boolean = s.phase.in[Closed]
-    def repeats(s: State): Boolean = s.cancelRequested || s.phase == Phase.terminated // scalafix:ok DisableSyntax.==; typed equality
+    def repeats(s: State): Boolean = s.cancelRequested || s.phase == Phase.terminated
 
   object refinement extends Refinement(shared.product.NexusProduct):
     def toProduct(s: State): shared.product.State = s.phase match
@@ -90,9 +93,15 @@ object NexusProtocol extends Machine[State, Outcome, Fact], Phased[State, Phase]
         rejected: Outcome
     ): Property[State] =
       // The operation's controls are Idempotent (temporal.capabilities.system).
-      Idempotent.closedRejectsOrRepeats(m)(states.closed, states.repeats, rejected, Outcome.accepted)
+      Idempotent.closedRejectsOrRepeats(m)(
+        states.closed,
+        states.repeats,
+        rejected,
+        Outcome.accepted
+      )
+
   object capabilities extends FacetCapabilities(operation.capabilities)
-  // format: on
+
   object queries:
     capabilities.bound(three)
 
@@ -111,4 +120,10 @@ object NexusProtocol extends Machine[State, Outcome, Fact], Phased[State, Phase]
         "nexusProtocol.cancelIsRequested"
       ) find properties.cancelIsRequested in cancelRequest limits three)
         .total(28)
-        .live(inconclusive(Reason.explanationsDisagree, because = "a control of a closed operation is answered and records nothing, so a Run explains an unobserved one too, and the executions that explain it disagree"))
+        .live(
+          inconclusive(
+            Reason.explanationsDisagree,
+            because =
+              "a control of a closed operation is answered and records nothing, so a Run explains an unobserved one too, and the executions that explain it disagree"
+          )
+        )

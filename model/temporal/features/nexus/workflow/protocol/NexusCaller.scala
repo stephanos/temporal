@@ -2,6 +2,7 @@ package temporal
 package features.nexus
 package workflow
 package protocol
+
 import framework.*
 import framework.Finite.given
 import temporal.Bounds.four
@@ -20,14 +21,14 @@ object NexusCaller
   object syncs extends Syncs:
     sync(_.operation -> worker.stop, _.worker -> worker.stop)
     sync(_.operation -> handler.reply, _.worker -> worker.serve)
-  // format: off
+
   object properties:
     // The cross-entity claim: every reply, of any class, leaves the handler's worker polling, so no
     // handler replies while its worker is stopped.
     val repliedByPollingWorker = property
       .whenAction(synced(_.operation -> handler.reply))
-      .holds(_.state.worker.phase == WorkerPhase.polling) // scalafix:ok DisableSyntax.==; typed equality
-  // format: on
+      .holds(_.state.worker.phase == WorkerPhase.polling)
+
   object queries:
     // The cross-entity claim, verified over the path on which a retryable reply backs the operation
     // off; the handler's worker then stops, so the retried attempt is never answered and the

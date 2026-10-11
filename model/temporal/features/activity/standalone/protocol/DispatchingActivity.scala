@@ -34,4 +34,6 @@ val unservedDispatchRuns = assume.fair(UnservedDispatch.synced(_.activity -> act
 // ### The members: the activity as far as dispatch, and a worker that never stops.
 
 object DispatchingActivity
-    extends Derived(ActivityProtocol.restrict(client.start, activityWorker.poll, activityWorker.respondCompleted))
+    extends Derived(
+      ActivityProtocol.restrict(client.start, activityWorker.poll, activityWorker.respondCompleted)
+    )

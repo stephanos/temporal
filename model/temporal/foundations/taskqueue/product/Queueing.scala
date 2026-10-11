@@ -3,6 +3,7 @@
 package temporal
 package foundations.taskqueue
 package product
+
 import scala.annotation.unused
 import framework.*
 import framework.Finite.given
@@ -10,7 +11,9 @@ import framework.Finite.given
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 
 trait Queueing extends Facet[QueueView, QueueOutcome, QueueFact], Phased[QueueView, Outstanding]:
+
   object queueing:
+
     object effects:
       def enqueueView(s: State) =
         choose(
@@ -25,9 +28,9 @@ trait Queueing extends Facet[QueueView, QueueOutcome, QueueFact], Phased[QueueVi
             .because("the durable write fails and no message is outstanding")
         )
 
-      def deliverView(s: State) = // format: off
-        if s.outstanding == Outstanding.committed then // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-          List( // format: on
+      def deliverView(s: State) =
+        if s.outstanding == Outstanding.committed then
+          List(
             Step(
               QueueOutcome.delivered,
               QueueView(Outstanding.deliveredOnce),

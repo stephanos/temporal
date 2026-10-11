@@ -9,7 +9,9 @@ import framework.outcomes.{Outcome, Rejection}
 import temporal.capabilities.product.*
 
 trait Lifecycle extends Facet[State, Outcome, Fact], Phased[State, Phase]:
+
   object lifecycle:
+
     object rules extends Rules:
       on(client.terminate) {
         when[Closed] ~> rejects(Rejection.notFound)

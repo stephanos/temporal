@@ -2,6 +2,7 @@ package temporal
 package features.nexus
 package workflow
 package protocol
+
 import framework.*
 import framework.Finite.given
 import temporal.actors.worker.worker

@@ -4,6 +4,7 @@ package temporal
 package features.nexus
 package shared
 package product
+
 import framework.*
 import framework.Finite.given
 import framework.outcomes.{Outcome, Rejection}
@@ -12,15 +13,17 @@ import temporal.actors.worker.worker
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 
 trait Operation extends Facet[State, Outcome, Fact], Phased[State, Phase]:
+
   object operation:
+
     // Both forms record these facts through their history or Describe evidence. A step whose only
     // work is entering a phase is `enters(Phase.x)` at its rule, which records the phase's fact.
     object effects:
       import Fact.*
 
-      def complete(s: State, resolution: Resolution) = // format: off
-        val startedFirst = if s.phase != Phase.started then List(nexusOperationStarted) else Nil // scalafix:ok DisableSyntax.!=; strictEquality checks native comparisons
-        resolution match // format: on
+      def complete(s: State, resolution: Resolution) =
+        val startedFirst = if s.phase != Phase.started then List(nexusOperationStarted) else Nil
+        resolution match
           case Resolution.succeeded =>
             enter(s.copy(phase = Phase.succeeded), (startedFirst ++ List(nexusOperationCompleted))*)
           case Resolution.failed =>
@@ -59,7 +62,9 @@ trait Operation extends Facet[State, Outcome, Fact], Phased[State, Phase]:
         )
       }
       on(handler.complete(Resolution.failed)) {
-        when(Phase.scheduled, Phase.started) ~> ((s: State) => effects.complete(s, Resolution.failed))
+        when(Phase.scheduled, Phase.started) ~> ((s: State) =>
+          effects.complete(s, Resolution.failed)
+        )
       }
       on(handler.complete(Resolution.canceled)) {
         when(Phase.scheduled, Phase.started) ~> ((s: State) =>

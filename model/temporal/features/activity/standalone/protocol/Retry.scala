@@ -17,7 +17,9 @@ val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Out
 
 trait Retry extends Facet[State, Outcome, Fact], Phased[State, Phase]:
   this: Reset & Cancellation =>
+
   object retry:
+
     object effects:
       def fail(s: State) = enter(s.copy(phase = Phase.failed), Fact.statusFailed)
 
@@ -80,37 +82,36 @@ trait Retry extends Facet[State, Outcome, Fact], Phased[State, Phase]:
 
     object properties:
       val nonRetryableFails =
-        property when activityWorker.respondFailed(Failure.fatal) holds { s => // format: off
-          s.state.phase == Phase.failed && s.records(Fact.statusFailed) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-        } // format: on
+        property when activityWorker.respondFailed(Failure.fatal) holds { s =>
+          s.state.phase == Phase.failed && s.records(Fact.statusFailed)
+        }
 
       // The attempt count saturates at `ActivityProtocol.states.attemptBound`, so the claim is bounded
       // by it: a completion on any later attempt than the second reads as this one.
       val retryCompletes =
-        property when activityWorker.respondCompleted holds { s => // format: off
-          s.state == ActivityProtocol.states.completedOnRetry && s.records(Fact.statusCompleted) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-        } // format: on
-      // format: off
+        property when activityWorker.respondCompleted holds { s =>
+          s.state == ActivityProtocol.states.completedOnRetry && s.records(Fact.statusCompleted)
+        }
       // The pinned exhaustion path takes this action twice, so both failures must satisfy the
       // Property: the exact first retry, then the exact exhausted settlement.
       val retryExhausts = property when activityWorker.respondFailed(Failure.retryable) holds { s =>
-        (s.state == ActivityProtocol.states.completedOnRetry.copy( // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+        (s.state == ActivityProtocol.states.completedOnRetry.copy(
           phase = Phase.scheduled,
           dispatch = Dispatch.backoff,
           attempts = UpTo(1),
           maxAttempts = MaxAttempts.two
         ) && s.records(Fact.statusScheduled) && s.records(Fact.attemptCount)) ||
-        (s.state == ActivityProtocol.states.completedOnRetry.copy( // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+        (s.state == ActivityProtocol.states.completedOnRetry.copy(
           phase = Phase.failed,
           maxAttempts = MaxAttempts.two
-        ) && // format: on
+        ) &&
           s.records(Fact.statusFailed))
       }
 
-      val fatalFailureByID = // format: off
+      val fatalFailureByID =
         property when completionClient.respondFailedByID(Failure.fatal) holds { after =>
-          after.state.phase == Phase.failed && after.records(Fact.statusFailed) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-        } // format: on
+          after.state.phase == Phase.failed && after.records(Fact.statusFailed)
+        }
 
     // The retryable and the fatal failure, each a Retryable instance; a pending reset applies first,
     // as a failure ends the held attempt, whatever its retryability or the policy left
@@ -141,7 +142,8 @@ trait Retry extends Facet[State, Outcome, Fact], Phased[State, Phase]:
         of = Seq(retryableFailure, fatalFailure)
       )
       overriding(
-        Retryable.failureEndsFailed[State, Phase] -> ActivityProtocol.properties.resetFailureEndsFailed,
+        Retryable
+          .failureEndsFailed[State, Phase] -> ActivityProtocol.properties.resetFailureEndsFailed,
         because = ActivityProtocol.states.pendingResetReason,
         of = Seq(retryableFailure, fatalFailure)
       )
@@ -183,7 +185,13 @@ trait Retry extends Facet[State, Outcome, Fact], Phased[State, Phase]:
         (query find properties.nonRetryableFails in nonRetryable limits three).live(satisfied)
       val retry =
         (query find properties.retryCompletes in retriedThenCompleted limits six)
-          .live(inconclusive(Reason.explanationsDisagree, because = "the claim fixes the whole state the activity ends in, its deadlines included, and the start's answer is one fact for every start class, so the executions that explain the Run disagree"))
+          .live(
+            inconclusive(
+              Reason.explanationsDisagree,
+              because =
+                "the claim fixes the whole state the activity ends in, its deadlines included, and the start's answer is one fact for every start class, so the executions that explain the Run disagree"
+            )
+          )
       val retryExhaustionByFailures =
         query verify properties.retryExhausts in exhausted limits six
       // A closed activity answers a repeated By-ID call NotFound and records nothing, so the
@@ -191,4 +199,10 @@ trait Retry extends Facet[State, Outcome, Fact], Phased[State, Phase]:
       val heldFailedByID =
         (query find properties.fatalFailureByID in heldFatalFailure limits three)
           .total(16848)
-          .live(inconclusive(Reason.explanationsDisagree, because = "a closed activity answers a repeated By-ID call NotFound and records nothing, so a Run cannot rule out a silent rejected repeat: the executions that explain it disagree"))
+          .live(
+            inconclusive(
+              Reason.explanationsDisagree,
+              because =
+                "a closed activity answers a repeated By-ID call NotFound and records nothing, so a Run cannot rule out a silent rejected repeat: the executions that explain it disagree"
+            )
+          )

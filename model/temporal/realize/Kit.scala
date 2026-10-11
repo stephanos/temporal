@@ -108,7 +108,8 @@ val unreachedDeadlineSeconds: Long = 300
 val deadlineOperand = Operand.number(deadlineSeconds)
 
 // `deadlineSeconds` as a Duration, the deadline a timer step names.
-val timerDeadline: com.google.protobuf.duration.Duration = com.google.protobuf.duration.Duration(seconds = deadlineSeconds)
+val timerDeadline: com.google.protobuf.duration.Duration =
+  com.google.protobuf.duration.Duration(seconds = deadlineSeconds)
 
 // `unreachedDeadlineSeconds` as a request field's value.
 val unreachedDeadline = Operand.number(unreachedDeadlineSeconds)
@@ -117,7 +118,8 @@ val unreachedDeadline = Operand.number(unreachedDeadlineSeconds)
 // request sets a retry policy, so the server's default initial interval of 1 s applies, without
 // jitter (common/retrypolicy/retry_policy.go:76-81, common/backoff/retry.go:198-209). A timer step
 // names it as its deadline.
-val firstRetryBackoff: com.google.protobuf.duration.Duration = com.google.protobuf.duration.Duration(seconds = 1)
+val firstRetryBackoff: com.google.protobuf.duration.Duration =
+  com.google.protobuf.duration.Duration(seconds = 1)
 
 // ### Evidence: Definition IDs, the correlated record and the window
 

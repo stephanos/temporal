@@ -60,11 +60,11 @@ class ClosableSuite extends munit.FunSuite:
       val step = Step[Snapshot, Answer, Nothing](answer, after)
       assertEquals(
         finality(before, step),
-        before.phase == Phase.open || before.phase == after.phase, // scalafix:ok DisableSyntax.==
+        before.phase == Phase.open || before.phase == after.phase,
         s"$before -> $step"
       )
       assertEquals(
         rejection(before, step),
-        before.phase == Phase.open || (answer == Answer.rejected && before == after), // scalafix:ok DisableSyntax.==
+        before.phase == Phase.open || (answer == Answer.rejected && before == after),
         s"$before -> $step"
       )

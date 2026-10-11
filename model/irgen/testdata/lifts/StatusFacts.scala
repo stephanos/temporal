@@ -41,7 +41,7 @@ object user extends Actor:
 
 object Derived extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
   val init = Job(Phase.idle, UpTo(0)) // format: off
-  override def end(s: State) = s.phase == Phase.paused // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  override def end(s: State) = s.phase == Phase.paused
   // format: on
   object effects:
     val start = effect { phase = Phase.running }
@@ -62,7 +62,7 @@ object Derived extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
 
 object Written extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
   val init = Job(Phase.idle, UpTo(0)) // format: off
-  override def end(s: State) = s.phase == Phase.paused // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  override def end(s: State) = s.phase == Phase.paused
   // format: on
   object effects:
     def start(s: Job) = enter(s.copy(phase = Phase.running), Fact.statusRunning)

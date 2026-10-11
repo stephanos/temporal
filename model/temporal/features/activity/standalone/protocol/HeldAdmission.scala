@@ -4,14 +4,19 @@ package temporal
 package features.activity
 package standalone
 package protocol
+
 import framework.*
 import framework.Finite.given
 import framework.outcomes.Outcome
 
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 
-trait HeldAdmission extends Facet[AdmissionState, Outcome, AdmissionFact], Phased[AdmissionState, AdmissionPhase]:
+trait HeldAdmission
+    extends Facet[AdmissionState, Outcome, AdmissionFact],
+      Phased[AdmissionState, AdmissionPhase]:
+
   object heldAdmission:
+
     object effects:
       // Admission as the corrected design decides it, with no failure of its durable update.
       def admitCommitted(s: State) =
@@ -39,6 +44,6 @@ trait HeldAdmission extends Facet[AdmissionState, Outcome, AdmissionFact], Phase
           AdmissionPhase.timedOut
         ) ~> ActivityRecord.admission.effects.rejectDelivery
       }
-      on(history.answerMatching) { // format: off
-        where(_.answer == Answer.owed) ~> ActivityRecord.admission.effects.answerMatching // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-      } // format: on
+      on(history.answerMatching) {
+        where(_.answer == Answer.owed) ~> ActivityRecord.admission.effects.answerMatching
+      }

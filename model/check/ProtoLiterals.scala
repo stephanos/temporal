@@ -49,7 +49,7 @@ private[check] object ProtoLiterals:
           offset + 1,
           line + (if source(offset) == '\n' then 1 else 0),
           triple
-        ) // scalafix:ok DisableSyntax.==; strictEquality checks this native comparison
+        )
 
     @tailrec def scan(
         offset: Int,
@@ -67,11 +67,11 @@ private[check] object ProtoLiterals:
       // A character literal, `'"'` or `'\''`, opens no string; a quote of Scala 3 (`'{`, `'[`) is
       // left to the characters after it.
       else if source(offset) == '\'' && offset + 2 < source.length && source(
-        offset + 2
-      ) == '\'' &&
-      source(
-        offset + 1
-      ) != '\\' // scalafix:ok DisableSyntax.!=; strictEquality checks this native comparison
+          offset + 2
+        ) == '\'' &&
+        source(
+          offset + 1
+        ) != '\\'
       then scan(offset + 3, line, found, comments)
       else if source.startsWith("'\\", offset) && source.indexOf('\'', offset + 3) > 0 then
         scan(source.indexOf('\'', offset + 3) + 1, line, found, comments)
@@ -94,7 +94,7 @@ private[check] object ProtoLiterals:
           line + (if source(offset) == '\n' then 1 else 0),
           found,
           comments
-        ) // scalafix:ok DisableSyntax.==; strictEquality checks this native comparison
+        )
 
     scan(0, 1, Vector.empty, Vector.empty)
 

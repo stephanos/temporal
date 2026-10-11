@@ -2,6 +2,7 @@ package temporal
 package features.activity
 package standalone
 package protocol
+
 import framework.*
 import framework.Finite.given
 import Bounds.three
@@ -18,11 +19,10 @@ object ServedDispatch
 
   object states:
     // The source reads both members: an attempt the worker may take now, while the worker polls.
-    def dispatchable(s: State): Boolean = // format: off
-      s.activity.phase == Phase.scheduled && s.activity.dispatch == Dispatch.now && s.worker.phase == WorkerPhase.polling // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    def dispatchable(s: State): Boolean =
+      s.activity.phase == Phase.scheduled && s.activity.dispatch == Dispatch.now && s.worker.phase == WorkerPhase.polling
 
-    def started(s: State): Boolean = s.activity.phase == Phase.started // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-    // format: on
+    def started(s: State): Boolean = s.activity.phase == Phase.started
 
   object syncs extends Syncs:
     sync(_.activity -> activityWorker.poll, _.worker -> process.serve)
@@ -31,9 +31,8 @@ object ServedDispatch
     // The cross-entity safety promise: only a polling worker starts an attempt.
     def startedByPollingWorker(c: Composition[State]) = c
       .property("startedByPollingWorker")
-      .whenAction(c.synced(_.activity -> activityWorker.poll)) // format: off
-      .holds(_.state.worker.phase == WorkerPhase.polling) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-      // format: on
+      .whenAction(c.synced(_.activity -> activityWorker.poll))
+      .holds(_.state.worker.phase == WorkerPhase.polling)
 
     // The bounded progress promise, over both members.
     val startsWithinOneStep = ServedDispatch.leadsTo("startsWithinOneStep")(

@@ -5,7 +5,6 @@ package realization
 
 import protocol.ActivityProtocol
 
-
 import framework.realize.*
 import temporal.realize.*
 

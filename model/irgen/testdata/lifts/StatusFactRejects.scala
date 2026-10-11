@@ -27,7 +27,7 @@ object ComputedStatus extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.
   override def end(s: State) = true
   object effects:
     val pause = effect { // format: off
-      phase = if phase == Phase.running then Phase.paused else Phase.running // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      phase = if phase == Phase.running then Phase.paused else Phase.running
     } // format: on
   object rules extends Rules:
     on(user.pause)(always ~> effects.pause)

@@ -14,7 +14,7 @@ class ActivityDispatchRegression extends munit.FunSuite:
       a: Action[EmptyTuple]
   ): List[Step[protocol.State, Outcome, protocol.Fact]] =
     ActivityProtocol.bindings
-      .find(_.decl == a.decl) // scalafix:ok DisableSyntax.==
+      .find(_.decl == a.decl)
       .get
       .function
       .asInstanceOf[protocol.State => List[Step[protocol.State, Outcome, protocol.Fact]]](
@@ -27,10 +27,12 @@ class ActivityDispatchRegression extends munit.FunSuite:
 
   private def failAttempt(s: protocol.State): protocol.State =
     ActivityProtocol.bindings
-      .find(_.decl == activityWorker.respondFailed.decl) // scalafix:ok DisableSyntax.==
+      .find(_.decl == activityWorker.respondFailed.decl)
       .get
       .function
-      .asInstanceOf[(protocol.State, Failure) => List[Step[protocol.State, Outcome, protocol.Fact]]](
+      .asInstanceOf[(protocol.State, Failure) => List[
+        Step[protocol.State, Outcome, protocol.Fact]
+      ]](
         s,
         Failure.retryable
       )
@@ -39,7 +41,7 @@ class ActivityDispatchRegression extends munit.FunSuite:
 
   private def delayedStart: protocol.State =
     ActivityProtocol.bindings
-      .find(_.decl == client.start.decl) // scalafix:ok DisableSyntax.==
+      .find(_.decl == client.start.decl)
       .get
       .function
       .asInstanceOf[
@@ -109,7 +111,10 @@ class ActivityDispatchRegression extends munit.FunSuite:
 
   test("a pause requested during an attempt retains its retry's backoff (model.go:130-137)") {
     val started =
-      take(ActivityProtocol.init.copy(phase = protocol.Phase.scheduled), activityWorker.poll).head.state
+      take(
+        ActivityProtocol.init.copy(phase = protocol.Phase.scheduled),
+        activityWorker.poll
+      ).head.state
     val requested = take(started, client.pause).head.state
     val paused = failAttempt(requested)
     assertEquals(paused.phase, protocol.Phase.paused)
@@ -119,9 +124,7 @@ class ActivityDispatchRegression extends munit.FunSuite:
 
   test("every waiting dispatch maps to the Product's scheduled state") {
     assertEquals(summon[Finite[protocol.State]].values.size, 5616)
-    // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
     for waiting <- Finite[protocol.State].values if waiting.phase == protocol.Phase.scheduled
-    // scalafix:on DisableSyntax.==
     do
       assertEquals(
         ActivityProtocol.refinement.toProduct(waiting).phase,

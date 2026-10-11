@@ -8,7 +8,9 @@ import framework.*
 import framework.outcomes.{Outcome, Rejection}
 
 trait Cancellation extends Facet[State, Outcome, Fact], Phased[State, Phase]:
+
   object cancellation:
+
     // A canceled answer settles only an activity whose cancellation was requested; By-ID keeps its
     // notFound checks and its cancellation reason.
     object rules extends Rules:

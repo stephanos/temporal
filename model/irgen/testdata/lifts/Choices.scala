@@ -77,7 +77,7 @@ def pauseNamed(s: Admission): List[AdmissionStep] = choose(
 // A choose in a branch of a match and of an if.
 def pollNamed(s: Admission): List[AdmissionStep] = s.phase match
   case Phase.scheduled => // format: off
-    if s.message == Message.queued then // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    if s.message == Message.queued then
       choose( // format: on
         committed -> enter(s.copy(phase = Phase.started), Fact.statusStarted),
         held -> stay(s).because("the worker polls again")
@@ -95,8 +95,8 @@ def answerNamed(s: Admission): List[AdmissionStep] = choose(
 // A step two actions share: no step while paused, a refusal once started, or the admission. Resume
 // takes it unnamed; the alternatives of retry call it, directly and through another function.
 def admitted(s: Admission, m: Message): List[AdmissionStep] = // format: off
-  if s.phase == Phase.paused then disabled // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-  else if s.phase == Phase.started then // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  if s.phase == Phase.paused then disabled
+  else if s.phase == Phase.started then
     List(Step(Outcome.rejected, s, List(Fact.admissionRejected))) // format: on
   else enter(s.copy(phase = Phase.started, message = m), Fact.statusStarted)
 def redeliveredStep(s: Admission): List[AdmissionStep] = admitted(s, Message.redelivery)

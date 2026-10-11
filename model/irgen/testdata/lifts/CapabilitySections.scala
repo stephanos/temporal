@@ -44,7 +44,7 @@ object Sealable extends CapabilityKind: // format: off
   // No step leaves a done status.
   def sealedStaysSealed[S, P](m: Declares[S])(status: S => P, done: P => Boolean)(using CanEqual[P, P]): Property[S] = // format: on
     m.property holdsAcross ((before, after) => // format: off
-      !done(status(before)) || status(after.state) == status(before) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      !done(status(before)) || status(after.state) == status(before)
     ) // format: on
 
   // Every step from a done status keeps the state and answers `refused`.
@@ -54,7 +54,7 @@ object Sealable extends CapabilityKind: // format: off
       refused: O
   )(using CanEqual[S, S], CanEqual[O, O]): Property[S] =
     m.property holdsAcross ((before, after) => // format: off
-      !done(status(before)) || (after.state == before && after.outcome == refused) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      !done(status(before)) || (after.state == before && after.outcome == refused)
     ) // format: on
 
 // The task is held by `hold` and released by `release`; `held` says where it is.
@@ -79,24 +79,24 @@ object Takeable extends CapabilityKind
 // The tasks' status sets and step functions; a control of a done task is answered `gone`.
 object Tasks:
   def phase(t: TaskState): Phase = t.phase // format: off
-  def done(p: Phase): Boolean = p == Phase.done // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-  def held(t: TaskState): Boolean = t.phase == Phase.held // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-  def working(t: TaskState): Boolean = t.phase == Phase.running // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  def done(p: Phase): Boolean = p == Phase.done
+  def held(t: TaskState): Boolean = t.phase == Phase.held
+  def working(t: TaskState): Boolean = t.phase == Phase.running
   def over(t: TaskState): Boolean = done(t.phase) // format: on
 
   private def gone(t: TaskState): List[Step[TaskState, Answer, Note]] = List(Step(Answer.gone, t))
 
   def take(t: TaskState): List[Step[TaskState, Answer, Note]] = // format: off
-    if t.phase == Phase.queued then enter(TaskState(Phase.running), Note.started) else disabled // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    if t.phase == Phase.queued then enter(TaskState(Phase.running), Note.started) else disabled
   def finish(t: TaskState): List[Step[TaskState, Answer, Note]] =
-    if t.phase == Phase.running then enter(TaskState(Phase.done), Note.finished) else disabled // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    if t.phase == Phase.running then enter(TaskState(Phase.done), Note.finished) else disabled
   def hold(t: TaskState): List[Step[TaskState, Answer, Note]] = // format: on
     if done(t.phase) then gone(t)
     else if t.phase.in(Phase.queued, Phase.running) then enter(TaskState(Phase.held), Note.heldNote)
     else disabled
   def release(t: TaskState): List[Step[TaskState, Answer, Note]] =
     if done(t.phase) then gone(t) // format: off
-    else if t.phase == Phase.held then enter(TaskState(Phase.queued), Note.released) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    else if t.phase == Phase.held then enter(TaskState(Phase.queued), Note.released)
     else disabled // format: on
 
   // The chore's answer to a done task: it keeps the state, whatever it answers.
@@ -105,7 +105,7 @@ object Tasks:
       done: P => Boolean,
       refused: O
   )(using CanEqual[S, S]): Property[S] = // format: off
-    m.property holdsAcross ((before, after) => !done(status(before)) || after.state == before) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    m.property holdsAcross ((before, after) => !done(status(before)) || after.state == before)
     // format: on
 val three = Limits(steps = 3, actions = 3, search = 512)
 val two = Limits(steps = 2, actions = 2, search = 256)

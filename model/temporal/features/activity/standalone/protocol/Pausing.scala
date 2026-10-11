@@ -11,7 +11,9 @@ import Bounds.six
 
 trait Pausing extends Facet[State, Outcome, Fact], Phased[State, Phase]:
   this: Completion =>
+
   object pausing:
+
     object effects:
       def pause(s: State) = enter(s.copy(phase = Phase.paused), Fact.statusPaused)
 

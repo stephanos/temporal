@@ -22,6 +22,6 @@ object Idempotent:
   )(using CanEqual[S, S], CanEqual[m.Outcome, m.Outcome]): Property[S] =
     m.property holdsAcross ((before, after) =>
       !closed(before) ||
-        (after.state == before && (after.outcome == rejected || // scalafix:ok DisableSyntax.==; typed equality
-          (after.outcome == accepted && repeats(before)))) // scalafix:ok DisableSyntax.==; typed equality
+        (after.state == before && (after.outcome == rejected ||
+          (after.outcome == accepted && repeats(before))))
     )

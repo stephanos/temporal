@@ -18,7 +18,7 @@ private[check] object CommentRule:
             .substring(0, start)
             .count(
               _ == '\n'
-            ) + 1 // scalafix:ok DisableSyntax.==; strictEquality checks this native comparison
+            ) + 1
 
   // Build output is no source, and model/build is large enough that the walk must not enter it.
   private val skipped = Set("build", ".scala-build", ".bsp")

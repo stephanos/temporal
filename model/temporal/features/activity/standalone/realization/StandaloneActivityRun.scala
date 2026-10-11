@@ -5,13 +5,10 @@ package realization
 
 import protocol.ActivityProtocol
 
-
 import framework.*
 import framework.realize.*
 import temporal.realize.*
-import io.temporal.api.workflowservice.v1.{
-  StartActivityExecutionRequest
-}
+import io.temporal.api.workflowservice.v1.StartActivityExecutionRequest
 
 // One standalone activity a controller starts and the Case's own worker runs. An activity is
 // scheduled by its start, again by an unpause, and again by a retried failure. Each has evidence

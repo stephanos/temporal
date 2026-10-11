@@ -29,7 +29,8 @@ val sent = choice
 object TrustingCaller
     extends Machine[protocol.State, Outcome, protocol.Fact],
       Phased[protocol.State, Phase](_.phase, (s, p) => s.copy(phase = p)),
-      NegativeControl, ForgedControl:
+      NegativeControl,
+      ForgedControl:
   val init = NexusProtocol.init
   val evidence: PartialFunction[Fact, String] = {
     case Fact.nexusOperationTimedOut(_) => "nexusOperationTimedOut"
@@ -66,7 +67,8 @@ object TrustingCaller
             cleanup = Cleanup.succeeded,
             reason = Some(Reason.everyExplanationViolates),
             conformanceReason = Some(Reason.incomplete),
-            because = "every modeled execution that explains the evidence of a failed completion refutes the forged success"
+            because =
+              "every modeled execution that explains the evidence of a failed completion refutes the forged success"
           )
         )
         .explore(

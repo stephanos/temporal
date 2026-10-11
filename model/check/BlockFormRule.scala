@@ -21,13 +21,13 @@ private[check] object BlockFormRule:
         closing(code, open).flatMap: close =>
           val next = code.indexWhere(c => !c.isWhitespace, close + 1)
           Option.when(
-            next >= 0 && code(next) == '(' // scalafix:ok DisableSyntax.==; typed equality
+            next >= 0 && code(next) == '('
           )(
             code
               .substring(0, found.start)
               .count(
                 _ == '\n'
-              ) + 1 // scalafix:ok DisableSyntax.==; strictEquality checks this native comparison
+              ) + 1
           )
       .toVector
 
@@ -46,7 +46,7 @@ private[check] object BlockFormRule:
               (
                 depth - 1,
                 None
-              ) // scalafix:ok DisableSyntax.==; strictEquality checks this native comparison
+              )
           else (depth, None)
     at
 

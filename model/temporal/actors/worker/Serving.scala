@@ -2,11 +2,14 @@
 // capabilities.
 package temporal
 package actors.worker
+
 import framework.*
 import framework.outcomes.Outcome
 
 trait Serving extends Facet[State, Outcome, Fact], Phased[State, Phase]:
+
   object serving:
+
     object effects:
       // A polling worker serves and keeps polling.
       def serve(s: State) = stay(s)

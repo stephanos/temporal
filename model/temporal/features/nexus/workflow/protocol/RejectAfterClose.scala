@@ -253,13 +253,13 @@ val recovery = assume("currentOwnerEventuallyRecoversAndReappliesRetainedOutcome
 // RejectAfterClose is the first design: its status sets, effects, monitors and declaring functions
 // are every design's. Each design after it is derived from one before it, rebinding the effect its
 // policy, reset or channel changes and adding the assumptions it makes.
-// format: off
 // The faulty policy: a closed run rejects a completion permanently. A deliberately wrong design, kept
 // so that the checks that must refute it are seen to.
 object RejectAfterClose
     extends Machine[CloseResetState, Answer, CloseFact],
       Phased[CloseResetState, Caller](_.caller),
-      NegativeControl, Closing:
+      NegativeControl,
+      Closing:
   val entity = nexusRequest
   val init = CloseResetState(
     caller = Caller.open,
@@ -274,44 +274,40 @@ object RejectAfterClose
     case CloseFact.cancelRequested(_) => "nexusOperationCancelRequested"
     case CloseFact.handlerFinished(_) => "handlerFinished"
   }
+
   // What the designs read of a state: the handler's work, the channel, the owner and the promises.
   object states:
     def working(h: Handler) = h.in(Handler.running, Handler.cancelReceived)
     // A cancel request may be made once, while the handler has neither finished nor been asked, by a
     // run still open.
     def cancellable(s: State) =
-      s.intent == Intent.none && s.caller.in(Caller.open, Caller.resetOpen) && // scalafix:ok DisableSyntax.==; typed equality
-        s.handler == Handler.running // scalafix:ok DisableSyntax.==; typed equality
+      s.intent == Intent.none && s.caller.in(Caller.open, Caller.resetOpen) &&
+        s.handler == Handler.running
     // A cancel request is in flight to a handler still working. A closed run's request is still
     // delivered.
-    def cancelInFlight(s: State) = s.intent != Intent.none && s.handler == Handler.running // scalafix:ok DisableSyntax.!=, DisableSyntax.==; typed equality
+    def cancelInFlight(s: State) = s.intent != Intent.none && s.handler == Handler.running
 
     // The schedule-to-close deadline can fire: the owner knows no outcome, and the run is not closed,
     // whose history is frozen.
     def expirable(s: State) =
-      s.caller.in(Caller.open, Caller.resetOpen) && s.known == Knowledge.none // scalafix:ok DisableSyntax.==; typed equality
-// format: on
+      s.caller.in(Caller.open, Caller.resetOpen) && s.known == Knowledge.none
     // The history event that records an outcome, by the baseline's names.
     def recorded(r: Resolution) = r match
       case Resolution.succeeded => CloseFact.nexusOperationCompleted
       case Resolution.failed    => CloseFact.nexusOperationFailed
       case Resolution.canceled  => CloseFact.nexusOperationCanceled
-    // format: off
     // A history records an outcome once: a second delivery of it records nothing.
     def recordedOnce(s: State, k: Knowledge, r: Resolution) =
-      if s.known == k then Nil else List(recorded(r)) // scalafix:ok DisableSyntax.==; typed equality
-    // format: on
+      if s.known == k then Nil else List(recorded(r))
     def carries(c: Completion, r: Resolution) =
       c.in(Completion.inFlight(r), Completion.retried(r))
-    // format: off
     // Whether a delivery that does not end the report leaves it to be delivered again.
-    def redelivers(d: Redelivery, c: Completion, r: Resolution) = d == Redelivery.untilAck || // scalafix:ok DisableSyntax.==; typed equality
-      c == Completion.inFlight(r) // scalafix:ok DisableSyntax.==; typed equality
+    def redelivers(d: Redelivery, c: Completion, r: Resolution) = d == Redelivery.untilAck ||
+      c == Completion.inFlight(r)
 
     // The report as the channel holds it for its next delivery.
     def again(d: Redelivery, r: Resolution) =
-      if d == Redelivery.untilAck then Completion.inFlight(r) else Completion.retried(r) // scalafix:ok DisableSyntax.==; typed equality
-    // format: on
+      if d == Redelivery.untilAck then Completion.inFlight(r) else Completion.retried(r)
     // The ways a delivery that leaves the report to be delivered again can go.
     val taken = choice
     val rejectedForNow = choice
@@ -321,28 +317,25 @@ object RejectAfterClose
     def fromRetention(x: Retained) = x match
       case Retained.pending(r) => Knowledge.successor(r)
       case Retained.none       => Knowledge.none
-    // format: off
     def reapplied(rule: Reset, s: State) = s.known match
       case Knowledge.original(r) =>
-        if rule == Reset.truncates then fromRetention(s.retained) else Knowledge.successor(r) // scalafix:ok DisableSyntax.==; typed equality
+        if rule == Reset.truncates then fromRetention(s.retained) else Knowledge.successor(r)
       case Knowledge.expired                               => Knowledge.expired
       case _: Knowledge.none.type | _: Knowledge.successor => fromRetention(s.retained)
 
-    def carried(rule: Reset, i: Intent) = if rule == Reset.forgetsCancel then Intent.none else i // scalafix:ok DisableSyntax.==; typed equality
+    def carried(rule: Reset, i: Intent) = if rule == Reset.forgetsCancel then Intent.none else i
     import Knowledge.{expired, none, original}
     // What the successor's history records at its start: the reset, and the outcome it reapplies.
     def resetFacts(k: Knowledge) = k match
       case Knowledge.successor(r) =>
         List(CloseFact.workflowReset, CloseFact.outcomeReapplied, recorded(r))
       case _: none.type | _: original | _: expired.type => List(CloseFact.workflowReset)
-    // format: on
     // Promises: the outcome stays where an owner can learn it, an acknowledgment keeps it, and a
     // path ends only where the outcome is settled.
-    // format: off
     // The run that owns the operation records this outcome.
     def ownerKnows(s: State, r: Resolution) =
-      if s.caller == Caller.resetOpen then s.known == Knowledge.successor(r) // scalafix:ok DisableSyntax.==; typed equality
-      else s.known == Knowledge.original(r) // scalafix:ok DisableSyntax.==; typed equality
+      if s.caller == Caller.resetOpen then s.known == Knowledge.successor(r)
+      else s.known == Knowledge.original(r)
 
     // A decided outcome is always somewhere a current or future owner can learn it: its history,
     // the operation's retention, or a report still in flight. An operation its deadline resolved
@@ -351,15 +344,14 @@ object RejectAfterClose
       after.state.handler match
         case Handler.done(r) =>
           ownerKnows(after.state, r) ||
-          after.state.retained == Retained.pending(r) || carries(after.state.channel, r) || // scalafix:ok DisableSyntax.==; typed equality
-          after.state.known == Knowledge.expired // scalafix:ok DisableSyntax.==; typed equality
+          after.state.retained == Retained.pending(r) || carries(after.state.channel, r) ||
+          after.state.known == Knowledge.expired
         case _: Handler.running.type | _: Handler.cancelReceived.type => true
 
     def keptOrOwed(after: Step[CloseResetState, Answer, CloseFact], r: Resolution) =
       after.outcome.in(Answer.accepted, Answer.retained) implies
-        (after.state.channel != Completion.none || ownerKnows(after.state, r) || // scalafix:ok DisableSyntax.!=; typed equality
-          after.state.retained == Retained.pending(r)) // scalafix:ok DisableSyntax.==; typed equality
-    // format: on
+        (after.state.channel != Completion.none || ownerKnows(after.state, r) ||
+          after.state.retained == Retained.pending(r))
     // An acknowledgment ends the handler's report only once the owner committed or the operation
     // retained the outcome.
     def ackOnlyWhenKept(before: State, after: Step[CloseResetState, Answer, CloseFact]) =
@@ -369,23 +361,21 @@ object RejectAfterClose
         case Completion.none        => true
 
     def isDone(s: State) = !working(s.handler)
-    // format: off
     // Where a path may end: the handler is still working, or its outcome reached the owner, or the
     // operation retained it for a successor a closed run may never get, or the deadline resolved the
     // wait. Any other state with no step is a lost outcome. `end` reads this named predicate.
     def settled(s: State) = s.handler match
       case Handler.done(r) =>
         ownerKnows(s, r) ||
-        (s.caller == Caller.closed && s.retained == Retained.pending( // scalafix:ok DisableSyntax.==; typed equality
+        (s.caller == Caller.closed && s.retained == Retained.pending(
           r
-        )) || s.known == Knowledge.expired // scalafix:ok DisableSyntax.==; typed equality
+        )) || s.known == Knowledge.expired
       case _: Handler.running.type | _: Handler.cancelReceived.type => true
 
     def withOutcome(seen: Outcomes, r: Resolution) = seen match
       case Outcomes.none    => Outcomes.one(r)
-      case Outcomes.one(x)  => if x == r then seen else Outcomes.several // scalafix:ok DisableSyntax.==; typed equality
+      case Outcomes.one(x)  => if x == r then seen else Outcomes.several
       case Outcomes.several => Outcomes.several
-    // format: on
     def outcomesSeen(seen: Outcomes, s: CloseResetState) = outcomesAfter(seen, s.known)
 
     def outcomesAfter(seen: Outcomes, k: Knowledge) = k match
@@ -396,12 +386,10 @@ object RejectAfterClose
     def askedBy(i: Intent) = i match
       case Intent.requested(p) => Asked.by(p)
       case Intent.none         => Asked.nobody
-    // format: off
     def askedAfter(asked: Asked, i: Intent) = asked match
       case Asked.nobody => askedBy(i)
-      case Asked.by(p)  => if i == Intent.requested(p) then asked else Asked.lost // scalafix:ok DisableSyntax.==; typed equality
+      case Asked.by(p)  => if i == Intent.requested(p) then asked else Asked.lost
       case Asked.lost   => Asked.lost
-    // format: on
 
   // Monitors: the outcome stays where an owner can learn it, an acknowledgment keeps it, no run
   // records two outcomes, and a cancel request stays its principal's. Every design watches them.
@@ -419,14 +407,14 @@ object RejectAfterClose
     val singleOutcome =
       monitor[CloseResetState, Answer, CloseFact, Outcomes](Outcomes.none)((seen, _, after) =>
         states.outcomesSeen(seen, after.state)
-      )(seen => seen == Outcomes.several) // scalafix:ok DisableSyntax.==; typed equality
+      )(seen => seen == Outcomes.several)
 
     // The cancellation principal is lost: a request made is no longer in the owner's history as
     // made.
     val cancelPrincipal =
       monitor[CloseResetState, Answer, CloseFact, Asked](Asked.nobody)((asked, _, after) =>
         states.askedAfter(asked, after.state.intent)
-      )(asked => asked == Asked.lost) // scalafix:ok DisableSyntax.==; typed equality
+      )(asked => asked == Asked.lost)
 
   object rules extends Facets(closing.rules)
 
@@ -442,16 +430,14 @@ object RejectAfterClose
         before: CloseResetState,
         after: Step[CloseResetState, Answer, CloseFact]
     ) =
-      before.caller == Caller.closed && after.state.caller == Caller.closed implies // scalafix:ok DisableSyntax.==; typed equality
-        (after.state.known == before.known && after.state.intent == before.intent) // scalafix:ok DisableSyntax.==; typed equality
-    // format: off
+      before.caller == Caller.closed && after.state.caller == Caller.closed implies
+        (after.state.known == before.known && after.state.intent == before.intent)
     // An outcome a history records is the handler's.
     def knownIsTheHandlersOutcome(after: Step[CloseResetState, Answer, CloseFact]) =
       after.state.known match
-        case Knowledge.original(r)  => after.state.handler == Handler.done(r) // scalafix:ok DisableSyntax.==; typed equality
-        case Knowledge.successor(r) => after.state.handler == Handler.done(r) // scalafix:ok DisableSyntax.==; typed equality
+        case Knowledge.original(r)  => after.state.handler == Handler.done(r)
+        case Knowledge.successor(r) => after.state.handler == Handler.done(r)
         case _: Knowledge.none.type | _: Knowledge.expired.type => true
-    // format: on
     def knows(k: Knowledge, r: Resolution) =
       k.in(Knowledge.original(r), Knowledge.successor(r))
 
@@ -461,12 +447,10 @@ object RejectAfterClose
         case Knowledge.original(r)                              => knows(after.state.known, r)
         case Knowledge.successor(r)                             => knows(after.state.known, r)
         case _: Knowledge.none.type | _: Knowledge.expired.type => true
-    // format: off
     // The handler's outcome is decided, and nothing holds or still carries it.
     def nothingOwed(s: CloseResetState) = s.handler match
-      case Handler.done(_) => s.channel == Completion.none && s.retained == Retained.none // scalafix:ok DisableSyntax.==; typed equality
+      case Handler.done(_) => s.channel == Completion.none && s.retained == Retained.none
       case _: Handler.running.type | _: Handler.cancelReceived.type => false
-    // format: on
     // The deadline resolves only a wait that could still end otherwise: the handler is working, or
     // its report is still owed. A deadline that fires with nothing owed ends a wait for an outcome
     // the design already lost.
@@ -474,9 +458,8 @@ object RejectAfterClose
         before: CloseResetState,
         after: Step[CloseResetState, Answer, CloseFact]
     ) =
-      before.known != Knowledge.expired && after.state.known == Knowledge.expired implies // scalafix:ok DisableSyntax.!=, DisableSyntax.==; typed equality
+      before.known != Knowledge.expired && after.state.known == Knowledge.expired implies
         !nothingOwed(before)
-    // format: off
     def designClaims(m: Machine[CloseResetState, Answer, CloseFact]) =
       // No step, a reset included, undoes what the handler did.
       val handlerEffectIsIrreversible = m.property.once(states.isDone).keeps(_.handler)
@@ -484,26 +467,26 @@ object RejectAfterClose
       val finishesAfterClose = m.property when
         handlerSide.finish(Resolution.succeeded) holds
         (after =>
-          after.state.caller == Caller.closed && // scalafix:ok DisableSyntax.==; typed equality
-            after.state.handler == Handler.done(Resolution.succeeded) // scalafix:ok DisableSyntax.==; typed equality
+          after.state.caller == Caller.closed &&
+            after.state.handler == Handler.done(Resolution.succeeded)
         )
       // A cancellation's request, its receipt, the handler's effect and the caller's knowledge.
       val requestedButUnreceived = m.property when
         callerSide.requestCancel(Principal.callerWorkflow) holds
         (after =>
-          after.state.intent == Intent.requested(Principal.callerWorkflow) && // scalafix:ok DisableSyntax.==; typed equality
-            after.state.handler == Handler.running // scalafix:ok DisableSyntax.==; typed equality
+          after.state.intent == Intent.requested(Principal.callerWorkflow) &&
+            after.state.handler == Handler.running
         )
       val receivedButSucceeded = m.property when
         handlerSide.finish(Resolution.succeeded) holds
         (after =>
-          after.state.intent == Intent.requested(Principal.callerWorkflow) && // scalafix:ok DisableSyntax.==; typed equality
-            after.state.handler == Handler.done(Resolution.succeeded) // scalafix:ok DisableSyntax.==; typed equality
+          after.state.intent == Intent.requested(Principal.callerWorkflow) &&
+            after.state.handler == Handler.done(Resolution.succeeded)
         )
       val canceledButUnknown = m.property when
         handlerSide.finish(Resolution.canceled) holds
         (after =>
-          after.state.handler == Handler.done(Resolution.canceled) && // scalafix:ok DisableSyntax.==; typed equality
+          after.state.handler == Handler.done(Resolution.canceled) &&
             !states.ownerKnows(after.state, Resolution.canceled)
         )
       val completionCancels = m.property when handler.complete(Resolution.canceled) holds
@@ -521,22 +504,22 @@ object RejectAfterClose
       val rejectedTransiently = m.property when
         handler.complete(Resolution.succeeded) holds
         (after =>
-          after.outcome == Answer.rejectedTransient && // scalafix:ok DisableSyntax.==; typed equality
+          after.outcome == Answer.rejectedTransient &&
             states.carries(after.state.channel, Resolution.succeeded)
         )
       val rejectedPermanently = m.property when
         handler.complete(Resolution.succeeded) holds (after =>
-          after.outcome == Answer.rejectedPermanent // scalafix:ok DisableSyntax.==; typed equality
+          after.outcome == Answer.rejectedPermanent
         )
       val lostAfterReset = m.property when callerSide.reset holds
         (after => !states.outcomePreserved(after))
       val reappliesRetained = m.property when callerSide.reset holds
         (after =>
           after.records(CloseFact.outcomeReapplied) &&
-            after.state.known == Knowledge.successor(Resolution.succeeded) // scalafix:ok DisableSyntax.==; typed equality
+            after.state.known == Knowledge.successor(Resolution.succeeded)
         )
       val routedToSuccessor = m.property when handler.complete(Resolution.failed) holds
-        (after => after.state.known == Knowledge.successor(Resolution.failed)) // scalafix:ok DisableSyntax.==; typed equality
+        (after => after.state.known == Knowledge.successor(Resolution.failed))
       DesignClaims(
         m.property("outcomePreserved") holds states.outcomePreserved,
         m.property("ackOnlyWhenKept") holdsAcross states.ackOnlyWhenKept,
@@ -557,24 +540,22 @@ object RejectAfterClose
         reappliesRetained,
         routedToSuccessor
       )
-    // format: on
     def safetyClaims(m: Machine[CloseResetState, Answer, CloseFact]) = SafetyClaims(
       m.property("outcomePreserved") holds states.outcomePreserved,
       m.property("ackOnlyWhenKept") holdsAcross states.ackOnlyWhenKept
     )
-    // format: off
     def deadlineClaims(m: Machine[CloseResetState, Answer, CloseFact]) =
       val expiresWithNothingOwed = m.property when deadline.scheduleToClose holds
-        (after => after.state.known == Knowledge.expired && nothingOwed(after.state)) // scalafix:ok DisableSyntax.==; typed equality
+        (after => after.state.known == Knowledge.expired && nothingOwed(after.state))
       val expiresWhileOwed = m.property when deadline.scheduleToClose holds
         (after =>
-          after.state.known == Knowledge.expired && // scalafix:ok DisableSyntax.==; typed equality
+          after.state.known == Knowledge.expired &&
             states.carries(after.state.channel, Resolution.succeeded)
         )
       val lateCompletionIsDropped = m.property when
         handler.complete(Resolution.succeeded) holds
         (after =>
-          after.outcome == Answer.rejectedPermanent && after.records(CloseFact.completionDropped) // scalafix:ok DisableSyntax.==; typed equality
+          after.outcome == Answer.rejectedPermanent && after.records(CloseFact.completionDropped)
         )
       DeadlineClaims(
         m.property("outcomePreserved") holds states.outcomePreserved,
@@ -588,10 +569,9 @@ object RejectAfterClose
     // The operation retained the outcome for a closed run, and no owner knows it yet.
     def awaitingOwner(s: CloseResetState) = s.handler match
       case Handler.done(r) =>
-        s.caller == Caller.closed && s.retained == Retained.pending(r) && // scalafix:ok DisableSyntax.==; typed equality
+        s.caller == Caller.closed && s.retained == Retained.pending(r) &&
         !states.ownerKnows(s, r)
       case _: Handler.running.type | _: Handler.cancelReceived.type => false
-    // format: on
     def ownerKnowsOutcome(s: CloseResetState) = s.handler match
       case Handler.done(r)                                          => states.ownerKnows(s, r)
       case _: Handler.running.type | _: Handler.cancelReceived.type => false

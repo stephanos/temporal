@@ -4,15 +4,20 @@ package temporal
 package features.activity
 package standalone
 package protocol
+
 import framework.*
 import framework.Finite.given
 import framework.outcomes.Outcome
 
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 
-trait Admission extends Facet[AdmissionState, Outcome, AdmissionFact], Phased[AdmissionState, AdmissionPhase]:
+trait Admission
+    extends Facet[AdmissionState, Outcome, AdmissionFact],
+      Phased[AdmissionState, AdmissionPhase]:
+
   object admission:
     import AdmissionFact.*
+
     object effects:
       def sendDispatch(s: State) = enter(s, dispatchSent)
 
@@ -25,9 +30,15 @@ trait Admission extends Facet[AdmissionState, Outcome, AdmissionFact], Phased[Ad
 
       // Its durable update commits or fails; a failed commit owes no answer, so its delivery stays.
       def admit(s: State) = choose(
-        admissionCommits -> enter(ActivityRecord.states.admitted(s), statusStarted, attemptAdmitted),
+        admissionCommits -> enter(
+          ActivityRecord.states.admitted(s),
+          statusStarted,
+          attemptAdmitted
+        ),
         admissionCommitFails -> enter(s, admissionCommitFailed)
-          .because("the durable update fails: nothing is admitted and the message stays deliverable")
+          .because(
+            "the durable update fails: nothing is admitted and the message stays deliverable"
+          )
       )
 
       // A delivery that meets a paused activity or an admitted attempt is answered and admits nothing.
@@ -38,7 +49,10 @@ trait Admission extends Facet[AdmissionState, Outcome, AdmissionFact], Phased[Ad
 
       def complete(s: State) =
         enter(
-          s.copy(phase = AdmissionPhase.completed, active = ActivityRecord.states.oneLess(s.active)),
+          s.copy(
+            phase = AdmissionPhase.completed,
+            active = ActivityRecord.states.oneLess(s.active)
+          ),
           statusCompleted
         )
 
@@ -67,9 +81,9 @@ trait Admission extends Facet[AdmissionState, Outcome, AdmissionFact], Phased[Ad
           AdmissionPhase.timedOut
         ) ~> effects.rejectDelivery
       }
-      on(history.answerMatching) { // format: off
-        where(_.answer == Answer.owed) ~> effects.answerMatching // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-      } // format: on
+      on(history.answerMatching) {
+        where(_.answer == Answer.owed) ~> effects.answerMatching
+      }
       on(activityWorker.respondCompleted) {
         when(AdmissionPhase.started) ~> effects.complete
       }

@@ -107,7 +107,7 @@ class CapabilityRetryableSuite extends munit.FunSuite:
           else Phase.waiting
         assertEquals(
           properties.map(transition).forall(_(before, Step(Answer.accepted, after))),
-          after.phase == expected, // scalafix:ok DisableSyntax.==
+          after.phase == expected,
           s"retryable=$retryable before=$before after=$after expected=$expected"
         )
 
@@ -140,4 +140,4 @@ class CapabilityRetryableSuite extends munit.FunSuite:
       assertEquals(
         holds(before, Step(Answer.accepted, after)),
         after.phase == WaitingPhase.waiting
-      ) // scalafix:ok DisableSyntax.==
+      )

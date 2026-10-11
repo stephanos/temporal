@@ -16,7 +16,9 @@ val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Out
 
 trait Reset extends Facet[State, Outcome, Fact], Phased[State, Phase]:
   this: Completion & Cancellation & Timeouts =>
+
   object reset:
+
     object effects:
       // A reset of a waiting or paused activity applies at once: its independent count restarts at
       // zero and a retry backoff is discarded (operator_commands.go:521-563).
@@ -95,38 +97,41 @@ trait Reset extends Facet[State, Outcome, Fact], Phased[State, Phase]:
       // A first attempt again, dispatched at once, of an activity with no deadline set.
       val restarted =
         ActivityProtocol.init.copy(phase = Phase.scheduled)
-      val resetOnFatal = property when activityWorker.respondFailed(Failure.fatal) holds {
-        s => // format: off
-        s.state == restarted && s.records(Fact.statusScheduled) && !s.records(Fact.statusFailed) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      val resetOnFatal = property when activityWorker.respondFailed(Failure.fatal) holds { s =>
+        s.state == restarted && s.records(Fact.statusScheduled) && !s.records(Fact.statusFailed)
       }
-      val resetOnExhaustion = property when activityWorker.respondFailed(Failure.retryable) holds { s =>
-        s.state == restarted.copy(maxAttempts = MaxAttempts.one) && s.records(Fact.statusScheduled) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-      } // format: on
-      val resetOnTimeout = property when deadline.startToClose holds { s => // format: off
-        s.state == restarted.copy(startToClose = Timeout.expires, maxAttempts = MaxAttempts.one) && // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-        s.records(Fact.statusScheduled) && // format: on
+      val resetOnExhaustion = property when activityWorker.respondFailed(Failure.retryable) holds {
+        s =>
+          s.state == restarted.copy(maxAttempts = MaxAttempts.one) && s.records(
+            Fact.statusScheduled
+          )
+      }
+      val resetOnTimeout = property when deadline.startToClose holds { s =>
+        s.state == restarted.copy(startToClose = Timeout.expires, maxAttempts = MaxAttempts.one) &&
+        s.records(Fact.statusScheduled) &&
         !s.records(Fact.statusTimedOut(TimeoutType.startToClose))
-      } // format: off
-      val resetKeepsPause = property when activityWorker.respondFailed(Failure.retryable) holds { s =>
-        s.state == restarted.copy(phase = Phase.paused) && s.records(Fact.statusPaused) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-      } // format: on
+      }
+      val resetKeepsPause = property when activityWorker.respondFailed(Failure.retryable) holds {
+        s =>
+          s.state == restarted.copy(phase = Phase.paused) && s.records(Fact.statusPaused)
+      }
       val completionWins = property when activityWorker.respondCompleted holds { s =>
-        s.state.phase == Phase.completed && s.state.attempts == 1 && // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+        s.state.phase == Phase.completed && s.state.attempts == 1 &&
         s.records(Fact.statusCompleted)
       }
-      val pauseLeavesResetPending = property when client.pause holds { s => // format: off
-        s.state.phase == Phase.resetRequested && !s.records(Fact.statusPaused) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-      } // format: on
+      val pauseLeavesResetPending = property when client.pause holds { s =>
+        s.state.phase == Phase.resetRequested && !s.records(Fact.statusPaused)
+      }
       val resetStaysPending = property when client.reset(ResetPause.resume) holds { s =>
-        s.state.phase == Phase.resetRequested // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+        s.state.phase == Phase.resetRequested
       }
 
       // Paused before any attempt, with no deadline set, its count restarted.
       val keptPaused =
-        ActivityProtocol.init.copy(phase = Phase.paused) // format: off
+        ActivityProtocol.init.copy(phase = Phase.paused)
       val resetKeptPaused = property when client.reset(ResetPause.keepPaused) holds { s =>
-        s.state == keptPaused && s.records(Fact.statusPaused) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-      } // format: on
+        s.state == keptPaused && s.records(Fact.statusPaused)
+      }
 
     object queries:
       val resetThenFatal = scenario.actions(
@@ -201,9 +206,11 @@ trait Reset extends Facet[State, Outcome, Fact], Phased[State, Phase]:
         activityWorker.respondCompleted
       )
       val resetFatality = query find properties.resetOnFatal in resetThenFatal limits four
-      val resetExhaustion = query find properties.resetOnExhaustion in resetThenExhausted limits four
+      val resetExhaustion =
+        query find properties.resetOnExhaustion in resetThenExhausted limits four
       val resetTimeout = query find properties.resetOnTimeout in resetThenTimedOut limits four
-      val resetKeptPause = query find properties.resetKeepsPause in pausedResetThenFailed limits five
+      val resetKeptPause =
+        query find properties.resetKeepsPause in pausedResetThenFailed limits five
       val resetCompletion = query find properties.completionWins in resetThenCompleted limits four
       val resetScheduleToClose =
         query find timeouts.properties.scheduleToCloseTimesOut in resetThenScheduleToClose limits four

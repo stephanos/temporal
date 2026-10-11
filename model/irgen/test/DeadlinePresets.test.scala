@@ -87,7 +87,7 @@ class DeadlinePresetsSuite extends munit.FunSuite:
       val maximum =
         assignments
           .find(_.path("target").asText() == "retry_policy.maximum_attempts")
-          .get // scalafix:ok DisableSyntax.==; typed equality
+          .get
       val expected = step.at("/step/inputs/5/enum/case").asText() match
         case "unlimited" => "0"
         case "one"       => "1"
@@ -117,7 +117,7 @@ class DeadlinePresetsSuite extends munit.FunSuite:
         .zip(Seq("start_delay.seconds", "start_to_close_timeout.seconds"))
         .collect {
           case (input, field) if input.at("/enum/case").asText() == "expires" => field
-        } // scalafix:ok DisableSyntax.==; typed equality
+        }
         .toSet
       val assignments = step.at("/command/rpc/assign").elements().asScala.toSeq
       assertEquals(
@@ -157,7 +157,7 @@ class DeadlinePresetsSuite extends munit.FunSuite:
       .path(kind)
       .elements()
       .asScala
-      .find(_.path("name").asText() == name) // scalafix:ok DisableSyntax.==; typed equality
+      .find(_.path("name").asText() == name)
       .get
     val failures = named("queries", "retryExhaustionByFailures")
     assertEquals(failures.path("form").asText(), "FORM_VERIFY")
@@ -189,7 +189,7 @@ class DeadlinePresetsSuite extends munit.FunSuite:
       .asScala
       .find(
         _.at("/runEvent/attempt/number").asText() == "2"
-      ) // scalafix:ok DisableSyntax.==; typed equality
+      )
       .get
     val confirms = second.path("confirms").elements().asScala.toSeq
     assertEquals(

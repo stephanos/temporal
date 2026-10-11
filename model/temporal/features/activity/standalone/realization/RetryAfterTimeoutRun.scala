@@ -5,13 +5,10 @@ package realization
 
 import protocol.ActivityProtocol
 
-
 import framework.*
 import framework.realize.*
 import temporal.realize.*
-import io.temporal.api.workflowservice.v1.{
-  StartActivityExecutionRequest
-}
+import io.temporal.api.workflowservice.v1.StartActivityExecutionRequest
 
 // Uses the unchanged System rows, but only the timeout path's second-delivery evidence. The first
 // attempt withholds its answer until its armed deadline; the second completes or exhausts retries.

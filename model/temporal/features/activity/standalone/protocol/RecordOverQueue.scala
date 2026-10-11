@@ -2,6 +2,7 @@ package temporal
 package features.activity
 package standalone
 package protocol
+
 import framework.*
 import temporal.capabilities.system.*
 import framework.Finite.given
@@ -26,7 +27,7 @@ object RecordOverQueue
     def overQueueClaims(c: Composition[State], declared: Capabilities[State, String, String]) =
       val failedCommitKeepsTheMessage = c.property holds (after =>
         after.records(_.activity, AdmissionFact.admissionCommitFailed) implies
-          (after.state.queue.outstanding != Outstanding.empty && // scalafix:ok DisableSyntax.!=; strictEquality checks native comparisons
+          (after.state.queue.outstanding != Outstanding.empty &&
             !after.records(_.activity, AdmissionFact.attemptAdmitted))
       )
       OverQueueClaims(

@@ -54,7 +54,8 @@ object worker extends Actor:
 // The worker. A worker has no natural end: it may be left polling or stopped.
 object Polling
     extends Machine[State, Outcome, Fact],
-      Phased[State, Phase](_.phase, (s, p) => s.copy(phase = p)), Serving:
+      Phased[State, Phase](_.phase, (s, p) => s.copy(phase = p)),
+      Serving:
   val init = State(Phase.polling)
   override def end(@unused state: State) = true
 

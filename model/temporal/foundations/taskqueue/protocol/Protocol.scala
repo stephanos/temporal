@@ -17,47 +17,44 @@ val _ = () => summon[CanEqual[Custody, Custody]]
 // ### The detailed provider, and the providers derived from it. The violating providers each differ
 // from the detailed provider in what one ordinary crash does, and neither assumes storage loss. They
 // are negative controls a feature may compose its own design with: the replacement is what must fail.
-// format: off
 // The detailed provider, under ordinary crashes and lost answers to the poller.
 object TaskQueueProtocol
     extends Machine[QueueDetail, QueueOutcome, QueueFact],
       Phased[QueueDetail, Custody](_.custody),
-      FailureModel, Queueing:
+      FailureModel,
+      Queueing:
   val init = states.idleQueue
   override def end(d: State) = states.queueEnds(d)
+
   object states:
     val idleQueue =
       QueueDetail(custody = Custody.nowhere, polled = false, delivered = Delivered.never)
-    def queueEnds(d: State) = d.custody == Custody.nowhere // scalafix:ok DisableSyntax.==; typed equality
+    def queueEnds(d: State) = d.custody == Custody.nowhere
     def oneMoreDelivery(d: Delivered) = d match
       case Delivered.never                                  => Delivered.once
       case _: Delivered.once.type | _: Delivered.twice.type => Delivered.twice
-// format: on
     // Matching holds a task a poll can take: reserved for a waiting poller, or persisted.
     def matchable(c: Custody) = c.in(Custody.reserved, Custody.persisted)
-    // format: off
     // A custodian holds the message.
-    def held(s: State) = s.custody != Custody.nowhere // scalafix:ok DisableSyntax.!=; typed equality
+    def held(s: State) = s.custody != Custody.nowhere
 
     // Matching holds the task, no poller holds it, and it was not yet handed out twice.
     def deliverable(s: State) =
-      matchable(s.custody) && !s.polled && s.delivered != Delivered.twice // scalafix:ok DisableSyntax.!=; typed equality
-    // format: on
+      matchable(s.custody) && !s.polled && s.delivered != Delivered.twice
     // A poller holds a task matching handed out, whose consumer may now answer.
     def answerable(s: State) =
-      s.polled && s.custody != Custody.nowhere && s.delivered != Delivered.never // scalafix:ok DisableSyntax.!=; typed equality
-  // format: off
+      s.polled && s.custody != Custody.nowhere && s.delivered != Delivered.never
+
   object refinement extends Refinement(TaskQueueProduct):
     // The interface state a detailed state stands for: a message is outstanding while anyone holds
     // it.
     def toProduct(d: State) =
-      if d.custody == Custody.nowhere then QueueView(Outstanding.empty) // scalafix:ok DisableSyntax.==; typed equality
+      if d.custody == Custody.nowhere then QueueView(Outstanding.empty)
       else
         d.delivered match
           case Delivered.never => QueueView(Outstanding.committed)
           case Delivered.once  => QueueView(Outstanding.deliveredOnce)
           case Delivered.twice => QueueView(Outstanding.deliveredTwice)
-  // format: on
     def visible(f: QueueFact) = f match
       case QueueFact.enqueueCommitted | QueueFact.enqueueFailed | QueueFact.delivered |
           QueueFact.acknowledged | QueueFact.storageLost =>
@@ -65,9 +62,7 @@ object TaskQueueProtocol
       case QueueFact.addInvoked | QueueFact.taskPersisted | QueueFact.matchReserved |
           QueueFact.crashed | QueueFact.ackLost =>
         false
-    // format: off
-    def visibleOutcomes(o: QueueOutcome) = o != QueueOutcome.internal // scalafix:ok DisableSyntax.!=; typed equality
-    // format: on
+    def visibleOutcomes(o: QueueOutcome) = o != QueueOutcome.internal
 
   object rules extends Facets(queueing.rules)
 
@@ -79,7 +74,7 @@ object TaskQueueProtocol
     def queueClaims(m: Machine[State, QueueOutcome, QueueFact]) = QueueClaims(
       m.property("delivers") when queue.deliver holds (after => after.records(QueueFact.delivered)),
       m.property("committedStays")
-        .stays(_.custody != Custody.nowhere) // scalafix:ok DisableSyntax.!=; typed equality
+        .stays(_.custody != Custody.nowhere)
         .unless(_.records(QueueFact.acknowledged))
     )
 

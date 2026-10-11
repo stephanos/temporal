@@ -26,7 +26,7 @@ object visitor extends Actor:
 
 // A door that is gone, which every request to it finds not there.
 object Doors: // format: off
-  def gone(d: Door): Boolean = d.phase == Phase.gone // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  def gone(d: Door): Boolean = d.phase == Phase.gone
   // format: on
 // A door that is over answers every request `rejected` and keeps its state.
 final case class Sealed[S, O](over: S => Boolean, rejected: O) extends CapabilityOf[S, O, Nothing]
@@ -35,7 +35,7 @@ object Sealed extends CapabilityKind: // format: off
   // Every step from a state that is over keeps the state and answers `rejected`.
   def overIsRejected[S, O](m: Declares[S] { type Outcome = O })(over: S => Boolean, rejected: O)(using CanEqual[S, S], CanEqual[O, O]): Property[S] = // format: on
     m.property holdsAcross ((before, after) => // format: off
-      !over(before) || (after.state == before && after.outcome == rejected) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      !over(before) || (after.state == before && after.outcome == rejected)
     ) // format: on
 
 val two = Limits(steps = 2, actions = 2, search = 256)

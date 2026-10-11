@@ -12,9 +12,7 @@ import temporal.features.activity.standalone.{
   protocol,
   MaxAttempts
 }
-import temporal.features.activity.standalone.protocol.{
-  ActivityProtocol
-}
+import temporal.features.activity.standalone.protocol.ActivityProtocol
 import framework.realize.Instruction
 import framework.outcomes.{Outcome, Rejection}
 import io.temporal.api.activity.v1.ActivityExecutionInfo
@@ -24,8 +22,11 @@ import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.METHOD_DESCRIBE_AC
 class ActivityPrecisionRegression extends munit.FunSuite:
   val _ = () => summon[CanEqual[protocol.Phase, protocol.Phase]]
   private def take(s: protocol.State, c: Class) =
-    val binding = ActivityProtocol.bindings.find(_.decl == c.decl).get // scalafix:ok DisableSyntax.==
-    effectOf[protocol.State, Outcome, protocol.Fact](binding.decl, binding.function)(s, c.values).head
+    val binding = ActivityProtocol.bindings.find(_.decl == c.decl).get
+    effectOf[protocol.State, Outcome, protocol.Fact](binding.decl, binding.function)(
+      s,
+      c.values
+    ).head
 
   test(
     "cancellation precedence exercises a refused pause, permits legal closure and rejects undo"
@@ -34,7 +35,8 @@ class ActivityPrecisionRegression extends munit.FunSuite:
       .asInstanceOf[
         (protocol.State, Step[protocol.State, Outcome, protocol.Fact]) => Boolean
       ] // scalafix:ok DisableSyntax.asInstanceOf
-    val started = take(take(ActivityProtocol.init, client.start()).state, activityWorker.poll()).state
+    val started =
+      take(take(ActivityProtocol.init, client.start()).state, activityWorker.poll()).state
     val requested = take(started, client.requestCancel()).state
     assertEquals(requested.phase, protocol.Phase.cancelRequested)
     val pause = take(requested, client.pause())
@@ -58,7 +60,7 @@ class ActivityPrecisionRegression extends munit.FunSuite:
       assert(holds(armed, closed))
     for
       before <- summon[Finite[protocol.State]].values
-      if before.phase == protocol.Phase.cancelRequested // scalafix:ok DisableSyntax.==
+      if before.phase == protocol.Phase.cancelRequested
       binding <- ActivityProtocol.bindings
       inputs <- classesOf(binding.decl)
       after <- effectOf[protocol.State, Outcome, protocol.Fact](binding.decl, binding.function)(
@@ -102,7 +104,8 @@ class ActivityPrecisionRegression extends munit.FunSuite:
   }
 
   test("every realization declares a typed raw attempt observation and ends with a Describe read") {
-    val original = List(StandaloneActivityRun, RetryAfterTimeoutRun, HeldDispatchRun, LostStartAnswerRun)
+    val original =
+      List(StandaloneActivityRun, RetryAfterTimeoutRun, HeldDispatchRun, LostStartAnswerRun)
     val realizations =
       original ++ List(HeartbeatThenCompletionRun, RetryAfterHeartbeatRun, ExhaustAfterHeartbeatRun)
     val controllers = List(
@@ -120,7 +123,7 @@ class ActivityPrecisionRegression extends munit.FunSuite:
       else
         realization.observations.filter(
           _.message == ActivityExecutionInfo.scalaDescriptor.fullName
-        ) // scalafix:ok DisableSyntax.==
+        )
       assertEquals(observed.size, 1)
       assertEquals(observed.head.id, attemptCount.name)
       assertEquals(observed.head.message, ActivityExecutionInfo.scalaDescriptor.fullName)
@@ -133,10 +136,15 @@ class ActivityPrecisionRegression extends munit.FunSuite:
             METHOD_DESCRIBE_ACTIVITY_EXECUTION.getFullMethodName
           )
         case other => fail(s"final read is $other")
-    for realization <- List(HeartbeatThenCompletionRun, RetryAfterHeartbeatRun, ExhaustAfterHeartbeatRun) do
+    for realization <- List(
+        HeartbeatThenCompletionRun,
+        RetryAfterHeartbeatRun,
+        ExhaustAfterHeartbeatRun
+      )
+    do
       val details = realization.observations.filter(
         _.message == Payloads.scalaDescriptor.fullName
-      ) // scalafix:ok DisableSyntax.==
+      )
       assertEquals(details.size, 1)
       assertEquals(details.head.id, heartbeatDetails.name)
       assertEquals(details.head.message, Payloads.scalaDescriptor.fullName)

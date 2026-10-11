@@ -20,7 +20,9 @@ val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Out
 
 trait Timeouts extends Facet[State, Outcome, Fact], Phased[State, Phase]:
   this: Reset =>
+
   object timeouts:
+
     object effects:
       def backOffAfterDeadline(s: State) =
         enter(
@@ -51,14 +53,20 @@ trait Timeouts extends Facet[State, Outcome, Fact], Phased[State, Phase]:
       }
       on(deadline.startToClose) {
         when(Phase.started).where(s =>
-          ActivityProtocol.states.startToCloseArmed(s) && ActivityProtocol.states.retriesRemaining(s)
+          ActivityProtocol.states.startToCloseArmed(s) && ActivityProtocol.states.retriesRemaining(
+            s
+          )
         ) ~> effects.backOffAfterDeadline
         when(Phase.pauseRequested).where(s =>
-          ActivityProtocol.states.startToCloseArmed(s) && ActivityProtocol.states.retriesRemaining(s)
+          ActivityProtocol.states.startToCloseArmed(s) && ActivityProtocol.states.retriesRemaining(
+            s
+          )
         ) ~> effects.backOffAfterDeadline
         when(Phase.started, Phase.pauseRequested, Phase.cancelRequested)
           .where(s =>
-            ActivityProtocol.states.startToCloseArmed(s) && ActivityProtocol.states.endsTerminally(s)
+            ActivityProtocol.states.startToCloseArmed(s) && ActivityProtocol.states.endsTerminally(
+              s
+            )
           ) ~> (effects.timeOut(
           _,
           TimeoutType.startToClose
@@ -73,35 +81,35 @@ trait Timeouts extends Facet[State, Outcome, Fact], Phased[State, Phase]:
       // Terminal deadline witnesses record which deadline settled the activity. Start-to-close
       // uses a one-attempt start.
       val scheduleToStartFires = property when deadline.scheduleToStart holds { s =>
-        s.state.phase == Phase.timedOut && // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+        s.state.phase == Phase.timedOut &&
         s.records(Fact.statusTimedOut(TimeoutType.scheduleToStart))
       }
 
       val startToCloseFires = property when deadline.startToClose holds { s =>
-        s.state.phase == Phase.timedOut && // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+        s.state.phase == Phase.timedOut &&
         s.records(Fact.statusTimedOut(TimeoutType.startToClose))
       }
 
       val scheduleToCloseTimesOut = property when deadline.scheduleToClose holds { s =>
-        s.state.phase == Phase.timedOut && // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+        s.state.phase == Phase.timedOut &&
         s.records(Fact.statusTimedOut(TimeoutType.scheduleToClose))
       }
 
       // The second delivery after an attempt timeout: a realization whose second delivery confirms
       // a timeout, not a failed answer, runs these.
-      val completesAfterTimeout = property when activityWorker.respondCompleted holds {
-        s => // format: off
-        s.state == ActivityProtocol.states.completedOnRetry.copy( // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      val completesAfterTimeout = property when activityWorker.respondCompleted holds { s =>
+        s.state == ActivityProtocol.states.completedOnRetry.copy(
           startToClose = Timeout.expires,
           maxAttempts = MaxAttempts.two
-        ) && s.records(Fact.statusCompleted) // format: on
-      } // format: off
-      val failsAfterTimeout = property when activityWorker.respondFailed(Failure.retryable) holds { s =>
-        s.state == ActivityProtocol.states.completedOnRetry.copy( // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-          phase = Phase.failed,
-          startToClose = Timeout.expires,
-          maxAttempts = MaxAttempts.two
-        ) && s.records(Fact.statusFailed) // format: on
+        ) && s.records(Fact.statusCompleted)
+      }
+      val failsAfterTimeout = property when activityWorker.respondFailed(Failure.retryable) holds {
+        s =>
+          s.state == ActivityProtocol.states.completedOnRetry.copy(
+            phase = Phase.failed,
+            startToClose = Timeout.expires,
+            maxAttempts = MaxAttempts.two
+          ) && s.records(Fact.statusFailed)
       }
 
     // The terminal scheduling deadlines and the attempt's own, retryable one; a pending reset
@@ -189,7 +197,13 @@ trait Timeouts extends Facet[State, Outcome, Fact], Phased[State, Phase]:
 
       val scheduleToStartTimeout =
         (query find properties.scheduleToStartFires in scheduleToStartExpires limits three)
-          .live(inconclusive(Reason.neverEvaluated, because = "each of the three deadlines records the timed-out status under one evidence name, so on an execution where another deadline fired the claim is never read"))
+          .live(
+            inconclusive(
+              Reason.neverEvaluated,
+              because =
+                "each of the three deadlines records the timed-out status under one evidence name, so on an execution where another deadline fired the claim is never read"
+            )
+          )
       val startToCloseTimeout =
         query find properties.startToCloseFires in startToCloseExpires limits three
       val competingTimers = Vector(
@@ -204,7 +218,19 @@ trait Timeouts extends Facet[State, Outcome, Fact], Phased[State, Phase]:
       // The shared live gate must check actual Property assessments and reasons.
       val retryAfterTimeout =
         (query find properties.completesAfterTimeout in timedOutThenCompleted limits six)
-          .live(inconclusive(Reason.explanationsDisagree, because = "the full-state claim is evidenced by status and attempt count alone, so the executions that explain the Run disagree on the state it fixes"))
+          .live(
+            inconclusive(
+              Reason.explanationsDisagree,
+              because =
+                "the full-state claim is evidenced by status and attempt count alone, so the executions that explain the Run disagree on the state it fixes"
+            )
+          )
       val retryExhaustion =
         (query find properties.failsAfterTimeout in timedOutThenFailed limits six)
-          .live(inconclusive(Reason.explanationsDisagree, because = "the full-state claim is evidenced by status and attempt count alone, so the executions that explain the Run disagree on the state it fixes"))
+          .live(
+            inconclusive(
+              Reason.explanationsDisagree,
+              because =
+                "the full-state claim is evidenced by status and attempt count alone, so the executions that explain the Run disagree on the state it fixes"
+            )
+          )

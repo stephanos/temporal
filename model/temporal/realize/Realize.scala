@@ -116,7 +116,10 @@ object WorkflowHistory:
 // wait names when it runs out.
 
 // How long a condition may take to hold, and how often a wait looks, in milliseconds.
-final case class WaitBound(interval: com.google.protobuf.duration.Duration, atMost: com.google.protobuf.duration.Duration)
+final case class WaitBound(
+    interval: com.google.protobuf.duration.Duration,
+    atMost: com.google.protobuf.duration.Duration
+)
 
 // When the effect of a write is visible to a read.
 enum Visible:

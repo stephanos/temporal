@@ -81,14 +81,19 @@ object DiscoveryFixtures:
     scripts = Vector.empty
   )
 
-
 class IrFileDiscoveryTest extends munit.FunSuite:
   import DiscoveryFixtures.*
 
   // fn-160: an IR file is a feature's, named after its package; nothing lists its roots.
   test("a package's IR file is its feature's") {
-    assertEquals(IrFile.featureOf("temporal.features.activity.standalone.protocol"), Some("activity-standalone"))
-    assertEquals(IrFile.featureOf("temporal.features.nexus.workflow.realization"), Some("nexus-workflow"))
+    assertEquals(
+      IrFile.featureOf("temporal.features.activity.standalone.protocol"),
+      Some("activity-standalone")
+    )
+    assertEquals(
+      IrFile.featureOf("temporal.features.nexus.workflow.realization"),
+      Some("nexus-workflow")
+    )
     assertEquals(IrFile.featureOf("temporal.features.nexus.shared.product"), Some("nexus"))
     assertEquals(IrFile.featureOf("temporal.foundations.taskqueue.protocol"), Some("taskqueue"))
     assertEquals(IrFile.featureOf("temporal.actors.worker"), Some("worker"))
@@ -161,14 +166,17 @@ class IrFileDiscoveryTest extends munit.FunSuite:
   test(
     "compositions, maps, query sections, progress, capabilities and realizations retain their owners"
   ) {
-    val file = IrFile("complete-root-fixture", Seq(
-      JoinedReplacement,
-      Mapped,
-      queries,
-      progress,
-      capabilityOwner.capabilities,
-      realization
-    ))
+    val file = IrFile(
+      "complete-root-fixture",
+      Seq(
+        JoinedReplacement,
+        Mapped,
+        queries,
+        progress,
+        capabilityOwner.capabilities,
+        realization
+      )
+    )
     val expected = Vector(
       JoinedReplacement,
       JoinedSource,

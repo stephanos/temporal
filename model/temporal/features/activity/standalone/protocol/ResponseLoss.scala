@@ -4,6 +4,7 @@ package temporal
 package features.activity
 package standalone
 package protocol
+
 import framework.*
 import framework.Finite.given
 import framework.outcomes.Outcome
@@ -11,7 +12,9 @@ import framework.outcomes.Outcome
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 
 trait ResponseLoss extends Facet[AdmissionResponseState, Outcome, AdmissionResponseFact]:
+
   object responseLoss:
+
     object effects:
       def sendDispatch(s: State) = enter(s, AdmissionResponseFact.dispatchSent)
 

@@ -67,8 +67,11 @@ abstract class AdmissionCapabilities(using
     pause = client.pause,
     unpause = client.unpause
   )
-  val pollable: Capability = Pollable(dispatch = activityWorker.poll) // format: off
-  except(Closable.closedIsRejectedUniformly[AdmissionState, AdmissionPhase, Outcome], because = dispatchWaivers.deliveryAfterClose) // format: on
+  val pollable: Capability = Pollable(dispatch = activityWorker.poll)
+  except(
+    Closable.closedIsRejectedUniformly[AdmissionState, AdmissionPhase, Outcome],
+    because = dispatchWaivers.deliveryAfterClose
+  )
 
 // ### Signature
 
@@ -100,7 +103,8 @@ object history:
 // The corrected design, whose status sets a composition reads through `activity`.
 object ActivityRecord
     extends Machine[AdmissionState, Outcome, AdmissionFact],
-      Phased[AdmissionState, AdmissionPhase](_.phase), Admission:
+      Phased[AdmissionState, AdmissionPhase](_.phase),
+      Admission:
   import AdmissionFact.*
   val init =
     AdmissionState(phase = AdmissionPhase.scheduled, active = Active.none, answer = Answer.settled)
@@ -110,18 +114,16 @@ object ActivityRecord
   }
 
   // The record's status sets, which a composition reads through `activity`, and its counts.
-  object states: // format: off
-    def twoActive(s: State) = s.active == Active.two // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-    def phase(s: State) = s.phase // format: on
+  object states:
+    def twoActive(s: State) = s.active == Active.two
+    def phase(s: State) = s.phase
 
     // No unpause is in scope, so a pause is where a path may end, as a completion is: `end` reads
     // this named predicate.
     def stopped(s: State) =
       !s.phase.in(AdmissionPhase.scheduled, AdmissionPhase.started)
-    // format: off
-    def oneMore(a: Active) = if a == Active.none then Active.one else Active.two // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-    def oneLess(a: Active) = if a == Active.two then Active.one else Active.none // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-    // format: on
+    def oneMore(a: Active) = if a == Active.none then Active.one else Active.two
+    def oneLess(a: Active) = if a == Active.two then Active.one else Active.none
     // The record once an attempt is admitted: started, one more active, its answer owed.
     def admitted(s: State) =
       s.copy(phase = AdmissionPhase.started, active = oneMore(s.active), answer = Answer.owed)
@@ -132,16 +134,16 @@ object ActivityRecord
 
     def countActive(active: Active, after: Step[State, Outcome, AdmissionFact]) =
       if after.records(attemptAdmitted) then oneMore(active)
-      else if after.records(statusCompleted) then oneLess(active) // format: off
-      else if after.state.phase == AdmissionPhase.timedOut then Active.none // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-      else active // format: on
+      else if after.records(statusCompleted) then oneLess(active)
+      else if after.state.phase == AdmissionPhase.timedOut then Active.none
+      else active
 
     // Whether the activity is over after a step, and whether it left where it ended.
-    def finality(f: Finality, after: Step[State, Outcome, AdmissionFact]) = // format: off
-      if f == Finality.reopened then Finality.reopened // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    def finality(f: Finality, after: Step[State, Outcome, AdmissionFact]) =
+      if f == Finality.reopened then Finality.reopened
       else if after.state.phase.in[Closed] then Finality.closed
-      else if f == Finality.closed then Finality.reopened // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-      else Finality.open // format: on
+      else if f == Finality.closed then Finality.reopened
+      else Finality.open
 
   // The record refines the product, which sees its statuses alone.
   object refinement extends Refinement(ActivityProduct):
@@ -170,14 +172,13 @@ object ActivityRecord
     // machine: the lifter lifts a monitor only where a `monitors` section writes it (fn-163 R4).
     val atMostOneActiveAttempt =
       monitor[State, Outcome, AdmissionFact, Active](Active.none)((active, _, after) =>
-        states.countActive(active, after) // format: off
-      )(_ == Active.two).readAfter(after => states.admitsAnAttempt(after)) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-      // format: on
+        states.countActive(active, after)
+      )(_ == Active.two).readAfter(after => states.admitsAnAttempt(after))
     val terminalFinality =
       monitor[State, Outcome, AdmissionFact, Finality](Finality.open)((f, _, after) =>
-        states.finality(f, after) // format: off
-      )(_ == Finality.reopened) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-      // format: on
+        states.finality(f, after)
+      )(_ == Finality.reopened)
+
   object rules extends Facets(admission.rules)
 
   // The history record's promises are declared on each admission design and each composition with

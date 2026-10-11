@@ -5,16 +5,11 @@ package realization
 
 import protocol.ActivityProtocol
 
-
 import framework.*
 import framework.realize.*
 import temporal.realize.*
-import io.temporal.api.workflowservice.v1.{
-  StartActivityExecutionRequest
-}
-import temporal.server.api.testpilot.v1.ActivityAttemptResponse.{
-  ACTIVITY_ATTEMPT_RESPONSE_PENDING
-}
+import io.temporal.api.workflowservice.v1.StartActivityExecutionRequest
+import temporal.server.api.testpilot.v1.ActivityAttemptResponse.ACTIVITY_ATTEMPT_RESPONSE_PENDING
 
 object RetryAfterHeartbeatRun
     extends Realizes(
@@ -66,7 +61,12 @@ object RetryAfterHeartbeatRun
           confirms = Vector(Taking(deadline.heartbeat, 1), Taking(activityWorker.poll, 2))
         ),
         heartbeatCompleted,
-        delivered(protocol.Fact.attemptCount, heartbeatAttempts, attempt = 2, after = startActivity),
+        delivered(
+          protocol.Fact.attemptCount,
+          heartbeatAttempts,
+          attempt = 2,
+          after = startActivity
+        ),
         attemptRecord(heartbeatAttempts, 2, startActivity)(
           "heartbeatTimedOutKind",
           protocol.Fact.heartbeatTimedOut

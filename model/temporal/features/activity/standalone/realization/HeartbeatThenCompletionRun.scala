@@ -5,16 +5,11 @@ package realization
 
 import protocol.ActivityProtocol
 
-
 import framework.*
 import framework.realize.*
 import temporal.realize.*
-import io.temporal.api.workflowservice.v1.{
-  StartActivityExecutionRequest
-}
-import temporal.server.api.testpilot.v1.ActivityAttemptResponse.{
-  ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED,
-}
+import io.temporal.api.workflowservice.v1.StartActivityExecutionRequest
+import temporal.server.api.testpilot.v1.ActivityAttemptResponse.ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED
 
 object HeartbeatThenCompletionRun
     extends Realizes(

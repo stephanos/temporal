@@ -4,6 +4,7 @@ package temporal
 package features.nexus
 package workflow
 package protocol
+
 import scala.annotation.unused
 import framework.*
 import framework.Finite.given
@@ -14,7 +15,9 @@ import temporal.actors.worker.worker
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 
 trait Operation extends Facet[State, Outcome, Fact], Phased[State, Phase]:
+
   object operation:
+
     object effects:
       import Fact.*
 
@@ -54,7 +57,10 @@ trait Operation extends Facet[State, Outcome, Fact], Phased[State, Phase]:
             if !retryable then enter(s.copy(phase = Phase.failed), nexusOperationFailed)
             else
               enter(
-                s.copy(phase = Phase.backingOff, attempts = NexusProtocol.states.saturatingSucc(s.attempts)),
+                s.copy(
+                  phase = Phase.backingOff,
+                  attempts = NexusProtocol.states.saturatingSucc(s.attempts)
+                ),
                 Fact.pendingAttempts
               )
 
@@ -62,7 +68,10 @@ trait Operation extends Facet[State, Outcome, Fact], Phased[State, Phase]:
       def backOff(s: State) =
         require(NexusProtocol.states.validAttempts(s.attempts))
         enter(
-          s.copy(phase = Phase.backingOff, attempts = NexusProtocol.states.saturatingSucc(s.attempts)),
+          s.copy(
+            phase = Phase.backingOff,
+            attempts = NexusProtocol.states.saturatingSucc(s.attempts)
+          ),
           Fact.pendingAttempts
         )
 
@@ -70,13 +79,12 @@ trait Operation extends Facet[State, Outcome, Fact], Phased[State, Phase]:
       // the step keeps the state and records nothing. On a path it is confirmed by the evidence of the
       // step after it, and the Case says so in a Known Gap.
       def keep(s: State) = stay(s)
-      // format: off
       // An asynchronous completion. Before a start, the server records a Started event first, which is
       // why the evidence is two facts and not one -- and why the product machine, which has no
       // backingOff phase to have skipped, could write the completion alone.
       def complete(s: State, resolution: Resolution) =
         val startedFirst =
-          if s.phase != Phase.started then List(nexusOperationStarted) else Nil // scalafix:ok DisableSyntax.!=; typed equality
+          if s.phase != Phase.started then List(nexusOperationStarted) else Nil
         resolution match
           case Resolution.succeeded =>
             enter(s.copy(phase = Phase.succeeded), (startedFirst ++ List(nexusOperationCompleted))*)
@@ -84,7 +92,6 @@ trait Operation extends Facet[State, Outcome, Fact], Phased[State, Phase]:
             enter(s.copy(phase = Phase.failed), (startedFirst ++ List(nexusOperationFailed))*)
           case Resolution.canceled =>
             enter(s.copy(phase = Phase.canceled), (startedFirst ++ List(nexusOperationCanceled))*)
-      // format: on
 
       // One of the three deadlines firing; the timed-out event records which.
       def timeOut(s: State, t: TimeoutType) =
@@ -118,25 +125,24 @@ trait Operation extends Facet[State, Outcome, Fact], Phased[State, Phase]:
       on(timers.backoff) {
         when(Phase.backingOff) ~> enters(Phase.scheduled)
       }
-      // format: off
       // Each deadline fires only when the schedule command set it. Schedule-to-close covers the whole
       // operation, schedule-to-start the wait for the handler to accept, and start-to-close the
       // handler's own work.
       on(deadline.scheduleToClose) {
-        when[Live].where(_.scheduleToClose == Timeout.expires) ~> (effects.timeOut( // scalafix:ok DisableSyntax.==; typed equality
+        when[Live].where(_.scheduleToClose == Timeout.expires) ~> (effects.timeOut(
           _,
           TimeoutType.scheduleToClose
         ))
       }
       // Waiting for the handler to accept: what the schedule-to-start deadline covers.
       on(deadline.scheduleToStart) {
-        when[Waiting].where(_.scheduleToStart == Timeout.expires) ~> (effects.timeOut( // scalafix:ok DisableSyntax.==; typed equality
+        when[Waiting].where(_.scheduleToStart == Timeout.expires) ~> (effects.timeOut(
           _,
           TimeoutType.scheduleToStart
         ))
       }
       on(deadline.startToClose) {
-        when[Held].where(_.startToClose == Timeout.expires) ~> (effects.timeOut( // scalafix:ok DisableSyntax.==; typed equality
+        when[Held].where(_.startToClose == Timeout.expires) ~> (effects.timeOut(
           _,
           TimeoutType.startToClose
         ))
