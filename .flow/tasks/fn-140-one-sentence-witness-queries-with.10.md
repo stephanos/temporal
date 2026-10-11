@@ -253,6 +253,23 @@ No Go, managed regeneration, full gate, independent review, live run, publicatio
 or edits to the user-owned main SEMANTICS draft are authorized. Fn-149 remains
 gated on verified committed closure, not this checkpoint.
 
+The continuation's first complete Fixtures reproduction returned exit1 with
+100 passing tests, three source failures, nine held managed comparisons and the
+same pre-existing skip. Kettle and Reservoir coordinate controls now execute and
+pass; remaining source failures are DerivedTwins, the custom-state FacetRules
+positive and layout realization collection. Root independently inspected the
+terminal log and exact failure population; retained audit:
+`.flow/tmp/scala-dsl/fn140-10-root-retry-fixtures-red-audit.json`. This does not
+pass the suite or the source seal.
+
+Root also independently identified 528 changed nested source positions in
+same-name exported functions: 382 map to exact unchanged source lines and 146
+require formatted/edited declaration mapping beyond the 26 Query spans. All
+same-name function differences other than those positions are the independently
+inventoried Nexus standalone witness parameter/body `step` to `after` rename.
+Complete validator coverage must include all these nested positions rather than
+strip or ignore them. Audit: `fn140-10-root-same-name-function-positions-audit.json`.
+
 ### DerivedTwins collection-stage reconciliation
 
 The original shared-def fixture tested the whole-run `derivedIdTwins` check across
