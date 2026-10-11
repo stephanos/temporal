@@ -26,8 +26,9 @@ type Program struct {
 	Packages  map[string]*SourcePackage
 	Functions map[string]*function
 	// Only pinned callback-summary files retain their exact parsed-byte identity.
-	summarySources map[string]summarySourceSnapshot
-	jsonSources    map[string]*jsonPackageSourceSnapshot
+	summarySources     map[string]summarySourceSnapshot
+	jsonSources        map[string]*jsonPackageSourceSnapshot
+	compressionSources map[string]*compressionPackageSourceSnapshot
 }
 
 type summarySourceSnapshot struct {
@@ -93,6 +94,16 @@ func (p *Program) Import(path string) (*types.Package, error) {
 	}
 	summarySources := map[string]string{}
 	jsonSources := map[string]string{}
+	compressionSources := map[string]string{}
+	compressionPackage := compressionSourcePackage(path)
+	var compressionAuxiliary map[string]string
+	if compressionPackage {
+		var err error
+		compressionAuxiliary, err = captureCompressionAuxiliary(metadata)
+		if err != nil {
+			return nil, err
+		}
+	}
 	for _, name := range names {
 		filename := name
 		if !filepath.IsAbs(filename) {
@@ -102,7 +113,7 @@ func (p *Program) Import(path string) (*types.Package, error) {
 		summaryPath := path + "/" + filepath.Base(filename)
 		_, callbackPinned := callbackSummarySources[summaryPath]
 		_, jsonPinned := jsonSummarySourcePins[path][filepath.Base(filename)]
-		if (callbackPinned || jsonPinned) && filepath.Clean(filename) == filepath.Clean(filepath.Join(metadata.Dir, filepath.Base(filename))) {
+		if (callbackPinned || jsonPinned || compressionPackage) && filepath.Clean(filename) == filepath.Clean(filepath.Join(metadata.Dir, filepath.Base(filename))) {
 			data, err := os.ReadFile(filename)
 			if err != nil {
 				return nil, err
@@ -115,6 +126,9 @@ func (p *Program) Import(path string) (*types.Package, error) {
 			}
 			if jsonPinned {
 				jsonSources[filepath.Base(filename)] = digest
+			}
+			if compressionPackage {
+				compressionSources[filepath.Base(filename)] = digest
 			}
 		}
 		file, err := parser.ParseFile(p.Files, filename, source, 0)
@@ -130,6 +144,12 @@ func (p *Program) Import(path string) (*types.Package, error) {
 	}
 	pkg.Types = checked
 	p.Packages[path] = pkg
+	if compressionPackage {
+		if p.compressionSources == nil {
+			p.compressionSources = map[string]*compressionPackageSourceSnapshot{}
+		}
+		p.compressionSources[path] = bindCompressionPackageSource(pkg, compressionSources, compressionAuxiliary)
+	}
 	if len(jsonSources) != 0 {
 		if p.jsonSources == nil {
 			p.jsonSources = map[string]*jsonPackageSourceSnapshot{}

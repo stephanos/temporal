@@ -26,9 +26,10 @@ type abstractValue struct {
 	truth     int
 	// These unused facts describe only the exact represented type. They do not
 	// authorize branch pruning, callback suppression, or interface-nil queries.
-	nilness int
-	nilType types.Type
-	origin  token.Pos
+	nilness   int
+	nilType   types.Type
+	origin    token.Pos
+	gzipOwned bool
 }
 type boundFunction struct {
 	fn               *function
@@ -68,26 +69,28 @@ func indexParameterOwners(functions map[string]*function) map[types.Object][]par
 }
 
 type effectAnalysis struct {
-	program          *Program
-	root             string
-	chain            []string
-	active           map[string]bool
-	resolving        map[types.Object]bool
-	bindings         map[types.Object][]expressionSite
-	fields           map[*types.Var][]expressionSite
-	calls            map[string][]callSite
-	parameterOwners  map[types.Object][]parameterOwner
-	findings         map[string]Finding
-	memo             map[string]*abstractValue
-	previous         map[string]*abstractValue
-	bindingDepth     int
-	typeArguments    map[*types.TypeParam][]types.Type
-	recursive        bool
-	implicitActive   map[*abstractValue]map[string]bool
-	checkedMemory    map[string]bool
-	checkedSummaries map[string]summarySourceSnapshot
-	checkedJSON      *jsonSourceQualification
-	diagnostics      *effectDiagnostics
+	program            *Program
+	root               string
+	chain              []string
+	active             map[string]bool
+	resolving          map[types.Object]bool
+	bindings           map[types.Object][]expressionSite
+	fields             map[*types.Var][]expressionSite
+	calls              map[string][]callSite
+	parameterOwners    map[types.Object][]parameterOwner
+	findings           map[string]Finding
+	memo               map[string]*abstractValue
+	previous           map[string]*abstractValue
+	bindingDepth       int
+	typeArguments      map[*types.TypeParam][]types.Type
+	recursive          bool
+	implicitActive     map[*abstractValue]map[string]bool
+	checkedMemory      map[string]bool
+	checkedSummaries   map[string]summarySourceSnapshot
+	checkedJSON        *jsonSourceQualification
+	checkedCompression *compressionSourceQualification
+	compressionActive  map[*abstractValue]bool
+	diagnostics        *effectDiagnostics
 }
 
 type effectDiagnostics struct {
@@ -201,6 +204,11 @@ func (a *effectAnalysis) assign(pkg *SourcePackage, target ast.Expr, value *abst
 	case *ast.StarExpr:
 		v := a.eval(pkg, target.X, env)
 		if v != nil && value != nil {
+			if state := v.fields["$gzip-state"]; state != nil {
+				state.unknown = true
+				v.gzipOwned = false
+				a.report("unresolved-effect", target.Pos(), "compression writer pointee overwrite invalidates constructor ownership")
+			}
 			if pointee := v.fields["$pointee"]; pointee != nil {
 				v = pointee
 			}
@@ -259,6 +267,7 @@ func copyValue(value *abstractValue, typ types.Type) *abstractValue {
 	case *types.Array:
 		copy.elements = copyValue(value.elements, underlying.Elem())
 	case *types.Struct:
+		copy.gzipOwned = false
 		copy.fields = map[string]*abstractValue{}
 		for i := 0; i < underlying.NumFields(); i++ {
 			field := underlying.Field(i)
@@ -305,6 +314,7 @@ func joinValues(left, right *abstractValue, seen map[[2]*abstractValue]*abstract
 	v.utc = left.utc && right.utc
 	v.unknown = left.unknown || right.unknown
 	v.builtin = left.builtin && right.builtin
+	v.gzipOwned = left.gzipOwned && right.gzipOwned && left.fields["$gzip-state"] == right.fields["$gzip-state"]
 	if left.truth != right.truth {
 		v.truth = 0
 	}
@@ -867,11 +877,15 @@ func (a *effectAnalysis) eval(pkg *SourcePackage, expr ast.Expr, env environment
 		if v == nil {
 			return valueOf(typ)
 		}
+		if v.gzipOwned {
+			a.report("unresolved-effect", expr.Pos(), "compression writer value copy has unproven shared-compressor ownership")
+		}
 		pointee := v.fields["$pointee"]
 		if pointee != nil {
 			v = pointee
 		}
 		copy := *v
+		copy.gzipOwned = false
 		copy.types = []types.Type{typ}
 		if pointee == nil || !types.Identical(copy.nilType, typ) {
 			copy.nilness, copy.nilType = 0, nil
@@ -975,6 +989,7 @@ func (a *effectAnalysis) evaluateCall(pkg *SourcePackage, call *ast.CallExpr, en
 			}
 			converted := copyValue(args[0], pkg.Info.TypeOf(call.Args[0]))
 			converted.types = []types.Type{destination}
+			converted.gzipOwned = false
 			converted.nilness, converted.nilType = 0, nil
 			converted.builtin = false
 			converted.origin = call.Pos()
@@ -1162,6 +1177,9 @@ func (a *effectAnalysis) call(bound *boundFunction, args []*abstractValue, pos t
 	key := fmt.Sprint(a.bindingDepth != 0) + id + bindingGraphKey(args, bound.receiver, bound.capture)
 	if a.active[key] {
 		a.recursive = true
+		if len(a.compressionActive) != 0 {
+			a.report("unresolved-effect", pos, "compression callback recursion has unproven mutable ownership")
+		}
 		if previous, ok := a.previous[key]; ok {
 			result := cloneValue(previous)
 			forgetNilFacts(result)
@@ -1636,7 +1654,7 @@ func bindingKey(values []*abstractValue) string {
 			return
 		}
 		seen[v] = len(seen)
-		fmt.Fprintf(&out, "{%t,%t,%t,%q,%d;", v.utc, v.unknown, v.builtin, v.text, v.truth)
+		fmt.Fprintf(&out, "{%t,%t,%t,%q,%d;gzip-owned%t;", v.utc, v.unknown, v.builtin, v.text, v.truth, v.gzipOwned)
 		fmt.Fprintf(&out, "nilness%d;", v.nilness)
 		if v.nilness != 0 && v.nilType != nil {
 			fmt.Fprintf(&out, "niltype%q;", types.TypeString(v.nilType, func(p *types.Package) string { return p.Path() }))

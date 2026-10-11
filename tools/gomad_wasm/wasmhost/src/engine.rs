@@ -632,8 +632,10 @@ mod tests {
         }
     }
 
+    type CapturedFrame = (usize, Vec<u8>);
+
     #[derive(Clone, Default)]
-    struct OriginCapture(Arc<Mutex<Vec<(usize, Vec<u8>)>>>);
+    struct OriginCapture(Arc<Mutex<Vec<CapturedFrame>>>);
     impl Write for OriginCapture {
         fn write(&mut self, bytes: &[u8]) -> std::io::Result<usize> {
             self.0

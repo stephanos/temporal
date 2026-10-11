@@ -30,6 +30,7 @@ type Package struct {
 	Imports                                                                       []string
 	ImportMap                                                                     map[string]string
 	GoFiles, CgoFiles, CompiledGoFiles, IgnoredGoFiles, TestGoFiles, XTestGoFiles []string
+	SFiles, HFiles                                                                []string
 	Standard                                                                      bool
 	Error                                                                         *struct{ Err string }
 	DepsErrors                                                                    []struct{ Err string }

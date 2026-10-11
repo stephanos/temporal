@@ -51,6 +51,11 @@ and [search-path findings](.flow/specs/fn-114-gomad-correct-search-path-defects-
 
 ## Immediate delivery order
 
+Owner execution limit (2026-10-11): finish fn-156.8, update its Flow records and
+milestone status, create its task-owned local commit, then stop. Continue on this
+host when memory permits, preserving qualification admission and resource limits.
+The remaining delivery order below applies to future authorized work.
+
 Owner priority (2026-10-10). Finish the already-running fn-109 task 72 verification,
 then take fn-155 next, ahead of the remaining source queue below. Begin with
 fn-155 `.1 → .2 → .8 → .3`, then follow its dependencies
@@ -105,13 +110,15 @@ once when selecting a batch; preserve historical results and their meaning.
    identify portable checks as portable and retain native acceptance with its owner. After a
    small review fix, rerun affected checks; repeat broad gates only for changed shared inputs
    or a concrete uncovered risk. Documentation-only edits need document/diff checks.
-5. **Review and commit by batch.** Obtain one independent review of the integrated batch,
-   covering its task/R-ID mapping, then address actionable findings together. Commit coherent
-   implementation, tests, documentation and Flow records together; local checkpoints during
-   a temporarily broken batch are allowed. Per-task commits, reviews and green baselines are
-   not start barriers for the next edit within that batch. Complete each Flow task only when
-   the batch evidence proves every requirement it still owns. A required gate that remains
-   red or unavailable stays open; it does not halt unrelated implementation batches.
+5. **Review by batch; commit after every task.** Obtain one independent review of the
+   integrated batch, covering its task/R-ID mapping, then address actionable findings together.
+   After each task is complete, create a separate local commit containing its implementation,
+   tests, documentation, Flow records and milestone updates. Stage only task-owned changes;
+   leave unrelated work untouched. Local checkpoints during a temporarily broken batch are
+   allowed. Per-task reviews and green baselines are not start barriers for the next edit
+   within that batch. Complete each Flow task only when the batch evidence proves every
+   requirement it still owns. A required gate that remains red or unavailable stays open;
+   it does not halt unrelated implementation batches.
 6. **Keep one evidence handover.** Record candidate revision, relevant tool versions, commands,
    numeric exits, meaningful regression results, remaining failures and the independent review
    verdict in one batch handover. Map each existing task/R-ID to that evidence. Reference raw
@@ -207,7 +214,7 @@ CI, PR, or push authority.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-156.8](.flow/tasks/fn-156-wasm-gomad-productionization.8.md) | 🚧 In progress | Transport, Rust units and tiny ABI passed; Go-guest parity and speed gate open |
+| [fn-156.8](.flow/tasks/fn-156-wasm-gomad-productionization.8.md) | 🚧 In progress | Rust build/clippy, 23 units and 45 integration cases passed; Go parity, architecture, speed and final review open |
 | [fn-156.1](.flow/tasks/fn-156-wasm-gomad-productionization.1.md) | ⬜ Todo | Full scheduling qualification (map/GC/entropy, 32x100) and optional checkpoints |
 | [fn-156.2](.flow/tasks/fn-156-wasm-gomad-productionization.2.md) | ⬜ Todo | Bounded exploration, resume, minimization, and non-progress outcomes |
 | [fn-156.3](.flow/tasks/fn-156-wasm-gomad-productionization.3.md) | ⬜ Todo | Durable SQLite volumes, storage faults, crash recovery, and replay |
