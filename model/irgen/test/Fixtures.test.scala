@@ -212,6 +212,28 @@ class HintSnapshotsSuite extends munit.FunSuite:
 
 class MiniLayoutFixtures extends munit.FunSuite:
   override val munitTimeout: Duration = 10.minutes
+
+  private def fixtureOnly(model: com.fasterxml.jackson.databind.JsonNode, family: String): Unit =
+    val machines = model.path("machines").elements().asScala.toVector
+    assertEquals(machines.map(_.path("name").asText()), Vector("activityProduct"))
+    assertEquals(machines.map(_.path("family").asText()), Vector(s"$family.product"))
+    assertEquals(machines.map(_.path("stateType").asText()), Vector(s"$family.product.State"))
+    assertEquals(model.path("actions").elements().asScala.map(_.path("id").asText()).toVector,
+      Vector(s"$family.user.complete"))
+    assertEquals(machines.head.path("starts").get(0).path("construct").path("args").get(0)
+      .path("literal").path("enum").path("case").asText(), "idle")
+    assertEquals(model.path("queries").size(), 0)
+
+  test("production mini declarations cannot satisfy the isolated fixture oracle"):
+    val path = Tools.here.directory.resolve("model/temporal/features/activity_mini/generated/ir.json")
+    val production = new com.fasterxml.jackson.databind.ObjectMapper().readTree(Files.readString(path))
+    val productOnly = production.deepCopy[com.fasterxml.jackson.databind.node.ObjectNode]()
+    val product = production.path("machines").elements().asScala.find(_.path("name").asText() == "activityProduct").get
+    productOnly.set[com.fasterxml.jackson.databind.JsonNode]("machines",
+      new com.fasterxml.jackson.databind.ObjectMapper().createArrayNode().add(product)): Unit
+    intercept[munit.ComparisonFailException]:
+      fixtureOnly(productOnly, "fixture.features.activity.mini")
+
   test("a mini form lifts its product before a protocol is authored"):
     val tools = Tools.here
     val build = tools.directory.resolve("model/build")
@@ -231,10 +253,11 @@ class MiniLayoutFixtures extends munit.FunSuite:
       val jar = scratch.resolve(s"$layout.jar")
       tools.scalaCli(Seq("--power", "package", "--server=false", "--library", sources.toString, "-f", "-o", jar.toString)).orFail(): Unit
       val out = scratch.resolve(s"$layout-ir")
-      val result = InProcess.lift(tools.directory, Seq("--ir", s"$jar=$stored,$modelJar=model/", build.resolve("model-scala.classpath").toString, out.toString, "activity-mini"))
+      val result = InProcess.lift(tools.directory, Seq("--ir", s"$jar=$stored", build.resolve("model-scala.classpath").toString, out.toString, "activity-mini"))
       assertEquals(result.exit, 0, result.output)
       val model = new com.fasterxml.jackson.databind.ObjectMapper().readTree(Files.readString(out.resolve("activity-mini.json")))
-      assertEquals(model.path("machines").elements().asScala.map(_.path("name").asText()).toVector, Vector("activityProduct"))
+      val family = if layout == "flat" then "fixture.features.activity_mini" else "fixture.features.activity.mini"
+      fixtureOnly(model, family)
 
 private object LayoutSources:
   def materialize(

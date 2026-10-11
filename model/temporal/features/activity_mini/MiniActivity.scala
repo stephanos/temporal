@@ -6,6 +6,17 @@
 // - this signature: three start inputs, maxAttempts bounded at two, cancellation,
 //   the worker's poll/completed/failed answers and the two shared deadline timers;
 // - temporal/Bounds.scala: the named query bound (three); the find is a source witness.
+// - protocol/Protocol.scala: Product refinement and verify through it, UpTo[2] attempts,
+//   backingOff's shared scheduled status, and the attemptsNeverRewind monitor;
+// - protocol/Dispatching.scala and Completion.scala: dispatch/retry/deadline facets,
+//   Retryable and Expirable, with retryBacksOff overriding and its reason;
+// - protocol/Queue.scala and ScheduledQueue.scala: one task queue composition and one sync,
+//   scheduleToStart shared by start and taskQueue.schedule;
+// - protocol/Faults.scala, Answering.scala, AnswerDispatch.scala and TrustingAnswers.scala:
+//   one bounded lossy worker-answer channel, delayed-answer FailureModel, stale-answer
+//   NegativeControl find and verify, environment assumption, and cancelDuringBackoff hole;
+// - protocol/DispatchProgress.scala: restricted dispatch leadsTo under assume.fair(worker),
+//   with the step bound in temporal/Bounds.scala.
 package temporal
 package features.activity
 package mini
@@ -15,7 +26,7 @@ import temporal.actors.client.Client
 import temporal.features.activity.{Timeout, worker}
 
 enum FacetName:
-  case dispatching, completion
+  case dispatching, completion, answering
 
 enum MaxAttempts:
   case one, two

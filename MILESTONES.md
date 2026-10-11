@@ -121,7 +121,7 @@ Lint checks and manual acceptance work are set aside for this run at the owner's
 | Name | Status | What |
 | --- | --- | --- |
 | fn-166.6 | ⬜ todo | Path-only move of Case manifests and payloads to `generated/cases/`, historical Cases to `generated/cases/legacy/`; after task 1, before realization and final loop proof |
-| fn-166.3 | ⬜ todo | Protocol level: refinement, shared input, shared status fact, composition with `sync`, channel, failure model, fair progress, monitor, hole, `Retryable`/`Expirable` with an override |
+| fn-166.3 | 🔄 in progress | Protocol level: refinement, shared input, shared status fact, composition with `sync`, channel, failure model, fair progress, monitor, hole, `Retryable`/`Expirable` with an override |
 | fn-166.4 | ⬜ todo | Realization and live witnesses; one Case run live once |
 | fn-166.5 | ⬜ todo | Loop under 90 s; migration as scalafix rules with a worked example; SEMANTICS and README written against the mini feature |
 | fn-166.7 | ⬜ todo | Model-side Make targets drop the `umpire-` prefix (`check-model`, `gen-model`, `lint-ir`, `gen-cases`, ...); runtime targets keep theirs; no aliases; live references swept (R10, owner 2026-10-11); after task 1, in the sweep |

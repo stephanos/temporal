@@ -8,6 +8,7 @@ package temporal
 import framework.*
 
 object Bounds:
+  val dispatchSteps = 1
   // Nine actions are enabled before a Nexus operation is scheduled and eleven once it is, so an
   // exact sequence of two is found among ninety-nine candidates.
   val two = Limits(steps = 2, actions = 2, search = 512)
