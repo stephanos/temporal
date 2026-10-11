@@ -151,7 +151,7 @@ final class Owner[S, O, F] private[framework] (val machine: Machine[S, O, F])
 // phase type.
 final class Phasing[S, P] private[framework] (
     private[framework] val projection: S => P,
-    private[framework] val writer: (S, P) => S = Phased.Unwritten
+    private[framework] val writer: (S, P) => S = Phasing.Unwritten
 ):
   // Reads the phase a lifecycle reader tests, including a phase nested in a composed state.
   def phase(state: S): P = projection(state)
@@ -181,6 +181,14 @@ final class Phasing[S, P] private[framework] (
     )
 
 object Phasing:
+
+  private[framework] object Unwritten extends ((Any, Any) => Nothing):
+    def apply(state: Any, phase: Any): Nothing =
+      throw IllegalStateException(
+        s"enters($phase) writes the phase through the writer the machine's Phased declares, and it " +
+          "declares none: `Phased[State, Phase](_.phase, (s, p) => s.copy(phase = p))`"
+      )
+
   // The phasing of an object that declares no phase: its phase type is `Nothing`, so `when(...)` of
   // its rules does not compile, and its projection is never called.
   given unphased[S]: Phasing[S, Nothing] =
@@ -197,7 +205,7 @@ trait DerivedFrom[+M]:
 final class Inherited[-T, S, P] private[framework] (
     private[framework] val projection: T => S => P,
     private[framework] val end: T => S => Boolean,
-    private[framework] val writer: T => (S, P) => S = (_: T) => Phased.Unwritten
+    private[framework] val writer: T => (S, P) => S = (_: T) => Phasing.Unwritten
 )
 
 object Inherited extends Inherited.Unphased:
