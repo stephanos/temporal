@@ -27,9 +27,34 @@ The protocol level with its composition, channel, derivations and claims (R3).
 
 
 ## Done summary
-TBD
+Implemented the Mini Activity Protocol by subtraction from the existing standalone protocol, preserving Product/signature/API semantics and the canonical nested package. It includes the Product refinement and verify-through-product, shared schedule input/status, one queue sync, bounded lossy worker-answer channel, stale-answer control, bounded fair progress, monitor, behavioral hole, assumptions and reasoned Retryable override with Expirable.
 
+Tier: session (jev-unavailable(no_key)); project implementer routing retained
+
+stage: impl-review - ran (round 1: correctness SHIP, contracts NEEDS_WORK, integration SHIP; merged NEEDS_WORK; finding 1 fixed)
+stage: re-review - skipped(policy: owner-approved deferral to Scala batch-end)
+
+No current SHIP is claimed. The original NEEDS_WORK receipt remains at `/tmp/impl-review-receipt-8f37faba39e2-fn-166-mini-activity-a-small-complete-model-to.3.json`. Owner-approved fast cadence permits task closure on the fixed finding and actual focused evidence; independent review and broad validation of the completed Scala batch remain pending. Configured writer/reviewer routing is same-family; executed writer-model metadata is not exposed, so no actual_model is inferred.
+
+Verification
+- Baseline canonical `make model FEATURES=activity_mini` and final `make model-mini` / `make model` were RED, exit 2, on the owner-held linked claim protobuf prerequisite. No canonical Make credit; no protobuf restoration/regeneration. Lint NOT RUN under the owner override.
+- Authorized direct mini fallback: final warm loop exit 0, 38 seconds on Linux aarch64: compile 8, package 8, classpath 8, lift 14, Go check 0, IR diff 0. Final generated IR is 509,910 bytes, 92 functions; 409 Protocol source lines plus 38 focused test lines. The size target is aspirational, not a numeric acceptance ceiling, as the conductor confirmed.
+- Fresh final source suites: 103 selected tests and 187 default tests pass. MiniLayoutFixtures: two focused tests cover all three layouts and reject a production-product-only substitute. Native hole control: one table-driven test passes seven cases, including every later invalid state/outcome/fact domain after an earlier hole. Stable-hole and behavioral-row diagnostics went intentionally red before repair; fixture compilation mistakes during control expansion are retained as failed attempts, not green evidence.
+- Final already-running broad lifter gate exited 0: 197 passing, one unchanged skip. Full model jar/classpath and changed source inputs stayed frozen and their SHA checks pass. Logs: `lifter-hole-final.log`, `default-hole-sealed.log`, `selected-hole-sealed.log`, `native-hole-domains-final.log`, `mini-layout-repair.log`, `warm-hole-final-timing.log`, all under `.flow/tmp/fn166/task3/`. No further broad suite or task-level re-review was launched after cadence approval.
+- The exact independently declaration/law-derived 24-receipt Go inventory passes: one verified primary refinement with 472 explored rows, 20 queries including all six capability-law checks, and three verified bounded progress parts. Missing/duplicate/extra inventories and an unfenced receiver falsely labeling stale answers acceptedCurrent are independently refused. Cancellation remains honestly incomplete: HoleEdge=row, depth-two poll/delayAnswer prefix, backingOff-1-[]-interruptBackoff, 116 rows, actual Exercised=false because the unknown transition yields no Step. Its claim is fully readable. Main positive query/progress receipts are exercised and nonempty.
+- Entire IR semantics and both subsequent semantic deltas were inspected. All 23 previous Product declarations are semantically identical; all 5,784 preexisting binding-order bytes are identical. Six new mini rows were independently derived. Protected oracle: 44 payloads byte-identical, 340 manifest rows unchanged modulo paths. Scoped publication has 20 manifest entries (14 nothing-to-realize, six no-realization); no executable Case, pinning or live proof is claimed.
+
+Review correction and historical evidence
+- The reviewer found that the first cancellation hole lived only in a claim while interruption was a known no-op. The effect now reaches the hole. The authorized native test-helper repair catches only HoleReached, compares Hole objects by reference, reports unknown rows explicitly inapplicable, and checks every remaining known row/domain. No runtime framework or Go semantics changed.
+- The first broad run exposed a genuine MiniLayout fixture-isolation failure: production declarations could replace the fixture artifact. Task 2's historical layout green therefore did not prove isolation. The repaired fixture lifts only its own jar while retaining production dependencies and exact assertions. That first broad run is otherwise INCONCLUSIVE because source edits during an old packaged-TASTy run invalidated offsets; no inherited-green credit is retained. Fresh full runs establish current results.
+
+Ownership and closure
+- Checkpoint: `73538c5cb6`; review fix: `357007519c`. Original review base remains `54981275bd935f2521754697b978d94f127318d3`.
+- Authorized root metadata passengers are fn166 cadence/spec and task3 Touches updates, plus the earlier committed task3 milestone row. Unrelated user changes to IDEAS.md, MILESTONES.md and both fn168 spec files are preserved and excluded from catchall staging under the conductor's explicit exception. Root owns targeted milestone reconciliation separately.
+- No real-feature artifacts, lint companions, acceptance policy, schema/proto generation, table pins, equivalence baselines or feature map were changed. Task 3 is source/artifact complete under owner-approved deferred batch review; the Scala batch is not review-complete.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 73538c5cb6b50f084e293a1ac0a62310080cf534, 357007519c487fda7fb1bee19322fb9e0e10d61b
+- Tests: make model FEATURES=activity_mini (baseline RED exit2: owner-held claim protobuf; no canonical credit), make model-mini / make model (final RED exit2: owner-held prerequisite; no canonical credit), make test-model FEATURES=activity_mini (PASS103), make test-model (PASS187), mise exec -- scala-cli test --server=false model/irgen --test-only umpire.irgen.MiniLayoutFixtures (PASS2; all3layouts plus isolation control), mise exec -- scala-cli test --server=false model/project.scala model/framework --test-only framework.MachineLawsHoleTest (intended RED then PASS1; seven controls), bash /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn166/task3/warm-loop.sh (PASS38s; compile/package/classpath/lift/exact24-Go-check/IRdiff; direct fallback), mise exec -- scala-cli test --server=false model/irgen (final PASS197 plus1existing skip; inputs frozen; first attempt INCONCLUSIVE except genuine layout failure), node .flow/tmp/fn166/task3/verify-preserved.mjs (PASS23 prior Product declarations;5784 old inventory bytes), node .flow/tmp/fn166/recover-relocation.mjs (PASS44 protected payloads;340 manifest rows), sha256sum -c .flow/tmp/fn166/task3/frozen-hole-inputs.sha256 (PASS6 frozen inputs), git diff --check (PASS), LINT_NOT_RUN:owner override, REVIEW_DEFERRED:owner-approved Scala batch-end; round1 NEEDS_WORK preserved; finding fixed; no SHIP claimed
 - PRs:
