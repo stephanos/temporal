@@ -1,5 +1,5 @@
 ---
-satisfies: [R7]
+satisfies: [R7, R13]
 ---
 # fn-160-one-ir-file-per-feature-collected-from.3 One machine per file; flat level folders grouped by name prefix
 
@@ -39,11 +39,30 @@ make umpire-gen-model
 make umpire-check-model
 make umpire-check-lint
 ```
+### Explicit R13 source coverage
+
+The owner-confirmed kind/form layout belongs to this task as well as the
+one-machine file rule. A kind holds its kind file and its forms; components
+shared by two forms live under the kind's `shared/`, including the one Nexus
+Product both forms refine. Each form's root feature file is `<Form><Kind>.scala`
+(`StandaloneActivity.scala`, `StandaloneNexus.scala`, `WorkflowNexus.scala`).
+Re-anchor to the integrated source and prove these existing migrations rather
+than replaying moves or creating one Product per form. Preserve the exact machine
+and Query population, source/identity maps and native table equivalence. The
+structure lint must accept the intended shared Product and refuse both a
+misnamed form root and shared components placed beside the forms. Use authored
+source-coordinate fixtures, and retain the independent flat-level/prefix rules.
+This records original R13 coverage, not new semantics or permission for held
+managed regeneration, Go, independent review or live work.
+
 ## Acceptance
+
 - [ ] No Model file declares more than one `Machine`, `Composition` or `Derived` object, and each such file is named after its object; level folders are flat, and families share a name prefix (facet or design family) enforced by the lint.
 - [ ] The lifter refuses a second machine in a file, naming the file and the machine, with a refusal fixture; the README layout rules state the rule.
 - [ ] Feature files no longer carry hand-maintained file lists.
 - [ ] Regenerated IR differs only in the listed prefix renames, source paths and positions; `make umpire-check-model` and `make umpire-check-lint` pass.
+- [ ] Kind/form/shared-package layout and `<Form><Kind>.scala` root names satisfy R13, with source-positioned acceptance/refusal fixtures and the existing single shared Nexus Product; identity/population and step-table proofs classify only intended source/name moves (R13).
+
 ## Done summary
 TBD
 

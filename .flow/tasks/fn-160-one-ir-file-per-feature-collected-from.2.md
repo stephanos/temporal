@@ -8,7 +8,7 @@ Replace explicit `irFile` lists with one IR file per feature folder, collected b
 
 **Size:** L
 **Files:** `model/framework/IrFile.scala`, the lifter's IR-file entry point in `model/irgen`, `model/check` (gate), the `IrFiles` test, each feature file's `exports` object, `model/README.md`, `model/ir/*`, `model/cases/*`, the pinned fixture trees, and the Go tests and harnesses fn-160.1 lists
-**Touches:** [model/framework/IrFile.scala, model/irgen/*.scala, model/check/*.scala, model/temporal/IrFiles.test.scala, model/temporal/features/**/*.scala, model/README.md, model/ir/*, model/cases/*, tests/testcore/testpilot/testdata/generated/*, tools/canary/casebinding/testdata/*, tools/umpire/**, tools/canary/**]
+**Touches:** [model/framework/IrFile.scala, model/framework/IrFile.test.scala, model/irgen/*.scala, model/check/*.scala, model/temporal/IrFiles.test.scala, model/temporal/features/**/*.scala, model/README.md, model/ir/*, model/cases/*, tests/testcore/testpilot/testdata/generated/*, tools/canary/casebinding/testdata/*, tools/umpire/**, tools/canary/**]
 
 ### Approach
 - **Collection:** the lifter treats each feature folder (a folder with a feature file) as one IR file named after the feature, e.g. `activity-standalone`. Its roots are every machine object, composition, `queries` and `capabilities` section, progress claim and realization declared in the feature's package and sub-packages, plus what they reach.
@@ -25,6 +25,29 @@ Replace explicit `irFile` lists with one IR file per feature folder, collected b
 - **Gate:** lift per feature, settle `model/ir`, accept waivers, and have the `IrFiles` test construct each feature package's declarations.
 - **Regenerate** the IR and Cases, and merge the per-file `.lint.json` acceptances. Check that every machine, Query, Case and claim is still present with the same behaviour, and that the only changes are file boundaries and names. Explain any other difference before accepting it.
 - **Migrate** the Go tests, canary preflight, pinned fixture trees, and export README tables named in fn-160.1's inventory.
+
+### Generic realization discovery source obligation (2026-10-11)
+
+Fn-140.10's original layout-template reproduction confirms that a generic
+`framework.realize.Realization` value lifts explicitly while automatic TASTy
+collection omits it. Its scoped repair requires typed core-value roots and `asked`
+support to `Lifting.irFiles`, with exact explicit/automatic payload controls.
+That repair grants no native discovery credit.
+
+The native `IrFile.discover` implementation scans modules and recognizes Model,
+capability, Query-section and machine-bearing realization objects. It does not
+currently inspect wrapper-held typed generic realization values, although
+`IrFile.subjects` accepts such a value explicitly. Before the fn-160 Scala source
+close, reproduce and repair this distinct native boundary with a realization-only
+feature/foundation/actor test. Keep the generic declaration's typed instance and
+original payload: do not replace it with a Temporal kit, add Entity requirements,
+or read generated IR as the discovery oracle. Identify stable declared value
+getters precisely; unrelated values and arbitrary factory methods must not become
+roots merely because discovery invokes them. Prove native/lifter membership
+agreement and preserve the complete production native table population and
+identities. `model/framework/IrFile.test.scala` is added to Touches for these
+source controls. This remains source work before the deferred shared close; no
+managed regeneration, Go, full gate, review or live work is admitted by this note.
 
 ### Prerequisite
 - fn-160.1's inventory, with any split the user decided to keep.
@@ -43,8 +66,7 @@ make umpire-check-fixtures
 - [ ] An explicit opt-out exists and the generator reports each declaration it keeps out.
 - [ ] Regenerated IR and Cases keep every machine, Query, Case and claim; differences are limited to file boundaries and derived names.
 - [ ] Every consumer from fn-160.1 is migrated; `make umpire-check-model`, `make umpire-check-lint` and `make umpire-check-fixtures` pass.
-
-
+- [ ] Native and TASTy automatic discovery agree for a wrapper-held generic realization and a realization-only package, with unrelated-value/factory controls and unchanged production native table identities/population; an explicit-root positive alone is not automatic-discovery proof (R2, R10).
 ## Done summary
 TBD
 

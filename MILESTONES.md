@@ -143,7 +143,7 @@ level folders grouped by name prefix, and realizations get their own `realizatio
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-160.2 | ⬜ todo | Collect one IR file per feature package, and per foundation/actor/kind package that declares Queries or realizations; remove `irFile`/`exports`; exploration checks only the asked Query; regenerate and migrate consumers — Scala part open; Go part deferred |
+| fn-160.2 | ⬜ todo | Collect one IR file per feature package, and per foundation/actor/kind package that declares Queries or realizations; remove `irFile`/`exports`; exploration checks only the asked Query; generic native realization discovery still needs source proof; regenerate and migrate consumers — Scala part open; Go part deferred |
 | fn-160.3 | ⬜ todo | One machine per file, named after it; flat level folders grouped by name prefix (no nested packages); forms' files `<Form><Kind>.scala`; forms' shared parts under the kind's `shared/` (Nexus Product → `nexus/shared/product/`); the lifter enforces it |
 | fn-160.4 | ⬜ todo | Realization layer: flat `realization/` folder, `<Subject>Run` naming, one-way layer dependencies, API only in realizations (after fn-160.3) |
 | fn-160.6 | ⬜ todo | Rename the System level to Protocol (folders, packages, machines, files, lint vocabulary, docs), so the levels read Product / Protocol / Realization |
@@ -167,7 +167,7 @@ checked rename map.
 | Name | Status | What |
 | --- | --- | --- |
 | fn-163.1 | ⬜ todo | System/product package split integrated; complete placement/module/lint proof and closure open |
-| fn-163.2 | ⬜ todo | Exclusive/Fenced/Idempotent laws integrated; complete inventory/naming/history-law and unchanged-answer proof open; singleOutcome remains hand-written under the recorded history exception |
+| fn-163.2 | ⬜ todo | Exclusive/Fenced/Idempotent laws integrated; complete inventory/naming/history-law, observable realization-evidence and unchanged-answer proof open; singleOutcome remains hand-written under the recorded history exception |
 | fn-163.3 | ⬜ todo | Verify author docs and single-use naming rule against the final source, preserving the existing SEMANTICS draft |
 
 ### fn-147 (Scala part): Duration-typed elapsed-time authoring
@@ -194,7 +194,7 @@ is sequential; task .10's committed Scala seal releases later source work withou
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-140.10 | 🔄 in progress | Partial witness checkpoint integrated; native/focused controls pass, full core/helper/span proof and three source-fixture failures open; one bounded continuation retry, fn-149 still gated |
+| fn-140.10 | 🔄 in progress | Partial witness checkpoint integrated; native and frozen full core/helper/span proofs pass; final typed-reader/lift/source-fixture seal open; one bounded continuation retry, fn-149 still gated |
 | fn-140.6 | ⏸️ deferred | Full consumer/regeneration/equivalence closure after .7/.8/.9/.10; links the shared fn-123.8 sweep |
 | fn-140.7 | ⏸️ deferred (Go) | Exact-composed selector admission/check/lint/export proof, split from .2 without relaxing its obligations |
 | fn-140.8 | ⏸️ deferred (Go) | Live/model-only Case generation switch and complete manifest/membership proof, split from .3 |
