@@ -68,6 +68,27 @@ class ConventionsFixtures extends munit.FunSuite:
     assertEquals(result.output.linesIterator.count(_.contains("R4.dotted-in")), 2, result.output)
     assert(result.output.contains("Checks.scala:"), result.output)
 
+  test("an import of a phase type's members is refused at its line, at any level"):
+    val (result, output) = lift(negative, "conventions", "fixture.conventions.phases.Staged")
+    assertNotEquals(result.exit, 0, result.output)
+    assert(!Files.exists(output), result.output)
+    val refused = result.output.linesIterator
+      .filter(l => l.contains("/PhaseImports.scala:") && l.contains("R9.phase-import"))
+      .map(l => l.drop(l.indexOf("PhaseImports.scala:")).takeWhile(_ != ' '))
+      .toList
+    assertEquals(
+      refused.sorted,
+      List("PhaseImports.scala:24:", "PhaseImports.scala:29:", "PhaseImports.scala:6:"),
+      result.output
+    )
+    assert(
+      result.output.contains(
+        "brings the cases of the phase type Stage into scope: drop it and name each phase " +
+          "through its type, `Stage.<case>`"
+      ),
+      result.output
+    )
+
   test("typed imports reject forbidden edges and unqualified cross-level types"):
     val (result, _) = lift(negative, "conventions", "fixture.conventions.Checked")
     for rule <- Seq("R4.module-import", "R5.cross-level-import") do

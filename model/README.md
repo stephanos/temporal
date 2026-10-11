@@ -673,8 +673,10 @@ val two = Limits(steps = 2, actions = 2, search = 64)
 
 The same holds for `timer`, `internal`, `monitor[S, O, F, M](initial)…`, `assume`, `hole`, `channel[M](capacity = …, …)` and
 `Realization(machine = …, …)` without `name`, and for `Entity(key = …)` and
-`Observation(on = …, read = …)`, whose `name`, read as `attemptCount.name` in an evidence line or a
-kit body, is their `val`'s. An actor is the object that holds its actions, `object client extends
+`Observation(on = …)`, whose `name`, read as `attemptCount.name` in an evidence line or a
+kit body, is their `val`'s. An observation carries no text of what it reads: the realization's typed
+read, `Observed[ActivityExecutionInfo](attemptCount.name)`, does the reading, and a comment beside it
+names the response field it stands for (DescribeActivityExecution's `info.attempt`). An actor is the object that holds its actions, `object client extends
 Actor`, named after the object, or one named in place, `Actor("fixture")`; `Actor.system` takes the
 timers and the system's own steps.
 
@@ -821,7 +823,11 @@ A machine object is the machine: `object ActivityProduct extends Machine[State, 
 
 1. its header: where its rules name phases, the parent `Phased[State, Phase](_.phase)` names the
    projection once; a composition may name a nested phase, `Phased[OverQueue, Phase](_.activity.phase)`,
-   and a derived object inherits its source's projection and phase type. Then `val init`, the state
+   and a derived object inherits its source's projection and phase type. A machine that enters
+   phases by `enters(Phase.x)` also names the writer that replaces the phase the projection reads,
+   `Phased[State, Phase](_.phase, (s, p) => s.copy(phase = p))`; `enters` refuses a step through a
+   projection without one, or through a writer whose state the projection does not read as the
+   phase entered. Then `val init`, the state
    it starts in (`init` as Quint and TLA+ name it, its fields by
    name, `system.State(phase = unstarted, attempts = UpTo(0), …)`). `Phased` supplies `end` as the
    `Closed` phases; a different stopping point declares `override def end(s)`. An omitted `end`
@@ -857,6 +863,12 @@ A machine object is the machine: `object ActivityProduct extends Machine[State, 
    gives. An effect of the state alone may be a block instead, `val startAttempt = effect { phase =
    started }`, `val notFound = effect { reject(Outcome.rejected(Rejection.notFound)) }`, which a rule binds as it binds
    a def, `~> effects.startAttempt`; an effect that takes arguments beyond the state stays a def.
+   An effect whose whole work is entering a phase is not declared: a rule enters it by the framework
+   step `enters(Phase.completed)`, `when[Held] ~> enters(Phase.completed)`, and a `choose`
+   alternative by the same step applied to the state, `retryPaused -> enters(Phase.paused)(s)`. It
+   records the status the phase's case declares where its enum is `Recorded`, and nothing
+   otherwise; its core form is `enter(s.copy(phase = Phase.completed), Fact.statusCompleted)`. So
+   `effects` keeps the steps with logic: those that record other facts, reject or choose.
    Machines that share request outcomes import `framework.outcomes.{Outcome, Rejection}`: `accepted`
    is the common success and `rejected(why)` carries `notFound`, `alreadyExists`,
    `failedPrecondition` or `invalidArgument`. In their rules,
@@ -871,14 +883,22 @@ A machine object is the machine: `object ActivityProduct extends Machine[State, 
    including a block with one case. Its opening brace follows `on(…)`, every case occupies its own line and its closing brace
    occupies a line of its own; the parenthesized `on(…)(case)` form is rejected. A block may give
    several actions the same cases, `on(client.pause, client.unpause) { … }`. A case says where the
-   action fires: `when(scheduled, backingOff)` for listed phases,
+   action fires: `when(Phase.scheduled, Phase.backingOff)` for listed phases,
    `when(states.terminal)` for a named set, or `when[Closed]` for a phase role; each requires
    `Phased[State, Phase](_.phase)`. `where(g)` tests the state,
    `when(…).where(g)` adds a condition beyond the phase and `always` holds in every state. The
    rule-case spelling `in(…)` is retired; `p.in(…)` and `p.in[R]` remain membership predicates.
-   `from(actor) { import actor.*; on(action) { … } }` only groups blocks of actions that actor
-   declares and changes no rule meaning; the Activity Product and System use it for their larger
-   actor-grouped rule sets, while the other Models name their actions directly. An effect
+   Every target names its action through the object that declares it, `on(worker.poll)`,
+   `on(worker.respondFailed(Failure.fatal))`, `on(client.pause, client.unpause)`, and so does
+   `disabled(process.stop)`; a bare name, reached through any import, is refused by the IR
+   generator at its line (and by the rules as they construct where no declarer names it).
+   `from(actor) { on(actor.action) { … } }` only groups blocks of actions that actor declares,
+   checks that it declares them and changes no rule meaning; it imports nothing, and an import in it
+   is refused. Every phase is named through its phase type, `when(Phase.scheduled)`,
+   `phase = Phase.started`, `State(Phase.scheduled)`, in rule cases, effects, `init`, states and
+   properties alike: the IR generator refuses any import of a phase type's members (`import
+   Phase.*`, `import Phase.{started}`, at any level), and a bare argument of the phase form of
+   `when`; a named set is selected on its object, `when(states.terminal)`. An effect
    that takes arguments beyond the state binds them in place, `~> (effects.timeOut(_,
    system.TimeoutType.scheduleToClose))`. Where no case holds the action is disabled, and
    `disabled(process.stop)` binds an action no state enables. The cases of one action class
@@ -1276,6 +1296,71 @@ object in a machine object named other than `states`, `refinement`, `effects`, `
 `model/irgen/testdata/layoutRefusals/`. It holds every feature under `model/temporal/`, and a lifter
 fixture once it has a `product/` or `system/` folder. A file of a level folder reads in a feature
 file's order, without `object exports`, which only the root feature file holds.
+
+### Facets
+
+A **facet** is one behaviour area of one feature's machine at one level, named as a noun for what
+happens: `Pausing`, `Cancellation`, `Timeouts`. A **capability** (below) is a cross-Temporal contract
+any entity can declare, named as an adjective for what the entity can be: `Pausable`, `Closable`. A
+facet declares capabilities; a capability never names a facet. The feature stays one machine per
+level, assembled from its facets (`model/framework/Facet.scala`).
+
+A facet owns actions by binding them: every action the machine binds, timers, faults and
+`disabled` bindings included, belongs to exactly one facet, which holds all of that action's rules
+and the effects they use. Actions stay declared by their actor in the feature's signature; a facet
+never declares one. A rule whose guard reads another facet's phase stays with its action's facet and
+names the phase. Phases, `State`, `init`, `end`, the projection, the refinement, monitors and
+whole-feature claims stay machine-wide, in the machine object.
+
+A facet is a trait in its own file, named after it, holding one object named after it whose members
+are its sections:
+
+```scala
+trait Pausing extends Facet[State, Outcome, Fact], Phased[State, Phase]:
+  this: Dispatch => // the facets whose steps it uses
+  object pausing:
+    object effects:
+      def pauseHeld(s: State) = choose(pauseApplied -> enters(Phase.paused)(s), ...)
+    object rules extends Rules:
+      on(client.pause) {
+        when(Phase.scheduled) ~> enters(Phase.paused)
+        when(Phase.started) ~> effects.pauseHeld
+      }
+```
+
+The machine mixes in its facets and lists their rules in facet order:
+
+```scala
+object ActivitySystem
+    extends Machine[State, Outcome, Fact],
+      Phased[State, Phase](_.phase, (s, p) => s.copy(phase = p)),
+      Dispatch,
+      Pausing:
+  object rules extends Facets(dispatch.rules, pausing.rules)
+```
+
+A facet that calls another facet's step names it in its self-type, so a machine that does not mix
+the depended-on facet in does not compile; steps many facets use sit in a base facet. Two facets
+that both bind an action are refused when the rules construct and by the IR generator, naming the
+action and both facets; one facet per file, named after it, is the structure lint's rule for the
+Temporal Models. A machine may consist of a single facet. Each facet's Properties and Queries stay
+in their own derived claim object beside the facet, in its file, so their names keep their
+identities. The machine lifts as if every facet's sections were written in it, in facet order
+(model/SEMANTICS.md, Machines, Facets): rows, outcomes and facts are those of the same machine
+written as one object; only function names and positions differ.
+
+Two rules land switched off (`model/irgen/Switches.scala`; `UMPIRE_LIFT_RULES` turns them on for a
+run) and are turned on once every machine is migrated (fn-161.4):
+
+- `facets-only`: a declared `Machine` declares rules and effects only in facets; its `rules` is
+  `Facets(...)`. Derived machines and compositions are exempt.
+- `facet-vocabulary`: each feature file names the facets of its levels once, `enum FacetName: case
+  completion, pausing, ...`; every facet's object takes its name from it, a level holds only the
+  facets it needs, and an action bound at both the Product and the Protocol level is owned by the
+  same-named facet at both.
+
+A facet holds `effects` and `rules`; its machine's `capabilities` stay in the machine object until
+the lifter reads a facet's own `capabilities` section.
 
 ### Capabilities and their Properties
 

@@ -84,7 +84,9 @@ class Inputs extends munit.FunSuite:
     "a fifth typed input reaches the rule in position, with named defaults and invalid calls refused"
   ):
     val enabled = input[Boolean]
-    val five = start.input(enabled).input(answer)
+    object caller:
+      val five = start.input(enabled).input(answer)
+    val five = caller.five
     val supplied =
       five(enabled := true, answer := Answer.completed, startToClose := Timeout.expires)
     assertEquals(
@@ -100,7 +102,7 @@ class Inputs extends munit.FunSuite:
       val init = Counted(UpTo(0), Timeout.unset)
       def end(s: Counted): Boolean = s.attempts == 1 // scalafix:ok DisableSyntax.==
       object rules extends Rules:
-        on(five) {
+        on(caller.five) {
           always ~> (
             (s: Counted, a: Timeout, b: Timeout, c: Timeout, flag: Boolean, result: Answer) =>
               enter(
@@ -178,7 +180,9 @@ class Inputs extends munit.FunSuite:
     )
     val enabled = input[Boolean]
     val count = input[UpTo[2]]
-    val six = start.input(enabled).input(answer).input(count)
+    object caller:
+      val six = start.input(enabled).input(answer).input(count)
+    val six = caller.six
     val supplied = six(enabled := true, count := UpTo(2), startToClose := Timeout.expires)
     assertEquals(
       supplied,
@@ -226,7 +230,7 @@ class Inputs extends munit.FunSuite:
       val init = Counted(UpTo(0), Timeout.unset)
       def end(s: Counted): Boolean = s.attempts == 2 // scalafix:ok DisableSyntax.==
       object rules extends Rules:
-        on(six) {
+        on(caller.six) {
           always ~> step
         }
     val binding = SixInputs.bindings.head

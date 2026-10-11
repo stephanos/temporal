@@ -208,14 +208,26 @@ A machine object's `rules` holds one or more blocks that name actions, `on(a) { 
 `on(a(v)) { … }`, whose cases each say where the action fires and what it does there, `c ~> e`. An
 `on(a, b) { … }` block gives the same cases to each named action. Every `on`, including one with one
 case, is brace-delimited, with its cases on separate lines and its closing brace on a line of its
-own; `on(a)(case)` is no Model form. `from(actor) { import actor.*; on(a) { … } }` only groups the
-blocks of actions `actor` declares, so removing the group and qualifying each action preserves the
-table. The case `when(p1, …)` holds while the machine's phase projection,
+own; `on(a)(case)` is no Model form. Each target, and each `disabled` target, names its action
+through its declarer, `actor.a`; `from(actor) { on(actor.a) { … } }` only groups the blocks of
+actions `actor` declares and imports nothing, so removing the group preserves the table. Phases are
+named through their phase type, `Phase.p`. Both rules are spelling: they change no table. The
+case `when(Phase.p1, …)` holds while the machine's phase projection,
 `Phased[State, Phase](_.phase)`, is one of the phases listed, `when(set)` while it is in the named
 set `set`, `when[R]` while it has phase role `R`, `where(g)` while the guard `g` of the state holds,
 `when(…).where(g)` while both do and `always` in every state; `e` is an effect of the machine's
 `effects`, which says what happens and never whether: it gives at least one step. `disabled(a)`
 binds an action no state enables.
+
+`enters(p)` is the effect that only enters the phase `p`: the step function of the state alone
+`s => enter(w(s, p), status(p))`, where `w` is the writer the machine's projection declares,
+`Phased[State, Phase](_.phase, (s, p) => s.copy(phase = p))` (a derived machine's is its source's),
+and `status(p)` is the status fact `p`'s case declares where its enum is `Recorded`, and no fact
+otherwise. It is the step an effect block whose whole body is `phase = p` takes, so replacing such
+an effect by `enters(p)` keeps every row. A rule names it as its effect, `c ~> enters(p)`; a `choose`
+alternative applies it to the state, `t -> enters(p)(s)`, and lifts as the step written out. The
+writer must give a state whose projection is `p`: `enters` refuses one that does not, and a
+projection declared without a writer, when it is first stepped.
 
 `object rules extends Rules` takes no argument and reads the machine's `Phased` given. A derived
 machine or composition inherits its source's projection and phase type. A machine without
@@ -252,6 +264,17 @@ the source tells apart by their effects: two rules of the whole action, or two r
 with different effects. Rules that each fire another class may differ, since `e` reads the class's
 inputs. A machine of the IR generator's core fixtures may bind
 its step functions by hand, `object rules extends Bindings(a ~> f, …)`, which is what rules lower to.
+
+### Facets
+
+A machine may be assembled from facets (`model/framework/Facet.scala`): traits it mixes in, each
+holding an object whose `effects` and `rules` are sections of the machine. `object rules extends
+Facets(f1.rules, …, fn.rules)` is the machine whose `rules` holds the blocks of `f1`, then `f2`,
+…, then `fn`, each facet's in the order written, and whose effects are every facet's effects. Each
+action is bound by exactly one facet's rules: two facets binding one action are refused, naming the
+action and both facets. Since an action's rules sit in one facet, and the rules of one action class
+are disjoint ([Rules](#rules)), facet order fixes only the order of arms of the lowered functions and
+changes no row. A facet's `enters` writes through the writer of the machine that mixes it in.
 
 ### Modalities
 

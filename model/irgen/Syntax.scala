@@ -50,7 +50,13 @@ private[irgen] trait Syntax:
 
   // Hook: whether the term applies a sugar form, which `sugar` lifts. Core form: none of its own;
   // `lift` asks it of every term before `sugar` lowers one, as in `case _ if sugared(t) => sugar(t)`.
-  def sugared(t: Term): Boolean = sugarCall(t).nonEmpty
+  def sugared(t: Term): Boolean = sugarCall(t).nonEmpty || entersApplied(t).nonEmpty
+
+  // `enters(p)(s)`, the step function `enters(p)` applied to a state: the call and the state.
+  private def entersApplied(t: Term): Option[(Term, Term)] = t match
+    case Apply(Select(inner, "apply"), List(state)) =>
+      sugarCall(inner).collect { case ("enters", _) => (inner, state) }
+    case _ => None
 
   // Hook: a sugar form lifted to the IR of its core form. Core form: `enter(s, f)` lifts as
   // `List(Step(Outcome.accepted, s, List(f)))`, `stay(s)` as `List(Step(Outcome.accepted, s))`,
@@ -61,6 +67,15 @@ private[irgen] trait Syntax:
   // as `after.facts.contains("member_f")`. The blocks `is { ... }` and `effect { ... }` are not
   // lifted here but as section vals, by `blockFunction` and `effectSteps`.
   def sugar(t: Term): ir.Expr = sugarCall(t) match
+    case _ if entersApplied(t).nonEmpty =>
+      val (call, state) = entersApplied(t).get
+      entering(call, Right(state)).get
+    case Some(("enters", _)) =>
+      fail(
+        t,
+        "enters(...) is a step function of the state: a rule's effect, `when(...) ~> " +
+          "enters(Phase.x)`, or applied to the state in a step function, `enters(Phase.x)(s)`"
+      )
     case Some(("enter", List(List(state, facts), List(ok)))) =>
       list(Seq(step(outcomeOf(ok, "enter"), lift(state), lift(facts), text("", t), t)), t)
     case Some(("stay", List(List(state), List(ok)))) =>
@@ -332,6 +347,56 @@ private[irgen] trait Syntax:
         )
       )
       list(Seq(step(outcome, state, list(Nil, effect), text(reason, effect), effect)), effect)
+    }
+
+  // Hook: a rule's effect written `enters(Phase.x)`, or the steps of `enters(Phase.x)(s)`, lowered to
+  // the steps its core form lifts to from the state `state`, the rules' state variable by its name
+  // or a term, or None for any other effect. The phase is a case of the phase type, and the state it
+  // enters is the writer the machine's `Phased` declares applied to the state and that case, its
+  // own or for a derived machine its source's. Core form: `enters(Phase.paused)` lifts as
+  // `enter(s.copy(phase = Phase.paused), statusPaused)` does, the status the case declares where
+  // its enum is `Recorded`, and no fact otherwise.
+  def entering(effect: Term, state: Either[String, Term]): Option[ir.Expr] =
+    val call = unwrapped(effect)
+    sugarCall(call).collect { case ("enters", List(List(phase), List(_, ok, phasing))) =>
+      val at = call
+      val written = resolve(phase) match
+        case r: Ref if isEnumCase(r.symbol) => r.symbol
+        case _                              =>
+          fail(
+            phase,
+            s"enters names the case of the phase type it enters, `enters(Phase.paused)`, not " +
+              phase.show
+          )
+      val declared = phasing.tpe match
+        case TermRef(prefix, _) => prefix.typeSymbol
+        case other              => other.typeSymbol
+      // A facet's sections read the projection of the machine that mixes the facet in.
+      val owner =
+        if declared.typeRef.derivesFrom(facetClass) && !objectForm(declared) then
+          liftingMachine.getOrElse(declared)
+        else declared
+      val (sp, pp, body) = phaseWriter(owner, at).flatMap(lambda) match
+        case Some((List(sp, pp), body)) => (sp, pp, body)
+        case _                          =>
+          fail(
+            at,
+            s"enters(${written.name}) writes the phase through the writer the machine's Phased " +
+              "declares, and it declares none: " +
+              "`Phased[State, Phase](_.phase, (s, p) => s.copy(phase = p))`"
+          )
+      val bound = state match
+        case Left(name) =>
+          renamed(sp.symbol) = name
+          Map(pp.symbol -> phase)
+        case Right(term) => Map(sp.symbol -> term, pp.symbol -> phase)
+      val entered = binding(Map.empty, Map.empty, bound)(lift(body))
+      val fact = typeArgs(call).lift(2)
+      val facts =
+        if phase.tpe.widen.derivesFrom(recordedClass) then
+          List(lift(declaredStatus(written, phase), fact))
+        else Nil
+      list(Seq(step(outcomeOf(ok, "enters"), entered, list(facts, at), text("", at), at)), at)
     }
 
   // Hook: whether a class is written with inputs supplied by name, which `named` lifts. Core form:

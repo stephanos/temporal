@@ -56,6 +56,7 @@ final private[irgen] class Structure(index: Index):
   def refusals(exempt: String => Boolean): Seq[(String, Int, LiftError)] =
     val checked = index.trees.filterNot(t => exempt(fileOf(t)))
     val sources = checked.groupBy(fileOf).toSeq.sortBy(_._1).flatMap(source)
+    facetFiles(sources)
     for (_, group) <- sources.groupBy(_.feature).toSeq.sortBy(_._1) do
       val hasForms = group.exists(s => s.sub.headOption.exists(Structure.formFolders))
       val pkg = group.head.feature.split('.')
@@ -239,6 +240,26 @@ final private[irgen] class Structure(index: Index):
         .filter(_.sub.headOption.contains(formName))
         .map(s => s.copy(feature = s.feature + "." + formName, sub = s.sub.tail))
       if formSources.nonEmpty then feature(formSources, inherited = product, kindForm = true): Unit
+
+  // ### Facets (fn-161 R7): one facet per file, named after it
+
+  private val facetClass = Symbol.requiredClass("framework.Facet")
+
+  private def facetFiles(sources: Seq[Source]): Unit =
+    for s <- sources if s.path.startsWith("model/temporal/") || s.level do
+      val facets = s.top.collect {
+        case c: ClassDef if c.symbol.flags.is(Flags.Trait) && c.symbol.typeRef.derivesFrom(facetClass) =>
+          c
+      }
+      for (c, i) <- facets.zipWithIndex do
+        if i > 0 then
+          refuse(
+            c,
+            s"${c.name} is a second facet in ${s.path}, beside ${facets.head.name}: a facet has a " +
+              s"file of its own, ${c.name}.scala"
+          )
+        else if s.file != s"${c.name}.scala" then // scalafix:ok DisableSyntax.!=; typed equality
+          refuse(c, s"${c.name} is a facet in ${s.file}: a facet's file is named after it, ${c.name}.scala")
 
   // ### Machine objects and their refinements
 
