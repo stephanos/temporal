@@ -1,0 +1,985 @@
+{
+  "source": "model: fixture.composedprogress.ComposedProgress$package$.drainsThrough, fixture.composedprogress.ComposedProgress$package$.gradedThrough",
+  "types": [ {
+    "name": "fixture.composedprogress.Grade",
+    "position": {
+      "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+      "line": 18
+    },
+    "enum": {
+      "cases": [ {
+        "name": "low"
+      }, {
+        "name": "high"
+      } ]
+    }
+  }, {
+    "name": "fixture.composedprogress.Level",
+    "position": {
+      "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+      "line": 10
+    },
+    "enum": {
+      "cases": [ {
+        "name": "empty"
+      }, {
+        "name": "filled"
+      }, {
+        "name": "sent"
+      } ]
+    }
+  }, {
+    "name": "fixture.composedprogress.Line",
+    "position": {
+      "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+      "line": 42
+    },
+    "record": {
+      "fields": [ {
+        "name": "left",
+        "type": {
+          "named": "fixture.composedprogress.Tank"
+        }
+      }, {
+        "name": "right",
+        "type": {
+          "named": "fixture.composedprogress.Tank"
+        }
+      } ]
+    }
+  }, {
+    "name": "fixture.composedprogress.Outcome",
+    "position": {
+      "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+      "line": 15
+    },
+    "enum": {
+      "cases": [ {
+        "name": "filled"
+      }, {
+        "name": "sent"
+      }, {
+        "name": "drained"
+      } ]
+    }
+  }, {
+    "name": "fixture.composedprogress.Tank",
+    "position": {
+      "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+      "line": 13
+    },
+    "record": {
+      "fields": [ {
+        "name": "level",
+        "type": {
+          "named": "fixture.composedprogress.Level"
+        }
+      } ]
+    }
+  } ],
+  "functions": [ {
+    "name": "fixture.composedprogress.ComposedProgress$package$.drained",
+    "position": {
+      "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+      "line": 33
+    },
+    "params": [ {
+      "name": "t",
+      "type": {
+        "named": "fixture.composedprogress.Tank"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+        "line": 34
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+            "line": 34
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+                "line": 34
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+                    "line": 34
+                  },
+                  "var": "t"
+                },
+                "field": "level"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+                "line": 34
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.composedprogress.Level",
+                  "case": "sent"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+            "line": 34
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+                "line": 34
+              },
+              "construct": {
+                "type": "framework.Step",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+                    "line": 34
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.composedprogress.Outcome",
+                      "case": "drained"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+                    "line": 34
+                  },
+                  "construct": {
+                    "type": "fixture.composedprogress.Tank",
+                    "args": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+                        "line": 34
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.composedprogress.Level",
+                          "case": "empty"
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+                    "line": 34
+                  },
+                  "list": { }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+                    "line": 34
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                } ]
+              }
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+            "line": 34
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.composedprogress.ComposedProgress$package$.filled",
+    "position": {
+      "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+      "line": 29
+    },
+    "params": [ {
+      "name": "t",
+      "type": {
+        "named": "fixture.composedprogress.Tank"
+      }
+    }, {
+      "name": "g",
+      "type": {
+        "named": "fixture.composedprogress.Grade"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+        "line": 30
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+            "line": 30
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+                "line": 30
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+                    "line": 30
+                  },
+                  "var": "t"
+                },
+                "field": "level"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+                "line": 30
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.composedprogress.Level",
+                  "case": "empty"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+            "line": 30
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+                "line": 30
+              },
+              "construct": {
+                "type": "framework.Step",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+                    "line": 30
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.composedprogress.Outcome",
+                      "case": "filled"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+                    "line": 30
+                  },
+                  "construct": {
+                    "type": "fixture.composedprogress.Tank",
+                    "args": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+                        "line": 30
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.composedprogress.Level",
+                          "case": "filled"
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+                    "line": 30
+                  },
+                  "list": { }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+                    "line": 30
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                } ]
+              }
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+            "line": 30
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "fixture.composedprogress.ComposedProgress$package$.sent",
+    "position": {
+      "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+      "line": 31
+    },
+    "params": [ {
+      "name": "t",
+      "type": {
+        "named": "fixture.composedprogress.Tank"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+        "line": 32
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+            "line": 32
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+                "line": 32
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+                    "line": 32
+                  },
+                  "var": "t"
+                },
+                "field": "level"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+                "line": 32
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.composedprogress.Level",
+                  "case": "filled"
+                }
+              }
+            }
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+            "line": 32
+          },
+          "list": {
+            "items": [ {
+              "position": {
+                "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+                "line": 32
+              },
+              "construct": {
+                "type": "framework.Step",
+                "args": [ {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+                    "line": 32
+                  },
+                  "literal": {
+                    "enum": {
+                      "type": "fixture.composedprogress.Outcome",
+                      "case": "sent"
+                    }
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+                    "line": 32
+                  },
+                  "construct": {
+                    "type": "fixture.composedprogress.Tank",
+                    "args": [ {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+                        "line": 32
+                      },
+                      "literal": {
+                        "enum": {
+                          "type": "fixture.composedprogress.Level",
+                          "case": "sent"
+                        }
+                      }
+                    } ]
+                  }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+                    "line": 32
+                  },
+                  "list": { }
+                }, {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+                    "line": 32
+                  },
+                  "literal": {
+                    "text": ""
+                  }
+                } ]
+              }
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+            "line": 32
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
+    "name": "pipeline.progress.drainsThrough.from",
+    "position": {
+      "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+      "line": 61
+    },
+    "params": [ {
+      "name": "l",
+      "type": {
+        "named": "fixture.composedprogress.Line"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+        "line": 61
+      },
+      "binary": {
+        "op": "OP_AND",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+            "line": 61
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+                "line": 61
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+                    "line": 61
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+                        "line": 61
+                      },
+                      "var": "l"
+                    },
+                    "field": "left"
+                  }
+                },
+                "field": "level"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+                "line": 61
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.composedprogress.Level",
+                  "case": "filled"
+                }
+              }
+            }
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+            "line": 61
+          },
+          "binary": {
+            "op": "OP_EQ",
+            "left": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+                "line": 61
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+                    "line": 61
+                  },
+                  "field": {
+                    "base": {
+                      "position": {
+                        "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+                        "line": 61
+                      },
+                      "var": "l"
+                    },
+                    "field": "right"
+                  }
+                },
+                "field": "level"
+              }
+            },
+            "right": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+                "line": 61
+              },
+              "literal": {
+                "enum": {
+                  "type": "fixture.composedprogress.Level",
+                  "case": "empty"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "pipeline.progress.drainsThrough.to",
+    "position": {
+      "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+      "line": 62
+    },
+    "params": [ {
+      "name": "l",
+      "type": {
+        "named": "fixture.composedprogress.Line"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+        "line": 62
+      },
+      "binary": {
+        "op": "OP_EQ",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+            "line": 62
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+                "line": 62
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+                    "line": 62
+                  },
+                  "var": "l"
+                },
+                "field": "right"
+              }
+            },
+            "field": "level"
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+            "line": 62
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.composedprogress.Level",
+              "case": "sent"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "pipeline.progress.gradedThrough.from",
+    "position": {
+      "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+      "line": 69
+    },
+    "params": [ {
+      "name": "l",
+      "type": {
+        "named": "fixture.composedprogress.Line"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+        "line": 69
+      },
+      "binary": {
+        "op": "OP_EQ",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+            "line": 69
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+                "line": 69
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+                    "line": 69
+                  },
+                  "var": "l"
+                },
+                "field": "left"
+              }
+            },
+            "field": "level"
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+            "line": 69
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.composedprogress.Level",
+              "case": "filled"
+            }
+          }
+        }
+      }
+    }
+  }, {
+    "name": "pipeline.progress.gradedThrough.to",
+    "position": {
+      "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+      "line": 70
+    },
+    "params": [ {
+      "name": "l",
+      "type": {
+        "named": "fixture.composedprogress.Line"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+        "line": 70
+      },
+      "binary": {
+        "op": "OP_NE",
+        "left": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+            "line": 70
+          },
+          "field": {
+            "base": {
+              "position": {
+                "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+                "line": 70
+              },
+              "field": {
+                "base": {
+                  "position": {
+                    "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+                    "line": 70
+                  },
+                  "var": "l"
+                },
+                "field": "right"
+              }
+            },
+            "field": "level"
+          }
+        },
+        "right": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+            "line": 70
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.composedprogress.Level",
+              "case": "empty"
+            }
+          }
+        }
+      }
+    }
+  } ],
+  "actions": [ {
+    "id": "fixture.composedprogress.drain",
+    "name": "drain",
+    "position": {
+      "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+      "line": 25
+    },
+    "actor": "valve"
+  }, {
+    "id": "fixture.composedprogress.fill",
+    "name": "fill",
+    "position": {
+      "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+      "line": 23
+    },
+    "actor": "pump",
+    "inputs": [ {
+      "name": "grade",
+      "type": {
+        "named": "fixture.composedprogress.Grade"
+      }
+    } ]
+  }, {
+    "id": "fixture.composedprogress.send",
+    "name": "send",
+    "position": {
+      "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+      "line": 24
+    },
+    "actor": "valve"
+  } ],
+  "machines": [ {
+    "family": "fixture.composedprogress",
+    "name": "tanks",
+    "position": {
+      "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+      "line": 36
+    },
+    "stateType": "fixture.composedprogress.Tank",
+    "outcomeType": "fixture.composedprogress.Outcome",
+    "starts": [ {
+      "position": {
+        "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+        "line": 37
+      },
+      "construct": {
+        "type": "fixture.composedprogress.Tank",
+        "args": [ {
+          "position": {
+            "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+            "line": 37
+          },
+          "literal": {
+            "enum": {
+              "type": "fixture.composedprogress.Level",
+              "case": "empty"
+            }
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+        "line": 38
+      },
+      "lambda": {
+        "params": [ {
+          "name": "t",
+          "type": {
+            "named": "fixture.composedprogress.Tank"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+            "line": 38
+          },
+          "literal": {
+            "bool": true
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "fixture.composedprogress.fill",
+      "function": "fixture.composedprogress.ComposedProgress$package$.filled",
+      "position": {
+        "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+        "line": 39
+      }
+    }, {
+      "action": "fixture.composedprogress.send",
+      "function": "fixture.composedprogress.ComposedProgress$package$.sent",
+      "position": {
+        "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+        "line": 39
+      }
+    }, {
+      "action": "fixture.composedprogress.drain",
+      "function": "fixture.composedprogress.ComposedProgress$package$.drained",
+      "position": {
+        "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+        "line": 39
+      }
+    } ]
+  } ],
+  "assumptions": [ {
+    "id": "fixture.composedprogress.flowing",
+    "name": "flowing",
+    "position": {
+      "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+      "line": 50
+    },
+    "fairRefs": [ {
+      "composition": "pipeline",
+      "sync": "transfer"
+    }, {
+      "composition": "pipeline",
+      "member": "right",
+      "action": "fixture.composedprogress.send"
+    } ]
+  }, {
+    "id": "fixture.composedprogress.graded",
+    "name": "graded",
+    "position": {
+      "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+      "line": 53
+    },
+    "fairRefs": [ {
+      "composition": "pipeline",
+      "syncClass": {
+        "action": "transfer",
+        "inputs": [ {
+          "enum": {
+            "type": "fixture.composedprogress.Grade",
+            "case": "high"
+          }
+        } ]
+      }
+    }, {
+      "composition": "pipeline",
+      "member": "left",
+      "actionClass": {
+        "action": "fixture.composedprogress.fill",
+        "inputs": [ {
+          "enum": {
+            "type": "fixture.composedprogress.Grade",
+            "case": "low"
+          }
+        } ]
+      }
+    }, {
+      "composition": "pipeline",
+      "member": "right",
+      "action": "fixture.composedprogress.drain"
+    } ]
+  } ],
+  "compositions": [ {
+    "family": "fixture.composedprogress",
+    "name": "pipeline",
+    "position": {
+      "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+      "line": 44
+    },
+    "stateType": "fixture.composedprogress.Line",
+    "members": [ {
+      "field": "left",
+      "machine": "tanks"
+    }, {
+      "field": "right",
+      "machine": "tanks"
+    } ],
+    "syncs": [ {
+      "name": "transfer",
+      "first": {
+        "member": "left",
+        "action": "send"
+      },
+      "second": {
+        "member": "right",
+        "action": "fill"
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+        "line": 45
+      },
+      "lambda": {
+        "params": [ {
+          "name": "l",
+          "type": {
+            "named": "fixture.composedprogress.Line"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+            "line": 45
+          },
+          "literal": {
+            "bool": true
+          }
+        }
+      }
+    }
+  } ],
+  "progress": [ {
+    "machine": "pipeline",
+    "name": "drainsThrough",
+    "position": {
+      "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+      "line": 60
+    },
+    "from": "pipeline.progress.drainsThrough.from",
+    "to": "pipeline.progress.drainsThrough.to",
+    "within": 2,
+    "assumptions": [ "fixture.composedprogress.flowing" ]
+  }, {
+    "machine": "pipeline",
+    "name": "gradedThrough",
+    "position": {
+      "file": "model/irgen/testdata/lifts/ComposedProgress.scala",
+      "line": 68
+    },
+    "from": "pipeline.progress.gradedThrough.from",
+    "to": "pipeline.progress.gradedThrough.to",
+    "within": 3,
+    "assumptions": [ "fixture.composedprogress.flowing", "fixture.composedprogress.graded" ]
+  } ]
+}

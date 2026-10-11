@@ -21,6 +21,15 @@ lift: model/irgen/testdata/lifts/CapabilitySectionRejects.scala:16: Idle.takenIs
 lift: model/irgen/testdata/lifts/CapabilitySectionRejects.scala:23: Lost.lostIsFound takes found, which no capability field of that name binds: its parameters after the model are fields of capabilities, and unboundParameter declares Lost (lost)
 lift: model/irgen/testdata/lifts/CapabilitySectionRejects.scala:105: unbounded brings Sealable.sealedIsRefused, and no `queries` section bounds its Query: state `capabilities.bound(limits)` in unbounded's `queries` section
 lift: model/irgen/testdata/lifts/CapabilitySectionRejects.scala:83: waivedUnbrought is brought no Holdable.heldIsNotTaken to waive: its capabilities Holdable bring none
+lift: model/irgen/testdata/lifts/ComposedProgressRejects.scala:22: a machine assumes flowing, which makes composed steps fair: a machine's assumption makes its own actions fair, and a composition's progress claim names one that makes its steps fair
+lift: model/irgen/testdata/lifts/ComposedProgressRejects.scala:17: progress anotherOwner of mirror rests on flowing, which makes steps of pipeline fair: a progress claim's fairness selects steps of its own composition
+lift: model/irgen/testdata/lifts/ComposedProgressRejects.scala:24: assumption mixed makes both actions and composed steps fair: an assumption's fairness is of one machine's actions or of one composition's steps
+lift: model/irgen/testdata/lifts/ComposedProgressRejects.scala:45: progress noStep bounds itself within 0 steps; a bound is at least one step
+lift: model/irgen/testdata/lifts/ComposedProgressRejects.scala:20: progress onAMachine of tanks rests on flowing, which makes steps of pipeline fair: a progress claim's fairness selects steps of its own composition
+lift: model/irgen/testdata/lifts/ComposedProgressRejects.scala:32: sync transfer pairs send of left with fill of right, which takes inputs `synced` cannot name from one side
+lift: model/irgen/testdata/lifts/ComposedProgressRejects.scala:36: sync transfer pairs send of left, which steps only with its pair: name it with `.synced(_.left -> send)`
+lift: model/irgen/testdata/lifts/ComposedProgressRejects.scala:28: assumption spread makes steps of pipeline and mirror fair: its composed steps are of the one composition whose progress claims it supports
+lift: model/irgen/testdata/lifts/ComposedProgressRejects.scala:40: no sync of pipeline pairs drain of left: name the step left takes alone with `.own(_.left, drain)`
 lift: model/irgen/testdata/lifts/HintRejects.scala:31: the read of a visibility is a generated gRPC method constant, not io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.METHOD_DESCRIBE_ACTIVITY_EXECUTION.toBuilder().setFullMethodName("fixture.None/Nothing").build()
 lift: model/irgen/testdata/lifts/HintRejects.scala:27: the write of a visibility is a generated gRPC method constant, not io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.METHOD_DESCRIBE_ACTIVITY_EXECUTION.toBuilder().setFullMethodName("fixture.None/Nothing").build()
 lift: model/irgen/testdata/lifts/HintRejects.scala:44: 9223372036854775807 milliseconds is outside the range of a protobuf Duration

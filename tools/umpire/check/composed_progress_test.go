@@ -174,3 +174,34 @@ func TestComposedProgressIgnoresRealizationOnlyRefinementMetadata(t *testing.T) 
 		require.True(t, x.Exercised)
 	}
 }
+
+// The lifter's typed composition progress (model/irgen/testdata/lifts/ComposedProgress.scala) binds
+// as the hand-authored claims do: its composed fairness resolves to the composed classes of the
+// sync, of one sync class and of one member's own classes, told apart by member field on two members
+// of one machine; and a fair path still misses a finite deadline where an unrelated member step, the
+// left tank's drain, takes the last step of the bound.
+func TestLiftedComposedProgressResolvesScopedFairnessAndCountsUnrelatedSteps(t *testing.T) {
+	m := lifted(t, "composedProgress")
+	r := Check(m, DefaultScope)
+	for key, want := range map[string]ReceiptKind{
+		"progress pipeline drainsThrough deadlock": Verified, "progress pipeline drainsThrough fair-cycle": Verified,
+		"progress pipeline drainsThrough deadline": Counterexample,
+		"progress pipeline gradedThrough deadlock": Verified, "progress pipeline gradedThrough fair-cycle": Verified,
+		"progress pipeline gradedThrough deadline": Verified,
+	} {
+		x := receiptOf(t, r, key)
+		require.Equal(t, want, x.Kind, "%s: %s", key, x.Explanation)
+		require.True(t, x.Exercised, key)
+	}
+	missed := receiptOf(t, r, "progress pipeline drainsThrough deadline")
+	require.Equal(t, []string{"left_fill-high", "transfer-high", "left_drain"}, taken(missed.Witness))
+	require.Equal(t, []string{"flowing", "graded"}, receiptOf(t, r, "progress pipeline gradedThrough deadline").Assumptions)
+
+	claim, subject, err := bind(m, DefaultScope).progress(m.GetProgress()[1])
+	require.NoError(t, err)
+	require.NoError(t, subject.table.Replay(missed.Witness))
+	require.Equal(t, []Assumption{
+		{Name: "flowing", Fair: []string{"transfer-high", "transfer-low", "right_send"}},
+		{Name: "graded", Fair: []string{"transfer-high", "left_fill-low", "right_drain"}},
+	}, claim.Assumptions)
+}

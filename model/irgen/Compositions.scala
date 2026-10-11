@@ -415,31 +415,77 @@ private[irgen] trait Compositions:
   // (`classes`) the class, a sync's name or `<field>_<action>` followed by the class's inputs; for
   // `whenAction` the action, its name alone.
   def composedKey(t: Term, of: String, env: Map[Symbol, Decl], classes: Boolean): String =
-    val (receiver, op, args) = selection(t).get
-    val name = modelName(fold(receiver, env), receiver)
-    if name != of then // scalafix:ok DisableSyntax.!=; typed equality
+    val s = selected(t, env)
+    if s.c.name != of then // scalafix:ok DisableSyntax.!=; typed equality
       if classes then
         fail(
           t,
-          s"a Scenario of $of lists a class of $name: a Scenario selects the classes of the " +
+          s"a Scenario of $of lists a class of ${s.c.name}: a Scenario selects the classes of the " +
             "composition it is declared on"
         )
       else
         fail(
           t,
-          s"whenAction of a Property of $of names an action of $name: a Property names the actions " +
-            "of the composition it is declared on"
+          s"whenAction of a Property of $of names an action of ${s.c.name}: a Property names the " +
+            "actions of the composition it is declared on"
         )
+    // scalafix:off DisableSyntax.!=; strictEquality checks native comparisons
+    if classes && s.cls.inputs.size != s.a.inputs.size
+    // scalafix:on DisableSyntax.!=
+    then
+      fail(
+        t,
+        s"${s.op} names the action ${s.a.name}, which takes inputs, and a Scenario lists classes: " +
+          s"name one with `${s.a.name}(...)`"
+      )
+    if !classes && s.cls.inputs.nonEmpty then
+      fail(
+        t,
+        s"whenAction names every class of an action, and ${s.op} names a class of ${s.a.name}: " +
+          s"name the action ${s.a.name} without its inputs"
+      )
+    val inputs = if classes then s.cls.inputs.map("-" + valueKey(_)).mkString else ""
+    s.sync match
+      case Some(sync) =>
+        if classes then oneSided(t, s, sync)
+        sync.name + inputs
+      case None => s"${s.field}_${s.a.name}" + inputs
+
+  // The composed steps an assumption's `fair(c.synced(...), c.own(...))` makes fair, each with its
+  // composition: a member's own action, every class or the one named, by its member field; a sync,
+  // every class or the one its named side's inputs select.
+  def composedFairRef(t: Term, env: Map[Symbol, Decl]): ir.ComposedActionRef =
+    val s = selected(t, env)
+    val ref = ir.ComposedActionRef(composition = s.c.name)
+    (s.sync, s.named) match
+      case (Some(sync), false) => ref.withSync(sync.name)
+      case (Some(sync), true)  =>
+        oneSided(t, s, sync)
+        ref.withSyncClass(ir.ActionClass(sync.name, s.cls.inputs))
+      case (None, false) => ref.withMember(s.field).withAction(s.a.id)
+      case (None, true)  => ref.withMember(s.field).withActionClass(s.cls)
+
+  // A composed step as `c.synced(...)` or `c.own(...)` selects it: its composition, the operation,
+  // the member field and the class of the member action it names, whether it names a class rather
+  // than the bare action, and the sync that takes it where `synced` names it.
+  private case class Selected(
+      c: ir.Composition,
+      op: String,
+      field: String,
+      cls: ir.ActionClass,
+      a: ir.Action,
+      named: Boolean,
+      sync: Option[ir.Sync]
+  )
+
+  private def selected(t: Term, env: Map[Symbol, Decl]): Selected =
+    val (receiver, op, args) = selection(t).get
+    val name = modelName(fold(receiver, env), receiver)
     val c = compositions.values
       .find(_.name == name) // scalafix:ok DisableSyntax.==; typed equality
       .getOrElse(fail(receiver, s"$name is no lifted composition"))
     // The class a member's action names, refused where it is not one of the member's own actions.
-    def member(
-        sel: Term,
-        key: Term,
-        param: ValDef,
-        value: Term
-    ): (String, ir.ActionClass, ir.Action) =
+    def member(sel: Term, key: Term, param: ValDef, value: Term): Selected =
       val field = selectedField(param, key, sel, op)
       val m = filled(c, field, t, op)
       val cls = classOf(value)
@@ -450,24 +496,7 @@ private[irgen] trait Compositions:
           s"$op names ${a.name} of $field, and ${m.machine} binds no action of ${cls.action}: name " +
             s"the action $field binds, not one of another declaration spelled alike"
         )
-      // scalafix:off DisableSyntax.!=; strictEquality checks native comparisons
-      if classes && cls.inputs.size != a.inputs.size
-      // scalafix:on DisableSyntax.!=
-      then
-        fail(
-          t,
-          s"$op names the action ${a.name}, which takes inputs, and a Scenario lists classes: name " +
-            s"one with `${a.name}(...)`"
-        )
-      if !classes && cls.inputs.nonEmpty then
-        fail(
-          t,
-          s"whenAction names every class of an action, and $op names a class of ${a.name}: name the " +
-            s"action ${a.name} without its inputs"
-        )
-      (field, cls, a)
-    def inputs(cls: ir.ActionClass): String =
-      if classes then cls.inputs.map("-" + valueKey(_)).mkString else ""
+      Selected(c, op, field, cls, a, !isNamed(value.tpe.widen, "framework.Action"), None)
     def pairs(s: ir.Sync, field: String, action: String): Boolean =
       Seq(s.getFirst, s.getSecond).exists(mv =>
         mv.member == field && mv.action == action
@@ -477,42 +506,45 @@ private[irgen] trait Compositions:
         val sel = args.head
         val (param, body) = selector(sel).getOrElse(fail(sel, "synced names `_.member -> action`"))
         val (key, value) = arrow(body)
-        val (field, cls, a) = member(sel, key, param, value)
-        c.syncs.filter(pairs(_, field, a.name)) match
-          case Seq(s) =>
-            val other =
-              if s.getFirst.member == field then s.getSecond
-              else s.getFirst // scalafix:ok DisableSyntax.==; typed equality
-            val takes = boundNamed(filled(c, other.member, t, op).machine, other.action)
-              .flatMap(actions.get)
-              .exists(_.inputs.nonEmpty)
-            if classes && takes then
-              fail(
-                t,
-                s"sync ${s.name} pairs ${a.name} of $field with ${other.action} of ${other.member}, " +
-                  "which takes inputs `synced` cannot name from one side"
-              )
-            s.name + inputs(cls)
-          case Seq() =>
+        val s = member(sel, key, param, value)
+        c.syncs.filter(pairs(_, s.field, s.a.name)) match
+          case Seq(sync) => s.copy(sync = Some(sync))
+          case Seq()     =>
             fail(
               t,
-              s"no sync of ${c.name} pairs ${a.name} of $field: name the step $field takes alone " +
-                s"with `.own(_.$field, ${a.name})`"
+              s"no sync of ${c.name} pairs ${s.a.name} of ${s.field}: name the step ${s.field} " +
+                s"takes alone with `.own(_.${s.field}, ${s.a.name})`"
             )
           case many =>
             fail(
               t,
-              s"syncs ${many.map(_.name).mkString(", ")} of ${c.name} each pair ${a.name} of " +
-                s"$field, and synced names one: a sync is selected by a member action it alone pairs"
+              s"syncs ${many.map(_.name).mkString(", ")} of ${c.name} each pair ${s.a.name} of " +
+                s"${s.field}, and synced names one: a sync is selected by a member action it alone pairs"
             )
       case _ =>
         val (sel, value) = (args.head, args.last)
         val (param, body) = selector(sel).getOrElse(fail(sel, "own names `_.member`"))
-        val (field, cls, a) = member(sel, body, param, value)
-        for s <- c.syncs.find(pairs(_, field, a.name)) do
+        val s = member(sel, body, param, value)
+        for sync <- c.syncs.find(pairs(_, s.field, s.a.name)) do
           fail(
             t,
-            s"sync ${s.name} pairs ${a.name} of $field, which steps only with its pair: name it " +
-              s"with `.synced(_.$field -> ${a.name})`"
+            s"sync ${sync.name} pairs ${s.a.name} of ${s.field}, which steps only with its pair: " +
+              s"name it with `.synced(_.${s.field} -> ${s.a.name})`"
           )
-        s"${field}_${a.name}" + inputs(cls)
+        s
+
+  // A class of a sync named from one side: refused where the other side takes inputs, which the
+  // named side cannot supply.
+  private def oneSided(t: Term, s: Selected, sync: ir.Sync): Unit =
+    val other =
+      if sync.getFirst.member == s.field then sync.getSecond
+      else sync.getFirst // scalafix:ok DisableSyntax.==; typed equality
+    val takes = boundNamed(filled(s.c, other.member, t, s.op).machine, other.action)
+      .flatMap(actions.get)
+      .exists(_.inputs.nonEmpty)
+    if takes then
+      fail(
+        t,
+        s"sync ${sync.name} pairs ${s.a.name} of ${s.field} with ${other.action} of " +
+          s"${other.member}, which takes inputs `synced` cannot name from one side"
+      )

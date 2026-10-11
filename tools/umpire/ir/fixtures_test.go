@@ -21,7 +21,7 @@ func lifted(t *testing.T, name string) *umpirespb.Model {
 }
 
 func TestLiftedModelsAreAdmitted(t *testing.T) {
-	for _, name := range []string{"admission", "captured", "channels", "declarations", "hints", "presence", "realizations", "rejections", "rules", "taskqueue"} {
+	for _, name := range []string{"admission", "captured", "channels", "composedProgress", "declarations", "hints", "presence", "realizations", "rejections", "rules", "taskqueue"} {
 		t.Run(name, func(t *testing.T) {
 			lifted(t, name)
 		})

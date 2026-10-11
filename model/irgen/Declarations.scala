@@ -443,7 +443,8 @@ private[irgen] trait Declarations:
                   "machine watches monitors of its own state type"
               )
             if isNamed(tpe, "framework.Monitor") then b.addMonitors(monitorOf(sym, v))
-            else if isNamed(tpe, "framework.Assumption") then b.addAssumes(assumptionOf(sym, v))
+            else if isNamed(tpe, "framework.Assumption") then
+              b.addAssumes(machineAssumption(sym, v))
             else b
           case (b, _) => b
         }
@@ -1151,7 +1152,7 @@ private[irgen] trait Declarations:
       case Derivation("assuming", source, List(items)) =>
         val src = derive(source)
         val added = varargs(items).foldLeft(Vector.empty[String]) { (added, a) =>
-          val id = assumptionOf(resolveSymbol(a), a)
+          val id = machineAssumption(resolveSymbol(a), a)
           if src.assumes.contains(id) || added.contains(id) then
             fail(
               a,
@@ -1598,7 +1599,8 @@ private[irgen] trait Declarations:
       monitors(id) = m
     id
 
-  // An assumption, from `assume(name)` and the fairness chained onto it.
+  // An assumption, from `assume(name)` and the fairness chained onto it: actions of a machine, or
+  // composed steps of one composition (`fair(c.synced(...), c.own(...))`), never both.
   def assumptionOf(sym: Symbol, at: Tree): String =
     val id = definitionId(sym, at)
     if !assumptions.contains(id) then
@@ -1607,12 +1609,40 @@ private[irgen] trait Declarations:
       def walk(t: Term): ir.Assumption = t match
         case Apply(Ident("assume"), List(name)) => declared(constString(name))
         case Ident("assume")                    => declared(capturedName(sym, d, "an assumption"))
+        case Apply(Select(inner, "fair"), List(first, more)) =>
+          walk(inner).addAllFairRefs((first +: varargs(more)).map(composedFairRef(_, Map.empty)))
         case Apply(Select(inner, "fair"), List(as)) =>
           walk(inner).addAllFair(varargs(as).map(action))
         case other => fail(other, s"not a part of an assumption declaration: ${other.show}")
       val a = walk(d.rhs.get)
+      if a.fair.nonEmpty && a.fairRefs.nonEmpty then
+        fail(
+          d,
+          s"assumption ${a.name} makes both actions and composed steps fair: an assumption's " +
+            "fairness is of one machine's actions or of one composition's steps"
+        )
+      val owners = a.fairRefs.map(_.composition).distinct
+      if owners.sizeIs > 1 then
+        fail(
+          d,
+          s"assumption ${a.name} makes steps of ${owners.mkString(" and ")} fair: its composed " +
+            "steps are of the one composition whose progress claims it supports"
+        )
       distinctName("assumptions", assumptions.values.map(a => a.name -> a.id), a.name, id, d)
       assumptions(id) = a
+    id
+
+  // An assumption a machine makes, which makes none of a composition's steps fair: a member's
+  // fairness reaches its compositions through their composed classes (model/SEMANTICS.md, Assumptions).
+  def machineAssumption(sym: Symbol, at: Tree): String =
+    val id = assumptionOf(sym, at)
+    if assumptions(id).fairRefs.nonEmpty then
+      fail(
+        at,
+        s"a machine assumes ${assumptions(id).name}, which makes composed steps fair: a machine's " +
+          "assumption makes its own actions fair, and a composition's progress claim names one that " +
+          "makes its steps fair"
+      )
     id
 
   // A hole, from `hole`, named after its val.

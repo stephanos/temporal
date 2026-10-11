@@ -396,6 +396,17 @@ private[irgen] trait Claims:
         within = steps.toInt,
         assumptions = varargs(under).map(a => assumptionOf(resolveSymbol(a), a))
       )
+      // A claim's composed fairness selects steps of its own owner, which is a composition.
+      for
+        (id, a) <- p.assumptions.zip(varargs(under))
+        ref <- assumptions(id).fairRefs
+        if ref.composition != machine // scalafix:ok DisableSyntax.!=; typed equality
+      do
+        fail(
+          a,
+          s"progress $n of $machine rests on ${assumptions(id).name}, which makes steps of " +
+            s"${ref.composition} fair: a progress claim's fairness selects steps of its own composition"
+        )
       register(progress, (machine, n), p, t, s"progress $n of $machine")
       Decl.Declared(n)
 

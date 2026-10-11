@@ -83,13 +83,15 @@ abstract class Composition[S <: Product] private (
       private[framework] def source: Composition.this.type = Composition.this
 
   // The step a sync takes, by one of the member actions it pairs, `c.synced(_.order -> dispatch)`:
-  // a class a Scenario of this composition lists, or the action `whenAction` names. The lifter
+  // a class a Scenario of this composition lists, the action `whenAction` names, or the steps an
+  // assumption of its progress claims makes fair (framework/Assume.scala). The lifter
   // refuses a member action no sync pairs, or more than one does.
   def synced(move: S => (Any, Class | Action[?])): Composed = Composed(this, move)
 
   // A step a member takes alone, `c.own(_.order, control(Control.pause))`: a class a Scenario of
-  // this composition lists, or the action `whenAction` names. The lifter refuses an action a sync of
-  // the member pairs, since that action steps only with its pair.
+  // this composition lists, the action `whenAction` names, or the steps an assumption of its progress
+  // claims makes fair. The lifter refuses an action a sync of the member pairs, since that action
+  // steps only with its pair.
   def own(member: S => Any, action: Class | Action[?]): Composed = Composed(this, (member, action))
 
   // The key of one member outcome in this composition. The member fixes the outcome type, so a
