@@ -292,6 +292,41 @@ Lift.scala, declaration/discovery implementation or public API change is needed
 or authorized by this repair. The automatic-root refusal alone does not pass the
 original cross-file contract.
 
+### Independently verified frozen core candidate (2026-10-11)
+
+The conductor re-executed the strict complete validator and all 26 independent
+core/metadata/order/span mutations successfully (terminal exit0). This accounts
+for all 338 Queries, reconstructs each of the 19 witness main bodies and 14
+ending helpers from original predicates, and separately classifies the
+cancellation redirect and heartbeat helper retirement. All 134 frozen original
+non-test framework/Model source files match committed base
+`45798d12bbfa726b32e7f7472f02412619d3490e` byte for byte.
+
+All 655 changed positions are classified: 442 exact unchanged-line mappings,
+150 explicit token-identical formatted-declaration mappings and 63 explicit R5
+edited-declaration mappings. The conductor reviewed the old/new source lines
+and independently authenticated the 213 frozen path-specific non-exact records,
+including each source span's bounds and SHA256. Frozen map SHA256:
+`edb174349e757dc4f48f68a19a70d4f41ca449e37765e4f368ce606e1966ba85`;
+reviewed validator SHA256:
+`83180612b288d4c0669cfd9952d7872131bba663cfaa92aaa9b8f391ac799a89`.
+Root audit: `.flow/tmp/scala-dsl/fn140-10-root-full-core-proof-audit.log`.
+
+This earns frozen candidate core proof, not final current-source closure. The
+typed full inbound-reader inventory, final re-lifts after fixture/collection
+repairs, artifact/classpath authentication, source fixture checks, formatter
+idempotence, syntax and final historical comparison remain required. Do not
+silently replace the reviewed position map if final formatting changes it.
+
+The subsequent complete Fixtures campaign2 is still exit1: 101 passing tests,
+two source failures, nine held comparisons and one pre-existing skip. Its
+unchanged custom-state/facet-owner positive and canonical negatives execute
+and pass. DerivedTwins still fails its wrapper diagnostic assertion (now
+corrected in source, not yet passing); its new authentic cross-file control
+still requires execution. Layout used the rejected Temporal-kit specimen in
+that run, so this run grants no original generic-layout proof. Log SHA256:
+`5724527bdf7bd71307dd1fc563574b7915f2c8b558c53efffaecb34f0f986141`.
+
 ### Generic realization collection repair
 
 Fresh original-template evidence localizes the layout failure to automatic root
