@@ -8,10 +8,13 @@ As of 2026-10-10.
 Execution resumed on 2026-10-10 under the owner's instruction to complete all milestone work,
 taking the conductor's recommendations without further questions. Merged into `umpire`: the compiler,
 format and fairness checkpoints, fn-156's source close, fn-160.5's equivalence check, a model
-formatting commit and fn-150's source. On 2026-10-11 the owner chose speed over parallelism for the
-Scala work: Batch 1d's lanes merge into one `w-1d` branch and one worker finishes fn-161, fn-162,
-fn-160 and fn-163's Scala in order, with Scala build/tests per step and one step-table equivalence
-check per spec. Alongside it run only Batch 3's close and fn-155.6's regeneration.
+formatting commit, fn-150's source, fn-155.6's regeneration proof and Batch 3's format-4.0 source with
+regenerated IR and Cases (`a3f3a545bc`; its gates, live run and Run companions remain). On 2026-10-11
+the owner paused all validation gates until the test tooling is optimized: one shared interpretation
+per Model per test process, in-process lifter fixture tests, fail-fast IR loading, `export`'s
+whole-Model tests opt-in, Go's test cache (no `-count=1`) and one Bloop daemon. A Scala-only change
+whose IR bytes are unchanged runs no Go suite. Batch 1d continues as one worker with compile-only
+checks until then.
 
 ## Keeping this page current
 
