@@ -223,7 +223,7 @@ shared gate/review/live proofs at fn-123.8; source results substitute for none o
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-149.1 | ⬜ todo | Group discovery and independent native initialization/lifter inventory proof; consumer outcomes retained in .4/.5 |
+| fn-149.1 | 🔄 in progress (Scala) | Admitted from committed fn-140.10 seal; designated-group discovery and independent native initialization/lifter inventory proof underway; consumer outcomes retained in .4/.5 |
 | fn-149.2 | ⬜ todo | Declaration-kind placement checks and source-attributed refusals |
 | fn-149.3 | ⏸️ deferred (Go) | Reporting checkpoint integrated; focused classification, distinct bounds and safety/progress coexistence checks pass; full gates/review held |
 | fn-149.6 | ⬜ todo | Scala Model/capability migration, native row/inventory pins and exact scratch-lift identity/span seal |

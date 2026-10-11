@@ -38,6 +38,33 @@ mise exec -- scala-cli test model/project.scala model/framework --test-only '*Ir
 mise exec -- scala-cli test model/project.scala model/framework --test-only '*RulesTest'
 ```
 
+### Conductor activation — attempt 1 (2026-10-11)
+
+The conductor verified the committed fn-140.10 source and completion receipts
+(`b5374fbb0bd13642dea60191f97619754a81acd8`,
+`c59b5bdf21b6656bc9799135a9214951e4cbfe11`) and integrated acceptance tracking
+(`9e398e81fa`) before admission. The immutable 5,272-file witness seal remains
+read-only; its manifest SHA-256 is
+`e8a7dbf4a9e51ae442cff4ae72de521ef4aff7340dd43ed358cd199a5acecd1e`.
+Committed fn-155/fn-156 source receipts satisfy source admission only; their
+consumer closures and fn-149.3/.4/.5 remain held.
+
+Task claimed at 12:28:04.485981 UTC. Fresh-context worker
+`/root/grouping_discovery` owns the existing `w-1d` checkout at base
+`bb5dfb6a87c34a8eb30482fb29c78e90253ae247`. Attempt 1 starts at
+12:28:05 UTC and expires at 14:28:05 UTC (120 minutes). At most two
+consecutive non-done returns are allowed for this task; no third respawn.
+Only this task's declared Scala source surface and lifecycle files are writable.
+Heavy commands are serialized on `/tmp/umpire-heavy-gates.lock`; no other
+implementation worker, Go, managed regeneration, full gates, independent review,
+live run or publication is admitted. No inherited green baseline is handed off.
+
+Baseline logs record RulesTest 24 tests and IrFileDiscoveryTest 6 tests with
+terminal success. The new PropertyGroupsFixtures suite selected zero tests
+before its creation: that run is inconclusive, never passing acceptance evidence.
+Test-first nonzero independent grouping coverage is required before source changes.
+This activation and baseline record claims no implementation acceptance.
+
 ## Acceptance
 - [ ] A focused fixture discovers every nested claim exactly once, including Progress without a Query consumer; expected counts come from an independent declared baseline and no zero-selected proof passes.
 - [ ] Independent runtime initialization/registration and lifted grouped/flat baselines have the same source semantic inventory and native predicate truth; a dropped whole group fails, and every identity/source difference is explained.
