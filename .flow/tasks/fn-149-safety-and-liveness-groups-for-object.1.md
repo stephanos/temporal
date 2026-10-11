@@ -73,6 +73,27 @@ these structures. Existing layout gates remain enabled; setup/layout-red runs ar
 inconclusive, not intended discovery regression evidence. Full task acceptance and
 the attempt deadline are unchanged.
 
+### Conductor pre-acceptance discovery proof (2026-10-11 12:49 UTC)
+
+The first seven dedicated-suite attempts were compile/setup/layout failures and
+earn no intended regression credit. Attempt red8 reached successful flat and
+grouped lifts, then failed the fixed six-Property inventory with only
+`subject.closed`; all five unqueried Properties were absent in both candidates.
+The conductor independently checked all four preserved IR files, original
+specimen source hashes, Progress bounds 1/2/3 and `fair` assumptions, and Query
+selection/limits in `.flow/tmp/scala-dsl/fn149-1-red-proof` under `w-1d`.
+Complete saved jar member sets and bytes match the saved compiled directories:
+common 17, flat 22, grouped 26. The snapshot includes 89 files (15 visible
+artifacts plus 74 compiled/provenance files). Root read-only audit:
+`.flow/tmp/scala-dsl/fn149-1-root-frozen-red-audit.json`.
+
+This proves the intended discovery regression, not task completion. Subsequent
+fixture adjustments for existing duplicate-promise and bundle-field admission
+must remain explicit and receive fresh final-fixture native/metadata parity.
+The bundle-only non-form Progress control additionally guards automatic file
+admission. Native registration/truth, whole-group omission refusal and complete
+identity/source-attribution proofs remain required before acceptance.
+
 ## Acceptance
 - [ ] A focused fixture discovers every nested claim exactly once, including Progress without a Query consumer; expected counts come from an independent declared baseline and no zero-selected proof passes.
 - [ ] Independent runtime initialization/registration and lifted grouped/flat baselines have the same source semantic inventory and native predicate truth; a dropped whole group fails, and every identity/source difference is explained.

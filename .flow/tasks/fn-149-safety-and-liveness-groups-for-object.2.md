@@ -7,11 +7,12 @@ satisfies: [R1, R2, R3]
 Enforce safety and liveness declaration placement. Advances R1, R2, R3 of the parent spec.
 
 **Size:** M
-**Files:** `model/irgen/Structure.scala`, `model/irgen/Order.scala`, `model/irgen/Claims.scala`, `model/irgen/test/Fixtures.test.scala`, `model/irgen/testdata/propertyGroups/**`
-**Touches:** [model/irgen/Structure.scala, model/irgen/Order.scala, model/irgen/Claims.scala, model/irgen/test/Fixtures.test.scala, model/irgen/testdata/propertyGroups/**]
+**Files:** `model/irgen/Structure.scala`, `model/irgen/Order.scala`, `model/irgen/Claims.scala`, `model/irgen/test/Fixtures.test.scala`, `model/irgen/test/PropertyGroups.test.scala`, `model/irgen/testdata/propertyGroups/**`
+**Touches:** [model/irgen/Structure.scala, model/irgen/Order.scala, model/irgen/Claims.scala, model/irgen/test/Fixtures.test.scala, model/irgen/test/PropertyGroups.test.scala, model/irgen/testdata/propertyGroups/**]
 
 ### Approach
 - Enforce placement from resolved declaration kind: Property and safety monitor references in safety, Progress in liveness. Resolve aliases and factory/bundle outputs before checking; attribute the misplaced authored binding to its source.
+- Check every resolved claim-bearing field of a shared bundle, not only its first classified field. Include mixed-kind and aliased/factory bundle negatives at the authored binding, with an independent expected population in the dedicated PropertyGroupsFixtures suite.
 - Reuse the actual section/order lint machinery left by fn-156, not a hypothetical fn-141 successor or a second semantic classifier. Accept omitted empty groups and allow helper definitions without treating them as claims.
 - Retain existing progress bound/assumption admission and compiler type checks. Add source-attributed negative specimens for crossed kinds, aliases that conceal a crossed kind, bad bounds and incompatible owners.
 - Prepare the final flat-layout refusal, activated with task .6's migration so intermediate tasks retain a usable tree.
