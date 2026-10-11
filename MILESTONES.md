@@ -179,11 +179,12 @@ documentation and disjoint conversion work may run in parallel. Task 6 joins the
 | Name | Status | What |
 | --- | --- | --- |
 | fn-140.2 | 🔄 in progress | Scala witness lifting, names, bounds, composed facts and capability duplicate refusals; exact Go selector proof retained in .7 |
-| fn-140.3 | ⬜ todo | Query `.live`; source-only non-satisfied reasons; all caller and fixture spellings |
+| fn-140.3 | ⬜ todo | Verify Query `.live`, source-only reasons/refusals and all Scala caller/fixture spellings; Go Case selection retained in .8 |
 | fn-140.4 | ⬜ todo | First Activity conversion and assessment equivalence proof; duplicate terminate removed |
 | fn-140.5 | ⬜ todo | Author docs, core form and layout template witness |
 | fn-140.6 | ⬜ todo | Other eligible Models, source-aware triple lint, sealed regeneration diff and equivalence proof — regeneration diff deferred |
 | fn-140.7 | ⏸️ deferred (Go) | Exact-composed selector admission/check/lint/export proof, split from .2 without relaxing its obligations |
+| fn-140.8 | ⏸️ deferred (Go) | Live/model-only Case generation switch and complete manifest/membership proof, split from .3 |
 
 ### fn-149: Safety and liveness groups for object properties
 

@@ -6,42 +6,38 @@ satisfies: [R3, R4]
 Touches: [model/framework/Claims.scala, model/framework/realize/Realize.scala, model/temporal/**/*.scala, model/irgen/Claims.scala, model/irgen/Realizations.scala, model/irgen/test/**, model/irgen/testdata/**, tools/umpire/lower/generated.go, tools/umpire/lower/generated_test.go]
 
 ## Description
-Implement the R3/R4 expectation contract and perform its mechanical call-site migration together, so the Query rename and non-satisfied constructors leave compilable Models and fixtures. This is one expectation mechanism plus mechanically affected callers, rather than separate tasks per Model.
-
 **Size:** M
-**Files:** `model/framework/Claims.scala`, `model/framework/realize/Realize.scala`, `model/temporal/realize/Kit.scala`, `model/irgen/{Claims,Realizations}.scala`, existing Query/expectation callers and fixtures; `tools/umpire/lower/generated.go` and its tests for live Case selection.
+**Files:** Query/expectation authoring, source-only reason admission, Scala callers/fixtures.
+**Touches:** [model/framework/Claims.scala, model/framework/realize/Realize.scala, model/framework/*.test.scala, model/temporal/**/*.scala, model/irgen/Claims.scala, model/irgen/Realizations.scala, model/irgen/Capabilities.scala, model/irgen/test/**, model/irgen/testdata/**]
+
+Finish and verify the Scala half of R3/R4 after .2. The integrated source already uses `.live` and carries because text; audit and complete it rather than reintroducing `.expect` or rewriting unrelated implementation. Original Go Case-generation/membership obligations are retained in deferred task .8; source-only proofs do not satisfy that consumer task.
 
 ### Approach
-- Rename the existing Query modifier at `Claims.scala:99` and the lift fold at `irgen/Claims.scala:333`. Keep capability fields named expect where the spec retains their binding shape.
-- Implement the Case-generation switch in `tools/umpire/lower/generated.go:88-119`: a find with no expected_run (no `.live`) remains model-only and generates no Case, even if its machine is otherwise executable. Account for it truthfully in the complete manifest rather than invoke lowering and error for a missing assessment. Do not discard Query/check admission, malformed declared expectations or existing unsupported/refusal diagnostics for live Queries. Capability-generated expectations still select their Cases. A regression uses two otherwise equivalent lowerable finds, one live and one without live, on the same realized machine; only the live find produces a Case. Cover both witness and triple sources, capability selection and absent versus incomplete declared expected Runs.
-- Make source-only text part of non-satisfied expectation values, including explicit full Runs and monitors at `Realize.scala:571-613`. A satisfied constructor offers no because argument. The existing incomplete Run admission still applies.
-- Route witness, triple and capability expectations through the common admission at `irgen/Claims.scala:428`; follow helper calls and nested monitor values. Missing, empty and whitespace-only text fail with the Query or capability binding and source position.
-- Explicitly omit explanatory text when `Realizations.scala:63` emits the existing descriptor-shaped expectation. Same expectation with two established explanations must emit identical IR; never add a schema field or change judge reason IDs.
-- Inventory every non-satisfied source call before editing it. Source each because from the adjacent Model comment or the recorded-assessment tests, including `tools/umpire/conformance/played_test.go:258-261` for the current Activity retry. Re-anchor after fn-156's committed closure, consuming fn-155's actual identity mapping. Preserve the three inherited Activity failures as separate Batch 5 obligations. If those sources no longer establish a reason, identify that exact binding for the owner and stop that conversion under R4.
-- Capture pre-edit IR expectation records and Case standings in task scratch. The rename/reason migration alone must preserve every expectation and Case membership. Update compiler-refusal and live/total modifier-order fixtures in the same change.
+- Audit the existing Query modifier and lift fold, all machine/derived/composition/witness modifiers and every caller/fixture. Capability fields named expect keep their binding shape. Update stale explanatory comments about the renamed Query modifier where owned by this task, without renaming unrelated fixture helper assertions called expect.
+- Inventory every non-satisfied Run and nested monitor expectation, including generic capability binding/helper paths. Missing, empty and whitespace-only source explanations refuse with the Query or capability binding and authored position. Satisfied convenience constructors expose no reason parameter; test that surface at compile time. Validate the full-Run/monitor boundary explicitly, without claiming a generic case-class field is constructor-level compile protection.
+- Source each migrated reason from its adjacent Model comment or recorded assessment tests; inspect `tools/umpire/conformance/played_test.go:258-261` read-only for current Activity retry and consume actual fn-155/fn-156 mapping/closure. Never fabricate an explanation. Unestablished reasons are reported by binding before conversion.
+- Preserve existing incomplete-Run admission. Follow helper calls and nested monitor values through shared expectation admission; test absent/blank/whitespace text and valid helper-sourced text, including capabilities.
+- Ensure `model/irgen/Realizations.scala` explicitly omits source-only text from descriptor emission. Two established explanations of one expectation emit identical full expectation IR, without a Case/schema/assessment reason field. Capture source-level expected-run presence and all Query identities for the deferred Case-selection proof; actual Go manifest verification stays in .8.
+- Add focused reason/expectation tests that execute a nonempty suite; the current Fixtures setup eagerly prepares unrelated populations, so a dedicated suite in its existing file may isolate iteration, without discarding the canonical Quick check. Update live/total modifier-order and compiler refusal fixtures.
 
 ### Investigation targets
-**Required:**
-- `model/framework/realize/Realize.scala:571-613` - Run and monitor expectation values.
-- `model/temporal/realize/Kit.scala:298-318` - convenience expectations.
-- `model/irgen/Claims.scala:333-444` - shared expectation admission.
-- `model/irgen/Realizations.scala:63` - descriptor emission.
-- `model/irgen/testdata/lifts/Realizations.scala:534` - full monitor expectations.
-**Optional:**
-- `tools/umpire/conformance/played_test.go:251-261` and `tools/umpire/conformance/nexus_test.go:221` - sourced explanations.
+**Required:** `model/framework/realize/Realize.scala:571-621`; `model/temporal/realize/Kit.scala:298-322`; `model/irgen/Claims.scala` expectedRun; `model/irgen/Realizations.scala` explained/descriptor emission; `model/irgen/Capabilities.scala` expectedRun binding path; `model/irgen/testdata/lifts/Realizations.scala` monitor expectations.
+**Optional:** `tools/umpire/conformance/played_test.go:251-261`, `tools/umpire/conformance/nexus_test.go:221` (read-only explanation evidence).
 
 ### Quick commands
-```bash
+```sh
 mise exec -- scala-cli test model/irgen --test-only '*Fixtures*' -- --tests '*expect*'
+make lint-model-syntax
 rg -n '\.expect\(' model/framework model/temporal model/irgen
 ```
 
+An empty rg search is the desired absence (exit1), not a failed test. Confirm the fixture filter selects real expectation assertions and add a focused suite if it does not. Serialize heavy commands; no Go commands/changes, production managed regeneration, full gates/review/live.
 ## Acceptance
-- [ ] Query `.expect` is removed and every Query caller/fixture uses live; capability expectation bindings keep their established field shape (R3). Paired otherwise-lowerable live/no-live witness and triple regressions generate exactly the live Cases and account for every Query in the manifest; incomplete declared expectations still refuse.
-- [ ] Compile/lift refusals cover satisfied-with-reason, absent/blank non-satisfied text, nested monitors and capability bindings; existing incomplete-Run refusals remain exercised (R4).
-- [ ] Each migrated reason has a concrete Model/assessment source; unresolved explanations are reported by binding and never fabricated.
-- [ ] A source-only text differential produces identical expectation IR and preserves live Case membership; no Case/assessment/schema reason field is introduced.
-
+- [ ] Query `.expect` is removed and all Query callers/fixtures use live, including typed witness modifier chains; retained capability binding fields stay unchanged (R3).
+- [ ] Compile/lift tests cover satisfied convenience constructors with reasons, absent/blank/whitespace non-satisfied text, helper calls, nested monitors and capability bindings; incomplete-Run refusals remain exercised (R4).
+- [ ] Every production reason has a concrete Model/assessment source; unresolved bindings are reported and never fabricated (R4).
+- [ ] Source-text differential yields identical full expectation IR and unchanged Query identities/expected-run presence, with a retained handoff to deferred .8 for actual manifest/Case proof.
+- [ ] Nonempty focused Scala expectation tests and Quick checks pass; no Go Case membership, schema or shared closure credit is claimed.
 ## Done summary
 TBD
 
