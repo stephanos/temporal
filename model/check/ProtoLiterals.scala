@@ -176,12 +176,14 @@ private[check] object ProtoLiterals:
 
     collect(0, Vector.empty)
 
-  def check(directory: Path, root: Path): Unit =
+  def check(directory: Path, root: Path, includes: Path => Boolean = _ => true): Unit =
     if Files.isDirectory(directory) then
       val stream = Files.walk(directory)
       val files = try
         stream.iterator.asScala
-          .filter(path => Files.isRegularFile(path) && path.toString.endsWith(".scala"))
+          .filter(path =>
+            includes(path) && Files.isRegularFile(path) && path.toString.endsWith(".scala")
+          )
           .toVector
           .sortBy(_.toString)
       finally stream.close()

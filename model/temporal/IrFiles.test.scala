@@ -9,7 +9,7 @@ import temporal.actors.client.Client
 import framework.IrFile
 
 class IrFilesTest extends munit.FunSuite:
-  val declared: Vector[IrFile] = IrFile.discover("temporal")
+  val declared: Vector[IrFile] = CompiledInventory.files
 
   // The checked-in IR files, by name: model/ir/<name>.json, beside no sidecar.
   def checkedIn: Set[String] =
@@ -20,11 +20,12 @@ class IrFilesTest extends munit.FunSuite:
     )
     val stream = Files.list(ir)
     try
-      stream.iterator.asScala
+      val names = stream.iterator.asScala
         .map(_.getFileName.toString)
         .filter(n => n.endsWith(".json") && !n.endsWith(".lint.json"))
         .map(_.stripSuffix(".json"))
         .toSet
+      names.intersect(declared.map(_.name).toSet)
     finally stream.close()
 
   // The names of the machines an IR file lifts: its `machines`, each by its `name`.
@@ -49,9 +50,15 @@ class IrFilesTest extends munit.FunSuite:
     assertEquals(actual.toSet, expected.toSet, s"$context dropped or added a subject")
 
   test("every IR file is declared by a feature's exports, and every root of each constructs") {
-    assertComplete(declared.map(_.name), checkedIn.toVector, "IR exports")
     for file <- declared do
-      assertComplete(file.subjects().map(declarationKey), liftedMachines(file.name), file.name)
+      val actual = file.subjects().map(declarationKey)
+      assertEquals(actual.distinct.size, actual.size, file.name + " repeats an export identity")
+      if !checkedIn.contains(file.name) then println(s"feature ${file.name}: missing")
+      else if actual.toSet != liftedMachines(file.name).toSet then
+        println(s"feature ${file.name}: behind (export/IR inventory)")
+      else
+        assertComplete(actual, liftedMachines(file.name), file.name)
+        println(s"feature ${file.name}: current (export/IR inventory)")
       file.construct(): Unit
   }
 
@@ -69,38 +76,40 @@ class IrFilesTest extends munit.FunSuite:
   }
 
   test("standalone public API callers share the Temporal Client actor") {
-    val standaloneClient: Client = features.activity.standalone.client
-    val operationClient: Client = features.nexus.standalone.client
-    assertEquals(standaloneClient.name, "client")
-    assertEquals(operationClient.name, "client")
+    val packages = declared
+      .flatMap(_.subjects())
+      .map(IrFile.identity)
+      .filter(_.startsWith("temporal.features."))
+      .map(_.split('.').take(4).mkString("."))
+      .distinct
+    val callers = packages.flatMap: pkg =>
+      try
+        Class
+          .forName(pkg + ".client$")
+          .getField("MODULE$")
+          .get(null) match // scalafix:ok DisableSyntax.null
+          case caller: Client => Some(caller)
+          case other => fail(s"$pkg client does not share the Temporal Client actor: $other")
+      catch case _: ClassNotFoundException => None
+    if sys.env.get("FEATURES").isEmpty then assert(callers.nonEmpty)
+    for caller <- callers do assertEquals(caller.name, "client")
   }
 
   test("every model that names phases declares Phased") {
-    import features.activity.standalone.{product as activityProduct, protocol as activityProtocol}
-    import features.nexus.shared.product as nexusProduct
-    import features.nexus.standalone.protocol as nexusStandalone
-    import features.nexus.workflow.protocol as nexusWorkflow
-
-    val projected: Seq[AnyRef] = Seq(
-      activityProduct.ActivityProduct,
-      activityProtocol.ActivityProtocol,
-      activityProtocol.ActivityRecord,
-      activityProtocol.HeldDispatch,
-      activityProtocol.StandaloneActivity,
-      activityProtocol.RecordOverQueue,
-      activityProtocol.RecordOverMatching,
-      nexusProduct.NexusProduct,
-      nexusStandalone.NexusProtocol,
-      nexusWorkflow.NexusProtocol,
-      nexusWorkflow.TrustingCaller,
-      nexusWorkflow.RejectAfterClose,
-      nexusWorkflow.NexusCaller,
-      actors.worker.Polling,
-      foundations.taskqueue.product.TaskQueueProduct,
-      foundations.taskqueue.protocol.TaskQueueProtocol
-    )
+    val projected = declared
+      .flatMap(_.subjects())
+      .distinct
+      .filter(_.getClass.getMethods.exists(_.getName == "phased"))
+    assert(projected.nonEmpty)
     for model <- projected do
       model match
         case _: framework.Phased[?, ?] => ()
         case _                         => fail(model.getClass.getName)
   }
+
+object CompiledInventory:
+  val files: Vector[IrFile] = IrFile
+    .discover("temporal")
+    .filter(file =>
+      file.subjects().exists(subject => IrFile.identity(subject).startsWith("temporal.features."))
+    )

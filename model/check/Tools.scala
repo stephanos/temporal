@@ -55,6 +55,8 @@ final case class Ran(command: Seq[String], directory: Path, exit: Int, output: S
 // Runs tools found on the `PATH` of `environment`, in `directory`. The tools' versions are pinned in
 // mise.toml, so the gate is run under `mise exec --`, as the Makefile does, and names no version.
 final class Tools(val directory: Path, environment: Map[String, String]):
+  private[check] def modelFeatures: Option[String] = environment.get("FEATURES")
+
   def withEnvironment(more: (String, String)*): Tools = Tools(directory, environment ++ more)
 
   // The executable a name stands for; a name with a separator is a path and is taken as given.

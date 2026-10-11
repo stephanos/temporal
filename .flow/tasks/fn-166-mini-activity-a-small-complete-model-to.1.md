@@ -1,25 +1,31 @@
 ---
-satisfies: [R1, R6]
+satisfies: [R1, R2, R8]
 ---
-# fn-166-mini-activity-a-small-complete-model-to.1 Build switch: MODEL_FEATURES narrows every Scala step to named feature folders
+# fn-166-mini-activity-a-small-complete-model-to.1 The feature as the unit: FEATURES on every model target, discovered by default, per-feature gate report
 
 ## Description
-Add the build switch that narrows every Scala step to named feature folders without moving the parked Models (R1, R6).
+Make every model operation take a feature set whose default is discovered, and make the gate report each feature's state (R1, R2, R8). This is the mechanism the mini feature and every later DSL change rely on; no parking, no deletion, no list of features.
 
-**Size:** S
-**Files:** `Makefile` (`MODEL_SOURCES`, the jar, gate, lint and test targets that use it), `model/check/Gate.scala` if the gate lists sources itself, `model/temporal/IrFiles.test.scala` and `MachineTablePins.test.scala` (read the compiled set, not the disk)
-**Touches:** [Makefile, model/check/*.scala, model/temporal/*.test.scala]
+**Size:** L
+**Files:** `tools/umpire/ir` (path helper), `tools/umpire/cmd/umpire-gen-cases`, `tools/umpire/cmd/umpire-repeat` and their tests, the Go tests that name `model/ir` or `model/cases`, `model/framework/IrFile.scala`, `.gitattributes`, `CODEOWNERS`, `Makefile` (`MODEL_SOURCES` and every target that uses it: jar, gate, lint, test, equivalence), `model/check/Gate.scala` (source enumeration, the per-feature report), `model/temporal/IrFiles.test.scala` and `MachineTablePins.test.scala` (read the compiled set), `model/README.md` (one paragraph)
+**Touches:** [Makefile, model/check/*.scala, model/check/test/*.scala, model/temporal/*.test.scala, model/README.md]
 
 ### Approach
-- `MODEL_FEATURES ?= activity nexus`; `MODEL_SOURCES` becomes project.scala, framework, foundations, actors, capabilities and `model/temporal/features/$(f)` per feature. Every target that lists Model sources uses the variable; the gate's own source list follows it (check how `Gate.scala` enumerates sources for the lift and pass the folders through or read the same variable).
-- `IrFile.discover("temporal")` already finds only compiled classes; confirm the gate lifts exactly the discovered files and that `MachineTablePins`/`IrFilesTest` compare against the compiled set, so the narrowed switch does not fail on parked features' files on disk.
-- Prove with `MODEL_FEATURES=nexus`: nexus alone compiles, lifts and passes the Scala suites, and `git status` shows no change under `features/activity`.
+- Discovery: a feature is a folder under `model/temporal/features/` that holds a feature file, the existing layout rule (`features/activity/standalone`, `features/nexus/workflow`, ...). The Makefile discovers them with `$(wildcard)`/`find` at run time; `FEATURES` (space-separated, relative to `features/`) narrows the discovered set. No variable, file or test holds a list of features.
+- `MODEL_SOURCES` becomes project.scala, framework, foundations, actors, capabilities, `Bounds` and the selected feature folders; every target that lists Model sources uses it, including the gate's own enumeration (follow how `Gate.scala` lists sources for the lift and pass the selected folders through).
+- Per-feature report in the gate: for each discovered feature, `current` (compiles, IR matches), `behind` (does not compile under the current framework, or IR does not match), `missing` (no IR checked in). A full-set run with a behind feature fails naming it; a narrowed run reports only its set.
+- `IrFilesTest` and `MachineTablePins` compare against the compiled set under any `FEATURES`, and report an unlisted feature's files as not in scope rather than failing.
+- Outputs in the feature: move each feature's IR, lint acceptances and Cases into `features/<feature>/generated/` (`ir.json`, `ir.lint.json`, `manifest.json`, `<query>.case.json`, the Case name without its IR-file prefix) and delete `model/ir/` and `model/cases/`. One path helper per language (Go: the IR package; Scala: `IrFile`) resolves a feature's tree, and every consumer goes through it: the gate's stale/missing/left-over checks, `umpire-gen-cases` (every kind), `umpire-repeat`, the lint, the Quint export, the inventory tests, the lifter's fixtures. Use fn-160.1's inventory for the list. Go tests: a run scoped to one feature changes nothing outside its tree; an unscoped run regenerates every tree. Add `**/generated/** linguist-generated=true` to `.gitattributes` and one CODEOWNERS line per feature folder (owner to fill names). This is the spec's one Go change, an owner-granted exception to the batch's only-`model/` rule.
+- `make model-mini` is an alias for `make model FEATURES=activity/mini` and is added here so task 2 can use it.
+- Prove with `FEATURES=nexus/workflow` alone: compiles, lifts, passes the Scala suites; `git status` shows no change under the other features; the report lists them as current.
 
 ## Acceptance
-- [ ] `MODEL_FEATURES` narrows compile, jar, gate, lint and the Scala test suites; the default is every feature and no existing command changes meaning.
-- [ ] With one feature selected, the others are neither compiled nor lifted and are untouched on disk.
-- [ ] `IrFilesTest` and `MachineTablePins` pass under both the default and a narrowed switch.
-
+- [ ] Every model target takes `FEATURES`; the default is discovered from the tree and no list of features exists in the build or the tests; `make model-mini` is the alias.
+- [ ] With one feature listed, only it and the shared code are compiled, lifted, checked and tested; the others are untouched on disk.
+- [ ] The gate reports each discovered feature as current, behind or missing; a full-set run with a behind feature fails naming it.
+- [ ] `IrFilesTest` and `MachineTablePins` pass under the default and under a single-feature set.
+- [ ] Every feature's IR, lint acceptances and Cases live in `features/<feature>/generated/`; `model/ir/` and `model/cases/` are gone; every consumer resolves paths through the helper; a run scoped to one feature changes nothing outside its tree (Go test).
+- [ ] `.gitattributes` marks `generated/` trees as generated and CODEOWNERS has one line per feature folder.
 
 ## Done summary
 TBD

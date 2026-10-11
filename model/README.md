@@ -488,6 +488,14 @@ its public interface and what it may import. Each module outside this directory 
 
 ## Writing a Model
 
+Model targets accept `FEATURES`, space-separated form folders relative to
+`model/temporal/features/` (for example, `FEATURES=nexus/workflow`). The default
+discovers every feature file; selected forms keep their kind-level signatures,
+shared code, framework and foundations. `make model-mini` delegates to
+`make model FEATURES=activity/mini`. Inventory tests report feature drift as
+`behind` and absent IR as `missing`, without changing the independent native
+baseline; a full gate must still be current before a DSL batch closes.
+
 `make lint-model` checks formatting and lint rules for the DSL, the Models, the IR generator and the
 gate; `make fmt-model` formats them and `make fix-model` applies the lint rewrites. A construct a
 lint rule forbids where no rewrite keeps the behavior carries a line-scoped

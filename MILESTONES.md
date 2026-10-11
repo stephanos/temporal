@@ -10,6 +10,12 @@ work under `model/` is iterated on and validated within `model/`. Everything els
 Testpilot and tooling change, regeneration, full gate, review and live run, is deferred until the owner
 lifts this, and will then be done in one sweep.
 
+Fn-166 is running on its own branch under the current completion request; its feature selection and mini
+Model are being validated separately. The remaining DSL batch below stays paused. The canonical
+Make gate currently fails on owner-held linked protobuf generation and stale real-feature artifacts;
+compiled exports also differ from their historical IR inventories. The spec permits the direct
+Scala route, whose failures are recorded rather than counted as passes.
+
 ## Keeping this page current
 
 - This page describes the present. Rewrite a status in place; do not append dated entries.
@@ -36,10 +42,13 @@ full gate, review and live run.
 
 ## Open: Scala DSL work
 
-**Execution is paused at the owner's request.** No worker is running. The last completed Scala
-task is fn-149.2; fn-149.6 has baseline evidence only and remains incomplete. Resume at fn-149.6.
+**The remaining batch is paused at the owner's request; fn-166 is in progress.** The last completed
+batch task is fn-149.2; fn-149.6 has baseline evidence only and remains incomplete. After the proving
+ground, resume the batch at fn-149.6.
 
 On resumption, one worker on branch `w-1d` takes the work below in this order. Only `model/` is edited
+(one exception, granted 2026-10-11: fn-166.1 moves each feature's IR and Cases into its own `generated/` tree and
+re-points the Go readers, since a per-feature gate run would otherwise rewrite every feature's Cases)
 and validated: Scala compile per step; the framework, Model, lifter and gate Scala tests per spec; and the step-table
 equivalence per spec (`make umpire-check-equivalence BASE=.flow/tmp/fn160/baseline-ae3f36ee51
 MAP=model/testdata/equivalence/batch-1d.map STEPS_ONLY=1`). Checked-in IR and Cases stay stale. The
@@ -62,7 +71,7 @@ facet vocabularies are recorded in fn-161.
 
 | Order | Spec | Scala scope |
 | --- | --- | --- |
-| 0 | fn-166 | mini activity proving ground: build switch, the mini Model, `make model-mini`; the batch below iterates on it with the big Models parked |
+| 0 | fn-166 | the feature as the unit (`FEATURES`, discovered by default), the mini feature `activity/mini`, `make model-mini`; the batch below iterates on it and migrates the real features by rule |
 | 1 | fn-159 | qualified names, renames, `enters` (source integrated; proof/closure open) |
 | 2 | fn-161 | facets |
 | 3 | fn-162 | realizations name their Queries; claim containers removed |
@@ -79,31 +88,34 @@ facet vocabularies are recorded in fn-161.
 | 13 | fn-141 | lifter refactor on the final DSL (byte-identical lifts) |
 | 14 | fn-165 | inputs as records: named classes, declared defaults, `:=` removed from classes (after fn-141) |
 
-### fn-166: Mini activity: a small, complete Model to iterate the DSL on
+### fn-166: Mini activity: the smallest complete feature, the DSL's fast loop and its example
 
-Captured 2026-10-11 (owner: "put the current model aside for a moment and work with a simplified
-one"). The ordinary loop is about two minutes of tool time; the complete source seal is 20 to 30
-minutes and scales with Model size, and the time around it is where fn-149.6 went. A cut-down
-standalone activity (`features/activity/mini`, three levels, about 800 lines against 4,600) holds
-one of each hard instance the real Models have (refinement with a verify through it, a shared
-input, a shared status fact, a cross-facet guard, a waiver and an override, a composition with a
-`sync` and a channel, a failure model with a negative control, fair progress, a monitor, a hole, a
-real realization with a `.live` witness) so a DSL change proven on it transfers. A `MODEL_FEATURES`
-build switch compiles, lifts and tests the mini Model alone without moving the parked Models;
-`make model-mini` (compile, lift, Go checks, lint, IR diff) under 90 seconds is the loop, and the reviewed
-IR diff is the proof. Rules: the DSL batch iterates on the mini Model; every DSL task carries a
-one-line migration note; a DSL spec closes only after the parked Models are migrated per its notes
-and the existing seal passes on them; the mini Model is never parked. Restoring the canonical Make
-route (`make protoc`, owner-held) is the first thing to do and is not a task here. First in the
-batch. Not marked ready. [Spec](.flow/specs/fn-166-mini-activity-a-small-complete-model-to.md).
+Captured 2026-10-11; reshaped the same day once the owner decided the mini Model stays forever and
+asked for as little special casing as possible. The ordinary edit loop is about two minutes of tool
+time; the complete source seal is 20 to 30 minutes and scales with Model size, and the time around
+it is where fn-149.6 went. The spec makes the feature the unit of every model operation (`FEATURES`
+on compile, jar, gate, lint, suites and equivalence, discovered from the tree by default, never
+listed; `make model-mini` is the alias for the mini feature) and adds the smallest complete feature,
+`features/activity/mini`: three real levels, about 800 lines against 4,600, holding one of each hard
+instance the real features have (refinement with a verify through it, a shared input, a shared status
+fact, a cross-facet guard, a waiver and an override, a composition with a `sync` and a channel, a
+failure model with a negative control, fair progress, a monitor, a hole, a real realization with a
+`.live` witness). A real feature not yet migrated to a DSL change is *behind*, a per-feature gate
+state; nothing is parked or deleted. A DSL change ships its migration as a scalafix rule proven on
+the mini feature, so moving it into the real features is running the rule. The guide uses the mini
+feature as its running example. Each feature keeps its outputs in its own `generated/` tree (`ir.json`, `ir.lint.json`, `manifest.json`,
+`<query>.case.json`), discovered by glob, so the scope of a run is the folder and CODEOWNERS covers a feature with
+one line; the central `model/ir` and `model/cases` go away. That relocation is the spec's one Go change (fn-166.1). Restoring the canonical Make route (`make protoc`, owner-held) is
+the first thing to do and is not a task here. First in the batch. Not marked ready.
+[Spec](.flow/specs/fn-166-mini-activity-a-small-complete-model-to.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-166.1 | 🔄 in progress | `MODEL_FEATURES` narrows compile, jar, gate, lint and suites; inventory tests pass under both switches |
+| fn-166.1 | 🔄 in progress | `FEATURES` plumbing and focused inventory tests pass under default and single-feature sets; compile-failure reporting and selected Case generation remain |
 | fn-166.2 | ⬜ todo | Feature file and product level by subtraction: two facets, cross-facet guard, `Closable`/`Pollable`, a waiver, `verify` and `find` |
 | fn-166.3 | ⬜ todo | Protocol level: refinement, shared input, shared status fact, composition with `sync`, channel, failure model, fair progress, monitor, hole, `Retryable`/`Expirable` with an override |
 | fn-166.4 | ⬜ todo | Realization and live witnesses; one Case run live once |
-| fn-166.5 | ⬜ todo | `make model-mini` under 90 s; the rules in MILESTONES, README and the batch specs |
+| fn-166.5 | ⬜ todo | Loop under 90 s; migration as scalafix rules with a worked example; SEMANTICS and README written against the mini feature |
 
 ### fn-159: Qualified action names in rules
 
@@ -172,7 +184,7 @@ declared once in its facet, under its existing name, so the copies go. Query ans
 Replace the hand-written `irFile` root lists, three files each for the standalone activity and nexus
 workflow, with one IR file per feature folder, collected from the feature's package. Nothing is listed,
 so no section can be forgotten. The model content stays the same; file boundaries and derived names
-(Cases, lint acceptances, export slices) change. Each Model file then holds at most one machine, in flat
+(Cases, lint acceptances, export slices) change. Since 2026-10-11 the file lives in the feature's `generated/` tree (fn-166.1). Each Model file then holds at most one machine, in flat
 level folders grouped by name prefix, and realizations get their own `realization/` layer. Not marked ready.
 [Spec](.flow/specs/fn-160-one-ir-file-per-feature-collected-from.md).
 

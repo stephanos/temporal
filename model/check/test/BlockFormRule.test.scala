@@ -35,7 +35,10 @@ class BlockFormRuleSuite extends munit.FunSuite:
       val path = root.resolve(file)
       Files.createDirectories(path.getParent)
       Files.writeString(path, text)
-    write("model/temporal/features/Rules.scala", "object r:\n  on(a.b)(always ~> e)\n"): Unit
+    write(
+      "model/temporal/features/kind/form/FormKind.scala",
+      "object r:\n  on(a.b)(always ~> e)\n"
+    ): Unit
     write("model/irgen/testdata/lifts/Rules.scala", "object r:\n  on(a.b)(always ~> e)\n"): Unit
     val (out, err) = (ByteArrayOutputStream(), ByteArrayOutputStream())
     val status =
@@ -50,6 +53,6 @@ class BlockFormRuleSuite extends munit.FunSuite:
       err.toString.linesIterator
         .map(_.takeWhile(_ != ' '))
         .toVector,
-      Vector("model/temporal/features/Rules.scala:2:")
+      Vector("model/temporal/features/kind/form/FormKind.scala:2:")
     )
     assert(err.toString.contains("block-form rule: write the rule as a block"), err.toString)

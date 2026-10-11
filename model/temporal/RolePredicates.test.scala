@@ -3,17 +3,26 @@ package temporal
 
 class RolePredicatesTest extends munit.FunSuite:
   test("states declares no forwarding alias of a phase role outside the named keeps") {
-    import features.activity.standalone.{product as activityProduct, protocol as activityProtocol}
-    import features.nexus.standalone.protocol as nexusStandalone
-    import features.nexus.workflow.protocol as nexusWorkflow
-
-    val retired = Seq(
-      activityProduct.ActivityProduct.states -> Set("over", "held"),
-      activityProtocol.ActivityProtocol.states -> Set("terminal", "live", "held", "waiting"),
-      nexusWorkflow.NexusProtocol.states -> Set("terminalPhase", "running", "waiting"),
-      nexusStandalone.NexusProtocol.states -> Set("over", "live")
+    val retired = Map(
+      "temporal.features.activity.standalone.product.ActivityProduct" -> Set("over", "held"),
+      "temporal.features.activity.standalone.protocol.ActivityProtocol" -> Set(
+        "terminal",
+        "live",
+        "held",
+        "waiting"
+      ),
+      "temporal.features.nexus.workflow.protocol.NexusProtocol" -> Set(
+        "terminalPhase",
+        "running",
+        "waiting"
+      ),
+      "temporal.features.nexus.standalone.protocol.NexusProtocol" -> Set("over", "live")
     )
-    for (states, names) <- retired do
+    for
+      model <- framework.IrFile.discover("temporal").flatMap(_.subjects()).distinct
+      names <- retired.get(framework.IrFile.identity(model))
+    do
+      val states = model.getClass.getMethod("states").invoke(model)
       assertEquals(
         states.getClass.getDeclaredMethods.map(_.getName).toSet.intersect(names),
         Set.empty[String]

@@ -37,11 +37,13 @@ private[check] object CommentRule:
         else Vector.empty
 
   // What breaks the rule in the repository at `root`, each as `file:line: reason`, in order.
-  def findings(root: Path): Vector[String] =
+  def findings(root: Path, includes: Path => Boolean = _ => true): Vector[String] =
     val model = root.resolve("model")
     if !Files.isDirectory(model) then Vector.empty
     else
-      sources(model).flatMap: path =>
-        val file = root.relativize(path).iterator.asScala.mkString("/")
-        blocks(Files.readString(path)).map: line =>
-          s"$file:$line: comment rule: write the comment as // lines, not /* */ or /** */"
+      sources(model)
+        .filter(includes)
+        .flatMap: path =>
+          val file = root.relativize(path).iterator.asScala.mkString("/")
+          blocks(Files.readString(path)).map: line =>
+            s"$file:$line: comment rule: write the comment as // lines, not /* */ or /** */"

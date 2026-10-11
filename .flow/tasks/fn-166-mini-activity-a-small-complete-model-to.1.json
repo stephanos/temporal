@@ -9,6 +9,6 @@
   "spec": "fn-166-mini-activity-a-small-complete-model-to",
   "spec_path": ".flow/tasks/fn-166-mini-activity-a-small-complete-model-to.1.md",
   "status": "todo",
-  "title": "Build switch: MODEL_FEATURES narrows every Scala step to named feature folders",
-  "updated_at": "2026-10-11T17:43:01.585500Z"
+  "title": "The feature as the unit: FEATURES on every model target, discovered by default, per-feature gate report",
+  "updated_at": "2026-10-11T18:01:38.145109Z"
 }

@@ -74,7 +74,8 @@ final class Gate(tools: Tools, log: PrintStream):
   // The words the model does not use are spelled in this Go test and not here, so that the gate is
   // no use of them.
   private val vocabulary = "TestModelNamesNoRetiredFrontEnd"
-  private val models = dsl :+ "model/temporal"
+  private val selection = ModelSources(root, tools.modelFeatures)
+  private val models = selection.sources ++ selection.options
 
   private def step[A](title: String)(body: => A): A =
     log.println(s"== $title")
@@ -411,6 +412,10 @@ final class Gate(tools: Tools, log: PrintStream):
 
   // The whole gate. An update rewrites the checked-in IR and Cases; a check writes neither.
   def run(update: Boolean, goChecks: Boolean): Unit =
+    if selection.narrowed then
+      throw GateError(
+        s"FEATURES=${selection.features.mkString(" ")}: scoped Go IR checks and Case publication are not implemented; refusing to check or rewrite unlisted features"
+      )
     Seq("scala-cli", "protoc", "go").foreach(tools.find)
 
     // Not one of the Go checks a run may skip: it reads the model's sources, not the IR. It needs
@@ -437,7 +442,7 @@ final class Gate(tools: Tools, log: PrintStream):
         )
 
     step("reject free-text protobuf names in Models"):
-      ProtoLiterals.check(model.resolve("temporal"), root)
+      ProtoLiterals.check(model.resolve("temporal"), root, selection.includes)
 
     // A check lowers the checked-in IR, which it never writes, so its Cases are checked beside the
     // build and the lifts. An update lowers the IR it has just written.
@@ -720,6 +725,17 @@ final class Gate(tools: Tools, log: PrintStream):
     step("compile the framework alone"):
       tools.scalaCli("compile" +: dsl).orFail()
 
+    step("compile each selected feature independently"):
+      val failures = selection.features.flatMap: feature =>
+        val sources = ModelSources(root, Some(feature))
+        val ran =
+          tools.scalaCli(Seq("compile", "--server=false") ++ sources.sources ++ sources.options)
+        if ran.failed then
+          log.println(s"feature $feature: behind (compile)")
+          Some(s"feature $feature is behind: ${ran.diagnostics}")
+        else None
+      if failures.nonEmpty then throw GateError(failures.mkString("\n"))
+
     step("compile and test the framework and the Temporal Models"):
       tools.scalaCli(Seq("test", "--server=false") ++ models).orFail()
 
@@ -785,8 +801,11 @@ final class Gate(tools: Tools, log: PrintStream):
         )
       ""
     report(Seq(fixtures, modelLifts))
+    selection
+      .states(model.resolve("ir"), lifted)
+      .foreach((feature, state) => log.println(s"feature $feature: $state"))
     // After both, so an update rewrites model/ir only once the lifter's fixtures passed too.
-    Gate.settle(model.resolve("ir"), lifted, root, update)
+    Gate.settle(model.resolve("ir"), lifted, root, update, selection.narrowed)
     Gate.acceptWaivers(model.resolve("ir"), lifted, root, update)
 
 object Gate:
@@ -860,13 +879,19 @@ object Gate:
   // check writes nothing and fails on every file that is stale, missing or produced by nothing. An
   // update writes the files that changed, and only once every file was produced and none is left
   // over.
-  def settle(tree: Path, produced: Path, root: Path, update: Boolean): Unit =
+  def settle(
+      tree: Path,
+      produced: Path,
+      root: Path,
+      update: Boolean,
+      selected: Boolean = false
+  ): Unit =
     def name(file: Path) = root.relativize(file)
     val (held, lifted) = (
       files(tree).filterNot(_.endsWith(acceptedSuffix)),
       files(produced).filterNot(_.endsWith(waiversSuffix))
     )
-    val orphans = (held -- lifted).toSeq.sorted.map(file =>
+    val orphans = (if selected then Set.empty[String] else held -- lifted).toSeq.sorted.map(file =>
       s"${name(tree.resolve(file))} is checked in and nothing produces it: remove it, or declare its feature's Queries"
     )
     if update then
@@ -1006,10 +1031,12 @@ object Gate:
           )
         then
           // A finding is a line of its own, `file:line: reason`, so an editor opens it.
+          val selection = ModelSources(tools.directory, tools.modelFeatures)
           val findings =
-            if flags("--check-syntax") then SyntaxRule.findings(tools.directory)
-            else if flags("--check-comments") then CommentRule.findings(tools.directory)
-            else BlockFormRule.findings(tools.directory)
+            if flags("--check-syntax") then SyntaxRule.findings(tools.directory, selection.includes)
+            else if flags("--check-comments") then
+              CommentRule.findings(tools.directory, selection.includes)
+            else BlockFormRule.findings(tools.directory, selection.includes)
           findings.foreach(err.println)
           if findings.isEmpty then 0 else 1
         else

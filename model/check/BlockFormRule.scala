@@ -63,9 +63,11 @@ private[check] object BlockFormRule:
 
   // What breaks the rule in the Temporal Models of the repository at `root`, each as
   // `file:line: reason`, in order.
-  def findings(root: Path): Vector[String] =
-    sources(root.resolve("model/temporal")).flatMap: path =>
-      val file = root.relativize(path).iterator.asScala.mkString("/")
-      parenthesized(Files.readString(path)).map: line =>
-        s"$file:$line: block-form rule: write the rule as a block, `on(...) {`, its cases one " +
-          "per line and `}` on a line of its own, not `on(...)(case)`"
+  def findings(root: Path, includes: Path => Boolean = _ => true): Vector[String] =
+    sources(root.resolve("model/temporal"))
+      .filter(includes)
+      .flatMap: path =>
+        val file = root.relativize(path).iterator.asScala.mkString("/")
+        parenthesized(Files.readString(path)).map: line =>
+          s"$file:$line: block-form rule: write the rule as a block, `on(...) {`, its cases one " +
+            "per line and `}` on a line of its own, not `on(...)(case)`"

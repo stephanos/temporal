@@ -675,7 +675,23 @@ MODEL_GATE_ARGS ?=
 MODEL_SCALAFIX = $(MODEL_CLI) --power fix --jvm 25 --enable-built-in=false \
 	--scalafix-conf "$(CURDIR)/$(MODEL_ROOT)/.scalafix.conf" \
 	--scalac-option -Wunused:all --suppress-outdated-dependency-warning
-MODEL_SOURCES := $(MODEL_ROOT)/project.scala $(MODEL_ROOT)/framework $(MODEL_ROOT)/temporal
+MODEL_DISCOVERED_FEATURES := $(shell find $(MODEL_ROOT)/temporal/features -name '*.scala' ! -name '*.test.scala' | awk -F/ '{ file=tolower($$NF); sub(/\.scala$$/,"",file); folder=tolower($$(NF-1)); kind=tolower($$(NF-2)); if (file==folder kind) { $$NF=""; sub(/\/$$/,""); print } }' OFS=/ | sed 's|^$(MODEL_ROOT)/temporal/features/||' | sort -u)
+FEATURES ?= $(MODEL_DISCOVERED_FEATURES)
+export FEATURES
+MODEL_UNKNOWN_FEATURES := $(filter-out $(MODEL_DISCOVERED_FEATURES),$(FEATURES))
+ifneq ($(strip $(MODEL_UNKNOWN_FEATURES)),)
+$(error feature folder not found: $(MODEL_UNKNOWN_FEATURES))
+endif
+MODEL_FEATURE_PATHS := $(addprefix $(MODEL_ROOT)/temporal/features/,$(FEATURES))
+MODEL_FEATURE_PARENTS := $(sort $(dir $(MODEL_FEATURE_PATHS)))
+MODEL_FEATURE_SHARED := $(filter-out $(addprefix $(MODEL_ROOT)/temporal/features/,$(MODEL_DISCOVERED_FEATURES)),$(patsubst %/,%,$(wildcard $(addsuffix */,$(MODEL_FEATURE_PARENTS)))))
+MODEL_SOURCES := $(MODEL_ROOT)/project.scala $(MODEL_ROOT)/framework \
+	$(wildcard $(MODEL_ROOT)/temporal/*.scala) \
+	$(addprefix $(MODEL_ROOT)/temporal/,foundations actors capabilities realize) \
+	$(wildcard $(addsuffix *.scala,$(MODEL_FEATURE_PARENTS))) $(MODEL_FEATURE_SHARED) $(MODEL_FEATURE_PATHS)
+MODEL_UNLISTED_PACKAGES := $(subst /,.,$(addprefix temporal.features.,$(filter-out $(FEATURES),$(MODEL_DISCOVERED_FEATURES))))
+MODEL_EXCLUDED_TESTS := $(if $(MODEL_UNLISTED_PACKAGES),$(shell find $(filter-out $(MODEL_ROOT)/project.scala $(MODEL_ROOT)/framework,$(MODEL_SOURCES)) -name '*.test.scala' -exec grep -l -F $(foreach pkg,$(MODEL_UNLISTED_PACKAGES),-e '$(pkg)') {} +))
+MODEL_SOURCE_OPTIONS := $(foreach file,$(MODEL_EXCLUDED_TESTS),--exclude $(CURDIR)/$(file))
 model_scalafix_files = $(foreach source,$(1),--scalafix-arg=--files --scalafix-arg="$(CURDIR)/$(source)")
 MODEL_SCALAFIX_FILES = $(call model_scalafix_files,$(MODEL_SOURCES))
 # scala-cli hands scalafix every file under a project's directory, so the IR generator names its own
@@ -708,18 +724,34 @@ $(MODEL_BUILD)/api-scalapb.jar: $(MODEL_BUILD)/ir-scalapb.jar proto/api.binpb cm
 	@$(MODEL_GATE) --generate-api --if-stale
 
 # The Models' TASTy, packaged as the gate's "package the Models' TASTy" step packages it.
-$(MODEL_JAR): $(MODEL_PROTO_JARS) $(MODEL_ROOT)/project.scala $(shell find $(MODEL_ROOT)/framework $(MODEL_ROOT)/temporal -name '*.scala')
+.PHONY: model-source-selection
+$(MODEL_BUILD)/model-sources: model-source-selection
+	@mkdir -p $(MODEL_BUILD)
+	@printf '%s\n' '$(MODEL_SOURCES) $(MODEL_SOURCE_OPTIONS)' > $@.tmp
+	@cmp -s $@.tmp $@ && rm $@.tmp || mv $@.tmp $@
+
+$(MODEL_JAR): $(MODEL_PROTO_JARS) $(MODEL_BUILD)/model-sources $(shell find $(MODEL_SOURCES) -name '*.scala')
 	@printf $(COLOR) "Package the Models' TASTy..."
-	@$(MODEL_CLI) --power package --server=false --suppress-outdated-dependency-warning --library $(MODEL_SOURCES) -f -o $@
+	@$(MODEL_CLI) --power package --server=false --suppress-outdated-dependency-warning --library $(MODEL_SOURCES) $(MODEL_SOURCE_OPTIONS) -f -o $@
 
 .PHONY: compile-model
 compile-model:
 	@printf $(COLOR) "Compiling model files..."
-	@$(MODEL_CLI) compile --server=false $(MODEL_SOURCES)
+	@$(MODEL_CLI) compile --server=false $(MODEL_SOURCES) $(MODEL_SOURCE_OPTIONS)
+
+.PHONY: test-model model model-mini
+test-model:
+	@$(MODEL_CLI) test --server=false $(MODEL_SOURCES) $(MODEL_SOURCE_OPTIONS)
+
+model: umpire-check-model
+	@git diff --stat -- $(addsuffix .json,$(addprefix $(MODEL_ROOT)/ir/,$(subst /,-,$(FEATURES))))
+
+model-mini:
+	@$(MAKE) --no-print-directory model FEATURES=activity/mini
 
 fmt-model:
 	@printf $(COLOR) "Formatting model files..."
-	@$(MODEL_CLI) fmt --scalafmt-conf $(MODEL_ROOT)/.scalafmt.conf $(MODEL_SOURCES) $(MODEL_ROOT)/irgen $(MODEL_ROOT)/check
+	@$(MODEL_CLI) fmt --scalafmt-conf $(MODEL_ROOT)/.scalafmt.conf $(MODEL_SOURCES) $(MODEL_SOURCE_OPTIONS) $(MODEL_ROOT)/irgen $(MODEL_ROOT)/check
 
 # The four scalafix runs build separate projects, so they run side by side; output-sync prints each
 # run's output whole, after its title. The sugar check builds the gate, which lint-model-check builds
@@ -729,7 +761,7 @@ MODEL_LINTS := lint-model-models lint-model-irgen lint-model-irgen-lifts lint-mo
 
 lint-model: $(MODEL_PROTO_JARS) $(MODEL_JAR)
 	@printf $(COLOR) "Checking model formatting..."
-	@$(MODEL_CLI) fmt --scalafmt-conf $(MODEL_ROOT)/.scalafmt.conf --check $(MODEL_SOURCES) $(MODEL_ROOT)/irgen $(MODEL_ROOT)/check
+	@$(MODEL_CLI) fmt --scalafmt-conf $(MODEL_ROOT)/.scalafmt.conf --check $(MODEL_SOURCES) $(MODEL_SOURCE_OPTIONS) $(MODEL_ROOT)/irgen $(MODEL_ROOT)/check
 	@$(MAKE) --no-print-directory -j4 --output-sync=target $(MODEL_LINTS)
 	@$(MAKE) --no-print-directory lint-model-syntax
 	@$(MAKE) --no-print-directory lint-model-conventions
@@ -737,8 +769,8 @@ lint-model: $(MODEL_PROTO_JARS) $(MODEL_JAR)
 # Unlike semantic lifting, this lint reads framework and test TASTy as well as production Models.
 lint-model-conventions: $(MODEL_PROTO_JARS) $(MODEL_JAR)
 	@printf $(COLOR) "Checking typed model conventions and imports..."
-	@$(MODEL_CLI) --power package --server=false --suppress-outdated-dependency-warning --library --test $(MODEL_SOURCES) -f -o $(MODEL_BUILD)/model-conventions.jar
-	@$(MODEL_CLI) compile --server=false --suppress-outdated-dependency-warning --test --print-classpath $(MODEL_SOURCES) > $(MODEL_BUILD)/model-conventions.classpath
+	@$(MODEL_CLI) --power package --server=false --suppress-outdated-dependency-warning --library --test $(MODEL_SOURCES) $(MODEL_SOURCE_OPTIONS) -f -o $(MODEL_BUILD)/model-conventions.jar
+	@$(MODEL_CLI) compile --server=false --suppress-outdated-dependency-warning --test --print-classpath $(MODEL_SOURCES) $(MODEL_SOURCE_OPTIONS) > $(MODEL_BUILD)/model-conventions.classpath
 	@$(MODEL_CLI) --power package --server=false --suppress-outdated-dependency-warning --library --test $(MODEL_ROOT)/irgen -f -o $(MODEL_BUILD)/irgen-conventions.jar
 	@$(MODEL_CLI) compile --server=false --suppress-outdated-dependency-warning --test --print-classpath $(MODEL_ROOT)/irgen > $(MODEL_BUILD)/irgen-conventions.classpath
 	@$(MODEL_CLI) --power package --server=false --suppress-outdated-dependency-warning --library --test $(MODEL_ROOT)/check -f -o $(MODEL_BUILD)/check-conventions.jar
@@ -747,7 +779,7 @@ lint-model-conventions: $(MODEL_PROTO_JARS) $(MODEL_JAR)
 
 lint-model-models:
 	@printf $(COLOR) "Linting model files..."
-	@$(MODEL_SCALAFIX) --server=false $(MODEL_SCALAFIX_FILES) --check $(MODEL_SOURCES)
+	@$(MODEL_SCALAFIX) --server=false $(MODEL_SCALAFIX_FILES) --check $(MODEL_SOURCES) $(MODEL_SOURCE_OPTIONS)
 
 lint-model-irgen:
 	@printf $(COLOR) "Linting the IR generator..."
@@ -773,7 +805,7 @@ lint-model-syntax:
 # Applies the scalafix rewrites; findings without a rewrite (e.g. DisableSyntax) still fail.
 fix-model: $(MODEL_PROTO_JARS) $(MODEL_JAR)
 	@printf $(COLOR) "Applying model lint fixes..."
-	@$(MODEL_SCALAFIX) --server=false $(MODEL_SCALAFIX_FILES) $(MODEL_SOURCES)
+	@$(MODEL_SCALAFIX) --server=false $(MODEL_SCALAFIX_FILES) $(MODEL_SOURCES) $(MODEL_SOURCE_OPTIONS)
 	@cd $(MODEL_ROOT)/irgen && $(MODEL_SCALAFIX) $(call model_scalafix_files,$(MODEL_IRGEN_SOURCES)) .
 	@cd $(MODEL_LIFTS) && $(MODEL_LIFTS_SCALAFIX) .
 	@cd $(MODEL_ROOT)/check && $(MODEL_SCALAFIX) .

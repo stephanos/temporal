@@ -553,9 +553,36 @@ class GateSuite extends munit.FunSuite:
       repository.ran.filter(_.startsWith("scala-cli ")).takeRight(2),
       Seq(
         "scala-cli compile model/project.scala model/framework --suppress-outdated-dependency-warning",
-        "scala-cli test --server=false model/project.scala model/framework model/temporal --suppress-outdated-dependency-warning"
+        "scala-cli test --server=false model/project.scala model/framework model/temporal/foundations model/temporal/actors model/temporal/capabilities model/temporal/realize --suppress-outdated-dependency-warning"
       )
     )
+
+  test("a narrowed update refuses before any unscoped Go publication"):
+    val repository = Repository()
+    for form <- Seq("alpha", "beta") do
+      val folder =
+        Files.createDirectories(repository.root.resolve("model/temporal/features/kind/" + form))
+      Files.writeString(folder.resolve(form.capitalize + "Kind.scala"), "package example\n"): Unit
+    val answer = gate(repository.tools.withEnvironment("FEATURES" -> "kind/alpha"), "--update")
+    assertEquals(answer.status, 1)
+    assert(answer.err.contains("refusing to check or rewrite unlisted features"), answer.err)
+    assertEquals(repository.ran, Seq.empty)
+
+  test("a feature that fails compilation is reported behind by name"):
+    val repository = Repository(scalaCli =
+      """case " $* " in *" compile "*"features/kind/broken"*) printf 'unlisted.Shared is missing\n'; exit 1;; esac"""
+    )
+    for form <- Seq("broken", "working") do
+      val folder =
+        Files.createDirectories(repository.root.resolve("model/temporal/features/kind/" + form))
+      Files.writeString(folder.resolve(form.capitalize + "Kind.scala"), "package example\n"): Unit
+    val answer = gate(repository.tools)
+    assertEquals(answer.status, 1)
+    assert(answer.out.contains("feature kind/broken: behind (compile)"), answer.out)
+    assert(!answer.out.contains("feature kind/working: behind"), answer.out)
+    assert(answer.err.contains("feature kind/broken is behind"), answer.err)
+    assert(answer.err.contains("unlisted.Shared"), answer.err)
+    assert(repository.ran.exists(_.contains("features/kind/working")))
 
   test("the gate stops when the IR's Go code is older than its schema"):
     val repository = Repository()

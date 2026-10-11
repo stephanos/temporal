@@ -398,12 +398,14 @@ private[check] object SyntaxRule:
       imports ++ uses
 
   // What breaks the rules in the repository at `root`, each as `file:line: reason`, in order.
-  def findings(root: Path): Vector[String] =
+  def findings(root: Path, includes: Path => Boolean = _ => true): Vector[String] =
     val files = Vector(
       "model/framework" -> true,
       "model/temporal" -> true,
       "model/irgen" -> false
-    ).flatMap((directory, recursive) => sources(root, directory, recursive)).map(read(root, _))
+    ).flatMap((directory, recursive) => sources(root, directory, recursive))
+      .filter(includes)
+      .map(read(root, _))
     val (syntax, other) = files.partition(_.isSyntax)
     (syntax.flatMap(undocumented) ++ other.flatMap(misplaced) ++ trees.flatMap(reaching(_, files)))
       .sortBy(f => (f.file, f.line))
