@@ -194,7 +194,7 @@ is sequential; task .10's committed Scala seal releases later source work withou
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-140.10 | 🔄 in progress | Expanded private/retained reader proofs and final re-lift/core/span candidate independently verified; formatter fixture coordinates and final suites/historical/artifact authentication still open; nine managed comparisons held; one bounded retry, fn-149 still gated |
+| fn-140.10 | 🔄 in progress | Expanded reader/core/span candidate and final 166-pass lifter source campaign, including complete 226-row refusal contract, independently verified; ten managed comparisons held (new rules formatter-only drift authenticated); final native/checker/historical/artifact gates open; one bounded retry, fn-149 still gated |
 | fn-140.6 | ⏸️ deferred | Full consumer/regeneration/equivalence closure after .7/.8/.9/.10; links the shared fn-123.8 sweep |
 | fn-140.7 | ⏸️ deferred (Go) | Exact-composed selector admission/check/lint/export proof, split from .2 without relaxing its obligations |
 | fn-140.8 | ⏸️ deferred (Go) | Live/model-only Case generation switch and complete manifest/membership proof, split from .3 |
