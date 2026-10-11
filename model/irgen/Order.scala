@@ -121,12 +121,15 @@ final private[irgen] class Order(index: Index):
         case v: ValDef => v.rhs
         case f: DefDef => f.rhs
         case _         => None
-    do
-      read(rhs, d.symbol)
+    do read(rhs, d.symbol)
     object statements extends TreeTraverser:
       override def traverseTree(tree: Tree)(owner: Symbol): Unit =
         tree match
           case c: ClassDef if !exempt(fileOf(c)) && !fileOf(c).endsWith(".test.scala") =>
+            c.parents.foreach {
+              case t: Term => read(t, c.symbol)
+              case _       => ()
+            }
             c.body.foreach {
               case t: Term => read(t, c.symbol)
               case _       => ()

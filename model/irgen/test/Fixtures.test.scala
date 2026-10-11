@@ -428,8 +428,12 @@ class WitnessFixtures extends munit.FunSuite:
       val holds = (if member then "together" else "subject") + ".property." + name
       val s = line(name)
       val declaration = line(name + "Property")
-      val c = declaration + (if name == "conditional" then 2 else 1)
-      val corePosition = if name == "conditional" then declaration + 1 else declaration
+      val c = declaration + (if name == "conditionalMember" then 3
+                             else if name == "conditional" || name == "absentMember" then 2
+                             else 1)
+      val corePosition = if name == "conditionalMember" then declaration + 2
+      else if name == "conditional" || member then declaration + 1
+      else declaration
       val primaryFact = if name == "absent" then "other"
       else if member then if name == "absentMember" then "right_completed" else "left_completed"
       else "completed"
@@ -437,20 +441,26 @@ class WitnessFixtures extends munit.FunSuite:
         val anchor = if sugarForm then s else c
         val primaryLine = if sugarForm && name == "conditional" then s + 2
         else if sugarForm && name == "conditionalMember" then s + 2
-        else if sugarForm && name == "absentMember" then s + 1
+        else if sugarForm && name == "absentMember" then s + 2
+        else if sugarForm && name == "guarded" then s + 2
         else anchor
         val primary = contains(anchor, primaryLine, anchor, primaryFact, member)
         var result = if name.startsWith("absent") then not(anchor, primary) else primary
         if name == "guarded" then
-          val guardLine = if sugarForm then s + 1 else c
+          val guardLine = if sugarForm then s + 3 else c
           result = binary(
             anchor,
             ir.Binary.Op.OP_AND,
             result,
-            not(guardLine, contains(guardLine, guardLine, anchor, "other", false))
+            not(
+              guardLine,
+              contains(guardLine, if sugarForm then guardLine else c + 1, anchor, "other", false)
+            )
           )
         if name.startsWith("conditional") || name == "guarded" then
-          val n = if sugarForm then s + (if name == "guarded" then 1 else 3) else c
+          val n = if sugarForm then s + (if name == "guarded" then 4 else 3)
+          else if name == "guarded" then c + 1
+          else c
           val condition = if member && sugarForm then
             calls(n, holds + ".recordsWhen1", state(anchor))
           else
@@ -461,8 +471,16 @@ class WitnessFixtures extends munit.FunSuite:
             )
           val selected =
             if member then "right_other" else if name == "guarded" then "completed" else "other"
-          val factLine = if !sugarForm && name == "conditional" then c + 1 else n
-          val recorded = contains(n, factLine, anchor, selected, member)
+          val factLine =
+            if !sugarForm && (name == "conditional" || name == "conditionalMember") then c + 1
+            else n
+          val recorded = contains(
+            n,
+            factLine,
+            if !sugarForm && name == "guarded" then n else anchor,
+            selected,
+            member
+          )
           result = binary(
             anchor,
             ir.Binary.Op.OP_AND,
@@ -4980,8 +4998,8 @@ class Fixtures extends munit.FunSuite:
       assertEquals(matches.size, 1, file + ": " + text)
       matches.head._2 + 1
     val formattedCoordinates = Map(
-      (prefix + "HintRejects.scala:44:") -> (prefix + s"HintRejects.scala:${sourceLine("HintRejects.scala", "atMost = framework.realize.Elapsed.milliseconds(9223372036854775807L)")}:") ,
-      (prefix + "ScriptRejects.scala:219:") -> (prefix + s"ScriptRejects.scala:${sourceLine("ScriptRejects.scala", "ServerStep(")}:") ,
+      (prefix + "HintRejects.scala:44:") -> (prefix + s"HintRejects.scala:${sourceLine("HintRejects.scala", "atMost = framework.realize.Elapsed.milliseconds(9223372036854775807L)")}:"),
+      (prefix + "ScriptRejects.scala:219:") -> (prefix + s"ScriptRejects.scala:${sourceLine("ScriptRejects.scala", "ServerStep(")}:"),
       (prefix + "ScriptRejects.scala:226:") -> (prefix + s"ScriptRejects.scala:${sourceLine("ScriptRejects.scala", "object Replaced extends DerivesFrom(Restated, activityProtocol):") + 1}:")
     )
     val coordinates = markerCoordinates ++ formattedCoordinates

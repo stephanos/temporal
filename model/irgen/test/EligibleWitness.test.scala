@@ -106,8 +106,9 @@ class EligibleWitnessFixtures extends munit.FunSuite:
         "customStart",
         "nonRecorded",
         "fakeRecords",
-        "unrelatedContains"
-        , "statementReader", "parentReader"
+        "unrelatedContains",
+        "statementReader",
+        "parentReader"
       )
     do assert(!findings.exists(_.contains(s"`$retained`")), result.output)
     assert(!Files.exists(output), result.output)
