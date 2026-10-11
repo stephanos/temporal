@@ -5,7 +5,8 @@
   "created_at": "2026-10-08T03:42:01.384333Z",
   "depends_on": [
     "fn-140-one-sentence-witness-queries-with.4",
-    "fn-140-one-sentence-witness-queries-with.5"
+    "fn-140-one-sentence-witness-queries-with.5",
+    "fn-140-one-sentence-witness-queries-with.7"
   ],
   "id": "fn-140-one-sentence-witness-queries-with.6",
   "priority": null,
@@ -13,5 +14,5 @@
   "spec_path": ".flow/tasks/fn-140-one-sentence-witness-queries-with.6.md",
   "status": "todo",
   "title": "Migrate remaining eligible Models, lint triples and close equivalence gates",
-  "updated_at": "2026-10-10T00:43:13.593020Z"
+  "updated_at": "2026-10-11T05:39:30.217529Z"
 }

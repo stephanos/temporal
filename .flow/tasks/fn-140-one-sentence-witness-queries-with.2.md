@@ -6,47 +6,43 @@ satisfies: [R1, R2, R6]
 Touches: [model/framework/Claims.scala, model/irgen/Claims.scala, model/irgen/Capabilities.scala, model/irgen/Compositions.scala, model/irgen/Order.scala, model/irgen/Structure.scala, model/irgen/test/Fixtures.test.scala, model/irgen/testdata/witness/**, model/irgen/testdata/lifts/expected/**, tools/umpire/ir/validate_keys.go, tools/umpire/ir/*selector*.go, tools/umpire/ir/admission_test.go, tools/umpire/check/claims.go, tools/umpire/check/*composition*test.go, tools/umpire/check/transition_test.go, tools/umpire/lint/holes.go, tools/umpire/lint/holes_test.go, tools/umpire/export/composed.go, tools/umpire/export/slice.go, tools/umpire/export/quint.go, tools/umpire/export/*test.go]
 
 ## Description
-Lift the .1 authoring surface and implement R1/R2/R6 admission using the existing claim accumulators. Keep all witness-origin lifting and refusal fixtures in one task because they share registration and the fixture harness.
-
 **Size:** M
-**Files:** `model/irgen/{Claims,Capabilities,Compositions,Order,Structure}.scala`; `model/irgen/test/Fixtures.test.scala`; new witness fixtures and their expected outputs; typed composed `when` in `model/framework/Claims.scala`; exact selector reading/admission at `tools/umpire/ir`, checking at `check/claims.go`, coverage/holes at `lint/holes.go`, and existing composed/slice/Quint export consumers with their focused tests.
+**Files:** `model/framework/Claims.scala`, `model/irgen/{Claims,Syntax,Capabilities,Compositions,Order,Structure}.scala`, witness fixtures and fixture harness.
+**Touches:** [model/framework/Claims.scala, model/irgen/Claims.scala, model/irgen/Syntax.scala, model/irgen/Capabilities.scala, model/irgen/Compositions.scala, model/irgen/Order.scala, model/irgen/Structure.scala, model/irgen/test/Fixtures.test.scala, model/irgen/testdata/witness/**, model/irgen/testdata/lifts/expected/**]
+
+Implement the Scala/source half of R1/R2/R6 following .1. The former task's Go admission, checking, lint, export and exact-selector end-to-end proof are retained without relaxation in the new deferred consumer task; this task does not claim them. Checked-in IR/Cases stay untouched.
 
 ### Approach
-- Extend the claim fold at `Claims.scala:333` and scenario construction at `:583` to register three ordinary declarations under the captured witness name, with no new IR kind. Keep witness folding in one cohesive helper behind the existing claim registration seam rather than growing the dispatch with duplicated construction. Preserve all modifier orderings and existing `.explore` metadata.
-- Resolve machine and derived owners through the existing model references; resolve composition classes through `Compositions.scala:375`. Validate the selected member's fact against this composition, including two compositions sharing one state record.
-- First prove the exact composed-tail encoding. Extend typed Property `when` to accept a composed class; use the existing canonical `Compositions.composedKey(..., classes=true)` for both pinned Scenario and same-step Property. Encode exact composed selectors in the existing Property.when_action string using a collision-free tagged convention, without new fields/kinds, synthetic Action declarations or changing general interpreter ClassKey. The precise tag is chosen only after proving it cannot collide with admitted legacy action names; otherwise stop before migration. Generated witnesses and hand-authored ordinary core twins share that encoding. Untagged action selectors and existing machine when_class selectors retain their exact bytes and meaning.
-- Use one source-aware selector-decoding contract across composition admission, checking, hole/coverage lint and composed/slice/Quint export. The tagged form is legal only on a composition Property. Admission requires exact membership in its independently derived composed class catalog, including member/sync ownership, inputs and binding identity; malformed, blank, wrong-owner, wrong-input and absent keys refuse at the Property source. Runtime compares the complete admitted class key by equality, never an action-only prefix. Export the exact input guards faithfully or produce a source-located UnsupportedError without widening/exporting around it. Preserve every legacy admission diagnostic and obligation; no equality/lint exemptions.
-- Before expanding migration, lift a witness/core twin whose input-bearing tail follows a different input of the same composed action producing indistinguishable state/facts. Cover own-member and renamed-sync keys, two same-typed members, wrong-owner/input refusals and repeated exact-tail rejection. A seeded all-input selector substitution must fail. Exercise full Go admission and checking, legacy byte/semantics pins, hole/coverage accounting and faithful export/located refusal; lift-only or state/fact-only equivalence is insufficient.
-- Preserve both source positions when registration at `Claims.scala:91` detects a generated Property/Scenario name collision. Compare complete input-bearing class identities for the repeated-tail refusal, including composed keys.
-- Reuse capabilities' generated Property/Scenario/Query output at `Capabilities.scala:677-779`. Refuse identical default start, ordered path and recorded fact even when ends, Limits or live expectations differ. Never conflate different inputs or members.
-- Teach source order/placement checks that a witness belongs in queries; preserve the existing invariant triple placements. Keep malformed or unsupported input a located LiftError.
-- Pin a witness against a hand-written core twin using the existing fixture comparison seam. Compare every emitted declaration after an explicit source-position mapping, never generic field removal.
+- Fold a witness into the existing Property/Scenario/Query accumulators behind one cohesive helper; preserve source val capture, explicit list names, declaration ownership and modifier ordering, including exploration and live metadata. Reuse capability expansion and normal discovery.
+- Resolve exact machine/derived classes and composed classes using the existing canonical composed-key function. The composition fact selector is `.records(_.member -> MemberMachine, fact)`; validate the exact source field-to-machine binding, not merely unique runtime machine membership or fact suffix. Include two same-typed members and two compositions sharing their state type.
+- Select a collision-free tagged exact-composed-class encoding in the existing Property.when_action string only after inspecting admitted legacy names and independently deriving the composed class catalog. Use the same exact encoding for a witness and its ordinary core twin. No new IR field/kind, synthetic Action, generic ClassKey change or all-input widening. Preserve legacy machine selector bytes. Persist the exact encoding contract and Scala proof fixtures for the deferred Go task; full consumer proof remains there.
+- Refuse repeated exact tail classes, including full input/member/sync identities; missing/empty path or records, unnamed values, too-short steps/actions limits, wrong owner/member/fact, and generated-name collisions. Collision diagnostics retain both authored positions. Seed a selector/input/member substitution and show it changes/fails the exact expected fixture.
+- Read capabilities' generated triples when refusing identical default start/path/fact despite differing ends, bounds or expectations. Distinct inputs and member identities are not duplicates.
+- Recognize witnesses as Query declarations in source order/placement; preserve invariant triple placement. Compare a witness with its hand-written core twin using a precise source-position map, not broad field stripping.
 
 ### Investigation targets
 **Required:**
-- `proto/internal/temporal/server/api/umpire/v1/claim.proto:22-27` and `tools/umpire/ir/validate_keys.go:63-103` - existing schema and composed selector admission, read only for schema shape.
-- `tools/umpire/check/claims.go:690-709`, `tools/umpire/lint/holes.go:260-295`, `tools/umpire/export/{composed,slice,quint}.go` - all selector consumers.
-- `model/irgen/Claims.scala:91-178` - registration, identities and bounds.
-- `model/irgen/Claims.scala:333-444` - Query modifiers and expectation admission.
-- `model/irgen/Compositions.scala:375` - composed schedules.
-- `model/irgen/Capabilities.scala:677-779` - capability-generated triples.
-- `model/irgen/test/Fixtures.test.scala:76-109` - compile/lift refusal harness.
-**Optional:**
-- `model/irgen/Order.scala` and `model/irgen/Structure.scala` - declaration classification.
+- `model/framework/Claims.scala` and `model/framework/Syntax.scala` — integrated witness types and sugar.
+- `model/irgen/Claims.scala:91-178` and `:333-444` — registration, identity, bounds and Query modifiers.
+- `model/irgen/Compositions.scala:375` — canonical composed schedules and keys.
+- `model/irgen/Capabilities.scala:677-779` — generated triples/duplicate detection.
+- `model/irgen/test/Fixtures.test.scala:76-109` — fixture/refusal harness.
+- `proto/internal/temporal/server/api/umpire/v1/claim.proto:22-27`, `tools/umpire/ir/validate_keys.go:63-103` and `tools/umpire/check/claims.go:690-709` — read-only schema/admission contract; no Go edits or commands.
+**Optional:** `model/irgen/Order.scala`, `model/irgen/Structure.scala`.
 
 ### Quick commands
-```bash
+```sh
 mise exec -- scala-cli test model/irgen --test-only '*Fixtures*' -- --tests '*witness*'
 make lint-model-syntax
 ```
 
+Run focused exact-selector Scala fixtures in addition to the witness filter. Serialize heavy commands. Review, full gates, Go, production regeneration and live runs remain owner-deferred.
 ## Acceptance
-- [ ] Machine, derived and composition witnesses, named list items, ends, limits and exploration lift to the exact existing core triple (R1/R2).
-- [ ] Located refusals cover empty path, missing records, repeated exact tail class, unnamed value, both collision positions, and each too-short steps/actions override.
-- [ ] Capability duplicate tests cover identical path/fact despite modifiers, distinct input classes and composition members, and existing generated capability queries.
-- [ ] The early exact-composed proof covers renamed sync/member ownership, input-bearing tail after a different input with indistinguishable state/facts, wrong-owner/input refusals and seeded all-input-selection rejection across lifting, Go admission/checking, lint and export. Collision-free encoding and ordinary core equivalence are proved before migration.
-- [ ] A source-position-mapped witness/core fixture proves declaration and metadata equivalence; no schema changes. Go production changes are limited to the explicitly authorized common exact-composed selector seams, with exact legacy-byte/semantics pins.
-
+- [ ] Machine/derived/composition witnesses, explicit names, modifiers and discovery lift to the existing core triple with a precise source-position-mapped twin comparison (R1/R2).
+- [ ] Located source refusals cover path/records/naming/collisions/bounds and repeated complete tail identities, with both positions where required (R1/R2).
+- [ ] Exact member/fact binding and capability duplicate tests distinguish same fact names on distinct members and different input classes, including seeded wrong-selector detection (R1/R6).
+- [ ] Tagged exact-composed encoding is collision-free against admitted legacy names, canonical in core twins, and accompanied by the contract/fixture handoff to the deferred Go consumer task; no Go or full consumer equivalence completion is claimed.
+- [ ] Quick commands and focused Scala exact-selector fixtures pass; no schema or managed artifact changes.
 ## Done summary
 TBD
 
