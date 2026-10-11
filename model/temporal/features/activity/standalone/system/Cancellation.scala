@@ -15,12 +15,12 @@ object Cancellation extends Derived(ActivitySystem.rebind()):
   object properties:
     val cancelRequestedWhileStarted =
       property when client.requestCancel holds { s => // format: off
-        s.state.phase == Phase.cancelRequested && s.records(Fact.statusCancelRequested) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+        s.state.phase == Phase.cancelRequested && s.records(Fact.statusCancelRequested)
       } // format: on
 
     val canceledByWorker =
       property when worker.respondCanceled holds { s => // format: off
-        s.state.phase == Phase.canceled && s.records(Fact.statusCanceled) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+        s.state.phase == Phase.canceled && s.records(Fact.statusCanceled)
       } // format: on
 
   object queries:

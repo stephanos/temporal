@@ -167,7 +167,7 @@ final class Gate(tools: Tools, log: PrintStream):
     val current = Seq(irJar, stampFile).forall(Files.isRegularFile(_))
       && Files
         .readString(stampFile)
-        .trim == stamp // scalafix:ok DisableSyntax.==; strictEquality checks this native comparison
+        .trim == stamp
     if !(ifStale && current) then
       // An output of an earlier run is removed first, so one scala-cli did not write is missing
       // rather than taken for new. File times cannot tell: a mounted file system may stamp them with
@@ -246,7 +246,7 @@ final class Gate(tools: Tools, log: PrintStream):
     if checked.exit == 1 then
       throw GateError(
         "proto/api.binpb is stale; run make proto/api.binpb"
-      ) // scalafix:ok DisableSyntax.==; strictEquality checks this native comparison
+      )
     checked.orFail()
     generateIr(ifStale = true)
 
@@ -328,7 +328,7 @@ final class Gate(tools: Tools, log: PrintStream):
     val current = Seq(apiJar, stampFile).forall(Files.isRegularFile(_)) &&
       Files
         .readString(stampFile)
-        .trim == stamp // scalafix:ok DisableSyntax.==; strictEquality checks this native comparison
+        .trim == stamp
     if !(ifStale && current) then
       Files.deleteIfExists(stampFile)
       val classes = Files.createDirectories(sources.resolve("classes"))
@@ -720,7 +720,7 @@ object Gate:
     Files.isRegularFile(checkedIn) && Files.mismatch(
       checkedIn,
       produced
-    ) == -1L // scalafix:ok DisableSyntax.==; strictEquality checks this native comparison
+    ) == -1L
 
   private def files(directory: Path): Set[String] =
     val stream = Files.list(directory)
@@ -735,7 +735,7 @@ object Gate:
       .zipAll(now.map(Some(_)), None, None)
       .indexWhere(
         _ != _
-      ) // scalafix:ok DisableSyntax.!=; strictEquality checks this native comparison
+      )
     def line(text: Vector[String]) = text.lift(at).fold("nothing")(l => s"`${l.take(200)}`")
     if at < 0 then "its lines are the same and its line endings differ"
     else s"line ${at + 1} is ${line(was)} and lifts to ${line(now)}"
@@ -792,7 +792,7 @@ object Gate:
       val held =
         if Files.isRegularFile(target) then Accepted.read(Files.readString(target)) else Vector()
       val accepted = Accepted.withWaivers(held, machines, waivers)
-      if accepted == held then // scalafix:ok DisableSyntax.==; typed equality
+      if accepted == held then
         None
       else if update then
         Files.writeString(target, Accepted.encode(accepted)): Unit
@@ -858,15 +858,15 @@ object Gate:
       (if flags("--check-syntax") then
          flags == Set(
            "--check-syntax"
-         ) // scalafix:ok DisableSyntax.==; strictEquality checks this native comparison
+         )
        else if flags("--check-comments") then
          flags == Set(
            "--check-comments"
-         ) // scalafix:ok DisableSyntax.==; strictEquality checks this native comparison
+         )
        else if flags("--check-block-form") then
          flags == Set(
            "--check-block-form"
-         ) // scalafix:ok DisableSyntax.==; strictEquality checks this native comparison
+         )
        else if generate then
          !flags("--update") && !flags("--skip-go-checks") &&
          !(flags("--generate-ir") && flags("--generate-api"))
@@ -925,14 +925,14 @@ object Accepted:
     )
     def ours(a: Acceptance) = a.kind == waived && machines(
       a.owner
-    ) // scalafix:ok DisableSyntax.==; strictEquality checks this native comparison
+    )
     val kept = accepted
       .flatMap(a =>
         if !ours(a) then Seq(a)
         else
           a.subjects
             .flatMap(s => stated.find(_._1 == s))
-            .map(_._2) // scalafix:ok DisableSyntax.==; strictEquality checks this native comparison
+            .map(_._2)
       )
       .distinct
     val placed = kept.filter(ours).flatMap(_.subjects).toSet
@@ -990,7 +990,7 @@ private[check] object Json:
       fail(
         end,
         "text after the value"
-      ) // scalafix:ok DisableSyntax.!=; strictEquality checks this native comparison
+      )
     v
 
   def fields(v: Any, what: String): Map[String, Any] = v match
@@ -1014,7 +1014,7 @@ private[check] object Json:
       case '\b'                                           => "\\b"
       case '\f'                                           => "\\f"
       case c if c < ' ' || c == '\u2028' || c == '\u2029' =>
-        f"\\u${c.toInt}%04x" // scalafix:ok DisableSyntax.==; strictEquality checks this native comparison
+        f"\\u${c.toInt}%04x"
       case c => c.toString
     }.mkString("\"", "", "\"")
 
@@ -1052,14 +1052,14 @@ private[check] object Json:
         fail(
           i,
           "a field name is missing"
-        ) // scalafix:ok DisableSyntax.!=; strictEquality checks this native comparison
+        )
       val (key, afterKey) = string(text, i + 1, StringBuilder())
       val colon = space(text, afterKey)
       if colon >= text.length || text(colon) != ':' then
         fail(
           colon,
           "a colon is missing"
-        ) // scalafix:ok DisableSyntax.!=; strictEquality checks this native comparison
+        )
       val (v, afterValue) = value(text, space(text, colon + 1))
       val next = space(text, afterValue)
       val all = done :+ (key.toString -> v)
@@ -1085,7 +1085,7 @@ private[check] object Json:
     else
       val (v, afterValue) = value(text, i)
       val next = space(text, afterValue)
-      if next < text.length && text(next) == ',' // scalafix:ok DisableSyntax.==; typed equality
+      if next < text.length && text(next) == ','
       then elements(text, space(text, next + 1), done :+ v)
       else if next < text.length && text(next).equals(']')
       then

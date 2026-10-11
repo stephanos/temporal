@@ -24,11 +24,11 @@ class StepTablesTest extends munit.FunSuite:
     val renamed = table(Switch)
     val worn = table(Derived1)
     assertNotEquals(worn, renamed)
-    val changedRows = renamed.zip(worn).filterNot(_ == _) // scalafix:ok DisableSyntax.==
+    val changedRows = renamed.zip(worn).filterNot(_ == _)
     assert(changedRows.forall(_._1.startsWith("step\thand.press")), changedRows)
     assertNotEquals(table(Faulted), table(Facts))
     assertEquals(
-      table(Faulted).zip(table(Facts)).count(_ != _), // scalafix:ok DisableSyntax.!=
+      table(Faulted).zip(table(Facts)).count(_ != _),
       1
     )
 

@@ -27,7 +27,7 @@ object Refinement:
     states.values
       .map(s => s -> refinement.toProduct(s))
       .filter((s, image) => // format: off
-        closed(phase(s)) != closed(productPhase(image)) // scalafix:ok DisableSyntax.!=; strictEquality checks native comparisons
+        closed(phase(s)) != closed(productPhase(image))
       ) // format: on
 
   // The machine `machine`'s `object refinement` refines, where it declares one, for the gate's

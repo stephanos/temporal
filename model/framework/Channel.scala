@@ -45,8 +45,8 @@ final class Channel[M] private[framework] (
         for prefix <- prefixes; e <- entries.toList yield prefix :+ e
       }
     } // format: off
-    val held = if order == Order.fifo then sequences // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-    else sequences.filter(s => s.map(index) == s.map(index).sorted) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    val held = if order == Order.fifo then sequences
+    else sequences.filter(s => s.map(index) == s.map(index).sorted)
     Finite.of(held.map(Inbox(this, _))*) // format: on
 
   // The channel holding nothing.
@@ -101,7 +101,7 @@ final case class Inbox[M] private[framework] (channel: Channel[M], deliveries: L
   // Sending to a full channel leaves the channel's contents, so the step lands outside the domain.
   def send(m: M): Inbox[M] =
     val d = Delivery(m, 0) // format: off
-    if channel.order == Order.fifo then copy(deliveries = deliveries :+ d) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    if channel.order == Order.fifo then copy(deliveries = deliveries :+ d)
     else // format: on
       val index = channel.entries.indexOf(d)
       val (before, after) = deliveries.span(e => channel.entries.indexOf(e) <= index)

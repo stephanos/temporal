@@ -28,7 +28,7 @@ object Closable extends CapabilityKind:
   ): Property[S] =
     m.property holdsAcross ((before, after) =>
       !phasing.roleCases[Closed](m.name).contains(phasing.phase(before)) ||
-        phasing.phase(after.state) == phasing.phase(before) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+        phasing.phase(after.state) == phasing.phase(before)
     ) // format: on
   // format: off
   // Every step from a terminal status keeps the state and answers the entity's rejecting outcome.
@@ -46,5 +46,5 @@ object Closable extends CapabilityKind:
   ): Property[S] =
     m.property holdsAcross ((before, after) =>
       !phasing.roleCases[Closed](m.name).contains(phasing.phase(before)) ||
-        (after.state == before && after.outcome == rejected) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+        (after.state == before && after.outcome == rejected)
     ) // format: on

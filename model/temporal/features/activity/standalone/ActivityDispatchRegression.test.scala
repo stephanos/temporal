@@ -14,7 +14,7 @@ class ActivityDispatchRegression extends munit.FunSuite:
       a: Action[EmptyTuple]
   ): List[Step[system.State, Outcome, system.Fact]] =
     ActivitySystem.bindings
-      .find(_.decl == a.decl) // scalafix:ok DisableSyntax.==
+      .find(_.decl == a.decl)
       .get
       .function
       .asInstanceOf[system.State => List[Step[system.State, Outcome, system.Fact]]](
@@ -27,7 +27,7 @@ class ActivityDispatchRegression extends munit.FunSuite:
 
   private def failAttempt(s: system.State): system.State =
     ActivitySystem.bindings
-      .find(_.decl == worker.respondFailed.decl) // scalafix:ok DisableSyntax.==
+      .find(_.decl == worker.respondFailed.decl)
       .get
       .function
       .asInstanceOf[(system.State, Failure) => List[Step[system.State, Outcome, system.Fact]]](
@@ -39,7 +39,7 @@ class ActivityDispatchRegression extends munit.FunSuite:
 
   private def delayedStart: system.State =
     ActivitySystem.bindings
-      .find(_.decl == client.start.decl) // scalafix:ok DisableSyntax.==
+      .find(_.decl == client.start.decl)
       .get
       .function
       .asInstanceOf[
@@ -119,9 +119,7 @@ class ActivityDispatchRegression extends munit.FunSuite:
 
   test("every waiting dispatch maps to the Product's scheduled state") {
     assertEquals(summon[Finite[system.State]].values.size, 5616)
-    // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
     for waiting <- Finite[system.State].values if waiting.phase == system.Phase.scheduled
-    // scalafix:on DisableSyntax.==
     do
       assertEquals(
         ActivitySystem.refinement.toProduct(waiting).phase,

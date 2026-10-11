@@ -43,7 +43,7 @@ object StepTables:
       .flatMap(_.reached())
       .filter(m =>
         seen.put(m, java.lang.Boolean.TRUE) == null
-      ) // scalafix:ok DisableSyntax.null, DisableSyntax.==
+      ) // scalafix:ok DisableSyntax.null
     val declared = found.filter(isDeclared).map(m => key(m) -> m)
     val clashes = declared.groupBy(_._1).filter(_._2.sizeIs > 1)
     require(
@@ -209,7 +209,7 @@ object StepTables:
     val size = spaces.foldLeft(BigInt(1))(_ * _.size)
     declared match
       case None                                   => Vector("end\tsource's")
-      case Some(_) if spaces.size != members.size => // scalafix:ok DisableSyntax.!=
+      case Some(_) if spaces.size != members.size =>
         Vector("end\tnot tabled: a member is a composition")
       case Some(_) if size > endLimit => Vector(s"end\tnot tabled: $size composed states")
       case Some(method)               =>

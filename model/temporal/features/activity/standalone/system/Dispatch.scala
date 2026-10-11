@@ -110,7 +110,7 @@ object ActivityRecord
 
   // The record's status sets, which a composition reads through `activity`, and its counts.
   object states: // format: off
-    def twoActive(s: State) = s.active == Active.two // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    def twoActive(s: State) = s.active == Active.two
     def phase(s: State) = s.phase // format: on
 
     // No unpause is in scope, so a pause is where a path may end, as a completion is: `end` reads
@@ -118,8 +118,8 @@ object ActivityRecord
     def stopped(s: State) =
       !s.phase.in(AdmissionPhase.scheduled, AdmissionPhase.started)
     // format: off
-    def oneMore(a: Active) = if a == Active.none then Active.one else Active.two // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-    def oneLess(a: Active) = if a == Active.two then Active.one else Active.none // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    def oneMore(a: Active) = if a == Active.none then Active.one else Active.two
+    def oneLess(a: Active) = if a == Active.two then Active.one else Active.none
     // format: on
     // The record once an attempt is admitted: started, one more active, its answer owed.
     def admitted(s: State) =
@@ -129,14 +129,14 @@ object ActivityRecord
     def countActive(active: Active, after: Step[State, Outcome, AdmissionFact]) =
       if after.records(attemptAdmitted) then oneMore(active)
       else if after.records(statusCompleted) then oneLess(active) // format: off
-      else if after.state.phase == AdmissionPhase.timedOut then Active.none // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      else if after.state.phase == AdmissionPhase.timedOut then Active.none
       else active // format: on
 
     // Whether the activity is over after a step, and whether it left where it ended.
     def finality(f: Finality, after: Step[State, Outcome, AdmissionFact]) = // format: off
-      if f == Finality.reopened then Finality.reopened // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      if f == Finality.reopened then Finality.reopened
       else if after.state.phase.in[Closed] then Finality.closed
-      else if f == Finality.closed then Finality.reopened // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      else if f == Finality.closed then Finality.reopened
       else Finality.open // format: on
 
   // The record refines the product, which sees its statuses alone.
@@ -196,12 +196,12 @@ object ActivityRecord
     val atMostOneActiveAttempt =
       monitor[State, Outcome, AdmissionFact, Active](Active.none)((active, _, after) =>
         states.countActive(active, after) // format: off
-      )(_ == Active.two).readAfter(after => after.records(AdmissionFact.attemptAdmitted)) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      )(_ == Active.two).readAfter(after => after.records(AdmissionFact.attemptAdmitted))
       // format: on
     val terminalFinality =
       monitor[State, Outcome, AdmissionFact, Finality](Finality.open)((f, _, after) =>
         states.finality(f, after) // format: off
-      )(_ == Finality.reopened) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      )(_ == Finality.reopened)
       // format: on
   object rules extends Rules:
     import AdmissionPhase.*
@@ -222,7 +222,7 @@ object ActivityRecord
       when(paused, pausedWhileHeld, started, completed, timedOut) ~> effects.rejectDelivery
     }
     on(history.answerMatching) { // format: off
-      where(_.answer == Answer.owed) ~> effects.answerMatching // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      where(_.answer == Answer.owed) ~> effects.answerMatching
     } // format: on
     on(worker.respondCompleted) {
       when(started) ~> effects.complete

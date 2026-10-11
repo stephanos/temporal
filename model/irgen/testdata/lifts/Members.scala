@@ -70,7 +70,7 @@ val turnedOn =
   Switches.property.whenAction(Switches.own(_.left_side, turnOn)) holds (_.state.left_side.on)
 val tappedBoth =
   Switches.property.whenAction(Switches.synced(_.left_side -> Left.tap)) holds (after =>
-    after.state.left_side.on == after.state.right_side.on // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    after.state.left_side.on == after.state.right_side.on
   )
 val switchLimits = Limits(steps = 4, actions = 4, search = 64)
 
@@ -87,7 +87,7 @@ object LeftFlicks extends Composition(Flicks.withMember(_.left_side -> FlickOnly
 val bothFlick = LeftFlicks.scenario.actions(LeftFlicks.synced(_.right_side -> Right.flick))
 val flickedBoth =
   LeftFlicks.property.whenAction(LeftFlicks.synced(_.left_side -> Left.flick)) holds (after =>
-    after.state.left_side.on == after.state.right_side.on // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    after.state.left_side.on == after.state.right_side.on
   )
 val flickedBothOnce: Query = query verify flickedBoth in bothFlick limits switchLimits total 4
 

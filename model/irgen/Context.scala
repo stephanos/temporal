@@ -77,7 +77,7 @@ final private[irgen] class Context(val index: Index):
     case Apply(Apply(TypeApply(fn, types), usings), List(body))
         if blockForms(
           fn.symbol.name
-        ) && fn.symbol.maybeOwner.fullName == syntaxOwner => // scalafix:ok DisableSyntax.==; typed equality
+        ) && fn.symbol.maybeOwner.fullName == syntaxOwner =>
       Some(BlockCall(fn.symbol.name, types.map(_.tpe), usings, body))
     case _ => None
 
@@ -98,7 +98,7 @@ final private[irgen] class Context(val index: Index):
   def misplacedBlock(form: String, at: Tree): Nothing =
     val (member, section) =
       if form == "effect" then ("pause", "effects")
-      else ("held", "states") // scalafix:ok DisableSyntax.==; typed equality
+      else ("held", "states")
     fail(
       at,
       s"`$form { ... }` declares a member of a machine object's section, " +
@@ -354,7 +354,7 @@ final private[irgen] class Context(val index: Index):
   def isSection(owner: Symbol, name: String): Boolean =
     owner.isClassDef && owner.flags.is(Flags.Module) && owner.name.stripSuffix(
       "$"
-    ) == name && // scalafix:ok DisableSyntax.==; typed equality
+    ) == name &&
       !owner.maybeOwner.isPackageDef
 
   // ### Object forms: an object that is a machine or a composition (framework.Machine, framework.Derived,
@@ -403,7 +403,7 @@ final private[irgen] class Context(val index: Index):
     sym, {
       val name = qualifiedName(sym, scala.util.Try(sym.tree).getOrElse(Literal(UnitConstant())))
       typeTakenBy.get(name) match
-        case Some(other) if other != sym => // scalafix:ok DisableSyntax.!=; typed equality
+        case Some(other) if other != sym =>
           fail(
             sym.tree,
             s"${sym.fullName} and ${other.fullName} would both be named $name in the IR: name " +

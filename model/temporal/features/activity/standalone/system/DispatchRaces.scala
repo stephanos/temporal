@@ -81,7 +81,7 @@ object HeldDispatch
       ) ~> ActivityRecord.effects.rejectDelivery
     }
     on(history.answerMatching) { // format: off
-      where(_.answer == Answer.owed) ~> ActivityRecord.effects.answerMatching // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      where(_.answer == Answer.owed) ~> ActivityRecord.effects.answerMatching
     } // format: on
 
   // What the machine a server's Run is checked against promises.

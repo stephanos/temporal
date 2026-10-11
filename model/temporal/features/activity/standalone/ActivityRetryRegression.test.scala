@@ -17,7 +17,7 @@ import framework.outcomes.Outcome
 class ActivityRetryRegression extends munit.FunSuite:
   val _ = () => summon[CanEqual[system.Phase, system.Phase]]
   private def take(s: system.State, c: Class): Step[system.State, Outcome, system.Fact] =
-    val binding = ActivitySystem.bindings.find(_.decl == c.decl).get // scalafix:ok DisableSyntax.==
+    val binding = ActivitySystem.bindings.find(_.decl == c.decl).get
     effectOf(binding.decl, binding.function)(s, c.values).head
 
   test("the start declares a retained retry-policy input") {
@@ -31,9 +31,7 @@ class ActivityRetryRegression extends munit.FunSuite:
       startToClose = Timeout.expires
     )
     val after = ActivitySystem.bindings
-      // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
       .find(_.decl == deadline.startToClose.decl)
-      // scalafix:on DisableSyntax.==
       .get
       .function
       .asInstanceOf[system.State => List[Step[system.State, Outcome, system.Fact]]](before)
@@ -50,15 +48,15 @@ class ActivityRetryRegression extends munit.FunSuite:
       val initial = take(ActivitySystem.init, client.start(maxAttempts := policy)).state
       assertEquals(initial.maxAttempts, policy)
       (1 to 3).foldLeft(initial) { (state, attempt) =>
-        if state.phase != system.Phase.scheduled then state // scalafix:ok DisableSyntax.!=
+        if state.phase != system.Phase.scheduled then state
         else
           val polled = take(state, worker.poll()).state
           assertEquals(polled.attempts: Int, attempt.min(MaxAttempts.bound))
           val retryAllowed =
-            policy == MaxAttempts.unlimited || (policy == MaxAttempts.two && attempt < 2) // scalafix:ok DisableSyntax.==
+            policy == MaxAttempts.unlimited || (policy == MaxAttempts.two && attempt < 2)
           assertEquals(ActivitySystem.states.retriesRemaining(polled), retryAllowed)
           val failed = take(polled, worker.respondFailed(Failure.retryable))
-          if policy == MaxAttempts.two then // scalafix:ok DisableSyntax.==
+          if policy == MaxAttempts.two then
             val satisfies = RetryFailures.properties.retryExhausts.decl.holds.get
               .asInstanceOf[Step[
                 system.State,
@@ -91,23 +89,19 @@ class ActivityRetryRegression extends munit.FunSuite:
       before <- Finite[system.State].values
       if List(system.Phase.started, system.Phase.pauseRequested, system.Phase.cancelRequested)
         .contains(before.phase) &&
-        before.startToClose == Timeout.expires // scalafix:ok DisableSyntax.==
+        before.startToClose == Timeout.expires
     do
       val retryAllowed =
-        before.phase != system.Phase.cancelRequested && // scalafix:ok DisableSyntax.!=
+        before.phase != system.Phase.cancelRequested &&
           (before.maxAttempts == MaxAttempts.unlimited ||
             (before.maxAttempts == MaxAttempts.two && before.attempts < 2) ||
-            (before.maxAttempts == MaxAttempts.one && before.attempts < 1)) // scalafix:ok DisableSyntax.==
+            (before.maxAttempts == MaxAttempts.one && before.attempts < 1))
       val after = take(before, deadline.startToClose())
       if retryAllowed then
-        // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
         val expectedPhase = if before.phase == system.Phase.pauseRequested then
-          // scalafix:on DisableSyntax.==
           system.Phase.paused
         else system.Phase.scheduled
-        // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
         val status = if before.phase == system.Phase.pauseRequested then
-          // scalafix:on DisableSyntax.==
           system.Fact.statusPaused
         else system.Fact.statusScheduled
         assertEquals(

@@ -28,11 +28,11 @@ object clock:
 
 // The modes both machines name a set of, so one function serves both.
 object Modes: // format: off
-  def working(m: Mode) = m != Mode.halted // scalafix:ok DisableSyntax.!=; strictEquality checks native comparisons
+  def working(m: Mode) = m != Mode.halted
   // format: on
 object Grouped extends Machine[Kettle, Outcome, Nothing], Phased[Kettle, Mode](_.mode):
   val init = Kettle(Mode.idle, UpTo(0)) // format: off
-  override def end(s: State) = s.mode == Mode.halted // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  override def end(s: State) = s.mode == Mode.halted
   // format: on
   object effects:
     def heat(s: Kettle) = enter[Kettle, Outcome, Nothing](s.copy(mode = Mode.busy))
@@ -45,7 +45,7 @@ object Grouped extends Machine[Kettle, Outcome, Nothing], Phased[Kettle, Mode](_
       import cook.*
       on(fill) {
         when(Mode.idle) ~> effects.heat // format: off
-        when(Mode.busy).where(_.boils == 2) ~> effects.halt // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+        when(Mode.busy).where(_.boils == 2) ~> effects.halt
       } // format: on
       on(set(Dial.low), set(Dial.high)) {
         when(Modes.working) ~> effects.refuse
@@ -58,7 +58,7 @@ object Grouped extends Machine[Kettle, Outcome, Nothing], Phased[Kettle, Mode](_
 
 object Plain extends Machine[Kettle, Outcome, Nothing], Phased[Kettle, Mode](_.mode):
   val init = Kettle(Mode.idle, UpTo(0)) // format: off
-  override def end(s: State) = s.mode == Mode.halted // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  override def end(s: State) = s.mode == Mode.halted
   // format: on
   object effects:
     def heat(s: Kettle) = enter[Kettle, Outcome, Nothing](s.copy(mode = Mode.busy))
@@ -69,7 +69,7 @@ object Plain extends Machine[Kettle, Outcome, Nothing], Phased[Kettle, Mode](_.m
   object rules extends Rules:
     on(cook.fill) {
       when(Mode.idle) ~> effects.heat // format: off
-      when(Mode.busy).where(_.boils == 2) ~> effects.halt // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      when(Mode.busy).where(_.boils == 2) ~> effects.halt
     } // format: on
     on(cook.set(Dial.low))(when(Modes.working) ~> effects.refuse)
     on(cook.set(Dial.high))(when(Modes.working) ~> effects.refuse)

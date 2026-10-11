@@ -58,7 +58,7 @@ object BoundPrefix extends Machine[State, Outcome, Nothing]:
   val init = State(Kind.a, Handler.running)
   object rules extends Bindings()
   def end(s: State) = s.kind match
-    case x @ Kind.a => x == Kind.a // scalafix:ok DisableSyntax.==; typed equality
+    case x @ Kind.a => x == Kind.a
     case _: Kind.b.type | _: Kind.c.type => true
 
 enum Lifecycle derives Finite:
@@ -70,7 +70,7 @@ object RolePrefix extends Machine[RoleState, Outcome, Nothing]:
   val init = RoleState(Lifecycle.held)
   object rules extends Bindings()
   def end(s: RoleState) = s.phase match
-    case p: Held => p != Lifecycle.closed // scalafix:ok DisableSyntax.!=; typed equality
+    case p: Held => p != Lifecycle.closed
     case _: Lifecycle.waiting.type | _: Lifecycle.closed.type => false
 
 object Explicit extends Machine[State, Outcome, Nothing]:
@@ -92,16 +92,16 @@ object Remainder extends Machine[State, Outcome, Nothing]:
     case _: Handler.running.type | _: Handler.cancelReceived.type => false
 
 val storedOnce =
-  Remainder.property.once(_.kind == Kind.a) // scalafix:ok DisableSyntax.==; typed equality
+  Remainder.property.once(_.kind == Kind.a)
 
 object Keeps extends Machine[State, Outcome, Nothing]:
   val init = State(Kind.a, Handler.running)
   object rules extends Bindings()
-  def end(s: State) = s.kind == Kind.c // scalafix:ok DisableSyntax.==; typed equality
+  def end(s: State) = s.kind == Kind.c
   object properties:
     val kept = property
       .once(_.kind == Kind.a)
-      .keeps[Kind](_.kind) // scalafix:ok DisableSyntax.==; typed equality
+      .keeps[Kind](_.kind)
   object queries:
     val kept: Query =
       query verify properties.kept in scenario("keeps").actions() limits Limits("keeps", 1, 1, 1)
@@ -109,7 +109,7 @@ object Keeps extends Machine[State, Outcome, Nothing]:
 object StoredKeeps extends Machine[State, Outcome, Nothing]:
   val init = State(Kind.a, Handler.running)
   object rules extends Bindings()
-  def end(s: State) = s.kind == Kind.c // scalafix:ok DisableSyntax.==; typed equality
+  def end(s: State) = s.kind == Kind.c
   object properties:
     val kept = storedOnce.keeps[Kind](_.kind)
   object queries:

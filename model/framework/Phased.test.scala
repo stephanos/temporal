@@ -30,7 +30,7 @@ object PhasedFixture:
 
   object OverrideEnd extends Machine[Snapshot, Answer, Nothing], Phased[Snapshot, Phase](_.phase):
     val init = Snapshot(Phase.absent)
-    override def end(s: State) = s.phase == Phase.paused // scalafix:ok DisableSyntax.==
+    override def end(s: State) = s.phase == Phase.paused
 
     object rules extends Rules
 
@@ -43,7 +43,7 @@ object PhasedFixture:
   object OverridePair
       extends Composition[Pair](_.left -> DefaultEnd, _.right -> DefaultEnd),
         Phased[Pair, Phase](_.left.phase):
-    override def end(s: State) = s.left.phase == Phase.paused // scalafix:ok DisableSyntax.==
+    override def end(s: State) = s.left.phase == Phase.paused
 
     object syncs extends Syncs
 
@@ -76,7 +76,7 @@ object PhasedFixture:
       extends Machine[OpenPhase, Answer, Nothing],
         Phased[OpenPhase, OpenPhase](identity):
     val init = OpenPhase.waiting
-    override def end(s: State) = s == OpenPhase.waiting // scalafix:ok DisableSyntax.==
+    override def end(s: State) = s == OpenPhase.waiting
 
     object rules extends Rules
 
@@ -108,7 +108,7 @@ class PhasedSuite extends munit.FunSuite:
       assertEquals(
         DerivedOverrideAgain.end(pair),
         left.phase == Phase.paused
-      ) // scalafix:ok DisableSyntax.==
+      )
 
   test("default ends accept exactly the Closed phases on machines and nested compositions"):
     val closed: Set[Phase] =
@@ -124,10 +124,10 @@ class PhasedSuite extends munit.FunSuite:
         OverrideEnd.end(Snapshot(p)),
         p == Phase.paused,
         p.toString
-      ) // scalafix:ok DisableSyntax.==
+      )
       assertEquals(
         OverridePair.end(Pair(Snapshot(p), DefaultEnd.init)),
-        p == Phase.paused, // scalafix:ok DisableSyntax.==
+        p == Phase.paused,
         p.toString
       )
     assert(OpenOverride.end(OpenPhase.waiting))

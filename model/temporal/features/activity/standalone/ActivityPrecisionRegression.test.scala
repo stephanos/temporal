@@ -30,7 +30,7 @@ import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.METHOD_DESCRIBE_AC
 class ActivityPrecisionRegression extends munit.FunSuite:
   val _ = () => summon[CanEqual[system.Phase, system.Phase]]
   private def take(s: system.State, c: Class) =
-    val binding = ActivitySystem.bindings.find(_.decl == c.decl).get // scalafix:ok DisableSyntax.==
+    val binding = ActivitySystem.bindings.find(_.decl == c.decl).get
     effectOf[system.State, Outcome, system.Fact](binding.decl, binding.function)(s, c.values).head
 
   test(
@@ -64,7 +64,7 @@ class ActivityPrecisionRegression extends munit.FunSuite:
       assert(holds(armed, closed))
     for
       before <- summon[Finite[system.State]].values
-      if before.phase == system.Phase.cancelRequested // scalafix:ok DisableSyntax.==
+      if before.phase == system.Phase.cancelRequested
       binding <- ActivitySystem.bindings
       inputs <- classesOf(binding.decl)
       after <- effectOf[system.State, Outcome, system.Fact](binding.decl, binding.function)(
@@ -126,7 +126,7 @@ class ActivityPrecisionRegression extends munit.FunSuite:
       else
         realization.observations.filter(
           _.message == ActivityExecutionInfo.scalaDescriptor.fullName
-        ) // scalafix:ok DisableSyntax.==
+        )
       assertEquals(observed.size, 1)
       assertEquals(observed.head.id, attemptCount.name)
       assertEquals(observed.head.message, ActivityExecutionInfo.scalaDescriptor.fullName)
@@ -142,7 +142,7 @@ class ActivityPrecisionRegression extends munit.FunSuite:
     for realization <- List(HeartbeatThenCompletion, RetryAfterHeartbeat, ExhaustAfterHeartbeat) do
       val details = realization.observations.filter(
         _.message == Payloads.scalaDescriptor.fullName
-      ) // scalafix:ok DisableSyntax.==
+      )
       assertEquals(details.size, 1)
       assertEquals(details.head.id, heartbeatDetails.name)
       assertEquals(details.head.message, Payloads.scalaDescriptor.fullName)

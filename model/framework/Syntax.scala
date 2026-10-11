@@ -245,7 +245,7 @@ final class Once[S, O, F] private[framework] (b: PropertyBuilder[S, O, F], over:
         b.when,
         None,
         Some((before: S, after: Step[S, O, F]) => // format: off
-          !over(before) || projection(after.state) == projection(before) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+          !over(before) || projection(after.state) == projection(before)
         ) // format: on
       )
     )
@@ -319,7 +319,7 @@ extension [I <: NonEmptyTuple](a: Action[I])
         a.decl.tokens.contains(Some(s.slot)),
         s"an input supplied to ${a.name} is not its own"
       ) // format: off
-      require(supplied.count(_.slot eq s.slot) == 1, s"an input of ${a.name} is supplied twice") // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      require(supplied.count(_.slot eq s.slot) == 1, s"an input of ${a.name} is supplied twice")
     val values = a.decl.tokens // format: on
       .zip(a.decl.domains)
       .map: (token, domain) =>
@@ -584,7 +584,7 @@ abstract class Rules[S, O, F, P](using
       case (c: Class, code)     => (c.decl, Some(c.values), code)
     for ((decl, values, code), i) <- named.zipWithIndex do
       require( // format: off
-        !named.take(i).exists((d, v, _) => d == decl && java.util.Objects.equals(v, values)), // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+        !named.take(i).exists((d, v, _) => d == decl && java.util.Objects.equals(v, values)),
         s"${writtenAction(code)} is named twice in one on: name each action, or class of it, once" // format: on
       )
     for (decl, values, code) <- named do block[EmptyTuple](decl, values, code)(cases)
@@ -610,7 +610,7 @@ abstract class Rules[S, O, F, P](using
   // no object that holds it, so the object's members are read.
   private def declaredBy(declarer: AnyRef): Set[ActionDecl] =
     declarer.getClass.getMethods.toSet // format: off
-      .filter(m => m.getParameterCount == 0 && classOf[Action[?]].isAssignableFrom(m.getReturnType)) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      .filter(m => m.getParameterCount == 0 && classOf[Action[?]].isAssignableFrom(m.getReturnType))
       .map(_.invoke(declarer)) // format: on
       .collect { case a: Action[?] => a.decl }
 
@@ -654,7 +654,7 @@ abstract class Rules[S, O, F, P](using
   def disabled(actions: Action[?]*): Unit =
     for a <- actions do
       require( // format: off
-        !never.contains(a.decl) && !written.exists(_.decl == a.decl), // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+        !never.contains(a.decl) && !written.exists(_.decl == a.decl),
         "an action is disabled twice, or disabled and bound by a rule" // format: on
       )
       never += a.decl
@@ -671,7 +671,7 @@ abstract class Rules[S, O, F, P](using
   private[framework] def table: Vector[(ActionDecl, Bound[S, O, F])] = // format: off
     order.toVector.map: decl =>
       decl -> (if never.contains(decl) then Bound.Disabled[S, O, F]()
-               else Bound.Ruled(written.filter(_.decl == decl).toVector)) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+               else Bound.Ruled(written.filter(_.decl == decl).toVector))
                // format: on
 
 // Evidence that a case's phases are of the type the rules' projection reads: the rules of a machine

@@ -48,7 +48,7 @@ object TrustingCaller
     // The control deliberately predicts success for a failed callback. The runtime still sends
     // failure.
     def forgedComplete(s: State, resolution: Resolution) = // format: off
-      if resolution == Resolution.failed then // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      if resolution == Resolution.failed then
         choose(forged -> settle(s, Resolution.succeeded), sent -> settle(s, resolution)) // format: on
       else settle(s, resolution)
 
@@ -77,17 +77,17 @@ object TrustingCaller
     }
     on(deadline.scheduleToClose) {
       when[Live].where(
-        _.scheduleToClose == Timeout.expires // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+        _.scheduleToClose == Timeout.expires
       ) ~> (NexusSystem.effects.timeOut(_, TimeoutType.scheduleToClose))
     }
     on(deadline.scheduleToStart) {
       when[Waiting].where(
-        _.scheduleToStart == Timeout.expires // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+        _.scheduleToStart == Timeout.expires
       ) ~> (NexusSystem.effects.timeOut(_, TimeoutType.scheduleToStart))
     }
     on(deadline.startToClose) {
       where(s =>
-        s.phase == Phase.started && s.startToClose == Timeout.expires // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+        s.phase == Phase.started && s.startToClose == Timeout.expires
       ) ~> (NexusSystem.effects.timeOut(_, TimeoutType.startToClose))
     }
 

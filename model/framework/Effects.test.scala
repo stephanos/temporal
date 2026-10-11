@@ -34,8 +34,8 @@ object EffectsFixture:
     override def end(s: Job) = true
 
     object states:
-      val busy = is(phase == Phase.busy) // scalafix:ok DisableSyntax.==
-      val retried = is(phase == Phase.busy && tries == UpTo[2](1)) // scalafix:ok DisableSyntax.==
+      val busy = is(phase == Phase.busy)
+      val retried = is(phase == Phase.busy && tries == UpTo[2](1))
 
     object effects:
       val start = effect {
@@ -152,12 +152,12 @@ class EffectsTest extends munit.FunSuite:
 
   test("an is block answers as its predicate") {
     for s <- states do
-      assertEquals(Subject.states.busy(s), s.phase == Phase.busy, s) // scalafix:ok DisableSyntax.==
+      assertEquals(Subject.states.busy(s), s.phase == Phase.busy, s)
       assertEquals(
         Subject.states.retried(s),
         s.phase == Phase.busy && s.tries == UpTo[2](1),
         s
-      ) // scalafix:ok DisableSyntax.==
+      )
   }
 
   test("a rule binds an effect block and conditions on an is block") {
@@ -180,7 +180,7 @@ class EffectsTest extends munit.FunSuite:
   test("record, the one-argument reject and a field assignment compile only in an effect block") {
     given Owner[Job, Said, Note] = Owner(Subject)
     // The blocks compile here, so the errors below are the draft's.
-    assert(is(phase == Phase.idle)(Subject.init)) // scalafix:ok DisableSyntax.==
+    assert(is(phase == Phase.idle)(Subject.init))
     val draftOnly = "which only an `effect { }` block does"
     for (code, errors) <- List(
         "record(Note.started)" -> compileErrors("record(Note.started)"),

@@ -74,7 +74,7 @@ def doorEvidence(f: DoorFact): String = f match
 object Door extends Machine[DoorState, DoorOutcome, DoorFact]:
   val entity = door
   val init = DoorState.closed // format: off
-  def end(doorState: State) = doorState == DoorState.open // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  def end(doorState: State) = doorState == DoorState.open
   val evidence: DoorFact => String = doorEvidence // format: on
 
   object rules extends Bindings(push ~> pushStep)
@@ -82,7 +82,7 @@ object Door extends Machine[DoorState, DoorOutcome, DoorFact]:
 // The step's explanation is part of the step a Property reads, as its outcome and facts are.
 private val opensBecauseTheLatchGives =
   Door.property when push holds { s => // format: off
-    s.because == "the latch gives" && s.facts.contains(DoorFact.doorOpened) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    s.because == "the latch gives" && s.facts.contains(DoorFact.doorOpened)
   } // format: on
 
 private val pushed = Door.scenario.starts(DoorState.closed).actions(push)
@@ -215,7 +215,7 @@ private def doorCorrelation(scope: String) = Correlation(
 object Run extends Machine[DoorState, DoorOutcome, DoorFact]:
   val entity = door
   val init = DoorState.closed // format: off
-  def end(doorState: State) = doorState == DoorState.open // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  def end(doorState: State) = doorState == DoorState.open
   val evidence: DoorFact => String = doorEvidence // format: on
 
   object rules extends Bindings(push ~> pushStep)
@@ -381,7 +381,7 @@ val dispatchChannel: Channel[DoorFact] =
 object Race extends Machine[DoorState, DoorOutcome, DoorFact]:
   val entity = door
   val init = DoorState.closed // format: off
-  def end(doorState: State) = doorState == DoorState.open // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  def end(doorState: State) = doorState == DoorState.open
   val evidence: DoorFact => String = doorEvidence // format: on
 
   object rules extends Bindings(push ~> pushStep)
@@ -499,22 +499,22 @@ enum Seen derives Finite:
 
 def seen(s: Seen, before: DoorState, after: DoorStep): Seen =
   if !after.facts.contains(DoorFact.doorOpened) then s // format: off
-  else if s == Seen.shut then Seen.opened // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  else if s == Seen.shut then Seen.opened
   else Seen.reopened // format: on
 
 // The same watch, read only after a step that opens the door.
 val opensOnce: Monitor[DoorState, DoorOutcome, DoorFact, Seen] = // format: off
-  monitor[DoorState, DoorOutcome, DoorFact, Seen](Seen.shut)(seen)(_ == Seen.reopened) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  monitor[DoorState, DoorOutcome, DoorFact, Seen](Seen.shut)(seen)(_ == Seen.reopened)
     .readAfter(after => after.facts.contains(DoorFact.doorOpened)) // format: on
 
 val staysOpen: Monitor[DoorState, DoorOutcome, DoorFact, Seen] = // format: off
-  monitor[DoorState, DoorOutcome, DoorFact, Seen](Seen.shut)(seen)(_ == Seen.reopened) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  monitor[DoorState, DoorOutcome, DoorFact, Seen](Seen.shut)(seen)(_ == Seen.reopened)
   // format: on
 // A door with authored monitors, which no realization above runs.
 object Watched extends Machine[DoorState, DoorOutcome, DoorFact]:
   val entity = door
   val init = DoorState.closed // format: off
-  def end(doorState: State) = doorState == DoorState.open // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  def end(doorState: State) = doorState == DoorState.open
   val evidence: DoorFact => String = doorEvidence // format: on
 
   object monitors:
@@ -601,7 +601,7 @@ def deliverStep(s: ErrandState): List[ErrandStep] = s match
 // A failed attempt is retried and a caller reads nothing new; a completed one closes the errand, and
 // a canceled one withdraws it.
 def answerStep(s: ErrandState, a: ErrandAnswer): List[ErrandStep] = // format: off
-  if s != ErrandState.held then Nil // scalafix:ok DisableSyntax.!=; strictEquality checks native comparisons
+  if s != ErrandState.held then Nil
   else // format: on
     a match
       case ErrandAnswer.failed    => List(Step(ErrandOutcome.accepted, ErrandState.retrying))
@@ -618,7 +618,7 @@ def errandEvidence(f: ErrandFact): String = f match
 object Errand extends Machine[ErrandState, ErrandOutcome, ErrandFact]:
   val entity = errand
   val init = ErrandState.idle // format: off
-  def end(s: State) = s == ErrandState.done || s == ErrandState.withdrawn // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  def end(s: State) = s == ErrandState.done || s == ErrandState.withdrawn
   val evidence: ErrandFact => String = errandEvidence // format: on
 
   object rules
@@ -626,7 +626,7 @@ object Errand extends Machine[ErrandState, ErrandOutcome, ErrandFact]:
 
 private val closesOnCompletion =
   Errand.property when answer(ErrandAnswer.completed) holds { s => // format: off
-    s.state == ErrandState.done && s.facts.contains(ErrandFact.errandClosed) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    s.state == ErrandState.done && s.facts.contains(ErrandFact.errandClosed)
   } // format: on
 
 private val retriedOnce = Errand.scenario
@@ -645,7 +645,7 @@ val errandRetry: Query =
 // Query is blocked by that command, and the retry above, whose path does not take it, is not.
 private val withdrawsOnCancel =
   Errand.property when answer(ErrandAnswer.canceled) holds { s => // format: off
-    s.state == ErrandState.withdrawn && s.facts.contains(ErrandFact.errandWithdrawn) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    s.state == ErrandState.withdrawn && s.facts.contains(ErrandFact.errandWithdrawn)
   } // format: on
 
 private val canceledOnce = Errand.scenario
@@ -866,7 +866,7 @@ val errandRealization: Realization = Realization(
 object Tally extends Machine[DoorState, DoorOutcome, DoorFact]:
   val entity = door
   val init = DoorState.closed // format: off
-  def end(doorState: State) = doorState == DoorState.open // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  def end(doorState: State) = doorState == DoorState.open
   val evidence: DoorFact => String = doorEvidence // format: on
 
   object rules extends Bindings(push ~> pushStep)

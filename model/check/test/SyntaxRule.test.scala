@@ -86,7 +86,7 @@ class SyntaxRuleSuite extends munit.FunSuite:
     assertEquals(
       found.map(
         _.takeWhile(_ != ' ')
-      ), // scalafix:ok DisableSyntax.!=; strictEquality checks this native comparison
+      ),
       Vector(3, 6, 9, 13, 18, 20, 21).map(line => s"model/temporal/realize/Syntax.scala:$line:")
     )
     assert(found.head.contains("`enter` in a Syntax.scala has no doc comment"), found.head)
@@ -129,7 +129,7 @@ class SyntaxRuleSuite extends munit.FunSuite:
     assertEquals(
       found.map(_.takeWhile(_ != ' ')),
       Vector("model/irgen/Syntax.scala:15:")
-    ) // scalafix:ok DisableSyntax.!=; strictEquality checks this native comparison
+    )
     assert(found.head.contains("`sugared`"), found.head)
 
   test("a sugar name defined at the top level, in an object or as an extension fails"):
@@ -170,7 +170,7 @@ class SyntaxRuleSuite extends munit.FunSuite:
     assertEquals(
       found.map(
         _.takeWhile(_ != ' ')
-      ), // scalafix:ok DisableSyntax.!=; strictEquality checks this native comparison
+      ),
       Vector(
         "model/framework/Steps.scala:3:",
         "model/framework/Steps.scala:7:",
@@ -309,7 +309,7 @@ class SyntaxRuleSuite extends munit.FunSuite:
     assertEquals(
       found.map(
         _.takeWhile(_ != ' ')
-      ), // scalafix:ok DisableSyntax.!=; strictEquality checks this native comparison
+      ),
       Vector(4, 6, 6, 6).map(line => s"model/framework/Core.scala:$line:")
     )
     assertEquals(

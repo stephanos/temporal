@@ -20,9 +20,9 @@ private[irgen] trait Types:
     cls.caseFields.map(f => f.name -> cls.typeRef.memberType(f).widen)
   def isList(sym: Symbol): Boolean =
     sym == defn.RepeatedParamClass ||
-      sym.fullName == "scala.collection.immutable.List" || sym.fullName == "scala.collection.immutable.Seq" // scalafix:ok DisableSyntax.==; typed equality
+      sym.fullName == "scala.collection.immutable.List" || sym.fullName == "scala.collection.immutable.Seq"
   def isNamed(tpe: TypeRepr, name: String): Boolean =
-    tpe.widen.dealias.typeSymbol.fullName == name // scalafix:ok DisableSyntax.==; typed equality
+    tpe.widen.dealias.typeSymbol.fullName == name
   def messageType(inbox: TypeRepr): String =
     inbox.widen.dealias.typeArgs.head.dealias.typeSymbol.fullName
   def named(name: String): ir.TypeRef = ir.TypeRef(ir.TypeRef.Ref.Named(name))
@@ -34,9 +34,7 @@ private[irgen] trait Types:
     val tpe = instantiated(declared)
     // An opaque type is read before its alias is resolved: its range is its own.
     val opaque = tpe.widen.typeSymbol
-    // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
     if opaque.fullName == upToType then
-      // scalafix:on DisableSyntax.==
       range(0, upToBound(tpe, at))
     else if opaque.flags.is(Flags.Opaque) then
       val (lo, hi) = opaqueRanges.getOrElse(
@@ -51,15 +49,11 @@ private[irgen] trait Types:
     else
       val t = tpe.dealias.widen
       val sym = t.typeSymbol
-      // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
       if sym == defn.BooleanClass then
-        // scalafix:on DisableSyntax.==
         ir.TypeRef(ir.TypeRef.Ref.Bool(Empty()))
-      // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
       else if sym == defn.IntClass && owner.isEmpty then
-        // scalafix:on DisableSyntax.==
         ir.TypeRef(ir.TypeRef.Ref.Int(Empty()))
-      else if sym == defn.IntClass then // scalafix:ok DisableSyntax.==; typed equality
+      else if sym == defn.IntClass then
         val (lo, hi) = intRanges.getOrElse(
           owner,
           fail(
@@ -70,11 +64,9 @@ private[irgen] trait Types:
         )
         range(lo, hi)
       else if isList(sym) then ir.TypeRef(ir.TypeRef.Ref.List(typeRef(t.typeArgs.head, at, owner)))
-      // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
       else if sym.fullName == "scala.Option" then
-        // scalafix:on DisableSyntax.==
         named(optionType(t.typeArgs.head, at))
-      else if sym.fullName == "framework.Inbox" then // scalafix:ok DisableSyntax.==; typed equality
+      else if sym.fullName == "framework.Inbox" then
         if owner.isEmpty then
           fail(at, "an Inbox is held in a state field; a function reads it from the state")
         val channel = channelFields.getOrElse(
@@ -86,9 +78,7 @@ private[irgen] trait Types:
           )
         )
         ir.TypeRef(ir.TypeRef.Ref.Channel(channelOf(channel, at)))
-      // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
       else if sym.fullName == stepType then
-        // scalafix:on DisableSyntax.==
         named(stepType)
       else
         declareType(sym, at)
@@ -114,9 +104,7 @@ private[irgen] trait Types:
 
   def declareType(sym: Symbol, at: Tree): Unit =
     lazy val name = irTypeName(sym)
-    // scalafix:off DisableSyntax.!=; strictEquality checks native comparisons
     if sym != defn.NothingClass && !types.contains(name)
-    // scalafix:on DisableSyntax.!=
     then
       types(name) = ir.Type.defaultInstance // placeholder against recursion
       val position = Some(scala.util.Try(pos(sym.tree)).getOrElse(pos(at)))
@@ -175,7 +163,7 @@ private[irgen] trait Types:
   def optionArg(tpe: TypeRepr, at: Tree): TypeRepr =
     def arg(t: TypeRepr): Option[TypeRepr] = t.widen.dealias match
       case AppliedType(o, List(a))
-          if o.typeSymbol.fullName == "scala.Option" || o.typeSymbol.fullName == "scala.Some" => // scalafix:ok DisableSyntax.==; typed equality
+          if o.typeSymbol.fullName == "scala.Option" || o.typeSymbol.fullName == "scala.Some" =>
         Some(a)
       case OrType(l, r) => arg(l).orElse(arg(r))
       case _            => None
@@ -191,7 +179,7 @@ private[irgen] trait Types:
   // given is its range.
   def finiteOf(tpt: TypeTree): Option[TypeRepr] =
     if tpt.tpe.typeSymbol.name == "Finite" then tpt.tpe.typeArgs.headOption
-    else None // scalafix:ok DisableSyntax.==; typed equality
+    else None
   def readFinites(): Unit =
     for d <- defs.values do
       d match

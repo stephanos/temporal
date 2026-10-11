@@ -51,7 +51,7 @@ object NexusProduct extends Machine[State, Outcome, Fact], Phased[State, Phase](
     def succeed(s: State) = enter(s.copy(phase = succeeded), nexusOperationCompleted)
 
     def complete(s: State, resolution: Resolution) = // format: off
-      val startedFirst = if s.phase != started then List(nexusOperationStarted) else Nil // scalafix:ok DisableSyntax.!=; strictEquality checks native comparisons
+      val startedFirst = if s.phase != started then List(nexusOperationStarted) else Nil
       resolution match // format: on
         case Resolution.succeeded =>
           enter(s.copy(phase = succeeded), (startedFirst ++ List(nexusOperationCompleted))*)

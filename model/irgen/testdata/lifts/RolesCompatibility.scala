@@ -7,8 +7,8 @@ import framework.Finite
   val states = Finite[Job].values
   for phase <- phases do
     val (roled, listed) = (Roled.states.settled(phase), Listed.states.settled(phase))
-    require(roled == listed) // scalafix:ok DisableSyntax.==; typed equality
+    require(roled == listed)
   for state <- states do
     val (roled, listed) = (Roled.states.stopping(state), Listed.states.stopping(state))
-    require(roled == listed) // scalafix:ok DisableSyntax.==; typed equality
+    require(roled == listed)
   println(s"role prefixes equivalent: ${phases.size} phases, ${states.size} states")

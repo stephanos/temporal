@@ -16,7 +16,7 @@ class ActivityRejectionRegression extends munit.FunSuite:
       a: Action[EmptyTuple]
   ): List[Step[S, Outcome, F]] =
     m.bindings
-      .find(_.decl == a.decl) // scalafix:ok DisableSyntax.==
+      .find(_.decl == a.decl)
       .get
       .function
       .asInstanceOf[S => List[Step[S, Outcome, F]]](
@@ -80,17 +80,13 @@ class ActivityRejectionRegression extends munit.FunSuite:
     assertEquals(rows(1).facts, List(product.Fact.statusPaused))
     assertEquals(rows.last.state, before)
     assertEquals(rows.last.facts, Nil)
-    // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
     for s <- summon[Finite[system.State]].values if s.phase == system.Phase.pauseRequested
-    // scalafix:on DisableSyntax.==
     do
       val result = take(ActivitySystem, s, client.pause).head
       assertEquals(ActivitySystem.refinement.toProduct(s), before)
       assert(
         rows.exists(r =>
-          // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
           r.outcome == result.outcome && r.state == ActivitySystem.refinement
-            // scalafix:on DisableSyntax.==
             .toProduct(
               result.state
             )
@@ -101,7 +97,7 @@ class ActivityRejectionRegression extends munit.FunSuite:
   test("a worker cannot answer canceled before cancellation is requested (model.go:171)") {
     for
       s <- summon[Finite[system.State]].values
-      if s.phase == system.Phase.started || s.phase == system.Phase.pauseRequested // scalafix:ok DisableSyntax.==
+      if s.phase == system.Phase.started || s.phase == system.Phase.pauseRequested
     do rejectsUnchanged(ActivitySystem, s, worker.respondCanceled, Rejection.invalidArgument)
     rejectsUnchanged(
       ActivityProduct,
@@ -117,9 +113,7 @@ class ActivityRejectionRegression extends munit.FunSuite:
     assertEquals(requested.outcome, Outcome.accepted)
     assertEquals(requested.facts, List(system.Fact.statusCancelRequested))
     assertEquals(requested.state.phase, system.Phase.cancelRequested)
-    // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
     for s <- summon[Finite[system.State]].values if s.phase == system.Phase.cancelRequested
-    // scalafix:on DisableSyntax.==
     do rejectsUnchanged(ActivitySystem, s, client.requestCancel, Rejection.failedPrecondition)
     rejectsUnchanged(
       ActivitySystem,

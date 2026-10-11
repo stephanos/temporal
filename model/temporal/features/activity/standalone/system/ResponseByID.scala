@@ -18,7 +18,7 @@ object ByIDCompletion extends Derived(ActivitySystem.unmonitored):
 
   object properties:
     val completedByID = property when service.respondCompletedByID holds { after => // format: off
-      after.state.phase == Phase.completed && after.records(Fact.statusCompleted) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      after.state.phase == Phase.completed && after.records(Fact.statusCompleted)
     } // format: on
 
   object queries:
@@ -32,7 +32,7 @@ object ByIDFailure extends Derived(ActivitySystem.unmonitored):
 
   object properties: // format: off
     val fatalFailureByID = property when service.respondFailedByID(Failure.fatal) holds { after =>
-      after.state.phase == Phase.failed && after.records(Fact.statusFailed) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      after.state.phase == Phase.failed && after.records(Fact.statusFailed)
     } // format: on
 
   object queries:
@@ -54,7 +54,7 @@ object ByIDCancellation extends Derived(ActivitySystem.unmonitored):
         _.records(Fact.statusCancelRequested)
       )
     val canceledByID = property when service.respondCanceledByID holds { after => // format: off
-      after.state.phase == Phase.canceled && after.records(Fact.statusCanceled) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      after.state.phase == Phase.canceled && after.records(Fact.statusCanceled)
     } // format: on
 
   object queries:

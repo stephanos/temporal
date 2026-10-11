@@ -167,7 +167,7 @@ object IrFile:
   private def queriesOf(section: AnyRef): Seq[Any] =
     section.getClass.getDeclaredMethods.toSeq
       .filter(m => // format: off
-        m.getParameterCount == 0 && java.lang.reflect.Modifier.isPublic(m.getModifiers) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+        m.getParameterCount == 0 && java.lang.reflect.Modifier.isPublic(m.getModifiers)
       ) // format: on
       .filter(m =>
         classOf[Query].isAssignableFrom(m.getReturnType) ||

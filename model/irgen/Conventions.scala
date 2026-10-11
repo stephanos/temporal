@@ -53,9 +53,7 @@ final private[irgen] class Conventions(index: Index):
       )
       val pos = r.pos
       val selected = lines.slice(pos.startLine, pos.endLine + 1)
-      // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
       val written = if selected.length == 1 then
-        // scalafix:on DisableSyntax.==
         selected.head.slice(
           pos.startColumn,
           pos.endColumn
@@ -108,7 +106,7 @@ final private[irgen] class Conventions(index: Index):
     case _ => false
 
   private def within(pkg: String, parent: String): Boolean =
-    pkg == parent || pkg.startsWith(parent + ".") // scalafix:ok DisableSyntax.==; typed equality
+    pkg == parent || pkg.startsWith(parent + ".")
 
   private def category(pkg: String): String = pkg.split('.').lift(1).getOrElse("")
   private def feature(pkg: String): String = pkg.split('.').take(3).mkString(".")
@@ -117,7 +115,7 @@ final private[irgen] class Conventions(index: Index):
 
   // A package always reads itself, as the code `derives` writes into it does.
   private def permitted(from: String, to: String, test: Boolean): Boolean =
-    if to == from then true // scalafix:ok DisableSyntax.==; typed equality
+    if to == from then true
     else if within(to, "temporal.server.api") then !within(from, "framework")
     else if within(from, "framework") && within(to, "io.temporal") then false
     else if within(from, "temporal") && within(to, "io.temporal.server.api.umpire") then false
@@ -132,11 +130,11 @@ final private[irgen] class Conventions(index: Index):
           case "capabilities" | "realize" =>
             category(to) == category(
               from
-            ) || to == "temporal" // scalafix:ok DisableSyntax.==; typed equality
+            ) || to == "temporal"
           case "actors" | "foundations" =>
             feature(to) == feature(
               from
-            ) || to == "temporal" // scalafix:ok DisableSyntax.==; typed equality
+            ) || to == "temporal"
           case "features" =>
             Set("capabilities", "realize", "actors", "foundations")(category(to)) ||
             to == "temporal" || (feature(to) == feature(
@@ -144,8 +142,8 @@ final private[irgen] class Conventions(index: Index):
             ) &&
               (form(to).isEmpty || form(to) == form(
                 from
-              ))) // scalafix:ok DisableSyntax.==; typed equality
-          case _ => to == "temporal" // scalafix:ok DisableSyntax.==; typed equality
+              )))
+          case _ => to == "temporal"
     else if within(from, "umpire.irgen") || within(from, "umpire.check") then
       !within(to, "framework") && !within(to, "temporal") &&
       (test || !(within(to, "umpire.irgen") && within(from, "umpire.check")))
@@ -164,9 +162,7 @@ final private[irgen] class Conventions(index: Index):
     if !permitted(from, target, test) then
       importedRefusals += ((fileOf(i), from, target))
       refuse(i, "R4.module-import", s"$from may not import $target under the Scala module map")
-    // scalafix:off DisableSyntax.!=; strictEquality checks native comparisons
     if levelOwner(target).nonEmpty && levelOwner(packageOf(owner)) != levelOwner(target)
-    // scalafix:on DisableSyntax.!=
     then
       val omitted = i.selectors.collect { case OmitSelector(name) => name }.toSet
       val renamed = i.selectors.collect { case RenameSelector(name, _) => name }.toSet
@@ -183,7 +179,7 @@ final private[irgen] class Conventions(index: Index):
         .filterNot(n =>
           omitted(n) || (renamed(n) && !i.selectors.exists {
             case RenameSelector(original, alias) =>
-              original == n && levelTypes(alias) // scalafix:ok DisableSyntax.==; typed equality
+              original == n && levelTypes(alias)
             case _ => false
           })
         )
@@ -225,7 +221,7 @@ final private[irgen] class Conventions(index: Index):
                 s"${owner.name} matches ${scrutinee.tpe.widen.dealias.show} with a whole-case wildcard: name its explicit cases"
               )
           case r: Ref
-              if r.symbol.name == "in" && // scalafix:ok DisableSyntax.==; typed equality
+              if r.symbol.name == "in" &&
                 Set("framework.Syntax$package$", "framework.Rules")(r.symbol.maybeOwner.fullName) =>
             dotted(r) match
               case Right(false) =>

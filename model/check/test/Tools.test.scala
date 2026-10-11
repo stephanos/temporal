@@ -101,7 +101,7 @@ class ToolsSuite extends munit.FunSuite:
     assertEquals(
       refused(held.tools(work).find(path)).takeWhile(
         _ != '.'
-      ), // scalafix:ok DisableSyntax.!=; strictEquality checks this native comparison
+      ),
       s"$path is missing: it is not an executable file"
     )
 

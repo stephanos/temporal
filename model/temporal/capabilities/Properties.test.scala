@@ -24,7 +24,7 @@ class CapabilityPropertiesTest extends munit.FunSuite:
     case other         => fail(s"expected Boolean capability binding, got $other")
   final case class Brought(name: String, by: Set[CapabilityKind])
   private def only(by: Set[CapabilityKind], kind: CapabilityKind): Boolean =
-    by.size == 1 && by.contains(kind) // scalafix:ok DisableSyntax.==
+    by.size == 1 && by.contains(kind)
   final case class Declared(
       machine: String,
       state: String,
@@ -143,10 +143,10 @@ class CapabilityPropertiesTest extends munit.FunSuite:
     assertEquals(underInstantiated(properties, declared ++ conditionalFixtures), Seq.empty)
     val finitePolicy = properties
       .find(_.name == "Retries.attemptCountIsWithinPolicy")
-      .get // scalafix:ok DisableSyntax.==
+      .get
     val finitePolicySites = declared.filterNot(
       _.state == WorkflowNexusSystem.init.getClass.getName
-    ) // scalafix:ok DisableSyntax.==
+    )
     assertEquals(
       instantiating(finitePolicy, finitePolicySites ++ conditionalFixtures),
       Seq(classOf[system.State].getName, classOf[RetryFixture.Snapshot].getName)
@@ -156,7 +156,7 @@ class CapabilityPropertiesTest extends munit.FunSuite:
   test("workflow Nexus brings only retry and deadline branches its bindings supply") {
     val nexus = declared
       .find(_.state == WorkflowNexusSystem.init.getClass.getName)
-      .get // scalafix:ok DisableSyntax.==
+      .get
     assertEquals(
       nexus.applicable,
       Set(
@@ -168,7 +168,7 @@ class CapabilityPropertiesTest extends munit.FunSuite:
       )
     )
     val activity =
-      declared.find(_.state == classOf[system.State].getName).get // scalafix:ok DisableSyntax.==
+      declared.find(_.state == classOf[system.State].getName).get
     assertEquals(
       activity.applicable,
       properties.filter(p => only(p.by, Retries) || only(p.by, Deadline)).map(_.name).toSet
@@ -233,7 +233,7 @@ class CapabilityPropertiesTest extends munit.FunSuite:
   test("a Property brought to one state type fails by name; derived machines count once") {
     val record = declared.filter(
       _.state == classOf[system.AdmissionState].getName
-    ) // scalafix:ok DisableSyntax.==
+    )
     assertEquals(record.map(_.machine), Seq("activityRecord", "trustingActivityRecord"))
     assertEquals(
       underInstantiated(properties.filter(p => only(p.by, Closable)), record),
@@ -249,7 +249,7 @@ class CapabilityPropertiesTest extends munit.FunSuite:
   test("Pausable's dispatch Property needs Pollable as well") {
     val dispatch = properties
       .find(_.name == "Pausable.pausedIsNotDispatched")
-      .get // scalafix:ok DisableSyntax.==
+      .get
     assertEquals(
       instantiating(dispatch, Seq(Declared("pausedOnly", "Paused", Set("Pausable")))),
       Seq.empty

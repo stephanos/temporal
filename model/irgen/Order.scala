@@ -148,9 +148,7 @@ final private[irgen] class Order(index: Index):
         }
 
     def forces(target: Symbol, read: Tree): Unit =
-      // scalafix:off DisableSyntax.!=; strictEquality checks native comparisons
       if target != owner && !treeOf(target).exists(t => exempt(fileOf(t)))
-      // scalafix:on DisableSyntax.!=
       then
         reads
           .getOrElseUpdate(owner, mutable.LinkedHashMap.empty)
@@ -163,7 +161,7 @@ final private[irgen] class Order(index: Index):
         if isObject then forces(s.moduleClass, r)
         val o = s.maybeOwner
         if isOwner(o) && !isObject then
-          if o != owner then forces(o, r) // scalafix:ok DisableSyntax.!=; typed equality
+          if o != owner then forces(o, r)
           else if s.isValDef && !lazily(s) then
             for j <- order.get(s) if j >= i do
               refuse(
@@ -228,7 +226,7 @@ final private[irgen] class Order(index: Index):
         case machine: ClassDef =>
           machine.parents.flatMap {
             case t @ Apply(_, args)
-                if t.symbol.isClassConstructor && t.symbol.maybeOwner == phasedClass => // scalafix:ok DisableSyntax.==; typed equality
+                if t.symbol.isClassConstructor && t.symbol.maybeOwner == phasedClass =>
               args.flatMap(body)
             case _ => Nil
           }
@@ -266,7 +264,7 @@ final private[irgen] class Order(index: Index):
       (owner == caseClass && s.name == "where") ||
       (Set("on", "where")(
         s.name
-      ) && owner.fullName == "framework.Syntax$package$") // scalafix:ok DisableSyntax.==; typed equality
+      ) && owner.fullName == "framework.Syntax$package$")
     }
 
   // Each cycle of owners, once, at its first read in source order: the owners of one strongly
@@ -286,7 +284,7 @@ final private[irgen] class Order(index: Index):
           visit(t)
           low(s) = low(s).min(low(t))
         else if stack.contains(t) then low(s) = low(s).min(indexOf(t))
-      if low(s) == indexOf(s) then // scalafix:ok DisableSyntax.==; typed equality
+      if low(s) == indexOf(s) then
         val part = stack.drop(stack.indexOf(s)).toSet
         stack.dropRightInPlace(part.size)
         if part.size > 1 then parts += part
@@ -309,7 +307,7 @@ final private[irgen] class Order(index: Index):
         .iterate(from)(reachedFrom)
         .takeWhile(_ != to)
         .toList
-        .reverse // scalafix:ok DisableSyntax.!=; typed equality
+        .reverse
       val cycle = from :: to :: back
       refuse(
         read,
@@ -374,7 +372,7 @@ final private[irgen] class Order(index: Index):
     case Inlined(_, Nil, e) => effectBlock(e)
     case Block(Nil, e)      => effectBlock(e)
     case c: Apply           =>
-      c.symbol.fullName == "framework.Syntax$package$.effect" // scalafix:ok DisableSyntax.==; typed equality
+      c.symbol.fullName == "framework.Syntax$package$.effect"
     case _ => false
 
   // The place a kind belongs in: in an object form, a monitor's is the `monitors` section.
@@ -498,7 +496,7 @@ final private[irgen] class Order(index: Index):
         .filter(inFolder)
         .filter(other =>
           featureFile(other, index.trees.filter(t => fileOf(t) == other))
-        ) // scalafix:ok DisableSyntax.==; typed equality
+        )
       beside.headOption match
         case Some(feature) =>
           def misplaced(d: Definition): Unit =
@@ -549,9 +547,7 @@ final private[irgen] class Order(index: Index):
     // (c): the file's order, each top-level declaration by its rank in it.
     def rank(d: Definition): Int = objectOf(d) match
       case Some(c) =>
-        // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
         if plain(c.name) == "exports" then
-          // scalafix:on DisableSyntax.==
           if level then -1 else 4
         else if holdsModel(c) then 3
         else 2
@@ -565,7 +561,7 @@ final private[irgen] class Order(index: Index):
     // (d): the top level declares no Model; a machine object and its sections hold them.
     for d <- declared do
       objectOf(d) match
-        case Some(c) if plain(c.name) == "exports" => // scalafix:ok DisableSyntax.==; typed equality
+        case Some(c) if plain(c.name) == "exports" =>
           for m <- members(c) if !kindOf(m).contains(Kind.File) do
             refuse(m, s"${m.name} is declared in exports, which holds the feature's IR files alone")
         // A section of a machine object's name sits in it, not at the top level (R17).
@@ -603,12 +599,12 @@ final private[irgen] class Order(index: Index):
     val composed = c.symbol.typeRef.derivesFrom(compositionClass)
     val sectionNames = formSections.map(n =>
       if n == "rules" && composed then "syncs" else n
-    ) // scalafix:ok DisableSyntax.==; typed equality
+    )
     // A machine that refines nothing names its unobservable timers among its header members; one
     // that refines another names them in its `refinement`.
     val refines = members(c)
       .flatMap(objectOf)
-      .exists(o => plain(o.name) == "refinement") // scalafix:ok DisableSyntax.==; typed equality
+      .exists(o => plain(o.name) == "refinement")
     val header = Set("init", "end", "entity", "evidence") ++ Option.when(!refines)("unobservable")
     def headed(d: Definition) = header(d.name)
     val refinement =
@@ -662,10 +658,10 @@ final private[irgen] class Order(index: Index):
   // `on(action) { where(g) ~> effect }`, are no hand-written step function.
   private def handBound(c: ClassDef, owner: String): Unit =
     def core(s: Symbol) =
-      s.exists && s.name == "~>" && s.maybeOwner.fullName == "framework.Machine$package$" // scalafix:ok DisableSyntax.==; typed equality
+      s.exists && s.name == "~>" && s.maybeOwner.fullName == "framework.Machine$package$"
     def derivation(s: Symbol) =
       s.exists && ((s.name == "rebind" && s.maybeOwner == machineClass) ||
-        (s.name == "on" && s.maybeOwner.fullName == "framework.Syntax$package$")) // scalafix:ok DisableSyntax.==; typed equality
+        (s.name == "on" && s.maybeOwner.fullName == "framework.Syntax$package$"))
     object bindings extends TreeTraverser:
       override def traverseTree(t: Tree)(o: Symbol): Unit = t match
         // The rebind's own bindings keep rules; whatever it is applied to is still read.
@@ -697,7 +693,7 @@ final private[irgen] class Order(index: Index):
       case "capabilities"          => Set.empty // capabilities and waivers
       case "states" | "refinement" => Set.empty // vocabulary, and the machine's refinement
       case _                       => Set(Kind.Scenario, Kind.Query)
-    if name == "queries" then // scalafix:ok DisableSyntax.==; typed equality
+    if name == "queries" then
       def rank(d: Definition) = kindOf(d) match
         case Some(Kind.Scenario) => 0
         case Some(Kind.Query)    => 1
@@ -740,13 +736,11 @@ final private[irgen] class Order(index: Index):
     def declared(r: Term, kind: Kind) =
       r.symbol.isValDef && isOwner(r.symbol.maybeOwner) && kindOf(r.tpe).contains(kind)
     def machine(m: Term, where: String): Unit =
-      // scalafix:off DisableSyntax.!=; strictEquality checks native comparisons
       if declared(m, Kind.Machine) && m.symbol.maybeOwner != machineObject
-      // scalafix:on DisableSyntax.!=
       then found += ((m.symbol, m.symbol.maybeOwner, where))
       // A machine or composition object named by its object: its own declarations sit in it.
       else if m.symbol.flags.is(Flags.Module) && objectForm(m.symbol.moduleClass) &&
-      m.symbol.moduleClass != machineObject // scalafix:ok DisableSyntax.!=; typed equality
+      m.symbol.moduleClass != machineObject
       then found += ((m.symbol.moduleClass, m.symbol.moduleClass, where))
     // A Scenario or a Query whose Scenario is written in it may sit with another machine object of
     // its package, the one the IR file it is exported to is about (fn-126 decisions 24 and 28),
@@ -756,7 +750,7 @@ final private[irgen] class Order(index: Index):
         Iterator.iterate(s)(_.maybeOwner).find(o => o.isNoSymbol || o.isPackageDef)
       kindOf(d).exists(Set(Kind.Query, Kind.Scenario)) && pkg(m.symbol) == pkg(
         machineObject
-      ) // scalafix:ok DisableSyntax.==; typed equality
+      )
     object names extends TreeTraverser:
       override def traverseTree(t: Tree)(o: Symbol): Unit =
         t match
@@ -764,7 +758,7 @@ final private[irgen] class Order(index: Index):
           case Select(m, "scenario") if !samePackage(m) => machine(m, ".queries")
           case r: Ref
               if kindOf(d).contains(Kind.Query) && declared(r, Kind.Scenario) &&
-                r.symbol.maybeOwner != section => // scalafix:ok DisableSyntax.!=; typed equality
+                r.symbol.maybeOwner != section =>
             found += ((r.symbol, r.symbol.maybeOwner, ""))
           case _ => ()
         super.traverseTree(t)(o)

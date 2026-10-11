@@ -28,7 +28,7 @@ object TaskQueueSystem
   object states:
     val idleQueue =
       QueueDetail(custody = Custody.nowhere, polled = false, delivered = Delivered.never)
-    def queueEnds(d: State) = d.custody == Custody.nowhere // scalafix:ok DisableSyntax.==; typed equality
+    def queueEnds(d: State) = d.custody == Custody.nowhere
     def oneMoreDelivery(d: Delivered) = d match
       case Delivered.never                                  => Delivered.once
       case _: Delivered.once.type | _: Delivered.twice.type => Delivered.twice
@@ -37,21 +37,21 @@ object TaskQueueSystem
     def matchable(c: Custody) = c.in(Custody.reserved, Custody.persisted)
     // format: off
     // A custodian holds the message.
-    def held(s: State) = s.custody != Custody.nowhere // scalafix:ok DisableSyntax.!=; typed equality
+    def held(s: State) = s.custody != Custody.nowhere
 
     // Matching holds the task, no poller holds it, and it was not yet handed out twice.
     def deliverable(s: State) =
-      matchable(s.custody) && !s.polled && s.delivered != Delivered.twice // scalafix:ok DisableSyntax.!=; typed equality
+      matchable(s.custody) && !s.polled && s.delivered != Delivered.twice
     // format: on
     // A poller holds a task matching handed out, whose consumer may now answer.
     def answerable(s: State) =
-      s.polled && s.custody != Custody.nowhere && s.delivered != Delivered.never // scalafix:ok DisableSyntax.!=; typed equality
+      s.polled && s.custody != Custody.nowhere && s.delivered != Delivered.never
   // format: off
   object refinement extends Refinement(TaskQueueProduct):
     // The interface state a detailed state stands for: a message is outstanding while anyone holds
     // it.
     def toProduct(d: State) =
-      if d.custody == Custody.nowhere then QueueView(Outstanding.empty) // scalafix:ok DisableSyntax.==; typed equality
+      if d.custody == Custody.nowhere then QueueView(Outstanding.empty)
       else
         d.delivered match
           case Delivered.never => QueueView(Outstanding.committed)
@@ -66,7 +66,7 @@ object TaskQueueSystem
           QueueFact.crashed | QueueFact.ackLost =>
         false
     // format: off
-    def visibleOutcomes(o: QueueOutcome) = o != QueueOutcome.internal // scalafix:ok DisableSyntax.!=; typed equality
+    def visibleOutcomes(o: QueueOutcome) = o != QueueOutcome.internal
     // format: on
   object effects:
     def enqueueDetail(s: State) =
@@ -108,7 +108,7 @@ object TaskQueueSystem
     // The answer to the poller is lost. A persisted task stays queued; a sync match fails back to the
     // invocation, which history retries.
     def ackLossDetail(s: State) =
-      if s.custody == Custody.reserved then // scalafix:ok DisableSyntax.==; typed equality
+      if s.custody == Custody.reserved then
         enter(s.copy(custody = Custody.invoked, polled = false), QueueFact.ackLost)
       else enter(s.copy(polled = false), QueueFact.ackLost)
 
@@ -179,7 +179,7 @@ object TaskQueueSystem
     def queueClaims(m: Machine[State, QueueOutcome, QueueFact]) = QueueClaims(
       m.property("delivers") when queue.deliver holds (after => after.records(QueueFact.delivered)),
       m.property("committedStays")
-        .stays(_.custody != Custody.nowhere) // scalafix:ok DisableSyntax.!=; typed equality
+        .stays(_.custody != Custody.nowhere)
         .unless(_.records(QueueFact.acknowledged))
     )
 
@@ -263,7 +263,7 @@ object LossyMatchingQueue
     // provider binds the loss, so this is its own Property, not a claim of every provider.
     val storageLossDrops =
       property when fault.storageLoss holds { after =>
-        after.state.custody == Custody.nowhere && after.records(QueueFact.storageLost) // scalafix:ok DisableSyntax.==; typed equality
+        after.state.custody == Custody.nowhere && after.records(QueueFact.storageLost)
       }
 // format: on
   // The crash cuts of every provider, and the storage loss.

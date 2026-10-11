@@ -157,8 +157,8 @@ object NexusSystem extends Machine[State, Outcome, Fact], Phased[State, Phase](_
     ): Property[State] =
       m.property holdsAcross ((before, after) =>
         !before.phase.in[Closed] ||
-          (after.state == before && (after.outcome == rejected || after.outcome == Outcome.accepted && // scalafix:ok DisableSyntax.==; typed equality
-            (before.cancelRequested || before.phase == Phase.terminated))) // scalafix:ok DisableSyntax.==; typed equality
+          (after.state == before && (after.outcome == rejected || after.outcome == Outcome.accepted &&
+            (before.cancelRequested || before.phase == Phase.terminated)))
       )
   // format: off
   // What the operation is, as the Properties in model/temporal/capabilities read it: it closes, a client

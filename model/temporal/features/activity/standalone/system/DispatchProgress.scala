@@ -52,9 +52,9 @@ object ServedDispatch
   object states:
     // The source reads both members: an attempt the worker may take now, while the worker polls.
     def dispatchable(s: State): Boolean = // format: off
-      s.activity.phase == Phase.scheduled && s.activity.dispatch == Dispatch.now && s.worker.phase == WorkerPhase.polling // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      s.activity.phase == Phase.scheduled && s.activity.dispatch == Dispatch.now && s.worker.phase == WorkerPhase.polling
 
-    def started(s: State): Boolean = s.activity.phase == Phase.started // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    def started(s: State): Boolean = s.activity.phase == Phase.started
     // format: on
 
   object syncs extends Syncs:
@@ -65,7 +65,7 @@ object ServedDispatch
     def startedByPollingWorker(c: Composition[State]) = c
       .property("startedByPollingWorker")
       .whenAction(c.synced(_.activity -> worker.poll)) // format: off
-      .holds(_.state.worker.phase == WorkerPhase.polling) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      .holds(_.state.worker.phase == WorkerPhase.polling)
       // format: on
 
     // The bounded progress promise, over both members.

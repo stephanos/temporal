@@ -35,7 +35,7 @@ object StandaloneActivity
     // The cross-entity claim: no stopped worker starts an attempt.
     val startedByPollingWorker = property
       .whenAction(synced(_.activity -> worker.poll)) // format: off
-      .holds(_.state.worker.phase == WorkerPhase.polling) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      .holds(_.state.worker.phase == WorkerPhase.polling)
       // format: on
   object queries:
     // The cross-entity claim, over the path on which a stopped worker never takes the retry: the

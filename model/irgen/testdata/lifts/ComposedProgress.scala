@@ -27,11 +27,11 @@ val drain = action(Actor("valve"))
 type TankStep = Step[Tank, Outcome, Nothing]
 
 def filled(t: Tank, g: Grade): List[TankStep] = // format: off
-  if t.level == Level.empty then List(Step(Outcome.filled, Tank(Level.filled))) else Nil // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  if t.level == Level.empty then List(Step(Outcome.filled, Tank(Level.filled))) else Nil
 def sent(t: Tank): List[TankStep] =
-  if t.level == Level.filled then List(Step(Outcome.sent, Tank(Level.sent))) else Nil // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  if t.level == Level.filled then List(Step(Outcome.sent, Tank(Level.sent))) else Nil
 def drained(t: Tank): List[TankStep] =
-  if t.level == Level.sent then List(Step(Outcome.drained, Tank(Level.empty))) else Nil // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  if t.level == Level.sent then List(Step(Outcome.drained, Tank(Level.empty))) else Nil
   // format: on
 object Tanks extends Machine[Tank, Outcome, Nothing]:
   val init = Tank(Level.empty)
@@ -58,16 +58,16 @@ val graded = assume("graded").fair(
 
 val drainsThrough: Progress[Line] =
   Pipeline.leadsTo("drainsThrough")( // format: off
-    l => l.left.level == Level.filled && l.right.level == Level.empty, // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-    l => l.right.level == Level.sent, // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    l => l.left.level == Level.filled && l.right.level == Level.empty,
+    l => l.right.level == Level.sent,
     within = 2, // format: on
     flowing
   )
 
 val gradedThrough: Progress[Line] =
   Pipeline.leadsTo("gradedThrough")( // format: off
-    l => l.left.level == Level.filled, // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-    l => l.right.level != Level.empty, // scalafix:ok DisableSyntax.!=; strictEquality checks native comparisons
+    l => l.left.level == Level.filled,
+    l => l.right.level != Level.empty,
     within = 3, // format: on
     flowing,
     graded

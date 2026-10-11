@@ -27,7 +27,7 @@ final case class Deadline[S, P, R, F <: Product](
     @unused coveredType: ClassTag[R]
 ) extends CapabilityOf[S, Nothing, F]:
   require(
-    retryable == retriesRemaining.nonEmpty, // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    retryable == retriesRemaining.nonEmpty,
     "retryable requires exactly one eligibility binding"
   )
   require(
@@ -36,12 +36,12 @@ final case class Deadline[S, P, R, F <: Product](
   )
   require(timeoutFacts.nonEmpty, "timeout fact family must be nonempty")
   require(
-    timeoutFacts.distinct.size == timeoutFacts.size, // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    timeoutFacts.distinct.size == timeoutFacts.size,
     "timeout fact family contains duplicates"
   )
   require(timeoutFacts.contains(timeout), "timeout fact family must contain the bound timeout")
   require( // format: off
-    timeoutFacts.toSet == finiteFact.values.filter(_.productPrefix == timeout.productPrefix).toSet, // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    timeoutFacts.toSet == finiteFact.values.filter(_.productPrefix == timeout.productPrefix).toSet,
     "timeout fact family must contain exactly every finite value of the bound timeout constructor" // format: on
   )
 

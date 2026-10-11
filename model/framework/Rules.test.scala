@@ -36,7 +36,7 @@ object RulesFixture:
   object Switch extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     Trace.initialized += "Switch"
     val init = Lamp(Lit.off, UpTo(0))
-    override def end(s: Lamp) = s.light == Lit.broken // scalafix:ok DisableSyntax.==
+    override def end(s: Lamp) = s.light == Lit.broken
     def presses(s: Lamp): UpTo[2] = UpTo((s.presses + 1).min(2))
 
     object effects:
@@ -49,7 +49,7 @@ object RulesFixture:
       def turned(s: Lamp, k: Knob) =
         enter[Lamp, Said, Nothing](
           s.copy(light = if k == Knob.up then Lit.on else Lit.off)
-        ) // scalafix:ok DisableSyntax.==
+        )
       def wear(s: Lamp) = enter[Lamp, Said, Nothing](s.copy(light = Lit.broken))
 
     object rules extends Rules:
@@ -66,7 +66,7 @@ object RulesFixture:
       }
       on(clock.tick)(
         where(s => s.presses == 2 && s.light != Lit.broken) ~> effects.wear
-      ) // scalafix:ok DisableSyntax.==, DisableSyntax.!=
+      )
 
   // The switch whose press is its own effect wherever it fires, and whose tick never fires.
   object Stuck extends Derived(Switch.rebind(hand.press ~> Switch.effects.wear))
@@ -80,7 +80,7 @@ object RulesFixture:
 
     object rules extends Rules:
       on(hand.turn(Knob.up))(when(Lit.off, Lit.on) ~> Switch.effects.light)
-      on(hand.turn)(where(_.presses == 1) ~> Switch.effects.turned) // scalafix:ok DisableSyntax.==
+      on(hand.turn)(where(_.presses == 1) ~> Switch.effects.turned)
 
   object Unfelt extends Machine[Lamp, Said, Nothing]:
     val init = Lamp(Lit.off, UpTo(0))
@@ -97,12 +97,12 @@ object RulesFixture:
     def end(s: Lamp) = true
 
     object states:
-      def dark(l: Lit) = l != Lit.on // scalafix:ok DisableSyntax.!=
+      def dark(l: Lit) = l != Lit.on
 
     object rules
         extends Bindings(
           hand.press ~> ((s: Lamp) =>
-            if s.light == Lit.on then Switch.effects.dark(s) // scalafix:ok DisableSyntax.==
+            if s.light == Lit.on then Switch.effects.dark(s)
             else if states.dark(s.light) then Switch.effects.light(s)
             else Nil
           ),
@@ -116,7 +116,7 @@ object RulesFixture:
     override def end(s: Lamp) = true
 
     object states:
-      def dark(l: Lit) = l != Lit.on // scalafix:ok DisableSyntax.!=
+      def dark(l: Lit) = l != Lit.on
 
     object rules extends Rules:
       on(hand.press) {
@@ -131,7 +131,7 @@ object RulesFixture:
 
     object rules extends Rules:
       on(hand.turn(Knob.up))(when(Lit.off, Lit.on) ~> Switch.effects.light)
-      on(hand.turn)(where(_.presses == 1) ~> Switch.effects.turned) // scalafix:ok DisableSyntax.==
+      on(hand.turn)(where(_.presses == 1) ~> Switch.effects.turned)
 
   // A derivation of a `Phased` machine reads its phase, with its phase type, and so does a
   // derivation of that.
@@ -160,20 +160,20 @@ object RulesFixture:
 
   // The switch's sets of lights, which a case names with `when(set)`.
   object lights:
-    def unlit(l: Lit) = l != Lit.on // scalafix:ok DisableSyntax.!=
+    def unlit(l: Lit) = l != Lit.on
 
   // One machine in the grouped forms, `from` with its import, `when` and an `on` of two classes,
   // and in the plain form, separate qualified `on` blocks, rule for rule.
   object Grouped extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
-    override def end(s: Lamp) = s.light == Lit.broken // scalafix:ok DisableSyntax.==
+    override def end(s: Lamp) = s.light == Lit.broken
 
     object rules extends Rules:
       from(hand) {
         import hand.*
         on(press) {
           when(Lit.off) ~> Switch.effects.light
-          when(Lit.on).where(_.presses == 1) ~> Switch.effects.dark // scalafix:ok DisableSyntax.==
+          when(Lit.on).where(_.presses == 1) ~> Switch.effects.dark
         }
         on(turn(Knob.up), turn(Knob.down)) {
           when(lights.unlit) ~> Switch.effects.wear
@@ -183,23 +183,23 @@ object RulesFixture:
         import clock.*
         on(tick)(
           when(Lit.on, Lit.off).where(_.presses == 2) ~> Switch.effects.wear
-        ) // scalafix:ok DisableSyntax.==
+        )
       }
 
   object Plain extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
-    override def end(s: Lamp) = s.light == Lit.broken // scalafix:ok DisableSyntax.==
+    override def end(s: Lamp) = s.light == Lit.broken
 
     object rules extends Rules:
       on(hand.press) {
         when(Lit.off) ~> Switch.effects.light
-        when(Lit.on).where(_.presses == 1) ~> Switch.effects.dark // scalafix:ok DisableSyntax.==
+        when(Lit.on).where(_.presses == 1) ~> Switch.effects.dark
       }
       on(hand.turn(Knob.up))(when(lights.unlit) ~> Switch.effects.wear)
       on(hand.turn(Knob.down))(when(lights.unlit) ~> Switch.effects.wear)
       on(clock.tick)(
         when(Lit.on, Lit.off).where(_.presses == 2) ~> Switch.effects.wear
-      ) // scalafix:ok DisableSyntax.==
+      )
 
   // One action in several blocks whose cases hold in no common state.
   object Spread extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
@@ -266,7 +266,7 @@ object RulesFixture:
         when(Lit.on) ~> Switch.effects.dark
         when(lights.unlit).where(
           _.presses == 0
-        ) ~> Switch.effects.wear // scalafix:ok DisableSyntax.==
+        ) ~> Switch.effects.wear
       }
 
   final case class Pair(left: Lamp, right: Lamp)
@@ -290,7 +290,7 @@ class RulesTest extends munit.FunSuite:
   type Turn = (Lamp, Knob) => List[Step[Lamp, Said, Nothing]]
 
   def step(m: Machine[Lamp, Said, Nothing], a: Action[?]): AnyRef =
-    m.bindings.find(_.decl == a.decl).get.function // scalafix:ok DisableSyntax.==
+    m.bindings.find(_.decl == a.decl).get.function
 
   def press(m: Machine[Lamp, Said, Nothing], s: Lamp): List[Lamp] =
     step(m, hand.press)
@@ -339,12 +339,10 @@ class RulesTest extends munit.FunSuite:
           case Lit.broken => List(Step[Lamp, Said, Nothing](Said.refused, state))
           case Lit.off    =>
             enter[Lamp, Said, Nothing](state.copy(light = if knob == Knob.up then Lit.on
-            else Lit.off)) // scalafix:ok DisableSyntax.==
+            else Lit.off))
           case Lit.on =>
             enter[Lamp, Said, Nothing](
-              // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
               if knob == Knob.up then
-                // scalafix:on DisableSyntax.==
                 state.copy(presses = UpTo[2]((state.presses + 1).min(2)))
               else state.copy(light = Lit.off)
             )
@@ -368,7 +366,7 @@ class RulesTest extends munit.FunSuite:
       assertEquals(
         press(Stuck, state),
         if state.light == Lit.broken then Nil else List(state.copy(light = Lit.broken))
-      ) // scalafix:ok DisableSyntax.==
+      )
       assertEquals(press(Loose, state), List(state.copy(light = Lit.broken)))
       for knob <- Finite[Knob].values do
         assertEquals(turn(Stuck, state, knob), turn(Switch, state, knob))
@@ -508,7 +506,7 @@ class RulesTest extends munit.FunSuite:
     val refused = intercept[IllegalArgumentException](
       Switch.rebind(on(hand.press) {
         always ~> Switch.effects.wear
-        where(_.light == Lit.off) ~> Switch.effects.dark // scalafix:ok DisableSyntax.==
+        where(_.light == Lit.off) ~> Switch.effects.dark
       })
     )
     assertEquals(

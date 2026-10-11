@@ -120,7 +120,7 @@ object Equivalence:
     )
     new Iterator[String] with AutoCloseable:
       private var next0 = reader.readLine() // scalafix:ok DisableSyntax.var
-      def hasNext: Boolean = next0 != null // scalafix:ok DisableSyntax.null, DisableSyntax.!=
+      def hasNext: Boolean = next0 != null // scalafix:ok DisableSyntax.null
       def next(): String =
         val line = next0
         next0 = reader.readLine()

@@ -44,7 +44,7 @@ def sendStep(s: State, r: Result): List[Step[State, Outcome, Nothing]] = s.repor
   case Report.unsent        => List(Step(Outcome.accepted, s.copy(report = Report.sent(r, false))))
   case Report.sent(_, true) => Nil
   case Report.sent(first, false) => // format: off
-    if s.retries == Retries.most then Nil // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    if s.retries == Retries.most then Nil
     else // format: on
       List(
         Step(Outcome.accepted, s.copy(report = Report.sent(first, true), retries = s.retries.next))
@@ -56,18 +56,18 @@ def keepStep(s: State): List[Step[State, Outcome, Nothing]] =
   val sent = s.report match
     case Report.sent(r, _) => Some(r)
     case Report.unsent     => None // format: off
-  if sent == None || s.kept == sent then Nil else List(Step(Outcome.accepted, s.copy(kept = sent))) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  if sent == None || s.kept == sent then Nil else List(Step(Outcome.accepted, s.copy(kept = sent)))
   // format: on
 def forgetStep(s: State): List[Step[State, Outcome, Nothing]] = s.kept match
   case Some(_) => List(Step(Outcome.accepted, s.copy(kept = None)))
   case None    => List(Step(Outcome.ignored, s))
 
 def pollStep(s: State): List[Step[State, Outcome, Nothing]] = // format: off
-  if s.polls == 0 then List(Step(Outcome.accepted, s.copy(polls = 1))) else Nil // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  if s.polls == 0 then List(Step(Outcome.accepted, s.copy(polls = 1))) else Nil
   // format: on
 object Presence extends Machine[State, Outcome, Nothing]:
   val init = State(Report.unsent, None, Retries.none, 0) // format: off
-  def end(s: State) = s.kept != None // scalafix:ok DisableSyntax.!=; strictEquality checks native comparisons
+  def end(s: State) = s.kept != None
   // format: on
   object rules
       extends Bindings(send ~> sendStep, keep ~> keepStep, forget ~> forgetStep, poll ~> pollStep)

@@ -16,7 +16,7 @@ object HeartbeatCompletion extends Derived(ActivitySystem.unmonitored):
 
   object properties:
     val heartbeatCompletes = property when worker.respondCompleted holds { s => // format: off
-      s.state.phase == Phase.completed && s.records(Fact.statusCompleted) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      s.state.phase == Phase.completed && s.records(Fact.statusCompleted)
     } // format: on
 
   object queries:
@@ -35,7 +35,7 @@ object HeartbeatRetry extends Derived(ActivitySystem.unmonitored):
 
   object properties:
     val heartbeatRetryCompletes = property when worker.respondCompleted holds { s => // format: off
-      s.state.phase == Phase.completed && s.records(Fact.statusCompleted) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      s.state.phase == Phase.completed && s.records(Fact.statusCompleted)
     } // format: on
 
   object queries:
@@ -59,7 +59,7 @@ object HeartbeatExhaustion extends Derived(ActivitySystem.unmonitored):
     val heartbeatExhausts = property.when(deadline.heartbeat) holds (after =>
       after.records(Fact.heartbeatTimedOut) &&
         (ActivitySystem.states.retriesRemaining(after.state) || // format: off
-          (after.state.phase == Phase.timedOut && after.records( // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+          (after.state.phase == Phase.timedOut && after.records(
             Fact.statusTimedOut(TimeoutType.heartbeat)
           ))) // format: on
     )

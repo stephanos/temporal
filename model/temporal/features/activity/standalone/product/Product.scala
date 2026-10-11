@@ -54,7 +54,7 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
 
   object states:
     def status(s: State) = s.phase // format: off
-    val paused = is(phase == Phase.paused) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    val paused = is(phase == Phase.paused)
     // format: on
   object effects:
     val pauseApplied = choice
@@ -284,8 +284,8 @@ object ActivityProduct extends Machine[State, Outcome, Fact], Phased[State, Phas
     // machine has enough state to use Pausable's role-derived Property directly.
     def pausedDoesNotStartAttempt(m: Declares[State]): Property[State] =
       m.property // format: off
-        .never(s => s.state.phase == started) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-        .from(_.phase == paused) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+        .never(s => s.state.phase == started)
+        .from(_.phase == paused)
         // format: on
   object capabilities extends Capabilities:
     val closable: Capability = Closable(

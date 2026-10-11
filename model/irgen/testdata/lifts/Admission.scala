@@ -51,10 +51,10 @@ object Product:
   import ProductFact.*
 
   def poll(s: ProductState) = // format: off
-    if s.phase == scheduled then enter(ProductState(started), statusStarted) else disabled // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    if s.phase == scheduled then enter(ProductState(started), statusStarted) else disabled
     // format: on
   def respondCompleted(s: ProductState) = // format: off
-    if s.phase == started then enter(ProductState(completed), statusCompleted) else disabled // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    if s.phase == started then enter(ProductState(completed), statusCompleted) else disabled
     // format: on
   def respondFailed(s: ProductState, failure: Failure) = disabled
 
@@ -62,18 +62,18 @@ object Product:
 
   // A pause holds before an attempt starts or while one runs; a completed activity is not found.
   def pause(s: ProductState) = // format: off
-    if s.phase == completed then List(Step(Outcome.notFound, s)) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-    else if s.phase != paused then enter(ProductState(paused), statusPaused) // scalafix:ok DisableSyntax.!=; strictEquality checks native comparisons
+    if s.phase == completed then List(Step(Outcome.notFound, s))
+    else if s.phase != paused then enter(ProductState(paused), statusPaused)
     else disabled // format: on
 
   def otherControl(s: ProductState) = // format: off
-    if s.phase == completed then List(Step(Outcome.notFound, s)) else disabled // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    if s.phase == completed then List(Step(Outcome.notFound, s)) else disabled
     // format: on
 // No unpause is in scope, so a path may end paused, as the designs' paths may.
 object ActivityProduct extends Machine[ProductState, Outcome, ProductFact]:
   val entity = activity
   val init = ProductState(ProductPhase.scheduled) // format: off
-  def end(s: State) = s.phase == ProductPhase.completed || s.phase == ProductPhase.paused // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  def end(s: State) = s.phase == ProductPhase.completed || s.phase == ProductPhase.paused
   // format: on
   object rules
       extends Bindings(
@@ -89,8 +89,8 @@ object ActivityProduct extends Machine[ProductState, Outcome, ProductFact]:
 
 // The product's promise the designs are read against: no step from paused lands in started.
 val pausedIsNotDispatched = ActivityProduct.property // format: off
-  .never(_.state.phase == ProductPhase.started) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-  .from(_.phase == ProductPhase.paused) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  .never(_.state.phase == ProductPhase.started)
+  .from(_.phase == ProductPhase.paused)
   // format: on
 // ### System vocabulary: one logical activity, one dispatch message, the attempts admission committed
 
@@ -132,7 +132,7 @@ val scheduledEmpty: AdmissionState =
 // ### Step functions shared by both designs
 
 def dispatchStep(s: AdmissionState): List[AdmissionStep] = // format: off
-  if s.phase != AdmissionPhase.scheduled || s.message != Message.empty then Nil // scalafix:ok DisableSyntax.!=; strictEquality checks native comparisons
+  if s.phase != AdmissionPhase.scheduled || s.message != Message.empty then Nil
   else // format: on
     List(
       Step(Outcome.accepted, s.copy(message = Message.queued), List(AdmissionFact.dispatchEnqueued))
@@ -171,7 +171,7 @@ def oneLess(a: Active): Active = a match
 // and delivered again before matching acknowledges it.
 def admitted(s: AdmissionState): List[AdmissionStep] =
   val next = s.copy(phase = AdmissionPhase.started, active = oneMore(s.active)) // format: off
-  if s.message == Message.redelivery then // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  if s.message == Message.redelivery then
     List( // format: on
       Step(
         Outcome.accepted,
@@ -202,7 +202,7 @@ def admitted(s: AdmissionState): List[AdmissionStep] =
 def admitCurrent(s: AdmissionState): List[AdmissionStep] = s.message match
   case Message.empty                       => Nil
   case Message.queued | Message.redelivery => // format: off
-    if s.phase == AdmissionPhase.scheduled then admitted(s) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    if s.phase == AdmissionPhase.scheduled then admitted(s)
     else // format: on
       List(
         Step(
@@ -218,7 +218,7 @@ def admitStale(s: AdmissionState): List[AdmissionStep] = s.message match
   case Message.queued | Message.redelivery => admitted(s)
 
 def completionStep(s: AdmissionState): List[AdmissionStep] = // format: off
-  if s.phase != AdmissionPhase.started then Nil // scalafix:ok DisableSyntax.!=; strictEquality checks native comparisons
+  if s.phase != AdmissionPhase.started then Nil
   else // format: on
     List(
       Step(
@@ -247,7 +247,7 @@ def admissionEvidence(f: AdmissionFact): String = f match
 
 // No unpause is in scope, so a pause is where a path may end, as a completion is.
 def admissionEnds(s: AdmissionState): Boolean =
-  s.phase != AdmissionPhase.scheduled && s.phase != AdmissionPhase.started // scalafix:ok DisableSyntax.!=; strictEquality checks native comparisons
+  s.phase != AdmissionPhase.scheduled && s.phase != AdmissionPhase.started
 
 // ### Monitors: at most one admitted active attempt, and terminal finality
 
@@ -260,7 +260,7 @@ def countActive(active: Active, before: AdmissionState, after: AdmissionStep): A
 val atMostOneActiveAttempt: Monitor[AdmissionState, Outcome, AdmissionFact, Active] =
   monitor[AdmissionState, Outcome, AdmissionFact, Active](Active.none)(
     countActive // format: off
-  )(_ == Active.two).readAfter(after => after.facts.contains(AdmissionFact.attemptAdmitted)) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  )(_ == Active.two).readAfter(after => after.facts.contains(AdmissionFact.attemptAdmitted))
   // format: on
 // Whether the activity completed, and whether a step after that left completed.
 enum Finality derives Finite:
@@ -269,14 +269,14 @@ enum Finality derives Finite:
 def finality(f: Finality, before: AdmissionState, after: AdmissionStep): Finality = f match
   case Finality.reopened                                  => Finality.reopened
   case _: Finality.open.type | _: Finality.completed.type => // format: off
-    if after.state.phase == AdmissionPhase.completed then Finality.completed // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-    else if f == Finality.completed then Finality.reopened // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+    if after.state.phase == AdmissionPhase.completed then Finality.completed
+    else if f == Finality.completed then Finality.reopened
     else Finality.open // format: on
 
 val terminalFinality: Monitor[AdmissionState, Outcome, AdmissionFact, Finality] =
   monitor[AdmissionState, Outcome, AdmissionFact, Finality](Finality.open)(
     finality // format: off
-  )(_ == Finality.reopened) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  )(_ == Finality.reopened)
   // format: on
 // ### The two designs
 
@@ -325,12 +325,12 @@ object TrustingActivityRecord extends Machine[AdmissionState, Outcome, Admission
 // ### Promises, written once and declared on each design
 
 def notAdmittedWhilePaused(before: AdmissionState, after: AdmissionStep): Boolean =
-  before.phase != AdmissionPhase.paused || after.state.phase != AdmissionPhase.started // scalafix:ok DisableSyntax.!=; strictEquality checks native comparisons
+  before.phase != AdmissionPhase.paused || after.state.phase != AdmissionPhase.started
 // format: off
-def atMostOneActive(after: AdmissionStep): Boolean = after.state.active != Active.two // scalafix:ok DisableSyntax.!=; strictEquality checks native comparisons
+def atMostOneActive(after: AdmissionStep): Boolean = after.state.active != Active.two
 // format: on
 def terminalStays(before: AdmissionState, after: AdmissionStep): Boolean =
-  before.phase != AdmissionPhase.completed || after.state.phase == AdmissionPhase.completed // scalafix:ok DisableSyntax.==, DisableSyntax.!=; strictEquality checks native comparisons
+  before.phase != AdmissionPhase.completed || after.state.phase == AdmissionPhase.completed
 
 val three: Limits = Limits(steps = 3, actions = 3, search = 4096)
 val five: Limits = Limits(steps = 5, actions = 5, search = 65536)

@@ -17,19 +17,19 @@ object DispatchEligibility extends Derived(ActivitySystem.rebind()):
   object properties:
     // A dispatch delay remains pending across pause/unpause (model.go:239-244,355-376).
     val dispatchRequiresReady = property.holdsAcross { (before, after) => // format: off
-      (before.phase == Phase.scheduled && after.records(Fact.statusStarted)) implies // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
-        (before.dispatch == Dispatch.now) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      (before.phase == Phase.scheduled && after.records(Fact.statusStarted)) implies
+        (before.dispatch == Dispatch.now)
     } // format: on
 
     // Schedule-to-start counts from dispatch, after either delay (model.go:312-322).
     val scheduleToStartRequiresDispatch = property.holdsAcross { (before, after) =>
       after.records(Fact.statusTimedOut(TimeoutType.scheduleToStart)) implies
-        (before.phase == Phase.scheduled && before.dispatch == Dispatch.now) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+        (before.phase == Phase.scheduled && before.dispatch == Dispatch.now)
     }
 
     val completes =
       property when worker.respondCompleted holds { s => // format: off
-        s.state.phase == Phase.completed && s.records(Fact.statusCompleted) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+        s.state.phase == Phase.completed && s.records(Fact.statusCompleted)
       } // format: on
 
   object queries:

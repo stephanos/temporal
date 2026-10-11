@@ -18,7 +18,7 @@ object TaskQueueProduct
     extends Machine[QueueView, QueueOutcome, QueueFact],
       Phased[QueueView, Outstanding](_.outstanding):
   val init = QueueView(Outstanding.empty) // format: off
-  override def end(q: State) = q.outstanding == Outstanding.empty // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+  override def end(q: State) = q.outstanding == Outstanding.empty
   object states: // format: on
     // A message is outstanding: committed, and not yet acknowledged.
     def holding(s: State) =
@@ -39,7 +39,7 @@ object TaskQueueProduct
       )
 
     def deliverView(s: State) = // format: off
-      if s.outstanding == Outstanding.committed then // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+      if s.outstanding == Outstanding.committed then
         List( // format: on
           Step(
             QueueOutcome.delivered,
