@@ -427,6 +427,66 @@ controls. This clarifies existing all-reader acceptance; it grants no additional
 worker time, third retry, unrelated implementation or deferred-consumer authority.
 Fn-149 remains gated on the verified committed complete seal.
 
+
+### Independently verified expanded-reader and final-core candidate (2026-10-11)
+
+The reader omission also affects ClassDef parent-constructor arguments. The
+independent `parentReader` fixture's intended red run records the erroneous
+sixth R5 refusal at line 130; its first unused-parameter compilation failure is
+not the reproduction. Final focused EligibleWitness fixtures pass both tests
+after visiting only bare class-body Terms and Term parents. Five private
+refusals still execute, while bare-statement and parent readers retain their
+Queries in the 17-Query positive. Generated accessor filtering is unchanged.
+
+Fresh graphs contain all 5,261/5,199 original/current declaration nodes plus
+225 bare statements each and 825/820 parent terms, totaling 6,311/6,244 unique
+nodes and 25,829/25,563 references. Exact compiler identities retain all
+colliding locals, signatures and compiler clones. All known three reset
+overriding calls are now captured on both sides, and no named Property/Scenario
+reference has an unresolved target. Graph SHA256:
+original `f827b8b705a1c64e773834027cffbc70410bd5d9581386143ba36a7f86252692`;
+current `ca33925a6f42009394ebf30bb75eec873e8754b058060bfe1910c0954d922b23`.
+
+The conductor independently repeated all 19 migrated reader proofs against
+this expanded graph: 37 direct private boundaries and the exact Fenced factory
+to private alias to heldStaleDeliveryQuery chain. The public factory stays
+byte-identical. All 154 original claim nodes outside direct Query inputs have
+concrete typed boundaries: 23 callable capability/feature Property factories
+(including the recursive Idempotent forwarder), 111 claim-bundle parameter or
+field compiler clones, 19 factory-local Properties returned in claim bundles,
+and one unqueried ordinary authored Property, NexusProtocol.asyncStarts.
+There is no unmatched Scenario. This is not a monitor reclassification or
+permission to delete unused declarations. The complete validator re-execution
+binds all 2,028 before/after Query/Property/Scenario positions successfully.
+Root audits: `fn140-10-root-all-readers-structure-audit.json`,
+`fn140-10-root-all-private-readers-audit.json`, and
+`fn140-10-root-retained-claim-boundaries-audit.json` under `.flow/tmp/scala-dsl/`.
+
+All four fresh final source re-lifts pass complete core verification, preserving
+338 Queries, the 19 witness rewrites, 14 ending helpers and all 655 classified
+positions. The conductor independently authenticates all 134 frozen original
+sources to committed base 45798d12bbfa726b32e7f7472f02412619d3490e and rejects
+all 26 independent core/metadata/order/span mutations. The immutable 213-record
+reviewed map remains `edb174349e757dc4f48f68a19a70d4f41ca449e37765e4f368ce606e1966ba85`.
+
+The final formatter edit changes only the exact resetOutranksPause method chain
+from one line to three, with the entire Reset.scala file otherwise unchanged.
+Seven explicitly reviewed replacement records cover that declaration's span
+and the two-line shift of keepPausedReset/resetRepeated; all original positions
+and spans stay frozen. The conductor derives every changed field independently
+from the authored source rather than accepting an arbitrary replacement map.
+Separate delta SHA256: `01c4749645f1964227d89b4cdb209d67155afda93b41bad1c8368db654c9bdf1`.
+Root verification: `fn140-10-root-final-core-proof-audit.log`.
+
+This is verified candidate evidence, not integrated task closure. Formatter
+changes also move strict witness-fixture expression coordinates; focused repairs
+must retain complete function/body/parameter/clause/span assertions and the full
+source campaign must execute again. Final compile/native suites, complete
+226-row refusal/no-IR contract, format/idempotence/syntax, historical equivalence
+and artifact/classpath authentication still require final acceptance. The nine
+held managed comparisons, consumer obligations and fn-149 gate remain unchanged.
+The original continuation deadline and two-strike limit still apply.
+
 ## Acceptance
 - [ ] Complete eligible/retained inventories cover all Model packages, with concrete reader/boundary justifications; every eligible private pinned triple is a witness (R5).
 - [ ] Source-aware lint and focused positive/refusal fixtures cover private/shared/verify/monitor/repeated-input-tail forms with exact source ownership and unchanged other refusal classes (R5).
