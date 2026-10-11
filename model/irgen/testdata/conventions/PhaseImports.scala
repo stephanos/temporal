@@ -3,7 +3,7 @@
 package fixture.conventions.phases
 
 import framework.*
-import Stage.{done}
+import Stage.done
 
 enum Stage derives Finite:
   case idle, busy, done

@@ -190,7 +190,9 @@ trait Reset extends Facet[State, Outcome, Fact], Phased[State, Phase]:
         query find cancellation.properties.cancelRequested in resetThenCanceled limits four
       val resetOutranksPause =
         witness(client.start(), activityWorker.poll, client.reset(ResetPause.resume), client.pause)
-          .excludes(Fact.statusPaused).ends(_.phase == Phase.resetRequested).limits(four)
+          .excludes(Fact.statusPaused)
+          .ends(_.phase == Phase.resetRequested)
+          .limits(four)
       val resetRepeated =
         query find properties.resetStaysPending in resetTwice limits four
       val keepPausedReset = witness(

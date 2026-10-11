@@ -12,7 +12,8 @@ object Runs:
     producer = family + ".fixture",
     producerVersion = "1",
     roles = Vector.empty,
-    correlation = Correlation("projection", "run", "operation", "observation", 8, 8, 2, 16, 1000, 512),
+    correlation =
+      Correlation("projection", "run", "operation", "observation", 8, 8, 2, 16, 1000, 512),
     scripts = Vector.empty
   )
   val unrelated = Vector("ordinary data")

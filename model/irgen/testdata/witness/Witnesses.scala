@@ -169,7 +169,13 @@ val conditionalProperty =
   }
 val conditionalScenario =
   Subject.scenario("conditional").actions(finish(Input.first))
-val conditionalCore: Query = query("conditional") find conditionalProperty in conditionalScenario limits Limits("conditional", steps = 1, actions = 1, search = 512)
+val conditionalCore: Query =
+  query("conditional") find conditionalProperty in conditionalScenario limits Limits(
+    "conditional",
+    steps = 1,
+    actions = 1,
+    search = 512
+  )
 val conditionalMember = Together
   .witness("conditionalMember")(Together.own(_.left, finish(Input.first)))
   .records(_.left -> Subject, Note.completed)
@@ -180,24 +186,59 @@ val absentProperty = Subject.property("absent").when(finish(Input.first)) holds 
   !after.records(Note.other) && closed(after.state)
 }
 val absentScenario = Subject.scenario("absent").actions(finish(Input.first))
-val absentCore: Query = query("absent") find absentProperty in absentScenario limits Limits("absent", steps = 1, actions = 1, search = 512)
-val guarded = Subject.witness("guarded")(finish(Input.first)).records(Note.completed)
-  .excludes(Note.other).recordsWhen(closed, Note.completed)
-val absentMember = Together.witness("absentMember")(Together.own(_.left, finish(Input.first)))
+val absentCore: Query = query("absent") find absentProperty in absentScenario limits Limits(
+  "absent",
+  steps = 1,
+  actions = 1,
+  search = 512
+)
+val guarded = Subject
+  .witness("guarded")(finish(Input.first))
+  .records(Note.completed)
+  .excludes(Note.other)
+  .recordsWhen(closed, Note.completed)
+val absentMember = Together
+  .witness("absentMember")(Together.own(_.left, finish(Input.first)))
   .excludes(_.right -> Other, Note.completed)
 
 val guardedProperty = Subject.property("guarded").when(finish(Input.first)) holds { after =>
-  after.records(Note.completed) && !after.records(Note.other) && (!closed(after.state) || after.records(Note.completed))
+  after.records(Note.completed) && !after
+    .records(Note.other) && (!closed(after.state) || after.records(Note.completed))
 }
 val guardedScenario = Subject.scenario("guarded").actions(finish(Input.first))
-val guardedCore: Query = query("guarded") find guardedProperty in guardedScenario limits Limits("guarded", steps = 1, actions = 1, search = 512)
-val absentMemberProperty = Together.property("absentMember").when(Together.own(_.left, finish(Input.first))) holds { after =>
-  !after.facts.contains("right_completed")
-}
-val absentMemberScenario = Together.scenario("absentMember").actions(Together.own(_.left, finish(Input.first)))
-val absentMemberCore: Query = query("absentMember") find absentMemberProperty in absentMemberScenario limits Limits("absentMember", steps = 1, actions = 1, search = 512)
-val conditionalMemberProperty = Together.property("conditionalMember").when(Together.own(_.left, finish(Input.first))) holds { after =>
-  after.facts.contains("left_completed") && (!closed(after.state.right) || after.facts.contains("right_other"))
-}
-val conditionalMemberScenario = Together.scenario("conditionalMember").actions(Together.own(_.left, finish(Input.first)))
-val conditionalMemberCore: Query = query("conditionalMember") find conditionalMemberProperty in conditionalMemberScenario limits Limits("conditionalMember", steps = 1, actions = 1, search = 512)
+val guardedCore: Query = query("guarded") find guardedProperty in guardedScenario limits Limits(
+  "guarded",
+  steps = 1,
+  actions = 1,
+  search = 512
+)
+val absentMemberProperty =
+  Together.property("absentMember").when(Together.own(_.left, finish(Input.first))) holds { after =>
+    !after.facts.contains("right_completed")
+  }
+val absentMemberScenario =
+  Together.scenario("absentMember").actions(Together.own(_.left, finish(Input.first)))
+val absentMemberCore: Query =
+  query("absentMember") find absentMemberProperty in absentMemberScenario limits Limits(
+    "absentMember",
+    steps = 1,
+    actions = 1,
+    search = 512
+  )
+val conditionalMemberProperty =
+  Together.property("conditionalMember").when(Together.own(_.left, finish(Input.first))) holds {
+    after =>
+      after.facts.contains("left_completed") && (!closed(after.state.right) || after.facts.contains(
+        "right_other"
+      ))
+  }
+val conditionalMemberScenario =
+  Together.scenario("conditionalMember").actions(Together.own(_.left, finish(Input.first)))
+val conditionalMemberCore: Query = query(
+  "conditionalMember"
+) find conditionalMemberProperty in conditionalMemberScenario limits Limits(
+  "conditionalMember",
+  steps = 1,
+  actions = 1,
+  search = 512
+)

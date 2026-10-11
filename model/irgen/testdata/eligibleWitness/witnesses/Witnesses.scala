@@ -22,6 +22,7 @@ object worker extends Actor:
   val factory = action(this)
   val core = action(this)
   val unrelated = action(this)
+  val statement = action(this)
 
 given Ok[Outcome] = Ok(Outcome.ok)
 val two = Limits(steps = 2, actions = 2, search = 64)
@@ -31,6 +32,7 @@ object Witnesses extends Machine[State, Outcome, Fact]:
   def end(s: State) = s.lit || !s.lit
   object states:
     def records(s: Step[State, Outcome, Fact]): Boolean = s.state.lit
+    def observe(p: Property[State]): Unit = ()
   object effects:
     def finish(s: State, bit: Bit) =
       enter(s.copy(lit = bit == Bit.first || s.lit), Fact.done)
@@ -50,6 +52,7 @@ object Witnesses extends Machine[State, Outcome, Fact]:
     on(worker.factory)(where(_ => true) ~> effects.complete)
     on(worker.core)(where(_ => true) ~> effects.complete)
     on(worker.unrelated)(where(_ => true) ~> effects.complete)
+    on(worker.statement)(where(_ => true) ~> effects.complete)
   object properties:
     def manufactured(action: ClassRef) =
       property when action holds (_.records(Fact.done))
@@ -76,6 +79,7 @@ object Witnesses extends Machine[State, Outcome, Fact]:
       property when worker.core holds (s => s.facts.contains(Fact.done))
     val unrelatedClaim =
       property when worker.unrelated holds (s => List(Fact.done).contains(Fact.done) && s.state.lit)
+    val statementClaim = property when worker.statement holds (_.records(Fact.done))
   object queries:
     val privatePath = scenario.actions(worker.finish(Bit.first))
     val distinctInputPath =
@@ -91,6 +95,8 @@ object Witnesses extends Machine[State, Outcome, Fact]:
     val factoryPath = scenario.actions(worker.factory)
     val corePath = scenario.actions(worker.core)
     val unrelatedPath = scenario.actions(worker.unrelated)
+    val statementPath = scenario.actions(worker.statement)
+    states.observe(properties.statementClaim)
     val eligible = query find properties.privateClaim in privatePath limits two
     val distinctInputsEligible =
       query find properties.distinctInputClaim in distinctInputPath limits two
@@ -115,3 +121,4 @@ object Witnesses extends Machine[State, Outcome, Fact]:
     val coreEligible = query find properties.coreClaim in corePath limits two
     val unrelatedContains =
       query find properties.unrelatedClaim in unrelatedPath limits two
+    val statementReader = query find properties.statementClaim in statementPath limits two

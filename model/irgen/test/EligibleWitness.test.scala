@@ -107,6 +107,7 @@ class EligibleWitnessFixtures extends munit.FunSuite:
         "nonRecorded",
         "fakeRecords",
         "unrelatedContains"
+        , "statementReader"
       )
     do assert(!findings.exists(_.contains(s"`$retained`")), result.output)
     assert(!Files.exists(output), result.output)
@@ -128,7 +129,7 @@ class EligibleWitnessFixtures extends munit.FunSuite:
     assertEquals(result.exit, 0, result.output)
     val model = new com.fasterxml.jackson.databind.ObjectMapper()
       .readTree(Files.readString(output))
-    assertEquals(model.path("queries").size(), 15)
+    assertEquals(model.path("queries").size(), 16)
     val scenarios = model.path("scenarios").elements().asScala.toVector
     val repeated = scenarios
       .find(_.path("name").asText() == "repeatedPath")

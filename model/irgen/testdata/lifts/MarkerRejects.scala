@@ -62,7 +62,8 @@ object HopelessFailure extends Machine[Lamp, Outcome, Nothing], FailureModel:
             contract = PropertyOutcome.violated,
             disposition = Disposition.stoppedByMonitor,
             cleanup = Cleanup.succeeded,
-            reason = Some(Reason.everyExplanationViolates)
+            reason = Some(Reason.everyExplanationViolates),
+            because = "the deliberately hopeless specimen violates every promise"
           )
         )
 

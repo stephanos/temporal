@@ -78,7 +78,9 @@ object Faceted
     val pressThenSmash = scenario.actions(hand.press, hand.smash)
     val smashing = query find breaking.properties.smashes in pressThenSmash limits two
 
-object Whole extends Machine[Lamp, Said, Note], Phased[Lamp, Lit](_.light, (s, p) => s.copy(light = p)):
+object Whole
+    extends Machine[Lamp, Said, Note],
+      Phased[Lamp, Lit](_.light, (s, p) => s.copy(light = p)):
   val init = Lamp(Lit.off, UpTo(0))
 
   object effects:

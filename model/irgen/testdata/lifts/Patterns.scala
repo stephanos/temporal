@@ -302,4 +302,5 @@ val sharedCoreClaims: Vector[Query] = Vector(
   onPair("pairTerminalCore", pairTerminalCore)
 )
 
-val claims: Vector[Query] = Vector(onJob("doneKeeps", doneKeeps), onJob("doneKeepsCore", doneKeepsCore))
+val claims: Vector[Query] =
+  Vector(onJob("doneKeeps", doneKeeps), onJob("doneKeepsCore", doneKeepsCore))
