@@ -1,11 +1,11 @@
 ---
-satisfies: [R5, R7]
+satisfies: [R1, R5, R7]
 ---
 # fn-140-one-sentence-witness-queries-with.10 Migrate remaining Scala witnesses and commit the source equivalence seal
 
 ## Description
 **Size:** L
-**Touches:** [model/temporal/**/*.scala, model/framework/Facet.scala, model/irgen/Conventions.scala, model/irgen/Order.scala, model/irgen/test/**, model/irgen/testdata/**, model/testdata/equivalence/batch-1d.map, model/testdata/equivalence/batch-1d.ledger.json, model/testdata/equivalence/dispatch-original/**, model/check/Equivalence.scala, model/check/Gate.scala, model/check/StepLedger.scala, model/check/test/Equivalence.test.scala, model/check/test/StepLedger.test.scala]
+**Touches:** [model/temporal/**/*.scala, model/framework/Facet.scala, model/framework/Claims.scala, model/framework/Syntax.scala, model/framework/Witness.test.scala, model/README.md, model/irgen/Syntax.scala, model/irgen/Conventions.scala, model/irgen/Order.scala, model/irgen/test/**, model/irgen/testdata/**, model/testdata/equivalence/batch-1d.map, model/testdata/equivalence/batch-1d.ledger.json, model/testdata/equivalence/dispatch-original/**, model/check/Equivalence.scala, model/check/Gate.scala, model/check/StepLedger.scala, model/check/test/Equivalence.test.scala, model/check/test/StepLedger.test.scala]
 
 Complete the remaining Scala witness migration and source-aware eligible-triple lint after .4/.5. This is the independently completed, committed Scala source seal that releases fn-149 grouping under the owner's one-worker sequence. Deferred .6 retains full regeneration, Go, consumer/replay, full-gate/review/live closure and depends on this seal and consumer tasks .7/.8/.9. Do not wait for those owner-deferred tasks or claim they passed here.
 
@@ -142,9 +142,23 @@ Replace the concrete-kind exception with a narrow typed constructor seam: a bind
 
 Write focused fixtures/tests first: a generic independently named positive proving no Temporal-kind identity is required; wrong section, extra field, hidden block/call and unrelated API/layer-reference negatives with exact authored R4 diagnostics. Preserve every existing convention refusal and native capability inventory. Run CapabilityVocabularySuite and focused conventions tests plus the complete source suites; compare production core/native inventories to prove no declaration, predicate, status mapping or Query meaning changed. Keep the full-consumer boundary unchanged.
 
-### Open heartbeat representability decision
+### Scoped conditional-fact witness foundation and heartbeat migration
 
-The original heartbeatExhausts assertion rejects an exhausted step carrying heartbeatTimedOut and statusTimedOut(startToClose), while accepting one with the identical state and heartbeatTimedOut plus statusTimedOut(heartbeat). A witness selecting heartbeatTimedOut with ends(state) cannot distinguish these two typed steps. Equality on genuine current native rows does not authorize relaxing the existing synthetic rejection test. Retain the original triple and assertions as an intermediate state while the owner chooses between a narrowly typed conditional-fact witness clause (conductor recommendation) and an explicit retained-triple exception. R5 remains unchanged while that choice is pending; 17 converted witnesses alone do not close this source seal or release fn-149. Any new API requires a separately recorded scoped design and tests before implementation.
+The conductor adopts the narrow conditional-fact recommendation under the owner's explicit instruction to follow its recommendations when in doubt. This resolves the previously pending API-versus-exception question without narrowing R5. Do not implement an arbitrary Step-predicate ending or retain heartbeat as an exception.
+
+After mandatory `.records(primaryFact)`, a completed Witness admits `.recordsWhen(condition: S => Boolean, fact)`; a composition admits `.recordsWhen(condition, _.member -> MemberMachine, fact)` with the selected member's exact fact type and identity. Both are immutable modifiers, usable with the existing ends/limits/live/explore ordering. Conditions inspect only the after state. Multiple conditional clauses accumulate in written order; a condition that is false imposes no fact requirement. Preserve the builder's mandatory primary fact admission and every existing compiler/refusal rule.
+
+Native core semantics are `primaryRecorded(after) && (!condition1(after.state) || selectedFact1Recorded(after)) && ... && ending(after.state)`, with the ending omitted when absent. Use the established typed primary/member-fact machinery rather than a second suffix-based selector implementation. Preserve Query names, selected tail, owner, path, start, limits, total/free/live/exploration metadata and runtime registration. No schema, IR declaration kind, Go consumer, live generation or starts surface changes.
+
+Extend the established WitnessSource/sugar hook in irgen/Syntax.scala to collect conditional clauses in their authored order and lower them to the ordinary Property Boolean expression and state-function calls. Preserve primary fact/path duplicate admission, composed selected-member identity, and exact authored source positions. Primary .records continues to be required; .recordsWhen never finishes an unfinished builder. Every retained modifier must copy accumulated clauses.
+
+Migrate heartbeatTimeoutExhausts with the original ordered path and metadata, primary heartbeatTimedOut, recordsWhen(exhausted, statusTimedOut(heartbeat)), and the state ending exhausted(state) implies phase == timedOut. The repeated exhausted condition preserves the complete original assertion; do not remove the state ending or change the original synthetic tests. Delete only its now-private Property/Scenario after its full reader inventory proves eligibility.
+
+Tests precede implementation: native truth comparison with the exact original predicate for every applicable row; independently pinned synthetic same-state/same-primary-fact steps with correct/wrong/missing terminal facts; false-condition rows accepting absent or other terminal facts; primary-fact-absent refusal; accumulated-clause order and modifier preservation; typed native and composed-member positives; foreign/native/member facts, non-state condition, ambiguous/mismatched member and unfinished-builder compiler/lift refusals. Lift sugar and independently authored core forms and compare full Boolean IR/functions with only explicit parameter/identity/source mappings, never broad normalization. Existing heartbeat family, complete capability classifications and duplicate detector assertions remain unchanged.
+
+Update README and the new public sugar's core-form documentation with the conditional clause, keeping the triple guidance for genuine shared/invariant/repeated-tail forms. The main checkout's user SEMANTICS draft remains untouched. After the foundation and migration, rerun current-source admission, complete all Query/core/path/expectation/realization/span inventories and native proof, positively lift layout, and repeat final source/checker/format/syntax/historical steps-only checks. Any earlier pre-edit-lifter inventory capture is scratch evidence only; final current-source lint/lift must pass and yield that same full inventory before closure.
+
+This scope remains inside the original worker timebox; no extra budget, review, Go, managed regeneration or live-run authority is granted.
 
 The native duplicate test's newly exposed None-selector pair is the two pre-existing global dispatch transition invariants, not witness selectors (native Witness stores the tail class). Keep actual selectors, the complete native row population and the strict pair routine. Augment it with independently pinned off-native transitions distinguishing those actual invariants; never assign invented selectors or exclude the global group to get a pass.
 
@@ -163,7 +177,8 @@ Typed source admission also needs unrelated `records` helper controls and a qual
 - [ ] Scala compilation and framework/Model/lifter/gate source checks, new migration proofs, syntax and historical-baseline step-table equivalence pass, with complete justified identity/row mappings and no unresolved strict-native admission failure. Held managed-golden/Go checks and protected Batch 5 Go assessment obligations are explicitly separate, never passing credit or a native/source waiver. Scratch artifacts and mappings are frozen for deferred consumer proofs; managed outputs remain untouched.
 - [ ] This Scala source seal is committed and its handoff to fn-149 is explicit; .6/.7/.8/.9 retain all full consumer/regeneration/assessment/gate/review/live obligations without claiming them complete.
 - [ ] The historical-step ledger passes exact mapped-permutation/addition positives and all independent mutation controls; ordinary unmapped ordering/new-table/unused-map checks remain strict. The complete original baseline and independently authenticated original dispatch population compare with every current table accounted for.
-- [ ] The strict framework/lifter capability-vocabulary check passes through a generic typed single-field status-table binding seam, with positive and exact-coordinate negative controls; Lifecycle's status table and all production declaration/native semantics remain unchanged. This is an explicitly separate fn-160 R9 source repair, not witness or consumer equivalence credit.
+- [ ] The strict framework/lifter capability-vocabulary check passes through a generic typed single-field status-table binding seam, with positive and exact-coordinate negative controls; Lifecycle's status table and all production declaration/native semantics remain unchanged. This is an explicitly separate fn-160 R9 source repair, not witness or consumer equivalence credit.- [ ] Typed conditional-fact witness clauses preserve the exact original heartbeat assertion on independently pinned synthetic and all applicable native rows; mandatory primary fact, selected-member identity, immutable modifiers, compiler/lift refusals and complete core/span parity are verified before current source admission and the R5 seal (R1, R5).
+
 ## Done summary
 TBD
 
@@ -171,5 +186,3 @@ TBD
 - Commits:
 - Tests:
 - PRs:
-
-
