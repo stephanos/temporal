@@ -979,7 +979,7 @@ final private[irgen] class Order(index: Index):
       case "rules"    => Set.empty // statements alone, or a composition's syncs
       case "properties" if propertyGroup && plain(s.name) == "safety" => Set(Kind.Claim)
       case "properties" if propertyGroup                              => Set(Kind.Progress)
-      case "properties"            => Set(Kind.Claim, Kind.Progress)
+      case "properties"                                               => Set.empty
       case "capabilities"          => Set.empty // capabilities and waivers
       case "states" | "refinement" =>
         Set.empty // vocabulary, and the machine's refinement
@@ -1051,7 +1051,7 @@ final private[irgen] class Order(index: Index):
       else noModelIn(o, s"$owner.$written.${plain(o.name)}")
     val declarations = members(s).filterNot {
       case f: DefDef =>
-        propertyGroup && kindsOf(f.returnTpt.tpe).forall { (_, kind) =>
+        name == "properties" && kindsOf(f.returnTpt.tpe).forall { (_, kind) =>
           Set(Kind.Claim, Kind.Progress, Kind.Scenario, Kind.Query)(kind)
         }
       case _ => false
@@ -1064,15 +1064,19 @@ final private[irgen] class Order(index: Index):
       val reference = monitorReference(m)
       def groupHome(group: String) = s"the `$group` object of its machine's `properties`"
       val crossedMonitor = reference && propertyGroup && plain(s.name) == "liveness"
-      if crossedMonitor || (!allowed(k) && !reference) then
-        val destination = if crossedMonitor then groupHome("safety")
+      val flatMonitor = reference && !propertyGroup
+      if crossedMonitor || flatMonitor || (!allowed(k) && !reference) then
+        val destination = if crossedMonitor || flatMonitor then groupHome("safety")
         else if name == "properties" && k == Kind.Claim then groupHome("safety")
         else if name == "properties" && k == Kind.Progress then groupHome("liveness")
         else belongs(k, true)
-        val kind = if crossedMonitor then "a safety monitor reference" else k.written
+        val kind = if crossedMonitor || flatMonitor then "a safety monitor reference" else k.written
+        val declared =
+          if name == "properties" && !propertyGroup then s"declared directly in $owner.properties"
+          else s"declared in $owner.$written"
         refuse(
           m,
-          s"$binding is $kind, declared in $owner.$written: it belongs in $destination"
+          s"$binding is $kind, $declared: it belongs in $destination"
         )
       else
         // A declaration over a machine sits with that machine's object, and a Query with its

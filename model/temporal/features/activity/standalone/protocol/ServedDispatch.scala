@@ -34,13 +34,14 @@ object ServedDispatch
       .whenAction(c.synced(_.activity -> activityWorker.poll))
       .holds(_.state.worker.phase == WorkerPhase.polling)
 
-    // The bounded progress promise, over both members.
-    val startsWithinOneStep = ServedDispatch.leadsTo("startsWithinOneStep")(
-      states.dispatchable,
-      states.started,
-      within = 1,
-      servedDispatchRuns
-    )
+    object liveness:
+      // The bounded progress promise, over both members.
+      val startsWithinOneStep = ServedDispatch.leadsTo("startsWithinOneStep")(
+        states.dispatchable,
+        states.started,
+        within = 1,
+        servedDispatchRuns
+      )
 
   object queries:
     val anyDispatch = scenario.free

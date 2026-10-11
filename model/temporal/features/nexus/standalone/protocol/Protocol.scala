@@ -111,7 +111,7 @@ object NexusProtocol
       handler.complete(Resolution.succeeded)
     )
     val terminalHolds =
-      query verify shared.product.NexusProduct.properties.terminalIsFinal in asyncThenSucceeded limits three
+      query verify shared.product.NexusProduct.properties.safety.terminalIsFinal in asyncThenSucceeded limits three
     val cancelIsRequested =
       witness("nexusProtocol.cancelIsRequested")(
         client.start,

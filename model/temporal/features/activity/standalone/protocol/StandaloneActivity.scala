@@ -23,10 +23,12 @@ object StandaloneActivity
     sync(_.activity -> activityWorker.poll, _.worker -> process.serve)
 
   object properties:
-    // The cross-entity claim: no stopped worker starts an attempt.
-    val startedByPollingWorker = property
-      .whenAction(synced(_.activity -> activityWorker.poll))
-      .holds(_.state.worker.phase == WorkerPhase.polling)
+
+    object safety:
+      // The cross-entity claim: no stopped worker starts an attempt.
+      val startedByPollingWorker = property
+        .whenAction(synced(_.activity -> activityWorker.poll))
+        .holds(_.state.worker.phase == WorkerPhase.polling)
 
   object queries:
     // The cross-entity claim, over the path on which a stopped worker never takes the retry: the
@@ -45,4 +47,4 @@ object StandaloneActivity
         own(_.activity, deadline.scheduleToStart)
       )
     val stoppedWorkerStartsNothing =
-      query verify properties.startedByPollingWorker in stoppedBeforeRetry limits six
+      query verify properties.safety.startedByPollingWorker in stoppedBeforeRetry limits six

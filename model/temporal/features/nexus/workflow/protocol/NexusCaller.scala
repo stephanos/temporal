@@ -23,11 +23,13 @@ object NexusCaller
     sync(_.operation -> handler.reply, _.worker -> worker.serve)
 
   object properties:
-    // The cross-entity claim: every reply, of any class, leaves the handler's worker polling, so no
-    // handler replies while its worker is stopped.
-    val repliedByPollingWorker = property
-      .whenAction(synced(_.operation -> handler.reply))
-      .holds(_.state.worker.phase == WorkerPhase.polling)
+
+    object safety:
+      // The cross-entity claim: every reply, of any class, leaves the handler's worker polling, so
+      // no handler replies while its worker is stopped.
+      val repliedByPollingWorker = property
+        .whenAction(synced(_.operation -> handler.reply))
+        .holds(_.state.worker.phase == WorkerPhase.polling)
 
   object queries:
     // The cross-entity claim, verified over the path on which a retryable reply backs the operation
@@ -43,4 +45,4 @@ object NexusCaller
         own(_.operation, deadline.scheduleToStart)
       )
     val stoppedWorkerRepliesNothing =
-      query verify properties.repliedByPollingWorker in repliedThenStopped limits four
+      query verify properties.safety.repliedByPollingWorker in repliedThenStopped limits four

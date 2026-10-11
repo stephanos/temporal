@@ -41,20 +41,20 @@ class ActivitySubjectRegression extends munit.FunSuite:
   test("each Property of the activity Protocol is declared once") {
     val p = ActivityProtocol
     val properties = List(
-      p.completion.properties.completes,
+      p.completion.properties.safety.completes,
       coreProperty(p.completion.queries.scheduledCompletedByID),
       coreProperty(p.retry.queries.nonRetryableFailure),
       coreProperty(p.retry.queries.retry),
-      p.retry.properties.retryExhausts,
+      p.retry.properties.safety.retryExhausts,
       coreProperty(p.retry.queries.heldFailedByID),
-      p.cancellation.properties.cancelRequested,
-      p.cancellation.properties.canceledByWorker,
-      p.cancellation.properties.canceledByID,
-      p.dispatching.properties.dispatchRequiresReady,
-      p.dispatching.properties.scheduleToStartRequiresDispatch,
-      p.timeouts.properties.scheduleToStartFires,
+      p.cancellation.properties.safety.cancelRequested,
+      p.cancellation.properties.safety.canceledByWorker,
+      p.cancellation.properties.safety.canceledByID,
+      p.dispatching.properties.safety.dispatchRequiresReady,
+      p.dispatching.properties.safety.scheduleToStartRequiresDispatch,
+      p.timeouts.properties.safety.scheduleToStartFires,
       coreProperty(p.timeouts.queries.startToCloseTimeout),
-      p.timeouts.properties.scheduleToCloseTimesOut,
+      p.timeouts.properties.safety.scheduleToCloseTimesOut,
       coreProperty(p.timeouts.queries.retryAfterTimeout),
       coreProperty(p.timeouts.queries.retryExhaustion),
       coreProperty(p.heartbeat.queries.heartbeatTimeoutExhausts),
@@ -64,7 +64,7 @@ class ActivitySubjectRegression extends munit.FunSuite:
       coreProperty(p.reset.queries.resetKeptPause),
       coreProperty(p.reset.queries.resetCompletion),
       coreProperty(p.reset.queries.resetOutranksPause),
-      p.reset.properties.resetStaysPending,
+      p.reset.properties.safety.resetStaysPending,
       coreProperty(p.reset.queries.keepPausedReset)
     )
     assertEquals(properties.size, 25)
@@ -104,21 +104,21 @@ class ActivitySubjectRegression extends munit.FunSuite:
       )
     )
     val dispatch = predicate(
-      ActivityProtocol.dispatching.properties.dispatchRequiresReady
+      ActivityProtocol.dispatching.properties.safety.dispatchRequiresReady
     )
     val timeout = predicate(
-      ActivityProtocol.dispatching.properties.scheduleToStartRequiresDispatch
+      ActivityProtocol.dispatching.properties.safety.scheduleToStartRequiresDispatch
     )
     assertEquals(
       offNative.map((before, after) => dispatch(before, after) -> timeout(before, after)),
       Vector(false -> true, true -> false)
     )
     def label(p: Property[protocol.State]): String =
-      if p.decl eq ActivityProtocol.cancellation.properties.cancelRequested.decl
+      if p.decl eq ActivityProtocol.cancellation.properties.safety.cancelRequested.decl
       then "cancelRequested"
-      else if p.decl eq ActivityProtocol.dispatching.properties.dispatchRequiresReady.decl
+      else if p.decl eq ActivityProtocol.dispatching.properties.safety.dispatchRequiresReady.decl
       then "dispatchRequiresReady"
-      else if p.decl eq ActivityProtocol.dispatching.properties.scheduleToStartRequiresDispatch.decl
+      else if p.decl eq ActivityProtocol.dispatching.properties.safety.scheduleToStartRequiresDispatch.decl
       then "scheduleToStartRequiresDispatch"
       else p.decl.name
     for
@@ -143,7 +143,7 @@ class ActivitySubjectRegression extends munit.FunSuite:
         after.records(protocol.Fact.statusCancelRequested)
       }
     val error = intercept[munit.FailException] {
-      assertDistinct(List(p.cancellation.properties.cancelRequested, duplicate))
+      assertDistinct(List(p.cancellation.properties.safety.cancelRequested, duplicate))
     }
     assert(
       error.getMessage.contains("seededDuplicate state one promise"),
@@ -161,7 +161,7 @@ class ActivitySubjectRegression extends munit.FunSuite:
       ))
     val inherited = intercept[munit.FailException] {
       assertDistinct(
-        List(p.cancellation.properties.cancelRequested, originalWeak)
+        List(p.cancellation.properties.safety.cancelRequested, originalWeak)
       )
     }
     assert(
@@ -201,7 +201,7 @@ class ActivitySubjectRegression extends munit.FunSuite:
       Receipt(
         ActivityProtocol.completion.queries.completion,
         ActivityProtocol,
-        ActivityProtocol.completion.properties.completes,
+        ActivityProtocol.completion.properties.safety.completes,
         ActivityProtocol.completion.queries.completed,
         Vector(
           client.start(),
@@ -246,7 +246,7 @@ class ActivitySubjectRegression extends munit.FunSuite:
       Receipt(
         ActivityProtocol.retry.queries.retryExhaustionByFailures,
         ActivityProtocol,
-        ActivityProtocol.retry.properties.retryExhausts,
+        ActivityProtocol.retry.properties.safety.retryExhausts,
         ActivityProtocol.retry.queries.exhausted,
         Vector(
           client.start(maxAttempts := MaxAttempts.two),
@@ -262,7 +262,7 @@ class ActivitySubjectRegression extends munit.FunSuite:
       Receipt(
         ActivityProtocol.cancellation.queries.cancel,
         ActivityProtocol,
-        ActivityProtocol.cancellation.properties.canceledByWorker,
+        ActivityProtocol.cancellation.properties.safety.canceledByWorker,
         ActivityProtocol.cancellation.queries.cancelRequestedThenCanceled,
         canceled,
         four,
@@ -271,7 +271,7 @@ class ActivitySubjectRegression extends munit.FunSuite:
       Receipt(
         ActivityProtocol.cancellation.queries.cancelRequest,
         ActivityProtocol,
-        ActivityProtocol.cancellation.properties.cancelRequested,
+        ActivityProtocol.cancellation.properties.safety.cancelRequested,
         ActivityProtocol.cancellation.queries.cancelRequestedThenCanceled,
         canceled,
         four,
@@ -280,7 +280,7 @@ class ActivitySubjectRegression extends munit.FunSuite:
       Receipt(
         ActivityProtocol.pausing.queries.pauseResume,
         ActivityProtocol,
-        ActivityProtocol.completion.properties.completes,
+        ActivityProtocol.completion.properties.safety.completes,
         ActivityProtocol.pausing.queries.pausedThenCompleted,
         Vector(
           client.start(),
@@ -296,7 +296,7 @@ class ActivitySubjectRegression extends munit.FunSuite:
       Receipt(
         ActivityProtocol.dispatching.queries.startDelayedCompletion,
         ActivityProtocol,
-        ActivityProtocol.completion.properties.completes,
+        ActivityProtocol.completion.properties.safety.completes,
         ActivityProtocol.dispatching.queries.delayedThenCompleted,
         Vector(
           client.start(startDelay := Timeout.expires),
@@ -311,7 +311,7 @@ class ActivitySubjectRegression extends munit.FunSuite:
       Receipt(
         ActivityProtocol.dispatching.queries.delayedAttemptsAreNotDispatched,
         ActivityProtocol,
-        ActivityProtocol.dispatching.properties.dispatchRequiresReady,
+        ActivityProtocol.dispatching.properties.safety.dispatchRequiresReady,
         ActivityProtocol.queries.any,
         Vector.empty,
         eight,
@@ -321,7 +321,7 @@ class ActivitySubjectRegression extends munit.FunSuite:
       Receipt(
         ActivityProtocol.dispatching.queries.scheduleToStartWaitsForDispatch,
         ActivityProtocol,
-        ActivityProtocol.dispatching.properties.scheduleToStartRequiresDispatch,
+        ActivityProtocol.dispatching.properties.safety.scheduleToStartRequiresDispatch,
         ActivityProtocol.queries.any,
         Vector.empty,
         eight,
@@ -331,7 +331,7 @@ class ActivitySubjectRegression extends munit.FunSuite:
       Receipt(
         ActivityProtocol.timeouts.queries.scheduleToStartTimeout,
         ActivityProtocol,
-        ActivityProtocol.timeouts.properties.scheduleToStartFires,
+        ActivityProtocol.timeouts.properties.safety.scheduleToStartFires,
         ActivityProtocol.timeouts.queries.scheduleToStartExpires,
         Vector(
           client.start(scheduleToStart := Timeout.expires),
@@ -361,7 +361,7 @@ class ActivitySubjectRegression extends munit.FunSuite:
       Receipt(
         ActivityProtocol.timeouts.queries.competingTimers(0),
         ActivityProtocol,
-        ActivityProtocol.timeouts.properties.scheduleToStartFires,
+        ActivityProtocol.timeouts.properties.safety.scheduleToStartFires,
         ActivityProtocol.timeouts.queries.bothDeadlinesStartFirst,
         Vector(bothDeadlines, deadline.scheduleToStart),
         three,
@@ -370,7 +370,7 @@ class ActivitySubjectRegression extends munit.FunSuite:
       Receipt(
         ActivityProtocol.timeouts.queries.competingTimers(1),
         ActivityProtocol,
-        ActivityProtocol.timeouts.properties.scheduleToCloseTimesOut,
+        ActivityProtocol.timeouts.properties.safety.scheduleToCloseTimesOut,
         ActivityProtocol.timeouts.queries.bothDeadlinesCloseFirst,
         Vector(bothDeadlines, deadline.scheduleToClose),
         three,

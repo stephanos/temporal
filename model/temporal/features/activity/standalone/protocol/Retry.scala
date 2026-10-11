@@ -81,21 +81,24 @@ trait Retry extends Facet[State, Outcome, Fact], Phased[State, Phase]:
       }
 
     object properties:
-      // The pinned exhaustion path takes this action twice, so both failures must satisfy the
-      // Property: the exact first retry, then the exact exhausted settlement.
-      val retryExhausts = property when activityWorker.respondFailed(Failure.retryable) holds { s =>
-        (s.state == ActivityProtocol.states.completedOnRetry.copy(
-          phase = Phase.scheduled,
-          dispatch = Dispatch.backoff,
-          attempts = UpTo(1),
-          maxAttempts = MaxAttempts.two
-        ) && s.records(Fact.statusScheduled) && s.records(Fact.attemptCount)) ||
-        (s.state == ActivityProtocol.states.completedOnRetry.copy(
-          phase = Phase.failed,
-          maxAttempts = MaxAttempts.two
-        ) &&
-          s.records(Fact.statusFailed))
-      }
+
+      object safety:
+        // The pinned exhaustion path takes this action twice, so both failures must satisfy the
+        // Property: the exact first retry, then the exact exhausted settlement.
+        val retryExhausts =
+          property when activityWorker.respondFailed(Failure.retryable) holds { s =>
+            (s.state == ActivityProtocol.states.completedOnRetry.copy(
+              phase = Phase.scheduled,
+              dispatch = Dispatch.backoff,
+              attempts = UpTo(1),
+              maxAttempts = MaxAttempts.two
+            ) && s.records(Fact.statusScheduled) && s.records(Fact.attemptCount)) ||
+            (s.state == ActivityProtocol.states.completedOnRetry.copy(
+              phase = Phase.failed,
+              maxAttempts = MaxAttempts.two
+            ) &&
+              s.records(Fact.statusFailed))
+          }
 
     // The retryable and the fatal failure, each a Retryable instance; a pending reset applies first,
     // as a failure ends the held attempt, whatever its retryability or the policy left
@@ -174,7 +177,7 @@ trait Retry extends Facet[State, Outcome, Fact], Phased[State, Phase]:
             )
           )
       val retryExhaustionByFailures =
-        query verify properties.retryExhausts in exhausted limits six
+        query verify properties.safety.retryExhausts in exhausted limits six
       // A closed activity answers a repeated By-ID call NotFound and records nothing, so the
       // explanations of a By-ID witness disagree.
       val heldFailedByID =

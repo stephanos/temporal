@@ -256,8 +256,8 @@ class ActivityResetRegression extends munit.FunSuite:
   }
 
   test("the settlement Property holds on every row and rejects every seeded settlement error") {
-    val settles = ActivityProtocol.properties.resetSettles
-    val precedence = ActivityProtocol.properties.controlPrecedence
+    val settles = ActivityProtocol.properties.safety.resetSettles
+    val precedence = ActivityProtocol.properties.safety.controlPrecedence
     // A held attempt was dispatched, so no reachable held state waits on a dispatch delay.
     val dispatched = states.filter(s => !s.phase.in[Held] || s.dispatch == protocol.Dispatch.now)
     val all = dispatched.flatMap(before =>
@@ -330,8 +330,8 @@ class ActivityResetRegression extends munit.FunSuite:
 
   test("direct reset Properties reject a kept backoff, a kept count and a wrong pause landing") {
     for (property, c) <- List(
-        ActivityProtocol.properties.resetResumes -> resets(0),
-        ActivityProtocol.properties.resetKeepsPaused -> resets(1)
+        ActivityProtocol.properties.safety.resetResumes -> resets(0),
+        ActivityProtocol.properties.safety.resetKeepsPaused -> resets(1)
       )
     do
       assert(property.decl.when.contains(c))

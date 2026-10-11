@@ -26,14 +26,16 @@ object AckByOriginalWithDeadline
       NegativeControl:
 
   object properties:
-    val ackByOriginalWithDeadlineProgress =
-      AckByOriginalWithDeadline.leadsTo("outcomeReachesOwner")(
-        RejectAfterClose.states.isDone,
-        RejectAfterClose.states.settled,
-        within = 6,
-        reporting,
-        deliveryFair
-      )
+
+    object liveness:
+      val ackByOriginalWithDeadlineProgress =
+        AckByOriginalWithDeadline.leadsTo("outcomeReachesOwner")(
+          RejectAfterClose.states.isDone,
+          RejectAfterClose.states.settled,
+          within = 6,
+          reporting,
+          deliveryFair
+        )
 
   object queries:
     val ackByOriginalWithDeadlineQueries =

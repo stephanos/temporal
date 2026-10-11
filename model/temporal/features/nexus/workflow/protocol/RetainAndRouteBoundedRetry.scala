@@ -20,24 +20,26 @@ object RetainAndRouteBoundedRetry
     ):
 
   object properties:
-    val retainAndRouteBoundedRetryProgress =
-      RetainAndRouteBoundedRetry.leadsTo("outcomeReachesOwner")(
-        RejectAfterClose.states.isDone,
-        RejectAfterClose.states.settled,
-        within = 6,
-        reporting,
-        deliveryFair
-      )
 
-    // Over the channel that redelivers once, at most the one redelivery comes before the reset.
-    val retainedReachesOwnerBoundedRetry =
-      RetainAndRouteBoundedRetry.leadsTo("retainedReachesOwner")(
-        RejectAfterClose.properties.awaitingOwner,
-        RejectAfterClose.properties.ownerKnowsOutcome,
-        within = 2,
-        deliveryFair,
-        recovery
-      )
+    object liveness:
+      val retainAndRouteBoundedRetryProgress =
+        RetainAndRouteBoundedRetry.leadsTo("outcomeReachesOwner")(
+          RejectAfterClose.states.isDone,
+          RejectAfterClose.states.settled,
+          within = 6,
+          reporting,
+          deliveryFair
+        )
+
+      // Over the channel that redelivers once, at most the one redelivery comes before the reset.
+      val retainedReachesOwnerBoundedRetry =
+        RetainAndRouteBoundedRetry.leadsTo("retainedReachesOwner")(
+          RejectAfterClose.properties.awaitingOwner,
+          RejectAfterClose.properties.ownerKnowsOutcome,
+          within = 2,
+          deliveryFair,
+          recovery
+        )
 
   object queries:
     val retainAndRouteBoundedRetryQueries =

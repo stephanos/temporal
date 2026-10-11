@@ -15,6 +15,33 @@ class PropertyGroupsFixtures extends munit.FunSuite:
   private val scratch =
     Files.createTempDirectory(build.resolve("history"), "property-groups.")
   private val mapper = ObjectMapper()
+  private lazy val frameworkJar =
+    val out = Files.createDirectories(scratch.resolve("framework")).resolve("framework.jar")
+    val _ = tools
+      .scalaCli(
+        Seq(
+          "--power",
+          "package",
+          "--server=false",
+          "--library",
+          tools.directory.resolve("model/project.scala").toString,
+          tools.directory.resolve("model/framework").toString,
+          "-f",
+          "-o",
+          out.toString
+        )
+      )
+      .orFail()
+    out
+  private lazy val frameworkClasspath =
+    val entries = Files
+      .readString(build.resolve("model-scala.classpath"))
+      .trim
+      .split(java.io.File.pathSeparator)
+      .filter(_.endsWith(".jar"))
+    val out = scratch.resolve("framework.classpath")
+    Files.writeString(out, entries.mkString(java.io.File.pathSeparator)): Unit
+    out
   private lazy val commonJar = packaged("common")
   private val expectedProperties = List(
     "joined.memberClosed",
@@ -44,7 +71,7 @@ class PropertyGroupsFixtures extends munit.FunSuite:
               .readString(file)
               .replace(
                 "../../../../build/model-scala.jar",
-                build.resolve("model-scala.jar").toString
+                frameworkJar.toString
               )
           ): Unit
       finally stream.close()
@@ -55,7 +82,7 @@ class PropertyGroupsFixtures extends munit.FunSuite:
         "--jar",
         commonJar.toString,
         "--jar",
-        build.resolve("model-scala.jar").toString,
+        frameworkJar.toString,
         "--scala",
         "3.9.0"
       )
@@ -90,8 +117,8 @@ class PropertyGroupsFixtures extends munit.FunSuite:
       tools.directory,
       Seq(
         "--ir",
-        s"$jar=$stored$variant/,$commonJar=${stored}common/,${build.resolve("model-scala.jar")}=model/",
-        build.resolve("model-scala.classpath").toString,
+        s"$jar=$stored$variant/,$commonJar=${stored}common/,$frameworkJar=model/framework/",
+        frameworkClasspath.toString,
         out.toString,
         file
       )
@@ -238,8 +265,8 @@ class PropertyGroupsFixtures extends munit.FunSuite:
       val result = InProcess.lift(
         tools.directory,
         Seq(
-          s"$jar=${stored}wrongOwner/,$commonJar=${stored}common/,${build.resolve("model-scala.jar")}=model/",
-          build.resolve("model-scala.classpath").toString,
+          s"$jar=${stored}wrongOwner/,$commonJar=${stored}common/,$frameworkJar=model/framework/",
+          frameworkClasspath.toString,
           out.toString,
           s"propertygroups.foundations.wrongowner.WrongOwner$$.properties$$.$group$$.$binding"
         )
@@ -262,18 +289,42 @@ class PropertyGroupsFixtures extends munit.FunSuite:
       assert(!Files.exists(out))
   }
 
+  test("flat authored Property and Progress declarations retain source-attributed refusal") {
+    val result = placementLift("flat", "specimen-workflow")
+    assertEquals(result.exit, 1, result.output)
+    val path = stored + "flat/features/specimen/workflow/WorkflowSpecimen.scala"
+    for (line, owner, binding, kind, group) <- List(
+        (19, "Subject", "closed", "a Property", "safety"),
+        (21, "Subject", "aliased", "a Property", "safety"),
+        (22, "Subject", "bundle.open", "a Property", "safety"),
+        (22, "Subject", "bundle.closed", "a Property", "safety"),
+        (26, "Subject", "reaches", "a progress claim", "liveness"),
+        (27, "Subject", "factory", "a progress claim", "liveness"),
+        (36, "Joined", "member", "a Property", "safety")
+      )
+    do
+      assert(
+        result.output.contains(
+          s"lift: $path:$line: $binding is $kind, declared directly in " +
+            s"$owner.properties: it belongs in the `$group` object of its machine's `properties`"
+        ),
+        result.output
+      )
+    assert(!Files.exists(scratch.resolve("flat/ir/specimen-workflow.json")))
+  }
+
   private lazy val flatJar = packaged("flat")
   private lazy val groupedJar = packaged("grouped")
   private lazy val negativeJar = packaged("negative")
   private def lifted(variant: String): Map[String, JsonNode] =
-    val jar = if variant.equals("flat") then flatJar else groupedJar
+    val jar = groupedJar
     val out = scratch.resolve(variant).resolve("ir")
     val result = InProcess.lift(
       tools.directory,
       Seq(
         "--ir",
-        s"$jar=$stored$variant/,$commonJar=${stored}common/,${build.resolve("model-scala.jar")}=model/",
-        build.resolve("model-scala.classpath").toString,
+        s"$jar=$stored$variant/,$commonJar=${stored}common/,$frameworkJar=model/framework/",
+        frameworkClasspath.toString,
         out.toString,
         "specimen-workflow",
         "lonely",
@@ -285,8 +336,7 @@ class PropertyGroupsFixtures extends munit.FunSuite:
       .map(name => name -> mapper.readTree(Files.readString(out.resolve(s"$name.json"))))
       .toMap
 
-  private lazy val models =
-    Seq("flat", "grouped").map(v => v -> lifted(v)).toMap
+  private lazy val groupedModels = lifted("grouped")
   private def inventory(model: JsonNode, kind: String): List[String] =
     model
       .path(kind)
@@ -297,33 +347,30 @@ class PropertyGroupsFixtures extends munit.FunSuite:
       .sorted
 
   test(
-    "flat and grouped automatic discovery each match the independent whole inventory"
+    "grouped automatic discovery matches the independent whole inventory"
   ) {
-    for variant <- Seq("flat", "grouped") do
-      val discovered = models(variant)
-      assertEquals(
-        inventory(discovered("specimen-workflow"), "properties"),
-        expectedProperties
-      )
-      assertEquals(
-        inventory(discovered("specimen-workflow"), "progress"),
-        expectedProgress
-      )
-      assertEquals(
-        inventory(discovered("lonely"), "progress"),
-        List("lonely.onlyProgress")
-      )
-      assertEquals(inventory(discovered("lonely"), "properties"), Nil)
+    assertEquals(
+      inventory(groupedModels("specimen-workflow"), "properties"),
+      expectedProperties
+    )
+    assertEquals(
+      inventory(groupedModels("specimen-workflow"), "progress"),
+      expectedProgress
+    )
+    assertEquals(
+      inventory(groupedModels("lonely"), "progress"),
+      List("lonely.onlyProgress")
+    )
+    assertEquals(inventory(groupedModels("lonely"), "properties"), Nil)
   }
 
   test(
     "a non-form owner with only bundled unqueried Progress declares its file"
   ) {
-    for variant <- Seq("flat", "grouped") do
-      assertEquals(
-        inventory(models(variant)("bundleonly"), "progress"),
-        List("bundleOnly.bundledOnly")
-      )
+    assertEquals(
+      inventory(groupedModels("bundleonly"), "progress"),
+      List("bundleOnly.bundledOnly")
+    )
   }
 
   test(
@@ -334,8 +381,8 @@ class PropertyGroupsFixtures extends munit.FunSuite:
       tools.directory,
       Seq(
         "--ir",
-        s"$negativeJar=${stored}negative/,$commonJar=${stored}common/,${build.resolve("model-scala.jar")}=model/",
-        build.resolve("model-scala.classpath").toString,
+        s"$negativeJar=${stored}negative/,$commonJar=${stored}common/,$frameworkJar=model/framework/",
+        frameworkClasspath.toString,
         out.toString,
         "hidden"
       )
@@ -433,8 +480,8 @@ class PropertyGroupsFixtures extends munit.FunSuite:
   private lazy val foundationLines =
     (1 to 13).map(n => n -> n).toMap ++ Map(14 -> 15, 15 -> 16)
 
-  private def mapped(flat: JsonNode, name: String): JsonNode =
-    val copy = flat.deepCopy[JsonNode]()
+  private def legacy(grouped: JsonNode, name: String): JsonNode =
+    val copy = grouped.deepCopy[JsonNode]()
     def walk(n: JsonNode): Unit =
       if n.has("position") then
         val p =
@@ -451,17 +498,18 @@ class PropertyGroupsFixtures extends munit.FunSuite:
           line > 0 && line <= Files.readAllLines(authored).size(),
           s"invalid authored span $file:$line"
         )
-        if file.startsWith(stored + "flat/") then
-          val suffix = file.stripPrefix(stored + "flat/")
+        if file.startsWith(stored + "grouped/") then
+          val suffix = file.stripPrefix(stored + "grouped/")
           val lines = suffix match
             case "features/specimen/workflow/WorkflowSpecimen.scala" =>
               workflowLines
             case "foundations/lonely/Lonely.scala" | "foundations/bundleonly/Bundleonly.scala" =>
               foundationLines
             case other => fail(s"unmapped source $other")
-          assert(lines.contains(line), s"unmapped source span $file:$line")
-          p.put("file", stored + "grouped/" + suffix): Unit
-          p.put("line", lines(line)): Unit
+          val inverse = lines.map(_.swap)
+          assert(inverse.contains(line), s"unmapped source span $file:$line")
+          p.put("file", stored + "flat/" + suffix): Unit
+          p.put("line", inverse(line)): Unit
         else
           assertEquals(file, stored + "common/Shared.scala")
           assert(line >= 1 && line <= 37, s"unmapped shared span $file:$line")
@@ -471,43 +519,68 @@ class PropertyGroupsFixtures extends munit.FunSuite:
       .asInstanceOf[ObjectNode]
       .put(
         "source", // scalafix:ok DisableSyntax.asInstanceOf
-        "model: " + groupedRoots(name).sorted.mkString(", ")
+        "model: " + flatRoots(name).sorted.mkString(", ")
       ): Unit
     copy
 
+  private def canonical(n: JsonNode): JsonNode =
+    if n.isObject then
+      val out = mapper.createObjectNode()
+      n.fields()
+        .asScala
+        .toSeq
+        .sortBy(_.getKey)
+        .foreach(e => out.set(e.getKey, canonical(e.getValue)))
+      out
+    else if n.isArray then
+      val out = mapper.createArrayNode()
+      n.elements().asScala.foreach(v => out.add(canonical(v)))
+      out
+    else n.deepCopy[JsonNode]()
+
+  private def digest(n: JsonNode): String =
+    java.security.MessageDigest
+      .getInstance("SHA-256")
+      .digest(mapper.writeValueAsBytes(canonical(n)))
+      .map(b => f"${b & 255}%02x")
+      .mkString
+
+  private lazy val legacyHashes = Map(
+    "bundleonly" -> "0c3930c3993f81ce100c0f10bae11c3841d3a2c9a3ddf7691b5512e2bf5867f5",
+    "lonely" -> "190fcf69dc405b0972e8f8c043962526ec5de57c1bf10bbee80683a456dba7f0",
+    "specimen-workflow" -> "16ebd157b929681920a50e43d6fe101a0257aea1773692d1fa6b1f90d90857a1"
+  )
+
   test(
-    "every identity, predicate, attachment and metadata field differs only by explicit source mapping"
+    "every identity predicate attachment and metadata field matches the frozen flat baseline under the source map"
   ) {
     for name <- Seq("specimen-workflow", "lonely", "bundleonly") do
       assertEquals(
-        models("flat")(name).path("source").asText(),
-        "model: " + flatRoots(name).sorted.mkString(", ")
-      )
-      assertEquals(
-        models("grouped")(name).path("source").asText(),
+        groupedModels(name).path("source").asText(),
         "model: " + groupedRoots(name).sorted.mkString(", ")
       )
-      assertEquals(mapped(models("flat")(name), name), models("grouped")(name))
+      assertEquals(digest(legacy(groupedModels(name), name)), legacyHashes(name))
   }
 
   test(
     "dropping a whole group from both candidate inventories fails the frozen declaration baseline"
   ) {
-    val left = models("flat")("specimen-workflow").deepCopy[JsonNode]()
-    val right = models("grouped")("specimen-workflow").deepCopy[JsonNode]()
-    for dropped <- Seq(left, right) do
-      dropped
-        .asInstanceOf[ObjectNode]
-        .remove("properties"): Unit // scalafix:ok DisableSyntax.asInstanceOf
-      assert(!inventory(dropped, "properties").equals(expectedProperties))
-    assertEquals(mapped(left, "specimen-workflow"), right)
+    val dropped = groupedModels("specimen-workflow").deepCopy[JsonNode]()
+    dropped
+      .asInstanceOf[ObjectNode]
+      .remove("properties"): Unit // scalafix:ok DisableSyntax.asInstanceOf
+    assert(!inventory(dropped, "properties").equals(expectedProperties))
+    assertNotEquals(
+      digest(legacy(dropped, "specimen-workflow")),
+      legacyHashes("specimen-workflow")
+    )
   }
 
   test(
     "native construction checks every applicable finite predicate row and retains Query selection"
   ) {
     val dependencies = Files
-      .readString(build.resolve("model-scala.classpath"))
+      .readString(frameworkClasspath)
       .trim
       .split(java.io.File.pathSeparator)
       .filter(_.endsWith(".jar"))
@@ -516,7 +589,7 @@ class PropertyGroupsFixtures extends munit.FunSuite:
       val classpath = (Seq(
         jar.toString,
         commonJar.toString,
-        build.resolve("model-scala.jar").toString
+        frameworkJar.toString
       ) ++ dependencies).distinct.mkString(java.io.File.pathSeparator)
       val result = tools.run(
         "java",
@@ -643,8 +716,8 @@ class PropertyGroupsFixtures extends munit.FunSuite:
         Vector(false, true)
       )
     )
-    for variant <- Seq("flat", "grouped") do
-      val model = models(variant)("specimen-workflow")
+    for variant <- Seq("grouped") do
+      val model = groupedModels("specimen-workflow")
       val propertyPositions = Map(
         "memberClosed" -> (
           s"$variant/features/specimen/workflow/WorkflowSpecimen.scala",
@@ -727,7 +800,7 @@ class PropertyGroupsFixtures extends munit.FunSuite:
         ("bundleonly", "bundleOnly", "bundledOnly", 4)
       )
       for (file, owner, name, bound) <- progress do
-        val ir = models(variant)(file)
+        val ir = groupedModels(file)
         val p =
           ir.path("progress")
             .elements()

@@ -14,12 +14,14 @@ object UnservedDispatch
       NegativeControl:
 
   object properties:
-    val startsWithinOneStep = UnservedDispatch.leadsTo("startsWithinOneStep")(
-      ServedDispatch.states.dispatchable,
-      ServedDispatch.states.started,
-      within = 1,
-      unservedDispatchRuns
-    )
+
+    object liveness:
+      val startsWithinOneStep = UnservedDispatch.leadsTo("startsWithinOneStep")(
+        ServedDispatch.states.dispatchable,
+        ServedDispatch.states.started,
+        within = 1,
+        unservedDispatchRuns
+      )
 
   object queries:
     val anyDispatch = scenario.free
