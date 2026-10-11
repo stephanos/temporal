@@ -663,8 +663,10 @@ val two = Limits(steps = 2, actions = 2, search = 64)
 
 The same holds for `timer`, `internal`, `monitor[S, O, F, M](initial)…`, `assume`, `hole`, `channel[M](capacity = …, …)` and
 `Realization(machine = …, …)` without `name`, and for `Entity(key = …)` and
-`Observation(on = …, read = …)`, whose `name`, read as `attemptCount.name` in an evidence line or a
-kit body, is their `val`'s. An actor is the object that holds its actions, `object client extends
+`Observation(on = …)`, whose `name`, read as `attemptCount.name` in an evidence line or a
+kit body, is their `val`'s. An observation carries no text of what it reads: the realization's typed
+read, `Observed[ActivityExecutionInfo](attemptCount.name)`, does the reading, and a comment beside it
+names the response field it stands for (DescribeActivityExecution's `info.attempt`). An actor is the object that holds its actions, `object client extends
 Actor`, named after the object, or one named in place, `Actor("fixture")`; `Actor.system` takes the
 timers and the system's own steps.
 

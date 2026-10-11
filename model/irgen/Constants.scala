@@ -60,7 +60,7 @@ private[irgen] trait Constants:
             constString(qual)
           else constString(args(i))
         case other => fail(t, s"cannot fold ${other.show} to a string")
-    // `Entity(key = …)` and `Observation(on = …, read = …)`, named after their val.
+    // `Entity(key = …)` and `Observation(on = …)`, named after their val.
     case Apply(Select(companion, "apply"), name :: _)
         if namedByVal(companion.tpe.typeSymbol.companionClass) && isDefault(name) =>
       val kind = companion.tpe.typeSymbol.companionClass.name
