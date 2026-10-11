@@ -96,7 +96,8 @@
                       "path": "attempt"
                     }
                   ]
-                }
+                },
+                "interval": "0.100s"
               }
             },
             "limits": {

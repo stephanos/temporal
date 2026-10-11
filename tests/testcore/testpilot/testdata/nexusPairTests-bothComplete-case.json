@@ -658,7 +658,8 @@
                       "path": "attributes<nexus_operation_scheduled_event_attributes>"
                     }
                   ]
-                }
+                },
+                "interval": "0.250s"
               }
             }
           },
