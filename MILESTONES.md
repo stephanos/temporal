@@ -121,7 +121,6 @@ Lint checks and manual acceptance work are set aside for this run at the owner's
 | Name | Status | What |
 | --- | --- | --- |
 | fn-166.6 | ⬜ todo | Path-only move of Case manifests and payloads to `generated/cases/`, historical Cases to `generated/cases/legacy/`; after task 1, before realization and final loop proof |
-| fn-166.2 | 🔄 in progress | Mini product compile/lift/Go query checks green; warm direct loop 36 s (no lint or canonical Make credit); full source/lifter validation and review remain |
 | fn-166.3 | ⬜ todo | Protocol level: refinement, shared input, shared status fact, composition with `sync`, channel, failure model, fair progress, monitor, hole, `Retryable`/`Expirable` with an override |
 | fn-166.4 | ⬜ todo | Realization and live witnesses; one Case run live once |
 | fn-166.5 | ⬜ todo | Loop under 90 s; migration as scalafix rules with a worked example; SEMANTICS and README written against the mini feature |
