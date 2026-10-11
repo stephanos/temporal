@@ -5,11 +5,11 @@ package fixture.presence
 
 import framework.*; import framework.Finite.given
 
-enum Result derives Finite:
+enum Result:
   case succeeded, failed
 
 // A union: the second case carries fields the first does not.
-enum Report derives Finite:
+enum Report:
   case unsent
   case sent(result: Result, retried: Boolean)
 
@@ -32,7 +32,7 @@ given Finite[State] =
   given Finite[Int] = Finite.upTo(1)
   Finite.derived
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted, ignored
 
 val send = action(Actor("fixture")).input[Result]("result")

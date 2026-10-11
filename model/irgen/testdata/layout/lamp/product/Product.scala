@@ -9,12 +9,12 @@ package product
 
 import framework.*; import framework.Finite.given
 val _ = () => summon[CanEqual[Phase, Phase]]
-enum Phase derives Finite:
+enum Phase:
   case dark, lit
 
-final case class State(phase: Phase) derives Finite
+final case class State(phase: Phase)
 
-enum Fact derives Finite:
+enum Fact:
   case switchedOn, switchedOff
 
 // The lamp as a caller sees it: switched on, it is lit; switched off, it is dark.

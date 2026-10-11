@@ -2,9 +2,9 @@ package propertygroups
 
 import framework.*
 
-enum State derives Finite:
+enum State:
   case open, closed
-enum Outcome derives Finite:
+enum Outcome:
   case done
 
 object tester extends Actor:

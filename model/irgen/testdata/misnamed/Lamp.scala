@@ -6,9 +6,9 @@ package fixture.features.misnamed
 
 import framework.*
 
-final case class Lamp(lit: Boolean) derives Finite
+final case class Lamp(lit: Boolean)
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted
 
 val flip = action(Actor("fixture"))

@@ -2,9 +2,9 @@ package fixture.features.boiler
 
 import framework.*
 
-final case class Boiler(hot: Boolean) derives Finite
+final case class Boiler(hot: Boolean)
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted
 
 object cook extends Actor:

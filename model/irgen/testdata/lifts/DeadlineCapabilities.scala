@@ -3,7 +3,7 @@ package fixture.deadlinecapabilities
 import framework.*; import framework.Finite.given
 import temporal.capabilities.system.Expirable
 
-enum Phase derives Finite:
+enum Phase:
   case waiting extends Phase, Waiting
   case held extends Phase, Held
   case suspended extends Phase, Suspended
@@ -16,21 +16,21 @@ final case class DeadlineState(
     eligible: Boolean,
     pause: Boolean,
     cancel: Boolean
-) derives Finite
+)
 
-enum TimeoutType derives Finite:
+enum TimeoutType:
   case schedule, start
 
-enum Fact derives Finite:
+enum Fact:
   case timeout(kind: TimeoutType)
   case unrelated
 
-enum Answer derives Finite:
+enum Answer:
   case ok
 
 given Ok[Answer] = Ok(Answer.ok)
 
-enum Mode derives Finite:
+enum Mode:
   case ordinaryHeld, pauseHeld, cancelHeld, exhaustedHeld, pauseCancelHeld
   case exhaustedCancelHeld, exhaustedPauseHeld, unarmedWaiting, backoffWaiting, unarmedHeld
   case otherRole
@@ -153,7 +153,7 @@ object DeadlineTimers
   object queries:
     capabilities.bound(three, Expirable.firesInWindow[DeadlineState, Phase, Waiting] -> two)
 
-enum SimplePhase derives Finite:
+enum SimplePhase:
   case waiting extends SimplePhase, Waiting
   case timedOut extends SimplePhase, TimedOut
 

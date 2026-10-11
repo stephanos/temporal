@@ -16,7 +16,7 @@ val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Out
 
 // What DescribeActivityExecution shows. Each case declares the status fact a step that enters it
 // records.
-enum Phase(val status: Fact) extends Recorded[Fact] derives Finite:
+enum Phase(val status: Fact) extends Recorded[Fact]:
   case scheduled extends Phase(Fact.statusScheduled), Waiting
   case started extends Phase(Fact.statusStarted), Held
   case paused extends Phase(Fact.statusPaused), Suspended
@@ -27,9 +27,9 @@ enum Phase(val status: Fact) extends Recorded[Fact] derives Finite:
   case terminated extends Phase(Fact.statusTerminated), Terminated
   case timedOut extends Phase(Fact.statusTimedOut), TimedOut
 
-final case class State(phase: Phase) derives Finite
+final case class State(phase: Phase)
 
-enum Fact derives Finite:
+enum Fact:
   case statusScheduled, statusStarted, statusPaused, statusCancelRequested
   case statusCompleted, statusFailed, statusCanceled, statusTerminated, statusTimedOut
   case heartbeatReceived, heartbeatTimedOut

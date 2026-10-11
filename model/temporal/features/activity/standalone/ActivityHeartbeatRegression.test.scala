@@ -95,7 +95,7 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
         before.heartbeat == Timeout.expires && before.phase.in[Held]
       assertEquals(steps.nonEmpty, enabled)
       for after <- steps if ActivityProtocol.states.pendingReset(before) do
-        val landing =
+        val landing: protocol.Phase =
           if before.phase == protocol.Phase.resetKeepingPause then protocol.Phase.paused
           else protocol.Phase.scheduled
         assertEquals(

@@ -4,12 +4,12 @@ package system
 import framework.*; import framework.Finite.given
 import product.NexusProduct
 val _ = () => summon[CanEqual[Phase, Phase]]
-enum Phase derives Finite:
+enum Phase:
   case idle, done
 
-final case class State(phase: Phase) derives Finite
+final case class State(phase: Phase)
 
-enum Fact derives Finite:
+enum Fact:
   case completed
 
 object NexusSystem extends Machine[system.State, Outcome, Fact]:

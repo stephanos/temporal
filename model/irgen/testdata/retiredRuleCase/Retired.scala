@@ -3,12 +3,12 @@ package fixture.retiredrulecase
 
 import framework.*
 
-enum Phase derives Finite:
+enum Phase:
   case idle, done
 
-final case class State(phase: Phase) derives Finite
+final case class State(phase: Phase)
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted
 
 given Ok[Outcome] = Ok(Outcome.accepted)

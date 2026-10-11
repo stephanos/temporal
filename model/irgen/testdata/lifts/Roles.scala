@@ -13,7 +13,7 @@ trait Expired extends TimedOut
 // A trait that extends no role, taken by a phase beside its role.
 trait Audited
 
-enum Phase derives Finite:
+enum Phase:
   case unstarted
   case queued extends Phase, Waiting
   // Waiting again beside Retrying, which implies it: no conflict.
@@ -25,21 +25,21 @@ enum Phase derives Finite:
   case expired extends Phase, Expired
 
 // The phases of `Phase` with no roles, whose IR type is the same but for its name.
-enum Bare derives Finite:
+enum Bare:
   case unstarted, queued, backingOff, running, paused, done, failed, expired
 
 // A phase enum of one case, whose test against its role holds of every value.
-enum Solo derives Finite:
+enum Solo:
   case over extends Solo, Closed
 
-final case class Job(phase: Phase, solo: Solo, bare: Bare) derives Finite
+final case class Job(phase: Phase, solo: Solo, bare: Bare)
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted
 
 given Ok[Outcome] = Ok(Outcome.accepted)
 
-enum Fact derives Finite:
+enum Fact:
   case started
 
 object user extends Actor:
@@ -62,7 +62,7 @@ object Roled extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
       case _: Closed => true // format: off
       case _: Phase.unstarted.type | _: Phase.queued.type | _: Phase.backingOff.type | _: Phase.running.type | _: Phase.paused.type => false // format: on
     def stopping(s: Job) = s.phase match // format: off
-      case q: Held => q != Phase.paused
+      case q: Held => (q: Phase) != Phase.paused
       case _: Phase.unstarted.type | _: Phase.queued.type | _: Phase.backingOff.type | _: Phase.paused.type | _: Phase.done.type | _: Phase.failed.type | _: Phase.expired.type => false // format: on
   // scalafix:on DisableSyntax.isInstanceOf
 

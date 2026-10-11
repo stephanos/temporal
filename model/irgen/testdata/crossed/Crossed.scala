@@ -4,18 +4,18 @@ package fixture.crossed
 
 import framework.*
 
-enum Note derives Finite:
+enum Note:
   case ping
 
-enum Signal derives Finite:
+enum Signal:
   case up
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted
 
-final case class Here(on: Boolean) derives Finite
+final case class Here(on: Boolean)
 
-final case class There(on: Boolean) derives Finite
+final case class There(on: Boolean)
 
 val wire: Channel[Note] = channel[Note](capacity = 1, order = Order.fifo, loss = Loss.reliable)
 

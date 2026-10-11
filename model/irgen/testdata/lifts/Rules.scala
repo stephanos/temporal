@@ -9,18 +9,18 @@ package fixture.rules
 
 import framework.*; import framework.Finite.given
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
-enum Light derives Finite:
+enum Light:
   case off, on, broken
 
-final case class Lamp(light: Light, presses: UpTo[2]) derives Finite
+final case class Lamp(light: Light, presses: UpTo[2])
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted, refused
 
-enum Fact derives Finite:
+enum Fact:
   case lit, darkened, worn
 
-enum Knob derives Finite:
+enum Knob:
   case up, down
 
 given Ok[Outcome] = Ok(Outcome.accepted)

@@ -10,12 +10,12 @@ import temporal.actors.client.Client
 enum FacetName:
   case operation, closing, forgedControl
 
-enum Reply derives Finite:
+enum Reply:
   case syncSuccess, async, operationFailed, operationCanceled
   case handlerError(retryable: Boolean)
 
 // How an asynchronous completion settles the operation.
-enum Resolution derives Finite:
+enum Resolution:
   case succeeded, failed, canceled
 
 // The Product and Protocol levels share the framework outcome, so a refinement reads the same value

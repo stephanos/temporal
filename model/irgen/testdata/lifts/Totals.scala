@@ -11,12 +11,12 @@ package fixture.totals
 import framework.*
 
 // A lamp's state, named apart from the machine object `Lamp`.
-final case class LampState(lit: Boolean) derives Finite
+final case class LampState(lit: Boolean)
 
-enum Dim derives Finite:
+enum Dim:
   case low, high
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted
 
 given Ok[Outcome] = Ok(Outcome.accepted)

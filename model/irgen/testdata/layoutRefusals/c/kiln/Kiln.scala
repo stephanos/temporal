@@ -8,9 +8,9 @@ package fixture.features.kiln
 
 import framework.*
 
-final case class Kiln(hot: Boolean) derives Finite
+final case class Kiln(hot: Boolean)
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted
 
 type KilnStep = Step[Kiln, Outcome, Nothing]

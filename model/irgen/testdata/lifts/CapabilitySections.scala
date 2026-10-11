@@ -13,18 +13,18 @@ package fixture.capabilitysections
 
 import framework.*; import framework.Finite.given
 
-enum Phase derives Finite:
+enum Phase:
   case queued, running, held, done
 
 // A task's state, named apart from the machine object `Task`.
-final case class TaskState(phase: Phase) derives Finite
+final case class TaskState(phase: Phase)
 
-enum Answer derives Finite:
+enum Answer:
   case ok, gone
 
 given Ok[Answer] = Ok(Answer.ok)
 
-enum Note derives Finite:
+enum Note:
   case started, heldNote, released, finished
 
 object client extends Actor
@@ -163,7 +163,7 @@ object Chore extends Machine[TaskState, Answer, Note]:
 // ### A shared set: two compositions' capabilities, read through their left member
 
 // Two tasks' state, named apart from the composition objects.
-final case class PairState(left: TaskState, right: TaskState) derives Finite
+final case class PairState(left: TaskState, right: TaskState)
 
 object Pairs:
   def over(p: PairState): Boolean = Tasks.over(p.left) && Tasks.over(p.right)

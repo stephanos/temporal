@@ -3,5 +3,5 @@ package system
 
 import framework.*
 
-enum Placeholder derives Finite:
+enum Placeholder:
   case empty

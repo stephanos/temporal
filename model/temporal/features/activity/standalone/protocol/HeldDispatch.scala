@@ -18,9 +18,9 @@ val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Out
 final case class AdmissionResponseState(
     record: AdmissionState,
     lossAvailable: Boolean
-) derives Finite
+)
 
-enum AdmissionResponseFact derives Finite:
+enum AdmissionResponseFact:
   case dispatchSent, attemptAdmitted
 
 val committedThenLost = choice

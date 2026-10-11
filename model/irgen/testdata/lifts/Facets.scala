@@ -10,17 +10,17 @@ import temporal.capabilities.product.Closable
 
 val two = Limits(steps = 2, actions = 2, search = 64)
 
-enum Lit(val status: Note) extends Recorded[Note] derives Finite:
+enum Lit(val status: Note) extends Recorded[Note]:
   case off extends Lit(Note.dark)
   case on extends Lit(Note.lit)
   case broken extends Lit(Note.gone), Terminated
 
-enum Note derives Finite:
+enum Note:
   case dark, lit, gone
 
-final case class Lamp(light: Lit, presses: UpTo[1]) derives Finite
+final case class Lamp(light: Lit, presses: UpTo[1])
 
-enum Said derives Finite:
+enum Said:
   case ok
 
 given Ok[Said] = Ok(Said.ok)

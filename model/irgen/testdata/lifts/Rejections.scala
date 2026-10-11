@@ -10,13 +10,13 @@ package fixture.rejections
 import framework.*; import framework.Finite.given
 import framework.outcomes.{Outcome, Rejection}
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
-enum Phase derives Finite:
+enum Phase:
   case shut, ajar, locked, gone
 
 // A door's state, named apart from the machines.
-final case class Door(phase: Phase) derives Finite
+final case class Door(phase: Phase)
 
-enum Fact derives Finite:
+enum Fact:
   case opened, closed
 
 object visitor extends Actor:

@@ -19,14 +19,14 @@ object worker extends Actor
 object Entities:
   val activity = Entity(key = "activityId")
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted, notFound
 
 given Ok[Outcome] = Ok(Outcome.accepted)
 
 // Only a pause and a completion are in scope. The other RPCs stay in the signature, but no step of
 // the admission designs binds them.
-enum Failure derives Finite:
+enum Failure:
   case fatal, retryable
 
 val poll = action(worker).on(activity)
@@ -38,12 +38,12 @@ val unpause = action(caller).on(activity)
 val requestCancel = action(caller).on(activity)
 val terminate = action(caller).on(activity)
 
-enum ProductPhase derives Finite:
+enum ProductPhase:
   case scheduled, started, paused, completed
 
-final case class ProductState(phase: ProductPhase) derives Finite
+final case class ProductState(phase: ProductPhase)
 
-enum ProductFact derives Finite:
+enum ProductFact:
   case statusStarted, statusPaused, statusCompleted
 
 object Product:
@@ -96,25 +96,24 @@ val pausedIsNotDispatched = ActivityProduct.property // format: off
 
 // The activity as history's authoritative record has it. `pausedWhileHeld` is a pause that
 // arrived after admission: the attempt it holds is work admitted before the pause.
-enum AdmissionPhase derives Finite:
+enum AdmissionPhase:
   case scheduled, paused, pausedWhileHeld, started, completed
 
 // The dispatch channel holds at most one message. It was validated when it was enqueued, and
 // nothing re-reads that eligibility while it is in flight.
-enum Message derives Finite:
+enum Message:
   case empty, queued, redelivery
 
 // Attempts admission committed and no result closed. An enum rather than an Int, because the
 // lifter gives every Int field of one record the same range.
-enum Active derives Finite:
+enum Active:
   case none, one, two
 
 final case class AdmissionState(phase: AdmissionPhase, message: Message, active: Active)
-    derives Finite
 
 // The statuses the product reads, by their product names, and the internal facts no product fact
 // is named after, which the refinement therefore drops.
-enum AdmissionFact derives Finite:
+enum AdmissionFact:
   case statusStarted, statusPaused, statusCompleted
   case dispatchEnqueued, attemptAdmitted, admissionRejected
 
@@ -263,7 +262,7 @@ val atMostOneActiveAttempt: Monitor[AdmissionState, Outcome, AdmissionFact, Acti
   )(_ == Active.two).readAfter(after => after.facts.contains(AdmissionFact.attemptAdmitted))
   // format: on
 // Whether the activity completed, and whether a step after that left completed.
-enum Finality derives Finite:
+enum Finality:
   case open, completed, reopened
 
 def finality(f: Finality, before: AdmissionState, after: AdmissionStep): Finality = f match

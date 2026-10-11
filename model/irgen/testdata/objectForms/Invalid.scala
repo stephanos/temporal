@@ -6,12 +6,12 @@ package fixture.objectforms
 
 import framework.*
 
-enum Glow derives Finite:
+enum Glow:
   case dim, bright
 
-final case class Bulb(glow: Glow) derives Finite
+final case class Bulb(glow: Glow)
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted
 
 given Ok[Outcome] = Ok(Outcome.accepted)

@@ -10,7 +10,6 @@ import framework.*
 import framework.Finite.given
 import Bounds.{seven, twelve}
 import product.TaskQueueProduct
-import QueueOutcome.given
 
 val _ = () => summon[CanEqual[Custody, Custody]]
 

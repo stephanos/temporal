@@ -10,9 +10,9 @@ package fixture.markers
 import framework.*
 import framework.realize.*
 
-final case class Lamp(lit: Boolean) derives Finite
+final case class Lamp(lit: Boolean)
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted
 
 given Ok[Outcome] = Ok(Outcome.accepted)

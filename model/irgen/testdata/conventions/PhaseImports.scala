@@ -5,12 +5,12 @@ package fixture.conventions.phases
 import framework.*
 import Stage.done
 
-enum Stage derives Finite:
+enum Stage:
   case idle, busy, done
 
-final case class Job(stage: Stage) derives Finite
+final case class Job(stage: Stage)
 
-enum Said derives Finite:
+enum Said:
   case ok
 
 given Ok[Said] = Ok(Said.ok)

@@ -9,18 +9,18 @@ package fixture.statusfacts
 
 import framework.*; import framework.Finite.given
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
-enum Fact derives Finite:
+enum Fact:
   case statusIdle, statusRunning, statusPaused, attempted
 
 // Each case declares the status it is recorded as.
-enum Phase(val status: Fact) extends Recorded[Fact] derives Finite:
+enum Phase(val status: Fact) extends Recorded[Fact]:
   case idle extends Phase(Fact.statusIdle)
   case running extends Phase(Fact.statusRunning)
   case paused extends Phase(Fact.statusPaused)
 
-final case class Job(phase: Phase, attempts: UpTo[2]) derives Finite
+final case class Job(phase: Phase, attempts: UpTo[2])
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted, refused
 
 given Ok[Outcome] = Ok(Outcome.accepted)

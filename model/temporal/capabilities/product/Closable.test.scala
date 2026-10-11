@@ -5,15 +5,15 @@ import framework.Finite.given
 import temporal.capabilities.product.Closable
 
 object ClosingFixture:
-  enum Phase derives Finite:
+  enum Phase:
     case open extends Phase, Waiting
     case done extends Phase, Succeeded
     case failed extends Phase, Failed
 
-  enum Answer derives Finite:
+  enum Answer:
     case accepted, rejected
 
-  final case class Snapshot(phase: Phase) derives Finite
+  final case class Snapshot(phase: Phase)
 
   object Record extends Machine[Snapshot, Answer, Nothing], Phased[Snapshot, Phase](_.phase):
     val init = Snapshot(Phase.open)

@@ -5,12 +5,12 @@ import framework.*; import framework.Finite.given
 import fixture.features.relay.{given, *}
 import fixture.features.relay.shared.product.RelayProduct
 val _ = () => summon[CanEqual[Phase, Phase]]
-enum Phase derives Finite:
+enum Phase:
   case idle, done
 
-final case class State(phase: Phase) derives Finite
+final case class State(phase: Phase)
 
-enum Fact derives Finite:
+enum Fact:
   case completed
 
 object RelaySystem extends Machine[system.State, Outcome, Fact]:

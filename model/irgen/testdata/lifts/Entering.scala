@@ -7,17 +7,17 @@ package fixture.entering
 
 import framework.*
 
-enum Status derives Finite:
+enum Status:
   case waiting, working, resting
 
-enum Stage(val status: Status) extends Recorded[Status] derives Finite:
+enum Stage(val status: Status) extends Recorded[Status]:
   case waiting extends Stage(Status.waiting)
   case working extends Stage(Status.working)
   case resting extends Stage(Status.resting), Suspended
 
-final case class Task(stage: Stage, tries: UpTo[1]) derives Finite
+final case class Task(stage: Stage, tries: UpTo[1])
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted, refused
 
 given Ok[Outcome] = Ok(Outcome.accepted)

@@ -50,7 +50,7 @@ object StepTablesFixture:
   import RulesFixture.*
   // A lamp whose press records a fact, and one that records another in one state alone: one
   // changed fact.
-  enum Noted derives Finite:
+  enum Noted:
     case lit, dark
 
   object Facts extends Machine[Lamp, Said, Noted]:

@@ -6,17 +6,17 @@ package fixture.grouped
 
 import framework.*; import framework.Finite.given
 
-enum Mode derives Finite:
+enum Mode:
   case idle, busy, halted
 
-final case class Kettle(mode: Mode, boils: UpTo[2]) derives Finite
+final case class Kettle(mode: Mode, boils: UpTo[2])
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted, refused
 
 given Ok[Outcome] = Ok(Outcome.accepted)
 
-enum Dial derives Finite:
+enum Dial:
   case low, high
 
 object cook extends Actor:

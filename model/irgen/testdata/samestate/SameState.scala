@@ -2,9 +2,9 @@ package fixture.samestate
 
 import framework.*
 
-final case class State(on: Boolean) derives Finite
+final case class State(on: Boolean)
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted
 
 object First extends Machine[State, Outcome, Nothing]:

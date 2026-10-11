@@ -18,4 +18,4 @@ object PumpSystem extends Machine[Pump, Outcome, Nothing]:
     on(operator.start)(where(!_.running) ~> effects.started)
 
 // A type after the machine: a level folder's file reads as a feature file, its exports aside.
-final case class Gauge(reading: Boolean) derives Finite
+final case class Gauge(reading: Boolean)

@@ -7,15 +7,15 @@ import framework.Finite.given
 
 // A dotted file name holds no top-level definitions, so the fixture Model sits in an object.
 object EffectsFixture:
-  enum Phase derives Finite:
+  enum Phase:
     case idle, busy, paused
 
-  final case class Job(phase: Phase, tries: UpTo[2]) derives Finite
+  final case class Job(phase: Phase, tries: UpTo[2])
 
-  enum Said derives Finite:
+  enum Said:
     case ok, notFound
 
-  enum Note derives Finite:
+  enum Note:
     case started, retried, paused
 
   given Ok[Said] = Ok(Said.ok)
@@ -61,15 +61,15 @@ object EffectsFixture:
 
   // A phase that declares, on each case, the status it is recorded as. An effect block that
   // assigns it records that status after its own facts.
-  enum Status derives Finite:
+  enum Status:
     case waiting, working, resting, retried
 
-  enum Stage(val status: Status) extends Recorded[Status] derives Finite:
+  enum Stage(val status: Status) extends Recorded[Status]:
     case waiting extends Stage(Status.waiting)
     case working extends Stage(Status.working)
     case resting extends Stage(Status.resting), Suspended
 
-  final case class Task(stage: Stage, attempts: UpTo[2]) derives Finite
+  final case class Task(stage: Stage, attempts: UpTo[2])
 
   def stage(using v: View[Task]): Stage = v.get(_.stage)
   def stage_=(p: Stage)(using d: Draft[Task, ?, Status]): Unit = d.set(p)(_.copy(stage = p))

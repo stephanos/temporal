@@ -9,15 +9,15 @@ import scala.collection.mutable
 
 // A dotted file name holds no top-level definitions, so the fixture Models sit in an object.
 object RulesFixture:
-  enum Lit derives Finite:
+  enum Lit:
     case off, on, broken
 
-  final case class Lamp(light: Lit, presses: UpTo[2]) derives Finite
+  final case class Lamp(light: Lit, presses: UpTo[2])
 
-  enum Said derives Finite:
+  enum Said:
     case ok, refused
 
-  enum Knob derives Finite:
+  enum Knob:
     case up, down
 
   given Ok[Said] = Ok(Said.ok)
@@ -842,14 +842,14 @@ class RulesTest extends munit.FunSuite:
 object RoleRulesFixture:
   import RulesFixture.{hand, Said, given}
 
-  enum Stage derives Finite:
+  enum Stage:
     case unstarted
     case queued extends Stage, Waiting
     case backingOff extends Stage, Retrying
     case running extends Stage, Held
     case done extends Stage, Succeeded
 
-  final case class Door(stage: Stage) derives Finite
+  final case class Door(stage: Stage)
 
   object Gate extends Machine[Door, Said, Nothing], Phased[Door, Stage](_.stage):
     type Press = Door => List[Step[Door, Said, Nothing]]

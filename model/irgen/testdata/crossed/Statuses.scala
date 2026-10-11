@@ -4,9 +4,9 @@ package fixture.crossed
 
 import framework.*
 
-enum Status derives Finite:
+enum Status:
   case statusIdle, statusBusy
 
-enum Stage(val status: Status) extends Recorded[Status] derives Finite:
+enum Stage(val status: Status) extends Recorded[Status]:
   case idle extends Stage(Status.statusIdle)
   case busy

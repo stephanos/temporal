@@ -9,7 +9,7 @@ package fixture.rolerejects
 import framework.*
 import fixture.roles.{Audited, Phase}
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted
 
 given Ok[Outcome] = Ok(Outcome.accepted)
@@ -17,7 +17,7 @@ given Ok[Outcome] = Ok(Outcome.accepted)
 object user extends Actor:
   val go = action(this)
 
-final case class Job(phase: Phase, next: Option[Phase]) derives Finite
+final case class Job(phase: Phase, next: Option[Phase])
 
 object NoEnum extends Machine[Job, Outcome, Nothing], Phased[Job, Phase](_.phase):
   val init = Job(Phase.unstarted, None)
@@ -60,11 +60,11 @@ object StandAlone extends Machine[Job, Outcome, Nothing], Phased[Job, Phase](_.p
   object rules extends Rules:
     on(user.go)(when(states.audited) ~> effects.keep)
 
-enum Ended derives Finite:
+enum Ended:
   case running extends Ended, Held
   case failed(retried: Boolean) extends Ended, Failed
 
-final case class Run(ended: Ended) derives Finite
+final case class Run(ended: Ended)
 
 object WithFields extends Machine[Run, Outcome, Nothing], Phased[Run, Ended](_.ended):
   val init = Run(Ended.running)
@@ -74,17 +74,17 @@ object WithFields extends Machine[Run, Outcome, Nothing], Phased[Run, Ended](_.e
   object rules extends Rules:
     on(user.go)(when(Ended.running) ~> effects.keep)
 
-enum LiveClosed derives Finite:
+enum LiveClosed:
   case backingOff extends LiveClosed, Retrying
   case lost extends LiveClosed, Retrying, Failed
 
-enum TwoLive derives Finite:
+enum TwoLive:
   case torn extends TwoLive, Held, Suspended
 
-enum TwoClosed derives Finite:
+enum TwoClosed:
   case twice extends TwoClosed, Succeeded, Canceled
 
-final case class Mixed(phase: LiveClosed) derives Finite
+final case class Mixed(phase: LiveClosed)
 
 object BothLiveClosed extends Machine[Mixed, Outcome, Nothing], Phased[Mixed, LiveClosed](_.phase):
   val init = Mixed(LiveClosed.backingOff)
@@ -94,7 +94,7 @@ object BothLiveClosed extends Machine[Mixed, Outcome, Nothing], Phased[Mixed, Li
   object rules extends Rules:
     on(user.go)(when(LiveClosed.backingOff) ~> effects.keep)
 
-final case class Torn(phase: TwoLive) derives Finite
+final case class Torn(phase: TwoLive)
 
 object TwoLiveRoles extends Machine[Torn, Outcome, Nothing], Phased[Torn, TwoLive](_.phase):
   val init = Torn(TwoLive.torn)
@@ -104,7 +104,7 @@ object TwoLiveRoles extends Machine[Torn, Outcome, Nothing], Phased[Torn, TwoLiv
   object rules extends Rules:
     on(user.go)(when(TwoLive.torn) ~> effects.keep)
 
-final case class Twice(phase: TwoClosed) derives Finite
+final case class Twice(phase: TwoClosed)
 
 object TwoClosureRoles extends Machine[Twice, Outcome, Nothing], Phased[Twice, TwoClosed](_.phase):
   val init = Twice(TwoClosed.twice)

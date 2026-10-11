@@ -5,10 +5,10 @@ package fixture.channels
 
 import framework.*; import framework.Finite.given
 
-enum Note derives Finite:
+enum Note:
   case ping, pong
 
-enum Signal derives Finite:
+enum Signal:
   case up, down
 
 val wire: Channel[Note] =
@@ -16,7 +16,7 @@ val wire: Channel[Note] =
 val radio: Channel[Signal] =
   channel[Signal](capacity = 1, order = Order.unordered, loss = Loss.lossy)
 
-enum Heard derives Finite:
+enum Heard:
   case nothing, note, signal
 
 // The relay's state, named apart from the machine object `Relay`.
@@ -27,7 +27,7 @@ given Finite[RelayState] =
   given radioContents: Finite[Inbox[Signal]] = radio.contents
   Finite.derived
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted, dropped
 
 val talk = action(Actor("fixture")).input[Note]("note")

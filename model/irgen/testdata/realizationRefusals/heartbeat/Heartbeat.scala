@@ -6,11 +6,11 @@ import temporal.realize.*
 import io.temporal.api.workflowservice.v1.StartActivityExecutionRequest
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.METHOD_START_ACTIVITY_EXECUTION
 
-enum Timeout derives Finite:
+enum Timeout:
   case unset, expires
-enum Fact derives Finite:
+enum Fact:
   case started
-final case class State(active: Boolean) derives Finite
+final case class State(active: Boolean)
 
 val heartbeat = input[Timeout]
 val job = Entity("job", key = "job_id")

@@ -6,10 +6,10 @@ package fixture.rejects
 
 import framework.*; import framework.Finite.given
 
-enum Note derives Finite:
+enum Note:
   case ping
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted
 
 val go = action(Actor("fixture"))
@@ -81,7 +81,7 @@ object Counter extends Machine[CounterState, Outcome, Nothing]:
   object rules
       extends Bindings(go ~> (c => List(Step(Outcome.accepted, CounterState(countdown(c.n))))))
 
-final case class Flag(on: Boolean) derives Finite
+final case class Flag(on: Boolean)
 
 val flip = action(Actor("fixture"))
 
@@ -220,7 +220,7 @@ object Guessing extends Machine[GuessingState, Outcome, Nothing]:
   def end(s: State) = true
   object rules extends Bindings()
 
-final case class Lamp(lit: Boolean) derives Finite
+final case class Lamp(lit: Boolean)
 
 def lampStep(l: Lamp): List[Step[Lamp, Outcome, Nothing]] = List(
   Step(Outcome.accepted, Lamp(!l.lit))
@@ -308,7 +308,7 @@ object OneStart extends Machine[Lamp, Outcome, Nothing]:
   def end(s: State) = true
   object rules extends Bindings(flip ~> lampStep)
 
-enum Dropped derives Finite:
+enum Dropped:
   case kept
   case lost(hard: Boolean)
 
@@ -397,10 +397,10 @@ object AssumingTwice extends Derived(OneStart.assuming(lampFaulty, lampFaulty))
 object RefinedNothing extends Derived(OneStart.refining(First)(l => Flag(l.lit)))
 
 // A refinement replaced by one of a machine whose types differ from the replaced one's.
-enum Seen derives Finite:
+enum Seen:
   case seen
 
-final case class Glimpse(at: Seen) derives Finite
+final case class Glimpse(at: Seen)
 
 object Glance extends Machine[Glimpse, Seen, Nothing]:
   val init = Glimpse(Seen.seen)
@@ -457,7 +457,7 @@ object ComputedOk:
 
 final case class Trio(left: Lamp, right: Lamp, spare: Lamp)
 
-enum Dim derives Finite:
+enum Dim:
   case low, high
 
 val dim = action(Actor("fixture")).input[Dim]("level")
@@ -780,7 +780,7 @@ val unnamedTintFree = UnnamedTintLamp.scenario.free
 val tokenUnnamed: Query = query verify unnamedTintLit in unnamedTintFree limits one
 
 // A counter bounded below zero, which has no values.
-final case class BelowState(count: UpTo[-1]) derives Finite
+final case class BelowState(count: UpTo[-1])
 object Below extends Machine[BelowState, Outcome, Nothing]:
   val init = BelowState(UpTo(0))
   def end(s: State) = true
@@ -1026,10 +1026,10 @@ val levelScenario: Query =
 
 // ### Machine objects, rules and effects (fn-126 R15, R16): each refused at its line
 
-enum Glow derives Finite:
+enum Glow:
   case dim, bright
 
-final case class Bulb(glow: Glow) derives Finite
+final case class Bulb(glow: Glow)
 
 final case class Bulbs(a: Bulb, b: Bulb)
 

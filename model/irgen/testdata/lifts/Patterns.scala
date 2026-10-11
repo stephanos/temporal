@@ -7,21 +7,21 @@ package fixture.patterns
 
 import framework.*; import framework.Finite.given
 
-enum Phase derives Finite:
+enum Phase:
   case idle, running, paused, done
 
-enum Active derives Finite:
+enum Active:
   case none, one, two
 
 // The job's state, named apart from the machine object `Job`.
-final case class JobState(phase: Phase, active: Active) derives Finite
+final case class JobState(phase: Phase, active: Active)
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted
 
 given Ok[Outcome] = Ok(Outcome.accepted)
 
-enum Fact derives Finite:
+enum Fact:
   case started, paused, finished, released
 
 val start = action(Actor("user"))
@@ -52,9 +52,9 @@ object Job extends Machine[JobState, Outcome, Fact]:
       )
 
 // The lamp's state, named apart from the machine object `Lamp`.
-final case class LampState(lit: Boolean) derives Finite
+final case class LampState(lit: Boolean)
 
-enum LampFact derives Finite:
+enum LampFact:
   case flipped
 
 val flip = action(Actor("user"))
@@ -70,7 +70,7 @@ object Lamp extends Machine[LampState, Outcome, LampFact]:
 
 // The job beside a lamp: a composition whose claims read the job through its member field, its state
 // named apart from the composition object `Pair`.
-final case class PairState(job: JobState, lamp: LampState) derives Finite
+final case class PairState(job: JobState, lamp: LampState)
 
 type PairStep = Step[PairState, String, String]
 

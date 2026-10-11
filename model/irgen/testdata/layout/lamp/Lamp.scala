@@ -27,7 +27,7 @@ import framework.*
 // Every type the levels genuinely share sits here. Phase, State and Fact belong to the level files;
 // a subject's own types sit in its file, as system/Bulb.scala keeps its Filament.
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted
 
 // ### Signature

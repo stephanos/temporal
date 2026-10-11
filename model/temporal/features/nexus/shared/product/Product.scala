@@ -13,7 +13,7 @@ import framework.outcomes.Outcome
 
 // What an operation does. Each case declares the fact a step that enters it records, which
 // `enters(Phase.x)` records.
-enum Phase(val status: Fact) extends Recorded[Fact] derives Finite:
+enum Phase(val status: Fact) extends Recorded[Fact]:
   case scheduled extends Phase(Fact.nexusOperationScheduled), Waiting
   case started extends Phase(Fact.nexusOperationStarted), Held
   case succeeded extends Phase(Fact.nexusOperationCompleted), Succeeded
@@ -22,9 +22,9 @@ enum Phase(val status: Fact) extends Recorded[Fact] derives Finite:
   case timedOut extends Phase(Fact.nexusOperationTimedOut), TimedOut
   case terminated extends Phase(Fact.nexusOperationTerminated), Terminated
 
-final case class State(phase: Phase) derives Finite
+final case class State(phase: Phase)
 
-enum Fact derives Finite:
+enum Fact:
   case nexusOperationScheduled, nexusOperationStarted, nexusOperationCompleted,
     nexusOperationFailed,
     nexusOperationCanceled, nexusOperationTimedOut, nexusOperationTerminated

@@ -21,10 +21,10 @@ import framework.outcomes.Outcome
 
 // ### Types
 
-enum Phase derives Finite:
+enum Phase:
   case polling, stopped
 
-final case class State(phase: Phase) derives Finite
+final case class State(phase: Phase)
 
 // A worker records nothing of its own. Its stop and resume are faults the Run records against no
 // entity, and what it serves is recorded by the work it serves.

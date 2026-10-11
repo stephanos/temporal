@@ -5,15 +5,15 @@ package fixture.werror
 
 import framework.*
 
-enum Phase derives Finite:
+enum Phase:
   case idle, working, done
 
-final case class State(phase: Phase) derives Finite
+final case class State(phase: Phase)
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted
 
-enum Fact derives Finite:
+enum Fact:
   case finished
 
 val go = action(Actor("fixture"))

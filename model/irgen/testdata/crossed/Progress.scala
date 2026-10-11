@@ -4,12 +4,12 @@ package fixture.crossed
 
 import framework.*
 
-enum Level derives Finite:
+enum Level:
   case empty, full
 
-final case class Tank(level: Level) derives Finite
+final case class Tank(level: Level)
 
-enum Filled derives Finite:
+enum Filled:
   case done
 
 final case class Pair(left: Tank, right: Tank)

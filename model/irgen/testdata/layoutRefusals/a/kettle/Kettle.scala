@@ -10,9 +10,9 @@ package fixture.features.kettle
 
 import framework.*
 
-final case class Kettle(hot: Boolean) derives Finite
+final case class Kettle(hot: Boolean)
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted
 
 type KettleStep = Step[Kettle, Outcome, Nothing]

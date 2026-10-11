@@ -14,7 +14,7 @@ object ClosingEnd extends Machine[Snapshot, Answer, Nothing], Phased[Snapshot, P
   object queries:
     capabilities.bound(closingBounds)
 
-final case class OtherSnapshot(phase: Phase) derives Finite
+final case class OtherSnapshot(phase: Phase)
 
 object OtherClosing
     extends Machine[OtherSnapshot, Answer, Nothing],

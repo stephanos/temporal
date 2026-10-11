@@ -7,15 +7,15 @@ package fixture.composedprogress
 
 import framework.*; import framework.Finite.given
 
-enum Level derives Finite:
+enum Level:
   case empty, filled, sent
 
-final case class Tank(level: Level) derives Finite
+final case class Tank(level: Level)
 
-enum Outcome derives Finite:
+enum Outcome:
   case filled, sent, drained
 
-enum Grade derives Finite:
+enum Grade:
   case low, high
 
 val grade = input[Grade]
@@ -39,7 +39,7 @@ object Tanks extends Machine[Tank, Outcome, Nothing]:
   object rules extends Bindings(fill ~> filled, send ~> sent, drain ~> drained)
 
 // Two tanks of one machine, told apart by their fields: the left one's send fills the right one.
-final case class Line(left: Tank, right: Tank) derives Finite
+final case class Line(left: Tank, right: Tank)
 
 object Pipeline extends Composition[Line](_.left -> Tanks, _.right -> Tanks):
   def end(l: State) = true

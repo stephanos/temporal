@@ -15,7 +15,7 @@ import product.ActivityProduct
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 
 // It begins before the activity exists, so unstarted is one phase.
-enum Phase derives Finite:
+enum Phase:
   case unstarted
   case scheduled extends Phase, Waiting
   case started extends Phase, Held
@@ -33,7 +33,7 @@ enum Phase derives Finite:
   case timedOut extends Phase, TimedOut
 
 // Whether a waiting attempt can be dispatched, independent of its status (model.go:239-244).
-enum Dispatch derives Finite:
+enum Dispatch:
   case now, startDelay, backoff
 
 // 13 phases, 3 dispatch values, 3 attempt counts, 4 deadline flags and 3 retry policies: 5616 states.
@@ -46,10 +46,10 @@ final case class State(
     startToClose: Timeout,
     heartbeat: Timeout,
     maxAttempts: MaxAttempts
-) derives Finite
+)
 
 // What the System machine records; `attemptCount` is named after its observation.
-enum Fact derives Finite:
+enum Fact:
   case statusScheduled, statusStarted, statusPaused, statusCancelRequested
   case statusCompleted, statusFailed, statusCanceled, statusTerminated
   case statusTimedOut(timeoutType: TimeoutType)

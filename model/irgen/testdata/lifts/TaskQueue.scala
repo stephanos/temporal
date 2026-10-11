@@ -12,13 +12,13 @@ import framework.*; import framework.Finite.given
 
 // ### The job
 
-enum JobPhase derives Finite:
+enum JobPhase:
   case idle, sent, started, settled
 
 // The job's state, named apart from the machine object `Job`.
-final case class JobState(phase: JobPhase) derives Finite
+final case class JobState(phase: JobPhase)
 
-enum JobOutcome derives Finite:
+enum JobOutcome:
   case accepted
 
 given Ok[JobOutcome] = Ok(JobOutcome.accepted)

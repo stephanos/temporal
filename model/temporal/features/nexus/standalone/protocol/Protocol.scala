@@ -13,7 +13,7 @@ import temporal.realize.inconclusive
 import temporal.Bounds.three
 
 // The statuses DescribeNexusOperationExecution reports: scheduled and started read RUNNING.
-enum Phase derives Finite:
+enum Phase:
   case unstarted
   case scheduled extends Phase, Waiting
   case started extends Phase, Held
@@ -24,11 +24,11 @@ enum Phase derives Finite:
 
 import Fact.{nexusOperationCompleted as NC, nexusOperationStarted as NS}
 // 7 phases and whether a cancel was requested: 14 states.
-final case class State(phase: Phase, cancelRequested: Boolean) derives Finite
+final case class State(phase: Phase, cancelRequested: Boolean)
 import Fact.{nexusOperationCanceled as NX, nexusOperationFailed as NF}
 
 // What a step records: the status it lands in, and the cancel request Describe reports.
-enum Fact derives Finite:
+enum Fact:
   case statusScheduled, nexusOperationStarted, statusCancelRequested
   case nexusOperationCompleted, nexusOperationFailed, nexusOperationCanceled,
     nexusOperationTerminated

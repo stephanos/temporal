@@ -5437,7 +5437,7 @@ class Fixtures extends munit.FunSuite:
       "general-vocabulary",
       "activity/Activity.scala",
       Some(
-        "package fixture.features.activity\nimport framework.Finite\nenum Phase derives Finite:\n  case idle\n"
+        "package fixture.features.activity\nimport framework.Finite\nenum Phase:\n  case idle\n"
       ),
       "Phase is level vocabulary declared in activity's root feature file"
     ),

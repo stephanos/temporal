@@ -5,19 +5,19 @@ import framework.Finite.given
 import temporal.capabilities.system.Expirable
 
 object ExpirableFixture:
-  enum Phase derives Finite:
+  enum Phase:
     case active extends Phase, Held
     case waiting extends Phase, Waiting
     case paused extends Phase, Suspended
     case timedOut extends Phase, TimedOut
     case canceled extends Phase, Canceled
 
-  enum Kind derives Finite:
+  enum Kind:
     case first, second
-  enum Fact derives Finite:
+  enum Fact:
     case timeout(kind: Kind)
     case ordinary
-  enum Answer derives Finite:
+  enum Answer:
     case accepted
   final case class Snapshot(
       phase: Phase,
@@ -26,7 +26,7 @@ object ExpirableFixture:
       ready: Boolean,
       pause: Boolean,
       cancel: Boolean
-  ) derives Finite
+  )
 
   val expired = timer
   val timeout = Fact.timeout(Kind.first)
@@ -52,10 +52,10 @@ object ExpirableFixture:
       pendingCancel = Some(pendingCancel)
     )
 
-  enum TerminalPhase derives Finite:
+  enum TerminalPhase:
     case active extends TerminalPhase, Held
     case timedOut extends TerminalPhase, TimedOut
-  final case class TerminalState(phase: TerminalPhase) derives Finite
+  final case class TerminalState(phase: TerminalPhase)
 
   object TerminalRecord
       extends Machine[TerminalState, Answer, Fact],
@@ -70,11 +70,11 @@ object ExpirableFixture:
       timeoutFacts
     )
 
-  enum RetryPhase derives Finite:
+  enum RetryPhase:
     case active extends RetryPhase, Held
     case waiting extends RetryPhase, Waiting
     case timedOut extends RetryPhase, TimedOut
-  final case class RetryState(phase: RetryPhase) derives Finite
+  final case class RetryState(phase: RetryPhase)
 
   object RetryRecord
       extends Machine[RetryState, Answer, Fact],

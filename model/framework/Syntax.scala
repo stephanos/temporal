@@ -48,18 +48,18 @@ val disabled: List[Nothing] = Nil
 // The outcomes shared by every machine whose steps answer a request, accepted or rejected for a
 // reason, which a machine adopts by name, `import framework.outcomes.{Outcome, Rejection}`, in place of
 // its own. `import framework.*` does not open it, so a Model's own `Outcome` stays its own. Core form: a
-// machine's own outcome enum, `enum Outcome derives Finite: case accepted, notFound`.
+// machine's own outcome enum, `enum Outcome: case accepted, notFound`.
 object outcomes:
   // Why a request is rejected, loosely after the gRPC status codes a realization maps it to: the
   // entity is not there (`notFound`), a create collides with one that is (`alreadyExists`), its
   // state forbids the request (`failedPrecondition`), or the request is bad in every state
   // (`invalidArgument`). Core form: a case of a machine's own outcome enum, `case notFound`.
-  enum Rejection derives Finite:
+  enum Rejection:
     case notFound, alreadyExists, failedPrecondition, invalidArgument
 
   // What a step answers: the request is accepted, or rejected for the reason it names. Core form: a
-  // machine's own outcome enum, `enum Outcome derives Finite: case accepted, notFound`.
-  enum Outcome derives Finite:
+  // machine's own outcome enum, `enum Outcome: case accepted, notFound`.
+  enum Outcome:
     case accepted
     case rejected(why: Rejection)
 

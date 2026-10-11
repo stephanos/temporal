@@ -7,26 +7,26 @@ package fixture.inputs
 
 import framework.*; import framework.Finite.given
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted
 
 given Ok[Outcome] = Ok(Outcome.accepted)
 
 // Where the counted run is.
-enum Stage derives Finite:
+enum Stage:
   case unstarted, scheduled, backingOff, started, completed
 
 // Whether a start sets a deadline.
-enum Deadline derives Finite:
+enum Deadline:
   case unset, expires
 
 // The worker's answer: its first value, the default, is `completed`.
-enum Answer derives Finite:
+enum Answer:
   case completed
   case failed(retryable: Boolean)
   case abandoned
 
-enum Control derives Finite:
+enum Control:
   case pause, unpause
 
 // Three inputs of one type, told apart by their tokens.
@@ -53,7 +53,7 @@ final case class CountedState(
     closeBy: Deadline,
     startBy: Deadline,
     runBy: Deadline
-) derives Finite
+)
 
 type CountedStep = Step[CountedState, Outcome, Nothing]
 

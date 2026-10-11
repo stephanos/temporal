@@ -3,7 +3,7 @@ package propertygroups.foundations.incompatible
 import framework.*
 import propertygroups.*
 
-enum Other derives Finite:
+enum Other:
   case value
 
 object Incompatible extends Machine[Other, Outcome, Nothing]:

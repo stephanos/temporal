@@ -7,7 +7,7 @@ package system
 import framework.*
 
 // The bulb's filament, the bulb's own type: whether current through it makes it glow.
-final case class Filament(glowing: Boolean) derives Finite
+final case class Filament(glowing: Boolean)
 
 type FilamentStep = Step[Filament, Outcome, Nothing]
 

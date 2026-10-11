@@ -2,9 +2,9 @@ package fixture.features.pump
 
 import framework.*
 
-final case class Pump(on: Boolean) derives Finite
+final case class Pump(on: Boolean)
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted
 
 object operator extends Actor:

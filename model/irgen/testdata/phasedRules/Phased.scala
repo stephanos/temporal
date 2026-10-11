@@ -5,12 +5,12 @@ package fixture.phased
 
 import framework.*; import framework.Finite.given
 
-enum Light derives Finite:
+enum Light:
   case off, on, broken
 
-final case class Bulb(light: Light) derives Finite
+final case class Bulb(light: Light)
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted
 
 given Ok[Outcome] = Ok(Outcome.accepted)

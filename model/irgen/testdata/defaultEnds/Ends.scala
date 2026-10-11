@@ -2,19 +2,19 @@ package fixture.defaultends
 
 import framework.*; import framework.Finite.given
 
-enum Phase derives Finite:
+enum Phase:
   case waiting extends Phase, Waiting
   case done extends Phase, Succeeded
   case failed extends Phase, Failed
 
-enum OpenPhase derives Finite:
+enum OpenPhase:
   case waiting extends OpenPhase, Waiting
 
-enum Answer derives Finite:
+enum Answer:
   case accepted
 
-final case class Snapshot(phase: Phase) derives Finite
-final case class OpenSnapshot(phase: OpenPhase) derives Finite
+final case class Snapshot(phase: Phase)
+final case class OpenSnapshot(phase: OpenPhase)
 final case class Pair(left: Snapshot, right: Snapshot)
 final case class OpenPair(left: OpenSnapshot, right: OpenSnapshot)
 

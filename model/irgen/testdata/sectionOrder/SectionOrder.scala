@@ -11,9 +11,9 @@ package fixture.features.sectionorder
 
 import framework.*; import framework.Finite.given
 
-final case class Lamp(lit: Boolean) derives Finite
+final case class Lamp(lit: Boolean)
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted
 
 final case class Pair(left: Lamp, right: Lamp)

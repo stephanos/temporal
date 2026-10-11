@@ -36,8 +36,11 @@ full gate, review and live run.
 
 ## Open: Scala DSL work
 
-One worker on branch `w-1d` takes the work below in this order. Only `model/` is edited and validated:
-Scala compile per step; the framework, Model, lifter and gate Scala tests per spec; and the step-table
+**Execution is paused at the owner's request.** No worker is running. The last completed Scala
+task is fn-149.2; fn-149.6 has baseline evidence only and remains incomplete. Resume at fn-149.6.
+
+On resumption, one worker on branch `w-1d` takes the work below in this order. Only `model/` is edited
+and validated: Scala compile per step; the framework, Model, lifter and gate Scala tests per spec; and the step-table
 equivalence per spec (`make umpire-check-equivalence BASE=.flow/tmp/fn160/baseline-ae3f36ee51
 MAP=model/testdata/equivalence/batch-1d.map STEPS_ONLY=1`). Checked-in IR and Cases stay stale. The
 equivalence also runs once before fn-123, so a fault or activity change cannot hide inside the
@@ -237,7 +240,7 @@ shared gate/review/live proofs at fn-123.8; source results substitute for none o
 | Name | Status | What |
 | --- | --- | --- |
 | fn-149.3 | ⏸️ deferred (Go) | Reporting checkpoint integrated; focused classification, distinct bounds and safety/progress coexistence checks pass; full gates/review held |
-| fn-149.6 | 🔄 in progress (paused) | Source baseline captured and authenticated; grouping implementation and complete native predicate/inventory proof remain unstarted |
+| fn-149.6 | ⏸️ paused | Source baseline captured and authenticated; grouping implementation unstarted and complete native predicate/inventory proof unfinished |
 | fn-149.7 | ⬜ todo | Scala author docs, executable layout and final committed grouping source seal; releases fn-164 |
 | fn-149.4 | ⏸️ deferred (Go) | Original complete consumer behavior, Query/progress receipt, Case and expected/live-replay assessment proof; consumes .6 |
 | fn-149.5 | ⏸️ deferred | Consumer reporting docs and original integrated regeneration/gates/review/live closure; consumes .4/.7 at fn-123.8 |

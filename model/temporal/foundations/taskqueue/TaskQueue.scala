@@ -37,13 +37,13 @@ import framework.*
 // ### Types
 
 // The one message the queue may hold, by how far its delivery got.
-enum Outstanding derives Finite:
+enum Outstanding:
   case empty, committed, deliveredOnce, deliveredTwice
 
-final case class QueueView(outstanding: Outstanding) derives Finite
+final case class QueueView(outstanding: Outstanding)
 
 // `internal` answers every step of a provider that its interface does not show.
-enum QueueOutcome derives Finite:
+enum QueueOutcome:
   case committed, failed, delivered, acknowledged, lost, internal
 
 object QueueOutcome:
@@ -53,21 +53,21 @@ object QueueOutcome:
   given Ok[QueueOutcome] = Ok(QueueOutcome.internal)
 
 // The interface's events, and what a provider records of the steps behind them.
-enum QueueFact derives Finite:
+enum QueueFact:
   case enqueueCommitted, enqueueFailed, delivered, acknowledged, storageLost
   case addInvoked, taskPersisted, matchReserved, crashed, ackLost
 
 // Who holds the message. `history` is the dispatch task alone; `invoked` an AddActivityTask in
 // flight and `reserved` a sync match, both only in memory; `persisted` a task in matching's durable
 // queue, which is what lets history's own task finish.
-enum Custody derives Finite:
+enum Custody:
   case nowhere, history, invoked, reserved, persisted
 
-enum Delivered derives Finite:
+enum Delivered:
   case never, once, twice
 
 // `polled` is a poller holding the task while the consumer decides.
-final case class QueueDetail(custody: Custody, polled: Boolean, delivered: Delivered) derives Finite
+final case class QueueDetail(custody: Custody, polled: Boolean, delivered: Delivered)
 
 // The claims every provider of the detailed queue is held to, declared once by `queueClaims`.
 final case class QueueClaims(delivers: Property[QueueDetail], committedStays: Property[QueueDetail])

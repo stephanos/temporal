@@ -6,13 +6,13 @@ package fixture.enumpatterns
 import framework.*
 import framework.Finite.given CanEqual[?, ?]
 
-enum Kind derives Finite:
+enum Kind:
   case a, b, c
-enum Handler derives Finite:
+enum Handler:
   case done(ok: Boolean)
   case running, cancelReceived
-final case class State(kind: Kind, handler: Handler) derives Finite
-enum Outcome derives Finite:
+final case class State(kind: Kind, handler: Handler)
+enum Outcome:
   case accepted
 
 val _ = () => summon[CanEqual[Kind, Kind]]
@@ -61,16 +61,16 @@ object BoundPrefix extends Machine[State, Outcome, Nothing]:
     case x @ Kind.a                      => x == Kind.a
     case _: Kind.b.type | _: Kind.c.type => true
 
-enum Lifecycle derives Finite:
+enum Lifecycle:
   case held extends Lifecycle, Held
   case waiting, closed
-final case class RoleState(phase: Lifecycle) derives Finite
+final case class RoleState(phase: Lifecycle)
 
 object RolePrefix extends Machine[RoleState, Outcome, Nothing]:
   val init = RoleState(Lifecycle.held)
   object rules extends Bindings()
   def end(s: RoleState) = s.phase match
-    case p: Held                                              => p != Lifecycle.closed
+    case p: Held                                              => (p: Lifecycle) != Lifecycle.closed
     case _: Lifecycle.waiting.type | _: Lifecycle.closed.type => false
 
 object Explicit extends Machine[State, Outcome, Nothing]:

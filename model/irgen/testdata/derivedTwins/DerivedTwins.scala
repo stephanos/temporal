@@ -5,9 +5,9 @@ package fixture.features.derivedtwins
 
 import framework.*
 
-final case class LampState(lit: Boolean) derives Finite
+final case class LampState(lit: Boolean)
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted
 
 given Ok[Outcome] = Ok(Outcome.accepted)

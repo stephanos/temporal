@@ -2,7 +2,7 @@ package fixture.features.relay
 
 import framework.*
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted
 
 val task = Entity()

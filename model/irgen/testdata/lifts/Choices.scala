@@ -7,23 +7,23 @@ package fixture.choices
 
 import framework.*; import framework.Finite.given
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
-enum Phase derives Finite:
+enum Phase:
   case scheduled, started, paused
 
-enum Message derives Finite:
+enum Message:
   case empty, queued, redelivery
 
-enum Active derives Finite:
+enum Active:
   case none, one, two
 
-final case class Admission(phase: Phase, message: Message, active: Active) derives Finite
+final case class Admission(phase: Phase, message: Message, active: Active)
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted, rejected
 
 given Ok[Outcome] = Ok(Outcome.accepted)
 
-enum Fact derives Finite:
+enum Fact:
   case statusStarted, attemptAdmitted, statusPaused, admissionRejected
 
 type AdmissionStep = Step[Admission, Outcome, Fact]

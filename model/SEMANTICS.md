@@ -56,30 +56,37 @@ the semantics:
 Equality is structural. Values are keyed in the IR by spelling: a case is its name, a case with
 fields `C-v1-v2`, a record `v1-v2`, a list `[v1,v2]`.
 
-**Writing it.** Derive `Finite` on every enum and state class; bound integers with `UpTo[N]`:
+**Writing it.** Plain enums and case classes; bound integers with `UpTo[N]`:
 
 ```scala
-enum Phase derives Finite:
+enum Phase:
   case queued, running, done, timedOut
 
-final case class State(phase: Phase, attempts: UpTo[2]) derives Finite
+final case class State(phase: Phase, attempts: UpTo[2])
 
-enum Fact derives Finite:
+enum Fact:
   case submitted, started, finished
   case expired(which: Deadline)        // a case with a field: one fact per Deadline value
 ```
 
-`UpTo[2]` has the values 0, 1, 2 and reads as an `Int`; write one with `UpTo(n)`. Older Models
-bound a plain `Int` field with a local `given Finite[Int] = Finite.upTo(n)` beside the state's
-derived `Finite`; `UpTo` replaces that.
+Nothing is declared about finiteness: every enum and case class is a domain, and the compiler
+derives its catalog (`framework.Finite`) where one is first needed, at the `Machine`, `input` or
+`Refinement` that takes the type. `UpTo[2]` has the values 0, 1, 2 and reads as an `Int`; write one
+with `UpTo(n)`. A type whose catalog is not structural declares its own `given Finite[T]`, which
+wins over the derived one: an `Int` field bounded by `Finite.upTo(n)` (the older form of `UpTo`),
+or a state that holds a channel's `Inbox` (step 18).
 
 The build runs with `-language:strictEquality`, so comparing two values needs a `CanEqual`. Every
 `Finite` type gets one from `import framework.Finite.given`; a file that only uses it in a
 comparison keeps the import alive with `val _ = () => summon[CanEqual[Phase, Phase]]`. Comparing
 two levels' phases (`product.Phase == protocol.Phase`) does not compile, which is the point.
 
-**Refused.** A state field with no finite catalog (a list, an unbounded `Int`), by the reader at
-admission; a type the compiler cannot derive `Finite` for, at compile time.
+**Refused.** A state field with no finite catalog (a list, an unbounded `Int`), by the compiler
+at the first use that needs the catalog (`State has no finite catalog`, with the explanation
+ending at the member that has none), and by the reader at admission; a type that is neither an
+enum nor a case class, by the IR generator. A comparison of two values typed by a *role* rather
+than by the phase (`if c then Phase.paused else Phase.scheduled` is a `Phase & Live`) needs the
+phase spelled, `val landing: Phase = ...`, since only the phase has a catalog.
 
 ## 2. Phases and roles
 
@@ -102,7 +109,7 @@ A phase with no role is one where the entity does not exist yet (`unscheduled`).
 case, the *status fact* a step that enters it records:
 
 ```scala
-enum Phase(val status: Fact) extends Recorded[Fact] derives Finite:
+enum Phase(val status: Fact) extends Recorded[Fact]:
   case queued extends Phase(Fact.statusQueued), Waiting
   case running extends Phase(Fact.statusRunning), Held
   case done extends Phase(Fact.statusDone), Succeeded

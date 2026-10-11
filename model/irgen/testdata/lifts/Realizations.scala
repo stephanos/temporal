@@ -44,13 +44,13 @@ private val roles = Vector(
 
 // ### A Property that reads why a step was taken
 
-enum DoorState derives Finite:
+enum DoorState:
   case closed, open
 
-enum DoorOutcome derives Finite:
+enum DoorOutcome:
   case accepted
 
-enum DoorFact derives Finite:
+enum DoorFact:
   case doorOpened
 
 type DoorStep = Step[DoorState, DoorOutcome, DoorFact]
@@ -494,7 +494,7 @@ val pauseRace: Realization = Realization(
 // ### Monitors a Query's expected Run names
 
 // Whether a door was seen open, and whether it was seen to open again after that.
-enum Seen derives Finite:
+enum Seen:
   case shut, opened, reopened
 
 def seen(s: Seen, before: DoorState, after: DoorStep): Seen =
@@ -571,18 +571,18 @@ val heldByName: Query =
 
 // ### An activity whose first attempt fails and whose retry completes
 
-enum ErrandState derives Finite:
+enum ErrandState:
   case idle, queued, held, retrying, done, withdrawn
 
 // How the worker answers one attempt.
-enum ErrandAnswer derives Finite:
+enum ErrandAnswer:
   case failed, completed, canceled
 
-enum ErrandOutcome derives Finite:
+enum ErrandOutcome:
   case accepted
 
 // What a listing of the errand shows: that it exists, and that it closed completed or canceled.
-enum ErrandFact derives Finite:
+enum ErrandFact:
   case errandListed, errandClosed, errandWithdrawn
 
 type ErrandStep = Step[ErrandState, ErrandOutcome, ErrandFact]

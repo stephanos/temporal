@@ -5,19 +5,19 @@ import framework.Finite.given
 import temporal.capabilities.product.{Pausable, Pollable}
 
 object PausingFixture:
-  enum Phase derives Finite:
+  enum Phase:
     case waiting extends Phase, Waiting
     case paused extends Phase, Suspended
     case pausedWhileHeld extends Phase, Held
     case started extends Phase, Held
     case done extends Phase, Succeeded
 
-  enum Answer derives Finite:
+  enum Answer:
     case accepted
 
   given Ok[Answer] = Ok(Answer.accepted)
 
-  final case class Snapshot(phase: Phase) derives Finite
+  final case class Snapshot(phase: Phase)
 
   object user extends Actor:
     val pause = action(this)

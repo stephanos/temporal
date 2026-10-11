@@ -34,7 +34,7 @@ import framework.*
 // is the granularity an example is written at and what mirrors a protobuf oneof.
 
 // Whether the schedule command sets a deadline.
-enum Timeout derives Finite:
+enum Timeout:
   case unset, expires
 
 // ### Signature

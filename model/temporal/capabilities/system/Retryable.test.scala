@@ -6,13 +6,13 @@ import temporal.capabilities.system.Retryable
 import scala.annotation.unused
 
 object RetryFixture:
-  enum Phase derives Finite:
+  enum Phase:
     case waiting extends Phase, Waiting
     case failed extends Phase, Failed
     case paused extends Phase, Suspended
     case canceled extends Phase, Canceled
 
-  enum Answer derives Finite:
+  enum Answer:
     case accepted
 
   final case class Snapshot(
@@ -20,7 +20,7 @@ object RetryFixture:
       attempts: UpTo[2],
       pause: Boolean,
       cancel: Boolean
-  ) derives Finite
+  )
 
   object worker extends Actor
   val failure = action(worker)
@@ -46,10 +46,10 @@ object RetryFixture:
       pendingCancel = Some(pendingCancel)
     )
 
-  enum WaitingPhase derives Finite:
+  enum WaitingPhase:
     case waiting extends WaitingPhase, Waiting
     case failed extends WaitingPhase, Failed
-  final case class WaitingState(phase: WaitingPhase) derives Finite
+  final case class WaitingState(phase: WaitingPhase)
   def waitingCount(@unused s: WaitingState): Int = 0
   def waitingMaximum(@unused s: WaitingState): Option[UpTo[2]] = None: Option[UpTo[2]]
   def waitingRemaining(@unused s: WaitingState): Boolean = true

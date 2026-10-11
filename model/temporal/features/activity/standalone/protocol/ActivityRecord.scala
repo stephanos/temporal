@@ -16,7 +16,7 @@ import product.ActivityProduct
 import product.ActivityProduct.phased
 
 // `pausedWhileHeld` is a pause after admission: the attempt it holds was admitted before it.
-enum AdmissionPhase derives Finite:
+enum AdmissionPhase:
   case scheduled extends AdmissionPhase, Waiting
   case paused extends AdmissionPhase, Suspended
   // The admitted attempt remains held while its pause is pending.
@@ -26,24 +26,23 @@ enum AdmissionPhase derives Finite:
   case timedOut extends AdmissionPhase, TimedOut
 
 // Attempts admitted and not closed: an enum, not an `UpTo[2]`, as its cases are frozen keys.
-enum Active derives Finite:
+enum Active:
   case none, one, two
 
 // Whether admission owes matching the answer that lets it complete the task.
-enum Answer derives Finite:
+enum Answer:
   case settled, owed
 
 final case class AdmissionState(phase: AdmissionPhase, active: Active, answer: Answer)
-    derives Finite
 
 // The statuses the product reads, by their product names, and admission's internal facts.
-enum AdmissionFact derives Finite:
+enum AdmissionFact:
   case statusStarted, statusPaused, statusCompleted
   case statusTimedOut(timeoutType: TimeoutType)
   case dispatchSent, attemptAdmitted, admissionRejected, admissionCommitFailed, deliveryAnswered
 
 // Whether the activity is over, and whether it left where it ended: what `terminalFinality` counts.
-enum Finality derives Finite:
+enum Finality:
   case open, closed, reopened
 
 // The claims every admission design is held to: the Properties its capabilities bring, the record's own

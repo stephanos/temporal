@@ -8,16 +8,16 @@ class Equality extends munit.FunSuite:
     import framework.Finite
     import framework.UpTo
     object product {
-      enum Phase derives Finite { case initial, done }
-      enum Fact derives Finite { case kept }
-      case class State(phase: Phase, known: Option[Fact], count: UpTo[2]) derives Finite
+      enum Phase { case initial, done }
+      enum Fact { case kept }
+      case class State(phase: Phase, known: Option[Fact], count: UpTo[2])
     }
     object system {
-      enum Phase derives Finite { case initial, done }
-      enum Fact derives Finite { case kept }
-      case class State(phase: Phase) derives Finite
+      enum Phase { case initial, done }
+      enum Fact { case kept }
+      case class State(phase: Phase)
     }
-    enum Answer derives Finite { case yes; case value(phase: product.Phase) }
+    enum Answer { case yes; case value(phase: product.Phase) }
   """
 
   test("Finite supplies imported evidence for same-type domains and their containers"):
@@ -85,7 +85,7 @@ class Equality extends munit.FunSuite:
         errors
       )
 
-  test("Finite derivation alone does not put CanEqual in a domain's implicit scope"):
+  test("a Finite instance alone does not put CanEqual in a domain's implicit scope"):
     val errors = typeCheckErrors(domains + """
       def compare(a: product.Phase, b: product.Phase) = a == b
     """)

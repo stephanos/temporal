@@ -4,13 +4,13 @@ import framework.*
 import framework.Finite.given
 import framework.realize.*
 
-enum Phase derives Finite:
+enum Phase:
   case open, closed
-enum Answer derives Finite:
+enum Answer:
   case accepted
-enum Note derives Finite:
+enum Note:
   case completed, other
-enum Input derives Finite:
+enum Input:
   case first, second
 val _ = () => summon[CanEqual[Phase, Phase]]
 

@@ -5,7 +5,7 @@ package fixture.crossed.namedinput
 
 import framework.*
 
-enum Timeout derives Finite:
+enum Timeout:
   case unset, expires
 
 val scheduleToStart = input[Timeout]

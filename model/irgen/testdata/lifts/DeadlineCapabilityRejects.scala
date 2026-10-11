@@ -55,11 +55,11 @@ object CompleteSubtypeBinding extends Derived(DeadlineTimers.restrict(startExpir
   object queries:
     capabilities.bound(three)
 
-enum ForeignFact derives Finite:
+enum ForeignFact:
   case timeout
 
 trait Marker
-enum MarkedFact derives Finite:
+enum MarkedFact:
   case timeout(kind: TimeoutType) extends MarkedFact, Marker
   case unrelated
 
@@ -151,7 +151,7 @@ object NoCovered extends Derived(SimpleDeadlines.restrict(startExpired)):
   object queries:
     capabilities.bound(three)
 
-enum WithoutTimedOut derives Finite:
+enum WithoutTimedOut:
   case waiting extends WithoutTimedOut, Waiting
   case plain
 
@@ -174,7 +174,7 @@ object NoTimedOut
   object queries:
     capabilities.bound(three)
 
-enum WithoutWaiting derives Finite:
+enum WithoutWaiting:
   case held extends WithoutWaiting, Held
   case timedOut extends WithoutWaiting, TimedOut
 

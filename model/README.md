@@ -547,8 +547,10 @@ The IR generator reads what an author wrote, as written:
   `model/temporal/capabilities/product` and `.../system`; the framework holds none.
 - **Types:** enums with and without case fields, case classes, and bounded counters `UpTo[N]`: a
   field `attempts: UpTo[2]` has the values 0, 1 and 2, lifted as the IR int range 0..2, and a step
-  writes one with `UpTo(n)`. It replaces integer fields bounded by the per-record
-  `given Finite[Int] = Finite.upTo(…)` beside the state's `Finite`, which Models not yet migrated
+  writes one with `UpTo(n)`. Every enum and case class is a domain with no `derives` clause: the
+  compiler derives its `Finite` catalog where one is first needed. A Model declares its own
+  `given Finite[S]` only for a catalog that is not structural, such as integer fields bounded by the
+  per-record `given Finite[Int] = Finite.upTo(…)`, which `UpTo` replaces and Models not yet migrated
   keep. A phase enum may declare, on each case, the status fact a step that enters it records:
   `enum Phase(val status: Fact) extends Recorded[Fact]`, `case started extends
   Phase(Fact.statusStarted)`. The parameter is named `status` and has no default, so a case without
@@ -1286,7 +1288,7 @@ gives; the refusal fixtures keep their own options, so each still fails for the 
 
 Strict equality needs a `CanEqual` for each type compared with `==`. Every `Finite` type has one,
 `given [T](using Finite[T]): CanEqual[T, T]` in `framework.Finite`, which a file brings in with
-`import framework.Finite.given`; deriving `Finite` alone does not put it in scope. A type that is
+`import framework.Finite.given`; a `Finite` instance alone does not put it in scope. A type that is
 compared and is not `Finite` declares `derives CanEqual` itself. Nothing grants `CanEqual[Any, Any]`
 or evidence between two levels' types, so `Phase == OtherPhase` stays a compile error
 (`model/framework/Equality.test.scala`). Scala 3.9 reports the `Finite.given` import unused where

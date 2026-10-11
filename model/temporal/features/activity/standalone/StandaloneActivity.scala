@@ -47,7 +47,7 @@ enum FacetName:
 
 // ### Signature
 
-enum MaxAttempts derives Finite:
+enum MaxAttempts:
   case unlimited, one, two
 
 object MaxAttempts:
@@ -55,7 +55,7 @@ object MaxAttempts:
   val bound: Bound = 2
 
 // Whether a reset leaves a paused activity paused: ResetActivityExecutionRequest.keep_paused.
-enum ResetPause derives Finite:
+enum ResetPause:
   case resume, keepPaused
 
 // Named by the id the client chose: every read carries it, so no run id or event id is needed.

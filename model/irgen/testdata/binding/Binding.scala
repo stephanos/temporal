@@ -3,12 +3,12 @@ package fixture.binding
 import framework.*
 // Its actions name no message: a realization binding derives what a class carries (fn-133.8).
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted
-enum Fact derives Finite:
+enum Fact:
   case taken
-final case class State(done: Boolean) derives Finite
-enum Resolution derives Finite:
+final case class State(done: Boolean)
+enum Resolution:
   case done
   case failed(retryable: Boolean)
 

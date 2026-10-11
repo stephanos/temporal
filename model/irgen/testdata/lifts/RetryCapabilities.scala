@@ -4,7 +4,7 @@ import framework.*; import framework.Finite.given
 import temporal.capabilities.product.Closable
 import temporal.capabilities.system.Retryable
 
-enum SimplePhase derives Finite:
+enum SimplePhase:
   case waiting extends SimplePhase, Waiting
   case failed extends SimplePhase, Failed
 
@@ -12,9 +12,9 @@ final case class WaitingState(
     phase: SimplePhase,
     attempts: UpTo[2],
     otherAttempts: UpTo[2]
-) derives Finite
+)
 
-enum ControlPhase derives Finite:
+enum ControlPhase:
   case waiting extends ControlPhase, Waiting
   case failed extends ControlPhase, Failed
   case suspended extends ControlPhase, Suspended
@@ -25,9 +25,9 @@ final case class ControlState(
     attempts: UpTo[2],
     pendingPause: Boolean,
     pendingCancel: Boolean
-) derives Finite
+)
 
-enum Answer derives Finite:
+enum Answer:
   case ok, gone
 
 given Ok[Answer] = Ok(Answer.ok)

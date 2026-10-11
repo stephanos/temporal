@@ -7,17 +7,17 @@ package fixture.sugar
 
 import framework.*; import framework.Finite.given
 
-enum Phase derives Finite:
+enum Phase:
   case idle, running, paused, done
 
-final case class Job(phase: Phase, retried: Boolean) derives Finite
+final case class Job(phase: Phase, retried: Boolean)
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted, refused
 
 given Ok[Outcome] = Ok(Outcome.accepted)
 
-enum Fact derives Finite:
+enum Fact:
   case started, paused, finished
 
 val start = action(Actor("user"))

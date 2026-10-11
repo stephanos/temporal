@@ -7,15 +7,15 @@ package fixture.declarations
 
 import framework.*; import framework.Finite.given
 
-enum Kept derives Finite:
+enum Kept:
   case nothing, held
 
-final case class StoreState(kept: Kept) derives Finite
+final case class StoreState(kept: Kept)
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted, deferred
 
-enum Fact derives Finite:
+enum Fact:
   case stored, staged
 
 val put = action(Actor("client"))
@@ -48,10 +48,10 @@ object Store extends Machine[StoreState, Outcome, Fact]:
         )
       )
 
-enum Stage derives Finite:
+enum Stage:
   case empty, staged, durable
 
-final case class DiskState(stage: Stage) derives Finite
+final case class DiskState(stage: Stage)
 
 def putStep(d: DiskState): List[Step[DiskState, Outcome, Fact]] = d.stage match
   case Stage.empty => List(Step(Outcome.accepted, DiskState(Stage.staged), List(Fact.stored)))
@@ -66,7 +66,7 @@ def flushStep(d: DiskState): List[Step[DiskState, Outcome, Fact]] = d.stage matc
 def crashStep(d: DiskState): List[Step[DiskState, Outcome, Fact]] = // format: off
   if d.stage == Stage.staged then crashUnmodeled.reached else Nil
   // format: on
-enum Seen derives Finite:
+enum Seen:
   case never, once, twice
 
 def countStored(seen: Seen, before: DiskState, after: Step[DiskState, Outcome, Fact]): Seen =

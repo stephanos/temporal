@@ -25,7 +25,7 @@ def zero[S](s: S): Int = 0
 def maximum[S](s: S): Option[UpTo[2]] = Some(UpTo[2](1))
 def remaining[S](s: S): Boolean = true
 
-enum WithoutWaiting derives Finite:
+enum WithoutWaiting:
   case plain
   case failed extends WithoutWaiting, Failed
 
@@ -40,7 +40,7 @@ object NoWaiting
   object queries:
     capabilities.bound(three)
 
-enum WithoutFailed derives Finite:
+enum WithoutFailed:
   case waiting extends WithoutFailed, Waiting
   case plain
 

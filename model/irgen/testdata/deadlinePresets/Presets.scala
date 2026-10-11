@@ -10,7 +10,7 @@ import temporal.features.activity.Timeout as ActivityTimeout
 import io.temporal.api.workflowservice.v1.StartActivityExecutionRequest as StartRequest
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
 
-enum Timeout derives Finite:
+enum Timeout:
   case unset, expires
 
 val delay = input[Timeout]
@@ -19,7 +19,7 @@ val device = Entity(key = "activityId")
 object caller extends Actor:
   val start = action(this).input(delay).input(close).creates(device)
 
-final case class DeviceState(done: Boolean) derives Finite
+final case class DeviceState(done: Boolean)
 object Device extends Machine[DeviceState, Outcome, Nothing]:
   val init = DeviceState(false)
   def end(s: DeviceState) = s.done

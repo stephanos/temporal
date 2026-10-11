@@ -3,7 +3,7 @@ package workflow
 
 import framework.*
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted
 
 object user extends Actor:

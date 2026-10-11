@@ -5,14 +5,14 @@ import framework.Finite.given
 // fixtures (irgen/testdata/lifts/Inputs.scala) prove the IR; these pin the framework's own values.
 
 class Inputs extends munit.FunSuite:
-  enum Timeout derives Finite:
+  enum Timeout:
     case unset, expires
 
-  enum Answer derives Finite:
+  enum Answer:
     case completed
     case failed(retryable: Boolean)
 
-  final case class Counted(attempts: UpTo[2], timeout: Timeout) derives Finite
+  final case class Counted(attempts: UpTo[2], timeout: Timeout)
 
   private val scheduleToClose = input[Timeout]
   private val scheduleToStart = input[Timeout]

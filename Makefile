@@ -712,6 +712,11 @@ $(MODEL_JAR): $(MODEL_PROTO_JARS) $(MODEL_ROOT)/project.scala $(shell find $(MOD
 	@printf $(COLOR) "Package the Models' TASTy..."
 	@$(MODEL_CLI) --power package --server=false --suppress-outdated-dependency-warning --library $(MODEL_SOURCES) -f -o $@
 
+.PHONY: compile-model
+compile-model:
+	@printf $(COLOR) "Compiling model files..."
+	@$(MODEL_CLI) compile --server=false $(MODEL_SOURCES)
+
 fmt-model:
 	@printf $(COLOR) "Formatting model files..."
 	@$(MODEL_CLI) fmt --scalafmt-conf $(MODEL_ROOT)/.scalafmt.conf $(MODEL_SOURCES) $(MODEL_ROOT)/irgen $(MODEL_ROOT)/check

@@ -13,7 +13,7 @@ import umpire.check.Tools
 // clause, and not punctuation alone; whitespace inside it is collapsed. A fixture line counts as
 // shared when it lies in a run of at least `run` consecutive substantive lines that also stand
 // consecutively in one model/temporal file. Shorter runs are the vocabulary every Model writes the
-// same way, such as an `enum Outcome derives Finite:` with its `case accepted`. The threshold is
+// same way, such as an `enum Outcome:` with its `case accepted`. The threshold is
 // Scripts.scala's: its core records spell the six correlation bounds the Temporal kit's helper
 // produces, which is what the fixture compares the helper with.
 class Overlap extends munit.FunSuite:

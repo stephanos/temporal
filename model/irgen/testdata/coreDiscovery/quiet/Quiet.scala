@@ -2,7 +2,7 @@ package fixture.actors.quiet
 
 import framework.*
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted
 
 val unrelated = Vector("ordinary data")

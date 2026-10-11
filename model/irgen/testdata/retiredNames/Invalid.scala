@@ -11,12 +11,12 @@ package fixture.retiredNames
 
 import framework.*
 
-enum Note derives Finite:
+enum Note:
   case ping
 
-final case class LampState(on: Boolean) derives Finite
+final case class LampState(on: Boolean)
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted
 
 final case class PairState(left: LampState, right: LampState)

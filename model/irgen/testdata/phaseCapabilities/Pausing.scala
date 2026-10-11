@@ -5,18 +5,18 @@ import temporal.capabilities.product.*
 
 val bounds = Limits(steps = 2, actions = 3, search = 64)
 
-enum WorkflowPhase derives Finite:
+enum WorkflowPhase:
   case waiting extends WorkflowPhase, Waiting
   case paused extends WorkflowPhase, Suspended
   case pausedWhileHeld extends WorkflowPhase, Held
   case started extends WorkflowPhase, Held
   case done extends WorkflowPhase, Succeeded
 
-enum Result derives Finite:
+enum Result:
   case accepted
 
-final case class WorkState(phase: WorkflowPhase) derives Finite
-final case class OtherWorkState(phase: WorkflowPhase) derives Finite
+final case class WorkState(phase: WorkflowPhase)
+final case class OtherWorkState(phase: WorkflowPhase)
 final case class Pair(left: WorkState, right: OtherWorkState)
 
 given Ok[Result] = Ok(Result.accepted)
@@ -89,12 +89,12 @@ object DirectDerivedPair extends DerivedComposition(DirectPair.withMember(_.righ
   object queries:
     capabilities.bound(bounds)
 
-enum NoPausedPhase derives Finite:
+enum NoPausedPhase:
   case waiting extends NoPausedPhase, Waiting
   case started extends NoPausedPhase, Held
   case done extends NoPausedPhase, Succeeded
 
-final case class NoPaused(phase: NoPausedPhase) derives Finite
+final case class NoPaused(phase: NoPausedPhase)
 
 object MissingSuspended
     extends Machine[NoPaused, Result, Nothing],
@@ -110,12 +110,12 @@ object MissingSuspended
   object queries:
     capabilities.bound(bounds)
 
-enum NoHeldPhase derives Finite:
+enum NoHeldPhase:
   case waiting extends NoHeldPhase, Waiting
   case paused extends NoHeldPhase, Suspended
   case done extends NoHeldPhase, Succeeded
 
-final case class NoHeld(phase: NoHeldPhase) derives Finite
+final case class NoHeld(phase: NoHeldPhase)
 
 object MissingHeld extends Machine[NoHeld, Result, Nothing], Phased[NoHeld, NoHeldPhase](_.phase):
   val init = NoHeld(NoHeldPhase.waiting)

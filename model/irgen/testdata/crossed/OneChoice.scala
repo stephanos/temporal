@@ -5,12 +5,12 @@ package fixture.crossed.onechoice
 
 import framework.*
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted
 
 given Ok[Outcome] = Ok(Outcome.accepted)
 
-final case class Lamp(lit: Boolean) derives Finite
+final case class Lamp(lit: Boolean)
 
 val committed = choice
 

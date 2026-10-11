@@ -12,13 +12,13 @@ import framework.*; import framework.Finite.given
 
 // ### Separators in composed keys, and actions spelled alike in two members
 
-enum Level derives Finite:
+enum Level:
   case low, high
 
-enum Switched derives Finite:
+enum Switched:
   case accepted
 
-final case class Switch(on: Boolean) derives Finite
+final case class Switch(on: Boolean)
 
 // The two switches' state, named apart from the composition object `Switches`.
 final case class SwitchesState(left_side: Switch, right_side: Switch)

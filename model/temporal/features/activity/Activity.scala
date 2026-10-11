@@ -10,15 +10,15 @@ import actors.worker.worker as process
 // ### Types
 
 // Whether the start request sets a deadline.
-enum Timeout derives Finite:
+enum Timeout:
   case unset, expires
 
 // Whether a failed attempt may be retried.
-enum Failure derives Finite:
+enum Failure:
   case fatal, retryable
 
 // Which deadline fired.
-enum TimeoutType derives Finite:
+enum TimeoutType:
   case scheduleToClose, scheduleToStart, startToClose, heartbeat
 
 // ### Signature

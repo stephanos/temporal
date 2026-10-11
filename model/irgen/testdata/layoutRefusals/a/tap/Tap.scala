@@ -3,9 +3,9 @@ package fixture.features.tap
 
 import framework.*
 
-final case class Tap(open: Boolean) derives Finite
+final case class Tap(open: Boolean)
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted
 
 object plumber extends Actor:

@@ -5,16 +5,16 @@ package fixture.derived
 
 import framework.*; import framework.Finite.given
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
-enum Light derives Finite:
+enum Light:
   case off, on, broken
 
 // A lamp's state, named apart from the machine object `Lamp`.
-final case class LampState(light: Light) derives Finite
+final case class LampState(light: Light)
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted, refused
 
-enum Fact derives Finite:
+enum Fact:
   case lit, darkened, burnedOut
 
 val press = action(Actor("user"))
@@ -24,11 +24,11 @@ val burnOut = action(Actor("fault"))
 val lampOpaque = assume
 val burnOutAssumed = assume
 
-enum Shown derives Finite:
+enum Shown:
   case dark, bright
 
 // The view's state, named apart from the machine object `View`.
-final case class ViewState(shown: Shown) derives Finite
+final case class ViewState(shown: Shown)
 
 def pressView(v: ViewState): List[Step[ViewState, Outcome, Fact]] = // format: off
   if v.shown == Shown.dark then
@@ -74,7 +74,7 @@ def burnOutLamp(l: LampState): List[Step[LampState, Outcome, Fact]] = // format:
   if l.light == Light.broken then Nil
   else List(Step(Outcome.refused, LampState(Light.broken), List(Fact.burnedOut))) // format: on
 
-enum Lit derives Finite:
+enum Lit:
   case never, once, again
 
 def countLit(seen: Lit, before: LampState, after: Step[LampState, Outcome, Fact]): Lit =

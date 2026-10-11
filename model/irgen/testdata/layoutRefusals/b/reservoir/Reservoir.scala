@@ -3,23 +3,23 @@ package fixture.features.reservoir
 
 import framework.*
 
-enum ProductPhase derives Finite:
+enum ProductPhase:
   case empty, full
 
-final case class ProductState(phase: ProductPhase) derives Finite
+final case class ProductState(phase: ProductPhase)
 
-enum ProductFact derives Finite:
+enum ProductFact:
   case filled
 
-enum Phase derives Finite:
+enum Phase:
   case empty, full
 
-final case class SystemState(phase: Phase) derives Finite
+final case class SystemState(phase: Phase)
 
-enum SystemFact derives Finite:
+enum SystemFact:
   case filled
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted
 
 object user extends Actor:

@@ -2,9 +2,9 @@ package fixture.features.urn
 
 import framework.*
 
-final case class Urn(hot: Boolean) derives Finite
+final case class Urn(hot: Boolean)
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted
 
 object cook extends Actor:

@@ -11,10 +11,10 @@ import temporal.features.nexus.workflow.protocol.{
   State as WorkflowState
 }
 
-enum Kind derives Finite:
+enum Kind:
   case a, b, c
-final case class State(kind: Kind) derives Finite
-enum Outcome derives Finite:
+final case class State(kind: Kind)
+enum Outcome:
   case accepted
 
 val _ = () => summon[CanEqual[Kind, Kind]]

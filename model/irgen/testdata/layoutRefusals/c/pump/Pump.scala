@@ -3,9 +3,9 @@ package fixture.foundations.pump
 
 import framework.*
 
-final case class Pump(running: Boolean) derives Finite
+final case class Pump(running: Boolean)
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted
 
 type PumpStep = Step[Pump, Outcome, Nothing]

@@ -11,16 +11,16 @@ import framework.realize.*, temporal.realize.{Role, RoleKind}
 import temporal.server.api.testpilot.v1.CorrelatedEvidence
 import Entities.{entry, lostData}
 
-enum Kept derives Finite:
+enum Kept:
   case nothing, held
 
 // The store's state, named apart from the machine object `Store`.
-final case class StoreState(kept: Kept) derives Finite
+final case class StoreState(kept: Kept)
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted, deferred
 
-enum Fact derives Finite:
+enum Fact:
   case stored, staged
   case lost(hard: Boolean)
 
@@ -73,11 +73,11 @@ object Store extends Machine[StoreState, Outcome, Fact]:
 
   object rules extends Bindings(client.put ~> putStore, background.expire ~> expireStore)
 
-enum Stage derives Finite:
+enum Stage:
   case empty, staged, durable
 
 // The disk's state, named apart from the machine object `Disk`.
-final case class DiskState(stage: Stage) derives Finite
+final case class DiskState(stage: Stage)
 
 def putDisk(d: DiskState): List[Step[DiskState, Outcome, Fact]] = d.stage match
   case Stage.empty => List(Step(Outcome.accepted, DiskState(Stage.staged), List(Fact.stored)))
@@ -90,7 +90,7 @@ def flushDisk(d: DiskState): List[Step[DiskState, Outcome, Fact]] = d.stage matc
 def crashDisk(d: DiskState): List[Step[DiskState, Outcome, Fact]] = // format: off
   if d.stage == Stage.staged then crashUnmodeled.reached else Nil
   // format: on
-enum Seen derives Finite:
+enum Seen:
   case never, once, twice
 
 def countStored(seen: Seen, before: DiskState, after: Step[DiskState, Outcome, Fact]): Seen =
@@ -228,7 +228,7 @@ given Finite[RelayState] =
   given Finite[Inbox[Kept]] = wire.contents
   Finite.derived
 
-enum Note derives Finite:
+enum Note:
   case heard, missed
 
 // The client's send, which names the actor object as its actor.

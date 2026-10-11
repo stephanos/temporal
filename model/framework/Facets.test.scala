@@ -4,17 +4,17 @@ package framework
 // object binds, an action bound by two facets is refused, and a facet's self-type makes a machine
 // without the facet it depends on fail to compile.
 object FacetsFixture:
-  enum Lit(val status: Note) extends Recorded[Note] derives Finite:
+  enum Lit(val status: Note) extends Recorded[Note]:
     case off extends Lit(Note.dark)
     case on extends Lit(Note.lit)
     case broken extends Lit(Note.gone), Terminated
 
-  enum Note derives Finite:
+  enum Note:
     case dark, lit, gone
 
-  final case class Lamp(light: Lit, presses: UpTo[1]) derives Finite
+  final case class Lamp(light: Lit, presses: UpTo[1])
 
-  enum Said derives Finite:
+  enum Said:
     case ok
 
   given Ok[Said] = Ok(Said.ok)

@@ -3,7 +3,7 @@ package fixture.foundations.coreonly
 import framework.*
 import framework.realize.*
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted
 
 object Runs:

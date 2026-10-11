@@ -2,9 +2,9 @@ package fixture.features.cistern
 
 import framework.*
 
-final case class Light(lit: Boolean) derives Finite
+final case class Light(lit: Boolean)
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted
 
 object user extends Actor:

@@ -29,49 +29,48 @@ package protocol
 // `Answer` here is the designs' delivery answer.
 import framework.*
 import framework.Finite.given CanEqual[?, ?]
-import Answer.given
 import temporal.Bounds.{fiveWide, fourWide, twelveWide}
 
 // ### Types: one logical operation, the original run and one reset successor
 
 // The caller's runs. `closed` is the original run closed with its history frozen; `resetOpen` is
 // the successor, which owns the operation from the reset on.
-enum Caller derives Finite:
+enum Caller:
   case open, closed, resetOpen
 
 // Who asked for a cancellation. One principal is in scope, as one cancellation is: the caller
 // workflow whose command requests it. Which principals a server has is not this Model's claim.
-enum Principal derives Finite:
+enum Principal:
   case callerWorkflow
 
 // The cancel request the owning run's history records, with its principal.
-enum Intent derives Finite:
+enum Intent:
   case none
   case requested(by: Principal)
 
 // What the handler has done. `cancelReceived` is the cancel request delivered to a handler still
 // working, which obliges it to nothing. `done` is an irreversible effect: no reset undoes it.
-enum Handler derives Finite:
+enum Handler:
   case running, cancelReceived
   case done(result: Resolution)
 
 // The one completion report in the bounded channel from handler to caller. While it is in flight
 // the handler still owes the report. `retried` is the report delivered again by a channel that
 // redelivers once.
-enum Completion derives Finite:
+enum Completion:
   case none
   case inFlight(result: Resolution)
   case retried(result: Resolution)
 
 // An outcome retained durably at the operation, keyed by the stable operation identity rather than
 // a run, together with the obligation to deliver it to an owner.
-enum Retained derives Finite:
+enum Retained:
   case none
   case pending(result: Resolution)
 
 // Which run's history records the outcome. `expired` is the schedule-to-close deadline recorded in
 // its place: it belongs to the operation, so a reset keeps it.
-enum Knowledge derives Finite:
+enum Knowledge:
   case none
   case original(result: Resolution)
   case successor(result: Resolution)
@@ -84,10 +83,10 @@ final case class CloseResetState(
     channel: Completion,
     retained: Retained,
     known: Knowledge
-) derives Finite
+)
 
 // What a delivery attempt reports back to the handler.
-enum Answer derives Finite:
+enum Answer:
   case accepted, retained, rejectedTransient, rejectedPermanent
 
 object Answer:
@@ -97,7 +96,7 @@ object Answer:
 
 // What a step records. The history events carry the baseline's names; the rest is what a design
 // would have to expose for a Run to read it.
-enum CloseFact derives Finite:
+enum CloseFact:
   case workflowClosed, workflowReset
   case cancelRequested(by: Principal)
   case cancelReceived
@@ -106,7 +105,7 @@ enum CloseFact derives Finite:
   case outcomeRetained, outcomeReapplied, completionDropped
 
 // Where a completion goes once the original run can no longer take it.
-enum Policy derives Finite:
+enum Policy:
   // Faulty: a closed run rejects the completion permanently, and the handler stops reporting.
   case rejectAfterClose
 
@@ -118,7 +117,7 @@ enum Policy derives Finite:
   case retainAndRoute
 
 // What a reset carries into the successor.
-enum Reset derives Finite:
+enum Reset:
   // Reapplies the recorded or retained outcome and keeps the cancel request.
   case reapplies
 
@@ -129,7 +128,7 @@ enum Reset derives Finite:
   case forgetsCancel
 
 // How often the channel delivers a report whose delivery did not end it.
-enum Redelivery derives Finite:
+enum Redelivery:
   // Until acknowledged or permanently rejected: a transient rejection may repeat forever.
   case untilAck
 
@@ -137,13 +136,13 @@ enum Redelivery derives Finite:
   case once
 
 // The outcomes the runs' histories have recorded.
-enum Outcomes derives Finite:
+enum Outcomes:
   case none
   case one(result: Resolution)
   case several
 
 // Who asked for the cancellation, and whether the history still says so.
-enum Asked derives Finite:
+enum Asked:
   case nobody
   case by(principal: Principal)
   case lost

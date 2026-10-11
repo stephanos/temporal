@@ -4,11 +4,11 @@ import framework.*
 import framework.Finite.given
 import framework.realize.*
 
-enum Phase derives Finite:
+enum Phase:
   case open, closed
-enum Said derives Finite:
+enum Said:
   case accepted
-enum Noted derives Finite:
+enum Noted:
   case closed
 object reader extends Actor:
   val close = action(this)

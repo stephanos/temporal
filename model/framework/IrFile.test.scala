@@ -1,11 +1,11 @@
 package framework
 
 object DiscoveryFixtures:
-  enum State derives Finite:
+  enum State:
     case open, closed
-  enum Outcome derives Finite:
+  enum Outcome:
     case done
-  enum RolePhase derives Finite:
+  enum RolePhase:
     case pending extends RolePhase, Waiting
     case settled extends RolePhase, Closed
   import State.*

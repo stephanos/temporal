@@ -22,7 +22,7 @@ import Timeout.expires
 val _ = () => summon[CanEqual[Phase, Phase]]
 
 // It begins before the operation exists, so unscheduled is one phase.
-enum Phase derives Finite:
+enum Phase:
   case unscheduled
   case scheduled extends Phase, Waiting
   case backingOff extends Phase, Retrying
@@ -47,12 +47,12 @@ import Fact.{nexusOperationCanceled as NX, nexusOperationFailed as NF}
 
 // Which timer fired. The history event records it, so a Contract that did not check it would pass a
 // run that timed out on the wrong deadline.
-enum TimeoutType derives Finite:
+enum TimeoutType:
   case scheduleToClose, scheduleToStart, startToClose
 
 import Fact.nexusOperationTimedOut as NT
 
-enum Fact derives Finite:
+enum Fact:
   case nexusOperationScheduled, nexusOperationStarted, nexusOperationCompleted,
     nexusOperationFailed,
     nexusOperationCanceled

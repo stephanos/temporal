@@ -5,9 +5,9 @@ package fixture.features.urn
 
 import framework.*
 
-final case class Urn(full: Boolean) derives Finite
+final case class Urn(full: Boolean)
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted
 
 type UrnStep = Step[Urn, Outcome, Nothing]

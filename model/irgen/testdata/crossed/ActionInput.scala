@@ -2,9 +2,9 @@ package fixture.crossed.actioninput
 
 import framework.*
 
-final case class State(on: Boolean) derives Finite
+final case class State(on: Boolean)
 
-enum Outcome derives Finite:
+enum Outcome:
   case accepted
 
 val signal = action(Actor("fixture")).input[Boolean]("on")

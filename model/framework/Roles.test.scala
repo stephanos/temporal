@@ -5,13 +5,13 @@ import scala.reflect.TypeTest
 // Roles are metadata: a phase enum whose cases take roles has the values, in the same order, of the
 // enum without them, and its cases test as the roles they declare and imply.
 class RolesSuite extends munit.FunSuite:
-  enum Roled derives Finite:
+  enum Roled:
     case unstarted
     case backingOff extends Roled, Retrying
     case running extends Roled, Held
     case done extends Roled, Succeeded
 
-  enum Bare derives Finite:
+  enum Bare:
     case unstarted, backingOff, running, done
 
   test("a phase enum's roles leave its Finite values and their order as they are"):

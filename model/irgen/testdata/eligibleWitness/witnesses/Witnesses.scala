@@ -3,13 +3,13 @@ package fixture.features.witnesses
 import framework.*
 import framework.Finite.given
 
-enum Bit derives Finite:
+enum Bit:
   case first, second
-enum Outcome derives Finite:
+enum Outcome:
   case ok
-enum Fact derives Finite:
+enum Fact:
   case done
-final case class State(lit: Boolean) derives Finite
+final case class State(lit: Boolean)
 abstract class Reader(@scala.annotation.unused p: Property[State])
 
 object worker extends Actor:

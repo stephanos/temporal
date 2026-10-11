@@ -3,7 +3,7 @@ package framework
 import framework.Finite.given
 
 object PhasedFixture:
-  enum Phase derives Finite:
+  enum Phase:
     case absent
     case waiting extends Phase, Waiting
     case held extends Phase, Held
@@ -14,13 +14,13 @@ object PhasedFixture:
     case terminated extends Phase, Terminated
     case timedOut extends Phase, TimedOut
 
-  enum OpenPhase derives Finite:
+  enum OpenPhase:
     case waiting extends OpenPhase, Waiting
 
-  enum Answer derives Finite:
+  enum Answer:
     case accepted
 
-  final case class Snapshot(phase: Phase) derives Finite
+  final case class Snapshot(phase: Phase)
   final case class Pair(left: Snapshot, right: Snapshot)
 
   object DefaultEnd extends Machine[Snapshot, Answer, Nothing], Phased[Snapshot, Phase](_.phase):

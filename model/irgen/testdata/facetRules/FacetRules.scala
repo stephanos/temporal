@@ -6,17 +6,17 @@ package fixture.facetrules
 
 import framework.*
 
-enum FacetName derives Finite:
+enum FacetName:
   case pressing, breaking
 
-enum Lit derives Finite:
+enum Lit:
   case off, on
   case broken extends Lit, Terminated
 
-final case class State(light: Lit) derives Finite
-final case class AdmissionState(light: Lit) derives Finite
+final case class State(light: Lit)
+final case class AdmissionState(light: Lit)
 
-enum Said derives Finite:
+enum Said:
   case ok
 
 given Ok[Said] = Ok(Said.ok)

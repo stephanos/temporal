@@ -1,13 +1,13 @@
 package framework
 
 object WitnessFixture:
-  enum State derives Finite:
+  enum State:
     case open, closed
-  enum Outcome derives Finite:
+  enum Outcome:
     case accepted
-  enum Fact derives Finite:
+  enum Fact:
     case completed, secondary, tertiary
-  enum Foreign derives Finite:
+  enum Foreign:
     case completed
 
   val actor = Actor("tester")

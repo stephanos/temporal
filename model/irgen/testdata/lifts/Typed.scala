@@ -21,10 +21,10 @@ import framework.realize.*, temporal.realize.{Role, RoleKind, WorkerInstruction}
 
 val one = action(Actor("caller"))
 
-enum State derives Finite:
+enum State:
   case idle
 
-enum Result derives Finite:
+enum Result:
   case accepted
 
 def step(s: State): List[Step[State, Result, Nothing]] = List(
