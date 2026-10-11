@@ -521,6 +521,64 @@ acceptance gates. The full irgen campaign remains red on held comparisons.
 Fn-149 stays gated, and the original continuation deadline and two-strike limit
 are unchanged.
 
+
+### Conductor-verified integrated source seal (2026-10-11)
+
+The conductor accepted the complete original source contract after independently
+auditing every final campaign and immutable input. Flow reports task .10 done;
+source commit b5374fbb0bd13642dea60191f97619754a81acd8 and closure receipt
+c59b5bdf21b6656bc9799135a9214951e4cbfe11 are integrated into local umpire.
+The bounded retry finished at 12:23:07 UTC, before its 12:46:51 deadline.
+No third attempt was needed. This committed source closure admits fn-149's
+Scala lane; deferred tasks .6/.7/.8/.9 remain open with their original consumer,
+regeneration, Go assessment, full-gate, review and live obligations.
+
+Final independent audits live under .flow/tmp/scala-dsl in the main checkout.
+They cover the complete core/span map and 26 mutations, complete typed/private/
+retained reader boundaries and five reader mutations, all 166 lifter passes
+with ten held comparisons and the complete 226-row authored refusal population,
+178 Model/native passes with two held comparisons and 172 strict native-law
+rows, and all 97 checker passes including eight ledger controls. The full
+Model and lifter campaigns remain red on held managed comparisons.
+
+The fresh native predicate proof compares all 52,244 applicable rows for 20
+claims, including 27,540 enabled results, byte for byte with the original.
+The final historical gate passes against all 59 baseline keys, 42 unique
+payloads and 13,077,242 rows. The conductor independently decompresses and
+authenticates every original and every current payload. Current coverage is
+46 keys, 45 payloads and 2,189,510 rows. All four scratch exports match native
+subject sets exactly, with 51 exported rows, 43 declared identities and three
+explicitly named anonymous derivations. All 44 retained original catalog-pin
+rows and 17 explicit removals are proved, with only the exact approved stop
+removal and two binding-order ledger entries. Repeated native export rows have
+identical complete metadata/catalogs, preventing a collapsed dictionary from
+hiding a disagreement.
+
+Final syntax and the correct 459-file formatting check pass. The second
+formatting pass changes no source bytes; the conductor hashes every actual
+file against the identical before/after manifests. The source/artifact receipt
+has no drift and authenticates the exact full 1,893-member jar/classpath set,
+20 dependencies and seven scratch IR artifacts.
+
+The conductor independently hashes all 5,272 immutable snapshot files against
+manifest SHA256 e8a7dbf4a9e51ae442cff4ae72de521ef4aff7340dd43ed358cd199a5acecd1e.
+All 459 final Scala source files also match committed b5374fbb bytes. The copied
+jar, dependencies and seven final IR artifacts match the final authentication
+receipt. Later tasks must consume this frozen snapshot instead of mutable build
+paths. Main user SEMANTICS and the protected Go assessment file retain their
+original recorded hashes through integration.
+
+Root final receipts include fn140-10-root-final-core-proof-audit.log,
+fn140-10-root-retry-irgen-final3-audit.json,
+fn140-10-root-final-model-campaign-audit.json,
+fn140-10-root-final-checker-campaign-audit.json,
+fn140-10-root-retry-final-native20-audit.json,
+fn140-10-root-final-historical-and-subject-audit.json,
+fn140-10-root-final-authentication-audit.json and
+fn140-10-root-immutable-seal-audit.json. The whole MILESTONES objective remains
+open. Canonical Make equivalence stays owner-held and unexecuted; the direct
+Scala route earns source equivalence only.
+
 ## Acceptance
 - [ ] Complete eligible/retained inventories cover all Model packages, with concrete reader/boundary justifications; every eligible private pinned triple is a witness (R5).
 - [ ] Source-aware lint and focused positive/refusal fixtures cover private/shared/verify/monitor/repeated-input-tail forms with exact source ownership and unchanged other refusal classes (R5).
