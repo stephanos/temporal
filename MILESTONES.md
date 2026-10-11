@@ -87,7 +87,7 @@ only. The IR-regenerating tasks wait on the tree's IR `Duration` migration. Not 
 | fn-159.4 | 🔄 in progress | Remove `disabled(process.stop)` from the activity product; needs the tree's IR `Duration` migration to build for the lift check (done on `w-1d`) |
 | fn-159.5 | 🔄 in progress | Move every `Limits` bound into `Bounds`; resolve the clashing names `four`/`five`/`twelve` and merge `eight`/`control` (done on `w-1d`) |
 | fn-159.6 | 🔄 in progress | Drop `Observation`'s free-text `read`; name the response field beside each realization's typed read (done on `w-1d`) |
-| fn-159.7 | 🔄 in progress | `enters(Phase.X)` framework step replaces the ~29 effects that only set a phase (after fn-159.1, fn-159.3) (product/nexus/workflow done on `w-1d`; worker polling left) |
+| fn-159.7 | 🔄 in progress | `enters(Phase.X)` replaces phase-only effects, including worker stop/resume in Serving.scala; source integrated, equivalence/shared closure still open |
 | fn-159.8 | 🔄 in progress | Rename capability kinds `Retries` → `Retryable`, `Deadline` → `Expirable` (names to confirm); IR capability ids change (done on `w-1d`) |
 
 `disabled(...)` targets are qualified like `on` (decided 2026-10-10).
