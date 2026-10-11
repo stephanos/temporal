@@ -7,8 +7,8 @@ satisfies: [R1, R2]
 Discover grouped claims and prove registration equivalence. Advances R1, R2 of the parent spec.
 
 **Size:** M
-**Files:** `model/framework/IrFile.scala`, `model/framework/Rules.test.scala`, `model/framework/IrFile.test.scala`, `model/irgen/Lifting.scala`, `model/irgen/Claims.scala`, `model/irgen/test/Fixtures.test.scala`, `model/irgen/testdata/propertyGroups/**`
-**Touches:** [model/framework/IrFile.scala, model/framework/Rules.test.scala, model/framework/IrFile.test.scala, model/irgen/Lifting.scala, model/irgen/Claims.scala, model/irgen/test/Fixtures.test.scala, model/irgen/testdata/propertyGroups/**]
+**Files:** `model/framework/IrFile.scala`, `model/framework/Rules.test.scala`, `model/framework/IrFile.test.scala`, `model/irgen/Lifting.scala`, `model/irgen/Claims.scala`, `model/irgen/test/Fixtures.test.scala`, `model/irgen/test/PropertyGroups.test.scala`, `model/irgen/testdata/propertyGroups/**`
+**Touches:** [model/framework/IrFile.scala, model/framework/Rules.test.scala, model/framework/IrFile.test.scala, model/irgen/Lifting.scala, model/irgen/Claims.scala, model/irgen/test/Fixtures.test.scala, model/irgen/test/PropertyGroups.test.scala, model/irgen/testdata/propertyGroups/**]
 
 ### Approach
 - Make designated properties.safety and properties.liveness groups discoverable for Machine and Composition owners through the actual framework IrFile and TASTy discovery paths. Fn-141 runs later; use no hypothetical replacement exporter.
