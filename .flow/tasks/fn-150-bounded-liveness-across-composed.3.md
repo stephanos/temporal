@@ -39,9 +39,19 @@ mise exec -- scala-cli test model/irgen --test-only Fixtures
 - [ ] Existing Machine authoring fixtures stay valid; grouped or ungrouped placement follows the currently landed fn-149 contract.
 
 ## Done summary
-TBD
+`c.leadsTo(name)(from, to, within, under*)` on `Composition[S]` (framework/Assume.scala) with
+predicates typed to the composed state; `assume.fair(first: Composed, more*)` makes composed steps
+fair through the existing `synced`/`own` selectors. Lifting (irgen/Compositions.scala
+`composedFairRef`, sharing one `selected` resolution with `composedKey`; Declarations.scala
+`assumptionOf`/`machineAssumption`; Claims.scala progress owner check) exports Progress on the
+composition and `fairRefs` preserving composition, member field, sync vs member, action-wide vs exact
+class. Refusals with source lines: fairness on another composition, on a machine's claim, assumed by a
+machine, mixed with machine actions, spread over two compositions, a sync class named from the side
+that cannot supply inputs, an own action that steps only with its pair, an action no sync pairs, a
+bound of 0; compile refusals: a member-state predicate and a missing bound. fn-149 grouping has not
+landed: claims stay ungrouped (Progress in `properties`, as the layout lint requires).
 
 ## Evidence
-- Commits:
-- Tests:
+- Commits: f7fcb54a67
+- Tests: `scala-cli test model/irgen --test-only umpire.irgen.Fixtures` (UMPIRE_LIFTER_UPDATE run: all pass but the crossed positions, fixed after; verification run: see `.flow/tmp/fn150/fixtures.log`); framework tests 60 PASS (`.flow/tmp/fn150/framework-tests.log`); Go TestLiftedModelsAreAdmitted/composedProgress and TestLiftedComposedProgressResolvesScopedFairnessAndCountsUnrelatedSteps PASS
 - PRs:

@@ -105,6 +105,19 @@ a second checking algorithm, reconsider the binding approach before extending au
   contract. Keep the approved delivery chain unchanged and re-anchor task paths before execution.
 - Retain the existing decision against broad generated-API drift verification and new CI coverage.
 
+## Decisions (w-fn150 lane, 2026-10-10)
+
+- Authoring: `leadsTo` is overloaded on `Composition[S]`; composed fairness is a second `fair`
+  overload taking `Composed` selectors (the existing `synced`/`own`). A bare action selects every
+  class, an applied one exactly that class. One assumption is either a machine's or one
+  composition's; a machine may not assume composed fairness.
+- Placement: progress claims sit in a composition's `properties` object (layout lint), and their
+  IR roots are named explicitly until fn-160 collects them.
+- Temporal example: `system/DispatchProgress.scala`, bounded by restriction (members restricted to
+  dispatch and serve), not by fairness. A new file, to stay clear of the activity lane's files;
+  only the exports list in `Standalone.scala` changed.
+- Verification without regenerating model/ir: lift to scratch and point `UMPIRE_MODEL_IR` at it.
+
 ## Quick commands
 
 ```bash

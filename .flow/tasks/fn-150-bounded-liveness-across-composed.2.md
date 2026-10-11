@@ -39,9 +39,16 @@ go test -tags test_dep ./tools/umpire/ir ./tools/umpire/check ./tools/umpire/int
 - [ ] Machine fairness and generated descriptor/Scala consumers retain their existing behavior; no stronger scheduling guarantee is introduced.
 
 ## Done summary
-TBD
+Go side integrated earlier (c196492378, bd629cbbed, merge 15cf0d9c64/bd4511d8b1): `ComposedActionRef`
+on `Assumption.fair_refs`, owner-aware admission and binding through the composition's own fairness
+mapper. Scala closure: the ScalaPB IR classes regenerated from the schema in this tree carry
+`ComposedActionRef` (`make model/build/model-scala.jar`, which runs the gate's `--generate-ir`), the
+framework, lifter and Models compile against them, and the lifter now emits `fairRefs`
+(task .3), which Go admits and binds (TestLiftedComposedProgressResolvesScopedFairnessAndCountsUnrelatedSteps:
+sync, sync class, member action, member class on repeated members of one machine). Remaining:
+full gates/review at Batch 5b.
 
 ## Evidence
-- Commits:
-- Tests:
+- Commits: c196492378, bd629cbbed, 15cf0d9c64, bd4511d8b1 (integrated); f7fcb54a67 (Scala consumer)
+- Tests: `go test ./tools/umpire/internal/engine` PASS (101 top-level); focused ir/check (`Progress|Composed|Admission|Fairness|Fair|Lifted|Replay|Schema`) 65 PASS, failures only stale model/ir reads and the pre-existing Duration hints golden (`.flow/tmp/fn150/go-focused.log`)
 - PRs:
