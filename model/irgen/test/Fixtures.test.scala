@@ -714,6 +714,228 @@ class ActivityHeartbeatFixtures extends munit.FunSuite:
     assertEquals(heartbeat.head.path("eventuallyWithin").path("interval").asText(), "0.250s")
     assertEquals(heartbeat.head.path("eventuallyWithin").path("atMost").asText(), "2s")
 
+class ExpectationFixtures extends munit.FunSuite:
+  override val munitTimeout: Duration = 5.minutes
+  private val tools = Tools.here
+  private val build = tools.directory.resolve("model/build")
+  private val stored = "model/irgen/testdata/expectations/"
+  private lazy val scratch =
+    Files.createTempDirectory(
+      Files.createDirectories(build.resolve("history")),
+      "expectation-lifter."
+    )
+  private lazy val fixtureJar: Path =
+    val sources = Files.createDirectories(scratch.resolve("sources"))
+    val stream = Files.newDirectoryStream(tools.directory.resolve(stored), "*.scala")
+    try
+      for file <- stream.asScala do
+        Files.writeString(
+          sources.resolve(file.getFileName),
+          Files
+            .readString(file)
+            .replace("../../../build/model-scala.jar", build.resolve("model-scala.jar").toString)
+            .replace("../../../build/api-scalapb.jar", build.resolve("api-scalapb.jar").toString)
+        )
+    finally stream.close()
+    Files.writeString(
+      sources.resolve("Realizations.scala"),
+      Files.readString(tools.directory.resolve("model/irgen/testdata/lifts/Realizations.scala"))
+    ): Unit
+    val jar = scratch.resolve("expectations.jar")
+    tools
+      .scalaCli(
+        Seq(
+          "--power",
+          "package",
+          "--server=false",
+          "--library",
+          sources.toString,
+          "-f",
+          "-o",
+          jar.toString
+        )
+      )
+      .orFail(): Unit
+    jar
+
+  private def root(name: String) = "fixture.expectations.Expectations$package$." + name
+  private def lift(name: String, roots: String*): Ran = InProcess.lift(
+    tools.directory,
+    Seq(
+      s"$fixtureJar=$stored,${build.resolve("model-scala.jar")}=model/",
+      build.resolve("model-scala.classpath").toString,
+      scratch.resolve(s"$name.json").toString
+    ) ++ roots
+  )
+  private def model(name: String, roots: String*) =
+    val result = lift(name, roots*)
+    assertEquals(result.exit, 0, result.output)
+    new com.fasterxml.jackson.databind.ObjectMapper()
+      .readTree(Files.readString(scratch.resolve(s"$name.json")))
+  private def query(name: String) = model(name, root(name)).path("queries").get(0)
+  private def authoredLine(needle: String, after: String) =
+    val lines = Files.readAllLines(tools.directory.resolve(stored + "Expectations.scala")).asScala
+    val start = lines.indexWhere(_.contains(needle))
+    assert(start >= 0, needle)
+    val offset = lines.drop(start).indexWhere(_.contains(after))
+    assert(offset >= 0, after)
+    start + offset + 1
+
+  test("expectation live and total retain triple and witness metadata in either order"):
+    val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
+    val expectedLimits = mapper.readTree("""{"name":"one","steps":1,"actions":1,"search":32}""")
+    val expectedSatisfied = mapper.readTree("""{
+      "conformance":"CONFORMANCE_CONFORMANT", "property":"OUTCOME_SATISFIED",
+      "contract":"OUTCOME_SATISFIED", "disposition":"DISPOSITION_COMPLETED",
+      "cleanup":"CLEANUP_SUCCEEDED"
+    }""")
+    val triples = model("triples", Seq("modelOnly", "liveThenTotal", "totalThenLive").map(root)*)
+      .path("queries")
+      .elements()
+      .asScala
+      .toSeq
+    assertEquals(
+      triples.map(_.path("name").asText()).toSet,
+      Set("modelOnly", "liveThenTotal", "totalThenLive")
+    )
+    assertEquals(
+      triples.filter(_.has("expectedRun")).map(_.path("name").asText()).toSet,
+      Set("liveThenTotal", "totalThenLive")
+    )
+    for q <- triples do
+      assertEquals(q.path("form").asText(), "FORM_FIND")
+      assertEquals(q.path("total").asText(), "2")
+      assertEquals(q.path("property").path("name").asText(), "closed")
+      assertEquals(q.path("scenario").path("name").asText(), "once")
+      assertEquals(q.path("limits"), expectedLimits)
+      if q.has("expectedRun") then assertEquals(q.path("expectedRun"), expectedSatisfied)
+    val first = query("witnessLiveThenTotal")
+    val second = query("witnessTotalThenLive")
+    for q <- Seq(first, second) do
+      assertEquals(q.path("form").asText(), "FORM_FIND")
+      assertEquals(q.path("total").asText(), "2")
+      assertEquals(q.path("limits"), expectedLimits)
+      assertEquals(q.path("expectedRun"), expectedSatisfied)
+      for kind <- Seq("property", "scenario") do
+        assertEquals(q.path(kind).path("name").asText(), q.path("name").asText())
+        assertEquals(q.path(kind).path("machine").asText(), "subject")
+    assertEquals(first.path("expectedRun"), second.path("expectedRun"))
+    assertEquals(first.path("limits"), second.path("limits"))
+    assertEquals(
+      first.path("expectedRun"),
+      triples.find(_.has("expectedRun")).get.path("expectedRun")
+    )
+
+  test("expectation source explanations emit identical complete expectation IR"):
+    val first = query("first")
+    val second = query("second")
+    assertEquals(first.path("name").asText(), "explained")
+    assertEquals(second.path("name"), first.path("name"))
+    assert(first.has("expectedRun"))
+    assertEquals(first.path("expectedRun"), second.path("expectedRun"))
+    val expected = first.path("expectedRun")
+    assertEquals(expected.path("monitors").size(), 1)
+    assertEquals(expected.path("monitors").get(0).path("reason").asText(), "REASON_NEVER_EVALUATED")
+    assert(!expected.toString.contains("because"))
+    assert(!expected.toString.contains("the monitor"))
+    val complete = query("completeFirst")
+    val twin = query("completeSecond")
+    assertEquals(complete.path("name"), twin.path("name"))
+    assertEquals(complete.has("expectedRun"), twin.has("expectedRun"))
+    assertEquals(complete.path("expectedRun"), twin.path("expectedRun"))
+    val expectedComplete = new com.fasterxml.jackson.databind.ObjectMapper().readTree("""{
+      "conformance": "CONFORMANCE_INCONCLUSIVE",
+      "property": "OUTCOME_INCONCLUSIVE",
+      "contract": "OUTCOME_VIOLATED",
+      "disposition": "DISPOSITION_STOPPED_BY_MONITOR",
+      "cleanup": "CLEANUP_FAILED",
+      "reason": "REASON_NEVER_EVALUATED",
+      "conformanceReason": "REASON_NO_EVIDENCE",
+      "monitors": [{"name":"watched", "outcome":"OUTCOME_INCONCLUSIVE",
+        "reason":"REASON_NEVER_EVALUATED"}]
+    }""")
+    assertEquals(complete.path("expectedRun"), expectedComplete)
+    assert(!complete.path("expectedRun").toString.contains("because"))
+
+  test("expectation existing monitor declarations lift by value and name alike"):
+    val queries = model(
+      "existingMonitors",
+      "fixture.realizations.Realizations$package$.heldByValue",
+      "fixture.realizations.Realizations$package$.heldByName"
+    ).path("queries")
+      .elements()
+      .asScala
+      .toSeq
+    assertEquals(queries.size, 2)
+    val expectations = queries.map(_.path("expectedRun"))
+    assertEquals(expectations.head, expectations.last)
+    assertEquals(
+      expectations.head
+        .path("monitors")
+        .elements()
+        .asScala
+        .map(_.path("name").asText())
+        .toList,
+      List("opensOnce", "staysOpen")
+    )
+
+  test("expectation missing blank and whitespace explanations refuse with the authored Query"):
+    val results = Seq(
+      "missing",
+      "empty",
+      "whitespace",
+      "unicode",
+      "contractMissing",
+      "witnessMissing",
+      "monitorMissing",
+      "monitorEmpty",
+      "monitorWhitespace",
+      "monitorUnicode"
+    ).map(name => name -> lift(name, root(name)))
+    assert(
+      results.forall(_._2.exit != 0),
+      results.map((name, result) => s"$name exited ${result.exit}").mkString(", ")
+    )
+    for (name, result) <- results do
+      assert(result.output.contains(s"$name's live expectation"), result.output)
+      assert(result.output.contains("says no reason why"), result.output)
+      val line = name match
+        case "monitorMissing" => authoredLine("val monitorMissing", "MonitorExpectation(")
+        case "monitorEmpty" | "monitorWhitespace" | "monitorUnicode" =>
+          authoredLine("def watched", "MonitorExpectation(")
+        case "missing" | "contractMissing" | "witnessMissing" =>
+          authoredLine(s"val $name =", "RunExpectation(")
+        case _ => authoredLine(s"val $name =", ".live(")
+      assert(result.output.contains(s"lift: ${stored}Expectations.scala:$line:"), result.output)
+      assert(!Files.exists(scratch.resolve(s"$name.json")))
+
+  test("expectation capability helpers require reasons and preserve live metadata"):
+    val results =
+      Seq("MissingCapability", "EmptyCapability", "WhitespaceCapability", "UnicodeCapability")
+        .map(name => name -> lift(name, s"fixture.expectations.$name$$.capabilities"))
+    assert(
+      results.forall(_._2.exit != 0),
+      results.map((name, result) => s"$name exited ${result.exit}").mkString(", ")
+    )
+    for (name, result) <- results do
+      val owner = s"${name.head.toLower}${name.tail}"
+      assert(result.output.contains(s"$owner.closes's live expectation"), result.output)
+      assert(result.output.contains("says no reason why"), result.output)
+      val line = if name == "MissingCapability" then
+        authoredLine(s"object $name", "RunExpectation(")
+      else authoredLine(s"object $name", "inconclusive(")
+      assert(result.output.contains(s"lift: ${stored}Expectations.scala:$line:"), result.output)
+    val helper = query("helperValid")
+    val capability = model("capability", "fixture.expectations.ValidCapability$.capabilities")
+      .path("queries")
+      .elements()
+      .asScala
+      .find(_.has("expectedRun"))
+      .get
+    assertEquals(helper.path("expectedRun"), capability.path("expectedRun"))
+    assertEquals(capability.path("form").asText(), "FORM_FIND")
+    assertEquals(capability.path("name").asText(), "validCapability.closes")
+
 class Fixtures extends munit.FunSuite:
   // A test builds a fixture with scala-cli and lifts it in a JVM of its own.
   override val munitTimeout: Duration = 20.minutes
