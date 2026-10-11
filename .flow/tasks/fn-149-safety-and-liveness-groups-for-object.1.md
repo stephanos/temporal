@@ -7,11 +7,12 @@ satisfies: [R1, R2]
 Discover grouped claims and prove registration equivalence. Advances R1, R2 of the parent spec.
 
 **Size:** M
-**Files:** `model/framework/IrFile.scala`, `model/framework/Rules.test.scala`, `model/framework/IrFile.test.scala`, `model/irgen/Lifting.scala`, `model/irgen/Claims.scala`, `model/irgen/test/Fixtures.test.scala`, `model/irgen/test/PropertyGroups.test.scala`, `model/irgen/testdata/propertyGroups/**`
-**Touches:** [model/framework/IrFile.scala, model/framework/Rules.test.scala, model/framework/IrFile.test.scala, model/irgen/Lifting.scala, model/irgen/Claims.scala, model/irgen/test/Fixtures.test.scala, model/irgen/test/PropertyGroups.test.scala, model/irgen/testdata/propertyGroups/**]
+**Files:** `model/framework/IrFile.scala`, `model/framework/Rules.test.scala`, `model/framework/IrFile.test.scala`, `model/irgen/Lifting.scala`, `model/irgen/Claims.scala`, `model/irgen/Order.scala`, `model/irgen/test/Fixtures.test.scala`, `model/irgen/test/PropertyGroups.test.scala`, `model/irgen/testdata/propertyGroups/**`
+**Touches:** [model/framework/IrFile.scala, model/framework/Rules.test.scala, model/framework/IrFile.test.scala, model/irgen/Lifting.scala, model/irgen/Claims.scala, model/irgen/Order.scala, model/irgen/test/Fixtures.test.scala, model/irgen/test/PropertyGroups.test.scala, model/irgen/testdata/propertyGroups/**]
 
 ### Approach
 - Make designated properties.safety and properties.liveness groups discoverable for Machine and Composition owners through the actual framework IrFile and TASTy discovery paths. Fn-141 runs later; use no hypothetical replacement exporter.
+- Admit designated nested groups through the existing Order section-layout gate, with only the structural change required for this discovery proof. Monitor aliases must resolve to an existing monitor definition/attachment in its original home; do not admit new definitions in a property group. Wrong-kind and bound enforcement remain task .2, and helper/nested-object refusals remain intact.
 - Keep traversal bounded to declared sections, not arbitrary nested objects. Cover direct vals, imported aliases, shared factories/bundles and progress declarations that no Query references.
 - Align IrFile construction with lifted discovery, preserving lazy initialization behavior and registering each declaration once. Do not move monitor definitions or attach references as new monitors.
 - Keep existing flat declarations temporarily accepted until task .6 migrates their owners and enables the final layout rule.
@@ -64,6 +65,13 @@ terminal success. The new PropertyGroupsFixtures suite selected zero tests
 before its creation: that run is inconclusive, never passing acceptance evidence.
 Test-first nonzero independent grouping coverage is required before source changes.
 This activation and baseline record claims no implementation acceptance.
+
+At 12:40 UTC, actual focused fixture lifting exposed the missing write-surface
+requirement: Order's section layout rejects designated groups and monitor references.
+The conductor added `model/irgen/Order.scala` to Files/Touches for narrowly admitting
+these structures. Existing layout gates remain enabled; setup/layout-red runs are
+inconclusive, not intended discovery regression evidence. Full task acceptance and
+the attempt deadline are unchanged.
 
 ## Acceptance
 - [ ] A focused fixture discovers every nested claim exactly once, including Progress without a Query consumer; expected counts come from an independent declared baseline and no zero-selected proof passes.
