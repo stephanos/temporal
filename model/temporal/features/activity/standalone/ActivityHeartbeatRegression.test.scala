@@ -14,11 +14,6 @@ import temporal.features.activity.standalone.{
 }
 import temporal.features.activity.standalone.system.ActivitySystem
 import temporal.features.activity.standalone.system.{
-  HeartbeatCompletion,
-  HeartbeatExhaustion,
-  HeartbeatRetry
-}
-import temporal.features.activity.standalone.system.{
   ExhaustAfterHeartbeat,
   HeartbeatThenCompletion,
   RetryAfterHeartbeat
@@ -240,9 +235,9 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
 
   test("heartbeat witnesses are pinned ordinary finds with strict satisfied expectations") {
     for (query, length) <- List(
-        HeartbeatCompletion.queries.heartbeatThenCompletes -> 4,
-        HeartbeatRetry.queries.heartbeatTimeoutRetriesThenCompletes -> 7,
-        HeartbeatExhaustion.queries.heartbeatTimeoutExhausts -> 4
+        ActivitySystem.heartbeat.queries.heartbeatThenCompletes -> 4,
+        ActivitySystem.heartbeat.queries.heartbeatTimeoutRetriesThenCompletes -> 7,
+        ActivitySystem.heartbeat.queries.heartbeatTimeoutExhausts -> 4
       )
     do
       assertEquals(query.form, QueryForm.find)
@@ -255,7 +250,7 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
   test(
     "heartbeat exhaustion claim covers exhausted policies without contradicting eligible retries"
   ) {
-    val declared = HeartbeatExhaustion.properties.heartbeatExhausts.decl
+    val declared = ActivitySystem.heartbeat.properties.heartbeatExhausts.decl
     assert(declared.holds2.isEmpty, "the pinned FIND must retain a same-step claim")
     val holds = declared.holds2 match
       case Some(predicate) =>

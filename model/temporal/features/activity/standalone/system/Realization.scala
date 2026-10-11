@@ -1,5 +1,6 @@
-// How a Case runs the standalone activity's System machines: StandaloneActivity, HeldDispatch,
-// LostStartAnswer, TimeoutRetry and the focused lifecycle subjects.
+// How a Case runs the standalone activity's System machines: StandaloneActivity, HeldDispatch and
+// LostStartAnswer. Each realization names the find Queries it runs (fn-162); a find Query none
+// names is model-only.
 //
 // For StandaloneActivity a controller starts one activity with StartActivityExecution, controls it,
 // and reads its status back with DescribeActivityExecution. The Case's own worker runs the attempts,
@@ -10,8 +11,8 @@
 //
 // HeldDispatch and LostStartAnswer are races at admission: a controller holds the activity's
 // dispatch and then releases it, or loses the answer to it, and reads what admission committed.
-// TimeoutRetry runs the same rules with occurrence evidence for a timed-out first attempt instead
-// of a failed one; the worker withholds its first answer until the armed deadline expires.
+// RetryAfterTimeout runs the same rules with occurrence evidence for a timed-out first attempt
+// instead of a failed one; the worker withholds its first answer until the armed deadline expires.
 //
 // The roles, bindings, window and run records are the kit's (temporal/realize). Go lowers a Query's
 // witness through these declarations (tools/umpire/lower).
@@ -356,7 +357,23 @@ private val scheduledAgain = "statusScheduledAgain"
 // the retried attempt is dispatched (chasm/lib/activity/attempt.go:72-82, statemachine.go:393-420),
 // and a timeout class fires at the deadline its start sets.
 object Standalone
-    extends Realizes(ActivitySystem, observations = Vector(correlated, publicAttemptCount)):
+    extends Realizes(
+      ActivitySystem,
+      observations = Vector(correlated, publicAttemptCount),
+      runs = Seq(
+        ActivitySystem.queries,
+        ActivitySystem.capabilities,
+        ActivitySystem.completion.queries.completion,
+        ActivitySystem.retry.queries.nonRetryableFailure,
+        ActivitySystem.retry.queries.retry,
+        ActivitySystem.cancellation.queries.cancel,
+        ActivitySystem.cancellation.queries.cancelRequest,
+        ActivitySystem.pausing.queries.pauseResume,
+        ActivitySystem.dispatching.queries.startDelayedCompletion,
+        ActivitySystem.timeouts.queries.scheduleToStartTimeout,
+        ActivitySystem.timeouts.queries.startToCloseTimeout
+      )
+    ):
 
   // The one order every functional Query's path makes its calls in. A pause is read back only of an
   // activity no worker has taken: a running worker may be delivered the first attempt, and answer
@@ -464,22 +481,17 @@ object Standalone
 
   object controls extends Controls(unstartedDispatch)
 
-object CompletionExecution extends DerivesFrom(Standalone, Completion)
-
-object RetryFailuresExecution extends DerivesFrom(Standalone, RetryFailures)
-
-object CancellationExecution extends DerivesFrom(Standalone, Cancellation)
-
-object PausingExecution extends DerivesFrom(Standalone, Pausing)
-
-object DispatchExecution extends DerivesFrom(Standalone, DispatchEligibility)
-
-object TimeoutsExecution extends DerivesFrom(Standalone, Timeouts)
-
 // Uses the unchanged System rows, but only the timeout path's second-delivery evidence. The first
 // attempt withholds its answer until its armed deadline; the second completes or exhausts retries.
 object RetryAfterTimeout
-    extends Realizes(TimeoutRetry, observations = Vector(correlated, publicAttemptCount)):
+    extends Realizes(
+      ActivitySystem,
+      observations = Vector(correlated, publicAttemptCount),
+      runs = Seq(
+        ActivitySystem.timeouts.queries.retryAfterTimeout,
+        ActivitySystem.timeouts.queries.retryExhaustion
+      )
+    ):
 
   object controller
       extends Controller(
@@ -527,8 +539,9 @@ object RetryAfterTimeout
 
 object HeartbeatThenCompletion
     extends Realizes(
-      HeartbeatCompletion,
-      observations = Vector(correlated, publicAttemptCount, rawHeartbeatDetails)
+      ActivitySystem,
+      observations = Vector(correlated, publicAttemptCount, rawHeartbeatDetails),
+      runs = Seq(ActivitySystem.heartbeat.queries.heartbeatThenCompletes)
     ):
 
   object controller
@@ -574,8 +587,9 @@ object HeartbeatThenCompletion
 
 object RetryAfterHeartbeat
     extends Realizes(
-      HeartbeatRetry,
-      observations = Vector(correlated, publicAttemptCount, rawHeartbeatDetails)
+      ActivitySystem,
+      observations = Vector(correlated, publicAttemptCount, rawHeartbeatDetails),
+      runs = Seq(ActivitySystem.heartbeat.queries.heartbeatTimeoutRetriesThenCompletes)
     ):
 
   object controller
@@ -630,8 +644,9 @@ object RetryAfterHeartbeat
 
 object ExhaustAfterHeartbeat
     extends Realizes(
-      HeartbeatExhaustion,
-      observations = Vector(correlated, publicAttemptCount, rawHeartbeatDetails)
+      ActivitySystem,
+      observations = Vector(correlated, publicAttemptCount, rawHeartbeatDetails),
+      runs = Seq(ActivitySystem.heartbeat.queries.heartbeatTimeoutExhausts)
     ):
 
   object controller
@@ -846,9 +861,12 @@ private val canceledExternalSettlement = ActivityExternalSettlement(
 
 object ScheduledCompletionByID
     extends Realizes(
-      ByIDCompletion,
+      ActivitySystem,
       learned = Vector(activityExecutionRun),
-      observations = Vector(correlated, publicAttemptCount)
+      observations = Vector(correlated, publicAttemptCount),
+      runs = Seq(
+        ActivitySystem.completion.queries.scheduledCompletedByID
+      )
     ):
 
   object controller
@@ -869,9 +887,12 @@ object ScheduledCompletionByID
 
 object HeldFailureByID
     extends Realizes(
-      ByIDFailure,
+      ActivitySystem,
       learned = Vector(activityExecutionRun),
-      observations = Vector(correlated, publicAttemptCount)
+      observations = Vector(correlated, publicAttemptCount),
+      runs = Seq(
+        ActivitySystem.retry.queries.heldFailedByID
+      )
     ):
 
   object controller
@@ -903,9 +924,13 @@ object HeldFailureByID
 
 object HeldCancellationByID
     extends Realizes(
-      ByIDCancellation,
+      ActivitySystem,
       learned = Vector(activityExecutionRun),
-      observations = Vector(correlated, publicAttemptCount)
+      observations = Vector(correlated, publicAttemptCount),
+      runs = Seq(
+        ActivitySystem.cancellation.queries.heldCanceledByID,
+        ActivitySystem.cancellation.queries.cancelIsRequested
+      )
     ):
 
   object controller
@@ -999,9 +1024,12 @@ private val deferredResetSettlement = ActivityResetSettlement(
 
 object ResetAfterHeartbeat
     extends Realizes(
-      DeferredReset,
+      ActivitySystem,
       learned = Vector(activityExecutionRun),
-      observations = Vector(correlated, publicAttemptCount)
+      observations = Vector(correlated, publicAttemptCount),
+      runs = Seq(
+        ActivitySystem.reset.queries.deferredResetCompletes
+      )
     ):
 
   object controller
@@ -1121,7 +1149,11 @@ private def committed(
 // scheduled, so every Case carries the start; its one deadline, a start-to-close no Case lives to
 // see, competes with no delivery.
 object HeldDelivery
-    extends Realizes(HeldDispatch, observations = Vector(correlated, publicAttemptCount)):
+    extends Realizes(
+      HeldDispatch,
+      observations = Vector(correlated, publicAttemptCount),
+      runs = Seq(HeldDispatch.queries)
+    ):
 
   object controller
       extends Controller(
@@ -1154,7 +1186,11 @@ private val loseAdmissionResponse =
 
 // One lost admission answer, with its durable decision observed before the response is replaced.
 object LostAdmissionResponse
-    extends Realizes(LostStartAnswer, observations = Vector(correlated, publicAttemptCount)):
+    extends Realizes(
+      LostStartAnswer,
+      observations = Vector(correlated, publicAttemptCount),
+      runs = Seq(LostStartAnswer.queries)
+    ):
 
   object controller
       extends Controller(

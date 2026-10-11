@@ -15,10 +15,6 @@ import temporal.features.activity.standalone.{
 }
 import temporal.features.activity.standalone.system.{
   ActivitySystem,
-  DeferredReset,
-  ResetKeepingPause,
-  ResetSettlement,
-  RetryFailures
 }
 import framework.outcomes.{Outcome, Rejection}
 
@@ -333,9 +329,9 @@ class ActivityResetRegression extends munit.FunSuite:
   }
 
   test("the ordinary fatal witness is unchanged and claims no reset coverage") {
-    val query = RetryFailures.queries.nonRetryableFailure
+    val query = ActivitySystem.retry.queries.nonRetryableFailure
     assertEquals(query.form, QueryForm.find)
-    assertEquals(query.property, RetryFailures.properties.nonRetryableFails.decl)
+    assertEquals(query.property, ActivitySystem.retry.properties.nonRetryableFails.decl)
     assertEquals(
       query.scenario.actions,
       Vector[ClassRef](
@@ -348,21 +344,21 @@ class ActivityResetRegression extends munit.FunSuite:
     val held =
       take(take(ActivitySystem.init, client.start()).head.state, activityWorker.poll()).head.state
     val failed = take(held, activityWorker.respondFailed(Failure.fatal)).head
-    assert(holds(RetryFailures.properties.nonRetryableFails, held, failed))
+    assert(holds(ActivitySystem.retry.properties.nonRetryableFails, held, failed))
   }
 
   test("reset witnesses keep Model-only checks apart from the realized deferred Case") {
     for query <- List(
-        ResetSettlement.queries.resetFatality,
-        ResetSettlement.queries.resetExhaustion,
-        ResetSettlement.queries.resetTimeout,
-        ResetSettlement.queries.resetKeptPause,
-        ResetSettlement.queries.resetCompletion,
-        ResetSettlement.queries.resetScheduleToClose,
-        ResetSettlement.queries.resetCancellation,
-        ResetSettlement.queries.resetOutranksPause,
-        ResetSettlement.queries.resetRepeated,
-        ResetKeepingPause.queries.keepPausedReset
+        ActivitySystem.reset.queries.resetFatality,
+        ActivitySystem.reset.queries.resetExhaustion,
+        ActivitySystem.reset.queries.resetTimeout,
+        ActivitySystem.reset.queries.resetKeptPause,
+        ActivitySystem.reset.queries.resetCompletion,
+        ActivitySystem.reset.queries.resetScheduleToClose,
+        ActivitySystem.reset.queries.resetCancellation,
+        ActivitySystem.reset.queries.resetOutranksPause,
+        ActivitySystem.reset.queries.resetRepeated,
+        ActivitySystem.reset.queries.keepPausedReset
       )
     do
       assertEquals(query.form, QueryForm.find)
@@ -376,7 +372,7 @@ class ActivityResetRegression extends munit.FunSuite:
       }
       assert(path.size == query.scenario.actions.size + 1) // scalafix:ok DisableSyntax.==
     assertEquals(
-      DeferredReset.queries.deferredResetCompletes.expectedRun,
+      ActivitySystem.reset.queries.deferredResetCompletes.expectedRun,
       Some(temporal.realize.satisfied)
     )
   }

@@ -13,9 +13,6 @@ import temporal.features.activity.standalone.{
 }
 import temporal.features.activity.standalone.system.{
   ActivitySystem,
-  ByIDCancellation,
-  ByIDCompletion,
-  ByIDFailure
 }
 import framework.outcomes.{Outcome, Rejection}
 
@@ -127,14 +124,14 @@ class ActivityByIDRegression extends munit.FunSuite:
   }
 
   test("the preserved cancel-request claim uses its complete held completion client witness") {
-    val query = ByIDCancellation.queries.cancelIsRequested
+    val query = ActivitySystem.cancellation.queries.cancelIsRequested
     assertEquals(query.name, "activitySystem.cancelIsRequested")
     assertEquals(query.property.name, "activitySystem.cancelIsRequested")
-    assertEquals(query.property.machine, ByIDCancellation)
+    assertEquals(query.property.machine, ActivitySystem)
     assert(query.property.when.contains(client.requestCancel))
-    assertEquals(query.scenario.machine, ByIDCancellation)
+    assertEquals(query.scenario.machine, ActivitySystem)
     assertEquals(query.form, QueryForm.find)
-    assertEquals(query.scenario.actions, ByIDCancellation.queries.heldCanceledByID.scenario.actions)
+    assertEquals(query.scenario.actions, ActivitySystem.cancellation.queries.heldCanceledByID.scenario.actions)
     assertEquals(query.total, Some(22464L))
     assertEquals(
       query.expectedRun,
@@ -163,12 +160,12 @@ class ActivityByIDRegression extends munit.FunSuite:
   ) {
     val witnesses = List(
       (
-        ByIDCompletion.queries.scheduledCompletedByID,
+        ActivitySystem.completion.queries.scheduledCompletedByID,
         Vector[ClassRef](client.start(), completionClient.respondCompletedByID),
         system.Phase.completed
       ),
       (
-        ByIDFailure.queries.heldFailedByID,
+        ActivitySystem.retry.queries.heldFailedByID,
         Vector[ClassRef](
           client.start(),
           activityWorker.poll,
@@ -177,7 +174,7 @@ class ActivityByIDRegression extends munit.FunSuite:
         system.Phase.failed
       ),
       (
-        ByIDCancellation.queries.heldCanceledByID,
+        ActivitySystem.cancellation.queries.heldCanceledByID,
         Vector[ClassRef](
           client.start(),
           activityWorker.poll,
