@@ -36,7 +36,8 @@ full gate, review and live run.
 
 ## Open: Scala DSL work
 
-**Execution is active.** The last completed Scala task is fn-149.6; resume at fn-149.7.
+**Execution is paused at the owner's request.** The last completed Scala task is fn-149.7; resume
+at fn-164.2. No worker is running and no later task has been admitted.
 
 One worker on branch `w-1d` takes the work below in this order. Only `model/` is edited and validated:
 Scala compile per step; the framework, Model, lifter and gate Scala tests per spec; and the step-table
@@ -239,14 +240,14 @@ shared gate/review/live proofs at fn-123.8; source results substitute for none o
 | Name | Status | What |
 | --- | --- | --- |
 | fn-149.3 | ⏸️ deferred (Go) | Reporting checkpoint integrated; focused classification, distinct bounds and safety/progress coexistence checks pass; full gates/review held |
-| fn-149.7 | ⬜ todo | Scala author docs, executable layout and final committed grouping source seal; releases fn-164 |
 | fn-149.4 | ⏸️ deferred (Go) | Original complete consumer behavior, Query/progress receipt, Case and expected/live-replay assessment proof; consumes .6 |
 | fn-149.5 | ⏸️ deferred | Consumer reporting docs and original integrated regeneration/gates/review/live closure; consumes .4/.7 at fn-123.8 |
 
-Task .6 is complete on `w-1d`: all 20 authored safety claims and 12 authored liveness claims use the
-final groups, exact native and lift comparisons pass with independent mutation controls, and the
-steps-only equivalence covers 46 nonempty tables. Task .7 is next. Deferred .4 joins .1/.2/.3/.6;
-.5 joins .3/.4/.7.
+Scala tasks .6 and .7 are complete on `w-1d`: all 20 authored safety claims and 12 authored liveness
+claims use the final groups; author docs and the executable lamp layout cover safety, bounded progress,
+assumptions and witness/progress distinctions; exact native/lift/source comparisons and independent
+mutation controls pass; and steps-only equivalence covers 46 nonempty tables. The committed source
+seal releases fn-164.2 when execution resumes. Deferred .4 joins .1/.2/.3/.6; .5 joins .3/.4/.7.
 Heavy commands remain serialized. Composition progress belongs to fn-150, not this grouping change.
 
 ### fn-164: Expect blocks for Properties
