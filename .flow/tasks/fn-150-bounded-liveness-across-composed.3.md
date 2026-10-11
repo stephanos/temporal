@@ -53,5 +53,5 @@ landed: claims stay ungrouped (Progress in `properties`, as the layout lint requ
 
 ## Evidence
 - Commits: f7fcb54a67
-- Tests: `scala-cli test model/irgen --test-only umpire.irgen.Fixtures` (UMPIRE_LIFTER_UPDATE run: all pass but the crossed positions, fixed after; verification run: see `.flow/tmp/fn150/fixtures.log`); framework tests 60 PASS (`.flow/tmp/fn150/framework-tests.log`); Go TestLiftedModelsAreAdmitted/composedProgress and TestLiftedComposedProgressResolvesScopedFairnessAndCountsUnrelatedSteps PASS
+- Tests: `scala-cli test model/irgen --test-only umpire.irgen.Fixtures` (UMPIRE_LIFTER_UPDATE run: all pass but the crossed positions, fixed after; verification run: 111 PASS, 0 FAIL, `.flow/tmp/fn150/fixtures.log`); framework tests 60 PASS (`.flow/tmp/fn150/framework-tests.log`); Go TestLiftedModelsAreAdmitted/composedProgress and TestLiftedComposedProgressResolvesScopedFairnessAndCountsUnrelatedSteps PASS
 - PRs:
