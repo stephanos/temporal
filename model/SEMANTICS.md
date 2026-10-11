@@ -1,485 +1,518 @@
-# Semantics of the Umpire IR
+# Modelling with the Umpire DSL
 
-The IR's meaning is defined here, not by the IR generator that writes it or the Go interpreter that reads
-it. The nine-file schema closure rooted at `proto/internal/temporal/server/api/umpire/v1/ir.proto`
-defines the artifact shape; [schema ownership](README.md#schema-ownership) lists its declaration owners.
-`tools/umpire/interp` and `tools/umpire/check` evaluate these rules, and their goldens hold what they derive.
+This is the design guide to the DSL in `model/framework`: how a Model is built, one concept at a
+time, in the order you write it. Each step says what the concept *means* (what the Go reader does
+with it), how it is *written*, and what is *refused* and by whom. The README covers the pipeline,
+the file layout and the commands; this guide covers the language.
 
-## Versions
+A Model is ordinary Scala 3. The compiler checks its types, the framework checks its rules as they
+are constructed, the IR generator (`model/irgen`) reads the compiled trees and refuses what the IR
+cannot hold, and the Go reader (`tools/umpire`) derives every table and answers every question. The
+IR carries no Scala: everything a reader knows is in `model/ir/*.json`.
 
-`Model.version` is the IR's major version. This document defines version 0, which every Model written
-before the field existed is in. A reader rejects a Model of a version it does not know, and a Model
-that uses a declaration or a field it does not implement, rather than read the Model without it.
+The guide builds one small feature throughout, a **job** that a client submits, a worker runs and a
+deadline can time out. It is illustrative, not a checked-in Model; the Nexus and activity Models in
+`model/temporal` are the real thing and are cited where a form matters.
 
-Moving a declaration between schema files changes its file descriptor and generated file-level
-symbols, while its message full name, field numbers, oneof selection and serialized payload keep
-their meaning. The local `Empty` marker has been replaced by `google.protobuf.Empty`. A present
-marker arm still selects its containing oneof, including for a zero-length payload. An absent arm
-selects nothing. The marker supplies no value semantics of its own and changes no Model version.
+Contents:
 
-## Values
+1. [Types](#1-types): finite domains, catalogs, counters
+2. [Phases and roles](#2-phases-and-roles): the lifecycle vocabulary
+3. [The signature](#3-the-signature): entities, actors, actions, inputs, timers
+4. [The machine](#4-the-machine): the object, its header and its sections
+5. [Effects](#5-effects): what a step is and how it is written
+6. [Rules](#6-rules): when each action fires
+7. [The table](#7-the-table): what the reader derives, and what lint reads off it
+8. [Properties](#8-properties): the promises
+9. [Scenarios and Queries](#9-scenarios-and-queries): the bounded questions
+10. [Monitors and assumptions](#10-monitors-and-assumptions)
+11. [Progress](#11-progress): bounded liveness
+12. [Holes](#12-holes): unknown on purpose
+13. [Refinement](#13-refinement): Product and Protocol
+14. [Derivations](#14-derivations): one thing changed
+15. [Facets](#15-facets): one machine, assembled
+16. [Capabilities](#16-capabilities): shared promises by binding
+17. [Compositions](#17-compositions): several entities, one Model
+18. [Channels](#18-channels): messages in flight
+19. [Realizations](#19-realizations): running a path against a server
+20. [What the tools answer](#20-what-the-tools-answer): results, levels, admission
+21. [Core and sugar](#21-core-and-sugar): the shape of the DSL itself
 
-A value is a Boolean, an integer, a string, an enum value `C(v1, …, vn)` of one case `C` of an enum
-type with its fields, a record value `(v1, …, vn)` of a record type, a list `[v1, …, vn]`, or an
-anonymous function. Equality is structural. The step record `framework.Step` is a built-in record with
-the fields `outcome`, `state`, `facts` (a list) and `because` (a string). The delivery
-`framework.Delivery` is a built-in record with the fields `message` and `redeliveries` (an integer): one
-message a channel holds, and how many more times than once it has been delivered.
+---
 
-An optional value is an ordinary enum: a front end declares one type per value type, with the cases
-`None` and `Some(value)` in that order. The IR generator names it `scala.Option[T]`.
+## 1. Types
 
-## Catalogs
+**Meaning.** Everything a machine ranges over is finite and enumerable. A *catalog* is the ordered
+list of a type's values; the reader builds every table by walking catalogs, so the order is part of
+the semantics:
 
-A finite type has its members in catalog order:
+- `Boolean` is `false, true`;
+- an integer range `0..n` is its integers ascending;
+- an enum is its cases in declaration order, a case with fields once per assignment of them;
+- a case class is the product of its fields in declaration order, the last field varying fastest;
+- `Option[A]` is `None`, then `Some(a)` for each `a` in order;
+- a channel's contents are a catalog of their own ([Channels](#18-channels)).
 
-- `bool` is `false, true`;
-- an integer range `low..high` is its integers in increasing order;
-- an enum is its cases in declaration order, each case once per assignment of its fields;
-- a record, and a case's fields, are the product of the fields in declaration order, with the last
-  field varying fastest;
-- `channel c` is everything channel `c` can hold ([Channels](#channels)).
+Equality is structural. Values are keyed in the IR by spelling: a case is its name, a case with
+fields `C-v1-v2`, a record `v1-v2`, a list `[v1,v2]`.
 
-## Keys
+**Writing it.** Derive `Finite` on every enum and state class; bound integers with `UpTo[N]`:
 
-`key(v)` spells a value in state, action, row and Definition keys:
+```scala
+enum Phase derives Finite:
+  case queued, running, done, timedOut
 
-- `key(true) = "true"`, `key(n)` is `n` in decimal, `key(s) = s` for a string;
-- `key(C) = "C"` for a case without fields, and `key(C(v1, …, vn)) = "C-" + key(v1) + "-" + … + key(vn)`;
-- `key((v1, …, vn)) = key(v1) + "-" + … + key(vn)` for a record;
-- `key([v1, …, vn]) = "[" + key(v1) + "," + … + key(vn) + "]"` for a list, which is how a channel's
-  contents key.
+final case class State(phase: Phase, attempts: UpTo[2]) derives Finite
 
-## Expressions
+enum Fact derives Finite:
+  case submitted, started, finished
+  case expired(which: Deadline)        // a case with a field: one fact per Deadline value
+```
 
-`E(x, σ)` is the value of expression `x` under the environment `σ`, which binds names to values.
+`UpTo[2]` has the values 0, 1, 2 and reads as an `Int`; write one with `UpTo(n)`. Older Models
+bound a plain `Int` field with a local `given Finite[Int] = Finite.upTo(n)` beside the state's
+derived `Finite`; `UpTo` replaces that.
 
-| Expression | Value |
-| --- | --- |
-| `literal v` | `v` |
-| `var n` | `σ(n)`; an unbound name is an error |
-| `field(b, f)` | field `f` of `E(b, σ)` |
-| `call(f, a1, …, an)` | `E(body_f, [p1 ↦ E(a1, σ), …, pn ↦ E(an, σ)])`, after `E(requires_f, …) = true`; a call outside the precondition is an error |
-| `construct(T, C, a1, …, an)` | `C(E(a1, σ), …)`, or the record `(E(a1, σ), …)` when `C` is empty |
-| `copy(b, f1 = x1, …)` | `E(b, σ)` with each named field replaced by `E(xi, σ)` |
-| `not a`, `-a` | Boolean negation, integer negation |
-| `a and b`, `a or b` | short-circuit: `b` is evaluated only when `a` does not decide |
-| `a = b`, `a ≠ b` | structural equality |
-| `a < b`, `≤`, `>`, `≥`, `+`, `-` | on integers |
-| `a ++ b` | list concatenation |
-| `a in b` (`OP_CONTAINS`) | whether list `E(b, σ)` has an element equal to `E(a, σ)` |
-| `if c then a else b` | `E(a, σ)` when `E(c, σ) = true`, else `E(b, σ)` |
-| `let n = v in b` | `E(b, σ[n ↦ E(v, σ)])` |
-| `list(a1, …)` | `[E(a1, σ), …]` |
-| `lambda(p1, …) b` | a function that binds its parameters over `σ` |
-| `match s { p1 if g1 => b1; … }` | `E(bi, σi)` for the first case whose pattern matches `E(s, σ)`, extending `σ` to `σi`, and whose guard holds under `σi`; a value no case matches gives `⊥`, an undeclared hole ([Holes](#holes)) |
-| `hole h` | `⊥h`: the declared hole `h` is reached |
-| `inbox send(c, q, m)` | `E(q, σ)` with the delivery `(E(m, σ), 0)` added: last for a FIFO channel `c`, at its catalog position for an unordered one ([Channels](#channels)) |
-| `inbox isEmpty(c, q)`, `isFull(c, q)` | whether `E(q, σ)` holds no delivery; whether it holds as many as `c`'s capacity |
+The build runs with `-language:strictEquality`, so comparing two values needs a `CanEqual`. Every
+`Finite` type gets one from `import framework.Finite.given`; a file that only uses it in a
+comparison keeps the import alive with `val _ = () => summon[CanEqual[Phase, Phase]]`. Comparing
+two levels' phases (`product.Phase == protocol.Phase`) does not compile, which is the point.
 
-A hole propagates: an expression that evaluates an operand to `⊥h` or `⊥` has that value itself, the
-first one in evaluation order. Short-circuit operators, conditionals and `match` evaluate only what
-they read, so a hole in a branch not taken is not reached.
+**Refused.** A state field with no finite catalog (a list, an unbounded `Int`), by the reader at
+admission; a type the compiler cannot derive `Finite` for, at compile time.
 
-Patterns: a wildcard matches anything; `bind n p` matches what `p` matches and binds `n`; a literal
-matches an equal value; `case T.C(p1, …, pn)` matches a value of case `C` whose fields match the `pi`;
-alternatives match when any does.
+## 2. Phases and roles
 
-A role test is not an IR expression. A role is a trait the cases of a phase enum mix in
-(`framework/Roles.scala`), and the IR generator lowers a test of a phase against a role `R` to the
-cases of the phase's enum that have `R`, directly or through a narrower role that extends it, listed
-in declaration order: `p.in[R]` on a phase value (or `isInstanceOf[R]`) is `p in list(C1, …, Cn)`, a
-rule case `when[R]` is that membership of the machine's `Phased` projection, and a type pattern against `R`,
-`case _: R` or `case q: R`, is the alternatives of the literals `C1 | … | Cn`. So a role test means
-exactly what the hand-written membership of those cases means, and the IR carries no role.
+**Meaning.** A *phase* is the field of the state that says where the entity is in its lifecycle. A
+*role* is what a phase says about the entity, independent of the entity: alive or over, waiting or
+held. Roles let shared Properties ([Capabilities](#16-capabilities)) and rule headings speak of
+"any closed phase" without naming the entity's cases. A role is metadata: it adds no state, and the
+IR has no role construct. Every role test lowers to membership in the listed cases that carry it.
 
-A named `states` predicate that only renames a role is omitted: rule headings use `when[R]`, and
-ends, effects and compositions use `p.in[R]` on their phase, including a nested member's phase.
-`states` still names composite predicates such as `created` (`Live` or `Closed`), single-phase or
-other non-role subsets, predicates over other state fields or steps, projections and helpers.
-A predicate required by a non-role capability field or a named-definition-only claim stays named;
-the Nexus product retains `productTerminal` for its `once` claim. Closable reads the witnessed,
-nonempty `Closed` set of its declaring object's typed `Phasing`, so the activity product, activity
-record and standalone Nexus no longer retain `terminal` for it. Pausable and Pollable likewise read
-the witnessed `Suspended` and `Held` sets and retain no `paused` or `running` aliases solely for
-their fields; the activity product's remaining `paused` predicate is a rule guard. Retiring an
-alias removes its IR Function and puts the same case-set membership at its former calls. The
-resulting content-derived identities and Case references may change, but no Query answer or Check
-verdict changes.
+The roles (`framework/Roles.scala`):
 
-## Levels
+| Role | Means | Narrower roles |
+| --- | --- | --- |
+| `Live` | exists and is not over | `Waiting` (no attempt held), `Held` (an attempt is held), `Suspended` (paused); `Retrying extends Waiting` |
+| `Closed` | is over | `Succeeded`, `Failed`, `Canceled`, `Terminated`, `TimedOut` |
 
-An expression is at one of five levels, by what it is computed from:
+A phase with no role is one where the entity does not exist yet (`unscheduled`).
 
-- a **value** is computed from constants and its arguments, none of them a state or a step record;
-- a **reading of a state** is a value computed from one state of a machine or a composition;
-- a **step** is the list of step records one action class gives from one state: what may happen
-  next ([Machines](#machines) 3);
-- a **reading of a step** is a value computed from one step record, and from the state before it;
-- a **claim over a path** says what holds of the paths a check explores.
+**Writing it.** A case takes roles in its own extends clause. A phase enum may also declare, per
+case, the *status fact* a step that enters it records:
 
-A higher level reads the lower ones: a step reads its state, a reading of a step reads the step's
-`state`, and each calls functions of values. Each place of a declaration takes one level:
+```scala
+enum Phase(val status: Fact) extends Recorded[Fact] derives Finite:
+  case queued extends Phase(Fact.statusQueued), Waiting
+  case running extends Phase(Fact.statusRunning), Held
+  case done extends Phase(Fact.statusDone), Succeeded
+  case timedOut extends Phase(Fact.statusTimedOut), TimedOut
+```
 
-| Level | Places |
-| --- | --- |
-| value | a machine's starts and a Scenario's start; a machine's evidence, of a fact; what a refinement names visible, of a fact or an outcome; a monitor's initial state, and its `violated`, of the monitor's state |
-| reading of a state | a machine's and a composition's `ends`; a refinement's map; a progress claim's `from` and `to` |
-| step | the function a step binding names, and each function it calls that gives steps |
-| reading of a step | a same-step Property's `holds` and a transition Property's; a monitor's `next` and `after` |
-| claim over a path | a Query, which reads a Property on the paths of a Scenario within Limits ([Claims](#claims)); a monitor's verdict ([Monitors](#monitors)); a progress claim ([Progress](#progress)) |
+A role test is written dotted: `s.phase.in[Closed]` on a value, `when[Closed]` in a rule, and
+`case _: Closed` in a pattern. A Model may declare a role of its own by extending one:
+`trait Expired extends TimedOut`.
 
-Only a step makes a step record. A `construct` of `framework.Step`, or a call of a function that gives
-step records, belongs to the function a step binding names and the functions it calls; anywhere
-else it is at the wrong level, as an `ends` that asks whether a step function gives a step, or a
-Property that calls the step function on the state after its step, would be. The IR does not mark
-levels; the IR generator keeps them, refusing at its line an expression that makes a step in a function
-that gives anything else, in a function's precondition or in a declared value. Its fixtures hold one
-refusal for each place whose Scala type admits one: a machine's start, `ends`, evidence and
-refinement, a monitor, a precondition, a same-step Property, a transition Property, a claim
-pattern, a progress claim, a composition's `ends` and a Scenario's start (`level*` in
-`model/irgen/testdata/lifts/Rejects.scala`). The Scala types rule out every other wrong level, so
-it has no fixture:
+**Refused.** A case that is both `Live` and `Closed`, two of `Waiting`/`Held`/`Suspended`, or two
+closure roles (IR generator, at the enum); `isInstanceOf` (lint); a role test against a type that
+is no role, or a role no case has (IR generator). A `Recorded` case without a status does not
+compile, since the parameter has no default.
 
-- a value reads no state and no step record: these enter an expression only as parameters of the
-  places that read them, and a start, evidence, what a refinement names visible and a monitor's
-  initial state and `violated` have none;
-- a reading of a state reads no step record: it has none as a parameter, and may not make one;
-- no expression reads a claim over a path: no Scala value of a Property, a Scenario, a Query, a
-  progress claim or a monitor holds whether it holds, and a Query's total and Limits are literals
-  ([Query totals](#query-totals)).
+**Design note.** Roles replace the named phase sets Models used to declare (`terminal`, `paused`).
+A `states` predicate that only renames a role is not written; rules use `when[R]` and expressions
+`p.in[R]`. Composite sets such as `created` (`Live` or `Closed`) stay named predicates.
 
-Umpire's claims over a path are safety claims, a Query that asks whether a Property holds on every
-path of its Scenario or finds one on which it does and a monitor's verdict, and bounded progress:
-TLA's leads-to `from ~> to`, cut to `within` steps, on the paths the weak fairness (`WF`) of the
-classes its assumptions make fair admits. Any temporal operator Umpire adds takes its meaning from
-TLA, read over the paths of the machine's table, and an unbounded one takes the TLA operator's name:
-`eventually` is TLA's `<>`, never another spelling of a progress claim.
+## 3. The signature
 
-## Machines
+The signature is who acts and what they can do. It is declared once per feature, at the top level
+of the feature file, and every level's machine binds the same actions.
 
-A machine's table is derived from its declaration:
+### Entities and observations
 
-1. The states are the catalog of its state type; the outcomes and facts the catalogs of its outcome
-   and fact types (no facts when it names none).
-2. Its action classes are, for each step binding, every assignment of the action's inputs in
-   catalog order, keyed `name` or `name-key(i1)-…`; all classes sorted by key. Two bindings of one
-   class are an error.
-3. Its rows are states-major: for each state `s` and each class `c` bound to function `f`, the list
-   `E(call(f, s, i1, …))`. An empty list is a disabled pair; otherwise the row keyed `key(s)-key(c)`
-   has one result per step record, and a result state outside the catalog is an error. A value that
-   is a hole makes the pair a hole row of it: neither disabled nor enabled ([Holes](#holes)). The rows
-   of a channel's delivery and loss are derived as [Channels](#channels) says.
-4. Its starts are its start expressions' values, and its ends the states its `ends` function accepts.
-   A Scala `Phased` machine or composition with no explicit `end` lowers to membership of its phase
-   projection in the enum's `Closed` cases. An explicit end keeps its stated stopping point, and
-   derivations keep their source's end.
-5. Its evidence is, for each fact in catalog order whose case has no line yet, the case name and
-   `E(call(evidence, fact))`.
-6. A refining machine's refinement is checked under this rule:
-   every outcome is a product outcome of the same name, every start maps to a
-   product start, and every row result is carried by a product row from the mapped source to the
-   mapped target with the same outcome whose facts are among the result's (preferring the product
-   action of the row's own name), or else its source and target map to one product state and it is
-   a stutter. A refinement that names the facts the product sees (`visible`, a function from a fact
-   to a Boolean) narrows both cases: the carrying product result also records, by the same-named
-   key, every fact the result records that the product sees, and a stutter records none of them. A
-   refinement that names none reads facts as the rule above does. A refinement that names the
-   outcomes the product sees (`visible_outcomes`, a function from an outcome to a Boolean) narrows the
-   stutter too: its outcome is none of them. A carried result's outcome is already the carrying
-   product result's, by name.
-   Where both machines' phases take roles, a refinement also preserves closedness: a state is
-   `Closed` exactly when its mapped product state is. The IR carries no roles, so this check is not
-   the IR's: it runs in Scala, over every `Finite` state of the refining machine, in the model
-   tests, which find each such refinement among the machines the features' packages reach
-   (`model/temporal/ExportedLaws.test.scala`) and report every state whose role differs from its
-   image's, with the image. A refinement whose machines carry no roles is reported as not checked.
-7. Its monitors ([Monitors](#monitors)) and its assumptions ([Assumptions](#assumptions)) are the
-   ones it names. A machine derived by restriction keeps its source's.
+An *entity* is what a machine keeps state for; a realization keys recorded evidence to it.
 
-Reachability, stuck states, Definition IDs and the Behavior Fingerprint are then those of the
-reader's table (`tools/umpire/interp`, `Table`) over the derived keys.
+```scala
+val job = Entity(key = "jobId")                 // named after its val
+val attemptCount = Observation(on = job)        // a derived read used as evidence
+```
 
-### Rules
+An observation stands for a value no recorded event carries (an attempt count read back through a
+describe call); the realization's typed read does the reading.
 
-The IR binds each action to one step function; a Model writes when it fires and what it does
-apart, and the IR generator lowers the two to that function (`model/framework/Syntax.scala`, `Rules`).
-A machine object's `rules` holds one or more blocks that name actions, `on(a) { … }`, or classes,
-`on(a(v)) { … }`, whose cases each say where the action fires and what it does there, `c ~> e`. An
-`on(a, b) { … }` block gives the same cases to each named action. Every `on`, including one with one
-case, is brace-delimited, with its cases on separate lines and its closing brace on a line of its
-own; `on(a)(case)` is no Model form. Each target, and each `disabled` target, names its action
-through its declarer, `actor.a`; `from(actor) { on(actor.a) { … } }` only groups the blocks of
-actions `actor` declares and imports nothing, so removing the group preserves the table. Phases are
-named through their phase type, `Phase.p`. Both rules are spelling: they change no table. The
-case `when(Phase.p1, …)` holds while the machine's phase projection,
-`Phased[State, Phase](_.phase)`, is one of the phases listed, `when(set)` while it is in the named
-set `set`, `when[R]` while it has phase role `R`, `where(g)` while the guard `g` of the state holds,
-`when(…).where(g)` while both do and `always` in every state; `e` is an effect of the machine's
-`effects`, which says what happens and never whether: it gives at least one step. `disabled(a)`
-binds an action no state enables.
+### Actors and actions
 
-`enters(p)` is the effect that only enters the phase `p`: the step function of the state alone
-`s => enter(w(s, p), status(p))`, where `w` is the writer the machine's projection declares,
-`Phased[State, Phase](_.phase, (s, p) => s.copy(phase = p))` (a derived machine's is its source's),
-and `status(p)` is the status fact `p`'s case declares where its enum is `Recorded`, and no fact
-otherwise. It is the step an effect block whose whole body is `phase = p` takes, so replacing such
-an effect by `enters(p)` keeps every row. A rule names it as its effect, `c ~> enters(p)`; a `choose`
-alternative applies it to the state, `t -> enters(p)(s)`, and lifts as the step written out. The
-writer must give a state whose projection is `p`: `enters` refuses one that does not, and a
-projection declared without a writer, when it is first stepped.
+An *actor* is an object whose members are the actions it takes. `Actor.system` is reserved for the
+steps the system takes of its own: timers, internal steps, channel deliveries.
 
-`object rules extends Rules` takes no argument and reads the machine's `Phased` given. A derived
-machine or composition inherits its source's projection and phase type. A machine without
-`Phased` may use `where(g)` and `always`, but its rules cannot name phases, phase sets or roles with
-`when`. The bare rule-case spelling `in(…)` is rejected; dotted `p.in(…)` and `p.in[R]` remain
-membership predicates.
+```scala
+object client extends Actor:
+  val submit = action(this).creates(job)
+  val cancel = action(this).on(job)
 
-The rules of one action lower, in the order written, to the step function
-`<machine>.rules.<action>`: `if g1(s) then e1(s, i) else if g2(s) then e2(s, i) else Nil`, where
-`gk` is the k-th case's guard (for `when`, `List(p1, …).contains(projection(s))`; for `when(set)`,
-`set(projection(s))`; for `.where(g)`, the case's guard `&&` `g(s)`; for `always`, `true`). Where a rule fires
-one class, the function first matches the inputs, one case per class in catalog order, and tries
-there the rules that fire that class, so the state alone chooses among them. `disabled(a)` lowers to
-a function that gives `Nil` for every state. The table derived from the lowered function is the one
-Machines 3 gives; nothing else of the IR records the rules.
+object worker extends Actor:
+  val poll = action(this).on(job)
+  val finish = action(this).on(job).input(result)
 
-Rules of one action class are disjoint across every block: no state and class are fired by two of them. The framework
-checks it when the machine's rules are constructed, over every state of the state type's catalog
-and every class, and refuses the second rule of an overlap, naming the machine, the class, both
-rules by their place and heading, and a state where both hold; the model gate constructs every IR
-file's roots, so an overlap fails it. A step that can go more than one way is one effect that names
-each result with `choose` ([Named choices](#named-choices)), never two rules. Because the rules are
-disjoint, their order changes no row: it fixes only the order of the arms of the lowered function.
+object timers:
+  val deadline = timer                           // system-owned, no input
+object history:
+  val persist = internal                         // a system step that is not a timer
+```
 
-A machine may use the shared `framework.outcomes.Outcome`: `accepted`, or `rejected(why)` where `why`
-is one of the shared `Rejection` values. In such a rule, `rejects(why)` is the effect that keeps the
-state, records no facts and answers `rejected(why)`; `.because(text)` fills the step's `because`
-field without changing that state, facts or outcome.
+Every declaration is named after its `val`; a name is written as a string only where no `val`
+declares it or it must differ (`action("start", Actor("caller"))`). A feature that adds actions to
+an actor another feature declares puts them in an object named for that actor and imports the
+shared one under another name (`import actors.worker.{worker as process}`).
 
-A derivation rebinds rules in its source's place: `rebind(a ~> e)` keeps the guards (and classes) of
-`a`'s rules and gives each the effect `e`; `rebind(on(a) { where(g) ~> e })` replaces them; `extend` adds
-rules for actions its source does not bind. `rebind(a ~> e)` is refused where it would merge rules
-the source tells apart by their effects: two rules of the whole action, or two rules of one class,
-with different effects. Rules that each fire another class may differ, since `e` reads the class's
-inputs. A machine of the IR generator's core fixtures may bind
-its step functions by hand, `object rules extends Bindings(a ~> f, …)`, which is what rules lower to.
+### Inputs and classes
 
-### Facets
+An action may take finite *inputs*. Each assignment of the inputs is one *class* of the action:
+`finish(Result.ok)` and `finish(Result.failed)` are two classes, and the table has one column per
+class. An action with no input has one class.
 
-A machine may be assembled from facets (`model/framework/Facet.scala`): traits it mixes in, each
-holding an object whose `effects` and `rules` are sections of the machine. `object rules extends
-Facets(f1.rules, …, fn.rules)` is the machine whose `rules` holds the blocks of `f1`, then `f2`,
-…, then `fn`, each facet's in the order written, and whose effects are every facet's effects. Each
-action is bound by exactly one facet's rules: two facets binding one action are refused, naming the
-action and both facets. Since an action's rules sit in one facet, and the rules of one action class
-are disjoint ([Rules](#rules)), facet order fixes only the order of arms of the lowered functions and
-changes no row. A facet's `enters` writes through the writer of the machine that mixes it in.
+```scala
+val result = input[Result]                       // a token, named after its val
+val scheduleToStart = input[Timeout]
 
-### Modalities
+object client extends Actor:
+  val submit = action(this).input(scheduleToStart).input(startToClose).creates(job)
+```
 
-A machine's table says what may happen, and the claims about it what must. A row is permission with
-fixed results: its class may happen in its state, with exactly the results the row lists, each named
-choice among them. A disabled pair is prohibition for an action the system takes, a timer or an
-internal action: the system does not take it there. For an action of an actor, such as a caller's
-request, it is silence: the actor can always try it, and the Model does not say what the system
-answers, as a row with a rejecting outcome and its `because` would. A hole row is neither
-([Holes](#holes)). Obligations are the claims: a same-step Property is a postcondition on the results
-of its class's rows, read only where a row exists; a progress claim says that a state must follow;
-and an assumption's fairness obliges a class that stays enabled to be taken. A refinement narrows
-permission, since every row of the refining machine is carried by a row of the machine it refines or
-is a stutter (Machines 6), and does not by itself preserve obligation: a Property of the refined
-machine holds of the refining one only where a verify Query reads it `through` the refinement, and a
-progress claim only where the refining machine declares its own. Lint (`tools/umpire/lint`) prints
-each machine's table in these terms and reports where they leave a gap as specification holes: a
-pair disabled by a wildcard arm, an actor's request the Model is silent on, a result no claim
-constrains and a Property only a `find` asks.
+A class is written positionally, `submit(unset, expires)`, by name, `submit(startToClose :=
+expires)` (omitted inputs take their domain's first value), or as `submit()`, every input at its
+first value. `:=` is sugar for the positional call. An action that takes an input may carry
+*examples*, `.example(Reply.handlerError(false), "BadRequest")`: the author's claim that every
+realized value of that class behaves alike, with the one the generated Case runs.
+
+**Refused.** A token that is not the action's, or supplied twice (framework, at the call); a value
+of the wrong type (compiler); a step function whose arity does not match the action's inputs
+(compiler: `~>` is typed per arity).
+
+### Outcomes
+
+Every step answers an *outcome*. A machine declares its own enum, or adopts the shared one:
+
+```scala
+import framework.outcomes.{Outcome, Rejection}   // accepted | rejected(notFound | alreadyExists |
+                                                 //            failedPrecondition | invalidArgument)
+```
+
+`enter` and `stay` answer the outcome one `given Ok[Outcome] = Ok(Outcome.accepted)` names,
+declared once beside the outcome type; the shared outcomes come with theirs. A machine that answers
+nothing a caller reads (a worker, a queue) still names an outcome type, since every step has one.
+
+## 4. The machine
+
+**Meaning.** A machine is a transition relation over a finite state type: for every state and every
+action class, the list of steps that class may take there. Its start, its ends, and the steps are
+all the reader needs to build the table ([The table](#7-the-table)).
+
+**Writing it.** A machine is an object that *is* the machine, named after the object with its first
+letter lowered (`object JobProduct` is `jobProduct`), stating its three types once:
+
+```scala
+object JobProduct
+    extends Machine[State, Outcome, Fact],
+      Phased[State, Phase](_.phase, (s, p) => s.copy(phase = p)):
+  val init = State(phase = Phase.queued, attempts = UpTo(0))
+  // end: Phased supplies "the Closed phases"; override def end(s: State) for another stopping point
+  val evidence: PartialFunction[Fact, String] = { case Fact.expired(_) => "expired" }
+
+  object states: ...        // vocabulary: predicates, projections, constants
+  object refinement: ...    // where it refines another machine
+  object effects: ...       // what each action does
+  object monitors: ...      // monitors it names, assumptions it makes
+  object rules extends Rules: ...   // when each action fires (required)
+  object properties: ...    // its promises
+  object capabilities extends Capabilities: ...
+  object queries: ...       // Scenarios, then Queries
+```
+
+The header:
+
+- `Phased[State, Phase](projection, writer)` names the phase field once. Rules may then say
+  `when(Phase.x)`, `when[Role]`; `enters(Phase.x)` writes through the writer. A machine with no
+  phase is a plain `Machine` and its rules use `where` and `always` only.
+- `init` is the one start state (named as TLA+ and Quint name it).
+- `end` says where a path may stop. With `Phased` the default is "phase has a `Closed` role"; a
+  machine whose stopping point differs overrides it. A machine with no `Closed` case and no
+  explicit `end` is refused.
+- `evidence` lists only the exceptions: a fact is confirmed by evidence of its own name unless a
+  line says otherwise, and a fact case with fields needs a line that covers all its values.
+- `entity` is derived from the actions' `on`/`creates` and is written only where that is ambiguous;
+  `unobservable` lists timers whose step records nothing a Run can read.
+
+The sections are objects named for what they hold and come in the order above; the IR generator's
+declaration-order lint refuses any other order and any section nested elsewhere. Inside the object
+`State` names the state type and `property`, `scenario` name the machine implicitly.
+
+**Refused.** Two machines of one name in a package; a machine whose object name differs from its
+file's (structure lint); a section object of any other name; a `val` read before it is declared
+(the initialization-order lint, since an object's `val`s initialize top to bottom).
+
+## 5. Effects
+
+**Meaning.** A *step* is one result of an action in one state: the outcome it answers, the state it
+lands in, the facts it records, and an optional explanation.
+
+```scala
+final case class Step[S, O, +F](outcome: O, state: S, facts: List[F] = Nil, because: String = "")
+```
+
+A step function gives a *list* of steps: empty means the action is disabled there, one step is the
+ordinary case, several steps are a branch the system may take either way. Only a step function and
+the functions it calls may make a step; a start, an `end`, a Property or a monitor that constructs
+one is at the wrong *level* and is refused ([Levels](#levels)).
+
+**Writing it.** The core form is `List(Step(...))`; every Model writes the sugar:
+
+| Form | Core form | Use |
+| --- | --- | --- |
+| `enter(s.copy(phase = p), f1, f2)` | `List(Step(ok, state, List(f1, f2)))` | one ok step recording facts |
+| `stay(s)` | `List(Step(ok, s))` | keep the state, record nothing |
+| `reject(Outcome.rejected(why), s)` | `List(Step(outcome, s))` | keep the state, answer otherwise |
+| `rejects(Rejection.notFound)` | `s => reject(Outcome.rejected(notFound), s)` | the same as a rule's effect, shared outcomes |
+| `steps.because("...")` | `Step(..., because = "...")` | explain the row; no check reads it |
+| `disabled` | `Nil` | no step; in an effect it is refused, in a rule use `disabled(a)` |
+| `enters(Phase.p)` | `enter(s.copy(phase = p), p.status)` | the step that only enters a phase; records the status its case declares, if any |
+
+Effects live in `object effects` as defs of the state (and the class's inputs), named for what
+they do and never giving `Nil`:
+
+```scala
+object effects:
+  def start(s: State) = enter(s.copy(phase = Phase.running), Fact.started)
+  def finish(s: State, r: Result) = r match
+    case Result.ok     => enter(s.copy(phase = Phase.done), Fact.finished)
+    case Result.failed => enter(s.copy(phase = Phase.queued, attempts = UpTo(s.attempts + 1)))
+  def timeOut(s: State, which: Deadline) = enter(s.copy(phase = Phase.timedOut), Fact.expired(which))
+```
+
+An effect of the state alone may be a block, which reads and assigns fields by name through the
+accessors the level file declares (`def phase(using v: View[State]) = v.get(_.phase)`,
+`def phase_=(p: Phase)(using d: Draft[State, ?, Fact]) = d.set(p)(_.copy(phase = p))`):
+
+```scala
+val start = effect { phase = Phase.running; record(Fact.started) }
+val gone = effect { reject(Outcome.rejected(Rejection.notFound)) }
+val held = is { phase == Phase.running }        // the predicate form, for `states`
+```
+
+A block holds straight-line field assignments (each field at most once, not read after), `record`
+calls, or one `reject`; assigning a `Recorded` phase records its status after the block's own facts.
+An effect whose whole work is entering a phase is not declared at all: the rule writes `~>
+enters(Phase.done)`.
 
 ### Named choices
 
-A step that can go more than one way may name each of its results. The name rides on the step
-record's construct: `construct(framework.Step, "", outcome, state, facts, because)` with `choice` set
-to the alternative's name, as the IR generator writes each alternative of a Scala `choose`. An alternative
-that calls a function is lifted as a call of a copy of it, `<function>$<choice>`, whose every step
-record carries the name; the choose is then the concatenation of its alternatives' lists in the
-order written. The IR generator writes every branching of a Model this way: it refuses several results
-written without names. Evaluation ignores the name. The construct's value is the four-field record
-above, and the name is metadata the record carries: no key, equality, Property, monitor or
-refinement reads it, and it travels with the record through lists, `let`s, calls and branches. A
-row's result reports the name of the step record it was read from, empty for an unnamed one; the
-redelivery a channel derives from a result ([Channels](#channels)) is unnamed, as its explanation is
-its own. The table's rows, their results and their order, the Definition IDs, the Behavior
-Fingerprint, Query answers and lowered Cases are the same with and without names, and so are
-exploration and Model identities for names written on steps. A named call adds the copies it calls,
-which enter those content-hashed identities as any change of a Model's functions does. An
-alternative is a result of its action class and never another class, so the names do not enter a
-Query's total ([Query totals](#query-totals)). A `choice` on a construct of any other type is an
-error of the Model, and so are two results of one row with the same name. The Quint export writes
-the name on the step record of the ordered result list (`f_choice`), and its checker action, not the
-step function, picks one result of that list.
+A step that can go more than one way names each way with `choose`. This is core: the names are
+what nothing else says.
 
-Quint is the external comparison backend. Its evaluator independently computes each reachable
-machine and monitor product from the IR, including `terminalFinality` on `activityRecord` and
-`trustingActivityRecord`. The agreement compares every product step and replays counterexamples
-through a fresh Go interpretation. `quint verify` adds Apalache's bounded monitor check where it runs
-(`tools/umpire/export/README.md`).
+```scala
+val committed = choice
+val redelivered = choice
 
-## Channels
+def admit(s: State) = choose(
+  committed   -> enter(s.copy(message = Message.empty), Fact.statusStarted),
+  redelivered -> enter(s.copy(message = Message.redelivery), Fact.statusStarted)
+    .because("the channel may deliver the message again")
+)
+```
 
-A channel declares a message type `T`, a capacity `n` of at least 1, an order, FIFO or unordered,
-whether it is lossy, and a number of duplicates `d` of at least 0. `T` is a finite type: a named type,
-the Booleans or an integer range. The IR generator takes an `Int` message's range from the `Finite.upTo(n)`
-the channel is declared with, `0..n`, and an opaque type's from its own given; it refuses any other
-`Int` catalog, a list of messages, and an order or loss that is computed rather than named.
+Each alternative is one step written out, or a call of a function that gives at most one step (an
+alternative whose function gives none is not taken). The name rides on the step record as
+metadata: no key, equality, Property, monitor or refinement reads it, and the table is the same
+with and without names. The IR generator refuses several results written without `choose`
+(`List(Step, Step)`, `++`), a `choose` of one alternative (does not compile), a name used twice,
+and an alternative that is not one step.
 
-What it holds is a list of deliveries `(m, r)`, with `m` of type `T` and `0 ≤ r ≤ d`, at most `n` of
-them. Its entries, in catalog order, are each message of `T` in catalog order and, for each, the
-redeliveries `0` to `d`. Its catalog is the empty list, then every list of one entry, of two, up to
-`n`, as the product of the entries with the last varying fastest. An unordered channel's catalog keeps
-only the lists whose entries are in catalog order, so that one multiset is one value, and a send
-inserts at the position that keeps it so.
+### What a step function may contain
 
-A state field of type `channel c` holds `c`; a state type holds each channel in at most one field.
-For a machine whose state holds `c` in field `f`, the action that delivers `c` (`delivers = c`) has
-one input, `message`, of type `T`, and the row of state `s` and message `m` is derived:
+`if`, `match` (case, alternative, binding and wildcard patterns; a wildcard over a whole Model enum
+is refused by lint, name the cases), local `val`s, `copy`, constructors, comparisons, arithmetic,
+list literals and `++`, calls of other defs, `require` (which becomes the function's precondition:
+a call outside it is an error, not a disabled row). A `var`, a loop, or anything else stops the
+lift at its line. A function may not call itself.
 
-1. The delivered entry is, for a FIFO channel, the first entry of `s.f` if its message is `m`, and
-   for an unordered one the first entry of `s.f` whose message is `m`. With none, the pair is
-   disabled.
-2. `s'` is `s` with that entry removed from `f`, and `R` the value of the bound function at `s'` and
-   `m`: what receiving the message does. An empty `R` is disabled, as the receiver does not take the
-   message; a hole makes a hole row.
-3. The results are `R`'s, and then, when the entry's redeliveries `r` are fewer than `d`, `R`'s again
-   with the entry `(m, r + 1)` put back into each result state's `f`, first for a FIFO channel and at
-   its catalog position for an unordered one, explained as "the channel delivers the message again":
-   the receiver's step happened and its acknowledgment was lost.
+## 6. Rules
 
-The action that loses a message of `c` (`loses = c`) is bound exactly when `c` is lossy. Its row of
-`s` and `m` removes the first entry of `s.f` whose message is `m`, and its results are the bound
-function's value at the resulting state and `m`: what losing the message does. With no such entry the
-pair is disabled.
+**Meaning.** The IR binds each action to one step function. A Model writes *when* an action fires
+and *what* it does apart, and the IR generator lowers the two into that function: the cases of an
+action, in the order written, become `if g1(s) then e1(s, i) else if g2(s) then e2(s, i) else Nil`.
+Where no case holds, the action is disabled; there is no catch-all.
 
-A send to a full channel gives contents outside the catalog, so a row that keeps them lands outside the
-state domain (Machines 3).
+The rules of one action class are *disjoint*: no state is covered by two of them. The framework
+checks this as the rules object constructs, over every state of the catalog and every class, and
+refuses the second rule of an overlap naming the machine, the class, both rules and a witness
+state. Because they are disjoint, their order changes no row. A step that can go two ways is one
+effect with `choose`, never two rules.
 
-## Holes
+**Writing it.**
 
-A declared hole names behavior the Model leaves unknown on purpose. A hole row is neither disabled,
-as an empty list of steps is, nor an error. A check that explores a hole row reports its result
-incomplete, naming the hole and the row, and keeps every result the rest of its exploration
-establishes; a violation it found stays a violation. A hole in a row no explored path reaches affects
-nothing.
+```scala
+object rules extends Rules:
+  on(client.submit) {
+    when(Phase.unscheduled) ~> effects.submit             // reads the state and the inputs
+  }
+  on(worker.poll) {
+    when[Closed] ~> rejects(Rejection.notFound)
+    when(Phase.queued) ~> enters(Phase.running)
+    when(Phase.running) ~> rejects(Rejection.failedPrecondition).because("an attempt is held")
+  }
+  on(worker.finish(Result.ok)) {                         // one class: the effect reads the state alone
+    when(Phase.running) ~> enters(Phase.done)
+  }
+  on(client.cancel, client.pause) {                      // the same cases for several actions
+    when[Closed] ~> rejects(Rejection.notFound)
+  }
+  on(timers.deadline) {
+    when[Live].where(_.startToClose == Timeout.expires) ~> (effects.timeOut(_, Deadline.startToClose))
+  }
+  disabled(process.stop)                                 // bound, enabled nowhere
+```
 
-`⊥`, a value no `match` case matches, is an undeclared hole: a check that reaches it reports its result
-incomplete and names the row, and no declaration accounts for it. A malformed Model is never a hole:
-what a reader rejects before any check is listed under [Admission](#admission).
+The case headings:
 
-A hole reached inside a function a claim reads, a Property's `holds`, a monitor's `next`, `violated` or
-`after`, or a progress claim's `from` or `to`, is unknown evidence of the step or the state it was read
-on: the claim neither holds nor fails there. A search does not continue through such a step, a
-progress check explores no step from such a state and counts it in no path, and the result is
-incomplete unless it found a witness elsewhere. A hole reached outside any step leaves unknown what
-it was reached in: a start, an `ends` or the evidence of a machine leaves that machine without a
-table, and a refinement's map or what it names visible leaves that refinement neither held nor
-rejected. The results of what depends on it, the machine's own claims, the compositions it is a
-member of and the Queries that read through its refinement, are incomplete. Every other machine is
-checked as if the hole were not there.
+| Heading | Holds while |
+| --- | --- |
+| `when(Phase.a, Phase.b)` | the phase is one listed; needs `Phased` |
+| `when(states.someSet)` | a named predicate of the phase holds |
+| `when[Role]` | the phase has the role |
+| `where(g)` | `g(s)` holds; the only form a machine without `Phased` has, with `always` |
+| `when(...).where(g)` | both |
+| `always` | every state |
 
-What a refinement names visible only narrows which steps carry a row and which rows are stutters. A
-refinement rejected with a fact or an outcome of unknown visibility read as unseen is therefore
-rejected whatever the hole hides, and the rejection stands with the hole beside it. One that holds
-only that way is incomplete, and a Query reads through it as through one a hole row leaves unknown.
+Rules of spelling, which change no table: every target names its action through its declarer,
+`on(worker.poll)`, never bare; every phase through its type, `Phase.queued` (no `import Phase.*`);
+every `on` is brace-delimited with one case per line; `from(actor) { on(actor.a) { ... } }` only
+groups and imports nothing. The old `in(...)` rule heading is retired and refused.
 
-A declaration read at one value after another, an `ends` at each state or what a refinement names
-visible at each fact, is read on past a hole. A result at a later value that makes the Model malformed
-is the declaration's error whatever hole came before it, and a result names every hole reached.
-A machine's starts, its `ends` and its evidence are one such reading, and so are a refinement's map
-and what it names visible, as far as the check reads them. A composition reads every member: a
-malformed member is its error, then a member's rejected replacement, then a ceiling, and only then
-the holes of its members, all of them.
+### Modalities: what a row means
 
-A refinement by a machine whose starts reach a hole row is incomplete, not held: the steps the hole
-stands for are not shown to refine anything. A rejection found on its rows stands. A Query that reads
-through such a refinement is answered over the machine's rows; a violation it finds stands, and
-otherwise its result is incomplete by those holes.
+A machine's table says what *may* happen; the claims say what *must*.
 
-## Monitors
+- A **row** is permission with fixed results: the class may happen in that state with exactly the
+  results listed.
+- A **disabled pair** for a system action (timer, internal step) is prohibition: the system does
+  not take it there.
+- A **disabled pair** for an actor's action is *silence*: the actor can always try, and the Model
+  does not say what the system answers. A row with a rejecting outcome and a `because` says it.
+- A **hole row** is neither ([Holes](#12-holes)).
 
-A monitor declares a finite state type `M`, an initial value, a function `next` from its state, the
-machine's state before a step and the step record to its state after the step, a function `violated`
-from its state to a Boolean, and its evaluation point. It watches every machine that names it, whose
-state type the function's second parameter is.
+Lint reports where these leave a gap (`silent-rejection`, `never-enabled`, `stuck-state`,
+[below](#7-the-table)). A rule with a rejecting effect is how a Model is explicit about what it
+refuses.
 
-- Every step advances every watching monitor: taking result `r` from state `s` turns its state `μ` into
-  `next(μ, s, r)`. A monitor reads steps and never disables one: a machine's rows are the same with and
-  without it.
-- The state a check explores is the machine's state together with every watching monitor's state, so
-  two paths to one machine state whose monitors differ stay two.
-- Its verdict is read only at its evaluation point: after every step (`every_step`), at the end of a
-  path in a state the machine may end in (`at_ends`), or after each step whose record the `after`
-  function accepts. It is violated where `violated(μ)` holds there, and a path on which it is never
-  read gives it no verdict.
-- Two monitors of one Model do not share a name.
-- Whether a member machine's monitors watch a composition is not defined. A reader refuses a Query over
-  a composition a member of which names monitors as unsupported, rather than answer it unwatched.
+## 7. The table
 
-## Assumptions
+**Meaning.** From a machine's declaration the reader derives:
 
-An assumption is a name every result of a check that relies on it carries. A machine's `assumes`
-lists the ones every check of it relies on: that it stands for an opaque provider, or that it
-includes a fault only the assumption allows. An assumption's `fair` actions are weakly fair under it:
-a path a check of a progress claim considers does not keep one of their classes enabled at every
-state of a suffix without taking it there.
+1. the states: the catalog of the state type; the outcomes and facts: their catalogs;
+2. the action classes: for each bound action, every assignment of its inputs in catalog order,
+   keyed `name` or `name-key(i1)-...`;
+3. the rows, states-major: for each state and class, the list the step function gives. Empty is a
+   disabled pair; a result state outside the catalog is an error; a hole makes a hole row;
+4. the starts (the `init`), the ends (the states `end` accepts);
+5. the evidence line per fact;
+6. the refinement check where one is declared ([Refinement](#13-refinement));
+7. the monitors and assumptions it names.
 
-## Compositions
+Reachability, stuck states, Definition IDs and the Behavior Fingerprint are computed from this
+table. `go run ./tools/umpire/cmd/umpire-lint --tables model/ir/<file>.json` prints it by class:
+each cell MAY with its results, MUST NOT with its guard, or `?` for a hole.
 
-A composition is one Model from machines of different entities: its state type is a record with one field per member; a member's own action class is keyed
-`<field>_<class>` and steps its member alone; a sync pairs two members' actions into one step keyed by
-the sync's name followed by each class's inputs, whose results are the product of the members'
-results, with the first member's outcome and both members' facts, each keyed `<field>_<key>`; a
-composed state is keyed by its members' state keys joined by `_`; only the rows reachable from the
-members' starts belong to it; its `ends` is a predicate over the composed state; and its Definition
-IDs hang off the owner `compose-<name>`.
+**What lint reads off it** (`make umpire-check-lint`, part of the gate), each at the Scala line:
 
-Its starts are the product of every member's starts in member order, the last member varying fastest.
-A claim of a composition reads a composed step as a step record whose `state` is the composition's
-state record, one member state per field, and whose `outcome` and `facts` are strings: the composed
-keys `<field>_<key>`.
+| Finding | Reported for | Fix |
+| --- | --- | --- |
+| `never-enabled` | a class no reachable state enables | bind a rule, or drop the action |
+| `silent-rejection` | an actor's action disabled in a reachable non-end state | a rule whose outcome says the answer |
+| `stuck-state` | a reachable non-end state with no enabled class at all, with a shortest path | the missing timer or internal step, or make it an end |
 
-A member that `replaces` a machine stands in for it within this composition: a detailed provider in
-place of an opaque one. Its machine declares a refinement of the replaced machine (Machines 6) that
-holds, and a check of the composition relies on none of the replaced machine's assumptions. Within
-the composition that refinement also reads every start of the replaced machine: a start of it that no
-start of the member reads as is a behavior the member does not provide. The member's own assumptions,
-and every other member's, stay: an assumption the member declares is the composition's also where the
-replaced machine declares one of the same name, since the replaced machine is no member and none of
-its assumptions is read.
+A finding fails the gate until fixed or accepted with a reason in `model/ir/<file>.lint.json`.
 
-## Claims
+**Design note.** The table is the one artifact everything else reads; the step tables
+(`framework/StepTables.scala`) dump it from Scala for the equivalence check, so a refactor that
+keeps the Models' meaning can be sealed by comparing tables while the IR is stale.
 
-A Property belongs to a machine or a composition. A same-step Property holds of the step record of
-each step it is about: every step, the steps of one class (`when_class`), or the steps of every class
-of one action (`when_action`). A transition Property (`transition`) holds of the state before a step
-and the step record, under the same optional class or action selector. Verification applies that
-selector before reading the predicate or marking the Property exercised. An unrelated step remains
-part of the explored path but neither reads nor exercises the Property.
+## 8. Properties
 
-A Property of a composition is about composed classes. Its `when_class` is the class keyed by the
-action's name followed by the inputs, which a sync named as the action it takes spells; its
-`when_action` is every class whose key begins with that name, a sync's name or `<field>_<action>` for a
-member's own action. A member's action a sync takes steps only with its pair, so it has no class of its
-own and neither names it.
+**Meaning.** A Property is one promise, read on steps. A *same-step* Property reads one step record
+(outcome, state after, facts); a *transition* Property reads the state before and the step. A
+selector narrows which steps it is about: every step, the steps of one class (`when`), or every
+class of an action (`whenAction`). An unrelated step stays on the path but neither reads nor
+exercises the Property.
 
-A Scenario belongs to a machine or a composition: a start state and a pinned schedule of classes, of
-composed class keys for a composition, or `free`, any action at every step.
+**Writing it.** In `object properties`, named after the `val`:
 
-A Query asks whether its Property holds on every trace of its Scenario (`verify`) or finds one trace
-on which it holds (`find`), within its Limits: `steps` bounds the depth, `actions` the length of a
-pinned schedule, and `search` the product states the search may visit. It is answered as the
-reader's search answers it, whose Limit Reached proves nothing. A Query with `through` reads a
-Property of the machine the Scenario's machine refines through that refinement: a state by its map,
-an outcome and facts by name. Two Properties, Scenarios or Queries under one key would share a
-Definition ID.
+```scala
+object properties:
+  // same-step, one class
+  val finishSucceeds = property when worker.finish(Result.ok) holds { after =>
+    after.state.phase == Phase.done && after.records(Fact.finished)
+  }
+  // same-step, every step
+  val neverTwoHeld = property.never(s => s.state.attempts == 2)
+  // transition
+  val closedIsFinal = property.once(_.phase.in[Closed]).keeps(_.phase)
+  val heldStaysHeld = property.stays(_.phase == Phase.running).unless(_.records(Fact.finished))
+  val noStartFromPaused = property.never(_.state.phase == Phase.running).from(_.phase == Phase.paused)
+```
+
+The patterns are sugar over the two core forms, `holds(after => ...)` and
+`holdsAcross((before, after) => ...)`:
+
+| Pattern | Core form |
+| --- | --- |
+| `once(over).keeps(_.x)` | `holdsAcross((b, a) => !over(b) \|\| a.state.x == b.x)` |
+| `never(to)` | `holds(a => !to(a))` |
+| `never(to).from(before)` | `holdsAcross((b, a) => !before(b) \|\| !to(a))` |
+| `stays(p)` | `holdsAcross((b, a) => !p(b) \|\| p(a.state))` |
+| `stays(p).unless(release)` | `... \|\| release(a)` |
+
+Helpers in a predicate: `after.records(fact)` is `after.facts.contains(fact)`; `a implies b` is
+`!a || b` and reads `b` only where `a` holds (so a hole in `b` is not reached otherwise);
+`x.in(a, b)` is membership. `keeps` takes a field path, or a def whose body is one.
+
+A Property's Definition ID is `<family>.<name>`, so two machines of one family may each declare
+`terminalIsFinal` and share it; a result names the machine as well, which keeps them apart.
+
+**Properties written once for many machines.** A function over `Declares[S]` (the supertype of a
+machine and a composition) declares the same Property on whichever model it is called with. Its
+state-dependent parts are parameters, each a def of the lifted sources, never a lambda:
+
+```scala
+def atMostOneActive[S](m: Declares[S])(twoActive: S => Boolean): Property[S] =
+  m.property("atMostOneActive").never(s => twoActive(s.state))
+```
+
+A case class whose every field is a Property, Scenario or Query is a *bundle*; built in such a
+function it lifts as its claims and `bundle.field` reads one back.
+
+## 9. Scenarios and Queries
+
+**Meaning.** A *Scenario* is where to look: a start state and either a pinned schedule of classes or
+`free`, any action at every step. A *Query* is a bounded question that joins a Property and a
+Scenario: `verify` asks whether the Property holds on every path, `find` asks for one path on which
+it holds, and that path is the Query's *witness*. `.live` marks an authored Query for live Case
+generation; without it the Query is model-only. Capability expectation bindings make their
+generated Queries live.
+
+**Writing it.** In `object queries`, every Scenario before the Query that uses it:
+
+```scala
+object queries:
+  val submittedThenFinished = scenario.actions(client.submit(), worker.poll, worker.finish(Result.ok))
+  val any = scenario.free
+  // `.starts(s)` fixes another start; without it the machine's init
+
+  val completion = (query find properties.finishSucceeds in submittedThenFinished limits three)
+    .live(satisfied)                                     // this find becomes a Case; see Realizations
+  val closedStaysClosed = query verify properties.closedIsFinal in any limits five
+```
+
+A Query named by its `val`, by `query("name")`, or, inside a list or a def over a machine, by
+default `<machine>.<scenario>.<property>`.
 
 A source witness names a pinned path and its last step's claim in one declaration:
 `witness(class, ...).records(fact)`, optionally `.ends(statePredicate)`, `.limits(bounds)`,
@@ -498,638 +531,531 @@ too. Keep a shared Property or Scenario, and `query verify`, as a triple. A `val
 results. `.live` is the authored Query switch for Case generation; without it the Query is
 model-only. Capability expectation bindings make their generated Queries live.
 
-A Query with `through` is answered only where that refinement holds: over a refinement that is
-rejected its result is the rejection. Only a `verify` reads through a refinement; a `find` with
-`through` is unsupported. A `find` of a transition Property and transition lowering to a Case remain
-refused.
+**Limits** bound the search: `steps` the depth, `actions` the schedule length, `search` the product
+states the search may visit before it reports `limit-reached`. Every bound is declared once in
+`temporal/Bounds.scala` (`two`, `three`, ..., `twelve`, `fourWide`) and imported by name, so a
+receipt's bound name means one budget.
 
-The typed Retryable capability binds one failure class and its constant retryable classification,
-named state reads for eligibility, count and policy maximum, and optional pending pause and cancel
-reads. Eligibility reads the state before failure. Fatal failure lands in Failed. Retryable pending
-cancellation lands in Canceled even at exhaustion; otherwise exhaustion lands in Failed, an eligible
-pending pause in Suspended, and an ordinary eligible retry in Waiting. Absent pending-control reads
-bring no control-branch Property and require no control role. Waiting and Failed are required;
-Held and Pollable are not. A policy maximum of `Some(n)` bounds the resulting count by `n`; `None`
-is explicit unlimited policy and makes no finite-maximum claim about the count's representation.
-The maximum's optional numeric value uses the existing finite `UpTo[N]` catalog. `N` bounds that
-catalog, independently of the supplied policy maximum and the attempt count's domain.
+**Totals.** Every Query carries a *total*, its static combination count, which the IR generator
+computes and the reader checks: for a pinned Scenario the state catalog × `min(steps, scheduled)`,
+for a free one states × classes × steps. An author may state it, `limits three total 384`, as a
+check of their own reading; it is a review figure, not a prediction, and nothing else reads it.
 
-Each Retryable declaration brings its own Properties and free verify Queries under
-`<machine>.<val>.<property>`, retaining their companion origin. Fields bind first to that declaration.
-A bound override for a companion Property reaches every instance; a claim or waiver that names an
-ambiguous repeated companion Property is refused. An `overriding` with `of` names the instances it
-replaces, each by its capability val: each named instance takes the replacement under its own
-bindings, origin, Query and bounds, and every other instance stays as its companion states it. A
-named val the section does not declare, one that does not bring the Property, one named twice, an
-empty `of`, and `of` on a Property one instance brings are refused. The waiver metadata names each
-replaced instance. Existing capability names and identities stay unchanged.
+**Through a refinement.** A Query may verify a Property of the machine its Scenario's machine
+refines: `query verify NexusProduct.properties.terminalIsFinal in asyncThenSucceeded limits three`
+in the Nexus workflow Protocol's `queries`. The Property is read through the refinement map; only a
+`verify` may, and only where the refinement holds. A Property of an unrelated machine is refused at
+the Query's line.
 
-A Property's and a Scenario's Definition ID is formed from the family and the name alone, so two
-machines of one family that each declare a claim of one name share it. A result names a claim by its
-family, the machine or composition it is declared on, and its name, which keeps the two apart.
+**Expectations.** A `find` that generates a live Case states what its Run should be judged as:
+`.live(satisfied)`, or `.live(inconclusive(Reason.neverEvaluated, because = "..."))`. Each value of
+the expectation (contract verdict, disposition, cleanup, conformance, Property outcome, one entry
+per monitor) is declared, none inferred; the live test compares a Run with it value by value. A
+`find` with `.explore(Exploration(...))` also declares finite alternatives for positions of its
+schedule, which the exploration tooling enumerates ([Realizations](#19-realizations)).
 
-## Query totals
+Convenience expectations and full `RunExpectation` values whose Property or Contract outcome is
+not satisfied require non-blank `because` text, as does each non-satisfied nested
+`MonitorExpectation`. A full Run whose Property and Contract are both satisfied cannot supply
+that text, even if its conformance is short of conformant; satisfied monitor values also take
+none. This text explains the author's expectation only and remains source-only: it adds no IR,
+Case or assessment field and cannot supply or change judge explanations. Existing judge reason
+IDs and `expected_run` metadata are still emitted and compared. Capability expectation bindings
+use the same expectation values and the same source-text rule.
 
-A Query's `total` is the count of its static combinations. The gate computes it for every Query; an
-author may still write one, which is then an optional check the lifter and the reader hold to the
-computed count. For a pinned Scenario it is the Scenario machine's whole state catalog times the
-scheduled slots within the step limit, `min(steps, scheduled classes or keys)`. For a free Scenario it
-is the state catalog times the machine's finite action-class catalog, one class for every input
-assignment of every bound action (a composition's: each member's classes no sync takes plus every
-pair of classes each sync takes), times `steps`. A Query read `through` a refinement counts its
-Scenario machine's states and classes, not the refined machine's. The count is taken before anything
-is reached: unreachable states, disabled rows, repeated states and an early answer all still count,
-and a named choice's alternatives are results of one class, not classes of their own. It is a review
-and capacity figure, not a prediction of the paths the search visits or the steps a Run executes. A
-step limit of 0, or an empty pinned schedule, counts 0. `total` is metadata: no table, fingerprint,
-Definition ID, answer, lowering, Case or exploration identity reads it. It is unset only in IR lifted
-before it existed; every Query of current IR carries one, written or computed, and an exploration
-candidate whose schedule differs from its source Scenario's is counted again.
+## 10. Monitors and assumptions
 
-## Progress
+**Meaning.** A *monitor* is a finite state of its own that every step advances and a verdict read at
+an evaluation point. It watches, never disables: the machine's rows are the same with and without
+it. Its state is part of what a check explores, so two paths to one machine state with different
+monitor states stay two. It is how a Model states a law about history ("no run records two
+outcomes") that no single step can see.
 
-A progress claim of a machine says that from every reachable state `from` accepts, a state `to`
-accepts follows within `within` steps, on every path its assumptions admit. It is violated by a path
-from such a state that reaches a state with no row before a `to` state (a deadlock); by a cycle
-reachable from such a state, on which no state `to` accepts and every class a named assumption makes
-fair that is enabled throughout the cycle is taken on it (a fair non-progress cycle); or by a path of
-`within` steps from such a state with no `to` state after it (the deadline missed). These are reported
-apart. A search that stops at a Limit before a witness is complete establishes none of them: a finite
-prefix that ends open is not a counterexample.
+An *assumption* is a name every result that relies on it carries: that a machine stands for an
+opaque provider, that it includes a fault only this assumption allows, or the fairness a progress
+claim rests on. `fair` makes actions *weakly fair*: a path that keeps one of their classes enabled
+forever takes it.
 
-A hole row is not a step and not a disabled pair: a state whose only pairs are hole rows is no
-deadlock, and a cycle is no fair one while a fair class it does not take has a hole row at one of its
-states. A kind of violation ruled out while the check read a hole row is incomplete.
+**Writing it.** In `object monitors`:
 
-A progress claim of a composition reads the composed state: `from` and `to` take the composition's
-state record and may read every member. It is checked over the composition's table, from every
-reachable state of the product of its members' starts, and `within` counts composed steps: a sync's
-step is one step however many members it advances, and a member's own step counts even where it is
-unrelated to the claim. Weak fairness bounds nothing: a path on which fair classes are taken can still
-spend its `within` steps elsewhere, so a finite bound holds only where the composed graph leaves no
-such path.
+```scala
+object monitors:
+  val atMostOneActiveAttempt =
+    monitor[State, Outcome, Fact, Active](Active.none)((active, before, after) =>
+      states.countActive(active, after)
+    )(_ == Active.two).readAfter(after => after.records(Fact.attemptAdmitted))
+  val retainedOutcome = sticky(outcomePreserved)      // a promise that, once broken, stays broken
+  val queueOpaque = assume("taskQueueProduct.opaque")
+  val retryFair = assume.fair(timers.backoff)
+```
 
-Its assumptions are its members' and its own. Each member's are mapped to the composed classes that
-step the classes they make fair, its own and the syncs it takes part in; two members' assumptions of
-one name are one, and a member that `replaces` a machine brings its own, never the replaced machine's
-(Compositions). The claim's own assumptions select composed classes by structure, never by key: a
-member field with an action the member takes alone, every class of it or one class with its inputs;
-or a sync by name, every class of it or one class whose inputs are its first move's followed by its
-second move's. Repeated members of one machine are told apart by their fields. A selection of another
-composition, of a field no member fills or more than one does, of an action the member does not bind,
-of a sync the composition does not declare or declares twice, or of a class no sync class or member
-class matches, is refused before anything is checked, as is an assumption that mixes a machine's fair
-actions with composed selections; a machine's fair actions on a composition's claim are unsupported.
-A sync class is enabled where both of its moves are: a member action enabled on its own but blocked by
-its partner leaves the sync disabled, and fairness never makes it eligible. The result names every
-assumption it read. A composition with a monitored member is unsupported, as its Queries are.
+`monitor(initial)(next)(violated)` is core; `.readAtEnds` and `.readAfter(p)` move the evaluation
+point from "after every step". `sticky(p)` and `stickyAcross(p)` are sugar for the Boolean monitor
+that remembers one breach.
 
-## Realizations
+**Refused.** Two monitors of one name; a monitor whose next state leaves its catalog (declaration
+error); a Query over a composition one of whose members names monitors (unsupported: whether a
+member's monitors watch the composition is not defined).
 
-The standalone activity's three realizations live in `features/activity/standalone/protocol/Realization.scala`,
-in the level of their subjects. Moving them changes their fully qualified IDs and the package-derived
-evidence, source and producer identities; it changes no transition, Query answer or evidence meaning.
+## 11. Progress
 
-A realization says how the find Queries of one machine run against a system. It declares:
+**Meaning.** A progress claim is bounded liveness: from every reachable state `from` accepts, a
+state `to` accepts follows within `within` steps, on every path the named assumptions admit. It is
+violated by a *deadlock* (a state with no row before a `to` state), a *fair non-progress cycle* (a
+reachable cycle avoiding `to` on which every fair class enabled throughout is taken), or a *missed
+deadline* (`within` steps with no `to` state). Each is reported apart. A search cut by a limit
+proves none of them.
 
-- **roles**, the participants commands and activations address, with the environment bindings a run
-  supplies for them;
-- **learned values**, each a text or a handle, bound once by one command and read by the commands
-  that depend on it;
-- **observations**, each one protobuf message a run records;
-- **kinds of evidence**, each the recorded data that confirms the facts the machine's evidence
-  function names: a member of the history event's attributes, the elements of a repeated field a
-  unary method returns, the one message at a path of a unary method's response, or the Run's own
-  record of one command's events of one kind, where a guard over the event's payload holds, which,
-  where it is what a worker reports of an activation, is declared the record of one attempt, by its
-  number, of the activity one script runs; the
-  field path that keys it to its operation, or, for the Run's record, the source's key, the run's own
-  id or a path of the payload; what it commits to, what a caller was told or a durable commit of the
-  receiver; the fields of the recorded data it keeps, each with the identity it names, if it
-  names one: the operation, the attempt or the delivery; whether its source is exhaustive; and the
-  steps of a path one piece of it confirms, where it names them, each the n-th step of a class,
-  counted from one;
-- a **correlation**: the fields that scope evidence to its run and name its operation, the
-  observation that carries it, and the window a check keeps;
-- **rejection codes**: one gRPC status-code string for every member of the shared
-  `framework.outcomes.Rejection` enum, attached by the system's realization kit;
-- **controls**, the actuators a run needs beyond its commands: one that holds the deliveries of a
-  channel, or one that holds what a step of a class dispatched, which names the task-queue role
-  whose deliveries a run holds it through;
-- **scripts**, each an ordered list of items run by the controller or by a worker for each workflow,
-  Nexus operation or activity that activates it. An activity's script names the classes the delivery
-  of an attempt to its worker is.
+Umpire's temporal claims are these, and safety: no unbounded `eventually`. Weak fairness bounds
+nothing by itself: a finite bound holds only where the graph leaves no path that spends its steps
+elsewhere, which is why the dispatch designs *restrict* the actions that could, rather than assume
+them away.
 
-A script item is a command every Case carries, a command with `when` classes, or a list of
-performances, each the command that performs one class of an action. A command names what it does,
-the commands of its script it runs after, a deadline, and whether it runs whatever became of those
-commands. Without `after` it runs after the item before it; with it, commands that name the same
-predecessors and not each other are independent branches. A command may name the exhaustive kinds of
-evidence its read closes. A command holds what a control holds, or releases it: the hold is done once
-the held thing is held, and the release once what it let go was delivered and what the receiver
-committed for it is observed, which the release's own record carries. A message a command writes out names its protobuf type and the fields it
-sets, and a field it does not name stays unset.
+**Writing it.** In `object properties`, always named:
 
-Scala writes the three modes of an item as `everyCase(command)`, a command;
-`onPath(classes*)(command)`, a command with `when`; and `perform(step -> command, …)`, performances.
-A command's id is the name of the `val` that declares it, in kebab case (`val pauseActivity` is
-`pause-activity`), unless it is written out with `Command(id, …)`. `call.withFields { … }` is the call
-with assignments appended, under the call's command id, so the commands of one call that
-performances bind read as one name; commands of one script share an id only as performances, never
-with a command that is not a performance. A declaration other declarations refer to by value, a
-role, script, actuator, learned value, kind of evidence or command, is written as its id, and a fact
-as its name. A status table, `statusTable(fact -> value, …)`, is read when the IR generator lifts: a
-lookup `table(fact)` writes the value the table lists for the fact, and the table itself adds
-nothing to the IR. None of these forms has an IR field of its own.
+```scala
+val startsWithinOneStep = ServedDispatch.leadsTo("startsWithinOneStep")(
+  states.dispatchable, states.started, within = 1, servedDispatchRuns
+)
+```
 
-`Fault(role, admissionResponseLoss)` releases a previously held activity dispatch and loses one
-committed admission response. The Driver waits for the same request's retry to confirm the response
-replacement was consumed, then reports the original durable admission. Its successful outcome is one
-`FAULT_INJECTED` event, with the instruction's causal coordinates; arming, refusal, cancellation and
-uncompleted loss are not successful faults. Scala supplies the budget, allowed uncertain outcomes,
-recorded evidence and expected assessment. Removing durable evidence does not turn a missing
-response into a rejected admission.
+A composition's claim reads the composed state and counts composed steps, a sync's once. Its
+assumptions select composed steps by structure: `assume.fair(c.synced(_.activity -> worker.poll),
+c.own(_.queue, queue.persist))`. Progress is a model check only: no Case is generated from it.
 
-An activity's script declares linear attempt groups: zero or one heartbeat prefix followed by
-exactly one result, failure, cancellation, context-withheld, or SDK-pending disposition. The groups
-a path places in it are the activity's attempts in path order; legacy terminal-only commands remain
-one group each. Heartbeat is a write, not an answer. SDK-pending is a local disposition and sends
-no Respond RPC. Its record is published after the prefix and before the selected server timer,
-without claiming a future delivery or timeout. Context withholding requires a start-to-close or
-schedule-to-close request-field basis; pending heartbeat withholding requires a heartbeat basis.
-Alternatively, `ActivityExternalSettlement` supplies an explicit timer-free basis: one pending
-attempt is published before the controller's By-ID failure or cancellation. Its typed publication
-wait, held Describe, answer, terminal Describe and bounded cleanup are linked by value. Cancellation
-requires publication before RequestCancel, then RUNNING/CANCEL_REQUESTED before CanceledById.
-The nested `Scheduled` variant completes an unpolled activity through the controller and has no
-activity script, pending publication or held evidence. Both variants use the activity execution run
-learned from StartActivityExecution, never the Testpilot run ID as execution authority. Raw Describe
-attempt counts remain scheduling observations, not SDK delivery identity.
-`ActivityResetSettlement` links one held attempt's SDK-pending publication, on its positive
-per-attempt timer basis, to a bounded held Describe, one typed ResetActivityExecution of the learned
-execution, the selected timer that applies the reset, a terminal Describe and bounded cleanup. A reset
-is control, not an answer: it publishes and settles nothing. The declaration names the attempt group
-the server's next delivery runs, which the server numbers as its first attempt again. A record of
-that group, or a later one, is selected by the restarted number; the Driver admits a fresh delivery
-of that number under that group and replays the same delivery, and no SDK attempt is relabeled.
-Without the declaration, another delivery of an admitted attempt number replays it.
-An invocation record cannot prove server receipt: requested Describe details and count must do so,
-and only an actual HEARTBEAT failure together with the next SDK delivery and completion identifies
-a successful heartbeat-timeout retry. The
-delivery of an attempt is the script's activation, so a step of a class the script starts with is
-performed by no command.
+## 12. Holes
 
-A realization may also carry the system's **API behavior** and its **server steps**
-(.plans/API_BEHAVIOR_HINTS.md). The behavior is facts about the system's calls, not about the
-machine: a **visibility** says when the effect of a write, a method or a kind of asynchronous cause
-(an activity's answer, a workflow task, a Nexus handler's reply, a delivery, a timer), is visible to a
-read, a method, at once or eventually within a wait bound; a **cause bound** says how long one kind of
-cause may take, as an interval a wait looks at and the most it waits. A server step names a class of
-the machine that no command performs, such as an activity's delivery or a timeout, with the kind of
-cause it is and, for a timer, the deadline the realization set. Each hint has an id, derived from
-what it relates (`visibility.<write>.<read>`, `cause.<kind>`), and its declaration's position. The
-behavior also says how the system numbers an activity's attempts (from a positive first number, and
-whether every attempt is of the activity's one run), the limits of an instruction that writes none,
-and whether a run's record order is the causal order of one operation's evidence across sources;
-the lowering writes each into the Case's Program as declared, and admission refuses a first attempt
-number or a limit of zero or less. No table, ID, fingerprint, Query answer or Contract reads
-either; they shape only a lowered Case's Program, and conformance reads whether attempts are of one
-run. Admission refuses a hint with no id or one another hint took, a
-visibility that names no write or no read or a pair another names, a cause bound of no known kind or
-of a kind another bounds, a cause bound with no bound, a bound or interval of zero or less, an
-interval greater than its bound, and a server step that names no class of the machine, a class
-declared twice or one a command performs, a kind the realization bounds no cause of, a timer with no
-positive deadline and a deadline on a step that is no timer; each at its declaration's position.
-Whether the API binds a write to POST and a read to GET is read from descriptors where waits are
-derived, by the lowering, which refuses a visibility that names otherwise at its position, and a
-command that calls a method bound to neither.
+**Meaning.** A declared hole names behavior the Model leaves unknown on purpose. A row that reaches
+one is neither disabled nor an error: a check that explores it reports its result *incomplete*,
+naming the hole and the row, and keeps everything else it established. A violation found elsewhere
+stays a violation. A `match` with no case for a value is an *undeclared* hole: the same, with no
+declaration to account for it.
 
-The lowering derives a read's wait from the behavior. A read is a poll, or a call bound to GET that
-reads its response; a write is a call bound to POST, or a command of a worker's script, which is the
-kind of cause its activation is (an activity's answer, a workflow task, a handler's reply). A script
-synchronizes at each read. A poll that writes no interval waits as derived: if a write of its own
-script performs the step its evidence confirms, that write's visibility decides, and the poll reads
-once when it is at once and polls within the visibility's bound when it is eventual; otherwise it
-polls within the sum of the bounds of every asynchronous cause between its script's last
-synchronization and that step (a timer's bound is its deadline and then its slack), plus the
-visibility's bound where the write that performs the step is eventual, at the smallest interval
-among them. The Case's wait names each hint with its position, and its timeout is their sum. The
-lowering refuses, at the read, a write in that window with no declared visibility to the read's
-method, naming both; a step no command performs and no server step declares; and a cause whose kind
-the realization bounds not. A call that reads is checked the same way but never waits: one after an
-eventually visible write is refused. A closing read and a poll that writes its own interval check
-nothing; in a realization that declares a behavior, such a poll is lint's `explicit-wait` finding,
-kept only where an acceptance records why no hint covers its wait. A poll left to derive its wait
-that writes a deadline is refused. A realization that
-declares no behavior has its calls that read taken as written.
+A hole inside a claim's predicate is unknown evidence at that step: the claim neither holds nor
+fails there, and the search does not continue through it. A hole reached outside any step (a start,
+an `end`, a refinement map) leaves that machine without a table, and everything that depends on it
+is incomplete; every other machine is checked as if the hole were not there.
 
-A realization carries no Case and decides nothing a Query's path decides. Lowering a find Query
-through it is the same for every realization:
+**Writing it.**
 
-1. The Query's witness is the path: the classes its pinned Scenario lists, with the steps the search
-   found.
-2. A script becomes one entrypoint. A plain command is carried by every Case; a command with `when`
-   by the Cases whose path takes one of those classes; a performance by the Cases whose path takes
-   its class, once per step that takes it, in path order, a class taken again under its ordinal. A
-   step of the path that an actor takes and neither a performance binds nor an activity script starts
-   with is refused; a step of the system needs no command.
-3. A command that reads a learned text runs only where every one it reads is bound.
-4. A step of the path is confirmed by one kind of evidence, and one piece of a kind confirms each
-   step once. A kind that names a step confirms it, and must record one of the step's facts. Any
-   other step is confirmed by the kind that records a fact of its class, the first the path meets,
-   among the kinds that name no step. A kind that names several steps confirms them all by one piece
-   of evidence, with the steps between them that record nothing: it confirms every step it names or
-   none, and no other kind's evidence lies between them. A class the path takes again, and a second
-   step that records a fact another step's kind already confirmed, therefore each need a kind that
-   names the step; a step that records a fact evidence names and is left with no kind of its own is
-   refused, and so is a kind two steps would both be confirmed by. A step that records nothing the
-   evidence names is confirmed with the next step that does, and listed as a Known Gap. A kind is
-   carried where it confirms a step of the path or records another result of a row the path takes,
-   and an exhaustive kind is carried by every Case: where it confirms nothing of the path it is
-   declared, lifted by its closing read, and given no meaning in the Contract.
-5. The Property is lowered to the clauses that say the same thing over the machine's table: over the
-   steps its `when` admits, a state, an outcome and facts are fixed where every accepted step carries
-   them and the predicate rejects every accepted step with them changed. Each clause is due within as
-   many of the operation's transitions as the Scenario places before the Property's action. A
-   predicate the clauses cannot carry exactly, and a transition Property, are refused.
-6. The Contract's transition table is the machine's rows under the actions the evidence confirms,
-   from the Scenario's start.
+```scala
+val crashUnmodeled = hole                          // named after its val
+def crash(s: State) = if s.stage == Stage.staged then crashUnmodeled.reached else disabled
+```
 
-A verify Query is searched and realizes nothing. A find Query whose machine declares no realization
-has none to be lowered through. A Query with no witness is no Case.
+A stuck-state finding is not reported for a state with a hole: the hole already says unmodeled
+behavior may happen there.
 
-A value a command or a source computes is typed. A condition is a presence test, a comparison of
-two values of one type, an order of two numbers, the negation of a condition, or a conjunction of
-conditions, which is read left to right up to the first that does not hold. Presence is of a message
-or of a oneof member: a scalar a message holds is present whatever its value, so a condition that
-means a positive number or a text that is not empty says so. A path is of a message, to any depth: a path of a
-path is read against the message the inner path reaches. A guard of the Run's own record is a
-condition over the event's payload and reads nothing else: it writes out flags, numbers, texts and
-enum values, and no name a Case binds, since a recorded Run holds no such binding. Its paths name
-fields and oneof members, each one flag, text, enum value, signed integer or message. Its key is the
-run's id or one text or integer of the payload. What a well-formed guard is has one reading
-(`GuardProblem`, over `TypeOf`, in `tools/umpire/realization`), which admission makes with no descriptor, the lowering
-with the payload's, and the evaluation on a recorded Run with the payload's again, so a guard one of
-them refuses is refused by all, in the same words, by the first that can know. A guard that cannot be evaluated on an event, because it reads a field the
-payload's type does not have, compares or orders a value that is absent, or is no condition, is an
-error at that event and is never read as a guard that does not hold. A value the payload does not
-hold keeps the type its descriptor gives it, so what is wrong with a guard's types is an error on
-every event, and only the absence of a value it compares depends on the event.
+## 13. Refinement
 
-Scala authors name protobuf messages by generated types, unary methods by generated method
-constants, and fields and enum values through typed selections. The IR generator writes their descriptor
-names into the same IR paths and operands defined above: nested fields use dots, repeated elements
-use `[*]`, and a oneof arm uses `<member>`. A constant message still writes only its declared
-fields; a map key such as `Payload.metadata`'s `encoding` is data, not a field selection. A Run
-Event's payload arrives dynamically, so its author names `InstructionOutcome` as the root of
-its guard and key selections. These types constrain authoring but do not change the IR's meaning.
-Scala does not instantiate or send Temporal messages. Go independently validates descriptors and
-paths when it lowers an IR, including one edited by hand or emitted by an older IR generator, and Testpilot
-executes the resulting Case.
+**Meaning.** A feature is read at two levels: the *Product*, what a caller sees, and the *Protocol*,
+how the server gets there, which *refines* the Product. A refinement is a map from the refining
+machine's states to the refined machine's, and the check is: every start maps to a start, and
+every row result is carried by a product row from the mapped source to the mapped target with the
+same outcome and the facts the product sees, or else source and target map to one product state
+and the step is a *stutter*. Where both phases carry roles, closedness is preserved as well: a
+state is `Closed` exactly when its image is (checked in the model tests, since the IR has no roles).
 
-What a Run's evidence says of the machine is the same for every reader that assesses a Run against
-it:
+A refinement narrows permission (the Protocol does nothing the Product forbids) and does not by
+itself carry obligation: a Product Property holds of the Protocol only where a `verify` Query reads
+it `through` the refinement, and a progress claim only where the Protocol declares its own.
 
-- Evidence proves what it reports and nothing of what it does not: a step that records a fact no
-  observation reports may still have happened. The one exception is declared. A kind of evidence is
-  `exhaustive` when its source reports every occurrence of the facts it records, for the operations
-  its closing read covers, and one command of the realization, which every Case carries, names the
-  kind in `closes`. The Run's own record of a command is closed by that command, which may perform a
-  step: a Case that does not carry it has no record of the kind, and nothing is inferred from it. On a Run that closed complete, where that command's last completion is a success
-  and the ordinals of the kind's source are unbroken, a step that records a fact of a kind the Case
-  carries has an observation of it, and a step taken without one did not happen. Short of any of
-  that, and for a kind the Case does not carry, absence says nothing.
-- A field with the role `attempt` or `delivery` names the attempt or the delivery its evidence
-  belongs to: two observations that name different ones are not facts of one step. A field with the
-  role `operation` repeats the operation the evidence is keyed to, and evidence whose field and key
-  differ is crossed and is read as neither. A redacted field is carried without its value and names
-  nothing.
+**Writing it.** `object refinement`, the second section:
 
-A reader lowers a realization only into what its runtime can run. What a realization declares that
-the runtime has no primitive for is reported with the declaration's position, and the Query has no
-Case: nothing is lowered around it. A realization and a path are read whole first: what is wrong with
-either is an error, every one of them, and is reported before any such gap: what the realization
-writes against its descriptors, a step no command performs, a Query with no witness, a Property
-that does not lower, and, of a realization sound in itself, everything the producer decides before
-it writes a Case, such as a fact of the path no kind of evidence records. A Property whose
-predicate cannot be read on a step, because it reaches a hole there, is not lowered: a step it cannot
-be read on is not a step it rejects.
+```scala
+object refinement extends Refinement(JobProduct):
+  def toProduct(s: State): product.State = s.phase match
+    case Phase.queued | Phase.backingOff => product.State(product.Phase.queued)
+    case Phase.running                   => product.State(product.Phase.running)
+    case Phase.done                      => product.State(product.Phase.done)
+  def visible(f: Fact): Boolean = f match           // the facts the Product sees; optional
+    case Fact.pendingAttempts => false
+    case _: Fact.finished.type | _: Fact.started.type => true
+  def visibleOutcomes(o: Outcome): Boolean = false   // optional
+  val unobservable = List(timers.backoff)            // timers whose step records nothing readable
+```
 
-## Results
+`visible` narrows both halves of the rule: a carrying product result records, by name, every fact
+the result records that the product sees, and a stutter records none of them. A refinement that
+names none reads every fact. `visibleOutcomes` narrows the stutter: its outcome is none of them.
 
-A check's result is one of these, which are kept apart:
+**Refused.** A `visible` on a machine that refines none; a machine refining two. A rejected
+refinement is a result of its own, `refinement-rejected`, with the rule broken and a witness, and
+every Query read through it answers with that rejection.
 
-- `admission-error`: the Model is rejected before any check ([Admission](#admission));
-- `declaration-error`: a declaration cannot be read as the IR says it is. A function a declaration
-  reads as a Boolean, a machine's or a composition's `ends`, a refinement's `visible` or
-  `visible_outcomes`, or a claim's function, that returns another value is one, at that declaration,
-  and so is a monitor state outside the monitor's state type. It is never read as `false`;
-- `resource-limit`: a ceiling of the scope refused the work before any of it was done;
-- `limit-reached`: a search's `search` Limit cut it; `unresolved`: a progress check's depth left
-  reachable states unexplored. Neither proves anything;
-- `refinement-rejected`: a refinement does not hold, with the rule it breaks and a witness;
-- `counterexample`, and `found` for a `find`: a witness, which holes the check also read do not take
-  away;
-- `verified-within-limits`, and `not-found` for a `find`: the claim holds on everything the scope
-  reaches, and the check read no hole;
-- `incomplete`: the check found no witness and read a hole, which it names with the row. A hole no
-  explored path reaches, one past the step bound and one a pinned Scenario does not schedule are not
-  read;
-- `unsupported`: the reader does not check the declaration. It is listed, and is no check;
-- `replay-failed`: a witness did not replay through a second interpretation of the Model. It is an
-  error, whatever the result said.
+**Design note.** The Product is written first and never imports the Protocol; the Protocol is
+written against the same actions, so a Property proved on the Product is carried to the Protocol
+by the refinement rather than restated.
 
-A result names the table it read by its Definition ID and Behavior Fingerprint, the limits it ran
-within, the assumptions it relies on, and the work it took. No source position enters a result but in
-where it points.
+## 14. Derivations
 
-Where one declaration's result is made of several, the members of a composition, a search and the
-refinement it reads through, a result and the replay of its witnesses, it is the one of the highest
-precedence, the first of several: an error (`replay-failed`, `admission-error`, `declaration-error`),
-then a violation (`refinement-rejected`, `counterexample`), then a limit (`resource-limit`,
-`limit-reached`, `unresolved`), then `found`, then `incomplete`, then `unsupported`, then what held. It
-names every hole any of them read and keeps every witness, and a `verified-within-limits` or
-`not-found` beside a hole is `incomplete`. A `found` witness is realized and is not undone that way: it
-stands beside a result a hole leaves incomplete, with that hole named.
+**Meaning.** A derived machine is another machine with one thing changed, keeping everything else
+(start, end, evidence, monitors, assumptions, refinement, phase projection). It is how a Model
+holds a design beside its variants: a negative control that must fail, a failure model that must
+still hold, a restriction that isolates one path.
 
-## Admission
+**Writing it.** An object of its own, in its package's family; the derivation is one expression:
 
-A reader rejects, before any check and at the position the IR gives, a Model that:
+```scala
+object StiffLamp extends Derived(Lamp.rebind(user.press ~> Lamp.effects.pressStiff))
+object FaultyLamp extends Derived(
+  Lamp
+    .extend(on(fault.burnOut) { where(_.light == Light.on) ~> Lamp.effects.burnOut })
+    .refining(ViewUnderFaults)(seen)
+    .assuming(burnOutAssumed)
+), FailureModel
+object PlainLamp extends Derived(Lamp.unmonitored)
+object OnlyOn extends Derived(Lamp.restrict(user.switchOn))
+```
 
-- is of a version it does not know, or uses a declaration or a field it does not implement;
-- names a type, function, action, machine, composition, channel, monitor, assumption, hole, Property
-  or Scenario it does not declare, or calls a function or binds a step at another arity;
-- gives a state field or a monitor state a type with no finite catalog: a list, or an integer with no
-  range;
-- declares a channel of capacity below 1 or duplicates below 0, or with a message type that has no
-  finite catalog, a state type that holds one channel in two fields, a delivery or loss of a channel the machine's state does not hold, a lossy channel whose
-  holder binds no loss, or a loss of a reliable channel;
-- declares Limits below 0, or a progress claim within fewer than one step;
-- declares a Query total below 0, one that is not the Query's static combination count, or one for a
-  Query whose count is more than an int64 holds;
-- gives an example to an action that takes other than one input, or an example that is no member of
-  that input's type;
-- names the facts or the outcomes a refined machine sees on a machine that refines none, or a member replacement that
-  names no member or whose member does not declare a refinement of what it replaces;
-- pairs a Property with a Scenario of another machine, other than through the Scenario machine's
-  declared refinement of the Property's machine;
-- declares a Property of a composition about a class, or about an action, that no class of the
-  composition is of, or a Scenario of a composition over a key that is none of its classes;
-- declares two monitors of one name, or two different declarations under one Property, Scenario,
-  Query or progress key;
-- contains a function that calls itself, directly or through others;
-- declares a realization with no id or no name, two under one id or one name, one of a machine it
-  does not declare, or one with no correlation; a
-  rejection-code table that is empty, incomplete, duplicated, names an unknown or unspecified
-  rejection, or gives a rejection an empty code; a
-  role, learned value, observation, kind of evidence, control, script or command with no id, or two
-  of one kind under one id; a kind of evidence that names no recorded kind, no source, no operation
-  key, nowhere it is recorded or no commitment, or two kinds for one recorded kind that both name no
-  step they confirm;
-- declares a kind of evidence that confirms a step of no class or of a class the realization's
-  machine does not bind, a step counted from below one, or one step twice; two kinds that confirm one
-  step; an exhaustive kind that names the steps it confirms; or a kind that names its steps and
-  records a fact an exhaustive kind records, since an exhaustive kind is the one kind of its fact;
-- declares evidence that is the Run's own record of no known kind of event, of a script or a command
-  the realization does not declare, with a key that is neither the run's id nor a path of the
-  payload, with a guard that reads anything but the payload or writes out a name a Case binds or a
-  value that is no flag, number, text or enum value, or with an operation path beside its key; or
-  polls such evidence;
-- declares the Run's record of an attempt of no script, of a script it does not declare or that no
-  activity activates, of a script that starts with no delivery, of an attempt counted from below one,
-  or as an event that is no diagnostic, or declares a diagnostic the record of no attempt;
-- declares a field of evidence with no id or no path, two fields of one kind under one id, a field
-  whose role is none it knows, a role on a redacted field, or two fields of one kind with one role;
-- declares an exhaustive kind of evidence that no command closes; or closes a kind that is not
-  declared or not exhaustive, one kind by two commands, a kind by a command that does not read it (a
-  history kind is closed by the read that lifts it, the Run's own record of a command by that
-  command, any other by a poll of it), or, unless the kind is the command's own record, by a command
-  some Cases do not carry;
-- declares a control that holds what a step dispatched and names no class its machine binds, or no
-  task-queue role;
-- fails an attempt, answers one as canceled, or withholds its answer, in a script no activity activates;
-- withholds an attempt outside an on-path item naming exactly one armed positive-deadline server
-  timer, under a performance, or by two commands for the same timer of one script;
-- names, in a realization, a role, learned value, observation, kind of evidence, control, channel or
-  command it does not declare, a role of another kind than its use needs, or a class the
-  realization's machine does not bind;
-- binds a learned value by two commands or by none, reads a text as a handle or a handle as a text,
-  reads a learned value in a command that runs whatever became of the commands before it, or
-  performs one class by two commands, or by a command and the activation of an activity script;
-- keys a realization's runs and operations by one field, lifts evidence into an observation the
-  correlation does not read, or observes a value into the one it does;
-- orders the commands of a script in a cycle;
-- declares a script item that is neither a command nor performances, or both; a command with no
-  instruction or a deadline below 0; an operand or a written value of no known kind, or a conjunction
-  of no operand; or a written message with no name or a field set twice;
-- orders what is written out as no number, negates or joins what is written out as no condition,
-  compares two written values of two types, two enum values it writes out, or a message, reads a
-  path of what is no message, polls until what is no condition, or guards the Run's own record by
-  what is no condition or by a path written as no field or oneof member.
+| Derivation | Keeps | Changes |
+| --- | --- | --- |
+| `restrict(actions*)` | state, start, end, monitors, assumptions | keeps only the named actions' rows; drops the refinement |
+| `rebind(a ~> e)` | the action's rules, their guards and classes | their effect; refused where the source's rules of one action have different effects (unless each fires one class) |
+| `rebind(on(a) { where(g) ~> e })` | the rest | replaces the action's rules; cases are `where`/`always` only |
+| `extend(on(b) { ... })` | everything | adds rules for an action the source does not bind |
+| `refining(M)(map)` | everything | replaces the refinement |
+| `assuming(a*)` | everything | appends assumptions, each once |
+| `unmonitored` | the transitions | drops monitors and refinement, for a composition member |
 
-The IR generator refuses the ones it can see at the Scala line that declares them; a Model written some
-other way meets the same rules at its reader.
+A derived object adds only its own `states`, `properties`, `capabilities` and `queries`, and mixes
+in no `Phased` of its own: it reads its source's.
 
-## What the reader implements
+**Markers.** `NegativeControl` marks a deliberately wrong design the checks must refute; the IR
+generator refuses one no lifted Query can refute (a `verify`, or a Run expected violated), one that
+something refines, or one that declares a refinement. `FailureModel` marks the real design under a
+fault the environment can cause; it must bind a fault (an action of the actor `fault`) and not every
+Query of it may expect violation. A machine that binds a fault and is marked neither is refused.
+Markers change no name, ID, table or answer.
 
-The rules for the specimens' constructs are above: channels and the
-redeliveries derived from them, monitors, assumptions, holes, scoped replacement in a composition, the
-visible projection of a refinement, Claims and progress. An internal action (`internal`) is a step of
-the system that is not a timer. `tools/umpire/interp.Build` interprets Values through
-Machines, Channels and Holes, `tools/umpire/ir.Validate` applies the [Admission](#admission) rules,
-calling `realization` for realization admission. `tools/umpire/check.Check` binds
-monitors, assumptions, compositions, Claims and progress claims to the private table engine and
-gives each declaration one of the [Results](#results). What `Check` does not answer it reports as
-`unsupported`: a Query over a composition a member of which names monitors and a `find` with
-`through`. A `find` of a transition Property remains a declaration error. Transition verify supports
-class and action selectors and preserves the before-state when it reads a selected step.
+## 15. Facets
 
-The emitted Case is exactly format 4.0. Neutral runtime operands lower to native canonical CEL
-operators; they never replace the finite Model expression evaluator. Each reference binding has
-descriptor-exact type and presence, expressed through the pinned native CEL optional extension:
-`.hasValue()` tests true availability, `.value()` errors on absence, and boolean short-circuiting
-can guard a read. Missing map members and nested optional messages remain absent; ordinary protobuf
-scalar defaults remain values. Runtime errors, cancellation and exhausted cost budgets never mean
-a false predicate. Online execution, offline Contract replay and Run Event conformance use the same
-native evaluator and source-site diagnostics. Whole-millisecond protobuf Duration bounds are
-checked before integer arithmetic; omitted instruction bounds inherit defaults, omitted read
-intervals read once, explicit polling intervals must be positive, and recorded elapsed coordinates
-are present, nonnegative and monotonic. Evidence extraction declarations remain independent from
-Contract retention policy. Complete local states include ordered fields, results include action,
-destination, outcome and facts, and each prior-state/result transition independently authorizes them.
-Expanded payload work is charged before enumeration, so local interning never bypasses ceilings.
-Payloads decode through the Case's descriptor catalog alone: an extension field stays an unknown
-wire field the payload retains, whatever extensions the process links.
-Format 4 also applies Profile response-byte/fanout source ceilings to typed Run Event payloads
-before native snapshot. Raw-wire and decoded-member accounting excludes the adapter-generated
-canonical type URL; envelope/name, packed traversal and sorting work reserve separately. Over-cap
-inputs fail atomically with the same located LimitExceeded online and offline.
+**Meaning.** A facet is one behaviour area of one machine at one level, named as a noun
+(`Pausing`, `Timeouts`). A machine is assembled from its facets, in facet order, and lifts as if
+every facet's sections were written in it: same rows, same outcomes and facts; only function names,
+positions and binding order differ. A facet *owns* the actions it binds, all their rules and the
+effects they use; two facets binding one action are refused.
 
-`tools/umpire/lower` lowers a find Query through its [realization](#realizations) into a Testpilot Case
-with its private producer. The Query it gives the producer is the one `Check` answers,
-from the same binding (the reader's `Realizer`): one Property read on one step record, its explanation
-included, over the machine's table with its hole rows as unknown pairs. That table also carries the
-state fields and Abstraction Claims. The realization is translated declaration for declaration. It checks what a realization writes and reads against the protobuf
-descriptors it names, at the declaration: a message, field, enum value or method the descriptors do not have, a
-value of another kind than its field, a message written where another belongs, a path that does not
-resolve, and a value observed into an observation of another message. It reads the path selectors
-`field`, `field[*]` and `oneof<member>` and refuses the others. It lowers an activity's script to
-the attempts of an activity entrypoint, a failing one as an attempt failure and never as a result
-that is a failure, and refuses, where they are written, what Testpilot would refuse: a command of
-that script that neither answers an attempt nor withholds it until an armed server deadline, a failure that is neither an application failure nor
-one of no kind, and a poll's condition that reads the run, its environment or a learned value. It
-types a poll's condition and the guard, the key and the fields of the Run's own record against the
-descriptor of what they read, the instruction outcome for the Run's record, and refuses, as an error
-at the declaration and before any gap is said, a condition that is none, an order of what is no
-number, a comparison of two types or with a name an enum does not have, and a key that is no single
-text or integer. It lowers evidence that is the Run's own record to a Run Event declaration under
-the lowered guard, at the controller's instruction the source names and keyed by the Run or by the
-payload's path, and refuses such evidence of a command no controller runs; evidence read from one
-message to a single read; a kept field to the Program's field declaration and the Contract's retained
-field, as the text, flag or unsigned integer its descriptor makes it; and an attempt answered as
-canceled to the instruction of that name. An activity script's `onPath(deadline)(attemptWithheld)`
-lowers to Testpilot's existing ActivityAttemptWithholding: it offers no answer until the attempt's
-context deadline ends it. The deadline remains a server timer, not a worker performance or carrier.
-The timer must be armed and positively bounded, and a selected path must take it exactly once,
-since one on-path item emits one withholding instruction. Attempt records publish at that deadline
-end, so the same evidence-order check applies as at an answered attempt. It lowers the hold and the release of a control that holds
-what a step dispatched to the Driver's delivery controls of the control's task-queue role, which a
-Profile admits only where its environment supplies a delivery control; and evidence of a durable
-commit where it is the Run's own record, of the release that observed it. A machine's monitors are no
-part of a Case: the prepared assessment reads each beside the Contract. Six things have no task that
-owns them and are named as limits of the prototype. A durable commit read back through an RPC or from
-history: neither reports a commit of the receiver. A control that holds the deliveries of a channel,
-and a command that holds or releases one: a Driver holds only what a step dispatched to a task queue.
-A redacted field: a lift reads a value for every field its evidence declares, so none
-carries a field without its value. An attempt of an activity the path starts and gives no answer: an
-activity entrypoint must declare an answer or an armed withholding instruction for each attempt. And the record of an
-attempt that a Run would record out of the path's order, which the Contract reads evidence in. And
-the record of an attempt in a Case that runs two activities: a Run records an attempt at the command
-that carries it, by its number and under no script's name, and the one carrier of a Case carries
-every activity the Case gives an instruction, so neither the Case's guard nor `admits` can tell the
-attempts of the two apart. When a
-Run records a piece of evidence is read from declarations and never from the kind of event it is.
-What a worker reports of an activation is always declared the record of an attempt, so no such
-evidence is placed by a guess.
-Evidence declared the record of an attempt reaches a Run once that attempt is answered: with the
-step of the path that is the script's answer of that number, before that step's own evidence. Any
-other evidence is recorded by an instruction of the controller and reaches the Run as the controller
-runs it. A record that confirms steps before other evidence and is answered after it, or confirms
-steps after other evidence and is answered before it, has no Case. Neither has a path confirmed by
-two kinds that are the record of one attempt, which the Run records as one Run Event, evidence of
-one kind. A record of an attempt the path
-never starts is an error. The lowered guard of such a record also says the record is of the attempt
-its source names, after the source's own guard, so the runtime selects the record by the declaration.
-For the evidence the controller records, the Case itself is checked: each kind that confirms a step
-has an instruction that records it, and the instruction of a later kind is the same one or runs after
-the instruction of an earlier kind, by the order the script is written in and the instructions it
-names to run after; anything else is an error. Two orders are Testpilot's and are assumed, since no
-declaration fixes them: that the completion of the call that carries an attempt is recorded before
-the attempt's record, and that an attempt's record is recorded before the status read after its
-answer. A Run that breaks either carries evidence the Contract refuses, and is incomplete, never a
-wrong Verdict. Each gap is named where it was written. A monitor, a kind of
-evidence and a control are the realization's, and stand in the way of every Query of it. A command
-Testpilot cannot run, an unanswered attempt, a late record and a record among two activities stand in
-the way of the Queries whose path meets them and of no other: a command off a Query's path is listed as off the path, and the
-Case's inventory accounts for it as a command the path does not perform. A path that takes one class
-more than once is lowered like any other, each step confirmed by the kind that names it; what the
-producer refuses of such a path is an error. The inventory of a Case checks what it carries of a kind
-against the declaration, both ways: where it is recorded, the guard and the instruction of the Run's
-own record, the fields it keeps, the steps it confirms, and the closing read of an exhaustive kind,
-which every Case carries. A Case is over one operation.
+**Writing it.** A trait in its own file, holding one object named after it:
 
-`tools/umpire/conformance` assesses a Run against the Model through the Query the reader's `Realizer` binds, and
-reads the Run's evidence as [Realizations](#realizations) says. Beside the fields a realization
-gives a role, it reads the activity attempt a Run Event records with the evidence it carries, the
-Run protocol's typed data, as that evidence's attempt and delivery: where a field and the event name
-the same identity they must agree, and the evidence of one operation is of one activity run. Its
-`admits` says whether a Run Event is an occurrence of the evidence a Run Event source declares, by
-the event's kind, the command that recorded it, the number of the attempt the event records where
-the source is declared the record of one, and the source's guard, which it checks by the one reading
-above before it evaluates it. The script such a source names it cannot read off the event, which is
-why a Case that runs two activities is not lowered. Evidence of a kind that is the Run's own record is read only
-from a Run Event its source admits: on any other event it is refused at that event, and a guard that
-cannot be evaluated there is an error. The assessment reads a kind by the fact it records and not by
-the steps it names: a piece of evidence may be explained by any step that records its fact, which
-keeps more executions than the Contract's reading of the same piece and rules out none that
-happened.
+```scala
+trait Pausing extends Facet[State, Outcome, Fact], Phased[State, Phase]:
+  this: Completion =>                     // facets whose steps it uses, as a self-type
+  object pausing:
+    object effects: ...
+    object rules extends Rules:
+      on(client.pause) {
+        when(Phase.queued) ~> enters(Phase.paused)
+        when(Phase.running) ~> effects.pauseHeld
+      }
+    object capabilities extends Capabilities:
+      val pausable: Capability = Pausable(pause = client.pause, unpause = client.unpause)
+    object properties: ...                // each Property declared once, in the facet whose promise it is
+    object queries: ...
+```
 
-The Scala framework's own composition starts from each member's first start only. The reader composes
-every start, as [Compositions](#compositions) says; bringing the front end in line
-is future work.
+The machine mixes them in and lists their rules and capabilities:
 
-Two narrowings came from the specimens' evidence:
+```scala
+object JobProtocol
+    extends Machine[State, Outcome, Fact], Phased[State, Phase](_.phase, (s, p) => s.copy(phase = p)),
+      Dispatching, Pausing, Completion:
+  object rules extends Facets(dispatching.rules, pausing.rules, completion.rules)
+  object capabilities extends FacetCapabilities(pausing.capabilities)
+```
 
-- **Machines 6.** A stutter records no fact the product sees only where the refinement names what the
-  product sees. `activityProtocol` names nothing, so its 240 stutters that record a product fact
-  (finding F3) are read as before.
-- **Expressions, `match`.** A value no case matches is an undeclared hole, apart from the admission
-  errors a reader rejects and from declared holes (finding F4).
+Two lifter switches hold the Temporal Models to this: `facets-only` (a declared `Machine` keeps
+rules, effects and capabilities only in facets) and `facet-vocabulary` (each feature file names
+its facets once, `enum FacetName`, and an action bound at both levels is owned by the same-named
+facet at both). What stays machine-wide: phases, `State`, `init`, `end`, the projection, the
+refinement, monitors and whole-feature claims.
 
-## Generated Case expectations
+## 16. Capabilities
 
-Source `.live(expectation)` marks an authored Query for live Case generation and supplies
-`expected_run`; capability expectation bindings supply it on generated Queries. An authored
-Query without `.live` generates no live Case. Convenience expectations and full `RunExpectation`
-values whose Property or Contract outcome is not satisfied require non-blank `because` text,
-as does each non-satisfied nested `MonitorExpectation`. A full Run whose Property and Contract
-are both satisfied cannot supply that text, even if its conformance is short of conformant;
-satisfied monitor values also take none. The text explains the author's expectation only and
-remains source-only: it adds no IR, Case or assessment field and cannot supply or change judge
-explanations. Existing reason IDs and `expected_run` fields below are still emitted and compared.
+**Meaning.** A capability binds a reusable protocol to one machine's vocabulary: which outcome
+rejects a closed request, which class pauses, which timer expires. Its companion defines the
+Properties that use those bindings. Declaring the capability *brings* those Properties, each
+expanded into a Property, a Scenario and a Query named `<machine>.<property>` (or
+`<machine>.<val>.<property>` for a capability declared several times), with the companion def as its
+`origin`. A Property that reads two kinds is brought only where both are declared. Nobody calls it.
 
-A Query's optional `expected_run` is test metadata, not a transition, search assumption, refinement,
-or evidence filter. Every Query that generates a live Case must supply it. It declares the Contract's
-Verdict (`contract`: satisfied or violated), how the Run ends (`disposition`, as Testpilot's
-RunDisposition names it) and how its cleanup ends (`cleanup`), the expected trace conformance and
-the selected Property's outcome; each monitor attached to the Scenario's machine must be named exactly
-once. Each is declared and none is inferred: an unset contract, disposition or cleanup is an
-admission error, as are unknown statuses, missing monitor names and duplicate names. An
-inconclusive or violated outcome names its reason, a satisfied one none; a reason is the judge's id
-(`RunExpectation.Reason`), whose wording only the judge has. `conformance_reason` is the judge's
-reason for the conformance, from the same ids, set exactly when conformance is not conformant: the
-reader refuses one on a conformant expectation, none on an expectation that is not conformant, and
-an unknown id, at the Query's position. Lowering refuses a contract and disposition
-`testpilot.ConcludeVerdict` cannot conclude together, at the Query's position. The live checker
-retains its own independent semantics; an expectation cannot change its result. A live Run is
-compared with it value by value, each reason by id, never by the assessment's prose.
+A facet *declares* capabilities; a capability is named as an adjective (`Pausable`) and never names
+a facet. Temporal's split by level: `capabilities/product` (`Closable`, `Pausable`, `Pollable`,
+`Terminable`, `Describable`) and `capabilities/system` (`Retryable`, `Expirable`, and the named
+laws `Exclusive`, `Fenced`, `Idempotent`).
 
-The version-1 Case manifest lists every Query and its lowering standing, names the canonical Case
-file of each lowered Query, and carries its declared expected assessment. Readers reject unknown
-versions/fields, trailing data, duplicate Queries or file names, unsafe paths, and incomplete or
-invalid expectation metadata. Checking regenerates the complete inventory in memory and under a
-temporary root before comparing it; publishing uses a lock and a complete staged directory, with
-rollback if its final rename fails. A crash between the directory renames leaves `.previous` and
-`.lock` for explicit recovery; subsequent publication refuses to overwrite that recovery state.
+**Writing it.** A case class extending `CapabilityOf[S, O, F]` with a companion `CapabilityKind`
+whose defs take the model, then fields by name:
 
-## Exploration and legal reductions
+```scala
+final case class Closable[S, P, O](rejected: O)(using Phasing[S, P], ...) extends CapabilityOf[S, O, Nothing]
+object Closable extends CapabilityKind:
+  type Closed = framework.Closed            // an owned role counts as a field
+  def terminalStatesAreFinal[S, P](m: Declares[S])(using phasing: Phasing[S, P], ...): Property[S] =
+    m.property holdsAcross ((before, after) =>
+      !phasing.roleCases[Closed](m.name).contains(phasing.phase(before)) ||
+        phasing.phase(after.state) == phasing.phase(before))
+```
 
-`Query.exploration` is optional metadata for a pinned, non-`through` find Query. Each variation
-replaces one distinct prefix position with one finite action sequence, possibly empty. The final
-Scenario action is preserved. Names are nonempty and unique within an axis and may not contain
-`+`, the separator of the candidate tuple. Admission rejects unknown classes, empty domains,
-invalid indexes, nonpositive Run budgets, negative edit budgets, and Cartesian products above
-4096 combinations. Axes are ordered by position; candidates by decreasing summed priority and then
-lexicographic tuple name. This exhaustively enumerates the declared finite domain, not arbitrary
-parameter values, runtime schedules, or undeclared scenarios. Lowering refusals remain explicit
-candidate rejections and are never counted as covered executions.
+Declaring, waiving and bounding:
 
-A candidate is a cloned IR model with the authored Scenario edits, rechecked by the reader and lowered
-through `tools/umpire/lower`. A deterministic protobuf digest identifies that edited model; the Case
-identity covers its exact canonical bytes. JSON protocol and proposal envelopes preserve those
-bytes, including literal protobuf field-path angle brackets. The Run budget limits actual candidate
-attempts. Runtime coverage reports selected, covered, violated, attempted, unrealizable and pending
-targets separately, and remains sampled even when every finite candidate has been attempted.
+```scala
+object capabilities extends Capabilities:
+  val closable: Capability = Closable(rejected = Outcome.rejected(Rejection.notFound))
+  val retryable: Capability = Retryable[State, Phase, 2](
+    failure = worker.finish(Result.failed), retryable = true,
+    attemptCount = states.attemptCount, maximumAttempts = states.maximumAttempts,
+    retriesRemaining = states.retriesRemaining)
+  except(Closable.closedIsRejectedUniformly[State, Phase, Outcome], because = "...")
+  overriding(Pausable.pausedIsNotDispatched[State, Phase] -> properties.ownVersion, because = "...")
+  overriding(Retryable.failureEndsFailed[State, Phase] -> properties.resetFirst, because = "...",
+    of = Seq(retryable, fatal))             // only these instances
 
-`drop_prefix` permits a single reverse sweep of deletions before the final action, bounded by
-`edits`. Every deletion re-enters the original checked lowering path: a missing prerequisite,
-unsatisfied Query, invalid evidence mapping, dangling learned value, or broken script dependency
-rejects the edit before a Run. The existing replay algorithm requires two fresh Runs with the same
-failure key before retaining an edit. A proposal is emitted only after a complete uncapped sweep;
-its embedded model, target and descending edit recipe must regenerate the exact model digest,
-Case identity and Case bytes on read. This is bounded local minimization, with no global-minimality
-claim. No candidate from discovery alone is promoted.
+object queries:
+  capabilities.bound(three, Closable.terminalStatesAreFinal -> five)
+```
 
-An expectation whose `contract` is violated denotes a negative control, and declares that its live
-Run stops at the Contract monitor (`disposition` stopped by monitor). This changes test
-expectations, not machine transitions, evidence interpretation or runtime policy.
+`except` lifts nothing for that Property; `overriding` lifts the machine's own def under the shared
+name; both need a reason and are recorded as waivers (`<file>.waivers.json`, forwarded into
+`.lint.json`, not findings). A Query of the machine's own reads a brought Property with
+`capabilities.claim(Kind.property[...])`. Every field that takes a function names a def of the
+lifted sources, or a member's def through `through` on a composition; a lambda is refused at its
+line. A Query brought by a same-step Property is a `find` through the capability's `reach` path and
+expects the Run its field names; every other brought Property is a free `verify`.
+
+## 17. Compositions
+
+**Meaning.** A composition is one Model from machines of *different entities*, for a claim no one
+of them can state: an activity over its task queue, an operation with its worker. Its state is a
+record with one field per member. A member's own action steps that member alone and is keyed
+`<field>_<class>`; a *sync* pairs two members' actions into one step keyed by the sync's name
+followed by both classes' inputs, whose results are the product of the members' results with the
+first member's outcome and both members' facts (`<field>_<fact>`). Only the rows reachable from the
+members' starts belong to it. Its outcome and fact types are therefore `String`, the composed keys.
+
+A member that *replaces* a machine stands in for it within the composition: a detailed provider in
+place of an opaque one. Its machine must declare a refinement of the replaced machine that holds,
+and the composition relies on none of the replaced machine's assumptions.
+
+**Writing it.** An object with field selectors; `->` pairs a member with its value and never means
+a transition:
+
+```scala
+final case class OverQueue(activity: AdmissionState, queue: QueueView)
+
+object RecordOverQueue
+    extends Composition[OverQueue](_.activity -> RecordMember, _.queue -> TaskQueueProduct),
+      Phased[OverQueue, AdmissionPhase](_.activity.phase):     // a nested phase, optional
+  override def end(s: State) = ActivityRecord.end(s.activity)
+  object syncs extends Syncs:
+    sync(_.activity -> history.dispatch, _.queue -> queue.enqueue)   // named after the first action
+    sync("admit", _.activity -> worker.poll, _.queue -> queue.deliver)
+    replaces(_.queue, TaskQueueProduct)                               // where a member stands in
+  object properties:
+    val failedCommitKeepsTheMessage = property holds (after =>
+      after.records(_.activity, AdmissionFact.admissionCommitFailed) implies
+        after.state.queue.outstanding != Outstanding.empty)
+    val startedByPolling = property.whenAction(synced(_.activity -> worker.poll))
+      .holds(_.state.worker.phase == WorkerPhase.polling)
+  object queries:
+    val stale = scenario.actions(
+      synced(_.activity -> history.dispatch),     // the sync that pairs this member action
+      own(_.activity, client.pause),              // a member's own, unpaired action
+      synced(_.activity -> worker.poll))
+    val staleDelivery = query verify properties.failedCommitKeepsTheMessage in stale limits three
+
+object TrustingRecordOverQueue extends Composition(RecordOverQueue.withMember(_.activity -> TrustingRecordMember))
+```
+
+`synced` finds the one sync that pairs that member's action; `own` an action the member binds and
+no sync pairs. `withMember` replaces one member, keeping syncs, end and order; `DerivedComposition`
+is the form that also keeps the source's typed phase. A Property that reads a member's named state
+set writes `through(_.activity, ActivityRecord.states.twoActive)` where it would name a def;
+`after.records(_.member, fact)` reads a member's fact by its composed key. The framework's own
+composition starts from each member's first start; the reader composes every start.
+
+**Refused.** A selector naming no field; a member of another state type; a sync of an action the
+member does not bind; a `synced` matching none or several; an `own` of a paired action; a
+replacement by a machine that refines nothing; a Scenario or `whenAction` over a key that is no
+composed class.
+
+## 18. Channels
+
+**Meaning.** A channel is the messages one machine's state holds between their send and their
+delivery: a bounded, ordered-or-not, reliable-or-lossy buffer that may deliver a message once more
+when its acknowledgment was lost. The reader *derives* the delivery and loss rows from the
+declaration: the `deliver` action's row at state `s` and message `m` removes the first entry
+carrying `m` (first entry at all for FIFO), applies the bound function to the result, and, where
+the entry's redeliveries are fewer than `duplicates`, adds the same results again with the entry
+put back, explained as "the channel delivers the message again". The `lose` action is bound exactly
+when the channel is lossy. A send to a full channel lands outside the catalog, so an effect checks
+`isFull` first.
+
+**Writing it.**
+
+```scala
+val wire = channel[Note](capacity = 2, order = Order.fifo, loss = Loss.reliable, duplicates = 1)
+
+final case class RelayState(heard: Heard, wire: Inbox[Note])
+given Finite[RelayState] =
+  given Finite[Inbox[Note]] = wire.contents
+  Finite.derived
+
+def talk(r: RelayState, n: Note) =
+  if r.wire.isFull then disabled else enter(r.copy(wire = r.wire.send(n)))
+def hear(r: RelayState, n: Note) = enter(r.copy(heard = Heard.note))   // the channel already dropped it
+
+object Relay extends Machine[RelayState, Outcome, Nothing]:
+  val init = RelayState(Heard.nothing, wire.empty)
+  object rules extends Bindings(talk ~> talk, wire.deliver ~> hear)
+```
+
+A state holds each channel in at most one field; the message type is a named finite type, Boolean
+or `Int` with `Finite.upTo(n)`. Channels are used by the lifter's fixtures today, not by a Temporal
+Model: the task queue foundation models its one message as an enum instead.
+
+## 19. Realizations
+
+**Meaning.** A realization says how the `find` Queries of one machine run against a real system:
+which command performs each action class, which recorded data is evidence of each fact, and what
+the controller does around them. The lowering (`tools/umpire/lower`) takes a `find` Query's
+witness through it into a Testpilot Case: a Program of instructions and a Contract the recorded
+evidence must satisfy. A realization carries no Case and decides nothing a path decides. A `verify`
+realizes nothing; a `find` whose machine declares no realization is model-only.
+
+The pieces, each a declaration the IR carries as written:
+
+- **roles**: the participants commands address, with the environment bindings a run supplies
+  (the kit's `workflowService`, `taskQueue`, `caseWorker`, `nexusEndpoint`);
+- **scripts**: one per activation, the controller or a worker (`Workflow`, `NexusHandler`,
+  `Activity`). Each is an ordered list of items: `everyCase(command)`, a command every Case
+  carries; `onPath(classes*)(command)`, one only the Cases whose path takes one of those classes
+  carry; `perform(class -> command, ...)`, where the path's steps of those classes land, in path
+  order. A command is named after its `val` in kebab case; `rpc(role, METHOD) { field(_.x) := v }`
+  opens a typed request scope; `await(evidence, calls)(condition) {}` is the one wait form, whose
+  interval and deadline the lowering derives; `call.withFields { }` keeps a call's name,
+  `call.extended { }` is a command of its own;
+- **evidence**: kinds of recorded data that confirm facts, each keyed to its operation and saying
+  what it commits to (what a caller was told, or a durable commit). A kind may be *exhaustive*: its
+  source reports every occurrence, so absence means the step did not happen, closed by one read
+  every Case carries (`closes = ...`). The kit's modules (`HistoryEvidence`, `DescribedStatus`,
+  `answered`, `delivered`) declare the common shapes once;
+- **learned values** and **observations**: a handle one command binds and others read; a protobuf
+  message a run records;
+- **controls**: actuators beyond commands, such as holding what a step dispatched;
+- **server steps** and **API behavior**: the classes no command performs (a delivery, a timeout)
+  with the kind of cause each is, and the kit's hints of when a write is visible to a read, from
+  which every read's wait is derived;
+- a **status table**, `statusTable(fact -> value, ...)`, read when the IR generator lifts.
+
+**Writing it.** An object typed by its machine, with sections in this order:
+
+```scala
+object JobRun extends Realizes(JobProtocol, learned = Vector(...), runs = Seq(JobProtocol.queries)):
+  object controller extends Controller(
+    everyCase(startJob),
+    everyCase(awaitQueued),
+    perform(client.cancel -> cancelJob),
+    onPath(timers.deadline)(awaitTimedOut),
+    everyCase(describeFinal))
+  object workers extends Workers(attempts)         // an Activity script: its items are the attempts
+  object evidence extends Evidences(answered(Fact.submitted, startJob), described.evidence)
+  object serverSteps extends ServerSteps(ServerStep(worker.poll, CauseKind.delivery))
+  object controls extends Controls(dispatchHold)
+```
+
+A derived one, `object Forged extends DerivesFrom(JobRun, TrustingJob)`, holds `changes` with
+`inserting(after = step)(items*)` and `replacing(step)(items*)`. Protobuf data is named through
+generated types and typed selectors (`field(_.getTaskQueue.name)`); Scala never builds or sends a
+request, and Go checks every path against the descriptors when it lowers.
+
+**How a Query lowers**, in short: the witness path fixes which items the Case carries and where
+performances land; each step is confirmed by one kind of evidence (a step that records nothing is
+a Known Gap); the Property is lowered to Contract clauses over the machine's table; a path that
+needs something the runtime has no primitive for is listed `unsupported` with its reason at the
+declaration. The README's "Following the example to a Verdict" walks one Query through.
+
+## 20. What the tools answer
+
+### Levels
+
+Every expression sits at one of five levels, by what it is computed from, and the IR generator
+keeps them apart:
+
+| Level | Places |
+| --- | --- |
+| value | starts, a Scenario's start, evidence, `visible`, a monitor's initial state and `violated` |
+| reading of a state | `end`, a refinement map, a progress claim's `from` and `to` |
+| step | the function a rule names and what it calls |
+| reading of a step | a Property's `holds`, a monitor's `next` and `after` |
+| claim over a path | a Query, a monitor's verdict, a progress claim |
+
+Only a step makes a step record. A `Step(...)`, `enter`, `stay` or a call of a step function in
+any other place is refused at its line.
+
+### Expressions the reader evaluates
+
+The IR holds functions as expression trees: literals, variables, field reads, calls (after the
+callee's precondition), constructors, `copy`, `not`/`and`/`or` (short-circuit), `=`/`≠`
+(structural), integer comparison and arithmetic, list concatenation and membership, `if`, `let`,
+list literals, lambdas, `match` with wildcard, binding, literal, case and alternative patterns, a
+declared hole, and the channel operations. A hole propagates; a branch not taken is not reached.
+
+### Results
+
+A check gives one of these, kept apart and listed in precedence order where one result is made of
+several:
+
+| Result | Means |
+| --- | --- |
+| `admission-error` | the Model is rejected before any check (unknown version, undeclared name, wrong arity, no finite catalog, a channel or Limits out of range, a wrong total, two declarations under one key, recursion, a realization that is not well-formed, ...) |
+| `declaration-error` | a declaration cannot be read as the IR says: a Boolean function returning otherwise, a monitor state outside its catalog, a `find` of a transition Property |
+| `replay-failed` | a witness did not replay through a second interpretation |
+| `refinement-rejected` | with the rule broken and a witness |
+| `counterexample` / `found` | a witness, which holes elsewhere do not take away |
+| `resource-limit`, `limit-reached`, `unresolved` | a ceiling or bound stopped the work; proves nothing |
+| `incomplete` | no witness, and a hole was read; named with the row |
+| `unsupported` | listed, not checked (a `find` with `through`; a composition with a monitored member) |
+| `verified-within-limits` / `not-found` | holds on everything the scope reached, no hole read |
+
+A result names the table it read (Definition ID and Behavior Fingerprint), the limits, the
+assumptions it relies on and the work it took.
+
+### Who refuses what
+
+| Where | What |
+| --- | --- |
+| the compiler | a step bound to an action of other inputs, a value of the wrong type, two levels' types compared, a `choose` of one, a `Recorded` case without status, a capability over another machine's types |
+| the framework, as objects construct | overlapping rules, a bare rule target, two facets binding one action, an input token not the action's, a phase writer that does not write the projection, a role with no case |
+| the IR generator, at the Scala line | unsupported constructs, wrong levels, unnamed branching, declaration order, section and file structure, a lambda where a def is required, names that would collide, negative controls nothing refutes, totals that are no literal, every realization form it can see |
+| the reader, at admission | the IR-level rules above: catalogs, channels, Limits, totals, keys, recursion, realization consistency |
+| the reader, as it checks | holes, refinements, counterexamples, limits |
+
+## 21. Core and sugar
+
+The DSL is kept in two layers so it can be changed with confidence. **Core** is what the IR needs
+declared: `Machine`, `Derived`, `Composition`, `Phased`, the derivations, `Actor`, `action` and its
+classes, `input`, `UpTo`, `Bindings` and `~>`, `Step` and `because`, `Declares[S]`, `property` with
+`holds`/`holdsAcross`/`when`, `monitor`, `leadsTo`, `Syncs` with `sync`/`synced`/`own`/`withMember`,
+`through`, `scenario`, `query`, `Limits`, `total`, `Capabilities`, `choose`, `channel`, `hole`,
+`assume`, and the realization declarations with their script helpers. **Sugar** is any form whose
+meaning a core form already says: `Rules` with `on`/`from`/`when`/`where`/`always`/`disabled`,
+`enter`/`stay`/`reject`/`rejects`/`enters`/`disabled`, the `is { }` and `effect { }` blocks,
+`implies`, `in`, `records`, the claim patterns, `witness` (the same-named Property, Scenario and
+`find` Query triple), `sticky`/`stickyAcross`, and both spellings of `:=`.
+Sugar lives only in the `Syntax.scala` files (framework, kit, IR generator), each form documents its
+`Core form:`, and a fixture lifts it beside that spelling and requires the same IR. No core file
+imports sugar; `make lint-model` checks it.
+
+Three symbols, one meaning each: `~>` binds an action to its effect, `->` pairs a key with its
+value, `:=` gives a named slot a value. Everything else the DSL adds is a word.
+
+**Naming.** A declaration is named after its `val` or object and takes its Definition ID from where
+it sits: package, enclosing objects, own name. A machine's *family* is its package; its claims and
+Queries hang off it (`<family>.query.<name>`). Moving a declaration between files of one package
+changes nothing; moving it into another object or package changes its IDs, which is accepted and
+can be sealed with the equivalence check (README, "Sealing a batch").
+
+**Where to go next.** README "Writing a Model" for the file layout, the reading order and the
+lints; `model/irgen/testdata/layout/lamp/` for the template to copy; `model/temporal/features` for
+the Models this guide abstracts from.
