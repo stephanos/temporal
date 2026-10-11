@@ -171,8 +171,9 @@ makes authors write durations directly; `runtime-semantics.patch` updates `model
 ### fn-140: One-sentence witness Queries with explicit live expectations
 
 It rewrites the Models' `properties` and `queries` sections and its R5 renames Definition
-IDs. Ready, with six M-sized requirement anchors. Batch the foundations and caller migration;
-documentation and disjoint conversion work may run in parallel. Task 6 joins the equivalence seal.
+IDs. Scala tasks .1-.6 carry the authoring migration; .7/.8 retain the owner-deferred consumer
+proofs split from .2/.3. Batch the foundations and caller migration. The current one-worker
+lane is sequential; task .6's committed Scala seal releases later source work while shared closure waits.
 
 `witness(<classes>).records(<fact>)` states a path-and-outcome claim in one declaration and lifts to the existing Scenario, Property and `find` Query, each named after it. `.live(<expectation>)` replaces `.expect` as the one word that generates a Case, and every non-satisfied expectation carries a reason. Pinned `find` Queries in every Model migrate, and the hand-written `terminate`, which repeats the capability-generated `terminateSettles`, is deleted. `query verify` and its triple are unchanged.
 
