@@ -873,14 +873,22 @@ A machine object is the machine: `object ActivityProduct extends Machine[State, 
    including a block with one case. Its opening brace follows `on(…)`, every case occupies its own line and its closing brace
    occupies a line of its own; the parenthesized `on(…)(case)` form is rejected. A block may give
    several actions the same cases, `on(client.pause, client.unpause) { … }`. A case says where the
-   action fires: `when(scheduled, backingOff)` for listed phases,
+   action fires: `when(Phase.scheduled, Phase.backingOff)` for listed phases,
    `when(states.terminal)` for a named set, or `when[Closed]` for a phase role; each requires
    `Phased[State, Phase](_.phase)`. `where(g)` tests the state,
    `when(…).where(g)` adds a condition beyond the phase and `always` holds in every state. The
    rule-case spelling `in(…)` is retired; `p.in(…)` and `p.in[R]` remain membership predicates.
-   `from(actor) { import actor.*; on(action) { … } }` only groups blocks of actions that actor
-   declares and changes no rule meaning; the Activity Product and System use it for their larger
-   actor-grouped rule sets, while the other Models name their actions directly. An effect
+   Every target names its action through the object that declares it, `on(worker.poll)`,
+   `on(worker.respondFailed(Failure.fatal))`, `on(client.pause, client.unpause)`, and so does
+   `disabled(process.stop)`; a bare name, reached through any import, is refused by the IR
+   generator at its line (and by the rules as they construct where no declarer names it).
+   `from(actor) { on(actor.action) { … } }` only groups blocks of actions that actor declares,
+   checks that it declares them and changes no rule meaning; it imports nothing, and an import in it
+   is refused. Every phase is named through its phase type, `when(Phase.scheduled)`,
+   `phase = Phase.started`, `State(Phase.scheduled)`, in rule cases, effects, `init`, states and
+   properties alike: the IR generator refuses any import of a phase type's members (`import
+   Phase.*`, `import Phase.{started}`, at any level), and a bare argument of the phase form of
+   `when`; a named set is selected on its object, `when(states.terminal)`. An effect
    that takes arguments beyond the state binds them in place, `~> (effects.timeOut(_,
    system.TimeoutType.scheduleToClose))`. Where no case holds the action is disabled, and
    `disabled(process.stop)` binds an action no state enables. The cases of one action class

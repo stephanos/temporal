@@ -162,26 +162,24 @@ object RulesFixture:
   object lights:
     def unlit(l: Lit) = l != Lit.on // scalafix:ok DisableSyntax.!=
 
-  // One machine in the grouped forms, `from` with its import, `when` and an `on` of two classes,
-  // and in the plain form, separate qualified `on` blocks, rule for rule.
+  // One machine in the grouped forms, `from` with qualified targets, `when` and an `on` of two
+  // classes, and in the plain form, separate qualified `on` blocks, rule for rule.
   object Grouped extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
     override def end(s: Lamp) = s.light == Lit.broken // scalafix:ok DisableSyntax.==
 
     object rules extends Rules:
       from(hand) {
-        import hand.*
-        on(press) {
+        on(hand.press) {
           when(Lit.off) ~> Switch.effects.light
           when(Lit.on).where(_.presses == 1) ~> Switch.effects.dark // scalafix:ok DisableSyntax.==
         }
-        on(turn(Knob.up), turn(Knob.down)) {
+        on(hand.turn(Knob.up), hand.turn(Knob.down)) {
           when(lights.unlit) ~> Switch.effects.wear
         }
       }
       from(clock) {
-        import clock.*
-        on(tick)(
+        on(clock.tick)(
           when(Lit.on, Lit.off).where(_.presses == 2) ~> Switch.effects.wear
         ) // scalafix:ok DisableSyntax.==
       }
@@ -592,6 +590,24 @@ class RulesTest extends munit.FunSuite:
       m.bindings: Unit
       fail("the rules constructed")
     catch case e: ExceptionInInitializerError => e.getCause.getMessage
+
+  // A target with no declarer to name it through, a local val, is refused as the rules construct;
+  // a name imported from its declarer is the IR generator's to refuse (irgen lifts/RuleRejects).
+  test("an on target with no declarer is refused as the rules construct") {
+    val tap = hand.press
+    object Undeclared extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
+      val init = Lamp(Lit.off, UpTo(0))
+      override def end(s: Lamp) = true
+
+      object rules extends Rules:
+        on(tap)(always ~> Switch.effects.wear)
+    val refused = intercept[IllegalArgumentException](Undeclared.bindings)
+    assertEquals(
+      refused.getMessage,
+      "requirement failed: on(tap) names its action bare: name it through the object that " +
+        "declares it, `on(<declarer>.tap)`"
+    )
+  }
 
   test("from, when, when(set), when(...).where and on(a, b) build the qualified table") {
     assertEquals(Grouped.bindings.map(_.decl), Plain.bindings.map(_.decl))

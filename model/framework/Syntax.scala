@@ -364,27 +364,27 @@ def stickyAcross[S, O, F](promise: (S, Step[S, O, F]) => Boolean): Monitor[S, O,
     broken => broken
   )
 
-// A case of an `on` block: where in the state space its action fires, `when(placed)`, `when(open)`,
-// `where(g)`, `always` or `when(open).where(g)`, and through `~>` the effect it has there,
-// `when(placed) ~> effects.ship`. Core form: the arm `if g(s) then e(s, inputs) else ...` of the
+// A case of an `on` block: where in the state space its action fires, `when(Phase.placed)`,
+// `when(Phase.open)`, `where(g)`, `always` or `when(Phase.open).where(g)`, and through `~>` the
+// effect it has there, `when(Phase.placed) ~> effects.ship`. Core form: the arm `if g(s) then e(s, inputs) else ...` of the
 // action's step function.
 final class Case[S, O, F] private[framework] (
     private[framework] val heading: String,
     private[framework] val guard: S => Boolean
 ):
   // This case where `condition` also holds of the state, beyond its phases:
-  // `when(open).where(_.timer == Timeout.expires)`. Core form: `g(s) && condition(s)`.
+  // `when(Phase.open).where(_.timer == Timeout.expires)`. Core form: `g(s) && condition(s)`.
   def where(condition: S => Boolean): Case[S, O, F] =
     Case(s"$heading.where", s => guard(s) && condition(s))
 
   // The effect of the block's action where this case holds, read of the state alone:
-  // `when(placed) ~> effects.ship`. Core form: the arm `if g(s) then ship(s)` of the action's step
+  // `when(Phase.placed) ~> effects.ship`. Core form: the arm `if g(s) then ship(s)` of the action's step
   // function.
   infix def ~>(effect: S => List[Step[S, O, F]])(using firing: Firing[S, O, F, ?]): Unit =
     firing.bind(this, (s, _) => effect(s))
 
   // The effect of the block's action, of one input, where this case holds, read of the state and
-  // the input: `when(open) ~> effects.change`. Core form: the arm `if g(s) then change(s, c)`.
+  // the input: `when(Phase.open) ~> effects.change`. Core form: the arm `if g(s) then change(s, c)`.
   @targetName("readsOne")
   infix def ~>[A](effect: (S, A) => List[Step[S, O, F]])(using
       firing: Firing[S, O, F, A *: EmptyTuple]
@@ -502,14 +502,19 @@ object Phased extends Inherited.Unphased:
 // When each action of a machine fires, written as the machine object's `object rules extends
 // Rules`, whose cases may name phases where the machine mixes in `Phased[State, Phase](_.phase)`
 // through its given: blocks of an action or action class,
-// `on(clerk.ship) { when(placed) ~> effects.send }`, whose cases each say where the action fires,
+// `on(clerk.ship) { when(Phase.placed) ~> effects.send }`, whose cases each say where the action fires,
 // `when(...)` of phases or of a named set of them, `where(g)` of the state,
 // `when(...).where(g)` of both or `always`, and what it does there, `~> effects.x`; and the actions
 // no state enables, `disabled(courier.strike)`. A block fires a whole action, `on(buyer.change)`,
 // one class of it, `on(buyer.change(Change.hold))`, whose effects then read the state alone, or
 // several of them alike, `on(clerk.ship, clerk.cancel)`; an effect that takes arguments beyond the
-// state binds them in place, `effects.timeOut(_, Expiry.close)`. The blocks of the actions one
-// object declares may be grouped in `from(clerk) { import clerk.*; on(ship) { ... } }`. Where no
+// state binds them in place, `effects.timeOut(_, Expiry.close)`. Every target names its action
+// through the object that declares it, `clerk.ship`, never by a bare name: the IR generator
+// refuses a bare target, and a bare `disabled` target, at its line, and a block refuses as the rules
+// construct a target with no declarer to name it through, such as a local val. (The rules cannot
+// tell an imported name from a qualified one: `codeOf` prints both through their declarer.) The blocks of the actions one object declares may be grouped in
+// `from(clerk) { on(clerk.ship) { ... } }`, which imports nothing. A case names phases through
+// their type, `when(Phase.placed)`. Where no
 // case holds, the action is disabled: there is no catch-all. The cases of one action class hold in
 // no common state, whichever blocks they sit in: each is checked against the earlier ones as it is
 // declared, over every state of the `Finite` state type and every class, and an overlap is refused
@@ -543,6 +548,11 @@ abstract class Rules[S, O, F, P](using
       code: String
   )(cases: Firing[S, O, F, I] ?=> Unit): Unit =
     val action = writtenAction(code)
+    require(
+      writtenPath(code).contains('.'),
+      s"on($action) names its action bare: name it through the object that declares it, " +
+        s"`on(${within.fold("<declarer>")(_._1)}.$action)`"
+    )
     require(open.isEmpty, s"on($action) sits in on(${open.get}): a block holds cases alone")
     require(!never.contains(decl), s"$action is disabled and fired by a rule")
     for (declarer, declared) <- within do
@@ -571,7 +581,7 @@ abstract class Rules[S, O, F, P](using
     written += rule
     order += decl
 
-  // The cases of a whole action: `on(clerk.ship) { when(placed) ~> effects.send }`. Core form: the
+  // The cases of a whole action: `on(clerk.ship) { when(Phase.placed) ~> effects.send }`. Core form: the
   // action's step function, whose arms are the cases in order.
   inline def on[I <: Tuple](inline a: Action[I])(cases: Firing[S, O, F, I] ?=> Unit): Unit =
     block[I](a.decl, None, codeOf(a))(cases)
@@ -624,10 +634,11 @@ abstract class Rules[S, O, F, P](using
       )
     for (decl, values, code) <- named do block[EmptyTuple](decl, values, code)(cases)
 
-  // The blocks of the actions `declarer` declares, each named by its bare name after the block's
-  // first statement imports them: `from(clerk) { import clerk.*; on(ship) { ... } }`. It only
-  // groups: a block means in a `from` what it means outside one. Core form: the blocks it holds,
-  // each naming its action through its declarer, `on(clerk.ship) { ... }`.
+  // The blocks of the actions `declarer` declares, each naming its action through its declarer as
+  // every block does: `from(clerk) { on(clerk.ship) { ... } }`. It only groups, and brings none of
+  // the declarer's members into scope: a block means in a `from` what it means outside one, and the
+  // IR generator refuses an `import clerk.*` in it. Core form: the blocks it holds,
+  // `on(clerk.ship) { ... }`.
   def from(declarer: AnyRef)(body: => Unit): Unit =
     val name = declarer match
       case a: Actor => a.name
@@ -662,7 +673,8 @@ abstract class Rules[S, O, F, P](using
   private[framework] def phases(set: P => Boolean, code: String): Case[S, O, F] =
     Case(s"when(${code.trim})", s => set(phase(s)))
 
-  // A case that holds in the phases listed: `when(placed, open)`. Core form:
+  // A case that holds in the phases listed, each named through its phase type:
+  // `when(Phase.placed, Phase.open)`; the IR generator refuses a bare phase. Core form:
   // `List(p1, p2).contains(s.phase)`.
   def when[Q](first: Q, rest: Q*)(using PhasesOf[P, Q]): Case[S, O, F] =
     val phases = first +: rest
@@ -744,6 +756,11 @@ private[framework] def derivedRules[S, O, F, I <: Tuple](
     written: String
 )(cases: Firing[S, O, F, I] ?=> Unit): RuleGroup[S, O, F] =
   val action = writtenAction(written)
+  require(
+    writtenPath(written).contains('.'),
+    s"on($action) names its action bare: name it through the object that declares it, " +
+      s"`on(<declarer>.$action)`"
+  )
   val rules = mutable.ArrayBuffer.empty[Rule[S, O, F]]
   // The derived machine is not made yet, so the overlap names the machine it derives from.
   val machine = owner.machine.name match
