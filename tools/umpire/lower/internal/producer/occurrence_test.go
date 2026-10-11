@@ -205,7 +205,7 @@ func TestACaseDeclaresTheSourceAndTheFieldsOfEachKind(t *testing.T) {
 	scope := []*testpilotspb.NamedExpression{{FieldId: local(c, jobFamily+".scope.run"), Value: cp.Literal(cp.Text("jobs-retried"))}}
 	declared := func(records string, guard *testpilotspb.Expression) *testpilotspb.EvidenceDeclaration {
 		return &testpilotspb.EvidenceDeclaration{EvidenceId: local(c, jobEvidence+records), Kind: local(c, jobEvidence+records), EvidenceSource: local(c, jobSource+records), Scope: scope,
-			Operation: cp.Literal(cp.Text("jobs-retried")), Guard: guard,
+			Guard: guard,
 			Source: &testpilotspb.EvidenceDeclaration_RunEvent{RunEvent: &testpilotspb.RunEventSource{Kind: testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC,
 				Instruction: &testpilotspb.InstructionReference{EntrypointId: "controller", InstructionId: "submit-job"}, RunKeyed: true}},
 			Fields: []*testpilotspb.NamedExpression{{FieldId: "attempt", Value: projected("activity_attempt.sdk_attempt")},

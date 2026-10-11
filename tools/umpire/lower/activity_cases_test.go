@@ -380,8 +380,7 @@ func TestTheRetryCaseFailsItsFirstAttemptAndReadsItsSecondFromTheRunsRecord(t *t
 				// The guard the realization writes, a delivered attempt, and then the attempt the record is
 				// declared of, which the lowering states so that the runtime selects the record by it.
 			}},
-			Operation: cp.Literal(cp.Text(c.GetProgram().GetEvidence()[0].GetScope()[0].GetValue().GetCel().GetExpr().GetConstExpr().GetStringValue())),
-			Guard:     all(all(cp.Present(projected("activity_attempt")), cel.Not(cp.Equal(projected("activity_attempt.delivery_id"), cp.Literal(cp.Text(""))))), cp.Equal(projected("activity_attempt.sdk_attempt"), cp.Literal(cp.SignedInteger(number)))),
+			Guard: all(all(cp.Present(projected("activity_attempt")), cel.Not(cp.Equal(projected("activity_attempt.delivery_id"), cp.Literal(cp.Text(""))))), cp.Equal(projected("activity_attempt.sdk_attempt"), cp.Literal(cp.SignedInteger(number)))),
 			Fields: []*testpilotspb.NamedExpression{{FieldId: "attempt", Value: projected("activity_attempt.sdk_attempt")},
 				{FieldId: "delivery", Value: projected("activity_attempt.delivery_id")}, {FieldId: "activityRun", Value: projected("activity_attempt.activity_run_id")}},
 		}
@@ -393,8 +392,7 @@ func TestTheRetryCaseFailsItsFirstAttemptAndReadsItsSecondFromTheRunsRecord(t *t
 		Instruction: &testpilotspb.InstructionReference{EntrypointId: "controller", InstructionId: "start-activity"},
 		RunKeyed:    true,
 	}},
-		Operation: cp.Literal(cp.Text(c.GetProgram().GetEvidence()[0].GetScope()[0].GetValue().GetCel().GetExpr().GetConstExpr().GetStringValue())),
-		Guard:     cp.Equal(cp.Path(cp.ProjectedValue(), "status"), cp.Literal(cp.Enum(testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED)))},
+		Guard: cp.Equal(cp.Path(cp.ProjectedValue(), "status"), cp.Literal(cp.Enum(testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED)))},
 		declared["statusScheduled"])
 	protorequire.ProtoEqual(t, &testpilotspb.EvidenceDeclaration{Operation: cp.Path(cp.ProjectedValue(), "activity_id"),
 		Source: &testpilotspb.EvidenceDeclaration_Read{Read: &testpilotspb.ReadSource{Method: describeActivity, Path: "info"}}},
