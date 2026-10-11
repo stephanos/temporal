@@ -31,6 +31,14 @@ pair/control semantics and the strict duplicate rule, never by weakening admissi
 managed-golden comparisons for the deferred regeneration/full sweep, with exact tests and results
 identified. No excluded assertion earns passing credit.
 
+
+The expanded fn-140.3 integrated formatter check also records inherited formatting debt in
+`model/irgen/testdata/lifts/Hints.scala` (`fn140-3-root-format.log`, exit1). The separate constructor
+checkpoint changes only its timerDeadline reference; the long WaitBound lines are unchanged from
+that task's baseline. Repair the source fixture formatting in this sweep, preserving every positive
+and invalid bound and mapping any refusal-coordinate changes explicitly. The nine-file .3 API
+format check passed; no broader formatter success is claimed.
+
 ### Quick commands (serialize heavy commands)
 ```sh
 mise exec -- scala-cli compile model/project.scala model/framework model/temporal

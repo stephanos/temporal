@@ -187,8 +187,7 @@ is sequential; task .10's committed Scala seal releases later source work withou
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-140.3 | 🔄 in progress | Verify Query `.live`, source-only reasons/refusals and all Scala caller/fixture spellings; Go Case selection retained in .8 |
-| fn-140.4 | ⬜ todo | First Activity source conversion and all-row predicate equivalence; duplicate terminate source removed; actual assessment/Case proof retained in .9 |
+| fn-140.4 | 🔄 in progress | First Activity source conversion and all-row predicate equivalence; duplicate terminate source removed; actual assessment/Case proof retained in .9 |
 | fn-140.5 | ⬜ todo | Author docs, core form and layout template witness |
 | fn-140.10 | ⬜ todo | Remaining eligible Models, source-aware triple lint and committed Scala source equivalence seal; releases fn-149 |
 | fn-140.6 | ⏸️ deferred | Full consumer/regeneration/equivalence closure after .7/.8/.9/.10; links the shared fn-123.8 sweep |
