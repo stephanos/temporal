@@ -422,4 +422,4 @@ object ActivityProtocol
     // The worker stops before the start, so no attempt is in flight when the client terminates.
     val terminate =
       (query find properties.terminated in terminatedWhileScheduled limits three)
-        .expect(inconclusive(Reason.explanationsDisagree))
+        .live(inconclusive(Reason.explanationsDisagree, because = "a control of an activity that is over is not found and records nothing, so a second terminate is a step no evidence reports, on which the claim fails"))

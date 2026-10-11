@@ -572,7 +572,9 @@ object ProtoValue:
 // ends and how its cleanup ends. Each is declared, none defaulted, so a generated Case's check
 // compares what the Model says and infers nothing. An outcome short of satisfied names its `reason`,
 // the judge's own; a satisfied one names none. Conformance short of conformant names its
-// `conformanceReason` the same way, and conformant names none.
+// `conformanceReason` the same way, and conformant names none. An expectation whose Property outcome
+// or Contract verdict is short of satisfied says why, in `because` (fn-140 R4): text that stays in
+// the source, which no IR field, Case or assessment carries.
 final case class RunExpectation(
     conformance: Conformance,
     property: PropertyOutcome,
@@ -581,7 +583,8 @@ final case class RunExpectation(
     cleanup: Cleanup,
     reason: Option[Reason] = None,
     conformanceReason: Option[Reason] = None,
-    monitors: Vector[MonitorExpectation] = Vector.empty
+    monitors: Vector[MonitorExpectation] = Vector.empty,
+    because: String = ""
 )
 
 enum Conformance:
@@ -614,5 +617,6 @@ enum Reason:
 final case class MonitorExpectation(
     name: String | Monitor[?, ?, ?, ?],
     outcome: PropertyOutcome,
-    reason: Option[Reason] = None
+    reason: Option[Reason] = None,
+    because: String = ""
 )

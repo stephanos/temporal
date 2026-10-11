@@ -261,7 +261,7 @@ object NexusProtocol
     // because a verify Query realizes nothing.
 
     val syncCompletion = (query find properties.syncSucceeds in syncReplied limits two)
-      .expect(satisfied)
+      .live(satisfied)
       .explore(
         Exploration(
           "nexusDeadlines",
@@ -286,18 +286,18 @@ object NexusProtocol
       )
     val asyncCompletion =
       (query find properties.completionSucceeds in asyncThenSucceeded limits three)
-        .expect(inconclusive(Reason.explanationsDisagree))
+        .live(inconclusive(Reason.explanationsDisagree, because = "a completion that arrives after the operation is over is not found and records no fact, so no evidence excludes one, and the claim, about every completion, fails on it"))
     val asyncFailure =
       (query find properties.completionFails in asyncThenFailed limits three)
-        .expect(inconclusive(Reason.explanationsDisagree))
+        .live(inconclusive(Reason.explanationsDisagree, because = "a completion that arrives after the operation is over is not found and records no fact, so no evidence excludes one, and the claim, about every completion, fails on it"))
     val handlerError =
       (query find properties.handlerErrorFails in nonRetryableError limits two)
-        .expect(inconclusive(Reason.neverEvaluated))
+        .live(inconclusive(Reason.neverEvaluated, because = "a failed reply records the same failed event as a non-retryable handler error, so on the failed reply the claim is never read"))
 
     // The retryable error backs the operation off; the backoff timer fires and records nothing; the
     // retried attempt is answered synchronously.
     val retry = (query find properties.retrySucceeds in retriedThenSucceeded limits four)
-      .expect(inconclusive(Reason.explanationsDisagree))
+      .live(inconclusive(Reason.explanationsDisagree, because = "the pending-attempts poll stops at the first count it sees, and the claim also fixes the deadlines the scheduled event does not tell apart, so the executions that explain the Run disagree"))
 
     // The schedule command sets the schedule-to-start deadline; the handler's worker stops, so
     // nothing answers the start request; the deadline fires. The worker stops after the schedule in
@@ -305,13 +305,13 @@ object NexusProtocol
     // workflow starts, where the stop cannot race the dispatch.
     val scheduleToStartTimeout =
       (query find properties.scheduleToStartFires in scheduleToStartExpires limits three)
-        .expect(inconclusive(Reason.neverEvaluated))
+        .live(inconclusive(Reason.neverEvaluated, because = "the three deadlines record one timed-out fact, and the timeout type is an enum no evidence keeps as a field, so on an execution where another deadline fired the claim is never read"))
 
     // The schedule command sets the start-to-close deadline; the handler accepts asynchronously and
     // never completes; the deadline fires.
     val startToCloseTimeout =
       (query find properties.startToCloseFires in startToCloseExpires limits three)
-        .expect(inconclusive(Reason.neverEvaluated))
+        .live(inconclusive(Reason.neverEvaluated, because = "the three deadlines record one timed-out fact, and the timeout type is an enum no evidence keeps as a field, so on an execution where another deadline fired the claim is never read"))
 
     // A Product claim on a Protocol path, read through the refinement the Protocol machine declares.
     val terminalHolds =

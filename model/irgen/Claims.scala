@@ -343,12 +343,12 @@ private[irgen] trait Claims:
             queries(name).withExploration(emit(ir.Exploration, Bound(space, Map.empty)))
           Decl.Declared(name)
         case other => fail(t, s"explore declares a Query's finite variations, not $other")
-    case Apply(Select(q, "expect"), List(expected)) =>
+    case Apply(Select(q, "live"), List(expected)) =>
       fold(q, env, named) match
         case Decl.Declared(name) if queries.contains(name) =>
           expectedRun(name, expected)
           Decl.Declared(name)
-        case other => fail(t, s"expect declares a Query's live assessment, not $other")
+        case other => fail(t, s"live declares a Query's live Case and its assessment, not $other")
     case Apply(Select(q, "total"), List(n)) =>
       fold(q, env, named) match
         case Decl.Declared(name) if queries.contains(name) => totalOf(name, n, env)
@@ -450,9 +450,10 @@ private[irgen] trait Claims:
         case _ => fail(t, s"${fn.symbol.fullName} is not a function of the lifted sources")
     case other => fail(other, s"not a declaration the IR carries: ${other.show}")
 
-  // Records the Run the Query `name` expects of a server, `expected`, as `.expect` declares it.
+  // Records the Run the Query `name` expects of a server, `expected`, as `.live` declares it.
   def expectedRun(name: String, expected: Term): Unit =
     val run = emit(ir.RunExpectation, Bound(expected, Map.empty))
+    explained(s"$name's live expectation", Bound(expected, Map.empty))
     val machine = queries(name).getScenario.machine
     // A monitor the expected Run names is one the Query's machine watches.
     for

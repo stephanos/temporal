@@ -96,7 +96,9 @@ final class Query private[framework] (
     // The static combination count the author asserts, which `total(n)` sets.
     val total: Option[Long] = None
 ):
-  def expect(expected: realize.RunExpectation): Query =
+  // Marks a Query as one that generates a live Case, and states what its Run is expected to show
+  // (fn-140 R3): a Query without it is checked in the model alone.
+  def live(expected: realize.RunExpectation): Query =
     Query(name, form, property, scenario, limits, Some(expected), exploration, total)
 
   def explore(space: realize.Exploration): Query =

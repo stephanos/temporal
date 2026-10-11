@@ -111,4 +111,4 @@ object NexusProtocol extends Machine[State, Outcome, Fact], Phased[State, Phase]
         "nexusProtocol.cancelIsRequested"
       ) find properties.cancelIsRequested in cancelRequest limits three)
         .total(28)
-        .expect(inconclusive(Reason.explanationsDisagree))
+        .live(inconclusive(Reason.explanationsDisagree, because = "a control of a closed operation is answered and records nothing, so a Run explains an unobserved one too, and the executions that explain it disagree"))

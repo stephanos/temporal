@@ -99,4 +99,4 @@ trait Dispatching extends Facet[State, Outcome, Fact], Phased[State, Phase]:
         query verify properties.scheduleToStartRequiresDispatch in ActivityProtocol.queries.any limits eight
       val startDelayedCompletion =
         (query find completion.properties.completes in delayedThenCompleted limits four)
-          .expect(satisfied)
+          .live(satisfied)

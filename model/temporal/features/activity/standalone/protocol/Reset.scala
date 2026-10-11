@@ -215,4 +215,4 @@ trait Reset extends Facet[State, Outcome, Fact], Phased[State, Phase]:
       val keepPausedReset = query find properties.resetKeptPaused in pausedThenReset limits three
       val deferredResetCompletes =
         (query find completion.properties.completes in resetThenHeartbeatTimedOut limits six)
-          .expect(satisfied)
+          .live(satisfied)

@@ -1153,6 +1153,10 @@ private[irgen] trait Realizations:
                 inner,
                 chosen.term
               )
+            // An expectation's reason is source text the IR never carries (fn-140 R4).
+            case None
+                if p == "because" && Set("RunExpectation", "MonitorExpectation")(md.name) => // scalafix:ok DisableSyntax.==; typed equality
+              ()
             case None => fail(at, s"${md.name} has no $p in the IR")
       member(name) match
         case Some(f) => write(f, args, b.term)
@@ -2369,7 +2373,7 @@ private[irgen] trait Realizations:
       .getOrElse(fail(b.term, s"${b.term.show} names no id"))
 
   // The argument a declaration written out gives its parameter `name`, if it has one.
-  private def fieldOfDeclaration(b0: Bound, name: String): Option[Bound] =
+  private[irgen] def fieldOfDeclaration(b0: Bound, name: String): Option[Bound] =
     val b = reduce(b0)
     scriptCall(b.term) match
       case Some(("script", id :: _)) if name == "id" =>
@@ -2380,6 +2384,31 @@ private[irgen] trait Realizations:
           val params = fn.symbol.paramSymss.flatten.filter(_.isTerm).map(_.name)
           params.zip(args).collectFirst { case (`name`, a) => Bound(a, b.env) }
         }
+
+  // fn-140 R4: an expectation whose Property outcome or Contract verdict is short of satisfied, and
+  // each monitor expectation short of satisfied inside it, says why in `because`, source text the IR
+  // never carries. Refused at the expectation, naming `owner`, where it is missing or blank.
+  def explained(owner: String, b: Bound): Unit =
+    val r = reduce(b)
+    def outcome(x: Bound, field: String) =
+      fieldOfDeclaration(x, field).map(o => reduce(o).term.symbol.name)
+    def because(x: Bound) = fieldOfDeclaration(x, "because").map(textOfBound).getOrElse("")
+    val short = Seq("property", "contract").flatMap(outcome(r, _)).exists(_ != "satisfied") // scalafix:ok DisableSyntax.!=; typed equality
+    if short && because(r).trim.isEmpty then
+      fail(
+        b.term,
+        s"$owner is short of satisfied and says no reason why: state it, `because = \"...\"`"
+      )
+    for
+      ms <- fieldOfDeclaration(r, "monitors").toList if !isDefault(reduce(ms).term)
+      m <- itemsOf(ms)
+    do
+      if outcome(m, "outcome").exists(_ != "satisfied") && because(m).trim.isEmpty then // scalafix:ok DisableSyntax.!=; typed equality
+        fail(
+          m.term,
+          s"$owner expects a monitor short of satisfied and says no reason why: state it, " +
+            "`because = \"...\"`"
+        )
 
   // A fact a Model names by value: a case of an enum of the Models, or the companion of one with
   // fields, which names every value of it.

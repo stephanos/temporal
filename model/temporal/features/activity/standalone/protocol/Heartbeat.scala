@@ -136,12 +136,12 @@ trait Heartbeat extends Facet[State, Outcome, Fact], Phased[State, Phase]:
       val heartbeatThenCompletes =
         (query find completion.properties.completes in heartbeatCompleted limits four)
           .total(22464)
-          .expect(satisfied)
+          .live(satisfied)
       val heartbeatTimeoutRetriesThenCompletes =
         (query find completion.properties.completes in heartbeatRetried limits eight)
           .total(39312)
-          .expect(satisfied)
+          .live(satisfied)
       val heartbeatTimeoutExhausts =
         (query find properties.heartbeatExhausts in heartbeatExhausted limits four)
           .total(22464)
-          .expect(satisfied)
+          .live(satisfied)

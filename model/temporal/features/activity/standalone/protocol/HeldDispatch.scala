@@ -69,7 +69,7 @@ object HeldDispatch
     )
     val heldStaleDeliveryQuery =
       (query("heldDispatch.staleDelivery") find properties.staleDeliveryRejected in
-        heldStaleDelivery limits three).expect(
+        heldStaleDelivery limits three).live(
         RunExpectation(
           Conformance.conformant,
           PropertyOutcome.satisfied,
@@ -80,7 +80,8 @@ object HeldDispatch
             MonitorExpectation(
               ActivityRecord.monitors.atMostOneActiveAttempt,
               PropertyOutcome.inconclusive,
-              Some(Reason.neverEvaluated)
+              Some(Reason.neverEvaluated),
+              because = "the held race admits no attempt, and the monitor is read only after a step that admits one"
             ),
             MonitorExpectation(
               ActivityRecord.monitors.terminalFinality,

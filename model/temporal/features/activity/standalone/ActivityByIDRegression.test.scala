@@ -134,8 +134,8 @@ class ActivityByIDRegression extends munit.FunSuite:
     assertEquals(query.scenario.actions, ActivityProtocol.cancellation.queries.heldCanceledByID.scenario.actions)
     assertEquals(query.total, Some(22464L))
     assertEquals(
-      query.expectedRun,
-      Some(temporal.realize.inconclusive(framework.realize.Reason.explanationsDisagree))
+      query.expectedRun.map(_.copy(because = "")),
+      Some(temporal.realize.inconclusive(framework.realize.Reason.explanationsDisagree, because = ""))
     )
     val held = take(take(ActivityProtocol.init, client.start()).state, activityWorker.poll).state
     val requested = take(held, client.requestCancel)
@@ -190,8 +190,8 @@ class ActivityByIDRegression extends munit.FunSuite:
       assertEquals(query.scenario.actions, actions)
       assertEquals(query.total, Some(5616L * actions.size))
       assertEquals(
-        query.expectedRun,
-        Some(temporal.realize.inconclusive(framework.realize.Reason.explanationsDisagree))
+        query.expectedRun.map(_.copy(because = "")),
+        Some(temporal.realize.inconclusive(framework.realize.Reason.explanationsDisagree, because = ""))
       )
       val before = actions.init.foldLeft(ActivityProtocol.init)((s, a) => take(s, a).state)
       val after = take(before, actions.last)

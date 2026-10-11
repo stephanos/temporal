@@ -36,7 +36,10 @@ trait Lifecycle extends Facet[State, Outcome, Fact], Phased[State, Phase]:
         terminate = client.terminate,
         settled = Fact.statusTerminated,
         reach = Seq(client.start(), process.stop),
-        expect = inconclusive(Reason.explanationsDisagree)
+        expect = inconclusive(
+          Reason.explanationsDisagree,
+          because = "a terminate of an activity that is over is not found and records nothing, so the executions that explain a Run of the terminate find disagree"
+        )
       )
       // The status table is the realization's: what DescribeActivityExecution reports while each
       // fact holds. It is the one Protocol read of the realization layer (an open layering

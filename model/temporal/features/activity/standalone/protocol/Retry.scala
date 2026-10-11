@@ -180,10 +180,10 @@ trait Retry extends Facet[State, Outcome, Fact], Phased[State, Phase]:
       )
 
       val nonRetryableFailure =
-        (query find properties.nonRetryableFails in nonRetryable limits three).expect(satisfied)
+        (query find properties.nonRetryableFails in nonRetryable limits three).live(satisfied)
       val retry =
         (query find properties.retryCompletes in retriedThenCompleted limits six)
-          .expect(inconclusive(Reason.explanationsDisagree))
+          .live(inconclusive(Reason.explanationsDisagree, because = "the claim fixes the whole state the activity ends in, its deadlines included, and the start's answer is one fact for every start class, so the executions that explain the Run disagree"))
       val retryExhaustionByFailures =
         query verify properties.retryExhausts in exhausted limits six
       // A closed activity answers a repeated By-ID call NotFound and records nothing, so the
@@ -191,4 +191,4 @@ trait Retry extends Facet[State, Outcome, Fact], Phased[State, Phase]:
       val heldFailedByID =
         (query find properties.fatalFailureByID in heldFatalFailure limits three)
           .total(16848)
-          .expect(inconclusive(Reason.explanationsDisagree))
+          .live(inconclusive(Reason.explanationsDisagree, because = "a closed activity answers a repeated By-ID call NotFound and records nothing, so a Run cannot rule out a silent rejected repeat: the executions that explain it disagree"))

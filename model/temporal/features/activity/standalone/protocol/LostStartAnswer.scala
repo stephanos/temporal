@@ -32,4 +32,4 @@ object LostStartAnswer
     val lostAdmissionResponseQuery =
       (query("lostStartAnswer.committed") find properties.committedDespiteLostResponse in
         oneLostResponse limits three)
-        .expect(satisfied)
+        .live(satisfied)

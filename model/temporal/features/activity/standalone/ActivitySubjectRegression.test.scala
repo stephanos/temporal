@@ -142,7 +142,7 @@ class ActivitySubjectRegression extends munit.FunSuite:
         ),
         six,
         33696L,
-        Some(inconclusive(Reason.explanationsDisagree))
+        Some(inconclusive(Reason.explanationsDisagree, because = ""))
       ),
       Receipt(
         ActivityProtocol.retry.queries.retryExhaustionByFailures,
@@ -241,7 +241,7 @@ class ActivitySubjectRegression extends munit.FunSuite:
         ),
         three,
         16848L,
-        Some(inconclusive(Reason.neverEvaluated))
+        Some(inconclusive(Reason.neverEvaluated, because = ""))
       ),
       Receipt(
         ActivityProtocol.timeouts.queries.startToCloseTimeout,
@@ -297,7 +297,8 @@ class ActivitySubjectRegression extends munit.FunSuite:
       assertEquals(q.scenario.actions, receipt.actions)
       assertEquals(q.scenario.free, receipt.free)
       assertEquals(q.limits, receipt.limits)
-      assertEquals(q.expectedRun, receipt.expectedRun)
+      // The reason is source text (fn-140 R4); the expectation is compared without it.
+      assertEquals(q.expectedRun.map(_.copy(because = "")), receipt.expectedRun.map(_.copy(because = "")))
       assertEquals(q.exploration, None)
       assertEquals(q.total, None)
       val slots = if receipt.free then 119L * q.limits.steps

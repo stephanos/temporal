@@ -68,4 +68,4 @@ trait Pausing extends Facet[State, Outcome, Fact], Phased[State, Phase]:
 
       val pauseResume =
         (query find completion.properties.completes in pausedThenCompleted limits six)
-          .expect(satisfied)
+          .live(satisfied)

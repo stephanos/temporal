@@ -1,4 +1,4 @@
-// The total each Query asserts: written infix and dotted, before and after `.expect(...)`, and as the
+// The total each Query asserts: written infix and dotted, before and after `.live(...)`, and as the
 // Int parameter of a shared def over a machine, supplied as a literal at each call; and none, which
 // the lifter counts (fn-126 decision 28). The lifter's tests lift `queries`, `lampTotals`,
 // `plainLampTotals`, `lampCounted` and `plainLampCounted` and require each spelling's record to
@@ -58,8 +58,8 @@ val run = realize.RunExpectation(
   realize.Disposition.completed,
   realize.Cleanup.succeeded
 )
-val totalThenExpect = (query find litOnce in flipTwice limits two total 4).expect(run)
-val expectThenTotal = (query find litOnce in flipTwice limits two).expect(run).total(4)
+val totalThenExpect = (query find litOnce in flipTwice limits two total 4).live(run)
+val expectThenTotal = (query find litOnce in flipTwice limits two).live(run).total(4)
 
 // A Query declared once over a machine, whose total each call supplies. Free: 2 states x the
 // machine's action classes x 2 steps, so 12 on `lamp` (3 classes) and 4 on `plainLamp` (1 class).

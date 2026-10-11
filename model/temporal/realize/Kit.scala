@@ -302,19 +302,23 @@ val nexusEndpointName: TypedOperand[String] = Operand.environment(nexusEndpointB
 // What a Temporal Query expects of a Run of its Case unless it says otherwise: the Run completes,
 // its cleanup succeeds and its Contract holds, and the model assessment finds it conformant, with the
 // Query's Property satisfied.
-val satisfied = expectedRun(PropertyOutcome.satisfied, None)
+val satisfied = expectedRun(PropertyOutcome.satisfied, None, "")
 
-// Such a Run, on which the model assessment leaves the Property inconclusive for `reason`.
-def inconclusive(reason: Reason) = expectedRun(PropertyOutcome.inconclusive, Some(reason))
+// Such a Run, on which the model assessment leaves the Property inconclusive for `reason`, which
+// `because` explains (fn-140 R4).
+def inconclusive(reason: Reason, because: String) =
+  expectedRun(PropertyOutcome.inconclusive, Some(reason), because)
 
-private def expectedRun(property: PropertyOutcome, reason: Option[Reason]) = RunExpectation(
-  Conformance.conformant,
-  property,
-  contract = PropertyOutcome.satisfied,
-  disposition = Disposition.completed,
-  cleanup = Cleanup.succeeded,
-  reason = reason
-)
+private def expectedRun(property: PropertyOutcome, reason: Option[Reason], because: String) =
+  RunExpectation(
+    Conformance.conformant,
+    property,
+    contract = PropertyOutcome.satisfied,
+    disposition = Disposition.completed,
+    cleanup = Cleanup.succeeded,
+    reason = reason,
+    because = because
+  )
 
 // ### Literals a realization writes alike
 

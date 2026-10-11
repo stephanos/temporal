@@ -57,7 +57,7 @@ object TrustingCaller
     // path that inspects the operation around a failed completion.
     val forgedCompletion =
       (query find properties.forgedSuccess in inspectedFailure limits eight)
-        .expect(
+        .live(
           RunExpectation(
             Conformance.inconclusive,
             PropertyOutcome.violated,
@@ -65,7 +65,8 @@ object TrustingCaller
             disposition = Disposition.stoppedByMonitor,
             cleanup = Cleanup.succeeded,
             reason = Some(Reason.everyExplanationViolates),
-            conformanceReason = Some(Reason.incomplete)
+            conformanceReason = Some(Reason.incomplete),
+            because = "every modeled execution that explains the evidence of a failed completion refutes the forged success"
           )
         )
         .explore(

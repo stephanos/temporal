@@ -96,10 +96,10 @@ trait Cancellation extends Facet[State, Outcome, Fact], Phased[State, Phase]:
       val heldCanceledByID =
         (query find properties.canceledByID in heldCancellation limits four)
           .total(22464)
-          .expect(inconclusive(Reason.explanationsDisagree))
+          .live(inconclusive(Reason.explanationsDisagree, because = "a closed activity answers a repeated By-ID call NotFound and records nothing, so a Run cannot rule out a silent rejected repeat: the executions that explain it disagree"))
       val cancelIsRequested =
         (query(
           "activityProtocol.cancelIsRequested"
         ) find properties.cancelIsRequested in heldCancellation limits four)
           .total(22464)
-          .expect(inconclusive(Reason.explanationsDisagree))
+          .live(inconclusive(Reason.explanationsDisagree, because = "a closed activity answers a repeated By-ID call NotFound and records nothing, so a Run cannot rule out a silent rejected repeat: the executions that explain it disagree"))

@@ -105,7 +105,10 @@ trait Operation extends Facet[State, Outcome, Fact], Phased[State, Phase]:
         terminate = client.terminate,
         settled = Fact.nexusOperationTerminated,
         reach = Seq(client.start),
-        expect = inconclusive(Reason.explanationsDisagree)
+        expect = inconclusive(
+          Reason.explanationsDisagree,
+          because = "a control of a closed operation is answered and records nothing, so a Run explains an unobserved one too, and the executions that explain it disagree"
+        )
       )
       // The status table is the realization's; the one Protocol read of the realization layer (an
       // open layering question, fn-160 R9).

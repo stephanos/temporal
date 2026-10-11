@@ -531,7 +531,7 @@ private val watched = Watched.scenario.starts(DoorState.closed).actions(push)
 // A Run's expected verdicts with each monitor named by value, beside the same verdicts with each
 // named by its name: one expected Run.
 val heldByValue: Query =
-  (query find watchedOpens in watched limits onePush total 2).expect(
+  (query find watchedOpens in watched limits onePush total 2).live(
     RunExpectation(
       Conformance.conformant,
       PropertyOutcome.satisfied,
@@ -545,7 +545,7 @@ val heldByValue: Query =
     )
   )
 val heldByName: Query =
-  (query find watchedOpens in watched limits onePush total 2).expect(
+  (query find watchedOpens in watched limits onePush total 2).live(
     RunExpectation(
       Conformance.conformant,
       property = PropertyOutcome.satisfied,

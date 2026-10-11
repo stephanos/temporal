@@ -189,7 +189,7 @@ trait Timeouts extends Facet[State, Outcome, Fact], Phased[State, Phase]:
 
       val scheduleToStartTimeout =
         (query find properties.scheduleToStartFires in scheduleToStartExpires limits three)
-          .expect(inconclusive(Reason.neverEvaluated))
+          .live(inconclusive(Reason.neverEvaluated, because = "each of the three deadlines records the timed-out status under one evidence name, so on an execution where another deadline fired the claim is never read"))
       val startToCloseTimeout =
         query find properties.startToCloseFires in startToCloseExpires limits three
       val competingTimers = Vector(
@@ -204,7 +204,7 @@ trait Timeouts extends Facet[State, Outcome, Fact], Phased[State, Phase]:
       // The shared live gate must check actual Property assessments and reasons.
       val retryAfterTimeout =
         (query find properties.completesAfterTimeout in timedOutThenCompleted limits six)
-          .expect(inconclusive(Reason.explanationsDisagree))
+          .live(inconclusive(Reason.explanationsDisagree, because = "the full-state claim is evidenced by status and attempt count alone, so the executions that explain the Run disagree on the state it fixes"))
       val retryExhaustion =
         (query find properties.failsAfterTimeout in timedOutThenFailed limits six)
-          .expect(inconclusive(Reason.explanationsDisagree))
+          .live(inconclusive(Reason.explanationsDisagree, because = "the full-state claim is evidenced by status and attempt count alone, so the executions that explain the Run disagree on the state it fixes"))
