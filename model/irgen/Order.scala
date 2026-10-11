@@ -345,7 +345,7 @@ final private[irgen] class Order(index: Index):
           case "framework.Machine" | "framework.Composition" => Some(Kind.Machine)
           case "framework.Property" | "framework.Progress"   => Some(Kind.Claim)
           case "framework.Scenario"                          => Some(Kind.Scenario)
-          case "framework.Query"                             => Some(Kind.Query)
+          case "framework.Query" | "framework.Witness"       => Some(Kind.Query)
           case "framework.IrFile"                            => Some(Kind.File)
           case _ if w.derivesFrom(iterable)                  =>
             w.baseType(iterable).typeArgs.headOption.flatMap(kindOf(_, seen))

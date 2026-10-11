@@ -24,7 +24,8 @@ final class PropertyBuilder[S, O, F] private[framework] (
     private[framework] val when: Option[ClassRef | Composed | String]
 ):
   // Restricts the Property to the step of one action class.
-  infix def when(c: ClassRef): PropertyBuilder[S, O, F] = PropertyBuilder(name, m, Some(c))
+  infix def when(c: ClassRef | Composed): PropertyBuilder[S, O, F] =
+    PropertyBuilder(name, m, Some(c))
 
   // Restricts the Property to every class of an action, including a composition's synchronized
   // step of that name.

@@ -330,8 +330,9 @@ private[irgen] trait Compositions:
 
   // The receiver, the operation and the arguments of `c.synced(...)` or `c.own(...)`.
   private def selection(t: Term): Option[(Term, String, List[Term])] = t match
-    case Typed(e, _)        => selection(e)
-    case Inlined(_, Nil, e) => selection(e)
+    case Typed(e, _)                              => selection(e)
+    case Inlined(_, Nil, e)                       => selection(e)
+    case r: Ref if boundValues.contains(r.symbol) => selection(boundValues(r.symbol))
     case Apply(Select(c, op @ ("synced" | "own")), args)
         if t.symbol.maybeOwner == compositionClass =>
       Some((c, op, args))
@@ -379,6 +380,36 @@ private[irgen] trait Compositions:
   // The composed action key `whenAction(c.synced(...))` or `whenAction(c.own(...))` names.
   def composedAction(t: Term, composition: String, env: Map[Symbol, Decl]): String =
     composedKey(t, composition, env, classes = false)
+
+  // ActionOf cuts a legacy selector at its first '-'. The tag contains '-', so no admitted
+  // legacy when_action can spell it, including authored names containing separators.
+  val exactComposedPrefix = "@exact-composed-class:"
+
+  def exactComposedClass(t: Term, composition: String, env: Map[Symbol, Decl]): String =
+    exactComposedPrefix + composedKey(t, composition, env, classes = true)
+
+  def memberFact(composition: String, member: Term, fact: Term, env: Map[Symbol, Decl]): String =
+    val c = compositions.values
+      .find(_.name == composition)
+      .getOrElse(fail(member, s"records of $composition names no composition"))
+    val (param, body) = selector(member)
+      .getOrElse(fail(member, "records names `_.member -> MemberMachine`"))
+    val (key, machine) = arrow(body)
+    val field = selectedField(param, key, member, "records")
+    val bound = filled(c, field, member, "records")
+    val named = modelName(fold(machine, env), machine)
+    if bound.machine != named then
+      fail(member, s"records names $named, but ${bound.machine} fills $field of $composition")
+    val value = literalValue(fact)
+    val factType = value.kind match
+      case ir.Value.Kind.Enum(e) => e.`type`
+      case _                     => irTypeName(fact.tpe.widen.dealias.typeSymbol)
+    if machineNamed(named).get.factType != factType then
+      fail(
+        fact,
+        s"records of $field in $composition names a $factType fact which $named does not record"
+      )
+    s"${field}_${valueKey(value)}"
 
   // A Scenario's pinned schedule: a machine's classes, or a composition's composed class keys, each
   // selected by `c.synced(...)` or `c.own(...)`.
