@@ -11,6 +11,151 @@ import scala.concurrent.duration.*
 import scala.jdk.CollectionConverters.*
 import umpire.check.{Ran, Tools}
 
+private object LayoutSources:
+  def materialize(from: Path, to: Path, modelJar: Path, excluding: Set[String]): Path =
+    Files.createDirectories(to)
+    val jar = java.util.regex.Matcher.quoteReplacement(modelJar.toString)
+    val stream = Files.walk(from)
+    try
+      for
+        source <- stream.iterator.asScala.toList
+        if source.toString.endsWith(".scala")
+        if !excluding.exists(from.relativize(source).startsWith(_))
+      do
+        val copy = to.resolve(from.relativize(source).toString)
+        Files.createDirectories(copy.getParent)
+        Files.writeString(
+          copy,
+          Files.readString(source).replaceAll("""(\.\./)+build/model-scala\.jar""", jar)
+        )
+    finally stream.close()
+    to
+
+class LayoutWitnessFixtures extends munit.FunSuite:
+  override val munitTimeout: Duration = 10.minutes
+  private val tools = Tools.here
+  private val build = tools.directory.resolve("model/build")
+
+  test("the layout witness lifts its exact core alongside verify and refinement"):
+    val scratch = Files.createTempDirectory(
+      Files.createDirectories(build.resolve("history")),
+      "layout-witness."
+    )
+    val modelJar = build.resolve("model-scala.jar")
+    val stored = "model/irgen/testdata/layout/"
+    val sources = LayoutSources.materialize(
+      tools.directory.resolve(stored),
+      scratch.resolve("sources"),
+      modelJar,
+      Set("kinds", "r4")
+    )
+    val jar = scratch.resolve("layout.jar")
+    tools
+      .scalaCli(
+        Seq(
+          "--power",
+          "package",
+          "--server=false",
+          "--library",
+          sources.toString,
+          "-f",
+          "-o",
+          jar.toString
+        )
+      )
+      .orFail(): Unit
+    val out = scratch.resolve("ir")
+    val result = InProcess.lift(
+      tools.directory,
+      Seq(
+        "--ir",
+        s"$jar=$stored,$modelJar=model/",
+        build.resolve("model-scala.classpath").toString,
+        out.toString,
+        "lamp"
+      )
+    )
+    assertEquals(result.exit, 0, result.output)
+    val lifted = new com.fasterxml.jackson.databind.ObjectMapper()
+      .readTree(Files.readString(out.resolve("lamp.json")))
+    def rows(kind: String) = lifted.path(kind).elements().asScala.toSeq
+    assertEquals(rows("machines").size, 5)
+    assertEquals(rows("queries").size, 2)
+    val verify = rows("queries").find(_.path("name").asText() == "lights").get
+    assertEquals(verify.path("form").asText(), "FORM_VERIFY")
+    assertEquals(verify.path("property").path("name").asText(), "switchingOnLights")
+    val system = rows("machines").find(_.path("name").asText() == "lampSystem").get
+    assertEquals(system.path("refines").path("product").asText(), "lampProduct")
+    val query = rows("queries").find(_.path("name").asText() == "switchedOff").get
+    assertEquals(query.path("form").asText(), "FORM_FIND")
+    for kind <- Seq("property", "scenario") do
+      assertEquals(query.path(kind).path("machine").asText(), "lampProduct")
+      assertEquals(query.path(kind).path("name").asText(), "switchedOff")
+    assertEquals(query.path("limits").path("name").asText(), "switchedOff")
+    assertEquals(query.path("limits").path("steps").asInt(), 2)
+    assertEquals(query.path("limits").path("actions").asInt(), 2)
+    assertEquals(query.path("limits").path("search").asInt(), 512)
+    assertEquals(query.path("total").asText(), "4")
+    assert(!query.has("expectedRun"))
+    val scenario = rows("scenarios").find(_.path("name").asText() == "switchedOff").get
+    assertEquals(scenario.path("machine").asText(), "lampProduct")
+    assertEquals(
+      scenario.path("start").path("construct").path("type").asText(),
+      "fixture.features.lamp.product.State"
+    )
+    assertEquals(
+      scenario
+        .path("start")
+        .path("construct")
+        .path("args")
+        .get(0)
+        .path("literal")
+        .path("enum")
+        .path("case")
+        .asText(),
+      "dark"
+    )
+    assertEquals(
+      scenario.path("actions").elements().asScala.map(_.path("action").asText()).toList,
+      List("fixture.features.lamp.user.switchOn", "fixture.features.lamp.user.switchOff")
+    )
+    val property = rows("properties").find(_.path("name").asText() == "switchedOff").get
+    assertEquals(property.path("machine").asText(), "lampProduct")
+    assertEquals(
+      property.path("whenClass").path("action").asText(),
+      "fixture.features.lamp.user.switchOff"
+    )
+    assertEquals(property.path("holds").asText(), "lampProduct.property.switchedOff")
+    val holds = rows("functions").find(_.path("name") == property.path("holds")).get
+    val predicate = holds.path("body").path("binary")
+    assertEquals(predicate.path("op").asText(), "OP_AND")
+    val records = predicate.path("left").path("binary")
+    assertEquals(records.path("op").asText(), "OP_CONTAINS")
+    assertEquals(
+      records.path("left").path("literal").path("enum").path("type").asText(),
+      "fixture.features.lamp.product.Fact"
+    )
+    assertEquals(
+      records.path("left").path("literal").path("enum").path("case").asText(),
+      "switchedOff"
+    )
+    assertEquals(records.path("right").path("field").path("field").asText(), "facts")
+    val ending = predicate.path("right").path("call")
+    assertEquals(ending.path("function").asText(), "lampProduct.property.switchedOff.ends")
+    assertEquals(ending.path("args").get(0).path("field").path("field").asText(), "state")
+    val ends = rows("functions").find(_.path("name") == ending.path("function")).get
+    val statePredicate = ends.path("body").path("binary")
+    assertEquals(statePredicate.path("op").asText(), "OP_EQ")
+    assertEquals(statePredicate.path("left").path("field").path("field").asText(), "phase")
+    assertEquals(
+      statePredicate.path("right").path("literal").path("enum").path("type").asText(),
+      "fixture.features.lamp.product.Phase"
+    )
+    assertEquals(
+      statePredicate.path("right").path("literal").path("enum").path("case").asText(),
+      "dark"
+    )
+
 // The lifter's fixtures under testdata: the Models it must lift, compared with the IR in
 // testdata/lifts/expected, and the declarations the build or the lifter must refuse, at their lines.
 //
@@ -3840,24 +3985,12 @@ class Fixtures extends munit.FunSuite:
       name: String = "",
       excluding: Set[String] = Set.empty
   ): Path =
-    val from = testdata.resolve(fixture)
-    val to = Files.createDirectories(scratch.resolve(if name.isEmpty then fixture else name))
-    val jar = java.util.regex.Matcher.quoteReplacement(modelJar.toString)
-    val stream = Files.walk(from)
-    try
-      for
-        source <- stream.iterator.asScala.toList
-        if source.toString.endsWith(".scala")
-        if !excluding.exists(from.relativize(source).startsWith(_))
-      do
-        val copy = to.resolve(from.relativize(source).toString)
-        Files.createDirectories(copy.getParent)
-        Files.writeString(
-          copy,
-          Files.readString(source).replaceAll("""(\.\./)+build/model-scala\.jar""", jar)
-        )
-    finally stream.close()
-    to
+    LayoutSources.materialize(
+      testdata.resolve(fixture),
+      scratch.resolve(if name.isEmpty then fixture else name),
+      modelJar,
+      excluding
+    )
 
   // The template a new feature copies (layout/lamp): a feature with its two levels and a zoom-in,
   // which the lint refuses nothing of and the lifter lifts.
@@ -3883,7 +4016,7 @@ class Fixtures extends munit.FunSuite:
         "project.scala"
       )
     )
-    val jar = packaged("layout", tree)
+    val jar = packaged("layout", tree, Seq("--server=false"))
     val out = scratch.resolve("layout-out")
     val result = liftIr(out, s"$jar=${stored("layout")},$modelJar=model/", "lamp")
     assertEquals(refused(result), Nil)

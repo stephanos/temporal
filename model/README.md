@@ -28,20 +28,20 @@ caller Model is in `model/temporal/features/nexus/workflow`, and its machine `ne
 its Protocol level's file, `protocol/Protocol.scala`, as the object `NexusProtocol`, which is the machine:
 its rules say when each action fires and its effects what it does.
 
-A **Property** is one promise a machine makes: a condition its steps must meet. This is the
-example's Property (`model/temporal/features/nexus/workflow/protocol/Protocol.scala`, in
-`NexusProtocol.properties`), named after its `val`; inside the machine's object, `property` is the
-machine's own:
+A **witness declaration** states one path and what its last step records. This spelling of the
+Nexus caller's synchronous completion claim belongs in `NexusProtocol.queries`:
 
 ```scala
-// A synchronous reply settles the operation as succeeded, and the completed event records it.
-val syncSucceeds = property when handler.reply(Reply.syncSuccess) holds { s =>
-  s.state.phase == Phase.succeeded && s.records(Fact.nexusOperationCompleted)
-}
+val syncCompletion = witness(caller.schedule(), handler.reply(Reply.syncSuccess))
+  .records(Fact.nexusOperationCompleted)
+  .ends(_.phase == Phase.succeeded)
+  .limits(two)
+  .live(satisfied)
 ```
 
-A **Scenario** is a path through a machine: a start state and a sequence of actions. Here the
-caller schedules the operation and the handler replies synchronously.
+The caller schedules the operation and the handler replies synchronously. `.records` requires
+the last step's completed fact; `.ends` also requires its resulting state to be succeeded. The
+state predicate is optional when the fact alone states the claim.
 
 Each action is written with the actor that takes it: the feature declares the caller's actions in
 `object caller` and the handler's in `object handler`, so `caller.schedule` is the caller's.
@@ -49,32 +49,54 @@ The path starts where the machine does, in `unscheduled`, the state before the o
 `caller.schedule()` leaves each of the operation's three optional timeouts at its first value,
 `unset`; `caller.schedule(scheduleToStart := expires)` sets one by name.
 
-A **Query** is a bounded question that joins the two: find a path of this Scenario on which the
-Property is put to work, or verify that the Property holds on every path of it (in
-`NexusProtocol.queries`, without its exploration settings). A Scenario is declared as a `val`, from
-which it takes its name, before the Query that uses it:
+A **Property** is a condition the selected steps must meet. A **Scenario** is a start state and
+schedule of classes. A **Query** joins them within Limits: `find` asks for one path that puts the
+Property to work, and `verify` checks it on every path of the Scenario. The witness lifts to this
+exact ordinary triple, with one name for all three and no new IR construct:
 
 ```scala
-val syncReplied = scenario.actions(
-  caller.schedule(),
-  handler.reply(Reply.syncSuccess)
-)
-val syncCompletion = (query find properties.syncSucceeds in syncReplied limits two)
-  .expect(satisfied)
+object properties:
+  val syncCompletion = property("syncCompletion") when handler.reply(Reply.syncSuccess) holds
+    (after => after.records(Fact.nexusOperationCompleted) && after.state.phase == Phase.succeeded)
+object queries:
+  val syncCompletionPath = scenario("syncCompletion").actions(
+    caller.schedule(), handler.reply(Reply.syncSuccess)
+  )
+  val syncCompletion = (query("syncCompletion") find properties.syncCompletion in
+    syncCompletionPath limits two).live(satisfied)
 ```
 
-The path a `find` Query returns is its witness. `limits two` bounds the search to two steps. The IR
-generator counts the Query's static combinations, its total, 384 here, which the reader checks; an
-author may state it, `limits two total 384`, and the gate holds it to the count; see
+The generated Property selects exactly the last class, `handler.reply(Reply.syncSuccess)`, and
+tests the recorded fact together with the `.ends` predicate. The generated Scenario starts at the
+machine's init and pins the two classes in order. Keep the triple when a Property or Scenario is
+shared with another Query. The existing Nexus source currently spells this claim as the triple
+with `syncSucceeds` and `syncReplied`; the witness above is its equivalent authoring form.
+Keep `query verify` for invariants over every trace. If the last class occurs earlier in the
+path too, write a triple: a witness is refused because its same-step Property would test both.
+
+A witness is a Query owned by the machine or composition on which it is declared, as are its
+generated Property and Scenario. Inside the owner, `witness(...)` uses that owner; elsewhere use
+`m.witness(...)`. Its `val` names the Query; use `witness("name")(...)` when no val supplies a name,
+such as an item in a helper's list. A composition uses its `own` or `synced` classes and records a
+member's fact with `.records(_.member -> MemberMachine, fact)`.
+
+Without `.limits`, depth and schedule length are the number of listed classes and the search
+budget is 512; the lifted Limits take the Query's name. Here `.limits(two)` replaces that derived
+value with the named `two` bound, explicitly preserving steps 2, actions 2 and search 512.
+The path a `find` Query returns is its witness. The IR generator counts the Query's static
+combinations, its total, 384 here, which the reader checks. An author may state it,
+`limits two total 384`, and the gate holds it to the count; see
 [Counting a Query's total](#counting-a-querys-total).
-`.expect(...)` states what a real run of this path should be judged as, here `satisfied`, the
+`.live(...)` is the authored Query switch for live Case generation; without it the Query is
+model-only. A capability's expectation binding makes its generated Query live too.
+The expectation states what a real run of this path should be judged as, here `satisfied`, the
 Temporal kit's expectation (`model/temporal/realize/Kit.scala`) of a Run that completes, cleans up
 and satisfies its Contract, and that the model assessment finds conformant with the Property
 satisfied; see [Following the example to a Verdict](#following-the-example-to-a-verdict).
 
 A **realization** says how to act a path out on a real server: which API calls perform each
 action, and which recorded events are evidence of each fact. The Nexus caller's realization is
-`model/temporal/features/nexus/workflow/Realization.scala`.
+`model/temporal/features/nexus/workflow/realization/WorkflowNexusRun.scala`.
 
 The remaining terms name what the tools produce:
 
@@ -290,24 +312,22 @@ reported as left to the projection rather than as unused.
 
 ## Following the example to a Verdict
 
-**Lifted.** `make umpire-gen-model` lifts the Query into `model/ir/nexus-workflow.json`. This is its
-entry there, without the `exploration` field:
+**Lifted.** `make umpire-gen-model` lifts the Query into `model/ir/nexus-workflow.json`. For the
+witness spelling above, its ordinary Query entry has this shape, with source positions and
+exploration omitted. The existing ordinary source instead names its Property `syncSucceeds`
+and its Scenario `syncReplied`:
 
 ```json
 {
   "name": "syncCompletion",
-  "position": {
-    "file": "model/temporal/features/nexus/workflow/protocol/Protocol.scala",
-    "line": 288
-  },
   "form": "FORM_FIND",
   "property": {
     "machine": "nexusProtocol",
-    "name": "syncSucceeds"
+    "name": "syncCompletion"
   },
   "scenario": {
     "machine": "nexusProtocol",
-    "name": "syncReplied"
+    "name": "syncCompletion"
   },
   "limits": {
     "name": "two",
@@ -321,7 +341,8 @@ entry there, without the `exploration` field:
     "contract": "OUTCOME_SATISFIED",
     "disposition": "DISPOSITION_COMPLETED",
     "cleanup": "CLEANUP_SUCCEEDED"
-  }
+  },
+  "total": "384"
 }
 ```
 
@@ -330,8 +351,8 @@ same way, each with its Scala source position. Step functions become expression 
 [SEMANTICS.md](SEMANTICS.md) defines how to evaluate.
 
 **Checked.** The Go reader builds the table of `nexusProtocol` from the IR and answers the Query:
-it finds the two-step path and confirms that `syncSucceeds` holds on its last step. That path is
-the witness.
+it finds the two-step path and confirms that the completion Property holds on its last step.
+That path is the witness.
 
 **Lowered.** `tools/umpire/lower` turns the witness into the Case
 `model/cases/nexus-workflow-syncCompletion-case.json`, with the Case ID
@@ -352,7 +373,7 @@ comparisons left out:
 The trigger matches the step whose action is `schedule-unset-unset-unset`, and the response matches
 a step whose fact is `nexusOperationCompleted`. In words: once the Run shows the operation
 scheduled, the completed fact must follow within one more transition of that operation.
-`model/cases/manifest.json` lists the Query as `lowered` and repeats what `.expect(...)` declared.
+`model/cases/manifest.json` lists the Query as `lowered` and repeats what `.live(...)` declared.
 
 **Run.** `tools/canary/assessment/testdata/nexus-workflow-syncCompletion-run.json` is a recorded Run
 of exactly this Case against the in-process test server. It holds 27 events and ends with this
@@ -403,7 +424,7 @@ by id.
 - `syncCompletion` is the only one of the Nexus caller's seven `find` Queries whose Property the
   assessment settles. The other six Cases run and satisfy their Contracts, but their Property stays
   `inconclusive`, because the Model also allows another execution that explains the same evidence
-  and on which the Property fails or is never evaluated. Each Query's `.expect(...)` names the
+  and on which the Property fails or is never evaluated. Each Query's `.live(...)` names the
   reason by the judge's id (`Reason.explanationsDisagree`, `Reason.neverEvaluated`), whose wording
   is the judge's own (`tools/umpire/conformance/conclude.go`).
 - Of the 340 Queries in the checked-in IR, 30 lower to a Case. 202 are `verify` Queries, which have
@@ -809,7 +830,8 @@ own types, signature and givens sit in its file, and a given another subject mus
 an object of its own or in its type's companion, as the close policy's `Answer`'s `Ok` does. A
 realization object extends `Realizes(machine, runs = Seq(...))` or `DerivesFrom(base, machine,
 runs = ...)`, so its facts, action bindings and derived defaults are checked against that machine,
-and names the find Queries it runs (fn-162); a find Query no realization names is model-only.
+and names the live find Queries it runs (fn-162). An authored find without `.live` is model-only;
+a live find also needs membership in an executable realization.
 
 A Model folder holds no file named by kind (`Model.scala`, `Properties.scala`, `Queries.scala`,
 `Capabilities.scala`, `IrFiles.scala`): `TestRetiredModelPathsStayRetired` in `tools/umpire/ir`
@@ -924,8 +946,9 @@ A machine object is the machine: `object ActivityProduct extends Machine[State, 
 8. `object capabilities extends Capabilities` (`framework.Capabilities`), its one typed `val` per
    capability and any `except(…)` or `overriding(…)` statement; its `queries` section sets generated
    Query limits with `capabilities.bound(three)`;
-9. `object queries`, its Scenarios, then its Queries; each Scenario takes its name from the `val`
-   that declares it, `val completed = scenario.actions(…)`.
+9. `object queries`, its witnesses and ordinary Queries. A witness declares its path and claim
+   together, named after its `val`; an ordinary Query reads a Scenario declared before it,
+   `val completed = scenario.actions(…)`. Shared Properties stay in `properties`.
 
 A derived machine is an object too, `object TrustingActivityRecord extends Derived(ActivityRecord.rebind(
 …))`, and adds only its own `states`, `properties`, `capabilities` and `queries`; `rebind(action ~>
@@ -1128,7 +1151,9 @@ def queueClaims(m: Machine[QueueDetail, QueueOutcome, QueueFact]): QueueClaims =
 )
 ```
 
-Sugar is kept apart from the core. The core is what the IR needs declared: `Machine`, `Derived`
+Sugar is kept apart from the core. A witness's core is the same-named Property, Scenario and
+`find` Query above, all owned by its declaring machine or composition; lifting adds no IR kind.
+The core is what the IR needs declared: `Machine`, `Derived`
 and `Composition`, the phase projection `Phased`, the derivations `rebind`, `extend`, `refining`,
 `assuming` and `unmonitored`,
 `Actor`, `action` and its classes (`start()` among them), `input`, `UpTo`, `Bindings` and `~>`,
@@ -1140,8 +1165,8 @@ and `Composition`, the phase projection `Phased`, the derivations `rebind`, `ext
 `MonitorExpectation` and the kit's roles and bindings. Sugar is a form whose meaning a core form
 already says: the rules (`Rules` with `on`, `from`, `when`, `where`, `always` and `disabled`), `implies`,
 `in`, `records`, `enter`, `stay`, `reject`, `disabled`, the claim patterns (`once`,
-`keeps`, `never`, `from`, `stays`, `unless`), the monitor pattern (`sticky`, `stickyAcross`) and
-both spellings of `:=`, named inputs and request
+`keeps`, `never`, `from`, `stays`, `unless`), `witness`, the monitor pattern (`sticky`, `stickyAcross`)
+and both spellings of `:=`, named inputs and request
 fields. It lives in the `Syntax.scala` files of the DSL (`framework/Syntax.scala`), the kit
 (`temporal/realize/Syntax.scala`) and the IR generator (`irgen/Syntax.scala`). Each form is documented
 with `Core form:` and the core spelling it stands for, and an IR generator fixture lifts it beside that
@@ -1299,6 +1324,10 @@ include a refinement pair keeps only shared types and its signature in that file
 in `protocol/Protocol.scala`, with each other machine, facet and zoom-in in a file of its own beside
 it, and its realizations in `realization/`. A feature of one level keeps its machine in its feature
 file and has no level folder.
+The lamp template keeps a switch-on `verify` and the System's Product refinement. Its ordinary
+`switchedOff` witness pins switch-on then switch-off, records `Fact.switchedOff` and ends in
+`Phase.dark`. It has derived two-step Limits and no `.live`, so it checks the Model and generates
+no Case. Keep such paths in `queries`; add `.live` only when declaring a live expectation.
 For a kind with related forms, create its general file and put each form's feature folder beneath
 it, following `model/irgen/testdata/layout/kinds/`. An optional kind Product can serve both forms;
 each form's Protocol then refines that Product and keeps its own `protocol/Protocol.scala`. The three
@@ -1474,7 +1503,11 @@ object capabilities extends Capabilities:
 object capabilities extends Capabilities:
   val terminable: Capability = Terminable(
     terminate = client.terminate, settled = Fact.statusTerminated,
-    reach = Seq(client.start(), process.stop), expect = inconclusive(explanationsDisagree)
+    reach = Seq(client.start(), process.stop),
+    expect = inconclusive(
+      Reason.explanationsDisagree,
+      because = "a terminate of an activity that is over is not found and records nothing, so the executions that explain a Run of the terminate find disagree"
+    )
   )
   val describable: Capability = Describable(statusTable = activityStatus)
 
@@ -1612,8 +1645,8 @@ fields. Then:
   each member's classes that no sync takes plus, for each sync, the classes of its first action times
   those of its second.
 
-`syncCompletion` above pins two actions within `limits two`. `system.State` has a `system.Phase` of 8
-cases, `attempts` of 0 to 2 and three two-valued `Timeout`s, so 8 × 3 × 2 × 2 × 2 = 192 states, and
+`syncCompletion` above pins two actions within `limits two`. `protocol.State` has a `protocol.Phase`
+of 8 cases, `attempts` of 0 to 2 and three two-valued `Timeout`s, so 8 × 3 × 2 × 2 × 2 = 192 states, and
 the total is 192 × min(2, 2) = 384. A free Scenario of the same machine within three steps would
 count 192 × 23 × 3 = 13248: `schedule` has 2 × 2 × 2 = 8 classes, `reply` 4 + 2 = 6 (one of
 its five replies carries a Boolean), `complete` 3, and the six actions without inputs one each.
@@ -1650,11 +1683,25 @@ a start outside the state domain, a stuck state, a class bound twice or a failed
 the IR at the Scala source line recorded by the IR generator. These semantic errors surface through
 `make umpire-check-model`, rather than a Scala unit test.
 
-A Query that should become a Case needs two more things: a realization on its machine, and
-`.expect(RunExpectation(...))` on the Query, which states the model assessment a Run of it should
-get. A missing or malformed expectation fails generation. What a realization may declare, and how
+A Query that should become a Case needs a realization on its machine and
+`.live(RunExpectation(...))`, which states the assessment a Run of it should get. `.live` is the
+authored Case-generation switch, for witnesses and ordinary Queries alike; a Query without it
+remains model-only. Capability expectation bindings make their generated Queries live too.
+A malformed expectation fails generation. What a realization may declare, and how
 each declaration lowers, is in [SEMANTICS.md](SEMANTICS.md) under Realizations and Generated Case
 expectations.
+
+Expectations whose Property or Contract outcome is not satisfied require non-blank source text in
+`because`. This applies to convenience forms such as
+`inconclusive(Reason.neverEvaluated, because = "...")` and full `RunExpectation` values, as well as
+each non-satisfied `MonitorExpectation` nested in a Run expectation. A full Run whose Property and
+Contract are both satisfied cannot supply this text, even if conformance is short of conformant;
+satisfied monitor values also take none. The text states why the author expects that result; use
+the known limitation or evidence gap, rather than inventing an assessment explanation. It stays
+in source and adds no IR, Case or assessment field. Existing judge reason IDs, such as
+`Reason.neverEvaluated`, and the
+other `expected_run` fields are still emitted and compared; the judge alone supplies assessment
+wording. Capability expectation bindings use the same expectation values and the same text rule.
 
 What every Temporal realization says alike is declared once, in the kit `model/temporal/realize`
 (`Kit.scala`, over the vocabulary of its `Realize.scala`): the roles (`workflowService`,
