@@ -67,3 +67,22 @@ The user adopted the action-owning facet as the target. [user] Ownership by acti
 
 - How a facet's sections are expressed in Scala (traits with nested section objects vs another encoding) and whether the lifter can read them without new restrictions. The stage 1 implementation resolves this. [inferred]
 - Whether an interaction facet is needed for the standalone activity at all. Stage 2's migration resolves this. [inferred]
+
+## Nexus facet vocabulary (Batch 1d nexus lane, 2026-10-11)
+
+One vocabulary for the kind, shared by the Product (`NexusProduct`) and both forms' Protocol machines (standalone and workflow `NexusSystem`, to be `NexusProtocol`). Facets own actions by binding them; a level holds only the facets it needs. Nouns for what happens:
+
+| Facet | Owns (product) | Owns (standalone protocol) | Owns (workflow protocol) | Capabilities it declares |
+|---|---|---|---|---|
+| `Scheduling` | (none: the product begins scheduled) | `client.start` | `caller.schedule` | |
+| `Starting` | `handler.reply` | `handler.reply` | `handler.reply` | workflow: the two `Retryable` handler-error declarations (their failure is a reply class) |
+| `Completion` | `handler.complete` | `handler.complete` | `handler.complete` | standalone: `Closable` with its `overriding` (closed rejection is the completion's promise), `Describable` |
+| `Retrying` | `disabled(network.fault, worker.stop)` | | `network.fault`, `worker.stop`, `timers.backoff` | workflow: `Retryable` for `network.fault` |
+| `Cancellation` | | `client.requestCancel` | | |
+| `Termination` | `client.terminate` | `client.terminate` | | standalone: `Terminable` |
+| `Timeouts` | `timers.timeout` | | `deadline.scheduleToClose`, `deadline.scheduleToStart`, `deadline.startToClose` | workflow: the three `Expirable` declarations |
+
+- `Starting` is the handler's answer to the start request (sync settle, async start, or a handler error); `handler.reply` is bound at all three machines, so it is `Starting` at all three (R9). The retryable reply class backs the operation off, but its rules stay with their action (ownership by action), and `Retrying` keeps the faults and the backoff timer that make a retry.
+- `Retrying` at the product holds only the `disabled` binding of the two faults, because the workflow protocol binds them and R9 requires the same owner at both levels.
+- Design and adversarial machines take one facet named after their concern: `ClosePolicy` for `RejectAfterClose` (its derived designs stay derived) and `ForgedControl` for `TrustingCaller`. They are workflow-protocol subjects with their own state, so the product/protocol same-owner rule does not reach them; the two names join the kind's vocabulary.
+- Machine-wide (no facet): each machine's `State`, phase enum, `init`, `end`, phase projection, refinement, `states` sets, and the whole-feature `queries`; `HandlerWorker` (a derivation) and `NexusCaller` (a composition) are exempt (R8).
