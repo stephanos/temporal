@@ -1,5 +1,5 @@
 ---
-satisfies: [R1, R2, R5]
+satisfies: [R1, R2, R3, R4, R5]
 ---
 # fn-149-safety-and-liveness-groups-for-object.4 Migrate Model claims and capability references with behavior pins
 
@@ -9,6 +9,10 @@ Migrate Model claims and capability references with behavior pins. Advances R1, 
 **Size:** M
 **Files:** `model/temporal/**`, `model/irgen/Capabilities.scala`, `model/irgen/Structure.scala`, `model/irgen/testdata/**`, `tools/umpire/check/*test.go`; complete generated IR/Cases remain isolated scratch seal outputs until fn-123.8.
 **Touches:** [model/temporal/**, model/irgen/Capabilities.scala, model/irgen/Structure.scala, model/irgen/testdata/**, tools/umpire/check/*test.go, .flow/tmp/fn149/task4/**]
+
+**Owner-mode split:** This task retains its original full migration/consumer contract below and stays deferred. New .6 performs the Scala migration; new .7 includes the final docs/layout source seal. Consume those committed sources and fn-140.10's frozen baseline without repeating authoring changes. Native/source proof substitutes for none of this task's Go Query/progress receipts, finite-bound counterexamples, incomplete/unsupported dispositions, canonical Cases/checksums or expected/actual live/replay assessments. Require committed full fn-155.6 and fn-156.7 closures before this consumer proof, in addition to their source receipts used by .6.
+
+The .1/.2 source split also hands off their original Query/check-outcome and checker-bound-disposition obligations here. Preserve unequal declared/search bounds and independent safety failures despite missing progress prerequisites. Keep all original independent universes, mutation controls, exact identity/provenance mapping, monitor/law/waiver checks and nonzero selectors. Go, scratch managed regeneration and actual assessment evidence run only after the owner lifts the hold.
 
 ### Approach
 - Freeze fn-140.10's independent witness seal as the grouping baseline. Inventory all current Activity subject/Dispatch owners and every Nexus declaration, including capabilities, inherited claims, helper bundles, derived designs and compositions. Classify by declaration kind, not names such as completes.

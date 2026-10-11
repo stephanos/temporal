@@ -6,6 +6,8 @@ The generator is intentionally generation-only for now. Its focused and golden t
 
 ## Prior requests
 
+- 2026-10-11 - Split fn-149's Scala source migration/seal from its retained consumer and shared-close proofs under the owner's Scala-only mode. Existing focused inventory, provenance and regeneration checks remain required; broad generated API drift verification and new CI coverage remain excluded.
+
 - 2026-10-10 - Prepared fn-130's fixed Model views task plan. Its explicitly requested artifact freshness gate and focused ownership/preservation tests remain in scope; broad generated API drift verification and new CI coverage remain excluded.
 
 - 2026-10-08 - Planned fn-149's claim grouping and fn-150's composition progress. Retain focused

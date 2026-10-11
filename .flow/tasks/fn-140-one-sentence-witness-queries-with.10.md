@@ -17,6 +17,20 @@ Complete the remaining Scala witness migration and source-aware eligible-triple 
 - Integrate .5's docs/core-form/layout template and lift the template positively. Seal isolated scratch IR and Scala lift goldens with complete difference classification under R5/R6, never broad position stripping or alpha-normalization. Keep checked-in production IR, Cases and functional/canary mirrors untouched. Preserve baseline and identity/span mapping for deferred .6/.9 consumer comparisons; no native substitute for actual assessments.
 - Run framework, Model, lifter and gate Scala suites, syntax and pinned step-table equivalence. Record concrete test coverage and full source-seal handoff. The committed closure releases fn-149.1 source implementation, then fn-149's source seal releases fn-164, then the pre-fault seal releases fn-123; no whole-spec Go closure is needed for that source order.
 
+### Inherited fixture obligations
+
+The fn-140.3 pre-edit fixture campaign recorded obsolete elapsed constructors, missing nested
+monitor reason text, a Totals specimen rejected by the strict duplicate-Property rule, and stale
+managed goldens selected accidentally by the broad '*expect*' name filter. Task .3 may repair
+obsolete constructors and source expectation admission, then run a dedicated nonempty expectation
+suite. That focused result does not repair or pass the old Totals/full fixture campaign.
+
+Before this source seal, audit the retained fn140-3 baseline logs and prove all live/total order
+assertions still execute. Repair a stale Totals source specimen by preserving its independent
+pair/control semantics and the strict duplicate rule, never by weakening admission. Retain stale
+managed-golden comparisons for the deferred regeneration/full sweep, with exact tests and results
+identified. No excluded assertion earns passing credit.
+
 ### Quick commands (serialize heavy commands)
 ```sh
 mise exec -- scala-cli compile model/project.scala model/framework model/temporal

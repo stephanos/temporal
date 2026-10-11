@@ -91,7 +91,7 @@ discovery/export approach before migrating Models.
   insufficient to preserve the intended distinction. [inferred]
 - The conductor selected fn-149 after fn-140 and before fn-164 expectation/colon migration. Activation
   and readiness remain conductor-owned. Entry follows fn-140.10's committed witness source seal;
-  fn-149's grouping source seal releases fn-164, whose final seal precedes fn-123's semantic fault changes. Fn-141's declaration
+  fn-149.7's committed grouping source seal releases fn-164, whose final seal precedes fn-123's semantic fault changes. Fn-141's declaration
   lifting runs later in Batch 4 and supplies no prerequisite exporter here.
 
 - Planning confirmed R2-R6 against existing declaration admission, receipt subjects, Model pins
@@ -111,48 +111,72 @@ discovery/export approach before migrating Models.
 
 ## Selected Batch 2 execution
 
-The selected order is fn-140, then fn-149, then fn-123. Fn-140.6 first seals its meaning-preserving witness
-comparison. Task .4 then proves grouping against that frozen baseline through an isolated scratch
-regeneration. Task .5 includes its documentation and executable-layout changes in the final
-independent grouping/assessment-equivalence seal. Commit the source and seal before fn-123.1
-changes fault meaning. A failed or incomplete seal holds the downstream source lane.
+The source order is committed fn-140.10 -> fn-149.1/.2/.6/.7 -> fn-164 expectation/colon migration
+-> the explicit pre-fault step-table comparison -> fn-123. The conductor verifies committed source
+seals before each admission. A failed or incomplete source seal holds downstream work.
 
-Preserve the complete declaration universe, tables, predicates, bounds, assumptions, Query/progress
-receipts, expectations, live/replay assessment meaning and negative controls. Account separately
-for each grouping-induced qualified name, source coordinate, Definition/Case identity and checksum
-change. Compose the authorized mapping with fn-140's and the actually committed fn-155 mapping;
-never normalize away an unexplained delta or use the grouped output as its own baseline.
+Task .6 freezes the complete declaration-side baseline before grouping. Task .7 includes final
+documentation and executable-layout changes in the independently compared source/scratch-lift
+seal. Preserve native tables and predicates on every applicable row, Progress bounds/assumptions,
+Query and expected-run metadata, realization membership, monitor attachment and capability origins/
+waivers. Account separately for each qualified name, identity and source span. Step-table projection
+does not prove provenance equality. Compose actual fn-140/fn-155 mappings and reject unexplained
+differences. Whole-group omissions and shared laws omitted by both candidate scanners must fail
+the independent frozen inventory.
 
-The existing five-task DAG records full closure: .2 follows .1, .4 joins .1/.2/.3, and .5 joins .3/.4.
-Task .3 is the owner-deferred Go report lane, not a parallel Scala candidate. The current one-worker
-Scala lane is sequential. Before execution, separate any mixed source/consumer task whose legacy
-closure dependencies would block owner-approved source work; retain every consumer proof in its
-deferred lane. The source seal does not close this spec or its shared final task.
-Task .5 remains pending the shared fn-123.8 boundary, which performs the single production
-regeneration, full gates, independent review and live run for all three Batch 2 specs. Each
-acceptance obligation links that evidence before any spec closes. Reuse unchanged passing evidence;
-repeat only affected checks after fixes. Historical native/Quint resource RED and strict Batch 5
-semantic failures retain their existing attribution and unresolved obligations.
+The seven-task DAG preserves the original consumer tasks. The single-worker Scala lane is
+.1 -> .2 -> .6 -> .7. Task .3 is the existing deferred Go reporting checkpoint; its in-progress
+state and remaining obligations stay unchanged. Legacy .4 retains its original complete migration,
+Go receipt, Case and assessment contract and adds .6 as a dependency. Legacy .5 retains integrated
+consumer documentation/regeneration/gates/review/live closure and adds .7 as a dependency.
+Neither task closes from native/source evidence.
+
+Scala admission consumes committed fn-155/fn-156 source receipts and identity mappings. Their full
+fn-155.6/fn-156.7 closures remain explicit prerequisites for deferred .4/.5 instead of whole-spec
+dependencies blocking the owner-approved source lane. No source receipt counts as those closures.
+Go, managed regeneration, full gates, independent review and live work stay held until the owner
+lifts the mode. The shared fn-123.8 boundary supplies every retained consumer result and publishes
+changed pins once. Publishing remains separately authorized.
+
+The .1/.2 source proofs cover discovery, native initialization/registration, resolved declaration
+kinds and compiler/lifter bound admission. Actual Query/progress check outcomes, finite-bound
+counterexamples, incomplete/unsupported dispositions, unequal declared/search bounds, independent
+safety failures despite missing progress prerequisites, canonical Cases/checksums and expected/
+actual live/replay assessments stay in .3/.4/.5. Strict inherited Activity and resource failures
+retain their original attribution and receive no green credit.
+
+### Planning evidence
+
+Current runtime discovery and TASTy discovery require independent unqueried-Progress pins.
+Both capability scanners need the fixed seven-companion/thirteen-law inventory rather than
+candidate-derived counts. The dedicated PropertyGroupsFixtures suite avoids the broad Fixtures
+startup/golden campaign and must execute nonzero expected populations. Existing source StepTables
+supply table equivalence, with a separate exact identity/provenance ledger.
+
+Memory guidance retains exact authored coordinates and independent completeness universes
+(`nested-admission-diagnostics-must-2026-09-05`, `a-checked-artifact-cannot-supply-its-2026-09-28`).
+Source semantics must lift faithfully or refuse unsupported forms
+(`channel-catalogs-and-visible-results-2026-09-30`). These entries guide the proof; they are not
+completion evidence. The existing declined generated-API drift/CI scope remains excluded.
 
 ## Quick commands
 
 ```bash
-mise exec -- scala-cli test model/irgen --test-only Fixtures
+mise exec -- scala-cli test model/irgen --test-only '*PropertyGroupsFixtures*'
 go test -tags test_dep ./tools/umpire/check ./tools/umpire/internal/cli
 ```
 
-The final task prepares the grouping seal and documentation. Its integrated model, artifact, lint,
-full Go and live obligations use the single fn-123.8 shared close. This planning-only wiring leaves
-fn-149 not-ready until the conductor releases it; it neither executes these commands nor grants
+Task .7 commits the Scala grouping seal and author documentation. Legacy .4/.5 retain integrated
+model, artifact, lint, full Go and live obligations at the single fn-123.8 shared close. This planning-only wiring requires the conductor to verify the committed fn-140.10 source seal before admission; it neither executes these commands nor grants
 passing-gate credit.
 
 ## Requirement coverage
 
 | Req | Description | Task(s) | Gap justification |
 | --- | --- | --- | --- |
-| R1 | Authored object properties have distinct safety and liveness groups, visible at the declaration site. No error surface beyond the declaration checks in R2. | fn-149-safety-and-liveness-groups-for-object.1, fn-149-safety-and-liveness-groups-for-object.2, fn-149-safety-and-liveness-groups-for-object.4 | — |
-| R2 | The authoring gate rejects a progress declaration in safety and a safety assertion in liveness, naming the declaration and expected group. Valid groups and omitted empty groups pass; helpers and shared laws do not create duplicate claims. | fn-149-safety-and-liveness-groups-for-object.1, fn-149-safety-and-liveness-groups-for-object.2, fn-149-safety-and-liveness-groups-for-object.4 | — |
-| R3 | Liveness declarations retain explicit progress bounds and assumptions. Negative fixtures cover a missing or invalid bound and a progress counterexample; incomplete checks remain incomplete. No unbounded eventuality claim is introduced. | fn-149-safety-and-liveness-groups-for-object.2, fn-149-safety-and-liveness-groups-for-object.5 | — |
-| R4 | Existing claim diagnostics and reports distinguish safety from bounded liveness and retain source attribution. Progress receipts expose the declared `within` bound separately from exploration limits, including successful checks with unequal values. A missing progress prerequisite never suppresses an independently established safety violation. Unsupported checks remain explicitly unsupported. | fn-149-safety-and-liveness-groups-for-object.3, fn-149-safety-and-liveness-groups-for-object.5 | — |
-| R5 | Existing Models, shared capability laws, references and authoring examples use the grouping consistently. Regression checks preserve behavior and verdicts, including negative controls; generated identity and provenance changes are explicitly accounted for. | fn-149-safety-and-liveness-groups-for-object.4, fn-149-safety-and-liveness-groups-for-object.5 | — |
-| R6 | Author documentation explains the two groups with a safety postcondition and a bounded progress claim, including their different treatment of assumptions. It explicitly distinguishes finding a witness from proving progress. No error surface beyond R2 and R3. | fn-149-safety-and-liveness-groups-for-object.5 | — |
+| R1 | Authored object properties have distinct safety and liveness groups, visible at the declaration site. No error surface beyond the declaration checks in R2. | fn-149-safety-and-liveness-groups-for-object.1, fn-149-safety-and-liveness-groups-for-object.2, fn-149-safety-and-liveness-groups-for-object.4, fn-149-safety-and-liveness-groups-for-object.6 | — |
+| R2 | The authoring gate rejects a progress declaration in safety and a safety assertion in liveness, naming the declaration and expected group. Valid groups and omitted empty groups pass; helpers and shared laws do not create duplicate claims. | fn-149-safety-and-liveness-groups-for-object.1, fn-149-safety-and-liveness-groups-for-object.2, fn-149-safety-and-liveness-groups-for-object.4, fn-149-safety-and-liveness-groups-for-object.6 | — |
+| R3 | Liveness declarations retain explicit progress bounds and assumptions. Negative fixtures cover a missing or invalid bound and a progress counterexample; incomplete checks remain incomplete. No unbounded eventuality claim is introduced. | fn-149-safety-and-liveness-groups-for-object.2, fn-149-safety-and-liveness-groups-for-object.4, fn-149-safety-and-liveness-groups-for-object.5, fn-149-safety-and-liveness-groups-for-object.6, fn-149-safety-and-liveness-groups-for-object.7 | — |
+| R4 | Existing claim diagnostics and reports distinguish safety from bounded liveness and retain source attribution. Progress receipts expose the declared `within` bound separately from exploration limits, including successful checks with unequal values. A missing progress prerequisite never suppresses an independently established safety violation. Unsupported checks remain explicitly unsupported. | fn-149-safety-and-liveness-groups-for-object.3, fn-149-safety-and-liveness-groups-for-object.4, fn-149-safety-and-liveness-groups-for-object.5 | — |
+| R5 | Existing Models, shared capability laws, references and authoring examples use the grouping consistently. Regression checks preserve behavior and verdicts, including negative controls; generated identity and provenance changes are explicitly accounted for. | fn-149-safety-and-liveness-groups-for-object.4, fn-149-safety-and-liveness-groups-for-object.5, fn-149-safety-and-liveness-groups-for-object.6, fn-149-safety-and-liveness-groups-for-object.7 | — |
+| R6 | Author documentation explains the two groups with a safety postcondition and a bounded progress claim, including their different treatment of assumptions. It explicitly distinguishes finding a witness from proving progress. No error surface beyond R2 and R3. | fn-149-safety-and-liveness-groups-for-object.5, fn-149-safety-and-liveness-groups-for-object.7 | — |

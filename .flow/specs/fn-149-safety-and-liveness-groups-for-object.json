@@ -11,9 +11,7 @@
     "fn-143-rename-modelumpire-to-modelframework",
     "fn-142-split-modeltemporalshared-into",
     "fn-145-modularize-the-umpire-ir-schema",
-    "fn-151-split-standalone-activity-into-smaller",
-    "fn-155-name-the-standalone-activitys-repeated",
-    "fn-156-let-the-scala-compiler-and-lint-enforce"
+    "fn-151-split-standalone-activity-into-smaller"
   ],
   "id": "fn-149-safety-and-liveness-groups-for-object",
   "impl_review_rounds": {},
@@ -218,5 +216,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-11T06:12:52.652017Z"
+  "updated_at": "2026-10-11T06:34:02.563414Z"
 }

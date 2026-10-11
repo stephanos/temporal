@@ -198,11 +198,12 @@ is sequential; task .10's committed Scala seal releases later source work withou
 
 ### fn-149: Safety and liveness groups for object properties
 
-[Spec](.flow/specs/fn-149-safety-and-liveness-groups-for-object.md) has five M tasks covering all six
-criteria. Its refreshed plan passed independent review on 2026-10-10. The independent Go report
-lane (.3) is admitted as work-ahead on a pinned integrated baseline; it changes no Scala,
-schema or managed artifact. Grouping integration follows fn-140's witness seal, before fault
-work, and closure remains shared at fn-123.8.
+[Spec](.flow/specs/fn-149-safety-and-liveness-groups-for-object.md) has seven M tasks covering all six
+criteria. Its original full-contract plan passed independent review on 2026-10-10; the current
+source/consumer partition follows the owner's Scala-only mode and its review remains deferred.
+The Go report lane (.3) is held at its existing checkpoint. Scala grouping follows fn-140.10's
+committed witness source seal, then releases fn-164 before the pre-fault comparison and fn-123.
+Consumer closure remains shared at fn-123.8.
 The report checkpoint is integrated as `da8f78204a`: classification is derived, and progress
 receipts expose their declared `within` separately from exploration limits. Focused integrated
 checks preserve witness verdicts and independent safety failures; the full checker gate remains open.
@@ -212,19 +213,21 @@ and carry the distinction into existing diagnostics and reports. Liveness retain
 and assumptions. Runtime registration and lifted discovery have independent inventory proofs;
 shared capability-law counts cannot use the candidate scans as their oracle. Complete grouping
 comparisons preserve behavior, check results and Case/assessment meaning, with every identity and
-provenance change explained. Fn-149.5 stays pending until shared gates, review and live evidence are
-linked at fn-123.8, even after its committed source seal releases fn-164's expectation/colon migration;
-fn-164's seal then releases fault implementation.
+provenance change explained. Fn-149.7 commits the final Scala docs/layout/source seal and releases
+fn-164's expectation/colon migration. Fn-149.4/.5 retain complete Go receipt, Case, assessment and
+shared gate/review/live proofs at fn-123.8; source results substitute for none of them.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-149.1 | ⬜ todo | Group discovery and independent runtime/lifter registration proof — Scala part open; Go part deferred |
+| fn-149.1 | ⬜ todo | Group discovery and independent native initialization/lifter inventory proof; consumer outcomes retained in .4/.5 |
 | fn-149.2 | ⬜ todo | Declaration-kind placement checks and source-attributed refusals |
 | fn-149.3 | ⏸️ deferred (Go) | Reporting checkpoint integrated; focused classification, distinct bounds and safety/progress coexistence checks pass; full gates/review held |
-| fn-149.4 | ⬜ todo | Model/capability migration with complete independent behavior and identity seal |
-| fn-149.5 | ⬜ todo | Author docs and final grouping seal before fn-123; shared gate/review/live close at fn-123.8 — shared gate/review/live deferred |
+| fn-149.6 | ⬜ todo | Scala Model/capability migration, native row/inventory pins and exact scratch-lift identity/span seal |
+| fn-149.7 | ⬜ todo | Scala author docs, executable layout and final committed grouping source seal; releases fn-164 |
+| fn-149.4 | ⏸️ deferred (Go) | Original complete consumer behavior, Query/progress receipt, Case and expected/live-replay assessment proof; consumes .6 |
+| fn-149.5 | ⏸️ deferred | Consumer reporting docs and original integrated regeneration/gates/review/live closure; consumes .4/.7 at fn-123.8 |
 
-Tasks .1 and .3 are parallel candidates; .2 follows .1; .4 joins .1/.2/.3; .5 joins .3/.4.
+One Scala worker takes .1 → .2 → .6 → .7. Deferred .4 joins .1/.2/.3/.6; .5 joins .3/.4/.7.
 Heavy commands remain serialized. Composition progress belongs to fn-150, not this grouping change.
 
 ### fn-164: Expect blocks for Properties
