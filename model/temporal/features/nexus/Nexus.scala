@@ -13,7 +13,7 @@ enum Reply derives Finite:
 enum Resolution derives Finite:
   case succeeded, failed, canceled
 
-// The Product and System levels share the framework outcome, so a refinement reads the same value
+// The Product and Protocol levels share the framework outcome, so a refinement reads the same value
 // at both levels.
 
 val operation = Entity()

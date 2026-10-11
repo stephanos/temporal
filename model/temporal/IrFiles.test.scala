@@ -77,9 +77,9 @@ class IrFilesTest extends munit.FunSuite:
 
   test("every model that names phases declares Phased") {
     import features.activity.standalone.{product as activityProduct, system as activitySystem}
-    import features.nexus.product as nexusProduct
-    import features.nexus.standalone.system as nexusStandalone
-    import features.nexus.workflow.system as nexusWorkflow
+    import features.nexus.shared.product as nexusProduct
+    import features.nexus.standalone.protocol as nexusStandalone
+    import features.nexus.workflow.protocol as nexusWorkflow
 
     val projected: Seq[AnyRef] = Seq(
       activityProduct.ActivityProduct,
@@ -90,8 +90,8 @@ class IrFilesTest extends munit.FunSuite:
       activitySystem.RecordOverQueue,
       activitySystem.RecordOverMatching,
       nexusProduct.NexusProduct,
-      nexusStandalone.NexusSystem,
-      nexusWorkflow.NexusSystem,
+      nexusStandalone.NexusProtocol,
+      nexusWorkflow.NexusProtocol,
       nexusWorkflow.TrustingCaller,
       nexusWorkflow.RejectAfterClose,
       nexusWorkflow.NexusCaller,

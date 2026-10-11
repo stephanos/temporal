@@ -4,10 +4,10 @@ import framework.Finite.given
 // The Nexus and shared-worker rejection cells, recorded before they adopted the shared Outcome.
 
 import temporal.features.nexus.handler as nexusHandler
-import temporal.features.nexus.product
+import temporal.features.nexus.shared.product
 import temporal.features.nexus.standalone
 import temporal.features.nexus.workflow
-import temporal.features.nexus.workflow.system.given
+import temporal.features.nexus.workflow.protocol.given
 import temporal.actors.worker as sharedWorker
 import framework.outcomes.Outcome
 
@@ -79,50 +79,50 @@ class NexusOutcomePins extends munit.FunSuite:
     assertEquals(rejectingCells, expectedCount, s"${machine.name} rejecting cells")
 
   private val productRejections =
-    import product.Phase.*
+    import product.Phase
     List(
       ExpectedRejection[product.State](
         nexusHandler.complete.decl,
         None,
         s =>
-          s.phase == succeeded || s.phase == failed || s.phase == canceled ||
-            s.phase == timedOut || s.phase == terminated, // scalafix:ok DisableSyntax.==
+          s.phase == Phase.succeeded || s.phase == Phase.failed || s.phase == Phase.canceled ||
+            s.phase == Phase.timedOut || s.phase == Phase.terminated, // scalafix:ok DisableSyntax.==
         "rejected(notFound)"
       )
     )
 
   private val standaloneRejections =
-    import standalone.system.Phase.*
+    import standalone.protocol.Phase
     List(
-      ExpectedRejection[standalone.system.State](
+      ExpectedRejection[standalone.protocol.State](
         standalone.client.requestCancel.decl,
         None,
         s =>
           !s.cancelRequested &&
-            (s.phase == succeeded || s.phase == failed || s.phase == canceled ||
-              s.phase == terminated), // scalafix:ok DisableSyntax.==
+            (s.phase == Phase.succeeded || s.phase == Phase.failed || s.phase == Phase.canceled ||
+              s.phase == Phase.terminated), // scalafix:ok DisableSyntax.==
         "rejected(failedPrecondition)",
         "operation already completed"
       ),
-      ExpectedRejection[standalone.system.State](
+      ExpectedRejection[standalone.protocol.State](
         standalone.client.terminate.decl,
         None,
         s =>
-          s.phase == succeeded || s.phase == failed || s.phase == canceled, // scalafix:ok DisableSyntax.==
+          s.phase == Phase.succeeded || s.phase == Phase.failed || s.phase == Phase.canceled, // scalafix:ok DisableSyntax.==
         "rejected(failedPrecondition)",
         "operation already completed"
       )
     )
 
   private val workflowRejections =
-    import workflow.system.Phase.*
+    import workflow.protocol.Phase
     List(
-      ExpectedRejection[workflow.system.State](
+      ExpectedRejection[workflow.protocol.State](
         workflow.handler.complete.decl,
         None,
         s =>
-          s.phase == succeeded || s.phase == failed || s.phase == canceled ||
-            s.phase == timedOut, // scalafix:ok DisableSyntax.==
+          s.phase == Phase.succeeded || s.phase == Phase.failed || s.phase == Phase.canceled ||
+            s.phase == Phase.timedOut, // scalafix:ok DisableSyntax.==
         "rejected(notFound)"
       )
     )
@@ -132,13 +132,13 @@ class NexusOutcomePins extends munit.FunSuite:
 
   test("the standalone Nexus System keeps its 10 rejecting action-class-state cells"):
     assertRejectingCells(
-      standalone.system.NexusSystem,
+      standalone.protocol.NexusProtocol,
       standaloneRejections,
       expectedCount = 10
     )
 
   test("the workflow Nexus System keeps its 288 rejecting action-class-state cells"):
-    assertRejectingCells(workflow.system.NexusSystem, workflowRejections, expectedCount = 288)
+    assertRejectingCells(workflow.protocol.NexusProtocol, workflowRejections, expectedCount = 288)
 
   test("the shared worker keeps its empty rejection set"):
     assertRejectingCells(sharedWorker.Polling, Nil, expectedCount = 0)

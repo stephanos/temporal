@@ -30,7 +30,7 @@ import io.temporal.api.enums.v1.{
 import io.temporal.api.nexus.v1.{HandlerError, StartOperationResponse}
 import temporal.actors.worker.worker
 
-import system.{NexusSystem, TrustingCaller}
+import protocol.{NexusProtocol, TrustingCaller}
 
 // The declarations the Nexus caller realizations share.
 private object CallerDeclarations:
@@ -54,7 +54,7 @@ private object CallerDeclarations:
 
   val scheduled = Evidence.read(
     id = evidenceId(scheduledKind),
-    records = system.Fact.nexusOperationScheduled,
+    records = protocol.Fact.nexusOperationScheduled,
     source = sourceId(scheduledKind),
     from = Recorded.read(WorkflowServiceGrpc.METHOD_GET_WORKFLOW_EXECUTION_HISTORY, historyEvents),
     operation = Field(_.eventId),
@@ -65,30 +65,32 @@ private object CallerDeclarations:
   val historyKinds =
     HistoryEvidence(key = "scheduled_event_id", factPrefix = "nexusOperation")(
       HistoryKind(
-        system.Fact.nexusOperationStarted,
+        protocol.Fact.nexusOperationStarted,
         _.attributes.nexusOperationStartedEventAttributes
       ),
       HistoryKind(
-        system.Fact.nexusOperationCompleted,
+        protocol.Fact.nexusOperationCompleted,
         _.attributes.nexusOperationCompletedEventAttributes
       ),
       HistoryKind(
-        system.Fact.nexusOperationFailed,
+        protocol.Fact.nexusOperationFailed,
         _.attributes.nexusOperationFailedEventAttributes
       ),
       HistoryKind(
-        system.Fact.nexusOperationCanceled,
+        protocol.Fact.nexusOperationCanceled,
         _.attributes.nexusOperationCanceledEventAttributes
       ),
       HistoryKind(
-        system.Fact.nexusOperationTimedOut,
+        protocol.Fact.nexusOperationTimedOut,
         _.attributes.nexusOperationTimedOutEventAttributes
       )
     )
 
+  // The pendingAttempts observation: DescribeWorkflowExecution's pending operation's `attempt`
+  // (`pending_nexus_operations[].attempt`), which the await below polls.
   val pending = Evidence.read(
-    id = evidenceId(system.Fact.pendingAttempts),
-    records = system.Fact.pendingAttempts,
+    id = evidenceId(protocol.Fact.pendingAttempts),
+    records = protocol.Fact.pendingAttempts,
     source = sourceId(describeSource),
     from = Recorded.read(
       WorkflowServiceGrpc.METHOD_DESCRIBE_WORKFLOW_EXECUTION,
@@ -290,7 +292,7 @@ import CallerDeclarations.*
 // schedule command sets.
 object AsyncNexus
     extends Realizes(
-      NexusSystem,
+      NexusProtocol,
       learned = Vector(completionAuthority),
       observations = Vector(historyEvent, correlated)
     ):

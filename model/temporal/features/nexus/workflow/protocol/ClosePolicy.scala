@@ -7,7 +7,7 @@
 //
 // Every machine here is an authored design. No server has a close policy, an operation-level
 // retention or a reset that reapplies it, and the two faulty policies are deliberate controls, not
-// claims about a known server defect. nexusProduct and nexusSystem model neither close nor reset,
+// claims about a known server defect. nexusProduct and nexusProtocol model neither close nor reset,
 // and no design refines them.
 //
 // Three identities stay apart. The logical operation is the entity, named by a request identity
@@ -18,19 +18,20 @@
 // handler's actions, the bounds, and the assumptions the designs add or their progress claims are
 // conditional on); then one object per design -- RejectAfterClose, the first, whose status sets,
 // effects, monitors and declaring functions every design reads, and the eight designs derived from
-// it, each with its own progress claim and Queries. A subject of the System level, beside
-// system/System.scala (fn-126 decisions 16 and 22); its IR file is among the feature's exports, in
-// Workflow.scala. The faulty policies and resets are deliberately wrong designs, marked as
+// it, each with its own progress claim and Queries. A subject of the Protocol level, beside
+// protocol/Protocol.scala (fn-126 decisions 16 and 22); its IR file is among the feature's exports, in
+// WorkflowNexus.scala. The faulty policies and resets are deliberately wrong designs, marked as
 // negative controls.
 package temporal
 package features.nexus
 package workflow
-package system
+package protocol
 
 // `Answer` here is the designs' delivery answer.
 import framework.*
 import framework.Finite.given CanEqual[?, ?]
 import Answer.given
+import temporal.Bounds.{fiveWide, fourWide, twelveWide}
 
 // ### Types: one logical operation, the original run and one reset successor
 
@@ -91,7 +92,7 @@ enum Answer derives Finite:
   case accepted, retained, rejectedTransient, rejectedPermanent
 
 object Answer:
-  // Kept in the companion, and imported by this file alone: the System level's other subjects, in
+  // Kept in the companion, and imported by this file alone: the Protocol level's other subjects, in
   // this package, answer the feature's Outcome.
   given Ok[Answer] = Ok(Answer.accepted)
 
@@ -221,14 +222,6 @@ object handlerSide:
 // The server's own step: the cancel request reaches the handler.
 object history:
   val deliverCancel = internal
-
-// The bounds. They search further than the caller's of the same names, `four` among them.
-
-val four = Limits(steps = 4, actions = 4, search = 1 << 20)
-val five = Limits(steps = 5, actions = 5, search = 1 << 20)
-
-// Past the depth of every design's table, so a free search that verifies read every step.
-val twelve = Limits(steps = 12, actions = 12, search = 1 << 22)
 
 // Assumptions no design makes of its own. Retention and the two channel variants are the
 // assumptions of the designs that have them, which add them with `assuming`, so every result over
@@ -612,7 +605,7 @@ object RejectAfterClose
   // What the designs promise. Every promise below is an authored design promise, written once and
   // declared as a Property on each design by the claims below. The monitors' promises are the
   // vocabulary's, read by the monitors. Two of the Properties are the baseline's,
-  // completionSucceeds and completionFails, which an open caller keeps as nexusSystem does. A
+  // completionSucceeds and completionFails, which an open caller keeps as nexusProtocol does. A
   // design names its monitors, and a verify also reports the first violation a watching monitor
   // meets, whatever Property it asks.
   object properties:
@@ -865,51 +858,51 @@ object RejectAfterClose
       val any = m.scenario.free
       Vector(
         query(s"${m.name}.closedThenFinished") verify claims.outcomePreserved in
-          closedThenFinished limits four,
-        query verify claims.ackOnlyWhenKept in resetThenDelivered limits four,
-        query verify claims.outcomePreserved in resetThenDelivered limits four,
+          closedThenFinished limits fourWide,
+        query verify claims.ackOnlyWhenKept in resetThenDelivered limits fourWide,
+        query verify claims.outcomePreserved in resetThenDelivered limits fourWide,
         // The request, its delivery to the handler and the handler's effect are three steps here.
         query(s"${m.name}.canceledAcrossReset") verify claims.outcomePreserved in
-          canceledAcrossReset limits five,
+          canceledAcrossReset limits fiveWide,
         query(s"${m.name}.ackedThenReset") verify claims.outcomePreserved in
-          ackedThenReset limits four,
+          ackedThenReset limits fourWide,
         query(s"${m.name}.duplicateCompletion") verify claims.knowledgeIsFinal in
-          duplicateCompletion limits four,
+          duplicateCompletion limits fourWide,
         // A reset between the commit and its acknowledgment, and between a rejection and the retry.
         query(s"${m.name}.resetBetweenCommitAndAcknowledgment") verify claims.ackOnlyWhenKept in
-          resetBetweenDeliveries limits four,
-        query verify claims.outcomePreserved in any limits twelve,
-        query verify claims.ackOnlyWhenKept in any limits twelve,
-        query verify claims.closedHistoryIsFrozen in any limits twelve,
-        query verify claims.handlerEffectIsIrreversible in any limits twelve,
-        query verify claims.knownIsTheHandlersOutcome in any limits twelve,
-        query verify claims.knowledgeIsFinal in any limits twelve,
+          resetBetweenDeliveries limits fourWide,
+        query verify claims.outcomePreserved in any limits twelveWide,
+        query verify claims.ackOnlyWhenKept in any limits twelveWide,
+        query verify claims.closedHistoryIsFrozen in any limits twelveWide,
+        query verify claims.handlerEffectIsIrreversible in any limits twelveWide,
+        query verify claims.knownIsTheHandlersOutcome in any limits twelveWide,
+        query verify claims.knowledgeIsFinal in any limits twelveWide,
         query(s"${m.name}.detachedWorkProceeds") find claims.finishesAfterClose in
-          detachedWork limits four,
+          detachedWork limits fourWide,
         query(s"${m.name}.intentWithoutReceipt") find claims.requestedButUnreceived in
-          cancelRequested limits four,
+          cancelRequested limits fourWide,
         query(s"${m.name}.receiptWithoutEffect") find claims.receivedButSucceeded in
-          cancelReceivedThenSucceeded limits four,
+          cancelReceivedThenSucceeded limits fourWide,
         query(s"${m.name}.effectWithoutKnowledge") find claims.canceledButUnknown in
-          cancelReceivedThenCanceled limits four,
+          cancelReceivedThenCanceled limits fourWide,
         query(s"${m.name}.canceledIsKnown") find claims.completionCancels in
-          canceledThenDelivered limits four,
+          canceledThenDelivered limits fourWide,
         query(s"${m.name}.asyncCompletion") find claims.completionSucceeds in
-          finishedThenSucceeded limits four,
+          finishedThenSucceeded limits fourWide,
         query(s"${m.name}.asyncFailure") find claims.completionFails in
-          finishedThenFailed limits four,
+          finishedThenFailed limits fourWide,
         query(s"${m.name}.transientRejectionAfterClose").find(claims.rejectedTransiently) in
-          deliveredToClosed limits four,
+          deliveredToClosed limits fourWide,
         query(s"${m.name}.permanentRejectionAfterClose").find(claims.rejectedPermanently) in
-          deliveredToClosed limits four,
+          deliveredToClosed limits fourWide,
         query(s"${m.name}.lostAfterReset") find claims.lostAfterReset in
-          closedThenFinished limits four,
+          closedThenFinished limits fourWide,
         query(s"${m.name}.resetAfterRetention")
           .find(claims.reappliesRetained) in closedThenFinished limits
-          four,
+          fourWide,
         query(s"${m.name}.resetBeforeRetention")
           .find(claims.routedToSuccessor) in resetThenDelivered limits
-          four
+          fourWide
       )
 
     // The two pinned controls and the two promises, over another channel.
@@ -931,10 +924,10 @@ object RejectAfterClose
       val any = m.scenario.free
       Vector(
         query(s"${m.name}.closedThenFinished") verify claims.outcomePreserved in
-          closedThenFinished limits four,
-        query verify claims.ackOnlyWhenKept in resetThenDelivered limits four,
-        query verify claims.outcomePreserved in any limits twelve,
-        query verify claims.ackOnlyWhenKept in any limits twelve
+          closedThenFinished limits fourWide,
+        query verify claims.ackOnlyWhenKept in resetThenDelivered limits fourWide,
+        query verify claims.outcomePreserved in any limits twelveWide,
+        query verify claims.ackOnlyWhenKept in any limits twelveWide
       )
 
     // The deadline. With a schedule-to-close deadline the state a lost outcome leaves has a step.
@@ -979,19 +972,19 @@ object RejectAfterClose
       val any = m.scenario.free
       Vector(
         query(s"${m.name}.closedThenFinished") verify claims.outcomePreserved in
-          closedThenFinished limits four,
-        query verify claims.ackOnlyWhenKept in resetThenDelivered limits four,
-        query verify claims.outcomePreserved in any limits twelve,
-        query verify claims.ackOnlyWhenKept in any limits twelve,
-        query verify claims.noUnnecessaryWait in any limits twelve,
+          closedThenFinished limits fourWide,
+        query verify claims.ackOnlyWhenKept in resetThenDelivered limits fourWide,
+        query verify claims.outcomePreserved in any limits twelveWide,
+        query verify claims.ackOnlyWhenKept in any limits twelveWide,
+        query verify claims.noUnnecessaryWait in any limits twelveWide,
         query(s"${m.name}.expiredAfterClosedLoss").find(claims.expiresWithNothingOwed) in
-          closedLossThenExpired limits five,
+          closedLossThenExpired limits fiveWide,
         query(s"${m.name}.expiredAfterResetLoss").find(claims.expiresWithNothingOwed) in
-          resetLossThenExpired limits five,
+          resetLossThenExpired limits fiveWide,
         query(s"${m.name}.expiredWhileReported").find(claims.expiresWhileOwed) in
-          reportedThenExpired limits four,
+          reportedThenExpired limits fourWide,
         query(s"${m.name}.lateCompletionIsDropped").find(claims.lateCompletionIsDropped) in
-          expiredThenDelivered limits four
+          expiredThenDelivered limits fourWide
       )
 
     val rejectAfterCloseQueries = designQueries(RejectAfterClose)
