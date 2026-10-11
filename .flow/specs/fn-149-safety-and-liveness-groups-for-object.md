@@ -89,9 +89,9 @@ discovery/export approach before migrating Models.
   checked distinction so headings and evaluated claim kinds cannot disagree. [inferred]
 - Capture this as one cohesive spec. Validation, reporting and migration make a bare reminder
   insufficient to preserve the intended distinction. [inferred]
-- The conductor selected fn-149 between fn-140 and fn-123 in Batch 2. Activation and readiness
-  remain conductor-owned. Entry follows fn-140.6's committed witness seal;
-  fn-149's final grouping seal precedes fn-123's semantic fault changes. Fn-141's declaration
+- The conductor selected fn-149 after fn-140 and before fn-164 expectation/colon migration. Activation
+  and readiness remain conductor-owned. Entry follows fn-140.10's committed witness source seal;
+  fn-149's grouping source seal releases fn-164, whose final seal precedes fn-123's semantic fault changes. Fn-141's declaration
   lifting runs later in Batch 4 and supplies no prerequisite exporter here.
 
 - Planning confirmed R2-R6 against existing declaration admission, receipt subjects, Model pins
@@ -123,8 +123,11 @@ for each grouping-induced qualified name, source coordinate, Definition/Case ide
 change. Compose the authorized mapping with fn-140's and the actually committed fn-155 mapping;
 never normalize away an unexplained delta or use the grouped output as its own baseline.
 
-The five-task DAG stays unchanged. Tasks .1 and .3 are parallel source candidates, .2 follows .1,
-.4 joins .1/.2/.3, and .5 joins .3/.4. The source seal does not close this spec or its last task.
+The existing five-task DAG records full closure: .2 follows .1, .4 joins .1/.2/.3, and .5 joins .3/.4.
+Task .3 is the owner-deferred Go report lane, not a parallel Scala candidate. The current one-worker
+Scala lane is sequential. Before execution, separate any mixed source/consumer task whose legacy
+closure dependencies would block owner-approved source work; retain every consumer proof in its
+deferred lane. The source seal does not close this spec or its shared final task.
 Task .5 remains pending the shared fn-123.8 boundary, which performs the single production
 regeneration, full gates, independent review and live run for all three Batch 2 specs. Each
 acceptance obligation links that evidence before any spec closes. Reuse unchanged passing evidence;
