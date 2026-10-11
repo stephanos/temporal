@@ -360,6 +360,42 @@ obligation and is not authorized or claimed fixed here. This refinement adds
 only Lifting.scala to implementation Touches and grants no extra worker budget,
 third retry, managed regeneration, Go, review, live or publication authority.
 
+
+### Independently verified source-fixture checkpoint (2026-10-11)
+
+The continuation's complete `umpire.irgen.*` campaign `fn140-10-retry-irgen-final2.log`
+is terminal exit1: 166 tests pass, all nine failures are the explicitly held
+managed comparisons, and the pre-existing case-variant-header skip remains.
+There are no source test failures in this run. The conductor independently
+recounted the complete log and verified its exact failure population; SHA256
+`8408bf12dcb1011c4b1da12b8637f9275a8ebbe2575d82fae667161b773a5f0f`.
+Audit: `.flow/tmp/scala-dsl/fn140-10-root-retry-irgen-final2-audit.json`.
+
+The authentic automatic and explicit DerivedTwins controls, custom-state facet
+positive/canonical negatives, original generic layout complete realization
+payload, independent realization-only package and unrelated-value negative
+execute and pass. Original layout source SHA256 remains
+`97a2cc2f13971de65f3d8c28ce3f3ff1b42caab88e902e4c83455e2065387171`.
+The narrowly authorized typed realization roots/asked repair is exercised;
+native reflection discovery is still the distinct fn-160.2 obligation.
+
+This does not pass the full suite, regenerate managed files or prove the
+combined original rejected-root population. Its independent reason/coordinate/
+no-IR coverage remains required rather than waived by stale `rejects.txt`.
+Final current re-lifts, source/artifact authentication, formatter, syntax and
+historical equivalence remain open.
+
+The typed-reader capture must resolve exact compiler Symbols, not rendered
+full names or a composite display key. Initial names collide for real locals
+and overloads; even the first composite signature/owner/span identity attempt
+failed its strict uniqueness check. No colliding declarations may be dropped
+or merged. The full reader inventory must independently validate all private
+eligibility decisions and retained shared/bundle/capability/verify/free/monitor/
+repeated-tail boundaries, including non-Query readers, rather than merely
+attach typed rows to the earlier IR-based labels. This source seal and fn-149
+admission remain unproven; the original continuation deadline and two-strike
+limit are unchanged.
+
 ## Acceptance
 - [ ] Complete eligible/retained inventories cover all Model packages, with concrete reader/boundary justifications; every eligible private pinned triple is a witness (R5).
 - [ ] Source-aware lint and focused positive/refusal fixtures cover private/shared/verify/monitor/repeated-input-tail forms with exact source ownership and unchanged other refusal classes (R5).
