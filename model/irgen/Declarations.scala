@@ -218,13 +218,24 @@ private[irgen] trait Declarations:
   // parent or, for a derived machine or derived composition, its source's, followed through every
   // derivation to the object it starts from. None where it declares none, as for a plain `Machine`.
   def phaseProjection(cls: Symbol, at: Tree): Option[Term] =
-    def from(cls: Symbol, seen: Set[Symbol]): Option[Term] =
+    phasedArguments(cls, at).flatMap(_.headOption)
+
+  // The writer an object form's `Phased[State, Phase](_.phase, (s, p) => s.copy(phase = p))` declares,
+  // its source's for a derived machine, or None where it declares no phase. A projection declared
+  // without a writer gives its default getter, which is no lambda.
+  def phaseWriter(cls: Symbol, at: Tree): Option[Term] =
+    phasedArguments(cls, at).flatMap(_.lift(1))
+
+  // The arguments of the `Phased` an object form mixes in, or for a derived machine or derived
+  // composition its source's, followed through every derivation to the object it starts from.
+  private def phasedArguments(cls: Symbol, at: Tree): Option[List[Term]] =
+    def from(cls: Symbol, seen: Set[Symbol]): Option[List[Term]] =
       val c = objectBody(cls, at)
       val own = c.parents.collectFirst {
         case t: Term if t.symbol.isClassConstructor && t.symbol.maybeOwner == phasedClass => // scalafix:ok DisableSyntax.==; typed equality
           call(t).toList.flatMap(_._2.flatten)
       }
-      own.flatMap(_.headOption).orElse {
+      own.filter(_.nonEmpty).orElse {
         // A derivation, `Derived(m.op(...))` or `Composition(c.withMember(...))`, starts from an
         // object, which may itself be derived.
         def source(t: Term): Option[Symbol] = unwrapped(t) match
@@ -896,7 +907,9 @@ private[irgen] trait Declarations:
     def chain(rs: Seq[LiftedRule]): ir.Expr =
       rs.foldRight(list(Nil, at))((r, rest) =>
         val g = guard(r)
-        val arm = rejection(r.effect, stateVar(r.at)).getOrElse(effect(r))
+        val arm = rejection(r.effect, stateVar(r.at))
+          .orElse(entering(r.effect, Left(stateName)))
+          .getOrElse(effect(r))
         expr(r.at)(E.If(ir.If(Some(g), Some(arm), Some(rest))))
       )
     def byInputs(i: Int, fixed: Seq[ir.Value]): ir.Expr =

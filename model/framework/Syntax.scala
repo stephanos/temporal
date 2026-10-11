@@ -179,6 +179,25 @@ def effect[S, O, F](using
     body(using draft)
     List(draft.step(s, ok))
 
+// `when(Phase.held) ~> enters(Phase.completed)`, or `retryPaused -> enters(Phase.paused)(s)` as an
+// alternative of a `choose`: the step function of the state alone that takes one step with the ok
+// outcome into the state with its phase replaced by `phase`, recording the status the phase's case
+// declares where its enum is `Recorded`, and nothing otherwise. It writes the phase through the
+// writer the machine's projection declares, `Phased[State, Phase](_.phase, (s, p) => s.copy(phase = p))`, and a
+// derived machine through its source's. It is what an effect whose whole body sets the phase,
+// `effect { phase = Phase.completed }`, does, so the rule shows the phase it enters and `effects`
+// keeps the steps with logic. Core form: `enter(s.copy(phase = Phase.completed), statusCompleted)`,
+// or `enter(s.copy(phase = p))` for a phase that declares no status.
+def enters[S, O, F, P](phase: P)(using
+    @unused owner: Owner[S, O, F],
+    ok: Ok[O],
+    phasing: Phasing[S, P]
+): S => List[Step[S, O, F]] =
+  val status = phase match
+    case recorded: Recorded[F @unchecked] => List(recorded.status)
+    case _                                => Nil
+  s => List(Step(ok.outcome, phasing.write(s, phase), status))
+
 // `record(statusPaused)`, in an `effect { }` block: the step records these facts, after those an
 // earlier `record` of the block recorded. Core form: the facts of `enter(s.copy(...), facts*)`.
 def record[S, O, F](using draft: Draft[S, O, F])(first: F, rest: F*): Unit =
@@ -431,7 +450,10 @@ def always[S, O, F](using firing: Firing[S, O, F, ?]): Case[S, O, F] =
 // into the object: `object OrderProduct extends Machine[OrderState, Outcome, OrderFact],
 // Phased[OrderState, Phase](_.phase)`, or for a composition a nested phase,
 // `Phased[OverQueue, Phase](_.order.phase)`. Both types are written: a trait parent's lambda takes
-// no parameter type from the other parents. Its sections read it as a given: `when(placed)` and
+// no parameter type from the other parents. A machine whose rules or effects enter a phase by
+// `enters(Phase.x)` also declares the writer that replaces the phase the projection reads,
+// `Phased[OrderState, Phase](_.phase, (s, p) => s.copy(phase = p))`; the IR generator requires it to copy the
+// state along the projection's field path. Its sections read it as a given: `when(Phase.placed)` and
 // `when(states.terminal)` in `object rules extends Rules:` test it. It is optional, as a machine that
 // names no phase is a plain `Machine`. A derived machine or derived composition mixes in none of
 // its own: a derived machine reads its source's, with its phase type. Its default end is the Closed
@@ -439,13 +461,16 @@ def always[S, O, F](using firing: Firing[S, O, F, ?]): Case[S, O, F] =
 // first evaluation refuses a phase with no Closed case, naming the object and phase type. A derived
 // machine's final end prevents mixing it in, and a derived composition refuses its own projection
 // as it initializes. Core form: the given `Phasing(_.phase)` the object's sections read.
-trait Phased[S, P](private[framework] val projection: S => P)(using
+trait Phased[S, P](
+    private[framework] val projection: S => P,
+    private[framework] val writer: (S, P) => S = Phased.Unwritten
+)(using
     Finite[P],
     TypeTest[P, Closed],
     ClassTag[P]
 ) extends Declares[S]:
   // The projection its sections and readers of their generated capability claims share.
-  given phased: Phasing[S, P] = Phasing(projection)
+  given phased: Phasing[S, P] = Phasing(projection, writer)
 
   private lazy val closedCases = phased.roleCases[Closed](name)
 
@@ -462,7 +487,15 @@ object Phased extends Inherited.Unphased:
   // A source that mixes in `Phased[S, P]` projects its state onto `P` by its own projection.
   // Core form: the source's `Phasing(_.phase)`.
   given source[S, P, T <: Phased[S, P]]: Inherited[T, S, P] =
-    Inherited(_.projection, _.end)
+    Inherited(_.projection, _.end, _.writer)
+
+  // The writer of a projection declared without one: `enters` has no phase to write through it.
+  private[framework] object Unwritten extends ((Any, Any) => Nothing):
+    def apply(state: Any, phase: Any): Nothing =
+      throw IllegalStateException(
+        s"enters($phase) writes the phase through the writer the machine's Phased declares, and " +
+          "it declares none: `Phased[State, Phase](_.phase, (s, p) => s.copy(phase = p))`"
+      )
 
 // When each action of a machine fires, written as the machine object's `object rules extends
 // Rules`, whose cases may name phases where the machine mixes in `Phased[State, Phase](_.phase)`

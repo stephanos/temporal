@@ -217,6 +217,16 @@ set `set`, `when[R]` while it has phase role `R`, `where(g)` while the guard `g`
 `effects`, which says what happens and never whether: it gives at least one step. `disabled(a)`
 binds an action no state enables.
 
+`enters(p)` is the effect that only enters the phase `p`: the step function of the state alone
+`s => enter(w(s, p), status(p))`, where `w` is the writer the machine's projection declares,
+`Phased[State, Phase](_.phase, (s, p) => s.copy(phase = p))` (a derived machine's is its source's),
+and `status(p)` is the status fact `p`'s case declares where its enum is `Recorded`, and no fact
+otherwise. It is the step an effect block whose whole body is `phase = p` takes, so replacing such
+an effect by `enters(p)` keeps every row. A rule names it as its effect, `c ~> enters(p)`; a `choose`
+alternative applies it to the state, `t -> enters(p)(s)`, and lifts as the step written out. The
+writer must give a state whose projection is `p`: `enters` refuses one that does not, and a
+projection declared without a writer, when it is first stepped.
+
 `object rules extends Rules` takes no argument and reads the machine's `Phased` given. A derived
 machine or composition inherits its source's projection and phase type. A machine without
 `Phased` may use `where(g)` and `always`, but its rules cannot name phases, phase sets or roles with
