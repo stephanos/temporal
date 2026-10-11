@@ -375,7 +375,7 @@ final case class Command(
     id: String,
     instruction: Instruction,
     after: Option[After] = None,
-    timeoutMs: Long = 0,
+    timeout: Option[com.google.protobuf.duration.Duration] = None,
     regardless: Boolean = false,
     closes: Vector[String | EvidenceRef[?, ?] | TypedEvidence[?]] = Vector.empty
 )
@@ -438,7 +438,7 @@ object Instruction:
       role: String | Addressee,
       assign: Vector[TypedAssignment[Req, ?]],
       until: Condition[Projected],
-      intervalMs: Long = 0
+      interval: Option[com.google.protobuf.duration.Duration] = None
   ) extends Instruction
   final case class AwaitLearned(learned: String | Learned) extends Instruction
 
@@ -461,8 +461,8 @@ object Instruction:
   def readUntil[Req, Projected](evidence: EvidenceRef[Req, Projected], role: String | Addressee)(
       assign: Vector[TypedAssignment[Req, ?]],
       until: Condition[Projected],
-      intervalMs: Long = 0
-  ): Instruction = TypedPoll(evidence, role, assign, until, intervalMs)
+      interval: Option[com.google.protobuf.duration.Duration] = None
+  ): Instruction = TypedPoll(evidence, role, assign, until, interval)
 
 // A value a command computes when it runs.
 enum Operand derives CanEqual:

@@ -48,15 +48,15 @@ def onPath(classes: (ClassRef | Action[?])*)(command: Command | Instruction): It
 def everyCase(command: Command | Instruction): Item = Item(command = Some(commanded(command)))
 
 // A command with options, named after the `val` that declares it: the commands it runs `after`, a
-// timeout bound in `timeoutMs`, whether it runs `regardless` of what became of them, and the
+// timeout bound in `timeout`, whether it runs `regardless` of what became of them, and the
 // exhaustive kinds of evidence its read `closes`. IR: Command.
 def command(
     instruction: Instruction,
     after: Option[After] = None,
-    timeoutMs: Long = 0,
+    timeout: Option[com.google.protobuf.duration.Duration] = None,
     regardless: Boolean = false,
     closes: Vector[String | EvidenceRef[?, ?] | TypedEvidence[?]] = Vector.empty
-): Command = Command("", instruction, after, timeoutMs, regardless, closes)
+): Command = Command("", instruction, after, timeout, regardless, closes)
 
 // A command that takes the name of another, `target`, as a race does whose evidence reads one
 // command name in every realization that runs it: `aliasOf(releaseDispatch)(fault(…))`. It is the
@@ -84,16 +84,16 @@ def rpc[Req <: GeneratedMessage, Rsp <: GeneratedMessage](
   assign(using RequestScope())
   new Instruction.TypedRpc(role, method, Vector.empty, Vector.empty)
 
-// Reads what `evidence` names on `role` every `intervalMs` until an element satisfies `until`, its
+// Reads what `evidence` names on `role` every `interval` until an element satisfies `until`, its
 // request's fields assigned in the scope it opens. IR: Poll.
 def readUntil[Req, Projected](
     evidence: EvidenceRef[Req, Projected],
     role: String | Addressee,
     until: Condition[Projected],
-    intervalMs: Long
+    interval: Option[com.google.protobuf.duration.Duration]
 )(assign: RequestScope[Req] ?=> Unit): Instruction =
   assign(using RequestScope())
-  Instruction.TypedPoll(evidence, role, Vector.empty, until, intervalMs)
+  Instruction.TypedPoll(evidence, role, Vector.empty, until, interval)
 
 extension [Req <: GeneratedMessage, Rsp <: GeneratedMessage](call: Instruction.TypedRpc[Req, Rsp])
   // The same call with more fields assigned after its own: one command written once, with what a

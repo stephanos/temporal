@@ -107,17 +107,17 @@ val unreachedDeadlineSeconds: Long = 300
 // `deadlineSeconds` as a request field's value.
 val deadlineOperand = Operand.number(deadlineSeconds)
 
-// `deadlineSeconds` in milliseconds, as a timer step's deadline names it.
-val deadlineMs: Long = deadlineSeconds * 1000
+// `deadlineSeconds` as a Duration, the deadline a timer step names.
+val timerDeadline: com.google.protobuf.duration.Duration = com.google.protobuf.duration.Duration(seconds = deadlineSeconds)
 
 // `unreachedDeadlineSeconds` as a request field's value.
 val unreachedDeadline = Operand.number(unreachedDeadlineSeconds)
 
-// The backoff, in milliseconds, before a failed activity attempt is retried for the first time: no
+// The backoff before a failed activity attempt is retried for the first time: no
 // request sets a retry policy, so the server's default initial interval of 1 s applies, without
 // jitter (common/retrypolicy/retry_policy.go:76-81, common/backoff/retry.go:198-209). A timer step
 // names it as its deadline.
-val firstRetryBackoffMs: Long = 1000
+val firstRetryBackoff: com.google.protobuf.duration.Duration = com.google.protobuf.duration.Duration(seconds = 1)
 
 // ### Evidence: Definition IDs, the correlated record and the window
 
@@ -202,7 +202,7 @@ def controller(items: Item*) = script(controllerScript, Activation.Controller)(i
 def await[Req, Projected](evidence: EvidenceRef[Req, Projected], role: Addressee)(
     until: Condition[Projected]
 )(assign: RequestScope[Req] ?=> Unit) =
-  readUntil(evidence, role, until, intervalMs = 0)(assign)
+  readUntil(evidence, role, until, interval = None)(assign)
 
 // That a command of the controller succeeded, as the Run records its outcome.
 val succeeded = Condition.equal(

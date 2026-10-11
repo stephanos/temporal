@@ -298,7 +298,7 @@ private val awaitStarted = Command(
         _.attributes.workflowExecutionStartedEventAttributes
       )
     ),
-    250
+    Some(framework.realize.Elapsed.milliseconds(250))
   ),
   after = Some(After("start-workflow"))
 )
@@ -702,7 +702,7 @@ private def awaitListed(
         )
       ),
       reads,
-      250
+      Some(framework.realize.Elapsed.milliseconds(250))
     )
   )
 
@@ -979,7 +979,7 @@ val tallyRealization: Realization = Realization(
                   )
                 ),
                 Condition.equal(Field[ActivityExecutionInfo, Int](_.attempt), Operand.integer(1)),
-                250
+                Some(framework.realize.Elapsed.milliseconds(250))
               ),
               closes = Vector("fixture.realizations.tally.evidence.opened")
             )

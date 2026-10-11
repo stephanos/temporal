@@ -116,7 +116,7 @@ object WorkflowHistory:
 // wait names when it runs out.
 
 // How long a condition may take to hold, and how often a wait looks, in milliseconds.
-final case class WaitBound(intervalMs: Long, atMostMs: Long)
+final case class WaitBound(interval: com.google.protobuf.duration.Duration, atMost: com.google.protobuf.duration.Duration)
 
 // When the effect of a write is visible to a read.
 enum Visible:
@@ -168,7 +168,7 @@ final class CauseBound private[realize] (val kind: CauseKind, val bound: WaitBou
 final case class AttemptNumbering(first: Long, oneRun: Boolean)
 
 // The limits of one instruction: its deadline in milliseconds, and the attempts it may take.
-final case class InstructionLimit(timeoutMs: Long, attempts: Long)
+final case class InstructionLimit(timeout: com.google.protobuf.duration.Duration, attempts: Long)
 
 // The behavior every Temporal realization carries: Behavior.scala declares it once. Besides the
 // hints, how attempts are numbered, the limits of an instruction no hint bounds and that writes
@@ -188,7 +188,7 @@ final case class ApiBehavior(
 final case class ServerStep(
     step: ClassRef,
     kind: CauseKind,
-    deadlineMs: Long = 0,
+    deadline: Option[com.google.protobuf.duration.Duration] = None,
     timeoutBasis: TimeoutBasis = TimeoutBasis.unspecified
 ) extends SystemStep
 

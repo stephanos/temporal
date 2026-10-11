@@ -123,6 +123,16 @@ Two IRs sit between the layers, and each has one writer side and one reader side
   Case runtime, reads them and writes Runs and Verdicts. Its schema is
   `proto/internal/temporal/server/api/testpilot/v1`. Testpilot knows nothing about Models.
 
+The current Testpilot format is exactly 4.0. Runtime predicates lower neutral Umpire operands to
+canonical `cel.expr` ASTs evaluated by pinned `cel.dev/cel-go` v0.32.0; the finite Model evaluator
+keeps its own expression semantics and does not import Testpilot. Descriptor-authoritative native
+CEL values retain protobuf widths, enum identities and opaque message/Any payloads. Elapsed bounds
+use protobuf Duration, checked for nonnegative exact whole milliseconds before conversion; runtime
+timeouts must also fit their declared hard ceilings. Evidence declarations have one leaf schema and
+one binder. Correlated tables identify each complete atom-plus-ordered-fields state separately and
+share prior-state-independent action/destination/outcome/facts results without sharing transition
+authorization. Historical Case formats and Runs are not relabeled or interpreted through fallback.
+
 | Layer | What happens | Module | Command |
 | --- | --- | --- | --- |
 | Authoring | Models are written in Scala with a small DSL (a library of declarations such as `machine`, `property` and `query`) | DSL `model/framework`, Models `model/temporal` | `make lint-model`, `make fmt-model` |
@@ -1697,15 +1707,15 @@ Temporal realization (.plans/API_BEHAVIOR_HINTS.md):
 METHOD_PAUSE_ACTIVITY_EXECUTION.visibleTo(METHOD_DESCRIBE_ACTIVITY_EXECUTION, Visible.atOnce)
 CauseKind.handlerReply.visibleTo(
   METHOD_DESCRIBE_WORKFLOW_EXECUTION,
-  Visible.eventually(WaitBound(intervalMs = 250, atMostMs = 2000))
+  Visible.eventually(WaitBound(interval = Elapsed.milliseconds(250), atMost = Elapsed.milliseconds(2000)))
 )
-CauseKind.delivery.boundedBy(WaitBound(intervalMs = 250, atMostMs = 3000))
+CauseKind.delivery.boundedBy(WaitBound(interval = Elapsed.milliseconds(250), atMost = Elapsed.milliseconds(3000)))
 ```
 
 A realization names the steps no command performs and the kind of cause each is,
 `serverSteps = Vector(ServerStep(worker.poll, CauseKind.delivery),
-ServerStep(deadline.scheduleToStart, CauseKind.timer, deadlineMs))`, a timer with the kit's deadline its request sets (an activity's
-retry `backoff` names the kit's `firstRetryBackoffMs`, the server's default first retry interval). A hint names only
+ServerStep(deadline.scheduleToStart, CauseKind.timer, Some(timerDeadline)))`, a timer with the kit's deadline its request sets (an activity's
+retry `backoff` names the kit's `firstRetryBackoff`, the server's default first retry interval). A hint names only
 generated method constants, so one the API does not have does not compile, and the IR generator refuses a
 method that is no generated constant at its line; the Go reader refuses a missing or non-positive
 bound at the hint's line. A read written with no interval waits as the lowering derives from both:
@@ -1731,7 +1741,7 @@ second mapping.
   entrypoint (`ActivityActivation.attempt_numbering`); Testpilot judges each reservation's attempt by
   it and refuses an activity entrypoint that declares none, and conformance holds one operation's
   evidence to one activity run only where it is declared.
-- `instructionDefaults = Some(InstructionLimit(timeoutMs = 10000, attempts = 1))`: the limits of an
+- `instructionDefaults = Some(InstructionLimit(timeout = Elapsed.milliseconds(10000), attempts = 1))`: the limits of an
   instruction that writes none. The lowering writes them into the Program
   (`Program.instruction_defaults`); a Temporal Profile has none of its own.
 - `runOrderIsCausal = true`: the Run's record order is the order of one operation's evidence across

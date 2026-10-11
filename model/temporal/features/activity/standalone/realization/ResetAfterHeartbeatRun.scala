@@ -72,6 +72,11 @@ object ResetAfterHeartbeatRun
 
   object serverSteps
       extends ServerSteps(
-        ServerStep(deadline.heartbeat, CauseKind.timer, deadlineMs, TimeoutBasis.heartbeat),
+        ServerStep(
+          deadline.heartbeat,
+          CauseKind.timer,
+          Some(timerDeadline),
+          TimeoutBasis.heartbeat
+        ),
         deferredResetSettlement
       )

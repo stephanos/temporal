@@ -41,7 +41,7 @@ val elapsedOutOfRange: Realization = temporalRealization(
   behavior = ApiBehavior(
     visibility = Vector.empty,
     causes = Vector(
-      CauseKind.delivery.boundedBy(WaitBound(intervalMs = 100, atMostMs = 9223372036854775807L))
+      CauseKind.delivery.boundedBy(WaitBound(interval = framework.realize.Elapsed.milliseconds(100), atMost = framework.realize.Elapsed.milliseconds(9223372036854775807L)))
     )
   )
 )

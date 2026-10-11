@@ -14,8 +14,8 @@
 // the operation is its machine's entity; its roles are the WorkflowService and the Case's task
 // queue, and each other kit role its scripts' calls, activations, faults, controls and protobuf
 // literals name; a delivery step is each class an activity script starts with, a timer step each
-// deadline timer of an input its `deadlines` declaration sets, at `deadlineMs`, and the machine's
-// backoff timer, at `firstRetryBackoffMs`, where an activity script runs the attempts it retries.
+// deadline timer of an input its `deadlines` declaration sets, at `timerDeadline`, and the machine's
+// backoff timer, at `firstRetryBackoff`, where an activity script runs the attempts it retries.
 // A `serverSteps` section adds steps or overrides a derived one; an override equal to the derived
 // step is refused. The lifter (model/irgen/Realizations.scala) reads the object and writes the
 // record `temporalRealization` writes.

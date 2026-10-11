@@ -471,10 +471,25 @@ private[irgen] trait Realizations:
       com.google.protobuf.duration.Duration(seconds, ((milliseconds % 1000) * 1000000).toInt)
     )
 
-  // The elapsed bound a term writes, an integer constant in milliseconds.
-  private def elapsedOf(b: Bound): Option[PMessage] =
-    val t = reduce(b).term
-    elapsed(constInt(t), t).map(_.toPMessage)
+  // The elapsed bound a term writes (fn-147): a protobuf Duration, `Elapsed.milliseconds(n)`, an
+  // `Option` of either, or an integer constant in milliseconds; none for `None` or a zero bound.
+  private def elapsedOf(b0: Bound): Option[PMessage] =
+    val b = reduce(b0)
+    val t = b.term
+    if Set("scala.Long", "scala.Int")(t.tpe.widen.dealias.typeSymbol.fullName) then
+      elapsed(constInt(t), t).map(_.toPMessage)
+    else if t.symbol.fullName == "scala.None" then None // scalafix:ok DisableSyntax.==; typed equality
+    else
+      val inner = applied(t) match
+        case Some((fn, List(x))) if fn.symbol.owner.fullName.startsWith("scala.Some") =>
+          Bound(x, b.env)
+        case _ => b
+      val d = durationValue(inner, com.google.protobuf.duration.Duration.scalaDescriptor)
+      val zero = d.value.values.forall {
+        case PLong(0) | PInt(0) => true
+        case _                  => false
+      }
+      Option.when(!zero)(d)
 
   def irMessage(f: FieldDescriptor, at: Tree): Descriptor = f.scalaType match
     case ScalaType.Message(d) => d
@@ -663,7 +678,7 @@ private[irgen] trait Realizations:
           case Some((fn, args)) if factory(fn, "Instruction", "readUntil") =>
             (
               "Poll",
-              List("evidence", "role", "assign", "until", "intervalMs")
+              List("evidence", "role", "assign", "until", "interval")
                 .zip(args)
                 .collect {
                   case (p, a) if !isDefault(a) => p -> Bound(a, b.env)
@@ -918,9 +933,30 @@ private[irgen] trait Realizations:
               case _ => fail(mapper, s"expected a one-argument map, got ${mapper.show}")
           case _ => fail(t, s"expected a sequence written out, got ${t.show}")
 
+  private def durationValue(b0: Bound, d: Descriptor): PMessage =
+    val b = reduce(b0)
+    def integer(t: Term): Long = constInt(reduce(Bound(t, b.env)).term)
+    val (seconds, nanos) = applied(b.term) match
+      case Some((fn, List(value)))
+          if fn.symbol.name == "milliseconds" && fn.symbol.owner.fullName.stripSuffix("$") == "framework.realize.Elapsed" =>
+        val milliseconds = integer(value)
+        (milliseconds / 1000, (milliseconds % 1000) * 1000000)
+      case Some((fn, args))
+          if fn.symbol.name == "apply" && fn.symbol.owner.fullName.stripSuffix("$") == "com.google.protobuf.duration.Duration" =>
+        def supplied(i: Int): Long = args.lift(i).filterNot(isDefault).fold(0L)(integer)
+        if args.drop(2).exists(a => !isDefault(a)) then fail(b.term, "Duration unknown fields are not authored")
+        (supplied(0), supplied(1))
+      case _ => fail(b.term, "an elapsed bound is a native google.protobuf.Duration")
+    if seconds < -315576000000L || seconds > 315576000000L || nanos < -999999999L || nanos > 999999999L ||
+      (seconds > 0 && nanos < 0) || (seconds < 0 && nanos > 0)
+    then fail(b.term, "an elapsed bound is outside the protobuf Duration range")
+    if nanos % 1000000 != 0 then fail(b.term, "an elapsed bound contains exact whole milliseconds")
+    PMessage(Map(irField(d, "seconds", b.term) -> PLong(seconds), irField(d, "nanos", b.term) -> PInt(nanos.toInt)))
+
   // One value of a field: a message of the field's type, a class, or a constant.
   def valueOf(f: FieldDescriptor, b0: Bound): PValue =
     f.scalaType match
+      case ScalaType.Message(d) if d.fullName == "google.protobuf.Duration" => durationValue(b0, d)
       case ScalaType.Message(d) if d.name == "Command" =>
         commandValue(b0, d) // scalafix:ok DisableSyntax.==; typed equality
       // A hint is written where it is called, never where the kit's helper builds it.
@@ -2160,7 +2196,9 @@ private[irgen] trait Realizations:
       stated: List[(Bound, ir.ServerStep)],
       at: Tree
   ): Seq[ir.ServerStep] =
-    def timer(name: String) = elapsed(constInt(Ref(kitSymbol("Kit", name))), at)
+    val _ = at
+    def timer(name: String) = elapsedOf(Bound(Ref(kitSymbol("Kit", name)), Map.empty))
+      .map(com.google.protobuf.duration.Duration.messageReads.read)
     val position = Some(pos(at))
     val timers = machine.steps.map(_.action).filter(a => actions.get(a).exists(_.timer))
     val activities = r.scripts.filter(_.activation.isActivity)
@@ -2176,7 +2214,7 @@ private[irgen] trait Realizations:
           position,
           Some(ir.ActionClass(a)),
           ir.CauseKind.CAUSE_KIND_TIMER,
-          timer("firstRetryBackoffMs")
+          timer("firstRetryBackoff")
         )
       )
     val expired = (for
@@ -2202,7 +2240,7 @@ private[irgen] trait Realizations:
           position,
           Some(ir.ActionClass(a)),
           ir.CauseKind.CAUSE_KIND_TIMER,
-          timer("deadlineMs"),
+          timer("timerDeadline"),
           bases.head
         )
       }
@@ -2467,7 +2505,7 @@ private[irgen] trait Realizations:
   private def commandValue(b0: Bound, d: Descriptor): PMessage =
     val b = reduce(b0)
     val m = Message(d)
-    val options = List("after", "timeoutMs", "regardless", "closes")
+    val options = List("after", "timeout", "regardless", "closes")
     def supplied(names: List[String], args: List[Term]) = names.zip(args).collect {
       case (p, a) if !isDefault(a) => p -> Bound(a, b.env)
     }
@@ -2554,7 +2592,7 @@ private[irgen] trait Realizations:
       )
     )
 
-  // A read written with `readUntil(evidence, role, until, intervalMs) { … }`.
+  // A read written with `readUntil(evidence, role, until, interval) { … }`.
   private def pollValue(b: Bound, d: Descriptor): PMessage = scriptCall(b.term) match
     case Some(("readUntil", List(evidence, role, until, interval, assign))) =>
       val (own, _) = scoped(Bound(assign, b.env), d, None)

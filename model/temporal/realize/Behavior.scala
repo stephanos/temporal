@@ -74,7 +74,7 @@ val temporalBehavior: ApiBehavior = ApiBehavior(
     // chasm/lib/activity/activity.go:592-619, :261-273.
     CauseKind.activityHeartbeat.visibleTo(
       METHOD_DESCRIBE_ACTIVITY_EXECUTION,
-      Visible.eventually(WaitBound(intervalMs = 250, atMostMs = 2000))
+      Visible.eventually(WaitBound(interval = framework.realize.Elapsed.milliseconds(250), atMost = framework.realize.Elapsed.milliseconds(2000)))
     ),
     // A start of a standalone Nexus operation persists it, scheduled, before it returns, and a
     // describe reads that component: chasm/lib/nexusoperation/frontend.go:65-95, handler.go:45-60,
@@ -107,31 +107,31 @@ val temporalBehavior: ApiBehavior = ApiBehavior(
     // the interval stays well below that.
     CauseKind.handlerReply.visibleTo(
       METHOD_DESCRIBE_WORKFLOW_EXECUTION,
-      Visible.eventually(WaitBound(intervalMs = 250, atMostMs = 2000))
+      Visible.eventually(WaitBound(interval = framework.realize.Elapsed.milliseconds(250), atMost = framework.realize.Elapsed.milliseconds(2000)))
     )
   ),
   causes = Vector(
     // Matching hands the task to a waiting poll; after an unpause, or a retry's backoff timer, the
     // timer queue dispatches it: chasm/lib/activity/tasks.go:67-102, statemachine.go:393-420.
-    CauseKind.delivery.boundedBy(WaitBound(intervalMs = 250, atMostMs = 3000)),
+    CauseKind.delivery.boundedBy(WaitBound(interval = framework.realize.Elapsed.milliseconds(250), atMost = framework.realize.Elapsed.milliseconds(3000))),
     // The Case's own worker answers an attempt as soon as it is delivered, with nothing to wait for
     // (common/testing/testpilot/temporal/worker/interpreter.go:240-300), and the respond applies the
     // answer in its transaction (service/history/handler.go:425-429): the bound is the round trip.
-    CauseKind.activityAnswer.boundedBy(WaitBound(intervalMs = 250, atMostMs = 2000)),
-    CauseKind.activityHeartbeat.boundedBy(WaitBound(intervalMs = 250, atMostMs = 2000)),
+    CauseKind.activityAnswer.boundedBy(WaitBound(interval = framework.realize.Elapsed.milliseconds(250), atMost = framework.realize.Elapsed.milliseconds(2000))),
+    CauseKind.activityHeartbeat.boundedBy(WaitBound(interval = framework.realize.Elapsed.milliseconds(250), atMost = framework.realize.Elapsed.milliseconds(2000))),
     // A workflow task is dispatched to the Case's worker and completed by it:
     // service/matching/matching_engine.go:586, :717.
-    CauseKind.workflowTask.boundedBy(WaitBound(intervalMs = 250, atMostMs = 5000)),
+    CauseKind.workflowTask.boundedBy(WaitBound(interval = framework.realize.Elapsed.milliseconds(250), atMost = framework.realize.Elapsed.milliseconds(5000))),
     // Matching dispatches a Nexus task to the handler worker's poll, the Case's handler answers it
     // at once, and matching hands the reply to the waiting dispatch:
     // service/matching/matching_engine.go:2721-2802, :2884-2909,
     // common/testing/testpilot/temporal/worker/interpreter.go:326-430.
-    CauseKind.handlerReply.boundedBy(WaitBound(intervalMs = 250, atMostMs = 5000)),
+    CauseKind.handlerReply.boundedBy(WaitBound(interval = framework.realize.Elapsed.milliseconds(250), atMost = framework.realize.Elapsed.milliseconds(5000))),
     // A timer fires at or after its deadline from the timer queue, and one closer than the queue's
     // maximum time shift (1 s) is pushed out to it: chasm/lib/activity/tasks.go:154-168,
     // service/history/timer_queue_active_task_executor.go:1134-1160,
     // service/history/shard/task_key_manager.go:96-101. The bound is the slack after the deadline.
-    CauseKind.timer.boundedBy(WaitBound(intervalMs = 250, atMostMs = 3000))
+    CauseKind.timer.boundedBy(WaitBound(interval = framework.realize.Elapsed.milliseconds(250), atMost = framework.realize.Elapsed.milliseconds(3000)))
   ),
   // An activity starts with no attempt, its schedule counts the first as 1, and each retry adds one
   // to the same activity execution, so every attempt is of its one run:
@@ -141,7 +141,7 @@ val temporalBehavior: ApiBehavior = ApiBehavior(
   // (Fault, Hold, Release) has no API fact that bounds it (.plans/API_BEHAVIOR_HINTS.md, W-11, W-14,
   // W-15, W-19, W-20), so it is bounded by the limit Temporal Cases have always run such
   // instructions under: 10 s and one attempt, since no instruction is retried.
-  instructionDefaults = Some(InstructionLimit(timeoutMs = 10000, attempts = 1)),
+  instructionDefaults = Some(InstructionLimit(timeout = framework.realize.Elapsed.milliseconds(10000), attempts = 1)),
   // A read is made after the Run recorded what came before it, and what it reads is visible to it
   // at once or within the wait derived from the hints above; a Run Event records a call's answer or
   // a worker's answer once the server took it. So the Run's record order is the order of one
