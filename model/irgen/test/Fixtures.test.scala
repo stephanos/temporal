@@ -453,6 +453,10 @@ class Fixtures extends munit.FunSuite:
     // and a capability's `rejected` (lifts/Rejections.scala).
     "rejections" -> (Seq("DoorProduct", "DoorSystem$.capabilities", "DoorSystem$.queries")
       .map("fixture.rejections." + _)),
+    // fn-150: a composition's progress claims and the composed steps their assumptions make fair
+    // (lifts/ComposedProgress.scala).
+    "composedProgress" -> Seq("drainsThrough", "gradedThrough")
+      .map("fixture.composedprogress.ComposedProgress$package$." + _),
     "hintsRefused" -> Seq(
       "zeroInterval",
       "nonPositiveBound",
@@ -677,6 +681,20 @@ class Fixtures extends munit.FunSuite:
       "DerivedControl$.queries$.foundDerivedControl"
     ).map("fixture.markers." + _)
 
+  // The refusals of fn-150's composition progress claims and composed fairness
+  // (lifts/ComposedProgressRejects.scala).
+  private val composedProgressRejects: Seq[String] = Seq(
+    "anotherOwner",
+    "onAMachine",
+    "mixedFairness",
+    "spreadFairness",
+    "oneSidedClass",
+    "pairedOwn",
+    "unpairedSync",
+    "noStep"
+  ).map("fixture.composedprogressrejects.ComposedProgressRejects$package$." + _) :+
+    "fixture.composedprogressrejects.AssumingFlow"
+
   // A root of lifts/Rejects.scala: a machine or composition object, or an object nested in one of its
   // objects, by its object (`Hoarding`, `Anonymous$.anonymous`); a top-level val by its name.
   private def rejectsRoot(name: String): String =
@@ -756,7 +774,7 @@ class Fixtures extends munit.FunSuite:
     "IndexedQueries$.queries"
   ).map(rejectsRoot) ++ scriptRejects ++ realizationObjectRejects ++
     sectionRejects ++ hintRejects ++ markerRejects ++ blockRejects ++ statusRejects ++ roleRejects ++
-    ruleRejects
+    ruleRejects ++ composedProgressRejects
 
   private lazy val liftsJar = packaged("lifts", materialize("lifts"))
   private lazy val liftsJars = s"$liftsJar=${stored("lifts")},$modelJar=model/"
@@ -854,6 +872,8 @@ class Fixtures extends munit.FunSuite:
         "NamedInput.scala:27:49",
         "NamedInput.scala:30:31",
         "OneChoice.scala:18:62",
+        "Progress.scala:28:48",
+        "Progress.scala:31:17",
         "Rejections.scala:17:60",
         "Rejections.scala:24:33",
         "Rules.scala:16:32",

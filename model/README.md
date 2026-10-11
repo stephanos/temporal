@@ -490,6 +490,16 @@ The IR generator reads what an author wrote, as written:
   with no name is named after its first member's action; a Scenario
   or `whenAction` of it names a sync by one member action it pairs, `c.synced(_.activity ->
   history.dispatch)`, and a member's own action by `c.own(_.activity, client.pause)`.
+  A composition's bounded progress claim is `c.leadsTo(name)(from, to, within, under*)`, with
+  predicates of the composed state; an assumption makes its composed steps fair with the same
+  selectors, `assume.fair(c.synced(_.activity -> worker.poll), c.own(_.queue, queue.persistTask))`,
+  every class of an action or, where the selector names one, that class. The lifter refuses an
+  assumption that mixes a machine's actions with composed steps or selects two compositions, a
+  claim whose assumption selects steps of another composition, and a machine that assumes composed
+  fairness. The bound counts composed steps, a sync's once, and weak fairness does not shorten it
+  (model/SEMANTICS.md, Progress); `system/DispatchProgress.scala` states the restrictions its
+  one-step bound rests on, with the variant whose stopping worker refutes it. Composition progress
+  is a model check only: no Case is generated from it.
 - **Shared claims:** `property` and `scenario` are declared on `Declares[S]`, the supertype of a
   machine and a composition, so one function over `m: Declares[S]` declares a Property on either.
   A function-valued argument of such a function names a def of the lifted sources, which the

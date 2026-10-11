@@ -39,9 +39,13 @@ go test -tags test_dep ./tools/umpire/check ./tools/umpire/internal/engine
 - [ ] Old machine/composition pins and identity collision protections remain intact; no broad new verification framework is introduced.
 
 ## Done summary
-TBD
+Boundary/replay/structured-fairness checkpoints integrated earlier (d01aefebf1 and task .2 commits).
+Added the lifted-fixture pin: a fair path (flowing: transfer and right.send fair) still misses
+`within = 2` because the unrelated left drain takes the last step; witness `left_fill-high,
+transfer-high, left_drain` replays. Engine package and focused check tests pass in this tree. Full
+gates/review remain for Batch 5b.
 
 ## Evidence
-- Commits:
-- Tests:
+- Commits: d01aefebf1 (integrated), f7fcb54a67
+- Tests: engine PASS; focused check/ir as in task .2 (`.flow/tmp/fn150/go-focused.log`)
 - PRs:

@@ -521,6 +521,29 @@ A hole row is not a step and not a disabled pair: a state whose only pairs are h
 deadlock, and a cycle is no fair one while a fair class it does not take has a hole row at one of its
 states. A kind of violation ruled out while the check read a hole row is incomplete.
 
+A progress claim of a composition reads the composed state: `from` and `to` take the composition's
+state record and may read every member. It is checked over the composition's table, from every
+reachable state of the product of its members' starts, and `within` counts composed steps: a sync's
+step is one step however many members it advances, and a member's own step counts even where it is
+unrelated to the claim. Weak fairness bounds nothing: a path on which fair classes are taken can still
+spend its `within` steps elsewhere, so a finite bound holds only where the composed graph leaves no
+such path.
+
+Its assumptions are its members' and its own. Each member's are mapped to the composed classes that
+step the classes they make fair, its own and the syncs it takes part in; two members' assumptions of
+one name are one, and a member that `replaces` a machine brings its own, never the replaced machine's
+(Compositions). The claim's own assumptions select composed classes by structure, never by key: a
+member field with an action the member takes alone, every class of it or one class with its inputs;
+or a sync by name, every class of it or one class whose inputs are its first move's followed by its
+second move's. Repeated members of one machine are told apart by their fields. A selection of another
+composition, of a field no member fills or more than one does, of an action the member does not bind,
+of a sync the composition does not declare or declares twice, or of a class no sync class or member
+class matches, is refused before anything is checked, as is an assumption that mixes a machine's fair
+actions with composed selections; a machine's fair actions on a composition's claim are unsupported.
+A sync class is enabled where both of its moves are: a member action enabled on its own but blocked by
+its partner leaves the sync disabled, and fairness never makes it eligible. The result names every
+assumption it read. A composition with a monitored member is unsupported, as its Queries are.
+
 ## Realizations
 
 The standalone activity's three realizations live in `features/activity/standalone/system/Realization.scala`,

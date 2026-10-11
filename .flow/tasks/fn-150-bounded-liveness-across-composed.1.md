@@ -64,7 +64,19 @@ One unchanged Quick retry after the private fn-155 Bloop daemon's normal exit al
 The terminal retry handover and exact receipt are preserved in the task worktree under `.flow/tmp/fn150/task1/revisit-private-exit/`: `handover-summary.md`, `handover-evidence.json`, `result.json`, `quick.log`, samples and complete kernel-before/after/delta logs. Root verified `result.json` SHA256 `6429e5a47cb061700bbf07c52be44efd5204fd5d61343df95ace4b0c7ad564a5` and `handover-evidence.json` SHA256 `a565409baca84a2002698fa6ffa57cac078cce372883dbf8443ed983faa38e7e`. Executable inputs from the pinned base to integrated `de916cc2af` were unchanged: only Flow metadata and MILESTONES differed. No source, lifecycle or commit was changed by the verification worker, and all owned commands are terminal.
 
 Root keeps the task blocked rather than dispatch implementation review on a RED tree, changing the original Quick selection or marking it done. Canonical verification resumes after resource provisioning or fn-157's measured preservation-safe repair supplies adequate capacity. A disk-only improvement or an unchanged environment does not justify repeating this OOM attempt. Run the original Quick with default memory after a material capacity change, preserve all original RED results, independently review the integrated diff, and verify task acceptance before completion. Later task .2 remains held. The committed task workspace is clean.
+
+Retry 2026-10-10 (w-fn150 lane, `slot --heavy`, no compiler daemon of this lane, default Go runtime,
+original selector unchanged), on a clean detached checkout of 2ff6281875 (the integrated source
+checkpoint 9c47f975a0 plus later work): no OOM. Wall 23.8 s; `check` package finished in 20.8 s;
+minimum sampled MemAvailable 5,753,376 KiB (8,799,376 KiB at lock). Exit 1 from four failures, all
+loading the checked-in `model/ir/*.json`, which the Duration migration made stale by design until
+Batch 5b (`unknown field "intervalMs"`): TestAdmissionAdmitsTheSourceDerivedModels,
+TestAdmissionAdmitsAWhenOverComposedClasses, TestAComposedReadingIsTheCompositionCheckReads,
+TestAComposedReadingKeepsTheCeilingAndTheNames. Every fn-150 test in the selection passed. The
+memory blocker is cleared; the Quick turns green once model/ir is regenerated at Batch 5b.
+Receipt: `.flow/tmp/fn150/task1-retry/` (quick.log, exit.txt, wall-seconds.txt, memsamples.txt).
+
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 9c47f975a0 (integrated checkpoint)
+- Tests: Quick retry: 4 FAIL, all stale model/ir reads (deferred to Batch 5b), no OOM; log `.flow/tmp/fn150/task1-retry/quick.log`
 - PRs:
