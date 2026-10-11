@@ -2353,7 +2353,7 @@ class Fixtures extends munit.FunSuite:
     import com.fasterxml.jackson.databind.JsonNode
     // Each design is an object, named as the composition is with the first letter raised: its
     // Queries in its `queries`, or the design itself where no Query runs over it.
-    val designs = "temporal.features.activity.standalone.system."
+    val designs = "temporal.features.activity.standalone.protocol."
     def designObject(d: String) = designs + d.head.toUpper + d.tail
     val overQueue = Seq("recordOverQueue", "trustingRecordOverQueue")
     val overMatching =
@@ -2443,9 +2443,9 @@ class Fixtures extends munit.FunSuite:
   concurrently("every Temporal realization carries the shared rejection-code table"):
     val rootGroups = Seq(
       Seq(
-        "temporal.features.activity.standalone.system.Standalone",
-        "temporal.features.activity.standalone.system.HeldDelivery",
-        "temporal.features.activity.standalone.system.LostAdmissionResponse"
+        "temporal.features.activity.standalone.protocol.Standalone",
+        "temporal.features.activity.standalone.protocol.HeldDelivery",
+        "temporal.features.activity.standalone.protocol.LostAdmissionResponse"
       ),
       Seq(
         "temporal.features.nexus.workflow.AsyncNexus",
@@ -2476,7 +2476,7 @@ class Fixtures extends munit.FunSuite:
   concurrently("the actual WithTaskQueue capability root folds its typed composed outcome"):
     val (model, _, _) = declarations(
       "withTaskQueueCapability",
-      Seq("temporal.features.activity.standalone.system.RecordOverQueue$.capabilities")
+      Seq("temporal.features.activity.standalone.protocol.RecordOverQueue$.capabilities")
     )
     assert(model.path("properties").size() > 0)
 
@@ -2497,7 +2497,7 @@ class Fixtures extends munit.FunSuite:
     assertEquals(named("actions", "enqueue").path("id").asText(), queue + "queue.enqueue")
     for (c, queue, target) <- Seq(
         ("jobOverQueue", "taskQueueProduct", ""),
-        ("jobOverMatching", "taskQueueSystem", "taskQueueProduct"),
+        ("jobOverMatching", "taskQueueProtocol", "taskQueueProduct"),
         ("jobOverForgetful", "forgetfulQueue", "taskQueueProduct")
       )
     do

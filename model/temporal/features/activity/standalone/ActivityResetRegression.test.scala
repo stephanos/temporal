@@ -9,27 +9,27 @@ import temporal.features.activity.standalone.{
   completionClient,
   pausing,
   product,
-  system,
+  protocol,
   MaxAttempts,
   ResetPause
 }
-import temporal.features.activity.standalone.system.{
-  ActivitySystem,
+import temporal.features.activity.standalone.protocol.{
+  ActivityProtocol,
 }
 import framework.outcomes.{Outcome, Rejection}
 
 class ActivityResetRegression extends munit.FunSuite:
-  val _ = () => summon[CanEqual[system.Phase, system.Phase]]
-  private type ActivityStep = Step[system.State, Outcome, system.Fact]
+  val _ = () => summon[CanEqual[protocol.Phase, protocol.Phase]]
+  private type ActivityStep = Step[protocol.State, Outcome, protocol.Fact]
 
-  private def take(s: system.State, c: Class): List[ActivityStep] =
-    val binding = ActivitySystem.bindings.find(_.decl == c.decl).get // scalafix:ok DisableSyntax.==
-    effectOf[system.State, Outcome, system.Fact](binding.decl, binding.function)(s, c.values)
+  private def take(s: protocol.State, c: Class): List[ActivityStep] =
+    val binding = ActivityProtocol.bindings.find(_.decl == c.decl).get // scalafix:ok DisableSyntax.==
+    effectOf[protocol.State, Outcome, protocol.Fact](binding.decl, binding.function)(s, c.values)
       .map(_.copy(because = ""))
 
-  private type Transition = (system.State, ActivityStep) => Boolean
+  private type Transition = (protocol.State, ActivityStep) => Boolean
 
-  private def holds(property: Property[system.State], before: system.State, after: ActivityStep) =
+  private def holds(property: Property[protocol.State], before: protocol.State, after: ActivityStep) =
     property.decl.holds2 match
       case Some(predicate) =>
         val claim = predicate.asInstanceOf[Transition] // scalafix:ok DisableSyntax.asInstanceOf
@@ -39,17 +39,17 @@ class ActivityResetRegression extends munit.FunSuite:
           .asInstanceOf[ActivityStep => Boolean] // scalafix:ok DisableSyntax.asInstanceOf
         claim(after)
 
-  private val states = summon[Finite[system.State]].values
+  private val states = summon[Finite[protocol.State]].values
   private val resets = List(client.reset(ResetPause.resume), client.reset(ResetPause.keepPaused))
-  private val pending = List(system.Phase.resetRequested, system.Phase.resetKeepingPause)
-  private def restarted(before: system.State): system.State = before.copy(
+  private val pending = List(protocol.Phase.resetRequested, protocol.Phase.resetKeepingPause)
+  private def restarted(before: protocol.State): protocol.State = before.copy(
     phase =
       // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
-      if before.phase == system.Phase.resetKeepingPause then
+      if before.phase == protocol.Phase.resetKeepingPause then
         // scalafix:on DisableSyntax.==
-        system.Phase.paused
-      else system.Phase.scheduled,
-    dispatch = system.Dispatch.now,
+        protocol.Phase.paused
+      else protocol.Phase.scheduled,
+    dispatch = protocol.Dispatch.now,
     attempts = UpTo(0)
   )
 
@@ -57,57 +57,57 @@ class ActivityResetRegression extends munit.FunSuite:
     assertEquals(client.reset.decl.tokens, List(Some(pausing)))
     assertEquals(client.reset.decl.domains.map(_.values.toList), List(ResetPause.values.toList))
     assert(
-      ActivitySystem.bindings.exists(_.decl == client.reset.decl)
+      ActivityProtocol.bindings.exists(_.decl == client.reset.decl)
     ) // scalafix:ok DisableSyntax.==
     assert(
       product.ActivityProduct.bindings.exists(_.decl == client.reset.decl)
     ) // scalafix:ok DisableSyntax.==
-    assertEquals(summon[Finite[system.State]].values.size, 5616)
+    assertEquals(summon[Finite[protocol.State]].values.size, 5616)
   }
 
   test("a waiting or paused reset applies at once, clears backoff and lands by keep_paused") {
     for before <- states; c <- resets do
       val after = take(before, c)
       before.phase match
-        case system.Phase.scheduled | system.Phase.paused =>
+        case protocol.Phase.scheduled | protocol.Phase.paused =>
           val keeps =
-            before.phase == system.Phase.paused && c == resets(1) // scalafix:ok DisableSyntax.==
+            before.phase == protocol.Phase.paused && c == resets(1) // scalafix:ok DisableSyntax.==
           val dispatch =
             // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
-            if before.dispatch == system.Dispatch.backoff then
+            if before.dispatch == protocol.Dispatch.backoff then
               // scalafix:on DisableSyntax.==
-              system.Dispatch.now
+              protocol.Dispatch.now
             else before.dispatch
-          val landing = if keeps then system.Phase.paused else system.Phase.scheduled
+          val landing = if keeps then protocol.Phase.paused else protocol.Phase.scheduled
           assertEquals(
             after,
             List(
               Step(
                 Outcome.accepted,
                 before.copy(phase = landing, attempts = UpTo(0), dispatch = dispatch),
-                List(if keeps then system.Fact.statusPaused else system.Fact.statusScheduled)
+                List(if keeps then protocol.Fact.statusPaused else protocol.Fact.statusScheduled)
               )
             )
           )
-        case system.Phase.started =>
-          assertEquals(after.map(_.state), List(before.copy(phase = system.Phase.resetRequested)))
-          assertEquals(after.map(_.facts), List(List(system.Fact.statusStarted)))
-        case system.Phase.pauseRequested =>
+        case protocol.Phase.started =>
+          assertEquals(after.map(_.state), List(before.copy(phase = protocol.Phase.resetRequested)))
+          assertEquals(after.map(_.facts), List(List(protocol.Fact.statusStarted)))
+        case protocol.Phase.pauseRequested =>
           val (phase, fact) =
             // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
             if c == resets(1) then
               // scalafix:on DisableSyntax.==
-              system.Phase.resetKeepingPause -> system.Fact.statusPaused
-            else system.Phase.resetRequested -> system.Fact.statusStarted
+              protocol.Phase.resetKeepingPause -> protocol.Fact.statusPaused
+            else protocol.Phase.resetRequested -> protocol.Fact.statusStarted
           assertEquals(after.map(_.state), List(before.copy(phase = phase)))
           assertEquals(after.map(_.facts), List(List(fact)))
-        case phase @ (system.Phase.unstarted | system.Phase.cancelRequested |
-            system.Phase.resetRequested | system.Phase.resetKeepingPause | system.Phase.completed |
-            system.Phase.failed | system.Phase.canceled | system.Phase.terminated |
-            system.Phase.timedOut) =>
+        case phase @ (protocol.Phase.unstarted | protocol.Phase.cancelRequested |
+            protocol.Phase.resetRequested | protocol.Phase.resetKeepingPause | protocol.Phase.completed |
+            protocol.Phase.failed | protocol.Phase.canceled | protocol.Phase.terminated |
+            protocol.Phase.timedOut) =>
           val why =
             // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
-            if phase == system.Phase.unstarted || phase.in[Closed] then
+            if phase == protocol.Phase.unstarted || phase.in[Closed] then
               // scalafix:on DisableSyntax.==
               Rejection.notFound
             else Rejection.failedPrecondition
@@ -132,11 +132,11 @@ class ActivityResetRegression extends munit.FunSuite:
           List(
             List(
               // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
-              if before.phase == system.Phase.resetKeepingPause then
+              if before.phase == protocol.Phase.resetKeepingPause then
                 // scalafix:on DisableSyntax.==
-                system.Fact.statusPaused
-              else system.Fact.statusScheduled,
-              system.Fact.attemptCount
+                protocol.Fact.statusPaused
+              else protocol.Fact.statusScheduled,
+              protocol.Fact.attemptCount
             )
           )
         )
@@ -148,22 +148,22 @@ class ActivityResetRegression extends munit.FunSuite:
       do
         val after = take(before, timer)
         assertEquals(after.map(_.state), if armed then List(restarted(before)) else Nil)
-        for step <- after; fact <- ActivitySystem.states.timeoutFacts do
+        for step <- after; fact <- ActivityProtocol.states.timeoutFacts do
           assert(!step.records(fact), s"a deferred reset records no terminal timeout: $step")
       for step <- take(before, deadline.scheduleToClose()) do
-        assertEquals(step.state, before.copy(phase = system.Phase.timedOut))
-        assertEquals(step.facts, List(system.Fact.statusTimedOut(TimeoutType.scheduleToClose)))
+        assertEquals(step.state, before.copy(phase = protocol.Phase.timedOut))
+        assertEquals(step.facts, List(protocol.Fact.statusTimedOut(TimeoutType.scheduleToClose)))
       assertEquals(
         take(before, activityWorker.respondCompleted()).map(_.state),
-        List(before.copy(phase = system.Phase.completed))
+        List(before.copy(phase = protocol.Phase.completed))
       )
       assertEquals(
         take(before, client.requestCancel()).map(_.state),
-        List(before.copy(phase = system.Phase.cancelRequested))
+        List(before.copy(phase = protocol.Phase.cancelRequested))
       )
       assertEquals(
         take(before, client.terminate()).map(_.state),
-        List(before.copy(phase = system.Phase.terminated))
+        List(before.copy(phase = protocol.Phase.terminated))
       )
       for c <- List[Class](client.pause(), client.unpause()) ++ resets do
         assertEquals(
@@ -190,9 +190,9 @@ class ActivityResetRegression extends munit.FunSuite:
       deadline.heartbeat()
     )
     for before <- states; c <- classes; after <- take(before, c) do
-      val visible = after.facts.filter(ActivitySystem.refinement.visible).map(_.productPrefix)
-      val source = ActivitySystem.refinement.toProduct(before)
-      val target = ActivitySystem.refinement.toProduct(after.state)
+      val visible = after.facts.filter(ActivityProtocol.refinement.visible).map(_.productPrefix)
+      val source = ActivityProtocol.refinement.toProduct(before)
+      val target = ActivityProtocol.refinement.toProduct(after.state)
       val binding =
         product.ActivityProduct.bindings.find(_.decl == c.decl).get // scalafix:ok DisableSyntax.==
       val carriers = effectOf[product.State, Outcome, product.Fact](binding.decl, binding.function)(
@@ -207,21 +207,21 @@ class ActivityResetRegression extends munit.FunSuite:
         ) || (source == target && visible.isEmpty), // scalafix:ok DisableSyntax.==
         s"reset refinement $c $before -> $after"
       )
-    assertEquals(Refinement.unclosed(ActivitySystem.refinement)(_.phase, _.phase), IndexedSeq.empty)
+    assertEquals(Refinement.unclosed(ActivityProtocol.refinement)(_.phase, _.phase), IndexedSeq.empty)
   }
 
   test("the settlement Property holds on every row and rejects every seeded settlement error") {
-    val settles = ActivitySystem.properties.resetSettles
-    val precedence = ActivitySystem.properties.controlPrecedence
+    val settles = ActivityProtocol.properties.resetSettles
+    val precedence = ActivityProtocol.properties.controlPrecedence
     // A held attempt was dispatched, so no reachable held state waits on a dispatch delay.
     val dispatched = states.filter(s =>
-      !s.phase.in[Held] || s.dispatch == system.Dispatch.now
+      !s.phase.in[Held] || s.dispatch == protocol.Dispatch.now
     ) // scalafix:ok DisableSyntax.==
     val all = dispatched.flatMap(before =>
-      ActivitySystem.bindings
+      ActivityProtocol.bindings
         .flatMap(b =>
           classesOf(b.decl).flatMap(values =>
-            effectOf[system.State, Outcome, system.Fact](b.decl, b.function)(before, values)
+            effectOf[protocol.State, Outcome, protocol.Fact](b.decl, b.function)(before, values)
           )
         )
         .map(before -> _)
@@ -235,40 +235,40 @@ class ActivityResetRegression extends munit.FunSuite:
         restarted(before),
         List(
           // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
-          if before.phase == system.Phase.resetKeepingPause then
+          if before.phase == protocol.Phase.resetKeepingPause then
             // scalafix:on DisableSyntax.==
-            system.Fact.statusPaused
-          else system.Fact.statusScheduled
+            protocol.Fact.statusPaused
+          else protocol.Fact.statusScheduled
         )
       )
       assert(holds(settles, before, applied))
       val seeded = List(
-        "fatality recorded" -> applied.copy(facts = applied.facts :+ system.Fact.statusFailed),
+        "fatality recorded" -> applied.copy(facts = applied.facts :+ protocol.Fact.statusFailed),
         "keepPaused landing" -> applied.copy(state =
           applied.state.copy(phase =
             // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
-            if applied.state.phase == system.Phase.paused then
+            if applied.state.phase == protocol.Phase.paused then
               // scalafix:on DisableSyntax.==
-              system.Phase.scheduled
-            else system.Phase.paused
+              protocol.Phase.scheduled
+            else protocol.Phase.paused
           )
         ),
         "retry backoff kept" -> applied.copy(state =
-          applied.state.copy(dispatch = system.Dispatch.backoff)
+          applied.state.copy(dispatch = protocol.Dispatch.backoff)
         ),
         "count kept" -> applied.copy(state = applied.state.copy(attempts = UpTo(1))),
         "terminal timeout" -> applied.copy(facts =
-          applied.facts :+ system.Fact.statusTimedOut(TimeoutType.startToClose)
+          applied.facts :+ protocol.Fact.statusTimedOut(TimeoutType.startToClose)
         ),
         "exhausted failure" -> Step(
           Outcome.accepted,
-          before.copy(phase = system.Phase.failed),
-          List(system.Fact.statusFailed)
+          before.copy(phase = protocol.Phase.failed),
+          List(protocol.Fact.statusFailed)
         ),
         "wrong terminal timeout" -> Step(
           Outcome.accepted,
-          before.copy(phase = system.Phase.timedOut),
-          List(system.Fact.statusTimedOut(TimeoutType.heartbeat))
+          before.copy(phase = protocol.Phase.timedOut),
+          List(protocol.Fact.statusTimedOut(TimeoutType.heartbeat))
         ),
         "policy changed" -> applied.copy(state =
           applied.state.copy(maxAttempts =
@@ -278,16 +278,16 @@ class ActivityResetRegression extends munit.FunSuite:
         )
       )
       for (name, step) <- seeded do assert(!holds(settles, before, step), s"$name: $before")
-      for phase <- List(system.Phase.started, system.Phase.pauseRequested) do
+      for phase <- List(protocol.Phase.started, protocol.Phase.pauseRequested) do
         val undone = Step(Outcome.accepted, before.copy(phase = phase))
         assert(!holds(precedence, before, undone), s"pause or unpause undid a reset: $before")
     // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
-    for before <- states if before.phase == system.Phase.cancelRequested; phase <- pending
+    for before <- states if before.phase == protocol.Phase.cancelRequested; phase <- pending
     // scalafix:on DisableSyntax.==
     do assert(!holds(precedence, before, Step(Outcome.accepted, before.copy(phase = phase))))
     for
       before <- states
-      if before.phase == system.Phase.started && before.attempts > 0 // scalafix:ok DisableSyntax.==
+      if before.phase == protocol.Phase.started && before.attempts > 0 // scalafix:ok DisableSyntax.==
     do
       val rewound = Step(Outcome.accepted, before.copy(attempts = UpTo(0)))
       assert(!holds(settles, before, rewound), s"a held attempt rewound without reset: $before")
@@ -295,18 +295,18 @@ class ActivityResetRegression extends munit.FunSuite:
 
   test("direct reset Properties reject a kept backoff, a kept count and a wrong pause landing") {
     for (property, c) <- List(
-        ActivitySystem.properties.resetResumes -> resets(0),
-        ActivitySystem.properties.resetKeepsPaused -> resets(1)
+        ActivityProtocol.properties.resetResumes -> resets(0),
+        ActivityProtocol.properties.resetKeepsPaused -> resets(1)
       )
     do
       assert(property.decl.when.contains(c))
       for before <- states; after <- take(before, c) do
         assert(holds(property, before, after), s"$c $before -> $after")
         // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
-        if before.phase == system.Phase.scheduled || before.phase == system.Phase.paused
+        if before.phase == protocol.Phase.scheduled || before.phase == protocol.Phase.paused
         // scalafix:on DisableSyntax.==
         then
-          if before.dispatch == system.Dispatch.backoff then // scalafix:ok DisableSyntax.==
+          if before.dispatch == protocol.Dispatch.backoff then // scalafix:ok DisableSyntax.==
             assert(
               !holds(
                 property,
@@ -323,15 +323,15 @@ class ActivityResetRegression extends munit.FunSuite:
               )
             )
           for
-            landing <- List(system.Phase.scheduled, system.Phase.paused)
+            landing <- List(protocol.Phase.scheduled, protocol.Phase.paused)
             if landing != after.state.phase // scalafix:ok DisableSyntax.!=
           do assert(!holds(property, before, after.copy(state = after.state.copy(phase = landing))))
   }
 
   test("the ordinary fatal witness is unchanged and claims no reset coverage") {
-    val query = ActivitySystem.retry.queries.nonRetryableFailure
+    val query = ActivityProtocol.retry.queries.nonRetryableFailure
     assertEquals(query.form, QueryForm.find)
-    assertEquals(query.property, ActivitySystem.retry.properties.nonRetryableFails.decl)
+    assertEquals(query.property, ActivityProtocol.retry.properties.nonRetryableFails.decl)
     assertEquals(
       query.scenario.actions,
       Vector[ClassRef](
@@ -342,28 +342,28 @@ class ActivityResetRegression extends munit.FunSuite:
     )
     assertEquals(query.expectedRun, Some(temporal.realize.satisfied))
     val held =
-      take(take(ActivitySystem.init, client.start()).head.state, activityWorker.poll()).head.state
+      take(take(ActivityProtocol.init, client.start()).head.state, activityWorker.poll()).head.state
     val failed = take(held, activityWorker.respondFailed(Failure.fatal)).head
-    assert(holds(ActivitySystem.retry.properties.nonRetryableFails, held, failed))
+    assert(holds(ActivityProtocol.retry.properties.nonRetryableFails, held, failed))
   }
 
   test("reset witnesses keep Model-only checks apart from the realized deferred Case") {
     for query <- List(
-        ActivitySystem.reset.queries.resetFatality,
-        ActivitySystem.reset.queries.resetExhaustion,
-        ActivitySystem.reset.queries.resetTimeout,
-        ActivitySystem.reset.queries.resetKeptPause,
-        ActivitySystem.reset.queries.resetCompletion,
-        ActivitySystem.reset.queries.resetScheduleToClose,
-        ActivitySystem.reset.queries.resetCancellation,
-        ActivitySystem.reset.queries.resetOutranksPause,
-        ActivitySystem.reset.queries.resetRepeated,
-        ActivitySystem.reset.queries.keepPausedReset
+        ActivityProtocol.reset.queries.resetFatality,
+        ActivityProtocol.reset.queries.resetExhaustion,
+        ActivityProtocol.reset.queries.resetTimeout,
+        ActivityProtocol.reset.queries.resetKeptPause,
+        ActivityProtocol.reset.queries.resetCompletion,
+        ActivityProtocol.reset.queries.resetScheduleToClose,
+        ActivityProtocol.reset.queries.resetCancellation,
+        ActivityProtocol.reset.queries.resetOutranksPause,
+        ActivityProtocol.reset.queries.resetRepeated,
+        ActivityProtocol.reset.queries.keepPausedReset
       )
     do
       assertEquals(query.form, QueryForm.find)
       assertEquals(query.expectedRun, None)
-      val path = query.scenario.actions.foldLeft(List(ActivitySystem.init)) { (seen, c) =>
+      val path = query.scenario.actions.foldLeft(List(ActivityProtocol.init)) { (seen, c) =>
         val cls = c match
           case c: Class              => c
           case a: Action[EmptyTuple] => a()
@@ -372,7 +372,7 @@ class ActivityResetRegression extends munit.FunSuite:
       }
       assert(path.size == query.scenario.actions.size + 1) // scalafix:ok DisableSyntax.==
     assertEquals(
-      ActivitySystem.reset.queries.deferredResetCompletes.expectedRun,
+      ActivityProtocol.reset.queries.deferredResetCompletes.expectedRun,
       Some(temporal.realize.satisfied)
     )
   }

@@ -731,7 +731,7 @@ features/
       product/
         Product.scala          Product Phase, State and Fact, the phase accessors; ActivityProduct
       system/
-        System.scala                System Phase, Dispatch, State and Fact; ActivitySystem, the lifecycle machine
+        System.scala                System Phase, Dispatch, State and Fact; ActivityProtocol, the lifecycle machine
         Completion.scala            completion on the unchanged lifecycle
         RetryFailures.scala         failure retry and exhaustion
         RetryTimeouts.scala         TimeoutRetry, the derived attempt-timeout retry model
@@ -773,7 +773,7 @@ foundations/
     product/
       Product.scala            TaskQueueProduct, the opaque contract, and its storage-loss variant
     system/
-      System.scala             TaskQueueSystem, the provider that refines it, and the lossy, forgetful and
+      System.scala             TaskQueueProtocol, the provider that refines it, and the lossy, forgetful and
                                volatile providers
 actors/
   client/
@@ -954,10 +954,10 @@ A declaration is named after where it is declared. An action, monitor, assumptio
 with the actions it derives, or realization takes as its Definition ID its fully qualified Scala
 name: its package and every object it sits in, then its own name,
 `temporal.features.activity.standalone.client.start` or
-`temporal.features.activity.standalone.system.ActivityRecord.monitors.atMostOneActiveAttempt`. A
-type is named so too, `temporal.features.activity.standalone.system.State`. A machine's or
+`temporal.features.activity.standalone.protocol.ActivityRecord.monitors.atMostOneActiveAttempt`. A
+type is named so too, `temporal.features.activity.standalone.protocol.State`. A machine's or
 composition's family, the root every ID derived from it hangs off (`<family>.query.<name>`, its
-target, its claims), is the package that declares it, `temporal.features.activity.standalone.system`,
+target, its claims), is the package that declares it, `temporal.features.activity.standalone.protocol`,
 and a realization's IDs (its evidence, sources and producer) hang off its own package, which the
 kit's `framework.realize.family` reads. Nobody writes an ID or a family: moving a declaration between
 files of one package keeps every name, and moving it into another object or package, or renaming
@@ -1057,7 +1057,7 @@ atMostOneActive(c)(through(_.activity, Admission.twoActive))
 
 The IR generator lifts each `through` as one function of the composed state,
 `<state>.through.<path>.<def>` (here
-`temporal.features.activity.standalone.system.OverQueue.through.activity.temporal.features.activity.standalone.system.ActivityRecord$.states$.paused`),
+`temporal.features.activity.standalone.protocol.OverQueue.through.activity.temporal.features.activity.standalone.protocol.ActivityRecord$.states$.paused`),
 which the Property calls as it calls a def. `select` is a field path, `_.activity` or `_.left.phase`, and
 `read` a def of the lifted sources; each other selector and a lambda for `read` are refused at their
 line, as a lambda is, and a `read` over another type than the member's does not compile. Its two
@@ -1069,7 +1069,7 @@ The queue in that example is the task queue, `model/temporal/foundations/taskque
 (`taskQueue`, keyed by the queue's name) that a feature composes by synchronizing its own actions
 with `enqueue`, `deliver` and `acknowledge`, and that imports nothing of any feature. It owns the
 opaque contract `TaskQueueProduct` and its storage-loss variant, the providers that refine it
-(`TaskQueueSystem` and the lossy one, failure models, and the forgetful and volatile negative
+(`TaskQueueProtocol` and the lossy one, failure models, and the forgetful and volatile negative
 controls), the claims `queueClaims` every provider is held to, and the provider Queries.
 A feature keeps its own syncs and its cross-entity claims, as the standalone activity's
 `system/DispatchWithTaskQueue.scala` does. The queue is a bounded abstraction, not a general queue: one message at a
@@ -1209,7 +1209,7 @@ line, as `lift: <file>:<line>: …`:
 | (a) | a `val` read while its object initializes, before the object declares it: it is still `null` there | declare it before the declaration that reads it |
 | (b) | a cycle of objects, files' top levels and the objects nested in them, each read while the one before it initializes | read it in a `def`, a lambda or a lazy `val`, or move what is read into an object of its own, as the System's `capabilities` is |
 | (c) | in a feature file, a declaration out of the order above: at the top level, or among a machine object's header and sections, or a Scenario after a Query in `queries` | move it |
-| (d) | in a feature file, a declaration outside its place: a step function outside `effects`, vocabulary outside `states`, a refinement member outside `refinement`, a monitor outside `monitors`, a hand-written `action ~> step` in a machine object (outside `rebind`), a Property outside `properties`, capabilities outside `capabilities`, a Scenario or Query outside `queries`, any of them or a machine at the top level, an IR file outside `exports`, a section nested in a section or outside a machine, composition or file top level, a Property, capabilities or Scenario over another object's machine, a Query over another object's Scenario (but a Query whose Scenario is written in it may sit in the `queries` of another machine object of its package, the one its IR file is about, as `competingTimers` over `ActivitySystem` sits in `ActivityRecord.queries`); beside a feature file, a Model declaration in another file; and in a Model folder with no feature file, a Model declaration in a file not named after the folder | move it to the place the message names, or name the file after its folder |
+| (d) | in a feature file, a declaration outside its place: a step function outside `effects`, vocabulary outside `states`, a refinement member outside `refinement`, a monitor outside `monitors`, a hand-written `action ~> step` in a machine object (outside `rebind`), a Property outside `properties`, capabilities outside `capabilities`, a Scenario or Query outside `queries`, any of them or a machine at the top level, an IR file outside `exports`, a section nested in a section or outside a machine, composition or file top level, a Property, capabilities or Scenario over another object's machine, a Query over another object's Scenario (but a Query whose Scenario is written in it may sit in the `queries` of another machine object of its package, the one its IR file is about, as `competingTimers` over `ActivityProtocol` sits in `ActivityRecord.queries`); beside a feature file, a Model declaration in another file; and in a Model folder with no feature file, a Model declaration in a file not named after the folder | move it to the place the message names, or name the file after its folder |
 
 A read inside a `def`, a lambda, a by-name argument or a lazy `val`, and an object declared but never
 read while another initializes, initializes nothing and is not refused; a context function the DSL
@@ -1338,7 +1338,7 @@ trait Pausing extends Facet[State, Outcome, Fact], Phased[State, Phase]:
 The machine mixes in its facets and lists their rules and capabilities in facet order:
 
 ```scala
-object ActivitySystem
+object ActivityProtocol
     extends Machine[State, Outcome, Fact],
       Phased[State, Phase](_.phase, (s, p) => s.copy(phase = p)),
       Dispatching,
@@ -1398,7 +1398,7 @@ A retryable failure with pending cancellation lands in Canceled, even at exhaust
 exhaustion lands in Failed, an eligible pending pause in Suspended and an ordinary retry in Waiting.
 `maximumAttempts` returns `Some(UpTo[N](maximum))` for a finite policy or `None` for unlimited.
 `N` bounds the policy value catalog, independently of the attempt counter's representation.
-ActivitySystem binds one and two as finite policies. NexusProtocol uses unlimited policy and keeps
+ActivityProtocol binds one and two as finite policies. NexusProtocol uses unlimited policy and keeps
 retrying at its saturating represented count of two; that count is no finite policy maximum.
 
 Expirable reads its armed predicate and covered role before every selected firing. A nonretryable
@@ -1425,9 +1425,9 @@ repeat its projection.
 
 **The worked example.** The standalone activity declares its capabilities in two declarations, the
 `capabilities` objects of its `ActivityProduct` in
-`model/temporal/features/activity/standalone/product/Product.scala` and its `ActivitySystem` in
+`model/temporal/features/activity/standalone/product/Product.scala` and its `ActivityProtocol` in
 `system/System.scala`, each the declaration of the machine it sits in. The IR file explicitly names
-each capability section as a root (`ActivityProduct.capabilities` and `ActivitySystem.capabilities`):
+each capability section as a root (`ActivityProduct.capabilities` and `ActivityProtocol.capabilities`):
 
 ```scala
 import temporal.capabilities.*
@@ -1447,7 +1447,7 @@ object capabilities extends Capabilities:
     because = "cancelRequested does not reveal whether a worker still holds an attempt"
   )
 
-// In ActivitySystem:
+// In ActivityProtocol:
 object capabilities extends Capabilities:
   val terminable: Capability = Terminable(
     terminate = client.terminate, settled = Fact.statusTerminated,
@@ -1475,7 +1475,7 @@ val retryableFailure: Capability = Retryable[State, Phase, MaxAttempts.Bound](
 ```
 
 Each new instance generates `<machine>.<val>.<property>`, such as
-`activitySystem.retryableFailure.failureReturnsToWaiting` and
+`activityProtocol.retryableFailure.failureReturnsToWaiting` and
 `nexusProtocol.scheduleToStartDeadline.firesInWindow`, with the companion definition as its origin.
 These are free verify Queries with nothing to realize. Their presence supplies Model checks,
 not new live Case evidence. Activity uses its existing `eight` and Nexus its existing `control`,
@@ -1493,11 +1493,11 @@ Binding each object in its `queries` section gives `activityProduct.terminalStat
 `activityProduct.pausedIsNotDispatched`, because the product declares both Pausable and Pollable;
 nobody lists the pair. Each is a transition Property, verified over the product's free Scenario
 under `three`, and the System reads them through its refinement. The second gives
-`activitySystem.terminateSettles`, a same-step Property asked by a `find` that starts the activity,
+`activityProtocol.terminateSettles`, a same-step Property asked by a `find` that starts the activity,
 stops the worker and then takes the control; a find has a realization, so it lowers to the Case
-`activity-standalone-activitySystem.terminateSettles`, whose awaited status comes from the
+`activity-standalone-activityProtocol.terminateSettles`, whose awaited status comes from the
 `Describable` table. The same-step Property sits on the System because a find lowers only through a
-realization, which is the System's. The activity's `activitySystem.cancelIsRequested` is its own,
+realization, which is the System's. The activity's `activityProtocol.cancelIsRequested` is its own,
 written on `ByIDCancellation` over the held cancellation's complete service path, and the Nexus
 operation writes its `nexusProtocol.cancelIsRequested` in its own `properties` and `queries`, so no
 capability brings a cancel request. Neither `terminalIsFinal` nor `pausedIsNotDispatched` is written in the
@@ -1641,7 +1641,7 @@ supplies for them, the correlation window, the controller script, the one form a
 (`await`, which writes no interval and no deadline), the helpers that declare evidence from the Run's own record (`answered`, `answeredAs`,
 `delivered`), the deadlines a request sets, and `temporalRealization`, which takes what a feature
 says differently. A feature declares each realization as an object of its own, typed by its
-machine (`temporal/realize/Objects.scala`): `object Standalone extends Realizes(ActivitySystem)`,
+machine (`temporal/realize/Objects.scala`): `object Standalone extends Realizes(ActivityProtocol)`,
 whose sections are `controller`, `workers`, `evidence`, `serverSteps` and `controls`, in that
 order, and nothing else; a derived one, `object ForgedControl extends DerivesFrom(AsyncNexus,
 TrustingCaller)`, holds `changes`, `inserting(after = step)(items*)` and `replacing(step)(items*)`

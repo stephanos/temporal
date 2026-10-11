@@ -9,13 +9,13 @@ import temporal.realize.WorkerInstruction.{AttemptFailure, Fault}
 import temporal.realize.*
 import temporal.features.activity.Timeout
 import temporal.features.activity.standalone.{activity, client, scheduleToStart}
-import temporal.features.activity.standalone.system.Fact as ActivityFact
-import temporal.features.activity.standalone.system.ActivitySystem as activitySystem
+import temporal.features.activity.standalone.protocol.Fact as ActivityFact
+import temporal.features.activity.standalone.protocol.ActivityProtocol as activityProtocol
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
 import io.temporal.api.enums.v1.ActivityExecutionStatus
 
 private def realizing(items: Item*) = temporalRealization(
-  machine = activitySystem,
+  machine = activityProtocol,
   operation = activity,
   roles = Vector(workflowService, taskQueue),
   scripts = Vector(controller(items*)),
@@ -98,7 +98,7 @@ val notAPolledField: Realization = realizing(everyCase(inputInPoll))
 
 // Evidence of a case of another enum than the facts the machine records.
 val foreignFact: Realization = temporalRealization(
-  machine = activitySystem,
+  machine = activityProtocol,
   operation = activity,
   roles = Vector(workflowService, taskQueue),
   scripts = Vector(controller(everyCase(stopWorker))),
@@ -124,7 +124,7 @@ private val overridden = rpc(baseCalls, METHOD_PAUSE_ACTIVITY_EXECUTION) {
 val baseOverride: Realization = realizing(perform(client.pause -> overridden))
 
 private val describedOnce = DescribedStatus(
-  machine = activitySystem,
+  machine = activityProtocol,
   calls = baseCalls,
   method = METHOD_DESCRIBE_ACTIVITY_EXECUTION,
   info = Field(_.getInfo),
@@ -138,7 +138,7 @@ val awaitUnlisted: Realization = realizing(
 )
 
 private val describedTwice = DescribedStatus(
-  machine = activitySystem,
+  machine = activityProtocol,
   calls = baseCalls,
   method = METHOD_DESCRIBE_ACTIVITY_EXECUTION,
   info = Field(_.getInfo),
@@ -159,7 +159,7 @@ private val historyNoKey = HistoryEvidence(key = "scheduled_event_id", factPrefi
 
 // A history kind whose attributes have no field the history keys it by.
 val historyKeyless: Realization = temporalRealization(
-  machine = activitySystem,
+  machine = activityProtocol,
   operation = activity,
   roles = Vector(workflowService, taskQueue),
   scripts = Vector(controller(everyCase(stopWorker))),
@@ -188,22 +188,22 @@ val deadlineNoTimeout: Realization = realizing(
 // ### Realization objects (fn-133.6), each refused at its line
 
 // A section out of order: evidence comes after the controller.
-object Unordered extends Realizes(activitySystem):
+object Unordered extends Realizes(activityProtocol):
   object evidence extends Evidences(answered(ActivityFact.statusScheduled, started))
   object controller extends Controller(everyCase(started))
 
 // An object holding a second realization.
-object Doubled extends Realizes(activitySystem):
+object Doubled extends Realizes(activityProtocol):
   object controller extends Controller(everyCase(started))
-  object Inner extends Realizes(activitySystem)
+  object Inner extends Realizes(activityProtocol)
 
 // A binding of an action its machine does not bind.
-object Foreign extends Realizes(activitySystem):
+object Foreign extends Realizes(activityProtocol):
   object controller
       extends Controller(perform(temporal.features.nexus.workflow.caller.inspect -> started))
 
 // A server step stated as the kit derives it.
-object Restated extends Realizes(activitySystem):
+object Restated extends Realizes(activityProtocol):
   object controller
       extends Controller(
         deadlines[io.temporal.api.workflowservice.v1.StartActivityExecutionRequest](
@@ -222,5 +222,5 @@ object Restated extends Realizes(activitySystem):
 private val stopped = fault(taskQueue, FaultKind.workerStop)
 
 // A derived realization that replaces a step its base does not have.
-object Replaced extends DerivesFrom(Restated, activitySystem):
+object Replaced extends DerivesFrom(Restated, activityProtocol):
   object changes extends Changes(replacing(stopped)(everyCase(started)))

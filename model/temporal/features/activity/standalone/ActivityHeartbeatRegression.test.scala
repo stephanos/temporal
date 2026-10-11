@@ -9,11 +9,11 @@ import temporal.features.activity.standalone.{
   client,
   heartbeat,
   product,
-  system,
+  protocol,
   MaxAttempts
 }
-import temporal.features.activity.standalone.system.ActivitySystem
-import temporal.features.activity.standalone.system.{
+import temporal.features.activity.standalone.protocol.ActivityProtocol
+import temporal.features.activity.standalone.protocol.{
   ExhaustAfterHeartbeat,
   HeartbeatThenCompletion,
   RetryAfterHeartbeat
@@ -40,112 +40,112 @@ import temporal.server.api.testpilot.v1.ActivityAttemptResponse.{
 import framework.outcomes.{Outcome, Rejection}
 
 class ActivityHeartbeatRegression extends munit.FunSuite:
-  val _ = () => summon[CanEqual[system.Phase, system.Phase]]
+  val _ = () => summon[CanEqual[protocol.Phase, protocol.Phase]]
   private def heartbeatTimeout(records: framework.realize.Fact): Boolean = records match
-    case fact: system.Fact => fact == system.Fact.heartbeatTimedOut // scalafix:ok DisableSyntax.==
+    case fact: protocol.Fact => fact == protocol.Fact.heartbeatTimedOut // scalafix:ok DisableSyntax.==
     case _                 => false
-  private def take(s: system.State, c: Class): List[Step[system.State, Outcome, system.Fact]] =
-    val binding = ActivitySystem.bindings.find(_.decl == c.decl).get // scalafix:ok DisableSyntax.==
+  private def take(s: protocol.State, c: Class): List[Step[protocol.State, Outcome, protocol.Fact]] =
+    val binding = ActivityProtocol.bindings.find(_.decl == c.decl).get // scalafix:ok DisableSyntax.==
     effectOf(binding.decl, binding.function)(s, c.values)
 
   test("heartbeat is an independently declared held action with a separate armed deadline") {
     assertEquals(activityWorker.heartbeat.decl.name, "recordHeartbeat")
     assertNotEquals(activityWorker.heartbeat.decl, deadline.heartbeat.decl)
     assert(
-      ActivitySystem.bindings.exists(
+      ActivityProtocol.bindings.exists(
         _.decl == activityWorker.heartbeat.decl
       ), // scalafix:ok DisableSyntax.==
       "missing held heartbeat action"
     )
     assertEquals(
-      ActivitySystem.init.productElementNames.toList.count(_ == "heartbeat"),
+      ActivityProtocol.init.productElementNames.toList.count(_ == "heartbeat"),
       1
     ) // scalafix:ok DisableSyntax.==
     assertEquals(
-      summon[Finite[temporal.features.activity.standalone.system.State]].values.size,
+      summon[Finite[temporal.features.activity.standalone.protocol.State]].values.size,
       5616
     )
   }
 
   test("heartbeat keeps the held attempt and rejects unheld or closed requests without receipt") {
-    for before <- summon[Finite[system.State]].values do
+    for before <- summon[Finite[protocol.State]].values do
       val after = take(before, activityWorker.heartbeat()).head
       assertEquals(after.state, before)
       if before.phase.in[Held] then
         assertEquals(after.outcome, Outcome.accepted)
-        assertEquals(after.facts, List(system.Fact.heartbeatReceived))
+        assertEquals(after.facts, List(protocol.Fact.heartbeatReceived))
       else
         assertEquals(after.outcome, Outcome.rejected(Rejection.notFound))
         assertEquals(after.facts, Nil)
   }
 
   test("heartbeat deadline requires an armed held attempt and preserves retry control priority") {
-    for before <- summon[Finite[system.State]].values do
+    for before <- summon[Finite[protocol.State]].values do
       val steps = take(before, deadline.heartbeat())
       val enabled =
         before.heartbeat == Timeout.expires && before.phase.in[Held] // scalafix:ok DisableSyntax.==
       assertEquals(steps.nonEmpty, enabled)
-      for after <- steps if ActivitySystem.states.pendingReset(before) do
+      for after <- steps if ActivityProtocol.states.pendingReset(before) do
         val landing =
           // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
-          if before.phase == system.Phase.resetKeepingPause then
+          if before.phase == protocol.Phase.resetKeepingPause then
             // scalafix:on DisableSyntax.==
-            system.Phase.paused
-          else system.Phase.scheduled
+            protocol.Phase.paused
+          else protocol.Phase.scheduled
         assertEquals(
           after.state,
-          before.copy(phase = landing, attempts = UpTo(0), dispatch = system.Dispatch.now)
+          before.copy(phase = landing, attempts = UpTo(0), dispatch = protocol.Dispatch.now)
         )
         assertEquals(
           after.facts,
           List(
             // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
-            if landing == system.Phase.paused then
+            if landing == protocol.Phase.paused then
               // scalafix:on DisableSyntax.==
-              system.Fact.statusPaused
-            else system.Fact.statusScheduled,
-            system.Fact.attemptCount,
-            system.Fact.heartbeatTimedOut
+              protocol.Fact.statusPaused
+            else protocol.Fact.statusScheduled,
+            protocol.Fact.attemptCount,
+            protocol.Fact.heartbeatTimedOut
           )
         )
-      for after <- steps if !ActivitySystem.states.pendingReset(before) do
+      for after <- steps if !ActivityProtocol.states.pendingReset(before) do
         // scalafix:off DisableSyntax.!=; strictEquality checks native comparisons
-        val retry = before.phase != system.Phase.cancelRequested &&
+        val retry = before.phase != protocol.Phase.cancelRequested &&
           // scalafix:on DisableSyntax.!=
           (before.maxAttempts == MaxAttempts.unlimited ||
             (before.maxAttempts == MaxAttempts.two && before.attempts < 2) ||
             (before.maxAttempts == MaxAttempts.one && before.attempts < 1)) // scalafix:ok DisableSyntax.==
-        val landing = if !retry then system.Phase.timedOut
+        val landing = if !retry then protocol.Phase.timedOut
         // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
-        else if before.phase == system.Phase.pauseRequested then
+        else if before.phase == protocol.Phase.pauseRequested then
           // scalafix:on DisableSyntax.==
-          system.Phase.paused
-        else system.Phase.scheduled
+          protocol.Phase.paused
+        else protocol.Phase.scheduled
         assertEquals(after.state.phase, landing)
         assertEquals(after.state.attempts, before.attempts)
         assertEquals(after.state.heartbeat, Timeout.expires)
         val facts = if !retry then
-          List(system.Fact.statusTimedOut(TimeoutType.heartbeat), system.Fact.heartbeatTimedOut)
+          List(protocol.Fact.statusTimedOut(TimeoutType.heartbeat), protocol.Fact.heartbeatTimedOut)
         else
           List(
             // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
-            if landing == system.Phase.paused then
+            if landing == protocol.Phase.paused then
               // scalafix:on DisableSyntax.==
-              system.Fact.statusPaused
-            else system.Fact.statusScheduled,
-            system.Fact.attemptCount,
-            system.Fact.heartbeatTimedOut
+              protocol.Fact.statusPaused
+            else protocol.Fact.statusScheduled,
+            protocol.Fact.attemptCount,
+            protocol.Fact.heartbeatTimedOut
           )
         assertEquals(after.facts, facts)
-        if retry then assertEquals(after.state.dispatch, system.Dispatch.backoff)
+        if retry then assertEquals(after.state.dispatch, protocol.Dispatch.backoff)
   }
 
   test("every public heartbeat fact has a Product carrier and refinements keep closedness") {
-    assertEquals(Refinement.unclosed(ActivitySystem.refinement)(_.phase, _.phase), IndexedSeq.empty)
-    for fact <- List(system.Fact.heartbeatReceived, system.Fact.heartbeatTimedOut) do
-      assert(ActivitySystem.refinement.visible(fact))
-    val held = ActivitySystem.init.copy(
-      phase = system.Phase.started,
+    assertEquals(Refinement.unclosed(ActivityProtocol.refinement)(_.phase, _.phase), IndexedSeq.empty)
+    for fact <- List(protocol.Fact.heartbeatReceived, protocol.Fact.heartbeatTimedOut) do
+      assert(ActivityProtocol.refinement.visible(fact))
+    val held = ActivityProtocol.init.copy(
+      phase = protocol.Phase.started,
       attempts = UpTo(1),
       heartbeat = Timeout.expires
     )
@@ -155,12 +155,12 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
         .find(_.decl == action.decl)
         .get // scalafix:ok DisableSyntax.==
       val carriers = effectOf[product.State, Outcome, product.Fact](binding.decl, binding.function)(
-        ActivitySystem.refinement.toProduct(held),
+        ActivityProtocol.refinement.toProduct(held),
         action.values
       )
       assert(
         carriers.exists(p =>
-          p.state == ActivitySystem.refinement.toProduct(
+          p.state == ActivityProtocol.refinement.toProduct(
             after.state
           ) &&
             p.facts.exists(_.toString == after.facts.last.toString) // scalafix:ok DisableSyntax.==
@@ -169,30 +169,30 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
   }
 
   test("complete Expirable family rejects a heartbeat terminal fact on another timer's retry") {
-    import ActivitySystem.given
+    import ActivityProtocol.given
     assertEquals(
-      ActivitySystem.states.timeoutFacts.toList,
+      ActivityProtocol.states.timeoutFacts.toList,
       List(
-        system.Fact.statusTimedOut(TimeoutType.scheduleToClose),
-        system.Fact.statusTimedOut(TimeoutType.scheduleToStart),
-        system.Fact.statusTimedOut(TimeoutType.startToClose),
-        system.Fact.statusTimedOut(TimeoutType.heartbeat)
+        protocol.Fact.statusTimedOut(TimeoutType.scheduleToClose),
+        protocol.Fact.statusTimedOut(TimeoutType.scheduleToStart),
+        protocol.Fact.statusTimedOut(TimeoutType.startToClose),
+        protocol.Fact.statusTimedOut(TimeoutType.heartbeat)
       )
     )
-    val property = Expirable.deadlineReturnsToWaiting(ActivitySystem)(
+    val property = Expirable.deadlineReturnsToWaiting(ActivityProtocol)(
       deadline.startToClose,
       true,
-      ActivitySystem.states.retriesRemaining,
-      ActivitySystem.states.timeoutFacts,
-      ActivitySystem.states.pendingPause,
-      ActivitySystem.states.pendingCancel
+      ActivityProtocol.states.retriesRemaining,
+      ActivityProtocol.states.timeoutFacts,
+      ActivityProtocol.states.pendingPause,
+      ActivityProtocol.states.pendingCancel
     )
     val holds = property.decl.holds2.get
       .asInstanceOf[
-        (system.State, Step[system.State, Outcome, system.Fact]) => Boolean
+        (protocol.State, Step[protocol.State, Outcome, protocol.Fact]) => Boolean
       ] // scalafix:ok DisableSyntax.asInstanceOf
-    val before = ActivitySystem.init.copy(
-      phase = system.Phase.started,
+    val before = ActivityProtocol.init.copy(
+      phase = protocol.Phase.started,
       attempts = UpTo(1),
       startToClose = Timeout.expires
     )
@@ -201,33 +201,33 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
     assert(
       !holds(
         before,
-        after.copy(facts = after.facts :+ system.Fact.statusTimedOut(TimeoutType.heartbeat))
+        after.copy(facts = after.facts :+ protocol.Fact.statusTimedOut(TimeoutType.heartbeat))
       )
     )
     val exhausted = before.copy(heartbeat = Timeout.expires, maxAttempts = MaxAttempts.one)
     val terminal = take(exhausted, deadline.heartbeat()).head
-    val typed = Expirable.deadlineTimesOut(ActivitySystem)(
+    val typed = Expirable.deadlineTimesOut(ActivityProtocol)(
       deadline.heartbeat,
       true,
-      system.Fact.statusTimedOut(TimeoutType.heartbeat),
-      ActivitySystem.states.retriesRemaining,
-      ActivitySystem.states.pendingCancel
+      protocol.Fact.statusTimedOut(TimeoutType.heartbeat),
+      ActivityProtocol.states.retriesRemaining,
+      ActivityProtocol.states.pendingCancel
     )
     val timeoutHolds = typed.decl.holds2.get
       .asInstanceOf[
-        (system.State, Step[system.State, Outcome, system.Fact]) => Boolean
+        (protocol.State, Step[protocol.State, Outcome, protocol.Fact]) => Boolean
       ] // scalafix:ok DisableSyntax.asInstanceOf
     assert(timeoutHolds(exhausted, terminal))
     assert(
       !timeoutHolds(
         exhausted,
-        terminal.copy(facts = List(system.Fact.statusTimedOut(TimeoutType.startToClose)))
+        terminal.copy(facts = List(protocol.Fact.statusTimedOut(TimeoutType.startToClose)))
       )
     )
   }
 
   test("the start retains heartbeat independently of the other timers") {
-    val scheduled = take(ActivitySystem.init, client.start(heartbeat := Timeout.expires)).head.state
+    val scheduled = take(ActivityProtocol.init, client.start(heartbeat := Timeout.expires)).head.state
     assertEquals(scheduled.heartbeat, Timeout.expires)
     assertEquals(scheduled.startToClose, Timeout.unset)
     assertEquals(scheduled.scheduleToClose, Timeout.unset)
@@ -235,9 +235,9 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
 
   test("heartbeat witnesses are pinned ordinary finds with strict satisfied expectations") {
     for (query, length) <- List(
-        ActivitySystem.heartbeat.queries.heartbeatThenCompletes -> 4,
-        ActivitySystem.heartbeat.queries.heartbeatTimeoutRetriesThenCompletes -> 7,
-        ActivitySystem.heartbeat.queries.heartbeatTimeoutExhausts -> 4
+        ActivityProtocol.heartbeat.queries.heartbeatThenCompletes -> 4,
+        ActivityProtocol.heartbeat.queries.heartbeatTimeoutRetriesThenCompletes -> 7,
+        ActivityProtocol.heartbeat.queries.heartbeatTimeoutExhausts -> 4
       )
     do
       assertEquals(query.form, QueryForm.find)
@@ -250,79 +250,79 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
   test(
     "heartbeat exhaustion claim covers exhausted policies without contradicting eligible retries"
   ) {
-    val declared = ActivitySystem.heartbeat.properties.heartbeatExhausts.decl
+    val declared = ActivityProtocol.heartbeat.properties.heartbeatExhausts.decl
     assert(declared.holds2.isEmpty, "the pinned FIND must retain a same-step claim")
     val holds = declared.holds2 match
       case Some(predicate) =>
         predicate.asInstanceOf[
-          (system.State, Step[system.State, Outcome, system.Fact]) => Boolean
+          (protocol.State, Step[protocol.State, Outcome, protocol.Fact]) => Boolean
         ] // scalafix:ok DisableSyntax.asInstanceOf
       case None =>
         val predicate = declared.holds.get
           .asInstanceOf[Step[
-            system.State,
+            protocol.State,
             Outcome,
-            system.Fact
+            protocol.Fact
           ] => Boolean] // scalafix:ok DisableSyntax.asInstanceOf
-        (_: system.State, after: Step[system.State, Outcome, system.Fact]) => predicate(after)
-    val rows = summon[Finite[system.State]].values.flatMap(before =>
+        (_: protocol.State, after: Step[protocol.State, Outcome, protocol.Fact]) => predicate(after)
+    val rows = summon[Finite[protocol.State]].values.flatMap(before =>
       take(before, deadline.heartbeat()).map(after => before -> after)
     )
     // A pending reset applies as the deadline ends the attempt, whatever the policy left: the
     // frame restarts the count, so eligibility holds after the step even where it did not before.
-    val resets = rows.filter((before, _) => ActivitySystem.states.pendingReset(before))
+    val resets = rows.filter((before, _) => ActivityProtocol.states.pendingReset(before))
     for (before, after) <- resets do
       assertEquals(after.state.attempts: Int, 0)
       assertEquals(after.state.maxAttempts, before.maxAttempts)
-      assert(ActivitySystem.states.retriesRemaining(after.state))
+      assert(ActivityProtocol.states.retriesRemaining(after.state))
       assert(holds(before, after), s"legitimate reset row: $before -> $after")
-      assert(after.records(system.Fact.heartbeatTimedOut))
+      assert(after.records(protocol.Fact.heartbeatTimedOut))
       assert(
         !holds(
           before,
           after.copy(facts =
-            after.facts.filterNot(_ == system.Fact.heartbeatTimedOut)
+            after.facts.filterNot(_ == protocol.Fact.heartbeatTimedOut)
           ) // scalafix:ok DisableSyntax.==
         )
       )
     assertEquals(resets.size, 432)
     assertEquals(
-      resets.count((before, _) => !ActivitySystem.states.retriesRemaining(before)),
+      resets.count((before, _) => !ActivityProtocol.states.retriesRemaining(before)),
       144
     )
-    for (before, after) <- rows if !ActivitySystem.states.pendingReset(before) do
+    for (before, after) <- rows if !ActivityProtocol.states.pendingReset(before) do
       assertEquals(after.state.attempts, before.attempts)
       assertEquals(after.state.maxAttempts, before.maxAttempts)
       assertEquals(
-        ActivitySystem.states.retriesRemaining(after.state),
-        ActivitySystem.states.retriesRemaining(before)
+        ActivityProtocol.states.retriesRemaining(after.state),
+        ActivityProtocol.states.retriesRemaining(before)
       )
       assert(holds(before, after), s"legitimate heartbeat row: $before -> $after")
-      assert(after.records(system.Fact.heartbeatTimedOut))
+      assert(after.records(protocol.Fact.heartbeatTimedOut))
       assert(
         !holds(
           before,
           after.copy(facts =
-            after.facts.filterNot(_ == system.Fact.heartbeatTimedOut)
+            after.facts.filterNot(_ == protocol.Fact.heartbeatTimedOut)
           ) // scalafix:ok DisableSyntax.==
         ),
         "heartbeat evidence is mandatory for eligible and exhausted policies"
       )
-      if !ActivitySystem.states.retriesRemaining(before) then
-        assertEquals(after.state.phase, system.Phase.timedOut)
-        assert(!holds(before, after.copy(state = after.state.copy(phase = system.Phase.scheduled))))
+      if !ActivityProtocol.states.retriesRemaining(before) then
+        assertEquals(after.state.phase, protocol.Phase.timedOut)
+        assert(!holds(before, after.copy(state = after.state.copy(phase = protocol.Phase.scheduled))))
         assert(
           !holds(
             before,
             after.copy(facts =
               List(
-                system.Fact.heartbeatTimedOut,
-                system.Fact.statusTimedOut(TimeoutType.startToClose)
+                protocol.Fact.heartbeatTimedOut,
+                protocol.Fact.statusTimedOut(TimeoutType.startToClose)
               )
             )
           )
         )
-      else if before.phase != system.Phase.cancelRequested then // scalafix:ok DisableSyntax.!=
+      else if before.phase != protocol.Phase.cancelRequested then // scalafix:ok DisableSyntax.!=
         assert(
           !holds(
             before.copy(maxAttempts = MaxAttempts.one, attempts = UpTo(1)),
@@ -330,26 +330,26 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
           ),
           "an exhausted policy cannot authorize this retry landing"
         )
-    val ordinary = rows.filterNot((before, _) => ActivitySystem.states.pendingReset(before))
+    val ordinary = rows.filterNot((before, _) => ActivityProtocol.states.pendingReset(before))
     assertEquals(
-      ordinary.count((before, _) => !ActivitySystem.states.retriesRemaining(before)),
+      ordinary.count((before, _) => !ActivityProtocol.states.retriesRemaining(before)),
       216
     )
     assertEquals(ordinary.size, 648)
     assertEquals(rows.size, 1080)
     assertEquals(
       ordinary.count((before, _) =>
-        ActivitySystem.states.retriesRemaining(
+        ActivityProtocol.states.retriesRemaining(
           before
-        ) && before.phase != system.Phase.cancelRequested // scalafix:ok DisableSyntax.!=
+        ) && before.phase != protocol.Phase.cancelRequested // scalafix:ok DisableSyntax.!=
       ),
       288
     )
     assertEquals(
       rows.count((before, _) =>
-        ActivitySystem.states.retriesRemaining(
+        ActivityProtocol.states.retriesRemaining(
           before
-        ) && before.phase == system.Phase.cancelRequested // scalafix:ok DisableSyntax.==
+        ) && before.phase == protocol.Phase.cancelRequested // scalafix:ok DisableSyntax.==
       ),
       144
     )
@@ -385,7 +385,7 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
         .items(2)
         .asInstanceOf[EvidenceRef[?, ?]]
         .evidence // scalafix:ok DisableSyntax.asInstanceOf
-      assertEquals(receipt.records, system.Fact.heartbeatReceived)
+      assertEquals(receipt.records, protocol.Fact.heartbeatReceived)
       assert(!receipt.exhaustive)
       assert(receipt.confirms.isEmpty)
   }
@@ -402,7 +402,7 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
             // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
             if delivery.evidence.id == temporal.realize.evidenceId(
               // scalafix:on DisableSyntax.==
-              system.Fact.attemptCount
+              protocol.Fact.attemptCount
             ) =>
           delivery.evidence
       }
@@ -430,24 +430,24 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
             // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
             evidence.evidence.id == temporal.realize.evidenceId(
               // scalafix:on DisableSyntax.==
-              system.Fact.heartbeatTimedOut
+              protocol.Fact.heartbeatTimedOut
             ) =>
         evidence.evidence
     }.head
-    assertEquals(selected.records, system.Fact.attemptCount)
+    assertEquals(selected.records, protocol.Fact.attemptCount)
     assertEquals(
       selected.confirms,
       Vector(Taking(deadline.heartbeat, 1), Taking(activityWorker.poll, 2))
     )
-    val started = ActivitySystem.init.copy(
-      phase = system.Phase.started,
+    val started = ActivityProtocol.init.copy(
+      phase = protocol.Phase.started,
       attempts = UpTo(1),
       heartbeat = Timeout.expires,
       maxAttempts = MaxAttempts.two
     )
     val expired = take(started, deadline.heartbeat()).head
     val second =
-      take(expired.state.copy(dispatch = system.Dispatch.now), activityWorker.poll()).head
+      take(expired.state.copy(dispatch = protocol.Dispatch.now), activityWorker.poll()).head
     assert(expired.facts.contains(selected.records))
     assert(second.facts.contains(selected.records))
     val unusedKind = RetryAfterHeartbeat.evidence.items.collect {
@@ -463,7 +463,7 @@ class ActivityHeartbeatRegression extends munit.FunSuite:
     val reads = ExhaustAfterHeartbeat.evidence.items.collect { case evidence: EvidenceRef[?, ?] =>
       evidence.evidence
     }
-    val timeout = reads.find(_.records eq temporal.realize.everyValue(system.Fact.statusTimedOut))
+    val timeout = reads.find(_.records eq temporal.realize.everyValue(protocol.Fact.statusTimedOut))
     assert(timeout.nonEmpty, "missing generic statusTimedOut kind for the terminal heartbeat row")
     assert(timeout.get.confirms.isEmpty)
     val heartbeat = reads.find(read => heartbeatTimeout(read.records)).get

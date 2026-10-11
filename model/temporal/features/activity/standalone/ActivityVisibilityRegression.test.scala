@@ -3,13 +3,13 @@ package framework
 import framework.Finite.given
 
 import temporal.features.activity.Timeout
-import temporal.features.activity.standalone.{client, product, system, MaxAttempts}
+import temporal.features.activity.standalone.{client, product, protocol, MaxAttempts}
 import temporal.features.activity.standalone.product.ActivityProduct
-import temporal.features.activity.standalone.system.ActivitySystem
+import temporal.features.activity.standalone.protocol.ActivityProtocol
 import framework.outcomes.{Outcome, Rejection}
 
 class ActivityVisibilityRegression extends munit.FunSuite:
-  val _ = () => summon[CanEqual[system.Phase, system.Phase]]
+  val _ = () => summon[CanEqual[protocol.Phase, protocol.Phase]]
   private def take(a: Action[EmptyTuple], s: product.State) =
     ActivityProduct.bindings
       .find(_.decl == a.decl) // scalafix:ok DisableSyntax.==
@@ -20,10 +20,10 @@ class ActivityVisibilityRegression extends munit.FunSuite:
       ) // scalafix:ok DisableSyntax.asInstanceOf
 
   test("every public status is visible, including every timeout type; only attemptCount is hidden") {
-    for fact <- summon[Finite[system.Fact]].values do
+    for fact <- summon[Finite[protocol.Fact]].values do
       assertEquals(
-        ActivitySystem.refinement.visible(fact),
-        fact != system.Fact.attemptCount, // scalafix:ok DisableSyntax.!=
+        ActivityProtocol.refinement.visible(fact),
+        fact != protocol.Fact.attemptCount, // scalafix:ok DisableSyntax.!=
         fact.toString
       )
   }

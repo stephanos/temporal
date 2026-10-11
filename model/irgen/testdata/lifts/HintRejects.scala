@@ -8,10 +8,10 @@ package fixture.hintrejects
 import framework.realize.*
 import temporal.realize.*
 import temporal.features.activity.standalone.activity
-import temporal.features.activity.standalone.system.ActivitySystem as activitySystem
+import temporal.features.activity.standalone.protocol.ActivityProtocol as activityProtocol
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
 private def realizing(hint: Visibility) = temporalRealization(
-  machine = activitySystem,
+  machine = activityProtocol,
   operation = activity,
   roles = Vector(workflowService, taskQueue),
   scripts = Vector(controller()),
@@ -33,7 +33,7 @@ val builtRead: Realization =
 // A wait bound no protobuf Duration holds: the largest Long of milliseconds is about 292 million
 // years, and a Duration about 10,000.
 val elapsedOutOfRange: Realization = temporalRealization(
-  machine = activitySystem,
+  machine = activityProtocol,
   operation = activity,
   roles = Vector(workflowService, taskQueue),
   scripts = Vector(controller()),

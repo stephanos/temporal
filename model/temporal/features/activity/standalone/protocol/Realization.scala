@@ -19,7 +19,7 @@
 package temporal
 package features.activity
 package standalone
-package system
+package protocol
 
 import framework.*
 import framework.realize.{Fact as RealizationFact, *}
@@ -55,19 +55,19 @@ private val calls =
 // The status DescribeActivityExecution reports while each fact holds. Each status is read in a
 // source of its own, and only once the activity stays in it.
 private val described = DescribedStatus(
-  ActivitySystem,
+  ActivityProtocol,
   calls,
   METHOD_DESCRIBE_ACTIVITY_EXECUTION,
   Field(_.getInfo),
   Field(_.activityId),
   Field(_.status)
 )(
-  system.Fact.statusPaused -> ACTIVITY_EXECUTION_STATUS_PAUSED,
-  system.Fact.statusCompleted -> ACTIVITY_EXECUTION_STATUS_COMPLETED,
-  system.Fact.statusFailed -> ACTIVITY_EXECUTION_STATUS_FAILED,
-  system.Fact.statusCanceled -> ACTIVITY_EXECUTION_STATUS_CANCELED,
-  system.Fact.statusTerminated -> ACTIVITY_EXECUTION_STATUS_TERMINATED,
-  everyValue(system.Fact.statusTimedOut) -> ACTIVITY_EXECUTION_STATUS_TIMED_OUT
+  protocol.Fact.statusPaused -> ACTIVITY_EXECUTION_STATUS_PAUSED,
+  protocol.Fact.statusCompleted -> ACTIVITY_EXECUTION_STATUS_COMPLETED,
+  protocol.Fact.statusFailed -> ACTIVITY_EXECUTION_STATUS_FAILED,
+  protocol.Fact.statusCanceled -> ACTIVITY_EXECUTION_STATUS_CANCELED,
+  protocol.Fact.statusTerminated -> ACTIVITY_EXECUTION_STATUS_TERMINATED,
+  everyValue(protocol.Fact.statusTimedOut) -> ACTIVITY_EXECUTION_STATUS_TIMED_OUT
 )
 
 // The status table the machine's Describable capability names.
@@ -121,7 +121,7 @@ private def runStateIs(state: io.temporal.api.enums.v1.PendingActivityState) =
     Operand.enumValue(state)
   )
 
-private val heartbeatReceipt = describeRead("heartbeatReceived", system.Fact.heartbeatReceived)
+private val heartbeatReceipt = describeRead("heartbeatReceived", protocol.Fact.heartbeatReceived)
 
 private val receivedHeartbeat = Condition.all(
   Condition.greater(Field[ActivityExecutionInfo, Long](_.totalHeartbeatCount), Operand.number(0)),
@@ -139,7 +139,7 @@ private val heartbeatFailure = Condition.equal(
   Operand.enumValue(TIMEOUT_TYPE_HEARTBEAT)
 )
 
-private val heartbeatCompleted = describeRead("heartbeatCompleted", system.Fact.statusCompleted)
+private val heartbeatCompleted = describeRead("heartbeatCompleted", protocol.Fact.statusCompleted)
 
 private val awaitHeartbeatRetryCompletion = await(heartbeatCompleted, calls)(
   Condition.all(
@@ -152,7 +152,7 @@ private val awaitHeartbeatRetryCompletion = await(heartbeatCompleted, calls)(
 
 private val heartbeatExpired = describeRead(
   "heartbeatExpired",
-  system.Fact.heartbeatTimedOut,
+  protocol.Fact.heartbeatTimedOut,
   Taking(deadline.heartbeat, 1)
 )
 
@@ -358,20 +358,20 @@ private val scheduledAgain = "statusScheduledAgain"
 // and a timeout class fires at the deadline its start sets.
 object Standalone
     extends Realizes(
-      ActivitySystem,
+      ActivityProtocol,
       observations = Vector(correlated, publicAttemptCount),
       runs = Seq(
-        ActivitySystem.queries,
-        ActivitySystem.capabilities,
-        ActivitySystem.completion.queries.completion,
-        ActivitySystem.retry.queries.nonRetryableFailure,
-        ActivitySystem.retry.queries.retry,
-        ActivitySystem.cancellation.queries.cancel,
-        ActivitySystem.cancellation.queries.cancelRequest,
-        ActivitySystem.pausing.queries.pauseResume,
-        ActivitySystem.dispatching.queries.startDelayedCompletion,
-        ActivitySystem.timeouts.queries.scheduleToStartTimeout,
-        ActivitySystem.timeouts.queries.startToCloseTimeout
+        ActivityProtocol.queries,
+        ActivityProtocol.capabilities,
+        ActivityProtocol.completion.queries.completion,
+        ActivityProtocol.retry.queries.nonRetryableFailure,
+        ActivityProtocol.retry.queries.retry,
+        ActivityProtocol.cancellation.queries.cancel,
+        ActivityProtocol.cancellation.queries.cancelRequest,
+        ActivityProtocol.pausing.queries.pauseResume,
+        ActivityProtocol.dispatching.queries.startDelayedCompletion,
+        ActivityProtocol.timeouts.queries.scheduleToStartTimeout,
+        ActivityProtocol.timeouts.queries.startToCloseTimeout
       )
     ):
 
@@ -422,24 +422,24 @@ object Standalone
         onPath(client.pause)(holdDispatchBeforePause),
         onPath(deadline.scheduleToStart)(holdDispatchBeforeTimeout),
         perform(client.pause -> pauseActivity),
-        onPath(client.pause)(described.await(system.Fact.statusPaused)),
+        onPath(client.pause)(described.await(protocol.Fact.statusPaused)),
         perform(client.unpause -> unpauseActivity),
         onPath(client.unpause)(releaseDispatchAfterPause),
         perform(client.requestCancel -> requestCancelActivity),
         perform(client.terminate -> terminateActivity),
         onPath(activityWorker.respondCompleted)(
-          described.await(system.Fact.statusCompleted)
+          described.await(protocol.Fact.statusCompleted)
         ),
         onPath(activityWorker.respondFailed(Failure.fatal))(
-          described.await(system.Fact.statusFailed)
+          described.await(protocol.Fact.statusFailed)
         ),
-        onPath(activityWorker.respondCanceled)(described.await(system.Fact.statusCanceled)),
-        onPath(client.terminate)(described.await(system.Fact.statusTerminated)),
+        onPath(activityWorker.respondCanceled)(described.await(protocol.Fact.statusCanceled)),
+        onPath(client.terminate)(described.await(protocol.Fact.statusTerminated)),
         onPath(
           deadline.scheduleToStart,
           client.start(startToClose := Timeout.expires, maxAttempts := MaxAttempts.one)
         )(
-          described.await(everyValue(system.Fact.statusTimedOut))
+          described.await(everyValue(protocol.Fact.statusTimedOut))
         ),
         everyCase(readAttemptCount)
       )
@@ -448,23 +448,23 @@ object Standalone
 
   object evidence
       extends Evidences(
-        answered(system.Fact.statusScheduled, startActivity),
+        answered(protocol.Fact.statusScheduled, startActivity),
         delivered(
-          system.Fact.statusStarted,
+          protocol.Fact.statusStarted,
           attempts,
           attempt = 1,
           after = startActivity,
           Taking(activityWorker.poll, 1)
         ),
-        described(system.Fact.statusPaused),
-        answered(system.Fact.statusCancelRequested, requestCancelActivity),
-        described(system.Fact.statusCompleted),
-        described(system.Fact.statusFailed),
-        described(system.Fact.statusCanceled),
-        described(system.Fact.statusTerminated),
-        described(everyValue(system.Fact.statusTimedOut)),
+        described(protocol.Fact.statusPaused),
+        answered(protocol.Fact.statusCancelRequested, requestCancelActivity),
+        described(protocol.Fact.statusCompleted),
+        described(protocol.Fact.statusFailed),
+        described(protocol.Fact.statusCanceled),
+        described(protocol.Fact.statusTerminated),
+        described(everyValue(protocol.Fact.statusTimedOut)),
         delivered(
-          system.Fact.attemptCount,
+          protocol.Fact.attemptCount,
           attempts,
           attempt = 2,
           after = startActivity,
@@ -473,7 +473,7 @@ object Standalone
         ),
         answeredAs(
           kind = scheduledAgain,
-          records = system.Fact.statusScheduled,
+          records = protocol.Fact.statusScheduled,
           call = unpauseActivity,
           Taking(client.unpause, 1)
         )
@@ -485,11 +485,11 @@ object Standalone
 // attempt withholds its answer until its armed deadline; the second completes or exhausts retries.
 object RetryAfterTimeout
     extends Realizes(
-      ActivitySystem,
+      ActivityProtocol,
       observations = Vector(correlated, publicAttemptCount),
       runs = Seq(
-        ActivitySystem.timeouts.queries.retryAfterTimeout,
-        ActivitySystem.timeouts.queries.retryExhaustion
+        ActivityProtocol.timeouts.queries.retryAfterTimeout,
+        ActivityProtocol.timeouts.queries.retryExhaustion
       )
     ):
 
@@ -506,9 +506,9 @@ object RetryAfterTimeout
           startToClose.sets(_.getStartToCloseTimeout),
           heartbeat.sets(_.getHeartbeatTimeout)
         ),
-        onPath(activityWorker.respondCompleted)(described.await(system.Fact.statusCompleted)),
+        onPath(activityWorker.respondCompleted)(described.await(protocol.Fact.statusCompleted)),
         onPath(activityWorker.respondFailed(Failure.retryable))(
-          described.await(system.Fact.statusFailed)
+          described.await(protocol.Fact.statusFailed)
         ),
         everyCase(readAttemptCount)
       )
@@ -517,31 +517,31 @@ object RetryAfterTimeout
 
   object evidence
       extends Evidences(
-        answered(system.Fact.statusScheduled, startActivity),
+        answered(protocol.Fact.statusScheduled, startActivity),
         delivered(
-          system.Fact.statusStarted,
+          protocol.Fact.statusStarted,
           timeoutAttempts,
           attempt = 1,
           after = startActivity,
           Taking(activityWorker.poll, 1)
         ),
         delivered(
-          system.Fact.attemptCount,
+          protocol.Fact.attemptCount,
           timeoutAttempts,
           attempt = 2,
           after = startActivity,
           Taking(deadline.startToClose, 1),
           Taking(activityWorker.poll, 2)
         ),
-        described(system.Fact.statusCompleted),
-        described(system.Fact.statusFailed)
+        described(protocol.Fact.statusCompleted),
+        described(protocol.Fact.statusFailed)
       )
 
 object HeartbeatThenCompletion
     extends Realizes(
-      ActivitySystem,
+      ActivityProtocol,
       observations = Vector(correlated, publicAttemptCount, rawHeartbeatDetails),
-      runs = Seq(ActivitySystem.heartbeat.queries.heartbeatThenCompletes)
+      runs = Seq(ActivityProtocol.heartbeat.queries.heartbeatThenCompletes)
     ):
 
   object controller
@@ -559,7 +559,7 @@ object HeartbeatThenCompletion
         ),
         onPath(activityWorker.heartbeat)(awaitHeartbeatReceipt),
         onPath(activityWorker.heartbeat)(readHeartbeatDetails),
-        onPath(activityWorker.respondCompleted)(described.await(system.Fact.statusCompleted)),
+        onPath(activityWorker.respondCompleted)(described.await(protocol.Fact.statusCompleted)),
         everyCase(readAttemptCount)
       )
 
@@ -567,7 +567,7 @@ object HeartbeatThenCompletion
 
   object evidence
       extends Evidences(
-        answered(system.Fact.statusScheduled, startActivity),
+        answered(protocol.Fact.statusScheduled, startActivity),
         attemptRecord(
           heartbeatAttempts,
           1,
@@ -576,20 +576,20 @@ object HeartbeatThenCompletion
           heartbeatInvoked
         )(
           "statusStarted",
-          system.Fact.statusStarted,
+          protocol.Fact.statusStarted,
           extraFields = Vector(heartbeatInvokedField),
           confirms = Vector(Taking(activityWorker.poll, 1))
         ),
         heartbeatReceipt,
-        described(system.Fact.statusCompleted),
-        delivered(system.Fact.attemptCount, heartbeatAttempts, attempt = 2, after = startActivity)
+        described(protocol.Fact.statusCompleted),
+        delivered(protocol.Fact.attemptCount, heartbeatAttempts, attempt = 2, after = startActivity)
       )
 
 object RetryAfterHeartbeat
     extends Realizes(
-      ActivitySystem,
+      ActivityProtocol,
       observations = Vector(correlated, publicAttemptCount, rawHeartbeatDetails),
-      runs = Seq(ActivitySystem.heartbeat.queries.heartbeatTimeoutRetriesThenCompletes)
+      runs = Seq(ActivityProtocol.heartbeat.queries.heartbeatTimeoutRetriesThenCompletes)
     ):
 
   object controller
@@ -615,7 +615,7 @@ object RetryAfterHeartbeat
 
   object evidence
       extends Evidences(
-        answered(system.Fact.statusScheduled, startActivity),
+        answered(protocol.Fact.statusScheduled, startActivity),
         attemptRecord(
           heartbeatAttempts,
           1,
@@ -624,29 +624,29 @@ object RetryAfterHeartbeat
           heartbeatInvoked
         )(
           "statusStarted",
-          system.Fact.statusStarted,
+          protocol.Fact.statusStarted,
           extraFields = Vector(heartbeatInvokedField),
           confirms = Vector(Taking(activityWorker.poll, 1))
         ),
         heartbeatReceipt,
         attemptRecord(heartbeatAttempts, 2, startActivity)(
           "heartbeatTimedOut",
-          system.Fact.attemptCount,
+          protocol.Fact.attemptCount,
           confirms = Vector(Taking(deadline.heartbeat, 1), Taking(activityWorker.poll, 2))
         ),
         heartbeatCompleted,
-        delivered(system.Fact.attemptCount, heartbeatAttempts, attempt = 2, after = startActivity),
+        delivered(protocol.Fact.attemptCount, heartbeatAttempts, attempt = 2, after = startActivity),
         attemptRecord(heartbeatAttempts, 2, startActivity)(
           "heartbeatTimedOutKind",
-          system.Fact.heartbeatTimedOut
+          protocol.Fact.heartbeatTimedOut
         )
       )
 
 object ExhaustAfterHeartbeat
     extends Realizes(
-      ActivitySystem,
+      ActivityProtocol,
       observations = Vector(correlated, publicAttemptCount, rawHeartbeatDetails),
-      runs = Seq(ActivitySystem.heartbeat.queries.heartbeatTimeoutExhausts)
+      runs = Seq(ActivityProtocol.heartbeat.queries.heartbeatTimeoutExhausts)
     ):
 
   object controller
@@ -672,7 +672,7 @@ object ExhaustAfterHeartbeat
 
   object evidence
       extends Evidences(
-        answered(system.Fact.statusScheduled, startActivity),
+        answered(protocol.Fact.statusScheduled, startActivity),
         attemptRecord(
           heartbeatAttempts,
           1,
@@ -681,14 +681,14 @@ object ExhaustAfterHeartbeat
           heartbeatInvoked
         )(
           "statusStarted",
-          system.Fact.statusStarted,
+          protocol.Fact.statusStarted,
           extraFields = Vector(heartbeatInvokedField),
           confirms = Vector(Taking(activityWorker.poll, 1))
         ),
         heartbeatReceipt,
         heartbeatExpired,
-        delivered(system.Fact.attemptCount, heartbeatAttempts, attempt = 2, after = startActivity),
-        described(everyValue(system.Fact.statusTimedOut))
+        delivered(protocol.Fact.attemptCount, heartbeatAttempts, attempt = 2, after = startActivity),
+        described(everyValue(protocol.Fact.statusTimedOut))
       )
 
 private val activityExecutionRun = Learned("activity-execution-run", LearnedKind.text)
@@ -740,31 +740,31 @@ private val externalCleanup = command(terminateExternal, regardless = true)
 
 private val externalStarted = describeRead(
   "externalStarted",
-  system.Fact.statusStarted,
+  protocol.Fact.statusStarted,
   Taking(activityWorker.poll, 1)
 )
 
 private val externalCancelRequested = describeRead(
   "externalCancelRequested",
-  system.Fact.statusCancelRequested,
+  protocol.Fact.statusCancelRequested,
   Taking(client.requestCancel, 1)
 )
 
 private val externalCompleted = describeRead(
   "externalCompleted",
-  system.Fact.statusCompleted,
+  protocol.Fact.statusCompleted,
   Taking(completionClient.respondCompletedByID, 1)
 )
 
 private val externalFailed = describeRead(
   "externalFailed",
-  system.Fact.statusFailed,
+  protocol.Fact.statusFailed,
   Taking(completionClient.respondFailedByID(Failure.fatal), 1)
 )
 
 private val externalCanceled = describeRead(
   "externalCanceled",
-  system.Fact.statusCanceled,
+  protocol.Fact.statusCanceled,
   Taking(completionClient.respondCanceledByID, 1)
 )
 
@@ -861,11 +861,11 @@ private val canceledExternalSettlement = ActivityExternalSettlement(
 
 object ScheduledCompletionByID
     extends Realizes(
-      ActivitySystem,
+      ActivityProtocol,
       learned = Vector(activityExecutionRun),
       observations = Vector(correlated, publicAttemptCount),
       runs = Seq(
-        ActivitySystem.completion.queries.scheduledCompletedByID
+        ActivityProtocol.completion.queries.scheduledCompletedByID
       )
     ):
 
@@ -879,7 +879,7 @@ object ScheduledCompletionByID
 
   object evidence
       extends Evidences(
-        answered(system.Fact.statusScheduled, startExternal),
+        answered(protocol.Fact.statusScheduled, startExternal),
         externalCompleted
       )
 
@@ -887,11 +887,11 @@ object ScheduledCompletionByID
 
 object HeldFailureByID
     extends Realizes(
-      ActivitySystem,
+      ActivityProtocol,
       learned = Vector(activityExecutionRun),
       observations = Vector(correlated, publicAttemptCount),
       runs = Seq(
-        ActivitySystem.retry.queries.heldFailedByID
+        ActivityProtocol.retry.queries.heldFailedByID
       )
     ):
 
@@ -909,10 +909,10 @@ object HeldFailureByID
 
   object evidence
       extends Evidences(
-        answered(system.Fact.statusScheduled, startExternal),
+        answered(protocol.Fact.statusScheduled, startExternal),
         externalStarted,
         delivered(
-          system.Fact.attemptCount,
+          protocol.Fact.attemptCount,
           externalFailureAttempts,
           attempt = 2,
           after = startExternal
@@ -924,12 +924,12 @@ object HeldFailureByID
 
 object HeldCancellationByID
     extends Realizes(
-      ActivitySystem,
+      ActivityProtocol,
       learned = Vector(activityExecutionRun),
       observations = Vector(correlated, publicAttemptCount),
       runs = Seq(
-        ActivitySystem.cancellation.queries.heldCanceledByID,
-        ActivitySystem.cancellation.queries.cancelIsRequested
+        ActivityProtocol.cancellation.queries.heldCanceledByID,
+        ActivityProtocol.cancellation.queries.cancelIsRequested
       )
     ):
 
@@ -949,10 +949,10 @@ object HeldCancellationByID
 
   object evidence
       extends Evidences(
-        answered(system.Fact.statusScheduled, startExternal),
+        answered(protocol.Fact.statusScheduled, startExternal),
         externalStarted,
         delivered(
-          system.Fact.attemptCount,
+          protocol.Fact.attemptCount,
           externalCancellationAttempts,
           attempt = 2,
           after = startExternal
@@ -985,13 +985,13 @@ private val resetPublication = ActivityPublication("reset-pending")
 private val awaitResetPublication = awaitActivityPublication(resetPublication)
 
 private val resetStarted =
-  describeRead("resetStarted", system.Fact.statusStarted, Taking(activityWorker.poll, 1))
+  describeRead("resetStarted", protocol.Fact.statusStarted, Taking(activityWorker.poll, 1))
 
 private val awaitResetHeld = await(resetStarted, runCalls)(heldStarted) {}
 
 private val resetCompleted = describeRead(
   "resetCompleted",
-  system.Fact.statusCompleted,
+  protocol.Fact.statusCompleted,
   Taking(activityWorker.respondCompleted, 1)
 )
 
@@ -1024,11 +1024,11 @@ private val deferredResetSettlement = ActivityResetSettlement(
 
 object ResetAfterHeartbeat
     extends Realizes(
-      ActivitySystem,
+      ActivityProtocol,
       learned = Vector(activityExecutionRun),
       observations = Vector(correlated, publicAttemptCount),
       runs = Seq(
-        ActivitySystem.reset.queries.deferredResetCompletes
+        ActivityProtocol.reset.queries.deferredResetCompletes
       )
     ):
 
@@ -1049,11 +1049,11 @@ object ResetAfterHeartbeat
 
   object evidence
       extends Evidences(
-        answered(system.Fact.statusScheduled, startResetOne),
+        answered(protocol.Fact.statusScheduled, startResetOne),
         resetStarted,
         answeredAs(
           kind = "resetRequested",
-          records = system.Fact.statusStarted,
+          records = protocol.Fact.statusStarted,
           call = resetHeldActivity,
           Taking(client.reset(ResetPause.resume), 1)
         ),
@@ -1064,7 +1064,7 @@ object ResetAfterHeartbeat
           responseIs(ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED)
         )(
           "attemptCount",
-          system.Fact.attemptCount,
+          protocol.Fact.attemptCount,
           confirms = Vector(Taking(deadline.heartbeat, 1), Taking(activityWorker.poll, 2))
         ),
         attemptRecord(
@@ -1074,7 +1074,7 @@ object ResetAfterHeartbeat
           responseIs(ACTIVITY_ATTEMPT_RESPONSE_OFFERED_COMPLETED)
         )(
           "resetHeartbeatTimedOut",
-          system.Fact.heartbeatTimedOut
+          protocol.Fact.heartbeatTimedOut
         ),
         resetCompleted
       )

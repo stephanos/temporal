@@ -20,7 +20,7 @@
 package temporal
 package features.activity
 package standalone
-package system
+package protocol
 
 import framework.*
 import framework.Finite.given
@@ -36,7 +36,7 @@ val unservedDispatchRuns = assume.fair(UnservedDispatch.synced(_.activity -> act
 // ### The members: the activity as far as dispatch, and a worker that never stops.
 
 object DispatchingActivity
-    extends Derived(ActivitySystem.restrict(client.start, activityWorker.poll, activityWorker.respondCompleted))
+    extends Derived(ActivityProtocol.restrict(client.start, activityWorker.poll, activityWorker.respondCompleted))
 
 object ServingWorker extends Derived(actors.worker.Polling.restrict(process.serve))
 

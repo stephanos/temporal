@@ -5,7 +5,7 @@ import framework.outcomes.Outcome
 import framework.realize.*
 import temporal.realize.*
 import temporal.features.activity.standalone.{client, maxAttempts, startToClose, MaxAttempts}
-import temporal.features.activity.standalone.system.ActivitySystem
+import temporal.features.activity.standalone.protocol.ActivityProtocol
 import temporal.features.activity.Timeout as ActivityTimeout
 import io.temporal.api.workflowservice.v1.StartActivityExecutionRequest as StartRequest
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
@@ -45,7 +45,7 @@ object Legacy extends Realizes(Device):
         onPath(caller.start)(launch)
       )
 
-object Bare extends Realizes(ActivitySystem):
+object Bare extends Realizes(ActivityProtocol):
   object controller
       extends Controller(
         deadlines[StartRequest](client.start, launch, value)(
@@ -53,7 +53,7 @@ object Bare extends Realizes(ActivitySystem):
         )
       )
 
-object Catalog extends Realizes(ActivitySystem):
+object Catalog extends Realizes(ActivityProtocol):
   object controller
       extends Controller(
         deadlines[StartRequest](
@@ -74,7 +74,7 @@ object Catalog extends Realizes(ActivitySystem):
         onPath(client.start)(launch)
       )
 
-object ExpiringPreset extends Realizes(ActivitySystem):
+object ExpiringPreset extends Realizes(ActivityProtocol):
   object controller
       extends Controller(
         deadlines[StartRequest](
@@ -84,7 +84,7 @@ object ExpiringPreset extends Realizes(ActivitySystem):
         )(startToClose.sets(_.getStartToCloseTimeout))
       )
 
-object DuplicatePreset extends Realizes(ActivitySystem):
+object DuplicatePreset extends Realizes(ActivityProtocol):
   object controller
       extends Controller(
         deadlines[StartRequest](

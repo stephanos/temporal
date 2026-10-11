@@ -17,7 +17,7 @@
 //     IR files;
 //   - product/Product.scala: Product Phase, State and Fact; ActivityProduct, the product machine,
 //     what a client reads;
-//   - system/System.scala: System Phase, Dispatch, State and Fact; ActivitySystem, the lifecycle
+//   - system/System.scala: System Phase, Dispatch, State and Fact; ActivityProtocol, the lifecycle
 //     machine that refines the Product;
 //   - system/<Facet>.scala: the System's facets (fn-161), each the actions it owns, their rules and
 //     effects, its capabilities and its claims: Dispatching, Pausing, Cancellation, Lifecycle,
@@ -40,7 +40,7 @@ package standalone
 import temporal.actors.client.Client
 import framework.*
 import product.ActivityProduct
-import system.{ActivitySystem, StandaloneActivity}
+import protocol.{ActivityProtocol, StandaloneActivity}
 
 // The standalone activity's facet vocabulary (fn-161), shared by the Product and the System; the
 // admission designs and the lost-answer race have their own.
@@ -156,55 +156,55 @@ object exports:
     StandaloneActivity,
     ActivityProduct,
     ActivityProduct.capabilities,
-    ActivitySystem.capabilities,
-    ActivitySystem.queries,
-    ActivitySystem.dispatching.queries,
-    ActivitySystem.pausing.queries,
-    ActivitySystem.cancellation.queries,
-    ActivitySystem.reset.queries,
-    ActivitySystem.heartbeat.queries,
-    ActivitySystem.completion.queries,
-    ActivitySystem.retry.queries,
-    ActivitySystem.timeouts.queries,
+    ActivityProtocol.capabilities,
+    ActivityProtocol.queries,
+    ActivityProtocol.dispatching.queries,
+    ActivityProtocol.pausing.queries,
+    ActivityProtocol.cancellation.queries,
+    ActivityProtocol.reset.queries,
+    ActivityProtocol.heartbeat.queries,
+    ActivityProtocol.completion.queries,
+    ActivityProtocol.retry.queries,
+    ActivityProtocol.timeouts.queries,
     StandaloneActivity.queries,
-    system.ServedDispatch.queries,
-    system.ServedDispatch.properties.startsWithinOneStep,
-    system.UnservedDispatch.queries,
-    system.UnservedDispatch.properties.startsWithinOneStep,
-    system.Standalone,
-    system.RetryAfterTimeout,
-    system.HeartbeatThenCompletion,
-    system.RetryAfterHeartbeat,
-    system.ExhaustAfterHeartbeat,
-    system.ScheduledCompletionByID,
-    system.HeldFailureByID,
-    system.HeldCancellationByID,
-    system.ResetAfterHeartbeat
+    protocol.ServedDispatch.queries,
+    protocol.ServedDispatch.properties.startsWithinOneStep,
+    protocol.UnservedDispatch.queries,
+    protocol.UnservedDispatch.properties.startsWithinOneStep,
+    protocol.Standalone,
+    protocol.RetryAfterTimeout,
+    protocol.HeartbeatThenCompletion,
+    protocol.RetryAfterHeartbeat,
+    protocol.ExhaustAfterHeartbeat,
+    protocol.ScheduledCompletionByID,
+    protocol.HeldFailureByID,
+    protocol.HeldCancellationByID,
+    protocol.ResetAfterHeartbeat
   )
 
   // Its history record, the admission designs, and the shared task queue's providers it composes.
   // A composition no Query runs over is a root of its own.
   val activityStandaloneRecord = irFile("activity-standalone-record")(
-    system.ActivityRecord.queries,
-    system.TrustingActivityRecord.queries,
-    foundations.taskqueue.system.TaskQueueSystem.queries,
-    foundations.taskqueue.system.ForgetfulQueue.queries,
-    foundations.taskqueue.system.VolatileQueue.queries,
-    foundations.taskqueue.system.LossyMatchingQueue.queries,
-    system.RecordOverQueue.queries,
-    system.TrustingRecordOverQueue.queries,
-    system.RecordOverMatching.queries,
-    system.TrustingRecordOverMatching.queries,
-    system.RecordOverLossyMatching.queries,
-    system.RecordOverForgetful,
-    system.RecordOverVolatile
+    protocol.ActivityRecord.queries,
+    protocol.TrustingActivityRecord.queries,
+    foundations.taskqueue.protocol.TaskQueueProtocol.queries,
+    foundations.taskqueue.protocol.ForgetfulQueue.queries,
+    foundations.taskqueue.protocol.VolatileQueue.queries,
+    foundations.taskqueue.protocol.LossyMatchingQueue.queries,
+    protocol.RecordOverQueue.queries,
+    protocol.TrustingRecordOverQueue.queries,
+    protocol.RecordOverMatching.queries,
+    protocol.TrustingRecordOverMatching.queries,
+    protocol.RecordOverLossyMatching.queries,
+    protocol.RecordOverForgetful,
+    protocol.RecordOverVolatile
   )
 
   // The held race a server is run through, and the realization that runs it. It is a Model of its
   // own, so the history record's Queries are the ones its checkers were given.
   val activityStandaloneRace = irFile("activity-standalone-race")(
-    system.HeldDispatch.queries,
-    system.HeldDelivery,
-    system.LostStartAnswer.queries,
-    system.LostAdmissionResponse
+    protocol.HeldDispatch.queries,
+    protocol.HeldDelivery,
+    protocol.LostStartAnswer.queries,
+    protocol.LostAdmissionResponse
   )

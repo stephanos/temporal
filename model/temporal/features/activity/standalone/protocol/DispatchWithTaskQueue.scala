@@ -15,7 +15,7 @@
 package temporal
 package features.activity
 package standalone
-package system
+package protocol
 
 import framework.*
 import framework.Finite.given
@@ -24,10 +24,10 @@ import temporal.capabilities.*
 import Bounds.{eight, five, seven, three, twelve}
 import foundations.taskqueue.{fault, queue, Outstanding, QueueDetail, QueueView}
 import foundations.taskqueue.product.TaskQueueProduct
-import foundations.taskqueue.system.{
+import foundations.taskqueue.protocol.{
   ForgetfulQueue,
   LossyMatchingQueue,
-  TaskQueueSystem,
+  TaskQueueProtocol,
   VolatileQueue
 }
 
@@ -174,7 +174,7 @@ object TrustingRecordOverQueue
 // that provider. Each later design swaps one member of the first for a provider of its interface.
 
 object RecordOverMatching
-    extends Composition[OverMatching](_.activity -> RecordMember, _.queue -> TaskQueueSystem),
+    extends Composition[OverMatching](_.activity -> RecordMember, _.queue -> TaskQueueProtocol),
       Phased[OverMatching, AdmissionPhase](_.activity.phase),
       FailureModel:
   override def end(s: State) = ActivityRecord.end(s.activity)

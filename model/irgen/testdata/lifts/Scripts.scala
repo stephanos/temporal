@@ -16,8 +16,8 @@ import framework.realize.*
 import framework.realize.Instruction.Release, temporal.realize.WorkerInstruction.Fault
 import temporal.realize.*
 import temporal.features.activity.standalone.{activity, activityWorker, client}
-import temporal.features.activity.standalone.system.Fact as ActivityFact
-import temporal.features.activity.standalone.system.ActivitySystem as activitySystem
+import temporal.features.activity.standalone.protocol.Fact as ActivityFact
+import temporal.features.activity.standalone.protocol.ActivityProtocol as activityProtocol
 import io.temporal.api.workflowservice.v1.*
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
 import io.temporal.api.enums.v1.ActivityExecutionStatus
@@ -76,7 +76,7 @@ private val releaseDispatch =
   command(Release(dispatchHold), regardless = true, closes = Vector(statusPaused))
 
 val helpers: Realization = temporalRealization(
-  machine = activitySystem,
+  machine = activityProtocol,
   operation = activity,
   roles = Vector(workflowService, caseWorker, taskQueue),
   scripts = Vector(
@@ -120,7 +120,7 @@ private val describedCore = Evidence.read(
 )
 
 val records: Realization = Realization(
-  machine = activitySystem,
+  machine = activityProtocol,
   producer = "fixture.scripts.testpilot",
   producerVersion = "1",
   roles = Vector(
@@ -306,7 +306,7 @@ val records: Realization = Realization(
 // ### One request field, both ways
 
 private def oneRequest(start: Instruction) = temporalRealization(
-  machine = activitySystem,
+  machine = activityProtocol,
   operation = activity,
   roles = Vector(workflowService),
   scripts = Vector(controller(everyCase(start))),

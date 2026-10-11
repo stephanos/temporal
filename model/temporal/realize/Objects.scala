@@ -1,7 +1,7 @@
 // A realization object: one realization of one machine, typed by it, its declarations in named
 // sections, as a machine object holds one machine (fn-133 Part C).
 //
-//   object Standalone extends Realizes(ActivitySystem):
+//   object Standalone extends Realizes(ActivityProtocol):
 //     object controller extends Controller(perform(…), onPath(…)(…), …)
 //     object workers extends Workers(attempts)
 //     object evidence extends Evidences(answered(Fact.statusScheduled, startActivity), …)

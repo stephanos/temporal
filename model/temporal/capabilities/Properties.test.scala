@@ -11,7 +11,7 @@ import framework.{
   RetryFixture
 }
 import framework.outcomes.{Outcome, Rejection}
-import temporal.features.activity.standalone.{product, system}
+import temporal.features.activity.standalone.{product, protocol}
 import temporal.features.nexus.standalone.protocol.NexusProtocol
 import temporal.features.nexus.workflow.protocol.NexusProtocol as WorkflowNexusProtocol
 
@@ -86,9 +86,9 @@ class CapabilityPropertiesTest extends munit.FunSuite:
 
   val declared = Seq(
     declaring(product.ActivityProduct, product.ActivityProduct.capabilities),
-    declaring(system.ActivityRecord, system.ActivityRecord.capabilities),
-    declaring(system.TrustingActivityRecord, system.TrustingActivityRecord.capabilities),
-    declaring(system.ActivitySystem, system.ActivitySystem.capabilities),
+    declaring(protocol.ActivityRecord, protocol.ActivityRecord.capabilities),
+    declaring(protocol.TrustingActivityRecord, protocol.TrustingActivityRecord.capabilities),
+    declaring(protocol.ActivityProtocol, protocol.ActivityProtocol.capabilities),
     declaring(NexusProtocol, NexusProtocol.capabilities),
     declaring(WorkflowNexusProtocol, WorkflowNexusProtocol.capabilities)
   )
@@ -114,8 +114,8 @@ class CapabilityPropertiesTest extends munit.FunSuite:
 
   test("Activity and workflow Nexus both declare Retryable and Expirable") {
     for machine <- declared.filter(d =>
-        Set("activitySystem", "nexusProtocol").contains(d.machine) &&
-          Set(classOf[system.State].getName, WorkflowNexusProtocol.init.getClass.getName)
+        Set("activityProtocol", "nexusProtocol").contains(d.machine) &&
+          Set(classOf[protocol.State].getName, WorkflowNexusProtocol.init.getClass.getName)
             .contains(d.state)
       )
     do assert(Set("Retryable", "Expirable").subsetOf(machine.capabilities), s"$machine")
@@ -159,7 +159,7 @@ class CapabilityPropertiesTest extends munit.FunSuite:
     ) // scalafix:ok DisableSyntax.==
     assertEquals(
       instantiating(finitePolicy, finitePolicySites ++ conditionalFixtures),
-      Seq(classOf[system.State].getName, classOf[RetryFixture.Snapshot].getName)
+      Seq(classOf[protocol.State].getName, classOf[RetryFixture.Snapshot].getName)
     )
   }
 
@@ -178,7 +178,7 @@ class CapabilityPropertiesTest extends munit.FunSuite:
       )
     )
     val activity =
-      declared.find(_.state == classOf[system.State].getName).get // scalafix:ok DisableSyntax.==
+      declared.find(_.state == classOf[protocol.State].getName).get // scalafix:ok DisableSyntax.==
     assertEquals(
       activity.applicable,
       properties.filter(p => only(p.by, Retryable) || only(p.by, Expirable)).map(_.name).toSet
@@ -188,13 +188,13 @@ class CapabilityPropertiesTest extends munit.FunSuite:
   test("every Closable site binds only its rejection, including all four derived owners") {
     val closables = Seq(
       product.ActivityProduct.lifecycle.capabilities.closable,
-      system.ActivityRecord.admission.capabilities.closable,
-      system.TrustingActivityRecord.capabilities.closable,
-      system.RecordOverQueue.capabilities.closable,
-      system.RecordOverMatching.capabilities.closable,
-      system.TrustingRecordOverQueue.capabilities.closable,
-      system.TrustingRecordOverMatching.capabilities.closable,
-      system.RecordOverLossyMatching.capabilities.closable,
+      protocol.ActivityRecord.admission.capabilities.closable,
+      protocol.TrustingActivityRecord.capabilities.closable,
+      protocol.RecordOverQueue.capabilities.closable,
+      protocol.RecordOverMatching.capabilities.closable,
+      protocol.TrustingRecordOverQueue.capabilities.closable,
+      protocol.TrustingRecordOverMatching.capabilities.closable,
+      protocol.RecordOverLossyMatching.capabilities.closable,
       NexusProtocol.operation.capabilities.closable
     )
     assertEquals(closables.size, 9)
@@ -205,30 +205,30 @@ class CapabilityPropertiesTest extends munit.FunSuite:
   }
 
   test("a composed shared rejection derives the capability outcome key") {
-    val rejected = system.RecordOverQueue.composedOutcome(
-      system.RecordMember,
+    val rejected = protocol.RecordOverQueue.composedOutcome(
+      protocol.RecordMember,
       Outcome.rejected(Rejection.notFound)
     )
     assertEquals(rejected, "activity_rejected-notFound")
-    assertEquals(system.RecordOverQueue.capabilities.closable.rejected, rejected)
+    assertEquals(protocol.RecordOverQueue.capabilities.closable.rejected, rejected)
   }
 
   test("every Pausable and Pollable site binds only actions, including all four derived owners") {
     val pausableAndPollable = Seq(
       product.ActivityProduct.pausing.capabilities.pausable ->
         product.ActivityProduct.dispatching.capabilities.pollable,
-      system.ActivityRecord.admission.capabilities.pausable -> system.ActivityRecord.admission.capabilities.pollable,
-      system.TrustingActivityRecord.capabilities.pausable ->
-        system.TrustingActivityRecord.capabilities.pollable,
-      system.RecordOverQueue.capabilities.pausable -> system.RecordOverQueue.capabilities.pollable,
-      system.TrustingRecordOverQueue.capabilities.pausable ->
-        system.TrustingRecordOverQueue.capabilities.pollable,
-      system.RecordOverMatching.capabilities.pausable ->
-        system.RecordOverMatching.capabilities.pollable,
-      system.TrustingRecordOverMatching.capabilities.pausable ->
-        system.TrustingRecordOverMatching.capabilities.pollable,
-      system.RecordOverLossyMatching.capabilities.pausable ->
-        system.RecordOverLossyMatching.capabilities.pollable
+      protocol.ActivityRecord.admission.capabilities.pausable -> protocol.ActivityRecord.admission.capabilities.pollable,
+      protocol.TrustingActivityRecord.capabilities.pausable ->
+        protocol.TrustingActivityRecord.capabilities.pollable,
+      protocol.RecordOverQueue.capabilities.pausable -> protocol.RecordOverQueue.capabilities.pollable,
+      protocol.TrustingRecordOverQueue.capabilities.pausable ->
+        protocol.TrustingRecordOverQueue.capabilities.pollable,
+      protocol.RecordOverMatching.capabilities.pausable ->
+        protocol.RecordOverMatching.capabilities.pollable,
+      protocol.TrustingRecordOverMatching.capabilities.pausable ->
+        protocol.TrustingRecordOverMatching.capabilities.pollable,
+      protocol.RecordOverLossyMatching.capabilities.pausable ->
+        protocol.RecordOverLossyMatching.capabilities.pollable
     )
     assertEquals(pausableAndPollable.size, 8)
     for (pausable, pollable) <- pausableAndPollable do
@@ -243,16 +243,16 @@ class CapabilityPropertiesTest extends munit.FunSuite:
 
   test("a Property brought to one state type fails by name; derived machines count once") {
     val record = declared.filter(
-      _.state == classOf[system.AdmissionState].getName
+      _.state == classOf[protocol.AdmissionState].getName
     ) // scalafix:ok DisableSyntax.==
     assertEquals(record.map(_.machine), Seq("activityRecord", "trustingActivityRecord"))
     assertEquals(
       underInstantiated(properties.filter(p => only(p.by, Closable)), record),
       Seq(
         "Closable.terminalStatesAreFinal is brought to 1 machine(s) with their own state type " +
-          "(temporal.features.activity.standalone.system.AdmissionState): a capability Property needs two",
+          "(temporal.features.activity.standalone.protocol.AdmissionState): a capability Property needs two",
         "Closable.closedIsRejectedUniformly is brought to 1 machine(s) with their own state type " +
-          "(temporal.features.activity.standalone.system.AdmissionState): a capability Property needs two"
+          "(temporal.features.activity.standalone.protocol.AdmissionState): a capability Property needs two"
       )
     )
   }
@@ -267,6 +267,6 @@ class CapabilityPropertiesTest extends munit.FunSuite:
     )
     assertEquals(
       instantiating(dispatch, declared),
-      Seq(classOf[product.State].getName, classOf[system.AdmissionState].getName)
+      Seq(classOf[product.State].getName, classOf[protocol.AdmissionState].getName)
     )
   }

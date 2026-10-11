@@ -16,12 +16,12 @@ import framework.realize.*
 import temporal.realize.*
 import temporal.features.activity.deadline
 import temporal.features.activity.standalone.{activity, activityWorker}
-import temporal.features.activity.standalone.system.ActivitySystem as activitySystem
+import temporal.features.activity.standalone.protocol.ActivityProtocol as activityProtocol
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
 
 private def realizing(serverSteps: Vector[ServerStep], behavior: ApiBehavior) =
   temporalRealization(
-    machine = activitySystem,
+    machine = activityProtocol,
     operation = activity,
     roles = Vector(workflowService, taskQueue),
     scripts = Vector(controller()),
@@ -32,7 +32,7 @@ private def realizing(serverSteps: Vector[ServerStep], behavior: ApiBehavior) =
 
 // The kit's behavior, which `temporalRealization` attaches, and a delivery and a timer step.
 val keptBehavior: Realization = temporalRealization(
-  machine = activitySystem,
+  machine = activityProtocol,
   operation = activity,
   roles = Vector(workflowService, taskQueue),
   scripts = Vector(controller()),

@@ -67,8 +67,8 @@ checks, not claims over a finite state domain.
 | Deadline firing | Snapshot 160 × Snapshot 160 (25,600) |
 | Deadline settlement | Retryable 2 × Snapshot 160 × Snapshot 160 × empty/every-singleton Fact (204,800) |
 | Deadline optional controls | RetryState 3 × RetryState 3 (9) |
-| Activity dispatch mapping | All ActivitySystem states, restricted only by the asserted scheduled precondition |
-| Activity retry timeout settlement | All ActivitySystem states, restricted only by the asserted running-phase/armed-timer precondition |
+| Activity dispatch mapping | All ActivityProtocol states, restricted only by the asserted scheduled precondition |
+| Activity retry timeout settlement | All ActivityProtocol states, restricted only by the asserted running-phase/armed-timer precondition |
 | Existing activity/Nexus row regressions and new generic laws | Every declared finite state and action class under each assertion's explicit applicability precondition |
 | Native table replay | Every state/class pair of every exported machine/composition, including disabled and hole dispositions |
 

@@ -2,7 +2,7 @@
 package temporal
 package features.activity
 package standalone
-package system
+package protocol
 
 import framework.*
 import framework.Finite.given

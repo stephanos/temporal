@@ -3,7 +3,7 @@
 package temporal
 package features.activity
 package standalone
-package system
+package protocol
 
 import framework.*
 import framework.Finite.given
@@ -62,7 +62,7 @@ enum Fact derives Finite:
 // ### The System machine adds the retry, the pause request, the timers and the attempt count. It
 // begins before the activity exists, so unstarted is a phase and the start sets the deadlines.
 
-object ActivitySystem
+object ActivityProtocol
     extends Machine[State, Outcome, Fact],
       Phased[State, Phase](_.phase),
       Dispatching,
@@ -75,7 +75,7 @@ object ActivitySystem
       Retry,
       Timeouts:
   // Where every path begins: before the activity exists, with every deadline at its first value.
-  val init = system.State(
+  val init = protocol.State(
     phase = Phase.unstarted,
     dispatch = Dispatch.now,
     attempts = UpTo(0),
@@ -158,7 +158,7 @@ object ActivitySystem
 
     // Completed on the second attempt of an activity with no deadline set.
     val completedOnRetry =
-      ActivitySystem.init.copy(phase = Phase.completed, attempts = UpTo(attemptBound))
+      ActivityProtocol.init.copy(phase = Phase.completed, attempts = UpTo(attemptBound))
 
   // The System refines the product: what each of its states reads as there.
   object refinement extends Refinement(ActivityProduct):

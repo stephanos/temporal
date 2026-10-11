@@ -3,7 +3,7 @@
 package temporal
 package features.activity
 package standalone
-package system
+package protocol
 
 import framework.*
 import framework.Finite.given
@@ -66,7 +66,7 @@ trait Cancellation extends Facet[State, Outcome, Fact], Phased[State, Phase]:
         } // format: on
 
       val cancelIsRequested =
-        property("activitySystem.cancelIsRequested") when client.requestCancel holds (
+        property("activityProtocol.cancelIsRequested") when client.requestCancel holds (
           _.records(Fact.statusCancelRequested)
         )
       val canceledByID = property when completionClient.respondCanceledByID holds {
@@ -99,7 +99,7 @@ trait Cancellation extends Facet[State, Outcome, Fact], Phased[State, Phase]:
           .expect(inconclusive(Reason.explanationsDisagree))
       val cancelIsRequested =
         (query(
-          "activitySystem.cancelIsRequested"
+          "activityProtocol.cancelIsRequested"
         ) find properties.cancelIsRequested in heldCancellation limits four)
           .total(22464)
           .expect(inconclusive(Reason.explanationsDisagree))

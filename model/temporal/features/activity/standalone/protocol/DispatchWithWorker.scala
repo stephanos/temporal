@@ -2,7 +2,7 @@
 package temporal
 package features.activity
 package standalone
-package system
+package protocol
 
 import framework.*
 import framework.Finite.given
@@ -23,7 +23,7 @@ object ActivityWorker extends Derived(actors.worker.Polling.restrict(process.sto
 
 object StandaloneActivity
     extends Composition[StandaloneActivityState](
-      _.activity -> ActivitySystem,
+      _.activity -> ActivityProtocol,
       _.worker -> ActivityWorker
     ),
       Phased[StandaloneActivityState, Phase](_.activity.phase):
@@ -45,7 +45,7 @@ object StandaloneActivity
     // a default would take the worker's from actors/worker/Worker.scala; fn-115's golden compares
     // positions.
     val stoppedBeforeRetry = scenario
-      .starts(StandaloneActivityState(ActivitySystem.init, WorkerState(WorkerPhase.polling)))
+      .starts(StandaloneActivityState(ActivityProtocol.init, WorkerState(WorkerPhase.polling)))
       .actions(
         own(_.activity, client.start(scheduleToStart := expires)),
         synced(_.activity -> activityWorker.poll),

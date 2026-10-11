@@ -23,7 +23,7 @@
 //     and its actions, the storage-loss assumption and the bounds);
 //   - product/Product.scala: TaskQueueProduct, the opaque contract, and TaskQueueProductUnderStorageLoss,
 //     its storage-loss variant;
-//   - system/System.scala: TaskQueueSystem, the detailed provider that refines it, and the providers
+//   - system/System.scala: TaskQueueProtocol, the detailed provider that refines it, and the providers
 //     derived from it, LossyMatchingQueue, ForgetfulQueue and VolatileQueue.
 //
 // A machine object reads its header (entity, init, end), then its sections in order: states,

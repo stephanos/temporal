@@ -3,7 +3,7 @@
 package temporal
 package features.activity
 package standalone
-package system
+package protocol
 
 import framework.*
 import framework.Finite.given
@@ -24,8 +24,8 @@ trait Retry extends Facet[State, Outcome, Fact], Phased[State, Phase]:
       // A retryable failure backs a started attempt off: read as scheduled again, one attempt higher.
       def backOff(s: State) =
         enter(
-          ActivitySystem.states.afterRetry(s, ActivitySystem.states.landingPhase(s)),
-          ActivitySystem.states.landingStatus(s),
+          ActivityProtocol.states.afterRetry(s, ActivityProtocol.states.landingPhase(s)),
+          ActivityProtocol.states.landingStatus(s),
           Fact.attemptCount
         )
           .because("a retryable attempt backs off; the client reads scheduled again")
@@ -33,8 +33,8 @@ trait Retry extends Facet[State, Outcome, Fact], Phased[State, Phase]:
       // A pause requested during the attempt takes effect on its delayed retry (model.go:130-137).
       def backOffPaused(s: State) =
         enter(
-          ActivitySystem.states.afterRetry(s, ActivitySystem.states.landingPhase(s)),
-          ActivitySystem.states.landingStatus(s),
+          ActivityProtocol.states.afterRetry(s, ActivityProtocol.states.landingPhase(s)),
+          ActivityProtocol.states.landingStatus(s),
           Fact.attemptCount
         )
 
@@ -52,11 +52,11 @@ trait Retry extends Facet[State, Outcome, Fact], Phased[State, Phase]:
         when(Phase.started, Phase.pauseRequested, Phase.cancelRequested) ~> effects.fail
       }
       on(activityWorker.respondFailed(Failure.retryable)) {
-        when(Phase.started).where(ActivitySystem.states.retriesRemaining) ~> effects.backOff
+        when(Phase.started).where(ActivityProtocol.states.retriesRemaining) ~> effects.backOff
         when(Phase.cancelRequested) ~> cancellation.effects.cancel
-        when(Phase.pauseRequested).where(ActivitySystem.states.retriesRemaining) ~>
+        when(Phase.pauseRequested).where(ActivityProtocol.states.retriesRemaining) ~>
           effects.backOffPaused
-        when(Phase.started, Phase.pauseRequested).where(ActivitySystem.states.exhausted) ~>
+        when(Phase.started, Phase.pauseRequested).where(ActivityProtocol.states.exhausted) ~>
           effects.fail
       }
       on(completionClient.respondFailedByID) {
@@ -70,10 +70,10 @@ trait Retry extends Facet[State, Outcome, Fact], Phased[State, Phase]:
         when(Phase.started, Phase.pauseRequested, Phase.cancelRequested) ~> effects.fail
       }
       on(completionClient.respondFailedByID(Failure.retryable)) {
-        when(Phase.started).where(ActivitySystem.states.retriesRemaining) ~> effects.backOff
-        when(Phase.pauseRequested).where(ActivitySystem.states.retriesRemaining) ~>
+        when(Phase.started).where(ActivityProtocol.states.retriesRemaining) ~> effects.backOff
+        when(Phase.pauseRequested).where(ActivityProtocol.states.retriesRemaining) ~>
           effects.backOffPaused
-        when(Phase.started, Phase.pauseRequested).where(ActivitySystem.states.exhausted) ~>
+        when(Phase.started, Phase.pauseRequested).where(ActivityProtocol.states.exhausted) ~>
           effects.fail
         when(Phase.cancelRequested) ~> cancellation.effects.cancel
       }
@@ -84,23 +84,23 @@ trait Retry extends Facet[State, Outcome, Fact], Phased[State, Phase]:
           s.state.phase == Phase.failed && s.records(Fact.statusFailed) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
         } // format: on
 
-      // The attempt count saturates at `ActivitySystem.states.attemptBound`, so the claim is bounded
+      // The attempt count saturates at `ActivityProtocol.states.attemptBound`, so the claim is bounded
       // by it: a completion on any later attempt than the second reads as this one.
       val retryCompletes =
         property when activityWorker.respondCompleted holds { s => // format: off
-          s.state == ActivitySystem.states.completedOnRetry && s.records(Fact.statusCompleted) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+          s.state == ActivityProtocol.states.completedOnRetry && s.records(Fact.statusCompleted) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
         } // format: on
       // format: off
       // The pinned exhaustion path takes this action twice, so both failures must satisfy the
       // Property: the exact first retry, then the exact exhausted settlement.
       val retryExhausts = property when activityWorker.respondFailed(Failure.retryable) holds { s =>
-        (s.state == ActivitySystem.states.completedOnRetry.copy( // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+        (s.state == ActivityProtocol.states.completedOnRetry.copy( // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
           phase = Phase.scheduled,
           dispatch = Dispatch.backoff,
           attempts = UpTo(1),
           maxAttempts = MaxAttempts.two
         ) && s.records(Fact.statusScheduled) && s.records(Fact.attemptCount)) ||
-        (s.state == ActivitySystem.states.completedOnRetry.copy( // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+        (s.state == ActivityProtocol.states.completedOnRetry.copy( // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
           phase = Phase.failed,
           maxAttempts = MaxAttempts.two
         ) && // format: on
@@ -119,35 +119,35 @@ trait Retry extends Facet[State, Outcome, Fact], Phased[State, Phase]:
       val retryableFailure: Capability = Retryable[State, Phase, MaxAttempts.Bound](
         failure = activityWorker.respondFailed(Failure.retryable),
         retryable = true,
-        attemptCount = ActivitySystem.states.attemptCount,
-        maximumAttempts = ActivitySystem.states.maximumAttempts,
-        retriesRemaining = ActivitySystem.states.retriesRemaining,
-        pendingPause = Some(ActivitySystem.states.pendingPause),
-        pendingCancel = Some(ActivitySystem.states.pendingCancel)
+        attemptCount = ActivityProtocol.states.attemptCount,
+        maximumAttempts = ActivityProtocol.states.maximumAttempts,
+        retriesRemaining = ActivityProtocol.states.retriesRemaining,
+        pendingPause = Some(ActivityProtocol.states.pendingPause),
+        pendingCancel = Some(ActivityProtocol.states.pendingCancel)
       )
       val fatalFailure: Capability = Retryable[State, Phase, MaxAttempts.Bound](
         failure = activityWorker.respondFailed(Failure.fatal),
         retryable = false,
-        attemptCount = ActivitySystem.states.attemptCount,
-        maximumAttempts = ActivitySystem.states.maximumAttempts,
-        retriesRemaining = ActivitySystem.states.retriesRemaining,
-        pendingPause = Some(ActivitySystem.states.pendingPause),
-        pendingCancel = Some(ActivitySystem.states.pendingCancel)
+        attemptCount = ActivityProtocol.states.attemptCount,
+        maximumAttempts = ActivityProtocol.states.maximumAttempts,
+        retriesRemaining = ActivityProtocol.states.retriesRemaining,
+        pendingPause = Some(ActivityProtocol.states.pendingPause),
+        pendingCancel = Some(ActivityProtocol.states.pendingCancel)
       )
       overriding(
         Retryable.failureReturnsToWaiting[State, Phase] ->
-          ActivitySystem.properties.resetFailureReturnsToWaiting,
-        because = ActivitySystem.states.pendingResetReason,
+          ActivityProtocol.properties.resetFailureReturnsToWaiting,
+        because = ActivityProtocol.states.pendingResetReason,
         of = Seq(retryableFailure, fatalFailure)
       )
       overriding(
-        Retryable.failureEndsFailed[State, Phase] -> ActivitySystem.properties.resetFailureEndsFailed,
-        because = ActivitySystem.states.pendingResetReason,
+        Retryable.failureEndsFailed[State, Phase] -> ActivityProtocol.properties.resetFailureEndsFailed,
+        because = ActivityProtocol.states.pendingResetReason,
         of = Seq(retryableFailure, fatalFailure)
       )
       overriding(
-        Retryable.failurePauses[State, Phase] -> ActivitySystem.properties.resetFailurePauses,
-        because = ActivitySystem.states.pendingResetReason,
+        Retryable.failurePauses[State, Phase] -> ActivityProtocol.properties.resetFailurePauses,
+        because = ActivityProtocol.states.pendingResetReason,
         of = Seq(retryableFailure, fatalFailure)
       )
 

@@ -4,7 +4,7 @@
 package temporal
 package features.activity
 package standalone
-package system
+package protocol
 
 import framework.*
 import framework.Finite.given
@@ -24,48 +24,48 @@ trait Timeouts extends Facet[State, Outcome, Fact], Phased[State, Phase]:
     object effects:
       def backOffAfterDeadline(s: State) =
         enter(
-          ActivitySystem.states.afterRetry(s, ActivitySystem.states.landingPhase(s)),
-          ActivitySystem.states.landingStatus(s),
+          ActivityProtocol.states.afterRetry(s, ActivityProtocol.states.landingPhase(s)),
+          ActivityProtocol.states.landingStatus(s),
           Fact.attemptCount
         )
-          .because(ActivitySystem.states.nominalTimeWindow)
+          .because(ActivityProtocol.states.nominalTimeWindow)
 
       def timeOut(s: State, t: TimeoutType) =
         enter(s.copy(phase = Phase.timedOut), Fact.statusTimedOut(t))
-          .because(ActivitySystem.states.nominalTimeWindow)
+          .because(ActivityProtocol.states.nominalTimeWindow)
 
     object rules extends Rules:
       // Started and not over: the phases a deadline can fire in.
       on(deadline.scheduleToClose) {
-        when[Live].where(ActivitySystem.states.scheduleToCloseArmed) ~> (effects.timeOut(
+        when[Live].where(ActivityProtocol.states.scheduleToCloseArmed) ~> (effects.timeOut(
           _,
           TimeoutType.scheduleToClose
         ))
       }
       // Waiting for a worker: the phases before an attempt is held, which schedule-to-start covers.
       on(deadline.scheduleToStart) {
-        when[Waiting].where(ActivitySystem.states.scheduleToStartArmed) ~> (effects.timeOut(
+        when[Waiting].where(ActivityProtocol.states.scheduleToStartArmed) ~> (effects.timeOut(
           _,
           TimeoutType.scheduleToStart
         ))
       }
       on(deadline.startToClose) {
         when(Phase.started).where(s =>
-          ActivitySystem.states.startToCloseArmed(s) && ActivitySystem.states.retriesRemaining(s)
+          ActivityProtocol.states.startToCloseArmed(s) && ActivityProtocol.states.retriesRemaining(s)
         ) ~> effects.backOffAfterDeadline
         when(Phase.pauseRequested).where(s =>
-          ActivitySystem.states.startToCloseArmed(s) && ActivitySystem.states.retriesRemaining(s)
+          ActivityProtocol.states.startToCloseArmed(s) && ActivityProtocol.states.retriesRemaining(s)
         ) ~> effects.backOffAfterDeadline
         when(Phase.started, Phase.pauseRequested, Phase.cancelRequested)
           .where(s =>
-            ActivitySystem.states.startToCloseArmed(s) && ActivitySystem.states.endsTerminally(s)
+            ActivityProtocol.states.startToCloseArmed(s) && ActivityProtocol.states.endsTerminally(s)
           ) ~> (effects.timeOut(
           _,
           TimeoutType.startToClose
         ))
-        when(Phase.resetRequested).where(ActivitySystem.states.startToCloseArmed) ~>
+        when(Phase.resetRequested).where(ActivityProtocol.states.startToCloseArmed) ~>
           reset.effects.applyReset
-        when(Phase.resetKeepingPause).where(ActivitySystem.states.startToCloseArmed) ~>
+        when(Phase.resetKeepingPause).where(ActivityProtocol.states.startToCloseArmed) ~>
           reset.effects.applyReset
       }
 
@@ -91,13 +91,13 @@ trait Timeouts extends Facet[State, Outcome, Fact], Phased[State, Phase]:
       // a timeout, not a failed answer, runs these.
       val completesAfterTimeout = property when activityWorker.respondCompleted holds {
         s => // format: off
-        s.state == ActivitySystem.states.completedOnRetry.copy( // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+        s.state == ActivityProtocol.states.completedOnRetry.copy( // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
           startToClose = Timeout.expires,
           maxAttempts = MaxAttempts.two
         ) && s.records(Fact.statusCompleted) // format: on
       } // format: off
       val failsAfterTimeout = property when activityWorker.respondFailed(Failure.retryable) holds { s =>
-        s.state == ActivitySystem.states.completedOnRetry.copy( // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
+        s.state == ActivityProtocol.states.completedOnRetry.copy( // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
           phase = Phase.failed,
           startToClose = Timeout.expires,
           maxAttempts = MaxAttempts.two
@@ -109,42 +109,42 @@ trait Timeouts extends Facet[State, Outcome, Fact], Phased[State, Phase]:
     object capabilities extends Capabilities:
       val scheduleToCloseDeadline: Capability = Expirable[State, Phase, Live, Fact](
         timer = deadline.scheduleToClose,
-        armed = ActivitySystem.states.scheduleToCloseArmed,
+        armed = ActivityProtocol.states.scheduleToCloseArmed,
         timeout = Fact.statusTimedOut(TimeoutType.scheduleToClose),
-        timeoutFacts = ActivitySystem.states.timeoutFacts
+        timeoutFacts = ActivityProtocol.states.timeoutFacts
       )
       val scheduleToStartDeadline: Capability = Expirable[State, Phase, Waiting, Fact](
         timer = deadline.scheduleToStart,
-        armed = ActivitySystem.states.scheduleToStartArmed,
+        armed = ActivityProtocol.states.scheduleToStartArmed,
         timeout = Fact.statusTimedOut(TimeoutType.scheduleToStart),
-        timeoutFacts = ActivitySystem.states.timeoutFacts
+        timeoutFacts = ActivityProtocol.states.timeoutFacts
       )
       val startToCloseDeadline: Capability = Expirable[State, Phase, Held, Fact](
         timer = deadline.startToClose,
-        armed = ActivitySystem.states.startToCloseArmed,
+        armed = ActivityProtocol.states.startToCloseArmed,
         timeout = Fact.statusTimedOut(TimeoutType.startToClose),
-        timeoutFacts = ActivitySystem.states.timeoutFacts,
+        timeoutFacts = ActivityProtocol.states.timeoutFacts,
         retryable = true,
-        retriesRemaining = Some(ActivitySystem.states.retriesRemaining),
-        pendingPause = Some(ActivitySystem.states.pendingPause),
-        pendingCancel = Some(ActivitySystem.states.pendingCancel)
+        retriesRemaining = Some(ActivityProtocol.states.retriesRemaining),
+        pendingPause = Some(ActivityProtocol.states.pendingPause),
+        pendingCancel = Some(ActivityProtocol.states.pendingCancel)
       )
       overriding(
         (Expirable.deadlineTimesOut[State, Phase]: AnyRef) ->
-          (ActivitySystem.properties.resetDeadlineTimesOut: AnyRef),
-        because = ActivitySystem.states.pendingResetReason,
+          (ActivityProtocol.properties.resetDeadlineTimesOut: AnyRef),
+        because = ActivityProtocol.states.pendingResetReason,
         of = Seq(startToCloseDeadline)
       )
       overriding(
         (Expirable.deadlineReturnsToWaiting[State, Phase]: AnyRef) ->
-          (ActivitySystem.properties.resetDeadlineReturnsToWaiting: AnyRef),
-        because = ActivitySystem.states.pendingResetReason,
+          (ActivityProtocol.properties.resetDeadlineReturnsToWaiting: AnyRef),
+        because = ActivityProtocol.states.pendingResetReason,
         of = Seq(startToCloseDeadline)
       )
       overriding(
         (Expirable.deadlinePauses[State, Phase]: AnyRef) ->
-          (ActivitySystem.properties.resetDeadlinePauses: AnyRef),
-        because = ActivitySystem.states.pendingResetReason,
+          (ActivityProtocol.properties.resetDeadlinePauses: AnyRef),
+        because = ActivityProtocol.states.pendingResetReason,
         of = Seq(startToCloseDeadline)
       )
 

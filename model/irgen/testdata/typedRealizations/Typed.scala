@@ -4,19 +4,19 @@ package fixture.typedrealizations
 
 import framework.realize.*
 import temporal.realize.*
-import temporal.features.activity.standalone.system.{ActivitySystem, AdmissionFact}
+import temporal.features.activity.standalone.protocol.{ActivityProtocol, AdmissionFact}
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
 import io.temporal.api.enums.v1.ActivityExecutionStatus.*
 
 private val calls = RequestBase(workflowService, "activity_id" -> run)
 private val started = rpc(calls, METHOD_START_ACTIVITY_EXECUTION) {}
 
-object Foreign extends Realizes(ActivitySystem):
+object Foreign extends Realizes(ActivityProtocol):
   object controller extends Controller(everyCase(started))
   object evidence extends Evidences(answered(AdmissionFact.dispatchSent, started))
 
 private val describedForeign = DescribedStatus(
-  machine = ActivitySystem,
+  machine = ActivityProtocol,
   calls = calls,
   method = METHOD_DESCRIBE_ACTIVITY_EXECUTION,
   info = Field(_.getInfo),

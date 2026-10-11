@@ -9,18 +9,18 @@ import temporal.features.activity.standalone.{
   client,
   completionClient,
   product,
-  system
+  protocol
 }
-import temporal.features.activity.standalone.system.{
-  ActivitySystem,
+import temporal.features.activity.standalone.protocol.{
+  ActivityProtocol,
 }
 import framework.outcomes.{Outcome, Rejection}
 
 class ActivityByIDRegression extends munit.FunSuite:
-  val _ = () => summon[CanEqual[system.Phase, system.Phase]]
+  val _ = () => summon[CanEqual[protocol.Phase, protocol.Phase]]
   test("the completion client declares three independent by-ID answer actions") {
     val answers =
-      ActivitySystem.bindings.filter(
+      ActivityProtocol.bindings.filter(
         _.decl.actor.name == "completionClient"
       ) // scalafix:ok DisableSyntax.==
     assertEquals(
@@ -45,12 +45,12 @@ class ActivityByIDRegression extends munit.FunSuite:
     assertNotEquals(completionClient.respondCanceledByID.decl, activityWorker.respondCanceled.decl)
   }
 
-  private def take(s: system.State, action: ClassRef): Step[system.State, Outcome, system.Fact] =
+  private def take(s: protocol.State, action: ClassRef): Step[protocol.State, Outcome, protocol.Fact] =
     val c = action match
       case c: Class              => c
       case a: Action[EmptyTuple] => a()
-    val binding = ActivitySystem.bindings.find(_.decl == c.decl).get // scalafix:ok DisableSyntax.==
-    effectOf[system.State, Outcome, system.Fact](binding.decl, binding.function)(s, c.values).head
+    val binding = ActivityProtocol.bindings.find(_.decl == c.decl).get // scalafix:ok DisableSyntax.==
+    effectOf[protocol.State, Outcome, protocol.Fact](binding.decl, binding.function)(s, c.values).head
 
   test("every completion client result is carried by Product without hiding a public status") {
     val classes = List(
@@ -60,13 +60,13 @@ class ActivityByIDRegression extends munit.FunSuite:
       completionClient.respondCanceledByID()
     )
     for
-      before <- summon[Finite[system.State]].values
+      before <- summon[Finite[protocol.State]].values
       c <- classes
     do
       val after = take(before, c)
-      val visible = after.facts.filter(ActivitySystem.refinement.visible).map(_.toString)
-      val source = ActivitySystem.refinement.toProduct(before)
-      val target = ActivitySystem.refinement.toProduct(after.state)
+      val visible = after.facts.filter(ActivityProtocol.refinement.visible).map(_.toString)
+      val source = ActivityProtocol.refinement.toProduct(before)
+      val target = ActivityProtocol.refinement.toProduct(after.state)
       val binding =
         product.ActivityProduct.bindings.find(_.decl == c.decl).get // scalafix:ok DisableSyntax.==
       val carriers = effectOf[product.State, Outcome, product.Fact](binding.decl, binding.function)(
@@ -79,11 +79,11 @@ class ActivityByIDRegression extends munit.FunSuite:
             _.toString
           ) == visible
         ) ||
-          (before.phase == system.Phase.unstarted && source == target && visible.isEmpty), // scalafix:ok DisableSyntax.==
+          (before.phase == protocol.Phase.unstarted && source == target && visible.isEmpty), // scalafix:ok DisableSyntax.==
         s"completion client refinement $before -> $after"
       )
       // A failure answer applies a pending reset, which restarts the count; nothing else moves it.
-      val restarts = ActivitySystem.states.pendingReset(before) &&
+      val restarts = ActivityProtocol.states.pendingReset(before) &&
         c.decl == completionClient.respondFailedByID.decl // scalafix:ok DisableSyntax.==
       assertEquals(after.state.attempts: Int, if restarts then 0 else before.attempts)
       assertEquals(after.state.scheduleToClose, before.scheduleToClose)
@@ -95,18 +95,18 @@ class ActivityByIDRegression extends munit.FunSuite:
 
   test("cancellation without held work settles before any by-ID disposition") {
     for
-      before <- summon[Finite[system.State]].values
-      if before.phase == system.Phase.scheduled || before.phase == system.Phase.paused // scalafix:ok DisableSyntax.==
+      before <- summon[Finite[protocol.State]].values
+      if before.phase == protocol.Phase.scheduled || before.phase == protocol.Phase.paused // scalafix:ok DisableSyntax.==
     do
       val after = take(before, client.requestCancel)
-      assertEquals(after.state, before.copy(phase = system.Phase.canceled))
-      assertEquals(after.facts, List(system.Fact.statusCanceled))
+      assertEquals(after.state, before.copy(phase = protocol.Phase.canceled))
+      assertEquals(after.facts, List(protocol.Fact.statusCanceled))
       assertEquals(after.outcome, Outcome.accepted)
       val binding = product.ActivityProduct.bindings
         .find(_.decl == client.requestCancel.decl)
         .get // scalafix:ok DisableSyntax.==
       val carriers = effectOf[product.State, Outcome, product.Fact](binding.decl, binding.function)(
-        ActivitySystem.refinement.toProduct(before),
+        ActivityProtocol.refinement.toProduct(before),
         Nil
       )
       assertEquals(carriers.map(_.state), List(product.State(product.Phase.canceled)))
@@ -124,34 +124,34 @@ class ActivityByIDRegression extends munit.FunSuite:
   }
 
   test("the preserved cancel-request claim uses its complete held completion client witness") {
-    val query = ActivitySystem.cancellation.queries.cancelIsRequested
-    assertEquals(query.name, "activitySystem.cancelIsRequested")
-    assertEquals(query.property.name, "activitySystem.cancelIsRequested")
-    assertEquals(query.property.machine, ActivitySystem)
+    val query = ActivityProtocol.cancellation.queries.cancelIsRequested
+    assertEquals(query.name, "activityProtocol.cancelIsRequested")
+    assertEquals(query.property.name, "activityProtocol.cancelIsRequested")
+    assertEquals(query.property.machine, ActivityProtocol)
     assert(query.property.when.contains(client.requestCancel))
-    assertEquals(query.scenario.machine, ActivitySystem)
+    assertEquals(query.scenario.machine, ActivityProtocol)
     assertEquals(query.form, QueryForm.find)
-    assertEquals(query.scenario.actions, ActivitySystem.cancellation.queries.heldCanceledByID.scenario.actions)
+    assertEquals(query.scenario.actions, ActivityProtocol.cancellation.queries.heldCanceledByID.scenario.actions)
     assertEquals(query.total, Some(22464L))
     assertEquals(
       query.expectedRun,
       Some(temporal.realize.inconclusive(framework.realize.Reason.explanationsDisagree))
     )
-    val held = take(take(ActivitySystem.init, client.start()).state, activityWorker.poll).state
+    val held = take(take(ActivityProtocol.init, client.start()).state, activityWorker.poll).state
     val requested = take(held, client.requestCancel)
-    assertEquals(requested.state.phase, system.Phase.cancelRequested)
+    assertEquals(requested.state.phase, protocol.Phase.cancelRequested)
     val holds =
       query.property.holds.get.asInstanceOf[Step[ // scalafix:ok DisableSyntax.asInstanceOf
-        system.State,
+        protocol.State,
         Outcome,
-        system.Fact
+        protocol.Fact
       ] => Boolean]
     assert(holds(requested))
     assert(!holds(requested.copy(facts = Nil)))
-    assert(holds(requested.copy(state = requested.state.copy(phase = system.Phase.canceled))))
+    assert(holds(requested.copy(state = requested.state.copy(phase = protocol.Phase.canceled))))
     assertEquals(
       take(requested.state, completionClient.respondCanceledByID).state.phase,
-      system.Phase.canceled
+      protocol.Phase.canceled
     )
   }
 
@@ -160,28 +160,28 @@ class ActivityByIDRegression extends munit.FunSuite:
   ) {
     val witnesses = List(
       (
-        ActivitySystem.completion.queries.scheduledCompletedByID,
+        ActivityProtocol.completion.queries.scheduledCompletedByID,
         Vector[ClassRef](client.start(), completionClient.respondCompletedByID),
-        system.Phase.completed
+        protocol.Phase.completed
       ),
       (
-        ActivitySystem.retry.queries.heldFailedByID,
+        ActivityProtocol.retry.queries.heldFailedByID,
         Vector[ClassRef](
           client.start(),
           activityWorker.poll,
           completionClient.respondFailedByID(Failure.fatal)
         ),
-        system.Phase.failed
+        protocol.Phase.failed
       ),
       (
-        ActivitySystem.cancellation.queries.heldCanceledByID,
+        ActivityProtocol.cancellation.queries.heldCanceledByID,
         Vector[ClassRef](
           client.start(),
           activityWorker.poll,
           client.requestCancel,
           completionClient.respondCanceledByID
         ),
-        system.Phase.canceled
+        protocol.Phase.canceled
       )
     )
     for (query, actions, phase) <- witnesses do
@@ -193,18 +193,18 @@ class ActivityByIDRegression extends munit.FunSuite:
         query.expectedRun,
         Some(temporal.realize.inconclusive(framework.realize.Reason.explanationsDisagree))
       )
-      val before = actions.init.foldLeft(ActivitySystem.init)((s, a) => take(s, a).state)
+      val before = actions.init.foldLeft(ActivityProtocol.init)((s, a) => take(s, a).state)
       val after = take(before, actions.last)
       assertEquals(after.state.phase, phase)
       val holds =
         query.property.holds.get.asInstanceOf[Step[ // scalafix:ok DisableSyntax.asInstanceOf
-          system.State,
+          protocol.State,
           Outcome,
-          system.Fact
+          protocol.Fact
         ] => Boolean]
       assert(holds(after))
       assert(!holds(after.copy(facts = Nil)))
-      assert(!holds(after.copy(state = after.state.copy(phase = system.Phase.scheduled))))
+      assert(!holds(after.copy(state = after.state.copy(phase = protocol.Phase.scheduled))))
     assertEquals(
       witnesses.head._1.scenario.actions.count {
         case a: Action[EmptyTuple] => a.decl.actor eq temporal.actors.worker.worker

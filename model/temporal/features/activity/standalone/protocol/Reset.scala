@@ -3,7 +3,7 @@
 package temporal
 package features.activity
 package standalone
-package system
+package protocol
 
 import framework.*
 import framework.Finite.given
@@ -25,7 +25,7 @@ trait Reset extends Facet[State, Outcome, Fact], Phased[State, Phase]:
           s.copy(
             phase = Phase.scheduled,
             attempts = UpTo(0),
-            dispatch = ActivitySystem.states.resetDispatch(s.dispatch)
+            dispatch = ActivityProtocol.states.resetDispatch(s.dispatch)
           ),
           Fact.statusScheduled
         )
@@ -34,7 +34,7 @@ trait Reset extends Facet[State, Outcome, Fact], Phased[State, Phase]:
           s.copy(
             phase = Phase.paused,
             attempts = UpTo(0),
-            dispatch = ActivitySystem.states.resetDispatch(s.dispatch)
+            dispatch = ActivityProtocol.states.resetDispatch(s.dispatch)
           ),
           Fact.statusPaused
         )
@@ -54,11 +54,11 @@ trait Reset extends Facet[State, Outcome, Fact], Phased[State, Phase]:
       def applyReset(s: State) =
         enter(
           s.copy(
-            phase = ActivitySystem.states.landingPhase(s),
+            phase = ActivityProtocol.states.landingPhase(s),
             attempts = UpTo(0),
             dispatch = Dispatch.now
           ),
-          ActivitySystem.states.landingStatus(s),
+          ActivityProtocol.states.landingStatus(s),
           Fact.attemptCount
         )
           .because("the deferred reset applies as the attempt ends")
@@ -94,7 +94,7 @@ trait Reset extends Facet[State, Outcome, Fact], Phased[State, Phase]:
     object properties:
       // A first attempt again, dispatched at once, of an activity with no deadline set.
       val restarted =
-        ActivitySystem.init.copy(phase = Phase.scheduled)
+        ActivityProtocol.init.copy(phase = Phase.scheduled)
       val resetOnFatal = property when activityWorker.respondFailed(Failure.fatal) holds {
         s => // format: off
         s.state == restarted && s.records(Fact.statusScheduled) && !s.records(Fact.statusFailed) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
@@ -123,7 +123,7 @@ trait Reset extends Facet[State, Outcome, Fact], Phased[State, Phase]:
 
       // Paused before any attempt, with no deadline set, its count restarted.
       val keptPaused =
-        ActivitySystem.init.copy(phase = Phase.paused) // format: off
+        ActivityProtocol.init.copy(phase = Phase.paused) // format: off
       val resetKeptPaused = property when client.reset(ResetPause.keepPaused) holds { s =>
         s.state == keptPaused && s.records(Fact.statusPaused) // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
       } // format: on

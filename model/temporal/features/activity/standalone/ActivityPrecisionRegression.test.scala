@@ -8,11 +8,11 @@ import temporal.features.activity.standalone.{
   attemptCount,
   client,
   heartbeatDetails,
-  system,
+  protocol,
   MaxAttempts
 }
-import temporal.features.activity.standalone.system.{
-  ActivitySystem,
+import temporal.features.activity.standalone.protocol.{
+  ActivityProtocol,
   ExhaustAfterHeartbeat,
   HeartbeatThenCompletion,
   HeldDelivery,
@@ -28,27 +28,27 @@ import io.temporal.api.common.v1.Payloads
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.METHOD_DESCRIBE_ACTIVITY_EXECUTION
 
 class ActivityPrecisionRegression extends munit.FunSuite:
-  val _ = () => summon[CanEqual[system.Phase, system.Phase]]
-  private def take(s: system.State, c: Class) =
-    val binding = ActivitySystem.bindings.find(_.decl == c.decl).get // scalafix:ok DisableSyntax.==
-    effectOf[system.State, Outcome, system.Fact](binding.decl, binding.function)(s, c.values).head
+  val _ = () => summon[CanEqual[protocol.Phase, protocol.Phase]]
+  private def take(s: protocol.State, c: Class) =
+    val binding = ActivityProtocol.bindings.find(_.decl == c.decl).get // scalafix:ok DisableSyntax.==
+    effectOf[protocol.State, Outcome, protocol.Fact](binding.decl, binding.function)(s, c.values).head
 
   test(
     "cancellation precedence exercises a refused pause, permits legal closure and rejects undo"
   ) {
-    val holds = ActivitySystem.properties.cancelIsNotUndone.decl.holds2.get
+    val holds = ActivityProtocol.properties.cancelIsNotUndone.decl.holds2.get
       .asInstanceOf[
-        (system.State, Step[system.State, Outcome, system.Fact]) => Boolean
+        (protocol.State, Step[protocol.State, Outcome, protocol.Fact]) => Boolean
       ] // scalafix:ok DisableSyntax.asInstanceOf
-    val started = take(take(ActivitySystem.init, client.start()).state, activityWorker.poll()).state
+    val started = take(take(ActivityProtocol.init, client.start()).state, activityWorker.poll()).state
     val requested = take(started, client.requestCancel()).state
-    assertEquals(requested.phase, system.Phase.cancelRequested)
+    assertEquals(requested.phase, protocol.Phase.cancelRequested)
     val pause = take(requested, client.pause())
     assertEquals(pause.outcome, Outcome.rejected(Rejection.failedPrecondition))
     assertEquals(pause.state, requested)
     assert(holds(requested, pause))
     assert(
-      !holds(requested, pause.copy(state = requested.copy(phase = system.Phase.pauseRequested)))
+      !holds(requested, pause.copy(state = requested.copy(phase = protocol.Phase.pauseRequested)))
     )
     val closures = List(
       activityWorker.respondCompleted(),
@@ -63,39 +63,39 @@ class ActivityPrecisionRegression extends munit.FunSuite:
       assert(closed.state.phase.in[Closed])
       assert(holds(armed, closed))
     for
-      before <- summon[Finite[system.State]].values
-      if before.phase == system.Phase.cancelRequested // scalafix:ok DisableSyntax.==
-      binding <- ActivitySystem.bindings
+      before <- summon[Finite[protocol.State]].values
+      if before.phase == protocol.Phase.cancelRequested // scalafix:ok DisableSyntax.==
+      binding <- ActivityProtocol.bindings
       inputs <- classesOf(binding.decl)
-      after <- effectOf[system.State, Outcome, system.Fact](binding.decl, binding.function)(
+      after <- effectOf[protocol.State, Outcome, protocol.Fact](binding.decl, binding.function)(
         before,
         inputs
       )
     do assert(holds(before, after), s"${binding.decl.name} in $before")
-    val checked = ActivitySystem.queries.cancellationKeepsPrecedence
+    val checked = ActivityProtocol.queries.cancellationKeepsPrecedence
     assertEquals(checked.form, QueryForm.verify)
     assert(checked.scenario.free)
     assertEquals(checked.limits.steps, 8)
   }
 
   test("all ten timer branches explain the nominal versus real time window") {
-    val scheduled = ActivitySystem.init.copy(phase = system.Phase.scheduled)
+    val scheduled = ActivityProtocol.init.copy(phase = protocol.Phase.scheduled)
     val held = scheduled.copy(
-      phase = system.Phase.started,
+      phase = protocol.Phase.started,
       attempts = UpTo(1),
       startToClose = Timeout.expires
     )
     val branches = List(
-      (scheduled.copy(dispatch = system.Dispatch.startDelay), timers.startDelay()),
-      (scheduled.copy(dispatch = system.Dispatch.backoff), timers.backoff()),
+      (scheduled.copy(dispatch = protocol.Dispatch.startDelay), timers.startDelay()),
+      (scheduled.copy(dispatch = protocol.Dispatch.backoff), timers.backoff()),
       (scheduled.copy(scheduleToClose = Timeout.expires), deadline.scheduleToClose()),
       (scheduled.copy(scheduleToStart = Timeout.expires), deadline.scheduleToStart()),
       (held, deadline.startToClose()),
-      (held.copy(phase = system.Phase.pauseRequested), deadline.startToClose()),
+      (held.copy(phase = protocol.Phase.pauseRequested), deadline.startToClose()),
       (held.copy(maxAttempts = MaxAttempts.one), deadline.startToClose()),
       (held.copy(heartbeat = Timeout.expires), deadline.heartbeat()),
       (
-        held.copy(phase = system.Phase.pauseRequested, heartbeat = Timeout.expires),
+        held.copy(phase = protocol.Phase.pauseRequested, heartbeat = Timeout.expires),
         deadline.heartbeat()
       ),
       (held.copy(maxAttempts = MaxAttempts.one, heartbeat = Timeout.expires), deadline.heartbeat())

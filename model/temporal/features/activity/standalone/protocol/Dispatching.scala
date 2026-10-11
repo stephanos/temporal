@@ -3,7 +3,7 @@
 package temporal
 package features.activity
 package standalone
-package system
+package protocol
 
 import scala.annotation.unused
 import framework.*
@@ -31,7 +31,7 @@ trait Dispatching extends Facet[State, Outcome, Fact], Phased[State, Phase]:
           maxAttempts: MaxAttempts
       ) =
         enter(
-          system.State(
+          protocol.State(
             phase = Phase.scheduled,
             dispatch = if startDelay == Timeout.expires then Dispatch.startDelay else Dispatch.now, // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
             attempts = UpTo(0),
@@ -47,14 +47,14 @@ trait Dispatching extends Facet[State, Outcome, Fact], Phased[State, Phase]:
       // This independent counter advances on delivery; Describe counts an attempt from scheduling.
       def startAttempt(s: State) =
         enter(
-          s.copy(phase = Phase.started, attempts = ActivitySystem.states.saturatingSucc(s.attempts)),
+          s.copy(phase = Phase.started, attempts = ActivityProtocol.states.saturatingSucc(s.attempts)),
           Fact.statusStarted,
           Fact.attemptCount
         )
 
       // A delay expires without changing status, including while paused (model.go:355-376).
       def dispatchNow(s: State) =
-        enter(s.copy(dispatch = Dispatch.now)).because(ActivitySystem.states.nominalTimeWindow)
+        enter(s.copy(dispatch = Dispatch.now)).because(ActivityProtocol.states.nominalTimeWindow)
 
     object rules extends Rules:
       on(client.start) {
@@ -94,9 +94,9 @@ trait Dispatching extends Facet[State, Outcome, Fact], Phased[State, Phase]:
       )
 
       val delayedAttemptsAreNotDispatched =
-        query verify properties.dispatchRequiresReady in ActivitySystem.queries.any limits eight
+        query verify properties.dispatchRequiresReady in ActivityProtocol.queries.any limits eight
       val scheduleToStartWaitsForDispatch =
-        query verify properties.scheduleToStartRequiresDispatch in ActivitySystem.queries.any limits eight
+        query verify properties.scheduleToStartRequiresDispatch in ActivityProtocol.queries.any limits eight
       val startDelayedCompletion =
         (query find completion.properties.completes in delayedThenCompleted limits four)
           .expect(satisfied)

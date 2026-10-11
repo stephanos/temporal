@@ -569,7 +569,7 @@ assumption it read. A composition with a monitored member is unsupported, as its
 
 ## Realizations
 
-The standalone activity's three realizations live in `features/activity/standalone/system/Realization.scala`,
+The standalone activity's three realizations live in `features/activity/standalone/protocol/Realization.scala`,
 in the level of their subjects. Moving them changes their fully qualified IDs and the package-derived
 evidence, source and producer identities; it changes no transition, Query answer or evidence meaning.
 
@@ -1023,7 +1023,7 @@ is future work.
 Two narrowings came from the specimens' evidence:
 
 - **Machines 6.** A stutter records no fact the product sees only where the refinement names what the
-  product sees. `activitySystem` names nothing, so its 240 stutters that record a product fact
+  product sees. `activityProtocol` names nothing, so its 240 stutters that record a product fact
   (finding F3) are read as before.
 - **Expressions, `match`.** A value no case matches is an undeclared hole, apart from the admission
   errors a reader rejects and from declared holes (finding F4).

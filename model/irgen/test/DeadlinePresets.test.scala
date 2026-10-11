@@ -69,7 +69,7 @@ class DeadlinePresetsSuite extends munit.FunSuite:
       .toSeq
 
   test("three retry presets retain all 48 distinct start classes and their command identities"):
-    val controller = items("temporal.features.activity.standalone.system.Standalone")
+    val controller = items("temporal.features.activity.standalone.protocol.Standalone")
     val itemCommands = controller.filter(_.has("command")).map(_.at("/command/id").asText())
     assertEquals(itemCommands.distinct.size, itemCommands.size)
     val starts = controller
@@ -143,11 +143,11 @@ class DeadlinePresetsSuite extends munit.FunSuite:
   // fn-162: the retry after an attempt timeout runs on the activity Protocol itself, through its own
   // realization, which names the Queries it runs.
   test("the timeout retry's realization runs its Queries with only its own occurrence evidence"):
-    val prefix = "temporal.features.activity.standalone.system."
+    val prefix = "temporal.features.activity.standalone.protocol."
     val (ran, out) = lift(
       prefix + "Timeouts.timeouts$.queries",
       prefix + "RetryAfterTimeout",
-      prefix + "ActivitySystem$.queries",
+      prefix + "ActivityProtocol$.queries",
       prefix + "Retry.retry$.queries",
       prefix + "Standalone"
     )
@@ -166,13 +166,13 @@ class DeadlinePresetsSuite extends munit.FunSuite:
     assertEquals(failurePath.size, 6)
     assertEquals(failurePath.count(_.path("action").asText().endsWith("worker.respondFailed")), 2)
     val exhaustion = named("queries", "retryExhaustion")
-    assertEquals(exhaustion.at("/scenario/machine").asText(), "activitySystem")
+    assertEquals(exhaustion.at("/scenario/machine").asText(), "activityProtocol")
     val exhaustionPath = named("scenarios", "timedOutThenFailed").path("actions")
     assertEquals(exhaustionPath.size(), 6)
     assert(exhaustionPath.path(2).path("action").asText().endsWith("deadline.startToClose"))
     assert(exhaustionPath.path(5).path("action").asText().endsWith("worker.respondFailed"))
     val realization = named("realizations", "retryAfterTimeout")
-    assertEquals(realization.path("machine").asText(), "activitySystem")
+    assertEquals(realization.path("machine").asText(), "activityProtocol")
     assertEquals(
       realization.path("queries").elements().asScala.map(_.asText()).toSeq,
       Seq("retryAfterTimeout", "retryExhaustion")

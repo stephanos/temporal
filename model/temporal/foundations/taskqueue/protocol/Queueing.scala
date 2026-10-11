@@ -1,8 +1,8 @@
-// The Queueing facet of TaskQueueSystem (fn-161.4): its actions' rules, the effects they use and its
+// The Queueing facet of TaskQueueProtocol (fn-161.4): its actions' rules, the effects they use and its
 // capabilities.
 package temporal
 package foundations.taskqueue
-package system
+package protocol
 import scala.annotation.unused
 import framework.*
 import framework.Finite.given
@@ -40,14 +40,14 @@ trait Queueing extends Facet[QueueDetail, QueueOutcome, QueueFact], Phased[Queue
         List(
           Step(
             QueueOutcome.delivered,
-            s.copy(polled = true, delivered = TaskQueueSystem.states.oneMoreDelivery(s.delivered)),
+            s.copy(polled = true, delivered = TaskQueueProtocol.states.oneMoreDelivery(s.delivered)),
             List(QueueFact.delivered)
           )
         )
 
       // Matching completes the task, which discharges every custodian's obligation.
       def acknowledgeDetail(@unused s: State) =
-        List(Step(QueueOutcome.acknowledged, TaskQueueSystem.states.idleQueue, List(QueueFact.acknowledged)))
+        List(Step(QueueOutcome.acknowledged, TaskQueueProtocol.states.idleQueue, List(QueueFact.acknowledged)))
 
       // The answer to the poller is lost. A persisted task stays queued; a sync match fails back to the
       // invocation, which history retries.
@@ -67,20 +67,20 @@ trait Queueing extends Facet[QueueDetail, QueueOutcome, QueueFact], Phased[Queue
 
       // Bound by LossyMatchingQueue alone.
       def storageLossDetail(@unused s: State) =
-        List(Step(QueueOutcome.lost, TaskQueueSystem.states.idleQueue, List(QueueFact.storageLost)))
+        List(Step(QueueOutcome.lost, TaskQueueProtocol.states.idleQueue, List(QueueFact.storageLost)))
 
       // Bound by ForgetfulQueue alone. History drops its dispatch task when it invokes
       // AddActivityTask, before matching persists anything, so a crash there leaves no custodian for a
       // message the interface still calls committed.
       def forgetfulCrash(s: State) = s.custody match
-        case Custody.invoked | Custody.reserved => enter(TaskQueueSystem.states.idleQueue, QueueFact.crashed)
+        case Custody.invoked | Custody.reserved => enter(TaskQueueProtocol.states.idleQueue, QueueFact.crashed)
         case Custody.nowhere | Custody.history | Custody.persisted =>
           enter(s.copy(polled = false), QueueFact.crashed)
 
       // Bound by VolatileQueue alone. A crash wipes the tasks matching persisted, which history no
       // longer backs.
       def volatileCrash(s: State) = s.custody match
-        case Custody.persisted                  => enter(TaskQueueSystem.states.idleQueue, QueueFact.crashed)
+        case Custody.persisted                  => enter(TaskQueueProtocol.states.idleQueue, QueueFact.crashed)
         case Custody.invoked | Custody.reserved =>
           enter(s.copy(custody = Custody.history, polled = false), QueueFact.crashed)
         case Custody.nowhere | Custody.history => enter(s.copy(polled = false), QueueFact.crashed)
@@ -101,10 +101,10 @@ trait Queueing extends Facet[QueueDetail, QueueOutcome, QueueFact], Phased[Queue
         when(Custody.invoked) ~> effects.reserveDetail
       }
       on(queue.deliver) {
-        where(TaskQueueSystem.states.deliverable) ~> effects.deliverDetail
+        where(TaskQueueProtocol.states.deliverable) ~> effects.deliverDetail
       }
       on(queue.acknowledge) {
-        where(TaskQueueSystem.states.answerable) ~> effects.acknowledgeDetail
+        where(TaskQueueProtocol.states.answerable) ~> effects.acknowledgeDetail
       }
       on(fault.ackLoss) {
         where(_.polled) ~> effects.ackLossDetail

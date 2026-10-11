@@ -21,7 +21,7 @@ import scala.collection.mutable
 //
 // A facet that uses another's step names it in its self-type, `this: Dispatch =>`, so a machine
 // that does not mix that facet in does not compile. The machine object mixes in its facets and lists
-// their rules, in facet order: `object ActivitySystem extends Machine[...], Phased[...](...),
+// their rules, in facet order: `object ActivityProtocol extends Machine[...], Phased[...](...),
 // Dispatch, Pausing` with `object rules extends Facets(dispatch.rules, pausing.rules)`. What stays
 // machine-wide stays in the machine object: its state and phase types, `init`, `end`, the projection,
 // the refinement, monitors, properties and queries over the whole feature. A facet declares the

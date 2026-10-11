@@ -3,7 +3,7 @@
 package temporal
 package features.activity
 package standalone
-package system
+package protocol
 
 import framework.*
 import framework.Finite.given
@@ -22,31 +22,31 @@ trait Heartbeat extends Facet[State, Outcome, Fact], Phased[State, Phase]:
       def heartbeat(s: State) = enter(s, Fact.heartbeatReceived)
       def heartbeatBackOff(s: State) =
         enter(
-          ActivitySystem.states.afterRetry(s, ActivitySystem.states.landingPhase(s)),
-          ActivitySystem.states.landingStatus(s),
+          ActivityProtocol.states.afterRetry(s, ActivityProtocol.states.landingPhase(s)),
+          ActivityProtocol.states.landingStatus(s),
           Fact.attemptCount,
           Fact.heartbeatTimedOut
         )
-          .because(ActivitySystem.states.nominalTimeWindow)
+          .because(ActivityProtocol.states.nominalTimeWindow)
       def heartbeatTimeOut(s: State) =
         enter(
           s.copy(phase = Phase.timedOut),
           Fact.statusTimedOut(TimeoutType.heartbeat),
           Fact.heartbeatTimedOut
         )
-          .because(ActivitySystem.states.nominalTimeWindow)
+          .because(ActivityProtocol.states.nominalTimeWindow)
       // A pending reset applies as the heartbeat deadline ends the held attempt.
       def applyResetOnHeartbeat(s: State) =
         enter(
           s.copy(
-            phase = ActivitySystem.states.landingPhase(s),
+            phase = ActivityProtocol.states.landingPhase(s),
             attempts = UpTo(0),
             dispatch = Dispatch.now
           ),
-          ActivitySystem.states.landingStatus(s),
+          ActivityProtocol.states.landingStatus(s),
           Fact.attemptCount,
           Fact.heartbeatTimedOut
-        ).because(ActivitySystem.states.nominalTimeWindow)
+        ).because(ActivityProtocol.states.nominalTimeWindow)
 
     object rules extends Rules:
       on(activityWorker.heartbeat) {
@@ -56,24 +56,24 @@ trait Heartbeat extends Facet[State, Outcome, Fact], Phased[State, Phase]:
       }
       on(deadline.heartbeat) {
         when(Phase.started).where(s =>
-          ActivitySystem.states.heartbeatArmed(s) && ActivitySystem.states.retriesRemaining(s)
+          ActivityProtocol.states.heartbeatArmed(s) && ActivityProtocol.states.retriesRemaining(s)
         ) ~> effects.heartbeatBackOff
         when(Phase.pauseRequested).where(s =>
-          ActivitySystem.states.heartbeatArmed(s) && ActivitySystem.states.retriesRemaining(s)
+          ActivityProtocol.states.heartbeatArmed(s) && ActivityProtocol.states.retriesRemaining(s)
         ) ~> effects.heartbeatBackOff
         when(Phase.started, Phase.pauseRequested, Phase.cancelRequested).where(s =>
-          ActivitySystem.states.heartbeatArmed(s) && ActivitySystem.states.endsTerminally(s)
+          ActivityProtocol.states.heartbeatArmed(s) && ActivityProtocol.states.endsTerminally(s)
         ) ~> effects.heartbeatTimeOut
-        when(Phase.resetRequested).where(ActivitySystem.states.heartbeatArmed) ~>
+        when(Phase.resetRequested).where(ActivityProtocol.states.heartbeatArmed) ~>
           effects.applyResetOnHeartbeat
-        when(Phase.resetKeepingPause).where(ActivitySystem.states.heartbeatArmed) ~>
+        when(Phase.resetKeepingPause).where(ActivityProtocol.states.heartbeatArmed) ~>
           effects.applyResetOnHeartbeat
       }
 
     object properties:
       val heartbeatExhausts = property.when(deadline.heartbeat) holds (after =>
         after.records(Fact.heartbeatTimedOut) &&
-          (ActivitySystem.states.retriesRemaining(after.state) || // format: off
+          (ActivityProtocol.states.retriesRemaining(after.state) || // format: off
             (after.state.phase == Phase.timedOut && after.records( // scalafix:ok DisableSyntax.==; strictEquality checks native comparisons
               Fact.statusTimedOut(TimeoutType.heartbeat)
             ))) // format: on
@@ -84,30 +84,30 @@ trait Heartbeat extends Facet[State, Outcome, Fact], Phased[State, Phase]:
     object capabilities extends Capabilities:
       val heartbeatDeadline: Capability = Expirable[State, Phase, Held, Fact](
         timer = deadline.heartbeat,
-        armed = ActivitySystem.states.heartbeatArmed,
+        armed = ActivityProtocol.states.heartbeatArmed,
         timeout = Fact.statusTimedOut(TimeoutType.heartbeat),
-        timeoutFacts = ActivitySystem.states.timeoutFacts,
+        timeoutFacts = ActivityProtocol.states.timeoutFacts,
         retryable = true,
-        retriesRemaining = Some(ActivitySystem.states.retriesRemaining),
-        pendingPause = Some(ActivitySystem.states.pendingPause),
-        pendingCancel = Some(ActivitySystem.states.pendingCancel)
+        retriesRemaining = Some(ActivityProtocol.states.retriesRemaining),
+        pendingPause = Some(ActivityProtocol.states.pendingPause),
+        pendingCancel = Some(ActivityProtocol.states.pendingCancel)
       )
       overriding(
         (Expirable.deadlineTimesOut[State, Phase]: AnyRef) ->
-          (ActivitySystem.properties.resetDeadlineTimesOut: AnyRef),
-        because = ActivitySystem.states.pendingResetReason,
+          (ActivityProtocol.properties.resetDeadlineTimesOut: AnyRef),
+        because = ActivityProtocol.states.pendingResetReason,
         of = Seq(heartbeatDeadline)
       )
       overriding(
         (Expirable.deadlineReturnsToWaiting[State, Phase]: AnyRef) ->
-          (ActivitySystem.properties.resetDeadlineReturnsToWaiting: AnyRef),
-        because = ActivitySystem.states.pendingResetReason,
+          (ActivityProtocol.properties.resetDeadlineReturnsToWaiting: AnyRef),
+        because = ActivityProtocol.states.pendingResetReason,
         of = Seq(heartbeatDeadline)
       )
       overriding(
         (Expirable.deadlinePauses[State, Phase]: AnyRef) ->
-          (ActivitySystem.properties.resetDeadlinePauses: AnyRef),
-        because = ActivitySystem.states.pendingResetReason,
+          (ActivityProtocol.properties.resetDeadlinePauses: AnyRef),
+        because = ActivityProtocol.states.pendingResetReason,
         of = Seq(heartbeatDeadline)
       )
 

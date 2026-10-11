@@ -1,10 +1,10 @@
 // The task queue's System: its provider, the route one message takes through history and matching
-// (fn-126 decision 16). The level's own file holds TaskQueueSystem, the detailed provider whose
+// (fn-126 decision 16). The level's own file holds TaskQueueProtocol, the detailed provider whose
 // refinement says what the opaque contract (product/Product.scala) reads of it, and the providers
 // derived from it, LossyMatchingQueue, ForgetfulQueue and VolatileQueue.
 package temporal
 package foundations.taskqueue
-package system
+package protocol
 
 import framework.*
 import framework.Finite.given
@@ -19,7 +19,7 @@ val _ = () => summon[CanEqual[Custody, Custody]]
 // are negative controls a feature may compose its own design with: the replacement is what must fail.
 // format: off
 // The detailed provider, under ordinary crashes and lost answers to the poller.
-object TaskQueueSystem
+object TaskQueueProtocol
     extends Machine[QueueDetail, QueueOutcome, QueueFact],
       Phased[QueueDetail, Custody](_.custody),
       FailureModel, Queueing:
@@ -144,17 +144,17 @@ object TaskQueueSystem
         query verify claims.committedStays in any limits twelve
       )
 
-    val matchingQueueQueries = providerQueries(TaskQueueSystem)
+    val matchingQueueQueries = providerQueries(TaskQueueProtocol)
 // format: off
 // The detailed provider with the storage-loss fault, which only its assumption allows. It refines
 // the interface that allows the loss.
 object LossyMatchingQueue
     extends Derived(
-      TaskQueueSystem
+      TaskQueueProtocol
         .extend(on(fault.storageLoss) {
-          where(TaskQueueSystem.states.held) ~> TaskQueueSystem.queueing.effects.storageLossDetail
+          where(TaskQueueProtocol.states.held) ~> TaskQueueProtocol.queueing.effects.storageLossDetail
         })
-        .refining(TaskQueueProductUnderStorageLoss)(TaskQueueSystem.refinement.toProduct)
+        .refining(TaskQueueProductUnderStorageLoss)(TaskQueueProtocol.refinement.toProduct)
         .assuming(storageLossAssumed)
     ),
       FailureModel:
@@ -175,24 +175,24 @@ object LossyMatchingQueue
       fault.storageLoss
     )
     val lossyMatchingQueueQueries =
-      TaskQueueSystem.queries.providerQueries(LossyMatchingQueue)
+      TaskQueueProtocol.queries.providerQueries(LossyMatchingQueue)
     val storageLossQuery =
       query("lossyMatchingQueue.storageLoss") find properties.storageLossDrops in
         persistedThenLost limits seven
 
 // A crash that loses the message history dropped on invoking AddActivityTask.
 object ForgetfulQueue
-    extends Derived(TaskQueueSystem.rebind(fault.crash ~> TaskQueueSystem.queueing.effects.forgetfulCrash)),
+    extends Derived(TaskQueueProtocol.rebind(fault.crash ~> TaskQueueProtocol.queueing.effects.forgetfulCrash)),
       NegativeControl:
 
   object queries:
     val forgetfulQueueQueries =
-      TaskQueueSystem.queries.providerQueries(ForgetfulQueue)
+      TaskQueueProtocol.queries.providerQueries(ForgetfulQueue)
 
 // A crash that wipes the tasks matching persisted.
 object VolatileQueue
-    extends Derived(TaskQueueSystem.rebind(fault.crash ~> TaskQueueSystem.queueing.effects.volatileCrash)),
+    extends Derived(TaskQueueProtocol.rebind(fault.crash ~> TaskQueueProtocol.queueing.effects.volatileCrash)),
       NegativeControl:
 
   object queries:
-    val volatileQueueQueries = TaskQueueSystem.queries.providerQueries(VolatileQueue)
+    val volatileQueueQueries = TaskQueueProtocol.queries.providerQueries(VolatileQueue)
