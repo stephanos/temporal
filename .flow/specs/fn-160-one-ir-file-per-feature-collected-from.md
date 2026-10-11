@@ -71,6 +71,8 @@ The user asked for a single file per feature where only the root of the graph is
 
 - **Kind layout (owner, 2026-10-10):** a Product shared by two forms goes under the kind's `shared/`, not beside the forms; one Product per form (duplicating NexusProduct) was rejected, since both forms refine the same promises (fn-126 decision 16). Form feature files are `<Form><Kind>.scala`. `nexus/workflow/Workflow.scala` becomes `WorkflowNexus.scala` (owner, 2026-10-10). [user]
 
+- **Run names (conductor, 2026-10-11, under the owner's recommendation mandate):** a form's main realization is `<Form><Kind>Run` (`StandaloneActivityRun`, `StandaloneNexusRun`, `WorkflowNexusRun`), matching the form's file, because both Nexus forms' subject is `NexusProtocol` and `<Subject>Run` would collide; any further realization is `<Subject>Run`.
+
 ## Parked unknowns
 
 - Whether any consumer relies on today's file boundaries in a way one file per feature can't serve. The exploration and race checkers are the suspects, from the race file's comment "so the history record's Queries are the ones its checkers were given". R1's investigation resolves this. [inferred]
