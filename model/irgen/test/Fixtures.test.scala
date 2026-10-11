@@ -4854,7 +4854,44 @@ class Fixtures extends munit.FunSuite:
   test(
     "every rejected declaration is refused at its line, and no IR is written"
   ):
-    expect("rejects.txt", rejections())
+    val authored = rejections()
+    Files.writeString(scratch.resolve("authored-rejects.txt"), authored): Unit
+    expect("rejects.txt", authored)
+
+  test("the complete authored refusal contract is independent of held managed comparisons"):
+    val historical = Files.readAllLines(expected.resolve("rejects.txt")).asScala.toVector
+    assertEquals(historical.size, 226)
+    val prefix = "lift: model/irgen/testdata/lifts/"
+    val adaptations = Map(
+      (prefix + "HintRejects.scala:44: 9223372036854775807 milliseconds is outside the range of a protobuf Duration") ->
+        (prefix + "HintRejects.scala:44: an elapsed bound is outside the protobuf Duration range"),
+      (prefix + "ScriptRejects.scala:203: inspect is no action activitySystem binds: a realization binds its own machine's actions") ->
+        (prefix + "ScriptRejects.scala:203: inspect is no action activityProtocol binds: a realization binds its own machine's actions"),
+      (prefix + "ScriptRejects.scala:105: expires is a case of Timeout, and activitySystem records facts of temporal.features.activity.standalone.system.Fact: a realization names the facts its machine records") ->
+        (prefix + "ScriptRejects.scala:105: expires is a case of Timeout, and activityProtocol records facts of temporal.features.activity.standalone.protocol.Fact: a realization names the facts its machine records")
+    )
+    assert(adaptations.keys.forall(old => historical.count(_ == old) == 1))
+    val markerSource = Files.readAllLines(testdata.resolve("lifts/MarkerRejects.scala")).asScala
+    val markerDeclarations = Map(
+      35 -> "FaultUnmarked", 41 -> "FaultlessFailure", 47 -> "HopelessFailure",
+      70 -> "UnrefutedControl", 83 -> "RefinedControl", 103 -> "SystemicControl",
+      123 -> "TornMarkers", 144 -> "UnmarkedPair", 150 -> "FaultlessPair", 158 -> "DerivedControl"
+    )
+    val coordinates = markerDeclarations.map { (old, name) =>
+      val matches = markerSource.zipWithIndex.filter((line, _) => line.startsWith(s"object $name ") || line == s"object $name")
+      assertEquals(matches.size, 1, name)
+      (prefix + s"MarkerRejects.scala:$old:") -> (prefix + s"MarkerRejects.scala:${matches.head._2 + 1}:")
+    }
+    val authored = historical.map { old =>
+      val vocabulary = adaptations.getOrElse(old, old)
+      coordinates.find((from, _) => vocabulary.startsWith(from)) match
+        case Some((from, to)) => to + vocabulary.drop(from.length)
+        case None => vocabulary
+    }
+    val actual = rejections().linesIterator.toVector
+    Files.writeString(scratch.resolve("authored-refusal-contract.txt"), authored.mkString("", "\n", "\n")): Unit
+    Files.writeString(scratch.resolve("authored-refusal-roots.txt"), rejected.mkString("", "\n", "\n")): Unit
+    assertEquals(actual, authored)
 
   test("the expected files are the ones the fixtures lift to"):
     assertEquals(leftOver(), Nil)

@@ -128,18 +128,20 @@ final private[irgen] class Lifting(val ctx: Context)
           case _ :: feature :: _ => Some((root, feature, false))
           case _                 => None
     def progress(v: ValDef) = isNamed(v.tpt.tpe, "framework.Progress")
+    def coreRealization(v: ValDef) =
+      !v.symbol.flags.is(Flags.Module) && isNamed(v.tpt.tpe, "framework.realize.Realization")
     val roots = defs.values.toSeq.collect {
       case v: ValDef
           if objectForm(v.symbol) || realizationObject(v.symbol) || queriesSection(v.symbol) ||
             (capabilitiesObject(v.symbol) && objectForm(moduleClassOf(v.symbol).maybeOwner)) ||
-            (progress(v) && !v.symbol.flags.is(Flags.Module)) =>
+            (progress(v) && !v.symbol.flags.is(Flags.Module)) || coreRealization(v) =>
         v
     }
     val byFeature = roots
       .flatMap(v => featureOf(packageOf(v.symbol)).map(f => f -> v))
       .groupBy(_._1)
     val asked = (v: ValDef) =>
-      queriesSection(v.symbol) || realizationObject(v.symbol) || progress(v)
+      queriesSection(v.symbol) || realizationObject(v.symbol) || progress(v) || coreRealization(v)
     byFeature.toSeq
       .filter { case ((_, _, form), vs) => form || vs.exists((_, v) => asked(v)) }
       .map { case ((_, file, _), vs) =>
