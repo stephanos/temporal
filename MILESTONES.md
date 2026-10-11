@@ -560,11 +560,11 @@ generation for compositions is outside this spec.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-150.1 | ⏸️ deferred | Scoped admission/checker checkpoint integrated; original Quick OOM retained, review and closure held |
-| fn-150.2 | 🔄 in progress | Finite structured fairness checkpoint integrated; typed catalog, inheritance and exact member/sync pins pass; Scala/full acceptance held |
-| fn-150.3 | ⬜ todo | Typed composition progress and fairness authoring/lifting |
-| fn-150.4 | 🔄 in progress | Boundary, typed replay and structured fairness checkpoints integrated; focused proofs retained, full gates/review remain |
-| fn-150.5 | ⬜ todo | Temporal positive/negative example, docs and integrated gates |
+| fn-150.1 | ⏸️ deferred | Quick rerun no longer OOMs (23.8 s, 5.75 GB free); exits 1 only on stale `model/ir` loads; green after Batch 5b regeneration |
+| fn-150.2 | 🔄 in progress | Structured fairness references end to end (Scala schema, lifter, Go admission/binding; engine 101 tests); full gates at Batch 5b |
+| fn-150.3 | 🔄 in progress | Composition `leadsTo` and composed `fair` authoring/lifting with located refusals (lifter 111/0, framework 60/0); gates at Batch 5b |
+| fn-150.4 | 🔄 in progress | Boundary, replay and fairness checkpoints plus lifted-fixture admission test; full gates/review at Batch 5b |
+| fn-150.5 | 🔄 in progress | `ServedDispatch`/`UnservedDispatch` example (passes / deadlock witness) and docs merged (`d6428e905b`); gates at Batch 5b |
 
 Integration order: `.1` then `.2`; `.3` and `.4` join before `.5`. Source work may overlap
 under the batch-first strategy rather than waiting for per-task closure.
