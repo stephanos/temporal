@@ -189,12 +189,15 @@ It rewrites the Models' `properties` and `queries` sections and its R5 renames D
 IDs. Scala tasks .1-.5 and .10 carry the authoring migration; .7/.8/.9 retain the owner-deferred
 consumer proofs split from .2/.3/.4, and .6 retains shared closure. The current one-worker lane
 is sequential; task .10's committed Scala seal releases later source work without waiting on Go.
+Source/closure commits `b5374fbb0b`/`c59b5bdf21` are integrated. The Scala seal's
+338-Query core/reader/span proof, complete 226-row refusal contract, 52,244 native rows and
+historical equivalence were independently verified, including its immutable 5,272-file seal.
+Ten lifter/two export managed comparisons remain held; this releases fn-149 source work only.
 
 `witness(<classes>).records(<fact>)` states a path-and-outcome claim in one declaration and lifts to the existing Scenario, Property and `find` Query, each named after it. `.live(<expectation>)` replaces `.expect` as the one word that generates a Case, and every non-satisfied expectation carries a reason. Pinned `find` Queries in every Model migrate, and the hand-written `terminate`, which repeats the capability-generated `terminateSettles`, is deleted. `query verify` and its triple are unchanged.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-140.10 | ✅ done (Scala seal) | Source/closure commits b5374fbb0b/c59b5bdf21 integrated; 338-Query core/reader/span proof, complete 226-row refusal contract, 52,244 native rows and historical equivalence independently verified; immutable 5,272-file seal authenticated; ten lifter/two export managed comparisons remain held; releases fn-149 source work only |
 | fn-140.6 | ⏸️ deferred | Full consumer/regeneration/equivalence closure after .7/.8/.9/.10; links the shared fn-123.8 sweep |
 | fn-140.7 | ⏸️ deferred (Go) | Exact-composed selector admission/check/lint/export proof, split from .2 without relaxing its obligations |
 | fn-140.8 | ⏸️ deferred (Go) | Live/model-only Case generation switch and complete manifest/membership proof, split from .3 |
