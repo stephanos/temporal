@@ -4,8 +4,8 @@ satisfies: [R5, R7]
 # fn-140-one-sentence-witness-queries-with.10 Migrate remaining Scala witnesses and commit the source equivalence seal
 
 ## Description
-**Size:** M
-**Touches:** [model/temporal/**/*.scala, model/irgen/Order.scala, model/irgen/test/**, model/irgen/testdata/**, model/testdata/equivalence/batch-1d.map]
+**Size:** L
+**Touches:** [model/temporal/**/*.scala, model/irgen/Order.scala, model/irgen/test/**, model/irgen/testdata/**, model/testdata/equivalence/batch-1d.map, model/testdata/equivalence/batch-1d.ledger.json, model/testdata/equivalence/dispatch-original/**, model/check/Equivalence.scala, model/check/Gate.scala, model/check/StepLedger.scala, model/check/test/Equivalence.test.scala, model/check/test/StepLedger.test.scala]
 
 Complete the remaining Scala witness migration and source-aware eligible-triple lint after .4/.5. This is the independently completed, committed Scala source seal that releases fn-149 grouping under the owner's one-worker sequence. Deferred .6 retains full regeneration, Go, consumer/replay, full-gate/review/live closure and depends on this seal and consumer tasks .7/.8/.9. Do not wait for those owner-deferred tasks or claim they passed here.
 
@@ -119,6 +119,20 @@ and independently detect a seeded duplicate; removing a declaration from its ass
 without eliminating the actual duplicate is not a repair. This remains fn-162.3's earlier
 source obligation and does not close that task's held consumer acceptance.
 
+
+### Scoped historical-step ledger design
+
+The source seal compares every original-baseline table and explicitly accounts for the four later dispatch additions. The conductor adopts a typed sidecar ledger over the existing strict comparator. Restoring the old interleaved actor order would change the adopted facet assembly; a global table sort would conceal ordering mutations. The ledger records the two exact earlier-spec permutations and independently committed additions while ordinary comparisons retain byte and order equality.
+
+The existing two-token rename/removal grammar stays unchanged. One exact metadata comment, `# step-ledger batch-1d.ledger.json`, locates the versioned sidecar relative to the map. Reject duplicate directives, unsupported versions, missing or escaping paths, duplicate table keys and unknown fields. Readers that ignore comments keep their existing rename semantics. Gate/Equivalence may load the source-step ledger for the steps-only comparison; full projection and interpreter proof remain strict, separate and deferred. This ledger earns no full consumer equivalence credit.
+
+An order entry names the exact baseline and current table keys, the original table digest/count, the exact old/current binding vectors and the explicitly listed bijective action-block permutation after authorized row removals and renames. Check both vectors, unique bindings, one contiguous block per action and block order. Replay only that entry's action blocks. Compare all other headers and state lines in order and every class/input/state/result/alternative/fact/explanation byte inside each block. Missing, duplicate, fragmented, reordered inner rows or changed payloads fail. Include the table/ledger identity in comparison memoization so one permitted permutation cannot leak to a different key. A ledger entry must explain an actual change; unused entries fail.
+
+An addition entry names one of dispatchingActivity, servingWorker, servedDispatch or unservedDispatch and points to the frozen native table population built independently from commit `fb9ff2a09582b72dc5b703b19ff5b7c514359885`. Authenticate the complete original declaration sources and relevant native execution inputs, retaining source commit, source hashes, artifact hashes, table keys/counts and the exact earlier-spec identity mappings. Verify payload hashes against actual bytes rather than trusting index.tsv. Compare all original addition rows against current rows under only those mappings; do not use current-candidate hashes as the addition oracle. Preserve the original historical baseline unchanged. Frozen regression data may live in `model/testdata/equivalence/dispatch-original/`; record its independent build and authentication before accepting it. Unknown, missing, duplicate, unauthenticated or unused additions fail, and every other new table still fails.
+
+Write focused tests before checker implementation. Retain every existing ordinary mutation control. Add positive tests for the exact permitted permutation and authenticated addition, and negative tests for wrong old/current vectors, non-bijections, unused entries, another table sharing a digest, noncontiguous blocks, inner-row order, missing/duplicate pairs, changed results/alternative order/fact order/explanations, missing/extra added tables, changed addition payload/source hash, and unsupported or malformed sidecars. Run the controls with and without the ledger. No check, fixture assertion or baseline is relaxed to obtain a passing seal.
+
+The cancellation repair remains a separately classified fn-162.3 source identity change. Retain cancelRequested, redirect the existing cancelIsRequested Query to it, prove complete applicable-row equality of both original predicates and the retained predicate, and preserve the strict duplicate detector with a seeded duplicate control. Witness R5 allows only the separately inventoried witness changes; this repair does not broaden that allowance or close fn-162.3's consumers.
 ## Acceptance
 - [ ] Complete eligible/retained inventories cover all Model packages, with concrete reader/boundary justifications; every eligible private pinned triple is a witness (R5).
 - [ ] Source-aware lint and focused positive/refusal fixtures cover private/shared/verify/monitor/repeated-input-tail forms with exact source ownership and unchanged other refusal classes (R5).
@@ -126,6 +140,7 @@ source obligation and does not close that task's held consumer acceptance.
 - [ ] Final author docs and core-form/layout template are integrated and positively lifted, proving R7.
 - [ ] Scala compilation and framework/Model/lifter/gate source checks, new migration proofs, syntax and historical-baseline step-table equivalence pass, with complete justified identity/row mappings and no unresolved strict-native admission failure. Held managed-golden/Go checks and protected Batch 5 Go assessment obligations are explicitly separate, never passing credit or a native/source waiver. Scratch artifacts and mappings are frozen for deferred consumer proofs; managed outputs remain untouched.
 - [ ] This Scala source seal is committed and its handoff to fn-149 is explicit; .6/.7/.8/.9 retain all full consumer/regeneration/assessment/gate/review/live obligations without claiming them complete.
+- [ ] The historical-step ledger passes exact mapped-permutation/addition positives and all independent mutation controls; ordinary unmapped ordering/new-table/unused-map checks remain strict. The complete original baseline and independently authenticated original dispatch population compare with every current table accounted for.
 ## Done summary
 TBD
 
