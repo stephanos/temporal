@@ -214,7 +214,13 @@ Consumer closure remains shared at fn-123.8.
 Discovery source/closure commits `b751748cae`/`1c6ee11392` are integrated locally.
 The independently authenticated 792-file source seal proves six Properties/four Progress claims,
 native initialization and full six-file scratch-lift parity; native step tables remain unchanged.
-This releases placement task .2, not consumer closure or the final grouping seal.
+Placement source/closure commits `77825c5bd2`/`25e12fa6a1` are integrated locally.
+Its independently authenticated 3,654-file seal preserves the original six fixture IRs and proves
+29 exact kind refusals, seven wrong-owner roots and valid omitted/empty groups; 60 focused tests pass.
+Seven production scratch artifacts are byte-identical to the original-admission runner.
+The historical discovery bridge is explicit: 19 section roots and the already-authored, formerly
+unqueried `asyncStarts` Property/predicate, with every other IR field and waiver unchanged.
+This releases migration task .6, not consumer closure or the final grouping seal.
 The report checkpoint is integrated as `da8f78204a`: classification is derived, and progress
 receipts expose their declared `within` separately from exploration limits. Focused integrated
 checks preserve witness verdicts and independent safety failures; the full checker gate remains open.
@@ -230,14 +236,13 @@ shared gate/review/live proofs at fn-123.8; source results substitute for none o
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-149.2 | 🔄 in progress (Scala) | Admitted from committed discovery receipt; resolved-kind placement and exact source-attributed direct/alias/bundle/subtype refusals |
 | fn-149.3 | ⏸️ deferred (Go) | Reporting checkpoint integrated; focused classification, distinct bounds and safety/progress coexistence checks pass; full gates/review held |
 | fn-149.6 | ⬜ todo | Scala Model/capability migration, native row/inventory pins and exact scratch-lift identity/span seal |
 | fn-149.7 | ⬜ todo | Scala author docs, executable layout and final committed grouping source seal; releases fn-164 |
 | fn-149.4 | ⏸️ deferred (Go) | Original complete consumer behavior, Query/progress receipt, Case and expected/live-replay assessment proof; consumes .6 |
 | fn-149.5 | ⏸️ deferred | Consumer reporting docs and original integrated regeneration/gates/review/live closure; consumes .4/.7 at fn-123.8 |
 
-One Scala worker takes .1 → .2 → .6 → .7. Deferred .4 joins .1/.2/.3/.6; .5 joins .3/.4/.7.
+One Scala worker takes the remaining .6 → .7. Deferred .4 joins .1/.2/.3/.6; .5 joins .3/.4/.7.
 Heavy commands remain serialized. Composition progress belongs to fn-150, not this grouping change.
 
 ### fn-164: Expect blocks for Properties
