@@ -4936,6 +4936,12 @@ class Fixtures extends munit.FunSuite:
     expect("rejects.txt", authored)
 
   test("the complete authored refusal contract is independent of held managed comparisons"):
+    val historicalBytes = Files.readAllBytes(expected.resolve("rejects.txt"))
+    val digest = java.security.MessageDigest.getInstance("SHA-256").digest(historicalBytes)
+    assertEquals(
+      digest.map(b => f"${b & 0xff}%02x").mkString,
+      "efdd6380f6266a955434f28a2c486065829f077e980b1136939bc1994112bf90"
+    )
     val historical = Files.readAllLines(expected.resolve("rejects.txt")).asScala.toVector
     assertEquals(historical.size, 226)
     val prefix = "lift: model/irgen/testdata/lifts/"
@@ -4961,13 +4967,24 @@ class Fixtures extends munit.FunSuite:
       150 -> "FaultlessPair",
       158 -> "DerivedControl"
     )
-    val coordinates = markerDeclarations.map { (old, name) =>
+    val markerCoordinates = markerDeclarations.map { (old, name) =>
       val matches = markerSource.zipWithIndex.filter((line, _) =>
         line.startsWith(s"object $name ") || line == s"object $name"
       )
       assertEquals(matches.size, 1, name)
       (prefix + s"MarkerRejects.scala:$old:") -> (prefix + s"MarkerRejects.scala:${matches.head._2 + 1}:")
     }
+    def sourceLine(file: String, text: String): Int =
+      val source = Files.readAllLines(testdata.resolve("lifts/" + file)).asScala
+      val matches = source.zipWithIndex.filter((line, _) => line.trim == text)
+      assertEquals(matches.size, 1, file + ": " + text)
+      matches.head._2 + 1
+    val formattedCoordinates = Map(
+      (prefix + "HintRejects.scala:44:") -> (prefix + s"HintRejects.scala:${sourceLine("HintRejects.scala", "atMost = framework.realize.Elapsed.milliseconds(9223372036854775807L)")}:") ,
+      (prefix + "ScriptRejects.scala:219:") -> (prefix + s"ScriptRejects.scala:${sourceLine("ScriptRejects.scala", "ServerStep(")}:") ,
+      (prefix + "ScriptRejects.scala:226:") -> (prefix + s"ScriptRejects.scala:${sourceLine("ScriptRejects.scala", "object Replaced extends DerivesFrom(Restated, activityProtocol):") + 1}:")
+    )
+    val coordinates = markerCoordinates ++ formattedCoordinates
     val authored = historical.map { old =>
       val vocabulary = adaptations.getOrElse(old, old)
       coordinates.find((from, _) => vocabulary.startsWith(from)) match

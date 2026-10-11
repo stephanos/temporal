@@ -106,6 +106,15 @@ final private[irgen] class Order(index: Index):
           fileOf(d)
         ) && !fileOf(d).endsWith(".test.scala")
     )
+    def read(rhs: Tree, reader: Symbol): Unit =
+      object refs extends TreeTraverser:
+        override def traverseTree(t: Tree)(owner: Symbol): Unit =
+          t match
+            case r: Ref =>
+              readers.getOrElseUpdate(r.symbol, mutable.Set.empty) += reader
+            case _ => ()
+          super.traverseTree(t)(owner)
+      refs.traverseTree(rhs)(reader)
     for
       d <- semanticDefinitions;
       rhs <- d match
@@ -113,14 +122,18 @@ final private[irgen] class Order(index: Index):
         case f: DefDef => f.rhs
         case _         => None
     do
-      object refs extends TreeTraverser:
-        override def traverseTree(t: Tree)(owner: Symbol): Unit =
-          t match
-            case r: Ref =>
-              readers.getOrElseUpdate(r.symbol, mutable.Set.empty) += d.symbol
-            case _ => ()
-          super.traverseTree(t)(owner)
-      refs.traverseTree(rhs)(d.symbol)
+      read(rhs, d.symbol)
+    object statements extends TreeTraverser:
+      override def traverseTree(tree: Tree)(owner: Symbol): Unit =
+        tree match
+          case c: ClassDef if !exempt(fileOf(c)) && !fileOf(c).endsWith(".test.scala") =>
+            c.body.foreach {
+              case t: Term => read(t, c.symbol)
+              case _       => ()
+            }
+          case _ => ()
+        super.traverseTree(tree)(owner)
+    index.trees.foreach(statements.traverseTree(_)(Symbol.spliceOwner))
     def privateTo(ref: Term, q: ValDef): Option[ValDef] =
       index.defs.get(ref.symbol).collect {
         case v: ValDef if readers.get(ref.symbol).exists(_.toSet == Set(q.symbol)) =>
