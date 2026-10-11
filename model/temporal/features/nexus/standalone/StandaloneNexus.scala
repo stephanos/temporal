@@ -10,7 +10,7 @@
 // rather than fitting the Model to the code.
 //
 // Read top to bottom: the types; the signature (the client, the handler, the operation and their
-// actions); and last exports, its IR file. protocol/Protocol.scala holds NexusProtocol, its reading
+// actions). protocol/Protocol.scala holds NexusProtocol, its reading
 // of closed rejection and its capabilities. Realization.scala realizes it.
 package temporal
 package features.nexus
@@ -18,7 +18,6 @@ package standalone
 
 import framework.*
 import temporal.actors.client.Client
-import protocol.NexusProtocol
 
 // ### Signature
 
@@ -38,13 +37,3 @@ object client extends Client:
 object handler extends Actor:
   val reply = temporal.features.nexus.handler.reply.on(operation)
   val complete = temporal.features.nexus.handler.complete.on(operation)
-
-// ### The checked-in IR file of the standalone Nexus operation Model (framework.irFile).
-
-object exports:
-  val nexusStandalone = irFile("nexus-standalone")(
-    NexusProtocol,
-    NexusProtocol.capabilities,
-    NexusProtocol.queries,
-    realization.StandaloneNexusRun
-  )

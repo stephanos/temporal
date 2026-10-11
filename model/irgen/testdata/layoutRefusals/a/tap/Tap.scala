@@ -13,6 +13,3 @@ object plumber extends Actor:
   val turn = action(this)
 
 given Ok[Outcome] = Ok(Outcome.accepted)
-
-object exports:
-  val tap = irFile("tap")(Faucet)

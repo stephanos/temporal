@@ -13,8 +13,7 @@
 //
 //   - ../Activity.scala: the kind's types, the worker's actions, its timers and deadlines;
 //   - this file: the form's types; the signature (the activity and its inputs; the client and its
-//     actions, the worker's actions bound to the activity); and last exports, its
-//     IR files;
+//     actions, the worker's actions bound to the activity);
 //   - product/Product.scala: Product Phase, State and Fact; ActivityProduct, the product machine,
 //     what a client reads;
 //   - system/System.scala: System Phase, Dispatch, State and Fact; ActivityProtocol, the lifecycle
@@ -39,8 +38,6 @@ package standalone
 
 import temporal.actors.client.Client
 import framework.*
-import product.ActivityProduct
-import protocol.{ActivityProtocol, StandaloneActivity}
 
 // The standalone activity's facet vocabulary (fn-161), shared by the Product and the System; the
 // admission designs and the lost-answer race have their own.
@@ -146,65 +143,3 @@ object activityWorker:
 // observe one status field; whether a catalog tells them apart is left to the realization.
 val attemptCount = Observation(on = activity)
 val heartbeatDetails = Observation(on = activity)
-
-// ### The checked-in IR files of the standalone activity Models (framework.irFile).
-
-object exports:
-  // The activity Model. Its cross-entity Query, stoppedWorkerStartsNothing, carries the composition
-  // and its claim.
-  val activityStandalone = irFile("activity-standalone")(
-    StandaloneActivity,
-    ActivityProduct,
-    ActivityProduct.capabilities,
-    ActivityProtocol.capabilities,
-    ActivityProtocol.queries,
-    ActivityProtocol.dispatching.queries,
-    ActivityProtocol.pausing.queries,
-    ActivityProtocol.cancellation.queries,
-    ActivityProtocol.reset.queries,
-    ActivityProtocol.heartbeat.queries,
-    ActivityProtocol.completion.queries,
-    ActivityProtocol.retry.queries,
-    ActivityProtocol.timeouts.queries,
-    StandaloneActivity.queries,
-    protocol.ServedDispatch.queries,
-    protocol.ServedDispatch.properties.startsWithinOneStep,
-    protocol.UnservedDispatch.queries,
-    protocol.UnservedDispatch.properties.startsWithinOneStep,
-    realization.StandaloneActivityRun,
-    realization.RetryAfterTimeoutRun,
-    realization.HeartbeatThenCompletionRun,
-    realization.RetryAfterHeartbeatRun,
-    realization.ExhaustAfterHeartbeatRun,
-    realization.ScheduledCompletionByIDRun,
-    realization.HeldFailureByIDRun,
-    realization.HeldCancellationByIDRun,
-    realization.ResetAfterHeartbeatRun
-  )
-
-  // Its history record, the admission designs, and the shared task queue's providers it composes.
-  // A composition no Query runs over is a root of its own.
-  val activityStandaloneRecord = irFile("activity-standalone-record")(
-    protocol.ActivityRecord.queries,
-    protocol.TrustingActivityRecord.queries,
-    foundations.taskqueue.protocol.TaskQueueProtocol.queries,
-    foundations.taskqueue.protocol.ForgetfulQueue.queries,
-    foundations.taskqueue.protocol.VolatileQueue.queries,
-    foundations.taskqueue.protocol.LossyMatchingQueue.queries,
-    protocol.RecordOverQueue.queries,
-    protocol.TrustingRecordOverQueue.queries,
-    protocol.RecordOverMatching.queries,
-    protocol.TrustingRecordOverMatching.queries,
-    protocol.RecordOverLossyMatching.queries,
-    protocol.RecordOverForgetful,
-    protocol.RecordOverVolatile
-  )
-
-  // The held race a server is run through, and the realization that runs it. It is a Model of its
-  // own, so the history record's Queries are the ones its checkers were given.
-  val activityStandaloneRace = irFile("activity-standalone-race")(
-    protocol.HeldDispatch.queries,
-    realization.HeldDispatchRun,
-    protocol.LostStartAnswer.queries,
-    realization.LostStartAnswerRun
-  )

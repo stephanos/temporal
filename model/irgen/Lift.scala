@@ -80,10 +80,10 @@ class Lifter(target: Target, prefixes: Map[String, String]) extends Inspector:
               do
                 errors += "" -> LiftError(
                   s"IR file $name",
-                  "no irFile of the lifted sources declares it"
+                  "no feature of the lifted sources declares it"
                 )
               if declared.isEmpty then
-                errors += "" -> LiftError("IR files", "the lifted sources declare no irFile")
+                errors += "" -> LiftError("IR files", "no feature of the lifted sources declares a Query")
               // Each file is lifted over the one index, with state of its own.
               val chosen = declared.filter((name, _) => only.isEmpty || only.contains(name))
               for (name, roots) <- chosen.sortBy(_._1) do liftFile(index, name, roots)

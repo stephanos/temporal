@@ -213,23 +213,19 @@ Capability waivers are not lint findings. The lifter writes their owner, Propert
 check fails when the accepted file omits a current waiver or retains one the capabilities section
 no longer states.
 
-Each file of `model/ir` is declared once, in Scala, beside the Models it holds, in the feature
-file's `object exports`: its name and its roots, named by value, in a `val` named after the file.
-
-```scala
-object exports:
-  val nexusWorkflowControl =
-    irFile("nexus-workflow-control")(TrustingCaller.queries.forgedCompletion, ForgedControl)
-```
-
-A root is a machine, a composition, a Query, a list of Queries, a progress claim or a realization;
-the file holds it and everything it reaches. A root that names nothing does not compile. A
-declaration may be a root of several files and is lifted into each, and one that no file names
-stays out of `model/ir`, so a design can be kept out of the checked files. The IR generator reads the
-compiled Models once and lifts every file apart, with nothing carried from one to the next; a
-refusal follows a line naming the file it was lifting. `lift --ir <jar=prefix> <classpath file>
-<directory> [name...]` is that run, and `lift <jar=prefix> <classpath file> <out.json> <root>...`
-lifts the roots named by their fully qualified names, as the IR generator's fixtures do.
+Each file of `model/ir` is one feature's, collected from its package (fn-160): a form under a kind
+(`features/activity/standalone`, file `activity-standalone`), or a kind's own package, a foundation
+or an actor (`foundations/taskqueue`, file `taskqueue`) where it declares Queries or realizations.
+Its roots are every machine, composition, `queries` section (a machine's or a facet's), machine
+`capabilities` section, progress claim and realization declared in the package and its
+sub-packages, but for a kind's forms, which are features of their own; the file holds them and
+everything they reach, so a foundation machine a feature composes is lifted into the feature's
+file, and its Queries into the foundation's own. Nothing lists the roots, so no Query, capability
+or realization drops out of the IR by omission. The IR generator reads the compiled Models once
+and lifts every file apart, with nothing carried from one to the next; a refusal follows a line
+naming the file it was lifting. `lift --ir <jar=prefix> <classpath file> <directory> [name...]` is
+that run, and `lift <jar=prefix> <classpath file> <out.json> <root>...` lifts the roots named by
+their fully qualified names, as the IR generator's fixtures do.
 
 The gate packages the linked Temporal API, Testpilot and well-known ScalaPB classes in
 `model/build/api-scalapb.jar`. Its descriptor and tool stamp is checked before a build; editing a
@@ -415,7 +411,7 @@ by id.
 | `model/framework` | The DSL: what an author writes a Model with. It names no Temporal concept. Realization declarations any system needs, the open traits a system's kit extends and the script helpers are in `framework/realize` |
 | `model/temporal` | The Models: `features`, grouped by kind (`nexus`, `activity`) and form (`workflow`, `standalone`), with one general file per kind and the form's feature file below it; `foundations/taskqueue`, the task queue features compose; `actors`, the shared worker and client; `Bounds.scala`, every Query bound; `capabilities`, shared capability Properties; and `realize`, Temporal's realization vocabulary (`Realize.scala`) and shared kit modules |
 | `model/irgen` | The IR generator. `testdata` holds Models it must lift and Models it must refuse |
-| `model/ir` | The checked-in Umpire IR, one file per `irFile` the Models declare |
+| `model/ir` | The checked-in Umpire IR, one file per feature, collected from its package |
 | `model/cases` | The checked-in Cases and `manifest.json` |
 | `model/check` | The gate program. It generates the IR's ScalaPB classes from the schema into `model/build` (`--generate-ir`) and runs the IR generator once over every IR file the Models declare. Its second entry point, `umpire.check.metrics`, prints the source metrics of the Model folders it is given |
 | `model/project.scala` | The build settings of the DSL and the Models |
@@ -704,101 +700,106 @@ Query's machine does not watch it.
 
 Related forms of one kind live together under `features/<kind>/`. Nexus has `nexus/workflow/` and
 `nexus/standalone/`; activity currently has `activity/standalone/`. The kind has one general file
-named after it, `Nexus.scala` or `Activity.scala`, for types and signature shared by its forms. It
-holds no machine and needs no `object exports`. Nexus declares its shared Reply, Resolution,
-Outcome and canonical action/input signature there; Activity declares Timeout, TimeoutType,
-AttemptResult, the worker's poll and respond, the timers and the deadlines.
-A kind may also own `product/Product.scala`, with
-no kind-level System. Each form keeps its own feature file and exports, realization and tests;
-`workflow/` and `standalone/` belong inside a kind, never directly under `features/`.
+named after it, `Nexus.scala` or `Activity.scala`, for types and signature shared by its forms; it
+holds no machine. Nexus declares its shared Reply, Resolution, Outcome and canonical action/input
+signature there; Activity declares Timeout, TimeoutType, AttemptResult, the worker's poll and
+respond, the timers and the deadlines. Anything two forms share lives under the kind's `shared/`:
+Nexus's Product, refined by both forms, is `shared/product/`. Each form keeps its own feature file,
+named `<Form><Kind>.scala` (`StandaloneActivity.scala`, `WorkflowNexus.scala`), its levels, its
+realizations and tests; `workflow/` and `standalone/` belong inside a kind, never directly under
+`features/`.
 
-A feature or form reads top to bottom in one feature file per folder, named after the folder. A
-feature whose Models include a refinement pair has two levels,
-each in a folder of its own because different people read them: `product/`, what a caller reads,
-and `system/`, how the server gets there. Its root feature file keeps only genuinely shared types,
-the shared signature and `object exports`; each level folder holds the level's own file, named after
-the folder, including that level's `Phase`, `State` and `Fact`, and one file per subject beside it, a
-zoom-in on how the System keeps its promise among them. A feature of one level keeps its machines in
-its feature file. Every Model folder is laid out so (the structure lint of "Starting a new feature"
-below holds it), and the standalone activity is the example:
+A feature reads in three layers, each a flat folder: `product/`, what a caller reads; `protocol/`,
+how the server's parts keep the Product's promises (history, matching, timers, durability), which
+refines the Product; and `realization/`, how a Case runs the Protocol against a server. They sort in
+their conceptual order, and depend one way, realization -> protocol -> product: the Product imports
+neither of the others, the Protocol does not import the realization, and only the realization
+reads the Temporal API (the one exception: a Protocol's `Describable` names the realization's status
+table). The root feature file keeps only genuinely shared types and the shared signature. A level
+folder holds the level's own file, named after the folder (`Product.scala`, `Protocol.scala`), with
+the level's `Phase`, `State` and `Fact` and its primary machine; every other machine, composition or
+derivation has a file of its own named after it, and every facet one named after the facet, so the
+sorted file list shows every machine and its family by name prefix (`RecordOver…`,
+`TrustingRecord…`). The realization folder holds one file per realization, named `<Form><Kind>Run`
+for a form's main one and `<Subject>Run` for any other, and one `Kit.scala` of shared helpers. A
+feature of one level keeps its machine in its feature file. The structure lint holds every Temporal
+Model to this ("Starting a new feature" below), and the standalone activity is the example:
 
 ```text
 features/
   activity/
-    Activity.scala            Timeout, TimeoutType, AttemptResult, worker actions, timers, deadline
+    Activity.scala               Timeout, TimeoutType, AttemptResult, worker actions, timers, deadline
     standalone/
-      StandaloneActivity.scala the form's types and signature, worker bindings; exports
+      StandaloneActivity.scala   the form's types, signature and facet vocabulary
       product/
-        Product.scala          Product Phase, State and Fact, the phase accessors; ActivityProduct
-      system/
-        System.scala                System Phase, Dispatch, State and Fact; ActivityProtocol, the lifecycle machine
-        Completion.scala            completion on the unchanged lifecycle
-        RetryFailures.scala         failure retry and exhaustion
-        RetryTimeouts.scala         TimeoutRetry, the derived attempt-timeout retry model
-        Cancellation.scala          cancellation request and worker settlement
-        Pausing.scala               completion after pause and resume
-        Timeouts.scala              terminal deadlines; record-only CompetingTimeouts without a realization
-        Heartbeat.scala             derived heartbeat completion, retry and exhaustion models
-        ResponseByID.scala          ByIDCompletion, ByIDFailure, ByIDCancellation
-        Reset.scala                 ResetSettlement, ResetKeepingPause, DeferredReset
-        Dispatch.scala              the dispatch protocol: ActivityRecord, TrustingActivityRecord
-        DispatchEligibility.scala   start eligibility and delayed completion
-        DispatchRaces.scala         held delivery and lost start responses: HeldDispatch, LostStartAnswer
-        DispatchWithTaskQueue.scala the queue compositions: RecordMember, TrustingRecordMember, RecordOverQueue, …
-        DispatchWithWorker.scala    StandaloneActivityState; ActivityWorker, StandaloneActivity
-        Realization.scala           the System realizations: standalone, heldDelivery, lostAdmissionResponse;
-                                    CompletionExecution, RetryFailuresExecution, CancellationExecution,
-                                    PausingExecution, DispatchExecution, TimeoutsExecution
+        Product.scala            Product Phase, State and Fact; ActivityProduct
+        Cancellation.scala …     its facets: Cancellation, Completion, Dispatching, Heartbeat,
+                                 Lifecycle, Pausing, Reset, Retry, Timeouts
+      protocol/
+        Protocol.scala           Protocol Phase, Dispatch, State and Fact; ActivityProtocol
+        Cancellation.scala …     its facets, the same names, each with its claims
+        ActivityRecord.scala     the dispatch protocol's admission record (facet Admission)
+        TrustingActivityRecord.scala, HeldDispatch.scala (HeldAdmission), LostStartAnswer.scala
+                                 (ResponseLoss): the admission designs and races
+        RecordMember.scala, RecordOverQueue.scala, RecordOverMatching.scala, …: the dispatch designs
+                                 composed with the shared task queue
+        ActivityWorker.scala, StandaloneActivity.scala: the worker of its task queue and the Protocol
+                                 composed with it
+        DispatchingActivity.scala, ServingWorker.scala, ServedDispatch.scala, UnservedDispatch.scala:
+                                 bounded dispatch progress
+      realization/
+        StandaloneActivityRun.scala   the main realization; each names the Queries it runs
+        HeartbeatThenCompletionRun.scala, HeldDispatchRun.scala, LostStartAnswerRun.scala, …
+        Kit.scala                shared requests, reads and the status table
   nexus/
-    Nexus.scala                shared Reply, Resolution, Outcome and signature; no form dependency
+    Nexus.scala                  shared Reply, Resolution, Outcome, signature and facet vocabulary
     shared/
       product/
-        Product.scala          Product Phase, State and Fact; NexusProduct, refined by both forms
+        Product.scala            Product Phase, State and Fact; NexusProduct, refined by both forms
     workflow/
-      WorkflowNexus.scala      shared types and signature; workflow, control and close exports
-      Realization.scala
+      WorkflowNexus.scala        the form's types and signature
       protocol/
-        Protocol.scala         Protocol Phase, State and Fact; NexusProtocol, HandlerWorker, NexusCaller
-        TrustingCaller.scala   TrustingCaller, the forged control
-        ClosePolicy.scala      RejectAfterClose and the eight designs derived from it
+        Protocol.scala           Protocol Phase, State and Fact; NexusProtocol
+        HandlerWorker.scala, NexusCaller.scala, TrustingCaller.scala
+        RejectAfterClose.scala   the close policy, and the eight designs derived from it, a file each
+      realization/
+        WorkflowNexusRun.scala, TrustingCallerRun.scala, Kit.scala
     standalone/
-      StandaloneNexus.scala    local signature and immutable shared-action bindings; standalone export
-      Realization.scala
+      StandaloneNexus.scala      local signature and immutable shared-action bindings
       protocol/
-        Protocol.scala         Protocol Phase, State and Fact; NexusProtocol and its shared-Product refinement
-Bounds.scala                   every bound the Queries run under
+        Protocol.scala           Protocol Phase, State and Fact; NexusProtocol
+      realization/
+        StandaloneNexusRun.scala, Kit.scala
+Bounds.scala                     every bound the Queries run under
 foundations/
   taskqueue/
-    TaskQueue.scala            types, signature (the queue's actions, its faults, the storage-loss assumption)
+    TaskQueue.scala              types, signature (the queue's actions, its faults, the storage-loss assumption)
     product/
-      Product.scala            TaskQueueProduct, the opaque contract, and its storage-loss variant
-    system/
-      System.scala             TaskQueueProtocol, the provider that refines it, and the lossy, forgetful and
-                               volatile providers
+      Product.scala              TaskQueueProduct, the opaque contract
+      TaskQueueProductUnderStorageLoss.scala
+    protocol/
+      Protocol.scala             TaskQueueProtocol, the provider that refines it
+      ForgetfulQueue.scala, LossyMatchingQueue.scala, VolatileQueue.scala
 actors/
   client/
-    Client.scala               the caller of Temporal's public API
+    Client.scala                 the caller of Temporal's public API
   worker/
-    Worker.scala               Polling
+    Worker.scala                 Polling
 ```
 
-A form's System may refine its own Product or the Product of its enclosing kind. It may not refine
+A form's Protocol may refine its own Product or the Product of its enclosing kind. It may not refine
 another kind's or another form's Product. Both Nexus forms refine the kind-owned Product and check
-its source-rooted terminalIsFinal Property; only their System levels describe retries, deadlines or
+its source-rooted terminalIsFinal Property; only their Protocol levels describe retries, deadlines or
 standalone controls. The kind-level Product shape is also proved by the `relay`
 fixture in `model/irgen/testdata/layout/kinds/`.
 
 The files of one level folder share its package, so their top-level names are shared too. The
-level's `Phase`, `State` and `Fact` sit in its own `Product.scala` or `System.scala`; a subject's own
-types, signature and givens sit in its file, and a given another subject must not see lives in an
-object of its own or in its type's companion, as the close policy's `Answer`'s `Ok` does.
-
-The standalone activity's executable realizations live in `system/Realization.scala`, beside the
-System subjects they execute; the root's exports name the typed objects directly (`system.Standalone`,
-`system.HeldDelivery`, `system.LostAdmissionResponse`). A Product realization is added only when the
-Product has an executable realization. Nexus realizations retain their root placement. Every object
-extends `Realizes(machine)` or `DerivesFrom(base, machine)`, so its facts, action bindings and
-derived defaults are checked against that machine.
+level's `Phase`, `State` and `Fact` sit in its own `Product.scala` or `Protocol.scala`; a subject's
+own types, signature and givens sit in its file, and a given another subject must not see lives in
+an object of its own or in its type's companion, as the close policy's `Answer`'s `Ok` does. A
+realization object extends `Realizes(machine, runs = Seq(...))` or `DerivesFrom(base, machine,
+runs = ...)`, so its facts, action bindings and derived defaults are checked against that machine,
+and names the find Queries it runs (fn-162); a find Query no realization names is model-only.
 
 A Model folder holds no file named by kind (`Model.scala`, `Properties.scala`, `Queries.scala`,
 `Capabilities.scala`, `IrFiles.scala`): `TestRetiredModelPathsStayRetired` in `tools/umpire/ir`
@@ -816,9 +817,8 @@ A feature file reads in this order:
 3. its signature: entities, inputs, the actor objects and the objects that group its other actions
    and timers, observations, choices, bounds, the top-level `given`s and the field accessors its
    `is { }` and `effect { }` blocks read and assign by;
-4. one object per machine or composition, in dependency order: a refined machine before the one that
-   refines it, a base machine before those derived from it, the members of a composition before it;
-5. `object exports`, its `irFile` roots.
+4. its machine or composition object, where the feature has one level (a level's machines sit in
+   their own files).
 
 A machine object is the machine: `object ActivityProduct extends Machine[State, Outcome, Fact]`
 (`framework.Machine`), in the `product` package that owns those types, named after its object with the first letter lowered
@@ -1125,7 +1125,7 @@ and `Composition`, the phase projection `Phased`, the derivations `rebind`, `ext
 `Step` and `because`, `Declares[S]`, `property` with `holds`, `holdsAcross` and `when`, `monitor`,
 `leadsTo`, `Syncs` with `sync` (named or after its first member's action), `synced`, `own` and
 `withMember`, `scenario`, `query` (named or after its Scenario and Property), `Limits`, `.total`,
-`Capabilities`, `choose`, `irFile`, and the realization declarations, among them the script helpers `rpc`,
+`Capabilities`, `choose`, and the realization declarations, among them the script helpers `rpc`,
 `readUntil`, `withFields`, `perform`, `onPath`, `everyCase`, `script`, `command` and `statusTable`, `Actuator`,
 `MonitorExpectation` and the kit's roles and bindings. Sugar is a form whose meaning a core form
 already says: the rules (`Rules` with `on`, `from`, `when`, `where`, `always` and `disabled`), `implies`,
@@ -1209,7 +1209,7 @@ line, as `lift: <file>:<line>: …`:
 | (a) | a `val` read while its object initializes, before the object declares it: it is still `null` there | declare it before the declaration that reads it |
 | (b) | a cycle of objects, files' top levels and the objects nested in them, each read while the one before it initializes | read it in a `def`, a lambda or a lazy `val`, or move what is read into an object of its own, as the System's `capabilities` is |
 | (c) | in a feature file, a declaration out of the order above: at the top level, or among a machine object's header and sections, or a Scenario after a Query in `queries` | move it |
-| (d) | in a feature file, a declaration outside its place: a step function outside `effects`, vocabulary outside `states`, a refinement member outside `refinement`, a monitor outside `monitors`, a hand-written `action ~> step` in a machine object (outside `rebind`), a Property outside `properties`, capabilities outside `capabilities`, a Scenario or Query outside `queries`, any of them or a machine at the top level, an IR file outside `exports`, a section nested in a section or outside a machine, composition or file top level, a Property, capabilities or Scenario over another object's machine, a Query over another object's Scenario (but a Query whose Scenario is written in it may sit in the `queries` of another machine object of its package, the one its IR file is about, as `competingTimers` over `ActivityProtocol` sits in `ActivityRecord.queries`); beside a feature file, a Model declaration in another file; and in a Model folder with no feature file, a Model declaration in a file not named after the folder | move it to the place the message names, or name the file after its folder |
+| (d) | in a feature file, a declaration outside its place: a step function outside `effects`, vocabulary outside `states`, a refinement member outside `refinement`, a monitor outside `monitors`, a hand-written `action ~> step` in a machine object (outside `rebind`), a Property outside `properties`, capabilities outside `capabilities`, a Scenario or Query outside `queries`, any of them or a machine at the top level, a section nested in a section or outside a machine, composition or file top level, a Property, capabilities or Scenario over another object's machine, a Query over another object's Scenario; beside a feature file, a Model declaration in another file; and in a Model folder with no feature file, a Model declaration in a file not named after the folder | move it to the place the message names, or name the file after its folder |
 
 A read inside a `def`, a lambda, a by-name argument or a lazy `val`, and an object declared but never
 read while another initializes, initializes nothing and is not refused; a context function the DSL
@@ -1268,9 +1268,9 @@ incomplete or overlapping remainder is refused (`model/irgen/testdata/enumPatter
 
 The generic law tests (`model/framework/MachineLaws.test.scala`, run over the Models by
 `model/temporal/ExportedLaws.test.scala`)
-find their machines themselves: every machine and composition the `irFile` exports reach, through
-derivations, refinements, compositions, Queries, capabilities and realizations. A machine added to
-an export is checked without a test edit for refinement totality and closedness, repeatable ordered
+find their machines themselves: every machine and composition the features' packages declare reach
+(`IrFile.discover`), through derivations, refinements, compositions, Queries, capabilities and
+realizations. A machine added to a feature is checked without a test edit for refinement totality and closedness, repeatable ordered
 results and its binding order (`model/testdata/binding-order.tsv`); each law a machine cannot meet
 is printed with its reason. A test whose subject is a `Finite` domain iterates the whole domain, and
 `MachineTablePins` holds every activity and Nexus machine's interpreter-built table to the pins in
@@ -1284,21 +1284,24 @@ checking could prove of `Draft` and what adopting it would cost.
 
 Copy the template, `model/irgen/testdata/layout/lamp/`, to `model/temporal/features/<feature>/`, and
 name its feature file after the folder and its machines after the feature. A feature whose Models
-include a refinement pair keeps only shared types, its signature and `object exports` in that file;
-its Product `Phase`, `State`, `Fact` and machine live in `product/Product.scala`, and its System
-counterparts in `system/System.scala`, with each zoom-in in a file of its own beside it. A feature of
-one level keeps its machines in its feature file and has neither folder.
+include a refinement pair keeps only shared types and its signature in that file; its Product
+`Phase`, `State`, `Fact` and machine live in `product/Product.scala`, and its Protocol counterparts
+in `protocol/Protocol.scala`, with each other machine, facet and zoom-in in a file of its own beside
+it, and its realizations in `realization/`. A feature of one level keeps its machine in its feature
+file and has no level folder.
 For a kind with related forms, create its general file and put each form's feature folder beneath
 it, following `model/irgen/testdata/layout/kinds/`. An optional kind Product can serve both forms;
-each form's System then refines that Product and keeps its own `system/System.scala`. The three
+each form's Protocol then refines that Product and keeps its own `protocol/Protocol.scala`. The three
 kind-layout refusal specimens are in `model/irgen/testdata/layout/r4/`, each pinned at its source
 line by the fixture tests.
 The structure lint (`model/irgen/Structure.scala`, fn-126 R20) refuses any other layout, and an
 object in a machine object named other than `states`, `refinement`, `effects`, `monitors`, `rules`,
 `syncs`, `properties`, `capabilities` or `queries`; its refusal fixtures are under
-`model/irgen/testdata/layoutRefusals/`. It holds every feature under `model/temporal/`, and a lifter
-fixture once it has a `product/` or `system/` folder. A file of a level folder reads in a feature
-file's order, without `object exports`, which only the root feature file holds.
+`model/irgen/testdata/layoutRefusals/`. It holds every feature under `model/temporal/`, where it also
+refuses a second machine in a file, a machine in a file not named after it, and a realization
+outside `realization/` or not named `…Run`; and a lifter fixture once it has a `product/`,
+`protocol/` or `system/` folder (the fixtures still use the former name `system/`). A file of a
+level folder reads in a feature file's order.
 
 ### Facets
 
@@ -1426,8 +1429,8 @@ repeat its projection.
 **The worked example.** The standalone activity declares its capabilities in two declarations, the
 `capabilities` objects of its `ActivityProduct` in
 `model/temporal/features/activity/standalone/product/Product.scala` and its `ActivityProtocol` in
-`system/System.scala`, each the declaration of the machine it sits in. The IR file explicitly names
-each capability section as a root (`ActivityProduct.capabilities` and `ActivityProtocol.capabilities`):
+`protocol/Protocol.scala`, each listing the capabilities its facets declare (fn-161); the feature's IR
+file collects each capability section as a root:
 
 ```scala
 import temporal.capabilities.*
@@ -1555,10 +1558,8 @@ but are not lint findings.
    `temporal.capabilities.*`, written `object capabilities extends Capabilities` with one
    `val name: Capability = Kind(…)` per capability. A waiver is a statement of its body,
    `except(Kind.property, because = …)` or `overriding(Kind.property -> ownDef, because = …)`.
-2. Bind it in the machine's `queries` section with `capabilities.bound(limits)` and explicitly
-   include its capability section in the folder's `irFile` roots. A machine root or bound statement
-   alone does not expand capabilities. `exports.nexusWorkflow` roots `NexusProtocol.capabilities`
-   after its existing roots, preserving their order.
+2. Bind it in the machine's `queries` section with `capabilities.bound(limits)`; the feature's IR
+   file collects the capability section from its package.
    Pass `Kind.property -> otherLimits` after the default limits when one generated Query needs a
    different bound.
 3. Run `make umpire-gen-model`: it writes the generated Properties, Queries and Cases. A Property

@@ -368,7 +368,6 @@ final private[irgen] class Structure(index: Index):
   ): Option[(Source, ClassDef)] =
     val pkg = sources.head.feature
     val name = pkg.split('.').last
-    val shared = general || Set("foundations", "actors")(pkg.split('.').reverse(1))
     // The root folder: a source's folder less the folders of its subpackage.
     val root = rootOf(sources)
     // A form's root feature file is named after the form and its kind, `StandaloneActivity.scala`
@@ -448,7 +447,7 @@ final private[irgen] class Structure(index: Index):
         val two = s"${plain(machine.name)} refines ${plain(product.name)}, so $name has two " +
           s"levels, each in its folder: the Product in product/Product.scala, the $Lower in " +
           s"$lower/$Lower.scala, beside the root feature file named after the feature's folder, " +
-          "which holds shared types, the signature and object exports (model/irgen/testdata/" +
+          "which holds shared types and the signature (model/irgen/testdata/" +
           "layout/lamp is the template)"
         if rootFile.isEmpty then refuse(refinement, s"$two; $root has no root feature file")
         val required = Option.when(!inheritedLevels)(systemPath).toSeq ++
@@ -472,7 +471,7 @@ final private[irgen] class Structure(index: Index):
           refuse(
             c,
             s"${plain(c.name)} is a machine object in $name's root folder, $root, whose " +
-              "feature file holds shared types, the signature and object exports alone: a " +
+              "feature file holds shared types and the signature alone: a " +
               s"feature with two levels declares its machines in product/ and $lower/"
           )
         else if !s.level && !general && !kindForm then
@@ -684,26 +683,13 @@ final private[irgen] class Structure(index: Index):
           "level of the file, in the signature, and anything else in one of these"
       )
 
-    // (c): one object exports, in the root feature file.
-    val exports =
-      for s <- sources; c <- s.objects if plain(c.name) == "exports"
-      yield (s, c) // scalafix:ok DisableSyntax.==; typed equality
-    for (s, c) <- exports if !rootFile.contains(s) do
+    // An IR file is collected from the feature's package (fn-160): nothing lists one.
+    for s <- sources; c <- s.objects if plain(c.name) == "exports" do // scalafix:ok DisableSyntax.==; typed equality
       refuse(
         c,
-        s"object exports sits in ${s.path}, not in $name's root feature file: a feature names its " +
-          "IR files in one object exports, there"
+        s"object exports sits in ${s.path}: a feature's IR file is collected from its package, " +
+          "so nothing names its roots"
       )
-    if !shared then
-      // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
-      for s <- rootFile if !exports.exists(_._1 == s); first <- s.top.headOption
-      // scalafix:on DisableSyntax.==
-      do
-        refuse(
-          first,
-          s"$name declares no object exports in its root feature file, ${s.path}: a feature " +
-            "under features names its IR files there, in one object exports"
-        )
     for
       product <- localProduct;
       source <- sources.find(_.path == productPath) // scalafix:ok DisableSyntax.==; typed equality

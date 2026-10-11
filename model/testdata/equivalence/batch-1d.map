@@ -56,3 +56,9 @@ temporal.features.activity.standalone.system.LostAdmissionResponse temporal.feat
 temporal.features.nexus.standalone.Standalone temporal.features.nexus.standalone.realization.StandaloneNexusRun
 temporal.features.nexus.workflow.AsyncNexus temporal.features.nexus.workflow.realization.WorkflowNexusRun
 temporal.features.nexus.workflow.ForgedControl temporal.features.nexus.workflow.realization.TrustingCallerRun
+# fn-160.2: one IR file per feature, collected from its package; the task queue's Queries have a
+# file of their own (IR and Case file names only).
+activity-standalone-record activity-standalone
+activity-standalone-race activity-standalone
+nexus-workflow-control nexus-workflow
+nexus-workflow-close nexus-workflow

@@ -173,6 +173,3 @@ object BackwardsComposition extends Composition[Pair](_.left -> Switch, _.right 
 
   object syncs extends Syncs:
     sync(_.left -> hand.flip, _.right -> hand.flip)
-
-object exports:
-  val switchFile = irFile("switch")(Switch)

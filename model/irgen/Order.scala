@@ -541,35 +541,27 @@ final private[irgen] class Order(index: Index):
     "its header",
     "its types",
     "its signature",
-    "its machine and composition objects",
-    "object exports"
+    "its machine and composition objects"
   )
 
   // A feature file's layout, or, where `level`, a level folder's file's, whose order ends with its
-  // machine and composition objects: its `object exports` is refused by the structure lint (R20).
+  // machine and composition objects (an IR file is collected from the feature's package, fn-160).
   private def featureLayout(declared: List[Definition], level: Boolean): Unit =
     // (c): the file's order, each top-level declaration by its rank in it.
     def rank(d: Definition): Int = objectOf(d) match
       case Some(c) =>
         // scalafix:off DisableSyntax.==; strictEquality checks native comparisons
-        if plain(c.name) == "exports" then
-          // scalafix:on DisableSyntax.==
-          if level then -1 else 4
-        else if holdsModel(c) then 3
+        if holdsModel(c) then 3
         else 2
       case None =>
         d match
           case _: ClassDef | _: TypeDef => 1
           case _                        => 2
-    if level then ordered(declared, rank, fileOrder.init, "a level folder's file")
-    else ordered(declared, rank, fileOrder, "a feature file")
+    ordered(declared, rank, fileOrder, if level then "a level folder's file" else "a feature file")
 
     // (d): the top level declares no Model; a machine object and its sections hold them.
     for d <- declared do
       objectOf(d) match
-        case Some(c) if plain(c.name) == "exports" => // scalafix:ok DisableSyntax.==; typed equality
-          for m <- members(c) if !kindOf(m).contains(Kind.File) do
-            refuse(m, s"${m.name} is declared in exports, which holds the feature's IR files alone")
         // A section of a machine object's name sits in it, not at the top level (R17).
         case Some(c) if sectionNamed(c).nonEmpty =>
           refuse(

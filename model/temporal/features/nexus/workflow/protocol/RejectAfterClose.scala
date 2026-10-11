@@ -19,8 +19,7 @@
 // conditional on); then one object per design -- RejectAfterClose, the first, whose status sets,
 // effects, monitors and declaring functions every design reads, and the eight designs derived from
 // it, each with its own progress claim and Queries. A subject of the Protocol level, beside
-// protocol/Protocol.scala (fn-126 decisions 16 and 22); its IR file is among the feature's exports, in
-// WorkflowNexus.scala. The faulty policies and resets are deliberately wrong designs, marked as
+// protocol/Protocol.scala (fn-126 decisions 16 and 22); its IR file is the feature's, nexus-workflow. The faulty policies and resets are deliberately wrong designs, marked as
 // negative controls.
 package temporal
 package features.nexus

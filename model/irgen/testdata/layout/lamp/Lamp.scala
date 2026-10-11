@@ -2,8 +2,8 @@
 // feature"). A feature whose Models include a refinement pair has two levels, each in a folder of
 // its own, because different people read them:
 //
-//   - Lamp.scala, this file, named after the feature's folder: the shared types, the signature and
-//     `object exports`, and no machine or level-owned vocabulary;
+//   - Lamp.scala, this file, named after the feature's folder: the shared types and the signature,
+//     and no machine or level-owned vocabulary; its IR file is collected from its package;
 //   - product/Product.scala: Product Phase, State and Fact; LampProduct, what a caller reads,
 //     which refines nothing;
 //   - system/System.scala: System Phase, State and Fact; LampSystem, how the server gets there,
@@ -45,11 +45,3 @@ given Ok[Outcome] = Ok(Outcome.accepted)
 
 // One step, one action: the bounds the Queries of every level run within.
 val one = Limits(steps = 1, actions = 1, search = 8)
-
-// ### Exports
-// The feature's IR files, one `object exports` per feature, in this file alone; each val is named
-// after its file and names its roots, in every level.
-
-object exports:
-  val lamp =
-    irFile("lamp")(LampProduct, OnlyOn, LampSystem, OnlyClosed, Bulb, LampRealization.system)

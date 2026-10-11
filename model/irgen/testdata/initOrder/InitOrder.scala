@@ -106,7 +106,3 @@ object Dimmer extends Machine[Lamp, Outcome, Nothing]:
   object rules extends Rules
 
   object capabilities extends Dimmed(this)
-
-object exports:
-  val switchFile = irFile("switch")(Switch)
-  val note = "the switch" // exports holds IR files alone

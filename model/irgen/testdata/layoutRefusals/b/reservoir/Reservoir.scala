@@ -28,6 +28,3 @@ object user extends Actor:
   val fill = action(this)
 
 given Ok[Outcome] = Ok(Outcome.accepted)
-
-object exports:
-  val reservoir = irFile("reservoir")(ReservoirProduct, ReservoirSystem)

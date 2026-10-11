@@ -34,6 +34,3 @@ object Stray extends Machine[Kettle, Outcome, Nothing]:
 
   object rules extends Rules:
     on(cook.boil)(where(!_.hot) ~> effects.boiled)
-
-object exports:
-  val kettle = irFile("kettle")(KettleProduct, KettleSystem)

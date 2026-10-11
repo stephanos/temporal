@@ -10,7 +10,7 @@
 // (model/irgen/testdata/layout/lamp is the template):
 //
 //   - this file: the shared types; the signature (the entities, the inputs, the actors with their
-//     actions, the derived observation and the timers); and last exports, its IR files;
+//     actions, the derived observation and the timers);
 //   - ../shared/product/Product.scala: Product Phase, State and Fact; NexusProduct, the kind's
 //     machine, what an operation does;
 //   - protocol/Protocol.scala: Protocol Phase, State, Fact, timer and composition types;
@@ -26,8 +26,6 @@ package features.nexus
 package workflow
 
 import framework.*
-import shared.product.NexusProduct
-import protocol.{HandlerWorker, NexusCaller, NexusProtocol}
 
 // ### Types
 //
@@ -99,49 +97,3 @@ object deadline:
   val scheduleToClose = timer
   val scheduleToStart = timer
   val startToClose = timer
-
-// ### The checked-in IR files of the Nexus caller Model and its close and reset designs (framework.irFile).
-
-object exports:
-  // The functional Queries and the realization that runs them are roots beside the machines: Go
-  // lowers each Query's witness through the realization into a Testpilot Case (tools/umpire/lower).
-  // The product claim read on a Protocol path and the cross-entity Query, which carries the
-  // composition with the handler's worker and its claim, are roots too.
-  val nexusWorkflow = irFile("nexus-workflow")(
-    NexusProduct,
-    NexusProtocol,
-    HandlerWorker,
-    NexusCaller,
-    temporal.actors.worker.Polling,
-    NexusProtocol.queries,
-    NexusCaller.queries,
-    realization.WorkflowNexusRun,
-    NexusProtocol.capabilities
-  )
-
-  // The forged completion a caller must refuse, and the realization that offers it.
-  val nexusWorkflowControl =
-    irFile("nexus-workflow-control")(protocol.TrustingCaller.queries, realization.TrustingCallerRun)
-
-  // The close and reset designs. Each design's Queries are a root, and so is each progress claim.
-  val nexusWorkflowClose = irFile("nexus-workflow-close")(
-    protocol.RejectAfterClose.queries,
-    protocol.AckByOriginal.queries,
-    protocol.RetainAndRoute.queries,
-    protocol.ForgetsCancelOnReset.queries,
-    protocol.TruncatesOnReset.queries,
-    protocol.RetainAndRouteBoundedRetry.queries,
-    protocol.RejectAfterCloseWithDeadline.queries,
-    protocol.AckByOriginalWithDeadline.queries,
-    protocol.RetainAndRouteWithDeadline.queries,
-    protocol.RejectAfterClose.properties.rejectAfterCloseProgress,
-    protocol.AckByOriginal.properties.ackByOriginalProgress,
-    protocol.RetainAndRoute.properties.retainAndRouteProgress,
-    protocol.RetainAndRouteBoundedRetry.properties.retainAndRouteBoundedRetryProgress,
-    protocol.RejectAfterCloseWithDeadline.properties.rejectAfterCloseWithDeadlineProgress,
-    protocol.AckByOriginalWithDeadline.properties.ackByOriginalWithDeadlineProgress,
-    protocol.RetainAndRouteWithDeadline.properties.retainAndRouteWithDeadlineProgress,
-    protocol.RetainAndRoute.properties.retainedReachesOwner,
-    protocol.RetainAndRoute.properties.retainedWaitsWithoutRecovery,
-    protocol.RetainAndRouteBoundedRetry.properties.retainedReachesOwnerBoundedRetry
-  )

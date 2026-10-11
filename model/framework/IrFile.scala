@@ -6,22 +6,11 @@ import java.util.jar.JarFile
 import scala.jdk.CollectionConverters.*
 import framework.realize.Realization
 
-// A checked-in IR file, `model/ir/<name>.json`, and the declarations that are its roots, named by
-// value beside the Models it holds:
-//
-// {{{
-// val orders =
-//   irFile("orders")(OrdersSystem.queries.delayed, OrdersRealization.delayed)
-// }}}
-//
-// The IR generator (model/irgen) reads every such val and writes each file, in one run, from its
-// roots and everything they reach, as it lifts the roots named on its command line. A root is a
-// machine or composition object, a Query, a list of Queries, a progress claim, a realization, a
-// `capabilities` section, which declares its object's capabilities, or a `queries`
-// section, which roots every Query it declares; the generator refuses anything else. A declaration
-// may be a root of several files and is lifted into each; one no file names stays out of model/ir,
-// so a design can be kept out of the checked files. The file's `source` lists its roots' fully
-// qualified names.
+// A checked-in IR file, `model/ir/<name>.json`: one per feature, collected from the feature's
+// package (fn-160), as the IR generator (model/irgen) collects it: its machines, compositions,
+// realizations and their `queries` and `capabilities` sections, and everything they reach. Nothing
+// lists them, so no declaration is left out by omission. The step tables and the model tests read
+// the same collection (`discover`).
 final class IrFile private[framework] (val name: String, val roots: Seq[IrRoot]):
   // Every reachable declaration, retaining the typed instances and their finite witnesses.
   def subjects(): Vector[Model] = traverse()._2
@@ -70,7 +59,12 @@ final class IrFile private[framework] (val name: String, val roots: Seq[IrRoot])
       case p: Progress[?]           => model(p.machine)
       case r: Realization           => model(r.machine)
       case c: Capabilities[?, ?, ?] => model(c.model)
-      case section: AnyRef          => IrFile.queriesOf(section).foreach(root)
+      case section: AnyRef          =>
+        scala.util
+          .Try(section.getClass.getMethod("machine").invoke(section))
+          .toOption
+          .collect { case m: Model => m }
+          .fold(IrFile.queriesOf(section).foreach(root))(model)
     roots.foreach(root)
     val subjects = declarations.values.toVector
     val collisions = subjects.groupBy(_.name).filter(_._2.sizeIs > 1)
@@ -92,10 +86,6 @@ final class IrFile private[framework] (val name: String, val roots: Seq[IrRoot])
     declarations.map(_.name).toSet
 
 object IrFile:
-  private[framework] val made = mutable.ArrayBuffer.empty[IrFile]
-
-  // Every IR file declared so far: each `irFile` val of an object that has initialized.
-  def declared: Seq[IrFile] = made.synchronized(made.toSeq)
 
   def identity(model: Model): String = model.getClass.getName.stripSuffix("$").replace('$', '.')
 
@@ -137,29 +127,53 @@ object IrFile:
               .filter(e => e.getName.startsWith(prefix) && e.getName.endsWith("$.class"))
               .foreach(e => classes.add(e.getName.stripSuffix(".class").replace('/', '.')): Unit)
           finally jar.close()
-    val files = classes.toVector.flatMap: name =>
-      val cls = java.lang.Class.forName(name, false, loader)
-      val getters = cls.getDeclaredMethods.toVector
-        .filter(m =>
-          m.getParameterCount.equals(0) && java.lang.reflect.Modifier.isPublic(m.getModifiers) &&
-            classOf[IrFile].isAssignableFrom(m.getReturnType)
-        )
-        .sortBy(_.getName)
-      if getters.isEmpty then Vector.empty
-      else
-        val owner = cls.getField("MODULE$").get(null) // scalafix:ok DisableSyntax.null
-        getters.map(m =>
-          m.invoke(owner) match
-            case file: IrFile => file
-            case other        => throw IllegalStateException(s"$name.${m.getName} returned $other")
-        )
-    val duplicates = files.groupBy(_.name).filter(_._2.sizeIs > 1)
-    require(
-      duplicates.isEmpty,
-      s"duplicate IR export names: ${duplicates.keys.toSeq.sorted.mkString(", ")}"
-    )
-    require(files.nonEmpty, s"no compiled IR exports found in $packagePrefix")
+    // fn-160 R2, R10: one file per feature, collected from its package (model/irgen/Lifting.scala,
+    // `irFiles`): its machine, composition and realization objects and their `queries` and
+    // `capabilities` sections. A facet's `queries`, which no static object holds, reach only its
+    // machine, which the machine object roots already.
+    def module(name: String): Option[AnyRef] =
+      scala.util
+        .Try(java.lang.Class.forName(name, false, loader).getField("MODULE$").get(null)) // scalafix:ok DisableSyntax.null
+        .toOption
+        .collect { case o: AnyRef => o }
+    def machineOf(o: AnyRef): Option[Model] =
+      scala.util
+        .Try(o.getClass.getMethod("machine").invoke(o))
+        .toOption
+        .collect { case m: Model => m }
+    val roots = classes.toVector.flatMap: name =>
+      val section = name.split('$').filter(_.nonEmpty)
+      module(name).toVector.flatMap {
+        case m: Model                                          => Vector(name -> (m, false))
+        case c: Capabilities[?, ?, ?] if section.sizeIs == 2   => Vector(name -> (c, false))
+        case o if section.lastOption.contains("queries") && section.sizeIs == 2 =>
+          Vector(name -> (o, true))
+        case o if machineOf(o).nonEmpty                        => Vector(name -> (o, true))
+        case _                                                 => Vector.empty
+      }
+    val files = roots
+      .groupBy((name, _) => IrFile.featureOf(name.take(name.lastIndexOf('.'))))
+      .toVector
+      .collect {
+        case (Some(file), rs) if file.contains('-') || rs.exists(_._2._2) =>
+          IrFile(file, rs.sortBy(_._1).map(_._2._1))
+      }
+    require(files.nonEmpty, s"no compiled features found in $packagePrefix")
     files.sortBy(_.name)
+
+  // The IR file of a package: a form under a kind, `<kind>-<form>`; a kind's own package, `<kind>`;
+  // a package under `foundations` or `actors`, its name; none for any other package. A form's file
+  // holds whatever it declares; another's only where it declares Queries or realizations.
+  def featureOf(pkg: String): Option[String] =
+    val parts = pkg.split('.').toList
+    val at = parts.indexWhere(Set("features", "foundations", "actors"))
+    if at < 0 then None
+    else
+      parts.drop(at) match
+        case "features" :: kind :: form :: _ if Set("workflow", "standalone")(form) =>
+          Some(s"$kind-$form")
+        case _ :: feature :: _ => Some(feature)
+        case _                 => None
 
   // The Queries and lists of Queries a `queries` section declares, read as the members it declares
   // with no parameter: the section is no class of the framework, so its members are found as the
@@ -176,14 +190,7 @@ object IrFile:
       .sortBy(_.getName)
       .map(_.invoke(section))
 
-// What an IR file names as a root: a machine, a composition, a Query, a list of Queries, a progress
-// claim, a realization, a `capabilities` section, or a `queries` section. A section is no class of
-// the framework, so the
-// type admits any object, and the IR generator refuses one that is none of these.
+// What an IR file collects as a root: a machine, a composition, a Query, a list of Queries, a
+// progress claim, a realization, a `capabilities` section, or a `queries` section. A section is no
+// class of the framework, so the type admits any object.
 type IrRoot = AnyRef
-
-// Declares the IR file `model/ir/<name>.json` and its roots.
-def irFile(name: String)(roots: IrRoot*): IrFile =
-  val file = IrFile(name, roots)
-  IrFile.made.synchronized(IrFile.made += file): Unit
-  file

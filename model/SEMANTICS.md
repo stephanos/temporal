@@ -191,7 +191,7 @@ A machine's table is derived from its declaration:
    Where both machines' phases take roles, a refinement also preserves closedness: a state is
    `Closed` exactly when its mapped product state is. The IR carries no roles, so this check is not
    the IR's: it runs in Scala, over every `Finite` state of the refining machine, in the model
-   tests, which find each such refinement among the machines the `irFile` exports reach
+   tests, which find each such refinement among the machines the features' packages reach
    (`model/temporal/ExportedLaws.test.scala`) and report every state whose role differs from its
    image's, with the image. A refinement whose machines carry no roles is reported as not checked.
 7. Its monitors ([Monitors](#monitors)) and its assumptions ([Assumptions](#assumptions)) are the

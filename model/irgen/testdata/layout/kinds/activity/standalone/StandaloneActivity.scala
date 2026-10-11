@@ -10,7 +10,3 @@ object user extends Actor:
   val complete = action(this)
 
 given Ok[Outcome] = Ok(Outcome.accepted)
-
-object exports:
-  val activityStandalone =
-    irFile("fixture-activity-standalone")(product.ActivityProduct, system.ActivitySystem)

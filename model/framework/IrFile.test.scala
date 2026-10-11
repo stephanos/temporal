@@ -81,19 +81,19 @@ object DiscoveryFixtures:
     scripts = Vector.empty
   )
 
-  object exports:
-    val first = irFile("discovery-first")(Original)
-
-  object newOwner:
-    val second = irFile("discovery-added")(Added)
 
 class IrFileDiscoveryTest extends munit.FunSuite:
   import DiscoveryFixtures.*
 
-  test("compiled new owners and derived sources enter the closure without a registry edit") {
-    val files = IrFile.discover("framework")
-    assertEquals(files.map(_.name), Vector("discovery-added", "discovery-first"))
-    val subjects = files.find(_.name.equals("discovery-added")).get.subjects()
+  // fn-160: an IR file is a feature's, named after its package; nothing lists its roots.
+  test("a package's IR file is its feature's") {
+    assertEquals(IrFile.featureOf("temporal.features.activity.standalone.protocol"), Some("activity-standalone"))
+    assertEquals(IrFile.featureOf("temporal.features.nexus.workflow.realization"), Some("nexus-workflow"))
+    assertEquals(IrFile.featureOf("temporal.features.nexus.shared.product"), Some("nexus"))
+    assertEquals(IrFile.featureOf("temporal.foundations.taskqueue.protocol"), Some("taskqueue"))
+    assertEquals(IrFile.featureOf("temporal.actors.worker"), Some("worker"))
+    assertEquals(IrFile.featureOf("framework"), None)
+    val subjects = IrFile("discovery", Seq(Added)).subjects()
     assertEquals(
       subjects.map(IrFile.identity),
       Vector(IrFile.identity(Added), IrFile.identity(Original))
@@ -116,12 +116,12 @@ class IrFileDiscoveryTest extends munit.FunSuite:
     val a = instance
     val b = instance
     val duplicate =
-      intercept[IllegalArgumentException](irFile("duplicate-fixture")(a, b).subjects())
+      intercept[IllegalArgumentException](IrFile("duplicate-fixture", Seq(a, b)).subjects())
     assert(duplicate.getMessage.contains("repeats declaration identity"))
     object Collision extends Derived(Original.restrict(advance)):
       override def name = Original.name
     val collision = intercept[IllegalArgumentException](
-      irFile("collision-fixture")(Original, Collision).subjects()
+      IrFile("collision-fixture", Seq(Original, Collision)).subjects()
     )
     assert(collision.getMessage.contains("colliding model names"))
   }
@@ -161,14 +161,14 @@ class IrFileDiscoveryTest extends munit.FunSuite:
   test(
     "compositions, maps, query sections, progress, capabilities and realizations retain their owners"
   ) {
-    val file = irFile("complete-root-fixture")(
+    val file = IrFile("complete-root-fixture", Seq(
       JoinedReplacement,
       Mapped,
       queries,
       progress,
       capabilityOwner.capabilities,
       realization
-    )
+    ))
     val expected = Vector(
       JoinedReplacement,
       JoinedSource,

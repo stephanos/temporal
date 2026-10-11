@@ -871,7 +871,7 @@ class GateSuite extends munit.FunSuite:
       message,
       s"""model/ir/a.json is stale: line 2 is `  "line": 1` and lifts to `  "line": 2`
          |model/ir/new.json is missing
-         |model/ir/old.json is checked in and nothing produces it: remove it or declare it with irFile
+         |model/ir/old.json is checked in and nothing produces it: remove it, or declare its feature's Queries
          |rerun with --update (make umpire-gen-model); the lifted files are in ${trees.lifted}""".stripMargin
     )
     assertEquals(trees.held, before)
@@ -910,7 +910,7 @@ class GateSuite extends munit.FunSuite:
     assertEquals(
       intercept[GateError](left.settle(update = true)).getMessage,
       "model/ir/a.laws.json is checked in and nothing produces it: " +
-        "remove it or declare it with irFile"
+        "remove it, or declare its feature's Queries"
     )
 
   test("an update writes nothing while a checked-in file is produced by nothing"):
@@ -919,7 +919,7 @@ class GateSuite extends munit.FunSuite:
     val message = intercept[GateError](trees.settle(update = true)).getMessage
     assertEquals(
       message,
-      "model/ir/old.json is checked in and nothing produces it: remove it or declare it with irFile"
+      "model/ir/old.json is checked in and nothing produces it: remove it, or declare its feature's Queries"
     )
     assertEquals(trees.held, before)
 
