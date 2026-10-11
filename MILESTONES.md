@@ -120,7 +120,6 @@ Lint checks and manual acceptance work are set aside for this run at the owner's
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-166.1 | 🔄 in progress | Seven review fixes verified: lifter 195, gate 111 and scoped Go tests pass; four pinned Make entrypoints and partial/no-pin publisher tests pass; all 44 payloads and 340 manifest rows preserved; final guards and re-review remain; held protobuf generation still blocks canonical/fresh real-feature Go validation |
 | fn-166.6 | ⬜ todo | Path-only move of Case manifests and payloads to `generated/cases/`, historical Cases to `generated/cases/legacy/`; after task 1, before realization and final loop proof |
 | fn-166.2 | ⬜ todo | Feature file and product level by subtraction: two facets, cross-facet guard, `Closable`/`Pollable`, a waiver, `verify` and `find` |
 | fn-166.3 | ⬜ todo | Protocol level: refinement, shared input, shared status fact, composition with `sync`, channel, failure model, fair progress, monitor, hole, `Retryable`/`Expirable` with an override |
