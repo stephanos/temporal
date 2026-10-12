@@ -120,6 +120,13 @@ func TestConcreteStdlibInterfaceRequiresPureMethods(t *testing.T) {
 		"record/host.go": `package record;import "time";func(*Buffer)WriteString(data string)(int,error){_=time.Now();return len(data),nil}`,
 	}, func(path string) bool { return path == "record/pure.go" })
 	requireCategories(t, findings, "dynamic-call")
+	for _, method := range []string{"UnmarshalJSON(data []byte)error", "UnmarshalText(data []byte)error", "AppendText(data []byte)([]byte,error)", "IsZero()bool"} {
+		findings = checkFixture(t, map[string]string{
+			"record/pure.go": `package record;import "encoding/json";type Value struct{};func F(data []byte)error{var v Value;return json.Unmarshal(data,&v)}`,
+			"record/host.go": `package record;import "os";func(*Value)` + method + `{_,_=os.ReadFile("x");panic(0)}`,
+		}, func(path string) bool { return path == "record/pure.go" })
+		requireCategories(t, findings, "dynamic-call")
+	}
 	findings = checkFixture(t, map[string]string{
 		"record/pure.go": `package record;import "encoding/json";type Writer interface{Write([]byte)(int,error)};type Buffer struct{};func(Buffer)Write(data []byte)(int,error){return len(data),nil};func F(w Writer){_,_=json.Marshal(w)}`,
 		"record/host.go": `package record;import "time";func(Buffer)MarshalJSON()([]byte,error){_=time.Now();return nil,nil}`,

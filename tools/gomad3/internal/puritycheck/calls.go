@@ -257,7 +257,7 @@ func (a *analysis) callbackValue(typ types.Type, seen map[types.Type]bool) bool 
 			methods := types.NewMethodSet(types.NewPointer(typ))
 			for i := 0; i < methods.Len(); i++ {
 				fn := methods.At(i).Obj().(*types.Func)
-				if !slices.Contains([]string{"MarshalJSON", "MarshalText", "String", "GoString", "Format", "Error", "Unwrap", "Is", "As", "Read", "Write", "WriteString", "ReadFrom", "WriteTo"}, fn.Name()) {
+				if !slices.Contains(callbackMethods, fn.Name()) {
 					continue
 				}
 				if standard && !allowed(path, symbol(fn)) || !standard && !a.p.pure(a.p.functions[functionID(fn)]) {
@@ -285,6 +285,10 @@ func (a *analysis) callbackValue(typ types.Type, seen map[types.Type]bool) bool 
 	}
 	return true
 }
+
+// callbackMethods are the methods admitted json, fmt, errors, io and gzip
+// functions invoke on caller values, including the json v2 and omitzero hooks.
+var callbackMethods = []string{"MarshalJSON", "UnmarshalJSON", "MarshalJSONTo", "UnmarshalJSONFrom", "MarshalText", "UnmarshalText", "AppendText", "IsZero", "String", "GoString", "Format", "Error", "Unwrap", "Is", "As", "Read", "ReadByte", "Write", "WriteString", "ReadFrom", "WriteTo"}
 
 func (a *analysis) callable(pkg *sourcePackage, expr ast.Expr) (string, string) {
 	expr = unparen(expr)
