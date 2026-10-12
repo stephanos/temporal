@@ -259,7 +259,10 @@ at most two resident guests and one visible continuation. Individual cold
 helpers must peak at or below 6 GiB, warm helpers at or below 4 GiB, compiler
 processes at or below 6 GiB and the operator at or below 2 GiB. The two resident
 helpers' per-node measured peak sum must stay at or below 8 GiB; this is a
-conservative bound, not a measurement of simultaneous RSS. Cold preparation
+conservative bound, not a measurement of simultaneous RSS. A helper without
+image telemetry, such as one ended by a modeled crash or stop, has only an
+inherited wait upper bound; it is reported separately and not checked against
+these helper limits. Cold preparation
 has a separate 10-minute budget and is reported separately; individual helper
 execution/replay has a 15-minute budget. Missing process measurements remain an
 explicit budget failure. These declared bounds are not evidence that a

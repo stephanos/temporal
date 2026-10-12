@@ -48,9 +48,14 @@ already reports bytes. Other platforms have no admitted accounting projection.
 On Linux, ru_maxrss also folds in the high-water RSS of the image replaced by
 execve; Go starts children with CLONE_VM|CLONE_VFORK, so a helper's or
 compiler's wait peak is at least the operator's peak at spawn. Helper peak RSS
-therefore uses the helper's own image high water (`VmHWM`) from telemetry and
-falls back to the wait figure only when telemetry is unavailable. Compiler
-peaks remain wait upper bounds.
+therefore uses the helper's own image high water (`VmHWM`) from telemetry, and
+each sample also retains the raw wait figure. An image high water above that
+wait figure is rejected rather than reported. A helper without telemetry, such
+as an incarnation ended by a modeled crash or stop, keeps only the wait figure,
+marked `HostPeakRSSUpperBound`. Such upper bounds are excluded from helper,
+cold-helper and warm-helper peaks and are reported separately as
+`HelperUpperBoundSamples` and `HelperUpperBoundPeakRSSBytes` in both cost and
+budget. Compiler peaks remain wait upper bounds.
 
 Cold preparation and steady-state preparation remain separate from helper
 execution. Compile-cache hits never imply guest-memory, stack or store reuse.
@@ -83,7 +88,8 @@ resident guests and one visible continuation: preparation <=10 minutes,
 individual execution/replay <=15 minutes, compiler peak <=6 GiB, cold-cache-miss
 helper peak <=6 GiB, warm-cache-hit helper peak <=4 GiB, fresh operator lifetime
 peak <=2 GiB. The conservative sum of each resident's observed warm helper maximum
-must be <=8 GiB; it is not measured simultaneous RSS. The originally proposed
+must be <=8 GiB; it is not measured simultaneous RSS. Helper wait upper bounds
+are not checked against these helper limits. The originally proposed
 4 GiB cold-helper ceiling was exceeded by an actual large module; that historical
 breach is retained explicitly, not relabeled as a warm-cache pass.
 

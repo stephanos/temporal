@@ -12,6 +12,9 @@ import (
 // Sample contains observed values only. ReplayableBugSHA256 is populated only
 // after a retained failure artifact actually matches on replay. CPU is combined
 // helper user+system time, including engine work, not inferred guest CPU.
+// HelperWaitPeakRSSBytes is the raw wait4 figure. HostPeakRSSUpperBound marks a
+// helper without image telemetry, such as a modeled crash or stop, whose host
+// peak is only that inherited wait4 upper bound.
 type Sample struct {
 	AuthorizationToTerminalNanos                                                                 uint64
 	Iteration                                                                                    uint64
@@ -21,7 +24,8 @@ type Sample struct {
 	Phase                                                                                        string
 	PreparationWallNanos, EngineCompileNanos, InstantiationNanos, ExecutionWallNanos             uint64
 	CPUNanos, GuestPeakMemoryBytes, HostPeakRSSBytes, FuelUsed, TraceBytes, VirtualTimeNanos     uint64
-	CompileCacheHit                                                                              bool
+	HelperWaitPeakRSSBytes                                                                       uint64
+	CompileCacheHit, HostPeakRSSUpperBound                                                       bool
 	OutcomeSHA256, ReplayableBugSHA256                                                           record.SHA256
 }
 
@@ -34,6 +38,8 @@ type Cost struct {
 	GuestPeakMemoryBytes, HostPeakRSSBytes, FuelUsed, TraceBytes, CompileCacheHits             uint64
 	VirtualToWallRatio, ReplayableBugsPerComputeHour                                           float64
 	GuestVirtualToExecutionWallRatio                                                           float64
+	// Helper wait4 upper bounds are kept out of the helper image peaks above.
+	HelperUpperBoundSamples, HelperUpperBoundPeakRSSBytes uint64
 }
 
 func Summarize(samples []Sample) (Cost, error) {
@@ -50,6 +56,9 @@ func Summarize(samples []Sample) (Cost, error) {
 	for _, sample := range samples {
 		if sample.Phase != "execute" && sample.Phase != "replay" || sample.ExecutionWallNanos == 0 || sample.CPUNanos == 0 || sample.GuestPeakMemoryBytes == 0 || sample.HostPeakRSSBytes == 0 {
 			return Cost{}, errors.New("actual WASM wall, CPU and guest/host peak measurements are required")
+		}
+		if err := sample.checkHelperPeakRSS(); err != nil {
+			return Cost{}, err
 		}
 		if sample.Phase == "replay" {
 			cost.Replays++
@@ -81,6 +90,11 @@ func Summarize(samples []Sample) (Cost, error) {
 			return Cost{}, err
 		}
 		cost.GuestPeakMemoryBytes = max(cost.GuestPeakMemoryBytes, sample.GuestPeakMemoryBytes)
+		if sample.HostPeakRSSUpperBound {
+			cost.HelperUpperBoundSamples++
+			cost.HelperUpperBoundPeakRSSBytes = max(cost.HelperUpperBoundPeakRSSBytes, sample.HostPeakRSSBytes)
+			continue
+		}
 		cost.HostPeakRSSBytes = max(cost.HostPeakRSSBytes, sample.HostPeakRSSBytes)
 	}
 	cost.HelperCPUNanos, cost.HelperPeakRSSBytes = cost.CPUNanos, cost.HostPeakRSSBytes
@@ -95,15 +109,31 @@ func Summarize(samples []Sample) (Cost, error) {
 	return cost, nil
 }
 
-// helperPeakRSS prefers the helper's own image high-water mark. On Linux the
-// wait4 ru_maxrss of a child started with CLONE_VM|CLONE_VFORK (os/exec) also
-// folds in the operator's peak at execve, so it is only a fallback upper bound.
-func helperPeakRSS(telemetry *wasi.Telemetry, usage *hostexec.ResourceUsage) uint64 {
-	if telemetry != nil && telemetry.ResourceUsageAvailable && telemetry.PeakRSSBytes != 0 {
-		return telemetry.PeakRSSBytes
-	}
+// recordHelperPeakRSS prefers the helper's own image high-water mark. On Linux
+// the wait4 ru_maxrss of a child started with CLONE_VM|CLONE_VFORK (os/exec)
+// also folds in the operator's peak at execve, so without telemetry the wait
+// figure is retained only as a marked upper bound.
+func (sample *Sample) recordHelperPeakRSS(telemetry *wasi.Telemetry, usage *hostexec.ResourceUsage) {
+	sample.HostPeakRSSBytes, sample.HelperWaitPeakRSSBytes, sample.HostPeakRSSUpperBound = 0, 0, false
 	if usage != nil {
-		return usage.PeakRSSBytes
+		sample.HelperWaitPeakRSSBytes = usage.PeakRSSBytes
 	}
-	return 0
+	if telemetry != nil && telemetry.ResourceUsageAvailable && telemetry.PeakRSSBytes != 0 {
+		sample.HostPeakRSSBytes = telemetry.PeakRSSBytes
+		return
+	}
+	sample.HostPeakRSSBytes = sample.HelperWaitPeakRSSBytes
+	sample.HostPeakRSSUpperBound = sample.HostPeakRSSBytes != 0
+}
+
+// checkHelperPeakRSS rejects an image high water above the same process's wait
+// figure (VmHWM <= ru_maxrss on Linux) and an upper bound not taken from wait4.
+func (sample Sample) checkHelperPeakRSS() error {
+	if sample.HostPeakRSSUpperBound && sample.HostPeakRSSBytes != sample.HelperWaitPeakRSSBytes {
+		return errors.New("helper peak RSS upper bound differs from its wait figure")
+	}
+	if sample.HelperWaitPeakRSSBytes != 0 && sample.HostPeakRSSBytes > sample.HelperWaitPeakRSSBytes {
+		return errors.New("helper image peak RSS exceeds its wait figure")
+	}
+	return nil
 }

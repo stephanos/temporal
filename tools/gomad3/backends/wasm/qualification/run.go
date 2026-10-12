@@ -155,7 +155,7 @@ func Run(ctx context.Context, spec Spec) (Result, error) {
 		if metrics.HelperResourceUsage != nil {
 			sample.CPUNanos = metrics.HelperResourceUsage.UserNanos + metrics.HelperResourceUsage.SystemNanos
 		}
-		sample.HostPeakRSSBytes = helperPeakRSS(metrics.Telemetry, metrics.HelperResourceUsage)
+		sample.recordHelperPeakRSS(metrics.Telemetry, metrics.HelperResourceUsage)
 		result.Samples = append(result.Samples, sample)
 		mutex.Unlock()
 		if previous != nil {

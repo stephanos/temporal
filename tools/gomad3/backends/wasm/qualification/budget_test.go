@@ -7,6 +7,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/backends/wasm/backend"
 	"go.temporal.io/server/tools/gomad3/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad3/hostexec"
+	"go.temporal.io/server/tools/gomad3/record"
 )
 
 func TestBudgetRejectsMeasuredOverrunAndMissingResources(t *testing.T) {
@@ -43,15 +44,60 @@ func TestHelperPeakRSSPrefersHelperImageHighWater(t *testing.T) {
 	// Linux wait4 folds the operator's peak at execve into a vfork child.
 	inherited := &hostexec.ResourceUsage{UserNanos: 1, SystemNanos: 1, PeakRSSBytes: 4924080128}
 	own := &wasi.Telemetry{ResourceUsageAvailable: true, PeakRSSBytes: 1269350400}
-	if got := helperPeakRSS(own, inherited); got != own.PeakRSSBytes {
-		t.Fatalf("helper peak %d, want own image high-water %d", got, own.PeakRSSBytes)
+	var sample Sample
+	sample.recordHelperPeakRSS(own, inherited)
+	if sample.HostPeakRSSBytes != own.PeakRSSBytes || sample.HostPeakRSSUpperBound || sample.HelperWaitPeakRSSBytes != inherited.PeakRSSBytes || sample.checkHelperPeakRSS() != nil {
+		t.Fatalf("helper peak %+v, want own image high-water %d", sample, own.PeakRSSBytes)
 	}
 	for _, telemetry := range []*wasi.Telemetry{nil, {}, {ResourceUsageAvailable: true}, {PeakRSSBytes: 1}} {
-		if got := helperPeakRSS(telemetry, inherited); got != inherited.PeakRSSBytes {
-			t.Fatalf("unavailable telemetry %+v: got %d, want wait4 upper bound", telemetry, got)
+		sample.recordHelperPeakRSS(telemetry, inherited)
+		if sample.HostPeakRSSBytes != inherited.PeakRSSBytes || !sample.HostPeakRSSUpperBound || sample.checkHelperPeakRSS() != nil {
+			t.Fatalf("unavailable telemetry %+v: got %+v, want marked wait4 upper bound", telemetry, sample)
 		}
 	}
-	if got := helperPeakRSS(nil, nil); got != 0 {
-		t.Fatalf("missing measurements produced %d", got)
+	sample.recordHelperPeakRSS(nil, nil)
+	if sample.HostPeakRSSBytes != 0 || sample.HostPeakRSSUpperBound {
+		t.Fatalf("missing measurements produced %+v", sample)
+	}
+	// VmHWM <= ru_maxrss for the same process; a larger image figure is not trusted.
+	sample.recordHelperPeakRSS(&wasi.Telemetry{ResourceUsageAvailable: true, PeakRSSBytes: inherited.PeakRSSBytes + 1}, inherited)
+	if sample.checkHelperPeakRSS() == nil {
+		t.Fatal("helper image peak above its wait figure accepted")
+	}
+}
+
+func TestHelperUpperBoundsStayOutOfImagePeaks(t *testing.T) {
+	commands := []backend.CompilerCommandMetrics{{ResourceUsage: &hostexec.ResourceUsage{PeakRSSBytes: 1 << 30}}}
+	warm := Sample{Phase: "execute", Incarnation: "a/1", CompileCacheHit: true, HelperWallNanos: 1, ExecutionWallNanos: 1, CPUNanos: 1, GuestPeakMemoryBytes: 1, OutcomeSHA256: record.HashBytes(nil)}
+	warm.recordHelperPeakRSS(&wasi.Telemetry{ResourceUsageAvailable: true, PeakRSSBytes: 1 << 30}, &hostexec.ResourceUsage{PeakRSSBytes: 3 << 30})
+	cold := warm
+	cold.Incarnation, cold.CompileCacheHit = "a/2", false
+	cold.recordHelperPeakRSS(&wasi.Telemetry{ResourceUsageAvailable: true, PeakRSSBytes: 2 << 30}, &hostexec.ResourceUsage{PeakRSSBytes: 3 << 30})
+	// A modeled crash or stop ends without telemetry; its wait figure includes
+	// the operator's peak inherited at execve.
+	crashed := warm
+	crashed.Incarnation, crashed.CompileCacheHit = "a/3", false
+	crashed.recordHelperPeakRSS(nil, &hostexec.ResourceUsage{PeakRSSBytes: 7 << 30})
+	samples := []Sample{warm, cold, crashed}
+	budget, err := EvaluateBudget(samples, commands, 1, 1, 1<<20)
+	if err != nil || !budget.WithinBudget || budget.ColdHelperPeakRSSBytes != 2<<30 || budget.WarmHelperPeakRSSBytes != 1<<30 || budget.HelperPeakRSSBytes != 2<<30 || budget.HelperUpperBoundSamples != 1 || budget.HelperUpperBoundPeakRSSBytes != 7<<30 {
+		t.Fatalf("upper bound counted as helper image peak: %+v %v", budget, err)
+	}
+	cost, err := Summarize(samples)
+	if err != nil || cost.HostPeakRSSBytes != 2<<30 || cost.HelperPeakRSSBytes != 2<<30 || cost.HelperUpperBoundSamples != 1 || cost.HelperUpperBoundPeakRSSBytes != 7<<30 {
+		t.Fatalf("upper bound counted as helper image cost: %+v %v", cost, err)
+	}
+	for _, mutate := range []func(*Sample){
+		func(sample *Sample) { sample.HostPeakRSSBytes = 3<<30 + 1 },
+		func(sample *Sample) { sample.HostPeakRSSUpperBound = true },
+	} {
+		tampered := append([]Sample{}, samples...)
+		mutate(&tampered[1])
+		if _, err := EvaluateBudget(tampered, commands, 1, 1, 1<<20); err == nil {
+			t.Fatalf("inconsistent helper peak accepted by budget: %+v", tampered[1])
+		}
+		if _, err := Summarize(tampered); err == nil {
+			t.Fatalf("inconsistent helper peak accepted by cost: %+v", tampered[1])
+		}
 	}
 }

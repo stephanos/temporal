@@ -21,8 +21,10 @@ type BudgetEvaluation struct {
 	OperatorRecommendationExceeded                                                bool
 	PreparationWallNanos, LargestHelperWallNanos                                  uint64
 	CompilerPeakRSSBytes, HelperPeakRSSBytes, ConservativeResidentHelperPeakBytes uint64
-	WithinBudget                                                                  bool
-	Violations                                                                    []string
+	// Helper wait4 upper bounds are reported here, not as cold or warm peaks.
+	HelperUpperBoundSamples, HelperUpperBoundPeakRSSBytes uint64
+	WithinBudget                                          bool
+	Violations                                            []string
 }
 
 func EvaluateBudget(samples []Sample, commands []backend.CompilerCommandMetrics, preparationWall uint64, residentGuests uint64, operatorPeak ...uint64) (BudgetEvaluation, error) {
@@ -42,7 +44,15 @@ func EvaluateBudget(samples []Sample, commands []backend.CompilerCommandMetrics,
 		if sample.HelperWallNanos == 0 || sample.HostPeakRSSBytes == 0 {
 			return budget, errors.New("actual helper wall and process peak RSS are required for budget")
 		}
+		if err := sample.checkHelperPeakRSS(); err != nil {
+			return budget, err
+		}
 		budget.LargestHelperWallNanos = max(budget.LargestHelperWallNanos, sample.HelperWallNanos)
+		if sample.HostPeakRSSUpperBound {
+			budget.HelperUpperBoundSamples++
+			budget.HelperUpperBoundPeakRSSBytes = max(budget.HelperUpperBoundPeakRSSBytes, sample.HostPeakRSSBytes)
+			continue
+		}
 		budget.HelperPeakRSSBytes = max(budget.HelperPeakRSSBytes, sample.HostPeakRSSBytes)
 		if sample.CompileCacheHit {
 			budget.WarmHelperPeakRSSBytes = max(budget.WarmHelperPeakRSSBytes, sample.HostPeakRSSBytes)
