@@ -64,7 +64,7 @@ Enforcement: `framework/` compiles without the Temporal API jar or `temporal.*` 
 
 - **R1:** The generic lifter, checks and migration harness live under `model/framework/{export,check,migrate}` in `framework.*` packages; Temporal-specific parts live under `model/temporal/{export,check,migrate}`.
 - **R2:** `model/framework` (DSL, realize core, lift, check, migrate harness) compiles with no Temporal API jar and no `temporal.*` source on its classpath, enforced by a build/gate check that fails on a violation.
-- **R3:** Temporal specifics reach the generic lifter only through a plug-in seam: layout conventions, realization-kit lifting and target API descriptors are supplied by `temporal/export`.
+- **R3:** Temporal specifics reach the generic lifter only through a plug-in seam: layout conventions, realization-kit lifting and target API descriptors are supplied by `temporal/export`. Protobuf support is generic framework: a system registers its API proto roots and descriptor sets, which the proto lint, the gate's proto stage and realization lifting read; the generic proto authoring sugar lives in `framework/realize`.
 - **R4:** The mini lift is byte-identical except for recorded source-path changes; mini step-table equivalence holds; the targeted suites of the moved code pass at their new homes.
 - **R5:** `MILESTONES.md` Direction, `.plans/UMPIRE_MODULES.md`, `model/README.md` and `AGENTS.md` state the new layout and that the framework is Temporal-free; the fn-114.12/fn-122.8 position is recorded as superseded.
 - **R6 (held, sweep):** The IR schema moves to an Umpire-owned namespace (`umpire.ir.v1`).
@@ -76,6 +76,7 @@ Not in scope: changing Model meaning; the real features' sources; publishing the
 
 ## Decision Context
 
+- 2026-10-12, owner: protobuf support is framework, not Temporal; a system registers its API protos (.2), and the generic proto sugar moves to `framework/realize` (.1).
 - 2026-10-12, owner: `check/` is the umbrella for verification, with `check/lint/` and `check/equivalence/` beneath it and the gate driver at its root.
 - 2026-10-12, owner: the Model-to-IR module is named `export` (`framework/export`, `temporal/export`), not `lift`; the lifter's vocabulary in docs and diagnostics may stay. Go's `tools/umpire/export` (the Quint export) keeps its name.
 - 2026-10-12, owner: the DSL moves into `framework.dsl` in .1; IR type names may change with it (`framework.dsl.Step`, ...), and the Go interpreter's hard-coded names follow in .4.
