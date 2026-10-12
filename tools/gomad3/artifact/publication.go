@@ -7,23 +7,24 @@ import (
 	"slices"
 	"sort"
 
-	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/captured"
+	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
 type ArtifactInput struct {
-	BackendPayloads []target.BackendPayload
-	Manifest        record.ExecutionRecord
-	TargetPath      string
-	Stdout          []byte
-	Stderr          []byte
-	IOTranscript    []byte
-	ChoiceTrace     []byte
-	ReadOnlyMounts  *captured.CapturedInputs
-	World           record.WorldPayloads
-	Simulation      *SimulationPayloads
+	CapabilityManifest *target.CapabilityManifest
+	BackendPayloads    []target.BackendPayload
+	Manifest           record.ExecutionRecord
+	TargetPath         string
+	Stdout             []byte
+	Stderr             []byte
+	IOTranscript       []byte
+	ChoiceTrace        []byte
+	ReadOnlyMounts     *captured.CapturedInputs
+	World              record.WorldPayloads
+	Simulation         *SimulationPayloads
 }
 
 type SimulationPayloads struct {
@@ -70,21 +71,21 @@ func PublishArtifact(store Store, input ArtifactInput) (Artifact, error) {
 		if manifest.Target.CapabilityManifest == nil {
 			return Artifact{}, errors.New("executable target capability manifest record is required")
 		}
-		capabilities, err := target.ReadCapabilityManifest(input.TargetPath, target.ToolchainIdentity{
-			GoVersion: manifest.Toolchain.GoVersion, BuildKey: manifest.Toolchain.BuildKey,
-			TargetGOOS: manifest.Toolchain.TargetGOOS, TargetGOARCH: manifest.Toolchain.TargetGOARCH,
-		})
-		if err != nil {
-			return Artifact{}, fmt.Errorf("extract artifact target capability manifest: %w", err)
+		capabilities := input.CapabilityManifest
+		if capabilities == nil {
+			return Artifact{}, errors.New("executable target capability manifest payload is required")
 		}
 		if actual := capabilities.Record(); *actual != *manifest.Target.CapabilityManifest {
 			return Artifact{}, errors.New("artifact target capability manifest identity changed during publication")
+		}
+		if record.HashBytes(capabilities.Payload) != capabilities.SHA256 || uint64(len(capabilities.Payload)) != capabilities.Bytes {
+			return Artifact{}, errors.New("artifact target capability manifest payload changed during publication")
 		}
 		payloads = append(payloads, Payload{
 			Path: manifest.Target.CapabilityManifest.File, Mode: 0o600, Data: capabilities.Payload,
 			SHA256: manifest.Target.CapabilityManifest.SHA256, Size: manifest.Target.CapabilityManifest.Bytes,
 		})
-	} else if manifest.Target.CapabilityMode != string(target.CapabilityModeClosure) || manifest.Target.CapabilityManifest != nil {
+	} else if manifest.Target.CapabilityMode != string(target.CapabilityModeClosure) || manifest.Target.CapabilityManifest != nil || input.CapabilityManifest != nil {
 		return Artifact{}, errors.New("artifact target capability mode is invalid")
 	}
 	if manifest.IOProfile.Transcript != nil {

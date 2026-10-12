@@ -1,28 +1,13 @@
 package target
 
 import (
-	"context"
 	"errors"
 	"fmt"
-	"os"
-	"path/filepath"
-	"strings"
-	"unicode"
-
-	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
-	"go.temporal.io/server/tools/gomad3/record"
-	targetbuild "go.temporal.io/server/tools/gomad3/target/internal/build"
-	"go.temporal.io/server/tools/gomad3/target/internal/capabilitypolicy"
-	"go.temporal.io/server/tools/gomad3/target/internal/gocommand"
-	"go.temporal.io/server/tools/gomad3/toolchain/installation"
 )
 
 const CapabilityClosureSchema = "gomad3.target-capability-closure/v3"
+
 const CapabilityReviewSchema = "gomad3.target-capability-review/v4"
-const maximumCapabilityReviewOutputBytes = 64 << 20
-const maximumStandardPackagesBytes = 4 << 20
-const maximumCapabilityReviewPackages = 100000
-const maximumCapabilitySourceBytes = 16 << 20
 
 type AdapterCapacityError struct {
 	Resource string
@@ -48,10 +33,6 @@ func (err *InvalidCapabilityReviewError) Unwrap() error {
 func IsInvalidCapabilityReview(err error) bool {
 	var invalid *InvalidCapabilityReviewError
 	return errors.As(err, &invalid)
-}
-
-func invalidCapabilityReview(err error) error {
-	return &InvalidCapabilityReviewError{Err: err}
 }
 
 type CapabilityClosure struct {
@@ -111,7 +92,10 @@ type CapabilityPackageReference struct {
 	Name       string `json:"name"`
 }
 
-type CompatibilityIdentity compatibility.Identity
+type CompatibilityIdentity struct {
+	ID     string `json:"id"`
+	SHA256 string `json:"sha256"`
+}
 
 // CompatibilityPackEvidence is the complete detached evidence selected by policy.
 type CompatibilityPackEvidence struct {
@@ -177,28 +161,30 @@ type CompatibilityLinknameEvidence struct {
 	SHA256     string   `json:"sha256"`
 	Directives []string `json:"directives"`
 }
-type CompatibilityDisposition compatibility.Disposition
-type CompatibilityRemediation compatibility.RemediationCategory
+
+type CompatibilityDisposition string
+
+type CompatibilityRemediation string
 
 const (
-	DispositionAllowedExactPack CompatibilityDisposition = CompatibilityDisposition(compatibility.DispositionAllowedExactPack)
-	DispositionDenied           CompatibilityDisposition = CompatibilityDisposition(compatibility.DispositionDenied)
+	DispositionAllowedExactPack CompatibilityDisposition = CompatibilityDisposition("allowed_by_exact_pack")
+	DispositionDenied           CompatibilityDisposition = CompatibilityDisposition("denied")
 
-	RemediationAddExactPack      CompatibilityRemediation = CompatibilityRemediation(compatibility.RemediationAddExactPack)
-	RemediationAddAdapter        CompatibilityRemediation = CompatibilityRemediation(compatibility.RemediationAddAdapter)
-	RemediationModelOperation    CompatibilityRemediation = CompatibilityRemediation(compatibility.RemediationModelOperation)
-	RemediationRemoveDependency  CompatibilityRemediation = CompatibilityRemediation(compatibility.RemediationRemoveDependency)
-	RemediationRemainUnsupported CompatibilityRemediation = CompatibilityRemediation(compatibility.RemediationRemainUnsupported)
+	RemediationAddExactPack      CompatibilityRemediation = CompatibilityRemediation("add_exact_pack")
+	RemediationAddAdapter        CompatibilityRemediation = CompatibilityRemediation("add_adapter")
+	RemediationModelOperation    CompatibilityRemediation = CompatibilityRemediation("model_operation")
+	RemediationRemoveDependency  CompatibilityRemediation = CompatibilityRemediation("remove_dependency")
+	RemediationRemainUnsupported CompatibilityRemediation = CompatibilityRemediation("remain_unsupported")
 )
 
 type CapabilityFindingKind string
 
 const (
-	FindingForbiddenImport    CapabilityFindingKind = CapabilityFindingKind(capabilitypolicy.KindForbiddenImport)
-	FindingForeignSource      CapabilityFindingKind = CapabilityFindingKind(capabilitypolicy.KindForeignSource)
-	FindingUnapprovedLinkname CapabilityFindingKind = CapabilityFindingKind(capabilitypolicy.KindUnapprovedLinkname)
-	FindingMalformedLinkname  CapabilityFindingKind = CapabilityFindingKind(capabilitypolicy.KindMalformedLinkname)
-	FindingNoReviewedGoSource CapabilityFindingKind = CapabilityFindingKind(capabilitypolicy.KindNoReviewedGoSource)
+	FindingForbiddenImport    CapabilityFindingKind = CapabilityFindingKind("forbidden_import")
+	FindingForeignSource      CapabilityFindingKind = CapabilityFindingKind("foreign_source")
+	FindingUnapprovedLinkname CapabilityFindingKind = CapabilityFindingKind("unapproved_linkname")
+	FindingMalformedLinkname  CapabilityFindingKind = CapabilityFindingKind("malformed_linkname")
+	FindingNoReviewedGoSource CapabilityFindingKind = CapabilityFindingKind("no_reviewed_go_source")
 	FindingDeniedBoundary     CapabilityFindingKind = "denied_boundary"
 )
 
@@ -237,160 +223,4 @@ type UnsupportedCapabilityError struct {
 
 func (err *UnsupportedCapabilityError) Error() string {
 	return fmt.Sprintf("unsupported target capability: package %s %s", err.ImportPath, err.Capability)
-}
-
-func ReviewCapabilityClosure(ctx context.Context, spec Spec) (CapabilityClosure, error) {
-	review, err := ReviewCapabilities(ctx, spec)
-	if err != nil {
-		return CapabilityClosure{}, err
-	}
-	if len(review.Findings) != 0 {
-		return CapabilityClosure{}, unsupportedFinding(review.Findings[0])
-	}
-	return review.Closure, nil
-}
-
-func ReviewCapabilities(ctx context.Context, spec Spec) (CapabilityReview, error) {
-	return reviewCapabilitiesWith(ctx, spec, gocommand.Default())
-}
-
-func reviewCapabilitiesWith(ctx context.Context, spec Spec, runner gocommand.Runner) (CapabilityReview, error) {
-	if spec.Kind != KindGoRun && spec.Kind != KindGoTest {
-		return CapabilityReview{}, invalidCapabilityReview(errors.New("capability review requires a go-run or go-test target"))
-	}
-	tags, err := targetbuild.NormalizeTags(spec.BuildTags)
-	if err != nil {
-		return CapabilityReview{}, invalidCapabilityReview(err)
-	}
-	mode, err := normalizeCapabilityMode(spec.CapabilityMode)
-	if err != nil {
-		return CapabilityReview{}, invalidCapabilityReview(err)
-	}
-	spec.CapabilityMode = mode
-	if spec.Source == "" || spec.WorkingDir == "" || spec.ToolchainRoot == "" {
-		return CapabilityReview{}, invalidCapabilityReview(errors.New("capability review requires source, working directory, and toolchain root"))
-	}
-	if strings.HasPrefix(spec.Source, "-") || strings.Contains(spec.Source, "...") || strings.IndexFunc(spec.Source, unicode.IsSpace) >= 0 || strings.IndexByte(spec.Source, 0) >= 0 {
-		return CapabilityReview{}, invalidCapabilityReview(fmt.Errorf("go target package argument %q must select exactly one package", spec.Source))
-	}
-	layout, err := installation.At(spec.ToolchainRoot)
-	if err != nil {
-		return CapabilityReview{}, fmt.Errorf("resolve pinned Go command: %w", err)
-	}
-	goCommand := layout.GoCommand()
-	buildContext, err := targetbuild.Resolve(spec.WorkingDir, spec.Source, tags)
-	if err != nil {
-		return CapabilityReview{}, invalidCapabilityReview(err)
-	}
-	review, _, err := reviewGoCapabilityPackagesWith(ctx, goCommand, spec, buildContext.Tags, buildContext.Directory, buildContext.Package, runner)
-	if err != nil {
-		return CapabilityReview{}, err
-	}
-	if mode == CapabilityModeClosure {
-		return review, nil
-	}
-	if spec.PreparationRoot == "" {
-		return CapabilityReview{}, invalidCapabilityReview(errors.New("linked capability review requires a preparation root"))
-	}
-	identity, err := readPinnedToolchainWith(context.Background(), spec.ToolchainRoot, runner)
-	if err != nil {
-		return CapabilityReview{}, err
-	}
-	workspace, err := os.MkdirTemp(spec.PreparationRoot, ".linked-review-")
-	if err != nil {
-		return CapabilityReview{}, fmt.Errorf("create linked capability review workspace: %w", err)
-	}
-	prepared, buildErr := buildGoTargetWith(ctx, spec, buildContext.Tags, identity, filepath.Join(workspace, "target"), goCommand, buildContext.Directory, buildContext.Package, review, allowUnsupported, nil, runner)
-	cleanupErr := os.RemoveAll(workspace)
-	if buildErr != nil || cleanupErr != nil {
-		return CapabilityReview{}, errors.Join(buildErr, cleanupErr)
-	}
-	return prepared.review, nil
-}
-
-func reviewGoCapabilityReview(ctx context.Context, goCommand string, spec Spec, tags []string, commandDirectory, packageArgument string) (CapabilityReview, error) {
-	review, _, err := reviewGoCapabilityPackages(ctx, goCommand, spec, tags, commandDirectory, packageArgument)
-	return review, err
-}
-
-// reviewGoCapabilityPackages also returns the listing the review projected,
-// which preparation needs for the build inputs the closure does not review.
-func reviewGoCapabilityPackages(ctx context.Context, goCommand string, spec Spec, tags []string, commandDirectory, packageArgument string) (CapabilityReview, []listedPackage, error) {
-	return reviewGoCapabilityPackagesWith(ctx, goCommand, spec, tags, commandDirectory, packageArgument, gocommand.Default())
-}
-
-func reviewGoCapabilityPackagesWith(ctx context.Context, goCommand string, spec Spec, tags []string, commandDirectory, packageArgument string, runner gocommand.Runner) (CapabilityReview, []listedPackage, error) {
-	packages, overlay, err := collectCapabilityListing(ctx, goCommand, spec, tags, commandDirectory, packageArgument, runner)
-	if err != nil {
-		return CapabilityReview{}, nil, err
-	}
-	review, err := projectCapabilityReview(packages, overlay, tags, spec.AdapterReplacements)
-	if err != nil {
-		return CapabilityReview{}, nil, err
-	}
-	return review, packages, nil
-}
-
-// projectCapabilityReview collects the capability evidence of a listed
-// closure and the compatibility policy, then evaluates the evidence against it.
-func projectCapabilityReview(packages []listedPackage, overlay map[string]string, tags []string, replacementSets ...[]AdapterReplacement) (CapabilityReview, error) {
-	collected, err := collectCapabilityPackages(packages, overlay, replacementSets...)
-	if err != nil {
-		return CapabilityReview{}, err
-	}
-	policy, err := loadCompatibilityPolicy()
-	if err != nil {
-		return CapabilityReview{}, err
-	}
-	return evaluateCollectedCapabilities(policy, collected, tags)
-}
-
-// reviewRecordedClosure evaluates a closure an earlier review recorded. Its
-// identity is checked before the compatibility policy is loaded.
-func reviewRecordedClosure(closure CapabilityClosure, tags []string) (CapabilityReview, error) {
-	if err := validateCapabilityClosureIdentity(closure); err != nil {
-		return CapabilityReview{}, err
-	}
-	policy, err := loadCompatibilityPolicy()
-	if err != nil {
-		return CapabilityReview{}, err
-	}
-	return evaluateCapabilityClosure(policy, closure, tags)
-}
-
-func unsupportedFinding(finding CapabilityFinding) error {
-	description := "requires an unsupported capability"
-	switch finding.Kind {
-	case FindingForbiddenImport:
-		description = "imports " + strings.TrimPrefix(finding.Capability, "import:")
-	case FindingForeignSource:
-		description = "contains foreign or assembly source " + strings.TrimPrefix(finding.Capability, "foreign:")
-	case FindingUnapprovedLinkname, FindingMalformedLinkname:
-		description = "uses go:linkname in " + finding.SourceName
-	case FindingNoReviewedGoSource:
-		description = "has no reviewed Go source"
-	case FindingDeniedBoundary:
-		description = "reaches denied deterministic boundary " + finding.Capability
-	default:
-	}
-	return &UnsupportedCapabilityError{ImportPath: finding.Package.ImportPath, Capability: description, Finding: finding}
-}
-
-func recordCompatibility(identities []CompatibilityIdentity) []record.CompatibilityPack {
-	result := make([]record.CompatibilityPack, len(identities))
-	for index, identity := range identities {
-		result[index] = record.CompatibilityPack{ID: identity.ID, SHA256: record.SHA256(identity.SHA256)}
-	}
-	return result
-}
-
-func VerifyCompatibility(packs []record.CompatibilityPack) error {
-	if packs == nil {
-		return errors.New("compatibility pack identity is missing")
-	}
-	identities := make([]compatibility.Identity, len(packs))
-	for index, pack := range packs {
-		identities[index] = compatibility.Identity{ID: pack.ID, SHA256: string(pack.SHA256)}
-	}
-	return compatibility.VerifyIdentities(identities)
 }
