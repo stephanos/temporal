@@ -10,7 +10,7 @@
   "priority": 9,
   "spec": "fn-164-gomad-backend-layout-shared-core-with",
   "spec_path": ".flow/tasks/fn-164-gomad-backend-layout-shared-core-with.9.md",
-  "status": "todo",
+  "status": "done",
   "title": "CI path filters for the wasm suite and shared packages",
   "updated_at": "2026-10-12T02:48:50.316715Z"
 }

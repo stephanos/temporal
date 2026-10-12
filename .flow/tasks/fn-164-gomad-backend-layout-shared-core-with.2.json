@@ -8,7 +8,7 @@
   "priority": 2,
   "spec": "fn-164-gomad-backend-layout-shared-core-with",
   "spec_path": ".flow/tasks/fn-164-gomad-backend-layout-shared-core-with.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Create runtimesemantics and make both overlays include it verbatim",
   "updated_at": "2026-10-12T02:48:50.316128Z"
 }

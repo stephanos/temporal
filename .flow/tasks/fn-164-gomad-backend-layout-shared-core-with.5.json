@@ -10,7 +10,7 @@
   "priority": 5,
   "spec": "fn-164-gomad-backend-layout-shared-core-with",
   "spec_path": ".flow/tasks/fn-164-gomad-backend-layout-shared-core-with.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "Make native a Provider behind backends/backend.go",
   "updated_at": "2026-10-12T02:48:50.316369Z"
 }

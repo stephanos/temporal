@@ -10,7 +10,7 @@
   "priority": 3,
   "spec": "fn-164-gomad-backend-layout-shared-core-with",
   "spec_path": ".flow/tasks/fn-164-gomad-backend-layout-shared-core-with.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Move toolchain, upgrade, native transcript and conformance tooling under backends/native",
   "updated_at": "2026-10-12T02:48:50.316215Z"
 }

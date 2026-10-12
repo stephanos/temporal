@@ -10,7 +10,7 @@
   "priority": 2,
   "spec": "fn-165-gomad-architecture-checks-structural",
   "spec_path": ".flow/tasks/fn-165-gomad-architecture-checks-structural.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Give the wasm module its own architecture test and a helper-bridge unit test",
   "updated_at": "2026-10-12T02:48:49.975828Z"
 }

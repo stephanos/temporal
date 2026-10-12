@@ -1,13 +1,20 @@
 {
   "branch_name": "gomad",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-12T18:54:17.652282Z",
   "created_at": "2026-10-12T02:21:53.482064Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-165-gomad-architecture-checks-structural",
+  "impl_review_rounds": {},
   "next_task": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-165-gomad-architecture-checks-structural.md",
-  "status": "open",
+  "status": "done",
   "title": "Gomad architecture checks: structural checker plus bounded purity prover",
   "tracker": {
     "baseHashFlow": null,
@@ -20,5 +27,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-12T02:21:53.509179Z"
+  "updated_at": "2026-10-12T18:54:18.638216Z"
 }

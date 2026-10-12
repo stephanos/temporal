@@ -52,21 +52,17 @@ and [search-path findings](.flow/specs/fn-114-gomad-correct-search-path-defects-
 
 ## Immediate delivery order
 
-Owner execution scope: complete the WASM section in this order:
-[fn-164: shared core with native and WASM backends](.flow/specs/fn-164-gomad-backend-layout-shared-core-with.md)
-first, then
-[fn-165: structural checker plus bounded purity prover](.flow/specs/fn-165-gomad-architecture-checks-structural.md), then
+Owner execution scope: complete the WASM section. The
+[fn-164 layout](.flow/specs/fn-164-gomad-backend-layout-shared-core-with.md) and
+[fn-165 checker](.flow/specs/fn-165-gomad-architecture-checks-structural.md) batches
+were completed on 2026-10-12
+([evidence](.flow/artifacts/wasm-section-acceptance-2026-10-12.md)).
 [fn-156: WASM productionization](.flow/specs/fn-156-wasm-gomad-productionization.md)
-at the bottom of the WASM queue. Both new task breakdowns are retained in Flow.
-Work fn-164 as one coordinated layout batch, beginning with the independent
-import-boundary and runtime-semantics tasks before package moves. Run focused
-regressions during development and final verification/review by integrated batch.
-Hold fn-156 qualification until the layout and checker batches are integrated;
-preserve prior evidence under its original identities, without claiming it
-qualifies relocated or changed runtime inputs. Remove completed task rows only
-after verified Flow completion. This supersedes the earlier fn-156 pause as a
-permanent stop and the complete-fn-156-first order. Native deferrals,
-qualification resource limits, and PR, push and CI restrictions remain in force.
+is the remaining WASM spec; qualify it on one frozen integrated candidate.
+Preserve prior evidence under its original identities, without claiming it
+qualifies changed runtime inputs. Remove completed task rows only after verified
+Flow completion. Native deferrals, qualification resource limits, and PR, push
+and CI restrictions remain in force.
 
 Owner performance decision (2026-10-11): accept the measured 2.911x workflow
 execution speedup for now; the previous all-workload 5x target no longer blocks
@@ -214,47 +210,20 @@ CI, PR, or push authority.
 
 ## WASM
 
-### Shared core with native and WASM backends — [fn-164](.flow/specs/fn-164-gomad-backend-layout-shared-core-with.md)
-
-The owner approved replacing the Go-release-boundary wait with targeted Provider/CLI compatibility, pre-move artifact and fresh detached-replay checks. Native Provider and unified launcher work may proceed after the mechanical layout; unsupported native qualification remains deferred.
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-164.1](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.1.md) | 🚧 In progress | Import checker integrated; current-tree and forbidden-edge/stale-allowlist regressions passed; final batch acceptance remains open |
-| [fn-164.2](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.2.md) | 🚧 In progress | Canonical runtime sources integrated; identity/inventory regressions and tiny WASM link passed; final batch acceptance remains open |
-| [fn-164.3](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.3.md) | 🚧 In progress | Native tooling moves integrated; full generated validation passed; final review remains open |
-| [fn-164.4](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.4.md) | 🚧 In progress | Target data/build separation integrated; final batch acceptance remains open |
-| [fn-164.5](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.5.md) | 🚧 In progress | Provider propagation, resume and minimization fixes integrated; source regressions passed; guest verification/review remain open |
-| [fn-164.6](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.6.md) | 🚧 In progress | Whole-suite findings repaired and source/lint/generation checks passed; final-model WASM rerun remains open |
-| [fn-164.7](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.7.md) | 🚧 In progress | Sole capability-driven launcher integrated; both command surfaces tested; final review remains open |
-| [fn-164.8](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.8.md) | 🚧 In progress | Genuine historical artifact inspection and honest native/WASM preflight tested; final model binding remains open |
-| [fn-164.9](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.9.md) | 🚧 In progress | CI routing implemented; private actionlint and 138 classifier cases passed; final integrated acceptance remains open |
-
-### Architecture checks — [fn-165](.flow/specs/fn-165-gomad-architecture-checks-structural.md)
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-165.1](.flow/tasks/fn-165-gomad-architecture-checks-structural.1.md) | 🚧 In progress | Structural checker and disabled-cgo regression passed; final review remains open |
-| [fn-165.2](.flow/tasks/fn-165-gomad-architecture-checks-structural.2.md) | 🚧 In progress | Backend-owned WASM structural and hostile helper-reply checks passed on the integrated tree |
-| [fn-165.3](.flow/tasks/fn-165-gomad-architecture-checks-structural.3.md) | 🚧 In progress | Export-data loader and version-keyed stdlib allowlist integrated; focused checks passed |
-| [fn-165.4](.flow/tasks/fn-165-gomad-architecture-checks-structural.4.md) | 🚧 In progress | Typed rules, review marks and retained fixture re-triage integrated; final review remains open |
-| [fn-165.5](.flow/tasks/fn-165-gomad-architecture-checks-structural.5.md) | 🚧 In progress | Explicit pure inventory, typed checks and three-platform vet passed; final batch acceptance remains open |
-| [fn-165.6](.flow/tasks/fn-165-gomad-architecture-checks-structural.6.md) | 🚧 In progress | Old analyzer removed; 2030 production/801 test lines and canonical affected lint passed; independent review remains open |
-
-### Productionization — [fn-156](.flow/specs/fn-156-wasm-gomad-productionization.md) — Queued after fn-164 and fn-165
+### Productionization — [fn-156](.flow/specs/fn-156-wasm-gomad-productionization.md)
 
 Owner-approved verification cadence (2026-10-11, revised): implement fn-156 as one coherent batch. During iteration, run only the regressions needed for the current change; do not require broad architecture/package gates, independent reviews or qualification-preparation packets after each fix or task. Intermediate broken states and provisional dependent interfaces are allowed. Run broad source/package/lint checks, mandatory runtime/workload qualification and independent review once on the stable final integrated candidate, then complete tasks against that shared evidence. After a review fix, rerun affected checks unless shared inputs invalidate broader evidence. Final acceptance scope, including 32×100 scheduling qualification, fresh exact replay and qualification resource limits, remains intact; optional experiments stay deferred. Use proportionate bounded budgets for ordinary source-only development tests, not the qualification envelope.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-156.8](.flow/tasks/fn-156-wasm-gomad-productionization.8.md) | 🚧 In progress | Pre-layout architecture, scheduling and five matched-suite comparisons passed; source-dependent acceptance and final review remain open |
-| [fn-156.1](.flow/tasks/fn-156-wasm-gomad-productionization.1.md) | 🚧 In progress | Pre-layout v11 passed 3200 fresh recordings, 32 exact replays and focused diversity/entropy/diagnostic checks; final-candidate acceptance remains open |
-| [fn-156.2](.flow/tasks/fn-156-wasm-gomad-productionization.2.md) | 🚧 In progress | Pre-layout campaign, capacity, interrupted-resume and minimization/replay checks passed; installed repeat and final batch acceptance remain open |
-| [fn-156.3](.flow/tasks/fn-156-wasm-gomad-productionization.3.md) | 🚧 In progress | Pre-layout WAL/DELETE fault and crash recovery matrix passed; selected-state corpus and final batch acceptance remain open |
-| [fn-156.4](.flow/tasks/fn-156-wasm-gomad-productionization.4.md) | 🚧 In progress | Pre-layout stream, negative/capacity and genuine Temporal reset/retry/exact replay passed; final-candidate acceptance remains open |
-| [fn-156.5](.flow/tasks/fn-156-wasm-gomad-productionization.5.md) | 🚧 In progress | Pre-layout provider cleanup, ACK-crash/source-less and independent-incarnation replay passed; two-cluster Temporal corpus and final acceptance remain open |
-| [fn-156.6](.flow/tasks/fn-156-wasm-gomad-productionization.6.md) | 🚧 In progress | Pre-layout qualification driver retained; final-candidate workload/operator receipts and full corpus remain open |
-| [fn-156.7](.flow/tasks/fn-156-wasm-gomad-productionization.7.md) | 🚧 In progress | Pre-layout CLI/minimization/replay evidence retained; installed support, final corpus and measured documentation remain open |
+| [fn-156.8](.flow/tasks/fn-156-wasm-gomad-productionization.8.md) | 🚧 In progress | Review fixes integrated in candidate 0e3eb30e; source gates and `test-wasm` passed; guest gates and matched costs running |
+| [fn-156.1](.flow/tasks/fn-156-wasm-gomad-productionization.1.md) | 🚧 In progress | Passed 32×100 on 6283a4ec; candidate 0e3eb30e rerun running (helper identity changed) |
+| [fn-156.2](.flow/tasks/fn-156-wasm-gomad-productionization.2.md) | 🚧 In progress | Resume/fresh-campaign validation fixed; installed positive minimization passed; candidate 0e3eb30e rerun running |
+| [fn-156.3](.flow/tasks/fn-156-wasm-gomad-productionization.3.md) | 🚧 In progress | Temporal crash/reopen passed on 6283a4ec; SQLite supplementary gates and candidate 0e3eb30e rerun running |
+| [fn-156.4](.flow/tasks/fn-156-wasm-gomad-productionization.4.md) | 🚧 In progress | Named Temporal reset/retry exact replay passed on 6283a4ec; candidate 0e3eb30e rerun running |
+| [fn-156.5](.flow/tasks/fn-156-wasm-gomad-productionization.5.md) | 🚧 In progress | Two-cluster recovery passed on 6283a4ec; installed-helper-only replay integrated; candidate 0e3eb30e rerun running |
+| [fn-156.6](.flow/tasks/fn-156-wasm-gomad-productionization.6.md) | 🚧 In progress | One-box `invalid_input` fixed; full workload corpus on candidate 0e3eb30e running; matched costs pending |
+| [fn-156.7](.flow/tasks/fn-156-wasm-gomad-productionization.7.md) | 🚧 In progress | Installed operator gate passed; review documentation fixes integrated; candidate 0e3eb30e rerun running |
 
 ## Native
 

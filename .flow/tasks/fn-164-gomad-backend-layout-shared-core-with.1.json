@@ -8,7 +8,7 @@
   "priority": 1,
   "spec": "fn-164-gomad-backend-layout-shared-core-with",
   "spec_path": ".flow/tasks/fn-164-gomad-backend-layout-shared-core-with.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Enforce the shared-versus-backend import direction on the current tree",
   "updated_at": "2026-10-12T02:48:50.316005Z"
 }

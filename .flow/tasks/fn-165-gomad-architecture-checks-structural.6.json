@@ -11,7 +11,7 @@
   "priority": 6,
   "spec": "fn-165-gomad-architecture-checks-structural",
   "spec_path": ".flow/tasks/fn-165-gomad-architecture-checks-structural.6.md",
-  "status": "todo",
+  "status": "done",
   "title": "Delete the old analyzer and enforce the line budget",
   "updated_at": "2026-10-12T02:48:49.977203Z"
 }

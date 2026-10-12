@@ -11,7 +11,7 @@
   "priority": 6,
   "spec": "fn-164-gomad-backend-layout-shared-core-with",
   "spec_path": ".flow/tasks/fn-164-gomad-backend-layout-shared-core-with.6.md",
-  "status": "todo",
+  "status": "done",
   "title": "Fold the wasm module into backends/wasm with a stock-Go test target",
   "updated_at": "2026-10-12T02:48:50.316498Z"
 }

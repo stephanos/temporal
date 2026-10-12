@@ -10,7 +10,7 @@
   "priority": 4,
   "spec": "fn-165-gomad-architecture-checks-structural",
   "spec_path": ".flow/tasks/fn-165-gomad-architecture-checks-structural.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Implement the purity rules with review marks and re-triage the effect fixtures",
   "updated_at": "2026-10-12T02:48:49.976748Z"
 }

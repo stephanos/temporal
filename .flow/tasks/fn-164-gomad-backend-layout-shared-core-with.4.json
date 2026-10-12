@@ -10,7 +10,7 @@
   "priority": 4,
   "spec": "fn-164-gomad-backend-layout-shared-core-with",
   "spec_path": ".flow/tasks/fn-164-gomad-backend-layout-shared-core-with.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Split target into shared types and native build preparation",
   "updated_at": "2026-10-12T02:48:50.316305Z"
 }

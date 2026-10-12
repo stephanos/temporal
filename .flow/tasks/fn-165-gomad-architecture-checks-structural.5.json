@@ -10,7 +10,7 @@
   "priority": 5,
   "spec": "fn-165-gomad-architecture-checks-structural",
   "spec_path": ".flow/tasks/fn-165-gomad-architecture-checks-structural.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "Mark the gomad3 pure set and switch the module tests to the new checkers",
   "updated_at": "2026-10-12T02:48:49.976859Z"
 }

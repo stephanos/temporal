@@ -11,7 +11,7 @@
   "priority": 7,
   "spec": "fn-164-gomad-backend-layout-shared-core-with",
   "spec_path": ".flow/tasks/fn-164-gomad-backend-layout-shared-core-with.7.md",
-  "status": "todo",
+  "status": "done",
   "title": "One cmd/gomad launcher driven by Provider capabilities",
   "updated_at": "2026-10-12T02:48:50.316597Z"
 }
