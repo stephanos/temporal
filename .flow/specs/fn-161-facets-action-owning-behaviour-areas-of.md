@@ -1,5 +1,7 @@
 # Facets: action-owning behaviour areas of a feature
 
+> HTML render lens: [.flow/artifacts/fn-161-facets-action-owning-behaviour-areas-of/spec.html](../artifacts/fn-161-facets-action-owning-behaviour-areas-of/spec.html) - local-open, regenerable; markdown is the record. <!-- flow-next:artifact-link -->
+
 DSL changes ship a task-named Scalafix rule under `model/migrate/rules/`, prove it on copied `activity_mini` sources before the real-feature sweep, and follow `model/migrate/README.md`; production loading remains held in fn-166.10.
 
 ## Conversation Evidence
@@ -43,13 +45,13 @@ The name distinguishes facets from **capabilities**, the cross-Temporal behaviou
 ## Acceptance Criteria
 <!-- scope: both -->
 
-- **R1:** The framework provides a facet construct with `effects`, `rules` and `capabilities` sections, documented in the README and SEMANTICS with its core form: a machine's section is the union of its facets' sections in the order the facets are listed. [paraphrase] Errors: two facets defining the same effect name fail to compile; a facet section the lifter cannot lift is refused, naming it.
+- **R1:** The framework provides a facet construct with `effects`, `rules` and `capabilities` sections, documented in the README and SEMANTICS with its core form: a machine's section is the union of its facets' sections in the order the facets are listed. [paraphrase] Errors: two facet contributors that collide on the same exposed qualified effect path fail to compile; distinct facet namespaces may reuse a local effect name; a facet section the lifter cannot lift is refused, naming it. See the qualified-name interpretation in Decision Context.
 - **R2:** The lifter lifts a machine assembled from facets to the same rows, outcomes and facts as the equivalent single-object machine. [paraphrase] Errors: no error surface beyond R1 and R3.
 - **R3:** Every action a machine binds belongs to exactly one facet, and all of its rules are in that facet. [paraphrase] Errors: an action with rules in two facets, or bound by no facet's rules or `disabled`, fails the lift, naming the action and the facets involved.
 - **R4:** A facet that uses another facet's step declares that dependency in its type, so a machine missing the depended-on facet does not compile. [paraphrase] Errors: compile error naming the missing facet.
 - **R5:** Stage 1: the standalone activity's effects and claims sit in facet files at both levels, with rules still grouped by actor in the machine. Stage 2: rules and capability declarations sit in their owning facets. The IR keeps every row, outcome, fact, Case and Query answer in both stages. [paraphrase] Errors: any IR difference beyond function bodies, hashes and source positions is explained before it is accepted.
 - **R6:** The README defines **facet** next to **capability**: a facet is a feature-local behaviour area named as a noun, and a capability is a cross-Temporal contract named as an adjective that a facet declares. Facet and capability names follow that convention. [paraphrase] Errors: none (documentation and naming).
-- **R7:** The layout rules and the lifter's order lint place facets: one facet per file, named after it, and no effect, rule or capability declaration outside a facet or the machine-wide places listed above. [inferred] Errors: a misplaced declaration is refused at its line, naming where it belongs.
+- **R7:** The layout rules and the lifter's order lint place facets: one facet per file, named after it, and no effect, rule or capability declaration outside a facet or the machine-wide places listed above. Errors: a misplaced declaration is refused at its line, naming where it belongs. The originally inferred facet-file rule is confirmed by the existing requested layout contract; broader layout migration remains fn-160's work.
 - **R8:** In every declared machine (`Machine`), rules, effects and capability declarations are defined only in facets; the machine object holds only machine-wide declarations and its facet list. A machine may consist of a single facet. Actions stay declared by their actor in the feature's signature: facets own actions by binding them, and never declare them. Derived machines and compositions are exempt. [user] ("should we enforce that only Facets can define actions and rules? that ensures that Machine is always split into Facets"; "yes") Errors: a rule, effect or capability declared in a machine object outside a facet fails the lift at its line, naming the facet place it belongs in.
 - **R9:** Each feature declares one facet vocabulary, the facet names shared by its levels. Each level's facets use those names; a level holds only the facets it needs; and an action bound at both levels is owned by the same-named facet at both. [user] ("will facets apply to both product/ and system/ ? and do they have to map 1:1 ?"; "yes") Errors: a facet name outside the feature's vocabulary, or an action owned by differently named facets at the product and system levels, fails the lift, naming the action and both facets.
 
@@ -65,9 +67,33 @@ The name distinguishes facets from **capabilities**, the cross-Temporal behaviou
 
 The user adopted the action-owning facet as the target. [user] Ownership by action was chosen over placing cross-facet cases by their reason, because it can be enforced mechanically, while placement by reason is a judgment call each time. [paraphrase] An effects-only facet was considered and judged too limiting by the user. [user] "Facet" was chosen over aspect (which in software means cross-cutting, the generic concept's meaning), behavior (collides with Behavior Fingerprint), pattern, contract, slice, policy and profile (all already in use), and over renaming "capability" (entrenched in the framework, Go tools and the IR schema). [paraphrase]
 
+### Qualified effect identity (conductor recommendation, 2026-10-12)
+
+The original task allowed sections named per facet. The integrated encoding uses a facet's
+namespace object, and the lifter identifies effects by their full declaration symbols.
+`pressing.effects.settle` and `breaking.effects.settle` are distinct effects. In an assembled
+machine, contributors that expose the same namespace and effect path collide.
+
+R1 originally said "same effect name" without distinguishing qualified paths from local names.
+The conductor chooses qualified paths under the owner's instruction to follow recommendations.
+This permits repeated local names under distinct facet namespaces. It does not establish or
+require global local-name uniqueness. A global local-name ban would change the chosen namespace
+API. Task 1 must independently prove repeated-local-name acceptance and an actual conflicting
+exposed path's compiler refusal, separate from R7's layout checks. These planning observations
+are not passing compiler evidence.
+
+The existing trait/namespace encoding answers the parked encoding question. Its native and
+lifter obligations still require the current focused proofs. Claims and Query migration remain
+fn-162's responsibility; this checkpoint neither restores historical containers nor renames
+Properties or Queries. The real-feature interaction-facet question remains parked for the sweep.
+
+The source checkpoint starts after fn-159.10's committed closure in `umpire`. The installed
+Flow CLI refuses cross-spec task edges, so the conductor verifies this prerequisite directly
+in Git before claiming task 1. It does not add a whole-spec dependency on fn-159's held
+real-feature tasks. Task 4 retains its ordinary dependency on task 1.
+
 ## Parked unknowns
 
-- How a facet's sections are expressed in Scala (traits with nested section objects vs another encoding) and whether the lifter can read them without new restrictions. The stage 1 implementation resolves this. [inferred]
 - Whether an interaction facet is needed for the standalone activity at all. Stage 2's migration resolves this. [inferred]
 
 ## Standalone activity facet vocabulary (Batch 1d activity lane, 2026-10-11)
@@ -117,3 +143,26 @@ One vocabulary for the kind, shared by the Product (`NexusProduct`) and both for
 - fn-161.4: every other declared machine is one facet: worker `serving`, task queue `queueing` (both levels), Nexus `operation` (Product and both Protocols), `closing` (RejectAfterClose), `forgedControl` (TrustingCaller). The Nexus lane's finer split (Scheduling, Starting, ...) is left for later.
 - `facets-only` and `facet-vocabulary` hold every Temporal Model by default; fixtures turn them on per run. R9 does not reach a design subject with a state type of its own.
 - A machine of facets binds its actions in facet order, so the binding order of ActivityProduct and ActivitySystem changed (pins updated; step-table equivalence shows it).
+
+## Scope: the mini feature only (owner, 2026-10-11)
+
+Within the Scala DSL batch (`MILESTONES.md`), this spec changes only the framework, the lifter, the shared code and `features/activity_mini`. The real features (standalone activity, Nexus workflow, Nexus standalone and their legacy payloads) are not edited, migrated, lifted or regenerated, and they stay behind until the owner's sweep, which runs this spec's scalafix rules on them. Equivalence compares `FEATURES=activity_mini` against the mini baseline. This overrides any statement in this spec that edits, migrates or proves on a real feature. See fn-166's Scope. Tasks .2 and .3 (the standalone activity's two stages) wait for the sweep. Task .4 wraps the mini feature's declared machines and switches the facets-only and facet-vocabulary rules on for it.
+
+## Early proof point
+
+Task 1 proves the integrated native/lifted ownership, layout and paired-level contract. A failed
+boundary is corrected before task 4's selected admission and compiled wrapping migration.
+
+## Requirement coverage
+
+| Req | Description | Task(s) | Gap justification |
+| --- | --- | --- | --- |
+| R1 | Ordered facet sections and qualified effect collision | .1 | None |
+| R2 | Whole/faceted row, outcome and fact agreement | .1 | None |
+| R3 | Exactly one owning facet per bound action | .1, .3 | Real stage .3 held |
+| R4 | Typed cross-facet dependencies | .1 | None |
+| R5 | Standalone activity stages and preserved answers/Cases | .2, .3 | Real-feature sweep held |
+| R6 | Facet nouns and capability adjectives | .1 | None |
+| R7 | Per-file layout and declaration placement | .1 | None |
+| R8 | Facet-only declared machines, bounded exemptions | .1, .4 | Real stages held |
+| R9 | Per-feature vocabulary and paired-level ownership | .1, .2, .3, .4 | Real stages held |

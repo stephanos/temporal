@@ -4,43 +4,114 @@ satisfies: [R1, R2, R3, R4, R6, R7, R8, R9]
 # fn-161-facets-action-owning-behaviour-areas-of.1 Facet construct: framework, lifter, ownership check, layout rules
 
 ## Description
-Build the facet construct in the framework and the lifter: a facet contributes `effects`, `rules` and `capabilities` sections, a machine lists its facets, and the lifter lifts the assembled machine as if every section were written in it. Also enforce one owning facet per action, explicit facet dependencies, and the facet layout rules. Include fixtures. Models aren't migrated here; fn-161.2 and fn-161.3 do that.
 
-**Size:** L
-**Files:** `model/framework/Syntax.scala` / `Machine.scala` (the facet base, rule merging, ownership check), `model/irgen/Declarations.scala` (reading facet sections), `model/irgen/Order.scala` and `Structure.scala` (layout and order rules), new `model/irgen/testdata` fixtures (lifts and refusals), `model/framework/*.test.scala`, `model/README.md`, `model/SEMANTICS.md`
-**Touches:** [model/framework/*.scala, model/irgen/*.scala, model/irgen/testdata/**, model/README.md, model/SEMANTICS.md]
+Prove the integrated facet construct and close demonstrated contract gaps under R1-R4/R6-R9.
+Reuse the trait/namespace encoding and selected current defaults. Historical new-construct work
+is already present. This checkpoint covers framework/lifter fixtures and docs; task 4 owns the
+selected mini/shared admission inventory and compiled wrapping migration. Real stages 2/3 stay held.
+
+**Size:** M
+**Files:** facet aggregation/provenance, rule labels, facet admission/placement/level agreement,
+focused native/lifter fixtures, current core-form docs and any necessary API-spelling migration.
+**Touches:** [model/framework/Facet.scala, model/framework/FacetSource.scala, model/framework/Facets.test.scala, model/framework/RuleSource.scala, model/framework/RuleSource.test.scala, model/framework/Syntax.scala, model/framework/Machine.scala, model/irgen/Context.scala, model/irgen/Declarations.scala, model/irgen/Capabilities.scala, model/irgen/Order.scala, model/irgen/Structure.scala, model/irgen/test/Facets.test.scala, model/irgen/testdata/facetContract/**, model/migrate/rules/Fn161Task1*.scala, model/migrate/test/FacetContract.test.scala, model/migrate/proof/RewriteFacetContractMini.scala, model/migrate/README.md, model/README.md, model/SEMANTICS.md]
 
 ### Approach
-- **Encoding:** the facet design sketched in conversation is `trait Pausing extends Facet[State, Outcome, Fact]: this: Dispatch => object effects …; object rules extends FacetRules …; object capabilities …`, mixed into the machine object's parents (`object ActivitySystem extends Machine[…], Phased[…], Dispatch, Pausing, …`). Validate it, or pick a better Scala encoding, and record why. Constraints:
-  - DSL helpers (`effect { }`, `choose`, `enters`, the phase accessors, rule cases like `when(...)`) need the machine's types and the given `Owner` / `Phasing`; `Facet` must provide them.
-  - Section objects nested in a trait must not clash when several facets each declare `object effects`. Expose them merged (e.g. the machine's `effects` view is the union), or name them per facet. Choose and document.
-- **Merging rules:** each action's cases from all facets form one step function. The semantics' existing disjointness rule makes the order irrelevant to meaning. The lowering order is facet order, then written order.
-- **Ownership check (R3):** every bound action, including timers, faults and `disabled`, belongs to exactly one facet. Refuse an action with rules in two facets, and one bound nowhere. Do this at machine construction (runtime) and in the lifter.
-- **Dependencies (R4):** cross-facet step use is declared in the facet's type (a self-type), so a missing facet is a compile error. Add a fixture showing the error message.
-- **Lifter:** today it reads a section's own body statements from the source tree (`Declarations.scala` around lines 198 and 270-274) and ignores parents. Teach it to follow a machine's facet parents to their sources and lift their sections as if written in the machine, in facet order.
-- **Layout (R7):** one facet per file, named after it. No effect, rule or capability declaration outside a facet or the machine-wide places (state and phase types, `init`/`end`, projection, refinement, monitors, whole-feature queries). Add refusal fixtures for each.
-- **Facets only (R8):** once a machine opts into facets, and globally after fn-161.4, refuse a rule, effect or capability declaration written in a declared `Machine` object outside a facet. Derived machines (`rebind`, `restrict`, …) and compositions are exempt. Single-facet machines are valid. Actions stay in the signature; a facet never declares an action. Provide the global switch so fn-161.4 can turn it on: e.g. the check runs for every declared machine and is skipped for machines in a temporary allow-list that fn-161.4 empties.
-- **Facet vocabulary (R9):** each feature file declares its facet names once (e.g. a small enum or a declared list beside the signature; pick the encoding). A level's facet must take a name from its feature's vocabulary, and an action bound at both product and system must be owned by the same-named facet at both. Add refusal fixtures for an unknown facet name and for mismatched owners across levels.
-- **Docs (R1, R6):** define facet in the README next to capability (noun vs adjective naming; "a facet declares capabilities"), and give the core form in SEMANTICS.
-- **Equivalence (R2):** a fixture machine written both ways (single object vs facets) must lift to the same rows, outcomes and facts. Assert it in the irgen tests.
 
-### Prerequisite
-- fn-159.7 (`enters`) landed or designed, since facets assume trivial effects are gone. A working tree that builds the lifter.
+- Re-anchor after fn-159.10's committed closure is in umpire. Capture selected pre-edit source/jar,
+  full mini IR/waivers and fixture evidence independently. Read the planning reports under
+  .flow/tmp/scala-dsl/fn161-*-findings.md; their inspection establishes no passing checks.
+- Reuse Facet/Facets/FacetCapabilities, Rules and existing Context.facetObject/section checks.
+  Preserve listed order and exact capabilities, waivers and overrides. Independently compile
+  and lift the existing whole/faceted specimen in a focused source-preparing harness, comparing
+  every finite-state row, outcome and fact. Explain only necessary subject/function identities;
+  don't use a blanket effect-name replacement or broad Fixtures.beforeAll.
+- R1 follows the explicit qualified-name interpretation recorded in the parent before admission.
+  Prove two valid namespaces may both contain an effects.settle. Separately prove actual
+  conflicting exposed namespace/effect paths fail compilation and identify the collision.
+  This does not prove a global local-name ban. Keep layout negatives separate. Prove R4's
+  missing typed dependency refusal and its assembled positive independently.
+- Prove native and lifter ownership separately for ordinary, timer, fault and disabled bindings.
+  Duplicate owners name the action and both facets; disabled diagnostics must not fall back to
+  "an action". An actual non-facet RuleBook passed to Facets needs its own native refusal,
+  backed by declaration provenance rather than a guessed JVM class label. Preserve valid
+  facet references and the actual selected bound-action universe; unbound imported signature
+  actions are not made mandatory. Fix only observed gaps in the existing aggregation path.
+- Independently probe the declared core-Bindings R8 bypass in Declarations.machineOf, both alone
+  and with misplaced effects/capabilities. Probe own capability/waiver declarations inside a
+  machine's FacetCapabilities body separately from a plain Capabilities section. A marker is
+  not origin evidence. Retain switch-off fixture positives, genuine derived/composed exemptions
+  and accepted facet capabilities/waivers/overrides. Keep each refusal's actual source position.
+- R7 needs actual files in a recognized level folder. Prove matching single-facet acceptance,
+  misnamed and second-facet files, misplaced effect/rule/capability declarations inside/outside
+  facet sections, facet-owned action refusal and an unliftable section. Preserve machine-wide
+  types/phases/init/end/projection/refinement/monitors/whole-feature Queries. Reuse existing
+  Order/Structure checks; extend only a demonstrated traversal/admission gap. Do not take
+  fn-160's broader machine/layout/Protocol collection work.
+- R9 independently validates both sides of an ordinary Product/Protocol refinement, including
+  QueueView/QueueDetail-style state names. Prove unknown vocabulary and crossed owners with
+  action and both facet names, plus valid agreement and genuine own-state design exemption.
+  A state basename or package membership alone cannot establish or waive pairing.
+- Update only adjacent core-form/noun-versus-adjective/placement/provenance docs. Claims and
+  Query migration remain fn-162's work. Internal enforcement fixes preserving author syntax
+  keep the spec's wrapping migration obligation explicitly open in task 4. If a native API
+  spelling changes, ship a Fn161Task1 rule and actual compiled copied-mini source proof for
+  that spelling in this task, with convergence and atomic unsafe/ambiguous refusal.
 
-### Batching
-- Batch 1d (Scala DSL, immediate; see MILESTONES.md): land the Scala changes now. Checked-in IR, Cases and Go consumers may go stale. Verify with the Scala build, framework and model tests, and fn-160.5's step-table comparison under this task's rename map. Declare the IR change this task will cause; the IR is regenerated once, in Batch 5b, whose shared close supplies the gate evidence for the `make umpire-check-*` criteria.
+### Investigation targets
+
+Required: model/framework/Facet.scala; model/framework/Facets.test.scala;
+model/irgen/Declarations.scala (machineOf, rulesOf, sameFacets);
+model/irgen/Capabilities.scala (membersOf); model/irgen/Structure.scala (facetFiles);
+model/irgen/Order.scala (featureLayout/section); model/irgen/test/BoundedIntegers.test.scala
+(source-preparing frozen framework/classpath and InProcess.lift pattern).
+
+Existing Facets.scala and facetRules fixtures provide specimens, not isolated execution credit.
+The broad Fixtures suite starts unrelated builds even under a test filter. Extract the necessary
+assertions into the scoped harness rather than invoking it.
+
+### Verification and boundaries
+
+Run the selected mini/shared compile, focused framework.FacetsTest and changed-file native
+controls, isolated facet compiler/lifter controls, complete raw mini IR/waiver comparison,
+exact guide citations and changed-file format/diff checks. Freeze matching sources/jars before
+final proofs. Source coordinates are raw evidence, not fields to strip or pad away. Retain actual
+RED/setup/inconclusive observations and explicitly justify any closed metadata delta.
+
+Run direct FEATURES=activity_mini --check-equivalence --steps-only against the immutable absolute
+.flow/tmp/scala-dsl/mini-selected-baseline-00d22597d2/ with an independently justified task map.
+Preserve all sixteen tables/11,325 rows including shared roots, original ten-table subset,
+frozen jars, old batch-1d map, protected payloads and pins. Both integrity scripts must pass.
+
+No real-feature edits/compiles/lifts/migrations, Go/proto/schema/Make/CI/Testpilot/runtime/Case/live/
+production-loader/regeneration or lint/manual work in this source task. Broad Scala validation
+and independent review run once at batch end. The owner's subsequent mini IR/Go propagation
+phase starts only after the whole Scala DSL part is proven complete. No per-task SHIP/full-set/
+canonical/consumer credit. The real-source R5 obligations remain open.
 
 ### Quick commands
+
 ```sh
-make umpire-check-model
-make umpire-check-lint
+mise exec -- scala-cli test --server=false model/project.scala model/framework --test-only framework.FacetsTest
 ```
+
+The implementation supplies the actual isolated suite and any migration proof command in its
+evidence, without counting a nonexistent test selector or broad setup as a focused pass.
+
 ## Acceptance
-- [ ] A facet construct exists with `effects`, `rules` and `capabilities` sections; README and SEMANTICS document it with its core form and the facet/capability naming convention.
-- [ ] A fixture machine written as one object and as facets lifts to the same rows, outcomes and facts.
-- [ ] An action with rules in two facets, or owned by none, is refused at construction and by the lifter, naming the action and facets; a missing facet dependency fails to compile; refusal fixtures cover misplaced declarations.
-- [ ] Rules, effects and capabilities outside facets in a declared machine are refused (with the allow-list fn-161.4 empties); each feature declares a facet vocabulary, and unknown facet names or cross-level owner mismatches are refused, with fixtures.
-- [ ] `make umpire-check-model` and `make umpire-check-lint` pass with no checked-in model changed.
+
+- [ ] Ordered native/lifted facet union preserves complete finite-state rows, outcomes, facts and
+  supported capability metadata; qualified-name collision and typed dependency compiler controls
+  are independent and accurately described under R1/R2/R4.
+- [ ] Native and lifter R3 controls refuse duplicate/unowned ordinary/timer/fault/disabled bindings,
+  naming real actions/facets; accepted declaration provenance is not guessed from class labels.
+- [ ] Actual per-file R7 and declared-machine R8 controls cover core Bindings and own-body
+  FacetCapabilities, with located errors and explicit valid machine-wide/derived/composed cases.
+- [ ] R9 validates ordinary paired levels with non-State names independently, names crossed owners
+  and unknown vocabulary, and preserves a genuine design exemption; docs retain the core form.
+- [ ] Complete raw mini and sixteen-table native proofs, both integrity checks and protected/external
+  preservation hold; any API spelling change has its own compiled task-named migration proof,
+  while task 4's wrapping proof and all conditional/held obligations remain explicit.
+
 ## Done summary
 TBD
 
