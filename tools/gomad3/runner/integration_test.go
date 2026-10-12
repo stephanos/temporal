@@ -1,4 +1,4 @@
-package gomad3_test
+package runner
 
 import (
 	"os"
@@ -9,11 +9,11 @@ import (
 
 // TestRunnerExternalConsumerCompiles builds testdata/runnerconsumer as a
 // separate module that replaces this one with the working tree. A consumer
-// outside the Runner subtree cannot import runner/internal/execution, so the
-// build fails if constructing a request or substituting preparation or replay
-// requires an internal type.
+// outside the Runner subtree cannot import the Runner's internal packages, so
+// the build fails if constructing a request or substituting preparation or
+// replay requires an internal type.
 func TestRunnerExternalConsumerCompiles(t *testing.T) {
-	root, err := filepath.Abs(".")
+	root, err := filepath.Abs("..")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -22,13 +22,13 @@ func TestRunnerExternalConsumerCompiles(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	sums, err := os.ReadFile("go.sum")
+	sums, err := os.ReadFile(filepath.Join("..", "go.sum"))
 	if err != nil {
 		t.Fatal(err)
 	}
 	goMod := "module example.com/runnerconsumer\n\ngo 1.27.1\n\n" +
-		"require " + modulePath + " v0.0.0\n\n" +
-		"replace " + modulePath + " => " + root + "\n"
+		"require go.temporal.io/server/tools/gomad3 v0.0.0\n\n" +
+		"replace go.temporal.io/server/tools/gomad3 => " + root + "\n"
 	for name, contents := range map[string][]byte{"consumer.go": source, "go.sum": sums, "go.mod": []byte(goMod)} {
 		if err := os.WriteFile(filepath.Join(module, name), contents, 0o600); err != nil {
 			t.Fatal(err)

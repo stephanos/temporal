@@ -158,7 +158,7 @@ test-host: toolchain
 		stock_go="$$stock_root/bin/go"; \
 	fi; \
 	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOMAD3_STOCK_GO="$$stock_go" GOEXPERIMENT=nogreenteagc GOWORK=off .toolchain/bin/go test -tags test_dep \
-		. ./cmd/... ./runner/... ./qualification/... ./target/... ./record/... ./artifact/... ./choice/... \
+		./cmd/... ./runner/... ./qualification/... ./target/... ./record/... ./artifact/... ./choice/... \
 		./captured/... ./volume/... ./backends/native/transcript/... ./world/... \
 		./backends/native/toolchain/version ./backends/native/toolchain/installation \
 		./backends/native/upgrade/... ./backends/native/preparation/... ./backends/native/qualification/... \

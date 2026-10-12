@@ -1,7 +1,9 @@
-package gomad3_test
+package archcheck_test
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -11,6 +13,7 @@ import (
 	"regexp"
 	"runtime"
 	"slices"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -20,6 +23,16 @@ import (
 )
 
 const modulePath = "go.temporal.io/server/tools/gomad3"
+
+// TestMain runs the module's architecture and CI routing tests from the
+// module root, the directory their source, Makefile and workflow paths name.
+func TestMain(m *testing.M) {
+	if err := os.Chdir(filepath.Join("..", "..")); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(2)
+	}
+	os.Exit(m.Run())
+}
 
 func backendImportConfig() archcheck.Config {
 	return archcheck.Config{
@@ -127,7 +140,7 @@ func TestArchitectureInventoryFixtures(t *testing.T) {
 		t.Run(fixture.name, func(t *testing.T) {
 			root := t.TempDir()
 			files := map[string]string{"go.mod": "module example.invalid/fitness\n\ngo 1.27.1\n", "runner/source.go": "package runner\n", fixture.path: fixture.source}
-			for _, path := range []string{"backends/native/toolchain/runtime/overlay", "cmd/gomad/testdata", "backends/native/transcript/testdata", "internal/compatibilitypack/testdata", "backends/native/conformance/testdata", "testdata", "qualification/corpus", "backends/wasm/testdata", "backends/wasm/wasi/testdata", "backends/wasm/toolchain/testdata", "backends/wasm/simulation/testdata", "backends/wasm/qualification/testdata", "backends/wasm/cmd/gomad-wasm/testdata"} {
+			for _, path := range []string{"backends/native/toolchain/runtime/overlay", "cmd/gomad/testdata", "backends/native/transcript/testdata", "internal/compatibilitypack/testdata", "backends/native/conformance/testdata", "runner/testdata", "qualification/corpus", "backends/wasm/testdata", "backends/wasm/wasi/testdata", "backends/wasm/toolchain/testdata", "backends/wasm/simulation/testdata", "backends/wasm/qualification/testdata", "backends/wasm/cmd/gomad-wasm/testdata"} {
 				files[path+"/fixture.go"] = "package fixture\n"
 			}
 			for _, path := range []string{"backends/native/transcript/testdata/cactusstatsd", "backends/native/transcript/testdata/hashicorpmetrics", "backends/native/transcript/testdata/memberlist", "backends/native/transcript/testdata/pebble", "backends/native/transcript/testdata/sentry", "backends/native/transcript/testdata/sockaddr", "backends/native/transcript/testdata/sprig", "backends/native/transcript/testdata/validator", "internal/compatibilitypack/testdata/v041", "internal/compatibilitypack/testdata/xsys", "backends/native/conformance/testdata", "backends/native/conformance/testdata/libc_adapter", "backends/native/conformance/testdata/sqlite_adapter", "qualification/corpus", "backends/wasm/qualification/testdata/fixture"} {
@@ -665,5 +678,303 @@ func TestPublicPackagesDoNotExportForwardingAliases(t *testing.T) {
 				}
 			}
 		}
+	}
+}
+
+var pureDependencyFiles = []string{
+	"choice/tape.go", "choice/divergence.go", "choice/no_op_select.go",
+	"choice/wire.go", "choice/trace.go", "choice/legacy_v1.go", "choice/interrupted.go",
+	"choice/limits.go", "choice/internal/wire/wire_generated.go",
+	"internal/compatibilitypack/evaluation.go", "internal/compatibilitypack/selection_pure.go",
+	"internal/compatibilitypack/schema.go",
+	"internal/canonicaljson/canonical.go", "internal/canonicaljson/implementation.go", "internal/canonicaljson/streaming.go",
+}
+
+func nativePureFile(path string) bool {
+	for _, dependency := range pureDependencyFiles {
+		if path == dependency {
+			return true
+		}
+	}
+	for _, prefix := range []string{"record/", "world/mailbox/", "runner/internal/exploration/", "backends/native/build/internal/capabilitypolicy/"} {
+		if strings.HasPrefix(path, prefix) {
+			return true
+		}
+	}
+	if filepath.ToSlash(filepath.Dir(path)) == "world" {
+		return true
+	}
+	return path == "runner/internal/campaign/controller.go" || path == "backends/native/build/capability_evaluation.go" || path == "simulation/clock/simulation_progress.go"
+}
+
+//nolint:staticcheck // Tests execute on the compiling host and require that exact reviewed Go toolchain.
+func sourceGoCommand() string { return filepath.Join(runtime.GOROOT(), "bin", "go") }
+
+func typedSourcePlatforms() []archcheck.Platform {
+	platforms := []archcheck.Platform{{OS: runtime.GOOS, Arch: runtime.GOARCH}}
+	if os.Getenv("GOMAD3_ARCH_ALL_PLATFORMS") == "1" || os.Getenv("CI") != "" {
+		for _, platform := range []archcheck.Platform{{OS: "darwin", Arch: "arm64"}, {OS: "linux", Arch: "amd64"}} {
+			if platform != platforms[0] {
+				platforms = append(platforms, platform)
+			}
+		}
+	}
+	return platforms
+}
+
+func TestPureModulesHaveNoHostEffects(t *testing.T) {
+	paths := append([]string{"runner/internal/campaign/controller.go", "backends/native/build/capability_evaluation.go", "simulation/clock/simulation_progress.go"}, pureDependencyFiles...)
+	if err := pureFileInventory(".", paths); err != nil {
+		t.Fatal(err)
+	}
+	for _, platform := range typedSourcePlatforms() {
+		started := time.Now()
+		findings, err := puritycheck.Check(".", sourceGoCommand(), platform, nativePureFile)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, finding := range findings {
+			t.Errorf("%s/%s %s %s: %s", platform.OS, platform.Arch, finding.Category, finding.Path, finding.Detail)
+		}
+		elapsed := time.Since(started)
+		t.Logf("typed pure files on %s/%s in %s", platform.OS, platform.Arch, elapsed)
+		if platform.OS == runtime.GOOS && platform.Arch == runtime.GOARCH && elapsed >= 30*time.Second {
+			t.Errorf("host pure checker took %s (limit 30s)", elapsed)
+		}
+	}
+}
+
+func pureFileInventory(root string, paths []string) error {
+	for _, path := range paths {
+		info, err := os.Stat(filepath.Join(root, path))
+		if err != nil {
+			return fmt.Errorf("required pure file %s: %w", path, err)
+		}
+		if !info.Mode().IsRegular() {
+			return fmt.Errorf("required pure file %s is not regular source", path)
+		}
+	}
+	return nil
+}
+
+func TestPureFileInventoryRejectsMissingAndRenamed(t *testing.T) {
+	for _, name := range []string{"missing", "renamed"} {
+		t.Run(name, func(t *testing.T) {
+			root := t.TempDir()
+			paths := []string{"original.go", "dependency.go"}
+			for _, path := range paths {
+				if err := os.WriteFile(filepath.Join(root, path), []byte("package fixture"), 0600); err != nil {
+					t.Fatal(err)
+				}
+			}
+			if err := pureFileInventory(root, paths); err != nil {
+				t.Fatal(err)
+			}
+			if name == "missing" {
+				if err := os.Remove(filepath.Join(root, "dependency.go")); err != nil {
+					t.Fatal(err)
+				}
+			} else {
+				if err := os.Rename(filepath.Join(root, "dependency.go"), filepath.Join(root, "renamed.go")); err != nil {
+					t.Fatal(err)
+				}
+			}
+			if err := pureFileInventory(root, paths); err == nil || !strings.Contains(err.Error(), "dependency.go") {
+				t.Fatalf("missing exact dependency admitted: %v", err)
+			}
+		})
+	}
+}
+
+func checkerBudget(root string) (production, tests int, err error) {
+	for _, budget := range []struct {
+		directory string
+		limit     int
+	}{{"internal/archcheck", 700}, {"internal/puritycheck", 2000}} {
+		directory, before := budget.directory, production
+		err = filepath.WalkDir(filepath.Join(root, directory), func(path string, entry os.DirEntry, visitErr error) error {
+			if visitErr != nil {
+				return visitErr
+			}
+			if entry.IsDir() || filepath.Ext(path) != ".go" || moduleArchitectureTest(root, path) {
+				return nil
+			}
+			data, err := os.ReadFile(path)
+			if err != nil {
+				return err
+			}
+			lines := bytes.Count(data, []byte{'\n'})
+			if len(data) != 0 && data[len(data)-1] != '\n' {
+				lines++
+			}
+			if strings.HasSuffix(path, "_test.go") {
+				tests += lines
+			} else {
+				production += lines
+			}
+			return nil
+		})
+		if err != nil {
+			return production, tests, err
+		}
+		if production-before > budget.limit {
+			return production, tests, fmt.Errorf("architecture checker budget exceeded: %s has %d production lines (limit %d)", directory, production-before, budget.limit)
+		}
+	}
+	if production > 2500 || tests > 1500 {
+		err = fmt.Errorf("architecture checker budget exceeded: %d production (limit 2500), %d tests (limit 1500)", production, tests)
+	}
+	return production, tests, err
+}
+
+// moduleArchitectureTest reports the module's own architecture and CI routing
+// tests, which live beside the checker but are not part of its budget.
+func moduleArchitectureTest(root, path string) bool {
+	relative, err := filepath.Rel(root, path)
+	return err == nil && slices.Contains([]string{"internal/archcheck/architecture_test.go", "internal/archcheck/integration_test.go"}, filepath.ToSlash(relative))
+}
+
+func TestArchitectureCheckerBudget(t *testing.T) {
+	production, tests, err := checkerBudget(".")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("checker lines: %d production (limit 2500), %d tests (limit 1500)", production, tests)
+}
+
+func TestArchitectureCheckerBudgetRejectsOversize(t *testing.T) {
+	for _, test := range []struct {
+		name, directory, file string
+		lines                 int
+	}{
+		{"production", "internal/puritycheck", "oversized.go", 1999}, {"tests", "internal/puritycheck", "oversized_test.go", 1501},
+		{"archcheck", "internal/archcheck", "oversized.go", 701}, {"puritycheck", "internal/puritycheck", "oversized.go", 2001},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			root := t.TempDir()
+			for _, directory := range []string{"internal/archcheck", "internal/puritycheck"} {
+				if err := os.MkdirAll(filepath.Join(root, directory), 0700); err != nil {
+					t.Fatal(err)
+				}
+			}
+			source := "package puritycheck\n" + strings.Repeat("// oversized\n", test.lines-1)
+			if err := os.WriteFile(filepath.Join(root, test.directory, test.file), []byte(source), 0600); err != nil {
+				t.Fatal(err)
+			}
+			if test.name == "production" {
+				if err := os.WriteFile(filepath.Join(root, "internal/archcheck", test.file), []byte(strings.Repeat("\n", 600)), 0600); err != nil {
+					t.Fatal(err)
+				}
+			}
+			production, tests, err := checkerBudget(root)
+			if err == nil || !strings.Contains(err.Error(), "budget exceeded") {
+				t.Fatalf("oversized %s accepted: %d production, %d tests", test.name, production, tests)
+			}
+			if test.name == "production" && production != 2599 || test.name == "tests" && tests != 1501 {
+				t.Fatalf("wrong line observation: %d production, %d tests", production, tests)
+			}
+		})
+	}
+}
+
+func TestArchitectureEffectFixtures(t *testing.T) {
+	data, err := os.ReadFile("testdata/architecture/effects.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var fixtures []struct {
+		Name, Category, Detail string
+		Files                  map[string]string
+		PureFiles              []string `json:"pure_files"`
+		Reviewed               bool
+	}
+	if err := json.Unmarshal(data, &fixtures); err != nil {
+		t.Fatal(err)
+	}
+	if len(fixtures) != 36 {
+		t.Fatalf("effect fixtures=%d want 36", len(fixtures))
+	}
+	for _, fixture := range fixtures {
+		t.Run(fixture.Name, func(t *testing.T) {
+			root := t.TempDir()
+			if err := os.WriteFile(filepath.Join(root, "go.mod"), []byte("module example.invalid/fitness\n\ngo 1.27.1\n"), 0600); err != nil {
+				t.Fatal(err)
+			}
+			for name, path := range fixture.Files {
+				source, err := os.ReadFile(path)
+				if err != nil {
+					t.Fatal(err)
+				}
+				target := filepath.Join(root, name)
+				if err := os.MkdirAll(filepath.Dir(target), 0700); err != nil {
+					t.Fatal(err)
+				}
+				if err := os.WriteFile(target, source, 0600); err != nil {
+					t.Fatal(err)
+				}
+			}
+			for _, path := range fixture.PureFiles {
+				if _, exists := fixture.Files[path]; !exists {
+					t.Fatalf("unknown pure fixture file %s", path)
+				}
+			}
+			check := func() []puritycheck.Finding {
+				findings, err := puritycheck.Check(root, sourceGoCommand(),
+					archcheck.Platform{OS: runtime.GOOS, Arch: runtime.GOARCH},
+					func(path string) bool { return slices.Contains(fixture.PureFiles, path) })
+				if err != nil {
+					t.Fatal(err)
+				}
+				return findings
+			}
+			findings := check()
+			category := fixture.Category
+			if fixture.Reviewed {
+				category = "dynamic-call"
+			}
+			if category != "" && len(findings) == 0 {
+				t.Fatalf("missing %s (%s)", category, fixture.Detail)
+			}
+			for _, finding := range findings {
+				if finding.Category != category || !strings.Contains(finding.Detail, fixture.Detail) {
+					t.Fatalf("want %s (%s): %+v", category, fixture.Detail, findings)
+				}
+			}
+			if category != "dynamic-call" {
+				return
+			}
+			linesByFile := map[string]map[int]bool{}
+			for _, finding := range findings {
+				parts := strings.Split(finding.Path, ":")
+				if len(parts) != 3 {
+					t.Fatalf("invalid finding position %s", finding.Path)
+				}
+				line, err := strconv.Atoi(parts[1])
+				if err != nil {
+					t.Fatal(err)
+				}
+				if linesByFile[parts[0]] == nil {
+					linesByFile[parts[0]] = map[int]bool{}
+				}
+				linesByFile[parts[0]][line-1] = true
+			}
+			for name, marked := range linesByFile {
+				path := filepath.Join(root, name)
+				source, err := os.ReadFile(path)
+				if err != nil {
+					t.Fatal(err)
+				}
+				lines := strings.Split(string(source), "\n")
+				for line := range marked {
+					lines[line] += " //gomad:dynamic reviewed 2026-10-12 callback boundary is explicitly reviewed by this fixture"
+				}
+				if err := os.WriteFile(path, []byte(strings.Join(lines, "\n")), 0600); err != nil {
+					t.Fatal(err)
+				}
+			}
+			if marked := check(); len(marked) != 0 {
+				t.Fatalf("reviewed callback rejected: %+v", marked)
+			}
+		})
 	}
 }

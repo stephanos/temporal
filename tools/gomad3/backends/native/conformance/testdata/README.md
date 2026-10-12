@@ -6,11 +6,11 @@ driver's `runtime_*.go` files are the specification: each fixture's arguments,
 environment, expected output, exit status, and timing come from there, and the
 compiler fixtures under `intercept` and `interceptfail` come from
 `backends/native/transcript/boundary/compiler-tests.json`. The `io_*` fixtures are specified by the
-runner's `runner/internal/execution/io_*_toolchain_test.go` and
+native execution tests `backends/native/execution/io_*_toolchain_test.go` and
 `runner/replay_io_integration_test.go` instead: `io_filesystem` and `io_net` must reach every
 modeled and every refused `os` and `net` entry in the boundary manifest, since
 `TestBoundaryManifestSemanticCanaries` requires a positive probe for each one, and `io_signal`
-and `io_user` build in guarded capability mode because their packages are forbidden imports. `net_bind` is specified by `runner/internal/execution/io_net_bind_toolchain_test.go`: it checks the
+and `io_user` build in guarded capability mode because their packages are forbidden imports. `net_bind` is specified by `backends/native/execution/io_net_bind_toolchain_test.go`: it checks the
 in-memory network's bind contract under the deterministic profile.
 
 The Simulation fixture is not in this module. Capability review admits the

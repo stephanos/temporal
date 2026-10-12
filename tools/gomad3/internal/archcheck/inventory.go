@@ -141,8 +141,8 @@ func discover(root, goCommand string, platform Platform, legacy bool) (Inventory
 		for _, issue := range pkg.DepsErrors {
 			add("package-error", relative, issue.Err)
 		}
-		if pkg.ImportPath == module && len(pkg.GoFiles)+len(pkg.CgoFiles) != 0 {
-			add("ownerless", relative, "module root owns only the test harness")
+		if pkg.ImportPath == module {
+			add("ownerless", relative, "module root holds no Go files")
 		}
 	}
 	if slices.ContainsFunc(findings, func(f Finding) bool { return f.Category == "package-error" }) {
@@ -227,7 +227,7 @@ func Within(path, root string) bool { return within(path, root) }
 
 var sourceExclusions = []string{
 	"backends/native/toolchain/runtime/overlay", "backends/native/transcript/testdata", "backends/native/conformance/testdata",
-	"cmd/gomad/testdata", "internal/compatibilitypack/testdata", "testdata", "qualification/corpus",
+	"cmd/gomad/testdata", "internal/compatibilitypack/testdata", "runner/testdata", "qualification/corpus",
 	"backends/wasm/testdata", "backends/wasm/wasi/testdata", "backends/wasm/toolchain/testdata", "backends/wasm/simulation/testdata", "backends/wasm/qualification/testdata", "backends/wasm/command/testdata",
 }
 

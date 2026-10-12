@@ -1,7 +1,7 @@
 // Package runnerconsumer is an ordinary consumer of the public Runner
 // interface. TestRunnerExternalConsumerCompiles builds it as its own module,
 // outside the Runner subtree, so it can name only exported Runner types and
-// cannot import runner/internal/execution. It substitutes target preparation
+// cannot import the Runner's internal packages. It substitutes target preparation
 // and artifact replay, the two public seams, and constructs every operation
 // request without naming an execution or descriptor type.
 package runnerconsumer

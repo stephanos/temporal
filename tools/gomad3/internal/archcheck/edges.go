@@ -6,9 +6,6 @@ import (
 )
 
 func Owner(module, importPath string) string {
-	if importPath == module {
-		return "test-harness"
-	}
 	if !Within(importPath, module) {
 		return ""
 	}
@@ -28,7 +25,7 @@ func Owner(module, importPath string) string {
 		"backends/native/conformance": "developer", "backends/native/generation": "developer",
 		"backends/native/qualification": "qualification", "backends/native/preparation": "preparation",
 		"captured": "captured", "volume": "volume", "internal/iowire": "iowire",
-		"internal/compatibilitypack": "compatibility", "internal/canonicaljson": "canonicaljson", "internal/hostexec": "hostexec", "hostexec": "hostexec", "internal/hostfs": "hostfs", "hostfs": "hostfs", "internal/preparation": "preparation", "internal/sourceinventory": "sourceinventory",
+		"internal/compatibilitypack": "compatibility", "internal/canonicaljson": "canonicaljson", "internal/hostexec": "hostexec", "hostexec": "hostexec", "internal/hostfs": "hostfs", "hostfs": "hostfs", "internal/sourceinventory": "sourceinventory",
 	} {
 		if Within(relative, path) {
 			return owner
@@ -83,9 +80,8 @@ func OwnerMayImport(modulePath, owner, importedOwner, importing, imported string
 func ModuleMayImport(modulePath, importing, imported string) bool {
 	forbidden := map[string][]string{
 		"artifact": {"runner"}, "record": {"runner"},
-		"runner/internal/campaign":  {"runner/internal/execution", "runner/internal/corpus", "runner/internal/minimizer"},
-		"runner/internal/execution": {"runner/internal/campaign", "runner/internal/corpus", "runner/internal/exploration"},
-		"runner/internal/corpus":    {"runner/internal/campaign", "runner/internal/execution", "runner/internal/exploration"},
+		"runner/internal/campaign": {"runner/internal/corpus", "runner/internal/minimizer"},
+		"runner/internal/corpus":   {"runner/internal/campaign", "runner/internal/exploration"},
 	}
 	for module, denied := range forbidden {
 		if Within(importing, modulePath+"/"+module) && slices.ContainsFunc(denied, func(prefix string) bool { return Within(imported, modulePath+"/"+prefix) }) {

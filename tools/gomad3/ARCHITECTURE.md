@@ -145,7 +145,7 @@ spins prevents quiescence and reaches the wall watchdog. Process death must leav
 an operation classified as committed or uncommitted, with no ambiguous partial
 model transition.
 
-`runner/internal/execution/simulation_progress.go` owns complete typed progress
+`simulation/clock/simulation_progress.go` owns complete typed progress
 transitions under the arbiter mutex (`SIMULATION.BACKENDS`). Admission,
 forwarding, response reservation/delivery, arrival consumption, abandonment
 accounting, and participant removal validate participant incarnation, response
@@ -393,7 +393,7 @@ describe the intentional source changes.
 
 ### Complete preparation and inspection
 
-`internal/preparation` composes target and deterministic-I/O adapter owners
+`backends/native/preparation` composes target and deterministic-I/O adapter owners
 without reversing their dependencies (`TARGET.PREPARATION`, `TARGET.CAPABILITY`).
 `Prepare` returns a validated `target.Prepared` with selected adapter identities
 attached. It owns temporary adapter-workspace cleanup; Campaign and portable
@@ -457,7 +457,7 @@ Runner drains stdout and stderr concurrently, hashes every byte, and retains a
 bounded head and tail. Output timing and host completion order are diagnostics
 and never enter runtime or World decisions.
 
-`runner/internal/execution.Spec` groups World and deterministic-I/O inputs as typed execution
+`backends/native/execution.Spec` groups World and deterministic-I/O inputs as typed execution
 capabilities. On Unix, one process-owned launch-resource plan creates the pipes
 and backings, fixes every stage's descriptor numbers and inheritance order, and
 defines which ends close after each process start. The supervisor and bootstrap
@@ -821,7 +821,7 @@ while `make -C tools/gomad3 validate` rejects drift. Protocol changes require an
 compatibility decision.
 
 `simulation/schema/timewire.json` defines the versioned simulation-time layout
-and generates host codecs in `runner/internal/execution/simulation_time_wire_generated.go`
+and generates host codecs in `backends/native/execution/simulation_time_wire_generated.go`
 and allocation-free runtime codecs (`RUNTIME.TIME`, `SIMULATION.BACKENDS`, `MAINTENANCE.GOVERNANCE`). Golden
 vectors bind magic, kinds, reserved fields, correlation, and byte order. Runtime
 descriptor I/O, native timers, quiescence hooks, and host arbitration remain
@@ -869,7 +869,7 @@ lifecycle or result-classification policy. The test driver records one bounded
 case result per external command and keeps equality, diversity, diagnostics,
 timeouts, and mandatory semantic markers as distinct oracles.
 
-`target/internal/gocommand` uses supervised `internal/hostexec` processes for
+`backends/native/build/internal/gocommand` uses supervised `internal/hostexec` processes for
 target compilation, Go identity queries, and package/module listing
 (`TARGET.PREPARATION`). Both output contracts retain context cancellation,
 finite watchdogs, process-group cleanup, and command exit classification.
