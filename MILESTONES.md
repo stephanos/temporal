@@ -52,9 +52,12 @@ that IR, lower it to Testpilot Cases, and run those Cases as functional tests an
 Umpire IR and the Testpilot IR are what connect the parts. See [SCALA.md](.plans/SCALA.md) and
 [UMPIRE4_SPEC.md](.plans/UMPIRE4_SPEC.md).
 
-The DSL framework (`model/framework`) stays Temporal-agnostic as far as is realistic: Temporal's capability
-vocabulary, properties, realization vocabulary and kit live under `model/temporal/`, and the lifter and Testpilot IR
-are the parts that are Temporal's driver tooling by design (fn-114.12, fn-122.8).
+The framework (`model/framework`) is self-contained and Temporal-free, reusable for other systems
+(owner, 2026-10-12, fn-169): it holds the DSL, the generic realization core, the lifter, the checks and the
+migration harness, and compiles with no Temporal API or `temporal.*` source on its classpath. Temporal's
+capability vocabulary, Properties, realization kit, lifter plug-in, gate and migration rules live under
+`model/temporal/`. This supersedes the earlier position that the lifter is Temporal's driver tooling by
+design (fn-114.12, fn-122.8); the Go consumers' Temporal adapter and the IR namespace follow at the sweep.
 
 Now, complete the mini Scala DSL. Then propagate its respective IR and Go consumer changes.
 Real-feature sources and historical payloads stay behind for the owner's separate sweep.
@@ -120,19 +123,18 @@ facet vocabularies are recorded in fn-161.
 | 3 | fn-162 | realizations name their Queries; claim containers removed |
 | 4 | fn-160 | layout and realization layer (.3/.4, done) |
 | 5 | fn-166.11-.13 | the change-scoped model loop: lifter suites scoped to what they lift, Make without held API generation, one diff-scoped check with an evidence record (owner, 2026-10-12) |
-| fn-166.12 | ⬜ todo | Model Make targets run without held API generation, from a cached API jar; held Go stages skipped by name (owner, 2026-10-12; Makefile change approved) |
-| fn-166.13 | ⬜ todo | Change-scoped model check: scope from the diff, a coverage registry for every Scala suite, a fixed evidence record; the default per-change check (owner, 2026-10-12) |
-| 6 | fn-141 | lifter refactor (byte-identical lifts), pulled forward by the owner on 2026-10-12 |
-| 7 | fn-160 | Protocol level, flat `features/`, per-feature collection (.6/.7/.2) |
-| 8 | fn-163 | system/product capabilities, named system capabilities |
-| 9 | fn-147 | Duration-typed elapsed-time authoring (source integrated; proof/closure open) |
+| 6 | fn-169.1 | the Temporal-free framework: generic lift/check/migrate moved into `model/framework`, Temporal parts into `model/temporal`, build boundary enforced (owner, 2026-10-12) |
+| 7 | fn-141 | lifter refactor (byte-identical lifts), pulled forward by the owner on 2026-10-12; fn-169.2's plug-in seam follows fn-141.8 |
+| 8 | fn-160 | Protocol level, flat `features/`, per-feature collection (.6/.7/.2) |
+| 9 | fn-163 | system/product capabilities, named system capabilities |
+| 10 | fn-147 | Duration-typed elapsed-time authoring (source integrated; proof/closure open) |
 | — | fn-140 | witness Queries and `.live` (source done; Go proofs held) |
 | — | fn-149 | safety and liveness groups (source done; Go proofs held) |
-| 10 | fn-164 | `expect:` blocks for Properties and consistent colon style |
+| 11 | fn-164 | `expect:` blocks for Properties and consistent colon style |
 | — | seal | the mini feature's step-table equivalence before the first meaning change |
-| 11 | fn-123 | fault declarations, durability, `crashes(...)` |
-| 12 | fn-153 | Property illustrations in the DSL |
-| 13 | fn-165 | inputs as records: named classes, declared defaults, `:=` removed from classes (after fn-141) |
+| 12 | fn-123 | fault declarations, durability, `crashes(...)` |
+| 13 | fn-153 | Property illustrations in the DSL |
+| 14 | fn-165 | inputs as records: named classes, declared defaults, `:=` removed from classes (after fn-141) |
 
 fn-128 and fn-129, the remaining standalone activity edits, are about a real feature only and moved
 to [Deferred for now](#deferred-for-now).
@@ -173,6 +175,8 @@ Lint checks and manual acceptance work are set aside for this run at the owner's
 | fn-166.5 | ⏸️ deferred | Three canonical warm loops under 90 s and authorized consumer/full-set closure; source docs and rules are tasks 8/9 |
 | fn-166.7 | ⏸️ deferred | Model-side Make target rename and live-reference sweep; runtime target names retained |
 | fn-166.11 | ⬜ todo | Lifter suites scoped to what they lift: admission covers only sources the lifted roots reach; production-fixture tests retargeted to mini or held for the sweep; before/after suite timing (owner, 2026-10-12) |
+| fn-166.12 | ⬜ todo | Model Make targets run without held API generation, from a cached API jar; held Go stages skipped by name (owner, 2026-10-12; Makefile change approved) |
+| fn-166.13 | ⬜ todo | Change-scoped model check: scope from the diff, a coverage registry for every Scala suite, a fixed evidence record; the default per-change check (owner, 2026-10-12) |
 
 ### fn-167: Gaps declared in the Model: `@gap` replaces the lint file
 
@@ -458,10 +462,28 @@ Tasks run in order. Re-anchor against the actual baseline after the delivery cha
 hypothetical violations, actual model failures and live coverage separate. Mechanical checks
 do not establish developer comprehension, and absent feedback must remain explicit.
 
+### fn-169: A Temporal-free framework: the lifter and checks join `model/framework`
+
+Captured and approved by the owner on 2026-10-12. `model/framework` becomes self-contained and
+Temporal-free, so it could be reused for other systems. Most of `model/irgen`, `model/check` and the
+`model/migrate` harness is generic and moves into `framework/{lift,check,migrate}`; the Temporal kit
+lifting, layout conventions, API descriptors, gate and task rules move into `temporal/{lift,check,migrate}`.
+A build boundary keeps the Temporal API and `temporal.*` sources off the framework's classpath. The
+mechanical move runs before fn-141; the plug-in seam completes after fn-141.8, which removes most of the
+kit coupling. The IR namespace and the Go `tools/umpire` Temporal adapter are held for the sweep.
+[Spec](.flow/specs/fn-169-a-temporal-free-framework-the-lifter.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-169.1 | ⬜ todo | Mechanical move into `framework/{lift,check,migrate}` and `temporal/{lift,check,migrate}`; Temporal-free build boundary; docs; after fn-166.13 |
+| fn-169.2 | ⬜ todo | Plug-in seam: layout conventions, kit lifting and API descriptors supplied by `temporal/lift`; after fn-141.8 |
+| fn-169.3 | ⏸️ deferred (sweep) | IR schema to an Umpire-owned namespace (`umpire.ir.v1`) |
+| fn-169.4 | ⏸️ deferred (Go) | Go `tools/umpire` Temporal adapter; Testpilot execution API behind `testpilot/temporal`; import rule |
+
 ### fn-141: Shrink the IR generator: one description of each DSL construct
 
-Ready 2026-10-08. Pulled forward by the owner on 2026-10-12: it runs after fn-160.3/.4 and
-fn-166.11-.13, before the remaining DSL specs, which then land on the smaller lifter. Its
+Ready 2026-10-08. Pulled forward by the owner on 2026-10-12: it runs after fn-160.3/.4,
+fn-166.11-.13 and fn-169.1 (so it works in the framework's final homes), before the remaining DSL specs, which then land on the smaller lifter. Its
 "spellings no Model uses" recount (fn-141.2) counts the current mini and shared code only, and must
 keep any spelling an open spec in this batch is about to use.
 Because its tasks were planned against the earlier tree, each re-reads its files and recounts first.

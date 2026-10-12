@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-12T20:40:05.909964Z",
+  "depends_on": [
+    "fn-169-a-temporal-free-framework-the-lifter.1"
+  ],
+  "id": "fn-169-a-temporal-free-framework-the-lifter.2",
+  "priority": null,
+  "spec": "fn-169-a-temporal-free-framework-the-lifter",
+  "spec_path": ".flow/tasks/fn-169-a-temporal-free-framework-the-lifter.2.md",
+  "status": "todo",
+  "title": "Plug-in seam: layout conventions, realization-kit lifting and API descriptors supplied by temporal/lift (after fn-141.8)",
+  "updated_at": "2026-10-12T20:40:05.909964Z"
+}
