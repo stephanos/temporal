@@ -94,7 +94,8 @@ jobs:
                         tools/gomad3/backends/native/generation/protocol/*) wasm=true ;;
                       esac
                       ;;
-                    tools/gomad3/*|.github/workflows/gomad3.yml|.github/workflows/gomad3-smoke.yml|Makefile|go.mod|go.sum)
+                    # backends/wasm/simulation and qualification import tools/gomad3sim.
+                    tools/gomad3/*|tools/gomad3sim/*|.github/workflows/gomad3.yml|.github/workflows/gomad3-smoke.yml|Makefile|go.mod|go.sum)
                       native=true
                       wasm=true
                       ;;
