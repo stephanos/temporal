@@ -28,7 +28,7 @@ func storageSQLiteRequest(t *testing.T) Request {
 		t.Fatalf("storage guest requires stock Go 1.27.1: %q %v", version, err)
 	}
 	root := stockgo.Root(t)
-	native, err := filepath.Abs("../../gomad3/toolchain/runtime/overlay/src/runtime")
+	native, err := filepath.Abs("../../gomad3/runtimesemantics")
 	if err != nil {
 		t.Fatal(err)
 	}

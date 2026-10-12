@@ -60,9 +60,12 @@ complete build key with external cache programs disabled. Its artifacts declare 
 or forced-choice claims.
 
 The cooperative provider requires Go 1.27.1 and an explicit `RuntimeRoot` pointing
-to `tools/gomad3/toolchain/runtime/overlay/src/runtime`. Its derived overlay reuses
-the native stable goroutine/timer identities, seeded choice functions and choice
-codec without modifying those inputs. The profile preserves the stock collector
+to `tools/gomad3/runtimesemantics`. Both overlays copy its package-runtime
+sources verbatim and hash the copied bytes. The former native overlay directory
+is no longer a valid runtime source root. This extraction rotates runtime and
+model identities; retained qualifications bind their historical candidate and
+must not be relabeled as current. Choice records and replay schemas are unchanged.
+The profile preserves the stock collector
 with `nogreenteagc`, allocation sampling, finalizers and cleanups. Runtime seeded
 streams stay independent of modeled application entropy. WASI note waits park,
 and the idle handshake advances to the earliest timer or note deadline.

@@ -424,7 +424,7 @@ func GenerateProtocols(root string, check bool) error {
 		{Package: "wire", Template: "choicewire_test.go.tmpl", Path: "choice/internal/wire/wire_generated_test.go"},
 		{Package: "gomadchoicewire", Template: "choicewire.go.tmpl", Path: "toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated.go"},
 		{Package: "gomadchoicewire_test", TestImport: "internal/gomadchoicewire", Template: "choicewire_test.go.tmpl", Path: "toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated_test.go"},
-		{Package: "runtime", Template: "choicewire_runtime.go.tmpl", Path: "toolchain/runtime/overlay/src/runtime/gomad_choicewire_generated.go"},
+		{Package: "runtime", Template: "choicewire_runtime.go.tmpl", Path: "runtimesemantics/gomad_choicewire_generated.go.txt"},
 	}
 	for _, target := range choiceOutputs {
 		generated, generateErr := generate(filepath.Join(root, "choice", "schema", target.Template), choiceTemplateData{Package: target.Package, TestImport: target.TestImport, Schema: choiceDefinition, ImplementationDigest: string(implementationDigest[:])})
@@ -584,6 +584,11 @@ func readLiveCapabilityImplementationInputs(root string) (liveCapabilityImplemen
 		}
 		values[index] = value
 	}
+	semantics, err := os.ReadFile(filepath.Join(root, "runtimesemantics", "gomad_semantics.go.txt"))
+	if err != nil {
+		return liveCapabilityImplementationInputs{}, fmt.Errorf("read live capability runtime semantics: %w", err)
+	}
+	values[7] = append(append(values[7], '\n'), semantics...)
 	return liveCapabilityImplementationInputs{
 		Schema: values[0], CodecTemplate: values[1], CompilerEmitter: values[2], LinkerProjector: values[3],
 		Encoder: values[4], GuardFlag: values[5], GuardSource: values[6], RuntimeGuard: values[7],
@@ -609,6 +614,11 @@ func readChoiceImplementationInputs(root string) (choiceImplementationInputs, er
 		}
 		values[index] = value
 	}
+	semantics, err := os.ReadFile(filepath.Join(root, "runtimesemantics", "gomad_semantics.go.txt"))
+	if err != nil {
+		return choiceImplementationInputs{}, fmt.Errorf("read choice implementation runtime semantics: %w", err)
+	}
+	values[3] = append(append(values[3], '\n'), semantics...)
 	return choiceImplementationInputs{
 		Schema: values[0], CodecTemplate: values[1], RuntimeTemplate: values[2], RuntimeOverlay: values[3], ToolchainPatch: values[4],
 		HostTrace: values[5], HostTape: values[6],

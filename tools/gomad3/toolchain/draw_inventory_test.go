@@ -63,16 +63,16 @@ both|os/tempfile.go|package|runtime_rand|linkname:runtime.rand|1|reference|wrapp
 both|os/tempfile.go|runtime_rand|runtime_rand|declaration|1|reference|wrapper|active|reviewed draw helper declaration
 both|runtime/alg.go|f32hash|rand|call|1|target-ordered|process-purpose|active|draw follows target operation or deterministic scheduler decision
 both|runtime/alg.go|f64hash|rand|call|1|target-ordered|process-purpose|active|draw follows target operation or deterministic scheduler decision
-both|runtime/gomad.go|gomadChoiceRandom|gomadChoiceRandom|declaration|1|reference|wrapper|active|reviewed draw helper declaration
-both|runtime/gomad.go|gomadChoiceRunnextSeeded|gomadChoiceRandom|call|1|target-ordered|process-purpose|active|draw follows target operation or deterministic scheduler decision
-both|runtime/gomad.go|gomadChoiceRunnextSeeded|gomadChoiceRunnextSeeded|declaration|1|reference|wrapper|active|reviewed draw helper declaration
-both|runtime/gomad.go|gomadChoiceRunnextSeeded|randn|call|1|target-ordered|wrapper|disabled|upstream fallback executes only when Gomad is off
-both|runtime/gomad.go|gomadChoiceRunqIndex|gomadChoiceRunqSeeded|call|1|target-ordered|process-purpose|active|draw follows target operation or deterministic scheduler decision
-both|runtime/gomad.go|gomadChoiceRunqSeeded|gomadChoiceRandom|call|1|target-ordered|process-purpose|active|draw follows target operation or deterministic scheduler decision
-both|runtime/gomad.go|gomadChoiceRunqSeeded|gomadChoiceRunqSeeded|declaration|1|reference|wrapper|active|reviewed draw helper declaration
-both|runtime/gomad.go|gomadChoiceRunqSeeded|randn|call|1|target-ordered|wrapper|disabled|upstream fallback executes only when Gomad is off
-both|runtime/gomad.go|gomadChoiceSelectSeeded|cheaprandn|call|1|target-ordered|wrapper|disabled|upstream fallback executes only when Gomad is off
-both|runtime/gomad.go|gomadChoiceSelectSeeded|gomadChoiceSelectSeeded|declaration|1|reference|wrapper|active|reviewed draw helper declaration
+both|runtime/gomad_semantics.go|gomadChoiceRandom|gomadChoiceRandom|declaration|1|reference|wrapper|active|reviewed draw helper declaration
+both|runtime/gomad_semantics.go|gomadChoiceRunnextSeeded|gomadChoiceRandom|call|1|target-ordered|process-purpose|active|draw follows target operation or deterministic scheduler decision
+both|runtime/gomad_semantics.go|gomadChoiceRunnextSeeded|gomadChoiceRunnextSeeded|declaration|1|reference|wrapper|active|reviewed draw helper declaration
+both|runtime/gomad_semantics.go|gomadChoiceRunnextSeeded|randn|call|1|target-ordered|wrapper|disabled|upstream fallback executes only when Gomad is off
+both|runtime/gomad_semantics.go|gomadChoiceRunqIndex|gomadChoiceRunqSeeded|call|1|target-ordered|process-purpose|active|draw follows target operation or deterministic scheduler decision
+both|runtime/gomad_semantics.go|gomadChoiceRunqSeeded|gomadChoiceRandom|call|1|target-ordered|process-purpose|active|draw follows target operation or deterministic scheduler decision
+both|runtime/gomad_semantics.go|gomadChoiceRunqSeeded|gomadChoiceRunqSeeded|declaration|1|reference|wrapper|active|reviewed draw helper declaration
+both|runtime/gomad_semantics.go|gomadChoiceRunqSeeded|randn|call|1|target-ordered|wrapper|disabled|upstream fallback executes only when Gomad is off
+both|runtime/gomad_semantics.go|gomadChoiceSelectSeeded|cheaprandn|call|1|target-ordered|wrapper|disabled|upstream fallback executes only when Gomad is off
+both|runtime/gomad_semantics.go|gomadChoiceSelectSeeded|gomadChoiceSelectSeeded|declaration|1|reference|wrapper|active|reviewed draw helper declaration
 both|runtime/gomad.go|gomadChoiceShuffleSeeded|cheaprandn|call|1|target-ordered|wrapper|disabled|upstream fallback executes only when Gomad is off
 both|runtime/gomad.go|gomadChoiceShuffleSeeded|gomadChoiceRandom|call|1|target-ordered|process-purpose|active|draw follows target operation or deterministic scheduler decision
 both|runtime/gomad.go|gomadChoiceShuffleSeeded|gomadHostCheapRandN|call|1|host-timed|M-local|active|netpoll batch shuffle uses the M-local stream
@@ -86,10 +86,10 @@ both|runtime/gomad.go|gomadHostCheapRandN|gomadHostCheapRand|call|1|host-timed|M
 both|runtime/gomad.go|gomadHostCheapRandN|gomadHostCheapRandN|declaration|1|reference|wrapper|active|reviewed draw helper declaration
 both|runtime/gomad.go|gomadLockProfileStart|gomadHostCheapRandN|call|1|host-timed|M-local|active|host scheduling or profiling draw uses current M
 both|runtime/gomad.go|gomadLockProfileStart|gomadLockProfileStart|declaration|1|reference|wrapper|active|reviewed draw helper declaration
-both|runtime/gomad.go|gomadRuntimeCheapRand|gomadRuntimeCheapRand|declaration|1|reference|wrapper|active|reviewed draw helper declaration
-both|runtime/gomad.go|gomadRuntimeRand|gomadRuntimeRand|declaration|1|reference|wrapper|active|reviewed draw helper declaration
+both|runtime/gomad_semantics.go|gomadRuntimeCheapRand|gomadRuntimeCheapRand|declaration|1|reference|wrapper|active|reviewed draw helper declaration
+both|runtime/gomad_semantics.go|gomadRuntimeRand|gomadRuntimeRand|declaration|1|reference|wrapper|active|reviewed draw helper declaration
 both|runtime/gomad.go|gomadTimeNow|gomadClockTickDraw|call|1|target-ordered|process-purpose|active|draw follows target operation or deterministic scheduler decision
-both|runtime/gomad.go|gomadTimerRand|gomadTimerRand|declaration|1|reference|wrapper|active|reviewed draw helper declaration
+both|runtime/gomad_semantics.go|gomadTimerRand|gomadTimerRand|declaration|1|reference|wrapper|active|reviewed draw helper declaration
 both|runtime/iface.go|interfaceSwitch|cheaprand|call|2|target-ordered|process-purpose|active|draw follows target operation or deterministic scheduler decision
 both|runtime/iface.go|typeAssert|cheaprand|call|2|target-ordered|process-purpose|active|draw follows target operation or deterministic scheduler decision
 both|runtime/lock_spinbit.go|lock2|gomadLockProfileStart|call|1|host-timed|M-local|active|host scheduling or profiling draw uses current M
@@ -521,21 +521,21 @@ var reviewedSeededDrawReferences = []seededDrawReference{
 	{"os/tempfile.go", "nextRandom", "runtime_rand", 1, drawTargetOrdered, "temporary names the target asks for"},
 	{"runtime/alg.go", "f32hash", "rand", 1, drawTargetOrdered, "hashes a NaN key the target stores in a map"},
 	{"runtime/alg.go", "f64hash", "rand", 1, drawTargetOrdered, "hashes a NaN key the target stores in a map"},
-	{"runtime/gomad.go", "gomadChoiceRunnextSeeded", "gomadChoiceRandom", 1, drawImplementation, "the runnext demotion draw"},
-	{"runtime/gomad.go", "gomadChoiceRunnextSeeded", "gomadChoiceSchedulerRandom", 1, drawImplementation, "the runnext demotion stream's accessor"},
-	{"runtime/gomad.go", "gomadChoiceRunnextSeeded", "randn", 1, drawInactive, "upstream draw when Gomad is disabled"},
-	{"runtime/gomad.go", "gomadChoiceRunqIndex", "gomadChoiceRunqSeeded", 1, drawTargetOrdered, "the run-queue pick among user goroutines; runtime-owned goroutines take no draw"},
-	{"runtime/gomad.go", "gomadChoiceRunqSeeded", "gomadChoiceRandom", 1, drawImplementation, "the run-queue pick draw"},
-	{"runtime/gomad.go", "gomadChoiceRunqSeeded", "gomadChoiceRunqRandom", 1, drawImplementation, "the run-queue pick stream's accessor"},
-	{"runtime/gomad.go", "gomadChoiceRunqSeeded", "randn", 1, drawInactive, "upstream draw when Gomad is disabled"},
-	{"runtime/gomad.go", "gomadChoiceSeedRandom", "gomadChoiceRunqRandom", 1, drawImplementation, "seeds the stream from GOMADSEED before user code"},
-	{"runtime/gomad.go", "gomadChoiceSeedRandom", "gomadChoiceSchedulerRandom", 1, drawImplementation, "seeds the stream from GOMADSEED before user code"},
-	{"runtime/gomad.go", "gomadChoiceSeedRandom", "gomadChoiceSelectRandom", 1, drawImplementation, "seeds the stream from GOMADSEED before user code"},
-	{"runtime/gomad.go", "gomadChoiceSeedRandom", "gomadRuntimeCheapRandom", 1, drawImplementation, "seeds the stream from GOMADSEED before user code"},
-	{"runtime/gomad.go", "gomadChoiceSeedRandom", "gomadRuntimeRandom", 1, drawImplementation, "seeds the stream from GOMADSEED before user code"},
-	{"runtime/gomad.go", "gomadChoiceSeedRandom", "gomadTimerRandom", 1, drawImplementation, "seeds the stream from GOMADSEED before user code"},
-	{"runtime/gomad.go", "gomadChoiceSelectSeeded", "cheaprandn", 1, drawInactive, "upstream draw when Gomad is disabled"},
-	{"runtime/gomad.go", "gomadChoiceSelectSeeded", "gomadChoiceSelectRandom", 4, drawImplementation, "the select poll-order stream's accessor"},
+	{"runtime/gomad_semantics.go", "gomadChoiceRunnextSeeded", "gomadChoiceRandom", 1, drawImplementation, "the runnext demotion draw"},
+	{"runtime/gomad_semantics.go", "gomadChoiceRunnextSeeded", "gomadChoiceSchedulerRandom", 1, drawImplementation, "the runnext demotion stream's accessor"},
+	{"runtime/gomad_semantics.go", "gomadChoiceRunnextSeeded", "randn", 1, drawInactive, "upstream draw when Gomad is disabled"},
+	{"runtime/gomad_semantics.go", "gomadChoiceRunqIndex", "gomadChoiceRunqSeeded", 1, drawTargetOrdered, "the run-queue pick among user goroutines; runtime-owned goroutines take no draw"},
+	{"runtime/gomad_semantics.go", "gomadChoiceRunqSeeded", "gomadChoiceRandom", 1, drawImplementation, "the run-queue pick draw"},
+	{"runtime/gomad_semantics.go", "gomadChoiceRunqSeeded", "gomadChoiceRunqRandom", 1, drawImplementation, "the run-queue pick stream's accessor"},
+	{"runtime/gomad_semantics.go", "gomadChoiceRunqSeeded", "randn", 1, drawInactive, "upstream draw when Gomad is disabled"},
+	{"runtime/gomad_semantics.go", "gomadChoiceSeedRandom", "gomadChoiceRunqRandom", 1, drawImplementation, "seeds the stream from GOMADSEED before user code"},
+	{"runtime/gomad_semantics.go", "gomadChoiceSeedRandom", "gomadChoiceSchedulerRandom", 1, drawImplementation, "seeds the stream from GOMADSEED before user code"},
+	{"runtime/gomad_semantics.go", "gomadChoiceSeedRandom", "gomadChoiceSelectRandom", 1, drawImplementation, "seeds the stream from GOMADSEED before user code"},
+	{"runtime/gomad_semantics.go", "gomadChoiceSeedRandom", "gomadRuntimeCheapRandom", 1, drawImplementation, "seeds the stream from GOMADSEED before user code"},
+	{"runtime/gomad_semantics.go", "gomadChoiceSeedRandom", "gomadRuntimeRandom", 1, drawImplementation, "seeds the stream from GOMADSEED before user code"},
+	{"runtime/gomad_semantics.go", "gomadChoiceSeedRandom", "gomadTimerRandom", 1, drawImplementation, "seeds the stream from GOMADSEED before user code"},
+	{"runtime/gomad_semantics.go", "gomadChoiceSelectSeeded", "cheaprandn", 1, drawInactive, "upstream draw when Gomad is disabled"},
+	{"runtime/gomad_semantics.go", "gomadChoiceSelectSeeded", "gomadChoiceSelectRandom", 4, drawImplementation, "the select poll-order stream's accessor"},
 	{"runtime/gomad.go", "gomadChoiceShuffleSeeded", "cheaprandn", 1, drawInactive, "upstream draw when Gomad is disabled"},
 	{"runtime/gomad.go", "gomadChoiceShuffleSeeded", "gomadChoiceRandom", 1, drawImplementation, "the run-queue batch shuffle draw"},
 	{"runtime/gomad.go", "gomadChoiceShuffleSeeded", "gomadChoiceSchedulerRandom", 1, drawImplementation, "the batch shuffle stream's accessor"},
@@ -546,10 +546,10 @@ var reviewedSeededDrawReferences = []seededDrawReference{
 	{"runtime/gomad.go", "gomadHostCheapRand", "gomadRuntimeCheapRand", 1, drawDiagnostic, "GOMAD3_DIAGNOSTIC_PERTURB_DRAW=host-timed:N puts the next host-timed draw on the seeded stream, which the diagnostic check refuses"},
 	{"runtime/gomad.go", "gomadHostCheapRandN", "gomadHostCheapRand", 1, drawImplementation, "bounded form of the M-local draw"},
 	{"runtime/gomad.go", "gomadLockProfileStart", "gomadHostCheapRandN", 1, drawHostTimed, "lock-profile wait sampling where lock2 is about to sleep on a contended runtime lock"},
-	{"runtime/gomad.go", "gomadRuntimeCheapRand", "gomadRuntimeCheapRandom", 3, drawImplementation, "the process-wide cheaprand stream's accessor"},
-	{"runtime/gomad.go", "gomadRuntimeRand", "gomadRuntimeRandom", 2, drawImplementation, "the process-wide rand stream's accessor"},
+	{"runtime/gomad_semantics.go", "gomadRuntimeCheapRand", "gomadRuntimeCheapRandom", 3, drawImplementation, "the process-wide cheaprand stream's accessor"},
+	{"runtime/gomad_semantics.go", "gomadRuntimeRand", "gomadRuntimeRandom", 2, drawImplementation, "the process-wide rand stream's accessor"},
 	{"runtime/gomad.go", "gomadTimeNow", "gomadClockTickDraw", 1, drawTargetOrdered, "the forward clock tick of a time.Now the target calls"},
-	{"runtime/gomad.go", "gomadTimerRand", "gomadTimerRandom", 2, drawImplementation, "the timer tie-break stream's accessor"},
+	{"runtime/gomad_semantics.go", "gomadTimerRand", "gomadTimerRandom", 2, drawImplementation, "the timer tie-break stream's accessor"},
 	{"runtime/iface.go", "interfaceSwitch", "cheaprand", 2, drawTargetOrdered, "type-switch cache growth on a switch the target executes"},
 	{"runtime/iface.go", "typeAssert", "cheaprand", 2, drawTargetOrdered, "type-assertion cache growth on an assertion the target executes"},
 	{"runtime/lock_spinbit.go", "mutexSampleContention", "cheaprandu64", 1, drawHostTimed, "runtime-lock contention sampling for the mutex profile; m.cheaprand64 is M-local"},

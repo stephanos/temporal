@@ -26,8 +26,8 @@ func TestIntegratedCooperativeFailureArtifactDetachedReplay(t *testing.T) {
 	if err := os.MkdirAll(options.RuntimeRoot, 0700); err != nil {
 		t.Fatal(err)
 	}
-	for _, name := range []string{"gomad.go", "gomad_choicewire_generated.go"} {
-		data, err := os.ReadFile(filepath.Join("../../gomad3/toolchain/runtime/overlay/src/runtime", name))
+	for _, name := range []string{"gomad_semantics.go.txt", "gomad_choicewire_generated.go.txt"} {
+		data, err := os.ReadFile(filepath.Join("../../gomad3/runtimesemantics", name))
 		if err != nil {
 			t.Fatal(err)
 		}

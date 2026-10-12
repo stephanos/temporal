@@ -9,16 +9,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"go/ast"
 	"go/format"
-	"go/parser"
-	"go/token"
 	"os"
 	"path/filepath"
 	"slices"
 	"strings"
 
 	"go.temporal.io/server/tools/gomad3/hostfs"
+	"go.temporal.io/server/tools/gomad3/runtimesemantics"
 )
 
 //go:embed runtime_wasm.go.txt
@@ -50,19 +48,8 @@ type rewrite struct {
 	count    int
 }
 
-var nativeFunctions = []string{
-	"gomadDiagnosticAllocations", "gomadChoiceRecordSelectResult", "gomadChoiceSelectOrigin",
-	"gomadChoiceSelectReadiness", "gomadChoiceWaiterPresent", "gomadChoiceSeedRandom", "gomadTimerRand",
-	"gomadRuntimeRand", "gomadRuntimeCheapRand", "gomadSeededDrawCheck", "gomadChoiceRunqSeeded",
-	"gomadChoiceRunnextSeeded", "gomadChoiceRandom", "gomadChoiceSelectSeeded", "gomadChoiceEncodeRecord",
-	"gomadChoiceZero", "gomadChoiceEqual", "gomadChoiceSite", "gomadChoiceRootIdentity",
-	"gomadChoiceAssignGoroutineIdentity", "gomadChoiceTimerCreated", "gomadChoiceTimerFire",
-	"gomadChoiceTimerFired", "gomadChoiceRunqIndex", "gomadChoiceSelectPollIndex", "gomadChoiceSelectIdentity",
-}
-
-// BuildOverlay derives a WASI runtime from the pinned stock sources and the
-// native owners' pure choice semantics without changing either input tree.
-func BuildOverlay(stockRoot, nativeRuntimeRoot, outputRoot string) (overlayPath, identity string, err error) {
+// BuildOverlay copies shared runtime semantics into a pinned stock WASI runtime.
+func BuildOverlay(stockRoot, semanticsRoot, outputRoot string) (overlayPath, identity string, err error) {
 	stockRoot, err = filepath.EvalSymlinks(stockRoot)
 	if err != nil {
 		return "", "", fmt.Errorf("stock Go root: %w", err)
@@ -71,11 +58,11 @@ func BuildOverlay(stockRoot, nativeRuntimeRoot, outputRoot string) (overlayPath,
 	if err != nil {
 		return "", "", err
 	}
-	nativeRuntimeRoot, err = filepath.EvalSymlinks(nativeRuntimeRoot)
+	semanticsRoot, err = filepath.EvalSymlinks(semanticsRoot)
 	if err != nil {
-		return "", "", fmt.Errorf("native runtime root: %w", err)
+		return "", "", fmt.Errorf("runtime semantics root: %w", err)
 	}
-	nativeRuntimeRoot, err = filepath.Abs(nativeRuntimeRoot)
+	semanticsRoot, err = filepath.Abs(semanticsRoot)
 	if err != nil {
 		return "", "", err
 	}
@@ -86,19 +73,14 @@ func BuildOverlay(stockRoot, nativeRuntimeRoot, outputRoot string) (overlayPath,
 	if strings.SplitN(string(version), "\n", 2)[0] != "go1.27.1" {
 		return "", "", fmt.Errorf("WASM runtime requires stock Go 1.27.1")
 	}
-	native, err := os.ReadFile(filepath.Join(nativeRuntimeRoot, "gomad.go"))
-	if err != nil {
-		return "", "", fmt.Errorf("native choice semantics: %w", err)
-	}
-	extracted, err := extractNative(native)
+	sources, err := runtimesemantics.Read(semanticsRoot)
 	if err != nil {
 		return "", "", err
 	}
-	wire, err := os.ReadFile(filepath.Join(nativeRuntimeRoot, "gomad_choicewire_generated.go"))
-	if err != nil {
-		return "", "", fmt.Errorf("native choice codec: %w", err)
+	inputs := map[string][]byte{"VERSION": version, "wasm-glue": runtimeGlue, "wasm-net-glue": netGlue, "wasm-net-stream-glue": netStreamGlue}
+	for name, data := range sources {
+		inputs["semantics/"+name] = data
 	}
-	inputs := map[string][]byte{"VERSION": version, "native-semantic-declarations": extracted, "native-choicewire": wire, "wasm-glue": runtimeGlue, "wasm-net-glue": netGlue, "wasm-net-stream-glue": netStreamGlue}
 	outputs := map[string][]byte{}
 	// Output names are paths relative to GOROOT/src; runtime files keep their historical bare names.
 	for name, rules := range stockRewrites() {
@@ -120,11 +102,13 @@ func BuildOverlay(stockRoot, nativeRuntimeRoot, outputRoot string) (overlayPath,
 		}
 		outputs[name] = formatted
 	}
-	outputs["gomad_wasm.go"], err = format.Source(bytes.Join([][]byte{runtimeGlue, extracted}, []byte("\n")))
+	outputs["gomad_wasm.go"], err = format.Source(runtimeGlue)
 	if err != nil {
 		return "", "", fmt.Errorf("format WASM runtime: %w", err)
 	}
-	outputs["gomad_choicewire_generated.go"] = wire
+	for name, data := range sources {
+		outputs[name] = data
+	}
 	outputs["net/gomad_wasm_net.go"], err = format.Source(netGlue)
 	if err != nil {
 		return "", "", fmt.Errorf("format WASM network glue: %w", err)
@@ -133,7 +117,7 @@ func BuildOverlay(stockRoot, nativeRuntimeRoot, outputRoot string) (overlayPath,
 	if err != nil {
 		return "", "", fmt.Errorf("format WASM network stream glue: %w", err)
 	}
-	for _, name := range []string{"gomad_wasm.go", "gomad_choicewire_generated.go", "net/gomad_wasm_net.go", "net/gomad_wasm_net_stream.go"} {
+	for _, name := range []string{"gomad_wasm.go", "gomad_semantics.go", "gomad_choicewire_generated.go", "net/gomad_wasm_net.go", "net/gomad_wasm_net_stream.go"} {
 		if _, err := os.Lstat(filepath.Join(stockRoot, sourcePath(name))); err == nil || !os.IsNotExist(err) {
 			return "", "", fmt.Errorf("WASM runtime overlay collides with stock file %s", name)
 		}
@@ -178,7 +162,7 @@ func BuildOverlay(stockRoot, nativeRuntimeRoot, outputRoot string) (overlayPath,
 		suffix = append(suffix, filepath.Base(ancestor))
 		ancestor = filepath.Dir(ancestor)
 	}
-	for _, source := range []string{stockRoot, nativeRuntimeRoot} {
+	for _, source := range []string{stockRoot, semanticsRoot} {
 		if relative, err := filepath.Rel(source, outputRoot); err != nil || relative == "." || relative != ".." && !strings.HasPrefix(relative, ".."+string(filepath.Separator)) {
 			return "", "", fmt.Errorf("overlay output must be outside input source trees")
 		}
@@ -260,58 +244,6 @@ func sourcePath(name string) string {
 
 // publishedName flattens an output name into the overlay directory.
 func publishedName(name string) string { return strings.ReplaceAll(name, "/", ".") }
-
-func extractNative(source []byte) ([]byte, error) {
-	set := token.NewFileSet()
-	file, err := parser.ParseFile(set, "gomad.go", source, parser.ParseComments)
-	if err != nil {
-		return nil, fmt.Errorf("parse native runtime: %w", err)
-	}
-	wanted := make(map[string]bool, len(nativeFunctions)+2)
-	for _, name := range nativeFunctions {
-		wanted[name] = true
-	}
-	wanted["gomadChoiceTimerIdentity"] = true
-	wanted["gomadChoiceRecordValue"] = true
-	seen := make(map[string]bool, len(wanted))
-	var extracted bytes.Buffer
-	for _, declaration := range file.Decls {
-		name := ""
-		switch decl := declaration.(type) {
-		case *ast.FuncDecl:
-			name = decl.Name.Name
-		case *ast.GenDecl:
-			if len(decl.Specs) == 1 {
-				if spec, ok := decl.Specs[0].(*ast.TypeSpec); ok {
-					name = spec.Name.Name
-				}
-			}
-		}
-		if seen[name] {
-			return nil, fmt.Errorf("duplicate native declaration %s", name)
-		}
-		if !wanted[name] {
-			continue
-		}
-		start := declaration.Pos()
-		if decl, ok := declaration.(*ast.FuncDecl); ok && decl.Doc != nil {
-			start = decl.Doc.Pos()
-		}
-		extracted.Write(source[set.Position(start).Offset:set.Position(declaration.End()).Offset])
-		extracted.WriteString("\n\n")
-		seen[name] = true
-		delete(wanted, name)
-	}
-	if len(wanted) != 0 {
-		names := make([]string, 0, len(wanted))
-		for name := range wanted {
-			names = append(names, name)
-		}
-		slices.Sort(names)
-		return nil, fmt.Errorf("missing native semantic declarations: %s", strings.Join(names, ", "))
-	}
-	return extracted.Bytes(), nil
-}
 
 func stockRewrites() map[string][]rewrite {
 	return map[string][]rewrite{

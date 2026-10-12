@@ -93,7 +93,7 @@ func TestBuildCleanupSnapshotPrimaryFailures(t *testing.T) {
 				}
 			}
 			snapshot, err := snapshotInputs(config)
-			if snapshot != (inputSnapshot{}) || err == nil || err.Error() != want {
+			if snapshot.patch != "" || snapshot.overlay != "" || snapshot.semantics != nil || err == nil || err.Error() != want {
 				t.Fatalf("snapshot = %+v, error = %v; want zero, %q", snapshot, err, want)
 			}
 			if failure != "unsupported" && !errors.Is(err, os.ErrNotExist) {

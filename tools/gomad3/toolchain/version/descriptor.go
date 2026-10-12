@@ -154,6 +154,14 @@ func validateSourceAllowlists(root string, descriptor Descriptor) error {
 	if err != nil {
 		return fmt.Errorf("walk versioned overlay: %w", err)
 	}
+	if slices.Contains(descriptor.OverlayAllowlist, "src/runtime/gomad_semantics.go") {
+		for _, name := range []string{"gomad_semantics.go", "gomad_choicewire_generated.go"} {
+			if _, err := os.Stat(filepath.Join(root, "runtimesemantics", name+".txt")); err != nil {
+				return fmt.Errorf("runtime semantics %s: %w", name, err)
+			}
+			overlayPaths = append(overlayPaths, "src/runtime/"+name)
+		}
+	}
 	slices.Sort(overlayPaths)
 	if !slices.Equal(overlayPaths, descriptor.OverlayAllowlist) {
 		return fmt.Errorf("overlay allowlist does not match overlay paths: got %v, want %v", descriptor.OverlayAllowlist, overlayPaths)

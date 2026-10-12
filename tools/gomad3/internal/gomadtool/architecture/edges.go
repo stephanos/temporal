@@ -11,21 +11,22 @@ func OwnerMayImport(modulePath, owner, importedOwner, importing, imported string
 		return true
 	}
 	allowed := map[string][]string{
-		"cli":             {"runner", "qualification", "target", "record", "artifact", "deterministicio", "preparation", "toolchain", "canonicaljson"},
-		"developer":       {"choice", "compatibility", "qualification", "simulation", "toolchain", "upgrade", "hostexec", "hostfs"},
-		"runner":          {"target", "record", "artifact", "choice", "deterministicio", "preparation", "world", "canonicaljson", "hostexec", "hostfs"},
-		"qualification":   {"runner", "target", "record", "artifact", "choice", "deterministicio", "preparation", "canonicaljson", "hostexec", "hostfs"},
-		"target":          {"compatibility", "record", "toolchain", "canonicaljson", "hostexec", "hostfs", "sourceinventory"},
-		"record":          {"canonicaljson"},
-		"artifact":        {"choice", "deterministicio", "target", "record", "hostfs"},
-		"compatibility":   {"target", "record", "canonicaljson", "hostfs"},
-		"deterministicio": {"target", "record", "toolchain", "canonicaljson", "hostfs", "sourceinventory"},
-		"preparation":     {"target", "deterministicio", "record"},
-		"world":           {"canonicaljson"},
-		"simulation":      {"record", "canonicaljson"},
-		"toolchain":       {"canonicaljson", "hostexec", "hostfs"},
-		"upgrade":         {"qualification", "toolchain", "deterministicio", "compatibility", "canonicaljson", "hostexec", "hostfs"},
-		"sourceinventory": {"hostfs"},
+		"cli":              {"runner", "qualification", "target", "record", "artifact", "deterministicio", "preparation", "toolchain", "canonicaljson"},
+		"developer":        {"choice", "compatibility", "qualification", "simulation", "toolchain", "upgrade", "hostexec", "hostfs", "runtimesemantics"},
+		"runner":           {"target", "record", "artifact", "choice", "deterministicio", "preparation", "world", "canonicaljson", "hostexec", "hostfs"},
+		"qualification":    {"runner", "target", "record", "artifact", "choice", "deterministicio", "preparation", "canonicaljson", "hostexec", "hostfs"},
+		"target":           {"compatibility", "record", "toolchain", "canonicaljson", "hostexec", "hostfs", "sourceinventory"},
+		"record":           {"canonicaljson"},
+		"artifact":         {"choice", "deterministicio", "target", "record", "hostfs"},
+		"compatibility":    {"target", "record", "canonicaljson", "hostfs"},
+		"deterministicio":  {"target", "record", "toolchain", "canonicaljson", "hostfs", "sourceinventory"},
+		"preparation":      {"target", "deterministicio", "record"},
+		"world":            {"canonicaljson"},
+		"simulation":       {"record", "canonicaljson"},
+		"toolchain":        {"canonicaljson", "hostexec", "hostfs", "runtimesemantics"},
+		"upgrade":          {"qualification", "toolchain", "deterministicio", "compatibility", "canonicaljson", "hostexec", "hostfs"},
+		"sourceinventory":  {"hostfs"},
+		"runtimesemantics": {"hostfs"},
 	}
 	if !slices.Contains(allowed[owner], importedOwner) {
 		return false

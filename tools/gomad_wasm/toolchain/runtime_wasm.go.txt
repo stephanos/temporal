@@ -4,10 +4,8 @@ package runtime
 
 import (
 	"internal/chacha8rand"
-	"internal/goarch"
 	"internal/runtime/atomic"
 	"internal/runtime/exithook"
-	"math/bits"
 	"unsafe"
 )
 

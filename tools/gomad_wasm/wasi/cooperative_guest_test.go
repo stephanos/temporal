@@ -24,7 +24,7 @@ func cooperativeRequest(t *testing.T, fixture string) Request {
 		t.Fatal("qualified guest gate requires explicit GOMAD3_STOCK_GO")
 	}
 	root := stockgo.Root(t)
-	native, err := filepath.Abs("../../gomad3/toolchain/runtime/overlay/src/runtime")
+	native, err := filepath.Abs("../../gomad3/runtimesemantics")
 	if err != nil {
 		t.Fatal(err)
 	}

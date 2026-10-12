@@ -13,6 +13,7 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/internal/hostexec"
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
+	"go.temporal.io/server/tools/gomad3/runtimesemantics"
 	"go.temporal.io/server/tools/gomad3/toolchain/installation"
 	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
 )
@@ -147,6 +148,9 @@ func buildWith(ctx context.Context, config BuildSpec, dependency dependencies) (
 	if complete, err := buildComplete(ctx, dependency.run, result.BuildDir, descriptor.GoVersion); err != nil {
 		return result, buildFailure(key, err)
 	} else if complete {
+		if err := runtimesemantics.Verify(snapshot.semantics, filepath.Join(result.BuildDir, "src", "runtime")); err != nil {
+			return result, buildFailure(key, err)
+		}
 		if err := publishStable(layout, key, config); err != nil {
 			return result, buildFailure(key, err)
 		}
@@ -190,6 +194,9 @@ func buildWith(ctx context.Context, config BuildSpec, dependency dependencies) (
 		return result, buildFailure(key, err)
 	}
 	if err := copyOverlay(snapshot.overlay, sourceRoot); err != nil {
+		return result, buildFailure(key, err)
+	}
+	if err := runtimesemantics.Verify(snapshot.semantics, filepath.Join(sourceRoot, "src", "runtime")); err != nil {
 		return result, buildFailure(key, err)
 	}
 	if err := inject(config, "after-overlay"); err != nil {
@@ -328,6 +335,7 @@ func inspectBootstrap(ctx context.Context, config BuildSpec, run func(context.Co
 
 type inputSnapshot struct {
 	patch, overlay string
+	semantics      map[string][]byte
 }
 
 func snapshotInputs(config BuildSpec) (inputSnapshot, error) {
@@ -377,7 +385,22 @@ func snapshotInputs(config BuildSpec) (inputSnapshot, error) {
 		}
 		return inputSnapshot{}, retErr
 	}
-	return inputSnapshot{patch: patchPath, overlay: overlayPath}, nil
+	snapshot := inputSnapshot{patch: patchPath, overlay: overlayPath}
+	descriptor, err := gomadversion.Load(config.Root)
+	if err == nil && slices.Contains(descriptor.OverlayAllowlist, "src/runtime/gomad_semantics.go") {
+		snapshot.semantics, err = runtimesemantics.Read(filepath.Join(config.Root, "runtimesemantics"))
+		if err == nil {
+			for name, data := range snapshot.semantics {
+				if err = os.WriteFile(filepath.Join(overlayPath, "src", "runtime", name), data, 0o600); err != nil {
+					break
+				}
+			}
+		}
+	}
+	if err != nil {
+		return inputSnapshot{}, errors.Join(err, snapshot.remove())
+	}
+	return snapshot, nil
 }
 
 func (snapshot inputSnapshot) remove() error {

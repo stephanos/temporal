@@ -120,7 +120,7 @@ func prototypeToolchain(t *testing.T) (compiler, overlay, identity string) {
 	root := prototypeRoot(t)
 	goroot := stockgo.Root(t)
 	prototypeOverlay.once.Do(func() {
-		native, err := filepath.Abs("../../gomad3/toolchain/runtime/overlay/src/runtime")
+		native, err := filepath.Abs("../../gomad3/runtimesemantics")
 		if err != nil {
 			prototypeOverlay.err = err
 			return

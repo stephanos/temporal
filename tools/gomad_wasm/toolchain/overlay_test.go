@@ -91,7 +91,7 @@ func stockRoot(t *testing.T) string {
 
 func nativeRoot(t *testing.T) string {
 	t.Helper()
-	root, err := filepath.Abs("../../gomad3/toolchain/runtime/overlay/src/runtime")
+	root, err := filepath.Abs("../../gomad3/runtimesemantics")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -161,7 +161,7 @@ func TestOverlayRejectsVersionAndSourceDrift(t *testing.T) {
 	}
 }
 
-func TestOverlayIdentityBindsOriginalRuntimeAndNativeSemantics(t *testing.T) {
+func TestOverlayIdentityBindsOriginalRuntimeAndSharedSemantics(t *testing.T) {
 	root := stockRoot(t)
 	native := nativeRoot(t)
 	first, identity, err := BuildOverlay(root, native, t.TempDir())
@@ -181,33 +181,58 @@ func TestOverlayIdentityBindsOriginalRuntimeAndNativeSemantics(t *testing.T) {
 		if err := json.Unmarshal(data, &manifest); err != nil {
 			t.Fatal(err)
 		}
-		codec, err := os.ReadFile(manifest.Replace[filepath.Join(root, "src/runtime/gomad_choicewire_generated.go")])
-		if err != nil {
-			t.Fatal(err)
-		}
-		original, err := os.ReadFile(filepath.Join(native, "gomad_choicewire_generated.go"))
-		if err != nil {
-			t.Fatal(err)
-		}
-		if !bytes.Equal(codec, original) {
-			t.Fatal("overlay changed native codec bytes")
-		}
-	}
-	copyRoot := t.TempDir()
-	for _, name := range []string{"gomad.go", "gomad_choicewire_generated.go"} {
-		data, err := os.ReadFile(filepath.Join(native, name))
-		if err != nil {
-			t.Fatal(err)
-		}
-		if name == "gomad.go" {
-			data = bytes.Replace(data, []byte("0x53c5ca59"), []byte("0x53c5ca58"), 1)
-		}
-		if err := os.WriteFile(filepath.Join(copyRoot, name), data, 0600); err != nil {
-			t.Fatal(err)
+		for _, name := range []string{"gomad_semantics.go", "gomad_choicewire_generated.go"} {
+			copied, err := os.ReadFile(manifest.Replace[filepath.Join(root, "src/runtime", name)])
+			if err != nil {
+				t.Fatal(err)
+			}
+			original, err := os.ReadFile(filepath.Join(native, name+".txt"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !bytes.Equal(copied, original) {
+				t.Fatalf("overlay changed runtime semantics %s bytes", name)
+			}
 		}
 	}
-	_, changed, err := BuildOverlay(root, copyRoot, t.TempDir())
-	if err != nil || changed == identity {
-		t.Fatalf("changed native seeded semantics did not change identity: %q %v", changed, err)
+	for _, changedName := range []string{"gomad_semantics.go", "gomad_choicewire_generated.go"} {
+		t.Run(changedName, func(t *testing.T) {
+			copyRoot := t.TempDir()
+			for _, name := range []string{"gomad_semantics.go", "gomad_choicewire_generated.go"} {
+				data, err := os.ReadFile(filepath.Join(native, name+".txt"))
+				if err != nil {
+					t.Fatal(err)
+				}
+				if name == changedName {
+					data = append(data, '\n')
+				}
+				if err := os.WriteFile(filepath.Join(copyRoot, name+".txt"), data, 0600); err != nil {
+					t.Fatal(err)
+				}
+			}
+			output := t.TempDir()
+			manifestPath, changed, err := BuildOverlay(root, copyRoot, output)
+			if err != nil || changed == identity {
+				t.Fatalf("runtime identity did not bind %s: %q %v", changedName, changed, err)
+			}
+			data, err := os.ReadFile(manifestPath)
+			if err != nil {
+				t.Fatal(err)
+			}
+			var manifest struct{ Replace map[string]string }
+			if err := json.Unmarshal(data, &manifest); err != nil {
+				t.Fatal(err)
+			}
+			original, err := os.ReadFile(filepath.Join(native, changedName+".txt"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(manifest.Replace[filepath.Join(root, "src/runtime", changedName)], original, 0600); err != nil {
+				t.Fatal(err)
+			}
+			if _, _, err := BuildOverlay(root, copyRoot, output); err == nil || !strings.Contains(err.Error(), changedName) {
+				t.Fatalf("stale runtime copy not diagnosed: %v", err)
+			}
+		})
 	}
 }

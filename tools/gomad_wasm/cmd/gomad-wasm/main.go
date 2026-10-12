@@ -203,7 +203,7 @@ func install(arguments []string, stdout, stderr io.Writer) int {
 	flags.SetOutput(stderr)
 	compiler := flags.String("compiler", "", "existing stock Go compiler executable")
 	helper := flags.String("helper", "", "existing pinned WASM helper executable")
-	runtimeRoot := flags.String("runtime-root", "", "cooperative runtime source directory")
+	runtimeRoot := flags.String("runtime-root", "", "canonical runtimesemantics source directory")
 	cache := flags.String("cache", "", "private preparation cache directory")
 	compileCache := flags.String("compile-cache", "", "private helper compiled-code cache directory")
 	output := flags.String("output", "", "new installation manifest path")

@@ -52,7 +52,7 @@ func explorationProvider(t *testing.T) *Provider {
 	}
 	options.Config.Profile = wasi.CooperativeProfile
 	options.Config.Clock.ReadStepNanos = 0
-	options.RuntimeRoot, err = filepath.Abs("../../gomad3/toolchain/runtime/overlay/src/runtime")
+	options.RuntimeRoot, err = filepath.Abs("../../gomad3/runtimesemantics")
 	if err != nil {
 		t.Fatal(err)
 	}

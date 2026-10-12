@@ -8,7 +8,6 @@ import (
 	"unsafe"
 
 	"internal/chacha8rand"
-	"internal/goarch"
 	"internal/goexperiment"
 	"internal/runtime/atomic"
 	"internal/runtime/exithook"
@@ -59,11 +58,6 @@ var gomadChoiceSelectRandom uint64
 // creator through it. One P runs timers, so one slot suffices.
 var gomadChoiceTimerCallback gomadChoiceTimerIdentity
 
-type gomadChoiceTimerIdentity struct {
-	creator [32]byte
-	firing  uint64
-}
-
 var gomadDiagnosticEnabled bool
 var gomadDiagnosticMapping unsafe.Pointer
 var gomadDiagnosticMappingBytes uint64
@@ -105,6 +99,7 @@ var gomadDiagnosticDraws gomadDiagnosticDrawCounts
 const gomadInitialTime = 946684800000000000
 const gomadMapShared = 1
 const gomadChoiceMaximumAlternatives = 256
+
 // The response buffer is static because some runtime read implementations
 // retain their pointer, while quiescence can run on an allocation-forbidden path.
 var gomadSimulationTimeResponse [gomadSimulationTimeResponseBytes]byte
@@ -437,29 +432,6 @@ func gomadDiagnosticAppend(ordinal uint64) {
 	gomadChoicePut64(bytes[32:40], ordinal+1)
 }
 
-// gomadDiagnosticAllocations counts the objects allocated so far: the counts
-// the allocator has already flushed to the heap statistics plus the slots used
-// in the spans pp still caches. Only the M holding the P writes either, and it
-// writes them between choice points, so the sum needs no synchronization and
-// does not depend on when a span was last refilled.
-func gomadDiagnosticAllocations(pp *p) uint64 {
-	var count uint64
-	for generation := range memstats.heapStats.stats {
-		stats := &memstats.heapStats.stats[generation]
-		count += stats.tinyAllocCount + stats.largeAllocCount
-		for class := range stats.smallAllocCount {
-			count += stats.smallAllocCount[class]
-		}
-	}
-	cache := pp.mcache
-	count += uint64(cache.tinyAllocs)
-	for class := range cache.alloc {
-		span := cache.alloc[class]
-		count += uint64(span.allocCount - span.allocCountBeforeCache)
-	}
-	return count
-}
-
 // gomadDiagnosticClose marks a trace the runtime closed in order, as opposed
 // to one cut short by a killed process. Digests are written only alongside
 // choice records, so a choice trace that overflowed leaves the diagnostic
@@ -489,24 +461,6 @@ func gomadEnvEarly(prefix string) (string, bool) {
 	return "", false
 }
 
-// readiness and origin are the select result's fields: what the select found
-// ready once it held its channel locks, and the ordinal its first poll
-// decision took. A decision in a tape may carry a projected readiness word,
-// which replay ignores.
-type gomadChoiceRecordValue struct {
-	ordinal          uint64
-	kind             uint8
-	flags            uint8
-	readiness        uint16
-	alternatives     uint32
-	selected         uint32
-	data             uint32
-	siteOffset       uint64
-	origin           uint64
-	selectedIdentity [32]byte
-	alternativeSet   [32]byte
-}
-
 func gomadChoiceAppendRecord(value gomadChoiceRecordValue) {
 	if !gomadChoiceEnabled || gomadChoiceOverflow.Load() != 0 || gomadChoiceFinalized.Load() != 0 {
 		return
@@ -534,111 +488,14 @@ func gomadChoiceRecord(kind, flags uint8, siteOffset uint64, alternatives, selec
 	gomadChoiceAppendRecord(gomadChoiceRecordValue{kind: kind, flags: flags, siteOffset: siteOffset, alternatives: alternatives, selected: selected, data: data})
 }
 
-// gomadChoiceRecordSelectResult records a completed select: the case it took
-// among alternatives (the cases plus one for a default), how many cases it
-// polled, what it found ready once locked, and the ordinal its first poll
-// decision took, so the projection can hand the readiness to those decisions.
-func gomadChoiceRecordSelectResult(siteFlags uint8, siteOffset uint64, alternatives, selected, polled uint32, readiness uint16, origin uint64) {
-	gomadChoiceAppendRecord(gomadChoiceRecordValue{
-		kind: gomadChoiceKindSelectResult, flags: gomadChoiceFlagObservation | siteFlags, siteOffset: siteOffset,
-		alternatives: alternatives, selected: selected, data: polled, readiness: readiness, origin: origin,
-	})
-}
-
-// gomadChoiceSelectOrigin is the ordinal the next record will take. A select
-// reads it before its poll loop, so it names the select's first poll decision
-// when the select polls more than one case.
-func gomadChoiceSelectOrigin() uint64 {
-	if !gomadChoiceEnabled {
-		return 0
-	}
-	return gomadChoiceRecords.Load()
-}
-
-// gomadChoiceSelectReadiness counts, with every channel of the select locked
-// and before its first pass dequeues anything, the cases that pass could take,
-// and notes the shape properties that tell the fixture shapes apart. It reads
-// channel state only: it must neither allocate nor draw, because the record
-// it feeds must leave the schedule exactly as it was without it. lockorder is
-// sorted by channel, so a repeated channel is adjacent in it.
-func gomadChoiceSelectReadiness(scases []scase, lockorder []uint16, nsends int, block bool) uint16 {
-	if !gomadChoiceEnabled {
-		return 0
-	}
-	flags := uint16(gomadChoiceReadinessKnown)
-	if !block {
-		flags |= gomadChoiceReadinessDefault
-	}
-	if len(lockorder) != len(scases) {
-		flags |= gomadChoiceReadinessNilChannel
-	}
-	ready := uint32(0)
-	for index, casei := range lockorder {
-		c := scases[casei].c
-		if c.timer != nil {
-			flags |= gomadChoiceReadinessTimerChannel
-		}
-		if index != 0 && scases[lockorder[index-1]].c == c {
-			flags |= gomadChoiceReadinessRepeatedChannel
-		}
-		var proceeds bool
-		if int(casei) >= nsends {
-			proceeds = gomadChoiceWaiterPresent(&c.sendq) || c.qcount > 0 || c.closed != 0
-		} else {
-			proceeds = c.closed != 0 || gomadChoiceWaiterPresent(&c.recvq) || c.qcount < c.dataqsiz
-		}
-		if proceeds {
-			ready++
-			if c.closed != 0 {
-				flags |= gomadChoiceReadinessClosedChannel
-			}
-		}
-	}
-	return uint16(ready)<<gomadChoiceReadinessCountShift | flags
-}
-
 // The poll loop diverges past gomadChoiceMaximumAlternatives polled cases, so
 // the ready count always fits the readiness word.
 var _ [gomadChoiceReadinessMaximumCount - gomadChoiceMaximumAlternatives]struct{}
-
-// gomadChoiceWaiterPresent reports whether dequeue would hand back a waiter:
-// a select waiter another case has already won is skipped the way dequeue
-// skips it, but nothing is dequeued or marked.
-func gomadChoiceWaiterPresent(q *waitq) bool {
-	for sgp := q.first; sgp != nil; sgp = sgp.next {
-		if sgp.isSelect && sgp.g.selectDone.Load() != 0 {
-			continue
-		}
-		return true
-	}
-	return false
-}
-
-// The scheduler draws from process-wide seeded states rather than the per-M
-// streams: the P changes hands between Ms during runtime initialization and
-// around blocking syscalls, and which M picks it up is a host-timing race.
-func gomadChoiceSeedRandom() {
-	gomadChoiceRunqRandom.Init64([4]uint64{gomadSeed})
-	gomadChoiceSchedulerRandom.Init64([4]uint64{gomadSeed, 0x676f6d6164736368})
-	gomadChoiceSelectRandom = gomadSeed
-	gomadRuntimeRandom.Init64([4]uint64{gomadSeed, 0x676f6d616472616e})
-	gomadRuntimeCheapRandom = uint32(gomadSeed)
-	gomadTimerRandom = uint32(gomadSeed) ^ 0x74696d65
-}
 
 // gomadTimerRandom breaks ties between timers due at the same instant. It is
 // separate from cheaprand because the runtime also draws from cheaprand on
 // contended lock hand-offs, which happen at host-timed moments.
 var gomadTimerRandom uint32
-
-//go:nosplit
-func gomadTimerRand() uint32 {
-	gomadDiagnosticCheckSeededDraw(getg().m)
-	gomadDiagnosticDraws.timer++
-	gomadTimerRandom += 0xa0761d65
-	value := uint64(gomadTimerRandom) * 0xe7037ed1a0b428db
-	return uint32(value>>32) ^ uint32(value)
-}
 
 // The runtime's rand and cheaprand streams are per M, and every M starts from
 // the same seeded position. Which M holds the P after a hand-off is a
@@ -650,30 +507,6 @@ func gomadTimerRand() uint32 {
 // the program observes.
 var gomadRuntimeRandom chacha8rand.State
 var gomadRuntimeCheapRandom uint32
-
-//go:nosplit
-func gomadRuntimeRand(mp *m) uint64 {
-	gomadDiagnosticCheckSeededDraw(mp)
-	gomadDiagnosticDraws.runtimeRand++
-	for {
-		x, ok := gomadRuntimeRandom.Next()
-		if ok {
-			return x
-		}
-		mp.locks++ // hold m even though Refill may do stack split checks
-		gomadRuntimeRandom.Refill()
-		mp.locks--
-	}
-}
-
-//go:nosplit
-func gomadRuntimeCheapRand() uint32 {
-	gomadDiagnosticCheckSeededDraw(getg().m)
-	gomadDiagnosticDraws.runtimeCheapRand++
-	gomadRuntimeCheapRandom += 0x53c5ca59
-	hi, lo := bits.Mul32(gomadRuntimeCheapRandom, gomadRuntimeCheapRandom^0x74743c1b)
-	return hi ^ lo
-}
 
 // gomadHostCheapRand draws from the M's own stream for decisions that only
 // shape host-side scheduling: lock hand-off fairness, work-steal order, and
@@ -736,15 +569,6 @@ func gomadInjectHostList(list *gList) {
 	gomadHostTimedExit()
 }
 
-// gomadSeededDrawCheck runs before every draw from a seeded stream. The draw
-// would move every later seeded decision by host timing, so the process
-// stops before taking it.
-//
-//go:nosplit
-func gomadSeededDrawCheck() {
-	gomadDiagnosticCheckSeededDraw(getg().m)
-}
-
 // gomadLockProfileStart stands in for mLockProfile.start where lock2 is about
 // to sleep on a contended runtime lock. Whether a lock outlasts the spin is
 // host timing, and the waiting M can hold the P: wakep and findRunnable take
@@ -764,24 +588,6 @@ func gomadLockProfileStart(prof *mLockProfile) int64 {
 	return 0
 }
 
-func gomadChoiceRunqSeeded(n uint32) uint32 {
-	if !gomadEnabled {
-		return randn(n)
-	}
-	gomadDiagnosticCheckSeededDraw(getg().m)
-	gomadDiagnosticDraws.runq++
-	return gomadChoiceRandom(&gomadChoiceRunqRandom, n)
-}
-
-func gomadChoiceRunnextSeeded(n uint32) uint32 {
-	if !gomadEnabled {
-		return randn(n)
-	}
-	gomadDiagnosticCheckSeededDraw(getg().m)
-	gomadDiagnosticDraws.scheduler++
-	return gomadChoiceRandom(&gomadChoiceSchedulerRandom, n)
-}
-
 func gomadChoiceShuffleSeeded(n uint32) uint32 {
 	if !gomadEnabled {
 		return cheaprandn(n)
@@ -794,38 +600,6 @@ func gomadChoiceShuffleSeeded(n uint32) uint32 {
 	gomadDiagnosticCheckSeededDraw(getg().m)
 	gomadDiagnosticDraws.scheduler++
 	return gomadChoiceRandom(&gomadChoiceSchedulerRandom, n)
-}
-
-func gomadChoiceRandom(random *chacha8rand.State, n uint32) uint32 {
-	gomadSeededDrawCheck()
-	for {
-		value, ok := random.Next()
-		if ok {
-			return uint32((uint64(uint32(value)) * uint64(n)) >> 32)
-		}
-		random.Refill()
-	}
-}
-
-func gomadChoiceSelectSeeded(n uint32) uint32 {
-	if !gomadEnabled {
-		return cheaprandn(n)
-	}
-	gomadDiagnosticCheckSeededDraw(getg().m)
-	gomadDiagnosticDraws.selectPoll++
-	gomadChoiceSelectRandom += 0xa0761d6478bd642f
-	if goarch.IsAmd64|goarch.IsArm64|goarch.IsPpc64|
-		goarch.IsPpc64le|goarch.IsMips64|goarch.IsMips64le|
-		goarch.IsS390x|goarch.IsRiscv64|goarch.IsLoong64 == 1 {
-		hi, lo := bits.Mul64(gomadChoiceSelectRandom, gomadChoiceSelectRandom^0xe7037ed1a0b428db)
-		return uint32((uint64(uint32(hi^lo)) * uint64(n)) >> 32)
-	}
-	t := (*[2]uint32)(unsafe.Pointer(&gomadChoiceSelectRandom))
-	s1, s0 := t[0], t[1]
-	s1 ^= s1 << 17
-	s1 = s1 ^ s0 ^ s1>>7 ^ s0>>16
-	t[0], t[1] = s0, s1
-	return uint32((uint64(s0+s1) * uint64(n)) >> 32)
 }
 
 // ordered is caller-provided scratch for the sorted alternative set so the
@@ -927,27 +701,6 @@ func gomadChoiceTapeRecord(ordinal uint64) gomadChoiceRecordValue {
 	return gomadChoiceDecodeRecord(record)
 }
 
-func gomadChoiceEncodeRecord(record []byte, value gomadChoiceRecordValue) {
-	for index := range record {
-		record[index] = 0
-	}
-	gomadChoicePut64(record[:8], value.ordinal)
-	record[8] = value.kind
-	record[9] = value.flags
-	record[10] = byte(value.readiness >> 8)
-	record[11] = byte(value.readiness)
-	gomadChoicePut32(record[12:16], value.alternatives)
-	gomadChoicePut32(record[16:20], value.selected)
-	gomadChoicePut32(record[20:24], value.data)
-	gomadChoicePut64(record[24:32], value.siteOffset)
-	if value.flags&gomadChoiceFlagObservation != 0 {
-		gomadChoicePut64(record[32:40], value.origin)
-	} else {
-		copy(record[32:64], value.selectedIdentity[:])
-	}
-	copy(record[64:96], value.alternativeSet[:])
-}
-
 func gomadChoiceDecodeRecord(record []byte) gomadChoiceRecordValue {
 	value := gomadChoiceRecordValue{
 		ordinal: gomadChoiceRead64(record[:8]), kind: record[8], flags: record[9], readiness: uint16(record[10])<<8 | uint16(record[11]), alternatives: gomadChoiceRead32(record[12:16]),
@@ -989,27 +742,6 @@ func gomadChoiceAlternativeSet(ordered [][32]byte) [32]byte {
 	return hasher.sum()
 }
 
-func gomadChoiceZero(value []byte) bool {
-	for _, item := range value {
-		if item != 0 {
-			return false
-		}
-	}
-	return true
-}
-
-func gomadChoiceEqual(left, right []byte) bool {
-	if len(left) != len(right) {
-		return false
-	}
-	for index := range left {
-		if left[index] != right[index] {
-			return false
-		}
-	}
-	return true
-}
-
 func gomadChoiceCompare(left, right []byte) int {
 	for index := range left {
 		if left[index] < right[index] {
@@ -1020,14 +752,6 @@ func gomadChoiceCompare(left, right []byte) int {
 		}
 	}
 	return 0
-}
-
-func gomadChoiceSite(pc uintptr) (uint64, uint8) {
-	offset, ok := firstmoduledata.textOff(pc)
-	if !ok {
-		return 0, gomadChoiceFlagSiteMissing
-	}
-	return uint64(offset), 0
 }
 
 func gomadChoiceFinalize() {
@@ -1095,91 +819,6 @@ func gomadChoicePublishTerminal(state, reason uint8, expected, observed *gomadCh
 	}
 }
 
-func gomadChoiceRootIdentity(gp *g) {
-	gp.gomadChild = 0
-	gp.gomadTimer = 0
-	gp.gomadID = gomadChoiceHash([]byte("gomad3-choice-goroutine-root/v1"))
-}
-
-func gomadChoiceAssignGoroutineIdentity(newg, parent *g, pc uintptr) {
-	newg.gomadChild = 0
-	newg.gomadTimer = 0
-	var hasher gomadChoiceHasher
-	hasher.init()
-	if parent != nil && !gomadChoiceZero(parent.gomadID[:]) {
-		hasher.write([]byte("gomad3-choice-goroutine-child/v1"))
-		hasher.write(parent.gomadID[:])
-		parent.gomadChild++
-		var ordinal [8]byte
-		gomadChoicePut64(ordinal[:], parent.gomadChild)
-		hasher.write(ordinal[:])
-		site, flags := gomadChoiceSite(pc)
-		var encoded [9]byte
-		encoded[0] = flags
-		gomadChoicePut64(encoded[1:], site)
-		hasher.write(encoded[:])
-	} else if !gomadChoiceZero(gomadChoiceTimerCallback.creator[:]) {
-		hasher.write([]byte("gomad3-choice-goroutine-timer/v1"))
-		hasher.write(gomadChoiceTimerCallback.creator[:])
-		var firing [8]byte
-		gomadChoicePut64(firing[:], gomadChoiceTimerCallback.firing)
-		hasher.write(firing[:])
-	} else {
-		hasher.write([]byte("gomad3-choice-goroutine-runtime/v1"))
-		var ordinal [8]byte
-		gomadChoicePut64(ordinal[:], gomadRuntimeGoroutineOrdinal.Add(1))
-		hasher.write(ordinal[:])
-	}
-	newg.gomadID = hasher.sum()
-	if live := uint32(gcount(false)); live > gomadChoicePeakGoroutines {
-		gomadChoicePeakGoroutines = live
-	}
-}
-
-// gomadChoiceTimerCreated binds a timer to the goroutine creating it: that
-// goroutine's identity, a timer ordinal taken from it, and the creation site.
-// The timer ordinal is separate from the child ordinal, so creating a timer
-// leaves the identities of the creator's later children unchanged. A timer
-// created with no identified goroutine keeps a zero creator, and the
-// goroutines its callbacks start stay on the runtime ordinal path.
-func gomadChoiceTimerCreated(t *timer, pc uintptr) {
-	gp := getg()
-	if gomadChoiceZero(gp.gomadID[:]) {
-		return
-	}
-	gp.gomadTimer++
-	var hasher gomadChoiceHasher
-	hasher.init()
-	hasher.write([]byte("gomad3-choice-timer/v1"))
-	hasher.write(gp.gomadID[:])
-	var ordinal [8]byte
-	gomadChoicePut64(ordinal[:], gp.gomadTimer)
-	hasher.write(ordinal[:])
-	site, flags := gomadChoiceSite(pc)
-	var encoded [9]byte
-	encoded[0] = flags
-	gomadChoicePut64(encoded[1:], site)
-	hasher.write(encoded[:])
-	t.gomadCreator = hasher.sum()
-}
-
-// gomadChoiceTimerFire counts the firing while the caller holds t.mu and
-// publishes the timer for the goroutines its function starts; the firing
-// ordinal keeps the callbacks of a timer that is reset after firing apart.
-// It returns the slot's previous value for gomadChoiceTimerFired to restore.
-func gomadChoiceTimerFire(t *timer) gomadChoiceTimerIdentity {
-	previous := gomadChoiceTimerCallback
-	if gomadChoiceEnabled {
-		t.gomadFirings++
-		gomadChoiceTimerCallback = gomadChoiceTimerIdentity{creator: t.gomadCreator, firing: t.gomadFirings}
-	}
-	return previous
-}
-
-func gomadChoiceTimerFired(previous gomadChoiceTimerIdentity) {
-	gomadChoiceTimerCallback = previous
-}
-
 // The run-queue choice runs on the system stack, which Linux sizes at 16 KiB
 // for non-main threads, so its 8 KiB candidate buffers live here instead of in
 // the frame. The system stack is never preempted and there is one P, so the
@@ -1187,73 +826,6 @@ func gomadChoiceTimerFired(previous gomadChoiceTimerIdentity) {
 var gomadChoiceSchedulerAlternatives [gomadChoiceMaximumAlternatives][32]byte
 var gomadChoiceSchedulerOrdered [gomadChoiceMaximumAlternatives][32]byte
 var gomadChoiceSchedulerOffsets [gomadChoiceMaximumAlternatives]uint32
-
-// gomadChoiceRunqIndex returns the queue offset runqget takes next. The
-// alternatives are queued user goroutines. A runtime-owned head runs without
-// a choice, and removing the head on every dispatch advances both classes.
-func gomadChoiceRunqIndex(pp *p, head, tail uint32) uint32 {
-	count := tail - head
-	alternatives := &gomadChoiceSchedulerAlternatives
-	if count > uint32(len(alternatives)) {
-		gomadChoiceDivergeCurrent(gomadChoiceDivergenceAlternativeCapacity)
-	}
-	// Removing the queue head on every dispatch lets both classes advance:
-	// a yielding system goroutine rejoins behind the queued user work.
-	if isSystemGoroutine(pp.runq[head%uint32(len(pp.runq))].ptr(), false) {
-		return 0
-	}
-	users := uint32(0)
-	for offset := uint32(0); offset < count; offset++ {
-		gp := pp.runq[(head+offset)%uint32(len(pp.runq))].ptr()
-		if gp == nil {
-			gomadChoiceDivergeCurrent(gomadChoiceDivergenceIdentityMissing)
-		}
-		if isSystemGoroutine(gp, false) {
-			continue
-		}
-		alternatives[users] = gp.gomadID
-		gomadChoiceSchedulerOffsets[users] = offset
-		users++
-	}
-	if users <= 1 {
-		return 0
-	}
-	seeded := gomadChoiceRunqSeeded(users)
-	selected := gomadChoiceDecision(gomadChoiceKindRunnable, gomadChoiceFlagDecision|gomadChoiceFlagSiteMissing, 0, alternatives[:users], &gomadChoiceSchedulerOrdered, seeded, 0)
-	return gomadChoiceSchedulerOffsets[selected]
-}
-
-func gomadChoiceSelectPollIndex(pollorder []uint16, norder, current, nsends int, site uint64, siteFlags uint8, seeded uint32) uint32 {
-	if !gomadChoiceEnabled {
-		return seeded
-	}
-	count := norder + 1
-	var alternatives [gomadChoiceMaximumAlternatives][32]byte
-	if count > len(alternatives) {
-		gomadChoiceDivergeCurrent(gomadChoiceDivergenceAlternativeCapacity)
-	}
-	for index := 0; index < norder; index++ {
-		alternatives[index] = gomadChoiceSelectIdentity(site, siteFlags, int(pollorder[index]), nsends)
-	}
-	alternatives[norder] = gomadChoiceSelectIdentity(site, siteFlags, current, nsends)
-	var ordered [gomadChoiceMaximumAlternatives][32]byte
-	return gomadChoiceDecision(gomadChoiceKindSelectPoll, gomadChoiceFlagDecision|siteFlags, site, alternatives[:count], &ordered, seeded, uint32(current))
-}
-
-func gomadChoiceSelectIdentity(site uint64, siteFlags uint8, ordinal, nsends int) [32]byte {
-	var hasher gomadChoiceHasher
-	hasher.init()
-	hasher.write([]byte("gomad3-choice-select-case/v1"))
-	var encoded [18]byte
-	encoded[0] = siteFlags
-	gomadChoicePut64(encoded[1:9], site)
-	gomadChoicePut64(encoded[9:17], uint64(ordinal))
-	if ordinal >= nsends {
-		encoded[17] = 1
-	}
-	hasher.write(encoded[:])
-	return hasher.sum()
-}
 
 // gomadReservedMs is the number of idle Ms created before user code runs.
 // A goroutine that hands its P off for a runner syscall needs another M to

@@ -195,6 +195,7 @@
     "src/runtime/gomad_aslr_other.go",
     "src/runtime/gomad_choicewire_generated.go",
     "src/runtime/gomad_iowire_generated.go",
+    "src/runtime/gomad_semantics.go",
     "src/runtime/gomad_timewire_export_generated_test.go",
     "src/runtime/gomad_timewire_generated.go",
     "src/runtime/gomad_timewire_generated_test.go",

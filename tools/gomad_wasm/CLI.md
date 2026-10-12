@@ -31,7 +31,7 @@ cd tools/gomad_wasm
 /absolute/operator/bin/gomad-wasm install \
   --compiler /absolute/stock-go/bin/go \
   --helper /absolute/checkout/tools/gomad_wasm/wasmhost/target/release/gomad3-wasmhost \
-  --runtime-root /absolute/checkout/tools/gomad3/toolchain/runtime/overlay/src/runtime \
+  --runtime-root /absolute/checkout/tools/gomad3/runtimesemantics \
   --profile gomad3.wasi-cooperative/v1 \
   --cache /absolute/operator/cache/preparation \
   --compile-cache /absolute/operator/cache/engine \

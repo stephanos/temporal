@@ -44,7 +44,7 @@ func TestActualOneboxQualification(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	runtimeRoot, err := filepath.Abs("../../gomad3/toolchain/runtime/overlay/src/runtime")
+	runtimeRoot, err := filepath.Abs("../../gomad3/runtimesemantics")
 	if err != nil {
 		t.Fatal(err)
 	}

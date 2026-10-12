@@ -299,7 +299,7 @@ func Owner(module, importPath string) string {
 			return owner
 		}
 	}
-	for _, owner := range []string{"upgrade", "runner", "qualification", "target", "record", "artifact", "choice", "deterministicio", "world", "simulation", "toolchain"} {
+	for _, owner := range []string{"upgrade", "runner", "qualification", "target", "record", "artifact", "choice", "deterministicio", "world", "simulation", "toolchain", "runtimesemantics"} {
 		if Within(relative, owner) {
 			return owner
 		}

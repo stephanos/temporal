@@ -59,7 +59,7 @@ func (p *Provider) runtimeOverlay(ctx context.Context, dir string, environment [
 
 func (p *Provider) runtimeInputs(overlayPath string) ([]sourceIdentity, error) {
 	inputs := []sourceIdentity{}
-	for _, path := range []string{overlayPath, filepath.Join(p.options.RuntimeRoot, "gomad.go"), filepath.Join(p.options.RuntimeRoot, "gomad_choicewire_generated.go")} {
+	for _, path := range []string{overlayPath, filepath.Join(p.options.RuntimeRoot, "gomad_semantics.go.txt"), filepath.Join(p.options.RuntimeRoot, "gomad_choicewire_generated.go.txt")} {
 		data, err := hostfs.ReadBounded(path, 512<<20)
 		if err != nil {
 			return nil, err
