@@ -11,6 +11,6 @@
   "spec": "fn-169-a-temporal-free-framework-the-lifter",
   "spec_path": ".flow/tasks/fn-169-a-temporal-free-framework-the-lifter.4.md",
   "status": "todo",
-  "title": "Held sweep: Go consumers follow framework.dsl IR names; Testpilot's reusable parts separated from Temporal-specific code",
-  "updated_at": "2026-10-12T23:41:34.788657Z"
+  "title": "Held sweep: Go consumers follow the framework.dsl IR type names",
+  "updated_at": "2026-10-12T23:53:12.677663Z"
 }

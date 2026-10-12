@@ -480,7 +480,7 @@ is deleted once applied; the harness in `framework/migrate` is permanent (owner,
 | fn-169.5 | ⬜ todo | `framework/samples/`: one-file Temporal-free sample Models (Kettle, Bank, TwoPhaseCommit) comparable with P and Quint; after .1 |
 | fn-169.6 | ⬜ todo | Port the Python interpreter-table comparator (`model/testdata/table-pins`) to Scala in `framework/check/equivalence`; pins to `temporal/check`; no Python under `model/`; after .1 |
 | fn-169.3 | ⏸️ deferred (sweep) | IR schema to an Umpire-owned namespace (`umpire.ir.v1`) |
-| fn-169.4 | ⏸️ deferred (Go) | Go consumers follow the `framework.dsl` IR type names; Testpilot's reusable parts separated from its Temporal-specific code, no `framework/` layout (Testpilot is mostly Temporal-specific); the `tools/umpire` items moved to fn-170.2 |
+| fn-169.4 | ⏸️ deferred (Go) | Go consumers follow the `framework.dsl` IR type names (Testpilot separation moved to fn-171, `tools/umpire` layout to fn-170.2) |
 
 ### fn-141: Shrink the IR generator: one description of each DSL construct
 
@@ -584,6 +584,21 @@ items of fn-169.4 have moved here (fn-170.2), and `tools/umpire` mirrors `model/
 | fn-170.4 | ⏸️ deferred (Go) | Tidy: fold `ir/paths`, one duration conversion, `export` package name, over-exports, README/module-map drift |
 | fn-170.2 | ⏸️ deferred (Go) | After .3/.4: layout mirroring `model/`: Temporal-free `tools/umpire/framework/` (incl. `export/quint`) and the `tools/umpire/temporal/` adapter; boundary test; outputs byte-identical (owner, 2026-10-12) |
 | fn-170.1 | ⏸️ deferred (Go) | After .2: one `umpire` CLI with subcommands replaces the eight `cmd/umpire-*` binaries; the generic CLI is Temporal-free (API descriptors as a descriptor-set file, a target interface), its `main` in the Temporal adapter wires the Driver, SDK and test cluster; urfave/cli v2 unless the owner picks cobra; Make target names kept |
+
+### fn-171: Clean up Testpilot
+
+Captured on 2026-10-12 from a research pass over `common/testing/testpilot` and `tests/testcore/testpilot`.
+Package jobs are clear, internals well hidden and the middle deep; no relayout is warranted, and Testpilot
+stays in place. Generic with no Temporal import: `internal/ir`, `internal/verification`, `cel`, `predicate`,
+`duration`, `casefile`, `recordedrun`, `evaluation`, `publish`, `campaign`, `replay`. The Case instruction
+set and about 1,500 lines of `internal/execution` are Temporal's own. Held for the Go phase.
+[Spec](.flow/specs/fn-171-clean-up-testpilot.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-171.1 | ⏸️ deferred (Go) | Generic core self-contained: remove the two back-edges into `temporal/binding`, an absolute import rule, offline readers off the runtime, Temporal files named in `execution` |
+| fn-171.2 | ⏸️ deferred (Go) | One spelling per Driver type: the adapter imports `contract`; shrink the root's 60 aliases |
+| fn-171.3 | ⏸️ deferred (Go) | Tidy: stale Case-version docs, package docs, test-only exports to `_test.go`, generated-case loaders to `tools/umpire/lower`, canary preflight import |
 
 ### fn-128: Close the activity's precision gaps
 
