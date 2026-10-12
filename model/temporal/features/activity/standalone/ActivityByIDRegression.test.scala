@@ -165,7 +165,7 @@ class ActivityByIDRegression extends munit.FunSuite:
     val query = ActivityProtocol.cancellation.queries.cancelIsRequested
     assertEquals(query.name, "activityProtocol.cancelIsRequested")
     assert(
-      query.property eq ActivityProtocol.cancellation.properties.cancelRequested.decl
+      query.property eq ActivityProtocol.cancellation.properties.safety.cancelRequested.decl
     )
     assertEquals(query.property.machine, ActivityProtocol)
     assert(query.property.when.contains(client.requestCancel))

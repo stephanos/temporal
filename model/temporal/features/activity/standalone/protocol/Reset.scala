@@ -99,10 +99,12 @@ trait Reset extends Facet[State, Outcome, Fact], Phased[State, Phase]:
       // A first attempt again, dispatched at once, of an activity with no deadline set.
       val restarted =
         ActivityProtocol.init.copy(phase = Phase.scheduled)
-      val resetStaysPending =
-        property when client.reset(ResetPause.resume) holds { s =>
-          s.state.phase == Phase.resetRequested
-        }
+
+      object safety:
+        val resetStaysPending =
+          property when client.reset(ResetPause.resume) holds { s =>
+            s.state.phase == Phase.resetRequested
+          }
 
       // Paused before any attempt, with no deadline set, its count restarted.
       val keptPaused =
@@ -185,16 +187,16 @@ trait Reset extends Facet[State, Outcome, Fact], Phased[State, Phase]:
         .ends(s => s.phase == Phase.completed && s.attempts == 1)
         .limits(four)
       val resetScheduleToClose =
-        query find timeouts.properties.scheduleToCloseTimesOut in resetThenScheduleToClose limits four
+        query find timeouts.properties.safety.scheduleToCloseTimesOut in resetThenScheduleToClose limits four
       val resetCancellation =
-        query find cancellation.properties.cancelRequested in resetThenCanceled limits four
+        query find cancellation.properties.safety.cancelRequested in resetThenCanceled limits four
       val resetOutranksPause =
         witness(client.start(), activityWorker.poll, client.reset(ResetPause.resume), client.pause)
           .excludes(Fact.statusPaused)
           .ends(_.phase == Phase.resetRequested)
           .limits(four)
       val resetRepeated =
-        query find properties.resetStaysPending in resetTwice limits four
+        query find properties.safety.resetStaysPending in resetTwice limits four
       val keepPausedReset = witness(
         client.start(),
         client.pause,
@@ -204,5 +206,5 @@ trait Reset extends Facet[State, Outcome, Fact], Phased[State, Phase]:
         .ends(_ == properties.keptPaused)
         .limits(three)
       val deferredResetCompletes =
-        (query find completion.properties.completes in resetThenHeartbeatTimedOut limits six)
+        (query find completion.properties.safety.completes in resetThenHeartbeatTimedOut limits six)
           .live(satisfied)

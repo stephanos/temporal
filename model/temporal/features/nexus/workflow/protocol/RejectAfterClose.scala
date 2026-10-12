@@ -580,9 +580,10 @@ object RejectAfterClose
     // deadline has no timer, and one that does not assume the redelivery bound may be rejected
     // transiently forever. Each design makes the claim of its own.
 
-    val rejectAfterCloseProgress = RejectAfterClose.leadsTo(
-      "outcomeReachesOwner"
-    )(states.isDone, states.settled, within = 6, reporting, deliveryFair)
+    object liveness:
+      val rejectAfterCloseProgress = RejectAfterClose.leadsTo(
+        "outcomeReachesOwner"
+      )(states.isDone, states.settled, within = 6, reporting, deliveryFair)
 
   object queries:
     // Every claim and path of the specimen, declared on one design.

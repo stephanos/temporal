@@ -38,6 +38,11 @@ object user extends Actor:
   val switchOn = action(this)
   val switchOff = action(this)
 
+// The action whose weak fairness the Product names in its bounded progress claim. Fairness says
+// that a continuously enabled switch-on eventually runs; the Product's table, not this assumption,
+// establishes the one-step bound.
+val switchOnRuns = assume.fair(user.switchOn)
+
 // Every step answers `accepted`, which `enter` reads.
 given Ok[Outcome] = Ok(Outcome.accepted)
 

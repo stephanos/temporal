@@ -157,16 +157,18 @@ object NexusProtocol
   object rules extends Facets(operation.rules)
 
   object properties:
-    // An asynchronous reply starts the operation, and the started event records it.
-    val asyncStarts = property when handler.reply(Reply.async) holds { s =>
-      s.state.phase == Phase.started && s.records(Fact.nexusOperationStarted)
-    }
-    // A successful completion is recorded by the completed event. Neither the phase nor the outcome
-    // is fixed: a completion resolves any running phase, and accepted is every earlier step's
-    // outcome too, so a clause fixing it would be answered before the completion.
-    val completionSucceeds =
-      property when handler.complete(Resolution.succeeded) holds
-        (_.records(Fact.nexusOperationCompleted))
+
+    object safety:
+      // An asynchronous reply starts the operation, and the started event records it.
+      val asyncStarts = property when handler.reply(Reply.async) holds { s =>
+        s.state.phase == Phase.started && s.records(Fact.nexusOperationStarted)
+      }
+      // A successful completion is recorded by the completed event. Neither the phase nor the
+      // outcome is fixed: a completion resolves any running phase, and accepted is every earlier
+      // step's outcome too, so a clause fixing it would be answered before the completion.
+      val completionSucceeds =
+        property when handler.complete(Resolution.succeeded) holds
+          (_.records(Fact.nexusOperationCompleted))
 
     // Succeeded on the second attempt of an operation with no deadline set. A claim fixes one state,
     // so every field is named.
@@ -235,7 +237,7 @@ object NexusProtocol
           )
         )
     val asyncCompletion =
-      (query find properties.completionSucceeds in asyncThenSucceeded limits three)
+      (query find properties.safety.completionSucceeds in asyncThenSucceeded limits three)
         .live(
           inconclusive(
             Reason.explanationsDisagree,
@@ -331,7 +333,7 @@ object NexusProtocol
 
     // A Product claim on a Protocol path, read through the refinement the Protocol machine declares.
     val terminalHolds =
-      query verify NexusProduct.properties.terminalIsFinal in asyncThenSucceeded limits three
+      query verify NexusProduct.properties.safety.terminalIsFinal in asyncThenSucceeded limits three
 
 // ### The handler's worker
 //

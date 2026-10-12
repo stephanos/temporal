@@ -21,14 +21,16 @@ object RetainAndRouteWithDeadline
     ):
 
   object properties:
-    val retainAndRouteWithDeadlineProgress =
-      RetainAndRouteWithDeadline.leadsTo("outcomeReachesOwner")(
-        RejectAfterClose.states.isDone,
-        RejectAfterClose.states.settled,
-        within = 6,
-        reporting,
-        deliveryFair
-      )
+
+    object liveness:
+      val retainAndRouteWithDeadlineProgress =
+        RetainAndRouteWithDeadline.leadsTo("outcomeReachesOwner")(
+          RejectAfterClose.states.isDone,
+          RejectAfterClose.states.settled,
+          within = 6,
+          reporting,
+          deliveryFair
+        )
 
   object queries:
     val retainAndRouteWithDeadlineQueries =

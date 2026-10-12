@@ -78,17 +78,19 @@ trait Timeouts extends Facet[State, Outcome, Fact], Phased[State, Phase]:
       }
 
     object properties:
-      // Terminal deadline witnesses record which deadline settled the activity. Start-to-close
-      // uses a one-attempt start.
-      val scheduleToStartFires = property when deadline.scheduleToStart holds { s =>
-        s.state.phase == Phase.timedOut &&
-        s.records(Fact.statusTimedOut(TimeoutType.scheduleToStart))
-      }
 
-      val scheduleToCloseTimesOut = property when deadline.scheduleToClose holds { s =>
-        s.state.phase == Phase.timedOut &&
-        s.records(Fact.statusTimedOut(TimeoutType.scheduleToClose))
-      }
+      object safety:
+        // Terminal deadline witnesses record which deadline settled the activity. Start-to-close
+        // uses a one-attempt start.
+        val scheduleToStartFires = property when deadline.scheduleToStart holds { s =>
+          s.state.phase == Phase.timedOut &&
+          s.records(Fact.statusTimedOut(TimeoutType.scheduleToStart))
+        }
+
+        val scheduleToCloseTimesOut = property when deadline.scheduleToClose holds { s =>
+          s.state.phase == Phase.timedOut &&
+          s.records(Fact.statusTimedOut(TimeoutType.scheduleToClose))
+        }
 
     // The terminal scheduling deadlines and the attempt's own, retryable one; a pending reset
     // applies as start-to-close ends the held attempt, and schedule-to-close keeps its terminal law.
@@ -152,7 +154,7 @@ trait Timeouts extends Facet[State, Outcome, Fact], Phased[State, Phase]:
         deadline.scheduleToClose
       )
       val scheduleToStartTimeout =
-        (query find properties.scheduleToStartFires in scheduleToStartExpires limits three)
+        (query find properties.safety.scheduleToStartFires in scheduleToStartExpires limits three)
           .live(
             inconclusive(
               Reason.neverEvaluated,
@@ -171,10 +173,10 @@ trait Timeouts extends Facet[State, Outcome, Fact], Phased[State, Phase]:
           .limits(three)
       val competingTimers = Vector(
         query("competingTimers.scheduleToStartFirst") find
-          properties.scheduleToStartFires in
+          properties.safety.scheduleToStartFires in
           bothDeadlinesStartFirst limits three,
         query("competingTimers.scheduleToCloseFirst") find
-          properties.scheduleToCloseTimesOut in
+          properties.safety.scheduleToCloseTimesOut in
           bothDeadlinesCloseFirst limits three
       )
       // Both full-State finds predict explanationsDisagree from status/attempt-only evidence.

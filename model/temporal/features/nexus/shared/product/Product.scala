@@ -54,6 +54,8 @@ object NexusProduct
   // action the Case performs; a transition claim is searched and verified, never realized.
 
   object properties:
-    // Once an operation is over, no step changes its phase. Declared on the product machine and read
-    // on the Protocol machine through the map.
-    val terminalIsFinal = property.once(states.productTerminal).keeps(_.phase)
+
+    object safety:
+      // Once an operation is over, no step changes its phase. Declared on the product machine and
+      // read on the Protocol machine through the map.
+      val terminalIsFinal = property.once(states.productTerminal).keeps(_.phase)

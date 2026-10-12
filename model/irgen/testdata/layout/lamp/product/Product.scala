@@ -24,6 +24,7 @@ object LampProduct extends Machine[product.State, Outcome, Fact]:
 
   object states:
     def dark(s: State) = s.phase == Phase.dark
+    def lit(s: State) = s.phase == Phase.lit
 
   object effects:
     def light(s: State) = enter(s.copy(phase = Phase.lit), Fact.switchedOn)
@@ -34,13 +35,22 @@ object LampProduct extends Machine[product.State, Outcome, Fact]:
     on(user.switchOff)(where(_.phase == Phase.lit) ~> effects.darken)
 
   object properties:
-    val switchingOnLights = property when user.switchOn holds
-      (after => after.state.phase == Phase.lit)
+    object safety:
+      val switchingOnLights = property when user.switchOn holds
+        (after => after.state.phase == Phase.lit)
+
+    object liveness:
+      val eventuallyLit = LampProduct.leadsTo("eventuallyLit")(
+        states.dark,
+        states.lit,
+        within = 1,
+        switchOnRuns
+      )
 
   object queries:
     val switchedOn = scenario.actions(user.switchOn)
     // 2 states, a pinned Scenario of 1 slot within one step.
-    val lights = query verify properties.switchingOnLights in switchedOn limits one total 2
+    val lights = query verify properties.safety.switchingOnLights in switchedOn limits one total 2
     val switchedOff = witness(user.switchOn, user.switchOff)
       .records(Fact.switchedOff)
       .ends(_.phase == Phase.dark)

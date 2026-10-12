@@ -205,68 +205,76 @@ object ActivityProtocol
   // The activity and worker's cross-entity claim is the composition's, and the dispatch record's
   // are Dispatch.scala's.
   object properties:
-    val cancelIsNotUndone = property.holdsAcross { (before, after) =>
-      (before.phase == Phase.cancelRequested) implies
-        (after.state.phase == Phase.cancelRequested || after.state.phase.in[Closed])
-    }
 
-    // A pending reset ends only as its held attempt does: a completion wins, a cancellation or a
-    // terminate replaces it, schedule-to-close stays terminal, and a failure or one of the
-    // attempt's own deadlines applies it, whatever the policy left. The next attempt is a first
-    // one, dispatched at once, and paused only where the pause was kept; no failure or timeout is
-    // recorded for it. Any other step leaves it as it was. With no reset pending, an existing
-    // attempt's count never goes back but where a waiting or paused activity restarts, with no
-    // backoff left.
-    val resetSettles = property.holdsAcross { (before, after) =>
-      val restarted = after.state.attempts == 0 && after.state.dispatch == Dispatch.now &&
-        after.state.scheduleToClose == before.scheduleToClose &&
-        after.state.scheduleToStart == before.scheduleToStart &&
-        after.state.startToClose == before.startToClose &&
-        after.state.heartbeat == before.heartbeat &&
-        after.state.maxAttempts == before.maxAttempts &&
-        !after.records(Fact.statusFailed) &&
-        !after.records(Fact.statusTimedOut(TimeoutType.scheduleToClose)) &&
-        !after.records(Fact.statusTimedOut(TimeoutType.scheduleToStart)) &&
-        !after.records(Fact.statusTimedOut(TimeoutType.startToClose)) &&
-        !after.records(Fact.statusTimedOut(TimeoutType.heartbeat))
-      if states.pendingReset(before) then
-        after.state == before ||
-        (after.state.phase == Phase.completed && after.records(Fact.statusCompleted)) ||
-        after.state.phase == Phase.cancelRequested ||
-        after.state.phase == Phase.terminated ||
-        (after.state.phase == Phase.timedOut &&
-          after.records(Fact.statusTimedOut(TimeoutType.scheduleToClose))) ||
-        (restarted && after.state.phase == states.landingPhase(before) &&
-          after.records(states.landingStatus(before)))
-      else
-        before.phase == Phase.unstarted || after.state.attempts >= before.attempts ||
-        (before.phase.in(Phase.scheduled, Phase.paused) &&
-          after.state.phase.in(Phase.scheduled, Phase.paused) &&
-          after.state.attempts == 0 && after.state.dispatch != Dispatch.backoff)
-    }
+    object safety:
+      val cancelIsNotUndone = property.holdsAcross { (before, after) =>
+        (before.phase == Phase.cancelRequested) implies
+          (after.state.phase == Phase.cancelRequested || after.state.phase.in[Closed])
+      }
 
-    // A reset of a waiting or paused activity restarts it at once: its count is zero and a retry
-    // backoff is discarded, a start delay kept. Without keep_paused it is scheduled again.
-    val resetResumes = property.when(client.reset(ResetPause.resume)) holdsAcross {
-      (before, after) =>
-        !before.phase.in(Phase.scheduled, Phase.paused) ||
-        (after.state == before.copy(
-          phase = Phase.scheduled,
-          attempts = UpTo(0),
-          dispatch = states.resetDispatch(before.dispatch)
-        ) && after.records(Fact.statusScheduled))
-    }
+      // A pending reset ends only as its held attempt does: a completion wins, a cancellation or a
+      // terminate replaces it, schedule-to-close stays terminal, and a failure or one of the
+      // attempt's own deadlines applies it, whatever the policy left. The next attempt is a first
+      // one, dispatched at once, and paused only where the pause was kept; no failure or timeout is
+      // recorded for it. Any other step leaves it as it was. With no reset pending, an existing
+      // attempt's count never goes back but where a waiting or paused activity restarts, with no
+      // backoff left.
+      val resetSettles = property.holdsAcross { (before, after) =>
+        val restarted = after.state.attempts == 0 && after.state.dispatch == Dispatch.now &&
+          after.state.scheduleToClose == before.scheduleToClose &&
+          after.state.scheduleToStart == before.scheduleToStart &&
+          after.state.startToClose == before.startToClose &&
+          after.state.heartbeat == before.heartbeat &&
+          after.state.maxAttempts == before.maxAttempts &&
+          !after.records(Fact.statusFailed) &&
+          !after.records(Fact.statusTimedOut(TimeoutType.scheduleToClose)) &&
+          !after.records(Fact.statusTimedOut(TimeoutType.scheduleToStart)) &&
+          !after.records(Fact.statusTimedOut(TimeoutType.startToClose)) &&
+          !after.records(Fact.statusTimedOut(TimeoutType.heartbeat))
+        if states.pendingReset(before) then
+          after.state == before ||
+          (after.state.phase == Phase.completed && after.records(Fact.statusCompleted)) ||
+          after.state.phase == Phase.cancelRequested ||
+          after.state.phase == Phase.terminated ||
+          (after.state.phase == Phase.timedOut &&
+            after.records(Fact.statusTimedOut(TimeoutType.scheduleToClose))) ||
+          (restarted && after.state.phase == states.landingPhase(before) &&
+            after.records(states.landingStatus(before)))
+        else
+          before.phase == Phase.unstarted || after.state.attempts >= before.attempts ||
+          (before.phase.in(Phase.scheduled, Phase.paused) &&
+            after.state.phase.in(Phase.scheduled, Phase.paused) &&
+            after.state.attempts == 0 && after.state.dispatch != Dispatch.backoff)
+      }
 
-    // With keep_paused a paused activity stays paused, and a scheduled one is scheduled again.
-    val resetKeepsPaused =
-      property.when(client.reset(ResetPause.keepPaused)) holdsAcross { (before, after) =>
-        !before.phase.in(Phase.scheduled, Phase.paused) ||
-        (after.state == before.copy(
-          attempts = UpTo(0),
-          dispatch = states.resetDispatch(before.dispatch)
-        ) && after.records(
-          if before.phase == Phase.paused then Fact.statusPaused else Fact.statusScheduled
-        ))
+      // A reset of a waiting or paused activity restarts it at once: its count is zero and a retry
+      // backoff is discarded, a start delay kept. Without keep_paused it is scheduled again.
+      val resetResumes = property.when(client.reset(ResetPause.resume)) holdsAcross {
+        (before, after) =>
+          !before.phase.in(Phase.scheduled, Phase.paused) ||
+          (after.state == before.copy(
+            phase = Phase.scheduled,
+            attempts = UpTo(0),
+            dispatch = states.resetDispatch(before.dispatch)
+          ) && after.records(Fact.statusScheduled))
+      }
+
+      // With keep_paused a paused activity stays paused, and a scheduled one is scheduled again.
+      val resetKeepsPaused =
+        property.when(client.reset(ResetPause.keepPaused)) holdsAcross { (before, after) =>
+          !before.phase.in(Phase.scheduled, Phase.paused) ||
+          (after.state == before.copy(
+            attempts = UpTo(0),
+            dispatch = states.resetDispatch(before.dispatch)
+          ) && after.records(
+            if before.phase == Phase.paused then Fact.statusPaused else Fact.statusScheduled
+          ))
+        }
+      // Cancel > Reset > Pause: no step makes a reset pending over a pending cancellation, and no
+      // step turns a pending reset back into a pause request or a plain attempt (model.go:156-158).
+      val controlPrecedence = property.holdsAcross { (before, after) =>
+        (before.phase != Phase.cancelRequested || !states.pendingReset(after.state)) &&
+        (!states.pendingReset(before) || !after.state.phase.in(Phase.started, Phase.pauseRequested))
       }
     // Retryable's and Expirable's laws as the activity keeps them: a pending reset applies first, as
     // a failure or one of the attempt's own deadlines ends the held attempt, whatever the failure's
@@ -361,12 +369,6 @@ object ActivityProtocol
             pendingPause(before)) ||
           (after.state.phase.in[Suspended] && timeoutFacts.forall(f => !after.records(f)))
       )
-    // Cancel > Reset > Pause: no step makes a reset pending over a pending cancellation, and no
-    // step turns a pending reset back into a pause request or a plain attempt (model.go:156-158).
-    val controlPrecedence = property.holdsAcross { (before, after) =>
-      (before.phase != Phase.cancelRequested || !states.pendingReset(after.state)) &&
-      (!states.pendingReset(before) || !after.state.phase.in(Phase.started, Phase.pauseRequested))
-    }
 
   // The capabilities each facet declares for the actions it owns.
   object capabilities
@@ -395,12 +397,12 @@ object ActivityProtocol
     val any = scenario.free
 
     val cancellationKeepsPrecedence =
-      query verify properties.cancelIsNotUndone in any limits eight
+      query verify properties.safety.cancelIsNotUndone in any limits eight
     val resetSettlement =
-      query verify properties.resetSettles in any limits eight
+      query verify properties.safety.resetSettles in any limits eight
     val directResetResumes =
-      query verify properties.resetResumes in any limits eight
+      query verify properties.safety.resetResumes in any limits eight
     val directResetKeepsPaused =
-      query verify properties.resetKeepsPaused in any limits eight
+      query verify properties.safety.resetKeepsPaused in any limits eight
     val controlsKeepPrecedence =
-      query verify properties.controlPrecedence in any limits eight
+      query verify properties.safety.controlPrecedence in any limits eight

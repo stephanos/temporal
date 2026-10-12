@@ -267,8 +267,9 @@ The header:
   `unobservable` lists timers whose step records nothing a Run can read.
 
 The sections are objects named for what they hold and come in the order above; the IR generator's
-declaration-order lint refuses any other order and any section nested elsewhere. Inside the object
-`State` names the state type and `property`, `scenario` name the machine implicitly.
+declaration-order lint refuses any other order and any section nested elsewhere. The two designated
+claim groups are the exception: `safety` and `liveness` sit directly inside `properties`. Inside the
+object `State` names the state type and `property`, `scenario` name the machine implicitly.
 
 **Refused.** Two machines of one name in a package; a machine whose object name differs from its
 file's (structure lint); a section object of any other name; a `val` read before it is declared
@@ -474,7 +475,7 @@ selector narrows which steps it is about: every step, the steps of one class (`w
 class of an action (`whenAction`). An unrelated step stays on the path but neither reads nor
 exercises the Property.
 
-**Writing it.** In `object properties`, named after the `val`:
+**Writing it.** In `object properties.safety`, named after the `val`:
 
 Source: [temporal/features/activity_mini/product/Product.scala:39](temporal/features/activity_mini/product/Product.scala#L39).
 
@@ -482,6 +483,13 @@ Source: [temporal/features/activity_mini/product/Product.scala:39](temporal/feat
 object properties:
   val terminalRemains = property.once(_.phase.in[Closed]).keeps(_.phase)
 ```
+
+The checker classifies a declaration by its resolved kind, never by its name or predicate body.
+A `Property` and a reference that attaches a safety monitor belong in `safety`; a `Progress`
+belongs in `liveness`. A claim directly in `properties`, or in the other group, is refused at its
+authored source line with the binding, resolved kind and expected group. Plain helper defs are not
+claims and may remain directly in `properties`. Omit an empty group, or the whole section when it
+has no claims; an omitted group neither invents nor duplicates a shared law or monitor attachment.
 
 The patterns are sugar over the two core forms, `holds(after => ...)` and
 `holdsAcross((before, after) => ...)`:
@@ -644,7 +652,8 @@ nothing by itself: a finite bound holds only where the graph leaves no path that
 elsewhere, which is why the dispatch designs *restrict* the actions that could, rather than assume
 them away.
 
-**Writing it.** In `object properties`, always named:
+**Writing it.** In `object properties.liveness`, always named, with an explicit finite bound and
+the assumptions on which the claim relies:
 
 Source: [temporal/features/activity_mini/protocol/DispatchProgress.scala:12](temporal/features/activity_mini/protocol/DispatchProgress.scala#L12).
 
@@ -660,9 +669,17 @@ object DispatchProgress extends Derived(ActivityProtocol.restrict(activityWorker
       states.waiting, states.started, within = Bounds.dispatchSteps, workerFair)
 ```
 
+A safety postcondition such as `Queue.properties.deliveredWasScheduled` assumes no future action: it
+must hold whenever its selected response step occurs, but does not say that response will occur.
+The progress claim is universal over every admitted path from `from`; it states its `within` bound
+and fairness or recovery assumptions separately. A `find` Query supplies one witness path and is
+therefore not evidence that this universal progress claim holds.
+
 A composition's claim reads the composed state and counts composed steps, a sync's once. Its
 assumptions select composed steps by structure: `assume.fair(c.synced(_.activity -> worker.poll),
-c.own(_.queue, queue.persist))`. Progress is a model check only: no Case is generated from it.
+c.own(_.queue, queue.persist))`. The Scala authoring, lifting and model-check path supports this
+composition form today. Progress is a model check only: no Case is generated from it, and that
+source support does not by itself close fn-150's pending generated-consumer, gate or live evidence.
 
 ## 12. Holes
 

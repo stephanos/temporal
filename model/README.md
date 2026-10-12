@@ -57,13 +57,14 @@ exact ordinary triple, with one name for all three and no new IR construct:
 
 ```scala
 object properties:
-  val syncCompletion = property("syncCompletion") when handler.reply(Reply.syncSuccess) holds
-    (after => after.records(Fact.nexusOperationCompleted) && after.state.phase == Phase.succeeded)
+  object safety:
+    val syncCompletion = property("syncCompletion") when handler.reply(Reply.syncSuccess) holds
+      (after => after.records(Fact.nexusOperationCompleted) && after.state.phase == Phase.succeeded)
 object queries:
   val syncCompletionPath = scenario("syncCompletion").actions(
     caller.schedule(), handler.reply(Reply.syncSuccess)
   )
-  val syncCompletion = (query("syncCompletion") find properties.syncCompletion in
+  val syncCompletion = (query("syncCompletion") find properties.safety.syncCompletion in
     syncCompletionPath limits two).live(satisfied)
 ```
 
@@ -621,7 +622,8 @@ The IR generator reads what an author wrote, as written:
 - **Declarations:** machine objects, `object M extends Machine[S, O, F]`, with an optional
   `Phased[S, P](projection)` parent naming their phase, their header members
   (`init`, `end`, `entity`, `evidence`, `unobservable`) and their sections (`states`,
-  `refinement`, `effects`, `monitors`, `rules`, `properties`, `capabilities`, `queries`); derived
+  `refinement`, `effects`, `monitors`, `rules`, `properties` with its `safety` and `liveness`
+  claim groups, `capabilities`, `queries`); derived
   machines, `object D extends Derived(m.op(…))`, of the derivations `restrict`, `rebind`,
   `extend`, `refining`, `assuming` and `unmonitored`; composition objects; action chains
   (`action`, `timer`, `internal`, `on`, `creates`, `input[T]`, `results`, `example`);
@@ -644,7 +646,9 @@ The IR generator reads what an author wrote, as written:
   fairness. The bound counts composed steps, a sync's once, and weak fairness does not shorten it
   (model/SEMANTICS.md, Progress); `system/DispatchProgress.scala` states the restrictions its
   one-step bound rests on, with the variant whose stopping worker refutes it. Composition progress
-  is a model check only: no Case is generated from it.
+  is supported by the current Scala authoring, lifter and model-check path. It is model-only: no
+  Case is generated from it, and this source support does not itself close fn-150's pending
+  generated-consumer, gate or live evidence.
 - **Shared claims:** `property` and `scenario` are declared on `Declares[S]`, the supertype of a
   machine and a composition, so one function over `m: Declares[S]` declares a Property on either.
   A function-valued argument of such a function names a def of the lifted sources, which the
@@ -812,9 +816,10 @@ object Store extends Machine[StoreState, Outcome, Fact]:            // the machi
   object rules extends Rules:
     on(client.put)(where(_.kept == Kept.nothing) ~> effects.keep)
   object properties:
-    val putStores = property when client.put holds (after => after.records(Fact.stored))
+    object safety:
+      val putStores = property when client.put holds (after => after.records(Fact.stored))
   object queries:
-    val putStoresOnce = query find properties.putStores in scenario("putOnce").actions(client.put) limits two
+    val putStoresOnce = query find properties.safety.putStores in scenario("putOnce").actions(client.put) limits two
 object PutOnly extends Derived(Store.restrict(client.put))
 val two = Limits(steps = 2, actions = 2, search = 64)
 ```
@@ -1070,13 +1075,19 @@ A machine object is the machine: `object ActivityProduct extends Machine[State, 
    class, both cases and a witness state, and the gate
    constructs every IR file's roots (`model/temporal/IrFiles.test.scala`). Each action's cases lower
    to one step function, `<machine>.rules.<action>`;
-7. `object properties`, its claims, which name the machine implicitly: `property when … holds …`;
+7. `object properties`, with actual claims under `object safety` or `object liveness`. `safety`
+   holds same-step and transition Properties (and references that attach safety monitors);
+   `liveness` holds bounded Progress declarations. Classification follows the resolved declaration
+   kind, not its name or predicate body. Helpers may remain directly in `properties`; omit either
+   empty group, or the entire section when both are empty. A direct or mismatched claim is refused
+   at its source line with its binding, kind and expected group;
 8. `object capabilities extends Capabilities` (`framework.Capabilities`), its one typed `val` per
    capability and any `except(…)` or `overriding(…)` statement; its `queries` section sets generated
    Query limits with `capabilities.bound(three)`;
 9. `object queries`, its witnesses and ordinary Queries. A witness declares its path and claim
    together, named after its `val`; an ordinary Query reads a Scenario declared before it,
-   `val completed = scenario.actions(…)`. Shared Properties stay in `properties`.
+   `val completed = scenario.actions(…)`. Shared claim helpers stay directly in `properties`;
+   claim values declared at this site use the group for their resolved kind.
 
 A derived machine is an object too, `object TrustingActivityRecord extends Derived(ActivityRecord.rebind(
 …))`, and adds only its own `states`, `properties`, `capabilities` and `queries`; `rebind(action ~>
@@ -1387,7 +1398,7 @@ line, as `lift: <file>:<line>: …`:
 | (a) | a `val` read while its object initializes, before the object declares it: it is still `null` there | declare it before the declaration that reads it |
 | (b) | a cycle of objects, files' top levels and the objects nested in them, each read while the one before it initializes | read it in a `def`, a lambda or a lazy `val`, or move what is read into an object of its own, as the System's `capabilities` is |
 | (c) | in a feature file, a declaration out of the order above: at the top level, or among a machine object's header and sections, or a Scenario after a Query in `queries` | move it |
-| (d) | in a feature file, a declaration outside its place: a step function outside `effects`, vocabulary outside `states`, a refinement member outside `refinement`, a monitor outside `monitors`, a hand-written `action ~> step` in a machine object (outside `rebind`), a Property outside `properties`, capabilities outside `capabilities`, a Scenario or Query outside `queries`, any of them or a machine at the top level, a section nested in a section or outside a machine, composition or file top level, a Property, capabilities or Scenario over another object's machine, a Query over another object's Scenario; beside a feature file, a Model declaration in another file; and in a Model folder with no feature file, a Model declaration in a file not named after the folder | move it to the place the message names, or name the file after its folder |
+| (d) | in a feature file, a declaration outside its place: a step function outside `effects`, vocabulary outside `states`, a refinement member outside `refinement`, a monitor outside `monitors`, a hand-written `action ~> step` in a machine object (outside `rebind`), a Property outside `properties.safety`, Progress outside `properties.liveness`, a claim directly in `properties` or in the other claim group, capabilities outside `capabilities`, a Scenario or Query outside `queries`, any of them or a machine at the top level, a section nested in a section except the designated claim groups or outside a machine, composition or file top level, a Property, capabilities or Scenario over another object's machine, a Query over another object's Scenario; beside a feature file, a Model declaration in another file; and in a Model folder with no feature file, a Model declaration in a file not named after the folder | move it to the place the message names, or name the file after its folder |
 
 A read inside a `def`, a lambda, a by-name argument or a lazy `val`, and an object declared but never
 read while another initializes, initializes nothing and is not refused; a context function the DSL
@@ -1467,10 +1478,16 @@ include a refinement pair keeps only shared types and its signature in that file
 in `protocol/Protocol.scala`, with each other machine, facet and zoom-in in a file of its own beside
 it, and its realizations in `realization/`. A feature of one level keeps its machine in its feature
 file and has no level folder.
-The lamp template keeps a switch-on `verify` and the System's Product refinement. Its ordinary
-`switchedOff` witness pins switch-on then switch-off, records `Fact.switchedOff` and ends in
-`Phase.dark`. It has derived two-step Limits and no `.live`, so it checks the Model and generates
-no Case. Keep such paths in `queries`; add `.live` only when declaring a live expectation.
+The lamp template keeps its Product promises together under `properties`: the safety postcondition
+`switchingOnLights` says what every switch-on step leaves true, while the liveness claim
+`eventuallyLit` says that every admitted path from dark reaches lit within one step under the named
+weak-fairness assumption `switchOnRuns`. The safety claim needs no fairness assumption and does not
+promise that switch-on will occur; fairness also does not create the one-step bound, which follows
+from the machine's transition table. Its `lights` Query universally verifies the safety Property.
+The ordinary `switchedOff` witness instead pins one switch-on/switch-off path, records
+`Fact.switchedOff` and ends in `Phase.dark`. It has derived two-step Limits and no `.live`, so it
+finds one Model path, proves no progress claim and generates no Case. Keep such paths in `queries`;
+add `.live` only when declaring a live expectation.
 For a kind with related forms, create its general file and put each form's feature folder beneath
 it, following `model/irgen/testdata/layout/kinds/`. An optional kind Product can serve both forms;
 each form's Protocol then refines that Product and keeps its own `protocol/Protocol.scala`. The three
@@ -1517,7 +1534,7 @@ trait Pausing extends Facet[State, Outcome, Fact], Phased[State, Phase]:
     object capabilities extends Capabilities:
       val pausable: Capability = Pausable(pause = client.pause, unpause = client.unpause)
     object queries:
-      val pauseResume = query find completion.properties.completes in pausedThenCompleted limits six
+      val pauseResume = query find completion.properties.safety.completes in pausedThenCompleted limits six
 ```
 
 The machine mixes in its facets and lists their rules and capabilities in facet order:

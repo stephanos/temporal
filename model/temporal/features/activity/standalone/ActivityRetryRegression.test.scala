@@ -188,7 +188,7 @@ class ActivityRetryRegression extends munit.FunSuite:
           assertEquals(ActivityProtocol.states.retriesRemaining(polled), retryAllowed)
           val failed = take(polled, activityWorker.respondFailed(Failure.retryable))
           if policy == MaxAttempts.two then
-            val satisfies = ActivityProtocol.retry.properties.retryExhausts.decl.holds.get
+            val satisfies = ActivityProtocol.retry.properties.safety.retryExhausts.decl.holds.get
               .asInstanceOf[Step[
                 protocol.State,
                 Outcome,

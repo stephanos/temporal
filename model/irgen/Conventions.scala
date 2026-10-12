@@ -191,17 +191,22 @@ final private[irgen] class Conventions(index: Index):
     val line = lineOf(t)
     refused += ((path, line, LiftError(s"$path:$line", s"$rule: $message")))
 
-  private def dotted(r: Ref): Either[String, Boolean] = scala.util
+  private enum DottedSource derives CanEqual:
+    case Written(dotted: Boolean)
+    case CompilerSynthetic
+
+  private def dotted(r: Ref): Either[String, DottedSource] = scala.util
     .Try {
       val text = textOf(r)
       val pos = r.pos
-      require(
-        pos.start >= 0 && pos.end >= pos.start && pos.end <= text.length,
-        "membership source span is outside its source file"
-      )
-      val written = text.substring(pos.start, pos.end)
-      "(?s).*\\.\\s*`?in`?\\s*$".r.matches(written) ||
-      text.substring(0, pos.start).reverse.takeWhile(_ != '\n').reverse.trim.endsWith(".")
+      val possible = pos.start >= 0 && pos.end >= pos.start && pos.end <= text.length
+      if !possible then DottedSource.CompilerSynthetic
+      else
+        val written = text.substring(pos.start, pos.end)
+        DottedSource.Written(
+          "(?s).*\\.\\s*`?in`?\\s*$".r.matches(written) ||
+            text.substring(0, pos.start).reverse.takeWhile(_ != '\n').reverse.trim.endsWith(".")
+        )
     }
     .toEither
     .left
@@ -529,7 +534,7 @@ final private[irgen] class Conventions(index: Index):
                   r.symbol.maybeOwner.fullName
                 ) =>
             dotted(r) match
-              case Right(false) =>
+              case Right(DottedSource.Written(false)) =>
                 refuse(
                   r,
                   "R4.dotted-in",
@@ -541,7 +546,8 @@ final private[irgen] class Conventions(index: Index):
                   "R4.dotted-in",
                   s"cannot inspect the membership test's source: $reason"
                 )
-              case Right(true) => ()
+              case Right(DottedSource.Written(true))     => ()
+              case Right(DottedSource.CompilerSynthetic) => ()
           case r: Ref      => dependency(r, r.symbol, owner)
           case t: TypeTree => dependency(t, t.tpe.typeSymbol, owner)
           case _           => ()

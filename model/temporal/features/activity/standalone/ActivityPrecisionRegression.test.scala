@@ -31,7 +31,7 @@ class ActivityPrecisionRegression extends munit.FunSuite:
   test(
     "cancellation precedence exercises a refused pause, permits legal closure and rejects undo"
   ) {
-    val holds = ActivityProtocol.properties.cancelIsNotUndone.decl.holds2.get
+    val holds = ActivityProtocol.properties.safety.cancelIsNotUndone.decl.holds2.get
       .asInstanceOf[
         (protocol.State, Step[protocol.State, Outcome, protocol.Fact]) => Boolean
       ] // scalafix:ok DisableSyntax.asInstanceOf

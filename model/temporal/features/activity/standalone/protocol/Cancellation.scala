@@ -68,24 +68,26 @@ trait Cancellation extends Facet[State, Outcome, Fact], Phased[State, Phase]:
       }
 
     object properties:
-      val cancelRequested =
-        property when client.requestCancel holds { s =>
-          s.state.phase == Phase.cancelRequested && s.records(
-            Fact.statusCancelRequested
-          )
-        }
 
-      val canceledByWorker =
-        property when activityWorker.respondCanceled holds { s =>
-          s.state.phase == Phase.canceled && s.records(Fact.statusCanceled)
-        }
+      object safety:
+        val cancelRequested =
+          property when client.requestCancel holds { s =>
+            s.state.phase == Phase.cancelRequested && s.records(
+              Fact.statusCancelRequested
+            )
+          }
 
-      val canceledByID =
-        property when completionClient.respondCanceledByID holds { after =>
-          after.state.phase == Phase.canceled && after.records(
-            Fact.statusCanceled
-          )
-        }
+        val canceledByWorker =
+          property when activityWorker.respondCanceled holds { s =>
+            s.state.phase == Phase.canceled && s.records(Fact.statusCanceled)
+          }
+
+        val canceledByID =
+          property when completionClient.respondCanceledByID holds { after =>
+            after.state.phase == Phase.canceled && after.records(
+              Fact.statusCanceled
+            )
+          }
 
     object queries:
       val cancelRequestedThenCanceled = scenario.actions(
@@ -102,12 +104,12 @@ trait Cancellation extends Facet[State, Outcome, Fact], Phased[State, Phase]:
       )
 
       val cancel =
-        query find properties.canceledByWorker in cancelRequestedThenCanceled limits four
+        query find properties.safety.canceledByWorker in cancelRequestedThenCanceled limits four
       // Asks the one Property no functional Query asks, over the path that takes a cancel request.
       val cancelRequest =
-        query find properties.cancelRequested in cancelRequestedThenCanceled limits four
+        query find properties.safety.cancelRequested in cancelRequestedThenCanceled limits four
       val heldCanceledByID =
-        (query find properties.canceledByID in heldCancellation limits four)
+        (query find properties.safety.canceledByID in heldCancellation limits four)
           .total(22464)
           .live(
             inconclusive(
@@ -119,7 +121,7 @@ trait Cancellation extends Facet[State, Outcome, Fact], Phased[State, Phase]:
       val cancelIsRequested =
         (query(
           "activityProtocol.cancelIsRequested"
-        ) find properties.cancelRequested in heldCancellation limits four)
+        ) find properties.safety.cancelRequested in heldCancellation limits four)
           .total(22464)
           .live(
             inconclusive(
