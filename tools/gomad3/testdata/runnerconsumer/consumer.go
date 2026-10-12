@@ -10,6 +10,7 @@ import (
 	"context"
 	"time"
 
+	"go.temporal.io/server/tools/gomad3/backends/native"
 	"go.temporal.io/server/tools/gomad3/runner"
 	"go.temporal.io/server/tools/gomad3/target"
 )
@@ -61,12 +62,13 @@ func CampaignSemantics(seeds string, coverage runner.CoverageMode, guided bool, 
 // Operations runs each Runner operation once with substituted preparation
 // and replay where the request accepts them.
 func Operations(ctx context.Context, supervisor []string, toolchainRoot string) error {
+	provider := native.New(native.Config{ToolchainRoot: toolchainRoot, SupervisorCommand: supervisor})
 	campaign := runner.CampaignSpec{
 		Strategy: runner.StrategySeed, Seeds: "1-4", Parallel: 2,
 		ExecutionTimeout: time.Second, OverallTimeout: time.Minute, TerminateGrace: time.Second,
 		OnFailure: runner.PolicyAll, OutputLimit: 1 << 20, WorldTransitionLimit: 1 << 20,
 		Artifacts: "artifacts", Target: target.Spec{Kind: target.KindGoRun, Source: ".", ToolchainRoot: toolchainRoot},
-		SupervisorCommand: supervisor, RunnerBuild: "sha256:0000000000000000000000000000000000000000000000000000000000000000",
+		Backend: provider, RunnerBuild: "sha256:0000000000000000000000000000000000000000000000000000000000000000",
 		Progress: func(runner.CampaignEvent) error { return nil },
 		Preparer: cachedPreparer{}, Replayer: matchingReplayer{},
 	}
@@ -79,23 +81,23 @@ func Operations(ctx context.Context, supervisor []string, toolchainRoot string) 
 	}
 	shard, err := runner.RunCampaignShard(ctx, runner.CampaignShardSpec{
 		PlanPath: plan.Path, Shard: runner.CampaignShard{Index: 0, Count: 1}, Artifacts: "artifacts", ToolchainRoot: toolchainRoot,
-		RunnerBuild: campaign.RunnerBuild, SupervisorCommand: supervisor, Replayer: matchingReplayer{},
+		RunnerBuild: campaign.RunnerBuild, Backend: provider, Replayer: matchingReplayer{},
 	})
 	if err != nil {
 		return err
 	}
 	if _, err := runner.Resume(ctx, runner.ResumeSpec{
 		CampaignPath: shard.CampaignPath, ToolchainRoot: toolchainRoot, RunnerBuild: campaign.RunnerBuild,
-		SupervisorCommand: supervisor, Replayer: matchingReplayer{},
+		Backend: provider, Replayer: matchingReplayer{},
 	}); err != nil {
 		return err
 	}
-	if _, err := runner.Replay(ctx, runner.ReplaySpec{ArtifactPath: "artifact", ToolchainRoot: toolchainRoot, SupervisorCommand: supervisor}); err != nil {
+	if _, err := runner.Replay(ctx, runner.ReplaySpec{ArtifactPath: "artifact", ToolchainRoot: toolchainRoot, Backend: provider}); err != nil {
 		return err
 	}
 	_, err = runner.Minimize(ctx, runner.MinimizeSpec{
 		ArtifactPath: "artifact", OutputRoot: "minimized", AttemptBudget: 16, ToolchainRoot: toolchainRoot,
-		SupervisorCommand: supervisor, Replayer: matchingReplayer{},
+		Backend: provider, Replayer: matchingReplayer{},
 	})
 	return err
 }

@@ -7,7 +7,7 @@ import (
 )
 
 func TestProjectionRejectsProcessBranchDrift(t *testing.T) {
-	input, err := os.ReadFile("../../../../" + overlay + "gomadfs/fs.go")
+	input, err := os.ReadFile("../../../" + overlay + "gomadfs/fs.go")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -28,7 +28,7 @@ func TestProjectionRejectsProcessBranchDrift(t *testing.T) {
 }
 
 func TestProjectionRemovesOnlyDispatchBranches(t *testing.T) {
-	input, err := os.ReadFile("../../../../" + overlay + "gomadfs/fs.go")
+	input, err := os.ReadFile("../../../" + overlay + "gomadfs/fs.go")
 	if err != nil {
 		t.Fatal(err)
 	}

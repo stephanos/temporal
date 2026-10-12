@@ -7,7 +7,7 @@ import (
 )
 
 func TestOwnerAdaptationRejectsCallbackAndAliasDrift(t *testing.T) {
-	input, err := os.ReadFile("../../../../" + overlay + "gomadfs/fs.go")
+	input, err := os.ReadFile("../../../" + overlay + "gomadfs/fs.go")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -24,7 +24,7 @@ func TestOwnerAdaptationRejectsCallbackAndAliasDrift(t *testing.T) {
 			}
 		})
 	}
-	volume, err := os.ReadFile("../../../../" + overlay + "gomadfs/volume.go")
+	volume, err := os.ReadFile("../../../" + overlay + "gomadfs/volume.go")
 	if err != nil {
 		t.Fatal(err)
 	}

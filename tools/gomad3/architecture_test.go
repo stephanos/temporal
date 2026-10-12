@@ -345,7 +345,7 @@ func TestInspectionSourceOwnershipDelegation(t *testing.T) {
 		file, function, required string
 	}{
 		{"cmd/gomad/internal/cli/analyze.go", "runAnalyze", "preparation.Inspect"},
-		{"qualification/analysis/prepared_review.go", "PrepareCapabilityReview", "preparation.Inspect"},
+		{"backends/native/qualification/analysis/prepared_review.go", "PrepareCapabilityReview", "preparation.Inspect"},
 		{"cmd/gomadtool/compatibility_pack.go", "runCompatibilityPackDiscover", "capabilityanalysis.PrepareCapabilityReview"},
 		{"cmd/gomadtool/compatibility_pack.go", "qualifyCompatibilityPackRequest", "capabilityanalysis.PrepareCapabilityReview"},
 	} {
@@ -367,9 +367,9 @@ func TestInspectionSourceOwnershipDelegation(t *testing.T) {
 			imported := false
 			for _, specification := range file.Imports {
 				if specification.Name != nil && specification.Name.Name == qualifier || specification.Name == nil && strings.HasSuffix(strings.Trim(specification.Path.Value, "\""), "/"+qualifier) {
-					expected := modulePath + "/internal/preparation"
+					expected := modulePath + "/backends/native/preparation"
 					if qualifier == "capabilityanalysis" {
-						expected = modulePath + "/qualification/analysis"
+						expected = modulePath + "/backends/native/qualification/analysis"
 					}
 					imported = specification.Path.Value == "\""+expected+"\""
 				}
