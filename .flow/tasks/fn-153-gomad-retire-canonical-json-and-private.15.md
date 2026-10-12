@@ -4,6 +4,10 @@ satisfies: [R2]
 # fn-153-gomad-retire-canonical-json-and-private.15 Migrate architecture effect fixtures before removing their source owner
 
 ## Description
+Superseded by fn-165.6's retirement of the old analyzer, with retained host/dynamic fixture coverage migrated under fn-165.4. This annotation does not complete this deferred task or revive Native work; final replacement acceptance belongs to fn-165.
+
+The original analyzer-specific approach below is retained as historical context.
+
 Implements R2 for this owner; see the parent Architecture and Delivery sections.
 
 **Size:** M
@@ -34,7 +38,6 @@ Implements R2 for this owner; see the parent Architecture and Delivery sections.
 Focused command: go -C tools/gomad3 test -tags test_dep -count=1 ./internal/gomadtool/architecture
 
 Capture the frozen behavior pin named above, run focused negative controls and follow the parent Delivery and verification section. Declare scope growth to the conductor before implementation. Shared gates run serially on the integrated frozen candidate.
-
 ## Acceptance
 - [ ] All affected fixtures retain their original positive/negative effect and provenance coverage after owner/callback rebinding.
 - [ ] No fixture requires the real generic encoder source or advertises removed-package ownership.
