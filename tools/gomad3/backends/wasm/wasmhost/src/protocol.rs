@@ -230,7 +230,11 @@ impl std::error::Error for FrameCapacity {}
 pub fn classification(error: &Error) -> &'static str {
     if let Some(interrupt) = error.downcast_ref::<Interrupt>() {
         interrupt.termination.as_str()
-    } else if error.downcast_ref::<FrameCapacity>().is_some() {
+    } else if error.downcast_ref::<FrameCapacity>().is_some()
+        || error
+            .downcast_ref::<crate::model::RemoteCapacity>()
+            .is_some()
+    {
         "capacity"
     } else if error.downcast_ref::<std::io::Error>().is_some() {
         "infrastructure"

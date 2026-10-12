@@ -100,6 +100,17 @@ fn is_zero(value: &u64) -> bool {
     *value == 0
 }
 
+/// A remote reply that would exceed a retained-evidence limit; classified as
+/// the deterministic `capacity` outcome rather than a protocol violation.
+#[derive(Debug)]
+pub struct RemoteCapacity(pub &'static str);
+impl std::fmt::Display for RemoteCapacity {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(self.0)
+    }
+}
+impl std::error::Error for RemoteCapacity {}
+
 pub struct Model {
     config: Config,
     pub now: u64,
@@ -293,6 +304,13 @@ impl Model {
         };
         if bytes.len() > protocol::FRAME_LIMIT {
             return Err(Error::msg("remote transcript capacity"));
+        }
+        if !self.config.digest_only
+            && self.transcript_bytes + bytes.len() as u64 > self.config.limits.transcript_bytes
+        {
+            return Err(Error::new(RemoteCapacity(
+                "WASI capacity: transcript-bytes",
+            )));
         }
         self.now = state.now;
         self.advances = state.advances;

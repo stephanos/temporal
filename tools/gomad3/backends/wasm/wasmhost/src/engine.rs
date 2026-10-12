@@ -1029,6 +1029,52 @@ mod tests {
     }
 
     #[test]
+    fn typed_write_abi_charges_output_by_bytes_actually_written() {
+        for modeled in [false, true] {
+            // A 32-byte write is accepted partially, then the 16-byte remainder
+            // is retried; the declared 32-byte bound must not report capacity.
+            let replies = [
+                write_abi_reply(1, 0, json!({"written":16}), modeled),
+                write_abi_reply(2, 0, json!({"written":16}), modeled),
+                write_abi_reply(3, 6, json!({}), modeled),
+            ]
+            .concat();
+            let mut fixture = WriteAbiFixture::new(2, modeled, replies);
+            fixture.store.data_mut().output_limit = 32;
+            fixture
+                .memory()
+                .write(&mut fixture.store, 256, &[7; 32])
+                .unwrap();
+            fixture.descriptors(&[(256, 32)]);
+            assert_eq!(fixture.invoke(false, 1, 16, 1, 0, 0).unwrap(), 0);
+            assert_eq!(fixture.output_count(), 16);
+            assert_eq!(fixture.store.data().output_bytes, 16);
+            fixture.descriptors(&[(272, 16)]);
+            assert_eq!(fixture.invoke(false, 1, 16, 1, 0, 0).unwrap(), 0);
+            assert_eq!(fixture.output_count(), 16);
+            assert_eq!(fixture.store.data().output_bytes, 32);
+            assert!(fixture.store.data().terminal.is_none());
+            fixture.restored();
+            // A failed write (errno) charges nothing; the bound stays exact.
+            fixture.descriptors(&[]);
+            assert_eq!(fixture.invoke(false, 2, 16, 0, 0, 0).unwrap(), 6);
+            assert_eq!(fixture.store.data().output_bytes, 32);
+            // At the bound, any further byte is still rejected before the callback.
+            fixture.descriptors(&[(256, 1)]);
+            let sent = fixture.capture.0.lock().unwrap().len();
+            assert!(fixture.invoke(false, 1, 16, 1, 0, 0).is_err());
+            let terminal = fixture.store.data().terminal.as_ref().unwrap();
+            assert_eq!(
+                (terminal.termination, terminal.message.as_str()),
+                ("capacity", "output capacity")
+            );
+            assert_eq!(fixture.store.data().output_bytes, 32);
+            assert_eq!(fixture.capture.0.lock().unwrap().len(), sent);
+            fixture.restored();
+        }
+    }
+
+    #[test]
     fn typed_write_abi_reply_errors_chunks_interrupts_and_transport_restore_buffers() {
         let mut unsupported: Value =
             serde_json::from_slice(&write_abi_reply(1, 0, json!({}), true)).unwrap();
@@ -1110,7 +1156,8 @@ mod tests {
                     fixture.store.data().completed_calls,
                     fixture.store.data().output_bytes
                 ),
-                (1, completed, 32)
+                // A failed write wrote nothing; terminal failures keep the reservation.
+                (1, completed, if errno.is_some() { 0 } else { 32 })
             );
             assert_eq!(fixture.origins(), origins);
             fixture.restored();
@@ -1662,6 +1709,37 @@ mod tests {
             "clock_time_get: CPU clocks outside stock WASI profile"
         );
         assert_eq!(state.model.as_ref().unwrap().now, 23);
+    }
+    #[test]
+    fn remote_transcript_respects_transcript_limit_with_capacity() {
+        let canonical = b"{\"type\":\"call\",\"id\":1,\"op\":\"fd_sync\",\"input\":{\"fd\":3}}\n{\"type\":\"reply\",\"id\":1,\"errno\":0,\"output\":{}}\n";
+        for (limit, accepted) in [
+            (canonical.len() as u64, true),
+            (canonical.len() as u64 - 1, false),
+        ] {
+            let mut state = clock_state(100, limit, 1);
+            let reply = json!({"type":"reply","id":1,"errno":0,"output":{},"local_state":{"now":20,"advances":3},"transcript_base64":STANDARD.encode(canonical)});
+            state.input = Box::new(std::io::Cursor::new(format!("{reply}\n").into_bytes()));
+            let result = state.callback("fd_sync", json!({"fd":3}));
+            let model = state.model.as_ref().unwrap();
+            if accepted {
+                assert!(result.is_ok());
+                assert_eq!(model.transcript_bytes, limit);
+                continue;
+            }
+            assert!(result.is_err());
+            let outcome = state.terminal.as_ref().unwrap();
+            assert_eq!(
+                (outcome.termination, outcome.message.as_str()),
+                ("capacity", "WASI capacity: transcript-bytes")
+            );
+            // Rejected before any model mutation.
+            assert_eq!(
+                (model.transcript_bytes, model.now, model.advances),
+                (0, 1, 0)
+            );
+            assert_eq!((state.calls, state.completed_calls), (1, 0));
+        }
     }
     #[test]
     fn typed_clock_state_capacity_preserves_attempted_and_completed_counts() {

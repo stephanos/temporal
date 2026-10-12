@@ -232,6 +232,9 @@ pub fn invoke(
     }
     let mut iovecs = Vec::new();
     let mut write_buffers = None;
+    // Standard output bytes reserved before the callback and settled to the
+    // count actually written, so partial writes and retries are charged once.
+    let mut reserved = 0u64;
     #[cfg(feature = "diagnostic-profile")]
     let encoding = crate::diagnostic::WallSpan::new(crate::diagnostic::Nested::Encoding);
     let input_result = (|| -> Result<Value> {
@@ -299,6 +302,7 @@ pub fn invoke(
                             return Err(Error::msg("output capacity"));
                         }
                         state.output_bytes = total;
+                        reserved = buffers.bytes.len() as u64;
                     }
                 } else {
                     input = fd();
@@ -454,6 +458,7 @@ pub fn invoke(
     }
     let reply = reply?;
     if reply.errno != 0 {
+        guest.caller.data_mut().output_bytes -= reserved;
         results[0] = Val::I32(reply.errno as i32);
         return Ok(());
     }
@@ -518,7 +523,9 @@ pub fn invoke(
             "fd_write" | "fd_pwrite" => {
                 fields(output, &["written"])?;
                 let max = iovecs.iter().map(|&(_, length)| length as u64).sum();
-                let count = number(output, "written", max)? as u32;
+                let count = number(output, "written", max)?;
+                guest.caller.data_mut().output_bytes -= reserved - reserved.min(count);
+                let count = count as u32;
                 guest.put32(get(if op == "fd_pwrite" { 4 } else { 3 }), count)?;
             }
             "fd_read" | "fd_pread" => {

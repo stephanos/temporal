@@ -17,14 +17,70 @@ const HEADER: usize = 52;
 const MAX_ARTIFACT: usize = 1024 * 1024 * 1024;
 const MAX_MANIFEST: usize = 16 * 1024;
 
-fn invalid(message: impl std::fmt::Display) -> Outcome {
-    Outcome::new("invalid", format!("compile cache: {message}"))
+// Every cache failure is a host failure: the cache is a trusted same-UID host
+// store outside guest semantics, so it never yields a guest or module verdict.
+fn host(message: impl std::fmt::Display) -> Outcome {
+    Outcome::new("infrastructure", format!("compile cache: {message}"))
+}
+fn corrupt(entry: &std::path::Path, message: impl std::fmt::Display) -> Outcome {
+    Outcome::new(
+        "infrastructure",
+        format!(
+            "compile cache: corrupt entry {}: {message}",
+            entry.display()
+        ),
+    )
+}
+/// Running out of space or quota while publishing only loses the cache entry.
+fn storage_full(error: &std::io::Error) -> bool {
+    matches!(
+        error.kind(),
+        std::io::ErrorKind::StorageFull | std::io::ErrorKind::QuotaExceeded
+    )
+}
+/// A collision-proof staging name: process ID, a per-process counter and
+/// fresh random bytes; the caller creates it with O_EXCL.
+fn staging_name(name: &str) -> String {
+    use std::sync::atomic::{AtomicU64, Ordering};
+    static COUNTER: AtomicU64 = AtomicU64::new(0);
+    let mut random = [0u8; 8];
+    if File::open("/dev/urandom")
+        .and_then(|mut file| file.read_exact(&mut random))
+        .is_err()
+    {
+        let nanos = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map_or(0, |elapsed| elapsed.as_nanos() as u64);
+        random = nanos.to_le_bytes();
+    }
+    format!(
+        "{name}.{}.{}.{:016x}.tmp",
+        std::process::id(),
+        COUNTER.fetch_add(1, Ordering::Relaxed),
+        u64::from_le_bytes(random)
+    )
+}
+enum Publication {
+    Io(std::io::Error),
+    Outcome(Outcome),
+}
+impl From<Outcome> for Publication {
+    fn from(outcome: Outcome) -> Self {
+        Self::Outcome(outcome)
+    }
 }
 fn io(error: std::io::Error) -> Outcome {
     Outcome::new("infrastructure", format!("compile cache: {error}"))
 }
 fn capacity() -> Outcome {
     Outcome::new("capacity", "compile cache artifact capacity")
+}
+
+#[cfg(test)]
+thread_local! {
+    /// Test hook: fails staged publication writes with this error kind.
+    pub(crate) static PUBLICATION_FAULT: std::cell::Cell<Option<std::io::ErrorKind>> =
+        const { std::cell::Cell::new(None) };
 }
 
 struct Compatibility(Sha256);
@@ -63,7 +119,7 @@ fn identity(engine: &Engine, module_sha256: &str) -> Result<Vec<u8>, Outcome> {
         hash.update(&buffer[..size]);
     }
     if !same_file(&before, &helper.metadata().map_err(io)?) {
-        return Err(invalid("helper executable changed during identity read"));
+        return Err(host("helper executable changed during identity read"));
     }
     let mut compatibility = Compatibility(Sha256::new());
     engine
@@ -74,7 +130,7 @@ fn identity(engine: &Engine, module_sha256: &str) -> Result<Vec<u8>, Outcome> {
         "engine":"wasmtime-47.0.3", "configuration":"cranelift-fuel-nan-canonical-v1",
         "host_os":std::env::consts::OS, "host_arch":std::env::consts::ARCH,
         "engine_compatibility_sha256":format!("{:x}", compatibility.0.finalize())
-    })).map_err(invalid)
+    })).map_err(host)
 }
 
 #[cfg(unix)]
@@ -151,7 +207,7 @@ mod private {
         pub fn open(path: &str) -> Result<Self, Outcome> {
             match std::fs::symlink_metadata(path) {
                 Ok(metadata) if metadata.file_type().is_symlink() => {
-                    return Err(invalid("symlink directory"));
+                    return Err(host("symlink directory"));
                 }
                 Ok(_) => (),
                 Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
@@ -167,13 +223,13 @@ mod private {
                 .read(true)
                 .custom_flags(NOFOLLOW | DIRECTORY)
                 .open(path)
-                .map_err(invalid)?;
+                .map_err(host)?;
             let metadata = file.metadata().map_err(io)?;
             if !metadata.is_dir()
                 || metadata.uid() != unsafe { geteuid() }
                 || metadata.mode() & 0o7777 != 0o700
             {
-                return Err(invalid("directory must be owned and mode 0700"));
+                return Err(host("directory must be owned and mode 0700"));
             }
             Ok(Self(file))
         }
@@ -187,7 +243,7 @@ mod private {
             }
             Ok(unsafe { File::from_raw_fd(fd) })
         }
-        pub fn publish(&self, staging: &str, target: &str) -> Result<(), Outcome> {
+        pub fn publish(&self, staging: &str, target: &str) -> std::io::Result<()> {
             let from = CString::new(staging).unwrap();
             let to = CString::new(target).unwrap();
             if unsafe {
@@ -199,9 +255,9 @@ mod private {
                 )
             } != 0
             {
-                return Err(io(std::io::Error::last_os_error()));
+                return Err(std::io::Error::last_os_error());
             }
-            self.0.sync_all().map_err(io)
+            self.0.sync_all()
         }
         pub fn remove(&self, name: &str) {
             let name = CString::new(name).unwrap();
@@ -210,14 +266,15 @@ mod private {
             }
         }
     }
-    pub fn validate(file: &File) -> Result<std::fs::Metadata, Outcome> {
+    pub fn validate(file: &File, entry: &std::path::Path) -> Result<std::fs::Metadata, Outcome> {
         let metadata = file.metadata().map_err(io)?;
         if !metadata.is_file()
             || metadata.uid() != unsafe { geteuid() }
             || metadata.nlink() != 1
             || metadata.mode() & 0o7777 != 0o600
         {
-            return Err(invalid(
+            return Err(corrupt(
+                entry,
                 "entry must be owned, single-link, regular and mode 0600",
             ));
         }
@@ -241,24 +298,27 @@ pub fn module(
     let prepared = (|| {
         let manifest = identity(engine, module_sha256)?;
         let name = format!("{:x}.gomad-cache-v2", Sha256::digest(&manifest));
+        let root = std::path::Path::new(directory).to_owned();
+        let entry = root.join(&name);
         let directory = private::Directory::open(directory)?;
         let lock_name = format!("{name}.lock");
         let lock = match directory.open_entry(&lock_name, true) {
             Ok(file) => file,
             Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => {
-                directory.open_entry(&lock_name, false).map_err(invalid)?
+                directory.open_entry(&lock_name, false).map_err(host)?
             }
-            Err(error) => return Err(invalid(error)),
+            Err(error) => return Err(host(error)),
         };
-        private::validate(&lock)?;
+        let lock_path = root.join(&lock_name);
+        private::validate(&lock, &lock_path)?;
         lock.lock().map_err(io)?;
-        private::validate(&lock)?;
+        private::validate(&lock, &lock_path)?;
         let loaded = match directory.open_entry(&name, false) {
             Ok(mut file) => {
                 #[cfg(feature = "diagnostic-profile")]
                 let diagnostic_phase =
                     crate::diagnostic::PhaseSpan::new(crate::diagnostic::Phase::CacheRead);
-                let before = private::validate(&file)?;
+                let before = private::validate(&file, &entry)?;
                 let size = usize::try_from(before.len()).map_err(|_| capacity())?;
                 if size > HEADER + MAX_MANIFEST + MAX_ARTIFACT {
                     return Err(capacity());
@@ -266,12 +326,13 @@ pub fn module(
                 let mut envelope = Vec::new();
                 envelope.try_reserve_exact(size).map_err(|_| capacity())?;
                 envelope.resize(size, 0);
-                file.read_exact(&mut envelope).map_err(invalid)?;
+                file.read_exact(&mut envelope)
+                    .map_err(|error| corrupt(&entry, error))?;
                 let mut trailing = [0u8; 1];
                 if file.read(&mut trailing).map_err(io)? != 0
                     || !same_file(&before, &file.metadata().map_err(io)?)
                 {
-                    return Err(invalid("entry changed during read"));
+                    return Err(corrupt(&entry, "entry changed during read"));
                 }
                 #[cfg(feature = "diagnostic-profile")]
                 drop(diagnostic_phase);
@@ -279,7 +340,7 @@ pub fn module(
                 let diagnostic_phase =
                     crate::diagnostic::PhaseSpan::new(crate::diagnostic::Phase::EnvelopeVerify);
                 if envelope.len() < HEADER || &envelope[..8] != MAGIC {
-                    return Err(invalid("envelope magic"));
+                    return Err(corrupt(&entry, "envelope magic"));
                 }
                 let manifest_len = u32::from_le_bytes(envelope[8..12].try_into().unwrap()) as usize;
                 let artifact_len = u64::from_le_bytes(envelope[12..20].try_into().unwrap());
@@ -289,11 +350,11 @@ pub fn module(
                 if HEADER + manifest_len + artifact_len as usize != size
                     || envelope[HEADER..HEADER + manifest_len] != manifest
                 {
-                    return Err(invalid("envelope identity or length"));
+                    return Err(corrupt(&entry, "envelope identity or length"));
                 }
                 let artifact = &envelope[HEADER + manifest_len..];
                 if Sha256::digest(artifact)[..] != envelope[20..52] {
-                    return Err(invalid("artifact checksum"));
+                    return Err(corrupt(&entry, "artifact checksum"));
                 }
                 #[cfg(feature = "diagnostic-profile")]
                 drop(diagnostic_phase);
@@ -307,18 +368,18 @@ pub fn module(
                         if error.is::<wasmtime::OutOfMemory>() {
                             capacity()
                         } else {
-                            invalid(error)
+                            corrupt(&entry, error)
                         }
                     })?,
                 )
             }
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => None,
-            Err(error) => return Err(invalid(error)),
+            Err(error) => return Err(corrupt(&entry, error)),
         };
-        Ok((directory, lock, name, manifest, loaded))
+        Ok((root, directory, lock, name, manifest, loaded))
     })();
     metrics.cache_load_nanos = metrics::elapsed(phase);
-    let (directory, _lock, name, manifest, loaded) = prepared?;
+    let (root, directory, _lock, name, manifest, loaded) = prepared?;
     if let Some(module) = loaded {
         metrics.cache_hit = true;
         return Ok(module);
@@ -334,12 +395,27 @@ pub fn module(
         if artifact.len() > MAX_ARTIFACT || manifest.len() > MAX_MANIFEST {
             return Err(capacity());
         }
-        let staging = format!("{name}.{}.tmp", std::process::id());
-        let mut created = false;
+        // O_EXCL with a fresh name: a stale staging file left by a dead
+        // process (including one whose PID was reused) is never fatal.
+        let mut attempts = 0;
+        let (staging, mut file) = loop {
+            let staging = staging_name(&name);
+            match directory.open_entry(&staging, true) {
+                Ok(file) => break (staging, file),
+                Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists && attempts < 8 => {
+                    attempts += 1;
+                }
+                // No space for the entry: the module is compiled, so run uncached.
+                Err(error) if storage_full(&error) => return Ok(module),
+                Err(error) => return Err(io(error)),
+            }
+        };
         let result = (|| {
-            let mut file = directory.open_entry(&staging, true).map_err(invalid)?;
-            created = true;
-            private::validate(&file)?;
+            private::validate(&file, &root.join(&staging))?;
+            #[cfg(test)]
+            if let Some(kind) = PUBLICATION_FAULT.with(std::cell::Cell::get) {
+                return Err(Publication::Io(std::io::Error::from(kind)));
+            }
             file.write_all(MAGIC)
                 .and_then(|_| file.write_all(&(manifest.len() as u32).to_le_bytes()))
                 .and_then(|_| file.write_all(&(artifact.len() as u64).to_le_bytes()))
@@ -347,13 +423,17 @@ pub fn module(
                 .and_then(|_| file.write_all(&manifest))
                 .and_then(|_| file.write_all(&artifact))
                 .and_then(|_| file.sync_all())
-                .map_err(io)?;
-            directory.publish(&staging, &name)
+                .and_then(|_| directory.publish(&staging, &name))
+                .map_err(Publication::Io)
         })();
-        if result.is_err() && created {
+        if let Err(failure) = result {
             directory.remove(&staging);
+            match failure {
+                Publication::Io(error) if storage_full(&error) => (),
+                Publication::Io(error) => return Err(io(error)),
+                Publication::Outcome(outcome) => return Err(outcome),
+            }
         }
-        result?;
         Ok(module)
     })();
     metrics.cache_write_nanos = metrics::elapsed(phase);
@@ -457,14 +537,162 @@ mod tests {
             )
             .err()
             .unwrap();
-            assert_eq!(outcome.termination, "invalid");
-            assert_eq!(outcome.message, "compile cache: artifact checksum");
+            assert_eq!(outcome.termination, "infrastructure");
+            assert_eq!(
+                outcome.message,
+                format!(
+                    "compile cache: corrupt entry {}: artifact checksum",
+                    entry.display()
+                )
+            );
             let report = crate::diagnostic::snapshot();
             assert_eq!(report["phases"]["cache_read"]["count"], 1);
             assert_eq!(report["phases"]["envelope_verify"]["count"], 1);
             assert_eq!(report["phases"]["deserialize"]["count"], 0);
         }
         std::fs::remove_dir_all(directory).unwrap();
+    }
+    #[cfg(all(
+        target_pointer_width = "64",
+        any(target_arch = "x86_64", target_arch = "aarch64"),
+        any(target_os = "linux", target_os = "macos")
+    ))]
+    mod host_failures {
+        use super::*;
+        use std::os::unix::fs::{DirBuilderExt, OpenOptionsExt, PermissionsExt};
+        const WAT: &[u8] = b"(module (memory (export \"memory\") 1) (func (export \"_start\")))";
+        struct Fixture {
+            directory: std::path::PathBuf,
+            engine: Engine,
+            digest: String,
+        }
+        impl Fixture {
+            fn new(label: &str) -> Self {
+                let directory = std::env::temp_dir().join(format!(
+                    "gomad-cache-{label}-{}-{:?}",
+                    std::process::id(),
+                    std::thread::current().id()
+                ));
+                let _ = std::fs::remove_dir_all(&directory);
+                std::fs::DirBuilder::new()
+                    .mode(0o700)
+                    .create(&directory)
+                    .unwrap();
+                Self {
+                    directory,
+                    engine: Engine::default(),
+                    digest: format!("{:x}", Sha256::digest(WAT)),
+                }
+            }
+            fn run(&self) -> (Result<Module, Outcome>, Metrics) {
+                let mut metrics = Metrics::default();
+                let result = module(
+                    &self.engine,
+                    WAT,
+                    self.directory.to_str().unwrap(),
+                    &self.digest,
+                    &mut metrics,
+                );
+                (result, metrics)
+            }
+            fn entry(&self) -> std::path::PathBuf {
+                let manifest = identity(&self.engine, &self.digest)
+                    .unwrap_or_else(|outcome| panic!("{}", outcome.message));
+                self.directory
+                    .join(format!("{:x}.gomad-cache-v2", Sha256::digest(&manifest)))
+            }
+        }
+        impl Drop for Fixture {
+            fn drop(&mut self) {
+                let _ = std::fs::set_permissions(
+                    &self.directory,
+                    std::fs::Permissions::from_mode(0o700),
+                );
+                let _ = std::fs::remove_dir_all(&self.directory);
+            }
+        }
+
+        #[test]
+        fn corrupt_entry_fails_closed_as_infrastructure_naming_entry() {
+            let fixture = Fixture::new("corrupt");
+            assert!(fixture.run().0.is_ok());
+            let entry = fixture.entry();
+            let mut envelope = std::fs::read(&entry).unwrap();
+            let last = envelope.len() - 1;
+            envelope[last] ^= 1;
+            std::fs::write(&entry, &envelope).unwrap();
+            let outcome = fixture.run().0.err().unwrap();
+            assert_eq!(outcome.termination, "infrastructure");
+            assert!(
+                outcome.message.contains(entry.to_str().unwrap())
+                    && outcome.message.contains("artifact checksum"),
+                "{}",
+                outcome.message
+            );
+            // Fail closed: the corrupt entry is neither replaced nor removed.
+            assert_eq!(std::fs::read(&entry).unwrap(), envelope);
+        }
+
+        #[test]
+        fn bad_directory_mode_is_infrastructure() {
+            let fixture = Fixture::new("mode");
+            std::fs::set_permissions(&fixture.directory, std::fs::Permissions::from_mode(0o755))
+                .unwrap();
+            let outcome = fixture.run().0.err().unwrap();
+            assert_eq!(outcome.termination, "infrastructure");
+            assert!(outcome.message.contains("0700"), "{}", outcome.message);
+        }
+
+        #[test]
+        fn stale_staging_file_from_reused_pid_is_not_fatal() {
+            let fixture = Fixture::new("stale");
+            let entry = fixture.entry();
+            let stale = format!("{}.{}.tmp", entry.to_str().unwrap(), std::process::id());
+            std::fs::OpenOptions::new()
+                .write(true)
+                .create_new(true)
+                .mode(0o600)
+                .open(&stale)
+                .unwrap()
+                .write_all(b"stale")
+                .unwrap();
+            let (result, metrics) = fixture.run();
+            assert!(result.is_ok(), "{}", result.err().unwrap().message);
+            assert!(!metrics.cache_hit);
+            assert!(entry.exists());
+            let (result, metrics) = fixture.run();
+            assert!(result.is_ok() && metrics.cache_hit);
+        }
+
+        #[test]
+        fn storage_full_during_publication_runs_uncached() {
+            for kind in [
+                std::io::ErrorKind::StorageFull,
+                std::io::ErrorKind::QuotaExceeded,
+            ] {
+                let fixture = Fixture::new("enospc");
+                PUBLICATION_FAULT.with(|fault| fault.set(Some(kind)));
+                let (result, metrics) = fixture.run();
+                PUBLICATION_FAULT.with(|fault| fault.set(None));
+                assert!(result.is_ok(), "{}", result.err().unwrap().message);
+                assert!(!metrics.cache_hit);
+                assert!(!fixture.entry().exists());
+                let leftovers: Vec<_> = std::fs::read_dir(&fixture.directory)
+                    .unwrap()
+                    .map(|e| e.unwrap().file_name().into_string().unwrap())
+                    .filter(|name| name.ends_with(".tmp"))
+                    .collect();
+                assert!(leftovers.is_empty(), "{leftovers:?}");
+                // A later run with space publishes normally.
+                assert!(fixture.run().0.is_ok());
+                assert!(fixture.run().1.cache_hit);
+            }
+            let fixture = Fixture::new("eio");
+            PUBLICATION_FAULT.with(|fault| fault.set(Some(std::io::ErrorKind::Other)));
+            let (result, _) = fixture.run();
+            PUBLICATION_FAULT.with(|fault| fault.set(None));
+            assert_eq!(result.err().unwrap().termination, "infrastructure");
+        }
     }
     #[test]
     fn cache_identity_binds_helper_source_platform_and_engine_settings() {

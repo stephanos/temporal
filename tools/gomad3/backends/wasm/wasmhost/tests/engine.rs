@@ -459,10 +459,20 @@ fn cache_rejects_poison_stale_links_and_permissive_storage() {
             if case == "oversized" {
                 "capacity"
             } else {
-                "invalid"
+                "infrastructure"
             },
             "case {case}: {frames:?}"
         );
+        if matches!(
+            case,
+            "corrupt" | "stale" | "symlink" | "permissive" | "hardlink"
+        ) {
+            let message = frames.last().unwrap()["message"].as_str().unwrap();
+            assert!(
+                message.contains(&format!("corrupt entry {}", entry.display())),
+                "case {case}: {message}"
+            );
+        }
         assert!(!frames.iter().any(|frame| frame["type"] == "started"));
         std::fs::remove_dir_all(cache).unwrap();
         if other.exists() || std::fs::symlink_metadata(&other).is_ok() {
