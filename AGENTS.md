@@ -144,14 +144,16 @@ This project uses Flow-Next for ALL task tracking. `flowctl` comes from the flow
 
 ## Local milestone execution
 
-For MILESTONES.md work, a predecessor is satisfied once its Flow closure is committed
-in the current branch's history. Publishing a branch, opening a PR or landing on
-origin is not required to start its dependents. Uncommitted closure metadata and
-closures on unmerged branches do not satisfy dependencies. Start dependent worktrees
-from the integrated local `umpire` tip, retaining the completed baseline and plans.
-Publishing remains a separate action requiring authorization.
+For MILESTONES.md work, merge completed task/spec branches locally back into `umpire`
+at a safe worker boundary, after the scoped checks pass and the Flow closure is
+committed. A predecessor is satisfied once its closure is in `umpire`'s history;
+start dependent work from that integrated tip, retaining the baseline and plans.
+Keep deferred obligations open when integrating a completed source checkpoint.
+Uncommitted closures and unmerged branches do not satisfy dependencies. Publishing
+a branch, opening a PR or landing on origin remains separately authorized.
 
-The installed Flow CLI carries this local-commit gate. If a reinstall restores the
+The installed Flow CLI checks committed local closures; the conductor owns branch
+integration into `umpire`. If a reinstall restores the
 publication gate, reapply `tools/flow/committed-dependencies.patch` to its scripts
 directory and run `python3 tools/flow/test_committed_dependencies.py`.
 
