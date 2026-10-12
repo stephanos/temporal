@@ -48,3 +48,7 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+## Strict JSON library amendment (2026-10-12)
+
+Owner decision: implement owned strict decoding with `github.com/go-json-experiment/json` and delete the hand-written strictness checks listed in the spec's owner amendment. Acceptance adds: duplicate keys, invalid UTF-8 and trailing data are rejected by the library's default options in every migrated decoder, with existing refusal tests passing.

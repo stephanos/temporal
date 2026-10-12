@@ -105,6 +105,12 @@ go -C tools/gomad3 test -tags test_dep -count=1 -run '^TestPackageArchitecture$'
 make -C tools/gomad3 validate
 ```
 
+## Owner amendment (2026-10-12)
+
+- Strict decoding uses `github.com/go-json-experiment/json` (BSD-3; the module form of the standard library's experimental json/v2) instead of hand-written duplicate-key, UTF-8 and trailing-data checks; encoding that feeds identities uses deterministic output. Stock Go 1.27 still gates `encoding/json/v2` behind an experiment, so the module is used until the standard package is default; then only the import path changes. Remove the hand-written checks in `backends/wasm/wasi/protocol.go`, `backends/wasm/qualification/spec.go`, `internal/compatibilitypack/schema.go`, `backends/wasm/installation`, `backends/wasm/simulation/oracles.go` and any surviving World preflight. This amends R2's "stdlib encoding" for decoding only.
+- Host filesystem helpers have one implementation in `internal/hostfs`: the five `syncDirectory` copies (artifact, minimizer, portable plan, corpus, campaign), three link-count checks (artifact, hostfs, captured) and the `artifact/rename_noreplace_*` files use `golang.org/x/sys/unix` (`Renameat2`, `RenamexNp`). The Rust helper cache replaces raw `extern "C"` `openat`/`renameat`/`unlinkat`/`geteuid` with `rustix` (already in `Cargo.lock`). WASM qualification publication and receipts use the shared replace helper.
+- These land in the fn-153/fn-154/fn-166 rotation batch with one WASM requalification.
+
 ## Acceptance Criteria
 
 - **R1:** Every whole-file atomic replacement in Gomad uses the shared host-filesystem owner; no private publisher remains. Streaming, staged validation, requested modes, caller guards, unique report paths and the builder's ordered two-file transaction retain their contracts. Errors: cancellation, fill/write/chmod/sync/close, validation, rename, directory durability and cleanup failures preserve primary error identity and publication disposition; failure before rename leaves the prior destination, and failure after rename reports publication without claiming durability.

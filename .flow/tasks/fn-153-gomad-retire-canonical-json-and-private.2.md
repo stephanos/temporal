@@ -47,3 +47,7 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+## Host helper consolidation amendment (2026-10-12)
+
+Owner decision: consolidate the five `syncDirectory` copies, three link-count checks and `artifact/rename_noreplace_*` into `internal/hostfs` using `golang.org/x/sys/unix`; replace the Rust helper cache's raw `extern "C"` calls with `rustix`; route WASM qualification publication through the shared replace helper. Acceptance adds: one implementation of each helper remains; Darwin and Linux variants build; publication error identity and durability claims are unchanged.

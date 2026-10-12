@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-12T19:39:27.210079Z",
+  "depends_on": [],
+  "id": "fn-166-gomad-readable-package-structure-and.8",
+  "priority": null,
+  "spec": "fn-166-gomad-readable-package-structure-and",
+  "spec_path": ".flow/tasks/fn-166-gomad-readable-package-structure-and.8.md",
+  "status": "todo",
+  "title": "Delete dead helper profile, network v1 and choice v1 (rotation batch)",
+  "updated_at": "2026-10-12T19:39:27.210079Z"
+}

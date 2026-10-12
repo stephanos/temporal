@@ -113,3 +113,7 @@ Linux ownership amendment (2026-10-04): all native Linux execution obligations m
 ## Format-compatibility amendment (2026-10-09)
 
 Per the spec's 2026-10-09 amendment, byte-for-byte and format compatibility is no longer required. Drop "Fixed vectors ... produce the same request and response bytes as before" and "No previously accepted wire shape is newly rejected"; the wire shape may change. Added scope: replace the mirrored hand-written network codecs on the overlay and host sides with one generated codec. Keep the remaining acceptance (typed commands, partial I/O and error information). Must pass `make -C tools/gomad3 overlay-test test-toolchain test-simulation` on current source.
+
+## Volume and process codec amendment (2026-10-12)
+
+Owner decision: extend the generated-codec work to the volume and process runtime frames. Generate `tools/gomad3sim/runtime_volume_wire.go` (334 lines) and its native overlay mirror `internal/gomadfs/simulation_volume_wire.go` (395 lines), and `runtime_process_wire.go` if it has a mirror, from one definition with the existing generator and drift tests. Acceptance adds: no hand-written volume or process wire codec remains on either side; cross-consumer vectors pass; the resulting native and WASM identity rotation lands in the fn-153/fn-154/fn-166 rotation batch.
