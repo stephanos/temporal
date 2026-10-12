@@ -17,16 +17,8 @@ func nativeToolchainReference(filename string, source any) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	for _, imported := range file.Imports {
-		path, err := strconv.Unquote(imported.Path.Value)
-		if err != nil {
-			return "", err
-		}
-		for _, builder := range []string{"go.temporal.io/server/tools/gomad3/toolchain", "go.temporal.io/server/tools/gomad3/backends/native/toolchain"} {
-			if path == builder || strings.HasPrefix(path, builder+"/") {
-				return path, nil
-			}
-		}
+	if imported, err := nativeImport(file); err != nil || imported != "" {
+		return imported, err
 	}
 	var reference string
 	check := func(path string) {
@@ -63,6 +55,23 @@ func nativeToolchainReference(filename string, source any) (string, error) {
 	return reference, nil
 }
 
+// nativeImport reports an import of the native backend or the pre-move native
+// toolchain package.
+func nativeImport(file *ast.File) (string, error) {
+	for _, imported := range file.Imports {
+		path, err := strconv.Unquote(imported.Path.Value)
+		if err != nil {
+			return "", err
+		}
+		for _, native := range []string{"go.temporal.io/server/tools/gomad3/toolchain", "go.temporal.io/server/tools/gomad3/backends/native"} {
+			if path == native || strings.HasPrefix(path, native+"/") {
+				return path, nil
+			}
+		}
+	}
+	return "", nil
+}
+
 func TestWASMTestsDoNotImportNativeBuilder(t *testing.T) {
 	err := filepath.WalkDir(".", func(path string, entry fs.DirEntry, err error) error {
 		if err != nil {
@@ -71,15 +80,24 @@ func TestWASMTestsDoNotImportNativeBuilder(t *testing.T) {
 		if entry.IsDir() && (entry.Name() == ".toolchain" || entry.Name() == "wasmhost") {
 			return fs.SkipDir
 		}
-		if !strings.HasSuffix(path, "_test.go") {
+		if !strings.HasSuffix(path, ".go") {
 			return nil
 		}
-		imported, err := nativeToolchainReference(path, nil)
+		var imported string
+		if strings.HasSuffix(path, "_test.go") {
+			imported, err = nativeToolchainReference(path, nil)
+		} else {
+			var file *ast.File
+			file, err = parser.ParseFile(token.NewFileSet(), path, nil, parser.ImportsOnly)
+			if err == nil {
+				imported, err = nativeImport(file)
+			}
+		}
 		if err != nil {
 			return err
 		}
 		if imported != "" {
-			t.Errorf("WASM test %s references native toolchain builder %s", path, imported)
+			t.Errorf("WASM source %s references native backend %s", path, imported)
 		}
 		return nil
 	})
@@ -94,7 +112,7 @@ func TestWASMTestsDoNotImportNativeBuilder(t *testing.T) {
 			t.Fatalf("native binary guard did not reject source %q: %q, %v", source, reference, err)
 		}
 	}
-	for _, path := range []string{"go.temporal.io/server/tools/gomad3/toolchain", "go.temporal.io/server/tools/gomad3/backends/native/toolchain"} {
+	for _, path := range []string{"go.temporal.io/server/tools/gomad3/toolchain", "go.temporal.io/server/tools/gomad3/backends/native/toolchain", "go.temporal.io/server/tools/gomad3/backends/native", "go.temporal.io/server/tools/gomad3/backends/native/build"} {
 		imported, err := nativeToolchainReference("forbidden_test.go", "package fixture\nimport _ "+strconv.Quote(path))
 		if err != nil || imported != path {
 			t.Fatalf("native builder guard did not reject %s: %q, %v", path, imported, err)
