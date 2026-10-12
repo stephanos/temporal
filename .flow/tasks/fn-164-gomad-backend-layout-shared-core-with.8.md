@@ -14,9 +14,10 @@ Collect one retained native artifact and one retained wasm artifact produced bef
 - The two fixtures are checked in and run in the ordinary test suite.
 
 ## Done summary
-TBD
+Checked-in pre-move native and WASM artifacts run in the ordinary suite; inspect output matches goldens produced by the pre-move binary and identity changes fail with recorded and current identities.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 34fefe68ad, 8991a402e1, 12b306c77a, e807723f35, 8e249316e3
+- Tests: make -C tools/gomad3 test-wasm (0); root architecture selection with GOMAD3_ARCH_ALL_PLATFORMS=1 (0); make -C tools/gomad3 validate (0); make lint-code-fast base e43c7a59c7 (0), evidence: .flow/artifacts/wasm-section-acceptance-2026-10-12.md
 - PRs:
