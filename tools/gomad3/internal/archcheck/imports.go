@@ -76,7 +76,7 @@ func (config Config) CheckImports(packages []Package) []string {
 				}
 			}
 			importedOwner := config.backend(imported)
-			if owner == "cmd" || importedOwner == "" || importedOwner == "cmd" || owner == importedOwner {
+			if owner == "cmd" || importedOwner == "" || owner == importedOwner {
 				continue
 			}
 			key := edge{pkg.ImportPath, imported}
@@ -107,7 +107,10 @@ func (config Config) CheckImports(packages []Package) []string {
 
 func (config Config) backend(path string) string {
 	if within(path, config.WASMModule) {
-		return "wasm"
+		if within(strings.TrimPrefix(path, config.WASMModule+"/"), "cmd") {
+			return "cmd"
+		}
+		return "backend:wasm"
 	}
 	if !within(path, config.Module) {
 		return ""
@@ -118,11 +121,11 @@ func (config Config) backend(path string) string {
 	}
 	if backend, rest, found := strings.Cut(relative, "/"); backend == "backends" && found {
 		name, _, _ := strings.Cut(rest, "/")
-		return name
+		return "backend:" + name
 	}
 	for _, native := range config.NativePackages {
 		if relative == native {
-			return "native"
+			return "backend:native"
 		}
 	}
 	return ""

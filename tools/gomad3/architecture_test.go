@@ -95,6 +95,80 @@ func TestBackendImportDirection(t *testing.T) {
 	t.Logf("checked %d package source sets across both supported platforms", len(packages))
 }
 
+func TestBackendImportFixtures(t *testing.T) {
+	const core = "example.invalid/fitness"
+	const wasm = "example.invalid/wasm"
+	const from = core + "/world"
+	const to = core + "/toolchain"
+	for _, test := range []struct {
+		name, source, want string
+		exceptions         []archcheck.Exception
+		wasmSource         string
+	}{
+		{"existing-edge", "package world\nimport _ \"" + to + "\"\n", "", []archcheck.Exception{{From: from, To: to, RemovalTask: "fn-164.3"}}, ""},
+		{"new-world-toolchain-import", "package world\nimport _ \"" + to + "\"\n", "forbidden", nil, ""},
+		{"deleted-allowlist-entry", "package world\nimport _ \"" + to + "\"\n", "forbidden", nil, ""},
+		{"stale-allowlist-entry", "package world\n", "stale", []archcheck.Exception{{From: from, To: to, RemovalTask: "fn-164.3"}}, ""},
+		{"wasm-outside-public-import-set", "package world\n", "outside", nil, "package backend\nimport _ \"" + to + "\"\n"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			root := t.TempDir()
+			files := map[string]string{
+				"go.mod":                 "module " + core + "\n\ngo 1.27.1\n",
+				"world/world.go":         test.source,
+				"toolchain/toolchain.go": "package toolchain\n",
+			}
+			if test.wasmSource != "" {
+				files["wasm/go.mod"] = "module " + wasm + "\n\ngo 1.27.1\n\nrequire " + core + " v0.0.0\nreplace " + core + " => ..\n"
+				files["wasm/backend/backend.go"] = test.wasmSource
+			}
+			for name, source := range files {
+				path := filepath.Join(root, name)
+				if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
+					t.Fatal(err)
+				}
+				if err := os.WriteFile(path, []byte(source), 0600); err != nil {
+					t.Fatal(err)
+				}
+			}
+			roots := []string{root}
+			if test.wasmSource != "" {
+				roots = append(roots, filepath.Join(root, "wasm"))
+			}
+			var packages []archcheck.Package
+			for _, directory := range roots {
+				listed, err := architecture.List(directory, "go", architecture.Platform{OS: runtime.GOOS, Arch: runtime.GOARCH}, false)
+				if err != nil {
+					t.Fatal(err)
+				}
+				for _, pkg := range listed {
+					if pkg.Error != nil || len(pkg.DepsErrors) != 0 {
+						t.Fatalf("fixture did not list: %+v", pkg)
+					}
+					packages = append(packages, archcheck.Package{ImportPath: pkg.ImportPath, Imports: pkg.Imports})
+				}
+			}
+			config := archcheck.Config{Module: core, WASMModule: wasm, NativePackages: []string{"toolchain"}, Exceptions: test.exceptions}
+			findings := config.CheckImports(packages)
+			if test.want == "" {
+				if len(findings) != 0 {
+					t.Fatalf("existing source edge rejected: %v", findings)
+				}
+				return
+			}
+			importer := from
+			if test.wasmSource != "" {
+				importer = wasm + "/backend"
+			}
+			if !slices.ContainsFunc(findings, func(finding string) bool {
+				return strings.Contains(finding, test.want) && strings.Contains(finding, importer) && strings.Contains(finding, to)
+			}) {
+				t.Fatalf("missing %s diagnostic for listed %s -> %s: %v", test.want, importer, to, findings)
+			}
+		})
+	}
+}
+
 func TestArchitectureInventoryFixtures(t *testing.T) {
 	for _, fixture := range []struct{ name, category, path, source string }{
 		{"root-production", "ownerless", "main.go", "package fitness\n"},
