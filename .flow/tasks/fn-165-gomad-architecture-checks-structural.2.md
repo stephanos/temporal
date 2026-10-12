@@ -15,9 +15,10 @@ Add `tools/gomad_wasm/architecture_test.go` that runs `archcheck.Check` over the
 - gomad3's `architecture_test.go` contains no reference to `../gomad_wasm`.
 
 ## Done summary
-TBD
+The WASM tree runs its own structural check on darwin/arm64 and linux/amd64 with wasi minus the transport files as pure set; host imports and moved transport files fail; a hostile helper reply leaves the environment byte-identical; gomad3 root tests no longer load the WASM tree.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: c6afac5097, d0f50ff854, b4696f1a78
+- Tests: TestWASMArchitecture, TestWASMArchitectureRejectsHostImports (in make -C tools/gomad3 test-wasm, 0), TestHostileHelperCallbackReplyLeavesEnvironmentByteIdentical (0), evidence: .flow/artifacts/wasm-section-acceptance-2026-10-12.md
 - PRs:
