@@ -15,9 +15,10 @@ Move `tools/gomad_wasm/*` into `tools/gomad3/backends/wasm` (provider, wasi, was
 - Cooperative and exploratory integration tests pass from the new location with the Rust helper.
 
 ## Done summary
-TBD
+The WASM module is folded into tools/gomad3/backends/wasm with one Go module, a stock-Go test-wasm target and a guard rejecting any native backend import; the integrated compiled model identity is pinned. test-wasm passes on the final candidate.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 613fc476a5, b60b038600, 6283a4ec90, 7ac7b4bc54
+- Tests: make -C tools/gomad3 test-wasm (0); root architecture selection with GOMAD3_ARCH_ALL_PLATFORMS=1 (0); make -C tools/gomad3 validate (0); make lint-code-fast base e43c7a59c7 (0), evidence: .flow/artifacts/wasm-section-acceptance-2026-10-12.md
 - PRs:
