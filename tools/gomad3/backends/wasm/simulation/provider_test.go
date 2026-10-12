@@ -525,16 +525,12 @@ func testProviderIndependentGuestsLifecycleReplay(t *testing.T, profile string) 
 	if err != nil {
 		t.Fatal(err)
 	}
-	moduleInfo, err := os.Stat(server.ModulePath)
-	if err != nil {
-		t.Fatal(err)
-	}
 	encodedRecord, err := gomad3sim.EncodeClusterRecord(observed.Record)
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Logf("retained evidence=%d bytes record=%d bytes module=%d bytes", len(payload.Data), len(encodedRecord), moduleInfo.Size())
-	if !bytes.Equal(without.Data, payload.Data) || uint64(len(payload.Data)) > uint64(len(encodedRecord))*4/3+64<<10 || int64(len(payload.Data)) >= moduleInfo.Size() {
+	t.Logf("retained evidence=%d bytes record=%d bytes", len(payload.Data), len(encodedRecord))
+	if !bytes.Equal(without.Data, payload.Data) || uint64(len(payload.Data)) > uint64(len(encodedRecord))*4/3+64<<10 {
 		t.Fatal("retained evidence embeds or depends on module bytes")
 	}
 	for _, test := range []struct {

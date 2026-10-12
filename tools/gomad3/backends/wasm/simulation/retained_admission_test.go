@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -36,6 +37,9 @@ func TestRetainedAdmissionConsumesPrivateInputsOnlyOnce(t *testing.T) {
 	installed := installedHelperFile(t, helper)
 	source := retainedModuleBytes(t, module)
 	a := &retainedAdmission{bundle: bundle, provider: p}
+	if a.bundle.Record == nil || a.bundle.ModuleSHA256 == "" {
+		t.Fatal("admission did not start with the decoded executable bundle")
+	}
 	directory := t.TempDir()
 	_, reopened, err := a.reopen(source, directory, installed)
 	if err != nil {
@@ -50,7 +54,7 @@ func TestRetainedAdmissionConsumesPrivateInputsOnlyOnce(t *testing.T) {
 	if entries, err := os.ReadDir(filepath.Dir(reopened.Boots["a"].ModulePath)); err != nil || len(entries) != 1 {
 		t.Fatalf("retained replay wrote helper bytes: %v %v", entries, err)
 	}
-	if a.bundle.Record != nil || a.provider != nil {
+	if !reflect.DeepEqual(a.bundle, retainedExecution{}) || a.provider != nil {
 		t.Fatal("consumed admission retains executable buffers or a reusable provider")
 	}
 	if _, _, err := a.reopen(source, directory, installed); err == nil {

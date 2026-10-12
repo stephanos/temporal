@@ -149,7 +149,6 @@ func Run(ctx context.Context, spec Spec) (Result, error) {
 			sample.ExecutionWallNanos = telemetry.ExecuteNanos
 			if telemetry.ResourceUsageAvailable {
 				sample.CPUNanos = telemetry.ProcessUserNanos + telemetry.ProcessSystemNanos
-				sample.HostPeakRSSBytes = telemetry.PeakRSSBytes
 			}
 		}
 		if metrics.HelperResourceUsage != nil {

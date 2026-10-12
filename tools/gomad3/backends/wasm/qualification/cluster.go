@@ -242,7 +242,6 @@ func incarnationSamples(incarnations []simulation.IncarnationSummary, phase stri
 			sample.ExecutionWallNanos = t.ExecuteNanos
 			if t.ResourceUsageAvailable {
 				sample.CPUNanos = t.ProcessUserNanos + t.ProcessSystemNanos
-				sample.HostPeakRSSBytes = t.PeakRSSBytes
 			}
 		}
 		if r.HelperResourceUsage != nil {
