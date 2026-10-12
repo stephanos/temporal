@@ -19,11 +19,12 @@ type analysis struct {
 	findings    []Finding
 	interfaces  map[string]bool
 	methodNames map[string]map[string]bool
+	streams     map[*sourcePackage]*streamIndex
 	err         error
 }
 
 func analyze(p *program, now time.Time, logger *log.Logger) []Finding {
-	a := &analysis{p: p, interfaces: map[string]bool{}}
+	a := &analysis{p: p, interfaces: map[string]bool{}, streams: map[*sourcePackage]*streamIndex{}}
 	for _, path := range sortedKeys(p.packages) {
 		pkg := p.packages[path]
 		var reviewList []string
@@ -121,6 +122,12 @@ func (a *analysis) call(pkg *sourcePackage, call *ast.CallExpr) (string, string)
 			parameter = parameter.(*types.Slice).Elem()
 		}
 		if _, generic := parameter.(*types.TypeParam); generic {
+			continue
+		}
+		if streamWrapper(pkg.info.TypeOf(arg)) {
+			if !a.localStream(pkg, arg, map[*types.Var]bool{}) {
+				dynamicDetail = "stream wrapper argument not proven constructed in the pure set"
+			}
 			continue
 		}
 		switch formal := parameter.Underlying().(type) {
@@ -324,6 +331,9 @@ func (a *analysis) callable(pkg *sourcePackage, expr ast.Expr) (string, string) 
 	if a.p.metadata[path].Standard {
 		if !allowed(path, name) {
 			return "host-effect", path + "." + name + " is absent from the pure stdlib allowlist"
+		}
+		if recv := fn.Signature().Recv(); recv != nil && streamWrapper(recv.Type()) && (selector == nil || !a.localStream(pkg, selector.X, map[*types.Var]bool{})) {
+			return "dynamic-call", "stream wrapper " + name + " on a stream not proven constructed in the pure set"
 		}
 		return "", ""
 	}

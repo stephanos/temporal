@@ -134,6 +134,14 @@ func TestConcreteStdlibInterfaceRequiresPureMethods(t *testing.T) {
 	requireCategories(t, findings, "dynamic-call")
 }
 
+func TestStreamHelperRequiresPureCallers(t *testing.T) {
+	findings := checkFixture(t, map[string]string{
+		"record/pure.go": `package record;import("bytes";"encoding/json");func F(data []byte)bool{return next(json.NewDecoder(bytes.NewReader(data)))};func next(d *json.Decoder)bool{return d.More()}`,
+		"record/host.go": `package record;import("encoding/json";"os");func G()bool{return next(json.NewDecoder(os.Stdin))}`,
+	}, func(path string) bool { return path == "record/pure.go" })
+	requireCategories(t, findings, "dynamic-call")
+}
+
 func TestDynamicMarks(t *testing.T) {
 	for _, tc := range []struct {
 		name, source string
@@ -155,6 +163,13 @@ func TestDynamicMarks(t *testing.T) {
 		{"stdlib-implementable-interface", "type Writer interface{Write([]byte)(int,error)};type Buffer struct{};func(Buffer)Write(b []byte)(int,error){return len(b),nil};func F(w Writer){_,_ = w.Write(nil)}", []string{"dynamic-call"}},
 		{"promoted-interface", "type Env interface{Get(string)string};type Box struct{Env};func F(b Box)string{return b.Get(\"HOME\")}", []string{"dynamic-call"}},
 		{"promoted-pure-interface", "type Item struct{};type Writer interface{Write(Item)};type Buffer struct{};func(Buffer)Write(Item){};type Box struct{Writer};func F(b *Box){b.Write(Item{})}", nil},
+		{"stream-parameters", `import("bufio";"encoding/json");func F(d *json.Decoder,w *bufio.Writer,e *json.Encoder){var x int;_ = d.Decode(&x);_ = w.Flush();_ = e.Encode(1)}`, []string{"dynamic-call", "dynamic-call", "dynamic-call"}},
+		{"stream-argument", `import("bytes";"compress/gzip";"io");func F(r *gzip.Reader){_,_ = io.Copy(&bytes.Buffer{},r)}`, []string{"dynamic-call"}},
+		{"stream-reassigned", `import("bytes";"encoding/json");func F(p *json.Decoder){d:=json.NewDecoder(bytes.NewReader(nil));d=p;_ = d.More()}`, []string{"dynamic-call"}},
+		{"stream-helper", `import("bytes";"encoding/json");func F(data []byte)error{return next(json.NewDecoder(bytes.NewReader(data)))};func next(d *json.Decoder)error{if d.More(){return next(d)};_,err:=d.Token();return err}`, nil},
+		{"stream-helper-value", `import("bytes";"encoding/json");var _ = next;func F(data []byte)error{return next(json.NewDecoder(bytes.NewReader(data)))};func next(d *json.Decoder)error{_,err:=d.Token();return err}`, []string{"dynamic-call"}},
+		{"stream-exported-helper", `import "encoding/json";func Next(d *json.Decoder)bool{return d.More()}`, []string{"dynamic-call"}},
+		{"stream-local", `import("bytes";"compress/gzip";"encoding/json";"io");func F(data []byte)error{var x int;d:=json.NewDecoder(bytes.NewReader(data));d.UseNumber();z,err:=gzip.NewReader(bytes.NewReader(data));if err!=nil{return err};_,_ = io.ReadAll(z);return d.Decode(&x)}`, nil},
 		{"empty-interface-implementations", "type Writer interface{Write([]byte)(int,error)};func F(w Writer){_,_ = w.Write(nil)}", []string{"dynamic-call"}},
 		{"stdlib-interface-input", "import \"encoding/json\";func F(v any){_,_ = json.Marshal(v)}", []string{"dynamic-call"}},
 		{"stdlib-callback-value", "import \"slices\";func F(f func(int,int)int){slices.SortFunc([]int{},f)}", []string{"dynamic-call"}},

@@ -244,7 +244,6 @@ func compressedGzipPass(envelope compressedSnapshotEnvelope, read func(io.Reader
 	}
 	reader.Multistream(false)
 	hasher := sha256.New()
-	//gomad:dynamic reviewed 2026-10-12 reviewed model or record values and in-memory streams constrain callback methods
 	bounded := &compressedHashReader{reader: io.LimitReader(reader, int64(envelope.ExpandedBytes)+1), hash: hasher, limit: envelope.ExpandedBytes}
 	//gomad:dynamic reviewed 2026-10-12 local model closure or reviewed caller-supplied callback performs memory-only work
 	readErr := read(bounded)

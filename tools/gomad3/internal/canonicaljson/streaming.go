@@ -35,6 +35,7 @@ func WriteCanonicalJSON(writer io.Writer, value any) error {
 	if err := stream.value(root); err != nil {
 		return err
 	}
+	//gomad:dynamic reviewed 2026-10-12 output wraps the caller writer reviewed at its bufio.NewWriterSize construction
 	return stream.output.Flush()
 }
 
@@ -134,6 +135,7 @@ type canonicalStream struct {
 func (stream *canonicalStream) text(value string) {
 	for len(value) > 0 && stream.err == nil {
 		size := min(len(value), 4096)
+		//gomad:dynamic reviewed 2026-10-12 output wraps the caller writer reviewed at its bufio.NewWriterSize construction
 		_, stream.err = stream.output.WriteString(value[:size])
 		value = value[size:]
 	}
@@ -142,6 +144,7 @@ func (stream *canonicalStream) text(value string) {
 func (stream *canonicalStream) bytes(value []byte) {
 	for len(value) > 0 && stream.err == nil {
 		size := min(len(value), 4096)
+		//gomad:dynamic reviewed 2026-10-12 output wraps the caller writer reviewed at its bufio.NewWriterSize construction
 		_, stream.err = stream.output.Write(value[:size])
 		value = value[size:]
 	}
