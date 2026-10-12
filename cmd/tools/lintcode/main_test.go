@@ -479,7 +479,7 @@ func TestFastLintReportsOwnedExclusions(t *testing.T) {
 		"tools/gomad3/cmd/gomad/testdata/source.go",
 		"tools/gomad3/backends/native/transcript/testdata/source.go",
 		"tools/gomad3/internal/compatibilitypack/testdata/source.go",
-		"tools/gomad3/testdata/source.go",
+		"tools/gomad3/runner/testdata/source.go",
 		"tools/gomad3/qualification/corpus/source.go",
 		"tools/gomad3/backends/native/toolchain/runtime/overlay/src/os/gomad.go",
 	} {
