@@ -15,9 +15,10 @@ Move the 27 functions and 2 types that `tools/gomad_wasm/toolchain/overlay.go` e
 - Existing wasm cooperative guest tests and native toolchain overlay tests pass unchanged in behavior.
 
 ## Done summary
-TBD
+runtimesemantics holds the shared runtime sources copied verbatim into both overlays; identities bind copied bytes, stale copies are named and the rename inventory covers every function. Cooperative guest tests (test-wasm, 32x100 qualification) pass on the shared sources.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 95d03d753e, b84546172a
+- Tests: make -C tools/gomad3 test-wasm (0); root architecture selection with GOMAD3_ARCH_ALL_PLATFORMS=1 (0); make -C tools/gomad3 validate (0); make lint-code-fast base e43c7a59c7 (0), evidence: .flow/artifacts/wasm-section-acceptance-2026-10-12.md
 - PRs:
