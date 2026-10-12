@@ -106,23 +106,15 @@ private[irgen] object SweepHeld:
   // Whether a fixture's source is held.
   def source(fixture: String, file: String): Boolean = sources(s"$fixture/$file")
 
-// What the lifter's suites read of the Models (fn-166.11), for a check scoped by a diff to select
-// suites by. Every suite reads the lifter, the framework and its own fixtures under testdata, and
-// most read the shared code through the packaged Models; a fixture lift admits only what its roots
-// reach (Admission.scala), so a feature no fixture reaches changes no suite's result. These suites
-// also read the mini feature, features/activity_mini: they assert on its lift, or build fixtures
-// that import it. A test of a real feature is held for the sweep (`SweepHeld`), not listed.
+// What the lifter's suites read of the Models (fn-166.11), as the registry of every suite's
+// coverage declares it (model/check/Coverage.scala, fn-166.13): every suite reads the lifter, the
+// framework and its own fixtures under testdata, and most read the shared code through the packaged
+// Models; a fixture lift admits only what its roots reach (Admission.scala), so a feature no fixture
+// reaches changes no suite's result. The suites below also read the mini feature,
+// features/activity_mini: they assert on its lift, or build fixtures that import it. A test of a real
+// feature is held for the sweep (`SweepHeld`), not listed.
 private[irgen] object SuiteCoverage:
-  val mini: Set[String] = Set(
-    "umpire.irgen.BoundsTest",
-    "umpire.irgen.CapabilityNamesTest",
-    "umpire.irgen.ConventionsFixtures",
-    "umpire.irgen.DeadlinePresetsSuite",
-    "umpire.irgen.FacetAdmissionTest",
-    "umpire.irgen.Fixtures",
-    "umpire.irgen.HintSnapshotsSuite",
-    "umpire.irgen.InputDeadlinePresetsTest",
-    "umpire.irgen.MiniLayoutFixtures",
-    "umpire.irgen.MiniRealizationFixtures",
-    "umpire.irgen.QualifiedNames"
-  )
+  val mini: Set[String] = umpire.check.Coverage.suites.collect {
+    case (name, covers) if name.startsWith("umpire.irgen.") && covers.features("activity_mini") =>
+      name
+  }.toSet

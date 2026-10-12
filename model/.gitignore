@@ -4,5 +4,7 @@
 .scala-build/
 .bsp/
 # scalafix writes the semantic database of a source one project takes from another, as the IR
-# generator takes check/Tools.scala for its tests, beside that source.
+# generator takes check/Tools.scala for its tests, or the checks take ../OutputPaths.scala, beside
+# that source.
 /check/*.semanticdb
+/*.semanticdb

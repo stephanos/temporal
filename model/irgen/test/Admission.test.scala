@@ -86,7 +86,8 @@ class AdmissionSuite extends munit.FunSuite:
     assertEquals(ran.exit, 1, ran.diagnostics)
     assert(ran.diagnostics.contains(refusal), ran.diagnostics)
 
-  test("every suite the coverage declaration names is a suite of the lifter's tests"):
-    for name <- SuiteCoverage.mini do
+  test("every lifter suite the coverage registry names is a suite of the lifter's tests"):
+    assert(SuiteCoverage.mini.nonEmpty)
+    for name <- umpire.check.Coverage.suites.keys if name.startsWith("umpire.irgen.") do
       val suite = Class.forName(name)
       assert(classOf[munit.Suite].isAssignableFrom(suite), name)

@@ -14,6 +14,8 @@
 // through the gate's one place for running a tool. scala-cli has no directive that adds a source to
 // the test scope only, so the file is compiled beside the lifter, which uses only its `Scratch`.
 //> using file ../check/Tools.scala
+// The registry of what every suite covers (fn-166.13), which the lifter's tests read too.
+//> using file ../check/Coverage.scala
 //> using test.dep org.scalameta::munit:1.2.0
 // The tests lift in-process, two lifts at a time (test/InProcess.scala); a bounded heap keeps the
 // suite inside the memory of a shared machine, and the lifter's own runs fit it as well.
