@@ -298,7 +298,7 @@ object Messages extends Machine[Mail, Outcome, Nothing]:
       refused.diagnostics
     )
     assert(
-      refused.diagnostics.contains("input unreached of reach has no values to default to"),
+      refused.diagnostics.contains("input unreached of reach has no default"),
       refused.diagnostics
     )
     assert(!Files.exists(output))

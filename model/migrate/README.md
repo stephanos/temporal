@@ -2,6 +2,56 @@
 
 DSL changes ship a task-named Scalafix rule under `model/migrate/rules/`, prove it on copied `activity_mini` sources before the real-feature sweep, and follow `model/migrate/README.md`; production loading remains held in fn-166.10.
 
+## Input defaults: Fn159Task10InputDefaults
+
+Omitted inputs use only `input[A](default = value)`. An `input[A]` token and a named string
+slot without a token are required. Full positional calls, `:=`, input order, token identity
+and action bindings retain their meaning. The native construction and the lifter independently
+refuse omission, naming the token; the lifter also locates the call. Catalog enumeration never
+selects an input default. Finite records, field-bearing enum cases, Option and Boolean/zero
+constants remain expressible without an expression evaluator or transport fields.
+
+The compiled rule uses this explicit selected-source omission inventory, captured before the change:
+
+| Declaration | Old omitted value | Owners and omission sites |
+| --- | --- | --- |
+| mini `scheduleToStart: Timeout` | `Timeout.unset` | `client.start`: Product.scala:46, Protocol.scala:73/78, Queue.scala:27, MiniActivityRun.scala:18/25; shared token on `taskQueue.schedule` at Queue.scala:27 |
+| mini `startToClose: Timeout` | `Timeout.unset` | those same `client.start` empty/partial calls and two deadline presets |
+| mini `maxAttempts: MaxAttempts` | `MaxAttempts.one` | Product.scala:46, Protocol.scala:78, Queue.scala:27 omit it; Protocol.scala:73 and MiniActivityRun.scala:18/25 explicitly select one/two |
+| activity `failure: Failure` | required | every selected `respondFailed` class supplies fatal/retryable, including bindings, capabilities, witnesses and realization evidence |
+
+The three mini tokens are declared at MiniActivity.scala:41–43; shared failure is Activity.scala:27.
+Foundations and actors declare no further input tokens. Full pre-edit raw mini and matching jar
+classpath are retained in the task handover. Both deadline presets retain all eight distinct
+classes and all seven evidence bindings. Required non-Timeout preset inputs are never eagerly
+defaulted; the Timeout contract still requires and checks their own defaults.
+The deadline helper requires `unset` and selects `expires` by name, independent of enum order;
+ordinary input defaults remain arbitrary supported finite values.
+
+The rule rewrites only inventoried top-level bare declarations with proven framework imports in
+`temporal.features.activity.mini`; it preserves already declared defaults and the inventoried
+shared required failure. Unknown names/types/packages, competing imports, shadows, nested inputs,
+unsupported constructor spelling and ambiguous inventory refuse the document atomically.
+It does not infer an old catalog from arbitrary code. For other shapes, manually inventory each
+actual token owner, every omission and the exact old concrete value, including deadline needs;
+declare only those proven defaults and keep all explicitly supplied required tokens required.
+Resolve ambiguity before changing any declaration and compile/lift the selected sources afterwards.
+
+```sh
+mise exec -- scala-cli test --server=false model/migrate --test-only umpire.migrate.InputDefaultsTest
+timeout 600 /bin/bash /Users/stephan/Workspace/skunkworks/umpire/temporal/model/migrate/prove-mini.sh umpire.migrate.RewriteInputDefaultsMini
+```
+
+The copied-mini proof removes the three explicit defaults from actual copied MiniActivity
+declarations, parses that legacy text, runs the compiled rule and requires exact accepted-source
+restoration, convergence and atomic unknown-input refusal. Accepted/restored source independently
+compiles and lifts; complete raw mini IR and waivers compare byte for byte, positions included.
+That legacy text is parsed, not compiled as the old API; the task's independent frozen pre-edit
+jar/lift records the old API baseline. Original expected fixture JSON, immutable native tables,
+payloads, pins and historical maps remain preserved. Production loading, real-feature editing or
+migration, consumers, Cases, live, canonical Make/Go, lint/manual acceptance and broad validation
+with independent review remain held for their owner checkpoints.
+
 ## Bounded integers: Fn159Task9BoundedIntegers
 
 Fields and channel messages declare their own `UpTo[N]` bound. The compiled rule accepts a

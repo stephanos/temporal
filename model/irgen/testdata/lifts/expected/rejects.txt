@@ -109,7 +109,7 @@ lift: model/irgen/testdata/lifts/Rejects.scala:655: Scenario mixedFlips of flipP
 lift: model/irgen/testdata/lifts/Rejects.scala:755: level is no input of dim, which declares no input by a token: supply an input the action declares
 lift: model/irgen/testdata/lifts/Rejects.scala:118: limits backwards declare -1 steps; a bound is at least 0
 lift: root fixture.rejects.Rejects$package$.noSuchRoot: names no declaration of the lifted sources
-lift: model/irgen/testdata/lifts/Rejects.scala:573: input unreached of reach has no values to default to: supply it
+lift: model/irgen/testdata/lifts/Rejects.scala:573: input unreached of reach has no default: supply it
 lift: model/irgen/testdata/lifts/Rejects.scala:511: own names spare, which no member of spareless fills: a selector names a member of the composition
 lift: model/irgen/testdata/lifts/Rejects.scala:651: own names tap of left, and tapLamp binds no action of fixture.rejects.TapB.tap: name the action left binds, not one of another declaration spelled alike
 lift: model/irgen/testdata/lifts/Rejects.scala:640: sync flipBoth pairs flip of left, which steps only with its pair: name it with `.synced(_.left -> flip)`

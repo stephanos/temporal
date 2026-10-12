@@ -723,7 +723,7 @@ private[irgen] trait Syntax:
 
   // Hook: a class whose inputs are supplied by name, `token := value`, lifted as its positional call:
   // the values in the order the action declares its input tokens, each input not supplied at its
-  // domain's first value. Core form: `start(scheduleToStart := expires)` lifts as
+  // declared default. Core form: `start(scheduleToStart := expires)` lifts as
   // `start(unset, expires, unset)`.
   def named(t: Term): ir.ActionClass = sugarCall(t) match
     case Some(("apply", List(List(ref), List(first, rest)))) =>
@@ -757,10 +757,11 @@ private[irgen] trait Syntax:
         done + (input -> value)
       val values = tokens
         .zip(declared.inputs)
+        .zipWithIndex
         .map:
-          case (Some(input), _) if supplied.contains(input) =>
-            literalValue(supplied(input))
-          case (_, param) => firstInput(param, declared.name, t)
+          case ((Some(input), param), _) if supplied.contains(input) =>
+            literalValue(supplied(input), param.`type`)
+          case (_, index) => defaultInput(id, index, t)
       ir.ActionClass(id, values)
     case _ => fail(t, s"outside the liftable subset: ${t.show}")
 

@@ -85,29 +85,37 @@ private[irgen] trait Claims:
     case r: Ref if boundValues.contains(r.symbol) =>
       classOf(boundValues(r.symbol))
     case _ if namedClass(t)                               => named(t)
-    case Apply(Select(a, "apply"), Nil) if isAction(a)    => firstClass(a, t)
+    case Apply(Select(a, "apply"), Nil) if isAction(a)    => defaultClass(a, t)
     case Apply(Select(a, "apply"), values) if isAction(a) =>
-      ir.ActionClass(action(a), values.map(literalValue))
+      val id = action(a)
+      ir.ActionClass(
+        id,
+        values.zip(actions(id).inputs).map((value, param) => literalValue(value, param.`type`))
+      )
     case ref => ir.ActionClass(action(ref))
   private def isAction(t: Term): Boolean = isNamed(t.tpe, "framework.Action")
 
-  // `start()`: the class of every input of the action `a` at its domain's first value, as
+  // `start()`: the class of every input of the action `a` at its declared default, as
   // `start(unset, unset, unset)` writes it, and the one class of an action with no input.
-  def firstClass(a: Term, at: Tree): ir.ActionClass =
+  def defaultClass(a: Term, at: Tree): ir.ActionClass =
     val id = action(a)
     ir.ActionClass(
       id,
-      actions(id).inputs.map(firstInput(_, actions(id).name, at))
+      actions(id).inputs.indices.map(defaultInput(id, _, at))
     )
 
-  // The value an input a class omits takes, its domain's first, refused where it has none.
-  def firstInput(input: ir.Param, action: String, at: Tree): ir.Value =
-    firstValue(input.getType).getOrElse(
-      fail(
-        at,
-        s"input ${input.name} of $action has no values to default to: supply it"
+  // The token's declared value, refused at the call when the input is required.
+  def defaultInput(id: String, index: Int, at: Tree): ir.Value =
+    inputDefaults
+      .get(id)
+      .flatMap(_.lift(index))
+      .flatten
+      .getOrElse(
+        fail(
+          at,
+          s"input ${actions(id).inputs(index).name} of ${actions(id).name} has no default: supply it"
+        )
       )
-    )
 
   // Keeps the first declaration under a key and refuses a different second one, which would share
   // its Definition ID.

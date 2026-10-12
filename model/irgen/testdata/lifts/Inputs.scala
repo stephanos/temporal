@@ -20,7 +20,7 @@ enum Stage:
 enum Deadline:
   case unset, expires
 
-// The worker's answer: its first value, the default, is `completed`.
+// The worker's answer: its explicit fixture default is `completed`.
 enum Answer:
   case completed
   case failed(retryable: Boolean)
@@ -30,12 +30,12 @@ enum Control:
   case pause, unpause
 
 // Three inputs of one type, told apart by their tokens.
-val closeBy = input[Deadline]
-val startBy = input[Deadline]
-val runBy = input[Deadline]
-val answer = input[Answer]
-val urgent = input[Boolean]
-val control = input[Control]
+val closeBy = input[Deadline](default = Deadline.unset)
+val startBy = input[Deadline](default = Deadline.unset)
+val runBy = input[Deadline](default = Deadline.unset)
+val answer = input[Answer](default = Answer.completed)
+val urgent = input[Boolean](default = false)
+val control = input[Control](default = Control.pause)
 
 val start = action(Actor("caller"))
   .input(closeBy)
@@ -106,7 +106,7 @@ val byPosition = Counted.scenario.actions(
   steer(Control.unpause)
 )
 
-// Every input omitted, `start()`: each at its domain's first value, beside its positional twin.
+// Every input omitted, `start()`: each at its declared default, beside its positional twin.
 val omitted = Counted.scenario.actions(start(), respond(), steer())
 val omittedByPosition = Counted.scenario.actions(
   start(Deadline.unset, Deadline.unset, Deadline.unset),

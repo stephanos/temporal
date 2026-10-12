@@ -4166,7 +4166,7 @@ class Fixtures extends munit.FunSuite:
       named("scenarios", scenario).path("actions").toPrettyString
     // A call by name is its positional twin, class by class: partial, reordered and defaulted.
     assertEquals(actionsOf("byName"), actionsOf("byPosition"))
-    // fn-112.10: a call that omits every input is its positional twin at every first value.
+    // fn-112.10: a call that omits every input is its positional twin at every declared default.
     assertEquals(actionsOf("omitted"), actionsOf("omittedByPosition"))
     assertEquals(
       property("urgentByName"),

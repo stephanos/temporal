@@ -46,8 +46,9 @@ state predicate is optional when the fact alone states the claim.
 Each action is written with the actor that takes it: the feature declares the caller's actions in
 `object caller` and the handler's in `object handler`, so `caller.schedule` is the caller's.
 The path starts where the machine does, in `unscheduled`, the state before the operation exists.
-`caller.schedule()` leaves each of the operation's three optional timeouts at its first value,
-`unset`; `caller.schedule(scheduleToStart := expires)` sets one by name.
+`caller.schedule()` uses each input token's declared default, `unset` in this example;
+`caller.schedule(scheduleToStart := expires)` sets one by name. Real Nexus sources await the
+owner's migration sweep to declare those defaults explicitly.
 
 A **Property** is a condition the selected steps must meet. A **Scenario** is a start state and
 schedule of classes. A **Query** joins them within Limits: `find` asks for one path that puts the
@@ -624,9 +625,9 @@ The IR generator reads what an author wrote, as written:
   machines, `object D extends Derived(m.op(…))`, of the derivations `restrict`, `rebind`,
   `extend`, `refining`, `assuming` and `unmonitored`; composition objects; action chains
   (`action`, `timer`, `internal`, `on`, `creates`, `input[T]`, `results`, `example`);
-  input tokens, `val scheduleToStart = input[Timeout]` declared on an action with
+  input tokens, `val scheduleToStart = input[Timeout](default = Timeout.unset)` declared on an action with
   `.input(scheduleToStart)`, each input named after its token's `val`; classes, `flip`, the
-  positional `start(unset, expires, unset)` and `start()`, every input at its domain's first value
+  positional `start(unset, expires, unset)` and `start()`, every input at its declared default
   (`start(unset, unset, unset)`, and for an action with no input its one class);
   Properties, Scenarios, Queries, Limits, monitors, assumptions, holes, channels, compositions,
   progress claims and realizations. A composition names its members by field selector
@@ -711,8 +712,8 @@ The IR generator reads what an author wrote, as written:
   `described(fact)`, `described.evidence` and `described.await(fact)` (named `await-<status>`); and
   `HistoryEvidence(key, factPrefix)(HistoryKind(fact, _.attributes.x), …)`, exhaustive kinds whose
   closing read names `evidence` in its `closes`. A class pattern is exact:
-  `start(scheduleToStart := expires)` is the one class whose omitted inputs are at their domain's
-  first value (`unset`), and it binds no other class of the action. `deadlines[M](action, call,
+  `start(scheduleToStart := expires)` is the one class whose omitted inputs are at their token's
+  declared default (`unset`), and it binds no other class of the action. `deadlines[M](action, call,
   value, unset)(input.sets(_.field), …)` binds every class of the action the declared `Timeout`
   inputs make, combined ones too, each the call with the expiring inputs' fields set to `value`; a
   class expiring an input it leaves out is unrealizable. `onPath(action)` of an action with inputs
@@ -1313,11 +1314,19 @@ with its value, `:=` gives a named slot a value; everything else the DSL adds is
 `:=` is one operator (`@targetName("set")`) for both kinds of named slot, an action's input token
 and a request's field. A named call `start(scheduleToStart := expires)` is sugar for the positional
 `start(unset, expires, unset)`: the supplied inputs take the action's declaration order, and an
-omitted input takes its domain's first value, here `unset`. `start()`, which omits every input, is
-core: the class of every input at its first value, `start(unset, unset, unset)`, and the one class of
-an action with no input. The IR generator refuses, at the call's line, a token that is no input of the
-action, a token supplied twice and an omitted input whose domain has no value. A value of the wrong type for its
-token is a compile error.
+omitted input takes its token's explicit default. `Input[A]` carries `Option[A]`: `input[A]`
+declares a required input, while `input[A](default = value)` permits omission. `start()` is core:
+every input at its declared default, and the one class of a zero-input action or timer.
+The framework refuses a required omission while the containing machine, Scenario or realization
+initializes, naming the actual token declaration; the lifter independently refuses it at the call.
+Named string inputs without tokens remain required. Full positional calls and `:=` retain their
+types, order and token identity. A foreign or duplicate token refuses; a wrong value type does
+not compile. Catalog order determines enumeration only, never an input default. Explicit defaults
+include Boolean/zero values, finite records, field-bearing enum cases and finite Option values.
+Deadline presets require defaults only for omitted inputs and their Timeout contract; an explicitly
+supplied required non-Timeout input retains its value. That helper requires a Timeout default of
+`unset` and selects `expires` by name, regardless of enum order. Ordinary action classes may use
+any supported explicit default, including `expires`.
 
 A step that can go more than one way names each result with `choose`, which is core: it says
 what no other form does, the names of the alternatives, which the IR records on each step record

@@ -38,9 +38,9 @@ object MaxAttempts:
   val bound: Bound = 2
 
 val activity = Entity(key = "activityId")
-val scheduleToStart = input[Timeout]
-val startToClose = input[Timeout]
-val maxAttempts = input[MaxAttempts]
+val scheduleToStart = input[Timeout](default = Timeout.unset)
+val startToClose = input[Timeout](default = Timeout.unset)
+val maxAttempts = input[MaxAttempts](default = MaxAttempts.one)
 
 object client extends Client:
   val start = action(this)

@@ -14,10 +14,10 @@ class Inputs extends munit.FunSuite:
 
   final case class Counted(attempts: UpTo[2], timeout: Timeout)
 
-  private val scheduleToClose = input[Timeout]
-  private val scheduleToStart = input[Timeout]
-  private val startToClose = input[Timeout]
-  private val answer = input[Answer]
+  private val scheduleToClose = input[Timeout](default = Timeout.unset)
+  private val scheduleToStart = input[Timeout](default = Timeout.unset)
+  private val startToClose = input[Timeout](default = Timeout.unset)
+  private val answer = input[Answer](default = Answer.completed)
   private val start =
     action(Actor("p")).input(scheduleToClose).input(scheduleToStart).input(startToClose)
   private val respond = action(Actor("p")).input(answer)
@@ -32,7 +32,7 @@ class Inputs extends munit.FunSuite:
       UpTo[2](3): Unit
     )
 
-  test("a call by name is the positional call, each omitted input at its first value"):
+  test("a call by name is the positional call, each omitted input at its declared default"):
     assertEquals(
       start(scheduleToStart := Timeout.expires),
       start(Timeout.unset, Timeout.expires, Timeout.unset)
@@ -58,7 +58,7 @@ class Inputs extends munit.FunSuite:
     )
 
   test("a fourth input keeps its type and position in positional and named calls"):
-    val enabled = input[Boolean]
+    val enabled = input[Boolean](default = false)
     val four = start.input(enabled)
     assertEquals(
       four(startToClose := Timeout.expires, enabled := true),
@@ -83,7 +83,7 @@ class Inputs extends munit.FunSuite:
   test(
     "a fifth typed input reaches the rule in position, with named defaults and invalid calls refused"
   ):
-    val enabled = input[Boolean]
+    val enabled = input[Boolean](default = false)
     object caller:
       val five = start.input(enabled).input(answer)
     val five = caller.five
@@ -178,8 +178,8 @@ class Inputs extends munit.FunSuite:
       a(false, false, false, false, false)
     """).nonEmpty
     )
-    val enabled = input[Boolean]
-    val count = input[UpTo[2]]
+    val enabled = input[Boolean](default = false)
+    val count = input[UpTo[2]](default = UpTo(0))
     object caller:
       val six = start.input(enabled).input(answer).input(count)
     val six = caller.six

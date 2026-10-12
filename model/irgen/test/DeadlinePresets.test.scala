@@ -6,6 +6,191 @@ import scala.jdk.CollectionConverters.*
 import com.fasterxml.jackson.databind.JsonNode
 import umpire.check.{Ran, Tools}
 
+class InputDeadlinePresetsTest extends munit.FunSuite:
+  override val munitTimeout: Duration = 10.minutes
+  private val tools = Tools.here
+  private val scratch =
+    Files.createTempDirectory(tools.directory.resolve(".flow/tmp"), "input-deadlines.")
+  private val sources = Seq(
+    "model/project.scala",
+    "model/framework",
+    "model/temporal/Bounds.scala",
+    "model/temporal/foundations",
+    "model/temporal/actors",
+    "model/temporal/capabilities",
+    "model/temporal/realize",
+    "model/temporal/features/activity/Activity.scala",
+    "model/temporal/features/activity_mini"
+  )
+  private lazy val modelJar =
+    val jar = scratch.resolve("model.jar")
+    tools
+      .scalaCli(
+        Seq("--power", "package", "--server=false", "--library") ++ sources ++
+          Seq("-f", "-o", jar.toString)
+      )
+      .orFail(): Unit
+    jar
+  private lazy val classpath =
+    val result =
+      tools.scalaCli(Seq("compile", "--server=false", "--print-class-path") ++ sources).orFail()
+    val cp = result.diagnostics.trim.split("\n").last
+    val file = scratch.resolve("model.classpath")
+    Files.writeString(file, s"$modelJar:${cp.substring(cp.indexOf(':') + 1)}"): Unit
+    file
+  private val source = """package fixture.inputdeadlines
+import framework.*
+import framework.Finite.given
+import framework.outcomes.Outcome
+import framework.realize.*
+import temporal.realize.*
+import temporal.features.activity.Timeout
+import io.temporal.api.workflowservice.v1.StartActivityExecutionRequest as Request
+import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.METHOD_START_ACTIVITY_EXECUTION
+enum Policy:
+  case first, second
+val close = input[Timeout](default = Timeout.unset)
+val policy = input[Policy]
+val device = Entity(key = "activityId")
+object caller extends Actor:
+  val start = action(this).input(close).input(policy).creates(device)
+final case class State(value: Boolean)
+object Device extends Machine[State, Outcome, Nothing]:
+  val init = State(false)
+  def end(s: State) = true
+  object effects:
+    def start(s: State, t: Timeout, p: Policy) = stay(s)
+  object rules extends Rules:
+    on(caller.start) { always ~> effects.start }
+val calls = RequestBase(workflowService, "namespace" -> workerNamespace, "activity_id" -> run)
+val launch = rpc(calls, METHOD_START_ACTIVITY_EXECUTION) {}
+object Preset extends Realizes(Device):
+  object controller extends Controller(
+    deadlines[Request](caller.start(policy := Policy.second), launch, duration(2))(
+      close.sets(_.getStartToCloseTimeout)),
+    onPath(caller.start)(launch))
+"""
+  private def lift(name: String, written: String, root: String = "fixture.inputdeadlines.Preset") =
+    val directory = Files.createDirectory(scratch.resolve(name))
+    Files.writeString(directory.resolve("Preset.scala"), written): Unit
+    Files.writeString(
+      directory.resolve("project.scala"),
+      "//> using scala 3.9.0\n//> using jvm 27\n"
+    ): Unit
+    val jar = directory.resolve("fixture.jar")
+    tools
+      .scalaCli(
+        Seq(
+          "--power",
+          "package",
+          "--server=false",
+          "--library",
+          "--classpath",
+          Files.readString(classpath).trim,
+          directory.toString,
+          "-f",
+          "-o",
+          jar.toString
+        )
+      )
+      .orFail(): Unit
+    val out = directory.resolve("fixture.json")
+    val ran = InProcess.lift(
+      tools.directory,
+      Seq(s"$jar=$directory/,$modelJar=model/", classpath.toString, out.toString, root)
+    )
+    (ran, out)
+
+  test("explicit required non-Timeout preset values survive both deadline variants"):
+    val (ran, out) = lift("required-policy", source)
+    assertEquals(ran.exit, 0, ran.diagnostics)
+    val json = new com.fasterxml.jackson.databind.ObjectMapper().readTree(Files.readString(out))
+    val items = json.at("/realizations/0/scripts/0/items")
+    val performs = items.get(0).path("performs").elements().asScala.toVector
+    assertEquals(performs.size, 2)
+    assertEquals(
+      performs.map(_.at("/step/inputs/1/enum/case").asText()),
+      Vector("second", "second")
+    )
+    assertEquals(
+      performs.map(_.at("/step/inputs/0/enum/case").asText()),
+      Vector("unset", "expires")
+    )
+    assertEquals(
+      items.get(1).path("when").elements().asScala.toVector,
+      performs.map(_.path("step"))
+    )
+
+  test("deadline bare, non-default Timeout and required Timeout presets refuse at their contract"):
+    for (name, written, message) <- List(
+        (
+          "bare",
+          source.replace("caller.start(policy := Policy.second)", "caller.start"),
+          "requires an explicit Class preset for non-Timeout inputs"
+        ),
+        (
+          "expiring",
+          source.replace(
+            "policy := Policy.second",
+            "close := Timeout.expires, policy := Policy.second"
+          ),
+          "must leave Timeout input close at its default"
+        ),
+        (
+          "required-timeout",
+          source
+            .replace("(default = Timeout.unset)", "")
+            .replace("policy := Policy.second", "close := Timeout.unset, policy := Policy.second"),
+          "input close of start has no default"
+        )
+      )
+    do
+      val (ran, out) = lift(name, written)
+      assertEquals(ran.exit, 1, ran.diagnostics)
+      assert(ran.diagnostics.contains(message), ran.diagnostics)
+      val line =
+        written.linesIterator.toVector.indexWhere(_.trim.startsWith("deadlines[Request]")) + 1
+      assert(ran.diagnostics.contains(s"Preset.scala:$line:"), ran.diagnostics)
+      assert(!Files.exists(out))
+
+  test("deadline variants use semantic unset/expires even when their enum order is reversed"):
+    val reversed = source.replace(
+      "import temporal.features.activity.Timeout",
+      "enum Timeout:\n  case expires, unset"
+    )
+    val (ran, out) = lift("reversed", reversed)
+    assertEquals(ran.exit, 0, ran.diagnostics)
+    val json = new com.fasterxml.jackson.databind.ObjectMapper().readTree(Files.readString(out))
+    val performs = json.at("/realizations/0/scripts/0/items/0/performs").elements().asScala.toVector
+    assertEquals(
+      performs.map(_.at("/step/inputs/0/enum/case").asText()),
+      Vector("unset", "expires")
+    )
+
+  test("an expires default is an ordinary input default but refuses the deadline helper contract"):
+    val expiring = source.replace("default = Timeout.unset", "default = Timeout.expires")
+    val (refused, absent) = lift("expiring-default", expiring)
+    assertEquals(refused.exit, 1, refused.diagnostics)
+    assert(
+      refused.diagnostics.contains("Timeout input close must declare default unset"),
+      refused.diagnostics
+    )
+    val line =
+      expiring.linesIterator.toVector.indexWhere(_.trim.startsWith("deadlines[Request]")) + 1
+    assert(refused.diagnostics.contains(s"Preset.scala:$line:"), refused.diagnostics)
+    assert(!Files.exists(absent))
+    val ordinary = expiring + """
+object Ordinary:
+  val holds = Device.property.holds(_ => true)
+  val path = Device.scenario.actions(caller.start(policy := Policy.first))
+  val queryDefault = query verify holds in path limits Limits("one", steps = 1, actions = 1, search = 64)
+"""
+    val (accepted, out) =
+      lift("ordinary-expiring", ordinary, "fixture.inputdeadlines.Ordinary$.queryDefault")
+    assertEquals(accepted.exit, 0, accepted.diagnostics)
+    val json = new com.fasterxml.jackson.databind.ObjectMapper().readTree(Files.readString(out))
+    assertEquals(json.at("/scenarios/0/actions/0/inputs/0/enum/case").asText(), "expires")
+
 class DeadlinePresetsSuite extends munit.FunSuite:
   override val munitTimeout: Duration = 10.minutes
   private val tools = Tools.here

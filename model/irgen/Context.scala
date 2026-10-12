@@ -162,6 +162,7 @@ final private[irgen] class Context(val index: Index):
   // The token of each input of an action, by the action's Definition ID, in input order: the val of
   // an input declared by its token, and none for one declared by a name.
   val inputTokens = mutable.Map.empty[String, Vector[Option[Symbol]]]
+  val inputDefaults = mutable.Map.empty[String, Vector[Option[ir.Value]]]
   val machines = mutable.LinkedHashMap.empty[String, ir.Machine]
   val channels = mutable.LinkedHashMap.empty[String, ir.Channel]
   val monitors = mutable.LinkedHashMap.empty[String, ir.Monitor]

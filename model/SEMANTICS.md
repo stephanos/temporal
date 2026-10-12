@@ -191,20 +191,30 @@ class. An action with no input has one class.
 Source: [temporal/features/activity_mini/MiniActivity.scala:41](temporal/features/activity_mini/MiniActivity.scala#L41).
 
 ```scala
-val scheduleToStart = input[Timeout]
-val startToClose = input[Timeout]
-val maxAttempts = input[MaxAttempts]
+val scheduleToStart = input[Timeout](default = Timeout.unset)
+val startToClose = input[Timeout](default = Timeout.unset)
+val maxAttempts = input[MaxAttempts](default = MaxAttempts.one)
 ```
 
 The mini selects its two-attempt start by `client.start(maxAttempts := MaxAttempts.two)`
-in `protocol/Protocol.scala:74`; omitted inputs take their domain's first value.
-`client.start()` in `protocol/Protocol.scala:79` leaves every input at its first value. `:=` is sugar for the positional call. An action that takes an input may carry
+in `protocol/Protocol.scala:73`; omitted inputs take their token's explicit default.
+`client.start()` in `protocol/Protocol.scala:78` uses Timeout.unset, Timeout.unset and MaxAttempts.one.
+`Input[A]` carries `Option[A]`; `input[A]` without a default is required, even when its catalog is
+nonempty. Defaults can be finite records, field-bearing enum cases and Option values, including
+false and zero. Catalog order governs enumeration, never omission. `:=` is sugar for the positional call. An action that takes an input may carry
 *examples*, `.example(Reply.handlerError(false), "BadRequest")`: the author's claim that every
 realized value of that class behaves alike, with the one the generated Case runs.
 
 **Refused.** A token that is not the action's, or supplied twice (framework, at the call); a value
 of the wrong type (compiler); a step function whose arity does not match the action's inputs
-(compiler: `~>` is typed per arity).
+(compiler: `~>` is typed per arity). An empty or partial named call omitting a required input
+refuses with its actual declaration name while the containing machine, Scenario or realization
+initializes; the lifter refuses independently at the call's source position. Named string slots
+without tokens stay required. Zero-input actions and timers still have their one empty class.
+An explicitly supplied required non-Timeout input in a deadline preset needs no default; Timeout
+inputs must declare the default against which the deadline contract checks the preset.
+The deadline helper requires semantic `unset` as that default and selects `expires` by name,
+independent of enum order. An `expires` default remains valid for ordinary action classes.
 
 ### Outcomes
 

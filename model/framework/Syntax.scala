@@ -473,7 +473,7 @@ extension [A](slot: Slot[A])
   def :=(value: A): Assigned[A] = Assigned(slot, value)
 
 // `start(scheduleToStart := expires)`: the class of the inputs the call supplies by name, in the
-// order the action declares them, each input it omits at its domain's first value. Each named slot
+// order the action declares them, each input it omits at its declared default. Each named slot
 // is an input token the action declares, supplied once. Core form: the positional call,
 // `start(unset, expires, unset)`.
 extension [I <: NonEmptyTuple](a: Action[I])
@@ -488,12 +488,11 @@ extension [I <: NonEmptyTuple](a: Action[I])
         supplied.count(_.slot eq s.slot) == 1,
         s"an input of ${a.name} is supplied twice"
       )
-    val values = a.decl.tokens
-      .zip(a.decl.domains)
-      .map: (token, domain) =>
+    val values = a.decl.tokens.zipWithIndex
+      .map: (token, index) =>
         supplied
           .find(s => token.contains(s.slot))
-          .fold(domain.values.head)(_.value)
+          .fold(a.defaultInput(index))(_.value)
     Class(a.decl, values)
 
 // `val retainedOutcome = sticky(outcomePreserved)`: a monitor of a promise about every step that,

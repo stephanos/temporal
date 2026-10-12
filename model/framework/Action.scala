@@ -86,20 +86,29 @@ final class Action[I <: Tuple] private[framework] (val decl: ActionDecl):
     )
 
   // One more input, declared by its token: `action("start", caller).input(scheduleToStart)`. The
-  // input takes the token's name, which the lifter reads from the token's `val`, so it is empty
-  // here. The tuple type grows by one.
+  // input takes the token's declaration name. The tuple type grows by one.
   def input[A](token: Input[A]): Action[Tuple.Append[I, A]] =
     Action(
       decl.copy(
-        inputs = decl.inputs :+ "",
+        inputs = decl.inputs :+ token.name,
         domains = decl.domains :+ token.domain,
         tokens = decl.tokens :+ Some(token)
       )
     )
 
-  // The class of every input at its domain's first value, `start()` for `start(unset, unset,
-  // unset)`: the one class of an action with no input, or of a timer.
-  def apply(): Class = Class(decl, decl.domains.map(_.values.head))
+  // The class of every input at its declared default, or the one class of a zero-input action.
+  def apply(): Class = Class(decl, decl.inputs.indices.map(defaultInput).toList)
+
+  private[framework] def defaultInput(index: Int): Any =
+    decl.tokens
+      .lift(index)
+      .flatten
+      .flatMap(_.default)
+      .getOrElse(
+        throw IllegalArgumentException(
+          s"input ${decl.inputs(index)} of $name has no default: supply it"
+        )
+      )
 
   // The positional calls are members, typed by the inputs at each position, so that a call of
   // another form may be an extension: Scala tries the named call of Syntax.scala where these do not
@@ -187,10 +196,17 @@ trait Slot[A]
 // input[Timeout]`. An action declares it with `.input(scheduleToStart)`, and its values are the
 // domain's. Tokens are compared by identity, as declarations are, so two tokens of one type are two
 // inputs.
-final class Input[A] private[framework] (val domain: Finite[A]) extends Slot[A]
+final class Input[A] private[framework] (
+    val domain: Finite[A],
+    val default: Option[A],
+    val name: String
+) extends Slot[A]
 
 // Declares an input token of type `A`, named after the `val` that declares it.
-def input[A](using f: Finite[A]): Input[A] = Input(f)
+inline def input[A](using f: Finite[A]): Input[A] = ${ InputSource.required[A]('f) }
+
+inline def input[A](default: A)(using f: Finite[A]): Input[A] =
+  ${ InputSource.defaulted[A]('default, 'f) }
 
 // Declares an action an actor takes.
 def action(name: String, actor: Actor): Action[EmptyTuple] = Action(ActionDecl(name, actor))

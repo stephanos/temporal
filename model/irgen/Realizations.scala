@@ -1519,17 +1519,23 @@ private[irgen] trait Realizations:
         def isTimeout(param: ir.Param): Boolean = param.getType.ref match
           case ir.TypeRef.Ref.Named(n) => n.endsWith(".Timeout")
           case _                       => false
-        val defaults = decl.inputs.map(firstInput(_, decl.name, t))
         if preset.inputs.isEmpty && decl.inputs.exists(p => !isTimeout(p)) then
           fail(
             t,
             s"deadlines for ${decl.name} requires an explicit Class preset for non-Timeout inputs"
           )
-        val retained = if preset.inputs.isEmpty then defaults else preset.inputs
+        val retained = if preset.inputs.isEmpty then decl.inputs.indices.map(defaultInput(id, _, t))
+        else preset.inputs
         if retained.size != decl.inputs.size then
           fail(t, s"deadlines preset of ${decl.name} must supply every input")
         for (param, i) <- decl.inputs.zipWithIndex if isTimeout(param) do
-          if retained(i) != defaults(i) then
+          val default = defaultInput(id, i, t)
+          if default != ir.Value(enumValue(param.getType.getNamed, "unset")) then
+            fail(
+              t,
+              s"deadlines for ${decl.name}: Timeout input ${param.name} must declare default unset"
+            )
+          if retained(i) != default then
             fail(
               t,
               s"deadlines preset of ${decl.name} must leave Timeout input ${param.name} at its default"
@@ -1546,7 +1552,9 @@ private[irgen] trait Realizations:
           val timeout =
             param.map(_.getType).collect { case ir.TypeRef(ir.TypeRef.Ref.Named(n), _) => n }
           val cases = timeout.flatMap(types.get).map(_.shape).collect {
-            case ir.Type.Shape.Enum(e) if e.cases.size == 2 =>
+            case ir.Type.Shape.Enum(e)
+                if e.cases.map(_.name).toSet == Set("unset", "expires") &&
+                  e.cases.forall(_.fields.isEmpty) =>
               e.cases.map(_.name)
           }
           if timeout.forall(n => !n.endsWith(".Timeout")) || cases.isEmpty then
@@ -1555,7 +1563,7 @@ private[irgen] trait Realizations:
               s"${sym.name} is no Timeout input of ${decl.name}: a deadline names one of its action's Timeout inputs"
             )
           val selector = fieldOfDeclaration(r, "field").map(follow).get
-          (index, timeout.get, cases.get(1), selectorPath(message, selector.term, r.term))
+          (index, timeout.get, "expires", selectorPath(message, selector.term, r.term))
         }
         val unset = fieldOfDeclaration(b, "unset").map(reduce).flatMap { u =>
           applied(u.term)

@@ -67,6 +67,7 @@ private[irgen] trait Declarations:
   // An action, from its declaration and the calls chained onto it; `sym` is its val.
   def actionOf(id: String, sym: Symbol, chain: Term): ir.Action =
     val tokens = mutable.ArrayBuffer.empty[Option[Symbol]]
+    val defaults = mutable.ArrayBuffer.empty[Option[ir.Value]]
     def named(name: String): ir.Action =
       ir.Action(id = id, position = Some(pos(chain)), name = name, actor = "system")
     def captured: ir.Action = named(capturedName(sym, chain, "an action"))
@@ -89,6 +90,7 @@ private[irgen] trait Declarations:
       case Apply(Apply(TypeApply(Select(inner, "input"), List(tpt)), List(name)), _) =>
         val a = walk(inner)
         tokens += None
+        defaults += None
         a.addInputs(ir.Param(constString(name), Some(typeRef(tpt.tpe, t))))
       // An input declared by its token, named after the token's val.
       case Apply(TypeApply(Select(inner, "input"), List(tpt)), List(token)) =>
@@ -100,12 +102,19 @@ private[irgen] trait Declarations:
             s"${a.name} declares the input ${input.name} twice: an action takes each input once"
           )
         tokens += Some(input)
-        a.addInputs(ir.Param(input.name, Some(typeRef(tpt.tpe, t))))
+        val typ = typeRef(tpt.tpe, t)
+        val rhs = valDef(input, token, "an input").rhs.get
+        val default = call(rhs).flatMap { (_, lists) =>
+          if lists.size == 2 then lists.head.headOption else None
+        }
+        defaults += default.map(v => literalValue(v, Some(typ)))
+        a.addInputs(ir.Param(input.name, Some(typ)))
       case Apply(Apply(TypeApply(Ident("example"), _), List(inner)), List(value, example)) =>
         walk(inner).addExamples(ir.Example(Some(literalValue(value)), constString(example)))
       case other => fail(other, s"not a part of an action declaration: ${other.show}")
     val declared = walk(chain)
     inputTokens(id) = tokens.toVector
+    inputDefaults(id) = defaults.toVector
     declared
 
   // The name of the actor an action names: an actor object's, `object caller extends Actor` named
@@ -134,7 +143,7 @@ private[irgen] trait Declarations:
       case r: Ref => Some(resolveSymbol(r))
       case _      => None
     sym.map(s => s -> defs.get(s)) match
-      case Some((s, Some(ValDef(_, _, Some(Apply(TypeApply(Ident("input"), _), _)))))) =>
+      case Some((s, Some(v: ValDef))) if v.rhs.exists(isInputDeclaration) =>
         capturedName(s, token, "an input"): Unit
         s
       case found =>
@@ -145,15 +154,56 @@ private[irgen] trait Declarations:
             s"`.input(level)`, not $written"
         )
 
+  private def isInputDeclaration(t: Term): Boolean = t match
+    case Apply(fn, _)     => isInputDeclaration(fn)
+    case TypeApply(fn, _) => isInputDeclaration(fn)
+    case fn               => fn.symbol.fullName == "framework.Action$package$.input"
+
   // A constant value, for an example: an enum case, with constant fields.
-  def literalValue(t: Term): ir.Value = ir.Value(resolve(t) match
+  def literalValue(t: Term): ir.Value = literalValue(t, None)
+
+  def literalValue(t: Term, expected: Option[ir.TypeRef]): ir.Value = ir.Value(resolve(t) match
     case Literal(BooleanConstant(v))    => ir.Value.Kind.Bool(v)
     case Literal(IntConstant(v))        => ir.Value.Kind.Int(v)
     case r: Ref if isEnumCase(r.symbol) => enumValue(irTypeName(enumOf(r.symbol)), r.symbol.name)
     case Apply(Select(companion, "apply"), args)
         if companion.tpe.typeSymbol.companionClass.flags.is(Flags.Enum) =>
       val cls = companion.tpe.typeSymbol.companionClass
-      ir.Value.Kind.Enum(ir.EnumValue(irTypeName(enumOf(cls)), cls.name, args.map(literalValue)))
+      val fields = fieldTypes(cls).map((_, typ) => typeRef(typ, t))
+      ir.Value.Kind.Enum(
+        ir.EnumValue(
+          irTypeName(enumOf(cls)),
+          cls.name,
+          args.zip(fields).map((arg, typ) => literalValue(arg, Some(typ)))
+        )
+      )
+    case r: Ref if r.symbol == noneModule =>
+      ir.Value.Kind.Enum(
+        ir.EnumValue(expected.map(_.getNamed).getOrElse(optionType(optionArg(t.tpe, t), t)), "None")
+      )
+    case Apply(TypeApply(Select(some, "apply"), List(arg)), List(value))
+        if some.symbol == someModule =>
+      ir.Value.Kind.Enum(
+        ir.EnumValue(
+          expected.map(_.getNamed).getOrElse(optionType(arg.tpe, t)),
+          "Some",
+          Seq(literalValue(value, Some(typeRef(arg.tpe, t))))
+        )
+      )
+    case Apply(Apply(TypeApply(fn @ Select(_, "apply"), _), List(value)), _)
+        if fn.symbol.owner.fullName.stripSuffix("$") == upToType =>
+      ir.Value.Kind.Int(constInt(value))
+    case Apply(Select(companion, "apply"), args)
+        if companion.tpe.typeSymbol.companionClass.flags.is(Flags.Case) =>
+      val cls = companion.tpe.typeSymbol.companionClass
+      declareType(cls, t)
+      val fields = fieldTypes(cls).map((_, typ) => typeRef(typ, t))
+      ir.Value.Kind.Record(
+        ir.RecordValue(
+          irTypeName(cls),
+          args.zip(fields).map((arg, typ) => literalValue(arg, Some(typ)))
+        )
+      )
     case other => fail(other, s"an example is a constant value, not ${other.show}"))
 
   // A step binding's function: the def an eta-expanded lambda or a bound function-valued parameter
