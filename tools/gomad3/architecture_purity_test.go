@@ -1,6 +1,7 @@
 package gomad3_test
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -54,15 +55,9 @@ func typedSourcePlatforms() []archcheck.Platform {
 }
 
 func TestPureModulesHaveNoHostEffects(t *testing.T) {
-	for _, path := range []string{"runner/internal/campaign/controller.go", "backends/native/build/capability_evaluation.go", "simulation/clock/simulation_progress.go"} {
-		if _, err := os.Stat(path); err != nil {
-			t.Fatal(err)
-		}
-	}
-	for _, path := range pureDependencyFiles {
-		if _, err := os.Stat(path); err != nil {
-			t.Fatal(err)
-		}
+	paths := append([]string{"runner/internal/campaign/controller.go", "backends/native/build/capability_evaluation.go", "simulation/clock/simulation_progress.go"}, pureDependencyFiles...)
+	if err := pureFileInventory(".", paths); err != nil {
+		t.Fatal(err)
 	}
 	for _, platform := range typedSourcePlatforms() {
 		started := time.Now()
@@ -78,5 +73,47 @@ func TestPureModulesHaveNoHostEffects(t *testing.T) {
 		if platform.OS == runtime.GOOS && platform.Arch == runtime.GOARCH && elapsed >= 30*time.Second {
 			t.Errorf("host pure checker took %s (limit 30s)", elapsed)
 		}
+	}
+}
+
+func pureFileInventory(root string, paths []string) error {
+	for _, path := range paths {
+		info, err := os.Stat(filepath.Join(root, path))
+		if err != nil {
+			return fmt.Errorf("required pure file %s: %w", path, err)
+		}
+		if !info.Mode().IsRegular() {
+			return fmt.Errorf("required pure file %s is not regular source", path)
+		}
+	}
+	return nil
+}
+
+func TestPureFileInventoryRejectsMissingAndRenamed(t *testing.T) {
+	for _, name := range []string{"missing", "renamed"} {
+		t.Run(name, func(t *testing.T) {
+			root := t.TempDir()
+			paths := []string{"original.go", "dependency.go"}
+			for _, path := range paths {
+				if err := os.WriteFile(filepath.Join(root, path), []byte("package fixture"), 0600); err != nil {
+					t.Fatal(err)
+				}
+			}
+			if err := pureFileInventory(root, paths); err != nil {
+				t.Fatal(err)
+			}
+			if name == "missing" {
+				if err := os.Remove(filepath.Join(root, "dependency.go")); err != nil {
+					t.Fatal(err)
+				}
+			} else {
+				if err := os.Rename(filepath.Join(root, "dependency.go"), filepath.Join(root, "renamed.go")); err != nil {
+					t.Fatal(err)
+				}
+			}
+			if err := pureFileInventory(root, paths); err == nil || !strings.Contains(err.Error(), "dependency.go") {
+				t.Fatalf("missing exact dependency admitted: %v", err)
+			}
+		})
 	}
 }

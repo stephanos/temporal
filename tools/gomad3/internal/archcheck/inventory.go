@@ -228,7 +228,7 @@ func Within(path, root string) bool { return within(path, root) }
 var sourceExclusions = []string{
 	"backends/native/toolchain/runtime/overlay", "backends/native/transcript/testdata", "backends/native/conformance/testdata",
 	"cmd/gomad/testdata", "internal/compatibilitypack/testdata", "testdata", "qualification/corpus",
-	"backends/wasm/testdata", "backends/wasm/wasi/testdata", "backends/wasm/toolchain/testdata", "backends/wasm/simulation/testdata", "backends/wasm/qualification/testdata", "backends/wasm/cmd/gomad-wasm/testdata",
+	"backends/wasm/testdata", "backends/wasm/wasi/testdata", "backends/wasm/toolchain/testdata", "backends/wasm/simulation/testdata", "backends/wasm/qualification/testdata", "backends/wasm/command/testdata",
 }
 
 var hostSourcePackages = []string{"backends/native/toolchain/runtime/testdata/vfdpointer", "backends/native/toolchain/runtime/testdata/vfdnative"}

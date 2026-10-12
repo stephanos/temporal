@@ -31,7 +31,7 @@ func TestStdlibSymbols(t *testing.T) {
 		pkg, symbol string
 		want        bool
 	}{
-		{"time", "Now", false}, {"time", "Date", true}, {"time", "UTC", true}, {"time", "Missing", false}, {"bytes", "NewReader", true}, {"bytes", "Buffer.Write", true}, {"os", "Getenv", false}, {"syscall", "EINVAL", true}, {"syscall", "Open", false}, {"fmt", "Println", false},
+		{"time", "Now", false}, {"time", "Date", true}, {"time", "UTC", true}, {"time", "Missing", false}, {"bytes", "NewReader", true}, {"bytes", "Buffer.Write", true}, {"os", "Getenv", false}, {"syscall", "EINVAL", true}, {"syscall", "EpollCreate1", false}, {"syscall", "Open", false}, {"fmt", "Println", false},
 	} {
 		if got := allowed(tc.pkg, tc.symbol); got != tc.want {
 			t.Errorf("%s.%s=%t want %t", tc.pkg, tc.symbol, got, tc.want)

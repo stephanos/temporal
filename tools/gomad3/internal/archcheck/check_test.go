@@ -96,3 +96,24 @@ func TestSubtreeAndBuildTags(t *testing.T) {
 		t.Fatalf("wrong scoped source set: %v", findings)
 	}
 }
+
+func TestBackendNamespaceOwners(t *testing.T) {
+	const module = "example.invalid/check"
+	root := fixture(t, map[string]string{
+		"backends/source.go":        "package backends",
+		"backends/native/source.go": "package native;import _ \"example.invalid/check/backends\"",
+		"backends/wasm/source.go":   "package wasm;import _ \"example.invalid/check/backends\"",
+		"backends/shadow/source.go": "package shadow",
+	})
+	packages, err := List(root, "go", Platform{runtime.GOOS, runtime.GOARCH}, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	findings := PackageEdges(module, packages)
+	if len(findings) != 1 || findings[0].Category != "ownerless" || findings[0].Path != module+"/backends/shadow" {
+		t.Fatalf("shadow namespace must not inherit the neutral protocol owner: %v", findings)
+	}
+	if OwnerMayImport(module, "cli", "wasm", module+"/cmd/gomad/internal/cli", module+"/backends/wasm/command/unchecked") {
+		t.Fatal("CLI descendant wiring admitted")
+	}
+}

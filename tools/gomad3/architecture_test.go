@@ -22,12 +22,8 @@ import (
 const modulePath = "go.temporal.io/server/tools/gomad3"
 
 func backendImportConfig() archcheck.Config {
-	const unifiedLauncher = "fn-164-gomad-backend-layout-shared-core-with.7"
 	return archcheck.Config{
-		Module:         modulePath,
-		Exceptions: []archcheck.Exception{
-			{From: modulePath + "/backends/wasm/cmd/gomad-wasm", To: modulePath + "/cmd/gomad/api", RemovalTask: unifiedLauncher},
-		},
+		Module: modulePath,
 	}
 }
 

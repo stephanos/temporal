@@ -15,11 +15,7 @@ const wasmModule = "go.temporal.io/server/tools/gomad3"
 
 func wasmArchitectureConfig() archcheck.Config {
 	return archcheck.Config{
-		Module: wasmModule,
-		Exceptions: []archcheck.Exception{{
-			From: wasmModule + "/backends/wasm/cmd/gomad-wasm", To: wasmModule + "/cmd/gomad/api",
-			RemovalTask: "fn-164-gomad-backend-layout-shared-core-with.7",
-		}},
+		Module:      wasmModule,
 		ModuleEdges: []archcheck.ModuleEdge{{From: wasmModule + "/backends/wasm", To: wasmModule + "/backends/native"}},
 		PureFiles: func(path string) bool {
 			return strings.HasPrefix(path, "wasi/") && strings.HasSuffix(path, ".go") &&
@@ -30,7 +26,7 @@ func wasmArchitectureConfig() archcheck.Config {
 			"errors", "fmt", "hash", "io", "io/fs", "math", "path", "slices", "sort", "strconv",
 			"strings", "sync", "syscall", "unicode/utf8",
 			wasmModule + "/captured", wasmModule + "/choice", wasmModule + "/runner",
-			wasmModule + "/runner/backend", wasmModule + "/simulation/network",
+			wasmModule + "/backends", wasmModule + "/simulation/network",
 			wasmModule + "/volume", wasmModule + "/world",
 		},
 	}

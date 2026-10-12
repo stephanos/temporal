@@ -49,6 +49,9 @@ func allowed(path, name string) bool {
 		denied := strings.HasPrefix(pattern, "!")
 		pattern = strings.TrimPrefix(pattern, "!")
 		match := pattern == name || strings.HasSuffix(pattern, "*") && strings.HasPrefix(name, strings.TrimSuffix(pattern, "*"))
+		if path == "syscall" && pattern == "E*" && name != strings.ToUpper(name) {
+			match = false
+		}
 		if match && denied {
 			return false
 		}

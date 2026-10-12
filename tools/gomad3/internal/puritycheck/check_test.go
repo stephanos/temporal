@@ -102,6 +102,13 @@ func TestMixedFiles(t *testing.T) {
 	}
 }
 
+func TestEprefixedSyscallIsNotAConstant(t *testing.T) {
+	if runtime.GOOS != "linux" {
+		t.Skip("EpollCreate1 is Linux-specific")
+	}
+	requireCategories(t, checkFixture(t, map[string]string{"record/pure.go": `package record;import "syscall";func F(){_,_=syscall.EpollCreate1(0)}`}, allPure), "host-effect")
+}
+
 func TestDynamicMarks(t *testing.T) {
 	for _, tc := range []struct {
 		name, source string
