@@ -531,6 +531,7 @@ type frameSink struct {
 	context                      context.Context
 	storageInterrupted           bool
 	interruption                 string
+	revokedAfterReply            *BoundaryError
 	authorizedAt                 time.Time
 	authorizationToTerminalNanos uint64
 }
@@ -699,6 +700,11 @@ func (sink *frameSink) frame(data []byte) error {
 		if err != nil {
 			return err
 		}
+		if revoked := sink.revokedAfterReply; revoked != nil {
+			// The helper may issue this call before it could observe the
+			// revocation; it receives the interrupt in place of a reply.
+			return sink.interrupt(revoked.Kind, revoked.Error())
+		}
 		call := owned.call
 		if len(call.Op) > 128 {
 			return invalid("operation name")
@@ -730,7 +736,10 @@ func (sink *frameSink) frame(data []byte) error {
 			err := sink.request.Broker.Delivered(call)
 			var boundary *BoundaryError
 			if errors.As(err, &boundary) && (boundary.Kind == "crash" && sink.request.Broker.Crashed() || boundary.Kind == "stop" && sink.request.Broker.Stopped()) {
-				return sink.interrupt(boundary.Kind, boundary.Error())
+				// The helper already holds this reply and reads frames only
+				// while awaiting one, so the interrupt answers its next call.
+				sink.revokedAfterReply = boundary
+				return nil
 			}
 			return err
 		}
@@ -773,7 +782,7 @@ func (sink *frameSink) frame(data []byte) error {
 		if result.Termination == "storage_crash" && !sink.storageInterrupted {
 			return invalid("unsolicited storage crash terminal")
 		}
-		if sink.interruption != "" && (result.Termination == "exit" || result.Termination == "trap") {
+		if (sink.interruption != "" || sink.revokedAfterReply != nil) && (result.Termination == "exit" || result.Termination == "trap") {
 			return invalid("guest completion after modeled interruption")
 		}
 		if (result.Termination == "crash" || result.Termination == "stop") && (result.Termination != sink.interruption || sink.request.Broker == nil || result.Termination == "crash" && !sink.request.Broker.Crashed() || result.Termination == "stop" && !sink.request.Broker.Stopped()) {

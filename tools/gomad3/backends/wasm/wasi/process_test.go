@@ -652,3 +652,62 @@ func TestTransportPreservesCancellationMetadataWhileReplyIsBlocked(t *testing.T)
 		})
 	}
 }
+
+// A revocation can land after the broker handled a call and its reply was
+// written, but before delivery completes. The helper may already have issued
+// its next call, so that call receives the interrupt in place of its reply.
+// Any later call, like any call after an interrupt that replaced a reply,
+// remains a protocol violation.
+func TestTransportRevocationAfterReplyInterruptsTheCrossingCall(t *testing.T) {
+	call := func(id int) []byte {
+		return fmt.Appendf(nil, `{"type":"call","id":%d,"op":"fd_write","input":{"fd":1,"data_base64":"eA=="}}`, id)
+	}
+	for _, kind := range []string{"crash", "stop"} {
+		for _, afterReply := range []bool{true, false} {
+			t.Run(fmt.Sprintf("%s/after-reply=%v", kind, afterReply), func(t *testing.T) {
+				b, err := NewBroker(brokerTestConfig())
+				if err != nil {
+					t.Fatal(err)
+				}
+				revoke := func() {
+					if kind == "crash" {
+						err = b.Crash("a")
+					} else {
+						err = b.Stop("a")
+					}
+					if err != nil {
+						t.Fatal(err)
+					}
+				}
+				ctx, cancel := context.WithTimeout(t.Context(), 10*time.Second)
+				defer cancel()
+				var frames []string
+				sink := frameSink{request: Request{Broker: b.Session("a")}, environment: newTestEnvironment(t, testConfig()), started: &Started{}, context: ctx, input: transportWriteFunc(func(data []byte) (int, error) {
+					frames = append(frames, string(data))
+					if afterReply && len(frames) == 1 {
+						revoke()
+					}
+					return len(data), nil
+				})}
+				if !afterReply {
+					revoke()
+				}
+				if err := sink.frame(call(1)); err != nil {
+					t.Fatal(err)
+				}
+				if afterReply {
+					if err := sink.frame(call(2)); err != nil {
+						t.Fatalf("call crossing a revocation after its predecessor's reply: %v", err)
+					}
+				}
+				interrupt := fmt.Sprintf(`{"type":"interrupt","termination":%q,"message":"WASI %s: broker incarnation revoked"}`+"\n", kind, kind)
+				if len(frames) == 0 || frames[len(frames)-1] != interrupt || sink.interruption != kind {
+					t.Fatalf("frames %q interruption %q", frames, sink.interruption)
+				}
+				if err := sink.frame(call(3)); err == nil || !strings.Contains(err.Error(), "callback after modeled interruption") {
+					t.Fatalf("callback after a delivered interrupt accepted: %v", err)
+				}
+			})
+		}
+	}
+}
