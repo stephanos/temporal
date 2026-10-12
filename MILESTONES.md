@@ -52,19 +52,21 @@ and [search-path findings](.flow/specs/fn-114-gomad-correct-search-path-defects-
 
 ## Immediate delivery order
 
-Owner execution scope (2026-10-11): complete fn-156, starting with `.8`, then
-`.1 → .2 → (.3, .4) → .5 → .6 → .7`. Update Flow records and milestone status
-as acceptance is verified, and create each completed task's local commit.
-This supersedes the earlier stop-after-`.8` instruction. Continue on this host
-when memory permits, preserving qualification admission and resource limits;
-native deferrals, PR, push and CI restrictions remain in force.
-
-Owner next priority (2026-10-12): after fn-156, take
-[fn-165: structural checker plus bounded purity prover](.flow/specs/fn-165-gomad-architecture-checks-structural.md),
-which replaces the 14k-line architecture analyzer with a budgeted checker whose
-configuration carries fn-164's import rule, then
+Owner execution scope: complete the WASM section in this order:
 [fn-164: shared core with native and WASM backends](.flow/specs/fn-164-gomad-backend-layout-shared-core-with.md)
-before the remaining backlog. The native delivery queue remains deferred.
+first, then
+[fn-165: structural checker plus bounded purity prover](.flow/specs/fn-165-gomad-architecture-checks-structural.md), then
+[fn-156: WASM productionization](.flow/specs/fn-156-wasm-gomad-productionization.md)
+at the bottom of the WASM queue. Both new task breakdowns are retained in Flow.
+Work fn-164 as one coordinated layout batch, beginning with the independent
+import-boundary and runtime-semantics tasks before package moves. Run focused
+regressions during development and final verification/review by integrated batch.
+Hold fn-156 qualification until the layout and checker batches are integrated;
+preserve prior evidence under its original identities, without claiming it
+qualifies relocated or changed runtime inputs. Remove completed task rows only
+after verified Flow completion. This supersedes the earlier fn-156 pause as a
+permanent stop and the complete-fn-156-first order. Native deferrals,
+qualification resource limits, and PR, push and CI restrictions remain in force.
 
 Owner performance decision (2026-10-11): accept the measured 2.911x workflow
 execution speedup for now; the previous all-workload 5x target no longer blocks
@@ -78,7 +80,7 @@ Owner decision (2026-10-10). Optimize milestone execution for implemented and ve
 capabilities per hour. Accept temporary breaking changes and integration risk to finish larger
 coherent batches. This strategy supersedes older per-task green-start, source-admission packet,
 review, commit and evidence-duplication requirements in milestone specs/tasks. Functional
-acceptance, explicit qualification prerequisites, fn-156 priority, native deferrals and the
+acceptance, explicit qualification prerequisites, the immediate delivery order, native deferrals and the
 safety constraints below remain binding. Reconcile conflicting Flow orchestration metadata
 once when selecting a batch; preserve historical results and their meaning.
 
@@ -212,7 +214,32 @@ CI, PR, or push authority.
 
 ## WASM
 
-### Productionization — [fn-156](.flow/specs/fn-156-wasm-gomad-productionization.md)
+### Shared core with native and WASM backends — [fn-164](.flow/specs/fn-164-gomad-backend-layout-shared-core-with.md)
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-164.1](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.1.md) | 🚧 In progress | Enforce the shared-versus-backend import direction on the current tree |
+| [fn-164.2](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.2.md) | 🚧 In progress | Create runtimesemantics and make both overlays include it verbatim |
+| [fn-164.3](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.3.md) | ⬜ Todo | Move toolchain, upgrade, native transcript and conformance tooling under backends/native |
+| [fn-164.4](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.4.md) | ⬜ Todo | Split target into shared types and native build preparation |
+| [fn-164.5](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.5.md) | ⬜ Todo | Make native a Provider behind backends/backend.go |
+| [fn-164.6](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.6.md) | ⬜ Todo | Fold the wasm module into backends/wasm with a stock-Go test target |
+| [fn-164.7](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.7.md) | ⬜ Todo | One cmd/gomad launcher driven by Provider capabilities |
+| [fn-164.8](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.8.md) | ⬜ Todo | Keep pre-move artifacts inspectable and make identity mismatch explicit |
+| [fn-164.9](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.9.md) | ⬜ Todo | CI path filters for the wasm suite and shared packages |
+
+### Architecture checks — [fn-165](.flow/specs/fn-165-gomad-architecture-checks-structural.md)
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-165.1](.flow/tasks/fn-165-gomad-architecture-checks-structural.1.md) | ⬜ Todo | Build the structural checker; move inventory, owner and edge rules onto it |
+| [fn-165.2](.flow/tasks/fn-165-gomad-architecture-checks-structural.2.md) | ⬜ Todo | Give the wasm module its own architecture test and a helper-bridge unit test |
+| [fn-165.3](.flow/tasks/fn-165-gomad-architecture-checks-structural.3.md) | ⬜ Todo | Load types from export data; write the version-keyed stdlib allowlist |
+| [fn-165.4](.flow/tasks/fn-165-gomad-architecture-checks-structural.4.md) | ⬜ Todo | Implement purity rules with review marks; re-triage the effect fixtures |
+| [fn-165.5](.flow/tasks/fn-165-gomad-architecture-checks-structural.5.md) | ⬜ Todo | Mark the gomad3 pure set and switch module tests to the new checkers |
+| [fn-165.6](.flow/tasks/fn-165-gomad-architecture-checks-structural.6.md) | ⬜ Todo | Delete the old analyzer and enforce the line budget |
+
+### Productionization — [fn-156](.flow/specs/fn-156-wasm-gomad-productionization.md) — Queued after fn-164 and fn-165
 
 Owner-approved verification cadence (2026-10-11, revised): implement fn-156 as one coherent batch. During iteration, run only the regressions needed for the current change; do not require broad architecture/package gates, independent reviews or qualification-preparation packets after each fix or task. Intermediate broken states and provisional dependent interfaces are allowed. Run broad source/package/lint checks, mandatory runtime/workload qualification and independent review once on the stable final integrated candidate, then complete tasks against that shared evidence. After a review fix, rerun affected checks unless shared inputs invalidate broader evidence. Final acceptance scope, including 32×100 scheduling qualification, fresh exact replay and qualification resource limits, remains intact; optional experiments stay deferred. Use proportionate bounded budgets for ordinary source-only development tests, not the qualification envelope.
 
@@ -226,18 +253,6 @@ Owner-approved verification cadence (2026-10-11, revised): implement fn-156 as o
 | [fn-156.5](.flow/tasks/fn-156-wasm-gomad-productionization.5.md) | 🚧 In progress | Current-source provider cleanup, ACK-crash/source-less and independent-incarnation replay passed; two-cluster Temporal recovery/replay and batch review remain open |
 | [fn-156.6](.flow/tasks/fn-156-wasm-gomad-productionization.6.md) | 🚧 In progress | Current-source qualification driver rebuilt with authentic terminal receipt; actual workload/operator receipts and full corpus remain open |
 | [fn-156.7](.flow/tasks/fn-156-wasm-gomad-productionization.7.md) | 🚧 In progress | Current-source CLI and original-test driver/witness built; observer fixes passed focused tests; installed minimization/replay, qualification corpus and measured documentation remain open |
-
-### Architecture checks — [fn-165](.flow/specs/fn-165-gomad-architecture-checks-structural.md)
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-165](.flow/specs/fn-165-gomad-architecture-checks-structural.md) | ⬜ Todo | Replace the 14k-line analyzer with a ≤4k-line structural checker and bounded purity prover; wasm runs its own check; not yet planned into tasks |
-
-### Shared core with native and WASM backends — [fn-164](.flow/specs/fn-164-gomad-backend-layout-shared-core-with.md)
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-164](.flow/specs/fn-164-gomad-backend-layout-shared-core-with.md) | ⬜ Todo | One gomad3 module with `backends/{native,wasm}`, declared Provider capabilities and a `runtimesemantics` contract; not yet planned into tasks |
 
 ## Native
 
