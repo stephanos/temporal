@@ -18,6 +18,21 @@ func coverageHasChoice(mode CoverageMode) bool {
 	return mode == CoverageChoice || mode == CoverageSemanticChoice
 }
 
+// SupportedCoverageModes lists the coverage modes a backend with the given evidence can satisfy.
+func SupportedCoverageModes(semantic, choices bool) []CoverageMode {
+	modes := []CoverageMode{CoverageNone}
+	if semantic {
+		modes = append(modes, CoverageSemantic)
+	}
+	if choices {
+		modes = append(modes, CoverageChoice)
+	}
+	if semantic && choices {
+		modes = append(modes, CoverageSemanticChoice)
+	}
+	return modes
+}
+
 func projectChoiceFeatures(trace backend.ChoiceTrace, prepared target.Prepared) (choice.FeatureProjection, []string, error) {
 	targetIdentity, err := record.ParseSHA256(prepared.SHA256)
 	if err != nil {

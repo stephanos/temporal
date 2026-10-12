@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"go.temporal.io/server/tools/gomad3/backends"
+	"go.temporal.io/server/tools/gomad3/runner"
 )
 
 type optionalFlags struct {
@@ -45,6 +46,14 @@ func (flags optionalFlags) Var(value flag.Value, name, usage string) {
 	if flags.enabled {
 		flags.set.Var(value, name, usage)
 	}
+}
+
+func coverageValues(modes []runner.CoverageMode) []string {
+	values := make([]string, len(modes))
+	for index, mode := range modes {
+		values[index] = string(mode)
+	}
+	return values
 }
 
 type enumValue struct {

@@ -627,7 +627,7 @@ func parseCampaignRequest(operation campaignOperation, arguments []string, stdou
 	if nativeFlags.enabled {
 		flags.StringVar(coverage, "coverage", string(runner.CoverageNone), "none, semantic, choice, or semantic+choice")
 	} else if choiceFlags.enabled {
-		flags.Var(enumValue{coverage, []string{string(runner.CoverageNone), string(runner.CoverageChoice)}}, "coverage", "none or choice")
+		flags.Var(enumValue{coverage, coverageValues(runner.SupportedCoverageModes(false, true))}, "coverage", "none or choice")
 	}
 	guide := nativeFlags.Bool("guide", false, "exclude answered seeds using a bounded coverage corpus")
 	guideRegression := nativeFlags.Bool("guide-regression", false, "re-run corpus seeds with --guide; fully answered default requests execute zero seeds and exit 0")
