@@ -41,9 +41,30 @@ make umpire-check-fixtures
 
 
 ## Done summary
-TBD
+Re-scoped to `features/activity_mini` and the shared code (chore commit 8fc711f8fc). The lifter part landed with fn-160.3 in adec9a39c6 (one Structure change). Batch 1d (d1536baa09) had already added the realization folder rule, a bare `…Run` suffix check and the layer/API checks in the import lint, with no fixture. This task adds the subject rule, the kit rule, refusal fixtures and docs.
 
+baseline: fn-160.3 receipt tree (00c7d85674); this task changes no Model source.
+stage: impl-review - skipped (REVIEW_MODE=none; independent review runs once at Scala batch end)
+
+Requirement evidence:
+- R8, flat `realization/` folder and subject naming: `Structure.layoutFiles` refuses a realization outside `realization/` (fixture `protocol/BoilRun.scala:6`). It reads the machine each `Realizes(machine, ...)` / `DerivesFrom(base, machine, ...)` names and refuses a name other than `<Subject>Run`, or `<Form><Kind>Run` (after the feature file, case aside) for the realization of a level's primary machine. The refusal names both: `SpareRun is a realization of BoilDry: name it after what it runs, BoilDryRun` (`realization/SpareRun.scala:7`), and `Starter ... HeatingSlowRun` (`:7`). `UrnRun` (main) and `BoilDryRun` are accepted. Convention for several realizations of one subject: they are distinguished by their subject (`<Subject>Run`); a second realization of the same subject has no admitted name yet. The mini has none, and fn-162's `DerivesFrom` fixtures (`againRun`/`completedRun`, MiniRealizationFixtures) are outside `realization/` scope rules because they are lifter fixtures without a protocol/realization folder. The decision for the real features is left to the sweep.
+- Kit: a `realization/` file that is neither a realization's nor `Kit.scala` is refused (`realization/Helpers.scala:4`). `Kit.scala` is accepted.
+- R9, one-way layers and API isolation (import lint, `Conventions.permitted`): fixture refusals at their lines. Product imports protocol (`product/Product.scala:5`), protocol imports realization (`protocol/Protocol.scala:5`), and the Temporal API in protocol (`protocol/BoilWired.scala:4`). All are reported as `R4.module-import ... under the Scala module map`. The one recorded exception (a Protocol's `Describable` naming the realization's status table) is documented in README; the mini uses none.
+- Mini conformance: `realization/` holds `MiniActivityRun.scala` (realizes `ActivityProtocol`, the primary of `protocol/Protocol.scala`, hence `<Form><Kind>Run` = `MiniActivityRun`) and `Kit.scala`. Only those two files under the mini, foundations and actors import `io.temporal`/`temporal.server.api` (api-users.txt). The mini product imports no protocol/realization. The selected mini lift passes every rule (task3 `final.log`, exit 0).
+- Rename map: `.flow/tmp/fn160/task4/mini.map`, empty with its reason. Step tables equivalent to the mini baseline on this tree under fn-160.3's map (task3 `equivalence-final.log`, exit 0, 16 tables).
+- Docs: model/README.md "The layers" (realization naming by subject, kit, nothing else in the folder), the structure-lint paragraph (R9 via the import lint and its fixture), and the feature-file paragraph (`realization/` files instead of `Realization.scala`). The gate's protobuf-names step (`ProtoLiterals`) has no "only Realization.scala" rule to replace. API isolation by folder is the import lint's, enforced as above.
+- No scalafix rule: no mini source changes. The real features' realization renames are listed in the migrate README recipe (step 4).
+
+Verification: LayoutFilesFixtures 2/2 and MiniRealizationFixtures 8/8 on the final lifter (task4 suite logs); the selected mini lift and equivalence from fn-160.3 on the same tree.
+
+Failures retained: none new. The FacetsTest/BoundsTest inherited failures are as recorded in fn-160.3.
+
+Open obligations / deferred: real features' realization renames (`HeartbeatThenCompletion`->`HeartbeatCompletionRun`, `RetryAfterHeartbeat`->`HeartbeatRetryRun`, `ExhaustAfterHeartbeat`->`HeartbeatExhaustionRun`, `ScheduledCompletionByID`->`ByIDCompletionRun` and the rest, which the new rule refuses as behind) and the Nexus moves go to the owner's sweep. So do Case names derived from realization names, regenerated IR/Cases/fixture trees and the Go consumers (Batch 5b).
+
+Deferred gates: make umpire-check-model/-check-lint/-check-fixtures, Go/proto/regeneration, the full irgen Fixtures and ConventionsFixtures suites, broad validation and independent review at batch end.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 8fc711f8fc, adec9a39c6
+- Tests: timeout 2400 mise exec -- scala-cli test --server=false model/irgen --test-only umpire.irgen.LayoutFilesFixtures (2/2: realization folder, subject and kit refusals; layer import and API refusals), timeout 2400 mise exec -- scala-cli test --server=false model/irgen --test-only umpire.irgen.MiniRealizationFixtures (8/8), grep io.temporal/temporal.server.api over activity_mini, foundations, actors: realization/ only (api-users.txt), fn-160.3 selected mini lift (exit 0) and FEATURES=activity_mini --check-equivalence (equivalent, 16 tables) on the same tree; mini.map empty
 - PRs:
