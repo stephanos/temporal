@@ -17,9 +17,10 @@ Over typed call sites in pure files only: a standard-library call must be on the
 - `puritycheck` is at most 2,000 non-test lines in total.
 
 ## Done summary
-TBD
+Typed purity rules check stdlib allowlists, module calls, every pure-file method, dynamic calls with dated review marks and stale marks; review fixes make promoted and externally satisfiable interface calls dynamic, check all json/fmt callback hooks and require stdlib stream wrappers to be built over checked streams. Effect fixtures re-triaged.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: c6afac5097, 46bf30c512, 88bff11fc5, c20d82bf05, b3eee0867d
+- Tests: root architecture/purity selection with GOMAD3_ARCH_ALL_PLATFORMS=1 plus ./internal/archcheck ./internal/puritycheck (0), evidence: .flow/artifacts/wasm-section-acceptance-2026-10-12.md
 - PRs:
