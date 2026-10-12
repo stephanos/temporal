@@ -295,6 +295,19 @@ func TestIsolatedCampaignRejectsInvalidRequestBeforeProviderLaunch(t *testing.T)
 	}
 }
 
+func TestExternalProviderRequiresBackendSelector(t *testing.T) {
+	config, _ := testConfig(t, nil, nil, "7", PolicyAll, 1)
+	config.Backend = &boundaryProvider{}
+	if _, environment, err := validateConfig(config); err == nil || err.Error() != "backend provider requires an explicit backend selector" {
+		t.Fatalf("external provider without selector: environment=%v err=%v", environment, err)
+	}
+	// Without a selector the external profile checks do not apply.
+	config.ClockTick = record.ClockTickForward
+	if _, _, err := validateConfig(config); err == nil || err.Error() != "backend provider requires an explicit backend selector" {
+		t.Fatalf("external provider without selector: err=%v", err)
+	}
+}
+
 func TestExternalCooperativeSeedAdmitsChoiceDiagnostics(t *testing.T) {
 	config, _ := testConfig(t, nil, nil, "7", PolicyAll, 1)
 	config.Target.Backend = "fixture-cooperative"

@@ -585,17 +585,23 @@ func validateCampaignRequest(config campaignRequest) (SeedSelection, []record.En
 	if err != nil {
 		return SeedSelection{}, nil, err
 	}
+	// An external backend is selected by the target's backend name; the native
+	// provider records its transcript profile and takes no selector.
+	native := config.Backend.Capabilities().IOTranscript
+	if config.Target.Backend != "" {
+		coverage := NormalizeCoverage(config.Coverage, false)
+		if native || config.Preparer != nil || config.strategy() != StrategySeed && config.strategy() != StrategyChoiceExploration || coverage != CoverageNone && coverage != CoverageChoice || config.Guide || len(config.IOROMounts) != 0 || config.ClockTick != "" {
+			return SeedSelection{}, nil, errors.New("external backend request requires its provider and a supported seed or choice profile")
+		}
+	} else if !native {
+		return SeedSelection{}, nil, errors.New("backend provider requires an explicit backend selector")
+	}
 	description, err := config.Backend.Describe(context.Background(), backend.Configuration{Target: config.Target})
 	if err != nil {
 		return SeedSelection{}, nil, err
 	}
 	ioProfile := description.Name()
-	capabilities := config.Backend.Capabilities()
-	if !capabilities.IOTranscript {
-		coverage := NormalizeCoverage(config.Coverage, false)
-		if config.Backend == nil || config.Preparer != nil || config.strategy() != StrategySeed && config.strategy() != StrategyChoiceExploration || coverage != CoverageNone && coverage != CoverageChoice || config.Guide || len(config.IOROMounts) != 0 || config.ClockTick != "" {
-			return SeedSelection{}, nil, errors.New("external backend request requires its provider and a supported seed or choice profile")
-		}
+	if config.Target.Backend != "" {
 		ioProfile = config.Target.Backend
 	}
 	environment = append(environment, record.Environment{Name: "GOMAD3_IO_PROFILE", Value: ioProfile})
