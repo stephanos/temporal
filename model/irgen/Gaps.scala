@@ -29,9 +29,141 @@ final private[irgen] case class ResolvedGap(
     subjectAt: ir.Position,
     declaration: String,
     exact: Boolean = true,
-    synthesized: Boolean = false
+    synthesized: Boolean = false,
+    inheritance: String = ""
 ):
   def key: (String, String, String) = (kind, owner, subject)
+
+// fn-167.3: what one derivation operation changed of the machine it was applied to, by action name:
+// the bindings it kept, rebound and added, the actions it dropped, the monitors, refinement and
+// unobservable actions it dropped, the refinement it replaced and the assumptions it added. It
+// describes the lifted derivation; it changes nothing of it.
+final private[irgen] case class DerivationOp(
+    op: String,
+    at: ir.Position,
+    kept: Seq[String],
+    rebound: Seq[String],
+    added: Seq[String],
+    dropped: Seq[String],
+    droppedMonitors: Seq[String],
+    droppedRefinement: Option[String],
+    droppedUnobservable: Seq[String],
+    replacedRefinement: Option[(String, String)],
+    addedAssumptions: Seq[String]
+)
+
+private[irgen] object DerivationOp:
+  def between(
+      op: String,
+      at: ir.Position,
+      before: ir.Machine,
+      after: ir.Machine,
+      actions: collection.Map[String, ir.Action]
+  ): DerivationOp =
+    def name(id: String) = actions.get(id).fold(id)(_.name)
+    val was = before.steps.map(s => s.action -> s.function).toMap
+    val now = after.steps.map(_.action).toSet
+    DerivationOp(
+      op,
+      at,
+      after.steps.filter(s => was.get(s.action).contains(s.function)).map(s => name(s.action)),
+      after.steps
+        .filter(s => was.get(s.action).exists(_ != s.function))
+        .map(s => name(s.action)),
+      after.steps.filterNot(s => was.contains(s.action)).map(s => name(s.action)),
+      before.steps.filterNot(s => now(s.action)).map(s => name(s.action)),
+      before.monitors.diff(after.monitors),
+      before.refines.filter(_ => after.refines.isEmpty).map(_.product),
+      before.unobservable.diff(after.unobservable).map(name),
+      (before.refines, after.refines) match
+        case (Some(b), Some(a)) if b.toProtoString != a.toProtoString =>
+          Some(b.product -> a.product)
+        case _ => None
+      ,
+      after.assumes.diff(before.assumes)
+    )
+
+// A derived machine's provenance: the machine its chain starts from, that machine's own origins
+// when it is derived in turn (nearest first), and each operation in the order applied.
+final private[irgen] case class Provenance(
+    machine: String,
+    source: String,
+    origins: Seq[String],
+    ops: Seq[DerivationOp]
+)
+
+// Whether a finding of a derived machine is its source's: `Inherited` only where every operation of
+// the chain provably leaves the finding's subject and context as they are, `Local` where an
+// operation changes the subject itself, `Unproven` otherwise. Binding equality alone is no proof.
+private[irgen] enum Inheritance:
+  case Local(why: String)
+  case Inherited(base: String, through: Seq[String])
+  case Unproven(why: String)
+
+private[irgen] object Inheritance:
+  // The kinds read off one machine's table, which a derivation may inherit.
+  private val tableKinds = Set(
+    "silent-rejection",
+    "disabled-by-default",
+    "must-not-pinned",
+    "never-enabled",
+    "unconstrained-result",
+    "unproduced",
+    "untaken-choice",
+    "unreachable-value",
+    "stuck-state",
+    "unread-refinement"
+  )
+  private val classKinds = Set(
+    "silent-rejection",
+    "disabled-by-default",
+    "must-not-pinned",
+    "never-enabled",
+    "unconstrained-result"
+  )
+  // The kinds no monitor pins and no refined state field keys: dropping both leaves them as they are.
+  private val unpinned = Set(
+    "silent-rejection",
+    "disabled-by-default",
+    "never-enabled",
+    "unproduced",
+    "untaken-choice",
+    "unreachable-value"
+  )
+
+  // Whether an operation provably leaves a kind's findings as they are: an assumption added changes
+  // no row, monitor or refinement; dropping monitors and the refinement changes no row, phase or
+  // reachable value of the machine's own state.
+  private def preserves(o: DerivationOp, kind: String): Boolean =
+    val rowsKept = o.rebound.isEmpty && o.added.isEmpty && o.dropped.isEmpty
+    o.op match
+      case "assuming" =>
+        rowsKept && o.droppedMonitors.isEmpty && o.droppedRefinement.isEmpty &&
+        o.replacedRefinement.isEmpty
+      case "unmonitored" => rowsKept && o.addedAssumptions.isEmpty && unpinned(kind)
+      case _             => false
+
+  def of(
+      provenance: collection.Map[String, Provenance],
+      machine: String,
+      kind: String,
+      subject: String
+  ): Inheritance =
+    provenance.get(machine) match
+      case None                         => Local(s"$machine is not derived")
+      case Some(_) if !tableKinds(kind) => Local(s"$kind is owned by the declaration it names")
+      case Some(p)                      =>
+        val action = Option.when(classKinds(kind))(subject.takeWhile(c => c != '-' && c != ' '))
+        val touched =
+          action.flatMap(a => p.ops.find(o => o.rebound.contains(a) || o.added.contains(a)))
+        (touched, p.ops.find(o => !preserves(o, kind))) match
+          case (Some(o), _)    => Local(s"${o.op} changes ${action.getOrElse("")}")
+          case (None, Some(o)) => Unproven(s"${o.op} may change $kind findings")
+          case (None, None)    =>
+            val through = p.ops.map(_.op)
+            of(provenance, p.source, kind, subject) match
+              case Inherited(base, more) => Inherited(base, through ++ more)
+              case _                     => Inherited(p.source, through)
 
 // The Flow specs a gap's `until` may name: their ids, read only.
 private[irgen] trait SpecRegistry:
@@ -159,6 +291,16 @@ private[irgen] trait Gaps:
           placed += annotations.name(d)
           val expires = SpecRegistry.expiry(d.until, specs).fold(e => fail(at, e), x => x)
           for subject <- subjects; (kind, owner, key, exact) <- resolve(where, subject) do
+            val inherited = Inheritance.of(provenance, owner, kind, key) match
+              case Inheritance.Inherited(base, through) =>
+                fail(
+                  at,
+                  s"$kind $owner \"$key\" is $base's finding, which $owner inherits unchanged " +
+                    s"through ${through.mkString(", ")}: declare the gap on $base"
+                )
+              case Inheritance.Local(why) if provenance.contains(owner) => s"local: $why"
+              case Inheritance.Unproven(why)                            => s"unproven: $why"
+              case _                                                    => ""
             resolved += ResolvedGap(
               kind,
               owner,
@@ -169,7 +311,8 @@ private[irgen] trait Gaps:
               pos(at),
               pos(subject),
               annotations.name(d),
-              exact
+              exact,
+              inheritance = inherited
             )
         }
       catch case e: LiftError => refused += e
@@ -387,10 +530,14 @@ private[irgen] trait Gaps:
           t,
           s"$name reads a ${if name == "unfired" then "verify" else "find"} Query, and ${q.name} is not one"
         )
-      case ("unread", Placement.OnRefinement(m)) =>
-        val product = m.refines.map(_.product).getOrElse(fail(t, s"${m.name} refines nothing"))
-        exact(m.name, Seq(s"${m.name} refines $product"))
+      case ("unread", Placement.OnRefinement(m)) => exact(m.name, Seq(refinesSubject(m, t)))
+      // A machine that `refining` gives its refinement has no refinement object to annotate.
+      case ("unread", Placement.OnMachine(m)) if m.refines.nonEmpty =>
+        exact(m.name, Seq(refinesSubject(m, t)))
       case _ => refuse()
+
+  private def refinesSubject(m: ir.Machine, at: Tree): String =
+    s"${m.name} refines ${m.refines.map(_.product).getOrElse(fail(at, s"${m.name} refines nothing"))}"
 
   // The class keys a class or an action names on `m`: an action's every class where it has inputs
   // and none is given, as Go's reader keys them (interp.Machine.Classes).

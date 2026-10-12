@@ -466,6 +466,17 @@ suffix is a reference only), and collects `except`/`overriding` waivers as `capa
 metadata. It serializes none of it to the shared IR; Go still judges the existing acceptance
 file. The annotation does not change a machine's rules, a claim's predicate or any IR position.
 
+A derived machine's lift also records its provenance (fn-167.3): the machine its chain starts
+from, that machine's own origins, and per operation the bindings kept, rebound and added, the
+actions, monitors, refinement and unobservable actions dropped, a replaced refinement and the
+assumptions added. It describes the derivation and changes nothing written. A gap on a derived
+machine is refused, naming the base, only where every operation provably keeps that finding:
+`assuming` keeps every table kind; `unmonitored` keeps the kinds no monitor pins and no refined
+state field keys (silent-rejection, disabled-by-default, never-enabled, unproduced,
+untaken-choice, unreachable-value); a chain names its root. A rebound or added action's gap is
+the derived machine's own; any other operation leaves the finding unproven and the gap kept.
+Equal bindings alone prove nothing, and no Go finding is suppressed by this stage.
+
 **Design note.** The table is the one artifact everything else reads; the step tables
 (`framework/StepTables.scala`) dump it from Scala for the equivalence check, so a refactor that
 keeps the Models' meaning can be sealed by comparing tables while the IR is stale.

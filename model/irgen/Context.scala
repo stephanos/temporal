@@ -308,6 +308,8 @@ final private[irgen] class Context(val index: Index):
   // The machines whose `capabilities` sections were lifted, and each waiver they state, as
   // `(machine, <machine>.<property>, reason)`, which the model gate writes into the accepted
   // findings beside the IR file.
+  // fn-167.3: each derived machine's provenance, by its name (Gaps.scala).
+  val provenance = mutable.LinkedHashMap.empty[String, Provenance]
   val capabilitySections = mutable.LinkedHashSet.empty[String]
   val capabilityWaivers = mutable.ArrayBuffer.empty[(String, String, String)]
   // The same waivers as gap metadata (fn-167, Gaps.scala): `(machine, <machine>.<property>, reason,

@@ -82,10 +82,7 @@ class GapResolutionSuite extends munit.FunSuite:
 
   private lazy val resolution = packaged(
     "resolution",
-    Map(
-      "Resolution.scala" -> source("Resolution.scala"),
-      "Invalid.scala" -> source("Invalid.scala")
-    )
+    Seq("Resolution.scala", "Invalid.scala", "Derivation.scala").map(f => f -> source(f)).toMap
   )
   private lazy val gapfile = packaged(
     "gapfile",
@@ -118,10 +115,9 @@ class GapResolutionSuite extends munit.FunSuite:
 
   private lazy val unannotated = packaged(
     "unannotated",
-    Map(
-      "Resolution.scala" -> blanked(source("Resolution.scala")),
-      "Invalid.scala" -> blanked(source("Invalid.scala"))
-    )
+    Seq("Resolution.scala", "Invalid.scala", "Derivation.scala")
+      .map(f => f -> blanked(source(f)))
+      .toMap
   )
 
   private def root(name: String) = s"fixture.gapresolution.$name"
@@ -134,6 +130,17 @@ class GapResolutionSuite extends munit.FunSuite:
     "Pair",
     "runs$.one",
     "runs$.two"
+  ).map(root)
+
+  // fn-167.3: machines derived from Plain by each operation (Derivation.scala).
+  private val derived = Seq(
+    "PlainAssumed",
+    "PlainUnmonitored",
+    "PlainRebound",
+    "PlainGuarded",
+    "PlainRestricted",
+    "PlainExtended",
+    "PlainRefined"
   ).map(root)
 
   // A lift of the roots in this JVM, with the registry the test gives, as `lift` reads its jars.
@@ -319,3 +326,94 @@ class GapResolutionSuite extends munit.FunSuite:
       lifter.gaps("gapfile").map(g => (g.kind, g.owner, g.subject)),
       Seq(("unasked-property", "gapfile", "lit"))
     )
+
+  test("each derivation operation and chain records its provenance without changing the IR"):
+    val lifter = lifted(resolution, valid ++ derived ++ Seq(root("refused$.Chained")))
+    // The chained machine's own gap is refused (below); everything else lifts.
+    val errors = lifter.errors.map(_._2.getMessage).toList
+    assertEquals(errors.size, 1, errors.mkString("\n"))
+    val byName = lifter.derivations("").map(p => p.machine -> p).toMap
+    def op(machine: String) =
+      val p = byName(machine)
+      assertEquals(p.source, "plain", machine)
+      assertEquals(p.ops.size, 1, machine)
+      p.ops.head
+    val assumed = op("plainAssumed")
+    assertEquals(assumed.op, "assuming")
+    assertEquals(assumed.kept, Seq("move"))
+    assertEquals(assumed.addedAssumptions, Seq("fixture.gapresolution.other"))
+    assert(assumed.rebound.isEmpty && assumed.droppedMonitors.isEmpty && assumed.added.isEmpty)
+    val unmonitored = op("plainUnmonitored")
+    assertEquals(unmonitored.droppedMonitors, Seq("fixture.gapresolution.flaggedOnce"))
+    assertEquals(unmonitored.droppedRefinement, Some("worker"))
+    assertEquals(unmonitored.kept, Seq("move"))
+    assertEquals(op("plainRebound").rebound, Seq("move"))
+    assertEquals(op("plainGuarded").rebound, Seq("move"))
+    val restricted = op("plainRestricted")
+    assertEquals(restricted.kept, Seq("move"))
+    assertEquals(restricted.droppedRefinement, Some("worker"))
+    val extended = op("plainExtended")
+    assertEquals((extended.kept, extended.added), (Seq("move"), Seq("finish")))
+    assertEquals(op("plainRefined").replacedRefinement, Some("worker" -> "shadow"))
+    // A chain records its operations in the order applied and its source's own origins.
+    val chained = byName("chained")
+    assertEquals(chained.source, "plainAssumed")
+    assertEquals(chained.origins, Seq("plainAssumed", "plain"))
+    assertEquals(chained.ops.map(_.op), Seq("unmonitored"))
+    assertEquals(byName("plainAssumed").origins, Seq("plain"))
+    // Gaps the lift keeps on derived machines, with why each may be the derived machine's own.
+    val kept = lifter
+      .gaps("")
+      .filter(_.inheritance.nonEmpty)
+      .map(g => (g.owner, g.kind, g.subject, g.inheritance.takeWhile(_ != ':')))
+      .sortBy(_.toString)
+    assertEquals(
+      kept.mkString("\n"),
+      Seq(
+        ("plainExtended", "never-enabled", "finish", "local"),
+        ("plainExtended", "never-enabled", "move-slow", "unproven"),
+        ("plainGuarded", "never-enabled", "move-fast", "local"),
+        ("plainRebound", "never-enabled", "move-fast", "local"),
+        ("plainRefined", "unread-refinement", "plainRefined refines shadow", "unproven"),
+        ("plainRestricted", "never-enabled", "move-fast", "unproven"),
+        ("plainUnmonitored", "stuck-state", "busy-true", "unproven"),
+        ("plainUnmonitored", "unconstrained-result", "move-slow", "unproven")
+      ).sortBy(_.toString).mkString("\n")
+    )
+    // The provenance changes nothing written: the derived machines' IR is their gap-free twin's.
+    def written(built: (Path, Path)): String =
+      val (dir, jar) = built
+      val out = dir.resolve("derived.json")
+      val ran = InProcess.lift(
+        tools.directory,
+        Seq(s"$jar=$dir/,${scoped._1}=model/", scoped._2.toString, out.toString) ++ valid ++
+          derived
+      )
+      assertEquals(ran.exit, 0, ran.diagnostics)
+      Files.readString(out).replace(s"$dir/", "<fixture>/")
+    assertEquals(written(resolution), written(unannotated))
+
+  test("a gap on a derived machine for a provably inherited finding is refused naming the base"):
+    val lifter = lifted(
+      resolution,
+      valid ++ Seq("Assumed", "Unmonitored", "Chained").map(n => root(s"refused$$.$n"))
+    )
+    val errors = lifter.errors.map(_._2.getMessage).toList
+    def refused(needle: String, fragment: String) =
+      val at = s"Derivation.scala:${line("Derivation.scala", needle)}:"
+      assert(
+        errors.exists(e => e.contains(at) && e.contains(fragment)),
+        s"expected $at ... $fragment in\n${errors.mkString("\n")}"
+      )
+    refused(
+      "assumed again: inherited",
+      "never-enabled assumed \"move-slow\" is plain's finding, which assumed inherits unchanged " +
+        "through assuming: declare the gap on plain"
+    )
+    refused("unmonitored: rows kept", "is plain's finding")
+    refused(
+      "chained: inherited",
+      "unproduced chained \"outcome refused\" is plain's finding, which chained inherits " +
+        "unchanged through unmonitored, assuming: declare the gap on plain"
+    )
+    assertEquals(errors.size, 3, errors.mkString("\n"))

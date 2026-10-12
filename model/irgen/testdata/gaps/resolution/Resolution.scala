@@ -119,6 +119,10 @@ object Plain
   object refinement extends Refinement(Worker):
     def toProduct(s: Job): Job = s
 
+  object monitors:
+    val flagged = flaggedOnce
+    val steady = calm
+
   object rules extends Bindings(caller.move ~> plainMove)
 
   object capabilities extends Capabilities:

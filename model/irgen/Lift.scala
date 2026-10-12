@@ -65,6 +65,9 @@ class Lifter(
   // is written of them: they are the lifter's own until the shared IR carries them (fn-167).
   private[irgen] val gaps = mutable.LinkedHashMap.empty[String, Seq[ResolvedGap]]
 
+  // The provenance of each derived machine of each IR file lifted (fn-167.3), for the same consumer.
+  private[irgen] val derivations = mutable.LinkedHashMap.empty[String, Seq[Provenance]]
+
   // The declarations a gap annotates that some IR file of the run lifted.
   private val placed = mutable.Set.empty[String]
   private lazy val registry = specs()
@@ -163,6 +166,7 @@ class Lifter(
     // Resolved after the Model is made, so nothing the resolution reads changes what is written.
     val (resolved, refused, declarations) = concerns.resolveGaps(registry)
     gaps(file) = resolved
+    derivations(file) = ctx.provenance.values.toSeq
     placed ++= declarations
     errors ++= refused.map(file -> _)
 

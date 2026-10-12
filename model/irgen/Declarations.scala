@@ -1364,7 +1364,19 @@ private[irgen] trait Declarations:
       for (s, b) <- bindings if bindings.count(_._1.action == s.action) > 1
       do fail(b, s"$name ${op}s ${actions(s.action).name} twice: a machine binds an action once")
       bindings
-    def derive(t: Term): ir.Machine = t match
+    // fn-167.3: each operation's machine before and after it, in the order applied, and the machine
+    // the chain starts from, which provenance records without changing what is derived.
+    val applied = mutable.ArrayBuffer.empty[(String, Term, ir.Machine, ir.Machine)]
+    var origin: Option[ir.Machine] = None // scalafix:ok DisableSyntax.var
+    def derive(t: Term): ir.Machine =
+      val result = deriveOnce(t)
+      t match
+        case Derivation(op, source, _) =>
+          for before <- applied.find(_._2 eq source).map(_._4).orElse(origin) do
+            applied += ((op, t, before, result))
+        case _ => origin = Some(result)
+      result
+    def deriveOnce(t: Term): ir.Machine = t match
       case Derivation("restrict", source, List(keep)) =>
         val src = derive(source)
         val kept = varargs(keep).map(action).toSet
@@ -1457,6 +1469,15 @@ private[irgen] trait Declarations:
       val own = rulesOf.getOrElse(name, Map.empty)
       rulesOf(name) = kept.filter((id, _) => src.steps.exists(_.action == id)) ++ own
     val m = src.copy(family = family, name = name, position = Some(pos(rhs)))
+    val from = origin.fold("")(_.name)
+    provenance(name) = Provenance(
+      name,
+      from,
+      from +: provenance.get(from).fold(Seq.empty[String])(_.origins),
+      applied.toSeq.map((op, at, before, after) =>
+        DerivationOp.between(op, pos(at), before, after, actions)
+      )
+    )
     if binds(rhs) then
       distinctActionNames(m, rhs)
       checkChannels(m, m.stateType, rhs)
