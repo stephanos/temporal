@@ -78,6 +78,7 @@ Not in scope: changing Model meaning; the real features' sources; publishing the
 
 ## Decision Context
 
+- 2026-10-12, owner: port the Python table comparator (`model/testdata/table-pins`) to Scala in `framework/check/equivalence` (.6); no Python under `model/`.
 - 2026-10-12, owner: tests are colocated with what they test (no `test/` folders); `Fixtures.test.scala` sits beside the lifter's entry point until fn-141 splits it per construct.
 - 2026-10-12, owner: add `framework/samples/` with one-file sample Models over a range of complexity; conductor picked Kettle (Quint), Bank (P ClientServer, Quint README) and TwoPhaseCommit (P and Quint) for comparison.
 - 2026-10-12, owner: protobuf support is framework, not Temporal; a system registers its API protos (.2), and the generic proto sugar moves to `framework/realize` (.1).
