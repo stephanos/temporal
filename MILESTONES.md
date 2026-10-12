@@ -182,8 +182,9 @@ inert metadata, outside the fingerprint, equivalence and table pins; `except` an
 the same way. The Go lint reports an inherited finding once, on the base, matches the rest against
 the IR's gaps, fails a stale gap at its source position and an `until` whose spec is done, and no
 longer reads an acceptance file beside a feature with sources (legacy payloads keep theirs until
-fn-160). Migration is a mechanical rule proven on the mini feature. The Scala side (framework,
-lifter collection, gate source rule and pure source migration) is open now. The IR uses the shared
+fn-160). Migration is a mechanical rule proven on the mini feature. The Scala side is done
+(.2-.4): gaps resolve to lint finding keys during the lift, derivation provenance is recorded, and
+the pure migration is proven on copied mini sources; nothing new is written to the IR yet. The IR uses the shared
 protobuf schema, so schema transport/generation, lint consumers, file retirement and real-feature
 migration wait for the owner's sweep. Seven tasks are planned; plan review is SHIP, not marked ready.
 The mini source proof consumes fn-166.3's committed closure; source groundwork needs no whole-spec
@@ -193,9 +194,6 @@ open after the Scala groundwork.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-167.2 | ⬜ todo | Internal gap/waiver metadata, canonical owner/subject keys and expiry references; current transport retained |
-| fn-167.3 | ⬜ todo | Derivation provenance and conservative inherited/local validation; no consumer suppression yet |
-| fn-167.4 | ⬜ todo | Pure migration transform and copied-mini source proof; after committed fn-166.3 |
 | fn-167.5 | ⏸️ deferred | Shared proto/ScalaPB/Go transport and independent metadata identity exclusions; owner sweep |
 | fn-167.6 | ⏸️ deferred | Gap-aware lint, proven inherited duplicates, stale/expiry errors and legacy compatibility; owner sweep |
 | fn-167.7 | ⏸️ deferred | Runnable migration adapter, actual mini proof and real-feature acceptance retirement/counts; owner sweep |
