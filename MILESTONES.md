@@ -216,6 +216,8 @@ CI, PR, or push authority.
 
 Owner-approved verification cadence (2026-10-11, revised): implement fn-156 as one coherent batch. During iteration, run only the regressions needed for the current change; do not require broad architecture/package gates, independent reviews or qualification-preparation packets after each fix or task. Intermediate broken states and provisional dependent interfaces are allowed. Run broad source/package/lint checks, mandatory runtime/workload qualification and independent review once on the stable final integrated candidate, then complete tasks against that shared evidence. After a review fix, rerun affected checks unless shared inputs invalidate broader evidence. Final acceptance scope, including 32×100 scheduling qualification, fresh exact replay and qualification resource limits, remains intact; optional experiments stay deferred. Use proportionate bounded budgets for ordinary source-only development tests, not the qualification envelope.
 
+Owner gate-budget decision (2026-10-12): drop the fn-151 prototype gates from final acceptance; scheduling qualification is 32×25 plus 32 exact replays; the retained-artifact gate uses 20 fresh replays; matched costs measure two suites with four alternating seeds; independent gates may run concurrently and cost measurements alone. Run the full guest tier once after the final independent review.
+
 | Name / ID | Status | Description |
 | --- | --- | --- |
 | [fn-156.8](.flow/tasks/fn-156-wasm-gomad-productionization.8.md) | 🚧 In progress | Review fixes integrated in candidate 0e3eb30e; source gates and `test-wasm` passed; guest gates and matched costs running |
