@@ -2,6 +2,42 @@
 
 DSL changes ship a task-named Scalafix rule under `model/migrate/rules/`, prove it on copied `activity_mini` sources before the real-feature sweep, and follow `model/migrate/README.md`; production loading remains held in fn-166.10.
 
+## Declared gaps: Fn167Task4Gaps
+
+The pure transformation turns a feature's accepted lint findings into `@gap` stacks on the
+declarations that own them. Its caller resolves each finding key `(kind, owner, subject)` to a
+declaration identity (`<package>.<objects>.<name>`) and the typed subject constructor that names
+it there; it also supplies fn-167.3's proven base keys and the `except`/`overriding` waivers.
+The rule writes one `@gap(subjects*)(because = ...)` per declaration and reason, in the order the
+acceptances first name them, inserted above the declaration with no other byte changed.
+A `capability-waiver` acceptance whose reason equals its declaration's is dropped, because the
+waiver lowers on its own. A finding whose base's acceptance covers it is dropped as inherited.
+Already declared gaps of the same reason and subjects converge.
+
+Duplicate acceptances, an unresolved key, a waiver no declaration states or whose reason differs,
+an inherited finding whose base is not accepted, a declaration found zero or several times or not
+starting its line, and a subject already declared under another reason refuse the whole run: no
+source is returned. `Fn167Task4GapInputs` reads the existing `<file>.lint.json` acceptances and the
+lifted waiver file. The runnable IR-backed placement resolver and the real-feature retirement of
+acceptance files are fn-167.7's. For other shapes, manually place each finding's `@gap` on the
+declaration that owns it, with the subject constructor of its lint kind, and keep its exact reason.
+
+```sh
+mise exec -- scala-cli test --server=false model/migrate --test-only umpire.migrate.GapsSuite
+timeout 1800 /bin/bash model/migrate/prove-mini.sh umpire.migrate.RewriteGapsMini compare
+```
+
+The copied-mini runner reads `proof/gaps-mini.lint.json` (one unproduced status fact and the
+mini's two capability waivers, with the reasons from the copy's own lift), places the hole on
+`ActivityProduct` by hand, and requires one insertion, two dropped waivers, convergence and
+refusal of a reworded waiver. `prove-mini.sh` now lifts every copy from the copy's own directory,
+so positions and source checks read the copied sources rather than the authored ones (an unchanged
+copy lifts byte for byte as before). The `compare` mode requires the complete mini IR to equal the
+original but for the positions below the insertion in `Product.scala`, which move down by its line
+count; waivers compare byte for byte. Gap metadata is not
+yet carried in the IR (fn-167.5), so the lift has no other delta. Production loading, IR transport,
+gap-aware lint, real-feature migration and the batch-end broad validation and review remain held.
+
 ## Facet wrapping: Fn161Task4FacetWrapping
 
 The selected declared machines already use facets: worker Polling/Serving, taskqueue

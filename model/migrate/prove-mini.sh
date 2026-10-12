@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")/../.."
+repository=$PWD
 migration_main=${1:-umpire.migrate.RewriteMini}
 task_scratch=$(mktemp -d "$PWD/.flow/tmp/mini-migration.XXXXXX")
 printf 'proof directory: %s\n' "$task_scratch"
@@ -31,13 +32,21 @@ lift_copy() {
   local model_classpath
   model_classpath=$(<"$task_scratch/$stage.mutable-classpath")
   printf '%s:%s\n' "$task_scratch/$stage.jar" "${model_classpath#*:}" > "$task_scratch/$stage.classpath"
-  mise exec -- scala-cli run --server=false --suppress-outdated-dependency-warning model/irgen -M umpire.irgen.lift -- \
-    --ir "$task_scratch/$stage.jar=model/" "$task_scratch/$stage.classpath" "$task_scratch/$stage" activity-mini
+  # The lift reads the copy's own sources for positions and source checks: `model/...` from the copy.
+  (cd "$task_scratch" && mise exec -- scala-cli run --server=false --suppress-outdated-dependency-warning \
+    "$repository/model/irgen" -M umpire.irgen.lift -- \
+    --ir "$task_scratch/$stage.jar=model/" "$task_scratch/$stage.classpath" "$task_scratch/$stage" activity-mini)
 }
 lift_copy before
 mise exec -- scala-cli run --server=false --suppress-outdated-dependency-warning model/migrate \
   -M "$migration_main" -- "$task_scratch/model/temporal/features/activity_mini/protocol"
 lift_copy after
+# A migration that inserts lines names its own comparison: `prove-mini.sh <main> compare`.
+if [[ "${2:-}" == compare ]]; then
+  mise exec -- scala-cli run --server=false --suppress-outdated-dependency-warning model/migrate \
+    -M "$migration_main" -- compare "$task_scratch"
+  exit 0
+fi
 cmp "$task_scratch/before/activity-mini.json" "$task_scratch/after/activity-mini.json"
 cmp "$task_scratch/before/activity-mini.waivers.json" "$task_scratch/after/activity-mini.waivers.json"
 sha256sum "$task_scratch/before/activity-mini.json" "$task_scratch/after/activity-mini.json"
