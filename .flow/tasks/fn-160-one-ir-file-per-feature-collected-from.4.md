@@ -1,9 +1,11 @@
 ---
 satisfies: [R8, R9]
 ---
-# fn-160-one-ir-file-per-feature-collected-from.4 Realization layer: flat realization/ folder, <Subject>Run naming, dependency direction
+# fn-160-one-ir-file-per-feature-collected-from.4 Realization layer: flat realization/ folder, <Subject>Run naming, dependency direction: mini feature and shared code (real features at the sweep)
 
 ## Description
+**Scope (2026-10-12, Scala DSL batch rules; supersedes the text below where they conflict):** re-scoped to `features/activity_mini` and the shared code. The lifter enforces the realization layer (realizations only in `realization/`, each `<Subject>Run` or, for a level's primary machine, `<Form><Kind>Run`, refusing a mismatch naming both; the folder holds those and one `Kit.scala`), and the import lint the one-way layer dependencies and the Temporal API only in `realization/`, each with a refusal fixture. The mini already conforms (`realization/MiniActivityRun.scala`, `Kit.scala`), so no mini rename and no scalafix rule is needed; the mini step tables stay equivalent. The real features' realization renames (`HeartbeatThenCompletion` -> `HeartbeatCompletionRun` and the rest), the nexus moves, regenerated IR/Cases and fixture trees, Go consumers and the `make umpire-check-*` gates go to the owner's sweep and Batch 5b.
+
 Make realizations a layer of their own. Each feature with realizations gets a flat `realization/` folder beside `product/` and `system/`. Each subject's realization is a file named `<Subject>Run.scala`, and the shared helpers go in one kit file. Layering is enforced by package: `product` imports neither `system` nor `realization`, `system` doesn't import `realization`, and only `realization/` may use the Temporal API.
 
 **Size:** M–L

@@ -1,9 +1,11 @@
 ---
 satisfies: [R7, R13]
 ---
-# fn-160-one-ir-file-per-feature-collected-from.3 One machine per file; flat level folders grouped by name prefix
+# fn-160-one-ir-file-per-feature-collected-from.3 One machine per file; flat level folders grouped by name prefix: mini feature and shared code (real features at the sweep)
 
 ## Description
+**Scope (2026-10-12, Scala DSL batch rules; supersedes the text below where they conflict):** re-scoped to `features/activity_mini` and the shared code it uses (foundations, actors, capabilities, realize, `Bounds`). The lifter enforces one machine per file, named after it, flat level folders grouped by family prefix (facet names, a declared `enum FamilyName`, the level's name or primary machine's), and the kind/form layout; the mini and shared sources are moved and renamed to satisfy it, with a rename map, an IR identity/position classification and the mini step-table equivalence. The enforcement holds every lifted Temporal Model, so a real feature fails it as *behind* until the owner's sweep; the mini/shared lift selects no real feature and is unaffected. The real features' splits, moves and renames (the close policy, `DispatchWithTaskQueue` and the rest listed below), regenerated checked-in IR/Cases, Go consumers and the `make umpire-check-*` gates go to the sweep and Batch 5b. A pure file move needs no scalafix rule; the reference renames of shared objects ship as `Fn160Task3FamilyNames`, and the sweep recipe is in `model/migrate/README.md`.
+
 Require each Model file to declare at most one machine, composition or derivation (`Machine`, `Composition` or `Derived` object), in a file named after it. Level folders stay flat, with no nested packages. Files are grouped by a shared name prefix: the facet name from the feature's vocabulary (fn-161), or the design family's name. That way the sorted file list shows every machine and how they group. Today 53 machine objects sit in 24 files, and only 12 of those files hold exactly one. The largest, nexus workflow's close policy, has 9 designs in about 1,200 lines.
 
 **Size:** L
