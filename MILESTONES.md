@@ -119,7 +119,9 @@ facet vocabularies are recorded in fn-161.
 | 2 | fn-161 | facets |
 | 3 | fn-162 | realizations name their Queries; claim containers removed |
 | 4 | fn-160 | layout and realization layer (.3/.4) |
-| 5 | fn-166.11 | lifter suites scoped to what they lift; production fixtures retargeted to mini |
+| 5 | fn-166.11-.13 | the change-scoped model loop: lifter suites scoped to what they lift, Make without held API generation, one diff-scoped check with an evidence record (owner, 2026-10-12) |
+| fn-166.12 | ⬜ todo | Model Make targets run without held API generation, from a cached API jar; held Go stages skipped by name (owner, 2026-10-12; Makefile change approved) |
+| fn-166.13 | ⬜ todo | Change-scoped model check: scope from the diff, a coverage registry for every Scala suite, a fixed evidence record; the default per-change check (owner, 2026-10-12) |
 | 6 | fn-141 | lifter refactor (byte-identical lifts), pulled forward by the owner on 2026-10-12 |
 | 7 | fn-160 | Protocol level, flat `features/`, per-feature collection (.6/.7/.2) |
 | 8 | fn-163 | system/product capabilities, named system capabilities |
@@ -461,7 +463,7 @@ do not establish developer comprehension, and absent feedback must remain explic
 ### fn-141: Shrink the IR generator: one description of each DSL construct
 
 Ready 2026-10-08. Pulled forward by the owner on 2026-10-12: it runs after fn-160.3/.4 and
-fn-166.11, before the remaining DSL specs, which then land on the smaller lifter. Its
+fn-166.11-.13, before the remaining DSL specs, which then land on the smaller lifter. Its
 "spellings no Model uses" recount (fn-141.2) counts the current mini and shared code only, and must
 keep any spelling an open spec in this batch is about to use.
 Because its tasks were planned against the earlier tree, each re-reads its files and recounts first.
