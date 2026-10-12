@@ -94,7 +94,7 @@ func resumeConfiguration(request campaignRequest, plan campaign.CampaignPlan) (C
 	if prepared.Backend != nil {
 		preparedSpec.Backend = prepared.Backend.Name
 	}
-	if err := request.Backend.ValidatePrepared(preparedSpec, prepared.CloneBackend(), environmentStrings(plan.Environment)); err != nil {
+	if err := request.Backend.ValidatePrepared(preparedSpec, prepared.CloneBackend(), recordedEnvironmentStrings(plan.Environment)); err != nil {
 		return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, err
 	}
 	config := CampaignSpec{

@@ -864,6 +864,15 @@ func environmentStrings(environment []record.Environment) []string {
 	return result
 }
 
+// Prepared-target validation sees the same profile entries as a fresh campaign.
+func recordedEnvironmentStrings(environment []record.Environment) []string {
+	result := make([]string, 0, len(environment))
+	for _, entry := range environment {
+		result = append(result, entry.Name+"="+entry.Value)
+	}
+	return result
+}
+
 func manifestForRun(config campaignRequest, prepared target.Prepared, baseEnvironment []record.Environment, completion runCompletion, outcome backend.Classification, runID string, recordedWorld record.World, mountArtifact *captured.CapturedInputs) (record.ExecutionRecord, error) {
 	profile := config.profile
 	recordedProfile := recordedIOProfile(profile)

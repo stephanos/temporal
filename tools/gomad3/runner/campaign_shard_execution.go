@@ -60,7 +60,7 @@ func runCampaignShardWith(ctx context.Context, spec CampaignShardSpec, dependenc
 	if opened.prepared.Backend != nil {
 		preparedSpec.Backend = opened.prepared.Backend.Name
 	}
-	if err := spec.Backend.ValidatePrepared(preparedSpec, opened.prepared, environmentStrings(plan.Environment)); err != nil {
+	if err := spec.Backend.ValidatePrepared(preparedSpec, opened.prepared, recordedEnvironmentStrings(plan.Environment)); err != nil {
 		return CampaignResult{}, err
 	}
 	mountLimits, err := captured.DecodeLimits(deterministicCapturedInputLimits(plan.IOROMountLimits))
