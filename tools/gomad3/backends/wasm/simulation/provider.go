@@ -509,14 +509,19 @@ func (e *execution) Start(spec gomad3sim.NodeSpec, handle gomad3sim.NodeHandle) 
 		default:
 			return gomad3sim.ErrInvalidTransition
 		}
-		var err error
-		session, err = e.broker.Restart(string(handle.Node))
-		if err != nil {
-			return err
+		// Restart schedules the next incarnation; reject before it can hold
+		// peers behind a session no helper will own.
+		if session == nil || session.Node.Incarnation+1 != handle.Incarnation {
+			return gomad3sim.ErrStaleIncarnation
 		}
 		request.StorageImage = old.result.StorageImage
 		if request.Config.Storage != nil && request.StorageImage == nil {
 			return errors.New("WASM restart lacks recovered durable storage")
+		}
+		var err error
+		session, err = e.broker.Restart(string(handle.Node))
+		if err != nil {
+			return err
 		}
 	}
 	if session == nil || session.Node.Incarnation != handle.Incarnation {
