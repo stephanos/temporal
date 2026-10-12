@@ -216,6 +216,8 @@ CI, PR, or push authority.
 
 ### Shared core with native and WASM backends — [fn-164](.flow/specs/fn-164-gomad-backend-layout-shared-core-with.md)
 
+The owner approved replacing the Go-release-boundary wait with targeted Provider/CLI compatibility, pre-move artifact and fresh detached-replay checks. Native Provider and unified launcher work may proceed after the mechanical layout; unsupported native qualification remains deferred.
+
 | Name / ID | Status | Description |
 | --- | --- | --- |
 | [fn-164.1](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.1.md) | 🚧 In progress | Import checker integrated; current-tree and forbidden-edge/stale-allowlist regressions passed; final batch acceptance remains open |

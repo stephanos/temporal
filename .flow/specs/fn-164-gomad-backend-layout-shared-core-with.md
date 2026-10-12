@@ -98,7 +98,7 @@ cmd/*             may import  shared/*, backends/*
 - **Path-aware tooling.** The architecture analyzer's purity rules and effect allowances name directories, including a special case for the wasm `wasi` package. They move with the packages in the same change.
 - **Evidence schemas do not change.** `gomad3.*` identity strings, artifact layouts, choice records and replay comparison stay byte-identical so native tooling keeps inspecting wasm artifacts and vice versa.
 - **Provider growth bound.** If the native extraction needs more than three new Provider methods, stop and widen the interface deliberately rather than keep native inside `runner`.
-- **Ordering.** Steps that move code without changing behavior land first and independently. The native Provider extraction and launcher unification wait until the wasm backend has survived one Go release boundary.
+- **Ordering.** Steps that move code without changing behavior land first and independently. Native Provider extraction and launcher unification follow the mechanical layout work. The owner-approved replacement for the Go-release-boundary wait is targeted compatibility and replay coverage: compile the shared Provider consumers, verify both backends' command/flag contracts, inspect genuine pre-move artifacts and check explicit model-identity rejection, and run fresh WASM recording with exact detached replay on the integrated candidate. These checks do not qualify patched-native execution on an unsupported host.
 - **CI.** Path filters follow the directories: shared changes run both backends, `backends/native` runs native jobs, `backends/wasm` runs the wasm job (stock Go plus a cached helper build).
 
 ## Acceptance Criteria
@@ -123,6 +123,8 @@ cmd/*             may import  shared/*, backends/*
 - The Rust helper stays under `backends/wasm/wasmhost`; its protocol and pinned engine are untouched.
 
 ## Decision Context
+
+The owner approved replacing the calendar-based Go-release-boundary prerequisite with the targeted compatibility and replay checks above. This removes the scheduling hold on R6/R7, not their acceptance requirements or deferred native qualification.
 
 Native sits inside `runner` because it came first and wasm was added as the first external Provider. Keeping that asymmetry means every rule about what is shared is implicit, and the only safe CI policy is to run everything on every change. Making native a peer behind the same interface is more work than an import allowlist alone, which is why the mechanical steps (R1 through R5) are ordered first and the extraction (R6, R7) last.
 
