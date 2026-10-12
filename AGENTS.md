@@ -144,9 +144,10 @@ This project uses Flow-Next for ALL task tracking. `flowctl` comes from the flow
 
 ## Local milestone execution
 
-For MILESTONES.md work, merge completed task/spec branches locally back into `umpire`
-at a safe worker boundary, after the scoped checks pass and the Flow closure is
-committed. A predecessor is satisfied once its closure is in `umpire`'s history;
+For single-writer MILESTONES.md work, stay on `umpire` (`--branch=current`), keeping
+task boundaries in commits. Integrate any existing task/spec branches locally back
+into `umpire` at a safe worker boundary, after scoped checks pass and the Flow
+closure is committed. A predecessor is satisfied once its closure is in `umpire`'s history;
 start dependent work from that integrated tip, retaining the baseline and plans.
 Keep deferred obligations open when integrating a completed source checkpoint.
 Uncommitted closures and unmerged branches do not satisfy dependencies. Publishing
