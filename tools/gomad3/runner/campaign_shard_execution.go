@@ -98,7 +98,7 @@ func runCampaignShardWith(ctx context.Context, spec CampaignShardSpec, dependenc
 		Coverage:    CoverageMode(plan.Coverage), RequiredSemanticProbes: append([]string(nil), plan.RequiredSemanticProbes...),
 		KeepSuccesses: KeepSuccesses(plan.KeepSuccesses), SuccessArtifactLimit: uint64(plan.SuccessArtifactLimit), SuccessBytesLimit: uint64(plan.SuccessBytesLimit),
 		Progress: spec.Progress, ProgressInterval: spec.ProgressInterval, Replayer: spec.Replayer,
-		Preparer: &campaignPlanPreparer{source: opened.prepared, provider: spec.Backend},
+		Preparer: &campaignPlanPreparer{source: opened.prepared, provider: spec.Backend, environment: recordedEnvironmentStrings(plan.Environment)},
 	}
 	if plan.Guidance != nil {
 		config.Guide = true
@@ -156,8 +156,9 @@ func campaignPlanEnvironment(plan campaign.CampaignPlan) ([]string, string, erro
 }
 
 type campaignPlanPreparer struct {
-	source   target.Prepared
-	provider backends.Provider
+	source      target.Prepared
+	provider    backends.Provider
+	environment []string
 }
 
 func (preparer *campaignPlanPreparer) Prepare(_ context.Context, spec target.Spec) (_ target.Prepared, retErr error) {
@@ -194,7 +195,7 @@ func (preparer *campaignPlanPreparer) Prepare(_ context.Context, spec target.Spe
 	}
 	prepared := preparer.source
 	prepared.Path = destination
-	if err := preparer.provider.ValidatePrepared(spec, prepared, nil); err != nil {
+	if err := preparer.provider.ValidatePrepared(spec, prepared, append([]string(nil), preparer.environment...)); err != nil {
 		return target.Prepared{}, err
 	}
 	return prepared, nil
