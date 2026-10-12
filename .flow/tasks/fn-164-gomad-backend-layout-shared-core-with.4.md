@@ -15,9 +15,10 @@ Leave `Spec`, `Prepared` and the capability types in `target`. Move toolchain-bo
 - Capability review and prepared-inspection tests pass from their new location.
 
 ## Done summary
-TBD
+target keeps shared Spec/Prepared/capability types and imports no backends package; native build preparation lives in backends/native/build.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 1c69376cbd, e0583f0aca
+- Tests: make -C tools/gomad3 test-wasm (0); root architecture selection with GOMAD3_ARCH_ALL_PLATFORMS=1 (0); make -C tools/gomad3 validate (0); make lint-code-fast base e43c7a59c7 (0), evidence: .flow/artifacts/wasm-section-acceptance-2026-10-12.md
 - PRs:
