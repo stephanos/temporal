@@ -241,7 +241,7 @@ Owner decision (2026-10-12): these deferred specs change owners the WASM backend
 | [fn-166.2](.flow/tasks/fn-166-gomad-readable-package-structure-and.2.md) | ⬜ Todo | Consolidate runner tests by behavior |
 | [fn-166.3](.flow/tasks/fn-166-gomad-readable-package-structure-and.3.md) | ⬜ Todo | Consolidate WASM, CLI and gomadtool tests by behavior |
 | [fn-166.4](.flow/tasks/fn-166-gomad-readable-package-structure-and.4.md) | ⬜ Todo | Deepen runner and qualification packages |
-| [fn-166.5](.flow/tasks/fn-166-gomad-readable-package-structure-and.5.md) | ⬜ Todo | Move gomadtool under the native backend |
+| [fn-166.5](.flow/tasks/fn-166-gomad-readable-package-structure-and.5.md) | ⬜ Todo | Move gomadtool and native-only internal packages under the native backend |
 | [fn-166.6](.flow/tasks/fn-166-gomad-readable-package-structure-and.6.md) | ⬜ Todo | Identity-rotating renames; batched with fn-153/fn-154 |
 | [fn-166.7](.flow/tasks/fn-166-gomad-readable-package-structure-and.7.md) | ⬜ Todo | Group shared packages under evidence and model; batched with fn-153/fn-154 |
 
