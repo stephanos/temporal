@@ -58,7 +58,9 @@ Owner execution scope: complete the WASM section. The
 were completed on 2026-10-12
 ([evidence](.flow/artifacts/wasm-section-acceptance-2026-10-12.md)).
 [fn-156: WASM productionization](.flow/specs/fn-156-wasm-gomad-productionization.md)
-is the remaining WASM spec; qualify it on one frozen integrated candidate.
+is the active WASM spec; qualify it on one frozen integrated candidate. The
+shared-owner queue in the WASM section (fn-109 shared subset, fn-152, fn-153,
+fn-154) follows fn-156.
 Preserve prior evidence under its original identities, without claiming it
 qualifies changed runtime inputs. Remove completed task rows only after verified
 Flow completion. Native deferrals, qualification resource limits, and PR, push
@@ -225,6 +227,100 @@ Owner-approved verification cadence (2026-10-11, revised): implement fn-156 as o
 | [fn-156.6](.flow/tasks/fn-156-wasm-gomad-productionization.6.md) | 🚧 In progress | One-box `invalid_input` fixed; full workload corpus on candidate 0e3eb30e running; matched costs pending |
 | [fn-156.7](.flow/tasks/fn-156-wasm-gomad-productionization.7.md) | 🚧 In progress | Installed operator gate passed; review documentation fixes integrated; candidate 0e3eb30e rerun running |
 
+### Shared-owner queue after fn-156
+
+Owner decision (2026-10-12): these deferred specs change owners the WASM backend shares, so they move into the WASM queue after fn-156. Work them in this order: the fn-109 shared subset (Runner orchestration split and portable scripted Runner coverage first), then fn-152, then fn-153 and fn-154 as one batch so their codec, projection and identity rotations need a single WASM requalification. Each shared-owner change requires the WASM gates in the [acceptance evidence](.flow/artifacts/wasm-section-acceptance-2026-10-12.md) to pass on the integrated candidate. Record each revived task's revival trigger in its Flow task before implementation.
+
+### Shared Runner and simulation owners — [fn-109](.flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md) (shared subset)
+
+These fn-109 tasks change Runner, artifact, choice-exploration and simulation owners that the WASM backend shares. The remaining fn-109 tasks stay under Native.
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-109.12](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.12.md) | ⬜ Todo | Separate detached Artifact references from owned opened handles |
+| [fn-109.13](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.13.md) | ⬜ Todo | Generate host and runtime simulation-time codecs from one versioned definition |
+| [fn-109.14](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.14.md) | ⬜ Todo | Hide generic model-wire slots behind typed network and volume commands |
+| [fn-109.15](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.15.md) | ⬜ Todo | Characterize simulation progress ordering and choose the lifecycle interface from two designs |
+| [fn-109.16](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.16.md) | ⬜ Todo | Implement the simulation progress lifecycle owner and remove caller-side accounting |
+| [fn-109.29](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.29.md) | ⬜ Todo | Preserve private artifact payload cleanup and error identity |
+| [fn-109.30](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.30.md) | ⬜ Todo | Preserve public artifact copy cleanup and handle lifetime |
+| [fn-109.31](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.31.md) | ⬜ Todo | Preserve artifact directory and shared-verifier cleanup |
+| [fn-109.36](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.36.md) | ⬜ Todo | Preserve Choice Exploration stopping predicates and round identities |
+| [fn-109.63](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.63.md) | 🚧 In progress | Decompose local campaign orchestration before further Runner changes |
+| [fn-109.65](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.65.md) | 🚧 In progress | Restore explicit scripted Runner preparation and bootstrap coverage |
+| [fn-109.66](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.66.md) | 🚧 In progress | Restore explicit scripted progress and retention assertions |
+| [fn-109.67](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.67.md) | 🚧 In progress | Preserve busy host workloads while correcting spin lint |
+| [fn-109.68](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.68.md) | 🚧 In progress | Restore explicit scripted Choice Exploration coverage |
+| [fn-109.69](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.69.md) | 🚧 In progress | Restore explicit scripted retained-success coverage |
+| [fn-109.70](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.70.md) | 🚧 In progress | Restore explicit scripted Choice Exploration divergence coverage |
+| [fn-109.71](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.71.md) | 🚧 In progress | Restore explicit scripted completion coverage |
+| [fn-109.72](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.72.md) | 🚧 In progress | Restore explicit scripted seed completion statistics coverage |
+| [fn-109.73](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.73.md) | 🚧 In progress | Restore explicit scripted Unix campaign-mode coverage |
+| [fn-109.74](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.74.md) | 🚧 In progress | Restore explicit scripted retention calibration and policy coverage |
+| [fn-109.75](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.75.md) | 🚧 In progress | Restore scripted diagnostics capacity bounds and simulation inspection coverage |
+| [fn-109.76](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.76.md) | ⬜ Todo | Restore scripted first-failure and distinct-budget coverage |
+
+### Runner append-log storage — [fn-152](.flow/specs/fn-152-gomad-runner-storage-on-one-append-only.md)
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-152.1](.flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.1.md) | ⬜ Todo | Add protected framing, guarded opens and read-only versus writer replay |
+| [fn-152.2](.flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.2.md) | ⬜ Todo | Gate artifact lineage and owned live-reference cleanup |
+| [fn-152.3](.flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.3.md) | ⬜ Todo | Replace campaign lifecycle, recovery and resume files with one log |
+| [fn-152.4](.flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.4.md) | ⬜ Todo | Integrate durable seed outcomes, scheduling and resume |
+| [fn-152.5](.flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.5.md) | ⬜ Todo | Commit both exploration strategies through one atomic round owner |
+| [fn-152.6](.flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.6.md) | ⬜ Todo | Replay corpus admission and eviction into the bounded live hash index |
+| [fn-152.7](.flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.7.md) | ⬜ Todo | Concatenate source-scoped shard logs after complete preflight |
+| [fn-152.8](.flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.8.md) | ⬜ Todo | Inspect log and corpus state and migrate storage consumers |
+| [fn-152.9](.flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.9.md) | ⬜ Todo | Retain integrated crash evidence and update current storage contracts |
+| [fn-152.10](.flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.10.md) | ⬜ Todo | Persist admitted work and terminal receipts with atomic policy stop/drain |
+
+<a id="canonical-json-publication-cleanup-fn-153"></a>
+
+### JSON and file-publication cleanup - [fn-153](.flow/specs/fn-153-gomad-retire-canonical-json-and-private.md)
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-153.1](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.1.md) | ⬜ Todo | Introduce narrow strict JSON decoding without a shared encoder |
+| [fn-153.2](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.2.md) | ⬜ Todo | Centralize staged and streamed whole-file publication |
+| [fn-153.3](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.3.md) | ⬜ Todo | Migrate execution records and I/O identity validation |
+| [fn-153.4](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.4.md) | ⬜ Todo | Migrate preparation identities and preserve live-capability payloads |
+| [fn-153.5](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.5.md) | ⬜ Todo | Replace World's generic encoder with a bounded domain-local stdlib codec |
+| [fn-153.6](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.6.md) | ⬜ Todo | Migrate compatibility authoring without changing approvals' meaning |
+| [fn-153.7](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.7.md) | ⬜ Todo | Migrate qualification evidence and shared report publication |
+| [fn-153.8](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.8.md) | ⬜ Todo | Migrate qualification sets and generated manifest inputs |
+| [fn-153.9](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.9.md) | ⬜ Todo | Migrate CLI JSON delivery and retain the public upgrade facade |
+| [fn-153.10](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.10.md) | ⬜ Todo | Migrate choice exploration and Runner identity projections |
+| [fn-153.11](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.11.md) | ⬜ Todo | Migrate simulation identities while preserving paired target formulas |
+| [fn-153.12](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.12.md) | ⬜ Todo | Migrate replay composition, minimizer checkpoints and corpus semantics |
+| [fn-153.13](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.13.md) | ⬜ Todo | Move streamed archive and validated patch publication to hostfs |
+| [fn-153.14](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.14.md) | ⬜ Todo | Preserve the builder's staged stamp and launcher transaction |
+| [fn-153.15](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.15.md) | ⬜ Todo | Migrate architecture effect fixtures before removing their source owner |
+| [fn-153.16](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.16.md) | ⬜ Todo | Delete the generic canonical package and its obsolete owner entries |
+| [fn-153.17](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.17.md) | ⬜ Todo | Regenerate final-input approvals, packs, goldens and identity outputs |
+| [fn-153.18](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.18.md) | ⬜ Todo | Reconcile contracts and verify the integrated cleanup |
+
+<a id="virtual-network-stalling-fn-154"></a>
+
+### Virtual network stalling and simplification - [fn-154](.flow/specs/fn-154-gomad-simpler-virtual-network-with.md)
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-154.1](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.1.md) | ⬜ Todo | Add explicit per-direction byte and virtual stall limits |
+| [fn-154.2](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.2.md) | ⬜ Todo | Propagate limits and admit held/timeout vocabulary in the generated network codec |
+| [fn-154.3](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.3.md) | ⬜ Todo | Preserve persistent stall timeout identity through local and process adapters |
+| [fn-154.4](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.4.md) | ⬜ Todo | Unify local connection mechanics behind a byte-bounded queue owner |
+| [fn-154.5](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.5.md) | ⬜ Todo | Hold partitioned bytes and release FIFO through effective topology changes |
+| [fn-154.6](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.6.md) | ⬜ Todo | Expire stalled connections through autonomous virtual-time work |
+| [fn-154.7](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.7.md) | ⬜ Todo | Bound pending partitioned dials with independent virtual stall intervals |
+| [fn-154.8](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.8.md) | ⬜ Todo | Remove delivery history and hashes with coherent record and codec migration |
+| [fn-154.9](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.9.md) | ⬜ Todo | Pin shared-connection and in-process fault conformance |
+| [fn-154.10](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.10.md) | ⬜ Todo | Execute process network cases through registered isolated Runner gates |
+| [fn-154.11](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.11.md) | ⬜ Todo | Verify framed streams and the divided payload replay guarantees |
+| [fn-154.12](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.12.md) | ⬜ Todo | Reconcile network contracts and verify the frozen integrated candidate |
+
+<a id="quality-assessment-2026-10-01"></a>
+
 ## Native
 
 Deferred by owner decision: all unfinished specs and tasks below are outside the active WASM delivery queue. Completed work and recorded Flow states are preserved. Required fixes to shared Gomad owners remain in fn-156's scope; this deferral does not waive WASM acceptance or revive native qualification.
@@ -240,7 +336,7 @@ and native deferrals; this priority grants no PR, push or CI authority.
 
 1. Finish fn-112 task 10's retained source acceptance for the delivered soak gate and shared documentation. Actual native soak runs and measured bounds remain with fn-149.4 and fn-128.5/.7; no workflow dispatch is authorized.
 2. Reconcile the combined D26/fn-110 source candidate, fn-112 tasks 5/16/9, D27 and fn-109 tasks 2-6 against their retained source checks, preservation and source reviews. Keep lint, both-source-set static checks, generated validation, first-baseline and preservation requirements open wherever unproved. Native runtime/clock proof belongs to deferred fn-149.1 and fn-128.1/.4/.7.
-3. Continue fn-109 tasks 7-12, fn-110 tasks 3-4, then fn-109 tasks 13-21 and fn-110 task 5 in coherent implementation batches, including the admitted correction owners. Respect implementation dependencies within each batch; validate and review the integrated batch before completing its tasks. Missing native qualification now owned by fn-149 or fn-128 cannot block source admission or completion; unproved source requirements still do.
+3. Continue fn-109 tasks 7-11, fn-110 tasks 3-4, then fn-109 tasks 17-21 (tasks 12-16 and the other shared-owner tasks moved to the WASM section) and fn-110 task 5 in coherent implementation batches, including the admitted correction owners. Respect implementation dependencies within each batch; validate and review the integrated batch before completing its tasks. Missing native qualification now owned by fn-149 or fn-128 cannot block source admission or completion; unproved source requirements still do.
 4. Resume fn-105 D8-D10's shared source work when the real checkout is available. Native Darwin consumer analyses/packs/replay/guidance belong to fn-149.3; Linux execution belongs to fn-128.6. Neither native owner removes the actual-checkout/source-review prerequisite.
 5. Keep fn-149 deferred until an explicit Darwin qualification request and native darwin/arm64 execution are available. Then establish its pinned candidate/runtime, retain inherited integration/model/pack and downstream evidence, and reconcile an actual scheduled/dispatched soak plus final matrix. Publication and CI actions need separate authority.
 6. Keep fn-128 and its Linux CI work deferred until an explicit Linux qualification request and native linux/amd64 execution are available. Its eventual sequence remains baseline, causal D12 strict-replay fix, D21-triggered D11 audit, native model/consumer/soak evidence and final Linux matrix. No PR or CI run is part of the current work.
@@ -270,11 +366,6 @@ and native deferrals; this priority grants no PR, push or CI authority.
 | [fn-109.9](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.9.md) | ⏸ Deferred (recorded: 🚧 In progress) | Bounded adapter listing integrated; original acceptance gates remain open |
 | [fn-109.10](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.10.md) | ⏸ Deferred (recorded: ⬜ Todo) | Supply build, cache and adapter locations from one validated installation description |
 | [fn-109.11](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.11.md) | ⏸ Deferred (recorded: ⬜ Todo) | Capability/source-inventory owners integrated; inventory lint fixed, qualification pending |
-| [fn-109.12](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.12.md) | ⏸ Deferred (recorded: ⬜ Todo) | Separate detached Artifact references from owned opened handles |
-| [fn-109.13](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.13.md) | ⏸ Deferred (recorded: ⬜ Todo) | Generate host and runtime simulation-time codecs from one versioned definition |
-| [fn-109.14](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.14.md) | ⏸ Deferred (recorded: ⬜ Todo) | Hide generic model-wire slots behind typed network and volume commands |
-| [fn-109.15](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.15.md) | ⏸ Deferred (recorded: ⬜ Todo) | Characterize simulation progress ordering and choose the lifecycle interface from two designs |
-| [fn-109.16](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.16.md) | ⏸ Deferred (recorded: ⬜ Todo) | Implement the simulation progress lifecycle owner and remove caller-side accounting |
 | [fn-109.17](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.17.md) | ⏸ Deferred (recorded: ⛔ Blocked) | Select backend-specific network listener and connection implementations at creation; waits for fn-155.7 |
 | [fn-109.18](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.18.md) | ⏸ Deferred (recorded: ⛔ Blocked) | Select backend-specific filesystem handle and mapping implementations at creation; waits for fn-155.7 |
 | [fn-109.19](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.19.md) | ⏸ Deferred (recorded: 🚧 In progress) | Architecture digest lint repaired; original acceptance remains open |
@@ -285,14 +376,10 @@ and native deferrals; this priority grants no PR, push or CI authority.
 | [fn-109.25](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.25.md) | ⏸ Deferred (recorded: ⬜ Todo) | Preserve lifecycle fault resolution while repairing exhaustive lint |
 | [fn-109.26](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.26.md) | ⏸ Deferred (recorded: ⬜ Todo) | Restore Runner semantic ownership in CLI callers |
 | [fn-109.27](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.27.md) | ⏸ Deferred (recorded: ⬜ Todo) | Correct current R18 preservation disclosures |
-| [fn-109.29](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.29.md) | ⏸ Deferred (recorded: ⬜ Todo) | Preserve private artifact payload cleanup and error identity |
-| [fn-109.30](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.30.md) | ⏸ Deferred (recorded: ⬜ Todo) | Preserve public artifact copy cleanup and handle lifetime |
-| [fn-109.31](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.31.md) | ⏸ Deferred (recorded: ⬜ Todo) | Preserve artifact directory and shared-verifier cleanup |
 | [fn-109.32](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.32.md) | ⏸ Deferred (recorded: ⬜ Todo) | Preserve concrete error callback provenance in architecture checks |
 | [fn-109.33](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.33.md) | ⏸ Deferred (recorded: ⬜ Todo) | Preserve artifact reflection helper coverage and clone isolation |
 | [fn-109.34](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.34.md) | ⏸ Deferred (recorded: ⬜ Todo) | Check CLI private-mode fixture reader cleanup |
 | [fn-109.35](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.35.md) | ⏸ Deferred (recorded: ⛔ Blocked) | Preserve corpus reader cleanup and publication failures |
-| [fn-109.36](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.36.md) | ⏸ Deferred (recorded: ⬜ Todo) | Preserve Choice Exploration stopping predicates and round identities |
 | [fn-109.37](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.37.md) | ⏸ Deferred (recorded: ⬜ Todo) | Qualification cleanup and import lint clean; original qualification open |
 | [fn-109.38](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.38.md) | ⏸ Deferred (recorded: ⬜ Todo) | Target and pure-policy lint clean; original qualification remains open |
 | [fn-109.39](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.39.md) | ⏸ Deferred (recorded: ⬜ Todo) | Cleanup lint repaired; fault, pin and original qualification remain open |
@@ -318,20 +405,7 @@ and native deferrals; this priority grants no PR, push or CI authority.
 | [fn-109.60](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.60.md) | ⏸ Deferred (recorded: 🚧 In progress) | Check six child-fixture outputs without changing process outcomes |
 | [fn-109.61](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.61.md) | ⏸ Deferred (recorded: 🚧 In progress) | Observe competing-build lock contention instead of sleeping |
 | [fn-109.62](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.62.md) | ⏸ Deferred (recorded: 🚧 In progress) | Bound progress-test startup and observe early completion |
-| [fn-109.63](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.63.md) | ⏸ Deferred (recorded: 🚧 In progress) | Decompose local campaign orchestration before further Runner changes |
 | [fn-109.64](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.64.md) | ⏸ Deferred (recorded: 🚧 In progress) | Check watchdog fixture readiness writes without masking setup failure |
-| [fn-109.65](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.65.md) | ⏸ Deferred (recorded: 🚧 In progress) | Restore explicit scripted Runner preparation and bootstrap coverage |
-| [fn-109.66](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.66.md) | ⏸ Deferred (recorded: 🚧 In progress) | Restore explicit scripted progress and retention assertions |
-| [fn-109.67](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.67.md) | ⏸ Deferred (recorded: 🚧 In progress) | Preserve busy host workloads while correcting spin lint |
-| [fn-109.68](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.68.md) | ⏸ Deferred (recorded: 🚧 In progress) | Restore explicit scripted Choice Exploration coverage |
-| [fn-109.69](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.69.md) | ⏸ Deferred (recorded: 🚧 In progress) | Restore explicit scripted retained-success coverage |
-| [fn-109.70](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.70.md) | ⏸ Deferred (recorded: 🚧 In progress) | Restore explicit scripted Choice Exploration divergence coverage |
-| [fn-109.71](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.71.md) | ⏸ Deferred (recorded: 🚧 In progress) | Restore explicit scripted completion coverage |
-| [fn-109.72](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.72.md) | ⏸ Deferred (recorded: 🚧 In progress) | Restore explicit scripted seed completion statistics coverage |
-| [fn-109.73](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.73.md) | ⏸ Deferred (recorded: 🚧 In progress) | Restore explicit scripted Unix campaign-mode coverage |
-| [fn-109.74](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.74.md) | ⏸ Deferred (recorded: 🚧 In progress) | Restore explicit scripted retention calibration and policy coverage |
-| [fn-109.75](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.75.md) | ⏸ Deferred (recorded: 🚧 In progress) | Restore scripted diagnostics capacity bounds and simulation inspection coverage |
-| [fn-109.76](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.76.md) | ⏸ Deferred (recorded: ⬜ Todo) | Restore scripted first-failure and distinct-budget coverage |
 
 <a id="runtime-patch-minimization-fn-110"></a>
 
@@ -359,67 +433,6 @@ and native deferrals; this priority grants no PR, push or CI authority.
 | [fn-155.8](.flow/tasks/fn-155-gomad-syscall-level-io-boundary-from.8.md) | ⏸ Deferred (recorded: ⬜ Todo) | Admit the edge's socket entry points in capability guard and closure policy |
 
 <a id="append-log-storage-fn-152"></a>
-
-### Runner append-log storage — [fn-152](.flow/specs/fn-152-gomad-runner-storage-on-one-append-only.md) — Deferred
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-152.1](.flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.1.md) | ⏸ Deferred (recorded: ⬜ Todo) | Add protected framing, guarded opens and read-only versus writer replay |
-| [fn-152.2](.flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.2.md) | ⏸ Deferred (recorded: ⬜ Todo) | Gate artifact lineage and owned live-reference cleanup |
-| [fn-152.3](.flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.3.md) | ⏸ Deferred (recorded: ⬜ Todo) | Replace campaign lifecycle, recovery and resume files with one log |
-| [fn-152.4](.flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.4.md) | ⏸ Deferred (recorded: ⬜ Todo) | Integrate durable seed outcomes, scheduling and resume |
-| [fn-152.5](.flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.5.md) | ⏸ Deferred (recorded: ⬜ Todo) | Commit both exploration strategies through one atomic round owner |
-| [fn-152.6](.flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.6.md) | ⏸ Deferred (recorded: ⬜ Todo) | Replay corpus admission and eviction into the bounded live hash index |
-| [fn-152.7](.flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.7.md) | ⏸ Deferred (recorded: ⬜ Todo) | Concatenate source-scoped shard logs after complete preflight |
-| [fn-152.8](.flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.8.md) | ⏸ Deferred (recorded: ⬜ Todo) | Inspect log and corpus state and migrate storage consumers |
-| [fn-152.9](.flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.9.md) | ⏸ Deferred (recorded: ⬜ Todo) | Retain integrated crash evidence and update current storage contracts |
-| [fn-152.10](.flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.10.md) | ⏸ Deferred (recorded: ⬜ Todo) | Persist admitted work and terminal receipts with atomic policy stop/drain |
-
-<a id="canonical-json-publication-cleanup-fn-153"></a>
-
-### JSON and file-publication cleanup - [fn-153](.flow/specs/fn-153-gomad-retire-canonical-json-and-private.md) — Deferred
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-153.1](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.1.md) | ⏸ Deferred (recorded: ⬜ Todo) | Introduce narrow strict JSON decoding without a shared encoder |
-| [fn-153.2](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.2.md) | ⏸ Deferred (recorded: ⬜ Todo) | Centralize staged and streamed whole-file publication |
-| [fn-153.3](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.3.md) | ⏸ Deferred (recorded: ⬜ Todo) | Migrate execution records and I/O identity validation |
-| [fn-153.4](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.4.md) | ⏸ Deferred (recorded: ⬜ Todo) | Migrate preparation identities and preserve live-capability payloads |
-| [fn-153.5](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.5.md) | ⏸ Deferred (recorded: ⬜ Todo) | Replace World's generic encoder with a bounded domain-local stdlib codec |
-| [fn-153.6](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.6.md) | ⏸ Deferred (recorded: ⬜ Todo) | Migrate compatibility authoring without changing approvals' meaning |
-| [fn-153.7](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.7.md) | ⏸ Deferred (recorded: ⬜ Todo) | Migrate qualification evidence and shared report publication |
-| [fn-153.8](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.8.md) | ⏸ Deferred (recorded: ⬜ Todo) | Migrate qualification sets and generated manifest inputs |
-| [fn-153.9](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.9.md) | ⏸ Deferred (recorded: ⬜ Todo) | Migrate CLI JSON delivery and retain the public upgrade facade |
-| [fn-153.10](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.10.md) | ⏸ Deferred (recorded: ⬜ Todo) | Migrate choice exploration and Runner identity projections |
-| [fn-153.11](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.11.md) | ⏸ Deferred (recorded: ⬜ Todo) | Migrate simulation identities while preserving paired target formulas |
-| [fn-153.12](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.12.md) | ⏸ Deferred (recorded: ⬜ Todo) | Migrate replay composition, minimizer checkpoints and corpus semantics |
-| [fn-153.13](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.13.md) | ⏸ Deferred (recorded: ⬜ Todo) | Move streamed archive and validated patch publication to hostfs |
-| [fn-153.14](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.14.md) | ⏸ Deferred (recorded: ⬜ Todo) | Preserve the builder's staged stamp and launcher transaction |
-| [fn-153.15](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.15.md) | ⏸ Deferred (recorded: ⬜ Todo) | Migrate architecture effect fixtures before removing their source owner |
-| [fn-153.16](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.16.md) | ⏸ Deferred (recorded: ⬜ Todo) | Delete the generic canonical package and its obsolete owner entries |
-| [fn-153.17](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.17.md) | ⏸ Deferred (recorded: ⬜ Todo) | Regenerate final-input approvals, packs, goldens and identity outputs |
-| [fn-153.18](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.18.md) | ⏸ Deferred (recorded: ⬜ Todo) | Reconcile contracts and verify the integrated cleanup |
-
-<a id="virtual-network-stalling-fn-154"></a>
-
-### Virtual network stalling and simplification - [fn-154](.flow/specs/fn-154-gomad-simpler-virtual-network-with.md) — Deferred
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-154.1](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.1.md) | ⏸ Deferred (recorded: ⬜ Todo) | Add explicit per-direction byte and virtual stall limits |
-| [fn-154.2](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.2.md) | ⏸ Deferred (recorded: ⬜ Todo) | Propagate limits and admit held/timeout vocabulary in the generated network codec |
-| [fn-154.3](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.3.md) | ⏸ Deferred (recorded: ⬜ Todo) | Preserve persistent stall timeout identity through local and process adapters |
-| [fn-154.4](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.4.md) | ⏸ Deferred (recorded: ⬜ Todo) | Unify local connection mechanics behind a byte-bounded queue owner |
-| [fn-154.5](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.5.md) | ⏸ Deferred (recorded: ⬜ Todo) | Hold partitioned bytes and release FIFO through effective topology changes |
-| [fn-154.6](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.6.md) | ⏸ Deferred (recorded: ⬜ Todo) | Expire stalled connections through autonomous virtual-time work |
-| [fn-154.7](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.7.md) | ⏸ Deferred (recorded: ⬜ Todo) | Bound pending partitioned dials with independent virtual stall intervals |
-| [fn-154.8](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.8.md) | ⏸ Deferred (recorded: ⬜ Todo) | Remove delivery history and hashes with coherent record and codec migration |
-| [fn-154.9](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.9.md) | ⏸ Deferred (recorded: ⬜ Todo) | Pin shared-connection and in-process fault conformance |
-| [fn-154.10](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.10.md) | ⏸ Deferred (recorded: ⬜ Todo) | Execute process network cases through registered isolated Runner gates |
-| [fn-154.11](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.11.md) | ⏸ Deferred (recorded: ⬜ Todo) | Verify framed streams and the divided payload replay guarantees |
-| [fn-154.12](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.12.md) | ⏸ Deferred (recorded: ⬜ Todo) | Reconcile network contracts and verify the frozen integrated candidate |
-
-<a id="quality-assessment-2026-10-01"></a>
 
 ### Determinism assurance and test strategy — [fn-112](.flow/specs/fn-112-gomad-determinism-assurance-and-test.md) — Deferred
 
