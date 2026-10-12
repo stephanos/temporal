@@ -10,7 +10,12 @@ object bounded:
     val none: Retries = 0
 
 final val one = 1
-final case class Counters(zero: UpTo[0], first: UpTo[one.type], second: UpTo[3], retries: bounded.Retries)
+final case class Counters(
+    zero: UpTo[0],
+    first: UpTo[one.type],
+    second: UpTo[3],
+    retries: bounded.Retries
+)
 final case class Optional(first: Option[UpTo[1]], second: Option[UpTo[3]])
 enum Outcome:
   case accepted
@@ -25,8 +30,10 @@ object Options extends Machine[Optional, Outcome, Nothing]:
   def end(s: State) = true
   object rules extends Bindings()
 
-val small: Channel[UpTo[1]] = channel[UpTo[1]](capacity = 1, order = Order.fifo, loss = Loss.reliable)
-val large: Channel[UpTo[3]] = channel[UpTo[3]](capacity = 1, order = Order.fifo, loss = Loss.reliable)
+val small: Channel[UpTo[1]] =
+  channel[UpTo[1]](capacity = 1, order = Order.fifo, loss = Loss.reliable)
+val large: Channel[UpTo[3]] =
+  channel[UpTo[3]](capacity = 1, order = Order.fifo, loss = Loss.reliable)
 final case class Mail(first: Inbox[UpTo[1]], second: Inbox[UpTo[3]])
 given Finite[Mail] =
   given smallContents: Finite[Inbox[UpTo[1]]] = small.contents

@@ -1609,9 +1609,9 @@ private[irgen] trait Declarations:
     val id = definitionId(sym, at)
     if !channels.contains(id) then
       val d = valDef(sym, at, "a channel")
-      val (message, capacity, order, loss, duplicates, finite) = arguments(d.rhs.get) match
-        case Apply(Apply(TypeApply(Ident("channel"), List(m)), List(c, o, l, dups)), List(f)) =>
-          (m, c, o, l, dups, f)
+      val (message, capacity, order, loss, duplicates) = arguments(d.rhs.get) match
+        case Apply(Apply(TypeApply(Ident("channel"), List(m)), List(c, o, l, dups)), List(_)) =>
+          (m, c, o, l, dups)
         case other =>
           fail(other, "a channel is declared by `channel[M](capacity, order, loss, duplicates)`")
       val (cap, dup) =
@@ -1639,7 +1639,7 @@ private[irgen] trait Declarations:
         id = id,
         name = n,
         position = Some(pos(d)),
-        message = Some(messageRef(message.tpe, finite, d, n)),
+        message = Some(messageRef(message.tpe, d, n)),
         capacity = cap.toInt,
         order = policy(
           order,
@@ -1654,24 +1654,16 @@ private[irgen] trait Declarations:
       )
     id
 
-  // A channel's message type, as its finite catalog: a named type, the Booleans, an opaque type's
-  // own range, or, for Int, the range the channel's `Finite.upTo(n)` declares. The IR has no catalog
-  // for any other Int or for a list, so those are refused at the declaration.
-  def messageRef(message: TypeRepr, finite: Term, at: Tree, channel: String): ir.TypeRef =
+  // A channel's message type owns its range; plain Int and lists are refused at the declaration.
+  def messageRef(message: TypeRepr, at: Tree, channel: String): ir.TypeRef =
     val t = message.dealias.widen
     if !message.widen.typeSymbol.flags.is(Flags.Opaque) && t.typeSymbol == defn.IntClass
     then
-      resolve(finite) match
-        case Apply(upTo @ Select(_, "upTo"), List(bound))
-            if upTo.symbol.owner.fullName.startsWith("framework.Finite") =>
-          range(0, constInt(bound))
-        case other =>
-          fail(
-            at,
-            s"channel $channel's messages are Int, and their catalog ${other.show} is not `Finite.upTo(n)`: " +
-              "the IR carries an Int only as a range from 0, so declare the channel with one or give its messages " +
-              "an opaque type with a range"
-          )
+      fail(
+        at,
+        s"channel $channel's messages are Int with no declared bound: write channel[UpTo[N]] " +
+          "and send UpTo(n), or give its messages a named opaque type with a range"
+      )
     else if isList(t.typeSymbol) then
       fail(
         at,

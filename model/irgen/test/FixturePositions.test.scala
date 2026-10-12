@@ -63,10 +63,36 @@ private[irgen] object FixturePositions:
       require(seenSplit.toSet == split.keySet.filter(_._1 == name), s"$name has unused split-coordinate mappings")
   private def relocate(from: String, to: String, pairs: (Int, Int)*): Map[Coordinate, Coordinate] =
     pairs.map((before, after) => (from -> before) -> (to -> after)).toMap
+
+  val boundedFixtures: Set[String] = Set("presence", "channels")
+
+  def checkBounded(name: String, text: String): Unit =
+    require(boundedFixtures(name))
+    val actual = mapper.readTree(text)
+    check(name, actual, current = true)
+    val expected = mapper.readTree(Files.readString(
+      Tools.here.directory.resolve(s"model/irgen/testdata/lifts/expected/$name.json")
+    ))
+    for (pointer, position) <- positions(expected) do
+      val coordinate = position.path("file").asText() -> position.path("line").asInt()
+      val target = split.get(name -> pointer).map(_._2).orElse(changes(name).get(coordinate))
+      target.foreach: (file, line) =>
+        val p = position.asInstanceOf[ObjectNode]
+        p.put("file", file): Unit
+        p.put("line", line): Unit
+    require(actual == expected, s"$name changed beyond its exact declared source coordinates")
   private def lines(file: String, pairs: (Int, Int)*): Map[Coordinate, Coordinate] =
     relocate(file, file, pairs*)
 
   private val changes: Map[String, Map[Coordinate, Coordinate]] = Map(
+    "presence" -> lines("model/irgen/testdata/lifts/Presence.scala",
+      35 -> 31, 38 -> 34, 39 -> 35, 40 -> 36, 41 -> 37, 43 -> 39, 44 -> 40,
+      45 -> 41, 47 -> 43, 49 -> 45, 50 -> 46, 55 -> 51, 56 -> 52, 57 -> 53,
+      58 -> 54, 59 -> 55, 61 -> 57, 62 -> 58, 63 -> 59, 65 -> 61, 66 -> 62,
+      68 -> 64, 69 -> 65, 70 -> 66, 73 -> 69),
+    "channels" -> lines("model/irgen/testdata/lifts/Channels.scala",
+      72 -> 70, 78 -> 76, 80 -> 78, 81 -> 79, 83 -> 82, 84 -> 83, 86 -> 85,
+      87 -> 86, 88 -> 87, 90 -> 89),
     "admission" -> (
       lines("model/irgen/testdata/lifts/Admission.scala",
         117 -> 116, 127 -> 126, 130 -> 129, 134 -> 133, 135 -> 134, 137 -> 136, 138 -> 137, 142 -> 141, 143 -> 142, 145 -> 144,
@@ -185,6 +211,7 @@ private[irgen] object FixturePositions:
   )
 
   private val split: Map[(String, String), (Coordinate, Coordinate)] = Map(
+    ("channels", "/functions/0/body/if/else/position") -> (("model/irgen/testdata/lifts/Channels.scala", 81), ("model/irgen/testdata/lifts/Channels.scala", 80)),
     ("taskqueue", "/functions/30/body/position") -> (("model/temporal/foundations/taskqueue/system/System.scala", 107), ("model/temporal/foundations/taskqueue/protocol/Queueing.scala", 56)),
     ("taskqueue", "/functions/30/body/list/items/0/position") -> (("model/temporal/foundations/taskqueue/system/System.scala", 107), ("model/temporal/foundations/taskqueue/protocol/Queueing.scala", 57)),
     ("taskqueue", "/functions/30/body/list/items/0/construct/args/0/position") -> (("model/temporal/foundations/taskqueue/system/System.scala", 107), ("model/temporal/foundations/taskqueue/protocol/Queueing.scala", 58)),

@@ -24,7 +24,15 @@ private[irgen] trait Types:
   def isNamed(tpe: TypeRepr, name: String): Boolean =
     tpe.widen.dealias.typeSymbol.fullName == name
   def messageType(inbox: TypeRepr): String =
-    inbox.widen.dealias.typeArgs.head.dealias.typeSymbol.fullName
+    def identity(tpe: TypeRepr): String =
+      tpe.dealias.widenTermRefByName match
+        case ConstantType(IntConstant(n)) => n.toString
+        case _                            =>
+          val t = tpe.widen.dealias
+          val args = t.typeArgs
+          val name = t.typeSymbol.fullName
+          if args.isEmpty then name else s"$name[${args.map(identity).mkString(",")}]"
+    identity(inbox.widen.dealias.typeArgs.head)
   def named(name: String): ir.TypeRef = ir.TypeRef(ir.TypeRef.Ref.Named(name))
   def range(low: Long, high: Long): ir.TypeRef =
     ir.TypeRef(ir.TypeRef.Ref.IntRange(ir.IntRange(low = low, high = high)))
@@ -51,15 +59,11 @@ private[irgen] trait Types:
       if sym == defn.BooleanClass then ir.TypeRef(ir.TypeRef.Ref.Bool(Empty()))
       else if sym == defn.IntClass && owner.isEmpty then ir.TypeRef(ir.TypeRef.Ref.Int(Empty()))
       else if sym == defn.IntClass then
-        val (lo, hi) = intRanges.getOrElse(
-          owner,
-          fail(
-            at,
-            s"an Int field of $owner has no range: give the state a " +
-              "`given Finite[Int] = Finite.upTo(...)` where its Finite is derived"
-          )
+        fail(
+          at,
+          s"$owner.${at.symbol.name} is an Int field with no declared bound: write its type as UpTo[N] and " +
+            "its values as UpTo(n)"
         )
-        range(lo, hi)
       else if isList(sym) then ir.TypeRef(ir.TypeRef.Ref.List(typeRef(t.typeArgs.head, at, owner)))
       else if sym.fullName == "scala.Option" then named(optionType(t.typeArgs.head, at))
       else if sym.fullName == "framework.Inbox" then
@@ -103,7 +107,7 @@ private[irgen] trait Types:
     then
       types(name) = ir.Type.defaultInstance // placeholder against recursion
       val position = Some(scala.util.Try(pos(sym.tree)).getOrElse(pos(at)))
-      def field(n: String, ft: TypeRepr): ir.Field =
+      def field(cls: Symbol, n: String, ft: TypeRepr): ir.Field =
         // A list has no bound, so no finite type has one as a field.
         if isList(ft.dealias.widen.typeSymbol) then
           fail(
@@ -111,8 +115,17 @@ private[irgen] trait Types:
             s"${sym.fullName}.$n is a list, which has no bound: a state " +
               "holds messages in a channel's Inbox"
           )
-        ir.Field(name = n, `type` = Some(typeRef(ft, at, sym.fullName)))
-      def fields(cls: Symbol): Seq[ir.Field] = fieldTypes(cls).map(field)
+        val unbounded = ft.dealias.widen.typeSymbol == defn.IntClass && !ft.widen.typeSymbol.flags
+          .is(Flags.Opaque)
+        val declared =
+          if unbounded
+          then
+            val candidates = cls.primaryConstructor.paramSymss.flatten ++ cls.caseFields
+            candidates.filter(_.name == n).map(_.tree).find(_.pos.startLine >= 0).getOrElse(at)
+          else at
+        val owner = if unbounded then cls.fullName else sym.fullName
+        ir.Field(name = n, `type` = Some(typeRef(ft, declared, owner)))
+      def fields(cls: Symbol): Seq[ir.Field] = fieldTypes(cls).map((n, ft) => field(cls, n, ft))
       val shape =
         if sym.flags.is(Flags.Enum) then
           checkRoles(sym, at)
@@ -135,7 +148,9 @@ private[irgen] trait Types:
     val argName = value.ref match
       case ir.TypeRef.Ref.Named(n)    => n
       case ir.TypeRef.Ref.Bool(_)     => "scala.Boolean"
-      case ir.TypeRef.Ref.IntRange(_) => arg.widen.typeSymbol.fullName
+      case ir.TypeRef.Ref.IntRange(r) =>
+        val name = arg.widen.typeSymbol.fullName
+        if name == upToType then s"$name[${r.high}]" else name
       case ir.TypeRef.Ref.Int(_) | ir.TypeRef.Ref.List(_) | ir.TypeRef.Ref.Channel(_) |
           ir.TypeRef.Ref.Empty =>
         fail(
@@ -169,9 +184,7 @@ private[irgen] trait Types:
       )
     )
 
-  // The `given Finite[S]` blocks: an Int field's range is the `Finite.upTo(bound)` in scope there.
-  // An Inbox field's channel is the one whose contents are in scope there, and an opaque type's own
-  // given is its range.
+  // An Inbox field's channel comes from its state's given; a named opaque type's given is its range.
   def finiteOf(tpt: TypeTree): Option[TypeRepr] =
     if tpt.tpe.typeSymbol.name == "Finite" then tpt.tpe.typeArgs.headOption
     else None
@@ -180,8 +193,6 @@ private[irgen] trait Types:
       d match
         case ValDef(_, tpt, Some(Block(stats, _))) if finiteOf(tpt).nonEmpty =>
           val state = finiteOf(tpt).get.dealias.typeSymbol.fullName
-          for case ValDef(_, _, Some(Apply(Select(_, "upTo"), List(bound)))) <- stats do
-            intRanges(state) = (0L, constInt(bound))
           for
             case ValDef(_, inbox, Some(Select(channel, "contents"))) <- stats; m <- finiteOf(inbox)
           do channelFields((state, messageType(m))) = resolveSymbol(channel)

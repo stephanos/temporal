@@ -2,6 +2,41 @@
 
 DSL changes ship a task-named Scalafix rule under `model/migrate/rules/`, prove it on copied `activity_mini` sources before the real-feature sweep, and follow `model/migrate/README.md`; production loading remains held in fn-166.10.
 
+## Bounded integers: Fn159Task9BoundedIntegers
+
+Fields and channel messages declare their own `UpTo[N]` bound. The compiled rule accepts a
+top-level case class with one local literal nonnegative `Finite[Int] = Finite.upTo(n)` in its
+`Finite[State]` derivation, and a typed `Channel[Int] = channel[Int](...)(using Finite.upTo(n))`.
+It changes the field/message types, removes the retired scalar given or channel argument,
+and rewrites positional or declaration-ordered named constructors, explicit typed-parameter
+copy writers and associated Inbox sends together. Supported numeric writes are in-range literals,
+bounded field reads and nonnegative increments capped with `.min(n)`. Scalar helper Ints and
+named opaque integer types keep their meaning and source. Already current source converges.
+
+Unknown/negative bounds, duplicate catalogs, ambiguous Inbox associations, nested declarations,
+competing imports, shadows, escaped constructors, default field values and unsafe or untyped
+writers refuse the document atomically. This source rule proves only these explicit shapes.
+For other forms, manually inventory the actual field/channel owner and every writer, resolve a
+constant nonnegative bound, change the type to `UpTo[N]`, wrap every bounded write with `UpTo[N]`,
+update the associated Inbox type and remove only that retired local given. Keep unrelated
+opaque catalogs and scalar helpers. Check ranges before wrapping expressions that may overflow.
+
+```sh
+mise exec -- scala-cli test --server=false model/migrate --test-only umpire.migrate.BoundedIntegersTest
+timeout 600 /bin/bash /Users/stephan/Workspace/skunkworks/umpire/temporal/model/migrate/prove-mini.sh umpire.migrate.RewriteBoundedIntegersMini
+```
+
+The copied mini already uses UpTo; its source remains unchanged. A separately labelled scratch
+legacy probe exercises actual field/channel/Inbox/write migration, idempotence and refusal.
+Accepted and restored probes compile/lift independently with complete raw positions compared.
+The authored lifter fix also gives `Option[UpTo[N]]` its bound-bearing synthetic identity: the
+mini's old single `Option[UpTo]` wrapper had the correct 0..2 range, while two different bounds
+previously collided. The complete authored pre/post artifacts retain that explicit identity delta;
+ordinary declaration IDs, positions, values, Query budgets/totals and every native row stay fixed.
+Existing fixture JSON stays unchanged; actual source-coordinate deltas are checked separately.
+Production loading, real-feature migration, consumers, Cases, live, lint/manual acceptance,
+canonical Make/Go gates and the single batch-end broad validation/review remain held.
+
 ## Capability kinds: Fn159Task8CapabilityNames
 
 The confirmed server capability kinds are `Retryable` and `Expirable`; the selected

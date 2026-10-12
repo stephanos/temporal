@@ -77,8 +77,10 @@ Nothing is declared about finiteness: every enum and case class is a domain, and
 derives its catalog (`framework.Finite`) where one is first needed, at the `Machine`, `input` or
 `Refinement` that takes the type. `UpTo[2]` has the values 0, 1, 2 and reads as an `Int`; write one
 with `UpTo(n)`. A type whose catalog is not structural declares its own `given Finite[T]`, which
-wins over the derived one: an `Int` field bounded by `Finite.upTo(n)` (the older form of `UpTo`),
-or a state that holds a channel's `Inbox` (step 18).
+wins over the derived one: a named opaque integer type with its own `Finite.upTo(n)` range,
+or a state that holds a channel's `Inbox` (step 18). A plain `Int` field is refused at its declaration,
+even with a local `Finite[Int]`: write `UpTo[N]`. Optional bounded values retain `N` in their
+synthetic enum identity, so `Option[UpTo[1]]` and `Option[UpTo[3]]` have independent catalogs.
 
 The build runs with `-language:strictEquality`, so comparing two values needs a `CanEqual`. Every
 `Finite` type gets one from `import framework.Finite.given`; a file that only uses it in a
@@ -950,7 +952,10 @@ given Finite[AnswerState] =
 ```
 
 A state holds each channel in at most one field; the message type is a named finite type, Boolean
-or `Int` with `Finite.upTo(n)`. The mini uses this channel in its `AnswerDispatch` FailureModel. `Answering.effects.send`
+or `UpTo[N]` (including named opaque integer types with their own range). A plain `Int` message
+is refused at the channel declaration even with `Finite.upTo(n)`; send bounded values with `UpTo(n)`.
+Each `Inbox[UpTo[N]]` associates with the channel of that bound. The mini uses this channel in its
+`AnswerDispatch` FailureModel. `Answering.effects.send`
 enqueues a first- or second-attempt answer; `receive` rejects a stale answer, while
 `TrustingAnswers` rebinds delivery to `trust` as the NegativeControl. The task queue foundation
 separately models its one outstanding message as an enum.

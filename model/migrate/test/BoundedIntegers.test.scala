@@ -57,14 +57,27 @@ def send(s: Mail) = s.copy(inbox = s.inbox.send(2))
 
   test("unknown bounds, ambiguous scopes and unsafe writes refuse the whole document"):
     for source <- List(
-      legacy.replace("Finite.upTo(2)", "Finite.upTo(limit)"),
-      legacy.replace("Finite.upTo(2)", "Finite.upTo(-1)"),
-      legacy.replace("import framework.*", "import framework.*\nimport other.*"),
-      legacy.replace("val start", "object UpTo {}\nval start"),
-      legacy.replace("(s.n + 1).min(2)", "unsafe(s.n)"),
-      legacy + "val escaped = State.apply _\n",
-      legacy.replace("given Finite[Int]", "given a: Finite[Int]") .replace("  Finite.derived", "  given b: Finite[Int] = Finite.upTo(3)\n  Finite.derived")
-    ) do
+        legacy.replace("Finite.upTo(2)", "Finite.upTo(limit)"),
+        legacy.replace("Finite.upTo(2)", "Finite.upTo(-1)"),
+        legacy.replace("import framework.*", "import framework.*\nimport other.*"),
+        legacy.replace("val start", "object UpTo {}\nval start"),
+        legacy.replace("(s.n + 1).min(2)", "unsafe(s.n)"),
+        legacy.replace("(s.n + 1).min(2)", "s.n + 1"),
+        legacy.replace("(s.n + 1).min(2)", "((s.n - 3) + 1).min(2)"),
+        legacy.replace("(s.n + 1).min(2)", "(s.n + 2147483647).min(2)"),
+        legacy.replace("State(0)", "State(3)"),
+        legacy.replace("s: State", "s: Unknown"),
+        legacy.replace("State(0)", "new State(0)"),
+        legacy.replace("s.copy(n = (s.n + 1).min(2))", "s.copy(1)"),
+        legacy.replace("  Finite.derived", "  val kept = summon[Finite[Int]]\n  Finite.derived"),
+        legacy.replace("import framework.*", "import framework.*\nimport other.UpTo"),
+        legacy.replace("s.copy(n = (s.n + 1).min(2))", "{ val s = other; s.copy(n = 1) }"),
+        legacy + "val escaped = State.apply _\n",
+        legacy
+          .replace("given Finite[Int]", "given a: Finite[Int]")
+          .replace("  Finite.derived", "  given b: Finite[Int] = Finite.upTo(3)\n  Finite.derived")
+      )
+    do
       val result = rewrite(source)
       assertEquals(result.fixed, source)
       assert(result.diagnostics.nonEmpty)

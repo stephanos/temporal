@@ -14,7 +14,7 @@ part of this source proof. Finite.upTo for an explicitly named opaque integer ty
 **Size:** M
 **Files:** per-field/message range lifting, range context, existing positive/negative language
 fixtures and focused controls, Domain docs, task-named migration/proof and author guide.
-**Touches:** [model/framework/Domain.scala, model/framework/Domain.test.scala, model/framework/BoundedIntegers.test.scala, model/irgen/Types.scala, model/irgen/Declarations.scala, model/irgen/Context.scala, model/irgen/test/BoundedIntegers.test.scala, model/irgen/testdata/boundedIntegers/**, model/irgen/testdata/lifts/Rejects.scala, model/irgen/testdata/lifts/Presence.scala, model/irgen/testdata/lifts/Channels.scala, model/irgen/testdata/lifts/expected/rejects.txt, model/temporal/features/activity_mini/**/*.scala, model/temporal/foundations/**/*.scala, model/temporal/actors/**/*.scala, model/temporal/capabilities/**/*.scala, model/migrate/**, model/README.md, model/SEMANTICS.md]
+**Touches:** [model/framework/Domain.scala, model/framework/Domain.test.scala, model/framework/BoundedIntegers.test.scala, model/irgen/Types.scala, model/irgen/Declarations.scala, model/irgen/Context.scala, model/irgen/test/BoundedIntegers.test.scala, model/irgen/test/FixturePositions.test.scala, model/irgen/test/Fixtures.test.scala, model/irgen/testdata/boundedIntegers/**, model/irgen/testdata/lifts/Rejects.scala, model/irgen/testdata/lifts/Presence.scala, model/irgen/testdata/lifts/Channels.scala, model/irgen/testdata/lifts/expected/rejects.txt, model/temporal/features/activity_mini/**/*.scala, model/temporal/foundations/**/*.scala, model/temporal/actors/**/*.scala, model/temporal/capabilities/**/*.scala, model/migrate/**, model/README.md, model/SEMANTICS.md]
 
 ### Approach
 

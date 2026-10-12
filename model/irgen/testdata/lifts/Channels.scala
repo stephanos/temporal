@@ -64,21 +64,20 @@ object Relay extends Machine[RelayState, Outcome, Nothing]:
       )
 
 // A channel of bounded integers: the range its declaration names is its catalog of messages.
-val tally: Channel[Int] =
-  channel[Int](capacity = 1, order = Order.fifo, loss = Loss.reliable)(using
-    Finite.upTo(2)
-  )
+val tally: Channel[UpTo[2]] =
+  channel[UpTo[2]](capacity = 1, order = Order.fifo, loss = Loss.reliable)
 
-final case class Tally(heard: Heard, counts: Inbox[Int])
+final case class Tally(heard: Heard, counts: Inbox[UpTo[2]])
 
 given Finite[Tally] =
-  given Finite[Inbox[Int]] = tally.contents
+  given Finite[Inbox[UpTo[2]]] = tally.contents
   Finite.derived
 
 val count = timer
 
 def countStep(t: Tally): List[Step[Tally, Outcome, Nothing]] =
-  if t.counts.isEmpty then List(Step(Outcome.accepted, t.copy(counts = t.counts.send(2)))) else Nil
+  if t.counts.isEmpty then List(Step(Outcome.accepted, t.copy(counts = t.counts.send(UpTo(2)))))
+  else Nil
 
 def counted(t: Tally, n: Int): List[Step[Tally, Outcome, Nothing]] = // format: off
   if n == 2 then List(Step(Outcome.accepted, t.copy(heard = Heard.note))) else Nil

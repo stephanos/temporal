@@ -1,6 +1,6 @@
 // Union and presence, lifted as the finite types they are: an enum whose cases carry their own
-// fields, an optional value, and a counter whose range is its own rather than the one every other Int
-// field of the state shares. The tests lift `presence` and compare the IR with expected/presence.json.
+// fields, an optional value, and counters with their own ranges.
+// The tests lift `presence` and compare the IR with expected/presence.json.
 package fixture.presence
 
 import framework.*; import framework.Finite.given
@@ -25,12 +25,8 @@ object bounded:
 
 import bounded.Retries
 
-// `polls` takes the Int range the given below declares; `retries` keeps its own.
-final case class State(report: Report, kept: Option[Result], retries: Retries, polls: Int)
-
-given Finite[State] =
-  given Finite[Int] = Finite.upTo(1)
-  Finite.derived
+// Each counter names its own range.
+final case class State(report: Report, kept: Option[Result], retries: Retries, polls: UpTo[1])
 
 enum Outcome:
   case accepted, ignored
@@ -63,10 +59,10 @@ def forgetStep(s: State): List[Step[State, Outcome, Nothing]] = s.kept match
   case None    => List(Step(Outcome.ignored, s))
 
 def pollStep(s: State): List[Step[State, Outcome, Nothing]] = // format: off
-  if s.polls == 0 then List(Step(Outcome.accepted, s.copy(polls = 1))) else Nil
+  if s.polls == 0 then List(Step(Outcome.accepted, s.copy(polls = UpTo(1)))) else Nil
   // format: on
 object Presence extends Machine[State, Outcome, Nothing]:
-  val init = State(Report.unsent, None, Retries.none, 0) // format: off
+  val init = State(Report.unsent, None, Retries.none, UpTo(0)) // format: off
   def end(s: State) = s.kept != None
   // format: on
   object rules

@@ -29,8 +29,8 @@ object Finite:
     new Finite[T]:
       def values = all
 
-  // `0..hi`, a counter of `hi + 1` values. A model that bounds a counter gives this as a
-  // local given next to the state it derives, so the bound sits beside the field it bounds.
+  // `0..hi`, a scalar catalog also used by named opaque integer types. Model fields and messages
+  // declare their bounds with UpTo[N].
   def upTo(hi: Int): Finite[Int] = of((0 to hi)*)
 
   // False before true, the order the Go reader lists a Boolean's values in.
@@ -44,8 +44,7 @@ object Finite:
 
   // Every enum and case class is a domain without a `derives Finite` clause: its catalog is derived
   // here, from its `Mirror`, where a `Finite` is first needed. A more specific given wins over this
-  // one, so `Option`, `UpTo` and a Model's own `given Finite[S]` (a channel's `Inbox`, an `Int`
-  // bounded with `Finite.upTo`) keep theirs.
+  // one, so `Option`, `UpTo` and a Model's own `given Finite[S]` (a channel's `Inbox`) keep theirs.
   //
   // The whole structure is checked by the implicit search itself, through `Members`: a case class
   // with a field that has no catalog, a plain `Int` or a list, has no `Finite`, and neither has a

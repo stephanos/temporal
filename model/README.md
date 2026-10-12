@@ -656,9 +656,10 @@ The IR generator reads what an author wrote, as written:
   field `attempts: UpTo[2]` has the values 0, 1 and 2, lifted as the IR int range 0..2, and a step
   writes one with `UpTo(n)`. Every enum and case class is a domain with no `derives` clause: the
   compiler derives its `Finite` catalog where one is first needed. A Model declares its own
-  `given Finite[S]` only for a catalog that is not structural, such as integer fields bounded by the
-  per-record `given Finite[Int] = Finite.upTo(…)`, which `UpTo` replaces and Models not yet migrated
-  keep. A phase enum may declare, on each case, the status fact a step that enters it records:
+  `given Finite[S]` only for a catalog that is not structural, such as a channel's `Inbox`.
+  Fields and channel messages use `UpTo[N]`; plain `Int` declarations are refused even with a
+  local `Finite[Int]`. Named opaque integer types keep their own `Finite.upTo` range.
+  A phase enum may declare, on each case, the status fact a step that enters it records:
   `enum Phase(val status: Fact) extends Recorded[Fact]`, `case started extends
   Phase(Fact.statusStarted)`. The parameter is named `status` and has no default, so a case without
   one does not compile; the enum lifts as the same enum with no fields.

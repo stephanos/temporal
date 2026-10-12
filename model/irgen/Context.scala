@@ -173,8 +173,6 @@ final private[irgen] class Context(val index: Index):
   val queries = mutable.LinkedHashMap.empty[String, ir.Query]
   val progress = mutable.LinkedHashMap.empty[(String, String), ir.Progress]
   val realizations = mutable.LinkedHashMap.empty[String, ir.Realization]
-  // The integer ranges a state's `Finite` given declares, by the state's type name.
-  val intRanges = mutable.Map.empty[String, (Long, Long)]
   // The range an opaque type's own `Finite` given declares, by the type's name.
   val opaqueRanges = mutable.Map.empty[String, (Long, Long)]
   // The channel each `Inbox` field of a state holds, by the state's type name and the message type's.

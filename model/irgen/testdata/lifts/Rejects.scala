@@ -69,17 +69,15 @@ object Doubled extends Machine[Twice, Outcome, Nothing]:
 // A function that calls itself.
 def countdown(n: Int): Int = if n <= 0 then 0 else countdown(n - 1)
 
-final case class CounterState(n: Int)
-
-given Finite[CounterState] =
-  given Finite[Int] = Finite.upTo(2)
-  Finite.derived
+final case class CounterState(n: UpTo[2])
 
 object Counter extends Machine[CounterState, Outcome, Nothing]:
-  val init = CounterState(2)
+  val init = CounterState(UpTo(2))
   def end(s: State) = true
   object rules
-      extends Bindings(go ~> (c => List(Step(Outcome.accepted, CounterState(countdown(c.n))))))
+      extends Bindings(
+        go ~> (c => List(Step(Outcome.accepted, CounterState(UpTo(countdown(c.n))))))
+      )
 
 final case class Flag(on: Boolean)
 
@@ -156,7 +154,7 @@ object UnrefinedOutcomes extends Machine[Flag, Outcome, Nothing]:
   def visibleOutcomes(o: Outcome) = true
   object rules extends Bindings(flip ~> flipStep)
 
-// Int messages whose catalog is not a range the IR can carry.
+// Plain Int messages have no declared bound, regardless of their explicit catalog.
 val counts: Channel[Int] =
   channel[Int](capacity = 1, order = Order.fifo, loss = Loss.reliable)(using
     Finite.of(1, 5)

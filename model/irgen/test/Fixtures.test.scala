@@ -2572,7 +2572,9 @@ class Fixtures extends munit.FunSuite:
   private def expect(file: String, lifted: => String): Unit =
     val path = expected.resolve(file)
     val name = file.stripSuffix(".json")
-    if FixtureIdentityContract.names.contains(name) then
+    if FixturePositions.boundedFixtures(name) then
+      FixturePositions.checkBounded(name, lifted)
+    else if FixtureIdentityContract.names.contains(name) then
       FixtureIdentityContract.check(name, lifted)
       assert(Files.isRegularFile(path), s"$path is missing")
       FixtureIdentityContract.check(name, Files.readString(path), current = false)
@@ -5525,7 +5527,7 @@ class Fixtures extends munit.FunSuite:
         ++ fixtures.toMap.apply("presence"))*
     )
     assert(!lift.failed, lift.diagnostics)
-    assertEquals(Files.readString(out), ir("presence"))
+    FixturePositions.checkBounded("presence", Files.readString(out))
 
   concurrently("a lift without roots, or without its arguments, is refused"):
     val none = lift(
