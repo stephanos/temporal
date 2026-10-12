@@ -1052,7 +1052,7 @@ depend on when the host answered; simulation transport reads are exempt
 because they block until the simulation advances.
 
 The seeded stream's draw sites are classified, not assumed.
-`toolchain/draw_inventory_test.go` lists every reference to the patched
+`backends/native/toolchain/draw_inventory_test.go` lists every reference to the patched
 runtime's seeded random helpers on both qualified platforms (269 references in
 135 classified rows when it was taken) as target-ordered or host-timed, and the
 toolchain tier fails on an unclassified reference, a changed count, or a

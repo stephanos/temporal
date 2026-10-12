@@ -111,7 +111,7 @@ Before starting the implementation of any request, you MUST REVIEW the following
   and the open specs under `.flow/specs/`. Current contracts belong to `tools/gomad3/SPEC.md`
   and `tools/gomad3/ARCHITECTURE.md`; `.plans/README.md` indexes plans and dated research.
 - Determinism is assured by the diagnostic trace (`--diagnostics`, `gomadtool diagnostic-diff`),
-  the seeded-stream draw inventory (`tools/gomad3/toolchain/draw_inventory_test.go`), the
+  the seeded-stream draw inventory (`tools/gomad3/backends/native/toolchain/draw_inventory_test.go`), the
   conformance fixtures and declared exclusions in the README's Contract, and the scheduled
   determinism soak (`make gomad3-soak`, `gomadtool soak`, the `determinism-soak-*` jobs of
   `gomad3.yml`). Quote a determinism bound only from a retained soak report for its platform;
