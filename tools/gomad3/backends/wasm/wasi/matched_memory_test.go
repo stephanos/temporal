@@ -11,6 +11,56 @@ import (
 	"go.temporal.io/server/tools/gomad3/hostfs"
 )
 
+// The frontend suite stays opt-in; a selection is a comma-separated list.
+func matchedSuiteSelected(selection, suite string) bool {
+	if selection == "" {
+		return suite != "frontend"
+	}
+	for _, name := range strings.Split(selection, ",") {
+		if strings.TrimSpace(name) == suite {
+			return true
+		}
+	}
+	return false
+}
+
+func matchedBaselineCache(baseline, candidate string) error {
+	if !filepath.IsAbs(baseline) || filepath.Clean(baseline) == filepath.Clean(candidate) {
+		return errors.New("GOMAD_WASM_MATCHED_BASELINE_CACHE must be absolute and distinct from the candidate cache")
+	}
+	return nil
+}
+
+// Even samples run the baseline first and odd samples the candidate first.
+func matchedBaselineTurn(sample, turn int) bool {
+	return (sample+turn)%2 == 0
+}
+
+func TestMatchedSuiteSelectionCacheAndOrder(t *testing.T) {
+	for _, test := range []struct {
+		selection, suite string
+		want             bool
+	}{{"", "workflow", true}, {"", "frontend", false}, {"frontend", "frontend", true}, {"workflow, frontend", "frontend", true}, {"workflow,update", "update", true}, {"workflow,update", "timers", false}} {
+		if got := matchedSuiteSelected(test.selection, test.suite); got != test.want {
+			t.Fatalf("selection %q suite %s = %t", test.selection, test.suite, got)
+		}
+	}
+	candidate := filepath.Join(t.TempDir(), "candidate")
+	for _, baseline := range []string{"", "relative", candidate, candidate + "/"} {
+		if matchedBaselineCache(baseline, candidate) == nil {
+			t.Fatalf("baseline cache %q admitted", baseline)
+		}
+	}
+	if err := matchedBaselineCache(filepath.Join(t.TempDir(), "baseline"), candidate); err != nil {
+		t.Fatal(err)
+	}
+	for sample, want := range []bool{true, false, true, false} {
+		if matchedBaselineTurn(sample, 0) != want || matchedBaselineTurn(sample, 1) == want {
+			t.Fatalf("sample %d order is not alternating", sample)
+		}
+	}
+}
+
 func matchedPrepareAdmitted(platform, path, mode string, dispatch func() (Result, error)) (Result, error) {
 	if mode == "" {
 		return dispatch()

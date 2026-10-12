@@ -210,12 +210,17 @@ func TestHelperMigrationQualification(t *testing.T) {
 func TestHelperMatchedSuiteQualification(t *testing.T) {
 	module := os.Getenv("GOMAD_WASM_MATCHED_MODULE")
 	baselineHelper := os.Getenv("GOMAD_WASM_MATCHED_BASELINE_HELPER")
-	toolchainIdentity := os.Getenv("GOMAD_WASM_MATCHED_TOOLCHAIN_ID")
-	if module == "" || baselineHelper == "" || toolchainIdentity == "" {
-		t.Skip("set matched immutable module, original helper and runtime identity")
+	if module == "" || baselineHelper == "" {
+		t.Skip("set matched immutable module and original helper")
 	}
 	if !filepath.IsAbs(module) || !filepath.IsAbs(baselineHelper) {
 		t.Fatal("matched inputs must be absolute")
+	}
+	// The runtime identity is the cooperative overlay that compiled the module;
+	// an operator-supplied identity is only a cross-check.
+	_, _, toolchainIdentity := prototypeToolchain(t)
+	if declared := os.Getenv("GOMAD_WASM_MATCHED_TOOLCHAIN_ID"); declared != "" && declared != toolchainIdentity {
+		t.Fatalf("declared matched toolchain identity %s differs from cooperative overlay %s", declared, toolchainIdentity)
 	}
 	data, err := os.ReadFile(module)
 	if err != nil {
@@ -235,6 +240,13 @@ func TestHelperMatchedSuiteQualification(t *testing.T) {
 	if !filepath.IsAbs(cache) {
 		t.Fatal("matched compiled cache must be absolute")
 	}
+	// The baseline helper's compiled-code cache is filename-keyed and
+	// unverified, so it must never share the candidate's verified cache.
+	baselineCache := os.Getenv("GOMAD_WASM_MATCHED_BASELINE_CACHE")
+	if err := matchedBaselineCache(baselineCache, cache); err != nil {
+		t.Fatal(err)
+	}
+	selection := os.Getenv("GOMAD_WASM_MATCHED_SUITE")
 	preparations, err := os.OpenFile(filepath.Join(prototypeRoot(t), "matched-preparations.jsonl"), os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0600)
 	if err != nil {
 		t.Fatal(err)
@@ -268,8 +280,7 @@ func TestHelperMatchedSuiteQualification(t *testing.T) {
 		{"timers", "/workspace/tests", "^TestUserTimersTestSuite$"},
 		{"frontend", "/workspace/tests/gomadfunctional", "^TestFrontendSystemInfo$"},
 	} {
-		only := os.Getenv("GOMAD_WASM_MATCHED_SUITE")
-		if only != "" && only != suite.name || only == "" && suite.name == "frontend" {
+		if !matchedSuiteSelected(selection, suite.name) {
 			continue
 		}
 		t.Run(suite.name, func(t *testing.T) {
@@ -278,13 +289,7 @@ func TestHelperMatchedSuiteQualification(t *testing.T) {
 			identity := choice.ExecutionIdentity{TargetSHA256: sha256.Sum256(data), ToolchainBuildKey: toolchainIdentity, GOOS: "wasip1", GOARCH: "wasm", ImplementationSHA256: sha256.Sum256([]byte(toolchainIdentity))}
 			request := Request{HelperPath: helper, HelperSHA256: fileHash(t, helper), ModulePath: module, ModuleSHA256: fileHash(t, module), Engine: PinnedEngine(), Imports: imports, InitialMemoryPages: pages, MemoryBytes: 4 << 30, Fuel: 1 << 50, Config: config, Timeout: 30 * time.Minute, CompileCache: cache, DigestTranscript: true, Runtime: &RuntimeControl{Choice: &runnerbackend.ChoiceRequest{Mode: choice.ModeRecord, ExecutionIdentity: identity, Limit: choice.MaximumTraceBytes}}}
 			baseline := request
-			baseline.HelperPath, baseline.HelperSHA256, baseline.remoteModel = baselineHelper, fileHash(t, baselineHelper), true
-			if baselineCache := os.Getenv("GOMAD_WASM_MATCHED_BASELINE_CACHE"); baselineCache != "" {
-				if !filepath.IsAbs(baselineCache) {
-					t.Fatal("baseline compiled cache must be absolute")
-				}
-				baseline.CompileCache = baselineCache
-			}
+			baseline.HelperPath, baseline.HelperSHA256, baseline.remoteModel, baseline.CompileCache = baselineHelper, fileHash(t, baselineHelper), true, baselineCache
 			for index, warm := range []Request{baseline, request} {
 				warm.Config.Args = append([]string(nil), warm.Config.Args...)
 				for index, arg := range warm.Config.Args {
@@ -312,14 +317,20 @@ func TestHelperMatchedSuiteQualification(t *testing.T) {
 			var beforeNanos, afterNanos int64
 			var beforeExecutionNanos, afterExecutionNanos uint64
 			var first Result
-			for _, seed := range []uint64{0, 1000003} {
+			for sample, seed := range []uint64{0, 1000003, 2000006, 3000009} {
 				request.Runtime.Seed = seed
-				started := time.Now()
-				before := prototypeExecute(t, report, suite.name, "baseline", 0, baseline)
-				beforeNanos += time.Since(started).Nanoseconds()
-				started = time.Now()
-				after := prototypeExecute(t, report, suite.name, "candidate", 0, request)
-				afterNanos += time.Since(started).Nanoseconds()
+				var before, after Result
+				// Alternate the order so neither owner always runs on a warmer host.
+				for turn := range 2 {
+					started := time.Now()
+					if matchedBaselineTurn(sample, turn) {
+						before = prototypeExecute(t, report, suite.name, "baseline", 0, baseline)
+						beforeNanos += time.Since(started).Nanoseconds()
+					} else {
+						after = prototypeExecute(t, report, suite.name, "candidate", 0, request)
+						afterNanos += time.Since(started).Nanoseconds()
+					}
+				}
 				if before.AuthorizationToTerminalNanos == 0 || after.AuthorizationToTerminalNanos == 0 {
 					t.Fatal("validated authorization-to-terminal measurements unavailable")
 				}
@@ -351,7 +362,7 @@ func TestHelperMatchedSuiteQualification(t *testing.T) {
 			speedup := float64(beforeNanos) / float64(afterNanos)
 			executionSpeedup := float64(beforeExecutionNanos) / float64(afterExecutionNanos)
 			report.guest(suite.name, map[string]any{"compatibility_profile": "prototype-legacy-v1", "module_sha256": request.ModuleSHA256, "runtime_identity": identity.ToolchainBuildKey, "model_sha256": ImplementationSHA256(), "reference_owner": "current_go_model", "host_os": runtime.GOOS, "host_arch": runtime.GOARCH, "engine": request.Engine, "environment_identity": first.EnvironmentIdentity, "baseline_helper_sha256": baseline.HelperSHA256, "candidate_helper_sha256": request.HelperSHA256, "baseline_wall_nanos": beforeNanos, "candidate_wall_nanos": afterNanos, "speedup": speedup, "byte_identical": true})
-			report.guest(suite.name+"-execution-boundary", map[string]any{"boundary": "authorize-send-to-validated-terminal-includes-instantiation-and-evidence-flush", "baseline_nanos": beforeExecutionNanos, "candidate_nanos": afterExecutionNanos, "speedup": executionSpeedup, "full_wall_speedup": speedup})
+			report.guest(suite.name+"-execution-boundary", map[string]any{"module_sha256": request.ModuleSHA256, "runtime_identity": identity.ToolchainBuildKey, "samples": 4, "order": "alternating-baseline-first-on-even", "boundary": "authorize-send-to-validated-terminal-includes-instantiation-and-evidence-flush", "baseline_nanos": beforeExecutionNanos, "candidate_nanos": afterExecutionNanos, "speedup": executionSpeedup, "full_wall_speedup": speedup})
 			t.Logf("same module/seeds/tape: full wall baseline=%s candidate=%s speedup=%.3fx; authorized execution baseline=%s candidate=%s speedup=%.3fx", time.Duration(beforeNanos), time.Duration(afterNanos), speedup, time.Duration(beforeExecutionNanos), time.Duration(afterExecutionNanos), executionSpeedup)
 		})
 	}
