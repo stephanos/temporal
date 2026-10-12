@@ -143,7 +143,7 @@ The initial table is seeded from today's `memorySymbols` and host classification
 
 ## Boundaries
 
-- Do not change any pure set membership as part of this work; a file that fails the new checker is fixed in a follow-up or marked, never dropped from the set.
+- Preserve every existing pure root and file. The declaration-based checker must also explicitly check the reviewed pure dependencies that the old prover followed transitively. Admit only exact host-free dependency files; split unchanged pure declarations out of mixed files when necessary, preserving package APIs and function bodies. A real host effect is never suppressed by a dynamic mark or a package-wide allowance, and no original file is dropped to pass the checker.
 - Do not add `golang.org/x/tools` or any other dependency to gomad3 or gomad_wasm.
 - Do not touch CI workflows beyond what R2 needs; wasm CI is fn-164 R9.
 - Do not keep the ownership proofs behind a flag for later; they are deleted with their tests.
@@ -152,6 +152,7 @@ The initial table is seeded from today's `memorySymbols` and host classification
 ## Decision Context
 
 - Applied after fn-164, the former WASM module is `tools/gomad3/backends/wasm` in the single gomad3 module. Its own architecture test and helper-reply unit test live in that subtree and check the same WASI membership/exclusions against the folded module's inventory. References above to the separate module are pre-fold paths, not a requirement to restore it. Root tests must not duplicate the old cross-module WASM purity load.
+- The first real bounded pass exposed an inconsistency in the original no-membership-change wording: named pure callers use choice validators, compatibility selection helpers and simulation-state helpers that the old prover checked transitively but never named as pure files. Following the owner's instruction to use recommendations, retain all original roots and make this reviewed dependency closure explicit. Mixed host-loader files must be split without changing function bodies before their pure declarations are admitted. Exact dependency inventory and host-effect negatives guard this clarification; it grants no host-effect waiver.
 
 - The ownership proofs were built under fn-109 R8 when canonical bytes and byte-identical formats were a requirement. fn-109 later dropped byte-for-byte compatibility and fn-153 retires canonical JSON, so the proofs defend a property no longer required.
 - The deep prover's distinguishing value for wasm was following calls into shared gomad3 packages; proving those packages pure at their own boundary is a stronger guarantee at lower cost and stops re-checking them per caller and per platform.
