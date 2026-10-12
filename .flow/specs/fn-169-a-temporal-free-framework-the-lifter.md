@@ -30,13 +30,16 @@ model/
                                layout conventions as configuration,
                                realization-kit lifting as a registered kit,
                                target API descriptors injected, not imported
-    check/                   Equivalence, StepLedger, step tables, generic source rules, Tools
+    check/                   gate driver, Tools, ModelSources, metrics
+      lint/                  generic source rules (+ fn-141.1's order/structure/marker lints)
+      equivalence/           step-table equivalence, rename maps, ledgers (used by gate and migrate)
     migrate/                 the rule-proof harness (prove-mini runner, patch application)
   temporal/                  package temporal.*    (everything Temporal)
     Bounds.scala, actors/, capabilities/, foundations/, features/   (the Models)
     realize/                 the Temporal kit (as today)
     export/                    the Temporal plug-in: kit lifting, layout config, API descriptors
-    check/                   the Gate, ProtoLiterals, kit syntax rules
+    check/                   Temporal gate configuration (protos, Go checks)
+      lint/                  kit syntax rules, Temporal API proto-name rule
     migrate/                 task rules and their mini proofs
 
 proto/ (or model/framework/ir/)  umpire.ir.v1   the IR schema, out of Temporal's namespace
@@ -73,6 +76,7 @@ Not in scope: changing Model meaning; the real features' sources; publishing the
 
 ## Decision Context
 
+- 2026-10-12, owner: `check/` is the umbrella for verification, with `check/lint/` and `check/equivalence/` beneath it and the gate driver at its root.
 - 2026-10-12, owner: the Model-to-IR module is named `export` (`framework/export`, `temporal/export`), not `lift`; the lifter's vocabulary in docs and diagnostics may stay. Go's `tools/umpire/export` (the Quint export) keeps its name.
 - 2026-10-12, owner: the DSL moves into `framework.dsl` in .1; IR type names may change with it (`framework.dsl.Step`, ...), and the Go interpreter's hard-coded names follow in .4.
 - 2026-10-12, owner: migration rules are temporary, the harness permanent (see Edge Cases).
