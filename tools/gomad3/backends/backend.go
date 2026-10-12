@@ -1,7 +1,8 @@
-package backend
+package backends
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
@@ -10,10 +11,34 @@ import (
 )
 
 type Provider interface {
+	Capabilities() Capabilities
 	Prepare(context.Context, target.Spec) (target.Prepared, error)
 	ValidatePrepared(target.Spec, target.Prepared, []string) error
 	ValidateReplay(context.Context, *artifact.Opened) (target.Prepared, error)
 	Run(context.Context, Request) (Result, error)
+	Describe(context.Context, Configuration) (Description, error)
+	Execute(context.Context, ExecutionRequest) (ExecutionResult, error)
+	Evidence(context.Context, EvidenceRequest) (Evidence, error)
+}
+
+type Capabilities struct {
+	Name           string
+	ReplayModes    []string
+	ChoiceProfiles []string
+	Simulation     bool
+	ReadOnlyMounts bool
+	IOTranscript   bool
+	Commands       []string
+}
+
+type Registry map[string]Capabilities
+
+func (registry Registry) Resolve(name string) (Capabilities, error) {
+	capabilities, found := registry[name]
+	if !found || capabilities.Name != name {
+		return Capabilities{}, fmt.Errorf("unregistered backend %q", name)
+	}
+	return capabilities, nil
 }
 
 type Request struct {
