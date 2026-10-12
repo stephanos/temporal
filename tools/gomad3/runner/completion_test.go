@@ -2,13 +2,14 @@ package runner
 
 import (
 	"bytes"
+	backend "go.temporal.io/server/tools/gomad3/backends"
 	"reflect"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/record"
-	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
+
 	"go.temporal.io/server/tools/gomad3/world"
 )
 
@@ -18,7 +19,7 @@ func TestAssessWorldValidatesTheRecordAgainstItsSeed(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	composed, err := execution.ComposeRecording(decoded, 1<<20)
+	composed, err := backend.ComposeRecording(decoded, 1<<20)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -29,7 +30,7 @@ func TestAssessWorldValidatesTheRecordAgainstItsSeed(t *testing.T) {
 		record []byte
 		seed   uint64
 		limit  uint64
-		want   execution.Bundle
+		want   backend.Bundle
 		cause  string
 	}{
 		{name: "no record", seed: 7, limit: 1 << 20, want: noneWorldBundle()},
@@ -42,7 +43,7 @@ func TestAssessWorldValidatesTheRecordAgainstItsSeed(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			captured := bytes.Clone(test.record)
-			bundle, err := assessWorld(execution.Result{WorldRecord: captured}, test.seed, test.limit)
+			bundle, err := assessWorld(backend.ExecutionResult{WorldRecord: captured}, test.seed, test.limit)
 			if test.cause != "" {
 				if err == nil || err.Error() != test.cause {
 					t.Fatalf("assessWorld() error = %v, want %q", err, test.cause)
@@ -91,11 +92,11 @@ func TestAssessCompletionProjectsCoverageInOrderAndClassifies(t *testing.T) {
 	cancelled.Cancelled = true
 	exitCode := record.Uint64String(0)
 	deadline := "execution_timeout"
-	success := execution.Classification{Domain: "success", Reason: "success", Termination: "exit", ExitCode: &exitCode, ArtifactKind: record.ArtifactSuccess, ReplayMode: record.ReplayExact}
-	deadlock := execution.Classification{Domain: "target", Reason: "world_deadlock", Termination: "exit", ExitCode: &exitCode, ArtifactKind: record.ArtifactTargetFailure, ReplayMode: record.ReplayExact}
+	success := backend.Classification{Domain: "success", Reason: "success", Termination: "exit", ExitCode: &exitCode, ArtifactKind: record.ArtifactSuccess, ReplayMode: record.ReplayExact}
+	deadlock := backend.Classification{Domain: "target", Reason: "world_deadlock", Termination: "exit", ExitCode: &exitCode, ArtifactKind: record.ArtifactTargetFailure, ReplayMode: record.ReplayExact}
 	for _, test := range []struct {
 		name     string
-		result   execution.Result
+		result   backend.ExecutionResult
 		terminal record.WorldTerminal
 		mode     CoverageMode
 		want     completedExecution
@@ -115,22 +116,22 @@ func TestAssessCompletionProjectsCoverageInOrderAndClassifies(t *testing.T) {
 		{name: "malformed semantic coverage", result: malformed, mode: CoverageSemantic, reason: "semantic_coverage", cause: "I/O transcript has invalid length 21"},
 		{name: "malformed semantic coverage before malformed choices", result: malformed, mode: CoverageSemanticChoice, reason: "semantic_coverage", cause: "I/O transcript has invalid length 21"},
 		{name: "malformed choices", result: malformedChoices, mode: CoverageSemanticChoice, reason: "choice_coverage", cause: "project choice coverage: malformed choice trace\ninvalid choice terminal values"},
-		{name: "malformed semantic coverage of a watchdog kill", result: func() execution.Result { killed := malformed; killed.WatchdogTimeout = true; return killed }(), mode: CoverageSemanticChoice, reason: "semantic_coverage", cause: "I/O transcript has invalid length 21"},
+		{name: "malformed semantic coverage of a watchdog kill", result: func() backend.ExecutionResult { killed := malformed; killed.WatchdogTimeout = true; return killed }(), mode: CoverageSemanticChoice, reason: "semantic_coverage", cause: "I/O transcript has invalid length 21"},
 		{
 			name: "watchdog kill projects no choices", result: watchdog, mode: CoverageSemanticChoice,
-			want: completedExecution{coverage: probeCoverage, choiceFeatures: []string{}, outcome: execution.Classification{
+			want: completedExecution{coverage: probeCoverage, choiceFeatures: []string{}, outcome: backend.Classification{
 				Domain: "watchdog", Reason: "watchdog_timeout", Termination: "timeout", Deadline: &deadline, ArtifactKind: record.ArtifactWatchdogTimeout, ReplayMode: record.ReplayDiagnostic,
 			}},
 		},
 		{
 			name: "cancellation projects no choices", result: cancelled, mode: CoverageChoice,
-			want: completedExecution{coverage: noCoverage, choiceFeatures: []string{}, outcome: execution.Classification{
+			want: completedExecution{coverage: noCoverage, choiceFeatures: []string{}, outcome: backend.Classification{
 				Domain: "runner", Reason: "runner_cancelled", Termination: "none", ArtifactKind: record.ArtifactRunnerFailure, ReplayMode: record.ReplayNone,
 			}},
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			assessed, hostError := assessCompletion(test.result, test.terminal, test.mode, prepared)
+			assessed, hostError := assessCompletion(t.Context(), &boundaryProvider{}, test.result, test.terminal, test.mode, prepared)
 			if test.reason != "" {
 				if hostError == nil || hostError.Reason != test.reason || hostError.Err == nil || hostError.Err.Error() != test.cause {
 					t.Fatalf("assessCompletion() error = %v, want %s: %s", hostError, test.reason, test.cause)

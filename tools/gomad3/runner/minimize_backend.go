@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"time"
 
+	execution "go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/record"
-	"go.temporal.io/server/tools/gomad3/runner/backend"
-	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
 	simulationengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation"
 )
 
@@ -24,11 +23,21 @@ func (session *minimizationSession) evaluateBackendChoice(ctx context.Context, c
 		capability.Mode, capability.ReplayPlan = choice.ModePrefix, &prefix
 	}
 	startedAt := time.Now().UTC()
-	observed, err := runBackend(ctx, session.config.Backend, backend.Request{
-		Target: session.prepared.CloneBackend(), Seed: uint64(manifest.Seed), Environment: replayEnvironment(manifest.Environment),
-		Timeout: session.campaign.ExecutionTimeout, OutputBytes: session.campaign.OutputLimit,
-		TranscriptBytes: uint64(manifest.Limits.IOTranscriptBytes), Choice: backendChoiceRequest(capability),
-	}, nil, nil)
+	request := execution.ExecutionRequest{
+		Target: session.prepared.CloneBackend(), Seed: uint64(manifest.Seed), RunnerBuild: manifest.Runner.RunnerBuild,
+		Command: session.prepared.Path, Args: append([]string(nil), session.prepared.Argv[1:]...), Argv0: session.prepared.Argv[0],
+		Dir: session.workDirectory, Env: replayEnvironment(manifest.Environment),
+		ExecutionTimeout: session.campaign.ExecutionTimeout, TerminateGrace: session.campaign.TerminateGrace, OutputLimit: session.campaign.OutputLimit,
+		IO:     &execution.IOCapability{Profile: manifest.IOProfile, Transcript: &execution.IOTranscriptCapability{Limit: uint64(manifest.Limits.IOTranscriptBytes)}},
+		Choice: capability,
+	}
+	var observed execution.ExecutionResult
+	var err error
+	if session.executor != nil {
+		observed, err = session.executor.Run(ctx, request)
+	} else {
+		observed, err = session.config.Backend.Execute(ctx, request)
+	}
 	if backendChoiceReplayDivergence(err) {
 		return minimizationTrial{accepted: false}, nil
 	}

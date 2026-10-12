@@ -6,7 +6,6 @@ import (
 	"sort"
 	"strings"
 
-	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/record"
@@ -29,7 +28,7 @@ func campaignPlan(config campaignRequest, journal *campaign.CampaignJournal, pre
 }
 
 func campaignPlanRecord(config campaignRequest, journalPlan campaign.ExecutionJournalPlan, preparedPath string, prepared target.Prepared, environment []record.Environment, mounts []captured.Mapping, selectionCount uint64) (campaign.CampaignPlan, error) {
-	profile := transcript.Default()
+	profile := config.profile
 	requiredProbes := append([]string(nil), config.RequiredSemanticProbes...)
 	sort.Strings(requiredProbes)
 	mountValues := make([]string, len(mounts))

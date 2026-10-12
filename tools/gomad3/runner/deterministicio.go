@@ -1,20 +1,12 @@
 package runner
 
 import (
-	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	backend "go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/record"
 )
 
-func deterministicAdapters(adapters []record.TargetAdapter) []transcript.Adapter {
-	result := make([]transcript.Adapter, len(adapters))
-	for index, adapter := range adapters {
-		result[index] = transcript.Adapter{Module: adapter.Module, Version: adapter.Version, Sum: adapter.Sum}
-	}
-	return result
-}
-
-func recordedIOProfile(profile transcript.Spec) record.IOProfile {
+func recordedIOProfile(profile backend.Description) record.IOProfile {
 	return record.IOProfile{
 		Name:                 profile.Name(),
 		ImplementationSHA256: record.SHA256(profile.ImplementationSHA256()),

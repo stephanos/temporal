@@ -3,39 +3,48 @@ package runner
 import (
 	"context"
 
-	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
-	"go.temporal.io/server/tools/gomad3/backends/native/preparation"
-	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	"errors"
+	backend "go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
 func verifyPrepared(prepared target.Prepared) error {
-	if prepared.Backend != nil {
-		return prepared.Verify()
-	}
-	return nativebuild.VerifyPrepared(prepared)
+	return prepared.Verify()
+}
+
+type preparationRequest struct {
+	Target      target.Spec
+	Environment []string
+	Preparer    Preparer
+	Provider    backend.Provider
 }
 
 type executionDependencies struct {
-	executor  executionRunner
-	prepare   func(context.Context, preparation.Request) (target.Prepared, error)
-	bootstrap func(transcript.Spec, target.Prepared, string, uint64) ([]byte, error)
+	executor executionRunner
+	prepare  func(context.Context, preparationRequest) (target.Prepared, error)
 }
 
-func (dependencies executionDependencies) prepareTarget(ctx context.Context, request preparation.Request) (target.Prepared, error) {
+func (dependencies executionDependencies) prepareTarget(ctx context.Context, request preparationRequest) (target.Prepared, error) {
 	if dependencies.prepare != nil {
 		return dependencies.prepare(ctx, request)
 	}
-	return preparation.Prepare(ctx, request)
-}
-
-func (dependencies executionDependencies) bootstrapFrame(profile transcript.Spec, prepared target.Prepared, runner string, seed uint64) ([]byte, error) {
-	if dependencies.bootstrap != nil {
-		return dependencies.bootstrap(profile, prepared, runner, seed)
+	if request.Provider == nil {
+		return target.Prepared{}, errors.New("backend provider is required")
 	}
-	return profile.BootstrapFrame(prepared, runner, seed)
+	preparer := request.Preparer
+	if preparer == nil {
+		preparer = request.Provider
+	}
+	prepared, err := preparer.Prepare(ctx, request.Target.Clone())
+	if err != nil {
+		return target.Prepared{}, err
+	}
+	if err := request.Provider.ValidatePrepared(request.Target.Clone(), prepared, append([]string(nil), request.Environment...)); err != nil {
+		return target.Prepared{}, &backend.PreparationError{Stage: "validation", Err: err}
+	}
+	return prepared.CloneBackend(), nil
 }
 
 func (dependencies executionDependencies) injected() bool {
-	return dependencies.executor != nil || dependencies.prepare != nil || dependencies.bootstrap != nil
+	return dependencies.executor != nil || dependencies.prepare != nil
 }

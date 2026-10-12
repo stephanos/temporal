@@ -1,18 +1,16 @@
 package runner
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"go.temporal.io/server/tools/gomad3/record"
 	"io"
 	"os"
-	"os/exec"
 	"time"
 
-	"go.temporal.io/server/tools/gomad3/internal/hostexec"
+	"go.temporal.io/server/tools/gomad3/backends"
+	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
@@ -20,20 +18,18 @@ const maximumCoordinatorMessageBytes = 16 << 20
 
 type coordinatorConfig struct {
 	campaignOptions
-	SupervisorCommand []string
-	RunnerBuild       string
 }
 
 func (config campaignRequest) coordinatorConfig(childTimeout time.Duration) coordinatorConfig {
 	options := config.campaignOptions
 	options.OverallTimeout = childTimeout
-	return coordinatorConfig{campaignOptions: options, SupervisorCommand: config.SupervisorCommand, RunnerBuild: config.RunnerBuild}
+	return coordinatorConfig{campaignOptions: options}
 }
 
-func (wire coordinatorConfig) campaignRequest() campaignRequest {
+func (wire coordinatorConfig) campaignRequest(provider backends.Provider, runnerBuild string) campaignRequest {
 	request := campaignRequest{
 		campaignOptions: wire.campaignOptions,
-		campaignRuntime: campaignRuntime{SupervisorCommand: wire.SupervisorCommand, RunnerBuild: wire.RunnerBuild},
+		campaignRuntime: campaignRuntime{Backend: provider, RunnerBuild: runnerBuild},
 	}
 	request.normalize()
 	return request
@@ -70,45 +66,40 @@ func (err *coordinatorProgressError) Unwrap() error {
 	return err.err
 }
 
+type coordinatorExecutionResult struct {
+	result backends.ExecutionResult
+	err    error
+}
+
 func runIsolated(ctx context.Context, config campaignRequest) (CampaignResult, error) {
 	if _, _, err := validateCampaignRequest(config); err != nil {
 		return CampaignResult{}, err
 	}
-	if config.CoordinatorCommand[0] == "" {
-		return CampaignResult{}, fmt.Errorf("coordinator command is required")
+	if config.Backend == nil {
+		return CampaignResult{}, errors.New("coordinator requires a backend provider")
 	}
 	overallCtx, cancel := context.WithTimeout(ctx, config.OverallTimeout)
 	defer cancel()
 	deadline, _ := overallCtx.Deadline()
 	reserve := min(250*time.Millisecond, max(time.Until(deadline)/5, time.Nanosecond))
 	childTimeout := max(time.Until(deadline)-2*reserve, time.Nanosecond)
-	wire := config.coordinatorConfig(childTimeout)
-	request, err := json.Marshal(wire)
+	request, err := json.Marshal(config.coordinatorConfig(childTimeout))
 	if err != nil {
 		return CampaignResult{}, &HostError{Reason: "coordinator_encode", Err: err}
-	}
-	command := exec.Command(config.CoordinatorCommand[0], config.CoordinatorCommand[1:]...)
-	command.Env = append(os.Environ(), "GOMAD3_RUNNER_COORDINATOR=1")
-	command.Stdin = bytes.NewReader(request)
-	stderr, err := hostexec.New(4096)
-	if err != nil {
-		return CampaignResult{}, &HostError{Reason: "coordinator_capture", Err: err}
 	}
 	stdout, stdoutWriter, err := os.Pipe()
 	if err != nil {
 		return CampaignResult{}, &HostError{Reason: "coordinator_pipe", Err: err}
 	}
-	command.Stdout = stdoutWriter
-	command.Stderr = stderr
-	configureCoordinatorCommand(command)
-	if err := command.Start(); err != nil {
-		return CampaignResult{}, &HostError{Reason: "coordinator_start", Err: errors.Join(err, stdout.Close(), stdoutWriter.Close())}
-	}
-	waited := make(chan error, 1)
-	go func() { waited <- command.Wait() }()
-	if err := stdoutWriter.Close(); err != nil {
-		return CampaignResult{}, &HostError{Reason: "coordinator_pipe", Err: errors.Join(err, terminateCoordinator(command, waited, deadline))}
-	}
+	executionCtx, cancelExecution := context.WithCancel(overallCtx)
+	defer cancelExecution()
+	executed := make(chan coordinatorExecutionResult, 1)
+	go func() {
+		result, executeErr := config.Backend.Execute(executionCtx, backends.ExecutionRequest{
+			Coordinator: &backends.CoordinatorRequest{Input: request, Stdout: stdoutWriter, Deadline: deadline},
+		})
+		executed <- coordinatorExecutionResult{result: result, err: executeErr}
+	}()
 	decoded := make(chan coordinatorDecodeResult, 1)
 	go func() {
 		response, decodeErr := decodeCoordinatorMessages(stdout, config.Progress)
@@ -117,20 +108,43 @@ func runIsolated(ctx context.Context, config campaignRequest) (CampaignResult, e
 	}()
 	timer := time.NewTimer(max(time.Until(deadline)-reserve, 0))
 	defer timer.Stop()
-	var waitErr error
+	var transport coordinatorExecutionResult
 	var decodeResult coordinatorDecodeResult
-	waitComplete := false
-	decodeComplete := false
+	waitComplete, decodeComplete := false, false
+	stopTransport := func() error {
+		cancelExecution()
+		if !waitComplete {
+			transport = <-executed
+			waitComplete = true
+			executed = nil
+		}
+		var closeErr error
+		if !decodeComplete {
+			closeErr = stdout.Close()
+			if errors.Is(closeErr, os.ErrClosed) {
+				closeErr = nil
+			}
+		}
+		cleanupErr := transport.err
+		if transport.result.GroupGone && (transport.result.Cancelled || transport.result.WatchdogTimeout) && (errors.Is(cleanupErr, context.Canceled) || errors.Is(cleanupErr, context.DeadlineExceeded)) {
+			cleanupErr = nil
+		}
+		return errors.Join(cleanupErr, closeErr)
+	}
 	for !waitComplete || !decodeComplete {
 		select {
-		case waitErr = <-waited:
+		case transport = <-executed:
 			waitComplete = true
-			waited = nil
+			executed = nil
 		case decodeResult = <-decoded:
 			decodeComplete = true
 			decoded = nil
 			if decodeResult.err != nil && !waitComplete {
-				cleanupErr := terminateCoordinator(command, waited, deadline)
+				cleanupErr := stopTransport()
+				switch transport.result.CoordinatorErrorReason {
+				case "coordinator_start", "coordinator_pipe", "coordinator_capture", "coordinator_encode":
+					return CampaignResult{}, &HostError{Reason: transport.result.CoordinatorErrorReason, Err: errors.Join(cleanupErr, errorFromOutput(transport.result.Stderr.Bytes))}
+				}
 				var progressErr *coordinatorProgressError
 				reason := "coordinator_decode"
 				if errors.As(decodeResult.err, &progressErr) {
@@ -139,20 +153,18 @@ func runIsolated(ctx context.Context, config campaignRequest) (CampaignResult, e
 				return CampaignResult{}, &HostError{Reason: reason, Err: errors.Join(decodeResult.err, cleanupErr)}
 			}
 		case <-overallCtx.Done():
-			if waitComplete {
-				waited = completedCoordinatorWait(waitErr)
-			}
-			return killCoordinator(command, waited, deadline, overallCtx.Err())
+			return CampaignResult{}, &HostError{Reason: contextFailureReason(overallCtx.Err()), Err: errors.Join(overallCtx.Err(), stopTransport())}
 		case <-timer.C:
-			if waitComplete {
-				waited = completedCoordinatorWait(waitErr)
-			}
-			return killCoordinator(command, waited, deadline, context.DeadlineExceeded)
+			return CampaignResult{}, &HostError{Reason: contextFailureReason(context.DeadlineExceeded), Err: errors.Join(context.DeadlineExceeded, stopTransport())}
 		}
 	}
-	stderrResult := stderr.Result()
-	if waitErr != nil {
-		return CampaignResult{}, &HostError{Reason: "coordinator_exit", Err: errors.Join(waitErr, errorFromOutput(stderrResult.Bytes))}
+	stderr := transport.result.Stderr.Bytes
+	if transport.err != nil {
+		reason := transport.result.CoordinatorErrorReason
+		if reason == "" {
+			reason = "coordinator_exit"
+		}
+		return CampaignResult{}, &HostError{Reason: reason, Err: errors.Join(transport.err, errorFromOutput(stderr))}
 	}
 	if decodeResult.err != nil {
 		var progressErr *coordinatorProgressError
@@ -160,7 +172,7 @@ func runIsolated(ctx context.Context, config campaignRequest) (CampaignResult, e
 		if errors.As(decodeResult.err, &progressErr) {
 			reason = "progress_output"
 		}
-		return CampaignResult{}, &HostError{Reason: reason, Err: errors.Join(decodeResult.err, errorFromOutput(stderrResult.Bytes))}
+		return CampaignResult{}, &HostError{Reason: reason, Err: errors.Join(decodeResult.err, errorFromOutput(stderr))}
 	}
 	response := decodeResult.response
 	if response.ErrorReason != "" {
@@ -173,12 +185,6 @@ func runIsolated(ctx context.Context, config campaignRequest) (CampaignResult, e
 		return response.CampaignResult, &HostError{Reason: response.ErrorReason, Err: errors.New(response.ErrorDetail)}
 	}
 	return response.CampaignResult, nil
-}
-
-func completedCoordinatorWait(waitErr error) chan error {
-	waited := make(chan error, 1)
-	waited <- waitErr
-	return waited
 }
 
 func decodeCoordinatorMessages(input io.Reader, progress CampaignEventFunc) (coordinatorResponse, error) {
@@ -233,11 +239,6 @@ func drainCoordinatorInput(input io.Reader, cause error) error {
 	return errors.Join(cause, err)
 }
 
-func killCoordinator(command *exec.Cmd, waited <-chan error, deadline time.Time, cause error) (CampaignResult, error) {
-	cleanupErr := terminateCoordinator(command, waited, deadline)
-	return CampaignResult{}, &HostError{Reason: contextFailureReason(cause), Err: errors.Join(cause, cleanupErr)}
-}
-
 func errorFromOutput(output []byte) error {
 	if len(output) == 0 {
 		return nil
@@ -248,7 +249,7 @@ func errorFromOutput(output []byte) error {
 	return errors.New(string(output))
 }
 
-func CoordinatorMain(input io.Reader, output io.Writer) error {
+func CoordinatorMain(input io.Reader, output io.Writer, provider backends.Provider) error {
 	decoder := json.NewDecoder(io.LimitReader(input, maximumCoordinatorMessageBytes+1))
 	decoder.DisallowUnknownFields()
 	var wire coordinatorConfig
@@ -258,7 +259,15 @@ func CoordinatorMain(input io.Reader, output io.Writer) error {
 	if token, err := decoder.Token(); err != io.EOF {
 		return fmt.Errorf("trailing coordinator request %v: %w", token, err)
 	}
-	config := wire.campaignRequest()
+	if provider == nil {
+		return errors.New("coordinator requires a backend provider")
+	}
+	description, err := provider.Describe(context.Background(), backends.Configuration{})
+	if err != nil {
+		return err
+	}
+	config := wire.campaignRequest(provider, description.RunnerBuild)
+	config.profile = description
 	encoder := json.NewEncoder(output)
 	config.Progress = func(progress CampaignEvent) error {
 		return encoder.Encode(coordinatorMessage{Type: "progress", Progress: &progress})

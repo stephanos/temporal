@@ -13,11 +13,12 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
+	backend "go.temporal.io/server/tools/gomad3/backends"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/record"
-	"go.temporal.io/server/tools/gomad3/runner/backend"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
-	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
+
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
@@ -50,6 +51,70 @@ func (p *boundaryProvider) Run(_ context.Context, request backend.Request) (back
 	return p.result, p.err
 }
 
+func (p *boundaryProvider) Capabilities() backend.Capabilities {
+	name := "fixture-cooperative"
+	if p.prepared.Backend != nil {
+		name = p.prepared.Backend.Name
+	}
+	return backend.Capabilities{Name: name, ReplayModes: []string{record.ReplayObserved, record.ReplayExact}, ChoiceProfiles: []string{choice.Profile}}
+}
+
+func (p *boundaryProvider) Describe(_ context.Context, config backend.Configuration) (backend.Description, error) {
+	profile := record.IOProfile{Name: config.Target.Backend}
+	if p.prepared.Backend != nil {
+		profile = record.BackendIOProfile(*p.prepared.Backend)
+	}
+	return backend.Description{IOProfile: profile}, nil
+}
+
+func (p *boundaryProvider) Execute(ctx context.Context, request backend.ExecutionRequest) (backend.ExecutionResult, error) {
+	projected := backend.Request{Target: request.Target, Seed: request.Seed, Environment: request.Env, Timeout: request.ExecutionTimeout, OutputBytes: request.OutputLimit, Choice: backendChoiceRequest(request.Choice)}
+	if request.IO != nil && request.IO.Transcript != nil {
+		projected.TranscriptBytes = request.IO.Transcript.Limit
+	}
+	observed, err := p.Run(ctx, projected)
+	if err != nil {
+		return backend.ExecutionResult{}, err
+	}
+	return backend.ProjectObservedResult(projected, observed, request.StdoutHead, request.StderrHead)
+}
+
+func (*boundaryProvider) Evidence(ctx context.Context, request backend.EvidenceRequest) (backend.Evidence, error) {
+	return fixtureSemanticEvidence(ctx, request)
+}
+
+func fixtureSemanticEvidence(ctx context.Context, request backend.EvidenceRequest) (backend.Evidence, error) {
+	if err := ctx.Err(); err != nil {
+		return backend.Evidence{}, err
+	}
+	if request.Transcript != nil && request.Probes != nil {
+		return backend.Evidence{}, errors.New("semantic evidence must supply transcript or probes, not both")
+	}
+	var evidence backend.Evidence
+	var err error
+	if request.Transcript != nil {
+		evidence.Coverage, err = transcript.DecodeSemanticCoverage(request.Transcript)
+		if err != nil {
+			return backend.Evidence{}, err
+		}
+		operations, err := transcript.DecodeTranscript(request.Transcript)
+		if err != nil {
+			return backend.Evidence{}, err
+		}
+		evidence.Operations = make([]backend.OperationOutcome, 0, len(operations))
+		for _, operation := range operations {
+			evidence.Operations = append(evidence.Operations, backend.OperationOutcome{Name: operation.Name, Result: operation.Result})
+		}
+	} else {
+		evidence.Coverage, err = transcript.SummarizeSemanticProbes(request.Probes)
+	}
+	if err != nil {
+		return backend.Evidence{}, err
+	}
+	evidence.MissingRequiredProbes, err = transcript.MissingRequiredSemanticProbes(evidence.Coverage, request.RequiredSemanticProbes)
+	return evidence, err
+}
+
 func TestExternalReplayForcesRecordedTapeAndComparesFinalObservations(t *testing.T) {
 	prepared := newFakePreparer(t).prepared
 	provenance := []byte("fixture")
@@ -71,7 +136,7 @@ func TestExternalReplayForcesRecordedTapeAndComparesFinalObservations(t *testing
 	completion.result.BackendEvidence = []byte("run")
 	completion.result.ChoiceTrace = trace
 	world := noneWorldBundle()
-	manifest, err := manifestForRun(campaignRequestFromSpec(config), prepared, environment, completion, execution.Classify(completion.result, false, world.Manifest.Terminal), "fixture", world.Manifest, nil)
+	manifest, err := manifestForRun(campaignRequestFromSpec(config), prepared, environment, completion, backend.Classify(completion.result, false, world.Manifest.Terminal), "fixture", world.Manifest, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -198,7 +263,7 @@ func TestExternalManifestUsesCompleteRecordedTargetSnapshot(t *testing.T) {
 	config, _ := testConfig(t, preparer, &fakeExecutor{}, "1", PolicyFirst, 1)
 	completion := runCompletion{job: runJob{seed: 1}, startedAt: time.Unix(1, 0), finishedAt: time.Unix(2, 0), result: processResult(1, "", "")}
 	completion.result.BackendEvidence = []byte("run")
-	manifest, err := manifestForRun(campaignRequestFromSpec(config), prepared, nil, completion, execution.Classification{Domain: "target", Reason: "nonzero_exit", Termination: "exit", ArtifactKind: record.ArtifactTargetFailure, ReplayMode: record.ReplayObserved}, "run", record.World{}, nil)
+	manifest, err := manifestForRun(campaignRequestFromSpec(config), prepared, nil, completion, backend.Classification{Domain: "target", Reason: "nonzero_exit", Termination: "exit", ArtifactKind: record.ArtifactTargetFailure, ReplayMode: record.ReplayObserved}, "run", record.World{}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -272,7 +337,7 @@ func TestExternalChoiceExplorationAdmitsOnlySupportedCoverage(t *testing.T) {
 }
 
 func TestExternalChoiceOutcomeBindsBackendEvidence(t *testing.T) {
-	outcome := execution.Classification{Domain: "success", Termination: "exit"}
+	outcome := backend.Classification{Domain: "success", Termination: "exit"}
 	result := processResult(0, "same output", "")
 	native, err := explorationOutcomeSHA256(outcome, result, record.World{})
 	if err != nil {

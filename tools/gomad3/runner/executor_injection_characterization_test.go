@@ -3,6 +3,7 @@ package runner
 import (
 	"context"
 	"errors"
+	backend "go.temporal.io/server/tools/gomad3/backends"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -10,9 +11,9 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/backends/native/preparation"
-	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
@@ -23,7 +24,7 @@ import (
 
 func TestInjectionCharacterizationSimulationRoleKeysOnTheProcessExecutor(t *testing.T) {
 	capability, err := simulationCapabilityForJob(processExecutor{}, runJob{})
-	if err != nil || !reflect.DeepEqual(capability, &execution.SimulationCapability{Role: execution.SimulationRoleCoordinator}) {
+	if err != nil || !reflect.DeepEqual(capability, &backend.SimulationCapability{Role: backend.SimulationRoleCoordinator}) {
 		t.Fatalf("process executor simulation capability = %#v, %v", capability, err)
 	}
 	capability, err = simulationCapabilityForJob(&fakeExecutor{}, runJob{})
@@ -80,10 +81,10 @@ type replayForwardingExecutor struct {
 	replays    int
 }
 
-func (executor *replayForwardingExecutor) Run(ctx context.Context, request execution.Spec) (execution.Result, error) {
+func (executor *replayForwardingExecutor) Run(ctx context.Context, request backend.ExecutionRequest) (backend.ExecutionResult, error) {
 	if request.IO != nil && request.IO.Transcript != nil && request.IO.Transcript.Replay {
 		executor.replays++
-		return execution.Result{}, errReplayReachedSubstitutedExecutor
+		return backend.ExecutionResult{}, errReplayReachedSubstitutedExecutor
 	}
 	return executor.candidates.Run(ctx, request)
 }
@@ -115,7 +116,7 @@ func TestInjectionCharacterizationShardChecksToolchainOnlyForTheProcessExecutor(
 	if !errors.Is(err, os.ErrNotExist) {
 		t.Fatalf("process shard with a missing toolchain error = %v", err)
 	}
-	executor := &fakeExecutor{result: func(uint64) execution.Result { return processResult(0, "", "") }}
+	executor := &fakeExecutor{result: func(uint64) backend.ExecutionResult { return processResult(0, "", "") }}
 	result, err := runCampaignShardWith(context.Background(), CampaignShardSpec{
 		PlanPath: planPath, Shard: CampaignShard{Index: 0, Count: 1}, Artifacts: t.TempDir(), RunnerBuild: config.RunnerBuild,
 		ToolchainRoot: missingRoot,
@@ -141,7 +142,7 @@ func TestInjectionCharacterizationResumeChecksToolchainAndSupervisorOnlyForThePr
 	if !errors.Is(err, os.ErrNotExist) {
 		t.Fatalf("process resume with a missing toolchain error = %v", err)
 	}
-	executor := &fakeExecutor{result: func(uint64) execution.Result { return processResult(0, "", "") }}
+	executor := &fakeExecutor{result: func(uint64) backend.ExecutionResult { return processResult(0, "", "") }}
 	resumed, err := resumeWith(context.Background(), ResumeSpec{CampaignPath: partial.CampaignPath, RunnerBuild: config.RunnerBuild, ToolchainRoot: missingRoot}, executionDependencies{executor: executor})
 	if err != nil || resumed.Attempted != 2 || resumed.Succeeded != 2 || len(executor.requests) != 1 {
 		t.Fatalf("substituted resume with a missing toolchain = %#v requests=%d, %v", resumed, len(executor.requests), err)

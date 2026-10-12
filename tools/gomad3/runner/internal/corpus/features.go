@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"sort"
 
-	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	"go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/world"
 )
 
-func semanticFeatures(manifest record.ExecutionRecord, coverage record.SemanticCoverage, ioTranscript, worldTransitions []byte, choices *choice.FeatureProjection) ([]Feature, error) {
+func semanticFeatures(manifest record.ExecutionRecord, coverage record.SemanticCoverage, operations []backends.OperationOutcome, worldTransitions []byte, choices *choice.FeatureProjection) ([]Feature, error) {
 	choiceCount := 0
 	if choices != nil {
 		choiceCount = len(choices.Values)
@@ -33,10 +33,6 @@ func semanticFeatures(manifest record.ExecutionRecord, coverage record.SemanticC
 		return nil, err
 	}
 	features = append(features, worldFeatures...)
-	operations, err := transcript.DecodeTranscript(ioTranscript)
-	if err != nil {
-		return nil, err
-	}
 	var previous string
 	for _, operation := range operations {
 		if operation.Name == "boundary.probe" {

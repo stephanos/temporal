@@ -3,13 +3,13 @@ package runner
 import (
 	"context"
 	"errors"
+	backend "go.temporal.io/server/tools/gomad3/backends"
 	"reflect"
 	"testing"
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
-	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
 )
 
 type injectedCampaign struct {
@@ -22,7 +22,7 @@ func injectedTestConfig(t *testing.T, preparer Preparer, executor executionRunne
 	return injectedCampaign{CampaignSpec: spec, dependencies: dependencies}
 }
 
-func injectedCompletionCampaign(t *testing.T, strategy Strategy, coverage CoverageMode, fault func(*execution.Result), runErr error) (injectedCampaign, faultExecutor) {
+func injectedCompletionCampaign(t *testing.T, strategy Strategy, coverage CoverageMode, fault func(*backend.ExecutionResult), runErr error) (injectedCampaign, faultExecutor) {
 	spec, executor, dependencies := completionCampaign(t, strategy, coverage, fault, runErr)
 	return injectedCampaign{CampaignSpec: spec, dependencies: dependencies}, executor
 }
@@ -49,21 +49,21 @@ func observeSeedCompletion(t *testing.T, summary CampaignResult, err error) seed
 
 // scriptedSeedExecutor runs each seed's script; a seed without one succeeds.
 type scriptedSeedExecutor struct {
-	scripts map[uint64]func(context.Context) (execution.Result, error)
+	scripts map[uint64]func(context.Context) (backend.ExecutionResult, error)
 }
 
-func (executor scriptedSeedExecutor) Run(ctx context.Context, request execution.Spec) (execution.Result, error) {
+func (executor scriptedSeedExecutor) Run(ctx context.Context, request backend.ExecutionRequest) (backend.ExecutionResult, error) {
 	if script := executor.scripts[seedFromEnvironment(request.Env)]; script != nil {
 		return script(ctx)
 	}
 	return processResult(0, "", ""), nil
 }
 
-func cancelledByCampaign(ctx context.Context) (execution.Result, error) {
+func cancelledByCampaign(ctx context.Context) (backend.ExecutionResult, error) {
 	<-ctx.Done()
 	result := processResult(0, "", "")
 	result.Cancelled = true
-	result.Termination = execution.TerminationSignal
+	result.Termination = backend.TerminationSignal
 	result.Signal = "killed"
 	return result, nil
 }
@@ -74,7 +74,7 @@ func cancelledByCampaign(ctx context.Context) (execution.Result, error) {
 func TestSeedCompletionKeepsCampaignStatistics(t *testing.T) {
 	const failedCampaign = "campaign recoverable-failure"
 	supervisionErr := errors.New("supervisor broke")
-	failSupervision := func(context.Context) (execution.Result, error) {
+	failSupervision := func(context.Context) (backend.ExecutionResult, error) {
 		return processResult(0, "", ""), supervisionErr
 	}
 	for _, test := range []struct {
@@ -95,7 +95,7 @@ func TestSeedCompletionKeepsCampaignStatistics(t *testing.T) {
 		{
 			name: "distinct and duplicate failures",
 			configure: func(t *testing.T) (context.Context, injectedCampaign) {
-				executor := &fakeExecutor{result: func(seed uint64) execution.Result {
+				executor := &fakeExecutor{result: func(seed uint64) backend.ExecutionResult {
 					switch seed {
 					case 1:
 						return processResult(0, "", "")
@@ -124,7 +124,7 @@ func TestSeedCompletionKeepsCampaignStatistics(t *testing.T) {
 		{
 			name: "failure budget",
 			configure: func(t *testing.T) (context.Context, injectedCampaign) {
-				executor := &fakeExecutor{result: func(seed uint64) execution.Result {
+				executor := &fakeExecutor{result: func(seed uint64) backend.ExecutionResult {
 					if seed == 4 {
 						return processResult(1, "different", "")
 					}
@@ -142,7 +142,7 @@ func TestSeedCompletionKeepsCampaignStatistics(t *testing.T) {
 		{
 			name: "supervision failure",
 			configure: func(t *testing.T) (context.Context, injectedCampaign) {
-				return context.Background(), injectedTestConfig(t, newFakePreparer(t), scriptedSeedExecutor{scripts: map[uint64]func(context.Context) (execution.Result, error){1: failSupervision}}, "1", PolicyAll, 1)
+				return context.Background(), injectedTestConfig(t, newFakePreparer(t), scriptedSeedExecutor{scripts: map[uint64]func(context.Context) (backend.ExecutionResult, error){1: failSupervision}}, "1", PolicyAll, 1)
 			},
 			want: seedCompletionObservation{
 				Completion: completionObservation{Reason: "target_supervision", Cause: "supervisor broke", Counts: [5]uint64{1, 0, 0, 0, 1}, Artifacts: []string{"gomad3.runner-failure/v1 target_supervision none none no-choices"}, Journal: []string{"runner target_supervision none"}, Partials: []string{"00000000000000000000-1 preserve-partial", failedCampaign}},
@@ -152,7 +152,7 @@ func TestSeedCompletionKeepsCampaignStatistics(t *testing.T) {
 		{
 			name: "supervision failure drains a cancelled attempt",
 			configure: func(t *testing.T) (context.Context, injectedCampaign) {
-				executor := scriptedSeedExecutor{scripts: map[uint64]func(context.Context) (execution.Result, error){1: failSupervision, 2: cancelledByCampaign}}
+				executor := scriptedSeedExecutor{scripts: map[uint64]func(context.Context) (backend.ExecutionResult, error){1: failSupervision, 2: cancelledByCampaign}}
 				return context.Background(), injectedTestConfig(t, newFakePreparer(t), executor, "1-2", PolicyAll, 2)
 			},
 			want: seedCompletionObservation{
@@ -163,7 +163,7 @@ func TestSeedCompletionKeepsCampaignStatistics(t *testing.T) {
 		{
 			name: "supervision failure drains a success",
 			configure: func(t *testing.T) (context.Context, injectedCampaign) {
-				executor := scriptedSeedExecutor{scripts: map[uint64]func(context.Context) (execution.Result, error){1: failSupervision}}
+				executor := scriptedSeedExecutor{scripts: map[uint64]func(context.Context) (backend.ExecutionResult, error){1: failSupervision}}
 				return context.Background(), injectedTestConfig(t, newFakePreparer(t), executor, "1-2", PolicyAll, 2)
 			},
 			want: seedCompletionObservation{
@@ -174,7 +174,7 @@ func TestSeedCompletionKeepsCampaignStatistics(t *testing.T) {
 		{
 			name: "supervision failure drains a failure",
 			configure: func(t *testing.T) (context.Context, injectedCampaign) {
-				executor := scriptedSeedExecutor{scripts: map[uint64]func(context.Context) (execution.Result, error){1: failSupervision, 2: func(context.Context) (execution.Result, error) {
+				executor := scriptedSeedExecutor{scripts: map[uint64]func(context.Context) (backend.ExecutionResult, error){1: failSupervision, 2: func(context.Context) (backend.ExecutionResult, error) {
 					return processResult(1, "failed", ""), nil
 				}}}
 				return context.Background(), injectedTestConfig(t, newFakePreparer(t), executor, "1-2", PolicyFirst, 2)
@@ -224,31 +224,31 @@ func TestSeedCompletionKeepsCampaignStatistics(t *testing.T) {
 // classification keep every statistic, not only the counters the shared
 // completion table pins.
 func TestSeedCompletionFaultsKeepCampaignStatistics(t *testing.T) {
-	malformedWorld := func(result *execution.Result) {
+	malformedWorld := func(result *backend.ExecutionResult) {
 		result.WorldRecord = completionWorldRecord(t, 7)
 		result.WorldRecord[len(result.WorldRecord)-1] ^= 1
 	}
-	watchdog := func(result *execution.Result) {
-		result.Termination = execution.TerminationSignal
+	watchdog := func(result *backend.ExecutionResult) {
+		result.Termination = backend.TerminationSignal
 		result.Signal = "SIGKILL"
 		result.WatchdogTimeout = true
-		result.ChoiceTrace = execution.ChoiceTrace{Profile: choice.Profile, Limit: result.ChoiceTrace.Limit}
+		result.ChoiceTrace = backend.ChoiceTrace{Profile: choice.Profile, Limit: result.ChoiceTrace.Limit}
 	}
-	cancelled := func(result *execution.Result) {
-		result.Termination = execution.TerminationSignal
+	cancelled := func(result *backend.ExecutionResult) {
+		result.Termination = backend.TerminationSignal
 		result.Signal = "killed"
 		result.Cancelled = true
-		result.ChoiceTrace = execution.ChoiceTrace{Profile: choice.Profile, Limit: result.ChoiceTrace.Limit}
+		result.ChoiceTrace = backend.ChoiceTrace{Profile: choice.Profile, Limit: result.ChoiceTrace.Limit}
 	}
 	for _, test := range []struct {
 		name     string
 		coverage CoverageMode
-		fault    func(*execution.Result)
+		fault    func(*backend.ExecutionResult)
 		err      error
 		want     campaign.CampaignStatistics
 	}{
 		{name: "malformed World", fault: malformedWorld, want: campaign.CampaignStatistics{Attempted: 1, DistinctFailures: 1}},
-		{name: "supervision rejected the choice trace", err: execution.ErrChoiceTraceMalformed, want: campaign.CampaignStatistics{Attempted: 1}},
+		{name: "supervision rejected the choice trace", err: backend.ErrChoiceTraceMalformed, want: campaign.CampaignStatistics{Attempted: 1}},
 		{name: "watchdog", coverage: CoverageSemanticChoice, fault: watchdog, want: campaign.CampaignStatistics{Attempted: 1, Failures: 1, Watchdogs: 1, DistinctFailures: 1, StopReason: campaign.StopSeedsExhausted}},
 		{name: "cancelled execution", coverage: CoverageSemanticChoice, fault: cancelled, want: campaign.CampaignStatistics{Attempted: 1, Failures: 1, DistinctFailures: 1, StopReason: campaign.StopSeedsExhausted}},
 	} {

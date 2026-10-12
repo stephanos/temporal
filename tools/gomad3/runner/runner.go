@@ -6,7 +6,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"os"
 	"regexp"
 	"runtime"
@@ -16,14 +15,12 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
-	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	backend "go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/internal/hostexec"
 	"go.temporal.io/server/tools/gomad3/record"
-	"go.temporal.io/server/tools/gomad3/runner/backend"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
-	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
+
 	choiceengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/choice"
 	simulationengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation"
 	"go.temporal.io/server/tools/gomad3/target"
@@ -119,7 +116,7 @@ type Preparer interface {
 }
 
 type executionRunner interface {
-	Run(context.Context, execution.Spec) (execution.Result, error)
+	Run(context.Context, backend.ExecutionRequest) (backend.ExecutionResult, error)
 }
 
 type ArtifactReplayer interface {
@@ -160,8 +157,6 @@ type CampaignSpec struct {
 	IOROMounts                []string
 	IOROMountLimits           captured.Limits
 	Target                    target.Spec
-	SupervisorCommand         []string
-	CoordinatorCommand        []string
 	RunnerBuild               string
 	Coverage                  CoverageMode
 	RequiredSemanticProbes    []string
@@ -307,16 +302,13 @@ func contextFailureReason(err error) string {
 	return "overall_timeout"
 }
 
-type targetPreparer struct{}
+type processExecutor struct{ provider backend.Provider }
 
-func (targetPreparer) Prepare(ctx context.Context, spec target.Spec) (target.Prepared, error) {
-	return nativebuild.Prepare(ctx, spec)
-}
-
-type processExecutor struct{}
-
-func (processExecutor) Run(ctx context.Context, request execution.Spec) (execution.Result, error) {
-	return execution.Run(ctx, request)
+func (executor processExecutor) Run(ctx context.Context, request backend.ExecutionRequest) (backend.ExecutionResult, error) {
+	if executor.provider == nil {
+		return backend.ExecutionResult{}, errors.New("backend provider is required")
+	}
+	return executor.provider.Execute(ctx, request)
 }
 
 type artifactReplayer struct {
@@ -341,7 +333,7 @@ type runCompletion struct {
 	job        runJob
 	startedAt  time.Time
 	finishedAt time.Time
-	result     execution.Result
+	result     backend.ExecutionResult
 	err        error
 	journal    *campaign.ExecutionJournal
 }
@@ -382,8 +374,15 @@ func exploreWith(ctx context.Context, config CampaignSpec, dependencies executio
 	if err != nil {
 		return CampaignResult{}, err
 	}
-	if len(request.CoordinatorCommand) != 0 {
-		if request.Preparer != nil || request.injected() || request.Replayer != nil || request.Backend != nil {
+	if request.Backend == nil {
+		return CampaignResult{}, errors.New("backend provider is required")
+	}
+	request.profile, err = request.Backend.Describe(ctx, backend.Configuration{Target: request.Target, ClockTick: request.ClockTick, Environment: request.Environment, RequiredSemanticProbes: request.RequiredSemanticProbes})
+	if err != nil {
+		return CampaignResult{}, err
+	}
+	if request.profile.Isolated {
+		if request.Preparer != nil || request.injected() || request.Replayer != nil {
 			return CampaignResult{}, fmt.Errorf("isolated Runner does not accept injected preparation or execution")
 		}
 		return runIsolated(ctx, request)
@@ -403,8 +402,8 @@ func validateCampaignRequest(config campaignRequest) (SeedSelection, []record.En
 		if config.RunnerBuild == "" {
 			return SeedSelection{}, nil, fmt.Errorf("Runner build identity is required for campaign resume")
 		}
-		if config.executor == nil && config.Backend == nil && len(config.SupervisorCommand) == 0 {
-			return SeedSelection{}, nil, fmt.Errorf("supervisor command is required")
+		if config.Backend == nil {
+			return SeedSelection{}, nil, fmt.Errorf("backend provider is required")
 		}
 		return SeedSelection{}, nil, nil
 	}
@@ -560,8 +559,8 @@ func validateCampaignRequest(config campaignRequest) (SeedSelection, []record.En
 	default:
 		return SeedSelection{}, nil, fmt.Errorf("unknown failure policy %q", config.OnFailure)
 	}
-	if config.executor == nil && config.Backend == nil && len(config.SupervisorCommand) == 0 {
-		return SeedSelection{}, nil, errors.New("supervisor command is required")
+	if config.Backend == nil {
+		return SeedSelection{}, nil, errors.New("backend provider is required")
 	}
 	if len(config.IOROMounts) != 0 {
 		if config.Target.WorkingDir == "" {
@@ -582,15 +581,18 @@ func validateCampaignRequest(config campaignRequest) (SeedSelection, []record.En
 	if err != nil {
 		return SeedSelection{}, nil, err
 	}
-	ioProfile := transcript.Deterministic
-	if config.Target.Backend != "" {
+	description, err := config.Backend.Describe(context.Background(), backend.Configuration{Target: config.Target, ClockTick: config.ClockTick, Environment: config.Environment, RequiredSemanticProbes: config.RequiredSemanticProbes})
+	if err != nil {
+		return SeedSelection{}, nil, err
+	}
+	ioProfile := description.Name()
+	capabilities := config.Backend.Capabilities()
+	if !capabilities.IOTranscript {
 		coverage := NormalizeCoverage(config.Coverage, false)
 		if config.Backend == nil || config.Preparer != nil || config.strategy() != StrategySeed && config.strategy() != StrategyChoiceExploration || coverage != CoverageNone && coverage != CoverageChoice || config.Guide || len(config.IOROMounts) != 0 || config.ClockTick != "" {
 			return SeedSelection{}, nil, errors.New("external backend request requires its provider and a supported seed or choice profile")
 		}
 		ioProfile = config.Target.Backend
-	} else if config.Backend != nil {
-		return SeedSelection{}, nil, errors.New("backend provider requires an explicit backend selector")
 	}
 	environment = append(environment, record.Environment{Name: "GOMAD3_IO_PROFILE", Value: ioProfile})
 	if err := record.ValidateIOTranscriptLimit(ioTranscriptLimit(config)); err != nil {
@@ -657,7 +659,7 @@ func parseEnvironment(entries []string) ([]record.Environment, error) {
 	return environment, nil
 }
 
-func runSeed(ctx context.Context, config campaignRequest, executor executionRunner, prepared target.Prepared, baseEnvironment []record.Environment, profile transcript.Spec, readOnlyMounts []captured.Mapping, journal runJournalFactory, job runJob, readiness *runReadiness, completions chan<- runCompletion) {
+func runSeed(ctx context.Context, config campaignRequest, executor executionRunner, prepared target.Prepared, baseEnvironment []record.Environment, profile backend.Description, readOnlyMounts []captured.Mapping, journal runJournalFactory, job runJob, readiness *runReadiness, completions chan<- runCompletion) {
 	defer readiness.signal()
 	startedAt := time.Now().UTC()
 	run, err := journal.BeginExecution(job.ordinal, job.seed)
@@ -690,29 +692,25 @@ func runSeed(ctx context.Context, config campaignRequest, executor executionRunn
 	}
 	environment := environmentForSeed(baseEnvironment, job.seed)
 	arguments := append([]string(nil), prepared.Argv[1:]...)
-	var ioConfig []byte
-	if prepared.Backend == nil {
-		ioConfig, completion.err = config.bootstrapFrame(profile, prepared, config.RunnerBuild, job.seed)
-	}
-	var choiceCapability *execution.ChoiceCapability
+	var choiceCapability *backend.ChoiceCapability
 	if completion.err == nil {
 		choiceCapability, completion.err = choiceCapabilityForJob(config, prepared, job)
 	}
-	var simulationCapability *execution.SimulationCapability
+	var simulationCapability *backend.SimulationCapability
 	if completion.err == nil {
 		simulationCapability, completion.err = simulationCapabilityForJob(executor, job)
 	}
 	if completion.err == nil {
 		readiness.signal()
-		request := execution.Spec{
-			SupervisorCommand: append([]string(nil), config.SupervisorCommand...), Command: prepared.Path, Args: arguments, Argv0: prepared.Argv[0],
+		request := backend.ExecutionRequest{
+			Target: prepared.CloneBackend(), Seed: job.seed, RunnerBuild: config.RunnerBuild, Command: prepared.Path, Args: arguments, Argv0: prepared.Argv[0],
 			Dir: run.WorkPath(), Env: environmentStrings(environment), ExecutionTimeout: config.ExecutionTimeout,
 			TerminateGrace: config.TerminateGrace, OutputLimit: config.OutputLimit,
-			World: execution.WorldCapability{RecordLimit: world.MaximumRecordingBytes, TransitionLimit: config.WorldTransitionLimit, Seed: job.seed},
-			IO: &execution.IOCapability{
-				Config:     append([]byte(nil), ioConfig...),
-				Transcript: &execution.IOTranscriptCapability{Limit: ioTranscriptLimit(config)},
-				ReadOnlyMount: &execution.ReadOnlyMountCapability{
+			World: backend.WorldCapability{RecordLimit: world.MaximumRecordingBytes, TransitionLimit: config.WorldTransitionLimit, Seed: job.seed},
+			IO: &backend.IOCapability{
+				Profile:    profile.IOProfile,
+				Transcript: &backend.IOTranscriptCapability{Limit: ioTranscriptLimit(config)},
+				ReadOnlyMount: &backend.ReadOnlyMountCapability{
 					Mappings: append([]captured.Mapping(nil), readOnlyMounts...), Limits: config.IOROMountLimits,
 				},
 			},
@@ -721,19 +719,14 @@ func runSeed(ctx context.Context, config campaignRequest, executor executionRunn
 		request.Simulation = simulationCapability
 		request.Choice = choiceCapability
 		request.Diagnostics = config.Diagnostics
-		if len(config.SupervisorCommand) != 0 {
-			request.BootstrapCommand = []string{config.SupervisorCommand[0], "__target_bootstrap"}
-		}
+		completion.result, completion.err = executor.Run(ctx, request)
 		if prepared.Backend != nil {
-			completion.result, completion.err = runBackend(ctx, config.Backend, backend.Request{Target: prepared.CloneBackend(), Seed: job.seed, Environment: environmentStrings(environment), Timeout: config.ExecutionTimeout, OutputBytes: config.OutputLimit, TranscriptBytes: ioTranscriptLimit(config), Choice: backendChoiceRequest(choiceCapability), Diagnostics: config.Diagnostics}, stdoutHead, stderrHead)
 			if job.choiceMode == choice.ModePrefix && backendChoiceReplayDivergence(completion.err) {
 				var failure *backend.FailureError
 				if errors.As(completion.err, &failure) && failure.ChoiceDivergence != nil {
-					completion.err = &execution.ChoiceReplayDivergenceError{Divergence: *failure.ChoiceDivergence}
+					completion.err = &backend.ChoiceReplayDivergenceError{Divergence: *failure.ChoiceDivergence}
 				}
 			}
-		} else {
-			completion.result, completion.err = executor.Run(ctx, request)
 		}
 		// A target the watchdog or a cancellation killed never wrote its
 		// terminal choice frame; that termination is the outcome, not the
@@ -769,26 +762,26 @@ func runSeed(ctx context.Context, config campaignRequest, executor executionRunn
 	completions <- completion
 }
 
-func simulationCapabilityForJob(executor executionRunner, job runJob) (*execution.SimulationCapability, error) {
+func simulationCapabilityForJob(executor executionRunner, job runJob) (*backend.SimulationCapability, error) {
 	if job.simulationPlan == "" {
 		if job.simulationRecordLimit != 0 || job.simulationRecordCount != 0 {
 			return nil, errors.New("simulation exploration record bounds require a plan")
 		}
 		if _, ok := executor.(processExecutor); ok {
-			return &execution.SimulationCapability{Role: execution.SimulationRoleCoordinator}, nil
+			return &backend.SimulationCapability{Role: backend.SimulationRoleCoordinator}, nil
 		}
 		return nil, nil
 	}
 	if job.simulationRecordLimit == 0 || job.simulationRecordCount == 0 {
 		return nil, errors.New("simulation exploration plan requires record bounds")
 	}
-	return &execution.SimulationCapability{
-		Role: execution.SimulationRoleCoordinator, ExplorationPlan: []byte(job.simulationPlan),
+	return &backend.SimulationCapability{
+		Role: backend.SimulationRoleCoordinator, ExplorationPlan: []byte(job.simulationPlan),
 		ExplorationRecordLimit: job.simulationRecordLimit, ExplorationRecordCount: job.simulationRecordCount,
 	}, nil
 }
 
-func choiceCapabilityForJob(config campaignRequest, prepared target.Prepared, job runJob) (*execution.ChoiceCapability, error) {
+func choiceCapabilityForJob(config campaignRequest, prepared target.Prepared, job runJob) (*backend.ChoiceCapability, error) {
 	if config.ChoiceTraceLimit == 0 {
 		return nil, nil
 	}
@@ -804,7 +797,7 @@ func choiceCapabilityForJob(config campaignRequest, prepared target.Prepared, jo
 	if mode == 0 {
 		mode = choice.ModeRecord
 	}
-	capability := &execution.ChoiceCapability{
+	capability := &backend.ChoiceCapability{
 		Mode: mode, Profile: choice.Profile, ImplementationSHA256: implementation,
 		ExecutionIdentity: identity, Limit: config.ChoiceTraceLimit,
 	}
@@ -815,19 +808,19 @@ func choiceCapabilityForJob(config campaignRequest, prepared target.Prepared, jo
 	return capability, nil
 }
 
-func validateObservedChoiceTrace(limit uint64, capability *execution.ChoiceCapability, observed *execution.ChoiceTrace) error {
+func validateObservedChoiceTrace(limit uint64, capability *backend.ChoiceCapability, observed *backend.ChoiceTrace) error {
 	if limit == 0 {
 		return nil
 	}
 	if observed == nil || observed.Profile == "" || observed.Trace.Summary.Terminal == 0 {
-		return execution.ErrChoiceTraceUnterminated
+		return backend.ErrChoiceTraceUnterminated
 	}
 	if capability == nil || observed.Profile != choice.Profile || observed.ImplementationSHA256 != capability.ImplementationSHA256 || observed.Limit != limit || observed.Trace.Summary.Terminal != choice.TerminalComplete {
-		return execution.ErrChoiceTraceMalformed
+		return backend.ErrChoiceTraceMalformed
 	}
 	tape, err := choice.ProjectReplayPlan(observed.Trace, capability.ExecutionIdentity)
 	if err != nil {
-		return errors.Join(execution.ErrChoiceTraceMalformed, err)
+		return errors.Join(backend.ErrChoiceTraceMalformed, err)
 	}
 	observed.TapeSHA256 = tape.SHA256
 	observed.Decisions = uint64(len(tape.Decisions))
@@ -867,8 +860,8 @@ func environmentStrings(environment []record.Environment) []string {
 	return result
 }
 
-func manifestForRun(config campaignRequest, prepared target.Prepared, baseEnvironment []record.Environment, completion runCompletion, outcome execution.Classification, runID string, recordedWorld record.World, mountArtifact *captured.CapturedInputs) (record.ExecutionRecord, error) {
-	profile := transcript.Default()
+func manifestForRun(config campaignRequest, prepared target.Prepared, baseEnvironment []record.Environment, completion runCompletion, outcome backend.Classification, runID string, recordedWorld record.World, mountArtifact *captured.CapturedInputs) (record.ExecutionRecord, error) {
+	profile := config.profile
 	recordedProfile := recordedIOProfile(profile)
 	if prepared.Backend != nil {
 		recordedProfile = record.BackendIOProfile(*prepared.Backend)
@@ -965,7 +958,7 @@ func mountArtifactForRun(mappings []captured.Mapping, limits captured.Limits, sn
 	return &encoded, nil
 }
 
-func setRunTranscript(run *campaign.ExecutionRecord, transcript transcript.Transcript) {
+func setRunTranscript(run *campaign.ExecutionRecord, transcript backend.Transcript) {
 	if !transcript.Complete {
 		return
 	}
@@ -975,7 +968,7 @@ func setRunTranscript(run *campaign.ExecutionRecord, transcript transcript.Trans
 	run.IOTranscriptRecords = &records
 }
 
-func setRunChoiceTrace(run *campaign.ExecutionRecord, trace execution.ChoiceTrace) {
+func setRunChoiceTrace(run *campaign.ExecutionRecord, trace backend.ChoiceTrace) {
 	if trace.Profile == "" || trace.Trace.Summary.Terminal != choice.TerminalComplete && trace.Trace.Summary.Terminal != choice.TerminalOverflow {
 		return
 	}
@@ -997,18 +990,18 @@ func setRunChoiceTrace(run *campaign.ExecutionRecord, trace execution.ChoiceTrac
 
 func supervisionFailureReason(err error) string {
 	switch {
-	case errors.Is(err, execution.ErrChoiceTraceOverflow):
+	case errors.Is(err, backend.ErrChoiceTraceOverflow):
 		return "choice_trace_overflow"
-	case errors.Is(err, execution.ErrChoiceTraceMalformed):
+	case errors.Is(err, backend.ErrChoiceTraceMalformed):
 		return "choice_trace_malformed"
-	case errors.Is(err, execution.ErrChoiceTraceUnterminated):
+	case errors.Is(err, backend.ErrChoiceTraceUnterminated):
 		return "choice_trace_unterminated"
 	default:
 		return "target_supervision"
 	}
 }
 
-func choiceTraceSummary(seed uint64, trace execution.ChoiceTrace) *ChoiceTraceSummary {
+func choiceTraceSummary(seed uint64, trace backend.ChoiceTrace) *ChoiceTraceSummary {
 	summary := &ChoiceTraceSummary{
 		Seed: seed, Profile: trace.Profile, Limit: trace.Limit, SHA256: record.SHA256FromSum(trace.Trace.SHA256),
 		Records: trace.Trace.Summary.Records, BranchingRecords: trace.Trace.Summary.Branching,
@@ -1151,16 +1144,16 @@ func publishBoundedFailureArtifact(
 	return published, nil
 }
 
-func streamRecord(output hostexec.Output) record.Stream {
+func streamRecord(output backend.Output) record.Stream {
 	return record.Stream{
 		RetainedSHA256: record.SHA256FromSum(output.RetainedSHA256), FullSHA256: record.SHA256FromSum(output.FullSHA256), TotalBytes: record.Uint64String(output.TotalBytes),
 		RetainedBytes: record.Uint64String(output.RetainedBytes), DiscardedBytes: record.Uint64String(output.DiscardedBytes), Truncated: output.Truncated,
 	}
 }
 
-func noneWorldBundle() execution.Bundle {
+func noneWorldBundle() backend.Bundle {
 	manifest, payloads := record.NoneWorld()
-	return execution.Bundle{Manifest: manifest, Payloads: payloads}
+	return backend.Bundle{Manifest: manifest, Payloads: payloads}
 }
 
 func elapsedNanos(startedAt, finishedAt time.Time) record.Uint64String {

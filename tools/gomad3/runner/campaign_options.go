@@ -6,10 +6,9 @@ import (
 	"path/filepath"
 	"time"
 
-	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	backend "go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/record"
-	"go.temporal.io/server/tools/gomad3/runner/backend"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
 	"go.temporal.io/server/tools/gomad3/target"
 )
@@ -92,8 +91,7 @@ type campaignRuntime struct {
 	executionDependencies
 
 	Backend              backend.Provider `json:"-"`
-	SupervisorCommand    []string
-	CoordinatorCommand   []string
+	profile              backend.Description
 	RunnerBuild          string
 	Progress             CampaignEventFunc
 	Preparer             Preparer
@@ -152,9 +150,6 @@ func ValidateCoverage(mode CoverageMode, required []string) error {
 			return &SemanticCoverageRequiredError{}
 		}
 	case CoverageSemantic, CoverageSemanticChoice:
-		if _, err := transcript.MissingRequiredSemanticProbes(record.SemanticCoverage{}, required); err != nil {
-			return err
-		}
 	default:
 		return fmt.Errorf("unknown coverage mode %q", mode)
 	}
@@ -220,8 +215,6 @@ func campaignRequestFromSpec(spec CampaignSpec) campaignRequest {
 	spec.Environment = append([]string(nil), spec.Environment...)
 	spec.IOROMounts = append([]string(nil), spec.IOROMounts...)
 	spec.RequiredSemanticProbes = append([]string(nil), spec.RequiredSemanticProbes...)
-	spec.SupervisorCommand = append([]string(nil), spec.SupervisorCommand...)
-	spec.CoordinatorCommand = append([]string(nil), spec.CoordinatorCommand...)
 	spec.Target.Args = append([]string(nil), spec.Target.Args...)
 	spec.Target.BuildTags = append([]string(nil), spec.Target.BuildTags...)
 	spec.Target.AdapterReplacements = append([]target.AdapterReplacement(nil), spec.Target.AdapterReplacements...)
@@ -261,8 +254,8 @@ func campaignRequestFromSpec(spec CampaignSpec) campaignRequest {
 			},
 		},
 		campaignRuntime: campaignRuntime{
-			SupervisorCommand: spec.SupervisorCommand, CoordinatorCommand: spec.CoordinatorCommand, RunnerBuild: spec.RunnerBuild,
-			Progress: spec.Progress, Preparer: spec.Preparer, Replayer: spec.Replayer, Backend: spec.Backend,
+			RunnerBuild: spec.RunnerBuild,
+			Progress:    spec.Progress, Preparer: spec.Preparer, Replayer: spec.Replayer, Backend: spec.Backend,
 			guidancePlan: spec.guidancePlan, resumePreflight: spec.resumePreflight,
 			failureArtifactLimit: spec.failureArtifactLimit, failureBytesLimit: spec.failureBytesLimit,
 		},

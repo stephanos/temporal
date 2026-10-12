@@ -14,6 +14,7 @@ import (
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
+	"go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
@@ -23,7 +24,7 @@ func TestCorpusPublishesCanonicalSnapshotOnlyAfterMatchingReplay(t *testing.T) {
 	root := filepath.Join(t.TempDir(), "corpus")
 	input, coverage, _ := guideArtifactInput(t, 7)
 	identity := guideIdentity(t, input.Manifest)
-	corpus, err := Open(context.Background(), root, identity)
+	corpus, err := Open(context.Background(), root, identity, corpusDescription(), corpusEvidenceProvider{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -53,7 +54,7 @@ func TestCorpusPublishesCanonicalSnapshotOnlyAfterMatchingReplay(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	reopened, err := Open(context.Background(), root, identity)
+	reopened, err := Open(context.Background(), root, identity, corpusDescription(), corpusEvidenceProvider{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -71,7 +72,7 @@ func TestCorpusRejectsIdentityChangesAndNonMatchingReplay(t *testing.T) {
 	root := filepath.Join(t.TempDir(), "corpus")
 	input, coverage, _ := guideArtifactInput(t, 7)
 	identity := guideIdentity(t, input.Manifest)
-	corpus, err := Open(context.Background(), root, identity)
+	corpus, err := Open(context.Background(), root, identity, corpusDescription(), corpusEvidenceProvider{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -97,7 +98,7 @@ func TestCorpusRejectsIdentityChangesAndNonMatchingReplay(t *testing.T) {
 	}
 
 	identity.InstrumentationSHA256 = record.HashBytes([]byte("changed"))
-	if _, err := Open(context.Background(), root, identity); err == nil {
+	if _, err := Open(context.Background(), root, identity, corpusDescription(), corpusEvidenceProvider{}); err == nil {
 		t.Fatal("Open accepted a changed instrumentation identity")
 	}
 }
@@ -105,7 +106,7 @@ func TestCorpusRejectsIdentityChangesAndNonMatchingReplay(t *testing.T) {
 func TestCorpusRejectsFilesystemRootAndSymbolicLink(t *testing.T) {
 	input, _, _ := guideArtifactInput(t, 7)
 	identity := guideIdentity(t, input.Manifest)
-	if _, err := Open(context.Background(), string(filepath.Separator), identity); err == nil {
+	if _, err := Open(context.Background(), string(filepath.Separator), identity, corpusDescription(), corpusEvidenceProvider{}); err == nil {
 		t.Fatal("Open accepted the filesystem root")
 	}
 	directory := t.TempDir()
@@ -117,7 +118,7 @@ func TestCorpusRejectsFilesystemRootAndSymbolicLink(t *testing.T) {
 	if err := os.Symlink(target, link); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := Open(context.Background(), link, identity); err == nil {
+	if _, err := Open(context.Background(), link, identity, corpusDescription(), corpusEvidenceProvider{}); err == nil {
 		t.Fatal("Open accepted a symbolic-link corpus")
 	}
 }
@@ -130,7 +131,7 @@ func TestCorpusCleansUnreferencedCasesAndRejectsUnexpectedEntries(t *testing.T) 
 	if err := os.MkdirAll(orphan, 0o700); err != nil {
 		t.Fatal(err)
 	}
-	corpus, err := Open(context.Background(), root, identity)
+	corpus, err := Open(context.Background(), root, identity, corpusDescription(), corpusEvidenceProvider{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -143,7 +144,7 @@ func TestCorpusCleansUnreferencedCasesAndRejectsUnexpectedEntries(t *testing.T) 
 	if err := os.WriteFile(filepath.Join(root, "cases", "unexpected"), nil, 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := Open(context.Background(), root, identity); err == nil {
+	if _, err := Open(context.Background(), root, identity, corpusDescription(), corpusEvidenceProvider{}); err == nil {
 		t.Fatal("Open accepted an unexpected corpus entry")
 	}
 }
@@ -152,17 +153,17 @@ func TestCorpusAllowsOnlyOneWriter(t *testing.T) {
 	input, _, _ := guideArtifactInput(t, 7)
 	identity := guideIdentity(t, input.Manifest)
 	root := filepath.Join(t.TempDir(), "corpus")
-	first, err := Open(context.Background(), root, identity)
+	first, err := Open(context.Background(), root, identity, corpusDescription(), corpusEvidenceProvider{})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := Open(context.Background(), root, identity); err == nil {
+	if _, err := Open(context.Background(), root, identity, corpusDescription(), corpusEvidenceProvider{}); err == nil {
 		t.Fatal("Open accepted a concurrent writer")
 	}
 	if err := first.Close(); err != nil {
 		t.Fatal(err)
 	}
-	reopened, err := Open(context.Background(), root, identity)
+	reopened, err := Open(context.Background(), root, identity, corpusDescription(), corpusEvidenceProvider{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -187,7 +188,7 @@ func TestCorpusRejectsEntryCapacityOverflowBeforeOpeningCases(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(root, "corpus.json"), encoded, 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := Open(context.Background(), root, identity); err == nil {
+	if _, err := Open(context.Background(), root, identity, corpusDescription(), corpusEvidenceProvider{}); err == nil {
 		t.Fatal("Open accepted too many corpus entries")
 	}
 }
@@ -228,7 +229,7 @@ func guideArtifactInput(t *testing.T, seed uint64) (artifact.ArtifactInput, reco
 		Streams: record.Streams{Stdout: record.Stream{FullSHA256: record.HashBytes(nil)}, Stderr: record.Stream{FullSHA256: record.HashBytes(nil)}},
 		Host:    record.Host{StartedAt: "2026-08-13T00:00:00Z", FinishedAt: "2026-08-13T00:00:01Z", ElapsedNanos: 1},
 	}
-	features, err := semanticFeatures(manifest, coverage, transcriptBytes, payloads.Transitions, nil)
+	features, err := semanticFeatures(manifest, coverage, []backends.OperationOutcome{{Name: "os.open"}}, payloads.Transitions, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -237,8 +238,7 @@ func guideArtifactInput(t *testing.T, seed uint64) (artifact.ArtifactInput, reco
 
 func guideIdentity(t *testing.T, manifest record.ExecutionRecord) Identity {
 	t.Helper()
-	version, boundary := transcript.BoundaryManifestIdentity()
-	identity, err := IdentityFor(manifest.Target, manifest.Toolchain, version, record.SHA256(boundary), manifest.Environment)
+	identity, err := IdentityFor(manifest.Target, manifest.Toolchain, corpusDescription(), manifest.Environment)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -277,7 +277,7 @@ func TestCorpusRejectsPreviousAndFutureSchemaBeforeChangedIdentity(t *testing.T)
 			if err := os.WriteFile(filepath.Join(root, "corpus.json"), encoded, 0o600); err != nil {
 				t.Fatal(err)
 			}
-			opened, err := Open(context.Background(), root, identity)
+			opened, err := Open(context.Background(), root, identity, corpusDescription(), corpusEvidenceProvider{})
 			if opened != nil {
 				if closeErr := opened.Close(); closeErr != nil {
 					t.Fatal(closeErr)
@@ -293,7 +293,7 @@ func TestCorpusRejectsPreviousAndFutureSchemaBeforeChangedIdentity(t *testing.T)
 func TestCorpusRejectsCaseWithChangedEnvironment(t *testing.T) {
 	input, coverage, _ := guideArtifactInput(t, 7)
 	identity := guideIdentity(t, input.Manifest)
-	corpus, err := Open(context.Background(), t.TempDir(), identity)
+	corpus, err := Open(context.Background(), t.TempDir(), identity, corpusDescription(), corpusEvidenceProvider{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -332,7 +332,7 @@ func TestCorpusRejectsMalformedAndNoncanonicalCurrentSchema(t *testing.T) {
 			if err := os.WriteFile(filepath.Join(root, "corpus.json"), contents, 0o600); err != nil {
 				t.Fatal(err)
 			}
-			opened, err := Open(context.Background(), root, identity)
+			opened, err := Open(context.Background(), root, identity, corpusDescription(), corpusEvidenceProvider{})
 			if opened != nil {
 				if closeErr := opened.Close(); closeErr != nil {
 					t.Fatal(closeErr)
@@ -349,7 +349,7 @@ func TestCorpusCasesShareOneTarget(t *testing.T) {
 	root := filepath.Join(t.TempDir(), "corpus")
 	first, coverage, _ := guideArtifactInput(t, 7)
 	identity := guideIdentity(t, first.Manifest)
-	corpus, err := Open(context.Background(), root, identity)
+	corpus, err := Open(context.Background(), root, identity, corpusDescription(), corpusEvidenceProvider{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -396,7 +396,7 @@ func TestCorpusCasesShareOneTarget(t *testing.T) {
 			t.Fatalf("corpus case target %s is a separate copy", target)
 		}
 	}
-	reopened, err := Open(context.Background(), root, identity)
+	reopened, err := Open(context.Background(), root, identity, corpusDescription(), corpusEvidenceProvider{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -429,7 +429,7 @@ func TestCorpusKeepsItsTargetUntilNoCaseSharesIt(t *testing.T) {
 	root := filepath.Join(t.TempDir(), "corpus")
 	input, coverage, _ := guideArtifactInput(t, 7)
 	identity := guideIdentity(t, input.Manifest)
-	corpus, err := Open(context.Background(), root, identity)
+	corpus, err := Open(context.Background(), root, identity, corpusDescription(), corpusEvidenceProvider{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -452,7 +452,7 @@ func TestCorpusKeepsItsTargetUntilNoCaseSharesIt(t *testing.T) {
 	if err := os.Mkdir(filepath.Join(artifact.TargetPool(root), ".publish-crashed"), 0o700); err != nil {
 		t.Fatal(err)
 	}
-	reopened, err := Open(context.Background(), root, identity)
+	reopened, err := Open(context.Background(), root, identity, corpusDescription(), corpusEvidenceProvider{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -537,7 +537,7 @@ func TestCorpusReadSnapshotPreservesResultsAndErrorOrder(t *testing.T) {
 			if err := os.WriteFile(path, test.contents, test.mode); err != nil {
 				t.Fatal(err)
 			}
-			corpus := &Corpus{path: root, identity: identity, snapshot: snapshot}
+			corpus := &Corpus{ctx: context.Background(), path: root, identity: identity, snapshot: snapshot, description: corpusDescription(), evidence: corpusEvidenceProvider{}}
 			got, err := corpus.readSnapshot()
 			if test.want == "" {
 				if err != nil || !reflect.DeepEqual(got, snapshot) {
@@ -565,7 +565,7 @@ func TestCorpusReadSnapshotPreservesResultsAndErrorOrder(t *testing.T) {
 
 func TestCorpusValidateEntryPreservesResultsAndErrorOrder(t *testing.T) {
 	input, coverage, _ := guideArtifactInput(t, 7)
-	corpus, err := Open(context.Background(), t.TempDir(), guideIdentity(t, input.Manifest))
+	corpus, err := Open(context.Background(), t.TempDir(), guideIdentity(t, input.Manifest), corpusDescription(), corpusEvidenceProvider{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -618,7 +618,7 @@ func TestCorpusValidateEntryPreservesResultsAndErrorOrder(t *testing.T) {
 
 func TestCorpusValidationFailureDoesNotPublish(t *testing.T) {
 	input, coverage, features := guideArtifactInput(t, 7)
-	corpus, err := Open(context.Background(), t.TempDir(), guideIdentity(t, input.Manifest))
+	corpus, err := Open(context.Background(), t.TempDir(), guideIdentity(t, input.Manifest), corpusDescription(), corpusEvidenceProvider{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -644,7 +644,21 @@ func TestCorpusValidationFailureDoesNotPublish(t *testing.T) {
 
 func TestCorpusCanonicalSnapshotBaseline(t *testing.T) {
 	input, coverage, _ := guideArtifactInput(t, 7)
-	corpus, err := Open(context.Background(), t.TempDir(), guideIdentity(t, input.Manifest))
+	description := corpusDescription()
+	const retainedBoundary = record.SHA256("sha256:ca18b6934d906b95235e04f83dfc2eef0a94d17d5417eb032cd086f7425ebbd0")
+	description.IOProfile.Inventory = strings.ReplaceAll(description.IOProfile.Inventory, string(description.BoundarySHA256), string(retainedBoundary))
+	description.IOProfile.InventorySHA256 = record.HashBytes([]byte(description.IOProfile.Inventory))
+	description.IOProfile.ImplementationSHA256 = record.HashBytes([]byte("gomad3.deterministic-io/v1/implementation-v14\x00" + string(description.IOProfile.InventorySHA256)))
+	description.BoundarySHA256 = retainedBoundary
+	input.Manifest.IOProfile.Name = description.IOProfile.Name
+	input.Manifest.IOProfile.Inventory = description.IOProfile.Inventory
+	input.Manifest.IOProfile.InventorySHA256 = description.IOProfile.InventorySHA256
+	input.Manifest.IOProfile.ImplementationSHA256 = description.IOProfile.ImplementationSHA256
+	identity, err := IdentityFor(input.Manifest.Target, input.Manifest.Toolchain, description, input.Manifest.Environment)
+	if err != nil {
+		t.Fatal(err)
+	}
+	corpus, err := Open(context.Background(), t.TempDir(), identity, description, corpusEvidenceProvider{})
 	if err != nil {
 		t.Fatal(err)
 	}

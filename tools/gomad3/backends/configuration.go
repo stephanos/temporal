@@ -14,6 +14,8 @@ type Configuration struct {
 }
 
 type Description struct {
+	Isolated                      bool
+	RunnerBuild                   string
 	IOProfile                     record.IOProfile
 	Toolchain                     target.ToolchainIdentity
 	BoundaryVersion               string
@@ -21,6 +23,14 @@ type Description struct {
 	SemanticInstrumentationSHA256 record.SHA256
 	SemanticProbes                []string
 }
+
+type PreparationError struct {
+	Stage string
+	Err   error
+}
+
+func (failure *PreparationError) Error() string { return failure.Err.Error() }
+func (failure *PreparationError) Unwrap() error { return failure.Err }
 
 type EvidenceRequest struct {
 	Transcript             []byte

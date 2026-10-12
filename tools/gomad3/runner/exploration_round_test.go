@@ -3,11 +3,10 @@ package runner
 import (
 	"context"
 	"errors"
+	backend "go.temporal.io/server/tools/gomad3/backends"
 	"reflect"
 	"testing"
 	"time"
-
-	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
 )
 
 // finalCompletionFirst is the parent context a round sees when its final
@@ -20,7 +19,7 @@ func (finalCompletionFirst) Done() <-chan struct{} { return nil }
 // interruptedCandidate is the completion of a candidate its parent's end
 // interrupted: a cancelled result beside the journal's refusal to advance.
 func interruptedCandidate(ordinal uint64, cause error) runCompletion {
-	return runCompletion{job: runJob{ordinal: ordinal}, result: execution.Result{Cancelled: true}, err: errors.Join(cause)}
+	return runCompletion{job: runJob{ordinal: ordinal}, result: backend.ExecutionResult{Cancelled: true}, err: errors.Join(cause)}
 }
 
 // A round whose parent context ended fails with that end's classification,

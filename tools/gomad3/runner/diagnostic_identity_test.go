@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	backend "go.temporal.io/server/tools/gomad3/backends"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -12,7 +13,6 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/artifact"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
-	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
 )
 
 func TestDiagnosticsOffPreservesExistingCanonicalIdentities(t *testing.T) {
@@ -26,7 +26,7 @@ func TestDiagnosticsOffPreservesExistingCanonicalIdentities(t *testing.T) {
 		}
 		t.Run(name, func(t *testing.T) {
 			preparer := newFakePreparer(t)
-			var executor executionRunner = &fakeExecutor{result: func(uint64) execution.Result { return processResult(1, "baseline output", "baseline failure") }}
+			var executor executionRunner = &fakeExecutor{result: func(uint64) backend.ExecutionResult { return processResult(1, "baseline output", "baseline failure") }}
 			if traced {
 				executor = &explorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: 1 << 20, exitCode: 1}
 			}
@@ -92,17 +92,17 @@ type diagnosticBaselineExecutor struct {
 	plan     []byte
 }
 
-func (e *diagnosticBaselineExecutor) Run(ctx context.Context, request execution.Spec) (execution.Result, error) {
+func (e *diagnosticBaselineExecutor) Run(ctx context.Context, request backend.ExecutionRequest) (backend.ExecutionResult, error) {
 	paths, err := filepath.Glob(filepath.Join(e.root, "v1", "*", ".prepared", "plan.json"))
 	if err != nil {
-		return execution.Result{}, err
+		return backend.ExecutionResult{}, err
 	}
 	if len(paths) != 1 {
-		return execution.Result{}, fmt.Errorf("campaign plan paths: %v", paths)
+		return backend.ExecutionResult{}, fmt.Errorf("campaign plan paths: %v", paths)
 	}
 	e.plan, err = os.ReadFile(paths[0])
 	if err != nil {
-		return execution.Result{}, err
+		return backend.ExecutionResult{}, err
 	}
 	return e.delegate.Run(ctx, request)
 }

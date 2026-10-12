@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
-	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	backend "go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
@@ -34,7 +34,7 @@ func runSimulationExplorationLocal(
 	baseEnvironment []record.Environment,
 	readOnlyMounts []captured.Mapping,
 	prepared target.Prepared,
-	profile transcript.Spec,
+	profile backend.Description,
 	journal *campaign.CampaignJournal,
 	runID string,
 	resuming bool,
@@ -182,20 +182,21 @@ func runSimulationExplorationLocal(
 	}
 
 	if coverageHasSemantic(config.Coverage) {
-		coverage, err := transcript.SummarizeSemanticProbes(sortedProbeList(semanticProbes))
+		evidence, err := config.Backend.Evidence(ctx, backend.EvidenceRequest{Probes: sortedProbeList(semanticProbes)})
 		if err != nil {
 			return &HostError{Reason: "semantic_coverage", Err: err}
 		}
+		coverage := evidence.Coverage
 		summary.SemanticCoverage = &coverage
-		missing, err := transcript.MissingRequiredSemanticProbes(coverage, config.RequiredSemanticProbes)
+		evidence, err = config.Backend.Evidence(ctx, backend.EvidenceRequest{Probes: coverage.Probes, RequiredSemanticProbes: config.RequiredSemanticProbes})
 		if err != nil {
 			return err
 		}
-		if len(missing) != 0 {
-			return &record.MissingSemanticProbesError{Probes: missing}
+		if len(evidence.MissingRequiredProbes) != 0 {
+			return &record.MissingSemanticProbesError{Probes: evidence.MissingRequiredProbes}
 		}
 	}
-	if err := verifyPrepared(prepared); err != nil {
+	if err := config.Backend.ValidatePrepared(config.Target, prepared, config.Environment); err != nil {
 		return &HostError{Reason: "prepared_target_integrity", Err: err}
 	}
 	if err := ctx.Err(); err != nil {
@@ -230,7 +231,7 @@ func executeSimulationExplorationRound(
 	executor executionRunner,
 	prepared target.Prepared,
 	baseEnvironment []record.Environment,
-	profile transcript.Spec,
+	profile backend.Description,
 	readOnlyMounts []captured.Mapping,
 	staged *campaign.SimulationExplorationRoundJournal,
 	state simulationengine.State,
@@ -300,7 +301,7 @@ func processSimulationExplorationCompletion(
 	if err := ctx.Err(); err != nil {
 		return simulationExplorationRoundResult{}, &HostError{Reason: contextFailureReason(err), Err: err}
 	}
-	if err := verifyPrepared(prepared); err != nil {
+	if err := config.Backend.ValidatePrepared(config.Target, prepared, config.Environment); err != nil {
 		return simulationExplorationRoundResult{}, &HostError{Reason: "prepared_target_integrity", Err: err}
 	}
 	candidate := round.Candidates[index]
@@ -308,7 +309,7 @@ func processSimulationExplorationCompletion(
 	if err != nil {
 		return simulationExplorationRoundResult{}, &HostError{Reason: "world_record", Err: err}
 	}
-	assessed, assessErr := assessCompletion(completion.result, worldBundle.Manifest.Terminal, config.Coverage, prepared)
+	assessed, assessErr := assessCompletion(ctx, config.Backend, completion.result, worldBundle.Manifest.Terminal, config.Coverage, prepared)
 	if assessErr != nil {
 		return simulationExplorationRoundResult{}, assessErr
 	}
@@ -457,7 +458,7 @@ func processSimulationExplorationCompletion(
 	return simulationExplorationRoundResult{result: explorationResult, run: run}, nil
 }
 
-func simulationExplorationExecutionIdentity(config campaignRequest, prepared target.Prepared, profile transcript.Spec, choiceImplementation [32]byte) (record.SHA256, error) {
+func simulationExplorationExecutionIdentity(config campaignRequest, prepared target.Prepared, profile backend.Description, choiceImplementation [32]byte) (record.SHA256, error) {
 	encoded, err := canonicaljson.CanonicalJSON(struct {
 		TargetSHA256         record.SHA256     `json:"target_sha256"`
 		ToolchainBuildKey    string            `json:"toolchain_build_key"`
@@ -469,7 +470,7 @@ func simulationExplorationExecutionIdentity(config campaignRequest, prepared tar
 	}{
 		TargetSHA256: record.SHA256(prepared.SHA256), ToolchainBuildKey: prepared.BuildKey,
 		GOOS: prepared.TargetGOOS, GOARCH: prepared.TargetGOARCH, ChoiceImplementation: record.SHA256FromSum(choiceImplementation),
-		IOProfile: profile.Identity(), RunnerBuild: config.RunnerBuild,
+		IOProfile: record.IOContract{Name: profile.IOProfile.Name, ImplementationSHA256: profile.IOProfile.ImplementationSHA256, InventorySHA256: profile.IOProfile.InventorySHA256}, RunnerBuild: config.RunnerBuild,
 	})
 	if err != nil {
 		return "", err

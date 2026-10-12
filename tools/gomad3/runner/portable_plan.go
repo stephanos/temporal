@@ -4,12 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	backend "go.temporal.io/server/tools/gomad3/backends"
 	"io"
 	"os"
 	"path/filepath"
 	"slices"
 
-	"go.temporal.io/server/tools/gomad3/backends/native/preparation"
 	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
@@ -77,6 +77,10 @@ func createCampaignPlanWith(ctx context.Context, spec CampaignPlanSpec, dependen
 	if err != nil {
 		return CampaignPlanResult{}, err
 	}
+	config.profile, err = config.Backend.Describe(ctx, backend.Configuration{Target: config.Target, ClockTick: config.ClockTick, Environment: config.Environment, RequiredSemanticProbes: config.RequiredSemanticProbes})
+	if err != nil {
+		return CampaignPlanResult{}, err
+	}
 	if config.strategy() != StrategySeed || config.OnFailure != PolicyAll {
 		return CampaignPlanResult{}, errors.New("portable campaign plans require a seed campaign with on-failure=all")
 	}
@@ -120,8 +124,8 @@ func createCampaignPlanWith(ctx context.Context, spec CampaignPlanSpec, dependen
 		return CampaignPlanResult{}, fmt.Errorf("capture campaign plan mount identity: %w", err)
 	}
 	config.Target.PreparationRoot = bundle
-	prepared, err := preparation.Prepare(ctx, preparation.Request{
-		Target: config.Target, Environment: config.Environment, Preparer: config.Preparer,
+	prepared, err := config.prepareTarget(ctx, preparationRequest{
+		Target: config.Target, Environment: config.Environment, Preparer: config.Preparer, Provider: config.Backend,
 	})
 	if err != nil {
 		return CampaignPlanResult{}, err
@@ -144,7 +148,7 @@ func createCampaignPlanWith(ctx context.Context, spec CampaignPlanSpec, dependen
 		return CampaignPlanResult{}, fmt.Errorf("make campaign target immutable: %w", err)
 	}
 	prepared.Path = targetPath
-	if err := verifyPrepared(prepared); err != nil {
+	if err := config.Backend.ValidatePrepared(config.Target, prepared, config.Environment); err != nil {
 		return CampaignPlanResult{}, err
 	}
 	if err := materializeCampaignPlanMounts(bundle, capturedMounts); err != nil {

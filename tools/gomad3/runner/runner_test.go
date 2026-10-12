@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	backend "go.temporal.io/server/tools/gomad3/backends"
 	"io"
 	"io/fs"
 	"os"
@@ -25,13 +26,15 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
+	"go.temporal.io/server/tools/gomad3/backends/native"
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/internal/hostexec"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
-	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
+
 	simulationengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation"
 	simulationrecord "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulationrecord"
 	"go.temporal.io/server/tools/gomad3/target"
@@ -40,7 +43,7 @@ import (
 
 func TestRunPreparesOnceBoundsParallelismAndGroupsMatchingFailures(t *testing.T) {
 	preparer := newFakePreparer(t)
-	executor := &fakeExecutor{result: func(seed uint64) execution.Result {
+	executor := &fakeExecutor{result: func(seed uint64) backend.ExecutionResult {
 		if seed%2 == 0 {
 			return processResult(2, "same failure", "")
 		}
@@ -95,7 +98,7 @@ func TestRunPreparesOnceBoundsParallelismAndGroupsMatchingFailures(t *testing.T)
 }
 
 func TestRunReportsPreparationProgressAndCompletedCounts(t *testing.T) {
-	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{result: func(seed uint64) execution.Result {
+	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{result: func(seed uint64) backend.ExecutionResult {
 		if seed == 2 {
 			return processResult(2, "failure", "")
 		}
@@ -170,7 +173,7 @@ func TestRunReportsPeriodicProgressWhileTargetIsRunning(t *testing.T) {
 }
 
 func TestRunReportsPassiveSemanticCoverage(t *testing.T) {
-	executor := &fakeExecutor{result: func(uint64) execution.Result {
+	executor := &fakeExecutor{result: func(uint64) backend.ExecutionResult {
 		result := processResult(0, "", "")
 		result.IOTranscript = semanticTranscript(t, "stdlib.os.openfile")
 		return result
@@ -200,7 +203,7 @@ func TestRunFailsWhenRequiredSemanticProbeIsMissing(t *testing.T) {
 }
 
 func TestRunRetainsOnlyProbeNovelSuccessesWithinExplicitBounds(t *testing.T) {
-	executor := &fakeExecutor{result: func(seed uint64) execution.Result {
+	executor := &fakeExecutor{result: func(seed uint64) backend.ExecutionResult {
 		result := processResult(0, fmt.Sprintf("seed=%d", seed), "")
 		probe := "stdlib.os.openfile"
 		if seed == 3 {
@@ -246,7 +249,7 @@ func TestRunRetainsOnlyProbeNovelSuccessesWithinExplicitBounds(t *testing.T) {
 func TestRunRetainsOnlyChoiceNovelSuccessesAndRecordsTheirFeatures(t *testing.T) {
 	preparer := newFakePreparer(t)
 	limit := choiceTraceLimit(t, 3)
-	executor := &fakeExecutor{result: func(seed uint64) execution.Result {
+	executor := &fakeExecutor{result: func(seed uint64) backend.ExecutionResult {
 		result := processResult(0, "", "")
 		result.IOTranscript = completeEmptyTranscript()
 		selected := uint32(0)
@@ -313,7 +316,7 @@ func TestRunMergesParallelCompletionsInSelectionOrdinalOrder(t *testing.T) {
 func TestRunGuidesFromImmutableCorpusAndKeepsUnguidedSeeds(t *testing.T) {
 	corpus := filepath.Join(t.TempDir(), "corpus")
 	replayer := &matchingReplayer{}
-	firstExecutor := &fakeExecutor{result: func(seed uint64) execution.Result {
+	firstExecutor := &fakeExecutor{result: func(seed uint64) backend.ExecutionResult {
 		result := processResult(0, "", "")
 		probe := "stdlib.os.openfile"
 		if seed%2 == 1 {
@@ -369,7 +372,7 @@ func TestRunGuidesFromReplayVerifiedChoiceCoverage(t *testing.T) {
 	preparer := newFakePreparer(t)
 	limit := choiceTraceLimit(t, 1)
 	replayer := &matchingReplayer{}
-	executor := &fakeExecutor{result: func(seed uint64) execution.Result {
+	executor := &fakeExecutor{result: func(seed uint64) backend.ExecutionResult {
 		result := processResult(0, "", "")
 		result.IOTranscript = completeEmptyTranscript()
 		result.ChoiceTrace = completeChoiceTrace(t, preparer.prepared.BuildKey, limit, []choice.Record{{
@@ -393,7 +396,7 @@ func TestRunGuidesFromReplayVerifiedChoiceCoverage(t *testing.T) {
 }
 
 func TestRunGuidanceWithoutReplayCapabilityFailsClosed(t *testing.T) {
-	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{result: func(uint64) execution.Result {
+	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{result: func(uint64) backend.ExecutionResult {
 		result := processResult(0, "", "")
 		result.IOTranscript = semanticTranscript(t, "stdlib.os.openfile")
 		return result
@@ -410,7 +413,7 @@ func TestRunGuidanceWithoutReplayCapabilityFailsClosed(t *testing.T) {
 }
 
 func TestRunFailsClosedWhenSuccessRetentionCountIsExhausted(t *testing.T) {
-	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{result: func(uint64) execution.Result {
+	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{result: func(uint64) backend.ExecutionResult {
 		result := processResult(0, "", "")
 		result.IOTranscript = completeEmptyTranscript()
 		return result
@@ -443,7 +446,7 @@ func TestRunRejectsSuccessfulRetentionWithoutReplayTranscript(t *testing.T) {
 }
 
 func TestRunCollectsBoundedQualificationEvidenceForOneSeed(t *testing.T) {
-	executor := &fakeExecutor{result: func(uint64) execution.Result {
+	executor := &fakeExecutor{result: func(uint64) backend.ExecutionResult {
 		result := processResult(0, "stdout", "stderr")
 		result.IOTranscript = semanticTranscript(t, "stdlib.os.openfile")
 		return result
@@ -566,7 +569,7 @@ func TestRunFirstFailureCancelsActiveTargetsWithoutPublishingThem(t *testing.T) 
 
 func TestRunBudgetCountsDistinctSignatures(t *testing.T) {
 	preparer := newFakePreparer(t)
-	executor := &fakeExecutor{result: func(seed uint64) execution.Result {
+	executor := &fakeExecutor{result: func(seed uint64) backend.ExecutionResult {
 		output := "same"
 		if seed == 4 {
 			output = "different"
@@ -597,7 +600,7 @@ func TestRunPublishesConnectedWorldBundle(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{result: func(uint64) execution.Result {
+	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{result: func(uint64) backend.ExecutionResult {
 		result := processResult(1, "failure", "")
 		result.WorldRecord = recording
 		return result
@@ -633,7 +636,7 @@ func TestRunClassifiesConnectedWorldDeadlock(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{result: func(uint64) execution.Result {
+	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{result: func(uint64) backend.ExecutionResult {
 		result := processResult(0, "", "")
 		result.WorldRecord = recording
 		return result
@@ -668,7 +671,7 @@ func TestRunCountsConnectedWorldReplayDivergence(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{result: func(uint64) execution.Result {
+	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{result: func(uint64) backend.ExecutionResult {
 		result := processResult(0, "", "")
 		result.WorldRecord = recording
 		return result
@@ -695,7 +698,7 @@ func TestRunRejectsInvalidConnectedWorldBeforePublication(t *testing.T) {
 		t.Fatal(err)
 	}
 	recording[len(recording)-1] ^= 1
-	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{result: func(uint64) execution.Result {
+	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{result: func(uint64) backend.ExecutionResult {
 		result := processResult(1, "failure", "")
 		result.WorldRecord = recording
 		return result
@@ -768,7 +771,7 @@ func TestRunPassesChoiceProfileToExecutorAndArtifact(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	executor := &fakeExecutor{result: func(uint64) execution.Result {
+	executor := &fakeExecutor{result: func(uint64) backend.ExecutionResult {
 		result := processResult(1, "failure", "")
 		result.ChoiceTrace = completeChoiceTrace(t, preparer.prepared.BuildKey, limit, nil)
 		return result
@@ -807,7 +810,7 @@ func TestSimulationCapabilityForJobCarriesDetachedExplorationPlanToInjectedExecu
 		t.Fatal(err)
 	}
 	plan[0] = '!'
-	if capability == nil || capability.Role != execution.SimulationRoleCoordinator || string(capability.ExplorationPlan) != `{"schema":"gomad3.simulation-exploration-plan/v1"}` || capability.ExplorationRecordLimit != 1<<20 || capability.ExplorationRecordCount != 1 {
+	if capability == nil || capability.Role != backend.SimulationRoleCoordinator || string(capability.ExplorationPlan) != `{"schema":"gomad3.simulation-exploration-plan/v1"}` || capability.ExplorationRecordLimit != 1<<20 || capability.ExplorationRecordCount != 1 {
 		t.Fatalf("simulation exploration capability = %#v", capability)
 	}
 	if _, err := simulationCapabilityForJob(&fakeExecutor{}, runJob{simulationPlan: "plan"}); err == nil {
@@ -835,7 +838,7 @@ func TestRunChoiceExplorationExecutesRootAndEveryNonSelectedRank(t *testing.T) {
 		t.Fatalf("exploration summary = %#v", summary)
 	}
 	executor.mu.Lock()
-	requests := append([]execution.Spec(nil), executor.requests...)
+	requests := append([]backend.ExecutionRequest(nil), executor.requests...)
 	executor.mu.Unlock()
 	if len(requests) != 2 || requests[0].Choice == nil || requests[0].Choice.Mode != choice.ModeRecord || requests[1].Choice == nil || requests[1].Choice.Mode != choice.ModePrefix || requests[1].Choice.ReplayPlan == nil || requests[1].Choice.ReplayPlan.Decisions[0].Selected != 1 {
 		t.Fatalf("exploration requests = %#v", requests)
@@ -877,7 +880,7 @@ func TestRunSimulationExplorationExecutesRootAndEveryScenarioRank(t *testing.T) 
 		t.Fatalf("simulation exploration summary = %#v", summary)
 	}
 	executor.mu.Lock()
-	requests := append([]execution.Spec(nil), executor.requests...)
+	requests := append([]backend.ExecutionRequest(nil), executor.requests...)
 	executor.mu.Unlock()
 	if len(requests) != 2 || requests[0].Simulation == nil || len(requests[0].Simulation.ExplorationPlan) == 0 || requests[1].Simulation == nil || len(requests[1].Simulation.ExplorationPlan) == 0 || requests[0].Choice == nil || requests[0].Choice.Mode != choice.ModeRecord || requests[1].Choice == nil || requests[1].Choice.Mode != choice.ModeRecord {
 		t.Fatalf("simulation exploration requests = %#v", requests)
@@ -1066,7 +1069,7 @@ func TestRunChoiceExplorationResumesWithItsStartAndReportsItUnreached(t *testing
 func TestInspectChoicesListsReplayPlanDecisionOrdinals(t *testing.T) {
 	limit := choiceTraceLimit(t, 4)
 	preparer := newFakePreparer(t)
-	executor := &fakeExecutor{result: func(uint64) execution.Result {
+	executor := &fakeExecutor{result: func(uint64) backend.ExecutionResult {
 		result := processResult(1, "failure", "")
 		result.ChoiceTrace = completeChoiceTrace(t, preparer.prepared.BuildKey, limit, []choice.Record{
 			{Ordinal: 0, Kind: choice.KindRunnable, Flags: choice.FlagDecision, SiteOffset: 0x10, Alternatives: 1},
@@ -1292,11 +1295,11 @@ func TestRunPublishesValidatedChoiceTraceOverflowAsRunnerFailure(t *testing.T) {
 	}
 	limit := choiceTraceLimit(t, 1)
 	result := processResult(0, "", "")
-	result.ChoiceTrace = execution.ChoiceTrace{
+	result.ChoiceTrace = backend.ChoiceTrace{
 		Profile: choice.Profile, ImplementationSHA256: implementation, Limit: limit,
 		Trace: trace,
 	}
-	config, configDependencies := testConfig(t, preparer, terminalErrorExecutor{result: result, err: execution.ErrChoiceTraceOverflow}, "1", PolicyAll, 1)
+	config, configDependencies := testConfig(t, preparer, terminalErrorExecutor{result: result, err: backend.ErrChoiceTraceOverflow}, "1", PolicyAll, 1)
 	config.ChoiceTraceLimit = limit
 	summary, err := exploreWith(context.Background(), config, configDependencies)
 	var hostErr *HostError
@@ -1317,7 +1320,7 @@ func TestRunPublishesValidatedChoiceTraceOverflowAsRunnerFailure(t *testing.T) {
 		t.Fatalf("overflow manifest = %#v", opened.Manifest())
 	}
 
-	resumedExecutor := &fakeExecutor{result: func(uint64) execution.Result {
+	resumedExecutor := &fakeExecutor{result: func(uint64) backend.ExecutionResult {
 		result := processResult(0, "", "")
 		result.ChoiceTrace = completeChoiceTrace(t, preparer.prepared.BuildKey, limit, nil)
 		return result
@@ -1411,7 +1414,7 @@ func TestRunResumeRestoresSeenChoiceFeaturesBeforeNovelRetention(t *testing.T) {
 		t.Fatalf("interrupted summary = %#v, error = %v", partial, err)
 	}
 
-	resumedExecutor := &fakeExecutor{result: func(uint64) execution.Result {
+	resumedExecutor := &fakeExecutor{result: func(uint64) backend.ExecutionResult {
 		result := processResult(0, "", "")
 		result.IOTranscript = completeEmptyTranscript()
 		result.ChoiceTrace = trace
@@ -1452,7 +1455,7 @@ func TestRunResumesGuidedBatchWithoutReselectingSeeds(t *testing.T) {
 		t.Fatalf("interrupted guided summary = %#v, error = %v", partial, err)
 	}
 
-	resumedExecutor := &fakeExecutor{result: func(uint64) execution.Result {
+	resumedExecutor := &fakeExecutor{result: func(uint64) backend.ExecutionResult {
 		result := processResult(0, "", "")
 		result.IOTranscript = completeEmptyTranscript()
 		return result
@@ -1609,7 +1612,7 @@ func TestClassifyStableTargetDiagnostics(t *testing.T) {
 		"unsupported_deterministic_mode": "runtime: GOMADSEED does not support cgo or external linking\n",
 	} {
 		t.Run(name, func(t *testing.T) {
-			outcome := execution.Classify(processResult(2, "", stderr), false, record.WorldTerminal{Kind: "none"})
+			outcome := backend.Classify(processResult(2, "", stderr), false, record.WorldTerminal{Kind: "none"})
 			if outcome.Domain != "target" || outcome.Reason != name {
 				t.Fatalf("outcome = %#v", outcome)
 			}
@@ -1622,7 +1625,7 @@ func TestManifestForRunBindsIOProfileIdentity(t *testing.T) {
 	config, _ := testConfig(t, preparer, &fakeExecutor{}, "1", PolicyFirst, 1)
 	manifest, err := manifestForRun(campaignRequestFromSpec(config), preparer.prepared, nil, runCompletion{
 		job: runJob{seed: 1}, startedAt: time.Unix(1, 0), finishedAt: time.Unix(2, 0), result: processResult(1, "", ""),
-	}, execution.Classification{Domain: "target", Reason: "nonzero_exit", Termination: "exit", ArtifactKind: record.ArtifactTargetFailure, ReplayMode: record.ReplayExact}, "run", record.World{}, nil)
+	}, backend.Classification{Domain: "target", Reason: "nonzero_exit", Termination: "exit", ArtifactKind: record.ArtifactTargetFailure, ReplayMode: record.ReplayExact}, "run", record.World{}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1636,7 +1639,7 @@ func TestClassifyStructuredWorldFailures(t *testing.T) {
 		"deadlock": "world_deadlock", "capacity": "world_capacity", "replay-divergence": "world_replay_divergence", "invalid-input": "world_invalid_input",
 	} {
 		t.Run(kind, func(t *testing.T) {
-			outcome := execution.Classify(processResult(0, "", ""), false, record.WorldTerminal{Kind: kind, Detail: "detail"})
+			outcome := backend.Classify(processResult(0, "", ""), false, record.WorldTerminal{Kind: kind, Detail: "detail"})
 			if outcome.Domain != "target" || outcome.Reason != reason || outcome.Termination != "exit" || outcome.ExitCode == nil || *outcome.ExitCode != 0 {
 				t.Fatalf("classify() = %#v", outcome)
 			}
@@ -1747,12 +1750,12 @@ func TestIsolatedRunnerPreservesCoordinatorResponse(t *testing.T) {
 		},
 		{
 			name: "choice trace configuration", response: "choice-trace", policy: PolicyAll,
-			configure: func(config *CampaignSpec) { config.ChoiceTraceLimit = execution.MinimumChoiceTraceBytes },
+			configure: func(config *CampaignSpec) { config.ChoiceTraceLimit = backend.MinimumChoiceTraceBytes },
 			check: func(t *testing.T, summary CampaignResult, err error) {
 				if err != nil {
 					t.Fatal(err)
 				}
-				if summary.ChoiceTrace == nil || summary.ChoiceTrace.Limit != execution.MinimumChoiceTraceBytes {
+				if summary.ChoiceTrace == nil || summary.ChoiceTrace.Limit != backend.MinimumChoiceTraceBytes {
 					t.Fatalf("summary = %#v", summary)
 				}
 			},
@@ -2034,8 +2037,8 @@ type fakeExecutor struct {
 	mu            sync.Mutex
 	active        int
 	maximumActive int
-	requests      []execution.Spec
-	result        func(uint64) execution.Result
+	requests      []backend.ExecutionRequest
+	result        func(uint64) backend.ExecutionResult
 }
 
 type explorationExecutor struct {
@@ -2050,7 +2053,7 @@ type explorationExecutor struct {
 	// decision, whose poll order the explorer must leave unexpanded.
 	noOpSelect bool
 	mu         sync.Mutex
-	requests   []execution.Spec
+	requests   []backend.ExecutionRequest
 }
 
 type simulationExplorationExecutor struct {
@@ -2062,7 +2065,7 @@ type simulationExplorationExecutor struct {
 	// records; zero means two.
 	scenarios int
 	mu        sync.Mutex
-	requests  []execution.Spec
+	requests  []backend.ExecutionRequest
 }
 
 type explorationInterruptExecutor struct {
@@ -2076,7 +2079,7 @@ type explorationDivergenceExecutor struct {
 	ranks            [3]uint32
 }
 
-func (executor *explorationDivergenceExecutor) Run(ctx context.Context, request execution.Spec) (execution.Result, error) {
+func (executor *explorationDivergenceExecutor) Run(ctx context.Context, request backend.ExecutionRequest) (backend.ExecutionResult, error) {
 	result, err := executor.exploration.Run(ctx, request)
 	if err != nil {
 		return result, err
@@ -2097,13 +2100,13 @@ func (executor *explorationDivergenceExecutor) Run(ctx context.Context, request 
 		select {
 		case <-executor.beforeDivergence:
 		case <-ctx.Done():
-			return execution.Result{}, ctx.Err()
+			return backend.ExecutionResult{}, ctx.Err()
 		}
 		defer close(executor.afterDivergence)
 		observed := result.ChoiceTrace.Trace.Records[0]
 		observedDecision := choice.Decision{Ordinal: observed.Ordinal, Kind: observed.Kind, SiteOffset: observed.SiteOffset, Alternatives: observed.Alternatives, Selected: observed.Selected, Data: observed.Data, SelectedIdentity: observed.SelectedIdentity, AlternativeSetDigest: observed.AlternativeSetDigest}
 		observedDecision.AlternativeSetDigest = sha256.Sum256([]byte("changed alternatives"))
-		return processResult(125, "", ""), &execution.ChoiceReplayDivergenceError{Divergence: choice.Divergence{
+		return processResult(125, "", ""), &backend.ChoiceReplayDivergenceError{Divergence: choice.Divergence{
 			Ordinal: 0, Reason: choice.DivergenceAlternativeSet, Expected: &expected, Observed: &observedDecision, TapeRecords: 1,
 		}}
 	case executor.ranks[1]:
@@ -2112,10 +2115,10 @@ func (executor *explorationDivergenceExecutor) Run(ctx context.Context, request 
 		select {
 		case <-executor.afterDivergence:
 		case <-ctx.Done():
-			return execution.Result{}, ctx.Err()
+			return backend.ExecutionResult{}, ctx.Err()
 		}
 		if err := ctx.Err(); err != nil {
-			return execution.Result{}, err
+			return backend.ExecutionResult{}, err
 		}
 	}
 	return result, nil
@@ -2127,31 +2130,31 @@ type simulationExplorationInterruptExecutor struct {
 
 type explorationRootInterruptExecutor struct{}
 
-func (explorationRootInterruptExecutor) Run(context.Context, execution.Spec) (execution.Result, error) {
-	return execution.Result{}, errors.New("simulated exploration interruption")
+func (explorationRootInterruptExecutor) Run(context.Context, backend.ExecutionRequest) (backend.ExecutionResult, error) {
+	return backend.ExecutionResult{}, errors.New("simulated exploration interruption")
 }
 
-func (executor explorationInterruptExecutor) Run(ctx context.Context, request execution.Spec) (execution.Result, error) {
+func (executor explorationInterruptExecutor) Run(ctx context.Context, request backend.ExecutionRequest) (backend.ExecutionResult, error) {
 	if request.Choice != nil && request.Choice.Mode == choice.ModePrefix {
-		return execution.Result{}, errors.New("simulated exploration interruption")
+		return backend.ExecutionResult{}, errors.New("simulated exploration interruption")
 	}
 	return executor.exploration.Run(ctx, request)
 }
 
-func (executor simulationExplorationInterruptExecutor) Run(ctx context.Context, request execution.Spec) (execution.Result, error) {
+func (executor simulationExplorationInterruptExecutor) Run(ctx context.Context, request backend.ExecutionRequest) (backend.ExecutionResult, error) {
 	var plan struct {
 		Overrides []json.RawMessage `json:"overrides"`
 	}
 	if request.Simulation == nil || json.Unmarshal(request.Simulation.ExplorationPlan, &plan) != nil {
-		return execution.Result{}, errors.New("simulation exploration simulation plan is unavailable")
+		return backend.ExecutionResult{}, errors.New("simulation exploration simulation plan is unavailable")
 	}
 	if len(plan.Overrides) != 0 {
-		return execution.Result{}, errors.New("simulated simulation exploration interruption")
+		return backend.ExecutionResult{}, errors.New("simulated simulation exploration interruption")
 	}
 	return executor.exploration.Run(ctx, request)
 }
 
-func (executor *explorationExecutor) Run(_ context.Context, request execution.Spec) (execution.Result, error) {
+func (executor *explorationExecutor) Run(_ context.Context, request backend.ExecutionRequest) (backend.ExecutionResult, error) {
 	executor.mu.Lock()
 	executor.requests = append(executor.requests, request)
 	executor.mu.Unlock()
@@ -2162,7 +2165,7 @@ func (executor *explorationExecutor) Run(_ context.Context, request execution.Sp
 	if executor.noOpSelect {
 		readiness, err := choice.NewReadiness(1, 0)
 		if err != nil {
-			return execution.Result{}, err
+			return backend.ExecutionResult{}, err
 		}
 		records = append(records,
 			validTestChoiceRecord(executor.t, choice.Record{Ordinal: 1, Kind: choice.KindSelectPoll, Flags: choice.FlagDecision, SiteOffset: 0x30, Alternatives: 2, Selected: 1, Data: 1}),
@@ -2193,12 +2196,12 @@ func forceTestChoiceRank(choiceRecord choice.Record, rank uint32) choice.Record 
 	return choiceRecord
 }
 
-func (executor *simulationExplorationExecutor) Run(_ context.Context, request execution.Spec) (execution.Result, error) {
+func (executor *simulationExplorationExecutor) Run(_ context.Context, request backend.ExecutionRequest) (backend.ExecutionResult, error) {
 	executor.mu.Lock()
 	executor.requests = append(executor.requests, request)
 	executor.mu.Unlock()
 	if request.Simulation == nil || len(request.Simulation.ExplorationPlan) == 0 {
-		return execution.Result{}, errors.New("simulation exploration simulation plan is unavailable")
+		return backend.ExecutionResult{}, errors.New("simulation exploration simulation plan is unavailable")
 	}
 	var plan struct {
 		BaseSeed  uint64 `json:"base_seed"`
@@ -2208,7 +2211,7 @@ func (executor *simulationExplorationExecutor) Run(_ context.Context, request ex
 		} `json:"overrides"`
 	}
 	if err := json.Unmarshal(request.Simulation.ExplorationPlan, &plan); err != nil {
-		return execution.Result{}, err
+		return backend.ExecutionResult{}, err
 	}
 	selected := uint32(0)
 	for _, override := range plan.Overrides {
@@ -2225,7 +2228,7 @@ func (executor *simulationExplorationExecutor) Run(_ context.Context, request ex
 		simulationengine.DimensionScenario, 0, record.HashBytes([]byte("route")), alternatives, selected,
 	)
 	if err != nil {
-		return execution.Result{}, err
+		return backend.ExecutionResult{}, err
 	}
 	outcome := "completed"
 	if executor.fail {
@@ -2248,7 +2251,7 @@ func (executor *simulationExplorationExecutor) Run(_ context.Context, request ex
 		ScenarioTape: []string{scenarios[selected]}, Identity: record.HashBytes([]byte(fmt.Sprintf("record-%d", selected))),
 	})
 	if err != nil {
-		return execution.Result{}, err
+		return backend.ExecutionResult{}, err
 	}
 	exitCode := 0
 	if executor.fail {
@@ -2261,11 +2264,11 @@ func (executor *simulationExplorationExecutor) Run(_ context.Context, request ex
 }
 
 type terminalErrorExecutor struct {
-	result execution.Result
+	result backend.ExecutionResult
 	err    error
 }
 
-func (executor terminalErrorExecutor) Run(context.Context, execution.Spec) (execution.Result, error) {
+func (executor terminalErrorExecutor) Run(context.Context, backend.ExecutionRequest) (backend.ExecutionResult, error) {
 	result := executor.result
 	result.Captured = true
 	return result, executor.err
@@ -2304,13 +2307,13 @@ func newOutOfOrderExecutor(t *testing.T) *outOfOrderExecutor {
 	return &outOfOrderExecutor{t: t, later: make(chan struct{})}
 }
 
-func (executor *outOfOrderExecutor) Run(ctx context.Context, request execution.Spec) (execution.Result, error) {
+func (executor *outOfOrderExecutor) Run(ctx context.Context, request backend.ExecutionRequest) (backend.ExecutionResult, error) {
 	seed := seedFromEnvironment(request.Env)
 	if seed == 1 {
 		select {
 		case <-executor.later:
 		case <-ctx.Done():
-			return execution.Result{}, ctx.Err()
+			return backend.ExecutionResult{}, ctx.Err()
 		}
 	} else {
 		executor.mu.Lock()
@@ -2329,7 +2332,7 @@ func (executor *outOfOrderExecutor) Run(ctx context.Context, request execution.S
 	return result, nil
 }
 
-func (executor *fakeExecutor) Run(_ context.Context, request execution.Spec) (execution.Result, error) {
+func (executor *fakeExecutor) Run(_ context.Context, request backend.ExecutionRequest) (backend.ExecutionResult, error) {
 	executor.mu.Lock()
 	executor.active++
 	if executor.active > executor.maximumActive {
@@ -2384,7 +2387,7 @@ type resumeInterruptExecutor struct {
 }
 
 type choiceResumeInterruptExecutor struct {
-	trace execution.ChoiceTrace
+	trace backend.ChoiceTrace
 }
 
 type progressGatedExecutor struct {
@@ -2394,36 +2397,36 @@ type progressGatedExecutor struct {
 
 type mutatingExecutor struct{}
 
-func (mutatingExecutor) Run(_ context.Context, request execution.Spec) (execution.Result, error) {
+func (mutatingExecutor) Run(_ context.Context, request backend.ExecutionRequest) (backend.ExecutionResult, error) {
 	if err := os.Chmod(request.Command, 0o700); err != nil {
-		return execution.Result{}, err
+		return backend.ExecutionResult{}, err
 	}
 	file, err := os.OpenFile(request.Command, os.O_WRONLY|os.O_APPEND, 0)
 	if err != nil {
-		return execution.Result{}, err
+		return backend.ExecutionResult{}, err
 	}
 	if _, err := file.Write([]byte("mutation")); err != nil {
 		if closeErr := file.Close(); closeErr != nil {
-			return execution.Result{}, errors.Join(err, closeErr)
+			return backend.ExecutionResult{}, errors.Join(err, closeErr)
 		}
-		return execution.Result{}, err
+		return backend.ExecutionResult{}, err
 	}
 	if err := file.Close(); err != nil {
-		return execution.Result{}, err
+		return backend.ExecutionResult{}, err
 	}
 	return processResult(1, "failure", ""), nil
 }
 
-func (blockingExecutor) Run(ctx context.Context, _ execution.Spec) (execution.Result, error) {
+func (blockingExecutor) Run(ctx context.Context, _ backend.ExecutionRequest) (backend.ExecutionResult, error) {
 	<-ctx.Done()
 	result := processResult(0, "", "")
 	result.Cancelled = true
-	result.Termination = execution.TerminationSignal
+	result.Termination = backend.TerminationSignal
 	result.Signal = "killed"
 	return result, nil
 }
 
-func (executor *resumeInterruptExecutor) Run(ctx context.Context, request execution.Spec) (execution.Result, error) {
+func (executor *resumeInterruptExecutor) Run(ctx context.Context, request backend.ExecutionRequest) (backend.ExecutionResult, error) {
 	seed := seedFromEnvironment(request.Env)
 	executor.mu.Lock()
 	executor.calls = append(executor.calls, seed)
@@ -2436,12 +2439,12 @@ func (executor *resumeInterruptExecutor) Run(ctx context.Context, request execut
 	<-ctx.Done()
 	result := processResult(0, "", "")
 	result.Cancelled = true
-	result.Termination = execution.TerminationSignal
+	result.Termination = backend.TerminationSignal
 	result.Signal = "killed"
 	return result, nil
 }
 
-func (executor *choiceResumeInterruptExecutor) Run(ctx context.Context, request execution.Spec) (execution.Result, error) {
+func (executor *choiceResumeInterruptExecutor) Run(ctx context.Context, request backend.ExecutionRequest) (backend.ExecutionResult, error) {
 	if seedFromEnvironment(request.Env) == 7 {
 		result := processResult(0, "", "")
 		result.IOTranscript = completeEmptyTranscript()
@@ -2451,7 +2454,7 @@ func (executor *choiceResumeInterruptExecutor) Run(ctx context.Context, request 
 	<-ctx.Done()
 	result := processResult(0, "", "")
 	result.Cancelled = true
-	result.Termination = execution.TerminationSignal
+	result.Termination = backend.TerminationSignal
 	result.Signal = "killed"
 	return result, nil
 }
@@ -2471,7 +2474,7 @@ func executorSeeds(executor *fakeExecutor) []uint64 {
 	return seeds
 }
 
-func (executor *progressGatedExecutor) Run(context.Context, execution.Spec) (execution.Result, error) {
+func (executor *progressGatedExecutor) Run(context.Context, backend.ExecutionRequest) (backend.ExecutionResult, error) {
 	close(executor.started)
 	<-executor.release
 	return processResult(0, "", ""), nil
@@ -2481,7 +2484,7 @@ func newFirstFailureExecutor(want int) *firstFailureExecutor {
 	return &firstFailureExecutor{started: make(chan struct{}), want: want}
 }
 
-func (executor *firstFailureExecutor) Run(ctx context.Context, request execution.Spec) (execution.Result, error) {
+func (executor *firstFailureExecutor) Run(ctx context.Context, request backend.ExecutionRequest) (backend.ExecutionResult, error) {
 	seed := seedFromEnvironment(request.Env)
 	executor.mu.Lock()
 	executor.count++
@@ -2496,9 +2499,23 @@ func (executor *firstFailureExecutor) Run(ctx context.Context, request execution
 	<-ctx.Done()
 	result := processResult(0, "", "")
 	result.Cancelled = true
-	result.Termination = execution.TerminationSignal
+	result.Termination = backend.TerminationSignal
 	result.Signal = "killed"
 	return result, nil
+}
+
+type scriptedProvider struct{ *native.Provider }
+
+func scriptProvider() backend.Provider { return scriptedProvider{native.New(native.Config{})} }
+
+func (provider scriptedProvider) ValidatePrepared(_ target.Spec, prepared target.Prepared, _ []string) error {
+	return prepared.Verify()
+}
+
+type targetPreparer struct{}
+
+func (targetPreparer) Prepare(ctx context.Context, spec target.Spec) (target.Prepared, error) {
+	return nativebuild.Prepare(ctx, spec)
 }
 
 func testConfig(t *testing.T, preparer Preparer, executor executionRunner, seeds string, policy FailurePolicy, parallel int) (CampaignSpec, executionDependencies) {
@@ -2506,7 +2523,7 @@ func testConfig(t *testing.T, preparer Preparer, executor executionRunner, seeds
 	return CampaignSpec{
 		Seeds: seeds, Parallel: parallel, ExecutionTimeout: time.Second, OverallTimeout: 10 * time.Second, TerminateGrace: 100 * time.Millisecond,
 		OnFailure: policy, FailureBudget: 1, OutputLimit: 64, WorldTransitionLimit: 64, Artifacts: t.TempDir(),
-		Environment: []string{"MODE=test"}, Target: target.Spec{Kind: target.KindGoRun, Source: "."}, SupervisorCommand: []string{"unused"},
+		Environment: []string{"MODE=test"}, Target: target.Spec{Kind: target.KindGoRun, Source: "."}, Backend: scriptProvider(),
 		RunnerBuild: "sha256:0000000000000000000000000000000000000000000000000000000000000000", Preparer: preparer,
 	}, executionDependencies{executor: executor}
 }
@@ -2525,9 +2542,9 @@ func cancelOnProgress(t *testing.T, config *CampaignSpec, predicate func(Campaig
 	return ctx
 }
 
-func processResult(exitCode int, stdout, stderr string) execution.Result {
-	return execution.Result{
-		Captured: true, Termination: execution.TerminationExit, ExitCode: exitCode, GroupGone: true,
+func processResult(exitCode int, stdout, stderr string) backend.ExecutionResult {
+	return backend.ExecutionResult{
+		Captured: true, Termination: backend.TerminationExit, ExitCode: exitCode, GroupGone: true,
 		Stdout: output(stdout), Stderr: output(stderr),
 	}
 }
@@ -2556,7 +2573,7 @@ func completeEmptyTranscript() transcript.Transcript {
 	return transcript.Transcript{Complete: true, SHA256: sha256.Sum256(nil)}
 }
 
-func completeChoiceTrace(t *testing.T, buildKey string, limit uint64, records []choice.Record) execution.ChoiceTrace {
+func completeChoiceTrace(t *testing.T, buildKey string, limit uint64, records []choice.Record) backend.ChoiceTrace {
 	t.Helper()
 	for index, choiceRecord := range records {
 		records[index] = validTestChoiceRecord(t, choiceRecord)
@@ -2569,7 +2586,7 @@ func completeChoiceTrace(t *testing.T, buildKey string, limit uint64, records []
 	if err != nil {
 		t.Fatal(err)
 	}
-	return execution.ChoiceTrace{Profile: choice.Profile, ImplementationSHA256: implementation, Limit: limit, Trace: trace}
+	return backend.ChoiceTrace{Profile: choice.Profile, ImplementationSHA256: implementation, Limit: limit, Trace: trace}
 }
 
 func choiceTraceLimit(t *testing.T, records uint64) uint64 {
@@ -2636,10 +2653,10 @@ func TestRunClassifiesWatchdogTimeoutBeforeUnterminatedChoiceTrace(t *testing.T)
 	preparer := newFakePreparer(t)
 	limit := choiceTraceLimit(t, 1)
 	result := processResult(0, "", "")
-	result.Termination = execution.TerminationSignal
+	result.Termination = backend.TerminationSignal
 	result.Signal = "SIGKILL"
 	result.WatchdogTimeout = true
-	result.ChoiceTrace = execution.ChoiceTrace{Profile: choice.Profile, Limit: limit}
+	result.ChoiceTrace = backend.ChoiceTrace{Profile: choice.Profile, Limit: limit}
 	config, configDependencies := testConfig(t, preparer, terminalErrorExecutor{result: result}, "1", PolicyAll, 1)
 	config.ChoiceTraceLimit = limit
 	summary, err := exploreWith(context.Background(), config, configDependencies)

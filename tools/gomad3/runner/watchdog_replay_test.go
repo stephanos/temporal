@@ -3,6 +3,7 @@ package runner
 import (
 	"context"
 	"errors"
+	backend "go.temporal.io/server/tools/gomad3/backends"
 	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"os"
 	"path/filepath"
@@ -15,7 +16,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/record"
-	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
+
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
@@ -114,12 +115,12 @@ func TestWatchdogDiagnosticReplayUsesCapturedInputs(t *testing.T) {
 	})
 	for _, test := range []struct {
 		name       string
-		change     func(*execution.Result)
+		change     func(*backend.ExecutionResult)
 		divergence string
 	}{
-		{name: "stdout", change: func(result *execution.Result) { result.Stdout = replayOutput("changed") }, divergence: "stdout.full_sha256"},
-		{name: "stderr", change: func(result *execution.Result) { result.Stderr = replayOutput("changed") }, divergence: "stderr.full_sha256"},
-		{name: "outcome", change: func(result *execution.Result) { result.WatchdogTimeout = false }, divergence: "outcome.termination"},
+		{name: "stdout", change: func(result *backend.ExecutionResult) { result.Stdout = replayOutput("changed") }, divergence: "stdout.full_sha256"},
+		{name: "stderr", change: func(result *backend.ExecutionResult) { result.Stderr = replayOutput("changed") }, divergence: "stderr.full_sha256"},
+		{name: "outcome", change: func(result *backend.ExecutionResult) { result.WatchdogTimeout = false }, divergence: "outcome.termination"},
 	} {
 		t.Run(test.name+" divergence", func(t *testing.T) {
 			path := publishWatchdogReplayInput(t, input)
@@ -221,7 +222,7 @@ func publishWatchdogReplayInput(t *testing.T, input artifact.ArtifactInput) stri
 	return published.Path
 }
 
-func watchdogReplayInput(t *testing.T) (artifact.ArtifactInput, execution.Result, string) {
+func watchdogReplayInput(t *testing.T) (artifact.ArtifactInput, backend.ExecutionResult, string) {
 	t.Helper()
 	module := t.TempDir()
 	if err := os.WriteFile(filepath.Join(module, "go.mod"), []byte("module example.com/watchdogreplay\n\ngo 1.27.1\n"), 0o600); err != nil {
@@ -255,15 +256,15 @@ func main() {
 	}
 	mappings := []captured.Mapping{{Source: source, Target: "/mounted"}}
 	limits := captured.DefaultLimits()
-	var observed execution.Result
+	var observed backend.ExecutionResult
 	var timeout time.Duration
 	for _, timeout = range watchdogReplayTimeouts {
-		observed, err = execution.Run(t.Context(), execution.Spec{
+		observed, err = backend.Run(t.Context(), backend.ExecutionRequest{
 			SupervisorCommand: []string{os.Args[0], "-test.run=TestIOReplaySupervisorHelper"}, BootstrapCommand: []string{os.Args[0], "-test.run=TestIOReplayBootstrapHelper"},
 			Command: prepared.Path, Argv0: prepared.Argv[0], Dir: t.TempDir(), Env: []string{"GOMAD3_IO_PROFILE=" + profile.Name(), "GOMADSEED=7", "TZ=UTC"},
 			ExecutionTimeout: timeout, TerminateGrace: 100 * time.Millisecond, OutputLimit: 1 << 20,
-			World: execution.WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 7},
-			IO:    &execution.IOCapability{Config: frame, Transcript: &execution.IOTranscriptCapability{Limit: 64 << 20}, ReadOnlyMount: &execution.ReadOnlyMountCapability{Mappings: mappings, Limits: limits}},
+			World: backend.WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 7},
+			IO:    &backend.IOCapability{Config: frame, Transcript: &backend.IOTranscriptCapability{Limit: 64 << 20}, ReadOnlyMount: &backend.ReadOnlyMountCapability{Mappings: mappings, Limits: limits}},
 		})
 		if err != nil {
 			t.Fatal(err)

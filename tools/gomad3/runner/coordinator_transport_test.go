@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -15,6 +16,7 @@ import (
 	"testing"
 	"time"
 
+	"go.temporal.io/server/tools/gomad3/backends/native"
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
@@ -28,7 +30,22 @@ func TestMain(m *testing.M) {
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
 		case "__coordinator", "__target_bootstrap", "__supervisor":
-			if err := DispatchPrivateMode(os.Args[1], os.Stdin, os.Stdout); err != nil {
+			var err error
+			if os.Args[1] == "__coordinator" {
+				var payload []byte
+				payload, err = io.ReadAll(os.Stdin)
+				if err == nil {
+					config, shared, decodeErr := native.CoordinatorInput(payload)
+					if decodeErr != nil {
+						config = native.Config{SupervisorCommand: []string{os.Args[0], "__supervisor"}, RunnerBuild: "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"}
+						shared = payload
+					}
+					err = CoordinatorMain(bytes.NewReader(shared), os.Stdout, native.New(config))
+				}
+			} else {
+				_, err = native.DispatchPrivateMode(os.Args[1], os.Stdin, os.Stdout)
+			}
+			if err != nil {
 				fmt.Fprintln(os.Stderr, err)
 				os.Exit(3)
 			}
@@ -41,8 +58,8 @@ func TestMain(m *testing.M) {
 // coordinatorLocalOnlyFields are the CampaignSpec fields that deliberately do
 // not cross the coordinator transport, with the reason each stays local.
 var coordinatorLocalOnlyFields = map[string]string{
-	"Backend":              "injected backend providers are rejected for isolated campaigns",
-	"CoordinatorCommand":   "selects the isolated path in the parent",
+	"Backend":              "each process receives its configured provider",
+	"RunnerBuild":          "the provider supplies its local Runner identity",
 	"Progress":             "replaced in the child by a callback that forwards events to the parent",
 	"Preparer":             "injected preparation is rejected for isolated campaigns",
 	"Replayer":             "injected replay is rejected for isolated campaigns",
@@ -53,7 +70,7 @@ var coordinatorLocalOnlyFields = map[string]string{
 }
 
 func TestExploreRejectsPrivateExecutionForIsolatedCampaign(t *testing.T) {
-	_, err := exploreWith(context.Background(), CampaignSpec{CoordinatorCommand: []string{"unused"}}, executionDependencies{executor: &fakeExecutor{}})
+	_, err := exploreWith(context.Background(), CampaignSpec{Backend: native.New(native.Config{CoordinatorCommand: []string{"unused"}})}, executionDependencies{executor: &fakeExecutor{}})
 	if err == nil || !strings.Contains(err.Error(), "isolated Runner does not accept injected preparation or execution") {
 		t.Fatalf("isolated execution injection error = %v", err)
 	}
@@ -119,10 +136,10 @@ func TestCoordinatorTransportRoundTripsEveryTransportedField(t *testing.T) {
 			if err := decoder.Decode(&wire); err != nil {
 				t.Fatal(err)
 			}
-			got := wire.campaignRequest()
+			got := wire.campaignRequest(test.spec.Backend, test.spec.RunnerBuild)
 			want := campaignRequestFromSpec(test.spec)
 			want.OverallTimeout = childTimeout
-			want.CoordinatorCommand, want.Progress, want.Preparer, want.executor, want.Replayer = nil, nil, nil, nil, nil
+			want.Progress, want.Preparer, want.executor, want.Replayer = nil, nil, nil, nil
 			if !reflect.DeepEqual(got, want) {
 				t.Fatalf("coordinator transport changed:\n got %#v\nwant %#v", got, want)
 			}
@@ -290,7 +307,7 @@ func TestIsolatedRunnerCompletesSimulationStrategyWithSuppliedLimits(t *testing.
 		campaign := config
 		campaign.Artifacts = t.TempDir()
 		if !test.isolated {
-			campaign.CoordinatorCommand = nil
+			campaign.Backend = coordinatorTestProvider(campaign, false)
 		}
 		summary, err := Explore(context.Background(), campaign)
 		if err != nil {
@@ -311,7 +328,7 @@ func TestIsolatedRunnerCompletesSimulationStrategyWithSuppliedLimits(t *testing.
 		}
 		routes := make(map[string]struct{})
 		for _, path := range summary.SuccessArtifacts {
-			replayed, err := Replay(context.Background(), ReplaySpec{ArtifactPath: path, ToolchainRoot: toolchainRoot(t), SupervisorCommand: campaign.SupervisorCommand})
+			replayed, err := Replay(context.Background(), ReplaySpec{Backend: coordinatorTestProvider(campaign, false), ArtifactPath: path, ToolchainRoot: toolchainRoot(t)})
 			if err != nil {
 				t.Fatalf("%s Replay(%s) error = %v", test.name, path, err)
 			}
@@ -417,7 +434,7 @@ func TestCoordinatorRejectsInvalidStrategyBoundsLikeTheLocalRunner(t *testing.T)
 				return
 			}
 			local := test.config
-			local.CoordinatorCommand = nil
+			local.Backend = coordinatorTestProvider(local, false)
 			for name, config := range map[string]CampaignSpec{"local": local, "isolated": test.config} {
 				_, err := Explore(context.Background(), config)
 				var hostError *HostError
@@ -455,16 +472,21 @@ func TestCoordinatorRejectsMalformedRequests(t *testing.T) {
 
 func isolatedCampaign(t *testing.T, spec target.Spec) CampaignSpec {
 	t.Helper()
-	executable, err := os.Executable()
-	if err != nil {
-		t.Fatal(err)
-	}
-	return CampaignSpec{
+	config := CampaignSpec{
 		Seeds: "7", Parallel: 1, ExecutionTimeout: 30 * time.Second, OverallTimeout: 5 * time.Minute, TerminateGrace: 2 * time.Second,
 		OnFailure: PolicyFirst, FailureBudget: 1, OutputLimit: 1 << 20, WorldTransitionLimit: 1 << 20, Artifacts: t.TempDir(), Target: spec,
-		SupervisorCommand: []string{executable, "__supervisor"}, CoordinatorCommand: []string{executable, "__coordinator"},
 		RunnerBuild: "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
 	}
+	config.Backend = coordinatorTestProvider(config, true)
+	return config
+}
+
+func coordinatorTestProvider(config CampaignSpec, isolated bool) *native.Provider {
+	provider := native.Config{ToolchainRoot: config.Target.ToolchainRoot, SupervisorCommand: []string{os.Args[0], "__supervisor"}, RunnerBuild: config.RunnerBuild}
+	if isolated {
+		provider.CoordinatorCommand = []string{os.Args[0], "__coordinator"}
+	}
+	return native.New(provider)
 }
 
 func isolatedSimulationCampaign(t *testing.T) CampaignSpec {
@@ -519,7 +541,7 @@ func exploreIsolated(t *testing.T, config CampaignSpec) CampaignResult {
 
 func exploreLocal(t *testing.T, config CampaignSpec) CampaignResult {
 	t.Helper()
-	config.CoordinatorCommand = nil
+	config.Backend = coordinatorTestProvider(config, false)
 	config.Artifacts = t.TempDir()
 	summary, err := Explore(context.Background(), config)
 	if err != nil {

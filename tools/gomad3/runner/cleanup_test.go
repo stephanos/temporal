@@ -3,12 +3,11 @@ package runner
 import (
 	"context"
 	"errors"
+	backend "go.temporal.io/server/tools/gomad3/backends"
 	"os"
 	"path/filepath"
 	"reflect"
 	"testing"
-
-	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
 )
 
 func TestCleanupMatchingReplayerPreservesDetachedResultAndCalls(t *testing.T) {
@@ -53,10 +52,10 @@ func TestCleanupMutatingExecutorPreservesPreparedTargetAndErrors(t *testing.T) {
 				}
 			case "missing":
 			}
-			result, err := (mutatingExecutor{}).Run(context.Background(), execution.Spec{Command: path})
+			result, err := (mutatingExecutor{}).Run(context.Background(), backend.ExecutionRequest{Command: path})
 			if name != "file" {
 				var pathErr *os.PathError
-				if !errors.As(err, &pathErr) || pathErr.Path != path || !reflect.DeepEqual(result, execution.Result{}) {
+				if !errors.As(err, &pathErr) || pathErr.Path != path || !reflect.DeepEqual(result, backend.ExecutionResult{}) {
 					t.Fatalf("mutation error = %#v, %v", result, err)
 				}
 				wantOp := "open"

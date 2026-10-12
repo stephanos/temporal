@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	backend "go.temporal.io/server/tools/gomad3/backends"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -21,7 +22,6 @@ import (
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
-	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
 )
 
 const (
@@ -43,7 +43,7 @@ type retentionExecutor struct {
 	// an alternative it does not hold is its own rank.
 	order map[uint64]uint64
 	// shape edits the captured result of the execution with the given rank.
-	shape func(rank uint64, result *execution.Result)
+	shape func(rank uint64, result *backend.ExecutionResult)
 	// before runs ahead of the execution with the given rank.
 	before func(rank uint64)
 	// after names, per rank, the rank whose completion it waits for.
@@ -57,7 +57,7 @@ type retentionExecutor struct {
 	finished map[uint64]chan struct{}
 }
 
-func (executor *retentionExecutor) rank(request execution.Spec) uint64 {
+func (executor *retentionExecutor) rank(request backend.ExecutionRequest) uint64 {
 	alternative := executor.alternative(request)
 	if rank, ordered := executor.order[alternative]; ordered {
 		return rank
@@ -67,7 +67,7 @@ func (executor *retentionExecutor) rank(request execution.Spec) uint64 {
 
 // alternative is the seed's position for the seed strategy and, for the
 // exploration strategies, the alternative the candidate forces last.
-func (executor *retentionExecutor) alternative(request execution.Spec) uint64 {
+func (executor *retentionExecutor) alternative(request backend.ExecutionRequest) uint64 {
 	switch executor.strategy {
 	case StrategyChoiceExploration:
 		if request.Choice != nil && request.Choice.Mode == choice.ModePrefix {
@@ -105,7 +105,7 @@ func (executor *retentionExecutor) completion(rank uint64) chan struct{} {
 	return executor.finished[rank]
 }
 
-func (executor *retentionExecutor) Run(ctx context.Context, request execution.Spec) (execution.Result, error) {
+func (executor *retentionExecutor) Run(ctx context.Context, request backend.ExecutionRequest) (backend.ExecutionResult, error) {
 	rank := executor.rank(request)
 	defer close(executor.completion(rank))
 	if executor.before != nil {
@@ -116,7 +116,7 @@ func (executor *retentionExecutor) Run(ctx context.Context, request execution.Sp
 		<-ctx.Done()
 		result := processResult(0, "", "")
 		result.Cancelled = true
-		result.Termination = execution.TerminationSignal
+		result.Termination = backend.TerminationSignal
 		result.Signal = "killed"
 		return result, nil
 	}
@@ -124,7 +124,7 @@ func (executor *retentionExecutor) Run(ctx context.Context, request execution.Sp
 		select {
 		case <-executor.completion(other):
 		case <-ctx.Done():
-			return execution.Result{}, ctx.Err()
+			return backend.ExecutionResult{}, ctx.Err()
 		}
 	}
 	result, err := executor.base.Run(ctx, request)
@@ -193,7 +193,7 @@ func unorderedRetentionCampaign(t *testing.T, strategy Strategy, parallel bool, 
 	width := 1
 	switch strategy {
 	case StrategySeed:
-		executor.base = &fakeExecutor{result: func(seed uint64) execution.Result {
+		executor.base = &fakeExecutor{result: func(seed uint64) backend.ExecutionResult {
 			exitCode := 0
 			if fail {
 				exitCode = 2
@@ -245,8 +245,8 @@ func unorderedRetentionCampaign(t *testing.T, strategy Strategy, parallel bool, 
 }
 
 // rankProbes gives each rank a complete I/O transcript observing its probe.
-func rankProbes(t *testing.T, byRank ...string) func(uint64, *execution.Result) {
-	return func(rank uint64, result *execution.Result) {
+func rankProbes(t *testing.T, byRank ...string) func(uint64, *backend.ExecutionResult) {
+	return func(rank uint64, result *backend.ExecutionResult) {
 		result.IOTranscript = semanticTranscript(t, byRank[rank])
 	}
 }
@@ -268,7 +268,7 @@ func keepSuccesses(config *CampaignSpec, policy KeepSuccesses) {
 	}
 }
 
-func resumeRetentionCampaign(t *testing.T, interrupted CampaignSpec, campaignPath string, shape func(uint64, *execution.Result)) (CampaignResult, error) {
+func resumeRetentionCampaign(t *testing.T, interrupted CampaignSpec, campaignPath string, shape func(uint64, *backend.ExecutionResult)) (CampaignResult, error) {
 	t.Helper()
 	_, executor, _ := retentionCampaign(t, interrupted.Strategy, interrupted.Parallel != 1, false)
 	executor.shape = shape
@@ -682,7 +682,7 @@ func TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState(t *testing.
 				config, executor, configDependencies := retentionCampaign(t, strategy, test.parallel, false)
 				keepSuccesses(&config, test.policy)
 				shape := rankProbes(t, test.probes[:]...)
-				executor.shape = func(rank uint64, result *execution.Result) {
+				executor.shape = func(rank uint64, result *backend.ExecutionResult) {
 					shape(rank, result)
 					result.IOTranscript.Complete = rank != test.incomplete
 				}
@@ -790,7 +790,7 @@ func TestGuidedAdmissionReplaysBeforeTheCorpusAdvances(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			replayer := &replayRecorder{t: t, corpus: filepath.Join(t.TempDir(), "corpus"), result: test.result, err: test.err}
-			executor := &fakeExecutor{result: func(uint64) execution.Result {
+			executor := &fakeExecutor{result: func(uint64) backend.ExecutionResult {
 				result := processResult(0, "", "")
 				result.IOTranscript = semanticTranscript(t, probeA)
 				result.IOTranscript.Complete = test.complete
@@ -846,7 +846,7 @@ type pairedExecutor struct {
 	maximumActive int
 }
 
-func (executor *pairedExecutor) Run(ctx context.Context, _ execution.Spec) (execution.Result, error) {
+func (executor *pairedExecutor) Run(ctx context.Context, _ backend.ExecutionRequest) (backend.ExecutionResult, error) {
 	executor.mu.Lock()
 	executor.active++
 	executor.maximumActive = max(executor.maximumActive, executor.active)
@@ -866,7 +866,7 @@ func (executor *pairedExecutor) Run(ctx context.Context, _ execution.Spec) (exec
 		case <-own:
 		case <-ctx.Done():
 			result.Cancelled = true
-			result.Termination = execution.TerminationSignal
+			result.Termination = backend.TerminationSignal
 			result.Signal = "killed"
 		}
 	}

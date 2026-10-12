@@ -11,10 +11,10 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
+	backend "go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/record"
-	"go.temporal.io/server/tools/gomad3/runner/backend"
-	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
+
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
@@ -112,7 +112,7 @@ func backendMinimizationParent(t *testing.T) (artifact.Artifact, *prefixFailureP
 	completion := runCompletion{job: runJob{seed: 7}, startedAt: time.Unix(1, 0), finishedAt: time.Unix(2, 0), result: processResult(17, "failure", "")}
 	completion.result.BackendEvidence, completion.result.ChoiceTrace = []byte("model observations"), trace
 	world := noneWorldBundle()
-	manifest, err := manifestForRun(campaignRequestFromSpec(config), prepared, environment, completion, execution.Classify(completion.result, false, world.Manifest.Terminal), "fixture", world.Manifest, nil)
+	manifest, err := manifestForRun(campaignRequestFromSpec(config), prepared, environment, completion, backend.Classify(completion.result, false, world.Manifest.Terminal), "fixture", world.Manifest, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

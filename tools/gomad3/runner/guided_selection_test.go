@@ -2,6 +2,7 @@ package runner
 
 import (
 	"context"
+	backend "go.temporal.io/server/tools/gomad3/backends"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -12,7 +13,6 @@ import (
 	"go.temporal.io/server/tools/gomad3/artifact"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
-	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
 )
 
 func TestGuidedCorpusSeedReproducesRetainedExecution(t *testing.T) {
@@ -54,7 +54,7 @@ func TestGuidedSelectionExcludesAnsweredRequestedSeeds(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			corpus := filepath.Join(t.TempDir(), "corpus")
-			result := func(uint64) execution.Result {
+			result := func(uint64) backend.ExecutionResult {
 				r := processResult(0, "", "")
 				r.IOTranscript = completeEmptyTranscript()
 				return r
@@ -97,7 +97,7 @@ func TestGuidedSelectionExcludesAnsweredRequestedSeeds(t *testing.T) {
 func TestGuidedPlanShardsPreserveSelectionWithoutLiveCorpus(t *testing.T) {
 	for _, regression := range []bool{false, true} {
 		t.Run(map[bool]string{false: "new", true: "regression"}[regression], func(t *testing.T) {
-			result := func(uint64) execution.Result {
+			result := func(uint64) backend.ExecutionResult {
 				r := processResult(0, "", "")
 				r.IOTranscript = completeEmptyTranscript()
 				return r
@@ -166,7 +166,7 @@ func TestGuidedPlanShardsPreserveSelectionWithoutLiveCorpus(t *testing.T) {
 }
 
 func TestGuidedResumeRejectsChangedRegressionModeAndCountsNewExecutions(t *testing.T) {
-	result := func(uint64) execution.Result {
+	result := func(uint64) backend.ExecutionResult {
 		r := processResult(0, "", "")
 		r.IOTranscript = completeEmptyTranscript()
 		return r
@@ -207,7 +207,7 @@ func TestGuidedResumeRejectsChangedRegressionModeAndCountsNewExecutions(t *testi
 }
 
 func TestGuidedRegressionEarlyFailureCountsOnlyAttemptedNewExecutions(t *testing.T) {
-	result := func(uint64) execution.Result {
+	result := func(uint64) backend.ExecutionResult {
 		r := processResult(0, "", "")
 		r.IOTranscript = completeEmptyTranscript()
 		return r
@@ -220,7 +220,7 @@ func TestGuidedRegressionEarlyFailureCountsOnlyAttemptedNewExecutions(t *testing
 	if _, err := exploreWith(context.Background(), config, configDependencies); err != nil {
 		t.Fatal(err)
 	}
-	executor := &fakeExecutor{result: func(seed uint64) execution.Result {
+	executor := &fakeExecutor{result: func(seed uint64) backend.ExecutionResult {
 		r := processResult(7, "failure", "")
 		r.IOTranscript = completeEmptyTranscript()
 		return r
@@ -252,18 +252,18 @@ func TestExcludeAnsweredSeedsPreservesMaximumRangesAndInputOrder(t *testing.T) {
 
 type guidedInterruptExecutor struct{}
 
-func (*guidedInterruptExecutor) Run(ctx context.Context, spec execution.Spec) (execution.Result, error) {
+func (*guidedInterruptExecutor) Run(ctx context.Context, spec backend.ExecutionRequest) (backend.ExecutionResult, error) {
 	if seedFromEnvironment(spec.Env) == 0 {
 		result := processResult(0, "", "")
 		result.IOTranscript = completeEmptyTranscript()
 		return result, nil
 	}
 	<-ctx.Done()
-	return execution.Result{}, ctx.Err()
+	return backend.ExecutionResult{}, ctx.Err()
 }
 
 func TestFullyAnsweredGuidedPlanExecutesEmptyShardsAndMerges(t *testing.T) {
-	result := func(uint64) execution.Result {
+	result := func(uint64) backend.ExecutionResult {
 		r := processResult(0, "", "")
 		r.IOTranscript = completeEmptyTranscript()
 		return r
@@ -335,7 +335,7 @@ func TestRegressionGuidanceReservesRoundedUnguidedQuarter(t *testing.T) {
 }
 
 func TestGuidanceRegressionModeChangesPortablePlanIdentity(t *testing.T) {
-	result := func(uint64) execution.Result {
+	result := func(uint64) backend.ExecutionResult {
 		r := processResult(0, "", "")
 		r.IOTranscript = completeEmptyTranscript()
 		return r

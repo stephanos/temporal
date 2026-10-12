@@ -6,12 +6,19 @@ import (
 	"strings"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/choice"
+	"go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/record"
-	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
 	"go.temporal.io/server/tools/gomad3/world"
 )
+
+func guideDescription() backends.Description {
+	description := corpusDescription()
+	description.BoundaryVersion = "boundary-v1"
+	description.BoundarySHA256 = record.HashBytes([]byte("boundary"))
+	return description
+}
 
 func TestIdentityForTargetIgnoresDiagnosticSourceButBindsExecutionArguments(t *testing.T) {
 	target := record.Target{
@@ -20,12 +27,12 @@ func TestIdentityForTargetIgnoresDiagnosticSourceButBindsExecutionArguments(t *t
 		BuildInfo: record.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target"},
 	}
 	toolchain := record.Toolchain{GoVersion: "go1.26.4", BuildKey: "build", TargetGOOS: "darwin", TargetGOARCH: "arm64"}
-	first, err := IdentityFor(target, toolchain, "boundary-v1", record.HashBytes([]byte("boundary")), nil)
+	first, err := IdentityFor(target, toolchain, guideDescription(), nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 	target.Source = "/another/workspace"
-	second, err := IdentityFor(target, toolchain, "boundary-v1", record.HashBytes([]byte("boundary")), nil)
+	second, err := IdentityFor(target, toolchain, guideDescription(), nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -33,7 +40,7 @@ func TestIdentityForTargetIgnoresDiagnosticSourceButBindsExecutionArguments(t *t
 		t.Fatalf("diagnostic source changed identity: %#v, %#v", first, second)
 	}
 	target.Argv[1] = "second"
-	third, err := IdentityFor(target, toolchain, "boundary-v1", record.HashBytes([]byte("boundary")), nil)
+	third, err := IdentityFor(target, toolchain, guideDescription(), nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -48,7 +55,7 @@ func TestIdentityForBindsFeatureAndProbeInstrumentation(t *testing.T) {
 		Adapters: []record.TargetAdapter{}, Compatibility: []record.CompatibilityPack{}, BuildInfo: record.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target"},
 	}
 	toolchain := record.Toolchain{GoVersion: "go1.26.4", BuildKey: "build", TargetGOOS: "darwin", TargetGOARCH: "arm64"}
-	identity, err := IdentityFor(target, toolchain, "boundary-v1", record.HashBytes([]byte("boundary")), nil)
+	identity, err := IdentityFor(target, toolchain, guideDescription(), nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -70,12 +77,12 @@ func TestIdentityForChoiceBindsTheExactExecutionProfile(t *testing.T) {
 	profile := ChoiceProfileIdentity{
 		Profile: choice.Profile, ImplementationSHA256: record.SHA256FromSum(implementation), Limit: choice.MinimumTraceBytes,
 	}
-	first, err := IdentityForChoice(target, toolchain, "boundary-v1", record.HashBytes([]byte("boundary")), nil, profile)
+	first, err := IdentityForChoice(target, toolchain, guideDescription(), nil, profile)
 	if err != nil {
 		t.Fatal(err)
 	}
 	profile.Limit++
-	second, err := IdentityForChoice(target, toolchain, "boundary-v1", record.HashBytes([]byte("boundary")), nil, profile)
+	second, err := IdentityForChoice(target, toolchain, guideDescription(), nil, profile)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -85,7 +92,6 @@ func TestIdentityForChoiceBindsTheExactExecutionProfile(t *testing.T) {
 }
 
 func TestSemanticFeaturesUseStableOutcomesAndOperationPairs(t *testing.T) {
-	transcriptBytes := append(transcriptRecord(t, 0, "os.open", 0), transcriptRecord(t, 1, "os.read", 3)...)
 	coverage, err := transcript.SummarizeSemanticProbes([]string{"stdlib.os.openfile"})
 	if err != nil {
 		t.Fatal(err)
@@ -99,7 +105,7 @@ func TestSemanticFeaturesUseStableOutcomesAndOperationPairs(t *testing.T) {
 			Terminal:    record.WorldTerminal{Kind: "deadlock", Detail: "mailbox is empty"},
 		},
 	}
-	features, err := semanticFeatures(manifest, coverage, transcriptBytes, nil, nil)
+	features, err := semanticFeatures(manifest, coverage, []backends.OperationOutcome{{Name: "os.open"}, {Name: "os.read", Result: 3}}, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -205,15 +211,6 @@ func TestSnapshotPrioritizesReproducibleFailuresThenRareDomains(t *testing.T) {
 	}
 }
 
-func transcriptRecord(t *testing.T, ordinal uint64, operation string, result uint32) []byte {
-	t.Helper()
-	encoded, err := transcript.EncodeOperation(transcript.Operation{Ordinal: ordinal, Name: operation, Result: result})
-	if err != nil {
-		t.Fatal(err)
-	}
-	return encoded
-}
-
 func semanticWorld(t *testing.T, seed uint64, key string, payload []byte, readyAt world.LogicalTime) (record.World, []byte) {
 	t.Helper()
 	limits := world.Limits{MaxRequests: 10, MaxEvents: 10, MaxQueuedEvents: 10, MaxTransitions: 20, MaxPayloadBytes: 1 << 20, MaxStringBytes: 1024}
@@ -239,7 +236,7 @@ func semanticWorld(t *testing.T, seed uint64, key string, payload []byte, readyA
 	if err != nil {
 		t.Fatal(err)
 	}
-	bundle, err := execution.ComposeRecording(recording, 1<<20)
+	bundle, err := backends.ComposeRecording(recording, 1<<20)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -256,9 +253,9 @@ func TestIdentityForProjectsCanonicalEnvironmentAcrossSeedsAndProfiles(t *testin
 	profile := ChoiceProfileIdentity{Profile: choice.Profile, ImplementationSHA256: record.SHA256FromSum(implementation), Limit: choice.MinimumTraceBytes}
 	for _, withChoices := range []bool{false, true} {
 		constructor := func(environment []record.Environment) Identity {
-			identity, err := IdentityFor(target, toolchain, "boundary-v1", record.HashBytes([]byte("boundary")), environment)
+			identity, err := IdentityFor(target, toolchain, guideDescription(), environment)
 			if withChoices {
-				identity, err = IdentityForChoice(target, toolchain, "boundary-v1", record.HashBytes([]byte("boundary")), environment, profile)
+				identity, err = IdentityForChoice(target, toolchain, guideDescription(), environment, profile)
 			}
 			if err != nil {
 				t.Fatal(err)

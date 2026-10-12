@@ -6,13 +6,12 @@ import (
 	"path/filepath"
 	"slices"
 
-	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	"go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
 	guide "go.temporal.io/server/tools/gomad3/runner/internal/corpus"
-	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
@@ -27,21 +26,24 @@ type guidanceCampaign struct {
 
 func openGuidance(ctx context.Context, config campaignRequest, prepared target.Prepared, baseEnvironment []record.Environment, runID string) (*guidanceCampaign, error) {
 	targetRecord := prepared.RecordTarget()
-	boundaryVersion, boundarySHA256 := transcript.BoundaryManifestIdentity()
-	identity, err := guide.IdentityFor(targetRecord, prepared.RecordToolchain(), boundaryVersion, record.SHA256(boundarySHA256), environmentForSeed(baseEnvironment, 0))
+	description, err := config.Backend.Describe(ctx, backends.Configuration{Target: config.Target, ClockTick: config.ClockTick, Environment: environmentStrings(baseEnvironment), RequiredSemanticProbes: config.RequiredSemanticProbes})
+	if err != nil {
+		return nil, err
+	}
+	identity, err := guide.IdentityFor(targetRecord, prepared.RecordToolchain(), description, environmentForSeed(baseEnvironment, 0))
 	if coverageHasChoice(config.Coverage) {
 		implementation, identityErr := choice.ImplementationIdentity(prepared.BuildKey)
 		if identityErr != nil {
 			return nil, identityErr
 		}
-		identity, err = guide.IdentityForChoice(targetRecord, prepared.RecordToolchain(), boundaryVersion, record.SHA256(boundarySHA256), environmentForSeed(baseEnvironment, 0), guide.ChoiceProfileIdentity{
+		identity, err = guide.IdentityForChoice(targetRecord, prepared.RecordToolchain(), description, environmentForSeed(baseEnvironment, 0), guide.ChoiceProfileIdentity{
 			Profile: choice.Profile, ImplementationSHA256: record.SHA256FromSum(implementation), Limit: record.Uint64String(config.ChoiceTraceLimit),
 		})
 	}
 	if err != nil {
 		return nil, err
 	}
-	corpus, err := guide.Open(ctx, config.Corpus, identity)
+	corpus, err := guide.Open(ctx, config.Corpus, identity, description, config.Backend)
 	if err != nil {
 		return nil, err
 	}
@@ -68,8 +70,8 @@ func (campaign *guidanceCampaign) Snapshot() guide.Snapshot {
 func (campaign *guidanceCampaign) MergeRun(
 	ctx context.Context,
 	completion runCompletion,
-	outcome execution.Classification,
-	worldBundle execution.Bundle,
+	outcome backends.Classification,
+	worldBundle backends.Bundle,
 	mountArtifact *captured.CapturedInputs,
 	coverage record.SemanticCoverage,
 ) (bool, error) {
@@ -95,10 +97,7 @@ func (campaign *guidanceCampaign) MergeRun(
 	return campaign.corpus.Admit(ctx, candidate, func(ctx context.Context, path string) (guide.ReplayResult, error) {
 		replayConfig := ReplaySpec{
 			ArtifactPath: path, ToolchainRoot: campaign.config.Target.ToolchainRoot,
-			SupervisorCommand: append([]string(nil), campaign.config.SupervisorCommand...),
-		}
-		if len(campaign.config.SupervisorCommand) != 0 {
-			replayConfig.BootstrapCommand = []string{campaign.config.SupervisorCommand[0], "__target_bootstrap"}
+			Backend: campaign.config.Backend,
 		}
 		replayed, err := campaign.replayer.Replay(ctx, replayConfig)
 		return guide.ReplayResult{Verified: replayed.Verified, Match: replayed.Match, Diagnostic: replayed.Diagnostic, Divergence: replayed.Divergence}, err

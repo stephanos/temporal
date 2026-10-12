@@ -2,11 +2,12 @@ package runner
 
 import (
 	"fmt"
+	backend "go.temporal.io/server/tools/gomad3/backends"
 	"sort"
 
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/record"
-	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
+
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
@@ -18,7 +19,7 @@ func coverageHasChoice(mode CoverageMode) bool {
 	return mode == CoverageChoice || mode == CoverageSemanticChoice
 }
 
-func projectChoiceFeatures(trace execution.ChoiceTrace, prepared target.Prepared) (choice.FeatureProjection, []string, error) {
+func projectChoiceFeatures(trace backend.ChoiceTrace, prepared target.Prepared) (choice.FeatureProjection, []string, error) {
 	targetIdentity, err := record.ParseSHA256(prepared.SHA256)
 	if err != nil {
 		return choice.FeatureProjection{}, nil, fmt.Errorf("decode choice target identity: %w", err)
@@ -71,6 +72,6 @@ func addStrings(destination map[string]struct{}, values []string) {
 
 // choiceTraceObserved reports whether the target ran to a point where it wrote
 // its choice trace: a watchdog kill or a cancellation stops it before.
-func choiceTraceObserved(result execution.Result) bool {
+func choiceTraceObserved(result backend.ExecutionResult) bool {
 	return !result.WatchdogTimeout && !result.Cancelled
 }

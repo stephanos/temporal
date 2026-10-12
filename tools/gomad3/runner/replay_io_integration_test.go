@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	backend "go.temporal.io/server/tools/gomad3/backends"
 	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"os"
 	"path/filepath"
@@ -17,7 +18,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/record"
-	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
+
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
@@ -37,18 +38,18 @@ func TestIOProfileFailureArtifactReplaysExactly(t *testing.T) {
 		t.Fatal(err)
 	}
 	environment := []string{"GOMAD3_IO_PROFILE=" + profile.Name(), "GOMADSEED=7", "TZ=UTC"}
-	observed, err := execution.Run(context.Background(), execution.Spec{
+	observed, err := backend.Run(context.Background(), backend.ExecutionRequest{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestIOReplaySupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestIOReplayBootstrapHelper"},
 		Command:           prepared.Path, Argv0: prepared.Argv[0], Args: prepared.Argv[1:], Dir: t.TempDir(), Env: environment,
 		ExecutionTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 1 << 20,
-		World: execution.WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 7},
-		IO:    &execution.IOCapability{Config: frame, Transcript: &execution.IOTranscriptCapability{Limit: 64 << 20}},
+		World: backend.WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 7},
+		IO:    &backend.IOCapability{Config: frame, Transcript: &backend.IOTranscriptCapability{Limit: 64 << 20}},
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if observed.Termination != execution.TerminationExit || observed.ExitCode == 0 || !observed.IOTranscript.Complete {
+	if observed.Termination != backend.TerminationExit || observed.ExitCode == 0 || !observed.IOTranscript.Complete {
 		t.Fatalf("fixture result = %#v", observed)
 	}
 	exitCode := record.Uint64String(observed.ExitCode)
@@ -185,13 +186,13 @@ func TestReadOnlyMountFailureArtifactReplaysAfterHostRemoval(t *testing.T) {
 	mappings := []captured.Mapping{{Source: source, Target: "/mounted"}}
 	limits := captured.DefaultLimits()
 	environment := []string{"GOMAD3_IO_PROFILE=" + profile.Name(), "GOMADSEED=7", "TZ=UTC"}
-	observed, err := execution.Run(context.Background(), execution.Spec{
+	observed, err := backend.Run(context.Background(), backend.ExecutionRequest{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestIOReplaySupervisorHelper"}, BootstrapCommand: []string{os.Args[0], "-test.run=TestIOReplayBootstrapHelper"},
 		Command: prepared.Path, Argv0: prepared.Argv[0], Dir: t.TempDir(), Env: environment,
 		ExecutionTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 1 << 20,
-		World: execution.WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 7},
-		IO: &execution.IOCapability{Config: frame, Transcript: &execution.IOTranscriptCapability{Limit: 64 << 20},
-			ReadOnlyMount: &execution.ReadOnlyMountCapability{Mappings: mappings, Limits: limits}},
+		World: backend.WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 7},
+		IO: &backend.IOCapability{Config: frame, Transcript: &backend.IOTranscriptCapability{Limit: 64 << 20},
+			ReadOnlyMount: &backend.ReadOnlyMountCapability{Mappings: mappings, Limits: limits}},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -254,7 +255,7 @@ func TestIOReplaySupervisorHelper(t *testing.T) {
 	if os.Getenv("GOMAD3_PROCESS_SUPERVISOR") != "1" {
 		t.Skip("supervisor subprocess only")
 	}
-	if err := execution.SupervisorMain(); err != nil {
+	if err := backend.SupervisorMain(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(3)
 	}
@@ -265,7 +266,7 @@ func TestIOReplayBootstrapHelper(t *testing.T) {
 	if os.Getenv("GOMAD3_TARGET_BOOTSTRAP") != "1" {
 		t.Skip("target bootstrap subprocess only")
 	}
-	if err := execution.BootstrapMain(); err != nil {
+	if err := backend.BootstrapMain(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(3)
 	}

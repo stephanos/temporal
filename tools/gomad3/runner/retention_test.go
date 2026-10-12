@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	backend "go.temporal.io/server/tools/gomad3/backends"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -16,7 +17,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
-	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
+
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
@@ -96,7 +97,7 @@ func TestRunCountsASharedTargetInFullAgainstTheSuccessByteLimit(t *testing.T) {
 			t.Fatal(err)
 		}
 		prepared.SHA256, prepared.Size = fmt.Sprintf("sha256:%x", sha256.Sum256(targetBytes)), uint64(len(targetBytes))
-		config, configDependencies := testConfig(t, preparer, &fakeExecutor{result: func(seed uint64) execution.Result {
+		config, configDependencies := testConfig(t, preparer, &fakeExecutor{result: func(seed uint64) backend.ExecutionResult {
 			result := processResult(0, fmt.Sprint(seed), "")
 			result.IOTranscript = completeEmptyTranscript()
 			return result
@@ -128,7 +129,7 @@ func TestRunCountsASharedTargetInFullAgainstTheSuccessByteLimit(t *testing.T) {
 }
 
 func TestRunRetainsSameOutputSuccessesWithMatchingDiskAndJournalCounts(t *testing.T) {
-	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{result: func(uint64) execution.Result {
+	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{result: func(uint64) backend.ExecutionResult {
 		result := processResult(0, "same output", "")
 		result.IOTranscript = completeEmptyTranscript()
 		return result

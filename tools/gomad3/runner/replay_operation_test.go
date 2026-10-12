@@ -21,17 +21,23 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
+	execution "go.temporal.io/server/tools/gomad3/backends"
+	"go.temporal.io/server/tools/gomad3/backends/native"
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/internal/hostexec"
 	"go.temporal.io/server/tools/gomad3/record"
-	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
 	simulationengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation"
 	simulationrecord "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulationrecord"
 	"go.temporal.io/server/tools/gomad3/target"
 	"go.temporal.io/server/tools/gomad3/world"
 	worldprocess "go.temporal.io/server/tools/gomad3/world/process"
 )
+
+func replayNativeProvider(t *testing.T) *native.Provider {
+	t.Helper()
+	return native.New(native.Config{ToolchainRoot: toolchainRoot(t)})
+}
 
 func TestReplayVerifiesThenRunsStoredTargetWithoutRebuilding(t *testing.T) {
 	artifactPath, expected := replayArtifact(t)
@@ -42,7 +48,7 @@ func TestReplayVerifiesThenRunsStoredTargetWithoutRebuilding(t *testing.T) {
 	}
 	executor := &fakeReplayExecutor{result: expected}
 	result, err := replayWith(context.Background(), ReplaySpec{
-		ArtifactPath: movedPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
+		ArtifactPath: movedPath, ToolchainRoot: toolchainRoot(t), Backend: replayNativeProvider(t),
 	}, executionDependencies{executor: executor},
 	)
 	if err != nil {
@@ -71,7 +77,7 @@ func TestReplayAutomaticallySuppliesExactChoiceTape(t *testing.T) {
 	artifactPath, expected := publishReplayArtifactForTarget(t, nil, replayArtifactTarget{Choices: true})
 	executor := &fakeReplayExecutor{result: expected}
 	result, err := replayWith(context.Background(), ReplaySpec{
-		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
+		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), Backend: replayNativeProvider(t),
 	}, executionDependencies{executor: executor},
 	)
 	if err != nil {
@@ -104,7 +110,7 @@ func TestReplayAutomaticallySuppliesExactSimulationExplorationTape(t *testing.T)
 	}
 	executor := &fakeReplayExecutor{result: expected}
 	result, err := replayWith(context.Background(), ReplaySpec{
-		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
+		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), Backend: replayNativeProvider(t),
 	}, executionDependencies{executor: executor},
 	)
 	if err != nil {
@@ -122,7 +128,7 @@ func TestReplayReportsChangedSimulationExplorationRecord(t *testing.T) {
 	artifactPath, observed := publishReplayArtifactForTarget(t, nil, replayArtifactTarget{Choices: true, Simulation: true})
 	observed.SimulationRecords = [][]byte{[]byte("changed simulation record")}
 	result, err := replayWith(context.Background(), ReplaySpec{
-		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
+		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), Backend: replayNativeProvider(t),
 	}, executionDependencies{executor: &fakeReplayExecutor{result: observed}},
 	)
 	if err != nil {
@@ -137,7 +143,7 @@ func TestReplayReportsTypedChoiceDivergenceBeforeOrdinaryComparison(t *testing.T
 	artifactPath, _ := publishReplayArtifactForTarget(t, nil, replayArtifactTarget{Choices: true})
 	executor := &fakeReplayExecutor{err: &execution.ChoiceReplayDivergenceError{Divergence: choice.Divergence{Ordinal: 3, Reason: choice.DivergenceSite}}}
 	result, err := replayWith(context.Background(), ReplaySpec{
-		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
+		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), Backend: replayNativeProvider(t),
 	}, executionDependencies{executor: executor},
 	)
 	if err != nil {
@@ -156,7 +162,7 @@ func TestReplayPreservesInfrastructureErrorJoinedWithChoiceDivergence(t *testing
 		cleanupErr,
 	)}
 	_, err := replayWith(context.Background(), ReplaySpec{
-		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
+		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), Backend: replayNativeProvider(t),
 	}, executionDependencies{executor: executor},
 	)
 	if !errors.Is(err, cleanupErr) {
@@ -173,19 +179,19 @@ func TestReplayDoesNotStartTarget(t *testing.T) {
 		name string
 		// publish returns the artifact path and the result a started target
 		// would report.
-		publish    func(t *testing.T) (string, execution.Result)
+		publish    func(t *testing.T) (string, execution.ExecutionResult)
 		verifyOnly bool
 		// wantVerified expects verification to succeed; otherwise replay fails.
 		wantVerified bool
 	}
 	cases := []replayCase{
 		{name: "verify only", publish: replayArtifact, verifyOnly: true, wantVerified: true},
-		{name: "unavailable compatibility pack", verifyOnly: true, publish: func(t *testing.T) (string, execution.Result) {
+		{name: "unavailable compatibility pack", verifyOnly: true, publish: func(t *testing.T) (string, execution.ExecutionResult) {
 			return publishReplayArtifactWithCompatibility(t, []record.CompatibilityPack{{
 				ID: "unknown-pack", SHA256: record.HashBytes([]byte("unknown pack")),
 			}})
 		}},
-		{name: "changed payload", publish: func(t *testing.T) (string, execution.Result) {
+		{name: "changed payload", publish: func(t *testing.T) (string, execution.ExecutionResult) {
 			artifactPath, expected := replayArtifact(t)
 			if err := os.Chmod(filepath.Join(artifactPath, "stdout"), 0o600); err != nil {
 				t.Fatal(err)
@@ -228,7 +234,7 @@ func TestReplayDoesNotStartTarget(t *testing.T) {
 		}},
 	} {
 		for _, verifyOnly := range []bool{false, true} {
-			cases = append(cases, replayCase{name: fmt.Sprintf("damaged shared target/%s/verify-only=%t", damage.name, verifyOnly), verifyOnly: verifyOnly, publish: func(t *testing.T) (string, execution.Result) {
+			cases = append(cases, replayCase{name: fmt.Sprintf("damaged shared target/%s/verify-only=%t", damage.name, verifyOnly), verifyOnly: verifyOnly, publish: func(t *testing.T) (string, execution.ExecutionResult) {
 				pool := artifact.TargetPool(t.TempDir())
 				artifactPath, expected := publishReplayArtifactForTarget(t, nil, replayArtifactTarget{TargetPool: pool})
 				entries, err := os.ReadDir(pool)
@@ -249,7 +255,7 @@ func TestReplayDoesNotStartTarget(t *testing.T) {
 			artifactPath, expected := test.publish(t)
 			executor := &fakeReplayExecutor{result: expected}
 			result, err := replayWith(context.Background(), ReplaySpec{
-				ArtifactPath: artifactPath, VerifyOnly: test.verifyOnly, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
+				ArtifactPath: artifactPath, VerifyOnly: test.verifyOnly, ToolchainRoot: toolchainRoot(t), Backend: replayNativeProvider(t),
 			}, executionDependencies{executor: executor},
 			)
 			if executor.calls != 0 || (err == nil) != test.wantVerified || test.wantVerified && (!result.Verified || result.Match) {
@@ -273,7 +279,7 @@ func TestReplayRunsAnArtifactCopiedOutOfItsStore(t *testing.T) {
 	}
 	executor := &fakeReplayExecutor{result: expected}
 	result, err := replayWith(context.Background(), ReplaySpec{
-		ArtifactPath: exported, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
+		ArtifactPath: exported, ToolchainRoot: toolchainRoot(t), Backend: replayNativeProvider(t),
 	}, executionDependencies{executor: executor},
 	)
 	if err != nil {
@@ -311,8 +317,9 @@ func TestReplayRejectsFirstDivergentWorldTransitionBeforeTargetMutation(t *testi
 	})
 	result, err := replayWith(context.Background(), ReplaySpec{
 		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t),
-		SupervisorCommand: []string{os.Args[0], "-test.run=TestIOReplaySupervisorHelper"},
-		BootstrapCommand:  []string{os.Args[0], "-test.run=TestIOReplayBootstrapHelper"},
+		Backend: native.New(native.Config{ToolchainRoot: toolchainRoot(t),
+			SupervisorCommand: []string{os.Args[0], "-test.run=TestIOReplaySupervisorHelper"},
+			BootstrapCommand:  []string{os.Args[0], "-test.run=TestIOReplayBootstrapHelper"}}),
 	}, executionDependencies{})
 	if err != nil {
 		t.Fatal(err)
@@ -345,8 +352,9 @@ func TestReplayExecutesMatchingWorldPlanThroughChildTransport(t *testing.T) {
 	})
 	result, err := replayWith(context.Background(), ReplaySpec{
 		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t),
-		SupervisorCommand: []string{os.Args[0], "-test.run=TestIOReplaySupervisorHelper"},
-		BootstrapCommand:  []string{os.Args[0], "-test.run=TestIOReplayBootstrapHelper"},
+		Backend: native.New(native.Config{ToolchainRoot: toolchainRoot(t),
+			SupervisorCommand: []string{os.Args[0], "-test.run=TestIOReplaySupervisorHelper"},
+			BootstrapCommand:  []string{os.Args[0], "-test.run=TestIOReplayBootstrapHelper"}}),
 	}, executionDependencies{})
 	if err != nil {
 		t.Fatal(err)
@@ -434,18 +442,18 @@ func recordReplayIOTranscript(t *testing.T) []byte {
 	}
 	argv := []string{"gomad3-target", "-test.run=^TestWorldReplayMatchingTarget$"}
 	profile := transcript.Default()
-	frame, err := profile.BootstrapFrame(target.Prepared{SHA256: string(record.HashBytes(targetBytes)), Argv: argv}, "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 7)
-	if err != nil {
-		t.Fatal(err)
-	}
-	result, err := execution.Run(context.Background(), execution.Spec{
+	provider := native.New(native.Config{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestIOReplaySupervisorHelper"},
 		BootstrapCommand:  []string{os.Args[0], "-test.run=TestIOReplayBootstrapHelper"},
-		Command:           targetPath, Argv0: argv[0], Args: argv[1:], Dir: t.TempDir(),
+	})
+	result, err := provider.Execute(context.Background(), execution.ExecutionRequest{
+		Target: target.Prepared{Path: targetPath, SHA256: string(record.HashBytes(targetBytes)), Size: uint64(len(targetBytes)), Argv: argv, CapabilityMode: target.CapabilityModeClosure},
+		Seed:   7, RunnerBuild: "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+		Command: targetPath, Argv0: argv[0], Args: argv[1:], Dir: t.TempDir(),
 		Env:              []string{"GOMAD3_IO_PROFILE=" + profile.Name(), "GOMADSEED=7", "TZ=UTC"},
 		ExecutionTimeout: 5 * time.Second, TerminateGrace: 100 * time.Millisecond, OutputLimit: 64,
 		World: execution.WorldCapability{RecordLimit: world.MaximumRecordingBytes, TransitionLimit: 1 << 20, Seed: 7},
-		IO:    &execution.IOCapability{Config: frame, Transcript: &execution.IOTranscriptCapability{Limit: 64 << 20}},
+		IO:    &execution.IOCapability{Profile: record.IOProfile{Name: profile.Name(), ImplementationSHA256: record.SHA256(profile.ImplementationSHA256()), Inventory: string(profile.Inventory()), InventorySHA256: record.SHA256(profile.InventorySHA256())}, Transcript: &execution.IOTranscriptCapability{Limit: 64 << 20}},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -461,7 +469,7 @@ func TestReplayReportsFirstObservableDivergence(t *testing.T) {
 	expected.Stdout = replayOutput("different stdout")
 	executor := &fakeReplayExecutor{result: expected}
 	result, err := replayWith(context.Background(), ReplaySpec{
-		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
+		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), Backend: replayNativeProvider(t),
 	}, executionDependencies{executor: executor},
 	)
 	if err != nil {
@@ -474,7 +482,7 @@ func TestReplayReportsFirstObservableDivergence(t *testing.T) {
 
 func TestReplayReportsIOTranscriptOrdinalBeforeOutcome(t *testing.T) {
 	ordinal := uint64(4)
-	observed := execution.Result{IOTranscript: transcript.Transcript{ReplayDivergence: &ordinal}}
+	observed := execution.ExecutionResult{IOTranscript: execution.Transcript{ReplayDivergence: &ordinal}}
 	if divergence := replayDivergence(record.ExecutionRecord{}, observed, nil); divergence != "io_profile.transcript.ordinal[4]" {
 		t.Fatalf("replayDivergence() = %q", divergence)
 	}
@@ -488,7 +496,7 @@ func TestReplayReportsFinalChoiceTraceMismatch(t *testing.T) {
 		Streams:       record.Streams{Stdout: record.Stream{FullSHA256: record.SHA256FromSum(sha256.Sum256(nil))}, Stderr: record.Stream{FullSHA256: record.SHA256FromSum(sha256.Sum256(nil))}},
 		ChoiceProfile: &record.ChoiceProfile{Name: choice.Profile, Trace: record.ChoiceTrace{SHA256: record.SHA256FromSum(expectedDigest), Records: 1, BranchingRecords: 1, Limit: 1 << 20}},
 	}
-	observed := execution.Result{
+	observed := execution.ExecutionResult{
 		Termination: execution.TerminationExit,
 		Stdout:      replayOutput(""), Stderr: replayOutput(""),
 		ChoiceTrace: execution.ChoiceTrace{Profile: choice.Profile, Limit: 1 << 20, Trace: choice.Trace{SHA256: observedDigest, Summary: choice.Summary{Records: 1, Branching: 1, Terminal: choice.TerminalComplete}}},
@@ -513,7 +521,7 @@ func TestReplayRejectsUnexpectedWorldRecord(t *testing.T) {
 		t.Fatal(err)
 	}
 	result, err := replayWith(context.Background(), ReplaySpec{
-		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
+		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), Backend: replayNativeProvider(t),
 	}, executionDependencies{executor: &fakeReplayExecutor{result: expected}},
 	)
 	if err != nil {
@@ -539,7 +547,7 @@ func TestReplayPreflightValidatesConnectedWorldRecord(t *testing.T) {
 	}
 	artifactPath, expected := publishReplayArtifact(t, &bundle)
 	result, err := replayWith(context.Background(), ReplaySpec{
-		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
+		ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), Backend: replayNativeProvider(t),
 	}, executionDependencies{executor: &fakeReplayExecutor{result: expected}},
 	)
 	if err != nil {
@@ -553,7 +561,7 @@ func TestReplayPreflightValidatesConnectedWorldRecord(t *testing.T) {
 	changedPath, _ := publishReplayArtifact(t, &changed)
 	executor := &fakeReplayExecutor{}
 	if _, err := replayWith(context.Background(), ReplaySpec{
-		ArtifactPath: changedPath, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
+		ArtifactPath: changedPath, ToolchainRoot: toolchainRoot(t), Backend: replayNativeProvider(t),
 	}, executionDependencies{executor: executor},
 	); err == nil || executor.calls != 0 {
 		t.Fatalf("changed World replayWith() error = %v, calls = %d", err, executor.calls)
@@ -563,12 +571,12 @@ func TestReplayPreflightValidatesConnectedWorldRecord(t *testing.T) {
 type fakeReplayExecutor struct {
 	mu      sync.Mutex
 	calls   int
-	request execution.Spec
-	result  execution.Result
+	request execution.ExecutionRequest
+	result  execution.ExecutionResult
 	err     error
 }
 
-func (executor *fakeReplayExecutor) Run(_ context.Context, request execution.Spec) (execution.Result, error) {
+func (executor *fakeReplayExecutor) Run(_ context.Context, request execution.ExecutionRequest) (execution.ExecutionResult, error) {
 	executor.mu.Lock()
 	defer executor.mu.Unlock()
 	executor.calls++
@@ -576,19 +584,19 @@ func (executor *fakeReplayExecutor) Run(_ context.Context, request execution.Spe
 	return executor.result, executor.err
 }
 
-func replayArtifact(t *testing.T) (string, execution.Result) {
+func replayArtifact(t *testing.T) (string, execution.ExecutionResult) {
 	return publishReplayArtifact(t, nil)
 }
 
-func publishReplayArtifact(t *testing.T, connected *execution.Bundle) (string, execution.Result) {
+func publishReplayArtifact(t *testing.T, connected *execution.Bundle) (string, execution.ExecutionResult) {
 	return publishReplayArtifactWithWorldAndCompatibility(t, connected, []record.CompatibilityPack{})
 }
 
-func publishReplayArtifactWithCompatibility(t *testing.T, compatibility []record.CompatibilityPack) (string, execution.Result) {
+func publishReplayArtifactWithCompatibility(t *testing.T, compatibility []record.CompatibilityPack) (string, execution.ExecutionResult) {
 	return publishReplayArtifactWithWorldAndCompatibility(t, nil, compatibility)
 }
 
-func publishReplayArtifactWithWorldAndCompatibility(t *testing.T, connected *execution.Bundle, compatibility []record.CompatibilityPack) (string, execution.Result) {
+func publishReplayArtifactWithWorldAndCompatibility(t *testing.T, connected *execution.Bundle, compatibility []record.CompatibilityPack) (string, execution.ExecutionResult) {
 	return publishReplayArtifactForTargetAndCompatibility(t, connected, compatibility, replayArtifactTarget{})
 }
 
@@ -604,11 +612,11 @@ type replayArtifactTarget struct {
 	TargetPool string
 }
 
-func publishReplayArtifactForTarget(t *testing.T, connected *execution.Bundle, replayTarget replayArtifactTarget) (string, execution.Result) {
+func publishReplayArtifactForTarget(t *testing.T, connected *execution.Bundle, replayTarget replayArtifactTarget) (string, execution.ExecutionResult) {
 	return publishReplayArtifactForTargetAndCompatibility(t, connected, []record.CompatibilityPack{}, replayTarget)
 }
 
-func publishReplayArtifactForTargetAndCompatibility(t *testing.T, connected *execution.Bundle, compatibility []record.CompatibilityPack, replayTarget replayArtifactTarget) (string, execution.Result) {
+func publishReplayArtifactForTargetAndCompatibility(t *testing.T, connected *execution.Bundle, compatibility []record.CompatibilityPack, replayTarget replayArtifactTarget) (string, execution.ExecutionResult) {
 	t.Helper()
 	targetPath, err := os.Executable()
 	if err != nil {
@@ -833,7 +841,7 @@ func publishReplayArtifactForTargetAndCompatibility(t *testing.T, connected *exe
 	if err != nil {
 		t.Fatal(err)
 	}
-	result := execution.Result{Termination: execution.TerminationExit, ExitCode: 2, GroupGone: true, Stdout: stdout, Stderr: stderr, IOTranscript: transcript.Transcript{SHA256: ioTranscriptSHA256, Records: ioTranscriptRecords, Complete: true}, ChoiceTrace: recordedChoices, SimulationRecords: recordedSimulationRecords}
+	result := execution.ExecutionResult{Termination: execution.TerminationExit, ExitCode: 2, GroupGone: true, Stdout: stdout, Stderr: stderr, IOTranscript: execution.Transcript{SHA256: ioTranscriptSHA256, Records: ioTranscriptRecords, Complete: true}, ChoiceTrace: recordedChoices, SimulationRecords: recordedSimulationRecords}
 	if connected != nil {
 		initial, decodeErr := world.DecodeSnapshot(connected.Payloads.Initial)
 		if decodeErr != nil {
@@ -854,13 +862,13 @@ func publishReplayArtifactForTargetAndCompatibility(t *testing.T, connected *exe
 	return published.Path, result
 }
 
-func replayOutput(value string) hostexec.Output {
+func replayOutput(value string) execution.Output {
 	data := []byte(value)
 	digest := sha256.Sum256(data)
-	return hostexec.Output{Bytes: data, FullSHA256: digest, RetainedSHA256: digest, TotalBytes: uint64(len(data)), RetainedBytes: uint64(len(data))}
+	return execution.Output{Bytes: data, FullSHA256: digest, RetainedSHA256: digest, TotalBytes: uint64(len(data)), RetainedBytes: uint64(len(data))}
 }
 
-func replayStream(output hostexec.Output) record.Stream {
+func replayStream(output execution.Output) record.Stream {
 	return record.Stream{
 		FullSHA256: record.SHA256(fmt.Sprintf("sha256:%x", output.FullSHA256)), TotalBytes: record.Uint64String(output.TotalBytes),
 		RetainedBytes: record.Uint64String(output.RetainedBytes), DiscardedBytes: record.Uint64String(output.DiscardedBytes), Truncated: output.Truncated,

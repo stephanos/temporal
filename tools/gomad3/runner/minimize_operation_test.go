@@ -14,11 +14,10 @@ import (
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
+	execution "go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
 	"go.temporal.io/server/tools/gomad3/record"
-	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
 	simulationengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation"
 	"go.temporal.io/server/tools/gomad3/runner/internal/minimizer"
 )
@@ -39,7 +38,7 @@ func TestMinimizePublishesLinkedExactScheduleAndFaultReduction(t *testing.T) {
 
 	result, err := minimizeWith(context.Background(), MinimizeSpec{
 		ArtifactPath: artifactPath, OutputRoot: t.TempDir(), AttemptBudget: 16,
-		ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Replayer: replayer,
+		ToolchainRoot: toolchainRoot(t), Backend: replayNativeProvider(t), Replayer: replayer,
 	}, executionDependencies{executor: executor},
 	)
 	if err != nil {
@@ -77,7 +76,7 @@ func TestMinimizeRejectsSimulationArtifactWithoutExactChoiceTape(t *testing.T) {
 	artifactPath, _ := publishReplayArtifactForTarget(t, nil, replayArtifactTarget{Simulation: true})
 	_, err := minimizeWith(context.Background(), MinimizeSpec{
 		ArtifactPath: artifactPath, OutputRoot: t.TempDir(), AttemptBudget: 16,
-		ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Replayer: &minimizationReplayer{},
+		ToolchainRoot: toolchainRoot(t), Backend: replayNativeProvider(t), Replayer: &minimizationReplayer{},
 	}, executionDependencies{executor: &minimizationExecutor{}},
 	)
 	if err == nil {
@@ -124,7 +123,7 @@ func minimizationSpec(t *testing.T, artifactPath, outputRoot string) (MinimizeSp
 	t.Helper()
 	return MinimizeSpec{
 		ArtifactPath: artifactPath, OutputRoot: outputRoot, AttemptBudget: 16,
-		ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}, Replayer: &minimizationReplayer{},
+		ToolchainRoot: toolchainRoot(t), Backend: replayNativeProvider(t), Replayer: &minimizationReplayer{},
 	}, executionDependencies{executor: &minimizationExecutor{}}
 }
 
@@ -447,18 +446,18 @@ type minimizationExecutor struct {
 	before func(call int) error
 }
 
-func (executor *minimizationExecutor) Run(_ context.Context, request execution.Spec) (execution.Result, error) {
+func (executor *minimizationExecutor) Run(_ context.Context, request execution.ExecutionRequest) (execution.ExecutionResult, error) {
 	executor.mu.Lock()
 	defer executor.mu.Unlock()
 	executor.calls++
 	if executor.before != nil {
 		if err := executor.before(executor.calls); err != nil {
-			return execution.Result{}, err
+			return execution.ExecutionResult{}, err
 		}
 	}
 	trace, err := minimizationChoiceTrace(request)
 	if err != nil {
-		return execution.Result{}, err
+		return execution.ExecutionResult{}, err
 	}
 	var retained struct {
 		Overrides []struct {
@@ -466,7 +465,7 @@ func (executor *minimizationExecutor) Run(_ context.Context, request execution.S
 		} `json:"overrides"`
 	}
 	if err := json.Unmarshal(request.Simulation.ExplorationPlan, &retained); err != nil {
-		return execution.Result{}, err
+		return execution.ExecutionResult{}, err
 	}
 	hasRuntime := false
 	hasFault := false
@@ -485,7 +484,7 @@ func (executor *minimizationExecutor) Run(_ context.Context, request execution.S
 			[]record.SHA256{record.HashBytes([]byte("no fault")), record.HashBytes([]byte("drop"))}, 1,
 		)
 		if decisionErr != nil {
-			return execution.Result{}, decisionErr
+			return execution.ExecutionResult{}, decisionErr
 		}
 		decisions = []simulationengine.Decision{fault}
 	}
@@ -504,19 +503,19 @@ func (executor *minimizationExecutor) Run(_ context.Context, request execution.S
 		ExplorationDecisions: decisions, Identity: record.HashBytes([]byte("simulation record")),
 	})
 	if err != nil {
-		return execution.Result{}, err
+		return execution.ExecutionResult{}, err
 	}
 	empty := sha256.Sum256(nil)
 	exitCode := 2
-	return execution.Result{
+	return execution.ExecutionResult{
 		Termination: execution.TerminationExit, ExitCode: exitCode, GroupGone: true,
 		Stdout: replayOutput("recorded stdout"), Stderr: replayOutput("recorded stderr"),
-		IOTranscript: transcript.Transcript{SHA256: empty, Complete: true}, ChoiceTrace: trace,
+		IOTranscript: execution.Transcript{SHA256: empty, Complete: true}, ChoiceTrace: trace,
 		SimulationRecords: [][]byte{record},
 	}, nil
 }
 
-func minimizationChoiceTrace(request execution.Spec) (execution.ChoiceTrace, error) {
+func minimizationChoiceTrace(request execution.ExecutionRequest) (execution.ChoiceTrace, error) {
 	first := sha256.Sum256([]byte("first choice alternative"))
 	second := sha256.Sum256([]byte("second choice alternative"))
 	decision, err := choice.CanonicalDecision(0, choice.KindRunnable, 17, false, [][sha256.Size]byte{first, second}, second, 0)

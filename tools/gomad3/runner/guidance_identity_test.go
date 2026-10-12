@@ -2,13 +2,13 @@ package runner
 
 import (
 	"context"
+	backend "go.temporal.io/server/tools/gomad3/backends"
 	"path/filepath"
 	"strings"
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/record"
-	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
 )
 
 func TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy(t *testing.T) {
@@ -25,7 +25,7 @@ func TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy(t *testing.T) {
 			t.Run(string(coverage)+"/"+test.name, func(t *testing.T) {
 				preparer := newFakePreparer(t)
 				limit := choiceTraceLimit(t, 1)
-				executor := &fakeExecutor{result: func(uint64) execution.Result {
+				executor := &fakeExecutor{result: func(uint64) backend.ExecutionResult {
 					result := processResult(0, "", "")
 					result.IOTranscript = completeEmptyTranscript()
 					if coverage == CoverageChoice {

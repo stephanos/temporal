@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	backend "go.temporal.io/server/tools/gomad3/backends"
 	"io"
 	"os"
 	"path/filepath"
@@ -16,15 +17,15 @@ import (
 	"go.temporal.io/server/tools/gomad3/backends/native/preparation"
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/record"
-	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
+
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
 type preparationFixtureExecutor struct {
-	run func(context.Context, execution.Spec) (execution.Result, error)
+	run func(context.Context, backend.ExecutionRequest) (backend.ExecutionResult, error)
 }
 
-func (executor preparationFixtureExecutor) Run(ctx context.Context, request execution.Spec) (execution.Result, error) {
+func (executor preparationFixtureExecutor) Run(ctx context.Context, request backend.ExecutionRequest) (backend.ExecutionResult, error) {
 	return executor.run(ctx, request)
 }
 
@@ -34,7 +35,7 @@ func TestPreparationDependenciesForwardRealFixtureInputs(t *testing.T) {
 	var bootstrapSeeds, executionSeeds []uint64
 	var outputs []*os.File
 	var prepared target.Prepared
-	executor := preparationFixtureExecutor{run: func(_ context.Context, request execution.Spec) (execution.Result, error) {
+	executor := preparationFixtureExecutor{run: func(_ context.Context, request backend.ExecutionRequest) (backend.ExecutionResult, error) {
 		if request.IO == nil || !bytes.Equal(request.IO.Config, []byte(scriptedBootstrapMarker)) {
 			t.Errorf("forwarded bootstrap = %#v", request.IO)
 		}
@@ -47,13 +48,13 @@ func TestPreparationDependenciesForwardRealFixtureInputs(t *testing.T) {
 		}
 		info, err := os.Stat(request.Command)
 		if err != nil {
-			return execution.Result{}, err
+			return backend.ExecutionResult{}, err
 		}
 		if info.Mode().Perm() != 0o500 || uint64(info.Size()) != prepared.Size {
 			t.Errorf("copied target mode/size = %v/%d", info.Mode(), info.Size())
 		}
 		if err := verifyPrepared(prepared); err != nil {
-			return execution.Result{}, err
+			return backend.ExecutionResult{}, err
 		}
 		var runOutputs []*os.File
 		for _, writer := range []io.Writer{request.StdoutHead, request.StderrHead} {
@@ -63,7 +64,7 @@ func TestPreparationDependenciesForwardRealFixtureInputs(t *testing.T) {
 				continue
 			}
 			if _, err := output.Stat(); err != nil {
-				return execution.Result{}, err
+				return backend.ExecutionResult{}, err
 			}
 			runOutputs = append(runOutputs, output)
 		}

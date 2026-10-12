@@ -2,6 +2,7 @@ package runner
 
 import (
 	"context"
+	backend "go.temporal.io/server/tools/gomad3/backends"
 	"os"
 	"path/filepath"
 	"testing"
@@ -10,7 +11,6 @@ import (
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
-	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
 )
 
 func TestCreateCampaignPlanPublishesCanonicalPreparedTargetBundle(t *testing.T) {
@@ -110,7 +110,7 @@ func TestRunCampaignShardRejectsChangedReadOnlyMountBeforeExecution(t *testing.T
 	if err := os.WriteFile(filepath.Join(planPath+campaignPlanBundleSuffix, "mounts", "000000", "value"), []byte("changed"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	executor := &fakeExecutor{result: func(uint64) execution.Result { return processResult(0, "", "") }}
+	executor := &fakeExecutor{result: func(uint64) backend.ExecutionResult { return processResult(0, "", "") }}
 	_, err = runCampaignShardWith(context.Background(), CampaignShardSpec{
 		PlanPath: planPath, Shard: CampaignShard{Index: 0, Count: 1}, Artifacts: t.TempDir(), RunnerBuild: config.RunnerBuild,
 		SupervisorCommand: []string{"unused"},
@@ -166,7 +166,7 @@ func TestCreateCampaignPlanReadOnlyMountsArePortableAndDetachedFromTheirSource(t
 	if err := os.WriteFile(filepath.Join(firstSource, "nested", "value"), []byte("changed"), 0o640); err != nil {
 		t.Fatal(err)
 	}
-	executor := &fakeExecutor{result: func(uint64) execution.Result { return processResult(0, "", "") }}
+	executor := &fakeExecutor{result: func(uint64) backend.ExecutionResult { return processResult(0, "", "") }}
 	result, err := runCampaignShardWith(context.Background(), CampaignShardSpec{
 		PlanPath: firstPath, Shard: CampaignShard{Index: 0, Count: 1}, Artifacts: t.TempDir(), RunnerBuild: runnerBuild,
 		SupervisorCommand: []string{"unused"},
@@ -187,7 +187,7 @@ func TestRunCampaignShardExecutesOnlyItsGlobalOrdinalPartition(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	executor := &fakeExecutor{result: func(uint64) execution.Result { return processResult(0, "", "") }}
+	executor := &fakeExecutor{result: func(uint64) backend.ExecutionResult { return processResult(0, "", "") }}
 	result, err := runCampaignShardWith(context.Background(), CampaignShardSpec{
 		PlanPath: planPath, Shard: CampaignShard{Index: 1, Count: 2}, Artifacts: t.TempDir(), RunnerBuild: config.RunnerBuild,
 		SupervisorCommand: []string{"unused"},
@@ -235,7 +235,7 @@ func TestRunCampaignShardResumePreservesItsPlanAndAssignment(t *testing.T) {
 	if err == nil {
 		t.Fatal("runCampaignShardWith() was not interrupted")
 	}
-	resumedExecutor := &fakeExecutor{result: func(uint64) execution.Result { return processResult(0, "", "") }}
+	resumedExecutor := &fakeExecutor{result: func(uint64) backend.ExecutionResult { return processResult(0, "", "") }}
 	resumed, err := resumeWith(context.Background(), ResumeSpec{CampaignPath: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}}, executionDependencies{executor: resumedExecutor})
 	if err != nil {
 		t.Fatal(err)
@@ -259,7 +259,7 @@ func TestMergeCampaignShardsIsOrderIndependentAndRequiresCompleteness(t *testing
 	if err != nil {
 		t.Fatal(err)
 	}
-	executor := &fakeExecutor{result: func(uint64) execution.Result { return processResult(0, "", "") }}
+	executor := &fakeExecutor{result: func(uint64) backend.ExecutionResult { return processResult(0, "", "") }}
 	shards := make([]string, 2)
 	for index := range shards {
 		result, err := runCampaignShardWith(context.Background(), CampaignShardSpec{
@@ -338,7 +338,7 @@ func TestMergeCampaignShardsDeduplicatesSharedFailureEvidence(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	executor := &fakeExecutor{result: func(uint64) execution.Result { return processResult(7, "same failure", "") }}
+	executor := &fakeExecutor{result: func(uint64) backend.ExecutionResult { return processResult(7, "same failure", "") }}
 	shards := make([]string, 2)
 	for index := range shards {
 		result, err := runCampaignShardWith(context.Background(), CampaignShardSpec{

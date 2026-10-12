@@ -5,33 +5,29 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"path/filepath"
 	"sort"
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
-	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	backend "go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
-	"go.temporal.io/server/tools/gomad3/runner/backend"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
 type ResumeSpec struct {
-	Backend            backend.Provider `json:"-"`
-	CampaignPath       string
-	ToolchainRoot      string
-	RunnerBuild        string
-	SupervisorCommand  []string
-	CoordinatorCommand []string
-	Progress           CampaignEventFunc
-	ProgressInterval   time.Duration
-	Replayer           ArtifactReplayer
-	GuideRegression    *bool
+	Backend          backend.Provider `json:"-"`
+	CampaignPath     string
+	ToolchainRoot    string
+	RunnerBuild      string
+	Progress         CampaignEventFunc
+	ProgressInterval time.Duration
+	Replayer         ArtifactReplayer
+	GuideRegression  *bool
 }
 
 func Resume(ctx context.Context, spec ResumeSpec) (CampaignResult, error) {
@@ -41,8 +37,7 @@ func Resume(ctx context.Context, spec ResumeSpec) (CampaignResult, error) {
 func resumeWith(ctx context.Context, spec ResumeSpec, dependencies executionDependencies) (CampaignResult, error) {
 	return exploreWith(ctx, CampaignSpec{
 		Backend: spec.Backend, ResumeCampaign: spec.CampaignPath, RunnerBuild: spec.RunnerBuild, GuideRegressionOverride: spec.GuideRegression,
-		Target:            target.Spec{ToolchainRoot: spec.ToolchainRoot},
-		SupervisorCommand: append([]string(nil), spec.SupervisorCommand...), CoordinatorCommand: append([]string(nil), spec.CoordinatorCommand...),
+		Target:   target.Spec{ToolchainRoot: spec.ToolchainRoot},
 		Progress: spec.Progress, ProgressInterval: spec.ProgressInterval, Replayer: spec.Replayer,
 	}, dependencies)
 }
@@ -51,9 +46,15 @@ func resumeConfiguration(request campaignRequest, plan campaign.CampaignPlan) (C
 	if plan.RunnerBuild != request.RunnerBuild {
 		return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, fmt.Errorf("recorded Runner build identity %s does not match this Runner %s", plan.RunnerBuild, request.RunnerBuild)
 	}
-	profile := transcript.Default()
-	if plan.Prepared.Target.Backend == nil && !profile.Matches(plan.IOProfile) {
-		return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, fmt.Errorf("recorded I/O profile identity does not match this Runner")
+	if request.Backend == nil {
+		return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, errors.New("resume requires a backend provider")
+	}
+	description, err := request.Backend.Describe(context.Background(), backend.Configuration{Target: request.Target, IOProfile: plan.IOProfile.Name})
+	if err != nil {
+		return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, err
+	}
+	if plan.IOProfile.Name != description.IOProfile.Name || plan.IOProfile.ImplementationSHA256 != description.IOProfile.ImplementationSHA256 || plan.IOProfile.InventorySHA256 != description.IOProfile.InventorySHA256 {
+		return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, errors.New("recorded I/O profile identity does not match the backend provider")
 	}
 	if metadata := plan.Prepared.Target.Backend; metadata != nil {
 		identity := record.BackendIOProfile(*metadata)
@@ -84,34 +85,17 @@ func resumeConfiguration(request campaignRequest, plan campaign.CampaignPlan) (C
 		GoVersion: plan.Toolchain.GoVersion, BuildKey: plan.Toolchain.BuildKey, TargetGOOS: plan.Toolchain.TargetGOOS, TargetGOARCH: plan.Toolchain.TargetGOARCH,
 		CapabilityMode: target.CapabilityMode(plan.Prepared.Target.CapabilityMode), CapabilityManifest: target.CapabilityManifestFromRecord(plan.Prepared.Target.CapabilityManifest),
 	}
-	if err := verifyPrepared(prepared); err != nil {
-		return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, err
-	}
 	if prepared.Backend != nil {
-		if request.Backend == nil {
-			return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, errors.New("resume requires the recorded external backend provider")
-		}
 		if err := loadPreparedBackend(request.ResumeCampaign, plan.Prepared.Path, &prepared); err != nil {
 			return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, err
 		}
-		spec := target.Spec{Backend: prepared.Backend.Name, Kind: prepared.Kind, Source: prepared.Source, Args: prepared.Argv[1:], BuildTags: prepared.BuildTags}
-		if err := request.Backend.ValidatePrepared(spec, prepared.CloneBackend(), nil); err != nil {
-			return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, err
-		}
 	}
-	if prepared.Backend == nil {
-		if err := transcript.Default().VerifyAdapters(deterministicAdapters(prepared.Adapters)); err != nil {
-			return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, fmt.Errorf("verify recorded adapters: %w", err)
-		}
-		if request.executor == nil {
-			identity, err := nativebuild.ReadToolchainIdentity(request.Target.ToolchainRoot)
-			if err != nil {
-				return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, err
-			}
-			if identity.GoVersion != plan.Toolchain.GoVersion || identity.BuildKey != plan.Toolchain.BuildKey || identity.TargetGOOS != plan.Toolchain.TargetGOOS || identity.TargetGOARCH != plan.Toolchain.TargetGOARCH {
-				return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, fmt.Errorf("recorded toolchain identity does not match the pinned toolchain")
-			}
-		}
+	preparedSpec := target.Spec{Kind: prepared.Kind, Source: prepared.Source, Args: append([]string(nil), prepared.Argv[1:]...), BuildTags: append([]string(nil), prepared.BuildTags...), ToolchainRoot: request.Target.ToolchainRoot, CapabilityMode: prepared.CapabilityMode}
+	if prepared.Backend != nil {
+		preparedSpec.Backend = prepared.Backend.Name
+	}
+	if err := request.Backend.ValidatePrepared(preparedSpec, prepared.CloneBackend(), environmentStrings(plan.Environment)); err != nil {
+		return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, err
 	}
 	config := CampaignSpec{
 		Backend:        request.Backend,
@@ -121,7 +105,7 @@ func resumeConfiguration(request campaignRequest, plan campaign.CampaignPlan) (C
 		MaxExecutions: uint64(plan.MaxExecutions), MaxChoiceDepth: uint64(plan.MaxChoiceDepth), ChoiceStartOrdinal: uint64(plan.ChoiceStartOrdinal), MaxForcedDecisions: uint64(plan.MaxForcedDecisions),
 		MaxExplorationBytes: uint64(plan.MaxExplorationBytes), MaxExplorationResultBytes: uint64(plan.MaxExplorationResultBytes), SimulationDimensionLimits: SimulationDimensionLimits(plan.SimulationDimensionLimits),
 		Artifacts: filepath.Dir(filepath.Dir(request.ResumeCampaign)), IOROMounts: append([]string(nil), plan.IOROMounts...), IOROMountLimits: mountLimits,
-		Target: target.Spec{ToolchainRoot: request.Target.ToolchainRoot}, SupervisorCommand: append([]string(nil), request.SupervisorCommand...), RunnerBuild: request.RunnerBuild,
+		Target: preparedSpec, RunnerBuild: request.RunnerBuild,
 		Coverage: CoverageMode(plan.Coverage), RequiredSemanticProbes: append([]string(nil), plan.RequiredSemanticProbes...),
 		KeepSuccesses: KeepSuccesses(plan.KeepSuccesses), SuccessArtifactLimit: uint64(plan.SuccessArtifactLimit), SuccessBytesLimit: uint64(plan.SuccessBytesLimit),
 		Progress: request.Progress, ProgressInterval: request.ProgressInterval, Replayer: request.Replayer,

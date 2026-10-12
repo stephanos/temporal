@@ -14,7 +14,7 @@ import (
 	"strings"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
-	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	"go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
@@ -24,21 +24,30 @@ import (
 const maximumCorpusJSONBytes = 16 << 20
 
 type Corpus struct {
-	ctx      context.Context
-	path     string
-	identity Identity
-	snapshot Snapshot
-	lock     *hostfs.Lock
+	ctx         context.Context
+	path        string
+	identity    Identity
+	snapshot    Snapshot
+	lock        *hostfs.Lock
+	description backends.Description
+	evidence    EvidenceProvider
 }
 
-func Open(ctx context.Context, path string, identity Identity) (_ *Corpus, retErr error) {
+type EvidenceProvider interface {
+	Evidence(context.Context, backends.EvidenceRequest) (backends.Evidence, error)
+}
+
+func Open(ctx context.Context, path string, identity Identity, description backends.Description, evidence EvidenceProvider) (_ *Corpus, retErr error) {
 	if ctx == nil {
 		ctx = context.Background()
 	}
 	if path == "" {
 		return nil, errors.New("guided corpus path is required")
 	}
-	if err := validateIdentity(identity); err != nil {
+	if evidence == nil {
+		return nil, errors.New("guided corpus evidence provider is required")
+	}
+	if err := validateIdentity(identity, description.SemanticInstrumentationSHA256); err != nil {
 		return nil, err
 	}
 	absolute, err := filepath.Abs(path)
@@ -63,7 +72,7 @@ func Open(ctx context.Context, path string, identity Identity) (_ *Corpus, retEr
 	if err != nil {
 		return nil, err
 	}
-	corpus := &Corpus{ctx: ctx, path: absolute, identity: identity, lock: lock}
+	corpus := &Corpus{ctx: ctx, path: absolute, identity: identity, lock: lock, description: description, evidence: evidence}
 	defer func() {
 		if retErr != nil {
 			retErr = errors.Join(retErr, corpus.Close())
@@ -334,7 +343,8 @@ func (corpus *Corpus) validateEntry(entry Entry) (result artifact.SharedTarget, 
 	if _, err := record.ParseSHA256(string(entry.RecordHash)); err != nil || !validCaseReference(entry.Artifact) || entry.StoredBytes == 0 || entry.PayloadBytes == 0 || !entry.Replay.Verified || !entry.Replay.Match || entry.Replay.Divergence != "" {
 		return artifact.SharedTarget{}, errors.New("guided corpus entry identity is invalid")
 	}
-	coverage, err := transcript.SummarizeSemanticProbes(entry.Coverage.Probes)
+	evidence, err := corpus.evidence.Evidence(corpus.ctx, backends.EvidenceRequest{Probes: entry.Coverage.Probes})
+	coverage := evidence.Coverage
 	if err != nil || coverage.Schema != entry.Coverage.Schema || coverage.Digest != entry.Coverage.Digest || !slices.Equal(coverage.Probes, entry.Coverage.Probes) {
 		return artifact.SharedTarget{}, errors.Join(errors.New("guided corpus semantic coverage is invalid"), err)
 	}
@@ -369,16 +379,16 @@ func (corpus *Corpus) validateEntry(entry Entry) (result artifact.SharedTarget, 
 	if err != nil || payloadBytes != uint64(entry.PayloadBytes) {
 		return artifact.SharedTarget{}, errors.Join(errors.New("guided corpus payload size mismatch"), err)
 	}
-	profile := transcript.Default()
-	if !profile.MatchesRecorded(manifest.IOProfile.Name, string(manifest.IOProfile.ImplementationSHA256), string(manifest.IOProfile.InventorySHA256), manifest.IOProfile.Inventory) {
+	profile := corpus.description.IOProfile
+	if profile.Name != manifest.IOProfile.Name || profile.ImplementationSHA256 != manifest.IOProfile.ImplementationSHA256 || profile.InventorySHA256 != manifest.IOProfile.InventorySHA256 || profile.Inventory != manifest.IOProfile.Inventory {
 		return artifact.SharedTarget{}, errors.New("guided corpus case boundary identity does not match this Runner")
 	}
-	targetIdentity, err := IdentityFor(manifest.Target, manifest.Toolchain, corpus.identity.BoundaryVersion, corpus.identity.BoundarySHA256, manifest.Environment)
+	targetIdentity, err := IdentityFor(manifest.Target, manifest.Toolchain, corpus.description, manifest.Environment)
 	if corpus.identity.ChoiceProfile != nil {
 		if manifest.ChoiceProfile == nil || manifest.ChoiceProfile.Name != corpus.identity.ChoiceProfile.Profile || manifest.ChoiceProfile.ImplementationSHA256 != corpus.identity.ChoiceProfile.ImplementationSHA256 || manifest.ChoiceProfile.Trace.Limit != corpus.identity.ChoiceProfile.Limit {
 			return artifact.SharedTarget{}, errors.New("guided corpus case choice profile identity mismatch")
 		}
-		targetIdentity, err = IdentityForChoice(manifest.Target, manifest.Toolchain, corpus.identity.BoundaryVersion, corpus.identity.BoundarySHA256, manifest.Environment, *corpus.identity.ChoiceProfile)
+		targetIdentity, err = IdentityForChoice(manifest.Target, manifest.Toolchain, corpus.description, manifest.Environment, *corpus.identity.ChoiceProfile)
 	}
 	if err != nil || !identitiesEqual(targetIdentity, corpus.identity) {
 		return artifact.SharedTarget{}, errors.Join(errors.New("guided corpus case target identity mismatch"), err)
@@ -530,15 +540,16 @@ func artifactPayloadBytes(manifest record.ExecutionRecord) (uint64, error) {
 	return total, nil
 }
 
-func validateIdentity(identity Identity) error {
+func validateIdentity(identity Identity, instrumentation record.SHA256) error {
 	_, targetErr := record.ParseSHA256(string(identity.TargetSHA256))
 	_, environmentErr := record.ParseSHA256(string(identity.EnvironmentSHA256))
 	_, boundaryErr := record.ParseSHA256(string(identity.BoundarySHA256))
-	validInstrumentation := identity.ChoiceProfile == nil && identity.InstrumentationSchema == SemanticFeatureSchema && identity.InstrumentationSHA256 == semanticInstrumentationIdentity()
+	_, instrumentationErr := record.ParseSHA256(string(instrumentation))
+	validInstrumentation := instrumentationErr == nil && identity.ChoiceProfile == nil && identity.InstrumentationSchema == SemanticFeatureSchema && identity.InstrumentationSHA256 == semanticInstrumentationIdentity(instrumentation)
 	if identity.ChoiceProfile != nil {
 		implementation, err := choice.ImplementationIdentity(identity.Toolchain.BuildKey)
-		profileIdentity, profileErr := choiceInstrumentationIdentity(*identity.ChoiceProfile)
-		validInstrumentation = err == nil && profileErr == nil && identity.ChoiceProfile.Profile == choice.Profile && identity.ChoiceProfile.ImplementationSHA256 == record.SHA256FromSum(implementation) && identity.ChoiceProfile.Limit >= choice.MinimumTraceBytes && identity.ChoiceProfile.Limit <= choice.MaximumTraceBytes && identity.InstrumentationSchema == ChoiceFeatureSchema && identity.InstrumentationSHA256 == profileIdentity
+		profileIdentity, profileErr := choiceInstrumentationIdentity(*identity.ChoiceProfile, instrumentation)
+		validInstrumentation = instrumentationErr == nil && err == nil && profileErr == nil && identity.ChoiceProfile.Profile == choice.Profile && identity.ChoiceProfile.ImplementationSHA256 == record.SHA256FromSum(implementation) && identity.ChoiceProfile.Limit >= choice.MinimumTraceBytes && identity.ChoiceProfile.Limit <= choice.MaximumTraceBytes && identity.InstrumentationSchema == ChoiceFeatureSchema && identity.InstrumentationSHA256 == profileIdentity
 	}
 	if targetErr != nil || environmentErr != nil || identity.Toolchain.GoVersion == "" || identity.Toolchain.BuildKey == "" || identity.Toolchain.TargetGOOS == "" || identity.Toolchain.TargetGOARCH == "" || identity.BoundaryVersion == "" || boundaryErr != nil || !validInstrumentation || identity.ManifestSchemaVersion != record.SchemaVersion || identity.ManifestRecordContract != record.RecordContract {
 		return errors.New("guided corpus identity is invalid")

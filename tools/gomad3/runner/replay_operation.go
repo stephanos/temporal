@@ -3,40 +3,32 @@ package runner
 import (
 	"bytes"
 	"context"
-	"debug/buildinfo"
 	"errors"
 	"fmt"
-	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"math"
 	"os"
 	"path/filepath"
-	"runtime"
-	"runtime/debug"
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
-	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	execution "go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
-	"go.temporal.io/server/tools/gomad3/runner/backend"
-	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
 	simulationrecord "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulationrecord"
 	"go.temporal.io/server/tools/gomad3/target"
 	"go.temporal.io/server/tools/gomad3/world"
 )
 
 type ReplaySpec struct {
-	Backend       backend.Provider `json:"-"`
+	Backend       execution.Provider `json:"-"`
 	ArtifactPath  string
 	VerifyOnly    bool
 	ToolchainRoot string
 	// ObservedDir, when set, receives the replayed target's stdout and stderr
 	// so a divergence can be diffed against the artifact's retained streams.
-	ObservedDir       string
-	SupervisorCommand []string
-	BootstrapCommand  []string
+	ObservedDir string
 }
 
 type ReplayResult struct {
@@ -69,18 +61,12 @@ func (err *ReplayPreflightError) Unwrap() error {
 	return err.Err
 }
 
-type replayProcessExecutor struct{}
-
-func (replayProcessExecutor) Run(ctx context.Context, request execution.Spec) (execution.Result, error) {
-	return execution.Run(ctx, request)
-}
-
 func Replay(ctx context.Context, config ReplaySpec) (ReplayResult, error) {
 	return replayWith(ctx, config, executionDependencies{})
 }
 
 func replayWith(ctx context.Context, config ReplaySpec, dependencies executionDependencies) (result ReplayResult, retErr error) {
-	opened, err := preflight(ctx, config)
+	opened, prepared, err := preflight(ctx, config)
 	if err != nil {
 		return ReplayResult{}, &ReplayPreflightError{Err: err}
 	}
@@ -91,16 +77,10 @@ func replayWith(ctx context.Context, config ReplaySpec, dependencies executionDe
 		}
 	}()
 	manifest := opened.Manifest()
-	if manifest.Target.Backend != nil {
-		return replayBackend(ctx, config, opened)
+	if manifest.Target.Backend != nil && manifest.World.Initial.Schema != "gomad3.world.snapshot/none" {
+		return ReplayResult{}, &ReplayPreflightError{Err: errors.New("external observed profile does not support a World replay plan")}
 	}
-	if err := nativebuild.VerifyCompatibility(manifest.Target.Compatibility); err != nil {
-		return ReplayResult{}, &ReplayPreflightError{Err: fmt.Errorf("verify replay compatibility: %w", err)}
-	}
-	if err := transcript.Default().VerifyAdapters(replayAdapters(manifest.Target.Adapters)); err != nil {
-		return ReplayResult{}, &ReplayPreflightError{Err: fmt.Errorf("verify replay adapters: %w", err)}
-	}
-	result = ReplayResult{Artifact: opened.Snapshot(), Verified: true, Diagnostic: manifest.ReplayMode == record.ReplayDiagnostic, ChoiceReplayStatus: ChoiceReplayNone}
+	result = ReplayResult{Artifact: opened.Snapshot(), Verified: true, Diagnostic: manifest.ReplayMode == record.ReplayDiagnostic, ObservedRepetition: manifest.ReplayMode == record.ReplayObserved, ChoiceReplayStatus: ChoiceReplayNone}
 	choiceCapability, choiceUnavailable, err := choiceCapabilityForArtifact(opened)
 	if err != nil {
 		return ReplayResult{}, &ReplayPreflightError{Err: err}
@@ -120,13 +100,6 @@ func replayWith(ctx context.Context, config ReplaySpec, dependencies executionDe
 	if config.VerifyOnly {
 		return result, nil
 	}
-	executor := dependencies.executor
-	if executor == nil {
-		if len(config.SupervisorCommand) == 0 {
-			return ReplayResult{}, fmt.Errorf("supervisor command is required")
-		}
-		executor = replayProcessExecutor{}
-	}
 	workDirectory, err := os.MkdirTemp("", "gomad3-replay-")
 	if err != nil {
 		return ReplayResult{}, fmt.Errorf("create replay working directory: %w", err)
@@ -144,9 +117,7 @@ func replayWith(ctx context.Context, config ReplaySpec, dependencies executionDe
 	if err := opened.CopyPayload(manifest.Target.File, targetPath, 0o500); err != nil {
 		return ReplayResult{}, fmt.Errorf("copy verified replay target: %w", err)
 	}
-	if err := validateTargetBuildInfo(targetPath, manifest.Target.BuildInfo); err != nil {
-		return ReplayResult{}, err
-	}
+	prepared.Path = targetPath
 	runTimeout, err := duration(manifest.Limits.ExecutionTimeoutNanos)
 	if err != nil {
 		return ReplayResult{}, err
@@ -178,19 +149,13 @@ func replayWith(ctx context.Context, config ReplaySpec, dependencies executionDe
 			return ReplayResult{}, fmt.Errorf("encode replay World plan: %w", err)
 		}
 	}
-	var ioConfig []byte
 	var ioTranscriptLimit uint64
 	var expectedIOTranscript []byte
 	var readOnlyMounts []captured.Mapping
 	var readOnlyMountLimits captured.Limits
 	readOnlyMountSnapshot := &captured.Snapshot{}
-	profile := transcript.Default()
-	ioConfig, err = profile.BootstrapFrame(target.Prepared{SHA256: string(manifest.Target.SHA256), Argv: append([]string(nil), manifest.Target.Argv...)}, manifest.Runner.RunnerBuild, uint64(manifest.Seed))
-	if err != nil {
-		return ReplayResult{}, err
-	}
 	ioTranscriptLimit = uint64(manifest.Limits.IOTranscriptBytes)
-	if manifest.IOProfile.Transcript == nil {
+	if config.Backend.Capabilities().IOTranscript && manifest.IOProfile.Transcript == nil {
 		if manifest.ReplayMode != record.ReplayDiagnostic {
 			return ReplayResult{}, errors.New("recorded I/O profile has no complete transcript")
 		}
@@ -220,16 +185,15 @@ func replayWith(ctx context.Context, config ReplaySpec, dependencies executionDe
 		}
 	}
 	ioCapability := &execution.IOCapability{
-		Config:     ioConfig,
+		Profile:    manifest.IOProfile,
 		Transcript: &execution.IOTranscriptCapability{Limit: ioTranscriptLimit, Replay: manifest.IOProfile.Transcript != nil, Expected: expectedIOTranscript},
 		ReadOnlyMount: &execution.ReadOnlyMountCapability{
 			Mappings: readOnlyMounts, Limits: readOnlyMountLimits, Replay: readOnlyMountSnapshot,
 		},
 	}
-	request := execution.Spec{
-		SupervisorCommand: append([]string(nil), config.SupervisorCommand...), Command: targetPath,
-		BootstrapCommand: replayBootstrapCommand(config),
-		Args:             append([]string(nil), manifest.Target.Argv[1:]...), Argv0: manifest.Target.Argv[0], Dir: workDirectory, Env: environment,
+	request := execution.ExecutionRequest{
+		Target: prepared, Seed: uint64(manifest.Seed), RunnerBuild: manifest.Runner.RunnerBuild, Command: targetPath,
+		Args: append([]string(nil), manifest.Target.Argv[1:]...), Argv0: manifest.Target.Argv[0], Dir: workDirectory, Env: environment,
 		ExecutionTimeout: runTimeout, TerminateGrace: terminateGrace, OutputLimit: uint64(manifest.Limits.OutputBytes),
 		World: execution.WorldCapability{
 			RecordLimit: world.MaximumRecordingBytes, TransitionLimit: uint64(manifest.Limits.WorldTransitionBytes),
@@ -238,21 +202,38 @@ func replayWith(ctx context.Context, config ReplaySpec, dependencies executionDe
 		IO: ioCapability, Choice: choiceCapability,
 	}
 	request.Simulation = simulationReplay.capability
-	if request.Simulation == nil {
-		if _, ok := executor.(replayProcessExecutor); ok {
-			request.Simulation = &execution.SimulationCapability{Role: execution.SimulationRoleCoordinator}
-		}
+	if request.Simulation == nil && dependencies.executor == nil && config.Backend.Capabilities().Simulation {
+		request.Simulation = &execution.SimulationCapability{Role: execution.SimulationRoleCoordinator}
 	}
-	observed, err := executor.Run(ctx, request)
+	var observed execution.ExecutionResult
+	if dependencies.executor != nil {
+		observed, err = dependencies.executor.Run(ctx, request)
+	} else {
+		observed, err = config.Backend.Execute(ctx, request)
+	}
 	if config.ObservedDir != "" {
 		if dumpErr := dumpObservedStreams(config.ObservedDir, observed); dumpErr != nil {
 			return ReplayResult{}, dumpErr
+		}
+		if manifest.Target.Backend != nil {
+			if dumpErr := os.WriteFile(filepath.Join(config.ObservedDir, "backend-evidence.bin"), observed.BackendEvidence, 0o600); dumpErr != nil {
+				return ReplayResult{}, dumpErr
+			}
 		}
 	}
 	if err != nil {
 		if divergence, controlled := onlyChoiceReplayDivergence(err); controlled {
 			result.ChoiceReplayStatus = ChoiceReplayDiverged
 			result.Divergence = fmt.Sprintf("choice_profile.divergence.ordinal[%d].%s", divergence.Divergence.Ordinal, choice.DivergenceReasonName(divergence.Divergence.Reason))
+			return result, nil
+		}
+		if choiceCapability != nil && backendChoiceReplayDivergence(err) {
+			result.ChoiceReplayStatus = ChoiceReplayDiverged
+			result.Divergence = "choice_profile.divergence"
+			var failure *execution.FailureError
+			if errors.As(err, &failure) && failure.ChoiceDivergence != nil {
+				result.Divergence = fmt.Sprintf("choice_profile.divergence.ordinal[%d].%s", failure.ChoiceDivergence.Ordinal, choice.DivergenceReasonName(failure.ChoiceDivergence.Reason))
+			}
 			return result, nil
 		}
 		return ReplayResult{}, fmt.Errorf("execute replay target: %w", err)
@@ -277,6 +258,9 @@ func replayWith(ctx context.Context, config ReplaySpec, dependencies executionDe
 	result.Divergence = simulationReplay.divergence(manifest, observed)
 	if result.Divergence == "" {
 		result.Divergence = replayDivergence(manifest, observed, observedWorld)
+	}
+	if result.Divergence == "" && manifest.Target.Backend != nil && (manifest.Target.Backend.Evidence == nil || record.HashBytes(observed.BackendEvidence) != manifest.Target.Backend.Evidence.SHA256) {
+		result.Divergence = "backend.evidence.sha256"
 	}
 	result.Match = result.Divergence == ""
 	if choiceCapability != nil {
@@ -319,7 +303,7 @@ func simulationCapabilityForArtifact(opened *artifact.Opened) (simulationArtifac
 	}, nil
 }
 
-func (replay simulationArtifactReplay) divergence(manifest record.ExecutionRecord, observed execution.Result) string {
+func (replay simulationArtifactReplay) divergence(manifest record.ExecutionRecord, observed execution.ExecutionResult) string {
 	if manifest.SimulationProfile == nil {
 		if len(observed.SimulationRecords) != 0 {
 			return "simulation_profile"
@@ -424,146 +408,59 @@ func replayEnvironment(recorded []record.Environment) []string {
 	return environment
 }
 
-func replayBootstrapCommand(config ReplaySpec) []string {
-	if len(config.BootstrapCommand) != 0 {
-		return append([]string(nil), config.BootstrapCommand...)
-	}
-	return []string{config.SupervisorCommand[0], "__target_bootstrap"}
-}
-
-// preflight opens and validates a replay artifact. The deferred close sees the
-// opened handle, not the result, so an artifact that fails validation is closed.
-func preflight(ctx context.Context, config ReplaySpec) (_ *artifact.Opened, retErr error) {
+func preflight(ctx context.Context, config ReplaySpec) (_ *artifact.Opened, _ target.Prepared, retErr error) {
 	if config.ArtifactPath == "" {
-		return nil, fmt.Errorf("artifact path is required")
+		return nil, target.Prepared{}, fmt.Errorf("artifact path is required")
+	}
+	if config.Backend == nil {
+		return nil, target.Prepared{}, errors.New("replay requires a backend provider")
 	}
 	opened, err := artifact.OpenArtifact(config.ArtifactPath)
 	if err != nil {
-		return nil, err
+		return nil, target.Prepared{}, err
 	}
 	defer func() {
 		if retErr != nil {
 			retErr = errors.Join(retErr, opened.Close())
 		}
 	}()
+	prepared, err := config.Backend.ValidateReplay(ctx, opened)
+	if err != nil {
+		return nil, target.Prepared{}, err
+	}
 	manifest := opened.Manifest()
-	if manifest.Target.Backend != nil {
-		if config.Backend == nil || (manifest.ReplayMode != record.ReplayObserved && manifest.ReplayMode != record.ReplayExact) {
-			return nil, errors.New("external replay requires its backend provider and supported replay capability")
-		}
-		if _, err := config.Backend.ValidateReplay(ctx, opened); err != nil {
-			return nil, err
-		}
-		return opened, nil
-	}
-	profile := transcript.Default()
-	if !profile.MatchesRecorded(manifest.IOProfile.Name, string(manifest.IOProfile.ImplementationSHA256), string(manifest.IOProfile.InventorySHA256), manifest.IOProfile.Inventory) {
-		return nil, errors.New("artifact I/O profile identity does not match this Runner")
-	}
-	if manifest.ReplayMode != record.ReplayExact && manifest.ReplayMode != record.ReplayDiagnostic {
-		return nil, fmt.Errorf("artifact replay mode %q cannot be executed", manifest.ReplayMode)
-	}
 	if mounts := manifest.IOProfile.ReadOnlyMounts; mounts != nil {
 		descriptor, readErr := opened.ReadPayload(mounts.File, uint64(mounts.Bytes))
 		if readErr != nil {
-			return nil, fmt.Errorf("read read-only mount descriptor: %w", readErr)
+			return nil, target.Prepared{}, fmt.Errorf("read read-only mount descriptor: %w", readErr)
 		}
 		if _, _, _, readErr = captured.DecodeCapturedInputs(replayCapturedInputs(*mounts), descriptor, func(name string, maximum uint64) ([]byte, error) {
 			return opened.ReadPayload(name, maximum)
 		}); readErr != nil {
-			return nil, fmt.Errorf("validate read-only mount artifact: %w", readErr)
+			return nil, target.Prepared{}, fmt.Errorf("validate read-only mount artifact: %w", readErr)
 		}
 	}
 	if _, _, choiceErr := choiceCapabilityForArtifact(opened); choiceErr != nil {
-		return nil, choiceErr
-	}
-	if manifest.Runner.HostOS != runtime.GOOS || manifest.Runner.HostArch != runtime.GOARCH || manifest.Toolchain.TargetGOOS != runtime.GOOS || manifest.Toolchain.TargetGOARCH != runtime.GOARCH {
-		return nil, fmt.Errorf("artifact platform does not match host %s/%s", runtime.GOOS, runtime.GOARCH)
-	}
-	identity, err := nativebuild.ReadToolchainIdentity(config.ToolchainRoot)
-	if err != nil {
-		return nil, err
-	}
-	if identity.GoVersion != manifest.Toolchain.GoVersion || identity.BuildKey != manifest.Toolchain.BuildKey || identity.TargetGOOS != manifest.Toolchain.TargetGOOS || identity.TargetGOARCH != manifest.Toolchain.TargetGOARCH {
-		return nil, fmt.Errorf("artifact toolchain identity does not match the pinned toolchain")
+		return nil, target.Prepared{}, choiceErr
 	}
 	worldPayloads, err := readWorldPayloads(opened)
 	if err != nil {
-		return nil, err
+		return nil, target.Prepared{}, err
 	}
 	initialWorld, _, err := execution.Validate(manifest.World, worldPayloads)
 	if err != nil {
-		return nil, fmt.Errorf("validate World record: %w", err)
+		return nil, target.Prepared{}, fmt.Errorf("validate World record: %w", err)
 	}
 	if manifest.World.Initial.Schema == "gomad3.world.snapshot/v1" && uint64(initialWorld.Config.Seed) != uint64(manifest.Seed) {
-		return nil, fmt.Errorf("World seed does not match target seed")
-	}
-	targetFile, err := opened.OpenPayload(manifest.Target.File, uint64(manifest.Target.Size))
-	if err != nil {
-		return nil, err
-	}
-	if err := verifyReplayCapabilityManifest(opened, targetFile, identity); err != nil {
-		return nil, errors.Join(err, targetFile.Close())
-	}
-	info, err := buildinfo.Read(targetFile)
-	closeErr := targetFile.Close()
-	if err != nil {
-		return nil, errors.Join(fmt.Errorf("read stored target build info: %w", err), closeErr)
-	}
-	if closeErr != nil {
-		return nil, fmt.Errorf("close stored target build info: %w", closeErr)
-	}
-	if err := validateBuildInfo(info, manifest.Target.BuildInfo); err != nil {
-		return nil, err
+		return nil, target.Prepared{}, fmt.Errorf("World seed does not match target seed")
 	}
 	if _, err := duration(manifest.Limits.ExecutionTimeoutNanos); err != nil {
-		return nil, err
+		return nil, target.Prepared{}, err
 	}
 	if _, err := duration(manifest.Limits.TerminateGraceNanos); err != nil {
-		return nil, err
+		return nil, target.Prepared{}, err
 	}
-	return opened, nil
-}
-
-func verifyReplayCapabilityManifest(opened *artifact.Opened, targetFile *os.File, identity target.ToolchainIdentity) error {
-	manifest := opened.Manifest()
-	recorded := manifest.Target.CapabilityManifest
-	switch manifest.Target.CapabilityMode {
-	case "closure":
-		if recorded != nil {
-			return errors.New("closure replay target contains a linked capability manifest")
-		}
-		return nil
-	case "linked", "guarded":
-		if recorded == nil {
-			return errors.New("executable replay target capability manifest is missing")
-		}
-		actual, err := nativebuild.ReadCapabilityManifestFile(targetFile, identity)
-		if err != nil {
-			return fmt.Errorf("extract stored target capability manifest: %w", err)
-		}
-		if *actual.Record() != *recorded {
-			return errors.New("stored target embedded capability manifest does not match the execution record")
-		}
-		payload, err := opened.ReadPayload(recorded.File, uint64(recorded.Bytes))
-		if err != nil {
-			return fmt.Errorf("read stored target capability manifest: %w", err)
-		}
-		if !bytes.Equal(payload, actual.Payload) {
-			return errors.New("stored target capability manifest payload does not match its embedded record")
-		}
-		return nil
-	default:
-		return fmt.Errorf("unknown replay target capability mode %q", manifest.Target.CapabilityMode)
-	}
-}
-
-func replayAdapters(adapters []record.TargetAdapter) []transcript.Adapter {
-	result := make([]transcript.Adapter, len(adapters))
-	for index, adapter := range adapters {
-		result[index] = transcript.Adapter{Module: adapter.Module, Version: adapter.Version, Sum: adapter.Sum}
-	}
-	return result
+	return opened, prepared, nil
 }
 
 func replayCapturedInputs(manifest record.ReadOnlyMounts) captured.CapturedInputsManifest {
@@ -594,34 +491,7 @@ func readWorldPayloads(opened *artifact.Opened) (record.WorldPayloads, error) {
 	return record.WorldPayloads{Initial: initial, Transitions: transitions, Final: final}, nil
 }
 
-func validateTargetBuildInfo(path string, expected record.BuildInfo) error {
-	info, err := buildinfo.ReadFile(path)
-	if err != nil {
-		return fmt.Errorf("read stored target build info: %w", err)
-	}
-	return validateBuildInfo(info, expected)
-}
-
-func validateBuildInfo(info *debug.BuildInfo, expected record.BuildInfo) error {
-	actual := nativebuild.ProjectBuildInfo(info)
-	if nativebuild.HasCoverageInstrumentation(actual) {
-		return errors.New("stored target uses unsupported coverage instrumentation")
-	}
-	expectedBytes, err := canonicaljson.CanonicalJSON(expected)
-	if err != nil {
-		return fmt.Errorf("encode recorded target build info: %w", err)
-	}
-	actualBytes, err := canonicaljson.CanonicalJSON(actual)
-	if err != nil {
-		return fmt.Errorf("encode stored target build info: %w", err)
-	}
-	if string(expectedBytes) != string(actualBytes) {
-		return fmt.Errorf("stored target build info does not match manifest")
-	}
-	return nil
-}
-
-func replayDivergence(manifest record.ExecutionRecord, observed execution.Result, observedWorld *execution.Bundle) string {
+func replayDivergence(manifest record.ExecutionRecord, observed execution.ExecutionResult, observedWorld *execution.Bundle) string {
 	if observed.IOTranscript.ReplayDivergence != nil {
 		return fmt.Sprintf("io_profile.transcript.ordinal[%d]", *observed.IOTranscript.ReplayDivergence)
 	}
@@ -698,7 +568,7 @@ func replayDivergence(manifest record.ExecutionRecord, observed execution.Result
 	return ""
 }
 
-func choiceTraceDivergence(manifest record.ExecutionRecord, observed execution.Result) string {
+func choiceTraceDivergence(manifest record.ExecutionRecord, observed execution.ExecutionResult) string {
 	if choices := manifest.ChoiceProfile; choices != nil {
 		trace := observed.ChoiceTrace
 		if trace.Profile != choices.Name || trace.Limit != uint64(choices.Trace.Limit) || trace.Trace.Summary.Terminal != choice.TerminalComplete {
@@ -719,7 +589,7 @@ func choiceTraceDivergence(manifest record.ExecutionRecord, observed execution.R
 	return ""
 }
 
-func actualReason(result execution.Result, observedWorld *execution.Bundle) string {
+func actualReason(result execution.ExecutionResult, observedWorld *execution.Bundle) string {
 	terminal := record.WorldTerminal{}
 	if observedWorld != nil {
 		terminal = observedWorld.Manifest.Terminal
@@ -734,7 +604,7 @@ func duration(value record.Uint64String) (time.Duration, error) {
 	return time.Duration(value), nil
 }
 
-func dumpObservedStreams(directory string, observed execution.Result) error {
+func dumpObservedStreams(directory string, observed execution.ExecutionResult) error {
 	if err := os.MkdirAll(directory, 0o755); err != nil {
 		return fmt.Errorf("create replay observation directory: %w", err)
 	}

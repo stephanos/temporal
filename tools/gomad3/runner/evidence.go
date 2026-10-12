@@ -1,11 +1,11 @@
 package runner
 
 import (
-	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	backend "go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/record"
-	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
+
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
@@ -89,13 +89,13 @@ func executionEvidence(
 	prepared target.Prepared,
 	baseEnvironment []record.Environment,
 	completion runCompletion,
-	outcome execution.Classification,
+	outcome backend.Classification,
 	worldRecord record.World,
 	mountArtifact *captured.CapturedInputs,
 	coverage record.SemanticCoverage,
 	choiceFeatures *choice.FeatureProjection,
 ) ExecutionEvidence {
-	profile := transcript.Default()
+	profile := config.profile
 	runRecord := ExecutionEvidence{
 		Schema:      ExecutionEvidenceSchema,
 		Seed:        record.Uint64String(completion.job.seed),

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/binary"
 	"fmt"
+	backend "go.temporal.io/server/tools/gomad3/backends"
 	"os"
 	"path/filepath"
 	"strings"
@@ -13,7 +14,6 @@ import (
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
-	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
 )
 
 type diagnosticExecutor struct {
@@ -21,7 +21,7 @@ type diagnosticExecutor struct {
 	t        *testing.T
 }
 
-func (executor *diagnosticExecutor) Run(ctx context.Context, request execution.Spec) (execution.Result, error) {
+func (executor *diagnosticExecutor) Run(ctx context.Context, request backend.ExecutionRequest) (backend.ExecutionResult, error) {
 	executor.t.Helper()
 	if !request.Diagnostics {
 		executor.t.Fatal("diagnostics lost before execution")
@@ -150,10 +150,10 @@ type diagnosticInterruptExecutor struct {
 	calls    int
 }
 
-func (executor *diagnosticInterruptExecutor) Run(ctx context.Context, request execution.Spec) (execution.Result, error) {
+func (executor *diagnosticInterruptExecutor) Run(ctx context.Context, request backend.ExecutionRequest) (backend.ExecutionResult, error) {
 	executor.calls++
 	if executor.calls == 2 {
-		return execution.Result{}, fmt.Errorf("fixture interruption")
+		return backend.ExecutionResult{}, fmt.Errorf("fixture interruption")
 	}
 	return executor.delegate.Run(ctx, request)
 }

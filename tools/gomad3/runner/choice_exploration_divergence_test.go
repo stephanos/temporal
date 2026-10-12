@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"errors"
+	backend "go.temporal.io/server/tools/gomad3/backends"
 	"reflect"
 	"sync"
 	"testing"
@@ -11,7 +12,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
-	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
+
 	choiceengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/choice"
 )
 
@@ -19,10 +20,10 @@ type candidateDivergenceExecutor struct {
 	base     *explorationExecutor
 	mu       sync.Mutex
 	diverged bool
-	change   func(*execution.Result, *choice.Divergence) error
+	change   func(*backend.ExecutionResult, *choice.Divergence) error
 }
 
-func (e *candidateDivergenceExecutor) Run(ctx context.Context, request execution.Spec) (execution.Result, error) {
+func (e *candidateDivergenceExecutor) Run(ctx context.Context, request backend.ExecutionRequest) (backend.ExecutionResult, error) {
 	result, err := e.base.Run(ctx, request)
 	if err != nil || request.Choice.Mode != choice.ModePrefix {
 		return result, err
@@ -45,7 +46,7 @@ func (e *candidateDivergenceExecutor) Run(ctx context.Context, request execution
 	if e.change != nil {
 		return result, e.change(&result, &divergence)
 	}
-	return result, &execution.ChoiceReplayDivergenceError{Divergence: divergence}
+	return result, &backend.ChoiceReplayDivergenceError{Divergence: divergence}
 }
 
 func divergenceCampaignConfig(t *testing.T, policy FailurePolicy, parallel int) (CampaignSpec, executionDependencies) {
@@ -96,45 +97,53 @@ func TestRunChoiceExplorationDivergencePoliciesAndInspection(t *testing.T) {
 }
 
 func TestRunChoiceExplorationKeepsOtherErrorsAsHostErrors(t *testing.T) {
-	typed := func(d choice.Divergence) error { return &execution.ChoiceReplayDivergenceError{Divergence: d} }
+	typed := func(d choice.Divergence) error { return &backend.ChoiceReplayDivergenceError{Divergence: d} }
 	for _, test := range []struct {
 		name, reason string
-		change       func(*execution.Result, *choice.Divergence) error
+		change       func(*backend.ExecutionResult, *choice.Divergence) error
 	}{
-		{"normal error", "target_supervision", func(_ *execution.Result, _ *choice.Divergence) error { return errors.New("executor failed") }},
-		{"cancelled", "runner_cancelled", func(r *execution.Result, _ *choice.Divergence) error { r.Cancelled = true; return nil }},
-		{"typed cancelled", "target_supervision", func(r *execution.Result, d *choice.Divergence) error { r.Cancelled = true; return typed(*d) }},
-		{"overflow", "choice_trace_overflow", func(_ *execution.Result, _ *choice.Divergence) error { return execution.ErrChoiceTraceOverflow }},
-		{"malformed trace", "choice_trace_malformed", func(_ *execution.Result, _ *choice.Divergence) error { return execution.ErrChoiceTraceMalformed }},
-		{"unterminated trace", "choice_trace_unterminated", func(_ *execution.Result, _ *choice.Divergence) error { return execution.ErrChoiceTraceUnterminated }},
-		{"missing identity", "target_supervision", func(_ *execution.Result, d *choice.Divergence) error {
+		{"normal error", "target_supervision", func(_ *backend.ExecutionResult, _ *choice.Divergence) error { return errors.New("executor failed") }},
+		{"cancelled", "runner_cancelled", func(r *backend.ExecutionResult, _ *choice.Divergence) error { r.Cancelled = true; return nil }},
+		{"typed cancelled", "target_supervision", func(r *backend.ExecutionResult, d *choice.Divergence) error { r.Cancelled = true; return typed(*d) }},
+		{"overflow", "choice_trace_overflow", func(_ *backend.ExecutionResult, _ *choice.Divergence) error { return backend.ErrChoiceTraceOverflow }},
+		{"malformed trace", "choice_trace_malformed", func(_ *backend.ExecutionResult, _ *choice.Divergence) error { return backend.ErrChoiceTraceMalformed }},
+		{"unterminated trace", "choice_trace_unterminated", func(_ *backend.ExecutionResult, _ *choice.Divergence) error {
+			return backend.ErrChoiceTraceUnterminated
+		}},
+		{"missing identity", "target_supervision", func(_ *backend.ExecutionResult, d *choice.Divergence) error {
 			d.Reason = choice.DivergenceIdentityMissing
 			d.Observed = nil
 			return typed(*d)
 		}},
-		{"duplicate identity", "target_supervision", func(_ *execution.Result, d *choice.Divergence) error {
+		{"duplicate identity", "target_supervision", func(_ *backend.ExecutionResult, d *choice.Divergence) error {
 			d.Reason = choice.DivergenceIdentityDuplicate
 			d.Observed = nil
 			return typed(*d)
 		}},
-		{"alternative capacity", "target_supervision", func(_ *execution.Result, d *choice.Divergence) error {
+		{"alternative capacity", "target_supervision", func(_ *backend.ExecutionResult, d *choice.Divergence) error {
 			d.Reason = choice.DivergenceAlternativeCapacity
 			d.Observed = nil
 			return typed(*d)
 		}},
-		{"tape exhaustion", "target_supervision", func(_ *execution.Result, d *choice.Divergence) error {
+		{"tape exhaustion", "target_supervision", func(_ *backend.ExecutionResult, d *choice.Divergence) error {
 			d.Reason = choice.DivergenceTapeExhausted
 			d.Ordinal = 1
 			d.Expected = nil
 			return typed(*d)
 		}},
-		{"typed watchdog", "target_supervision", func(r *execution.Result, d *choice.Divergence) error { r.WatchdogTimeout = true; return typed(*d) }},
-		{"wrong prefix", "target_supervision", func(_ *execution.Result, d *choice.Divergence) error { d.Expected.SiteOffset++; return typed(*d) }},
-		{"malformed observed", "target_supervision", func(_ *execution.Result, d *choice.Divergence) error {
+		{"typed watchdog", "target_supervision", func(r *backend.ExecutionResult, d *choice.Divergence) error {
+			r.WatchdogTimeout = true
+			return typed(*d)
+		}},
+		{"wrong prefix", "target_supervision", func(_ *backend.ExecutionResult, d *choice.Divergence) error {
+			d.Expected.SiteOffset++
+			return typed(*d)
+		}},
+		{"malformed observed", "target_supervision", func(_ *backend.ExecutionResult, d *choice.Divergence) error {
 			d.Observed.SelectedIdentity = [32]byte{}
 			return typed(*d)
 		}},
-		{"joined failure", "target_supervision", func(_ *execution.Result, d *choice.Divergence) error {
+		{"joined failure", "target_supervision", func(_ *backend.ExecutionResult, d *choice.Divergence) error {
 			return errors.Join(typed(*d), errors.New("output close failed"))
 		}},
 	} {
@@ -228,7 +237,7 @@ func TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons(t *testing.T) {
 	for _, reason := range []choice.DivergenceReason{choice.DivergenceKind, choice.DivergenceSite, choice.DivergenceAlternatives, choice.DivergenceSelected, choice.DivergenceAlternativeSet, choice.DivergenceTapeUnconsumed, choice.DivergenceObservation} {
 		t.Run(choice.DivergenceReasonName(reason), func(t *testing.T) {
 			config, configDependencies := divergenceCampaignConfig(t, PolicyAll, 1)
-			configDependencies.executor.(*candidateDivergenceExecutor).change = func(_ *execution.Result, d *choice.Divergence) error {
+			configDependencies.executor.(*candidateDivergenceExecutor).change = func(_ *backend.ExecutionResult, d *choice.Divergence) error {
 				d.Reason = reason
 				if reason != choice.DivergenceAlternativeSet {
 					d.Observed.AlternativeSetDigest = d.Expected.AlternativeSetDigest
@@ -246,7 +255,7 @@ func TestRunChoiceExplorationRetainsOnlyPrefixMismatchReasons(t *testing.T) {
 					d.Observed = nil
 				case choice.DivergenceAlternativeSet, choice.DivergenceTapeExhausted, choice.DivergenceIdentityMissing, choice.DivergenceIdentityDuplicate, choice.DivergenceAlternativeCapacity, choice.DivergenceObservation:
 				}
-				return &execution.ChoiceReplayDivergenceError{Divergence: *d}
+				return &backend.ChoiceReplayDivergenceError{Divergence: *d}
 			}
 			configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
 			summary, err := exploreWith(t.Context(), config, configDependencies)

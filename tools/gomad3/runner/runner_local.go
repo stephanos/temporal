@@ -4,17 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	backend "go.temporal.io/server/tools/gomad3/backends"
 	"path/filepath"
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
-	"go.temporal.io/server/tools/gomad3/backends/native/preparation"
-	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
-	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
+
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
@@ -34,7 +33,7 @@ type localCampaign struct {
 	resumedRuns          []campaign.ExecutionRecord
 	summary              CampaignResult
 	batchComplete        bool
-	selectedProfile      transcript.Spec
+	selectedProfile      backend.Description
 	executor             executionRunner
 	activeCtx            context.Context
 	activeCancel         context.CancelFunc
@@ -77,13 +76,13 @@ func runLocal(ctx context.Context, config campaignRequest) (summary CampaignResu
 	if err := overallCtx.Err(); err != nil {
 		return local.summary, &HostError{Reason: contextFailureReason(err), Err: err}
 	}
-	local.selectedProfile = transcript.Default()
+	local.selectedProfile = local.config.profile
 	if err := local.prepareTarget(); err != nil {
 		return local.summary, err
 	}
 	local.executor = local.config.executor
 	if local.executor == nil {
-		local.executor = processExecutor{}
+		local.executor = processExecutor{provider: local.config.Backend}
 	}
 	if !local.resuming {
 		err = local.journal.StartExecutions()
@@ -130,6 +129,9 @@ func (local *localCampaign) validateRequest() error {
 			var resumed CampaignSpec
 			resumed, local.selection, local.baseEnvironment, local.readOnlyMounts, local.prepared, err = resumeConfiguration(local.config, local.resumePlan)
 			local.config = campaignRequestFromSpecWith(resumed, local.config.executionDependencies)
+			if err == nil {
+				local.config.profile, err = local.config.Backend.Describe(context.Background(), backend.Configuration{Target: local.config.Target, ClockTick: local.config.ClockTick, Environment: local.config.Environment, RequiredSemanticProbes: local.config.RequiredSemanticProbes})
+			}
 			local.config.resumePreflight = preflight
 		}
 		if err != nil {
@@ -247,11 +249,12 @@ func (local *localCampaign) prepareTarget() error {
 			return &HostError{Reason: "target_preparation_setup", Err: err}
 		}
 		local.config.Target.PreparationRoot = local.journal.PreparedPath()
-		local.prepared, err = local.config.prepareTarget(local.overallCtx, preparation.Request{
-			Target: local.config.Target, Environment: local.config.Environment, Preparer: campaignPreparer(local.config), Validate: backendValidator(local.config),
+		local.prepared, err = local.config.prepareTarget(local.overallCtx, preparationRequest{
+			Target: local.config.Target, Environment: local.config.Environment, Preparer: local.config.Preparer, Provider: local.config.Backend,
 		})
 		if err != nil {
-			if preparation.StageOf(err) == preparation.StageTarget {
+			var failure *backend.PreparationError
+			if !errors.As(err, &failure) || failure.Stage == "target" {
 				reason := "target_preparation"
 				if contextErr := local.overallCtx.Err(); contextErr != nil {
 					reason = contextFailureReason(contextErr)
@@ -392,7 +395,7 @@ func (local *localCampaign) publishRunnerFailure(completion runCompletion, reaso
 		return nil
 	}
 	worldBundle := noneWorldBundle()
-	outcome := execution.Classification{
+	outcome := backend.Classification{
 		Domain: "runner", Reason: reason, Termination: "none",
 		ArtifactKind: record.ArtifactRunnerFailure, ReplayMode: record.ReplayNone,
 	}
@@ -524,7 +527,7 @@ func (local *localCampaign) handleCompletion(completion runCompletion) {
 		}
 		return
 	}
-	if err := verifyPrepared(local.prepared); err != nil {
+	if err := local.config.Backend.ValidatePrepared(local.config.Target, local.prepared, local.config.Environment); err != nil {
 		local.recordCompletion(campaign.CompletedUnclassified())
 		if local.hostFailure == nil {
 			local.hostFailure = &HostError{Reason: "prepared_target_integrity", Err: err}
@@ -576,7 +579,7 @@ func (local *localCampaign) handleCompletion(completion runCompletion) {
 		}
 		return
 	}
-	assessed, assessErr := assessCompletion(completion.result, worldBundle.Manifest.Terminal, local.config.Coverage, local.prepared)
+	assessed, assessErr := assessCompletion(local.overallCtx, local.config.Backend, completion.result, worldBundle.Manifest.Terminal, local.config.Coverage, local.prepared)
 	if assessErr != nil {
 		local.recordCompletion(campaign.CompletedUnclassified())
 		if partialErr := preservePartial(completion.journal); partialErr != nil {
@@ -592,7 +595,7 @@ func (local *localCampaign) handleCompletion(completion runCompletion) {
 	local.recordAssessedCompletion(completion, worldBundle, assessed)
 }
 
-func (local *localCampaign) recordAssessedCompletion(completion runCompletion, worldBundle execution.Bundle, assessed completedExecution) {
+func (local *localCampaign) recordAssessedCompletion(completion runCompletion, worldBundle backend.Bundle, assessed completedExecution) {
 	runCoverage, runChoiceProjection, outcome := assessed.coverage, assessed.choiceProjection, assessed.outcome
 	if local.config.Diagnostics && len(completion.result.DiagnosticTrace.Bytes) != 0 {
 		trace, err := retainDiagnosticTrace(local.journal.Path(), completion.job.ordinal, completion.result.DiagnosticTrace)
@@ -648,7 +651,7 @@ func (local *localCampaign) recordAssessedCompletion(completion runCompletion, w
 	local.recordFailedExecution(completion, worldBundle, assessed)
 }
 
-func (local *localCampaign) recordSuccessfulExecution(completion runCompletion, worldBundle execution.Bundle, assessed completedExecution) {
+func (local *localCampaign) recordSuccessfulExecution(completion runCompletion, worldBundle backend.Bundle, assessed completedExecution) {
 	runCoverage, runChoiceFeatures, outcome := assessed.coverage, assessed.choiceFeatures, assessed.outcome
 	run := campaign.ExecutionRecord{
 		SelectionOrdinal: record.Uint64String(completion.job.ordinal), Seed: record.Uint64String(completion.job.seed),
@@ -728,7 +731,7 @@ func (local *localCampaign) recordSuccessfulExecution(completion runCompletion, 
 	local.completePartial(completion.journal)
 }
 
-func (local *localCampaign) recordFailedExecution(completion runCompletion, worldBundle execution.Bundle, assessed completedExecution) {
+func (local *localCampaign) recordFailedExecution(completion runCompletion, worldBundle backend.Bundle, assessed completedExecution) {
 	runCoverage, runChoiceFeatures, outcome := assessed.coverage, assessed.choiceFeatures, assessed.outcome
 	mountArtifact, manifestErr := mountArtifactForRun(local.readOnlyMounts, local.config.IOROMountLimits, completion.result.IOROMounts)
 	if manifestErr != nil {
@@ -827,7 +830,8 @@ func (local *localCampaign) finishSeedCampaign() error {
 		for probe := range local.semanticProbes {
 			probes = append(probes, probe)
 		}
-		coverage, coverageErr := transcript.SummarizeSemanticProbes(probes)
+		evidence, coverageErr := local.config.Backend.Evidence(local.overallCtx, backend.EvidenceRequest{Probes: probes})
+		coverage := evidence.Coverage
 		if coverageErr != nil && local.hostFailure == nil {
 			local.hostFailure = &HostError{Reason: "semantic_coverage", Err: coverageErr}
 		} else if coverageErr == nil {
@@ -846,7 +850,8 @@ func (local *localCampaign) finishSeedCampaign() error {
 		return local.hostFailure
 	}
 	if local.summary.SemanticCoverage != nil && local.selection.Count() != 0 {
-		missing, err := transcript.MissingRequiredSemanticProbes(*local.summary.SemanticCoverage, local.config.RequiredSemanticProbes)
+		evidence, err := local.config.Backend.Evidence(local.overallCtx, backend.EvidenceRequest{Probes: local.summary.SemanticCoverage.Probes, RequiredSemanticProbes: local.config.RequiredSemanticProbes})
+		missing := evidence.MissingRequiredProbes
 		if err != nil {
 			return err
 		}
@@ -854,7 +859,7 @@ func (local *localCampaign) finishSeedCampaign() error {
 			return &record.MissingSemanticProbesError{Probes: missing}
 		}
 	}
-	if err := verifyPrepared(local.prepared); err != nil {
+	if err := local.config.Backend.ValidatePrepared(local.config.Target, local.prepared, local.config.Environment); err != nil {
 		return &HostError{Reason: "prepared_target_integrity", Err: err}
 	}
 	if err := local.overallCtx.Err(); err != nil {

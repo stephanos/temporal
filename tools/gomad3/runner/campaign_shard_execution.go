@@ -4,13 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"io"
 	"os"
 	"path/filepath"
 	"time"
 
-	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	"go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
@@ -20,15 +19,15 @@ import (
 )
 
 type CampaignShardSpec struct {
-	PlanPath          string
-	Shard             CampaignShard
-	Artifacts         string
-	ToolchainRoot     string
-	RunnerBuild       string
-	SupervisorCommand []string
-	Progress          CampaignEventFunc
-	ProgressInterval  time.Duration
-	Replayer          ArtifactReplayer
+	Backend          backends.Provider `json:"-"`
+	PlanPath         string
+	Shard            CampaignShard
+	Artifacts        string
+	ToolchainRoot    string
+	RunnerBuild      string
+	Progress         CampaignEventFunc
+	ProgressInterval time.Duration
+	Replayer         ArtifactReplayer
 }
 
 func RunCampaignShard(ctx context.Context, spec CampaignShardSpec) (CampaignResult, error) {
@@ -47,17 +46,22 @@ func runCampaignShardWith(ctx context.Context, spec CampaignShardSpec, dependenc
 	if plan.RunnerBuild != spec.RunnerBuild {
 		return CampaignResult{}, fmt.Errorf("campaign plan Runner build identity %s does not match this Runner %s", plan.RunnerBuild, spec.RunnerBuild)
 	}
-	if !transcript.Default().Matches(plan.IOProfile) {
-		return CampaignResult{}, errors.New("campaign plan I/O profile identity does not match this Runner")
+	if spec.Backend == nil {
+		return CampaignResult{}, errors.New("campaign shard requires a backend provider")
 	}
-	if dependencies.executor == nil {
-		identity, err := nativebuild.ReadToolchainIdentity(spec.ToolchainRoot)
-		if err != nil {
-			return CampaignResult{}, err
-		}
-		if identity.GoVersion != plan.Toolchain.GoVersion || identity.BuildKey != plan.Toolchain.BuildKey || identity.TargetGOOS != plan.Toolchain.TargetGOOS || identity.TargetGOARCH != plan.Toolchain.TargetGOARCH {
-			return CampaignResult{}, errors.New("campaign plan toolchain identity does not match the pinned toolchain")
-		}
+	description, err := spec.Backend.Describe(ctx, backends.Configuration{Target: target.Spec{ToolchainRoot: spec.ToolchainRoot}, IOProfile: plan.IOProfile.Name})
+	if err != nil {
+		return CampaignResult{}, err
+	}
+	if plan.IOProfile.Name != description.IOProfile.Name || plan.IOProfile.ImplementationSHA256 != description.IOProfile.ImplementationSHA256 || plan.IOProfile.InventorySHA256 != description.IOProfile.InventorySHA256 {
+		return CampaignResult{}, errors.New("campaign plan I/O profile identity does not match the backend provider")
+	}
+	preparedSpec := target.Spec{ToolchainRoot: spec.ToolchainRoot, Kind: opened.prepared.Kind, Source: opened.prepared.Source, Args: append([]string(nil), opened.prepared.Argv[1:]...), BuildTags: append([]string(nil), opened.prepared.BuildTags...), CapabilityMode: opened.prepared.CapabilityMode}
+	if opened.prepared.Backend != nil {
+		preparedSpec.Backend = opened.prepared.Backend.Name
+	}
+	if err := spec.Backend.ValidatePrepared(preparedSpec, opened.prepared, environmentStrings(plan.Environment)); err != nil {
+		return CampaignResult{}, err
 	}
 	mountLimits, err := captured.DecodeLimits(deterministicCapturedInputLimits(plan.IOROMountLimits))
 	if err != nil {
@@ -80,6 +84,7 @@ func runCampaignShardWith(ctx context.Context, spec CampaignShardSpec, dependenc
 	}
 	targetRecord := plan.Prepared.Target
 	config := CampaignSpec{
+		Backend:    spec.Backend,
 		PlanSHA256: opened.identity, Shard: spec.Shard, Strategy: StrategySeed, Seeds: plan.Selection, Parallel: int(plan.Parallel),
 		ExecutionTimeout: time.Duration(plan.ExecutionTimeoutNanos), OverallTimeout: time.Duration(plan.OverallTimeoutNanos), TerminateGrace: time.Duration(plan.TerminateGraceNanos),
 		OnFailure: PolicyAll, FailureBudget: uint64(plan.FailureBudget), OutputLimit: uint64(plan.OutputBytes), WorldTransitionLimit: uint64(plan.WorldTransitionBytes),
@@ -89,11 +94,11 @@ func runCampaignShardWith(ctx context.Context, spec CampaignShardSpec, dependenc
 			Kind: target.Kind(targetRecord.Kind), Source: targetRecord.Source, Args: append([]string(nil), targetRecord.Argv[1:]...), BuildTags: append([]string(nil), targetRecord.BuildTags...),
 			WorkingDir: filepath.Dir(opened.path), ToolchainRoot: spec.ToolchainRoot, CapabilityMode: target.CapabilityMode(targetRecord.CapabilityMode),
 		},
-		SupervisorCommand: append([]string(nil), spec.SupervisorCommand...), RunnerBuild: spec.RunnerBuild,
-		Coverage: CoverageMode(plan.Coverage), RequiredSemanticProbes: append([]string(nil), plan.RequiredSemanticProbes...),
+		RunnerBuild: spec.RunnerBuild,
+		Coverage:    CoverageMode(plan.Coverage), RequiredSemanticProbes: append([]string(nil), plan.RequiredSemanticProbes...),
 		KeepSuccesses: KeepSuccesses(plan.KeepSuccesses), SuccessArtifactLimit: uint64(plan.SuccessArtifactLimit), SuccessBytesLimit: uint64(plan.SuccessBytesLimit),
 		Progress: spec.Progress, ProgressInterval: spec.ProgressInterval, Replayer: spec.Replayer,
-		Preparer: &campaignPlanPreparer{source: opened.prepared},
+		Preparer: &campaignPlanPreparer{source: opened.prepared, provider: spec.Backend},
 	}
 	if plan.Guidance != nil {
 		config.Guide = true
@@ -102,7 +107,9 @@ func runCampaignShardWith(ctx context.Context, spec CampaignShardSpec, dependenc
 		config.GuideSnapshotSHA256 = plan.Guidance.SnapshotSHA256
 		config.guidancePlan = plan.Guidance
 	}
-	return runLocal(ctx, campaignRequestFromSpecWith(config, dependencies))
+	request := campaignRequestFromSpecWith(config, dependencies)
+	request.profile = description
+	return runLocal(ctx, request)
 }
 
 func campaignPlanChoiceLimit(plan *campaign.ChoiceProfilePlan) uint64 {
@@ -120,7 +127,7 @@ func campaignPlanEnvironment(plan campaign.CampaignPlan) ([]string, string, erro
 	for _, entry := range plan.Environment {
 		switch entry.Name {
 		case "GOMAD3_IO_PROFILE":
-			if ioProfile || entry.Value != transcript.Deterministic {
+			if ioProfile || entry.Value != plan.IOProfile.Name {
 				return nil, "", errors.New("campaign plan I/O profile environment is invalid")
 			}
 			ioProfile = true
@@ -149,11 +156,12 @@ func campaignPlanEnvironment(plan campaign.CampaignPlan) ([]string, string, erro
 }
 
 type campaignPlanPreparer struct {
-	source target.Prepared
+	source   target.Prepared
+	provider backends.Provider
 }
 
 func (preparer *campaignPlanPreparer) Prepare(_ context.Context, spec target.Spec) (_ target.Prepared, retErr error) {
-	if preparer == nil {
+	if preparer == nil || preparer.provider == nil {
 		return target.Prepared{}, errors.New("campaign plan target is required")
 	}
 	if err := os.MkdirAll(spec.PreparationRoot, 0o700); err != nil {
@@ -186,7 +194,7 @@ func (preparer *campaignPlanPreparer) Prepare(_ context.Context, spec target.Spe
 	}
 	prepared := preparer.source
 	prepared.Path = destination
-	if err := verifyPrepared(prepared); err != nil {
+	if err := preparer.provider.ValidatePrepared(spec, prepared, nil); err != nil {
 		return target.Prepared{}, err
 	}
 	return prepared, nil

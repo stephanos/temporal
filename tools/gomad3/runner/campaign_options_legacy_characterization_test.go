@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	backend "go.temporal.io/server/tools/gomad3/backends"
 	"os"
 	"path/filepath"
 	"strings"
@@ -15,7 +16,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
-	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
+
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
@@ -185,7 +186,7 @@ func legacyCampaignOptionsCases(t *testing.T) []legacyCampaignOptionsCase {
 		spec := seed()
 		spec.Strategy = StrategyChoiceExploration
 		spec.Seeds = "7"
-		spec.ChoiceTraceLimit = execution.MinimumChoiceTraceBytes
+		spec.ChoiceTraceLimit = backend.MinimumChoiceTraceBytes
 		spec.MaxExecutions = 8
 		spec.MaxChoiceDepth = 4
 		spec.ChoiceStartOrdinal = 2
@@ -346,7 +347,7 @@ func legacyCampaignOptionsCases(t *testing.T) []legacyCampaignOptionsCase {
 		{name: "diagnostics without choice trace", spec: with(seed, func(spec *CampaignSpec) { spec.Diagnostics = true })},
 		{name: "diagnostics with choice exploration", spec: with(choiceSpec, func(spec *CampaignSpec) { spec.Diagnostics = true })},
 		{name: "choice trace below minimum", spec: with(seed, func(spec *CampaignSpec) { spec.ChoiceTraceLimit = 1 })},
-		{name: "choice trace above maximum", spec: with(seed, func(spec *CampaignSpec) { spec.ChoiceTraceLimit = execution.MaximumChoiceTraceBytes + 1 })},
+		{name: "choice trace above maximum", spec: with(seed, func(spec *CampaignSpec) { spec.ChoiceTraceLimit = backend.MaximumChoiceTraceBytes + 1 })},
 		{name: "probes without coverage", spec: with(seed, func(spec *CampaignSpec) { spec.RequiredSemanticProbes = []string{"probe"} })},
 		{name: "unknown required probe", spec: with(seed, func(spec *CampaignSpec) {
 			spec.Coverage, spec.RequiredSemanticProbes = CoverageSemantic, []string{"gomad3.characterization.unknown"}

@@ -1,12 +1,13 @@
 package runner
 
 import (
+	"context"
 	"fmt"
 
-	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	backend "go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/record"
-	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
+
 	"go.temporal.io/server/tools/gomad3/target"
 	"go.temporal.io/server/tools/gomad3/world"
 )
@@ -17,22 +18,22 @@ type completedExecution struct {
 	coverage         record.SemanticCoverage
 	choiceFeatures   []string
 	choiceProjection *choice.FeatureProjection
-	outcome          execution.Classification
+	outcome          backend.Classification
 }
 
 // assessWorld validates the World record a captured execution left for the
 // seed it ran with. An execution that recorded none has the none World.
-func assessWorld(result execution.Result, seed, transitionLimit uint64) (execution.Bundle, error) {
+func assessWorld(result backend.ExecutionResult, seed, transitionLimit uint64) (backend.Bundle, error) {
 	worldBundle := noneWorldBundle()
 	if len(result.WorldRecord) == 0 {
 		return worldBundle, nil
 	}
 	recording, err := world.DecodeRecording(result.WorldRecord)
 	if err == nil {
-		worldBundle, err = execution.ComposeRecording(recording, transitionLimit)
+		worldBundle, err = backend.ComposeRecording(recording, transitionLimit)
 	}
 	if err == nil {
-		initialWorld, _, validateErr := execution.Validate(worldBundle.Manifest, worldBundle.Payloads)
+		initialWorld, _, validateErr := backend.Validate(worldBundle.Manifest, worldBundle.Payloads)
 		if validateErr != nil {
 			err = validateErr
 		} else if worldBundle.Manifest.Initial.Schema != "gomad3.world.snapshot/v1" || uint64(initialWorld.Config.Seed) != seed {
@@ -46,15 +47,16 @@ func assessWorld(result execution.Result, seed, transitionLimit uint64) (executi
 // classifies its outcome against the terminal of its validated World record.
 // Semantic coverage is decoded before choice features are projected, and the
 // first failure is the reported one.
-func assessCompletion(result execution.Result, terminal record.WorldTerminal, mode CoverageMode, prepared target.Prepared) (completedExecution, *HostError) {
-	coverage, err := transcript.SummarizeSemanticProbes(nil)
-	if err == nil && coverageHasSemantic(mode) {
-		coverage, err = transcript.DecodeSemanticCoverage(result.IOTranscript.Bytes)
+func assessCompletion(ctx context.Context, provider backend.Provider, result backend.ExecutionResult, terminal record.WorldTerminal, mode CoverageMode, prepared target.Prepared) (completedExecution, *HostError) {
+	request := backend.EvidenceRequest{}
+	if coverageHasSemantic(mode) {
+		request.Transcript = result.IOTranscript.Bytes
 	}
+	evidence, err := provider.Evidence(ctx, request)
 	if err != nil {
 		return completedExecution{}, &HostError{Reason: "semantic_coverage", Err: err}
 	}
-	assessed := completedExecution{coverage: coverage, choiceFeatures: []string{}}
+	assessed := completedExecution{coverage: evidence.Coverage, choiceFeatures: []string{}}
 	// A target the watchdog or a cancellation killed wrote no choice trace to
 	// project; the termination is its outcome.
 	if coverageHasChoice(mode) && choiceTraceObserved(result) {
@@ -65,7 +67,7 @@ func assessCompletion(result execution.Result, terminal record.WorldTerminal, mo
 		assessed.choiceProjection = &projection
 		assessed.choiceFeatures = features
 	}
-	assessed.outcome = execution.Classify(result, false, terminal)
+	assessed.outcome = backend.Classify(result, false, terminal)
 	if prepared.Backend != nil && assessed.outcome.ReplayMode == record.ReplayExact {
 		assessed.outcome.ReplayMode = prepared.Backend.ReplayMode
 	}

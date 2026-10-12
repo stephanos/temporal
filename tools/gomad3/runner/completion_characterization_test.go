@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"errors"
+	backend "go.temporal.io/server/tools/gomad3/backends"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -21,7 +22,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
-	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
+
 	"go.temporal.io/server/tools/gomad3/world"
 )
 
@@ -47,13 +48,13 @@ type completionObservation struct {
 type faultExecutor struct {
 	t     *testing.T
 	base  executionRunner
-	fault func(*execution.Result)
+	fault func(*backend.ExecutionResult)
 	err   error
 	mu    *sync.Mutex
-	last  *execution.Result
+	last  *backend.ExecutionResult
 }
 
-func (executor faultExecutor) Run(ctx context.Context, request execution.Spec) (execution.Result, error) {
+func (executor faultExecutor) Run(ctx context.Context, request backend.ExecutionRequest) (backend.ExecutionResult, error) {
 	result, err := executor.base.Run(ctx, request)
 	if err != nil {
 		return result, err
@@ -68,14 +69,14 @@ func (executor faultExecutor) Run(ctx context.Context, request execution.Spec) (
 	return result, executor.err
 }
 
-func completionCampaign(t *testing.T, strategy Strategy, coverage CoverageMode, fault func(*execution.Result), runErr error) (CampaignSpec, faultExecutor, executionDependencies) {
+func completionCampaign(t *testing.T, strategy Strategy, coverage CoverageMode, fault func(*backend.ExecutionResult), runErr error) (CampaignSpec, faultExecutor, executionDependencies) {
 	t.Helper()
 	preparer := newFakePreparer(t)
 	limit := choiceTraceLimit(t, 1)
-	executor := faultExecutor{t: t, fault: fault, err: runErr, mu: &sync.Mutex{}, last: &execution.Result{}}
+	executor := faultExecutor{t: t, fault: fault, err: runErr, mu: &sync.Mutex{}, last: &backend.ExecutionResult{}}
 	switch strategy {
 	case StrategySeed:
-		executor.base = &fakeExecutor{result: func(uint64) execution.Result {
+		executor.base = &fakeExecutor{result: func(uint64) backend.ExecutionResult {
 			result := processResult(0, "", "")
 			result.ChoiceTrace = completeChoiceTrace(t, preparer.prepared.BuildKey, limit, []choice.Record{{
 				Ordinal: 0, Kind: choice.KindRunnable, Flags: choice.FlagDecision, Alternatives: 2,
@@ -193,37 +194,37 @@ func observeCompletion(t *testing.T, summary CampaignResult, err error) completi
 // before committing it, so only the cancellation diagnostic names the strategy.
 func TestCompletionFaultsKeepReasonPrecedenceAndEvidence(t *testing.T) {
 	const failedCampaign = "campaign recoverable-failure"
-	malformedWorld := func(result *execution.Result) {
+	malformedWorld := func(result *backend.ExecutionResult) {
 		result.WorldRecord = completionWorldRecord(t, 7)
 		result.WorldRecord[len(result.WorldRecord)-1] ^= 1
 	}
-	seedMismatch := func(result *execution.Result) { result.WorldRecord = completionWorldRecord(t, 8) }
-	malformedCoverage := func(result *execution.Result) {
+	seedMismatch := func(result *backend.ExecutionResult) { result.WorldRecord = completionWorldRecord(t, 8) }
+	malformedCoverage := func(result *backend.ExecutionResult) {
 		payload := []byte("not an I/O transcript")
 		result.IOTranscript = transcript.Transcript{Bytes: payload, SHA256: sha256.Sum256(payload), Records: 1, Complete: true}
 	}
 	// The digest and record count are consistent, so supervision accepts the
 	// trace and only the coverage projection decodes the payload.
-	malformedChoices := func(result *execution.Result) {
+	malformedChoices := func(result *backend.ExecutionResult) {
 		payload := []byte("not a choice trace")
 		result.ChoiceTrace.Trace = choice.Trace{Version: choice.Version3, Bytes: payload, SHA256: sha256.Sum256(payload), Summary: choice.Summary{Terminal: choice.TerminalComplete}}
 	}
-	unterminated := func(result *execution.Result) { result.ChoiceTrace = execution.ChoiceTrace{} }
-	watchdog := func(result *execution.Result) {
-		result.Termination = execution.TerminationSignal
+	unterminated := func(result *backend.ExecutionResult) { result.ChoiceTrace = backend.ChoiceTrace{} }
+	watchdog := func(result *backend.ExecutionResult) {
+		result.Termination = backend.TerminationSignal
 		result.Signal = "SIGKILL"
 		result.WatchdogTimeout = true
-		result.ChoiceTrace = execution.ChoiceTrace{Profile: choice.Profile, Limit: result.ChoiceTrace.Limit}
+		result.ChoiceTrace = backend.ChoiceTrace{Profile: choice.Profile, Limit: result.ChoiceTrace.Limit}
 	}
-	unprojectableChoices := func(result *execution.Result) { result.ChoiceTrace.Trace.Bytes = []byte("x") }
-	cancelled := func(result *execution.Result) {
-		result.Termination = execution.TerminationSignal
+	unprojectableChoices := func(result *backend.ExecutionResult) { result.ChoiceTrace.Trace.Bytes = []byte("x") }
+	cancelled := func(result *backend.ExecutionResult) {
+		result.Termination = backend.TerminationSignal
 		result.Signal = "killed"
 		result.Cancelled = true
-		result.ChoiceTrace = execution.ChoiceTrace{Profile: choice.Profile, Limit: result.ChoiceTrace.Limit}
+		result.ChoiceTrace = backend.ChoiceTrace{Profile: choice.Profile, Limit: result.ChoiceTrace.Limit}
 	}
-	all := func(faults ...func(*execution.Result)) func(*execution.Result) {
-		return func(result *execution.Result) {
+	all := func(faults ...func(*backend.ExecutionResult)) func(*backend.ExecutionResult) {
+		return func(result *backend.ExecutionResult) {
 			for _, fault := range faults {
 				fault(result)
 			}
@@ -232,7 +233,7 @@ func TestCompletionFaultsKeepReasonPrecedenceAndEvidence(t *testing.T) {
 	for _, test := range []struct {
 		name            string
 		coverage        CoverageMode
-		fault           func(*execution.Result)
+		fault           func(*backend.ExecutionResult)
 		err             error
 		seed            completionObservation
 		exploration     completionObservation
@@ -262,12 +263,12 @@ func TestCompletionFaultsKeepReasonPrecedenceAndEvidence(t *testing.T) {
 			exploration: completionObservation{Reason: "choice_coverage", Cause: "project choice coverage: malformed choice trace\ninvalid choice terminal values", Partials: []string{failedCampaign, "00000000000000000000 captured"}},
 		},
 		{
-			name: "choice trace rejected by supervision", err: execution.ErrChoiceTraceMalformed,
+			name: "choice trace rejected by supervision", err: backend.ErrChoiceTraceMalformed,
 			seed:        completionObservation{Reason: "choice_trace_malformed", Cause: "choice trace malformed", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{"00000000000000000000-7 preserve-partial", failedCampaign}},
 			exploration: completionObservation{Reason: "choice_trace_malformed", Cause: "choice trace malformed", Partials: []string{failedCampaign, "00000000000000000000 exited"}},
 		},
 		{
-			name: "unterminated choice trace rejected by supervision", err: execution.ErrChoiceTraceUnterminated,
+			name: "unterminated choice trace rejected by supervision", err: backend.ErrChoiceTraceUnterminated,
 			seed:        completionObservation{Reason: "choice_trace_unterminated", Cause: "choice trace unterminated", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{"00000000000000000000-7 preserve-partial", failedCampaign}},
 			exploration: completionObservation{Reason: "choice_trace_unterminated", Cause: "choice trace unterminated", Partials: []string{failedCampaign, "00000000000000000000 exited"}},
 		},
@@ -325,7 +326,7 @@ func TestCompletionFaultsKeepReasonPrecedenceAndEvidence(t *testing.T) {
 			simulationCause: "simulation exploration candidate was cancelled",
 		},
 		{
-			name: "supervision failure and World seed mismatch", fault: seedMismatch, err: execution.ErrChoiceTraceMalformed,
+			name: "supervision failure and World seed mismatch", fault: seedMismatch, err: backend.ErrChoiceTraceMalformed,
 			seed:        completionObservation{Reason: "choice_trace_malformed", Cause: "choice trace malformed", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{"00000000000000000000-7 preserve-partial", failedCampaign}},
 			exploration: completionObservation{Reason: "choice_trace_malformed", Cause: "choice trace malformed", Partials: []string{failedCampaign, "00000000000000000000 exited"}},
 		},
@@ -427,7 +428,7 @@ func TestCompletionProjectsWorldCoverageAndChoicesForEveryStrategy(t *testing.T)
 	for _, strategy := range completionStrategies {
 		t.Run(string(strategy), func(t *testing.T) {
 			recording := completionWorldRecord(t, 7)
-			config, executor, configDependencies := completionCampaign(t, strategy, CoverageSemanticChoice, func(result *execution.Result) { result.WorldRecord = recording }, nil)
+			config, executor, configDependencies := completionCampaign(t, strategy, CoverageSemanticChoice, func(result *backend.ExecutionResult) { result.WorldRecord = recording }, nil)
 			config.CollectExecutionEvidence = true
 			configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
 			summary, err := exploreWith(context.Background(), config, configDependencies)
@@ -458,7 +459,7 @@ func TestCompletionProjectsWorldCoverageAndChoicesForEveryStrategy(t *testing.T)
 			if err != nil {
 				t.Fatal(err)
 			}
-			bundle, err := execution.ComposeRecording(decoded, config.WorldTransitionLimit)
+			bundle, err := backend.ComposeRecording(decoded, config.WorldTransitionLimit)
 			if err != nil {
 				t.Fatal(err)
 			}

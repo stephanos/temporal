@@ -4,19 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"os"
 	"path/filepath"
 	"sort"
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
-	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	execution "go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/record"
-	"go.temporal.io/server/tools/gomad3/runner/backend"
-	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
 	simulationengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation"
 	simulationrecord "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulationrecord"
 	"go.temporal.io/server/tools/gomad3/runner/internal/minimizer"
@@ -27,15 +24,13 @@ import (
 const maximumMinimizationAttempts = uint64(1_000_000)
 
 type MinimizeSpec struct {
-	Backend           backend.Provider `json:"-"`
-	ArtifactPath      string
-	OutputRoot        string
-	AttemptBudget     uint64
-	MaximumBytes      uint64
-	ToolchainRoot     string
-	SupervisorCommand []string
-	BootstrapCommand  []string
-	Replayer          ArtifactReplayer
+	Backend       execution.Provider `json:"-"`
+	ArtifactPath  string
+	OutputRoot    string
+	AttemptBudget uint64
+	MaximumBytes  uint64
+	ToolchainRoot string
+	Replayer      ArtifactReplayer
 	// Resume continues from the state an interrupted run left under OutputRoot.
 	Resume bool
 }
@@ -57,7 +52,6 @@ type minimizationSession struct {
 	prepared        target.Prepared
 	campaign        CampaignSpec
 	baseEnvironment []record.Environment
-	profile         transcript.Spec
 	mappings        []captured.Mapping
 	mountLimits     captured.Limits
 	mountSnapshot   *captured.Snapshot
@@ -305,11 +299,11 @@ func openMinimizationSession(ctx context.Context, config MinimizeSpec, dependenc
 	if config.AttemptBudget == 0 || config.AttemptBudget > maximumMinimizationAttempts {
 		return nil, fmt.Errorf("minimization attempt budget must be between 1 and %d", maximumMinimizationAttempts)
 	}
-	opened, err := preflight(ctx, ReplaySpec{Backend: config.Backend, ArtifactPath: config.ArtifactPath, ToolchainRoot: config.ToolchainRoot})
+	opened, prepared, err := preflight(ctx, ReplaySpec{Backend: config.Backend, ArtifactPath: config.ArtifactPath, ToolchainRoot: config.ToolchainRoot})
 	if err != nil {
 		return nil, &ReplayPreflightError{Err: err}
 	}
-	session := &minimizationSession{config: config, dependencies: dependencies, opened: opened, profile: transcript.Default()}
+	session := &minimizationSession{config: config, dependencies: dependencies, opened: opened, prepared: prepared}
 	defer func() {
 		if retErr != nil {
 			retErr = errors.Join(retErr, session.close())
@@ -390,28 +384,7 @@ func (session *minimizationSession) prepareWorkspace(ctx context.Context) error 
 	if err := session.opened.CopyPayload(manifest.Target.File, targetPath, 0o500); err != nil {
 		return fmt.Errorf("copy verified minimization target: %w", err)
 	}
-	if manifest.Target.Backend != nil {
-		session.prepared, err = session.config.Backend.ValidateReplay(ctx, session.opened)
-		if err != nil {
-			return err
-		}
-		session.prepared.Path = targetPath
-	} else {
-		if err := validateTargetBuildInfo(targetPath, manifest.Target.BuildInfo); err != nil {
-			return err
-		}
-		session.prepared = preparedTargetFromArtifact(targetPath, manifest)
-	}
-	if session.prepared.CapabilityMode != target.CapabilityModeClosure {
-		capabilities, err := nativebuild.ReadCapabilityManifest(targetPath, target.ToolchainIdentity{
-			GoVersion: manifest.Toolchain.GoVersion, BuildKey: manifest.Toolchain.BuildKey,
-			TargetGOOS: manifest.Toolchain.TargetGOOS, TargetGOARCH: manifest.Toolchain.TargetGOARCH,
-		})
-		if err != nil {
-			return fmt.Errorf("read minimized target capability manifest: %w", err)
-		}
-		session.prepared.CapabilityManifest = capabilities
-	}
+	session.prepared.Path = targetPath
 	runTimeout, err := duration(manifest.Limits.ExecutionTimeoutNanos)
 	if err != nil {
 		return err
@@ -448,15 +421,9 @@ func (session *minimizationSession) prepareWorkspace(ctx context.Context) error 
 		ExecutionTimeout: runTimeout, OverallTimeout: overallTimeout, TerminateGrace: terminateGrace,
 		OutputLimit: uint64(manifest.Limits.OutputBytes), WorldTransitionLimit: uint64(manifest.Limits.WorldTransitionBytes),
 		ChoiceTraceLimit: uint64(manifest.Limits.ChoiceTraceBytes), RunnerBuild: manifest.Runner.RunnerBuild,
-		IOROMountLimits: session.mountLimits, SupervisorCommand: append([]string(nil), session.config.SupervisorCommand...),
+		IOROMountLimits: session.mountLimits,
 	}
 	session.executor = session.dependencies.executor
-	if session.executor == nil && session.prepared.Backend == nil {
-		if len(session.config.SupervisorCommand) == 0 {
-			return errors.New("supervisor command is required")
-		}
-		session.executor = processExecutor{}
-	}
 	session.replayer = session.config.Replayer
 	return nil
 }
@@ -470,25 +437,20 @@ func (session *minimizationSession) evaluate(ctx context.Context, explorationCon
 		return minimizationTrial{}, err
 	}
 	manifest := session.opened.Manifest()
-	ioConfig, err := session.profile.BootstrapFrame(session.prepared, manifest.Runner.RunnerBuild, uint64(manifest.Seed))
-	if err != nil {
-		return minimizationTrial{}, err
-	}
 	choiceCapability := &execution.ChoiceCapability{
 		Mode: executionForCandidate.ChoiceMode, Profile: choice.Profile,
 		ImplementationSHA256: session.choiceIdentity.ImplementationSHA256, ExecutionIdentity: session.choiceIdentity,
 		Limit: uint64(manifest.Limits.ChoiceTraceBytes), ReplayPlan: executionForCandidate.ChoiceReplayPlan,
 	}
 	startedAt := time.Now().UTC()
-	request := execution.Spec{
-		SupervisorCommand: append([]string(nil), session.config.SupervisorCommand...), Command: session.prepared.Path,
-		BootstrapCommand: append([]string(nil), session.config.BootstrapCommand...),
-		Args:             append([]string(nil), session.prepared.Argv[1:]...), Argv0: session.prepared.Argv[0], Dir: session.workDirectory,
+	request := execution.ExecutionRequest{
+		Target: session.prepared, Seed: uint64(manifest.Seed), RunnerBuild: manifest.Runner.RunnerBuild, Command: session.prepared.Path,
+		Args: append([]string(nil), session.prepared.Argv[1:]...), Argv0: session.prepared.Argv[0], Dir: session.workDirectory,
 		Env:              environmentStrings(environmentForSeed(session.baseEnvironment, uint64(manifest.Seed))),
 		ExecutionTimeout: session.campaign.ExecutionTimeout, TerminateGrace: session.campaign.TerminateGrace, OutputLimit: session.campaign.OutputLimit,
 		World: execution.WorldCapability{RecordLimit: world.MaximumRecordingBytes, TransitionLimit: session.campaign.WorldTransitionLimit, Seed: uint64(manifest.Seed)},
 		IO: &execution.IOCapability{
-			Config: ioConfig, Transcript: &execution.IOTranscriptCapability{Limit: uint64(manifest.Limits.IOTranscriptBytes)},
+			Profile: manifest.IOProfile, Transcript: &execution.IOTranscriptCapability{Limit: uint64(manifest.Limits.IOTranscriptBytes)},
 			ReadOnlyMount: &execution.ReadOnlyMountCapability{Mappings: session.mappings, Limits: session.mountLimits, Replay: session.mountSnapshot},
 		},
 		Choice: choiceCapability,
@@ -497,10 +459,12 @@ func (session *minimizationSession) evaluate(ctx context.Context, explorationCon
 			ExplorationRecordLimit: uint64(manifest.SimulationProfile.Record.Limit), ExplorationRecordCount: 1,
 		},
 	}
-	if len(request.BootstrapCommand) == 0 && len(session.config.SupervisorCommand) != 0 {
-		request.BootstrapCommand = []string{session.config.SupervisorCommand[0], "__target_bootstrap"}
+	var observed execution.ExecutionResult
+	if session.executor != nil {
+		observed, err = session.executor.Run(ctx, request)
+	} else {
+		observed, err = session.config.Backend.Execute(ctx, request)
 	}
-	observed, err := session.executor.Run(ctx, request)
 	if err != nil {
 		return minimizationTrial{}, fmt.Errorf("execute minimization candidate: %w", err)
 	}
@@ -574,8 +538,6 @@ func (session *minimizationSession) replay(ctx context.Context, artifactPath str
 	config := ReplaySpec{
 		Backend:      session.config.Backend,
 		ArtifactPath: artifactPath, ToolchainRoot: session.config.ToolchainRoot,
-		SupervisorCommand: append([]string(nil), session.config.SupervisorCommand...),
-		BootstrapCommand:  append([]string(nil), session.config.BootstrapCommand...),
 	}
 	if session.replayer != nil {
 		return session.replayer.Replay(ctx, config)
@@ -613,18 +575,6 @@ func recordedWorldForMinimization(encoded []byte, seed, limit uint64) (execution
 		return execution.Bundle{}, errors.New("minimization World record seed or schema changed")
 	}
 	return bundle, nil
-}
-
-func preparedTargetFromArtifact(path string, manifest record.ExecutionRecord) target.Prepared {
-	return target.Prepared{
-		Path: path, Kind: target.Kind(manifest.Target.Kind), Source: manifest.Target.Source,
-		SHA256: string(manifest.Target.SHA256), Size: uint64(manifest.Target.Size), Argv: append([]string(nil), manifest.Target.Argv...),
-		BuildTags: append([]string(nil), manifest.Target.BuildTags...), Adapters: cloneAdapters(manifest.Target.Adapters),
-		Compatibility: cloneCompatibility(manifest.Target.Compatibility), BuildInfo: manifest.Target.BuildInfo,
-		GoVersion: manifest.Toolchain.GoVersion, BuildKey: manifest.Toolchain.BuildKey,
-		TargetGOOS: manifest.Toolchain.TargetGOOS, TargetGOARCH: manifest.Toolchain.TargetGOARCH,
-		CapabilityMode: target.CapabilityMode(manifest.Target.CapabilityMode),
-	}
 }
 
 func minimizationBaseEnvironment(recorded []record.Environment) []record.Environment {

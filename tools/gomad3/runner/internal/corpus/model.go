@@ -6,7 +6,7 @@ import (
 	"sort"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
-	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	"go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
@@ -112,19 +112,19 @@ type targetProjection struct {
 	BuildInfo     record.BuildInfo           `json:"build_info"`
 }
 
-func IdentityFor(target record.Target, toolchain record.Toolchain, boundaryVersion string, boundarySHA256 record.SHA256, environment []record.Environment) (Identity, error) {
-	return identityFor(target, toolchain, boundaryVersion, boundarySHA256, environment, nil)
+func IdentityFor(target record.Target, toolchain record.Toolchain, description backends.Description, environment []record.Environment) (Identity, error) {
+	return identityFor(target, toolchain, description, environment, nil)
 }
 
-func IdentityForChoice(target record.Target, toolchain record.Toolchain, boundaryVersion string, boundarySHA256 record.SHA256, environment []record.Environment, choiceProfile ChoiceProfileIdentity) (Identity, error) {
+func IdentityForChoice(target record.Target, toolchain record.Toolchain, description backends.Description, environment []record.Environment, choiceProfile ChoiceProfileIdentity) (Identity, error) {
 	implementation, err := choice.ImplementationIdentity(toolchain.BuildKey)
 	if err != nil || choiceProfile.Profile != choice.Profile || choiceProfile.ImplementationSHA256 != record.SHA256FromSum(implementation) || choiceProfile.Limit < choice.MinimumTraceBytes || choiceProfile.Limit > choice.MaximumTraceBytes {
 		return Identity{}, errors.New("guided choice profile identity is invalid")
 	}
-	return identityFor(target, toolchain, boundaryVersion, boundarySHA256, environment, &choiceProfile)
+	return identityFor(target, toolchain, description, environment, &choiceProfile)
 }
 
-func identityFor(target record.Target, toolchain record.Toolchain, boundaryVersion string, boundarySHA256 record.SHA256, environment []record.Environment, choice *ChoiceProfileIdentity) (Identity, error) {
+func identityFor(target record.Target, toolchain record.Toolchain, description backends.Description, environment []record.Environment, choice *ChoiceProfileIdentity) (Identity, error) {
 	projected := targetProjection{
 		Kind: target.Kind, SHA256: target.SHA256, Size: target.Size, Argv: append([]string(nil), target.Argv...), BuildTags: append([]string(nil), target.BuildTags...),
 		Adapters: append([]record.TargetAdapter(nil), target.Adapters...), Compatibility: append([]record.CompatibilityPack(nil), target.Compatibility...), BuildInfo: target.BuildInfo,
@@ -149,15 +149,15 @@ func identityFor(target record.Target, toolchain record.Toolchain, boundaryVersi
 	result := Identity{
 		EnvironmentSHA256: record.DomainHash("gomad3-guide-environment-v1", environmentBytes),
 		TargetSHA256:      record.DomainHash("gomad3-guide-target-v1", encoded), Toolchain: toolchain,
-		BoundaryVersion: boundaryVersion, BoundarySHA256: boundarySHA256,
-		InstrumentationSchema: SemanticFeatureSchema, InstrumentationSHA256: semanticInstrumentationIdentity(),
+		BoundaryVersion: description.BoundaryVersion, BoundarySHA256: description.BoundarySHA256,
+		InstrumentationSchema: SemanticFeatureSchema, InstrumentationSHA256: semanticInstrumentationIdentity(description.SemanticInstrumentationSHA256),
 		ManifestSchemaVersion: record.SchemaVersion, ManifestRecordContract: record.RecordContract,
 	}
 	if choice != nil {
 		profile := *choice
 		result.ChoiceProfile = &profile
 		result.InstrumentationSchema = ChoiceFeatureSchema
-		choiceIdentity, err := choiceInstrumentationIdentity(profile)
+		choiceIdentity, err := choiceInstrumentationIdentity(profile, description.SemanticInstrumentationSHA256)
 		if err != nil {
 			return Identity{}, err
 		}
@@ -166,17 +166,17 @@ func identityFor(target record.Target, toolchain record.Toolchain, boundaryVersi
 	return result, nil
 }
 
-func choiceInstrumentationIdentity(profile ChoiceProfileIdentity) (record.SHA256, error) {
+func choiceInstrumentationIdentity(profile ChoiceProfileIdentity, instrumentation record.SHA256) (record.SHA256, error) {
 	choiceBytes, err := canonicaljson.CanonicalJSON(profile)
 	if err != nil {
 		return "", fmt.Errorf("encode guided choice profile identity: %w", err)
 	}
-	material := append([]byte(string(semanticInstrumentationIdentity())+"\x00"), choiceBytes...)
+	material := append([]byte(string(semanticInstrumentationIdentity(instrumentation))+"\x00"), choiceBytes...)
 	return record.DomainHash("gomad3-guide-choice-instrumentation-v1", material), nil
 }
 
-func semanticInstrumentationIdentity() record.SHA256 {
-	identity := SemanticFeatureSchema + "\x00" + record.SemanticCoverageSchema + "\x00" + string(transcript.SemanticInstrumentationIdentity()) + "\x00"
+func semanticInstrumentationIdentity(instrumentation record.SHA256) record.SHA256 {
+	identity := SemanticFeatureSchema + "\x00" + record.SemanticCoverageSchema + "\x00" + string(instrumentation) + "\x00"
 	return record.DomainHash("gomad3-guide-instrumentation-v1", []byte(identity))
 }
 

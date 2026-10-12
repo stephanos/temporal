@@ -4,11 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	backend "go.temporal.io/server/tools/gomad3/backends"
 	"os"
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
-	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
+
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
@@ -106,7 +107,7 @@ func TestLocalCompletionErrorPrecedence(t *testing.T) {
 			if test.cancel {
 				cancel()
 			}
-			local.handleCompletion(runCompletion{job: runJob{seed: 1}, err: test.runErr, result: execution.Result{
+			local.handleCompletion(runCompletion{job: runJob{seed: 1}, err: test.runErr, result: backend.ExecutionResult{
 				WorldRecord: []byte("malformed World evidence"), WatchdogTimeout: true,
 			}})
 			var hostError *HostError
@@ -215,7 +216,7 @@ func TestLocalStoppedCancellationPreservesPriorFailure(t *testing.T) {
 		overallCtx: ctx, activeCancel: cancel, controller: controller,
 		hostFailure: primary, prepared: newFakePreparer(t).prepared,
 	}
-	local.handleCompletion(runCompletion{result: execution.Result{Cancelled: true}})
+	local.handleCompletion(runCompletion{result: backend.ExecutionResult{Cancelled: true}})
 	if local.hostFailure != primary || local.summary.Attempted != 1 || local.summary.Cancelled != 1 || controller.Active() != 0 {
 		t.Fatalf("error = %v, summary = %#v, active=%d", local.hostFailure, local.summary, controller.Active())
 	}

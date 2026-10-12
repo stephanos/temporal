@@ -9,13 +9,13 @@ import (
 	"strings"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
-	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	backend "go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
-	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
+
 	choiceengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/choice"
 	"go.temporal.io/server/tools/gomad3/target"
 )
@@ -33,7 +33,7 @@ func runChoiceExplorationLocal(
 	baseEnvironment []record.Environment,
 	readOnlyMounts []captured.Mapping,
 	prepared target.Prepared,
-	profile transcript.Spec,
+	profile backend.Description,
 	journal *campaign.CampaignJournal, runID string,
 	resuming bool,
 	resumedRuns []campaign.ExecutionRecord, summary *CampaignResult,
@@ -167,20 +167,21 @@ func runChoiceExplorationLocal(
 	}
 
 	if coverageHasSemantic(config.Coverage) {
-		coverage, err := transcript.SummarizeSemanticProbes(sortedProbeList(semanticProbes))
+		evidence, err := config.Backend.Evidence(ctx, backend.EvidenceRequest{Probes: sortedProbeList(semanticProbes)})
 		if err != nil {
 			return &HostError{Reason: "semantic_coverage", Err: err}
 		}
+		coverage := evidence.Coverage
 		summary.SemanticCoverage = &coverage
-		missing, err := transcript.MissingRequiredSemanticProbes(coverage, config.RequiredSemanticProbes)
+		evidence, err = config.Backend.Evidence(ctx, backend.EvidenceRequest{Probes: coverage.Probes, RequiredSemanticProbes: config.RequiredSemanticProbes})
 		if err != nil {
 			return err
 		}
-		if len(missing) != 0 {
-			return &record.MissingSemanticProbesError{Probes: missing}
+		if len(evidence.MissingRequiredProbes) != 0 {
+			return &record.MissingSemanticProbesError{Probes: evidence.MissingRequiredProbes}
 		}
 	}
-	if err := verifyPrepared(prepared); err != nil {
+	if err := config.Backend.ValidatePrepared(config.Target, prepared, config.Environment); err != nil {
 		return &HostError{Reason: "prepared_target_integrity", Err: err}
 	}
 	if err := ctx.Err(); err != nil {
@@ -214,7 +215,7 @@ func executeExplorationRound(
 	executor executionRunner,
 	prepared target.Prepared,
 	baseEnvironment []record.Environment,
-	profile transcript.Spec,
+	profile backend.Description,
 	readOnlyMounts []captured.Mapping,
 	staged *campaign.ExplorationRoundJournal,
 	state choiceengine.State,
@@ -284,12 +285,12 @@ func processExplorationCompletion(
 	if err := ctx.Err(); err != nil {
 		return explorationRoundResult{}, &HostError{Reason: contextFailureReason(err), Err: err}
 	}
-	if err := verifyPrepared(prepared); err != nil {
+	if err := config.Backend.ValidatePrepared(config.Target, prepared, config.Environment); err != nil {
 		return explorationRoundResult{}, &HostError{Reason: "prepared_target_integrity", Err: err}
 	}
 	candidate := round.Candidates[index]
 	if isCandidateReplayDivergence(completion, candidate, state.Config.Execution) {
-		var divergence *execution.ChoiceReplayDivergenceError
+		var divergence *backend.ChoiceReplayDivergenceError
 		errors.As(completion.err, &divergence)
 		evidence := choice.ProjectDivergenceEvidence(divergence.Divergence)
 		roundValue := record.Uint64String(round.Index)
@@ -319,7 +320,7 @@ func processExplorationCompletion(
 	if err != nil {
 		return explorationRoundResult{}, &HostError{Reason: "world_record", Err: err}
 	}
-	assessed, assessErr := assessCompletion(completion.result, worldBundle.Manifest.Terminal, config.Coverage, prepared)
+	assessed, assessErr := assessCompletion(ctx, config.Backend, completion.result, worldBundle.Manifest.Terminal, config.Coverage, prepared)
 	if assessErr != nil {
 		return explorationRoundResult{}, assessErr
 	}
@@ -466,7 +467,7 @@ func isCandidateReplayDivergence(completion runCompletion, candidate choiceengin
 			break
 		}
 	}
-	var divergence *execution.ChoiceReplayDivergenceError
+	var divergence *backend.ChoiceReplayDivergenceError
 	return errors.As(completion.err, &divergence) && divergence != nil && choiceengine.ValidateCandidateDivergence(candidate, identity, divergence.Divergence) == nil
 }
 
@@ -528,7 +529,7 @@ func explorationPublishedPath(batchPath string, round uint64, stagedPath, publis
 	return finalPath, filepath.ToSlash(relative), nil
 }
 
-func explorationOutcomeSHA256(outcome execution.Classification, result execution.Result, worldRecord record.World) (record.SHA256, error) {
+func explorationOutcomeSHA256(outcome backend.Classification, result backend.ExecutionResult, worldRecord record.World) (record.SHA256, error) {
 	projection := struct {
 		Domain             string               `json:"domain"`
 		Reason             string               `json:"reason"`
