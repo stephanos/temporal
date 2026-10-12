@@ -568,6 +568,18 @@ the real features forward: it runs each DSL change's scalafix rule on them, does
   sharing, a clean per-package before/after table, and cheaper Testpilot work accounting (defaults
   raised to 32M/16.4G by fn-148, to be lowered after measuring).
 
+### fn-170: Clean up tools/umpire
+
+Captured on 2026-10-12 at the owner's request. It runs in the Go propagation phase after the Scala
+source batch. Earlier Go cleanups (fn-124, fn-84, fn-61, fn-66) are done. A read-only research pass,
+using the six questions applied to Testpilot, will add further tasks. Once it lands, the `tools/umpire`
+items of fn-169.4 move here.
+[Spec](.flow/specs/fn-170-clean-up-toolsumpire.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-170.1 | ⏸️ deferred (Go) | One `umpire` CLI with subcommands replaces the eight `cmd/umpire-*` binaries; urfave/cli v2 unless the owner picks cobra; Make target names kept |
+
 ### fn-128: Close the activity's precision gaps
 
 Moved out of the Scala DSL work on 2026-10-11: it edits only the standalone activity, which that
