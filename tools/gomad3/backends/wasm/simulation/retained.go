@@ -478,20 +478,22 @@ func bindRetainedPrimary(observed gomad3sim.ClusterRecord, primary string) error
 // ReplayBoundRetained joins complete retained admission and Artifact primary
 // binding before any executable writes. The primary module is the Artifact
 // target that supplies the referenced module bytes. OriginalRecord is the
-// admitted owner's exact canonical bytes, not a second encoding of the record.
-func ReplayBoundRetained(ctx context.Context, payload target.BackendPayload, module RetainedModule, directory string, installed InstalledHelper) (observed gomad3sim.Result, originalRecord []byte, completed *Provider, err error) {
+// digest of the admitted owner's exact canonical bytes, not of a second
+// encoding of the record; the bytes themselves are released before replay.
+func ReplayBoundRetained(ctx context.Context, payload target.BackendPayload, module RetainedModule, directory string, installed InstalledHelper) (observed gomad3sim.Result, originalRecord record.SHA256, completed *Provider, err error) {
 	bundle, p, retained, err := verifyRetained(payload)
 	if err != nil {
-		return gomad3sim.Result{}, nil, nil, err
+		return gomad3sim.Result{}, "", nil, err
 	}
 	if err := bindRetainedPrimary(retained, module.SHA256); err != nil {
-		return gomad3sim.Result{}, nil, nil, err
+		return gomad3sim.Result{}, "", nil, err
 	}
-	originalRecord = bundle.Record
+	originalRecord = record.HashBytes(bundle.Record)
+	bundle.Record = nil
 	admission := retainedAdmission{bundle: bundle, provider: p}
 	spec, p, err := admission.reopen(module, directory, installed)
 	if err != nil {
-		return gomad3sim.Result{}, nil, nil, err
+		return gomad3sim.Result{}, "", nil, err
 	}
 	observed, err = replayRetainedProvider(ctx, spec, p)
 	return observed, originalRecord, p, err

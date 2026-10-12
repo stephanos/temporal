@@ -306,7 +306,7 @@ func replayClusterArtifactObserved(ctx context.Context, path, directory string, 
 		return runner.ReplayResult{}, completed, err
 	}
 	observeHostMemory(observer, "replay.compare.before")
-	match := bytes.Equal(encoded, expected)
+	match := record.HashBytes(encoded) == expected
 	observeHostMemory(observer, "replay.compare.after")
 	// Cluster exactness covers the owner's sealed global lifecycle and each
 	// incarnation's exact OR interrupted-prefix contract, not a global exact tape.

@@ -130,7 +130,7 @@ func TestBoundRetainedReplayRejectsBeforeWritingInputs(t *testing.T) {
 	directory := t.TempDir()
 	for _, primary := range []string{"", "sha256:" + strings.Repeat("0", 64)} {
 		_, original, provider, err := ReplayBoundRetained(t.Context(), target.BackendPayload{}, RetainedModule{SHA256: primary}, directory, InstalledHelper{})
-		if err == nil || original != nil || provider != nil {
+		if err == nil || original != "" || provider != nil {
 			t.Fatal("bound replay bypassed complete retained admission")
 		}
 	}

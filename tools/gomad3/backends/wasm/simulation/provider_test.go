@@ -334,7 +334,7 @@ func TestProviderGroupedAcknowledgmentCrashSourceLessReplay(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !bytes.Equal(left, right) || !bytes.Equal(left, original) {
+	if !bytes.Equal(left, right) || record.HashBytes(left) != original {
 		t.Fatal("grouped acknowledgment crash changed sealed replay")
 	}
 }
@@ -684,8 +684,8 @@ func testProviderIndependentGuestsLifecycleReplay(t *testing.T, profile string) 
 		t.Fatal(err)
 	}
 	bundle, err := decodeRetained(payload)
-	if err != nil || !bytes.Equal(original, bundle.Record) || completed == nil || len(completed.CompletedSummaries()) != 4 {
-		t.Fatalf("bound replay lost original canonical bytes or terminal summaries: %v", err)
+	if err != nil || original != record.HashBytes(bundle.Record) || completed == nil || len(completed.CompletedSummaries()) != 4 {
+		t.Fatalf("bound replay lost original canonical record digest or terminal summaries: %v", err)
 	}
 	logIncarnationSummaries(t, completed, "lifecycle-replay")
 	left, err := gomad3sim.EncodeClusterRecord(observed.Record)
