@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-11T23:45:38.765928Z",
+  "depends_on": [
+    "fn-166-mini-activity-a-small-complete-model-to.8"
+  ],
+  "id": "fn-166-mini-activity-a-small-complete-model-to.9",
+  "priority": null,
+  "spec": "fn-166-mini-activity-a-small-complete-model-to",
+  "spec_path": ".flow/tasks/fn-166-mini-activity-a-small-complete-model-to.9.md",
+  "status": "todo",
+  "title": "Mini-guided author documentation and migration convention",
+  "updated_at": "2026-10-11T23:45:38.765928Z"
+}

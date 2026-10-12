@@ -259,6 +259,184 @@ class MiniLayoutFixtures extends munit.FunSuite:
       val family = if layout == "flat" then "fixture.features.activity_mini" else "fixture.features.activity.mini"
       fixtureOnly(model, family)
 
+class MiniRealizationFixtures extends munit.FunSuite:
+  override val munitTimeout: Duration = 10.minutes
+  private val tools = Tools.here
+  private val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
+  private lazy val scratch = Files.createTempDirectory(
+    Files.createDirectories(tools.directory.resolve("model/build/history")), "mini-realization.")
+  private val sources = Seq("model/project.scala", "model/framework", "model/temporal/Bounds.scala",
+    "model/temporal/foundations", "model/temporal/actors", "model/temporal/capabilities",
+    "model/temporal/realize", "model/temporal/features/activity/Activity.scala",
+    "model/temporal/features/activity_mini")
+  private lazy val jar =
+    val jar = scratch.resolve("mini.jar")
+    tools.scalaCli(Seq("--power", "package", "--server=false", "--library") ++ sources ++
+      Seq("-f", "-o", jar.toString)).orFail(): Unit
+    jar
+  private lazy val classpath =
+    val cp = tools.scalaCli(Seq("compile", "--server=false", "--print-class-path") ++ sources,
+      umpire.check.Output.KeptApart).orFail()
+    val classpath = scratch.resolve("classpath")
+    Files.writeString(classpath, cp.output.trim): Unit
+    classpath
+  private lazy val lifted =
+    val out = scratch.resolve("ir")
+    val result = InProcess.lift(tools.directory,
+      Seq("--ir", s"$jar=model/", classpath.toString, out.toString, "activity-mini"))
+    assertEquals(result.exit, 0, result.output)
+    mapper.readTree(Files.readString(out.resolve("activity-mini.json")))
+
+  private def realization(model: com.fasterxml.jackson.databind.JsonNode) =
+    val declared = model.path("realizations").elements().asScala.toVector
+    assertEquals(declared.map(_.path("name").asText()), Vector("miniActivityRun"))
+    assertEquals(declared.head.path("machine").asText(), "activityProtocol")
+    assertEquals(declared.head.path("id").asText(),
+      "temporal.features.activity.mini.realization.MiniActivityRun")
+    declared.head
+
+  private def evidence(model: com.fasterxml.jackson.databind.JsonNode): Unit =
+    val rows = realization(model).path("evidence").elements().asScala.toVector
+    assertEquals(rows.map(_.path("records").asText()).toSet,
+      Set("statusScheduled", "statusStarted", "statusCancelRequested", "statusCompleted",
+        "statusFailed", "statusCanceled", "statusTimedOut"))
+    assertEquals(rows.size, 7)
+    assertEquals(rows.map(_.path("id").asText()).toSet,
+      Set("statusScheduled", "statusStarted", "statusCancelRequested", "statusCompleted",
+        "statusFailed", "statusCanceled", "statusTimedOut")
+        .map("temporal.features.activity.mini.realization.evidence." + _))
+    for row <- rows do
+      assertEquals(row.path("commitment").asText(), "COMMITMENT_REPORTED")
+      val fact = row.path("records").asText()
+      if Set("statusCompleted", "statusFailed", "statusCanceled", "statusTimedOut")(fact) then
+        assertEquals(row.path("single").path("method").asText(),
+          "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution")
+        assertEquals(row.path("single").path("path").asText(), "info")
+        assertEquals(row.path("operation").asText(), "activity_id")
+      else
+        assertEquals(row.path("runEvent").path("script").asText(), "controller")
+        assertEquals(row.path("runEvent").path("command").asText(),
+          if fact == "statusCancelRequested" then "request-cancel-activity" else "start-activity")
+        assertEquals(row.path("runEvent").path("kind").asText(),
+          if fact == "statusStarted" then "KIND_DIAGNOSTIC" else "KIND_INSTRUCTION_COMPLETED")
+
+  test("mini discovery binds its Protocol and independently covers its seven facts"):
+    evidence(lifted)
+    val changed = lifted.deepCopy[com.fasterxml.jackson.databind.node.ObjectNode]()
+    val rows = changed.path("realizations").get(0).path("evidence")
+      .asInstanceOf[com.fasterxml.jackson.databind.node.ArrayNode]
+    val missing = rows.elements().asScala.zipWithIndex.find(_._1.path("records").asText() == "statusTimedOut").get._2
+    rows.remove(missing): Unit
+    intercept[munit.ComparisonFailException](evidence(changed)): Unit
+    val wrong = lifted.deepCopy[com.fasterxml.jackson.databind.node.ObjectNode]()
+    wrong.path("realizations").get(0).asInstanceOf[com.fasterxml.jackson.databind.node.ObjectNode]
+      .put("machine", "activityProduct"): Unit
+    intercept[munit.ComparisonFailException](realization(wrong)): Unit
+
+  test("mini deadlines retain all eight start presets and bind only mini actions"):
+    val declared = realization(lifted)
+    val scripts = declared.path("scripts").elements().asScala.toVector
+    assertEquals(scripts.map(_.path("id").asText()), Vector("controller", "attempts"))
+    val controllerItems = scripts.head.path("items").elements().asScala.toVector
+    val holdIndex = controllerItems.indexWhere(_.path("command").path("hold").asText() == "unstarted-dispatch")
+    assert(holdIndex >= 0)
+    assertEquals(controllerItems.take(holdIndex).flatMap(_.path("performs").elements().asScala).size, 8,
+      "the dispatch hold waits only after the start has armed and dispatched the activity")
+    val performs = scripts.flatMap(_.path("items").elements().asScala)
+      .flatMap(_.path("performs").elements().asScala)
+    val start = "temporal.features.activity.mini.client.start"
+    val starts = performs.filter(_.path("step").path("action").asText() == start)
+    assertEquals(starts.size, 8)
+    val classes = starts.map(_.path("step").path("inputs").elements().asScala
+      .map(_.path("enum").path("case").asText()).toVector)
+    assertEquals(classes.toSet, Set(
+      Vector("unset", "unset", "one"), Vector("expires", "unset", "one"),
+      Vector("unset", "expires", "one"), Vector("expires", "expires", "one"),
+      Vector("unset", "unset", "two"), Vector("expires", "unset", "two"),
+      Vector("unset", "expires", "two"), Vector("expires", "expires", "two")))
+    for (binding, inputs) <- starts.zip(classes) do
+      val rpc = binding.path("command").path("rpc")
+      assertEquals(rpc.path("method").asText(),
+        "/temporal.api.workflowservice.v1.WorkflowService/StartActivityExecution")
+      val assignments = rpc.path("assign").elements().asScala.toVector
+      assertEquals(assignments.map(_.path("target").asText()).distinct.size, assignments.size)
+      val values = assignments.map(a => a.path("target").asText() ->
+        a.path("value").path("literal").path("number").asText()).toMap
+      assertEquals(values("retry_policy.maximum_attempts"), if inputs(2) == "one" then "1" else "2")
+      assertEquals(values.get("schedule_to_start_timeout.seconds"),
+        if inputs(0) == "expires" then Some("2") else None)
+      assertEquals(values("start_to_close_timeout.seconds"),
+        if inputs(1) == "expires" then "2" else "300")
+    assertEquals(performs.map(_.path("step").path("action").asText()).toSet,
+      Set(start, "temporal.features.activity.mini.client.cancel",
+        "temporal.features.activity.worker.respondCompleted", "temporal.features.activity.worker.respondFailed"))
+    val steps = declared.path("serverSteps").elements().asScala.map(s =>
+      (s.path("step").path("action").asText(), s.path("kind").asText(), s.path("deadline").asText())).toSet
+    assertEquals(steps, Set(
+      ("temporal.features.activity.worker.poll", "CAUSE_KIND_DELIVERY", ""),
+      ("temporal.features.activity.timers.backoff", "CAUSE_KIND_TIMER", "1s"),
+      ("temporal.features.activity.deadline.scheduleToStart", "CAUSE_KIND_TIMER", "2s"),
+      ("temporal.features.activity.deadline.startToClose", "CAUSE_KIND_TIMER", "2s")))
+
+  private def expectations(model: com.fasterxml.jackson.databind.JsonNode): Unit =
+    assertEquals(realization(model).path("queries").elements().asScala.map(_.asText()).toVector,
+      Vector("protocolCompleted", "retryCompleted"))
+    val live = model.path("queries").elements().asScala.filter(_.has("expectedRun")).toVector
+    assertEquals(live.map(_.path("name").asText()), Vector("protocolCompleted", "retryCompleted"))
+    for (q, outcome, reason) <- Seq(
+      (live(0), "OUTCOME_SATISFIED", ""),
+      (live(1), "OUTCOME_INCONCLUSIVE", "REASON_EXPLANATIONS_DISAGREE")) do
+      assertEquals(q.path("scenario").path("machine").asText(), "activityProtocol")
+      val expected = q.path("expectedRun")
+      assertEquals(expected.path("property").asText(), outcome)
+      assertEquals(expected.path("reason").asText(), reason)
+      assertEquals(expected.path("conformance").asText(), "CONFORMANCE_CONFORMANT")
+      assertEquals(expected.path("contract").asText(), "OUTCOME_SATISFIED")
+      assertEquals(expected.path("disposition").asText(), "DISPOSITION_COMPLETED")
+      assertEquals(expected.path("cleanup").asText(), "CLEANUP_SUCCEEDED")
+      assert(!expected.has("because"))
+
+  test("mini live expectations lift exact satisfied and reasoned inconclusive metadata"):
+    expectations(lifted)
+    val wrong = lifted.deepCopy[com.fasterxml.jackson.databind.node.ObjectNode]()
+    val retry = wrong.path("queries").elements().asScala.find(_.path("name").asText() == "retryCompleted").get
+    retry.path("expectedRun").asInstanceOf[com.fasterxml.jackson.databind.node.ObjectNode]
+      .put("reason", "REASON_NEVER_EVALUATED"): Unit
+    intercept[munit.ComparisonFailException](expectations(wrong)): Unit
+
+  test("mini realization refuses a foreign Query owner and unexplained live expectations"):
+    val source = scratch.resolve("Refusals.scala")
+    Files.writeString(source, s"""//> using scala 3.9.0
+      |//> using jvm 27
+      |//> using dep com.thesamet.scalapb::scalapb-runtime-grpc:0.11.20
+      |//> using jar $jar
+      |//> using jar ${tools.directory.resolve("model/build/api-scalapb.jar")}
+      |package fixture.minirealization
+      |import framework.*
+      |import framework.realize.Reason
+      |import temporal.realize.*
+      |import temporal.features.activity.mini.{client, activityWorker, product, protocol}
+      |object WrongOwnerRun extends Realizes(protocol.ActivityProtocol,
+      |  runs = Seq(product.ActivityProduct.queries.completed))
+      |object Unexplained extends Derived(protocol.ActivityProtocol.unmonitored):
+      |  object queries:
+      |    val completed = witness(client.start(), activityWorker.poll, activityWorker.respondCompleted)
+      |      .records(protocol.Fact.statusCompleted)
+      |      .live(inconclusive(Reason.explanationsDisagree, because = " "))
+      |""".stripMargin): Unit
+    val controls = scratch.resolve("controls.jar")
+    tools.scalaCli(Seq("--power", "package", "--server=false", "--library", source.toString,
+      "-f", "-o", controls.toString)).orFail(): Unit
+    for (root, refusal) <- Seq(
+      "WrongOwnerRun" -> "a Query of activityProduct",
+      "Unexplained$.queries$.completed" -> "says no reason why") do
+      val out = scratch.resolve(root + ".json")
+      val result = InProcess.lift(tools.directory, Seq(s"$controls=model/irgen/testdata/layout/mini/,$jar=model/",
+        classpath.toString, out.toString, "fixture.minirealization." + root))
+      assertNotEquals(result.exit, 0, result.output)
+      assert(result.output.contains(refusal), result.output)
+      assert(!Files.exists(out))
+
 private object LayoutSources:
   def materialize(
       from: Path,

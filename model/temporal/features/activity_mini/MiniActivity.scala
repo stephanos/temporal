@@ -16,7 +16,9 @@
 //   one bounded lossy worker-answer channel, delayed-answer FailureModel, stale-answer
 //   NegativeControl find and verify, environment assumption, and cancelDuringBackoff hole;
 // - protocol/DispatchProgress.scala: restricted dispatch leadsTo under assume.fair(worker),
-//   with the step bound in temporal/Bounds.scala.
+//   with the step bound in temporal/Bounds.scala;
+// - realization/MiniActivityRun.scala and Kit.scala: seven fact evidence kinds, typed deadline
+//   presets preserving maxAttempts, one satisfied and one reasoned inconclusive live expectation.
 package temporal
 package features.activity
 package mini

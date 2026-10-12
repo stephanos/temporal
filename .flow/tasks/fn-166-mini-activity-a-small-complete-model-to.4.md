@@ -1,25 +1,25 @@
 ---
 satisfies: [R3, R4]
 ---
-# fn-166-mini-activity-a-small-complete-model-to.4 Mini activity: realization level and live witnesses
+# fn-166-mini-activity-a-small-complete-model-to.4 Held sweep: mini Cases and live realization proof
 
 ## Description
-The realization level and the live witnesses, so the mini feature's third level is real ((R3), R3).
+Completes R4 and the executable realization portion of R3 after source task 8 and Case-layout task 6. Source authoring alone grants no lowering or live-run authority.
 
 **Size:** M
-**Files:** `mini/realization/MiniActivityRun.scala` (`Realizes` with controller, workers, evidence for every fact, one `deadlines` use), `mini/realization/Kit.scala` (only what the mini feature's actions need, by subtraction from the standalone kit), witnesses in the protocol or product level: one `.live` witness with a `satisfied` expectation and one with an `inconclusive` expectation and its reason
-**Touches:** [model/temporal/features/activity_mini/**]
+**Files:** mini generated Case tree, existing lowering/live entrypoints and focused consumer tests only where an actual kit gap requires an approved change.
+**Touches:** [model/temporal/features/activity_mini/generated/**, tools/umpire/lower/**, tools/umpire/ir/**, tests/testpilot_generated_test.go]
 
 ### Approach
-- Subtract from `standalone/realization/`; keep the kit's typed API reads and the evidence kinds the mini feature's facts need; drop every by-ID, pause and heartbeat helper.
-- Lower the mini feature's Cases with the existing commands and run one live once; record the verdict and the Run on the task. If the kit lacks something the mini feature needs, name it in the done summary rather than stubbing it.
-- Do not pin the mini feature's Cases in the functional tests or the canary.
+- Admit only when the owner opens Case generation, Go validation and live execution. Verify task 8's source closure and task 6's Case-layout closure in the current history.
+- Use the existing generator on the mini feature alone. Keep sibling features, legacy payloads, lint companions, pins and equivalence baselines untouched.
+- Prove the authored realization's bindings/evidence/deadlines lower into actual Cases and at least one Case reaches a recorded live Run/verdict. Authored `.live` expectations are not evidence of execution.
+- If the kit lacks a required primitive, report the exact gap and obtain authority for that change; do not stub it or fit the Model to the runtime. Do not pin mini Cases in functional tests or canary.
 
 ## Acceptance
-- [ ] The realization lifts, every fact has evidence, one `deadlines` use exists, and the Cases lower.
-- [ ] One `.live` witness expects `satisfied` and one expects `inconclusive` with its reason on the expectation.
-- [ ] One Case ran live to a verdict once, recorded on the task with the Run.
-
+- [ ] Owner admission and the source/layout committed prerequisites are recorded.
+- [ ] Mini Cases lower and executable evidence/bindings are checked through the actual consumer; unselected and protected outputs remain unchanged.
+- [ ] One Case ran live to a verdict, with its exact Case and Run recorded; any kit gap is named rather than hidden.
 
 ## Done summary
 TBD

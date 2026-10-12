@@ -8,6 +8,8 @@ import framework.Finite.given
 import framework.outcomes.Outcome
 import temporal.features.activity.Timeout
 import Bounds.{three, six}
+import framework.realize.Reason
+import temporal.realize.{satisfied, inconclusive}
 
 enum Phase(val status: Fact) extends Recorded[Fact]:
   case scheduled extends Phase(Fact.statusScheduled), Waiting
@@ -71,5 +73,7 @@ object ActivityProtocol
     val retryCompleted = witness(client.start(maxAttempts := MaxAttempts.two), activityWorker.poll,
       activityWorker.respondFailed(Failure.retryable), timers.backoff, activityWorker.poll,
       activityWorker.respondCompleted).records(Fact.statusCompleted).ends(_.attempts == 2).limits(six)
+      .live(inconclusive(Reason.explanationsDisagree,
+        because = "The first delivered attempt and final status do not establish the second delivery or retry backoff; explaining executions can disagree on the attempt count."))
     val protocolCompleted = witness(client.start(), activityWorker.poll, activityWorker.respondCompleted)
-      .records(Fact.statusCompleted).limits(three)
+      .records(Fact.statusCompleted).limits(three).live(satisfied)

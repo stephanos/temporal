@@ -1,26 +1,27 @@
 ---
-satisfies: [R5, R6, R7]
+satisfies: [R3, R5]
 ---
-# fn-166-mini-activity-a-small-complete-model-to.5 Loop under 90 s, migration as code, the mini feature as the guide's example
+# fn-166-mini-activity-a-small-complete-model-to.5 Held sweep: canonical mini loop and full-set closure
 
 ## Description
-Finish the proving ground: the measured loop, the convention by which a DSL change moves into the real features, and the guide written against the mini feature (R5, R6, R7).
+Completes R5 and the canonical consumer checks of R3 after Case/live proof, runnable migration infrastructure and settled target naming. Full-set currentness remains an owner-sweep obligation, outside the current mini-only source scope.
 
 **Size:** M
-**Files:** `Makefile` (`model` target stages and timing output; the `model-mini` alias from task 1), `model/.scalafix.conf` and a `model/migrations/` (or the scalafix rules folder the build already uses) for rewrite rules, `model/README.md`, `model/SEMANTICS.md`, `.flow/specs/fn-159-*.md` through `fn-165-*.md` (one sentence each)
-**Touches:** [Makefile, model/.scalafix.conf, model/migrations/**, model/README.md, model/SEMANTICS.md, .flow/specs/*.md]
+**Files:** Make model loop, Scala gate pipeline and focused stage/selection tests; authorized feature-scoped output receipts.
+**Touches:** [Makefile, model/check/**, model/temporal/features/activity_mini/generated/**, model/README.md]
 
 ### Approach
-- Loop: `make model FEATURES=activity_mini` runs compile, lift `features/activity_mini/generated/ir.json`, the Go checks on it, the syntax lint, then `git diff --stat model/temporal/features/activity_mini/generated/`, stopping at the first failure and printing stage times. Measure three warm runs and record them; the target is under 90 seconds. If the floor is the framework and lifter compile, record that against fn-141 rather than trimming the mini feature.
-- Migration as code: a location and naming for scalafix rewrite rules under the model build (one rule per DSL task that renames or reshapes a form), applied with the existing `make lint-model-*` fix route. Worked example: a throwaway rename proven on the mini feature (byte-identical IR after the rule) and applied to one real feature, then reverted. One sentence in the README and in each open DSL spec of the batch: a change is proven on the mini feature and ships its rule; a real feature is migrated by running the rule; a spec closes when the full set is current.
-- The guide: replace the hypothetical `job` in `model/SEMANTICS.md` with the mini feature, citing its files and lines for every snippet, so the gate compiles what the guide shows. The README's "Writing a Model" names `features/activity_mini` as the smallest complete feature, with the hard-instance table.
-- Run the full set once at the end so every real feature is reported current at this spec's close.
+- Admit only after the owner opens the canonical tooling/consumer sweep. Verify task 4, task 10 and task 7 closures committed in the current history. Retain existing task 2/task 6 dependencies as valid producers.
+- Preserve the exact R5 stage order, first-failure behavior and stage timings. Measure three warm canonical mini runs against the complete three-level feature; do not trim hard instances to meet the bound or credit the direct fallback as canonical Make.
+- Respect the current fn-166 Scope. Current DSL completion is judged on the mini feature; real-feature migration and full-set currentness happen only after the owner opens that sweep. Report behind real features honestly.
+- Before a full lint/currentness closure, verify fn-167.7's gap migration closure and any other required sweep producers in current history. Use a conductor admission check, not a whole-spec dependency that creates a cycle with task 10.
+- Broad validation and independent review run at the approved batch-end gate. Earlier failures, the task-3 NEEDS_WORK receipt and subsequent fixes remain in that review's evidence.
 
 ## Acceptance
-- [ ] `make model-mini` runs compile, lift, Go checks, lint and the IR diff in order, stops at the first failure, prints stage times, and completes in under 90 seconds with warm caches (three runs recorded on the task).
-- [ ] A scalafix rule location and naming exist under the model build with one worked example applied to the mini feature and a real feature; the README and each open DSL spec of the batch carry the one-sentence convention.
-- [ ] `model/SEMANTICS.md` uses the mini feature as its running example with file citations, and the README names it as the smallest complete feature.
-- [ ] A full-set `make model` reports every feature current.
+- [ ] Owner admission and the committed Case, infrastructure, naming and gap-migration prerequisites are recorded.
+- [ ] Three warm canonical mini loops run the required stages in order, stop at the first failure, print stage times and complete under 90 seconds. An overrun records its stage times and leaves R5 unmet.
+- [ ] The authorized mini consumer/gate checks pass; canonical prerequisite failures and deferred lint are never counted as passes.
+- [ ] When the owner opens the real-feature sweep, its separate migration/full-set currentness evidence is recorded; no current task alters real features or protected baselines without that authority.
 
 ## Done summary
 TBD

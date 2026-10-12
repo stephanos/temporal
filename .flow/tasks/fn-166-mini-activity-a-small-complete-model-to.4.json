@@ -5,13 +5,14 @@
   "created_at": "2026-10-11T17:43:02.429085Z",
   "depends_on": [
     "fn-166-mini-activity-a-small-complete-model-to.3",
-    "fn-166-mini-activity-a-small-complete-model-to.6"
+    "fn-166-mini-activity-a-small-complete-model-to.6",
+    "fn-166-mini-activity-a-small-complete-model-to.8"
   ],
   "id": "fn-166-mini-activity-a-small-complete-model-to.4",
   "priority": null,
   "spec": "fn-166-mini-activity-a-small-complete-model-to",
   "spec_path": ".flow/tasks/fn-166-mini-activity-a-small-complete-model-to.4.md",
   "status": "todo",
-  "title": "Mini activity: realization level and live witnesses",
-  "updated_at": "2026-10-11T18:47:40.118072Z"
+  "title": "Held sweep: mini Cases and live realization proof",
+  "updated_at": "2026-10-11T23:52:04.536469Z"
 }
