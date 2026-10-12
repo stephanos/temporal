@@ -15,7 +15,6 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad3/hostfs"
-	internalhostfs "go.temporal.io/server/tools/gomad3/internal/hostfs"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/target"
 	"go.temporal.io/server/tools/gomad3/volume"
@@ -339,7 +338,7 @@ type RetainedModule struct {
 // RetainedModuleFile reads a regular file without following symbolic links.
 func RetainedModuleFile(path, digest string) RetainedModule {
 	return RetainedModule{SHA256: digest, Copy: func(destination string) (retErr error) {
-		source, info, err := internalhostfs.OpenPath(path)
+		source, info, err := hostfs.OpenPath(path)
 		if err != nil {
 			return err
 		}
@@ -370,7 +369,7 @@ func materializeRetainedModule(module RetainedModule, digest, destination string
 	if err := module.Copy(destination); err != nil {
 		return fmt.Errorf("retained WASM module: %w", err)
 	}
-	f, info, err := internalhostfs.OpenPath(destination)
+	f, info, err := hostfs.OpenPath(destination)
 	if err != nil {
 		return err
 	}
