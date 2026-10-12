@@ -123,7 +123,7 @@ facet vocabularies are recorded in fn-161.
 | 3 | fn-162 | realizations name their Queries; claim containers removed |
 | 4 | fn-160 | layout and realization layer (.3/.4, done) |
 | 5 | fn-166.11-.13 | the change-scoped model loop (.11 done: the full lifter suite is green on the mini scope, 274/0 with 6 sweep-held skips, 972 s to 755 s): lifter suites scoped to what they lift, Make without held API generation, one diff-scoped check with an evidence record (owner, 2026-10-12) |
-| 6 | fn-169.1 | the Temporal-free framework: the DSL and generic export/check/migrate moved into `model/framework`, Temporal parts into `model/temporal`, build boundary enforced (owner, 2026-10-12) |
+| 6 | fn-169.1, .5 | the Temporal-free framework: the DSL and generic export/check/migrate moved into `model/framework`, then the one-file samples (Kettle, Bank, TwoPhaseCommit), Temporal parts into `model/temporal`, build boundary enforced (owner, 2026-10-12) |
 | 7 | fn-141 | lifter refactor (byte-identical lifts), pulled forward by the owner on 2026-10-12; fn-169.2's plug-in seam follows fn-141.8 |
 | 8 | fn-160 | Protocol level, flat `features/`, per-feature collection (.6/.7/.2) |
 | 9 | fn-163 | system/product capabilities, named system capabilities |
