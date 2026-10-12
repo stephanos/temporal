@@ -61,12 +61,10 @@ Real-feature sources and historical payloads stay behind for the owner's separat
 
 ## Open: Scala DSL work
 
-**The Scala batch is active again at the owner's request; fn-166's current source lane is complete.**
-Completed mini and qualification source checkpoints are integrated into local `umpire`; the earlier
-pre-mini batch stopped at fn-149.2. Flow records fn-149.6/.7 done on `w-1d`, but their closure commits
-are not yet integrated. At fn-149's boundary, reuse and verify that existing work within the current
-mini/shared scope rather than repeat it; real-only branch changes wait for the sweep. Close the
-earlier source-integrated tasks and resume the remaining work in dependency order.
+**The Scala batch is active at the owner's request; fn-166's source lane is complete.**
+Completed mini and qualification source checkpoints are integrated into local `umpire`, including
+fn-149's grouping source seal (.6/.7, merged from `w-1d`, with the mini claims grouped into `safety`
+and `liveness`). The remaining work resumes in dependency order.
 
 **Only the mini feature (owner, 2026-10-11).** Every spec below is scoped to `features/activity_mini`
 plus the framework, the lifter and the shared code:
@@ -368,15 +366,11 @@ shared gate/review/live proofs at fn-123.8; source results substitute for none o
 | Name | Status | What |
 | --- | --- | --- |
 | fn-149.3 | ⏸️ deferred (Go) | Reporting checkpoint integrated; focused classification, distinct bounds and safety/progress coexistence checks pass; full gates/review held |
-| fn-149.6 | ✅ Flow done; integration pending | Grouping implementation and source proof committed on `w-1d`; closure `82a13a81c0` is not yet integrated locally |
-| fn-149.7 | ✅ Flow done; integration pending | Docs/layout source seal committed on `w-1d`; closure `f029037ec1` is not yet integrated locally; integration releases fn-164 |
 | fn-149.4 | ⏸️ deferred (Go) | Original complete consumer behavior, Query/progress receipt, Case and expected/live-replay assessment proof; consumes .6 |
 | fn-149.5 | ⏸️ deferred | Consumer reporting docs and original integrated regeneration/gates/review/live closure; consumes .4/.7 at fn-123.8 |
 
-An earlier invocation stopped before .6 implementation, but a later `w-1d` invocation completed
-.6 and .7 with committed Flow receipts. Their source and closure commits remain outside the current
-branch and must be integrated with the fn-166 path/discovery changes before successor admission;
-the old baseline-only handover is not their final evidence. Later Scala tasks remain unstarted.
+The grouping source seal (.6/.7) is integrated into `umpire` with the mini claims grouped; the real
+features' grouping, already done by hand on `w-1d`, came with the merge and is proved at the sweep.
 Deferred .4 joins .1/.2/.3/.6; .5 joins .3/.4/.7.
 Heavy commands remain serialized. Composition progress belongs to fn-150, not this grouping change.
 
