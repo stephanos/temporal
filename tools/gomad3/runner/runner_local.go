@@ -249,7 +249,7 @@ func (local *localCampaign) prepareTarget() error {
 		}
 		local.config.Target.PreparationRoot = local.journal.PreparedPath()
 		local.prepared, err = local.config.prepareTarget(local.overallCtx, preparationRequest{
-			Target: local.config.Target, Environment: local.config.Environment, Preparer: local.config.Preparer, Provider: local.config.Backend,
+			Target: local.config.Target, Environment: recordedEnvironmentStrings(local.baseEnvironment), Preparer: local.config.Preparer, Provider: local.config.Backend,
 		})
 		if err != nil {
 			var failure *backend.PreparationError
@@ -526,7 +526,7 @@ func (local *localCampaign) handleCompletion(completion runCompletion) {
 		}
 		return
 	}
-	if err := local.config.Backend.ValidatePrepared(local.config.Target, local.prepared, local.config.Environment); err != nil {
+	if err := local.config.Backend.ValidatePrepared(local.config.Target, local.prepared, recordedEnvironmentStrings(local.baseEnvironment)); err != nil {
 		local.recordCompletion(campaign.CompletedUnclassified())
 		if local.hostFailure == nil {
 			local.hostFailure = &HostError{Reason: "prepared_target_integrity", Err: err}
@@ -858,7 +858,7 @@ func (local *localCampaign) finishSeedCampaign() error {
 			return &record.MissingSemanticProbesError{Probes: missing}
 		}
 	}
-	if err := local.config.Backend.ValidatePrepared(local.config.Target, local.prepared, local.config.Environment); err != nil {
+	if err := local.config.Backend.ValidatePrepared(local.config.Target, local.prepared, recordedEnvironmentStrings(local.baseEnvironment)); err != nil {
 		return &HostError{Reason: "prepared_target_integrity", Err: err}
 	}
 	if err := local.overallCtx.Err(); err != nil {

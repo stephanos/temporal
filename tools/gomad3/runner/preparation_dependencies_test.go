@@ -94,7 +94,7 @@ func TestPreparationDependenciesForwardRealFixtureInputs(t *testing.T) {
 	dependencies.prepare = func(ctx context.Context, request preparationRequest) (target.Prepared, error) {
 		want := config.Target
 		want.PreparationRoot = filepath.Join(campaignPath, ".prepared")
-		if !reflect.DeepEqual(request.Target, want) || !slices.Equal(request.Environment, config.Environment) || request.Preparer != preparer || request.Provider != config.Backend {
+		if !reflect.DeepEqual(request.Target, want) || !preparationEnvironmentIsEffective(request.Environment, config.Environment) || request.Preparer != preparer || request.Provider != config.Backend {
 			t.Fatalf("preparation inputs = %#v; want %#v", request, want)
 		}
 		if ctx.Err() != nil {
@@ -229,4 +229,15 @@ func TestPreparationDependenciesKeepRealDefaultsAndBootstrapGuard(t *testing.T) 
 			}
 		})
 	}
+}
+
+// Preparation validates against the effective recorded environment: every
+// requested entry plus the Runner-owned I/O profile.
+func preparationEnvironmentIsEffective(effective, requested []string) bool {
+	for _, entry := range requested {
+		if !slices.Contains(effective, entry) {
+			return false
+		}
+	}
+	return slices.ContainsFunc(effective, func(entry string) bool { return strings.HasPrefix(entry, "GOMAD3_IO_PROFILE=") })
 }

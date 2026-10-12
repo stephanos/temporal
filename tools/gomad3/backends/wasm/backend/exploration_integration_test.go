@@ -270,3 +270,14 @@ func TestWASMChoiceCampaignFuelCapacityIsNotApplicationFailure(t *testing.T) {
 		t.Fatalf("fuel capacity fabricated a guest exit: %v", err)
 	}
 }
+
+func TestWASMCooperativeCampaignWithExplicitEnvironment(t *testing.T) {
+	provider := explorationProvider(t)
+	spec := explorationSpec(t, provider, strings.Replace(explorationGuest, `if a == 1 && b == 1 { os.Exit(17) }`, `if os.Getenv("GOMAD_ENV_PROBE") != "set" { os.Exit(3) }`, 1))
+	spec.Strategy, spec.Parallel, spec.MaxExecutions, spec.MaxChoiceDepth, spec.MaxExplorationBytes = runner.StrategySeed, 1, 0, 0, 0
+	spec.Environment = []string{"GOMAD_ENV_PROBE=set"}
+	result, err := runner.Explore(t.Context(), spec)
+	if err != nil || result.Attempted != 1 || result.Succeeded != 1 {
+		t.Fatalf("cooperative campaign with an explicit environment: %+v err=%v", result, err)
+	}
+}

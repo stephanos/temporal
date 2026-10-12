@@ -125,7 +125,7 @@ func createCampaignPlanWith(ctx context.Context, spec CampaignPlanSpec, dependen
 	}
 	config.Target.PreparationRoot = bundle
 	prepared, err := config.prepareTarget(ctx, preparationRequest{
-		Target: config.Target, Environment: config.Environment, Preparer: config.Preparer, Provider: config.Backend,
+		Target: config.Target, Environment: recordedEnvironmentStrings(environment), Preparer: config.Preparer, Provider: config.Backend,
 	})
 	if err != nil {
 		return CampaignPlanResult{}, err
@@ -148,7 +148,7 @@ func createCampaignPlanWith(ctx context.Context, spec CampaignPlanSpec, dependen
 		return CampaignPlanResult{}, fmt.Errorf("make campaign target immutable: %w", err)
 	}
 	prepared.Path = targetPath
-	if err := config.Backend.ValidatePrepared(config.Target, prepared, config.Environment); err != nil {
+	if err := config.Backend.ValidatePrepared(config.Target, prepared, recordedEnvironmentStrings(environment)); err != nil {
 		return CampaignPlanResult{}, err
 	}
 	if err := materializeCampaignPlanMounts(bundle, capturedMounts); err != nil {

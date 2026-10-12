@@ -196,7 +196,7 @@ func runSimulationExplorationLocal(
 			return &record.MissingSemanticProbesError{Probes: evidence.MissingRequiredProbes}
 		}
 	}
-	if err := config.Backend.ValidatePrepared(config.Target, prepared, config.Environment); err != nil {
+	if err := config.Backend.ValidatePrepared(config.Target, prepared, recordedEnvironmentStrings(baseEnvironment)); err != nil {
 		return &HostError{Reason: "prepared_target_integrity", Err: err}
 	}
 	if err := ctx.Err(); err != nil {
@@ -301,7 +301,7 @@ func processSimulationExplorationCompletion(
 	if err := ctx.Err(); err != nil {
 		return simulationExplorationRoundResult{}, &HostError{Reason: contextFailureReason(err), Err: err}
 	}
-	if err := config.Backend.ValidatePrepared(config.Target, prepared, config.Environment); err != nil {
+	if err := config.Backend.ValidatePrepared(config.Target, prepared, recordedEnvironmentStrings(baseEnvironment)); err != nil {
 		return simulationExplorationRoundResult{}, &HostError{Reason: "prepared_target_integrity", Err: err}
 	}
 	candidate := round.Candidates[index]
