@@ -572,6 +572,7 @@ final private[irgen] class Order(index: Index):
         )
     case Query extends Kind("a Query", "the `queries` object of its machine's object")
     case File extends Kind("an IR file", "`object exports`")
+    case Capability extends Kind("a capability", "the `capabilities` object of its facet")
 
   private val iterable = Symbol.requiredClass("scala.collection.Iterable")
   private val option = Symbol.requiredClass("scala.Option")
@@ -596,11 +597,13 @@ final private[irgen] class Order(index: Index):
             one(Kind.Watch)
           case "framework.Machine" | "framework.Composition" =>
             one(Kind.Machine)
-          case "framework.Property"                                          => one(Kind.Claim)
-          case "framework.Progress"                                          => one(Kind.Progress)
-          case "framework.Scenario"                                          => one(Kind.Scenario)
-          case "framework.Query" | "framework.Witness"                       => one(Kind.Query)
-          case "framework.IrFile"                                            => one(Kind.File)
+          case "framework.Property"                    => one(Kind.Claim)
+          case "framework.Progress"                    => one(Kind.Progress)
+          case "framework.Scenario"                    => one(Kind.Scenario)
+          case "framework.Query" | "framework.Witness" => one(Kind.Query)
+          case "framework.IrFile"                      => one(Kind.File)
+          case _ if w.baseClasses.exists(_.fullName == "framework.CapabilityOf") =>
+            one(Kind.Capability)
           case _ if w.baseClasses.exists(_.fullName == "framework.Property") =>
             one(Kind.Claim)
           case _ if w.baseClasses.exists(_.fullName == "framework.Progress") =>
@@ -842,6 +845,9 @@ final private[irgen] class Order(index: Index):
 
     // (d): the top level declares no Model; a machine object and its sections hold them.
     for d <- declared do
+      d match
+        case c: ClassDef if facetTrait(c.symbol) => facet(c)
+        case _                                   => ()
       objectOf(d) match
         // A section of a machine object's name sits in it, not at the top level (R17).
         case Some(c) if sectionNamed(c).nonEmpty =>
@@ -869,6 +875,49 @@ final private[irgen] class Order(index: Index):
               d,
               s"${d.name} is ${k.written}, declared at the top level of a feature file: it " +
                 s"belongs in ${k.belongs}"
+            )
+
+  private val facetClass = Symbol.requiredClass("framework.Facet")
+  private def facetTrait(s: Symbol): Boolean =
+    s.isClassDef && s.flags.is(Flags.Trait) && s.typeRef.derivesFrom(facetClass)
+
+  private def facet(c: ClassDef): Unit =
+    val namespace = plain(c.name).take(1).toLowerCase + plain(c.name).drop(1)
+    def action(d: Definition): Unit = d match
+      case v: ValDef
+          if v.tpt.tpe.widen.dealias.baseClasses.exists(_.fullName == "framework.Action") =>
+        refuse(
+          v,
+          s"${v.name} declares an action inside facet ${c.name}: actions belong in the feature's signature, grouped by their actor"
+        )
+      case _ => ()
+    for member <- members(c) do
+      objectOf(member) match
+        case Some(o) if plain(o.name) == namespace =>
+          for d <- members(o) do
+            action(d)
+            objectOf(d) match
+              case Some(s) if sectionNamed(s).nonEmpty =>
+                section(o, s)
+                members(s).foreach(action)
+              case Some(s) => noModelIn(s, s"facet ${c.name}.$namespace")
+              case None    =>
+                for k <- kindOf(d) do
+                  refuse(
+                    d,
+                    s"${d.name} is ${k.written} outside the sections of facet ${c.name}: it belongs in ${k.belongs}"
+                  )
+        case Some(o) =>
+          refuse(
+            o,
+            s"${plain(o.name)} sits outside the namespace of facet ${c.name}: its sections belong in object $namespace"
+          )
+        case None =>
+          action(member)
+          for k <- kindOf(member) do
+            refuse(
+              member,
+              s"${member.name} is ${k.written} outside the sections of facet ${c.name}: it belongs in ${k.belongs}"
             )
 
   // A machine or composition object (R2, R15, R17): its header, then its sections in order, its
@@ -980,7 +1029,7 @@ final private[irgen] class Order(index: Index):
       case "properties" if propertyGroup && plain(s.name) == "safety" => Set(Kind.Claim)
       case "properties" if propertyGroup                              => Set(Kind.Progress)
       case "properties"            => Set(Kind.Claim, Kind.Progress)
-      case "capabilities"          => Set.empty // capabilities and waivers
+      case "capabilities"          => Set(Kind.Capability)
       case "states" | "refinement" =>
         Set.empty // vocabulary, and the machine's refinement
       case _ => Set(Kind.Scenario, Kind.Query)

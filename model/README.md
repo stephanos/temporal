@@ -1544,6 +1544,19 @@ facet's sections were written in it, in facet order (model/SEMANTICS.md, Machine
 outcomes and facts are those of the same machine written as one object; only function names,
 positions and the order the machine binds its actions in (facet order) differ.
 
+Core form: the machine's rules, effects and capabilities are the union of its facets' sections,
+in the order listed, including capability waivers and overrides. Effect identity is qualified:
+`pressing.effects.settle` and `breaking.effects.settle` may reuse the local name `settle`.
+Contributors exposing the same namespace collide in the assembled Scala type and do not compile.
+Native rule provenance comes from the declaration's enclosing facet trait and namespace; passing
+an ordinary RuleBook to `Facets` is refused even if its object name looks like a facet. Ordinary,
+timer, fault and disabled bindings all participate in ownership diagnostics.
+
+The order lint checks the sections inside each facet namespace as it checks machine sections:
+effects belong in `effects`, rules in `rules`, capabilities in `capabilities`, and actions in the
+feature's signature. `FacetCapabilities` at the machine lists sections only; its own body declares
+no capability or waiver. Core `Bindings` in a declared machine does not bypass `facets-only`.
+
 Two lifter rules hold every Temporal Model (`model/irgen/Switches.scala`; `UMPIRE_LIFT_RULES` turns
 them on for a fixture's run):
 
@@ -1553,8 +1566,10 @@ them on for a fixture's run):
 - `facet-vocabulary`: each feature file names the facets of its levels once, `enum FacetName: case
   completion, pausing, ...`; every facet's object takes its name from it, a level holds only the
   facets it needs, and an action bound at both the Product and the Protocol level is owned by the
-  same-named facet at both. A design subject with a state type of its own (`AdmissionState`) is a
-  model beside its level, and its facets are its own.
+  same-named facet at both. The explicit refinement between primary Product/Protocol declarations
+  establishes this pairing even when the states are named `QueueView` and `QueueDetail`. A separate
+  design subject beside its level with a state type of its own (`AdmissionState`) keeps its own
+  facets; a state basename alone neither establishes nor waives a pairing.
 
 ### Capabilities and their Properties
 

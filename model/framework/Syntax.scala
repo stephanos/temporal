@@ -682,9 +682,14 @@ object Phased extends Inherited.Unphased:
 // an expanded one loudly ("not a rule") rather than lift it.
 abstract class Rules[S, O, F, P](using
     owner: Owner[S, O, F],
-    phasing: Phasing[S, ? <: P]
+    phasing: Phasing[S, ? <: P],
+    source: FacetSource
 ) extends RuleBook[S, O, F]:
+  override private[framework] def facetSource: Option[String] = source.facet
+  override private[framework] def sectionName: String = source.section
+  override private[framework] def actionName(decl: ActionDecl): String = names(decl)
   private val phase: S => P = phasing.projection
+  private val names = mutable.Map.empty[ActionDecl, String]
   private val written = mutable.ArrayBuffer.empty[Rule[S, O, F]]
   private val never = mutable.ArrayBuffer.empty[ActionDecl]
   private val order = mutable.LinkedHashSet.empty[ActionDecl]
@@ -701,6 +706,7 @@ abstract class Rules[S, O, F, P](using
       code: String
   )(cases: Firing[S, O, F, I] ?=> Unit): Unit =
     val action = writtenAction(code)
+    names(decl) = action
     require(
       writtenPath(code).contains('.'),
       s"on($action) names its action bare: name it through the object that declares it, " +
@@ -917,17 +923,17 @@ abstract class Rules[S, O, F, P](using
   // Actions no state enables, which the machine binds all the same, such as a courier's strike it does
   // not feel. Core form: `action ~> (_ => Nil)`.
   inline def disabled(inline actions: Action[?]*): Unit =
-    RuleSource.disabled(actions)
-    disable(actions*)
+    disable(RuleSource.disabled(actions), actions*)
 
-  private[framework] def disable(actions: Action[?]*): Unit =
-    for a <- actions do
+  private[framework] def disable(labels: Vector[String], actions: Action[?]*): Unit =
+    for (a, label) <- actions.zip(labels) do
       require(
         !never.contains(a.decl) && !written.exists(_.decl == a.decl),
         "an action is disabled twice, or disabled and bound by a rule"
       )
       never += a.decl
       order += a.decl
+      names(a.decl) = label
 
   // `phase.in(a, b)` in a condition, as outside the rules. Core form: `List(a, b).contains(phase)`.
   extension [A](value: A) def in(first: A, rest: A*): Boolean = (first +: rest).contains(value)

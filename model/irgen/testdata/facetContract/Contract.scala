@@ -49,16 +49,20 @@ trait Breaking extends Facet[State, Outcome, Fact], Phased[State, Phase]:
         when(Phase.on) ~> effects.settle
       }
 
-object Faceted extends Machine[State, Outcome, Fact],
-    Phased[State, Phase](_.phase, (s, p) => s.copy(phase = p)), Pressing, Breaking:
+object Faceted
+    extends Machine[State, Outcome, Fact],
+      Phased[State, Phase](_.phase, (s, p) => s.copy(phase = p)),
+      Pressing,
+      Breaking:
   val init = State(Phase.off)
   object rules extends Facets(pressing.rules, breaking.rules)
   object capabilities extends FacetCapabilities(pressing.capabilities)
   object queries:
     capabilities.bound(two)
 
-object Whole extends Machine[State, Outcome, Fact],
-    Phased[State, Phase](_.phase, (s, p) => s.copy(phase = p)):
+object Whole
+    extends Machine[State, Outcome, Fact],
+      Phased[State, Phase](_.phase, (s, p) => s.copy(phase = p)):
   val init = State(Phase.off)
   object effects:
     def press(s: State) = enter[State, Outcome, Fact](s.copy(phase = Phase.on), Fact.changed)

@@ -817,6 +817,21 @@ its facets once, `enum FacetName`, and an action bound at both levels is owned b
 facet at both). What stays machine-wide: phases, `State`, `init`, `end`, the projection, the
 refinement, monitors and whole-feature claims.
 
+Core form: the machine's sections are the union of its listed facets' sections in listed order,
+including capability waivers and overrides. Qualified effect paths identify effects: two distinct
+namespaces may both declare `effects.settle`; exposing one namespace twice conflicts in Scala.
+Native aggregation checks the rule declaration's enclosing facet rather than guessing from a JVM
+class name. It refuses ordinary non-facet rule books and duplicate ordinary, timer, fault or
+disabled owners with the actual action and facet names; the lifter checks ownership independently.
+
+Each recognized level file has one facet named after its file, and the facet namespace's sections
+obey the usual declaration places. Actions remain in the signature. Machine `FacetCapabilities`
+lists facet sections and has no capability or waiver declarations of its own. A declared machine's
+core `Bindings` is refused by `facets-only`; derived machines and compositions retain their
+exemption. Paired primary levels are checked through their explicit refinement even with state
+types named `QueueView`/`QueueDetail`. A separate design subject with its own state keeps its
+own facets; the spelling of a state type alone cannot decide pairing.
+
 ## 16. Capabilities
 
 **Meaning.** A capability binds a reusable protocol to one machine's vocabulary: which outcome

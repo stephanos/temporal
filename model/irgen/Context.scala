@@ -319,7 +319,15 @@ final private[irgen] class Context(val index: Index):
     finally placedAt = was
 
   def where(t: Tree): String = s"${written(t).file}:${written(t).line}"
-  def fail(t: Tree, message: String): Nothing = throw LiftError(where(t), message)
+  def fail(t: Tree, message: String): Nothing =
+    val section = Iterator
+      .iterate(t.symbol)(_.maybeOwner)
+      .takeWhile(!_.isNoSymbol)
+      .find(s => facetObject(s.maybeOwner))
+    val context = section.fold("")(s =>
+      s"facet ${s.maybeOwner.name.stripSuffix("$")}.${s.name.stripSuffix("$")}: "
+    )
+    throw LiftError(where(t), context + message)
 
   // ### Names taken from vals, and the Definition IDs symbol-based declarations take
 

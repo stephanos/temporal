@@ -195,6 +195,25 @@ private[irgen] trait Capabilities:
   private lazy val declaringClass = Symbol.requiredClass("framework.Declaring")
   private lazy val facetCapabilitiesClass = Symbol.requiredClass("framework.FacetCapabilities")
 
+  def facetCapabilityPlacement(c: ClassDef): Unit =
+    for s <- statements(c) do
+      val declaration = s match
+        case v: ValDef =>
+          !v.symbol.flags.is(Flags.ParamAccessor) && !v.symbol.flags.is(Flags.Module)
+        case t: Term => sectionWaiver(t).nonEmpty
+        case _       => false
+      if declaration then
+        fail(
+          s,
+          s"${c.name.stripSuffix("$")} declares capabilities or waivers outside its facets: a machine's FacetCapabilities lists facet sections alone"
+        )
+    for
+      parent <- c.parents.collectFirst { case t: Term => t }
+      base = parent.symbol.maybeOwner
+      if parent.symbol.isClassConstructor && base != facetCapabilitiesClass &&
+        base.typeRef.derivesFrom(facetCapabilitiesClass)
+    do facetCapabilityPlacement(objectBody(base, parent))
+
   // Whether a symbol names a `capabilities` section, `object capabilities extends Capabilities`.
   def capabilitiesObject(sym: Symbol): Boolean =
     val cls = moduleClassOf(sym)
@@ -243,6 +262,11 @@ private[irgen] trait Capabilities:
   // the machine's types, which no member reads.
   private def membersOf(c: ClassDef, env: Map[Symbol, Decl]): Members =
     val name = c.name.stripSuffix("$")
+    if c.symbol.typeRef.derivesFrom(facetCapabilitiesClass) &&
+      Switches.facetsOnly(c.symbol.fullName) && objectForm(c.symbol.maybeOwner) &&
+      !c.symbol.maybeOwner.typeRef.derivesFrom(derivedClass) &&
+      !c.symbol.maybeOwner.typeRef.derivesFrom(compositionClass)
+    then facetCapabilityPlacement(c)
     val own = statements(c).foldLeft(Members(Nil, Nil, env)) { (m, s) =>
       s match
         case v: ValDef if v.symbol.flags.is(Flags.ParamAccessor) => m

@@ -154,35 +154,57 @@ class FacetsTest extends munit.FunSuite:
           object rules extends Rules:
             kind match
               case "ordinary" => on(targets.ordinary)(when(Lit.off) ~> enters(Lit.on))
-              case "timer" => on(targets.tick)(when(Lit.off) ~> enters(Lit.on))
-              case "fault" => on(targets.fault)(when(Lit.off) ~> enters(Lit.on))
-              case _ => disabled(targets.ordinary)
+              case "timer"    => on(targets.tick)(when(Lit.off) ~> enters(Lit.on))
+              case "fault"    => on(targets.fault)(when(Lit.off) ~> enters(Lit.on))
+              case _          => disabled(targets.ordinary)
       trait Second extends Facet[Lamp, Said, Note], Phased[Lamp, Lit]:
         object second:
           object rules extends Rules:
             kind match
               case "ordinary" => on(targets.ordinary)(when(Lit.on) ~> enters(Lit.off))
-              case "timer" => on(targets.tick)(when(Lit.on) ~> enters(Lit.off))
-              case "fault" => on(targets.fault)(when(Lit.on) ~> enters(Lit.off))
-              case _ => disabled(targets.ordinary)
-      object Duplicate extends Machine[Lamp, Said, Note], Phased[Lamp, Lit](_.light,
-          (s, p) => s.copy(light = p)), First, Second:
+              case "timer"    => on(targets.tick)(when(Lit.on) ~> enters(Lit.off))
+              case "fault"    => on(targets.fault)(when(Lit.on) ~> enters(Lit.off))
+              case _          => disabled(targets.ordinary)
+      object Duplicate
+          extends Machine[Lamp, Said, Note],
+            Phased[Lamp, Lit](_.light, (s, p) => s.copy(light = p)),
+            First,
+            Second:
         val init = Lamp(Lit.off, UpTo(0))
         object rules extends Facets(first.rules, second.rules)
-      val actionName = if kind == "timer" then "tick" else if kind == "fault" then "fault" else "ordinary"
+      val actionName =
+        if kind == "timer" then "tick" else if kind == "fault" then "fault" else "ordinary"
       val error = intercept[IllegalArgumentException](Duplicate.bindings)
-      assertEquals(error.getMessage,
-        s"$actionName is bound by the facets first and second: an action belongs to one facet, which holds all its rules")
+      assertEquals(
+        error.getMessage,
+        s"$actionName is bound by the facets first and second: an action belongs to one facet, which holds all its rules"
+      )
 
-  test("Facets refuses an actual non-facet RuleBook despite a facet-looking object name"):
-    object Unowned extends Machine[Lamp, Said, Note], Phased[Lamp, Lit](_.light):
-      val init = Lamp(Lit.off, UpTo(0))
-      object pressing:
-        object rules extends Rules:
-          disabled(hand.press)
-      object rules extends Facets(pressing.rules)
-    val error = intercept[IllegalArgumentException](Unowned.bindings)
-    assert(error.getMessage.contains("pressing.rules") && error.getMessage.contains("not a facet"), error.getMessage)
+  for kind <- List("ordinary", "timer", "fault", "disabled") do
+    test(s"Facets refuses unowned $kind rules despite a facet-looking object name"):
+      object targets:
+        val ordinary = action(Actor("caller"))
+        val tick = timer
+        val fault = action(Actor("fault"))
+      object Unowned extends Machine[Lamp, Said, Note], Phased[Lamp, Lit](_.light):
+        val init = Lamp(Lit.off, UpTo(0))
+        object pressing:
+          object rules extends Rules:
+            kind match
+              case "ordinary" =>
+                on(targets.ordinary)(always ~> ((s: Lamp) => stay[Lamp, Said, Note](s)))
+              case "timer" => on(targets.tick)(always ~> ((s: Lamp) => stay[Lamp, Said, Note](s)))
+              case "fault" => on(targets.fault)(always ~> ((s: Lamp) => stay[Lamp, Said, Note](s)))
+              case _       => disabled(targets.ordinary)
+        object rules extends Facets(pressing.rules)
+      val error = intercept[IllegalArgumentException](Unowned.bindings)
+      assert(
+        error.getMessage.contains("pressing.rules") && error.getMessage.contains("not a facet"),
+        error.getMessage
+      )
+      val expected =
+        if kind == "timer" then "tick" else if kind == "fault" then "fault" else "ordinary"
+      assert(error.getMessage.contains(s"$expected has no owning facet"), error.getMessage)
 
   test("distinct namespaces may repeat an effect name; a shared exposed namespace collides"):
     val valid = compileErrors("""trait A extends Facet[Lamp, Said, Note]:
@@ -215,4 +237,9 @@ object Both extends Machine[Lamp, Said, Note], A, B:
   object rules extends Facets()
 val _ = Both.shared.effects.settle(Both.init)
 """)
-    assert(collided.contains("object shared") && collided.contains("cannot override final member object shared"), collided)
+    assert(
+      collided.contains("object shared") && collided.contains(
+        "cannot override final member object shared"
+      ),
+      collided
+    )

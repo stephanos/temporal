@@ -3,13 +3,13 @@ package framework
 import scala.collection.mutable
 
 // A facet: one behaviour area of one feature's machine at one level, named as a noun for what
-// happens (`Pausing`, `Cancellation`), distinct from a capability, a cross-Temporal contract named
+// happens (`Pausing`, `Cancellation`), distinct from a capability, a reusable contract named
 // as an adjective for what an entity can be (`Holdable`), which a facet declares. A facet owns the
-// actions it binds: their rules, the effects those rules use and, beside it in its file, the claims
+// actions it binds: their rules, the effects those rules use and the claims inside its namespace
 // that check them. The machine stays one machine, assembled from its facets.
 //
 // A facet is a trait the machine object mixes in, in its own file named after it, holding one object
-// named after it whose members are its sections, `effects` and `rules` (model/README.md, "Facets"):
+// named after it whose members are its sections (model/README.md, "Facets"):
 //
 // {{{
 // trait Pausing extends Facet[State, Outcome, Fact], Phased[State, Phase]:
@@ -52,12 +52,15 @@ abstract class Facets[S, O, F](using
   private[framework] lazy val table: Vector[(ActionDecl, Bound[S, O, F])] =
     val owners = mutable.LinkedHashMap.empty[ActionDecl, String]
     facets.toVector.flatMap { rules =>
-      val facet = Facets.nameOf(rules)
+      val facet = rules.facetSource.getOrElse(
+        throw IllegalArgumentException(
+          s"${rules.sectionName} is not a facet's rules: Facets lists the rules declared in its facets"
+            + s"; ${rules.table.map((decl, _) => rules.actionName(decl)).mkString(", ")} has no owning facet"
+        )
+      )
       rules.table.map { (decl, bound) =>
         for other <- owners.get(decl) do
-          val action = bound match
-            case Bound.Ruled(rs) if rs.nonEmpty => rs.head.action
-            case _                              => "an action"
+          val action = rules.actionName(decl)
           throw IllegalArgumentException(
             s"$action is bound by the facets $other and $facet: an action belongs to one facet, " +
               "which holds all its rules"
@@ -66,17 +69,6 @@ abstract class Facets[S, O, F](using
         decl -> bound
       }
     }
-
-object Facets:
-  // The facet a facet's `rules` belongs to: the object named after the facet that holds it.
-  private[framework] def nameOf(rules: AnyRef): String =
-    rules.getClass.getName
-      .split('$')
-      .filter(_.nonEmpty)
-      .reverse
-      .drop(1)
-      .headOption
-      .getOrElse("?")
 
 // A machine's capabilities assembled from its facets' `capabilities` sections, in the order listed:
 // each facet's vals and waivers are the section's, so the machine's Queries bound them as one

@@ -11,7 +11,7 @@ private[framework] object RuleSource:
   ): Unit =
     ${ qualifiedImpl('target, 'form, 'declarer, 'index) }
 
-  inline def disabled(inline targets: Seq[Action[?]]): Unit = ${ disabledImpl('targets) }
+  inline def disabled(inline targets: Seq[Action[?]]): Vector[String] = ${ disabledImpl('targets) }
 
   inline def imports(inline body: Unit): String = ${ importsImpl('body) }
 
@@ -49,13 +49,15 @@ private[framework] object RuleSource:
     val owner = actionOwner(target.asTerm).fold(declarer)(Expr(_))
     '{ validate(${ Expr(source) }, ${ Expr(location) }, $form, $owner) }
 
-  private def disabledImpl(targets: Expr[Seq[Action[?]]])(using Quotes): Expr[Unit] =
+  private def disabledImpl(targets: Expr[Seq[Action[?]]])(using Quotes): Expr[Vector[String]] =
     targets match
       case Varargs(values) =>
-        values.zipWithIndex.foldRight('{ () }) { (entry, rest) =>
+        val spelling = quotes.reflect.Position.ofMacroExpansion.sourceCode.getOrElse("")
+        val labels = arguments(spelling).map((text, _) => writtenAction(text))
+        values.zipWithIndex.foldRight('{ Vector.empty[String] }) { (entry, rest) =>
           val (target, index) = entry
           val checked = qualifiedImpl(target, Expr("disabled"), Expr("<declarer>"), Expr(index))
-          '{ $checked; $rest }
+          '{ $checked; ${ Expr(labels(index)) } +: $rest }
         }
       case _ => quotes.reflect.report.errorAndAbort("disabled targets must be written at the call")
 

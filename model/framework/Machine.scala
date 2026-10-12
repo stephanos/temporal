@@ -245,6 +245,9 @@ final class Declaring[S, O, F] private[framework] (val model: Declares[S])
 // writes; a derivation keeps what it makes as built, and the core `Bindings` binds step functions.
 abstract class RuleBook[S, O, F]:
   private[framework] def table: Vector[(ActionDecl, Bound[S, O, F])]
+  private[framework] def facetSource: Option[String] = None
+  private[framework] def sectionName: String = "<rules>"
+  private[framework] def actionName(decl: ActionDecl): String = decl.toString
 
 // A machine's rules in the core: one step function per action, bound by hand,
 // `object rules extends Bindings(clerk.ship ~> shipStep, courier.strike ~> (_ => Nil))`, which is

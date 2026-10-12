@@ -521,7 +521,7 @@ private[irgen] trait Declarations:
             "which its rules are lifted from"
         )
       // fn-161 R8, switched (Switches): a declared machine's effects and rules sit in its facets.
-      if Switches.facetsOnly(cls.fullName) && !core then
+      if Switches.facetsOnly(cls.fullName) then
         for e <- sectionOf(c, "effects") do
           fail(
             e,
@@ -546,6 +546,7 @@ private[irgen] trait Declarations:
               "capabilities` of the facet that owns its actions, and the machine lists them, " +
               "`object capabilities extends FacetCapabilities(pausing.capabilities, ...)`"
           )
+        for section <- sectionOf(c, "capabilities") do facetCapabilityPlacement(section)
       val facetEffects = facetRules(name, rules).flatMap((_, r) =>
         sectionOf(objectBody(r.symbol.maybeOwner, r), "effects")
       )
@@ -565,9 +566,14 @@ private[irgen] trait Declarations:
           liftingMachine = Some(cls)
           try ruleSteps(name, typeRef(s, c), rules, c.symbol)
           finally liftingMachine = outer
-      // A design subject with a state of its own (`AdmissionState`), rather than its level's `State`,
-      // is a model of its own beside the level, so its facets are its own.
-      if Switches.facetVocabulary(cls.fullName) && s.dealias.typeSymbol.name == "State" then
+      val paired = refined.refines.flatMap(r => machineNamed(r.product)).exists { product =>
+        product.stateType == declared.stateType || (
+          (declared.family.endsWith(".protocol") || declared.family.endsWith(".system")) &&
+            product.family.endsWith(".product") &&
+            Set("Protocol.scala", "System.scala")(c.pos.sourceFile.name)
+        )
+      }
+      if Switches.facetVocabulary(cls.fullName) && paired then
         sameFacets(name, refined.refines.map(_.product), c)
       val folded = inferredEntity(watched.addAllSteps(steps), c)
       val m = finished(folded, f, c, visible.toSeq, visibleOutcomes.toSeq)
@@ -706,10 +712,10 @@ private[irgen] trait Declarations:
                 qualified(a, machine, within, "disabled")
                 if within.nonEmpty then fail(t, notRule(machine, t, within))
                 val id = action(a)
+                owned(id, a)
                 if off(id) || written.exists(_.action == id)
                 then
                   fail(a, s"${actions(id).name} is disabled twice, or disabled and fired by a rule")
-                owned(id, a)
                 off += id
                 order.getOrElseUpdate(id, a): Unit
             case _ =>
@@ -796,10 +802,27 @@ private[irgen] trait Declarations:
           val cls = moduleClassOf(unwrapped(a).symbol)
           val facet = cls.maybeOwner
           if !(cls.name.stripSuffix("$") == "rules" && facetObject(facet)) then
+            val unowned =
+              if cls.isNoSymbol then Nil
+              else
+                statements(objectBody(cls, a)).collect { case t: Term => t }.flatMap { t =>
+                  call(t) match
+                    case Some(("on", List(targets, _))) =>
+                      targets.map { target =>
+                        val id = if isNamed(unwrapped(target).tpe, "framework.Class") then
+                          classOf(unwrapped(target)).action
+                        else action(target)
+                        actions(id).name
+                      }
+                    case Some(("disabled", List(List(targets)))) =>
+                      varargs(targets).map(target => actions(action(target)).name)
+                    case _ => Nil
+                }
             fail(
               a,
               s"$machine's Facets lists ${a.show}: it lists the rules of its facets, " +
-                "`Facets(pausing.rules, ...)`, each the `object rules` of a facet's object"
+                "`Facets(pausing.rules, ...)`, each the `object rules` of a facet's object" +
+                s"; ${unowned.mkString(", ")} has no owning facet"
             )
           val name = facet.name.stripSuffix("$")
           val written = facet.maybeOwner.name

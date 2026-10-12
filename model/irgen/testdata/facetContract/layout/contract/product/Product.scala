@@ -11,8 +11,10 @@ enum Fact:
 final case class QueueView(phase: Phase)
 type State = QueueView
 
-object ContractProduct extends Machine[QueueView, Outcome, Fact],
-    Phased[QueueView, Phase](_.phase, (s, p) => s.copy(phase = p)), Pressing:
+object ContractProduct
+    extends Machine[QueueView, Outcome, Fact],
+      Phased[QueueView, Phase](_.phase, (s, p) => s.copy(phase = p)),
+      Pressing:
   val init = QueueView(Phase.off)
   object rules extends Facets(pressing.rules)
   object properties:
