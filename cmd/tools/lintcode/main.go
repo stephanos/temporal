@@ -87,7 +87,7 @@ func lint(ctx context.Context, base, module, tags string) error {
 	if module != "" {
 		selected[module] = true
 	} else {
-		selected, changedDirs, err = policy.selectChanges(ctx, root, base, modules)
+		selected, changedDirs, err = policy.selectChanges(ctx, root, base, modules, sources)
 		if err != nil {
 			return err
 		}
@@ -131,9 +131,15 @@ func (p ownership) sources(root string, paths, modules []string) ([]source, erro
 	return sources, nil
 }
 
-func (p ownership) selectChanges(ctx context.Context, root, base string, modules []string) (selected, changedDirs map[string]bool, err error) {
+func (p ownership) selectChanges(ctx context.Context, root, base string, modules []string, sources []source) (selected, changedDirs map[string]bool, err error) {
 	selected = map[string]bool{}
 	changedDirs = map[string]bool{}
+	surviving := map[string]source{}
+	for _, entry := range sources {
+		if entry.disposition == "" {
+			surviving[filepath.ToSlash(filepath.Dir(entry.path))] = entry
+		}
+	}
 	changed, err := gitPaths(ctx, root, "diff", "--no-renames", "--name-only", "-z", base, "--", "*.go")
 	if err != nil {
 		return nil, nil, err
@@ -143,6 +149,16 @@ func (p ownership) selectChanges(ctx context.Context, root, base string, modules
 		return nil, nil, err
 	}
 	for _, path := range append(changed, untracked...) {
+		directory := filepath.ToSlash(filepath.Dir(path))
+		if _, err := os.Lstat(filepath.Join(root, path)); errors.Is(err, os.ErrNotExist) {
+			if entry, exists := surviving[directory]; exists {
+				selected[entry.module] = true
+				changedDirs[directory] = true
+			}
+			continue
+		} else if err != nil {
+			return nil, nil, err
+		}
 		entry, err := p.classify(path, modules)
 		if err != nil {
 			return nil, nil, err
@@ -152,7 +168,7 @@ func (p ownership) selectChanges(ctx context.Context, root, base string, modules
 			continue
 		}
 		selected[entry.module] = true
-		changedDirs[filepath.ToSlash(filepath.Dir(path))] = true
+		changedDirs[directory] = true
 	}
 	return selected, changedDirs, nil
 }

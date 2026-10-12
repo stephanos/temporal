@@ -391,6 +391,51 @@ func TestFastLintKeepsGitChangeSemantics(t *testing.T) {
 	}, repo.calls())
 }
 
+func TestFastLintRoutesHistoricalDeletions(t *testing.T) {
+	t.Parallel()
+	for _, tc := range []struct {
+		name, deleted, moved, module, failure string
+		packages                              []string
+	}{
+		{"retired fixture", "tools/gomad3/deterministicio/testdata/cactusstatsd/cactusstatsd_test.go", "", "", "", nil},
+		{"folded module", "tools/gomad_wasm/wasi/clock.go", "tools/gomad3/backends/wasm/wasi/clock.go", "tools/gomad3", "", []string{".", "./backends/native/toolchain", "./backends/wasm/wasi", "./internal/archcheck", "./runner"}},
+		{"surviving package", "ordinary/deleted.go", "", ".", "", []string{"./ordinary"}},
+		{"surviving package lint failure", "ordinary/deleted.go", "", ".", "golangci", []string{"./ordinary"}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			repo := newLintRepo(t)
+			repo.write(tc.deleted, "package sample\n")
+			if tc.moved != "" {
+				repo.write("tools/gomad_wasm/go.mod", "module example.invalid/oldwasm\n\ngo 1.27.0\n")
+			}
+			repo.git("add", ".")
+			repo.git("commit", "-qm", "historical source layout")
+			repo.base = strings.TrimSpace(repo.git("rev-parse", "HEAD"))
+			require.NoError(t, os.Remove(filepath.Join(repo.root, tc.deleted)))
+			if tc.moved != "" {
+				require.NoError(t, os.Remove(filepath.Join(repo.root, "tools/gomad_wasm/go.mod")))
+				repo.write(tc.moved, "package sample\n")
+			}
+			repo.env = append(repo.env, "LINT_TEST_FAIL="+tc.failure)
+			output, err := repo.runMake("lint-code-fast")
+			if tc.failure == "" {
+				require.NoError(t, err, output)
+			} else {
+				require.Error(t, err, output)
+			}
+			var want []lintCall
+			if tc.module != "" {
+				want = append(want, lintCall{"golangci", tc.module, repo.lintArgs(tc.packages...)})
+				if tc.failure != "golangci" {
+					want = append(want, lintCall{"vet", tc.module, repo.vetArgs(tc.packages...)})
+				}
+			}
+			require.Equal(t, want, repo.calls())
+		})
+	}
+}
+
 func TestFastLintRootIntegrationTagsAndFailure(t *testing.T) {
 	t.Parallel()
 	for _, failure := range []string{"", "golangci", "vet"} {
