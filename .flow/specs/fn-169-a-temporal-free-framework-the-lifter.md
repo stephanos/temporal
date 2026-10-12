@@ -24,7 +24,7 @@ Target layout [user-approved proposal]:
 ```
 model/
   framework/                 package framework.*   (no Temporal jar on its classpath)
-    dsl/                     package framework.dsl: the authoring DSL (IR type names kept stable)
+    dsl/                     package framework.dsl: the authoring DSL
     realize/                 generic realization core (as today)
     lift/                    today's irgen minus the Temporal parts, plus a plug-in seam:
                                layout conventions as configuration,
@@ -65,7 +65,7 @@ Enforcement: `framework/` compiles without the Temporal API jar or `temporal.*` 
 - **R4:** The mini lift is byte-identical except for recorded source-path changes; mini step-table equivalence holds; the targeted suites of the moved code pass at their new homes.
 - **R5:** `MILESTONES.md` Direction, `.plans/UMPIRE_MODULES.md`, `model/README.md` and `AGENTS.md` state the new layout and that the framework is Temporal-free; the fn-114.12/fn-122.8 position is recorded as superseded.
 - **R6 (held, sweep):** The IR schema moves to an Umpire-owned namespace (`umpire.ir.v1`).
-- **R7 (held, sweep):** Go `tools/umpire` separates a `temporal/` adapter from generic packages, and Testpilot's `internal/execution` API use moves behind `testpilot/temporal/`, with an import rule.
+- **R7 (held, sweep):** Go consumers follow the `framework.dsl` IR type names (`tools/umpire/interp/eval.go` `StepType`/`deliveryType`, test strings); Go `tools/umpire` separates a `temporal/` adapter from generic packages, and Testpilot's `internal/execution` API use moves behind `testpilot/temporal/`, with an import rule.
 
 ## Boundaries
 
@@ -73,7 +73,7 @@ Not in scope: changing Model meaning; the real features' sources; publishing the
 
 ## Decision Context
 
-- 2026-10-12, owner: the DSL moves into `framework.dsl` in .1, with IR type names kept stable by a fixed name table.
+- 2026-10-12, owner: the DSL moves into `framework.dsl` in .1; IR type names may change with it (`framework.dsl.Step`, ...), and the Go interpreter's hard-coded names follow in .4.
 - 2026-10-12, owner: migration rules are temporary, the harness permanent (see Edge Cases).
 - 2026-10-12, owner: framework must be self-contained and Temporal-free; approved the layout above and the sequencing: mechanical move after fn-166.13 and before fn-141; plug-in seam completion after fn-141.8; Go and IR namespace at the sweep.
 
