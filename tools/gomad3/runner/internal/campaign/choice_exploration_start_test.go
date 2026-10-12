@@ -107,7 +107,7 @@ func TestResumeExplorationJournalRequiresItsStartOrdinal(t *testing.T) {
 
 func TestSeedCampaignPlanRejectsChoiceStartOrdinal(t *testing.T) {
 	plan := testBatchPlan(nil, record.HashBytes([]byte("prepared target")), 15)
-	journalPlan := recordExecutionJournalLimits(ExecutionJournalLimits{
+	journalPlan := recordExecutionJournalLimits(executionJournalLimits{
 		MaximumExecutions: 3, MaximumBytes: 3 << 20, SegmentBytes: 1 << 20,
 		SegmentRecords: 1024, MaximumSegments: 3, MaximumPartialExecutions: 2,
 	})

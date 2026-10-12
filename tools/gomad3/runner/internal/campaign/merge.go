@@ -16,11 +16,11 @@ import (
 )
 
 const (
-	MergedCampaignSchema       = "gomad3.merged-campaign/v1"
+	mergedCampaignSchema       = "gomad3.merged-campaign/v1"
 	maximumMergedManifestBytes = 16 << 20
 )
 
-type ExpectedSeedFunc func(uint64) (uint64, bool)
+type expectedSeedFunc func(uint64) (uint64, bool)
 
 type MergeSpec struct {
 	Output         string
@@ -32,10 +32,10 @@ type MergeSpec struct {
 	Artifacts      ArtifactCapacityPlan
 	Partial        bool
 	ShardPaths     []string
-	SeedAt         ExpectedSeedFunc
+	SeedAt         expectedSeedFunc
 }
 
-type MergedShard struct {
+type mergedShard struct {
 	Index          record.Uint64String `json:"index"`
 	Count          record.Uint64String `json:"count"`
 	CampaignID     string              `json:"campaign_id"`
@@ -44,14 +44,14 @@ type MergedShard struct {
 	JournalBytes   record.Uint64String `json:"journal_bytes"`
 }
 
-type MergedExecution struct {
+type mergedExecution struct {
 	SourceCampaignID string          `json:"source_campaign_id"`
 	EvidenceSHA256   record.SHA256   `json:"evidence_sha256,omitempty"`
-	Evidence         *MergedEvidence `json:"evidence,omitempty"`
+	Evidence         *mergedEvidence `json:"evidence,omitempty"`
 	Execution        ExecutionRecord `json:"execution"`
 }
 
-type MergedEvidence struct {
+type mergedEvidence struct {
 	SHA256           record.SHA256       `json:"sha256"`
 	Kind             string              `json:"kind"`
 	SourceCampaignID string              `json:"source_campaign_id"`
@@ -68,7 +68,7 @@ type MergedEvidence struct {
 	TargetBytes  record.Uint64String `json:"target_bytes,omitempty"`
 }
 
-func (evidence MergedEvidence) sharedTarget() artifact.SharedTarget {
+func (evidence mergedEvidence) sharedTarget() artifact.SharedTarget {
 	return artifact.SharedTarget{SHA256: evidence.TargetSHA256, Bytes: uint64(evidence.TargetBytes)}
 }
 
@@ -78,7 +78,7 @@ type mergedEvidenceBytes struct {
 	retained artifact.RetainedBytes
 }
 
-func (bytes *mergedEvidenceBytes) add(evidence MergedEvidence, limit ArtifactLimit, maximum uint64) error {
+func (bytes *mergedEvidenceBytes) add(evidence mergedEvidence, limit artifactLimit, maximum uint64) error {
 	cost, err := bytes.retained.Cost(uint64(evidence.StoredBytes), evidence.sharedTarget())
 	if err != nil {
 		return err
@@ -93,12 +93,12 @@ func (bytes *mergedEvidenceBytes) add(evidence MergedEvidence, limit ArtifactLim
 	return nil
 }
 
-type OrdinalRange struct {
+type ordinalRange struct {
 	Start record.Uint64String `json:"start"`
 	End   record.Uint64String `json:"end"`
 }
 
-type MergedCampaignRecord struct {
+type mergedCampaignRecord struct {
 	Guidance             *GuidancePlan             `json:"guidance,omitempty"`
 	Schema               string                    `json:"schema"`
 	SchemaVersion        uint32                    `json:"schema_version"`
@@ -106,7 +106,7 @@ type MergedCampaignRecord struct {
 	Selection            string                    `json:"selection"`
 	SelectionCount       record.Uint64String       `json:"selection_count"`
 	Partial              bool                      `json:"partial"`
-	Missing              []OrdinalRange            `json:"missing"`
+	Missing              []ordinalRange            `json:"missing"`
 	Attempted            record.Uint64String       `json:"attempted"`
 	Succeeded            record.Uint64String       `json:"succeeded"`
 	Failures             record.Uint64String       `json:"failures"`
@@ -117,15 +117,15 @@ type MergedCampaignRecord struct {
 	RetainedSuccessBytes record.Uint64String       `json:"retained_success_bytes"`
 	RetainedEvidence     record.Uint64String       `json:"retained_evidence"`
 	EvidenceBytes        record.Uint64String       `json:"evidence_bytes"`
-	Journal              ExecutionJournalReference `json:"journal"`
+	Journal              executionJournalReference `json:"journal"`
 	Artifacts            ArtifactCapacityPlan      `json:"artifacts"`
-	Shards               []MergedShard             `json:"shards"`
+	Shards               []mergedShard             `json:"shards"`
 }
 
 type MergedCampaign struct {
 	Path       string
-	Record     MergedCampaignRecord
-	Executions []MergedExecution
+	Record     mergedCampaignRecord
+	Executions []mergedExecution
 }
 
 func MergeCampaigns(ctx context.Context, spec MergeSpec) (_ MergedCampaign, retErr error) {
@@ -190,9 +190,9 @@ func MergeCampaigns(ctx context.Context, spec MergeSpec) (_ MergedCampaign, retE
 	if err := os.RemoveAll(filepath.Join(staging, ".partial")); err != nil {
 		return MergedCampaign{}, fmt.Errorf("remove merged journal staging: %w", err)
 	}
-	record := MergedCampaignRecord{
+	record := mergedCampaignRecord{
 		Guidance: spec.Guidance,
-		Schema:   MergedCampaignSchema, SchemaVersion: record.SchemaVersion, PlanSHA256: spec.PlanSHA256, Selection: spec.Selection, SelectionCount: record.Uint64String(spec.SelectionCount),
+		Schema:   mergedCampaignSchema, SchemaVersion: record.SchemaVersion, PlanSHA256: spec.PlanSHA256, Selection: spec.Selection, SelectionCount: record.Uint64String(spec.SelectionCount),
 		Partial: len(missing) != 0, Missing: missing, Attempted: record.Uint64String(len(runs)), Succeeded: record.Uint64String(summary.succeeded), Failures: record.Uint64String(summary.failures), Watchdogs: record.Uint64String(summary.watchdogs), Cancelled: record.Uint64String(summary.cancelled),
 		DistinctFailures: record.Uint64String(len(summary.failuresSeen)), RetainedSuccesses: record.Uint64String(summary.retainedSuccesses), RetainedSuccessBytes: record.Uint64String(summary.retainedSuccessBytes), RetainedEvidence: record.Uint64String(summary.retainedEvidence), EvidenceBytes: record.Uint64String(summary.evidenceBytes),
 		Journal: reference, Artifacts: spec.Artifacts, Shards: shards,
@@ -202,7 +202,7 @@ func MergeCampaigns(ctx context.Context, spec MergeSpec) (_ MergedCampaign, retE
 		return MergedCampaign{}, err
 	}
 	if len(manifest) > maximumMergedManifestBytes {
-		return MergedCampaign{}, &JournalCapacityError{Limit: JournalLimitManifestBytes, Required: uint64(len(manifest)), Maximum: maximumMergedManifestBytes, Outcome: CapacityInfrastructureFailure}
+		return MergedCampaign{}, &JournalCapacityError{Limit: journalLimitManifestBytes, Required: uint64(len(manifest)), Maximum: maximumMergedManifestBytes, Outcome: CapacityInfrastructureFailure}
 	}
 	if err := atomicWriteContext(ctx, filepath.Join(staging, "merge.json"), manifest); err != nil {
 		return MergedCampaign{}, err
@@ -230,12 +230,12 @@ type mergedSummary struct {
 	failuresSeen                              map[record.SHA256]struct{}
 }
 
-func collectMergedCampaign(spec MergeSpec) ([]MergedShard, []MergedExecution, mergedSummary, error) {
+func collectMergedCampaign(spec MergeSpec) ([]mergedShard, []mergedExecution, mergedSummary, error) {
 	paths := append([]string(nil), spec.ShardPaths...)
 	sort.Strings(paths)
-	shards := make([]MergedShard, 0, len(paths))
-	runs := make([]MergedExecution, 0)
-	retainedByIdentity := make(map[record.SHA256]MergedEvidence)
+	shards := make([]mergedShard, 0, len(paths))
+	runs := make([]mergedExecution, 0)
+	retainedByIdentity := make(map[record.SHA256]mergedEvidence)
 	assignments := make(map[uint64]struct{}, len(paths))
 	ordinals := make(map[uint64]struct{})
 	summary := mergedSummary{failuresSeen: make(map[record.SHA256]struct{})}
@@ -269,7 +269,7 @@ func collectMergedCampaign(spec MergeSpec) ([]MergedShard, []MergedExecution, me
 		if opened.Journal != nil {
 			journalBytes = opened.Journal.Bytes
 		}
-		shards = append(shards, MergedShard{Index: batch.Shard.Index, Count: batch.Shard.Count, CampaignID: batch.CampaignID, CampaignSHA256: record.HashBytes(batchBytes), Attempted: batch.Attempted, JournalBytes: record.Uint64String(journalBytes)})
+		shards = append(shards, mergedShard{Index: batch.Shard.Index, Count: batch.Shard.Count, CampaignID: batch.CampaignID, CampaignSHA256: record.HashBytes(batchBytes), Attempted: batch.Attempted, JournalBytes: record.Uint64String(journalBytes)})
 		for _, run := range opened.Executions {
 			ordinal := uint64(run.SelectionOrdinal)
 			seed, found := spec.SeedAt(ordinal)
@@ -280,7 +280,7 @@ func collectMergedCampaign(spec MergeSpec) ([]MergedShard, []MergedExecution, me
 				return nil, nil, mergedSummary{}, fmt.Errorf("campaign selection ordinal is duplicated: %d", ordinal)
 			}
 			ordinals[ordinal] = struct{}{}
-			merged := MergedExecution{SourceCampaignID: batch.CampaignID, Execution: run}
+			merged := mergedExecution{SourceCampaignID: batch.CampaignID, Execution: run}
 			if run.FailureSignature != nil || run.SuccessArtifact != nil {
 				resolved, err := ResolveRetainedEvidence(opened.Path, batch.CampaignID, run)
 				if err != nil {
@@ -298,7 +298,7 @@ func collectMergedCampaign(spec MergeSpec) ([]MergedShard, []MergedExecution, me
 					reference = *run.Artifact
 				}
 				target := artifact.TargetOf(resolved.Manifest)
-				candidate := MergedEvidence{
+				candidate := mergedEvidence{
 					SHA256: identity, Kind: resolved.Manifest.ArtifactKind, SourceCampaignID: batch.CampaignID, Reference: reference, RecordSHA256: resolved.Manifest.RecordHash, StoredBytes: record.Uint64String(resolved.StoredBytes),
 					TargetSHA256: target.SHA256, TargetBytes: record.Uint64String(target.Bytes),
 				}
@@ -311,7 +311,7 @@ func collectMergedCampaign(spec MergeSpec) ([]MergedShard, []MergedExecution, me
 				summary.succeeded++
 				if run.SuccessArtifact != nil {
 					summary.retainedSuccesses++
-					updated, err := checkedMergedEvidenceBytes(summary.retainedSuccessBytes, uint64(*run.SuccessArtifactBytes), ArtifactLimitSuccessBytes, uint64(spec.Artifacts.SuccessBytes))
+					updated, err := checkedMergedEvidenceBytes(summary.retainedSuccessBytes, uint64(*run.SuccessArtifactBytes), artifactLimitSuccessBytes, uint64(spec.Artifacts.SuccessBytes))
 					if err != nil {
 						return nil, nil, mergedSummary{}, err
 					}
@@ -331,13 +331,13 @@ func collectMergedCampaign(spec MergeSpec) ([]MergedShard, []MergedExecution, me
 	}
 	sort.Slice(shards, func(i, j int) bool { return shards[i].Index < shards[j].Index })
 	sort.Slice(runs, func(i, j int) bool { return runs[i].Execution.SelectionOrdinal < runs[j].Execution.SelectionOrdinal })
-	retained := make([]MergedEvidence, 0, len(retainedByIdentity))
+	retained := make([]mergedEvidence, 0, len(retainedByIdentity))
 	var failures, successes mergedEvidenceBytes
 	var err error
 	for _, item := range retainedByIdentity {
 		retained = append(retained, item)
 		if item.Kind == record.ArtifactSuccess {
-			err = successes.add(item, ArtifactLimitSuccessBytes, uint64(spec.Artifacts.SuccessBytes))
+			err = successes.add(item, artifactLimitSuccessBytes, uint64(spec.Artifacts.SuccessBytes))
 		} else {
 			err = failures.add(item, ArtifactLimitFailureBytes, uint64(spec.Artifacts.FailureBytes))
 		}
@@ -372,7 +372,7 @@ func collectMergedCampaign(spec MergeSpec) ([]MergedShard, []MergedExecution, me
 	return shards, runs, summary, nil
 }
 
-func checkedMergedEvidenceBytes(current, additional uint64, limit ArtifactLimit, maximum uint64) (uint64, error) {
+func checkedMergedEvidenceBytes(current, additional uint64, limit artifactLimit, maximum uint64) (uint64, error) {
 	if additional > ^uint64(0)-current {
 		return 0, &ArtifactCapacityError{Limit: limit, Required: ^uint64(0), Maximum: maximum, Outcome: CapacityInfrastructureFailure}
 	}
@@ -396,7 +396,7 @@ func mergedEvidenceIdentity(manifest record.ExecutionRecord) (record.SHA256, err
 	return record.HashBytes(encoded), nil
 }
 
-func mergedEvidenceLess(left, right MergedEvidence) bool {
+func mergedEvidenceLess(left, right mergedEvidence) bool {
 	if left.SourceCampaignID != right.SourceCampaignID {
 		return left.SourceCampaignID < right.SourceCampaignID
 	}
@@ -405,14 +405,14 @@ func mergedEvidenceLess(left, right MergedEvidence) bool {
 
 func validateMergedArtifactCapacity(limits ArtifactCapacityPlan, failureCount, failureBytes, successCount, successBytes uint64) error {
 	checks := []struct {
-		limit    ArtifactLimit
+		limit    artifactLimit
 		required uint64
 		maximum  uint64
 	}{
 		{ArtifactLimitFailureCount, failureCount, uint64(limits.FailureArtifacts)},
 		{ArtifactLimitFailureBytes, failureBytes, uint64(limits.FailureBytes)},
-		{ArtifactLimitSuccessCount, successCount, uint64(limits.SuccessArtifacts)},
-		{ArtifactLimitSuccessBytes, successBytes, uint64(limits.SuccessBytes)},
+		{artifactLimitSuccessCount, successCount, uint64(limits.SuccessArtifacts)},
+		{artifactLimitSuccessBytes, successBytes, uint64(limits.SuccessBytes)},
 	}
 	for _, check := range checks {
 		if check.required > check.maximum {
@@ -429,8 +429,8 @@ func validateMergedArtifactCapacity(limits ArtifactCapacityPlan, failureCount, f
 	return nil
 }
 
-func missingOrdinalRanges(total uint64, runs []MergedExecution) []OrdinalRange {
-	missing := make([]OrdinalRange, 0)
+func missingOrdinalRanges(total uint64, runs []mergedExecution) []ordinalRange {
+	missing := make([]ordinalRange, 0)
 	runIndex := 0
 	for ordinal := uint64(0); ordinal < total; {
 		if runIndex < len(runs) && uint64(runs[runIndex].Execution.SelectionOrdinal) == ordinal {
@@ -442,7 +442,7 @@ func missingOrdinalRanges(total uint64, runs []MergedExecution) []OrdinalRange {
 		for ordinal < total && (runIndex >= len(runs) || uint64(runs[runIndex].Execution.SelectionOrdinal) != ordinal) {
 			ordinal++
 		}
-		missing = append(missing, OrdinalRange{Start: record.Uint64String(start), End: record.Uint64String(ordinal - 1)})
+		missing = append(missing, ordinalRange{Start: record.Uint64String(start), End: record.Uint64String(ordinal - 1)})
 	}
 	return missing
 }
@@ -477,11 +477,11 @@ func OpenMergedCampaign(path string) (_ MergedCampaign, retErr error) {
 	if err != nil {
 		return MergedCampaign{}, err
 	}
-	var campaign MergedCampaignRecord
+	var campaign mergedCampaignRecord
 	if err := canonicaljson.DecodeCanonicalJSON(manifest, &campaign); err != nil {
 		return MergedCampaign{}, err
 	}
-	if campaign.Schema != MergedCampaignSchema || campaign.SchemaVersion != record.SchemaVersion || !validRecordSHA256(campaign.PlanSHA256) || (campaign.Selection == "") != (campaign.SelectionCount == 0) {
+	if campaign.Schema != mergedCampaignSchema || campaign.SchemaVersion != record.SchemaVersion || !validRecordSHA256(campaign.PlanSHA256) || (campaign.Selection == "") != (campaign.SelectionCount == 0) {
 		return MergedCampaign{}, errors.New("merged campaign record is invalid")
 	}
 	runs, err := readMergedExecutionJournal(root, campaign.Journal)
@@ -494,7 +494,7 @@ func OpenMergedCampaign(path string) (_ MergedCampaign, retErr error) {
 	return MergedCampaign{Path: path, Record: campaign, Executions: runs}, nil
 }
 
-func validateMergedCampaign(campaign MergedCampaignRecord, runs []MergedExecution) error {
+func validateMergedCampaign(campaign mergedCampaignRecord, runs []mergedExecution) error {
 	missing := missingOrdinalRanges(uint64(campaign.SelectionCount), runs)
 	if uint64(len(runs)) != uint64(campaign.Attempted) || !reflect.DeepEqual(missing, campaign.Missing) || campaign.Partial != (len(missing) != 0) || campaign.Journal.Records != campaign.Attempted {
 		return errors.New("merged campaign summary is inconsistent")
@@ -601,7 +601,7 @@ func validateMergedCampaign(campaign MergedCampaignRecord, runs []MergedExecutio
 			if !validSuccessArtifactReference(retained.Reference) {
 				return errors.New("merged success evidence reference is invalid")
 			}
-			if err := successEvidence.add(retained, ArtifactLimitSuccessBytes, uint64(campaign.Artifacts.SuccessBytes)); err != nil {
+			if err := successEvidence.add(retained, artifactLimitSuccessBytes, uint64(campaign.Artifacts.SuccessBytes)); err != nil {
 				return fmt.Errorf("merged success evidence bytes: %w", err)
 			}
 		} else {
@@ -634,7 +634,7 @@ func validateMergedCampaign(campaign MergedCampaignRecord, runs []MergedExecutio
 	return nil
 }
 
-func readMergedExecutionJournal(root *os.Root, reference ExecutionJournalReference) ([]MergedExecution, error) {
+func readMergedExecutionJournal(root *os.Root, reference executionJournalReference) ([]mergedExecution, error) {
 	if reference.Schema != executionJournalSchema || reference.IndexFile != "executions/index.json" || !validRecordSHA256(reference.IndexSHA256) {
 		return nil, errors.New("merged execution journal reference is invalid")
 	}
@@ -652,7 +652,7 @@ func readMergedExecutionJournal(root *os.Root, reference ExecutionJournalReferen
 	if _, err := validateRunJournalInventory(root, index, false); err != nil {
 		return nil, err
 	}
-	runs := make([]MergedExecution, 0, uint64(index.Records))
+	runs := make([]mergedExecution, 0, uint64(index.Records))
 	for segmentIndex, segment := range index.Segments {
 		name := fmt.Sprintf("%020d.jsonl", segmentIndex)
 		if segment.File != name {
@@ -676,15 +676,15 @@ func readMergedExecutionJournal(root *os.Root, reference ExecutionJournalReferen
 	return runs, nil
 }
 
-func decodeMergedExecutions(contents []byte) ([]MergedExecution, error) {
+func decodeMergedExecutions(contents []byte) ([]mergedExecution, error) {
 	if len(contents) == 0 {
-		return []MergedExecution{}, nil
+		return []mergedExecution{}, nil
 	}
 	if contents[len(contents)-1] != '\n' {
 		return nil, errors.New("merged execution segment is not newline terminated")
 	}
 	lines := bytes.Split(contents[:len(contents)-1], []byte{'\n'})
-	runs := make([]MergedExecution, len(lines))
+	runs := make([]mergedExecution, len(lines))
 	for index, line := range lines {
 		if len(line) == 0 {
 			return nil, fmt.Errorf("merged execution segment has an empty record at line %d", index+1)

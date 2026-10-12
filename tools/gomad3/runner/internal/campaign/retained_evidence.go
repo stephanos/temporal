@@ -9,43 +9,43 @@ import (
 	"go.temporal.io/server/tools/gomad3/record"
 )
 
-type RetainedEvidence struct {
+type retainedEvidence struct {
 	Path        string
 	Manifest    record.ExecutionRecord
 	StoredBytes uint64
 }
 
-func ResolveRetainedEvidence(batchPath, batchID string, run ExecutionRecord) (RetainedEvidence, error) {
+func ResolveRetainedEvidence(batchPath, batchID string, run ExecutionRecord) (retainedEvidence, error) {
 	reference, success, err := retainedReference(run)
 	if err != nil {
-		return RetainedEvidence{}, err
+		return retainedEvidence{}, err
 	}
 	path := filepath.Join(batchPath, filepath.FromSlash(reference))
 	opened, err := artifact.OpenArtifact(path)
 	if err != nil {
-		return RetainedEvidence{}, err
+		return retainedEvidence{}, err
 	}
-	retained := RetainedEvidence{Path: path, Manifest: opened.Manifest(), StoredBytes: opened.StoredBytes()}
+	retained := retainedEvidence{Path: path, Manifest: opened.Manifest(), StoredBytes: opened.StoredBytes()}
 	if err := opened.Close(); err != nil {
-		return RetainedEvidence{}, fmt.Errorf("close retained artifact: %w", err)
+		return retainedEvidence{}, fmt.Errorf("close retained artifact: %w", err)
 	}
 	manifest := retained.Manifest
 	if manifest.CampaignID != batchID {
-		return RetainedEvidence{}, retainedMismatchError(success)
+		return retainedEvidence{}, retainedMismatchError(success)
 	}
 	if !retainedChoiceMatches(run, manifest) {
-		return RetainedEvidence{}, retainedMismatchError(success)
+		return retainedEvidence{}, retainedMismatchError(success)
 	}
 	if success {
 		if manifest.SelectionOrdinal != run.SelectionOrdinal || manifest.Seed != run.Seed || manifest.ArtifactKind != record.ArtifactSuccess || manifest.Outcome.Domain != "success" || retained.StoredBytes != uint64(*run.SuccessArtifactBytes) {
-			return RetainedEvidence{}, retainedMismatchError(true)
+			return retainedEvidence{}, retainedMismatchError(true)
 		}
 	} else {
 		if manifest.ArtifactKind != record.ArtifactTargetFailure && manifest.ArtifactKind != record.ArtifactWatchdogTimeout && manifest.ArtifactKind != record.ArtifactRunnerFailure {
-			return RetainedEvidence{}, retainedMismatchError(false)
+			return retainedEvidence{}, retainedMismatchError(false)
 		}
 		if manifest.Outcome.FailureSignature != *run.FailureSignature || manifest.Outcome.Domain != run.Domain || manifest.Outcome.Reason != run.Reason || manifest.Outcome.Termination != run.Termination {
-			return RetainedEvidence{}, retainedMismatchError(false)
+			return retainedEvidence{}, retainedMismatchError(false)
 		}
 	}
 	return retained, nil

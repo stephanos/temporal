@@ -27,7 +27,7 @@ type CampaignConfig struct {
 	Guidance       *GuidancePlan
 	MaxExecutions  uint64
 	Parallel       uint64
-	Journal        ExecutionJournalLimits
+	Journal        executionJournalLimits
 }
 
 type CampaignSummary struct {
@@ -91,21 +91,21 @@ type CampaignJournal struct {
 	segmentedRuns       *segmentedExecutionJournal
 	published           bool
 	resumeLock          *hostfs.Lock
-	lifecycle           LifecycleState
-	lastStableLifecycle LifecycleState
+	lifecycle           lifecycleState
+	lastStableLifecycle lifecycleState
 	artifactPlan        *ArtifactCapacityPlan
 	partialMu           sync.Mutex
 	partialRuns         uint64
 }
 
-type ExecutionState string
+type executionState string
 
 const (
-	ExecutionStaging    ExecutionState = "staging"
-	ExecutionStarting   ExecutionState = "starting"
-	ExecutionExited     ExecutionState = "exited"
-	ExecutionCaptured   ExecutionState = "captured"
-	ExecutionClassified ExecutionState = "classified"
+	executionStaging    executionState = "staging"
+	ExecutionStarting   executionState = "starting"
+	ExecutionExited     executionState = "exited"
+	ExecutionCaptured   executionState = "captured"
+	ExecutionClassified executionState = "classified"
 )
 
 type ExecutionJournal struct {
@@ -113,7 +113,7 @@ type ExecutionJournal struct {
 	path           string
 	ordinal        uint64
 	seed           uint64
-	state          ExecutionState
+	state          executionState
 	releasePartial func()
 }
 
@@ -137,7 +137,7 @@ type CampaignRecord struct {
 	RetainedSuccesses                         record.Uint64String            `json:"retained_successes,omitempty"`
 	RetainedSuccessBytes                      record.Uint64String            `json:"retained_success_bytes,omitempty"`
 	StopReason                                string                         `json:"stop_reason"`
-	Journal                                   *ExecutionJournalReference     `json:"journal,omitempty"`
+	Journal                                   *executionJournalReference     `json:"journal,omitempty"`
 	Artifacts                                 *ArtifactCapacityPlan          `json:"artifacts,omitempty"`
 	FailureSignatures                         []record.SHA256                `json:"failure_signatures"`
 	ChoiceExploration                         *exploration.ChoiceSummary     `json:"choice_exploration,omitempty"`
@@ -205,7 +205,7 @@ func NewCampaignJournal(ctx context.Context, config CampaignConfig) (_ *Campaign
 		}
 	}
 	journal := &CampaignJournal{ctx: ctx, config: config, path: path}
-	if err := journal.transitionLifecycle(LifecyclePlanned, "", nil); err != nil {
+	if err := journal.transitionLifecycle(lifecyclePlanned, "", nil); err != nil {
 		return nil, err
 	}
 	return journal, nil
@@ -264,7 +264,7 @@ func (journal *CampaignJournal) CompletePreparation() error {
 	if err := removeCompletedPartialContext(journal.ctx, filepath.Join(journal.path, ".partial", "preparation"), "preparation"); err != nil {
 		return err
 	}
-	return journal.transitionLifecycle(LifecyclePrepared, "", nil)
+	return journal.transitionLifecycle(lifecyclePrepared, "", nil)
 }
 
 func (journal *CampaignJournal) FailPreparation(reason string, cause error) error {
@@ -272,15 +272,15 @@ func (journal *CampaignJournal) FailPreparation(reason string, cause error) erro
 }
 
 func (journal *CampaignJournal) Fail(reason string, cause error) error {
-	return journal.transitionLifecycleContext(context.WithoutCancel(journal.ctx), LifecycleRecoverableFailure, reason, cause)
+	return journal.transitionLifecycleContext(context.WithoutCancel(journal.ctx), lifecycleRecoverableFailure, reason, cause)
 }
 
 func (journal *CampaignJournal) StartExecutions() error {
 	if journal.segmentedRuns != nil {
 		return errors.New("campaign execution journal is already open")
 	}
-	if journal.lifecycle == LifecyclePlanned {
-		if err := journal.transitionLifecycle(LifecyclePrepared, "", nil); err != nil {
+	if journal.lifecycle == lifecyclePlanned {
+		if err := journal.transitionLifecycle(lifecyclePrepared, "", nil); err != nil {
 			return err
 		}
 	}
@@ -288,7 +288,7 @@ func (journal *CampaignJournal) StartExecutions() error {
 	if err != nil {
 		return err
 	}
-	if err := journal.transitionLifecycle(LifecycleRunning, "", nil); err != nil {
+	if err := journal.transitionLifecycle(lifecycleRunning, "", nil); err != nil {
 		return errors.Join(err, segmented.close())
 	}
 	journal.segmentedRuns = segmented
@@ -311,7 +311,7 @@ func (journal *CampaignJournal) BeginExecution(ordinal, seed uint64) (_ *Executi
 	if journal.partialRuns == journal.config.Journal.MaximumPartialExecutions {
 		journal.partialMu.Unlock()
 		return nil, &JournalCapacityError{
-			Limit: JournalLimitPartialExecutions, Required: journal.partialRuns + 1,
+			Limit: journalLimitPartialExecutions, Required: journal.partialRuns + 1,
 			Maximum: journal.config.Journal.MaximumPartialExecutions, Outcome: CapacityInfrastructureFailure,
 		}
 	}
@@ -331,8 +331,8 @@ func (journal *CampaignJournal) BeginExecution(ordinal, seed uint64) (_ *Executi
 	if err := makePrivateDirectoriesContext(journal.ctx, path); err != nil {
 		return nil, err
 	}
-	run := &ExecutionJournal{ctx: journal.ctx, path: path, ordinal: ordinal, seed: seed, state: ExecutionStaging, releasePartial: release}
-	if err := run.writeState(ExecutionStaging); err != nil {
+	run := &ExecutionJournal{ctx: journal.ctx, path: path, ordinal: ordinal, seed: seed, state: executionStaging, releasePartial: release}
+	if err := run.writeState(executionStaging); err != nil {
 		return run, err
 	}
 	if err := makePrivateDirectoriesContext(journal.ctx, run.WorkPath()); err != nil {
@@ -351,7 +351,7 @@ func (journal *CampaignJournal) Publish(summary CampaignSummary) error {
 	if err := journal.ctx.Err(); err != nil {
 		return err
 	}
-	if err := journal.transitionLifecycle(LifecycleCommitting, "", nil); err != nil {
+	if err := journal.transitionLifecycle(lifecycleCommitting, "", nil); err != nil {
 		return err
 	}
 	reference, err := journal.segmentedRuns.reference()
@@ -496,8 +496,8 @@ func (run *ExecutionJournal) CloseOutput(name string, file *os.File) error {
 	return result
 }
 
-func (run *ExecutionJournal) Transition(next ExecutionState) error {
-	allowed := run.state == ExecutionStaging && next == ExecutionStarting ||
+func (run *ExecutionJournal) Transition(next executionState) error {
+	allowed := run.state == executionStaging && next == ExecutionStarting ||
 		run.state == ExecutionStarting && next == ExecutionExited ||
 		run.state == ExecutionExited && next == ExecutionCaptured ||
 		run.state == ExecutionCaptured && next == ExecutionClassified
@@ -529,10 +529,10 @@ func (run *ExecutionJournal) Complete() error {
 	return nil
 }
 
-func (run *ExecutionJournal) writeState(state ExecutionState) error {
+func (run *ExecutionJournal) writeState(state executionState) error {
 	payload := struct {
 		SchemaVersion    uint32              `json:"schema_version"`
-		State            ExecutionState      `json:"state"`
+		State            executionState      `json:"state"`
 		SelectionOrdinal record.Uint64String `json:"selection_ordinal"`
 		Seed             record.Uint64String `json:"seed"`
 	}{SchemaVersion: record.SchemaVersion, State: state, SelectionOrdinal: record.Uint64String(run.ordinal), Seed: record.Uint64String(run.seed)}

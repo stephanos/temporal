@@ -38,11 +38,11 @@ func TestCheckedMergedEvidenceBytesReportsTypedOverflow(t *testing.T) {
 }
 
 func TestOpenMergedCampaignRejectsNoncanonicalAndInvalidRecords(t *testing.T) {
-	canonical, err := canonicaljson.CanonicalJSON(MergedCampaignRecord{Schema: MergedCampaignSchema})
+	canonical, err := canonicaljson.CanonicalJSON(mergedCampaignRecord{Schema: mergedCampaignSchema})
 	if err != nil {
 		t.Fatal(err)
 	}
-	invalidIdentity, err := canonicaljson.CanonicalJSON(MergedCampaignRecord{Schema: "gomad3.merged-campaign/v0"})
+	invalidIdentity, err := canonicaljson.CanonicalJSON(mergedCampaignRecord{Schema: "gomad3.merged-campaign/v0"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -116,7 +116,7 @@ func publishMergeShard(t *testing.T, artifacts string, index uint64) (string, []
 		if err != nil {
 			t.Fatal(err)
 		}
-		for _, state := range []ExecutionState{ExecutionStarting, ExecutionExited, ExecutionCaptured, ExecutionClassified} {
+		for _, state := range []executionState{ExecutionStarting, ExecutionExited, ExecutionCaptured, ExecutionClassified} {
 			if err := run.Transition(state); err != nil {
 				t.Fatal(err)
 			}
@@ -211,7 +211,7 @@ func TestMergeCountsTheTargetOfItsSuccessEvidenceOnce(t *testing.T) {
 
 			_, err := MergeCampaigns(context.Background(), mergeTestSpec(t, shards, once-1, false))
 			var capacityErr *ArtifactCapacityError
-			if !errors.As(err, &capacityErr) || capacityErr.Limit != ArtifactLimitSuccessBytes || capacityErr.Required != once {
+			if !errors.As(err, &capacityErr) || capacityErr.Limit != artifactLimitSuccessBytes || capacityErr.Required != once {
 				t.Fatalf("MergeCampaigns() under a limit one byte short = %#v, want %d success bytes required", err, once)
 			}
 			merged, err := MergeCampaigns(context.Background(), mergeTestSpec(t, shards, once, false))
@@ -269,21 +269,21 @@ func TestOpenMergedCampaignCountsEvidenceWithoutATargetInFull(t *testing.T) {
 	digest := record.HashBytes([]byte("evidence"))
 	target := record.HashBytes([]byte("target"))
 	for name, test := range map[string]struct {
-		evidence []MergedEvidence
+		evidence []mergedEvidence
 		want     uint64
 		wantErr  bool
 	}{
-		"record written before targets were shared": {evidence: []MergedEvidence{{StoredBytes: 110}, {StoredBytes: 120}}, want: 230},
-		"one target":                       {evidence: []MergedEvidence{{StoredBytes: 110, TargetSHA256: target, TargetBytes: 100}, {StoredBytes: 120, TargetSHA256: target, TargetBytes: 100}}, want: 130},
-		"target as large as its artifact":  {evidence: []MergedEvidence{{StoredBytes: 100, TargetSHA256: target, TargetBytes: 100}}, wantErr: true},
-		"target bytes without an identity": {evidence: []MergedEvidence{{StoredBytes: 110, TargetBytes: 100}}, wantErr: true},
+		"record written before targets were shared": {evidence: []mergedEvidence{{StoredBytes: 110}, {StoredBytes: 120}}, want: 230},
+		"one target":                       {evidence: []mergedEvidence{{StoredBytes: 110, TargetSHA256: target, TargetBytes: 100}, {StoredBytes: 120, TargetSHA256: target, TargetBytes: 100}}, want: 130},
+		"target as large as its artifact":  {evidence: []mergedEvidence{{StoredBytes: 100, TargetSHA256: target, TargetBytes: 100}}, wantErr: true},
+		"target bytes without an identity": {evidence: []mergedEvidence{{StoredBytes: 110, TargetBytes: 100}}, wantErr: true},
 	} {
 		t.Run(name, func(t *testing.T) {
 			var successes mergedEvidenceBytes
 			var err error
 			for _, evidence := range test.evidence {
 				evidence.SHA256 = digest
-				if err = successes.add(evidence, ArtifactLimitSuccessBytes, 1<<20); err != nil {
+				if err = successes.add(evidence, artifactLimitSuccessBytes, 1<<20); err != nil {
 					break
 				}
 			}

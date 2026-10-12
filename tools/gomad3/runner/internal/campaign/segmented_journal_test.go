@@ -16,7 +16,7 @@ import (
 func TestSegmentedJournalRotatesAndPublishesImmutableIndex(t *testing.T) {
 	journal, err := NewCampaignJournal(context.Background(), CampaignConfig{
 		Root: t.TempDir(), CampaignID: "run-segmented", Selection: "7-9", SelectionCount: 3,
-		Journal: ExecutionJournalLimits{
+		Journal: executionJournalLimits{
 			MaximumExecutions: 3, MaximumBytes: 12 << 10, SegmentBytes: 4 << 10,
 			SegmentRecords: 1, MaximumSegments: 3, MaximumPartialExecutions: 1,
 		},
@@ -93,7 +93,7 @@ func TestSegmentedJournalRotatesAndPublishesImmutableIndex(t *testing.T) {
 func TestSegmentedJournalRejectsOversizeRecordWithoutPublishingBytes(t *testing.T) {
 	journal, err := NewCampaignJournal(context.Background(), CampaignConfig{
 		Root: t.TempDir(), CampaignID: "run-segment-capacity", Selection: "7", SelectionCount: 1,
-		Journal: ExecutionJournalLimits{
+		Journal: executionJournalLimits{
 			MaximumExecutions: 1, MaximumBytes: 512, SegmentBytes: 512,
 			SegmentRecords: 1, MaximumSegments: 1, MaximumPartialExecutions: 1,
 		},
@@ -113,7 +113,7 @@ func TestSegmentedJournalRejectsOversizeRecordWithoutPublishingBytes(t *testing.
 	run.Reason = strings.Repeat("x", 512)
 	err = journal.AppendExecution(run)
 	var capacityErr *JournalCapacityError
-	if !errors.As(err, &capacityErr) || capacityErr.Limit != JournalLimitSegmentBytes || capacityErr.Outcome != CapacityInfrastructureFailure {
+	if !errors.As(err, &capacityErr) || capacityErr.Limit != journalLimitSegmentBytes || capacityErr.Outcome != CapacityInfrastructureFailure {
 		t.Fatalf("AppendExecution() error = %#v", err)
 	}
 	entries, err := os.ReadDir(filepath.Join(journal.Path(), "executions"))
@@ -267,7 +267,7 @@ func TestOpenSegmentedJournalRejectsUnindexedSegment(t *testing.T) {
 func TestCampaignJournalEnforcesPartialRunCapacityBeforeMutation(t *testing.T) {
 	journal, err := NewCampaignJournal(context.Background(), CampaignConfig{
 		Root: t.TempDir(), CampaignID: "run-partial-capacity", Selection: "7-8", SelectionCount: 2,
-		Journal: ExecutionJournalLimits{
+		Journal: executionJournalLimits{
 			MaximumExecutions: 2, MaximumBytes: 4 << 10, SegmentBytes: 2 << 10,
 			SegmentRecords: 2, MaximumSegments: 2, MaximumPartialExecutions: 1,
 		},
@@ -286,13 +286,13 @@ func TestCampaignJournalEnforcesPartialRunCapacityBeforeMutation(t *testing.T) {
 	}
 	_, err = journal.BeginExecution(1, 8)
 	var capacityErr *JournalCapacityError
-	if !errors.As(err, &capacityErr) || capacityErr.Limit != JournalLimitPartialExecutions {
+	if !errors.As(err, &capacityErr) || capacityErr.Limit != journalLimitPartialExecutions {
 		t.Fatalf("BeginExecution() error = %v", err)
 	}
 	if _, err := os.Lstat(filepath.Join(journal.Path(), ".partial", "00000000000000000001-8")); !errors.Is(err, os.ErrNotExist) {
 		t.Fatalf("second partial exists after rejected reservation: %v", err)
 	}
-	for _, next := range []ExecutionState{ExecutionStarting, ExecutionExited, ExecutionCaptured, ExecutionClassified} {
+	for _, next := range []executionState{ExecutionStarting, ExecutionExited, ExecutionCaptured, ExecutionClassified} {
 		if err := first.Transition(next); err != nil {
 			t.Fatal(err)
 		}
@@ -309,7 +309,7 @@ func TestSegmentedJournalOpensLargeCampaign(t *testing.T) {
 	const runs = 65
 	journal, err := NewCampaignJournal(context.Background(), CampaignConfig{
 		Root: t.TempDir(), CampaignID: "run-large-segmented", Selection: "generated", SelectionCount: runs,
-		Journal: ExecutionJournalLimits{
+		Journal: executionJournalLimits{
 			MaximumExecutions: runs, MaximumBytes: 80 << 20, SegmentBytes: 2 << 20,
 			SegmentRecords: 1, MaximumSegments: runs, MaximumPartialExecutions: 1,
 		},

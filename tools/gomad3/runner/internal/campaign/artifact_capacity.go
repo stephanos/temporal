@@ -16,8 +16,8 @@ type ArtifactCapacityPlan struct {
 	SuccessBytes     record.Uint64String    `json:"success_bytes"`
 	TotalBytes       record.Uint64String    `json:"total_bytes"`
 	TranscriptBytes  record.Uint64String    `json:"transcript_bytes"`
-	FailureOutcome   JournalCapacityOutcome `json:"failure_outcome"`
-	SuccessOutcome   JournalCapacityOutcome `json:"success_outcome"`
+	FailureOutcome   journalCapacityOutcome `json:"failure_outcome"`
+	SuccessOutcome   journalCapacityOutcome `json:"success_outcome"`
 }
 
 func DeriveArtifactCapacityPlan(plan CampaignPlan) (ArtifactCapacityPlan, error) {
@@ -39,7 +39,7 @@ func DeriveArtifactCapacityPlan(plan CampaignPlan) (ArtifactCapacityPlan, error)
 	}
 	perArtifact := uint64(plan.Prepared.Target.Size)
 	values := []uint64{
-		uint64(plan.Prepared.Target.Size), uint64(plan.OutputBytes), uint64(plan.OutputBytes), PlanTranscriptBytes(plan),
+		uint64(plan.Prepared.Target.Size), uint64(plan.OutputBytes), uint64(plan.OutputBytes), planTranscriptBytes(plan),
 		uint64(plan.IOROMountLimits.TotalBytes), mountDescriptorBytes, 2 * world.MaximumSnapshotJSONBytes,
 		uint64(plan.WorldTransitionBytes), choiceBytes, artifactManifestCapacity,
 	}
@@ -60,7 +60,7 @@ func DeriveArtifactCapacityPlan(plan CampaignPlan) (ArtifactCapacityPlan, error)
 	return ArtifactCapacityPlan{
 		FailureArtifacts: record.Uint64String(maximumRuns), FailureBytes: record.Uint64String(failureBytes),
 		SuccessArtifacts: plan.SuccessArtifactLimit, SuccessBytes: plan.SuccessBytesLimit,
-		TotalBytes: record.Uint64String(failureBytes + successBytes), TranscriptBytes: record.Uint64String(PlanTranscriptBytes(plan)),
+		TotalBytes: record.Uint64String(failureBytes + successBytes), TranscriptBytes: record.Uint64String(planTranscriptBytes(plan)),
 		FailureOutcome: CapacityInfrastructureFailure, SuccessOutcome: CapacityInfrastructureFailure,
 	}, nil
 }
@@ -84,7 +84,7 @@ func checkedArtifactCapacityMultiply(left, right uint64) (uint64, error) {
 }
 
 // PlanTranscriptBytes is the plan's I/O transcript bound.
-func PlanTranscriptBytes(plan CampaignPlan) uint64 {
+func planTranscriptBytes(plan CampaignPlan) uint64 {
 	if plan.IOTranscriptBytes == 0 {
 		return record.DefaultIOTranscriptBytes
 	}

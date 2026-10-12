@@ -76,12 +76,12 @@ func OpenCampaign(path string) (_ Campaign, retErr error) {
 		}
 	}
 	if batch.Strategy == "choice-exploration" {
-		if err := ValidatePublishedExploration(path, *batch.ChoiceExploration, batch.ChoiceExplorationImplementationSHA256, batch.ChoiceExplorationChainSHA256, runs); err != nil {
+		if err := validatePublishedExploration(path, *batch.ChoiceExploration, batch.ChoiceExplorationImplementationSHA256, batch.ChoiceExplorationChainSHA256, runs); err != nil {
 			return Campaign{}, fmt.Errorf("validate published exploration: %w", err)
 		}
 	}
 	if batch.Strategy == "simulation-exploration" {
-		if err := ValidatePublishedSimulationExploration(path, *batch.SimulationExploration, batch.SimulationExplorationImplementationSHA256, batch.SimulationExplorationChainSHA256, runs); err != nil {
+		if err := validatePublishedSimulationExploration(path, *batch.SimulationExploration, batch.SimulationExplorationImplementationSHA256, batch.SimulationExplorationChainSHA256, runs); err != nil {
 			return Campaign{}, fmt.Errorf("validate published simulation exploration: %w", err)
 		}
 	}

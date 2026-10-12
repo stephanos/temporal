@@ -56,7 +56,7 @@ func TestCampaignJournalPublishesTheCanonicalCampaignLifecycle(t *testing.T) {
 	if err := stdout.Close(); err != nil {
 		t.Fatal(err)
 	}
-	for _, state := range []ExecutionState{ExecutionExited, ExecutionCaptured, ExecutionClassified} {
+	for _, state := range []executionState{ExecutionExited, ExecutionCaptured, ExecutionClassified} {
 		if err := run.Transition(state); err != nil {
 			t.Fatal(err)
 		}
@@ -94,7 +94,7 @@ func TestCampaignJournalPublishesTheCanonicalCampaignLifecycle(t *testing.T) {
 
 func TestValidateBatchPlanRejectsChangedArtifactCapacity(t *testing.T) {
 	plan := testBatchPlan(nil, record.HashBytes([]byte("target")), 1)
-	journalLimits := ExecutionJournalLimits{
+	journalLimits := executionJournalLimits{
 		MaximumExecutions: 3, MaximumBytes: 3 << 20, SegmentBytes: 1 << 20,
 		SegmentRecords: 1024, MaximumSegments: 3, MaximumPartialExecutions: 2,
 	}
@@ -279,7 +279,7 @@ func TestResumeCampaignJournalReusesVerifiedRunsAndArchivesIncompleteWork(t *tes
 		if err != nil {
 			t.Fatal(err)
 		}
-		for _, next := range []ExecutionState{ExecutionStarting, ExecutionExited, ExecutionCaptured, ExecutionClassified} {
+		for _, next := range []executionState{ExecutionStarting, ExecutionExited, ExecutionCaptured, ExecutionClassified} {
 			if err := run.Transition(next); err != nil {
 				t.Fatal(err)
 			}
@@ -507,7 +507,7 @@ func TestOpenBatchRejectsChangedRuns(t *testing.T) {
 	if err == nil || err.Error() != "execution segment 00000000000000000000.jsonl identity changed" || !reflect.DeepEqual(opened, Campaign{}) {
 		t.Fatalf("OpenBatch() error = %v", err)
 	}
-	var integrityErr *IntegrityError
+	var integrityErr *integrityError
 	if !errors.As(err, &integrityErr) || err != integrityErr {
 		t.Fatalf("OpenCampaign() changed primary integrity error = %v", err)
 	}
@@ -571,7 +571,7 @@ func TestBatchJournalRejectsRunBeforeExceedingReaderCapacity(t *testing.T) {
 		SelectionOrdinal: 0, Seed: 7, Domain: "success", Reason: strings.Repeat("x", defaultExecutionSegmentBytes), Termination: "exit",
 	})
 	var capacityErr *JournalCapacityError
-	if !errors.As(err, &capacityErr) || capacityErr.Limit != JournalLimitSegmentBytes || capacityErr.Outcome != CapacityInfrastructureFailure {
+	if !errors.As(err, &capacityErr) || capacityErr.Limit != journalLimitSegmentBytes || capacityErr.Outcome != CapacityInfrastructureFailure {
 		t.Fatalf("AppendRun() error = %v", err)
 	}
 	entries, err := os.ReadDir(filepath.Join(journal.Path(), ".partial", "executions"))

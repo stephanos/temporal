@@ -18,34 +18,34 @@ const (
 	maximumLifecycleText  = 4 << 10
 )
 
-type LifecycleState string
+type lifecycleState string
 
 const (
-	LifecyclePlanned            LifecycleState = "planned"
-	LifecyclePrepared           LifecycleState = "prepared"
-	LifecycleRunning            LifecycleState = "running"
-	LifecycleCommitting         LifecycleState = "committing"
-	LifecyclePublished          LifecycleState = "published"
-	LifecycleRecoverableFailure LifecycleState = "recoverable-failure"
+	lifecyclePlanned            lifecycleState = "planned"
+	lifecyclePrepared           lifecycleState = "prepared"
+	lifecycleRunning            lifecycleState = "running"
+	lifecycleCommitting         lifecycleState = "committing"
+	lifecyclePublished          lifecycleState = "published"
+	lifecycleRecoverableFailure lifecycleState = "recoverable-failure"
 )
 
 type LifecycleStatus struct {
-	State           LifecycleState `json:"state"`
-	LastStableState LifecycleState `json:"last_stable_state"`
+	State           lifecycleState `json:"state"`
+	LastStableState lifecycleState `json:"last_stable_state"`
 	Reason          string         `json:"reason,omitempty"`
 	Detail          string         `json:"detail,omitempty"`
 	Published       bool           `json:"published"`
 	Resumable       bool           `json:"resumable"`
 	Repairable      bool           `json:"repairable"`
-	Action          RecoveryAction `json:"action"`
+	Action          recoveryAction `json:"action"`
 }
 
 type lifecycleRecord struct {
 	Schema          string         `json:"schema"`
 	SchemaVersion   uint32         `json:"schema_version"`
 	CampaignID      string         `json:"campaign_id"`
-	State           LifecycleState `json:"state"`
-	LastStableState LifecycleState `json:"last_stable_state"`
+	State           lifecycleState `json:"state"`
+	LastStableState lifecycleState `json:"last_stable_state"`
 	Reason          *string        `json:"reason"`
 	Detail          *string        `json:"detail"`
 }
@@ -74,10 +74,10 @@ func InspectCampaignLifecycle(path string) (_ LifecycleStatus, retErr error) {
 		if err != nil {
 			return LifecycleStatus{}, err
 		}
-		status := LifecycleStatus{State: LifecyclePublished, LastStableState: LifecyclePublished, Published: true}
+		status := LifecycleStatus{State: lifecyclePublished, LastStableState: lifecyclePublished, Published: true}
 		if stale {
 			status.Repairable = true
-			status.Action = RecoveryFinalizePublication
+			status.Action = recoveryFinalizePublication
 		}
 		return status, nil
 	} else if !errors.Is(err, os.ErrNotExist) {
@@ -94,16 +94,16 @@ func InspectCampaignLifecycle(path string) (_ LifecycleStatus, retErr error) {
 	if record.Detail != nil {
 		status.Detail = *record.Detail
 	}
-	resumeState := record.State == LifecyclePrepared || record.State == LifecycleRunning ||
-		record.State == LifecycleRecoverableFailure && (record.LastStableState == LifecyclePrepared || record.LastStableState == LifecycleRunning)
+	resumeState := record.State == lifecyclePrepared || record.State == lifecycleRunning ||
+		record.State == lifecycleRecoverableFailure && (record.LastStableState == lifecyclePrepared || record.LastStableState == lifecycleRunning)
 	if resumeState {
 		_, statusErr := ReadResumePlan(absolute)
 		status.Resumable = statusErr == nil
 	}
-	if record.State == LifecycleCommitting {
+	if record.State == lifecycleCommitting {
 		if _, statusErr := ReadResumePlan(absolute); statusErr == nil {
 			status.Repairable = true
-			status.Action = RecoveryRestoreRunning
+			status.Action = recoveryRestoreRunning
 		}
 	}
 	return status, nil
@@ -161,11 +161,11 @@ func validateLifecycleRecord(lifecycle lifecycleRecord, campaignID string) error
 	if lifecycle.Schema != lifecycleSchema || lifecycle.SchemaVersion != record.SchemaVersion || lifecycle.CampaignID != campaignID || !validLifecycleState(lifecycle.State) || !validRecoveryState(lifecycle.LastStableState) {
 		return errors.New("campaign lifecycle identity is invalid")
 	}
-	if lifecycle.State == LifecycleRecoverableFailure {
+	if lifecycle.State == lifecycleRecoverableFailure {
 		if lifecycle.Reason == nil || *lifecycle.Reason == "" {
 			return errors.New("recoverable campaign lifecycle reason is missing")
 		}
-	} else if lifecycle.State == LifecycleCommitting && lifecycle.LastStableState != LifecycleRunning || lifecycle.State != LifecycleCommitting && lifecycle.State != lifecycle.LastStableState || lifecycle.Reason != nil || lifecycle.Detail != nil {
+	} else if lifecycle.State == lifecycleCommitting && lifecycle.LastStableState != lifecycleRunning || lifecycle.State != lifecycleCommitting && lifecycle.State != lifecycle.LastStableState || lifecycle.Reason != nil || lifecycle.Detail != nil {
 		return errors.New("stable campaign lifecycle contains failure evidence")
 	}
 	if lifecycle.Reason != nil && !validLifecycleText(*lifecycle.Reason) || lifecycle.Detail != nil && !validLifecycleText(*lifecycle.Detail) {
@@ -174,23 +174,23 @@ func validateLifecycleRecord(lifecycle lifecycleRecord, campaignID string) error
 	return nil
 }
 
-func validLifecycleState(state LifecycleState) bool {
-	return validRecoveryState(state) || state == LifecycleCommitting || state == LifecycleRecoverableFailure
+func validLifecycleState(state lifecycleState) bool {
+	return validRecoveryState(state) || state == lifecycleCommitting || state == lifecycleRecoverableFailure
 }
 
-func validRecoveryState(state LifecycleState) bool {
-	return state == LifecyclePlanned || state == LifecyclePrepared || state == LifecycleRunning
+func validRecoveryState(state lifecycleState) bool {
+	return state == lifecyclePlanned || state == lifecyclePrepared || state == lifecycleRunning
 }
 
 func validLifecycleText(value string) bool {
 	return len(value) <= maximumLifecycleText && utf8.ValidString(value)
 }
 
-func (journal *CampaignJournal) transitionLifecycle(next LifecycleState, reason string, cause error) error {
+func (journal *CampaignJournal) transitionLifecycle(next lifecycleState, reason string, cause error) error {
 	return journal.transitionLifecycleContext(journal.ctx, next, reason, cause)
 }
 
-func (journal *CampaignJournal) transitionLifecycleContext(ctx context.Context, next LifecycleState, reason string, cause error) error {
+func (journal *CampaignJournal) transitionLifecycleContext(ctx context.Context, next lifecycleState, reason string, cause error) error {
 	if !validLifecycleTransition(journal.lifecycle, next) {
 		return fmt.Errorf("invalid campaign lifecycle transition %q -> %q", journal.lifecycle, next)
 	}
@@ -198,15 +198,15 @@ func (journal *CampaignJournal) transitionLifecycleContext(ctx context.Context, 
 		Schema: lifecycleSchema, SchemaVersion: record.SchemaVersion, CampaignID: journal.config.CampaignID,
 		State: next, LastStableState: next,
 	}
-	if next == LifecycleCommitting {
+	if next == lifecycleCommitting {
 		record.LastStableState = journal.lifecycle
 	}
-	if next == LifecycleRecoverableFailure {
+	if next == lifecycleRecoverableFailure {
 		stable := journal.lifecycle
-		if stable == LifecycleRecoverableFailure {
+		if stable == lifecycleRecoverableFailure {
 			stable = journal.lastStableLifecycle
 		}
-		if stable == LifecycleCommitting {
+		if stable == lifecycleCommitting {
 			stable = journal.lastStableLifecycle
 		}
 		if !validRecoveryState(stable) {
@@ -243,17 +243,17 @@ func (journal *CampaignJournal) transitionLifecycleContext(ctx context.Context, 
 	return nil
 }
 
-func validLifecycleTransition(current, next LifecycleState) bool {
+func validLifecycleTransition(current, next lifecycleState) bool {
 	if current == "" {
-		return next == LifecyclePlanned
+		return next == lifecyclePlanned
 	}
-	if next == LifecycleRecoverableFailure {
-		return current == LifecyclePlanned || current == LifecyclePrepared || current == LifecycleRunning || current == LifecycleCommitting || current == LifecycleRecoverableFailure
+	if next == lifecycleRecoverableFailure {
+		return current == lifecyclePlanned || current == lifecyclePrepared || current == lifecycleRunning || current == lifecycleCommitting || current == lifecycleRecoverableFailure
 	}
-	if current == LifecycleRecoverableFailure {
-		return next == LifecycleRunning
+	if current == lifecycleRecoverableFailure {
+		return next == lifecycleRunning
 	}
-	return current == LifecyclePlanned && next == LifecyclePrepared ||
-		current == LifecyclePrepared && next == LifecycleRunning ||
-		current == LifecycleRunning && next == LifecycleCommitting
+	return current == lifecyclePlanned && next == lifecyclePrepared ||
+		current == lifecyclePrepared && next == lifecycleRunning ||
+		current == lifecycleRunning && next == lifecycleCommitting
 }

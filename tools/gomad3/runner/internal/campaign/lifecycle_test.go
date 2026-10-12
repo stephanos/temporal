@@ -25,7 +25,7 @@ func TestCampaignLifecycleProgressesToPublished(t *testing.T) {
 			t.Error(err)
 		}
 	})
-	assertLifecycle(t, journal.Path(), LifecyclePlanned, LifecyclePlanned, false)
+	assertLifecycle(t, journal.Path(), lifecyclePlanned, lifecyclePlanned, false)
 
 	if err := journal.BeginPreparation(); err != nil {
 		t.Fatal(err)
@@ -33,12 +33,12 @@ func TestCampaignLifecycleProgressesToPublished(t *testing.T) {
 	if err := journal.CompletePreparation(); err != nil {
 		t.Fatal(err)
 	}
-	assertLifecycle(t, journal.Path(), LifecyclePrepared, LifecyclePrepared, false)
+	assertLifecycle(t, journal.Path(), lifecyclePrepared, lifecyclePrepared, false)
 
 	if err := journal.StartExecutions(); err != nil {
 		t.Fatal(err)
 	}
-	assertLifecycle(t, journal.Path(), LifecycleRunning, LifecycleRunning, false)
+	assertLifecycle(t, journal.Path(), lifecycleRunning, lifecycleRunning, false)
 
 	if err := journal.AppendExecution(ExecutionRecord{
 		SelectionOrdinal: 0, Seed: 7, Domain: "success", Reason: "success", Termination: "exit",
@@ -48,7 +48,7 @@ func TestCampaignLifecycleProgressesToPublished(t *testing.T) {
 	if err := journal.Publish(CampaignSummary{Attempted: 1, Succeeded: 1, StopReason: "seeds_exhausted"}); err != nil {
 		t.Fatal(err)
 	}
-	assertLifecycle(t, journal.Path(), LifecyclePublished, LifecyclePublished, false)
+	assertLifecycle(t, journal.Path(), lifecyclePublished, lifecyclePublished, false)
 }
 
 func TestCampaignLifecycleRetainsRecoverableFailureProvenance(t *testing.T) {
@@ -77,7 +77,7 @@ func TestCampaignLifecycleRetainsRecoverableFailureProvenance(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if status.State != LifecycleRecoverableFailure || status.LastStableState != LifecyclePrepared || status.Reason != "target_preparation" || status.Detail != "build failed" || status.Published || status.Resumable {
+	if status.State != lifecycleRecoverableFailure || status.LastStableState != lifecyclePrepared || status.Reason != "target_preparation" || status.Detail != "build failed" || status.Published || status.Resumable {
 		t.Fatalf("lifecycle status = %#v", status)
 	}
 }
@@ -99,7 +99,7 @@ func TestCampaignLifecycleRejectsIllegalTransitionWithoutMutation(t *testing.T) 
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := journal.transitionLifecycle(LifecycleRunning, "", nil); err == nil {
+	if err := journal.transitionLifecycle(lifecycleRunning, "", nil); err == nil {
 		t.Fatal("transitionLifecycle() accepted planned -> running")
 	}
 	after, err := os.ReadFile(path)
@@ -232,14 +232,14 @@ func TestRecoverCampaignFinishesPublishedCleanup(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if before.State != LifecyclePublished || !before.Published || !before.Repairable || before.Action != RecoveryFinalizePublication {
+	if before.State != lifecyclePublished || !before.Published || !before.Repairable || before.Action != recoveryFinalizePublication {
 		t.Fatalf("published lifecycle before recovery = %#v", before)
 	}
 	recovered, err := RecoverCampaign(context.Background(), journal.Path())
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !recovered.Changed || recovered.Action != RecoveryFinalizePublication || recovered.After.State != LifecyclePublished || recovered.After.Repairable {
+	if !recovered.Changed || recovered.Action != recoveryFinalizePublication || recovered.After.State != lifecyclePublished || recovered.After.Repairable {
 		t.Fatalf("recovery result = %#v", recovered)
 	}
 	for _, path := range []string{journal.PreparedPath(), filepath.Join(journal.Path(), ".partial", "campaign")} {
@@ -259,7 +259,7 @@ func TestRecoverCampaignNormalizesInterruptedCommit(t *testing.T) {
 	}); err != nil {
 		t.Fatal(err)
 	}
-	if err := journal.transitionLifecycle(LifecycleCommitting, "", nil); err != nil {
+	if err := journal.transitionLifecycle(lifecycleCommitting, "", nil); err != nil {
 		t.Fatal(err)
 	}
 	if err := journal.Close(); err != nil {
@@ -270,14 +270,14 @@ func TestRecoverCampaignNormalizesInterruptedCommit(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if before.State != LifecycleCommitting || !before.Repairable || before.Action != RecoveryRestoreRunning || before.Resumable {
+	if before.State != lifecycleCommitting || !before.Repairable || before.Action != recoveryRestoreRunning || before.Resumable {
 		t.Fatalf("committing lifecycle before recovery = %#v", before)
 	}
 	recovered, err := RecoverCampaign(context.Background(), journal.Path())
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !recovered.Changed || recovered.Action != RecoveryRestoreRunning || recovered.After.State != LifecycleRecoverableFailure || recovered.After.LastStableState != LifecycleRunning || !recovered.After.Resumable {
+	if !recovered.Changed || recovered.Action != recoveryRestoreRunning || recovered.After.State != lifecycleRecoverableFailure || recovered.After.LastStableState != lifecycleRunning || !recovered.After.Resumable {
 		t.Fatalf("recovery result = %#v", recovered)
 	}
 	resumed, _, err := ResumeCampaignJournal(context.Background(), journal.Path())
@@ -299,7 +299,7 @@ func TestResumeCampaignJournalRepairsInterruptedCommitUnderLock(t *testing.T) {
 	}); err != nil {
 		t.Fatal(err)
 	}
-	if err := journal.transitionLifecycle(LifecycleCommitting, "", nil); err != nil {
+	if err := journal.transitionLifecycle(lifecycleCommitting, "", nil); err != nil {
 		t.Fatal(err)
 	}
 	if err := journal.Close(); err != nil {
@@ -317,7 +317,7 @@ func TestResumeCampaignJournalRepairsInterruptedCommitUnderLock(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if status.State != LifecycleRunning || !status.Resumable {
+	if status.State != lifecycleRunning || !status.Resumable {
 		t.Fatalf("resumed lifecycle = %#v", status)
 	}
 	if err := resumed.Close(); err != nil {
@@ -331,7 +331,7 @@ func TestPreflightResumeReturnsValidatedLifecycleAndPlan(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if preflight.Lifecycle.State != LifecyclePrepared || !preflight.Lifecycle.Resumable {
+	if preflight.Lifecycle.State != lifecyclePrepared || !preflight.Lifecycle.Resumable {
 		t.Fatalf("preflight lifecycle = %#v", preflight.Lifecycle)
 	}
 	if preflight.Plan.Selection != "7-9" || preflight.Plan.SelectionCount != 3 {
@@ -434,7 +434,7 @@ func newPreparedLifecycleJournal(t *testing.T, id string) *CampaignJournal {
 	return journal
 }
 
-func assertLifecycle(t *testing.T, path string, state, stable LifecycleState, resumable bool) {
+func assertLifecycle(t *testing.T, path string, state, stable lifecycleState, resumable bool) {
 	t.Helper()
 	status, err := InspectCampaignLifecycle(path)
 	if err != nil {

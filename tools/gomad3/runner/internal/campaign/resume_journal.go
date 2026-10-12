@@ -41,7 +41,7 @@ func ResumeCampaignJournal(ctx context.Context, path string) (_ *CampaignJournal
 	if err != nil {
 		return nil, ResumeState{}, err
 	}
-	if preflight.Lifecycle.Action == RecoveryRestoreRunning {
+	if preflight.Lifecycle.Action == recoveryRestoreRunning {
 		if err := restoreInterruptedCommit(ctx, path); err != nil {
 			return nil, ResumeState{}, err
 		}
@@ -119,11 +119,11 @@ func restoreRunningLifecycle(journal *CampaignJournal, path string) error {
 	}
 	journal.lifecycle = lifecycle.State
 	journal.lastStableLifecycle = lifecycle.LastStableState
-	if lifecycle.State == LifecycleRunning {
-		journal.lifecycle = LifecycleRecoverableFailure
-		journal.lastStableLifecycle = LifecycleRunning
+	if lifecycle.State == lifecycleRunning {
+		journal.lifecycle = lifecycleRecoverableFailure
+		journal.lastStableLifecycle = lifecycleRunning
 	}
-	return journal.transitionLifecycle(LifecycleRunning, "", nil)
+	return journal.transitionLifecycle(lifecycleRunning, "", nil)
 }
 
 func validateResumeExecutions(batchPath string, plan CampaignPlan, runs []ExecutionRecord) ([]ExecutionRecord, error) {
@@ -302,18 +302,18 @@ func validateResumeSuccessArtifact(batchPath string, plan CampaignPlan, run Exec
 	return nil
 }
 
-func validateResumeArtifact(batchPath string, plan CampaignPlan, run ExecutionRecord) (RetainedEvidence, error) {
+func validateResumeArtifact(batchPath string, plan CampaignPlan, run ExecutionRecord) (retainedEvidence, error) {
 	retained, err := ResolveRetainedEvidence(batchPath, filepath.Base(batchPath), run)
 	if err != nil {
-		return RetainedEvidence{}, err
+		return retainedEvidence{}, err
 	}
 	manifest := retained.Manifest
 	targetMatches, targetErr := record.SamePreparedTargetIdentity(manifest.Target, plan.Prepared.Target)
 	if targetErr != nil || manifest.Runner.RunnerBuild != plan.RunnerBuild || manifest.Toolchain != plan.Toolchain || !targetMatches {
-		return RetainedEvidence{}, fmt.Errorf("failure artifact target identity does not match its campaign plan")
+		return retainedEvidence{}, fmt.Errorf("failure artifact target identity does not match its campaign plan")
 	}
 	if !choiceProfileMatchesPlan(plan, manifest) {
-		return RetainedEvidence{}, fmt.Errorf("failure artifact choice profile does not match its campaign plan")
+		return retainedEvidence{}, fmt.Errorf("failure artifact choice profile does not match its campaign plan")
 	}
 	return retained, nil
 }

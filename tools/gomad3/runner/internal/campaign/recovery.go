@@ -8,15 +8,15 @@ import (
 	"path/filepath"
 )
 
-type RecoveryAction string
+type recoveryAction string
 
 const (
-	RecoveryFinalizePublication RecoveryAction = "finalize-publication"
-	RecoveryRestoreRunning      RecoveryAction = "restore-running"
+	recoveryFinalizePublication recoveryAction = "finalize-publication"
+	recoveryRestoreRunning      recoveryAction = "restore-running"
 )
 
-type RecoveryResult struct {
-	Action  RecoveryAction  `json:"action"`
+type recoveryResult struct {
+	Action  recoveryAction  `json:"action"`
 	Changed bool            `json:"changed"`
 	Before  LifecycleStatus `json:"before"`
 	After   LifecycleStatus `json:"after"`
@@ -32,7 +32,7 @@ func PreflightResume(path string) (ResumePreflight, error) {
 	if err != nil {
 		return ResumePreflight{}, err
 	}
-	if lifecycle.Published || !lifecycle.Resumable && lifecycle.Action != RecoveryRestoreRunning {
+	if lifecycle.Published || !lifecycle.Resumable && lifecycle.Action != recoveryRestoreRunning {
 		return ResumePreflight{}, newIntegrityError(fmt.Errorf("campaign lifecycle %q is not resumable", lifecycle.State))
 	}
 	plan, err := ReadResumePlan(path)
@@ -42,49 +42,49 @@ func PreflightResume(path string) (ResumePreflight, error) {
 	return ResumePreflight{Lifecycle: lifecycle, Plan: plan}, nil
 }
 
-func RecoverCampaign(ctx context.Context, path string) (_ RecoveryResult, retErr error) {
+func RecoverCampaign(ctx context.Context, path string) (_ recoveryResult, retErr error) {
 	if ctx == nil {
 		ctx = context.Background()
 	}
 	if err := ctx.Err(); err != nil {
-		return RecoveryResult{}, err
+		return recoveryResult{}, err
 	}
 	absolute, err := filepath.Abs(path)
 	if err != nil {
-		return RecoveryResult{}, fmt.Errorf("resolve recoverable campaign path: %w", err)
+		return recoveryResult{}, fmt.Errorf("resolve recoverable campaign path: %w", err)
 	}
 	before, err := InspectCampaignLifecycle(absolute)
 	if err != nil {
-		return RecoveryResult{}, err
+		return recoveryResult{}, err
 	}
 	if err := ctx.Err(); err != nil {
-		return RecoveryResult{}, err
+		return recoveryResult{}, err
 	}
 	if before.Action == "" && !before.Published && !before.Resumable {
-		return RecoveryResult{}, newIntegrityError(fmt.Errorf("campaign lifecycle %q is not recoverable", before.State))
+		return recoveryResult{}, newIntegrityError(fmt.Errorf("campaign lifecycle %q is not recoverable", before.State))
 	}
 	lock, err := acquireResumeLock(ctx, filepath.Join(absolute, ".resume.lock"))
 	if err != nil {
-		return RecoveryResult{}, err
+		return recoveryResult{}, err
 	}
 	defer func() {
 		retErr = errors.Join(retErr, releaseResumeLock(lock))
 	}()
 	before, err = InspectCampaignLifecycle(absolute)
 	if err != nil {
-		return RecoveryResult{}, err
+		return recoveryResult{}, err
 	}
 	if err := ctx.Err(); err != nil {
-		return RecoveryResult{}, err
+		return recoveryResult{}, err
 	}
 	changed, err := applyRecoveryAction(ctx, absolute, before)
 	if err != nil {
-		return RecoveryResult{}, err
+		return recoveryResult{}, err
 	}
-	result := RecoveryResult{Action: before.Action, Changed: changed, Before: before, After: before}
+	result := recoveryResult{Action: before.Action, Changed: changed, Before: before, After: before}
 	after, err := InspectCampaignLifecycle(absolute)
 	if err != nil {
-		return RecoveryResult{}, err
+		return recoveryResult{}, err
 	}
 	result.After = after
 	return result, nil
@@ -92,7 +92,7 @@ func RecoverCampaign(ctx context.Context, path string) (_ RecoveryResult, retErr
 
 func applyRecoveryAction(ctx context.Context, path string, before LifecycleStatus) (bool, error) {
 	switch before.Action {
-	case RecoveryFinalizePublication:
+	case recoveryFinalizePublication:
 		for _, private := range []struct {
 			path      string
 			operation string
@@ -112,7 +112,7 @@ func applyRecoveryAction(ctx context.Context, path string, before LifecycleStatu
 			return false, err
 		}
 		return true, nil
-	case RecoveryRestoreRunning:
+	case recoveryRestoreRunning:
 		if err := restoreInterruptedCommit(ctx, path); err != nil {
 			return false, err
 		}
@@ -128,9 +128,9 @@ func applyRecoveryAction(ctx context.Context, path string, before LifecycleStatu
 func restoreInterruptedCommit(ctx context.Context, path string) error {
 	journal := &CampaignJournal{
 		ctx: ctx, config: CampaignConfig{CampaignID: filepath.Base(path)}, path: path,
-		lifecycle: LifecycleCommitting, lastStableLifecycle: LifecycleRunning,
+		lifecycle: lifecycleCommitting, lastStableLifecycle: lifecycleRunning,
 	}
-	return journal.transitionLifecycle(LifecycleRecoverableFailure, "commit_interrupted", errors.New("final campaign manifest was not published"))
+	return journal.transitionLifecycle(lifecycleRecoverableFailure, "commit_interrupted", errors.New("final campaign manifest was not published"))
 }
 
 func syncExistingDirectory(ctx context.Context, path string) error {

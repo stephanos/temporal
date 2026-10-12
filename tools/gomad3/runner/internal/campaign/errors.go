@@ -6,39 +6,39 @@ import (
 	"os"
 )
 
-type JournalCapacityOutcome string
+type journalCapacityOutcome string
 
-type JournalLimit string
+type journalLimit string
 
-type ArtifactLimit string
+type artifactLimit string
 
 const (
-	CapacityInfrastructureFailure JournalCapacityOutcome = "infrastructure_failure"
+	CapacityInfrastructureFailure journalCapacityOutcome = "infrastructure_failure"
 )
 
 const (
-	ArtifactLimitFailureCount ArtifactLimit = "failure_artifacts"
-	ArtifactLimitFailureBytes ArtifactLimit = "failure_bytes"
-	ArtifactLimitSuccessCount ArtifactLimit = "success_artifacts"
-	ArtifactLimitSuccessBytes ArtifactLimit = "success_bytes"
-	ArtifactLimitTotalBytes   ArtifactLimit = "total_bytes"
+	ArtifactLimitFailureCount artifactLimit = "failure_artifacts"
+	ArtifactLimitFailureBytes artifactLimit = "failure_bytes"
+	artifactLimitSuccessCount artifactLimit = "success_artifacts"
+	artifactLimitSuccessBytes artifactLimit = "success_bytes"
+	ArtifactLimitTotalBytes   artifactLimit = "total_bytes"
 )
 
 const (
-	JournalLimitExecutions        JournalLimit = "executions"
-	JournalLimitBytes             JournalLimit = "journal_bytes"
-	JournalLimitSegmentBytes      JournalLimit = "segment_bytes"
-	JournalLimitSegments          JournalLimit = "segments"
-	JournalLimitIndexBytes        JournalLimit = "index_bytes"
-	JournalLimitPartialExecutions JournalLimit = "partial_executions"
-	JournalLimitManifestBytes     JournalLimit = "manifest_bytes"
+	journalLimitExecutions        journalLimit = "executions"
+	journalLimitBytes             journalLimit = "journal_bytes"
+	journalLimitSegmentBytes      journalLimit = "segment_bytes"
+	journalLimitSegments          journalLimit = "segments"
+	journalLimitIndexBytes        journalLimit = "index_bytes"
+	journalLimitPartialExecutions journalLimit = "partial_executions"
+	journalLimitManifestBytes     journalLimit = "manifest_bytes"
 )
 
 type JournalCapacityError struct {
-	Limit    JournalLimit
+	Limit    journalLimit
 	Required uint64
 	Maximum  uint64
-	Outcome  JournalCapacityOutcome
+	Outcome  journalCapacityOutcome
 }
 
 func (err *JournalCapacityError) Error() string {
@@ -46,30 +46,30 @@ func (err *JournalCapacityError) Error() string {
 }
 
 type ArtifactCapacityError struct {
-	Limit    ArtifactLimit
+	Limit    artifactLimit
 	Required uint64
 	Maximum  uint64
-	Outcome  JournalCapacityOutcome
+	Outcome  journalCapacityOutcome
 }
 
 func (err *ArtifactCapacityError) Error() string {
 	return fmt.Sprintf("artifact %s requires %d, exceeding %d (%s)", err.Limit, err.Required, err.Maximum, err.Outcome)
 }
 
-type IntegrityError struct {
+type integrityError struct {
 	err error
 }
 
-func (err *IntegrityError) Error() string {
+func (err *integrityError) Error() string {
 	return err.err.Error()
 }
 
-func (err *IntegrityError) Unwrap() error {
+func (err *integrityError) Unwrap() error {
 	return err.err
 }
 
 func IsIntegrityError(err error) bool {
-	var integrityErr *IntegrityError
+	var integrityErr *integrityError
 	return errors.As(err, &integrityErr)
 }
 
@@ -81,12 +81,12 @@ func classifyIntegrityError(err error) error {
 	if errors.As(err, &pathErr) && !errors.Is(err, os.ErrNotExist) {
 		return err
 	}
-	return &IntegrityError{err: err}
+	return &integrityError{err: err}
 }
 
 func newIntegrityError(err error) error {
 	if err == nil || IsIntegrityError(err) {
 		return err
 	}
-	return &IntegrityError{err: err}
+	return &integrityError{err: err}
 }

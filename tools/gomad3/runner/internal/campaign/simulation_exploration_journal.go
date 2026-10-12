@@ -47,10 +47,10 @@ type SimulationExplorationInspection struct {
 	ImplementationSHA256 record.SHA256
 	ChainSHA256          record.SHA256
 	Pending              []exploration.SimulationCandidate
-	StagedRound          *SimulationExplorationStagedRound
+	StagedRound          *simulationExplorationStagedRound
 }
 
-type SimulationExplorationStagedRound struct {
+type simulationExplorationStagedRound struct {
 	Index      uint64
 	Candidates uint64
 	Attempted  uint64
@@ -358,7 +358,7 @@ func (journal *SimulationExplorationJournal) ChainSHA256() record.SHA256 {
 	return journal.chainSHA256
 }
 
-func ValidatePublishedSimulationExploration(batchPath string, expectedSummary exploration.SimulationSummary, expectedImplementation, expectedChain record.SHA256, expectedRuns []ExecutionRecord) error {
+func validatePublishedSimulationExploration(batchPath string, expectedSummary exploration.SimulationSummary, expectedImplementation, expectedChain record.SHA256, expectedRuns []ExecutionRecord) error {
 	planBytes, err := readExplorationFile(filepath.Join(batchPath, "simulation-exploration", "plan.json"), maximumSimulationExplorationPlanBytes)
 	if err != nil {
 		return fmt.Errorf("read published simulation exploration plan: %w", err)
@@ -616,8 +616,8 @@ func (staged *SimulationExplorationRoundJournal) BeginExecution(ordinal, seed ui
 	if err := makePrivateDirectoriesContext(staged.journal.ctx, path); err != nil {
 		return nil, err
 	}
-	run := &ExecutionJournal{ctx: staged.journal.ctx, path: path, ordinal: ordinal, seed: seed, state: ExecutionStaging}
-	if err := run.writeState(ExecutionStaging); err != nil {
+	run := &ExecutionJournal{ctx: staged.journal.ctx, path: path, ordinal: ordinal, seed: seed, state: executionStaging}
+	if err := run.writeState(executionStaging); err != nil {
 		return run, err
 	}
 	if err := makePrivateDirectoriesContext(staged.journal.ctx, run.WorkPath()); err != nil {
@@ -677,7 +677,7 @@ func validateSimulationExplorationRoundExecutions(round exploration.SimulationRo
 	return nil
 }
 
-func inspectIncompleteSimulationExplorationRound(batchPath string, state exploration.SimulationState) (*SimulationExplorationStagedRound, error) {
+func inspectIncompleteSimulationExplorationRound(batchPath string, state exploration.SimulationState) (*simulationExplorationStagedRound, error) {
 	partialPath := filepath.Join(batchPath, ".partial", "simulation-exploration")
 	if err := validatePrivateDirectory(partialPath, "partial simulation exploration"); err != nil {
 		return nil, err
@@ -717,7 +717,7 @@ func inspectIncompleteSimulationExplorationRound(batchPath string, state explora
 	if err != nil {
 		return nil, err
 	}
-	return &SimulationExplorationStagedRound{Index: round.Index, Candidates: uint64(len(round.Candidates)), Attempted: attempts}, nil
+	return &simulationExplorationStagedRound{Index: round.Index, Candidates: uint64(len(round.Candidates)), Attempted: attempts}, nil
 }
 
 func discardIncompleteSimulationExplorationRound(ctx context.Context, batchPath string, state exploration.SimulationState) (uint64, error) {

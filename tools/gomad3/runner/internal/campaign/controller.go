@@ -5,9 +5,9 @@ import "errors"
 type FailurePolicy string
 
 const (
-	FailurePolicyFirst  FailurePolicy = "first"
-	FailurePolicyBudget FailurePolicy = "budget"
-	FailurePolicyAll    FailurePolicy = "all"
+	failurePolicyFirst  FailurePolicy = "first"
+	failurePolicyBudget FailurePolicy = "budget"
+	failurePolicyAll    FailurePolicy = "all"
 )
 
 type ControllerStopReason string
@@ -23,18 +23,18 @@ type SeedJob struct {
 	Seed    uint64
 }
 
-type CompletionKind uint8
+type completionKind uint8
 
 const (
-	CompletionInvalid CompletionKind = iota
-	CompletionUnclassified
+	completionInvalid completionKind = iota
+	completionUnclassified
 	CompletionSuccess
 	CompletionCancelled
-	CompletionFailure
+	completionFailure
 )
 
 type Completion struct {
-	Kind             CompletionKind
+	Kind             completionKind
 	Domain           string
 	Reason           string
 	DistinctFailures uint64
@@ -60,12 +60,12 @@ func CompletedCancelled() Completion { return Completion{Kind: CompletionCancell
 // CompletedFailure is an attempt classified as a failure with its outcome
 // domain and reason. distinctFailures includes this failure.
 func CompletedFailure(domain, reason string, distinctFailures uint64) Completion {
-	return Completion{Kind: CompletionFailure, Domain: domain, Reason: reason, DistinctFailures: distinctFailures}
+	return Completion{Kind: completionFailure, Domain: domain, Reason: reason, DistinctFailures: distinctFailures}
 }
 
 // CompletedUnclassified is an attempt that ended before classification, such
 // as one whose evidence failed the host. It counts as attempted only.
-func CompletedUnclassified() Completion { return Completion{Kind: CompletionUnclassified} }
+func CompletedUnclassified() Completion { return Completion{Kind: completionUnclassified} }
 
 type SeedControllerConfig struct {
 	Next          func() (SeedJob, bool)
@@ -90,21 +90,21 @@ func NewSeedController(config SeedControllerConfig) (*SeedController, error) {
 	if config.Next == nil || config.Parallel <= 0 {
 		return nil, errors.New("seed campaign controller requires a source and positive parallelism")
 	}
-	if config.Policy == FailurePolicyBudget && config.FailureBudget == 0 {
+	if config.Policy == failurePolicyBudget && config.FailureBudget == 0 {
 		return nil, errors.New("seed campaign failure budget must be positive")
 	}
-	if config.Policy != FailurePolicyFirst && config.Policy != FailurePolicyBudget && config.Policy != FailurePolicyAll {
+	if config.Policy != failurePolicyFirst && config.Policy != failurePolicyBudget && config.Policy != failurePolicyAll {
 		return nil, errors.New("seed campaign failure policy is invalid")
 	}
 	controller := &SeedController{
 		next: config.Next, parallel: config.Parallel, policy: config.Policy,
 		failureBudget: config.FailureBudget, statistics: config.Initial,
 	}
-	if config.Policy == FailurePolicyFirst && config.Initial.Failures != 0 {
+	if config.Policy == failurePolicyFirst && config.Initial.Failures != 0 {
 		controller.statistics.StopReason = StopFirstFailure
 		controller.stopped = true
 	}
-	if config.Policy == FailurePolicyBudget && config.Initial.DistinctFailures >= config.FailureBudget {
+	if config.Policy == failurePolicyBudget && config.Initial.DistinctFailures >= config.FailureBudget {
 		controller.statistics.StopReason = StopFailureBudget
 		controller.stopped = true
 	}
@@ -129,7 +129,7 @@ func (controller *SeedController) Complete(completion Completion) bool {
 	if controller.active == 0 {
 		panic("gomad3: completed an inactive campaign attempt")
 	}
-	if completion.Kind == CompletionInvalid || completion.Kind > CompletionFailure {
+	if completion.Kind == completionInvalid || completion.Kind > completionFailure {
 		panic("gomad3: completed a campaign attempt without a classification")
 	}
 	controller.active--
@@ -142,7 +142,7 @@ func (controller *SeedController) Complete(completion Completion) bool {
 		controller.statistics.Cancelled++
 		return false
 	}
-	if completion.Kind != CompletionFailure {
+	if completion.Kind != completionFailure {
 		return false
 	}
 	controller.statistics.Failures++
@@ -156,12 +156,12 @@ func (controller *SeedController) Complete(completion Completion) bool {
 	if controller.stopped {
 		return false
 	}
-	if controller.policy == FailurePolicyFirst {
+	if controller.policy == failurePolicyFirst {
 		controller.statistics.StopReason = StopFirstFailure
 		controller.stopped = true
 		return true
 	}
-	if controller.policy == FailurePolicyBudget && completion.DistinctFailures >= controller.failureBudget {
+	if controller.policy == failurePolicyBudget && completion.DistinctFailures >= controller.failureBudget {
 		controller.statistics.StopReason = StopFailureBudget
 		controller.stopped = true
 	}

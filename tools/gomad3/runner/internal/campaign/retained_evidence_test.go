@@ -70,7 +70,7 @@ func TestOpenCampaignKeepsSameSignatureSuccessesDistinct(t *testing.T) {
 				if err != nil {
 					t.Fatal(err)
 				}
-				for _, state := range []ExecutionState{ExecutionStarting, ExecutionExited, ExecutionCaptured, ExecutionClassified} {
+				for _, state := range []executionState{ExecutionStarting, ExecutionExited, ExecutionCaptured, ExecutionClassified} {
 					if err := run.Transition(state); err != nil {
 						t.Fatal(err)
 					}

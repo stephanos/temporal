@@ -425,7 +425,7 @@ func (journal *ExplorationJournal) ChainSHA256() record.SHA256 {
 	return journal.chainSHA256
 }
 
-func ValidatePublishedExploration(batchPath string, expectedSummary exploration.ChoiceSummary, expectedImplementation, expectedChain record.SHA256, expectedRuns []ExecutionRecord) error {
+func validatePublishedExploration(batchPath string, expectedSummary exploration.ChoiceSummary, expectedImplementation, expectedChain record.SHA256, expectedRuns []ExecutionRecord) error {
 	planBytes, err := readExplorationFile(filepath.Join(batchPath, "choice-exploration", "plan.json"), maximumExplorationPlanBytes)
 	if err != nil {
 		return fmt.Errorf("read published exploration plan: %w", err)
@@ -539,8 +539,8 @@ func (staged *ExplorationRoundJournal) BeginExecution(ordinal, seed uint64) (*Ex
 	if err := makePrivateDirectoriesContext(staged.journal.ctx, path); err != nil {
 		return nil, err
 	}
-	run := &ExecutionJournal{ctx: staged.journal.ctx, path: path, ordinal: ordinal, seed: seed, state: ExecutionStaging}
-	if err := run.writeState(ExecutionStaging); err != nil {
+	run := &ExecutionJournal{ctx: staged.journal.ctx, path: path, ordinal: ordinal, seed: seed, state: executionStaging}
+	if err := run.writeState(executionStaging); err != nil {
 		return run, err
 	}
 	if err := makePrivateDirectoriesContext(staged.journal.ctx, run.WorkPath()); err != nil {

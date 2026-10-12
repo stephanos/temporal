@@ -27,7 +27,7 @@ const (
 	maximumExecutionJournalIndexBytes = 16 << 20
 )
 
-type ExecutionJournalLimits struct {
+type executionJournalLimits struct {
 	MaximumExecutions        uint64 `json:"maximum_executions"`
 	MaximumBytes             uint64 `json:"maximum_bytes"`
 	SegmentBytes             uint64 `json:"segment_bytes"`
@@ -43,7 +43,7 @@ type ExecutionJournalPlan struct {
 	SegmentRecords           record.Uint64String    `json:"segment_records"`
 	MaximumSegments          record.Uint64String    `json:"maximum_segments"`
 	MaximumPartialExecutions record.Uint64String    `json:"maximum_partial_executions"`
-	CapacityOutcome          JournalCapacityOutcome `json:"capacity_outcome"`
+	CapacityOutcome          journalCapacityOutcome `json:"capacity_outcome"`
 }
 
 type executionJournalSegment struct {
@@ -61,7 +61,7 @@ type executionJournalIndex struct {
 	Bytes    record.Uint64String       `json:"bytes"`
 }
 
-type ExecutionJournalReference struct {
+type executionJournalReference struct {
 	Schema      string              `json:"schema"`
 	IndexFile   string              `json:"index_file"`
 	IndexSHA256 record.SHA256       `json:"index_sha256"`
@@ -73,7 +73,7 @@ type ExecutionJournalReference struct {
 type segmentedExecutionJournal struct {
 	ctx           context.Context
 	campaignPath  string
-	limits        ExecutionJournalLimits
+	limits        executionJournalLimits
 	segments      []executionJournalSegment
 	totalRecords  uint64
 	totalBytes    uint64
@@ -84,9 +84,9 @@ type segmentedExecutionJournal struct {
 	activeBytes   uint64
 }
 
-func normalizeExecutionJournalLimits(config CampaignConfig) (ExecutionJournalLimits, error) {
+func normalizeExecutionJournalLimits(config CampaignConfig) (executionJournalLimits, error) {
 	limits := config.Journal
-	if limits == (ExecutionJournalLimits{}) {
+	if limits == (executionJournalLimits{}) {
 		maximumRuns := config.SelectionCount
 		if (config.Strategy == "choice-exploration" || config.Strategy == "simulation-exploration") && config.MaxExecutions != 0 {
 			maximumRuns = config.MaxExecutions
@@ -99,9 +99,9 @@ func normalizeExecutionJournalLimits(config CampaignConfig) (ExecutionJournalLim
 			maximumPartialRuns = maximumRuns
 		}
 		if maximumRuns > ^uint64(0)/defaultExecutionSegmentBytes {
-			return ExecutionJournalLimits{}, errors.New("execution journal byte capacity overflows")
+			return executionJournalLimits{}, errors.New("execution journal byte capacity overflows")
 		}
-		limits = ExecutionJournalLimits{
+		limits = executionJournalLimits{
 			MaximumExecutions: maximumRuns, MaximumBytes: max(maximumRuns, 1) * defaultExecutionSegmentBytes,
 			SegmentBytes: defaultExecutionSegmentBytes, SegmentRecords: defaultExecutionSegmentRecords,
 			MaximumSegments: max(maximumRuns, 1), MaximumPartialExecutions: maximumPartialRuns,
@@ -109,7 +109,7 @@ func normalizeExecutionJournalLimits(config CampaignConfig) (ExecutionJournalLim
 	}
 	if limits.MaximumExecutions > maximumExecutionJournalExecutions || limits.MaximumBytes == 0 || limits.MaximumBytes > maximumExecutionJournalBytes || limits.SegmentBytes == 0 || limits.SegmentBytes > maximumExecutionSegmentBytes || limits.SegmentBytes > limits.MaximumBytes ||
 		limits.SegmentRecords == 0 || limits.MaximumSegments == 0 || limits.MaximumSegments > max(limits.MaximumExecutions, 1) || limits.MaximumExecutions != 0 && limits.MaximumPartialExecutions == 0 || limits.MaximumPartialExecutions > limits.MaximumExecutions {
-		return ExecutionJournalLimits{}, errors.New("execution journal limits are invalid")
+		return executionJournalLimits{}, errors.New("execution journal limits are invalid")
 	}
 	return limits, nil
 }
@@ -124,7 +124,7 @@ func DeriveExecutionJournalPlan(strategy string, selectionCount, maxExecutions, 
 	return recordExecutionJournalLimits(limits), nil
 }
 
-func recordExecutionJournalLimits(limits ExecutionJournalLimits) ExecutionJournalPlan {
+func recordExecutionJournalLimits(limits executionJournalLimits) ExecutionJournalPlan {
 	return ExecutionJournalPlan{
 		MaximumExecutions: record.Uint64String(limits.MaximumExecutions), MaximumBytes: record.Uint64String(limits.MaximumBytes),
 		SegmentBytes: record.Uint64String(limits.SegmentBytes), SegmentRecords: record.Uint64String(limits.SegmentRecords),
@@ -137,7 +137,7 @@ func validateExecutionJournalPlan(recorded ExecutionJournalPlan, plan CampaignPl
 	if recorded.CapacityOutcome != CapacityInfrastructureFailure {
 		return errors.New("execution journal capacity outcome is invalid")
 	}
-	limits := ExecutionJournalLimits{
+	limits := executionJournalLimits{
 		MaximumExecutions: uint64(recorded.MaximumExecutions), MaximumBytes: uint64(recorded.MaximumBytes),
 		SegmentBytes: uint64(recorded.SegmentBytes), SegmentRecords: uint64(recorded.SegmentRecords),
 		MaximumSegments: uint64(recorded.MaximumSegments), MaximumPartialExecutions: uint64(recorded.MaximumPartialExecutions),
@@ -159,15 +159,15 @@ func validateExecutionJournalPlan(recorded ExecutionJournalPlan, plan CampaignPl
 	return nil
 }
 
-func executionJournalLimitsFromPlan(recorded ExecutionJournalPlan) ExecutionJournalLimits {
-	return ExecutionJournalLimits{
+func executionJournalLimitsFromPlan(recorded ExecutionJournalPlan) executionJournalLimits {
+	return executionJournalLimits{
 		MaximumExecutions: uint64(recorded.MaximumExecutions), MaximumBytes: uint64(recorded.MaximumBytes),
 		SegmentBytes: uint64(recorded.SegmentBytes), SegmentRecords: uint64(recorded.SegmentRecords),
 		MaximumSegments: uint64(recorded.MaximumSegments), MaximumPartialExecutions: uint64(recorded.MaximumPartialExecutions),
 	}
 }
 
-func newSegmentedExecutionJournal(ctx context.Context, campaignPath string, limits ExecutionJournalLimits) (*segmentedExecutionJournal, error) {
+func newSegmentedExecutionJournal(ctx context.Context, campaignPath string, limits executionJournalLimits) (*segmentedExecutionJournal, error) {
 	journal := &segmentedExecutionJournal{ctx: ctx, campaignPath: campaignPath, limits: limits, segments: []executionJournalSegment{}}
 	if err := makePrivateDirectoriesContext(ctx, journal.executionsPath()); err != nil {
 		return nil, err
@@ -202,7 +202,7 @@ func (journal *segmentedExecutionJournal) writeIndex() error {
 		return err
 	}
 	if len(encoded) > maximumExecutionJournalIndexBytes {
-		return &JournalCapacityError{Limit: JournalLimitIndexBytes, Required: uint64(len(encoded)), Maximum: maximumExecutionJournalIndexBytes, Outcome: CapacityInfrastructureFailure}
+		return &JournalCapacityError{Limit: journalLimitIndexBytes, Required: uint64(len(encoded)), Maximum: maximumExecutionJournalIndexBytes, Outcome: CapacityInfrastructureFailure}
 	}
 	return atomicWriteContext(journal.ctx, filepath.Join(journal.executionsPath(), "index.json"), encoded)
 }
@@ -210,13 +210,13 @@ func (journal *segmentedExecutionJournal) writeIndex() error {
 func (journal *segmentedExecutionJournal) append(record []byte) error {
 	required := uint64(len(record))
 	if required > journal.limits.SegmentBytes {
-		return &JournalCapacityError{Limit: JournalLimitSegmentBytes, Required: required, Maximum: journal.limits.SegmentBytes, Outcome: CapacityInfrastructureFailure}
+		return &JournalCapacityError{Limit: journalLimitSegmentBytes, Required: required, Maximum: journal.limits.SegmentBytes, Outcome: CapacityInfrastructureFailure}
 	}
 	if journal.totalRecords >= journal.limits.MaximumExecutions {
-		return &JournalCapacityError{Limit: JournalLimitExecutions, Required: journal.totalRecords + 1, Maximum: journal.limits.MaximumExecutions, Outcome: CapacityInfrastructureFailure}
+		return &JournalCapacityError{Limit: journalLimitExecutions, Required: journal.totalRecords + 1, Maximum: journal.limits.MaximumExecutions, Outcome: CapacityInfrastructureFailure}
 	}
 	if required > journal.limits.MaximumBytes-journal.totalBytes {
-		return &JournalCapacityError{Limit: JournalLimitBytes, Required: journal.totalBytes + required, Maximum: journal.limits.MaximumBytes, Outcome: CapacityInfrastructureFailure}
+		return &JournalCapacityError{Limit: journalLimitBytes, Required: journal.totalBytes + required, Maximum: journal.limits.MaximumBytes, Outcome: CapacityInfrastructureFailure}
 	}
 	if journal.active != nil && journal.activeRecords != 0 && (journal.activeRecords == journal.limits.SegmentRecords || required > journal.limits.SegmentBytes-journal.activeBytes) {
 		if err := journal.seal(); err != nil {
@@ -225,7 +225,7 @@ func (journal *segmentedExecutionJournal) append(record []byte) error {
 	}
 	if journal.active == nil {
 		if uint64(len(journal.segments)) >= journal.limits.MaximumSegments {
-			return &JournalCapacityError{Limit: JournalLimitSegments, Required: uint64(len(journal.segments)) + 1, Maximum: journal.limits.MaximumSegments, Outcome: CapacityInfrastructureFailure}
+			return &JournalCapacityError{Limit: journalLimitSegments, Required: uint64(len(journal.segments)) + 1, Maximum: journal.limits.MaximumSegments, Outcome: CapacityInfrastructureFailure}
 		}
 		if err := journal.openActive(); err != nil {
 			return err
@@ -325,15 +325,15 @@ func (journal *segmentedExecutionJournal) discardActive() error {
 	return errors.Join(closeErr, removeErr)
 }
 
-func (journal *segmentedExecutionJournal) reference() (ExecutionJournalReference, error) {
+func (journal *segmentedExecutionJournal) reference() (executionJournalReference, error) {
 	if err := journal.seal(); err != nil {
-		return ExecutionJournalReference{}, err
+		return executionJournalReference{}, err
 	}
 	encoded, err := canonicaljson.CanonicalJSON(journal.index())
 	if err != nil {
-		return ExecutionJournalReference{}, err
+		return executionJournalReference{}, err
 	}
-	return ExecutionJournalReference{
+	return executionJournalReference{
 		Schema: executionJournalSchema, IndexFile: "executions/index.json", IndexSHA256: record.HashBytes(encoded),
 		Segments: record.Uint64String(len(journal.segments)), Records: record.Uint64String(journal.totalRecords), Bytes: record.Uint64String(journal.totalBytes),
 	}, nil
@@ -398,7 +398,7 @@ func readPublishedExecutionJournal(root *os.Root, campaign CampaignRecord) ([]Ex
 	}, nil
 }
 
-func readResumableExecutionJournal(batchPath string, limits ExecutionJournalLimits) (_ executionJournalIndex, _ []ExecutionRecord, _ []ExecutionRecord, retErr error) {
+func readResumableExecutionJournal(batchPath string, limits executionJournalLimits) (_ executionJournalIndex, _ []ExecutionRecord, _ []ExecutionRecord, retErr error) {
 	root, err := os.OpenRoot(batchPath)
 	if err != nil {
 		return executionJournalIndex{}, nil, nil, err
@@ -414,7 +414,7 @@ func readResumableExecutionJournal(batchPath string, limits ExecutionJournalLimi
 	if err := canonicaljson.DecodeCanonicalJSON(indexBytes, &index); err != nil {
 		return executionJournalIndex{}, nil, nil, newIntegrityError(fmt.Errorf("decode resumable execution journal index: %w", err))
 	}
-	reference := ExecutionJournalReference{
+	reference := executionJournalReference{
 		Schema: executionJournalSchema, IndexFile: "executions/index.json", IndexSHA256: record.HashBytes(indexBytes),
 		Segments: record.Uint64String(len(index.Segments)), Records: index.Records, Bytes: index.Bytes,
 	}
@@ -603,7 +603,7 @@ func readIndexedRunSegments(root *os.Root, index executionJournalIndex) ([]Execu
 	return runs, nil
 }
 
-func validateRunJournalIndex(index executionJournalIndex, reference ExecutionJournalReference) error {
+func validateRunJournalIndex(index executionJournalIndex, reference executionJournalReference) error {
 	limits := index.Limits
 	if index.Schema != executionJournalSchema || limits.CapacityOutcome != CapacityInfrastructureFailure || limits.MaximumExecutions > maximumExecutionJournalExecutions || limits.MaximumBytes == 0 || limits.MaximumBytes > maximumExecutionJournalBytes || limits.SegmentBytes == 0 || limits.SegmentBytes > maximumExecutionSegmentBytes ||
 		limits.SegmentBytes > limits.MaximumBytes || limits.SegmentRecords == 0 || limits.MaximumSegments == 0 || limits.MaximumSegments > max(limits.MaximumExecutions, 1) ||

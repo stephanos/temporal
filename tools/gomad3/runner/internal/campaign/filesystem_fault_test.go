@@ -62,7 +62,7 @@ func TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState(t *testing
 			if status.Published {
 				return
 			}
-			if status.State != LifecycleRecoverableFailure || !status.Resumable {
+			if status.State != lifecycleRecoverableFailure || !status.Resumable {
 				t.Fatalf("fault at %#v left lifecycle %#v", expected, status)
 			}
 			if _, recoverErr := RecoverCampaign(context.Background(), path); recoverErr != nil {
@@ -156,7 +156,7 @@ func TestCampaignPreparationMutationFaultsRetainLifecycle(t *testing.T) {
 			if inspectErr != nil {
 				t.Fatal(inspectErr)
 			}
-			if status.State != LifecycleRecoverableFailure {
+			if status.State != lifecycleRecoverableFailure {
 				t.Fatalf("fault at %#v left lifecycle %#v", expected, status)
 			}
 		})
@@ -476,7 +476,7 @@ func exercisePreparedCampaignMutations(t *testing.T, inject mutationHook) (strin
 	if err := run.CloseOutput("stdout", stdout); err != nil {
 		return finish(err)
 	}
-	for _, state := range []ExecutionState{ExecutionExited, ExecutionCaptured, ExecutionClassified} {
+	for _, state := range []executionState{ExecutionExited, ExecutionCaptured, ExecutionClassified} {
 		if err := run.Transition(state); err != nil {
 			return finish(err)
 		}

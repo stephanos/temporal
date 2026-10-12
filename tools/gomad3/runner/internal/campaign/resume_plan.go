@@ -209,8 +209,8 @@ func validateResumeLifecycle(root *os.Root, campaignID string) error {
 	if err != nil {
 		return err
 	}
-	if lifecycle.State != LifecyclePrepared && lifecycle.State != LifecycleRunning && lifecycle.State != LifecycleCommitting &&
-		(lifecycle.State != LifecycleRecoverableFailure || lifecycle.LastStableState != LifecyclePrepared && lifecycle.LastStableState != LifecycleRunning) {
+	if lifecycle.State != lifecyclePrepared && lifecycle.State != lifecycleRunning && lifecycle.State != lifecycleCommitting &&
+		(lifecycle.State != lifecycleRecoverableFailure || lifecycle.LastStableState != lifecyclePrepared && lifecycle.LastStableState != lifecycleRunning) {
 		return fmt.Errorf("campaign lifecycle is not resumable")
 	}
 	return nil

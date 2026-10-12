@@ -14,7 +14,7 @@ func TestSeedControllerSchedulesAndAggregatesDeterministically(t *testing.T) {
 			next++
 			return job, true
 		},
-		Parallel: 2, Policy: FailurePolicyAll, FailureBudget: 1,
+		Parallel: 2, Policy: failurePolicyAll, FailureBudget: 1,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -36,7 +36,7 @@ func TestSeedControllerSchedulesAndAggregatesDeterministically(t *testing.T) {
 	if !ok {
 		t.Fatal("third job was not scheduled")
 	}
-	controller.Complete(Completion{Kind: CompletionFailure, Domain: "watchdog", Reason: "world_replay_divergence", DistinctFailures: 1})
+	controller.Complete(Completion{Kind: completionFailure, Domain: "watchdog", Reason: "world_replay_divergence", DistinctFailures: 1})
 	controller.Complete(Completion{Kind: CompletionCancelled})
 	_, ok = controller.Next()
 	if ok || !controller.Done() {
@@ -61,9 +61,9 @@ func TestSeedControllerAppliesFailurePolicies(t *testing.T) {
 		wantReason ControllerStopReason
 		wantCancel bool
 	}{
-		{name: "first", policy: FailurePolicyFirst, budget: 1, distinct: 1, wantReason: StopFirstFailure, wantCancel: true},
-		{name: "budget", policy: FailurePolicyBudget, budget: 2, distinct: 2, wantReason: StopFailureBudget},
-		{name: "all", policy: FailurePolicyAll, budget: 1, distinct: 1},
+		{name: "first", policy: failurePolicyFirst, budget: 1, distinct: 1, wantReason: StopFirstFailure, wantCancel: true},
+		{name: "budget", policy: failurePolicyBudget, budget: 2, distinct: 2, wantReason: StopFailureBudget},
+		{name: "all", policy: failurePolicyAll, budget: 1, distinct: 1},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			controller, err := NewSeedController(SeedControllerConfig{
@@ -81,7 +81,7 @@ func TestSeedControllerAppliesFailurePolicies(t *testing.T) {
 			if !ok {
 				t.Fatal("second job was not scheduled")
 			}
-			if cancel := controller.Complete(Completion{Kind: CompletionFailure, Domain: "watchdog", Reason: "world_replay_divergence", DistinctFailures: test.distinct}); cancel != test.wantCancel {
+			if cancel := controller.Complete(Completion{Kind: completionFailure, Domain: "watchdog", Reason: "world_replay_divergence", DistinctFailures: test.distinct}); cancel != test.wantCancel {
 				t.Fatalf("cancel = %t, want %t", cancel, test.wantCancel)
 			}
 			want := CampaignStatistics{
@@ -96,9 +96,9 @@ func TestSeedControllerAppliesFailurePolicies(t *testing.T) {
 				t.Fatal("stopped controller scheduled another job")
 			}
 			if test.wantReason == "" {
-				controller.Complete(Completion{Kind: CompletionUnclassified})
+				controller.Complete(Completion{Kind: completionUnclassified})
 			}
-			controller.Complete(Completion{Kind: CompletionUnclassified})
+			controller.Complete(Completion{Kind: completionUnclassified})
 			if test.wantReason == "" {
 				controller.Stop()
 			}
@@ -113,21 +113,21 @@ func TestSeedControllerCompletesUnclassifiedAndDuplicateFailureAtomically(t *tes
 	initial := CampaignStatistics{Attempted: 4, Succeeded: 2, Failures: 2, DistinctFailures: 1}
 	controller, err := NewSeedController(SeedControllerConfig{
 		Next:     func() (SeedJob, bool) { return SeedJob{Ordinal: 4, Seed: 14}, true },
-		Parallel: 2, Policy: FailurePolicyBudget, FailureBudget: 2, Initial: initial,
+		Parallel: 2, Policy: failurePolicyBudget, FailureBudget: 2, Initial: initial,
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 	controller.Next()
 	controller.Next()
-	if cancel := controller.Complete(Completion{Kind: CompletionUnclassified}); cancel {
+	if cancel := controller.Complete(Completion{Kind: completionUnclassified}); cancel {
 		t.Fatal("unclassified completion cancelled active work")
 	}
 	want := CampaignStatistics{Attempted: 5, Succeeded: 2, Failures: 2, DistinctFailures: 1}
 	if got := controller.Statistics(); got != want || controller.Active() != 1 {
 		t.Fatalf("statistics = %#v, active = %d, want %#v and 1", got, controller.Active(), want)
 	}
-	if cancel := controller.Complete(Completion{Kind: CompletionFailure, Domain: "target", Reason: "exit_nonzero", DistinctFailures: 1}); cancel {
+	if cancel := controller.Complete(Completion{Kind: completionFailure, Domain: "target", Reason: "exit_nonzero", DistinctFailures: 1}); cancel {
 		t.Fatal("duplicate failure cancelled active work")
 	}
 	want = CampaignStatistics{Attempted: 6, Succeeded: 2, Failures: 3, DistinctFailures: 1}
@@ -138,7 +138,7 @@ func TestSeedControllerCompletesUnclassifiedAndDuplicateFailureAtomically(t *tes
 
 func TestSeedControllerRejectsInactiveCompletionBeforeChangingStatistics(t *testing.T) {
 	controller, err := NewSeedController(SeedControllerConfig{
-		Next: func() (SeedJob, bool) { return SeedJob{}, false }, Parallel: 1, Policy: FailurePolicyAll,
+		Next: func() (SeedJob, bool) { return SeedJob{}, false }, Parallel: 1, Policy: failurePolicyAll,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -157,7 +157,7 @@ func TestSeedControllerRejectsInactiveCompletionBeforeChangingStatistics(t *test
 func TestSeedControllerRestoresSatisfiedPolicy(t *testing.T) {
 	controller, err := NewSeedController(SeedControllerConfig{
 		Next: func() (SeedJob, bool) { return SeedJob{}, true }, Parallel: 1,
-		Policy: FailurePolicyFirst, FailureBudget: 1,
+		Policy: failurePolicyFirst, FailureBudget: 1,
 		Initial: CampaignStatistics{Failures: 1, DistinctFailures: 1},
 	})
 	if err != nil {
@@ -176,13 +176,13 @@ func TestSeedControllerRestoresAdmissionAndWholeStatistics(t *testing.T) {
 		stopped bool
 		want    CampaignStatistics
 	}{
-		{name: "all admits retained failures", policy: FailurePolicyAll, budget: 1,
+		{name: "all admits retained failures", policy: failurePolicyAll, budget: 1,
 			want: CampaignStatistics{Attempted: 8, Succeeded: 3, Failures: 4, Watchdogs: 2, ReplayDivergences: 1, Cancelled: 1, DistinctFailures: 2}},
-		{name: "budget below threshold admits", policy: FailurePolicyBudget, budget: 3,
+		{name: "budget below threshold admits", policy: failurePolicyBudget, budget: 3,
 			want: CampaignStatistics{Attempted: 8, Succeeded: 3, Failures: 4, Watchdogs: 2, ReplayDivergences: 1, Cancelled: 1, DistinctFailures: 2}},
-		{name: "budget at threshold stops", policy: FailurePolicyBudget, budget: 2, stopped: true,
+		{name: "budget at threshold stops", policy: failurePolicyBudget, budget: 2, stopped: true,
 			want: CampaignStatistics{Attempted: 8, Succeeded: 3, Failures: 4, Watchdogs: 2, ReplayDivergences: 1, Cancelled: 1, DistinctFailures: 2, StopReason: StopFailureBudget}},
-		{name: "budget above threshold stops", policy: FailurePolicyBudget, budget: 1, stopped: true,
+		{name: "budget above threshold stops", policy: failurePolicyBudget, budget: 1, stopped: true,
 			want: CampaignStatistics{Attempted: 8, Succeeded: 3, Failures: 4, Watchdogs: 2, ReplayDivergences: 1, Cancelled: 1, DistinctFailures: 2, StopReason: StopFailureBudget}},
 	} {
 		t.Run(test.name, func(t *testing.T) {
@@ -221,7 +221,7 @@ func TestSeedControllerRejectsInvalidConfiguration(t *testing.T) {
 	for _, config := range []SeedControllerConfig{
 		{},
 		{Next: validNext},
-		{Next: validNext, Parallel: 1, Policy: FailurePolicyBudget},
+		{Next: validNext, Parallel: 1, Policy: failurePolicyBudget},
 		{Next: validNext, Parallel: 1, Policy: "unknown"},
 	} {
 		_, err := NewSeedController(config)
