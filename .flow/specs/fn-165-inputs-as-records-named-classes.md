@@ -1,5 +1,7 @@
 # Inputs as records: named classes, declared defaults, no `:=`
 
+DSL changes ship a task-named Scalafix rule under `model/migrate/rules/`, prove it on copied `activity_mini` sources before the real-feature sweep, and follow `model/migrate/README.md`; production loading remains held in fn-166.10.
+
 ## Conversation Evidence
 
 > user (2026-10-11): "the positiinal form seems difficult to read; since you need to know the positions."

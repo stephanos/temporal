@@ -1,5 +1,7 @@
 # Migrate elapsed-time fields to protobuf Duration
 
+DSL changes ship a task-named Scalafix rule under `model/migrate/rules/`, prove it on copied `activity_mini` sources before the real-feature sweep, and follow `model/migrate/README.md`; production loading remains held in fn-166.10.
+
 > HTML render lens: .flow/artifacts/fn-147-migrate-elapsed-time-fields-to-protobuf/spec.html — open locally; regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
 ## Goal & Context

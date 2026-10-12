@@ -1,5 +1,7 @@
 # Facets: action-owning behaviour areas of a feature
 
+DSL changes ship a task-named Scalafix rule under `model/migrate/rules/`, prove it on copied `activity_mini` sources before the real-feature sweep, and follow `model/migrate/README.md`; production loading remains held in fn-166.10.
+
 ## Conversation Evidence
 
 > user (turn 23): "could we align the grouping of the effects with the idea of \"sub features\" ie standalone activity is the feature and then Cancellation is a \"sub feature\" or maybe a better name would be capability or sth. (I think we already use that word)"

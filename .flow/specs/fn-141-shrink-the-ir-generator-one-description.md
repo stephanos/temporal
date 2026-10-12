@@ -1,5 +1,7 @@
 # Shrink the IR generator: one description of each DSL construct
 
+DSL changes ship a task-named Scalafix rule under `model/migrate/rules/`, prove it on copied `activity_mini` sources before the real-feature sweep, and follow `model/migrate/README.md`; production loading remains held in fn-166.10.
+
 ## Conversation Evidence
 
 > user (turn 1, part 1): "/Users/stephan/Workspace/skunkworks/umpire/temporal/model/irgen has so much code."

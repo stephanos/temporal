@@ -1,5 +1,7 @@
 # Declare faults as the environment's actions, with budgets and durable state
 
+DSL changes ship a task-named Scalafix rule under `model/migrate/rules/`, prove it on copied `activity_mini` sources before the real-feature sweep, and follow `model/migrate/README.md`; production loading remains held in fn-166.10.
+
 > HTML render lens (local): open `.flow/artifacts/fn-123-declare-faults-as-the-environments/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
 Historical context: the source paths, line ranges and "today" descriptions in this proposal retain the pre-fn-112 monolithic Model snapshot; they are historical design evidence, not current source-navigation targets. The tasks re-anchor framework, queue, Activity subject and schema ownership to the integrated tree; remaining old line ranges are investigation hints to refresh after fn-156's committed closure, fn-140.6's committed witness seal and fn-149.5's committed final source/docs/layout grouping seal. Current names: the matching queue is `TaskQueueSystem`, the response-loss machine `admissionResponseLoss` is `LostStartAnswer`, its step `loseAdmissionAnswer` is `effects.loseResponse`, and its choices `committed` and `commitFailed` are `committedThenLost` and `failedThenLost`. The `fault` actor is a Model object in the shared task-queue package, and machines are objects with `object rules extends Rules` sections.

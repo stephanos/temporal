@@ -1,5 +1,7 @@
 # One IR file per feature, collected from the feature's package
 
+DSL changes ship a task-named Scalafix rule under `model/migrate/rules/`, prove it on copied `activity_mini` sources before the real-feature sweep, and follow `model/migrate/README.md`; production loading remains held in fn-166.10.
+
 ## Conversation Evidence
 
 > user (turn 15): "explain the idea behind irFile - wht are there more than one per feature?"

@@ -1,5 +1,7 @@
 # Mini activity: the smallest complete feature, the DSL's fast loop and its example
 
+DSL changes ship a task-named Scalafix rule under `model/migrate/rules/`, prove it on copied `activity_mini` sources before the real-feature sweep, and follow `model/migrate/README.md`; production loading remains held in fn-166.10.
+
 ## Conversation Evidence
 
 > user (2026-10-11): "our turnaround time is way too slow; since our model size is too large and validation time is too slow."

@@ -8,11 +8,19 @@ the file layout and the commands; this guide covers the language.
 A Model is ordinary Scala 3. The compiler checks its types, the framework checks its rules as they
 are constructed, the IR generator (`model/irgen`) reads the compiled trees and refuses what the IR
 cannot hold, and the Go reader (`tools/umpire`) derives every table and answers every question. The
-IR carries no Scala: everything a reader knows is in `model/ir/*.json`.
+IR carries no Scala: everything a reader knows is in the feature's `generated/ir.json`.
 
-The guide builds one small feature throughout, a **job** that a client submits, a worker runs and a
-deadline can time out. It is illustrative, not a checked-in Model; the Nexus and activity Models in
-`model/temporal` are the real thing and are cited where a form matters.
+The running example is the committed **mini activity**, `model/temporal/features/activity_mini/`:
+its Product says what a client sees, its Protocol adds attempts, backoff and dispatch designs,
+and `realization/MiniActivityRun.scala` binds two live Queries to typed commands and evidence.
+Every Scala block below is a cited source excerpt, read in its original package and imports;
+excerpts are not standalone programs. The feature header names its complete hard-instance inventory.
+The shared framework and Closable definition are cited where the mini consumes their contracts.
+
+The mini's `.live` values are authored expectations, not observed Verdicts. Its source compiles
+and lifts; Case lowering and live execution remain held in fn-166.4, the complete Make loop in
+fn-166.5, and production custom-rule loading in fn-166.10. Real features remain behind during the
+Scala DSL batch. [README, Writing a Model](README.md#writing-a-model) documents the focused route.
 
 Contents:
 
@@ -58,15 +66,11 @@ fields `C-v1-v2`, a record `v1-v2`, a list `[v1,v2]`.
 
 **Writing it.** Plain enums and case classes; bound integers with `UpTo[N]`:
 
+Source: [temporal/features/activity_mini/protocol/Protocol.scala:24](temporal/features/activity_mini/protocol/Protocol.scala#L24).
+
 ```scala
-enum Phase:
-  case queued, running, done, timedOut
-
-final case class State(phase: Phase, attempts: UpTo[2])
-
-enum Fact:
-  case submitted, started, finished
-  case expired(which: Deadline)        // a case with a field: one fact per Deadline value
+final case class State(phase: Phase, attempts: UpTo[2], scheduleToStart: Timeout,
+    startToClose: Timeout, maxAttempts: MaxAttempts)
 ```
 
 Nothing is declared about finiteness: every enum and case class is a domain, and the compiler
@@ -108,11 +112,17 @@ A phase with no role is one where the entity does not exist yet (`unscheduled`).
 **Writing it.** A case takes roles in its own extends clause. A phase enum may also declare, per
 case, the *status fact* a step that enters it records:
 
+Source: [temporal/features/activity_mini/protocol/Protocol.scala:14](temporal/features/activity_mini/protocol/Protocol.scala#L14).
+
 ```scala
 enum Phase(val status: Fact) extends Recorded[Fact]:
-  case queued extends Phase(Fact.statusQueued), Waiting
-  case running extends Phase(Fact.statusRunning), Held
-  case done extends Phase(Fact.statusDone), Succeeded
+  case scheduled extends Phase(Fact.statusScheduled), Waiting
+  case backingOff extends Phase(Fact.statusScheduled), Retrying
+  case started extends Phase(Fact.statusStarted), Held
+  case cancelRequested extends Phase(Fact.statusCancelRequested), Held
+  case completed extends Phase(Fact.statusCompleted), Succeeded
+  case failed extends Phase(Fact.statusFailed), Failed
+  case canceled extends Phase(Fact.statusCanceled), Canceled
   case timedOut extends Phase(Fact.statusTimedOut), TimedOut
 ```
 
@@ -138,9 +148,10 @@ of the feature file, and every level's machine binds the same actions.
 
 An *entity* is what a machine keeps state for; a realization keys recorded evidence to it.
 
+Source: [temporal/features/activity_mini/MiniActivity.scala:40](temporal/features/activity_mini/MiniActivity.scala#L40).
+
 ```scala
-val job = Entity(key = "jobId")                 // named after its val
-val attemptCount = Observation(on = job)        // a derived read used as evidence
+val activity = Entity(key = "activityId")
 ```
 
 An observation stands for a value no recorded event carries (an attempt count read back through a
@@ -151,19 +162,16 @@ describe call); the realization's typed read does the reading.
 An *actor* is an object whose members are the actions it takes. `Actor.system` is reserved for the
 steps the system takes of its own: timers, internal steps, channel deliveries.
 
+Source: [temporal/features/activity_mini/MiniActivity.scala:45](temporal/features/activity_mini/MiniActivity.scala#L45).
+
 ```scala
-object client extends Actor:
-  val submit = action(this).creates(job)
-  val cancel = action(this).on(job)
-
-object worker extends Actor:
-  val poll = action(this).on(job)
-  val finish = action(this).on(job).input(result)
-
-object timers:
-  val deadline = timer                           // system-owned, no input
-object history:
-  val persist = internal                         // a system step that is not a timer
+object client extends Client:
+  val start = action(this)
+    .input(scheduleToStart)
+    .input(startToClose)
+    .input(maxAttempts)
+    .creates(activity)
+  val cancel = action(this).on(activity).results("Delivery")
 ```
 
 Every declaration is named after its `val`; a name is written as a string only where no `val`
@@ -174,20 +182,21 @@ shared one under another name (`import actors.worker.{worker as process}`).
 ### Inputs and classes
 
 An action may take finite *inputs*. Each assignment of the inputs is one *class* of the action:
-`finish(Result.ok)` and `finish(Result.failed)` are two classes, and the table has one column per
+`activityWorker.respondFailed(Failure.fatal)` and
+`activityWorker.respondFailed(Failure.retryable)` are two classes, and the table has one column per
 class. An action with no input has one class.
 
-```scala
-val result = input[Result]                       // a token, named after its val
-val scheduleToStart = input[Timeout]
+Source: [temporal/features/activity_mini/MiniActivity.scala:41](temporal/features/activity_mini/MiniActivity.scala#L41).
 
-object client extends Actor:
-  val submit = action(this).input(scheduleToStart).input(startToClose).creates(job)
+```scala
+val scheduleToStart = input[Timeout]
+val startToClose = input[Timeout]
+val maxAttempts = input[MaxAttempts]
 ```
 
-A class is written positionally, `submit(unset, expires)`, by name, `submit(startToClose :=
-expires)` (omitted inputs take their domain's first value), or as `submit()`, every input at its
-first value. `:=` is sugar for the positional call. An action that takes an input may carry
+The mini selects its two-attempt start by `client.start(maxAttempts := MaxAttempts.two)`
+in `protocol/Protocol.scala:74`; omitted inputs take their domain's first value.
+`client.start()` in `protocol/Protocol.scala:79` leaves every input at its first value. `:=` is sugar for the positional call. An action that takes an input may carry
 *examples*, `.example(Reply.handlerError(false), "BadRequest")`: the author's claim that every
 realized value of that class behaves alike, with the one the generated Case runs.
 
@@ -199,9 +208,10 @@ of the wrong type (compiler); a step function whose arity does not match the act
 
 Every step answers an *outcome*. A machine declares its own enum, or adopts the shared one:
 
+Source: [temporal/features/activity_mini/product/Completion.scala:8](temporal/features/activity_mini/product/Completion.scala#L8).
+
 ```scala
-import framework.outcomes.{Outcome, Rejection}   // accepted | rejected(notFound | alreadyExists |
-                                                 //            failedPrecondition | invalidArgument)
+import framework.outcomes.{Outcome, Rejection}
 ```
 
 `enter` and `stay` answer the outcome one `given Ok[Outcome] = Ok(Outcome.accepted)` names,
@@ -215,24 +225,19 @@ action class, the list of steps that class may take there. Its start, its ends, 
 all the reader needs to build the table ([The table](#7-the-table)).
 
 **Writing it.** A machine is an object that *is* the machine, named after the object with its first
-letter lowered (`object JobProduct` is `jobProduct`), stating its three types once:
+letter lowered (`object ActivityProduct` is `activityProduct`), stating its three types once:
+
+Source: [temporal/features/activity_mini/product/Product.scala:28](temporal/features/activity_mini/product/Product.scala#L28).
 
 ```scala
-object JobProduct
+object ActivityProduct
     extends Machine[State, Outcome, Fact],
-      Phased[State, Phase](_.phase, (s, p) => s.copy(phase = p)):
-  val init = State(phase = Phase.queued, attempts = UpTo(0))
-  // end: Phased supplies "the Closed phases"; override def end(s: State) for another stopping point
-  val evidence: PartialFunction[Fact, String] = { case Fact.expired(_) => "expired" }
-
-  object states: ...        // vocabulary: predicates, projections, constants
-  object refinement: ...    // where it refines another machine
-  object effects: ...       // what each action does
-  object monitors: ...      // monitors it names, assumptions it makes
-  object rules extends Rules: ...   // when each action fires (required)
-  object properties: ...    // its promises
-  object capabilities extends Capabilities: ...
-  object queries: ...       // Scenarios, then Queries
+      Phased[State, Phase](_.phase, (s, p) => s.copy(phase = p)),
+      Dispatching,
+      Completion:
+  val init = product.State(Phase.scheduled)
+  override def end(s: State) = s.phase.in[Closed]
+  val entity = activity
 ```
 
 The header:
@@ -262,6 +267,8 @@ file's (structure lint); a section object of any other name; a `val` read before
 **Meaning.** A *step* is one result of an action in one state: the outcome it answers, the state it
 lands in, the facts it records, and an optional explanation.
 
+Source: [framework/Machine.scala:10](framework/Machine.scala#L10).
+
 ```scala
 final case class Step[S, O, +F](outcome: O, state: S, facts: List[F] = Nil, because: String = "")
 ```
@@ -286,24 +293,21 @@ one is at the wrong *level* and is refused ([Levels](#levels)).
 Effects live in `object effects` as defs of the state (and the class's inputs), named for what
 they do and never giving `Nil`:
 
+Source: [temporal/features/activity_mini/protocol/Dispatching.scala:24](temporal/features/activity_mini/protocol/Dispatching.scala#L24).
+
 ```scala
-object effects:
-  def start(s: State) = enter(s.copy(phase = Phase.running), Fact.started)
-  def finish(s: State, r: Result) = r match
-    case Result.ok     => enter(s.copy(phase = Phase.done), Fact.finished)
-    case Result.failed => enter(s.copy(phase = Phase.queued, attempts = UpTo(s.attempts + 1)))
-  def timeOut(s: State, which: Deadline) = enter(s.copy(phase = Phase.timedOut), Fact.expired(which))
+def schedule(s: State, scheduleToStart: Timeout, startToClose: Timeout, maxAttempts: MaxAttempts) =
+  enter(s.copy(scheduleToStart = scheduleToStart, startToClose = startToClose,
+    maxAttempts = maxAttempts), Fact.statusScheduled)
+def startAttempt(s: State) = enter(s.copy(phase = Phase.started,
+  attempts = UpTo((s.attempts + 1).min(2))), Fact.statusStarted)
 ```
 
 An effect of the state alone may be a block, which reads and assigns fields by name through the
 accessors the level file declares (`def phase(using v: View[State]) = v.get(_.phase)`,
 `def phase_=(p: Phase)(using d: Draft[State, ?, Fact]) = d.set(p)(_.copy(phase = p))`):
 
-```scala
-val start = effect { phase = Phase.running; record(Fact.started) }
-val gone = effect { reject(Outcome.rejected(Rejection.notFound)) }
-val held = is { phase == Phase.running }        // the predicate form, for `states`
-```
+The mini writes named effect defs rather than `effect` or `is` blocks; the accessor and block rules above describe the supported sugar, not an additional mini declaration.
 
 A block holds straight-line field assignments (each field at most once, not read after), `record`
 calls, or one `reject`; assigning a `Recorded` phase records its status after the block's own facts.
@@ -315,15 +319,12 @@ enters(Phase.done)`.
 A step that can go more than one way names each way with `choose`. This is core: the names are
 what nothing else says.
 
-```scala
-val committed = choice
-val redelivered = choice
+Source: [temporal/features/activity_mini/product/Completion.scala:16](temporal/features/activity_mini/product/Completion.scala#L16).
 
-def admit(s: State) = choose(
-  committed   -> enter(s.copy(message = Message.empty), Fact.statusStarted),
-  redelivered -> enter(s.copy(message = Message.redelivery), Fact.statusStarted)
-    .because("the channel may deliver the message again")
-)
+```scala
+val retryScheduled = choice
+val retryExhausted = choice
+def serviceRetry(s: State) = choose(
 ```
 
 Each alternative is one step written out, or a call of a function that gives at most one step (an
@@ -356,26 +357,18 @@ effect with `choose`, never two rules.
 
 **Writing it.**
 
+Source: [temporal/features/activity_mini/protocol/Dispatching.scala:30](temporal/features/activity_mini/protocol/Dispatching.scala#L30).
+
 ```scala
 object rules extends Rules:
-  on(client.submit) {
-    when(Phase.unscheduled) ~> effects.submit             // reads the state and the inputs
+  on(client.start) {
+    when(Phase.scheduled).where(states.firstSchedule) ~> effects.schedule
   }
-  on(worker.poll) {
-    when[Closed] ~> rejects(Rejection.notFound)
-    when(Phase.queued) ~> enters(Phase.running)
-    when(Phase.running) ~> rejects(Rejection.failedPrecondition).because("an attempt is held")
+  on(activityWorker.poll) {
+    when(Phase.scheduled).where(ActivityProtocol.states.retriesRemaining) ~> effects.startAttempt
   }
-  on(worker.finish(Result.ok)) {                         // one class: the effect reads the state alone
-    when(Phase.running) ~> enters(Phase.done)
-  }
-  on(client.cancel, client.pause) {                      // the same cases for several actions
-    when[Closed] ~> rejects(Rejection.notFound)
-  }
-  on(timers.deadline) {
-    when[Live].where(_.startToClose == Timeout.expires) ~> (effects.timeOut(_, Deadline.startToClose))
-  }
-  disabled(process.stop)                                 // bound, enabled nowhere
+  on(timers.backoff) {
+    when(Phase.backingOff) ~> enters(Phase.scheduled)
 ```
 
 The case headings:
@@ -390,9 +383,12 @@ The case headings:
 | `always` | every state |
 
 Rules of spelling, which change no table: every target names its action through its declarer,
-`on(worker.poll)`, never bare; every phase through its type, `Phase.queued` (no `import Phase.*`);
+`on(activityWorker.poll)`, never bare; every phase through its type, `Phase.scheduled` (no `import Phase.*`);
 every `on` is brace-delimited with one case per line; `from(actor) { on(actor.a) { ... } }` only
-groups and imports nothing. The old `in(...)` rule heading is retired and refused.
+groups and imports nothing. The old `in(...)` rule heading is retired and refused. The lifter checks qualified action
+names; native rule construction does not yet reject an imported bare action whose declaration
+retains its owner (`model/framework/Rules.test.scala:707`). fn-159 owns that remaining runtime
+contract; the mini examples use qualified names.
 
 ### Modalities: what a row means
 
@@ -425,7 +421,7 @@ refuses.
 7. the monitors and assumptions it names.
 
 Reachability, stuck states, Definition IDs and the Behavior Fingerprint are computed from this
-table. `go run ./tools/umpire/cmd/umpire-lint --tables model/ir/<file>.json` prints it by class:
+table. `go run ./tools/umpire/cmd/umpire-lint --tables model/temporal/features/<feature>/generated/ir.json` prints it by class:
 each cell MAY with its results, MUST NOT with its guard, or `?` for a hole.
 
 **What lint reads off it** (`make umpire-check-lint`, part of the gate), each at the Scala line:
@@ -436,7 +432,7 @@ each cell MAY with its results, MUST NOT with its guard, or `?` for a hole.
 | `silent-rejection` | an actor's action disabled in a reachable non-end state | a rule whose outcome says the answer |
 | `stuck-state` | a reachable non-end state with no enabled class at all, with a shortest path | the missing timer or internal step, or make it an end |
 
-A finding fails the gate until fixed or accepted with a reason in `model/ir/<file>.lint.json`.
+A finding fails the gate until fixed or accepted with a reason in the feature's `generated/ir.lint.json`.
 
 `@gap(subjects*)(because = "...", until = "...")` is the staged source declaration of a
 known lint gap (`framework/Gaps.scala`). It is metadata, with typed subject references and
@@ -461,18 +457,11 @@ exercises the Property.
 
 **Writing it.** In `object properties`, named after the `val`:
 
+Source: [temporal/features/activity_mini/product/Product.scala:39](temporal/features/activity_mini/product/Product.scala#L39).
+
 ```scala
 object properties:
-  // same-step, one class
-  val finishSucceeds = property when worker.finish(Result.ok) holds { after =>
-    after.state.phase == Phase.done && after.records(Fact.finished)
-  }
-  // same-step, every step
-  val neverTwoHeld = property.never(s => s.state.attempts == 2)
-  // transition
-  val closedIsFinal = property.once(_.phase.in[Closed]).keeps(_.phase)
-  val heldStaysHeld = property.stays(_.phase == Phase.running).unless(_.records(Fact.finished))
-  val noStartFromPaused = property.never(_.state.phase == Phase.running).from(_.phase == Phase.paused)
+  val terminalRemains = property.once(_.phase.in[Closed]).keeps(_.phase)
 ```
 
 The patterns are sugar over the two core forms, `holds(after => ...)` and
@@ -497,9 +486,13 @@ A Property's Definition ID is `<family>.<name>`, so two machines of one family m
 machine and a composition) declares the same Property on whichever model it is called with. Its
 state-dependent parts are parameters, each a def of the lifted sources, never a lambda:
 
+Source: [temporal/features/activity_mini/protocol/AnswerDispatch.scala:22](temporal/features/activity_mini/protocol/AnswerDispatch.scala#L22).
+
 ```scala
-def atMostOneActive[S](m: Declares[S])(twoActive: S => Boolean): Property[S] =
-  m.property("atMostOneActive").never(s => twoActive(s.state))
+def oldAnswerKeepsAttempt(m: Machine[AnswerState, Outcome, AnswerFact]): Property[AnswerState] =
+  m.property("oldAnswerKeepsAttempt") when answers.deliver(Answer.firstCompleted) holdsAcross ((before, after) =>
+    before.attempts != 2 || (after.state.phase == before.phase &&
+      after.state.attempts == before.attempts && after.outcome == Outcome.rejected(Rejection.notFound)))
 ```
 
 A case class whose every field is a Property, Scenario or Query is a *bundle*; built in such a
@@ -516,15 +509,20 @@ generated Queries live.
 
 **Writing it.** In `object queries`, every Scenario before the Query that uses it:
 
+Source: [temporal/features/activity_mini/protocol/Protocol.scala:69](temporal/features/activity_mini/protocol/Protocol.scala#L69).
+
 ```scala
 object queries:
-  val submittedThenFinished = scenario.actions(client.submit(), worker.poll, worker.finish(Result.ok))
+  capabilities.bound(six)
   val any = scenario.free
-  // `.starts(s)` fixes another start; without it the machine's init
-
-  val completion = (query find properties.finishSucceeds in submittedThenFinished limits three)
-    .live(satisfied)                                     // this find becomes a Case; see Realizations
-  val closedStaysClosed = query verify properties.closedIsFinal in any limits five
+  val terminalThroughProduct = query verify product.ActivityProduct.properties.terminalRemains in any limits six
+  val retryCompleted = witness(client.start(maxAttempts := MaxAttempts.two), activityWorker.poll,
+    activityWorker.respondFailed(Failure.retryable), timers.backoff, activityWorker.poll,
+    activityWorker.respondCompleted).records(Fact.statusCompleted).ends(_.attempts == 2).limits(six)
+    .live(inconclusive(Reason.explanationsDisagree,
+      because = "The first delivered attempt and final status do not establish the second delivery or retry backoff; explaining executions can disagree on the attempt count."))
+  val protocolCompleted = witness(client.start(), activityWorker.poll, activityWorker.respondCompleted)
+    .records(Fact.statusCompleted).limits(three).live(satisfied)
 ```
 
 A Query named by its `val`, by `query("name")`, or, inside a list or a def over a machine, by
@@ -558,8 +556,7 @@ for a free one states × classes × steps. An author may state it, `limits three
 check of their own reading; it is a review figure, not a prediction, and nothing else reads it.
 
 **Through a refinement.** A Query may verify a Property of the machine its Scenario's machine
-refines: `query verify NexusProduct.properties.terminalIsFinal in asyncThenSucceeded limits three`
-in the Nexus workflow Protocol's `queries`. The Property is read through the refinement map; only a
+refines: `terminalThroughProduct` in the mini Protocol's `queries` above. The Property is read through the refinement map; only a
 `verify` may, and only where the refinement holds. A Property of an unrelated machine is refused at
 the Query's line.
 
@@ -594,15 +591,12 @@ forever takes it.
 
 **Writing it.** In `object monitors`:
 
+Source: [temporal/features/activity_mini/protocol/Protocol.scala:62](temporal/features/activity_mini/protocol/Protocol.scala#L62).
+
 ```scala
 object monitors:
-  val atMostOneActiveAttempt =
-    monitor[State, Outcome, Fact, Active](Active.none)((active, before, after) =>
-      states.countActive(active, after)
-    )(_ == Active.two).readAfter(after => after.records(Fact.attemptAdmitted))
-  val retainedOutcome = sticky(outcomePreserved)      // a promise that, once broken, stays broken
-  val queueOpaque = assume("taskQueueProduct.opaque")
-  val retryFair = assume.fair(timers.backoff)
+  val attemptsNeverRewind = monitor[State, Outcome, Fact, Boolean](false)(
+    (broken, before, after) => broken || after.state.attempts < before.attempts)(_ == true)
 ```
 
 `monitor(initial)(next)(violated)` is core; `.readAtEnds` and `.readAfter(p)` move the evaluation
@@ -629,10 +623,18 @@ them away.
 
 **Writing it.** In `object properties`, always named:
 
+Source: [temporal/features/activity_mini/protocol/DispatchProgress.scala:12](temporal/features/activity_mini/protocol/DispatchProgress.scala#L12).
+
 ```scala
-val startsWithinOneStep = ServedDispatch.leadsTo("startsWithinOneStep")(
-  states.dispatchable, states.started, within = 1, servedDispatchRuns
-)
+val workerFair = assume.fair(activityWorker.poll)
+
+object DispatchProgress extends Derived(ActivityProtocol.restrict(activityWorker.poll)):
+  object states:
+    def waiting(s: State): Boolean = s.phase == Phase.scheduled
+    def started(s: State): Boolean = s.phase == Phase.started
+  object properties:
+    val workerStarts = DispatchProgress.leadsTo("workerStarts")(
+      states.waiting, states.started, within = Bounds.dispatchSteps, workerFair)
 ```
 
 A composition's claim reads the composed state and counts composed steps, a sync's once. Its
@@ -654,9 +656,17 @@ is incomplete; every other machine is checked as if the hole were not there.
 
 **Writing it.**
 
+Source: [temporal/features/activity_mini/protocol/AnswerDispatch.scala:18](temporal/features/activity_mini/protocol/AnswerDispatch.scala#L18).
+
 ```scala
-val crashUnmodeled = hole                          // named after its val
-def crash(s: State) = if s.stage == Stage.staged then crashUnmodeled.reached else disabled
+val cancelDuringBackoff = hole
+```
+
+Source: [temporal/features/activity_mini/protocol/Answering.scala:42](temporal/features/activity_mini/protocol/Answering.scala#L42).
+
+```scala
+def interrupt(@unused s: AnswerState): List[Step[AnswerState, Outcome, AnswerFact]] =
+  AnswerDispatch.monitors.cancelDuringBackoff.reached
 ```
 
 A stuck-state finding is not reported for a state with a hole: the hole already says unmodeled
@@ -678,17 +688,20 @@ it `through` the refinement, and a progress claim only where the Protocol declar
 
 **Writing it.** `object refinement`, the second section:
 
+Source: [temporal/features/activity_mini/protocol/Protocol.scala:50](temporal/features/activity_mini/protocol/Protocol.scala#L50).
+
 ```scala
-object refinement extends Refinement(JobProduct):
-  def toProduct(s: State): product.State = s.phase match
-    case Phase.queued | Phase.backingOff => product.State(product.Phase.queued)
-    case Phase.running                   => product.State(product.Phase.running)
-    case Phase.done                      => product.State(product.Phase.done)
-  def visible(f: Fact): Boolean = f match           // the facts the Product sees; optional
-    case Fact.pendingAttempts => false
-    case _: Fact.finished.type | _: Fact.started.type => true
-  def visibleOutcomes(o: Outcome): Boolean = false   // optional
-  val unobservable = List(timers.backoff)            // timers whose step records nothing readable
+object refinement extends Refinement(product.ActivityProduct):
+  def toProduct(s: State): product.State = product.State(s.phase match
+    case Phase.scheduled | Phase.backingOff => product.Phase.scheduled
+    case Phase.started => product.Phase.started
+    case Phase.cancelRequested => product.Phase.cancelRequested
+    case Phase.completed => product.Phase.completed
+    case Phase.failed => product.Phase.failed
+    case Phase.canceled => product.Phase.canceled
+    case Phase.timedOut => product.Phase.timedOut)
+  def visibleOutcomes(o: Outcome): Boolean = o != Outcome.accepted
+  val unobservable = List(timers.backoff)
 ```
 
 `visible` narrows both halves of the rule: a carrying product result records, by name, every fact
@@ -712,16 +725,16 @@ still hold, a restriction that isolates one path.
 
 **Writing it.** An object of its own, in its package's family; the derivation is one expression:
 
+Source: [temporal/features/activity_mini/protocol/TrustingAnswers.scala:13](temporal/features/activity_mini/protocol/TrustingAnswers.scala#L13).
+
 ```scala
-object StiffLamp extends Derived(Lamp.rebind(user.press ~> Lamp.effects.pressStiff))
-object FaultyLamp extends Derived(
-  Lamp
-    .extend(on(fault.burnOut) { where(_.light == Light.on) ~> Lamp.effects.burnOut })
-    .refining(ViewUnderFaults)(seen)
-    .assuming(burnOutAssumed)
-), FailureModel
-object PlainLamp extends Derived(Lamp.unmonitored)
-object OnlyOn extends Derived(Lamp.restrict(user.switchOn))
+object TrustingAnswers extends Derived(AnswerDispatch.rebind(answers.deliver ~> AnswerDispatch.answering.effects.trust)), NegativeControl:
+```
+
+Source: [temporal/features/activity_mini/protocol/ProtocolMember.scala:5](temporal/features/activity_mini/protocol/ProtocolMember.scala#L5).
+
+```scala
+object ProtocolMember extends Derived(ActivityProtocol.unmonitored)
 ```
 
 | Derivation | Keeps | Changes |
@@ -747,37 +760,32 @@ Markers change no name, ID, table or answer.
 ## 15. Facets
 
 **Meaning.** A facet is one behaviour area of one machine at one level, named as a noun
-(`Pausing`, `Timeouts`). A machine is assembled from its facets, in facet order, and lifts as if
+(`Dispatching`, `Completion`). A machine is assembled from its facets, in facet order, and lifts as if
 every facet's sections were written in it: same rows, same outcomes and facts; only function names,
 positions and binding order differ. A facet *owns* the actions it binds, all their rules and the
 effects they use; two facets binding one action are refused.
 
 **Writing it.** A trait in its own file, holding one object named after it:
 
+Source: [temporal/features/activity_mini/product/Completion.scala:12](temporal/features/activity_mini/product/Completion.scala#L12).
+
 ```scala
-trait Pausing extends Facet[State, Outcome, Fact], Phased[State, Phase]:
-  this: Completion =>                     // facets whose steps it uses, as a self-type
-  object pausing:
-    object effects: ...
-    object rules extends Rules:
-      on(client.pause) {
-        when(Phase.queued) ~> enters(Phase.paused)
-        when(Phase.running) ~> effects.pauseHeld
-      }
-    object capabilities extends Capabilities:
-      val pausable: Capability = Pausable(pause = client.pause, unpause = client.unpause)
-    object properties: ...                // each Property declared once, in the facet whose promise it is
-    object queries: ...
+trait Completion extends Facet[State, Outcome, Fact], Phased[State, Phase]:
+  this: Dispatching =>
+  object completion:
 ```
 
 The machine mixes them in and lists their rules and capabilities:
 
+Source: [temporal/features/activity_mini/product/Product.scala:37](temporal/features/activity_mini/product/Product.scala#L37).
+
 ```scala
-object JobProtocol
-    extends Machine[State, Outcome, Fact], Phased[State, Phase](_.phase, (s, p) => s.copy(phase = p)),
-      Dispatching, Pausing, Completion:
-  object rules extends Facets(dispatching.rules, pausing.rules, completion.rules)
-  object capabilities extends FacetCapabilities(pausing.capabilities)
+object rules extends Facets(dispatching.rules, completion.rules)
+
+object properties:
+  val terminalRemains = property.once(_.phase.in[Closed]).keeps(_.phase)
+
+object capabilities extends FacetCapabilities(dispatching.capabilities, completion.capabilities)
 ```
 
 Two lifter switches hold the Temporal Models to this: `facets-only` (a declared `Machine` keeps
@@ -803,32 +811,43 @@ laws `Exclusive`, `Fenced`, `Idempotent`).
 **Writing it.** A case class extending `CapabilityOf[S, O, F]` with a companion `CapabilityKind`
 whose defs take the model, then fields by name:
 
+Source: [temporal/capabilities/product/Closable.scala:11](temporal/capabilities/product/Closable.scala#L11).
+
 ```scala
-final case class Closable[S, P, O](rejected: O)(using Phasing[S, P], ...) extends CapabilityOf[S, O, Nothing]
-object Closable extends CapabilityKind:
-  type Closed = framework.Closed            // an owned role counts as a field
-  def terminalStatesAreFinal[S, P](m: Declares[S])(using phasing: Phasing[S, P], ...): Property[S] =
-    m.property holdsAcross ((before, after) =>
-      !phasing.roleCases[Closed](m.name).contains(phasing.phase(before)) ||
-        phasing.phase(after.state) == phasing.phase(before))
+final case class Closable[S, P, O](rejected: O)(using
+    @unused phasing: Phasing[S, P],
+    @unused finite: Finite[P],
+    @unused witness: TypeTest[P, Closed],
+    @unused phaseType: ClassTag[P]
+) extends CapabilityOf[S, O, Nothing]
 ```
 
 Declaring, waiving and bounding:
 
+Source: [temporal/features/activity_mini/product/Completion.scala:48](temporal/features/activity_mini/product/Completion.scala#L48).
+
 ```scala
 object capabilities extends Capabilities:
   val closable: Capability = Closable(rejected = Outcome.rejected(Rejection.notFound))
-  val retryable: Capability = Retryable[State, Phase, 2](
-    failure = worker.finish(Result.failed), retryable = true,
-    attemptCount = states.attemptCount, maximumAttempts = states.maximumAttempts,
-    retriesRemaining = states.retriesRemaining)
-  except(Closable.closedIsRejectedUniformly[State, Phase, Outcome], because = "...")
-  overriding(Pausable.pausedIsNotDispatched[State, Phase] -> properties.ownVersion, because = "...")
-  overriding(Retryable.failureEndsFailed[State, Phase] -> properties.resetFirst, because = "...",
-    of = Seq(retryable, fatal))             // only these instances
+  except(Closable.closedIsRejectedUniformly[State, Phase, Outcome],
+    because = "The Product omits late worker RPC replies; only client cancellation models NotFound after closure.")
+```
 
-object queries:
-  capabilities.bound(three, Closable.terminalStatesAreFinal -> five)
+Source: [temporal/features/activity_mini/protocol/Completion.scala:51](temporal/features/activity_mini/protocol/Completion.scala#L51).
+
+```scala
+object capabilities extends Capabilities:
+  val retryable: Capability = Retryable[State, Phase, 2](
+    failure = activityWorker.respondFailed(Failure.retryable), retryable = true,
+    attemptCount = ActivityProtocol.states.attemptCount,
+    maximumAttempts = ActivityProtocol.states.maximumAttempts,
+    retriesRemaining = ActivityProtocol.states.retriesRemaining,
+    pendingCancel = Some(ActivityProtocol.states.pendingCancel))
+  overriding(Retryable.failureReturnsToWaiting[State, Phase] -> properties.retryBacksOff,
+    because = "The mini protocol distinguishes retry backoff from dispatch-ready waiting while reporting scheduled for both.")
+  val scheduleDeadline: Capability = Expirable[State, Phase, Waiting, Fact](
+    timer = deadline.scheduleToStart, armed = ActivityProtocol.states.scheduleArmed,
+    timeout = Fact.statusTimedOut, timeoutFacts = Seq(Fact.statusTimedOut))
 ```
 
 `except` lifts nothing for that Property; `overriding` lifts the machine's own def under the shared
@@ -856,31 +875,26 @@ and the composition relies on none of the replaced machine's assumptions.
 **Writing it.** An object with field selectors; `->` pairs a member with its value and never means
 a transition:
 
+Source: [temporal/features/activity_mini/protocol/Queue.scala:13](temporal/features/activity_mini/protocol/Queue.scala#L13).
+
 ```scala
-final case class OverQueue(activity: AdmissionState, queue: QueueView)
+final case class OverQueue(activity: State, queue: QueueView)
 
-object RecordOverQueue
-    extends Composition[OverQueue](_.activity -> RecordMember, _.queue -> TaskQueueProduct),
-      Phased[OverQueue, AdmissionPhase](_.activity.phase):     // a nested phase, optional
-  override def end(s: State) = ActivityRecord.end(s.activity)
+object taskQueue:
+  val schedule = internal.input(scheduleToStart).on(foundations.taskqueue.taskQueueEntity)
+
+object Queue extends Composition[OverQueue](
+    _.activity -> ProtocolMember, _.queue -> ScheduledQueue):
+  def end(s: State) = s.activity.phase.in[Closed]
   object syncs extends Syncs:
-    sync(_.activity -> history.dispatch, _.queue -> queue.enqueue)   // named after the first action
-    sync("admit", _.activity -> worker.poll, _.queue -> queue.deliver)
-    replaces(_.queue, TaskQueueProduct)                               // where a member stands in
+    sync(_.activity -> activityWorker.poll, _.queue -> foundationQueue.deliver)
   object properties:
-    val failedCommitKeepsTheMessage = property holds (after =>
-      after.records(_.activity, AdmissionFact.admissionCommitFailed) implies
-        after.state.queue.outstanding != Outstanding.empty)
-    val startedByPolling = property.whenAction(synced(_.activity -> worker.poll))
-      .holds(_.state.worker.phase == WorkerPhase.polling)
+    val deliveredWasScheduled = property.whenAction(synced(_.activity -> activityWorker.poll))
+      .holds(_.state.queue.outstanding.in(Outstanding.deliveredOnce, Outstanding.deliveredTwice))
   object queries:
-    val stale = scenario.actions(
-      synced(_.activity -> history.dispatch),     // the sync that pairs this member action
-      own(_.activity, client.pause),              // a member's own, unpaired action
-      synced(_.activity -> worker.poll))
-    val staleDelivery = query verify properties.failedCommitKeepsTheMessage in stale limits three
-
-object TrustingRecordOverQueue extends Composition(RecordOverQueue.withMember(_.activity -> TrustingRecordMember))
+    val delivery = scenario.actions(own(_.activity, client.start()), own(_.queue, taskQueue.schedule()),
+      synced(_.activity -> activityWorker.poll))
+    val queueDelivery = query verify properties.deliveredWasScheduled in delivery limits three
 ```
 
 `synced` finds the one sync that pairs that member's action; `own` an action the member binds and
@@ -909,26 +923,26 @@ when the channel is lossy. A send to a full channel lands outside the catalog, s
 
 **Writing it.**
 
+Source: [temporal/features/activity_mini/protocol/AnswerDispatch.scala:17](temporal/features/activity_mini/protocol/AnswerDispatch.scala#L17).
+
 ```scala
-val wire = channel[Note](capacity = 2, order = Order.fifo, loss = Loss.reliable, duplicates = 1)
+val answers = channel[Answer](capacity = 1, order = Order.fifo, loss = Loss.lossy)
+```
 
-final case class RelayState(heard: Heard, wire: Inbox[Note])
-given Finite[RelayState] =
-  given Finite[Inbox[Note]] = wire.contents
-  Finite.derived
+Source: [temporal/features/activity_mini/protocol/Faults.scala:18](temporal/features/activity_mini/protocol/Faults.scala#L18).
 
-def talk(r: RelayState, n: Note) =
-  if r.wire.isFull then disabled else enter(r.copy(wire = r.wire.send(n)))
-def hear(r: RelayState, n: Note) = enter(r.copy(heard = Heard.note))   // the channel already dropped it
-
-object Relay extends Machine[RelayState, Outcome, Nothing]:
-  val init = RelayState(Heard.nothing, wire.empty)
-  object rules extends Bindings(talk ~> talk, wire.deliver ~> hear)
+```scala
+given Finite[AnswerState] =
+  given Finite[Inbox[Answer]] = AnswerDispatch.monitors.answers.contents
+  new Finite[AnswerState]:
+    def values: IndexedSeq[AnswerState] = Finite.derived[AnswerState].values
 ```
 
 A state holds each channel in at most one field; the message type is a named finite type, Boolean
-or `Int` with `Finite.upTo(n)`. Channels are used by the lifter's fixtures today, not by a Temporal
-Model: the task queue foundation models its one message as an enum instead.
+or `Int` with `Finite.upTo(n)`. The mini uses this channel in its `AnswerDispatch` FailureModel. `Answering.effects.send`
+enqueues a first- or second-attempt answer; `receive` rejects a stale answer, while
+`TrustingAnswers` rebinds delivery to `trust` as the NegativeControl. The task queue foundation
+separately models its one outstanding message as an enum.
 
 ## 19. Realizations
 
@@ -966,22 +980,54 @@ The pieces, each a declaration the IR carries as written:
 
 **Writing it.** An object typed by its machine, with sections in this order:
 
+Source: [temporal/features/activity_mini/realization/MiniActivityRun.scala:12](temporal/features/activity_mini/realization/MiniActivityRun.scala#L12).
+
 ```scala
-object JobRun extends Realizes(JobProtocol, learned = Vector(...), runs = Seq(JobProtocol.queries)):
+object MiniActivityRun extends Realizes(
+  ActivityProtocol,
+  runs = Seq(ActivityProtocol.queries.protocolCompleted, ActivityProtocol.queries.retryCompleted)
+):
   object controller extends Controller(
-    everyCase(startJob),
-    everyCase(awaitQueued),
-    perform(client.cancel -> cancelJob),
-    onPath(timers.deadline)(awaitTimedOut),
-    everyCase(describeFinal))
-  object workers extends Workers(attempts)         // an Activity script: its items are the attempts
-  object evidence extends Evidences(answered(Fact.submitted, startJob), described.evidence)
-  object serverSteps extends ServerSteps(ServerStep(worker.poll, CauseKind.delivery))
-  object controls extends Controls(dispatchHold)
+    deadlines[StartActivityExecutionRequest](
+      client.start(maxAttempts := MaxAttempts.one), startOne, duration(deadlineSeconds),
+      unset = Some(startToClose -> startOneUnreached)
+    )(
+      scheduleToStart.sets(_.getScheduleToStartTimeout),
+      startToClose.sets(_.getStartToCloseTimeout)
+    ),
+    deadlines[StartActivityExecutionRequest](
+      client.start(maxAttempts := MaxAttempts.two), startTwo, duration(deadlineSeconds),
+      unset = Some(startToClose -> startTwoUnreached)
+    )(
+      scheduleToStart.sets(_.getScheduleToStartTimeout),
+      startToClose.sets(_.getStartToCloseTimeout)
+    ),
+    onPath(deadline.scheduleToStart)(holdDispatchBeforeTimeout),
+    perform(client.cancel -> requestCancelActivity),
+    onPath(activityWorker.respondCompleted)(described.await(protocol.Fact.statusCompleted)),
+    onPath(activityWorker.respondFailed(Failure.fatal))(described.await(protocol.Fact.statusFailed)),
+    onPath(client.cancel)(described.await(protocol.Fact.statusCanceled)),
+    onPath(deadline.scheduleToStart, deadline.startToClose)(described.await(protocol.Fact.statusTimedOut))
+  )
+
+  object workers extends Workers(attempts)
+
+  object evidence extends Evidences(
+    answered(protocol.Fact.statusScheduled, startActivity),
+    delivered(protocol.Fact.statusStarted, attempts, attempt = 1, after = startActivity,
+      Taking(activityWorker.poll, 1)),
+    answered(protocol.Fact.statusCancelRequested, requestCancelActivity),
+    described(protocol.Fact.statusCompleted),
+    described(protocol.Fact.statusFailed),
+    described(protocol.Fact.statusCanceled),
+    described(protocol.Fact.statusTimedOut)
+  )
+
+  object controls extends Controls(unstartedDispatch)
 ```
 
-A derived one, `object Forged extends DerivesFrom(JobRun, TrustingJob)`, holds `changes` with
-`inserting(after = step)(items*)` and `replacing(step)(items*)`. Protobuf data is named through
+A derived realization uses `DerivesFrom` and holds `changes` with
+`inserting(after = step)(items*)` and `replacing(step)(items*)`; the mini has no derived realization. Protobuf data is named through
 generated types and typed selectors (`field(_.getTaskQueue.name)`); Scala never builds or sends a
 request, and Go checks every path against the descriptors when it lowers.
 
@@ -989,7 +1035,12 @@ request, and Go checks every path against the descriptors when it lowers.
 performances land; each step is confirmed by one kind of evidence (a step that records nothing is
 a Known Gap); the Property is lowered to Contract clauses over the machine's table; a path that
 needs something the runtime has no primitive for is listed `unsupported` with its reason at the
-declaration. The README's "Following the example to a Verdict" walks one Query through.
+declaration. The README's "Following the example to a Verdict" records an existing Nexus Run;
+it is not live evidence for the mini. The mini selects `protocolCompleted` and `retryCompleted`
+only, with seven evidence kinds and deadline presets retaining the one/two-attempt policy.
+`retryCompleted` expects an inconclusive Property with `Reason.explanationsDisagree` because
+first-delivery and final-status evidence does not establish the second delivery or retry backoff.
+That source explanation is not assessment output, and no mini live Verdict is claimed.
 
 ## 20. What the tools answer
 

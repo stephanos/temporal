@@ -524,10 +524,69 @@ accepted lint findings, manifest and Cases in its own `generated/` directory.
 On a warm build, `make model-mini` delegates to `make model FEATURES=activity_mini`
 and reuses the schema and API build outputs. Inventory tests report feature drift as
 `behind` and absent IR as `missing`, without changing the independent native
-baseline; a full gate must still be current before a DSL batch closes.
+baseline; the owner's full-set sweep must still establish every feature as current.
+During the current owner-approved Scala DSL batch, a step closes on focused mini/shared
+checks; broad validation and independent review run once at batch end, and the full-set
+gate follows the owner's real-feature sweep. Standalone activity and Nexus are behind by
+design. The canonical Make route is still held on linked-protobuf infrastructure; direct
+Scala compile/lift proof does not establish that route, Case lowering or live execution.
 For a run that defers lint, `MODEL_GATE_ARGS=--skip-lint` skips IR and Scala
 syntax/style lint while retaining the fresh-IR Go reader and lowering checks;
 the default loop still runs lint.
+
+The smallest complete feature is [activity_mini](temporal/features/activity_mini/MiniActivity.scala).
+Read its three levels in order: [Product](temporal/features/activity_mini/product/Product.scala),
+[Protocol](temporal/features/activity_mini/protocol/Protocol.scala), then
+[MiniActivityRun](temporal/features/activity_mini/realization/MiniActivityRun.scala) and its
+[Kit](temporal/features/activity_mini/realization/Kit.scala). The signature's header names
+these hard instances:
+
+| Concept | Committed mini declaration |
+| --- | --- |
+| Refinement | `ActivityProtocol.refinement` maps to `ActivityProduct`; `terminalThroughProduct` verifies the Product's `terminalRemains` |
+| Shared input | `scheduleToStart` on `client.start` and `protocol.taskQueue.schedule` |
+| Shared status | Protocol `backingOff` and `scheduled` both record `Fact.statusScheduled` |
+| Facets and cross-facet guard | Product and Protocol `Dispatching` / `Completion`; Completion's schedule deadline reads `dispatching.states.waiting` |
+| Capabilities and waivers | Product `Pollable` / `Closable` with reasoned `except(closedIsRejectedUniformly)`; Protocol `Retryable` / `Expirable`, overriding `failureReturnsToWaiting` with `retryBacksOff` and its reason |
+| Composition | `Queue` composes `ProtocolMember` and `ScheduledQueue`; its poll/deliver sync and `queueDelivery` claim |
+| Channel and failure model | `AnswerDispatch`, `Answering` and `Faults`: capacity-one FIFO lossy `answers` channel and `AnswerState`'s explicit finite inbox catalog |
+| Negative control | `TrustingAnswers` rebinds answer delivery to `trust`; `staleAnswerFound` / `staleAnswerRejected` exercise stale settlement |
+| Progress | `DispatchProgress.workerStarts` under `workerFair = assume.fair(activityWorker.poll)`, restricted to poll and bounded by `Bounds.dispatchSteps` |
+| Monitor, hole, assumption | `ActivityProtocol.monitors.attemptsNeverRewind`; `AnswerDispatch.monitors.cancelDuringBackoff` and `environment = delayedAnswersPossible` |
+| Realization | `MiniActivityRun`: seven evidence kinds, typed deadline presets for one/two attempts, an Activity worker script and dispatch hold |
+| Queries and expectations | Product `completed` witness / `terminalIsFinal` verify; Protocol `protocolCompleted.live(satisfied)` / `retryCompleted.live(inconclusive(Reason.explanationsDisagree, because = ...))`; named `Bounds.three` / `six` |
+
+These `.live` declarations state what a Run should be judged as. Only `protocolCompleted`
+and `retryCompleted` belong to `MiniActivityRun`; source compile/lift success is neither a
+lowered Case nor an observed live Verdict. The retry explanation identifies missing second
+delivery/backoff evidence; its text remains source-only and cannot supply a judge's result.
+fn-166.4 owns lowering/live proof, .5 the complete loop, .6 the Case subtree and .10 the
+production migration loader. The current focused source checks do not close those tasks.
+
+### Migration as code
+
+DSL changes ship a task-named Scalafix rule under `model/migrate/rules/`, prove it on copied `activity_mini` sources before the real-feature sweep, and follow `model/migrate/README.md`; production loading remains held in fn-166.10.
+
+Use `Fn<spec>Task<task><Change>.scala` for the source and the same class/rule name.
+[Fn166Task9QueueAlias](migrate/rules/Fn166Task9QueueAlias.scala) is the compiled worked
+example: it renames the local import alias `foundationQueue` to `taskQueueSource` and
+qualified uses in copied mini queue sources. Both spellings have fifteen characters,
+refer to the same foundation action and retain every source coordinate. The isolated
+proof compares the complete raw lifted JSON and waiver bytes before/after, with no
+identity map, position removal or expected-change projection. Refusal fixtures cover
+collisions, shadowing and unsupported uses; applying the rule twice converges.
+
+From the repository root, the source-test route is:
+
+```sh
+mise exec -- scala-cli test --server=false model/migrate --test-only umpire.migrate.QueueAliasTest
+timeout 600 /bin/bash model/migrate/prove-mini.sh
+```
+
+The fixture invokes Scalafix's pinned in-process patch application on the actual custom
+rule. `Makefile`'s existing ScalaCLI fix route loads built-ins only and uses JDK 25 for
+Scalafix 0.14.9; adding production rule loading/configuration and Make wiring is .10.
+The example is not applied to authored mini or real-feature sources.
 
 The current layout is transitional: each feature keeps `generated/ir.json`,
 `generated/ir.lint.json`, `generated/manifest.json` and `generated/<query>.case.json`.

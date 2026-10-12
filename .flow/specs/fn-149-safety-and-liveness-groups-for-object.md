@@ -1,5 +1,7 @@
 # Safety and liveness groups for object properties
 
+DSL changes ship a task-named Scalafix rule under `model/migrate/rules/`, prove it on copied `activity_mini` sources before the real-feature sweep, and follow `model/migrate/README.md`; production loading remains held in fn-166.10.
+
 > HTML render lens: open `.flow/artifacts/fn-149-safety-and-liveness-groups-for-object/spec.html` locally. Regenerable; markdown is the record. <!-- flow-next:artifact-link -->
 
 ## Conversation Evidence

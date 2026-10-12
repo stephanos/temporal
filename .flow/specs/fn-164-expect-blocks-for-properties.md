@@ -1,5 +1,7 @@
 # Expect blocks for Properties
 
+DSL changes ship a task-named Scalafix rule under `model/migrate/rules/`, prove it on copied `activity_mini` sources before the real-feature sweep, and follow `model/migrate/README.md`; production loading remains held in fn-166.10.
+
 > HTML render lens: [.flow/artifacts/fn-164-expect-blocks-for-properties/spec.html](../artifacts/fn-164-expect-blocks-for-properties/spec.html) — local-only (gitignored): open it from the working tree; regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
 ## Conversation Evidence
