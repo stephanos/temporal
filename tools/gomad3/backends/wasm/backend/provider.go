@@ -198,9 +198,12 @@ func (p *Provider) Prepare(ctx context.Context, spec target.Spec) (preparedResul
 	}
 	modulePath := filepath.Join(cache, "module.wasm")
 	receiptPath := filepath.Join(cache, "receipt.json")
-	module, readErr := hostfs.ReadBounded(modulePath, 512<<20)
+	var module []byte
+	// The receipt is published last; a module without one is an interrupted
+	// publication and is rebuilt and replaced.
+	receipt, readErr := hostfs.ReadBounded(receiptPath, maximumProvenanceBytes)
 	if readErr == nil {
-		receipt, err := hostfs.ReadBounded(receiptPath, maximumProvenanceBytes)
+		module, err = hostfs.ReadBounded(modulePath, 512<<20)
 		if err != nil {
 			return target.Prepared{}, err
 		}

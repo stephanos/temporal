@@ -147,3 +147,39 @@ func TestStockPreparationClearsAmbientCompilerSettings(t *testing.T) {
 		t.Fatalf("ambient compiler settings affected preparation: %v", err)
 	}
 }
+
+func TestInterruptedCachePublicationIsRebuilt(t *testing.T) {
+	provider := integrationProvider(t)
+	source := t.TempDir()
+	for path, data := range map[string]string{"go.mod": "module cache.publication.fixture\n\ngo 1.27.1\n", "main.go": "package main\nfunc main(){}\n"} {
+		if err := os.WriteFile(filepath.Join(source, path), []byte(data), 0600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	options := provider.options
+	options.CacheRoot = filepath.Join(t.TempDir(), "cache")
+	isolated, err := New(options)
+	if err != nil {
+		t.Fatal(err)
+	}
+	spec := target.Spec{Backend: Name, Kind: target.KindGoRun, Source: ".", WorkingDir: source, PreparationRoot: filepath.Join(t.TempDir(), "first"), BuildTags: []string{"test_dep"}}
+	first, err := isolated.Prepare(t.Context(), spec)
+	if err != nil {
+		t.Fatal(err)
+	}
+	receipt := filepath.Join(options.CacheRoot, first.BuildKey, "receipt.json")
+	if err := os.Remove(receipt); err != nil {
+		t.Fatal(err)
+	}
+	spec.PreparationRoot = filepath.Join(t.TempDir(), "second")
+	second, err := isolated.Prepare(t.Context(), spec)
+	if err != nil {
+		t.Fatalf("module without receipt broke its build key: %v", err)
+	}
+	if second.BuildKey != first.BuildKey || second.SHA256 != first.SHA256 {
+		t.Fatal("rebuilt interrupted publication changed identity")
+	}
+	if _, err := os.Stat(receipt); err != nil {
+		t.Fatalf("rebuild did not publish its receipt: %v", err)
+	}
+}
