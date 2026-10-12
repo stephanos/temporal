@@ -4,38 +4,105 @@ satisfies: [R16]
 # fn-159-qualified-action-names-in-rules.9 One spelling of a bounded integer: UpTo[N] on the field, ranges read per field
 
 ## Description
-Retire the per-state `given Finite[Int] = Finite.upTo(n)` as the way to bound an `Int`, so a bounded integer has one spelling, `UpTo[N]`, and the IR generator reads every range from the field's own type (`model/SEMANTICS_FEEDBACK.md` 1.3; fn-131 records the lifter-side gap: "integer ranges are per state type, not per field").
 
-**Today.** `UpTo[N]` is the field bound (`attempts: UpTo[2]`). The older form survives in one Model and three fixtures: the nexus workflow Protocol's `State` (`given Finite[State] = { given Finite[Int] = Finite.upTo(attemptBound); Finite.derived }`, `protocol/Protocol.scala:70`), `Rejects.scala`'s `CounterState`, `Presence.scala`'s `polls` field, and `Channels.scala`'s `channel[Int](...)(using Finite.upTo(2))`. The lifter's `readFinites` (`irgen/Types.scala`) records one Int range per *state type* (`intRanges(state)`), and `messageRef` (`irgen/Declarations.scala`) accepts an `Int` channel message only through `Finite.upTo(n)`. Two bounded `Int` fields in one record therefore cannot differ, and a reader of a Model meets two spellings of one thing. `Finite.upTo` is also how a named opaque type gets its range (`Presence.scala`'s `Retries`, `Rejects.scala`'s empty `Unreached`); that use stays.
+Complete the current framework/lifter/fixture migration to field- and message-owned UpTo bounds.
+Selected mini/shared author sources already use UpTo for bounded state fields; the actual remaining
+paths are the lifter's state-keyed intRanges and Int-channel Finite.upTo fallback, plus old positive
+language fixtures. The real Nexus Protocol migration/lift remains at the owner's sweep and is not
+part of this source proof. Finite.upTo for an explicitly named opaque integer type stays supported.
 
-**Size:** S
-**Files:** `model/temporal/features/nexus/workflow/protocol/Protocol.scala`, `model/irgen/testdata/lifts/{Rejects,Presence,Channels}.scala` and their expected IR, `model/irgen/Types.scala` (`readFinites`, the two error messages that recommend `given Finite[Int] = Finite.upTo(...)`), `model/irgen/Declarations.scala` (`messageRef`), `model/framework/Domain.scala` (the `upTo` comment), `model/README.md` (Types bullet), `model/SEMANTICS.md` (step 1 and step 18)
-**Touches:** [model/temporal/features/nexus/workflow/protocol/Protocol.scala, model/irgen/Types.scala, model/irgen/Declarations.scala, model/irgen/testdata/lifts/*.scala, model/irgen/testdata/expected/*.json, model/framework/Domain.scala, model/README.md, model/SEMANTICS.md]
+**Size:** M
+**Files:** per-field/message range lifting, range context, existing positive/negative language
+fixtures and focused controls, Domain docs, task-named migration/proof and author guide.
+**Touches:** [model/framework/Domain.scala, model/framework/Domain.test.scala, model/framework/BoundedIntegers.test.scala, model/irgen/Types.scala, model/irgen/Declarations.scala, model/irgen/Context.scala, model/irgen/test/BoundedIntegers.test.scala, model/irgen/testdata/boundedIntegers/**, model/irgen/testdata/lifts/Rejects.scala, model/irgen/testdata/lifts/Presence.scala, model/irgen/testdata/lifts/Channels.scala, model/irgen/testdata/lifts/expected/rejects.txt, model/temporal/features/activity_mini/**/*.scala, model/temporal/foundations/**/*.scala, model/temporal/actors/**/*.scala, model/temporal/capabilities/**/*.scala, model/migrate/**, model/README.md, model/SEMANTICS.md]
 
 ### Approach
-- **Model.** The Protocol's attempt field becomes `UpTo[2]`. Keep `attemptBound` for its readers as `final val attemptBound = 2`, whose type is the literal `2`, so the field can be written `UpTo[attemptBound.type]` and the number is still declared once; drop the `given Finite[State]` block, since the catalog now derives.
-- **Channels.** An `Int`-message channel is declared over `UpTo[N]`: `channel[UpTo[2]](capacity = 1, order = Order.fifo, loss = Loss.reliable)`. `messageRef` already lifts an opaque type's range; delete its `Finite.upTo` branch and make its refusal of a plain `Int` message name `UpTo[N]`.
-- **Lifter.** Delete the `Finite[Int]`-in-a-state-block path (`intRanges` keyed by state) from `readFinites`; keep the opaque-type and `Inbox` handling. A plain `Int` field is refused at its declaration with a message naming `UpTo[N]`; the two messages that today recommend `given Finite[Int] = Finite.upTo(...)` change accordingly. Ranges then come from each field's type, so two `UpTo` fields of one record may differ.
-- **Fixtures.** Migrate `CounterState.n`, `State.polls` and `tally` to `UpTo[N]`; keep `Retries` and `Unreached` as they are (opaque-type ranges). Add one lift fixture with two differently bounded `UpTo` fields in one record, and one reject fixture for a plain `Int` field.
-- **Docs.** One sentence each in the README's Types bullet, SEMANTICS step 1 (remove "the older form") and step 18 (channels of integers), and the `upTo` comment in `Domain.scala`: `Finite.upTo` ranges a named opaque type; a field or message is bounded by `UpTo[N]`.
-- **No IR change expected.** The Protocol field already lifts as the range 0..2; it now comes from the field instead of the state. The fixtures' expected IR should be byte-identical apart from the new fixtures.
 
-### Batching
-- Batch 1d (Scala DSL, immediate; see MILESTONES.md): Scala and lifter changes only. Verify with the Scala build, the framework, Model and lifter tests, and the step-table equivalence; the IR is regenerated once in Batch 5b.
+- Re-anchor after the prior current source checkpoints have been committed and integrated into
+  local umpire. Capture fresh selected pre-edit jar/lift and affected fixture outputs before edits.
+  Do not replay the real-feature change or block on held canonical/Go prerequisites.
+- Remove the state-keyed intRanges map and readFinites extraction. A plain Int field refuses at
+  its actual declaration, naming the field/type and UpTo[N], even if a local Finite[Int] could
+  supply a catalog. Keep scalar Int expressions/helpers where they are not bounded Model fields.
+  Keep named opaque ranges and channel Inbox association; do not ban generic Finite[Int] from
+  the framework just to enforce Temporal authoring policy.
+- Remove messageRef's Finite.upTo Int-message branch. Refuse a plain Int channel at its declaration
+  with the UpTo[N] remedy. UpTo and named opaque messages keep the range from their own type.
+- Independently test two differently bounded UpTo fields in one record, zero and literal/singleton
+  bounds, rejected unbounded state fields/channels and retained named opaque ranges. Existing
+  negative-bound and nonconstant-bound behavior stays truthful; no initialization bypass.
+- Check optional bounded fields as well: optionType currently names an IntRange argument from
+  only arg.widen.typeSymbol.fullName, so differently bounded Option[UpTo[N]] wrappers may share
+  one emitted enum identity. The current mini has one correct 0..2 wrapper at
+  scala.Option[framework.Domain$package$.UpTo]; no current mini range failure is claimed.
+  Prove the two-bound case independently before changing it. If it fails, preserve each field's
+  actual range and account for any genuine synthetic-type identity delta explicitly, rather than
+  silently accepting the first wrapper's range or claiming unchanged bytes after a rename.
+- Root inspection found messageType currently retains only a typeSymbol fullName when associating
+  Inbox fields with channels. UpTo[1] and UpTo[3] therefore share a key. Prove differently bounded
+  message channels/Inboxes independently and preserve their actual type arguments in the lookup
+  if needed; do not silently map both to the last channel. Do not build an unrelated general channel
+  ownership redesign or change existing same-message-channel ambiguity policy without evidence.
+- Migrate the old positive CounterState, Presence.polls and bounded tally channel fixtures, including
+  necessary constructors/writes/Inbox types. Retain Presence's named opaque Retries and Rejects'
+  empty Unreached opaque-type negative control. Negative retirement controls may generate old
+  syntax in isolated scratch tests; no positive authored Model/fixture keeps the retired state Int
+  convention. Preserve helper Int signatures where widening is intentional and behavior unchanged.
+- Prove affected existing fixture semantic IR remains unchanged, and preserve existing expected
+  JSON bytes. Keep actual source positions honest; do not rewrite goldens, invent padding or drop
+  metadata to conceal changes. If an unavoidable genuine span delta conflicts with an old byte
+  expectation, record and independently check that exact delta rather than claim byte identity.
+  Updated rejection text must reflect the new real error contract and actual source position.
+- Ship actual compiled Fn159Task9... Scalafix source under the existing convention. Supported
+  bounded-field/channel declarations, necessary writes and retired local givens migrate together,
+  preserving numeric ranges and semantics. Unknown/symbolically unprovable bounds, unrelated named
+  opaque declarations, ambiguous scopes and unsafe uses refuse or remain untouched as appropriate.
+  Prove genuine transformation/refusal/idempotence and a compiled copied-mini exercise; no new
+  generic rewrite engine, dependencies or production loader. The mini's authored UpTo fields are
+  already current; a scratch legacy probe must be explicitly labelled, not a fabricated permanent
+  feature addition or fake old-API compilation.
+- Domain.upTo and derived-catalog comments, README Types and SEMANTICS field/channel explanations
+  describe one authoring spelling. Keep accurate source-cited guide excerpts and unchanged real
+  features/payloads, pins and old maps.
 
-### Quick commands
-```sh
-make umpire-check-model
-make umpire-check-lint
-```
+### Verification and boundaries
+
+Fresh selected mini/shared compile, targeted native/domain and isolated per-field/message/opaque
+lifter controls, affected fixture-only packages, migration/citation tests and complete scratch
+mini pre/post IR/waiver comparison are this step's gates. Do not invoke broad Fixtures.beforeAll.
+Freeze source/jar inputs before final proofs and use immutable matching jar-based classpaths.
+The current mini's own bounded authoring is already UpTo: its full raw payload and source positions
+must stay byte-identical unless a concrete independently proven source defect requires a declared
+change. No blanket metadata normalization or expected-payload rewrite.
+
+Run direct FEATURES=activity_mini Scala `--check-equivalence ... --steps-only` against
+`/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/scala-dsl/mini-selected-baseline-00d22597d2/`
+with a separate justified task map. The immutable pre-change task8-jar complete selected capture
+contains sixteen tables/11,325 rows including shared Query roots. Both it and the original ten-table
+baseline pass their integrity scripts; neither nor the historical batch-1d map may be changed or
+recaptured. Run changed-file format/diff checks and retain all actual failed/RED observations.
+
+Real Nexus/source consumers, managed IR/Cases and canonical Make/Go/linked-proto/schema closure
+remain held. No Go/proto/schema/Make/CI/runtime/Case/live/production-loader/generated changes.
+Lint/manual acceptance is NOT RUN. Broad validation and independent review occur at the ONE
+Scala batch-end gate; no per-task SHIP, full-set or canonical-green credit.
 
 ## Acceptance
-- [ ] No `given Finite[Int] = Finite.upTo(...)` remains in the Models or the lifter's fixtures; `Finite.upTo` ranges only a named opaque type.
-- [ ] The IR generator reads an Int range from the field's or message's own type; `readFinites` has no per-state `Int` path and `messageRef` no `upTo` branch. A plain `Int` field and an `Int` channel message are refused at their declaration with a message naming `UpTo[N]` (reject fixtures).
-- [ ] A lift fixture with two differently bounded `UpTo` fields in one record lifts each field with its own range.
-- [ ] `model/ir/nexus-workflow.json` and every existing fixture's expected IR are byte-identical; the step-table equivalence passes.
-- [ ] README, SEMANTICS and the `Domain.scala` comment describe one spelling.
 
+- [ ] State intRanges extraction and Int-channel Finite.upTo fallback are gone; actual plain Int
+  field/channel declarations refuse with located UpTo remedies, while scalar helpers and named
+  opaque ranges retain their intended behavior.
+- [ ] Differently bounded fields and messages independently lift their own ranges; channel/Inbox
+  identity preserves relevant type arguments rather than conflating UpTo bounds.
+- [ ] Positive affected fixtures use UpTo, named opaque controls stay valid and existing semantic
+  payload/expected JSON bytes are preserved with honest independently checked positions/errors.
+- [ ] Task-named compiled source rule has genuine supported transformation, idempotence and
+  ambiguity/bound/unsafe-use refusals plus labelled copied-mini/probe compilation and lift proof.
+- [ ] Complete current mini IR/waiver data, declaration/Query inventories and sixteen native tables
+  preserve meaning/identity; both frozen baseline integrity checks pass and protected payloads,
+  pins, source and maps remain untouched.
+- [ ] Domain/README/SEMANTICS and exact guide citations describe one field/message spelling;
+  failed attempts and held consumer/lint/manual/batch-end broad-review gates are recorded honestly.
 
 ## Done summary
 TBD
