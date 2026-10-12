@@ -15,9 +15,10 @@ Create `tools/gomad3/internal/puritycheck` with a loader that type-checks only t
 - The table and loader together are at most 600 non-test lines.
 
 ## Done summary
-TBD
+internal/puritycheck loads pure packages from export data with importer.ForCompiler per platform without reading GOROOT sources; the version-keyed standard-library table rejects time.Now/os.Getenv/syscall.Open and admits time.Date/time.UTC/bytes/syscall.EINVAL; a minor mismatch names both versions.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: c6afac5097
+- Tests: root architecture/purity selection with GOMAD3_ARCH_ALL_PLATFORMS=1 plus ./internal/archcheck ./internal/puritycheck (0), TestStdlibSymbols (0), evidence: .flow/artifacts/wasm-section-acceptance-2026-10-12.md
 - PRs:
