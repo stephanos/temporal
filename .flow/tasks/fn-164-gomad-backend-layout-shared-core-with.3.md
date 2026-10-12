@@ -14,9 +14,10 @@ Move `toolchain` to `backends/native/toolchain`, `upgrade` to `backends/native/u
 - `git log --follow` on three moved files shows history preserved (moves, not copies).
 
 ## Done summary
-TBD
+Native toolchain, upgrade, transcript, conformance and generation owners moved under backends/native as renames; volume and captured packages renamed. Stale portable tests and the external Runner consumer were updated to the relocated owners.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 8db8090c09, f07d0121cd, 6f024c292b
+- Tests: make -C tools/gomad3 test-wasm (0); root architecture selection with GOMAD3_ARCH_ALL_PLATFORMS=1 (0); make -C tools/gomad3 validate (0); make lint-code-fast base e43c7a59c7 (0), portable shared packages: native-host failures only, evidence: .flow/artifacts/wasm-section-acceptance-2026-10-12.md
 - PRs:
