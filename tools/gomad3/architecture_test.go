@@ -22,17 +22,10 @@ import (
 const modulePath = "go.temporal.io/server/tools/gomad3"
 
 func backendImportConfig() archcheck.Config {
-	const nativeProvider = "fn-164-gomad-backend-layout-shared-core-with.5"
 	const unifiedLauncher = "fn-164-gomad-backend-layout-shared-core-with.7"
 	return archcheck.Config{
 		Module:         modulePath,
-		NativePackages: []string{"runner/internal/execution"},
 		Exceptions: []archcheck.Exception{
-			{From: modulePath + "/runner", To: modulePath + "/backends/native/build", RemovalTask: nativeProvider},
-			{From: modulePath + "/runner", To: modulePath + "/backends/native/preparation", RemovalTask: nativeProvider},
-			{From: modulePath + "/runner", To: modulePath + "/backends/native/transcript", RemovalTask: nativeProvider},
-			{From: modulePath + "/runner", To: modulePath + "/runner/internal/execution", RemovalTask: nativeProvider},
-			{From: modulePath + "/runner/internal/corpus", To: modulePath + "/backends/native/transcript", RemovalTask: nativeProvider},
 			{From: modulePath + "/backends/wasm/cmd/gomad-wasm", To: modulePath + "/cmd/gomad/api", RemovalTask: unifiedLauncher},
 		},
 	}

@@ -35,7 +35,7 @@ func nativePureFile(path string) bool {
 	if filepath.ToSlash(filepath.Dir(path)) == "world" {
 		return true
 	}
-	return path == "runner/internal/campaign/controller.go" || path == "backends/native/build/capability_evaluation.go" || path == "runner/internal/execution/simulation_progress.go"
+	return path == "runner/internal/campaign/controller.go" || path == "backends/native/build/capability_evaluation.go" || path == "simulation/clock/simulation_progress.go"
 }
 
 //nolint:staticcheck // Tests execute on the compiling host and require that exact reviewed Go toolchain.
@@ -53,8 +53,8 @@ func typedSourcePlatforms() []archcheck.Platform {
 	return platforms
 }
 
-func TestBoundedPurityIntegration(t *testing.T) {
-	for _, path := range []string{"runner/internal/campaign/controller.go", "backends/native/build/capability_evaluation.go", "runner/internal/execution/simulation_progress.go"} {
+func TestPureModulesHaveNoHostEffects(t *testing.T) {
+	for _, path := range []string{"runner/internal/campaign/controller.go", "backends/native/build/capability_evaluation.go", "simulation/clock/simulation_progress.go"} {
 		if _, err := os.Stat(path); err != nil {
 			t.Fatal(err)
 		}

@@ -113,7 +113,7 @@ func TestLoadNativePureSet(t *testing.T) {
 				return true
 			}
 		}
-		return path == "runner/internal/campaign/controller.go" || path == "backends/native/build/capability_evaluation.go" || path == "runner/internal/execution/simulation_progress.go"
+		return path == "runner/internal/campaign/controller.go" || path == "backends/native/build/capability_evaluation.go" || path == "simulation/clock/simulation_progress.go"
 	}
 	started := time.Now()
 	p, err := load(root, goCommand(), host, pure)
