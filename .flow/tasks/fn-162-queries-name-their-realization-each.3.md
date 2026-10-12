@@ -53,9 +53,28 @@ native evidence closes the deferred consumer/Case proof.
 - [ ] The mini step tables are equivalent to `.flow/tmp/scala-dsl/mini-selected-baseline-00d22597d2/` under the recorded rename map; any source change ships its scalafix rule, proven on copied mini sources.
 - [ ] Deferred, not claimed: the standalone activity's identity/source proof, strict native closure debt and subject-regression replacement (owner's sweep), regenerated IR/Cases/fixtures and gate checks (Batch 5b), consumer closure.
 ## Done summary
-TBD
+Re-scoped to the mini feature and the shared code (chore commit 403bdad4fe). There are no claim containers there, so no source change, rename or scalafix rule was needed. The mini identity and step tables are equivalent to the mini baseline under an empty rename map.
 
+baseline: no mini source change in this task; the tree is the fn-162.2 receipt state (a0a29ac3ef).
+stage: impl-review - skipped (REVIEW_MODE=none; independent review runs once at Scala batch end)
+
+Requirement evidence (R4/R7, mini reading):
+- Inventory (`grep` for `Derived(`, `.rebind()`, `.unmonitored`, `DerivesFrom(` over features/activity_mini, foundations, actors, capabilities, realize, Bounds and framework, tests excluded). Every derivation changes behaviour. `DispatchProgress` restricts. `ScheduledQueue` restricts and extends. `TrustingAnswers`, `VolatileQueue` and `ForgetfulQueue` rebind an effect (NegativeControl). `LossyMatchingQueue` extends, refines and assumes. `TaskQueueProductUnderStorageLoss` extends and assumes. The one `unmonitored` derivation is `ProtocolMember`, a composition member with no sections, used by `Queue`. fn-162.1 classed its real-feature twins `RecordMember` and `TrustingRecordMember` as "not containers" on the same ground. No bare `.rebind()` exists. So there was nothing to remove, and no scalafix rule ships.
+- Declared once: the whole-feature mini lift (`MiniRealizationFixtures`, the "activity-mini" lift, exit 0 in fn-162.2's suite-6.log on this same source tree) passes the lifter's duplicate-Property refusal. No two author Properties of one mini machine share a selector and predicate, cancellation included.
+- Bindings and standings kept: `MiniActivityRun` still runs exactly `protocolCompleted` and `retryCompleted` (pinned by the existing "mini live expectations" test). The other mini finds (`completed`, `failedAnswer`, `staleAnswerFound`, `starts`) stay model-only, unchanged.
+- Rename map: `.flow/tmp/fn162/task3/mini.map`, empty with its reason. No Property, Query, binding, Case name or machine-scoped id moves.
+- Equivalence: `FEATURES=activity_mini ... --check-equivalence <abs mini-selected-baseline-00d22597d2>/ .flow/tmp/fn162/task3/mini.map --steps-only` exit 0, 16 step tables, "equivalent to the baseline" (equivalence.log). Baseline integrity.mjs PASS (16 keys, 11,325 lines, frozen jar; integrity.log).
+
+Verification: the equivalence above; integrity.mjs; fn-162.2's MiniRealizationFixtures 8/8 on the unchanged tree.
+
+Failures retained: none.
+
+Open obligations, deferred and not claimed: the standalone activity's identity/source proof under the batch-1d rename map, the task's strict native closure debt (cancelRequested versus activityProtocol.cancelIsRequested in ActivitySubjectRegression) and the subject-regression replacement all go to the owner's sweep. Regenerated IR/Cases/fixture trees and gate checks go to Batch 5b. Consumer closure stays deferred. Go realization-binding consumers are in fn-162.4.
+
+Deferred gates: Go/proto/regeneration, make gates, real-feature checks, broad validation and independent review at batch end.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 403bdad4fe
+- Tests: FEATURES=activity_mini timeout 1800 mise exec -- scala-cli run --server=false --suppress-outdated-dependency-warning model/check -- --check-equivalence /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/scala-dsl/mini-selected-baseline-00d22597d2/ /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn162/task3/mini.map --steps-only (equivalent, 16 tables), node .flow/tmp/scala-dsl/mini-selected-baseline-00d22597d2/integrity.mjs (PASS), derivation inventory grep over features/activity_mini and shared code (no claim containers)
 - PRs:
