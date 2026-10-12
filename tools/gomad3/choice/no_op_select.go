@@ -10,7 +10,7 @@ type NoOpSelectShape struct {
 
 // NoOpSelectShapes lists the shapes whose poll order cannot change behavior.
 // Poll order matters only when at least two cases are ready, but a shape is
-// listed only after the select-readiness fixture (internal/gomadtool/conformance)
+// listed only after the select-readiness fixture (backends/native/conformance)
 // explored it to exhaustion with and without its poll decisions expanded and
 // reached the same outcomes and deadlocks; the comparison is retained under
 // .flow/artifacts/fn-114-gomad-correct-search-path-defects-and/select-reduction/.

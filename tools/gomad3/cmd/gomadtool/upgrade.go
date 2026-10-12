@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"go.temporal.io/server/tools/gomad3/upgrade"
+	"go.temporal.io/server/tools/gomad3/backends/native/upgrade"
 )
 
 func runUpgradeDossier(arguments []string, stdout, stderr io.Writer) int {
@@ -38,7 +38,7 @@ func runUpgradeDossier(arguments []string, stdout, stderr io.Writer) int {
 	var baseline []byte
 	if *baselineRef != "" {
 		var found bool
-		baseline, found, err = gitFile(context.Background(), absoluteRoot, *baselineRef, "deterministicio/boundary/manifest.json")
+		baseline, found, err = gitFile(context.Background(), absoluteRoot, *baselineRef, "backends/native/transcript/boundary/manifest.json")
 		if err != nil {
 			if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
 				return 1

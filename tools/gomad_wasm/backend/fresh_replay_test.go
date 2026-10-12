@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
-	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
+	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner"
 	runnerbackend "go.temporal.io/server/tools/gomad3/runner/backend"
@@ -74,7 +74,7 @@ func TestIntegratedFailureArtifact100FreshObservedReplays(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(originalInputs, "input.txt"), []byte("immutable captured control"), 0600); err != nil {
 		t.Fatal(err)
 	}
-	captured, err := readonlymount.CaptureReadOnlyMountInputs([]readonlymount.Mapping{{Source: originalInputs, Target: "/inputs"}}, readonlymount.DefaultLimits())
+	captured, err := captured.CaptureReadOnlyMountInputs([]captured.Mapping{{Source: originalInputs, Target: "/inputs"}}, captured.DefaultLimits())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -84,7 +84,7 @@ func TestIntegratedFailureArtifact100FreshObservedReplays(t *testing.T) {
 		t.Fatal(err)
 	}
 	counted := &countedProvider{Provider: provider, preparedRoot: filepath.Join(root, "prepared")}
-	fixture, err := filepath.Abs("../../gomad3/internal/gomadtool/conformance/testdata")
+	fixture, err := filepath.Abs("../../gomad3/backends/native/conformance/testdata")
 	if err != nil {
 		t.Fatal(err)
 	}

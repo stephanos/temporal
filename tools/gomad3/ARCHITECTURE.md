@@ -918,7 +918,7 @@ installation. Adapter replacement locations remain stable identity inputs
 because Go records replacement paths in binary build information.
 
 Shell is limited to reviewed argv and platform boundaries. The patch-regeneration
-scripts are owned by `internal/gomadtool/conformance/scripts`: `exec.sh` and
+scripts are owned by `backends/native/conformance/scripts`: `exec.sh` and
 `compiler_test_exec.sh` adapt upstream Go hooks, while `clock_audit_test.sh` owns the
 Darwin DTrace invocation. A Go-owned content check rejects new script owners,
 Bash outside the explicit platform adapter, and Perl policy. Platform-neutral

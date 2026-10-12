@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"go.temporal.io/server/tools/gomad3/deterministicio"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
 	"go.temporal.io/server/tools/gomad3/target"
 )
@@ -24,7 +24,7 @@ func TestProfilePassesHostCapabilitySandbox(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	profile := deterministicio.Default()
+	profile := transcript.Default()
 	tests := []struct {
 		name             string
 		source           string
@@ -35,11 +35,11 @@ func TestProfilePassesHostCapabilitySandbox(t *testing.T) {
 		libcAdapter      bool
 		guarded          bool
 	}{
-		{name: "filesystem", source: "./io_filesystem", workingDirectory: filepath.Join("..", "..", "..", "internal", "gomadtool", "conformance", "testdata"), wantOutput: "isolated\n", hostEscape: true, denyWrites: true},
-		{name: "network", source: "./io_net", workingDirectory: filepath.Join("..", "..", "..", "internal", "gomadtool", "conformance", "testdata"), wantOutput: "ok\n"},
-		{name: "signal stop", source: "./io_signal", workingDirectory: filepath.Join("..", "..", "..", "internal", "gomadtool", "conformance", "testdata"), wantOutput: "ok\n", guarded: true},
-		{name: "user lookup", source: "./io_user", workingDirectory: filepath.Join("..", "..", "..", "internal", "gomadtool", "conformance", "testdata"), wantOutput: "ok\n", guarded: true},
-		{name: "modernc libc", source: ".", workingDirectory: filepath.Join("..", "..", "..", "internal", "gomadtool", "conformance", "testdata", "libc_adapter"), wantOutput: "ok\n", denyWrites: true, libcAdapter: true},
+		{name: "filesystem", source: "./io_filesystem", workingDirectory: filepath.Join("..", "..", "..", "backends", "native", "conformance", "testdata"), wantOutput: "isolated\n", hostEscape: true, denyWrites: true},
+		{name: "network", source: "./io_net", workingDirectory: filepath.Join("..", "..", "..", "backends", "native", "conformance", "testdata"), wantOutput: "ok\n"},
+		{name: "signal stop", source: "./io_signal", workingDirectory: filepath.Join("..", "..", "..", "backends", "native", "conformance", "testdata"), wantOutput: "ok\n", guarded: true},
+		{name: "user lookup", source: "./io_user", workingDirectory: filepath.Join("..", "..", "..", "backends", "native", "conformance", "testdata"), wantOutput: "ok\n", guarded: true},
+		{name: "modernc libc", source: ".", workingDirectory: filepath.Join("..", "..", "..", "backends", "native", "conformance", "testdata", "libc_adapter"), wantOutput: "ok\n", denyWrites: true, libcAdapter: true},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -146,7 +146,7 @@ func runIOFailureFixture(t *testing.T, moduleName, source string, capabilityMode
 	if err != nil {
 		t.Fatal(err)
 	}
-	profile := deterministicio.Default()
+	profile := transcript.Default()
 	frame, err := profile.BootstrapFrame(prepared, "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 7)
 	if err != nil {
 		t.Fatal(err)

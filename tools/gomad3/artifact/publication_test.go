@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/deterministicio"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/record"
 )
 
@@ -175,7 +175,7 @@ func executionArtifactInput(t *testing.T) ArtifactInput {
 	exitCode := record.Uint64String(2)
 	stdout := []byte("stdout")
 	stderr := []byte("stderr")
-	profile := deterministicio.Default()
+	profile := transcript.Default()
 	return ArtifactInput{
 		Manifest: record.ExecutionRecord{
 			SchemaVersion: record.SchemaVersion, ArtifactKind: record.ArtifactTargetFailure, CreatedAt: "2026-08-10T12:00:00Z", CampaignID: "batch-1", SelectionOrdinal: 0, Seed: 7, ReplayMode: record.ReplayExact,

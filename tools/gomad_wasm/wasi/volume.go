@@ -11,7 +11,7 @@ import (
 	"syscall"
 	"unicode/utf8"
 
-	"go.temporal.io/server/tools/gomad3/deterministicio/volume"
+	"go.temporal.io/server/tools/gomad3/volume"
 )
 
 const StorageProfile = "gomad3.wasi-native-volume/v1"

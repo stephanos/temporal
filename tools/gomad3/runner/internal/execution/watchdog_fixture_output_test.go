@@ -15,12 +15,12 @@ import (
 	"testing"
 	"time"
 
-	"go.temporal.io/server/tools/gomad3/deterministicio"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 )
 
 func TestWatchdogFixtureReadinessWriteFailure(t *testing.T) {
 	var terminal bytes.Buffer
-	if err := deterministicio.WriteCompletion(&terminal, deterministicio.Transcript{Complete: true, SHA256: sha256.Sum256(nil)}); err != nil {
+	if err := transcript.WriteCompletion(&terminal, transcript.Transcript{Complete: true, SHA256: sha256.Sum256(nil)}); err != nil {
 		t.Fatal(err)
 	}
 	for _, mode := range []string{"watchdog", "cancelled"} {

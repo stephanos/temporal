@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/deterministicio"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
 )
 
@@ -46,7 +46,7 @@ func staleProfileBindings(packs []compatibility.Pack, platform, profileName, imp
 
 func TestHostPacksBindCurrentProfile(t *testing.T) {
 	host := runtime.GOOS + "/" + runtime.GOARCH
-	if !slices.Contains(deterministicio.BoundaryPlatforms(), host) {
+	if !slices.Contains(transcript.BoundaryPlatforms(), host) {
 		t.Skipf("no deterministic profile for %s", host)
 	}
 	entries, err := os.ReadDir("packs")
@@ -65,7 +65,7 @@ func TestHostPacksBindCurrentProfile(t *testing.T) {
 		}
 		packs = append(packs, pack)
 	}
-	profile := deterministicio.Default().Identity()
+	profile := transcript.Default().Identity()
 	stale, checked := staleProfileBindings(packs, host, profile.Name, string(profile.ImplementationSHA256))
 	if len(stale) != 0 {
 		t.Fatalf("%s packs do not bind the current profile %s %s; rediscover, review, and regenerate them:\n%s", host, profile.Name, profile.ImplementationSHA256, strings.Join(stale, "\n"))

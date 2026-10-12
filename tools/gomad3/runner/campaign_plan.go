@@ -6,9 +6,9 @@ import (
 	"sort"
 	"strings"
 
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/deterministicio"
-	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
 	choiceengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/choice"
@@ -16,7 +16,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
-func campaignPlan(config campaignRequest, journal *campaign.CampaignJournal, prepared target.Prepared, environment []record.Environment, mounts []readonlymount.Mapping, selectionCount uint64) (campaign.CampaignPlan, error) {
+func campaignPlan(config campaignRequest, journal *campaign.CampaignJournal, prepared target.Prepared, environment []record.Environment, mounts []captured.Mapping, selectionCount uint64) (campaign.CampaignPlan, error) {
 	preparedPath, err := filepath.Rel(journal.Path(), prepared.Path)
 	if err != nil {
 		return campaign.CampaignPlan{}, fmt.Errorf("make prepared target path relative: %w", err)
@@ -28,8 +28,8 @@ func campaignPlan(config campaignRequest, journal *campaign.CampaignJournal, pre
 	return campaignPlanRecord(config, journal.ExecutionJournalPlan(), preparedPath, prepared, environment, mounts, selectionCount)
 }
 
-func campaignPlanRecord(config campaignRequest, journalPlan campaign.ExecutionJournalPlan, preparedPath string, prepared target.Prepared, environment []record.Environment, mounts []readonlymount.Mapping, selectionCount uint64) (campaign.CampaignPlan, error) {
-	profile := deterministicio.Default()
+func campaignPlanRecord(config campaignRequest, journalPlan campaign.ExecutionJournalPlan, preparedPath string, prepared target.Prepared, environment []record.Environment, mounts []captured.Mapping, selectionCount uint64) (campaign.CampaignPlan, error) {
+	profile := transcript.Default()
 	requiredProbes := append([]string(nil), config.RequiredSemanticProbes...)
 	sort.Strings(requiredProbes)
 	mountValues := make([]string, len(mounts))
@@ -54,13 +54,13 @@ func campaignPlanRecord(config campaignRequest, journalPlan campaign.ExecutionJo
 			Path: preparedPath, Target: prepared.RecordTarget(),
 		},
 		IOProfile:   profile.Identity(),
-		Environment: append([]record.Environment(nil), environment...), IOROMounts: mountValues, IOROMountLimits: recordedCapturedInputLimits(readonlymount.CapturedInputLimitsOf(config.IOROMountLimits)),
+		Environment: append([]record.Environment(nil), environment...), IOROMounts: mountValues, IOROMountLimits: recordedCapturedInputLimits(captured.CapturedInputLimitsOf(config.IOROMountLimits)),
 		Coverage: string(NormalizeCoverage(config.Coverage, false)), RequiredSemanticProbes: requiredProbes,
 		KeepSuccesses: string(normalizedKeepSuccesses(config.KeepSuccesses)), SuccessArtifactLimit: record.Uint64String(config.SuccessArtifactLimit), SuccessBytesLimit: record.Uint64String(config.SuccessBytesLimit),
 	}
 	if prepared.Backend != nil {
 		identity := record.BackendIOProfile(*prepared.Backend)
-		plan.IOProfile = deterministicio.Contract{Name: identity.Name, ImplementationSHA256: deterministicio.Digest(identity.ImplementationSHA256), InventorySHA256: deterministicio.Digest(identity.InventorySHA256)}
+		plan.IOProfile = record.IOContract{Name: identity.Name, ImplementationSHA256: record.SHA256(identity.ImplementationSHA256), InventorySHA256: record.SHA256(identity.InventorySHA256)}
 	}
 	if config.strategy() == StrategyChoiceExploration {
 		plan.ChoiceExplorationImplementationSHA256 = choiceengine.ImplementationSHA256()
@@ -68,7 +68,7 @@ func campaignPlanRecord(config campaignRequest, journalPlan campaign.ExecutionJo
 	if config.strategy() == StrategySimulationExploration {
 		plan.SimulationExplorationImplementationSHA256 = simulationengine.ImplementationSHA256()
 	}
-	if limit := ioTranscriptLimit(config); limit != deterministicio.DefaultTranscriptBytes {
+	if limit := ioTranscriptLimit(config); limit != record.DefaultIOTranscriptBytes {
 		plan.IOTranscriptBytes = record.Uint64String(limit)
 	}
 	if config.ChoiceTraceLimit != 0 {

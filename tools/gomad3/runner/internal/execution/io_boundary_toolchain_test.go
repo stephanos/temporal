@@ -8,13 +8,13 @@ import (
 	"testing"
 	"time"
 
-	"go.temporal.io/server/tools/gomad3/deterministicio"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
 func TestBoundaryManifestSemanticCanaries(t *testing.T) {
-	required := deterministicio.RequiredSemanticProbes()
+	required := transcript.RequiredSemanticProbes()
 	observed := make(map[string]struct{}, len(required))
 	for _, fixture := range []struct {
 		source         string
@@ -26,7 +26,7 @@ func TestBoundaryManifestSemanticCanaries(t *testing.T) {
 		{source: "./io_user", capabilityMode: target.CapabilityModeGuarded},
 	} {
 		result := runBoundaryCanaryFixture(t, fixture.source, fixture.capabilityMode)
-		coverage, err := deterministicio.DecodeSemanticCoverage(result.IOTranscript.Bytes)
+		coverage, err := transcript.DecodeSemanticCoverage(result.IOTranscript.Bytes)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -53,13 +53,13 @@ func runBoundaryCanaryFixture(t *testing.T, source string, capabilityMode target
 		t.Fatal(err)
 	}
 	prepared, err := target.Prepare(context.Background(), target.Spec{
-		Kind: target.KindGoRun, Source: source, WorkingDir: filepath.Join("..", "..", "..", "internal", "gomadtool", "conformance", "testdata"),
+		Kind: target.KindGoRun, Source: source, WorkingDir: filepath.Join("..", "..", "..", "backends", "native", "conformance", "testdata"),
 		PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot, CapabilityMode: capabilityMode,
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	profile := deterministicio.Default()
+	profile := transcript.Default()
 	frame, err := profile.BootstrapFrame(prepared, "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 7)
 	if err != nil {
 		t.Fatal(err)

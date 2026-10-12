@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"go.temporal.io/server/tools/gomad3/deterministicio"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
 	"go.temporal.io/server/tools/gomad3/target"
 )
@@ -22,7 +22,7 @@ func TestProfileEntropyIsIndependentOfScheduleSeed(t *testing.T) {
 		t.Fatal(err)
 	}
 	prepared, err := target.Prepare(context.Background(), target.Spec{
-		Kind: target.KindGoRun, Source: "./io_entropy", WorkingDir: filepath.Join("..", "..", "..", "internal", "gomadtool", "conformance", "testdata"),
+		Kind: target.KindGoRun, Source: "./io_entropy", WorkingDir: filepath.Join("..", "..", "..", "backends", "native", "conformance", "testdata"),
 		PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot,
 	})
 	if err != nil {
@@ -35,9 +35,9 @@ func TestProfileEntropyIsIndependentOfScheduleSeed(t *testing.T) {
 	if !strings.Contains(string(symbols), "runtime.gomadIOConfigFrame") {
 		t.Fatalf("prepared target omitted the Gomad runtime configuration frame (toolchain=%s build=%s target=%s runtime=%v gomadio=%v GOROOT=%q)", toolchainRoot, prepared.BuildKey, prepared.Path, strings.Contains(string(symbols), "runtime.gomadInit"), strings.Contains(string(symbols), "internal/gomadio"), os.Getenv("GOROOT"))
 	}
-	profile := deterministicio.Default()
+	profile := transcript.Default()
 	outputs := make([]string, 2)
-	transcripts := make([]deterministicio.Transcript, 2)
+	transcripts := make([]transcript.Transcript, 2)
 	for index, seed := range []uint64{1, 999} {
 		frame, frameErr := profile.BootstrapFrame(prepared, "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", seed)
 		if frameErr != nil {

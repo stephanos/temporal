@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"go.temporal.io/server/tools/gomad3/deterministicio"
-	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
 	"go.temporal.io/server/tools/gomad3/target"
 )
@@ -29,13 +29,13 @@ func TestProfileSchedulerLockContentionLeavesSeededStreamInPlace(t *testing.T) {
 		t.Fatal(err)
 	}
 	prepared, err := target.Prepare(context.Background(), target.Spec{
-		Kind: target.KindGoRun, Source: "./io_handoff_contention", WorkingDir: filepath.Join("..", "..", "..", "internal", "gomadtool", "conformance", "testdata"),
+		Kind: target.KindGoRun, Source: "./io_handoff_contention", WorkingDir: filepath.Join("..", "..", "..", "backends", "native", "conformance", "testdata"),
 		PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot,
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	profile := deterministicio.Default()
+	profile := transcript.Default()
 	frame, err := profile.BootstrapFrame(prepared, "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 7)
 	if err != nil {
 		t.Fatal(err)
@@ -55,7 +55,7 @@ func TestProfileSchedulerLockContentionLeavesSeededStreamInPlace(t *testing.T) {
 				ExecutionTimeout: time.Minute, TerminateGrace: time.Second, OutputLimit: 4096,
 				World: execution.WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 7},
 				IO: &execution.IOCapability{Config: frame, Transcript: &execution.IOTranscriptCapability{Limit: 64 << 20},
-					ReadOnlyMount: &execution.ReadOnlyMountCapability{Mappings: []readonlymount.Mapping{{Source: source, Target: "/mounted"}}, Limits: readonlymount.DefaultLimits()}},
+					ReadOnlyMount: &execution.ReadOnlyMountCapability{Mappings: []captured.Mapping{{Source: source, Target: "/mounted"}}, Limits: captured.DefaultLimits()}},
 			})
 			outputs[index] = string(result.Stdout.Bytes)
 			if err != nil || result.ExitCode != 0 || !strings.HasPrefix(outputs[index], "type-assertion cache grew at ") {

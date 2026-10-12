@@ -438,9 +438,9 @@ func TestFastLintReportsOwnedExclusions(t *testing.T) {
 		".flow/frozen/old.go",
 		"tools/gomad3sim/testdata/simulation_exploration/source.go",
 		"tools/gomad3integration/testdata/tagged/source.go",
-		"tools/gomad3/internal/gomadtool/conformance/testdata/negative.go",
+		"tools/gomad3/backends/native/conformance/testdata/negative.go",
 		"tools/gomad3/cmd/gomad/testdata/source.go",
-		"tools/gomad3/deterministicio/testdata/source.go",
+		"tools/gomad3/backends/native/transcript/testdata/source.go",
 		"tools/gomad3/internal/compatibilitypack/testdata/source.go",
 		"tools/gomad3/testdata/source.go",
 		"tools/gomad3/qualification/corpus/source.go",
@@ -459,7 +459,7 @@ func TestLintRejectsUnclassifiedSource(t *testing.T) {
 	t.Parallel()
 	for _, path := range []string{
 		"extra/go.mod", ".hidden/go.mod", "_hidden/go.mod",
-		"tools/gomad3/internal/gomadtool/conformance/testdata/extra/go.mod",
+		"tools/gomad3/backends/native/conformance/testdata/extra/go.mod",
 		"tools/gomad3sim/testdata/simulation_exploration/extra/go.mod",
 		"tools/gomad3integration/testdata/tagged/extra/go.mod",
 		"tools/gomad3/toolchain/runtime/overlayextra/source.go",
@@ -734,11 +734,11 @@ func newLintRepo(t *testing.T) *lintRepo {
 		require.NoError(t, err)
 		repo.write("cmd/tools/lintcode/"+filepath.Base(path), string(data))
 	}
-	for _, path := range []string{"go.mod", "tools/gomad3/go.mod", "tests/mixedbrain/go.mod", "tools/gomad3/internal/gomadtool/conformance/testdata/go.mod", "tools/gomad3/qualification/corpus/go.mod"} {
+	for _, path := range []string{"go.mod", "tools/gomad3/go.mod", "tests/mixedbrain/go.mod", "tools/gomad3/backends/native/conformance/testdata/go.mod", "tools/gomad3/qualification/corpus/go.mod"} {
 		repo.write(path, "module example.invalid/fixture\n\ngo 1.27.0\n")
 	}
 	repo.write("go.mod", "module example.invalid/root\n\ngo 1.27.0\n")
-	for _, dir := range []string{"proto/internal", "chasm/lib", "tools/gomad3/toolchain/runtime/overlay", "tools/gomad3/deterministicio/boundary", "tools/gomad3/internal/gomadtool/generation/boundary", "tools/gomad3/internal/compatibilitypack/requests", "tools/gomad3/internal/compatibilitypack/authoring"} {
+	for _, dir := range []string{"proto/internal", "chasm/lib", "tools/gomad3/toolchain/runtime/overlay", "tools/gomad3/backends/native/transcript/boundary", "tools/gomad3/internal/gomadtool/generation/boundary", "tools/gomad3/internal/compatibilitypack/requests", "tools/gomad3/internal/compatibilitypack/authoring"} {
 		require.NoError(t, os.MkdirAll(filepath.Join(repo.root, dir), 0o700))
 	}
 	for _, path := range []string{"ordinary/source.go", "staged/staged.go", "deleted/only.go", "renameold/only.go", "tools/gomad3/runner/source.go", "tools/gomad3/toolchain/source.go", "tests/mixedbrain/source.go", ".github/actions/build-docker-images/scripts/source.go", "tools/gomad3sim/source.go", "tools/gomad3integration/source.go"} {

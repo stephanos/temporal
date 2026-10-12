@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"go.temporal.io/server/tools/gomad3/internal/gomadtool/conformance"
+	"go.temporal.io/server/tools/gomad3/backends/native/conformance"
 	"go.temporal.io/server/tools/gomad3/internal/gomadtool/validation"
 	"go.temporal.io/server/tools/gomad3/internal/hostexec"
 	toolchainbuild "go.temporal.io/server/tools/gomad3/toolchain"

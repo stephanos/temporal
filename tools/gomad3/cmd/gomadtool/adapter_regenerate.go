@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"go.temporal.io/server/tools/gomad3/upgrade/adapterregen"
+	"go.temporal.io/server/tools/gomad3/backends/native/upgrade/adapterregen"
 )
 
 const adapterRegenerateUsage = "usage: gomadtool adapter-regenerate [--root=DIR] --module=PATH --version=VERSION [--approve-review=SHA256|--approve=SHA256 [--stage-only]] [--go=GO] [--json]\n" +

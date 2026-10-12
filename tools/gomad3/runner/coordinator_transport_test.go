@@ -15,7 +15,7 @@ import (
 	"testing"
 	"time"
 
-	"go.temporal.io/server/tools/gomad3/deterministicio"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/target"
@@ -225,7 +225,7 @@ func TestIsolatedRunnerExecutesSeedStrategyWithSuppliedLimits(t *testing.T) {
 	}
 	wantEnvironment := []record.Environment{
 		{Name: "GOMAD3_CHOICE_PROFILE", Value: isolated.ChoiceTrace.Profile}, {Name: record.ClockTickEnvironment, Value: record.ClockTickForward},
-		{Name: "GOMAD3_IO_PROFILE", Value: deterministicio.Deterministic}, {Name: "GOMADSEED", Value: "7"}, {Name: "MODE", Value: "transport"}, {Name: "TZ", Value: "UTC"},
+		{Name: "GOMAD3_IO_PROFILE", Value: transcript.Deterministic}, {Name: "GOMADSEED", Value: "7"}, {Name: "MODE", Value: "transport"}, {Name: "TZ", Value: "UTC"},
 	}
 	if !reflect.DeepEqual(sortedEnvironment(isolated.ExecutionEvidence.Environment), sortedEnvironment(wantEnvironment)) {
 		t.Fatalf("isolated seed environment = %#v, want %#v", isolated.ExecutionEvidence.Environment, wantEnvironment)
@@ -501,7 +501,7 @@ func simulationTarget(t *testing.T) target.Spec {
 
 func conformanceTarget(t *testing.T, source string) target.Spec {
 	t.Helper()
-	workingDir, err := filepath.Abs(filepath.Join("..", "internal", "gomadtool", "conformance", "testdata"))
+	workingDir, err := filepath.Abs(filepath.Join("..", "backends", "native", "conformance", "testdata"))
 	if err != nil {
 		t.Fatal(err)
 	}

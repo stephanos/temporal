@@ -15,7 +15,7 @@ import (
 	"testing"
 	"time"
 
-	"go.temporal.io/server/tools/gomad3/deterministicio"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
 	"go.temporal.io/server/tools/gomad3/target"
 	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
@@ -119,7 +119,7 @@ func runModelConformance(t *testing.T, fixture string) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	working, err := filepath.Abs(filepath.Join("..", "..", "..", "internal", "gomadtool", "conformance", "testdata"))
+	working, err := filepath.Abs(filepath.Join("..", "..", "..", "backends", "native", "conformance", "testdata"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -137,7 +137,7 @@ func runModelConformance(t *testing.T, fixture string) {
 	if output, err := command.CombinedOutput(); err != nil {
 		t.Fatalf("stock build: %v: %s", err, output)
 	}
-	profile := deterministicio.Default()
+	profile := transcript.Default()
 	const length = 64
 	for _, seed := range []uint64{0, 1, 7, 42, 89} {
 		t.Run(strconv.FormatUint(seed, 10), func(t *testing.T) {

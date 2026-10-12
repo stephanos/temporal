@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
-	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
+	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
 	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
@@ -67,7 +67,7 @@ func successPublicationFailure(err error) *HostError {
 
 // executionArtifactInput composes what every published execution artifact
 // carries. The strategies that record simulation payloads add them.
-func executionArtifactInput(manifest record.ExecutionRecord, prepared target.Prepared, result execution.Result, mountArtifact *readonlymount.CapturedInputs, worldBundle execution.Bundle) artifact.ArtifactInput {
+func executionArtifactInput(manifest record.ExecutionRecord, prepared target.Prepared, result execution.Result, mountArtifact *captured.CapturedInputs, worldBundle execution.Bundle) artifact.ArtifactInput {
 	payloads := prepared.CloneBackend().BackendPayloads
 	if manifest.Target.Backend != nil && manifest.Target.Backend.Evidence != nil {
 		payloads = append(payloads, target.BackendPayload{Reference: *manifest.Target.Backend.Evidence, Data: append([]byte(nil), result.BackendEvidence...)})

@@ -11,7 +11,7 @@ import (
 	"syscall"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/qualification/soak"
+	"go.temporal.io/server/tools/gomad3/backends/native/qualification/soak"
 )
 
 func TestSoakRejectsInvalidInvocationsAsInvalidInput(t *testing.T) {

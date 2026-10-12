@@ -99,7 +99,7 @@ func TestGenerateRendersDescriptorConsumers(t *testing.T) {
 	// GNU make prints directory banners when a parent make -C exported -w in MAKEFLAGS.
 	makeCommand := exec.Command("make", "--no-print-directory", "-f", "consumer.mk", "print")
 	makeCommand.Dir = root
-	if output, err := makeCommand.CombinedOutput(); err != nil || string(output) != "go1.26.4|toolchain/runtime/go1.26.4.patch|expected-intercepts-go1.26.4.txt|deterministicio/boundary/go1.26.4-darwin-arm64.md\n" {
+	if output, err := makeCommand.CombinedOutput(); err != nil || string(output) != "go1.26.4|toolchain/runtime/go1.26.4.patch|expected-intercepts-go1.26.4.txt|backends/native/transcript/boundary/go1.26.4-darwin-arm64.md\n" {
 		t.Fatalf("generated Make output = %q, error = %v", output, err)
 	}
 	goTest := `package version
@@ -228,7 +228,7 @@ func TestLoadRejectsDuplicateAllowedPath(t *testing.T) {
 func writeDescriptorFixture(t *testing.T, manifestVersion string) string {
 	t.Helper()
 	root := t.TempDir()
-	for _, directory := range []string{"deterministicio/boundary", "toolchain/version"} {
+	for _, directory := range []string{"backends/native/transcript/boundary", "toolchain/version"} {
 		if err := os.MkdirAll(filepath.Join(root, filepath.FromSlash(directory)), 0o700); err != nil {
 			t.Fatal(err)
 		}

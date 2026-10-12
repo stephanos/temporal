@@ -14,7 +14,7 @@ import (
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
-	"go.temporal.io/server/tools/gomad3/deterministicio"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 )
@@ -192,23 +192,23 @@ func TestCorpusRejectsEntryCapacityOverflowBeforeOpeningCases(t *testing.T) {
 	}
 }
 
-func guideArtifactInput(t *testing.T, seed uint64) (artifact.ArtifactInput, deterministicio.SemanticCoverage, []Feature) {
+func guideArtifactInput(t *testing.T, seed uint64) (artifact.ArtifactInput, record.SemanticCoverage, []Feature) {
 	t.Helper()
 	targetBytes := []byte("guided target")
 	targetPath := filepath.Join(t.TempDir(), "target")
 	if err := os.WriteFile(targetPath, targetBytes, 0o700); err != nil {
 		t.Fatal(err)
 	}
-	transcript, err := deterministicio.EncodeTranscript([]deterministicio.Operation{{Name: "os.open"}})
+	transcriptBytes, err := transcript.EncodeTranscript([]transcript.Operation{{Name: "os.open"}})
 	if err != nil {
 		t.Fatal(err)
 	}
-	coverage, err := deterministicio.SummarizeSemanticProbes(nil)
+	coverage, err := transcript.SummarizeSemanticProbes(nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 	world, payloads := record.NoneWorld()
-	profile := deterministicio.Default()
+	profile := transcript.Default()
 	exitCode := record.Uint64String(0)
 	manifest := record.ExecutionRecord{
 		SchemaVersion: record.SchemaVersion, ArtifactKind: record.ArtifactSuccess, CreatedAt: "2026-08-13T00:00:00Z", CampaignID: "guided-test", SelectionOrdinal: 0, Seed: record.Uint64String(seed), ReplayMode: record.ReplayExact,
@@ -220,7 +220,7 @@ func guideArtifactInput(t *testing.T, seed uint64) (artifact.ArtifactInput, dete
 		},
 		IOProfile: record.IOProfile{
 			Name: profile.Name(), ImplementationSHA256: record.SHA256(profile.ImplementationSHA256()), Inventory: string(profile.Inventory()), InventorySHA256: record.SHA256(profile.InventorySHA256()),
-			Transcript: &record.IOTranscript{Schema: "gomad3.io-transcript/v1", File: "io/transcript.bin", SHA256: record.HashBytes(transcript), Bytes: record.Uint64String(len(transcript)), Records: 1},
+			Transcript: &record.IOTranscript{Schema: "gomad3.io-transcript/v1", File: "io/transcript.bin", SHA256: record.HashBytes(transcriptBytes), Bytes: record.Uint64String(len(transcriptBytes)), Records: 1},
 		},
 		Environment: []record.Environment{{Name: "GOMAD3_IO_PROFILE", Value: profile.Name()}, {Name: "GOMADSEED", Value: strconv.FormatUint(seed, 10)}, {Name: "TZ", Value: "UTC"}},
 		Limits:      record.Limits{ExecutionTimeoutNanos: 1, OverallTimeoutNanos: 2, OutputBytes: 64, WorldTransitionBytes: 64, IOTranscriptBytes: 64 << 20},
@@ -228,16 +228,16 @@ func guideArtifactInput(t *testing.T, seed uint64) (artifact.ArtifactInput, dete
 		Streams: record.Streams{Stdout: record.Stream{FullSHA256: record.HashBytes(nil)}, Stderr: record.Stream{FullSHA256: record.HashBytes(nil)}},
 		Host:    record.Host{StartedAt: "2026-08-13T00:00:00Z", FinishedAt: "2026-08-13T00:00:01Z", ElapsedNanos: 1},
 	}
-	features, err := semanticFeatures(manifest, coverage, transcript, payloads.Transitions, nil)
+	features, err := semanticFeatures(manifest, coverage, transcriptBytes, payloads.Transitions, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	return artifact.ArtifactInput{Manifest: manifest, TargetPath: targetPath, IOTranscript: transcript, World: payloads}, coverage, features
+	return artifact.ArtifactInput{Manifest: manifest, TargetPath: targetPath, IOTranscript: transcriptBytes, World: payloads}, coverage, features
 }
 
 func guideIdentity(t *testing.T, manifest record.ExecutionRecord) Identity {
 	t.Helper()
-	version, boundary := deterministicio.BoundaryManifestIdentity()
+	version, boundary := transcript.BoundaryManifestIdentity()
 	identity, err := IdentityFor(manifest.Target, manifest.Toolchain, version, record.SHA256(boundary), manifest.Environment)
 	if err != nil {
 		t.Fatal(err)
@@ -354,7 +354,7 @@ func TestCorpusCasesShareOneTarget(t *testing.T) {
 		t.Fatal(err)
 	}
 	second, _, _ := guideArtifactInput(t, 8)
-	second.IOTranscript, err = deterministicio.EncodeTranscript([]deterministicio.Operation{{Name: "os.open"}, {Ordinal: 1, Name: "os.read"}})
+	second.IOTranscript, err = transcript.EncodeTranscript([]transcript.Operation{{Name: "os.open"}, {Ordinal: 1, Name: "os.read"}})
 	if err != nil {
 		t.Fatal(err)
 	}

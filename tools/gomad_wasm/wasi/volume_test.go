@@ -10,7 +10,7 @@ import (
 	"syscall"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/deterministicio/volume"
+	"go.temporal.io/server/tools/gomad3/volume"
 )
 
 type storageOpenError struct{}

@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
-	"go.temporal.io/server/tools/gomad3/deterministicio"
 	"go.temporal.io/server/tools/gomad3/hostexec"
 	"go.temporal.io/server/tools/gomad3/hostfs"
 	"go.temporal.io/server/tools/gomad3/qualification/workload"
@@ -178,7 +177,7 @@ func clusterArtifact(spec Spec, observed gomad3sim.Result, payload target.Backen
 		manifest.ArtifactKind = record.ArtifactTargetFailure
 	}
 	input := artifact.ArtifactInput{Manifest: manifest, TargetPath: spec.preparedTarget.Path, Stdout: stdout, Stderr: stderr, World: worldPayloads, BackendPayloads: append(append([]target.BackendPayload{}, spec.preparedTarget.BackendPayloads...), payload)}
-	evidence := runner.ExecutionEvidence{Schema: runner.ExecutionEvidenceSchema, Seed: manifest.Seed, RunnerBuild: manifest.Runner.RunnerBuild, Toolchain: manifest.Toolchain, Target: targetRecord, IOProfile: deterministicio.Contract{Name: profile.Name, ImplementationSHA256: deterministicio.Digest(profile.ImplementationSHA256), InventorySHA256: deterministicio.Digest(profile.InventorySHA256)}, Environment: environment, Limits: runner.ExecutionLimitsEvidence{ExecutionTimeoutNanos: limits.ExecutionTimeoutNanos, OutputBytes: limits.OutputBytes, WorldTransitionBytes: limits.WorldTransitionBytes}, Outcome: runner.OutcomeEvidence{Domain: outcome.Domain, Reason: outcome.Reason, Termination: outcome.Termination, ExitCode: outcome.ExitCode}, GroupGone: groupGone, Stdout: manifest.Streams.Stdout, Stderr: manifest.Streams.Stderr, BackendEvidenceSHA256: payload.Reference.SHA256, IOTranscriptSHA256: record.HashBytes(nil), IOTranscriptComplete: true, VirtualTimeElapsedNanos: record.Uint64String(virtual), World: world}
+	evidence := runner.ExecutionEvidence{Schema: runner.ExecutionEvidenceSchema, Seed: manifest.Seed, RunnerBuild: manifest.Runner.RunnerBuild, Toolchain: manifest.Toolchain, Target: targetRecord, IOProfile: record.IOContract{Name: profile.Name, ImplementationSHA256: record.SHA256(profile.ImplementationSHA256), InventorySHA256: record.SHA256(profile.InventorySHA256)}, Environment: environment, Limits: runner.ExecutionLimitsEvidence{ExecutionTimeoutNanos: limits.ExecutionTimeoutNanos, OutputBytes: limits.OutputBytes, WorldTransitionBytes: limits.WorldTransitionBytes}, Outcome: runner.OutcomeEvidence{Domain: outcome.Domain, Reason: outcome.Reason, Termination: outcome.Termination, ExitCode: outcome.ExitCode}, GroupGone: groupGone, Stdout: manifest.Streams.Stdout, Stderr: manifest.Streams.Stderr, BackendEvidenceSHA256: payload.Reference.SHA256, IOTranscriptSHA256: record.HashBytes(nil), IOTranscriptComplete: true, VirtualTimeElapsedNanos: record.Uint64String(virtual), World: world}
 	return manifest, input, evidence, nil
 }
 

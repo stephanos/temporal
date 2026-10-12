@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring"
-	capabilityanalysis "go.temporal.io/server/tools/gomad3/qualification/analysis"
+	capabilityanalysis "go.temporal.io/server/tools/gomad3/backends/native/qualification/analysis"
 )
 
 const compatibilityPackTimeout = 2 * time.Minute

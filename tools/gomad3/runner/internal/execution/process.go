@@ -5,13 +5,14 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"go.temporal.io/server/tools/gomad3/record"
 	"io"
 	"strings"
 	"time"
 
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	romount "go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/deterministicio"
-	romount "go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
 	"go.temporal.io/server/tools/gomad3/internal/hostexec"
 )
 
@@ -105,7 +106,7 @@ type Result struct {
 	PGID              int
 	GroupGone         bool
 	WorldRecord       []byte
-	IOTranscript      deterministicio.Transcript
+	IOTranscript      transcript.Transcript
 	IOROMounts        romount.Snapshot
 	DiagnosticTrace   choice.DiagnosticTrace
 	ChoiceTrace       ChoiceTrace
@@ -233,25 +234,25 @@ func validateSpec(request Spec) error {
 		}
 		return nil
 	}
-	transcript := ioCapability.Transcript
-	if len(ioCapability.Config) == 0 && transcript.Limit != 0 {
+	transcriptSpec := ioCapability.Transcript
+	if len(ioCapability.Config) == 0 && transcriptSpec.Limit != 0 {
 		return errors.New("I/O transcript limit requires an I/O configuration")
 	}
-	if transcript.Limit > deterministicio.MaximumTranscriptBytes {
+	if transcriptSpec.Limit > record.MaximumIOTranscriptBytes {
 		return errors.New("I/O transcript limit exceeds its bound")
 	}
-	if transcript.Replay && transcript.Limit == 0 {
+	if transcriptSpec.Replay && transcriptSpec.Limit == 0 {
 		return errors.New("I/O replay requires a transcript")
 	}
 	if mounts := ioCapability.ReadOnlyMount; mounts != nil {
-		if len(ioCapability.Config) == 0 || transcript.Limit == 0 {
+		if len(ioCapability.Config) == 0 || transcriptSpec.Limit == 0 {
 			return errors.New("read-only mount broker requires a deterministic I/O transcript")
 		}
 		if mounts.Limits == (romount.Limits{}) {
 			return errors.New("read-only mount broker requires limits")
 		}
 	}
-	if err := deterministicio.ValidateSessionSpec(deterministicio.SessionSpec{Limit: transcript.Limit, Replay: transcript.Replay, Expected: transcript.Expected}); err != nil {
+	if err := transcript.ValidateSessionSpec(transcript.SessionSpec{Limit: transcriptSpec.Limit, Replay: transcriptSpec.Replay, Expected: transcriptSpec.Expected}); err != nil {
 		return err
 	}
 	return nil

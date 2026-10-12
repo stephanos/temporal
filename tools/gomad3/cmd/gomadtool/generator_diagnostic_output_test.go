@@ -41,7 +41,7 @@ func TestRunGeneratorDiagnosticOutputPreservesStatus(t *testing.T) {
 			diagnostic: "qualification manifest spec schema must be gomad3.qualification-set-generator/v1\n",
 		},
 		{
-			name: "protocol failure", input: "deterministicio/schema/iowire.json", contents: "{} {}\n", output: "deterministicio/internal/wire/wire_generated.go",
+			name: "protocol failure", input: "backends/native/transcript/schema/iowire.json", contents: "{} {}\n", output: "internal/iowire/wire_generated.go",
 			arguments: []string{"protocol-generate"}, status: 1,
 			diagnostic: "I/O wire schema has trailing data\n",
 		},

@@ -14,8 +14,8 @@ import (
 	"strings"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/deterministicio"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
 	"go.temporal.io/server/tools/gomad3/record"
@@ -135,7 +135,7 @@ func (corpus *Corpus) interesting(features []Feature, storedBytes uint64) bool {
 	return false
 }
 
-func (corpus *Corpus) merge(published artifact.Artifact, coverage deterministicio.SemanticCoverage, features []Feature, replay ReplayResult) (bool, error) {
+func (corpus *Corpus) merge(published artifact.Artifact, coverage record.SemanticCoverage, features []Feature, replay ReplayResult) (bool, error) {
 	if corpus == nil || corpus.lock == nil {
 		return false, errors.New("guided corpus is not open")
 	}
@@ -227,7 +227,7 @@ func (corpus *Corpus) discard(published artifact.Artifact) error {
 	return corpus.removeUnreferencedCase(relative)
 }
 
-func (corpus *Corpus) entryFor(published artifact.Artifact, coverage deterministicio.SemanticCoverage, features []Feature, replay ReplayResult) (Entry, error) {
+func (corpus *Corpus) entryFor(published artifact.Artifact, coverage record.SemanticCoverage, features []Feature, replay ReplayResult) (Entry, error) {
 	relative, err := filepath.Rel(corpus.path, published.Path)
 	if err != nil {
 		return Entry{}, fmt.Errorf("make guided case path relative: %w", err)
@@ -334,7 +334,7 @@ func (corpus *Corpus) validateEntry(entry Entry) (result artifact.SharedTarget, 
 	if _, err := record.ParseSHA256(string(entry.RecordHash)); err != nil || !validCaseReference(entry.Artifact) || entry.StoredBytes == 0 || entry.PayloadBytes == 0 || !entry.Replay.Verified || !entry.Replay.Match || entry.Replay.Divergence != "" {
 		return artifact.SharedTarget{}, errors.New("guided corpus entry identity is invalid")
 	}
-	coverage, err := deterministicio.SummarizeSemanticProbes(entry.Coverage.Probes)
+	coverage, err := transcript.SummarizeSemanticProbes(entry.Coverage.Probes)
 	if err != nil || coverage.Schema != entry.Coverage.Schema || coverage.Digest != entry.Coverage.Digest || !slices.Equal(coverage.Probes, entry.Coverage.Probes) {
 		return artifact.SharedTarget{}, errors.Join(errors.New("guided corpus semantic coverage is invalid"), err)
 	}
@@ -369,7 +369,7 @@ func (corpus *Corpus) validateEntry(entry Entry) (result artifact.SharedTarget, 
 	if err != nil || payloadBytes != uint64(entry.PayloadBytes) {
 		return artifact.SharedTarget{}, errors.Join(errors.New("guided corpus payload size mismatch"), err)
 	}
-	profile := deterministicio.Default()
+	profile := transcript.Default()
 	if !profile.MatchesRecorded(manifest.IOProfile.Name, string(manifest.IOProfile.ImplementationSHA256), string(manifest.IOProfile.InventorySHA256), manifest.IOProfile.Inventory) {
 		return artifact.SharedTarget{}, errors.New("guided corpus case boundary identity does not match this Runner")
 	}

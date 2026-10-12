@@ -4,15 +4,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"go.temporal.io/server/tools/gomad3/record"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/deterministicio"
 )
 
 type Candidate struct {
 	Artifact artifact.ArtifactInput
-	Coverage deterministicio.SemanticCoverage
+	Coverage record.SemanticCoverage
 	Choices  *choice.FeatureProjection
 }
 

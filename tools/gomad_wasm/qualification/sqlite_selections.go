@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
-	"go.temporal.io/server/tools/gomad3/deterministicio/volume"
+	"go.temporal.io/server/tools/gomad3/volume"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/target"
 	"go.temporal.io/server/tools/gomad3sim"

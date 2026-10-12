@@ -11,8 +11,8 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/artifact"
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/deterministicio"
-	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/backend"
@@ -46,11 +46,11 @@ func resumeWith(ctx context.Context, spec ResumeSpec, dependencies executionDepe
 	}, dependencies)
 }
 
-func resumeConfiguration(request campaignRequest, plan campaign.CampaignPlan) (CampaignSpec, SeedSelection, []record.Environment, []readonlymount.Mapping, target.Prepared, error) {
+func resumeConfiguration(request campaignRequest, plan campaign.CampaignPlan) (CampaignSpec, SeedSelection, []record.Environment, []captured.Mapping, target.Prepared, error) {
 	if plan.RunnerBuild != request.RunnerBuild {
 		return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, fmt.Errorf("recorded Runner build identity %s does not match this Runner %s", plan.RunnerBuild, request.RunnerBuild)
 	}
-	profile := deterministicio.Default()
+	profile := transcript.Default()
 	if plan.Prepared.Target.Backend == nil && !profile.Matches(plan.IOProfile) {
 		return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, fmt.Errorf("recorded I/O profile identity does not match this Runner")
 	}
@@ -67,11 +67,11 @@ func resumeConfiguration(request campaignRequest, plan campaign.CampaignPlan) (C
 	if err != nil || selection.Count() != uint64(plan.SelectionCount) {
 		return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, fmt.Errorf("recorded seed selection is invalid: %w", err)
 	}
-	mountLimits, err := readonlymount.DecodeLimits(deterministicCapturedInputLimits(plan.IOROMountLimits))
+	mountLimits, err := captured.DecodeLimits(deterministicCapturedInputLimits(plan.IOROMountLimits))
 	if err != nil {
 		return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, err
 	}
-	mounts, err := readonlymount.ParseMappings(plan.IOROMounts, "")
+	mounts, err := captured.ParseMappings(plan.IOROMounts, "")
 	if err != nil {
 		return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, err
 	}
@@ -99,7 +99,7 @@ func resumeConfiguration(request campaignRequest, plan campaign.CampaignPlan) (C
 		}
 	}
 	if prepared.Backend == nil {
-		if err := deterministicio.Default().VerifyAdapters(deterministicAdapters(prepared.Adapters)); err != nil {
+		if err := transcript.Default().VerifyAdapters(deterministicAdapters(prepared.Adapters)); err != nil {
 			return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, fmt.Errorf("verify recorded adapters: %w", err)
 		}
 		if request.executor == nil {

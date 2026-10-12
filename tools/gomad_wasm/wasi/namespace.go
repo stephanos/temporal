@@ -7,8 +7,8 @@ import (
 	"slices"
 	"strings"
 
-	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
-	"go.temporal.io/server/tools/gomad3/deterministicio/volume"
+	"go.temporal.io/server/tools/gomad3/captured"
+	"go.temporal.io/server/tools/gomad3/volume"
 )
 
 const (
@@ -109,9 +109,9 @@ func newNamespace(config Config) (*namespace, error) {
 	ns.root = ns.newNode(true, true)
 	preopens := slices.Clone(config.WritableDirectories)
 	var capturedRoots []string
-	var snapshot readonlymount.Snapshot
+	var snapshot captured.Snapshot
 	if config.CapturedInputs.Manifest.Schema != "" {
-		mappings, _, captured, err := readonlymount.DecodeCapturedInputs(config.CapturedInputs.Manifest, config.CapturedInputs.Descriptor, func(name string, size uint64) ([]byte, error) {
+		mappings, _, captured, err := captured.DecodeCapturedInputs(config.CapturedInputs.Manifest, config.CapturedInputs.Descriptor, func(name string, size uint64) ([]byte, error) {
 			data, ok := config.CapturedInputs.Payloads[name]
 			if !ok || uint64(len(data)) != size {
 				return nil, invalid("captured payload")
@@ -135,7 +135,7 @@ func newNamespace(config Config) (*namespace, error) {
 		if parent == nil || parent.children[path.Base(entry.Path)] != nil {
 			return nil, invalid("captured tree")
 		}
-		n := ns.newNode(entry.Kind == readonlymount.KindDirectory, true)
+		n := ns.newNode(entry.Kind == captured.KindDirectory, true)
 		n.data = slices.Clone(entry.Data)
 		ns.bytes += uint64(len(n.data))
 		parent.children[path.Base(entry.Path)] = n
@@ -149,7 +149,7 @@ func newNamespace(config Config) (*namespace, error) {
 			}
 			for _, child := range entry.Children {
 				found := n.children[child.Name]
-				if found == nil || found.directory != (child.Kind == readonlymount.KindDirectory) {
+				if found == nil || found.directory != (child.Kind == captured.KindDirectory) {
 					return nil, invalid("captured child inventory")
 				}
 			}

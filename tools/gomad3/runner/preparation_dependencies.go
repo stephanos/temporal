@@ -3,15 +3,15 @@ package runner
 import (
 	"context"
 
-	"go.temporal.io/server/tools/gomad3/deterministicio"
-	"go.temporal.io/server/tools/gomad3/internal/preparation"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	"go.temporal.io/server/tools/gomad3/backends/native/preparation"
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
 type executionDependencies struct {
 	executor  executionRunner
 	prepare   func(context.Context, preparation.Request) (target.Prepared, error)
-	bootstrap func(deterministicio.Spec, target.Prepared, string, uint64) ([]byte, error)
+	bootstrap func(transcript.Spec, target.Prepared, string, uint64) ([]byte, error)
 }
 
 func (dependencies executionDependencies) prepareTarget(ctx context.Context, request preparation.Request) (target.Prepared, error) {
@@ -21,7 +21,7 @@ func (dependencies executionDependencies) prepareTarget(ctx context.Context, req
 	return preparation.Prepare(ctx, request)
 }
 
-func (dependencies executionDependencies) bootstrapFrame(profile deterministicio.Spec, prepared target.Prepared, runner string, seed uint64) ([]byte, error) {
+func (dependencies executionDependencies) bootstrapFrame(profile transcript.Spec, prepared target.Prepared, runner string, seed uint64) ([]byte, error) {
 	if dependencies.bootstrap != nil {
 		return dependencies.bootstrap(profile, prepared, runner, seed)
 	}

@@ -680,7 +680,7 @@ architecture, C/C++ tool, and compiler/linker tuning is cleared before
 
 Host-side policy is implemented in typed Go packages. `toolchain` provides the
 build, patch, validation, and upgrade interface; `cmd/gomadtool` is
-its command adapter, and `internal/gomadtool/conformance` owns bounded
+its command adapter, and `backends/native/conformance` owns bounded
 black-box fixture execution and semantic result classification. The remaining
 scripts are reviewed argv adapters:
 POSIX compatibility entrypoints, the two upstream `-exec`/`-toolexec`
@@ -699,7 +699,7 @@ binary and a per-campaign path would change the target identity between
 repetitions.
 
 To upgrade Go, update the canonical `toolchain/version/version.json` descriptor
-and `deterministicio/boundary/manifest.json`, materialize the old patch against the new pinned
+and `backends/native/transcript/boundary/manifest.json`, materialize the old patch against the new pinned
 source, and regenerate the patch with `go -C tools/gomad3 run
 ./cmd/gomadtool patch-regenerate --root="$PWD/tools/gomad3"
 --candidate-root=GO-SOURCE-ROOT`. `make -C
@@ -774,9 +774,9 @@ bump pass the revision before it with `--baseline-ref`. [CLI.md](CLI.md#bump-a-d
 exit statuses.
 
 The standard-library boundary is declared in
-`tools/gomad3/deterministicio/boundary/manifest.json`, and the cross-process
+`tools/gomad3/backends/native/transcript/boundary/manifest.json`, and the cross-process
 deterministic-I/O layouts are declared in
-`tools/gomad3/deterministicio/schema/iowire.json`. After changing
+`tools/gomad3/backends/native/transcript/schema/iowire.json`. After changing
 either schema or its templates, regenerate and verify the derived artifacts
 with:
 
@@ -1185,7 +1185,7 @@ Inspect each changed report and use `compatibility-pack generate
 `make -C tools/gomad3 validate compatibility-pack-qualification
 core-qualification-set` and the full `test` gate on both supported hosts.
 A Darwin run does not qualify Linux packs or adapters. The generated
-[upgrade guide](deterministicio/boundary/upgrade-go1.27.1.md) covers the
+[upgrade guide](backends/native/transcript/boundary/upgrade-go1.27.1.md) covers the
 Go-release dossier and this dependency flow.
 
 A module outside this repository keeps packs for its own dependencies in its

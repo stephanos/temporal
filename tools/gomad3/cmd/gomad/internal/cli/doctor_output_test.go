@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/deterministicio"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 )
 
 func TestDoctorOutput(t *testing.T) {
@@ -72,7 +72,7 @@ func TestDoctorOutput(t *testing.T) {
 	}
 	text = append(text, "artifacts  ok    "+artifacts+"\n", "installation: source=cli toolchain="+toolchain+"\nrepair: "+repair+"\n")
 	checks = append(checks, fmt.Sprintf(`{"name":"artifacts","status":"ok","detail":%q}`, artifacts))
-	identity := deterministicio.Default().Identity()
+	identity := transcript.Default().Identity()
 	jsonReport := fmt.Sprintf(`{"schema":"gomad3.doctor/v3","available":%t,"host":%q,"supported_platforms":["darwin/arm64","linux/amd64"],"go_version":"go1.27.1","toolchain_build":%q,"runner_build":%q,"boundary_manifest_version":"go1.27.1-v1","io_inventory_sha256":%q,"io_implementation_sha256":%q,"adapters":[%s],"installation_source":"cli","toolchain_root":%q,"artifact_directory":%q,"repair_instruction":%q,"checks":[%s]}`+"\n", available, host, key, runner, identity.InventorySHA256, identity.ImplementationSHA256, strings.Join(adapters, ","), toolchain, artifacts, repair, strings.Join(checks, ","))
 	for _, test := range []struct {
 		name    string

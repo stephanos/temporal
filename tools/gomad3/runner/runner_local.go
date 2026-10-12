@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/deterministicio"
-	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
-	"go.temporal.io/server/tools/gomad3/internal/preparation"
+	"go.temporal.io/server/tools/gomad3/backends/native/preparation"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
 	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
@@ -23,7 +23,7 @@ type localCampaign struct {
 	resuming             bool
 	selection            SeedSelection
 	baseEnvironment      []record.Environment
-	readOnlyMounts       []readonlymount.Mapping
+	readOnlyMounts       []captured.Mapping
 	prepared             target.Prepared
 	resumePlan           campaign.CampaignPlan
 	guidance             *guidanceCampaign
@@ -34,7 +34,7 @@ type localCampaign struct {
 	resumedRuns          []campaign.ExecutionRecord
 	summary              CampaignResult
 	batchComplete        bool
-	selectedProfile      deterministicio.Spec
+	selectedProfile      transcript.Spec
 	executor             executionRunner
 	activeCtx            context.Context
 	activeCancel         context.CancelFunc
@@ -77,7 +77,7 @@ func runLocal(ctx context.Context, config campaignRequest) (summary CampaignResu
 	if err := overallCtx.Err(); err != nil {
 		return local.summary, &HostError{Reason: contextFailureReason(err), Err: err}
 	}
-	local.selectedProfile = deterministicio.Default()
+	local.selectedProfile = transcript.Default()
 	if err := local.prepareTarget(); err != nil {
 		return local.summary, err
 	}
@@ -140,12 +140,12 @@ func (local *localCampaign) validateRequest() error {
 		if err != nil {
 			return &HostError{Reason: "artifact_setup", Err: fmt.Errorf("resolve artifact root: %w", err)}
 		}
-		local.readOnlyMounts, err = readonlymount.ParseMappings(local.config.IOROMounts, local.config.Target.WorkingDir)
+		local.readOnlyMounts, err = captured.ParseMappings(local.config.IOROMounts, local.config.Target.WorkingDir)
 		if err != nil {
 			return err
 		}
-		if local.config.IOROMountLimits == (readonlymount.Limits{}) {
-			local.config.IOROMountLimits = readonlymount.DefaultLimits()
+		if local.config.IOROMountLimits == (captured.Limits{}) {
+			local.config.IOROMountLimits = captured.DefaultLimits()
 		}
 		if local.config.Guide {
 			local.config.Corpus, err = guidedCorpusPath(local.config.Corpus)
@@ -231,7 +231,7 @@ func (local *localCampaign) failCampaign(retErr *error) {
 	if errors.As(*retErr, &hostError) {
 		reason = hostError.Reason
 	}
-	var missing *deterministicio.MissingSemanticProbesError
+	var missing *record.MissingSemanticProbesError
 	if errors.As(*retErr, &missing) {
 		reason = "semantic_coverage"
 	}
@@ -827,7 +827,7 @@ func (local *localCampaign) finishSeedCampaign() error {
 		for probe := range local.semanticProbes {
 			probes = append(probes, probe)
 		}
-		coverage, coverageErr := deterministicio.SummarizeSemanticProbes(probes)
+		coverage, coverageErr := transcript.SummarizeSemanticProbes(probes)
 		if coverageErr != nil && local.hostFailure == nil {
 			local.hostFailure = &HostError{Reason: "semantic_coverage", Err: coverageErr}
 		} else if coverageErr == nil {
@@ -846,12 +846,12 @@ func (local *localCampaign) finishSeedCampaign() error {
 		return local.hostFailure
 	}
 	if local.summary.SemanticCoverage != nil && local.selection.Count() != 0 {
-		missing, err := deterministicio.MissingRequiredSemanticProbes(*local.summary.SemanticCoverage, local.config.RequiredSemanticProbes)
+		missing, err := transcript.MissingRequiredSemanticProbes(*local.summary.SemanticCoverage, local.config.RequiredSemanticProbes)
 		if err != nil {
 			return err
 		}
 		if len(missing) != 0 {
-			return &deterministicio.MissingSemanticProbesError{Probes: missing}
+			return &record.MissingSemanticProbesError{Probes: missing}
 		}
 	}
 	if err := local.prepared.Verify(); err != nil {

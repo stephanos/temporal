@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"go.temporal.io/server/tools/gomad3/record"
 	"io"
 	"strings"
 	"sync"
 
-	"go.temporal.io/server/tools/gomad3/deterministicio"
 	"go.temporal.io/server/tools/gomad3/runner"
 	"go.temporal.io/server/tools/gomad3/target"
 )
@@ -36,7 +36,7 @@ type exploreEvent struct {
 	RetainedSuccesses     uint64                               `json:"retained_successes,omitempty"`
 	RetainedSuccessBytes  uint64                               `json:"retained_success_bytes,omitempty"`
 	StopReason            runner.StopReason                    `json:"stop_reason,omitempty"`
-	SemanticCoverage      *deterministicio.SemanticCoverage    `json:"semantic_coverage,omitempty"`
+	SemanticCoverage      *record.SemanticCoverage             `json:"semantic_coverage,omitempty"`
 	ChoiceTrace           *runner.ChoiceTraceSummary           `json:"choice_trace,omitempty"`
 	CorpusPath            string                               `json:"corpus_path,omitempty"`
 	CorpusEntries         uint64                               `json:"corpus_entries,omitempty"`
@@ -196,7 +196,7 @@ func classifyExploreError(err error) string {
 	if runner.IsCapacityError(err) {
 		return "capacity"
 	}
-	var missing *deterministicio.MissingSemanticProbesError
+	var missing *record.MissingSemanticProbesError
 	if errors.As(err, &missing) {
 		return "semantic_coverage_failure"
 	}

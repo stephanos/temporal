@@ -14,8 +14,8 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/deterministicio"
-	romount "go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	romount "go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/internal/hostexec"
 )
 
@@ -123,11 +123,11 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 	if err != nil {
 		return Result{}, fmt.Errorf("create World record capture: %w", err)
 	}
-	var ioSession *deterministicio.Session
+	var ioSession *transcript.Session
 	var ioTranscriptFile, ioTerminalFile, ioExpectedFile *os.File
 	if ioCapability != nil && ioCapability.Transcript != nil {
-		transcript := ioCapability.Transcript
-		ioSession, err = deterministicio.NewSession(deterministicio.SessionSpec{Limit: transcript.Limit, Replay: transcript.Replay, Expected: transcript.Expected})
+		transcriptSpec := ioCapability.Transcript
+		ioSession, err = transcript.NewSession(transcript.SessionSpec{Limit: transcriptSpec.Limit, Replay: transcriptSpec.Replay, Expected: transcriptSpec.Expected})
 		if err != nil {
 			return Result{}, err
 		}
@@ -305,7 +305,7 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 		return Result{}, errors.Join(fmt.Errorf("close inherited supervisor pipe ends: %w", closeErr), cleanupEarlySupervisor(command, controlWrite, reportRead, nil, deadline))
 	}
 	type ioCollection struct {
-		transcript deterministicio.Transcript
+		transcript transcript.Transcript
 		err        error
 	}
 	var collectedIO <-chan ioCollection
@@ -657,7 +657,7 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 	}
 	if ioSession != nil {
 		collected := <-collectedIO
-		if collected.err != nil && (!errors.Is(collected.err, deterministicio.ErrTranscriptUnterminated) || (!result.WatchdogTimeout && !result.Cancelled)) {
+		if collected.err != nil && (!errors.Is(collected.err, transcript.ErrTranscriptUnterminated) || (!result.WatchdogTimeout && !result.Cancelled)) {
 			return result, collected.err
 		}
 		result.IOTranscript = collected.transcript

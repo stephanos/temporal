@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
-	"go.temporal.io/server/tools/gomad3/deterministicio"
-	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
 	"go.temporal.io/server/tools/gomad3/target"
@@ -34,14 +34,14 @@ func TestWatchdogDiagnosticReplayUsesCapturedInputs(t *testing.T) {
 	})
 	t.Run("uncaptured input fails", func(t *testing.T) {
 		missing := input
-		mounts, err := readonlymount.EncodeCapturedInputs([]readonlymount.Mapping{{Target: "/mounted"}}, readonlymount.DefaultLimits(), readonlymount.Snapshot{})
+		mounts, err := captured.EncodeCapturedInputs([]captured.Mapping{{Target: "/mounted"}}, captured.DefaultLimits(), captured.Snapshot{})
 		if err != nil {
 			t.Fatal(err)
 		}
 		missing.ReadOnlyMounts = &mounts
 		missing.Manifest.IOProfile.ReadOnlyMounts = pointerToReadOnlyMounts(replayRecordedCapturedInputs(mounts.Manifest))
 		result, err := replayWatchdogInput(t, missing)
-		if !errors.Is(err, readonlymount.ErrReplayDivergence) || result.Match {
+		if !errors.Is(err, captured.ErrReplayDivergence) || result.Match {
 			t.Fatalf("uncaptured input replay = %#v, %v", result, err)
 		}
 	})
@@ -241,7 +241,7 @@ func main() {
 	if err != nil {
 		t.Fatal(err)
 	}
-	profile := deterministicio.Default()
+	profile := transcript.Default()
 	const runnerBuild = "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
 	frame, err := profile.BootstrapFrame(prepared, runnerBuild, 7)
 	if err != nil {
@@ -251,8 +251,8 @@ func main() {
 	if err := os.WriteFile(filepath.Join(source, "input"), []byte("captured input\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	mappings := []readonlymount.Mapping{{Source: source, Target: "/mounted"}}
-	limits := readonlymount.DefaultLimits()
+	mappings := []captured.Mapping{{Source: source, Target: "/mounted"}}
+	limits := captured.DefaultLimits()
 	var observed execution.Result
 	var timeout time.Duration
 	for _, timeout = range watchdogReplayTimeouts {
@@ -274,7 +274,7 @@ func main() {
 	if !observed.WatchdogTimeout || observed.IOTranscript.Complete || string(observed.Stdout.Bytes) != "captured input\n" || len(observed.IOROMounts.Entries) != 1 {
 		t.Fatalf("watchdog fixture = %#v", observed)
 	}
-	mounts, err := readonlymount.EncodeCapturedInputs(mappings, limits, observed.IOROMounts)
+	mounts, err := captured.EncodeCapturedInputs(mappings, limits, observed.IOROMounts)
 	if err != nil {
 		t.Fatal(err)
 	}

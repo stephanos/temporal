@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
+	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/hostexec"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner"
@@ -48,7 +48,7 @@ func TestActualOneboxQualification(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	captured, err := readonlymount.CaptureReadOnlyMountInputs([]readonlymount.Mapping{{Source: filepath.Join(checkout, "schema", "sqlite"), Target: "/workspace/schema/sqlite"}}, readonlymount.DefaultLimits())
+	captured, err := captured.CaptureReadOnlyMountInputs([]captured.Mapping{{Source: filepath.Join(checkout, "schema", "sqlite"), Target: "/workspace/schema/sqlite"}}, captured.DefaultLimits())
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -21,7 +21,7 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/artifact"
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/deterministicio"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/internal/hostexec"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
@@ -432,7 +432,7 @@ func recordReplayIOTranscript(t *testing.T) []byte {
 		t.Fatal(err)
 	}
 	argv := []string{"gomad3-target", "-test.run=^TestWorldReplayMatchingTarget$"}
-	profile := deterministicio.Default()
+	profile := transcript.Default()
 	frame, err := profile.BootstrapFrame(target.Prepared{SHA256: string(record.HashBytes(targetBytes)), Argv: argv}, "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 7)
 	if err != nil {
 		t.Fatal(err)
@@ -473,7 +473,7 @@ func TestReplayReportsFirstObservableDivergence(t *testing.T) {
 
 func TestReplayReportsIOTranscriptOrdinalBeforeOutcome(t *testing.T) {
 	ordinal := uint64(4)
-	observed := execution.Result{IOTranscript: deterministicio.Transcript{ReplayDivergence: &ordinal}}
+	observed := execution.Result{IOTranscript: transcript.Transcript{ReplayDivergence: &ordinal}}
 	if divergence := replayDivergence(record.ExecutionRecord{}, observed, nil); divergence != "io_profile.transcript.ordinal[4]" {
 		t.Fatalf("replayDivergence() = %q", divergence)
 	}
@@ -629,11 +629,11 @@ func publishReplayArtifactForTargetAndCompatibility(t *testing.T, connected *exe
 	stderr := replayOutput("recorded stderr")
 	ioTranscript := replayTarget.IOTranscript
 	ioTranscriptSHA256 := sha256.Sum256(ioTranscript)
-	ioTranscriptRecords, err := deterministicio.TranscriptRecordCount(ioTranscript)
+	ioTranscriptRecords, err := transcript.TranscriptRecordCount(ioTranscript)
 	if err != nil {
 		t.Fatal(err)
 	}
-	profile := deterministicio.Default()
+	profile := transcript.Default()
 	exitCode := record.Uint64String(2)
 	targetArgv := replayTarget.Argv
 	if len(targetArgv) == 0 {
@@ -832,7 +832,7 @@ func publishReplayArtifactForTargetAndCompatibility(t *testing.T, connected *exe
 	if err != nil {
 		t.Fatal(err)
 	}
-	result := execution.Result{Termination: execution.TerminationExit, ExitCode: 2, GroupGone: true, Stdout: stdout, Stderr: stderr, IOTranscript: deterministicio.Transcript{SHA256: ioTranscriptSHA256, Records: ioTranscriptRecords, Complete: true}, ChoiceTrace: recordedChoices, SimulationRecords: recordedSimulationRecords}
+	result := execution.Result{Termination: execution.TerminationExit, ExitCode: 2, GroupGone: true, Stdout: stdout, Stderr: stderr, IOTranscript: transcript.Transcript{SHA256: ioTranscriptSHA256, Records: ioTranscriptRecords, Complete: true}, ChoiceTrace: recordedChoices, SimulationRecords: recordedSimulationRecords}
 	if connected != nil {
 		initial, decodeErr := world.DecodeSnapshot(connected.Payloads.Initial)
 		if decodeErr != nil {

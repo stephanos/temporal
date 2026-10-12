@@ -8,7 +8,7 @@ import (
 	"sort"
 
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
+	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/target"
 )
@@ -21,7 +21,7 @@ type ArtifactInput struct {
 	Stderr          []byte
 	IOTranscript    []byte
 	ChoiceTrace     []byte
-	ReadOnlyMounts  *readonlymount.CapturedInputs
+	ReadOnlyMounts  *captured.CapturedInputs
 	World           record.WorldPayloads
 	Simulation      *SimulationPayloads
 }
@@ -155,7 +155,7 @@ func PublishArtifact(store Store, input ArtifactInput) (Artifact, error) {
 	return store.PublishArtifact(Publication{Record: manifest, Payloads: payloads})
 }
 
-func capturedInputsMatch(recorded *record.ReadOnlyMounts, captured readonlymount.CapturedInputsManifest) bool {
+func capturedInputsMatch(recorded *record.ReadOnlyMounts, captured captured.CapturedInputsManifest) bool {
 	limits := recorded.Limits
 	return recorded.Schema == captured.Schema && recorded.File == captured.File && recorded.SHA256 == record.SHA256(captured.SHA256) && uint64(recorded.Bytes) == captured.Bytes &&
 		uint64(recorded.Entries) == captured.Entries && uint64(recorded.NotExist) == captured.NotExist && uint64(recorded.TotalBytes) == captured.TotalBytes && slices.Equal(recorded.Mappings, captured.Mappings) &&

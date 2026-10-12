@@ -11,8 +11,8 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/artifact"
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/deterministicio"
-	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/backend"
 	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
@@ -56,11 +56,11 @@ type minimizationSession struct {
 	prepared        target.Prepared
 	campaign        CampaignSpec
 	baseEnvironment []record.Environment
-	profile         deterministicio.Spec
-	mappings        []readonlymount.Mapping
-	mountLimits     readonlymount.Limits
-	mountSnapshot   *readonlymount.Snapshot
-	mountArtifact   *readonlymount.CapturedInputs
+	profile         transcript.Spec
+	mappings        []captured.Mapping
+	mountLimits     captured.Limits
+	mountSnapshot   *captured.Snapshot
+	mountArtifact   *captured.CapturedInputs
 	choiceIdentity  choice.ExecutionIdentity
 	exactChoiceTape *choice.ReplayPlan
 	executor        executionRunner
@@ -308,7 +308,7 @@ func openMinimizationSession(ctx context.Context, config MinimizeSpec, dependenc
 	if err != nil {
 		return nil, &ReplayPreflightError{Err: err}
 	}
-	session := &minimizationSession{config: config, dependencies: dependencies, opened: opened, profile: deterministicio.Default()}
+	session := &minimizationSession{config: config, dependencies: dependencies, opened: opened, profile: transcript.Default()}
 	defer func() {
 		if retErr != nil {
 			retErr = errors.Join(retErr, session.close())
@@ -424,19 +424,19 @@ func (session *minimizationSession) prepareWorkspace(ctx context.Context) error 
 		return err
 	}
 	session.baseEnvironment = minimizationBaseEnvironment(manifest.Environment)
-	session.mountLimits = readonlymount.DefaultLimits()
+	session.mountLimits = captured.DefaultLimits()
 	if mounts := manifest.IOProfile.ReadOnlyMounts; mounts != nil {
 		descriptor, readErr := session.opened.ReadPayload(mounts.File, uint64(mounts.Bytes))
 		if readErr != nil {
 			return fmt.Errorf("read minimized target mounts: %w", readErr)
 		}
-		mappings, limits, snapshot, readErr := readonlymount.DecodeCapturedInputs(replayCapturedInputs(*mounts), descriptor, func(name string, maximum uint64) ([]byte, error) {
+		mappings, limits, snapshot, readErr := captured.DecodeCapturedInputs(replayCapturedInputs(*mounts), descriptor, func(name string, maximum uint64) ([]byte, error) {
 			return session.opened.ReadPayload(name, maximum)
 		})
 		if readErr != nil {
 			return fmt.Errorf("decode minimized target mounts: %w", readErr)
 		}
-		captured, encodeErr := readonlymount.EncodeCapturedInputs(mappings, limits, snapshot)
+		captured, encodeErr := captured.EncodeCapturedInputs(mappings, limits, snapshot)
 		if encodeErr != nil {
 			return fmt.Errorf("encode minimized target mounts: %w", encodeErr)
 		}

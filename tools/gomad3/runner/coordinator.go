@@ -6,12 +6,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"go.temporal.io/server/tools/gomad3/record"
 	"io"
 	"os"
 	"os/exec"
 	"time"
 
-	"go.temporal.io/server/tools/gomad3/deterministicio"
 	"go.temporal.io/server/tools/gomad3/internal/hostexec"
 	"go.temporal.io/server/tools/gomad3/target"
 )
@@ -168,7 +168,7 @@ func runIsolated(ctx context.Context, config campaignRequest) (CampaignResult, e
 			return response.CampaignResult, &HostError{Reason: response.ErrorReason, Err: response.UnsupportedTarget}
 		}
 		if len(response.MissingSemanticProbes) != 0 {
-			return response.CampaignResult, &deterministicio.MissingSemanticProbesError{Probes: append([]string(nil), response.MissingSemanticProbes...)}
+			return response.CampaignResult, &record.MissingSemanticProbesError{Probes: append([]string(nil), response.MissingSemanticProbes...)}
 		}
 		return response.CampaignResult, &HostError{Reason: response.ErrorReason, Err: errors.New(response.ErrorDetail)}
 	}
@@ -278,7 +278,7 @@ func CoordinatorMain(input io.Reader, output io.Writer) error {
 			copied := *unsupported
 			response.UnsupportedTarget = &copied
 		}
-		var missing *deterministicio.MissingSemanticProbesError
+		var missing *record.MissingSemanticProbesError
 		if errors.As(runErr, &missing) {
 			response.MissingSemanticProbes = append([]string(nil), missing.Probes...)
 		}

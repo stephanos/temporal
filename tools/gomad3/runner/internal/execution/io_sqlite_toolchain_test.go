@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"go.temporal.io/server/tools/gomad3/deterministicio"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
 	"go.temporal.io/server/tools/gomad3/target"
 )
@@ -29,8 +29,8 @@ func TestProfileSQLiteUsesVirtualTimeAndEntropy(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	fixtureRoot := filepath.Join(moduleRoot, "internal", "gomadtool", "conformance", "testdata", "sqlite_adapter")
-	profile := deterministicio.Default()
+	fixtureRoot := filepath.Join(moduleRoot, "backends", "native", "conformance", "testdata", "sqlite_adapter")
+	profile := transcript.Default()
 	spec, adapters, err := profile.PrepareBuildAdapters(target.Spec{
 		Kind: target.KindGoRun, Source: ".", WorkingDir: fixtureRoot,
 		PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot,

@@ -6,9 +6,9 @@ import (
 	"path/filepath"
 	"slices"
 
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/deterministicio"
-	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
 	guide "go.temporal.io/server/tools/gomad3/runner/internal/corpus"
@@ -27,7 +27,7 @@ type guidanceCampaign struct {
 
 func openGuidance(ctx context.Context, config campaignRequest, prepared target.Prepared, baseEnvironment []record.Environment, runID string) (*guidanceCampaign, error) {
 	targetRecord := prepared.RecordTarget()
-	boundaryVersion, boundarySHA256 := deterministicio.BoundaryManifestIdentity()
+	boundaryVersion, boundarySHA256 := transcript.BoundaryManifestIdentity()
 	identity, err := guide.IdentityFor(targetRecord, prepared.RecordToolchain(), boundaryVersion, record.SHA256(boundarySHA256), environmentForSeed(baseEnvironment, 0))
 	if coverageHasChoice(config.Coverage) {
 		implementation, identityErr := choice.ImplementationIdentity(prepared.BuildKey)
@@ -70,8 +70,8 @@ func (campaign *guidanceCampaign) MergeRun(
 	completion runCompletion,
 	outcome execution.Classification,
 	worldBundle execution.Bundle,
-	mountArtifact *readonlymount.CapturedInputs,
-	coverage deterministicio.SemanticCoverage,
+	mountArtifact *captured.CapturedInputs,
+	coverage record.SemanticCoverage,
 ) (bool, error) {
 	if !completion.result.IOTranscript.Complete || outcome.ReplayMode == record.ReplayNone {
 		return false, nil

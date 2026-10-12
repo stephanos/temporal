@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/deterministicio"
-	"go.temporal.io/server/tools/gomad3/internal/preparation"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	"go.temporal.io/server/tools/gomad3/backends/native/preparation"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/target"
 )
@@ -21,7 +21,7 @@ type preparationEquivalenceSnapshot struct {
 }
 
 func legacyPreparationForEquivalence(ctx context.Context, spec target.Spec, environment []string) (target.Prepared, error) {
-	profile := deterministicio.Default()
+	profile := transcript.Default()
 	preparedSpec, adapters, err := profile.PrepareTargetBuildAdapters(ctx, spec)
 	if err != nil {
 		return target.Prepared{}, err
@@ -91,7 +91,7 @@ func TestLegacyAdapterPreparationFixedInputSnapshot(t *testing.T) {
 	if path == "" {
 		t.Skip("fixed-input adapter snapshot requested separately")
 	}
-	fixture, err := filepath.Abs(filepath.Join("..", "deterministicio", "testdata", "sprig"))
+	fixture, err := filepath.Abs(filepath.Join("..", "backends/native/transcript", "testdata", "sprig"))
 	if err != nil {
 		t.Fatal(err)
 	}

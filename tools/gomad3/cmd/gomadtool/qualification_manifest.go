@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 
-	"go.temporal.io/server/tools/gomad3/qualification/set/manifestgen"
+	"go.temporal.io/server/tools/gomad3/backends/native/qualification/set/manifestgen"
 )
 
 func runQualificationManifestGenerate(arguments []string, stderr io.Writer) int {

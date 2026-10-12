@@ -15,9 +15,9 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/deterministicio"
-	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
 	"go.temporal.io/server/tools/gomad3/internal/hostexec"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/backend"
@@ -143,7 +143,7 @@ type CampaignSpec struct {
 	Diagnostics          bool
 	ChoiceTraceLimit     uint64
 	// IOTranscriptLimit bounds the I/O transcript; zero means
-	// deterministicio.DefaultTranscriptBytes.
+	// record.DefaultIOTranscriptBytes.
 	IOTranscriptLimit uint64
 	// ClockTick is the virtual-clock tick policy; empty means record.ClockTickStrict.
 	ClockTick                 string
@@ -157,7 +157,7 @@ type CampaignSpec struct {
 	Artifacts                 string
 	Environment               []string
 	IOROMounts                []string
-	IOROMountLimits           readonlymount.Limits
+	IOROMountLimits           captured.Limits
 	Target                    target.Spec
 	SupervisorCommand         []string
 	CoordinatorCommand        []string
@@ -198,7 +198,7 @@ type CampaignResult struct {
 	RetainedSuccesses     uint64
 	RetainedSuccessBytes  uint64
 	SuccessArtifacts      []string
-	SemanticCoverage      *deterministicio.SemanticCoverage
+	SemanticCoverage      *record.SemanticCoverage
 	ExecutionEvidence     *ExecutionEvidence `json:"execution_evidence"`
 	ExecutionElapsedNanos uint64
 	Diagnostics           *DiagnosticTraceReference `json:"diagnostics,omitempty"`
@@ -566,14 +566,14 @@ func validateCampaignRequest(config campaignRequest) (SeedSelection, []record.En
 		if config.Target.WorkingDir == "" {
 			return SeedSelection{}, nil, errors.New("read-only mounts require a target working directory")
 		}
-		if _, err := readonlymount.ParseMappings(config.IOROMounts, config.Target.WorkingDir); err != nil {
+		if _, err := captured.ParseMappings(config.IOROMounts, config.Target.WorkingDir); err != nil {
 			return SeedSelection{}, nil, err
 		}
 		limits := config.IOROMountLimits
-		if limits == (readonlymount.Limits{}) {
-			limits = readonlymount.DefaultLimits()
+		if limits == (captured.Limits{}) {
+			limits = captured.DefaultLimits()
 		}
-		if _, err := readonlymount.Prepare(nil, limits); err != nil {
+		if _, err := captured.Prepare(nil, limits); err != nil {
 			return SeedSelection{}, nil, err
 		}
 	}
@@ -581,7 +581,7 @@ func validateCampaignRequest(config campaignRequest) (SeedSelection, []record.En
 	if err != nil {
 		return SeedSelection{}, nil, err
 	}
-	ioProfile := deterministicio.Deterministic
+	ioProfile := transcript.Deterministic
 	if config.Target.Backend != "" {
 		coverage := NormalizeCoverage(config.Coverage, false)
 		if config.Backend == nil || config.Preparer != nil || config.strategy() != StrategySeed && config.strategy() != StrategyChoiceExploration || coverage != CoverageNone && coverage != CoverageChoice || config.Guide || len(config.IOROMounts) != 0 || config.ClockTick != "" {
@@ -592,7 +592,7 @@ func validateCampaignRequest(config campaignRequest) (SeedSelection, []record.En
 		return SeedSelection{}, nil, errors.New("backend provider requires an explicit backend selector")
 	}
 	environment = append(environment, record.Environment{Name: "GOMAD3_IO_PROFILE", Value: ioProfile})
-	if err := deterministicio.ValidateTranscriptLimit(ioTranscriptLimit(config)); err != nil {
+	if err := record.ValidateIOTranscriptLimit(ioTranscriptLimit(config)); err != nil {
 		return SeedSelection{}, nil, err
 	}
 	switch config.ClockTick {
@@ -656,7 +656,7 @@ func parseEnvironment(entries []string) ([]record.Environment, error) {
 	return environment, nil
 }
 
-func runSeed(ctx context.Context, config campaignRequest, executor executionRunner, prepared target.Prepared, baseEnvironment []record.Environment, profile deterministicio.Spec, readOnlyMounts []readonlymount.Mapping, journal runJournalFactory, job runJob, readiness *runReadiness, completions chan<- runCompletion) {
+func runSeed(ctx context.Context, config campaignRequest, executor executionRunner, prepared target.Prepared, baseEnvironment []record.Environment, profile transcript.Spec, readOnlyMounts []captured.Mapping, journal runJournalFactory, job runJob, readiness *runReadiness, completions chan<- runCompletion) {
 	defer readiness.signal()
 	startedAt := time.Now().UTC()
 	run, err := journal.BeginExecution(job.ordinal, job.seed)
@@ -712,7 +712,7 @@ func runSeed(ctx context.Context, config campaignRequest, executor executionRunn
 				Config:     append([]byte(nil), ioConfig...),
 				Transcript: &execution.IOTranscriptCapability{Limit: ioTranscriptLimit(config)},
 				ReadOnlyMount: &execution.ReadOnlyMountCapability{
-					Mappings: append([]readonlymount.Mapping(nil), readOnlyMounts...), Limits: config.IOROMountLimits,
+					Mappings: append([]captured.Mapping(nil), readOnlyMounts...), Limits: config.IOROMountLimits,
 				},
 			},
 			StdoutHead: stdoutHead, StderrHead: stderrHead,
@@ -866,8 +866,8 @@ func environmentStrings(environment []record.Environment) []string {
 	return result
 }
 
-func manifestForRun(config campaignRequest, prepared target.Prepared, baseEnvironment []record.Environment, completion runCompletion, outcome execution.Classification, runID string, recordedWorld record.World, mountArtifact *readonlymount.CapturedInputs) (record.ExecutionRecord, error) {
-	profile := deterministicio.Default()
+func manifestForRun(config campaignRequest, prepared target.Prepared, baseEnvironment []record.Environment, completion runCompletion, outcome execution.Classification, runID string, recordedWorld record.World, mountArtifact *captured.CapturedInputs) (record.ExecutionRecord, error) {
+	profile := transcript.Default()
 	recordedProfile := recordedIOProfile(profile)
 	if prepared.Backend != nil {
 		recordedProfile = record.BackendIOProfile(*prepared.Backend)
@@ -953,18 +953,18 @@ func manifestForRun(config campaignRequest, prepared target.Prepared, baseEnviro
 	return manifest, nil
 }
 
-func mountArtifactForRun(mappings []readonlymount.Mapping, limits readonlymount.Limits, snapshot readonlymount.Snapshot) (*readonlymount.CapturedInputs, error) {
+func mountArtifactForRun(mappings []captured.Mapping, limits captured.Limits, snapshot captured.Snapshot) (*captured.CapturedInputs, error) {
 	if len(mappings) == 0 {
 		return nil, nil
 	}
-	encoded, err := readonlymount.EncodeCapturedInputs(mappings, limits, snapshot)
+	encoded, err := captured.EncodeCapturedInputs(mappings, limits, snapshot)
 	if err != nil {
 		return nil, err
 	}
 	return &encoded, nil
 }
 
-func setRunTranscript(run *campaign.ExecutionRecord, transcript deterministicio.Transcript) {
+func setRunTranscript(run *campaign.ExecutionRecord, transcript transcript.Transcript) {
 	if !transcript.Complete {
 		return
 	}
@@ -1179,10 +1179,10 @@ func newRunID() (string, error) {
 }
 
 // ioTranscriptLimit is the campaign's I/O transcript bound, defaulting to
-// deterministicio.DefaultTranscriptBytes.
+// record.DefaultIOTranscriptBytes.
 func ioTranscriptLimit(config campaignRequest) uint64 {
 	if config.IOTranscriptLimit == 0 {
-		return deterministicio.DefaultTranscriptBytes
+		return record.DefaultIOTranscriptBytes
 	}
 	return config.IOTranscriptLimit
 }

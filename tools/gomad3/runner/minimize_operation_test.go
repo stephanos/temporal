@@ -15,7 +15,7 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/artifact"
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/deterministicio"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
@@ -511,7 +511,7 @@ func (executor *minimizationExecutor) Run(_ context.Context, request execution.S
 	return execution.Result{
 		Termination: execution.TerminationExit, ExitCode: exitCode, GroupGone: true,
 		Stdout: replayOutput("recorded stdout"), Stderr: replayOutput("recorded stderr"),
-		IOTranscript: deterministicio.Transcript{SHA256: empty, Complete: true}, ChoiceTrace: trace,
+		IOTranscript: transcript.Transcript{SHA256: empty, Complete: true}, ChoiceTrace: trace,
 		SimulationRecords: [][]byte{record},
 	}, nil
 }

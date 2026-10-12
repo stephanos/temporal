@@ -12,8 +12,8 @@ import (
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
-	"go.temporal.io/server/tools/gomad3/deterministicio"
-	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
 	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
@@ -62,7 +62,7 @@ func TestDecideSuccessRetentionJudgesNoveltyTranscriptAndBounds(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			config := CampaignSpec{KeepSuccesses: test.policy, SuccessArtifactLimit: 3, SuccessBytesLimit: 100}
-			assessed := completedExecution{coverage: deterministicio.SemanticCoverage{Probes: test.probes}, choiceFeatures: test.choices}
+			assessed := completedExecution{coverage: record.SemanticCoverage{Probes: test.probes}, choiceFeatures: test.choices}
 			seenProbes, seenChoices := map[string]struct{}{"seen": {}, "seen probe": {}}, map[string]struct{}{"seen": {}, "seen choice": {}}
 			decision, hostError := decideSuccessRetention(campaignRequestFromSpec(config), assessed, !test.incomplete, seenProbes, seenChoices, test.retained, test.retainedBytes)
 			failure := ""
@@ -225,9 +225,9 @@ func TestSuccessPublicationFailureSeparatesCapacityFromPublication(t *testing.T)
 
 func TestExecutionArtifactInputCarriesTheCapturedEvidence(t *testing.T) {
 	manifest := record.ExecutionRecord{CampaignID: "campaign", Seed: 7}
-	mounts := &readonlymount.CapturedInputs{}
+	mounts := &captured.CapturedInputs{}
 	result := processResult(0, "stdout", "stderr")
-	result.IOTranscript = deterministicio.Transcript{Bytes: []byte("transcript")}
+	result.IOTranscript = transcript.Transcript{Bytes: []byte("transcript")}
 	result.ChoiceTrace.Trace.Bytes = []byte("choices")
 	result.SimulationRecords = [][]byte{[]byte("simulation record")}
 	worldBundle := noneWorldBundle()

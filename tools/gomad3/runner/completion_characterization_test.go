@@ -16,8 +16,8 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/deterministicio"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
@@ -200,7 +200,7 @@ func TestCompletionFaultsKeepReasonPrecedenceAndEvidence(t *testing.T) {
 	seedMismatch := func(result *execution.Result) { result.WorldRecord = completionWorldRecord(t, 8) }
 	malformedCoverage := func(result *execution.Result) {
 		payload := []byte("not an I/O transcript")
-		result.IOTranscript = deterministicio.Transcript{Bytes: payload, SHA256: sha256.Sum256(payload), Records: 1, Complete: true}
+		result.IOTranscript = transcript.Transcript{Bytes: payload, SHA256: sha256.Sum256(payload), Records: 1, Complete: true}
 	}
 	// The digest and record count are consistent, so supervision accepts the
 	// trace and only the coverage projection decodes the payload.
@@ -418,7 +418,7 @@ func TestCompletionProjectsWorldCoverageAndChoicesForEveryStrategy(t *testing.T)
 	type projection struct {
 		Outcome  OutcomeEvidence
 		World    record.World
-		Coverage deterministicio.SemanticCoverage
+		Coverage record.SemanticCoverage
 		Features choice.FeatureProjection
 		Journal  []string
 		Probes   []string
@@ -462,7 +462,7 @@ func TestCompletionProjectsWorldCoverageAndChoicesForEveryStrategy(t *testing.T)
 			if err != nil {
 				t.Fatal(err)
 			}
-			coverage, err := deterministicio.SummarizeSemanticProbes([]string{completionProbe})
+			coverage, err := transcript.SummarizeSemanticProbes([]string{completionProbe})
 			if err != nil {
 				t.Fatal(err)
 			}

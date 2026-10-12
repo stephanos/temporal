@@ -13,8 +13,8 @@ import (
 	"sync"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/deterministicio"
-	"go.temporal.io/server/tools/gomad3/internal/preparation"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	"go.temporal.io/server/tools/gomad3/backends/native/preparation"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
 	"go.temporal.io/server/tools/gomad3/target"
@@ -105,8 +105,8 @@ func TestPreparationDependenciesForwardRealFixtureInputs(t *testing.T) {
 		}
 		return prepared, nil
 	}
-	dependencies.bootstrap = func(profile deterministicio.Spec, received target.Prepared, runner string, seed uint64) ([]byte, error) {
-		if profile != deterministicio.Default() || !reflect.DeepEqual(received, prepared) || runner != config.RunnerBuild {
+	dependencies.bootstrap = func(profile transcript.Spec, received target.Prepared, runner string, seed uint64) ([]byte, error) {
+		if profile != transcript.Default() || !reflect.DeepEqual(received, prepared) || runner != config.RunnerBuild {
 			t.Errorf("bootstrap inputs = %#v, %#v, %q", profile, received, runner)
 		}
 		mu.Lock()
@@ -138,7 +138,7 @@ func TestPreparationDependenciesOperationErrorsRemainUnchanged(t *testing.T) {
 	defer cancel()
 	request := preparation.Request{Target: target.Spec{Kind: target.KindGoRun, Source: "fixture", PreparationRoot: t.TempDir()}, Environment: []string{"MODE=fixture"}}
 	prepared := target.Prepared{Path: "fixture result", SHA256: "fixture digest", Size: 17}
-	profile := deterministicio.Default()
+	profile := transcript.Default()
 	marker := []byte(scriptedBootstrapMarker)
 	dependencies := executionDependencies{
 		prepare: func(received context.Context, receivedRequest preparation.Request) (target.Prepared, error) {
@@ -147,7 +147,7 @@ func TestPreparationDependenciesOperationErrorsRemainUnchanged(t *testing.T) {
 			}
 			return prepared, primary
 		},
-		bootstrap: func(received deterministicio.Spec, receivedPrepared target.Prepared, runner string, seed uint64) ([]byte, error) {
+		bootstrap: func(received transcript.Spec, receivedPrepared target.Prepared, runner string, seed uint64) ([]byte, error) {
 			if received != profile || !reflect.DeepEqual(receivedPrepared, prepared) || runner != "fixture runner" || seed != 42 {
 				t.Fatalf("bootstrap arguments = %#v, %#v, %q, %d", received, receivedPrepared, runner, seed)
 			}
@@ -174,7 +174,7 @@ func TestPreparationDependenciesFailuresStopAtOriginalStages(t *testing.T) {
 			if operation == "prepare" {
 				dependencies.prepare = func(context.Context, preparation.Request) (target.Prepared, error) { return target.Prepared{}, primary }
 			}
-			dependencies.bootstrap = func(_ deterministicio.Spec, prepared target.Prepared, _ string, _ uint64) ([]byte, error) {
+			dependencies.bootstrap = func(_ transcript.Spec, prepared target.Prepared, _ string, _ uint64) ([]byte, error) {
 				bootstrapCalls++
 				partial := filepath.Join(filepath.Dir(filepath.Dir(prepared.Path)), ".partial", "00000000000000000000-7")
 				for _, name := range []string{"stdout.head", "stderr.head"} {
@@ -203,7 +203,7 @@ func TestPreparationDependenciesFailuresStopAtOriginalStages(t *testing.T) {
 }
 
 func TestPreparationDependenciesKeepRealDefaultsAndBootstrapGuard(t *testing.T) {
-	profile := deterministicio.Default()
+	profile := transcript.Default()
 	_, guard := profile.BootstrapFrame(target.Prepared{}, "invalid", 0)
 	if guard == nil || !strings.HasPrefix(guard.Error(), "deterministic I/O requires one of ") {
 		t.Skip("unsupported-host refusal control requires an unqualified host")

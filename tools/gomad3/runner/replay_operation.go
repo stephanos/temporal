@@ -15,8 +15,8 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/artifact"
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/deterministicio"
-	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/backend"
@@ -96,7 +96,7 @@ func replayWith(ctx context.Context, config ReplaySpec, dependencies executionDe
 	if err := target.VerifyCompatibility(manifest.Target.Compatibility); err != nil {
 		return ReplayResult{}, &ReplayPreflightError{Err: fmt.Errorf("verify replay compatibility: %w", err)}
 	}
-	if err := deterministicio.Default().VerifyAdapters(replayAdapters(manifest.Target.Adapters)); err != nil {
+	if err := transcript.Default().VerifyAdapters(replayAdapters(manifest.Target.Adapters)); err != nil {
 		return ReplayResult{}, &ReplayPreflightError{Err: fmt.Errorf("verify replay adapters: %w", err)}
 	}
 	result = ReplayResult{Artifact: opened.Snapshot(), Verified: true, Diagnostic: manifest.ReplayMode == record.ReplayDiagnostic, ChoiceReplayStatus: ChoiceReplayNone}
@@ -180,10 +180,10 @@ func replayWith(ctx context.Context, config ReplaySpec, dependencies executionDe
 	var ioConfig []byte
 	var ioTranscriptLimit uint64
 	var expectedIOTranscript []byte
-	var readOnlyMounts []readonlymount.Mapping
-	var readOnlyMountLimits readonlymount.Limits
-	readOnlyMountSnapshot := &readonlymount.Snapshot{}
-	profile := deterministicio.Default()
+	var readOnlyMounts []captured.Mapping
+	var readOnlyMountLimits captured.Limits
+	readOnlyMountSnapshot := &captured.Snapshot{}
+	profile := transcript.Default()
 	ioConfig, err = profile.BootstrapFrame(target.Prepared{SHA256: string(manifest.Target.SHA256), Argv: append([]string(nil), manifest.Target.Argv...)}, manifest.Runner.RunnerBuild, uint64(manifest.Seed))
 	if err != nil {
 		return ReplayResult{}, err
@@ -197,14 +197,14 @@ func replayWith(ctx context.Context, config ReplaySpec, dependencies executionDe
 			return ReplayResult{}, errors.New("diagnostic replay without an I/O transcript cannot replay recorded choices")
 		}
 	}
-	readOnlyMountLimits = readonlymount.DefaultLimits()
+	readOnlyMountLimits = captured.DefaultLimits()
 	if mounts := manifest.IOProfile.ReadOnlyMounts; mounts != nil {
 		descriptor, readErr := opened.ReadPayload(mounts.File, uint64(mounts.Bytes))
 		if readErr != nil {
 			return ReplayResult{}, fmt.Errorf("read read-only mount descriptor: %w", readErr)
 		}
-		var snapshot readonlymount.Snapshot
-		readOnlyMounts, readOnlyMountLimits, snapshot, readErr = readonlymount.DecodeCapturedInputs(replayCapturedInputs(*mounts), descriptor, func(name string, maximum uint64) ([]byte, error) {
+		var snapshot captured.Snapshot
+		readOnlyMounts, readOnlyMountLimits, snapshot, readErr = captured.DecodeCapturedInputs(replayCapturedInputs(*mounts), descriptor, func(name string, maximum uint64) ([]byte, error) {
 			return opened.ReadPayload(name, maximum)
 		})
 		if readErr != nil {
@@ -455,7 +455,7 @@ func preflight(ctx context.Context, config ReplaySpec) (_ *artifact.Opened, retE
 		}
 		return opened, nil
 	}
-	profile := deterministicio.Default()
+	profile := transcript.Default()
 	if !profile.MatchesRecorded(manifest.IOProfile.Name, string(manifest.IOProfile.ImplementationSHA256), string(manifest.IOProfile.InventorySHA256), manifest.IOProfile.Inventory) {
 		return nil, errors.New("artifact I/O profile identity does not match this Runner")
 	}
@@ -467,7 +467,7 @@ func preflight(ctx context.Context, config ReplaySpec) (_ *artifact.Opened, retE
 		if readErr != nil {
 			return nil, fmt.Errorf("read read-only mount descriptor: %w", readErr)
 		}
-		if _, _, _, readErr = readonlymount.DecodeCapturedInputs(replayCapturedInputs(*mounts), descriptor, func(name string, maximum uint64) ([]byte, error) {
+		if _, _, _, readErr = captured.DecodeCapturedInputs(replayCapturedInputs(*mounts), descriptor, func(name string, maximum uint64) ([]byte, error) {
 			return opened.ReadPayload(name, maximum)
 		}); readErr != nil {
 			return nil, fmt.Errorf("validate read-only mount artifact: %w", readErr)
@@ -557,19 +557,19 @@ func verifyReplayCapabilityManifest(opened *artifact.Opened, targetFile *os.File
 	}
 }
 
-func replayAdapters(adapters []record.TargetAdapter) []deterministicio.Adapter {
-	result := make([]deterministicio.Adapter, len(adapters))
+func replayAdapters(adapters []record.TargetAdapter) []transcript.Adapter {
+	result := make([]transcript.Adapter, len(adapters))
 	for index, adapter := range adapters {
-		result[index] = deterministicio.Adapter{Module: adapter.Module, Version: adapter.Version, Sum: adapter.Sum}
+		result[index] = transcript.Adapter{Module: adapter.Module, Version: adapter.Version, Sum: adapter.Sum}
 	}
 	return result
 }
 
-func replayCapturedInputs(manifest record.ReadOnlyMounts) readonlymount.CapturedInputsManifest {
-	return readonlymount.CapturedInputsManifest{
+func replayCapturedInputs(manifest record.ReadOnlyMounts) captured.CapturedInputsManifest {
+	return captured.CapturedInputsManifest{
 		Schema: manifest.Schema, File: manifest.File, SHA256: manifest.SHA256, Bytes: uint64(manifest.Bytes),
 		Entries: uint64(manifest.Entries), NotExist: uint64(manifest.NotExist), TotalBytes: uint64(manifest.TotalBytes), Mappings: append([]string(nil), manifest.Mappings...),
-		Limits: readonlymount.CapturedInputLimits{
+		Limits: captured.CapturedInputLimits{
 			PathBytes: uint64(manifest.Limits.PathBytes), Requests: uint64(manifest.Limits.Requests), Files: uint64(manifest.Limits.Files),
 			DirectoryEntries: uint64(manifest.Limits.DirectoryEntries), SingleFileBytes: uint64(manifest.Limits.SingleFileBytes), TotalBytes: uint64(manifest.Limits.TotalBytes),
 		},

@@ -3,7 +3,7 @@ package qualification
 import (
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/deterministicio/volume"
+	"go.temporal.io/server/tools/gomad3/volume"
 	"go.temporal.io/server/tools/gomad3sim"
 	"go.temporal.io/server/tools/gomad_wasm/simulation"
 	"go.temporal.io/server/tools/gomad_wasm/wasi"

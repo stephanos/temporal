@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"go.temporal.io/server/tools/gomad3/deterministicio"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
 	"go.temporal.io/server/tools/gomad3/target"
 )
@@ -17,7 +17,7 @@ func TestModerncLibcUsesDeterministicFilesystem(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	workingDirectory, err := filepath.Abs(filepath.Join("..", "..", "..", "internal", "gomadtool", "conformance", "testdata", "libc_adapter"))
+	workingDirectory, err := filepath.Abs(filepath.Join("..", "..", "..", "backends", "native", "conformance", "testdata", "libc_adapter"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -26,7 +26,7 @@ func TestModerncLibcUsesDeterministicFilesystem(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	profile := deterministicio.Default()
+	profile := transcript.Default()
 	spec, adapters, err := profile.PrepareBuildAdapters(target.Spec{
 		Kind: target.KindGoRun, Source: ".", WorkingDir: workingDirectory,
 		PreparationRoot: preparationRoot, ToolchainRoot: toolchainRoot,

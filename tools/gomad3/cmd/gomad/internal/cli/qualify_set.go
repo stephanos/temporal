@@ -8,7 +8,7 @@ import (
 	"io"
 
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
-	qualificationset "go.temporal.io/server/tools/gomad3/qualification/set"
+	qualificationset "go.temporal.io/server/tools/gomad3/backends/native/qualification/set"
 )
 
 type qualifySetDependencies struct {

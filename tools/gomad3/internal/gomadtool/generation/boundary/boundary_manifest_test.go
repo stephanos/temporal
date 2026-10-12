@@ -22,8 +22,8 @@ func TestGenerateWritesAndChecksAllArtifacts(t *testing.T) {
 	for _, relative := range []string{
 		"toolchain/runtime/overlay/src/cmd/compile/internal/gomadintercept/spec_go126.go",
 		"expected-intercepts-go1.26.4.txt",
-		"deterministicio/boundary/go1.26.4-darwin-arm64.md",
-		"deterministicio/boundary_generated.go",
+		"backends/native/transcript/boundary/go1.26.4-darwin-arm64.md",
+		"backends/native/transcript/boundary_generated.go",
 	} {
 		contents, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(relative)))
 		if err != nil {
@@ -40,7 +40,7 @@ func TestGenerateWritesAndChecksAllArtifacts(t *testing.T) {
 				t.Fatalf("generated compiler spec duplicates the platform guard that cmd/internal/gomadcap generates")
 			}
 		}
-		if relative == "deterministicio/boundary_generated.go" && !strings.Contains(string(contents), "generatedBoundaryProbes") {
+		if relative == "backends/native/transcript/boundary_generated.go" && !strings.Contains(string(contents), "generatedBoundaryProbes") {
 			t.Fatalf("generated host identity has no semantic probe inventory")
 		}
 	}
@@ -114,7 +114,7 @@ func TestLoadRejectsIncompleteGeneratedHookSemantics(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			root := t.TempDir()
 			writeTestManifest(t, root, manifest)
-			if _, err := load(filepath.Join(root, "deterministicio", "boundary", "manifest.json")); err == nil {
+			if _, err := load(filepath.Join(root, "backends", "native", "transcript", "boundary", "manifest.json")); err == nil {
 				t.Fatal("load() succeeded")
 			}
 		})
@@ -246,7 +246,7 @@ func TestLoadRejectsInvalidManifest(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			root := t.TempDir()
 			writeTestManifest(t, root, contents)
-			if _, err := load(filepath.Join(root, "deterministicio", "boundary", "manifest.json")); err == nil {
+			if _, err := load(filepath.Join(root, "backends", "native", "transcript", "boundary", "manifest.json")); err == nil {
 				t.Fatal("load() succeeded")
 			}
 		})
@@ -267,7 +267,7 @@ func TestLoadRejectsUnresolvedAndCyclicDelegates(t *testing.T) {
 			entry := strings.Replace(delegate, `"delegated_boundary": ""`, `"delegated_boundary": "`+boundary+`"`, 1)
 			contents := strings.Replace(validManifest, validInterceptions, `"intercepts": [`+validEntry+`,`+entry+`]`, 1)
 			writeTestManifest(t, root, contents)
-			if _, err := load(filepath.Join(root, "deterministicio", "boundary", "manifest.json")); err == nil {
+			if _, err := load(filepath.Join(root, "backends", "native", "transcript", "boundary", "manifest.json")); err == nil {
 				t.Fatal("load() succeeded")
 			}
 		})
@@ -277,7 +277,7 @@ func TestLoadRejectsUnresolvedAndCyclicDelegates(t *testing.T) {
 func TestValidateCandidateCoverageRequiresExplicitClassification(t *testing.T) {
 	root := t.TempDir()
 	writeTestManifest(t, root, validManifest)
-	definition, err := load(filepath.Join(root, "deterministicio", "boundary", "manifest.json"))
+	definition, err := load(filepath.Join(root, "backends", "native", "transcript", "boundary", "manifest.json"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -302,7 +302,7 @@ func TestValidateCandidateCoverageRequiresExplicitClassification(t *testing.T) {
 func TestValidateDelegateReachabilityRejectsBypassedBoundary(t *testing.T) {
 	root := t.TempDir()
 	writeTestManifest(t, root, validManifest)
-	definition, err := load(filepath.Join(root, "deterministicio", "boundary", "manifest.json"))
+	definition, err := load(filepath.Join(root, "backends", "native", "transcript", "boundary", "manifest.json"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -372,7 +372,7 @@ func hostQualifiedManifest(contents string) string {
 
 func writeTestManifest(t *testing.T, root, contents string) {
 	t.Helper()
-	path := filepath.Join(root, "deterministicio", "boundary", "manifest.json")
+	path := filepath.Join(root, "backends", "native", "transcript", "boundary", "manifest.json")
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -383,7 +383,7 @@ func writeTestManifest(t *testing.T, root, contents string) {
 
 func writeCompilerTestManifest(t *testing.T, root, contents string) {
 	t.Helper()
-	path := filepath.Join(root, "deterministicio", "boundary", "compiler-tests.json")
+	path := filepath.Join(root, "backends", "native", "transcript", "boundary", "compiler-tests.json")
 	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		t.Fatal(err)
 	}
@@ -450,14 +450,14 @@ func TestGenerateRendersPlatformOverridesForTheCompilerAndHostIdentity(t *testin
 	if !strings.Contains(string(spec), `PlatformDeclarationSHA256: map[string]string{"linux/amd64": "sha256:1111111111111111111111111111111111111111111111111111111111111111"}`) {
 		t.Fatalf("generated compiler spec lacks the platform override:\n%s", spec)
 	}
-	identity, err := os.ReadFile(filepath.Join(root, filepath.FromSlash("deterministicio/boundary_generated.go")))
+	identity, err := os.ReadFile(filepath.Join(root, filepath.FromSlash("backends/native/transcript/boundary_generated.go")))
 	if err != nil {
 		t.Fatal(err)
 	}
 	if !strings.Contains(string(identity), `generatedBoundaryPlatforms = []string{"darwin/arm64", "linux/amd64"}`) {
 		t.Fatalf("generated host identity lacks the platform list:\n%s", identity)
 	}
-	if _, err := os.Stat(filepath.Join(root, filepath.FromSlash("deterministicio/boundary/go1.26.4-darwin-arm64.md"))); err != nil {
+	if _, err := os.Stat(filepath.Join(root, filepath.FromSlash("backends/native/transcript/boundary/go1.26.4-darwin-arm64.md"))); err != nil {
 		t.Fatal(err)
 	}
 	for name, contents := range map[string]string{
@@ -469,7 +469,7 @@ func TestGenerateRendersPlatformOverridesForTheCompilerAndHostIdentity(t *testin
 		t.Run(name, func(t *testing.T) {
 			root := t.TempDir()
 			writeTestManifest(t, root, contents)
-			if _, err := load(filepath.Join(root, "deterministicio", "boundary", "manifest.json")); err == nil {
+			if _, err := load(filepath.Join(root, "backends", "native", "transcript", "boundary", "manifest.json")); err == nil {
 				t.Fatal("load() accepted an invalid platform override")
 			}
 		})

@@ -25,8 +25,8 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/deterministicio"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/internal/hostexec"
 	"go.temporal.io/server/tools/gomad3/record"
@@ -193,7 +193,7 @@ func TestRunFailsWhenRequiredSemanticProbeIsMissing(t *testing.T) {
 	config.RequiredSemanticProbes = []string{"stdlib.os.openfile"}
 	configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
 	_, err := exploreWith(context.Background(), config, configDependencies)
-	var missing *deterministicio.MissingSemanticProbesError
+	var missing *record.MissingSemanticProbesError
 	if !errors.As(err, &missing) || len(missing.Probes) != 1 || missing.Probes[0] != "stdlib.os.openfile" {
 		t.Fatalf("exploreWith() error = %v", err)
 	}
@@ -1204,7 +1204,7 @@ func TestRunChoiceExplorationFindsPinnedOutcomesWithinSeedSamplingBudget(t *test
 	if err != nil {
 		t.Fatal(err)
 	}
-	testdata, err := filepath.Abs(filepath.Join("..", "internal", "gomadtool", "conformance", "testdata"))
+	testdata, err := filepath.Abs(filepath.Join("..", "backends", "native", "conformance", "testdata"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1724,7 +1724,7 @@ func TestIsolatedRunnerPreservesCoordinatorResponse(t *testing.T) {
 		{
 			name: "missing semantic probes error", response: "missing-probes", policy: PolicyFirst,
 			check: func(t *testing.T, _ CampaignResult, err error) {
-				var missing *deterministicio.MissingSemanticProbesError
+				var missing *record.MissingSemanticProbesError
 				if !errors.As(err, &missing) || len(missing.Probes) != 1 || missing.Probes[0] != "stdlib.os.openfile" {
 					t.Fatalf("exploreWith() error = %v", err)
 				}
@@ -1827,7 +1827,7 @@ func TestCannedCoordinatorHelper(t *testing.T) {
 			ErrorReason: "target_preparation", ErrorDetail: unsupported.Error(), UnsupportedTarget: unsupported,
 		}
 	case "missing-probes":
-		missing := &deterministicio.MissingSemanticProbesError{Probes: []string{"stdlib.os.openfile"}}
+		missing := &record.MissingSemanticProbesError{Probes: []string{"stdlib.os.openfile"}}
 		response = coordinatorResponse{
 			ErrorReason: "semantic_coverage", ErrorDetail: missing.Error(), MissingSemanticProbes: missing.Probes,
 		}
@@ -1989,7 +1989,7 @@ func newFakePreparer(t *testing.T) *fakePreparer {
 		t.Fatal(err)
 	}
 	digest := sha256.Sum256(data)
-	contract := deterministicio.Default().TargetContract()
+	contract := transcript.Default().TargetContract()
 	return &fakePreparer{prepared: target.Prepared{
 		Path: path, Kind: target.KindGoRun, Source: ".", SHA256: fmt.Sprintf("sha256:%x", digest), Size: uint64(len(data)),
 		Argv: []string{"gomad3-target"}, BuildTags: []string{}, Compatibility: []record.CompatibilityPack{}, BuildInfo: record.BuildInfo{GoVersion: contract.GoVersion, Path: "example.com/target"},
@@ -2538,22 +2538,22 @@ func output(value string) hostexec.Output {
 	return hostexec.Output{Bytes: bytes, FullSHA256: digest, RetainedSHA256: digest, TotalBytes: uint64(len(bytes)), RetainedBytes: uint64(len(bytes))}
 }
 
-func semanticTranscript(t *testing.T, probe string) deterministicio.Transcript {
+func semanticTranscript(t *testing.T, probe string) transcript.Transcript {
 	t.Helper()
 	digest := sha256.Sum256([]byte("gomad3-boundary-probe/v1\x00" + probe))
 	var argument [8]byte
 	binary.BigEndian.PutUint64(argument[:], binary.BigEndian.Uint64(digest[:8])&(1<<63-1))
-	payload, err := deterministicio.EncodeTranscript([]deterministicio.Operation{{
-		Name: "boundary.probe", ArgumentHash: deterministicio.HashArgument(argument[:]),
+	payload, err := transcript.EncodeTranscript([]transcript.Operation{{
+		Name: "boundary.probe", ArgumentHash: transcript.HashArgument(argument[:]),
 	}})
 	if err != nil {
 		t.Fatal(err)
 	}
-	return deterministicio.Transcript{Bytes: payload, SHA256: sha256.Sum256(payload), Records: 1, Complete: true}
+	return transcript.Transcript{Bytes: payload, SHA256: sha256.Sum256(payload), Records: 1, Complete: true}
 }
 
-func completeEmptyTranscript() deterministicio.Transcript {
-	return deterministicio.Transcript{Complete: true, SHA256: sha256.Sum256(nil)}
+func completeEmptyTranscript() transcript.Transcript {
+	return transcript.Transcript{Complete: true, SHA256: sha256.Sum256(nil)}
 }
 
 func completeChoiceTrace(t *testing.T, buildKey string, limit uint64, records []choice.Record) execution.ChoiceTrace {

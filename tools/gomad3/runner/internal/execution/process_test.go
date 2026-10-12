@@ -22,8 +22,8 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/deterministicio"
-	romount "go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	romount "go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/internal/hostexec"
 	"go.temporal.io/server/tools/gomad3/world"
 	worldprocess "go.temporal.io/server/tools/gomad3/world/process"
@@ -691,7 +691,7 @@ func TestValidateRequestRejectsExpectedIOTranscriptOutsideReplay(t *testing.T) {
 		World: WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20},
 		IO:    &IOCapability{Config: []byte("profile-frame"), Transcript: &IOTranscriptCapability{Limit: 1 << 20}},
 	}
-	expectedBytes, err := deterministicio.ExpectedTranscriptBytes(1)
+	expectedBytes, err := transcript.ExpectedTranscriptBytes(1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1420,7 +1420,7 @@ func writeEmptyIOTranscriptTerminal() error {
 	if file == nil {
 		return errors.New("terminal descriptor unavailable")
 	}
-	if err := deterministicio.WriteCompletion(file, deterministicio.Transcript{Complete: true, SHA256: sha256.Sum256(nil)}); err != nil {
+	if err := transcript.WriteCompletion(file, transcript.Transcript{Complete: true, SHA256: sha256.Sum256(nil)}); err != nil {
 		return err
 	}
 	return file.Close()

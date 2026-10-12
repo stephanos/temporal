@@ -13,9 +13,9 @@ import (
 	"strings"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/deterministicio"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
-	"go.temporal.io/server/tools/gomad3/upgrade/pinimpact"
+	"go.temporal.io/server/tools/gomad3/backends/native/upgrade/pinimpact"
 	"golang.org/x/mod/module"
 	"golang.org/x/mod/sumdb/dirhash"
 )
@@ -230,7 +230,7 @@ func newPinImpactFixture(t *testing.T) pinImpactFixture {
 		t.Skip("go command is unavailable")
 	}
 	fixture := pinImpactFixture{root: root, goCommand: goCommand}
-	for _, identity := range deterministicio.Default().Adapters() {
+	for _, identity := range transcript.Default().Adapters() {
 		if identity.Module == "github.com/getsentry/sentry-go" {
 			fixture.sentry = pinImpactModule{path: identity.Module, version: identity.Version, sum: identity.Sum}
 		}

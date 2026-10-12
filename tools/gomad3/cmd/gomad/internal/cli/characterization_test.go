@@ -21,7 +21,6 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
-	"go.temporal.io/server/tools/gomad3/deterministicio"
 	"go.temporal.io/server/tools/gomad3/qualification"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner"
@@ -366,7 +365,7 @@ func TestCharacterizeExploreOutputAndStatus(t *testing.T) {
 		{"invalid input error", nil, runner.CampaignResult{}, errors.New("bad request"), commandResult{status: 2, stderr: "gomad: invalid_input: bad request\n"}},
 		{"runner failure", nil, runner.CampaignResult{}, &runner.HostError{Reason: "prepare", Err: errors.New("disk")}, commandResult{status: 3, stderr: "gomad: runner_failure: " + (&runner.HostError{Reason: "prepare", Err: errors.New("disk")}).Error() + "\n"}},
 		{"cancelled", []string{"--json"}, runner.CampaignResult{}, &runner.HostError{Reason: "cancelled"}, commandResult{status: 3, stdout: `{"schema":"gomad3.explore-event/v3","type":"error","classification":"cancelled","message":"gomad3 Runner/host failure: cancelled"}` + "\n"}},
-		{"semantic coverage failure", nil, runner.CampaignResult{}, &deterministicio.MissingSemanticProbesError{Probes: []string{"probe"}}, commandResult{status: 1, stderr: "gomad: semantic_coverage_failure: required semantic probes were not observed: probe\n"}},
+		{"semantic coverage failure", nil, runner.CampaignResult{}, &record.MissingSemanticProbesError{Probes: []string{"probe"}}, commandResult{status: 1, stderr: "gomad: semantic_coverage_failure: required semantic probes were not observed: probe\n"}},
 		{"unsupported target", nil, runner.CampaignResult{}, &target.UnsupportedCapabilityError{ImportPath: "example.com/p", Capability: "network"}, commandResult{status: 2, stderr: "gomad: unsupported_target: " + (&target.UnsupportedCapabilityError{ImportPath: "example.com/p", Capability: "network"}).Error() + "\n"}},
 	} {
 		t.Run(test.name, func(t *testing.T) {
@@ -624,12 +623,12 @@ func characterizationEvidence() runner.ExecutionEvidence {
 		Schema: runner.ExecutionEvidenceSchema, Seed: record.Uint64String(1), RunnerBuild: "sha256:runner",
 		Toolchain:   record.Toolchain{GoVersion: "go1.27.1", BuildKey: "build", TargetGOOS: "darwin", TargetGOARCH: "arm64"},
 		Target:      record.Target{Kind: "go-test", Source: "./pkg", SHA256: "sha256:target", Size: 1, Argv: []string{"gomad3-target"}},
-		IOProfile:   deterministicio.Contract{Name: "deterministic", ImplementationSHA256: "sha256:io", InventorySHA256: "sha256:inventory"},
+		IOProfile:   record.IOContract{Name: "deterministic", ImplementationSHA256: "sha256:io", InventorySHA256: "sha256:inventory"},
 		Environment: []record.Environment{{Name: "GOMADSEED", Value: "1"}, {Name: "TZ", Value: "UTC"}},
 		Outcome:     runner.OutcomeEvidence{Domain: "target_failure", Reason: "exit_status", Termination: "exit"}, GroupGone: true,
 		Stdout: record.Stream{FullSHA256: "sha256:stdout"}, Stderr: record.Stream{FullSHA256: "sha256:stderr"},
 		IOTranscriptSHA256: "sha256:transcript", IOTranscriptRecords: 1, IOTranscriptComplete: true,
-		SemanticCoverage: deterministicio.SemanticCoverage{Schema: deterministicio.SemanticCoverageSchema, Digest: "sha256:coverage"},
+		SemanticCoverage: record.SemanticCoverage{Schema: record.SemanticCoverageSchema, Digest: "sha256:coverage"},
 	}
 }
 

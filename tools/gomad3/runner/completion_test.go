@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/deterministicio"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
 	"go.temporal.io/server/tools/gomad3/world"
@@ -70,11 +70,11 @@ func TestAssessCompletionProjectsCoverageInOrderAndClassifies(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	noCoverage, err := deterministicio.SummarizeSemanticProbes(nil)
+	noCoverage, err := transcript.SummarizeSemanticProbes(nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	probeCoverage, err := deterministicio.SummarizeSemanticProbes([]string{completionProbe})
+	probeCoverage, err := transcript.SummarizeSemanticProbes([]string{completionProbe})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -82,7 +82,7 @@ func TestAssessCompletionProjectsCoverageInOrderAndClassifies(t *testing.T) {
 	wellFormed.IOTranscript = semanticTranscript(t, completionProbe)
 	wellFormed.ChoiceTrace = trace
 	malformed := wellFormed
-	malformed.IOTranscript = deterministicio.Transcript{Bytes: []byte("not an I/O transcript")}
+	malformed.IOTranscript = transcript.Transcript{Bytes: []byte("not an I/O transcript")}
 	malformed.ChoiceTrace.Trace.Bytes = []byte("not a choice trace")
 	malformedChoices := malformed
 	malformedChoices.IOTranscript = wellFormed.IOTranscript

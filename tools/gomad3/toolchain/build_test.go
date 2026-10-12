@@ -226,7 +226,7 @@ func TestBuildRejectsUnguardedFailureInjection(t *testing.T) {
 func writeBuildFixture(t *testing.T) string {
 	t.Helper()
 	root := t.TempDir()
-	for _, directory := range []string{"toolchain/runtime/overlay/src/runtime", "toolchain/version", "deterministicio/boundary"} {
+	for _, directory := range []string{"toolchain/runtime/overlay/src/runtime", "toolchain/version", "backends/native/transcript/boundary"} {
 		if err := os.MkdirAll(filepath.Join(root, filepath.FromSlash(directory)), 0o700); err != nil {
 			t.Fatal(err)
 		}

@@ -13,7 +13,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
+	"go.temporal.io/server/tools/gomad3/captured"
 )
 
 const StockProfile = "gomad3.wasi-stock-exploratory/v1"
@@ -33,7 +33,7 @@ type Config struct {
 	Args, Environment   []string
 	WorkingDirectory    string
 	WritableDirectories []string
-	CapturedInputs      readonlymount.CapturedInputs
+	CapturedInputs      captured.CapturedInputs
 	Stdin               []byte
 	EntropyKey          [32]byte
 	Clock               ClockPolicy
@@ -189,7 +189,7 @@ func NewEnvironment(config Config) (*Environment, error) {
 		Args, Environment       []string
 		WorkingDirectory        string
 		WritableDirectories     []string
-		CapturedManifest        readonlymount.CapturedInputsManifest
+		CapturedManifest        captured.CapturedInputsManifest
 		Stdin                   []byte
 		EntropyKey              [32]byte
 		Clock                   ClockPolicy
@@ -207,7 +207,7 @@ func NewEnvironment(config Config) (*Environment, error) {
 	if err != nil {
 		return nil, err
 	}
-	config.CapturedInputs = readonlymount.CapturedInputs{}
+	config.CapturedInputs = captured.CapturedInputs{}
 	config.Stdin = nil
 	e := &Environment{config: config, namespace: namespace, identity: hex.EncodeToString(digest[:]), nextCall: 1, network: newNetworkState(config.Network)}
 	e.networkV2, err = newNetworkV2State(config.NetworkV2)

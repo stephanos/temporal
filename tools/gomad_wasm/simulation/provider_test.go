@@ -16,7 +16,7 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/deterministicio/volume"
+	"go.temporal.io/server/tools/gomad3/volume"
 	"go.temporal.io/server/tools/gomad3/record"
 	runnerbackend "go.temporal.io/server/tools/gomad3/runner/backend"
 	netmodel "go.temporal.io/server/tools/gomad3/simulation/network"

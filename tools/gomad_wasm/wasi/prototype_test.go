@@ -18,7 +18,7 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
+	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/hostexec"
 	runnerbackend "go.temporal.io/server/tools/gomad3/runner/backend"
 	"go.temporal.io/server/tools/gomad_wasm/internal/stockgo"
@@ -531,7 +531,7 @@ func TestPrototypeNetwork(t *testing.T) {
 // prototypeTemporalConfig mirrors the admitted one-box guest configuration.
 func prototypeTemporalConfig(t *testing.T, root, cwd string, args ...string) Config {
 	t.Helper()
-	captured, err := readonlymount.CaptureReadOnlyMountInputs([]readonlymount.Mapping{{Source: filepath.Join(root, "schema", "sqlite"), Target: "/workspace/schema/sqlite"}}, readonlymount.DefaultLimits())
+	captured, err := captured.CaptureReadOnlyMountInputs([]captured.Mapping{{Source: filepath.Join(root, "schema", "sqlite"), Target: "/workspace/schema/sqlite"}}, captured.DefaultLimits())
 	if err != nil {
 		t.Fatal(err)
 	}

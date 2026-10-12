@@ -9,9 +9,9 @@ import (
 	"strings"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/deterministicio"
-	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
@@ -31,9 +31,9 @@ func runChoiceExplorationLocal(
 	config campaignRequest,
 	selection SeedSelection,
 	baseEnvironment []record.Environment,
-	readOnlyMounts []readonlymount.Mapping,
+	readOnlyMounts []captured.Mapping,
 	prepared target.Prepared,
-	profile deterministicio.Spec,
+	profile transcript.Spec,
 	journal *campaign.CampaignJournal, runID string,
 	resuming bool,
 	resumedRuns []campaign.ExecutionRecord, summary *CampaignResult,
@@ -167,17 +167,17 @@ func runChoiceExplorationLocal(
 	}
 
 	if coverageHasSemantic(config.Coverage) {
-		coverage, err := deterministicio.SummarizeSemanticProbes(sortedProbeList(semanticProbes))
+		coverage, err := transcript.SummarizeSemanticProbes(sortedProbeList(semanticProbes))
 		if err != nil {
 			return &HostError{Reason: "semantic_coverage", Err: err}
 		}
 		summary.SemanticCoverage = &coverage
-		missing, err := deterministicio.MissingRequiredSemanticProbes(coverage, config.RequiredSemanticProbes)
+		missing, err := transcript.MissingRequiredSemanticProbes(coverage, config.RequiredSemanticProbes)
 		if err != nil {
 			return err
 		}
 		if len(missing) != 0 {
-			return &deterministicio.MissingSemanticProbesError{Probes: missing}
+			return &record.MissingSemanticProbesError{Probes: missing}
 		}
 	}
 	if err := prepared.Verify(); err != nil {
@@ -214,8 +214,8 @@ func executeExplorationRound(
 	executor executionRunner,
 	prepared target.Prepared,
 	baseEnvironment []record.Environment,
-	profile deterministicio.Spec,
-	readOnlyMounts []readonlymount.Mapping,
+	profile transcript.Spec,
+	readOnlyMounts []captured.Mapping,
 	staged *campaign.ExplorationRoundJournal,
 	state choiceengine.State,
 	round choiceengine.Round,
@@ -268,7 +268,7 @@ func processExplorationCompletion(
 	config campaignRequest,
 	prepared target.Prepared,
 	baseEnvironment []record.Environment,
-	readOnlyMounts []readonlymount.Mapping,
+	readOnlyMounts []captured.Mapping,
 	runID string,
 	batchPath string,
 	staged *campaign.ExplorationRoundJournal,

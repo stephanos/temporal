@@ -6,8 +6,8 @@ import (
 	"sort"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/deterministicio"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 )
@@ -76,16 +76,16 @@ type CapturedInputs struct {
 }
 
 type Entry struct {
-	Seed           record.Uint64String              `json:"seed"`
-	RecordHash     record.SHA256                    `json:"record_hash"`
-	Artifact       string                           `json:"artifact"`
-	StoredBytes    record.Uint64String              `json:"stored_bytes"`
-	PayloadBytes   record.Uint64String              `json:"payload_bytes"`
-	Coverage       deterministicio.SemanticCoverage `json:"semantic_coverage"`
-	Features       []Feature                        `json:"features"`
-	NoveltyReasons []Feature                        `json:"novelty_reasons"`
-	Inputs         CapturedInputs                   `json:"captured_inputs"`
-	Replay         ReplayResult                     `json:"replay"`
+	Seed           record.Uint64String     `json:"seed"`
+	RecordHash     record.SHA256           `json:"record_hash"`
+	Artifact       string                  `json:"artifact"`
+	StoredBytes    record.Uint64String     `json:"stored_bytes"`
+	PayloadBytes   record.Uint64String     `json:"payload_bytes"`
+	Coverage       record.SemanticCoverage `json:"semantic_coverage"`
+	Features       []Feature               `json:"features"`
+	NoveltyReasons []Feature               `json:"novelty_reasons"`
+	Inputs         CapturedInputs          `json:"captured_inputs"`
+	Replay         ReplayResult            `json:"replay"`
 	// sharedTarget is the part of StoredBytes the case has in common with the
 	// other cases of its corpus. It is read from the case on disk, so a case
 	// that owns a private copy of the target counts in full against the cap.
@@ -176,7 +176,7 @@ func choiceInstrumentationIdentity(profile ChoiceProfileIdentity) (record.SHA256
 }
 
 func semanticInstrumentationIdentity() record.SHA256 {
-	identity := SemanticFeatureSchema + "\x00" + deterministicio.SemanticCoverageSchema + "\x00" + string(deterministicio.SemanticInstrumentationIdentity()) + "\x00"
+	identity := SemanticFeatureSchema + "\x00" + record.SemanticCoverageSchema + "\x00" + string(transcript.SemanticInstrumentationIdentity()) + "\x00"
 	return record.DomainHash("gomad3-guide-instrumentation-v1", []byte(identity))
 }
 

@@ -12,8 +12,8 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
-	"go.temporal.io/server/tools/gomad3/deterministicio/volume"
+	"go.temporal.io/server/tools/gomad3/captured"
+	"go.temporal.io/server/tools/gomad3/volume"
 	"go.temporal.io/server/tools/gomad3/hostexec"
 	"go.temporal.io/server/tools/gomad3/world"
 	"go.temporal.io/server/tools/gomad3sim"
@@ -158,7 +158,7 @@ func temporalRecoveryRequest(t *testing.T, fixture string) (Request, string) {
 		ModuleSHA256, HelperSHA256, RuntimeIdentity string
 		Engine                                      EngineIdentity
 	}{inputs, fileHash(t, module), fileHash(t, helperPath(t)), runtimeIdentity, PinnedEngine()})
-	captured, err := readonlymount.CaptureReadOnlyMountInputs([]readonlymount.Mapping{{Source: filepath.Join(root, "schema", "sqlite"), Target: "/workspace/schema/sqlite"}}, readonlymount.DefaultLimits())
+	captured, err := captured.CaptureReadOnlyMountInputs([]captured.Mapping{{Source: filepath.Join(root, "schema", "sqlite"), Target: "/workspace/schema/sqlite"}}, captured.DefaultLimits())
 	if err != nil {
 		t.Fatal(err)
 	}

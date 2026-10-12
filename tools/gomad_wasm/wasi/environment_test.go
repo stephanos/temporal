@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
+	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/record"
 )
 
@@ -125,7 +125,7 @@ func TestCapturedNamespaceNeverReopensHostAndInfersAbsence(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(source, "input"), []byte("frozen"), 0600); err != nil {
 		t.Fatal(err)
 	}
-	captured, err := readonlymount.CaptureReadOnlyMountInputs([]readonlymount.Mapping{{Source: source, Target: "/fixtures"}}, readonlymount.DefaultLimits())
+	captured, err := captured.CaptureReadOnlyMountInputs([]captured.Mapping{{Source: source, Target: "/fixtures"}}, captured.DefaultLimits())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -159,7 +159,7 @@ func TestCapturedNamespaceAllowsStockReadOnlyOpenWithoutMutation(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(source, "input"), []byte("frozen"), 0600); err != nil {
 		t.Fatal(err)
 	}
-	captured, err := readonlymount.CaptureReadOnlyMountInputs([]readonlymount.Mapping{{Source: source, Target: "/fixtures"}}, readonlymount.DefaultLimits())
+	captured, err := captured.CaptureReadOnlyMountInputs([]captured.Mapping{{Source: source, Target: "/fixtures"}}, captured.DefaultLimits())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -213,7 +213,7 @@ func TestCapturedNamespaceAllowsStockReadOnlyOpenWithoutMutation(t *testing.T) {
 }
 
 func TestCapturedNamespaceRejectsWritableDescendantAndAllowsAncestor(t *testing.T) {
-	captured, err := readonlymount.CaptureReadOnlyMountInputs([]readonlymount.Mapping{{Source: t.TempDir(), Target: "/workspace/frozen"}}, readonlymount.DefaultLimits())
+	captured, err := captured.CaptureReadOnlyMountInputs([]captured.Mapping{{Source: t.TempDir(), Target: "/workspace/frozen"}}, captured.DefaultLimits())
 	if err != nil {
 		t.Fatal(err)
 	}

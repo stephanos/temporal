@@ -10,8 +10,8 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/deterministicio"
-	"go.temporal.io/server/tools/gomad3/internal/preparation"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	"go.temporal.io/server/tools/gomad3/backends/native/preparation"
 	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
 	"go.temporal.io/server/tools/gomad3/target"
 )
@@ -195,7 +195,7 @@ func TestInjectionCharacterizationIsolatedPreparationDependencies(t *testing.T) 
 				}
 			}
 			if test.bootstrap {
-				dependencies.bootstrap = func(deterministicio.Spec, target.Prepared, string, uint64) ([]byte, error) {
+				dependencies.bootstrap = func(transcript.Spec, target.Prepared, string, uint64) ([]byte, error) {
 					calls.Add(1)
 					return nil, errors.New("isolated bootstrap callback invoked")
 				}

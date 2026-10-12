@@ -12,7 +12,6 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/artifact"
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/deterministicio"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 )
@@ -409,7 +408,7 @@ func testBatchPlan(journal *CampaignJournal, digest record.SHA256, size uint64) 
 			Path:   ".prepared/build/target",
 			Target: record.Target{Kind: "go-test", Source: "./pkg", SHA256: digest, Size: record.Uint64String(size), Argv: []string{"gomad3-target"}, BuildTags: []string{"gomad_fixture"}, Adapters: []record.TargetAdapter{}, Compatibility: []record.CompatibilityPack{}, CapabilityMode: "closure", BuildInfo: record.BuildInfo{GoVersion: "go1.26.4", Path: "example.test/pkg.test"}},
 		},
-		IOProfile:   deterministicio.Contract{Name: "gomad3-deterministic/v1", ImplementationSHA256: deterministicio.Digest(record.HashBytes([]byte("io"))), InventorySHA256: deterministicio.Digest(record.HashBytes([]byte("inventory")))},
+		IOProfile:   record.IOContract{Name: "gomad3-deterministic/v1", ImplementationSHA256: record.SHA256(record.HashBytes([]byte("io"))), InventorySHA256: record.SHA256(record.HashBytes([]byte("inventory")))},
 		Environment: []record.Environment{{Name: "GOMAD3_IO_PROFILE", Value: "gomad3-deterministic/v1"}},
 		Coverage:    "semantic", RequiredSemanticProbes: []string{"stdlib.os.openfile"}, KeepSuccesses: "none",
 	}

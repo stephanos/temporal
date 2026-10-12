@@ -28,8 +28,8 @@ func backendImportConfig() archcheck.Config {
 	return archcheck.Config{
 		Module: modulePath, WASMModule: wasmModule,
 		NativePackages: []string{
-			"deterministicio", "deterministicio/internal/wire",
-			"internal/gomadtool/conformance", "internal/gomadtool/generation/boundary", "internal/gomadtool/generation/protocol",
+			"deterministicio", "internal/iowire",
+			"backends/native/conformance", "internal/gomadtool/generation/boundary", "internal/gomadtool/generation/protocol",
 			"runner/internal/execution",
 			"target/internal/build", "target/internal/capabilitypolicy", "target/internal/capabilityreview",
 			"target/internal/gocommand", "target/internal/livecap", "target/internal/provenance",
@@ -38,8 +38,8 @@ func backendImportConfig() archcheck.Config {
 			"upgrade", "upgrade/adapterregen", "upgrade/pinimpact",
 		},
 		Exceptions: []archcheck.Exception{
-			{From: modulePath + "/deterministicio/readonlymount", To: modulePath + "/deterministicio/internal/wire", RemovalTask: moveNative},
-			{From: modulePath + "/deterministicio/volume", To: modulePath + "/deterministicio/internal/wire", RemovalTask: moveNative},
+			{From: modulePath + "/captured", To: modulePath + "/internal/iowire", RemovalTask: moveNative},
+			{From: modulePath + "/volume", To: modulePath + "/internal/iowire", RemovalTask: moveNative},
 			{From: modulePath + "/internal/preparation", To: modulePath + "/deterministicio", RemovalTask: moveNative},
 			{From: modulePath + "/qualification/analysis", To: modulePath + "/deterministicio", RemovalTask: moveNative},
 			{From: modulePath + "/qualification/set", To: modulePath + "/deterministicio", RemovalTask: moveNative},
@@ -59,7 +59,7 @@ func backendImportConfig() archcheck.Config {
 		},
 		WASMImports: []string{
 			modulePath + "/artifact", modulePath + "/choice", modulePath + "/cmd/gomad/api",
-			modulePath + "/deterministicio", modulePath + "/deterministicio/readonlymount", modulePath + "/deterministicio/volume",
+			modulePath + "/deterministicio", modulePath + "/captured", modulePath + "/volume",
 			modulePath + "/hostexec", modulePath + "/hostfs", modulePath + "/qualification", modulePath + "/qualification/workload",
 			modulePath + "/record", modulePath + "/runner", modulePath + "/runner/backend", modulePath + "/runtimesemantics", modulePath + "/simulation/network",
 			modulePath + "/target", modulePath + "/world",
@@ -177,7 +177,7 @@ func TestArchitectureInventoryFixtures(t *testing.T) {
 		{"unclassified-testdata", "uncovered-source", "record/testdata/source.go", "package hidden\n"},
 		{"overlay-prefix", "package-error", "toolchain/runtime/overlayextra/source.go", "package overlayextra\nimport _ \"example.invalid/missing\"\n"},
 		{"hidden-module", "unclassified-module", ".hidden/go.mod", "module example.invalid/hidden\n\ngo 1.27.1\n"},
-		{"excluded-root-module", "unclassified-module", "deterministicio/testdata/extra/go.mod", "module example.invalid/extra\n\ngo 1.27.1\n"},
+		{"excluded-root-module", "unclassified-module", "backends/native/transcript/testdata/extra/go.mod", "module example.invalid/extra\n\ngo 1.27.1\n"},
 		{"included-list-error", "package-error", "record/source.go", "package record\nimport _ \"example.invalid/missing\"\n"},
 		{"owner-edge", "owner-edge", "record/source.go", "package record\nimport _ \"example.invalid/fitness/runner\"\n"},
 		{"required-facade-edge", "required-edge", "target/source.go", "package target\n"},
@@ -185,10 +185,10 @@ func TestArchitectureInventoryFixtures(t *testing.T) {
 		t.Run(fixture.name, func(t *testing.T) {
 			root := t.TempDir()
 			files := map[string]string{"go.mod": "module example.invalid/fitness\n\ngo 1.27.1\n", "runner/source.go": "package runner\n", fixture.path: fixture.source}
-			for _, path := range []string{"toolchain/runtime/overlay", "cmd/gomad/testdata", "deterministicio/testdata", "internal/compatibilitypack/testdata", "internal/gomadtool/conformance/testdata", "testdata", "qualification/corpus"} {
+			for _, path := range []string{"toolchain/runtime/overlay", "cmd/gomad/testdata", "backends/native/transcript/testdata", "internal/compatibilitypack/testdata", "backends/native/conformance/testdata", "testdata", "qualification/corpus"} {
 				files[path+"/fixture.go"] = "package fixture\n"
 			}
-			for _, path := range []string{"deterministicio/testdata/cactusstatsd", "deterministicio/testdata/hashicorpmetrics", "deterministicio/testdata/memberlist", "deterministicio/testdata/pebble", "deterministicio/testdata/sentry", "deterministicio/testdata/sockaddr", "deterministicio/testdata/sprig", "deterministicio/testdata/validator", "internal/compatibilitypack/testdata/v041", "internal/compatibilitypack/testdata/xsys", "internal/gomadtool/conformance/testdata", "internal/gomadtool/conformance/testdata/libc_adapter", "internal/gomadtool/conformance/testdata/sqlite_adapter", "qualification/corpus"} {
+			for _, path := range []string{"backends/native/transcript/testdata/cactusstatsd", "backends/native/transcript/testdata/hashicorpmetrics", "backends/native/transcript/testdata/memberlist", "backends/native/transcript/testdata/pebble", "backends/native/transcript/testdata/sentry", "backends/native/transcript/testdata/sockaddr", "backends/native/transcript/testdata/sprig", "backends/native/transcript/testdata/validator", "internal/compatibilitypack/testdata/v041", "internal/compatibilitypack/testdata/xsys", "backends/native/conformance/testdata", "backends/native/conformance/testdata/libc_adapter", "backends/native/conformance/testdata/sqlite_adapter", "qualification/corpus"} {
 				files[path+"/go.mod"] = "module example.invalid/fixture\n\ngo 1.27.1\n"
 				files[path+"/fixture.go"] = "package fixture\n"
 			}
@@ -547,7 +547,7 @@ func TestRunnerRequestsCompileInExternalModule(t *testing.T) {
 	if err != nil {
 		t.Fatalf("find Gomad module root: %v", err)
 	}
-	fixture, err := os.ReadFile("internal/gomadtool/conformance/testdata/runner_external/consumer.go")
+	fixture, err := os.ReadFile("backends/native/conformance/testdata/runner_external/consumer.go")
 	if err != nil {
 		t.Fatalf("read external Runner fixture: %v", err)
 	}

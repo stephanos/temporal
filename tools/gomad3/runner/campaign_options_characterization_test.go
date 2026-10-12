@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
+	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
 )
@@ -140,7 +140,7 @@ func campaignOptionsCases() []struct {
 	add("mount-limits", base, func(c *CampaignSpec) {
 		c.Target.WorkingDir = "/"
 		c.IOROMounts = []string{"/tmp=data"}
-		c.IOROMountLimits = readonlymount.Limits{PathBytes: 1}
+		c.IOROMountLimits = captured.Limits{PathBytes: 1}
 	})
 	add("environment-invalid", base, func(c *CampaignSpec) { c.Environment = []string{"bad"} })
 	add("environment-reserved", base, func(c *CampaignSpec) { c.Environment = []string{"GOMADSEED=1"} })

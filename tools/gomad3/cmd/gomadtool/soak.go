@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"go.temporal.io/server/tools/gomad3/qualification/soak"
+	"go.temporal.io/server/tools/gomad3/backends/native/qualification/soak"
 )
 
 // runSoak runs the determinism soak. It exits 0 for a pass or a divergence on

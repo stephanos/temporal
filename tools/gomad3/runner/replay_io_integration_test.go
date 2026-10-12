@@ -13,8 +13,8 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
-	"go.temporal.io/server/tools/gomad3/deterministicio"
-	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
 	"go.temporal.io/server/tools/gomad3/target"
@@ -23,13 +23,13 @@ import (
 func TestIOProfileFailureArtifactReplaysExactly(t *testing.T) {
 	toolchain := toolchainRoot(t)
 	prepared, err := target.Prepare(context.Background(), target.Spec{
-		Kind: target.KindGoTest, Source: "./io_failure", WorkingDir: filepath.Join("..", "internal", "gomadtool", "conformance", "testdata"),
+		Kind: target.KindGoTest, Source: "./io_failure", WorkingDir: filepath.Join("..", "backends", "native", "conformance", "testdata"),
 		Args: []string{"-test.run=^TestDeterministicIOFailure$"}, BuildTags: []string{"gomad_fixture"}, PreparationRoot: t.TempDir(), ToolchainRoot: toolchain,
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	profile := deterministicio.Default()
+	profile := transcript.Default()
 	const runnerBuild = "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
 	frame, err := profile.BootstrapFrame(prepared, runnerBuild, 7)
 	if err != nil {
@@ -111,7 +111,7 @@ func TestLinkedCapabilityArtifactRevalidatesRetainedExecutableBeforeReplay(t *te
 	if err != nil {
 		t.Fatal(err)
 	}
-	profile := deterministicio.Default()
+	profile := transcript.Default()
 	worldRecord, worldPayloads := record.NoneWorld()
 	exitCode := record.Uint64String(2)
 	manifest := record.ExecutionRecord{
@@ -165,13 +165,13 @@ func TestLinkedCapabilityArtifactRevalidatesRetainedExecutableBeforeReplay(t *te
 func TestReadOnlyMountFailureArtifactReplaysAfterHostRemoval(t *testing.T) {
 	toolchain := toolchainRoot(t)
 	prepared, err := target.Prepare(context.Background(), target.Spec{
-		Kind: target.KindGoRun, Source: "./io_ro_mount_failure", WorkingDir: filepath.Join("..", "internal", "gomadtool", "conformance", "testdata"),
+		Kind: target.KindGoRun, Source: "./io_ro_mount_failure", WorkingDir: filepath.Join("..", "backends", "native", "conformance", "testdata"),
 		PreparationRoot: t.TempDir(), ToolchainRoot: toolchain,
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
-	profile := deterministicio.Default()
+	profile := transcript.Default()
 	const runnerBuild = "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
 	frame, err := profile.BootstrapFrame(prepared, runnerBuild, 7)
 	if err != nil {
@@ -181,8 +181,8 @@ func TestReadOnlyMountFailureArtifactReplaysAfterHostRemoval(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(source, "schema.sql"), []byte("select 1;\n"), 0o640); err != nil {
 		t.Fatal(err)
 	}
-	mappings := []readonlymount.Mapping{{Source: source, Target: "/mounted"}}
-	limits := readonlymount.DefaultLimits()
+	mappings := []captured.Mapping{{Source: source, Target: "/mounted"}}
+	limits := captured.DefaultLimits()
 	environment := []string{"GOMAD3_IO_PROFILE=" + profile.Name(), "GOMADSEED=7", "TZ=UTC"}
 	observed, err := execution.Run(context.Background(), execution.Spec{
 		SupervisorCommand: []string{os.Args[0], "-test.run=TestIOReplaySupervisorHelper"}, BootstrapCommand: []string{os.Args[0], "-test.run=TestIOReplayBootstrapHelper"},
@@ -198,7 +198,7 @@ func TestReadOnlyMountFailureArtifactReplaysAfterHostRemoval(t *testing.T) {
 	if observed.ExitCode != 2 || string(observed.Stdout.Bytes) != "select 1;\n" || len(observed.IOROMounts.Entries) != 1 {
 		t.Fatalf("fixture result = %#v", observed)
 	}
-	mountArtifact, err := readonlymount.EncodeCapturedInputs(mappings, limits, observed.IOROMounts)
+	mountArtifact, err := captured.EncodeCapturedInputs(mappings, limits, observed.IOROMounts)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -279,7 +279,7 @@ func pointerToReadOnlyMounts(mounts record.ReadOnlyMounts) *record.ReadOnlyMount
 	return &mounts
 }
 
-func replayRecordedCapturedInputs(manifest readonlymount.CapturedInputsManifest) record.ReadOnlyMounts {
+func replayRecordedCapturedInputs(manifest captured.CapturedInputsManifest) record.ReadOnlyMounts {
 	return record.ReadOnlyMounts{
 		Schema: manifest.Schema, File: manifest.File, SHA256: record.SHA256(manifest.SHA256), Bytes: record.Uint64String(manifest.Bytes),
 		Entries: record.Uint64String(manifest.Entries), NotExist: record.Uint64String(manifest.NotExist), TotalBytes: record.Uint64String(manifest.TotalBytes), Mappings: append([]string(nil), manifest.Mappings...),

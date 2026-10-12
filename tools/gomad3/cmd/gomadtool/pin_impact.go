@@ -13,8 +13,8 @@ import (
 	"strings"
 
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
-	"go.temporal.io/server/tools/gomad3/upgrade"
-	"go.temporal.io/server/tools/gomad3/upgrade/pinimpact"
+	"go.temporal.io/server/tools/gomad3/backends/native/upgrade"
+	"go.temporal.io/server/tools/gomad3/backends/native/upgrade/pinimpact"
 )
 
 const pinImpactUsage = "usage: gomadtool pin-impact [--root=DIR] [--module=DIR] [--baseline-module=DIR | --baseline-ref=REV] [--go=GO] [--json] [--output=FILE]\n" +

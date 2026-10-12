@@ -9,10 +9,10 @@ import (
 	"os"
 	"time"
 
-	"go.temporal.io/server/tools/gomad3/deterministicio"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
-	"go.temporal.io/server/tools/gomad3/internal/preparation"
-	capabilityanalysis "go.temporal.io/server/tools/gomad3/qualification/analysis"
+	"go.temporal.io/server/tools/gomad3/backends/native/preparation"
+	capabilityanalysis "go.temporal.io/server/tools/gomad3/backends/native/qualification/analysis"
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
@@ -25,7 +25,7 @@ type analyzeDependencies struct {
 	identity         func(string) (target.ToolchainIdentity, error)
 	workingDirectory func() (string, error)
 	inspect          func(context.Context, target.Spec) (preparation.Inspection, error)
-	prepare          func(context.Context, target.Spec) (target.Spec, []deterministicio.Adapter, func() error, error)
+	prepare          func(context.Context, target.Spec) (target.Spec, []transcript.Adapter, func() error, error)
 	analyze          func(context.Context, capabilityanalysis.Spec) (capabilityanalysis.Report, error)
 	review           func(context.Context, target.Spec) (target.CapabilityReview, error)
 	build            func(capabilityanalysis.Input) (capabilityanalysis.Report, error)
@@ -136,7 +136,7 @@ func resolveAnalyzeTarget(parsed analyzeArguments, stderr io.Writer, dependencie
 }
 
 func executeAnalysis(ctx context.Context, stdout, stderr io.Writer, format string, spec target.Spec, identity target.ToolchainIdentity, dependencies analyzeDependencies) (status int) {
-	adapters := []deterministicio.Adapter{}
+	adapters := []transcript.Adapter{}
 	var err error
 	var reviewed target.CapabilityReview
 	if dependencies.inspect != nil {
@@ -152,7 +152,7 @@ func executeAnalysis(ctx context.Context, stdout, stderr io.Writer, format strin
 				}
 				return status
 			}
-			if deterministicio.IsInvalidBuildAdapterConfiguration(inspectErr) {
+			if transcript.IsInvalidBuildAdapterConfiguration(inspectErr) {
 				return writeCommandError(stderr, 2, "prepare capability analysis: %v\n", inspectErr)
 			}
 			return writeCommandError(stderr, 3, "prepare capability analysis: %v\n", inspectErr)
@@ -169,7 +169,7 @@ func executeAnalysis(ctx context.Context, stdout, stderr io.Writer, format strin
 		var cleanup func() error
 		spec, adapters, cleanup, err = dependencies.prepare(ctx, spec)
 		if err != nil {
-			if deterministicio.IsInvalidBuildAdapterConfiguration(err) {
+			if transcript.IsInvalidBuildAdapterConfiguration(err) {
 				return writeCommandError(stderr, 2, "prepare capability analysis: %v\n", err)
 			}
 			return writeCommandError(stderr, 3, "prepare capability analysis: %v\n", err)
@@ -186,16 +186,16 @@ func executeAnalysis(ctx context.Context, stdout, stderr io.Writer, format strin
 	}
 	var report capabilityanalysis.Report
 	if dependencies.inspect != nil {
-		report, err = dependencies.build(capabilityanalysis.Input{Spec: spec, Review: reviewed, Toolchain: identity, IOProfile: deterministicio.Default(), Adapters: adapters})
+		report, err = dependencies.build(capabilityanalysis.Input{Spec: spec, Review: reviewed, Toolchain: identity, IOProfile: transcript.Default(), Adapters: adapters})
 	} else if dependencies.analyze != nil {
 		report, err = dependencies.analyze(ctx, capabilityanalysis.Spec{
-			Target: spec, Toolchain: identity, IOProfile: deterministicio.Default(), Adapters: adapters,
+			Target: spec, Toolchain: identity, IOProfile: transcript.Default(), Adapters: adapters,
 		})
 	} else {
 		var review target.CapabilityReview
 		review, err = dependencies.review(ctx, spec)
 		if err == nil {
-			report, err = dependencies.build(capabilityanalysis.Input{Spec: spec, Review: review, Toolchain: identity, IOProfile: deterministicio.Default(), Adapters: adapters})
+			report, err = dependencies.build(capabilityanalysis.Input{Spec: spec, Review: review, Toolchain: identity, IOProfile: transcript.Default(), Adapters: adapters})
 		}
 	}
 	if err != nil {

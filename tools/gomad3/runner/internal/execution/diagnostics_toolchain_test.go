@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/deterministicio"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
@@ -19,7 +19,7 @@ func TestDiagnosticLauncherLocalizesInjectedDraw(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	prepared, err := target.Prepare(context.Background(), target.Spec{Kind: target.KindGoRun, Source: "./diagnostic_fault", WorkingDir: filepath.Join("..", "..", "..", "internal", "gomadtool", "conformance", "testdata"), PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot})
+	prepared, err := target.Prepare(context.Background(), target.Spec{Kind: target.KindGoRun, Source: "./diagnostic_fault", WorkingDir: filepath.Join("..", "..", "..", "backends", "native", "conformance", "testdata"), PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -27,7 +27,7 @@ func TestDiagnosticLauncherLocalizesInjectedDraw(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	profile := deterministicio.Default()
+	profile := transcript.Default()
 	frame, err := profile.BootstrapFrame(prepared, "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 7)
 	if err != nil {
 		t.Fatal(err)
@@ -71,7 +71,7 @@ func TestDiagnosticLauncherRejectsHostTimedSeededDraw(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	prepared, err := target.Prepare(context.Background(), target.Spec{Kind: target.KindGoRun, Source: "./diagnostic_fault", WorkingDir: filepath.Join("..", "..", "..", "internal", "gomadtool", "conformance", "testdata"), PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot})
+	prepared, err := target.Prepare(context.Background(), target.Spec{Kind: target.KindGoRun, Source: "./diagnostic_fault", WorkingDir: filepath.Join("..", "..", "..", "backends", "native", "conformance", "testdata"), PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -79,7 +79,7 @@ func TestDiagnosticLauncherRejectsHostTimedSeededDraw(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	profile := deterministicio.Default()
+	profile := transcript.Default()
 	frame, err := profile.BootstrapFrame(prepared, "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", 7)
 	if err != nil {
 		t.Fatal(err)

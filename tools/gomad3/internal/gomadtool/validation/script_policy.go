@@ -18,9 +18,9 @@ type scriptOwner struct {
 }
 
 var reviewedScripts = map[string]scriptOwner{
-	"internal/gomadtool/conformance/scripts/clock_audit_test.sh":   {role: "Darwin DTrace platform adapter", allowBash: true, requiredText: "dtrace", maxLines: 100},
-	"internal/gomadtool/conformance/scripts/compiler_test_exec.sh": {role: "upstream toolexec adapter", requiredText: "GOMAD3_TEST_COMPILE", maxLines: 40},
-	"internal/gomadtool/conformance/scripts/exec.sh":               {role: "upstream exec adapter", requiredText: "GOMAD3_CHILD_SEED", maxLines: 25},
+	"backends/native/conformance/scripts/clock_audit_test.sh":   {role: "Darwin DTrace platform adapter", allowBash: true, requiredText: "dtrace", maxLines: 100},
+	"backends/native/conformance/scripts/compiler_test_exec.sh": {role: "upstream toolexec adapter", requiredText: "GOMAD3_TEST_COMPILE", maxLines: 40},
+	"backends/native/conformance/scripts/exec.sh":               {role: "upstream exec adapter", requiredText: "GOMAD3_CHILD_SEED", maxLines: 25},
 }
 
 func Validate(root string) error {

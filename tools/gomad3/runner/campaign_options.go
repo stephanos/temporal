@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"go.temporal.io/server/tools/gomad3/deterministicio"
-	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/backend"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
@@ -37,7 +37,7 @@ type campaignTargetOptions struct {
 	Target          target.Spec
 	Environment     []string
 	IOROMounts      []string
-	IOROMountLimits readonlymount.Limits
+	IOROMountLimits captured.Limits
 }
 
 type campaignSearchOptions struct {
@@ -152,7 +152,7 @@ func ValidateCoverage(mode CoverageMode, required []string) error {
 			return &SemanticCoverageRequiredError{}
 		}
 	case CoverageSemantic, CoverageSemanticChoice:
-		if _, err := deterministicio.MissingRequiredSemanticProbes(deterministicio.SemanticCoverage{}, required); err != nil {
+		if _, err := transcript.MissingRequiredSemanticProbes(record.SemanticCoverage{}, required); err != nil {
 			return err
 		}
 	default:

@@ -26,8 +26,8 @@ func TestValidateRejectsUnownedAndBashPolicyScripts(t *testing.T) {
 		name, path, contents, want string
 	}{
 		{name: "unowned", path: "new-policy.sh", contents: "#!/bin/sh\n", want: "unowned script"},
-		{name: "bash policy", path: "internal/gomadtool/conformance/scripts/exec.sh", contents: "#!/usr/bin/env bash\n[[ -n $value ]]\n", want: "must be strict POSIX shell"},
-		{name: "perl policy", path: "internal/gomadtool/conformance/scripts/exec.sh", contents: "#!/bin/sh\nperl -e policy\n", want: "must not invoke Perl"},
+		{name: "bash policy", path: "backends/native/conformance/scripts/exec.sh", contents: "#!/usr/bin/env bash\n[[ -n $value ]]\n", want: "must be strict POSIX shell"},
+		{name: "perl policy", path: "backends/native/conformance/scripts/exec.sh", contents: "#!/bin/sh\nperl -e policy\n", want: "must not invoke Perl"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			fixture := t.TempDir()

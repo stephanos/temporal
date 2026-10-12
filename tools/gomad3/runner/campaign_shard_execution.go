@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/deterministicio"
-	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
@@ -46,7 +46,7 @@ func runCampaignShardWith(ctx context.Context, spec CampaignShardSpec, dependenc
 	if plan.RunnerBuild != spec.RunnerBuild {
 		return CampaignResult{}, fmt.Errorf("campaign plan Runner build identity %s does not match this Runner %s", plan.RunnerBuild, spec.RunnerBuild)
 	}
-	if !deterministicio.Default().Matches(plan.IOProfile) {
+	if !transcript.Default().Matches(plan.IOProfile) {
 		return CampaignResult{}, errors.New("campaign plan I/O profile identity does not match this Runner")
 	}
 	if dependencies.executor == nil {
@@ -58,11 +58,11 @@ func runCampaignShardWith(ctx context.Context, spec CampaignShardSpec, dependenc
 			return CampaignResult{}, errors.New("campaign plan toolchain identity does not match the pinned toolchain")
 		}
 	}
-	mountLimits, err := readonlymount.DecodeLimits(deterministicCapturedInputLimits(plan.IOROMountLimits))
+	mountLimits, err := captured.DecodeLimits(deterministicCapturedInputLimits(plan.IOROMountLimits))
 	if err != nil {
 		return CampaignResult{}, err
 	}
-	mappings, err := readonlymount.ParseMappings(plan.IOROMounts, opened.path+campaignPlanBundleSuffix)
+	mappings, err := captured.ParseMappings(plan.IOROMounts, opened.path+campaignPlanBundleSuffix)
 	if err != nil {
 		return CampaignResult{}, err
 	}
@@ -119,7 +119,7 @@ func campaignPlanEnvironment(plan campaign.CampaignPlan) ([]string, string, erro
 	for _, entry := range plan.Environment {
 		switch entry.Name {
 		case "GOMAD3_IO_PROFILE":
-			if ioProfile || entry.Value != deterministicio.Deterministic {
+			if ioProfile || entry.Value != transcript.Deterministic {
 				return nil, "", errors.New("campaign plan I/O profile environment is invalid")
 			}
 			ioProfile = true

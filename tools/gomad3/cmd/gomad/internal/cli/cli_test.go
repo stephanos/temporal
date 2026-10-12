@@ -15,14 +15,14 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/deterministicio"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
-	"go.temporal.io/server/tools/gomad3/internal/preparation"
+	"go.temporal.io/server/tools/gomad3/backends/native/preparation"
 	"go.temporal.io/server/tools/gomad3/qualification"
-	capabilityanalysis "go.temporal.io/server/tools/gomad3/qualification/analysis"
-	supportcomparison "go.temporal.io/server/tools/gomad3/qualification/comparison"
-	qualificationset "go.temporal.io/server/tools/gomad3/qualification/set"
+	capabilityanalysis "go.temporal.io/server/tools/gomad3/backends/native/qualification/analysis"
+	supportcomparison "go.temporal.io/server/tools/gomad3/backends/native/qualification/comparison"
+	qualificationset "go.temporal.io/server/tools/gomad3/backends/native/qualification/set"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner"
 	"go.temporal.io/server/tools/gomad3/target"
@@ -113,7 +113,7 @@ func publicSetReport() qualificationset.Report {
 			GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64), TargetGOOS: "darwin", TargetGOARCH: "arm64",
 			BoundaryManifestVersion: "boundary-v1", BoundaryManifestSHA256: record.HashBytes([]byte("boundary")),
 		},
-		IOProfile:       deterministicio.Contract{Name: "io", ImplementationSHA256: deterministicio.Digest(record.HashBytes([]byte("io"))), InventorySHA256: deterministicio.Digest(record.HashBytes([]byte("inventory")))},
+		IOProfile:       record.IOContract{Name: "io", ImplementationSHA256: record.SHA256(record.HashBytes([]byte("io"))), InventorySHA256: record.SHA256(record.HashBytes([]byte("inventory")))},
 		Dimensions:      qualificationset.EvidenceDimensions{PortableV3: true, Analysis: true, Replay: true, Choice: true},
 		ExpectationsMet: true, Workloads: []qualificationset.WorkloadReport{},
 	}
@@ -405,8 +405,8 @@ func TestRunAnalyzeForwardsTargetAndClassifiesReport(t *testing.T) {
 			return capabilityanalysis.Report{Classification: classification}, nil
 		}
 	}
-	cleanupFails := func(_ context.Context, spec target.Spec) (target.Spec, []deterministicio.Adapter, func() error, error) {
-		return spec, []deterministicio.Adapter{}, func() error { return errors.New("cleanup failed") }, nil
+	cleanupFails := func(_ context.Context, spec target.Spec) (target.Spec, []transcript.Adapter, func() error, error) {
+		return spec, []transcript.Adapter{}, func() error { return errors.New("cleanup failed") }, nil
 	}
 	for _, test := range []struct {
 		name      string
@@ -435,7 +435,7 @@ func TestRunAnalyzeForwardsTargetAndClassifiesReport(t *testing.T) {
 					return target.CapabilityReview{}, nil
 				}
 				dependencies.build = func(capabilityanalysis.Input) (capabilityanalysis.Report, error) {
-					return capabilityanalysis.Report{Schema: capabilityanalysis.AnalysisSchema, Classification: capabilityanalysis.ClassificationSupported, Packs: []target.CompatibilityPackEvidence{}, Requirements: []deterministicio.Requirement{}, Blockers: []capabilityanalysis.Blocker{}}, nil
+					return capabilityanalysis.Report{Schema: capabilityanalysis.AnalysisSchema, Classification: capabilityanalysis.ClassificationSupported, Packs: []target.CompatibilityPackEvidence{}, Requirements: []transcript.Requirement{}, Blockers: []capabilityanalysis.Blocker{}}, nil
 				}
 			},
 			wantStdout: []string{`"schema":"gomad3.capability-analysis/v1"`, `"classification":"supported"`},
@@ -457,7 +457,7 @@ func TestRunAnalyzeForwardsTargetAndClassifiesReport(t *testing.T) {
 			dependencies.prepare = cleanupFails
 		}, wantStatus: 1, wantStderr: "cleanup failed"},
 		{name: "cleanup failure after supported report", arguments: []string{"go-run", "./pkg"}, configure: func(_ *testing.T, dependencies *analyzeDependencies) {
-			dependencies.prepare = func(ctx context.Context, spec target.Spec) (target.Spec, []deterministicio.Adapter, func() error, error) {
+			dependencies.prepare = func(ctx context.Context, spec target.Spec) (target.Spec, []transcript.Adapter, func() error, error) {
 				prepared, _, cleanup, err := cleanupFails(ctx, spec)
 				return prepared, nil, cleanup, err
 			}
@@ -850,7 +850,7 @@ func TestExploreReporterEmitsStableJSONEventsAndEveryArtifact(t *testing.T) {
 	if err := reporter.Result(runner.CampaignResult{
 		CampaignPath: "/batch", SelectionCount: 3, Attempted: 3, Succeeded: 1, Failures: 2, DistinctFailures: 2,
 		StopReason: runner.StopSeedsExhausted, Artifacts: []string{"/batch/failures/one", "/batch/failures/two"},
-		SemanticCoverage: &deterministicio.SemanticCoverage{Schema: deterministicio.SemanticCoverageSchema, Digest: "sha256:coverage", Probes: []string{"stdlib.os.openfile"}},
+		SemanticCoverage: &record.SemanticCoverage{Schema: record.SemanticCoverageSchema, Digest: "sha256:coverage", Probes: []string{"stdlib.os.openfile"}},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -1217,12 +1217,12 @@ func qualificationEvidence(seed uint64) runner.ExecutionEvidence {
 		Schema: runner.ExecutionEvidenceSchema, Seed: record.Uint64String(seed), RunnerBuild: "sha256:runner",
 		Toolchain:   record.Toolchain{GoVersion: "go1.26.4", BuildKey: "build", TargetGOOS: "darwin", TargetGOARCH: "arm64"},
 		Target:      record.Target{Kind: "go-test", Source: "./pkg", SHA256: "sha256:target", Size: 12, Argv: []string{"gomad3-target"}, BuildTags: []string{"gomad_fixture"}},
-		IOProfile:   deterministicio.Contract{Name: "deterministic", ImplementationSHA256: "sha256:io", InventorySHA256: "sha256:inventory"},
+		IOProfile:   record.IOContract{Name: "deterministic", ImplementationSHA256: "sha256:io", InventorySHA256: "sha256:inventory"},
 		Environment: []record.Environment{{Name: "GOMADSEED", Value: fmt.Sprintf("%d", seed)}, {Name: "TZ", Value: "UTC"}},
 		Outcome:     runner.OutcomeEvidence{Domain: "success", Reason: "success", Termination: "exit"}, GroupGone: true,
 		Stdout: record.Stream{FullSHA256: "sha256:stdout"}, Stderr: record.Stream{FullSHA256: "sha256:stderr"},
 		IOTranscriptSHA256: "sha256:transcript", IOTranscriptRecords: 1, IOTranscriptComplete: true,
-		SemanticCoverage: deterministicio.SemanticCoverage{Schema: deterministicio.SemanticCoverageSchema, Digest: "sha256:coverage", Probes: []string{"stdlib.os.openfile"}},
+		SemanticCoverage: record.SemanticCoverage{Schema: record.SemanticCoverageSchema, Digest: "sha256:coverage", Probes: []string{"stdlib.os.openfile"}},
 	}
 }
 
@@ -1254,7 +1254,7 @@ func TestClassifyExploreErrorDistinguishesInputTargetAndRunner(t *testing.T) {
 		{err: os.ErrInvalid, want: "invalid_input"},
 		{err: &target.UnsupportedCapabilityError{ImportPath: "example.com/target", Capability: "imports os/exec"}, want: "unsupported_target"},
 		{err: &runner.HostError{Reason: "target_preparation", Err: &target.UnsupportedCapabilityError{ImportPath: "example.com/target", Capability: "imports os/exec"}}, want: "unsupported_target"},
-		{err: &deterministicio.MissingSemanticProbesError{Probes: []string{"stdlib.os.openfile"}}, want: "semantic_coverage_failure"},
+		{err: &record.MissingSemanticProbesError{Probes: []string{"stdlib.os.openfile"}}, want: "semantic_coverage_failure"},
 		{err: &runner.HostError{Reason: "cancelled", Err: context.Canceled}, want: "cancelled"},
 		{err: &runner.HostError{Reason: "overall_timeout", Err: context.DeadlineExceeded}, want: "overall_timeout"},
 		{err: &runner.HostError{Reason: "coordinator_exit", Err: os.ErrClosed}, want: "runner_failure"},

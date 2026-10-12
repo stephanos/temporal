@@ -13,7 +13,7 @@ import (
 	"strings"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
+	"go.temporal.io/server/tools/gomad3/captured"
 )
 
 func TestTemporalPrivateModule(t *testing.T) {
@@ -24,7 +24,7 @@ func TestTemporalPrivateModule(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(source, "sub", "source.go"), []byte("package fixture\n"), 0440); err != nil {
 		t.Fatal(err)
 	}
-	captured, err := readonlymount.CaptureReadOnlyMountInputs([]readonlymount.Mapping{{Source: source, Target: "/module"}}, readonlymount.DefaultLimits())
+	captured, err := captured.CaptureReadOnlyMountInputs([]captured.Mapping{{Source: source, Target: "/module"}}, captured.DefaultLimits())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -32,7 +32,7 @@ func TestTemporalPrivateModule(t *testing.T) {
 	if err := temporalMaterializeModule(destination, captured); err != nil {
 		t.Fatal(err)
 	}
-	copy, err := readonlymount.CaptureReadOnlyMountInputs([]readonlymount.Mapping{{Source: destination, Target: "/module"}}, readonlymount.DefaultLimits())
+	copy, err := captured.CaptureReadOnlyMountInputs([]captured.Mapping{{Source: destination, Target: "/module"}}, captured.DefaultLimits())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -161,7 +161,7 @@ func TestTemporalFixtureStagingRejectsLinks(t *testing.T) {
 			if err := temporalStageFixture(filepath.Dir(owner), filepath.Base(owner), outside, "fixture"); err != nil {
 				t.Fatal(err)
 			}
-			before, err := readonlymount.CaptureReadOnlyMountInputs([]readonlymount.Mapping{{Source: outside, Target: "/outside"}}, readonlymount.DefaultLimits())
+			before, err := captured.CaptureReadOnlyMountInputs([]captured.Mapping{{Source: outside, Target: "/outside"}}, captured.DefaultLimits())
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -197,7 +197,7 @@ func TestTemporalFixtureStagingRejectsLinks(t *testing.T) {
 				t.Fatal(err)
 			}
 			stageErr := temporalStageFixture(anchor, sourceRelative, anchor, destinationRelative)
-			after, err := readonlymount.CaptureReadOnlyMountInputs([]readonlymount.Mapping{{Source: outside, Target: "/outside"}}, readonlymount.DefaultLimits())
+			after, err := captured.CaptureReadOnlyMountInputs([]captured.Mapping{{Source: outside, Target: "/outside"}}, captured.DefaultLimits())
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -269,8 +269,8 @@ func TestTemporalModuleGraph(t *testing.T) {
 	}
 }
 
-func temporalModuleSnapshot(captured readonlymount.CapturedInputs) (readonlymount.Snapshot, error) {
-	mappings, _, snapshot, err := readonlymount.DecodeCapturedInputs(captured.Manifest, captured.Descriptor, func(name string, size uint64) ([]byte, error) {
+func temporalModuleSnapshot(captured captured.CapturedInputs) (captured.Snapshot, error) {
+	mappings, _, snapshot, err := captured.DecodeCapturedInputs(captured.Manifest, captured.Descriptor, func(name string, size uint64) ([]byte, error) {
 		data, found := captured.Payloads[name]
 		if !found || uint64(len(data)) != size {
 			return nil, fmt.Errorf("missing private module payload %s", name)
@@ -278,15 +278,15 @@ func temporalModuleSnapshot(captured readonlymount.CapturedInputs) (readonlymoun
 		return data, nil
 	})
 	if err != nil {
-		return readonlymount.Snapshot{}, err
+		return captured.Snapshot{}, err
 	}
 	if len(mappings) != 1 || mappings[0].Target != "/module" || len(snapshot.NotExist) != 0 {
-		return readonlymount.Snapshot{}, fmt.Errorf("private module requires one complete /module snapshot")
+		return captured.Snapshot{}, fmt.Errorf("private module requires one complete /module snapshot")
 	}
 	return snapshot, nil
 }
 
-func temporalMaterializeModule(destination string, captured readonlymount.CapturedInputs) (retErr error) {
+func temporalMaterializeModule(destination string, captured captured.CapturedInputs) (retErr error) {
 	snapshot, err := temporalModuleSnapshot(captured)
 	if err != nil {
 		return err
@@ -302,13 +302,13 @@ func temporalMaterializeModule(destination string, captured readonlymount.Captur
 	return temporalWriteModule(root, snapshot)
 }
 
-func temporalWriteModule(root *os.Root, snapshot readonlymount.Snapshot) error {
+func temporalWriteModule(root *os.Root, snapshot captured.Snapshot) error {
 	for _, entry := range snapshot.Entries {
 		relative, err := filepath.Rel("/module", entry.Path)
 		if err != nil || relative == ".." || strings.HasPrefix(relative, "../") || filepath.IsAbs(relative) {
 			return fmt.Errorf("invalid private module entry %s", entry.Path)
 		}
-		if entry.Kind == readonlymount.KindDirectory {
+		if entry.Kind == captured.KindDirectory {
 			if relative != "." {
 				if err := root.Mkdir(relative, 0700); err != nil {
 					return err
@@ -329,7 +329,7 @@ func temporalWriteModule(root *os.Root, snapshot readonlymount.Snapshot) error {
 		}
 	}
 	for _, entry := range slices.Backward(snapshot.Entries) {
-		if entry.Kind == readonlymount.KindDirectory {
+		if entry.Kind == captured.KindDirectory {
 			relative, err := filepath.Rel("/module", entry.Path)
 			if err != nil {
 				return err
@@ -346,37 +346,37 @@ func temporalStageFixture(sourceAnchor, source, destinationAnchor, destination s
 	if !filepath.IsLocal(source) || !filepath.IsLocal(destination) || filepath.Clean(source) == "." || filepath.Clean(destination) == "." {
 		return fmt.Errorf("fixture paths must remain beneath their trusted anchors")
 	}
-	limits := readonlymount.DefaultLimits()
+	limits := captured.DefaultLimits()
 	limits.Files, limits.Requests, limits.DirectoryEntries = 16, 64, 16
 	limits.SingleFileBytes, limits.TotalBytes = 64<<10, 128<<10
-	capture := func(anchor, relative string) (_ readonlymount.CapturedInputs, captureErr error) {
-		mapping := readonlymount.Mapping{Source: anchor, Target: "/module"}
-		broker, err := readonlymount.Prepare([]readonlymount.Mapping{mapping}, limits)
+	capture := func(anchor, relative string) (_ captured.CapturedInputs, captureErr error) {
+		mapping := captured.Mapping{Source: anchor, Target: "/module"}
+		broker, err := captured.Prepare([]captured.Mapping{mapping}, limits)
 		if err != nil {
-			return readonlymount.CapturedInputs{}, err
+			return captured.CapturedInputs{}, err
 		}
 		defer func() { captureErr = errors.Join(captureErr, broker.Close()) }()
 		prefix := "/module/" + filepath.ToSlash(filepath.Clean(relative))
 		entry, err := broker.Lookup(prefix)
 		if err != nil {
-			return readonlymount.CapturedInputs{}, err
+			return captured.CapturedInputs{}, err
 		}
-		if entry.Kind != readonlymount.KindDirectory {
-			return readonlymount.CapturedInputs{}, fmt.Errorf("fixture owner must be a directory")
+		if entry.Kind != captured.KindDirectory {
+			return captured.CapturedInputs{}, fmt.Errorf("fixture owner must be a directory")
 		}
 		for _, child := range entry.Children {
-			if child.Kind != readonlymount.KindFile {
-				return readonlymount.CapturedInputs{}, fmt.Errorf("fixture owner must contain only flat regular files")
+			if child.Kind != captured.KindFile {
+				return captured.CapturedInputs{}, fmt.Errorf("fixture owner must contain only flat regular files")
 			}
 			if _, err := broker.Lookup(prefix + "/" + child.Name); err != nil {
-				return readonlymount.CapturedInputs{}, err
+				return captured.CapturedInputs{}, err
 			}
 		}
 		snapshot := broker.Captured()
 		for index := range snapshot.Entries {
 			snapshot.Entries[index].Path = "/module" + strings.TrimPrefix(snapshot.Entries[index].Path, prefix)
 		}
-		return readonlymount.EncodeCapturedInputs([]readonlymount.Mapping{mapping}, limits, snapshot)
+		return captured.EncodeCapturedInputs([]captured.Mapping{mapping}, limits, snapshot)
 	}
 	captured, err := capture(sourceAnchor, source)
 	if err != nil {

@@ -1,9 +1,9 @@
 package runner
 
 import (
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/deterministicio"
-	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
 	"go.temporal.io/server/tools/gomad3/target"
@@ -49,29 +49,29 @@ type ChoiceEvidence struct {
 }
 
 type ExecutionEvidence struct {
-	Schema                  string                           `json:"schema"`
-	Seed                    record.Uint64String              `json:"seed"`
-	RunnerBuild             string                           `json:"runner_build"`
-	Toolchain               record.Toolchain                 `json:"toolchain"`
-	Target                  record.Target                    `json:"target"`
-	IOProfile               deterministicio.Contract         `json:"io_profile"`
-	Environment             []record.Environment             `json:"environment"`
-	Limits                  ExecutionLimitsEvidence          `json:"limits"`
-	Outcome                 OutcomeEvidence                  `json:"outcome"`
-	GroupGone               bool                             `json:"group_gone"`
-	Stdout                  record.Stream                    `json:"stdout"`
-	Stderr                  record.Stream                    `json:"stderr"`
-	IOTranscriptSHA256      record.SHA256                    `json:"io_transcript_sha256"`
-	IOTranscriptRecords     record.Uint64String              `json:"io_transcript_records"`
-	IOTranscriptComplete    bool                             `json:"io_transcript_complete"`
-	BackendEvidenceSHA256   record.SHA256                    `json:"backend_evidence_sha256,omitempty"`
-	VirtualTimeElapsedNanos record.Uint64String              `json:"virtual_time_elapsed_nanos"`
-	Diagnostics             *DiagnosticEvidence              `json:"diagnostics,omitempty"`
-	Choices                 *ChoiceEvidence                  `json:"choices,omitempty"`
-	World                   record.World                     `json:"world"`
-	ReadOnlyMountsSHA256    *record.SHA256                   `json:"read_only_mounts_sha256,omitempty"`
-	SemanticCoverage        deterministicio.SemanticCoverage `json:"semantic_coverage"`
-	ChoiceExploration       *ChoiceExplorationEvidence       `json:"choice_exploration,omitempty"`
+	Schema                  string                     `json:"schema"`
+	Seed                    record.Uint64String        `json:"seed"`
+	RunnerBuild             string                     `json:"runner_build"`
+	Toolchain               record.Toolchain           `json:"toolchain"`
+	Target                  record.Target              `json:"target"`
+	IOProfile               record.IOContract          `json:"io_profile"`
+	Environment             []record.Environment       `json:"environment"`
+	Limits                  ExecutionLimitsEvidence    `json:"limits"`
+	Outcome                 OutcomeEvidence            `json:"outcome"`
+	GroupGone               bool                       `json:"group_gone"`
+	Stdout                  record.Stream              `json:"stdout"`
+	Stderr                  record.Stream              `json:"stderr"`
+	IOTranscriptSHA256      record.SHA256              `json:"io_transcript_sha256"`
+	IOTranscriptRecords     record.Uint64String        `json:"io_transcript_records"`
+	IOTranscriptComplete    bool                       `json:"io_transcript_complete"`
+	BackendEvidenceSHA256   record.SHA256              `json:"backend_evidence_sha256,omitempty"`
+	VirtualTimeElapsedNanos record.Uint64String        `json:"virtual_time_elapsed_nanos"`
+	Diagnostics             *DiagnosticEvidence        `json:"diagnostics,omitempty"`
+	Choices                 *ChoiceEvidence            `json:"choices,omitempty"`
+	World                   record.World               `json:"world"`
+	ReadOnlyMountsSHA256    *record.SHA256             `json:"read_only_mounts_sha256,omitempty"`
+	SemanticCoverage        record.SemanticCoverage    `json:"semantic_coverage"`
+	ChoiceExploration       *ChoiceExplorationEvidence `json:"choice_exploration,omitempty"`
 }
 
 type ChoiceExplorationEvidence struct {
@@ -91,11 +91,11 @@ func executionEvidence(
 	completion runCompletion,
 	outcome execution.Classification,
 	worldRecord record.World,
-	mountArtifact *readonlymount.CapturedInputs,
-	coverage deterministicio.SemanticCoverage,
+	mountArtifact *captured.CapturedInputs,
+	coverage record.SemanticCoverage,
 	choiceFeatures *choice.FeatureProjection,
 ) ExecutionEvidence {
-	profile := deterministicio.Default()
+	profile := transcript.Default()
 	runRecord := ExecutionEvidence{
 		Schema:      ExecutionEvidenceSchema,
 		Seed:        record.Uint64String(completion.job.seed),
@@ -125,8 +125,8 @@ func executionEvidence(
 	}
 	if prepared.Backend != nil {
 		backendProfile := record.BackendIOProfile(*prepared.Backend)
-		runRecord.IOProfile = deterministicio.Contract{
-			Name: backendProfile.Name, ImplementationSHA256: deterministicio.Digest(backendProfile.ImplementationSHA256), InventorySHA256: deterministicio.Digest(backendProfile.InventorySHA256),
+		runRecord.IOProfile = record.IOContract{
+			Name: backendProfile.Name, ImplementationSHA256: record.SHA256(backendProfile.ImplementationSHA256), InventorySHA256: record.SHA256(backendProfile.InventorySHA256),
 		}
 		runRecord.Target.Backend = recordedBackend(prepared, completion.result)
 		if len(completion.result.BackendEvidence) != 0 {

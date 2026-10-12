@@ -9,9 +9,9 @@ import (
 	"strings"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/deterministicio"
-	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
@@ -32,9 +32,9 @@ func runSimulationExplorationLocal(
 	config campaignRequest,
 	selection SeedSelection,
 	baseEnvironment []record.Environment,
-	readOnlyMounts []readonlymount.Mapping,
+	readOnlyMounts []captured.Mapping,
 	prepared target.Prepared,
-	profile deterministicio.Spec,
+	profile transcript.Spec,
 	journal *campaign.CampaignJournal,
 	runID string,
 	resuming bool,
@@ -182,17 +182,17 @@ func runSimulationExplorationLocal(
 	}
 
 	if coverageHasSemantic(config.Coverage) {
-		coverage, err := deterministicio.SummarizeSemanticProbes(sortedProbeList(semanticProbes))
+		coverage, err := transcript.SummarizeSemanticProbes(sortedProbeList(semanticProbes))
 		if err != nil {
 			return &HostError{Reason: "semantic_coverage", Err: err}
 		}
 		summary.SemanticCoverage = &coverage
-		missing, err := deterministicio.MissingRequiredSemanticProbes(coverage, config.RequiredSemanticProbes)
+		missing, err := transcript.MissingRequiredSemanticProbes(coverage, config.RequiredSemanticProbes)
 		if err != nil {
 			return err
 		}
 		if len(missing) != 0 {
-			return &deterministicio.MissingSemanticProbesError{Probes: missing}
+			return &record.MissingSemanticProbesError{Probes: missing}
 		}
 	}
 	if err := prepared.Verify(); err != nil {
@@ -230,8 +230,8 @@ func executeSimulationExplorationRound(
 	executor executionRunner,
 	prepared target.Prepared,
 	baseEnvironment []record.Environment,
-	profile deterministicio.Spec,
-	readOnlyMounts []readonlymount.Mapping,
+	profile transcript.Spec,
+	readOnlyMounts []captured.Mapping,
 	staged *campaign.SimulationExplorationRoundJournal,
 	state simulationengine.State,
 	round simulationengine.Round,
@@ -283,7 +283,7 @@ func processSimulationExplorationCompletion(
 	config campaignRequest,
 	prepared target.Prepared,
 	baseEnvironment []record.Environment,
-	readOnlyMounts []readonlymount.Mapping,
+	readOnlyMounts []captured.Mapping,
 	runID string,
 	batchPath string,
 	staged *campaign.SimulationExplorationRoundJournal,
@@ -457,15 +457,15 @@ func processSimulationExplorationCompletion(
 	return simulationExplorationRoundResult{result: explorationResult, run: run}, nil
 }
 
-func simulationExplorationExecutionIdentity(config campaignRequest, prepared target.Prepared, profile deterministicio.Spec, choiceImplementation [32]byte) (record.SHA256, error) {
+func simulationExplorationExecutionIdentity(config campaignRequest, prepared target.Prepared, profile transcript.Spec, choiceImplementation [32]byte) (record.SHA256, error) {
 	encoded, err := canonicaljson.CanonicalJSON(struct {
-		TargetSHA256         record.SHA256            `json:"target_sha256"`
-		ToolchainBuildKey    string                   `json:"toolchain_build_key"`
-		GOOS                 string                   `json:"goos"`
-		GOARCH               string                   `json:"goarch"`
-		ChoiceImplementation record.SHA256            `json:"choice_implementation_sha256"`
-		IOProfile            deterministicio.Contract `json:"io_profile"`
-		RunnerBuild          string                   `json:"runner_build"`
+		TargetSHA256         record.SHA256     `json:"target_sha256"`
+		ToolchainBuildKey    string            `json:"toolchain_build_key"`
+		GOOS                 string            `json:"goos"`
+		GOARCH               string            `json:"goarch"`
+		ChoiceImplementation record.SHA256     `json:"choice_implementation_sha256"`
+		IOProfile            record.IOContract `json:"io_profile"`
+		RunnerBuild          string            `json:"runner_build"`
 	}{
 		TargetSHA256: record.SHA256(prepared.SHA256), ToolchainBuildKey: prepared.BuildKey,
 		GOOS: prepared.TargetGOOS, GOARCH: prepared.TargetGOARCH, ChoiceImplementation: record.SHA256FromSum(choiceImplementation),

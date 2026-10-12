@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/deterministicio/volume"
+	"go.temporal.io/server/tools/gomad3/volume"
 	"go.temporal.io/server/tools/gomad3/hostexec"
 	"go.temporal.io/server/tools/gomad3sim"
 	"go.temporal.io/server/tools/gomad_wasm/wasi"

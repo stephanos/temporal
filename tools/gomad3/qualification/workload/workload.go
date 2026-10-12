@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 
-	"go.temporal.io/server/tools/gomad3/deterministicio"
 	"go.temporal.io/server/tools/gomad3/qualification"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner"
@@ -167,7 +166,7 @@ func workloadFailure(err error, iteration uint64) qualification.QualificationFai
 }
 
 func classifyWorkloadError(err error) string {
-	var missing *deterministicio.MissingSemanticProbesError
+	var missing *record.MissingSemanticProbesError
 	if errors.As(err, &missing) {
 		return "semantic_coverage_failure"
 	}

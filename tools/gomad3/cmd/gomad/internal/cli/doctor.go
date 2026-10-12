@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"go.temporal.io/server/tools/gomad3/deterministicio"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/target"
 	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
@@ -56,7 +56,7 @@ type CheckResult struct {
 }
 
 func Check(config Config) Report {
-	profile := deterministicio.Default()
+	profile := transcript.Default()
 	profileIdentity := profile.Identity()
 	report := Report{
 		Schema: reportSchema, Host: config.HostOS + "/" + config.HostArch,

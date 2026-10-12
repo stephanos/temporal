@@ -6,8 +6,8 @@ import (
 	"slices"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/deterministicio"
-	"go.temporal.io/server/tools/gomad3/internal/preparation"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	"go.temporal.io/server/tools/gomad3/backends/native/preparation"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/target"
 )
@@ -38,7 +38,7 @@ func scriptedPreparationDependencies(t *testing.T, preparer Preparer, executor e
 			prepared.Adapters = []record.TargetAdapter{}
 			return prepared, nil
 		},
-		bootstrap: func(deterministicio.Spec, target.Prepared, string, uint64) ([]byte, error) {
+		bootstrap: func(transcript.Spec, target.Prepared, string, uint64) ([]byte, error) {
 			return []byte(scriptedBootstrapMarker), nil
 		},
 	}

@@ -49,7 +49,7 @@ The default guest namespace contains writable `/workspace` and `/tmp`, with
 `PWD=/workspace`, bounded files/descriptors/output/transcript and explicit clock
 policy. Install accepts `--memory-bytes` and `--fuel` to declare capacities.
 `--config FILE` accepts a complete `wasi.Config` JSON value, including immutable
-captured inputs produced by Gomad's `readonlymount.CaptureReadOnlyMountInputs`.
+captured inputs produced by Gomad's `captured.CaptureReadOnlyMountInputs`.
 The declared `--profile` must agree with that configuration. Runtime imports
 never reopen original mount directories or access ambient host I/O.
 
@@ -76,7 +76,7 @@ From a source checkout, an unchanged Gomad canary demonstrates the workflow:
 
 ```sh
 gomad-wasm explore --choices --diagnostics --seeds=7 --parallel=1 \
-  --working-dir /absolute/checkout/tools/gomad3/internal/gomadtool/conformance/testdata \
+  --working-dir /absolute/checkout/tools/gomad3/backends/native/conformance/testdata \
   --build-tag=gomad_fixture --build-tag=test_dep \
   --artifacts /absolute/operator/artifacts \
   go-test ./io_failure -- -test.run=^TestDeterministicIOFailure$ -test.v

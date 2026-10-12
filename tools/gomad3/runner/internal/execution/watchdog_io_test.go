@@ -17,12 +17,12 @@ import (
 	"testing"
 	"time"
 
-	"go.temporal.io/server/tools/gomad3/deterministicio"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 )
 
 func TestRunIOTerminalAfterTermination(t *testing.T) {
 	var terminal bytes.Buffer
-	if err := deterministicio.WriteCompletion(&terminal, deterministicio.Transcript{Complete: true, SHA256: sha256.Sum256(nil)}); err != nil {
+	if err := transcript.WriteCompletion(&terminal, transcript.Transcript{Complete: true, SHA256: sha256.Sum256(nil)}); err != nil {
 		t.Fatal(err)
 	}
 	complete := terminal.Bytes()
@@ -79,7 +79,7 @@ func TestRunIOTerminalAfterTermination(t *testing.T) {
 				if !result.IOTranscript.Complete {
 					t.Fatalf("complete transcript lost: %#v", result.IOTranscript)
 				}
-			} else if !reflect.DeepEqual(result.IOTranscript, deterministicio.Transcript{}) {
+			} else if !reflect.DeepEqual(result.IOTranscript, transcript.Transcript{}) {
 				t.Fatalf("incomplete transcript retained: %#v", result.IOTranscript)
 			}
 		})

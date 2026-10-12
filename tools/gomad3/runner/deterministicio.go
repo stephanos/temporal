@@ -1,20 +1,20 @@
 package runner
 
 import (
-	"go.temporal.io/server/tools/gomad3/deterministicio"
-	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/record"
 )
 
-func deterministicAdapters(adapters []record.TargetAdapter) []deterministicio.Adapter {
-	result := make([]deterministicio.Adapter, len(adapters))
+func deterministicAdapters(adapters []record.TargetAdapter) []transcript.Adapter {
+	result := make([]transcript.Adapter, len(adapters))
 	for index, adapter := range adapters {
-		result[index] = deterministicio.Adapter{Module: adapter.Module, Version: adapter.Version, Sum: adapter.Sum}
+		result[index] = transcript.Adapter{Module: adapter.Module, Version: adapter.Version, Sum: adapter.Sum}
 	}
 	return result
 }
 
-func recordedIOProfile(profile deterministicio.Spec) record.IOProfile {
+func recordedIOProfile(profile transcript.Spec) record.IOProfile {
 	return record.IOProfile{
 		Name:                 profile.Name(),
 		ImplementationSHA256: record.SHA256(profile.ImplementationSHA256()),
@@ -23,7 +23,7 @@ func recordedIOProfile(profile deterministicio.Spec) record.IOProfile {
 	}
 }
 
-func recordedCapturedInputs(manifest readonlymount.CapturedInputsManifest) record.ReadOnlyMounts {
+func recordedCapturedInputs(manifest captured.CapturedInputsManifest) record.ReadOnlyMounts {
 	return record.ReadOnlyMounts{
 		Schema: manifest.Schema, File: manifest.File, SHA256: record.SHA256(manifest.SHA256), Bytes: record.Uint64String(manifest.Bytes),
 		Entries: record.Uint64String(manifest.Entries), NotExist: record.Uint64String(manifest.NotExist), TotalBytes: record.Uint64String(manifest.TotalBytes),
@@ -31,15 +31,15 @@ func recordedCapturedInputs(manifest readonlymount.CapturedInputsManifest) recor
 	}
 }
 
-func recordedCapturedInputLimits(limits readonlymount.CapturedInputLimits) record.ReadOnlyMountLimits {
+func recordedCapturedInputLimits(limits captured.CapturedInputLimits) record.ReadOnlyMountLimits {
 	return record.ReadOnlyMountLimits{
 		PathBytes: record.Uint64String(limits.PathBytes), Requests: record.Uint64String(limits.Requests), Files: record.Uint64String(limits.Files),
 		DirectoryEntries: record.Uint64String(limits.DirectoryEntries), SingleFileBytes: record.Uint64String(limits.SingleFileBytes), TotalBytes: record.Uint64String(limits.TotalBytes),
 	}
 }
 
-func deterministicCapturedInputLimits(limits record.ReadOnlyMountLimits) readonlymount.CapturedInputLimits {
-	return readonlymount.CapturedInputLimits{
+func deterministicCapturedInputLimits(limits record.ReadOnlyMountLimits) captured.CapturedInputLimits {
+	return captured.CapturedInputLimits{
 		PathBytes: uint64(limits.PathBytes), Requests: uint64(limits.Requests), Files: uint64(limits.Files),
 		DirectoryEntries: uint64(limits.DirectoryEntries), SingleFileBytes: uint64(limits.SingleFileBytes), TotalBytes: uint64(limits.TotalBytes),
 	}

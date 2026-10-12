@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/deterministicio"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	choiceengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/choice"
@@ -79,7 +78,7 @@ type CampaignPlan struct {
 	RunnerBuild            string                     `json:"runner_build"`
 	Toolchain              record.Toolchain           `json:"toolchain"`
 	Prepared               PreparedTargetPlan         `json:"prepared"`
-	IOProfile              deterministicio.Contract   `json:"io_profile"`
+	IOProfile              record.IOContract          `json:"io_profile"`
 	ChoiceProfile          *ChoiceProfilePlan         `json:"choice_profile,omitempty"`
 	Environment            []record.Environment       `json:"environment"`
 	IOROMounts             []string                   `json:"io_ro_mounts"`
@@ -225,7 +224,7 @@ func validateCampaignPlan(plan CampaignPlan) error {
 	if plan.Journal == nil || validateExecutionJournalPlan(*plan.Journal, plan) != nil || plan.Artifacts == nil {
 		return fmt.Errorf("campaign plan journal limits are invalid")
 	}
-	if plan.IOTranscriptBytes != 0 && (uint64(plan.IOTranscriptBytes) == deterministicio.DefaultTranscriptBytes || deterministicio.ValidateTranscriptLimit(uint64(plan.IOTranscriptBytes)) != nil) {
+	if plan.IOTranscriptBytes != 0 && (uint64(plan.IOTranscriptBytes) == record.DefaultIOTranscriptBytes || record.ValidateIOTranscriptLimit(uint64(plan.IOTranscriptBytes)) != nil) {
 		return fmt.Errorf("campaign plan I/O transcript limit is invalid")
 	}
 	artifacts, err := DeriveArtifactCapacityPlan(plan)

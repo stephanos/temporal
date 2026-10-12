@@ -4,8 +4,8 @@ include version_generated.mk
 
 OVERLAY_FILES := $(shell find toolchain/runtime/overlay -type f)
 VERSION_INPUTS := toolchain/version/version.json $(shell find toolchain/version -type f -not -name '*_test.go') cmd/gomadtool/version.go
-BOUNDARY_INPUTS := deterministicio/boundary/manifest.json deterministicio/boundary/compiler-tests.json $(shell find deterministicio/boundary -type f -not -name '*_test.go') $(shell find internal/gomadtool/generation/boundary -name '*.go' -not -name '*_test.go')
-BOUNDARY_OUTPUTS := $(GOMAD3_COMPILER_SPEC) $(GOMAD3_EXPECTED_INTERCEPTS) $(GOMAD3_BOUNDARY_REPORT) deterministicio/boundary_generated.go
+BOUNDARY_INPUTS := backends/native/transcript/boundary/manifest.json backends/native/transcript/boundary/compiler-tests.json $(shell find backends/native/transcript/boundary -type f -not -name '*_test.go') $(shell find internal/gomadtool/generation/boundary -name '*.go' -not -name '*_test.go')
+BOUNDARY_OUTPUTS := $(GOMAD3_COMPILER_SPEC) $(GOMAD3_EXPECTED_INTERCEPTS) $(GOMAD3_BOUNDARY_REPORT) backends/native/transcript/boundary_generated.go
 COMPATIBILITY_INPUTS := $(shell find internal/compatibilitypack/requests internal/compatibilitypack/authoring -type f) internal/compatibilitypack/working-directories.json internal/compatibilitypack/schema.go internal/compatibilitypack/v2_selection.go
 COMPILER_TEST_OVERLAY := $(CURDIR)/.toolchain/compiler-test-overlay
 COMPILER_TEST_COMPILE := $(CURDIR)/.toolchain/compiler-test/compile
@@ -73,7 +73,7 @@ intercept-test: compiler-test-compiler
 		--compiler=$(COMPILER_TEST_COMPILE)
 
 clock-audit: toolchain
-	bash ./internal/gomadtool/conformance/scripts/clock_audit_test.sh
+	bash ./backends/native/conformance/scripts/clock_audit_test.sh
 
 toolchain: validate-toolchain $(GOMAD3_PATCH_FILE) $(OVERLAY_FILES) $(BOUNDARY_OUTPUTS)
 	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOCACHE=$(CURDIR)/.toolchain/generator-cache GOTOOLCHAIN=local GOWORK=off \
@@ -130,7 +130,7 @@ test-host: toolchain
 	fi; \
 	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOMAD3_STOCK_GO="$$stock_go" GOEXPERIMENT=nogreenteagc GOWORK=off .toolchain/bin/go test -tags test_dep \
 		. ./cmd/... ./runner/... ./qualification/... ./target/... ./record/... ./artifact/... ./choice/... \
-		./deterministicio/... ./world/... ./toolchain/version ./toolchain/installation ./upgrade/... ./internal/...
+		./backends/native/transcript/... ./world/... ./toolchain/version ./toolchain/installation ./upgrade/... ./internal/...
 
 # internal/gomadsim keeps its tests external because testing reaches the
 # package through os.
@@ -153,7 +153,7 @@ overlay-test: toolchain
 # failure and remains a finding; its forward-mode regression runs separately.
 test-simulation: toolchain
 	cd $(CURDIR)/../.. && env -u GOMADSEED CGO_ENABLED=0 GOEXPERIMENT=nogreenteagc GOTOOLCHAIN=local GOWORK=off TZ=UTC GOMAD3_CHILD_SEED=89 \
-		$(CURDIR)/.toolchain/bin/go test -exec $(CURDIR)/internal/gomadtool/conformance/scripts/exec.sh \
+		$(CURDIR)/.toolchain/bin/go test -exec $(CURDIR)/backends/native/conformance/scripts/exec.sh \
 		-count=1 -tags test_dep,gomad3_toolchain ./tools/gomad3sim
 	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep,integration \
 		-run '^TestRootProcessSimulationUsesRunnerTransport$$/^Test(Scenario|ProcessExploration|ProcessAndInProcess|ProcessNetworkHandle|ProcessFilesystemHandle|ProcessBackend(Carries|Resets|Routes|Preserves|Crash|Model))' ./runner/internal/execution
@@ -182,7 +182,7 @@ validate-qualification:
 
 test-harness:
 	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go test -tags test_dep \
-		./internal/hostexec ./internal/gomadtool/conformance ./cmd/gomadtool
+		./internal/hostexec ./backends/native/conformance ./cmd/gomadtool
 
 test-builder:
 	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go run ./cmd/gomadtool test \

@@ -9,10 +9,10 @@ import (
 	"path/filepath"
 	"slices"
 
-	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
+	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
-	"go.temporal.io/server/tools/gomad3/internal/preparation"
+	"go.temporal.io/server/tools/gomad3/backends/native/preparation"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
 	"go.temporal.io/server/tools/gomad3/target"
@@ -53,7 +53,7 @@ type campaignPlanMountIdentity struct {
 	Entries    record.Uint64String               `json:"entries"`
 	TotalBytes record.Uint64String               `json:"total_bytes"`
 	Mappings   []string                          `json:"mappings"`
-	Limits     readonlymount.CapturedInputLimits `json:"limits"`
+	Limits     captured.CapturedInputLimits `json:"limits"`
 }
 
 type openedCampaignPlan struct {
@@ -107,10 +107,10 @@ func createCampaignPlanWith(ctx context.Context, spec CampaignPlanSpec, dependen
 			retErr = errors.Join(retErr, os.RemoveAll(bundle))
 		}
 	}()
-	if config.IOROMountLimits == (readonlymount.Limits{}) {
-		config.IOROMountLimits = readonlymount.DefaultLimits()
+	if config.IOROMountLimits == (captured.Limits{}) {
+		config.IOROMountLimits = captured.DefaultLimits()
 	}
-	mounts, err := readonlymount.ParseMappings(config.IOROMounts, config.Target.WorkingDir)
+	mounts, err := captured.ParseMappings(config.IOROMounts, config.Target.WorkingDir)
 	if err != nil {
 		return CampaignPlanResult{}, err
 	}
@@ -277,11 +277,11 @@ func validateCampaignPlanMountIdentity(plan campaign.CampaignPlan, identity *cam
 		}
 		return nil
 	}
-	mappings, err := readonlymount.ParseMappings(plan.IOROMounts, bundle)
+	mappings, err := captured.ParseMappings(plan.IOROMounts, bundle)
 	if err != nil {
 		return err
 	}
-	limits, err := readonlymount.DecodeLimits(deterministicCapturedInputLimits(plan.IOROMountLimits))
+	limits, err := captured.DecodeLimits(deterministicCapturedInputLimits(plan.IOROMountLimits))
 	if err != nil {
 		return err
 	}
@@ -289,7 +289,7 @@ func validateCampaignPlanMountIdentity(plan campaign.CampaignPlan, identity *cam
 	for index, mapping := range mappings {
 		targets[index] = mapping.Target
 	}
-	if identity.Schema != "gomad3.io-read-only-mounts/v1" || identity.SHA256 == "" || identity.Bytes == 0 || identity.Entries < record.Uint64String(len(mappings)) || !slices.Equal(identity.Mappings, targets) || identity.Limits != readonlymount.CapturedInputLimitsOf(limits) {
+	if identity.Schema != "gomad3.io-read-only-mounts/v1" || identity.SHA256 == "" || identity.Bytes == 0 || identity.Entries < record.Uint64String(len(mappings)) || !slices.Equal(identity.Mappings, targets) || identity.Limits != captured.CapturedInputLimitsOf(limits) {
 		return errors.New("campaign plan mount identity is invalid")
 	}
 	if _, err := record.ParseSHA256(string(identity.SHA256)); err != nil {

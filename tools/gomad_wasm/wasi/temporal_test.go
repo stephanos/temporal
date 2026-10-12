@@ -16,7 +16,7 @@ import (
 	"testing"
 	"time"
 
-	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
+	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/hostexec"
 	"go.temporal.io/server/tools/gomad_wasm/internal/sqlitebusy"
 )
@@ -105,7 +105,7 @@ func TestTemporalGuestAdmission(t *testing.T) {
 		selections["timers"] = "^TestUserTimersTestSuite$"
 		selections["application-failure"] = "^TestActivityClientTestSuite$/^TestActivity_AttemptsExceeded$"
 	case "failure":
-		root = filepath.Join(root, "tools", "gomad3", "internal", "gomadtool", "conformance", "testdata")
+		root = filepath.Join(root, "tools", "gomad3", "backends", "native", "conformance", "testdata")
 		packageName, version, cwd = "./io_failure", "go1.27.1", "/workspace/failure"
 		tags = "test_dep,gomad_fixture"
 		selections["failure"] = "^TestDeterministicIOFailure$"
@@ -211,7 +211,7 @@ func TestTemporalGuestAdmission(t *testing.T) {
 		Limits:              Limits{OutputBytes: 8 << 20, TranscriptBytes: 128 << 20, Calls: 250000, Descriptors: 1024, Files: 10000, FilesystemBytes: 128 << 20, PendingEvents: 4096},
 	}
 	if target != "failure" {
-		captured, err := readonlymount.CaptureReadOnlyMountInputs([]readonlymount.Mapping{{Source: filepath.Join(root, "schema", "sqlite"), Target: "/workspace/schema/sqlite"}}, readonlymount.DefaultLimits())
+		captured, err := captured.CaptureReadOnlyMountInputs([]captured.Mapping{{Source: filepath.Join(root, "schema", "sqlite"), Target: "/workspace/schema/sqlite"}}, captured.DefaultLimits())
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -429,7 +429,7 @@ type temporalSQLiteProjection struct {
 	Original, OriginalSHA256, Replacement, ReplacementSHA256 string
 	Overlay, OverlaySHA256                                   string
 	PrivateRoot, ModFile, SumFile                            string
-	OriginalInventory, PrivateInventory                      readonlymount.CapturedInputsManifest
+	OriginalInventory, PrivateInventory                      captured.CapturedInputsManifest
 }
 
 func temporalSQLiteAdapter(t *testing.T, evidence, root string, listed []byte) *temporalSQLiteProjection {
@@ -537,9 +537,9 @@ func temporalSQLiteAdapter(t *testing.T, evidence, root string, listed []byte) *
 	return projection
 }
 
-func temporalCaptureModule(t *testing.T, source string) readonlymount.CapturedInputs {
+func temporalCaptureModule(t *testing.T, source string) captured.CapturedInputs {
 	t.Helper()
-	captured, err := readonlymount.CaptureReadOnlyMountInputs([]readonlymount.Mapping{{Source: source, Target: "/module"}}, readonlymount.DefaultLimits())
+	captured, err := captured.CaptureReadOnlyMountInputs([]captured.Mapping{{Source: source, Target: "/module"}}, captured.DefaultLimits())
 	if err != nil {
 		t.Fatal(err)
 	}

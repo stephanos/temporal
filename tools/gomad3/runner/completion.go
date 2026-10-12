@@ -3,8 +3,8 @@ package runner
 import (
 	"fmt"
 
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/deterministicio"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
 	"go.temporal.io/server/tools/gomad3/target"
@@ -14,7 +14,7 @@ import (
 // completedExecution is what every strategy reads from one captured execution
 // once its World record is validated: the coverage it observed and its outcome.
 type completedExecution struct {
-	coverage         deterministicio.SemanticCoverage
+	coverage         record.SemanticCoverage
 	choiceFeatures   []string
 	choiceProjection *choice.FeatureProjection
 	outcome          execution.Classification
@@ -47,9 +47,9 @@ func assessWorld(result execution.Result, seed, transitionLimit uint64) (executi
 // Semantic coverage is decoded before choice features are projected, and the
 // first failure is the reported one.
 func assessCompletion(result execution.Result, terminal record.WorldTerminal, mode CoverageMode, prepared target.Prepared) (completedExecution, *HostError) {
-	coverage, err := deterministicio.SummarizeSemanticProbes(nil)
+	coverage, err := transcript.SummarizeSemanticProbes(nil)
 	if err == nil && coverageHasSemantic(mode) {
-		coverage, err = deterministicio.DecodeSemanticCoverage(result.IOTranscript.Bytes)
+		coverage, err = transcript.DecodeSemanticCoverage(result.IOTranscript.Bytes)
 	}
 	if err != nil {
 		return completedExecution{}, &HostError{Reason: "semantic_coverage", Err: err}

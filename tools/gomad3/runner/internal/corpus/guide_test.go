@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/deterministicio"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
 	"go.temporal.io/server/tools/gomad3/world"
@@ -52,7 +52,7 @@ func TestIdentityForBindsFeatureAndProbeInstrumentation(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if identity.InstrumentationSchema != SemanticFeatureSchema || identity.InstrumentationSHA256 == record.SHA256(deterministicio.SemanticInstrumentationIdentity()) {
+	if identity.InstrumentationSchema != SemanticFeatureSchema || identity.InstrumentationSHA256 == record.SHA256(transcript.SemanticInstrumentationIdentity()) {
 		t.Fatalf("guided instrumentation identity = %#v", identity)
 	}
 }
@@ -85,8 +85,8 @@ func TestIdentityForChoiceBindsTheExactExecutionProfile(t *testing.T) {
 }
 
 func TestSemanticFeaturesUseStableOutcomesAndOperationPairs(t *testing.T) {
-	transcript := append(transcriptRecord(t, 0, "os.open", 0), transcriptRecord(t, 1, "os.read", 3)...)
-	coverage, err := deterministicio.SummarizeSemanticProbes([]string{"stdlib.os.openfile"})
+	transcriptBytes := append(transcriptRecord(t, 0, "os.open", 0), transcriptRecord(t, 1, "os.read", 3)...)
+	coverage, err := transcript.SummarizeSemanticProbes([]string{"stdlib.os.openfile"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -99,7 +99,7 @@ func TestSemanticFeaturesUseStableOutcomesAndOperationPairs(t *testing.T) {
 			Terminal:    record.WorldTerminal{Kind: "deadlock", Detail: "mailbox is empty"},
 		},
 	}
-	features, err := semanticFeatures(manifest, coverage, transcript, nil, nil)
+	features, err := semanticFeatures(manifest, coverage, transcriptBytes, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -120,7 +120,7 @@ func TestSemanticFeaturesUseStableOutcomesAndOperationPairs(t *testing.T) {
 }
 
 func TestSemanticFeaturesSummarizeWorldTransitionsWithoutSeedOrPayloadIdentity(t *testing.T) {
-	coverage, err := deterministicio.SummarizeSemanticProbes(nil)
+	coverage, err := transcript.SummarizeSemanticProbes(nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -165,7 +165,7 @@ func TestSemanticFeaturesConsumeCanonicalChoicewireFeatureIDs(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	coverage, err := deterministicio.SummarizeSemanticProbes(nil)
+	coverage, err := transcript.SummarizeSemanticProbes(nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -207,7 +207,7 @@ func TestSnapshotPrioritizesReproducibleFailuresThenRareDomains(t *testing.T) {
 
 func transcriptRecord(t *testing.T, ordinal uint64, operation string, result uint32) []byte {
 	t.Helper()
-	encoded, err := deterministicio.EncodeOperation(deterministicio.Operation{Ordinal: ordinal, Name: operation, Result: result})
+	encoded, err := transcript.EncodeOperation(transcript.Operation{Ordinal: ordinal, Name: operation, Result: result})
 	if err != nil {
 		t.Fatal(err)
 	}

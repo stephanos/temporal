@@ -3,7 +3,6 @@ package campaign
 import (
 	"errors"
 
-	"go.temporal.io/server/tools/gomad3/deterministicio"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/world"
 )
@@ -87,7 +86,7 @@ func checkedArtifactCapacityMultiply(left, right uint64) (uint64, error) {
 // PlanTranscriptBytes is the plan's I/O transcript bound.
 func PlanTranscriptBytes(plan CampaignPlan) uint64 {
 	if plan.IOTranscriptBytes == 0 {
-		return deterministicio.DefaultTranscriptBytes
+		return record.DefaultIOTranscriptBytes
 	}
 	return uint64(plan.IOTranscriptBytes)
 }

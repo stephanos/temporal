@@ -15,7 +15,7 @@ import (
 
 func TestReplayRejectsChangedArtifactIdentityBeforeGuest(t *testing.T) {
 	provider := integrationProvider(t)
-	fixture, err := filepath.Abs("../../gomad3/internal/gomadtool/conformance/testdata")
+	fixture, err := filepath.Abs("../../gomad3/backends/native/conformance/testdata")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -5,13 +5,13 @@ import (
 	"strings"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/deterministicio"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
 func TestCreateCampaignPlanPreparesAdapterAfterBundleRootExists(t *testing.T) {
 	config, dependencies := testConfig(t, nil, &fakeExecutor{}, "1", PolicyAll, 1)
-	module, err := filepath.Abs(filepath.Join("..", "deterministicio", "testdata", "sprig"))
+	module, err := filepath.Abs(filepath.Join("..", "backends/native/transcript", "testdata", "sprig"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -19,7 +19,7 @@ func TestCreateCampaignPlanPreparesAdapterAfterBundleRootExists(t *testing.T) {
 		Kind: target.KindGoTest, Source: ".", WorkingDir: module,
 		ToolchainRoot: toolchainRoot(t),
 	}
-	_, _, err = deterministicio.Default().PrepareTargetBuildAdapters(t.Context(), config.Target)
+	_, _, err = transcript.Default().PrepareTargetBuildAdapters(t.Context(), config.Target)
 	if err == nil || !strings.Contains(err.Error(), "preparation root") {
 		t.Fatalf("pre-bundle adapter preparation error = %v", err)
 	}

@@ -356,7 +356,7 @@ func expectedInterceptsName(descriptor Descriptor) string {
 }
 
 func boundaryReportName(descriptor Descriptor) string {
-	return "deterministicio/boundary/" + descriptor.BoundaryManifestVersion[:strings.LastIndex(descriptor.BoundaryManifestVersion, "-v")] + ".md"
+	return "backends/native/transcript/boundary/" + descriptor.BoundaryManifestVersion[:strings.LastIndex(descriptor.BoundaryManifestVersion, "-v")] + ".md"
 }
 
 func compilerSpecName(descriptor Descriptor) string {
@@ -365,7 +365,7 @@ func compilerSpecName(descriptor Descriptor) string {
 }
 
 func upgradeGuideName(descriptor Descriptor) string {
-	return "deterministicio/boundary/upgrade-" + descriptor.BoundaryManifestVersion[:strings.LastIndex(descriptor.BoundaryManifestVersion, "-v")] + ".md"
+	return "backends/native/transcript/boundary/upgrade-" + descriptor.BoundaryManifestVersion[:strings.LastIndex(descriptor.BoundaryManifestVersion, "-v")] + ".md"
 }
 
 func quotedGoStrings(values []string) string {

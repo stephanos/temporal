@@ -14,7 +14,7 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
-	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
+	"go.temporal.io/server/tools/gomad3/captured"
 	gomadqualification "go.temporal.io/server/tools/gomad3/qualification"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad_wasm/installation"
@@ -320,7 +320,7 @@ func TestInstalledOperatorDiscoversInspectsAndReplaysWithoutBuildInputs(t *testi
 	if err := os.WriteFile(pinnedHelper, helperBytes, 0700); err != nil {
 		t.Fatal(err)
 	}
-	fixture, err := os.ReadFile("../../../gomad3/internal/gomadtool/conformance/testdata/io_failure/io_failure_test.go")
+	fixture, err := os.ReadFile("../../../gomad3/backends/native/conformance/testdata/io_failure/io_failure_test.go")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -347,7 +347,7 @@ func TestInstalledOperatorDiscoversInspectsAndReplaysWithoutBuildInputs(t *testi
 			if err := os.WriteFile(filepath.Join(inputs, "control"), []byte("immutable operator input"), 0600); err != nil {
 				t.Fatal(err)
 			}
-			captured, err := readonlymount.CaptureReadOnlyMountInputs([]readonlymount.Mapping{{Source: inputs, Target: "/inputs"}}, readonlymount.DefaultLimits())
+			captured, err := captured.CaptureReadOnlyMountInputs([]captured.Mapping{{Source: inputs, Target: "/inputs"}}, captured.DefaultLimits())
 			if err != nil {
 				t.Fatal(err)
 			}

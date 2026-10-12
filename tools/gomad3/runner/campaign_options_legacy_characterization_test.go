@@ -11,8 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"go.temporal.io/server/tools/gomad3/deterministicio"
-	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
+	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
@@ -235,7 +234,7 @@ func legacyCampaignOptionsCases(t *testing.T) []legacyCampaignOptionsCase {
 		{name: "seed read-only mounts", spec: with(seed, func(spec *CampaignSpec) { spec.IOROMounts = []string{"usr=/mnt/usr"} })},
 		{name: "seed read-only mount limits", spec: with(seed, func(spec *CampaignSpec) {
 			spec.IOROMounts = []string{"usr=/mnt/usr"}
-			spec.IOROMountLimits = readonlymount.DefaultLimits()
+			spec.IOROMountLimits = captured.DefaultLimits()
 		})},
 		{name: "seed keep all successes", spec: with(seed, func(spec *CampaignSpec) {
 			spec.KeepSuccesses, spec.SuccessArtifactLimit, spec.SuccessBytesLimit = KeepSuccessesAll, 2, 1<<20
@@ -396,7 +395,7 @@ func legacyCampaignOptionsCases(t *testing.T) []legacyCampaignOptionsCase {
 		{name: "malformed mount", spec: with(seed, func(spec *CampaignSpec) { spec.IOROMounts = []string{"usr"} })},
 		{name: "missing mount source", spec: with(seed, func(spec *CampaignSpec) { spec.IOROMounts = []string{"gomad3-characterization-missing=/mnt/missing"} })},
 		{name: "invalid mount limits", spec: with(seed, func(spec *CampaignSpec) {
-			spec.IOROMounts, spec.IOROMountLimits = []string{"usr=/mnt/usr"}, readonlymount.Limits{Files: 1}
+			spec.IOROMounts, spec.IOROMountLimits = []string{"usr=/mnt/usr"}, captured.Limits{Files: 1}
 		})},
 		{name: "malformed environment entry", spec: with(seed, func(spec *CampaignSpec) { spec.Environment = []string{"NOVALUE"} })},
 		{name: "reserved environment name", spec: with(seed, func(spec *CampaignSpec) { spec.Environment = []string{"GOMAXPROCS=2"} })},
@@ -443,7 +442,7 @@ func legacyCharacterizationPrepared() target.Prepared {
 // implementation rather than the campaign request: they legitimately change
 // with a rebuilt toolchain or the development platform.
 func legacyCharacterizationPlan(plan campaign.CampaignPlan) ([]byte, error) {
-	plan.IOProfile = deterministicio.Contract{}
+	plan.IOProfile = record.IOContract{}
 	plan.ChoiceExplorationImplementationSHA256 = ""
 	plan.SimulationExplorationImplementationSHA256 = ""
 	if plan.ChoiceProfile != nil {
@@ -458,11 +457,11 @@ func legacyCharacterizationJournalPlan(spec CampaignSpec, selection SeedSelectio
 	return campaign.DeriveExecutionJournalPlan(string(NormalizeStrategy(spec.Strategy)), selection.Count(), spec.MaxExecutions, uint64(spec.Parallel))
 }
 
-func legacyCharacterizationMounts(spec CampaignSpec) ([]readonlymount.Mapping, readonlymount.Limits, error) {
-	mounts, err := readonlymount.ParseMappings(spec.IOROMounts, spec.Target.WorkingDir)
+func legacyCharacterizationMounts(spec CampaignSpec) ([]captured.Mapping, captured.Limits, error) {
+	mounts, err := captured.ParseMappings(spec.IOROMounts, spec.Target.WorkingDir)
 	limits := spec.IOROMountLimits
-	if limits == (readonlymount.Limits{}) {
-		limits = readonlymount.DefaultLimits()
+	if limits == (captured.Limits{}) {
+		limits = captured.DefaultLimits()
 	}
 	return mounts, limits, err
 }
