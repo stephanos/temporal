@@ -74,9 +74,7 @@ func TestWASMArchitectureRejectsHostImports(t *testing.T) {
 					t.Fatal(err)
 				}
 			}
-			config := wasmArchitectureConfig()
-			config.Exceptions = nil
-			findings, err := archcheck.Check(filepath.Join(root, "backends/wasm"), compiledGoCommand(), archcheck.Platform{OS: "linux", Arch: "amd64"}, config)
+			findings, err := archcheck.Check(filepath.Join(root, "backends/wasm"), compiledGoCommand(), archcheck.Platform{OS: "linux", Arch: "amd64"}, wasmArchitectureConfig())
 			if err != nil {
 				t.Fatal(err)
 			}

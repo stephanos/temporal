@@ -95,11 +95,10 @@ func TestConfiguredEdgesAndOwners(t *testing.T) {
 			t.Fatalf("missing %s: %v", category, findings)
 		}
 	}
-	config.Exceptions = []Exception{{From: "example.invalid/check/world", To: "example.invalid/check/backends/native", RemovalTask: "fn-164.5"}}
 	config.OwnerEdges["shared"] = []string{"native"}
 	findings, err = Check(root, "go", Platform{runtime.GOOS, runtime.GOARCH}, config)
-	if err != nil || len(findings) != 0 {
-		t.Fatalf("allowed edge rejected: %v, %v", findings, err)
+	if err != nil || len(findings) != 1 || findings[0].Category != "module-edge" {
+		t.Fatalf("owner edge rejected or module edge admitted: %v, %v", findings, err)
 	}
 }
 
