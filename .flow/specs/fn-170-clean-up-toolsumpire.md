@@ -27,6 +27,7 @@ Task 1, the CLI, is known now; the rest follows the research.
 
 ## Decision Context
 
+- 2026-10-12, owner: the generic CLI is Temporal-free; API descriptors arrive as data; the binary's `main` in the Temporal adapter wires the Temporal target (Driver, SDK, in-process cluster). A large single binary is fine.
 - 2026-10-12, owner: consolidate the commands into a single CLI. Library: urfave/cli v2, already a dependency the server uses, unless the owner chooses cobra. AGENTS.md admits a new third-party library only when specifically requested.
 
 ## Requirement coverage

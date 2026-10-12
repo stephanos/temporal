@@ -578,7 +578,7 @@ items of fn-169.4 move here.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-170.1 | ⏸️ deferred (Go) | One `umpire` CLI with subcommands replaces the eight `cmd/umpire-*` binaries; urfave/cli v2 unless the owner picks cobra; Make target names kept |
+| fn-170.1 | ⏸️ deferred (Go) | One `umpire` CLI with subcommands replaces the eight `cmd/umpire-*` binaries; the generic CLI is Temporal-free (API descriptors as a descriptor-set file, a target interface), its `main` in the Temporal adapter wires the Driver, SDK and test cluster; urfave/cli v2 unless the owner picks cobra; Make target names kept |
 
 ### fn-128: Close the activity's precision gaps
 

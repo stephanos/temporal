@@ -9,12 +9,20 @@ Replace the eight binaries under `tools/umpire/cmd/` (`umpire-assess`, `-fuzz`, 
 - Make targets keep their names and call the subcommands. Update every doc, script and CI reference to the old binary names.
 - Build weight: keep heavy dependencies (Testpilot, Temporal SDK, server code) out of the light subcommands' packages, so only the main links everything; record cold and warm build times before and after.
 
+**Temporal-free generic CLI (owner, 2026-10-12).** A large single binary is fine; generic code depending on Temporal is not. Today the commands depend on Temporal three ways:
+1. Model-only commands (`umpire-lint`, `-gen-cases`, `-ir-bridge`) blank-import `go.temporal.io/api/workflowservice/v1` only so the protobuf registry resolves the Temporal message names the IR's realizations use.
+2. Case-running commands (`umpire-run`, `-assess`, `-fuzz`, `-replay`, `-ir-bridge`) import Testpilot's Temporal Driver (`testpilot/temporal`, `binding`).
+3. `umpire-run` and `umpire-repeat` link the server: `tests/testcore`, `tests`, `service/history/tasks`, `history/consts`, `matching/counter` (an in-process test cluster).
+
+Target:
+- The generic `umpire` CLI (subcommand packages and shared plumbing) imports no Temporal API, SDK, `service/...` or `tests/...`. It resolves API messages from a descriptor-set file named with the IR (or passed by flag), not linked-in generated code. It defines a small target interface (a Testpilot Driver plus provisioning, such as starting an in-process cluster) for the Case-running subcommands.
+- The binary's `main` lives in the Temporal adapter (for example `tools/umpire/temporal/cmd/umpire`). It composes the generic commands with the Temporal target: the Testpilot Temporal Driver, the Go SDK and the `tests/testcore` cluster.
+- An import rule (a dependency-boundary test like Testpilot's) enforces the separation.
 ## Acceptance
 - One `umpire` binary; the eight old `cmd/umpire-*` packages are gone.
 - Each subcommand's flags, exit codes and outputs match its old binary (a golden or table test per subcommand).
 - Make targets unchanged in name and behaviour; docs updated; build times recorded.
-
-
+- Generic CLI packages import no Temporal API, SDK, `service/...` or `tests/...` (enforced by a boundary test); API descriptors come from a descriptor-set file; the Temporal target is wired only in the adapter's `main`.
 ## Done summary
 TBD
 
