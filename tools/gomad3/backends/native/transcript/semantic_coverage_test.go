@@ -2,6 +2,7 @@ package transcript
 
 import (
 	"encoding/binary"
+	"encoding/json"
 	"go.temporal.io/server/tools/gomad3/record"
 	"slices"
 	"strings"
@@ -9,6 +10,23 @@ import (
 
 	iowire "go.temporal.io/server/tools/gomad3/internal/iowire"
 )
+
+func TestSemanticCoverageEmptyCanonicalBytes(t *testing.T) {
+	for _, probes := range [][]string{nil, {}} {
+		coverage, err := SummarizeSemanticProbes(probes)
+		if err != nil {
+			t.Fatal(err)
+		}
+		data, err := json.Marshal(coverage)
+		if err != nil {
+			t.Fatal(err)
+		}
+		const expected = `{"schema":"gomad3.semantic-coverage/v1","digest":"sha256:b14c6b04e0e4bd4b4431562e77b1b78eb7940a9cc505e47a8df9f713f4058356","probes":[]}`
+		if string(data) != expected {
+			t.Fatalf("empty coverage = %s, want %s", data, expected)
+		}
+	}
+}
 
 func TestDecodeSemanticCoverageReturnsStableSortedBoundaryProbes(t *testing.T) {
 	transcript := append(semanticProbeRecord(t, 0, generatedBoundaryProbes[1].ID), semanticProbeRecord(t, 1, generatedBoundaryProbes[0].ID)...)

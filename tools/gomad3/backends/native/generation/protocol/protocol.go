@@ -450,7 +450,7 @@ func GenerateProtocols(root string, check bool) error {
 	modelOutputs := []output{
 		{Package: "gomadmodelwire", Template: "modelwire.go.tmpl", Path: "backends/native/toolchain/runtime/overlay/src/internal/gomadmodelwire/wire_generated.go"},
 		{Package: "gomadmodelwire", Template: "modelwire_test.go.tmpl", Path: "backends/native/toolchain/runtime/overlay/src/internal/gomadmodelwire/wire_generated_test.go"},
-		{Package: "execution", Template: "modeltransport.go.tmpl", Path: "runner/internal/execution/simulation_model_wire_generated.go"},
+		{Package: "execution", Template: "modeltransport.go.tmpl", Path: "backends/native/execution/simulation_model_wire_generated.go"},
 		{Package: "gomadsim", Template: "modeltransport.go.tmpl", Path: "backends/native/toolchain/runtime/overlay/src/internal/gomadsim/model_transport_generated.go"},
 	}
 	for _, target := range modelOutputs {
@@ -475,8 +475,8 @@ func GenerateProtocols(root string, check bool) error {
 		return err
 	}
 	timeOutputs := []output{
-		{Package: "execution", Template: "timewire_host.go.tmpl", Path: "runner/internal/execution/simulation_time_wire_generated.go"},
-		{Package: "execution", Template: "timewire_host_test.go.tmpl", Path: "runner/internal/execution/simulation_time_wire_generated_test.go"},
+		{Package: "execution", Template: "timewire_host.go.tmpl", Path: "backends/native/execution/simulation_time_wire_generated.go"},
+		{Package: "execution", Template: "timewire_host_test.go.tmpl", Path: "backends/native/execution/simulation_time_wire_generated_test.go"},
 		{Package: "runtime", Template: "timewire_runtime.go.tmpl", Path: "backends/native/toolchain/runtime/overlay/src/runtime/gomad_timewire_generated.go"},
 		{Package: "runtime", Template: "timewire_runtime_export_test.go.tmpl", Path: "backends/native/toolchain/runtime/overlay/src/runtime/gomad_timewire_export_generated_test.go"},
 		{Package: "runtime", Template: "timewire_runtime_test.go.tmpl", Path: "backends/native/toolchain/runtime/overlay/src/runtime/gomad_timewire_generated_test.go"},

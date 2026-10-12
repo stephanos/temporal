@@ -1,7 +1,9 @@
 package record
 
 import (
+	"crypto/sha256"
 	"fmt"
+	"sort"
 	"strings"
 )
 
@@ -40,6 +42,24 @@ type SemanticCoverage struct {
 	Schema string   `json:"schema"`
 	Digest SHA256   `json:"digest"`
 	Probes []string `json:"probes"`
+}
+
+func NewSemanticCoverage(probes []string) SemanticCoverage {
+	unique := make(map[string]struct{}, len(probes))
+	for _, probe := range probes {
+		unique[probe] = struct{}{}
+	}
+	probes = make([]string, 0, len(unique))
+	for probe := range unique {
+		probes = append(probes, probe)
+	}
+	sort.Strings(probes)
+	identity := SemanticCoverageSchema + "\x00"
+	if len(probes) != 0 {
+		identity += strings.Join(probes, "\n") + "\n"
+	}
+	hash := sha256.Sum256([]byte(identity))
+	return SemanticCoverage{Schema: SemanticCoverageSchema, Digest: SHA256(fmt.Sprintf("sha256:%x", hash)), Probes: probes}
 }
 
 func (err *MissingSemanticProbesError) Error() string {

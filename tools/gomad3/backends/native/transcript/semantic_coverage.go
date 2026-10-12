@@ -5,7 +5,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"sort"
-	"strings"
 
 	iowire "go.temporal.io/server/tools/gomad3/internal/iowire"
 	"go.temporal.io/server/tools/gomad3/record"
@@ -48,24 +47,12 @@ func SummarizeSemanticProbes(probes []string) (record.SemanticCoverage, error) {
 	for _, probe := range generatedBoundaryProbes {
 		known[probe.Name] = struct{}{}
 	}
-	unique := make(map[string]struct{}, len(probes))
 	for _, probe := range probes {
 		if _, found := known[probe]; !found {
 			return record.SemanticCoverage{}, fmt.Errorf("unknown semantic probe %q", probe)
 		}
-		unique[probe] = struct{}{}
 	}
-	probes = make([]string, 0, len(unique))
-	for probe := range unique {
-		probes = append(probes, probe)
-	}
-	sort.Strings(probes)
-	identity := record.SemanticCoverageSchema + "\x00"
-	if len(probes) != 0 {
-		identity += strings.Join(probes, "\n") + "\n"
-	}
-	hash := sha256.Sum256([]byte(identity))
-	return record.SemanticCoverage{Schema: record.SemanticCoverageSchema, Digest: record.SHA256(fmt.Sprintf("sha256:%x", hash)), Probes: probes}, nil
+	return record.NewSemanticCoverage(probes), nil
 }
 
 func MissingRequiredSemanticProbes(coverage record.SemanticCoverage, required []string) ([]string, error) {

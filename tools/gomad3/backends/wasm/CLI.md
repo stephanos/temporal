@@ -1,10 +1,11 @@
 # WASM operator entrypoint
 
-`gomad-wasm` selects the WASM provider for Gomad's existing command application.
+The unified `gomad --installation FILE` launcher selects the provider declared
+by its installation manifest. A WASM installation enables the commands below.
 Campaign parsing, logical execution order, artifact layout, inspection, recovery,
 resume, replay comparison, compatible minimization, reports and exit statuses
 remain owned by Gomad.
-The native `gomad` entrypoint retains its installation and defaults.
+Native installations retain their existing commands and defaults.
 
 This delivery surface is provisional under fn-156.7. The integrated production
 support and cost gates in fn-156.6/.7 remain pending. A successful fixture run
@@ -25,10 +26,10 @@ The installed helper remains required in both cases. From the repository root:
 ```sh
 make -C tools/gomad3/backends/wasm helper
 mkdir -p /absolute/operator/bin
-cd tools/gomad3/backends/wasm
+cd tools/gomad3
 /absolute/stock-go/bin/go build -trimpath \
-  -o /absolute/operator/bin/gomad-wasm ./cmd/gomad-wasm
-/absolute/operator/bin/gomad-wasm install \
+  -o /absolute/operator/bin/gomad ./cmd/gomad
+/absolute/operator/bin/gomad install \
   --compiler /absolute/stock-go/bin/go \
   --helper /absolute/checkout/tools/gomad3/backends/wasm/wasmhost/target/release/gomad3-wasmhost \
   --runtime-root /absolute/checkout/tools/gomad3/runtimesemantics \
@@ -56,8 +57,8 @@ never reopen original mount directories or access ambient host I/O.
 ## Discovery
 
 ```sh
-gomad-wasm discover
-gomad-wasm --installation /absolute/operator/bin/gomad-wasm.json discover
+gomad discover
+gomad --installation /absolute/operator/bin/gomad-wasm.json discover
 ```
 
 Resolution uses the explicit `--installation` path, then
@@ -75,15 +76,15 @@ after build inputs are unavailable.
 From a source checkout, an unchanged Gomad canary demonstrates the workflow:
 
 ```sh
-gomad-wasm explore --choices --diagnostics --seeds=7 --parallel=1 \
+gomad explore --choices --diagnostics --seeds=7 --parallel=1 \
   --working-dir /absolute/checkout/tools/gomad3/backends/native/conformance/testdata \
   --build-tag=gomad_fixture --build-tag=test_dep \
   --artifacts /absolute/operator/artifacts \
   go-test ./io_failure -- -test.run=^TestDeterministicIOFailure$ -test.v
-gomad-wasm inspect --json /absolute/retained/artifact
-gomad-wasm inspect --choices /absolute/retained/artifact
-gomad-wasm replay --verify-only /absolute/retained/artifact
-gomad-wasm replay --observed /absolute/operator/replay-output /absolute/retained/artifact
+gomad inspect --json /absolute/retained/artifact
+gomad inspect --choices /absolute/retained/artifact
+gomad replay --verify-only /absolute/retained/artifact
+gomad replay --observed /absolute/operator/replay-output /absolute/retained/artifact
 ```
 
 The first command intentionally returns status 1 and prints the actual retained
@@ -109,14 +110,14 @@ The existing shared minimizer accepts a standalone cooperative target-failure
 artifact with complete exact choice evidence and a compatible installed provider:
 
 ```sh
-gomad-wasm --installation /absolute/operator/bin/gomad-wasm.json minimize \
+gomad --installation /absolute/operator/bin/gomad-wasm.json minimize \
   --attempt-budget=64 --max-bytes=512MiB \
   --artifacts /absolute/operator/artifacts /absolute/retained/artifact
-gomad-wasm --installation /absolute/operator/bin/gomad-wasm.json minimize \
+gomad --installation /absolute/operator/bin/gomad-wasm.json minimize \
   --resume --attempt-budget=64 --max-bytes=512MiB \
   --artifacts /absolute/operator/artifacts /absolute/retained/artifact
-gomad-wasm inspect --choices /absolute/minimized/artifact
-gomad-wasm --installation /absolute/operator/bin/gomad-wasm.json replay \
+gomad inspect --choices /absolute/minimized/artifact
+gomad --installation /absolute/operator/bin/gomad-wasm.json replay \
   /absolute/minimized/artifact
 ```
 
@@ -172,7 +173,7 @@ they are not one complete global choice tape, so the shared replay output report
 ## On-demand qualification and retained cost report
 
 ```sh
-gomad-wasm --installation /absolute/operator/bin/gomad-wasm.json \
+gomad --installation /absolute/operator/bin/gomad-wasm.json \
   qualify --spec /absolute/qualification-spec.json
 ```
 
@@ -215,7 +216,7 @@ published, its path and available raw receipt are emitted before that failure
 when they fit the bounded response; invalid/oversize response paths fail closed.
 
 ```sh
-gomad-wasm report --result /absolute/results/wasm-qualifications/v1/result-HASH.json
+gomad report --result /absolute/results/wasm-qualifications/v1/result-HASH.json
 ```
 
 This source-less command opens the qualification owner's content-addressed
@@ -272,12 +273,12 @@ promote the full-wall gate. Virtual time is not compute time or schedule coverag
 Bounded choice exploration uses the same grammar and frontier owner as Gomad:
 
 ```sh
-gomad-wasm explore --strategy=choice-exploration --choices --coverage=choice \
+gomad explore --strategy=choice-exploration --choices --coverage=choice \
   --seeds=7 --parallel=1 --max-executions=16 --max-choice-depth=4 \
   --max-exploration-bytes=8MiB --on-failure=all \
   go-test ./supported/package -- -test.run=^TestCanary$
-gomad-wasm recover --json /absolute/interrupted/campaign
-gomad-wasm resume --json /absolute/interrupted/campaign
+gomad recover --json /absolute/interrupted/campaign
+gomad resume --json /absolute/interrupted/campaign
 ```
 
 The execution/depth/byte bounds are required; they do not prove exhaustive
@@ -373,7 +374,7 @@ Select it with an explicit existing stock compiler:
 cd tools/gomad3/backends/wasm
 GOMAD3_STOCK_GO=/absolute/stock-go/bin/go \
   /absolute/stock-go/bin/go test -v -tags test_dep -count=1 -timeout=15m \
-  ./installation ./cmd/gomad-wasm
+  ./installation ./command
 ```
 
 Frozen integrated source/engine/cache gate, operator smoke receipts, supported

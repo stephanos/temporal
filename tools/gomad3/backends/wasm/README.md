@@ -59,7 +59,7 @@ every Temporal test. Stock WASI repeatability does not qualify forced scheduling
 replay. The explicit `gomad3.wasi-cooperative/v1` profile adds runtime choice and
 diagnostic hooks. Strict World virtual-time semantics remain a later gate.
 
-The public `runner/backend.Provider` boundary reuses Gomad's campaign, artifact
+The public `backends.Provider` boundary reuses Gomad's campaign, artifact
 and replay owners. Preparation binds selected source and test files, dependencies,
 embedded and assembly inputs and included headers, compiler tools, helper, model implementation,
 imports, memory, fuel and captured inputs. Replay uses retained module and
@@ -105,7 +105,7 @@ final forcing lengths and tape digests. Candidate replay and final publication u
 retained bytes without reopening source, compiler or runtime inputs. Interrupted
 runs resume through the existing shared minimizer workspace and controller.
 Observed stock failures, incomplete traces, native simulation profiles and
-incompatible replay profiles are rejected. `gomad-wasm minimize` routes this
+incompatible replay profiles are rejected. `gomad --installation FILE minimize` routes this
 compatible standalone choice-prefix mode through the shared Runner, including
 its existing output, attempt, byte and resume bounds.
 

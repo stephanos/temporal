@@ -30,7 +30,7 @@ func (p *Provider) Evidence(ctx context.Context, request backends.EvidenceReques
 	if len(request.Transcript) != 0 || len(request.Probes) != 0 || len(request.RequiredSemanticProbes) != 0 {
 		return backends.Evidence{}, errors.New("WASM evidence does not contain native I/O transcript probes")
 	}
-	return backends.Evidence{}, nil
+	return backends.Evidence{Coverage: record.NewSemanticCoverage(nil)}, nil
 }
 
 func observedRequest(request backends.ExecutionRequest) (backends.Request, error) {

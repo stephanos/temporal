@@ -1290,7 +1290,7 @@ explicitly quiesce to choose and deliver ready events.
 
 `world/mailbox` is the initial explicit adapter. It demonstrates lifecycle,
 snapshot/restore, and replay without giving World ownership of application
-state. `runner/internal/execution` composes World semantic records with the
+state. `backends` composes World semantic records with the
 Runner's raw process record while keeping those identities separate. A target connects
 its World with `world/process.Open`, takes the session-owned World returned by
 `Session.Model()`, performs all modeled work, and calls
@@ -1437,7 +1437,7 @@ watchdog finding; its forward-mode regression runs separately. `overlay-test`
 includes `internal/gomadsim`,
 `internal/gomadmodelwire`, `internal/gomadio`, `os`, and
 `cmd/internal/gomadcap`. In the host tier, `TestModelConformanceFilesystem` and
-`TestModelConformanceTCP` (`runner/internal/execution`) run 64-operation
+`TestModelConformanceTCP` (`backends/native/execution`) run 64-operation
 sequences generated from five fixed seeds against the in-memory filesystem and
 loopback TCP models and against stock Go on the host, and report the shortest
 reproducing prefix of a mismatch. `modelDeclaredDifferences` in
