@@ -34,6 +34,7 @@ model/
       lint/                  generic source rules (+ fn-141.1's order/structure/marker lints)
       equivalence/           step-table equivalence, rename maps, ledgers (used by gate and migrate)
     migrate/                 the rule-proof harness (prove-mini runner, patch application)
+    samples/                 one-file Temporal-free sample Models: Kettle, Bank, TwoPhaseCommit (P/Quint counterparts)
   temporal/                  package temporal.*    (everything Temporal)
     Bounds.scala, actors/, capabilities/, foundations/, features/   (the Models)
     realize/                 the Temporal kit (as today)
@@ -67,6 +68,7 @@ Enforcement: `framework/` compiles without the Temporal API jar or `temporal.*` 
 - **R3:** Temporal specifics reach the generic lifter only through a plug-in seam: layout conventions, realization-kit lifting and target API descriptors are supplied by `temporal/export`. Protobuf support is generic framework: a system registers its API proto roots and descriptor sets, which the proto lint, the gate's proto stage and realization lifting read; the generic proto authoring sugar lives in `framework/realize`.
 - **R4:** The mini lift is byte-identical except for recorded source-path changes; mini step-table equivalence holds; the targeted suites of the moved code pass at their new homes.
 - **R5:** `MILESTONES.md` Direction, `.plans/UMPIRE_MODULES.md`, `model/README.md` and `AGENTS.md` state the new layout and that the framework is Temporal-free; the fn-114.12/fn-122.8 position is recorded as superseded.
+- **R8:** `framework/samples/` holds one-file, Temporal-free sample Models of rising complexity (Kettle, Bank, TwoPhaseCommit) with P/Quint counterparts named, checked by the gate.
 - **R6 (held, sweep):** The IR schema moves to an Umpire-owned namespace (`umpire.ir.v1`).
 - **R7 (held, sweep):** Go consumers follow the `framework.dsl` IR type names (`tools/umpire/interp/eval.go` `StepType`/`deliveryType`, test strings); Go `tools/umpire` separates a `temporal/` adapter from generic packages, and Testpilot's `internal/execution` API use moves behind `testpilot/temporal/`, with an import rule.
 
@@ -76,6 +78,7 @@ Not in scope: changing Model meaning; the real features' sources; publishing the
 
 ## Decision Context
 
+- 2026-10-12, owner: add `framework/samples/` with one-file sample Models over a range of complexity; conductor picked Kettle (Quint), Bank (P ClientServer, Quint README) and TwoPhaseCommit (P and Quint) for comparison.
 - 2026-10-12, owner: protobuf support is framework, not Temporal; a system registers its API protos (.2), and the generic proto sugar moves to `framework/realize` (.1).
 - 2026-10-12, owner: `check/` is the umbrella for verification, with `check/lint/` and `check/equivalence/` beneath it and the gate driver at its root.
 - 2026-10-12, owner: the Model-to-IR module is named `export` (`framework/export`, `temporal/export`), not `lift`; the lifter's vocabulary in docs and diagnostics may stay. Go's `tools/umpire/export` (the Quint export) keeps its name.
@@ -97,3 +100,4 @@ FEATURES=activity_mini make model-mini   # once fn-166.12 lands
 | R3 | .2 |
 | R6 | .3 |
 | R7 | .4 |
+| R8 | .5 |
