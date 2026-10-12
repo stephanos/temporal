@@ -93,3 +93,34 @@ The copied-mini runner introduces a renamed phase-member import in its isolated
 ambiguity refusal, and requires exact accepted-source restoration. The shared proof compares
 the compiled complete mini's raw IR and waiver bytes, including every identity and position.
 Production loading, real-feature application and consumer gates remain held.
+
+## Central bounds: Fn159Task5CentralBounds
+
+The source rule maps literal named `Limits(steps = ..., actions = ..., search = ...)`
+budgets to the eleven declarations in `temporal.Bounds`, including `fourWide`, `fiveWide`,
+`twelveWide` and the old control budget's `eight`. A literal `1 << n` search is accepted.
+It supports one local declaration in a lexical block, rewrites its unambiguous bare uses,
+and removes that declaration. A visible selective central import keeps the accepted short
+name; otherwise uses become `temporal.Bounds.<name>`. A block whose only remaining statement
+is the Query expression is unwrapped. Applying the rule twice converges.
+
+Unknown budgets, shadowed names, competing imports, qualified uses, multiple or nested
+local declarations, and exported/member declarations refuse the document atomically.
+This syntactic rule cannot establish external users of a public binding. For those bindings,
+manually inventory every caller across the source set, match the exact budget to Bounds,
+qualify or import the chosen central name at each caller, then remove the old declaration.
+An unknown budget requires an explicit Bounds decision before removing it. Keep
+`dispatchSteps` as an integer progress budget; it is not a Query Limits declaration.
+
+```sh
+mise exec -- scala-cli test --server=false model/migrate --test-only umpire.migrate.CentralBoundsTest
+mise exec -- scala-cli test --server=false model/migrate --test-only umpire.migrate.BoundsInventoryTest
+timeout 600 /bin/bash model/migrate/prove-mini.sh umpire.migrate.RewriteCentralBoundsMini
+```
+
+The copied-mini runner adds a known local bound only to the isolated Queue Query, applies
+the actual compiled rule, and independently requires exact accepted-source restoration.
+The shared runner packages and lifts before/after selected sources at the same paths and
+compares complete raw mini IR and waiver bytes, including every source position.
+The complete Bounds inventory and actual mini Query budgets are checked independently.
+Production loading, real-feature migration, Cases and consumer gates remain held.
