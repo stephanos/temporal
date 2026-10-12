@@ -2,6 +2,30 @@
 
 include version_generated.mk
 
+GOMAD3_STOCK_GO ?=
+
+.PHONY: test-wasm wasm-helper wasm-test-helper
+test-wasm:
+	@stock_go='$(GOMAD3_STOCK_GO)'; \
+	if test -z "$$stock_go"; then \
+		stock_root="$$(env -u GOROOT GOENV=off GOTOOLCHAIN=go1.27.1 go env GOROOT)" || exit 1; \
+		stock_go="$$stock_root/bin/go"; \
+	fi; \
+	env -u GOROOT -u GOMADSEED -u GOMAD3_CHILD_SEED GOENV=off GOTOOLCHAIN=local GOWORK=off \
+		GOMAD3_STOCK_GO="$$stock_go" PATH="$$(dirname "$$stock_go"):$$PATH" \
+		"$$stock_go" test -tags test_dep -count=1 -timeout=15m \
+		-run '^TestWASMTestsDoNotImportNativeBuilder$$|^TestGeneratedProjectionMatchesNativeSources$$|^TestGeneratedNetworkIsCurrent$$|^TestProjection' \
+		./backends/wasm ./volume ./simulation/network/generate && \
+	env -u GOROOT -u GOMADSEED -u GOMAD3_CHILD_SEED GOENV=off GOTOOLCHAIN=local GOWORK=off \
+		GOMAD3_STOCK_GO="$$stock_go" PATH="$$(dirname "$$stock_go"):$$PATH" \
+		"$$stock_go" test -v -tags test_dep -count=1 -timeout=15m ./backends/wasm/...
+
+wasm-helper:
+	$(MAKE) -C backends/wasm helper
+
+wasm-test-helper:
+	$(MAKE) -C backends/wasm test-helper
+
 OVERLAY_FILES := $(shell find backends/native/toolchain/runtime/overlay -type f)
 VERSION_INPUTS := backends/native/toolchain/version/version.json $(shell find backends/native/toolchain/version -type f -not -name '*_test.go') cmd/gomadtool/version.go
 BOUNDARY_INPUTS := backends/native/transcript/boundary/manifest.json backends/native/transcript/boundary/compiler-tests.json $(shell find backends/native/transcript/boundary -type f -not -name '*_test.go') $(shell find backends/native/generation/boundary -name '*.go' -not -name '*_test.go')
