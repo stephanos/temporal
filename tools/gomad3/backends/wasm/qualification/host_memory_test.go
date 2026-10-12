@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	"go.temporal.io/server/tools/gomad3/backends/wasm/simulation"
 	"go.temporal.io/server/tools/gomad3/hostexec"
 )
 
@@ -119,7 +120,7 @@ func TestHostMemoryDiagnosticInvalidLabelsNeverCopyInput(t *testing.T) {
 
 func TestHostMemoryReplayErrorRetainsStagePairWithoutDispatch(t *testing.T) {
 	var stages []string
-	_, _, err := replayClusterArtifactObserved(t.Context(), filepath.Join(t.TempDir(), "missing"), t.TempDir(), func(stage string) { stages = append(stages, stage) })
+	_, _, err := replayClusterArtifactObserved(t.Context(), filepath.Join(t.TempDir(), "missing"), t.TempDir(), simulation.InstalledHelper{}, func(stage string) { stages = append(stages, stage) })
 	if err == nil || strings.Join(stages, ",") != "replay.open.before,replay.open.after" {
 		t.Fatalf("failed open lost observation pair or dispatched: %v %v", stages, err)
 	}

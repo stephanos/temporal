@@ -96,7 +96,7 @@ func TestProviderDetachedOracleCanarySourceLessReplay(t *testing.T) {
 		if err := json.Unmarshal(retained.data, &backendPayload); err != nil {
 			t.Fatal(err)
 		}
-		result, err := ReplayRetained(t.Context(), backendPayload, t.TempDir())
+		result, err := ReplayRetained(t.Context(), backendPayload, t.TempDir(), installedHelper(base))
 		if err != nil {
 			t.Fatal(err)
 		}

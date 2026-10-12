@@ -204,7 +204,7 @@ func TestOperatorReportsRetainedQualificationWithoutInstallation(t *testing.T) {
 	}
 }
 
-func TestInstalledOperatorReplaysRetainedClusterWithoutInstallation(t *testing.T) {
+func TestInstalledOperatorReplaysRetainedClusterWithInstalledHelper(t *testing.T) {
 	path := os.Getenv("GOMAD_WASM_CLUSTER_ARTIFACT")
 	if path == "" {
 		t.Skip("explicit retained cluster Artifact selects the detached operator gate")
@@ -212,6 +212,10 @@ func TestInstalledOperatorReplaysRetainedClusterWithoutInstallation(t *testing.T
 	compiler := os.Getenv("GOMAD3_STOCK_GO")
 	if compiler == "" {
 		t.Fatal("explicit stock compiler required to build the operator")
+	}
+	installed := os.Getenv(installation.Environment)
+	if !filepath.IsAbs(installed) {
+		t.Fatalf("%s must name the installation whose helper replays the cluster", installation.Environment)
 	}
 	opened, err := artifact.OpenArtifact(path)
 	if err != nil {
@@ -235,10 +239,13 @@ func TestInstalledOperatorReplaysRetainedClusterWithoutInstallation(t *testing.T
 	if manifest.Outcome.Domain == "success" {
 		want = 0
 	}
-	output := invokeOperator(t, binary, want, "--installation", "/missing/detached-cluster-installation", "replay", path)
+	output := invokeOperator(t, binary, want, "--installation", installed, "replay", path)
 	if !bytes.Contains(output, []byte("reproduced=true")) || !bytes.Contains(output, []byte("choice-replay=none")) {
 		t.Fatalf("retained cluster did not reproduce its sealed lifecycle: %s", output)
 	}
+	// Retained helper bytes are never executed, so replay without an
+	// installed helper fails closed.
+	invokeOperator(t, binary, 3, "--installation", "/missing/detached-cluster-installation", "replay", path)
 	for _, flag := range []string{"--verify-only", "--observed=" + filepath.Join(root, "observed"), "--toolchain-root=/missing/native"} {
 		invokeOperator(t, binary, 2, "--installation", "/missing/detached-cluster-installation", "replay", flag, path)
 	}
@@ -261,7 +268,7 @@ func TestInstalledOperatorReplaysRetainedClusterWithoutInstallation(t *testing.T
 	if err := os.WriteFile(payloadPath, payload, 0600); err != nil {
 		t.Fatal(err)
 	}
-	invokeOperator(t, binary, 3, "--installation", "/missing/detached-cluster-installation", "replay", corrupt)
+	invokeOperator(t, binary, 3, "--installation", installed, "replay", corrupt)
 }
 
 func TestInstalledOperatorDiscoversInspectsAndReplaysWithoutBuildInputs(t *testing.T) {

@@ -145,8 +145,8 @@ func (p *Provider) RetentionPayload(spec gomad3sim.Spec, observed gomad3sim.Clus
 	return target.BackendPayload{Reference: record.BackendPayload{Schema: RetainedSchema, File: "backend/simulation.json", SHA256: record.HashBytes(data), Bytes: record.Uint64String(len(data))}, Data: data}, nil
 }
 
-// ReopenProvider verifies retained detached inputs before creating fresh helper
-// files. Only the retained module/helper bytes are used, never original paths.
+// verifyRetained admits retained detached inputs before any module file is
+// created. Only the retained module bytes are reused, never original paths.
 func verifyRetained(payload target.BackendPayload) (retainedExecution, *Provider, gomad3sim.ClusterRecord, error) {
 	bundle, err := decodeRetained(payload)
 	if err != nil {
@@ -290,13 +290,51 @@ func detachedStorageCrashSelections(boots []retainedBoot) []RetainedStorageCrash
 	return selections
 }
 
-func ReopenProvider(payload target.BackendPayload, directory string) (gomad3sim.Spec, *Provider, error) {
+// InstalledHelper is the operator installation's pinned engine helper. Payload
+// hashes establish only self-consistency, so retained replay executes this
+// helper and never native helper bytes carried by an artifact.
+type InstalledHelper struct {
+	Path   string
+	SHA256 string
+	Engine wasi.EngineIdentity
+}
+
+func ReopenProvider(payload target.BackendPayload, directory string, installed InstalledHelper) (gomad3sim.Spec, *Provider, error) {
 	bundle, p, _, err := verifyRetained(payload)
 	if err != nil {
 		return gomad3sim.Spec{}, nil, err
 	}
 	admission := retainedAdmission{bundle: bundle, provider: p}
-	return admission.reopen(directory)
+	return admission.reopen(directory, installed)
+}
+
+func bindInstalledHelper(p *Provider, installed InstalledHelper) error {
+	if !filepath.IsAbs(installed.Path) || installed.SHA256 == "" {
+		return errors.New("retained WASM replay requires an installed helper")
+	}
+	ids := make([]gomad3sim.BootID, 0, len(p.Boots))
+	for id := range p.Boots {
+		ids = append(ids, id)
+	}
+	sort.Slice(ids, func(i, j int) bool { return ids[i] < ids[j] })
+	for _, id := range ids {
+		r := p.Boots[id]
+		if r.HelperSHA256 != installed.SHA256 || r.Engine != installed.Engine {
+			return fmt.Errorf("retained WASM boot %s helper sha256:%s engine %s differs from installed helper sha256:%s engine %s", id, r.HelperSHA256, engineIdentity(r.Engine), installed.SHA256, engineIdentity(installed.Engine))
+		}
+	}
+	data, err := hostfs.ReadBounded(installed.Path, 512<<20)
+	if err != nil {
+		return fmt.Errorf("installed WASM helper: %w", err)
+	}
+	if fmt.Sprintf("%x", sha256.Sum256(data)) != installed.SHA256 {
+		return errors.New("installed WASM helper identity changed")
+	}
+	return nil
+}
+
+func engineIdentity(engine wasi.EngineIdentity) string {
+	return fmt.Sprintf("%s/%s/%s/%s-%s", engine.Name, engine.Version, engine.Configuration, engine.HostOS, engine.HostArch)
 }
 
 type retainedAdmission struct {
@@ -304,12 +342,15 @@ type retainedAdmission struct {
 	provider *Provider
 }
 
-func (a *retainedAdmission) reopen(directory string) (gomad3sim.Spec, *Provider, error) {
+func (a *retainedAdmission) reopen(directory string, installed InstalledHelper) (gomad3sim.Spec, *Provider, error) {
 	if a == nil || a.provider == nil {
 		return gomad3sim.Spec{}, nil, errors.New("retained WASM admission was already consumed")
 	}
 	bundle, p := a.bundle, a.provider
 	a.bundle, a.provider = retainedExecution{}, nil
+	if err := bindInstalledHelper(p, installed); err != nil {
+		return gomad3sim.Spec{}, nil, err
+	}
 	info, err := os.Lstat(directory)
 	if err != nil || !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
 		return gomad3sim.Spec{}, nil, errors.New("retained WASM directory is not a real directory")
@@ -321,22 +362,19 @@ func (a *retainedAdmission) reopen(directory string) (gomad3sim.Spec, *Provider,
 	paths := map[string]string{}
 	for _, boot := range bundle.Boots {
 		r := p.Boots[boot.ID]
-		for _, digest := range []string{r.ModuleSHA256, r.HelperSHA256} {
-			if paths[digest] != "" {
-				continue
-			}
-			name := filepath.Join(private, digest)
+		if paths[r.ModuleSHA256] == "" {
+			name := filepath.Join(private, r.ModuleSHA256)
 			f, err := os.OpenFile(name, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0700)
 			if err != nil {
 				return gomad3sim.Spec{}, nil, err
 			}
-			_, writeErr := f.Write(bundle.Inputs[digest])
+			_, writeErr := f.Write(bundle.Inputs[r.ModuleSHA256])
 			if err = errors.Join(writeErr, f.Close()); err != nil {
 				return gomad3sim.Spec{}, nil, err
 			}
-			paths[digest] = name
+			paths[r.ModuleSHA256] = name
 		}
-		r.ModulePath, r.HelperPath = paths[r.ModuleSHA256], paths[r.HelperSHA256]
+		r.ModulePath, r.HelperPath = paths[r.ModuleSHA256], installed.Path
 		r.CompileCache = filepath.Join(private, "compiled-cache")
 		p.Boots[boot.ID] = r
 	}
@@ -360,7 +398,7 @@ func bindRetainedPrimary(observed gomad3sim.ClusterRecord, primary string) error
 // ReplayBoundRetained joins complete retained admission and Artifact primary
 // binding before any executable writes. OriginalRecord is the admitted owner's
 // exact canonical bytes, not a second encoding of the decoded record.
-func ReplayBoundRetained(ctx context.Context, payload target.BackendPayload, primary, directory string) (observed gomad3sim.Result, originalRecord []byte, completed *Provider, err error) {
+func ReplayBoundRetained(ctx context.Context, payload target.BackendPayload, primary, directory string, installed InstalledHelper) (observed gomad3sim.Result, originalRecord []byte, completed *Provider, err error) {
 	bundle, p, retained, err := verifyRetained(payload)
 	if err != nil {
 		return gomad3sim.Result{}, nil, nil, err
@@ -370,7 +408,7 @@ func ReplayBoundRetained(ctx context.Context, payload target.BackendPayload, pri
 	}
 	originalRecord = bundle.Record
 	admission := retainedAdmission{bundle: bundle, provider: p}
-	spec, p, err := admission.reopen(directory)
+	spec, p, err := admission.reopen(directory, installed)
 	if err != nil {
 		return gomad3sim.Result{}, nil, nil, err
 	}

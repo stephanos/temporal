@@ -92,6 +92,10 @@ func TestProviderMandatoryCleanupReapsWithoutLifecycleActions(t *testing.T) {
 	}
 }
 
+func installedHelper(r wasi.Request) InstalledHelper {
+	return InstalledHelper{Path: r.HelperPath, SHA256: r.HelperSHA256, Engine: r.Engine}
+}
+
 func guestRequest(t *testing.T) wasi.Request {
 	t.Helper()
 	if !filepath.IsAbs(os.Getenv("GOMAD3_STOCK_GO")) {
@@ -208,7 +212,7 @@ func TestProviderStopReapsGuestAndPeerContinues(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Setenv("GOMAD3_STOCK_GO", "/original/compiler/unavailable")
-	replayed, results, err := ReplayRetainedResults(t.Context(), payload, t.TempDir())
+	replayed, results, err := ReplayRetainedResults(t.Context(), payload, t.TempDir(), installedHelper(first))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -297,7 +301,7 @@ func TestProviderGroupedAcknowledgmentCrashSourceLessReplay(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Setenv("GOMAD3_STOCK_GO", "/original/compiler/unavailable")
-	replayed, original, completed, err := ReplayBoundRetained(t.Context(), payload, "sha256:"+base.ModuleSHA256, t.TempDir())
+	replayed, original, completed, err := ReplayBoundRetained(t.Context(), payload, "sha256:"+base.ModuleSHA256, t.TempDir(), installedHelper(base))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -396,7 +400,7 @@ func TestProviderActualCrashDurableRestart(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Setenv("GOMAD3_STOCK_GO", "/original/compiler/unavailable")
-	replayed, err := ReplayRetained(t.Context(), payload, t.TempDir())
+	replayed, err := ReplayRetained(t.Context(), payload, t.TempDir(), installedHelper(request))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -591,10 +595,10 @@ func testProviderIndependentGuestsLifecycleReplay(t *testing.T, profile string) 
 			if _, err := RetainedStorageCrashSelections(bad); err == nil {
 				t.Fatal("selection projection admitted mutated retained inputs")
 			}
-			if _, _, err := ReopenProvider(bad, directory); err == nil {
+			if _, _, err := ReopenProvider(bad, directory, installedHelper(server)); err == nil {
 				t.Fatal("mutated retained inputs were admitted")
 			}
-			if _, _, _, err := ReplayBoundRetained(t.Context(), bad, "sha256:"+server.ModuleSHA256, directory); err == nil {
+			if _, _, _, err := ReplayBoundRetained(t.Context(), bad, "sha256:"+server.ModuleSHA256, directory, installedHelper(server)); err == nil {
 				t.Fatal("bound replay admitted mutated retained inputs")
 			}
 			entries, err := os.ReadDir(directory)
@@ -603,9 +607,18 @@ func testProviderIndependentGuestsLifecycleReplay(t *testing.T, profile string) 
 			}
 		})
 	}
+	foreign := installedHelper(server)
+	foreign.SHA256 = strings.Repeat("f", 64)
+	directory := t.TempDir()
+	if _, _, _, err := ReplayBoundRetained(t.Context(), payload, "sha256:"+server.ModuleSHA256, directory, foreign); err == nil || !strings.Contains(err.Error(), server.HelperSHA256) || !strings.Contains(err.Error(), foreign.SHA256) {
+		t.Fatalf("bound replay admitted a helper other than the installation's: %v", err)
+	}
+	if entries, err := os.ReadDir(directory); err != nil || len(entries) != 0 {
+		t.Fatalf("foreign installed helper wrote executable inputs: %v %v", entries, err)
+	}
 	for _, primary := range []string{"", "sha256:" + strings.Repeat("0", 64)} {
 		directory := t.TempDir()
-		if _, _, _, err := ReplayBoundRetained(t.Context(), payload, primary, directory); err == nil {
+		if _, _, _, err := ReplayBoundRetained(t.Context(), payload, primary, directory, installedHelper(server)); err == nil {
 			t.Fatal("bound replay accepted foreign or missing Artifact primary")
 		}
 		entries, err := os.ReadDir(directory)
@@ -619,7 +632,7 @@ func testProviderIndependentGuestsLifecycleReplay(t *testing.T, profile string) 
 	// Reopening receives no source or stock toolchain. Executable inputs are
 	// copied from the existing Artifact payload into fresh private files.
 	t.Setenv("GOMAD3_STOCK_GO", "/original/compiler/unavailable")
-	replayed, original, completed, err := ReplayBoundRetained(t.Context(), payload, "sha256:"+server.ModuleSHA256, t.TempDir())
+	replayed, original, completed, err := ReplayBoundRetained(t.Context(), payload, "sha256:"+server.ModuleSHA256, t.TempDir(), installedHelper(server))
 	if err != nil {
 		t.Fatal(err)
 	}

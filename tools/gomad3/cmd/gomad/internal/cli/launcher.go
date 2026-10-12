@@ -146,15 +146,19 @@ func (app application) launch(arguments []string, stdout, stderr io.Writer) int 
 		app.selectedManifest = path
 	}
 	app.capabilities = &capabilities
-	app.replayHook = wasmcommand.ReplayRetainedCluster
+	wasmManifest := ""
 	if header.Backend == "wasm" {
-		resolve := func() (wasminstallation.Description, error) {
-			executable, err := app.executablePath()
-			if err != nil {
-				return wasminstallation.Description{}, err
-			}
-			return wasminstallation.Resolve(wasminstallation.Spec{Executable: executable, ExplicitManifest: path})
+		wasmManifest = path
+	}
+	resolve := func() (wasminstallation.Description, error) {
+		executable, err := app.executablePath()
+		if err != nil {
+			return wasminstallation.Description{}, err
 		}
+		return wasminstallation.Resolve(wasminstallation.Spec{Executable: executable, ExplicitManifest: wasmManifest})
+	}
+	app.replayHook = wasmcommand.RetainedClusterReplay(resolve)
+	if header.Backend == "wasm" {
 		app.backend = func() (BackendInstallation, error) {
 			description, err := resolve()
 			if err != nil {

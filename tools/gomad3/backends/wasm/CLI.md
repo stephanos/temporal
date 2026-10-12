@@ -156,11 +156,15 @@ Typed retained multi-instance artifacts use the same `replay ARTIFACT` parser,
 inspection and replay classification. The launcher recognizes only the verified
 `gomad3.wasm-simulation-retained/v1` evidence schema and delegates its sealed
 typed lifecycle to the existing cluster replay owner. Such an artifact retains
-verified helper and module bytes; replay does not discover an installation or
-open the original helper, source, compiler or mount paths. Fresh private
-executables and modeled instance state are created for replay, then the private
-temporary files are removed. Replay only trusted retained artifacts: payload
-hashes establish integrity, not the author's authority to supply a native helper.
+verified helper and module bytes, but payload hashes establish only
+self-consistency, so retained helper bytes are never executed. Replay resolves
+the WASM installation, requires every retained boot's helper digest and engine
+identity to equal the installed `HelperSHA256` and pinned engine, re-hashes the
+installed helper and executes it; a missing installation or any mismatch fails
+closed before guest files are written, naming the recorded and installed
+identities. Replay does not open the original source, compiler or mount paths.
+A fresh private module file and modeled instance state are created for replay,
+then the private temporary files are removed.
 `--verify-only`, `--observed` and `--toolchain-root` are explicitly rejected for
 this artifact shape before any guest executes. Successful matching clusters
 return 0; matching retained application failures return 1. This route does not

@@ -103,7 +103,7 @@ func RunCluster(ctx context.Context, spec Spec, cluster gomad3sim.Spec, scenario
 		},
 		ReplayArtifact: func(ctx context.Context, replay runner.ReplaySpec) (runner.ReplayResult, error) {
 			replayIteration++
-			observed, completed, err := replayClusterArtifactObserved(ctx, replay.ArtifactPath, spec.ArtifactRoot, spec.observeHostMemoryStage)
+			observed, completed, err := replayClusterArtifactObserved(ctx, replay.ArtifactPath, spec.ArtifactRoot, simulation.InstalledHelper{Path: spec.Options.HelperPath, SHA256: strings.TrimPrefix(spec.Options.HelperSHA256, "sha256:"), Engine: spec.Options.Engine}, spec.observeHostMemoryStage)
 			if completed != nil {
 				result.Samples = append(result.Samples, incarnationSamples(completed.CompletedSummaries(), "replay", replayIteration, "", spec.Manifest.Fuel)...)
 				if spec.Manifest.Workload == "sqlite" {
@@ -251,21 +251,21 @@ func incarnationSamples(incarnations []simulation.IncarnationSummary, phase stri
 	return samples
 }
 
-// ReplayClusterArtifact only opens verified retained Artifact inputs. It never
-// reads the original source, compiler, runtime or executable paths.
-func ReplayClusterArtifact(ctx context.Context, path, directory string) (runner.ReplayResult, []simulation.IncarnationResult, error) {
-	replay, completed, err := replayClusterArtifact(ctx, path, directory)
+// ReplayClusterArtifact only opens verified retained Artifact inputs and the
+// installed helper. It never reads the original source, compiler or runtime.
+func ReplayClusterArtifact(ctx context.Context, path, directory string, installed simulation.InstalledHelper) (runner.ReplayResult, []simulation.IncarnationResult, error) {
+	replay, completed, err := replayClusterArtifact(ctx, path, directory, installed)
 	if completed == nil {
 		return replay, nil, err
 	}
 	return replay, completed.CompletedResults(), err
 }
 
-func replayClusterArtifact(ctx context.Context, path, directory string) (replay runner.ReplayResult, completed *simulation.Provider, retErr error) {
-	return replayClusterArtifactObserved(ctx, path, directory, nil)
+func replayClusterArtifact(ctx context.Context, path, directory string, installed simulation.InstalledHelper) (replay runner.ReplayResult, completed *simulation.Provider, retErr error) {
+	return replayClusterArtifactObserved(ctx, path, directory, installed, nil)
 }
 
-func replayClusterArtifactObserved(ctx context.Context, path, directory string, observer func(string)) (replay runner.ReplayResult, completed *simulation.Provider, retErr error) {
+func replayClusterArtifactObserved(ctx context.Context, path, directory string, installed simulation.InstalledHelper, observer func(string)) (replay runner.ReplayResult, completed *simulation.Provider, retErr error) {
 	observeHostMemory(observer, "replay.open.before")
 	opened, err := artifact.OpenArtifact(path)
 	observeHostMemory(observer, "replay.open.after")
@@ -286,7 +286,7 @@ func replayClusterArtifactObserved(ctx context.Context, path, directory string, 
 	}
 	payload := target.BackendPayload{Reference: ref, Data: data}
 	observeHostMemory(observer, "replay.bound.before")
-	observed, expected, completed, err := simulation.ReplayBoundRetained(ctx, payload, string(manifest.Target.SHA256), directory)
+	observed, expected, completed, err := simulation.ReplayBoundRetained(ctx, payload, string(manifest.Target.SHA256), directory, installed)
 	observeHostMemory(observer, "replay.bound.after")
 	if err != nil {
 		return runner.ReplayResult{}, completed, err

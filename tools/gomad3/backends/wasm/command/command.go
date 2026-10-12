@@ -9,6 +9,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
 	"go.temporal.io/server/tools/gomad3/backends/wasm/backend"
@@ -50,7 +51,15 @@ func Run(arguments []string, stdout, stderr io.Writer, resolve func() (installat
 	return 0, false
 }
 
-func ReplayRetainedCluster(ctx context.Context, spec runner.ReplaySpec) (replay runner.ReplayResult, handled bool, retErr error) {
+// RetainedClusterReplay returns the retained cluster replay hook. Replay
+// executes the resolved installation's helper, never one carried by the artifact.
+func RetainedClusterReplay(resolve func() (installation.Description, error)) func(context.Context, runner.ReplaySpec) (runner.ReplayResult, bool, error) {
+	return func(ctx context.Context, spec runner.ReplaySpec) (runner.ReplayResult, bool, error) {
+		return replayRetainedCluster(ctx, spec, resolve)
+	}
+}
+
+func replayRetainedCluster(ctx context.Context, spec runner.ReplaySpec, resolve func() (installation.Description, error)) (replay runner.ReplayResult, handled bool, retErr error) {
 	opened, err := artifact.OpenArtifact(spec.ArtifactPath)
 	if err != nil {
 		return runner.ReplayResult{}, false, nil
@@ -65,12 +74,18 @@ func ReplayRetainedCluster(ctx context.Context, spec runner.ReplaySpec) (replay 
 	if spec.VerifyOnly || spec.ObservedDir != "" || spec.ToolchainRoot != "" {
 		return runner.ReplayResult{}, true, &runner.ReplayPreflightError{Err: fmt.Errorf("retained WASM cluster replay does not support --verify-only, --observed, or --toolchain-root")}
 	}
+	description, err := resolve()
+	if err != nil {
+		return runner.ReplayResult{}, true, fmt.Errorf("retained WASM cluster replay requires a WASM installation: %w", err)
+	}
+	options := description.Manifest.Options
+	installed := simulation.InstalledHelper{Path: options.HelperPath, SHA256: strings.TrimPrefix(options.HelperSHA256, "sha256:"), Engine: options.Engine}
 	directory, err := os.MkdirTemp("", "gomad-wasm-cluster-replay-")
 	if err != nil {
 		return runner.ReplayResult{}, true, err
 	}
 	defer func() { retErr = errors.Join(retErr, os.RemoveAll(directory)) }()
-	result, _, err := qualification.ReplayClusterArtifact(ctx, spec.ArtifactPath, directory)
+	result, _, err := qualification.ReplayClusterArtifact(ctx, spec.ArtifactPath, directory, installed)
 	if err != nil {
 		return runner.ReplayResult{}, true, err
 	}
