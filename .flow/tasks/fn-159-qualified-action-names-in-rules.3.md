@@ -4,43 +4,84 @@ satisfies: [R9]
 # fn-159-qualified-action-names-in-rules.3 Qualify every phase reference; refuse phase-member imports
 
 ## Description
-Name every phase through its enum: `when(Phase.scheduled)`, `phase = Phase.started`, `State(Phase.scheduled)`, `s.phase == Phase.paused`. Do this in rule cases, effects, init, states and properties alike. The IR generator refuses any import of a phase type's members, so bare phase names can't come back.
+
+Close the current Scala source/lift proof for qualified phases and phase-member import refusal.
+Enforcement and the historical source migration are already integrated; re-anchor rather than
+repeating them. The owner Scope limits this task to the mini feature, framework/lifter and shared
+code. Standalone/Nexus/legacy sources and generated artifacts remain untouched for the sweep.
 
 **Size:** M
-**Files:** `model/irgen/Declarations.scala` (and the lifter for imports, if it sits elsewhere), `model/framework/Syntax.scala` doc comments, `model/README.md`, the 9 model files that import phase members, `model/irgen/testdata/lifts/Admission.scala` and new refusal fixtures, the pin tests that import phases
-**Touches:** [model/irgen/*.scala, model/irgen/testdata/lifts/*.scala, model/irgen/testdata/lifts/expected/*.json, model/framework/Syntax.scala, model/README.md, model/temporal/features/activity/standalone/product/Product.scala, model/temporal/features/activity/standalone/system/System.scala, model/temporal/features/activity/standalone/system/Dispatch.scala, model/temporal/features/activity/standalone/system/DispatchRaces.scala, model/temporal/features/nexus/product/Product.scala, model/temporal/features/nexus/standalone/system/System.scala, model/temporal/features/nexus/workflow/system/System.scala, model/temporal/foundations/taskqueue/product/Product.scala, model/temporal/features/activity/standalone/StandaloneActivityPins.test.scala, model/temporal/features/nexus/product/NexusOutcomePins.test.scala]
+**Files:** typed phase-import/rule-heading checks, isolated qualification fixtures, source-rule
+proof and author docs; mini/shared source only where an unmet contract requires a change.
+**Touches:** [model/irgen/Conventions.scala, model/irgen/Declarations.scala, model/irgen/test/QualifiedPhases.test.scala, model/irgen/testdata/qualifiedPhases/**, model/irgen/testdata/conventions/PhaseImports.scala, model/irgen/testdata/lifts/RuleRejects.scala, model/framework/Syntax.scala, model/temporal/features/activity_mini/**/*.scala, model/temporal/foundations/taskqueue/**/*.scala, model/migrate/**, model/README.md, model/SEMANTICS.md]
 
 ### Approach
-- **What counts as a phase type:** the `P` of a machine's `Phased[S, P]` projection, plus the phase type of a composition or derived machine that inherits it. The enums have different names: `Phase`, `AdmissionPhase`, the task queue's `Outstanding`, and testdata's `ProductPhase`. Key the rule on the projection type, not on the name `Phase`.
-- **irgen, imports:** refuse an import of a phase type's members in a lifted source, whether wildcard (`import Phase.*`, `import product.Phase.*`, `import Outstanding.*`) or selective (`import Phase.{started, paused}`). It doesn't matter where the import sits: file level, machine object, or a nested section or `rules` block. The message names the import and its position, and says to write `Phase.<case>`.
-- **irgen, rule cases:** also require each argument of the phase form `when(p1, …)` to be a selection: a case selected on its phase type (`Phase.scheduled`), or a named set selected on `states` (`states.terminal`). Leave the role form `when[Closed]` alone. Don't touch `m.property.when(...)` in capabilities; that's the Property builder's `when`, not a rule case. This check backs up the import ban, which already makes bare names fail to compile.
-- **Framework:** no runtime check. The phase form of `when` takes varargs that aren't inline, so it can't read their source text (see the `codeOf` note on the multi-target `on`). Update the doc comments and examples that show `when(placed, open)` with bare names.
-- **Migrate:** in each machine object, drop the phase imports and qualify every phase reference: rule cases, effects (`phase = Phase.started`), `init`, `states`, properties, and `choose` / `enter` arguments (`s.copy(phase = Phase.scheduled)`). The task queue product's `import Outstanding.*` gives `when(Outstanding.empty)`. The test files that import phases (activity standalone pins, nexus outcome pins) migrate for consistency, but irgen doesn't lift tests, so they aren't enforced.
-- **IR stays the same:** the change is syntactic. Check that `make umpire-check-model` passes with no checked-in IR file regenerated differently. The lifted rule-case headings are the exception: if irgen records the written text, e.g. `when(scheduled)` becoming `when(Phase.scheduled)` in the IR or the lint table, regenerate and check that this is the only diff. Record which it was in the done summary.
-- **Coordination:** fn-159.1 touches the same irgen and README sections and the same `rules` blocks. Land fn-159.1 first, or do both in one batch.
 
-### Investigation targets
-**Required:**
-- `model/irgen/Declarations.scala`: the machine-object and rules lift, and where `when` cases are read (`cases(...)`)
-- `model/framework/Syntax.scala`: the `when` overloads in `Rules`/`Firing`, and `Phased`
-- `model/README.md`: the rules and effects spec sections
+- Begin after the committed .1 qualification closure and preserve its source-spelling/refusal
+  work, focused fixture infrastructure and identities. Do not re-run broad suite baselines.
+- The relevant phase type is the `P` of `Phased[S, P]`, including inherited projections reached
+  by derivations/compositions, not an enum's name. Preserve unrelated enum/member imports.
+  Independently test a differently named finite phase enum and accepted non-phase imports.
+- Inspect current `Conventions.phaseImport` and `Declarations.qualifiedPhase`. Pin real authored
+  wildcard/selective/renamed-member imports at file, machine, nested-section and rules-block levels,
+  including an import written after another token on the same line. The current text check uses
+  `trim.startsWith("import")`; do not assume the existing three whole-line fixtures prove all
+  authored import positions. Keep compiler-generated enum companion imports distinct, not an
+  excuse to suppress actual imports or malformed/source-unavailable authored positions.
+- The lifter must refuse each applicable import at its actual source position and name the type
+  and qualified remedy. It also refuses bare arguments of phase-form `when`, including a bare
+  eta-expanded named set. Accepted `when(Phase.x)`, qualified set and role forms remain valid;
+  Property-builder `when` is not this rule-case surface.
+- There is no requested framework runtime phase check: varargs `when` is not inline. Preserve
+  that boundary and all qualified mini effects/init/states/properties/choice alternatives.
+  The native contract .1 establishes for action names is a different surface.
+- Ship an actual task-named Scalafix source rule under the shared convention. Focused copied-mini
+  legacy-to-qualified transformation, ambiguity/refusal, idempotence and compiled identity/meaning
+  controls prove source correctness. Do not apply rules to real features or claim the held loader
+  works. Reuse the existing rule-source/test harness; no competing generic rewrite engine.
+- Documentation uses qualified phases and the complete mini's actual cited source. Keep the
+  source-citation guard passing by fixing inaccurate excerpts/line references, not the oracle.
 
-### Batching
-- Batch 1d (Scala DSL, immediate; see MILESTONES.md): land the Scala changes now. Checked-in IR, Cases and Go consumers may go stale. Verify with the Scala build, framework and model tests, and fn-160.5's step-table comparison under this task's rename map. Declare the IR change this task will cause; the IR is regenerated once, in Batch 5b, whose shared close supplies the gate evidence for the `make umpire-check-*` criteria.
+### Source and consumer boundary
 
-### Quick commands
-```sh
-make umpire-check-model
-make umpire-check-lint
-```
+R9's current source check is on selected mini/shared input and isolated fixtures. Real-feature
+source/lift equivalence, managed IR/Case regeneration, Go/lint and canonical Make gates stay at
+the sweep. No protected baseline, pin, expected IR or accepted lint debt is rewritten to obtain
+source closure. Preserve the earlier task/spec history and actual failed attempts.
+
+### Verification
+
+Fresh mini/shared compile, focused native tests where changed and a new isolated QualifiedPhases
+lifter suite are the per-step gates. The broad Fixtures class packages all fixture roots in
+beforeAll, so do not invoke it merely to filter a phase test. Freeze each proof's source/jar inputs
+while it runs. Scratch pre/post mini lifts must preserve selected declaration identities and
+semantics, and state explicitly any justified rule-heading/source-span difference rather than
+normalizing it away. Run direct `FEATURES=activity_mini` Scala steps-only equivalence against
+`/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/scala-dsl/mini-selected-baseline-00d22597d2/`
+with a separate justified mini map, never modifying either baseline or the batch-1d map. The complete
+selected baseline includes shared query roots: 16 tables/11,325 rows from the pre-change task8 jar;
+the first 10-table mini-reachable capture is retained unchanged.
+Run focused migration-rule/source-citation checks and changed-file formatting/diff checks.
+Lint/manual acceptance is NOT RUN. Broad validation/independent review is deferred to the ONE
+mini batch-end gate; canonical Make/Go/regeneration/live remains held, never reported as green.
 
 ## Acceptance
-- [ ] The IR generator refuses any import of a machine's phase-type members (wildcard or selective, at any level of a lifted source), naming the import and position and spelling out `Phase.<case>`.
-- [ ] The IR generator refuses a bare phase argument to the phase form of `when(...)`; `when(Phase.x)`, `when(states.set)` and `when[Role]` are accepted.
-- [ ] No lifted model imports phase members; every phase reference in rule cases, effects, init, states and properties is qualified; the pin tests are migrated too.
-- [ ] Refusal fixtures exist for wildcard, selective and nested phase imports and a bare `when` argument; accepted fixtures cover the qualified forms.
-- [ ] The README and framework doc comments show only qualified phases; `make umpire-check-model` and `make umpire-check-lint` pass, with checked-in IR unchanged except rule-case heading text if the IR records it (stated in the done summary).
 
+- [ ] Actual phase-member imports are refused for wildcard/selective/renamed forms at all authored
+  levels, including inline same-line locations, with independently asserted positions/type/remedy;
+  compiler-generated companion imports and unrelated enum imports are not falsely rejected.
+- [ ] Bare phase-form `when` and bare named sets are refused; qualified phase/set and role forms
+  are accepted, with Property `when` unaffected.
+- [ ] Selected mini/shared source contains only qualified phase references and no phase-member
+  imports; its scratch lift and native tables preserve the contract, while real-feature sources,
+  artifacts, pins and old baseline/map remain unchanged.
+- [ ] The task's actual migration-rule source has focused transformation/refusal/idempotence and
+  compiled copied-mini proof; real-feature application and production loading are explicitly held.
+- [ ] README/framework/guide examples accurately show qualified phases and retain checked source
+  citations. Focused source gates and direct mini native equivalence pass; any exact lift differences
+  are explained and independently checked without laundering source positions/identities.
+- [ ] Failed attempts and deferred canonical/consumer/lint/broad-review gates are recorded honestly;
+  no full-set, live, broad-suite or SHIP credit is claimed.
 
 ## Done summary
 TBD
