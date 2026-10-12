@@ -231,7 +231,19 @@ Owner gate-budget decision (2026-10-12): drop the fn-151 prototype gates from fi
 
 ### Shared-owner queue after fn-156
 
-Owner decision (2026-10-12): these deferred specs change owners the WASM backend shares, so they move into the WASM queue after fn-156. Work them in this order: the fn-109 shared subset (Runner orchestration split and portable scripted Runner coverage first), then fn-152, then fn-153 and fn-154 as one batch so their codec, projection and identity rotations need a single WASM requalification. Each shared-owner change requires the WASM gates in the [acceptance evidence](.flow/artifacts/wasm-section-acceptance-2026-10-12.md) to pass on the integrated candidate. Record each revived task's revival trigger in its Flow task before implementation.
+Owner decision (2026-10-12): these deferred specs change owners the WASM backend shares, so they move into the WASM queue after fn-156. Work them in this order: fn-166 tasks 1–5 (identity-neutral structure and test layout), the fn-109 shared subset (Runner orchestration split and portable scripted Runner coverage first), then fn-152, then fn-153, fn-154 and fn-166 tasks 6–7 as one batch so their codec, projection, rename and identity rotations need a single WASM requalification. Each shared-owner change requires the WASM gates in the [acceptance evidence](.flow/artifacts/wasm-section-acceptance-2026-10-12.md) to pass on the integrated candidate. Record each revived task's revival trigger in its Flow task before implementation.
+
+### Readable package structure — [fn-166](.flow/specs/fn-166-gomad-readable-package-structure-and.md)
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-166.1](.flow/tasks/fn-166-gomad-readable-package-structure-and.1.md) | ⬜ Todo | Empty the module root and remove stale package names |
+| [fn-166.2](.flow/tasks/fn-166-gomad-readable-package-structure-and.2.md) | ⬜ Todo | Consolidate runner tests by behavior |
+| [fn-166.3](.flow/tasks/fn-166-gomad-readable-package-structure-and.3.md) | ⬜ Todo | Consolidate WASM, CLI and gomadtool tests by behavior |
+| [fn-166.4](.flow/tasks/fn-166-gomad-readable-package-structure-and.4.md) | ⬜ Todo | Deepen runner and qualification packages |
+| [fn-166.5](.flow/tasks/fn-166-gomad-readable-package-structure-and.5.md) | ⬜ Todo | Move gomadtool under the native backend |
+| [fn-166.6](.flow/tasks/fn-166-gomad-readable-package-structure-and.6.md) | ⬜ Todo | Identity-rotating renames; batched with fn-153/fn-154 |
+| [fn-166.7](.flow/tasks/fn-166-gomad-readable-package-structure-and.7.md) | ⬜ Todo | Group shared packages under evidence and model; batched with fn-153/fn-154 |
 
 ### Shared Runner and simulation owners — [fn-109](.flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md) (shared subset)
 

@@ -1,0 +1,18 @@
+---
+satisfies: [R5, R6]
+---
+# fn-166-gomad-readable-package-structure-and.6 Identity-rotating renames batched with fn-153/fn-154
+
+## Description
+Delete the hostfs/hostexec wrappers and point the WASM allow-list at internal/hostfs and internal/hostexec; give host filesystem helpers one implementation; rename captured to artifact/capture, backends/wasm/simulation to backends/wasm/cluster and runtimesemantics to internal/runtimesource; replace runner.SimulationClock with simulation/clock. Land in the same integrated candidate as fn-153 and fn-154.
+
+## Acceptance
+The listed packages no longer exist under their old names; one host filesystem helper implementation; full WASM gate set passes on the integrated candidate under the 2026-10-12 gate budgets.
+
+## Done summary
+TBD
+
+## Evidence
+- Commits:
+- Tests:
+- PRs:
