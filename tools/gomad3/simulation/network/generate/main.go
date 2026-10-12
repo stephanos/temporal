@@ -85,7 +85,7 @@ func generate(root string) ([]byte, error) {
 	imports := map[string]string{"time": "time"}
 	bridges := 0
 	for _, name := range []string{"network.go", "simulation_network.go", "simulation_handles.go", "simulation_wire.go"} {
-		path := filepath.Join(root, "toolchain/runtime/overlay/src/internal/gomadio", name)
+		path := filepath.Join(root, "backends/native/toolchain/runtime/overlay/src/internal/gomadio", name)
 		source, err := os.ReadFile(path)
 		if err != nil {
 			return nil, err

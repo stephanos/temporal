@@ -17,7 +17,7 @@ import (
 	"strings"
 	"text/template"
 
-	"go.temporal.io/server/tools/gomad3/internal/gomadtool/generation/boundary"
+	"go.temporal.io/server/tools/gomad3/backends/native/generation/boundary"
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
 )
 
@@ -382,19 +382,19 @@ type output struct {
 }
 
 func GenerateProtocols(root string, check bool) error {
-	definition, err := readSchema(filepath.Join(root, "deterministicio", "schema", "iowire.json"))
+	definition, err := readSchema(filepath.Join(root, "backends/native/transcript", "schema", "iowire.json"))
 	if err != nil {
 		return err
 	}
 	outputs := []output{
-		{Package: "wire", Template: "iowire.go.tmpl", Path: "deterministicio/internal/wire/wire_generated.go"},
-		{Package: "wire", Template: "iowire_test.go.tmpl", Path: "deterministicio/internal/wire/wire_generated_test.go"},
-		{Package: "gomadwire", Template: "iowire.go.tmpl", Path: "toolchain/runtime/overlay/src/internal/gomadwire/wire_generated.go"},
-		{Package: "gomadwire_test", TestImport: "internal/gomadwire", Template: "iowire_test.go.tmpl", Path: "toolchain/runtime/overlay/src/internal/gomadwire/wire_generated_test.go"},
-		{Package: "runtime", Template: "iowire_runtime.go.tmpl", Path: "toolchain/runtime/overlay/src/runtime/gomad_iowire_generated.go"},
+		{Package: "wire", Template: "iowire.go.tmpl", Path: "internal/iowire/wire_generated.go"},
+		{Package: "wire", Template: "iowire_test.go.tmpl", Path: "internal/iowire/wire_generated_test.go"},
+		{Package: "gomadwire", Template: "iowire.go.tmpl", Path: "backends/native/toolchain/runtime/overlay/src/internal/gomadwire/wire_generated.go"},
+		{Package: "gomadwire_test", TestImport: "internal/gomadwire", Template: "iowire_test.go.tmpl", Path: "backends/native/toolchain/runtime/overlay/src/internal/gomadwire/wire_generated_test.go"},
+		{Package: "runtime", Template: "iowire_runtime.go.tmpl", Path: "backends/native/toolchain/runtime/overlay/src/runtime/gomad_iowire_generated.go"},
 	}
 	for _, target := range outputs {
-		generated, generateErr := generate(filepath.Join(root, "deterministicio", "schema", target.Template), templateData{Package: target.Package, TestImport: target.TestImport, Schema: definition})
+		generated, generateErr := generate(filepath.Join(root, "backends/native/transcript", "schema", target.Template), templateData{Package: target.Package, TestImport: target.TestImport, Schema: definition})
 		if generateErr != nil {
 			return generateErr
 		}
@@ -422,8 +422,8 @@ func GenerateProtocols(root string, check bool) error {
 	choiceOutputs := []output{
 		{Package: "wire", Template: "choicewire.go.tmpl", Path: "choice/internal/wire/wire_generated.go"},
 		{Package: "wire", Template: "choicewire_test.go.tmpl", Path: "choice/internal/wire/wire_generated_test.go"},
-		{Package: "gomadchoicewire", Template: "choicewire.go.tmpl", Path: "toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated.go"},
-		{Package: "gomadchoicewire_test", TestImport: "internal/gomadchoicewire", Template: "choicewire_test.go.tmpl", Path: "toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated_test.go"},
+		{Package: "gomadchoicewire", Template: "choicewire.go.tmpl", Path: "backends/native/toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated.go"},
+		{Package: "gomadchoicewire_test", TestImport: "internal/gomadchoicewire", Template: "choicewire_test.go.tmpl", Path: "backends/native/toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated_test.go"},
 		{Package: "runtime", Template: "choicewire_runtime.go.tmpl", Path: "runtimesemantics/gomad_choicewire_generated.go.txt"},
 	}
 	for _, target := range choiceOutputs {
@@ -448,10 +448,10 @@ func GenerateProtocols(root string, check bool) error {
 		return err
 	}
 	modelOutputs := []output{
-		{Package: "gomadmodelwire", Template: "modelwire.go.tmpl", Path: "toolchain/runtime/overlay/src/internal/gomadmodelwire/wire_generated.go"},
-		{Package: "gomadmodelwire", Template: "modelwire_test.go.tmpl", Path: "toolchain/runtime/overlay/src/internal/gomadmodelwire/wire_generated_test.go"},
+		{Package: "gomadmodelwire", Template: "modelwire.go.tmpl", Path: "backends/native/toolchain/runtime/overlay/src/internal/gomadmodelwire/wire_generated.go"},
+		{Package: "gomadmodelwire", Template: "modelwire_test.go.tmpl", Path: "backends/native/toolchain/runtime/overlay/src/internal/gomadmodelwire/wire_generated_test.go"},
 		{Package: "execution", Template: "modeltransport.go.tmpl", Path: "runner/internal/execution/simulation_model_wire_generated.go"},
-		{Package: "gomadsim", Template: "modeltransport.go.tmpl", Path: "toolchain/runtime/overlay/src/internal/gomadsim/model_transport_generated.go"},
+		{Package: "gomadsim", Template: "modeltransport.go.tmpl", Path: "backends/native/toolchain/runtime/overlay/src/internal/gomadsim/model_transport_generated.go"},
 	}
 	for _, target := range modelOutputs {
 		generated, generateErr := generate(filepath.Join(root, "simulation", "schema", target.Template), simulationModelTemplateData{Package: target.Package, Schema: modelDefinition})
@@ -477,9 +477,9 @@ func GenerateProtocols(root string, check bool) error {
 	timeOutputs := []output{
 		{Package: "execution", Template: "timewire_host.go.tmpl", Path: "runner/internal/execution/simulation_time_wire_generated.go"},
 		{Package: "execution", Template: "timewire_host_test.go.tmpl", Path: "runner/internal/execution/simulation_time_wire_generated_test.go"},
-		{Package: "runtime", Template: "timewire_runtime.go.tmpl", Path: "toolchain/runtime/overlay/src/runtime/gomad_timewire_generated.go"},
-		{Package: "runtime", Template: "timewire_runtime_export_test.go.tmpl", Path: "toolchain/runtime/overlay/src/runtime/gomad_timewire_export_generated_test.go"},
-		{Package: "runtime", Template: "timewire_runtime_test.go.tmpl", Path: "toolchain/runtime/overlay/src/runtime/gomad_timewire_generated_test.go"},
+		{Package: "runtime", Template: "timewire_runtime.go.tmpl", Path: "backends/native/toolchain/runtime/overlay/src/runtime/gomad_timewire_generated.go"},
+		{Package: "runtime", Template: "timewire_runtime_export_test.go.tmpl", Path: "backends/native/toolchain/runtime/overlay/src/runtime/gomad_timewire_export_generated_test.go"},
+		{Package: "runtime", Template: "timewire_runtime_test.go.tmpl", Path: "backends/native/toolchain/runtime/overlay/src/runtime/gomad_timewire_generated_test.go"},
 	}
 	for _, target := range timeOutputs {
 		generated, generateErr := generate(filepath.Join(root, "simulation", "schema", target.Template), simulationTimeTemplateData{Package: target.Package, Schema: timeDefinition})
@@ -536,7 +536,7 @@ func generateLiveCapabilityProtocols(root string, check bool) error {
 	}
 	outputs := []output{
 		{Package: "livecap", Template: "livecap.go.tmpl", Path: "target/internal/livecap/protocol_generated.go"},
-		{Package: "gomadcap", Template: "livecap.go.tmpl", Path: "toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go"},
+		{Package: "gomadcap", Template: "livecap.go.tmpl", Path: "backends/native/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go"},
 	}
 	for _, target := range outputs {
 		generated, generateErr := generate(filepath.Join(root, "target", "internal", "livecap", target.Template), liveCapabilityTemplateData{
@@ -565,14 +565,14 @@ func readLiveCapabilityImplementationInputs(root string) (liveCapabilityImplemen
 	paths := []string{
 		"target/internal/livecap/livecap.json",
 		"target/internal/livecap/livecap.go.tmpl",
-		"toolchain/runtime/overlay/src/cmd/compile/internal/base/gomadcap.go",
-		"toolchain/runtime/overlay/src/cmd/link/internal/ld/gomadcap.go",
-		"toolchain/runtime/overlay/src/cmd/internal/gomadcap/encode.go",
-		"toolchain/runtime/overlay/src/cmd/compile/internal/base/gomadguard.go",
-		"toolchain/runtime/overlay/src/cmd/compile/internal/gomadguard/guard.go",
-		"toolchain/runtime/overlay/src/runtime/gomad.go",
-		"toolchain/runtime/overlay/src/cmd/compile/internal/gomadintercept/intercept.go",
-		"deterministicio/boundary_generated.go",
+		"backends/native/toolchain/runtime/overlay/src/cmd/compile/internal/base/gomadcap.go",
+		"backends/native/toolchain/runtime/overlay/src/cmd/link/internal/ld/gomadcap.go",
+		"backends/native/toolchain/runtime/overlay/src/cmd/internal/gomadcap/encode.go",
+		"backends/native/toolchain/runtime/overlay/src/cmd/compile/internal/base/gomadguard.go",
+		"backends/native/toolchain/runtime/overlay/src/cmd/compile/internal/gomadguard/guard.go",
+		"backends/native/toolchain/runtime/overlay/src/runtime/gomad.go",
+		"backends/native/toolchain/runtime/overlay/src/cmd/compile/internal/gomadintercept/intercept.go",
+		"backends/native/transcript/boundary_generated.go",
 		"target/internal/livecap/livecap.go",
 		"target/internal/livecap/project.go",
 	}
@@ -601,8 +601,8 @@ func readChoiceImplementationInputs(root string) (choiceImplementationInputs, er
 		"choice/schema/choicewire.json",
 		"choice/schema/choicewire.go.tmpl",
 		"choice/schema/choicewire_runtime.go.tmpl",
-		"toolchain/runtime/overlay/src/runtime/gomad.go",
-		"toolchain/runtime/go1.27.1.patch",
+		"backends/native/toolchain/runtime/overlay/src/runtime/gomad.go",
+		"backends/native/toolchain/runtime/go1.27.1.patch",
 		"choice/trace.go",
 		"choice/tape.go",
 	}

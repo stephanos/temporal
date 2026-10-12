@@ -53,7 +53,7 @@ var DefaultGenerators = [][]string{
 // go.mod in the working directories the table maps outside it.
 var DefaultVerifiers = [][]string{
 	{"{go}", "build", "./cmd/..."},
-	{"{go}", "vet", "-tags", "test_dep", "./backends/native/transcript/...", "./toolchain/version/..."},
+	{"{go}", "vet", "-tags", "test_dep", "./backends/native/transcript/...", "./backends/native/toolchain/version/..."},
 	{"{go}", "run", "./cmd/gomadtool", "version-generate", "-check"},
 	{"{go}", "run", "./cmd/gomadtool", "boundary-generate", "-check"},
 	{"{go}", "run", "./cmd/gomadtool", "compatibility-pack", "check", "--root={root}", "--staged-copy"},
@@ -529,7 +529,7 @@ func editDescriptor(stage string, regeneration transcript.AdapterRegeneration) e
 	if count := bytes.Count(contents, previous); count != 1 {
 		return fmt.Errorf("version descriptor entry for %s@%s occurs %d times, want exactly once", regeneration.Module, regeneration.Previous.Version, count)
 	}
-	return writeStaged(stage, "toolchain/version/version.json", bytes.Replace(contents, previous, entry(regeneration.Proposed.Version, regeneration.Proposed.Sum), 1))
+	return writeStaged(stage, "backends/native/toolchain/version/version.json", bytes.Replace(contents, previous, entry(regeneration.Proposed.Version, regeneration.Proposed.Sum), 1))
 }
 
 // editFixtures moves every test fixture module that requires the previous

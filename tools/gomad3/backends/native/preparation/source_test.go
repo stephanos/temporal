@@ -11,7 +11,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
 	"go.temporal.io/server/tools/gomad3/target"
-	"go.temporal.io/server/tools/gomad3/toolchain/installation"
+	"go.temporal.io/server/tools/gomad3/backends/native/toolchain/installation"
 )
 
 func sourceInstallation(t *testing.T) (installation.Description, string) {

@@ -14,7 +14,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/target"
-	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
+	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
 )
 
 // AdapterRegenerationSchema names the canonical review an adapter

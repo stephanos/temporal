@@ -12,8 +12,8 @@ import (
 	"strings"
 
 	"go.temporal.io/server/tools/gomad3/target"
-	"go.temporal.io/server/tools/gomad3/toolchain/installation"
-	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
+	"go.temporal.io/server/tools/gomad3/backends/native/toolchain/installation"
+	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
 	"golang.org/x/mod/modfile"
 )
 

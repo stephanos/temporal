@@ -909,7 +909,7 @@ that sample establishes headroom, not qualification of every prepared adapter.
 Command infrastructure/cleanup errors precede stdout overflow, stderr overflow,
 watchdog and raw command outcomes; failed stdout never reaches source projection.
 
-`toolchain/installation.Layout` names locations for the builder, while
+`backends/native/toolchain/installation.Layout` names locations for the builder, while
 `Description` validates the executable launcher, build key, and pinned build
 (`PLATFORM.INSTALLATION`, `PLATFORM.IDENTITY`). Consumers obtain target caches,
 prepared-target caches, and adapter locations from these values. CLI resolution
@@ -928,7 +928,7 @@ audit remain Darwin-specific.
 
 ## Maintenance gates
 
-`toolchain/version/version.json` is the canonical release descriptor. It owns
+`backends/native/toolchain/version/version.json` is the canonical release descriptor. It owns
 the Go archive and digest, supported platforms, patch name, boundary-manifest
 version, adapter versions, and exact patch/overlay source sets. Generation
 produces its Make, Go, and human-guide consumers; validation requires the

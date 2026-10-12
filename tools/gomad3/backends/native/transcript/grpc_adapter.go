@@ -3,7 +3,7 @@ package transcript
 import (
 	"slices"
 
-	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
+	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
 )
 
 const (

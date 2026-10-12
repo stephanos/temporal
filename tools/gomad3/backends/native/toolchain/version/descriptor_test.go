@@ -63,7 +63,7 @@ func TestGenerateRendersDescriptorConsumers(t *testing.T) {
 	if err := Generate(root, false); err != nil {
 		t.Fatal(err)
 	}
-	generatedSource, err := os.ReadFile(filepath.Join(root, "toolchain", "version", "generated.go"))
+	generatedSource, err := os.ReadFile(filepath.Join(root, "backends", "native", "toolchain", "version", "generated.go"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -99,7 +99,7 @@ func TestGenerateRendersDescriptorConsumers(t *testing.T) {
 	// GNU make prints directory banners when a parent make -C exported -w in MAKEFLAGS.
 	makeCommand := exec.Command("make", "--no-print-directory", "-f", "consumer.mk", "print")
 	makeCommand.Dir = root
-	if output, err := makeCommand.CombinedOutput(); err != nil || string(output) != "go1.26.4|toolchain/runtime/go1.26.4.patch|expected-intercepts-go1.26.4.txt|backends/native/transcript/boundary/go1.26.4-darwin-arm64.md\n" {
+	if output, err := makeCommand.CombinedOutput(); err != nil || string(output) != "go1.26.4|backends/native/toolchain/runtime/go1.26.4.patch|expected-intercepts-go1.26.4.txt|backends/native/transcript/boundary/go1.26.4-darwin-arm64.md\n" {
 		t.Fatalf("generated Make output = %q, error = %v", output, err)
 	}
 	goTest := `package version
@@ -112,7 +112,7 @@ func TestGeneratedValues(t *testing.T) {
 	}
 }
 `
-	goDirectory := filepath.Join(root, "toolchain", "version")
+	goDirectory := filepath.Join(root, "backends", "native", "toolchain", "version")
 	if err := os.WriteFile(filepath.Join(goDirectory, "generated_test.go"), []byte(goTest), 0o600); err != nil {
 		t.Fatal(err)
 	}
@@ -163,7 +163,7 @@ func TestGenerateAllowsNoBuiltInAdapters(t *testing.T) {
 	if err := Generate(root, false); err != nil {
 		t.Fatal(err)
 	}
-	generated, err := os.ReadFile(filepath.Join(root, "toolchain", "version", "generated.go"))
+	generated, err := os.ReadFile(filepath.Join(root, "backends", "native", "toolchain", "version", "generated.go"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -197,7 +197,7 @@ func TestGenerateRejectsPatchAllowlistDrift(t *testing.T) {
 
 func TestGenerateRejectsOverlayAllowlistDrift(t *testing.T) {
 	root := writeDescriptorFixture(t, "go1.26.4-darwin-arm64-v1")
-	path := filepath.Join(root, "toolchain", "runtime", "overlay", "src", "net", "gomad.go")
+	path := filepath.Join(root, "backends", "native", "toolchain", "runtime", "overlay", "src", "net", "gomad.go")
 	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
 		t.Fatal(err)
 	}
@@ -228,7 +228,7 @@ func TestLoadRejectsDuplicateAllowedPath(t *testing.T) {
 func writeDescriptorFixture(t *testing.T, manifestVersion string) string {
 	t.Helper()
 	root := t.TempDir()
-	for _, directory := range []string{"backends/native/transcript/boundary", "toolchain/version"} {
+	for _, directory := range []string{"backends/native/transcript/boundary", "backends/native/toolchain/version"} {
 		if err := os.MkdirAll(filepath.Join(root, filepath.FromSlash(directory)), 0o700); err != nil {
 			t.Fatal(err)
 		}
@@ -243,7 +243,7 @@ func writeDescriptorFixture(t *testing.T, manifestVersion string) string {
   },
   "supported_platforms": ["darwin/arm64"],
   "boundary_manifest_version": "go1.26.4-darwin-arm64-v1",
-  "patch": "toolchain/runtime/go1.26.4.patch",
+  "patch": "backends/native/toolchain/runtime/go1.26.4.patch",
   "adapters": [{
     "module": "golang.org/x/net",
     "version": "v0.57.0",
@@ -269,13 +269,13 @@ func writeDescriptorFixture(t *testing.T, manifestVersion string) string {
 		t.Fatal(err)
 	}
 	patch := "diff --git a/src/runtime/proc.go b/src/runtime/proc.go\n"
-	if err := os.MkdirAll(filepath.Join(root, "toolchain", "runtime"), 0o700); err != nil {
+	if err := os.MkdirAll(filepath.Join(root, "backends", "native", "toolchain", "runtime"), 0o700); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(root, "toolchain", "runtime", "go1.26.4.patch"), []byte(patch), 0o600); err != nil {
+	if err := os.WriteFile(filepath.Join(root, "backends", "native", "toolchain", "runtime", "go1.26.4.patch"), []byte(patch), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	overlayPath := filepath.Join(root, "toolchain", "runtime", "overlay", "src", "os", "gomad.go")
+	overlayPath := filepath.Join(root, "backends", "native", "toolchain", "runtime", "overlay", "src", "os", "gomad.go")
 	if err := os.MkdirAll(filepath.Dir(overlayPath), 0o700); err != nil {
 		t.Fatal(err)
 	}
@@ -283,7 +283,7 @@ func writeDescriptorFixture(t *testing.T, manifestVersion string) string {
 		t.Fatal(err)
 	}
 	manifest := `{"schema_version":1,"manifest_version":"` + manifestVersion + `","go_version":"go1.26.4","platforms":["darwin/arm64"]}` + "\n"
-	if err := os.WriteFile(filepath.Join(root, "deterministicio", "boundary", "manifest.json"), []byte(manifest), 0o600); err != nil {
+	if err := os.WriteFile(filepath.Join(root, "backends/native/transcript", "boundary", "manifest.json"), []byte(manifest), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	return root

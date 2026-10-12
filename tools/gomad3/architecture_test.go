@@ -29,12 +29,12 @@ func backendImportConfig() archcheck.Config {
 		Module: modulePath, WASMModule: wasmModule,
 		NativePackages: []string{
 			"deterministicio", "internal/iowire",
-			"backends/native/conformance", "internal/gomadtool/generation/boundary", "internal/gomadtool/generation/protocol",
+			"backends/native/conformance", "backends/native/generation/boundary", "backends/native/generation/protocol",
 			"runner/internal/execution",
 			"target/internal/build", "target/internal/capabilitypolicy", "target/internal/capabilityreview",
 			"target/internal/gocommand", "target/internal/livecap", "target/internal/provenance",
-			"toolchain", "toolchain/installation", "toolchain/version",
-			"toolchain/runtime/testdata/vfdnative", "toolchain/runtime/testdata/vfdpointer",
+			"toolchain", "backends/native/toolchain/installation", "backends/native/toolchain/version",
+			"backends/native/toolchain/runtime/testdata/vfdnative", "backends/native/toolchain/runtime/testdata/vfdpointer",
 			"upgrade", "upgrade/adapterregen", "upgrade/pinimpact",
 		},
 		Exceptions: []archcheck.Exception{
@@ -54,7 +54,7 @@ func backendImportConfig() archcheck.Config {
 			{From: modulePath + "/target", To: modulePath + "/target/internal/gocommand", RemovalTask: splitTarget},
 			{From: modulePath + "/target", To: modulePath + "/target/internal/livecap", RemovalTask: splitTarget},
 			{From: modulePath + "/target", To: modulePath + "/target/internal/provenance", RemovalTask: splitTarget},
-			{From: modulePath + "/target", To: modulePath + "/toolchain/installation", RemovalTask: splitTarget},
+			{From: modulePath + "/target", To: modulePath + "/backends/native/toolchain/installation", RemovalTask: splitTarget},
 			{From: wasmModule + "/qualification", To: modulePath + "/deterministicio", RemovalTask: moveNative},
 		},
 		WASMImports: []string{
@@ -79,7 +79,7 @@ func TestBackendImportDirection(t *testing.T) {
 				t.Fatalf("empty import inventory for %s on %s/%s", root, platform.OS, platform.Arch)
 			}
 			for _, pkg := range listed {
-				if architecture.Within(pkg.ImportPath, modulePath+"/toolchain/runtime/overlay") {
+				if architecture.Within(pkg.ImportPath, modulePath+"/backends/native/toolchain/runtime/overlay") {
 					continue
 				}
 				if pkg.Error != nil || len(pkg.DepsErrors) != 0 {
@@ -175,7 +175,7 @@ func TestArchitectureInventoryFixtures(t *testing.T) {
 		{"hidden-production", "uncovered-source", ".hidden/source.go", "package hidden\n"},
 		{"underscore-production", "uncovered-source", "_hidden/source.go", "package hidden\n"},
 		{"unclassified-testdata", "uncovered-source", "record/testdata/source.go", "package hidden\n"},
-		{"overlay-prefix", "package-error", "toolchain/runtime/overlayextra/source.go", "package overlayextra\nimport _ \"example.invalid/missing\"\n"},
+		{"overlay-prefix", "package-error", "backends/native/toolchain/runtime/overlayextra/source.go", "package overlayextra\nimport _ \"example.invalid/missing\"\n"},
 		{"hidden-module", "unclassified-module", ".hidden/go.mod", "module example.invalid/hidden\n\ngo 1.27.1\n"},
 		{"excluded-root-module", "unclassified-module", "backends/native/transcript/testdata/extra/go.mod", "module example.invalid/extra\n\ngo 1.27.1\n"},
 		{"included-list-error", "package-error", "record/source.go", "package record\nimport _ \"example.invalid/missing\"\n"},
@@ -185,7 +185,7 @@ func TestArchitectureInventoryFixtures(t *testing.T) {
 		t.Run(fixture.name, func(t *testing.T) {
 			root := t.TempDir()
 			files := map[string]string{"go.mod": "module example.invalid/fitness\n\ngo 1.27.1\n", "runner/source.go": "package runner\n", fixture.path: fixture.source}
-			for _, path := range []string{"toolchain/runtime/overlay", "cmd/gomad/testdata", "backends/native/transcript/testdata", "internal/compatibilitypack/testdata", "backends/native/conformance/testdata", "testdata", "qualification/corpus"} {
+			for _, path := range []string{"backends/native/toolchain/runtime/overlay", "cmd/gomad/testdata", "backends/native/transcript/testdata", "internal/compatibilitypack/testdata", "backends/native/conformance/testdata", "testdata", "qualification/corpus"} {
 				files[path+"/fixture.go"] = "package fixture\n"
 			}
 			for _, path := range []string{"backends/native/transcript/testdata/cactusstatsd", "backends/native/transcript/testdata/hashicorpmetrics", "backends/native/transcript/testdata/memberlist", "backends/native/transcript/testdata/pebble", "backends/native/transcript/testdata/sentry", "backends/native/transcript/testdata/sockaddr", "backends/native/transcript/testdata/sprig", "backends/native/transcript/testdata/validator", "internal/compatibilitypack/testdata/v041", "internal/compatibilitypack/testdata/xsys", "backends/native/conformance/testdata", "backends/native/conformance/testdata/libc_adapter", "backends/native/conformance/testdata/sqlite_adapter", "qualification/corpus"} {
@@ -647,7 +647,7 @@ func TestExactModuleEdges(t *testing.T) {
 			t.Errorf("toolchain imports orchestration package %s", forbidden)
 		}
 	}
-	for _, required := range []string{modulePath + "/qualification/set", modulePath + "/toolchain/version"} {
+	for _, required := range []string{modulePath + "/qualification/set", modulePath + "/backends/native/toolchain/version"} {
 		if !slices.Contains(imports[modulePath+"/upgrade"], required) {
 			t.Errorf("upgrade orchestration does not depend on %s", required)
 		}
@@ -655,13 +655,13 @@ func TestExactModuleEdges(t *testing.T) {
 	// One installation description supplies build, cache and adapter
 	// locations to the builder and to their ordinary consumers.
 	for _, consumer := range []string{modulePath + "/toolchain", modulePath + "/target", modulePath + "/deterministicio"} {
-		if !slices.Contains(imports[consumer], modulePath+"/toolchain/installation") {
-			t.Errorf("%s does not read installation locations from toolchain/installation", consumer)
+		if !slices.Contains(imports[consumer], modulePath+"/backends/native/toolchain/installation") {
+			t.Errorf("%s does not read installation locations from backends/native/toolchain/installation", consumer)
 		}
 	}
-	for _, imported := range imports[modulePath+"/toolchain/installation"] {
+	for _, imported := range imports[modulePath+"/backends/native/toolchain/installation"] {
 		if strings.HasPrefix(imported, modulePath+"/") {
-			t.Errorf("toolchain/installation imports module package %s", imported)
+			t.Errorf("backends/native/toolchain/installation imports module package %s", imported)
 		}
 	}
 	// One neutral owner digests adapter source inventories for capability

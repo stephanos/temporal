@@ -20,7 +20,7 @@ func TestGenerateWritesAndChecksAllArtifacts(t *testing.T) {
 	}
 
 	for _, relative := range []string{
-		"toolchain/runtime/overlay/src/cmd/compile/internal/gomadintercept/spec_go126.go",
+		"backends/native/toolchain/runtime/overlay/src/cmd/compile/internal/gomadintercept/spec_go126.go",
 		"expected-intercepts-go1.26.4.txt",
 		"backends/native/transcript/boundary/go1.26.4-darwin-arm64.md",
 		"backends/native/transcript/boundary_generated.go",
@@ -32,7 +32,7 @@ func TestGenerateWritesAndChecksAllArtifacts(t *testing.T) {
 		if len(contents) == 0 {
 			t.Fatalf("generated artifact %s is empty", relative)
 		}
-		if relative == "toolchain/runtime/overlay/src/cmd/compile/internal/gomadintercept/spec_go126.go" {
+		if relative == "backends/native/toolchain/runtime/overlay/src/cmd/compile/internal/gomadintercept/spec_go126.go" {
 			if !strings.Contains(string(contents), "ProbeID:") {
 				t.Fatalf("generated compiler spec has no semantic probe")
 			}
@@ -88,7 +88,7 @@ func TestGenerateWritesDeclaredHookBoilerplate(t *testing.T) {
 	if err := Generate(root, false); err != nil {
 		t.Fatal(err)
 	}
-	contents, err := os.ReadFile(filepath.Join(root, "toolchain", "runtime", "overlay", "src", "os", "gomad_unsupported_generated.go"))
+	contents, err := os.ReadFile(filepath.Join(root, "backends", "native", "toolchain", "runtime", "overlay", "src", "os", "gomad_unsupported_generated.go"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -126,7 +126,7 @@ func generatedHookManifest() string {
   "hook_policies": [{
     "id": "os-unsupported/v1",
     "package": "os",
-    "output": "toolchain/runtime/overlay/src/os/gomad_unsupported_generated.go",
+    "output": "backends/native/toolchain/runtime/overlay/src/os/gomad_unsupported_generated.go",
     "imports": [{"name": "syscall", "path": "syscall"}],
     "enabled": "gomadIOEnabled()",
     "disabled_fallback": "upstream",
@@ -148,7 +148,7 @@ func TestGenerateCompilerTestOverlaySeparatesFixturesFromProduction(t *testing.T
 	if err := Generate(root, false); err != nil {
 		t.Fatal(err)
 	}
-	productionPath := filepath.Join(root, "toolchain", "runtime", "overlay", "src", "cmd", "compile", "internal", "gomadintercept", "spec_go126.go")
+	productionPath := filepath.Join(root, "backends", "native", "toolchain", "runtime", "overlay", "src", "cmd", "compile", "internal", "gomadintercept", "spec_go126.go")
 	production, err := os.ReadFile(productionPath)
 	if err != nil {
 		t.Fatal(err)
@@ -443,7 +443,7 @@ func TestGenerateRendersPlatformOverridesForTheCompilerAndHostIdentity(t *testin
 	if err := Generate(root, false); err != nil {
 		t.Fatal(err)
 	}
-	spec, err := os.ReadFile(filepath.Join(root, filepath.FromSlash("toolchain/runtime/overlay/src/cmd/compile/internal/gomadintercept/spec_go126.go")))
+	spec, err := os.ReadFile(filepath.Join(root, filepath.FromSlash("backends/native/toolchain/runtime/overlay/src/cmd/compile/internal/gomadintercept/spec_go126.go")))
 	if err != nil {
 		t.Fatal(err)
 	}

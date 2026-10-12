@@ -281,7 +281,7 @@ func loadOwnership(root string) (ownership, error) {
 	if len(policy.fixtures) == 0 || len(policy.modules) == 0 || len(policy.hostPackages) == 0 {
 		return policy, errors.New("gomad source classifications need literal sourceExclusions, expectedModules and hostSourcePackages")
 	}
-	data, err := os.ReadFile(filepath.Join(root, gomadModule, "toolchain/version/version.json"))
+	data, err := os.ReadFile(filepath.Join(root, gomadModule, "backends/native/toolchain/version/version.json"))
 	if err != nil {
 		return policy, err
 	}
@@ -318,7 +318,7 @@ func classificationPaths(file *ast.File, name string) ([]string, error) {
 func (p ownership) registerHostPackages(root string, entries []string) error {
 	for _, entry := range entries {
 		base := filepath.Base(entry)
-		if filepath.ToSlash(filepath.Dir(entry)) != "toolchain/runtime/testdata" || strings.HasPrefix(base, ".") || strings.HasPrefix(base, "_") || strings.ContainsAny(base, "*?[]") || p.hostPackages[entry] {
+		if filepath.ToSlash(filepath.Dir(entry)) != "backends/native/toolchain/runtime/testdata" || strings.HasPrefix(base, ".") || strings.HasPrefix(base, "_") || strings.ContainsAny(base, "*?[]") || p.hostPackages[entry] {
 			return fmt.Errorf("invalid Gomad host source package %q", entry)
 		}
 		if err := regularHostDirectory(root, gomadModule+"/"+entry); err != nil {
@@ -421,8 +421,8 @@ func (p ownership) classify(path string, modules []string) (source, error) {
 				return entry, fmt.Errorf("uncovered WASM host source %s", path)
 			}
 		}
-	case within(path, gomadModule+"/toolchain/runtime/overlay"):
-		relative := strings.TrimPrefix(path, gomadModule+"/toolchain/runtime/overlay/")
+	case within(path, gomadModule+"/backends/native/toolchain/runtime/overlay"):
+		relative := strings.TrimPrefix(path, gomadModule+"/backends/native/toolchain/runtime/overlay/")
 		if !p.overlays[relative] {
 			return entry, fmt.Errorf("unclassified runtime overlay source %s", path)
 		}
@@ -430,7 +430,7 @@ func (p ownership) classify(path string, modules []string) (source, error) {
 	case within(path, gomadModule):
 		relative := strings.TrimPrefix(path, gomadModule+"/")
 		for _, fixture := range p.fixtures {
-			if fixture != "toolchain/runtime/overlay" && within(relative, fixture) {
+			if fixture != "backends/native/toolchain/runtime/overlay" && within(relative, fixture) {
 				entry.disposition = "Gomad qualification fixture"
 				return entry, nil
 			}
@@ -459,7 +459,7 @@ func (p ownership) validateGomadHostSource(path, relative string) error {
 				return fmt.Errorf("uncovered Gomad host source %s", path)
 			}
 		}
-		if within(relative, "toolchain/runtime") {
+		if within(relative, "backends/native/toolchain/runtime") {
 			return fmt.Errorf("uncovered Gomad host source %s", path)
 		}
 	}

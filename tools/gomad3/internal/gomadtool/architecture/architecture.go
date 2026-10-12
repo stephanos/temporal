@@ -64,7 +64,7 @@ func Discover(root, goCommand string, platform Platform) (Inventory, []Finding, 
 			return inventory, findings, err
 		}
 		relative = filepath.ToSlash(relative)
-		if Within(relative, "toolchain/runtime/overlay") {
+		if Within(relative, "backends/native/toolchain/runtime/overlay") {
 			continue
 		}
 		if pkg.ImportPath != module && !Within(pkg.ImportPath, module) {
@@ -189,8 +189,8 @@ func Discover(root, goCommand string, platform Platform) (Inventory, []Finding, 
 	return inventory, findings, nil
 }
 
-var hostSourcePackages = []string{"toolchain/runtime/testdata/vfdpointer", "toolchain/runtime/testdata/vfdnative"}
-var sourceExclusions = []string{"toolchain/runtime/overlay", "cmd/gomad/testdata", "deterministicio/testdata", "internal/compatibilitypack/testdata", "internal/gomadtool/conformance/testdata", "testdata", "qualification/corpus"}
+var hostSourcePackages = []string{"backends/native/toolchain/runtime/testdata/vfdpointer", "backends/native/toolchain/runtime/testdata/vfdnative"}
+var sourceExclusions = []string{"backends/native/toolchain/runtime/overlay", "cmd/gomad/testdata", "deterministicio/testdata", "internal/compatibilitypack/testdata", "internal/gomadtool/conformance/testdata", "testdata", "qualification/corpus"}
 var expectedModules = map[string]bool{
 	"deterministicio/testdata/cactusstatsd/go.mod": true, "deterministicio/testdata/hashicorpmetrics/go.mod": true,
 	"deterministicio/testdata/memberlist/go.mod": true, "deterministicio/testdata/pebble/go.mod": true,

@@ -17,7 +17,7 @@ import (
 	"golang.org/x/mod/module"
 )
 
-const descriptorPath = "toolchain/version/version.json"
+const descriptorPath = "backends/native/toolchain/version/version.json"
 
 var (
 	goVersionPattern = regexp.MustCompile(`^go[1-9][0-9]*\.[0-9]+\.[0-9]+$`)
@@ -132,7 +132,7 @@ func validateSourceAllowlists(root string, descriptor Descriptor) error {
 		return fmt.Errorf("patch allowlist does not match patch paths: got %v, want %v", descriptor.PatchAllowlist, patchPaths)
 	}
 
-	overlayRoot := filepath.Join(root, "toolchain", "runtime", "overlay")
+	overlayRoot := filepath.Join(root, "backends", "native", "toolchain", "runtime", "overlay")
 	var overlayPaths []string
 	err = filepath.WalkDir(overlayRoot, func(path string, entry os.DirEntry, visitErr error) error {
 		if visitErr != nil {
@@ -220,7 +220,7 @@ func validate(descriptor Descriptor) error {
 }
 
 func validateBoundaryIdentity(root string, descriptor Descriptor) error {
-	path := filepath.Join(root, "deterministicio", "boundary", "manifest.json")
+	path := filepath.Join(root, "backends/native/transcript", "boundary", "manifest.json")
 	contents, err := os.ReadFile(path)
 	if err != nil {
 		return fmt.Errorf("read boundary manifest identity: %w", err)
@@ -283,7 +283,7 @@ func render(descriptor Descriptor) ([]artifact, error) {
 	}
 	return []artifact{
 		{path: "version_generated.mk", content: makefile},
-		{path: "toolchain/version/generated.go", content: goSource},
+		{path: "backends/native/toolchain/version/generated.go", content: goSource},
 		{path: upgradeGuideName(descriptor), content: renderUpgradeGuide(descriptor)},
 	}, nil
 }
@@ -295,7 +295,7 @@ func renderMake(descriptor Descriptor) []byte {
 func renderUpgradeGuide(descriptor Descriptor) []byte {
 	var output strings.Builder
 	fmt.Fprintf(&output, "# Gomad v3 upgrade qualification: %s\n\n", descriptor.BoundaryManifestVersion)
-	output.WriteString("Generated from [`../../toolchain/version/version.json`](../../toolchain/version/version.json). Do not edit this guide directly.\n\n")
+	output.WriteString("Generated from [`../../backends/native/toolchain/version/version.json`](../../backends/native/toolchain/version/version.json). Do not edit this guide directly.\n\n")
 	output.WriteString("## Pinned inputs\n\n")
 	fmt.Fprintf(&output, "- Go release: `%s`\n", descriptor.GoVersion)
 	fmt.Fprintf(&output, "- source archive SHA-256: `%s`\n", descriptor.Archive.SHA256)
@@ -312,7 +312,7 @@ func renderUpgradeGuide(descriptor Descriptor) []byte {
 	output.WriteString("```sh\ngo -C tools/gomad3 run ./cmd/gomadtool adapter-regenerate --root=. \\\n  --module=<module-path> --version=<exact-version>\ngo -C tools/gomad3 run ./cmd/gomadtool adapter-regenerate --root=. \\\n  --module=<module-path> --version=<exact-version> --approve=sha256:<reviewed-digest>\ngo -C tools/gomad3 run ./cmd/gomadtool compatibility-pack refresh --root=. \\\n  --impact-report=/absolute/path/to/pin-impact.json\n```\n\n")
 	output.WriteString("Review each changed pack report, then use `compatibility-pack generate --approve-review=<exact-review-sha256>` for that request. Validate generated outputs and qualify affected adapters, packs, the core set, and the complete test gate on both supported hosts. The [README](../../README.md#compatibility-pack-development) records the full procedure.\n\n")
 	output.WriteString("## Qualification command\n\n")
-	output.WriteString("Run from the Gomad source module root after updating `toolchain/version/version.json`, the boundary manifest, patch, and overlays:\n\n")
+	output.WriteString("Run from the Gomad source module root after updating `backends/native/toolchain/version/version.json`, the boundary manifest, patch, and overlays:\n\n")
 	output.WriteString("```sh\nmake generate\nmake upgrade-dossier GOMAD3_BASELINE_REF=<previous-commit>\n```\n\n")
 	output.WriteString("The command publishes `.toolchain/upgrade-dossier.json`, even when a behavioral gate or boundary approval fails. The dossier contains the complete upstream patch diff, semantic boundary-manifest diff, expected and applied interception evidence, archive-based overlay collision results, disabled-mode upstream results, mandatory-probe gates, host-clock escape audit, retained core-corpus report, and platform qualification. If the dossier reports boundary changes, rerun only after reviewing and approving the complete diff:\n\n")
 	output.WriteString("```sh\nmake upgrade-dossier GOMAD3_BASELINE_REF=<previous-commit> GOMAD3_APPROVED_BOUNDARY_DIFF_SHA256=<boundary_manifest_diff.sha256>\n```\n\n")
@@ -361,7 +361,7 @@ func boundaryReportName(descriptor Descriptor) string {
 
 func compilerSpecName(descriptor Descriptor) string {
 	parts := strings.Split(strings.TrimPrefix(descriptor.GoVersion, "go"), ".")
-	return "toolchain/runtime/overlay/src/cmd/compile/internal/gomadintercept/spec_go" + parts[0] + parts[1] + ".go"
+	return "backends/native/toolchain/runtime/overlay/src/cmd/compile/internal/gomadintercept/spec_go" + parts[0] + parts[1] + ".go"
 }
 
 func upgradeGuideName(descriptor Descriptor) string {

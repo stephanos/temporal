@@ -10,7 +10,7 @@ import (
 	"sync/atomic"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/toolchain/installation"
+	"go.temporal.io/server/tools/gomad3/backends/native/toolchain/installation"
 )
 
 const cleanupLauncher = "#!/bin/sh\n" +
@@ -22,8 +22,8 @@ const cleanupLauncher = "#!/bin/sh\n" +
 func TestBuildCleanupSnapshots(t *testing.T) {
 	root := writeBuildFixture(t)
 	config := testConfig(root)
-	config.Patch = filepath.Join(root, "toolchain/runtime/gomad.patch")
-	config.Overlay = filepath.Join(root, "toolchain/runtime/overlay")
+	config.Patch = filepath.Join(root, "backends/native/toolchain/runtime/gomad.patch")
+	config.Overlay = filepath.Join(root, "backends/native/toolchain/runtime/overlay")
 	first, err := snapshotInputs(config)
 	if err != nil {
 		t.Fatal(err)
@@ -73,8 +73,8 @@ func TestBuildCleanupSnapshotPrimaryFailures(t *testing.T) {
 		t.Run(failure, func(t *testing.T) {
 			root := writeBuildFixture(t)
 			config := testConfig(root)
-			config.Patch = filepath.Join(root, "toolchain/runtime/gomad.patch")
-			config.Overlay = filepath.Join(root, "toolchain/runtime/overlay")
+			config.Patch = filepath.Join(root, "backends/native/toolchain/runtime/gomad.patch")
+			config.Overlay = filepath.Join(root, "backends/native/toolchain/runtime/overlay")
 			var want string
 			if failure == "unsupported" {
 				path := filepath.Join(config.Overlay, "unsupported")

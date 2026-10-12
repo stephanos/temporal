@@ -14,7 +14,7 @@ import (
 	"strconv"
 )
 
-const overlay = "toolchain/runtime/overlay/src/internal/"
+const overlay = "backends/native/toolchain/runtime/overlay/src/internal/"
 
 var sources = []struct{ input, output, pkg string }{
 	{overlay + "gomadfs/fs.go", "fs_generated.go", "volume"},

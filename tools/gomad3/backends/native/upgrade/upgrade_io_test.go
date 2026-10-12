@@ -15,7 +15,7 @@ import (
 	"strings"
 	"testing"
 
-	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
+	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
 )
 
 type failingDossierWriter struct {
@@ -244,7 +244,7 @@ func replaceFixtureArchive(t *testing.T, root string, contents []byte) gomadvers
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(root, "toolchain/version/version.json"), encoded, 0o600); err != nil {
+	if err := os.WriteFile(filepath.Join(root, "backends/native/toolchain/version/version.json"), encoded, 0o600); err != nil {
 		t.Fatal(err)
 	}
 	return descriptor

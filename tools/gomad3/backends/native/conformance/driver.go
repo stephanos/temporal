@@ -10,9 +10,9 @@ import (
 	"strings"
 	"time"
 
-	"go.temporal.io/server/tools/gomad3/internal/gomadtool/generation/boundary"
+	"go.temporal.io/server/tools/gomad3/backends/native/generation/boundary"
 	"go.temporal.io/server/tools/gomad3/internal/hostexec"
-	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
+	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
 )
 
 const fixtureOutputLimit = 1 << 20

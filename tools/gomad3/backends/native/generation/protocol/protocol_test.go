@@ -180,27 +180,27 @@ func TestLiveCapabilityImplementationIdentityBindsProducerAndValidatorInputs(t *
 func TestRunGeneratesAndChecksEveryEndpoint(t *testing.T) {
 	root := t.TempDir()
 	for _, relative := range []string{
-		"toolchain/runtime/go1.27.1.patch",
-		"toolchain/runtime/overlay/src/cmd/compile/internal/base/gomadcap.go",
-		"toolchain/runtime/overlay/src/cmd/compile/internal/base/gomadguard.go",
-		"toolchain/runtime/overlay/src/cmd/compile/internal/gomadguard/guard.go",
-		"toolchain/runtime/overlay/src/cmd/compile/internal/gomadintercept/intercept.go",
-		"toolchain/runtime/overlay/src/cmd/internal/gomadcap/encode.go",
-		"toolchain/runtime/overlay/src/cmd/link/internal/ld/gomadcap.go",
+		"backends/native/toolchain/runtime/go1.27.1.patch",
+		"backends/native/toolchain/runtime/overlay/src/cmd/compile/internal/base/gomadcap.go",
+		"backends/native/toolchain/runtime/overlay/src/cmd/compile/internal/base/gomadguard.go",
+		"backends/native/toolchain/runtime/overlay/src/cmd/compile/internal/gomadguard/guard.go",
+		"backends/native/toolchain/runtime/overlay/src/cmd/compile/internal/gomadintercept/intercept.go",
+		"backends/native/toolchain/runtime/overlay/src/cmd/internal/gomadcap/encode.go",
+		"backends/native/toolchain/runtime/overlay/src/cmd/link/internal/ld/gomadcap.go",
 		"choice/tape.go",
 		"choice/trace.go",
-		"toolchain/runtime/overlay/src/runtime/gomad.go",
+		"backends/native/toolchain/runtime/overlay/src/runtime/gomad.go",
 		"runtimesemantics/gomad_semantics.go.txt",
-		"deterministicio/boundary/manifest.json",
-		"deterministicio/boundary_generated.go",
+		"backends/native/transcript/boundary/manifest.json",
+		"backends/native/transcript/boundary_generated.go",
 		"choice/schema/choicewire.go.tmpl",
 		"choice/schema/choicewire.json",
 		"choice/schema/choicewire_runtime.go.tmpl",
 		"choice/schema/choicewire_test.go.tmpl",
-		"deterministicio/schema/iowire.go.tmpl",
-		"deterministicio/schema/iowire.json",
-		"deterministicio/schema/iowire_runtime.go.tmpl",
-		"deterministicio/schema/iowire_test.go.tmpl",
+		"backends/native/transcript/schema/iowire.go.tmpl",
+		"backends/native/transcript/schema/iowire.json",
+		"backends/native/transcript/schema/iowire_runtime.go.tmpl",
+		"backends/native/transcript/schema/iowire_test.go.tmpl",
 		"simulation/schema/modelwire.go.tmpl",
 		"simulation/schema/modelwire.json",
 		"simulation/schema/modelwire_test.go.tmpl",
@@ -237,31 +237,31 @@ func TestRunGeneratesAndChecksEveryEndpoint(t *testing.T) {
 	for _, relative := range []string{
 		"choice/internal/wire/wire_generated.go",
 		"choice/internal/wire/wire_generated_test.go",
-		"deterministicio/internal/wire/wire_generated.go",
-		"deterministicio/internal/wire/wire_generated_test.go",
-		"toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated.go",
-		"toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated_test.go",
+		"internal/iowire/wire_generated.go",
+		"internal/iowire/wire_generated_test.go",
+		"backends/native/toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated.go",
+		"backends/native/toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated_test.go",
 		"runtimesemantics/gomad_choicewire_generated.go.txt",
-		"toolchain/runtime/overlay/src/runtime/gomad_iowire_generated.go",
-		"toolchain/runtime/overlay/src/internal/gomadwire/wire_generated.go",
-		"toolchain/runtime/overlay/src/internal/gomadwire/wire_generated_test.go",
-		"toolchain/runtime/overlay/src/internal/gomadmodelwire/wire_generated.go",
-		"toolchain/runtime/overlay/src/internal/gomadmodelwire/wire_generated_test.go",
+		"backends/native/toolchain/runtime/overlay/src/runtime/gomad_iowire_generated.go",
+		"backends/native/toolchain/runtime/overlay/src/internal/gomadwire/wire_generated.go",
+		"backends/native/toolchain/runtime/overlay/src/internal/gomadwire/wire_generated_test.go",
+		"backends/native/toolchain/runtime/overlay/src/internal/gomadmodelwire/wire_generated.go",
+		"backends/native/toolchain/runtime/overlay/src/internal/gomadmodelwire/wire_generated_test.go",
 		"runner/internal/execution/simulation_model_wire_generated.go",
-		"toolchain/runtime/overlay/src/internal/gomadsim/model_transport_generated.go",
+		"backends/native/toolchain/runtime/overlay/src/internal/gomadsim/model_transport_generated.go",
 		"runner/internal/execution/simulation_time_wire_generated.go",
 		"runner/internal/execution/simulation_time_wire_generated_test.go",
-		"toolchain/runtime/overlay/src/runtime/gomad_timewire_generated.go",
-		"toolchain/runtime/overlay/src/runtime/gomad_timewire_export_generated_test.go",
-		"toolchain/runtime/overlay/src/runtime/gomad_timewire_generated_test.go",
+		"backends/native/toolchain/runtime/overlay/src/runtime/gomad_timewire_generated.go",
+		"backends/native/toolchain/runtime/overlay/src/runtime/gomad_timewire_export_generated_test.go",
+		"backends/native/toolchain/runtime/overlay/src/runtime/gomad_timewire_generated_test.go",
 		"target/internal/livecap/protocol_generated.go",
-		"toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go",
+		"backends/native/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go",
 	} {
 		if _, err := os.Stat(filepath.Join(root, filepath.FromSlash(relative))); err != nil {
 			t.Fatalf("generated endpoint %q: %v", relative, err)
 		}
 	}
-	for _, relative := range []string{"choice/internal/wire/wire_generated.go", "deterministicio/internal/wire/wire_generated.go", "toolchain/runtime/overlay/src/internal/gomadmodelwire/wire_generated.go", "runner/internal/execution/simulation_time_wire_generated.go", "runner/internal/execution/simulation_time_wire_generated_test.go", "toolchain/runtime/overlay/src/runtime/gomad_timewire_generated.go", "toolchain/runtime/overlay/src/runtime/gomad_timewire_export_generated_test.go", "toolchain/runtime/overlay/src/runtime/gomad_timewire_generated_test.go", "target/internal/livecap/protocol_generated.go"} {
+	for _, relative := range []string{"choice/internal/wire/wire_generated.go", "internal/iowire/wire_generated.go", "backends/native/toolchain/runtime/overlay/src/internal/gomadmodelwire/wire_generated.go", "runner/internal/execution/simulation_time_wire_generated.go", "runner/internal/execution/simulation_time_wire_generated_test.go", "backends/native/toolchain/runtime/overlay/src/runtime/gomad_timewire_generated.go", "backends/native/toolchain/runtime/overlay/src/runtime/gomad_timewire_export_generated_test.go", "backends/native/toolchain/runtime/overlay/src/runtime/gomad_timewire_generated_test.go", "target/internal/livecap/protocol_generated.go"} {
 		stale := filepath.Join(root, filepath.FromSlash(relative))
 		current, err := os.ReadFile(stale)
 		if err != nil {
@@ -280,7 +280,7 @@ func TestRunGeneratesAndChecksEveryEndpoint(t *testing.T) {
 }
 
 func TestReadSchemaRejectsTrailingData(t *testing.T) {
-	contents, err := os.ReadFile(filepath.Join("..", "..", "..", "..", "deterministicio", "schema", "iowire.json"))
+	contents, err := os.ReadFile(filepath.Join("..", "..", "..", "..", "backends/native/transcript", "schema", "iowire.json"))
 	if err != nil {
 		t.Fatal(err)
 	}

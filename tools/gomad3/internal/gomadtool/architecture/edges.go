@@ -34,7 +34,7 @@ func OwnerMayImport(modulePath, owner, importedOwner, importing, imported string
 	// Target preparation and deterministic I/O read the pinned version and the
 	// validated installation layout; the builder stays out of their reach.
 	if (owner == "target" || owner == "deterministicio") && importedOwner == "toolchain" {
-		return imported == modulePath+"/toolchain/version" || imported == modulePath+"/toolchain/installation"
+		return imported == modulePath+"/backends/native/toolchain/version" || imported == modulePath+"/backends/native/toolchain/installation"
 	}
 	// Only the maintenance engines read adapters and compatibility packs.
 	// The public compatibility facade also serializes its report as JSON.
@@ -77,10 +77,10 @@ func ModuleMayImport(modulePath, importing, imported string) bool {
 func PackageEdges(module string, packages []Package) []Finding {
 	var findings []Finding
 	required := map[string][]string{
-		"target":          {"target/internal/build", "target/internal/capabilityreview", "target/internal/provenance", "toolchain/installation", "internal/sourceinventory"},
-		"upgrade":         {"qualification/set", "toolchain/version"},
-		"toolchain":       {"toolchain/installation"},
-		"deterministicio": {"toolchain/installation", "internal/sourceinventory"},
+		"target":          {"target/internal/build", "target/internal/capabilityreview", "target/internal/provenance", "backends/native/toolchain/installation", "internal/sourceinventory"},
+		"upgrade":         {"qualification/set", "backends/native/toolchain/version"},
+		"toolchain":       {"backends/native/toolchain/installation"},
+		"deterministicio": {"backends/native/toolchain/installation", "internal/sourceinventory"},
 	}
 	for _, pkg := range packages {
 		owner := Owner(module, pkg.ImportPath)
@@ -93,7 +93,7 @@ func PackageEdges(module string, packages []Package) []Finding {
 			if !Within(imported, module) {
 				continue
 			}
-			if pkg.ImportPath == module+"/toolchain/installation" || (pkg.ImportPath == module+"/internal/sourceinventory" && imported != module+"/internal/hostfs") || (pkg.ImportPath == module+"/toolchain" && (imported == module+"/qualification" || imported == module+"/upgrade")) {
+			if pkg.ImportPath == module+"/backends/native/toolchain/installation" || (pkg.ImportPath == module+"/internal/sourceinventory" && imported != module+"/internal/hostfs") || (pkg.ImportPath == module+"/toolchain" && (imported == module+"/qualification" || imported == module+"/upgrade")) {
 				findings = append(findings, Finding{Category: "module-edge", Path: pkg.ImportPath, Detail: imported})
 			}
 			importedOwner := Owner(module, imported)

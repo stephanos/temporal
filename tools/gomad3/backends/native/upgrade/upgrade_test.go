@@ -607,7 +607,7 @@ func writeUpgradeFixture(t *testing.T, collide bool) string {
 func writeUpgradeFixtureForPlatforms(t *testing.T, collide bool, supportedPlatforms []string) string {
 	t.Helper()
 	root := t.TempDir()
-	for _, directory := range []string{"backends/native/transcript/boundary", "toolchain/runtime/overlay/src/os", "toolchain/version", ".toolchain/downloads"} {
+	for _, directory := range []string{"backends/native/transcript/boundary", "backends/native/toolchain/runtime/overlay/src/os", "backends/native/toolchain/version", ".toolchain/downloads"} {
 		if err := os.MkdirAll(filepath.Join(root, filepath.FromSlash(directory)), 0o700); err != nil {
 			t.Fatal(err)
 		}
@@ -639,7 +639,7 @@ func writeUpgradeFixtureForPlatforms(t *testing.T, collide bool, supportedPlatfo
   "archive": {"name":"go1.26.4.src.tar.gz","url":"https://go.dev/dl/go1.26.4.src.tar.gz","sha256":"%x"},
   "supported_platforms": %s,
   "boundary_manifest_version": "go1.26.4-darwin-arm64-v1",
-  "patch": "toolchain/runtime/go1.26.4.patch",
+  "patch": "backends/native/toolchain/runtime/go1.26.4.patch",
   "adapters": [{"module":"modernc.org/libc","version":"v1.72.3","sum":"h1:test"}],
   "patch_allowlist": ["src/runtime/proc.go"],
   "overlay_allowlist": ["src/os/gomad.go"]

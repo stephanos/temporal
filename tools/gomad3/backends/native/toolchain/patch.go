@@ -14,7 +14,7 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/internal/hostexec"
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
-	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
+	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
 )
 
 const maximumPatchBytes = 64 << 20
@@ -96,7 +96,7 @@ func resolvePatchSpec(config PatchSpec) (gomadversion.Descriptor, string, string
 	}
 	overlayRoot := config.Overlay
 	if overlayRoot == "" {
-		overlayRoot = filepath.Join(root, "toolchain", "runtime", "overlay")
+		overlayRoot = filepath.Join(root, "backends", "native", "toolchain", "runtime", "overlay")
 	} else if !filepath.IsAbs(overlayRoot) {
 		overlayRoot = filepath.Join(root, overlayRoot)
 	}

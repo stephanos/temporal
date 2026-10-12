@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"go.temporal.io/server/tools/gomad3/toolchain/installation"
+	"go.temporal.io/server/tools/gomad3/backends/native/toolchain/installation"
 )
 
 const InstallationManifestName = "gomad3-install.json"

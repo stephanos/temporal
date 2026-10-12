@@ -18,7 +18,7 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
-	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
+	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
 	"golang.org/x/mod/module"
 	modzip "golang.org/x/mod/zip"
 )
@@ -31,13 +31,13 @@ const (
 	twiceVersion  = "v0.46.3"
 	gonePrefix    = "v0.46.4"
 	sentryAnchor  = "\texec \"golang.org/x/sys/execabs\"\n"
-	generatedFile = "toolchain/version/generated.txt"
+	generatedFile = "backends/native/toolchain/version/generated.txt"
 )
 
 // The fixture generator derives a file from the version descriptor, as
 // version-generate does, so a test can tell a published descriptor from its
 // published generated output.
-var fixtureGenerator = []string{"sh", "-c", "sha256sum toolchain/version/version.json > " + generatedFile}
+var fixtureGenerator = []string{"sh", "-c", "sha256sum backends/native/toolchain/version/version.json > " + generatedFile}
 
 type fixture struct {
 	t         *testing.T
@@ -69,7 +69,7 @@ func newFixture(t *testing.T) *fixture {
 		t.Fatal(err)
 	}
 	root := t.TempDir()
-	for _, relative := range []string{"backends/native/transcript", "toolchain/version/version.json", "internal/compatibilitypack/packs"} {
+	for _, relative := range []string{"backends/native/transcript", "backends/native/toolchain/version/version.json", "internal/compatibilitypack/packs"} {
 		copyTree(t, filepath.Join(source, relative), filepath.Join(root, relative))
 	}
 	if err := os.WriteFile(filepath.Join(root, generatedFile), []byte("initial\n"), 0o644); err != nil {
@@ -287,7 +287,7 @@ func TestApplyPublishesConstantsDescriptorTestDataAndGeneratedOutputTogether(t *
 			t.Fatalf("published adapter lacks %s", want)
 		}
 	}
-	descriptor := fixture.read("toolchain/version/version.json")
+	descriptor := fixture.read("backends/native/toolchain/version/version.json")
 	if !strings.Contains(descriptor, fmt.Sprintf("%q,\n      \"sum\": %q", goodVersion, proposed.Sum)) {
 		t.Fatalf("published descriptor lacks the candidate entry:\n%s", descriptor)
 	}
@@ -298,7 +298,7 @@ func TestApplyPublishesConstantsDescriptorTestDataAndGeneratedOutputTogether(t *
 		!strings.Contains(fixtureSum, sentryModule+" "+goodVersion+" "+proposed.Sum) || strings.Contains(fixtureSum, sentryModule+" "+fixture.pinned+" ") {
 		t.Fatalf("pinned test data was not moved:\n%s\n%s", fixtureMod, fixtureSum)
 	}
-	for _, want := range []string{"backends/native/transcript/sentry_adapter.go", "backends/native/transcript/testdata/sentry/go.mod", "backends/native/transcript/testdata/sentry/go.sum", "toolchain/version/version.json", generatedFile} {
+	for _, want := range []string{"backends/native/transcript/sentry_adapter.go", "backends/native/transcript/testdata/sentry/go.mod", "backends/native/transcript/testdata/sentry/go.sum", "backends/native/toolchain/version/version.json", generatedFile} {
 		if !strings.Contains(strings.Join(result.Published, "\n"), want) {
 			t.Fatalf("published %v, want %s", result.Published, want)
 		}

@@ -10,7 +10,7 @@ import (
 )
 
 func TestFilesystemHandlesOwnOneImplementation(t *testing.T) {
-	files, err := filepath.Glob("toolchain/runtime/overlay/src/internal/gomadfs/*.go")
+	files, err := filepath.Glob("backends/native/toolchain/runtime/overlay/src/internal/gomadfs/*.go")
 	if err != nil {
 		t.Fatal(err)
 	}

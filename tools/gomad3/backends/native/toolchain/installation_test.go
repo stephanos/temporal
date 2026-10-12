@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/toolchain/installation"
+	"go.temporal.io/server/tools/gomad3/backends/native/toolchain/installation"
 )
 
 func TestResolvePrefersExplicitThenEnvironment(t *testing.T) {

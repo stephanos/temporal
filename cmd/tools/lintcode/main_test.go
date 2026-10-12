@@ -32,18 +32,18 @@ func TestLintRuntimeHostRegistration(t *testing.T) {
 		symlinkAncestor          bool
 		wantPackages             map[string]bool
 	}{
-		{"absent directories", `"toolchain/runtime/testdata/vfdpointer", "toolchain/runtime/testdata/vfdnative"`, "", false, map[string]bool{"toolchain/runtime/testdata/vfdpointer": true, "toolchain/runtime/testdata/vfdnative": true}},
-		{"missing leaf under symlink", `"toolchain/runtime/testdata/vfdpointer", "toolchain/runtime/testdata/vfdnative"`, "uncovered source symlink tools/gomad3/toolchain/runtime/testdata/vfdpointer", true, map[string]bool{}},
-		{"partial registration and first error", `"toolchain/runtime/testdata/vfdpointer", "toolchain/runtime/testdata/.invalid", "toolchain/runtime/testdata/_later"`, `invalid Gomad host source package "toolchain/runtime/testdata/.invalid"`, false, map[string]bool{"toolchain/runtime/testdata/vfdpointer": true}},
+		{"absent directories", `"backends/native/toolchain/runtime/testdata/vfdpointer", "backends/native/toolchain/runtime/testdata/vfdnative"`, "", false, map[string]bool{"backends/native/toolchain/runtime/testdata/vfdpointer": true, "backends/native/toolchain/runtime/testdata/vfdnative": true}},
+		{"missing leaf under symlink", `"backends/native/toolchain/runtime/testdata/vfdpointer", "backends/native/toolchain/runtime/testdata/vfdnative"`, "uncovered source symlink tools/gomad3/backends/native/toolchain/runtime/testdata/vfdpointer", true, map[string]bool{}},
+		{"partial registration and first error", `"backends/native/toolchain/runtime/testdata/vfdpointer", "backends/native/toolchain/runtime/testdata/.invalid", "backends/native/toolchain/runtime/testdata/_later"`, `invalid Gomad host source package "backends/native/toolchain/runtime/testdata/.invalid"`, false, map[string]bool{"backends/native/toolchain/runtime/testdata/vfdpointer": true}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			repo := &lintRepo{t: t, root: t.TempDir()}
 			repo.write("tools/gomad3/internal/gomadtool/architecture/architecture.go", "package architecture\nvar sourceExclusions = []string{\"testdata\"}\nvar expectedModules = map[string]bool{\"testdata/go.mod\":true}\nvar hostSourcePackages = []string{"+tc.entries+"}\n")
-			repo.write("tools/gomad3/toolchain/version/version.json", `{"overlay_allowlist":["src/os/gomad.go"]}`)
+			repo.write("tools/gomad3/backends/native/toolchain/version/version.json", `{"overlay_allowlist":["src/os/gomad.go"]}`)
 			if tc.symlinkAncestor {
-				require.NoError(t, os.MkdirAll(filepath.Join(repo.root, "tools/gomad3/toolchain/runtime"), 0o700))
-				require.NoError(t, os.Symlink(t.TempDir(), filepath.Join(repo.root, "tools/gomad3/toolchain/runtime/testdata")))
+				require.NoError(t, os.MkdirAll(filepath.Join(repo.root, "tools/gomad3/backends/native/toolchain/runtime"), 0o700))
+				require.NoError(t, os.Symlink(t.TempDir(), filepath.Join(repo.root, "tools/gomad3/backends/native/toolchain/runtime/testdata")))
 			}
 			policy, err := loadOwnership(repo.root)
 			if tc.wantError == "" {
@@ -123,18 +123,18 @@ func TestLintRuntimeHostPackages(t *testing.T) {
 		t.Run(tc.target+tc.failure, func(t *testing.T) {
 			t.Parallel()
 			repo := newLintRepo(t)
-			for _, directory := range []string{"tools/gomad3/toolchain/runtime/testdata/vfdpointer", "tools/gomad3/toolchain/runtime/testdata/vfdnative"} {
+			for _, directory := range []string{"tools/gomad3/backends/native/toolchain/runtime/testdata/vfdpointer", "tools/gomad3/backends/native/toolchain/runtime/testdata/vfdnative"} {
 				repo.write(directory+"/source.go", "package runner\n")
 				repo.write(directory+"/source_test.go", "package runner\nimport \"testing\"\nfunc TestRunner(t *testing.T) {}\n")
 			}
-			repo.env = append(repo.env, "LINT_TEST_FAIL="+tc.failure, "LINT_TEST_FAIL_PACKAGE=./toolchain/runtime/testdata/vfdpointer")
+			repo.env = append(repo.env, "LINT_TEST_FAIL="+tc.failure, "LINT_TEST_FAIL_PACKAGE=./backends/native/toolchain/runtime/testdata/vfdpointer")
 			output, err := repo.runMake(tc.target)
 			if tc.failure == "" {
 				require.NoError(t, err, output)
 			} else {
 				require.Error(t, err, output)
 			}
-			packages := []string{".", "./internal/gomadtool/architecture", "./runner", "./toolchain", "./toolchain/runtime/testdata/vfdnative", "./toolchain/runtime/testdata/vfdpointer"}
+			packages := []string{".", "./internal/gomadtool/architecture", "./runner", "./toolchain", "./backends/native/toolchain/runtime/testdata/vfdnative", "./backends/native/toolchain/runtime/testdata/vfdpointer"}
 			want := []lintCall{{"golangci", "tools/gomad3", repo.lintArgs(packages...)}}
 			if tc.failure != "golangci" {
 				want = append(want, lintCall{"vet", "tools/gomad3", repo.vetArgs(packages...)})
@@ -147,7 +147,7 @@ func TestLintRuntimeHostPackages(t *testing.T) {
 func TestLintRuntimeHostPackageImportFailure(t *testing.T) {
 	t.Parallel()
 	repo := newLintRepo(t)
-	repo.write("tools/gomad3/toolchain/runtime/testdata/vfdpointer/source.go", "package runner\nimport _ \"example.invalid/fixture/missing\"\n")
+	repo.write("tools/gomad3/backends/native/toolchain/runtime/testdata/vfdpointer/source.go", "package runner\nimport _ \"example.invalid/fixture/missing\"\n")
 	output, err := repo.runMake("lint-code-gomad3")
 	require.Error(t, err)
 	require.Contains(t, output, "example.invalid/fixture/missing")
@@ -159,7 +159,7 @@ func TestLintRejectsRuntimeHostSourceSymlinks(t *testing.T) {
 	repo := newLintRepo(t)
 	sourcePath := filepath.Join(t.TempDir(), "source.go")
 	require.NoError(t, os.WriteFile(sourcePath, []byte("package runner\n"), 0o600))
-	path := "tools/gomad3/toolchain/runtime/testdata/vfdpointer/source.go"
+	path := "tools/gomad3/backends/native/toolchain/runtime/testdata/vfdpointer/source.go"
 	require.NoError(t, os.MkdirAll(filepath.Dir(filepath.Join(repo.root, path)), 0o700))
 	require.NoError(t, os.Symlink(sourcePath, filepath.Join(repo.root, path)))
 	_, err := repo.runMake("lint-code-gomad3")
@@ -171,8 +171,8 @@ func TestLintRejectsRuntimeHostDirectorySymlinks(t *testing.T) {
 	t.Parallel()
 	for _, target := range []string{"lint-code-fast", "lint-code-gomad3"} {
 		for _, tc := range []struct{ path, source string }{
-			{"tools/gomad3/toolchain/runtime/testdata/vfdpointer", "source.go"},
-			{"tools/gomad3/toolchain/runtime/testdata", "vfdpointer/source.go"},
+			{"tools/gomad3/backends/native/toolchain/runtime/testdata/vfdpointer", "source.go"},
+			{"tools/gomad3/backends/native/toolchain/runtime/testdata", "vfdpointer/source.go"},
 		} {
 			t.Run(target+"/"+tc.path, func(t *testing.T) {
 				t.Parallel()
@@ -199,11 +199,11 @@ func TestLintRejectsInvalidRuntimeHostPackageList(t *testing.T) {
 		"",
 		"var hostSourcePackages = paths()\n",
 		"var hostSourcePackages = []string{}\n",
-		"var hostSourcePackages = []string{\"toolchain/runtime/testdata/vfdpointer\", \"toolchain/runtime/testdata/vfdpointer\"}\n",
+		"var hostSourcePackages = []string{\"backends/native/toolchain/runtime/testdata/vfdpointer\", \"backends/native/toolchain/runtime/testdata/vfdpointer\"}\n",
 		"var hostSourcePackages = []string{\"../outside\"}\n",
-		"var hostSourcePackages = []string{\"toolchain/runtime/testdata/...\"}\n",
-		"var hostSourcePackages = []string{\"toolchain/runtime/testdata/vfdpointer/nested\"}\n",
-		"var hostSourcePackages = []string{\"toolchain/runtime/testdata/.hidden\"}\n",
+		"var hostSourcePackages = []string{\"backends/native/toolchain/runtime/testdata/...\"}\n",
+		"var hostSourcePackages = []string{\"backends/native/toolchain/runtime/testdata/vfdpointer/nested\"}\n",
+		"var hostSourcePackages = []string{\"backends/native/toolchain/runtime/testdata/.hidden\"}\n",
 	} {
 		t.Run(declaration, func(t *testing.T) {
 			t.Parallel()
@@ -444,7 +444,7 @@ func TestFastLintReportsOwnedExclusions(t *testing.T) {
 		"tools/gomad3/internal/compatibilitypack/testdata/source.go",
 		"tools/gomad3/testdata/source.go",
 		"tools/gomad3/qualification/corpus/source.go",
-		"tools/gomad3/toolchain/runtime/overlay/src/os/gomad.go",
+		"tools/gomad3/backends/native/toolchain/runtime/overlay/src/os/gomad.go",
 	} {
 		repo.write(path, "package fixture\n")
 	}
@@ -462,17 +462,17 @@ func TestLintRejectsUnclassifiedSource(t *testing.T) {
 		"tools/gomad3/backends/native/conformance/testdata/extra/go.mod",
 		"tools/gomad3sim/testdata/simulation_exploration/extra/go.mod",
 		"tools/gomad3integration/testdata/tagged/extra/go.mod",
-		"tools/gomad3/toolchain/runtime/overlayextra/source.go",
-		"tools/gomad3/toolchain/runtime/overlay/src/os/uninventoried.go",
+		"tools/gomad3/backends/native/toolchain/runtime/overlayextra/source.go",
+		"tools/gomad3/backends/native/toolchain/runtime/overlay/src/os/uninventoried.go",
 		"tools/gomad3/record/testdata/source.go",
 		"tools/gomad3/runner/.hidden/source.go",
 		"tools/gomad3/runner/_hidden/source.go",
-		"tools/gomad3/toolchain/runtime/testdata/unknown/source.go",
-		"tools/gomad3/toolchain/runtime/testdata/vfdpointerextra/source.go",
-		"tools/gomad3/toolchain/runtime/testdata/vfdpointer/nested/source.go",
-		"tools/gomad3/toolchain/runtime/testdata/vfdpointer/.hidden/source.go",
-		"tools/gomad3/toolchain/runtime/testdata/vfdpointer/_hidden/source.go",
-		"tools/gomad3/toolchain/runtime/testdata/vfdpointer/go.mod",
+		"tools/gomad3/backends/native/toolchain/runtime/testdata/unknown/source.go",
+		"tools/gomad3/backends/native/toolchain/runtime/testdata/vfdpointerextra/source.go",
+		"tools/gomad3/backends/native/toolchain/runtime/testdata/vfdpointer/nested/source.go",
+		"tools/gomad3/backends/native/toolchain/runtime/testdata/vfdpointer/.hidden/source.go",
+		"tools/gomad3/backends/native/toolchain/runtime/testdata/vfdpointer/_hidden/source.go",
+		"tools/gomad3/backends/native/toolchain/runtime/testdata/vfdpointer/go.mod",
 		"ordinary/_ignored.go",
 	} {
 		t.Run(path, func(t *testing.T) {
@@ -605,8 +605,8 @@ func TestRootFixturePrefixNearMissRemainsLive(t *testing.T) {
 func TestLintRejectsInvalidOwnership(t *testing.T) {
 	t.Parallel()
 	for _, tc := range []struct{ path, contents string }{
-		{"tools/gomad3/toolchain/version/version.json", `{"overlay_allowlist":[]}`},
-		{"tools/gomad3/toolchain/version/version.json", `{"overlay_allowlist":["../outside.go"]}`},
+		{"tools/gomad3/backends/native/toolchain/version/version.json", `{"overlay_allowlist":[]}`},
+		{"tools/gomad3/backends/native/toolchain/version/version.json", `{"overlay_allowlist":["../outside.go"]}`},
 		{"tools/gomad3/internal/gomadtool/architecture/architecture.go", "package architecture\nvar sourceExclusions = paths()\nvar expectedModules = map[string]bool{\"testdata/go.mod\":true}\n"},
 	} {
 		t.Run(tc.contents, func(t *testing.T) {
@@ -738,14 +738,14 @@ func newLintRepo(t *testing.T) *lintRepo {
 		repo.write(path, "module example.invalid/fixture\n\ngo 1.27.0\n")
 	}
 	repo.write("go.mod", "module example.invalid/root\n\ngo 1.27.0\n")
-	for _, dir := range []string{"proto/internal", "chasm/lib", "tools/gomad3/toolchain/runtime/overlay", "tools/gomad3/backends/native/transcript/boundary", "tools/gomad3/internal/gomadtool/generation/boundary", "tools/gomad3/internal/compatibilitypack/requests", "tools/gomad3/internal/compatibilitypack/authoring"} {
+	for _, dir := range []string{"proto/internal", "chasm/lib", "tools/gomad3/backends/native/toolchain/runtime/overlay", "tools/gomad3/backends/native/transcript/boundary", "tools/gomad3/backends/native/generation/boundary", "tools/gomad3/internal/compatibilitypack/requests", "tools/gomad3/internal/compatibilitypack/authoring"} {
 		require.NoError(t, os.MkdirAll(filepath.Join(repo.root, dir), 0o700))
 	}
 	for _, path := range []string{"ordinary/source.go", "staged/staged.go", "deleted/only.go", "renameold/only.go", "tools/gomad3/runner/source.go", "tools/gomad3/toolchain/source.go", "tests/mixedbrain/source.go", ".github/actions/build-docker-images/scripts/source.go", "tools/gomad3sim/source.go", "tools/gomad3integration/source.go"} {
 		repo.write(path, "package sample\n")
 	}
 	repo.write("tools/gomad3/root_test.go", "package sample\n")
-	repo.write("tools/gomad3/toolchain/version/version.json", `{"overlay_allowlist":["src/os/gomad.go"]}`)
+	repo.write("tools/gomad3/backends/native/toolchain/version/version.json", `{"overlay_allowlist":["src/os/gomad.go"]}`)
 	repo.write(".github/.golangci.yml", "version: \"2\"\n")
 	require.NoError(t, os.MkdirAll(filepath.Join(repo.root, "renamenew"), 0o700))
 	goPath, err := exec.LookPath("go")

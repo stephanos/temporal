@@ -2,9 +2,9 @@
 
 include version_generated.mk
 
-OVERLAY_FILES := $(shell find toolchain/runtime/overlay -type f)
-VERSION_INPUTS := toolchain/version/version.json $(shell find toolchain/version -type f -not -name '*_test.go') cmd/gomadtool/version.go
-BOUNDARY_INPUTS := backends/native/transcript/boundary/manifest.json backends/native/transcript/boundary/compiler-tests.json $(shell find backends/native/transcript/boundary -type f -not -name '*_test.go') $(shell find internal/gomadtool/generation/boundary -name '*.go' -not -name '*_test.go')
+OVERLAY_FILES := $(shell find backends/native/toolchain/runtime/overlay -type f)
+VERSION_INPUTS := backends/native/toolchain/version/version.json $(shell find backends/native/toolchain/version -type f -not -name '*_test.go') cmd/gomadtool/version.go
+BOUNDARY_INPUTS := backends/native/transcript/boundary/manifest.json backends/native/transcript/boundary/compiler-tests.json $(shell find backends/native/transcript/boundary -type f -not -name '*_test.go') $(shell find backends/native/generation/boundary -name '*.go' -not -name '*_test.go')
 BOUNDARY_OUTPUTS := $(GOMAD3_COMPILER_SPEC) $(GOMAD3_EXPECTED_INTERCEPTS) $(GOMAD3_BOUNDARY_REPORT) backends/native/transcript/boundary_generated.go
 COMPATIBILITY_INPUTS := $(shell find internal/compatibilitypack/requests internal/compatibilitypack/authoring -type f) internal/compatibilitypack/working-directories.json internal/compatibilitypack/schema.go internal/compatibilitypack/v2_selection.go
 COMPILER_TEST_OVERLAY := $(CURDIR)/.toolchain/compiler-test-overlay
@@ -57,7 +57,7 @@ clean-qualifications:
 	find "$(CURDIR)/.toolchain" -type f -name '*qualification*.json' -delete
 
 test-toolchain: toolchain
-	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -tags test_dep ./toolchain
+	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -tags test_dep ./backends/native/toolchain
 
 compiler-test-compiler: toolchain
 	@mkdir -p $(COMPILER_TEST_OVERLAY) $(dir $(COMPILER_TEST_COMPILE))
@@ -83,6 +83,9 @@ runner: toolchain
 	@mkdir -p .bin
 	env -u GOMADSEED -u GOMAD3_CHILD_SEED CGO_ENABLED=0 GOTOOLCHAIN=local TZ=UTC \
 		.toolchain/bin/go build -trimpath -o .bin/gomad ./cmd/gomad
+
+.PHONY: build
+build: runner
 
 qualification-set: runner
 	@test -n "$(GOMAD3_QUALIFICATION_MANIFEST)" || { echo "GOMAD3_QUALIFICATION_MANIFEST is required" >&2; exit 2; }
@@ -130,7 +133,10 @@ test-host: toolchain
 	fi; \
 	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOMAD3_STOCK_GO="$$stock_go" GOEXPERIMENT=nogreenteagc GOWORK=off .toolchain/bin/go test -tags test_dep \
 		. ./cmd/... ./runner/... ./qualification/... ./target/... ./record/... ./artifact/... ./choice/... \
-		./backends/native/transcript/... ./world/... ./toolchain/version ./toolchain/installation ./upgrade/... ./internal/...
+		./captured/... ./volume/... ./backends/native/transcript/... ./world/... \
+		./backends/native/toolchain/version ./backends/native/toolchain/installation \
+		./backends/native/upgrade/... ./backends/native/preparation/... ./backends/native/qualification/... \
+		./backends/native/generation/... ./backends/native/build/... ./internal/...
 
 # internal/gomadsim keeps its tests external because testing reaches the
 # package through os.
@@ -138,13 +144,13 @@ overlay-test: toolchain
 	.toolchain/bin/go test -tags test_dep internal/gomadfs internal/gomadwire internal/gomadchoicewire internal/gomadmodelwire \
 		internal/gomadsim internal/gomadio internal/gomadio/mount internal/gomadvfd syscall os cmd/internal/gomadcap
 	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOEXPERIMENT=nogreenteagc GOWORK=off \
-		.toolchain/bin/go test -tags test_dep ./toolchain/runtime/testdata/vfdpointer
+		.toolchain/bin/go test -tags test_dep ./backends/native/toolchain/runtime/testdata/vfdpointer
 	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOEXPERIMENT=nogreenteagc GOWORK=off \
-		.toolchain/bin/go run ./toolchain/runtime/testdata/vfdpointer -root=$(CURDIR) -go=$(CURDIR)/.toolchain/bin/go
+		.toolchain/bin/go run ./backends/native/toolchain/runtime/testdata/vfdpointer -root=$(CURDIR) -go=$(CURDIR)/.toolchain/bin/go
 	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOEXPERIMENT=nogreenteagc GOWORK=off \
-		.toolchain/bin/go test -tags test_dep ./toolchain/runtime/testdata/vfdnative
+		.toolchain/bin/go test -tags test_dep ./backends/native/toolchain/runtime/testdata/vfdnative
 	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOEXPERIMENT=nogreenteagc GOWORK=off \
-		.toolchain/bin/go run ./toolchain/runtime/testdata/vfdnative -root=$(CURDIR) -go=$(CURDIR)/.toolchain/bin/go
+		.toolchain/bin/go run ./backends/native/toolchain/runtime/testdata/vfdnative -root=$(CURDIR) -go=$(CURDIR)/.toolchain/bin/go
 
 # The gomad3_toolchain tests of the root module's tools/gomad3sim need a seeded
 # runtime, so they run through the exec wrapper. The tests that need the

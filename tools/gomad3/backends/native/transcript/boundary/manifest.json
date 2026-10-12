@@ -10,7 +10,7 @@
     {
       "id": "net-unsupported/v1",
       "package": "net",
-      "output": "toolchain/runtime/overlay/src/net/gomad_unsupported_generated.go",
+      "output": "backends/native/toolchain/runtime/overlay/src/net/gomad_unsupported_generated.go",
       "imports": [
         {
           "name": "context",

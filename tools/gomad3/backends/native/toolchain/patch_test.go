@@ -13,11 +13,11 @@ import (
 	"strings"
 	"testing"
 
-	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
+	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
 )
 
 func TestValidateAcceptsCurrentCheckedInputs(t *testing.T) {
-	root, err := filepath.Abs(filepath.Join(".."))
+	root, err := filepath.Abs(filepath.Join("..", "..", ".."))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -35,7 +35,7 @@ func TestValidateRejectsPatchOutsideDescriptorAllowlist(t *testing.T) {
 -package runtime
 +package runtime // changed
 `
-	if err := os.WriteFile(filepath.Join(root, "toolchain", "runtime", "gomad.patch"), []byte(patch), 0o600); err != nil {
+	if err := os.WriteFile(filepath.Join(root, "backends", "native", "toolchain", "runtime", "gomad.patch"), []byte(patch), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	err := ValidatePatch(PatchSpec{Root: root})
@@ -62,7 +62,7 @@ new file mode 100644
 	} {
 		t.Run(name, func(t *testing.T) {
 			root := writeFixture(t)
-			if err := os.WriteFile(filepath.Join(root, "toolchain", "runtime", "gomad.patch"), []byte(patch), 0o600); err != nil {
+			if err := os.WriteFile(filepath.Join(root, "backends", "native", "toolchain", "runtime", "gomad.patch"), []byte(patch), 0o600); err != nil {
 				t.Fatal(err)
 			}
 			if err := ValidatePatch(PatchSpec{Root: root}); err == nil {
@@ -83,7 +83,7 @@ func TestValidateRejectsUnlistedAndBinaryOverlayEntries(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			root := writeFixture(t)
-			path := filepath.Join(root, "toolchain", "runtime", "overlay", filepath.FromSlash(test.relative))
+			path := filepath.Join(root, "backends", "native", "toolchain", "runtime", "overlay", filepath.FromSlash(test.relative))
 			if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
 				t.Fatal(err)
 			}
@@ -110,7 +110,7 @@ func TestValidateClassifiesProhibitedRuntimeAreas(t *testing.T) {
 	} {
 		t.Run(strings.ReplaceAll(test.path, "/", "-"), func(t *testing.T) {
 			root := writeFixture(t)
-			path := filepath.Join(root, "toolchain", "runtime", "overlay", filepath.FromSlash(test.path))
+			path := filepath.Join(root, "backends", "native", "toolchain", "runtime", "overlay", filepath.FromSlash(test.path))
 			if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
 				t.Fatal(err)
 			}
@@ -145,7 +145,7 @@ func TestMaterializeAppliesExactPatch(t *testing.T) {
 
 func TestMaterializeRejectsNonapplyingPatchWithoutMutation(t *testing.T) {
 	root := writeFixture(t)
-	patchPath := filepath.Join(root, "toolchain", "runtime", "gomad.patch")
+	patchPath := filepath.Join(root, "backends", "native", "toolchain", "runtime", "gomad.patch")
 	contents, err := os.ReadFile(patchPath)
 	if err != nil {
 		t.Fatal(err)
@@ -170,7 +170,7 @@ func TestMaterializeRejectsNonapplyingPatchWithoutMutation(t *testing.T) {
 
 func TestMaterializeRejectsFuzzDependentPatch(t *testing.T) {
 	root := writeFixture(t)
-	patchPath := filepath.Join(root, "toolchain", "runtime", "gomad.patch")
+	patchPath := filepath.Join(root, "backends", "native", "toolchain", "runtime", "gomad.patch")
 	contents, err := os.ReadFile(patchPath)
 	if err != nil {
 		t.Fatal(err)
@@ -448,7 +448,7 @@ func TestPinnedContextRepresentationsMaterializeIdenticalSource(t *testing.T) {
 // cached; a cached archive with another checksum fails.
 func pinnedArchive(t *testing.T) (string, string, gomadversion.Descriptor) {
 	t.Helper()
-	root, err := filepath.Abs(filepath.Join(".."))
+	root, err := filepath.Abs(filepath.Join("..", "..", ".."))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -572,7 +572,7 @@ func requireSameFile(t *testing.T, got, want string) {
 func writeFixture(t *testing.T) string {
 	t.Helper()
 	root := t.TempDir()
-	for _, directory := range []string{"toolchain/runtime/overlay/src/runtime", "toolchain/version"} {
+	for _, directory := range []string{"backends/native/toolchain/runtime/overlay/src/runtime", "backends/native/toolchain/version"} {
 		if err := os.MkdirAll(filepath.Join(root, filepath.FromSlash(directory)), 0o700); err != nil {
 			t.Fatal(err)
 		}
@@ -583,7 +583,7 @@ func writeFixture(t *testing.T) string {
   "archive": {"name":"go1.26.4.src.tar.gz","url":"https://go.dev/dl/go1.26.4.src.tar.gz","sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},
   "supported_platforms": ["darwin/arm64"],
   "boundary_manifest_version": "go1.26.4-darwin-arm64-v1",
-  "patch": "toolchain/runtime/gomad.patch",
+  "patch": "backends/native/toolchain/runtime/gomad.patch",
   "adapters": [{"module":"modernc.org/libc","version":"v1.72.3","sum":"h1:test"}],
   "patch_allowlist": ["src/runtime/proc.go"],
   "overlay_allowlist": ["src/runtime/gomad.go"]
@@ -598,13 +598,13 @@ func writeFixture(t *testing.T) string {
 +replacement
  omega
 `
-	if err := os.WriteFile(filepath.Join(root, "toolchain", "version", "version.json"), []byte(descriptor), 0o600); err != nil {
+	if err := os.WriteFile(filepath.Join(root, "backends", "native", "toolchain", "version", "version.json"), []byte(descriptor), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(root, "toolchain", "runtime", "gomad.patch"), []byte(patch), 0o600); err != nil {
+	if err := os.WriteFile(filepath.Join(root, "backends", "native", "toolchain", "runtime", "gomad.patch"), []byte(patch), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(root, "toolchain", "runtime", "overlay", "src", "runtime", "gomad.go"), []byte("package runtime\n"), 0o600); err != nil {
+	if err := os.WriteFile(filepath.Join(root, "backends", "native", "toolchain", "runtime", "overlay", "src", "runtime", "gomad.go"), []byte("package runtime\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	return root
@@ -633,7 +633,7 @@ func writeRegenerateFixtureWithSource(t *testing.T, source string) (string, stri
 	archiveContents := regenerateArchive(t, source)
 	digest := sha256.Sum256(archiveContents)
 	root := writeFixture(t)
-	descriptorPath := filepath.Join(root, "toolchain", "version", "version.json")
+	descriptorPath := filepath.Join(root, "backends", "native", "toolchain", "version", "version.json")
 	descriptor, err := os.ReadFile(descriptorPath)
 	if err != nil {
 		t.Fatal(err)

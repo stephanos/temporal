@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 
-	"go.temporal.io/server/tools/gomad3/toolchain/version"
+	"go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
 )
 
 func runVersionGenerate(arguments []string, stderr io.Writer) int {

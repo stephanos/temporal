@@ -17,7 +17,7 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
-	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
+	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
 )
 
 const Schema = "gomad3.pin-impact/v1"

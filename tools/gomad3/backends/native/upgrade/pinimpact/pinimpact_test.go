@@ -16,7 +16,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
 	"go.temporal.io/server/tools/gomad3/target"
-	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
+	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
 	"go.temporal.io/server/tools/gomad3/backends/native/upgrade/pinimpact"
 	"golang.org/x/mod/modfile"
 )

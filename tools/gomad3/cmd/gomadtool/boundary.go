@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	"go.temporal.io/server/tools/gomad3/internal/gomadtool/generation/boundary"
+	"go.temporal.io/server/tools/gomad3/backends/native/generation/boundary"
 )
 
 func runBoundaryGenerate(arguments []string, stdout, stderr io.Writer) int {

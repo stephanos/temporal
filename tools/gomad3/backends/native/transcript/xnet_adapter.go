@@ -1,6 +1,6 @@
 package transcript
 
-import gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
+import gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
 
 const (
 	xnetModulePath                       = "golang.org/x/net"

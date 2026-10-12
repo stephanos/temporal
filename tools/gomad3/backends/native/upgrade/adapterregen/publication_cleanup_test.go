@@ -356,7 +356,7 @@ func checkCleanupResult(t *testing.T, result, review Result, applied bool) {
 		"backends/native/transcript/testdata/sentry/go.mod",
 		"backends/native/transcript/testdata/sentry/go.sum",
 		generatedFile,
-		"toolchain/version/version.json",
+		"backends/native/toolchain/version/version.json",
 	}
 	paths := make([]string, len(result.Staged))
 	for index, file := range result.Staged {

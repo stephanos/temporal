@@ -40,7 +40,7 @@ func TestProjectionPreservesNativeOwnerBodies(t *testing.T) {
 	}
 	compared := 0
 	for _, name := range []string{"network.go", "simulation_network.go", "simulation_handles.go", "simulation_wire.go"} {
-		native, err := parser.ParseFile(token.NewFileSet(), filepath.Join(root, "toolchain/runtime/overlay/src/internal/gomadio", name), nil, 0)
+		native, err := parser.ParseFile(token.NewFileSet(), filepath.Join(root, "backends/native/toolchain/runtime/overlay/src/internal/gomadio", name), nil, 0)
 		if err != nil {
 			t.Fatal(err)
 		}

@@ -12,7 +12,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner"
 	runnerbackend "go.temporal.io/server/tools/gomad3/runner/backend"
-	"go.temporal.io/server/tools/gomad3/toolchain"
+	"go.temporal.io/server/tools/gomad3/backends/native/toolchain"
 )
 
 // The private child modes the gomad executable serves for its own Runner. The

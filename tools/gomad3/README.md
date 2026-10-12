@@ -669,7 +669,7 @@ for both Make and the recipe shell.
 
 The stable Go command is `tools/gomad3/.toolchain/bin/go`. The build verifies
 the official Go source checksum, snapshots and validates
-`toolchain/runtime/go1.27.1.patch` and `toolchain/runtime/overlay`, rejects
+`backends/native/toolchain/runtime/go1.27.1.patch` and `backends/native/toolchain/runtime/overlay`, rejects
 upstream overlay collisions, copies the exact overlay
 snapshot, applies the exact patch snapshot with zero fuzz, and caches immutable
 builds by the Go version, source checksum, patch and overlay checksums, host OS
@@ -698,7 +698,7 @@ inventory, because the go command records a directory replacement's path in the
 binary and a per-campaign path would change the target identity between
 repetitions.
 
-To upgrade Go, update the canonical `toolchain/version/version.json` descriptor
+To upgrade Go, update the canonical `backends/native/toolchain/version/version.json` descriptor
 and `backends/native/transcript/boundary/manifest.json`, materialize the old patch against the new pinned
 source, and regenerate the patch with `go -C tools/gomad3 run
 ./cmd/gomadtool patch-regenerate --root="$PWD/tools/gomad3"
@@ -1344,7 +1344,7 @@ retains the consumer lists and source-specific preservation evidence.
   External callers must stop calling the removed implementation helper; the
   public target preparation and capability-review operations retain inventory
   validation. No new public hashing API replaces it.
-- `toolchain/installation` adds `Layout`, `Build`, and validated `Description`
+- `backends/native/toolchain/installation` adds `Layout`, `Build`, and validated `Description`
   values. Existing toolchain resolution and target identity APIs keep their
   signatures. Implementation callers obtain owned paths from the description;
   no external request migration is required.

@@ -226,7 +226,7 @@ func TestBuildRejectsUnguardedFailureInjection(t *testing.T) {
 func writeBuildFixture(t *testing.T) string {
 	t.Helper()
 	root := t.TempDir()
-	for _, directory := range []string{"toolchain/runtime/overlay/src/runtime", "toolchain/version", "backends/native/transcript/boundary"} {
+	for _, directory := range []string{".toolchain", "backends/native/toolchain/runtime/overlay/src/runtime", "backends/native/toolchain/version", "backends/native/transcript/boundary"} {
 		if err := os.MkdirAll(filepath.Join(root, filepath.FromSlash(directory)), 0o700); err != nil {
 			t.Fatal(err)
 		}
@@ -237,16 +237,16 @@ func writeBuildFixture(t *testing.T) string {
   "archive": {"name":"go1.26.4.src.tar.gz","url":"https://go.dev/dl/go1.26.4.src.tar.gz","sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},
   "supported_platforms": ["darwin/arm64"],
   "boundary_manifest_version": "go1.26.4-darwin-arm64-v1",
-  "patch": "toolchain/runtime/gomad.patch",
+  "patch": "backends/native/toolchain/runtime/gomad.patch",
   "adapters": [{"module":"modernc.org/libc","version":"v1.72.3","sum":"h1:test"}],
   "patch_allowlist": ["src/runtime/proc.go"],
   "overlay_allowlist": ["src/runtime/gomad.go"]
 }
 `
 	for name, contents := range map[string]string{
-		"toolchain/version/version.json":                 descriptor,
-		"toolchain/runtime/gomad.patch":                  "fixture patch\n",
-		"toolchain/runtime/overlay/src/runtime/gomad.go": "package runtime\n",
+		"backends/native/toolchain/version/version.json":                 descriptor,
+		"backends/native/toolchain/runtime/gomad.patch":                  "fixture patch\n",
+		"backends/native/toolchain/runtime/overlay/src/runtime/gomad.go": "package runtime\n",
 	} {
 		if err := os.WriteFile(filepath.Join(root, filepath.FromSlash(name)), []byte(contents), 0o600); err != nil {
 			t.Fatal(err)
@@ -257,7 +257,7 @@ func writeBuildFixture(t *testing.T) string {
 
 func testConfig(root string) BuildSpec {
 	return BuildSpec{
-		Root: root, ToolchainRoot: filepath.Join(root, "toolchain"), BootstrapGo: "/bootstrap/go",
+		Root: root, ToolchainRoot: filepath.Join(root, ".toolchain"), BootstrapGo: "/bootstrap/go",
 		BuildBash: "/bin/bash", BuildBashVersion: "fixture-bash", BuildPath: "/usr/bin:/bin", BuildTimeout: time.Minute,
 	}
 }

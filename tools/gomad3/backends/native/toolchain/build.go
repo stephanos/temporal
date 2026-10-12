@@ -14,8 +14,8 @@ import (
 	"go.temporal.io/server/tools/gomad3/internal/hostexec"
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
 	"go.temporal.io/server/tools/gomad3/runtimesemantics"
-	"go.temporal.io/server/tools/gomad3/toolchain/installation"
-	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
+	"go.temporal.io/server/tools/gomad3/backends/native/toolchain/installation"
+	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
 )
 
 const buildRecipeVersion = "canonical-v5"
@@ -277,7 +277,7 @@ func resolveConfig(config BuildSpec) (BuildSpec, gomadversion.Descriptor, error)
 		config.Patch = filepath.Join(root, config.Patch)
 	}
 	if config.Overlay == "" {
-		config.Overlay = filepath.Join(root, "toolchain", "runtime", "overlay")
+		config.Overlay = filepath.Join(root, "backends", "native", "toolchain", "runtime", "overlay")
 	} else if !filepath.IsAbs(config.Overlay) {
 		config.Overlay = filepath.Join(root, config.Overlay)
 	}

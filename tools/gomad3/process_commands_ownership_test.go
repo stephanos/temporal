@@ -12,7 +12,7 @@ import (
 
 func TestProcessCommandsOwnModelWireTranslation(t *testing.T) {
 	for _, domain := range []string{"gomadio", "gomadfs"} {
-		directory := filepath.Join("toolchain/runtime/overlay/src/internal", domain)
+		directory := filepath.Join("backends/native/toolchain/runtime/overlay/src/internal", domain)
 		entries, err := os.ReadDir(directory)
 		if err != nil {
 			t.Fatal(err)

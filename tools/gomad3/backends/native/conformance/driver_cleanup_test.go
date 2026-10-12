@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/internal/hostexec"
-	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
+	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
 )
 
 func TestInterceptionCleanupPreservesInvalidPackage(t *testing.T) {
@@ -107,7 +107,7 @@ func interceptionCleanupConfig(t *testing.T, packageName string) (Config, string
 	t.Helper()
 	root := writeGoFixture(t)
 	sourceRoot := filepath.Join("..", "..", "..")
-	for _, relative := range []string{"toolchain/version/version.json", "backends/native/transcript/boundary/manifest.json", "expected-intercepts-" + gomadversion.GoVersion + ".txt"} {
+	for _, relative := range []string{"backends/native/toolchain/version/version.json", "backends/native/transcript/boundary/manifest.json", "expected-intercepts-" + gomadversion.GoVersion + ".txt"} {
 		contents, err := os.ReadFile(filepath.Join(sourceRoot, filepath.FromSlash(relative)))
 		if err != nil {
 			t.Fatal(err)

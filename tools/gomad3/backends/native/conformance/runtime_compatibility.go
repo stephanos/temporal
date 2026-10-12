@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
+	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
 )
 
 func (campaign *runtimeCampaign) requireStockCompatibility() error {

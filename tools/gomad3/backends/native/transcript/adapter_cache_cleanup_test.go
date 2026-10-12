@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/target"
-	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
+	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
 )
 
 const cacheFixtureInventory = "sha256:dcb363f027b38ced3758987af61e21829381c3d0e4b706144859a00e750d53a7"

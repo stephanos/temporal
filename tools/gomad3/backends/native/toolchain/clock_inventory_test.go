@@ -15,7 +15,7 @@ import (
 	"strings"
 	"testing"
 
-	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
+	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
 )
 
 // The host-clock inventory replaces a dynamic Linux audit: on linux/amd64 the
@@ -219,7 +219,7 @@ func libc_gettimeofday_trampoline()
 
 func builtGOROOT(t *testing.T) string {
 	t.Helper()
-	toolchainRoot, err := filepath.Abs(filepath.Join("..", ".toolchain"))
+	toolchainRoot, err := filepath.Abs(filepath.Join("..", "..", "..", ".toolchain"))
 	if err != nil {
 		t.Fatal(err)
 	}

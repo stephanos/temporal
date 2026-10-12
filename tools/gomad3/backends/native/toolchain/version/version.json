@@ -11,7 +11,7 @@
     "linux/amd64"
   ],
   "boundary_manifest_version": "go1.27.1-v1",
-  "patch": "toolchain/runtime/go1.27.1.patch",
+  "patch": "backends/native/toolchain/runtime/go1.27.1.patch",
   "adapters": [
     {
       "module": "github.com/Masterminds/sprig/v3",

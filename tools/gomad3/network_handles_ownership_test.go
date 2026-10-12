@@ -11,7 +11,7 @@ import (
 // This guards the ownership boundary: adding a second backend's state to a
 // public handle permits combinations that construction cannot make valid.
 func TestNetworkHandlesOwnOneImplementation(t *testing.T) {
-	files, err := filepath.Glob("toolchain/runtime/overlay/src/internal/gomadio/*.go")
+	files, err := filepath.Glob("backends/native/toolchain/runtime/overlay/src/internal/gomadio/*.go")
 	if err != nil {
 		t.Fatal(err)
 	}

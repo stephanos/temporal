@@ -46,7 +46,7 @@ func TestRunGeneratorDiagnosticOutputPreservesStatus(t *testing.T) {
 			diagnostic: "I/O wire schema has trailing data\n",
 		},
 		{
-			name: "version failure", input: "toolchain/version/version.json", contents: "{}\n", output: "version_generated.mk",
+			name: "version failure", input: "backends/native/toolchain/version/version.json", contents: "{}\n", output: "version_generated.mk",
 			arguments: []string{"version-generate"}, status: 1,
 			diagnostic: "version descriptor schema version 0 is unsupported\n",
 		},

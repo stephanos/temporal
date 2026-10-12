@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 
-	"go.temporal.io/server/tools/gomad3/internal/gomadtool/generation/protocol"
+	"go.temporal.io/server/tools/gomad3/backends/native/generation/protocol"
 )
 
 func runProtocolGenerate(arguments []string, stderr io.Writer) int {

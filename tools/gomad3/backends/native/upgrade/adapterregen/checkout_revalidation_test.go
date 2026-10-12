@@ -19,7 +19,7 @@ func TestRunCheckoutRevalidation(t *testing.T) {
 		{name: "same-byte-regular-replacement"},
 		{name: "changed-regular", want: generatedFile + " changed"},
 		{name: "same-byte-symlink-replacement", want: generatedFile + " changed", symlink: true},
-		{name: "new-symlink", want: "toolchain/version/added.txt appeared", symlink: true},
+		{name: "new-symlink", want: "backends/native/toolchain/version/added.txt appeared", symlink: true},
 		{name: "initial-symlink", want: "checkout file " + filepath.FromSlash(generatedFile) + " is not a regular file", symlink: true},
 	} {
 		t.Run(test.name, func(t *testing.T) {
@@ -102,12 +102,12 @@ func TestRunCheckoutRevalidation(t *testing.T) {
 				if err != nil || !result.Applied || len(result.Published) == 0 {
 					t.Fatalf("regular checkout publication = %+v, %v", result, err)
 				}
-				for _, relative := range []string{"backends/native/transcript/sentry_adapter.go", "backends/native/transcript/testdata/sentry/go.mod", "backends/native/transcript/testdata/sentry/go.sum", "toolchain/version/version.json", generatedFile} {
+				for _, relative := range []string{"backends/native/transcript/sentry_adapter.go", "backends/native/transcript/testdata/sentry/go.mod", "backends/native/transcript/testdata/sentry/go.sum", "backends/native/toolchain/version/version.json", generatedFile} {
 					if !slices.Contains(result.Published, relative) {
 						t.Errorf("published %v, want %s", result.Published, relative)
 					}
 				}
-				descriptor := fixture.read("toolchain/version/version.json")
+				descriptor := fixture.read("backends/native/toolchain/version/version.json")
 				if generated := fixture.read(generatedFile); generated == original || !strings.HasPrefix(generated, strings.TrimPrefix(digest([]byte(descriptor)), "sha256:")) {
 					t.Errorf("generated output %q does not match the published descriptor", generated)
 				}

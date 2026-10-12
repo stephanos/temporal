@@ -13,7 +13,7 @@ import (
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/runtimesemantics"
-	"go.temporal.io/server/tools/gomad3/toolchain/version"
+	"go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
 )
 
 var runtimeSemanticFunctions = strings.Fields(`gomadDiagnosticAllocations gomadChoiceRecordSelectResult gomadChoiceSelectOrigin gomadChoiceSelectReadiness gomadChoiceWaiterPresent gomadChoiceSeedRandom gomadTimerRand gomadRuntimeRand gomadRuntimeCheapRand gomadSeededDrawCheck gomadChoiceRunqSeeded gomadChoiceRunnextSeeded gomadChoiceRandom gomadChoiceSelectSeeded gomadChoiceEncodeRecord gomadChoiceZero gomadChoiceEqual gomadChoiceSite gomadChoiceRootIdentity gomadChoiceAssignGoroutineIdentity gomadChoiceTimerCreated gomadChoiceTimerFire gomadChoiceTimerFired gomadChoiceRunqIndex gomadChoiceSelectPollIndex gomadChoiceSelectIdentity`)
@@ -48,7 +48,7 @@ func runtimeSemanticInventoryProblems(source []byte) ([]string, error) {
 }
 
 func TestRuntimeSemanticsInventory(t *testing.T) {
-	source, err := os.ReadFile("../runtimesemantics/gomad_semantics.go.txt")
+	source, err := os.ReadFile("../../../runtimesemantics/gomad_semantics.go.txt")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -69,8 +69,8 @@ func TestRuntimeSemanticsInventory(t *testing.T) {
 
 func TestNativeOverlayRuntimeSemanticsIdentity(t *testing.T) {
 	root := t.TempDir()
-	for _, directory := range []string{"runtimesemantics", "toolchain/runtime/overlay", "toolchain/version"} {
-		if err := copyTree(filepath.Join("..", directory), filepath.Join(root, directory)); err != nil {
+	for _, directory := range []string{"runtimesemantics", "backends/native/toolchain/runtime/overlay", "backends/native/toolchain/version"} {
+		if err := copyTree(filepath.Join("..", "..", "..", directory), filepath.Join(root, directory)); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -78,7 +78,7 @@ func TestNativeOverlayRuntimeSemanticsIdentity(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	config := BuildSpec{Root: root, ToolchainRoot: t.TempDir(), Patch: filepath.Join("runtime", "go1.27.1.patch"), Overlay: filepath.Join(root, "toolchain/runtime/overlay")}
+	config := BuildSpec{Root: root, ToolchainRoot: t.TempDir(), Patch: filepath.Join("runtime", "go1.27.1.patch"), Overlay: filepath.Join(root, "backends/native/toolchain/runtime/overlay")}
 	bootstrap := bootstrapIdentity{version: "stock", hostOS: "linux", hostArch: "amd64", bashVersion: "bash"}
 	config.BuildPath, config.BuildBash = "/bin", "/bin/bash"
 	baseline, err := snapshotInputs(config)
@@ -140,7 +140,7 @@ func TestRuntimeSemanticsPreservesReviewedDrawInventory(t *testing.T) {
 	if err := copyTree("runtime/overlay", root); err != nil {
 		t.Fatal(err)
 	}
-	sources, err := runtimesemantics.Read("../runtimesemantics")
+	sources, err := runtimesemantics.Read("../../../runtimesemantics")
 	if err != nil {
 		t.Fatal(err)
 	}

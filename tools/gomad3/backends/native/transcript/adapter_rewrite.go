@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
+	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
 )
 
 // sourceRewrite pins one module source file together with the anchored edits

@@ -61,7 +61,7 @@ func Load(root, goCommand string, platform Platform) (*Program, error) {
 		p.Metadata[pkg.ImportPath] = pkg
 	}
 	for _, pkg := range metadata {
-		if !Within(pkg.ImportPath, module) || Within(pkg.ImportPath, module+"/toolchain/runtime/overlay") || pkg.ImportPath == module {
+		if !Within(pkg.ImportPath, module) || Within(pkg.ImportPath, module+"/backends/native/toolchain/runtime/overlay") || pkg.ImportPath == module {
 			continue
 		}
 		if _, err := p.Import(pkg.ImportPath); err != nil {

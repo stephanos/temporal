@@ -274,9 +274,9 @@ func TestTerminalDiagnosticsConformanceSequence(t *testing.T) {
 		t.Fatal(err)
 	}
 	root := t.TempDir()
-	maintainerWrite(t, root, "toolchain/version/version.json", `{"schema_version":1,"go_version":"go1.27.1","archive":{"name":"go1.27.1.src.tar.gz","url":"https://go.dev/dl/go1.27.1.src.tar.gz","sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"supported_platforms":["darwin/arm64","linux/amd64"],"boundary_manifest_version":"go1.27.1-v1","patch":"toolchain/runtime/gomad.patch","adapters":[{"module":"modernc.org/libc","version":"v1.72.3","sum":"h1:test"}],"patch_allowlist":["src/runtime/proc.go"],"overlay_allowlist":["src/runtime/gomad.go"]}`)
-	maintainerWrite(t, root, "toolchain/runtime/gomad.patch", maintainerPatch)
-	maintainerWrite(t, root, "toolchain/runtime/overlay/src/runtime/gomad.go", "package runtime\n")
+	maintainerWrite(t, root, "backends/native/toolchain/version/version.json", `{"schema_version":1,"go_version":"go1.27.1","archive":{"name":"go1.27.1.src.tar.gz","url":"https://go.dev/dl/go1.27.1.src.tar.gz","sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"supported_platforms":["darwin/arm64","linux/amd64"],"boundary_manifest_version":"go1.27.1-v1","patch":"backends/native/toolchain/runtime/gomad.patch","adapters":[{"module":"modernc.org/libc","version":"v1.72.3","sum":"h1:test"}],"patch_allowlist":["src/runtime/proc.go"],"overlay_allowlist":["src/runtime/gomad.go"]}`)
+	maintainerWrite(t, root, "backends/native/toolchain/runtime/gomad.patch", maintainerPatch)
+	maintainerWrite(t, root, "backends/native/toolchain/runtime/overlay/src/runtime/gomad.go", "package runtime\n")
 	maintainerWrite(t, root, "go.mod", "module gomad3.terminal-fixture\n\ngo 1.27.1\n")
 	maintainerWrite(t, root, "toolchain/failure_test.go", "package toolchain\nvar = 1\n")
 	const childStdout = "FAIL\tgomad3.terminal-fixture/toolchain [setup failed]\nFAIL\n"

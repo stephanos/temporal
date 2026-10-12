@@ -225,7 +225,7 @@ func GenerateCompilerTestOverlay(root, goroot, output string) error {
 	if err != nil {
 		return err
 	}
-	installedSpecPath := filepath.Join(goroot, filepath.FromSlash(strings.TrimPrefix(relativeSpecPath, "toolchain/runtime/overlay/")))
+	installedSpecPath := filepath.Join(goroot, filepath.FromSlash(strings.TrimPrefix(relativeSpecPath, "backends/native/toolchain/runtime/overlay/")))
 	installedSpec, err := os.ReadFile(installedSpecPath)
 	if err != nil {
 		return fmt.Errorf("read installed production compiler spec: %w", err)
@@ -481,7 +481,7 @@ func validateHookPolicy(policy hookPolicy) error {
 	if policy.ID == "" || policy.Package == "" || policy.Output == "" {
 		return errors.New("ID, package, and output are required")
 	}
-	prefix := "toolchain/runtime/overlay/src/" + policy.Package + "/"
+	prefix := "backends/native/toolchain/runtime/overlay/src/" + policy.Package + "/"
 	if !strings.HasPrefix(policy.Output, prefix) || filepath.ToSlash(filepath.Clean(policy.Output)) != policy.Output || !strings.HasSuffix(policy.Output, ".go") {
 		return fmt.Errorf("output must be a Go file below %s", prefix)
 	}
@@ -717,7 +717,7 @@ func compilerSpecPath(goVersion string) (string, error) {
 	if version == nil {
 		return "", fmt.Errorf("cannot derive compiler spec path from Go version %q", goVersion)
 	}
-	return fmt.Sprintf("toolchain/runtime/overlay/src/cmd/compile/internal/gomadintercept/spec_go%s%s.go", version[1], version[2]), nil
+	return fmt.Sprintf("backends/native/toolchain/runtime/overlay/src/cmd/compile/internal/gomadintercept/spec_go%s%s.go", version[1], version[2]), nil
 }
 
 func renderCompilerSpec(definition manifest, tests []compilerTest, identity string) ([]byte, error) {

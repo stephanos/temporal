@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	gomadversion "go.temporal.io/server/tools/gomad3/toolchain/version"
+	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
 )
 
 func TestRealAdapterVersionUsesDefaultPipeline(t *testing.T) {
@@ -89,7 +89,7 @@ func TestRealAdapterVersionUsesDefaultPipeline(t *testing.T) {
 		}
 		changed[file.Path] = true
 	}
-	for _, relative := range []string{"backends/native/transcript/sprig_adapter.go", "toolchain/version/version.json", "toolchain/version/generated.go"} {
+	for _, relative := range []string{"backends/native/transcript/sprig_adapter.go", "backends/native/toolchain/version/version.json", "backends/native/toolchain/version/generated.go"} {
 		if !changed[relative] {
 			t.Fatalf("default pipeline did not publish %s: %v", relative, applied.Staged)
 		}
