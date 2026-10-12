@@ -209,7 +209,7 @@ mod usage {
                 println!("child-peak={rss}\nchild-rusage={inherited}");
                 return;
             }
-            let ballast = vec![1u8; 512 << 20];
+            let ballast = vec![1u8; 128 << 20];
             std::hint::black_box(&ballast);
             let output = std::process::Command::new(std::env::current_exe().unwrap())
                 .args([
@@ -233,9 +233,9 @@ mod usage {
             };
             let (child, inherited) = (field("child-peak="), field("child-rusage="));
             // The kernel behaviour this guards against must be observable here.
-            assert!(inherited >= 512 << 20, "rusage {inherited} did not inherit");
+            assert!(inherited >= 128 << 20, "rusage {inherited} did not inherit");
             assert!(
-                child > 0 && child < 256 << 20,
+                child > 0 && child < 64 << 20,
                 "child peak {child} inherited parent peak"
             );
         }
