@@ -976,7 +976,13 @@ an object of its own or in its type's companion, as the close policy's `Answer`'
 realization object extends `Realizes(machine, runs = Seq(...))` or `DerivesFrom(base, machine,
 runs = ...)`, so its facts, action bindings and derived defaults are checked against that machine,
 and names the live find Queries it runs (fn-162). An authored find without `.live` is model-only;
-a live find also needs membership in an executable realization.
+a live find also needs membership in an executable realization. Declare a Query on the machine (or
+in its facet) that states its Property and list it in the `runs` of the realization that runs it;
+a copy of the machine (`Derived(m.unmonitored)` or a bare `m.rebind()`) only to hold Properties and
+Queries is never needed, since one machine may have several realizations, each running the Queries
+it names. The lifter refuses a Query two realizations name and a realization naming another
+machine's Query, naming both, and refuses a Property declared twice on one machine (the same
+selector and predicate), naming both declarations.
 
 A Model folder holds no file named by kind (`Model.scala`, `Properties.scala`, `Queries.scala`,
 `Capabilities.scala`, `IrFiles.scala`): `TestRetiredModelPathsStayRetired` in `tools/umpire/ir`

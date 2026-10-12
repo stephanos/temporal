@@ -437,6 +437,97 @@ class MiniRealizationFixtures extends munit.FunSuite:
       assert(result.output.contains(refusal), result.output)
       assert(!Files.exists(out))
 
+  // fn-162 R8: a realization names the find Queries it runs, so one machine may have several
+  // realizations, each bound by its own Queries; a find Query no realization names stays in the
+  // IR unbound (model-only), and a Query two realizations name is refused, naming both.
+  private lazy val bindings =
+    val source = scratch.resolve("Bindings.scala")
+    Files.writeString(source, s"""//> using scala 3.9.0
+      |//> using jvm 27
+      |//> using dep com.thesamet.scalapb::scalapb-runtime-grpc:0.11.20
+      |//> using jar $jar
+      |//> using jar ${tools.directory.resolve("model/build/api-scalapb.jar")}
+      |package fixture.minibindings
+      |import temporal.realize.*
+      |import temporal.features.activity.mini.protocol.ActivityProtocol
+      |import temporal.features.activity.mini.realization.MiniActivityRun
+      |object CompletedRun extends DerivesFrom(MiniActivityRun, ActivityProtocol,
+      |  runs = Seq(ActivityProtocol.queries.protocolCompleted))
+      |object RetryRun extends DerivesFrom(MiniActivityRun, ActivityProtocol,
+      |  runs = Seq(ActivityProtocol.queries.retryCompleted))
+      |object AgainRun extends DerivesFrom(MiniActivityRun, ActivityProtocol,
+      |  runs = Seq(ActivityProtocol.queries.protocolCompleted))
+      |object Twice extends framework.Derived(ActivityProtocol.unmonitored):
+      |  import framework.*
+      |  import temporal.features.activity.mini.activityWorker
+      |  import temporal.features.activity.mini.protocol
+      |  object properties:
+      |    object safety:
+      |      val completes = property when activityWorker.respondCompleted holds
+      |        (after => after.records(protocol.Fact.statusCompleted))
+      |      val completesAgain = property when activityWorker.respondCompleted holds
+      |        (done => done.records(protocol.Fact.statusCompleted))
+      |  object queries:
+      |    val any = scenario.free
+      |    val completed = query verify properties.safety.completes in any limits temporal.Bounds.three
+      |    val completedAgain =
+      |      query verify properties.safety.completesAgain in any limits temporal.Bounds.three
+      |""".stripMargin): Unit
+    val compiled = scratch.resolve("bindings.jar")
+    tools.scalaCli(Seq("--power", "package", "--server=false", "--library", source.toString,
+      "-f", "-o", compiled.toString)).orFail(): Unit
+    compiled
+
+  private def liftBindings(name: String, roots: String*) =
+    val out = scratch.resolve(name + ".json")
+    val result = InProcess.lift(tools.directory, Seq(s"$bindings=model/irgen/testdata/layout/mini/,$jar=model/",
+      classpath.toString, out.toString) ++
+      roots.map(r => if r.contains('.') then r else "fixture.minibindings." + r))
+    (result, out)
+
+  test("two realizations of one machine each run the find Queries they name"):
+    val (result, out) = liftBindings("two", "CompletedRun", "RetryRun",
+      "temporal.features.activity.mini.protocol.ActivityProtocol$.queries")
+    assertEquals(result.exit, 0, result.output)
+    val model = mapper.readTree(Files.readString(out))
+    val runs = model.path("realizations").elements().asScala.map(r =>
+      r.path("name").asText() -> (r.path("machine").asText(),
+        r.path("queries").elements().asScala.map(_.asText()).toVector)).toMap
+    assertEquals(runs, Map(
+      "completedRun" -> ("activityProtocol", Vector("protocolCompleted")),
+      "retryRun" -> ("activityProtocol", Vector("retryCompleted"))))
+    val finds = model.path("queries").elements().asScala
+      .filter(_.path("form").asText() == "FORM_FIND").map(_.path("name").asText()).toSet
+    assert(Set("protocolCompleted", "retryCompleted").subsetOf(finds), finds.toString)
+
+  test("an unnamed find Query is model-only: no realization binds it"):
+    val (result, out) = liftBindings("unnamed", "CompletedRun",
+      "temporal.features.activity.mini.protocol.ActivityProtocol$.queries")
+    assertEquals(result.exit, 0, result.output)
+    val model = mapper.readTree(Files.readString(out))
+    val bound = model.path("realizations").elements().asScala
+      .flatMap(_.path("queries").elements().asScala.map(_.asText())).toSet
+    val finds = model.path("queries").elements().asScala
+      .filter(_.path("form").asText() == "FORM_FIND").map(_.path("name").asText()).toSet
+    assertEquals(bound, Set("protocolCompleted"))
+    assert(finds("retryCompleted"), finds.toString)
+
+  test("a find Query two realizations name is refused, naming both"):
+    val (result, out) = liftBindings("twice", "CompletedRun", "AgainRun")
+    assertNotEquals(result.exit, 0, result.output)
+    for named <- Seq("protocolCompleted is named by the realizations", "againRun", "completedRun") do
+      assert(result.output.contains(named), result.output)
+    assert(!Files.exists(out))
+
+  // fn-162 R3: two Properties of one machine with the same `when` and predicate, up to names, are
+  // refused, the later naming the earlier and where it is declared.
+  test("a Property declared twice on one machine is refused, naming both"):
+    val (result, out) = liftBindings("duplicate", "fixture.minibindings.Twice$.queries")
+    assertNotEquals(result.exit, 0, result.output)
+    assert(result.output.contains("completesAgain states the promise completes states at"), result.output)
+    assert(result.output.contains("of twice"), result.output)
+    assert(!Files.exists(out))
+
 private object LayoutSources:
   def materialize(
       from: Path,

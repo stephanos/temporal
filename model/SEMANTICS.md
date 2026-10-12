@@ -541,6 +541,11 @@ def oldAnswerKeepsAttempt(m: Machine[AnswerState, Outcome, AnswerFact]): Propert
   )
 ```
 
+Each Property is declared once, in the facet or machine whose promise it states, and every Query
+that asks it names that declaration. An author's Property of a machine whose selector and predicate
+equal another's of the same machine, up to names and positions, is refused, naming both
+declarations; a capability's generated Properties keep their own identities and are not compared.
+
 A case class whose every field is a Property, Scenario or Query is a *bundle*; built in such a
 function it lifts as its claims and `bundle.field` reads one back.
 
@@ -1027,7 +1032,13 @@ which command performs each action class, which recorded data is evidence of eac
 the controller does around them. The lowering (`tools/umpire/lower`) takes a `find` Query's
 witness through it into a Testpilot Case: a Program of instructions and a Contract the recorded
 evidence must satisfy. A realization carries no Case and decides nothing a path decides. A `verify`
-realizes nothing; a `find` whose machine declares no realization is model-only.
+realizes nothing. A `find` runs through the realization that names it in its header's `runs`
+(`Realizes(machine, runs = Seq(...))`: Queries, lists of them, or a `queries` or `capabilities`
+section of its machine), and a `find` no realization names is model-only. So one machine may have
+several realizations, each running the Queries it names, and a Query needs no copy of its machine
+to choose one. A realization naming a Query of another machine, or a Query two realizations name,
+is refused, naming both. A Case is assessed against its Query's Property and the monitors of its
+Scenario's machine, whichever realization runs it.
 
 The pieces, each a declaration the IR carries as written:
 
