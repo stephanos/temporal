@@ -6,7 +6,7 @@ A reader must understand `tools/gomad3` from its file tree alone. Every non-nati
 
 Package doc comments are out of scope (owner decision, 2026-10-12).
 
-Owner decision (2026-10-12): approved the seven-entry top level (`cmd`, `runner`, `backends`, `evidence`, `model`, `internal`, `testdata`) in R7.
+Owner decision (2026-10-12): approved grouping the shared packages; refined the same day to place them under `internal/` with `cmd` as the only public entry point (R7).
 
 Evidence: independent structure review on 2026-10-12 (summary below). Counts are production / test files.
 
@@ -26,17 +26,14 @@ Evidence: independent structure review on 2026-10-12 (summary below). Counts are
 
 ```text
 tools/gomad3/              docs, Makefile; no Go files
-  cmd/gomad/               user CLI; internal/cli one file per command
-  runner/                  Explore/Resume/Replay/Minimize/Plan/Shard/Merge
-    inspect/               Inspect(path) and inspection types
-    internal/{campaign, corpus, exploration, minimizer, local}
-  backends/                Provider contract and target types (from ./target)
-    native/                + cmd/gomadtool, compatibilitypack, sourceinventory
-    wasm/                  backend, command, installation, toolchain, qualification, wasi, cluster
-  evidence/                record, artifact (+ capture from ./captured), qualification
-  model/                   choice, world, clock, network, volume
-  internal/                archcheck (+ purity, script policy, architecture tests), canonicaljson,
-                           compatibilitypack, iowire, runtimesource, hostfs, hostexec
+  cmd/gomad/               the only public entry point (CLI); internal/cli one file per command
+  internal/
+    runner/                Explore/Resume/Replay/Minimize/Plan/Shard/Merge; inspect/ and internal/{campaign, corpus, exploration, minimizer, local}
+    backends/              Provider contract and target types; native/ (+ gomadtool, compatibilitypack, sourceinventory), wasm/ (backend, command, installation, toolchain, qualification, wasi, cluster)
+    evidence/              record, artifact (+ capture), qualification
+    model/                 choice, world, clock, network, volume, cluster (from tools/gomad3sim), iowire
+    host/                  fs and exec (one implementation each)
+    archcheck/             structure and purity checks, script policy, architecture tests
   testdata/
 ```
 ## Acceptance Criteria
@@ -46,10 +43,10 @@ tools/gomad3/              docs, Makefile; no Go files
 - **R3:** `runner/internal/exploration/*` is one package; inspection moves to `runner/inspect`, cutting `runner`'s exported identifiers by at least half; `runner/internal/campaign` exports only what `runner` uses. `qualification/workload` merges into `qualification`.
 - **R4:** Native-only owners move under `backends/native`: `cmd/gomadtool`, `internal/compatibilitypack` (with `authoring`) and `internal/sourceinventory`; `internal/gomadtool/validation` folds into gomadtool. The root `cmd/` holds only the user CLI and root `internal/` holds only owners used outside the native backend (`hostfs`, `hostexec`, `iowire`, the architecture checker and, until fn-153, `canonicaljson`). Make targets, owner tables and documentation follow (owner decision, 2026-10-12).
 - **R5 (identity-rotating, batched with fn-153/fn-154):** the `hostfs`/`hostexec` wrappers are deleted with the WASM allow-list pointing at the internal owners; host filesystem helpers have one implementation; `captured` becomes `artifact/capture`; `backends/wasm/simulation` becomes `backends/wasm/cluster`; `runtimesemantics` becomes `internal/runtimesource`; `runner.SimulationClock` is replaced by `simulation/clock`. Full WASM gates pass on the integrated candidate.
-- **R7 (identity-rotating, part of the R5 batch):** the module top level holds at most `cmd`, `runner`, `backends`, `evidence`, `model`, `internal` and `testdata`. `record`, `artifact`, `captured` and `qualification` move under `evidence`; `choice`, `world`, `simulation/clock`, `simulation/network` and `volume` move under `model`; `target` moves into `backends`. Archcheck owner/edge/pure-set tables, generators, Make targets and documentation follow.
+- **R7 (identity-rotating, part of the R5 batch):** the module is a tool, not a Go library. Its top level holds only `cmd`, `internal` and `testdata`; `internal/` holds `runner`, `backends`, `evidence`, `model`, `host` and `archcheck`. `record`, `artifact`, `captured` and `qualification` move under `internal/evidence`; `choice`, `world`, `simulation/clock`, `simulation/network`, `volume` and `iowire` under `internal/model`; `target` into `internal/backends`; `hostfs` and `hostexec` become `internal/host`; `puritycheck` merges into `internal/archcheck`. The library-contract checks (external Runner consumer test and fixture module, public-signature and type-alias rules) are deleted. Archcheck owner/edge/pure-set tables, generators, Make targets and documentation follow (owner decision, 2026-10-12, replacing the earlier seven-entry public layout).
 - **R8 (identity-rotating, part of the R5 batch):** dead and prototype-era paths are deleted: the Rust helper `diagnostic-profile` feature (`wasmhost/src/diagnostic.rs` and its gated sites and tests), WASM network v1 (`wasi/network.go`, the v1 `Config.Network` field, Rust `NetworkModel`/`Model::net`, and v1-only tests), and the legacy choice-trace v1 decoder (`choice/legacy_v1.go` and its branches), which is refused by name like v2. NetworkV2 and broker networking are unchanged (owner decision, 2026-10-12).
 - **R9:** `tools/gomad3integration` is removed: its qualification manifests, `testdata/tagged` fixture and manifest checks move under `backends/native/qualification` (their only owner), and the CI and gate-routing tests planned for it in R1 live with `internal/archcheck` instead.
-- **R10 (identity-rotating, part of the R5 batch):** `tools/gomad3sim` moves into the gomad3 module as `model/cluster` after its single `go.temporal.io/server/common/collection` use is replaced by the standard library. Its flat package splits into the public cluster API (cluster, nodes, faults, scenarios, oracles) and internal runtime-domain wire codecs and history records. The gomad3 module then needs the server module only for Temporal guest fixtures.
+- **R10 (identity-rotating, part of the R5 batch):** `tools/gomad3sim` moves into the gomad3 module as `internal/model/cluster` after its single `go.temporal.io/server/common/collection` use is replaced by the standard library. Its flat package splits into the public cluster API (cluster, nodes, faults, scenarios, oracles) and internal runtime-domain wire codecs and history records. The gomad3 module then needs the server module only for Temporal guest fixtures.
 - **R6:** Every move is a Git rename where possible; behavior, CLI grammar/output, error precedence and exit statuses are unchanged; architecture, lint, `validate`, portable packages and `test-wasm` pass; no identity changes outside R5.
 
 ## Verification
