@@ -385,10 +385,10 @@ The case headings:
 Rules of spelling, which change no table: every target names its action through its declarer,
 `on(activityWorker.poll)`, never bare; every phase through its type, `Phase.scheduled` (no `import Phase.*`);
 every `on` is brace-delimited with one case per line; `from(actor) { on(actor.a) { ... } }` only
-groups and imports nothing. The old `in(...)` rule heading is retired and refused. The lifter checks qualified action
-names; native rule construction does not yet reject an imported bare action whose declaration
-retains its owner (`model/framework/Rules.test.scala:707`). fn-159 owns that remaining runtime
-contract; the mini examples use qualified names.
+groups and imports nothing. The old `in(...)` rule heading is retired and refused. The lifter and
+native rule construction independently refuse bare action targets, including imported names and
+class forms whose arguments are dotted. Each refusal names the target, its source coordinate and
+the qualified form. Native construction also refuses imports it can inspect in a `from` body.
 
 ### Modalities: what a row means
 
@@ -741,8 +741,8 @@ object ProtocolMember extends Derived(ActivityProtocol.unmonitored)
 | --- | --- | --- |
 | `restrict(actions*)` | state, start, end, monitors, assumptions | keeps only the named actions' rows; drops the refinement |
 | `rebind(a ~> e)` | the action's rules, their guards and classes | their effect; refused where the source's rules of one action have different effects (unless each fires one class) |
-| `rebind(on(a) { where(g) ~> e })` | the rest | replaces the action's rules; cases are `where`/`always` only |
-| `extend(on(b) { ... })` | everything | adds rules for an action the source does not bind |
+| `rebind(on(actor.a) { where(g) ~> e })` | the rest | replaces the action's rules; cases are `where`/`always` only |
+| `extend(on(actor.b) { ... })` | everything | adds rules for an action the source does not bind |
 | `refining(M)(map)` | everything | replaces the refinement |
 | `assuming(a*)` | everything | appends assumptions, each once |
 | `unmonitored` | the transitions | drops monitors and refinement, for a composition member |

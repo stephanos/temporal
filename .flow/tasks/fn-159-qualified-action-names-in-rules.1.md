@@ -61,7 +61,10 @@ R1–R7/R12 requirements collectively: this source receipt is not consumer/full-
   source-coordinate/identity preservation. Do not regenerate checked-in outputs or inspect/lift
   excluded real features to earn current proof.
 - Direct `FEATURES=activity_mini` Scala `--check-equivalence <absolute mini baseline> <mini map>
-  --steps-only`, preserving `.flow/tmp/scala-dsl/mini-baseline-00d22597d2/` and the batch-1d baseline/map.
+  --steps-only` against `.flow/tmp/scala-dsl/mini-selected-baseline-00d22597d2/` (16 tables/11,325 rows
+  from the immutable pre-change task8 jar, including shared query roots, matching the gate's
+  discovery prefix). Preserve the original 10-table `.flow/tmp/scala-dsl/mini-baseline-00d22597d2/`
+  capture, every unchanged table within the complete capture, and the batch-1d baseline/map.
   An empty map is appropriate when no mini declaration identity changes; every nonempty rename
   must be justified and used, never broad normalization. This is not canonical Make credit.
 - Focused migration-rule tests and isolated copied-mini compiled proof; source-citation tests for

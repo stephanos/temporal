@@ -716,7 +716,7 @@ class RulesTest extends munit.FunSuite:
     val refused = intercept[IllegalArgumentException](Undeclared.bindings)
     assertEquals(
       refused.getMessage,
-      "requirement failed: on(tap) names its action bare: name it through the object that " +
+      "requirement failed: on(tap) names its action bare at Rules.test.scala:715:12: name it through the object that " +
         "declares it, `on(<declarer>.tap)`"
     )
   }

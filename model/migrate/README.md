@@ -48,3 +48,25 @@ features migrate only in the owner's sweep. Case, live, Go, lint and full-set ga
 are separate and receive no credit from this source proof. A migration that
 cannot preserve bytes must state its expected semantic/identity change; a change
 the rule cannot express must record its concrete manual recipe.
+
+## Qualified rules: Fn159Task1QualifiedActions
+
+The rule qualifies bare `on` and `disabled` targets from one visible selective import,
+including a renamed import, or from a matching wildcard import inside `from(declarer)`.
+It qualifies the action a class calls, leaving its arguments alone. Imports no longer
+used by the rewritten targets are removed; `from` retains its grouping header.
+Ambiguous imports, shadowed names and imports a `from` cannot safely remove refuse the
+document atomically with a manual qualified remedy. An ordinary wildcard import outside
+`from` has no provable declarer: qualify those targets manually. Qualified source is unchanged.
+
+```sh
+mise exec -- scala-cli test --server=false model/migrate --test-only umpire.migrate.QualifiedActionsTest
+timeout 600 /bin/bash model/migrate/prove-mini.sh umpire.migrate.RewriteQualifiedMini
+```
+
+The copied-mini runner introduces an imported bare poll into its isolated `Dispatching.scala`,
+then applies this actual compiled Scalafix rule, checks idempotence and atomic ambiguity refusal,
+and requires exactly the accepted source bytes. The shared proof packages and lifts the copied
+mini before and after, comparing full IR and waiver bytes, positions included. This proves
+source transformation and preserved mini identities/meaning; production loading, real-feature
+application, consumer gates and the canonical Make route remain held.

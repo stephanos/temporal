@@ -664,8 +664,8 @@ object Phased extends Inherited.Unphased:
 // state binds them in place, `effects.timeOut(_, Expiry.close)`. Every target names its action
 // through the object that declares it, `clerk.ship`, never by a bare name: the IR generator
 // refuses a bare target, and a bare `disabled` target, at its line, and a block refuses as the rules
-// construct a target with no declarer to name it through, such as a local val. (The rules cannot
-// tell an imported name from a qualified one: `codeOf` prints both through their declarer.) The blocks of the actions one object declares may be grouped in
+// construct any bare target, including imported names, using its original source spelling. The
+// blocks of the actions one object declares may be grouped in
 // `from(clerk) { on(clerk.ship) { ... } }`, which imports nothing. A case names phases through
 // their type, `when(Phase.placed)`. Where no
 // case holds, the action is disabled: there is no catch-all. The cases of one action class hold in
@@ -761,6 +761,7 @@ abstract class Rules[S, O, F, P](using
   inline def on[I <: Tuple](inline a: Action[I])(
       cases: Firing[S, O, F, I] ?=> Unit
   ): Unit =
+    RuleSource.qualified(a, "on", groupName)
     block[I](a.decl, None, codeOf(a))(cases)
 
   // The cases of one class of an action, whose effects read the state alone:
@@ -769,15 +770,19 @@ abstract class Rules[S, O, F, P](using
   inline def on(inline c: Class)(
       cases: Firing[S, O, F, EmptyTuple] ?=> Unit
   ): Unit =
+    RuleSource.qualified(c, "on", groupName)
     block[EmptyTuple](c.decl, Some(c.values), codeOf(c))(cases)
 
   // The same cases for two actions, or classes of them, whose effects read the state alone:
   // `on(clerk.hold, clerk.cancel) { when(shipped) ~> rejects(Rejection.failedPrecondition) }`.
   // Fixed arities of two to four, since `codeOf` names no element of an `inline` varargs list.
-  // Core form: one block per target with the same cases, `on(a) { cases }` and `on(b) { cases }`.
+  // Core form: one block per target, `on(clerk.hold) { cases }` and `on(clerk.cancel) { cases }`.
   inline def on(inline a: Action[?] | Class, inline b: Action[?] | Class)(
       cases: Firing[S, O, F, EmptyTuple] ?=> Unit
-  ): Unit = each(List(a -> codeOf(a), b -> codeOf(b)))(cases)
+  ): Unit =
+    RuleSource.qualified(a, "on", groupName)
+    RuleSource.qualified(b, "on", groupName, 1)
+    each(List(a -> codeOf(a), b -> codeOf(b)))(cases)
 
   // The same cases for three actions, or classes of them. Core form: one block per target with
   // the same cases.
@@ -786,6 +791,9 @@ abstract class Rules[S, O, F, P](using
       inline b: Action[?] | Class,
       inline c: Action[?] | Class
   )(cases: Firing[S, O, F, EmptyTuple] ?=> Unit): Unit =
+    RuleSource.qualified(a, "on", groupName)
+    RuleSource.qualified(b, "on", groupName, 1)
+    RuleSource.qualified(c, "on", groupName, 2)
     each(List(a -> codeOf(a), b -> codeOf(b), c -> codeOf(c)))(cases)
 
   // The same cases for four actions, or classes of them. Core form: one block per target with the
@@ -796,6 +804,10 @@ abstract class Rules[S, O, F, P](using
       inline c: Action[?] | Class,
       inline d: Action[?] | Class
   )(cases: Firing[S, O, F, EmptyTuple] ?=> Unit): Unit =
+    RuleSource.qualified(a, "on", groupName)
+    RuleSource.qualified(b, "on", groupName, 1)
+    RuleSource.qualified(c, "on", groupName, 2)
+    RuleSource.qualified(d, "on", groupName, 3)
     each(List(a -> codeOf(a), b -> codeOf(b), c -> codeOf(c), d -> codeOf(d)))(
       cases
     )
@@ -822,10 +834,20 @@ abstract class Rules[S, O, F, P](using
   // the declarer's members into scope: a block means in a `from` what it means outside one, and the
   // IR generator refuses an `import clerk.*` in it. Core form: the blocks it holds,
   // `on(clerk.ship) { ... }`.
-  def from(declarer: AnyRef)(body: => Unit): Unit =
+  private[framework] def groupName: String = within.fold("<declarer>")(_._1)
+
+  inline def from(declarer: AnyRef)(inline body: Unit): Unit =
+    grouped(declarer, RuleSource.imports(body))(body)
+
+  private[framework] def grouped(declarer: AnyRef, imported: String)(body: => Unit): Unit =
     val name = declarer match
       case a: Actor => a.name
       case other    => objectName(other)
+    require(
+      imported.isEmpty,
+      s"from($name) imports members at $imported: a from only groups, so drop the import and " +
+        s"name each action through its declarer, `on($name.<action>)`"
+    )
     require(
       open.isEmpty,
       s"from($name) sits in on(${open.get}): a block holds cases alone"
@@ -895,7 +917,11 @@ abstract class Rules[S, O, F, P](using
 
   // Actions no state enables, which the machine binds all the same, such as a courier's strike it does
   // not feel. Core form: `action ~> (_ => Nil)`.
-  def disabled(actions: Action[?]*): Unit =
+  inline def disabled(inline actions: Action[?]*): Unit =
+    RuleSource.disabled(actions)
+    disable(actions*)
+
+  private[framework] def disable(actions: Action[?]*): Unit =
     for a <- actions do
       require(
         !never.contains(a.decl) && !written.exists(_.decl == a.decl),
@@ -944,7 +970,9 @@ inline def on[S, O, F, I <: Tuple](using
     owner: Owner[S, O, F]
 )(inline a: Action[I])(
     cases: Firing[S, O, F, I] ?=> Unit
-): RuleGroup[S, O, F] = derivedRules(owner, a.decl, codeOf(a))(cases)
+): RuleGroup[S, O, F] =
+  RuleSource.qualified(a, "on", "<declarer>")
+  derivedRules(owner, a.decl, codeOf(a))(cases)
 
 // The rules of a derivation's `on`, each named by its action as `written` spells it.
 private[framework] def derivedRules[S, O, F, I <: Tuple](

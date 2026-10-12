@@ -651,9 +651,10 @@ private[irgen] trait Declarations:
                 for (heading, effect, at) <- read do
                   written += LiftedRule(written.size + 1, heading, id, cls, effect, at)
                 order.getOrElseUpdate(id, t): Unit
-            case Some(("disabled", List(List(as)))) if within.isEmpty =>
+            case Some(("disabled", List(List(as)))) =>
               for a <- varargs(as) do
-                qualified(a, machine, None, "disabled")
+                qualified(a, machine, within, "disabled")
+                if within.nonEmpty then fail(t, notRule(machine, t, within))
                 val id = action(a)
                 if off(id) || written.exists(_.action == id)
                 then

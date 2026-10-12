@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$(dirname "$0")/../.."
+migration_main=${1:-umpire.migrate.RewriteMini}
 task_scratch=$(mktemp -d "$PWD/.flow/tmp/mini-migration.XXXXXX")
 printf 'proof directory: %s\n' "$task_scratch"
 mkdir -p "$task_scratch/model/build"
@@ -35,7 +36,7 @@ lift_copy() {
 }
 lift_copy before
 mise exec -- scala-cli run --server=false --suppress-outdated-dependency-warning model/migrate \
-  -M umpire.migrate.RewriteMini -- "$task_scratch/model/temporal/features/activity_mini/protocol"
+  -M "$migration_main" -- "$task_scratch/model/temporal/features/activity_mini/protocol"
 lift_copy after
 cmp "$task_scratch/before/activity-mini.json" "$task_scratch/after/activity-mini.json"
 cmp "$task_scratch/before/activity-mini.waivers.json" "$task_scratch/after/activity-mini.waivers.json"

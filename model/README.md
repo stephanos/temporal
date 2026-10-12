@@ -1045,7 +1045,7 @@ A machine object is the machine: `object ActivityProduct extends Machine[State, 
    Every target names its action through the object that declares it, `on(worker.poll)`,
    `on(worker.respondFailed(Failure.fatal))`, `on(client.pause, client.unpause)`, and so does
    `disabled(process.stop)`; a bare name, reached through any import, is refused by the IR
-   generator at its line (and by the rules as they construct where no declarer names it).
+   generator at its line and by the rules as they construct, including imported bare names.
    `from(actor) { on(actor.action) { … } }` only groups blocks of actions that actor declares,
    checks that it declares them and changes no rule meaning; it imports nothing, and an import in it
    is refused. Every phase is named through its phase type, `when(Phase.scheduled)`,
@@ -1071,7 +1071,7 @@ A machine object is the machine: `object ActivityProduct extends Machine[State, 
 
 A derived machine is an object too, `object TrustingActivityRecord extends Derived(ActivityRecord.rebind(
 …))`, and adds only its own `states`, `properties`, `capabilities` and `queries`; `rebind(action ~>
-effect)` keeps that action's rules and replaces their effect, and `rebind(on(action) { … })`
+effect)` keeps that action's rules and replaces their effect, and `rebind(on(actor.action) { … })`
 replaces its rules. A composition is `object RecordOverQueue extends Composition[OverQueue](_.activity ->
 RecordMember, _.queue -> TaskQueueProduct)` with its `def end(s)` and `object syncs extends Syncs`;
 one with a member replaced is `object TrustingRecordOverQueue extends Composition(RecordOverQueue.withMember(
@@ -1149,7 +1149,7 @@ itself, in its own package's family. Chained, the derivation is one expression:
 object StiffLamp extends Derived(Lamp.rebind(press ~> Lamp.effects.pressStiff)) // keeps press's guards
 object FaultyLamp extends Derived(
   Lamp
-    .extend(on(burnOut)(where(_.light == Light.on) ~> Lamp.effects.burnOut)) // rules for an action the source does not bind
+    .extend(on(fault.burnOut)(where(_.light == Light.on) ~> Lamp.effects.burnOut)) // rules for an action the source does not bind
     .refining(ViewUnderFaults)(seen)                    // replaces the refinement, keeping what it lets through
     .assuming(burnOutAssumed)                           // appends assumptions, each once
 ), FailureModel
@@ -1159,7 +1159,7 @@ object PlainLamp extends Derived(Lamp.unmonitored)      // drops the monitors an
 Each keeps everything else its source declares: starts, ends, evidence, unobservable timers,
 monitors, assumptions and refinement. `rebind(action ~> effect)` keeps the guards and classes of the
 action's rules and gives each the new effect; rules with different effects are refused unless each
-fires one class, whose input the new effect reads. `rebind(on(action) { … })` replaces an action's
+fires one class, whose input the new effect reads. `rebind(on(actor.action) { … })` replaces an action's
 rules, whose cases are `where(g)` or `always`. The IR generator refuses rebinding an action the source does not
 bind, extending by one it binds, binding one action twice, an assumption named twice, replacing a
 refinement the source does not declare or by a machine of other state, outcome or fact types, and
