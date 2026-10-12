@@ -160,6 +160,9 @@ single guest module by digest; its bytes are the artifact's verified target file
 copied without following links and re-hashed before any helper starts. No helper
 bytes are retained. Artifacts with the older `v1` schema, which embedded module
 and helper bytes, are refused with a versioned error and must be re-recorded.
+That refusal follows only the unsupported-option preflight (`--verify-only`,
+`--observed` and `--toolchain-root` return 2), precedes installation
+resolution and any retained payload read, and returns 3.
 Payload hashes establish only self-consistency, so replay resolves
 the WASM installation, requires every retained boot's helper digest and engine
 identity to equal the installed `HelperSHA256` and pinned engine, re-hashes the

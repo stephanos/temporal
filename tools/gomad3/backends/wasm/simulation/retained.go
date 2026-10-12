@@ -39,6 +39,16 @@ func IsRetainedSchema(schema string) bool {
 	return schema == RetainedSchema || schema == retainedSchemaV1
 }
 
+// CheckRetainedSchema returns the versioned refusal for any schema other than
+// RetainedSchema, so callers can refuse before resolving an installation or
+// reading the payload.
+func CheckRetainedSchema(schema string) error {
+	if schema == RetainedSchema {
+		return nil
+	}
+	return retainedSchemaError(schema)
+}
+
 func retainedSchemaError(schema string) error {
 	if schema == retainedSchemaV1 {
 		return fmt.Errorf("%w: %s embedded module bytes and cannot be replayed; this build reads %s (re-record the artifact)", ErrRetainedSchemaUnsupported, schema, RetainedSchema)
@@ -499,8 +509,8 @@ func ReplayBoundRetained(ctx context.Context, payload target.BackendPayload, mod
 }
 
 func decodeRetained(payload target.BackendPayload) (retainedExecution, error) {
-	if payload.Reference.Schema != RetainedSchema {
-		return retainedExecution{}, retainedSchemaError(payload.Reference.Schema)
+	if err := CheckRetainedSchema(payload.Reference.Schema); err != nil {
+		return retainedExecution{}, err
 	}
 	if payload.Reference.File != "backend/simulation.json" || uint64(payload.Reference.Bytes) != uint64(len(payload.Data)) || record.HashBytes(payload.Data) != payload.Reference.SHA256 || len(payload.Data) > 512<<20 {
 		return retainedExecution{}, errors.New("WASM retained payload reference mismatch")

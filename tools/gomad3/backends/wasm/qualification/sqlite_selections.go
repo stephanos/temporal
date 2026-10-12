@@ -165,6 +165,9 @@ func validateSQLiteArtifactSelection(path string, state volume.CrashState) (retE
 		return errors.New("selected-state Artifact lacks sealed cluster evidence")
 	}
 	ref := *manifest.Target.Backend.Evidence
+	if err := simulation.CheckRetainedSchema(ref.Schema); err != nil {
+		return err
+	}
 	data, err := opened.ReadPayload(ref.File, 512<<20)
 	if err != nil {
 		return err

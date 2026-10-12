@@ -74,6 +74,10 @@ func replayRetainedCluster(ctx context.Context, spec runner.ReplaySpec, resolve 
 	if spec.VerifyOnly || spec.ObservedDir != "" || spec.ToolchainRoot != "" {
 		return runner.ReplayResult{}, true, &runner.ReplayPreflightError{Err: fmt.Errorf("retained WASM cluster replay does not support --verify-only, --observed, or --toolchain-root")}
 	}
+	// Older retained schemas are refused before an installation is resolved.
+	if err := simulation.CheckRetainedSchema(manifest.Target.Backend.Evidence.Schema); err != nil {
+		return runner.ReplayResult{}, true, err
+	}
 	description, err := resolve()
 	if err != nil {
 		return runner.ReplayResult{}, true, fmt.Errorf("retained WASM cluster replay requires a WASM installation: %w", err)

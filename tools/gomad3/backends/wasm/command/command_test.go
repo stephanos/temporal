@@ -14,13 +14,17 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
+	"go.temporal.io/server/tools/gomad3/backends/wasm/backend"
 	"go.temporal.io/server/tools/gomad3/backends/wasm/installation"
 	"go.temporal.io/server/tools/gomad3/backends/wasm/internal/stockgo"
 	"go.temporal.io/server/tools/gomad3/backends/wasm/qualification"
+	"go.temporal.io/server/tools/gomad3/backends/wasm/simulation"
 	"go.temporal.io/server/tools/gomad3/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad3/captured"
 	gomadqualification "go.temporal.io/server/tools/gomad3/qualification"
 	"go.temporal.io/server/tools/gomad3/record"
+	"go.temporal.io/server/tools/gomad3/runner"
+	"go.temporal.io/server/tools/gomad3/target"
 )
 
 func run(arguments []string, stdout, stderr io.Writer) int {
@@ -562,4 +566,58 @@ func invokeOperator(t *testing.T, binary string, want int, arguments ...string) 
 		t.Fatalf("operator %q status=%d want=%d\nstdout=%s\nstderr=%s", arguments, status, want, stdout.String(), stderr.String())
 	}
 	return stdout.Bytes()
+}
+
+func TestRetainedV1ReplayIsRefusedBeforeResolvingInstallation(t *testing.T) {
+	path := publishRetainedClusterArtifact(t, "gomad3.wasm-simulation-retained/v1")
+	resolve := func() (installation.Description, error) {
+		t.Fatal("v1 retained replay resolved an installation")
+		return installation.Description{}, nil
+	}
+	_, handled, err := replayRetainedCluster(t.Context(), runner.ReplaySpec{ArtifactPath: path}, resolve)
+	var preflight *runner.ReplayPreflightError
+	if !handled || !errors.Is(err, simulation.ErrRetainedSchemaUnsupported) || errors.As(err, &preflight) {
+		t.Fatalf("v1 retained replay: handled %v, err %v", handled, err)
+	}
+	// Unsupported replay options keep their preflight precedence (exit 2).
+	for _, spec := range []runner.ReplaySpec{{ArtifactPath: path, VerifyOnly: true}, {ArtifactPath: path, ObservedDir: t.TempDir()}, {ArtifactPath: path, ToolchainRoot: "/missing/native"}} {
+		if _, handled, err := replayRetainedCluster(t.Context(), spec, resolve); !handled || !errors.As(err, &preflight) {
+			t.Fatalf("v1 retained replay %+v: handled %v, err %v", spec, handled, err)
+		}
+	}
+}
+
+// publishRetainedClusterArtifact publishes a minimal Artifact whose evidence
+// names schema. Its payload is never a valid retained bundle.
+func publishRetainedClusterArtifact(t *testing.T, schema string) string {
+	t.Helper()
+	module := []byte("\x00asm\x01\x00\x00\x00")
+	modulePath := filepath.Join(t.TempDir(), "target")
+	if err := os.WriteFile(modulePath, module, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	evidence := []byte(`{"schema":"` + schema + `"}`)
+	provenance := []byte(`{}`)
+	metadata := &record.BackendMetadata{Name: backend.Name, ReplayMode: record.ReplayExact, Provenance: record.BackendPayload{Schema: "provenance", File: "backend/provenance.json", SHA256: record.HashBytes(provenance), Bytes: record.Uint64String(len(provenance))}, Evidence: &record.BackendPayload{Schema: schema, File: "backend/simulation.json", SHA256: record.HashBytes(evidence), Bytes: record.Uint64String(len(evidence))}}
+	world, worldPayloads := record.NoneWorld()
+	exitCode := record.Uint64String(1)
+	manifest := record.ExecutionRecord{
+		SchemaVersion: record.SchemaVersion, ArtifactKind: record.ArtifactTargetFailure, CreatedAt: "2026-10-12T12:00:00Z", CampaignID: "retained", Seed: 7, ReplayMode: record.ReplayExact,
+		Runner:    record.Runner{RecordContract: record.RecordContract, RunnerBuild: "test", HostOS: "linux", HostArch: "amd64"},
+		Toolchain: record.Toolchain{GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64), TargetGOOS: "wasip1", TargetGOARCH: "wasm"},
+		Target: record.Target{Kind: "go-run", Source: ".", SHA256: record.HashBytes(module), Size: record.Uint64String(len(module)), Argv: []string{"gomad3-target"}, BuildTags: []string{},
+			Adapters: []record.TargetAdapter{}, Compatibility: []record.CompatibilityPack{}, BuildInfo: record.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target"}, Backend: metadata},
+		IOProfile:   record.BackendIOProfile(*metadata),
+		Environment: []record.Environment{{Name: "GOMAD3_IO_PROFILE", Value: backend.Name}, {Name: "GOMADSEED", Value: "7"}, {Name: "TZ", Value: "UTC"}},
+		Limits:      record.Limits{ExecutionTimeoutNanos: 1, OverallTimeoutNanos: 2, OutputBytes: 64, WorldTransitionBytes: 64},
+		World:       world,
+		Outcome:     record.Outcome{Domain: "target", Reason: "nonzero_exit", Termination: "exit", ExitCode: &exitCode},
+		Streams:     record.Streams{Stdout: record.Stream{FullSHA256: record.HashBytes(nil)}, Stderr: record.Stream{FullSHA256: record.HashBytes(nil)}},
+		Host:        record.Host{StartedAt: "2026-10-12T12:00:00Z", FinishedAt: "2026-10-12T12:00:01Z", ElapsedNanos: 1},
+	}
+	published, err := artifact.PublishArtifact(artifact.Store{Root: t.TempDir()}, artifact.ArtifactInput{Manifest: manifest, TargetPath: modulePath, World: worldPayloads, BackendPayloads: []target.BackendPayload{{Reference: metadata.Provenance, Data: provenance}, {Reference: *metadata.Evidence, Data: evidence}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return published.Path
 }

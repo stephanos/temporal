@@ -2,12 +2,15 @@ package qualification
 
 import (
 	"context"
+	"errors"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 	"time"
 
+	"go.temporal.io/server/tools/gomad3/artifact"
 	runnerbackend "go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/backends/wasm/backend"
 	"go.temporal.io/server/tools/gomad3/backends/wasm/simulation"
@@ -17,6 +20,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner"
 	"go.temporal.io/server/tools/gomad3/target"
+	"go.temporal.io/server/tools/gomad3/volume"
 	"go.temporal.io/server/tools/gomad3sim"
 )
 
@@ -185,5 +189,52 @@ func TestActualClusterQualificationAndDetachedReplay(t *testing.T) {
 			t.Fatal(err)
 		}
 		t.Logf("canary=%t result=%s guest-executions=%d replays=%d cpu=%d budget=%+v", canary, path, result.Cost.Executions, result.Cost.Replays, result.Cost.CPUNanos, result.Budget)
+	}
+}
+
+// publishRetainedClusterArtifact publishes a minimal Artifact whose evidence
+// names schema. Its payload is never a valid retained bundle.
+func publishRetainedClusterArtifact(t *testing.T, schema string) string {
+	t.Helper()
+	module := []byte("\x00asm\x01\x00\x00\x00")
+	modulePath := filepath.Join(t.TempDir(), "target")
+	if err := os.WriteFile(modulePath, module, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	evidence := []byte(`{"schema":"` + schema + `"}`)
+	provenance := []byte(`{}`)
+	metadata := &record.BackendMetadata{Name: backend.Name, ReplayMode: record.ReplayExact, Provenance: record.BackendPayload{Schema: "provenance", File: "backend/provenance.json", SHA256: record.HashBytes(provenance), Bytes: record.Uint64String(len(provenance))}, Evidence: &record.BackendPayload{Schema: schema, File: "backend/simulation.json", SHA256: record.HashBytes(evidence), Bytes: record.Uint64String(len(evidence))}}
+	world, worldPayloads := record.NoneWorld()
+	exitCode := record.Uint64String(1)
+	manifest := record.ExecutionRecord{
+		SchemaVersion: record.SchemaVersion, ArtifactKind: record.ArtifactTargetFailure, CreatedAt: "2026-10-12T12:00:00Z", CampaignID: "retained", Seed: 7, ReplayMode: record.ReplayExact,
+		Runner:    record.Runner{RecordContract: record.RecordContract, RunnerBuild: "test", HostOS: "linux", HostArch: "amd64"},
+		Toolchain: record.Toolchain{GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64), TargetGOOS: "wasip1", TargetGOARCH: "wasm"},
+		Target: record.Target{Kind: "go-run", Source: ".", SHA256: record.HashBytes(module), Size: record.Uint64String(len(module)), Argv: []string{"gomad3-target"}, BuildTags: []string{},
+			Adapters: []record.TargetAdapter{}, Compatibility: []record.CompatibilityPack{}, BuildInfo: record.BuildInfo{GoVersion: "go1.26.4", Path: "example.com/target"}, Backend: metadata},
+		IOProfile:   record.BackendIOProfile(*metadata),
+		Environment: []record.Environment{{Name: "GOMAD3_IO_PROFILE", Value: backend.Name}, {Name: "GOMADSEED", Value: "7"}, {Name: "TZ", Value: "UTC"}},
+		Limits:      record.Limits{ExecutionTimeoutNanos: 1, OverallTimeoutNanos: 2, OutputBytes: 64, WorldTransitionBytes: 64},
+		World:       world,
+		Outcome:     record.Outcome{Domain: "target", Reason: "nonzero_exit", Termination: "exit", ExitCode: &exitCode},
+		Streams:     record.Streams{Stdout: record.Stream{FullSHA256: record.HashBytes(nil)}, Stderr: record.Stream{FullSHA256: record.HashBytes(nil)}},
+		Host:        record.Host{StartedAt: "2026-10-12T12:00:00Z", FinishedAt: "2026-10-12T12:00:01Z", ElapsedNanos: 1},
+	}
+	published, err := artifact.PublishArtifact(artifact.Store{Root: t.TempDir()}, artifact.ArtifactInput{Manifest: manifest, TargetPath: modulePath, World: worldPayloads, BackendPayloads: []target.BackendPayload{{Reference: metadata.Provenance, Data: provenance}, {Reference: *metadata.Evidence, Data: evidence}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return published.Path
+}
+
+func TestRetainedV1ArtifactIsRefusedBeforeItsPayloadIsRead(t *testing.T) {
+	path := publishRetainedClusterArtifact(t, "gomad3.wasm-simulation-retained/v1")
+	var stages []string
+	_, _, err := replayClusterArtifactObserved(t.Context(), path, t.TempDir(), simulation.InstalledHelper{}, func(stage string) { stages = append(stages, stage) })
+	if !errors.Is(err, simulation.ErrRetainedSchemaUnsupported) || slices.Contains(stages, "replay.read.before") {
+		t.Fatalf("v1 cluster replay: stages %v, err %v", stages, err)
+	}
+	if err := validateSQLiteArtifactSelection(path, volume.CrashState{}); !errors.Is(err, simulation.ErrRetainedSchemaUnsupported) {
+		t.Fatalf("v1 selected-state Artifact: %v", err)
 	}
 }

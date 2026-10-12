@@ -281,6 +281,10 @@ func replayClusterArtifactObserved(ctx context.Context, path, directory string, 
 		return runner.ReplayResult{}, nil, errors.New("artifact lacks retained WASM cluster evidence")
 	}
 	ref := *manifest.Target.Backend.Evidence
+	// Older retained schemas are refused before their payload is read.
+	if err := simulation.CheckRetainedSchema(ref.Schema); err != nil {
+		return runner.ReplayResult{}, nil, err
+	}
 	observeHostMemory(observer, "replay.read.before")
 	data, err := opened.ReadPayload(ref.File, 512<<20)
 	observeHostMemory(observer, "replay.read.after")
