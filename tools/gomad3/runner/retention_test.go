@@ -9,11 +9,14 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"slices"
+	"strings"
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
 	backend "go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/captured"
+	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
 	"go.temporal.io/server/tools/gomad3/target"
@@ -237,5 +240,125 @@ func TestExecutionArtifactInputCarriesTheCapturedEvidence(t *testing.T) {
 	input := executionArtifactInput(manifest, target.Prepared{Path: "/prepared/target"}, result, mounts, worldBundle)
 	if !reflect.DeepEqual(input, want) || input.ReadOnlyMounts != mounts {
 		t.Fatalf("executionArtifactInput() = %#v, want %#v", input, want)
+	}
+}
+
+func TestRunRetainsOnlyProbeNovelSuccessesWithinExplicitBounds(t *testing.T) {
+	executor := &fakeExecutor{result: func(seed uint64) backend.ExecutionResult {
+		result := processResult(0, fmt.Sprintf("seed=%d", seed), "")
+		probe := "stdlib.os.openfile"
+		if seed == 3 {
+			probe = "stdlib.net.dialtcp"
+		}
+		result.IOTranscript = semanticTranscript(t, probe)
+		return result
+	}}
+	config, configDependencies := testConfig(t, newFakePreparer(t), executor, "1-3", PolicyAll, 1)
+	config.Coverage = CoverageSemantic
+	config.KeepSuccesses = KeepSuccessesNovel
+	config.SuccessArtifactLimit = 2
+	config.SuccessBytesLimit = 64 << 20
+	configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
+	summary, err := exploreWith(context.Background(), config, configDependencies)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if summary.Succeeded != 3 || summary.RetainedSuccesses != 2 || summary.RetainedSuccessBytes == 0 || len(summary.SuccessArtifacts) != 2 {
+		t.Fatalf("summary = %#v", summary)
+	}
+	batch, err := campaign.OpenCampaign(summary.CampaignPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if batch.Executions[0].SuccessArtifact == nil || batch.Executions[1].SuccessArtifact != nil || batch.Executions[2].SuccessArtifact == nil || !slices.Equal(batch.Executions[0].NovelSemanticProbes, []string{"stdlib.os.openfile"}) || !slices.Equal(batch.Executions[2].NovelSemanticProbes, []string{"stdlib.net.dialtcp"}) {
+		t.Fatalf("batch runs = %#v", batch.Executions)
+	}
+	for _, path := range summary.SuccessArtifacts {
+		opened, err := artifact.OpenArtifact(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if opened.Manifest().ArtifactKind != record.ArtifactSuccess || opened.Manifest().Outcome.Domain != "success" || opened.Manifest().ReplayMode != record.ReplayExact {
+			t.Fatalf("retained success = %#v", opened.Manifest())
+		}
+		if err := opened.Close(); err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
+func TestRunRetainsOnlyChoiceNovelSuccessesAndRecordsTheirFeatures(t *testing.T) {
+	preparer := newFakePreparer(t)
+	limit := choiceTraceLimit(t, 3)
+	executor := &fakeExecutor{result: func(seed uint64) backend.ExecutionResult {
+		result := processResult(0, "", "")
+		result.IOTranscript = completeEmptyTranscript()
+		selected := uint32(0)
+		if seed == 3 {
+			selected = 1
+		}
+		result.ChoiceTrace = completeChoiceTrace(t, preparer.prepared.BuildKey, limit, []choice.Record{{
+			Ordinal: 0, Kind: choice.KindRunnable, Flags: choice.FlagDecision, SiteOffset: 24, Alternatives: 2, Selected: selected,
+		}})
+		return result
+	}}
+	config, configDependencies := testConfig(t, preparer, executor, "1-3", PolicyAll, 1)
+	config.Coverage = CoverageChoice
+	config.ChoiceTraceLimit = limit
+	config.KeepSuccesses = KeepSuccessesNovel
+	config.SuccessArtifactLimit = 2
+	config.SuccessBytesLimit = 64 << 20
+	configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
+	summary, err := exploreWith(context.Background(), config, configDependencies)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if summary.RetainedSuccesses != 2 || len(summary.SuccessArtifacts) != 2 {
+		t.Fatalf("summary = %#v", summary)
+	}
+	batch, err := campaign.OpenCampaign(summary.CampaignPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if batch.Executions[0].SuccessArtifact == nil || len(batch.Executions[0].NovelChoiceFeatures) == 0 || batch.Executions[1].SuccessArtifact != nil || len(batch.Executions[1].NovelChoiceFeatures) != 0 || batch.Executions[2].SuccessArtifact == nil || len(batch.Executions[2].NovelChoiceFeatures) == 0 {
+		t.Fatalf("choice novelty runs = %#v", batch.Executions)
+	}
+	for _, run := range batch.Executions {
+		if len(run.ChoiceFeatures) == 0 || !slices.IsSorted(run.ChoiceFeatures) {
+			t.Fatalf("choice features = %#v", run.ChoiceFeatures)
+		}
+	}
+}
+
+func TestRunFailsClosedWhenSuccessRetentionCountIsExhausted(t *testing.T) {
+	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{result: func(uint64) backend.ExecutionResult {
+		result := processResult(0, "", "")
+		result.IOTranscript = completeEmptyTranscript()
+		return result
+	}}, "1-2", PolicyAll, 1)
+	config.KeepSuccesses = KeepSuccessesAll
+	config.SuccessArtifactLimit = 1
+	config.SuccessBytesLimit = 64 << 20
+	configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
+	summary, err := exploreWith(context.Background(), config, configDependencies)
+	var hostError *HostError
+	if !errors.As(err, &hostError) || hostError.Reason != "success_retention_capacity" || summary.RetainedSuccesses != 1 {
+		t.Fatalf("summary = %#v, error = %v", summary, err)
+	}
+}
+
+func TestRunRejectsSuccessfulRetentionWithoutReplayTranscript(t *testing.T) {
+	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyAll, 1)
+	config.KeepSuccesses = KeepSuccessesAll
+	config.SuccessArtifactLimit = 1
+	config.SuccessBytesLimit = 1 << 20
+	configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
+	summary, err := exploreWith(context.Background(), config, configDependencies)
+	var hostError *HostError
+	if !errors.As(err, &hostError) || hostError.Reason != "success_artifact_publication" || !strings.Contains(err.Error(), "complete I/O transcript") {
+		t.Fatalf("exploreWith() error = %v", err)
+	}
+	if got := observeSeedCompletion(t, summary, err).Statistics; got != (campaign.CampaignStatistics{Attempted: 1}) {
+		t.Fatalf("statistics = %#v, want %#v", got, campaign.CampaignStatistics{Attempted: 1})
 	}
 }

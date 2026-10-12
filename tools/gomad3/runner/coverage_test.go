@@ -2,8 +2,10 @@ package runner
 
 import (
 	"context"
+	"debug/buildinfo"
 	"errors"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -15,6 +17,7 @@ import (
 	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/captured"
+	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/target"
 )
@@ -289,4 +292,120 @@ func main() {
 			Streams: record.Streams{Stdout: replayStream(observed.Stdout), Stderr: replayStream(observed.Stderr)},
 			Host:    record.Host{StartedAt: "2026-10-02T12:00:00Z", FinishedAt: "2026-10-02T12:00:01Z", ElapsedNanos: record.Uint64String(time.Second)},
 		}}, observed, source
+}
+
+func TestReplayAndMinimizeRejectRetainedCoverageBinary(t *testing.T) {
+	module := t.TempDir()
+	for name, contents := range map[string]string{"go.mod": "module example.com/coveragefixture\n\ngo 1.27.1\n", "main.go": "package main\nfunc main() {}\n"} {
+		if err := os.WriteFile(filepath.Join(module, name), []byte(contents), 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	binary := filepath.Join(t.TempDir(), "target")
+	command := exec.Command(filepath.Join(toolchainRoot(t), "bin", "go"), "build", "-tags=test_dep", "-cover", "-o", binary, ".")
+	command.Dir = module
+	for _, entry := range os.Environ() {
+		name, _, _ := strings.Cut(entry, "=")
+		switch name {
+		case "GOROOT", "GOMADSEED", "GOMAD3_CHILD_SEED", "GOFLAGS", "GOENV", "CGO_ENABLED", "GOEXPERIMENT", "GOTOOLCHAIN", "GOWORK":
+			continue
+		}
+		command.Env = append(command.Env, entry)
+	}
+	command.Env = append(command.Env, "GOFLAGS=", "GOENV=off", "CGO_ENABLED=0", "GOEXPERIMENT=nogreenteagc", "GOTOOLCHAIN=local", "GOWORK=off")
+	if output, err := command.CombinedOutput(); err != nil {
+		t.Fatalf("build covered target: %v\n%s", err, output)
+	}
+	contents, err := os.ReadFile(binary)
+	if err != nil {
+		t.Fatal(err)
+	}
+	build, err := buildinfo.ReadFile(binary)
+	if err != nil {
+		t.Fatal(err)
+	}
+	original, _ := replayArtifact(t)
+	opened, err := artifact.OpenArtifact(original)
+	if err != nil {
+		t.Fatal(err)
+	}
+	manifest := opened.Manifest()
+	manifest.Target.SHA256 = record.HashBytes(contents)
+	manifest.Target.Size = record.Uint64String(len(contents))
+	manifest.Target.BuildInfo = nativebuild.ProjectBuildInfo(build)
+	stdout, err := opened.ReadPayload(manifest.Streams.Stdout.File, uint64(manifest.Streams.Stdout.RetainedBytes))
+	if err != nil {
+		t.Fatal(err)
+	}
+	stderr, err := opened.ReadPayload(manifest.Streams.Stderr.File, uint64(manifest.Streams.Stderr.RetainedBytes))
+	if err != nil {
+		t.Fatal(err)
+	}
+	world, err := readWorldPayloads(opened)
+	if err != nil {
+		t.Fatal(err)
+	}
+	published, err := artifact.PublishArtifact(artifact.Store{Root: t.TempDir()}, artifact.ArtifactInput{Manifest: manifest, TargetPath: binary, Stdout: stdout, Stderr: stderr, World: world})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, verifyOnly := range []bool{false, true} {
+		executor := &fakeReplayExecutor{}
+		_, err := replayWith(context.Background(), ReplaySpec{Backend: replayNativeProvider(t), ArtifactPath: published.Path, VerifyOnly: verifyOnly, ToolchainRoot: toolchainRoot(t)}, executionDependencies{executor: executor})
+		if err == nil || !strings.Contains(err.Error(), "stored target uses unsupported coverage instrumentation") || executor.calls != 0 {
+			t.Fatalf("covered replay: error = %v, calls = %d", err, executor.calls)
+		}
+	}
+	_, err = minimizeWith(context.Background(), MinimizeSpec{Backend: replayNativeProvider(t), ArtifactPath: published.Path, OutputRoot: t.TempDir(), AttemptBudget: 1, ToolchainRoot: toolchainRoot(t)}, executionDependencies{})
+	if err == nil || !strings.Contains(err.Error(), "stored target uses unsupported coverage instrumentation") {
+		t.Fatalf("covered minimization: error = %v", err)
+	}
+}
+
+func TestChoiceTraceObservedExcludesWatchdogAndCancellation(t *testing.T) {
+	for _, test := range []struct {
+		name   string
+		result backend.ExecutionResult
+		want   bool
+	}{
+		{name: "exited", result: backend.ExecutionResult{}, want: true},
+		{name: "watchdog", result: backend.ExecutionResult{WatchdogTimeout: true}, want: false},
+		{name: "cancelled", result: backend.ExecutionResult{Cancelled: true}, want: false},
+	} {
+		if got := choiceTraceObserved(test.result); got != test.want {
+			t.Fatalf("%s: choiceTraceObserved() = %v, want %v", test.name, got, test.want)
+		}
+	}
+}
+
+// A target the watchdog kills never writes its terminal choice frame; the run
+// is the watchdog outcome, retained without a choice profile, not an
+// unterminated-trace runner failure that discards the evidence.
+func TestRunClassifiesWatchdogTimeoutBeforeUnterminatedChoiceTrace(t *testing.T) {
+	preparer := newFakePreparer(t)
+	limit := choiceTraceLimit(t, 1)
+	result := processResult(0, "", "")
+	result.Termination = backend.TerminationSignal
+	result.Signal = "SIGKILL"
+	result.WatchdogTimeout = true
+	result.ChoiceTrace = backend.ChoiceTrace{Profile: choice.Profile, Limit: limit}
+	config, configDependencies := testConfig(t, preparer, terminalErrorExecutor{result: result}, "1", PolicyAll, 1)
+	config.ChoiceTraceLimit = limit
+	summary, err := exploreWith(context.Background(), config, configDependencies)
+	if err != nil {
+		t.Fatalf("exploreWith() error = %v", err)
+	}
+	if summary.Watchdogs != 1 || len(summary.Artifacts) != 1 {
+		t.Fatalf("exploreWith() summary = %#v", summary)
+	}
+	opened, err := artifact.OpenArtifact(summary.Artifacts[0])
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := opened.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if opened.Manifest().ArtifactKind != record.ArtifactWatchdogTimeout || opened.Manifest().Outcome.Reason != "watchdog_timeout" || opened.Manifest().ChoiceProfile != nil {
+		t.Fatalf("watchdog manifest = %#v", opened.Manifest())
+	}
 }

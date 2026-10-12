@@ -284,3 +284,23 @@ poll:
 	}
 	t.Fatalf("process %d remains after command cleanup", pid)
 }
+
+func TestCoordinatorGroupProbeRequiresExplicitESRCHForDisappearance(t *testing.T) {
+	for name, probe := range map[string]struct {
+		err    error
+		exists bool
+		fails  bool
+	}{
+		"present": {exists: true},
+		"denied":  {err: syscall.EPERM, exists: true},
+		"gone":    {err: syscall.ESRCH},
+		"unknown": {err: syscall.EINTR, fails: true},
+	} {
+		t.Run(name, func(t *testing.T) {
+			exists, err := ClassifyGroupProbe(probe.err)
+			if exists != probe.exists || (err != nil) != probe.fails {
+				t.Fatalf("ClassifyGroupProbe() = (%v, %v)", exists, err)
+			}
+		})
+	}
+}

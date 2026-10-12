@@ -2,6 +2,7 @@ package runner
 
 import (
 	"context"
+	"errors"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -11,6 +12,7 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/artifact"
 	backend "go.temporal.io/server/tools/gomad3/backends"
+	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
 )
@@ -368,5 +370,159 @@ func TestGuidanceRegressionModeChangesPortablePlanIdentity(t *testing.T) {
 	}
 	if identities[0] == identities[1] {
 		t.Fatal("regression mode did not change otherwise identical plan identity")
+	}
+}
+
+func TestGuidanceReopensOnlyWithMatchingEnvironmentAndTickPolicy(t *testing.T) {
+	for _, coverage := range []CoverageMode{CoverageSemantic, CoverageChoice} {
+		for _, test := range []struct {
+			name, firstEnv, secondEnv, firstTick, secondTick string
+			match                                            bool
+		}{
+			{name: "same configuration across seeds", firstEnv: "MODE=first", secondEnv: "MODE=first", match: true},
+			{name: "changed environment", firstEnv: "MODE=first", secondEnv: "MODE=second"},
+			{name: "strict to forward", secondTick: record.ClockTickForward},
+			{name: "forward to strict", firstTick: record.ClockTickForward},
+		} {
+			t.Run(string(coverage)+"/"+test.name, func(t *testing.T) {
+				preparer := newFakePreparer(t)
+				limit := choiceTraceLimit(t, 1)
+				executor := &fakeExecutor{result: func(uint64) backend.ExecutionResult {
+					result := processResult(0, "", "")
+					result.IOTranscript = completeEmptyTranscript()
+					if coverage == CoverageChoice {
+						result.ChoiceTrace = completeChoiceTrace(t, preparer.prepared.BuildKey, limit, []choice.Record{{Ordinal: 0, Kind: choice.KindRunnable, Flags: choice.FlagDecision, SiteOffset: 24, Alternatives: 2}})
+					}
+					return result
+				}}
+				corpus := filepath.Join(t.TempDir(), "corpus")
+				run := func(seed, env, tick string) error {
+					config, configDependencies := testConfig(t, preparer, executor, seed, PolicyAll, 1)
+					config.Coverage = coverage
+					config.Guide = true
+					config.Corpus = corpus
+					config.Replayer = &matchingReplayer{}
+					config.ClockTick = tick
+					if coverage == CoverageChoice {
+						config.ChoiceTraceLimit = limit
+					}
+					if env != "" {
+						config.Environment = []string{env}
+					}
+					_, err := exploreWith(context.Background(), config, configDependencies)
+					return err
+				}
+				if err := run("7", test.firstEnv, test.firstTick); err != nil {
+					t.Fatal(err)
+				}
+				err := run("8", test.secondEnv, test.secondTick)
+				if test.match {
+					if err != nil {
+						t.Fatal(err)
+					}
+				} else if err == nil || !strings.Contains(err.Error(), "guided corpus identity does not match") {
+					t.Fatalf("changed configuration error = %v", err)
+				}
+			})
+		}
+	}
+}
+
+func TestRunGuidesFromImmutableCorpusAndKeepsUnguidedSeeds(t *testing.T) {
+	corpus := filepath.Join(t.TempDir(), "corpus")
+	replayer := &matchingReplayer{}
+	firstExecutor := &fakeExecutor{result: func(seed uint64) backend.ExecutionResult {
+		result := processResult(0, "", "")
+		probe := "stdlib.os.openfile"
+		if seed%2 == 1 {
+			probe = "stdlib.net.dialtcp"
+		}
+		result.IOTranscript = semanticTranscript(t, probe)
+		return result
+	}}
+	firstConfig, firstConfigDependencies := testConfig(t, newFakePreparer(t), firstExecutor, "0-7", PolicyAll, 3)
+	firstConfig.Coverage = CoverageSemantic
+	firstConfig.Guide = true
+	firstConfig.Corpus = corpus
+	firstConfig.Replayer = replayer
+	first, err := exploreWith(context.Background(), firstConfig, firstConfigDependencies)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if first.CorpusAdded != 2 || first.CorpusEntries != 2 || replayer.calls != 2 {
+		t.Fatalf("first guided summary = %#v, replay calls = %d", first, replayer.calls)
+	}
+
+	secondExecutor := &fakeExecutor{result: firstExecutor.result}
+	secondConfig, secondConfigDependencies := testConfig(t, newFakePreparer(t), secondExecutor, "100-107", PolicyAll, 3)
+	secondConfig.Coverage = CoverageSemantic
+	secondConfig.Guide = true
+	secondConfig.GuideRegression = true
+	secondConfig.Corpus = corpus
+	secondConfig.Replayer = replayer
+	second, err := exploreWith(context.Background(), secondConfig, secondConfigDependencies)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if second.CorpusAdded != 0 || second.CorpusEntries != 2 || replayer.calls != 2 {
+		t.Fatalf("second guided summary = %#v, replay calls = %d", second, replayer.calls)
+	}
+	batch, err := campaign.OpenCampaign(second.CampaignPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if batch.Record.Selection != "0,1,100-105" || batch.Record.SelectionCount != 8 {
+		t.Fatalf("guided batch selection = %q (%d)", batch.Record.Selection, batch.Record.SelectionCount)
+	}
+	seeds := make([]uint64, len(batch.Executions))
+	for index, run := range batch.Executions {
+		seeds[index] = uint64(run.Seed)
+	}
+	if !slices.Equal(seeds, []uint64{0, 1, 100, 101, 102, 103, 104, 105}) {
+		t.Fatalf("second guided seeds = %v", seeds)
+	}
+}
+
+func TestRunGuidesFromReplayVerifiedChoiceCoverage(t *testing.T) {
+	preparer := newFakePreparer(t)
+	limit := choiceTraceLimit(t, 1)
+	replayer := &matchingReplayer{}
+	executor := &fakeExecutor{result: func(seed uint64) backend.ExecutionResult {
+		result := processResult(0, "", "")
+		result.IOTranscript = completeEmptyTranscript()
+		result.ChoiceTrace = completeChoiceTrace(t, preparer.prepared.BuildKey, limit, []choice.Record{{
+			Ordinal: 0, Kind: choice.KindRunnable, Flags: choice.FlagDecision, SiteOffset: 24, Alternatives: 2, Selected: uint32(seed % 2),
+		}})
+		return result
+	}}
+	config, configDependencies := testConfig(t, preparer, executor, "1-2", PolicyAll, 1)
+	config.Coverage = CoverageChoice
+	config.ChoiceTraceLimit = limit
+	config.Guide = true
+	config.Corpus = filepath.Join(t.TempDir(), "corpus")
+	config.Replayer = replayer
+	summary, err := exploreWith(context.Background(), config, configDependencies)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if summary.CorpusAdded != 2 || summary.CorpusEntries != 2 || replayer.calls != 2 {
+		t.Fatalf("guided choice summary = %#v, replay calls = %d", summary, replayer.calls)
+	}
+}
+
+func TestRunGuidanceWithoutReplayCapabilityFailsClosed(t *testing.T) {
+	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{result: func(uint64) backend.ExecutionResult {
+		result := processResult(0, "", "")
+		result.IOTranscript = semanticTranscript(t, "stdlib.os.openfile")
+		return result
+	}}, "1", PolicyAll, 1)
+	config.Coverage = CoverageSemantic
+	config.Guide = true
+	config.Corpus = filepath.Join(t.TempDir(), "corpus")
+	config.Backend = noReplayProvider{scriptProvider()}
+	_, err := exploreWith(context.Background(), config, configDependencies)
+	var hostError *HostError
+	if !errors.As(err, &hostError) || hostError.Reason != "guided_corpus" {
+		t.Fatalf("exploreWith() error = %v", err)
 	}
 }

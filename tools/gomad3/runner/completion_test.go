@@ -146,3 +146,32 @@ func TestAssessCompletionProjectsCoverageInOrderAndClassifies(t *testing.T) {
 		})
 	}
 }
+
+func TestClassifyStableTargetDiagnostics(t *testing.T) {
+	for name, stderr := range map[string]string{
+		"panic_or_runtime_fatal":         "panic: broken\n",
+		"deterministic_deadlock":         "fatal error: all goroutines are asleep - deadlock!\n",
+		"logical_test_timeout":           "panic: test timed out after 1m0s\n",
+		"unsupported_deterministic_mode": "runtime: GOMADSEED does not support cgo or external linking\n",
+	} {
+		t.Run(name, func(t *testing.T) {
+			outcome := backend.Classify(processResult(2, "", stderr), false, record.WorldTerminal{Kind: "none"})
+			if outcome.Domain != "target" || outcome.Reason != name {
+				t.Fatalf("outcome = %#v", outcome)
+			}
+		})
+	}
+}
+
+func TestClassifyStructuredWorldFailures(t *testing.T) {
+	for kind, reason := range map[string]string{
+		"deadlock": "world_deadlock", "capacity": "world_capacity", "replay-divergence": "world_replay_divergence", "invalid-input": "world_invalid_input",
+	} {
+		t.Run(kind, func(t *testing.T) {
+			outcome := backend.Classify(processResult(0, "", ""), false, record.WorldTerminal{Kind: kind, Detail: "detail"})
+			if outcome.Domain != "target" || outcome.Reason != reason || outcome.Termination != "exit" || outcome.ExitCode == nil || *outcome.ExitCode != 0 {
+				t.Fatalf("classify() = %#v", outcome)
+			}
+		})
+	}
+}

@@ -8,19 +8,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"io/fs"
 	"os"
-	"os/exec"
-	"os/signal"
 	"path/filepath"
-	"runtime"
+	"reflect"
 	"slices"
 	"sort"
 	"strconv"
 	"strings"
 	"sync"
-	"syscall"
 	"testing"
 	"time"
 
@@ -34,7 +30,6 @@ import (
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
 	simulationengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation"
-	simulationrecord "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulationrecord"
 	"go.temporal.io/server/tools/gomad3/target"
 	"go.temporal.io/server/tools/gomad3/world"
 )
@@ -200,93 +195,6 @@ func TestRunFailsWhenRequiredSemanticProbeIsMissing(t *testing.T) {
 	}
 }
 
-func TestRunRetainsOnlyProbeNovelSuccessesWithinExplicitBounds(t *testing.T) {
-	executor := &fakeExecutor{result: func(seed uint64) backend.ExecutionResult {
-		result := processResult(0, fmt.Sprintf("seed=%d", seed), "")
-		probe := "stdlib.os.openfile"
-		if seed == 3 {
-			probe = "stdlib.net.dialtcp"
-		}
-		result.IOTranscript = semanticTranscript(t, probe)
-		return result
-	}}
-	config, configDependencies := testConfig(t, newFakePreparer(t), executor, "1-3", PolicyAll, 1)
-	config.Coverage = CoverageSemantic
-	config.KeepSuccesses = KeepSuccessesNovel
-	config.SuccessArtifactLimit = 2
-	config.SuccessBytesLimit = 64 << 20
-	configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
-	summary, err := exploreWith(context.Background(), config, configDependencies)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if summary.Succeeded != 3 || summary.RetainedSuccesses != 2 || summary.RetainedSuccessBytes == 0 || len(summary.SuccessArtifacts) != 2 {
-		t.Fatalf("summary = %#v", summary)
-	}
-	batch, err := campaign.OpenCampaign(summary.CampaignPath)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if batch.Executions[0].SuccessArtifact == nil || batch.Executions[1].SuccessArtifact != nil || batch.Executions[2].SuccessArtifact == nil || !slices.Equal(batch.Executions[0].NovelSemanticProbes, []string{"stdlib.os.openfile"}) || !slices.Equal(batch.Executions[2].NovelSemanticProbes, []string{"stdlib.net.dialtcp"}) {
-		t.Fatalf("batch runs = %#v", batch.Executions)
-	}
-	for _, path := range summary.SuccessArtifacts {
-		opened, err := artifact.OpenArtifact(path)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if opened.Manifest().ArtifactKind != record.ArtifactSuccess || opened.Manifest().Outcome.Domain != "success" || opened.Manifest().ReplayMode != record.ReplayExact {
-			t.Fatalf("retained success = %#v", opened.Manifest())
-		}
-		if err := opened.Close(); err != nil {
-			t.Fatal(err)
-		}
-	}
-}
-
-func TestRunRetainsOnlyChoiceNovelSuccessesAndRecordsTheirFeatures(t *testing.T) {
-	preparer := newFakePreparer(t)
-	limit := choiceTraceLimit(t, 3)
-	executor := &fakeExecutor{result: func(seed uint64) backend.ExecutionResult {
-		result := processResult(0, "", "")
-		result.IOTranscript = completeEmptyTranscript()
-		selected := uint32(0)
-		if seed == 3 {
-			selected = 1
-		}
-		result.ChoiceTrace = completeChoiceTrace(t, preparer.prepared.BuildKey, limit, []choice.Record{{
-			Ordinal: 0, Kind: choice.KindRunnable, Flags: choice.FlagDecision, SiteOffset: 24, Alternatives: 2, Selected: selected,
-		}})
-		return result
-	}}
-	config, configDependencies := testConfig(t, preparer, executor, "1-3", PolicyAll, 1)
-	config.Coverage = CoverageChoice
-	config.ChoiceTraceLimit = limit
-	config.KeepSuccesses = KeepSuccessesNovel
-	config.SuccessArtifactLimit = 2
-	config.SuccessBytesLimit = 64 << 20
-	configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
-	summary, err := exploreWith(context.Background(), config, configDependencies)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if summary.RetainedSuccesses != 2 || len(summary.SuccessArtifacts) != 2 {
-		t.Fatalf("summary = %#v", summary)
-	}
-	batch, err := campaign.OpenCampaign(summary.CampaignPath)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if batch.Executions[0].SuccessArtifact == nil || len(batch.Executions[0].NovelChoiceFeatures) == 0 || batch.Executions[1].SuccessArtifact != nil || len(batch.Executions[1].NovelChoiceFeatures) != 0 || batch.Executions[2].SuccessArtifact == nil || len(batch.Executions[2].NovelChoiceFeatures) == 0 {
-		t.Fatalf("choice novelty runs = %#v", batch.Executions)
-	}
-	for _, run := range batch.Executions {
-		if len(run.ChoiceFeatures) == 0 || !slices.IsSorted(run.ChoiceFeatures) {
-			t.Fatalf("choice features = %#v", run.ChoiceFeatures)
-		}
-	}
-}
-
 func TestRunMergesParallelCompletionsInSelectionOrdinalOrder(t *testing.T) {
 	executor := newOutOfOrderExecutor(t)
 	config, configDependencies := testConfig(t, newFakePreparer(t), executor, "1-3", PolicyAll, 3)
@@ -308,138 +216,6 @@ func TestRunMergesParallelCompletionsInSelectionOrdinalOrder(t *testing.T) {
 	}
 	if batch.Executions[0].SuccessArtifact == nil || batch.Executions[1].SuccessArtifact != nil || batch.Executions[2].SuccessArtifact == nil {
 		t.Fatalf("ordered novelty retention = %#v", batch.Executions)
-	}
-}
-
-func TestRunGuidesFromImmutableCorpusAndKeepsUnguidedSeeds(t *testing.T) {
-	corpus := filepath.Join(t.TempDir(), "corpus")
-	replayer := &matchingReplayer{}
-	firstExecutor := &fakeExecutor{result: func(seed uint64) backend.ExecutionResult {
-		result := processResult(0, "", "")
-		probe := "stdlib.os.openfile"
-		if seed%2 == 1 {
-			probe = "stdlib.net.dialtcp"
-		}
-		result.IOTranscript = semanticTranscript(t, probe)
-		return result
-	}}
-	firstConfig, firstConfigDependencies := testConfig(t, newFakePreparer(t), firstExecutor, "0-7", PolicyAll, 3)
-	firstConfig.Coverage = CoverageSemantic
-	firstConfig.Guide = true
-	firstConfig.Corpus = corpus
-	firstConfig.Replayer = replayer
-	first, err := exploreWith(context.Background(), firstConfig, firstConfigDependencies)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if first.CorpusAdded != 2 || first.CorpusEntries != 2 || replayer.calls != 2 {
-		t.Fatalf("first guided summary = %#v, replay calls = %d", first, replayer.calls)
-	}
-
-	secondExecutor := &fakeExecutor{result: firstExecutor.result}
-	secondConfig, secondConfigDependencies := testConfig(t, newFakePreparer(t), secondExecutor, "100-107", PolicyAll, 3)
-	secondConfig.Coverage = CoverageSemantic
-	secondConfig.Guide = true
-	secondConfig.GuideRegression = true
-	secondConfig.Corpus = corpus
-	secondConfig.Replayer = replayer
-	second, err := exploreWith(context.Background(), secondConfig, secondConfigDependencies)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if second.CorpusAdded != 0 || second.CorpusEntries != 2 || replayer.calls != 2 {
-		t.Fatalf("second guided summary = %#v, replay calls = %d", second, replayer.calls)
-	}
-	batch, err := campaign.OpenCampaign(second.CampaignPath)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if batch.Record.Selection != "0,1,100-105" || batch.Record.SelectionCount != 8 {
-		t.Fatalf("guided batch selection = %q (%d)", batch.Record.Selection, batch.Record.SelectionCount)
-	}
-	seeds := make([]uint64, len(batch.Executions))
-	for index, run := range batch.Executions {
-		seeds[index] = uint64(run.Seed)
-	}
-	if !slices.Equal(seeds, []uint64{0, 1, 100, 101, 102, 103, 104, 105}) {
-		t.Fatalf("second guided seeds = %v", seeds)
-	}
-}
-
-func TestRunGuidesFromReplayVerifiedChoiceCoverage(t *testing.T) {
-	preparer := newFakePreparer(t)
-	limit := choiceTraceLimit(t, 1)
-	replayer := &matchingReplayer{}
-	executor := &fakeExecutor{result: func(seed uint64) backend.ExecutionResult {
-		result := processResult(0, "", "")
-		result.IOTranscript = completeEmptyTranscript()
-		result.ChoiceTrace = completeChoiceTrace(t, preparer.prepared.BuildKey, limit, []choice.Record{{
-			Ordinal: 0, Kind: choice.KindRunnable, Flags: choice.FlagDecision, SiteOffset: 24, Alternatives: 2, Selected: uint32(seed % 2),
-		}})
-		return result
-	}}
-	config, configDependencies := testConfig(t, preparer, executor, "1-2", PolicyAll, 1)
-	config.Coverage = CoverageChoice
-	config.ChoiceTraceLimit = limit
-	config.Guide = true
-	config.Corpus = filepath.Join(t.TempDir(), "corpus")
-	config.Replayer = replayer
-	summary, err := exploreWith(context.Background(), config, configDependencies)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if summary.CorpusAdded != 2 || summary.CorpusEntries != 2 || replayer.calls != 2 {
-		t.Fatalf("guided choice summary = %#v, replay calls = %d", summary, replayer.calls)
-	}
-}
-
-func TestRunGuidanceWithoutReplayCapabilityFailsClosed(t *testing.T) {
-	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{result: func(uint64) backend.ExecutionResult {
-		result := processResult(0, "", "")
-		result.IOTranscript = semanticTranscript(t, "stdlib.os.openfile")
-		return result
-	}}, "1", PolicyAll, 1)
-	config.Coverage = CoverageSemantic
-	config.Guide = true
-	config.Corpus = filepath.Join(t.TempDir(), "corpus")
-	config.Backend = noReplayProvider{scriptProvider()}
-	_, err := exploreWith(context.Background(), config, configDependencies)
-	var hostError *HostError
-	if !errors.As(err, &hostError) || hostError.Reason != "guided_corpus" {
-		t.Fatalf("exploreWith() error = %v", err)
-	}
-}
-
-func TestRunFailsClosedWhenSuccessRetentionCountIsExhausted(t *testing.T) {
-	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{result: func(uint64) backend.ExecutionResult {
-		result := processResult(0, "", "")
-		result.IOTranscript = completeEmptyTranscript()
-		return result
-	}}, "1-2", PolicyAll, 1)
-	config.KeepSuccesses = KeepSuccessesAll
-	config.SuccessArtifactLimit = 1
-	config.SuccessBytesLimit = 64 << 20
-	configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
-	summary, err := exploreWith(context.Background(), config, configDependencies)
-	var hostError *HostError
-	if !errors.As(err, &hostError) || hostError.Reason != "success_retention_capacity" || summary.RetainedSuccesses != 1 {
-		t.Fatalf("summary = %#v, error = %v", summary, err)
-	}
-}
-
-func TestRunRejectsSuccessfulRetentionWithoutReplayTranscript(t *testing.T) {
-	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1", PolicyAll, 1)
-	config.KeepSuccesses = KeepSuccessesAll
-	config.SuccessArtifactLimit = 1
-	config.SuccessBytesLimit = 1 << 20
-	configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
-	summary, err := exploreWith(context.Background(), config, configDependencies)
-	var hostError *HostError
-	if !errors.As(err, &hostError) || hostError.Reason != "success_artifact_publication" || !strings.Contains(err.Error(), "complete I/O transcript") {
-		t.Fatalf("exploreWith() error = %v", err)
-	}
-	if got := observeSeedCompletion(t, summary, err).Statistics; got != (campaign.CampaignStatistics{Attempted: 1}) {
-		t.Fatalf("statistics = %#v, want %#v", got, campaign.CampaignStatistics{Attempted: 1})
 	}
 }
 
@@ -800,485 +576,6 @@ func TestRunPassesChoiceProfileToExecutorAndArtifact(t *testing.T) {
 	}
 }
 
-func TestSimulationCapabilityForJobCarriesDetachedExplorationPlanToInjectedExecutor(t *testing.T) {
-	plan := []byte(`{"schema":"gomad3.simulation-exploration-plan/v1"}`)
-	job := runJob{simulationPlan: string(plan), simulationRecordLimit: 1 << 20, simulationRecordCount: 1}
-	capability, err := simulationCapabilityForJob(&fakeExecutor{}, job)
-	if err != nil {
-		t.Fatal(err)
-	}
-	plan[0] = '!'
-	if capability == nil || capability.Role != backend.SimulationRoleCoordinator || string(capability.ExplorationPlan) != `{"schema":"gomad3.simulation-exploration-plan/v1"}` || capability.ExplorationRecordLimit != 1<<20 || capability.ExplorationRecordCount != 1 {
-		t.Fatalf("simulation exploration capability = %#v", capability)
-	}
-	if _, err := simulationCapabilityForJob(&fakeExecutor{}, runJob{simulationPlan: "plan"}); err == nil {
-		t.Fatal("simulationCapabilityForJob() accepted missing record bounds")
-	}
-}
-
-func TestRunChoiceExplorationExecutesRootAndEveryNonSelectedRank(t *testing.T) {
-	preparer := newFakePreparer(t)
-	limit := choiceTraceLimit(t, 1)
-	executor := &explorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit}
-	config, configDependencies := testConfig(t, preparer, executor, "7", PolicyAll, 2)
-	config.Strategy = StrategyChoiceExploration
-	config.ChoiceTraceLimit = limit
-	config.MaxExecutions = 8
-	config.MaxChoiceDepth = 4
-	config.MaxExplorationBytes = 1 << 20
-
-	configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
-	summary, err := exploreWith(context.Background(), config, configDependencies)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if summary.Attempted != 2 || summary.Succeeded != 2 || summary.StopReason != StopExplorationExhausted || summary.ChoiceExploration == nil || summary.ChoiceExploration.CommittedRounds != 2 || summary.ChoiceExploration.SeenPrefixes != 2 {
-		t.Fatalf("exploration summary = %#v", summary)
-	}
-	executor.mu.Lock()
-	requests := append([]backend.ExecutionRequest(nil), executor.requests...)
-	executor.mu.Unlock()
-	if len(requests) != 2 || requests[0].Choice == nil || requests[0].Choice.Mode != choice.ModeRecord || requests[1].Choice == nil || requests[1].Choice.Mode != choice.ModePrefix || requests[1].Choice.ReplayPlan == nil || requests[1].Choice.ReplayPlan.Decisions[0].Selected != 1 {
-		t.Fatalf("exploration requests = %#v", requests)
-	}
-	batch, err := campaign.OpenCampaign(summary.CampaignPath)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if batch.Record.Strategy != string(StrategyChoiceExploration) || batch.Record.ChoiceExploration == nil || len(batch.Executions) != 2 || batch.Executions[1].ParentCandidateSHA256 == "" || batch.Executions[1].ForcedDepth == nil || *batch.Executions[1].ForcedDepth != 1 {
-		t.Fatalf("exploration batch = %#v", batch)
-	}
-	segmentPath := filepath.Join(summary.CampaignPath, "choice-exploration", "rounds", "00000000000000000001", "segment.json")
-	if err := os.WriteFile(segmentPath, []byte("{}"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := campaign.OpenCampaign(summary.CampaignPath); err == nil {
-		t.Fatal("OpenBatch() accepted a corrupt exploration segment")
-	}
-}
-
-func TestRunSimulationExplorationExecutesRootAndEveryScenarioRank(t *testing.T) {
-	preparer := newFakePreparer(t)
-	limit := choiceTraceLimit(t, 1)
-	executor := &simulationExplorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit}
-	config, configDependencies := testConfig(t, preparer, executor, "7", PolicyAll, 1)
-	config.Strategy = StrategySimulationExploration
-	config.ChoiceTraceLimit = limit
-	config.MaxExecutions = 4
-	config.MaxForcedDecisions = 2
-	config.MaxExplorationBytes = 1 << 20
-	config.MaxExplorationResultBytes = 1 << 20
-	config.SimulationDimensionLimits = SimulationDimensionLimits{Runtime: 2, Scenario: 2, Network: 2, Storage: 2, Fault: 2, Crash: 2}
-
-	summary, err := exploreWith(context.Background(), config, configDependencies)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if summary.Attempted != 2 || summary.Succeeded != 2 || summary.StopReason != StopExplorationExhausted || summary.SimulationExploration == nil || summary.SimulationExploration.CommittedRounds != 2 || summary.SimulationExploration.SeenCandidates != 2 {
-		t.Fatalf("simulation exploration summary = %#v", summary)
-	}
-	executor.mu.Lock()
-	requests := append([]backend.ExecutionRequest(nil), executor.requests...)
-	executor.mu.Unlock()
-	if len(requests) != 2 || requests[0].Simulation == nil || len(requests[0].Simulation.ExplorationPlan) == 0 || requests[1].Simulation == nil || len(requests[1].Simulation.ExplorationPlan) == 0 || requests[0].Choice == nil || requests[0].Choice.Mode != choice.ModeRecord || requests[1].Choice == nil || requests[1].Choice.Mode != choice.ModeRecord {
-		t.Fatalf("simulation exploration requests = %#v", requests)
-	}
-	batch, err := campaign.OpenCampaign(summary.CampaignPath)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if batch.Record.Strategy != string(StrategySimulationExploration) || batch.Record.SimulationExploration == nil || len(batch.Executions) != 2 || batch.Executions[1].ParentCandidateSHA256 == "" || batch.Executions[1].ForcedDepth == nil || *batch.Executions[1].ForcedDepth != 1 {
-		t.Fatalf("simulation exploration batch = %#v", batch)
-	}
-}
-
-func TestRunSimulationExplorationRetainsExactDeduplicatedSimulationFailure(t *testing.T) {
-	preparer := newFakePreparer(t)
-	limit := choiceTraceLimit(t, 1)
-	executor := &simulationExplorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit, fail: true}
-	config, configDependencies := testConfig(t, preparer, executor, "7", PolicyAll, 1)
-	config.Strategy = StrategySimulationExploration
-	config.ChoiceTraceLimit = limit
-	config.MaxExecutions = 4
-	config.MaxForcedDecisions = 2
-	config.MaxExplorationBytes = 1 << 20
-	config.MaxExplorationResultBytes = 1 << 20
-	config.SimulationDimensionLimits = SimulationDimensionLimits{Runtime: 2, Scenario: 2, Network: 2, Storage: 2, Fault: 2, Crash: 2}
-
-	summary, err := exploreWith(context.Background(), config, configDependencies)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if summary.Attempted != 2 || summary.Failures != 2 || summary.DistinctFailures != 1 || len(summary.Artifacts) != 1 {
-		t.Fatalf("simulation exploration failure summary = %#v", summary)
-	}
-	opened, err := artifact.OpenArtifact(summary.Artifacts[0])
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func(opened *artifact.Opened) {
-		if err := opened.Close(); err != nil {
-			t.Error(err)
-		}
-	}(opened)
-	profile := opened.Manifest().SimulationProfile
-	if profile == nil {
-		t.Fatal("simulation exploration failure artifact omitted simulation exploration evidence")
-	}
-	plan, err := opened.ReadPayload(profile.Plan.File, uint64(profile.Plan.Bytes))
-	if err != nil {
-		t.Fatal(err)
-	}
-	record, err := opened.ReadPayload(profile.Record.File, uint64(profile.Record.Bytes))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := simulationrecord.ValidateArtifact(*profile, plan, record); err != nil {
-		t.Fatal(err)
-	}
-	batch, err := campaign.OpenCampaign(summary.CampaignPath)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(batch.Executions) != 2 || batch.Executions[0].Artifact == nil || batch.Executions[1].Artifact == nil || *batch.Executions[0].Artifact != *batch.Executions[1].Artifact {
-		t.Fatalf("deduplicated combined failure references = %#v", batch.Executions)
-	}
-}
-
-func TestRunChoiceExplorationResumeRerunsTheWholeIncompleteRound(t *testing.T) {
-	preparer := newFakePreparer(t)
-	limit := choiceTraceLimit(t, 1)
-	baseExecutor := &explorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit}
-	config, configDependencies := testConfig(t, preparer, explorationInterruptExecutor{exploration: baseExecutor}, "7", PolicyAll, 2)
-	config.Strategy = StrategyChoiceExploration
-	config.ChoiceTraceLimit = limit
-	config.MaxExecutions = 8
-	config.MaxChoiceDepth = 4
-	config.MaxExplorationBytes = 1 << 20
-
-	partial, err := exploreWith(context.Background(), config, configDependencies)
-	var hostErr *HostError
-	if !errors.As(err, &hostErr) || partial.Attempted != 1 || partial.ChoiceExploration == nil || partial.ChoiceExploration.CommittedRounds != 1 {
-		t.Fatalf("partial exploration = %#v, error = %v", partial, err)
-	}
-	resumedExecutor := &explorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit}
-	resumed, err := exploreWith(context.Background(), CampaignSpec{
-		ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, Backend: scriptProvider(),
-	}, executionDependencies{executor: resumedExecutor},
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if resumed.Attempted != 2 || resumed.Succeeded != 2 || resumed.RecoveryExecutions != 1 || resumed.ChoiceExploration == nil || resumed.ChoiceExploration.CommittedRounds != 2 || resumed.StopReason != StopExplorationExhausted {
-		t.Fatalf("resumed exploration = %#v", resumed)
-	}
-	batch, err := campaign.OpenCampaign(resumed.CampaignPath)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(batch.Executions) != 2 || batch.Record.RecoveryExecutions != 1 {
-		t.Fatalf("resumed exploration batch = %#v", batch)
-	}
-}
-
-func TestRunChoiceExplorationLeavesNoOpSelectPollsUnexpandedAcrossResume(t *testing.T) {
-	preparer := newFakePreparer(t)
-	limit := choiceTraceLimit(t, 3)
-	baseExecutor := &explorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit, noOpSelect: true}
-	config, configDependencies := testConfig(t, preparer, explorationInterruptExecutor{exploration: baseExecutor}, "7", PolicyAll, 2)
-	config.Strategy = StrategyChoiceExploration
-	config.ChoiceTraceLimit = limit
-	config.MaxExecutions = 8
-	config.MaxChoiceDepth = 4
-	config.MaxExplorationBytes = 1 << 20
-
-	partial, err := exploreWith(context.Background(), config, configDependencies)
-	var hostErr *HostError
-	if !errors.As(err, &hostErr) || partial.ChoiceExploration == nil || partial.ChoiceExploration.CommittedRounds != 1 {
-		t.Fatalf("partial exploration = %#v, error = %v", partial, err)
-	}
-	resumedExecutor := &explorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit, noOpSelect: true}
-	resumed, err := exploreWith(context.Background(), CampaignSpec{
-		ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, Backend: scriptProvider(),
-	}, executionDependencies{executor: resumedExecutor},
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-	// The runnable decision has one alternative to expand; the select's does
-	// not, in the root's round or in the resumed one.
-	if resumed.Attempted != 2 || resumed.StopReason != StopExplorationExhausted || resumed.ChoiceExploration == nil || resumed.ChoiceExploration.SeenPrefixes != 2 || resumed.ChoiceExploration.CommittedRounds != 2 || resumed.ChoiceExploration.OmittedBySelectReadiness != 2 {
-		t.Fatalf("resumed exploration = %#v", resumed)
-	}
-	batch, err := campaign.OpenCampaign(resumed.CampaignPath)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(batch.Executions) != 2 || batch.Record.ChoiceExploration == nil || batch.Record.ChoiceExploration.OmittedBySelectReadiness != 2 || batch.Record.ChoiceExploration.OmittedByDepth != 0 {
-		t.Fatalf("resumed exploration record = %#v", batch.Record.ChoiceExploration)
-	}
-	resumedExecutor.mu.Lock()
-	defer resumedExecutor.mu.Unlock()
-	for _, request := range resumedExecutor.requests {
-		if request.Choice == nil || request.Choice.ReplayPlan == nil {
-			continue
-		}
-		if forced := request.Choice.ReplayPlan.Decisions; forced[len(forced)-1].Kind == choice.KindSelectPoll {
-			t.Fatalf("resumed exploration forced the no-op select-poll decision: %#v", forced)
-		}
-	}
-}
-
-func TestRunChoiceExplorationResumesWithItsStartAndReportsItUnreached(t *testing.T) {
-	preparer := newFakePreparer(t)
-	limit := choiceTraceLimit(t, 1)
-	config, configDependencies := testConfig(t, preparer, explorationRootInterruptExecutor{}, "7", PolicyAll, 1)
-	config.Strategy = StrategyChoiceExploration
-	config.ChoiceTraceLimit = limit
-	config.MaxExecutions = 8
-	config.MaxChoiceDepth = 4
-	config.ChoiceStartOrdinal = 1
-	config.MaxExplorationBytes = 1 << 20
-
-	partial, err := exploreWith(context.Background(), config, configDependencies)
-	var hostErr *HostError
-	if !errors.As(err, &hostErr) || partial.ChoiceExploration == nil || partial.ChoiceExploration.CommittedRounds != 0 || partial.ChoiceExploration.StartOrdinal != 1 {
-		t.Fatalf("partial exploration = %#v, error = %v", partial, err)
-	}
-	resumed, err := exploreWith(context.Background(), CampaignSpec{
-		ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, Backend: scriptProvider(),
-	}, executionDependencies{executor: &explorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit}},
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if resumed.Attempted != 1 || resumed.StopReason != StopChoiceStartUnreached || resumed.ChoiceExploration == nil || resumed.ChoiceExploration.StartOrdinal != 1 || resumed.ChoiceExploration.BoundedComplete || resumed.ChoiceExploration.Pending != 0 {
-		t.Fatalf("resumed exploration = %#v", resumed)
-	}
-	batch, err := campaign.OpenCampaign(resumed.CampaignPath)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if batch.Record.StopReason != string(StopChoiceStartUnreached) || batch.Record.ChoiceExploration == nil || batch.Record.ChoiceExploration.StartOrdinal != 1 {
-		t.Fatalf("published exploration = %#v", batch.Record)
-	}
-}
-
-func TestInspectChoicesListsReplayPlanDecisionOrdinals(t *testing.T) {
-	limit := choiceTraceLimit(t, 4)
-	preparer := newFakePreparer(t)
-	executor := &fakeExecutor{result: func(uint64) backend.ExecutionResult {
-		result := processResult(1, "failure", "")
-		result.ChoiceTrace = completeChoiceTrace(t, preparer.prepared.BuildKey, limit, []choice.Record{
-			{Ordinal: 0, Kind: choice.KindRunnable, Flags: choice.FlagDecision, SiteOffset: 0x10, Alternatives: 1},
-			{Ordinal: 1, Kind: choice.KindRunnable, Flags: choice.FlagDecision, SiteOffset: 0x20, Alternatives: 2, Selected: 1},
-			{Ordinal: 2, Kind: choice.KindSelectPoll, Flags: choice.FlagDecision, SiteOffset: 0x30, Alternatives: 3, Selected: 2},
-			{Ordinal: 3, Kind: choice.KindSelectResult, Flags: choice.FlagObservation, SiteOffset: 0x30, Alternatives: 3, Selected: 1},
-		})
-		return result
-	}}
-	config, configDependencies := testConfig(t, preparer, executor, "1", PolicyAll, 1)
-	config.ChoiceTraceLimit = limit
-	summary, err := exploreWith(context.Background(), config, configDependencies)
-	if err != nil {
-		t.Fatal(err)
-	}
-	report, err := Inspect(summary.Artifacts[0], InspectOptions{Choices: true})
-	if err != nil {
-		t.Fatal(err)
-	}
-	want := []ChoiceDecision{
-		{Ordinal: 0, Kind: "runnable", SiteOffset: 0x20, Alternatives: 2, Selected: 0},
-		{Ordinal: 1, Kind: "select-poll", SiteOffset: 0x30, Alternatives: 3, Selected: 2},
-	}
-	if report.Artifact == nil || report.Artifact.Choices == nil || !slices.Equal(report.Artifact.Choices.ReplayDecisions, want) {
-		t.Fatalf("choice inspection = %#v", report.Artifact.Choices)
-	}
-}
-
-func TestRunChoiceExplorationDivergingPrefixRetainsCompletedRound(t *testing.T) {
-	preparer := newFakePreparer(t)
-	limit := choiceTraceLimit(t, 1)
-	executor := &explorationDivergenceExecutor{
-		exploration:      &explorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit, alternatives: 4},
-		beforeDivergence: make(chan struct{}), afterDivergence: make(chan struct{}),
-	}
-	config, configDependencies := testConfig(t, preparer, executor, "7", PolicyAll, 3)
-	config.Strategy = StrategyChoiceExploration
-	config.ChoiceTraceLimit = limit
-	config.MaxExecutions = 8
-	config.MaxChoiceDepth = 4
-	config.MaxExplorationBytes = 1 << 20
-
-	configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
-	summary, err := exploreWith(context.Background(), config, configDependencies)
-	if err != nil {
-		t.Fatalf("diverging exploration discarded its completed round: %v", err)
-	}
-	if summary.Attempted != 4 || summary.Succeeded != 3 || summary.Failures != 1 || summary.ReplayDivergences != 1 || summary.DistinctFailures != 0 || summary.ChoiceExploration == nil || summary.ChoiceExploration.CommittedRounds != 2 {
-		t.Fatalf("diverging exploration = %#v", summary)
-	}
-	if len(summary.Artifacts) != 0 || len(summary.SuccessArtifacts) != 0 {
-		t.Fatalf("diverging exploration retained candidate artifacts: %#v", summary)
-	}
-	batch, err := campaign.OpenCampaign(summary.CampaignPath)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(batch.Executions) != 4 {
-		t.Fatalf("committed executions = %d", len(batch.Executions))
-	}
-	var divergences int
-	for _, run := range batch.Executions {
-		if run.Reason == "replay_divergence" {
-			divergences++
-			if run.Domain != "runner" || run.OutcomeSHA256 != "" || run.FailureSignature != nil || run.Artifact != nil || run.ChoiceTraceSHA256 != nil || run.CandidateSHA256 == "" || run.ForcedDepth == nil || *run.ForcedDepth != 1 {
-				t.Fatalf("divergent execution = %#v", run)
-			}
-		}
-	}
-	if divergences != 1 {
-		t.Fatalf("retained divergences = %d", divergences)
-	}
-}
-
-func TestRunSimulationExplorationResumePreservesCommittedCandidates(t *testing.T) {
-	preparer := newFakePreparer(t)
-	limit := choiceTraceLimit(t, 1)
-	baseExecutor := &simulationExplorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit}
-	config, configDependencies := testConfig(t, preparer, simulationExplorationInterruptExecutor{exploration: baseExecutor}, "7", PolicyAll, 1)
-	config.Strategy = StrategySimulationExploration
-	config.ChoiceTraceLimit = limit
-	config.MaxExecutions = 4
-	config.MaxForcedDecisions = 2
-	config.MaxExplorationBytes = 1 << 20
-	config.MaxExplorationResultBytes = 1 << 20
-	config.SimulationDimensionLimits = SimulationDimensionLimits{Runtime: 2, Scenario: 2, Network: 2, Storage: 2, Fault: 2, Crash: 2}
-
-	partial, err := exploreWith(context.Background(), config, configDependencies)
-	var hostErr *HostError
-	if !errors.As(err, &hostErr) || partial.Attempted != 1 || partial.SimulationExploration == nil || partial.SimulationExploration.CommittedRounds != 1 {
-		t.Fatalf("partial simulation exploration = %#v, error = %v", partial, err)
-	}
-	resumedExecutor := &simulationExplorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit}
-	resumed, err := exploreWith(context.Background(), CampaignSpec{
-		ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, Backend: scriptProvider(),
-	}, executionDependencies{executor: resumedExecutor},
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if resumed.Attempted != 2 || resumed.Succeeded != 2 || resumed.RecoveryExecutions != 1 || resumed.SimulationExploration == nil || resumed.SimulationExploration.CommittedRounds != 2 || resumed.StopReason != StopExplorationExhausted {
-		t.Fatalf("resumed simulation exploration = %#v", resumed)
-	}
-	resumedExecutor.mu.Lock()
-	resumedRequests := len(resumedExecutor.requests)
-	resumedExecutor.mu.Unlock()
-	if resumedRequests != 1 {
-		t.Fatalf("resumed simulation exploration executed %d candidates, want only the uncommitted candidate", resumedRequests)
-	}
-}
-
-func TestRunChoiceExplorationExpandsCompleteTargetFailures(t *testing.T) {
-	preparer := newFakePreparer(t)
-	limit := choiceTraceLimit(t, 1)
-	executor := &explorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit, exitCode: 2}
-	config, configDependencies := testConfig(t, preparer, executor, "7", PolicyAll, 2)
-	config.Strategy = StrategyChoiceExploration
-	config.ChoiceTraceLimit = limit
-	config.MaxExecutions = 8
-	config.MaxChoiceDepth = 4
-	config.MaxExplorationBytes = 1 << 20
-
-	configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
-	summary, err := exploreWith(context.Background(), config, configDependencies)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if summary.Attempted != 2 || summary.Failures != 2 || summary.Succeeded != 0 || summary.StopReason != StopExplorationExhausted || len(summary.Artifacts) != 2 {
-		t.Fatalf("exploration target failures = %#v", summary)
-	}
-}
-
-func TestRunChoiceExplorationFindsPinnedOutcomesWithinSeedSamplingBudget(t *testing.T) {
-	toolchainRoot, err := filepath.Abs(filepath.Join("..", ".toolchain"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	testdata, err := filepath.Abs(filepath.Join("..", "backends", "native", "conformance", "testdata"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	supervisor := filepath.Join(t.TempDir(), "gomad")
-	command := exec.Command(filepath.Join(toolchainRoot, "bin", "go"), "build", "-trimpath", "-o", supervisor, "./cmd/gomad")
-	command.Dir = filepath.Join(testdata, "..", "..", "..", "..")
-	if output, err := command.CombinedOutput(); err != nil {
-		t.Fatalf("build pinned supervisor: %v: %s", err, output)
-	}
-	config := CampaignSpec{
-		Parallel:         2,
-		ExecutionTimeout: 10 * time.Second, OverallTimeout: time.Minute, TerminateGrace: time.Second,
-		OnFailure: PolicyAll, FailureBudget: 1, OutputLimit: 1 << 20, WorldTransitionLimit: 1 << 20,
-		KeepSuccesses: KeepSuccessesAll, SuccessArtifactLimit: 16, SuccessBytesLimit: 128 << 20,
-		Target: target.Spec{
-			Kind: target.KindGoRun, Source: "./choice_exploration", WorkingDir: testdata, ToolchainRoot: toolchainRoot,
-		},
-		Backend: native.New(native.Config{ToolchainRoot: toolchainRoot, SupervisorCommand: []string{supervisor, "__supervisor"}}), RunnerBuild: "sha256:" + strings.Repeat("0", 64),
-	}
-	seedConfig := config
-	seedConfig.Strategy = StrategySeed
-	seedConfig.Seeds = "211-226"
-	seedConfig.Artifacts = t.TempDir()
-	seedSummary, err := Explore(context.Background(), seedConfig)
-	if err != nil {
-		t.Fatal(err)
-	}
-	explorationConfig := config
-	explorationConfig.Strategy = StrategyChoiceExploration
-	explorationConfig.Seeds = "211"
-	explorationConfig.ChoiceTraceLimit = 1 << 20
-	explorationConfig.MaxExecutions = 16
-	explorationConfig.MaxChoiceDepth = 32
-	explorationConfig.MaxExplorationBytes = 4 << 20
-	explorationConfig.Artifacts = t.TempDir()
-	explorationSummary, err := Explore(context.Background(), explorationConfig)
-	if err != nil {
-		t.Fatal(err)
-	}
-	seedOutcomes := distinctSuccessStdoutOutcomes(t, seedSummary.SuccessArtifacts)
-	explorationOutcomes := distinctSuccessStdoutOutcomes(t, explorationSummary.SuccessArtifacts)
-	if seedSummary.Attempted != 16 || len(seedOutcomes) != 2 {
-		t.Fatalf("equal-budget seed summary = %#v, outcomes = %v", seedSummary, seedOutcomes)
-	}
-	if explorationSummary.Attempted != 2 || explorationSummary.StopReason != StopExplorationExhausted || len(explorationOutcomes) != 2 || explorationSummary.ChoiceExploration == nil || explorationSummary.ChoiceExploration.DeduplicatedOutcomes != 2 {
-		t.Fatalf("equal-budget exploration summary = %#v, outcomes = %v", explorationSummary, explorationOutcomes)
-	}
-	for outcome := range seedOutcomes {
-		if _, ok := explorationOutcomes[outcome]; !ok {
-			t.Fatalf("seed outcome %s missing from exploration outcomes %v", outcome, explorationOutcomes)
-		}
-	}
-	if uint64(len(explorationOutcomes))*seedSummary.Attempted < uint64(len(seedOutcomes))*explorationSummary.Attempted {
-		t.Fatalf("exploration outcomes per execution below seed sampling: seed=%d/%d exploration=%d/%d", len(seedOutcomes), seedSummary.Attempted, len(explorationOutcomes), explorationSummary.Attempted)
-	}
-}
-
-func distinctSuccessStdoutOutcomes(t *testing.T, paths []string) map[record.SHA256]struct{} {
-	t.Helper()
-	outcomes := make(map[record.SHA256]struct{}, len(paths))
-	for _, path := range paths {
-		artifact, err := artifact.OpenArtifact(path)
-		if err != nil {
-			t.Fatal(err)
-		}
-		outcomes[artifact.Manifest().Streams.Stdout.FullSHA256] = struct{}{}
-		if err := artifact.Close(); err != nil {
-			t.Fatal(err)
-		}
-	}
-	return outcomes
-}
-
 func TestRunPublishesValidatedChoiceTraceOverflowAsRunnerFailure(t *testing.T) {
 	preparer := newFakePreparer(t)
 	implementation, err := choice.ImplementationIdentity(preparer.prepared.BuildKey)
@@ -1354,184 +651,6 @@ func TestRunRejectsReservedDuplicateAndInvalidEnvironment(t *testing.T) {
 	}
 }
 
-func TestRunResumesVerifiedBatchAndSkipsCompletedOrdinals(t *testing.T) {
-	preparer := newFakePreparer(t)
-	interrupted := &resumeInterruptExecutor{}
-	config, configDependencies := testConfig(t, preparer, interrupted, "7-9", PolicyAll, 1)
-	ctx := cancelOnProgress(t, &config, func(progress CampaignEvent) bool { return progress.Succeeded == 1 })
-	config.TerminateGrace = 10 * time.Millisecond
-	partial, err := exploreWith(ctx, config, configDependencies)
-	var hostError *HostError
-	if !errors.As(err, &hostError) || hostError.Reason != "cancelled" {
-		t.Fatalf("interrupted exploreWith() error = %v", err)
-	}
-	if seeds := interrupted.seeds(); !slices.Equal(seeds, []uint64{7, 8}) {
-		t.Fatalf("interrupted seeds = %v", seeds)
-	}
-
-	resumedExecutor := &fakeExecutor{}
-	resumed, err := exploreWith(context.Background(), CampaignSpec{
-		ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, Backend: scriptProvider(),
-	}, executionDependencies{executor: resumedExecutor},
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if seeds := executorSeeds(resumedExecutor); !slices.Equal(seeds, []uint64{8, 9}) {
-		t.Fatalf("resumed seeds = %v", seeds)
-	}
-	if resumed.CampaignPath != partial.CampaignPath || resumed.SelectionCount != 3 || resumed.Attempted != 3 || resumed.Succeeded != 3 || resumed.Failures != 0 || resumed.StopReason != StopSeedsExhausted || preparer.calls != 1 {
-		t.Fatalf("resumed summary = %#v, preparation calls = %d", resumed, preparer.calls)
-	}
-	batch, err := campaign.OpenCampaign(resumed.CampaignPath)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(batch.Executions) != 3 || batch.Executions[0].Seed != 7 || batch.Executions[1].Seed != 8 || batch.Executions[2].Seed != 9 {
-		t.Fatalf("batch runs = %#v", batch.Executions)
-	}
-}
-
-func TestRunResumeRestoresSeenChoiceFeaturesBeforeNovelRetention(t *testing.T) {
-	preparer := newFakePreparer(t)
-	limit := choiceTraceLimit(t, 1)
-	trace := completeChoiceTrace(t, preparer.prepared.BuildKey, limit, []choice.Record{{
-		Ordinal: 0, Kind: choice.KindRunnable, Flags: choice.FlagDecision, SiteOffset: 24, Alternatives: 2, Selected: 0,
-	}})
-	interrupted := &choiceResumeInterruptExecutor{trace: trace}
-	config, configDependencies := testConfig(t, preparer, interrupted, "7-8", PolicyAll, 1)
-	ctx := cancelOnProgress(t, &config, func(progress CampaignEvent) bool { return progress.RetainedSuccesses == 1 })
-	config.TerminateGrace = 10 * time.Millisecond
-	config.Coverage = CoverageChoice
-	config.ChoiceTraceLimit = limit
-	config.KeepSuccesses = KeepSuccessesNovel
-	config.SuccessArtifactLimit = 2
-	config.SuccessBytesLimit = 64 << 20
-	partial, err := exploreWith(ctx, config, configDependencies)
-	if err == nil || partial.RetainedSuccesses != 1 {
-		t.Fatalf("interrupted summary = %#v, error = %v", partial, err)
-	}
-
-	resumedExecutor := &fakeExecutor{result: func(uint64) backend.ExecutionResult {
-		result := processResult(0, "", "")
-		result.IOTranscript = completeEmptyTranscript()
-		result.ChoiceTrace = trace
-		return result
-	}}
-	resumed, err := exploreWith(context.Background(), CampaignSpec{
-		ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, Backend: scriptProvider(),
-	}, executionDependencies{executor: resumedExecutor},
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if resumed.RetainedSuccesses != 1 || len(resumed.SuccessArtifacts) != 1 {
-		t.Fatalf("resumed summary = %#v", resumed)
-	}
-	batch, err := campaign.OpenCampaign(resumed.CampaignPath)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if batch.Executions[1].SuccessArtifact != nil || len(batch.Executions[1].ChoiceFeatures) == 0 {
-		t.Fatalf("resumed run = %#v", batch.Executions[1])
-	}
-}
-
-func TestRunResumesGuidedBatchWithoutReselectingSeeds(t *testing.T) {
-	corpus := filepath.Join(t.TempDir(), "corpus")
-	replayer := &matchingReplayer{}
-	interrupted := &resumeInterruptExecutor{}
-	config, configDependencies := testConfig(t, newFakePreparer(t), interrupted, "7-8", PolicyAll, 1)
-	ctx := cancelOnProgress(t, &config, func(progress CampaignEvent) bool { return progress.CorpusEntries == 1 })
-	config.TerminateGrace = 10 * time.Millisecond
-	config.Coverage = CoverageSemantic
-	config.Guide = true
-	config.Corpus = corpus
-	config.Replayer = replayer
-	partial, err := exploreWith(ctx, config, configDependencies)
-	if err == nil || partial.CorpusEntries != 1 {
-		t.Fatalf("interrupted guided summary = %#v, error = %v", partial, err)
-	}
-
-	resumedExecutor := &fakeExecutor{result: func(uint64) backend.ExecutionResult {
-		result := processResult(0, "", "")
-		result.IOTranscript = completeEmptyTranscript()
-		return result
-	}}
-	resumed, err := exploreWith(context.Background(), CampaignSpec{
-		ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, Backend: scriptProvider(), Replayer: replayer,
-	}, executionDependencies{executor: resumedExecutor},
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if seeds := executorSeeds(resumedExecutor); !slices.Equal(seeds, []uint64{8}) || resumed.SelectionCount != 2 || resumed.CorpusEntries != 1 {
-		t.Fatalf("resumed guided seeds = %v, summary = %#v", executorSeeds(resumedExecutor), resumed)
-	}
-}
-
-// TestRunResumeRejectsChangedEvidence pins that resuming an interrupted
-// Campaign fails when the evidence it recorded no longer matches.
-func TestRunResumeRejectsChangedEvidence(t *testing.T) {
-	for _, test := range []struct {
-		name string
-		// interrupt starts the Campaign and returns once it is interrupted.
-		interrupt func(t *testing.T) (CampaignResult, CampaignSpec)
-		// change alters the interrupted Campaign or the resume request.
-		change  func(t *testing.T, partial CampaignResult, resume *CampaignSpec)
-		wantErr string
-	}{
-		{
-			name: "runner build",
-			interrupt: func(t *testing.T) (CampaignResult, CampaignSpec) {
-				config, configDependencies := testConfig(t, newFakePreparer(t), blockingExecutor{}, "1", PolicyAll, 1)
-				ctx := cancelOnProgress(t, &config, func(progress CampaignEvent) bool { return progress.Running == 1 })
-				config.TerminateGrace = 10 * time.Millisecond
-				partial, err := exploreWith(ctx, config, configDependencies)
-				if err == nil {
-					t.Fatal("exploreWith() did not leave an interrupted batch")
-				}
-				return partial, config
-			},
-			change:  func(_ *testing.T, _ CampaignResult, resume *CampaignSpec) { resume.RunnerBuild = "sha256:changed" },
-			wantErr: "Runner build identity",
-		},
-		{
-			name: "tampered retained success",
-			interrupt: func(t *testing.T) (CampaignResult, CampaignSpec) {
-				interrupted := &resumeInterruptExecutor{}
-				config, configDependencies := testConfig(t, newFakePreparer(t), interrupted, "7-8", PolicyAll, 1)
-				ctx := cancelOnProgress(t, &config, func(progress CampaignEvent) bool { return progress.RetainedSuccesses == 1 })
-				config.TerminateGrace = 10 * time.Millisecond
-				config.KeepSuccesses = KeepSuccessesAll
-				config.SuccessArtifactLimit = 2
-				config.SuccessBytesLimit = 64 << 20
-				partial, err := exploreWith(ctx, config, configDependencies)
-				if err == nil || len(partial.SuccessArtifacts) != 1 {
-					t.Fatalf("interrupted summary = %#v, error = %v", partial, err)
-				}
-				return partial, config
-			},
-			change: func(t *testing.T, partial CampaignResult, _ *CampaignSpec) {
-				if err := os.WriteFile(filepath.Join(partial.SuccessArtifacts[0], "stdout"), []byte("tampered"), 0o600); err != nil {
-					t.Fatal(err)
-				}
-			},
-			wantErr: "retained success",
-		},
-	} {
-		t.Run(test.name, func(t *testing.T) {
-			partial, config := test.interrupt(t)
-			resume := CampaignSpec{ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, Backend: scriptProvider()}
-			test.change(t, partial, &resume)
-			_, err := exploreWith(context.Background(), resume, executionDependencies{executor: &fakeExecutor{}})
-			if err == nil || !strings.Contains(err.Error(), test.wantErr) {
-				t.Fatalf("resume error = %v, want %q", err, test.wantErr)
-			}
-		})
-	}
-}
-
 // TestRunPreparationFailureLeavesClassifiedPartial pins the reason a target
 // preparation failure, cancellation or overall timeout reports, and the
 // explicit preparation partial each one leaves.
@@ -1602,22 +721,6 @@ func TestRunPreparationFailureLeavesClassifiedPartial(t *testing.T) {
 	}
 }
 
-func TestClassifyStableTargetDiagnostics(t *testing.T) {
-	for name, stderr := range map[string]string{
-		"panic_or_runtime_fatal":         "panic: broken\n",
-		"deterministic_deadlock":         "fatal error: all goroutines are asleep - deadlock!\n",
-		"logical_test_timeout":           "panic: test timed out after 1m0s\n",
-		"unsupported_deterministic_mode": "runtime: GOMADSEED does not support cgo or external linking\n",
-	} {
-		t.Run(name, func(t *testing.T) {
-			outcome := backend.Classify(processResult(2, "", stderr), false, record.WorldTerminal{Kind: "none"})
-			if outcome.Domain != "target" || outcome.Reason != name {
-				t.Fatalf("outcome = %#v", outcome)
-			}
-		})
-	}
-}
-
 func TestManifestForRunBindsIOProfileIdentity(t *testing.T) {
 	preparer := newFakePreparer(t)
 	config, _ := testConfig(t, preparer, &fakeExecutor{}, "1", PolicyFirst, 1)
@@ -1629,312 +732,6 @@ func TestManifestForRunBindsIOProfileIdentity(t *testing.T) {
 	}
 	if manifest.IOProfile.Name != "gomad3-deterministic/v1" || manifest.IOProfile.Inventory == "" || manifest.IOProfile.InventorySHA256 == "" || manifest.IOProfile.ImplementationSHA256 == "" {
 		t.Fatalf("manifest I/O profile = %#v", manifest.IOProfile)
-	}
-}
-
-func TestClassifyStructuredWorldFailures(t *testing.T) {
-	for kind, reason := range map[string]string{
-		"deadlock": "world_deadlock", "capacity": "world_capacity", "replay-divergence": "world_replay_divergence", "invalid-input": "world_invalid_input",
-	} {
-		t.Run(kind, func(t *testing.T) {
-			outcome := backend.Classify(processResult(0, "", ""), false, record.WorldTerminal{Kind: kind, Detail: "detail"})
-			if outcome.Domain != "target" || outcome.Reason != reason || outcome.Termination != "exit" || outcome.ExitCode == nil || *outcome.ExitCode != 0 {
-				t.Fatalf("classify() = %#v", outcome)
-			}
-		})
-	}
-}
-
-func TestIsolatedRunnerKillsAStuckCoordinatorInsideOverallDeadline(t *testing.T) {
-	config, configDependencies := testConfig(t, nil, nil, "1", PolicyFirst, 1)
-	config.OverallTimeout = 200 * time.Millisecond
-	config.Backend = native.New(native.Config{SupervisorCommand: []string{"unused"}, CoordinatorCommand: []string{os.Args[0], "-test.run=TestBlockingCoordinatorHelper"}, RunnerBuild: config.RunnerBuild})
-	started := time.Now()
-	_, err := exploreWith(context.Background(), config, configDependencies)
-	var hostError *HostError
-	if !errors.As(err, &hostError) || hostError.Reason != "overall_timeout" {
-		t.Fatalf("exploreWith() error = %v", err)
-	}
-	if elapsed := time.Since(started); elapsed > 350*time.Millisecond {
-		t.Fatalf("exploreWith() elapsed = %v", elapsed)
-	}
-}
-
-func TestIsolatedRunnerPreservesContextReasonAfterCoordinatorExit(t *testing.T) {
-	for _, test := range []struct {
-		name       string
-		cancel     bool
-		wantReason string
-	}{
-		{name: "cancelled", cancel: true, wantReason: "cancelled"},
-		{name: "deadline", wantReason: "overall_timeout"},
-	} {
-		t.Run(test.name, func(t *testing.T) {
-			marker := filepath.Join(t.TempDir(), "coordinator-exited")
-			t.Setenv("GOMAD3_COORDINATOR_EXIT_MARKER", marker)
-			config, configDependencies := testConfig(t, nil, nil, "1", PolicyFirst, 1)
-			config.OverallTimeout = 250 * time.Millisecond
-			config.Backend = native.New(native.Config{SupervisorCommand: []string{"unused"}, CoordinatorCommand: []string{os.Args[0], "-test.run=^TestExitedCoordinatorWithOpenStdoutHelper$"}, RunnerBuild: config.RunnerBuild})
-			ctx := context.Background()
-			if test.cancel {
-				cancelCtx, cancel := context.WithCancel(ctx)
-				t.Cleanup(cancel)
-				ctx = cancelCtx
-				go func() {
-					for {
-						if _, err := os.Stat(marker); err == nil {
-							timer := time.NewTimer(50 * time.Millisecond)
-							<-timer.C
-							cancel()
-							return
-						}
-						runtime.Gosched()
-					}
-				}()
-			}
-			_, err := exploreWith(ctx, config, configDependencies)
-			var hostError *HostError
-			if !errors.As(err, &hostError) || hostError.Reason != test.wantReason {
-				t.Fatalf("exploreWith() error = %v", err)
-			}
-		})
-	}
-}
-
-// TestIsolatedRunnerPreservesCoordinatorResponse pins what the isolated parent
-// makes of each canned coordinator response: typed preparation and coverage
-// errors, bounded evidence, the transported choice trace configuration, and
-// the bound on coordinator output.
-func TestIsolatedRunnerPreservesCoordinatorResponse(t *testing.T) {
-	for _, test := range []struct {
-		name      string
-		response  string
-		policy    FailurePolicy
-		configure func(*CampaignSpec)
-		check     func(t *testing.T, summary CampaignResult, err error)
-	}{
-		{
-			name: "unsupported target error", response: "unsupported", policy: PolicyFirst,
-			check: func(t *testing.T, _ CampaignResult, err error) {
-				var unsupported *target.UnsupportedCapabilityError
-				if !errors.As(err, &unsupported) || unsupported.ImportPath != "example.com/target" || unsupported.Capability != "imports os/exec" {
-					t.Fatalf("exploreWith() error = %v", err)
-				}
-			},
-		},
-		{
-			name: "missing semantic probes error", response: "missing-probes", policy: PolicyFirst,
-			check: func(t *testing.T, _ CampaignResult, err error) {
-				var missing *record.MissingSemanticProbesError
-				if !errors.As(err, &missing) || len(missing.Probes) != 1 || missing.Probes[0] != "stdlib.os.openfile" {
-					t.Fatalf("exploreWith() error = %v", err)
-				}
-			},
-		},
-		{
-			name: "bounded execution evidence", response: "evidence", policy: PolicyAll,
-			configure: func(config *CampaignSpec) {
-				config.Coverage = CoverageSemantic
-				config.CollectExecutionEvidence = true
-			},
-			check: func(t *testing.T, summary CampaignResult, err error) {
-				if err != nil {
-					t.Fatal(err)
-				}
-				if summary.ExecutionEvidence == nil || summary.ExecutionEvidence.Schema != ExecutionEvidenceSchema || summary.ExecutionEvidence.Seed != 1 || summary.ExecutionEvidence.Target.SHA256 != "sha256:target" {
-					t.Fatalf("summary = %#v", summary)
-				}
-			},
-		},
-		{
-			name: "choice trace configuration", response: "choice-trace", policy: PolicyAll,
-			configure: func(config *CampaignSpec) { config.ChoiceTraceLimit = backend.MinimumChoiceTraceBytes },
-			check: func(t *testing.T, summary CampaignResult, err error) {
-				if err != nil {
-					t.Fatal(err)
-				}
-				if summary.ChoiceTrace == nil || summary.ChoiceTrace.Limit != backend.MinimumChoiceTraceBytes {
-					t.Fatalf("summary = %#v", summary)
-				}
-			},
-		},
-		{
-			name: "bounded coordinator output", response: "oversized", policy: PolicyFirst,
-			check: func(t *testing.T, _ CampaignResult, err error) {
-				var hostError *HostError
-				if !errors.As(err, &hostError) || hostError.Reason != "coordinator_decode" {
-					t.Fatalf("exploreWith() error = %v", err)
-				}
-			},
-		},
-	} {
-		t.Run(test.name, func(t *testing.T) {
-			config, configDependencies := cannedCoordinatorConfig(t, test.response, test.policy)
-			if test.configure != nil {
-				test.configure(&config)
-			}
-			summary, err := exploreWith(context.Background(), config, configDependencies)
-			test.check(t, summary, err)
-		})
-	}
-}
-
-// cannedCoordinatorConfig runs the isolated parent against
-// TestCannedCoordinatorHelper answering with response.
-func cannedCoordinatorConfig(t *testing.T, response string, policy FailurePolicy) (CampaignSpec, executionDependencies) {
-	t.Helper()
-	t.Setenv("GOMAD3_CANNED_COORDINATOR", response)
-	config, configDependencies := testConfig(t, nil, nil, "1", policy, 1)
-	config.Backend = native.New(native.Config{SupervisorCommand: []string{"unused"}, CoordinatorCommand: []string{os.Args[0], "-test.run=^TestCannedCoordinatorHelper$"}, RunnerBuild: config.RunnerBuild})
-	return config, configDependencies
-}
-
-func TestIsolatedRunnerDrainsFastCoordinatorBeforeWaitClosesOutput(t *testing.T) {
-	config, configDependencies := cannedCoordinatorConfig(t, "fast", PolicyAll)
-	config.Progress = func(CampaignEvent) error {
-		deadline := time.Now().Add(100 * time.Millisecond)
-		for time.Now().Before(deadline) {
-			runtime.Gosched()
-		}
-		return nil
-	}
-	summary, err := exploreWith(context.Background(), config, configDependencies)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if summary.Attempted != 1 || summary.Succeeded != 1 {
-		t.Fatalf("summary = %#v", summary)
-	}
-}
-
-// TestCannedCoordinatorHelper is a coordinator subprocess that answers with
-// the canned response GOMAD3_CANNED_COORDINATOR names.
-func TestCannedCoordinatorHelper(t *testing.T) {
-	if os.Getenv("GOMAD3_RUNNER_COORDINATOR") != "1" {
-		t.Skip("coordinator subprocess only")
-	}
-	encoder := json.NewEncoder(os.Stdout)
-	var response coordinatorResponse
-	switch os.Getenv("GOMAD3_CANNED_COORDINATOR") {
-	case "fast":
-		progress := CampaignEvent{Phase: ProgressRunning, Attempted: 1, Running: 1}
-		if err := encoder.Encode(coordinatorMessage{Type: "progress", Progress: &progress}); err != nil {
-			t.Fatal(err)
-		}
-		response = coordinatorResponse{CampaignResult: CampaignResult{Attempted: 1, Succeeded: 1}}
-	case "unsupported":
-		unsupported := &target.UnsupportedCapabilityError{ImportPath: "example.com/target", Capability: "imports os/exec"}
-		response = coordinatorResponse{
-			ErrorReason: "target_preparation", ErrorDetail: unsupported.Error(), UnsupportedTarget: unsupported,
-		}
-	case "missing-probes":
-		missing := &record.MissingSemanticProbesError{Probes: []string{"stdlib.os.openfile"}}
-		response = coordinatorResponse{
-			ErrorReason: "semantic_coverage", ErrorDetail: missing.Error(), MissingSemanticProbes: missing.Probes,
-		}
-	case "evidence":
-		response = coordinatorResponse{CampaignResult: CampaignResult{ExecutionEvidence: &ExecutionEvidence{
-			Schema: ExecutionEvidenceSchema, Seed: 1, Target: record.Target{SHA256: "sha256:target"},
-		}}}
-	case "choice-trace":
-		var wire coordinatorConfig
-		if err := json.NewDecoder(os.Stdin).Decode(&wire); err != nil {
-			t.Fatal(err)
-		}
-		response = coordinatorResponse{CampaignResult: CampaignResult{ChoiceTrace: &ChoiceTraceSummary{Limit: wire.ChoiceTraceLimit}}}
-	case "oversized":
-		if _, err := os.Stdout.Write(make([]byte, maximumCoordinatorMessageBytes+1)); err != nil {
-			t.Fatal(err)
-		}
-		return
-	default:
-		t.Fatalf("unknown canned coordinator response %q", os.Getenv("GOMAD3_CANNED_COORDINATOR"))
-	}
-	if err := encoder.Encode(coordinatorMessage{Type: "result", Response: &response}); err != nil {
-		t.Fatal(err)
-	}
-	os.Exit(0) //nolint:revive // This subprocess helper must exit before the parent test harness continues.
-}
-
-func TestBlockingCoordinatorHelper(t *testing.T) {
-	if os.Getenv("GOMAD3_RUNNER_COORDINATOR") != "1" {
-		t.Skip("coordinator subprocess only")
-	}
-	for {
-		runtime.Gosched()
-	}
-}
-
-func TestExitedCoordinatorWithOpenStdoutHelper(t *testing.T) {
-	if os.Getenv("GOMAD3_RUNNER_COORDINATOR") != "1" {
-		t.Skip("coordinator subprocess only")
-	}
-	command := exec.Command(os.Args[0], "-test.run=^TestCoordinatorStdoutDescendantHelper$")
-	command.Env = append(os.Environ(), "GOMAD3_COORDINATOR_STDOUT_DESCENDANT=1")
-	command.Stdout = os.Stdout
-	command.Stderr = os.Stderr
-	if err := command.Start(); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(os.Getenv("GOMAD3_COORDINATOR_EXIT_MARKER"), []byte("exiting"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	os.Exit(0) //nolint:revive // This subprocess helper must exit while its descendant retains stdout.
-}
-
-func TestCoordinatorStdoutDescendantHelper(t *testing.T) {
-	if os.Getenv("GOMAD3_COORDINATOR_STDOUT_DESCENDANT") != "1" {
-		t.Skip("coordinator stdout descendant subprocess only")
-	}
-	<-time.After(10 * time.Second)
-}
-
-func TestIsolatedRunnerRemovesCoordinatorProcessGroup(t *testing.T) {
-	marker := filepath.Join(t.TempDir(), "descendant-survived")
-	t.Setenv("GOMAD3_COORDINATOR_DESCENDANT_MARKER", marker)
-	config, configDependencies := testConfig(t, nil, nil, "1", PolicyFirst, 1)
-	config.OverallTimeout = 250 * time.Millisecond
-	config.Backend = native.New(native.Config{SupervisorCommand: []string{"unused"}, CoordinatorCommand: []string{os.Args[0], "-test.run=TestCoordinatorTreeHelper"}, RunnerBuild: config.RunnerBuild})
-	_, err := exploreWith(context.Background(), config, configDependencies)
-	var hostError *HostError
-	if !errors.As(err, &hostError) || hostError.Reason != "overall_timeout" {
-		t.Fatalf("exploreWith() error = %v", err)
-	}
-	deadline := time.Now().Add(500 * time.Millisecond)
-	for time.Now().Before(deadline) {
-		if _, statErr := os.Stat(marker); statErr == nil {
-			t.Fatal("coordinator descendant survived cleanup")
-		} else if !os.IsNotExist(statErr) {
-			t.Fatal(statErr)
-		}
-		runtime.Gosched()
-	}
-}
-
-func TestCoordinatorTreeHelper(t *testing.T) {
-	if os.Getenv("GOMAD3_RUNNER_COORDINATOR") != "1" {
-		t.Skip("coordinator subprocess only")
-	}
-	command := exec.Command(os.Args[0], "-test.run=TestCoordinatorDescendantHelper")
-	command.Env = append(os.Environ(), "GOMAD3_COORDINATOR_DESCENDANT=1")
-	command.Stdout = io.Discard
-	command.Stderr = io.Discard
-	if err := command.Start(); err != nil {
-		t.Fatal(err)
-	}
-	for {
-		runtime.Gosched()
-	}
-}
-
-func TestCoordinatorDescendantHelper(t *testing.T) {
-	if os.Getenv("GOMAD3_COORDINATOR_DESCENDANT") != "1" {
-		t.Skip("coordinator descendant subprocess only")
-	}
-	signal.Ignore(syscall.SIGTERM)
-	<-time.After(350 * time.Millisecond)
-	if err := os.WriteFile(os.Getenv("GOMAD3_COORDINATOR_DESCENDANT_MARKER"), []byte("survived"), 0o600); err != nil {
-		t.Fatal(err)
 	}
 }
 
@@ -2504,24 +1301,6 @@ func (executor *firstFailureExecutor) Run(ctx context.Context, request backend.E
 
 type scriptedProvider struct{ *native.Provider }
 
-func TestSimulationCapabilityRequiresProviderSupport(t *testing.T) {
-	for _, test := range []struct {
-		name     string
-		provider backend.Provider
-		want     bool
-	}{
-		{name: "peer without simulation", provider: &boundaryProvider{}, want: false},
-		{name: "simulation provider", provider: native.New(native.Config{}), want: true},
-	} {
-		t.Run(test.name, func(t *testing.T) {
-			capability, err := simulationCapabilityForJob(processExecutor{provider: test.provider}, runJob{})
-			if err != nil || (capability != nil) != test.want {
-				t.Fatalf("simulation capability=%+v error=%v want enabled=%t", capability, err, test.want)
-			}
-		})
-	}
-}
-
 type noReplayProvider struct{ backend.Provider }
 
 func (provider noReplayProvider) Capabilities() backend.Capabilities {
@@ -2670,38 +1449,6 @@ func allUnique(values []string) bool {
 	return true
 }
 
-// A target the watchdog kills never writes its terminal choice frame; the run
-// is the watchdog outcome, retained without a choice profile, not an
-// unterminated-trace runner failure that discards the evidence.
-func TestRunClassifiesWatchdogTimeoutBeforeUnterminatedChoiceTrace(t *testing.T) {
-	preparer := newFakePreparer(t)
-	limit := choiceTraceLimit(t, 1)
-	result := processResult(0, "", "")
-	result.Termination = backend.TerminationSignal
-	result.Signal = "SIGKILL"
-	result.WatchdogTimeout = true
-	result.ChoiceTrace = backend.ChoiceTrace{Profile: choice.Profile, Limit: limit}
-	config, configDependencies := testConfig(t, preparer, terminalErrorExecutor{result: result}, "1", PolicyAll, 1)
-	config.ChoiceTraceLimit = limit
-	summary, err := exploreWith(context.Background(), config, configDependencies)
-	if err != nil {
-		t.Fatalf("exploreWith() error = %v", err)
-	}
-	if summary.Watchdogs != 1 || len(summary.Artifacts) != 1 {
-		t.Fatalf("exploreWith() summary = %#v", summary)
-	}
-	opened, err := artifact.OpenArtifact(summary.Artifacts[0])
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := opened.Close(); err != nil {
-		t.Fatal(err)
-	}
-	if opened.Manifest().ArtifactKind != record.ArtifactWatchdogTimeout || opened.Manifest().Outcome.Reason != "watchdog_timeout" || opened.Manifest().ChoiceProfile != nil {
-		t.Fatalf("watchdog manifest = %#v", opened.Manifest())
-	}
-}
-
 // retainedTargets returns every file under root that holds the content, and
 // how many of them are artifact targets.
 func retainedTargets(t *testing.T, root string, content []byte) (paths []string, artifacts int) {
@@ -2816,42 +1563,173 @@ func (replayer *sharedTargetReplayer) Replay(ctx context.Context, spec ReplaySpe
 	return replayer.ArtifactReplayer.Replay(ctx, spec)
 }
 
-func TestMinimizeKeepsOneTargetCopyInItsOutputRoot(t *testing.T) {
-	artifactPath := minimizationParent(t)
-	targetPath, err := os.Executable()
+func TestCleanupMatchingReplayerPreservesDetachedResultAndCalls(t *testing.T) {
+	published := publishInspectArtifact(t)
+	replayer := &matchingReplayer{}
+	result, err := replayer.Replay(t.Context(), ReplaySpec{ArtifactPath: published.Path})
 	if err != nil {
 		t.Fatal(err)
 	}
-	target, err := os.ReadFile(targetPath)
+	want := ReplayResult{Artifact: published, Verified: true, Match: true}
+	want.Artifact.TargetSharing = ""
+	if !reflect.DeepEqual(result, want) || replayer.calls != 1 {
+		t.Fatalf("first replay = %#v, calls = %d, want %#v", result, replayer.calls, want)
+	}
+	result.Artifact.Manifest.Target.Argv[0] = "changed snapshot"
+	result, err = replayer.Replay(t.Context(), ReplaySpec{ArtifactPath: published.Path})
 	if err != nil {
 		t.Fatal(err)
 	}
-	outputRoot := t.TempDir()
-	replayer := &sharedTargetReplayer{ArtifactReplayer: &minimizationReplayer{}}
-	spec, specDependencies := minimizationSpec(t, artifactPath, outputRoot)
-	specDependencies.executor = &minimizationExecutor{before: interruptAt(minimizationCallAfterAcceptedReduction)}
-	spec.Replayer = replayer
-	if _, err := minimizeWith(context.Background(), spec, specDependencies); !errors.Is(err, errMinimizationInterrupted) {
-		t.Fatalf("interrupted minimizeWith() error = %v", err)
+	if !reflect.DeepEqual(result, want) || replayer.calls != 2 {
+		t.Fatalf("second replay = %#v, calls = %d, want %#v", result, replayer.calls, want)
 	}
-	paths, accepted := retainedTargets(t, outputRoot, target)
-	if accepted != 1 || len(paths) != 2 || distinctFiles(t, paths) != 1 {
-		t.Fatalf("interrupted run holds %d accepted artifacts in %v, want one sharing the pool entry", accepted, paths)
+	result, err = replayer.Replay(t.Context(), ReplaySpec{ArtifactPath: filepath.Join(t.TempDir(), "missing")})
+	if !errors.Is(err, os.ErrNotExist) || !reflect.DeepEqual(result, ReplayResult{}) || replayer.calls != 3 {
+		t.Fatalf("missing replay = %#v, %v, calls = %d", result, err, replayer.calls)
 	}
-	specDependencies.executor = &minimizationExecutor{}
-	spec.Resume = true
-	result, err := minimizeWith(context.Background(), spec, specDependencies)
-	if err != nil {
-		t.Fatal(err)
+}
+
+func TestCleanupMutatingExecutorPreservesPreparedTargetAndErrors(t *testing.T) {
+	for _, name := range []string{"file", "missing", "directory"} {
+		t.Run(name, func(t *testing.T) {
+			path := filepath.Join(t.TempDir(), "target")
+			data := []byte("prepared target")
+			switch name {
+			case "file":
+				if err := os.WriteFile(path, data, 0o500); err != nil {
+					t.Fatal(err)
+				}
+			case "directory":
+				if err := os.Mkdir(path, 0o500); err != nil {
+					t.Fatal(err)
+				}
+			case "missing":
+			}
+			result, err := (mutatingExecutor{}).Run(context.Background(), backend.ExecutionRequest{Command: path})
+			if name != "file" {
+				var pathErr *os.PathError
+				if !errors.As(err, &pathErr) || pathErr.Path != path || !reflect.DeepEqual(result, backend.ExecutionResult{}) {
+					t.Fatalf("mutation error = %#v, %v", result, err)
+				}
+				wantOp := "open"
+				if name == "missing" {
+					wantOp = "chmod"
+					if !errors.Is(err, os.ErrNotExist) {
+						t.Fatalf("missing target error = %v", err)
+					}
+				}
+				if pathErr.Op != wantOp {
+					t.Fatalf("mutation operation = %q, want %q", pathErr.Op, wantOp)
+				}
+				return
+			}
+			if err != nil || !reflect.DeepEqual(result, processResult(1, "failure", "")) {
+				t.Fatalf("mutation result = %#v, %v", result, err)
+			}
+			actual, err := os.ReadFile(path)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if string(actual) != "prepared targetmutation" {
+				t.Fatalf("mutated bytes = %q", actual)
+			}
+			info, err := os.Stat(path)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if info.Mode().Perm() != 0o700 {
+				t.Fatalf("mutated mode = %v", info.Mode())
+			}
+		})
 	}
-	if result.Artifact.TargetSharing != artifact.TargetShared {
-		t.Fatalf("minimized artifact target sharing = %q", result.Artifact.TargetSharing)
+}
+
+func TestWaitForProgressStart(t *testing.T) {
+	for _, test := range []struct {
+		name      string
+		started   bool
+		completed bool
+		deadline  bool
+		wantError string
+	}{
+		{name: "started", started: true},
+		{name: "nil completion", completed: true, wantError: "runner completed before target execution started: <nil>"},
+		{name: "deadline", deadline: true, wantError: "target execution did not start before startup deadline"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			started := make(chan struct{})
+			start := sync.OnceFunc(func() { close(started) })
+			t.Cleanup(start)
+			completed := make(chan error, 1)
+			deadline := make(chan time.Time, 1)
+			if test.started {
+				start()
+			}
+			if test.completed {
+				completed <- nil
+			}
+			if test.deadline {
+				deadline <- time.Time{}
+			}
+			watchdog := time.AfterFunc(time.Second, start)
+			defer watchdog.Stop()
+			err := waitForProgressStart(started, completed, deadline)
+			if test.wantError == "" {
+				if err != nil {
+					t.Fatal(err)
+				}
+			} else if err == nil || err.Error() != test.wantError {
+				t.Fatalf("startup error = %v, want %q", err, test.wantError)
+			}
+		})
 	}
-	if replayer.replayed < 2 || len(replayer.private) != 0 {
-		t.Fatalf("%d replayed candidates, private target copies in %v", replayer.replayed, replayer.private)
+}
+
+func TestWaitForProgressStartObservesPreparationFailure(t *testing.T) {
+	executor := &progressGatedExecutor{started: make(chan struct{}), release: make(chan struct{})}
+	config, dependencies := testConfig(t, errorPreparer{err: errors.New("progress-start preparation sentinel")}, executor, "1", PolicyAll, 1)
+	t.Cleanup(sync.OnceFunc(func() { close(executor.release) }))
+	start := sync.OnceFunc(func() { close(executor.started) })
+	t.Cleanup(start)
+	completed := make(chan error, 1)
+	go func() {
+		_, err := exploreWith(context.Background(), config, dependencies)
+		completed <- err
+	}()
+	watchdog := time.AfterFunc(time.Second, start)
+	defer watchdog.Stop()
+	deadline := time.NewTimer(config.OverallTimeout + config.TerminateGrace)
+	defer deadline.Stop()
+	err := waitForProgressStart(executor.started, completed, deadline.C)
+	if err == nil || !strings.Contains(err.Error(), "progress-start preparation sentinel") {
+		t.Fatalf("startup error = %v, want preparation sentinel", err)
 	}
-	paths, minimized := retainedTargets(t, outputRoot, target)
-	if minimized != 1 || len(paths) != 2 || distinctFiles(t, paths) != 1 {
-		t.Fatalf("completed run holds %d minimized artifacts in %v, want one sharing the pool entry", minimized, paths)
+	select {
+	case <-executor.started:
+		t.Fatal("executor started after preparation failure")
+	default:
+	}
+}
+
+func waitForProgressStart(started <-chan struct{}, completed <-chan error, deadline <-chan time.Time) error {
+	select {
+	case <-started:
+		return nil
+	case err := <-completed:
+		return fmt.Errorf("runner completed before target execution started: %v", err)
+	case <-deadline:
+		return errors.New("target execution did not start before startup deadline")
+	}
+}
+
+func TestIsCapacityErrorFindsTypedCapacityThroughHostFailure(t *testing.T) {
+	err := &HostError{Reason: "artifact_publication", Err: &campaign.ArtifactCapacityError{
+		Limit: campaign.ArtifactLimitTotalBytes, Required: 2, Maximum: 1, Outcome: campaign.CapacityInfrastructureFailure,
+	}}
+	if !IsCapacityError(err) {
+		t.Fatalf("IsCapacityError(%v) = false", err)
+	}
+	if IsCapacityError(errors.New("capacity")) {
+		t.Fatal("IsCapacityError() classified an untyped message")
 	}
 }

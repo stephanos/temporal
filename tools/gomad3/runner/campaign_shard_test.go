@@ -1,7 +1,13 @@
 package runner
 
 import (
+	"os"
+	"path/filepath"
+	"slices"
 	"testing"
+
+	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
+	"go.temporal.io/server/tools/gomad3/target"
 )
 
 func TestCampaignShardPartitionsCanonicalOrdinals(t *testing.T) {
@@ -61,5 +67,71 @@ func TestPendingJobsRetainsGlobalOrdinalsForShard(t *testing.T) {
 	_, ok = jobs.Next()
 	if ok {
 		t.Fatal("Next() returned a completed shard ordinal")
+	}
+}
+
+type environmentRecordingProvider struct {
+	*boundaryProvider
+	environment []string
+}
+
+func (p *environmentRecordingProvider) ValidatePrepared(_ target.Spec, _ target.Prepared, environment []string) error {
+	p.environment = environment
+	return nil
+}
+
+func TestCampaignPlanPreparerValidatesWithRecordedEnvironment(t *testing.T) {
+	source := filepath.Join(t.TempDir(), "target")
+	if err := os.WriteFile(source, []byte("prepared"), 0o500); err != nil {
+		t.Fatal(err)
+	}
+	provider := &environmentRecordingProvider{boundaryProvider: &boundaryProvider{}}
+	recorded := []string{"MODE=retained", "GOMAD3_IO_PROFILE=fixture", "GOMAD3_CHOICE_PROFILE=fixture"}
+	preparer := &campaignPlanPreparer{source: target.Prepared{Path: source, Size: uint64(len("prepared"))}, provider: provider, environment: recorded}
+	if _, err := preparer.Prepare(t.Context(), target.Spec{PreparationRoot: filepath.Join(t.TempDir(), "shard")}); err != nil {
+		t.Fatal(err)
+	}
+	if !slices.Equal(provider.environment, recorded) {
+		t.Fatalf("shard target validated with environment %q; want %q", provider.environment, recorded)
+	}
+}
+
+func TestShardedSeedControllerSchedulesPendingOrdinalsAndSynchronizesStatistics(t *testing.T) {
+	selection, err := ParseSeeds("10-14")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	summary := CampaignResult{SelectionCount: selection.Count()}
+	controller, err := newShardedSeedController(selection, CampaignShard{Index: 0, Count: 2}, map[uint64]struct{}{2: {}}, 2, PolicyAll, 1, summary)
+	if err != nil {
+		t.Fatal(err)
+	}
+	synchronizeCampaignStatistics(&summary, controller.Statistics())
+
+	first, ok := controller.Next()
+	if !ok || first.Ordinal != 0 || first.Seed != 10 {
+		t.Fatalf("first job = %#v, %t", first, ok)
+	}
+	second, ok := controller.Next()
+	if !ok || second.Ordinal != 4 || second.Seed != 14 {
+		t.Fatalf("second job = %#v, %t", second, ok)
+	}
+	_, ok = controller.Next()
+	if ok {
+		t.Fatal("controller exceeded parallelism")
+	}
+
+	controller.Complete(campaign.Completion{Kind: campaign.CompletionSuccess})
+	controller.Complete(campaign.Completion{Kind: campaign.CompletionCancelled})
+	_, ok = controller.Next()
+	if ok || !controller.Done() {
+		t.Fatal("controller did not exhaust")
+	}
+	controller.Finalize()
+	synchronizeCampaignStatistics(&summary, controller.Statistics())
+
+	if summary.Attempted != 2 || summary.Succeeded != 1 || summary.Cancelled != 1 || summary.StopReason != StopSeedsExhausted {
+		t.Fatalf("summary = %#v", summary)
 	}
 }
