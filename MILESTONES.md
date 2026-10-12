@@ -477,7 +477,7 @@ is deleted once applied; the harness in `framework/migrate` is permanent (owner,
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-169.1 | ⬜ todo | Mechanical move into `framework/{lift,check,migrate}` and `temporal/{lift,check,migrate}`; Temporal-free build boundary; docs; after fn-166.13 |
+| fn-169.1 | ⬜ todo | Mechanical move into `framework/{dsl,lift,check,migrate}` and `temporal/{lift,check,migrate}` (DSL in `framework.dsl`, IR type names unchanged); feature-parameterized migration harness; Temporal-free build boundary; docs; after fn-166.13 |
 | fn-169.2 | ⬜ todo | Plug-in seam: layout conventions, kit lifting and API descriptors supplied by `temporal/lift`; after fn-141.8 |
 | fn-169.3 | ⏸️ deferred (sweep) | IR schema to an Umpire-owned namespace (`umpire.ir.v1`) |
 | fn-169.4 | ⏸️ deferred (Go) | Go `tools/umpire` Temporal adapter; Testpilot execution API behind `testpilot/temporal`; import rule |

@@ -24,7 +24,7 @@ Target layout [user-approved proposal]:
 ```
 model/
   framework/                 package framework.*   (no Temporal jar on its classpath)
-    *.scala                  the DSL, as today
+    dsl/                     package framework.dsl: the authoring DSL (IR type names kept stable)
     realize/                 generic realization core (as today)
     lift/                    today's irgen minus the Temporal parts, plus a plug-in seam:
                                layout conventions as configuration,
@@ -73,6 +73,7 @@ Not in scope: changing Model meaning; the real features' sources; publishing the
 
 ## Decision Context
 
+- 2026-10-12, owner: the DSL moves into `framework.dsl` in .1, with IR type names kept stable by a fixed name table.
 - 2026-10-12, owner: migration rules are temporary, the harness permanent (see Edge Cases).
 - 2026-10-12, owner: framework must be self-contained and Temporal-free; approved the layout above and the sequencing: mechanical move after fn-166.13 and before fn-141; plug-in seam completion after fn-141.8; Go and IR namespace at the sweep.
 
