@@ -155,17 +155,8 @@ final class Gate(tools: Tools, log: PrintStream):
     val rootName = schemaFile.stripPrefix("proto/internal/")
     visit(List(rootName), Set(rootName)).toSeq.sorted
 
-  // Packages the classes the lifter compiles against: model/build/ir-scalapb.jar, the IR's ScalaPB
-  // classes, compiled against scalapb-runtime. The IR schema is the file
-  // proto/internal/temporal/server/api/umpire/v1/ir.proto and the files of the IR it imports
-  // (`schemaClosure`); their Go code is generated with every other internal proto by `make protoc`
-  // into api/umpire/v1.
-  //
-  // The jar has a stamp beside it, the hash of the schema's files and the versions of the generator
-  // and of Scala. With `ifStale`, the jar is packaged only when one of those changed since it was
-  // packaged.
-  def generateIr(ifStale: Boolean): Unit =
-    val closure = schemaClosure()
+  // The IR jar's stamp: the hash of the schema's files and the versions of the generator and Scala.
+  private def irStamp(closure: Seq[String]): String =
     val digest = MessageDigest.getInstance("SHA-256")
     // Each file's path and length is hashed before its content, so no two closures hash alike.
     for name <- closure do
@@ -179,7 +170,20 @@ final class Gate(tools: Tools, log: PrintStream):
       )
       digest.update(bytes)
     val hash = digest.digest().map("%02x".format(_)).mkString
-    val stamp = s"$hash scalapb:$scalapb scala:$scala"
+    s"$hash scalapb:$scalapb scala:$scala"
+
+  // Packages the classes the lifter compiles against: model/build/ir-scalapb.jar, the IR's ScalaPB
+  // classes, compiled against scalapb-runtime. The IR schema is the file
+  // proto/internal/temporal/server/api/umpire/v1/ir.proto and the files of the IR it imports
+  // (`schemaClosure`); their Go code is generated with every other internal proto by `make protoc`
+  // into api/umpire/v1.
+  //
+  // The jar has a stamp beside it, the hash of the schema's files and the versions of the generator
+  // and of Scala. With `ifStale`, the jar is packaged only when one of those changed since it was
+  // packaged.
+  def generateIr(ifStale: Boolean): Unit =
+    val closure = schemaClosure()
+    val stamp = irStamp(closure)
     val stampFile = build.resolve("ir.stamp")
     val current = Seq(irJar, stampFile).forall(Files.isRegularFile(_))
       && Files
@@ -892,7 +896,16 @@ final class Gate(tools: Tools, log: PrintStream):
     val lifted = build(update = false, fast = true)
     val fresh =
       selection.features.map(f => lifted.resolve(logicalFeature(f) + ".json"))
-    step("check selected lifted IR in Go"):
+    // The Go checks read the IR through the schema's Go code; while that is stale (its generation,
+    // `make protoc`, is owner-held) they are skipped and named, never reported as passing.
+    val held = goIrHeld()
+    val skipped = Vector.newBuilder[String]
+    def goStep(title: String)(body: => Unit): Unit = held match
+      case Some(reason) =>
+        log.println(s"== skipped $title (held: $reason)")
+        skipped += title
+      case None => step(title)(body)
+    goStep("check selected lifted IR in Go"):
       val checked = scratch("go-check")
       for feature <- selection.features do
         val directory = Files.createDirectories(
@@ -921,7 +934,7 @@ final class Gate(tools: Tools, log: PrintStream):
       log.println("== skipped selected IR lint (--skip-lint)")
       log.println("== skipped selected Scala syntax/style (--skip-lint)")
     else
-      step("lint selected lifted IR"):
+      goStep("lint selected lifted IR"):
         for feature <- selection.features do
           val accepted = OutputPaths.lint(root, logicalFeature(feature))
           if Files.isRegularFile(accepted) then
@@ -961,7 +974,13 @@ final class Gate(tools: Tools, log: PrintStream):
         )
         .orFail(): Unit
       Gate.settleFeatures(root, lifted, selection.features, update = false)
+    goStep("check selected Cases in Go"):
       lower(update = false): Unit
+    val notRun = skipped.result()
+    if notRun.nonEmpty then
+      log.println(
+        s"== Scala stages passed; NOT run (held Go checks): ${notRun.mkString("; ")}"
+      )
 
   // Generates and compiles what the lifter reads, then builds its fixtures and lifts the Models.
   private def build(update: Boolean, fast: Boolean = false): Path =
@@ -979,11 +998,11 @@ final class Gate(tools: Tools, log: PrintStream):
           val reported = if !completed && state == "current" then "behind" else state
           log.println(s"feature $feature: $reported")
 
-  private def buildSelected(update: Boolean, fast: Boolean, lifted: Path): Unit =
-    step("generate the IR's classes when their inputs changed"):
-      generateIr(ifStale = true)
-      // Each file of the schema has its Go code beside the others', as `make protoc` writes it.
-      for name <- schemaClosure() do
+  // Why the IR schema's Go code cannot be trusted, if it cannot: each file of the schema has its Go
+  // code beside the others', as `make protoc` writes it, newer than the file.
+  private def goIrHeld(): Option[String] =
+    schemaClosure().iterator
+      .flatMap: name =>
         val file = s"proto/internal/$name"
         val generated =
           root
@@ -994,19 +1013,45 @@ final class Gate(tools: Tools, log: PrintStream):
                 .stripSuffix(".proto") + ".pb.go"
             )
         if !Files.isRegularFile(generated) then
-          throw GateError(
-            s"${root.relativize(generated)} is missing for the IR schema $file; run make protoc"
-          )
-        if Files
+          Some(s"${root.relativize(generated)} is missing for the IR schema $file; run make protoc")
+        else if Files
             .getLastModifiedTime(generated)
             .compareTo(Files.getLastModifiedTime(root.resolve(file))) <= 0
         then
-          throw GateError(
-            s"${root.relativize(generated)} is older than the IR schema $file; run make protoc"
-          )
+          Some(s"${root.relativize(generated)} is older than the IR schema $file; run make protoc")
+        else None
+      .nextOption()
 
-    step("generate the linked API's classes when their inputs changed"):
-      generateApi(ifStale = true)
+  // The linked API's generation runs protoc and Go over the API descriptors, which is owner-held,
+  // so the loop never runs it: it reads the jars `make gen-model-api` packaged, and refuses a
+  // missing jar or an IR jar older than the IR schema, naming that target.
+  private def useCachedClasses(): Unit =
+    for jar <- Seq(irJar, apiJar) if !Files.isRegularFile(jar) do
+      throw GateError(
+        s"${root.relativize(jar)} is missing; run make gen-model-api once (the held linked-API generation)"
+      )
+    val stampFile = build.resolve("ir.stamp")
+    if !Files.isRegularFile(stampFile) ||
+      Files.readString(stampFile).trim != irStamp(schemaClosure())
+    then
+      throw GateError(
+        s"${root.relativize(irJar)} is older than the IR schema; run make gen-model-api"
+      )
+    log.println(
+      s"   cached ${root.relativize(irJar)} and ${root.relativize(apiJar)}, not regenerated"
+    )
+
+  private def buildSelected(update: Boolean, fast: Boolean, lifted: Path): Unit =
+    // The loop reads the cached jars; only the canonical gate regenerates them.
+    if fast then
+      step("use the cached IR and API classes"):
+        useCachedClasses()
+    else
+      step("generate the IR's classes when their inputs changed"):
+        generateIr(ifStale = true)
+        goIrHeld().foreach(reason => throw GateError(reason))
+      step("generate the linked API's classes when their inputs changed"):
+        generateApi(ifStale = true)
 
     // The framework must build without the Temporal Models, so nothing in framework/ reaches into them.
     if !fast then
@@ -1053,6 +1098,8 @@ final class Gate(tools: Tools, log: PrintStream):
           )
           .orFail()
       Files.writeString(modelClasspath, classpath.output)
+      // make's record of the selection it packaged is no longer the jar's, so its next package runs.
+      Files.deleteIfExists(build.resolve("model-sources")): Unit
 
     // Compiled once here, so the steps below that run it side by side only read its classes.
     if !fast && !selection.narrowed then

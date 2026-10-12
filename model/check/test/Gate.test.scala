@@ -860,11 +860,77 @@ class GateSuite extends munit.FunSuite:
       .map(file => file -> Files.readString(repository.ir(file)))
       .toMap
 
+  // The loop reads the jars `make gen-model-api` packaged, so they are packaged first and the
+  // record of that run is cleared.
   private def loopTools(repository: Repository): Tools =
+    Gate(repository.tools, PrintStream(ByteArrayOutputStream())).generateApi(ifStale = false)
+    Files.deleteIfExists(repository.log)
     Stubs(repository.root.resolve("bin"))
       .tool("git", "echo \"git $*\" >> \"$TOOLS_LOG\"")
     val selected = ModelSources(repository.root, None).features.head
     repository.tools.withEnvironment("FEATURES" -> selected)
+
+  test("model loop reads the cached jars and never runs the held API generation"):
+    val repository = Repository(scalaCli = lifting)
+    initializeFeatures(repository, "{\"lifted\": true}\n")
+    val tools = loopTools(repository)
+    val (out, err) = (ByteArrayOutputStream(), ByteArrayOutputStream())
+    assertEquals(
+      modelLoopStatus(Seq("--skip-lint"), tools, PrintStream(out), PrintStream(err)),
+      0,
+      err.toString
+    )
+    assert(out.toString.contains("== use the cached IR and API classes"), out.toString)
+    assert(!out.toString.contains("== generate the"), out.toString)
+    assert(!out.toString.contains("NOT run"), out.toString)
+    for held <- Seq("protoc ", "make ", "getproto", "--linked-api") do
+      assert(!repository.ran.exists(_.contains(held)), held + "\n" + repository.ran.mkString("\n"))
+
+  test(
+    "model loop without a cached jar or with an IR jar older than the schema names gen-model-api"
+  ):
+    for broken <- Seq("ir", "api", "stamp") do
+      val repository = Repository(scalaCli = lifting)
+      initializeFeatures(repository, "{\"lifted\": true}\n")
+      val tools = loopTools(repository)
+      broken match
+        case "ir"  => Files.delete(repository.jar)
+        case "api" => Files.delete(repository.apiJar)
+        case _ => Files.writeString(repository.schema, "syntax = \"proto3\";\n// changed\n"): Unit
+      val (out, err) = (ByteArrayOutputStream(), ByteArrayOutputStream())
+      assertEquals(modelLoopStatus(Nil, tools, PrintStream(out), PrintStream(err)), 1, broken)
+      assert(err.toString.contains("run make gen-model-api"), err.toString)
+      assert(!out.toString.contains("== compile each selected feature"), broken)
+      assertEquals(repository.ran.filterNot(_.startsWith("git ")), Nil, broken)
+
+  test("model loop skips and names the Go checks while the IR schema's Go code is stale"):
+    val repository = Repository(scalaCli = lifting)
+    initializeFeatures(repository, "{\"lifted\": true}\n")
+    val tools = loopTools(repository)
+    val go = repository.goCode(repository.schema)
+    Files.setLastModifiedTime(
+      go,
+      FileTime.fromMillis(Files.getLastModifiedTime(repository.schema).toMillis - 1000)
+    )
+    val (out, err) = (ByteArrayOutputStream(), ByteArrayOutputStream())
+    assertEquals(modelLoopStatus(Nil, tools, PrintStream(out), PrintStream(err)), 0, err.toString)
+    val reason = "held: api/umpire/v1/ir.pb.go is older than the IR schema"
+    for stage <- Seq(
+        "check selected lifted IR in Go",
+        "lint selected lifted IR",
+        "check selected Cases in Go"
+      )
+    do
+      assert(out.toString.contains(s"== skipped $stage ($reason"), out.toString)
+      assert(!out.toString.contains(s"== $stage\n"), stage)
+    assert(out.toString.contains("== check selected Scala syntax"), out.toString)
+    assert(out.toString.contains("== compare selected IR with checked-in outputs"), out.toString)
+    assert(
+      out.toString.contains("== Scala stages passed; NOT run (held Go checks): "),
+      out.toString
+    )
+    assert(!repository.ran.exists(_.contains("umpire-gen-cases")), repository.ran.mkString("\n"))
+    assert(!repository.ran.exists(_.contains("umpire-lint")), repository.ran.mkString("\n"))
 
   test("a scoped regular gate excludes full-set fixtures without compiling excluded Models"):
     val fixtureFailure =

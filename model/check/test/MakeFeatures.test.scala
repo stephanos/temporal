@@ -103,3 +103,56 @@ class MakeFeaturesSuite extends munit.FunSuite:
         assertEquals(invalid.exit, 2)
         assert(invalid.output.contains("feature folder not found: absent"), invalid.output)
         assertEquals(Files.readString(log), calls)
+
+  test(
+    "model Make targets read cached jars, never generate them, and name gen-model-api when one is missing"
+  ):
+    val root = Scratch.directory("umpire-make-cached-api")
+    Files.copy(Path.of("Makefile").toAbsolutePath, root.resolve("Makefile"))
+    for name <- Seq(
+        "framework",
+        "temporal/foundations",
+        "temporal/actors",
+        "temporal/capabilities",
+        "temporal/realize"
+      )
+    do Files.createDirectories(root.resolve("model/" + name)): Unit
+    val folder = Files.createDirectories(root.resolve("model/temporal/features/activity_mini"))
+    Files.writeString(folder.resolve("ActivityMini.scala"), "package fixture\n")
+    val build = Files.createDirectories(root.resolve("model/build"))
+    val log = root.resolve("commands.log")
+    val bin = Files.createDirectories(root.resolve("bin"))
+    Stubs(bin)
+      .tool("mise", "shift; shift; exec \"$@\"")
+      .tool("scala-cli", "echo \"scala-cli $*\" >> \"$COMMANDS_LOG\"")
+    val environment = (System.getenv().asScala.toMap - "FEATURES") ++ Map(
+      "PATH" -> (bin.toString + java.io.File.pathSeparator + System.getenv("PATH")),
+      "COMMANDS_LOG" -> log.toString
+    )
+    val tools = Tools(root, environment)
+    val targets = Seq(
+      Seq("model-mini"),
+      Seq("model"),
+      Seq("compile-model"),
+      Seq("lift-model"),
+      Seq("umpire-check-equivalence", "BASE=b", "MAP=m")
+    )
+    for target <- targets do
+      val missing = tools.run("make", target :+ "FEATURES=activity_mini")
+      assertEquals(missing.exit, 2, missing.output)
+      assert(
+        missing.output.contains("ir-scalapb.jar is missing; run make gen-model-api"),
+        missing.output
+      )
+      assert(!Files.exists(log), target.mkString(" "))
+    // With both jars cached, their inputs being newer does not regenerate them.
+    for jar <- Seq("ir-scalapb.jar", "api-scalapb.jar") do
+      Files.writeString(build.resolve(jar), "cached")
+    Files.createDirectories(root.resolve("proto"))
+    Files.writeString(root.resolve("proto/api.binpb"), "newer")
+    val compiled = tools.run("make", Seq("compile-model", "FEATURES=activity_mini"))
+    assertEquals(compiled.exit, 0, compiled.output)
+    val ran = Files.readString(log)
+    assert(ran.startsWith("scala-cli compile "), ran)
+    assert(!ran.contains("--generate-"), ran)
+    assertEquals(Files.readString(build.resolve("api-scalapb.jar")), "cached")

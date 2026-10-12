@@ -725,19 +725,23 @@ MODEL_LIFTS_SCALAFIX = $(MODEL_SCALAFIX) --scalac-option -Werror:false \
 MODEL_BUILD := $(MODEL_ROOT)/build
 MODEL_PROTO_JARS := $(MODEL_BUILD)/ir-scalapb.jar $(MODEL_BUILD)/api-scalapb.jar
 MODEL_JAR := $(MODEL_BUILD)/model-scala.jar
+MODEL_CLASSPATH := $(MODEL_BUILD)/model-scala.classpath
 # The gate is one Scala program, model/check; its own arguments follow.
 MODEL_GATE = $(MODEL_CLI) run --suppress-outdated-dependency-warning $(MODEL_ROOT)/check -M umpire.check.run --
 # The gate's own tests run it against stand-in tools, so they need no jar and no real tool.
 MODEL_GATE_TEST = $(MODEL_CLI) test --suppress-outdated-dependency-warning $(MODEL_ROOT)/check
 
-# make sees only the schema's files, the root ir.proto and the files of the IR beside it; after the
-# generator's version changes in the gate, the gate's own run repackages the jar.
-$(MODEL_BUILD)/ir-scalapb.jar: $(wildcard proto/internal/temporal/server/api/umpire/v1/*.proto)
-	@printf $(COLOR) "Package model IR classes..."
-	@$(MODEL_GATE) --generate-ir
+# The IR and linked-API classes the Models compile against. Packaging them runs protoc and the
+# linked-API descriptors through Go (`make protoc` territory, owner-held), so make never does it on
+# its own: a missing jar fails naming the opt-in target, and the model targets read the cached jars.
+# gen-model-api packages both when their inputs changed; the canonical gate (umpire-check-model,
+# umpire-gen-model) still regenerates them itself.
+$(MODEL_PROTO_JARS):
+	@printf '%s is missing; run make gen-model-api once (the held linked-API generation)\n' $@ >&2; exit 1
 
-$(MODEL_BUILD)/api-scalapb.jar: $(MODEL_BUILD)/ir-scalapb.jar proto/api.binpb cmd/tools/getproto/main.go cmd/tools/getproto/files.go model/check/Gate.scala model/check/project.scala go.mod go.sum mise.toml
-	@printf $(COLOR) "Package model API classes..."
+.PHONY: gen-model-api
+gen-model-api:
+	@printf $(COLOR) "Package model IR and API classes..."
 	@$(MODEL_GATE) --generate-api --if-stale
 
 # The Models' TASTy, packaged as the gate's "package the Models' TASTy" step packages it.
@@ -750,9 +754,28 @@ $(MODEL_BUILD)/model-sources: model-source-selection
 $(MODEL_JAR): $(MODEL_PROTO_JARS) $(MODEL_BUILD)/model-sources $(shell find $(MODEL_SOURCE_ARGS) -name '*.scala')
 	@printf $(COLOR) "Package the Models' TASTy..."
 	@$(MODEL_CLI) --power package --server=false --suppress-outdated-dependency-warning --library $(MODEL_SOURCE_ARGS) $(MODEL_SOURCE_OPTIONS) -f -o $@
+	@$(MODEL_CLI) compile --server=false --suppress-outdated-dependency-warning --print-class-path $(MODEL_SOURCE_ARGS) $(MODEL_SOURCE_OPTIONS) > $(MODEL_CLASSPATH).tmp
+	@mv $(MODEL_CLASSPATH).tmp $(MODEL_CLASSPATH)
+
+# Lifts the selected features from the packaged Models into LIFT_OUT (default: a fresh directory
+# under model/build/history) and says, per feature, whether the lift equals its checked-in IR.
+MODEL_LIFT_NAMES = $(subst _,-,$(subst /,-,$(FEATURES)))
+.PHONY: lift-model
+lift-model: $(MODEL_JAR)
+	@printf $(COLOR) "Lift the selected features' IR..."
+	@set -eu; out=$${LIFT_OUT:-}; \
+		if [ -z "$$out" ]; then mkdir -p $(MODEL_BUILD)/history; out=$$(mktemp -d $(MODEL_BUILD)/history/lift.XXXXXX); fi; \
+		mkdir -p "$$out"; \
+		$(MODEL_CLI) run --server=false --suppress-outdated-dependency-warning $(MODEL_ROOT)/irgen --main-class umpire.irgen.lift -- \
+			--ir $(call model_quote,$(CURDIR)/$(MODEL_JAR))=model/ $(MODEL_CLASSPATH) "$$out" $(MODEL_LIFT_NAMES); \
+		for feature in $(FEATURES); do \
+			name=$$(printf '%s' "$$feature" | tr '/_' '--'); \
+			if cmp -s "$$out/$$name.json" $(MODEL_FEATURE_ROOT)/"$$feature"/generated/ir.json; then state=current; else state='differs from its checked-in IR'; fi; \
+			printf 'feature %s: %s/%s.json %s\n' "$$feature" "$$out" "$$name" "$$state"; \
+		done
 
 .PHONY: compile-model
-compile-model:
+compile-model: $(MODEL_PROTO_JARS)
 	@printf $(COLOR) "Compiling model files..."
 	@$(MODEL_CLI) compile --server=false $(MODEL_SOURCE_ARGS) $(MODEL_SOURCE_OPTIONS)
 
@@ -760,7 +783,9 @@ compile-model:
 test-model:
 	@$(MODEL_CLI) test --server=false $(MODEL_SOURCE_ARGS) $(MODEL_SOURCE_OPTIONS)
 
-model:
+# The loop reads the cached jars (gen-model-api); Go checks the held protobuf generation leaves
+# stale are skipped and named.
+model: $(MODEL_PROTO_JARS)
 	@$(MODEL_CLI) run --server=false --suppress-outdated-dependency-warning $(MODEL_ROOT)/check -M umpire.check.modelLoop -- $(MODEL_GATE_ARGS)
 
 model-mini:

@@ -539,15 +539,35 @@ Model targets accept `FEATURES`, space-separated form folders relative to
 discovers every feature file; selected forms keep their kind-level signatures,
 shared code, framework and foundations. Each feature owns its generated IR,
 accepted lint findings, manifest and Cases in its own `generated/` directory.
-On a warm build, `make model-mini` delegates to `make model FEATURES=activity_mini`
-and reuses the schema and API build outputs. Inventory tests report feature drift as
+`make model-mini` delegates to `make model FEATURES=activity_mini`. Packaging the IR
+and linked-API jars (`model/build/ir-scalapb.jar`, `api-scalapb.jar`) runs protoc and
+Go over the API descriptors, which is held with `make protoc`, so the model targets
+never package them: they read the cached jars and, when one is missing, fail naming
+`make gen-model-api`, the opt-in target that packages both when their inputs changed.
+The canonical gate (`make umpire-check-model`, `umpire-gen-model`) still regenerates
+them. While the IR schema's Go code is older than the schema, the loop skips its Go
+checks (Go reader, IR lint, Case lowering) and names each skip, ending with
+`Scala stages passed; NOT run (held Go checks)`. The stages compose, each honoring
+`FEATURES`:
+
+```
+make compile-model FEATURES=activity_mini   # compile the selection
+make lift-model FEATURES=activity_mini      # package it and lift into LIFT_OUT (default: a
+                                            # fresh model/build/history/lift.*), each feature
+                                            # reported current or differing from its checked-in IR
+make umpire-check-equivalence FEATURES=activity_mini STEPS_ONLY=1 \
+  BASE=.flow/tmp/scala-dsl/mini-selected-baseline-00d22597d2 MAP=<rename map>
+make model-mini [MODEL_GATE_ARGS=--skip-lint]  # the whole loop
+```
+
+Inventory tests report feature drift as
 `behind` and absent IR as `missing`, without changing the independent native
 baseline; the owner's full-set sweep must still establish every feature as current.
 During the current owner-approved Scala DSL batch, a step closes on focused mini/shared
 checks; broad validation and independent review run once at batch end, and the full-set
 gate follows the owner's real-feature sweep. Standalone activity and Nexus are behind by
-design. The canonical Make route is still held on linked-protobuf infrastructure; direct
-Scala compile/lift proof does not establish that route, Case lowering or live execution.
+design. The Make route runs on the cached jars; a run that skipped the held Go checks
+does not establish Case lowering, the Go reading of the IR or live execution.
 For a run that defers lint, `MODEL_GATE_ARGS=--skip-lint` skips IR and Scala
 syntax/style lint while retaining the fresh-IR Go reader and lowering checks;
 the default loop still runs lint.
