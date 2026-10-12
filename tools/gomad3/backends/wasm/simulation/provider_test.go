@@ -104,7 +104,7 @@ func retainedTargetModule(t *testing.T, r wasi.Request) RetainedModule {
 	if err := os.WriteFile(path, data, 0700); err != nil {
 		t.Fatal(err)
 	}
-	return RetainedModuleFile(path, "sha256:"+r.ModuleSHA256)
+	return retainedModuleFile(path, "sha256:"+r.ModuleSHA256)
 }
 
 func installedHelper(r wasi.Request) InstalledHelper {

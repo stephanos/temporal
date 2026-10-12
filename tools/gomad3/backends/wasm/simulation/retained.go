@@ -354,21 +354,6 @@ type RetainedModule struct {
 	Copy   func(destination string) error
 }
 
-// RetainedModuleFile reads a regular file without following symbolic links.
-func RetainedModuleFile(path, digest string) RetainedModule {
-	return RetainedModule{SHA256: digest, Copy: func(destination string) (retErr error) {
-		source, info, err := hostfs.OpenPath(path)
-		if err != nil {
-			return err
-		}
-		defer func() { retErr = errors.Join(retErr, source.Close()) }()
-		if err := CheckRetainedModuleSize(uint64(info.Size())); err != nil {
-			return err
-		}
-		return copyRetainedModule(destination, io.LimitReader(source, maximumRetainedModuleBytes+1))
-	}}
-}
-
 func copyRetainedModule(destination string, source io.Reader) (retErr error) {
 	f, err := os.OpenFile(destination, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0700)
 	if err != nil {

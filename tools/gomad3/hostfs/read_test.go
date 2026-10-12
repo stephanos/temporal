@@ -1,6 +1,7 @@
 package hostfs_test
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -26,5 +27,8 @@ func TestPublicReadAcceptsCompleteBoundedBytesAndRejectsOverflowOrLinks(t *testi
 	}
 	if _, err := hostfs.ReadBounded(link, 6); err == nil {
 		t.Fatal("symlink input accepted")
+	}
+	if _, _, err := hostfs.OpenPath(link); !errors.Is(err, hostfs.ErrSymbolicLink) {
+		t.Fatalf("symlink open: %v", err)
 	}
 }

@@ -4,12 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/backends/wasm/wasi"
+	"go.temporal.io/server/tools/gomad3/hostfs"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/target"
 	"go.temporal.io/server/tools/gomad3sim"
@@ -73,7 +75,23 @@ func retainedModuleBytes(t *testing.T, module []byte) RetainedModule {
 	if err := os.WriteFile(path, module, 0700); err != nil {
 		t.Fatal(err)
 	}
-	return RetainedModuleFile(path, string(record.HashBytes(module)))
+	return retainedModuleFile(path, string(record.HashBytes(module)))
+}
+
+// retainedModuleFile stands in for the Artifact target, read without
+// following symbolic links.
+func retainedModuleFile(path, digest string) RetainedModule {
+	return RetainedModule{SHA256: digest, Copy: func(destination string) (retErr error) {
+		source, info, err := hostfs.OpenPath(path)
+		if err != nil {
+			return err
+		}
+		defer func() { retErr = errors.Join(retErr, source.Close()) }()
+		if err := CheckRetainedModuleSize(uint64(info.Size())); err != nil {
+			return err
+		}
+		return copyRetainedModule(destination, io.LimitReader(source, maximumRetainedModuleBytes+1))
+	}}
 }
 
 func installedHelperFile(t *testing.T, helper []byte) InstalledHelper {
@@ -186,27 +204,36 @@ func TestRetainedReplayRejectsTamperedOrMismatchedTargetModule(t *testing.T) {
 	tampered := retainedModuleBytes(t, []byte("tampered-module"))
 	tampered.SHA256 = "sha256:" + moduleID
 	foreign := retainedModuleBytes(t, []byte("foreign-module"))
-	link := filepath.Join(t.TempDir(), "target")
-	if err := os.Symlink(filepath.Join(t.TempDir(), "missing"), link); err != nil {
+	genuinePath := filepath.Join(t.TempDir(), "target")
+	if err := os.WriteFile(genuinePath, module, 0700); err != nil {
 		t.Fatal(err)
 	}
-	genuine := retainedModuleBytes(t, module)
+	genuine := retainedModuleFile(genuinePath, "sha256:"+moduleID)
+	// Both links resolve to the genuine module, so only link refusal rejects them.
+	link := filepath.Join(t.TempDir(), "target")
+	if err := os.Symlink(genuinePath, link); err != nil {
+		t.Fatal(err)
+	}
 	for _, test := range []struct {
 		name   string
 		module RetainedModule
+		want   error
 	}{
-		{"tampered-bytes", tampered},
-		{"foreign-digest", foreign},
-		{"missing-source", RetainedModule{SHA256: "sha256:" + moduleID}},
-		{"symbolic-link", RetainedModuleFile(link, "sha256:"+moduleID)},
+		{"tampered-bytes", tampered, nil},
+		{"foreign-digest", foreign, nil},
+		{"missing-source", RetainedModule{SHA256: "sha256:" + moduleID}, nil},
+		{"symbolic-link-source", retainedModuleFile(link, "sha256:"+moduleID), hostfs.ErrSymbolicLink},
+		{"symbolic-link-copy", RetainedModule{SHA256: "sha256:" + moduleID, Copy: func(destination string) error {
+			return os.Symlink(genuinePath, destination)
+		}}, hostfs.ErrSymbolicLink},
 		{"truncated", RetainedModule{SHA256: "sha256:" + moduleID, Copy: func(destination string) error {
 			return copyRetainedModule(destination, bytes.NewReader(module[:len(module)-1]))
-		}}},
+		}}, nil},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			directory := t.TempDir()
-			if _, reopened, err := admit().reopen(test.module, directory, installed); err == nil || reopened != nil {
-				t.Fatal("retained replay admitted target bytes that differ from the referenced digest")
+			if _, reopened, err := admit().reopen(test.module, directory, installed); err == nil || reopened != nil || test.want != nil && !errors.Is(err, test.want) {
+				t.Fatalf("retained replay admitted target bytes that differ from the referenced digest: %v", err)
 			}
 			entries, err := os.ReadDir(directory)
 			if err != nil || len(entries) != 0 {
