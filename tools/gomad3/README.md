@@ -4,9 +4,18 @@ The shared core and both backends now use this Go module. Native runtime,
 transcript, build preparation, upgrade and generation code lives under
 `backends/native`; the stock-Go WASM backend lives under `backends/wasm`.
 `target` owns backend-neutral target data, while `captured`, `volume` and
-`runtimesemantics` own shared model inputs. Native Provider and unified-launcher
-extraction follow this mechanical layout; Runner's exact native import exceptions
-name those follow-up tasks while the backend boundary is being completed.
+`runtimesemantics` own shared model inputs. `backends.Provider` is the neutral
+execution contract; Runner imports no concrete backend. Native bootstrap,
+process supervision and transcript decoding belong to the native provider.
+The unchanged shared progress/time algorithms live in `simulation/clock`, and
+compiled WASM identities bind those actual sources through the public clock facade.
+
+The sole `cmd/gomad` launcher selects native or WASM from the installation header:
+`gomad --installation FILE COMMAND`. Each provider advertises its supported
+commands, replay modes and features. Historical artifacts remain inspectable
+without an installation; executing them requires compatible recorded identities.
+This extraction and its source checks do not qualify native execution on a new
+platform or replace the backend owners' workload qualification gates.
 
 The module retains one local `go.temporal.io/server => ../..` replacement for
 the existing WASM simulation integration. Shared packages do not import the
