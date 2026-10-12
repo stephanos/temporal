@@ -571,15 +571,18 @@ the real features forward: it runs each DSL change's scalafix rule on them, does
 ### fn-170: Clean up tools/umpire
 
 Captured on 2026-10-12 at the owner's request. It runs in the Go propagation phase after the Scala
-source batch. Earlier Go cleanups (fn-124, fn-84, fn-61, fn-66) are done. A read-only research pass,
-using the six questions applied to Testpilot, will add further tasks. Once it lands, the `tools/umpire`
+source batch. Earlier Go cleanups (fn-124, fn-84, fn-61, fn-66) are done. A read-only research pass (2026-10-12)
+found layering good and most packages deep, with Temporal code inside four generic packages, two
+alias facades and some drift; its findings are tasks .2-.4. Once it lands, the `tools/umpire`
 items of fn-169.4 have moved here (fn-170.2), and `tools/umpire` mirrors `model/`: a Temporal-free
 `framework/` and a `temporal/` adapter (owner, 2026-10-12).
 [Spec](.flow/specs/fn-170-clean-up-toolsumpire.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-170.2 | ⏸️ deferred (Go) | Layout mirroring `model/`: Temporal-free `tools/umpire/framework/` (incl. `export/quint`) and the `tools/umpire/temporal/` adapter; boundary test; outputs byte-identical (owner, 2026-10-12) |
+| fn-170.3 | ⏸️ deferred (Go) | Fold `internal/engine` into `interp` and `check`; remove the 56 alias re-exports (research, 2026-10-12) |
+| fn-170.4 | ⏸️ deferred (Go) | Tidy: fold `ir/paths`, one duration conversion, `export` package name, over-exports, README/module-map drift |
+| fn-170.2 | ⏸️ deferred (Go) | After .3/.4: layout mirroring `model/`: Temporal-free `tools/umpire/framework/` (incl. `export/quint`) and the `tools/umpire/temporal/` adapter; boundary test; outputs byte-identical (owner, 2026-10-12) |
 | fn-170.1 | ⏸️ deferred (Go) | After .2: one `umpire` CLI with subcommands replaces the eight `cmd/umpire-*` binaries; the generic CLI is Temporal-free (API descriptors as a descriptor-set file, a target interface), its `main` in the Temporal adapter wires the Driver, SDK and test cluster; urfave/cli v2 unless the owner picks cobra; Make target names kept |
 
 ### fn-128: Close the activity's precision gaps
