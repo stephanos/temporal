@@ -384,6 +384,9 @@ func (p *Provider) ValidateReplay(_ context.Context, opened *artifact.Opened) (t
 	if pr.ModuleBytes != uint64(manifest.Target.Size) || pr.ModuleSHA256 != string(manifest.Target.SHA256) || !reflect.DeepEqual(pr.BuildTags, manifest.Target.BuildTags) || len(manifest.Target.Adapters) != 0 || len(manifest.Target.Compatibility) != 0 || manifest.Target.CapabilityMode != "closure" || !reflect.DeepEqual(prepared.RecordToolchain(), manifest.Toolchain) || !reflect.DeepEqual(prepared.Argv, manifest.Target.Argv) || prepared.Kind != target.Kind(manifest.Target.Kind) || prepared.Source != manifest.Target.Source || !reflect.DeepEqual(prepared.RecordTarget().BuildInfo, manifest.Target.BuildInfo) || !reflect.DeepEqual(record.BackendIOProfile(*prepared.Backend), manifest.IOProfile) {
 		return target.Prepared{}, errors.New("WASM artifact provenance does not match retained record")
 	}
+	if pr.ModelSHA256 != p.options.ModelSHA256 {
+		return target.Prepared{}, fmt.Errorf("WASM model identity mismatch: recorded %s, current %s", pr.ModelSHA256, p.options.ModelSHA256)
+	}
 	if err := p.validateProvenance(pr, prepared); err != nil {
 		return target.Prepared{}, err
 	}
