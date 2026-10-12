@@ -249,13 +249,12 @@ machine. A copy is how a Query picks its realization, or has none. fn-162.1 foun
 already assessed against only its Query's one Property (plus the machine's monitors). The fix: each
 realization names the Queries it runs (unnamed find Queries stay model-only), and each Property is
 declared once in its facet, under its existing name, so the copies go. Query answers and Case outcomes stay the same; machine-scoped ids move
-(in the rename map). Ideally lands before fn-160.3 splits those subjects into files. Not marked ready.
+(in the rename map). The Scala part is done: realizations name their Queries (`Realizes(machine, runs = ...)`), a Property declared twice is refused, and the mini feature and shared code hold no claim containers. The standalone activity's identity proof waits for the sweep.
 [Spec](.flow/specs/fn-162-queries-name-their-realization-each.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-162.2 | ⬜ todo | Realizations name the Queries they run (unnamed find Queries are model-only): framework, lifter, IR, lowering, assessment; duplicate-Property detection — Scala part open; Go part deferred |
-| fn-162.3 | ⬜ todo | Claim-container source and cancellation deduplication integrated; strict native controls pass at the witness checkpoint, identity/source proof open on the mini feature (real features' at the sweep); consumer closure deferred |
+| fn-162.4 | ⏸️ deferred (Go) | Go consumers read the realization binding: regenerate the Go API, `lower.Realizable`, `conformance.realizationOf` and model lint; split from .2 |
 
 ### fn-160: One IR file per feature, collected from the feature's package
 
