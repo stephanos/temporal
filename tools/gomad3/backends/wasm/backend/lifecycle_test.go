@@ -5,11 +5,14 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/backends/wasm/wasi"
+	"go.temporal.io/server/tools/gomad3/captured"
+	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
@@ -83,6 +86,73 @@ func TestProviderLifecycleEmptyCoveragePreservesCanonicalBytes(t *testing.T) {
 	const expected = `{"schema":"gomad3.semantic-coverage/v1","digest":"sha256:b14c6b04e0e4bd4b4431562e77b1b78eb7940a9cc505e47a8df9f713f4058356","probes":[]}`
 	if string(data) != expected {
 		t.Fatalf("empty coverage = %s, want %s", data, expected)
+	}
+}
+
+func TestProviderLifecycleRejectsCommandAuthorityMismatch(t *testing.T) {
+	for _, request := range []backends.ExecutionRequest{
+		{Command: "arbitrary-host-command"},
+		{Args: []string{"without-prepared-argv"}},
+		{Argv0: "without-prepared-argv"},
+		{Target: target.Prepared{Path: "sealed-module", Argv: []string{"guest", "expected"}}, Args: []string{"changed"}},
+	} {
+		if _, err := observedRequest(request); err == nil || !strings.Contains(err.Error(), "prepared target") {
+			t.Fatalf("request %#v error = %v", request, err)
+		}
+	}
+}
+
+func TestProviderLifecycleDoesNotCloseBorrowedJournal(t *testing.T) {
+	provider, err := New(portableProviderOptions(wasi.StockProfile))
+	if err != nil {
+		t.Fatal(err)
+	}
+	journal, err := os.Create(filepath.Join(t.TempDir(), "stdout"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = journal.Close() })
+	if _, err := provider.Execute(t.Context(), backends.ExecutionRequest{StdoutHead: journal}); err == nil {
+		t.Fatal("missing prepared target was accepted")
+	}
+	if _, err := journal.Stat(); err != nil {
+		t.Fatalf("provider closed borrowed journal: %v", err)
+	}
+}
+
+func TestProviderLifecycleDistinguishesEmptyAndNativeIORequests(t *testing.T) {
+	for _, test := range []struct {
+		name        string
+		mount       *backends.ReadOnlyMountCapability
+		unsupported bool
+	}{
+		{"absent", nil, false},
+		{"campaign-default", &backends.ReadOnlyMountCapability{Limits: captured.DefaultLimits()}, false},
+		{"replay-default", &backends.ReadOnlyMountCapability{Limits: captured.DefaultLimits(), Replay: &captured.Snapshot{}}, false},
+		{"mapping", &backends.ReadOnlyMountCapability{Mappings: []captured.Mapping{{Source: "/host", Target: "/guest"}}}, true},
+		{"captured-entry", &backends.ReadOnlyMountCapability{Replay: &captured.Snapshot{Entries: []captured.Entry{{Path: "/guest"}}}}, true},
+		{"negative-lookup", &backends.ReadOnlyMountCapability{Replay: &captured.Snapshot{NotExist: []string{"/guest"}}}, true},
+		{"captured-request", &backends.ReadOnlyMountCapability{Replay: &captured.Snapshot{Requests: 1}}, true},
+		{"captured-bytes", &backends.ReadOnlyMountCapability{Replay: &captured.Snapshot{TotalBytes: 1}}, true},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			request := backends.ExecutionRequest{Seed: 7, OutputLimit: 1024, Diagnostics: true, IO: &backends.IOCapability{Profile: record.IOProfile{Name: Name}, Transcript: &backends.IOTranscriptCapability{Limit: 4096}, ReadOnlyMount: test.mount}}
+			observed, err := observedRequest(request)
+			if test.unsupported {
+				if err == nil || !strings.Contains(err.Error(), "native I/O") {
+					t.Fatalf("unsupported request error = %v", err)
+				}
+				return
+			}
+			if err != nil || observed.Seed != request.Seed || observed.OutputBytes != request.OutputLimit || observed.TranscriptBytes != 4096 || !observed.Diagnostics {
+				t.Fatalf("inert native fields changed observed request: %#v, %v", observed, err)
+			}
+		})
+	}
+	for _, transcript := range []*backends.IOTranscriptCapability{{Replay: true}, {Expected: []byte{1}}} {
+		if _, err := observedRequest(backends.ExecutionRequest{IO: &backends.IOCapability{Transcript: transcript}}); err == nil {
+			t.Fatal("native transcript replay admitted")
+		}
 	}
 }
 

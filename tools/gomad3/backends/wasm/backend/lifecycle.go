@@ -49,7 +49,14 @@ func observedRequest(request backends.ExecutionRequest) (backends.Request, error
 	}
 	converted := backends.Request{Target: request.Target, Seed: request.Seed, Environment: request.Env, Timeout: request.ExecutionTimeout, OutputBytes: request.OutputLimit, Diagnostics: request.Diagnostics}
 	if request.IO != nil {
-		if request.IO.Profile.Name != "" && request.IO.Profile.Name != Name || request.IO.ReadOnlyMount != nil || request.IO.Transcript != nil && (request.IO.Transcript.Replay || len(request.IO.Transcript.Expected) != 0) {
+		mountRequested := false
+		if mount := request.IO.ReadOnlyMount; mount != nil {
+			mountRequested = len(mount.Mappings) != 0
+			if snapshot := mount.Replay; snapshot != nil {
+				mountRequested = mountRequested || len(snapshot.Entries) != 0 || len(snapshot.NotExist) != 0 || snapshot.Requests != 0 || snapshot.TotalBytes != 0
+			}
+		}
+		if request.IO.Profile.Name != "" && request.IO.Profile.Name != Name || mountRequested || request.IO.Transcript != nil && (request.IO.Transcript.Replay || len(request.IO.Transcript.Expected) != 0) {
 			return backends.Request{}, errors.New("WASM provider does not support native I/O execution")
 		}
 		if request.IO.Transcript != nil {
