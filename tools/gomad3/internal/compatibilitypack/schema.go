@@ -121,6 +121,7 @@ func DecodePack(data []byte) (Pack, error) {
 	}
 	var decoded Pack
 	if err := canonicaljson.StrictDecode(data, &decoded); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return Pack{}, fmt.Errorf("decode compatibility pack: %w", err)
 	}
 	if err := ValidatePack(decoded); err != nil {
@@ -150,6 +151,7 @@ func ValidatePackStructure(candidate Pack) error {
 		return errors.New("compatibility pack identity is invalid")
 	}
 	if err := validateDigest(candidate.RequestSHA256); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return fmt.Errorf("compatibility pack request identity is invalid: %w", err)
 	}
 	if err := validatePackGovernance(candidate.Governance); err != nil {
@@ -166,6 +168,7 @@ func ValidatePackStructure(candidate Pack) error {
 			return errors.New("compatibility pack activations are not sorted and unique")
 		}
 		if err := validatePackModule(activation); err != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return fmt.Errorf("compatibility pack activation %d: %w", index, err)
 		}
 	}
@@ -174,11 +177,13 @@ func ValidatePackStructure(candidate Pack) error {
 			return errors.New("compatibility pack rules are not sorted and unique")
 		}
 		if err := validatePackRule(rule); err != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return fmt.Errorf("compatibility pack rule %d: %w", index, err)
 		}
 	}
 	encoded, err := canonicaljson.CanonicalJSON(candidate)
 	if err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return fmt.Errorf("encode compatibility pack: %w", err)
 	}
 	if len(encoded) > MaximumPackBytes {
@@ -189,9 +194,11 @@ func ValidatePackStructure(candidate Pack) error {
 
 func validatePackGovernance(governance PackGovernance) error {
 	if err := validateText("owner", governance.Owner, 1, 256); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return fmt.Errorf("compatibility pack governance: %w", err)
 	}
 	if err := validateText("justification", governance.Justification, 1, maximumPackStringBytes); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return fmt.Errorf("compatibility pack governance: %w", err)
 	}
 	reviewedAt, err := time.ParseInLocation(time.RFC3339, governance.ReviewedAt, time.UTC)
@@ -205,6 +212,7 @@ func validatePackGovernance(governance PackGovernance) error {
 		return errors.New("compatibility pack governance platforms are not canonical")
 	}
 	if err := validateDigest(governance.ApprovalSHA256); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return fmt.Errorf("compatibility pack governance approval is invalid: %w", err)
 	}
 	return nil
@@ -212,6 +220,7 @@ func validatePackGovernance(governance PackGovernance) error {
 
 func validatePackModule(candidate PackModule) error {
 	if err := module.Check(candidate.Path, candidate.Version); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return fmt.Errorf("module identity is invalid: %w", err)
 	}
 	if !validModuleSum(candidate.Sum) {
@@ -249,6 +258,7 @@ func validatePackAdapter(adapter PackAdapter) error {
 		"adapter prepared source set":          adapter.PreparedSourceSetSHA256,
 	} {
 		if err := validateDigest(digest); err != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return fmt.Errorf("%s identity is invalid: %w", name, err)
 		}
 	}
@@ -257,12 +267,14 @@ func validatePackAdapter(adapter PackAdapter) error {
 
 func validatePackRule(rule PackRule) error {
 	if err := module.CheckImportPath(rule.ImportPath); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return fmt.Errorf("import path is invalid: %w", err)
 	}
 	if err := validatePackModule(rule.Module); err != nil {
 		return err
 	}
 	if err := validateDigest(rule.SourceSetSHA256); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return fmt.Errorf("source-set identity is invalid: %w", err)
 	}
 	if len(rule.GoSources) == 0 || len(rule.GoSources)+len(rule.ForeignSources) > maximumPackSources {
@@ -316,6 +328,7 @@ func validatePackSource(source PackSource) error {
 		return errors.New("Go source name is invalid")
 	}
 	if err := validateDigest(source.SHA256); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return fmt.Errorf("Go source identity is invalid: %w", err)
 	}
 	return nil
@@ -326,6 +339,7 @@ func validatePackForeignSource(source PackForeignSource) error {
 		return errors.New("foreign source identity is invalid")
 	}
 	if err := validateDigest(source.SHA256); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return fmt.Errorf("foreign source identity is invalid: %w", err)
 	}
 	return nil
@@ -336,6 +350,7 @@ func validatePackLinkname(linkname PackLinkname) error {
 		return errors.New("linkname source is invalid")
 	}
 	if err := validateDigest(linkname.SHA256); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return fmt.Errorf("linkname source identity is invalid: %w", err)
 	}
 	if len(linkname.Directives) == 0 || len(linkname.Directives) > maximumPackFacts {
@@ -401,6 +416,7 @@ func validCapability(value string) bool {
 
 func sortedUniqueBy(values []string, valid func(string) bool) bool {
 	for index, value := range values {
+		//gomad:dynamic reviewed 2026-10-12 local model closure or reviewed caller-supplied callback performs memory-only work
 		if !valid(value) || index > 0 && values[index-1] >= value {
 			return false
 		}

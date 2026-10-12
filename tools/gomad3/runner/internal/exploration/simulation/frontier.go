@@ -290,6 +290,7 @@ func CommitRound(state State, round Round, results []Result) (State, RoundSegmen
 		candidate := round.Candidates[index]
 		canonical, canonicalErr := canonicalResult(result, candidate, next.Config)
 		if canonicalErr != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return State{}, RoundSegment{}, fmt.Errorf("simulation exploration result %d: %w", index, canonicalErr)
 		}
 		canonicalResults[index] = canonical
@@ -387,10 +388,12 @@ func canonicalResult(result Result, candidate Candidate, config Config) (Result,
 		return Result{}, errors.New("candidate identity does not match")
 	}
 	if _, err := result.OutcomeSHA256.Bytes(); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return Result{}, fmt.Errorf("outcome identity: %w", err)
 	}
 	if result.Failed {
 		if _, err := result.FailureSHA256.Bytes(); err != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return Result{}, fmt.Errorf("failure identity: %w", err)
 		}
 	} else if result.FailureSHA256 != "" {
@@ -400,6 +403,7 @@ func canonicalResult(result Result, candidate Candidate, config Config) (Result,
 	sortDecisions(result.Decisions)
 	for index, decision := range result.Decisions {
 		if err := validateDecision(decision); err != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return Result{}, fmt.Errorf("decision %d: %w", index, err)
 		}
 		if index != 0 && sameDecisionKey(result.Decisions[index-1], decision) {
@@ -509,6 +513,7 @@ func newCandidate(config Config, overrides []ForcedDecision, parent record.SHA25
 	sortForcedDecisions(overrides)
 	for index, override := range overrides {
 		if err := validateForcedDecision(override); err != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return Candidate{}, fmt.Errorf("forced decision %d: %w", index, err)
 		}
 		if index != 0 && sameForcedKey(overrides[index-1], override) {
@@ -533,6 +538,7 @@ func newCandidate(config Config, overrides []ForcedDecision, parent record.SHA25
 	}
 	if parent != "" {
 		if _, err := parent.Bytes(); err != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return Candidate{}, fmt.Errorf("candidate parent identity: %w", err)
 		}
 	}
@@ -575,6 +581,7 @@ func validateConfig(config Config) error {
 		}
 	}
 	if _, err := config.ExecutionSHA256.Bytes(); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return fmt.Errorf("simulation exploration execution identity: %w", err)
 	}
 	if config.ControllerSHA256 != ImplementationSHA256() {
@@ -588,6 +595,7 @@ func validateDecision(decision Decision) error {
 		return fmt.Errorf("unknown decision dimension %q", decision.Dimension)
 	}
 	if _, err := decision.SiteSHA256.Bytes(); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return fmt.Errorf("decision site identity: %w", err)
 	}
 	if len(decision.Alternatives) < 2 || uint64(len(decision.Alternatives)) > uint64(^uint32(0)) {
@@ -596,6 +604,7 @@ func validateDecision(decision Decision) error {
 	seen := make(map[record.SHA256]struct{}, len(decision.Alternatives))
 	for _, alternative := range decision.Alternatives {
 		if _, err := alternative.Bytes(); err != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return fmt.Errorf("decision alternative identity: %w", err)
 		}
 		if _, ok := seen[alternative]; ok {

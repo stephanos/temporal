@@ -13,9 +13,10 @@ import (
 	"slices"
 	"strings"
 	"testing"
+	"time"
 
 	"go.temporal.io/server/tools/gomad3/internal/archcheck"
-	"go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture"
+	"go.temporal.io/server/tools/gomad3/internal/puritycheck"
 )
 
 const modulePath = "go.temporal.io/server/tools/gomad3"
@@ -38,33 +39,36 @@ func backendImportConfig() archcheck.Config {
 }
 
 func TestBackendImportDirection(t *testing.T) {
-	var packages []archcheck.Package
-	for _, platform := range qualifiedSourcePlatforms() {
-		for _, root := range []string{"."} {
-			listed, err := architecture.List(root, "go", platform, false)
-			if err != nil {
-				t.Fatal(err)
-			}
-			if len(listed) == 0 {
-				t.Fatalf("empty import inventory for %s on %s/%s", root, platform.OS, platform.Arch)
-			}
-			for _, pkg := range listed {
-				if architecture.Within(pkg.ImportPath, modulePath+"/backends/native/toolchain/runtime/overlay") {
-					continue
-				}
-				if pkg.Error != nil || len(pkg.DepsErrors) != 0 {
-					t.Fatalf("invalid import inventory for %s on %s/%s: %+v %+v", pkg.ImportPath, platform.OS, platform.Arch, pkg.Error, pkg.DepsErrors)
-				}
-				packages = append(packages, archcheck.Package{ImportPath: pkg.ImportPath, Imports: pkg.Imports})
-			}
+	config := backendImportConfig()
+	config.PureFiles = nativePureFile
+	config.PureImports = []string{
+		"bufio", "bytes", "cmp", "compress/gzip", "container/heap", "crypto/hmac", "crypto/sha256",
+		"embed", "encoding", "encoding/base64", "encoding/binary", "encoding/hex", "encoding/json", "errors", "fmt", "hash", "io",
+		"math", "math/bits", "path", "path/filepath", "reflect", "regexp", "slices", "sort", "strconv", "golang.org/x/mod/module",
+		"strings", "sync", "sync/atomic", "syscall", "time", "unicode", "unicode/utf8",
+		modulePath + "/choice", modulePath + "/target", modulePath + "/internal/compatibilitypack",
+	}
+	platforms := qualifiedSourcePlatforms()
+	host := archcheck.Platform{OS: runtime.GOOS, Arch: runtime.GOARCH}
+	if !slices.Contains(platforms, host) {
+		platforms = append(platforms, host)
+	}
+	for _, platform := range platforms {
+		started := time.Now()
+		findings, err := archcheck.Check(".", sourceGoCommand(), platform, config)
+		elapsed := time.Since(started)
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, finding := range findings {
+			t.Errorf("%s/%s %s %s: %s", platform.OS, platform.Arch, finding.Category, finding.Path, finding.Detail)
+		}
+		t.Logf("structural checker on %s/%s in %s", platform.OS, platform.Arch, elapsed)
+		if platform == host && elapsed >= 5*time.Second {
+			t.Errorf("host structural checker took %s (limit 5s)", elapsed)
 		}
 	}
-	for _, finding := range backendImportConfig().CheckImports(packages) {
-		t.Error(finding)
-	}
-	t.Logf("checked %d package source sets across both supported platforms", len(packages))
 }
-
 func TestBackendImportFixtures(t *testing.T) {
 	const core = "example.invalid/fitness"
 	const wasm = "example.invalid/wasm"
@@ -107,7 +111,7 @@ func TestBackendImportFixtures(t *testing.T) {
 			}
 			var packages []archcheck.Package
 			for _, directory := range roots {
-				listed, err := architecture.List(directory, "go", architecture.Platform{OS: runtime.GOOS, Arch: runtime.GOARCH}, false)
+				listed, err := archcheck.List(directory, sourceGoCommand(), archcheck.Platform{OS: runtime.GOOS, Arch: runtime.GOARCH}, false)
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -171,7 +175,7 @@ func TestArchitectureInventoryFixtures(t *testing.T) {
 					t.Fatal(err)
 				}
 			}
-			_, findings, err := architecture.Discover(root, "go", architecture.Platform{OS: runtime.GOOS, Arch: runtime.GOARCH})
+			_, findings, err := archcheck.Discover(root, sourceGoCommand(), archcheck.Platform{OS: runtime.GOOS, Arch: runtime.GOARCH})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -217,72 +221,17 @@ func TestArchitecturePublicSignatureFixtures(t *testing.T) {
 					t.Fatal(err)
 				}
 			}
-			program, err := architecture.Load(root, "go", architecture.Platform{OS: runtime.GOOS, Arch: runtime.GOARCH})
+			platform := archcheck.Platform{OS: runtime.GOOS, Arch: runtime.GOARCH}
+			findings, err := puritycheck.PublicSignatures(root, sourceGoCommand(), platform, "example.invalid/outside-consumer")
 			if err != nil {
 				t.Fatal(err)
 			}
-			findings := program.PublicSignatures("example.invalid/outside-consumer")
 			if (len(findings) != 0) != fixture.leaks {
 				t.Fatalf("leaks=%t findings=%v", fixture.leaks, findings)
 			}
-			if legal := program.PublicSignatures("example.invalid/fitness/consumer"); len(legal) != 0 {
-				t.Fatalf("same-parent consumer rejected: %v", legal)
+			if legal, err := puritycheck.PublicSignatures(root, sourceGoCommand(), platform, "example.invalid/fitness/consumer"); err != nil || len(legal) != 0 {
+				t.Fatalf("same-parent consumer rejected: %v (%v)", legal, err)
 			}
-		})
-	}
-}
-
-func TestArchitectureEffectFixtures(t *testing.T) {
-	data, err := os.ReadFile("testdata/architecture/effects.json")
-	if err != nil {
-		t.Fatal(err)
-	}
-	var fixtures []struct {
-		Name, Category, Detail string
-		Files                  map[string]string
-	}
-	if err := json.Unmarshal(data, &fixtures); err != nil {
-		t.Fatal(err)
-	}
-	if len(fixtures) == 0 {
-		t.Fatal("no effect fixtures")
-	}
-	for _, fixture := range fixtures {
-		t.Run(fixture.Name, func(t *testing.T) {
-			root := t.TempDir()
-			if err := os.WriteFile(filepath.Join(root, "go.mod"), []byte("module example.invalid/fitness\n\ngo 1.27.1\n"), 0600); err != nil {
-				t.Fatal(err)
-			}
-			for name, path := range fixture.Files {
-				source, err := os.ReadFile(path)
-				if err != nil {
-					t.Fatal(err)
-				}
-				target := filepath.Join(root, name)
-				if err := os.MkdirAll(filepath.Dir(target), 0700); err != nil {
-					t.Fatal(err)
-				}
-				if err := os.WriteFile(target, source, 0600); err != nil {
-					t.Fatal(err)
-				}
-			}
-			program, err := architecture.Load(root, "go", architecture.Platform{OS: runtime.GOOS, Arch: runtime.GOARCH})
-			if err != nil {
-				t.Fatal(err)
-			}
-			findings := program.Effects()
-			if fixture.Category == "" {
-				if len(findings) != 0 {
-					t.Fatalf("pure fixture rejected: %v", findings)
-				}
-				return
-			}
-			for _, finding := range findings {
-				if finding.Category == fixture.Category && strings.Contains(finding.Detail, fixture.Detail) {
-					return
-				}
-			}
-			t.Fatalf("missing %s (%s): %v", fixture.Category, fixture.Detail, findings)
 		})
 	}
 }
@@ -326,55 +275,24 @@ func TestPackageArchitecture(t *testing.T) {
 	}
 }
 
-func TestWASIPureEnvironmentAndPublicBoundary(t *testing.T) {
-	for _, platform := range qualifiedSourcePlatforms() {
-		program, err := architecture.Load(".", "go", platform)
-		if err != nil {
-			t.Fatal(err)
-		}
-		for _, finding := range program.Effects() {
-			t.Errorf("%s/%s %s %s: %s", platform.OS, platform.Arch, finding.Category, finding.Path, finding.Detail)
-		}
-		for _, finding := range program.PublicSignatures("example.com/wasm-consumer") {
-			t.Errorf("%s/%s %s %s: %s", platform.OS, platform.Arch, finding.Category, finding.Path, finding.Detail)
-		}
-	}
-}
-
 func TestPublicPackagesDoNotExportTypeAliases(t *testing.T) {
 	root, err := os.Getwd()
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, platform := range qualifiedSourcePlatforms() {
-		program, err := architecture.Load(root, "go", platform)
+	for _, platform := range typedSourcePlatforms() {
+		findings, err := puritycheck.PublicSignatures(root, sourceGoCommand(), platform, "example.com/gomad-runner-consumer")
 		if err != nil {
 			t.Fatal(err)
 		}
-		for _, finding := range program.PublicSignatures("example.com/gomad-runner-consumer") {
+		for _, finding := range findings {
 			t.Errorf("%s/%s %s %s: %s", platform.OS, platform.Arch, finding.Category, finding.Path, finding.Detail)
 		}
 	}
 }
 
-func qualifiedSourcePlatforms() []architecture.Platform {
-	return []architecture.Platform{{OS: "darwin", Arch: "arm64"}, {OS: "linux", Arch: "amd64"}}
-}
-
-func TestPureModulesHaveNoHostEffects(t *testing.T) {
-	root, err := os.Getwd()
-	if err != nil {
-		t.Fatal(err)
-	}
-	for _, platform := range qualifiedSourcePlatforms() {
-		program, err := architecture.Load(root, "go", platform)
-		if err != nil {
-			t.Fatal(err)
-		}
-		for _, finding := range program.Effects() {
-			t.Errorf("%s/%s %s %s: %s", platform.OS, platform.Arch, finding.Category, finding.Path, finding.Detail)
-		}
-	}
+func qualifiedSourcePlatforms() []archcheck.Platform {
+	return []archcheck.Platform{{OS: "darwin", Arch: "arm64"}, {OS: "linux", Arch: "amd64"}}
 }
 
 func TestHostPackageVet(t *testing.T) {
@@ -383,20 +301,20 @@ func TestHostPackageVet(t *testing.T) {
 		t.Fatal(err)
 	}
 	platforms := qualifiedSourcePlatforms()
-	host := architecture.Platform{OS: runtime.GOOS, Arch: runtime.GOARCH}
+	host := archcheck.Platform{OS: runtime.GOOS, Arch: runtime.GOARCH}
 	if !slices.Contains(platforms, host) {
 		platforms = append(platforms, host)
 	}
 	for _, platform := range platforms {
 		t.Run(platform.OS+"/"+platform.Arch, func(t *testing.T) {
-			inventory, findings, err := architecture.Discover(root, "go", platform)
+			inventory, findings, err := archcheck.Discover(root, sourceGoCommand(), platform)
 			if err != nil {
 				t.Fatal(err)
 			}
 			if len(findings) != 0 {
 				t.Fatalf("invalid host inventory: %+v", findings)
 			}
-			arguments := []string{"vet", "-tags", "test_dep"}
+			arguments := []string{"vet", "-p", "1", "-tags", "test_dep"}
 			for _, pkg := range inventory.Packages {
 				arguments = append(arguments, pkg.ImportPath)
 			}
@@ -408,8 +326,8 @@ func TestHostPackageVet(t *testing.T) {
 				t.Fatal(err)
 			}
 			t.Logf("validated source inventory: %s", encoded)
-			command := exec.Command("go", arguments...)
-			command.Dir, command.Env = root, architecture.Environment(platform)
+			command := exec.Command(sourceGoCommand(), arguments...)
+			command.Dir, command.Env = root, archcheck.Environment(platform)
 			output, err := command.CombinedOutput()
 			if err != nil {
 				t.Fatalf("vet %d host packages: %v\n%s", len(inventory.Packages), err, output)
@@ -726,12 +644,12 @@ func listHostPackages(t *testing.T) []listedPackage {
 	}
 	var packages []listedPackage
 	for _, platform := range qualifiedSourcePlatforms() {
-		inventory, findings, err := architecture.Discover(root, "go", platform)
+		inventory, findings, err := archcheck.Discover(root, sourceGoCommand(), platform)
 		if err != nil {
 			t.Fatal(err)
 		}
 		for _, finding := range findings {
-			t.Errorf("%s %s %s: %s", finding.Platform, finding.Category, finding.Path, finding.Detail)
+			t.Errorf("%s/%s %s %s: %s", platform.OS, platform.Arch, finding.Category, finding.Path, finding.Detail)
 		}
 		for _, pkg := range inventory.Packages {
 			packages = append(packages, listedPackage{pkg.ImportPath, pkg.Imports})
@@ -740,14 +658,14 @@ func listHostPackages(t *testing.T) []listedPackage {
 	return packages
 }
 
-func packageOwner(importPath string) string { return architecture.Owner(modulePath, importPath) }
+func packageOwner(importPath string) string { return archcheck.Owner(modulePath, importPath) }
 
 func ownerMayImport(owner, importedOwner, importing, imported string) bool {
-	return architecture.OwnerMayImport(modulePath, owner, importedOwner, importing, imported)
+	return archcheck.OwnerMayImport(modulePath, owner, importedOwner, importing, imported)
 }
 
 func moduleMayImport(importing, imported string) bool {
-	return architecture.ModuleMayImport(modulePath, importing, imported)
+	return archcheck.ModuleMayImport(modulePath, importing, imported)
 }
 
 func TestPublicPackagesDoNotExportForwardingAliases(t *testing.T) {

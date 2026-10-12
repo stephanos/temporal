@@ -6,7 +6,11 @@
     "files": {
       "record/pure.go": "testdata/architecture/effects/indirect-clock/record.go.txt",
       "helper/helper.go": "testdata/architecture/effects/indirect-clock/helper.go.txt"
-    }
+    },
+    "pure_files": [
+      "record/pure.go",
+      "helper/helper.go"
+    ]
   },
   {
     "name": "environment",
@@ -15,7 +19,11 @@
     "files": {
       "record/pure.go": "testdata/architecture/effects/environment/record.go.txt",
       "helper/helper.go": "testdata/architecture/effects/environment/helper.go.txt"
-    }
+    },
+    "pure_files": [
+      "record/pure.go",
+      "helper/helper.go"
+    ]
   },
   {
     "name": "filesystem",
@@ -24,7 +32,11 @@
     "files": {
       "record/pure.go": "testdata/architecture/effects/filesystem/record.go.txt",
       "helper/helper.go": "testdata/architecture/effects/filesystem/helper.go.txt"
-    }
+    },
+    "pure_files": [
+      "record/pure.go",
+      "helper/helper.go"
+    ]
   },
   {
     "name": "process",
@@ -33,7 +45,11 @@
     "files": {
       "record/pure.go": "testdata/architecture/effects/process/record.go.txt",
       "helper/helper.go": "testdata/architecture/effects/process/helper.go.txt"
-    }
+    },
+    "pure_files": [
+      "record/pure.go",
+      "helper/helper.go"
+    ]
   },
   {
     "name": "network",
@@ -42,7 +58,11 @@
     "files": {
       "record/pure.go": "testdata/architecture/effects/network/record.go.txt",
       "helper/helper.go": "testdata/architecture/effects/network/helper.go.txt"
-    }
+    },
+    "pure_files": [
+      "record/pure.go",
+      "helper/helper.go"
+    ]
   },
   {
     "name": "timer",
@@ -51,7 +71,11 @@
     "files": {
       "record/pure.go": "testdata/architecture/effects/timer/record.go.txt",
       "helper/helper.go": "testdata/architecture/effects/timer/helper.go.txt"
-    }
+    },
+    "pure_files": [
+      "record/pure.go",
+      "helper/helper.go"
+    ]
   },
   {
     "name": "entropy",
@@ -60,7 +84,11 @@
     "files": {
       "record/pure.go": "testdata/architecture/effects/entropy/record.go.txt",
       "helper/helper.go": "testdata/architecture/effects/entropy/helper.go.txt"
-    }
+    },
+    "pure_files": [
+      "record/pure.go",
+      "helper/helper.go"
+    ]
   },
   {
     "name": "goroutine",
@@ -69,133 +97,187 @@
     "files": {
       "record/pure.go": "testdata/architecture/effects/goroutine/record.go.txt",
       "helper/helper.go": "testdata/architecture/effects/goroutine/helper.go.txt"
-    }
+    },
+    "pure_files": [
+      "record/pure.go",
+      "helper/helper.go"
+    ]
   },
   {
     "name": "stored-callback",
-    "category": "host-effect",
-    "detail": "time.Now",
+    "category": "dynamic-call",
+    "detail": "",
     "files": {
       "record/pure.go": "testdata/architecture/effects/stored-callback/record.go.txt",
-      "helper/helper.go": "testdata/architecture/effects/stored-callback/helper.go.txt"
-    }
+      "helper/helper.go": "testdata/architecture/effects/stored-callback/helper.go.txt",
+      "helper/host.go": "testdata/architecture/effects/stored-callback/host.go.txt"
+    },
+    "pure_files": [
+      "record/pure.go",
+      "helper/helper.go"
+    ]
   },
   {
     "name": "method-value",
-    "category": "host-effect",
-    "detail": "time.Now",
+    "category": "dynamic-call",
+    "detail": "",
     "files": {
       "record/pure.go": "testdata/architecture/effects/method-value/record.go.txt",
-      "helper/helper.go": "testdata/architecture/effects/method-value/helper.go.txt"
-    }
+      "helper/helper.go": "testdata/architecture/effects/method-value/helper.go.txt",
+      "helper/host.go": "testdata/architecture/effects/method-value/host.go.txt"
+    },
+    "pure_files": [
+      "record/pure.go",
+      "helper/helper.go"
+    ]
   },
   {
     "name": "generic-callback",
-    "category": "host-effect",
-    "detail": "time.Now",
+    "category": "dynamic-call",
+    "detail": "",
     "files": {
       "record/pure.go": "testdata/architecture/effects/generic-callback/record.go.txt",
-      "helper/helper.go": "testdata/architecture/effects/generic-callback/helper.go.txt"
-    }
+      "helper/helper.go": "testdata/architecture/effects/generic-callback/helper.go.txt",
+      "helper/host.go": "testdata/architecture/effects/generic-callback/host.go.txt"
+    },
+    "pure_files": [
+      "record/pure.go",
+      "helper/helper.go"
+    ]
   },
   {
     "name": "recursive-cycle",
-    "category": "host-effect",
-    "detail": "time.Now",
+    "category": "dynamic-call",
+    "detail": "",
     "files": {
       "record/pure.go": "testdata/architecture/effects/recursive-cycle/record.go.txt",
-      "helper/helper.go": "testdata/architecture/effects/recursive-cycle/helper.go.txt"
-    }
+      "helper/helper.go": "testdata/architecture/effects/recursive-cycle/helper.go.txt",
+      "helper/host.go": "testdata/architecture/effects/recursive-cycle/host.go.txt"
+    },
+    "pure_files": [
+      "record/pure.go",
+      "helper/helper.go"
+    ]
   },
   {
     "name": "nested-json",
-    "category": "host-effect",
-    "detail": "time.Now",
+    "category": "dynamic-call",
+    "detail": "",
     "files": {
       "record/pure.go": "testdata/architecture/effects/nested-json/record.go.txt",
       "helper/helper.go": "testdata/architecture/effects/nested-json/helper.go.txt"
-    }
+    },
+    "pure_files": [
+      "record/pure.go"
+    ]
   },
   {
     "name": "nested-text",
-    "category": "host-effect",
-    "detail": "os.Getenv",
+    "category": "dynamic-call",
+    "detail": "",
     "files": {
       "record/pure.go": "testdata/architecture/effects/nested-text/record.go.txt",
       "helper/helper.go": "testdata/architecture/effects/nested-text/helper.go.txt"
-    }
+    },
+    "pure_files": [
+      "record/pure.go"
+    ]
   },
   {
     "name": "json-file-writer",
-    "category": "host-effect",
-    "detail": "os.*File.Write",
+    "category": "dynamic-call",
+    "detail": "",
     "files": {
       "record/pure.go": "testdata/architecture/effects/json-file-writer/record.go.txt",
       "helper/helper.go": "testdata/architecture/effects/json-file-writer/helper.go.txt"
-    }
+    },
+    "pure_files": [
+      "record/pure.go"
+    ]
   },
   {
     "name": "json-file-reader",
-    "category": "host-effect",
-    "detail": "os.*File.Read",
+    "category": "dynamic-call",
+    "detail": "",
     "files": {
       "record/pure.go": "testdata/architecture/effects/json-file-reader/record.go.txt",
       "helper/helper.go": "testdata/architecture/effects/json-file-reader/helper.go.txt"
-    }
+    },
+    "pure_files": [
+      "record/pure.go"
+    ]
   },
   {
     "name": "fmt-stringer",
-    "category": "host-effect",
-    "detail": "time.Now",
+    "category": "dynamic-call",
+    "detail": "",
     "files": {
       "record/pure.go": "testdata/architecture/effects/fmt-stringer/record.go.txt",
       "helper/helper.go": "testdata/architecture/effects/fmt-stringer/helper.go.txt"
-    }
+    },
+    "pure_files": [
+      "record/pure.go"
+    ]
   },
   {
     "name": "fmt-formatter",
-    "category": "host-effect",
-    "detail": "time.Now",
+    "category": "dynamic-call",
+    "detail": "",
     "files": {
       "record/pure.go": "testdata/architecture/effects/fmt-formatter/record.go.txt",
       "helper/helper.go": "testdata/architecture/effects/fmt-formatter/helper.go.txt"
-    }
+    },
+    "pure_files": [
+      "record/pure.go"
+    ]
   },
   {
     "name": "fmt-gostring",
-    "category": "host-effect",
-    "detail": "time.Now",
+    "category": "dynamic-call",
+    "detail": "",
     "files": {
       "record/pure.go": "testdata/architecture/effects/fmt-gostring/record.go.txt",
       "helper/helper.go": "testdata/architecture/effects/fmt-gostring/helper.go.txt"
-    }
+    },
+    "pure_files": [
+      "record/pure.go"
+    ]
   },
   {
     "name": "unknown-callback",
-    "category": "unresolved-effect",
-    "detail": "callback",
+    "category": "dynamic-call",
+    "detail": "",
     "files": {
       "record/pure.go": "testdata/architecture/effects/unknown-callback/record.go.txt",
       "helper/helper.go": "testdata/architecture/effects/unknown-callback/helper.go.txt"
-    }
+    },
+    "pure_files": [
+      "record/pure.go"
+    ]
   },
   {
     "name": "unknown-location",
     "category": "host-effect",
-    "detail": "proven time.UTC",
+    "detail": "requires time.UTC",
     "files": {
       "record/pure.go": "testdata/architecture/effects/unknown-location/record.go.txt",
       "helper/helper.go": "testdata/architecture/effects/unknown-location/helper.go.txt"
-    }
+    },
+    "pure_files": [
+      "record/pure.go"
+    ]
   },
   {
     "name": "local-location",
     "category": "host-effect",
-    "detail": "proven time.UTC",
+    "detail": "requires time.UTC",
     "files": {
       "record/pure.go": "testdata/architecture/effects/local-location/record.go.txt",
       "helper/helper.go": "testdata/architecture/effects/local-location/helper.go.txt"
-    }
+    },
+    "pure_files": [
+      "record/pure.go"
+    ]
   },
   {
     "name": "utc-location",
@@ -204,7 +286,10 @@
     "files": {
       "record/pure.go": "testdata/architecture/effects/utc-location/record.go.txt",
       "helper/helper.go": "testdata/architecture/effects/utc-location/helper.go.txt"
-    }
+    },
+    "pure_files": [
+      "record/pure.go"
+    ]
   },
   {
     "name": "pure-callback",
@@ -213,7 +298,12 @@
     "files": {
       "record/pure.go": "testdata/architecture/effects/pure-callback/record.go.txt",
       "helper/helper.go": "testdata/architecture/effects/pure-callback/helper.go.txt"
-    }
+    },
+    "pure_files": [
+      "record/pure.go",
+      "helper/helper.go"
+    ],
+    "reviewed": true
   },
   {
     "name": "pure-recursive-cycle",
@@ -222,7 +312,12 @@
     "files": {
       "record/pure.go": "testdata/architecture/effects/pure-recursive-cycle/record.go.txt",
       "helper/helper.go": "testdata/architecture/effects/pure-recursive-cycle/helper.go.txt"
-    }
+    },
+    "pure_files": [
+      "record/pure.go",
+      "helper/helper.go"
+    ],
+    "reviewed": true
   },
   {
     "name": "pure-nested-json",
@@ -231,7 +326,11 @@
     "files": {
       "record/pure.go": "testdata/architecture/effects/pure-nested-json/record.go.txt",
       "helper/helper.go": "testdata/architecture/effects/pure-nested-json/helper.go.txt"
-    }
+    },
+    "pure_files": [
+      "record/pure.go",
+      "helper/helper.go"
+    ]
   },
   {
     "name": "pure-memory-stream",
@@ -240,7 +339,10 @@
     "files": {
       "record/pure.go": "testdata/architecture/effects/pure-memory-stream/record.go.txt",
       "helper/helper.go": "testdata/architecture/effects/pure-memory-stream/helper.go.txt"
-    }
+    },
+    "pure_files": [
+      "record/pure.go"
+    ]
   },
   {
     "name": "pure-fmt-type",
@@ -249,7 +351,10 @@
     "files": {
       "record/pure.go": "testdata/architecture/effects/pure-fmt-type/record.go.txt",
       "helper/helper.go": "testdata/architecture/effects/pure-fmt-type/helper.go.txt"
-    }
+    },
+    "pure_files": [
+      "record/pure.go"
+    ]
   },
   {
     "name": "effectful-unrelated-sibling",
@@ -257,62 +362,87 @@
     "detail": "",
     "files": {
       "record/pure.go": "testdata/architecture/effects/effectful-unrelated-sibling/record.go.txt",
-      "helper/helper.go": "testdata/architecture/effects/effectful-unrelated-sibling/helper.go.txt"
-    }
+      "helper/helper.go": "testdata/architecture/effects/effectful-unrelated-sibling/helper.go.txt",
+      "helper/pure.go": "testdata/architecture/effects/effectful-unrelated-sibling/pure.go.txt"
+    },
+    "pure_files": [
+      "record/pure.go",
+      "helper/pure.go"
+    ]
   },
   {
     "Name": "copy-callback",
-    "Category": "host-effect",
-    "Detail": "time.Now",
+    "Category": "dynamic-call",
+    "Detail": "",
     "Files": {
       "record/record.go": "testdata/architecture/effects/audit-regressions/copy-callback.go.txt",
       "internal/canonicaljson/helper.go": "testdata/architecture/effects/audit-regressions/helper.go.txt"
-    }
+    },
+    "pure_files": [
+      "record/record.go"
+    ]
   },
   {
     "Name": "insert-callback",
-    "Category": "host-effect",
-    "Detail": "time.Now",
+    "Category": "dynamic-call",
+    "Detail": "",
     "Files": {
       "record/record.go": "testdata/architecture/effects/audit-regressions/insert-callback.go.txt",
       "internal/canonicaljson/helper.go": "testdata/architecture/effects/audit-regressions/helper.go.txt"
-    }
+    },
+    "pure_files": [
+      "record/record.go"
+    ]
   },
   {
     "Name": "clone-callback",
-    "Category": "host-effect",
-    "Detail": "time.Now",
+    "Category": "dynamic-call",
+    "Detail": "",
     "Files": {
       "record/record.go": "testdata/architecture/effects/audit-regressions/clone-callback.go.txt",
       "internal/canonicaljson/helper.go": "testdata/architecture/effects/audit-regressions/helper.go.txt"
-    }
+    },
+    "pure_files": [
+      "record/record.go"
+    ]
   },
   {
     "Name": "pointer-callback",
-    "Category": "host-effect",
-    "Detail": "time.Now",
+    "Category": "dynamic-call",
+    "Detail": "",
     "Files": {
       "record/record.go": "testdata/architecture/effects/audit-regressions/pointer-callback.go.txt",
-      "internal/canonicaljson/helper.go": "testdata/architecture/effects/audit-regressions/helper.go.txt"
-    }
+      "internal/canonicaljson/helper.go": "testdata/architecture/effects/audit-regressions/helper.go.txt",
+      "internal/canonicaljson/pure.go": "testdata/architecture/effects/audit-regressions/pure.go.txt"
+    },
+    "pure_files": [
+      "record/record.go",
+      "internal/canonicaljson/pure.go"
+    ]
   },
   {
     "Name": "range-iterator",
     "Category": "host-effect",
-    "Detail": "time.Now",
+    "Detail": ".Iter",
     "Files": {
       "record/record.go": "testdata/architecture/effects/audit-regressions/range-iterator.go.txt",
       "internal/canonicaljson/helper.go": "testdata/architecture/effects/audit-regressions/helper.go.txt"
-    }
+    },
+    "pure_files": [
+      "record/record.go"
+    ]
   },
   {
     "Name": "slice-pointer-json",
-    "Category": "host-effect",
-    "Detail": "time.Now",
+    "Category": "dynamic-call",
+    "Detail": "",
     "Files": {
       "record/record.go": "testdata/architecture/effects/audit-regressions/slice-pointer-json.go.txt",
       "internal/canonicaljson/helper.go": "testdata/architecture/effects/audit-regressions/helper.go.txt"
-    }
+    },
+    "pure_files": [
+      "record/record.go"
+    ]
   },
   {
     "Name": "blank-import-init",
@@ -321,6 +451,10 @@
     "Files": {
       "record/record.go": "testdata/architecture/effects/audit-regressions/blank-import-init.go.txt",
       "internal/canonicaljson/helper.go": "testdata/architecture/effects/audit-regressions/initializer.go.txt"
-    }
+    },
+    "pure_files": [
+      "record/record.go",
+      "internal/canonicaljson/helper.go"
+    ]
   }
 ]

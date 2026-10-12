@@ -63,12 +63,14 @@ func CandidateForArtifact(profile record.SimulationProfile, planBytes []byte, ex
 			}
 			prefix, prefixErr := choice.BuildForcedRankPrefix(*exactTape, override.Ordinal, override.Selected)
 			if prefixErr != nil {
+				//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 				return simulationengine.Config{}, simulationengine.Candidate{}, fmt.Errorf("reconstruct runtime control at ordinal %d: %w", override.Ordinal, prefixErr)
 			}
 			forced.Control = prefix.Bytes
 		}
 		forced, err = simulationengine.CanonicalForcedDecision(forced)
 		if err != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return simulationengine.Config{}, simulationengine.Candidate{}, fmt.Errorf("reconstruct forced decision %d: %w", index, err)
 		}
 		overrides[index] = forced
@@ -125,6 +127,7 @@ func PlanForCandidate(config simulationengine.Config, candidate simulationengine
 	}
 	encoded, err := json.Marshal(value)
 	if err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return nil, fmt.Errorf("encode simulation exploration plan: %w", err)
 	}
 	if len(encoded) == 0 || len(encoded) > maximumPlanBytes {
@@ -139,10 +142,12 @@ func validateRetainedPlan(encoded []byte) (plan, error) {
 	}
 	var decoded plan
 	if err := canonicaljson.StrictDecode(encoded, &decoded); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return plan{}, fmt.Errorf("decode simulation exploration plan: %w", err)
 	}
 	reencoded, err := json.Marshal(decoded)
 	if err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return plan{}, fmt.Errorf("encode simulation exploration plan: %w", err)
 	}
 	if string(reencoded) != string(encoded) {
@@ -166,6 +171,7 @@ func validateRetainedPlan(encoded []byte) (plan, error) {
 		}
 		for _, identity := range []record.SHA256{override.SiteSHA256, override.AlternativeSetSHA256, override.SelectedSHA256, override.Identity} {
 			if _, err := identity.Bytes(); err != nil {
+				//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 				return plan{}, fmt.Errorf("simulation exploration plan override %d: %w", index, err)
 			}
 		}
@@ -224,6 +230,7 @@ func ExecutionForCandidate(config simulationengine.Config, candidate simulatione
 		tape := choice.ReplayPlan{Identity: identity, Bytes: append([]byte(nil), override.Control...), SHA256: sha256.Sum256(override.Control)}
 		validated, err := choice.ValidatePrefixReplayPlan(tape, identity)
 		if err != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return CandidateExecution{}, fmt.Errorf("validate runtime control at ordinal %d: %w", override.Ordinal, err)
 		}
 		if override.Ordinal >= uint64(len(validated.Decisions)) || len(validated.Decisions) != int(override.Ordinal)+1 {

@@ -14,6 +14,7 @@ func NextRound[C any](queue []C, parallel int, stopped bool, clone func(C) C) ([
 	count := min(parallel, len(queue))
 	round := make([]C, count)
 	for index := range round {
+		//gomad:dynamic reviewed 2026-10-12 exploration callers supply memory-only clone and byte-size callbacks
 		round[index] = clone(queue[index])
 	}
 	return round, true
@@ -38,6 +39,7 @@ func ContainsIdentity(values []record.SHA256, value record.SHA256) bool {
 func SumBytes[C any](values []C, size func(C) (uint64, error)) (uint64, error) {
 	var total uint64
 	for _, value := range values {
+		//gomad:dynamic reviewed 2026-10-12 exploration callers supply memory-only clone and byte-size callbacks
 		bytes, err := size(value)
 		if err != nil {
 			return 0, err

@@ -89,6 +89,7 @@ func evaluateCapabilityPolicy(policy capabilitypolicy.Policy, packages []target.
 	}
 	evaluation, err := capabilitypolicy.Evaluate(policy, policyPackages)
 	if err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return capabilitypolicy.Evaluation{}, fmt.Errorf("select target compatibility packs: %w", err)
 	}
 	return evaluation, nil
@@ -150,10 +151,12 @@ func validateCapabilityPackageStructure(packages []target.CapabilityPackage, ind
 		return fmt.Errorf("target capability closure package %s is not canonical", pkg.ImportPath)
 	}
 	if err := validateCapabilityModule(pkg.Module); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return fmt.Errorf("target capability closure package %s: %w", pkg.ImportPath, err)
 	}
 	for _, source := range pkg.Sources {
 		if err := validateCapabilitySource(source); err != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return fmt.Errorf("target capability closure package %s: %w", pkg.ImportPath, err)
 		}
 	}

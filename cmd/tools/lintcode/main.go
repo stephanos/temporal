@@ -253,7 +253,7 @@ func gitPaths(ctx context.Context, root string, args ...string) ([]string, error
 
 func loadOwnership(root string) (ownership, error) {
 	policy := ownership{modules: map[string]bool{}, overlays: map[string]bool{}, hostPackages: map[string]bool{}}
-	path := filepath.Join(root, gomadModule, "internal/gomadtool/architecture/architecture.go")
+	path := filepath.Join(root, gomadModule, "internal/archcheck/inventory.go")
 	file, err := parser.ParseFile(token.NewFileSet(), path, nil, 0)
 	if err != nil {
 		return policy, fmt.Errorf("read Gomad source classifications: %w", err)

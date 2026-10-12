@@ -96,13 +96,6 @@ func NewSession(spec SessionSpec) (_ *Session, retErr error) {
 	return session, nil
 }
 
-func ValidateTraceLimit(limit uint64) error {
-	if limit < MinimumTraceBytes || limit > MaximumTraceBytes {
-		return fmt.Errorf("invalid choice trace limit %d", limit)
-	}
-	return nil
-}
-
 func ValidateController(mode Mode, replayPlanBytes uint64) error {
 	if mode != ModeRecord && mode != ModeReplay && mode != ModePrefix {
 		return errors.New("choice controller mode and tape are inconsistent")
@@ -111,21 +104,6 @@ func ValidateController(mode Mode, replayPlanBytes uint64) error {
 		return errors.New("choice controller mode and tape are inconsistent")
 	}
 	return nil
-}
-
-func TraceBytes(records uint64) (uint64, error) {
-	payload, err := TracePayloadBytes(records)
-	if err != nil {
-		return 0, err
-	}
-	return traceHeaderBytes + payload, nil
-}
-
-func TracePayloadBytes(records uint64) (uint64, error) {
-	if records > (MaximumTraceBytes-traceHeaderBytes)/traceRecordBytes {
-		return 0, errors.New("choice trace record count exceeds its bound")
-	}
-	return records * traceRecordBytes, nil
 }
 
 func (session *Session) Files() SessionFiles {

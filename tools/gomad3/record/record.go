@@ -41,9 +41,13 @@ func (identity SHA256) Bytes() ([sha256.Size]byte, error) {
 
 func DomainHash(domain string, data []byte) SHA256 {
 	hasher := sha256.New()
+	//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
 	_, _ = hasher.Write([]byte(domain))
+	//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
 	_, _ = hasher.Write([]byte{0})
+	//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
 	_, _ = hasher.Write(data)
+	//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
 	return SHA256("sha256:" + hex.EncodeToString(hasher.Sum(nil)))
 }
 
@@ -90,11 +94,13 @@ func FinalizeExecutionRecord(input ExecutionRecord) (ExecutionRecord, []byte, er
 	}
 	failureProjectionBytes, err := canonicaljson.CanonicalJSON(failureProjectionOf(input))
 	if err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return ExecutionRecord{}, nil, fmt.Errorf("encode failure projection: %w", err)
 	}
 	input.Outcome.FailureSignature = DomainHash("gomad3-failure-signature-v1", failureProjectionBytes)
 	recordProjectionBytes, err := canonicaljson.CanonicalJSON(recordProjectionOf(input))
 	if err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return ExecutionRecord{}, nil, fmt.Errorf("encode record projection: %w", err)
 	}
 	input.RecordHash = DomainHash("gomad3-execution-record-v1", recordProjectionBytes)
@@ -103,6 +109,7 @@ func FinalizeExecutionRecord(input ExecutionRecord) (ExecutionRecord, []byte, er
 	}
 	encoded, err := canonicaljson.CanonicalJSON(input)
 	if err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return ExecutionRecord{}, nil, fmt.Errorf("encode manifest: %w", err)
 	}
 	return input, encoded, nil

@@ -151,6 +151,7 @@ func New(config Config) (State, error) {
 		return State{}, errors.New("choice exploration requires positive parallel, execution, depth, and byte bounds")
 	}
 	if err := choice.ValidateExecutionIdentity(config.Execution); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return State{}, fmt.Errorf("choice exploration execution identity: %w", err)
 	}
 	if config.ControllerSHA256 != ImplementationSHA256() {
@@ -207,6 +208,7 @@ func (candidate Candidate) PrefixReplayPlan(identity choice.ExecutionIdentity) (
 	}
 	digest, err := candidate.PrefixSHA256.Bytes()
 	if err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return choice.ReplayPlan{}, fmt.Errorf("decode choice candidate prefix identity: %w", err)
 	}
 	tape := choice.ReplayPlan{Identity: identity, Bytes: append([]byte(nil), candidate.PrefixBytes...), SHA256: digest}
@@ -243,6 +245,7 @@ func CommitRound(state State, round Round, results []Result) (State, RoundSegmen
 				return State{}, RoundSegment{}, fmt.Errorf("choice exploration result %d divergence contains outcome evidence", index)
 			}
 			if err := ValidateCandidateDivergence(candidate, state.Config.Execution, *result.Divergence); err != nil {
+				//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 				return State{}, RoundSegment{}, fmt.Errorf("choice exploration result %d divergence: %w", index, err)
 			}
 			divergence := choice.ProjectDivergenceEvidence(*result.Divergence)
@@ -254,11 +257,13 @@ func CommitRound(state State, round Round, results []Result) (State, RoundSegmen
 			continue
 		}
 		if _, err := result.OutcomeSHA256.Bytes(); err != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return State{}, RoundSegment{}, fmt.Errorf("choice exploration result %d outcome: %w", index, err)
 		}
 		next.Outcomes = insertIdentity(next.Outcomes, result.OutcomeSHA256)
 		if result.Failed {
 			if _, err := result.FailureSHA256.Bytes(); err != nil {
+				//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 				return State{}, RoundSegment{}, fmt.Errorf("choice exploration result %d failure signature: %w", index, err)
 			}
 			next.FailureSignatures = insertIdentity(next.FailureSignatures, result.FailureSHA256)
@@ -277,9 +282,11 @@ func CommitRound(state State, round Round, results []Result) (State, RoundSegmen
 		if result.Trace != nil {
 			trace, validateErr := choice.ValidateReplayPlan(*result.Trace, next.Config.Execution)
 			if validateErr != nil {
+				//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 				return State{}, RoundSegment{}, fmt.Errorf("validate choice exploration result %d trace: %w", index, validateErr)
 			}
 			if validateErr := validateCandidateTrace(candidate, trace, next.Config.Execution); validateErr != nil {
+				//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 				return State{}, RoundSegment{}, fmt.Errorf("validate choice exploration result %d prefix: %w", index, validateErr)
 			}
 			segmentResult.TraceSHA256 = record.SHA256FromSum(trace.SHA256)
@@ -428,6 +435,7 @@ func expandCandidate(state *State, parent Candidate, trace choice.ReplayPlan, ch
 			}
 			prefix, err := choice.BuildRankPrefix(trace, uint64(ordinal), rank)
 			if err != nil {
+				//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 				return fmt.Errorf("build choice exploration child at decision %d rank %d: %w", ordinal, rank, err)
 			}
 			child, err := newCandidate(state.Config, &prefix, parent.SHA256, record.SHA256FromSum(trace.SourceTraceSHA256))

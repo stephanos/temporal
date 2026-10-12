@@ -935,7 +935,7 @@ produces its Make, Go, and human-guide consumers; validation requires the
 allowlists to equal the actual patch and overlay tree rather than merely
 containing them.
 
-`internal/gomadtool/architecture` inventories actual host packages, source
+`internal/archcheck` inventories actual host packages, source
 files, and nested modules for the `darwin/arm64` and `linux/amd64` source sets
 (`MAINTENANCE.GOVERNANCE`, `VERIFICATION.TRACEABILITY`). Explicit overlay,
 fixture, and module exclusions are checked for stale entries. Ownership and
@@ -949,26 +949,35 @@ import permissions. Private storage and accessible builtin-only definitions do
 not acquire a blanket alias prohibition. Reports expose detached public values
 instead of requiring callers to name private policy or execution types.
 
-Purity checks target World, World mailbox, Record, exploration, capability
-policy, the seed `controller.go`, `capability_evaluation.go`, and
-`simulation_progress.go`. Callable effectful siblings in mixed packages retain
-their separate owners. Reachable host effects, goroutines, callbacks, and
-unresolved bindings are checked through typed call/provenance analysis and
-bounded recursive summaries; exact standard-library memory summaries fail when
-their source identities change. This bounded analysis and its negative fixtures
-do not establish general checker soundness for arbitrary future Go programs.
+`internal/puritycheck` checks every declaration in the original World, mailbox,
+Record, exploration, capability-policy, controller, capability-evaluation and
+simulation-progress pure files. An exact reviewed dependency-file inventory
+makes their formerly implicit pure helpers explicit; host-loading siblings stay
+outside it. The WASM subtree owns its separate pure-file and public-boundary
+tests while using the same folded module inventory.
 
-Imported nonstandard package variable initializers and every `init` declaration
-are analyzed, including blank and transitive imports and mixed-package siblings.
-Standard-library startup has a separate source-pinned initialization boundary.
-Actual Go `Standard` metadata and hashes of every immediate `.go` file in each
-imported standard package must match `startup_sources.go`. This pins startup
-before the model runs; it does not declare standard functions pure or suppress
-calls from application/dependency initializers. Lazy local-timezone loading is
-an operational effect, so explicit UTC projections avoid it. Missing or changed
-startup identities remain findings. Both-platform source analysis and host vet
-protect these structural boundaries; patched-runtime and native qualification
-remain separate required gates.
+Typing uses compiler export data from actual `go list` metadata and parses only
+module sources. A Go-minor-versioned stdlib table admits reviewed memory APIs;
+it never reads or hashes standard-library sources. Local-timezone APIs are host
+effects: parsing and Date construction require literal `time.UTC`.
+Concrete `time.Time` JSON/format callbacks are conservatively rejected even
+when their runtime value is UTC; the checker does not infer receiver provenance.
+The only third-party boundary is `golang.org/x/mod/module.Check` and `CheckImportPath` at
+the reviewed version, closed source inventories and exact validator-source
+hashes. This is a callable boundary, not a package-startup purity claim:
+lazyregexp's reviewed initialization reads `os.Args` to choose regexp
+compilation timing, without changing either admitted validator's result.
+
+Static calls outside the pure set and goroutines are findings even with review
+marks. Function values, callback boundaries and interfaces lacking exclusively
+pure concrete implementations require a same-line or previous-line
+`//gomad:dynamic reviewed YYYY-MM-DD reason` mark. Unused or malformed marks
+fail; marks older than one year warn. These explicit reviews replace recursive
+ownership/provenance inference, not runtime isolation or general checker
+soundness. Pure-file imports and initialization receive structural checks on
+both qualified source platforms. Typed checks default to the host; CI or
+`GOMAD3_ARCH_ALL_PLATFORMS=1` also checks both qualified platforms. Host vet and
+patched-runtime/native qualification remain separate gates.
 
 `pin-impact` compares complete candidate and baseline module identities
 against adapter, compatibility-pack, interception, and clock-inventory pins.

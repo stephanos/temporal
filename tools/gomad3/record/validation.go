@@ -32,13 +32,16 @@ func validateManifest(manifest ExecutionRecord, requireIdentities bool) error {
 		return fmt.Errorf("manifest creation time and batch ID are required")
 	}
 	if _, err := time.ParseInLocation(time.RFC3339Nano, manifest.CreatedAt, time.UTC); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return fmt.Errorf("invalid manifest creation time: %w", err)
 	}
 	if requireIdentities {
 		if err := validateSHA256(manifest.RecordHash); err != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return fmt.Errorf("invalid record hash: %w", err)
 		}
 		if err := validateSHA256(manifest.Outcome.FailureSignature); err != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return fmt.Errorf("invalid failure signature: %w", err)
 		}
 	}
@@ -94,17 +97,20 @@ func validateManifest(manifest ExecutionRecord, requireIdentities bool) error {
 		return err
 	}
 	if err := validateFileReference(files, manifest.Target.File, manifest.Target.SHA256, manifest.Target.Size); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return fmt.Errorf("target file: %w", err)
 	}
 	if manifest.Target.CapabilityManifest != nil {
 		capabilities := manifest.Target.CapabilityManifest
 		if err := validateFileReference(files, capabilities.File, capabilities.SHA256, capabilities.Bytes); err != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return fmt.Errorf("target capability manifest file: %w", err)
 		}
 	}
 	if metadata := manifest.Target.Backend; metadata != nil {
 		for _, reference := range BackendReferences(*metadata) {
 			if err := validateFileReference(files, reference.File, reference.SHA256, reference.Bytes); err != nil {
+				//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 				return fmt.Errorf("backend payload file: %w", err)
 			}
 		}
@@ -118,6 +124,7 @@ func validateManifest(manifest ExecutionRecord, requireIdentities bool) error {
 	if manifest.IOProfile.Transcript != nil {
 		transcript := manifest.IOProfile.Transcript
 		if err := validateFileReference(files, transcript.File, transcript.SHA256, transcript.Bytes); err != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return fmt.Errorf("I/O transcript file: %w", err)
 		}
 		if transcript.Bytes > manifest.Limits.IOTranscriptBytes {
@@ -127,40 +134,49 @@ func validateManifest(manifest ExecutionRecord, requireIdentities bool) error {
 	if manifest.IOProfile.ReadOnlyMounts != nil {
 		mounts := manifest.IOProfile.ReadOnlyMounts
 		if err := validateFileReference(files, mounts.File, mounts.SHA256, mounts.Bytes); err != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return fmt.Errorf("read-only mount descriptor file: %w", err)
 		}
 	}
 	if manifest.ChoiceProfile != nil {
 		trace := manifest.ChoiceProfile.Trace
 		if err := validateFileReference(files, trace.File, trace.SHA256, trace.Bytes); err != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return fmt.Errorf("choice trace file: %w", err)
 		}
 	}
 	if manifest.SimulationProfile != nil {
 		profile := manifest.SimulationProfile
 		if err := validateFileReference(files, profile.Plan.File, profile.Plan.SHA256, profile.Plan.Bytes); err != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return fmt.Errorf("simulation plan file: %w", err)
 		}
 		if err := validateFileReference(files, profile.Record.File, profile.Record.SHA256, profile.Record.Bytes); err != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return fmt.Errorf("simulation record file: %w", err)
 		}
 	}
 	if err := validateFileReference(files, manifest.World.Initial.File, manifest.World.Initial.RawSHA256, files[manifest.World.Initial.File].Size); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return fmt.Errorf("initial World file: %w", err)
 	}
 	if err := validateFileReference(files, manifest.World.Transitions.File, manifest.World.Transitions.RawSHA256, files[manifest.World.Transitions.File].Size); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return fmt.Errorf("World transitions file: %w", err)
 	}
 	if files[manifest.World.Transitions.File].Size > manifest.Limits.WorldTransitionBytes {
 		return fmt.Errorf("World transitions file exceeds the recorded limit")
 	}
 	if err := validateFileReference(files, manifest.World.Final.File, manifest.World.Final.RawSHA256, files[manifest.World.Final.File].Size); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return fmt.Errorf("final World file: %w", err)
 	}
 	if _, err := time.ParseInLocation(time.RFC3339Nano, manifest.Host.StartedAt, time.UTC); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return fmt.Errorf("invalid host start time: %w", err)
 	}
 	if _, err := time.ParseInLocation(time.RFC3339Nano, manifest.Host.FinishedAt, time.UTC); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return fmt.Errorf("invalid host finish time: %w", err)
 	}
 	return nil
@@ -206,6 +222,7 @@ func validateMinimizationIdentity(minimization Minimization, manifest ExecutionR
 		minimization.OriginalCandidateSHA256, minimization.FinalCandidateSHA256, minimization.Predicate.FailureSignature,
 	} {
 		if err := validateSHA256(identity); err != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return fmt.Errorf("invalid minimization identity: %w", err)
 		}
 	}
@@ -286,6 +303,7 @@ func validateChoiceProfile(profile *ChoiceProfile, limit Uint64String, artifactK
 	switch trace.TerminalState {
 	case "complete":
 		if err := validateSHA256(trace.TapeSHA256); err != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return fmt.Errorf("invalid choice tape hash: %w", err)
 		}
 		if trace.Decisions > trace.Records || trace.BranchingRecords > trace.Decisions {
@@ -302,9 +320,11 @@ func validateChoiceProfile(profile *ChoiceProfile, limit Uint64String, artifactK
 		return errors.New("invalid choice trace terminal state")
 	}
 	if err := validateSHA256(profile.ImplementationSHA256); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return fmt.Errorf("invalid choice profile implementation hash: %w", err)
 	}
 	if err := validateSHA256(trace.SHA256); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return fmt.Errorf("invalid choice trace hash: %w", err)
 	}
 	if limit < choiceTraceHeaderBytes+recordBytes || trace.Limit != limit || trace.Bytes > limit-choiceTraceHeaderBytes || trace.Bytes%recordBytes != 0 || trace.Records != trace.Bytes/recordBytes || trace.BranchingRecords > trace.Records {
@@ -335,11 +355,13 @@ func validateSimulationProfile(replayMode string, profile *SimulationProfile) er
 		{name: "record", value: profile.Record.SHA256},
 	} {
 		if err := validateSHA256(identity.value); err != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return fmt.Errorf("invalid simulation %s hash: %w", identity.name, err)
 		}
 	}
 	if profile.FailureSHA256 != "" {
 		if err := validateSHA256(profile.FailureSHA256); err != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return fmt.Errorf("invalid simulation failure hash: %w", err)
 		}
 	}
@@ -354,9 +376,11 @@ func validateIOProfile(profile IOProfile) error {
 		return errors.New("I/O profile identity is required")
 	}
 	if err := validateSHA256(profile.ImplementationSHA256); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return fmt.Errorf("invalid I/O profile implementation hash: %w", err)
 	}
 	if err := validateSHA256(profile.InventorySHA256); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return fmt.Errorf("invalid I/O profile inventory hash: %w", err)
 	}
 	if HashBytes([]byte(profile.Inventory)) != profile.InventorySHA256 {
@@ -364,6 +388,7 @@ func validateIOProfile(profile IOProfile) error {
 	}
 	var decoded any
 	if err := canonicaljson.DecodeCanonicalJSON([]byte(profile.Inventory), &decoded); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return fmt.Errorf("decode I/O profile inventory: %w", err)
 	}
 	if profile.Transcript != nil {
@@ -371,6 +396,7 @@ func validateIOProfile(profile IOProfile) error {
 			return errors.New("invalid I/O transcript identity")
 		}
 		if err := validateSHA256(profile.Transcript.SHA256); err != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return fmt.Errorf("invalid I/O transcript hash: %w", err)
 		}
 	}
@@ -379,6 +405,7 @@ func validateIOProfile(profile IOProfile) error {
 			return errors.New("invalid read-only mount identity")
 		}
 		if err := validateSHA256(mounts.SHA256); err != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return fmt.Errorf("invalid read-only mount descriptor hash: %w", err)
 		}
 		if mounts.Bytes == 0 || mounts.Limits.PathBytes == 0 || mounts.Limits.Requests == 0 || mounts.Limits.Files == 0 || mounts.Limits.DirectoryEntries == 0 || mounts.Limits.SingleFileBytes == 0 || mounts.Limits.TotalBytes == 0 || mounts.Limits.SingleFileBytes > mounts.Limits.TotalBytes || mounts.TotalBytes > mounts.Limits.TotalBytes {
@@ -432,6 +459,7 @@ func validateTarget(target Target) error {
 		return fmt.Errorf("incomplete target identity")
 	}
 	if err := validateSHA256(target.SHA256); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return fmt.Errorf("invalid target hash: %w", err)
 	}
 	if len(target.Argv) == 0 || target.Argv[0] != "gomad3-target" {
@@ -456,6 +484,7 @@ func validateTargetCapability(target Target) error {
 		}
 		if manifest.Schema == "gomad3.live-capability-manifest/v2" {
 			if err := validateSHA256(manifest.GuardImplementationSHA256); err != nil {
+				//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 				return fmt.Errorf("invalid target capability guard implementation hash: %w", err)
 			}
 		}
@@ -468,6 +497,7 @@ func validateTargetCapability(target Target) error {
 			return errors.New("guarded target capability manifest identity is incomplete")
 		}
 		if err := validateSHA256(manifest.GuardImplementationSHA256); err != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return fmt.Errorf("invalid target capability guard implementation hash: %w", err)
 		}
 		if err := validateTargetCapabilityManifest(*manifest); err != nil {
@@ -481,12 +511,15 @@ func validateTargetCapability(target Target) error {
 
 func validateTargetCapabilityManifest(manifest TargetCapabilityManifest) error {
 	if err := validateSHA256(manifest.SHA256); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return fmt.Errorf("invalid target capability manifest hash: %w", err)
 	}
 	if err := validateSHA256(manifest.ProducerImplementationSHA256); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return fmt.Errorf("invalid target capability producer hash: %w", err)
 	}
 	if err := validateSHA256(manifest.CapabilityUniverseSHA256); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return fmt.Errorf("invalid target capability universe hash: %w", err)
 	}
 	return nil
@@ -617,9 +650,11 @@ func validateWorld(world World) error {
 			return fmt.Errorf("incomplete %s World payload", name)
 		}
 		if err := validateSHA256(payload.RawSHA256); err != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return fmt.Errorf("invalid %s World raw hash: %w", name, err)
 		}
 		if err := validateSHA256(payload.SemanticDigest); err != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return fmt.Errorf("invalid %s World semantic digest: %w", name, err)
 		}
 	}
@@ -627,9 +662,11 @@ func validateWorld(world World) error {
 		return fmt.Errorf("incomplete World transitions payload")
 	}
 	if err := validateSHA256(world.Transitions.RawSHA256); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return fmt.Errorf("invalid World transitions raw hash: %w", err)
 	}
 	if err := validateSHA256(world.Transitions.TranscriptDigest); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return fmt.Errorf("invalid World transcript digest: %w", err)
 	}
 	previous := ""
@@ -638,9 +675,11 @@ func validateWorld(world World) error {
 			return fmt.Errorf("World adapter schemas must be nonempty, sorted, and unique")
 		}
 		if err := validateSHA256(adapter.InitialDigest); err != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return fmt.Errorf("invalid World adapter initial digest: %w", err)
 		}
 		if err := validateSHA256(adapter.FinalDigest); err != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return fmt.Errorf("invalid World adapter final digest: %w", err)
 		}
 		previous = adapter.Schema
@@ -687,6 +726,7 @@ func validateFiles(files []File) (map[string]File, error) {
 			return nil, fmt.Errorf("invalid file mode %q for %s", file.Mode, file.Path)
 		}
 		if err := validateSHA256(file.SHA256); err != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return nil, fmt.Errorf("invalid file hash for %s: %w", file.Path, err)
 		}
 		indexed[file.Path] = file
@@ -707,9 +747,11 @@ func validateFileReference(files map[string]File, fileName string, hash SHA256, 
 
 func validateStream(files map[string]File, name string, stream Stream) error {
 	if err := validateSHA256(stream.RetainedSHA256); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return fmt.Errorf("invalid %s retained hash: %w", name, err)
 	}
 	if err := validateSHA256(stream.FullSHA256); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return fmt.Errorf("invalid %s full hash: %w", name, err)
 	}
 	if uint64(stream.RetainedBytes) > uint64(stream.TotalBytes) || uint64(stream.DiscardedBytes) != uint64(stream.TotalBytes)-uint64(stream.RetainedBytes) {

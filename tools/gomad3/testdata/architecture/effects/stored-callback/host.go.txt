@@ -1,0 +1,3 @@
+package helper
+import "time"
+func Clock(){_ = time.Now()}

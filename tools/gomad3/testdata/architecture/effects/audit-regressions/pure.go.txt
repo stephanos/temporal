@@ -1,0 +1,2 @@
+package helper
+func Set(p *func()){*p = Dirty}

@@ -2,6 +2,7 @@ package archcheck
 
 import (
 	"fmt"
+	"maps"
 	"slices"
 	"strings"
 )
@@ -16,18 +17,22 @@ type Exception struct {
 }
 
 type Config struct {
-	Module, WASMModule string
-	NativePackages     []string
-	Exceptions         []Exception
-	WASMImports        []string
+	Module, WASMModule                       string
+	NativePackages, WASMImports, PureImports []string
+	Exceptions                               []Exception
+	Owners                                   map[string][]string
+	OwnerEdges                               map[string][]string
+	ModuleEdges                              []ModuleEdge
+	PureFiles                                func(string) bool
 }
+
+type ModuleEdge struct{ From, To string }
 
 func (config Config) CheckImports(packages []Package) []string {
 	type edge struct{ from, to string }
 	findings := map[string]bool{}
 	add := func(format string, values ...any) { findings[fmt.Sprintf(format, values...)] = true }
 	exceptions := map[edge]string{}
-	used := map[edge]bool{}
 	for _, exception := range config.Exceptions {
 		key := edge{exception.From, exception.To}
 		if !exactPackage(exception.From) || !exactPackage(exception.To) {
@@ -44,7 +49,6 @@ func (config Config) CheckImports(packages []Package) []string {
 		exceptions[key] = exception.RemovalTask
 	}
 	wasmAllowed := map[string]bool{}
-	wasmUsed := map[string]bool{}
 	for _, imported := range config.WASMImports {
 		if !exactPackage(imported) {
 			add("WASM import entry %s must name an exact package", imported)
@@ -54,7 +58,7 @@ func (config Config) CheckImports(packages []Package) []string {
 			add("WASM import entry %s must name a public Gomad package", imported)
 			continue
 		}
-		if wasmAllowed[imported] {
+		if _, exists := wasmAllowed[imported]; exists {
 			add("duplicate WASM import entry %s", imported)
 		}
 		wasmAllowed[imported] = true
@@ -69,10 +73,10 @@ func (config Config) CheckImports(packages []Package) []string {
 				continue
 			}
 			if within(pkg.ImportPath, config.WASMModule) && within(imported, config.Module) {
-				if !wasmAllowed[imported] {
+				if _, allowed := wasmAllowed[imported]; !allowed {
 					add("WASM package %s imports %s outside its public import allowlist", pkg.ImportPath, imported)
 				} else {
-					wasmUsed[imported] = true
+					wasmAllowed[imported] = false
 				}
 			}
 			importedOwner := config.backend(imported)
@@ -81,28 +85,23 @@ func (config Config) CheckImports(packages []Package) []string {
 			}
 			key := edge{pkg.ImportPath, imported}
 			if _, allowed := exceptions[key]; allowed {
-				used[key] = true
+				exceptions[key] = ""
 			} else {
 				add("forbidden backend import %s -> %s", pkg.ImportPath, imported)
 			}
 		}
 	}
 	for key, removalTask := range exceptions {
-		if !used[key] {
+		if removalTask != "" {
 			add("stale exception %s -> %s (remove in %s)", key.from, key.to, removalTask)
 		}
 	}
-	for imported := range wasmAllowed {
-		if !wasmUsed[imported] {
+	for imported, unused := range wasmAllowed {
+		if unused {
 			add("stale WASM import entry %s", imported)
 		}
 	}
-	result := make([]string, 0, len(findings))
-	for finding := range findings {
-		result = append(result, finding)
-	}
-	slices.Sort(result)
-	return result
+	return slices.Sorted(maps.Keys(findings))
 }
 
 func (config Config) backend(path string) string {
@@ -123,10 +122,8 @@ func (config Config) backend(path string) string {
 		name, _, _ := strings.Cut(rest, "/")
 		return "backend:" + name
 	}
-	for _, native := range config.NativePackages {
-		if relative == native {
-			return "backend:native"
-		}
+	if slices.Contains(config.NativePackages, relative) {
+		return "backend:native"
 	}
 	return ""
 }

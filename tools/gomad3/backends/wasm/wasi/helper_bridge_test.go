@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"reflect"
+	"slices"
 	"strings"
 	"testing"
 
@@ -29,6 +31,67 @@ func helperBridgeModel(t *testing.T, e *Environment) helperCallbackModel {
 func helperBridgeCall(id uint64, op, input string) validatedCall {
 	raw := json.RawMessage(input)
 	return validatedCall{call: Call{Type: "call", ID: id, Op: op, Input: raw}, input: &validatedInput{data: raw}}
+}
+
+func TestHostileHelperCallbackReplyLeavesEnvironmentByteIdentical(t *testing.T) {
+	e := newTestEnvironment(t, testConfig())
+	e.helperOwned = true
+	e.nextCall, e.now, e.advances, e.transcriptLength = 2, 20, 2, 9
+	e.transcript, e.stdout, e.stderr = []byte("retained"), []byte("stdout"), []byte("stderr")
+	e.runtime = &runtimeSession{cursor: 3, diagnostics: []byte("diagnostics")}
+	before := helperEnvironmentBytes(reflect.ValueOf(e))
+	var wire bytes.Buffer
+	sink := frameSink{environment: e, input: &wire, started: &Started{}}
+	err := sink.frame([]byte(`{"type":"call","id":3,"op":"fd_write","input":{"fd":1,"data_base64":"aG9zdGlsZQ=="},"local_state":{"now":18446744073709551615,"advances":99,"transcript_bytes":99}}`))
+	var boundary *BoundaryError
+	if !errors.As(err, &boundary) || boundary.Kind != "invalid" || boundary.Dimension != "helper callback state" {
+		t.Fatalf("hostile callback reached reply application: %v", err)
+	}
+	if after := helperEnvironmentBytes(reflect.ValueOf(e)); !bytes.Equal(before, after) {
+		t.Fatalf("hostile callback reply mutated environment\nbefore: %s\nafter: %s", before, after)
+	}
+	if wire.Len() != 0 {
+		t.Fatalf("hostile callback emitted reply: %s", wire.Bytes())
+	}
+}
+
+func helperEnvironmentBytes(value reflect.Value) []byte {
+	var out bytes.Buffer
+	fmt.Fprintf(&out, "%s{", value.Type())
+	switch value.Kind() {
+	case reflect.Pointer, reflect.Interface:
+		if value.IsNil() {
+			out.WriteString("nil")
+		} else {
+			out.Write(helperEnvironmentBytes(value.Elem()))
+		}
+	case reflect.Struct:
+		for i := 0; i < value.NumField(); i++ {
+			out.WriteString(value.Type().Field(i).Name)
+			out.Write(helperEnvironmentBytes(value.Field(i)))
+		}
+	case reflect.Map:
+		keys := value.MapKeys()
+		slices.SortFunc(keys, func(a, b reflect.Value) int {
+			return bytes.Compare(helperEnvironmentBytes(a), helperEnvironmentBytes(b))
+		})
+		fmt.Fprintf(&out, "nil=%t;", value.IsNil())
+		for _, key := range keys {
+			out.Write(helperEnvironmentBytes(key))
+			out.Write(helperEnvironmentBytes(value.MapIndex(key)))
+		}
+	case reflect.Slice, reflect.Array:
+		if value.Kind() == reflect.Slice {
+			fmt.Fprintf(&out, "nil=%t;cap=%d;", value.IsNil(), value.Cap())
+		}
+		for i := 0; i < value.Len(); i++ {
+			out.Write(helperEnvironmentBytes(value.Index(i)))
+		}
+	default:
+		fmt.Fprintf(&out, "%#v", value)
+	}
+	out.WriteByte('}')
+	return out.Bytes()
 }
 
 func TestHelperBridgeModelLiteralPayloadAndState(t *testing.T) {

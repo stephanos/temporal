@@ -21,6 +21,7 @@ func (value *Uint64String) UnmarshalJSON(data []byte) error {
 	}
 	var text string
 	if err := json.Unmarshal(data, &text); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return fmt.Errorf("decode decimal string: %w", err)
 	}
 	if text == "" || len(text) > 1 && text[0] == '0' {
@@ -33,6 +34,7 @@ func (value *Uint64String) UnmarshalJSON(data []byte) error {
 	}
 	parsed, err := strconv.ParseUint(text, 10, 64)
 	if err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return fmt.Errorf("decimal string out of range: %w", err)
 	}
 	*value = Uint64String(parsed)

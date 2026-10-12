@@ -28,6 +28,7 @@ type retainedRecord struct {
 func RuntimeDecisions(tape choice.ReplayPlan) ([]simulationengine.Decision, error) {
 	validated, err := choice.ValidateReplayPlan(tape, tape.Identity)
 	if err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return nil, fmt.Errorf("validate runtime choice tape: %w", err)
 	}
 	decisions := make([]simulationengine.Decision, 0, len(validated.Decisions))
@@ -46,6 +47,7 @@ func RuntimeDecisions(tape choice.ReplayPlan) ([]simulationengine.Decision, erro
 			}
 			prefix, err := choice.BuildRankPrefix(validated, runtimeDecision.Ordinal, uint32(rank))
 			if err != nil {
+				//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 				return nil, fmt.Errorf("build runtime choice control %d rank %d: %w", runtimeDecision.Ordinal, rank, err)
 			}
 			controls[rank] = append([]byte(nil), prefix.Bytes...)
@@ -54,6 +56,7 @@ func RuntimeDecisions(tape choice.ReplayPlan) ([]simulationengine.Decision, erro
 			simulationengine.DimensionRuntime, runtimeDecision.Ordinal, site, alternatives, controls, runtimeDecision.Selected,
 		)
 		if err != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return nil, fmt.Errorf("project runtime choice decision %d: %w", runtimeDecision.Ordinal, err)
 		}
 		decisions = append(decisions, decision)
@@ -113,6 +116,7 @@ func ResultForRecord(config simulationengine.Config, candidate simulationengine.
 	seen := make(map[string]struct{}, len(decisions))
 	for index, decision := range decisions {
 		if err := validateDecision(decision); err != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return simulationengine.Result{}, fmt.Errorf("simulation exploration decision %d: %w", index, err)
 		}
 		key := fmt.Sprintf("%s\x00%d", decision.Dimension, decision.Ordinal)
@@ -204,6 +208,7 @@ func projectRetainedRecord(recordBytes, expectedPlan []byte) (retainedRecord, er
 	}
 	var fields map[string]json.RawMessage
 	if err := canonicaljson.StrictDecode(recordBytes, &fields); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return retainedRecord{}, fmt.Errorf("decode simulation exploration record: %w", err)
 	}
 	schema, err := requiredString(fields, "schema")
@@ -215,6 +220,7 @@ func projectRetainedRecord(recordBytes, expectedPlan []byte) (retainedRecord, er
 		return retainedRecord{}, err
 	}
 	if _, err := requiredSHA256(fields, "identity"); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return retainedRecord{}, fmt.Errorf("simulation exploration record identity: %w", err)
 	}
 	actualPlan, ok := fields["exploration_plan"]
@@ -224,12 +230,14 @@ func projectRetainedRecord(recordBytes, expectedPlan []byte) (retainedRecord, er
 	var recorded []simulationengine.Decision
 	if raw, ok := fields["exploration_decisions"]; ok {
 		if err := json.Unmarshal(raw, &recorded); err != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return retainedRecord{}, fmt.Errorf("decode simulation exploration decisions: %w", err)
 		}
 	}
 	seen := make(map[string]struct{}, len(recorded))
 	for index, decision := range recorded {
 		if err := validateDecision(decision); err != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return retainedRecord{}, fmt.Errorf("simulation exploration decision %d: %w", index, err)
 		}
 		key := fmt.Sprintf("%s\x00%d", decision.Dimension, decision.Ordinal)
@@ -261,12 +269,14 @@ func projectRetainedRecord(recordBytes, expectedPlan []byte) (retainedRecord, er
 	}
 	encodedSemantic, err := canonicaljson.CanonicalJSON(semantic)
 	if err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return retainedRecord{}, fmt.Errorf("encode simulation exploration outcome: %w", err)
 	}
 	projected.outcomeSHA256 = record.DomainHash("gomad3-simulation-exploration-outcome/v1", encodedSemantic)
 	if projected.failed {
 		projected.failureSHA256, err = requiredSHA256(fields, "failure_identity")
 		if err != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return retainedRecord{}, fmt.Errorf("simulation exploration failure identity: %w", err)
 		}
 	}
@@ -299,6 +309,7 @@ func requiredString(fields map[string]json.RawMessage, name string) (string, err
 	}
 	var value string
 	if err := json.Unmarshal(raw, &value); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return "", fmt.Errorf("decode simulation exploration record field %q: %w", name, err)
 	}
 	return value, nil
@@ -311,6 +322,7 @@ func requiredUint64(fields map[string]json.RawMessage, name string) (uint64, err
 	}
 	var value uint64
 	if err := json.Unmarshal(raw, &value); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return 0, fmt.Errorf("decode simulation exploration record field %q: %w", name, err)
 	}
 	return value, nil

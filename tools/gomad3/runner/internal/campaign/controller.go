@@ -115,6 +115,7 @@ func (controller *SeedController) Next() (SeedJob, bool) {
 	if controller.stopped || controller.exhausted || controller.active >= controller.parallel {
 		return SeedJob{}, false
 	}
+	//gomad:dynamic reviewed 2026-10-12 seed source callback only advances the reviewed in-memory seed schedule
 	job, ok := controller.next()
 	if !ok {
 		controller.exhausted = true
