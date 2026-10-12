@@ -8,8 +8,8 @@ import (
 	"math"
 	"slices"
 
-	"go.temporal.io/server/tools/gomad3/choice"
 	runnerbackend "go.temporal.io/server/tools/gomad3/backends"
+	"go.temporal.io/server/tools/gomad3/choice"
 )
 
 const CooperativeProfile = "gomad3.wasi-cooperative/v1"

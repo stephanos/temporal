@@ -4,14 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"go.temporal.io/server/tools/gomad3/record"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/target"
 	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
+	"go.temporal.io/server/tools/gomad3/record"
+	"go.temporal.io/server/tools/gomad3/target"
 )
 
 func TestAdapterModuleSumRecords(t *testing.T) {

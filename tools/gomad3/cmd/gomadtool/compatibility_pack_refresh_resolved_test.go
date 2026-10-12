@@ -6,7 +6,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"maps"
 	"os"
 	"os/exec"
@@ -16,6 +15,7 @@ import (
 	"strings"
 	"testing"
 
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
 	"go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring"
 	"go.temporal.io/server/tools/gomad3/target"

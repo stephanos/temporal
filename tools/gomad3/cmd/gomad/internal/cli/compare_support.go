@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"io"
 
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	supportcomparison "go.temporal.io/server/tools/gomad3/backends/native/qualification/comparison"
 	qualificationset "go.temporal.io/server/tools/gomad3/backends/native/qualification/set"
+	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 )
 

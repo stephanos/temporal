@@ -16,10 +16,10 @@ import (
 	"syscall"
 	"testing"
 
+	"go.temporal.io/server/tools/gomad3/backends/native/upgrade/pinimpact"
 	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
 	"go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring"
 	"go.temporal.io/server/tools/gomad3/target"
-	"go.temporal.io/server/tools/gomad3/backends/native/upgrade/pinimpact"
 	"golang.org/x/mod/module"
 )
 

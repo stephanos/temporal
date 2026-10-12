@@ -6,7 +6,6 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"errors"
-	backend "go.temporal.io/server/tools/gomad3/backends"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -17,12 +16,12 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
+	backend "go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
-
 	"go.temporal.io/server/tools/gomad3/world"
 )
 

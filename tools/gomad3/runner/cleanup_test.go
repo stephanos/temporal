@@ -3,11 +3,12 @@ package runner
 import (
 	"context"
 	"errors"
-	backend "go.temporal.io/server/tools/gomad3/backends"
 	"os"
 	"path/filepath"
 	"reflect"
 	"testing"
+
+	backend "go.temporal.io/server/tools/gomad3/backends"
 )
 
 func TestCleanupMatchingReplayerPreservesDetachedResultAndCalls(t *testing.T) {

@@ -3,12 +3,12 @@ package transcript
 import (
 	"encoding/binary"
 	"encoding/json"
-	"go.temporal.io/server/tools/gomad3/record"
 	"slices"
 	"strings"
 	"testing"
 
 	iowire "go.temporal.io/server/tools/gomad3/internal/iowire"
+	"go.temporal.io/server/tools/gomad3/record"
 )
 
 func TestSemanticCoverageEmptyCanonicalBytes(t *testing.T) {

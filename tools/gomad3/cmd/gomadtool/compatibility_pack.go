@@ -13,8 +13,8 @@ import (
 	"strings"
 	"time"
 
-	"go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring"
 	capabilityanalysis "go.temporal.io/server/tools/gomad3/backends/native/qualification/analysis"
+	"go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring"
 )
 
 const compatibilityPackTimeout = 2 * time.Minute

@@ -9,8 +9,8 @@ import (
 	"slices"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/internal/hostexec"
 	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
+	"go.temporal.io/server/tools/gomad3/internal/hostexec"
 )
 
 func TestInterceptionCleanupPreservesInvalidPackage(t *testing.T) {

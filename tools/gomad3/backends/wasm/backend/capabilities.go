@@ -19,6 +19,6 @@ func CapabilitiesForProfile(profile string) backends.Capabilities {
 	return capabilities
 }
 
-func (provider *Provider) Capabilities() backends.Capabilities {
-	return CapabilitiesForProfile(provider.options.Config.Profile)
+func (p *Provider) Capabilities() backends.Capabilities {
+	return CapabilitiesForProfile(p.options.Config.Profile)
 }

@@ -14,9 +14,9 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/backends/native/conformance"
+	toolchainbuild "go.temporal.io/server/tools/gomad3/backends/native/toolchain"
 	"go.temporal.io/server/tools/gomad3/internal/gomadtool/validation"
 	"go.temporal.io/server/tools/gomad3/internal/hostexec"
-	toolchainbuild "go.temporal.io/server/tools/gomad3/backends/native/toolchain"
 )
 
 const usage = "usage: gomadtool adapter-regenerate|boundary-generate|build-key|checked-run|compatibility-pack|diagnostic-diff|patch-materialize|patch-regenerate|patch-validate|pin-impact|protocol-generate|qualification-manifest-generate|script-validate|soak|test|toolchain-build|upgrade-dossier|version-generate [flags]"

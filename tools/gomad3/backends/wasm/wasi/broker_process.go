@@ -3,10 +3,11 @@ package wasi
 import (
 	"context"
 	"errors"
+
 	"go.temporal.io/server/tools/gomad3/world"
 )
 
-// This file owns host continuation waits and transport dispatch only. Model
+// Prepare owns host continuation waits and transport dispatch only. Model
 // ordering, request generations and state transitions remain in broker.go.
 func (s *BrokerSession) Prepare(ctx context.Context) error {
 	for {

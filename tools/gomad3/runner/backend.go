@@ -6,9 +6,7 @@ import (
 	"os"
 
 	backend "go.temporal.io/server/tools/gomad3/backends"
-
 	"go.temporal.io/server/tools/gomad3/record"
-
 	"go.temporal.io/server/tools/gomad3/target"
 )
 

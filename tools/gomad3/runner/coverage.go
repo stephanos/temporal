@@ -2,12 +2,11 @@ package runner
 
 import (
 	"fmt"
-	backend "go.temporal.io/server/tools/gomad3/backends"
 	"sort"
 
+	backend "go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/record"
-
 	"go.temporal.io/server/tools/gomad3/target"
 )
 

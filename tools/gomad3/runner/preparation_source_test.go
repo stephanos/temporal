@@ -3,8 +3,6 @@ package runner
 import (
 	"encoding/json"
 	"errors"
-	"go.temporal.io/server/tools/gomad3/backends/native"
-	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -12,6 +10,8 @@ import (
 	"testing"
 	"time"
 
+	"go.temporal.io/server/tools/gomad3/backends/native"
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"

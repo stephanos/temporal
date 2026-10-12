@@ -5,12 +5,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"go/format"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 )
 
 var libcRegenerationSources = []string{

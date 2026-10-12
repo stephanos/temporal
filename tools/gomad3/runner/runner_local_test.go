@@ -4,12 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	backend "go.temporal.io/server/tools/gomad3/backends"
 	"os"
 	"testing"
 
+	backend "go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
-
 	"go.temporal.io/server/tools/gomad3/target"
 )
 

@@ -9,8 +9,8 @@ import (
 	"strings"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/choice"
 	runnerbackend "go.temporal.io/server/tools/gomad3/backends"
+	"go.temporal.io/server/tools/gomad3/choice"
 )
 
 func TestCooperativeFrozenClockPreservesStartupAndStockPolicy(t *testing.T) {

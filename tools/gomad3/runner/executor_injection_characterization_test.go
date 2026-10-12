@@ -3,7 +3,6 @@ package runner
 import (
 	"context"
 	"errors"
-	backend "go.temporal.io/server/tools/gomad3/backends"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -11,8 +10,8 @@ import (
 	"sync/atomic"
 	"testing"
 
+	backend "go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/backends/native"
-
 	"go.temporal.io/server/tools/gomad3/target"
 )
 

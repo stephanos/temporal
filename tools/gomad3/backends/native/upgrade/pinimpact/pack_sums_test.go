@@ -11,8 +11,8 @@ import (
 	"strings"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/backends/native/upgrade/pinimpact"
+	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 )
 
 func withoutZipSum(t *testing.T, files pinimpact.ModuleFiles, required requirement) pinimpact.ModuleFiles {

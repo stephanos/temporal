@@ -6,11 +6,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"go.temporal.io/server/tools/gomad3/simulation/clock"
 	"slices"
 	"sync"
 
 	"go.temporal.io/server/tools/gomad3/record"
+	"go.temporal.io/server/tools/gomad3/simulation/clock"
 )
 
 type simulationNodeProcess struct {

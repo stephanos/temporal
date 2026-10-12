@@ -2,10 +2,10 @@ package cli
 
 import (
 	"fmt"
-	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"os"
 	"strings"
 
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/record"

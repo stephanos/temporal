@@ -20,7 +20,6 @@ import (
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
-
 	choiceengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/choice"
 	simulationengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation"
 	"go.temporal.io/server/tools/gomad3/target"

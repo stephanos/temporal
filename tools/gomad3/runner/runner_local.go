@@ -4,16 +4,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	backend "go.temporal.io/server/tools/gomad3/backends"
 	"path/filepath"
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
+	backend "go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
-
 	"go.temporal.io/server/tools/gomad3/target"
 )
 

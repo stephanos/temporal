@@ -16,9 +16,9 @@ import (
 	"sync"
 	"testing"
 
+	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
-	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
 	"golang.org/x/mod/module"
 	modzip "golang.org/x/mod/zip"
 )

@@ -2,14 +2,13 @@ package runner
 
 import (
 	"bytes"
-	backend "go.temporal.io/server/tools/gomad3/backends"
 	"reflect"
 	"testing"
 
+	backend "go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/record"
-
 	"go.temporal.io/server/tools/gomad3/world"
 )
 

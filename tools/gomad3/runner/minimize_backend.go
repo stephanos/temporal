@@ -54,7 +54,9 @@ func (session *minimizationSession) evaluateBackendChoice(ctx context.Context, c
 	}
 	outcome.ReplayMode = session.prepared.Backend.ReplayMode
 	completion := runCompletion{job: runJob{seed: uint64(manifest.Seed)}, startedAt: startedAt, finishedAt: time.Now().UTC(), result: observed}
-	retained, err := manifestForRun(campaignRequestFromSpec(session.campaign), session.prepared, session.baseEnvironment, completion, outcome, manifest.CampaignID, worldBundle.Manifest, nil)
+	requestConfig := campaignRequestFromSpec(session.campaign)
+	requestConfig.profile = session.profile
+	retained, err := manifestForRun(requestConfig, session.prepared, session.baseEnvironment, completion, outcome, manifest.CampaignID, worldBundle.Manifest, nil)
 	if err != nil {
 		return minimizationTrial{}, err
 	}

@@ -4,8 +4,9 @@ package execution
 
 import (
 	"context"
-	"go.temporal.io/server/tools/gomad3/simulation/clock"
 	"testing"
+
+	"go.temporal.io/server/tools/gomad3/simulation/clock"
 )
 
 func TestSimulationTimeLifecycleSuspendedWaitCompletionIsReservedExactlyOnce(t *testing.T) {

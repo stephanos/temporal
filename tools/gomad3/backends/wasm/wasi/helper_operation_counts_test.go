@@ -12,9 +12,9 @@ import (
 	"testing"
 	"time"
 
+	runnerbackend "go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/hostfs"
-	runnerbackend "go.temporal.io/server/tools/gomad3/backends"
 )
 
 type canonicalOperationCounts struct {

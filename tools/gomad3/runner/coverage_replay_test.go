@@ -3,7 +3,6 @@ package runner
 import (
 	"context"
 	"debug/buildinfo"
-	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -11,6 +10,7 @@ import (
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"go.temporal.io/server/tools/gomad3/record"
 )
 

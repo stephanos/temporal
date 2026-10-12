@@ -11,9 +11,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/backends/native/upgrade/adapterregen"
 	"go.temporal.io/server/tools/gomad3/backends/native/upgrade/pinimpact"
+	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 )
 
 // RegenerateAdapter keeps the original upgrade entry point while the adapter

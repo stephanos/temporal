@@ -3,8 +3,6 @@ package runner
 import (
 	"context"
 	"errors"
-	backend "go.temporal.io/server/tools/gomad3/backends"
-	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -13,10 +11,11 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
+	backend "go.temporal.io/server/tools/gomad3/backends"
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/record"
-
 	"go.temporal.io/server/tools/gomad3/target"
 )
 

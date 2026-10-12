@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"io/fs"
 	"os"
 	"os/exec"
@@ -12,6 +11,7 @@ import (
 	"strings"
 	"testing"
 
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
 )
 

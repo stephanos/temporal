@@ -452,6 +452,7 @@ func preflight(ctx context.Context, config ReplaySpec) (_ *artifact.Opened, _ ta
 		return nil, target.Prepared{}, fmt.Errorf("validate World record: %w", err)
 	}
 	if manifest.World.Initial.Schema == "gomad3.world.snapshot/v1" && uint64(initialWorld.Config.Seed) != uint64(manifest.Seed) {
+		//nolint:staticcheck // World is the model's proper name; preserve the preflight diagnostic.
 		return nil, target.Prepared{}, fmt.Errorf("World seed does not match target seed")
 	}
 	if _, err := duration(manifest.Limits.ExecutionTimeoutNanos); err != nil {

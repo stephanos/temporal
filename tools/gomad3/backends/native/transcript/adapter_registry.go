@@ -4,16 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
-	"go.temporal.io/server/tools/gomad3/record"
 	"os"
 	"path/filepath"
 	"runtime"
 	"sort"
 	"strings"
 
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"go.temporal.io/server/tools/gomad3/backends/native/toolchain/installation"
 	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
+	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/target"
 	"golang.org/x/mod/modfile"
 )

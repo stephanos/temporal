@@ -2,9 +2,10 @@ package backends
 
 import (
 	"errors"
+	"os"
+
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/internal/hostexec"
-	"os"
 )
 
 func ProjectObservedResult(request Request, observed Result, stdout, stderr *os.File) (ExecutionResult, error) {

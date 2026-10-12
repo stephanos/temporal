@@ -119,7 +119,7 @@ func runSimulationExplorationLocal(
 	}
 	executor := config.executor
 	if executor == nil {
-		executor = processExecutor{}
+		executor = processExecutor{provider: config.Backend}
 	}
 
 	for {

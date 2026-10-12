@@ -53,7 +53,7 @@ func resumeConfiguration(request campaignRequest, plan campaign.CampaignPlan) (C
 	if err != nil {
 		return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, err
 	}
-	if plan.IOProfile.Name != description.IOProfile.Name || plan.IOProfile.ImplementationSHA256 != description.IOProfile.ImplementationSHA256 || plan.IOProfile.InventorySHA256 != description.IOProfile.InventorySHA256 {
+	if plan.Prepared.Target.Backend == nil && (plan.IOProfile.Name != description.IOProfile.Name || plan.IOProfile.ImplementationSHA256 != description.IOProfile.ImplementationSHA256 || plan.IOProfile.InventorySHA256 != description.IOProfile.InventorySHA256) {
 		return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, errors.New("recorded I/O profile identity does not match the backend provider")
 	}
 	if metadata := plan.Prepared.Target.Backend; metadata != nil {

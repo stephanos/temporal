@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"go/parser"
 	"go/token"
 	"os"
@@ -15,6 +14,7 @@ import (
 	"strings"
 	"testing"
 
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
 	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
 	"go.temporal.io/server/tools/gomad3/target"

@@ -14,8 +14,8 @@ import (
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
-	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
 	"go.temporal.io/server/tools/gomad3/backends/native/upgrade/pinimpact"
+	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
 	"golang.org/x/mod/module"
 	"golang.org/x/mod/sumdb/dirhash"
 )

@@ -2,11 +2,11 @@ package runner
 
 import (
 	"context"
-	backend "go.temporal.io/server/tools/gomad3/backends"
 	"path/filepath"
 	"strings"
 	"testing"
 
+	backend "go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/record"
 )

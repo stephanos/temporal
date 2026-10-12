@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
 	"go.temporal.io/server/tools/gomad3/backends/native/upgrade/pinimpact"
+	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
 )
 
 func authoringSpec(t *testing.T, directory string) pinimpact.Spec {

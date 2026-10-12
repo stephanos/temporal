@@ -3,11 +3,12 @@ package runner
 import (
 	"context"
 	"fmt"
-	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"testing"
+
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 )
 
 func TestRunnerDeliversExplicitEnvironmentBeforeInitAndReplays(t *testing.T) {

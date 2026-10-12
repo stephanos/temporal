@@ -21,8 +21,8 @@ import (
 	"strings"
 	"time"
 
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/backends/native/qualification/set"
+	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 )
 
 const ManifestSchema = "gomad3.determinism-soak/v1"

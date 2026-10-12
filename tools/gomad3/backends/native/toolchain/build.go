@@ -11,11 +11,11 @@ import (
 	"strings"
 	"time"
 
+	"go.temporal.io/server/tools/gomad3/backends/native/toolchain/installation"
+	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
 	"go.temporal.io/server/tools/gomad3/internal/hostexec"
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
 	"go.temporal.io/server/tools/gomad3/runtimesemantics"
-	"go.temporal.io/server/tools/gomad3/backends/native/toolchain/installation"
-	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
 )
 
 const buildRecipeVersion = "canonical-v5"

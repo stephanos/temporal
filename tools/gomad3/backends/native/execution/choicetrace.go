@@ -3,8 +3,8 @@ package execution
 import (
 	"errors"
 	"fmt"
-	"go.temporal.io/server/tools/gomad3/backends"
 
+	"go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/choice"
 )
 

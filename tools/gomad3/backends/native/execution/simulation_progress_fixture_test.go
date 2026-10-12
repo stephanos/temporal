@@ -6,11 +6,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"go.temporal.io/server/tools/gomad3/simulation/clock"
 	"io"
 	"sync"
 	"testing"
 	"time"
+
+	"go.temporal.io/server/tools/gomad3/simulation/clock"
 )
 
 type simulationTimeResult struct {

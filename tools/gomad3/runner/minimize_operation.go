@@ -51,6 +51,7 @@ type minimizationSession struct {
 	workDirectory   string
 	prepared        target.Prepared
 	campaign        CampaignSpec
+	profile         execution.Description
 	baseEnvironment []record.Environment
 	mappings        []captured.Mapping
 	mountLimits     captured.Limits
@@ -390,6 +391,23 @@ func (session *minimizationSession) prepareWorkspace(ctx context.Context) error 
 		}
 	}
 	session.prepared.Path = targetPath
+	preparedSpec := target.Spec{Kind: session.prepared.Kind, Source: session.prepared.Source,
+		Args: append([]string(nil), session.prepared.Argv[1:]...), BuildTags: append([]string(nil), session.prepared.BuildTags...),
+		ToolchainRoot: session.config.ToolchainRoot, CapabilityMode: session.prepared.CapabilityMode}
+	if session.prepared.Backend != nil {
+		preparedSpec.Backend = session.prepared.Backend.Name
+	}
+	session.profile, err = session.config.Backend.Describe(ctx, execution.Configuration{ForExecution: session.dependencies.executor == nil,
+		Target: preparedSpec, IOProfile: manifest.IOProfile.Name})
+	if err != nil {
+		return err
+	}
+	if session.prepared.Backend != nil {
+		session.profile.IOProfile = record.BackendIOProfile(*session.prepared.Backend)
+	}
+	if session.profile.IOProfile.Name != manifest.IOProfile.Name || session.profile.IOProfile.ImplementationSHA256 != manifest.IOProfile.ImplementationSHA256 || session.profile.IOProfile.InventorySHA256 != manifest.IOProfile.InventorySHA256 || session.profile.IOProfile.Inventory != manifest.IOProfile.Inventory {
+		return errors.New("minimization I/O profile identity does not match the backend provider")
+	}
 	runTimeout, err := duration(manifest.Limits.ExecutionTimeoutNanos)
 	if err != nil {
 		return err
@@ -423,6 +441,7 @@ func (session *minimizationSession) prepareWorkspace(ctx context.Context) error 
 	}
 	session.campaign = CampaignSpec{
 		Backend: session.config.Backend, IOTranscriptLimit: uint64(manifest.Limits.IOTranscriptBytes),
+		Target:           preparedSpec,
 		ExecutionTimeout: runTimeout, OverallTimeout: overallTimeout, TerminateGrace: terminateGrace,
 		OutputLimit: uint64(manifest.Limits.OutputBytes), WorldTransitionLimit: uint64(manifest.Limits.WorldTransitionBytes),
 		ChoiceTraceLimit: uint64(manifest.Limits.ChoiceTraceBytes), RunnerBuild: manifest.Runner.RunnerBuild,
@@ -507,7 +526,9 @@ func (session *minimizationSession) evaluate(ctx context.Context, explorationCon
 	if err != nil {
 		return minimizationTrial{}, err
 	}
-	retained, err := manifestForRun(campaignRequestFromSpec(session.campaign), session.prepared, session.baseEnvironment, completion, outcome, manifest.CampaignID, worldBundle.Manifest, session.mountArtifact)
+	requestConfig := campaignRequestFromSpec(session.campaign)
+	requestConfig.profile = session.profile
+	retained, err := manifestForRun(requestConfig, session.prepared, session.baseEnvironment, completion, outcome, manifest.CampaignID, worldBundle.Manifest, session.mountArtifact)
 	if err != nil {
 		return minimizationTrial{}, err
 	}

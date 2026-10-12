@@ -18,7 +18,6 @@ import (
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
-
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
@@ -282,7 +281,7 @@ func TestExternalManifestUsesCompleteRecordedTargetSnapshot(t *testing.T) {
 func TestResumeRejectsChangedExternalProfileBeforePreparedTarget(t *testing.T) {
 	metadata := &record.BackendMetadata{Name: "fixture", ReplayMode: record.ReplayObserved, Provenance: record.BackendPayload{Schema: "fixture/v1", File: "backend/provenance.json", SHA256: record.HashBytes([]byte("source")), Bytes: 6}}
 	plan := campaign.CampaignPlan{RunnerBuild: "fixture", Prepared: campaign.PreparedTargetPlan{Target: record.Target{Backend: metadata}}}
-	_, _, _, _, _, err := resumeConfiguration(campaignRequest{RunnerBuild: "fixture"}, plan)
+	_, _, _, _, _, err := resumeConfiguration(campaignRequest{Backend: &boundaryProvider{}, RunnerBuild: "fixture"}, plan)
 	if err == nil || !strings.Contains(err.Error(), "recorded I/O profile identity") {
 		t.Fatalf("changed external profile did not fail first: %v", err)
 	}

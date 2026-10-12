@@ -1,8 +1,9 @@
 package runner
 
 import (
-	backend "go.temporal.io/server/tools/gomad3/backends"
 	"testing"
+
+	backend "go.temporal.io/server/tools/gomad3/backends"
 )
 
 func TestChoiceTraceObservedExcludesWatchdogAndCancellation(t *testing.T) {

@@ -15,7 +15,6 @@ import (
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
-
 	choiceengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/choice"
 	"go.temporal.io/server/tools/gomad3/target"
 )
@@ -107,7 +106,7 @@ func runChoiceExplorationLocal(
 	}
 	executor := config.executor
 	if executor == nil {
-		executor = processExecutor{}
+		executor = processExecutor{provider: config.Backend}
 	}
 
 	for {

@@ -17,10 +17,10 @@ import (
 	"strings"
 	"time"
 
-	"go.temporal.io/server/tools/gomad3/internal/hostexec"
-	"go.temporal.io/server/tools/gomad3/internal/hostfs"
 	qualificationset "go.temporal.io/server/tools/gomad3/backends/native/qualification/set"
 	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
+	"go.temporal.io/server/tools/gomad3/internal/hostexec"
+	"go.temporal.io/server/tools/gomad3/internal/hostfs"
 )
 
 const maximumGateOutput = 16 << 20

@@ -8,6 +8,17 @@ import (
 	"testing"
 )
 
+func TestUnifiedLauncherFlagErrorWriterFailure(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	arguments := []string{"--not-a-global-flag"}
+	if status := Run(arguments, &stdout, &stderr); status != 2 || stdout.Len() != 0 || !strings.HasPrefix(stderr.String(), "flag provided but not defined: -not-a-global-flag\nUsage of gomad:\n") {
+		t.Fatalf("status=%d stdout=%q stderr=%q", status, stdout.String(), stderr.String())
+	}
+	if status := Run(arguments, &stdout, failingWriter{}); status != 3 || stdout.Len() != 0 {
+		t.Fatalf("failed diagnostic writer: status=%d stdout=%q", status, stdout.String())
+	}
+}
+
 func TestUnifiedLauncherRejectsNativeFlagsForWASMInstallation(t *testing.T) {
 	manifest := filepath.Join(t.TempDir(), "installation.json")
 	if err := os.WriteFile(manifest, []byte(`{"schema":"gomad-wasm.installation/v1","options":{"Config":{"Profile":"gomad3.wasi-cooperative/v1"}}}`), 0600); err != nil {

@@ -2,13 +2,13 @@ package transcript
 
 import (
 	"context"
-	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"testing"
 
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"go.temporal.io/server/tools/gomad3/target"
 )
 

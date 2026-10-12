@@ -2,11 +2,11 @@ package execution
 
 import (
 	"crypto/sha256"
-	"go.temporal.io/server/tools/gomad3/backends"
 	"strings"
 	"testing"
 	"time"
 
+	"go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/choice"
 )
 

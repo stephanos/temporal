@@ -6,9 +6,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	backend "go.temporal.io/server/tools/gomad3/backends"
-	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
-	nativeexecution "go.temporal.io/server/tools/gomad3/backends/native/execution"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -16,10 +13,12 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
+	backend "go.temporal.io/server/tools/gomad3/backends"
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
+	nativeexecution "go.temporal.io/server/tools/gomad3/backends/native/execution"
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/record"
-
 	"go.temporal.io/server/tools/gomad3/target"
 )
 

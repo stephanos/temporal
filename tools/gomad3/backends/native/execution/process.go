@@ -5,15 +5,15 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
-	"go.temporal.io/server/tools/gomad3/backends"
-	"go.temporal.io/server/tools/gomad3/record"
 	"io"
 	"strings"
 	"time"
 
+	"go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	romount "go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/choice"
+	"go.temporal.io/server/tools/gomad3/record"
 )
 
 type Termination string

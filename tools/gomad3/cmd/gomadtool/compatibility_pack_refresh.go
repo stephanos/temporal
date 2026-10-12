@@ -16,9 +16,9 @@ import (
 	"sort"
 	"strings"
 
-	"go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring"
 	capabilityanalysis "go.temporal.io/server/tools/gomad3/backends/native/qualification/analysis"
 	"go.temporal.io/server/tools/gomad3/backends/native/upgrade/pinimpact"
+	"go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring"
 )
 
 const compatibilityPackRefreshUsage = "usage: gomadtool compatibility-pack refresh --root=DIR [--compatibility-root=DIR] [--baseline-ref=REV] [--go=GO] [--impact-report=FILE]"

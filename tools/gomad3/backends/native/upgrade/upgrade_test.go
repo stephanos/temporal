@@ -16,11 +16,11 @@ import (
 	"syscall"
 	"testing"
 
+	capabilityanalysis "go.temporal.io/server/tools/gomad3/backends/native/qualification/analysis"
+	qualificationset "go.temporal.io/server/tools/gomad3/backends/native/qualification/set"
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/qualification"
-	capabilityanalysis "go.temporal.io/server/tools/gomad3/backends/native/qualification/analysis"
-	qualificationset "go.temporal.io/server/tools/gomad3/backends/native/qualification/set"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/target"
 )

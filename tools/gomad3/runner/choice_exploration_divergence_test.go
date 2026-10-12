@@ -4,15 +4,14 @@ import (
 	"context"
 	"crypto/sha256"
 	"errors"
-	backend "go.temporal.io/server/tools/gomad3/backends"
 	"reflect"
 	"sync"
 	"testing"
 
+	backend "go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
-
 	choiceengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/choice"
 )
 

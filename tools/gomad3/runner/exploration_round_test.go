@@ -3,10 +3,11 @@ package runner
 import (
 	"context"
 	"errors"
-	backend "go.temporal.io/server/tools/gomad3/backends"
 	"reflect"
 	"testing"
 	"time"
+
+	backend "go.temporal.io/server/tools/gomad3/backends"
 )
 
 // finalCompletionFirst is the parent context a round sees when its final

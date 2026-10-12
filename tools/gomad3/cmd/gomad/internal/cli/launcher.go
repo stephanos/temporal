@@ -32,10 +32,10 @@ func runLauncher(arguments []string, stdout, stderr io.Writer) int {
 	err := flags.Parse(arguments)
 	help := errors.Is(err, flag.ErrHelp)
 	if err != nil && !help {
-		fmt.Fprintln(stderr, err)
+		status := writeCommandError(stderr, 2, "%v\n", err)
 		flags.SetOutput(stderr)
 		flags.Usage()
-		return 2
+		return status
 	}
 	app := hostApplication()
 	// Private process protocols are not operator commands and do not load an

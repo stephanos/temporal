@@ -20,10 +20,10 @@ import (
 	"strings"
 	"time"
 
+	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
 	"go.temporal.io/server/tools/gomad3/internal/hostexec"
-	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
 )
 
 const (
@@ -78,10 +78,10 @@ type Spec struct {
 // Result is a dry run's review or an apply's publication.
 type Result struct {
 	Regeneration transcript.AdapterRegeneration `json:"regeneration"`
-	Diffs        []SourceDiff                        `json:"diffs"`
-	StalePacks   []StalePack                         `json:"stale_packs"`
-	Applied      bool                                `json:"applied"`
-	Published    []string                            `json:"published,omitempty"`
+	Diffs        []SourceDiff                   `json:"diffs"`
+	StalePacks   []StalePack                    `json:"stale_packs"`
+	Applied      bool                           `json:"applied"`
+	Published    []string                       `json:"published,omitempty"`
 	// Staged lists every file the apply publishes, with the diff of each
 	// go.mod and go.sum, for a stage-only run and an apply.
 	Staged []StagedFile `json:"staged,omitempty"`
