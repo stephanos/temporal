@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -11,10 +12,9 @@ import (
 	"sort"
 	"strings"
 
+	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
-	"go.temporal.io/server/tools/gomad3/target"
-	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
 )
 
 // AdapterRegenerationSchema names the canonical review an adapter
@@ -244,7 +244,7 @@ func regenerateRewrittenModule(ctx context.Context, spec rewrittenModule, reques
 	}
 	for _, platform := range sortedKeys(spec.preparedSourceSetSHA256ByHost) {
 		goos, goarch, _ := strings.Cut(platform, "/")
-		proposed.PreparedSourceSetSHA256[platform], err = target.AdapterPreparedSourceSetSHA256(ctx, request.GoCommand, packageDirectory, spec.preparedPackage, goos, goarch)
+		proposed.PreparedSourceSetSHA256[platform], err = nativebuild.AdapterPreparedSourceSetSHA256(ctx, request.GoCommand, packageDirectory, spec.preparedPackage, goos, goarch)
 		if err != nil {
 			return AdapterRegeneration{}, err
 		}
@@ -366,7 +366,7 @@ func VerifyRegisteredAdapter(ctx context.Context, module, moduleDirectory, goCom
 	}
 	for _, platform := range sortedKeys(spec.preparedSourceSetSHA256ByHost) {
 		goos, goarch, _ := strings.Cut(platform, "/")
-		got, err := target.AdapterPreparedSourceSetSHA256(ctx, goCommand, directory, spec.preparedPackage, goos, goarch)
+		got, err := nativebuild.AdapterPreparedSourceSetSHA256(ctx, goCommand, directory, spec.preparedPackage, goos, goarch)
 		if err != nil {
 			return err
 		}

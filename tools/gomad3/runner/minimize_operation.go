@@ -4,15 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"os"
 	"path/filepath"
 	"sort"
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
-	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/captured"
+	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/backend"
 	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
@@ -239,7 +240,7 @@ func (session *minimizationSession) acceptedInput(reference minimizer.AcceptedAr
 	if manifest.Outcome.FailureSignature != session.opened.Manifest().Outcome.FailureSignature || session.prepared.Backend == nil && manifest.SimulationProfile == nil {
 		return artifact.ArtifactInput{}, errors.New("accepted minimization artifact does not reproduce the parent failure")
 	}
-	input := artifact.ArtifactInput{Manifest: manifest, TargetPath: session.prepared.Path, ReadOnlyMounts: session.mountArtifact}
+	input := artifact.ArtifactInput{Manifest: manifest, TargetPath: session.prepared.Path, ReadOnlyMounts: session.mountArtifact, CapabilityManifest: session.prepared.CapabilityManifest}
 	payloads := map[string]*[]byte{
 		manifest.Streams.Stdout.File: &input.Stdout,
 		manifest.Streams.Stderr.File: &input.Stderr,
@@ -402,7 +403,7 @@ func (session *minimizationSession) prepareWorkspace(ctx context.Context) error 
 		session.prepared = preparedTargetFromArtifact(targetPath, manifest)
 	}
 	if session.prepared.CapabilityMode != target.CapabilityModeClosure {
-		capabilities, err := target.ReadCapabilityManifest(targetPath, target.ToolchainIdentity{
+		capabilities, err := nativebuild.ReadCapabilityManifest(targetPath, target.ToolchainIdentity{
 			GoVersion: manifest.Toolchain.GoVersion, BuildKey: manifest.Toolchain.BuildKey,
 			TargetGOOS: manifest.Toolchain.TargetGOOS, TargetGOARCH: manifest.Toolchain.TargetGOARCH,
 		})

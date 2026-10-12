@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"maps"
 	"os"
 	"os/exec"
@@ -139,7 +140,7 @@ func (fixture *resolvedRefreshFixture) candidate(id, version string) {
 
 func (fixture *resolvedRefreshFixture) review(ctx context.Context, request authoring.Request, directory string) (target.CapabilityReview, error) {
 	spec := request.ReviewSpec(directory, fixture.goRoot)
-	review, err := target.ReviewCapabilities(ctx, spec)
+	review, err := nativebuild.ReviewCapabilities(ctx, spec)
 	if err == nil {
 		fixture.reviewed[request.ID] = review
 	}

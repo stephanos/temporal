@@ -1,6 +1,7 @@
 package transcript
 
 import (
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -47,7 +48,7 @@ func TestPortableMetricsConsumer(t *testing.T) {
 	}
 	for _, platform := range []string{"darwin/arm64", "linux/amd64"} {
 		goos, goarch, _ := strings.Cut(platform, "/")
-		got, err := target.AdapterPreparedSourceSetSHA256(t.Context(), goCommand, adapters[0].ReplacementRoot, hashicorpMetricsModulePath, goos, goarch)
+		got, err := nativebuild.AdapterPreparedSourceSetSHA256(t.Context(), goCommand, adapters[0].ReplacementRoot, hashicorpMetricsModulePath, goos, goarch)
 		if err != nil || got != hashicorpMetricsPreparedSourceSetSHA256ByHost[platform] {
 			t.Fatalf("stock metrics %s source set = %s (%v)", platform, got, err)
 		}

@@ -1,6 +1,7 @@
 package preparation
 
 import (
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -8,10 +9,10 @@ import (
 	"strings"
 	"testing"
 
+	"go.temporal.io/server/tools/gomad3/backends/native/toolchain/installation"
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
 	"go.temporal.io/server/tools/gomad3/target"
-	"go.temporal.io/server/tools/gomad3/backends/native/toolchain/installation"
 )
 
 func sourceInstallation(t *testing.T) (installation.Description, string) {
@@ -74,7 +75,7 @@ func TestPrepareSourceFreshCacheAndSharedDurableRoot(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if err := prepared.Verify(); err != nil {
+		if err := nativebuild.VerifyPrepared(prepared); err != nil {
 			t.Fatal(err)
 		}
 		if sourceBuildCount(t, count) != 1 {
@@ -89,7 +90,7 @@ func TestPrepareSourceFreshCacheAndSharedDurableRoot(t *testing.T) {
 			if first.Path == prepared.Path {
 				t.Fatal("independent preparations share a destination")
 			}
-			if err := first.Verify(); err != nil {
+			if err := nativebuild.VerifyPrepared(first); err != nil {
 				t.Fatalf("second preparation changed first binary: %v", err)
 			}
 			prepared.Path = first.Path

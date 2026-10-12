@@ -1,6 +1,7 @@
 package transcript
 
 import (
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -49,7 +50,7 @@ func TestHashicorpMetricsAdapterConsumer(t *testing.T) {
 		t.Fatalf("prepared metrics consumer: %v\n%s", err, output)
 	}
 	t.Logf("prepared stock metrics consumer:\n%s", output)
-	if _, err := target.ReviewCapabilities(t.Context(), spec); err != nil {
+	if _, err := nativebuild.ReviewCapabilities(t.Context(), spec); err != nil {
 		t.Fatal(err)
 	}
 	contents, err := os.ReadFile(adapters[0].Replacement)

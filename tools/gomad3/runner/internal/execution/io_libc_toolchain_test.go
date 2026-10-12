@@ -2,6 +2,7 @@ package execution_test
 
 import (
 	"context"
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"os"
 	"path/filepath"
 	"testing"
@@ -22,7 +23,7 @@ func TestModerncLibcUsesDeterministicFilesystem(t *testing.T) {
 		t.Fatal(err)
 	}
 	preparationRoot := t.TempDir()
-	moduleCache, err := target.ReadModuleCache(context.Background(), toolchainRoot)
+	moduleCache, err := nativebuild.ReadModuleCache(context.Background(), toolchainRoot)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -34,7 +35,7 @@ func TestModerncLibcUsesDeterministicFilesystem(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	prepared, err := target.Prepare(context.Background(), spec)
+	prepared, err := nativebuild.Prepare(context.Background(), spec)
 	if err != nil {
 		t.Fatal(err)
 	}

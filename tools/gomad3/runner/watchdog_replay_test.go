@@ -3,6 +3,7 @@ package runner
 import (
 	"context"
 	"errors"
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -227,7 +228,8 @@ func watchdogReplayInput(t *testing.T) (artifact.ArtifactInput, execution.Result
 		t.Fatal(err)
 	}
 	if err := os.WriteFile(filepath.Join(module, "main.go"), []byte(`package main
-import ("fmt"; "os"; "runtime")
+import (
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build""fmt"; "os"; "runtime")
 func main() {
  data, err := os.ReadFile("/mounted/input")
  if err != nil { panic(err) }
@@ -237,7 +239,7 @@ func main() {
 `), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	prepared, err := target.Prepare(t.Context(), target.Spec{Kind: target.KindGoRun, Source: ".", WorkingDir: module, PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot(t)})
+	prepared, err := nativebuild.Prepare(t.Context(), target.Spec{Kind: target.KindGoRun, Source: ".", WorkingDir: module, PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot(t)})
 	if err != nil {
 		t.Fatal(err)
 	}

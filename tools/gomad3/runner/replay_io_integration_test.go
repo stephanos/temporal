@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -22,7 +23,7 @@ import (
 
 func TestIOProfileFailureArtifactReplaysExactly(t *testing.T) {
 	toolchain := toolchainRoot(t)
-	prepared, err := target.Prepare(context.Background(), target.Spec{
+	prepared, err := nativebuild.Prepare(context.Background(), target.Spec{
 		Kind: target.KindGoTest, Source: "./io_failure", WorkingDir: filepath.Join("..", "backends", "native", "conformance", "testdata"),
 		Args: []string{"-test.run=^TestDeterministicIOFailure$"}, BuildTags: []string{"gomad_fixture"}, PreparationRoot: t.TempDir(), ToolchainRoot: toolchain,
 	})
@@ -104,7 +105,7 @@ func TestLinkedCapabilityArtifactRevalidatesRetainedExecutableBeforeReplay(t *te
 		t.Fatal(err)
 	}
 	toolchain := toolchainRoot(t)
-	prepared, err := target.Prepare(context.Background(), target.Spec{
+	prepared, err := nativebuild.Prepare(context.Background(), target.Spec{
 		Kind: target.KindGoRun, Source: ".", WorkingDir: module, PreparationRoot: t.TempDir(), ToolchainRoot: toolchain,
 		CapabilityMode: target.CapabilityModeLinked,
 	})
@@ -164,7 +165,7 @@ func TestLinkedCapabilityArtifactRevalidatesRetainedExecutableBeforeReplay(t *te
 
 func TestReadOnlyMountFailureArtifactReplaysAfterHostRemoval(t *testing.T) {
 	toolchain := toolchainRoot(t)
-	prepared, err := target.Prepare(context.Background(), target.Spec{
+	prepared, err := nativebuild.Prepare(context.Background(), target.Spec{
 		Kind: target.KindGoRun, Source: "./io_ro_mount_failure", WorkingDir: filepath.Join("..", "backends", "native", "conformance", "testdata"),
 		PreparationRoot: t.TempDir(), ToolchainRoot: toolchain,
 	})

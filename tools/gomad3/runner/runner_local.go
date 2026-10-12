@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
+	"go.temporal.io/server/tools/gomad3/backends/native/preparation"
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/backends/native/preparation"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
 	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
@@ -524,7 +524,7 @@ func (local *localCampaign) handleCompletion(completion runCompletion) {
 		}
 		return
 	}
-	if err := local.prepared.Verify(); err != nil {
+	if err := verifyPrepared(local.prepared); err != nil {
 		local.recordCompletion(campaign.CompletedUnclassified())
 		if local.hostFailure == nil {
 			local.hostFailure = &HostError{Reason: "prepared_target_integrity", Err: err}
@@ -854,7 +854,7 @@ func (local *localCampaign) finishSeedCampaign() error {
 			return &record.MissingSemanticProbesError{Probes: missing}
 		}
 	}
-	if err := local.prepared.Verify(); err != nil {
+	if err := verifyPrepared(local.prepared); err != nil {
 		return &HostError{Reason: "prepared_target_integrity", Err: err}
 	}
 	if err := local.overallCtx.Err(); err != nil {

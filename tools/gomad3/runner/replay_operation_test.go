@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"net"
 	"os"
 	"os/exec"
@@ -20,8 +21,8 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
-	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/internal/hostexec"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
@@ -621,7 +622,7 @@ func publishReplayArtifactForTargetAndCompatibility(t *testing.T, connected *exe
 	if err != nil {
 		t.Fatal(err)
 	}
-	identity, err := target.ReadToolchainIdentity(toolchainRoot(t))
+	identity, err := nativebuild.ReadToolchainIdentity(toolchainRoot(t))
 	if err != nil {
 		t.Fatal(err)
 	}

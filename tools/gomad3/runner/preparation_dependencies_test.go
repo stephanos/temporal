@@ -13,8 +13,8 @@ import (
 	"sync"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/backends/native/preparation"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
 	"go.temporal.io/server/tools/gomad3/target"
@@ -52,7 +52,7 @@ func TestPreparationDependenciesForwardRealFixtureInputs(t *testing.T) {
 		if info.Mode().Perm() != 0o500 || uint64(info.Size()) != prepared.Size {
 			t.Errorf("copied target mode/size = %v/%d", info.Mode(), info.Size())
 		}
-		if err := prepared.Verify(); err != nil {
+		if err := verifyPrepared(prepared); err != nil {
 			return execution.Result{}, err
 		}
 		var runOutputs []*os.File

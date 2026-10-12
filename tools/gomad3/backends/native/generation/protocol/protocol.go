@@ -535,7 +535,7 @@ func generateLiveCapabilityProtocols(root string, check bool) error {
 		}
 	}
 	outputs := []output{
-		{Package: "livecap", Template: "livecap.go.tmpl", Path: "target/internal/livecap/protocol_generated.go"},
+		{Package: "livecap", Template: "livecap.go.tmpl", Path: "backends/native/build/internal/livecap/protocol_generated.go"},
 		{Package: "gomadcap", Template: "livecap.go.tmpl", Path: "backends/native/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go"},
 	}
 	for _, target := range outputs {
@@ -563,8 +563,8 @@ func generateLiveCapabilityProtocols(root string, check bool) error {
 
 func readLiveCapabilityImplementationInputs(root string) (liveCapabilityImplementationInputs, error) {
 	paths := []string{
-		"target/internal/livecap/livecap.json",
-		"target/internal/livecap/livecap.go.tmpl",
+		"backends/native/build/internal/livecap/livecap.json",
+		"backends/native/build/internal/livecap/livecap.go.tmpl",
 		"backends/native/toolchain/runtime/overlay/src/cmd/compile/internal/base/gomadcap.go",
 		"backends/native/toolchain/runtime/overlay/src/cmd/link/internal/ld/gomadcap.go",
 		"backends/native/toolchain/runtime/overlay/src/cmd/internal/gomadcap/encode.go",
@@ -573,8 +573,8 @@ func readLiveCapabilityImplementationInputs(root string) (liveCapabilityImplemen
 		"backends/native/toolchain/runtime/overlay/src/runtime/gomad.go",
 		"backends/native/toolchain/runtime/overlay/src/cmd/compile/internal/gomadintercept/intercept.go",
 		"backends/native/transcript/boundary_generated.go",
-		"target/internal/livecap/livecap.go",
-		"target/internal/livecap/project.go",
+		"backends/native/build/internal/livecap/livecap.go",
+		"backends/native/build/internal/livecap/project.go",
 	}
 	values := make([][]byte, len(paths))
 	for index, relative := range paths {

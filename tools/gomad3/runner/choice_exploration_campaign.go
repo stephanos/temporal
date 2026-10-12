@@ -180,7 +180,7 @@ func runChoiceExplorationLocal(
 			return &record.MissingSemanticProbesError{Probes: missing}
 		}
 	}
-	if err := prepared.Verify(); err != nil {
+	if err := verifyPrepared(prepared); err != nil {
 		return &HostError{Reason: "prepared_target_integrity", Err: err}
 	}
 	if err := ctx.Err(); err != nil {
@@ -284,7 +284,7 @@ func processExplorationCompletion(
 	if err := ctx.Err(); err != nil {
 		return explorationRoundResult{}, &HostError{Reason: contextFailureReason(err), Err: err}
 	}
-	if err := prepared.Verify(); err != nil {
+	if err := verifyPrepared(prepared); err != nil {
 		return explorationRoundResult{}, &HostError{Reason: "prepared_target_integrity", Err: err}
 	}
 	candidate := round.Candidates[index]

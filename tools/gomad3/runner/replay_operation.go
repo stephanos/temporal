@@ -6,6 +6,7 @@ import (
 	"debug/buildinfo"
 	"errors"
 	"fmt"
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"math"
 	"os"
 	"path/filepath"
@@ -14,9 +15,9 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
-	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/captured"
+	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/backend"
@@ -93,7 +94,7 @@ func replayWith(ctx context.Context, config ReplaySpec, dependencies executionDe
 	if manifest.Target.Backend != nil {
 		return replayBackend(ctx, config, opened)
 	}
-	if err := target.VerifyCompatibility(manifest.Target.Compatibility); err != nil {
+	if err := nativebuild.VerifyCompatibility(manifest.Target.Compatibility); err != nil {
 		return ReplayResult{}, &ReplayPreflightError{Err: fmt.Errorf("verify replay compatibility: %w", err)}
 	}
 	if err := transcript.Default().VerifyAdapters(replayAdapters(manifest.Target.Adapters)); err != nil {
@@ -479,7 +480,7 @@ func preflight(ctx context.Context, config ReplaySpec) (_ *artifact.Opened, retE
 	if manifest.Runner.HostOS != runtime.GOOS || manifest.Runner.HostArch != runtime.GOARCH || manifest.Toolchain.TargetGOOS != runtime.GOOS || manifest.Toolchain.TargetGOARCH != runtime.GOARCH {
 		return nil, fmt.Errorf("artifact platform does not match host %s/%s", runtime.GOOS, runtime.GOARCH)
 	}
-	identity, err := target.ReadToolchainIdentity(config.ToolchainRoot)
+	identity, err := nativebuild.ReadToolchainIdentity(config.ToolchainRoot)
 	if err != nil {
 		return nil, err
 	}
@@ -537,7 +538,7 @@ func verifyReplayCapabilityManifest(opened *artifact.Opened, targetFile *os.File
 		if recorded == nil {
 			return errors.New("executable replay target capability manifest is missing")
 		}
-		actual, err := target.ReadCapabilityManifestFile(targetFile, identity)
+		actual, err := nativebuild.ReadCapabilityManifestFile(targetFile, identity)
 		if err != nil {
 			return fmt.Errorf("extract stored target capability manifest: %w", err)
 		}
@@ -602,8 +603,8 @@ func validateTargetBuildInfo(path string, expected record.BuildInfo) error {
 }
 
 func validateBuildInfo(info *debug.BuildInfo, expected record.BuildInfo) error {
-	actual := target.ProjectBuildInfo(info)
-	if target.HasCoverageInstrumentation(actual) {
+	actual := nativebuild.ProjectBuildInfo(info)
+	if nativebuild.HasCoverageInstrumentation(actual) {
 		return errors.New("stored target uses unsupported coverage instrumentation")
 	}
 	expectedBytes, err := canonicaljson.CanonicalJSON(expected)

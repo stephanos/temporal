@@ -2,6 +2,7 @@ package execution_test
 
 import (
 	"context"
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"os"
 	"path/filepath"
 	"testing"
@@ -58,7 +59,7 @@ func runVirtualTCPCase(t *testing.T, testCase string, timeout time.Duration) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	prepared, err := target.Prepare(context.Background(), target.Spec{
+	prepared, err := nativebuild.Prepare(context.Background(), target.Spec{
 		Kind: target.KindGoRun, Source: "./io_net_races", WorkingDir: filepath.Join("..", "..", "..", "backends", "native", "conformance", "testdata"),
 		PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot,
 	})
@@ -92,7 +93,7 @@ func TestProfileTCPUsesInMemoryLoopback(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	prepared, err := target.Prepare(context.Background(), target.Spec{
+	prepared, err := nativebuild.Prepare(context.Background(), target.Spec{
 		Kind: target.KindGoRun, Source: "./io_net", WorkingDir: filepath.Join("..", "..", "..", "backends", "native", "conformance", "testdata"),
 		PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot,
 	})

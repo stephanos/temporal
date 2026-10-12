@@ -5,14 +5,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"path/filepath"
 	"sort"
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
-	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/captured"
+	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/backend"
@@ -83,7 +84,7 @@ func resumeConfiguration(request campaignRequest, plan campaign.CampaignPlan) (C
 		GoVersion: plan.Toolchain.GoVersion, BuildKey: plan.Toolchain.BuildKey, TargetGOOS: plan.Toolchain.TargetGOOS, TargetGOARCH: plan.Toolchain.TargetGOARCH,
 		CapabilityMode: target.CapabilityMode(plan.Prepared.Target.CapabilityMode), CapabilityManifest: target.CapabilityManifestFromRecord(plan.Prepared.Target.CapabilityManifest),
 	}
-	if err := prepared.Verify(); err != nil {
+	if err := verifyPrepared(prepared); err != nil {
 		return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, err
 	}
 	if prepared.Backend != nil {
@@ -103,7 +104,7 @@ func resumeConfiguration(request campaignRequest, plan campaign.CampaignPlan) (C
 			return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, fmt.Errorf("verify recorded adapters: %w", err)
 		}
 		if request.executor == nil {
-			identity, err := target.ReadToolchainIdentity(request.Target.ToolchainRoot)
+			identity, err := nativebuild.ReadToolchainIdentity(request.Target.ToolchainRoot)
 			if err != nil {
 				return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, err
 			}

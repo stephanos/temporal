@@ -3,6 +3,7 @@ package runner
 import (
 	"encoding/json"
 	"errors"
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -36,7 +37,7 @@ func TestPreparationSourceCallerPreservation(t *testing.T) {
 		for _, caller := range []string{"explore", "plan"} {
 			t.Run(fixture+"/"+caller, func(t *testing.T) {
 				toolchain := filepath.Join(root, fixture, caller, "toolchain")
-				identity, err := target.ReadToolchainIdentity(toolchain)
+				identity, err := nativebuild.ReadToolchainIdentity(toolchain)
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -87,7 +88,7 @@ func TestPreparationSourceCallerPreservation(t *testing.T) {
 						}
 						prepared = opened.prepared
 					}
-					if err := prepared.Verify(); err != nil {
+					if err := verifyPrepared(prepared); err != nil {
 						t.Fatal(err)
 					}
 					count, err := os.ReadFile(countFile)

@@ -3,6 +3,7 @@ package preparation
 import (
 	"context"
 	"errors"
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -133,7 +134,7 @@ func TestInspectRetainsUnsupportedClosureClassification(t *testing.T) {
 	if len(inspected.Review.Findings) == 0 {
 		t.Fatal("unsupported closure has no finding")
 	}
-	_, err = target.ReviewCapabilityClosure(context.Background(), inspected.Spec)
+	_, err = nativebuild.ReviewCapabilityClosure(context.Background(), inspected.Spec)
 	var unsupported *target.UnsupportedCapabilityError
 	if !errors.As(err, &unsupported) || unsupported.Capability != "imports os/exec" {
 		t.Fatalf("unsupported closure error = %v", err)

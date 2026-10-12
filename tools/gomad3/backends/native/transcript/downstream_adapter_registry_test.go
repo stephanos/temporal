@@ -1,6 +1,7 @@
 package transcript
 
 import (
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"os"
 	"path/filepath"
 	"testing"
@@ -54,7 +55,7 @@ func TestProfileSelectsDownstreamAdapters(t *testing.T) {
 			if !selected {
 				t.Fatalf("consumer adapter %s was not selected: %#v", consumer.module, adapters)
 			}
-			if _, err := target.ReviewCapabilities(t.Context(), spec); err != nil {
+			if _, err := nativebuild.ReviewCapabilities(t.Context(), spec); err != nil {
 				t.Fatal(err)
 			}
 		})

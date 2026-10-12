@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"io"
 	"os"
 	"os/exec"
@@ -15,10 +16,10 @@ import (
 	"testing"
 	"time"
 
+	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/runner/internal/execution"
 	"go.temporal.io/server/tools/gomad3/target"
-	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
 )
 
 type modelOperationResult struct {
@@ -123,7 +124,7 @@ func runModelConformance(t *testing.T, fixture string) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	prepared, err := target.Prepare(context.Background(), target.Spec{Kind: target.KindGoRun, Source: "./" + fixture, WorkingDir: working, PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot})
+	prepared, err := nativebuild.Prepare(context.Background(), target.Spec{Kind: target.KindGoRun, Source: "./" + fixture, WorkingDir: working, PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot})
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -2,6 +2,7 @@ package transcript
 
 import (
 	"context"
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"io"
 	"os"
 	"os/exec"
@@ -16,7 +17,7 @@ func TestToolchainLeavesFD5ForProcessesWithoutIOProfile(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	prepared, err := target.Prepare(context.Background(), target.Spec{
+	prepared, err := nativebuild.Prepare(context.Background(), target.Spec{
 		Kind: target.KindGoRun, Source: "./io_fd5", WorkingDir: filepath.Join("..", "..", "..", "backends", "native", "conformance", "testdata"),
 		PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot,
 	})

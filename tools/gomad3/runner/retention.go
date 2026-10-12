@@ -73,6 +73,7 @@ func executionArtifactInput(manifest record.ExecutionRecord, prepared target.Pre
 		payloads = append(payloads, target.BackendPayload{Reference: *manifest.Target.Backend.Evidence, Data: append([]byte(nil), result.BackendEvidence...)})
 	}
 	return artifact.ArtifactInput{
+		CapabilityManifest: prepared.CapabilityManifest,
 		BackendPayloads: payloads,
 		Manifest:        manifest, TargetPath: prepared.Path, Stdout: result.Stdout.Bytes, Stderr: result.Stderr.Bytes,
 		IOTranscript: result.IOTranscript.Bytes, ChoiceTrace: result.ChoiceTrace.Trace.Bytes, ReadOnlyMounts: mountArtifact, World: worldBundle.Payloads,

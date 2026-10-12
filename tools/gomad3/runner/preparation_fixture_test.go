@@ -6,8 +6,8 @@ import (
 	"slices"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/backends/native/preparation"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/target"
 )
@@ -32,7 +32,7 @@ func scriptedPreparationDependencies(t *testing.T, preparer Preparer, executor e
 			if prepared.Kind != request.Target.Kind || prepared.Source != request.Target.Source || len(prepared.Argv) == 0 || prepared.Argv[0] != "gomad3-target" || !slices.Equal(prepared.Argv[1:], request.Target.Args) || len(prepared.Adapters) != 0 {
 				t.Fatalf("scripted prepared target = %#v", prepared)
 			}
-			if err := prepared.Verify(); err != nil {
+			if err := verifyPrepared(prepared); err != nil {
 				t.Fatal(err)
 			}
 			prepared.Adapters = []record.TargetAdapter{}

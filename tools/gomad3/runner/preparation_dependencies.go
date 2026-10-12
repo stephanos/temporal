@@ -3,10 +3,18 @@ package runner
 import (
 	"context"
 
-	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"go.temporal.io/server/tools/gomad3/backends/native/preparation"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/target"
 )
+
+func verifyPrepared(prepared target.Prepared) error {
+	if prepared.Backend != nil {
+		return prepared.Verify()
+	}
+	return nativebuild.VerifyPrepared(prepared)
+}
 
 type executionDependencies struct {
 	executor  executionRunner

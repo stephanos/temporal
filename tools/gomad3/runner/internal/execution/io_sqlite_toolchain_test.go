@@ -2,6 +2,7 @@ package execution_test
 
 import (
 	"context"
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -38,7 +39,7 @@ func TestProfileSQLiteUsesVirtualTimeAndEntropy(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	prepared, err := target.Prepare(context.Background(), spec)
+	prepared, err := nativebuild.Prepare(context.Background(), spec)
 	if err != nil {
 		t.Fatal(err)
 	}

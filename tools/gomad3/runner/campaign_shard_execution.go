@@ -4,14 +4,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"io"
 	"os"
 	"path/filepath"
 	"time"
 
-	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/captured"
+	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
@@ -50,7 +51,7 @@ func runCampaignShardWith(ctx context.Context, spec CampaignShardSpec, dependenc
 		return CampaignResult{}, errors.New("campaign plan I/O profile identity does not match this Runner")
 	}
 	if dependencies.executor == nil {
-		identity, err := target.ReadToolchainIdentity(spec.ToolchainRoot)
+		identity, err := nativebuild.ReadToolchainIdentity(spec.ToolchainRoot)
 		if err != nil {
 			return CampaignResult{}, err
 		}
@@ -185,7 +186,7 @@ func (preparer *campaignPlanPreparer) Prepare(_ context.Context, spec target.Spe
 	}
 	prepared := preparer.source
 	prepared.Path = destination
-	if err := prepared.Verify(); err != nil {
+	if err := verifyPrepared(prepared); err != nil {
 		return target.Prepared{}, err
 	}
 	return prepared, nil

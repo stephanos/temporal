@@ -9,10 +9,10 @@ import (
 	"path/filepath"
 	"slices"
 
+	"go.temporal.io/server/tools/gomad3/backends/native/preparation"
 	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
-	"go.temporal.io/server/tools/gomad3/backends/native/preparation"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
 	"go.temporal.io/server/tools/gomad3/target"
@@ -47,12 +47,12 @@ type portableCampaignPlan struct {
 }
 
 type campaignPlanMountIdentity struct {
-	Schema     string                            `json:"schema"`
-	SHA256     record.SHA256                     `json:"sha256"`
-	Bytes      record.Uint64String               `json:"bytes"`
-	Entries    record.Uint64String               `json:"entries"`
-	TotalBytes record.Uint64String               `json:"total_bytes"`
-	Mappings   []string                          `json:"mappings"`
+	Schema     string                       `json:"schema"`
+	SHA256     record.SHA256                `json:"sha256"`
+	Bytes      record.Uint64String          `json:"bytes"`
+	Entries    record.Uint64String          `json:"entries"`
+	TotalBytes record.Uint64String          `json:"total_bytes"`
+	Mappings   []string                     `json:"mappings"`
 	Limits     captured.CapturedInputLimits `json:"limits"`
 }
 
@@ -144,7 +144,7 @@ func createCampaignPlanWith(ctx context.Context, spec CampaignPlanSpec, dependen
 		return CampaignPlanResult{}, fmt.Errorf("make campaign target immutable: %w", err)
 	}
 	prepared.Path = targetPath
-	if err := prepared.Verify(); err != nil {
+	if err := verifyPrepared(prepared); err != nil {
 		return CampaignPlanResult{}, err
 	}
 	if err := materializeCampaignPlanMounts(bundle, capturedMounts); err != nil {
@@ -264,7 +264,7 @@ func openCampaignPlan(path string) (_ openedCampaignPlan, retErr error) {
 		GoVersion: document.Campaign.Toolchain.GoVersion, BuildKey: document.Campaign.Toolchain.BuildKey, TargetGOOS: document.Campaign.Toolchain.TargetGOOS, TargetGOARCH: document.Campaign.Toolchain.TargetGOARCH,
 		CapabilityMode: target.CapabilityMode(targetRecord.CapabilityMode), CapabilityManifest: target.CapabilityManifestFromRecord(targetRecord.CapabilityManifest),
 	}
-	if err := prepared.Verify(); err != nil {
+	if err := verifyPrepared(prepared); err != nil {
 		return openedCampaignPlan{}, err
 	}
 	return openedCampaignPlan{path: path, identity: record.HashBytes(contents), plan: document.Campaign, mounts: document.Mounts, prepared: prepared}, nil

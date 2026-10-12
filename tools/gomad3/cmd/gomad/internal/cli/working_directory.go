@@ -1,7 +1,7 @@
 package cli
 
 import (
-	"go.temporal.io/server/tools/gomad3/target"
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 )
 
 // invalidWorkingDirectoryError marks a --working-dir the caller supplied that
@@ -25,7 +25,7 @@ func resolveWorkingDirectory(explicit string, current func() (string, error)) (s
 	if explicit == "" {
 		return current()
 	}
-	if err := target.ValidateWorkingDirectory(explicit); err != nil {
+	if err := nativebuild.ValidateWorkingDirectory(explicit); err != nil {
 		return "", invalidWorkingDirectoryError{err: err}
 	}
 	return explicit, nil

@@ -3,12 +3,11 @@ package runner
 import (
 	"context"
 	"fmt"
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"testing"
-
-	"go.temporal.io/server/tools/gomad3/target"
 )
 
 func TestRunnerDeliversExplicitEnvironmentBeforeInitAndReplays(t *testing.T) {
@@ -56,7 +55,7 @@ func TestRunnerDeliversExplicitEnvironmentBeforeInitAndReplays(t *testing.T) {
 func TestDirectTargetEnvironmentPreservesSeededScrubbingAndDisabledBehavior(t *testing.T) {
 	spec := conformanceTarget(t, "./environment")
 	spec.PreparationRoot = t.TempDir()
-	prepared, err := target.Prepare(t.Context(), spec)
+	prepared, err := nativebuild.Prepare(t.Context(), spec)
 	if err != nil {
 		t.Fatal(err)
 	}

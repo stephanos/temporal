@@ -2,13 +2,14 @@ package transcript
 
 import (
 	"context"
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/target"
 	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
+	"go.temporal.io/server/tools/gomad3/target"
 )
 
 func TestRewriteXNetSocketDeniesRawSocketOptions(t *testing.T) {
@@ -117,7 +118,7 @@ func TestXNetPreparedPackageSourceSetIdentity(t *testing.T) {
 	if len(adapters) != 1 || adapters[0].Module != xnetModulePath {
 		t.Fatalf("selected adapters = %#v", adapters)
 	}
-	if _, err := target.ReviewCapabilities(context.Background(), spec); err != nil {
+	if _, err := nativebuild.ReviewCapabilities(context.Background(), spec); err != nil {
 		t.Fatal(err)
 	}
 }

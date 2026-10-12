@@ -2,13 +2,13 @@ package cli
 
 import (
 	"fmt"
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"os"
 	"strings"
 
+	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/record"
-	"go.temporal.io/server/tools/gomad3/target"
-	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
 )
 
 const reportSchema = "gomad3.doctor/v3"
@@ -76,7 +76,7 @@ func Check(config Config) Report {
 		})
 	}
 	report.Checks = append(report.Checks, hostCheck(report.Host, report.SupportedPlatforms))
-	identity, err := target.ReadToolchainIdentity(config.ToolchainRoot)
+	identity, err := nativebuild.ReadToolchainIdentity(config.ToolchainRoot)
 	if err != nil {
 		report.Checks = append(report.Checks, failedCheck("toolchain", err.Error()+"; "+report.RepairInstruction))
 	} else {

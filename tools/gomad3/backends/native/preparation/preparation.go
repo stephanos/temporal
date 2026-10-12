@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"os"
 
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
@@ -55,7 +56,7 @@ func Prepare(ctx context.Context, request Request) (target.Prepared, error) {
 func prepare(ctx context.Context, request Request, remove func(string) error) (prepared target.Prepared, retErr error) {
 	profile := transcript.Default()
 	return prepareWith(ctx, request, preparationServices{
-		adapters: profile.PrepareTargetBuildAdapters, target: target.Prepare,
+		adapters: profile.PrepareTargetBuildAdapters, target: nativebuild.Prepare,
 		validate: profile.ValidatePreparedTarget, remove: remove,
 	})
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"os"
 
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
@@ -26,7 +27,7 @@ func Inspect(ctx context.Context, spec target.Spec) (Inspection, error) {
 func inspect(ctx context.Context, spec target.Spec, remove func(string) error) (_ Inspection, retErr error) {
 	return inspectWith(ctx, spec, inspectionServices{
 		adapters: transcript.Default().PrepareTargetBuildAdapters,
-		review:   target.ReviewCapabilities, remove: remove,
+		review:   nativebuild.ReviewCapabilities, remove: remove,
 	})
 }
 

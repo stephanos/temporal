@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -43,7 +44,7 @@ type Spec struct {
 }
 
 func Analyze(ctx context.Context, spec Spec) (Report, error) {
-	return analyzeWith(ctx, spec, target.ReviewCapabilities)
+	return analyzeWith(ctx, spec, nativebuild.ReviewCapabilities)
 }
 
 func analyzeWith(ctx context.Context, spec Spec, reviewCapabilities func(context.Context, target.Spec) (target.CapabilityReview, error)) (Report, error) {

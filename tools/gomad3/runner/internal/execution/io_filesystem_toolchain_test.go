@@ -2,6 +2,7 @@ package execution_test
 
 import (
 	"context"
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -19,7 +20,7 @@ func TestProfileFilesystemStaysInMemory(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	prepared, err := target.Prepare(context.Background(), target.Spec{
+	prepared, err := nativebuild.Prepare(context.Background(), target.Spec{
 		Kind: target.KindGoRun, Source: "./io_filesystem", WorkingDir: filepath.Join("..", "..", "..", "backends", "native", "conformance", "testdata"),
 		PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot,
 	})
@@ -59,7 +60,7 @@ func TestDirectSeedFilesystemStartsEmpty(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	prepared, err := target.Prepare(context.Background(), target.Spec{
+	prepared, err := nativebuild.Prepare(context.Background(), target.Spec{
 		Kind: target.KindGoRun, Source: "./io_filesystem", WorkingDir: filepath.Join("..", "..", "..", "backends", "native", "conformance", "testdata"),
 		PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot,
 	})
@@ -86,7 +87,7 @@ func TestProfileReadOnlyMountServesCapturedFilesInMemory(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	prepared, err := target.Prepare(context.Background(), target.Spec{
+	prepared, err := nativebuild.Prepare(context.Background(), target.Spec{
 		Kind: target.KindGoRun, Source: "./io_ro_mount", WorkingDir: filepath.Join("..", "..", "..", "backends", "native", "conformance", "testdata"),
 		PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot,
 	})

@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"io"
 	"os"
 	"path/filepath"
@@ -15,14 +16,14 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
-	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
-	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/backends/native/preparation"
-	"go.temporal.io/server/tools/gomad3/qualification"
 	capabilityanalysis "go.temporal.io/server/tools/gomad3/backends/native/qualification/analysis"
 	supportcomparison "go.temporal.io/server/tools/gomad3/backends/native/qualification/comparison"
 	qualificationset "go.temporal.io/server/tools/gomad3/backends/native/qualification/set"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	"go.temporal.io/server/tools/gomad3/choice"
+	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+	"go.temporal.io/server/tools/gomad3/qualification"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner"
 	"go.temporal.io/server/tools/gomad3/target"
@@ -537,7 +538,7 @@ func TestRunAnalyzeClassifiesRealReadonlyModuleFailureAsInvalidInput(t *testing.
 		toolchain:        func(string) (string, error) { return toolchain, nil },
 		identity:         func(string) (target.ToolchainIdentity, error) { return target.ToolchainIdentity{}, nil },
 		workingDirectory: func() (string, error) { return directory, nil },
-		review:           target.ReviewCapabilities,
+		review:           nativebuild.ReviewCapabilities,
 		build: func(capabilityanalysis.Input) (capabilityanalysis.Report, error) {
 			t.Fatal("analysis report was built after invalid read-only module resolution")
 			return capabilityanalysis.Report{}, nil

@@ -5,13 +5,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"go/format"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
-
-	"go.temporal.io/server/tools/gomad3/target"
 )
 
 var libcRegenerationSources = []string{
@@ -71,7 +70,7 @@ func regenerateLibcAdapter(ctx context.Context, request AdapterRegenerationReque
 	}
 	for _, platform := range sortedKeys(previous.PreparedSourceSetSHA256) {
 		goos, goarch, _ := strings.Cut(platform, "/")
-		proposed.PreparedSourceSetSHA256[platform], err = target.AdapterPreparedSourceSetSHA256(ctx, request.GoCommand, candidateCopy, libcModulePath, goos, goarch)
+		proposed.PreparedSourceSetSHA256[platform], err = nativebuild.AdapterPreparedSourceSetSHA256(ctx, request.GoCommand, candidateCopy, libcModulePath, goos, goarch)
 		if err != nil {
 			return AdapterRegeneration{}, err
 		}
@@ -186,7 +185,7 @@ func verifyLibcAdapter(ctx context.Context, moduleDirectory, goCommand string) (
 	}
 	for platform, pinned := range libcPreparedSourceSetSHA256ByHost {
 		goos, goarch, _ := strings.Cut(platform, "/")
-		actual, err := target.AdapterPreparedSourceSetSHA256(ctx, goCommand, replacement, libcModulePath, goos, goarch)
+		actual, err := nativebuild.AdapterPreparedSourceSetSHA256(ctx, goCommand, replacement, libcModulePath, goos, goarch)
 		if err != nil {
 			return err
 		}

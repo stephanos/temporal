@@ -7,17 +7,18 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"os"
 	"path/filepath"
 	"slices"
 	"strings"
 	"testing"
 
+	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	"go.temporal.io/server/tools/gomad3/backends/native/upgrade/pinimpact"
 	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
 	"go.temporal.io/server/tools/gomad3/target"
-	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
-	"go.temporal.io/server/tools/gomad3/backends/native/upgrade/pinimpact"
 	"golang.org/x/mod/modfile"
 )
 
@@ -495,7 +496,7 @@ func TestUnknownPinsCountAsInvalidated(t *testing.T) {
 	}
 	requirePins(t, missingRoot, map[string]pinimpact.Status{
 		"interception-fingerprint backends/native/transcript/boundary/manifest.json": pinimpact.StatusUnknown,
-		"clock-reference toolchain/clock_inventory_test.go":               pinimpact.StatusUnknown,
+		"clock-reference toolchain/clock_inventory_test.go":                          pinimpact.StatusUnknown,
 	})
 	if !missingRoot.Invalidated {
 		t.Fatal("unevaluated pins did not invalidate the candidate")
@@ -566,7 +567,7 @@ func isPinnedModuleDownloadFailure(err error, toolchainRoot string, identity gom
 func TestAdapterAcceptanceRequiresPinnedModuleDownloadFailure(t *testing.T) {
 	toolchainRoot := t.TempDir()
 	identity := adapterIdentity(t, sentryModule)
-	downloadErr := target.DownloadModule(context.Background(), toolchainRoot, target.ModuleIdentity{
+	downloadErr := nativebuild.DownloadModule(context.Background(), toolchainRoot, target.ModuleIdentity{
 		Path: identity.Module, Version: identity.Version, Sum: identity.Sum,
 	})
 	if downloadErr == nil {

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"go/parser"
 	"go/token"
 	"os"
@@ -14,9 +15,9 @@ import (
 	"strings"
 	"testing"
 
+	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
 	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
 	"go.temporal.io/server/tools/gomad3/target"
-	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
 )
 
 // rewrittenModuleAdapters lists the adapters built on prepareRewrittenModule
@@ -319,7 +320,7 @@ func TestRewrittenModulePreparedPackageSourceSetIdentity(t *testing.T) {
 			t.Fatalf("%s adapter was not selected: %#v", adapter.name, adapters)
 		}
 	}
-	if _, err := target.ReviewCapabilities(context.Background(), spec); err != nil {
+	if _, err := nativebuild.ReviewCapabilities(context.Background(), spec); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -361,7 +362,7 @@ func TestRewrittenModuleOutsideServerGraphPreparedSourceSetIdentity(t *testing.T
 	if len(adapters) != 1 || adapters[0].Module != sockaddrModulePath {
 		t.Fatalf("fixture adapters = %#v", adapters)
 	}
-	if _, err := target.ReviewCapabilities(context.Background(), spec); err != nil {
+	if _, err := nativebuild.ReviewCapabilities(context.Background(), spec); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -412,7 +413,7 @@ func TestProfileSelectsSentryAdapter(t *testing.T) {
 		t.Fatal(err)
 	}
 	spec.ToolchainRoot = strings.TrimSpace(string(toolchainRoot))
-	if _, err := target.ReviewCapabilities(t.Context(), spec); err != nil {
+	if _, err := nativebuild.ReviewCapabilities(t.Context(), spec); err != nil {
 		t.Fatal(err)
 	}
 }

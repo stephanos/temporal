@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"io/fs"
 	"os"
 	"os/exec"
@@ -11,7 +12,6 @@ import (
 	"strings"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/target"
 	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
 )
 
@@ -66,7 +66,7 @@ func TestAdapterPreparedSourceSetPinsReproduceOnEveryHost(t *testing.T) {
 		}
 		for _, platform := range sortedKeys(pins[module]) {
 			goos, goarch, _ := strings.Cut(platform, "/")
-			got, err := target.AdapterPreparedSourceSetSHA256(t.Context(), goCommand, directory, prepared.evidence.PreparedPackage, goos, goarch)
+			got, err := nativebuild.AdapterPreparedSourceSetSHA256(t.Context(), goCommand, directory, prepared.evidence.PreparedPackage, goos, goarch)
 			if err != nil {
 				t.Fatalf("%s %s: %v", module, platform, err)
 			}

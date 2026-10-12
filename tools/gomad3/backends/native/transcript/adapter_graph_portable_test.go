@@ -3,6 +3,7 @@ package transcript
 import (
 	"bytes"
 	"encoding/json"
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -81,7 +82,7 @@ func TestPortableServerGraphPreparedSourceIdentities(t *testing.T) {
 				if !strings.HasPrefix(pkg.Dir, prepared.ReplacementRoot+string(filepath.Separator)) && pkg.Dir != prepared.ReplacementRoot {
 					t.Fatalf("server graph selected unprepared package %s", pkg.Dir)
 				}
-				got, err := target.AdapterPreparedSourceSetSHA256(t.Context(), goCommand, pkg.Dir, prepared.PreparedPackage, goos, goarch)
+				got, err := nativebuild.AdapterPreparedSourceSetSHA256(t.Context(), goCommand, pkg.Dir, prepared.PreparedPackage, goos, goarch)
 				if err != nil || got != pins[platform] {
 					t.Fatalf("server graph %s source set = %s (%v), want %s", prepared.Module, got, err, pins[platform])
 				}

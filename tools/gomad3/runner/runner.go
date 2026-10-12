@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"os"
 	"regexp"
 	"runtime"
@@ -309,7 +310,7 @@ func contextFailureReason(err error) string {
 type targetPreparer struct{}
 
 func (targetPreparer) Prepare(ctx context.Context, spec target.Spec) (target.Prepared, error) {
-	return target.Prepare(ctx, spec)
+	return nativebuild.Prepare(ctx, spec)
 }
 
 type processExecutor struct{}

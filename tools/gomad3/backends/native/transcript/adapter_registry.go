@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"go.temporal.io/server/tools/gomad3/record"
 	"os"
 	"path/filepath"
@@ -11,9 +12,9 @@ import (
 	"sort"
 	"strings"
 
-	"go.temporal.io/server/tools/gomad3/target"
 	"go.temporal.io/server/tools/gomad3/backends/native/toolchain/installation"
 	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
+	"go.temporal.io/server/tools/gomad3/target"
 	"golang.org/x/mod/modfile"
 )
 
@@ -201,7 +202,7 @@ func (registry adapterRegistry) prepare(spec target.Spec, moduleCache string) (t
 	if len(registry.definitions) == 0 {
 		return spec, []BuildAdapter{}, nil
 	}
-	workingDirectory, err := target.ModuleDirectory(spec)
+	workingDirectory, err := nativebuild.ModuleDirectory(spec)
 	if err != nil {
 		return target.Spec{}, nil, invalidBuildAdapterConfiguration(fmt.Errorf("resolve target module directory: %w", err))
 	}
@@ -286,7 +287,7 @@ func (profile Spec) PrepareTargetBuildAdapters(ctx context.Context, spec target.
 	if err != nil {
 		return target.Spec{}, nil, err
 	}
-	workingDirectory, err := target.ModuleDirectory(spec)
+	workingDirectory, err := nativebuild.ModuleDirectory(spec)
 	if err != nil {
 		return target.Spec{}, nil, invalidBuildAdapterConfiguration(fmt.Errorf("resolve target module directory: %w", err))
 	}
@@ -302,11 +303,11 @@ func (profile Spec) PrepareTargetBuildAdapters(ctx context.Context, spec target.
 	}
 	for _, adapter := range selected {
 		identity := target.ModuleIdentity{Path: adapter.identity.Module, Version: adapter.identity.Version, Sum: adapter.identity.Sum}
-		if err := target.DownloadModule(ctx, spec.ToolchainRoot, identity); err != nil {
+		if err := nativebuild.DownloadModule(ctx, spec.ToolchainRoot, identity); err != nil {
 			return target.Spec{}, nil, err
 		}
 	}
-	moduleCache, err := target.ReadModuleCache(ctx, spec.ToolchainRoot)
+	moduleCache, err := nativebuild.ReadModuleCache(ctx, spec.ToolchainRoot)
 	if err != nil {
 		return target.Spec{}, nil, err
 	}

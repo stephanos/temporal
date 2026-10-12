@@ -3,6 +3,7 @@ package runner
 import (
 	"context"
 	"debug/buildinfo"
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -12,12 +13,11 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/artifact"
 	"go.temporal.io/server/tools/gomad3/record"
-	"go.temporal.io/server/tools/gomad3/target"
 )
 
 func TestReplayBuildInfoRejectsMatchingCoverageInstrumentation(t *testing.T) {
 	info := &debug.BuildInfo{GoVersion: "go1.27.1", Path: "example.com/target", Settings: []debug.BuildSetting{{Key: "-cover", Value: "true"}}}
-	err := validateBuildInfo(info, target.ProjectBuildInfo(info))
+	err := validateBuildInfo(info, nativebuild.ProjectBuildInfo(info))
 	if err == nil || !strings.Contains(err.Error(), "coverage") {
 		t.Fatalf("matching coverage build-info rejection = %v", err)
 	}
@@ -61,7 +61,7 @@ func TestReplayAndMinimizeRejectRetainedCoverageBinary(t *testing.T) {
 	manifest := opened.Manifest()
 	manifest.Target.SHA256 = record.HashBytes(contents)
 	manifest.Target.Size = record.Uint64String(len(contents))
-	manifest.Target.BuildInfo = target.ProjectBuildInfo(build)
+	manifest.Target.BuildInfo = nativebuild.ProjectBuildInfo(build)
 	stdout, err := opened.ReadPayload(manifest.Streams.Stdout.File, uint64(manifest.Streams.Stdout.RetainedBytes))
 	if err != nil {
 		t.Fatal(err)

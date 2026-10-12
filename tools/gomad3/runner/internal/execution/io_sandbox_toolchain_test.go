@@ -3,6 +3,7 @@ package execution_test
 import (
 	"context"
 	"fmt"
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -51,7 +52,7 @@ func TestProfilePassesHostCapabilitySandbox(t *testing.T) {
 				spec.CapabilityMode = target.CapabilityModeGuarded
 			}
 			if test.libcAdapter {
-				moduleCache, cacheErr := target.ReadModuleCache(context.Background(), toolchainRoot)
+				moduleCache, cacheErr := nativebuild.ReadModuleCache(context.Background(), toolchainRoot)
 				if cacheErr != nil {
 					t.Fatal(cacheErr)
 				}
@@ -60,7 +61,7 @@ func TestProfilePassesHostCapabilitySandbox(t *testing.T) {
 					t.Fatal(err)
 				}
 			}
-			prepared, err := target.Prepare(context.Background(), spec)
+			prepared, err := nativebuild.Prepare(context.Background(), spec)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -139,7 +140,7 @@ func runIOFailureFixture(t *testing.T, moduleName, source string, capabilityMode
 	if err := os.WriteFile(filepath.Join(workingDirectory, "main.go"), []byte(source), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	prepared, err := target.Prepare(context.Background(), target.Spec{
+	prepared, err := nativebuild.Prepare(context.Background(), target.Spec{
 		Kind: target.KindGoRun, Source: ".", WorkingDir: workingDirectory,
 		PreparationRoot: t.TempDir(), ToolchainRoot: toolchainRoot, CapabilityMode: capabilityMode,
 	})

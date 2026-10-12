@@ -5,14 +5,15 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"io"
 	"os"
 	"time"
 
-	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/backends/native/preparation"
 	capabilityanalysis "go.temporal.io/server/tools/gomad3/backends/native/qualification/analysis"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
+	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
@@ -44,7 +45,7 @@ type analyzeArguments struct {
 func (app application) runAnalyze(arguments []string, stdout, stderr io.Writer) int {
 	return runAnalyzeWith(arguments, stdout, stderr, analyzeDependencies{
 		toolchain: app.installedToolchain,
-		identity:  target.ReadToolchainIdentity, workingDirectory: os.Getwd,
+		identity:  nativebuild.ReadToolchainIdentity, workingDirectory: os.Getwd,
 		inspect: preparation.Inspect, build: capabilityanalysis.Build,
 	})
 }

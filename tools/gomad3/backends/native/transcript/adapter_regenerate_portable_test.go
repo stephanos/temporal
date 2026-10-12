@@ -3,6 +3,7 @@ package transcript
 import (
 	"bytes"
 	"errors"
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -11,7 +12,6 @@ import (
 	"strings"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/target"
 	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
 	"golang.org/x/mod/module"
 )
@@ -120,7 +120,7 @@ func TestPortableAdapterPreparedSourcePins(t *testing.T) {
 			for _, platform := range []string{"darwin/arm64", "linux/amd64"} {
 				t.Run(platform, func(t *testing.T) {
 					goos, goarch, _ := strings.Cut(platform, "/")
-					got, err := target.AdapterPreparedSourceSetSHA256(t.Context(), goCommand, directory, prepared.evidence.PreparedPackage, goos, goarch)
+					got, err := nativebuild.AdapterPreparedSourceSetSHA256(t.Context(), goCommand, directory, prepared.evidence.PreparedPackage, goos, goarch)
 					if err != nil {
 						t.Fatalf("portable adapter check NoError failed: %v", err)
 					}

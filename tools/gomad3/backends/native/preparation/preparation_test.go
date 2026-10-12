@@ -3,6 +3,7 @@ package preparation
 import (
 	"context"
 	"errors"
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -92,7 +93,7 @@ func TestPrepareExternalModuleWithLocalReplacement(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := prepared.Verify(); err != nil {
+	if err := nativebuild.VerifyPrepared(prepared); err != nil {
 		t.Fatal(err)
 	}
 	if prepared.BuildInfo.MainModule != "example.com/external" || len(prepared.Adapters) != 0 {
@@ -113,7 +114,7 @@ func TestPrepareIndependentAdapterTargetsHaveStableIdentityAndCleanWorkspaces(t 
 		if err != nil {
 			t.Fatal(err)
 		}
-		if err := prepared.Verify(); err != nil {
+		if err := nativebuild.VerifyPrepared(prepared); err != nil {
 			t.Fatal(err)
 		}
 		entries, err := os.ReadDir(preparationRoot)
