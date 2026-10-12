@@ -118,16 +118,18 @@ facet vocabularies are recorded in fn-161.
 | 1 | fn-159 | qualified names, renames, `enters` (source integrated; proof/closure open) |
 | 2 | fn-161 | facets |
 | 3 | fn-162 | realizations name their Queries; claim containers removed |
-| 4 | fn-160 | layout, Protocol level, per-feature collection |
-| 5 | fn-163 | system/product capabilities, named system capabilities |
-| 6 | fn-147 | Duration-typed elapsed-time authoring (source integrated; proof/closure open) |
-| 7 | fn-140 | witness Queries and `.live` |
-| 8 | fn-149 | safety and liveness groups |
-| 9 | fn-164 | `expect:` blocks for Properties and consistent colon style |
+| 4 | fn-160 | layout and realization layer (.3/.4) |
+| 5 | fn-166.11 | lifter suites scoped to what they lift; production fixtures retargeted to mini |
+| 6 | fn-141 | lifter refactor (byte-identical lifts), pulled forward by the owner on 2026-10-12 |
+| 7 | fn-160 | Protocol level, flat `features/`, per-feature collection (.6/.7/.2) |
+| 8 | fn-163 | system/product capabilities, named system capabilities |
+| 9 | fn-147 | Duration-typed elapsed-time authoring (source integrated; proof/closure open) |
+| — | fn-140 | witness Queries and `.live` (source done; Go proofs held) |
+| — | fn-149 | safety and liveness groups (source done; Go proofs held) |
+| 10 | fn-164 | `expect:` blocks for Properties and consistent colon style |
 | — | seal | the mini feature's step-table equivalence before the first meaning change |
-| 10 | fn-123 | fault declarations, durability, `crashes(...)` |
-| 11 | fn-153 | Property illustrations in the DSL |
-| 12 | fn-141 | lifter refactor on the final DSL (byte-identical lifts) |
+| 11 | fn-123 | fault declarations, durability, `crashes(...)` |
+| 12 | fn-153 | Property illustrations in the DSL |
 | 13 | fn-165 | inputs as records: named classes, declared defaults, `:=` removed from classes (after fn-141) |
 
 fn-128 and fn-129, the remaining standalone activity edits, are about a real feature only and moved
@@ -168,6 +170,7 @@ Lint checks and manual acceptance work are set aside for this run at the owner's
 | fn-166.10 | ⏸️ deferred | Runnable custom-rule loading/Make integration and mini worked application; separate infrastructure producer for fn-167.7 |
 | fn-166.5 | ⏸️ deferred | Three canonical warm loops under 90 s and authorized consumer/full-set closure; source docs and rules are tasks 8/9 |
 | fn-166.7 | ⏸️ deferred | Model-side Make target rename and live-reference sweep; runtime target names retained |
+| fn-166.11 | ⬜ todo | Lifter suites scoped to what they lift: admission covers only sources the lifted roots reach; production-fixture tests retargeted to mini or held for the sweep; before/after suite timing (owner, 2026-10-12) |
 
 ### fn-167: Gaps declared in the Model: `@gap` replaces the lint file
 
@@ -457,8 +460,10 @@ do not establish developer comprehension, and absent feedback must remain explic
 
 ### fn-141: Shrink the IR generator: one description of each DSL construct
 
-Ready 2026-10-08. Runs last in the Scala DSL work, on the final DSL and the vocabulary left by fn-140,
-fn-123, fn-149, fn-163 and fn-164.
+Ready 2026-10-08. Pulled forward by the owner on 2026-10-12: it runs after fn-160.3/.4 and
+fn-166.11, before the remaining DSL specs, which then land on the smaller lifter. Its
+"spellings no Model uses" recount (fn-141.2) counts the current mini and shared code only, and must
+keep any spelling an open spec in this batch is about to use.
 Because its tasks were planned against the earlier tree, each re-reads its files and recounts first.
 Tasks follow Flow's branching dependencies. Tasks 1 and 2 have overlapping declared files and run
 serially; after both finish, 3, 6 and 7 are disjoint parallel candidates. Task 5 is the proof for the
