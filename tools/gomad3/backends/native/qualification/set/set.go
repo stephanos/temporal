@@ -15,13 +15,13 @@ import (
 	"strings"
 	"time"
 
+	capabilityanalysis "go.temporal.io/server/tools/gomad3/backends/native/qualification/analysis"
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/internal/hostexec"
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
 	"go.temporal.io/server/tools/gomad3/qualification"
-	capabilityanalysis "go.temporal.io/server/tools/gomad3/backends/native/qualification/analysis"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/target"
 )
@@ -212,11 +212,12 @@ type ChoiceCoverage struct {
 }
 
 type Spec struct {
-	ManifestPath string
-	GomadPath    string
-	WorkingDir   string
-	ArtifactRoot string
-	OutputPath   string
+	ManifestPath         string
+	GomadPath            string
+	InstallationManifest string
+	WorkingDir           string
+	ArtifactRoot         string
+	OutputPath           string
 	// Shard limits the run to one ordinal-modulo subset of the manifest; the
 	// zero value runs the whole manifest.
 	Shard Shard

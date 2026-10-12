@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/runner"
-	runnerbackend "go.temporal.io/server/tools/gomad3/runner/backend"
+	runnerbackend "go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/target"
 )
 

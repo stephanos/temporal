@@ -14,7 +14,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner"
-	runnerbackend "go.temporal.io/server/tools/gomad3/runner/backend"
+	runnerbackend "go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/target"
 )
 

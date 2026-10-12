@@ -21,7 +21,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/record"
-	runnerbackend "go.temporal.io/server/tools/gomad3/runner/backend"
+	runnerbackend "go.temporal.io/server/tools/gomad3/backends"
 	netmodel "go.temporal.io/server/tools/gomad3/simulation/network"
 	"go.temporal.io/server/tools/gomad3/volume"
 	"go.temporal.io/server/tools/gomad3/world"

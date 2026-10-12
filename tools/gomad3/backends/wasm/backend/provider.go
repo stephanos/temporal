@@ -23,7 +23,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/hostexec"
 	"go.temporal.io/server/tools/gomad3/hostfs"
 	"go.temporal.io/server/tools/gomad3/record"
-	runnerbackend "go.temporal.io/server/tools/gomad3/runner/backend"
+	runnerbackend "go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/target"
 )
 

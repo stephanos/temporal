@@ -16,7 +16,7 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/hostexec"
-	runnerbackend "go.temporal.io/server/tools/gomad3/runner/backend"
+	runnerbackend "go.temporal.io/server/tools/gomad3/backends"
 )
 
 func stringSeed(seed uint64) string    { return strconv.FormatUint(seed, 10) }

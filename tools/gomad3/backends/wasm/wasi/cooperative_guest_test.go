@@ -15,7 +15,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/backends/wasm/internal/stockgo"
 	"go.temporal.io/server/tools/gomad3/backends/wasm/toolchain"
 	"go.temporal.io/server/tools/gomad3/choice"
-	runnerbackend "go.temporal.io/server/tools/gomad3/runner/backend"
+	runnerbackend "go.temporal.io/server/tools/gomad3/backends"
 )
 
 func cooperativeRequest(t *testing.T, fixture string) Request {

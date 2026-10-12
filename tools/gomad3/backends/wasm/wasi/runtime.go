@@ -9,7 +9,7 @@ import (
 	"slices"
 
 	"go.temporal.io/server/tools/gomad3/choice"
-	runnerbackend "go.temporal.io/server/tools/gomad3/runner/backend"
+	runnerbackend "go.temporal.io/server/tools/gomad3/backends"
 )
 
 const CooperativeProfile = "gomad3.wasi-cooperative/v1"

@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/choice"
-	runnerbackend "go.temporal.io/server/tools/gomad3/runner/backend"
+	runnerbackend "go.temporal.io/server/tools/gomad3/backends"
 )
 
 func TestHelperModelPreservesGoOwnerEvidence(t *testing.T) {

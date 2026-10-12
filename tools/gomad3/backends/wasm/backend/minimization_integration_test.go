@@ -13,7 +13,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/runner"
-	runnerbackend "go.temporal.io/server/tools/gomad3/runner/backend"
+	runnerbackend "go.temporal.io/server/tools/gomad3/backends"
 )
 
 const minimizationGuest = `package main

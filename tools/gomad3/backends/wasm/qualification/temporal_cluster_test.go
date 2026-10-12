@@ -21,7 +21,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/hostfs"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner"
-	runnerbackend "go.temporal.io/server/tools/gomad3/runner/backend"
+	runnerbackend "go.temporal.io/server/tools/gomad3/backends"
 	netmodel "go.temporal.io/server/tools/gomad3/simulation/network"
 	"go.temporal.io/server/tools/gomad3/target"
 	"go.temporal.io/server/tools/gomad3/world"
