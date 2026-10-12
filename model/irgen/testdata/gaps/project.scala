@@ -4,3 +4,5 @@
 //> using jar ../../../build/api-scalapb.jar
 //> using dep com.thesamet.scalapb::scalapb-runtime-grpc:0.11.20
 //> using file ../../../framework/Gaps.scala
+// The resolution fixtures are a build of their own (resolution/project.scala).
+//> using exclude resolution

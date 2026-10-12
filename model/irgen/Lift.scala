@@ -41,7 +41,12 @@ enum Target:
   // Every IR file the lifted sources declare with `irFile`, or the ones named.
   case IrFiles(names: Seq[String])
 
-class Lifter(target: Target, prefixes: Map[String, String]) extends Inspector:
+// `specs` is the Flow registry a gap's `until` is resolved against, read only where one names a spec.
+class Lifter(
+    target: Target,
+    prefixes: Map[String, String],
+    specs: () => SpecRegistry = () => SpecRegistry.flow(Path.of(""))
+) extends Inspector:
   // The Model of each IR file lifted, by the file's name; a lift of roots has one, named "".
   val models = mutable.LinkedHashMap.empty[String, ir.Model]
 
@@ -55,6 +60,14 @@ class Lifter(target: Target, prefixes: Map[String, String]) extends Inspector:
   // source writes it: its `Phased` argument, or a derived object's source's. Nothing is written of
   // it; the lifter's tests read it.
   val phases = mutable.LinkedHashMap.empty[String, String]
+
+  // The gaps of each IR file lifted, resolved (Gaps.scala), with its capability waivers as gaps. Nothing
+  // is written of them: they are the lifter's own until the shared IR carries them (fn-167).
+  private[irgen] val gaps = mutable.LinkedHashMap.empty[String, Seq[ResolvedGap]]
+
+  // The declarations a gap annotates that some IR file of the run lifted.
+  private val placed = mutable.Set.empty[String]
+  private lazy val registry = specs()
 
   // What each negative control of every file lifted asks of the run's Queries.
   private val refutations = mutable.ArrayBuffer.empty[Refutation]
@@ -88,6 +101,8 @@ class Lifter(target: Target, prefixes: Map[String, String]) extends Inspector:
               // Each file is lifted over the one index, with state of its own.
               val chosen = declared.filter((name, _) => only.isEmpty || only.contains(name))
               for (name, roots) <- chosen.sortBy(_._1) do liftFile(index, name, roots)
+              // A gap on a declaration no IR file lifts declares nothing the lint reads.
+              if only.isEmpty && errors.isEmpty then errors ++= unplaced(index).map("" -> _)
         errors ++= unrefuted(refutations.toSeq).map("" -> _)
         errors ++= derivedIdTwins(models.toSeq).map("" -> _)
     catch case e: LiftError => errors += "" -> e
@@ -145,6 +160,23 @@ class Lifter(target: Target, prefixes: Map[String, String]) extends Inspector:
     )
     phases ++= concerns.phases
     for stated <- sectionWaivers(ctx) do waivers(file) = stated
+    // Resolved after the Model is made, so nothing the resolution reads changes what is written.
+    val (resolved, refused, declarations) = concerns.resolveGaps(registry)
+    gaps(file) = resolved
+    placed ++= declarations
+    errors ++= refused.map(file -> _)
+
+  // Each gap of the run whose declaration no IR file lifted.
+  private def unplaced(index: Index): Seq[LiftError] =
+    val annotations = GapAnnotations(index)
+    annotations.declarations.filterNot(d => placed(annotations.name(d))).map { d =>
+      LiftError(
+        annotations.where(d),
+        s"the gap of ${annotations.name(d)} annotates a declaration no IR file lifts: a gap " +
+          "names a machine, composition, facet, realization, Property, Query or refinement an " +
+          "IR file lifts"
+      )
+    }
 
 // The refusal of two declarations of one package that derive one ID across the IR files of a run:
 // two machines or compositions of one name (`<family>.target.<name>`), or two Queries of one name

@@ -421,6 +421,7 @@ private[irgen] trait Capabilities:
           sameSignature(p.written, p.property, sym, by)
           overridden(p.name) = sym -> by
       capabilityWaivers += ((machine, s"$machine.${p.name}", because))
+      capabilityWaiverGaps += ((machine, s"$machine.${p.name}", because, w.kind, pos(w.property)))
 
     val generated = brought.filterNot(p => excepted(p.name))
     val (default, overrides) = boundsOf(machine, section, brought, excepted.toSet)

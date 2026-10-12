@@ -11,6 +11,7 @@ final private[irgen] class Lifting(val ctx: Context)
       Compositions,
       Claims,
       Capabilities,
+      Gaps,
       Syntax,
       Markers,
       PhaseRoles:

@@ -12,6 +12,7 @@ final private[irgen] class GapAnnotations(val index: Index):
   final case class Declaration(
       owner: Symbol,
       at: Position,
+      annotation: Term,
       subjects: List[Term],
       because: String,
       until: String
@@ -131,7 +132,7 @@ final private[irgen] class GapAnnotations(val index: Index):
                         case (Some(reason), Some(expiry)) =>
                           if reason.isBlank then
                             refuse(annotation, "a gap needs a non-blank reason")
-                          found += Declaration(key._1, at, values, reason, expiry)
+                          found += Declaration(key._1, at, annotation, values, reason, expiry)
                         case _ => refuse(annotation, "because and until must be literal strings")
                     case _ => refuse(annotation, "unsupported curried annotation arguments")
           case _ => ()
@@ -141,6 +142,30 @@ final private[irgen] class GapAnnotations(val index: Index):
 
   def refusals(exempt: String => Boolean): Seq[(String, Int, LiftError)] =
     refused.toSeq.filterNot((file, _, _) => exempt(file))
+
+  // The source identity of a gap's declaration, `<package>.<objects>.<name>` (fn-167).
+  def name(d: Declaration): String =
+    val owners = Iterator
+      .iterate(d.owner)(_.maybeOwner)
+      .takeWhile(o => !o.isNoSymbol && !o.isPackageDef)
+      .toList
+      .reverse
+      .filterNot(_.name.endsWith("$package$"))
+      .map(_.name.stripSuffix("$"))
+    val pkg = Iterator
+      .iterate(d.owner)(_.maybeOwner)
+      .find(o => o.isNoSymbol || o.isPackageDef)
+      .filter(_.isPackageDef)
+      .fold("")(_.fullName)
+    (pkg +: owners).filter(_.nonEmpty).mkString(".")
+
+  // Where a gap is written, `file:line`.
+  def where(d: Declaration): String =
+    val path = fileOf(d.annotation)
+    val line = scala.util
+      .Try(index.sourceLine(path, d.at.start))
+      .getOrElse(d.at.startLine + 1)
+    s"$path:$line"
 
 final private[irgen] class Conventions(index: Index):
   import index.quotes.reflect.*

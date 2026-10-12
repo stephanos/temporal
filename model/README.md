@@ -262,10 +262,26 @@ annotations and foreign subject factories, and permits ordinary compiler annotat
 as `unused`, `targetName` and `unchecked`. Internal TASTy extraction retains source order
 and emits object/module mirrors once; genuinely repeated authored annotations remain distinct.
 
-This is source admission only. Owner-relative subject resolution, duplicate finding checks,
-expiry resolution and shared IR transport are subsequent work. A source `@gap` does not yet
-accept a Go lint finding: existing `.lint.json` and capability-waiver transport remain required.
-No IR, Case, fingerprint or pin format changes in this stage.
+The lift then resolves each gap of a declaration it lifted (`model/irgen/Gaps.scala`) to the
+finding keys the Go lint reports, `(kind, owner, subject)`. A machine's table kinds are owned by
+the machine, a facet's by the machine that mixes it in; an action stands for its every class,
+and `in` phases are listed in their enum's order (`move-fast in busy, done`). A realization owns
+`uncovered` and `unreachableBinding`; its other evidence kinds, and those declared on a realized
+machine, are its machine's. A Property's `witnessOnly`/`unasked` are its machine's and name; a
+verify Query's `unfired` is its Property's machine's, a find Query's `unrealized` its Scenario's;
+a refinement's `unread` is `<machine> refines <product>`. `unmapped` and `explicitWait` keep the
+typed reference's identity until the shared transport binds them to the lint's field and
+script spelling. The lift refuses a subject that resolves to nothing on its declaration (an
+action the machine does not bind, a value of another type, a kind the placement does not own),
+a finding key declared by two gaps (naming both positions), an `until` that names no Flow spec,
+names a short id several specs share, or is malformed, and, in an IR-file run, a gap on a
+declaration no IR file lifts. `except`/`overriding` waivers are collected beside the gaps as
+`capability-waiver` entries with their reasons.
+
+Nothing of this is written yet: the IR, its positions (a declaration's leading `@gap`s do not
+move it), the fingerprint and `<file>.waivers.json` are what they were without the gaps. A source
+`@gap` does not yet accept a Go lint finding: existing `.lint.json` and capability-waiver
+transport remain required until the shared IR carries gaps.
 
 Three kinds read a machine's table for what can happen in its reachable states, each at the Scala
 line of what it names:

@@ -39,6 +39,42 @@ final private[irgen] class Index(using val quotes: Quotes)(
     val found = java.util.Arrays.binarySearch(starts, offset)
     if found >= 0 then found + 1 else -found - 1
 
+  private val sourceTexts = mutable.Map.empty[String, String]
+
+  // Where a definition starts once its leading `@gap` annotations are passed over, which TASTy counts
+  // into its span: a gap is metadata (fn-167 R3), so it moves no position the IR records. Whitespace
+  // and comments between them are passed over too; any other annotation keeps its place.
+  def startPastGaps(t: Tree, file: String): Int =
+    val start = t.pos.start
+    t match
+      case d: Definition =>
+        val gaps = d.symbol.annotations.filter(a =>
+          a.tpe.typeSymbol.fullName == "framework.gap" &&
+            scala.util.Try(a.pos.sourceFile.path == t.pos.sourceFile.path).getOrElse(false) &&
+            a.pos.start >= start && a.pos.end <= t.pos.end
+        )
+        if gaps.isEmpty then start
+        else
+          val text = sourceTexts.getOrElseUpdate(file, Files.readString(Path.of(file)))
+          def skip(i: Int): Int =
+            if i < text.length && text(i).isWhitespace then skip(i + 1)
+            else if text.startsWith("//", i) then
+              val eol = text.indexOf('\n', i)
+              if eol < 0 then text.length else skip(eol + 1)
+            else if text.startsWith("/*", i) then
+              val close = text.indexOf("*/", i + 2)
+              if close < 0 then text.length else skip(close + 2)
+            else i
+          def past(i: Int): Int =
+            val at = skip(i)
+            gaps.find(a =>
+              a.pos.start == at || (at < text.length && text(at) == '@' && a.pos.start == at + 1)
+            ) match
+              case Some(a) => past(a.pos.end)
+              case None    => at
+          past(start)
+      case _ => start
+
   // Each inspected file's typed tree, in the order the files were given, for the declaration-order
   // lint (Order.scala), which reads whole files rather than declarations.
   val trees: List[Tree] = tastys.map(_.ast)
@@ -274,6 +310,10 @@ final private[irgen] class Context(val index: Index):
   // findings beside the IR file.
   val capabilitySections = mutable.LinkedHashSet.empty[String]
   val capabilityWaivers = mutable.ArrayBuffer.empty[(String, String, String)]
+  // The same waivers as gap metadata (fn-167, Gaps.scala): `(machine, <machine>.<property>, reason,
+  // except or overriding, position of the waived Property's reference)`. Nothing writes them yet.
+  val capabilityWaiverGaps =
+    mutable.ArrayBuffer.empty[(String, String, String, String, ir.Position)]
 
   // A type with the type parameters of the declaring functions being folded applied.
   def instantiated(tpe: TypeRepr): TypeRepr =
@@ -302,7 +342,7 @@ final private[irgen] class Context(val index: Index):
       val prefix =
         sourceRoots.getOrElse(path, if path.startsWith("framework/") then "model/" else "")
       val file = prefix + path
-      ir.Position(file = file, line = index.sourceLine(file, p.start))
+      ir.Position(file = file, line = index.sourceLine(file, index.startPastGaps(t, file)))
     }
     .getOrElse(ir.Position.defaultInstance)
 
