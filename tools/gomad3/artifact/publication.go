@@ -230,5 +230,67 @@ func validateChoiceTracePayload(manifest record.ExecutionRecord, payload []byte)
 	if trace.TapeSHA256 != record.SHA256FromSum(tape.SHA256) || uint64(trace.Decisions) != uint64(len(tape.Decisions)) {
 		return errors.New("choice tape identity does not match its trace")
 	}
+	return validateChoiceMinimizationPayload(manifest, tape)
+}
+
+func validateChoiceMinimizationPayload(manifest record.ExecutionRecord, tape choice.ReplayPlan) error {
+	evidence := manifest.Minimization
+	if evidence == nil || evidence.Schema != record.ChoicePrefixMinimizationSchema {
+		return nil
+	}
+	if evidence.ChoicePrefix == nil {
+		return errors.New("choice minimization is missing its effective controls")
+	}
+	remaining := uint64(evidence.OriginalForcedDecisions)
+	for _, reduction := range evidence.Accepted {
+		if uint64(len(reduction.Removed)) > remaining {
+			return errors.New("choice minimization suffix exceeds its prefix")
+		}
+		before, err := choiceMinimizationControl(tape, remaining)
+		if err != nil {
+			return err
+		}
+		beforeIdentity, err := before.CandidateSHA256()
+		if err != nil {
+			return err
+		}
+		remaining -= uint64(len(reduction.Removed))
+		after, err := choiceMinimizationControl(tape, remaining)
+		if err != nil {
+			return err
+		}
+		afterIdentity, err := after.CandidateSHA256()
+		if err != nil {
+			return err
+		}
+		if reduction.BeforeSHA256 != beforeIdentity || reduction.AfterSHA256 != afterIdentity {
+			return errors.New("choice minimization reduction is not bound to the retained tape")
+		}
+		for index, removed := range reduction.Removed {
+			ordinal := remaining + uint64(index)
+			if removed.Dimension != "runtime" || uint64(removed.Ordinal) != ordinal || removed.Identity != record.SHA256FromSum(tape.Decisions[ordinal].SelectedIdentity) {
+				return errors.New("choice minimization removed decision does not match its retained tape")
+			}
+		}
+	}
+	original, err := choiceMinimizationControl(tape, uint64(evidence.OriginalForcedDecisions))
+	if err != nil {
+		return err
+	}
+	final, err := choiceMinimizationControl(tape, remaining)
+	if err != nil {
+		return err
+	}
+	if *evidence.ChoicePrefix != (record.ChoicePrefixMinimization{Original: original, Final: final}) {
+		return errors.New("choice minimization control digest does not match its retained tape")
+	}
 	return nil
+}
+
+func choiceMinimizationControl(tape choice.ReplayPlan, length uint64) (record.ChoicePrefixControl, error) {
+	prefix, err := tape.Prefix(length)
+	if err != nil {
+		return record.ChoicePrefixControl{}, err
+	}
+	return record.ChoicePrefixControl{Length: record.Uint64String(length), SHA256: record.SHA256FromSum(prefix.SHA256)}, nil
 }

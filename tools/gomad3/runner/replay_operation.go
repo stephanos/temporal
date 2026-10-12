@@ -79,7 +79,7 @@ func Replay(ctx context.Context, config ReplaySpec) (ReplayResult, error) {
 }
 
 func replayWith(ctx context.Context, config ReplaySpec, dependencies executionDependencies) (result ReplayResult, retErr error) {
-	opened, err := preflight(config)
+	opened, err := preflight(ctx, config)
 	if err != nil {
 		return ReplayResult{}, &ReplayPreflightError{Err: err}
 	}
@@ -432,7 +432,7 @@ func replayBootstrapCommand(config ReplaySpec) []string {
 
 // preflight opens and validates a replay artifact. The deferred close sees the
 // opened handle, not the result, so an artifact that fails validation is closed.
-func preflight(config ReplaySpec) (_ *artifact.Opened, retErr error) {
+func preflight(ctx context.Context, config ReplaySpec) (_ *artifact.Opened, retErr error) {
 	if config.ArtifactPath == "" {
 		return nil, fmt.Errorf("artifact path is required")
 	}
@@ -450,7 +450,7 @@ func preflight(config ReplaySpec) (_ *artifact.Opened, retErr error) {
 		if config.Backend == nil || (manifest.ReplayMode != record.ReplayObserved && manifest.ReplayMode != record.ReplayExact) {
 			return nil, errors.New("external replay requires its backend provider and supported replay capability")
 		}
-		if _, err := config.Backend.ValidateReplay(context.Background(), opened); err != nil {
+		if _, err := config.Backend.ValidateReplay(ctx, opened); err != nil {
 			return nil, err
 		}
 		return opened, nil

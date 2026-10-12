@@ -127,7 +127,7 @@ func TestExternalBackendUsesSharedCampaignGrammar(t *testing.T) {
 }
 
 func TestExternalBackendRejectsCommandsBeforeResolvingInstallation(t *testing.T) {
-	for _, arguments := range [][]string{{"plan"}, {"qualify"}, {"minimize"}, {supervisorMode}, {"explore", "--count=0", "go-run", "./pkg"}, {"replay"}, {"resume"}} {
+	for _, arguments := range [][]string{{"plan"}, {"analyze", "go-run", "./pkg"}, {"doctor"}, {"qualify"}, {"minimize"}, {supervisorMode}, {"explore", "--count=0", "go-run", "./pkg"}, {"replay"}, {"resume"}} {
 		var stdout, stderr bytes.Buffer
 		status := RunWithBackend(arguments, &stdout, &stderr, func() (BackendInstallation, error) {
 			t.Fatal("resolved installation for unsupported command or invalid syntax")
@@ -151,5 +151,44 @@ func TestExternalBackendInstallationAvoidsNativeToolchainDiscovery(t *testing.T)
 	}
 	if _, err := app.install("/native"); err == nil {
 		t.Fatal("external backend silently accepted native toolchain selection")
+	}
+}
+
+func TestExternalBackendMinimizeUsesSharedValidationBeforeResolution(t *testing.T) {
+	for _, test := range []struct {
+		arguments []string
+		want      string
+	}{
+		{[]string{"minimize"}, "usage:"},
+		{[]string{"minimize", "/failure", "extra"}, "usage:"},
+		{[]string{"minimize", "--attempt-budget=0", "/failure"}, "usage:"},
+		{[]string{"minimize", "--attempt-budget=18446744073709551616", "/failure"}, "invalid value"},
+		{[]string{"minimize", "--max-bytes=0", "/failure"}, "invalid byte size"},
+		{[]string{"minimize", "--unknown", "/failure"}, "flag provided but not defined"},
+		{[]string{"minimize", "--toolchain-root=/native", "/failure"}, "--toolchain-root is unavailable"},
+		{[]string{"minimize", "--toolchain-root=", "/failure"}, "--toolchain-root is unavailable"},
+	} {
+		t.Run(strings.Join(test.arguments, " "), func(t *testing.T) {
+			var stdout, stderr bytes.Buffer
+			status := RunWithBackend(test.arguments, &stdout, &stderr, func() (BackendInstallation, error) {
+				t.Fatal("invalid minimization input resolved an installation")
+				return BackendInstallation{}, nil
+			})
+			if status != 2 || stdout.Len() != 0 || !strings.Contains(stderr.String(), test.want) {
+				t.Fatalf("status=%d stdout=%q stderr=%q; want %q", status, stdout.String(), stderr.String(), test.want)
+			}
+		})
+	}
+}
+
+func TestExternalBackendMinimizeReachesInstallationAfterValidGrammar(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	resolved := false
+	status := RunWithBackend([]string{"minimize", "--resume", "--attempt-budget=4", "--max-bytes=2MiB", "/failure"}, &stdout, &stderr, func() (BackendInstallation, error) {
+		resolved = true
+		return BackendInstallation{}, errors.New("selected external installation unavailable")
+	})
+	if status != 3 || !resolved || stdout.Len() != 0 || stderr.String() != "selected external installation unavailable\n" {
+		t.Fatalf("status=%d resolved=%t stdout=%q stderr=%q", status, resolved, stdout.String(), stderr.String())
 	}
 }

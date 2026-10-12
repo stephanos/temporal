@@ -2,7 +2,8 @@
 
 `gomad-wasm` selects the WASM provider for Gomad's existing command application.
 Campaign parsing, logical execution order, artifact layout, inspection, recovery,
-resume, replay comparison, reports and exit statuses remain owned by Gomad.
+resume, replay comparison, compatible minimization, reports and exit statuses
+remain owned by Gomad.
 The native `gomad` entrypoint retains its installation and defaults.
 
 This delivery surface is provisional under fn-156.7. The integrated production
@@ -14,7 +15,12 @@ does not qualify an arbitrary Temporal workload or a different engine/host.
 Use an existing stock Go 1.27.1 distribution and the repository's locked Rust
 helper build. For the cooperative profile, the Go distribution must be outside
 the Go module cache. Keep the helper and compiler as regular executable files;
-installation validation rejects symbolic links. From the repository root:
+installation validation rejects symbolic links.
+
+Rust is required to build or update the helper, not to discover an installation,
+execute an already-built guest, or replay a retained artifact with that helper.
+Preparing a new guest requires the pinned Go compiler; retained replay does not.
+The installed helper remains required in both cases. From the repository root:
 
 ```sh
 make -C tools/gomad_wasm helper
@@ -96,6 +102,54 @@ the original compiler, source tree, runtime sources, captured mounts and
 preparation cache have been removed. Moving the helper changes its path, which
 can be updated while preserving its digest; changing helper bytes is rejected.
 Evidence portability beyond the pinned engine and host remains unqualified.
+
+## Minimize a compatible retained failure
+
+The existing shared minimizer accepts a standalone cooperative target-failure
+artifact with complete exact choice evidence and a compatible installed provider:
+
+```sh
+gomad-wasm --installation /absolute/operator/bin/gomad-wasm.json minimize \
+  --attempt-budget=64 --max-bytes=512MiB \
+  --artifacts /absolute/operator/artifacts /absolute/retained/artifact
+gomad-wasm --installation /absolute/operator/bin/gomad-wasm.json minimize \
+  --resume --attempt-budget=64 --max-bytes=512MiB \
+  --artifacts /absolute/operator/artifacts /absolute/retained/artifact
+gomad-wasm inspect --choices /absolute/minimized/artifact
+gomad-wasm --installation /absolute/operator/bin/gomad-wasm.json replay \
+  /absolute/minimized/artifact
+```
+
+Minimization reduces only the required forced-choice prefix. Module, seed, argv,
+environment, captured inputs and model/fault configuration remain fixed. Every
+accepted candidate must preserve the failure signature and outcome, retain its
+complete choice/evidence trace and match a fresh exact full-tape replay. It does
+not shrink a guest heap, trace, storage image, network plan or typed cluster
+lifecycle. Successes, watchdog/infrastructure observations, stock observed replay,
+missing/incomplete choice evidence and simulation/connected-World/native-I/O
+profiles are rejected. Typed multi-instance crash/stop prefixes are not complete
+standalone tapes and are not admitted by this command.
+
+The parent stays immutable. Published reductions retain parent/predicate/budget
+evidence, with simulation replay explicitly absent for this standalone mode.
+State uses the shared per-parent locked store below
+`ARTIFACTS/minimized/.minimize`; resume requires the same parent, artifact root
+and bounds. The attempt default remains 64, and omitted `--max-bytes` retains the
+shared default. Syntax and explicit native-only `--toolchain-root` flags are
+rejected before installation resolution. No native supervisor or toolchain is
+selected. Retained execution uses the artifact's module and captured inputs,
+without rebuilding or reopening original source/compiler/runtime inputs.
+
+A completed minimization command returns 0 and reports `changed`, attempts,
+accepted reductions, stop reason and the resulting artifact path; `--json` uses
+the existing shared result format. Grammar and replay-preflight errors return 2;
+other minimizer errors, including remaining semantic admission errors, and
+infrastructure/output failures return 3. Replay of a reproduced minimized
+application failure still returns 1. This route's actual clean-installed positive
+minimization/replay acceptance remains pending fn-156.2/.7; source tests do not
+establish a production qualification claim.
+
+## Replay a retained multi-instance artifact
 
 Typed retained multi-instance artifacts use the same `replay ARTIFACT` parser,
 inspection and replay classification. The launcher recognizes only the verified
@@ -237,7 +291,7 @@ simulation exploration, semantic coverage/guidance, native clock-tick flags and
 native read-only mount flags. Captured WASM inputs belong to the installation
 configuration. `exec`, native adapters/overlays/modfile substitutions and
 non-closure capability modes are rejected by source preparation. `plan`, shard
- execution, analysis, minimization and native doctor are not
+ execution, analysis and native doctor are not
 exposed by this provisional launcher. No fallback to native execution exists.
 
 WASM does not establish native race detection, weak-memory coverage, asynchronous

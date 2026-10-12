@@ -52,7 +52,9 @@ func TestCooperativeRuntimeQualification(t *testing.T) {
 	request.Config.Environment = append(request.Config.Environment, "EXTRA_ENTROPY=no_")
 	var baseline Result
 	for instance := range 100 {
-		observed, err := Run(t.Context(), request)
+		observed, err := matchedPrepareAdmitted(runtime.GOOS, "/proc/meminfo", os.Getenv("GOMAD_WASM_MATCHED_COLD_MEMORY_GUARD"), func() (Result, error) {
+			return Run(t.Context(), request)
+		})
 		if err != nil || observed.Termination != "exit" || observed.ExitCode == nil || (*observed.ExitCode != 0 && *observed.ExitCode != 17) || !observed.Reaped || observed.Cancelled || observed.WatchdogTimeout {
 			t.Fatalf("seed %d fresh instance %d: %s %s err=%v stderr=%s", request.Runtime.Seed, instance, observed.Termination, observed.Message, err, observed.Stderr)
 		}
@@ -83,7 +85,9 @@ func TestCooperativeRuntimeQualification(t *testing.T) {
 	}
 	request.Runtime.Choice.Mode, request.Runtime.Choice.Tape = choice.ModeReplay, &tape
 	request.Runtime.Diagnostics = false
-	exact, err := Run(t.Context(), request)
+	exact, err := matchedPrepareAdmitted(runtime.GOOS, "/proc/meminfo", os.Getenv("GOMAD_WASM_MATCHED_COLD_MEMORY_GUARD"), func() (Result, error) {
+		return Run(t.Context(), request)
+	})
 	if err != nil || exact.Termination != "exit" || exact.ExitCode == nil || *exact.ExitCode != *baseline.ExitCode || !exact.Reaped || !bytes.Equal(exact.Stdout, baseline.Stdout) || !bytes.Equal(exact.Stderr, baseline.Stderr) || !bytes.Equal(exact.Transcript, baseline.Transcript) || !bytes.Equal(exact.ChoiceTrace.Bytes, baseline.ChoiceTrace.Bytes) {
 		t.Fatalf("seed %d forced full-tape replay: %s %s err=%v stderr=%s", request.Runtime.Seed, exact.Termination, exact.Message, err, exact.Stderr)
 	}

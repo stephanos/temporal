@@ -121,9 +121,9 @@ func RunWithBackendReplay(arguments []string, stdout, stderr io.Writer, resolve 
 	app.replayHook = replay
 	if len(arguments) != 0 {
 		switch arguments[0] {
-		case "explore", "replay", "resume", "recover", "inspect":
+		case "explore", "replay", "resume", "recover", "inspect", "minimize":
 		default:
-			if _, err := fmt.Fprintf(stderr, "command %q is unavailable with an external backend installation; use explore, replay, resume, recover, or inspect\n", arguments[0]); err != nil {
+			if _, err := fmt.Fprintf(stderr, "command %q is unavailable with an external backend installation; use explore, replay, resume, recover, inspect, or minimize\n", arguments[0]); err != nil {
 				return 3
 			}
 			return 2
@@ -1153,12 +1153,13 @@ func runReplayWith(arguments []string, stdout, stderr io.Writer, dependencies re
 }
 
 type minimizeDependencies struct {
-	install  func(string) (installation, error)
-	minimize func(context.Context, runner.MinimizeSpec) (runner.MinimizeResult, error)
+	install         func(string) (installation, error)
+	minimize        func(context.Context, runner.MinimizeSpec) (runner.MinimizeResult, error)
+	externalBackend bool
 }
 
 func (app application) runMinimize(arguments []string, stdout, stderr io.Writer) int {
-	return runMinimizeWith(arguments, stdout, stderr, minimizeDependencies{install: app.install, minimize: runner.Minimize})
+	return runMinimizeWith(arguments, stdout, stderr, minimizeDependencies{install: app.install, minimize: runner.Minimize, externalBackend: app.backend != nil})
 }
 
 func runMinimizeWith(arguments []string, stdout, stderr io.Writer, dependencies minimizeDependencies) int {
@@ -1177,6 +1178,17 @@ func runMinimizeWith(arguments []string, stdout, stderr io.Writer, dependencies 
 	if flags.NArg() != 1 || *attemptBudget == 0 {
 		return writeCommandError(stderr, 2, "%s", usage)
 	}
+	if dependencies.externalBackend {
+		nativeToolchain := false
+		flags.Visit(func(flag *flag.Flag) {
+			if flag.Name == "toolchain-root" {
+				nativeToolchain = true
+			}
+		})
+		if nativeToolchain {
+			return writeCommandError(stderr, 2, "--toolchain-root is unavailable with an external backend installation\n")
+		}
+	}
 	artifactRoot, err := filepath.Abs(*artifacts)
 	if err != nil {
 		return writeCommandError(stderr, 2, "resolve artifact directory: %v\n", err)
@@ -1186,7 +1198,7 @@ func runMinimizeWith(arguments []string, stdout, stderr io.Writer, dependencies 
 		return writeCommandError(stderr, 3, "%v\n", err)
 	}
 	result, err := dependencies.minimize(context.Background(), runner.MinimizeSpec{
-		ArtifactPath: flags.Arg(0), OutputRoot: filepath.Join(artifactRoot, "minimized"),
+		Backend: installed.backend, ArtifactPath: flags.Arg(0), OutputRoot: filepath.Join(artifactRoot, "minimized"),
 		AttemptBudget: *attemptBudget, MaximumBytes: uint64(maximumBytes), ToolchainRoot: installed.toolchainRoot,
 		SupervisorCommand: installed.supervisorCommand(), Resume: *resume,
 	})

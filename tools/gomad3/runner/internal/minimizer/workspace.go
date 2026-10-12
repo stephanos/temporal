@@ -481,6 +481,20 @@ func validateArtifactReference(directory string, recordHash record.SHA256) error
 }
 
 func sameStart(left, right State) (bool, error) {
+	if left.Schema != right.Schema {
+		return false, nil
+	}
+	leftTape, err := canonicaljson.CanonicalJSON(left.ChoiceTape)
+	if err != nil {
+		return false, err
+	}
+	rightTape, err := canonicaljson.CanonicalJSON(right.ChoiceTape)
+	if err != nil {
+		return false, err
+	}
+	if string(leftTape) != string(rightTape) {
+		return false, nil
+	}
 	if !sameCandidate(left.Original, right.Original) {
 		return false, nil
 	}

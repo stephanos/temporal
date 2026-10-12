@@ -92,6 +92,10 @@ func (a *effectAnalysis) compressionSummary(fn *types.Func, receiver *abstractVa
 
 func (a *effectAnalysis) compressionShortWriteMutation() bool {
 	native := a.program.Packages["io"].Types.Scope().Lookup("ErrShortWrite")
+	return a.sourceObjectMutation(native)
+}
+
+func (a *effectAnalysis) sourceObjectMutation(native types.Object) bool {
 	mutated := false
 	for _, pkg := range a.program.Packages {
 		if pkg.Metadata.Standard {
@@ -119,7 +123,14 @@ func (a *effectAnalysis) compressionShortWriteMutation() bool {
 						}
 						expression = parenthesized.X
 					}
-					if selector, ok := expression.(*ast.SelectorExpr); ok && pkg.Info.Uses[selector.Sel] == native {
+					var object types.Object
+					switch expression := expression.(type) {
+					case *ast.Ident:
+						object = pkg.Info.Uses[expression]
+					case *ast.SelectorExpr:
+						object = pkg.Info.Uses[expression.Sel]
+					}
+					if object == native {
 						mutated = true
 					}
 				}

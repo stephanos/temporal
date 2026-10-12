@@ -13,13 +13,43 @@ type jsonWalkContext struct {
 	typ         types.Type
 	addressable bool
 	key         bool
+	projected   bool
+}
+
+func (a *effectAnalysis) jsonDecodeCallbacks(destination *abstractValue, pos token.Pos) *abstractValue {
+	if jsonNilEmptyInterfaceSlot(destination) {
+		a.decoded(destination)
+		return nil
+	}
+	callbacks := a.jsonCallbacks(destination, true, pos)
+	a.decoded(destination)
+	return callbacks
+}
+
+func jsonNilEmptyInterfaceSlot(destination *abstractValue) bool {
+	if destination == nil || destination.unknown || destination.builtin || len(destination.types) != 1 ||
+		destination.nilness != 1 || !types.Identical(destination.nilType, destination.types[0]) {
+		return false
+	}
+	pointer, ok := destination.types[0].Underlying().(*types.Pointer)
+	if !ok {
+		return false
+	}
+	iface, ok := pointer.Elem().Underlying().(*types.Interface)
+	if !ok || iface.NumMethods() != 0 {
+		return false
+	}
+	slot := destination.fields["$pointee"]
+	return slot != nil && !slot.unknown && !slot.builtin && len(slot.types) == 1 &&
+		slot.nilness == -1 && types.Identical(slot.nilType, pointer.Elem()) &&
+		types.Identical(slot.types[0], pointer.Elem())
 }
 
 func (a *effectAnalysis) jsonCallbacks(v *abstractValue, decoding bool, pos token.Pos) *abstractValue {
-	return a.jsonWalkCallbacks(v, decoding, false, false, false, pos, map[jsonWalkContext]bool{})
+	return a.jsonWalkCallbacks(v, decoding, false, false, false, false, pos, map[jsonWalkContext]bool{})
 }
 
-func (a *effectAnalysis) jsonWalkCallbacks(v *abstractValue, decoding, addressable, key, unordered bool, pos token.Pos, active map[jsonWalkContext]bool) *abstractValue {
+func (a *effectAnalysis) jsonWalkCallbacks(v *abstractValue, decoding, addressable, key, unordered, projected bool, pos token.Pos, active map[jsonWalkContext]bool) *abstractValue {
 	if v == nil || len(v.types) == 0 {
 		a.report("unresolved-effect", pos, "unknown JSON callback receiver")
 		return nil
@@ -47,7 +77,7 @@ func (a *effectAnalysis) jsonWalkCallbacks(v *abstractValue, decoding, addressab
 		if _, ok := typ.Underlying().(*types.Interface); ok {
 			continue
 		}
-		context := jsonWalkContext{typ: typ, addressable: addressable, key: key}
+		context := jsonWalkContext{typ: typ, addressable: addressable, key: key, projected: projected}
 		if active[context] {
 			a.report("unresolved-effect", pos, "recursive JSON callback binding")
 			continue
@@ -85,6 +115,9 @@ func (a *effectAnalysis) jsonWalkCallbacks(v *abstractValue, decoding, addressab
 			}
 			isStream := name == "MarshalJSONTo" || name == "UnmarshalJSONFrom"
 			selectedReceiver := a.jsonSelectedReceiver(method, methodReceiver, pos)
+			if decoding && projected && !a.jsonNativeMemoryCallback(fn, selectedReceiver) && !jsonScalarReceiver(selectedReceiver) {
+				a.report("unresolved-effect", pos, "projected JSON decoder receiver has unproven mutation location "+functionID(fn))
+			}
 			returned := a.jsonInvokeCallback(fn, selectedReceiver, unordered, pos)
 			errors = join(errors, returned)
 			matched = true
@@ -98,31 +131,24 @@ func (a *effectAnalysis) jsonWalkCallbacks(v *abstractValue, decoding, addressab
 			switch underlying := typ.Underlying().(type) {
 			case *types.Pointer:
 				child := receiver.fields["$pointee"]
+				childProjected := projected
 				if child == nil {
 					copy := receiver
 					copy.types = []types.Type{underlying.Elem()}
 					child = &copy
+					childProjected = true
 				}
-				errors = join(errors, a.jsonWalkCallbacks(child, decoding, jsonAddressable(underlying.Elem(), true, decoding), key, unordered, pos, active))
+				errors = join(errors, a.jsonWalkCallbacks(child, decoding, jsonAddressable(underlying.Elem(), true, decoding), key, unordered, childProjected, pos, active))
 			case *types.Slice:
-				child := receiver.elements
-				if child == nil {
-					child = valueOf(underlying.Elem())
-				}
-				errors = join(errors, a.jsonWalkCallbacks(child, decoding, jsonAddressable(underlying.Elem(), true, decoding), false, unordered, pos, active))
+				child, childProjected := jsonContainerElement(receiver.elements, underlying.Elem())
+				errors = join(errors, a.jsonWalkCallbacks(child, decoding, jsonAddressable(underlying.Elem(), true, decoding), false, unordered, projected || childProjected, pos, active))
 			case *types.Array:
-				child := receiver.elements
-				if child == nil {
-					child = valueOf(underlying.Elem())
-				}
-				errors = join(errors, a.jsonWalkCallbacks(child, decoding, jsonAddressable(underlying.Elem(), addressable, decoding), false, unordered, pos, active))
+				child, childProjected := jsonContainerElement(receiver.elements, underlying.Elem())
+				errors = join(errors, a.jsonWalkCallbacks(child, decoding, jsonAddressable(underlying.Elem(), addressable, decoding), false, unordered, projected || childProjected, pos, active))
 			case *types.Map:
-				errors = join(errors, a.jsonWalkCallbacks(valueOf(underlying.Key()), decoding, decoding, true, true, pos, active))
-				child := receiver.elements
-				if child == nil {
-					child = valueOf(underlying.Elem())
-				}
-				errors = join(errors, a.jsonWalkCallbacks(child, decoding, decoding, false, true, pos, active))
+				errors = join(errors, a.jsonWalkCallbacks(valueOf(underlying.Key()), decoding, decoding, true, true, true, pos, active))
+				child, childProjected := jsonContainerElement(receiver.elements, underlying.Elem())
+				errors = join(errors, a.jsonWalkCallbacks(child, decoding, decoding, false, true, projected || childProjected, pos, active))
 			case *types.Struct:
 				for index := 0; index < underlying.NumFields(); index++ {
 					field := underlying.Field(index)
@@ -140,8 +166,10 @@ func (a *effectAnalysis) jsonWalkCallbacks(v *abstractValue, decoding, addressab
 						}
 					}
 					child := receiver.fields[field.Name()]
+					childProjected := projected
 					if child == nil {
 						child = valueOf(field.Type())
+						childProjected = true
 					}
 					if !decoding && slices.Contains(options[1:], "omitzero") {
 						for _, childType := range child.types {
@@ -167,13 +195,61 @@ func (a *effectAnalysis) jsonWalkCallbacks(v *abstractValue, decoding, addressab
 							}
 						}
 					}
-					errors = join(errors, a.jsonWalkCallbacks(child, decoding, jsonAddressable(field.Type(), addressable, decoding), false, unordered, pos, active))
+					errors = join(errors, a.jsonWalkCallbacks(child, decoding, jsonAddressable(field.Type(), addressable, decoding), false, unordered, childProjected, pos, active))
 				}
 			}
 		}
 		delete(active, context)
 	}
 	return errors
+}
+
+func jsonContainerElement(child *abstractValue, typ types.Type) (*abstractValue, bool) {
+	// Empty containers use a bottom element cell, not an unknown element type.
+	// Recover only its static shape; represented state still requires analysis.
+	if child == nil || isBottomValue(child) {
+		return valueOf(typ), true
+	}
+	return child, false
+}
+
+func jsonScalarReceiver(receiver *abstractValue) bool {
+	if receiver == nil || receiver.unknown || len(receiver.types) == 0 || len(receiver.functions) != 0 ||
+		receiver.elements != nil || receiver.gzipOwned || receiver.nativeWriterOwned {
+		return false
+	}
+	pointerReceiver := false
+	for _, typ := range receiver.types {
+		if typ == nil {
+			return false
+		}
+		if pointer, ok := typ.Underlying().(*types.Pointer); ok {
+			typ = pointer.Elem()
+			pointerReceiver = true
+			pointee := receiver.fields["$pointee"]
+			if pointee == nil || len(pointee.types) == 0 {
+				return false
+			}
+			for _, alternative := range pointee.types {
+				if alternative == nil || !types.Identical(alternative, typ) {
+					return false
+				}
+			}
+		}
+		basic, ok := typ.Underlying().(*types.Basic)
+		if !ok || basic.Info()&(types.IsBoolean|types.IsInteger|types.IsFloat|types.IsComplex|types.IsString) == 0 {
+			return false
+		}
+	}
+	if !pointerReceiver {
+		return len(receiver.fields) == 0
+	}
+	pointee := receiver.fields["$pointee"]
+	if len(receiver.fields) != 1 || pointee == nil || pointee.unknown || len(pointee.fields) != 0 ||
+		len(pointee.functions) != 0 || pointee.elements != nil || pointee.gzipOwned || pointee.nativeWriterOwned {
+		return false
+	}
+	return true
 }
 
 // A method selection's final index denotes the method, not another field.

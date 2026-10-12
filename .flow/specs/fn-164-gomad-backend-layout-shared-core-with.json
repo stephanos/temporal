@@ -1,0 +1,24 @@
+{
+  "branch_name": "gomad",
+  "created_at": "2026-10-12T00:48:47.364283Z",
+  "depends_on_epics": [],
+  "id": "fn-164-gomad-backend-layout-shared-core-with",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-164-gomad-backend-layout-shared-core-with.md",
+  "status": "open",
+  "title": "Gomad backend layout: shared core with native and wasm backends",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-12T00:48:47.377676Z"
+}

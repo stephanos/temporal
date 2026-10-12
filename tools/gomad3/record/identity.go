@@ -207,6 +207,10 @@ func cloneMinimization(minimization *Minimization) *Minimization {
 		return nil
 	}
 	cloned := *minimization
+	if minimization.ChoicePrefix != nil {
+		controls := *minimization.ChoicePrefix
+		cloned.ChoicePrefix = &controls
+	}
 	cloned.Accepted = make([]MinimizationReduction, len(minimization.Accepted))
 	for index, reduction := range minimization.Accepted {
 		cloned.Accepted[index] = reduction

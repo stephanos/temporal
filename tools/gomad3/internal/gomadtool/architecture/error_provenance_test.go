@@ -11,6 +11,7 @@ import (
 
 type errorProvenanceFixture struct {
 	name, code, helper, external, callback string
+	parameter, argument                    string
 	calls, count                           int
 	unresolved                             bool
 }
@@ -63,7 +64,8 @@ func TestErrorProvenanceWriter(t *testing.T) {
 		{name: "nil-return", code: `n,err:=fmt.Fprint(helper.Writer{},"x");helper.Count=n;if err!=nil {_ = err.Error()}`, helper: strings.Replace(leaf, "return 7,Leaf{}", "return 7,nil", 1), count: 7},
 		{name: "clean-return", code: `_,err:=fmt.Fprint(helper.Writer{},"x");_ = err.Error()`, helper: strings.Replace(leaf, "Calls++;_=time.Now();", "", 1)},
 		{name: "noninvoked-return", code: `_,_=fmt.Fprint(helper.Writer{},"x")`, helper: leaf},
-		{name: "unknown-return", code: `_,err:=fmt.Fprint(helper.Writer{},"x");if err!=nil {_ = err.Error()}`, helper: `type Writer struct{Err error};func(w Writer)Write([]byte)(int,error){return 7,w.Err}`, unresolved: true},
+		{name: "known-zero-return", code: `_,err:=fmt.Fprint(helper.Writer{},"x");if err!=nil {_ = err.Error()}`, helper: `type Writer struct{Err error};func(w Writer)Write([]byte)(int,error){return 7,w.Err}`},
+		{name: "unknown-return", parameter: "writer helper.Writer", argument: "helper.Writer{}", code: `_,err:=fmt.Fprint(writer,"x");if err!=nil {_ = err.Error()}`, helper: `type Writer struct{Err error};func(w Writer)Write([]byte)(int,error){return 7,w.Err}`, unresolved: true},
 	} {
 		t.Run(test.name, func(t *testing.T) { checkErrorProvenance(t, test) })
 	}
@@ -87,9 +89,9 @@ func checkErrorProvenance(t *testing.T, test errorProvenanceFixture) {
 		files[filepath.Join(dependency, "dependency.go")] = `package dependency;import "time";var Calls int;` + test.external
 	}
 	files[filepath.Join(root, "go.mod")] = module
-	files[filepath.Join(root, "record/pure.go")] = `package record;import("example.invalid/errorprovenance/internal/canonicaljson";"errors";"fmt");var _=errors.New;var _=fmt.Sprintf;func Check(){` + test.code + `}`
+	files[filepath.Join(root, "record/pure.go")] = `package record;import("example.invalid/errorprovenance/internal/canonicaljson";"errors";"fmt");var _=errors.New;var _=fmt.Sprintf;func Check(` + test.parameter + `){` + test.code + `}`
 	files[filepath.Join(root, "internal/canonicaljson/helper.go")] = helper
-	files[filepath.Join(root, "record/pure_test.go")] = `package record;import(` + imports + `);func TestBehavior(t *testing.T){Check();if ` + counter + `!=` + strconv.Itoa(test.calls) + `{t.Fatalf("actual callbacks=%d",` + counter + `)};if helper.Count!=` + strconv.Itoa(test.count) + `{t.Fatalf("actual writer count=%d",helper.Count)};t.Logf("actual callbacks=%d writer count=%d",` + counter + `,helper.Count)}`
+	files[filepath.Join(root, "record/pure_test.go")] = `package record;import(` + imports + `);func TestBehavior(t *testing.T){Check(` + test.argument + `);if ` + counter + `!=` + strconv.Itoa(test.calls) + `{t.Fatalf("actual callbacks=%d",` + counter + `)};if helper.Count!=` + strconv.Itoa(test.count) + `{t.Fatalf("actual writer count=%d",helper.Count)};t.Logf("actual callbacks=%d writer count=%d",` + counter + `,helper.Count)}`
 	for path, source := range files {
 		if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
 			t.Fatal(err)
@@ -148,7 +150,8 @@ func TestErrorProvenanceEmptySliceAlias(t *testing.T) {
 		{name: "concrete-zero-element", code: `v:=make([]helper.Leaf,1);_ = fmt.Sprint(helper.Leaves(v))`, helper: `type Leaf struct{};func(Leaf)String()string{Calls++;_=time.Now();return "leaf"};type Leaves []Leaf`, calls: 1, callback: "canonicaljson.Leaf.String"},
 		{name: "clean-concrete-zero-element", code: `v:=make([]helper.Leaf,1);_ = fmt.Sprint(helper.Leaves(v))`, helper: `type Leaf struct{};func(Leaf)String()string{return "leaf"};type Leaves []Leaf`},
 		{name: "nil-interface-elements", code: `v:=make([]error,1);_ = fmt.Sprint(helper.Errors(v))`, helper: `type Errors []error`},
-		{name: "unknown-interface-elements", code: `v:=helper.Box{}.Values;_ = fmt.Sprint(helper.Errors(v))`, helper: `type Box struct{Values []error};type Errors []error`, unresolved: true},
+		{name: "known-zero-interface-elements", code: `v:=helper.Box{}.Values;_ = fmt.Sprint(helper.Errors(v))`, helper: `type Box struct{Values []error};type Errors []error`},
+		{name: "unknown-interface-elements", parameter: "box helper.Box", argument: "helper.Box{}", code: `v:=box.Values;_ = fmt.Sprint(helper.Errors(v))`, helper: `type Box struct{Values []error};type Errors []error`, unresolved: true},
 	} {
 		t.Run(test.name, func(t *testing.T) { checkErrorProvenance(t, test) })
 	}
@@ -159,7 +162,8 @@ func TestErrorProvenanceEmptyMapAlias(t *testing.T) {
 		{name: "dirty", code: `v:=make(map[int]func());helper.Set(helper.Callbacks(v));v[0]()`, helper: `func Dirty(){Calls++;_=time.Now()};type Callbacks map[int]func();func Set(v Callbacks){v[0]=Dirty}`, calls: 1, callback: "canonicaljson.Dirty"},
 		{name: "clean", code: `v:=make(map[int]func());helper.Set(helper.Callbacks(v));v[0]()`, helper: `func Clean(){};type Callbacks map[int]func();func Set(v Callbacks){v[0]=Clean}`},
 		{name: "nil-interface-elements", code: `v:=make(map[int]error);_ = fmt.Sprint(helper.Errors(v))`, helper: `type Errors map[int]error`},
-		{name: "unknown-interface-elements", code: `v:=helper.Box{}.Values;_ = fmt.Sprint(helper.Errors(v))`, helper: `type Box struct{Values map[int]error};type Errors map[int]error`, unresolved: true},
+		{name: "known-zero-interface-elements", code: `v:=helper.Box{}.Values;_ = fmt.Sprint(helper.Errors(v))`, helper: `type Box struct{Values map[int]error};type Errors map[int]error`},
+		{name: "unknown-interface-elements", parameter: "box helper.Box", argument: "helper.Box{}", code: `v:=box.Values;_ = fmt.Sprint(helper.Errors(v))`, helper: `type Box struct{Values map[int]error};type Errors map[int]error`, unresolved: true},
 	} {
 		t.Run(test.name, func(t *testing.T) { checkErrorProvenance(t, test) })
 	}
@@ -195,7 +199,8 @@ func TestErrorProvenanceAllocationControls(t *testing.T) {
 		{name: "positive-new-array-zero", code: `v:=new([1]helper.Leaf);_ = fmt.Sprint(*v)`, helper: leaf, calls: 1, callback: "canonicaljson.Leaf.String"},
 		{name: "capacity-reslice-zero", code: `v:=make([]helper.Leaf,0,1);_ = fmt.Sprint(v[:1])`, helper: leaf, calls: 1, callback: "canonicaljson.Leaf.String"},
 		{name: "nil-new-interface", code: `v:=new(helper.Err);_ = fmt.Sprint(*v)`, helper: `type Err interface{Error()string}`},
-		{name: "unknown-interface-field", code: `_ = fmt.Sprint(helper.Box{}.Err)`, helper: `type Box struct{Err error}`, unresolved: true},
+		{name: "known-zero-interface-field", code: `_ = fmt.Sprint(helper.Box{}.Err)`, helper: `type Box struct{Err error}`},
+		{name: "unknown-interface-field", parameter: "box helper.Box", argument: "helper.Box{}", code: `_ = fmt.Sprint(box.Err)`, helper: `type Box struct{Err error}`, unresolved: true},
 		{name: "recursive-new-zero", code: `_ = fmt.Sprint(new(helper.Node))`, helper: `type Node struct{Next *Node;F func()}`},
 		{name: "array-value-copy", code: `v:=[1]func(){helper.Clean};w:=helper.Other(v);helper.Set(&w);v[0]()`, helper: `func Clean(){};func Dirty(){Calls++;_=time.Now()};type Other [1]func();func Set(v *Other){v[0]=Dirty}`},
 		{name: "struct-value-copy", code: `v:=helper.Box{F:helper.Clean};w:=helper.Other(v);helper.Set(&w);v.F()`, helper: `func Clean(){};func Dirty(){Calls++;_=time.Now()};type Box struct{F func()};type Other Box;func Set(v *Other){v.F=Dirty}`},

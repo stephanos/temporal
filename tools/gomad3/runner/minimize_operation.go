@@ -206,7 +206,10 @@ func (session *minimizationSession) publishAccepted(ctx context.Context, checkpo
 	if err != nil {
 		return artifact.Artifact{}, err
 	}
-	input.Manifest.Minimization = minimizationEvidence(session.opened.Manifest(), checkpoint.State, checkpoint.Accepted.ChoiceReplayStatus)
+	input.Manifest.Minimization, err = minimizationEvidence(session.opened.Manifest(), checkpoint.State, checkpoint.Accepted.ChoiceReplayStatus)
+	if err != nil {
+		return artifact.Artifact{}, err
+	}
 	maximumBytes := session.config.MaximumBytes
 	if maximumBytes == 0 {
 		maximumBytes = defaultMinimizedArtifactBytes(session.opened.StoredBytes())
@@ -233,15 +236,27 @@ func (session *minimizationSession) acceptedInput(reference minimizer.AcceptedAr
 		retErr = errors.Join(retErr, accepted.Close())
 	}()
 	manifest := accepted.Manifest()
-	if manifest.Outcome.FailureSignature != session.opened.Manifest().Outcome.FailureSignature || manifest.SimulationProfile == nil {
+	if manifest.Outcome.FailureSignature != session.opened.Manifest().Outcome.FailureSignature || session.prepared.Backend == nil && manifest.SimulationProfile == nil {
 		return artifact.ArtifactInput{}, errors.New("accepted minimization artifact does not reproduce the parent failure")
 	}
-	input := artifact.ArtifactInput{Manifest: manifest, TargetPath: session.prepared.Path, ReadOnlyMounts: session.mountArtifact, Simulation: &artifact.SimulationPayloads{}}
+	input := artifact.ArtifactInput{Manifest: manifest, TargetPath: session.prepared.Path, ReadOnlyMounts: session.mountArtifact}
 	payloads := map[string]*[]byte{
-		manifest.Streams.Stdout.File:           &input.Stdout,
-		manifest.Streams.Stderr.File:           &input.Stderr,
-		manifest.SimulationProfile.Plan.File:   &input.Simulation.Plan,
-		manifest.SimulationProfile.Record.File: &input.Simulation.Record,
+		manifest.Streams.Stdout.File: &input.Stdout,
+		manifest.Streams.Stderr.File: &input.Stderr,
+	}
+	if profile := manifest.SimulationProfile; profile != nil {
+		input.Simulation = &artifact.SimulationPayloads{}
+		payloads[profile.Plan.File] = &input.Simulation.Plan
+		payloads[profile.Record.File] = &input.Simulation.Record
+	}
+	if metadata := manifest.Target.Backend; metadata != nil {
+		for _, reference := range record.BackendReferences(*metadata) {
+			data, err := accepted.ReadPayload(reference.File, uint64(reference.Bytes))
+			if err != nil {
+				return artifact.ArtifactInput{}, err
+			}
+			input.BackendPayloads = append(input.BackendPayloads, target.BackendPayload{Reference: reference, Data: data})
+		}
 	}
 	if transcript := manifest.IOProfile.Transcript; transcript != nil {
 		payloads[transcript.File] = &input.IOTranscript
@@ -289,7 +304,7 @@ func openMinimizationSession(ctx context.Context, config MinimizeSpec, dependenc
 	if config.AttemptBudget == 0 || config.AttemptBudget > maximumMinimizationAttempts {
 		return nil, fmt.Errorf("minimization attempt budget must be between 1 and %d", maximumMinimizationAttempts)
 	}
-	opened, err := preflight(ReplaySpec{Backend: config.Backend, ArtifactPath: config.ArtifactPath, ToolchainRoot: config.ToolchainRoot})
+	opened, err := preflight(ctx, ReplaySpec{Backend: config.Backend, ArtifactPath: config.ArtifactPath, ToolchainRoot: config.ToolchainRoot})
 	if err != nil {
 		return nil, &ReplayPreflightError{Err: err}
 	}
@@ -300,7 +315,12 @@ func openMinimizationSession(ctx context.Context, config MinimizeSpec, dependenc
 		}
 	}()
 	manifest := opened.Manifest()
-	if manifest.ArtifactKind != record.ArtifactTargetFailure || manifest.ReplayMode != record.ReplayExact || manifest.SimulationProfile == nil || manifest.SimulationProfile.FailureSHA256 == "" {
+	backendChoice := manifest.Target.Backend != nil
+	if backendChoice {
+		if manifest.ArtifactKind != record.ArtifactTargetFailure || manifest.ReplayMode != record.ReplayExact || manifest.SimulationProfile != nil || manifest.World.Initial.Schema != "gomad3.world.snapshot/none" || manifest.IOProfile.Transcript != nil || manifest.IOProfile.ReadOnlyMounts != nil {
+			return nil, errors.New("minimization requires an exact standalone backend choice target-failure artifact")
+		}
+	} else if manifest.ArtifactKind != record.ArtifactTargetFailure || manifest.ReplayMode != record.ReplayExact || manifest.SimulationProfile == nil || manifest.SimulationProfile.FailureSHA256 == "" {
 		return nil, errors.New("minimization requires an exact simulation target-failure artifact")
 	}
 	choiceCapability, unavailable, err := choiceCapabilityForArtifact(opened)
@@ -316,23 +336,32 @@ func openMinimizationSession(ctx context.Context, config MinimizeSpec, dependenc
 	session.choiceIdentity = choiceCapability.ExecutionIdentity
 	tape := *choiceCapability.ReplayPlan
 	session.exactChoiceTape = &tape
-	plan, err := opened.ReadPayload(manifest.SimulationProfile.Plan.File, uint64(manifest.SimulationProfile.Plan.Bytes))
-	if err != nil {
-		return nil, fmt.Errorf("read minimization simulation plan: %w", err)
+	var initial minimizer.State
+	if backendChoice {
+		initial, err = minimizer.NewChoice(tape, config.AttemptBudget)
+	} else {
+		plan, readErr := opened.ReadPayload(manifest.SimulationProfile.Plan.File, uint64(manifest.SimulationProfile.Plan.Bytes))
+		if readErr != nil {
+			return nil, fmt.Errorf("read minimization simulation plan: %w", readErr)
+		}
+		explorationConfig, candidate, candidateErr := simulationrecord.CandidateForArtifact(*manifest.SimulationProfile, plan, session.exactChoiceTape)
+		if candidateErr != nil {
+			return nil, fmt.Errorf("reconstruct minimization candidate: %w", candidateErr)
+		}
+		initial, err = minimizer.New(explorationConfig, candidate, config.AttemptBudget)
 	}
-	explorationConfig, candidate, err := simulationrecord.CandidateForArtifact(*manifest.SimulationProfile, plan, session.exactChoiceTape)
-	if err != nil {
-		return nil, fmt.Errorf("reconstruct minimization candidate: %w", err)
-	}
-	initial, err := minimizer.New(explorationConfig, candidate, config.AttemptBudget)
 	if err != nil {
 		return nil, err
 	}
-	if err := session.prepareWorkspace(); err != nil {
+	if err := session.prepareWorkspace(ctx); err != nil {
 		return nil, err
+	}
+	implementation := minimizer.ImplementationSHA256()
+	if backendChoice {
+		implementation = minimizer.ChoiceImplementationSHA256()
 	}
 	session.workspace, err = minimizer.OpenWorkspace(ctx, config.OutputRoot, minimizer.Binding{
-		ParentRecordHash: manifest.RecordHash, ImplementationSHA256: minimizer.ImplementationSHA256(), ToolchainBuildKey: manifest.Toolchain.BuildKey,
+		ParentRecordHash: manifest.RecordHash, ImplementationSHA256: implementation, ToolchainBuildKey: manifest.Toolchain.BuildKey,
 	}, initial, config.Resume)
 	if err != nil {
 		return nil, err
@@ -345,7 +374,7 @@ func openMinimizationSession(ctx context.Context, config MinimizeSpec, dependenc
 	return session, nil
 }
 
-func (session *minimizationSession) prepareWorkspace() error {
+func (session *minimizationSession) prepareWorkspace(ctx context.Context) error {
 	workDirectory, err := os.MkdirTemp("", "gomad3-minimize-")
 	if err != nil {
 		return fmt.Errorf("create minimization working directory: %w", err)
@@ -360,10 +389,18 @@ func (session *minimizationSession) prepareWorkspace() error {
 	if err := session.opened.CopyPayload(manifest.Target.File, targetPath, 0o500); err != nil {
 		return fmt.Errorf("copy verified minimization target: %w", err)
 	}
-	if err := validateTargetBuildInfo(targetPath, manifest.Target.BuildInfo); err != nil {
-		return err
+	if manifest.Target.Backend != nil {
+		session.prepared, err = session.config.Backend.ValidateReplay(ctx, session.opened)
+		if err != nil {
+			return err
+		}
+		session.prepared.Path = targetPath
+	} else {
+		if err := validateTargetBuildInfo(targetPath, manifest.Target.BuildInfo); err != nil {
+			return err
+		}
+		session.prepared = preparedTargetFromArtifact(targetPath, manifest)
 	}
-	session.prepared = preparedTargetFromArtifact(targetPath, manifest)
 	if session.prepared.CapabilityMode != target.CapabilityModeClosure {
 		capabilities, err := target.ReadCapabilityManifest(targetPath, target.ToolchainIdentity{
 			GoVersion: manifest.Toolchain.GoVersion, BuildKey: manifest.Toolchain.BuildKey,
@@ -406,13 +443,14 @@ func (session *minimizationSession) prepareWorkspace() error {
 		session.mappings, session.mountLimits, session.mountSnapshot, session.mountArtifact = mappings, limits, &snapshot, &captured
 	}
 	session.campaign = CampaignSpec{
+		Backend: session.config.Backend, IOTranscriptLimit: uint64(manifest.Limits.IOTranscriptBytes),
 		ExecutionTimeout: runTimeout, OverallTimeout: overallTimeout, TerminateGrace: terminateGrace,
 		OutputLimit: uint64(manifest.Limits.OutputBytes), WorldTransitionLimit: uint64(manifest.Limits.WorldTransitionBytes),
 		ChoiceTraceLimit: uint64(manifest.Limits.ChoiceTraceBytes), RunnerBuild: manifest.Runner.RunnerBuild,
 		IOROMountLimits: session.mountLimits, SupervisorCommand: append([]string(nil), session.config.SupervisorCommand...),
 	}
 	session.executor = session.dependencies.executor
-	if session.executor == nil {
+	if session.executor == nil && session.prepared.Backend == nil {
 		if len(session.config.SupervisorCommand) == 0 {
 			return errors.New("supervisor command is required")
 		}
@@ -423,6 +461,9 @@ func (session *minimizationSession) prepareWorkspace() error {
 }
 
 func (session *minimizationSession) evaluate(ctx context.Context, explorationConfig simulationengine.Config, candidate simulationengine.Candidate) (minimizationTrial, error) {
+	if session.prepared.Backend != nil {
+		return session.evaluateBackendChoice(ctx, candidate)
+	}
 	executionForCandidate, err := simulationrecord.ExecutionForCandidate(explorationConfig, candidate, session.choiceIdentity)
 	if err != nil {
 		return minimizationTrial{}, err
@@ -503,6 +544,11 @@ func (session *minimizationSession) evaluate(ctx context.Context, explorationCon
 	retained.SimulationProfile = &simulationProfile
 	input := executionArtifactInput(retained, session.prepared, observed, session.mountArtifact, worldBundle)
 	input.Simulation = &artifact.SimulationPayloads{Plan: executionForCandidate.SimulationPlan, Record: observed.SimulationRecords[0]}
+	return session.evaluateInput(ctx, input)
+}
+
+func (session *minimizationSession) evaluateInput(ctx context.Context, input artifact.ArtifactInput) (minimizationTrial, error) {
+	manifest := session.opened.Manifest()
 	published, err := artifact.PublishArtifact(artifact.Store{
 		Root: session.temporaryRoot, Context: ctx, MaximumBytes: defaultMinimizedArtifactBytes(session.opened.StoredBytes()), Key: artifact.StoreKeyRecord,
 		TargetPool: artifact.TargetPool(session.workDirectory),
@@ -525,6 +571,7 @@ func (session *minimizationSession) evaluate(ctx context.Context, explorationCon
 
 func (session *minimizationSession) replay(ctx context.Context, artifactPath string) (ReplayResult, error) {
 	config := ReplaySpec{
+		Backend:      session.config.Backend,
 		ArtifactPath: artifactPath, ToolchainRoot: session.config.ToolchainRoot,
 		SupervisorCommand: append([]string(nil), session.config.SupervisorCommand...),
 		BootstrapCommand:  append([]string(nil), session.config.BootstrapCommand...),
@@ -594,12 +641,12 @@ func sameReplayOutcome(left, right record.Outcome) bool {
 	return left.Domain == right.Domain && left.Reason == right.Reason && left.Termination == right.Termination
 }
 
-func minimizationEvidence(parent record.ExecutionRecord, state minimizer.State, acceptedChoiceReplayStatus string) *record.Minimization {
+func minimizationEvidence(parent record.ExecutionRecord, state minimizer.State, acceptedChoiceReplayStatus string) (*record.Minimization, error) {
 	choiceReplay := "not_present"
 	if parent.ChoiceProfile != nil {
 		choiceReplay = acceptedChoiceReplayStatus
 	}
-	return &record.Minimization{
+	evidence := &record.Minimization{
 		Schema: "gomad3.minimization/v1", ImplementationSHA256: minimizer.ImplementationSHA256(),
 		ParentRecordHash: parent.RecordHash, ParentFailureSignature: parent.Outcome.FailureSignature,
 		OriginalCandidateSHA256: state.Original.SHA256, FinalCandidateSHA256: state.Current.SHA256,
@@ -612,6 +659,24 @@ func minimizationEvidence(parent record.ExecutionRecord, state minimizer.State, 
 			ChoiceReplay: choiceReplay, SimulationReplay: "exact",
 		},
 	}
+	if state.ChoiceTape != nil {
+		original, err := state.ChoiceTape.Prefix(uint64(len(state.Original.Overrides)))
+		if err != nil {
+			return nil, err
+		}
+		final, err := state.ChoiceTape.Prefix(uint64(len(state.Current.Overrides)))
+		if err != nil {
+			return nil, err
+		}
+		evidence.Schema = record.ChoicePrefixMinimizationSchema
+		evidence.ImplementationSHA256 = minimizer.ChoiceImplementationSHA256()
+		evidence.ChoicePrefix = &record.ChoicePrefixMinimization{
+			Original: record.ChoicePrefixControl{Length: evidence.OriginalForcedDecisions, SHA256: record.SHA256FromSum(original.SHA256)},
+			Final:    record.ChoicePrefixControl{Length: evidence.FinalForcedDecisions, SHA256: record.SHA256FromSum(final.SHA256)},
+		}
+		evidence.Predicate.SimulationReplay = "not_present"
+	}
+	return evidence, nil
 }
 
 func projectMinimizationReductions(reductions []minimizer.Reduction) []record.MinimizationReduction {

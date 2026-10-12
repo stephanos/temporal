@@ -33,7 +33,7 @@ func run(arguments []string, stdout, stderr io.Writer) int {
 	}
 	arguments = flags.Args()
 	if len(arguments) == 0 {
-		if _, err := fmt.Fprintln(stderr, "usage: gomad-wasm [--installation FILE] (install | discover | explore | replay | resume | recover | inspect | qualify | report) [flags]"); err != nil {
+		if _, err := fmt.Fprintln(stderr, "usage: gomad-wasm [--installation FILE] (install | discover | explore | replay | resume | recover | inspect | minimize | qualify | report) [flags]"); err != nil {
 			return 3
 		}
 		return 2

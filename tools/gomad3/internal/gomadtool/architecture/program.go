@@ -29,6 +29,7 @@ type Program struct {
 	summarySources     map[string]summarySourceSnapshot
 	jsonSources        map[string]*jsonPackageSourceSnapshot
 	compressionSources map[string]*compressionPackageSourceSnapshot
+	canonicalSources   map[string]*canonicalPackageSourceSnapshot
 }
 
 type summarySourceSnapshot struct {
@@ -95,6 +96,8 @@ func (p *Program) Import(path string) (*types.Package, error) {
 	summarySources := map[string]string{}
 	jsonSources := map[string]string{}
 	compressionSources := map[string]string{}
+	canonicalSources := map[string]string{}
+	canonicalPackage := canonicalSourcePackage(path) || !metadata.Standard
 	compressionPackage := compressionSourcePackage(path)
 	var compressionAuxiliary map[string]string
 	if compressionPackage {
@@ -113,7 +116,7 @@ func (p *Program) Import(path string) (*types.Package, error) {
 		summaryPath := path + "/" + filepath.Base(filename)
 		_, callbackPinned := callbackSummarySources[summaryPath]
 		_, jsonPinned := jsonSummarySourcePins[path][filepath.Base(filename)]
-		if (callbackPinned || jsonPinned || compressionPackage) && filepath.Clean(filename) == filepath.Clean(filepath.Join(metadata.Dir, filepath.Base(filename))) {
+		if (callbackPinned || jsonPinned || compressionPackage || canonicalPackage) && filepath.Clean(filename) == filepath.Clean(filepath.Join(metadata.Dir, filepath.Base(filename))) {
 			data, err := os.ReadFile(filename)
 			if err != nil {
 				return nil, err
@@ -130,6 +133,9 @@ func (p *Program) Import(path string) (*types.Package, error) {
 			if compressionPackage {
 				compressionSources[filepath.Base(filename)] = digest
 			}
+			if canonicalPackage {
+				canonicalSources[filepath.Base(filename)] = digest
+			}
 		}
 		file, err := parser.ParseFile(p.Files, filename, source, 0)
 		if err != nil {
@@ -144,6 +150,16 @@ func (p *Program) Import(path string) (*types.Package, error) {
 	}
 	pkg.Types = checked
 	p.Packages[path] = pkg
+	if canonicalSourcePackage(path) || canonicalCandidatePackage(pkg) {
+		if p.canonicalSources == nil {
+			p.canonicalSources = map[string]*canonicalPackageSourceSnapshot{}
+		}
+		snapshot, err := bindCanonicalPackageSource(pkg, canonicalSources)
+		if err != nil {
+			return nil, err
+		}
+		p.canonicalSources[path] = snapshot
+	}
 	if compressionPackage {
 		if p.compressionSources == nil {
 			p.compressionSources = map[string]*compressionPackageSourceSnapshot{}

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"slices"
 
+	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	simulationengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation"
@@ -58,6 +59,7 @@ type State struct {
 	Accepted      []Reduction                `json:"accepted"`
 	StopReason    StopReason                 `json:"stop_reason,omitempty"`
 	SHA256        record.SHA256              `json:"sha256"`
+	ChoiceTape    *choice.ReplayPlan         `json:"choice_tape,omitempty"`
 }
 
 func ImplementationSHA256() record.SHA256 {
@@ -120,10 +122,18 @@ func Commit(state State, attempt Attempt, accepted bool) (State, error) {
 }
 
 func Validate(state State) error {
-	if state.Schema != Schema || state.AttemptBudget == 0 || state.Attempts > state.AttemptBudget || uint64(len(state.Evaluated)) != state.Attempts || uint64(len(state.Accepted)) > state.Attempts {
+	if state.Schema != Schema && state.Schema != choiceSchema || (state.ChoiceTape != nil) != (state.Schema == choiceSchema) || state.AttemptBudget == 0 || state.Attempts > state.AttemptBudget || uint64(len(state.Evaluated)) != state.Attempts || uint64(len(state.Accepted)) > state.Attempts {
 		return errors.New("minimizer state shape is invalid")
 	}
+	if state.ChoiceTape != nil {
+		if err := validateChoiceState(state); err != nil {
+			return err
+		}
+	}
 	for _, candidate := range []simulationengine.Candidate{state.Original, state.Current} {
+		if state.ChoiceTape != nil {
+			break
+		}
 		canonical, err := simulationengine.CanonicalCandidate(state.Config, candidate.Overrides, candidate.ParentSHA256)
 		if err != nil {
 			return fmt.Errorf("validate minimizer candidate: %w", err)
@@ -170,6 +180,9 @@ func proposals(state State) ([]proposal, error) {
 	seen[state.Current.SHA256] = struct{}{}
 	for _, identity := range state.Evaluated {
 		seen[identity] = struct{}{}
+	}
+	if state.ChoiceTape != nil {
+		return choiceProposals(state, seen)
 	}
 	var result []proposal
 	runtimeIndexes, scheduleIndexes, faultIndexes := proposalIndexes(state.Current)
@@ -308,6 +321,13 @@ func sameCandidate(left, right simulationengine.Candidate) bool {
 }
 
 func cloneState(state State) State {
+	if state.ChoiceTape != nil {
+		tape := *state.ChoiceTape
+		tape.Bytes = slices.Clone(tape.Bytes)
+		tape.Decisions = slices.Clone(tape.Decisions)
+		tape.Readiness = slices.Clone(tape.Readiness)
+		state.ChoiceTape = &tape
+	}
 	state.Original = cloneCandidate(state.Original)
 	state.Current = cloneCandidate(state.Current)
 	state.Evaluated = slices.Clone(state.Evaluated)

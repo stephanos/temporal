@@ -3,13 +3,13 @@ package backend
 import (
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner"
 	"go.temporal.io/server/tools/gomad3/target"
+	"go.temporal.io/server/tools/gomad_wasm/internal/stockgo"
 	"go.temporal.io/server/tools/gomad_wasm/wasi"
 )
 
@@ -18,14 +18,8 @@ func TestIntegratedCooperativeFailureArtifactDetachedReplay(t *testing.T) {
 	options := stock.options
 	root := t.TempDir()
 	options.CacheRoot = filepath.Join(root, "cache")
-	compilerRoot := filepath.Join(root, "go")
-	distribution, err := command(t.Context(), options.CompilerPath, []string{"env", "GOROOT"}, root, buildEnvironment(), 64<<10)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := os.CopyFS(compilerRoot, os.DirFS(strings.TrimSpace(string(distribution)))); err != nil {
-		t.Fatal(err)
-	}
+	// Renamed away below to prove detached replay, so this test owns a private clone.
+	compilerRoot := stockgo.Clone(t, filepath.Join(root, "go"))
 	options.CompilerPath = filepath.Join(compilerRoot, "bin/go")
 	options.Config.Profile = wasi.CooperativeProfile
 	options.RuntimeRoot = filepath.Join(root, "runtime-owner")

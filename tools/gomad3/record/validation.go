@@ -171,11 +171,19 @@ func validateMinimization(manifest ExecutionRecord, requireIdentities bool) erro
 	if minimization == nil {
 		return nil
 	}
-	if manifest.SchemaVersion != SchemaVersion || manifest.ArtifactKind != ArtifactTargetFailure || manifest.ReplayMode != ReplayExact || manifest.SimulationProfile == nil {
+	choicePrefix := minimization.Schema == ChoicePrefixMinimizationSchema
+	if manifest.SchemaVersion != SchemaVersion || manifest.ArtifactKind != ArtifactTargetFailure || manifest.ReplayMode != ReplayExact || !choicePrefix && manifest.SimulationProfile == nil {
 		return errors.New("minimization evidence requires a current exact simulation target failure")
 	}
-	if minimization.Schema != "gomad3.minimization/v1" || minimization.AttemptBudget == 0 || minimization.Attempts == 0 || minimization.Attempts > minimization.AttemptBudget || len(minimization.Accepted) == 0 || uint64(len(minimization.Accepted)) > uint64(minimization.Attempts) || minimization.OriginalForcedDecisions <= minimization.FinalForcedDecisions {
+	if minimization.Schema != "gomad3.minimization/v1" && !choicePrefix || minimization.AttemptBudget == 0 || minimization.Attempts == 0 || minimization.Attempts > minimization.AttemptBudget || len(minimization.Accepted) == 0 || uint64(len(minimization.Accepted)) > uint64(minimization.Attempts) || minimization.OriginalForcedDecisions <= minimization.FinalForcedDecisions {
 		return errors.New("invalid minimization bounds or reduction counts")
+	}
+	if choicePrefix {
+		if err := validateChoiceMinimization(manifest); err != nil {
+			return err
+		}
+	} else if minimization.ChoicePrefix != nil {
+		return errors.New("simulation minimization cannot carry choice-prefix evidence")
 	}
 	if err := validateMinimizationIdentity(*minimization, manifest, requireIdentities); err != nil {
 		return err
@@ -204,7 +212,7 @@ func validateMinimizationIdentity(minimization Minimization, manifest ExecutionR
 	if minimization.ParentRecordHash == manifest.RecordHash && requireIdentities {
 		return errors.New("minimization parent cannot be the minimized record")
 	}
-	if minimization.ParentFailureSignature != minimization.Predicate.FailureSignature || minimization.FinalCandidateSHA256 != manifest.SimulationProfile.CandidateSHA256 {
+	if minimization.ParentFailureSignature != minimization.Predicate.FailureSignature || minimization.Schema == "gomad3.minimization/v1" && minimization.FinalCandidateSHA256 != manifest.SimulationProfile.CandidateSHA256 {
 		return errors.New("minimization lineage or final candidate identity changed")
 	}
 	return nil
@@ -218,7 +226,11 @@ func validateMinimizationPredicate(minimization Minimization, manifest Execution
 	if manifest.ChoiceProfile != nil {
 		choiceReplay = "exact"
 	}
-	if minimization.Predicate.ChoiceReplay != choiceReplay || minimization.Predicate.SimulationReplay != "exact" {
+	simulationReplay := "exact"
+	if minimization.Schema == ChoicePrefixMinimizationSchema {
+		simulationReplay = "not_present"
+	}
+	if minimization.Predicate.ChoiceReplay != choiceReplay || minimization.Predicate.SimulationReplay != simulationReplay {
 		return errors.New("minimization predicate does not prove exact retained controls")
 	}
 	return nil

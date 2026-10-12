@@ -78,7 +78,18 @@ func OpenArtifact(path string) (*Opened, error) {
 	if err != nil {
 		return nil, errors.Join(err, root.Close())
 	}
-	return &Opened{path: path, manifest: manifest, storedBytes: storedBytes, root: root}, nil
+	opened := &Opened{path: path, manifest: manifest, storedBytes: storedBytes, root: root}
+	if manifest.Minimization != nil && manifest.Minimization.Schema == record.ChoicePrefixMinimizationSchema {
+		trace := manifest.ChoiceProfile.Trace
+		payload, err := opened.ReadPayload(trace.File, uint64(trace.Limit))
+		if err != nil {
+			return nil, errors.Join(err, opened.Close())
+		}
+		if err := validateChoiceTracePayload(manifest, payload); err != nil {
+			return nil, errors.Join(err, opened.Close())
+		}
+	}
+	return opened, nil
 }
 
 // Close releases the pinned directory. Closing again, or closing a nil handle,

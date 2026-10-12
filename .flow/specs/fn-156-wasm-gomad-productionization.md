@@ -4,6 +4,12 @@ Productionize the WASM Gomad execution backend after the [fn-151](fn-151-wasm-go
 
 fn-151 recorded **GO** on 2026-10-10 ([report](../artifacts/fn151-prototype-report-2026-10-10.md)). Start with fn-156.8: the prototype's wall time is dominated by helper/model round trips.
 
+## Current owner decision
+
+Owner performance decision (2026-10-11): the measured 2.911x workflow authorization-to-validated-terminal speedup is acceptable for now. The earlier requirement for every workload to reach 5x is no longer a completion blocker; do not replace it with an invented 2.91x-per-workload threshold. Further speedup optimization and residual-performance profiling are deferred. This decision applies to execution cost only: the same retained workflow pair's full-wall ratio was 0.694x, so no end-to-end speedup or WASM-versus-native speed claim follows. Historical benchmark exit1/5x failures remain unchanged evidence. Current-source matched workload measurements, exact canonical bytes and fresh replay, full scheduling qualification, formal architecture/source checks, independent review, and all existing resource/support/installation gates remain required.
+
+Owner verification-cadence decision (2026-10-11): use changed-package and focused regression checks during iteration. Run broad architecture/source and runtime/workload acceptance gates on the stable integrated batch, rather than repeating them for each intermediate correction. Reuse evidence only when its required source/runtime/model/compiler/engine/input identities and verification coverage remain valid. Optional experiments and further performance profiling remain deferred. This changes verification frequency, not acceptance coverage: 32x100 scheduling qualification, 32 fresh exact replays, hermetic-I/O negatives, resource limits, SQLite durability, Temporal recovery, installation, current matched costs and independent review remain required. Preserve failed attempts as historical evidence and never relabel a pre-integration result as combined-candidate acceptance.
+
 ## Acceptance Criteria
 
 - **R1:** WASM runtime choices, stable identities, independent entropy and diagnostics support alternate outcomes and exact forced replay at the full 32x100 budget; any optional checkpoint profile has a separate safety/site/identity gate. (was fn-151 R5)
@@ -12,7 +18,7 @@ fn-151 recorded **GO** on 2026-10-10 ([report](../artifacts/fn151-prototype-repo
 - **R4:** Guest network interception supports the full declared stream/partition/delay/reset semantics with negative/reference-model checks and replayed Temporal recovery. (was fn-151 R8)
 - **R5:** Independent guest incarnations use a broker/global clock/separate durable volumes with stale-handle rejection and a two-cluster Temporal recovery gate; no cross-instance WAL sharing. (was fn-151 R9)
 - **R6:** Retained WASM support/qualification and measured cost comparisons distinguish stock/controlled/cooperative/checkpoint profiles and do not borrow deferred native evidence. (was fn-151 R10)
-- **R7:** Proven cost reductions, immutable code caching and supported installation/discovery/replay documentation preserve baseline semantics and production builds. (was fn-151 R11)
+- **R7:** Proven cost reductions, immutable code caching and supported installation/discovery/replay documentation preserve baseline semantics and production builds. The owner accepts the retained 2.911x workflow execution improvement for now; no all-workload 5x threshold applies. (was fn-151 R11)
 
 ## Approved Plan (2026-10-09 baseline)
 
@@ -304,7 +310,3 @@ Use the repository's existing host/overlay/generation/lint gates for each change
 - As a test author, I want ordinary testcore and functional-test bodies to run under a declared WASM profile so that I can reuse existing tests.
 - As a Gomad maintainer, I want shared evidence and model owners with explicit backend identities so that WASM does not create a second incompatible simulator.
 - As an operator of exploration campaigns, I want measured memory, execution and bug-yield costs so that I can choose the backend and concurrency for a supported workload.
-
-
-
-

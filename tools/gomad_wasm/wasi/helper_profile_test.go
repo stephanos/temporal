@@ -156,6 +156,15 @@ func TestHelperFailingSuiteDiagnosticProfile(t *testing.T) {
 		t.Fatal(err)
 	}
 	identity := choice.ExecutionIdentity{TargetSHA256: sha256.Sum256(data), ToolchainBuildKey: runtimeIdentity, GOOS: "wasip1", GOARCH: "wasm", ImplementationSHA256: sha256.Sum256([]byte(runtimeIdentity))}
+	preparations, err := os.OpenFile(filepath.Join(root, "matched-preparations.jsonl"), os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0600)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		if err := preparations.Close(); err != nil {
+			t.Error(err)
+		}
+	})
 	for index, suite := range []struct{ name, run string }{
 		{"workflow", "^TestWorkflowTypeEncodingSuite$/^TestPlainASCII$/^Succeeds$"},
 		{"child", "^TestChildWorkflowSuite$"},
@@ -169,7 +178,7 @@ func TestHelperFailingSuiteDiagnosticProfile(t *testing.T) {
 			reference := request
 			reference.HelperPath, reference.HelperSHA256, reference.CompileCache = referenceHelper, fileHash(t, referenceHelper), referenceCache
 			if index == 0 {
-				for _, owner := range []struct {
+				for epoch, owner := range []struct {
 					name    string
 					request Request
 				}{{"reference", reference}, {"diagnostic", request}} {
@@ -180,7 +189,14 @@ func TestHelperFailingSuiteDiagnosticProfile(t *testing.T) {
 							warm.Config.Args[index] = "-test.run=^$"
 						}
 					}
-					runDiagnosticProfile(t, root, owner.name+"-prepare", warm, owner.name == "diagnostic", true)
+					entries, err := os.ReadDir(warm.CompileCache)
+					if err != nil {
+						t.Fatal(err)
+					}
+					cold := len(entries) == 0
+					profilePreparationEvent(t, preparations, "start", epoch, warm, cold)
+					runDiagnosticProfile(t, root, owner.name+"-prepare", warm, owner.name == "diagnostic", !cold)
+					profilePreparationEvent(t, preparations, "end", epoch, warm, cold)
 				}
 			}
 			var first Result
@@ -237,6 +253,23 @@ func requireDiagnosticEvidence(t *testing.T, before, after Result) {
 	}
 }
 
+func profilePreparationEvent(t *testing.T, channel *os.File, event string, epoch int, request Request, cold bool) {
+	t.Helper()
+	data, err := json.Marshal(struct {
+		Event        string `json:"event"`
+		Epoch        int    `json:"epoch"`
+		Helper       string `json:"helper"`
+		HelperSHA256 string `json:"helper_sha256"`
+		Cold         bool   `json:"cold"`
+	}{event, epoch, request.HelperPath, request.HelperSHA256, cold})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := channel.Write(append(data, '\n')); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func runDiagnosticProfile(t *testing.T, root, name string, request Request, instrumented, warm bool) Result {
 	t.Helper()
 	profile, err := os.Create(filepath.Join(root, name+"-parent.pprof"))
@@ -247,15 +280,30 @@ func runDiagnosticProfile(t *testing.T, root, name string, request Request, inst
 		_ = profile.Close()
 		t.Fatal(err)
 	}
+	var memoryBefore, memoryAfter runtime.MemStats
+	runtime.ReadMemStats(&memoryBefore)
 	started := time.Now()
 	result, runErr := matchedPrepareAdmitted(runtime.GOOS, "/proc/meminfo", os.Getenv("GOMAD_WASM_MATCHED_COLD_MEMORY_GUARD"), func() (Result, error) {
 		return Run(t.Context(), request)
 	})
 	wall := time.Since(started).Nanoseconds()
+	runtime.ReadMemStats(&memoryAfter)
 	pprof.StopCPUProfile()
 	if err := profile.Close(); err != nil {
 		t.Fatal(err)
 	}
+	heap, err := os.Create(filepath.Join(root, name+"-parent-heap.pprof"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := pprof.WriteHeapProfile(heap); err != nil {
+		_ = heap.Close()
+		t.Fatal(err)
+	}
+	if err := heap.Close(); err != nil {
+		t.Fatal(err)
+	}
+	temporalJSON(t, filepath.Join(root, name+"-parent-memory.json"), map[string]any{"diagnostic_only": true, "before": memoryBefore, "after": memoryAfter})
 	temporalWrite(t, filepath.Join(root, name+"-helper-stderr.txt"), result.helperStderr)
 	temporalWrite(t, filepath.Join(root, name+"-guest-stdout.txt"), result.Stdout)
 	temporalWrite(t, filepath.Join(root, name+"-guest-stderr.txt"), result.Stderr)

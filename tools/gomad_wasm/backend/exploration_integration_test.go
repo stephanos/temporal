@@ -16,6 +16,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/runner"
 	runnerbackend "go.temporal.io/server/tools/gomad3/runner/backend"
 	"go.temporal.io/server/tools/gomad3/target"
+	"go.temporal.io/server/tools/gomad_wasm/internal/stockgo"
 	"go.temporal.io/server/tools/gomad_wasm/wasi"
 )
 
@@ -55,17 +56,8 @@ func explorationProvider(t *testing.T) *Provider {
 	if err != nil {
 		t.Fatal(err)
 	}
-	distribution, err := command(t.Context(), options.CompilerPath, []string{"env", "GOROOT"}, options.CacheRoot, buildEnvironment(), 64<<10)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if strings.Contains(strings.TrimSpace(string(distribution)), "/pkg/mod/") {
-		root := filepath.Join(t.TempDir(), "go")
-		if err := os.CopyFS(root, os.DirFS(strings.TrimSpace(string(distribution)))); err != nil {
-			t.Fatal(err)
-		}
-		options.CompilerPath = filepath.Join(root, "bin/go")
-	}
+	// Cooperative preparation needs the distribution outside GOMODCACHE.
+	options.CompilerPath = stockgo.Compiler(t)
 	provider, err := New(options)
 	if err != nil {
 		t.Fatal(err)
@@ -164,6 +156,28 @@ func TestWASMChoiceCampaignCanonicalRoundsAndDetachedReplay(t *testing.T) {
 	if err != nil || limited.StopReason != runner.StopChoiceDepthComplete || limited.ChoiceExploration == nil || limited.ChoiceExploration.OmittedByDepth == 0 || limited.ChoiceExploration.DeepestPrefix != 1 {
 		t.Fatalf("depth envelope was not reported: %+v err=%v", limited, err)
 	}
+	rootRoundKey := filepath.Join("00000000000000000000", "round.json")
+	rootRound := canonicalRounds(t, first.CampaignPath)[rootRoundKey]
+	if len(rootRound) == 0 {
+		t.Fatal("missing canonical root round for byte-capacity envelope")
+	}
+	bounded.Artifacts = t.TempDir()
+	bounded.MaxChoiceDepth = spec.MaxChoiceDepth
+	// Admit the initial queue and its journal envelope, but no larger forced prefix.
+	bounded.MaxExplorationBytes = uint64(len(rootRound))
+	limited, err = runner.Explore(t.Context(), bounded)
+	if err != nil || limited.StopReason != runner.StopExplorationCapacity || limited.Attempted != 1 || limited.ChoiceExploration == nil {
+		t.Fatalf("byte envelope was not reported: %+v err=%v", limited, err)
+	}
+	capacity := limited.ChoiceExploration
+	if capacity.MaxExplorationBytes != bounded.MaxExplorationBytes || capacity.OmittedByCapacity == 0 || capacity.Pending != 0 || capacity.PendingBytes != 0 || capacity.SeenPrefixes != 1 || capacity.LogicalExecutions != 1 || capacity.CommittedRounds != 1 || capacity.DeepestPrefix != 0 || capacity.BoundedComplete {
+		t.Fatalf("byte-capacity queue/state escaped its envelope: %+v", capacity)
+	}
+	verifyLogicalExecutions(t, limited.CampaignPath, 1)
+	capacityRounds := canonicalRounds(t, limited.CampaignPath)
+	if len(capacityRounds) != 2 || !reflect.DeepEqual(rootRound, capacityRounds[rootRoundKey]) {
+		t.Fatalf("byte-capacity campaign changed canonical root order: %v", capacityRounds)
+	}
 	for _, directory := range []string{spec.Target.WorkingDir, provider.options.CacheRoot} {
 		if err := os.Rename(directory, directory+"-unavailable"); err != nil {
 			t.Fatal(err)
@@ -182,9 +196,12 @@ func TestWASMChoiceCampaignCanonicalRoundsAndDetachedReplay(t *testing.T) {
 			t.Fatalf("detached exact replay: %+v err=%v", replay, err)
 		}
 	}
-	_, err = runner.Minimize(t.Context(), runner.MinimizeSpec{Backend: provider, ArtifactPath: first.Artifacts[0], OutputRoot: t.TempDir(), AttemptBudget: 8})
-	if err == nil || !strings.Contains(err.Error(), "exact simulation target-failure artifact") {
-		t.Fatalf("standalone-choice artifact must reject incompatible minimization: %v", err)
+	incompatible := *provider
+	incompatible.options.Config.Profile = wasi.StockProfile
+	tracked := &minimizationProvider{Provider: &incompatible}
+	_, err = runner.Minimize(t.Context(), runner.MinimizeSpec{Backend: tracked, ArtifactPath: first.Artifacts[0], OutputRoot: t.TempDir(), AttemptBudget: 8})
+	if err == nil || !strings.Contains(err.Error(), "replay profile mismatch") || len(tracked.controls) != 0 {
+		t.Fatalf("incompatible replay profile must reject before minimization execution: %v controls=%v", err, tracked.controls)
 	}
 	t.Logf("logical=%d rounds=%d failures=%d retained-successes=%d", first.Attempted, first.ChoiceExploration.CommittedRounds, first.Failures, first.RetainedSuccesses)
 }

@@ -108,18 +108,29 @@ type SimulationRecord struct {
 }
 
 type Minimization struct {
-	Schema                  string                  `json:"schema"`
-	ImplementationSHA256    SHA256                  `json:"implementation_sha256"`
-	ParentRecordHash        SHA256                  `json:"parent_record_hash"`
-	ParentFailureSignature  SHA256                  `json:"parent_failure_signature"`
-	OriginalCandidateSHA256 SHA256                  `json:"original_candidate_sha256"`
-	FinalCandidateSHA256    SHA256                  `json:"final_candidate_sha256"`
-	AttemptBudget           Uint64String            `json:"attempt_budget"`
-	Attempts                Uint64String            `json:"attempts"`
-	OriginalForcedDecisions Uint64String            `json:"original_forced_decisions"`
-	FinalForcedDecisions    Uint64String            `json:"final_forced_decisions"`
-	Accepted                []MinimizationReduction `json:"accepted"`
-	Predicate               MinimizationPredicate   `json:"predicate"`
+	Schema                  string                    `json:"schema"`
+	ImplementationSHA256    SHA256                    `json:"implementation_sha256"`
+	ParentRecordHash        SHA256                    `json:"parent_record_hash"`
+	ParentFailureSignature  SHA256                    `json:"parent_failure_signature"`
+	OriginalCandidateSHA256 SHA256                    `json:"original_candidate_sha256"`
+	FinalCandidateSHA256    SHA256                    `json:"final_candidate_sha256"`
+	AttemptBudget           Uint64String              `json:"attempt_budget"`
+	Attempts                Uint64String              `json:"attempts"`
+	OriginalForcedDecisions Uint64String              `json:"original_forced_decisions"`
+	FinalForcedDecisions    Uint64String              `json:"final_forced_decisions"`
+	Accepted                []MinimizationReduction   `json:"accepted"`
+	Predicate               MinimizationPredicate     `json:"predicate"`
+	ChoicePrefix            *ChoicePrefixMinimization `json:"choice_prefix,omitempty"`
+}
+
+type ChoicePrefixMinimization struct {
+	Original ChoicePrefixControl `json:"original"`
+	Final    ChoicePrefixControl `json:"final"`
+}
+
+type ChoicePrefixControl struct {
+	Length Uint64String `json:"length"`
+	SHA256 SHA256       `json:"sha256"`
 }
 
 type MinimizationReduction struct {

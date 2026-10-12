@@ -595,6 +595,46 @@ func (sink *frameSink) send(value any) error {
 	}
 	return nil
 }
+
+func (sink *frameSink) sendHelperTape() error {
+	if !sink.environment.helperOwned || sink.environment.runtime.tape == nil {
+		return nil
+	}
+	decisions := sink.environment.runtime.tape.Decisions
+	for start := 0; start < len(decisions); start += helperTapeChunk {
+		if err := sink.send(struct {
+			Type      string            `json:"type"`
+			Decisions []choice.Decision `json:"decisions"`
+		}{"tape", decisions[start:min(start+helperTapeChunk, len(decisions))]}); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (sink *frameSink) helperCallback(owned validatedCall, state helperLocalState) error {
+	payload, err := sink.environment.helperCallbackReply(owned, state)
+	if err != nil {
+		var crash *StorageCrash
+		if errors.As(err, &crash) {
+			return sink.interrupt("storage_crash", crash.Error())
+		}
+		return err
+	}
+	if len(payload.Transcript) > 64<<10 {
+		for start := 0; start < len(payload.Transcript); start += 64 << 10 {
+			if err := sink.send(struct {
+				Type string `json:"type"`
+				Data []byte `json:"data_base64"`
+			}{"remote_transcript", payload.Transcript[start:min(start+64<<10, len(payload.Transcript))]}); err != nil {
+				return err
+			}
+		}
+		payload.Transcript = []byte{}
+	}
+	return sink.send(payload)
+}
+
 func (sink *frameSink) frame(data []byte) error {
 	if sink.terminal != nil {
 		return invalid("frame after terminal")

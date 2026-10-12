@@ -7,7 +7,9 @@ import (
 	"strings"
 	"testing"
 
+	netmodel "go.temporal.io/server/tools/gomad3/simulation/network"
 	"go.temporal.io/server/tools/gomad_wasm/backend"
+	"go.temporal.io/server/tools/gomad_wasm/toolchain"
 	"go.temporal.io/server/tools/gomad_wasm/wasi"
 )
 
@@ -119,5 +121,70 @@ func TestWritePreservesExistingInstallation(t *testing.T) {
 	}
 	if _, err := Resolve(Spec{ExplicitManifest: path}); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestInstallationRejectsUnqualifiedModelsBeforePreparation(t *testing.T) {
+	stock, _ := installedManifest(t)
+	options := stock.Options
+	options.Config = DefaultConfig(wasi.CooperativeProfile)
+	options.RuntimeRoot = t.TempDir()
+	cooperative, err := Build(options)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if cooperative.RuntimeImplementationSHA256 != toolchain.ImplementationSHA256() {
+		t.Fatal("cooperative installation lost its runtime identity")
+	}
+	if _, err := (Description{Manifest: cooperative}).Provider(); err != nil {
+		t.Fatalf("valid cooperative installation: %v", err)
+	}
+	for _, test := range []struct {
+		name   string
+		mutate func(*wasi.Config)
+	}{
+		{"network v1", func(c *wasi.Config) { c.Network = &wasi.NetworkModel{} }},
+		{"network v2", func(c *wasi.Config) {
+			c.NetworkV2 = &wasi.NetworkModelV2{Profile: wasi.NetworkStreamProfile, Limits: netmodel.Limits{Listeners: 1, Connections: 1, Deliveries: 1, Bytes: 1024, Transitions: 16}}
+		}},
+		{"storage", func(c *wasi.Config) { c.Storage = &wasi.StorageModel{} }},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			manifest := cooperative
+			test.mutate(&manifest.Options.Config)
+			const rejected = "operator network and storage profiles await qualification"
+			check := func(operation string, err error) {
+				t.Helper()
+				if err == nil || err.Error() != rejected {
+					t.Errorf("%s: expected qualification rejection, got %v", operation, err)
+				}
+			}
+			_, err := Build(manifest.Options)
+			check("build", err)
+			path := filepath.Join(t.TempDir(), Sibling)
+			check("write", Write(path, manifest))
+			_, err = (Description{Manifest: manifest}).Provider()
+			check("provider", err)
+			manifest.Options.HelperPath = filepath.Join(t.TempDir(), "missing-helper")
+			data, err := json.Marshal(manifest)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(path, data, 0600); err != nil {
+				t.Fatal(err)
+			}
+			_, err = Resolve(Spec{ExplicitManifest: path})
+			check("resolve before helper access", err)
+			manifest.Options.CacheRoot = "relative"
+			if err := validate(manifest); err == nil || err.Error() != "WASM installation schema and absolute tool/cache paths are required" {
+				t.Fatalf("qualification rejection changed path error precedence: %v", err)
+			}
+			if err := os.WriteFile(path, append(data, []byte(" {}")...), 0600); err != nil {
+				t.Fatal(err)
+			}
+			if _, err := Resolve(Spec{ExplicitManifest: path}); err == nil || !strings.Contains(err.Error(), "trailing JSON") {
+				t.Fatalf("qualification rejection changed decode error precedence: %v", err)
+			}
+		})
 	}
 }

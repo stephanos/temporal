@@ -248,6 +248,106 @@ func TestGeneratedOperationSequencesExactNativeReplay(t *testing.T) {
 			if replay := run(&record); !reflect.DeepEqual(record, replay) {
 				t.Fatal("native record replay differs")
 			}
+			t.Run("negative_capacity", func(t *testing.T) {
+				run := func(replay *Record) Record {
+					limits := testLimits()
+					if seed%2 == 0 {
+						limits.Bytes = 3
+					} else {
+						limits.Deliveries = 1
+					}
+					m, a, b := testModel(t, limits)
+					if replay != nil {
+						m.network.replay = replay
+						m.network.replayLanes = map[string][]simulationTransition{}
+						m.network.replayNext = map[string]int{}
+						for _, tr := range replay.Transitions {
+							lane := simulationTransitionLane(tr)
+							m.network.replayLanes[lane] = append(m.network.replayLanes[lane], tr)
+						}
+					}
+					_, c, s := pair(t, m, a, b)
+					random := seed
+					for cycle := uint64(0); cycle < 8; cycle++ {
+						random = random*6364136223846793005 + 1
+						payload := []byte{byte(random >> 32), byte(random >> 40), byte(random >> 48)}
+						id := uint64(10) + cycle*10
+						if got, want := m.Dispatch(Request{Domain: a, Op: "write", Handle: c, RequestID: id, Bytes: payload}), (Result{RequestID: id, State: "completed", Count: 3}); !reflect.DeepEqual(got, want) {
+							t.Fatalf("generated write: got=%+v want=%+v", got, want)
+						}
+						stale := a
+						stale.Incarnation = 2
+						negative := []struct {
+							request Request
+							error   string
+						}{
+							{Request{Domain: b, Op: "read", Handle: s, Count: 65537}, "unsupported Gomad network operation"},
+							{Request{Domain: stale, Op: "write", Handle: c, Bytes: []byte("x")}, "stale file handle"},
+							{Request{Domain: a, Op: "dial", Host: "b", Port: 1}, "connection refused"},
+						}
+						for step := uint64(0); step < 3; step++ {
+							entry := negative[(step+random%3)%3]
+							entry.request.RequestID = id + 1 + step
+							before, err := m.Snapshot()
+							if err != nil {
+								t.Fatal(err)
+							}
+							got := m.Dispatch(entry.request)
+							want := Result{RequestID: entry.request.RequestID, State: "completed", Error: entry.error}
+							if !reflect.DeepEqual(got, want) {
+								t.Fatalf("generated negative: got=%+v want=%+v", got, want)
+							}
+							if entry.request.Op == "dial" {
+								want := Transition{Kind: "dial", Source: simulationEndpoint{Node: "a", Incarnation: 1, Address: "a"}, Destination: simulationEndpoint{Node: "b", Address: "b", Port: 1}, Outcome: "refused"}
+								if got := m.network.transitions[len(m.network.transitions)-1]; got != want {
+									t.Fatalf("refused transition: got=%+v want=%+v", got, want)
+								}
+							}
+							after, err := m.Snapshot()
+							if err != nil {
+								t.Fatal(err)
+							}
+							before.Identity, before.TransitionSHA256 = "", ""
+							after.Identity, after.TransitionSHA256 = "", ""
+							if !reflect.DeepEqual(before, after) {
+								t.Fatal("negative request mutated network state")
+							}
+						}
+						if got, want := m.Dispatch(Request{Domain: a, Op: "write", Handle: c, RequestID: id + 4, Bytes: []byte("x")}), (Result{RequestID: id + 4, State: "completed", Error: "network resources exhausted"}); !reflect.DeepEqual(got, want) {
+							t.Fatalf("generated capacity: got=%+v want=%+v", got, want)
+						}
+						want := Transition{Kind: "write", Source: simulationEndpoint{Node: "a", Incarnation: 1, Address: "a", Port: 40000}, Destination: simulationEndpoint{Node: "b", Incarnation: 1, Address: "b", Port: 20000}, Connection: 1, Bytes: 1, Outcome: "capacity", PayloadSHA256: "sha256:2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881"}
+						if got := m.network.transitions[len(m.network.transitions)-1]; got != want {
+							t.Fatalf("capacity transition: got=%+v want=%+v", got, want)
+						}
+						queued, err := m.Snapshot()
+						if err != nil {
+							t.Fatal(err)
+						}
+						if queued.NextConnection != 1 || queued.NextDelivery != cycle+1 || len(queued.Deliveries) != 1 || queued.Deliveries[0].Bytes != 3 || m.network.pendingBytes != 3 || len(m.pending) != 0 {
+							t.Fatalf("rejected write changed bounded queue: %+v", queued)
+						}
+						if got, want := m.Dispatch(Request{Domain: b, Op: "read", Handle: s, RequestID: id + 5, Count: 3}), (Result{RequestID: id + 5, State: "completed", Count: 3, Bytes: payload}); !reflect.DeepEqual(got, want) {
+							t.Fatalf("capacity drain: got=%+v want=%+v", got, want)
+						}
+						if len(m.network.deliveries) != 0 || m.network.pendingBytes != 0 || len(m.pending) != 0 {
+							t.Fatal("drain did not restore capacity")
+						}
+					}
+					record, err := m.Finish()
+					if err != nil {
+						t.Fatal(err)
+					}
+					if len(record.Transitions) != 35 {
+						t.Fatalf("generated transition count: got=%d want=35", len(record.Transitions))
+					}
+					return record
+				}
+				record := run(nil)
+				if replay := run(&record); !reflect.DeepEqual(record, replay) {
+					t.Fatal("generated negative/capacity native record replay differs")
+				}
+			})
 		})
 	}
 }

@@ -21,6 +21,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/deterministicio/readonlymount"
 	"go.temporal.io/server/tools/gomad3/hostexec"
 	runnerbackend "go.temporal.io/server/tools/gomad3/runner/backend"
+	"go.temporal.io/server/tools/gomad_wasm/internal/stockgo"
 	"go.temporal.io/server/tools/gomad_wasm/toolchain"
 )
 
@@ -117,29 +118,8 @@ func prototypeToolchain(t *testing.T) (compiler, overlay, identity string) {
 		t.Fatal("prototype gates require an absolute GOMAD3_STOCK_GO (Go 1.27.1)")
 	}
 	root := prototypeRoot(t)
-	// Overlays cannot replace files beneath GOMODCACHE, so builds use a private GOROOT copy.
-	goroot := filepath.Join(root, "goroot")
+	goroot := stockgo.Root(t)
 	prototypeOverlay.once.Do(func() {
-		if _, err := os.Stat(filepath.Join(goroot, "bin", "go")); err != nil {
-			output, err := exec.Command(compiler, "env", "GOROOT").Output()
-			if err != nil {
-				prototypeOverlay.err = err
-				return
-			}
-			staging := goroot + ".staging"
-			if err := os.RemoveAll(staging); err != nil {
-				prototypeOverlay.err = err
-				return
-			}
-			if err := os.CopyFS(staging, os.DirFS(strings.TrimSpace(string(output)))); err != nil {
-				prototypeOverlay.err = err
-				return
-			}
-			if err := os.Rename(staging, goroot); err != nil {
-				prototypeOverlay.err = err
-				return
-			}
-		}
 		native, err := filepath.Abs("../../gomad3/toolchain/runtime/overlay/src/runtime")
 		if err != nil {
 			prototypeOverlay.err = err

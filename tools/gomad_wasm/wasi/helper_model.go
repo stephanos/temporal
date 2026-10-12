@@ -4,7 +4,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"math"
 	"strings"
 
@@ -57,6 +56,15 @@ type helperModelResult struct {
 }
 type helperEvidence struct{ choice, diagnostic, transcript, network []byte }
 
+type helperReply struct {
+	Reply
+	LocalState struct {
+		Now      uint64 `json:"now"`
+		Advances uint64 `json:"advances"`
+	} `json:"local_state"`
+	Transcript []byte `json:"transcript_base64"`
+}
+
 func helperConfig(e *Environment, digestOnly bool) *helperModelConfig {
 	r := e.runtime
 	var chunks uint64
@@ -66,45 +74,24 @@ func helperConfig(e *Environment, digestOnly bool) *helperModelConfig {
 	return &helperModelConfig{Seed: r.control.Seed, Mode: r.control.Choice.Mode, Limit: r.control.Choice.Limit, Diagnostics: r.control.Diagnostics, TapeChunks: chunks, EpochNanos: e.config.Clock.EpochNanos, ReadStepNanos: e.config.Clock.ReadStepNanos, Now: e.now, Limits: helperLimits{e.config.Limits.Calls, e.config.Limits.TranscriptBytes, e.config.Limits.PendingEvents}, Network: e.config.Network, DigestOnly: digestOnly}
 }
 
-func (sink *frameSink) sendHelperTape() error {
-	if !sink.environment.helperOwned || sink.environment.runtime.tape == nil {
-		return nil
-	}
-	decisions := sink.environment.runtime.tape.Decisions
-	for start := 0; start < len(decisions); start += helperTapeChunk {
-		if err := sink.send(struct {
-			Type      string            `json:"type"`
-			Decisions []choice.Decision `json:"decisions"`
-		}{"tape", decisions[start:min(start+helperTapeChunk, len(decisions))]}); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func (sink *frameSink) helperCallback(owned validatedCall, state helperLocalState) error {
+func (e *Environment) helperCallbackReply(owned validatedCall, state helperLocalState) (helperReply, error) {
 	call := owned.call
-	e := sink.environment
 	if call.ID < e.nextCall || call.ID > e.config.Limits.Calls || state.Now < e.now || state.Now > math.MaxInt64-e.config.Clock.EpochNanos || state.Advances < e.advances || state.TranscriptBytes < e.transcriptLength {
-		return invalid("helper callback state")
+		return helperReply{}, invalid("helper callback state")
 	}
 	e.nextCall, e.now, e.advances, e.transcriptLength = call.ID, state.Now, state.Advances, state.TranscriptBytes
 	e.transcript = nil
 	reply, err := e.handleValidated(owned)
 	if err != nil {
-		var crash *StorageCrash
-		if errors.As(err, &crash) {
-			return sink.interrupt("storage_crash", crash.Error())
-		}
-		return err
+		return helperReply{}, err
 	}
 	callBytes, err := json.Marshal(call)
 	if err != nil {
-		return err
+		return helperReply{}, err
 	}
 	replyBytes, err := json.Marshal(reply)
 	if err != nil {
-		return err
+		return helperReply{}, err
 	}
 	canonical := append(append(append(callBytes, '\n'), replyBytes...), '\n')
 	if strings.HasPrefix(call.Op, "runtime_") {
@@ -112,28 +99,10 @@ func (sink *frameSink) helperCallback(owned validatedCall, state helperLocalStat
 	}
 	e.transcriptLength = state.TranscriptBytes + uint64(len(canonical))
 	e.transcript = nil
-	if len(canonical) > 64<<10 {
-		for start := 0; start < len(canonical); start += 64 << 10 {
-			if err := sink.send(struct {
-				Type string `json:"type"`
-				Data []byte `json:"data_base64"`
-			}{"remote_transcript", canonical[start:min(start+64<<10, len(canonical))]}); err != nil {
-				return err
-			}
-		}
-		canonical = []byte{}
-	}
-	return sink.send(struct {
-		Reply
-		LocalState struct {
-			Now      uint64 `json:"now"`
-			Advances uint64 `json:"advances"`
-		} `json:"local_state"`
-		Transcript []byte `json:"transcript_base64"`
-	}{Reply: reply, LocalState: struct {
+	return helperReply{Reply: reply, LocalState: struct {
 		Now      uint64 `json:"now"`
 		Advances uint64 `json:"advances"`
-	}{e.now, e.advances}, Transcript: canonical})
+	}{e.now, e.advances}, Transcript: canonical}, nil
 }
 
 func (sink *frameSink) receiveHelperEvidence(input *validatedFrame) error {

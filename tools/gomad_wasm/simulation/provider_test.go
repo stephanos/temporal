@@ -23,6 +23,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/world"
 	"go.temporal.io/server/tools/gomad3sim"
 	wasmbackend "go.temporal.io/server/tools/gomad_wasm/backend"
+	"go.temporal.io/server/tools/gomad_wasm/internal/stockgo"
 	"go.temporal.io/server/tools/gomad_wasm/toolchain"
 	"go.temporal.io/server/tools/gomad_wasm/wasi"
 )
@@ -93,18 +94,10 @@ func TestProviderMandatoryCleanupReapsWithoutLifecycleActions(t *testing.T) {
 
 func guestRequest(t *testing.T) wasi.Request {
 	t.Helper()
-	compiler := os.Getenv("GOMAD3_STOCK_GO")
-	if !filepath.IsAbs(compiler) {
+	if !filepath.IsAbs(os.Getenv("GOMAD3_STOCK_GO")) {
 		t.Fatal("GOMAD3_STOCK_GO must name stock Go 1.27.1")
 	}
-	output, err := exec.Command(compiler, "env", "GOROOT").Output()
-	if err != nil {
-		t.Fatal(err)
-	}
-	root := filepath.Join(t.TempDir(), "go")
-	if err = os.CopyFS(root, os.DirFS(strings.TrimSpace(string(output)))); err != nil {
-		t.Fatal(err)
-	}
+	root := stockgo.Root(t)
 	native, err := filepath.Abs("../../gomad3/toolchain/runtime/overlay/src/runtime")
 	if err != nil {
 		t.Fatal(err)
@@ -116,7 +109,7 @@ func guestRequest(t *testing.T) wasi.Request {
 	module := filepath.Join(t.TempDir(), "service.wasm")
 	cmd := exec.Command(filepath.Join(root, "bin/go"), "build", "-trimpath", "-overlay", overlay, "-o", module, "./testdata/service")
 	cmd.Env = append(os.Environ(), "GOROOT="+root, "GOOS=wasip1", "GOARCH=wasm", "GOEXPERIMENT=nogreenteagc", "GOWORK=off", "GOENV=off", "GOFLAGS=", "GOTOOLCHAIN=local", "CGO_ENABLED=0")
-	if output, err = cmd.CombinedOutput(); err != nil {
+	if output, err := cmd.CombinedOutput(); err != nil {
 		t.Fatalf("compile real guest %v %s", err, output)
 	}
 	data, err := os.ReadFile(module)

@@ -77,6 +77,21 @@ identities without reopening original source, compiler or runtime inputs. Runtim
 control frames remain separate from the application WASI transcript. The stock
 profile and diagnostics-off native canonical bytes retain their existing defaults.
 
+The public `runner.Minimize` API supports exact standalone cooperative target
+failures with complete choice traces. It removes effective forcing suffixes from
+the retained choice tape while keeping the seed, module, arguments, captured
+inputs, model and fault configuration fixed. Every accepted prefix reproduces the
+original full failure signature, including the complete output choice trace and
+backend observations, and passes a fresh exact full-tape replay. The full trace is
+not shortened: versioned minimization evidence separately binds the original and
+final forcing lengths and tape digests. Candidate replay and final publication use
+retained bytes without reopening source, compiler or runtime inputs. Interrupted
+runs resume through the existing shared minimizer workspace and controller.
+Observed stock failures, incomplete traces, native simulation profiles and
+incompatible replay profiles are rejected. `gomad-wasm minimize` routes this
+compatible standalone choice-prefix mode through the shared Runner, including
+its existing output, attempt, byte and resume bounds.
+
 Seeded and forced decisions, observations, frozen-clock idle advances and the
 optional v1 network decisions execute inside the Rust helper. Bounded choice,
 diagnostic, WASI and network evidence streams are emitted once at termination;
@@ -196,8 +211,8 @@ wall time, memory, host calls, decisions, clock jumps, virtual time and evidence
 digests. Results and the go decision are in
 [the fn-151 report](../../.flow/artifacts/fn151-prototype-report-2026-10-10.md).
 
-The implementation plan is
-[wasm-gomad-execution-backend.md](../../.turbo/plans/wasm-gomad-execution-backend.md).
+The current productionization plan and acceptance requirements are in
+[fn-156](../../.flow/specs/fn-156-wasm-gomad-productionization.md).
 Flow spec `fn-151-wasm-gomad-execution-backend` retains the completed
 prototype's acceptance; `fn-156-wasm-gomad-productionization` owns the remaining
 work. Native qualification remains with its existing owners.

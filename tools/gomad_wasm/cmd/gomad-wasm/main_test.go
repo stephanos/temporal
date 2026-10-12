@@ -18,6 +18,7 @@ import (
 	gomadqualification "go.temporal.io/server/tools/gomad3/qualification"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad_wasm/installation"
+	"go.temporal.io/server/tools/gomad_wasm/internal/stockgo"
 	"go.temporal.io/server/tools/gomad_wasm/qualification"
 	"go.temporal.io/server/tools/gomad_wasm/wasi"
 )
@@ -29,6 +30,38 @@ func TestOperatorRejectsUnsupportedCommandsWithoutInstallation(t *testing.T) {
 		if status := run(arguments, &stdout, &stderr); status != 2 || strings.Contains(stderr.String(), "/missing/manifest") {
 			t.Fatalf("%q: status=%d stdout=%q stderr=%q", arguments, status, stdout.String(), stderr.String())
 		}
+	}
+}
+
+func TestOperatorMinimizeUsesSharedValidationAndInstallation(t *testing.T) {
+	manifest := "/missing/minimize-installation"
+	t.Setenv(installation.Environment, manifest)
+	for _, test := range []struct {
+		arguments []string
+		status    int
+		want      string
+	}{
+		{[]string{"minimize"}, 2, "usage:"},
+		{[]string{"minimize", "--attempt-budget=0", "/failure"}, 2, "usage:"},
+		{[]string{"minimize", "--max-bytes=0", "/failure"}, 2, "invalid byte size"},
+		{[]string{"minimize", "--toolchain-root=/native", "/failure"}, 2, "--toolchain-root is unavailable"},
+		{[]string{"minimize", "--toolchain-root=", "/failure"}, 2, "--toolchain-root is unavailable"},
+		{[]string{"minimize", "--resume", "--attempt-budget=4", "--max-bytes=2MiB", "/failure"}, 3, manifest},
+	} {
+		t.Run(strings.Join(test.arguments, " "), func(t *testing.T) {
+			var stdout, stderr bytes.Buffer
+			status := run(test.arguments, &stdout, &stderr)
+			if status != test.status || stdout.Len() != 0 || !strings.Contains(stderr.String(), test.want) || test.status == 2 && strings.Contains(stderr.String(), manifest) {
+				t.Fatalf("status=%d stdout=%q stderr=%q; want status=%d %q", status, stdout.String(), stderr.String(), test.status, test.want)
+			}
+		})
+	}
+}
+
+func TestOperatorUsageIncludesCompatibleMinimization(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	if status := run(nil, &stdout, &stderr); status != 2 || stdout.Len() != 0 || !strings.Contains(stderr.String(), "minimize") {
+		t.Fatalf("status=%d stdout=%q stderr=%q", status, stdout.String(), stderr.String())
 	}
 }
 
@@ -275,12 +308,6 @@ func TestInstalledOperatorDiscoversInspectsAndReplaysWithoutBuildInputs(t *testi
 	if output, err := build.CombinedOutput(); err != nil {
 		t.Fatalf("build installed operator: %v\n%s", err, output)
 	}
-	distribution := exec.CommandContext(t.Context(), compiler, "env", "GOROOT")
-	distribution.Env = operatorEnvironment()
-	goRoot, err := distribution.Output()
-	if err != nil {
-		t.Fatal(err)
-	}
 	helper, err := filepath.Abs("../../wasmhost/target/release/gomad3-wasmhost")
 	if err != nil {
 		t.Fatal(err)
@@ -304,10 +331,8 @@ func TestInstalledOperatorDiscoversInspectsAndReplaysWithoutBuildInputs(t *testi
 	for _, profile := range []string{wasi.StockProfile, wasi.CooperativeProfile} {
 		t.Run(profile, func(t *testing.T) {
 			directory := t.TempDir()
-			compilerRoot := filepath.Join(directory, "go")
-			if err := os.CopyFS(compilerRoot, os.DirFS(strings.TrimSpace(string(goRoot)))); err != nil {
-				t.Fatal(err)
-			}
+			// Renamed away below to prove source-less operation, so this subtest owns a private clone.
+			compilerRoot := stockgo.Clone(t, filepath.Join(directory, "go"))
 			source, inputs := filepath.Join(directory, "source"), filepath.Join(directory, "inputs")
 			for _, path := range []string{source, inputs} {
 				if err := os.Mkdir(path, 0700); err != nil {

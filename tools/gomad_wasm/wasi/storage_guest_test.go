@@ -16,28 +16,18 @@ import (
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/deterministicio/volume"
 	runnerbackend "go.temporal.io/server/tools/gomad3/runner/backend"
+	"go.temporal.io/server/tools/gomad_wasm/internal/stockgo"
 	"go.temporal.io/server/tools/gomad_wasm/toolchain"
 )
 
 func storageSQLiteRequest(t *testing.T) Request {
 	t.Helper()
 	helper := helperPath(t)
-	compiler := os.Getenv("GOMAD3_STOCK_GO")
-	if compiler == "" {
-		compiler = "go"
-	}
-	version, err := exec.Command(compiler, "version").Output()
+	version, err := exec.Command(stockgo.Command(), "version").Output()
 	if err != nil || !strings.Contains(string(version), "go1.27.1 ") {
 		t.Fatalf("storage guest requires stock Go 1.27.1: %q %v", version, err)
 	}
-	rootOutput, err := exec.Command(compiler, "env", "GOROOT").Output()
-	if err != nil {
-		t.Fatal(err)
-	}
-	root := filepath.Join(t.TempDir(), "go")
-	if err := os.CopyFS(root, os.DirFS(strings.TrimSpace(string(rootOutput)))); err != nil {
-		t.Fatal(err)
-	}
+	root := stockgo.Root(t)
 	native, err := filepath.Abs("../../gomad3/toolchain/runtime/overlay/src/runtime")
 	if err != nil {
 		t.Fatal(err)

@@ -15,10 +15,10 @@ import (
 
 type storageOpenError struct{}
 
-func (storageOpenError) Error() string { panic("storage error formatter dispatched arbitrary error") }
-func (storageOpenError) Is(error) bool { panic("storage error mapper dispatched arbitrary Is") }
-func (storageOpenError) As(any) bool   { panic("storage error mapper dispatched arbitrary As") }
-func (storageOpenError) Unwrap() error { panic("storage error mapper dispatched arbitrary Unwrap") }
+func (storageOpenError) Error() string   { panic("storage error formatter dispatched arbitrary error") }
+func (storageOpenError) Is(_ error) bool { panic("storage error mapper dispatched arbitrary Is") }
+func (storageOpenError) As(any) bool     { panic("storage error mapper dispatched arbitrary As") }
+func (storageOpenError) Unwrap() error   { panic("storage error mapper dispatched arbitrary Unwrap") }
 
 func TestStorageErrorMappingIsClosed(t *testing.T) {
 	for _, test := range []struct {

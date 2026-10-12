@@ -7,6 +7,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
+	"go.temporal.io/server/tools/gomad_wasm/internal/stockgo"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -98,10 +99,7 @@ func nativeRoot(t *testing.T) string {
 }
 
 func TestOverlayBuildsLinkedWASMRuntime(t *testing.T) {
-	root := filepath.Join(t.TempDir(), "stock-go")
-	if err := os.CopyFS(root, os.DirFS(stockRoot(t))); err != nil {
-		t.Fatal(err)
-	}
+	root := stockgo.Root(t)
 	overlay, identity, err := BuildOverlay(root, nativeRoot(t), t.TempDir())
 	if err != nil {
 		t.Fatal(err)

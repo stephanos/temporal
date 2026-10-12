@@ -72,6 +72,39 @@ func choose(flag bool)func(){if flag{return clean};return dirty}
 	}
 }
 
+func TestEffectVariadicUninitializedLocalCallbacksRemainUnresolved(t *testing.T) {
+	for _, tc := range []struct {
+		name, body string
+		wantHost   bool
+	}{
+		{"reversed", "Invoke(unknown, clean)", false},
+		{"expanded", "Invoke([]func(){clean, unknown}...)", false},
+		{"dirty-first", "Invoke(dirty, unknown)", true},
+		{"dirty-last", "Invoke(unknown, dirty)", true},
+		{"expanded-dirty", "Invoke([]func(){dirty, unknown}...)", true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			program := effectResolverProgram(t, `package record
+func Root(){var unknown func(); `+tc.body+`}
+func Invoke(values ...func()){for _, value := range values {value()}}
+func clean(){}
+func dirty(){go clean()}
+`)
+			a := effectResolverAnalysis(program)
+			root := program.Functions["example.invalid/resolver/record.Root"]
+			a.call(&boundFunction{fn: root, pkg: root.pkg}, nil, root.declaration.Pos())
+			var host, unresolved bool
+			for _, finding := range a.findings {
+				host = host || finding.Category == "host-effect" && strings.Contains(finding.Detail, "goroutine start")
+				unresolved = unresolved || finding.Category == "unresolved-effect"
+			}
+			if host != tc.wantHost || !unresolved {
+				t.Fatalf("host=%v want=%v unresolved=%v findings=%v", host, tc.wantHost, unresolved, a.findings)
+			}
+		})
+	}
+}
+
 func TestEffectVariadicNamedSliceDistinguishesEllipsis(t *testing.T) {
 	for _, tc := range []struct {
 		name, body string

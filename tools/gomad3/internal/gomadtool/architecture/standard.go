@@ -42,6 +42,24 @@ var reflectMetadataSymbols = symbolSet(map[string][]string{
 	"reflect.*rtype": {"Kind", "Elem", "Key", "NumField", "Field", "String", "Implements"},
 })
 
+var networkSymbols = symbolSet(map[string][]string{"net": {"Dial", "DialTimeout", "Listen", "ListenPacket", "ListenIP", "ListenTCP", "ListenUDP", "ListenUnix", "ListenUnixgram", "DialIP", "DialTCP", "DialUDP", "DialUnix", "LookupAddr", "LookupCNAME", "LookupHost", "LookupIP", "LookupMX", "LookupNS", "LookupSRV", "LookupTXT"}, "net.*Dialer": {"Dial", "DialContext"}, "net.*ListenConfig": {"Listen", "ListenPacket"}})
+
+var hostEffectSymbols = symbolSet(map[string][]string{"os": {"Open", "OpenFile", "Create", "ReadFile", "WriteFile", "Stat", "Lstat", "ReadDir", "Mkdir", "MkdirAll", "Remove", "RemoveAll", "Rename", "Getenv", "LookupEnv", "Environ", "Setenv", "Unsetenv", "Getwd", "Chdir", "Exit", "FindProcess", "StartProcess", "Executable", "UserHomeDir", "TempDir", "Pipe"}, "time": {"Now", "Parse", "Sleep", "After", "AfterFunc", "Tick", "NewTimer", "NewTicker", "LoadLocation", "LoadLocationFromTZData"}, "runtime": {"nanotime", "walltime", "fastrand", "rand", "startTheWorld", "newproc"}})
+
+var formattingSymbols = symbolSet(map[string][]string{"fmt": {"Errorf", "Sprintf", "Sprint", "Sprintln", "Append", "Appendf", "Appendln", "Fprint", "Fprintf", "Fprintln", "Print", "Printf", "Println"}})
+
+var jsonDecoderSymbols = symbolSet(map[string][]string{"encoding/json.*Decoder": {"Decode", "Token", "More"}})
+
+var jsonStreamConfigSymbols = symbolSet(map[string][]string{"encoding/json.*Decoder": {"UseNumber", "DisallowUnknownFields"}, "encoding/json.*Encoder": {"SetEscapeHTML"}})
+
+var sortCallbackSymbols = symbolSet(map[string][]string{"sort": {"Slice", "SliceStable", "SliceIsSorted"}})
+
+var slicesCallbackSymbols = symbolSet(map[string][]string{"slices": {"SortFunc", "SortStableFunc", "EqualFunc", "IsSortedFunc", "BinarySearchFunc", "ContainsFunc", "IndexFunc", "CompactFunc"}})
+
+var reflectValueSymbols = symbolSet(map[string][]string{"reflect": {"ValueOf"}, "reflect.Value": {"IsValid", "Kind", "IsNil", "Elem", "Pointer", "MapRange", "Len", "Index", "NumField", "Field", "String", "CanInterface", "Interface", "Bool", "Int", "Uint", "CanAddr"}, "reflect.*MapIter": {"Next", "Key", "Value"}})
+
+var builtinReceiverSymbols = symbolSet(map[string][]string{"io.Writer": {"Write"}, "hash.Hash": {"Sum", "Reset", "Size", "BlockSize"}, "error": {"Error"}})
+
 func symbolSet(groups map[string][]string) map[string]bool {
 	result := map[string]bool{}
 	for prefix, names := range groups {
@@ -118,6 +136,18 @@ func modeledResults(fn *types.Func) *abstractValue {
 }
 
 func (a *effectAnalysis) standard(fn *types.Func, receiver *abstractValue, args []*abstractValue, pos token.Pos) (*abstractValue, bool) {
+	if result, handled := a.canonicalNativeWriterConstructor(fn, args, pos); handled {
+		return result, true
+	}
+	if result, handled := a.canonicalNativeWriterOperation(fn, receiver, args, pos); handled {
+		return result, true
+	}
+	if result, handled := a.canonicalWriteSummary(fn, args, pos); handled {
+		return result, true
+	}
+	if result, handled := a.compressionSummary(fn, receiver, args, pos); handled {
+		return result, true
+	}
 	result, handled := a.standardUnchecked(fn, receiver, args, pos)
 	if handled && fn.Pkg() != nil && memorySummarySources[fn.Pkg().Path()] != "" {
 		a.checkMemorySource(fn.Pkg().Path(), pos)
@@ -146,13 +176,13 @@ func (a *effectAnalysis) standardUnchecked(fn *types.Func, receiver *abstractVal
 		return nil
 	}
 	switch {
-	case path == "net" && (symbolSet(map[string][]string{"net": {"Dial", "DialTimeout", "Listen", "ListenPacket", "ListenIP", "ListenTCP", "ListenUDP", "ListenUnix", "ListenUnixgram", "DialIP", "DialTCP", "DialUDP", "DialUnix", "LookupAddr", "LookupCNAME", "LookupHost", "LookupIP", "LookupMX", "LookupNS", "LookupSRV", "LookupTXT"}, "net.*Dialer": {"Dial", "DialContext"}, "net.*ListenConfig": {"Listen", "ListenPacket"}})[id] || strings.HasPrefix(id, "net.*TCPConn.") || strings.HasPrefix(id, "net.*UDPConn.") || strings.HasPrefix(id, "net.*UnixConn.") || strings.HasPrefix(id, "net.*IPConn.") || strings.HasPrefix(id, "net.*TCPListener.") || strings.HasPrefix(id, "net.*UnixListener.")):
+	case path == "net" && (networkSymbols[id] || strings.HasPrefix(id, "net.*TCPConn.") || strings.HasPrefix(id, "net.*UDPConn.") || strings.HasPrefix(id, "net.*UnixConn.") || strings.HasPrefix(id, "net.*IPConn.") || strings.HasPrefix(id, "net.*TCPListener.") || strings.HasPrefix(id, "net.*UnixListener.")):
 		a.report("host-effect", pos, id)
 		return result, true
 	case path == "syscall" || path == "os/exec" || path == "crypto/rand" || path == "math/rand" || path == "math/rand/v2" || strings.HasPrefix(id, "os.*File.") || strings.HasPrefix(id, "os.*Root."):
 		a.report("host-effect", pos, id)
 		return result, true
-	case symbolSet(map[string][]string{"os": {"Open", "OpenFile", "Create", "ReadFile", "WriteFile", "Stat", "Lstat", "ReadDir", "Mkdir", "MkdirAll", "Remove", "RemoveAll", "Rename", "Getenv", "LookupEnv", "Environ", "Setenv", "Unsetenv", "Getwd", "Chdir", "Exit", "FindProcess", "StartProcess", "Executable", "UserHomeDir", "TempDir", "Pipe"}, "time": {"Now", "Parse", "Sleep", "After", "AfterFunc", "Tick", "NewTimer", "NewTicker", "LoadLocation", "LoadLocationFromTZData"}, "runtime": {"nanotime", "walltime", "fastrand", "rand", "startTheWorld", "newproc"}})[id]:
+	case hostEffectSymbols[id]:
 		a.report("host-effect", pos, id)
 		return result, true
 	case id == "time.ParseInLocation":
@@ -238,7 +268,7 @@ func (a *effectAnalysis) standardUnchecked(fn *types.Func, receiver *abstractVal
 		}
 		a.errorCallbacks(arg(0), args[1:], pos, map[string]bool{}, fn.Name())
 		return result, true
-	case path == "fmt" && symbolSet(map[string][]string{"fmt": {"Errorf", "Sprintf", "Sprint", "Sprintln", "Append", "Appendf", "Appendln", "Fprint", "Fprintf", "Fprintln", "Print", "Printf", "Println"}})[id]:
+	case path == "fmt" && formattingSymbols[id]:
 		if !a.checkSummarySource("fmt/print.go", pos) {
 			return result, true
 		}
@@ -329,10 +359,9 @@ func (a *effectAnalysis) standardUnchecked(fn *types.Func, receiver *abstractVal
 		if !a.checkJSONSummarySource(fn, pos) {
 			return result, true
 		}
-		result = join(result, a.jsonCallbacks(arg(1), true, pos))
-		a.decoded(arg(1))
+		result = join(result, a.jsonDecodeCallbacks(arg(1), pos))
 		return result, true
-	case symbolSet(map[string][]string{"encoding/json.*Decoder": {"Decode", "Token", "More"}})[id]:
+	case jsonDecoderSymbols[id]:
 		if !a.checkJSONSummarySource(fn, pos) {
 			return result, true
 		}
@@ -351,8 +380,7 @@ func (a *effectAnalysis) standardUnchecked(fn *types.Func, receiver *abstractVal
 			a.report("unresolved-effect", pos, "unknown JSON decoder reader")
 		}
 		if id == "encoding/json.*Decoder.Decode" {
-			result = join(result, a.jsonCallbacks(arg(0), true, pos))
-			a.decoded(arg(0))
+			result = join(result, a.jsonDecodeCallbacks(arg(0), pos))
 		} else if result != nil {
 			if result.fields["0"] != nil {
 				result.fields["0"].builtin = true
@@ -360,7 +388,7 @@ func (a *effectAnalysis) standardUnchecked(fn *types.Func, receiver *abstractVal
 			}
 		}
 		return result, true
-	case symbolSet(map[string][]string{"encoding/json.*Decoder": {"UseNumber", "DisallowUnknownFields"}, "encoding/json.*Encoder": {"SetEscapeHTML"}})[id]:
+	case jsonStreamConfigSymbols[id]:
 		if !a.checkJSONSummarySource(fn, pos) {
 			return result, true
 		}
@@ -374,10 +402,10 @@ func (a *effectAnalysis) standardUnchecked(fn *types.Func, receiver *abstractVal
 		}
 		a.report("unresolved-effect", pos, "unsupported JSONtext stream context "+id)
 		return jsonUnsupportedResults(fn.Type().(*types.Signature).Results()), true
-	case path == "sort" && symbolSet(map[string][]string{"sort": {"Slice", "SliceStable", "SliceIsSorted"}})[id]:
+	case path == "sort" && sortCallbackSymbols[id]:
 		a.invoke(arg(1), []*abstractValue{valueOf(types.Typ[types.Int]), valueOf(types.Typ[types.Int])}, pos)
 		return result, true
-	case path == "slices" && symbolSet(map[string][]string{"slices": {"SortFunc", "SortStableFunc", "EqualFunc", "IsSortedFunc", "BinarySearchFunc", "ContainsFunc", "IndexFunc", "CompactFunc"}})[id]:
+	case path == "slices" && slicesCallbackSymbols[id]:
 		for _, v := range args {
 			if len(v.functions) > 0 || v.unknown {
 				a.invoke(v, []*abstractValue{elementValue(arg(0)), elementValue(arg(0))}, pos)
@@ -448,7 +476,7 @@ func (a *effectAnalysis) standardUnchecked(fn *types.Func, receiver *abstractVal
 			a.report("unresolved-effect", pos, "unknown represented Interface binding")
 		}
 		return &projected, true
-	case path == "reflect" && symbolSet(map[string][]string{"reflect": {"ValueOf"}, "reflect.Value": {"IsValid", "Kind", "IsNil", "Elem", "Pointer", "MapRange", "Len", "Index", "NumField", "Field", "String", "CanInterface", "Interface", "Bool", "Int", "Uint", "CanAddr"}, "reflect.*MapIter": {"Next", "Key", "Value"}})[id]:
+	case path == "reflect" && reflectValueSymbols[id]:
 		if id == "reflect.ValueOf" {
 			result.fields = map[string]*abstractValue{"represented": arg(0)}
 		} else if receiver != nil {
@@ -456,7 +484,7 @@ func (a *effectAnalysis) standardUnchecked(fn *types.Func, receiver *abstractVal
 		}
 		return result, true
 	}
-	if receiver != nil && receiver.builtin && symbolSet(map[string][]string{"io.Writer": {"Write"}, "hash.Hash": {"Sum", "Reset", "Size", "BlockSize"}, "error": {"Error"}})[id] {
+	if receiver != nil && receiver.builtin && builtinReceiverSymbols[id] {
 		return result, true
 	}
 	if receiver != nil && receiver.builtin && fn.Name() == "Error" {
@@ -723,6 +751,7 @@ func (a *effectAnalysis) decoded(v *abstractValue) {
 				v.builtin = true
 				v.unknown = false
 				if pointee := v.fields["$pointee"]; pointee != nil {
+					pointee.nilness, pointee.nilType = 0, nil
 					pointee.builtin = true
 					pointee.unknown = false
 				}

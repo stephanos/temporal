@@ -24,12 +24,14 @@ type abstractValue struct {
 	builtin   bool
 	text      string
 	truth     int
-	// These unused facts describe only the exact represented type. They do not
-	// authorize branch pruning, callback suppression, or interface-nil queries.
-	nilness   int
-	nilType   types.Type
-	origin    token.Pos
-	gzipOwned bool
+	// Exact represented-type facts are consumed only by qualified JSON decode's
+	// tracked nil empty-interface destination proof, not generic callback
+	// suppression, branch pruning, or interface-nil queries.
+	nilness           int
+	nilType           types.Type
+	origin            token.Pos
+	gzipOwned         bool
+	nativeWriterOwned bool
 }
 type boundFunction struct {
 	fn               *function
@@ -90,6 +92,7 @@ type effectAnalysis struct {
 	checkedJSON        *jsonSourceQualification
 	checkedCompression *compressionSourceQualification
 	compressionActive  map[*abstractValue]bool
+	checkedCanonical   map[string]*canonicalPackageSourceSnapshot
 	diagnostics        *effectDiagnostics
 }
 
@@ -204,6 +207,11 @@ func (a *effectAnalysis) assign(pkg *SourcePackage, target ast.Expr, value *abst
 	case *ast.StarExpr:
 		v := a.eval(pkg, target.X, env)
 		if v != nil && value != nil {
+			if state := v.fields[canonicalNativeWriterState]; state != nil {
+				state.unknown = true
+				v.nativeWriterOwned = false
+				a.report("unresolved-effect", target.Pos(), "native writer pointee overwrite invalidates constructor ownership")
+			}
 			if state := v.fields["$gzip-state"]; state != nil {
 				state.unknown = true
 				v.gzipOwned = false
@@ -229,6 +237,13 @@ func valueOf(typ types.Type) *abstractValue {
 		}
 	}
 	return v
+}
+
+func isBottomValue(v *abstractValue) bool {
+	return v != nil && len(v.types) == 0 && len(v.functions) == 0 && len(v.fields) == 0 &&
+		v.elements == nil && !v.utc && !v.unknown && !v.builtin && v.text == "" &&
+		v.truth == 0 && v.nilness == 0 && v.nilType == nil && !v.origin.IsValid() &&
+		!v.gzipOwned && !v.nativeWriterOwned
 }
 
 func zeroValue(typ types.Type) *abstractValue {
@@ -268,6 +283,7 @@ func copyValue(value *abstractValue, typ types.Type) *abstractValue {
 		copy.elements = copyValue(value.elements, underlying.Elem())
 	case *types.Struct:
 		copy.gzipOwned = false
+		copy.nativeWriterOwned = false
 		copy.fields = map[string]*abstractValue{}
 		for i := 0; i < underlying.NumFields(); i++ {
 			field := underlying.Field(i)
@@ -315,6 +331,7 @@ func joinValues(left, right *abstractValue, seen map[[2]*abstractValue]*abstract
 	v.unknown = left.unknown || right.unknown
 	v.builtin = left.builtin && right.builtin
 	v.gzipOwned = left.gzipOwned && right.gzipOwned && left.fields["$gzip-state"] == right.fields["$gzip-state"]
+	v.nativeWriterOwned = left.nativeWriterOwned && right.nativeWriterOwned && left.fields[canonicalNativeWriterState] == right.fields[canonicalNativeWriterState]
 	if left.truth != right.truth {
 		v.truth = 0
 	}
@@ -612,7 +629,7 @@ func (a *effectAnalysis) resolve(obj types.Object) *abstractValue {
 	for _, site := range a.bindings[obj] {
 		result = join(result, a.bindingValue(site))
 	}
-	if field, ok := obj.(*types.Var); ok && field.IsField() {
+	if field, ok := obj.(*types.Var); ok {
 		for _, site := range a.fields[field] {
 			result = join(result, a.bindingValue(site))
 		}
@@ -886,6 +903,7 @@ func (a *effectAnalysis) eval(pkg *SourcePackage, expr ast.Expr, env environment
 		}
 		copy := *v
 		copy.gzipOwned = false
+		copy.nativeWriterOwned = false
 		copy.types = []types.Type{typ}
 		if pointee == nil || !types.Identical(copy.nilType, typ) {
 			copy.nilness, copy.nilType = 0, nil
@@ -990,6 +1008,7 @@ func (a *effectAnalysis) evaluateCall(pkg *SourcePackage, call *ast.CallExpr, en
 			converted := copyValue(args[0], pkg.Info.TypeOf(call.Args[0]))
 			converted.types = []types.Type{destination}
 			converted.gzipOwned = false
+			converted.nativeWriterOwned = false
 			converted.nilness, converted.nilType = 0, nil
 			converted.builtin = false
 			converted.origin = call.Pos()
@@ -1291,14 +1310,16 @@ func (a *effectAnalysis) call(bound *boundFunction, args []*abstractValue, pos t
 			if len(node.Rhs) == 1 && len(node.Lhs) > 1 && len(values) > 0 && values[0] != nil {
 				if assertion, ok := node.Rhs[0].(*ast.TypeAssertExpr); ok {
 					source := a.eval(bound.pkg, assertion.X, env)
-					target := bound.pkg.Info.TypeOf(assertion)
+					target := bound.pkg.Info.TypeOf(assertion.Type)
 					value := valueOf(target)
 					if source != nil {
 						copy := *source
 						value = &copy
 						value.nilness, value.nilType = 0, nil
-						value.types = []types.Type{target}
-						value.unknown = false
+						if _, dynamic := target.Underlying().(*types.Interface); !dynamic {
+							value.types = []types.Type{target}
+							value.unknown = false
+						}
 					}
 					okValue := valueOf(types.Typ[types.Bool])
 					if source != nil && !source.unknown {
@@ -1349,6 +1370,9 @@ func (a *effectAnalysis) call(bound *boundFunction, args []*abstractValue, pos t
 					env[obj] = a.eval(bound.pkg, node.Values[i], env)
 				} else {
 					env[obj] = zeroValue(obj.Type())
+					if _, callback := obj.Type().Underlying().(*types.Signature); callback {
+						env[obj].unknown = true
+					}
 				}
 			}
 			return false
@@ -1372,6 +1396,8 @@ func (a *effectAnalysis) call(bound *boundFunction, args []*abstractValue, pos t
 						value.builtin = true
 						value.unknown = false
 					}
+				} else if isBottomValue(value) {
+					value = a.concreteValue(bound.pkg.Info.TypeOf(node.Value), map[*types.TypeParam]bool{})
 				}
 				a.assign(bound.pkg, node.Value, value, env)
 			}
@@ -1642,6 +1668,9 @@ func equalSummaryKeys(a, b map[string]string) bool {
 }
 func bindingKey(values []*abstractValue) string {
 	var out strings.Builder
+	var scratch [64]byte
+	writeInt := func(n int) { out.Write(strconv.AppendInt(scratch[:0], int64(n), 10)) }
+	writeQuoted := func(s string) { out.Write(strconv.AppendQuote(scratch[:0], s)) }
 	seen := map[*abstractValue]int{}
 	var write func(*abstractValue)
 	write = func(v *abstractValue) {
@@ -1650,27 +1679,57 @@ func bindingKey(values []*abstractValue) string {
 			return
 		}
 		if n, ok := seen[v]; ok {
-			fmt.Fprintf(&out, "ref%d;", n)
+			out.WriteString("ref")
+			writeInt(n)
+			out.WriteByte(';')
 			return
 		}
 		seen[v] = len(seen)
-		fmt.Fprintf(&out, "{%t,%t,%t,%q,%d;gzip-owned%t;", v.utc, v.unknown, v.builtin, v.text, v.truth, v.gzipOwned)
-		fmt.Fprintf(&out, "nilness%d;", v.nilness)
+		out.WriteByte('{')
+		out.WriteString(strconv.FormatBool(v.utc))
+		out.WriteByte(',')
+		out.WriteString(strconv.FormatBool(v.unknown))
+		out.WriteByte(',')
+		out.WriteString(strconv.FormatBool(v.builtin))
+		out.WriteByte(',')
+		writeQuoted(v.text)
+		out.WriteByte(',')
+		writeInt(v.truth)
+		out.WriteString(";gzip-owned")
+		out.WriteString(strconv.FormatBool(v.gzipOwned))
+		if v.nativeWriterOwned {
+			out.WriteString(";native-writer-owned")
+		}
+		out.WriteString(";nilness")
+		writeInt(v.nilness)
+		out.WriteByte(';')
 		if v.nilness != 0 && v.nilType != nil {
-			fmt.Fprintf(&out, "niltype%q;", types.TypeString(v.nilType, func(p *types.Package) string { return p.Path() }))
+			out.WriteString("niltype")
+			writeQuoted(types.TypeString(v.nilType, func(p *types.Package) string { return p.Path() }))
+			out.WriteByte(';')
 		}
 		var names []string
 		for _, typ := range v.types {
 			names = append(names, types.TypeString(typ, func(p *types.Package) string { return p.Path() }))
 		}
 		sort.Strings(names)
-		fmt.Fprintf(&out, "types%q;", names)
+		out.WriteString("types[")
+		for i, name := range names {
+			if i != 0 {
+				out.WriteByte(' ')
+			}
+			writeQuoted(name)
+		}
+		out.WriteString("];")
 		for _, fn := range v.functions {
-			fmt.Fprintf(&out, "method-expression%t;", fn.methodExpression)
+			out.WriteString("method-expression")
+			out.WriteString(strconv.FormatBool(fn.methodExpression))
+			out.WriteByte(';')
 			if fn.fn != nil {
 				out.WriteString(functionID(fn.fn.object))
 			} else if fn.literal != nil {
-				fmt.Fprintf(&out, "literal%d", fn.literal.Pos())
+				out.WriteString("literal")
+				writeInt(int(fn.literal.Pos()))
 			}
 			write(fn.receiver)
 			var objects []types.Object
@@ -1681,7 +1740,9 @@ func bindingKey(values []*abstractValue) string {
 			}
 			sort.Slice(objects, func(i, j int) bool { return objects[i].Pos() < objects[j].Pos() })
 			for _, obj := range objects {
-				fmt.Fprintf(&out, "capture%d:", obj.Pos())
+				out.WriteString("capture")
+				writeInt(int(obj.Pos()))
+				out.WriteByte(':')
 				write(fn.capture[obj])
 			}
 		}
@@ -1691,7 +1752,9 @@ func bindingKey(values []*abstractValue) string {
 		}
 		sort.Strings(fields)
 		for _, name := range fields {
-			fmt.Fprintf(&out, "field%q:", name)
+			out.WriteString("field")
+			writeQuoted(name)
+			out.WriteByte(':')
 			write(v.fields[name])
 		}
 		out.WriteString("elements:")
@@ -1699,7 +1762,9 @@ func bindingKey(values []*abstractValue) string {
 		out.WriteString("};")
 	}
 	for i, v := range values {
-		fmt.Fprintf(&out, "arg%d:", i)
+		out.WriteString("arg")
+		writeInt(i)
+		out.WriteByte(':')
 		write(v)
 	}
 	return out.String()
