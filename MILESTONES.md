@@ -221,9 +221,9 @@ CI, PR, or push authority.
 | [fn-164.1](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.1.md) | 🚧 In progress | Import checker integrated; current-tree and forbidden-edge/stale-allowlist regressions passed; final batch acceptance remains open |
 | [fn-164.2](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.2.md) | 🚧 In progress | Canonical runtime sources integrated; identity/inventory regressions and tiny WASM link passed; final batch acceptance remains open |
 | [fn-164.3](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.3.md) | 🚧 In progress | Move toolchain, upgrade, native transcript and conformance tooling under backends/native |
-| [fn-164.4](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.4.md) | ⬜ Todo | Split target into shared types and native build preparation |
+| [fn-164.4](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.4.md) | 🚧 In progress | Target data/build separation implemented privately; integration and final acceptance remain open |
 | [fn-164.5](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.5.md) | ⬜ Todo | Make native a Provider behind backends/backend.go |
-| [fn-164.6](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.6.md) | ⬜ Todo | Fold the wasm module into backends/wasm with a stock-Go test target |
+| [fn-164.6](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.6.md) | 🚧 In progress | Private folded module passed cooperative and exploratory detached replay; final integration and test-wasm remain open |
 | [fn-164.7](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.7.md) | ⬜ Todo | One cmd/gomad launcher driven by Provider capabilities |
 | [fn-164.8](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.8.md) | ⬜ Todo | Keep pre-move artifacts inspectable and make identity mismatch explicit |
 | [fn-164.9](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.9.md) | ⬜ Todo | CI path filters for the wasm suite and shared packages |
