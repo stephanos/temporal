@@ -1,7 +1,7 @@
 ---
 satisfies: [R1, R2, R4, R5]
 ---
-# fn-169-a-temporal-free-framework-the-lifter.1 Mechanical move: generic lift/check/migrate into model/framework, Temporal parts into model/temporal; Temporal-free build boundary; docs
+# fn-169-a-temporal-free-framework-the-lifter.1 Mechanical move: generic export/check/migrate and the DSL into model/framework, Temporal parts into model/temporal; Temporal-free build boundary; docs
 
 ## Description
 Runs after fn-166.13 and before fn-141 (owner, 2026-10-12). Read the spec's survey and target layout first.
