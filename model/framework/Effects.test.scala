@@ -235,16 +235,24 @@ class EffectsTest extends munit.FunSuite:
       Entering.bindings.head.function.asInstanceOf[Steps] // scalafix:ok DisableSyntax.asInstanceOf
     for s <- Finite[Task].values do
       val expected: List[Step[Task, Said, Status]] = s.stage match
-        case Stage.waiting => Tasker.effects.work(s)
+        case Stage.waiting =>
+          List(Step(Said.ok, s.copy(stage = Stage.working), List(Status.working)))
         case Stage.working =>
-          enter[Task, Said, Status](s.copy(stage = Stage.resting), Status.resting) ++
-            Tasker.effects.work(s)
+          List(
+            Step(Said.ok, s.copy(stage = Stage.resting), List(Status.resting)),
+            Step(Said.ok, s.copy(stage = Stage.working), List(Status.working))
+          )
         case Stage.resting => Nil
       assertEquals(press(s), expected, s)
     // A phase whose enum declares no status records none.
     given Owner[Job, Said, Note] = Owner(Subject)
     given Phasing[Job, Phase] = Phasing(_.phase, (s, p) => s.copy(phase = p))
-    for s <- states do assertEquals(enters(Phase.paused)(s), Subject.effects.pause(s), s)
+    for s <- states do
+      assertEquals(
+        enters(Phase.paused)(s),
+        List(Step(Said.ok, s.copy(phase = Phase.paused), Nil)),
+        s
+      )
   }
 
   test("enters refuses a projection with no writer, and a writer that misses the phase") {

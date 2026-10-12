@@ -94,6 +94,47 @@ ambiguity refusal, and requires exact accepted-source restoration. The shared pr
 the compiled complete mini's raw IR and waiver bytes, including every identity and position.
 Production loading, real-feature application and consumer gates remain held.
 
+## Phase entries: Fn159Task7Enters
+
+The compiled rule removes one-state-argument `enter(s.copy(field = Type.case))`
+effects and their rule references or `choose` calls, including simple local aliases.
+It proves the field's explicit state type, `Phased[S,P]` projection and exact copy writer,
+and a locally declared plain enum or the Recorded case's matching status fact. Extra facts,
+counter writes, rejection and conditional or choice-bearing definitions stay intact.
+An external phase is never assumed plain because its enum is absent.
+
+An inherited facet requires explicit source context: the copied-mini runner supplies its
+actual `Faults.scala` and `AnswerDispatch.scala`, proving AnswerPhase's plain enum and
+the concrete writer. Without that context, only private definitions/owners are rewritten;
+public effects require a caller inventory. Competing imports and lookalike DSL declarations,
+unknown types/status, absent or incorrect writers and escaping uses
+refuse the whole document atomically. Public definitions with unknown external consumers
+require a manual inventory of every caller, the concrete projection/writer and phase status;
+replace matching phase-only steps by enters, retain genuine logic, then remove unused defs.
+The syntactic source harness does not establish arbitrary whole-program/export visibility.
+
+```sh
+mise exec -- scala-cli test --server=false model/migrate --test-only umpire.migrate.EntersTest
+timeout 600 /bin/bash model/migrate/prove-mini.sh umpire.migrate.RewriteEntersMini
+```
+
+The runner restores legacy backOff/resume definitions and calls in copied actual Answering,
+transforms them through Scalafix, checks convergence and escape refusal, and restores exact
+accepted source bytes. Accepted/restored complete IR and waivers compare byte for byte,
+including source coordinates. The retired source is parsed, not compiled as an old API.
+This is distinct from the authored pre/post migration, whose two deleted function identities,
+inlined rule bodies and explicitly inventoried source positions change while every native row,
+ordinary declaration, Query budget/total and negative control remains fixed. Production loading,
+real-feature sweep, consumers, Cases and live execution remain held.
+
+`proof/check-enters-delta.mjs` checks the complete authored raw lifts, with two explicitly
+named call expansions and a closed source-coordinate ledger for Answering/AnswerDispatch.
+Every remaining value and declaration order must match. It validates all source positions
+individually and keeps the full raw changes and deleted functions in an evidence ledger;
+it does not globally remove positions or rename strings. `proof/test-enters-delta.mjs`
+requires six independently mutated fact, state, outcome, choice, total and source controls
+to fail. Function-body digests in that ledger are byte identities, not Go Behavior Fingerprints.
+
 ## Central bounds: Fn159Task5CentralBounds
 
 The source rule maps literal named `Limits(steps = ..., actions = ..., search = ...)`

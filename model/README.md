@@ -1149,6 +1149,13 @@ A machine's sections are objects named after what they hold, `object effects`, `
 need no base class; the ones that carry behaviour extend it, `Rules`, `Syncs`, `Refinement` and
 `Capabilities`. The structure lint refuses an object of a machine of any other name (below).
 
+The mini's `Answering` facet uses `enters(AnswerPhase.backingOff)` and
+`enters(AnswerPhase.waiting)` for its two phase-only rules. `AnswerDispatch` supplies
+`Phased[AnswerState, AnswerPhase](_.phase, (s, p) => s.copy(phase = p))` and overrides
+`end` explicitly. This plain enum records no status: attempts and the answer inbox stay intact.
+Poll, send, conditional receive/trust, rejection, loss and the interrupt hole remain effects.
+The task-named source migration and its proof boundary are in `migrate/README.md`.
+
 A derived machine is another machine's declaration with one thing changed, an object named after
 itself, in its own package's family. Chained, the derivation is one expression:
 

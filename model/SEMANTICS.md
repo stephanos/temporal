@@ -493,13 +493,17 @@ A Property's Definition ID is `<family>.<name>`, so two machines of one family m
 machine and a composition) declares the same Property on whichever model it is called with. Its
 state-dependent parts are parameters, each a def of the lifted sources, never a lambda:
 
-Source: [temporal/features/activity_mini/protocol/AnswerDispatch.scala:22](temporal/features/activity_mini/protocol/AnswerDispatch.scala#L22).
+Source: [temporal/features/activity_mini/protocol/AnswerDispatch.scala:29](temporal/features/activity_mini/protocol/AnswerDispatch.scala#L29).
 
 ```scala
 def oldAnswerKeepsAttempt(m: Machine[AnswerState, Outcome, AnswerFact]): Property[AnswerState] =
-  m.property("oldAnswerKeepsAttempt") when answers.deliver(Answer.firstCompleted) holdsAcross ((before, after) =>
-    before.attempts != 2 || (after.state.phase == before.phase &&
-      after.state.attempts == before.attempts && after.outcome == Outcome.rejected(Rejection.notFound)))
+  m.property("oldAnswerKeepsAttempt") when answers.deliver(Answer.firstCompleted) holdsAcross (
+    (before, after) =>
+      before.attempts != 2 || (after.state.phase == before.phase &&
+        after.state.attempts == before.attempts && after.outcome == Outcome.rejected(
+          Rejection.notFound
+        ))
+  )
 ```
 
 A case class whose every field is a Property, Scenario or Query is a *bundle*; built in such a
@@ -663,13 +667,13 @@ is incomplete; every other machine is checked as if the hole were not there.
 
 **Writing it.**
 
-Source: [temporal/features/activity_mini/protocol/AnswerDispatch.scala:18](temporal/features/activity_mini/protocol/AnswerDispatch.scala#L18).
+Source: [temporal/features/activity_mini/protocol/AnswerDispatch.scala:23](temporal/features/activity_mini/protocol/AnswerDispatch.scala#L23).
 
 ```scala
 val cancelDuringBackoff = hole
 ```
 
-Source: [temporal/features/activity_mini/protocol/Answering.scala:42](temporal/features/activity_mini/protocol/Answering.scala#L42).
+Source: [temporal/features/activity_mini/protocol/Answering.scala:53](temporal/features/activity_mini/protocol/Answering.scala#L53).
 
 ```scala
 def interrupt(@unused s: AnswerState): List[Step[AnswerState, Outcome, AnswerFact]] =
@@ -930,7 +934,7 @@ when the channel is lossy. A send to a full channel lands outside the catalog, s
 
 **Writing it.**
 
-Source: [temporal/features/activity_mini/protocol/AnswerDispatch.scala:17](temporal/features/activity_mini/protocol/AnswerDispatch.scala#L17).
+Source: [temporal/features/activity_mini/protocol/AnswerDispatch.scala:22](temporal/features/activity_mini/protocol/AnswerDispatch.scala#L22).
 
 ```scala
 val answers = channel[Answer](capacity = 1, order = Order.fifo, loss = Loss.lossy)
