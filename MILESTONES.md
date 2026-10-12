@@ -118,7 +118,7 @@ facet vocabularies are recorded in fn-161.
 | 1 | fn-159 | qualified names, renames, `enters` (source integrated; proof/closure open) |
 | 2 | fn-161 | facets |
 | 3 | fn-162 | realizations name their Queries; claim containers removed |
-| 4 | fn-160 | layout and realization layer (.3/.4) |
+| 4 | fn-160 | layout and realization layer (.3/.4, done) |
 | 5 | fn-166.11-.13 | the change-scoped model loop: lifter suites scoped to what they lift, Make without held API generation, one diff-scoped check with an evidence record (owner, 2026-10-12) |
 | fn-166.12 | ⬜ todo | Model Make targets run without held API generation, from a cached API jar; held Go stages skipped by name (owner, 2026-10-12; Makefile change approved) |
 | fn-166.13 | ⬜ todo | Change-scoped model check: scope from the diff, a coverage registry for every Scala suite, a fixed evidence record; the default per-change check (owner, 2026-10-12) |
@@ -267,14 +267,12 @@ Replace the hand-written `irFile` root lists, three files each for the standalon
 workflow, with one IR file per feature folder, collected from the feature's package. Nothing is listed,
 so no section can be forgotten. The model content stays the same; file boundaries and derived names
 (Cases, lint acceptances, export slices) change. Since 2026-10-11 the file lives in the feature's `generated/` tree (fn-166.1). Each Model file then holds at most one machine, in flat
-level folders grouped by name prefix, and realizations get their own `realization/` layer. Since 2026-10-11 the tree is flat: a kind folder holds only shared parts and each form is a `<kind>_<form>` folder (fn-160.7). Layout, naming and the Protocol rename apply to the mini feature and the shared code; moving and renaming the real features' files waits for the sweep. Not marked ready.
+level folders grouped by name prefix, and realizations get their own `realization/` layer. Since 2026-10-11 the tree is flat: a kind folder holds only shared parts and each form is a `<kind>_<form>` folder (fn-160.7). Layout, naming and the Protocol rename apply to the mini feature and the shared code; moving and renaming the real features' files waits for the sweep. One machine per file, family-prefixed level files (`enum FamilyName` for extra families) and `<Subject>Run` realizations are enforced for every lifted Model (.3/.4 done; six mini/task-queue machines renamed, with the `Fn160Task3FamilyNames` rule for the sweep). The real features are behind on these rules, and the task-queue renames stop the standalone activity compiling until the sweep runs the rule.
 [Spec](.flow/specs/fn-160-one-ir-file-per-feature-collected-from.md).
 
 | Name | Status | What |
 | --- | --- | --- |
 | fn-160.2 | ⬜ todo | Collect one IR file per feature package, and per foundation/actor/kind package that declares Queries or realizations; remove `irFile`/`exports`; exploration checks only the asked Query; generic native realization discovery still needs source proof; regenerate and migrate consumers — Scala part open; Go part deferred |
-| fn-160.3 | ⬜ todo | One machine per file, named after it; flat level folders grouped by name prefix (no nested packages); forms' files `<Form><Kind>.scala`; forms' shared parts under the kind's `shared/` (Nexus Product → `nexus/shared/product/`); the lifter enforces it |
-| fn-160.4 | ⬜ todo | Realization layer: flat `realization/` folder, `<Subject>Run` naming, one-way layer dependencies, API only in realizations (after fn-160.3) |
 | fn-160.6 | ⬜ todo | Rename the System level to Protocol (folders, packages, machines, files, lint vocabulary, docs), so the levels read Product / Protocol / Realization |
 | fn-160.7 | ⬜ todo | Flatten `features/`: `activity/` and `nexus/` hold only shared parts; forms are `activity_standalone/`, `activity_mini/`, `nexus_workflow/`, `nexus_standalone/`; packages follow; lint refuses nesting (added 2026-10-11, after fn-160.3); now only `activity_mini` and the shared parts it uses, the real forms' moves at the sweep |
 | fn-160.8 | ⬜ todo | Drop the `scala.` vestige from Case ids, `explore.` prefixes, activity type names and provenance; the set derives from the feature package (`temporal.features.<feature>.case.<query>`); fixtures, canary binding and Driver Profile regenerated; baseline compared under a mapped identity (R15, owner 2026-10-11); after .2 and .7, in the sweep |
