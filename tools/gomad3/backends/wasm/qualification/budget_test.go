@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/backends/wasm/backend"
+	"go.temporal.io/server/tools/gomad3/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad3/hostexec"
 )
 
@@ -35,5 +36,22 @@ func TestBudgetOperatorOverrunCannotPass(t *testing.T) {
 	}
 	if _, err := EvaluateBudget(samples, commands, 1, 1); err == nil {
 		t.Fatal("missing operator measurements accepted")
+	}
+}
+
+func TestHelperPeakRSSPrefersHelperImageHighWater(t *testing.T) {
+	// Linux wait4 folds the operator's peak at execve into a vfork child.
+	inherited := &hostexec.ResourceUsage{UserNanos: 1, SystemNanos: 1, PeakRSSBytes: 4924080128}
+	own := &wasi.Telemetry{ResourceUsageAvailable: true, PeakRSSBytes: 1269350400}
+	if got := helperPeakRSS(own, inherited); got != own.PeakRSSBytes {
+		t.Fatalf("helper peak %d, want own image high-water %d", got, own.PeakRSSBytes)
+	}
+	for _, telemetry := range []*wasi.Telemetry{nil, {}, {ResourceUsageAvailable: true}, {PeakRSSBytes: 1}} {
+		if got := helperPeakRSS(telemetry, inherited); got != inherited.PeakRSSBytes {
+			t.Fatalf("unavailable telemetry %+v: got %d, want wait4 upper bound", telemetry, got)
+		}
+	}
+	if got := helperPeakRSS(nil, nil); got != 0 {
+		t.Fatalf("missing measurements produced %d", got)
 	}
 }

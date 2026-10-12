@@ -4,6 +4,8 @@ import (
 	"errors"
 	"math"
 
+	"go.temporal.io/server/tools/gomad3/backends/wasm/wasi"
+	"go.temporal.io/server/tools/gomad3/hostexec"
 	"go.temporal.io/server/tools/gomad3/record"
 )
 
@@ -91,4 +93,17 @@ func Summarize(samples []Sample) (Cost, error) {
 	cost.GuestVirtualToExecutionWallRatio = cost.VirtualToWallRatio
 	cost.ReplayableBugsPerComputeHour = float64(cost.ReplayableBugs) * 3_600_000_000_000 / float64(cost.CPUNanos)
 	return cost, nil
+}
+
+// helperPeakRSS prefers the helper's own image high-water mark. On Linux the
+// wait4 ru_maxrss of a child started with CLONE_VM|CLONE_VFORK (os/exec) also
+// folds in the operator's peak at execve, so it is only a fallback upper bound.
+func helperPeakRSS(telemetry *wasi.Telemetry, usage *hostexec.ResourceUsage) uint64 {
+	if telemetry != nil && telemetry.ResourceUsageAvailable && telemetry.PeakRSSBytes != 0 {
+		return telemetry.PeakRSSBytes
+	}
+	if usage != nil {
+		return usage.PeakRSSBytes
+	}
+	return 0
 }

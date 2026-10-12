@@ -50,9 +50,11 @@ func TestClusterOutcomeNeverTurnsCapacityIntoApplicationFailure(t *testing.T) {
 func TestIncarnationSamplesUseDetachedCountersAndActualOSFallback(t *testing.T) {
 	incarnations := []simulation.IncarnationSummary{{Handle: gomad3sim.NodeHandle{Node: "a", Incarnation: 2}, WallElapsedNanos: 41, FuelRemaining: 7, PeakMemoryBytes: 11, VirtualTimeElapsedNanos: 13, AuthorizationToTerminalNanos: 17, WASITraceBytes: 2, ChoiceTraceBytes: 3, DiagnosticTraceBytes: 5, StorageTraceBytes: 7, NetworkTraceBytes: 11, Telemetry: &wasi.Telemetry{PrepareNanos: 19, CompileNanos: 23, CacheLoadNanos: 29, CacheWriteNanos: 31, CacheHit: true, InstantiateNanos: 37, ExecuteNanos: 43, ResourceUsageAvailable: true, ProcessUserNanos: 47, ProcessSystemNanos: 53, PeakRSSBytes: 59}, HelperResourceUsage: &hostexec.ResourceUsage{UserNanos: 61, SystemNanos: 67, PeakRSSBytes: 71}}}
 	got := incarnationSamples(incarnations, "replay", 2, "", 100)[0]
-	if got.Incarnation != "a/2" || got.TraceBytes != 28 || got.FuelUsed != 93 || got.CPUNanos != 128 || got.HostPeakRSSBytes != 71 || got.GuestPeakMemoryBytes != 11 || got.VirtualTimeNanos != 13 || got.HelperWallNanos != 41 || got.AuthorizationToTerminalNanos != 17 || got.EnginePrepareNanos != 19 || got.EngineCompileNanos != 23 || got.CacheLoadNanos != 29 || got.CacheWriteNanos != 31 || !got.CompileCacheHit || got.InstantiationNanos != 37 || got.ExecutionWallNanos != 43 {
+	if got.Incarnation != "a/2" || got.TraceBytes != 28 || got.FuelUsed != 93 || got.CPUNanos != 128 || got.HostPeakRSSBytes != 59 || got.GuestPeakMemoryBytes != 11 || got.VirtualTimeNanos != 13 || got.HelperWallNanos != 41 || got.AuthorizationToTerminalNanos != 17 || got.EnginePrepareNanos != 19 || got.EngineCompileNanos != 23 || got.CacheLoadNanos != 29 || got.CacheWriteNanos != 31 || !got.CompileCacheHit || got.InstantiationNanos != 37 || got.ExecutionWallNanos != 43 {
 		t.Fatalf("detached counters changed real sample accounting: %+v", got)
 	}
+	// Helper image high-water (59) wins over Linux wait4 maxrss (71), which
+	// folds in the operator's peak at execve; wait4 stays the fallback.
 	incarnations[0].Telemetry = nil
 	got = incarnationSamples(incarnations, "execute", 1, "", 100)[0]
 	if got.CPUNanos != 128 || got.HostPeakRSSBytes != 71 || got.FuelUsed != 0 || got.EngineCompileNanos != 0 || got.ExecutionWallNanos != 0 {

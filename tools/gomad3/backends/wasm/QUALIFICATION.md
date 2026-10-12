@@ -45,6 +45,12 @@ existing process supervisor's opt-in wait resource accounting. This includes
 only descendant usage credited by the OS to the waited leader, not arbitrary
 detached/unwaited processes. Linux wait peak RSS is converted from KiB; Darwin
 already reports bytes. Other platforms have no admitted accounting projection.
+On Linux, ru_maxrss also folds in the high-water RSS of the image replaced by
+execve; Go starts children with CLONE_VM|CLONE_VFORK, so a helper's or
+compiler's wait peak is at least the operator's peak at spawn. Helper peak RSS
+therefore uses the helper's own image high water (`VmHWM`) from telemetry and
+falls back to the wait figure only when telemetry is unavailable. Compiler
+peaks remain wait upper bounds.
 
 Cold preparation and steady-state preparation remain separate from helper
 execution. Compile-cache hits never imply guest-memory, stack or store reuse.

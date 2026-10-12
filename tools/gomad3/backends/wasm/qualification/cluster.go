@@ -244,8 +244,8 @@ func incarnationSamples(incarnations []simulation.IncarnationSummary, phase stri
 		}
 		if r.HelperResourceUsage != nil {
 			sample.CPUNanos = r.HelperResourceUsage.UserNanos + r.HelperResourceUsage.SystemNanos
-			sample.HostPeakRSSBytes = r.HelperResourceUsage.PeakRSSBytes
 		}
+		sample.HostPeakRSSBytes = helperPeakRSS(r.Telemetry, r.HelperResourceUsage)
 		samples = append(samples, sample)
 	}
 	return samples
