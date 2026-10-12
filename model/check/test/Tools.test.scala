@@ -67,12 +67,22 @@ class ToolsSuite extends munit.FunSuite:
       "a.jar:b.jar\n"
     )
 
+  test("a logged run writes its output, standard error within it, to a file that stays"):
+    val tools = stubs().tool("go", "echo out; echo err >&2").tools(work)
+    val log = work.resolve("go.log")
+    assertEquals(tools.run("go", Nil, Output.Logged(log)).output, "out\nerr\n")
+    assertEquals(java.nio.file.Files.readString(log), "out\nerr\n")
+
   test("the tool's environment and directory are the ones given"):
     val tools = stubs()
       .tool("go", "echo \"$GOFLAGS $PWD\"")
       .tools(work)
       .withEnvironment("GOFLAGS" -> "-tags=test_dep")
     assertEquals(tools.run("go", Nil).output.trim, s"-tags=test_dep ${work.toRealPath()}")
+    assertEquals(
+      tools.withoutEnvironment("GOFLAGS").run("go", Nil).output.trim,
+      s"${work.toRealPath()}"
+    )
 
   for tool <- Seq("scala-cli", "protoc", "go") do
     test(s"a missing $tool fails with its name and the directories that were searched"):

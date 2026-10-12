@@ -24,6 +24,9 @@ enum Output derives CanEqual:
   // Straight to the terminal, for a run long enough to be watched.
   case Shown
 
+  // Like Kept, but into a file that can be watched while the run goes on, and that stays.
+  case Logged(file: Path)
+
 // What a run left: its exit status and what it printed, colors removed.
 final case class Ran(command: Seq[String], directory: Path, exit: Int, output: String):
   private def tool = Path.of(command.head).getFileName.toString
@@ -59,6 +62,8 @@ final class Tools(val directory: Path, environment: Map[String, String]):
 
   def withEnvironment(more: (String, String)*): Tools = Tools(directory, environment ++ more)
 
+  def withoutEnvironment(names: String*): Tools = Tools(directory, environment -- names)
+
   def inDirectory(path: Path): Tools = Tools(path, environment)
 
   // The executable a name stands for; a name with a separator is a path and is taken as given.
@@ -91,10 +96,12 @@ final class Tools(val directory: Path, environment: Map[String, String]):
     builder.environment().clear()
     builder.environment().putAll(environment.asJava)
     // A file, not a pipe: a tool that prints more than a pipe holds would wait for a reader.
-    val kept = Files.createTempFile("umpire-tool", ".out")
+    val kept = output match
+      case Output.Logged(file) => file
+      case _                   => Files.createTempFile("umpire-tool", ".out")
     try
       output match
-        case Output.Kept =>
+        case Output.Kept | Output.Logged(_) =>
           builder.redirectErrorStream(true).redirectOutput(kept.toFile)
         case Output.KeptApart =>
           builder.redirectOutput(kept.toFile).redirectError(ProcessBuilder.Redirect.INHERIT)
@@ -103,7 +110,10 @@ final class Tools(val directory: Path, environment: Map[String, String]):
         builder.redirectInput(ProcessBuilder.Redirect.from(File("/dev/null"))).start().waitFor()
       val printed = String(Files.readAllBytes(kept)).replaceAll("\u001b\\[[0-9;]*m", "")
       Ran(command, directory, exit, printed)
-    finally Files.deleteIfExists(kept): Unit
+    finally
+      output match
+        case Output.Logged(_) => ()
+        case _                => Files.deleteIfExists(kept): Unit
 
   // scala-cli's own flags go before `--`: an argument after it belongs to the program that is run.
   def scalaCli(arguments: Seq[String], output: Output = Output.Kept): Ran =

@@ -289,11 +289,14 @@ object Coverage:
   def area(path: String): Area =
     rules.collectFirst { case (glob, area) if matches(glob, path) => area }.getOrElse(Area.Outside)
 
+  // `**/` also matches no directory at all, so `**/*.md` matches `AGENTS.md`.
   private def matches(glob: String, path: String): Boolean =
+    def segment(part: String) =
+      part.split("\\*", -1).map(java.util.regex.Pattern.quote).mkString("[^/]*")
     val pattern = glob
-      .split("\\*\\*", -1)
-      .map(_.split("\\*", -1).map(java.util.regex.Pattern.quote).mkString("[^/]*"))
-      .mkString(".*")
+      .split("\\*\\*/", -1)
+      .map(_.split("\\*\\*", -1).map(segment).mkString(".*"))
+      .mkString("(?:.*/)?")
     path.matches(pattern)
 
   // A suite as the sources declare it: its module, its file and its class name.

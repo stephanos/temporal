@@ -93,15 +93,20 @@ object Scope:
     Scope(changed.toVector, why, features, behind, suites, skipped, areas)
 
 // One run of the check: the stages it ran, in order, and what each found.
-final class ChangeCheck(tools: Tools, out: PrintStream, record: Path):
+final class ChangeCheck(outer: Tools, out: PrintStream, record: Path):
+  // The make that runs this check exports its command line (BASE among it) and every discovered
+  // feature as FEATURES; neither may reach the stages, which name their own features.
+  private val tools =
+    outer.withoutEnvironment(
+      "FEATURES",
+      "BASE",
+      "MAKEFLAGS",
+      "MFLAGS",
+      "MAKELEVEL",
+      "MAKEOVERRIDES"
+    )
+  private val make = tools
   private val root = tools.directory
-  // A make run inside a make run would inherit the outer command line (BASE among it).
-  private val make = tools.withEnvironment(
-    "MAKEFLAGS" -> "",
-    "MFLAGS" -> "",
-    "MAKELEVEL" -> "",
-    "MAKEOVERRIDES" -> ""
-  )
 
   final case class Stage(
       title: String,
@@ -116,17 +121,20 @@ final class ChangeCheck(tools: Tools, out: PrintStream, record: Path):
   private def slug(title: String) = title.toLowerCase.replaceAll("[^a-z0-9]+", "-").stripPrefix("-")
 
   // Runs one stage, keeps its output in the record, and fails the check when it fails.
+  // A stage's log, which a tool the stage runs writes as it goes.
+  private def logOf(title: String) = record.resolve(slug(title) + ".log")
+
   private def stage(title: String, command: String)(body: => (Int, String, String)): Unit =
-    out.println(s"== $title")
+    val log = logOf(title)
+    out.println(s"== $title (log: ${root.relativize(log)})")
     val started = System.nanoTime
     val (exit, output, result) =
       try body
       catch case e: (GateError | ToolError | java.io.IOException) => (1, e.getMessage, "failed")
     val seconds = (System.nanoTime - started) / 1e9
-    val log = record.resolve(slug(title) + ".log")
     Files.writeString(log, output)
     stages += Stage(title, command, exit, seconds, result)
-    out.println(f"   $result, exit $exit, $seconds%.1fs (${root.relativize(log)})")
+    out.println(f"   $result, exit $exit, $seconds%.1fs")
     if exit != 0 then
       out.println(output.linesIterator.toVector.takeRight(40).mkString("\n"))
       throw GateError(s"$title failed (exit $exit); its output is in ${root.relativize(log)}")
@@ -138,17 +146,21 @@ final class ChangeCheck(tools: Tools, out: PrintStream, record: Path):
       if result.failed then "failed" else passed
     )
 
-  private def makeRun(target: String, variables: (String, String)*): (Int, String, String) =
+  private def makeRun(title: String, target: String, variables: (String, String)*) =
     ran(
       make.run(
         "make",
-        Seq("--no-print-directory", target) ++ variables.map((k, v) => s"$k=$v")
+        Seq("--no-print-directory", target) ++ variables.map((k, v) => s"$k=$v"),
+        Output.Logged(logOf(title))
       ),
       "passed"
     )
 
   private def shown(target: String, variables: (String, String)*) =
     (s"make $target" +: variables.map((k, v) => s"$k=$v")).mkString(" ")
+
+  private def made(title: String, target: String, variables: (String, String)*): Unit =
+    stage(title, shown(target, variables*))(makeRun(title, target, variables*))
 
   // JUnit's own count line: `OK (n tests)`, or `Tests run: n,  Failures: m`.
   private def counts(output: String): String =
@@ -174,17 +186,13 @@ final class ChangeCheck(tools: Tools, out: PrintStream, record: Path):
           )
         if findings.isEmpty then (0, "no findings\n", "no findings")
         else (1, findings.mkString("", "\n", "\n"), s"${findings.size} findings")
-    if scope.areas(Area.Check) then
-      stage("lint the checks with scalafix", shown("lint-model-check")):
-        makeRun("lint-model-check")
+    if scope.areas(Area.Check) then made("lint the checks with scalafix", "lint-model-check")
     if features.nonEmpty then
       val selected = "FEATURES" -> features.mkString(" ")
-      stage("compile the selected features", shown("compile-model", selected)):
-        makeRun("compile-model", selected)
+      made("compile the selected features", "compile-model", selected)
       val lifted = record.resolve("lift")
       val liftOut = "LIFT_OUT" -> lifted.toString
-      stage("lift the selected features", shown("lift-model", selected, liftOut)):
-        makeRun("lift-model", selected, liftOut)
+      made("lift the selected features", "lift-model", selected, liftOut)
       for feature <- features do
         val logical = feature.replace('/', '-').replace('_', '-')
         val committed = OutputPaths.ir(root, logical)
@@ -204,17 +212,15 @@ final class ChangeCheck(tools: Tools, out: PrintStream, record: Path):
         val base = "BASE" -> root.resolve(baseline.directory).toString
         val map = "MAP" -> root.resolve(baseline.renames).toString
         val variables = Seq("FEATURES" -> feature, "STEPS_ONLY" -> "1", base, map)
-        stage(
-          s"compare $feature's step tables with its baseline",
-          shown("umpire-check-equivalence", variables*)
-        ):
-          if !Files.isDirectory(root.resolve(baseline.directory)) then
+        val title = s"compare $feature's step tables with its baseline"
+        if !Files.isDirectory(root.resolve(baseline.directory)) then
+          stage(title, shown("umpire-check-equivalence", variables*)):
             (
               1,
               s"the baseline ${baseline.directory} is missing: run from the checkout that holds it\n",
               "no baseline"
             )
-          else makeRun("umpire-check-equivalence", variables*)
+        else made(title, "umpire-check-equivalence", variables*)
     for module <- Coverage.modules do
       val suites = scope.suites.map(_._1).filter(_.module == module).map(_.name)
       if suites.nonEmpty then
@@ -230,12 +236,13 @@ final class ChangeCheck(tools: Tools, out: PrintStream, record: Path):
           else (module.inputs, Seq.empty)
         val arguments = Seq("run", "--test", "--server=false") ++ inputs ++ options ++
           Seq("--main-class", "org.junit.runner.JUnitCore", "--") ++ suites
+        val title = s"run the ${module.name} suites (${suites.size})"
         stage(
-          s"run the ${module.name} suites (${suites.size})",
+          title,
           s"scala-cli run --test <${module.name}> --main-class org.junit.runner.JUnitCore -- " +
             suites.mkString(" ")
         ):
-          val result = tools.scalaCli(arguments)
+          val result = tools.scalaCli(arguments, Output.Logged(logOf(title)))
           val (exit, output, verdict) = ran(result, "passed")
           (exit, output, s"$verdict: ${counts(output)}")
 

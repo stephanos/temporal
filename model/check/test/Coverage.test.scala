@@ -92,6 +92,9 @@ class CoverageSuite extends munit.FunSuite:
     assertEquals(Coverage.area("model/check/baselines/activity_mini.map"), Area.Baselines)
     assertEquals(Coverage.area("model/build/model-scala.jar"), Area.Outside)
     assertEquals(Coverage.area("model/framework/README.md"), Area.Docs)
+    assertEquals(Coverage.area("AGENTS.md"), Area.Docs)
+    assertEquals(Coverage.area("Makefile"), Area.Make)
+    assertEquals(Coverage.area("tools/umpire/ir/reader.go"), Area.Outside)
 
   test("every current feature has a baseline and a recorded rename map"):
     for feature <- Coverage.current do

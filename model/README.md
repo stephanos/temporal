@@ -547,8 +547,32 @@ never package them: they read the cached jars and, when one is missing, fail nam
 The canonical gate (`make umpire-check-model`, `umpire-gen-model`) still regenerates
 them. While the IR schema's Go code is older than the schema, the loop skips its Go
 checks (Go reader, IR lint, Case lowering) and names each skip, ending with
-`Scala stages passed; NOT run (held Go checks)`. The stages compose, each honoring
-`FEATURES`:
+`Scala stages passed; NOT run (held Go checks)`.
+
+The default check of a change is one command:
+
+```
+make model-check-changed [BASE=<rev>]   # default BASE: the last commit, plus the working tree
+```
+
+It reads what changed since `BASE`, untracked files included, and runs only what that reaches, as
+[model/check/Coverage.scala](check/Coverage.scala) declares it: a path under a feature folder selects
+that feature; the framework, the lifter, the checks, the migration harness, the shared code and the
+build select every feature that is not behind (today `activity_mini`); prose and paths outside the
+model select nothing, and the command says so. For the selected features it runs the syntax rules,
+the compile, the lift and the step-table equivalence with the feature's baseline under its recorded
+rename map ([check/baselines/](check/baselines/activity_mini.map); a task that renames appends its
+entries there). It runs the checks' scalafix lint when they changed, and exactly the suites whose
+declared coverage the change touches, each module's in one JVM. A suite that reads a behind feature
+is skipped with that reason. While the checked-in IR's regeneration is held, a fresh lift that
+differs from it is reported as held, not as a failure; the strict compare stays in `make model-mini`
+and the canonical gate. Every Scala suite is in the registry of `Coverage.scala`; a new suite that
+is not fails `CoverageSuite` and the command. Each run writes `.flow/tmp/checks/<time>/record.md`
+(scope and why, commands, exit codes, test counts and wall times) and a log per stage beside it,
+which a task receipt cites. The full gates, `make model-mini` and `make umpire-check-model`, and
+the complete suites stay the batch-end and sweep tier.
+
+The stages compose, each honoring `FEATURES`:
 
 ```
 make compile-model FEATURES=activity_mini   # compile the selection
