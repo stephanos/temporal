@@ -813,6 +813,9 @@ func workloadCommand(config Spec, manifest Manifest, workload Workload, seed uin
 	}
 	args = append(args, "go-test", workload.Package, "--")
 	args = append(args, testArguments(workload)...)
+	if config.InstallationManifest != "" {
+		args = append([]string{"--installation", config.InstallationManifest}, args...)
+	}
 	return Command{
 		Executable: config.GomadPath, Args: args, Dir: config.WorkingDir, ArtifactRoot: config.ArtifactRoot,
 		Timeout: overallTimeout + terminateGrace + 10*time.Second, Grace: terminateGrace,

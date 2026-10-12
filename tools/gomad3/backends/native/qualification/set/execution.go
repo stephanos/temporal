@@ -11,9 +11,9 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
+	capabilityanalysis "go.temporal.io/server/tools/gomad3/backends/native/qualification/analysis"
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/qualification"
-	capabilityanalysis "go.temporal.io/server/tools/gomad3/backends/native/qualification/analysis"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/target"
 )
@@ -31,6 +31,9 @@ func analysisCommand(config Spec, manifest Manifest, workload Workload) Command 
 	}
 	args = append(args, "go-test", workload.Package, "--")
 	args = append(args, testArguments(workload)...)
+	if config.InstallationManifest != "" {
+		args = append([]string{"--installation", config.InstallationManifest}, args...)
+	}
 	return Command{
 		Executable: config.GomadPath, Args: args, Dir: config.WorkingDir,
 		Timeout: overallTimeout + manifestGrace(manifest) + 10*time.Second, Grace: min(runTimeout, manifestGrace(manifest)),
