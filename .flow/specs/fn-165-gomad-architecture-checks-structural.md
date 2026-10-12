@@ -151,6 +151,8 @@ The initial table is seeded from today's `memorySymbols` and host classification
 
 ## Decision Context
 
+- Applied after fn-164, the former WASM module is `tools/gomad3/backends/wasm` in the single gomad3 module. Its own architecture test and helper-reply unit test live in that subtree and check the same WASI membership/exclusions against the folded module's inventory. References above to the separate module are pre-fold paths, not a requirement to restore it. Root tests must not duplicate the old cross-module WASM purity load.
+
 - The ownership proofs were built under fn-109 R8 when canonical bytes and byte-identical formats were a requirement. fn-109 later dropped byte-for-byte compatibility and fn-153 retires canonical JSON, so the proofs defend a property no longer required.
 - The deep prover's distinguishing value for wasm was following calls into shared gomad3 packages; proving those packages pure at their own boundary is a stronger guarantee at lower cost and stops re-checking them per caller and per platform.
 - Review marks were chosen over a global suppression list so the reason lives next to the call and shows in diffs; a dated mark gives a reviewer the question to ask.

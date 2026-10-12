@@ -48,7 +48,7 @@ Package moves:
 | `deterministicio` root | `backends/native/transcript` | Native I/O transcript protocol. Only `volume` and `readonlymount` are shared, and wasm imports only those. |
 | `target` build, adapters, capability policy | `backends/native/build` | They import `toolchain` for build keys and pinned identity. `Spec` and `Prepared` stay shared because the Provider interface is typed on them. |
 | `toolchain`, `upgrade`, `internal/gomadtool/{conformance,generation}` | `backends/native` | The import closure of the patched toolchain. |
-| 27 functions and 2 types extracted from native `runtime/gomad.go`, plus the generated choice wire file | `runtimesemantics/` | Replaces AST scraping with a file both overlays copy in. |
+| 26 functions and 2 types extracted from native `runtime/gomad.go`, plus the generated choice wire file | `runtimesemantics/` | Replaces AST scraping with a file both overlays copy in; the actual reviewed declaration inventory corrects the earlier estimate of 27 functions. |
 | `tools/gomad_wasm/*` | `backends/wasm` | Removes a module, two `replace` directives, and the cross-module path to the native runtime root. |
 | `cmd/gomad/api` plus the `gomad` and `gomad-wasm` launchers | one `cmd/gomad` | Provider declares `Capabilities`; the command layer registers only matching flags. Replaces per-flag reject lists. |
 
@@ -106,7 +106,7 @@ cmd/*             may import  shared/*, backends/*
 - **R1:** An architecture test enforces the import rule above against the current tree before any package moves, with an allowlist naming the gomad3 packages the wasm backend may import. Errors: a forbidden edge fails the test naming both packages; an allowlist entry that no longer exists fails the test.
 - **R2:** `runtimesemantics` exists, both runtime overlays include its files verbatim, and the wasm overlay builder no longer parses the native runtime source. Errors: a missing or renamed exported function fails the native inventory test; a byte difference between an overlay's copy and the source fails that overlay's identity test.
 - **R3:** `toolchain`, `upgrade`, the `deterministicio` root package and the conformance and generation tooling live under `backends/native`, and no shared package imports them. Errors: no error surface beyond R1.
-- **R4:** `tools/gomad_wasm` is a directory under `backends/wasm` of the gomad3 module; `go.mod` for the wasm module and both `replace` directives are gone; `make -C tools/gomad3 test-wasm` runs the wasm suite with stock Go and never builds `.toolchain`. Errors: a wasm test that references the native toolchain build fails the test target.
+- **R4:** `tools/gomad_wasm` is a directory under `backends/wasm` of the gomad3 module; its separate `go.mod` and replacement of the gomad3 core are gone. The existing server simulation dependency retains one `go.temporal.io/server => ../..` replacement in the merged module; shared core dependency closures remain server-free. `make -C tools/gomad3 test-wasm` runs the wasm suite with stock Go and never builds the patched native toolchain. Errors: a wasm test that references the native toolchain build fails the test target.
 - **R5:** `target` exports only `Spec`, `Prepared` and capability types from the shared package; toolchain-bound preparation lives in `backends/native/build`. Errors: no error surface beyond R1.
 - **R6:** The native backend implements `backends.Provider` and `runner` reaches native execution only through that interface; `runner` imports no `backends/*` package. Errors: a native-only code path left in `runner` fails R1; a Provider method added beyond `Capabilities` plus three is recorded in Decision Context with its reason.
 - **R7:** One `cmd/gomad` launcher registers commands and flags from `Capabilities()`; a flag the selected backend does not declare is rejected as an unknown flag, and no per-backend reject list remains in the command layer. Errors: unknown flag → status 2 with the standard usage message; a manifest naming an unregistered backend → status 2 naming the backend.
@@ -125,6 +125,10 @@ cmd/*             may import  shared/*, backends/*
 ## Decision Context
 
 The owner approved replacing the calendar-based Go-release-boundary prerequisite with the targeted compatibility and replay checks above. This removes the scheduling hold on R6/R7, not their acceptance requirements or deferred native qualification.
+
+The module fold retains the pre-existing server dependency needed by the WASM Temporal simulation harness. Removing that replacement would change the integration boundary rather than merely fold the two tool modules; no new dependency or shared-core server coupling is admitted.
+
+Native extraction may add three typed Provider methods: `Describe` replaces Runner's direct native profile/toolchain/semantic configuration reads; `Execute` replaces native bootstrap execution and its complete detached observations; `Evidence` replaces shared corpus decoding of native transcript operations. Existing `Request` and `Result` remain unchanged. Execution journal sinks may be concrete host-only `*os.File` handles with the original Runner open/sync/close ownership; no callbacks, opaque native data or guest host-I/O access are introduced. Implementation and misuse coverage remain acceptance requirements.
 
 Native sits inside `runner` because it came first and wasm was added as the first external Provider. Keeping that asymmetry means every rule about what is shared is implicit, and the only safe CI policy is to run everything on every change. Making native a peer behind the same interface is more work than an import allowlist alone, which is why the mechanical steps (R1 through R5) are ordered first and the extraction (R6, R7) last.
 
