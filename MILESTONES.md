@@ -224,8 +224,8 @@ The owner approved replacing the Go-release-boundary wait with targeted Provider
 | [fn-164.2](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.2.md) | 🚧 In progress | Canonical runtime sources integrated; identity/inventory regressions and tiny WASM link passed; final batch acceptance remains open |
 | [fn-164.3](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.3.md) | 🚧 In progress | Native tooling moves integrated; full generated validation passed; final review remains open |
 | [fn-164.4](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.4.md) | 🚧 In progress | Target data/build separation integrated; final batch acceptance remains open |
-| [fn-164.5](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.5.md) | 🚧 In progress | Typed native Provider and neutral Runner integrated; isolation and lifecycle source checks passed |
-| [fn-164.6](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.6.md) | 🚧 In progress | Whole WASM suite finished; Provider propagation and resume identity regressions remain under repair |
+| [fn-164.5](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.5.md) | 🚧 In progress | Provider propagation, resume and minimization fixes integrated; source regressions passed; guest verification/review remain open |
+| [fn-164.6](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.6.md) | 🚧 In progress | Whole-suite findings repaired and source/lint/generation checks passed; final-model WASM rerun remains open |
 | [fn-164.7](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.7.md) | 🚧 In progress | Sole capability-driven launcher integrated; both command surfaces tested; final review remains open |
 | [fn-164.8](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.8.md) | 🚧 In progress | Genuine historical artifact inspection and honest native/WASM preflight tested; final model binding remains open |
 | [fn-164.9](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.9.md) | 🚧 In progress | CI routing implemented; private actionlint and 138 classifier cases passed; final integrated acceptance remains open |
@@ -239,7 +239,7 @@ The owner approved replacing the Go-release-boundary wait with targeted Provider
 | [fn-165.3](.flow/tasks/fn-165-gomad-architecture-checks-structural.3.md) | 🚧 In progress | Export-data loader and version-keyed stdlib allowlist integrated; focused checks passed |
 | [fn-165.4](.flow/tasks/fn-165-gomad-architecture-checks-structural.4.md) | 🚧 In progress | Typed rules, review marks and retained fixture re-triage integrated; final review remains open |
 | [fn-165.5](.flow/tasks/fn-165-gomad-architecture-checks-structural.5.md) | 🚧 In progress | Explicit pure inventory, typed checks and three-platform vet passed; final batch acceptance remains open |
-| [fn-165.6](.flow/tasks/fn-165-gomad-architecture-checks-structural.6.md) | 🚧 In progress | Old analyzer removed; 2030 production/801 test lines satisfy budgets; final lint/review remains open |
+| [fn-165.6](.flow/tasks/fn-165-gomad-architecture-checks-structural.6.md) | 🚧 In progress | Old analyzer removed; 2030 production/801 test lines and canonical affected lint passed; independent review remains open |
 
 ### Productionization — [fn-156](.flow/specs/fn-156-wasm-gomad-productionization.md) — Queued after fn-164 and fn-165
 
