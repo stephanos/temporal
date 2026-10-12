@@ -480,7 +480,7 @@ is deleted once applied; the harness in `framework/migrate` is permanent (owner,
 | fn-169.5 | ⬜ todo | `framework/samples/`: one-file Temporal-free sample Models (Kettle, Bank, TwoPhaseCommit) comparable with P and Quint; after .1 |
 | fn-169.6 | ⬜ todo | Port the Python interpreter-table comparator (`model/testdata/table-pins`) to Scala in `framework/check/equivalence`; pins to `temporal/check`; no Python under `model/`; after .1 |
 | fn-169.3 | ⏸️ deferred (sweep) | IR schema to an Umpire-owned namespace (`umpire.ir.v1`) |
-| fn-169.4 | ⏸️ deferred (Go) | Go consumers follow the `framework.dsl` IR type names; Go `tools/umpire` Temporal adapter; Testpilot execution API behind `testpilot/temporal`; import rule |
+| fn-169.4 | ⏸️ deferred (Go) | Go consumers follow the `framework.dsl` IR type names; Quint parts of `tools/umpire/export` into `export/quint`; Go `tools/umpire` Temporal adapter; Testpilot execution API behind `testpilot/temporal`; import rule |
 
 ### fn-141: Shrink the IR generator: one description of each DSL construct
 
