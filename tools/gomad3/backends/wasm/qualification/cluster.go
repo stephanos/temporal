@@ -274,7 +274,7 @@ func replayClusterArtifactObserved(ctx context.Context, path, directory string, 
 	}
 	defer func() { retErr = errors.Join(retErr, opened.Close()) }()
 	manifest := opened.Manifest()
-	if manifest.Target.Backend == nil || manifest.Target.Backend.Evidence == nil || manifest.Target.Backend.Evidence.Schema != simulation.RetainedSchema {
+	if manifest.Target.Backend == nil || manifest.Target.Backend.Evidence == nil || !simulation.IsRetainedSchema(manifest.Target.Backend.Evidence.Schema) {
 		return runner.ReplayResult{}, nil, errors.New("artifact lacks retained WASM cluster evidence")
 	}
 	ref := *manifest.Target.Backend.Evidence
@@ -286,7 +286,12 @@ func replayClusterArtifactObserved(ctx context.Context, path, directory string, 
 	}
 	payload := target.BackendPayload{Reference: ref, Data: data}
 	observeHostMemory(observer, "replay.bound.before")
-	observed, expected, completed, err := simulation.ReplayBoundRetained(ctx, payload, string(manifest.Target.SHA256), directory, installed)
+	// The retained evidence references the module by digest; the verified
+	// Artifact target supplies its bytes, copied without whole-file buffering.
+	module := simulation.RetainedModule{SHA256: string(manifest.Target.SHA256), Copy: func(destination string) error {
+		return opened.CopyPayload(manifest.Target.File, destination, 0o700)
+	}}
+	observed, expected, completed, err := simulation.ReplayBoundRetained(ctx, payload, module, directory, installed)
 	observeHostMemory(observer, "replay.bound.after")
 	if err != nil {
 		return runner.ReplayResult{}, completed, err

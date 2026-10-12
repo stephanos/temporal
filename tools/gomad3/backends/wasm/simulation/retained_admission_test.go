@@ -3,6 +3,7 @@ package simulation
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -18,7 +19,7 @@ func TestRetainedAdmissionConsumesPrivateInputsOnlyOnce(t *testing.T) {
 	module, helper := []byte("retained-module"), []byte("retained-helper")
 	moduleID, helperID := strings.TrimPrefix(string(record.HashBytes(module)), "sha256:"), strings.TrimPrefix(string(record.HashBytes(helper)), "sha256:")
 	p := &Provider{Boots: map[gomad3sim.BootID]wasi.Request{"a": {ModuleSHA256: moduleID, HelperSHA256: helperID, Engine: wasi.PinnedEngine()}}}
-	data, err := json.Marshal(retainedExecution{Schema: RetainedSchema, Boots: []retainedBoot{{ID: "a"}}, Inputs: map[string][]byte{moduleID: module, helperID: helper}, Record: []byte("original-canonical-record")})
+	data, err := json.Marshal(retainedExecution{Schema: RetainedSchema, Boots: []retainedBoot{{ID: "a"}}, ModuleSHA256: moduleID, Record: []byte("original-canonical-record")})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -31,9 +32,10 @@ func TestRetainedAdmissionConsumesPrivateInputsOnlyOnce(t *testing.T) {
 		t.Fatal("decoded original record aliases caller payload")
 	}
 	installed := installedHelperFile(t, helper)
+	source := retainedModuleBytes(t, module)
 	a := &retainedAdmission{bundle: bundle, provider: p}
 	directory := t.TempDir()
-	_, reopened, err := a.reopen(directory, installed)
+	_, reopened, err := a.reopen(source, directory, installed)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -46,10 +48,10 @@ func TestRetainedAdmissionConsumesPrivateInputsOnlyOnce(t *testing.T) {
 	if entries, err := os.ReadDir(filepath.Dir(reopened.Boots["a"].ModulePath)); err != nil || len(entries) != 1 {
 		t.Fatalf("retained replay wrote helper bytes: %v %v", entries, err)
 	}
-	if a.bundle.Inputs != nil || a.provider != nil {
+	if a.bundle.Record != nil || a.provider != nil {
 		t.Fatal("consumed admission retains executable buffers or a reusable provider")
 	}
-	if _, _, err := a.reopen(directory, installed); err == nil {
+	if _, _, err := a.reopen(source, directory, installed); err == nil {
 		t.Fatal("consumed admission could reopen again")
 	}
 	entries, err := os.ReadDir(directory)
@@ -57,12 +59,21 @@ func TestRetainedAdmissionConsumesPrivateInputsOnlyOnce(t *testing.T) {
 		t.Fatalf("second consumption wrote executable inputs: %v %v", entries, err)
 	}
 	failed := &retainedAdmission{bundle: bundle, provider: p}
-	if _, _, err := failed.reopen(filepath.Join(directory, "missing"), installed); err == nil {
+	if _, _, err := failed.reopen(source, filepath.Join(directory, "missing"), installed); err == nil {
 		t.Fatal("invalid replay directory accepted")
 	}
-	if _, _, err := failed.reopen(directory, installed); err == nil {
+	if _, _, err := failed.reopen(source, directory, installed); err == nil {
 		t.Fatal("failed single-use admission could be reused")
 	}
+}
+
+func retainedModuleBytes(t *testing.T, module []byte) RetainedModule {
+	t.Helper()
+	path := filepath.Join(t.TempDir(), "target")
+	if err := os.WriteFile(path, module, 0700); err != nil {
+		t.Fatal(err)
+	}
+	return RetainedModuleFile(path, string(record.HashBytes(module)))
 }
 
 func installedHelperFile(t *testing.T, helper []byte) InstalledHelper {
@@ -97,9 +108,9 @@ func TestRetainedReplayRequiresTheInstalledHelper(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			p := &Provider{Boots: map[gomad3sim.BootID]wasi.Request{"a": test.boot}}
-			a := &retainedAdmission{bundle: retainedExecution{Boots: []retainedBoot{{ID: "a"}}, Inputs: map[string][]byte{moduleID: module, retainedID: retained}}, provider: p}
+			a := &retainedAdmission{bundle: retainedExecution{Boots: []retainedBoot{{ID: "a"}}, ModuleSHA256: moduleID}, provider: p}
 			directory := t.TempDir()
-			_, reopened, err := a.reopen(directory, test.installed)
+			_, reopened, err := a.reopen(retainedModuleBytes(t, module), directory, test.installed)
 			if err == nil || reopened != nil {
 				t.Fatal("retained replay admitted a helper other than the installation's")
 			}
@@ -118,7 +129,7 @@ func TestRetainedReplayRequiresTheInstalledHelper(t *testing.T) {
 func TestBoundRetainedReplayRejectsBeforeWritingInputs(t *testing.T) {
 	directory := t.TempDir()
 	for _, primary := range []string{"", "sha256:" + strings.Repeat("0", 64)} {
-		_, original, provider, err := ReplayBoundRetained(t.Context(), target.BackendPayload{}, primary, directory, InstalledHelper{})
+		_, original, provider, err := ReplayBoundRetained(t.Context(), target.BackendPayload{}, RetainedModule{SHA256: primary}, directory, InstalledHelper{})
 		if err == nil || original != nil || provider != nil {
 			t.Fatal("bound replay bypassed complete retained admission")
 		}
@@ -159,5 +170,72 @@ func TestRetainedLifecycleRejectsHostCallbacksBeforeReplay(t *testing.T) {
 		if err := validateRetainedLifecycle(gomad3sim.Spec{Replay: &plan}, &Provider{}); err == nil {
 			t.Fatal("host callback or unbound oracle accepted by retained lifecycle owner")
 		}
+	}
+}
+
+// Schema v2 references the Artifact target, so replay must reject any target
+// bytes that do not hash to the retained digest, before a helper can start.
+func TestRetainedReplayRejectsTamperedOrMismatchedTargetModule(t *testing.T) {
+	module, helper := []byte("retained-module"), []byte("installed-helper")
+	moduleID := strings.TrimPrefix(string(record.HashBytes(module)), "sha256:")
+	installed := installedHelperFile(t, helper)
+	admit := func() *retainedAdmission {
+		p := &Provider{Boots: map[gomad3sim.BootID]wasi.Request{"a": {ModuleSHA256: moduleID, HelperSHA256: installed.SHA256, Engine: installed.Engine}}}
+		return &retainedAdmission{bundle: retainedExecution{Boots: []retainedBoot{{ID: "a"}}, ModuleSHA256: moduleID}, provider: p}
+	}
+	tampered := retainedModuleBytes(t, []byte("tampered-module"))
+	tampered.SHA256 = "sha256:" + moduleID
+	foreign := retainedModuleBytes(t, []byte("foreign-module"))
+	link := filepath.Join(t.TempDir(), "target")
+	if err := os.Symlink(filepath.Join(t.TempDir(), "missing"), link); err != nil {
+		t.Fatal(err)
+	}
+	genuine := retainedModuleBytes(t, module)
+	for _, test := range []struct {
+		name   string
+		module RetainedModule
+	}{
+		{"tampered-bytes", tampered},
+		{"foreign-digest", foreign},
+		{"missing-source", RetainedModule{SHA256: "sha256:" + moduleID}},
+		{"symbolic-link", RetainedModuleFile(link, "sha256:"+moduleID)},
+		{"truncated", RetainedModule{SHA256: "sha256:" + moduleID, Copy: func(destination string) error {
+			return copyRetainedModule(destination, bytes.NewReader(module[:len(module)-1]))
+		}}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			directory := t.TempDir()
+			if _, reopened, err := admit().reopen(test.module, directory, installed); err == nil || reopened != nil {
+				t.Fatal("retained replay admitted target bytes that differ from the referenced digest")
+			}
+			entries, err := os.ReadDir(directory)
+			if err != nil || len(entries) != 0 {
+				t.Fatalf("rejected target module left executable inputs: %v %v", entries, err)
+			}
+		})
+	}
+	if _, reopened, err := admit().reopen(genuine, t.TempDir(), installed); err != nil || reopened == nil {
+		t.Fatalf("genuine referenced target rejected: %v", err)
+	}
+}
+
+func TestRetainedSchemaV1IsRefusedWithVersionedError(t *testing.T) {
+	data := []byte(`{"schema":"gomad3.wasm-simulation-retained/v1","inputs":{}}`)
+	payload := target.BackendPayload{Data: data, Reference: record.BackendPayload{Schema: "gomad3.wasm-simulation-retained/v1", File: "backend/simulation.json", SHA256: record.HashBytes(data), Bytes: record.Uint64String(len(data))}}
+	if !IsRetainedSchema(payload.Reference.Schema) || !IsRetainedSchema(RetainedSchema) || IsRetainedSchema("gomad3.other/v1") {
+		t.Fatal("retained schema routing does not recognize historical cluster evidence")
+	}
+	directory := t.TempDir()
+	module := RetainedModule{SHA256: "sha256:" + strings.Repeat("a", 64)}
+	_, _, verifyErr := VerifyRetained(payload)
+	_, _, _, replayErr := ReplayBoundRetained(t.Context(), payload, module, directory, InstalledHelper{})
+	_, selectionErr := RetainedStorageCrashSelections(payload)
+	for _, err := range []error{verifyErr, replayErr, selectionErr} {
+		if !errors.Is(err, ErrRetainedSchemaUnsupported) || !strings.Contains(err.Error(), "retained/v1") || !strings.Contains(err.Error(), RetainedSchema) || !strings.Contains(err.Error(), "re-record") {
+			t.Fatalf("v1 retained evidence lacks a clear versioned refusal: %v", err)
+		}
+	}
+	if entries, err := os.ReadDir(directory); err != nil || len(entries) != 0 {
+		t.Fatalf("refused v1 evidence wrote executable inputs: %v %v", entries, err)
 	}
 }

@@ -15,6 +15,7 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad3/hostfs"
+	internalhostfs "go.temporal.io/server/tools/gomad3/internal/hostfs"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/target"
 	"go.temporal.io/server/tools/gomad3/volume"
@@ -22,7 +23,32 @@ import (
 	"go.temporal.io/server/tools/gomad3sim"
 )
 
-const RetainedSchema = "gomad3.wasm-simulation-retained/v1"
+// RetainedSchema v2 references the executable module by digest; the verified
+// Artifact target supplies its bytes on replay. v1 embedded module and helper
+// bytes and is refused, not migrated.
+const RetainedSchema = "gomad3.wasm-simulation-retained/v2"
+
+const retainedSchemaV1 = "gomad3.wasm-simulation-retained/v1"
+
+// ErrRetainedSchemaUnsupported marks retained evidence from an older schema.
+var ErrRetainedSchemaUnsupported = errors.New("unsupported retained WASM cluster evidence schema")
+
+// IsRetainedSchema reports whether schema names current or historical retained
+// cluster evidence, so callers route old artifacts to a versioned refusal
+// instead of treating them as foreign evidence.
+func IsRetainedSchema(schema string) bool {
+	return schema == RetainedSchema || schema == retainedSchemaV1
+}
+
+func retainedSchemaError(schema string) error {
+	if schema == retainedSchemaV1 {
+		return fmt.Errorf("%w: %s embedded module bytes and cannot be replayed; this build reads %s (re-record the artifact)", ErrRetainedSchemaUnsupported, schema, RetainedSchema)
+	}
+	return fmt.Errorf("%w: %q; this build reads %s", ErrRetainedSchemaUnsupported, schema, RetainedSchema)
+}
+
+// maximumRetainedModuleBytes bounds the referenced module copy.
+const maximumRetainedModuleBytes = 512 << 20
 
 var ErrRetentionCapacity = errors.New("WASM retained execution capacity exceeded")
 
@@ -33,19 +59,15 @@ func (e *RetentionCapacityError) Error() string {
 }
 func (e *RetentionCapacityError) Unwrap() error { return ErrRetentionCapacity }
 
-// These byte fields are base64 encoded by the existing JSON owner. Reject a
-// known oversized bundle before reading or marshaling its executable inputs.
-func retainedCapacityLowerBound(recordBytes uint64, inputBytes []uint64) error {
+// The record is base64 encoded by the existing JSON owner. Reject a known
+// oversized bundle before encoding it.
+func retainedCapacityLowerBound(recordBytes uint64) error {
 	const maximum = uint64(512 << 20)
-	required := uint64(0)
-	for _, size := range append([]uint64{recordBytes}, inputBytes...) {
-		if size > maximum {
-			return &RetentionCapacityError{Required: size, Maximum: maximum}
-		}
-		required += 4 * ((size + 2) / 3)
-		if required > maximum {
-			return &RetentionCapacityError{Required: required, Maximum: maximum}
-		}
+	if recordBytes > maximum {
+		return &RetentionCapacityError{Required: recordBytes, Maximum: maximum}
+	}
+	if required := 4 * ((recordBytes + 2) / 3); required > maximum {
+		return &RetentionCapacityError{Required: required, Maximum: maximum}
 	}
 	return nil
 }
@@ -67,11 +89,14 @@ type retainedExecution struct {
 	Oracles           *OraclePlan                     `json:"oracles"`
 	Lifecycle         []gomad3sim.LifecycleTransition `json:"lifecycle"`
 	Boots             []retainedBoot                  `json:"boots"`
-	Inputs            map[string][]byte               `json:"inputs"`
+	// ModuleSHA256 is the single executable module every boot runs. Its bytes
+	// are the Artifact target, never embedded here.
+	ModuleSHA256 string `json:"module_sha256"`
 }
 
 // RetentionPayload produces an existing Artifact backend evidence payload. It
-// captures verified executable inputs; no source or compiler is needed to reopen.
+// references the module by digest; the Artifact target retains its bytes, and
+// replay executes the installed helper, so no executable bytes are embedded.
 func (p *Provider) RetentionPayload(spec gomad3sim.Spec, observed gomad3sim.ClusterRecord) (target.BackendPayload, error) {
 	if p == nil || observed.Backend != gomad3sim.BackendWASM || observed.WASM == nil {
 		return target.BackendPayload{}, errors.New("WASM retention requires completed broker evidence")
@@ -80,73 +105,61 @@ func (p *Provider) RetentionPayload(spec gomad3sim.Spec, observed gomad3sim.Clus
 	if err != nil {
 		return target.BackendPayload{}, err
 	}
+	if err := retainedCapacityLowerBound(uint64(len(encoded))); err != nil {
+		return target.BackendPayload{}, err
+	}
 	broker := p.Broker
 	broker.Diagnostics = false
 	broker.Nodes = nil
 	broker.Addresses = nil
 	spec.Replay = nil
-	bundle := retainedExecution{Schema: RetainedSchema, Implementation: ImplementationSHA256(), Spec: spec, Record: encoded, Broker: broker, OutputCrashes: p.OutputCrashes, OutputStops: p.OutputStops, IncarnationBoots: p.IncarnationBoots, OutputCrashGroups: p.OutputCrashGroups, Oracles: p.Oracles, Lifecycle: observed.Transitions, Inputs: map[string][]byte{}}
+	bundle := retainedExecution{Schema: RetainedSchema, Implementation: ImplementationSHA256(), Spec: spec, Record: encoded, Broker: broker, OutputCrashes: p.OutputCrashes, OutputStops: p.OutputStops, IncarnationBoots: p.IncarnationBoots, OutputCrashGroups: p.OutputCrashGroups, Oracles: p.Oracles, Lifecycle: observed.Transitions}
 	ids := make([]gomad3sim.BootID, 0, len(p.Boots))
 	for id := range p.Boots {
 		ids = append(ids, id)
 	}
 	sort.Slice(ids, func(i, j int) bool { return ids[i] < ids[j] })
-	seen := map[string]bool{}
-	var inputSizes []uint64
-	for _, id := range ids {
-		r := p.Boots[id]
-		for _, input := range []struct{ path, digest string }{{r.ModulePath, r.ModuleSHA256}, {r.HelperPath, r.HelperSHA256}} {
-			if seen[input.digest] {
-				continue
-			}
-			info, err := os.Stat(input.path)
-			if err != nil {
-				return target.BackendPayload{}, err
-			}
-			if !info.Mode().IsRegular() || info.Size() < 0 {
-				return target.BackendPayload{}, errors.New("WASM retained execution input is not a regular file")
-			}
-			seen[input.digest] = true
-			inputSizes = append(inputSizes, uint64(info.Size()))
-		}
-	}
-	if err := retainedCapacityLowerBound(uint64(len(encoded)), inputSizes); err != nil {
-		return target.BackendPayload{}, err
-	}
 	for _, id := range ids {
 		r := p.Boots[id]
 		if r.Runtime == nil || r.Runtime.Choice == nil || r.StorageImage != nil || r.Broker != nil {
 			return target.BackendPayload{}, errors.New("WASM retention requires fresh bound boot inputs")
 		}
-		for _, input := range []struct{ path, digest string }{{r.ModulePath, r.ModuleSHA256}, {r.HelperPath, r.HelperSHA256}} {
-			if _, ok := bundle.Inputs[input.digest]; ok {
-				continue
-			}
-			data, err := hostfs.ReadBounded(input.path, 512<<20)
-			if err != nil {
-				return target.BackendPayload{}, err
-			}
-			if fmt.Sprintf("%x", sha256.Sum256(data)) != input.digest {
-				return target.BackendPayload{}, errors.New("WASM execution input changed before retention")
-			}
-			bundle.Inputs[input.digest] = data
+		if !validRetainedDigest(r.ModuleSHA256) || bundle.ModuleSHA256 != "" && bundle.ModuleSHA256 != r.ModuleSHA256 {
+			return target.BackendPayload{}, errors.New("WASM retention requires every boot to run the one Artifact target module")
 		}
+		bundle.ModuleSHA256 = r.ModuleSHA256
 		r.ModulePath, r.HelperPath, r.CompileCache = "", "", ""
 		r.StdoutMirror = nil
 		bundle.Boots = append(bundle.Boots, retainedBoot{ID: id, Request: r})
 	}
-	data, err := json.Marshal(bundle)
-	if err != nil {
+	if len(bundle.Boots) == 0 {
+		return target.BackendPayload{}, errors.New("WASM retention requires bound boots")
+	}
+	var data bytes.Buffer
+	data.Grow(len(encoded)/3*4 + 64<<10)
+	if err := writeRetainedCanonical(&data, bundle); err != nil {
 		return target.BackendPayload{}, err
 	}
-	if len(data) > 512<<20 {
-		return target.BackendPayload{}, &RetentionCapacityError{Required: uint64(len(data)), Maximum: 512 << 20}
+	if data.Len() > 512<<20 {
+		return target.BackendPayload{}, &RetentionCapacityError{Required: uint64(data.Len()), Maximum: 512 << 20}
 	}
-	return target.BackendPayload{Reference: record.BackendPayload{Schema: RetainedSchema, File: "backend/simulation.json", SHA256: record.HashBytes(data), Bytes: record.Uint64String(len(data))}, Data: data}, nil
+	return target.BackendPayload{Reference: record.BackendPayload{Schema: RetainedSchema, File: "backend/simulation.json", SHA256: record.HashBytes(data.Bytes()), Bytes: record.Uint64String(data.Len())}, Data: data.Bytes()}, nil
+}
+
+func validRetainedDigest(digest string) bool {
+	if len(digest) != 64 {
+		return false
+	}
+	for _, c := range digest {
+		if (c < '0' || c > '9') && (c < 'a' || c > 'f') {
+			return false
+		}
+	}
+	return true
 }
 
 // verifyRetained admits retained detached inputs before any module file is
-// created. Only the retained module bytes are reused, never original paths.
+// created. Replay reuses only the referenced Artifact target, never original paths.
 func verifyRetained(payload target.BackendPayload) (retainedExecution, *Provider, gomad3sim.ClusterRecord, error) {
 	bundle, err := decodeRetained(payload)
 	if err != nil {
@@ -176,16 +189,16 @@ func verifyRetained(payload target.BackendPayload) (retainedExecution, *Provider
 		return retainedExecution{}, nil, gomad3sim.ClusterRecord{}, err
 	}
 	p := &Provider{Boots: map[gomad3sim.BootID]wasi.Request{}, Broker: bundle.Broker, OutputCrashes: bundle.OutputCrashes, OutputStops: bundle.OutputStops, IncarnationBoots: bundle.IncarnationBoots, OutputCrashGroups: bundle.OutputCrashGroups, Oracles: bundle.Oracles}
+	if len(bundle.Boots) == 0 || !validRetainedDigest(bundle.ModuleSHA256) {
+		return retainedExecution{}, nil, gomad3sim.ClusterRecord{}, errors.New("retained WASM module reference is invalid")
+	}
 	for _, boot := range bundle.Boots {
 		if boot.ID == "" || p.Boots[boot.ID].Runtime != nil || boot.Request.Runtime == nil || boot.Request.Runtime.Choice == nil || boot.Request.ModulePath != "" || boot.Request.HelperPath != "" || boot.Request.Broker != nil || boot.Request.StorageImage != nil {
 			return retainedExecution{}, nil, gomad3sim.ClusterRecord{}, errors.New("invalid retained WASM boot")
 		}
 		p.Boots[boot.ID] = boot.Request
-		for _, digest := range []string{boot.Request.ModuleSHA256, boot.Request.HelperSHA256} {
-			data, ok := bundle.Inputs[digest]
-			if !ok || fmt.Sprintf("%x", sha256.Sum256(data)) != digest {
-				return retainedExecution{}, nil, gomad3sim.ClusterRecord{}, errors.New("retained WASM module/helper identity mismatch")
-			}
+		if boot.Request.ModuleSHA256 != bundle.ModuleSHA256 {
+			return retainedExecution{}, nil, gomad3sim.ClusterRecord{}, errors.New("retained WASM boot module differs from the referenced module")
 		}
 	}
 	for _, n := range bundle.Spec.Nodes {
@@ -299,13 +312,70 @@ type InstalledHelper struct {
 	Engine wasi.EngineIdentity
 }
 
-func ReopenProvider(payload target.BackendPayload, directory string, installed InstalledHelper) (gomad3sim.Spec, *Provider, error) {
+// RetainedModule supplies the module bytes that retained evidence references
+// by digest, normally the verified Artifact target. Copy must create
+// destination exclusively; reopen re-hashes the copy before any helper starts.
+type RetainedModule struct {
+	SHA256 string // "sha256:<hex>"
+	Copy   func(destination string) error
+}
+
+// RetainedModuleFile reads a regular file without following symbolic links.
+func RetainedModuleFile(path, digest string) RetainedModule {
+	return RetainedModule{SHA256: digest, Copy: func(destination string) (retErr error) {
+		source, info, err := internalhostfs.OpenPath(path)
+		if err != nil {
+			return err
+		}
+		defer func() { retErr = errors.Join(retErr, source.Close()) }()
+		if info.Size() > maximumRetainedModuleBytes {
+			return errors.New("retained WASM module exceeds its bound")
+		}
+		return copyRetainedModule(destination, io.LimitReader(source, maximumRetainedModuleBytes+1))
+	}}
+}
+
+func copyRetainedModule(destination string, source io.Reader) (retErr error) {
+	f, err := os.OpenFile(destination, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0700)
+	if err != nil {
+		return err
+	}
+	defer func() { retErr = errors.Join(retErr, f.Close()) }()
+	_, err = io.Copy(f, source)
+	return err
+}
+
+// materializeRetainedModule copies the referenced module into a fresh private
+// file and fails closed unless its bounded bytes hash to the retained digest.
+func materializeRetainedModule(module RetainedModule, digest, destination string) error {
+	if module.Copy == nil {
+		return errors.New("retained WASM replay requires the Artifact target module")
+	}
+	if err := module.Copy(destination); err != nil {
+		return fmt.Errorf("retained WASM module: %w", err)
+	}
+	f, info, err := internalhostfs.OpenPath(destination)
+	if err != nil {
+		return err
+	}
+	hasher := sha256.New()
+	n, err := io.Copy(hasher, io.LimitReader(f, maximumRetainedModuleBytes+1))
+	if err = errors.Join(err, f.Close()); err != nil {
+		return err
+	}
+	if info.Size() != n || n > maximumRetainedModuleBytes || fmt.Sprintf("%x", hasher.Sum(nil)) != digest {
+		return errors.New("retained WASM module bytes differ from the referenced digest")
+	}
+	return nil
+}
+
+func ReopenProvider(payload target.BackendPayload, module RetainedModule, directory string, installed InstalledHelper) (gomad3sim.Spec, *Provider, error) {
 	bundle, p, _, err := verifyRetained(payload)
 	if err != nil {
 		return gomad3sim.Spec{}, nil, err
 	}
 	admission := retainedAdmission{bundle: bundle, provider: p}
-	return admission.reopen(directory, installed)
+	return admission.reopen(module, directory, installed)
 }
 
 func bindInstalledHelper(p *Provider, installed InstalledHelper) error {
@@ -342,12 +412,15 @@ type retainedAdmission struct {
 	provider *Provider
 }
 
-func (a *retainedAdmission) reopen(directory string, installed InstalledHelper) (gomad3sim.Spec, *Provider, error) {
+func (a *retainedAdmission) reopen(module RetainedModule, directory string, installed InstalledHelper) (gomad3sim.Spec, *Provider, error) {
 	if a == nil || a.provider == nil {
 		return gomad3sim.Spec{}, nil, errors.New("retained WASM admission was already consumed")
 	}
 	bundle, p := a.bundle, a.provider
 	a.bundle, a.provider = retainedExecution{}, nil
+	if module.SHA256 != "sha256:"+bundle.ModuleSHA256 {
+		return gomad3sim.Spec{}, nil, errors.New("retained WASM module reference differs from the Artifact target")
+	}
 	if err := bindInstalledHelper(p, installed); err != nil {
 		return gomad3sim.Spec{}, nil, err
 	}
@@ -359,22 +432,13 @@ func (a *retainedAdmission) reopen(directory string, installed InstalledHelper) 
 	if err != nil {
 		return gomad3sim.Spec{}, nil, err
 	}
-	paths := map[string]string{}
+	name := filepath.Join(private, bundle.ModuleSHA256)
+	if err := materializeRetainedModule(module, bundle.ModuleSHA256, name); err != nil {
+		return gomad3sim.Spec{}, nil, errors.Join(err, os.RemoveAll(private))
+	}
 	for _, boot := range bundle.Boots {
 		r := p.Boots[boot.ID]
-		if paths[r.ModuleSHA256] == "" {
-			name := filepath.Join(private, r.ModuleSHA256)
-			f, err := os.OpenFile(name, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0700)
-			if err != nil {
-				return gomad3sim.Spec{}, nil, err
-			}
-			_, writeErr := f.Write(bundle.Inputs[r.ModuleSHA256])
-			if err = errors.Join(writeErr, f.Close()); err != nil {
-				return gomad3sim.Spec{}, nil, err
-			}
-			paths[r.ModuleSHA256] = name
-		}
-		r.ModulePath, r.HelperPath = paths[r.ModuleSHA256], installed.Path
+		r.ModulePath, r.HelperPath = name, installed.Path
 		r.CompileCache = filepath.Join(private, "compiled-cache")
 		p.Boots[boot.ID] = r
 	}
@@ -396,19 +460,20 @@ func bindRetainedPrimary(observed gomad3sim.ClusterRecord, primary string) error
 }
 
 // ReplayBoundRetained joins complete retained admission and Artifact primary
-// binding before any executable writes. OriginalRecord is the admitted owner's
-// exact canonical bytes, not a second encoding of the decoded record.
-func ReplayBoundRetained(ctx context.Context, payload target.BackendPayload, primary, directory string, installed InstalledHelper) (observed gomad3sim.Result, originalRecord []byte, completed *Provider, err error) {
+// binding before any executable writes. The primary module is the Artifact
+// target that supplies the referenced module bytes. OriginalRecord is the
+// admitted owner's exact canonical bytes, not a second encoding of the record.
+func ReplayBoundRetained(ctx context.Context, payload target.BackendPayload, module RetainedModule, directory string, installed InstalledHelper) (observed gomad3sim.Result, originalRecord []byte, completed *Provider, err error) {
 	bundle, p, retained, err := verifyRetained(payload)
 	if err != nil {
 		return gomad3sim.Result{}, nil, nil, err
 	}
-	if err := bindRetainedPrimary(retained, primary); err != nil {
+	if err := bindRetainedPrimary(retained, module.SHA256); err != nil {
 		return gomad3sim.Result{}, nil, nil, err
 	}
 	originalRecord = bundle.Record
 	admission := retainedAdmission{bundle: bundle, provider: p}
-	spec, p, err := admission.reopen(directory, installed)
+	spec, p, err := admission.reopen(module, directory, installed)
 	if err != nil {
 		return gomad3sim.Result{}, nil, nil, err
 	}
@@ -417,7 +482,10 @@ func ReplayBoundRetained(ctx context.Context, payload target.BackendPayload, pri
 }
 
 func decodeRetained(payload target.BackendPayload) (retainedExecution, error) {
-	if payload.Reference.Schema != RetainedSchema || payload.Reference.File != "backend/simulation.json" || uint64(payload.Reference.Bytes) != uint64(len(payload.Data)) || record.HashBytes(payload.Data) != payload.Reference.SHA256 || len(payload.Data) > 512<<20 {
+	if payload.Reference.Schema != RetainedSchema {
+		return retainedExecution{}, retainedSchemaError(payload.Reference.Schema)
+	}
+	if payload.Reference.File != "backend/simulation.json" || uint64(payload.Reference.Bytes) != uint64(len(payload.Data)) || record.HashBytes(payload.Data) != payload.Reference.SHA256 || len(payload.Data) > 512<<20 {
 		return retainedExecution{}, errors.New("WASM retained payload reference mismatch")
 	}
 	decoder := json.NewDecoder(bytes.NewReader(payload.Data))
@@ -483,7 +551,7 @@ func writeRetainedCanonical(destination io.Writer, bundle retainedExecution) err
 		{"oracles", bundle.Oracles},
 		{"lifecycle", bundle.Lifecycle},
 		{"boots", bundle.Boots},
-		{"inputs", nil},
+		{"module_sha256", bundle.ModuleSHA256},
 	}
 	if _, err := io.WriteString(w, "{"); err != nil {
 		return err
@@ -507,8 +575,6 @@ func writeRetainedCanonical(destination io.Writer, bundle retainedExecution) err
 		switch field.name {
 		case "record":
 			err = writeRetainedBytes(w, bundle.Record)
-		case "inputs":
-			err = writeRetainedInputs(w, bundle.Inputs)
 		default:
 			var encoded []byte
 			encoded, err = json.Marshal(field.value)
@@ -541,43 +607,6 @@ func writeRetainedBytes(w io.Writer, data []byte) error {
 		return err
 	}
 	_, err = io.WriteString(w, `"`)
-	return err
-}
-
-func writeRetainedInputs(w io.Writer, inputs map[string][]byte) error {
-	if inputs == nil {
-		_, err := io.WriteString(w, "null")
-		return err
-	}
-	keys := make([]string, 0, len(inputs))
-	for key := range inputs {
-		keys = append(keys, key)
-	}
-	sort.Strings(keys)
-	if _, err := io.WriteString(w, "{"); err != nil {
-		return err
-	}
-	for i, key := range keys {
-		if i != 0 {
-			if _, err := io.WriteString(w, ","); err != nil {
-				return err
-			}
-		}
-		encoded, err := json.Marshal(key)
-		if err != nil {
-			return err
-		}
-		if _, err := w.Write(encoded); err != nil {
-			return err
-		}
-		if _, err := io.WriteString(w, ":"); err != nil {
-			return err
-		}
-		if err := writeRetainedBytes(w, inputs[key]); err != nil {
-			return err
-		}
-	}
-	_, err := io.WriteString(w, "}")
 	return err
 }
 

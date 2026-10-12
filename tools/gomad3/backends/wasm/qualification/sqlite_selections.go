@@ -161,7 +161,7 @@ func validateSQLiteArtifactSelection(path string, state volume.CrashState) (retE
 	}
 	defer func() { retErr = errors.Join(retErr, opened.Close()) }()
 	manifest := opened.Manifest()
-	if manifest.Target.Backend == nil || manifest.Target.Backend.Evidence == nil || manifest.Target.Backend.Evidence.Schema != simulation.RetainedSchema {
+	if manifest.Target.Backend == nil || manifest.Target.Backend.Evidence == nil || !simulation.IsRetainedSchema(manifest.Target.Backend.Evidence.Schema) {
 		return errors.New("selected-state Artifact lacks sealed cluster evidence")
 	}
 	ref := *manifest.Target.Backend.Evidence

@@ -61,14 +61,14 @@ func validateRetainedLifecycle(spec gomad3sim.Spec, p *Provider) error {
 	return nil
 }
 
-func ReplayRetained(ctx context.Context, payload target.BackendPayload, directory string, installed InstalledHelper) (gomad3sim.Result, error) {
-	result, _, err := ReplayRetainedResults(ctx, payload, directory, installed)
+func ReplayRetained(ctx context.Context, payload target.BackendPayload, module RetainedModule, directory string, installed InstalledHelper) (gomad3sim.Result, error) {
+	result, _, err := ReplayRetainedResults(ctx, payload, module, directory, installed)
 	return result, err
 }
 
 // ReplayRetainedResults also returns real helper observations for existing cost collectors.
-func ReplayRetainedResults(ctx context.Context, payload target.BackendPayload, directory string, installed InstalledHelper) (gomad3sim.Result, []IncarnationResult, error) {
-	spec, p, err := ReopenProvider(payload, directory, installed)
+func ReplayRetainedResults(ctx context.Context, payload target.BackendPayload, module RetainedModule, directory string, installed InstalledHelper) (gomad3sim.Result, []IncarnationResult, error) {
+	spec, p, err := ReopenProvider(payload, module, directory, installed)
 	if err != nil {
 		return gomad3sim.Result{}, nil, err
 	}

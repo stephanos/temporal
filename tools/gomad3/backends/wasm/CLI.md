@@ -154,10 +154,13 @@ establish a production qualification claim.
 
 Typed retained multi-instance artifacts use the same `replay ARTIFACT` parser,
 inspection and replay classification. The launcher recognizes only the verified
-`gomad3.wasm-simulation-retained/v1` evidence schema and delegates its sealed
-typed lifecycle to the existing cluster replay owner. Such an artifact retains
-verified helper and module bytes, but payload hashes establish only
-self-consistency, so retained helper bytes are never executed. Replay resolves
+`gomad3.wasm-simulation-retained/v2` evidence schema and delegates its sealed
+typed lifecycle to the existing cluster replay owner. The evidence references the
+single guest module by digest; its bytes are the artifact's verified target file,
+copied without following links and re-hashed before any helper starts. No helper
+bytes are retained. Artifacts with the older `v1` schema, which embedded module
+and helper bytes, are refused with a versioned error and must be re-recorded.
+Payload hashes establish only self-consistency, so replay resolves
 the WASM installation, requires every retained boot's helper digest and engine
 identity to equal the installed `HelperSHA256` and pinned engine, re-hashes the
 installed helper and executes it; a missing installation or any mismatch fails

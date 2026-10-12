@@ -68,7 +68,7 @@ func replayRetainedCluster(ctx context.Context, spec runner.ReplaySpec, resolve 
 	if err := opened.Close(); err != nil {
 		return runner.ReplayResult{}, false, err
 	}
-	if manifest.Target.Backend == nil || manifest.Target.Backend.Evidence == nil || manifest.Target.Backend.Evidence.Schema != simulation.RetainedSchema {
+	if manifest.Target.Backend == nil || manifest.Target.Backend.Evidence == nil || !simulation.IsRetainedSchema(manifest.Target.Backend.Evidence.Schema) {
 		return runner.ReplayResult{}, false, nil
 	}
 	if spec.VerifyOnly || spec.ObservedDir != "" || spec.ToolchainRoot != "" {

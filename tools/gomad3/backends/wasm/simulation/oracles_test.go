@@ -86,6 +86,7 @@ func TestProviderDetachedOracleCanarySourceLessReplay(t *testing.T) {
 			canary   bool
 		}{encoded, result.Record, canary})
 	}
+	module := retainedTargetModule(t, base)
 	if err := os.Rename(base.ModulePath, base.ModulePath+".unavailable"); err != nil {
 		t.Fatal(err)
 	}
@@ -96,7 +97,7 @@ func TestProviderDetachedOracleCanarySourceLessReplay(t *testing.T) {
 		if err := json.Unmarshal(retained.data, &backendPayload); err != nil {
 			t.Fatal(err)
 		}
-		result, err := ReplayRetained(t.Context(), backendPayload, t.TempDir(), installedHelper(base))
+		result, err := ReplayRetained(t.Context(), backendPayload, module, t.TempDir(), installedHelper(base))
 		if err != nil {
 			t.Fatal(err)
 		}

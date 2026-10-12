@@ -92,6 +92,21 @@ func TestProviderMandatoryCleanupReapsWithoutLifecycleActions(t *testing.T) {
 	}
 }
 
+// retainedTargetModule stands in for the Artifact target: a detached copy of
+// the module, taken before the original path is made unavailable.
+func retainedTargetModule(t *testing.T, r wasi.Request) RetainedModule {
+	t.Helper()
+	data, err := os.ReadFile(r.ModulePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(t.TempDir(), "target")
+	if err := os.WriteFile(path, data, 0700); err != nil {
+		t.Fatal(err)
+	}
+	return RetainedModuleFile(path, "sha256:"+r.ModuleSHA256)
+}
+
 func installedHelper(r wasi.Request) InstalledHelper {
 	return InstalledHelper{Path: r.HelperPath, SHA256: r.HelperSHA256, Engine: r.Engine}
 }
@@ -208,11 +223,12 @@ func TestProviderStopReapsGuestAndPeerContinues(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	module := retainedTargetModule(t, first)
 	if err := os.Rename(first.ModulePath, first.ModulePath+".unavailable"); err != nil {
 		t.Fatal(err)
 	}
 	t.Setenv("GOMAD3_STOCK_GO", "/original/compiler/unavailable")
-	replayed, results, err := ReplayRetainedResults(t.Context(), payload, t.TempDir(), installedHelper(first))
+	replayed, results, err := ReplayRetainedResults(t.Context(), payload, module, t.TempDir(), installedHelper(first))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -297,11 +313,12 @@ func TestProviderGroupedAcknowledgmentCrashSourceLessReplay(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	module := retainedTargetModule(t, base)
 	if err := os.Rename(base.ModulePath, base.ModulePath+".unavailable"); err != nil {
 		t.Fatal(err)
 	}
 	t.Setenv("GOMAD3_STOCK_GO", "/original/compiler/unavailable")
-	replayed, original, completed, err := ReplayBoundRetained(t.Context(), payload, "sha256:"+base.ModuleSHA256, t.TempDir(), installedHelper(base))
+	replayed, original, completed, err := ReplayBoundRetained(t.Context(), payload, module, t.TempDir(), installedHelper(base))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -396,11 +413,12 @@ func TestProviderActualCrashDurableRestart(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	module := retainedTargetModule(t, request)
 	if err := os.Rename(request.ModulePath, request.ModulePath+".unavailable"); err != nil {
 		t.Fatal(err)
 	}
 	t.Setenv("GOMAD3_STOCK_GO", "/original/compiler/unavailable")
-	replayed, err := ReplayRetained(t.Context(), payload, t.TempDir(), installedHelper(request))
+	replayed, err := ReplayRetained(t.Context(), payload, module, t.TempDir(), installedHelper(request))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -495,13 +513,39 @@ func testProviderIndependentGuestsLifecycleReplay(t *testing.T, profile string) 
 	if err != nil {
 		t.Fatal(err)
 	}
+	targetModule := retainedTargetModule(t, server)
+	// Retention references the module by digest: the evidence never reads the
+	// module, so its bytes do not depend on module size or availability.
+	detached := &Provider{Boots: map[gomad3sim.BootID]wasi.Request{}, Broker: p.Broker, OutputCrashes: p.OutputCrashes, OutputStops: p.OutputStops, IncarnationBoots: p.IncarnationBoots, OutputCrashGroups: p.OutputCrashGroups, Oracles: p.Oracles}
+	for id, boot := range p.Boots {
+		boot.ModulePath = filepath.Join(t.TempDir(), "unavailable-module")
+		detached.Boots[id] = boot
+	}
+	without, err := detached.RetentionPayload(spec, observed.Record)
+	if err != nil {
+		t.Fatal(err)
+	}
+	moduleInfo, err := os.Stat(server.ModulePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	encodedRecord, err := gomad3sim.EncodeClusterRecord(observed.Record)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("retained evidence=%d bytes record=%d bytes module=%d bytes", len(payload.Data), len(encodedRecord), moduleInfo.Size())
+	if !bytes.Equal(without.Data, payload.Data) || uint64(len(payload.Data)) > uint64(len(encodedRecord))*4/3+64<<10 || int64(len(payload.Data)) >= moduleInfo.Size() {
+		t.Fatal("retained evidence embeds or depends on module bytes")
+	}
 	for _, test := range []struct {
 		name   string
 		mutate func(*retainedExecution)
 	}{
 		{"missing-action", func(b *retainedExecution) { b.Lifecycle = b.Lifecycle[:len(b.Lifecycle)-1] }},
 		{"mutated-action", func(b *retainedExecution) { b.Lifecycle[0].Handle.Incarnation++ }},
-		{"missing-module", func(b *retainedExecution) { delete(b.Inputs, b.Boots[0].Request.ModuleSHA256) }},
+		{"missing-module", func(b *retainedExecution) { b.ModuleSHA256 = "" }},
+		{"foreign-module", func(b *retainedExecution) { b.ModuleSHA256 = strings.Repeat("0", 64) }},
+		{"boot-module-differs", func(b *retainedExecution) { b.Boots[0].Request.ModuleSHA256 = strings.Repeat("0", 64) }},
 		{"changed-limits", func(b *retainedExecution) { b.Spec.Limits.NetworkTransitions++ }},
 		{"changed-environment", func(b *retainedExecution) { b.Boots[0].Request.Config.Clock.EpochNanos++ }},
 		{"changed-helper-budget", func(b *retainedExecution) { b.Boots[0].Request.Timeout++ }},
@@ -595,10 +639,10 @@ func testProviderIndependentGuestsLifecycleReplay(t *testing.T, profile string) 
 			if _, err := RetainedStorageCrashSelections(bad); err == nil {
 				t.Fatal("selection projection admitted mutated retained inputs")
 			}
-			if _, _, err := ReopenProvider(bad, directory, installedHelper(server)); err == nil {
+			if _, _, err := ReopenProvider(bad, targetModule, directory, installedHelper(server)); err == nil {
 				t.Fatal("mutated retained inputs were admitted")
 			}
-			if _, _, _, err := ReplayBoundRetained(t.Context(), bad, "sha256:"+server.ModuleSHA256, directory, installedHelper(server)); err == nil {
+			if _, _, _, err := ReplayBoundRetained(t.Context(), bad, targetModule, directory, installedHelper(server)); err == nil {
 				t.Fatal("bound replay admitted mutated retained inputs")
 			}
 			entries, err := os.ReadDir(directory)
@@ -610,7 +654,7 @@ func testProviderIndependentGuestsLifecycleReplay(t *testing.T, profile string) 
 	foreign := installedHelper(server)
 	foreign.SHA256 = strings.Repeat("f", 64)
 	directory := t.TempDir()
-	if _, _, _, err := ReplayBoundRetained(t.Context(), payload, "sha256:"+server.ModuleSHA256, directory, foreign); err == nil || !strings.Contains(err.Error(), server.HelperSHA256) || !strings.Contains(err.Error(), foreign.SHA256) {
+	if _, _, _, err := ReplayBoundRetained(t.Context(), payload, targetModule, directory, foreign); err == nil || !strings.Contains(err.Error(), server.HelperSHA256) || !strings.Contains(err.Error(), foreign.SHA256) {
 		t.Fatalf("bound replay admitted a helper other than the installation's: %v", err)
 	}
 	if entries, err := os.ReadDir(directory); err != nil || len(entries) != 0 {
@@ -618,7 +662,9 @@ func testProviderIndependentGuestsLifecycleReplay(t *testing.T, profile string) 
 	}
 	for _, primary := range []string{"", "sha256:" + strings.Repeat("0", 64)} {
 		directory := t.TempDir()
-		if _, _, _, err := ReplayBoundRetained(t.Context(), payload, primary, directory, installedHelper(server)); err == nil {
+		foreignPrimary := targetModule
+		foreignPrimary.SHA256 = primary
+		if _, _, _, err := ReplayBoundRetained(t.Context(), payload, foreignPrimary, directory, installedHelper(server)); err == nil {
 			t.Fatal("bound replay accepted foreign or missing Artifact primary")
 		}
 		entries, err := os.ReadDir(directory)
@@ -626,13 +672,14 @@ func testProviderIndependentGuestsLifecycleReplay(t *testing.T, profile string) 
 			t.Fatalf("unbound primary wrote executable inputs: %v %v", entries, err)
 		}
 	}
+	module := retainedTargetModule(t, server)
 	if err := os.Rename(server.ModulePath, server.ModulePath+".unavailable"); err != nil {
 		t.Fatal(err)
 	}
 	// Reopening receives no source or stock toolchain. Executable inputs are
 	// copied from the existing Artifact payload into fresh private files.
 	t.Setenv("GOMAD3_STOCK_GO", "/original/compiler/unavailable")
-	replayed, original, completed, err := ReplayBoundRetained(t.Context(), payload, "sha256:"+server.ModuleSHA256, t.TempDir(), installedHelper(server))
+	replayed, original, completed, err := ReplayBoundRetained(t.Context(), payload, module, t.TempDir(), installedHelper(server))
 	if err != nil {
 		t.Fatal(err)
 	}
