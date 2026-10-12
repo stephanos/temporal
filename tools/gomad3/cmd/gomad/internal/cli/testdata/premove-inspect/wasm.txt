@@ -1,0 +1,9 @@
+gomad inspect: kind=artifact path=ARTIFACT
+identity: record=sha256:ff8eac83b09b83de585a03b0602153457ef6ef6ee3a2753ebb3925d8954b6ed6 campaign=campaign-20261011T053900.065110855Z-8a469f6fe5aa338423746c826449742a ordinal=0 seed=7 toolchain=45a21a4e2f01eeecbe4f5880de51aff85adffd6785640b1af245baf0a40cdfc2 runner=fn156-qualification
+target: kind=go-run source=. sha256=sha256:659317d831c8a0a8e9beba8ae553fde875bb9820addef1e2eb550d8159506347 size=2473384 argv=["gomad3-target"] tags=["test_dep"] sharing=private
+outcome: domain=success reason=success termination=exit signature=sha256:6924373a68c78cd832fcd96582ef65f1850b8ed1f488c62d9f55e1eb5ad98beb replay-match=not-recorded
+transcript: none
+captured-mounts: none
+stdout: bytes=11 retained=11 discarded=0 truncated=false sha256=sha256:e435dcee122aeacc2f67e39b0c3a7b212753d1cdd727e9b276d7a01a2a4d0b69
+stderr: bytes=0 retained=0 discarded=0 truncated=false sha256=sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+replay: gomad replay ARTIFACT

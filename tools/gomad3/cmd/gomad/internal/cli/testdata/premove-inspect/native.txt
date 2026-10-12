@@ -1,0 +1,9 @@
+gomad inspect: kind=artifact path=ARTIFACT
+identity: record=sha256:f9e09cfb8a34933e1fdd43b86ef6bb6e05104e53c7815e75012528ab3e1c66ed campaign=campaign-20261003T095108.150283000Z-f19cf22b25bc9df20ac82dfdf302641b ordinal=0 seed=17 toolchain=2ecdbd330bb5928f360739fdd80cb3eb0f0764e513a5cc208cd83714fff0a457 runner=sha256:5455228dc4946613c78c6d69c2afc6dbd681f6b5998c219624e18290fe26b07b
+target: kind=go-test source=./basic/filesystem sha256=sha256:002738ce95e1f78d7418a2d986617a09cfe5f8ea30c1a7aea786f60b9b035e38 size=4826274 argv=["gomad3-target" "-test.run=^TestFileLifecyclePreservesContentsAndMetadata$"] tags=[] sharing=private
+outcome: domain=success reason=success termination=exit signature=sha256:57dc45d96a58b85a4480d2b2c067b0ac240a78e3a79d2a58f609e0dc59a03460 replay-match=not-recorded
+transcript: records=27 bytes=3456 sha256=sha256:8ec021f63eca45fa352e3c0905039515a63dbe8057ca536e5dfea3cfb96550e7
+captured-mounts: none
+stdout: bytes=5 retained=5 discarded=0 truncated=false sha256=sha256:c26de83abdc9496cd1301470918ec39ecca1cf389ef0ae1c6504da1800d1c431
+stderr: bytes=0 retained=0 discarded=0 truncated=false sha256=sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+replay: gomad replay ARTIFACT
