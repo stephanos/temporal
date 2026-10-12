@@ -1,6 +1,6 @@
 // A Model the lifter must refuse: its step function loops over a mutable variable, which the IR has no
 // form for. The lifter's tests lift it and expect the refusal at the loop's line.
-package temporal.fixture
+package fixture.unsupported
 
 import framework.*
 

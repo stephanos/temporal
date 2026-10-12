@@ -119,7 +119,7 @@ class QualifiedNames extends munit.FunSuite:
     val dir = Files.createDirectories(scratch.resolve(name))
     val stream = Files.newDirectoryStream(lifts, "*.scala")
     try
-      for from <- stream.asScala do
+      for from <- stream.asScala if !SweepHeld.source("lifts", from.getFileName.toString) do
         val written = from.getFileName.toString
         val source = Files
           .readString(from)

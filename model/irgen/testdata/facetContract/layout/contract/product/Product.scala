@@ -18,6 +18,7 @@ object ContractProduct
   val init = QueueView(Phase.off)
   object rules extends Facets(pressing.rules)
   object properties:
-    val terminal = property.holds(_.state.phase.in(Phase.on))
+    object safety:
+      val terminal = property.holds(_.state.phase.in(Phase.on))
   object queries:
     val pressed = witness(hand.press).records(Fact.changed)

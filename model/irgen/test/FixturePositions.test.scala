@@ -136,36 +136,6 @@ private[irgen] object FixturePositions:
         55 -> 57, 60 -> 62
       )
     ),
-    "taskqueue" -> (
-      lines("model/temporal/foundations/taskqueue/TaskQueue.scala",
-        40 -> 34, 43 -> 37, 46 -> 40, 53 -> 47, 56 -> 50, 63 -> 57, 66 -> 60, 70 -> 64, 96 -> 98, 97 -> 99,
-        98 -> 100, 100 -> 102, 101 -> 103, 102 -> 104, 110 -> 112, 111 -> 113
-      ) ++
-      lines("model/temporal/foundations/taskqueue/product/Product.scala",
-        17 -> 16, 74 -> 30, 78 -> 32
-      ) ++
-      relocate("model/temporal/foundations/taskqueue/product/Product.scala", "model/temporal/foundations/taskqueue/product/Queueing.scala",
-        28 -> 18, 29 -> 19, 31 -> 21, 32 -> 22, 33 -> 23, 34 -> 24, 37 -> 27, 41 -> 31, 42 -> 32, 43 -> 33,
-        44 -> 34, 45 -> 35, 46 -> 36, 47 -> 37, 51 -> 41, 52 -> 42, 53 -> 43, 54 -> 44, 55 -> 45, 59 -> 49,
-        60 -> 50, 61 -> 51, 62 -> 52, 63 -> 53, 64 -> 54, 79 -> 65, 80 -> 66, 82 -> 68, 83 -> 69, 85 -> 71,
-        86 -> 72
-      ) ++
-      relocate("model/temporal/foundations/taskqueue/system/System.scala", "model/temporal/foundations/taskqueue/protocol/QueueForgetful.scala",
-        284 -> 13
-      ) ++
-      relocate("model/temporal/foundations/taskqueue/system/System.scala", "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
-        23 -> 20, 28 -> 26, 31 -> 30, 32 -> 31, 33 -> 32, 34 -> 33, 35 -> 34, 38 -> 36, 44 -> 41, 45 -> 42,
-        48 -> 44, 49 -> 45, 54 -> 50, 55 -> 51, 57 -> 53, 58 -> 54, 59 -> 55, 60 -> 56, 62 -> 57, 65 -> 60,
-        68 -> 63, 70 -> 64, 147 -> 66
-      ) ++
-      relocate("model/temporal/foundations/taskqueue/system/System.scala", "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
-        73 -> 19, 74 -> 20, 76 -> 22, 77 -> 23, 78 -> 24, 79 -> 25, 82 -> 28, 87 -> 33, 88 -> 34, 90 -> 36,
-        91 -> 37, 93 -> 39, 94 -> 40, 96 -> 42, 97 -> 43, 98 -> 44, 99 -> 45, 101 -> 50, 106 -> 55, 111 -> 66,
-        112 -> 67, 113 -> 68, 114 -> 69, 119 -> 74, 121 -> 76, 123 -> 78, 132 -> 89, 133 -> 91, 135 -> 93, 148 -> 106,
-        149 -> 107, 151 -> 109, 152 -> 110, 154 -> 112, 155 -> 113, 157 -> 115, 158 -> 116, 160 -> 118, 161 -> 119, 163 -> 121,
-        164 -> 122, 166 -> 124, 167 -> 125, 169 -> 127, 170 -> 128
-      )
-    ),
     "retryCapabilities" -> (
       lines("model/irgen/testdata/lifts/RetryCapabilities.scala",
         6 -> 7, 10 -> 11, 16 -> 17, 22 -> 23, 29 -> 30, 32 -> 33, 35 -> 36, 36 -> 37, 37 -> 38, 41 -> 42,
@@ -212,17 +182,5 @@ private[irgen] object FixturePositions:
   )
 
   private val split: Map[(String, String), (Coordinate, Coordinate)] = Map(
-    ("channels", "/functions/0/body/if/else/position") -> (("model/irgen/testdata/lifts/Channels.scala", 81), ("model/irgen/testdata/lifts/Channels.scala", 80)),
-    ("taskqueue", "/functions/30/body/position") -> (("model/temporal/foundations/taskqueue/system/System.scala", 107), ("model/temporal/foundations/taskqueue/protocol/Queueing.scala", 56)),
-    ("taskqueue", "/functions/30/body/list/items/0/position") -> (("model/temporal/foundations/taskqueue/system/System.scala", 107), ("model/temporal/foundations/taskqueue/protocol/Queueing.scala", 57)),
-    ("taskqueue", "/functions/30/body/list/items/0/construct/args/0/position") -> (("model/temporal/foundations/taskqueue/system/System.scala", 107), ("model/temporal/foundations/taskqueue/protocol/Queueing.scala", 58)),
-    ("taskqueue", "/functions/30/body/list/items/0/construct/args/2/position") -> (("model/temporal/foundations/taskqueue/system/System.scala", 107), ("model/temporal/foundations/taskqueue/protocol/Queueing.scala", 60)),
-    ("taskqueue", "/functions/30/body/list/items/0/construct/args/2/list/items/0/position") -> (("model/temporal/foundations/taskqueue/system/System.scala", 107), ("model/temporal/foundations/taskqueue/protocol/Queueing.scala", 60)),
-    ("taskqueue", "/functions/30/body/list/items/0/construct/args/3/position") -> (("model/temporal/foundations/taskqueue/system/System.scala", 107), ("model/temporal/foundations/taskqueue/protocol/Queueing.scala", 57)),
-    ("taskqueue", "/functions/32/body/list/items/0/construct/args/1/position") -> (("model/temporal/foundations/taskqueue/system/System.scala", 100), ("model/temporal/foundations/taskqueue/protocol/Queueing.scala", 46)),
-    ("taskqueue", "/functions/32/body/list/items/0/construct/args/1/copy/updates/0/value/position") -> (("model/temporal/foundations/taskqueue/system/System.scala", 100), ("model/temporal/foundations/taskqueue/protocol/Queueing.scala", 47)),
-    ("taskqueue", "/functions/32/body/list/items/0/construct/args/1/copy/updates/1/value/position") -> (("model/temporal/foundations/taskqueue/system/System.scala", 100), ("model/temporal/foundations/taskqueue/protocol/Queueing.scala", 48)),
-    ("taskqueue", "/functions/32/body/list/items/0/construct/args/1/copy/updates/1/value/call/args/0/position") -> (("model/temporal/foundations/taskqueue/system/System.scala", 100), ("model/temporal/foundations/taskqueue/protocol/Queueing.scala", 48)),
-    ("taskqueue", "/functions/32/body/list/items/0/construct/args/1/copy/updates/1/value/call/args/0/field/base/position") -> (("model/temporal/foundations/taskqueue/system/System.scala", 100), ("model/temporal/foundations/taskqueue/protocol/Queueing.scala", 48)),
-    ("taskqueue", "/functions/32/body/list/items/0/construct/args/1/copy/base/position") -> (("model/temporal/foundations/taskqueue/system/System.scala", 100), ("model/temporal/foundations/taskqueue/protocol/Queueing.scala", 46))
+    ("channels", "/functions/0/body/if/else/position") -> (("model/irgen/testdata/lifts/Channels.scala", 81), ("model/irgen/testdata/lifts/Channels.scala", 80))
   )

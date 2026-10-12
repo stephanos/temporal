@@ -84,7 +84,7 @@
     "name": "temporal.foundations.taskqueue.Custody",
     "position": {
       "file": "model/temporal/foundations/taskqueue/TaskQueue.scala",
-      "line": 63
+      "line": 57
     },
     "enum": {
       "cases": [ {
@@ -103,7 +103,7 @@
     "name": "temporal.foundations.taskqueue.Delivered",
     "position": {
       "file": "model/temporal/foundations/taskqueue/TaskQueue.scala",
-      "line": 66
+      "line": 60
     },
     "enum": {
       "cases": [ {
@@ -118,7 +118,7 @@
     "name": "temporal.foundations.taskqueue.Outstanding",
     "position": {
       "file": "model/temporal/foundations/taskqueue/TaskQueue.scala",
-      "line": 40
+      "line": 34
     },
     "enum": {
       "cases": [ {
@@ -135,7 +135,7 @@
     "name": "temporal.foundations.taskqueue.QueueDetail",
     "position": {
       "file": "model/temporal/foundations/taskqueue/TaskQueue.scala",
-      "line": 70
+      "line": 64
     },
     "record": {
       "fields": [ {
@@ -159,7 +159,7 @@
     "name": "temporal.foundations.taskqueue.QueueFact",
     "position": {
       "file": "model/temporal/foundations/taskqueue/TaskQueue.scala",
-      "line": 56
+      "line": 50
     },
     "enum": {
       "cases": [ {
@@ -188,7 +188,7 @@
     "name": "temporal.foundations.taskqueue.QueueOutcome",
     "position": {
       "file": "model/temporal/foundations/taskqueue/TaskQueue.scala",
-      "line": 46
+      "line": 40
     },
     "enum": {
       "cases": [ {
@@ -209,7 +209,7 @@
     "name": "temporal.foundations.taskqueue.QueueView",
     "position": {
       "file": "model/temporal/foundations/taskqueue/TaskQueue.scala",
-      "line": 43
+      "line": 37
     },
     "record": {
       "fields": [ {
@@ -685,58 +685,6 @@
             "list": { }
           }
         } ]
-      }
-    }
-  }, {
-    "name": "forgetfulQueue.rules.crash",
-    "position": {
-      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-      "line": 284
-    },
-    "params": [ {
-      "name": "s",
-      "type": {
-        "named": "temporal.foundations.taskqueue.QueueDetail"
-      }
-    } ],
-    "body": {
-      "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 284
-      },
-      "if": {
-        "condition": {
-          "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 284
-          },
-          "literal": {
-            "bool": true
-          }
-        },
-        "then": {
-          "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 284
-          },
-          "call": {
-            "function": "temporal.foundations.taskqueue.system.TaskQueueSystem$.effects$.forgetfulCrash",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 284
-              },
-              "var": "s"
-            } ]
-          }
-        },
-        "else": {
-          "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 284
-          },
-          "list": { }
-        }
       }
     }
   }, {
@@ -1445,10 +1393,62 @@
       }
     }
   }, {
+    "name": "queueForgetful.rules.crash",
+    "position": {
+      "file": "model/temporal/foundations/taskqueue/protocol/QueueForgetful.scala",
+      "line": 13
+    },
+    "params": [ {
+      "name": "s",
+      "type": {
+        "named": "temporal.foundations.taskqueue.QueueDetail"
+      }
+    } ],
+    "body": {
+      "position": {
+        "file": "model/temporal/foundations/taskqueue/protocol/QueueForgetful.scala",
+        "line": 13
+      },
+      "if": {
+        "condition": {
+          "position": {
+            "file": "model/temporal/foundations/taskqueue/protocol/QueueForgetful.scala",
+            "line": 13
+          },
+          "literal": {
+            "bool": true
+          }
+        },
+        "then": {
+          "position": {
+            "file": "model/temporal/foundations/taskqueue/protocol/QueueForgetful.scala",
+            "line": 13
+          },
+          "call": {
+            "function": "temporal.foundations.taskqueue.protocol.Queueing.queueing$.effects$.forgetfulCrash",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/foundations/taskqueue/protocol/QueueForgetful.scala",
+                "line": 13
+              },
+              "var": "s"
+            } ]
+          }
+        },
+        "else": {
+          "position": {
+            "file": "model/temporal/foundations/taskqueue/protocol/QueueForgetful.scala",
+            "line": 13
+          },
+          "list": { }
+        }
+      }
+    }
+  }, {
     "name": "taskQueueProduct.evidence",
     "position": {
       "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-      "line": 17
+      "line": 16
     },
     "params": [ {
       "name": "queueFact",
@@ -1459,13 +1459,13 @@
     "body": {
       "position": {
         "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-        "line": 17
+        "line": 16
       },
       "match": {
         "scrutinee": {
           "position": {
             "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-            "line": 17
+            "line": 16
           },
           "var": "queueFact"
         },
@@ -1481,7 +1481,7 @@
           "body": {
             "position": {
               "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-              "line": 17
+              "line": 16
             },
             "literal": {
               "text": "enqueueCommitted"
@@ -1499,7 +1499,7 @@
           "body": {
             "position": {
               "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-              "line": 17
+              "line": 16
             },
             "literal": {
               "text": "enqueueFailed"
@@ -1517,7 +1517,7 @@
           "body": {
             "position": {
               "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-              "line": 17
+              "line": 16
             },
             "literal": {
               "text": "delivered"
@@ -1535,7 +1535,7 @@
           "body": {
             "position": {
               "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-              "line": 17
+              "line": 16
             },
             "literal": {
               "text": "acknowledged"
@@ -1553,7 +1553,7 @@
           "body": {
             "position": {
               "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-              "line": 17
+              "line": 16
             },
             "literal": {
               "text": "storageLost"
@@ -1571,7 +1571,7 @@
           "body": {
             "position": {
               "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-              "line": 17
+              "line": 16
             },
             "literal": {
               "text": "addInvoked"
@@ -1589,7 +1589,7 @@
           "body": {
             "position": {
               "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-              "line": 17
+              "line": 16
             },
             "literal": {
               "text": "taskPersisted"
@@ -1607,7 +1607,7 @@
           "body": {
             "position": {
               "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-              "line": 17
+              "line": 16
             },
             "literal": {
               "text": "matchReserved"
@@ -1625,7 +1625,7 @@
           "body": {
             "position": {
               "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-              "line": 17
+              "line": 16
             },
             "literal": {
               "text": "crashed"
@@ -1643,7 +1643,7 @@
           "body": {
             "position": {
               "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-              "line": 17
+              "line": 16
             },
             "literal": {
               "text": "ackLost"
@@ -1655,8 +1655,8 @@
   }, {
     "name": "taskQueueProduct.rules.acknowledge",
     "position": {
-      "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-      "line": 85
+      "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+      "line": 71
     },
     "params": [ {
       "name": "s",
@@ -1666,27 +1666,27 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-        "line": 86
+        "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+        "line": 72
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-            "line": 86
+            "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+            "line": 72
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
                 "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                "line": 78
+                "line": 32
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                    "line": 78
+                    "line": 32
                   },
                   "var": "s"
                 },
@@ -1695,14 +1695,14 @@
             },
             "right": {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                "line": 86
+                "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+                "line": 72
               },
               "list": {
                 "items": [ {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                    "line": 86
+                    "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+                    "line": 72
                   },
                   "literal": {
                     "enum": {
@@ -1712,8 +1712,8 @@
                   }
                 }, {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                    "line": 86
+                    "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+                    "line": 72
                   },
                   "literal": {
                     "enum": {
@@ -1728,15 +1728,15 @@
         },
         "then": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-            "line": 86
+            "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+            "line": 72
           },
           "call": {
-            "function": "temporal.foundations.taskqueue.product.TaskQueueProduct$.effects$.acknowledgeView",
+            "function": "temporal.foundations.taskqueue.product.Queueing.queueing$.effects$.acknowledgeView",
             "args": [ {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                "line": 86
+                "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+                "line": 72
               },
               "var": "s"
             } ]
@@ -1744,8 +1744,8 @@
         },
         "else": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-            "line": 85
+            "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+            "line": 71
           },
           "list": { }
         }
@@ -1754,8 +1754,8 @@
   }, {
     "name": "taskQueueProduct.rules.deliver",
     "position": {
-      "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-      "line": 82
+      "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+      "line": 68
     },
     "params": [ {
       "name": "s",
@@ -1765,27 +1765,27 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-        "line": 83
+        "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+        "line": 69
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-            "line": 83
+            "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+            "line": 69
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
                 "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                "line": 78
+                "line": 32
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                    "line": 78
+                    "line": 32
                   },
                   "var": "s"
                 },
@@ -1794,14 +1794,14 @@
             },
             "right": {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                "line": 83
+                "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+                "line": 69
               },
               "list": {
                 "items": [ {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                    "line": 83
+                    "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+                    "line": 69
                   },
                   "literal": {
                     "enum": {
@@ -1811,8 +1811,8 @@
                   }
                 }, {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                    "line": 83
+                    "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+                    "line": 69
                   },
                   "literal": {
                     "enum": {
@@ -1827,15 +1827,15 @@
         },
         "then": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-            "line": 83
+            "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+            "line": 69
           },
           "call": {
-            "function": "temporal.foundations.taskqueue.product.TaskQueueProduct$.effects$.deliverView",
+            "function": "temporal.foundations.taskqueue.product.Queueing.queueing$.effects$.deliverView",
             "args": [ {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                "line": 83
+                "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+                "line": 69
               },
               "var": "s"
             } ]
@@ -1843,8 +1843,8 @@
         },
         "else": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-            "line": 82
+            "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+            "line": 68
           },
           "list": { }
         }
@@ -1853,8 +1853,8 @@
   }, {
     "name": "taskQueueProduct.rules.enqueue",
     "position": {
-      "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-      "line": 79
+      "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+      "line": 65
     },
     "params": [ {
       "name": "s",
@@ -1864,27 +1864,27 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-        "line": 80
+        "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+        "line": 66
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-            "line": 80
+            "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+            "line": 66
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
                 "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                "line": 78
+                "line": 32
               },
               "field": {
                 "base": {
                   "position": {
                     "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                    "line": 78
+                    "line": 32
                   },
                   "var": "s"
                 },
@@ -1893,14 +1893,14 @@
             },
             "right": {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                "line": 80
+                "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+                "line": 66
               },
               "list": {
                 "items": [ {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                    "line": 80
+                    "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+                    "line": 66
                   },
                   "literal": {
                     "enum": {
@@ -1915,15 +1915,15 @@
         },
         "then": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-            "line": 80
+            "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+            "line": 66
           },
           "call": {
-            "function": "temporal.foundations.taskqueue.product.TaskQueueProduct$.effects$.enqueueView",
+            "function": "temporal.foundations.taskqueue.product.Queueing.queueing$.effects$.enqueueView",
             "args": [ {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                "line": 80
+                "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+                "line": 66
               },
               "var": "s"
             } ]
@@ -1931,18 +1931,18 @@
         },
         "else": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-            "line": 79
+            "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+            "line": 65
           },
           "list": { }
         }
       }
     }
   }, {
-    "name": "taskQueueSystem.evidence",
+    "name": "taskQueueProtocol.evidence",
     "position": {
-      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-      "line": 23
+      "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+      "line": 20
     },
     "params": [ {
       "name": "queueFact",
@@ -1952,14 +1952,14 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 23
+        "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+        "line": 20
       },
       "match": {
         "scrutinee": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 23
+            "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+            "line": 20
           },
           "var": "queueFact"
         },
@@ -1974,8 +1974,8 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/foundations/taskqueue/system/System.scala",
-              "line": 23
+              "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+              "line": 20
             },
             "literal": {
               "text": "enqueueCommitted"
@@ -1992,8 +1992,8 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/foundations/taskqueue/system/System.scala",
-              "line": 23
+              "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+              "line": 20
             },
             "literal": {
               "text": "enqueueFailed"
@@ -2010,8 +2010,8 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/foundations/taskqueue/system/System.scala",
-              "line": 23
+              "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+              "line": 20
             },
             "literal": {
               "text": "delivered"
@@ -2028,8 +2028,8 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/foundations/taskqueue/system/System.scala",
-              "line": 23
+              "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+              "line": 20
             },
             "literal": {
               "text": "acknowledged"
@@ -2046,8 +2046,8 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/foundations/taskqueue/system/System.scala",
-              "line": 23
+              "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+              "line": 20
             },
             "literal": {
               "text": "storageLost"
@@ -2064,8 +2064,8 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/foundations/taskqueue/system/System.scala",
-              "line": 23
+              "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+              "line": 20
             },
             "literal": {
               "text": "addInvoked"
@@ -2082,8 +2082,8 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/foundations/taskqueue/system/System.scala",
-              "line": 23
+              "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+              "line": 20
             },
             "literal": {
               "text": "taskPersisted"
@@ -2100,8 +2100,8 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/foundations/taskqueue/system/System.scala",
-              "line": 23
+              "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+              "line": 20
             },
             "literal": {
               "text": "matchReserved"
@@ -2118,8 +2118,8 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/foundations/taskqueue/system/System.scala",
-              "line": 23
+              "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+              "line": 20
             },
             "literal": {
               "text": "crashed"
@@ -2136,8 +2136,8 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/foundations/taskqueue/system/System.scala",
-              "line": 23
+              "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+              "line": 20
             },
             "literal": {
               "text": "ackLost"
@@ -2147,10 +2147,10 @@
       }
     }
   }, {
-    "name": "taskQueueSystem.rules.ackLoss",
+    "name": "taskQueueProtocol.rules.ackLoss",
     "position": {
-      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-      "line": 166
+      "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+      "line": 124
     },
     "params": [ {
       "name": "s",
@@ -2160,20 +2160,20 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 167
+        "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+        "line": 125
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 167
+            "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+            "line": 125
           },
           "field": {
             "base": {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 167
+                "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                "line": 125
               },
               "var": "s"
             },
@@ -2182,15 +2182,15 @@
         },
         "then": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 167
+            "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+            "line": 125
           },
           "call": {
-            "function": "temporal.foundations.taskqueue.system.TaskQueueSystem$.effects$.ackLossDetail",
+            "function": "temporal.foundations.taskqueue.protocol.Queueing.queueing$.effects$.ackLossDetail",
             "args": [ {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 167
+                "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                "line": 125
               },
               "var": "s"
             } ]
@@ -2198,18 +2198,18 @@
         },
         "else": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 166
+            "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+            "line": 124
           },
           "list": { }
         }
       }
     }
   }, {
-    "name": "taskQueueSystem.rules.acknowledge",
+    "name": "taskQueueProtocol.rules.acknowledge",
     "position": {
-      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-      "line": 163
+      "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+      "line": 121
     },
     "params": [ {
       "name": "s",
@@ -2219,21 +2219,21 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 164
+        "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+        "line": 122
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 164
+            "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+            "line": 122
           },
           "call": {
-            "function": "temporal.foundations.taskqueue.system.TaskQueueSystem$.states$.answerable",
+            "function": "temporal.foundations.taskqueue.protocol.TaskQueueProtocol$.states$.answerable",
             "args": [ {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 164
+                "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                "line": 122
               },
               "var": "s"
             } ]
@@ -2241,15 +2241,15 @@
         },
         "then": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 164
+            "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+            "line": 122
           },
           "call": {
-            "function": "temporal.foundations.taskqueue.system.TaskQueueSystem$.effects$.acknowledgeDetail",
+            "function": "temporal.foundations.taskqueue.protocol.Queueing.queueing$.effects$.acknowledgeDetail",
             "args": [ {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 164
+                "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                "line": 122
               },
               "var": "s"
             } ]
@@ -2257,18 +2257,18 @@
         },
         "else": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 163
+            "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+            "line": 121
           },
           "list": { }
         }
       }
     }
   }, {
-    "name": "taskQueueSystem.rules.addActivityTask",
+    "name": "taskQueueProtocol.rules.addActivityTask",
     "position": {
-      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-      "line": 151
+      "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+      "line": 109
     },
     "params": [ {
       "name": "s",
@@ -2278,27 +2278,27 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 152
+        "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+        "line": 110
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 152
+            "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+            "line": 110
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 147
+                "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                "line": 66
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                    "line": 147
+                    "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                    "line": 66
                   },
                   "var": "s"
                 },
@@ -2307,14 +2307,14 @@
             },
             "right": {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 152
+                "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                "line": 110
               },
               "list": {
                 "items": [ {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                    "line": 152
+                    "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                    "line": 110
                   },
                   "literal": {
                     "enum": {
@@ -2329,15 +2329,15 @@
         },
         "then": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 152
+            "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+            "line": 110
           },
           "call": {
-            "function": "temporal.foundations.taskqueue.system.TaskQueueSystem$.effects$.invokeDetail",
+            "function": "temporal.foundations.taskqueue.protocol.Queueing.queueing$.effects$.invokeDetail",
             "args": [ {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 152
+                "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                "line": 110
               },
               "var": "s"
             } ]
@@ -2345,18 +2345,18 @@
         },
         "else": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 151
+            "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+            "line": 109
           },
           "list": { }
         }
       }
     }
   }, {
-    "name": "taskQueueSystem.rules.crash",
+    "name": "taskQueueProtocol.rules.crash",
     "position": {
-      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-      "line": 169
+      "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+      "line": 127
     },
     "params": [ {
       "name": "s",
@@ -2366,14 +2366,14 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 170
+        "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+        "line": 128
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 170
+            "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+            "line": 128
           },
           "literal": {
             "bool": true
@@ -2381,15 +2381,15 @@
         },
         "then": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 170
+            "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+            "line": 128
           },
           "call": {
-            "function": "temporal.foundations.taskqueue.system.TaskQueueSystem$.effects$.crashDetail",
+            "function": "temporal.foundations.taskqueue.protocol.Queueing.queueing$.effects$.crashDetail",
             "args": [ {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 170
+                "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                "line": 128
               },
               "var": "s"
             } ]
@@ -2397,18 +2397,18 @@
         },
         "else": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 169
+            "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+            "line": 127
           },
           "list": { }
         }
       }
     }
   }, {
-    "name": "taskQueueSystem.rules.deliver",
+    "name": "taskQueueProtocol.rules.deliver",
     "position": {
-      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-      "line": 160
+      "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+      "line": 118
     },
     "params": [ {
       "name": "s",
@@ -2418,21 +2418,21 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 161
+        "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+        "line": 119
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 161
+            "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+            "line": 119
           },
           "call": {
-            "function": "temporal.foundations.taskqueue.system.TaskQueueSystem$.states$.deliverable",
+            "function": "temporal.foundations.taskqueue.protocol.TaskQueueProtocol$.states$.deliverable",
             "args": [ {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 161
+                "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                "line": 119
               },
               "var": "s"
             } ]
@@ -2440,15 +2440,15 @@
         },
         "then": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 161
+            "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+            "line": 119
           },
           "call": {
-            "function": "temporal.foundations.taskqueue.system.TaskQueueSystem$.effects$.deliverDetail",
+            "function": "temporal.foundations.taskqueue.protocol.Queueing.queueing$.effects$.deliverDetail",
             "args": [ {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 161
+                "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                "line": 119
               },
               "var": "s"
             } ]
@@ -2456,18 +2456,18 @@
         },
         "else": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 160
+            "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+            "line": 118
           },
           "list": { }
         }
       }
     }
   }, {
-    "name": "taskQueueSystem.rules.enqueue",
+    "name": "taskQueueProtocol.rules.enqueue",
     "position": {
-      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-      "line": 148
+      "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+      "line": 106
     },
     "params": [ {
       "name": "s",
@@ -2477,27 +2477,27 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 149
+        "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+        "line": 107
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 149
+            "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+            "line": 107
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 147
+                "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                "line": 66
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                    "line": 147
+                    "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                    "line": 66
                   },
                   "var": "s"
                 },
@@ -2506,14 +2506,14 @@
             },
             "right": {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 149
+                "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                "line": 107
               },
               "list": {
                 "items": [ {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                    "line": 149
+                    "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                    "line": 107
                   },
                   "literal": {
                     "enum": {
@@ -2528,15 +2528,15 @@
         },
         "then": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 149
+            "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+            "line": 107
           },
           "call": {
-            "function": "temporal.foundations.taskqueue.system.TaskQueueSystem$.effects$.enqueueDetail",
+            "function": "temporal.foundations.taskqueue.protocol.Queueing.queueing$.effects$.enqueueDetail",
             "args": [ {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 149
+                "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                "line": 107
               },
               "var": "s"
             } ]
@@ -2544,18 +2544,18 @@
         },
         "else": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 148
+            "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+            "line": 106
           },
           "list": { }
         }
       }
     }
   }, {
-    "name": "taskQueueSystem.rules.persistTask",
+    "name": "taskQueueProtocol.rules.persistTask",
     "position": {
-      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-      "line": 154
+      "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+      "line": 112
     },
     "params": [ {
       "name": "s",
@@ -2565,27 +2565,27 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 155
+        "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+        "line": 113
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 155
+            "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+            "line": 113
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 147
+                "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                "line": 66
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                    "line": 147
+                    "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                    "line": 66
                   },
                   "var": "s"
                 },
@@ -2594,14 +2594,14 @@
             },
             "right": {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 155
+                "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                "line": 113
               },
               "list": {
                 "items": [ {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                    "line": 155
+                    "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                    "line": 113
                   },
                   "literal": {
                     "enum": {
@@ -2616,15 +2616,15 @@
         },
         "then": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 155
+            "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+            "line": 113
           },
           "call": {
-            "function": "temporal.foundations.taskqueue.system.TaskQueueSystem$.effects$.persistDetail",
+            "function": "temporal.foundations.taskqueue.protocol.Queueing.queueing$.effects$.persistDetail",
             "args": [ {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 155
+                "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                "line": 113
               },
               "var": "s"
             } ]
@@ -2632,18 +2632,18 @@
         },
         "else": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 154
+            "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+            "line": 112
           },
           "list": { }
         }
       }
     }
   }, {
-    "name": "taskQueueSystem.rules.syncMatch",
+    "name": "taskQueueProtocol.rules.syncMatch",
     "position": {
-      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-      "line": 157
+      "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+      "line": 115
     },
     "params": [ {
       "name": "s",
@@ -2653,27 +2653,27 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 158
+        "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+        "line": 116
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 158
+            "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+            "line": 116
           },
           "binary": {
             "op": "OP_CONTAINS",
             "left": {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 147
+                "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                "line": 66
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                    "line": 147
+                    "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                    "line": 66
                   },
                   "var": "s"
                 },
@@ -2682,14 +2682,14 @@
             },
             "right": {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 158
+                "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                "line": 116
               },
               "list": {
                 "items": [ {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                    "line": 158
+                    "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                    "line": 116
                   },
                   "literal": {
                     "enum": {
@@ -2704,15 +2704,15 @@
         },
         "then": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 158
+            "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+            "line": 116
           },
           "call": {
-            "function": "temporal.foundations.taskqueue.system.TaskQueueSystem$.effects$.reserveDetail",
+            "function": "temporal.foundations.taskqueue.protocol.Queueing.queueing$.effects$.reserveDetail",
             "args": [ {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 158
+                "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                "line": 116
               },
               "var": "s"
             } ]
@@ -2720,18 +2720,18 @@
         },
         "else": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 157
+            "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+            "line": 115
           },
           "list": { }
         }
       }
     }
   }, {
-    "name": "temporal.foundations.taskqueue.product.TaskQueueProduct$.effects$.acknowledgeView",
+    "name": "temporal.foundations.taskqueue.product.Queueing.queueing$.effects$.acknowledgeView",
     "position": {
-      "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-      "line": 59
+      "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+      "line": 49
     },
     "params": [ {
       "name": "s",
@@ -2741,21 +2741,21 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-        "line": 60
+        "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+        "line": 50
       },
       "list": {
         "items": [ {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-            "line": 61
+            "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+            "line": 51
           },
           "construct": {
             "type": "framework.Step",
             "args": [ {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                "line": 62
+                "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+                "line": 52
               },
               "literal": {
                 "enum": {
@@ -2765,15 +2765,15 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                "line": 63
+                "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+                "line": 53
               },
               "construct": {
                 "type": "temporal.foundations.taskqueue.QueueView",
                 "args": [ {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                    "line": 63
+                    "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+                    "line": 53
                   },
                   "literal": {
                     "enum": {
@@ -2785,14 +2785,14 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                "line": 64
+                "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+                "line": 54
               },
               "list": {
                 "items": [ {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                    "line": 64
+                    "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+                    "line": 54
                   },
                   "literal": {
                     "enum": {
@@ -2804,8 +2804,8 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                "line": 61
+                "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+                "line": 51
               },
               "literal": {
                 "text": ""
@@ -2816,10 +2816,10 @@
       }
     }
   }, {
-    "name": "temporal.foundations.taskqueue.product.TaskQueueProduct$.effects$.deliverView",
+    "name": "temporal.foundations.taskqueue.product.Queueing.queueing$.effects$.deliverView",
     "position": {
-      "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-      "line": 41
+      "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+      "line": 31
     },
     "params": [ {
       "name": "s",
@@ -2829,27 +2829,27 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-        "line": 42
+        "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+        "line": 32
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-            "line": 42
+            "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+            "line": 32
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                "line": 42
+                "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+                "line": 32
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                    "line": 42
+                    "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+                    "line": 32
                   },
                   "var": "s"
                 },
@@ -2858,8 +2858,8 @@
             },
             "right": {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                "line": 42
+                "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+                "line": 32
               },
               "literal": {
                 "enum": {
@@ -2872,21 +2872,21 @@
         },
         "then": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-            "line": 43
+            "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+            "line": 33
           },
           "list": {
             "items": [ {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                "line": 44
+                "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+                "line": 34
               },
               "construct": {
                 "type": "framework.Step",
                 "args": [ {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                    "line": 45
+                    "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+                    "line": 35
                   },
                   "literal": {
                     "enum": {
@@ -2896,15 +2896,15 @@
                   }
                 }, {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                    "line": 46
+                    "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+                    "line": 36
                   },
                   "construct": {
                     "type": "temporal.foundations.taskqueue.QueueView",
                     "args": [ {
                       "position": {
-                        "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                        "line": 46
+                        "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+                        "line": 36
                       },
                       "literal": {
                         "enum": {
@@ -2916,14 +2916,14 @@
                   }
                 }, {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                    "line": 47
+                    "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+                    "line": 37
                   },
                   "list": {
                     "items": [ {
                       "position": {
-                        "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                        "line": 47
+                        "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+                        "line": 37
                       },
                       "literal": {
                         "enum": {
@@ -2935,8 +2935,8 @@
                   }
                 }, {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                    "line": 44
+                    "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+                    "line": 34
                   },
                   "literal": {
                     "text": ""
@@ -2948,21 +2948,21 @@
         },
         "else": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-            "line": 51
+            "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+            "line": 41
           },
           "list": {
             "items": [ {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                "line": 52
+                "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+                "line": 42
               },
               "construct": {
                 "type": "framework.Step",
                 "args": [ {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                    "line": 53
+                    "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+                    "line": 43
                   },
                   "literal": {
                     "enum": {
@@ -2972,15 +2972,15 @@
                   }
                 }, {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                    "line": 54
+                    "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+                    "line": 44
                   },
                   "construct": {
                     "type": "temporal.foundations.taskqueue.QueueView",
                     "args": [ {
                       "position": {
-                        "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                        "line": 54
+                        "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+                        "line": 44
                       },
                       "literal": {
                         "enum": {
@@ -2992,14 +2992,14 @@
                   }
                 }, {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                    "line": 55
+                    "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+                    "line": 45
                   },
                   "list": {
                     "items": [ {
                       "position": {
-                        "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                        "line": 55
+                        "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+                        "line": 45
                       },
                       "literal": {
                         "enum": {
@@ -3011,8 +3011,8 @@
                   }
                 }, {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                    "line": 51
+                    "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+                    "line": 41
                   },
                   "literal": {
                     "text": "a message not yet acknowledged may be delivered again"
@@ -3025,10 +3025,10 @@
       }
     }
   }, {
-    "name": "temporal.foundations.taskqueue.product.TaskQueueProduct$.effects$.enqueueView",
+    "name": "temporal.foundations.taskqueue.product.Queueing.queueing$.effects$.enqueueView",
     "position": {
-      "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-      "line": 28
+      "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+      "line": 18
     },
     "params": [ {
       "name": "s",
@@ -3038,21 +3038,21 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-        "line": 29
+        "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+        "line": 19
       },
       "list": {
         "items": [ {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-            "line": 31
+            "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+            "line": 21
           },
           "construct": {
             "type": "framework.Step",
             "args": [ {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                "line": 32
+                "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+                "line": 22
               },
               "literal": {
                 "enum": {
@@ -3062,15 +3062,15 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                "line": 33
+                "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+                "line": 23
               },
               "construct": {
                 "type": "temporal.foundations.taskqueue.QueueView",
                 "args": [ {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                    "line": 33
+                    "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+                    "line": 23
                   },
                   "literal": {
                     "enum": {
@@ -3082,14 +3082,14 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                "line": 34
+                "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+                "line": 24
               },
               "list": {
                 "items": [ {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                    "line": 34
+                    "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+                    "line": 24
                   },
                   "literal": {
                     "enum": {
@@ -3101,8 +3101,8 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                "line": 31
+                "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+                "line": 21
               },
               "literal": {
                 "text": ""
@@ -3112,15 +3112,15 @@
           }
         }, {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-            "line": 37
+            "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+            "line": 27
           },
           "construct": {
             "type": "framework.Step",
             "args": [ {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                "line": 37
+                "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+                "line": 27
               },
               "literal": {
                 "enum": {
@@ -3130,20 +3130,20 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                "line": 37
+                "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+                "line": 27
               },
               "var": "s"
             }, {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                "line": 37
+                "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+                "line": 27
               },
               "list": {
                 "items": [ {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                    "line": 37
+                    "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+                    "line": 27
                   },
                   "literal": {
                     "enum": {
@@ -3155,8 +3155,8 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-                "line": 37
+                "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+                "line": 27
               },
               "literal": {
                 "text": "the durable write fails and no message is outstanding"
@@ -3168,10 +3168,10 @@
       }
     }
   }, {
-    "name": "temporal.foundations.taskqueue.system.TaskQueueSystem$.effects$.ackLossDetail",
+    "name": "temporal.foundations.taskqueue.protocol.Queueing.queueing$.effects$.ackLossDetail",
     "position": {
-      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-      "line": 111
+      "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+      "line": 66
     },
     "params": [ {
       "name": "s",
@@ -3181,27 +3181,27 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 112
+        "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+        "line": 67
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 112
+            "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+            "line": 67
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 112
+                "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                "line": 67
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                    "line": 112
+                    "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                    "line": 67
                   },
                   "var": "s"
                 },
@@ -3210,8 +3210,8 @@
             },
             "right": {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 112
+                "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                "line": 67
               },
               "literal": {
                 "enum": {
@@ -3224,21 +3224,21 @@
         },
         "then": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 113
+            "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+            "line": 68
           },
           "list": {
             "items": [ {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 113
+                "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                "line": 68
               },
               "construct": {
                 "type": "framework.Step",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/foundations/taskqueue/TaskQueue.scala",
-                    "line": 53
+                    "line": 47
                   },
                   "literal": {
                     "enum": {
@@ -3248,14 +3248,14 @@
                   }
                 }, {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                    "line": 113
+                    "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                    "line": 68
                   },
                   "copy": {
                     "base": {
                       "position": {
-                        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                        "line": 113
+                        "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                        "line": 68
                       },
                       "var": "s"
                     },
@@ -3263,8 +3263,8 @@
                       "name": "custody",
                       "value": {
                         "position": {
-                          "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                          "line": 113
+                          "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                          "line": 68
                         },
                         "literal": {
                           "enum": {
@@ -3277,8 +3277,8 @@
                       "name": "polled",
                       "value": {
                         "position": {
-                          "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                          "line": 113
+                          "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                          "line": 68
                         },
                         "literal": {
                           "bool": false
@@ -3288,14 +3288,14 @@
                   }
                 }, {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                    "line": 113
+                    "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                    "line": 68
                   },
                   "list": {
                     "items": [ {
                       "position": {
-                        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                        "line": 113
+                        "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                        "line": 68
                       },
                       "literal": {
                         "enum": {
@@ -3307,8 +3307,8 @@
                   }
                 }, {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                    "line": 113
+                    "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                    "line": 68
                   },
                   "literal": {
                     "text": ""
@@ -3320,21 +3320,21 @@
         },
         "else": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 114
+            "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+            "line": 69
           },
           "list": {
             "items": [ {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 114
+                "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                "line": 69
               },
               "construct": {
                 "type": "framework.Step",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/foundations/taskqueue/TaskQueue.scala",
-                    "line": 53
+                    "line": 47
                   },
                   "literal": {
                     "enum": {
@@ -3344,14 +3344,14 @@
                   }
                 }, {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                    "line": 114
+                    "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                    "line": 69
                   },
                   "copy": {
                     "base": {
                       "position": {
-                        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                        "line": 114
+                        "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                        "line": 69
                       },
                       "var": "s"
                     },
@@ -3359,8 +3359,8 @@
                       "name": "polled",
                       "value": {
                         "position": {
-                          "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                          "line": 114
+                          "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                          "line": 69
                         },
                         "literal": {
                           "bool": false
@@ -3370,14 +3370,14 @@
                   }
                 }, {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                    "line": 114
+                    "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                    "line": 69
                   },
                   "list": {
                     "items": [ {
                       "position": {
-                        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                        "line": 114
+                        "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                        "line": 69
                       },
                       "literal": {
                         "enum": {
@@ -3389,8 +3389,8 @@
                   }
                 }, {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                    "line": 114
+                    "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                    "line": 69
                   },
                   "literal": {
                     "text": ""
@@ -3403,10 +3403,10 @@
       }
     }
   }, {
-    "name": "temporal.foundations.taskqueue.system.TaskQueueSystem$.effects$.acknowledgeDetail",
+    "name": "temporal.foundations.taskqueue.protocol.Queueing.queueing$.effects$.acknowledgeDetail",
     "position": {
-      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-      "line": 106
+      "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+      "line": 55
     },
     "params": [ {
       "name": "s",
@@ -3416,21 +3416,21 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 107
+        "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+        "line": 56
       },
       "list": {
         "items": [ {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 107
+            "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+            "line": 57
           },
           "construct": {
             "type": "framework.Step",
             "args": [ {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 107
+                "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                "line": 58
               },
               "literal": {
                 "enum": {
@@ -3440,15 +3440,15 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 31
+                "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                "line": 30
               },
               "construct": {
                 "type": "temporal.foundations.taskqueue.QueueDetail",
                 "args": [ {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                    "line": 31
+                    "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                    "line": 30
                   },
                   "literal": {
                     "enum": {
@@ -3458,16 +3458,16 @@
                   }
                 }, {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                    "line": 31
+                    "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                    "line": 30
                   },
                   "literal": {
                     "bool": false
                   }
                 }, {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                    "line": 31
+                    "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                    "line": 30
                   },
                   "literal": {
                     "enum": {
@@ -3479,14 +3479,14 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 107
+                "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                "line": 60
               },
               "list": {
                 "items": [ {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                    "line": 107
+                    "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                    "line": 60
                   },
                   "literal": {
                     "enum": {
@@ -3498,8 +3498,8 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 107
+                "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                "line": 57
               },
               "literal": {
                 "text": ""
@@ -3510,10 +3510,10 @@
       }
     }
   }, {
-    "name": "temporal.foundations.taskqueue.system.TaskQueueSystem$.effects$.crashDetail",
+    "name": "temporal.foundations.taskqueue.protocol.Queueing.queueing$.effects$.crashDetail",
     "position": {
-      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-      "line": 119
+      "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+      "line": 74
     },
     "params": [ {
       "name": "s",
@@ -3523,20 +3523,20 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 119
+        "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+        "line": 74
       },
       "match": {
         "scrutinee": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 119
+            "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+            "line": 74
           },
           "field": {
             "base": {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 119
+                "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                "line": 74
               },
               "var": "s"
             },
@@ -3565,21 +3565,21 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/foundations/taskqueue/system/System.scala",
-              "line": 121
+              "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+              "line": 76
             },
             "list": {
               "items": [ {
                 "position": {
-                  "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                  "line": 121
+                  "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                  "line": 76
                 },
                 "construct": {
                   "type": "framework.Step",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/foundations/taskqueue/TaskQueue.scala",
-                      "line": 53
+                      "line": 47
                     },
                     "literal": {
                       "enum": {
@@ -3589,14 +3589,14 @@
                     }
                   }, {
                     "position": {
-                      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                      "line": 121
+                      "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                      "line": 76
                     },
                     "copy": {
                       "base": {
                         "position": {
-                          "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                          "line": 121
+                          "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                          "line": 76
                         },
                         "var": "s"
                       },
@@ -3604,8 +3604,8 @@
                         "name": "custody",
                         "value": {
                           "position": {
-                            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                            "line": 121
+                            "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                            "line": 76
                           },
                           "literal": {
                             "enum": {
@@ -3618,8 +3618,8 @@
                         "name": "polled",
                         "value": {
                           "position": {
-                            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                            "line": 121
+                            "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                            "line": 76
                           },
                           "literal": {
                             "bool": false
@@ -3629,14 +3629,14 @@
                     }
                   }, {
                     "position": {
-                      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                      "line": 121
+                      "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                      "line": 76
                     },
                     "list": {
                       "items": [ {
                         "position": {
-                          "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                          "line": 121
+                          "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                          "line": 76
                         },
                         "literal": {
                           "enum": {
@@ -3648,8 +3648,8 @@
                     }
                   }, {
                     "position": {
-                      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                      "line": 121
+                      "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                      "line": 76
                     },
                     "literal": {
                       "text": ""
@@ -3688,21 +3688,21 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/foundations/taskqueue/system/System.scala",
-              "line": 123
+              "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+              "line": 78
             },
             "list": {
               "items": [ {
                 "position": {
-                  "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                  "line": 123
+                  "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                  "line": 78
                 },
                 "construct": {
                   "type": "framework.Step",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/foundations/taskqueue/TaskQueue.scala",
-                      "line": 53
+                      "line": 47
                     },
                     "literal": {
                       "enum": {
@@ -3712,14 +3712,14 @@
                     }
                   }, {
                     "position": {
-                      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                      "line": 123
+                      "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                      "line": 78
                     },
                     "copy": {
                       "base": {
                         "position": {
-                          "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                          "line": 123
+                          "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                          "line": 78
                         },
                         "var": "s"
                       },
@@ -3727,8 +3727,8 @@
                         "name": "polled",
                         "value": {
                           "position": {
-                            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                            "line": 123
+                            "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                            "line": 78
                           },
                           "literal": {
                             "bool": false
@@ -3738,14 +3738,14 @@
                     }
                   }, {
                     "position": {
-                      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                      "line": 123
+                      "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                      "line": 78
                     },
                     "list": {
                       "items": [ {
                         "position": {
-                          "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                          "line": 123
+                          "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                          "line": 78
                         },
                         "literal": {
                           "enum": {
@@ -3757,8 +3757,8 @@
                     }
                   }, {
                     "position": {
-                      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                      "line": 123
+                      "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                      "line": 78
                     },
                     "literal": {
                       "text": ""
@@ -3772,10 +3772,10 @@
       }
     }
   }, {
-    "name": "temporal.foundations.taskqueue.system.TaskQueueSystem$.effects$.deliverDetail",
+    "name": "temporal.foundations.taskqueue.protocol.Queueing.queueing$.effects$.deliverDetail",
     "position": {
-      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-      "line": 96
+      "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+      "line": 42
     },
     "params": [ {
       "name": "s",
@@ -3785,21 +3785,21 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 97
+        "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+        "line": 43
       },
       "list": {
         "items": [ {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 98
+            "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+            "line": 44
           },
           "construct": {
             "type": "framework.Step",
             "args": [ {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 99
+                "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                "line": 45
               },
               "literal": {
                 "enum": {
@@ -3809,14 +3809,14 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 100
+                "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                "line": 46
               },
               "copy": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                    "line": 100
+                    "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                    "line": 46
                   },
                   "var": "s"
                 },
@@ -3824,8 +3824,8 @@
                   "name": "polled",
                   "value": {
                     "position": {
-                      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                      "line": 100
+                      "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                      "line": 47
                     },
                     "literal": {
                       "bool": true
@@ -3835,21 +3835,21 @@
                   "name": "delivered",
                   "value": {
                     "position": {
-                      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                      "line": 100
+                      "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                      "line": 48
                     },
                     "call": {
-                      "function": "temporal.foundations.taskqueue.system.TaskQueueSystem$.states$.oneMoreDelivery",
+                      "function": "temporal.foundations.taskqueue.protocol.TaskQueueProtocol$.states$.oneMoreDelivery",
                       "args": [ {
                         "position": {
-                          "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                          "line": 100
+                          "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                          "line": 48
                         },
                         "field": {
                           "base": {
                             "position": {
-                              "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                              "line": 100
+                              "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                              "line": 48
                             },
                             "var": "s"
                           },
@@ -3862,14 +3862,14 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 101
+                "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                "line": 50
               },
               "list": {
                 "items": [ {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                    "line": 101
+                    "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                    "line": 50
                   },
                   "literal": {
                     "enum": {
@@ -3881,8 +3881,8 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 98
+                "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                "line": 44
               },
               "literal": {
                 "text": ""
@@ -3893,10 +3893,10 @@
       }
     }
   }, {
-    "name": "temporal.foundations.taskqueue.system.TaskQueueSystem$.effects$.enqueueDetail",
+    "name": "temporal.foundations.taskqueue.protocol.Queueing.queueing$.effects$.enqueueDetail",
     "position": {
-      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-      "line": 73
+      "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+      "line": 19
     },
     "params": [ {
       "name": "s",
@@ -3906,21 +3906,21 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 74
+        "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+        "line": 20
       },
       "list": {
         "items": [ {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 76
+            "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+            "line": 22
           },
           "construct": {
             "type": "framework.Step",
             "args": [ {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 77
+                "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                "line": 23
               },
               "literal": {
                 "enum": {
@@ -3930,15 +3930,15 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 78
+                "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                "line": 24
               },
               "construct": {
                 "type": "temporal.foundations.taskqueue.QueueDetail",
                 "args": [ {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                    "line": 78
+                    "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                    "line": 24
                   },
                   "literal": {
                     "enum": {
@@ -3948,16 +3948,16 @@
                   }
                 }, {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                    "line": 78
+                    "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                    "line": 24
                   },
                   "literal": {
                     "bool": false
                   }
                 }, {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                    "line": 78
+                    "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                    "line": 24
                   },
                   "literal": {
                     "enum": {
@@ -3969,14 +3969,14 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 79
+                "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                "line": 25
               },
               "list": {
                 "items": [ {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                    "line": 79
+                    "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                    "line": 25
                   },
                   "literal": {
                     "enum": {
@@ -3988,8 +3988,8 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 76
+                "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                "line": 22
               },
               "literal": {
                 "text": ""
@@ -3999,15 +3999,15 @@
           }
         }, {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 82
+            "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+            "line": 28
           },
           "construct": {
             "type": "framework.Step",
             "args": [ {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 82
+                "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                "line": 28
               },
               "literal": {
                 "enum": {
@@ -4017,20 +4017,20 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 82
+                "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                "line": 28
               },
               "var": "s"
             }, {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 82
+                "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                "line": 28
               },
               "list": {
                 "items": [ {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                    "line": 82
+                    "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                    "line": 28
                   },
                   "literal": {
                     "enum": {
@@ -4042,8 +4042,8 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 82
+                "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                "line": 28
               },
               "literal": {
                 "text": "the durable write fails and no message is outstanding"
@@ -4055,10 +4055,10 @@
       }
     }
   }, {
-    "name": "temporal.foundations.taskqueue.system.TaskQueueSystem$.effects$.forgetfulCrash",
+    "name": "temporal.foundations.taskqueue.protocol.Queueing.queueing$.effects$.forgetfulCrash",
     "position": {
-      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-      "line": 132
+      "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+      "line": 89
     },
     "params": [ {
       "name": "s",
@@ -4068,20 +4068,20 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 132
+        "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+        "line": 89
       },
       "match": {
         "scrutinee": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 132
+            "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+            "line": 89
           },
           "field": {
             "base": {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 132
+                "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                "line": 89
               },
               "var": "s"
             },
@@ -4110,21 +4110,21 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/foundations/taskqueue/system/System.scala",
-              "line": 133
+              "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+              "line": 91
             },
             "list": {
               "items": [ {
                 "position": {
-                  "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                  "line": 133
+                  "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                  "line": 91
                 },
                 "construct": {
                   "type": "framework.Step",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/foundations/taskqueue/TaskQueue.scala",
-                      "line": 53
+                      "line": 47
                     },
                     "literal": {
                       "enum": {
@@ -4134,15 +4134,15 @@
                     }
                   }, {
                     "position": {
-                      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                      "line": 31
+                      "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                      "line": 30
                     },
                     "construct": {
                       "type": "temporal.foundations.taskqueue.QueueDetail",
                       "args": [ {
                         "position": {
-                          "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                          "line": 31
+                          "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                          "line": 30
                         },
                         "literal": {
                           "enum": {
@@ -4152,16 +4152,16 @@
                         }
                       }, {
                         "position": {
-                          "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                          "line": 31
+                          "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                          "line": 30
                         },
                         "literal": {
                           "bool": false
                         }
                       }, {
                         "position": {
-                          "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                          "line": 31
+                          "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                          "line": 30
                         },
                         "literal": {
                           "enum": {
@@ -4173,14 +4173,14 @@
                     }
                   }, {
                     "position": {
-                      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                      "line": 133
+                      "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                      "line": 91
                     },
                     "list": {
                       "items": [ {
                         "position": {
-                          "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                          "line": 133
+                          "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                          "line": 91
                         },
                         "literal": {
                           "enum": {
@@ -4192,8 +4192,8 @@
                     }
                   }, {
                     "position": {
-                      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                      "line": 133
+                      "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                      "line": 91
                     },
                     "literal": {
                       "text": ""
@@ -4232,21 +4232,21 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/foundations/taskqueue/system/System.scala",
-              "line": 135
+              "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+              "line": 93
             },
             "list": {
               "items": [ {
                 "position": {
-                  "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                  "line": 135
+                  "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                  "line": 93
                 },
                 "construct": {
                   "type": "framework.Step",
                   "args": [ {
                     "position": {
                       "file": "model/temporal/foundations/taskqueue/TaskQueue.scala",
-                      "line": 53
+                      "line": 47
                     },
                     "literal": {
                       "enum": {
@@ -4256,14 +4256,14 @@
                     }
                   }, {
                     "position": {
-                      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                      "line": 135
+                      "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                      "line": 93
                     },
                     "copy": {
                       "base": {
                         "position": {
-                          "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                          "line": 135
+                          "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                          "line": 93
                         },
                         "var": "s"
                       },
@@ -4271,8 +4271,8 @@
                         "name": "polled",
                         "value": {
                           "position": {
-                            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                            "line": 135
+                            "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                            "line": 93
                           },
                           "literal": {
                             "bool": false
@@ -4282,14 +4282,14 @@
                     }
                   }, {
                     "position": {
-                      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                      "line": 135
+                      "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                      "line": 93
                     },
                     "list": {
                       "items": [ {
                         "position": {
-                          "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                          "line": 135
+                          "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                          "line": 93
                         },
                         "literal": {
                           "enum": {
@@ -4301,8 +4301,8 @@
                     }
                   }, {
                     "position": {
-                      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                      "line": 135
+                      "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                      "line": 93
                     },
                     "literal": {
                       "text": ""
@@ -4316,10 +4316,10 @@
       }
     }
   }, {
-    "name": "temporal.foundations.taskqueue.system.TaskQueueSystem$.effects$.invokeDetail",
+    "name": "temporal.foundations.taskqueue.protocol.Queueing.queueing$.effects$.invokeDetail",
     "position": {
-      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-      "line": 87
+      "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+      "line": 33
     },
     "params": [ {
       "name": "s",
@@ -4329,21 +4329,21 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 88
+        "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+        "line": 34
       },
       "list": {
         "items": [ {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 88
+            "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+            "line": 34
           },
           "construct": {
             "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/foundations/taskqueue/TaskQueue.scala",
-                "line": 53
+                "line": 47
               },
               "literal": {
                 "enum": {
@@ -4353,14 +4353,14 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 88
+                "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                "line": 34
               },
               "copy": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                    "line": 88
+                    "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                    "line": 34
                   },
                   "var": "s"
                 },
@@ -4368,8 +4368,8 @@
                   "name": "custody",
                   "value": {
                     "position": {
-                      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                      "line": 88
+                      "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                      "line": 34
                     },
                     "literal": {
                       "enum": {
@@ -4382,14 +4382,14 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 88
+                "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                "line": 34
               },
               "list": {
                 "items": [ {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                    "line": 88
+                    "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                    "line": 34
                   },
                   "literal": {
                     "enum": {
@@ -4401,8 +4401,8 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 88
+                "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                "line": 34
               },
               "literal": {
                 "text": ""
@@ -4413,10 +4413,10 @@
       }
     }
   }, {
-    "name": "temporal.foundations.taskqueue.system.TaskQueueSystem$.effects$.persistDetail",
+    "name": "temporal.foundations.taskqueue.protocol.Queueing.queueing$.effects$.persistDetail",
     "position": {
-      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-      "line": 90
+      "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+      "line": 36
     },
     "params": [ {
       "name": "s",
@@ -4426,21 +4426,21 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 91
+        "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+        "line": 37
       },
       "list": {
         "items": [ {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 91
+            "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+            "line": 37
           },
           "construct": {
             "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/foundations/taskqueue/TaskQueue.scala",
-                "line": 53
+                "line": 47
               },
               "literal": {
                 "enum": {
@@ -4450,14 +4450,14 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 91
+                "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                "line": 37
               },
               "copy": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                    "line": 91
+                    "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                    "line": 37
                   },
                   "var": "s"
                 },
@@ -4465,8 +4465,8 @@
                   "name": "custody",
                   "value": {
                     "position": {
-                      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                      "line": 91
+                      "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                      "line": 37
                     },
                     "literal": {
                       "enum": {
@@ -4479,14 +4479,14 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 91
+                "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                "line": 37
               },
               "list": {
                 "items": [ {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                    "line": 91
+                    "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                    "line": 37
                   },
                   "literal": {
                     "enum": {
@@ -4498,8 +4498,8 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 91
+                "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                "line": 37
               },
               "literal": {
                 "text": ""
@@ -4510,10 +4510,10 @@
       }
     }
   }, {
-    "name": "temporal.foundations.taskqueue.system.TaskQueueSystem$.effects$.reserveDetail",
+    "name": "temporal.foundations.taskqueue.protocol.Queueing.queueing$.effects$.reserveDetail",
     "position": {
-      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-      "line": 93
+      "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+      "line": 39
     },
     "params": [ {
       "name": "s",
@@ -4523,21 +4523,21 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 94
+        "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+        "line": 40
       },
       "list": {
         "items": [ {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 94
+            "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+            "line": 40
           },
           "construct": {
             "type": "framework.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/foundations/taskqueue/TaskQueue.scala",
-                "line": 53
+                "line": 47
               },
               "literal": {
                 "enum": {
@@ -4547,14 +4547,14 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 94
+                "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                "line": 40
               },
               "copy": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                    "line": 94
+                    "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                    "line": 40
                   },
                   "var": "s"
                 },
@@ -4562,8 +4562,8 @@
                   "name": "custody",
                   "value": {
                     "position": {
-                      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                      "line": 94
+                      "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                      "line": 40
                     },
                     "literal": {
                       "enum": {
@@ -4576,14 +4576,14 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 94
+                "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                "line": 40
               },
               "list": {
                 "items": [ {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                    "line": 94
+                    "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                    "line": 40
                   },
                   "literal": {
                     "enum": {
@@ -4595,8 +4595,8 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 94
+                "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+                "line": 40
               },
               "literal": {
                 "text": ""
@@ -4607,10 +4607,10 @@
       }
     }
   }, {
-    "name": "temporal.foundations.taskqueue.system.TaskQueueSystem$.refinement$.toProduct",
+    "name": "temporal.foundations.taskqueue.protocol.TaskQueueProtocol$.refinement$.toProduct",
     "position": {
-      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-      "line": 54
+      "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+      "line": 50
     },
     "params": [ {
       "name": "d",
@@ -4620,27 +4620,27 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 55
+        "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+        "line": 51
       },
       "if": {
         "condition": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 55
+            "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+            "line": 51
           },
           "binary": {
             "op": "OP_EQ",
             "left": {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 55
+                "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                "line": 51
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                    "line": 55
+                    "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                    "line": 51
                   },
                   "var": "d"
                 },
@@ -4649,8 +4649,8 @@
             },
             "right": {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 55
+                "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                "line": 51
               },
               "literal": {
                 "enum": {
@@ -4663,15 +4663,15 @@
         },
         "then": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 55
+            "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+            "line": 51
           },
           "construct": {
             "type": "temporal.foundations.taskqueue.QueueView",
             "args": [ {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 55
+                "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                "line": 51
               },
               "literal": {
                 "enum": {
@@ -4684,20 +4684,20 @@
         },
         "else": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 57
+            "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+            "line": 53
           },
           "match": {
             "scrutinee": {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 57
+                "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                "line": 53
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                    "line": 57
+                    "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                    "line": 53
                   },
                   "var": "d"
                 },
@@ -4715,15 +4715,15 @@
               },
               "body": {
                 "position": {
-                  "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                  "line": 58
+                  "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                  "line": 54
                 },
                 "construct": {
                   "type": "temporal.foundations.taskqueue.QueueView",
                   "args": [ {
                     "position": {
-                      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                      "line": 58
+                      "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                      "line": 54
                     },
                     "literal": {
                       "enum": {
@@ -4745,15 +4745,15 @@
               },
               "body": {
                 "position": {
-                  "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                  "line": 59
+                  "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                  "line": 55
                 },
                 "construct": {
                   "type": "temporal.foundations.taskqueue.QueueView",
                   "args": [ {
                     "position": {
-                      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                      "line": 59
+                      "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                      "line": 55
                     },
                     "literal": {
                       "enum": {
@@ -4775,15 +4775,15 @@
               },
               "body": {
                 "position": {
-                  "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                  "line": 60
+                  "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                  "line": 56
                 },
                 "construct": {
                   "type": "temporal.foundations.taskqueue.QueueView",
                   "args": [ {
                     "position": {
-                      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                      "line": 60
+                      "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                      "line": 56
                     },
                     "literal": {
                       "enum": {
@@ -4800,10 +4800,10 @@
       }
     }
   }, {
-    "name": "temporal.foundations.taskqueue.system.TaskQueueSystem$.refinement$.visible",
+    "name": "temporal.foundations.taskqueue.protocol.TaskQueueProtocol$.refinement$.visible",
     "position": {
-      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-      "line": 62
+      "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+      "line": 57
     },
     "params": [ {
       "name": "f",
@@ -4813,14 +4813,14 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 62
+        "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+        "line": 57
       },
       "match": {
         "scrutinee": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 62
+            "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+            "line": 57
           },
           "var": "f"
         },
@@ -4867,8 +4867,8 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/foundations/taskqueue/system/System.scala",
-              "line": 65
+              "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+              "line": 60
             },
             "literal": {
               "bool": true
@@ -4917,8 +4917,8 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/foundations/taskqueue/system/System.scala",
-              "line": 68
+              "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+              "line": 63
             },
             "literal": {
               "bool": false
@@ -4928,10 +4928,10 @@
       }
     }
   }, {
-    "name": "temporal.foundations.taskqueue.system.TaskQueueSystem$.refinement$.visibleOutcomes",
+    "name": "temporal.foundations.taskqueue.protocol.TaskQueueProtocol$.refinement$.visibleOutcomes",
     "position": {
-      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-      "line": 70
+      "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+      "line": 64
     },
     "params": [ {
       "name": "o",
@@ -4941,22 +4941,22 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 70
+        "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+        "line": 64
       },
       "binary": {
         "op": "OP_NE",
         "left": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 70
+            "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+            "line": 64
           },
           "var": "o"
         },
         "right": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 70
+            "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+            "line": 64
           },
           "literal": {
             "enum": {
@@ -4968,10 +4968,10 @@
       }
     }
   }, {
-    "name": "temporal.foundations.taskqueue.system.TaskQueueSystem$.states$.answerable",
+    "name": "temporal.foundations.taskqueue.protocol.TaskQueueProtocol$.states$.answerable",
     "position": {
-      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-      "line": 48
+      "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+      "line": 44
     },
     "params": [ {
       "name": "s",
@@ -4981,28 +4981,28 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 49
+        "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+        "line": 45
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 49
+            "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+            "line": 45
           },
           "binary": {
             "op": "OP_AND",
             "left": {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 49
+                "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                "line": 45
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                    "line": 49
+                    "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                    "line": 45
                   },
                   "var": "s"
                 },
@@ -5011,21 +5011,21 @@
             },
             "right": {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 49
+                "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                "line": 45
               },
               "binary": {
                 "op": "OP_NE",
                 "left": {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                    "line": 49
+                    "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                    "line": 45
                   },
                   "field": {
                     "base": {
                       "position": {
-                        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                        "line": 49
+                        "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                        "line": 45
                       },
                       "var": "s"
                     },
@@ -5034,8 +5034,8 @@
                 },
                 "right": {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                    "line": 49
+                    "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                    "line": 45
                   },
                   "literal": {
                     "enum": {
@@ -5050,21 +5050,21 @@
         },
         "right": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 49
+            "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+            "line": 45
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 49
+                "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                "line": 45
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                    "line": 49
+                    "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                    "line": 45
                   },
                   "var": "s"
                 },
@@ -5073,8 +5073,8 @@
             },
             "right": {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 49
+                "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                "line": 45
               },
               "literal": {
                 "enum": {
@@ -5088,10 +5088,10 @@
       }
     }
   }, {
-    "name": "temporal.foundations.taskqueue.system.TaskQueueSystem$.states$.deliverable",
+    "name": "temporal.foundations.taskqueue.protocol.TaskQueueProtocol$.states$.deliverable",
     "position": {
-      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-      "line": 44
+      "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+      "line": 41
     },
     "params": [ {
       "name": "s",
@@ -5101,35 +5101,35 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 45
+        "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+        "line": 42
       },
       "binary": {
         "op": "OP_AND",
         "left": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 45
+            "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+            "line": 42
           },
           "binary": {
             "op": "OP_AND",
             "left": {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 45
+                "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                "line": 42
               },
               "call": {
-                "function": "temporal.foundations.taskqueue.system.TaskQueueSystem$.states$.matchable",
+                "function": "temporal.foundations.taskqueue.protocol.TaskQueueProtocol$.states$.matchable",
                 "args": [ {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                    "line": 45
+                    "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                    "line": 42
                   },
                   "field": {
                     "base": {
                       "position": {
-                        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                        "line": 45
+                        "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                        "line": 42
                       },
                       "var": "s"
                     },
@@ -5140,21 +5140,21 @@
             },
             "right": {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 45
+                "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                "line": 42
               },
               "unary": {
                 "op": "OP_NOT",
                 "operand": {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                    "line": 45
+                    "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                    "line": 42
                   },
                   "field": {
                     "base": {
                       "position": {
-                        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                        "line": 45
+                        "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                        "line": 42
                       },
                       "var": "s"
                     },
@@ -5167,21 +5167,21 @@
         },
         "right": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 45
+            "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+            "line": 42
           },
           "binary": {
             "op": "OP_NE",
             "left": {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 45
+                "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                "line": 42
               },
               "field": {
                 "base": {
                   "position": {
-                    "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                    "line": 45
+                    "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                    "line": 42
                   },
                   "var": "s"
                 },
@@ -5190,8 +5190,8 @@
             },
             "right": {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 45
+                "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                "line": 42
               },
               "literal": {
                 "enum": {
@@ -5205,10 +5205,10 @@
       }
     }
   }, {
-    "name": "temporal.foundations.taskqueue.system.TaskQueueSystem$.states$.matchable",
+    "name": "temporal.foundations.taskqueue.protocol.TaskQueueProtocol$.states$.matchable",
     "position": {
-      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-      "line": 38
+      "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+      "line": 36
     },
     "params": [ {
       "name": "c",
@@ -5218,28 +5218,28 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 38
+        "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+        "line": 36
       },
       "binary": {
         "op": "OP_CONTAINS",
         "left": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 38
+            "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+            "line": 36
           },
           "var": "c"
         },
         "right": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 38
+            "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+            "line": 36
           },
           "list": {
             "items": [ {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 38
+                "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                "line": 36
               },
               "literal": {
                 "enum": {
@@ -5249,8 +5249,8 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 38
+                "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                "line": 36
               },
               "literal": {
                 "enum": {
@@ -5264,10 +5264,10 @@
       }
     }
   }, {
-    "name": "temporal.foundations.taskqueue.system.TaskQueueSystem$.states$.oneMoreDelivery",
+    "name": "temporal.foundations.taskqueue.protocol.TaskQueueProtocol$.states$.oneMoreDelivery",
     "position": {
-      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-      "line": 33
+      "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+      "line": 32
     },
     "params": [ {
       "name": "d",
@@ -5277,14 +5277,14 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 33
+        "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+        "line": 32
       },
       "match": {
         "scrutinee": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 33
+            "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+            "line": 32
           },
           "var": "d"
         },
@@ -5299,8 +5299,8 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/foundations/taskqueue/system/System.scala",
-              "line": 34
+              "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+              "line": 33
             },
             "literal": {
               "enum": {
@@ -5315,8 +5315,8 @@
           },
           "body": {
             "position": {
-              "file": "model/temporal/foundations/taskqueue/system/System.scala",
-              "line": 35
+              "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+              "line": 34
             },
             "literal": {
               "enum": {
@@ -5329,10 +5329,10 @@
       }
     }
   }, {
-    "name": "temporal.foundations.taskqueue.system.TaskQueueSystem$.states$.queueEnds",
+    "name": "temporal.foundations.taskqueue.protocol.TaskQueueProtocol$.states$.queueEnds",
     "position": {
-      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-      "line": 32
+      "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+      "line": 31
     },
     "params": [ {
       "name": "d",
@@ -5342,21 +5342,21 @@
     } ],
     "body": {
       "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 32
+        "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+        "line": 31
       },
       "binary": {
         "op": "OP_EQ",
         "left": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 32
+            "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+            "line": 31
           },
           "field": {
             "base": {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 32
+                "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                "line": 31
               },
               "var": "d"
             },
@@ -5365,8 +5365,8 @@
         },
         "right": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 32
+            "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+            "line": 31
           },
           "literal": {
             "enum": {
@@ -5410,7 +5410,7 @@
     "name": "ackLoss",
     "position": {
       "file": "model/temporal/foundations/taskqueue/TaskQueue.scala",
-      "line": 111
+      "line": 113
     },
     "actor": "fault"
   }, {
@@ -5418,7 +5418,7 @@
     "name": "crash",
     "position": {
       "file": "model/temporal/foundations/taskqueue/TaskQueue.scala",
-      "line": 110
+      "line": 112
     },
     "actor": "fault"
   }, {
@@ -5426,7 +5426,7 @@
     "name": "acknowledge",
     "position": {
       "file": "model/temporal/foundations/taskqueue/TaskQueue.scala",
-      "line": 98
+      "line": 100
     },
     "actor": "system",
     "on": "taskQueue",
@@ -5436,7 +5436,7 @@
     "name": "addActivityTask",
     "position": {
       "file": "model/temporal/foundations/taskqueue/TaskQueue.scala",
-      "line": 100
+      "line": 102
     },
     "actor": "system",
     "on": "taskQueue",
@@ -5446,7 +5446,7 @@
     "name": "deliver",
     "position": {
       "file": "model/temporal/foundations/taskqueue/TaskQueue.scala",
-      "line": 97
+      "line": 99
     },
     "actor": "system",
     "on": "taskQueue",
@@ -5456,7 +5456,7 @@
     "name": "enqueue",
     "position": {
       "file": "model/temporal/foundations/taskqueue/TaskQueue.scala",
-      "line": 96
+      "line": 98
     },
     "actor": "system",
     "on": "taskQueue",
@@ -5466,7 +5466,7 @@
     "name": "persistTask",
     "position": {
       "file": "model/temporal/foundations/taskqueue/TaskQueue.scala",
-      "line": 101
+      "line": 103
     },
     "actor": "system",
     "on": "taskQueue",
@@ -5476,158 +5476,13 @@
     "name": "syncMatch",
     "position": {
       "file": "model/temporal/foundations/taskqueue/TaskQueue.scala",
-      "line": 102
+      "line": 104
     },
     "actor": "system",
     "on": "taskQueue",
     "internal": true
   } ],
   "machines": [ {
-    "family": "temporal.foundations.taskqueue.system",
-    "name": "forgetfulQueue",
-    "position": {
-      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-      "line": 284
-    },
-    "entity": "taskQueue",
-    "stateType": "temporal.foundations.taskqueue.QueueDetail",
-    "outcomeType": "temporal.foundations.taskqueue.QueueOutcome",
-    "factType": "temporal.foundations.taskqueue.QueueFact",
-    "starts": [ {
-      "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 31
-      },
-      "construct": {
-        "type": "temporal.foundations.taskqueue.QueueDetail",
-        "args": [ {
-          "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 31
-          },
-          "literal": {
-            "enum": {
-              "type": "temporal.foundations.taskqueue.Custody",
-              "case": "nowhere"
-            }
-          }
-        }, {
-          "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 31
-          },
-          "literal": {
-            "bool": false
-          }
-        }, {
-          "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 31
-          },
-          "literal": {
-            "enum": {
-              "type": "temporal.foundations.taskqueue.Delivered",
-              "case": "never"
-            }
-          }
-        } ]
-      }
-    } ],
-    "ends": {
-      "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 28
-      },
-      "lambda": {
-        "params": [ {
-          "name": "d",
-          "type": {
-            "named": "temporal.foundations.taskqueue.QueueDetail"
-          }
-        } ],
-        "body": {
-          "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 28
-          },
-          "call": {
-            "function": "temporal.foundations.taskqueue.system.TaskQueueSystem$.states$.queueEnds",
-            "args": [ {
-              "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 28
-              },
-              "var": "d"
-            } ]
-          }
-        }
-      }
-    },
-    "steps": [ {
-      "action": "temporal.foundations.taskqueue.queue.enqueue",
-      "function": "taskQueueSystem.rules.enqueue",
-      "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 148
-      }
-    }, {
-      "action": "temporal.foundations.taskqueue.queue.addActivityTask",
-      "function": "taskQueueSystem.rules.addActivityTask",
-      "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 151
-      }
-    }, {
-      "action": "temporal.foundations.taskqueue.queue.persistTask",
-      "function": "taskQueueSystem.rules.persistTask",
-      "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 154
-      }
-    }, {
-      "action": "temporal.foundations.taskqueue.queue.syncMatch",
-      "function": "taskQueueSystem.rules.syncMatch",
-      "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 157
-      }
-    }, {
-      "action": "temporal.foundations.taskqueue.queue.deliver",
-      "function": "taskQueueSystem.rules.deliver",
-      "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 160
-      }
-    }, {
-      "action": "temporal.foundations.taskqueue.queue.acknowledge",
-      "function": "taskQueueSystem.rules.acknowledge",
-      "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 163
-      }
-    }, {
-      "action": "temporal.foundations.taskqueue.fault.ackLoss",
-      "function": "taskQueueSystem.rules.ackLoss",
-      "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 166
-      }
-    }, {
-      "action": "temporal.foundations.taskqueue.fault.crash",
-      "function": "forgetfulQueue.rules.crash",
-      "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 284
-      }
-    } ],
-    "evidence": "taskQueueSystem.evidence",
-    "refines": {
-      "product": "taskQueueProduct",
-      "map": "temporal.foundations.taskqueue.system.TaskQueueSystem$.refinement$.toProduct",
-      "visible": "temporal.foundations.taskqueue.system.TaskQueueSystem$.refinement$.visible",
-      "visibleOutcomes": "temporal.foundations.taskqueue.system.TaskQueueSystem$.refinement$.visibleOutcomes"
-    }
-  }, {
     "family": "fixture.taskqueue",
     "name": "job",
     "position": {
@@ -5731,11 +5586,156 @@
       }
     } ]
   }, {
+    "family": "temporal.foundations.taskqueue.protocol",
+    "name": "queueForgetful",
+    "position": {
+      "file": "model/temporal/foundations/taskqueue/protocol/QueueForgetful.scala",
+      "line": 13
+    },
+    "entity": "taskQueue",
+    "stateType": "temporal.foundations.taskqueue.QueueDetail",
+    "outcomeType": "temporal.foundations.taskqueue.QueueOutcome",
+    "factType": "temporal.foundations.taskqueue.QueueFact",
+    "starts": [ {
+      "position": {
+        "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+        "line": 30
+      },
+      "construct": {
+        "type": "temporal.foundations.taskqueue.QueueDetail",
+        "args": [ {
+          "position": {
+            "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+            "line": 30
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.foundations.taskqueue.Custody",
+              "case": "nowhere"
+            }
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+            "line": 30
+          },
+          "literal": {
+            "bool": false
+          }
+        }, {
+          "position": {
+            "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+            "line": 30
+          },
+          "literal": {
+            "enum": {
+              "type": "temporal.foundations.taskqueue.Delivered",
+              "case": "never"
+            }
+          }
+        } ]
+      }
+    } ],
+    "ends": {
+      "position": {
+        "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+        "line": 26
+      },
+      "lambda": {
+        "params": [ {
+          "name": "d",
+          "type": {
+            "named": "temporal.foundations.taskqueue.QueueDetail"
+          }
+        } ],
+        "body": {
+          "position": {
+            "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+            "line": 26
+          },
+          "call": {
+            "function": "temporal.foundations.taskqueue.protocol.TaskQueueProtocol$.states$.queueEnds",
+            "args": [ {
+              "position": {
+                "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                "line": 26
+              },
+              "var": "d"
+            } ]
+          }
+        }
+      }
+    },
+    "steps": [ {
+      "action": "temporal.foundations.taskqueue.queue.enqueue",
+      "function": "taskQueueProtocol.rules.enqueue",
+      "position": {
+        "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+        "line": 106
+      }
+    }, {
+      "action": "temporal.foundations.taskqueue.queue.addActivityTask",
+      "function": "taskQueueProtocol.rules.addActivityTask",
+      "position": {
+        "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+        "line": 109
+      }
+    }, {
+      "action": "temporal.foundations.taskqueue.queue.persistTask",
+      "function": "taskQueueProtocol.rules.persistTask",
+      "position": {
+        "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+        "line": 112
+      }
+    }, {
+      "action": "temporal.foundations.taskqueue.queue.syncMatch",
+      "function": "taskQueueProtocol.rules.syncMatch",
+      "position": {
+        "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+        "line": 115
+      }
+    }, {
+      "action": "temporal.foundations.taskqueue.queue.deliver",
+      "function": "taskQueueProtocol.rules.deliver",
+      "position": {
+        "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+        "line": 118
+      }
+    }, {
+      "action": "temporal.foundations.taskqueue.queue.acknowledge",
+      "function": "taskQueueProtocol.rules.acknowledge",
+      "position": {
+        "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+        "line": 121
+      }
+    }, {
+      "action": "temporal.foundations.taskqueue.fault.ackLoss",
+      "function": "taskQueueProtocol.rules.ackLoss",
+      "position": {
+        "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+        "line": 124
+      }
+    }, {
+      "action": "temporal.foundations.taskqueue.fault.crash",
+      "function": "queueForgetful.rules.crash",
+      "position": {
+        "file": "model/temporal/foundations/taskqueue/protocol/QueueForgetful.scala",
+        "line": 13
+      }
+    } ],
+    "evidence": "taskQueueProtocol.evidence",
+    "refines": {
+      "product": "taskQueueProduct",
+      "map": "temporal.foundations.taskqueue.protocol.TaskQueueProtocol$.refinement$.toProduct",
+      "visible": "temporal.foundations.taskqueue.protocol.TaskQueueProtocol$.refinement$.visible",
+      "visibleOutcomes": "temporal.foundations.taskqueue.protocol.TaskQueueProtocol$.refinement$.visibleOutcomes"
+    }
+  }, {
     "family": "temporal.foundations.taskqueue.product",
     "name": "taskQueueProduct",
     "position": {
       "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-      "line": 17
+      "line": 16
     },
     "entity": "taskQueue",
     "stateType": "temporal.foundations.taskqueue.QueueView",
@@ -5817,32 +5817,32 @@
       "action": "temporal.foundations.taskqueue.queue.enqueue",
       "function": "taskQueueProduct.rules.enqueue",
       "position": {
-        "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-        "line": 79
+        "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+        "line": 65
       }
     }, {
       "action": "temporal.foundations.taskqueue.queue.deliver",
       "function": "taskQueueProduct.rules.deliver",
       "position": {
-        "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-        "line": 82
+        "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+        "line": 68
       }
     }, {
       "action": "temporal.foundations.taskqueue.queue.acknowledge",
       "function": "taskQueueProduct.rules.acknowledge",
       "position": {
-        "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-        "line": 85
+        "file": "model/temporal/foundations/taskqueue/product/Queueing.scala",
+        "line": 71
       }
     } ],
     "evidence": "taskQueueProduct.evidence",
     "assumes": [ "temporal.foundations.taskqueue.product.TaskQueueProduct.monitors.queueOpaque" ]
   }, {
-    "family": "temporal.foundations.taskqueue.system",
-    "name": "taskQueueSystem",
+    "family": "temporal.foundations.taskqueue.protocol",
+    "name": "taskQueueProtocol",
     "position": {
-      "file": "model/temporal/foundations/taskqueue/system/System.scala",
-      "line": 23
+      "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+      "line": 20
     },
     "entity": "taskQueue",
     "stateType": "temporal.foundations.taskqueue.QueueDetail",
@@ -5850,15 +5850,15 @@
     "factType": "temporal.foundations.taskqueue.QueueFact",
     "starts": [ {
       "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 31
+        "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+        "line": 30
       },
       "construct": {
         "type": "temporal.foundations.taskqueue.QueueDetail",
         "args": [ {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 31
+            "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+            "line": 30
           },
           "literal": {
             "enum": {
@@ -5868,16 +5868,16 @@
           }
         }, {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 31
+            "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+            "line": 30
           },
           "literal": {
             "bool": false
           }
         }, {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 31
+            "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+            "line": 30
           },
           "literal": {
             "enum": {
@@ -5890,8 +5890,8 @@
     } ],
     "ends": {
       "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 28
+        "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+        "line": 26
       },
       "lambda": {
         "params": [ {
@@ -5902,15 +5902,15 @@
         } ],
         "body": {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 28
+            "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+            "line": 26
           },
           "call": {
-            "function": "temporal.foundations.taskqueue.system.TaskQueueSystem$.states$.queueEnds",
+            "function": "temporal.foundations.taskqueue.protocol.TaskQueueProtocol$.states$.queueEnds",
             "args": [ {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 28
+                "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                "line": 26
               },
               "var": "d"
             } ]
@@ -5920,67 +5920,67 @@
     },
     "steps": [ {
       "action": "temporal.foundations.taskqueue.queue.enqueue",
-      "function": "taskQueueSystem.rules.enqueue",
+      "function": "taskQueueProtocol.rules.enqueue",
       "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 148
+        "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+        "line": 106
       }
     }, {
       "action": "temporal.foundations.taskqueue.queue.addActivityTask",
-      "function": "taskQueueSystem.rules.addActivityTask",
+      "function": "taskQueueProtocol.rules.addActivityTask",
       "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 151
+        "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+        "line": 109
       }
     }, {
       "action": "temporal.foundations.taskqueue.queue.persistTask",
-      "function": "taskQueueSystem.rules.persistTask",
+      "function": "taskQueueProtocol.rules.persistTask",
       "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 154
+        "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+        "line": 112
       }
     }, {
       "action": "temporal.foundations.taskqueue.queue.syncMatch",
-      "function": "taskQueueSystem.rules.syncMatch",
+      "function": "taskQueueProtocol.rules.syncMatch",
       "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 157
+        "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+        "line": 115
       }
     }, {
       "action": "temporal.foundations.taskqueue.queue.deliver",
-      "function": "taskQueueSystem.rules.deliver",
+      "function": "taskQueueProtocol.rules.deliver",
       "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 160
+        "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+        "line": 118
       }
     }, {
       "action": "temporal.foundations.taskqueue.queue.acknowledge",
-      "function": "taskQueueSystem.rules.acknowledge",
+      "function": "taskQueueProtocol.rules.acknowledge",
       "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 163
+        "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+        "line": 121
       }
     }, {
       "action": "temporal.foundations.taskqueue.fault.ackLoss",
-      "function": "taskQueueSystem.rules.ackLoss",
+      "function": "taskQueueProtocol.rules.ackLoss",
       "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 166
+        "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+        "line": 124
       }
     }, {
       "action": "temporal.foundations.taskqueue.fault.crash",
-      "function": "taskQueueSystem.rules.crash",
+      "function": "taskQueueProtocol.rules.crash",
       "position": {
-        "file": "model/temporal/foundations/taskqueue/system/System.scala",
-        "line": 169
+        "file": "model/temporal/foundations/taskqueue/protocol/Queueing.scala",
+        "line": 127
       }
     } ],
-    "evidence": "taskQueueSystem.evidence",
+    "evidence": "taskQueueProtocol.evidence",
     "refines": {
       "product": "taskQueueProduct",
-      "map": "temporal.foundations.taskqueue.system.TaskQueueSystem$.refinement$.toProduct",
-      "visible": "temporal.foundations.taskqueue.system.TaskQueueSystem$.refinement$.visible",
-      "visibleOutcomes": "temporal.foundations.taskqueue.system.TaskQueueSystem$.refinement$.visibleOutcomes"
+      "map": "temporal.foundations.taskqueue.protocol.TaskQueueProtocol$.refinement$.toProduct",
+      "visible": "temporal.foundations.taskqueue.protocol.TaskQueueProtocol$.refinement$.visible",
+      "visibleOutcomes": "temporal.foundations.taskqueue.protocol.TaskQueueProtocol$.refinement$.visibleOutcomes"
     }
   } ],
   "assumptions": [ {
@@ -5988,7 +5988,7 @@
     "name": "taskQueueProduct.opaque",
     "position": {
       "file": "model/temporal/foundations/taskqueue/product/Product.scala",
-      "line": 74
+      "line": 30
     }
   } ],
   "compositions": [ {
@@ -6004,7 +6004,7 @@
       "machine": "job"
     }, {
       "field": "queue",
-      "machine": "forgetfulQueue",
+      "machine": "queueForgetful",
       "replaces": "taskQueueProduct"
     } ],
     "syncs": [ {
@@ -6111,7 +6111,7 @@
       "machine": "job"
     }, {
       "field": "queue",
-      "machine": "taskQueueSystem",
+      "machine": "taskQueueProtocol",
       "replaces": "taskQueueProduct"
     } ],
     "syncs": [ {
@@ -6400,15 +6400,15 @@
           }
         }, {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 31
+            "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+            "line": 30
           },
           "construct": {
             "type": "temporal.foundations.taskqueue.QueueDetail",
             "args": [ {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 31
+                "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                "line": 30
               },
               "literal": {
                 "enum": {
@@ -6418,16 +6418,16 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 31
+                "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                "line": 30
               },
               "literal": {
                 "bool": false
               }
             }, {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 31
+                "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                "line": 30
               },
               "literal": {
                 "enum": {
@@ -6477,15 +6477,15 @@
           }
         }, {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 31
+            "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+            "line": 30
           },
           "construct": {
             "type": "temporal.foundations.taskqueue.QueueDetail",
             "args": [ {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 31
+                "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                "line": 30
               },
               "literal": {
                 "enum": {
@@ -6495,16 +6495,16 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 31
+                "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                "line": 30
               },
               "literal": {
                 "bool": false
               }
             }, {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 31
+                "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                "line": 30
               },
               "literal": {
                 "enum": {
@@ -6554,15 +6554,15 @@
           }
         }, {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 31
+            "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+            "line": 30
           },
           "construct": {
             "type": "temporal.foundations.taskqueue.QueueDetail",
             "args": [ {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 31
+                "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                "line": 30
               },
               "literal": {
                 "enum": {
@@ -6572,16 +6572,16 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 31
+                "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                "line": 30
               },
               "literal": {
                 "bool": false
               }
             }, {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 31
+                "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                "line": 30
               },
               "literal": {
                 "enum": {
@@ -6631,15 +6631,15 @@
           }
         }, {
           "position": {
-            "file": "model/temporal/foundations/taskqueue/system/System.scala",
-            "line": 31
+            "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+            "line": 30
           },
           "construct": {
             "type": "temporal.foundations.taskqueue.QueueDetail",
             "args": [ {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 31
+                "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                "line": 30
               },
               "literal": {
                 "enum": {
@@ -6649,16 +6649,16 @@
               }
             }, {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 31
+                "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                "line": 30
               },
               "literal": {
                 "bool": false
               }
             }, {
               "position": {
-                "file": "model/temporal/foundations/taskqueue/system/System.scala",
-                "line": 31
+                "file": "model/temporal/foundations/taskqueue/protocol/Protocol.scala",
+                "line": 30
               },
               "literal": {
                 "enum": {

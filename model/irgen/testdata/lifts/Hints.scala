@@ -15,8 +15,8 @@ package fixture.hints
 import framework.realize.*
 import temporal.realize.*
 import temporal.features.activity.deadline
-import temporal.features.activity.standalone.{activity, activityWorker}
-import temporal.features.activity.standalone.protocol.ActivityProtocol as activityProtocol
+import temporal.features.activity.mini.{activity, activityWorker}
+import temporal.features.activity.mini.protocol.ActivityProtocol as activityProtocol
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
 
 private def realizing(serverSteps: Vector[ServerStep], behavior: ApiBehavior) =

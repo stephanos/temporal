@@ -1,5 +1,5 @@
-package temporal.features.nexus.standalone.conventionfixtures
+package temporal.features.activity.workflow.conventionfixtures
 
 object Qualified:
-  val phase = classOf[temporal.features.nexus.shared.product.Phase]
-  val state = classOf[temporal.features.nexus.shared.product.State]
+  val timeout = classOf[temporal.features.activity.Timeout]
+  val timeoutType = classOf[temporal.features.activity.TimeoutType]

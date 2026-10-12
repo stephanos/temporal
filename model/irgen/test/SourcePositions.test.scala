@@ -23,7 +23,7 @@ class SourcePositionsFixtures extends munit.FunSuite:
           "package",
           "--server=false",
           "--library",
-          stored,
+          ModelBuild.copied(tools.directory.resolve(stored), scratch.resolve("sources")).toString,
           "-f",
           "-o",
           jar.toString

@@ -13,7 +13,11 @@ class ConventionsFixtures extends munit.FunSuite:
     Files.createTempDirectory(Files.createDirectories(build.resolve("history")), "conventions.")
 
   private def fixture(name: String): Path =
-    val sources = tools.directory.resolve(s"model/irgen/testdata/$name")
+    val sources =
+      ModelBuild.copied(
+        tools.directory.resolve(s"model/irgen/testdata/$name"),
+        scratch.resolve(name)
+      )
     val jar = scratch.resolve(s"$name.jar")
     tools
       .scalaCli(
@@ -70,14 +74,16 @@ class ConventionsFixtures extends munit.FunSuite:
     assert(result.output.contains("Checks.scala:"), result.output)
 
   test("compiler-synthetic membership positions do not reject authored dotted calls"):
-    val output = scratch.resolve("activity-record.json")
+    // The mini's Protocol, whose phase tests are authored dotted (fn-166.11; the standalone
+    // activity's ActivityRecord before).
+    val output = scratch.resolve("activity-protocol.json")
     val result = InProcess.lift(
       tools.directory,
       Seq(
         s"${build.resolve("model-scala.jar")}=model/",
         build.resolve("model-scala.classpath").toString,
         output.toString,
-        "temporal.features.activity.standalone.protocol.ActivityRecord"
+        "temporal.features.activity.mini.protocol.ActivityProtocol"
       )
     )
     assertEquals(result.exit, 0, result.output)
@@ -93,8 +99,8 @@ class ConventionsFixtures extends munit.FunSuite:
     assertEquals(
       refused,
       List(
-        "/irgen/testdata/conventions/Checks.scala:37:",
-        "/irgen/testdata/conventions/Checks.scala:38:"
+        "/irgen/testdata/conventions/Checks.scala:38:",
+        "/irgen/testdata/conventions/Checks.scala:39:"
       ),
       result.output
     )

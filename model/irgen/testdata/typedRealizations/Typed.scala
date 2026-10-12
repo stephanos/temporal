@@ -4,7 +4,7 @@ package fixture.typedrealizations
 
 import framework.realize.*
 import temporal.realize.*
-import temporal.features.activity.standalone.protocol.{ActivityProtocol, AdmissionFact}
+import temporal.features.activity.mini.protocol.{ActivityProtocol, AnswerFact as AdmissionFact}
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
 import io.temporal.api.enums.v1.ActivityExecutionStatus.*
 
@@ -13,7 +13,7 @@ private val started = rpc(calls, METHOD_START_ACTIVITY_EXECUTION) {}
 
 object Foreign extends Realizes(ActivityProtocol):
   object controller extends Controller(everyCase(started))
-  object evidence extends Evidences(answered(AdmissionFact.dispatchSent, started))
+  object evidence extends Evidences(answered(AdmissionFact.acceptedCurrent, started))
 
 private val describedForeign = DescribedStatus(
   machine = ActivityProtocol,
@@ -22,4 +22,4 @@ private val describedForeign = DescribedStatus(
   info = Field(_.getInfo),
   operation = Field(_.activityId),
   status = Field(_.status)
-)(AdmissionFact.statusPaused -> ACTIVITY_EXECUTION_STATUS_PAUSED)
+)(AdmissionFact.acceptedStale -> ACTIVITY_EXECUTION_STATUS_PAUSED)

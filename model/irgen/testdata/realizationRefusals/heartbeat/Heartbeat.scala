@@ -12,7 +12,7 @@ enum Fact:
   case started
 final case class State(active: Boolean)
 
-val heartbeat = input[Timeout]
+val heartbeat = input[Timeout](default = Timeout.unset)
 val job = Entity("job", key = "job_id")
 object client extends Actor:
   val start = action(this).creates(job).input(heartbeat)

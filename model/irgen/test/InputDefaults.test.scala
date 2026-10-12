@@ -11,40 +11,10 @@ class InputDefaultsTest extends munit.FunSuite:
   private val scratch =
     Files.createTempDirectory(tools.directory.resolve(".flow/tmp"), "input-defaults.")
   private val json = new com.fasterxml.jackson.databind.ObjectMapper()
-  private lazy val modelJar =
-    val jar = scratch.resolve("framework.jar")
-    tools
-      .scalaCli(
-        Seq(
-          "--power",
-          "package",
-          "--server=false",
-          "--library",
-          "model/project.scala",
-          "model/framework",
-          "-f",
-          "-o",
-          jar.toString
-        )
-      )
-      .orFail(): Unit
-    jar
-  private lazy val classpath =
-    val result = tools
-      .scalaCli(
-        Seq(
-          "compile",
-          "--server=false",
-          "--print-class-path",
-          "model/project.scala",
-          "model/framework"
-        )
-      )
-      .orFail()
-    val cp = result.diagnostics.trim.split("\n").last
-    val path = scratch.resolve("framework.classpath")
-    Files.writeString(path, s"$modelJar:${cp.substring(cp.indexOf(':') + 1)}"): Unit
-    path
+  // The packaged Models (ModelBuild): the framework this fixture reads, with the shared code and
+  // the mini, which its lifts admit only where its roots reach them.
+  private def modelJar = ModelBuild.jar
+  private def classpath = ModelBuild.classpath
   private lazy val fixtureJar =
     val directory = Files.createDirectory(scratch.resolve("source"))
     Files.copy(
@@ -64,7 +34,7 @@ class InputDefaultsTest extends munit.FunSuite:
           "--server=false",
           "--library",
           "--classpath",
-          Files.readString(classpath).trim,
+          ModelBuild.classpathEntries,
           directory.toString,
           "-f",
           "-o",

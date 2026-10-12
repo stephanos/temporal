@@ -8,14 +8,13 @@ import umpire.check.Tools
 class BoundsTest extends munit.FunSuite:
   override val munitTimeout: Duration = 10.minutes
   private val tools = Tools.here
-  private val task = tools.directory.resolve(".flow/tmp/fn159/task5")
-  private val modelJar = task.resolve("scoped-model.jar")
-  private val scratch = Files.createTempDirectory(task, "bounds.")
+  private val modelJar = ModelBuild.jar
+  private val scratch = umpire.check.Scratch.directory("bounds.")
   private val json = new com.fasterxml.jackson.databind.ObjectMapper()
   private def lift(jars: String, output: java.nio.file.Path, roots: Seq[String]) =
     val result = InProcess.lift(
       tools.directory,
-      Seq(jars, task.resolve("scoped-model.classpath").toString, output.toString) ++ roots
+      Seq(jars, ModelBuild.classpath.toString, output.toString) ++ roots
     )
     assertEquals(result.exit, 0, result.diagnostics)
     json.readTree(Files.readString(output))
@@ -79,19 +78,8 @@ class BoundsTest extends munit.FunSuite:
   test(
     "complete actual mini query inventory preserves budgets, overrides, totals and source positions"
   ):
-    val output = scratch.resolve("mini")
-    val result = InProcess.lift(
-      tools.directory,
-      Seq(
-        "--ir",
-        s"$modelJar=model/",
-        task.resolve("scoped-model.classpath").toString,
-        output.toString,
-        "activity-mini"
-      )
-    )
-    assertEquals(result.exit, 0, result.diagnostics)
-    val ir = json.readTree(Files.readString(output.resolve("activity-mini.json")))
+    // The mini lifted once for the suites from the packaged Models (ModelBuild).
+    val ir = json.readTree(Files.readString(ModelBuild.mini.resolve("activity-mini.json")))
     val expected = Vector(
       ("activityProduct.terminalStatesAreFinal", 3, "product/Completion.scala", 49, 315),
       (
@@ -124,18 +112,18 @@ class BoundsTest extends munit.FunSuite:
         60,
         18432
       ),
-      ("answerLoss", 3, "protocol/AnswerDispatch.scala", 37, 225),
-      ("cancellationUnknown", 3, "protocol/AnswerDispatch.scala", 36, 225),
-      ("completed", 3, "product/Product.scala", 46, 21),
-      ("failedAnswer", 3, "protocol/AnswerDispatch.scala", 38, 225),
+      ("answerLoss", 3, "protocol/AnswerDispatch.scala", 63, 225),
+      ("cancellationUnknown", 3, "protocol/AnswerDispatch.scala", 61, 225),
+      ("completed", 3, "product/Product.scala", 47, 21),
+      ("failedAnswer", 3, "protocol/AnswerDispatch.scala", 64, 225),
       ("protocolCompleted", 3, "protocol/Protocol.scala", 78, 576),
-      ("queueDelivery", 3, "protocol/Queue.scala", 29, 2304),
+      ("queueDelivery", 3, "protocol/Queue.scala", 30, 2304),
       ("retryCompleted", 6, "protocol/Protocol.scala", 73, 1152),
-      ("staleAnswerFound", 6, "protocol/AnswerTrusting.scala", 22, 450),
-      ("staleAnswerRejected", 6, "protocol/AnswerTrusting.scala", 23, 450),
-      ("staleIsFenced", 6, "protocol/AnswerDispatch.scala", 35, 450),
-      ("starts", 3, "protocol/DispatchingProgress.scala", 22, 192),
-      ("terminalIsFinal", 3, "product/Product.scala", 48, 315),
+      ("staleAnswerFound", 6, "protocol/AnswerTrusting.scala", 23, 450),
+      ("staleAnswerRejected", 6, "protocol/AnswerTrusting.scala", 24, 450),
+      ("staleIsFenced", 6, "protocol/AnswerDispatch.scala", 59, 450),
+      ("starts", 3, "protocol/DispatchingProgress.scala", 23, 192),
+      ("terminalIsFinal", 3, "product/Product.scala", 49, 315),
       ("terminalThroughProduct", 6, "protocol/Protocol.scala", 72, 18432)
     )
     val actual = ir.path("queries").elements().asScala.toVector
@@ -153,7 +141,7 @@ class BoundsTest extends munit.FunSuite:
       assertEquals(q.path("total").asText(), total.toString)
     for (section, size) <- Vector(
         "types" -> 22,
-        "functions" -> 92,
+        "functions" -> 90,
         "actions" -> 16,
         "machines" -> 8,
         "properties" -> 19,

@@ -4,8 +4,8 @@ import framework.*; import framework.Finite.given
 import framework.outcomes.Outcome
 import framework.realize.*
 import temporal.realize.*
-import temporal.features.activity.standalone.{client, maxAttempts, startToClose, MaxAttempts}
-import temporal.features.activity.standalone.protocol.ActivityProtocol
+import temporal.features.activity.mini.{client, maxAttempts, startToClose, MaxAttempts}
+import temporal.features.activity.mini.protocol.ActivityProtocol
 import temporal.features.activity.Timeout as ActivityTimeout
 import io.temporal.api.workflowservice.v1.StartActivityExecutionRequest as StartRequest
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
@@ -13,8 +13,8 @@ import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
 enum Timeout:
   case unset, expires
 
-val delay = input[Timeout]
-val close = input[Timeout]
+val delay = input[Timeout](default = Timeout.unset)
+val close = input[Timeout](default = Timeout.unset)
 val device = Entity(key = "activityId")
 object caller extends Actor:
   val start = action(this).input(delay).input(close).creates(device)
@@ -56,11 +56,6 @@ object Bare extends Realizes(ActivityProtocol):
 object Catalog extends Realizes(ActivityProtocol):
   object controller
       extends Controller(
-        deadlines[StartRequest](
-          client.start(maxAttempts := MaxAttempts.unlimited),
-          launch,
-          value
-        )(startToClose.sets(_.getStartToCloseTimeout)),
         deadlines[StartRequest](
           client.start(maxAttempts := MaxAttempts.one),
           launch,

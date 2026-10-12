@@ -9,9 +9,8 @@ class QualifiedPhasesTest extends munit.FunSuite:
   override val munitTimeout: Duration = 10.minutes
   private val tools = Tools.here
   private val stored = "model/irgen/testdata/qualifiedPhases/"
-  private val task = tools.directory.resolve(".flow/tmp/fn159/task3")
-  private val modelJar = task.resolve("scoped-model.jar")
-  private val scratch = Files.createTempDirectory(task, "phases.")
+  private val modelJar = ModelBuild.jar
+  private val scratch = umpire.check.Scratch.directory("phases.")
   private val names = for
     level <- Vector("File", "Machine", "Section", "Rules")
     form <- Vector("Wildcard", "Selective", "Renamed")
@@ -55,7 +54,7 @@ class QualifiedPhasesTest extends munit.FunSuite:
       tools.directory,
       Seq(
         s"$jar=$prefix,$modelJar=model/",
-        task.resolve("scoped-model.classpath").toString,
+        ModelBuild.classpath.toString,
         output.toString
       ) ++ roots.map("fixture.qualifiedphases." + _)
     )

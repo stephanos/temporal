@@ -9,9 +9,8 @@ class QualifiedRulesTest extends munit.FunSuite:
   override val munitTimeout: Duration = 10.minutes
   private val tools = Tools.here
   private val stored = "model/irgen/testdata/qualifiedRules/"
-  private val task = tools.directory.resolve(".flow/tmp/fn159/task1")
-  private val modelJar = task.resolve("scoped-model.jar")
-  private val scratch = Files.createTempDirectory(task, "qualified.")
+  private val modelJar = ModelBuild.jar
+  private val scratch = umpire.check.Scratch.directory("qualified.")
   private val jar = scratch.resolve("fixture.jar")
   private val forms = Vector("Whole", "Class", "Two", "Three", "Four")
   private val scopes = Vector("Outside", "InFrom")
@@ -45,7 +44,7 @@ class QualifiedRulesTest extends munit.FunSuite:
       tools.directory,
       Seq(
         s"$jar=$stored,$modelJar=model/",
-        task.resolve("scoped-model.classpath").toString,
+        ModelBuild.classpath.toString,
         output.toString
       ) ++ names.map("fixture.qualifiedrules." + _)
     )

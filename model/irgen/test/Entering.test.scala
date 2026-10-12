@@ -9,9 +9,8 @@ import umpire.check.Tools
 class EnteringTest extends munit.FunSuite:
   override val munitTimeout: Duration = 10.minutes
   private val tools = Tools.here
-  private val task = tools.directory.resolve(".flow/tmp/fn159/task7")
-  private val scratch = Files.createTempDirectory(task, "entering.")
-  private val modelJar = task.resolve("scoped-model.jar")
+  private val scratch = umpire.check.Scratch.directory("entering.")
+  private val modelJar = ModelBuild.jar
   private val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
   private val source =
     Files.readString(tools.directory.resolve("model/irgen/testdata/lifts/Entering.scala"))
@@ -32,7 +31,7 @@ class EnteringTest extends munit.FunSuite:
           "--server=false",
           "--library",
           "--classpath",
-          Files.readString(task.resolve("scoped-model.classpath")).trim,
+          ModelBuild.classpathEntries,
           dir.toString,
           "-f",
           "-o",
@@ -45,7 +44,7 @@ class EnteringTest extends munit.FunSuite:
       tools.directory,
       Seq(
         s"$jar=model/irgen/testdata/lifts/,$modelJar=model/",
-        task.resolve("scoped-model.classpath").toString,
+        ModelBuild.classpath.toString,
         output.toString,
         "fixture.entering.Entering",
         "fixture.entering.Cored"

@@ -265,27 +265,11 @@ class MiniRealizationFixtures extends munit.FunSuite:
   private val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
   private lazy val scratch = Files.createTempDirectory(
     Files.createDirectories(tools.directory.resolve("model/build/history")), "mini-realization.")
-  private val sources = Seq("model/project.scala", "model/framework", "model/temporal/Bounds.scala",
-    "model/temporal/foundations", "model/temporal/actors", "model/temporal/capabilities",
-    "model/temporal/realize", "model/temporal/features/activity/Activity.scala",
-    "model/temporal/features/activity_mini")
-  private lazy val jar =
-    val jar = scratch.resolve("mini.jar")
-    tools.scalaCli(Seq("--power", "package", "--server=false", "--library") ++ sources ++
-      Seq("-f", "-o", jar.toString)).orFail(): Unit
-    jar
-  private lazy val classpath =
-    val cp = tools.scalaCli(Seq("compile", "--server=false", "--print-class-path") ++ sources,
-      umpire.check.Output.KeptApart).orFail()
-    val classpath = scratch.resolve("classpath")
-    Files.writeString(classpath, cp.output.trim): Unit
-    classpath
+  // The packaged Models (ModelBuild): the mini, the shared code and the framework, lifted once.
+  private val jar = ModelBuild.jar
+  private def classpath = ModelBuild.classpath
   private lazy val lifted =
-    val out = scratch.resolve("ir")
-    val result = InProcess.lift(tools.directory,
-      Seq("--ir", s"$jar=model/", classpath.toString, out.toString, "activity-mini"))
-    assertEquals(result.exit, 0, result.output)
-    mapper.readTree(Files.readString(out.resolve("activity-mini.json")))
+    mapper.readTree(Files.readString(ModelBuild.mini.resolve("activity-mini.json")))
 
   private def realization(model: com.fasterxml.jackson.databind.JsonNode) =
     val declared = model.path("realizations").elements().asScala.toVector
@@ -2128,12 +2112,15 @@ class Fixtures extends munit.FunSuite:
   // A test that builds or lifts is started in beforeAll, after the fixtures' lifts, and runs beside
   // the others; the test awaits it, so its assertions and its failure stay its own.
   private val started = mutable.ArrayBuffer.empty[() => Unit]
-  private def concurrently(name: String)(body: => Unit)(using
+  // A test held for the sweep (SweepHeld) is not started.
+  private def concurrently(options: munit.TestOptions)(body: => Unit)(using
       munit.Location
   ): Unit =
-    lazy val running = Future(blocking(body))
-    started += (() => running: Unit)
-    test(name)(Await.result(running, munitTimeout))
+    if options.tags(munit.Ignore) then test(options)(body)
+    else
+      lazy val running = Future(blocking(body))
+      started += (() => running: Unit)
+      test(options)(Await.result(running, munitTimeout))
 
   // A fixture's sources are stored under testdata, which the lifter's project.scala excludes from
   // its build, since some of them must not compile. `materialize` copies them into the scratch
@@ -2143,7 +2130,7 @@ class Fixtures extends munit.FunSuite:
     val to = Files.createDirectories(scratch.resolve(fixture))
     val stream = Files.newDirectoryStream(testdata.resolve(fixture), "*.scala")
     try
-      for from <- stream.asScala do
+      for from <- stream.asScala if !SweepHeld.source(fixture, from.getFileName.toString) do
         Files.writeString(
           to.resolve(from.getFileName.toString),
           Files
@@ -2632,7 +2619,10 @@ class Fixtures extends munit.FunSuite:
     "valComposition",
     "UnobservedRefiner",
     "IndexedQueries$.queries"
-  ).map(rejectsRoot) ++ scriptRejects ++ realizationObjectRejects ++
+  ).map(rejectsRoot) ++
+    // ScriptRejects.scala is held for the sweep (SweepHeld.sources), and its refusals with it.
+    (if SweepHeld.source("lifts", "ScriptRejects.scala") then Nil
+     else scriptRejects ++ realizationObjectRejects) ++
     sectionRejects ++ hintRejects ++ markerRejects ++ blockRejects ++ statusRejects ++ roleRejects ++
     ruleRejects ++ composedProgressRejects
 
@@ -3329,9 +3319,9 @@ class Fixtures extends munit.FunSuite:
           "`object refinement extends Refinement(product)`, which holds the machine's refinement",
         s"lift: $f:118: strayBlock is a step function, and belongs in the `effects` object of its " +
           "machine's object, not in Misfiled",
-        s"lift: $f:127: dim is a monitor, assumption, hole or channel, declared in " +
+        s"lift: $f:127: dim is a monitor, assumption, hole or channel, declared directly in " +
           "Misfiled.properties: it belongs in the `monitors` object of its machine's object",
-        s"lift: $f:128: borrowed is declared over Switch, a machine object: it belongs in " +
+        s"lift: $f:129: borrowed is declared over Switch, a machine object: it belongs in " +
           "Switch.properties",
         s"lift: $f:135: a step function is bound by hand, `action ~> step`, in HandBound: $handBound",
         s"lift: $f:139: kept is a step function, declared inside HandBound.effects.more: it " +
@@ -4176,7 +4166,10 @@ class Fixtures extends munit.FunSuite:
   // fn-112.9: the script helpers and the Temporal kit beside the core records they stand for, and
   // the kit's `field(_.name) :=` beside `Assignment.typed` (lifts/Scripts.scala).
   concurrently(
-    "script helpers, the Temporal kit and field := lift as the core records they stand for"
+    SweepHeld(
+      "script helpers, the Temporal kit and field := lift as the core records they stand for",
+      "features/activity/standalone, through lifts/Scripts.scala"
+    )
   ):
     import com.fasterxml.jackson.databind.JsonNode
     import com.fasterxml.jackson.databind.node.ObjectNode
@@ -4537,7 +4530,10 @@ class Fixtures extends munit.FunSuite:
   // Scenario keys; and the keys of names that carry separators, over two members that bind actions
   // spelled alike.
   concurrently(
-    "typed members, syncs, replaces, withMember, synced and own keep the composed keys"
+    SweepHeld(
+      "the standalone activity's typed members, syncs and replaces keep the composed keys",
+      "features/activity/standalone"
+    )
   ):
     import com.fasterxml.jackson.databind.JsonNode
     // Each design is an object, named as the composition is with the first letter raised: its
@@ -4554,7 +4550,7 @@ class Fixtures extends munit.FunSuite:
     val unqueried = Seq("recordOverForgetful", "recordOverVolatile")
     val roots =
       (overQueue ++ overMatching).map(d => s"${designObject(d)}$$.queries$$.${d}Queries") ++
-        unqueried.map(designObject) ++ Seq("switchQueries", "flickedBothOnce")
+        unqueried.map(designObject)
     val (model, _, _) = declarations("members", roots)
     def all(kind: String) = model.path(kind).elements().asScala.toList
     def named(name: String)(n: JsonNode) =
@@ -4637,6 +4633,48 @@ class Fixtures extends munit.FunSuite:
           "admit"
         )
       )
+
+  // fn-166.11: the mini's composition over its task queue, the production composition the mini
+  // keeps (the standalone activity's seven are held for the sweep, above).
+  concurrently("the mini's typed members, sync and own keep the composed keys"):
+    import com.fasterxml.jackson.databind.JsonNode
+    val (model, _, _) = declarations(
+      "miniMembers",
+      Seq("temporal.features.activity.mini.protocol.Queue$.queries")
+    )
+    def texts(n: JsonNode, field: String) =
+      n.elements().asScala.map(_.path(field).asText()).toList
+    val queue = model
+      .path("compositions")
+      .elements()
+      .asScala
+      .find(_.path("name").asText() == "queue")
+      .getOrElse(fail("no composition queue"))
+    assertEquals(texts(queue.path("members"), "field"), List("activity", "queue"))
+    assertEquals(texts(queue.path("members"), "machine"), List("protocolMember", "queueScheduled"))
+    assertEquals(texts(queue.path("members"), "replaces"), List("", ""))
+    assertEquals(texts(queue.path("syncs"), "name"), List("poll"))
+    val delivery = model
+      .path("scenarios")
+      .elements()
+      .asScala
+      .find(s => s.path("machine").asText() == "queue" && s.path("name").asText() == "delivery")
+      .getOrElse(fail("no Scenario delivery of queue"))
+    assertEquals(
+      delivery.path("keys").elements().asScala.map(_.asText()).toList,
+      List("activity_start-unset-unset-one", "queue_schedule-unset", "poll")
+    )
+
+  // fn-112.10: keys of names that carry separators, over two members that bind actions spelled
+  // alike, and a sync named after its first member's action (lifts/Members.scala).
+  concurrently("withMember, synced and own keep the composed keys of names with separators"):
+    import com.fasterxml.jackson.databind.JsonNode
+    val (model, _, _) = declarations("members", Seq("switchQueries", "flickedBothOnce"))
+    def all(kind: String) = model.path(kind).elements().asScala.toList
+    def named(name: String)(n: JsonNode) =
+      n.path("name").asText() == name
+    def texts(n: JsonNode, field: String) =
+      n.elements().asScala.map(_.path(field).asText()).toList
     def keys(name: String) =
       all("scenarios")
         .find(named(name))
@@ -4678,21 +4716,9 @@ class Fixtures extends munit.FunSuite:
     assertEquals(bound("leftSwitch"), List("Left.tap", "Left.flick", "turnOn"))
     assertEquals(bound("rightSwitch"), List("Right.tap", "Right.flick"))
 
-  concurrently(
-    "every Temporal realization carries the shared rejection-code table"
-  ):
-    val rootGroups = Seq(
-      Seq(
-        "temporal.features.activity.standalone.realization.StandaloneActivityRun",
-        "temporal.features.activity.standalone.realization.HeldDispatchRun",
-        "temporal.features.activity.standalone.realization.LostStartAnswerRun"
-      ),
-      Seq(
-        "temporal.features.nexus.workflow.realization.WorkflowNexusRun",
-        "temporal.features.nexus.workflow.realization.TrustingCallerRun"
-      ),
-      Seq("temporal.features.nexus.standalone.realization.StandaloneNexusRun")
-    )
+  // Every Temporal realization carries the shared rejection-code table: the mini's here, the real
+  // features' held for the sweep.
+  private def rejectionCodes(name: String, rootGroups: Seq[Seq[String]]): Unit =
     val expected = List(
       "REJECTION_NOT_FOUND" -> "NOT_FOUND",
       "REJECTION_ALREADY_EXISTS" -> "ALREADY_EXISTS",
@@ -4700,7 +4726,7 @@ class Fixtures extends munit.FunSuite:
       "REJECTION_INVALID_ARGUMENT" -> "INVALID_ARGUMENT"
     )
     val realizations = rootGroups.zipWithIndex.flatMap { (roots, index) =>
-      val (model, _, _) = declarations(s"rejectionCodes$index", roots)
+      val (model, _, _) = declarations(s"$name$index", roots)
       model.path("realizations").elements().asScala.toList
     }
     assertEquals(realizations.size, rootGroups.map(_.size).sum)
@@ -4713,8 +4739,39 @@ class Fixtures extends munit.FunSuite:
         .toList
       assertEquals(codes, expected, realization.path("name").asText())
 
+  concurrently("the mini's realization carries the shared rejection-code table"):
+    rejectionCodes(
+      "miniRejectionCodes",
+      Seq(Seq("temporal.features.activity.mini.realization.MiniActivityRun"))
+    )
+
   concurrently(
-    "the actual WithTaskQueue capability root folds its typed composed outcome"
+    SweepHeld(
+      "every real feature's realization carries the shared rejection-code table",
+      "features/activity/standalone, features/nexus"
+    )
+  ):
+    rejectionCodes(
+      "rejectionCodes",
+      Seq(
+        Seq(
+          "temporal.features.activity.standalone.realization.StandaloneActivityRun",
+          "temporal.features.activity.standalone.realization.HeldDispatchRun",
+          "temporal.features.activity.standalone.realization.LostStartAnswerRun"
+        ),
+        Seq(
+          "temporal.features.nexus.workflow.realization.WorkflowNexusRun",
+          "temporal.features.nexus.workflow.realization.TrustingCallerRun"
+        ),
+        Seq("temporal.features.nexus.standalone.realization.StandaloneNexusRun")
+      )
+    )
+
+  concurrently(
+    SweepHeld(
+      "the actual WithTaskQueue capability root folds its typed composed outcome",
+      "features/activity/standalone (the mini's queue composition declares no capabilities)"
+    )
   ):
     val (model, _, _) = declarations(
       "withTaskQueueCapability",
@@ -4951,7 +5008,7 @@ class Fixtures extends munit.FunSuite:
       s"$jar=${stored("unsupported")}",
       modelClasspath.toString,
       "/dev/null",
-      "temporal.fixture.Unsupported"
+      "fixture.unsupported.Unsupported"
     )
     assertNotEquals(lift.exit, 0)
     val line =
@@ -5528,7 +5585,8 @@ class Fixtures extends munit.FunSuite:
       java.security.MessageDigest.getInstance("SHA-256").digest(historicalBytes)
     assertEquals(
       digest.map(b => f"${b & 0xff}%02x").mkString,
-      "efdd6380f6266a955434f28a2c486065829f077e980b1136939bc1994112bf90"
+      // fn-159.10 reworded the refusal of an input without a default (Rejects.scala:573).
+      "c246f421339a3c833965311c3ae351524c864ff4edb8089faedd2b5d714f4d01"
     )
     val historical =
       Files.readAllLines(expected.resolve("rejects.txt")).asScala.toVector
@@ -5583,7 +5641,10 @@ class Fixtures extends munit.FunSuite:
         case Some((from, to)) => to + vocabulary.drop(from.length)
         case None             => vocabulary
     }
-    authored
+    // The refusals of a source held for the sweep are held with it (SweepHeld.sources).
+    authored.filterNot(line =>
+      SweepHeld.sources.exists(held => line.startsWith(s"lift: model/irgen/testdata/$held:"))
+    )
 
   test(
     "the complete authored refusal contract is independent of held managed comparisons"
@@ -5892,21 +5953,8 @@ class Fixtures extends munit.FunSuite:
       Files.isRegularFile(out.resolve("coreonly.json")),
       "the realization-only foundation was not collected"
     )
-    assertEquals(
-      listed(out),
-      Seq(
-        "activity-mini.json",
-        "activity-mini.waivers.json",
-        "activity-standalone.json",
-        "activity-standalone.waivers.json",
-        "coreonly.json",
-        "nexus-standalone.json",
-        "nexus-standalone.waivers.json",
-        "nexus-workflow.json",
-        "nexus-workflow.waivers.json",
-        "taskqueue.json"
-      )
-    )
+    // The fixture's own file beside every file the packaged Models declare (ModelBuild).
+    assertEquals(listed(out), (ModelBuild.files :+ "coreonly.json").sorted)
     assert(!Files.exists(out.resolve("quiet.json")), "an unrelated value requested an actor file")
     val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
     val collected = mapper.readTree(Files.readString(out.resolve("coreonly.json")))
@@ -5944,15 +5992,14 @@ class Fixtures extends munit.FunSuite:
     )
     assertEquals(refused(result), Nil)
     assert(!result.failed, result.diagnostics)
+    // The fixture's own files: none states a waiver (fn-166.11; the waivers files were the real
+    // features', which shared these files' names while the packaged Models held them).
     assertEquals(
       listed(out),
       Seq(
         "activity-standalone.json",
-        "activity-standalone.waivers.json",
         "nexus-standalone.json",
-        "nexus-standalone.waivers.json",
         "nexus-workflow.json",
-        "nexus-workflow.waivers.json",
         "relay-standalone.json",
         "relay-workflow.json"
       )

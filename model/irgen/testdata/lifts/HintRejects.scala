@@ -7,8 +7,8 @@ package fixture.hintrejects
 
 import framework.realize.*
 import temporal.realize.*
-import temporal.features.activity.standalone.activity
-import temporal.features.activity.standalone.protocol.ActivityProtocol as activityProtocol
+import temporal.features.activity.mini.activity
+import temporal.features.activity.mini.protocol.ActivityProtocol as activityProtocol
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.*
 private def realizing(hint: Visibility) = temporalRealization(
   machine = activityProtocol,

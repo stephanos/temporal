@@ -10,8 +10,8 @@ package fixture.literals
 import framework.realize.*
 import temporal.realize.*
 import temporal.realize.WorkerInstruction.{AttemptFailure, NexusReply, WorkflowCommand}
-import temporal.features.activity.standalone.activity
-import temporal.features.activity.standalone.protocol.ActivityProtocol as activityProtocol
+import temporal.features.activity.mini.activity
+import temporal.features.activity.mini.protocol.ActivityProtocol as activityProtocol
 import io.temporal.api.command.v1.{Command as ApiCommand, ScheduleNexusOperationCommandAttributes}
 import io.temporal.api.common.v1.Payload
 import io.temporal.api.enums.v1.{CommandType, NexusHandlerErrorRetryBehavior}

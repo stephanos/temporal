@@ -1,7 +1,6 @@
 package umpire.irgen
 
 import java.nio.file.Files
-import java.security.MessageDigest
 import scala.concurrent.duration.*
 import scala.jdk.CollectionConverters.*
 import umpire.check.Tools
@@ -9,8 +8,7 @@ import umpire.check.Tools
 class CapabilityNamesTest extends munit.FunSuite:
   override val munitTimeout: Duration = 10.minutes
   private val tools = Tools.here
-  private val task = tools.directory.resolve(".flow/tmp/fn159/task8")
-  private val scratch = Files.createTempDirectory(task, "capability-names.")
+  private val scratch = umpire.check.Scratch.directory("capability-names.")
   private val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
 
   test("isolated actual kinds emit owned origins, applicable laws and exact Query budgets"):
@@ -29,7 +27,7 @@ class CapabilityNamesTest extends munit.FunSuite:
           "--server=false",
           "--library",
           "--classpath",
-          Files.readString(task.resolve("scoped-model.classpath")).trim,
+          ModelBuild.classpathEntries,
           scratch.toString,
           "-f",
           "-o",
@@ -41,8 +39,8 @@ class CapabilityNamesTest extends munit.FunSuite:
     val result = InProcess.lift(
       tools.directory,
       Seq(
-        s"$jar=model/irgen/testdata/capabilityNames/,${task.resolve("scoped-model.jar")}=model/",
-        task.resolve("scoped-model.classpath").toString,
+        s"$jar=model/irgen/testdata/capabilityNames/,${ModelBuild.jar}=model/",
+        ModelBuild.classpath.toString,
         out.toString,
         "fixture.capabilitynames.Record$.capabilities",
         "fixture.capabilitynames.Record$.queries"
@@ -94,13 +92,8 @@ class CapabilityNamesTest extends munit.FunSuite:
   test(
     "actual mini capability instances preserve full bodies, positions, waiver and Query metadata"
   ):
-    val bytes = Files.readAllBytes(task.resolve("current/activity-mini.json"))
-    def digest(data: Array[Byte]) = MessageDigest
-      .getInstance("SHA-256")
-      .digest(data)
-      .map(b => f"${b & 0xff}%02x")
-      .mkString
-    assertEquals(digest(bytes), "b153c4b8eb2e0314d33add4a35b43eda712cb8bf9d3591086aeb1dcd2e5b0728")
+    // The mini lifted from the packaged Models, rather than a stored lift of an earlier mini.
+    val bytes = Files.readAllBytes(ModelBuild.mini.resolve("activity-mini.json"))
     val ir = mapper.readTree(bytes)
     val expected = Map(
       "activityProtocol.retryable.attemptCountIsWithinPolicy" -> "Retryable.attemptCountIsWithinPolicy",
@@ -145,7 +138,7 @@ class CapabilityNamesTest extends munit.FunSuite:
       assertEquals(q.path("limits").path("search").asInt(), 262144)
       assertEquals(q.path("total").asText(), "18432")
     val waiver = mapper
-      .readTree(Files.readString(task.resolve("current/activity-mini.waivers.json")))
+      .readTree(Files.readString(ModelBuild.mini.resolve("activity-mini.waivers.json")))
       .path("waivers")
       .get(1)
     assertEquals(

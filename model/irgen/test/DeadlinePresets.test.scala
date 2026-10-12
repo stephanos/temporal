@@ -11,33 +11,9 @@ class InputDeadlinePresetsTest extends munit.FunSuite:
   private val tools = Tools.here
   private val scratch =
     Files.createTempDirectory(tools.directory.resolve(".flow/tmp"), "input-deadlines.")
-  private val sources = Seq(
-    "model/project.scala",
-    "model/framework",
-    "model/temporal/Bounds.scala",
-    "model/temporal/foundations",
-    "model/temporal/actors",
-    "model/temporal/capabilities",
-    "model/temporal/realize",
-    "model/temporal/features/activity/Activity.scala",
-    "model/temporal/features/activity_mini"
-  )
-  private lazy val modelJar =
-    val jar = scratch.resolve("model.jar")
-    tools
-      .scalaCli(
-        Seq("--power", "package", "--server=false", "--library") ++ sources ++
-          Seq("-f", "-o", jar.toString)
-      )
-      .orFail(): Unit
-    jar
-  private lazy val classpath =
-    val result =
-      tools.scalaCli(Seq("compile", "--server=false", "--print-class-path") ++ sources).orFail()
-    val cp = result.diagnostics.trim.split("\n").last
-    val file = scratch.resolve("model.classpath")
-    Files.writeString(file, s"$modelJar:${cp.substring(cp.indexOf(':') + 1)}"): Unit
-    file
+  // The packaged Models: the mini and the shared code this fixture reads.
+  private val modelJar = ModelBuild.jar
+  private def classpath = ModelBuild.classpath
   private val source = """package fixture.inputdeadlines
 import framework.*
 import framework.Finite.given
@@ -86,7 +62,7 @@ object Preset extends Realizes(Device):
           "--server=false",
           "--library",
           "--classpath",
-          Files.readString(classpath).trim,
+          ModelBuild.classpathEntries,
           directory.toString,
           "-f",
           "-o",
@@ -258,7 +234,10 @@ class DeadlinePresetsSuite extends munit.FunSuite:
       .toSeq
 
   test(
-    "three retry presets retain all 48 distinct start classes and their command identities"
+    SweepHeld(
+      "three retry presets retain all 48 distinct start classes and their command identities",
+      "features/activity/standalone"
+    )
   ):
     val controller = items(
       "temporal.features.activity.standalone.realization.StandaloneActivityRun"
@@ -295,15 +274,19 @@ class DeadlinePresetsSuite extends munit.FunSuite:
         case "two"       => "2"
       assertEquals(maximum.at("/value/literal/number").asText(), expected)
     assertEquals(starts.map(_.at("/command/id").asText()).distinct.size, 1)
+
+  // Over the mini's two attempt presets (fn-166.11; the standalone activity's three, with
+  // `unlimited`, bound six).
+  test("a preset catalog binds its four distinct classes and selects each once"):
     val catalog = items("fixture.deadlinepresets.Catalog")
     val bound = catalog
       .dropRight(1)
       .flatMap(_.path("performs").elements().asScala)
       .map(_.path("step"))
     val selected = catalog.last.path("when").elements().asScala.toSeq
-    assertEquals(bound.size, 6)
+    assertEquals(bound.size, 4)
     assertEquals(selected, bound)
-    assertEquals(selected.distinct.size, 6)
+    assertEquals(selected.distinct.size, 4)
 
   test("a bare all-Timeout action keeps its four bindings and onPath catalog"):
     val controller = items("fixture.deadlinepresets.Legacy")
@@ -347,7 +330,10 @@ class DeadlinePresetsSuite extends munit.FunSuite:
   // fn-162: the retry after an attempt timeout runs on the activity Protocol itself, through its own
   // realization, which names the Queries it runs.
   test(
-    "the timeout retry's realization runs its Queries with only its own occurrence evidence"
+    SweepHeld(
+      "the timeout retry's realization runs its Queries with only its own occurrence evidence",
+      "features/activity/standalone"
+    )
   ):
     val prefix = "temporal.features.activity.standalone.protocol."
     val (ran, out) = lift(

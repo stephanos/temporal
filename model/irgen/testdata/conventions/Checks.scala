@@ -5,7 +5,7 @@ package fixture.conventions
 
 import framework.*
 import framework.Finite.given CanEqual[?, ?]
-import temporal.features.nexus.workflow.protocol.{
+import temporal.features.activity.mini.protocol.{
   Fact as WorkflowFact,
   Phase as WorkflowPhase,
   State as WorkflowState
@@ -20,7 +20,7 @@ enum Outcome:
 val _ = () => summon[CanEqual[Kind, Kind]]
 val kindFinite: Finite[Kind] = summon[Finite[Kind]]
 val aliased = List(classOf[WorkflowPhase], classOf[WorkflowFact], classOf[WorkflowState])
-val qualified = classOf[temporal.features.nexus.standalone.protocol.State]
+val qualified = classOf[temporal.features.activity.mini.product.State]
 
 object Checked extends Machine[State, Outcome, Nothing]:
   val init = State(Kind.a)

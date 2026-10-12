@@ -8,9 +8,8 @@ import umpire.check.Tools
 class ObservationsTest extends munit.FunSuite:
   override val munitTimeout: Duration = 10.minutes
   private val tools = Tools.here
-  private val task = tools.directory.resolve(".flow/tmp/fn159/task6")
-  private val modelJar = task.resolve("scoped-model.jar")
-  private val scratch = Files.createTempDirectory(task, "observations.")
+  private val modelJar = ModelBuild.jar
+  private val scratch = umpire.check.Scratch.directory("observations.")
   private val json = new com.fasterxml.jackson.databind.ObjectMapper()
   private val accepted = Files.readString(
     tools.directory.resolve("model/irgen/testdata/observations/Observations.scala")
@@ -32,7 +31,7 @@ class ObservationsTest extends munit.FunSuite:
           "--server=false",
           "--library",
           "--classpath",
-          Files.readString(task.resolve("scoped-model.classpath")).trim,
+          ModelBuild.classpathEntries,
           directory.toString,
           "-f",
           "-o",
@@ -45,7 +44,7 @@ class ObservationsTest extends munit.FunSuite:
       tools.directory,
       Seq(
         s"$jar=model/irgen/testdata/observations/,$modelJar=model/",
-        task.resolve("scoped-model.classpath").toString,
+        ModelBuild.classpath.toString,
         output.toString,
         "fixture.observations.Observations$package$.run"
       )

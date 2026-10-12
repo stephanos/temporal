@@ -26,6 +26,6 @@ object ContractProtocol
   object queries:
     val any = scenario.free
     val terminal = query
-      .verify(product.ContractProduct.properties.terminal)
+      .verify(product.ContractProduct.properties.safety.terminal)
       .in(any)
       .limits(Limits("one", 1, 1, 8))

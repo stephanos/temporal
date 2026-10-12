@@ -1,6 +1,6 @@
 package framework.discoveryfixtures
 
-import temporal.features.nexus.shared.product.NexusProduct
+import temporal.features.activity.mini.product.ActivityProduct
 
 object Discovery:
-  val forbiddenFeature = NexusProduct.name
+  val forbiddenFeature = ActivityProduct.name

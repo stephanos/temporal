@@ -16,42 +16,8 @@
     "identities": {}
   },
   "taskqueue": {
-    "sha256": "6f27605db7ddf3fa34ccf8c0afcd5a4266fa1876db8eae57b2e91befcb336927",
-    "identities": {
-      "taskQueueSystem": "taskQueueProtocol",
-      "taskQueueSystem.evidence": "taskQueueProtocol.evidence",
-      "taskQueueSystem.rules.ackLoss": "taskQueueProtocol.rules.ackLoss",
-      "taskQueueSystem.rules.acknowledge": "taskQueueProtocol.rules.acknowledge",
-      "taskQueueSystem.rules.addActivityTask": "taskQueueProtocol.rules.addActivityTask",
-      "taskQueueSystem.rules.crash": "taskQueueProtocol.rules.crash",
-      "taskQueueSystem.rules.deliver": "taskQueueProtocol.rules.deliver",
-      "taskQueueSystem.rules.enqueue": "taskQueueProtocol.rules.enqueue",
-      "taskQueueSystem.rules.persistTask": "taskQueueProtocol.rules.persistTask",
-      "taskQueueSystem.rules.syncMatch": "taskQueueProtocol.rules.syncMatch",
-      "temporal.foundations.taskqueue.product.TaskQueueProduct$.effects$.acknowledgeView": "temporal.foundations.taskqueue.product.Queueing.queueing$.effects$.acknowledgeView",
-      "temporal.foundations.taskqueue.product.TaskQueueProduct$.effects$.deliverView": "temporal.foundations.taskqueue.product.Queueing.queueing$.effects$.deliverView",
-      "temporal.foundations.taskqueue.product.TaskQueueProduct$.effects$.enqueueView": "temporal.foundations.taskqueue.product.Queueing.queueing$.effects$.enqueueView",
-      "temporal.foundations.taskqueue.system": "temporal.foundations.taskqueue.protocol",
-      "temporal.foundations.taskqueue.system.TaskQueueSystem$.effects$.ackLossDetail": "temporal.foundations.taskqueue.protocol.Queueing.queueing$.effects$.ackLossDetail",
-      "temporal.foundations.taskqueue.system.TaskQueueSystem$.effects$.acknowledgeDetail": "temporal.foundations.taskqueue.protocol.Queueing.queueing$.effects$.acknowledgeDetail",
-      "temporal.foundations.taskqueue.system.TaskQueueSystem$.effects$.crashDetail": "temporal.foundations.taskqueue.protocol.Queueing.queueing$.effects$.crashDetail",
-      "temporal.foundations.taskqueue.system.TaskQueueSystem$.effects$.deliverDetail": "temporal.foundations.taskqueue.protocol.Queueing.queueing$.effects$.deliverDetail",
-      "temporal.foundations.taskqueue.system.TaskQueueSystem$.effects$.enqueueDetail": "temporal.foundations.taskqueue.protocol.Queueing.queueing$.effects$.enqueueDetail",
-      "temporal.foundations.taskqueue.system.TaskQueueSystem$.effects$.forgetfulCrash": "temporal.foundations.taskqueue.protocol.Queueing.queueing$.effects$.forgetfulCrash",
-      "temporal.foundations.taskqueue.system.TaskQueueSystem$.effects$.invokeDetail": "temporal.foundations.taskqueue.protocol.Queueing.queueing$.effects$.invokeDetail",
-      "temporal.foundations.taskqueue.system.TaskQueueSystem$.effects$.persistDetail": "temporal.foundations.taskqueue.protocol.Queueing.queueing$.effects$.persistDetail",
-      "temporal.foundations.taskqueue.system.TaskQueueSystem$.effects$.reserveDetail": "temporal.foundations.taskqueue.protocol.Queueing.queueing$.effects$.reserveDetail",
-      "temporal.foundations.taskqueue.system.TaskQueueSystem$.refinement$.toProduct": "temporal.foundations.taskqueue.protocol.TaskQueueProtocol$.refinement$.toProduct",
-      "temporal.foundations.taskqueue.system.TaskQueueSystem$.refinement$.visible": "temporal.foundations.taskqueue.protocol.TaskQueueProtocol$.refinement$.visible",
-      "temporal.foundations.taskqueue.system.TaskQueueSystem$.refinement$.visibleOutcomes": "temporal.foundations.taskqueue.protocol.TaskQueueProtocol$.refinement$.visibleOutcomes",
-      "temporal.foundations.taskqueue.system.TaskQueueSystem$.states$.answerable": "temporal.foundations.taskqueue.protocol.TaskQueueProtocol$.states$.answerable",
-      "temporal.foundations.taskqueue.system.TaskQueueSystem$.states$.deliverable": "temporal.foundations.taskqueue.protocol.TaskQueueProtocol$.states$.deliverable",
-      "temporal.foundations.taskqueue.system.TaskQueueSystem$.states$.matchable": "temporal.foundations.taskqueue.protocol.TaskQueueProtocol$.states$.matchable",
-      "temporal.foundations.taskqueue.system.TaskQueueSystem$.states$.oneMoreDelivery": "temporal.foundations.taskqueue.protocol.TaskQueueProtocol$.states$.oneMoreDelivery",
-      "temporal.foundations.taskqueue.system.TaskQueueSystem$.states$.queueEnds": "temporal.foundations.taskqueue.protocol.TaskQueueProtocol$.states$.queueEnds",
-      "forgetfulQueue": "queueForgetful",
-      "forgetfulQueue.rules.crash": "queueForgetful.rules.crash"
-    }
+    "sha256": "fe657df91fafd7e1c216c0cecc313f064e0e2a09adf91ded5e6112f11bb65f10",
+    "identities": {}
   },
   "retryCapabilities": {
     "sha256": "d20f27bb494264f6aa8b8a549f7e81ed1122110272b49c79970fe57e38d61667",
@@ -62,7 +28,8 @@
       "temporal.capabilities.Retryable.failureCancels": "temporal.capabilities.system.Retryable.failureCancels",
       "temporal.capabilities.Retryable.failureEndsFailed": "temporal.capabilities.system.Retryable.failureEndsFailed",
       "temporal.capabilities.Retryable.failurePauses": "temporal.capabilities.system.Retryable.failurePauses",
-      "temporal.capabilities.Retryable.failureReturnsToWaiting": "temporal.capabilities.system.Retryable.failureReturnsToWaiting"
+      "temporal.capabilities.Retryable.failureReturnsToWaiting": "temporal.capabilities.system.Retryable.failureReturnsToWaiting",
+      "scala.Option[framework.Domain$package$.UpTo]": "scala.Option[framework.Domain$package$.UpTo[2]]"
     }
   },
   "retrySelection": {
@@ -72,7 +39,8 @@
       "temporal.capabilities.Retryable.failureCancels": "temporal.capabilities.system.Retryable.failureCancels",
       "temporal.capabilities.Retryable.failureEndsFailed": "temporal.capabilities.system.Retryable.failureEndsFailed",
       "temporal.capabilities.Retryable.failurePauses": "temporal.capabilities.system.Retryable.failurePauses",
-      "temporal.capabilities.Retryable.failureReturnsToWaiting": "temporal.capabilities.system.Retryable.failureReturnsToWaiting"
+      "temporal.capabilities.Retryable.failureReturnsToWaiting": "temporal.capabilities.system.Retryable.failureReturnsToWaiting",
+      "scala.Option[framework.Domain$package$.UpTo]": "scala.Option[framework.Domain$package$.UpTo[2]]"
     }
   },
   "deadlineCapabilities": {

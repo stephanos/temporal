@@ -1,5 +1,5 @@
-package temporal.features.nexus.standalone.conventionfixtures
+package temporal.features.activity.workflow.conventionfixtures
 
-import temporal.features.nexus.workflow.protocol.NexusProtocol
+import temporal.features.activity.mini.protocol.ActivityProtocol
 
-val forbiddenOtherForm = NexusProtocol.name
+val forbiddenOtherForm = ActivityProtocol.name

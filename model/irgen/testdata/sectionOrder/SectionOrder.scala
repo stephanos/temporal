@@ -56,13 +56,13 @@ object Switch extends Machine[Lamp, Outcome, Nothing], Phased[Lamp, Boolean](_.l
   object rules extends Rules:
     on(hand.flip)(when(false, true) ~> effects.flipped)
     on(clock.tick)(where(s => !states.lit(s)) ~> effects.kept)
-
   object properties:
-    val turnsOn = property when hand.flip holds (after => after.state.lit)
+    object safety:
+      val turnsOn = property when hand.flip holds (after => after.state.lit)
 
   object queries:
     val flipped = scenario.actions(hand.flip)
-    val asked = query verify properties.turnsOn in flipped limits one total 2
+    val asked = query verify properties.safety.turnsOn in flipped limits one total 2
 
 // A machine that refines Switch, its refinement in its own section.
 object Dimmer extends Machine[Lamp, Outcome, Nothing]:
@@ -87,9 +87,9 @@ object Twins extends Composition[Pair](_.left -> Switch, _.right -> Kept):
 
   object syncs extends Syncs:
     sync(_.left -> hand.flip, _.right -> hand.flip)
-
   object properties:
-    val bothFlip = property holds (after => after.state.left == after.state.right)
+    object safety:
+      val bothFlip = property holds (after => after.state.left == after.state.right)
 
 object Backwards extends Machine[Lamp, Outcome, Nothing]:
   val init = Lamp(false)
@@ -102,8 +102,8 @@ object Backwards extends Machine[Lamp, Outcome, Nothing]:
     def dark(s: Lamp) = !s.lit
 
   object properties:
-    val stays = property when metronome.tick holds (after => !after.state.lit)
-
+    object safety:
+      val stays = property when metronome.tick holds (after => !after.state.lit)
   object rules extends Rules:
     on(metronome.tick)(where(states.dark) ~> effects.kept)
 
@@ -125,8 +125,8 @@ object Misfiled extends Machine[Lamp, Outcome, Nothing]:
 
   object properties:
     val dim = sticky[Lamp, Outcome, Nothing](after => !after.state.lit)
-    val borrowed = Switch.property when hand.flip holds (after => after.state.lit)
-
+    object safety:
+      val borrowed = Switch.property when hand.flip holds (after => after.state.lit)
 object HandBound extends Machine[Lamp, Outcome, Nothing]:
   val init = Lamp(false)
   def end(s: Lamp) = true
@@ -169,7 +169,7 @@ object BackwardsComposition extends Composition[Pair](_.left -> Switch, _.right 
   def end(s: Pair) = true
 
   object properties:
-    val bothFlip = property holds (after => after.state.left == after.state.right)
-
+    object safety:
+      val bothFlip = property holds (after => after.state.left == after.state.right)
   object syncs extends Syncs:
     sync(_.left -> hand.flip, _.right -> hand.flip)

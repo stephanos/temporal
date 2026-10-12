@@ -33,11 +33,11 @@ class EligibleWitnessFixtures extends munit.FunSuite:
           )
         if positive then
           for (old, current) <- Seq(
-              "query find properties.privateClaim in privatePath limits two" -> "witness(worker.finish(Bit.first)).records(Fact.done).ends(_.lit).limits(two)",
-              "query find properties.distinctInputClaim in distinctInputPath limits two" -> "witness(worker.finish(Bit.first), worker.finish(Bit.second)).records(Fact.done).limits(two)",
-              "query find properties.factoryClaim in factoryPath limits two" -> "witness(worker.factory).records(Fact.done).limits(two)",
-              "query find properties.coreClaim in corePath limits two" -> "witness(worker.core).records(Fact.done).limits(two)",
-              "query find properties.negativeClaim in negativePath limits two" -> "witness(worker.negativeFact).excludes(Fact.done).limits(two)"
+              "query find properties.safety.privateClaim in privatePath limits two" -> "witness(worker.finish(Bit.first)).records(Fact.done).ends(_.lit).limits(two)",
+              "query find properties.safety.distinctInputClaim in distinctInputPath limits two" -> "witness(worker.finish(Bit.first), worker.finish(Bit.second)).records(Fact.done).limits(two)",
+              "query find properties.safety.factoryClaim in factoryPath limits two" -> "witness(worker.factory).records(Fact.done).limits(two)",
+              "query find properties.safety.coreClaim in corePath limits two" -> "witness(worker.core).records(Fact.done).limits(two)",
+              "query find properties.safety.negativeClaim in negativePath limits two" -> "witness(worker.negativeFact).excludes(Fact.done).limits(two)"
             )
           do text = text.replace(old, current)
         Files.writeString(target, text): Unit

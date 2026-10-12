@@ -1,5 +1,5 @@
 package framework.conventionfixtures
 
-import temporal.features.nexus.shared.product.NexusProduct
+import temporal.features.activity.mini.product.ActivityProduct
 
-val forbiddenFeature = NexusProduct.name
+val forbiddenFeature = ActivityProduct.name

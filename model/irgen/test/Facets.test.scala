@@ -15,40 +15,10 @@ class FacetsTest extends munit.FunSuite:
   private val json = ObjectMapper()
   private val source =
     Files.readString(tools.directory.resolve("model/irgen/testdata/facetContract/Contract.scala"))
-  private lazy val frameworkJar =
-    val jar = scratch.resolve("framework.jar")
-    tools
-      .scalaCli(
-        Seq(
-          "--power",
-          "package",
-          "--server=false",
-          "--library",
-          "model/project.scala",
-          "model/framework",
-          "-f",
-          "-o",
-          jar.toString
-        )
-      )
-      .orFail(): Unit
-    jar
-  private lazy val classpath =
-    val ran = tools
-      .scalaCli(
-        Seq(
-          "compile",
-          "--server=false",
-          "--print-class-path",
-          "model/project.scala",
-          "model/framework"
-        )
-      )
-      .orFail()
-    val cp = ran.diagnostics.trim.split("\n").last
-    val path = scratch.resolve("framework.classpath")
-    Files.writeString(path, s"$frameworkJar:${cp.substring(cp.indexOf(':') + 1)}"): Unit
-    path
+  // The packaged Models (ModelBuild): the framework this fixture reads, with the shared code and
+  // the mini, which its lifts admit only where its roots reach them.
+  private def frameworkJar = ModelBuild.jar
+  private def classpath = ModelBuild.classpath
 
   private def packaged(name: String, files: Map[String, String]): (Path, Path) =
     val dir = Files.createDirectory(scratch.resolve(name))
@@ -70,7 +40,7 @@ class FacetsTest extends munit.FunSuite:
           "--server=false",
           "--library",
           "--classpath",
-          Files.readString(classpath).trim,
+          ModelBuild.classpathEntries,
           ".",
           "-f",
           "-o",
@@ -264,7 +234,7 @@ class FacetsTest extends munit.FunSuite:
           "run",
           "--server=false",
           "--classpath",
-          Files.readString(classpath).trim,
+          ModelBuild.classpathEntries,
           ".",
           "-M",
           "framework.nativeRows"
@@ -499,7 +469,12 @@ class FacetsTest extends munit.FunSuite:
 
   for
     level <- List("product", "protocol");
-    (name, vocab) <- List("crossed" -> "case pressing, breaking", "unknown" -> "case pressing")
+    // An unknown facet's file is named for a design family (fn-160 R7), so the family lint passes it
+    // and the vocabulary refusal is the one left.
+    (name, vocab) <- List(
+      "crossed" -> "case pressing, breaking",
+      "unknown" -> "case pressing\nenum FamilyName:\n  case breaking"
+    )
   do
     test(s"$name vocabulary at $level in ordinary non-State levels is refused"):
       val path = s"contract/$level/Pressing.scala"

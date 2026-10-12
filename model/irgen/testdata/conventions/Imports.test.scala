@@ -1,7 +1,7 @@
 package temporal.capabilities.discoveryfixtures
 
-import temporal.features.nexus.shared.product.{NexusProduct, Phase as ProductPhase}
+import temporal.features.activity.mini.product.{ActivityProduct, Phase as ProductPhase}
 
 object Discovery:
-  val discoveredFeature = NexusProduct.name
+  val discoveredFeature = ActivityProduct.name
   val aliasedProductPhase = classOf[ProductPhase]
