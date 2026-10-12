@@ -234,7 +234,7 @@ CI, PR, or push authority.
 | --- | --- | --- |
 | [fn-165.1](.flow/tasks/fn-165-gomad-architecture-checks-structural.1.md) | ⬜ Todo | Build the structural checker; move inventory, owner and edge rules onto it |
 | [fn-165.2](.flow/tasks/fn-165-gomad-architecture-checks-structural.2.md) | ⬜ Todo | Give the wasm module its own architecture test and a helper-bridge unit test |
-| [fn-165.3](.flow/tasks/fn-165-gomad-architecture-checks-structural.3.md) | ⬜ Todo | Load types from export data; write the version-keyed stdlib allowlist |
+| [fn-165.3](.flow/tasks/fn-165-gomad-architecture-checks-structural.3.md) | 🚧 In progress | Prepare the independent export-data loader and version-keyed stdlib allowlist; integrate after the layout batch |
 | [fn-165.4](.flow/tasks/fn-165-gomad-architecture-checks-structural.4.md) | ⬜ Todo | Implement purity rules with review marks; re-triage the effect fixtures |
 | [fn-165.5](.flow/tasks/fn-165-gomad-architecture-checks-structural.5.md) | ⬜ Todo | Mark the gomad3 pure set and switch module tests to the new checkers |
 | [fn-165.6](.flow/tasks/fn-165-gomad-architecture-checks-structural.6.md) | ⬜ Todo | Delete the old analyzer and enforce the line budget |
