@@ -704,8 +704,7 @@ class RulesTest extends munit.FunSuite:
       fail("the rules constructed")
     catch case e: ExceptionInInitializerError => e.getCause.getMessage
 
-  // A target with no declarer to name it through, a local val, is refused as the rules construct;
-  // a name imported from its declarer is the IR generator's to refuse (irgen lifts/RuleRejects).
+  // Imported bare controls are compiled independently in RuleSourceTest.
   test("an on target with no declarer is refused as the rules construct") {
     val tap = hand.press
     object Undeclared extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
