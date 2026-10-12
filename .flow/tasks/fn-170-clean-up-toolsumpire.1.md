@@ -1,10 +1,10 @@
 # fn-170-clean-up-toolsumpire.1 One umpire CLI with subcommands replaces the eight cmd binaries
 
 ## Description
-Replace the eight binaries under `tools/umpire/cmd/` (`umpire-assess`, `-fuzz`, `-gen-cases`, `-ir-bridge`, `-lint`, `-repeat`, `-replay`, `-run`; about 6,800 lines, seven on the standard `flag` package) with one `tools/umpire/cmd/umpire` main and a subcommand each (`umpire run`, `umpire lint`, `umpire gen-cases`, ...).
+Replace the eight binaries under `tools/umpire/cmd/` (`umpire-assess`, `-fuzz`, `-gen-cases`, `-ir-bridge`, `-lint`, `-repeat`, `-replay`, `-run`; about 6,800 lines, seven on the standard `flag` package) with one binary and a subcommand each (`umpire run`, `umpire lint`, `umpire gen-cases`, ...).
 
 - Library: urfave/cli v2 (already in `go.mod`, used by `cmd/server`), unless the owner chooses cobra before this starts.
-- Each subcommand keeps its own package under `cmd/umpire/`, mostly today's code moved; `tools/umpire/internal/cli` keeps the shared edge helpers (interrupts, one-line reports, error flattening).
+- Each subcommand keeps its own package under `tools/umpire/framework/cmd/` (after fn-170.2), mostly today's code moved; `framework/internal/cli` keeps the shared edge helpers (interrupts, one-line reports, error flattening).
 - Flags, defaults, exit codes, stdout/stderr formats and receipts stay identical per subcommand; shared flags (timeouts, output paths, IR location) are declared once.
 - Make targets keep their names and call the subcommands. Update every doc, script and CI reference to the old binary names.
 - Build weight: keep heavy dependencies (Testpilot, Temporal SDK, server code) out of the light subcommands' packages, so only the main links everything; record cold and warm build times before and after.
@@ -16,7 +16,7 @@ Replace the eight binaries under `tools/umpire/cmd/` (`umpire-assess`, `-fuzz`, 
 
 Target:
 - The generic `umpire` CLI (subcommand packages and shared plumbing) imports no Temporal API, SDK, `service/...` or `tests/...`. It resolves API messages from a descriptor-set file named with the IR (or passed by flag), not linked-in generated code. It defines a small target interface (a Testpilot Driver plus provisioning, such as starting an in-process cluster) for the Case-running subcommands.
-- The binary's `main` lives in the Temporal adapter (for example `tools/umpire/temporal/cmd/umpire`). It composes the generic commands with the Temporal target: the Testpilot Temporal Driver, the Go SDK and the `tests/testcore` cluster.
+- The binary's `main` lives in the Temporal adapter at `tools/umpire/temporal/cmd/umpire`. It composes the generic commands with the Temporal target: the Testpilot Temporal Driver, the Go SDK and the `tests/testcore` cluster.
 - An import rule (a dependency-boundary test like Testpilot's) enforces the separation.
 ## Acceptance
 - One `umpire` binary; the eight old `cmd/umpire-*` packages are gone.

@@ -11,6 +11,6 @@
   "spec": "fn-169-a-temporal-free-framework-the-lifter",
   "spec_path": ".flow/tasks/fn-169-a-temporal-free-framework-the-lifter.4.md",
   "status": "todo",
-  "title": "Held sweep: Go tools/umpire temporal adapter and Testpilot execution API isolation with an import rule",
-  "updated_at": "2026-10-12T23:32:29.923811Z"
+  "title": "Held sweep: Go consumers follow framework.dsl IR names; Testpilot execution API isolation",
+  "updated_at": "2026-10-12T23:40:57.867836Z"
 }

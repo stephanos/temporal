@@ -480,7 +480,7 @@ is deleted once applied; the harness in `framework/migrate` is permanent (owner,
 | fn-169.5 | ⬜ todo | `framework/samples/`: one-file Temporal-free sample Models (Kettle, Bank, TwoPhaseCommit) comparable with P and Quint; after .1 |
 | fn-169.6 | ⬜ todo | Port the Python interpreter-table comparator (`model/testdata/table-pins`) to Scala in `framework/check/equivalence`; pins to `temporal/check`; no Python under `model/`; after .1 |
 | fn-169.3 | ⏸️ deferred (sweep) | IR schema to an Umpire-owned namespace (`umpire.ir.v1`) |
-| fn-169.4 | ⏸️ deferred (Go) | Go consumers follow the `framework.dsl` IR type names; Quint parts of `tools/umpire/export` into `export/quint`; Go `tools/umpire` Temporal adapter; Testpilot execution API behind `testpilot/temporal`; import rule |
+| fn-169.4 | ⏸️ deferred (Go) | Go consumers follow the `framework.dsl` IR type names; Testpilot execution's Temporal API use behind `testpilot/temporal` (the `tools/umpire` items moved to fn-170.2) |
 
 ### fn-141: Shrink the IR generator: one description of each DSL construct
 
@@ -573,12 +573,14 @@ the real features forward: it runs each DSL change's scalafix rule on them, does
 Captured on 2026-10-12 at the owner's request. It runs in the Go propagation phase after the Scala
 source batch. Earlier Go cleanups (fn-124, fn-84, fn-61, fn-66) are done. A read-only research pass,
 using the six questions applied to Testpilot, will add further tasks. Once it lands, the `tools/umpire`
-items of fn-169.4 move here.
+items of fn-169.4 have moved here (fn-170.2), and `tools/umpire` mirrors `model/`: a Temporal-free
+`framework/` and a `temporal/` adapter (owner, 2026-10-12).
 [Spec](.flow/specs/fn-170-clean-up-toolsumpire.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-170.1 | ⏸️ deferred (Go) | One `umpire` CLI with subcommands replaces the eight `cmd/umpire-*` binaries; the generic CLI is Temporal-free (API descriptors as a descriptor-set file, a target interface), its `main` in the Temporal adapter wires the Driver, SDK and test cluster; urfave/cli v2 unless the owner picks cobra; Make target names kept |
+| fn-170.2 | ⏸️ deferred (Go) | Layout mirroring `model/`: Temporal-free `tools/umpire/framework/` (incl. `export/quint`) and the `tools/umpire/temporal/` adapter; boundary test; outputs byte-identical (owner, 2026-10-12) |
+| fn-170.1 | ⏸️ deferred (Go) | After .2: one `umpire` CLI with subcommands replaces the eight `cmd/umpire-*` binaries; the generic CLI is Temporal-free (API descriptors as a descriptor-set file, a target interface), its `main` in the Temporal adapter wires the Driver, SDK and test cluster; urfave/cli v2 unless the owner picks cobra; Make target names kept |
 
 ### fn-128: Close the activity's precision gaps
 

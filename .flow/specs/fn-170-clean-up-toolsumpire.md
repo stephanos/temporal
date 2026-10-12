@@ -27,6 +27,7 @@ Task 1, the CLI, is known now; the rest follows the research.
 
 ## Decision Context
 
+- 2026-10-12, owner: `tools/umpire` mirrors `model/`: generic code under `tools/umpire/framework/`, the Temporal adapter under `tools/umpire/temporal/` (.2); fn-169.4's `tools/umpire` items moved here.
 - 2026-10-12, owner: the generic CLI is Temporal-free; API descriptors arrive as data; the binary's `main` in the Temporal adapter wires the Temporal target (Driver, SDK, in-process cluster). A large single binary is fine.
 - 2026-10-12, owner: consolidate the commands into a single CLI. Library: urfave/cli v2, already a dependency the server uses, unless the owner chooses cobra. AGENTS.md admits a new third-party library only when specifically requested.
 
@@ -35,3 +36,4 @@ Task 1, the CLI, is known now; the rest follows the research.
 | Req | Task |
 | --- | --- |
 | R1 | .1 |
+| R2 (layout mirroring model/) | .2 |

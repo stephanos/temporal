@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-12T23:40:39.289323Z",
+  "depends_on": [],
+  "id": "fn-170-clean-up-toolsumpire.2",
+  "priority": null,
+  "spec": "fn-170-clean-up-toolsumpire",
+  "spec_path": ".flow/tasks/fn-170-clean-up-toolsumpire.2.md",
+  "status": "todo",
+  "title": "Layout: tools/umpire/framework (Temporal-free) and tools/umpire/temporal (adapter), mirroring model/",
+  "updated_at": "2026-10-12T23:40:39.289323Z"
+}
