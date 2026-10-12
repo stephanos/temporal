@@ -2,6 +2,43 @@
 
 DSL changes ship a task-named Scalafix rule under `model/migrate/rules/`, prove it on copied `activity_mini` sources before the real-feature sweep, and follow `model/migrate/README.md`; production loading remains held in fn-166.10.
 
+## Capability kinds: Fn159Task8CapabilityNames
+
+The confirmed server capability kinds are `Retryable` and `Expirable`; the selected
+sources already use them. The compiled rule migrates `Retries` and `Deadline` through
+explicit top-level imports from `temporal.capabilities.system`, fully qualified names
+and member imports, including constructor/type, override and bound references. A paired
+class/companion declaration in that exact package must explicitly extend `CapabilityOf`
+and `CapabilityKind`. Unrelated symbols, literals, comments, `scheduleDeadline`, timer
+objects and `Timeout` vocabulary retain their bytes. Accepted source converges.
+
+Competing imports, shadowing, target collisions, references outside an import's visible
+lexical scope, nested imports, aliases, wildcards and
+unsupported declarations refuse the whole document atomically with a manual remedy.
+This syntax proof establishes only these explicit source shapes, not arbitrary program
+ownership. Other qualifier spellings, including `_root_`, are outside recognition and require
+the manual route. For other shapes, manually resolve each legacy symbol's actual owner, inventory
+all callers and imports, qualify owned references to the confirmed names, and retain every
+unrelated reference. Rename owned `Retries.scala`/`Deadline.scala` and their co-located tests
+to `Retryable.scala`/`Expirable.scala` after checking destination collisions; file moves are
+outside Scalafix patches. Review every origin change separately from other deadline names.
+The authored declaration files already have their current names and are not moved again.
+
+```sh
+mise exec -- scala-cli test --server=false model/migrate --test-only umpire.migrate.CapabilityNamesTest
+timeout 600 /bin/bash model/migrate/prove-mini.sh umpire.migrate.RewriteCapabilityNamesMini
+```
+
+The copied-mini runner introduces actual legacy imports, constructors and the retry override
+in `Completion.scala`, applies the compiled rule and requires exact accepted-source restoration,
+idempotence and atomic ambiguity refusal. Accepted/restored sources compile and lift independently;
+complete raw mini IR and waivers compare byte for byte, positions included. Legacy text is parsed
+and transformed, not compiled against an old API. Independent native class/companion and isolated
+lifter tests check emitted kind/origin IDs and actual mini applicability, bindings, override reason,
+Property bodies and Query budgets/totals. The complete sixteen-table native baseline remains fixed.
+Production loading, real-feature application, consumers, Cases, live, lint/manual acceptance and
+the single batch-end broad validation/review remain held; this proof grants none of their credit.
+
 Name a rule `Fn<spec>Task<task><Change>.scala`, with the same class and Scalafix rule
 name in `umpire.migrate`. Keep its focused source fixtures in `test/`. Use the existing
 Scalafix 0.14.9 dependency and JDK 25; `project.scala` isolates this rule build from
