@@ -15,9 +15,10 @@ Collapse `cmd/gomad`, `cmd/gomad/api` and the `gomad-wasm` launcher into one `cm
 - Existing CLI golden tests for both backends pass with only path and help-text updates.
 
 ## Done summary
-TBD
+One cmd/gomad launcher registers commands and flags from Provider capabilities; native installation precedence and top-level grammar are preserved; choice-only coverage values come from Runner.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: e6bead51b3, 8d584361a7, 956331b83a
+- Tests: make -C tools/gomad3 test-wasm (0); root architecture selection with GOMAD3_ARCH_ALL_PLATFORMS=1 (0); make -C tools/gomad3 validate (0); make lint-code-fast base e43c7a59c7 (0), ./cmd/gomad/internal/cli launcher tests (native-host failures only), evidence: .flow/artifacts/wasm-section-acceptance-2026-10-12.md
 - PRs:
