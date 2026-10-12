@@ -124,3 +124,35 @@ The shared runner packages and lifts before/after selected sources at the same p
 compares complete raw mini IR and waiver bytes, including every source position.
 The complete Bounds inventory and actual mini Query budgets are checked independently.
 Production loading, real-feature migration, Cases and consumer gates remain held.
+
+## Observation labels: Fn159Task6ObservationRead
+
+The rule removes a literal retired `read` argument from `Observation(name, on, read)`
+or named constructors that supply `on`. It resolves bare constructors through one
+visible `framework.*` or `framework.Observation` import, or accepts the qualified
+`framework.Observation` spelling when its package is unshadowed. `_root_.framework.Observation`
+resolves the package explicitly even with competing imports. Names, entities, typed response selectors, comments,
+strings and unrelated APIs retain their bytes. Already accepted source converges.
+
+Shadowed names, competing imports, unsupported arguments and nonliteral labels refuse
+the entire document. The rule does not resolve arbitrary constructor aliases or
+`new` or explicit companion `.apply` expressions. These forms refuse atomically.
+Manually resolve those constructors to the framework API, retain
+name/on and typed selectors, and evaluate any effectful label explicitly before
+removing its argument. Add a comment describing the actual selected response field.
+An `Observed[Message]` identifies its protobuf message; the response selector supplies
+the field path. A full `ActivityExecutionInfo` read selects `info`, not `info.attempt`.
+
+```sh
+mise exec -- scala-cli test --server=false model/migrate --test-only umpire.migrate.ObservationReadTest
+timeout 600 /bin/bash model/migrate/prove-mini.sh umpire.migrate.RewriteObservationMini
+```
+
+The mini has no authored Observation. Its copied-source proof adds a separate scratch
+probe from the isolated observation fixture, migrates both named and positional literal
+labels through the compiled rule, and requires exact accepted-source restoration.
+Accepted and restored probes compile/lift independently with complete metadata and
+positions compared byte for byte. Probe evidence is separate from the copied mini's
+unchanged complete raw IR and waiver comparison. Native API and isolated lifter tests
+check the names, aliases, machine evidence, typed message/path/targets and invalid path.
+Production loading, real-feature application and consumer gates remain held.

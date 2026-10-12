@@ -22,7 +22,7 @@ final case class Entity(name: String = "", key: String = "", refer: Map[String, 
 
 // A derived read used as evidence where no recorded event exists, named after its `val` unless
 // `name` names it: `val attemptCount = Observation(on = order)`. What it reads is the realization's
-// typed read of it (`Observed[...]`), beside which a comment names the response field it stands for.
+// response selector; `Observed[...]` identifies the message. A comment beside the read names its field.
 final case class Observation(name: String = "", on: Entity)
 
 // An Abstraction Claim on one input class: the author's claim that every realized value of the
