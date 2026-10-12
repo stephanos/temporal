@@ -2,6 +2,7 @@ package runner
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"path/filepath"
 	"slices"
@@ -25,6 +26,9 @@ type guidanceCampaign struct {
 }
 
 func openGuidance(ctx context.Context, config campaignRequest, prepared target.Prepared, baseEnvironment []record.Environment, runID string) (*guidanceCampaign, error) {
+	if config.Replayer == nil && len(config.Backend.Capabilities().ReplayModes) == 0 {
+		return nil, errors.New("guided exploration requires a replay-capable provider")
+	}
 	targetRecord := prepared.RecordTarget()
 	description, err := config.Backend.Describe(ctx, backends.Configuration{Target: config.Target, ClockTick: config.ClockTick, Environment: environmentStrings(baseEnvironment), RequiredSemanticProbes: config.RequiredSemanticProbes})
 	if err != nil {

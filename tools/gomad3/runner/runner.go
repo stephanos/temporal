@@ -375,9 +375,9 @@ func exploreWith(ctx context.Context, config CampaignSpec, dependencies executio
 		return CampaignResult{}, err
 	}
 	if request.Backend == nil {
-		return CampaignResult{}, errors.New("backend provider is required")
+		return runLocal(ctx, request)
 	}
-	request.profile, err = request.Backend.Describe(ctx, backend.Configuration{Target: request.Target, ClockTick: request.ClockTick, Environment: request.Environment, RequiredSemanticProbes: request.RequiredSemanticProbes})
+	request.profile, err = request.Backend.Describe(ctx, backend.Configuration{Target: request.Target})
 	if err != nil {
 		return CampaignResult{}, err
 	}
@@ -518,6 +518,11 @@ func validateCampaignRequest(config campaignRequest) (SeedSelection, []record.En
 	if err := ValidateCoverage(config.Coverage, config.RequiredSemanticProbes); err != nil {
 		return SeedSelection{}, nil, err
 	}
+	if coverageHasSemantic(config.Coverage) && config.Backend != nil {
+		if _, err := config.Backend.Describe(context.Background(), backend.Configuration{RequiredSemanticProbes: config.RequiredSemanticProbes}); err != nil {
+			return SeedSelection{}, nil, err
+		}
+	}
 	if err := ValidateChoiceCoverage(config.Coverage, config.ChoiceTraceLimit); err != nil {
 		return SeedSelection{}, nil, err
 	}
@@ -581,7 +586,7 @@ func validateCampaignRequest(config campaignRequest) (SeedSelection, []record.En
 	if err != nil {
 		return SeedSelection{}, nil, err
 	}
-	description, err := config.Backend.Describe(context.Background(), backend.Configuration{Target: config.Target, ClockTick: config.ClockTick, Environment: config.Environment, RequiredSemanticProbes: config.RequiredSemanticProbes})
+	description, err := config.Backend.Describe(context.Background(), backend.Configuration{Target: config.Target})
 	if err != nil {
 		return SeedSelection{}, nil, err
 	}
@@ -767,7 +772,7 @@ func simulationCapabilityForJob(executor executionRunner, job runJob) (*backend.
 		if job.simulationRecordLimit != 0 || job.simulationRecordCount != 0 {
 			return nil, errors.New("simulation exploration record bounds require a plan")
 		}
-		if _, ok := executor.(processExecutor); ok {
+		if process, ok := executor.(processExecutor); ok && process.provider != nil && process.provider.Capabilities().Simulation {
 			return &backend.SimulationCapability{Role: backend.SimulationRoleCoordinator}, nil
 		}
 		return nil, nil

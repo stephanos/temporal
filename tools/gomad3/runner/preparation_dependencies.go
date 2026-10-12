@@ -37,7 +37,11 @@ func (dependencies executionDependencies) prepareTarget(ctx context.Context, req
 	}
 	prepared, err := preparer.Prepare(ctx, request.Target.Clone())
 	if err != nil {
-		return target.Prepared{}, err
+		var failure *backend.PreparationError
+		if errors.As(err, &failure) {
+			return target.Prepared{}, err
+		}
+		return target.Prepared{}, &backend.PreparationError{Stage: "target", Err: err}
 	}
 	if err := request.Provider.ValidatePrepared(request.Target.Clone(), prepared, append([]string(nil), request.Environment...)); err != nil {
 		return target.Prepared{}, &backend.PreparationError{Stage: "validation", Err: err}

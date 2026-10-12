@@ -1,7 +1,6 @@
 package runner
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	backend "go.temporal.io/server/tools/gomad3/backends"
@@ -14,7 +13,7 @@ import (
 	"sync"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/backends/native/preparation"
+	"go.temporal.io/server/tools/gomad3/backends/native"
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/record"
 
@@ -32,12 +31,14 @@ func (executor preparationFixtureExecutor) Run(ctx context.Context, request back
 func TestPreparationDependenciesForwardRealFixtureInputs(t *testing.T) {
 	preparer := newFakePreparer(t)
 	var mu sync.Mutex
-	var bootstrapSeeds, executionSeeds []uint64
+	var requestSeeds, executionSeeds []uint64
 	var outputs []*os.File
 	var prepared target.Prepared
+	var description backend.Description
+	var runnerBuild string
 	executor := preparationFixtureExecutor{run: func(_ context.Context, request backend.ExecutionRequest) (backend.ExecutionResult, error) {
-		if request.IO == nil || !bytes.Equal(request.IO.Config, []byte(scriptedBootstrapMarker)) {
-			t.Errorf("forwarded bootstrap = %#v", request.IO)
+		if request.IO == nil || !reflect.DeepEqual(request.IO.Profile, description.IOProfile) || !reflect.DeepEqual(request.Target, prepared) || request.RunnerBuild != runnerBuild {
+			t.Errorf("forwarded execution inputs = %#v", request)
 		}
 		if request.Command != prepared.Path || request.Argv0 != prepared.Argv[0] || !slices.Equal(request.Args, prepared.Argv[1:]) {
 			t.Errorf("forwarded target = %#v", request)
@@ -69,12 +70,19 @@ func TestPreparationDependenciesForwardRealFixtureInputs(t *testing.T) {
 			runOutputs = append(runOutputs, output)
 		}
 		mu.Lock()
+		requestSeeds = append(requestSeeds, request.Seed)
 		executionSeeds = append(executionSeeds, seedFromEnvironment(request.Env))
 		outputs = append(outputs, runOutputs...)
 		mu.Unlock()
 		return processResult(0, "", ""), nil
 	}}
 	config, _ := testConfig(t, preparer, executor, "7-9", PolicyAll, 2)
+	runnerBuild = config.RunnerBuild
+	var err error
+	description, err = config.Backend.Describe(t.Context(), backend.Configuration{Target: config.Target})
+	if err != nil {
+		t.Fatal(err)
+	}
 	var campaignPath string
 	config.Progress = func(event CampaignEvent) error {
 		if event.Phase == ProgressPreparing {
@@ -83,11 +91,11 @@ func TestPreparationDependenciesForwardRealFixtureInputs(t *testing.T) {
 		return nil
 	}
 	dependencies := scriptedPreparationDependencies(t, preparer, executor)
-	prepareFixture, bootstrapFixture := dependencies.prepare, dependencies.bootstrap
-	dependencies.prepare = func(ctx context.Context, request preparation.Request) (target.Prepared, error) {
+	prepareFixture := dependencies.prepare
+	dependencies.prepare = func(ctx context.Context, request preparationRequest) (target.Prepared, error) {
 		want := config.Target
 		want.PreparationRoot = filepath.Join(campaignPath, ".prepared")
-		if !reflect.DeepEqual(request.Target, want) || !slices.Equal(request.Environment, config.Environment) || request.Preparer != preparer {
+		if !reflect.DeepEqual(request.Target, want) || !slices.Equal(request.Environment, config.Environment) || request.Preparer != preparer || request.Provider != config.Backend {
 			t.Fatalf("preparation inputs = %#v; want %#v", request, want)
 		}
 		if ctx.Err() != nil {
@@ -106,25 +114,16 @@ func TestPreparationDependenciesForwardRealFixtureInputs(t *testing.T) {
 		}
 		return prepared, nil
 	}
-	dependencies.bootstrap = func(profile transcript.Spec, received target.Prepared, runner string, seed uint64) ([]byte, error) {
-		if profile != transcript.Default() || !reflect.DeepEqual(received, prepared) || runner != config.RunnerBuild {
-			t.Errorf("bootstrap inputs = %#v, %#v, %q", profile, received, runner)
-		}
-		mu.Lock()
-		bootstrapSeeds = append(bootstrapSeeds, seed)
-		mu.Unlock()
-		return bootstrapFixture(profile, received, runner, seed)
-	}
 	result, err := exploreWith(context.Background(), config, dependencies)
 	if err != nil {
 		t.Fatal(err)
 	}
 	mu.Lock()
 	defer mu.Unlock()
-	slices.Sort(bootstrapSeeds)
+	slices.Sort(requestSeeds)
 	slices.Sort(executionSeeds)
-	if preparer.calls != 1 || result.Attempted != 3 || result.Succeeded != 3 || !slices.Equal(bootstrapSeeds, []uint64{7, 8, 9}) || !slices.Equal(executionSeeds, bootstrapSeeds) {
-		t.Fatalf("calls=%d result=%#v bootstrap=%v execution=%v", preparer.calls, result, bootstrapSeeds, executionSeeds)
+	if preparer.calls != 1 || result.Attempted != 3 || result.Succeeded != 3 || !slices.Equal(requestSeeds, []uint64{7, 8, 9}) || !slices.Equal(executionSeeds, requestSeeds) {
+		t.Fatalf("calls=%d result=%#v request=%v execution=%v", preparer.calls, result, requestSeeds, executionSeeds)
 	}
 	for _, output := range outputs {
 		if _, err := output.Stat(); !errors.Is(err, os.ErrClosed) {
@@ -137,66 +136,56 @@ func TestPreparationDependenciesOperationErrorsRemainUnchanged(t *testing.T) {
 	primary := errors.New("injected operation failed")
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	request := preparation.Request{Target: target.Spec{Kind: target.KindGoRun, Source: "fixture", PreparationRoot: t.TempDir()}, Environment: []string{"MODE=fixture"}}
+	request := preparationRequest{Target: target.Spec{Kind: target.KindGoRun, Source: "fixture", PreparationRoot: t.TempDir()}, Environment: []string{"MODE=fixture"}, Provider: scriptProvider()}
 	prepared := target.Prepared{Path: "fixture result", SHA256: "fixture digest", Size: 17}
-	profile := transcript.Default()
-	marker := []byte(scriptedBootstrapMarker)
 	dependencies := executionDependencies{
-		prepare: func(received context.Context, receivedRequest preparation.Request) (target.Prepared, error) {
+		prepare: func(received context.Context, receivedRequest preparationRequest) (target.Prepared, error) {
 			if received != ctx || !reflect.DeepEqual(receivedRequest, request) {
 				t.Fatalf("prepare arguments = %v, %#v", received, receivedRequest)
 			}
 			return prepared, primary
 		},
-		bootstrap: func(received transcript.Spec, receivedPrepared target.Prepared, runner string, seed uint64) ([]byte, error) {
-			if received != profile || !reflect.DeepEqual(receivedPrepared, prepared) || runner != "fixture runner" || seed != 42 {
-				t.Fatalf("bootstrap arguments = %#v, %#v, %q, %d", received, receivedPrepared, runner, seed)
-			}
-			return marker, primary
-		},
 	}
 	if result, err := dependencies.prepareTarget(ctx, request); !reflect.DeepEqual(result, prepared) || err != primary {
 		t.Fatalf("prepare result = %#v, %v", result, err)
 	}
-	if result, err := dependencies.bootstrapFrame(profile, prepared, "fixture runner", 42); !bytes.Equal(result, marker) || err != primary {
-		t.Fatalf("bootstrap result = %q, %v", result, err)
-	}
 }
 
 func TestPreparationDependenciesFailuresStopAtOriginalStages(t *testing.T) {
-	for _, operation := range []string{"prepare", "bootstrap"} {
+	for _, operation := range []string{"prepare", "execution"} {
 		t.Run(operation, func(t *testing.T) {
 			primary := errors.New("injected " + operation + " failed")
 			preparer := newFakePreparer(t)
 			executor := &fakeExecutor{}
 			config, _ := testConfig(t, preparer, executor, "7", PolicyAll, 1)
 			dependencies := scriptedPreparationDependencies(t, preparer, executor)
-			bootstrapCalls := 0
+			executionCalls := 0
 			if operation == "prepare" {
-				dependencies.prepare = func(context.Context, preparation.Request) (target.Prepared, error) { return target.Prepared{}, primary }
+				dependencies.prepare = func(context.Context, preparationRequest) (target.Prepared, error) { return target.Prepared{}, primary }
 			}
-			dependencies.bootstrap = func(_ transcript.Spec, prepared target.Prepared, _ string, _ uint64) ([]byte, error) {
-				bootstrapCalls++
+			dependencies.executor = preparationFixtureExecutor{run: func(_ context.Context, request backend.ExecutionRequest) (backend.ExecutionResult, error) {
+				executionCalls++
+				prepared := request.Target
 				partial := filepath.Join(filepath.Dir(filepath.Dir(prepared.Path)), ".partial", "00000000000000000000-7")
 				for _, name := range []string{"stdout.head", "stderr.head"} {
 					if _, err := os.Stat(filepath.Join(partial, name)); err != nil {
 						t.Error(err)
 					}
 				}
-				return nil, primary
-			}
+				return backend.ExecutionResult{}, primary
+			}}
 			result, err := exploreWith(context.Background(), config, dependencies)
 			if !errors.Is(err, primary) || len(executor.directories()) != 0 || result.CampaignPath == "" {
 				t.Fatalf("failed operation result = %#v, %v, executions=%v", result, err, executor.directories())
 			}
 			if operation == "prepare" {
-				if err != primary || preparer.calls != 0 || bootstrapCalls != 0 || result.Attempted != 0 {
-					t.Fatalf("preparation failure changed: %v calls=%d bootstrap=%d result=%#v", err, preparer.calls, bootstrapCalls, result)
+				if err != primary || preparer.calls != 0 || executionCalls != 0 || result.Attempted != 0 {
+					t.Fatalf("preparation failure changed: %v calls=%d executions=%d result=%#v", err, preparer.calls, executionCalls, result)
 				}
 			} else {
 				var hostError *HostError
-				if !errors.As(err, &hostError) || hostError.Reason != "target_supervision" || preparer.calls != 1 || bootstrapCalls != 1 || result.Attempted != 1 {
-					t.Fatalf("bootstrap failure changed: %v calls=%d bootstrap=%d result=%#v", err, preparer.calls, bootstrapCalls, result)
+				if !errors.As(err, &hostError) || hostError.Reason != "target_supervision" || preparer.calls != 1 || executionCalls != 1 || result.Attempted != 1 {
+					t.Fatalf("execution failure changed: %v calls=%d executions=%d result=%#v", err, preparer.calls, executionCalls, result)
 				}
 			}
 		})
@@ -214,13 +203,14 @@ func TestPreparationDependenciesKeepRealDefaultsAndBootstrapGuard(t *testing.T) 
 			preparer := newFakePreparer(t)
 			executor := &fakeExecutor{}
 			config, dependencies := testConfig(t, preparer, executor, "7", PolicyAll, 1)
+			config.Backend = native.New(native.Config{SupervisorCommand: []string{"unused"}, RunnerBuild: config.RunnerBuild})
 			var err error
 			if mode == "public" {
 				_, err = Explore(context.Background(), config)
 			} else {
 				if mode == "prepare only" {
 					dependencies = scriptedPreparationDependencies(t, preparer, executor)
-					dependencies.bootstrap = nil
+					dependencies.executor = nil
 				}
 				_, err = exploreWith(context.Background(), config, dependencies)
 			}
@@ -232,8 +222,11 @@ func TestPreparationDependenciesKeepRealDefaultsAndBootstrapGuard(t *testing.T) 
 				if !errors.As(err, &hostError) || hostError.Reason != "target_supervision" {
 					t.Fatalf("real bootstrap guard = %v", err)
 				}
-			} else if preparation.StageOf(err) != preparation.StageValidation {
-				t.Fatalf("real preparation stage = %v", err)
+			} else {
+				var preparationError *backend.PreparationError
+				if !errors.As(err, &preparationError) || preparationError.Stage != "validation" {
+					t.Fatalf("real preparation stage = %v", err)
+				}
 			}
 		})
 	}

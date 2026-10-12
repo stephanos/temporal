@@ -3,6 +3,7 @@ package runner
 import (
 	"encoding/json"
 	"errors"
+	"go.temporal.io/server/tools/gomad3/backends/native"
 	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"os"
 	"path/filepath"
@@ -55,7 +56,7 @@ func TestPreparationSourceCallerPreservation(t *testing.T) {
 					config := CampaignSpec{
 						Seeds: "1", Parallel: 1, ExecutionTimeout: time.Second, OverallTimeout: time.Minute, TerminateGrace: 100 * time.Millisecond,
 						OnFailure: PolicyAll, FailureBudget: 1, OutputLimit: 64, WorldTransitionLimit: 64, Environment: []string{"MODE=test"},
-						RunnerBuild: "sha256:" + strings.Repeat("0", 64), SupervisorCommand: []string{"unused"}, Artifacts: filepath.Join(preparationRoot, "artifacts"),
+						RunnerBuild: "sha256:" + strings.Repeat("0", 64), Backend: native.New(native.Config{ToolchainRoot: toolchain, SupervisorCommand: []string{"unused"}}), Artifacts: filepath.Join(preparationRoot, "artifacts"),
 						Target: target.Spec{Kind: target.KindGoRun, Source: ".", WorkingDir: filepath.Join(root, fixture, "module"), PreparationRoot: preparationRoot, ToolchainRoot: toolchain},
 					}
 					var prepared target.Prepared

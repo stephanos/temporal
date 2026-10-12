@@ -25,7 +25,6 @@ import (
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	romount "go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/internal/hostexec"
 	"go.temporal.io/server/tools/gomad3/world"
 	worldprocess "go.temporal.io/server/tools/gomad3/world/process"
 )
@@ -790,7 +789,7 @@ func TestRunBoundsFloodedOutputWithoutBlocking(t *testing.T) {
 	if result.Termination != TerminationExit || result.ExitCode != 0 {
 		t.Fatalf("result status = %#v", result)
 	}
-	for name, output := range map[string]hostexec.Output{"stdout": result.Stdout, "stderr": result.Stderr} {
+	for name, output := range map[string]backends.Output{"stdout": result.Stdout, "stderr": result.Stderr} {
 		if !output.Truncated || output.TotalBytes != 1<<20 || output.RetainedBytes != 128 || output.DiscardedBytes != 1<<20-128 {
 			t.Fatalf("%s accounting = %#v", name, output)
 		}

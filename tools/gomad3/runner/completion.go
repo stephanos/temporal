@@ -52,7 +52,7 @@ func assessCompletion(ctx context.Context, provider backend.Provider, result bac
 	if coverageHasSemantic(mode) {
 		request.Transcript = result.IOTranscript.Bytes
 	}
-	evidence, err := provider.Evidence(ctx, request)
+	evidence, err := provider.Evidence(context.WithoutCancel(ctx), request)
 	if err != nil {
 		return completedExecution{}, &HostError{Reason: "semantic_coverage", Err: err}
 	}

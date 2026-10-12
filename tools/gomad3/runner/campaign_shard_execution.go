@@ -49,7 +49,7 @@ func runCampaignShardWith(ctx context.Context, spec CampaignShardSpec, dependenc
 	if spec.Backend == nil {
 		return CampaignResult{}, errors.New("campaign shard requires a backend provider")
 	}
-	description, err := spec.Backend.Describe(ctx, backends.Configuration{Target: target.Spec{ToolchainRoot: spec.ToolchainRoot}, IOProfile: plan.IOProfile.Name})
+	description, err := spec.Backend.Describe(ctx, backends.Configuration{ForExecution: dependencies.executor == nil, Target: target.Spec{ToolchainRoot: spec.ToolchainRoot}, IOProfile: plan.IOProfile.Name})
 	if err != nil {
 		return CampaignResult{}, err
 	}

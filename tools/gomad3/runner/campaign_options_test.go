@@ -10,9 +10,10 @@ import (
 )
 
 func TestCampaignRequestNormalizesTheRequest(t *testing.T) {
+	provider := scriptProvider()
 	spec := CampaignSpec{
 		Environment: []string{"A=1"}, IOROMounts: []string{}, RequiredSemanticProbes: []string{"probe"},
-		SupervisorCommand: []string{"supervisor"}, CoordinatorCommand: []string{"coordinator"},
+		Backend: provider,
 	}
 	run := campaignRequestFromSpec(spec)
 	if run.strategy() != StrategySeed {
@@ -24,10 +25,13 @@ func TestCampaignRequestNormalizesTheRequest(t *testing.T) {
 	if run.IOROMounts != nil {
 		t.Fatalf("empty mount list normalized to %#v, want an absent list", run.IOROMounts)
 	}
-	spec.Environment[0], spec.RequiredSemanticProbes[0], spec.SupervisorCommand[0], spec.CoordinatorCommand[0] = "B=2", "changed", "changed", "changed"
-	want := []string{"A=1", "probe", "supervisor", "coordinator"}
-	if got := []string{run.Environment[0], run.RequiredSemanticProbes[0], run.SupervisorCommand[0], run.CoordinatorCommand[0]}; !reflect.DeepEqual(got, want) {
+	spec.Environment[0], spec.RequiredSemanticProbes[0] = "B=2", "changed"
+	want := []string{"A=1", "probe"}
+	if got := []string{run.Environment[0], run.RequiredSemanticProbes[0]}; !reflect.DeepEqual(got, want) {
 		t.Fatalf("run lists = %q after the request changed, want the run to own %q", got, want)
+	}
+	if run.Backend != provider {
+		t.Fatal("campaign request changed its provider")
 	}
 	for _, strategy := range []Strategy{StrategySeed, StrategyChoiceExploration, StrategySimulationExploration, "unknown"} {
 		if got := campaignRequestFromSpec(CampaignSpec{Strategy: strategy}).strategy(); got != strategy {
@@ -39,14 +43,15 @@ func TestCampaignRequestNormalizesTheRequest(t *testing.T) {
 // A request that reaches the coordinator without a defaulted option means
 // what the same request means to a local run.
 func TestCoordinatorConfigNormalizesDecodedOptions(t *testing.T) {
-	decoder := json.NewDecoder(bytes.NewReader([]byte(`{"Seeds":"7","RunnerBuild":"build"}`)))
+	decoder := json.NewDecoder(bytes.NewReader([]byte(`{"Seeds":"7"}`)))
 	decoder.DisallowUnknownFields()
 	var request coordinatorConfig
 	if err := decoder.Decode(&request); err != nil {
 		t.Fatal(err)
 	}
-	got := request.campaignRequest()
-	want := campaignRequestFromSpec(CampaignSpec{Seeds: "7", RunnerBuild: "build"})
+	provider := scriptProvider()
+	got := request.campaignRequest(provider, "build")
+	want := campaignRequestFromSpec(CampaignSpec{Seeds: "7", Backend: provider, RunnerBuild: "build"})
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("coordinator campaign = %#v, want the local campaign %#v", got, want)
 	}
@@ -65,8 +70,9 @@ func TestCoordinatorConfigCarriesTheNormalizedOptions(t *testing.T) {
 	if !reflect.DeepEqual(request.campaignOptions, want) {
 		t.Fatalf("coordinator options = %#v, want %#v", request.campaignOptions, want)
 	}
-	if !reflect.DeepEqual(request.SupervisorCommand, run.SupervisorCommand) || request.RunnerBuild != run.RunnerBuild {
-		t.Fatalf("coordinator wiring = %q %q, want %q %q", request.SupervisorCommand, request.RunnerBuild, run.SupervisorCommand, run.RunnerBuild)
+	transported := request.campaignRequest(run.Backend, run.RunnerBuild)
+	if transported.Backend != run.Backend || transported.RunnerBuild != run.RunnerBuild {
+		t.Fatalf("coordinator runtime = %#v, want %#v", transported.campaignRuntime, run.campaignRuntime)
 	}
 	if run.OverallTimeout == want.OverallTimeout {
 		t.Fatal("building the coordinator request changed the local deadline")

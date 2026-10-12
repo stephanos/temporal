@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"go.temporal.io/server/tools/gomad3/backends/native"
 	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
@@ -43,7 +44,8 @@ type legacyCampaignOptionsCase struct {
 	frozenGuidance *campaign.GuidancePlan
 	// explore also runs Explore through the isolated path, whose request
 	// checks precede and follow campaign validation.
-	explore bool
+	explore            bool
+	coordinatorCommand []string
 	// exploreLocal also runs Explore through the local path.
 	exploreLocal bool
 	// pinBytes keeps the complete request bytes in the table, not only their
@@ -142,9 +144,12 @@ func legacyObserveCampaignOptions(t *testing.T, test legacyCampaignOptionsCase) 
 	}
 	if test.explore {
 		isolated := test.spec
-		isolated.CoordinatorCommand = []string{legacyCharacterizationCoordinator, "__coordinator"}
-		if len(test.spec.CoordinatorCommand) != 0 {
-			isolated.CoordinatorCommand = test.spec.CoordinatorCommand
+		coordinator := []string{legacyCharacterizationCoordinator, "__coordinator"}
+		if test.coordinatorCommand != nil {
+			coordinator = test.coordinatorCommand
+		}
+		if isolated.Backend != nil {
+			isolated.Backend = native.New(native.Config{SupervisorCommand: []string{"/bin/gomad", "__supervisor"}, CoordinatorCommand: coordinator, RunnerBuild: isolated.RunnerBuild})
 		}
 		_, err := exploreWith(context.Background(), isolated, test.dependencies)
 		observation.IsolatedError = legacyCharacterizationError(t, err)
@@ -177,8 +182,8 @@ func legacyCampaignOptionsCases(t *testing.T) []legacyCampaignOptionsCase {
 			Seeds: "7-9", Parallel: 2, ExecutionTimeout: 3 * time.Second, OverallTimeout: time.Minute, TerminateGrace: time.Second,
 			OnFailure: PolicyAll, FailureBudget: 1, OutputLimit: 4096, WorldTransitionLimit: 8192,
 			Artifacts: "/artifacts", Environment: []string{"ZETA=1", "ALPHA=2"},
-			Target:            target.Spec{Kind: target.KindGoRun, Source: "./cmd/target", WorkingDir: "/", ToolchainRoot: "/toolchain", BuildTags: []string{"tag"}},
-			SupervisorCommand: []string{"/bin/gomad", "__supervisor"}, RunnerBuild: "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+			Target:  target.Spec{Kind: target.KindGoRun, Source: "./cmd/target", WorkingDir: "/", ToolchainRoot: "/toolchain", BuildTags: []string{"tag"}},
+			Backend: native.New(native.Config{SupervisorCommand: []string{"/bin/gomad", "__supervisor"}}), RunnerBuild: "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 			ProgressInterval: 250 * time.Millisecond,
 		}
 	}
@@ -210,7 +215,7 @@ func legacyCampaignOptionsCases(t *testing.T) []legacyCampaignOptionsCase {
 	resumeSpec := func() CampaignSpec {
 		return CampaignSpec{
 			ResumeCampaign: "/campaigns/v1/resumed", RunnerBuild: "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-			Target: target.Spec{ToolchainRoot: "/toolchain"}, SupervisorCommand: []string{"/bin/gomad", "__supervisor"}, ProgressInterval: time.Second,
+			Target: target.Spec{ToolchainRoot: "/toolchain"}, Backend: native.New(native.Config{SupervisorCommand: []string{"/bin/gomad", "__supervisor"}}), ProgressInterval: time.Second,
 		}
 	}
 	planIdentity := record.SHA256("sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb")
@@ -266,15 +271,13 @@ func legacyCampaignOptionsCases(t *testing.T) []legacyCampaignOptionsCase {
 		// Isolated request checks around campaign validation.
 		{name: "isolated injected executor", spec: seed(), dependencies: dependencies{executor: &fakeExecutor{}}, explore: true},
 		{name: "isolated injected preparer", spec: with(seed, func(spec *CampaignSpec) { spec.Preparer = targetPreparer{} }), explore: true},
-		{name: "isolated empty coordinator command", spec: with(seed, func(spec *CampaignSpec) { spec.CoordinatorCommand = []string{""} }), explore: true},
-		{name: "isolated empty coordinator command after invalid request", spec: with(seed, func(spec *CampaignSpec) {
-			spec.CoordinatorCommand, spec.Parallel = []string{""}, 0
-		}), explore: true},
+		{name: "isolated empty native coordinator command", spec: seed(), coordinatorCommand: []string{""}, explore: true},
+		{name: "shared validation before native coordinator command", spec: with(seed, func(spec *CampaignSpec) { spec.Parallel = 0 }), coordinatorCommand: []string{""}, explore: true},
 
 		// Resume rejections.
 		{name: "resume with preparer", spec: with(resumeSpec, func(spec *CampaignSpec) { spec.Preparer = targetPreparer{} })},
 		{name: "resume without Runner build", spec: with(resumeSpec, func(spec *CampaignSpec) { spec.RunnerBuild = "" })},
-		{name: "resume without supervisor", spec: with(resumeSpec, func(spec *CampaignSpec) { spec.SupervisorCommand = nil })},
+		{name: "resume without provider", spec: with(resumeSpec, func(spec *CampaignSpec) { spec.Backend = nil })},
 		{name: "resume ignores fresh request faults", spec: with(resumeSpec, func(spec *CampaignSpec) { spec.Seeds, spec.Parallel, spec.Strategy = "bad", -1, "bogus" })},
 
 		// Selection and sharding rejections.
@@ -390,8 +393,8 @@ func legacyCampaignOptionsCases(t *testing.T) []legacyCampaignOptionsCase {
 		{name: "unknown failure policy", spec: with(seed, func(spec *CampaignSpec) { spec.OnFailure = "bogus" })},
 
 		// Process wiring and target environment rejections.
-		{name: "no supervisor command", spec: with(seed, func(spec *CampaignSpec) { spec.SupervisorCommand = nil })},
-		{name: "injected executor without supervisor command", spec: with(seed, func(spec *CampaignSpec) { spec.SupervisorCommand = nil }), dependencies: dependencies{executor: &fakeExecutor{}}},
+		{name: "no backend provider", spec: with(seed, func(spec *CampaignSpec) { spec.Backend = nil })},
+		{name: "injected executor without backend provider", spec: with(seed, func(spec *CampaignSpec) { spec.Backend = nil }), dependencies: dependencies{executor: &fakeExecutor{}}},
 		{name: "mounts without working directory", spec: with(seed, func(spec *CampaignSpec) { spec.IOROMounts, spec.Target.WorkingDir = []string{"usr=/mnt/usr"}, "" })},
 		{name: "malformed mount", spec: with(seed, func(spec *CampaignSpec) { spec.IOROMounts = []string{"usr"} })},
 		{name: "missing mount source", spec: with(seed, func(spec *CampaignSpec) { spec.IOROMounts = []string{"gomad3-characterization-missing=/mnt/missing"} })},
@@ -410,7 +413,7 @@ func legacyCampaignOptionsCases(t *testing.T) []legacyCampaignOptionsCase {
 		{name: "precedence strategy before limits", spec: with(seed, func(spec *CampaignSpec) { spec.Strategy, spec.Parallel, spec.OutputLimit = "bogus", 0, 0 })},
 		{name: "precedence limits before identity", spec: with(seed, func(spec *CampaignSpec) { spec.Parallel, spec.Artifacts, spec.RunnerBuild = 0, "", "" })},
 		{name: "precedence coverage before retention", spec: with(seed, func(spec *CampaignSpec) { spec.Coverage, spec.KeepSuccesses = "bogus", "bogus" })},
-		{name: "precedence policy before supervisor", spec: with(seed, func(spec *CampaignSpec) { spec.OnFailure, spec.SupervisorCommand = "bogus", nil })},
+		{name: "precedence policy before provider", spec: with(seed, func(spec *CampaignSpec) { spec.OnFailure, spec.Backend = "bogus", nil })},
 		{name: "precedence mounts before environment", spec: with(seed, func(spec *CampaignSpec) { spec.IOROMounts, spec.Environment = []string{"usr"}, []string{"NOVALUE"} })},
 		{name: "precedence environment before clock tick", spec: with(seed, func(spec *CampaignSpec) { spec.Environment, spec.ClockTick = []string{"NOVALUE"}, "sometimes" })},
 		{name: "precedence transcript before clock tick", spec: with(seed, func(spec *CampaignSpec) { spec.IOTranscriptLimit, spec.ClockTick = 1, "sometimes" })},

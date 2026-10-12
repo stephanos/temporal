@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"testing"
+
+	"go.temporal.io/server/tools/gomad3/backends"
 )
 
 func TestParseSingleBaseSeedSharesRunnerStrategyRule(t *testing.T) {
@@ -66,7 +68,11 @@ func TestCampaignOptionNormalizationAndValidation(t *testing.T) {
 		{mode: CoverageSemantic, required: []string{"unknown.probe"}},
 		{mode: "unknown"},
 	} {
-		if err := ValidateCoverage(test.mode, test.required); (err == nil) != test.valid {
+		err := ValidateCoverage(test.mode, test.required)
+		if err == nil && len(test.required) != 0 {
+			_, err = scriptProvider().Describe(t.Context(), backends.Configuration{RequiredSemanticProbes: test.required})
+		}
+		if (err == nil) != test.valid {
 			t.Fatalf("ValidateCoverage(%q, %v) = %v; valid=%t", test.mode, test.required, err, test.valid)
 		}
 	}

@@ -254,7 +254,7 @@ func (local *localCampaign) prepareTarget() error {
 		})
 		if err != nil {
 			var failure *backend.PreparationError
-			if !errors.As(err, &failure) || failure.Stage == "target" {
+			if errors.As(err, &failure) && failure.Stage == "target" {
 				reason := "target_preparation"
 				if contextErr := local.overallCtx.Err(); contextErr != nil {
 					reason = contextFailureReason(contextErr)
@@ -830,7 +830,7 @@ func (local *localCampaign) finishSeedCampaign() error {
 		for probe := range local.semanticProbes {
 			probes = append(probes, probe)
 		}
-		evidence, coverageErr := local.config.Backend.Evidence(local.overallCtx, backend.EvidenceRequest{Probes: probes})
+		evidence, coverageErr := local.config.Backend.Evidence(context.WithoutCancel(local.overallCtx), backend.EvidenceRequest{Probes: probes})
 		coverage := evidence.Coverage
 		if coverageErr != nil && local.hostFailure == nil {
 			local.hostFailure = &HostError{Reason: "semantic_coverage", Err: coverageErr}
@@ -850,7 +850,7 @@ func (local *localCampaign) finishSeedCampaign() error {
 		return local.hostFailure
 	}
 	if local.summary.SemanticCoverage != nil && local.selection.Count() != 0 {
-		evidence, err := local.config.Backend.Evidence(local.overallCtx, backend.EvidenceRequest{Probes: local.summary.SemanticCoverage.Probes, RequiredSemanticProbes: local.config.RequiredSemanticProbes})
+		evidence, err := local.config.Backend.Evidence(context.WithoutCancel(local.overallCtx), backend.EvidenceRequest{Probes: local.summary.SemanticCoverage.Probes, RequiredSemanticProbes: local.config.RequiredSemanticProbes})
 		missing := evidence.MissingRequiredProbes
 		if err != nil {
 			return err

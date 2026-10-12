@@ -28,6 +28,7 @@ type boundaryProvider struct {
 	prepared target.Prepared
 	request  backend.Request
 	err      error
+	isolated bool
 }
 
 func TestExternalVirtualTimeIsPreserved(t *testing.T) {
@@ -64,15 +65,19 @@ func (p *boundaryProvider) Describe(_ context.Context, config backend.Configurat
 	if p.prepared.Backend != nil {
 		profile = record.BackendIOProfile(*p.prepared.Backend)
 	}
-	return backend.Description{IOProfile: profile}, nil
+	return backend.Description{Isolated: p.isolated, IOProfile: profile}, nil
 }
 
 func (p *boundaryProvider) Execute(ctx context.Context, request backend.ExecutionRequest) (backend.ExecutionResult, error) {
+	return executeBoundaryFixture(ctx, p, request)
+}
+
+func executeBoundaryFixture(ctx context.Context, provider backend.Provider, request backend.ExecutionRequest) (backend.ExecutionResult, error) {
 	projected := backend.Request{Target: request.Target, Seed: request.Seed, Environment: request.Env, Timeout: request.ExecutionTimeout, OutputBytes: request.OutputLimit, Choice: backendChoiceRequest(request.Choice)}
 	if request.IO != nil && request.IO.Transcript != nil {
 		projected.TranscriptBytes = request.IO.Transcript.Limit
 	}
-	observed, err := p.Run(ctx, projected)
+	observed, err := provider.Run(ctx, projected)
 	if err != nil {
 		return backend.ExecutionResult{}, err
 	}
@@ -283,11 +288,11 @@ func TestResumeRejectsChangedExternalProfileBeforePreparedTarget(t *testing.T) {
 	}
 }
 
-func TestIsolatedCampaignRejectsBackendBeforeLaunch(t *testing.T) {
-	provider := &boundaryProvider{}
-	_, err := Explore(t.Context(), CampaignSpec{Backend: provider, CoordinatorCommand: []string{"must-not-launch"}})
-	if err == nil || !strings.Contains(err.Error(), "isolated Runner does not accept injected") || provider.calls != 0 {
-		t.Fatalf("isolated backend was admitted: calls=%d err=%v", provider.calls, err)
+func TestIsolatedCampaignRejectsInvalidRequestBeforeProviderLaunch(t *testing.T) {
+	provider := &boundaryProvider{isolated: true}
+	_, err := Explore(t.Context(), CampaignSpec{Backend: provider})
+	if err == nil || err.Error() != "invalid seed selection: empty input" || provider.calls != 0 {
+		t.Fatalf("invalid isolated request was admitted: calls=%d err=%v", provider.calls, err)
 	}
 }
 

@@ -136,7 +136,7 @@ func TestGuidedPlanShardsPreserveSelectionWithoutLiveCorpus(t *testing.T) {
 			var seeds []uint64
 			for index := uint64(0); index < 2; index++ {
 				executor := &fakeExecutor{result: result}
-				summary, err := runCampaignShardWith(context.Background(), CampaignShardSpec{PlanPath: planPath, Shard: CampaignShard{Index: index, Count: 2}, Artifacts: t.TempDir(), RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}}, executionDependencies{executor: executor})
+				summary, err := runCampaignShardWith(context.Background(), CampaignShardSpec{PlanPath: planPath, Shard: CampaignShard{Index: index, Count: 2}, Artifacts: t.TempDir(), RunnerBuild: config.RunnerBuild, Backend: scriptProvider()}, executionDependencies{executor: executor})
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -189,12 +189,12 @@ func TestGuidedResumeRejectsChangedRegressionModeAndCountsNewExecutions(t *testi
 		t.Fatal("campaign was not interrupted")
 	}
 	changed := false
-	_, err = resumeWith(context.Background(), ResumeSpec{CampaignPath: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, GuideRegression: &changed}, executionDependencies{executor: &fakeExecutor{result: result}})
+	_, err = resumeWith(context.Background(), ResumeSpec{CampaignPath: partial.CampaignPath, RunnerBuild: config.RunnerBuild, Backend: scriptProvider(), GuideRegression: &changed}, executionDependencies{executor: &fakeExecutor{result: result}})
 	if err == nil || !strings.Contains(err.Error(), "regression mode") {
 		t.Fatalf("changed mode error=%v", err)
 	}
 	executor := &fakeExecutor{result: result}
-	resumed, err := resumeWith(context.Background(), ResumeSpec{CampaignPath: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Replayer: &matchingReplayer{}}, executionDependencies{executor: executor})
+	resumed, err := resumeWith(context.Background(), ResumeSpec{CampaignPath: partial.CampaignPath, RunnerBuild: config.RunnerBuild, Backend: scriptProvider(), Replayer: &matchingReplayer{}}, executionDependencies{executor: executor})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -288,7 +288,7 @@ func TestFullyAnsweredGuidedPlanExecutesEmptyShardsAndMerges(t *testing.T) {
 	var shards []string
 	for index := uint64(0); index < 2; index++ {
 		executor := &fakeExecutor{result: result}
-		summary, err := runCampaignShardWith(context.Background(), CampaignShardSpec{PlanPath: path, Shard: CampaignShard{Index: index, Count: 2}, Artifacts: t.TempDir(), RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}}, executionDependencies{executor: executor})
+		summary, err := runCampaignShardWith(context.Background(), CampaignShardSpec{PlanPath: path, Shard: CampaignShard{Index: index, Count: 2}, Artifacts: t.TempDir(), RunnerBuild: config.RunnerBuild, Backend: scriptProvider()}, executionDependencies{executor: executor})
 		if err != nil {
 			t.Fatal(err)
 		}

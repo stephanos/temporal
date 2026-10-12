@@ -167,13 +167,13 @@ func runChoiceExplorationLocal(
 	}
 
 	if coverageHasSemantic(config.Coverage) {
-		evidence, err := config.Backend.Evidence(ctx, backend.EvidenceRequest{Probes: sortedProbeList(semanticProbes)})
+		evidence, err := config.Backend.Evidence(context.WithoutCancel(ctx), backend.EvidenceRequest{Probes: sortedProbeList(semanticProbes)})
 		if err != nil {
 			return &HostError{Reason: "semantic_coverage", Err: err}
 		}
 		coverage := evidence.Coverage
 		summary.SemanticCoverage = &coverage
-		evidence, err = config.Backend.Evidence(ctx, backend.EvidenceRequest{Probes: coverage.Probes, RequiredSemanticProbes: config.RequiredSemanticProbes})
+		evidence, err = config.Backend.Evidence(context.WithoutCancel(ctx), backend.EvidenceRequest{Probes: coverage.Probes, RequiredSemanticProbes: config.RequiredSemanticProbes})
 		if err != nil {
 			return err
 		}

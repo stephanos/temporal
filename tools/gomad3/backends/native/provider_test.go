@@ -16,6 +16,12 @@ import (
 var _ backends.Provider = (*Provider)(nil)
 
 func TestProviderDescriptionIsLazyAndDetached(t *testing.T) {
+	commands := Config{SupervisorCommand: []string{"supervisor"}, CoordinatorCommand: []string{"coordinator"}, BootstrapCommand: []string{"bootstrap"}}
+	owned := New(commands)
+	commands.SupervisorCommand[0], commands.CoordinatorCommand[0], commands.BootstrapCommand[0] = "changed", "changed", "changed"
+	if !reflect.DeepEqual(owned.config.SupervisorCommand, []string{"supervisor"}) || !reflect.DeepEqual(owned.config.CoordinatorCommand, []string{"coordinator"}) || !reflect.DeepEqual(owned.config.BootstrapCommand, []string{"bootstrap"}) {
+		t.Fatal("native constructor retained caller command slices")
+	}
 	provider := New(Config{ToolchainRoot: "/must-not-be-read"})
 	capabilities := provider.Capabilities()
 	if capabilities.Name != "native" || !capabilities.Simulation || !capabilities.ReadOnlyMounts || !capabilities.IOTranscript {
@@ -32,6 +38,17 @@ func TestProviderDescriptionIsLazyAndDetached(t *testing.T) {
 	for _, config := range []backends.Configuration{{IOProfile: "foreign"}, {ClockTick: "foreign"}, {RequiredSemanticProbes: []string{"unknown"}}, {RequiredSemanticProbes: []string{description.SemanticProbes[0], description.SemanticProbes[0]}}} {
 		if _, err := provider.Describe(t.Context(), config); err == nil {
 			t.Fatalf("invalid configuration accepted: %#v", config)
+		}
+	}
+	for _, missing := range []struct {
+		config Config
+		want   string
+	}{
+		{Config{ToolchainRoot: "/must-not-be-read"}, "supervisor command is required"},
+		{Config{ToolchainRoot: "/must-not-be-read", SupervisorCommand: []string{"unused"}, BootstrapCommand: []string{""}}, "target bootstrap command is required"},
+	} {
+		if _, err := New(missing.config).Describe(t.Context(), backends.Configuration{ForExecution: true}); err == nil || err.Error() != missing.want {
+			t.Fatalf("execution readiness error = %v, want %s", err, missing.want)
 		}
 	}
 }

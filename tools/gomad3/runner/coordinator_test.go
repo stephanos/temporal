@@ -2,9 +2,15 @@ package runner
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
+	"os"
 	"testing"
+	"time"
+
+	"go.temporal.io/server/tools/gomad3/backends"
+	"go.temporal.io/server/tools/gomad3/backends/native"
 )
 
 func TestDecodeCoordinatorMessagesForwardsProgressAndFinalResponse(t *testing.T) {
@@ -36,6 +42,64 @@ func TestDecodeCoordinatorMessagesPreservesDrainFailure(t *testing.T) {
 	if err == nil || !errors.Is(err, drainFailure) {
 		t.Fatalf("decodeCoordinatorMessages() error = %v", err)
 	}
+}
+
+type cancellationCoordinatorProvider struct {
+	*native.Provider
+	observed backends.ExecutionResult
+}
+
+func (provider *cancellationCoordinatorProvider) Execute(ctx context.Context, request backends.ExecutionRequest) (backends.ExecutionResult, error) {
+	result, err := provider.Provider.Execute(ctx, request)
+	provider.observed = result
+	return result, err
+}
+
+func TestCoordinatorOutputFailureCancelsAndReapsBeforeDraining(t *testing.T) {
+	for _, test := range []struct {
+		mode, reason string
+	}{
+		{mode: "malformed", reason: "coordinator_decode"},
+		{mode: "progress", reason: "progress_output"},
+	} {
+		t.Run(test.mode, func(t *testing.T) {
+			t.Setenv("GOMAD3_COORDINATOR_CANCEL_CASE", test.mode)
+			config, _ := testConfig(t, nil, nil, "7", PolicyAll, 1)
+			config.OverallTimeout = 2 * time.Second
+			provider := &cancellationCoordinatorProvider{Provider: native.New(native.Config{
+				CoordinatorCommand: []string{os.Args[0], "-test.run=^TestCoordinatorCancellationHelper$"},
+				RunnerBuild:        config.RunnerBuild,
+			})}
+			config.Backend = provider
+			progressFailure := errors.New("progress failed")
+			config.Progress = func(CampaignEvent) error { return progressFailure }
+			_, err := runIsolated(t.Context(), campaignRequestFromSpec(config))
+			var hostError *HostError
+			if !errors.As(err, &hostError) || hostError.Reason != test.reason || !provider.observed.Cancelled || !provider.observed.GroupGone {
+				t.Fatalf("coordinator failure = %v, transport = %#v", err, provider.observed)
+			}
+			if test.mode == "progress" && !errors.Is(err, progressFailure) {
+				t.Fatalf("progress cause was lost: %v", err)
+			}
+		})
+	}
+}
+
+func TestCoordinatorCancellationHelper(t *testing.T) {
+	mode := os.Getenv("GOMAD3_COORDINATOR_CANCEL_CASE")
+	if mode == "" {
+		t.Skip("coordinator subprocess only")
+	}
+	payload := "malformed\n"
+	if mode == "progress" {
+		payload = "{\"type\":\"progress\",\"progress\":{\"Phase\":\"running\"}}\n"
+	}
+	if _, err := io.WriteString(os.Stdout, payload); err != nil {
+		t.Fatal(err)
+	}
+	timer := time.NewTimer(time.Hour)
+	defer timer.Stop()
+	<-timer.C
 }
 
 type readerResult struct {

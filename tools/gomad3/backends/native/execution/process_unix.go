@@ -610,8 +610,8 @@ func Run(ctx context.Context, request Spec) (result Result, retErr error) {
 	}
 	result = Result{
 		Captured:    true,
-		Stdout:      stdoutCapture.Result(),
-		Stderr:      stderrCapture.Result(),
+		Stdout:      backends.Output(stdoutCapture.Result()),
+		Stderr:      backends.Output(stderrCapture.Result()),
 		WorldRecord: worldCapture.Result().Bytes,
 	}
 	if started != nil {

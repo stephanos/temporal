@@ -6,13 +6,9 @@ import (
 	"slices"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/backends/native/preparation"
-	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/target"
 )
-
-const scriptedBootstrapMarker = "synthetic scripted Runner bootstrap; not a toolchain frame"
 
 func scriptedPreparationDependencies(t *testing.T, preparer Preparer, executor executionRunner) executionDependencies {
 	t.Helper()
@@ -21,7 +17,7 @@ func scriptedPreparationDependencies(t *testing.T, preparer Preparer, executor e
 	}
 	return executionDependencies{
 		executor: executor,
-		prepare: func(ctx context.Context, request preparation.Request) (target.Prepared, error) {
+		prepare: func(ctx context.Context, request preparationRequest) (target.Prepared, error) {
 			if !reflect.DeepEqual(request.Preparer, preparer) || request.Target.PreparationRoot == "" || len(request.Target.AdapterReplacements) != 0 {
 				t.Fatalf("scripted preparation request = %#v", request)
 			}
@@ -37,9 +33,6 @@ func scriptedPreparationDependencies(t *testing.T, preparer Preparer, executor e
 			}
 			prepared.Adapters = []record.TargetAdapter{}
 			return prepared, nil
-		},
-		bootstrap: func(transcript.Spec, target.Prepared, string, uint64) ([]byte, error) {
-			return []byte(scriptedBootstrapMarker), nil
 		},
 	}
 }

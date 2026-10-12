@@ -7,21 +7,12 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime/debug"
 	"strings"
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
 	"go.temporal.io/server/tools/gomad3/record"
 )
-
-func TestReplayBuildInfoRejectsMatchingCoverageInstrumentation(t *testing.T) {
-	info := &debug.BuildInfo{GoVersion: "go1.27.1", Path: "example.com/target", Settings: []debug.BuildSetting{{Key: "-cover", Value: "true"}}}
-	err := validateBuildInfo(info, nativebuild.ProjectBuildInfo(info))
-	if err == nil || !strings.Contains(err.Error(), "coverage") {
-		t.Fatalf("matching coverage build-info rejection = %v", err)
-	}
-}
 
 func TestReplayAndMinimizeRejectRetainedCoverageBinary(t *testing.T) {
 	module := t.TempDir()
@@ -80,12 +71,12 @@ func TestReplayAndMinimizeRejectRetainedCoverageBinary(t *testing.T) {
 	}
 	for _, verifyOnly := range []bool{false, true} {
 		executor := &fakeReplayExecutor{}
-		_, err := replayWith(context.Background(), ReplaySpec{ArtifactPath: published.Path, VerifyOnly: verifyOnly, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}}, executionDependencies{executor: executor})
+		_, err := replayWith(context.Background(), ReplaySpec{Backend: replayNativeProvider(t), ArtifactPath: published.Path, VerifyOnly: verifyOnly, ToolchainRoot: toolchainRoot(t)}, executionDependencies{executor: executor})
 		if err == nil || !strings.Contains(err.Error(), "stored target uses unsupported coverage instrumentation") || executor.calls != 0 {
 			t.Fatalf("covered replay: error = %v, calls = %d", err, executor.calls)
 		}
 	}
-	_, err = minimizeWith(context.Background(), MinimizeSpec{ArtifactPath: published.Path, OutputRoot: t.TempDir(), AttemptBudget: 1, ToolchainRoot: toolchainRoot(t)}, executionDependencies{})
+	_, err = minimizeWith(context.Background(), MinimizeSpec{Backend: replayNativeProvider(t), ArtifactPath: published.Path, OutputRoot: t.TempDir(), AttemptBudget: 1, ToolchainRoot: toolchainRoot(t)}, executionDependencies{})
 	if err == nil || !strings.Contains(err.Error(), "stored target uses unsupported coverage instrumentation") {
 		t.Fatalf("covered minimization: error = %v", err)
 	}

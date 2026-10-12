@@ -201,7 +201,7 @@ func TestCompletionFaultsKeepReasonPrecedenceAndEvidence(t *testing.T) {
 	seedMismatch := func(result *backend.ExecutionResult) { result.WorldRecord = completionWorldRecord(t, 8) }
 	malformedCoverage := func(result *backend.ExecutionResult) {
 		payload := []byte("not an I/O transcript")
-		result.IOTranscript = transcript.Transcript{Bytes: payload, SHA256: sha256.Sum256(payload), Records: 1, Complete: true}
+		result.IOTranscript = backend.Transcript{Bytes: payload, SHA256: sha256.Sum256(payload), Records: 1, Complete: true}
 	}
 	// The digest and record count are consistent, so supervision accepts the
 	// trace and only the coverage projection decodes the payload.

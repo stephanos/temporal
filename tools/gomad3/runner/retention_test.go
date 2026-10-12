@@ -13,7 +13,6 @@ import (
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
-	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
@@ -228,7 +227,7 @@ func TestExecutionArtifactInputCarriesTheCapturedEvidence(t *testing.T) {
 	manifest := record.ExecutionRecord{CampaignID: "campaign", Seed: 7}
 	mounts := &captured.CapturedInputs{}
 	result := processResult(0, "stdout", "stderr")
-	result.IOTranscript = transcript.Transcript{Bytes: []byte("transcript")}
+	result.IOTranscript = backend.Transcript{Bytes: []byte("transcript")}
 	result.ChoiceTrace.Trace.Bytes = []byte("choices")
 	result.SimulationRecords = [][]byte{[]byte("simulation record")}
 	worldBundle := noneWorldBundle()

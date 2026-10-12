@@ -25,7 +25,6 @@ import (
 	"go.temporal.io/server/tools/gomad3/backends/native"
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/internal/hostexec"
 	"go.temporal.io/server/tools/gomad3/record"
 	simulationengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation"
 	simulationrecord "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulationrecord"
@@ -37,6 +36,17 @@ import (
 func replayNativeProvider(t *testing.T) *native.Provider {
 	t.Helper()
 	return native.New(native.Config{ToolchainRoot: toolchainRoot(t)})
+}
+
+func replayNativeExecutionProvider(t *testing.T) *native.Provider {
+	t.Helper()
+	return native.New(native.Config{ToolchainRoot: toolchainRoot(t),
+		SupervisorCommand: []string{os.Args[0], "-test.run=TestIOReplaySupervisorHelper"},
+		BootstrapCommand:  []string{os.Args[0], "-test.run=TestIOReplayBootstrapHelper"}})
+}
+
+func replayNativeIOProfile(profile transcript.Spec) record.IOProfile {
+	return record.IOProfile{Name: profile.Name(), ImplementationSHA256: record.SHA256(profile.ImplementationSHA256()), Inventory: string(profile.Inventory()), InventorySHA256: record.SHA256(profile.InventorySHA256())}
 }
 
 func TestReplayVerifiesThenRunsStoredTargetWithoutRebuilding(t *testing.T) {

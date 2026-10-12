@@ -83,7 +83,7 @@ func TestAssessCompletionProjectsCoverageInOrderAndClassifies(t *testing.T) {
 	wellFormed.IOTranscript = semanticTranscript(t, completionProbe)
 	wellFormed.ChoiceTrace = trace
 	malformed := wellFormed
-	malformed.IOTranscript = transcript.Transcript{Bytes: []byte("not an I/O transcript")}
+	malformed.IOTranscript = backend.Transcript{Bytes: []byte("not an I/O transcript")}
 	malformed.ChoiceTrace.Trace.Bytes = []byte("not a choice trace")
 	malformedChoices := malformed
 	malformedChoices.IOTranscript = wellFormed.IOTranscript

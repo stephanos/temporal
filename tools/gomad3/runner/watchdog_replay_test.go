@@ -176,8 +176,7 @@ func TestWatchdogDiagnosticReplayRejectsUnsupportedChoiceEvidence(t *testing.T) 
 func watchdogReplaySpec(t *testing.T, path string) ReplaySpec {
 	t.Helper()
 	return ReplaySpec{ArtifactPath: path, ToolchainRoot: toolchainRoot(t),
-		SupervisorCommand: []string{os.Args[0], "-test.run=TestIOReplaySupervisorHelper"},
-		BootstrapCommand:  []string{os.Args[0], "-test.run=TestIOReplayBootstrapHelper"}}
+		Backend: replayNativeExecutionProvider(t)}
 }
 
 // watchdogReplayTimeouts are the execution timeouts a real watchdog run may use, shortest first.
@@ -246,10 +245,6 @@ func main() {
 	}
 	profile := transcript.Default()
 	const runnerBuild = "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
-	frame, err := profile.BootstrapFrame(prepared, runnerBuild, 7)
-	if err != nil {
-		t.Fatal(err)
-	}
 	source := t.TempDir()
 	if err := os.WriteFile(filepath.Join(source, "input"), []byte("captured input\n"), 0o600); err != nil {
 		t.Fatal(err)
@@ -259,12 +254,12 @@ func main() {
 	var observed backend.ExecutionResult
 	var timeout time.Duration
 	for _, timeout = range watchdogReplayTimeouts {
-		observed, err = backend.Run(t.Context(), backend.ExecutionRequest{
-			SupervisorCommand: []string{os.Args[0], "-test.run=TestIOReplaySupervisorHelper"}, BootstrapCommand: []string{os.Args[0], "-test.run=TestIOReplayBootstrapHelper"},
+		observed, err = replayNativeExecutionProvider(t).Execute(t.Context(), backend.ExecutionRequest{
+			Target: prepared, Seed: 7, RunnerBuild: runnerBuild,
 			Command: prepared.Path, Argv0: prepared.Argv[0], Dir: t.TempDir(), Env: []string{"GOMAD3_IO_PROFILE=" + profile.Name(), "GOMADSEED=7", "TZ=UTC"},
 			ExecutionTimeout: timeout, TerminateGrace: 100 * time.Millisecond, OutputLimit: 1 << 20,
 			World: backend.WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 7},
-			IO:    &backend.IOCapability{Config: frame, Transcript: &backend.IOTranscriptCapability{Limit: 64 << 20}, ReadOnlyMount: &backend.ReadOnlyMountCapability{Mappings: mappings, Limits: limits}},
+			IO:    &backend.IOCapability{Profile: replayNativeIOProfile(profile), Transcript: &backend.IOTranscriptCapability{Limit: 64 << 20}, ReadOnlyMount: &backend.ReadOnlyMountCapability{Mappings: mappings, Limits: limits}},
 		})
 		if err != nil {
 			t.Fatal(err)

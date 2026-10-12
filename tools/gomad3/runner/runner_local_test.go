@@ -98,6 +98,7 @@ func TestLocalCompletionErrorPrecedence(t *testing.T) {
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 			local := localCampaign{
+				config:     campaignRequest{campaignRuntime: campaignRuntime{Backend: scriptProvider()}},
 				overallCtx: ctx, activeCancel: cancel, controller: controller,
 				prepared: target.Prepared{Path: "missing prepared target"},
 			}
@@ -183,6 +184,7 @@ func TestLocalFinalizationClassifiesPublicationFailure(t *testing.T) {
 		t.Fatal("selection has an unexpected second seed")
 	}
 	local := localCampaign{
+		config:     campaignRequest{campaignRuntime: campaignRuntime{Backend: scriptProvider()}},
 		overallCtx: context.Background(), selection: selection, controller: controller,
 		prepared: newFakePreparer(t).prepared, journal: &campaign.CampaignJournal{},
 	}
@@ -213,6 +215,7 @@ func TestLocalStoppedCancellationPreservesPriorFailure(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	local := localCampaign{
+		config:     campaignRequest{campaignRuntime: campaignRuntime{Backend: scriptProvider()}},
 		overallCtx: ctx, activeCancel: cancel, controller: controller,
 		hostFailure: primary, prepared: newFakePreparer(t).prepared,
 	}

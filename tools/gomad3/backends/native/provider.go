@@ -17,7 +17,6 @@ import (
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/internal/hostexec"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/target"
 	"go.temporal.io/server/tools/gomad3/world"
@@ -31,7 +30,17 @@ type Config struct {
 	RunnerBuild        string
 }
 
-type Provider struct{ config Config }
+type Provider struct {
+	config    Config
+	bootstrap func(transcript.Spec, target.Prepared, string, uint64) ([]byte, error)
+}
+
+func (provider *Provider) bootstrapFrame(profile transcript.Spec, prepared target.Prepared, runner string, seed uint64) ([]byte, error) {
+	if provider.bootstrap != nil {
+		return provider.bootstrap(profile, prepared, runner, seed)
+	}
+	return profile.BootstrapFrame(prepared, runner, seed)
+}
 
 func New(config Config) *Provider {
 	config.SupervisorCommand = append([]string(nil), config.SupervisorCommand...)
@@ -54,6 +63,14 @@ func (*Provider) Capabilities() backends.Capabilities {
 func (provider *Provider) Describe(ctx context.Context, config backends.Configuration) (backends.Description, error) {
 	if err := ctx.Err(); err != nil {
 		return backends.Description{}, err
+	}
+	if config.ForExecution {
+		if len(provider.config.SupervisorCommand) == 0 || provider.config.SupervisorCommand[0] == "" {
+			return backends.Description{}, errors.New("supervisor command is required")
+		}
+		if len(provider.config.BootstrapCommand) == 0 || provider.config.BootstrapCommand[0] == "" {
+			return backends.Description{}, errors.New("target bootstrap command is required")
+		}
 	}
 	profile := transcript.Default()
 	if config.Target.Backend != "" && config.Target.Backend != "native" {
@@ -104,12 +121,6 @@ func (provider *Provider) ValidatePrepared(spec target.Spec, prepared target.Pre
 	if err := nativebuild.VerifyPrepared(prepared); err != nil {
 		return err
 	}
-	if err := transcript.Default().ValidatePreparedTarget(spec, prepared, environment); err != nil {
-		return err
-	}
-	if prepared.Backend != nil || len(prepared.BackendPayloads) != 0 {
-		return errors.New("native preparation returned external backend metadata")
-	}
 	root := spec.ToolchainRoot
 	if root == "" {
 		root = provider.config.ToolchainRoot
@@ -122,6 +133,12 @@ func (provider *Provider) ValidatePrepared(spec target.Spec, prepared target.Pre
 		if identity.GoVersion != prepared.GoVersion || identity.BuildKey != prepared.BuildKey || identity.TargetGOOS != prepared.TargetGOOS || identity.TargetGOARCH != prepared.TargetGOARCH {
 			return errors.New("prepared target toolchain identity does not match the pinned toolchain")
 		}
+	}
+	if err := transcript.Default().ValidatePreparedTarget(spec, prepared, environment); err != nil {
+		return err
+	}
+	if prepared.Backend != nil || len(prepared.BackendPayloads) != 0 {
+		return errors.New("native preparation returned external backend metadata")
 	}
 	return nil
 }
@@ -180,6 +197,12 @@ func (provider *Provider) Execute(ctx context.Context, request backends.Executio
 	if err := ctx.Err(); err != nil {
 		return backends.ExecutionResult{}, err
 	}
+	if len(provider.config.SupervisorCommand) == 0 || provider.config.SupervisorCommand[0] == "" {
+		return backends.ExecutionResult{}, errors.New("supervisor command is required")
+	}
+	if len(provider.config.BootstrapCommand) == 0 || provider.config.BootstrapCommand[0] == "" {
+		return backends.ExecutionResult{}, errors.New("target bootstrap command is required")
+	}
 	if request.IO != nil {
 		identity := request.IO.Profile
 		if !transcript.Default().MatchesRecorded(identity.Name, string(identity.ImplementationSHA256), string(identity.InventorySHA256), identity.Inventory) {
@@ -222,7 +245,7 @@ func (provider *Provider) Execute(ctx context.Context, request backends.Executio
 		if runnerBuild == "" {
 			runnerBuild = provider.config.RunnerBuild
 		}
-		frame, err := profile.BootstrapFrame(request.Target, runnerBuild, request.Seed)
+		frame, err := provider.bootstrapFrame(profile, request.Target, runnerBuild, request.Seed)
 		if err != nil {
 			return backends.ExecutionResult{}, err
 		}
@@ -250,16 +273,12 @@ func (provider *Provider) Execute(ctx context.Context, request backends.Executio
 func executionResult(observed execution.Result) backends.ExecutionResult {
 	return backends.ExecutionResult{
 		BackendEvidence: observed.BackendEvidence, Captured: observed.Captured, Termination: backends.ExecutionTermination(observed.Termination), ExitCode: observed.ExitCode, Signal: observed.Signal,
-		WatchdogTimeout: observed.WatchdogTimeout, Cancelled: observed.Cancelled, Stdout: output(observed.Stdout), Stderr: output(observed.Stderr), PID: observed.PID, PGID: observed.PGID, GroupGone: observed.GroupGone,
+		WatchdogTimeout: observed.WatchdogTimeout, Cancelled: observed.Cancelled, Stdout: observed.Stdout, Stderr: observed.Stderr, PID: observed.PID, PGID: observed.PGID, GroupGone: observed.GroupGone,
 		WorldRecord: observed.WorldRecord, IOTranscript: backends.Transcript{Bytes: observed.IOTranscript.Bytes, SHA256: observed.IOTranscript.SHA256, Records: observed.IOTranscript.Records, Complete: observed.IOTranscript.Complete, ReplayDivergence: observed.IOTranscript.ReplayDivergence},
 		IOROMounts: observed.IOROMounts, DiagnosticTrace: observed.DiagnosticTrace,
 		ChoiceTrace:       backends.ChoiceTrace{Profile: observed.ChoiceTrace.Profile, ImplementationSHA256: observed.ChoiceTrace.ImplementationSHA256, Limit: observed.ChoiceTrace.Limit, Trace: observed.ChoiceTrace.Trace, TapeSHA256: observed.ChoiceTrace.TapeSHA256, Decisions: observed.ChoiceTrace.Decisions},
 		SimulationRecords: observed.SimulationRecords, VirtualTimeElapsedNanos: observed.VirtualTimeElapsedNanos,
 	}
-}
-
-func output(observed hostexec.Output) backends.Output {
-	return backends.Output{Bytes: observed.Bytes, RawBytes: observed.RawBytes, FullSHA256: observed.FullSHA256, RetainedSHA256: observed.RetainedSHA256, TotalBytes: observed.TotalBytes, RetainedBytes: observed.RetainedBytes, DiscardedBytes: observed.DiscardedBytes, Truncated: observed.Truncated}
 }
 
 func (*Provider) Evidence(ctx context.Context, request backends.EvidenceRequest) (backends.Evidence, error) {

@@ -33,6 +33,10 @@ type cancellationMinimizationProvider struct {
 	observed    error
 }
 
+func (p *prefixFailureProvider) Execute(ctx context.Context, request backend.ExecutionRequest) (backend.ExecutionResult, error) {
+	return executeBoundaryFixture(ctx, p, request)
+}
+
 func (p *cancellationMinimizationProvider) ValidateReplay(ctx context.Context, _ *artifact.Opened) (target.Prepared, error) {
 	p.validations++
 	if p.validations == p.cancelAt {

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	backend "go.temporal.io/server/tools/gomad3/backends"
 	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
+	nativeexecution "go.temporal.io/server/tools/gomad3/backends/native/execution"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -33,18 +34,13 @@ func TestIOProfileFailureArtifactReplaysExactly(t *testing.T) {
 	}
 	profile := transcript.Default()
 	const runnerBuild = "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
-	frame, err := profile.BootstrapFrame(prepared, runnerBuild, 7)
-	if err != nil {
-		t.Fatal(err)
-	}
 	environment := []string{"GOMAD3_IO_PROFILE=" + profile.Name(), "GOMADSEED=7", "TZ=UTC"}
-	observed, err := backend.Run(context.Background(), backend.ExecutionRequest{
-		SupervisorCommand: []string{os.Args[0], "-test.run=TestIOReplaySupervisorHelper"},
-		BootstrapCommand:  []string{os.Args[0], "-test.run=TestIOReplayBootstrapHelper"},
-		Command:           prepared.Path, Argv0: prepared.Argv[0], Args: prepared.Argv[1:], Dir: t.TempDir(), Env: environment,
+	observed, err := replayNativeExecutionProvider(t).Execute(context.Background(), backend.ExecutionRequest{
+		Target: prepared, Seed: 7, RunnerBuild: runnerBuild,
+		Command: prepared.Path, Argv0: prepared.Argv[0], Args: prepared.Argv[1:], Dir: t.TempDir(), Env: environment,
 		ExecutionTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 1 << 20,
 		World: backend.WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 7},
-		IO:    &backend.IOCapability{Config: frame, Transcript: &backend.IOTranscriptCapability{Limit: 64 << 20}},
+		IO:    &backend.IOCapability{Profile: replayNativeIOProfile(profile), Transcript: &backend.IOTranscriptCapability{Limit: 64 << 20}},
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -86,8 +82,7 @@ func TestIOProfileFailureArtifactReplaysExactly(t *testing.T) {
 	}
 	replayed, err := Replay(context.Background(), ReplaySpec{
 		ArtifactPath: published.Path, ToolchainRoot: toolchain,
-		SupervisorCommand: []string{os.Args[0], "-test.run=TestIOReplaySupervisorHelper"},
-		BootstrapCommand:  []string{os.Args[0], "-test.run=TestIOReplayBootstrapHelper"},
+		Backend: replayNativeExecutionProvider(t),
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -152,14 +147,14 @@ func TestLinkedCapabilityArtifactRevalidatesRetainedExecutableBeforeReplay(t *te
 	if string(payload) != string(prepared.CapabilityManifest.Payload) {
 		t.Fatal("retained capability payload differs from the embedded record")
 	}
-	result, err := Replay(context.Background(), ReplaySpec{ArtifactPath: published.Path, VerifyOnly: true, ToolchainRoot: toolchain})
+	result, err := Replay(context.Background(), ReplaySpec{Backend: replayNativeProvider(t), ArtifactPath: published.Path, VerifyOnly: true, ToolchainRoot: toolchain})
 	if err != nil || !result.Verified {
 		t.Fatalf("Replay() = %#v, %v", result, err)
 	}
 	if err := os.WriteFile(filepath.Join(published.Path, "target-capabilities.json"), []byte("changed"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := Replay(context.Background(), ReplaySpec{ArtifactPath: published.Path, VerifyOnly: true, ToolchainRoot: toolchain}); err == nil {
+	if _, err := Replay(context.Background(), ReplaySpec{Backend: replayNativeProvider(t), ArtifactPath: published.Path, VerifyOnly: true, ToolchainRoot: toolchain}); err == nil {
 		t.Fatal("Replay() accepted a changed retained capability payload")
 	}
 }
@@ -175,10 +170,6 @@ func TestReadOnlyMountFailureArtifactReplaysAfterHostRemoval(t *testing.T) {
 	}
 	profile := transcript.Default()
 	const runnerBuild = "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
-	frame, err := profile.BootstrapFrame(prepared, runnerBuild, 7)
-	if err != nil {
-		t.Fatal(err)
-	}
 	source := t.TempDir()
 	if err := os.WriteFile(filepath.Join(source, "schema.sql"), []byte("select 1;\n"), 0o640); err != nil {
 		t.Fatal(err)
@@ -186,12 +177,12 @@ func TestReadOnlyMountFailureArtifactReplaysAfterHostRemoval(t *testing.T) {
 	mappings := []captured.Mapping{{Source: source, Target: "/mounted"}}
 	limits := captured.DefaultLimits()
 	environment := []string{"GOMAD3_IO_PROFILE=" + profile.Name(), "GOMADSEED=7", "TZ=UTC"}
-	observed, err := backend.Run(context.Background(), backend.ExecutionRequest{
-		SupervisorCommand: []string{os.Args[0], "-test.run=TestIOReplaySupervisorHelper"}, BootstrapCommand: []string{os.Args[0], "-test.run=TestIOReplayBootstrapHelper"},
+	observed, err := replayNativeExecutionProvider(t).Execute(context.Background(), backend.ExecutionRequest{
+		Target: prepared, Seed: 7, RunnerBuild: runnerBuild,
 		Command: prepared.Path, Argv0: prepared.Argv[0], Dir: t.TempDir(), Env: environment,
 		ExecutionTimeout: 10 * time.Second, TerminateGrace: time.Second, OutputLimit: 1 << 20,
 		World: backend.WorldCapability{RecordLimit: 1 << 20, TransitionLimit: 1 << 20, Seed: 7},
-		IO: &backend.IOCapability{Config: frame, Transcript: &backend.IOTranscriptCapability{Limit: 64 << 20},
+		IO: &backend.IOCapability{Profile: replayNativeIOProfile(profile), Transcript: &backend.IOTranscriptCapability{Limit: 64 << 20},
 			ReadOnlyMount: &backend.ReadOnlyMountCapability{Mappings: mappings, Limits: limits}},
 	})
 	if err != nil {
@@ -241,7 +232,7 @@ func TestReadOnlyMountFailureArtifactReplaysAfterHostRemoval(t *testing.T) {
 	}
 	replayed, err := Replay(context.Background(), ReplaySpec{
 		ArtifactPath: published.Path, ToolchainRoot: toolchain,
-		SupervisorCommand: []string{os.Args[0], "-test.run=TestIOReplaySupervisorHelper"}, BootstrapCommand: []string{os.Args[0], "-test.run=TestIOReplayBootstrapHelper"},
+		Backend: replayNativeExecutionProvider(t),
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -255,7 +246,7 @@ func TestIOReplaySupervisorHelper(t *testing.T) {
 	if os.Getenv("GOMAD3_PROCESS_SUPERVISOR") != "1" {
 		t.Skip("supervisor subprocess only")
 	}
-	if err := backend.SupervisorMain(); err != nil {
+	if err := nativeexecution.SupervisorMain(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(3)
 	}
@@ -266,7 +257,7 @@ func TestIOReplayBootstrapHelper(t *testing.T) {
 	if os.Getenv("GOMAD3_TARGET_BOOTSTRAP") != "1" {
 		t.Skip("target bootstrap subprocess only")
 	}
-	if err := backend.BootstrapMain(); err != nil {
+	if err := nativeexecution.BootstrapMain(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(3)
 	}

@@ -165,7 +165,7 @@ func (provider *Provider) executeCoordinator(ctx context.Context, request backen
 				return backends.ExecutionResult{CoordinatorErrorReason: "coordinator_exit"}, errors.Join(err, terminateCoordinator(command, completedCoordinatorWait(waitErr), deadline))
 			}
 			if gone {
-				result := backends.ExecutionResult{Captured: true, GroupGone: true, PID: command.Process.Pid, PGID: command.Process.Pid, Stderr: output(stderr.Result()), Termination: backends.TerminationExit}
+				result := backends.ExecutionResult{Captured: true, GroupGone: true, PID: command.Process.Pid, PGID: command.Process.Pid, Stderr: backends.Output(stderr.Result()), Termination: backends.TerminationExit}
 				if waitErr != nil {
 					result.CoordinatorErrorReason = "coordinator_exit"
 				}
@@ -183,7 +183,7 @@ func (provider *Provider) executeCoordinator(ctx context.Context, request backen
 			cleanupErr := terminateCoordinator(command, waited, deadline)
 			result := backends.ExecutionResult{Cancelled: true, CoordinatorErrorReason: "coordinator_timeout"}
 			if cleanupErr == nil {
-				result.Stderr = output(stderr.Result())
+				result.Stderr = backends.Output(stderr.Result())
 				result.GroupGone = true
 			}
 			return result, errors.Join(ctx.Err(), cleanupErr)
@@ -194,7 +194,7 @@ func (provider *Provider) executeCoordinator(ctx context.Context, request backen
 			cleanupErr := terminateCoordinator(command, waited, deadline)
 			result := backends.ExecutionResult{WatchdogTimeout: true, CoordinatorErrorReason: "coordinator_timeout"}
 			if cleanupErr == nil {
-				result.Stderr = output(stderr.Result())
+				result.Stderr = backends.Output(stderr.Result())
 				result.GroupGone = true
 			}
 			return result, errors.Join(context.DeadlineExceeded, cleanupErr)

@@ -102,7 +102,7 @@ func runIsolated(ctx context.Context, config campaignRequest) (CampaignResult, e
 	}()
 	decoded := make(chan coordinatorDecodeResult, 1)
 	go func() {
-		response, decodeErr := decodeCoordinatorMessages(stdout, config.Progress)
+		response, decodeErr := decodeCoordinatorMessagesWithCancellation(stdout, config.Progress, cancelExecution)
 		decodeErr = errors.Join(decodeErr, stdout.Close())
 		decoded <- coordinatorDecodeResult{response: response, err: decodeErr}
 	}()
@@ -159,7 +159,13 @@ func runIsolated(ctx context.Context, config campaignRequest) (CampaignResult, e
 		}
 	}
 	stderr := transport.result.Stderr.Bytes
-	if transport.err != nil {
+	decodeCancelled := decodeResult.err != nil && overallCtx.Err() == nil && executionCtx.Err() == context.Canceled
+	startupFailure := false
+	switch transport.result.CoordinatorErrorReason {
+	case "coordinator_start", "coordinator_pipe", "coordinator_capture", "coordinator_encode":
+		startupFailure = true
+	}
+	if transport.err != nil && (!decodeCancelled || startupFailure) {
 		reason := transport.result.CoordinatorErrorReason
 		if reason == "" {
 			reason = "coordinator_exit"
@@ -167,12 +173,16 @@ func runIsolated(ctx context.Context, config campaignRequest) (CampaignResult, e
 		return CampaignResult{}, &HostError{Reason: reason, Err: errors.Join(transport.err, errorFromOutput(stderr))}
 	}
 	if decodeResult.err != nil {
+		cleanupErr := transport.err
+		if transport.result.Cancelled && transport.result.GroupGone && errors.Is(cleanupErr, context.Canceled) {
+			cleanupErr = nil
+		}
 		var progressErr *coordinatorProgressError
 		reason := "coordinator_decode"
 		if errors.As(decodeResult.err, &progressErr) {
 			reason = "progress_output"
 		}
-		return CampaignResult{}, &HostError{Reason: reason, Err: errors.Join(decodeResult.err, errorFromOutput(stderr))}
+		return CampaignResult{}, &HostError{Reason: reason, Err: errors.Join(decodeResult.err, cleanupErr, errorFromOutput(stderr))}
 	}
 	response := decodeResult.response
 	if response.ErrorReason != "" {
@@ -188,6 +198,19 @@ func runIsolated(ctx context.Context, config campaignRequest) (CampaignResult, e
 }
 
 func decodeCoordinatorMessages(input io.Reader, progress CampaignEventFunc) (coordinatorResponse, error) {
+	return decodeCoordinatorMessagesWithCancellation(input, progress, nil)
+}
+
+func decodeCoordinatorMessagesWithCancellation(input io.Reader, progress CampaignEventFunc, cancel context.CancelFunc) (coordinatorResponse, error) {
+	failure := func(cause error, drain bool) (coordinatorResponse, error) {
+		if cancel != nil {
+			cancel()
+		}
+		if drain {
+			cause = drainCoordinatorInput(input, cause)
+		}
+		return coordinatorResponse{}, cause
+	}
 	limited := &io.LimitedReader{R: input, N: maximumCoordinatorMessageBytes + 1}
 	decoder := json.NewDecoder(limited)
 	decoder.DisallowUnknownFields()
@@ -200,36 +223,36 @@ func decodeCoordinatorMessages(input io.Reader, progress CampaignEventFunc) (coo
 			break
 		}
 		if err != nil {
-			return coordinatorResponse{}, drainCoordinatorInput(input, fmt.Errorf("decode coordinator message: %w", err))
+			return failure(fmt.Errorf("decode coordinator message: %w", err), true)
 		}
 		if foundResult {
-			return coordinatorResponse{}, drainCoordinatorInput(input, fmt.Errorf("coordinator emitted a message after its result"))
+			return failure(fmt.Errorf("coordinator emitted a message after its result"), true)
 		}
 		switch message.Type {
 		case "progress":
 			if message.Progress == nil || message.Response != nil {
-				return coordinatorResponse{}, fmt.Errorf("coordinator progress message is malformed")
+				return failure(fmt.Errorf("coordinator progress message is malformed"), false)
 			}
 			if progress != nil {
 				if err := progress(*message.Progress); err != nil {
-					return coordinatorResponse{}, drainCoordinatorInput(input, &coordinatorProgressError{err: err})
+					return failure(&coordinatorProgressError{err: err}, true)
 				}
 			}
 		case "result":
 			if message.Response == nil || message.Progress != nil {
-				return coordinatorResponse{}, fmt.Errorf("coordinator result message is malformed")
+				return failure(fmt.Errorf("coordinator result message is malformed"), false)
 			}
 			response = *message.Response
 			foundResult = true
 		default:
-			return coordinatorResponse{}, fmt.Errorf("unknown coordinator message type %q", message.Type)
+			return failure(fmt.Errorf("unknown coordinator message type %q", message.Type), false)
 		}
 	}
 	if limited.N == 0 {
-		return coordinatorResponse{}, fmt.Errorf("coordinator response exceeds its bound")
+		return failure(fmt.Errorf("coordinator response exceeds its bound"), false)
 	}
 	if !foundResult {
-		return coordinatorResponse{}, fmt.Errorf("coordinator omitted its result")
+		return failure(fmt.Errorf("coordinator omitted its result"), false)
 	}
 	return response, nil
 }

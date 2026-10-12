@@ -49,7 +49,7 @@ func resumeConfiguration(request campaignRequest, plan campaign.CampaignPlan) (C
 	if request.Backend == nil {
 		return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, errors.New("resume requires a backend provider")
 	}
-	description, err := request.Backend.Describe(context.Background(), backend.Configuration{Target: request.Target, IOProfile: plan.IOProfile.Name})
+	description, err := request.Backend.Describe(context.Background(), backend.Configuration{ForExecution: request.executor == nil, Target: request.Target, IOProfile: plan.IOProfile.Name})
 	if err != nil {
 		return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, err
 	}

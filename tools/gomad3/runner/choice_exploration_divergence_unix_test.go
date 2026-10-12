@@ -124,7 +124,7 @@ func TestRunChoiceExplorationKilledAfterDivergenceResumesSameState(t *testing.T)
 	}
 	config, configDependencies := divergenceCampaignConfig(t, PolicyAll, 1)
 	base := configDependencies.executor.(*candidateDivergenceExecutor).base
-	resumed, err := exploreWith(t.Context(), CampaignSpec{ResumeCampaign: path, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}}, executionDependencies{executor: base})
+	resumed, err := exploreWith(t.Context(), CampaignSpec{ResumeCampaign: path, RunnerBuild: config.RunnerBuild, Backend: scriptProvider()}, executionDependencies{executor: base})
 	if err != nil {
 		t.Fatal(err)
 	}

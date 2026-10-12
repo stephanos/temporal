@@ -96,7 +96,7 @@ func TestDiagnosticsPlanShardAndGuidanceKeepTheProfile(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	summary, err := runCampaignShardWith(context.Background(), CampaignShardSpec{PlanPath: planned.Path, Shard: CampaignShard{Index: 0, Count: 1}, Artifacts: t.TempDir(), RunnerBuild: config.RunnerBuild}, executionDependencies{executor: executor})
+	summary, err := runCampaignShardWith(context.Background(), CampaignShardSpec{Backend: scriptProvider(), PlanPath: planned.Path, Shard: CampaignShard{Index: 0, Count: 1}, Artifacts: t.TempDir(), RunnerBuild: config.RunnerBuild}, executionDependencies{executor: executor})
 	if err != nil || summary.Diagnostics == nil {
 		t.Fatalf("shard diagnostics %+v: %v", summary.Diagnostics, err)
 	}
@@ -115,7 +115,7 @@ func TestDiagnosticsPlanShardAndGuidanceKeepTheProfile(t *testing.T) {
 func TestDiagnosticArtifactReplaysWithoutCollectingSidecar(t *testing.T) {
 	path, expected := publishReplayArtifactForTarget(t, nil, replayArtifactTarget{Choices: true, Environment: []record.Environment{{Name: choice.DiagnosticProfileEnvironment, Value: choice.DiagnosticProfile}}})
 	executor := &fakeReplayExecutor{result: expected}
-	replayed, err := replayWith(context.Background(), ReplaySpec{ArtifactPath: path, ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"}}, executionDependencies{executor: executor})
+	replayed, err := replayWith(context.Background(), ReplaySpec{ArtifactPath: path, ToolchainRoot: toolchainRoot(t), Backend: replayNativeProvider(t)}, executionDependencies{executor: executor})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -172,7 +172,7 @@ func TestDiagnosticsResumeRestoresTheRecordedProfile(t *testing.T) {
 		t.Fatalf("interruption %+v: %v", partial, err)
 	}
 	originalPath := partial.Diagnostics.Path
-	resumed, err := exploreWith(context.Background(), CampaignSpec{ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}}, executionDependencies{executor: newExecutor()})
+	resumed, err := exploreWith(context.Background(), CampaignSpec{ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, Backend: scriptProvider()}, executionDependencies{executor: newExecutor()})
 	if err != nil {
 		t.Fatal(err)
 	}

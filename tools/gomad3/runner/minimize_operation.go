@@ -384,6 +384,11 @@ func (session *minimizationSession) prepareWorkspace(ctx context.Context) error 
 	if err := session.opened.CopyPayload(manifest.Target.File, targetPath, 0o500); err != nil {
 		return fmt.Errorf("copy verified minimization target: %w", err)
 	}
+	if manifest.Target.Backend != nil {
+		if _, err := session.config.Backend.ValidateReplay(ctx, session.opened); err != nil {
+			return err
+		}
+	}
 	session.prepared.Path = targetPath
 	runTimeout, err := duration(manifest.Limits.ExecutionTimeoutNanos)
 	if err != nil {

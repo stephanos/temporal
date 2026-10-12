@@ -113,7 +113,7 @@ func TestRunCampaignShardRejectsChangedReadOnlyMountBeforeExecution(t *testing.T
 	executor := &fakeExecutor{result: func(uint64) backend.ExecutionResult { return processResult(0, "", "") }}
 	_, err = runCampaignShardWith(context.Background(), CampaignShardSpec{
 		PlanPath: planPath, Shard: CampaignShard{Index: 0, Count: 1}, Artifacts: t.TempDir(), RunnerBuild: config.RunnerBuild,
-		SupervisorCommand: []string{"unused"},
+		Backend: scriptProvider(),
 	}, executionDependencies{executor: executor},
 	)
 	if err == nil {
@@ -169,7 +169,7 @@ func TestCreateCampaignPlanReadOnlyMountsArePortableAndDetachedFromTheirSource(t
 	executor := &fakeExecutor{result: func(uint64) backend.ExecutionResult { return processResult(0, "", "") }}
 	result, err := runCampaignShardWith(context.Background(), CampaignShardSpec{
 		PlanPath: firstPath, Shard: CampaignShard{Index: 0, Count: 1}, Artifacts: t.TempDir(), RunnerBuild: runnerBuild,
-		SupervisorCommand: []string{"unused"},
+		Backend: scriptProvider(),
 	}, executionDependencies{executor: executor},
 	)
 	if err != nil {
@@ -190,7 +190,7 @@ func TestRunCampaignShardExecutesOnlyItsGlobalOrdinalPartition(t *testing.T) {
 	executor := &fakeExecutor{result: func(uint64) backend.ExecutionResult { return processResult(0, "", "") }}
 	result, err := runCampaignShardWith(context.Background(), CampaignShardSpec{
 		PlanPath: planPath, Shard: CampaignShard{Index: 1, Count: 2}, Artifacts: t.TempDir(), RunnerBuild: config.RunnerBuild,
-		SupervisorCommand: []string{"unused"},
+		Backend: scriptProvider(),
 	}, executionDependencies{executor: executor},
 	)
 	if err != nil {
@@ -223,7 +223,7 @@ func TestRunCampaignShardResumePreservesItsPlanAndAssignment(t *testing.T) {
 	interrupted := &resumeInterruptExecutor{}
 	partial, err := runCampaignShardWith(ctx, CampaignShardSpec{
 		PlanPath: planPath, Shard: CampaignShard{Index: 0, Count: 2}, Artifacts: t.TempDir(), RunnerBuild: config.RunnerBuild,
-		SupervisorCommand: []string{"unused"}, ProgressInterval: time.Millisecond,
+		Backend: scriptProvider(), ProgressInterval: time.Millisecond,
 		Progress: func(event CampaignEvent) error {
 			if event.Succeeded == 1 {
 				cancel()
@@ -236,7 +236,7 @@ func TestRunCampaignShardResumePreservesItsPlanAndAssignment(t *testing.T) {
 		t.Fatal("runCampaignShardWith() was not interrupted")
 	}
 	resumedExecutor := &fakeExecutor{result: func(uint64) backend.ExecutionResult { return processResult(0, "", "") }}
-	resumed, err := resumeWith(context.Background(), ResumeSpec{CampaignPath: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}}, executionDependencies{executor: resumedExecutor})
+	resumed, err := resumeWith(context.Background(), ResumeSpec{CampaignPath: partial.CampaignPath, RunnerBuild: config.RunnerBuild, Backend: scriptProvider()}, executionDependencies{executor: resumedExecutor})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -264,7 +264,7 @@ func TestMergeCampaignShardsIsOrderIndependentAndRequiresCompleteness(t *testing
 	for index := range shards {
 		result, err := runCampaignShardWith(context.Background(), CampaignShardSpec{
 			PlanPath: planPath, Shard: CampaignShard{Index: uint64(index), Count: 2}, Artifacts: t.TempDir(), RunnerBuild: config.RunnerBuild,
-			SupervisorCommand: []string{"unused"},
+			Backend: scriptProvider(),
 		}, executionDependencies{executor: executor},
 		)
 		if err != nil {
@@ -343,7 +343,7 @@ func TestMergeCampaignShardsDeduplicatesSharedFailureEvidence(t *testing.T) {
 	for index := range shards {
 		result, err := runCampaignShardWith(context.Background(), CampaignShardSpec{
 			PlanPath: planPath, Shard: CampaignShard{Index: uint64(index), Count: 2}, Artifacts: t.TempDir(), RunnerBuild: config.RunnerBuild,
-			SupervisorCommand: []string{"unused"},
+			Backend: scriptProvider(),
 		}, executionDependencies{executor: executor},
 		)
 		if err != nil {

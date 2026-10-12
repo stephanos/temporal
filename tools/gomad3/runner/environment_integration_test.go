@@ -40,7 +40,7 @@ func TestRunnerDeliversExplicitEnvironmentBeforeInitAndReplays(t *testing.T) {
 				t.Fatalf("target environment = %s, want %s", stdout, want)
 			}
 			replayed, err := Replay(context.Background(), ReplaySpec{
-				ArtifactPath: path, ToolchainRoot: toolchainRoot(t), SupervisorCommand: config.SupervisorCommand,
+				ArtifactPath: path, ToolchainRoot: toolchainRoot(t), Backend: coordinatorTestProvider(config, false),
 			})
 			if err != nil {
 				t.Fatal(err)

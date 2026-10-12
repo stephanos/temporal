@@ -6,6 +6,8 @@ import (
 )
 
 type Configuration struct {
+	// ForExecution requests executor readiness checks, not standalone validation.
+	ForExecution           bool
 	Target                 target.Spec
 	IOProfile              string
 	ClockTick              string

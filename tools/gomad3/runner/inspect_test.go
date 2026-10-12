@@ -73,7 +73,7 @@ func TestOpenReportsMinimizationLineageAndBounds(t *testing.T) {
 	artifactPath, _ := publishReplayArtifactForTarget(t, nil, replayArtifactTarget{Choices: true, Simulation: true, ForcedSimulation: true})
 	result, err := minimizeWith(context.Background(), MinimizeSpec{
 		ArtifactPath: artifactPath, OutputRoot: t.TempDir(), AttemptBudget: 16,
-		ToolchainRoot: toolchainRoot(t), SupervisorCommand: []string{"unused"},
+		ToolchainRoot: toolchainRoot(t), Backend: replayNativeProvider(t),
 		Replayer: &minimizationReplayer{},
 	}, executionDependencies{executor: &minimizationExecutor{}},
 	)

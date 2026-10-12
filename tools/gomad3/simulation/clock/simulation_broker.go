@@ -5,15 +5,20 @@ import (
 	"crypto/sha256"
 	"embed"
 	"fmt"
+	"io/fs"
 )
 
 //go:embed simulation_broker.go simulation_progress.go simulation_time.go
 var brokerImplementationSources embed.FS
 
 func BrokerImplementationSHA256() string {
+	return brokerImplementationSHA256(brokerImplementationSources)
+}
+
+func brokerImplementationSHA256(sources fs.ReadFileFS) string {
 	data := []byte("gomad3-simulation-clock-implementation/v1\n")
 	for _, name := range []string{"simulation_broker.go", "simulation_progress.go", "simulation_time.go"} {
-		source, err := brokerImplementationSources.ReadFile(name)
+		source, err := sources.ReadFile(name)
 		if err != nil {
 			return ""
 		}

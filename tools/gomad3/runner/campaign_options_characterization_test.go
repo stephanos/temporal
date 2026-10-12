@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"go.temporal.io/server/tools/gomad3/backends/native"
 	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
@@ -36,8 +37,8 @@ func campaignOptionsCases() []struct {
 		TerminateGrace: time.Second, OnFailure: PolicyAll, FailureBudget: 1,
 		OutputLimit: 1 << 20, WorldTransitionLimit: 1 << 20,
 		Artifacts: "/tmp/gomad-campaign-options", Environment: []string{"MODE=baseline"},
-		SupervisorCommand: []string{"supervisor"},
-		RunnerBuild:       "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+		Backend:     native.New(native.Config{SupervisorCommand: []string{"supervisor"}}),
+		RunnerBuild: "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
 	}
 	choice := base
 	choice.Strategy = StrategyChoiceExploration
@@ -73,7 +74,7 @@ func campaignOptionsCases() []struct {
 	}
 	add("resume-preparer", resume, func(c *CampaignSpec) { c.Preparer = targetPreparer{} })
 	add("resume-build", resume, func(c *CampaignSpec) { c.RunnerBuild = "" })
-	add("resume-command", resume, func(c *CampaignSpec) { c.SupervisorCommand = nil })
+	add("resume-provider", resume, func(c *CampaignSpec) { c.Backend = nil })
 	add("seeds", base, func(c *CampaignSpec) { c.Seeds = "" })
 	add("shard-index", sharded, func(c *CampaignSpec) { c.Shard.Index = 2 })
 	add("shard-identity-missing", sharded, func(c *CampaignSpec) { c.PlanSHA256 = "" })
@@ -134,7 +135,7 @@ func campaignOptionsCases() []struct {
 	add("failure-budget-first", base, func(c *CampaignSpec) { c.FailureBudget = 2 })
 	add("failure-budget-zero", base, func(c *CampaignSpec) { c.OnFailure = PolicyBudget; c.FailureBudget = 0 })
 	add("failure-policy-unknown", base, func(c *CampaignSpec) { c.OnFailure = "unknown" })
-	add("supervisor", base, func(c *CampaignSpec) { c.SupervisorCommand = nil })
+	add("provider", base, func(c *CampaignSpec) { c.Backend = nil })
 	add("mount-working-dir", base, func(c *CampaignSpec) { c.IOROMounts = []string{"/tmp=data"} })
 	add("mount-invalid", base, func(c *CampaignSpec) { c.Target.WorkingDir = "/"; c.IOROMounts = []string{"invalid"} })
 	add("mount-limits", base, func(c *CampaignSpec) {
@@ -150,7 +151,7 @@ func campaignOptionsCases() []struct {
 	add("seeds-before-parallel", base, func(c *CampaignSpec) { c.Seeds = ""; c.Parallel = 0 })
 	add("simulation-forced-before-result", simulation, func(c *CampaignSpec) { c.MaxForcedDecisions = 0; c.MaxExplorationResultBytes = 0 })
 	add("retention-before-environment", base, func(c *CampaignSpec) { c.SuccessArtifactLimit = 1; c.Environment = []string{"bad"} })
-	add("resume-build-before-command", resume, func(c *CampaignSpec) { c.RunnerBuild = ""; c.SupervisorCommand = nil })
+	add("resume-build-before-provider", resume, func(c *CampaignSpec) { c.RunnerBuild = ""; c.Backend = nil })
 	add("guided-frozen-selection", guided, func(c *CampaignSpec) {
 		c.guidancePlan = &campaign.GuidancePlan{RequestedCount: 4, AnsweredCount: 1}
 		c.Seeds = "7-9"
@@ -226,8 +227,8 @@ func TestCampaignOptionsCharacterization(t *testing.T) {
 			t.Fatal(err)
 		}
 		original := campaignRequestFromSpec(cases[index].config)
-		transported := decoded.campaignRequest()
-		if !reflect.DeepEqual(transported.campaignOptions, original.campaignOptions) || !reflect.DeepEqual(transported.SupervisorCommand, original.SupervisorCommand) || transported.RunnerBuild != original.RunnerBuild {
+		transported := decoded.campaignRequest(original.Backend, original.RunnerBuild)
+		if !reflect.DeepEqual(transported.campaignOptions, original.campaignOptions) || transported.Backend != original.Backend || transported.RunnerBuild != original.RunnerBuild {
 			t.Errorf("%s coordinator decode changed the campaign request", want.Name)
 		}
 	}

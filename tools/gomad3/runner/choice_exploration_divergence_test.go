@@ -203,7 +203,7 @@ func TestRunChoiceExplorationResumePreservesDivergenceIdentity(t *testing.T) {
 		t.Fatalf("partial = %#v, err=%v", partial, err)
 	}
 	executor := configDependencies.executor.(*candidateDivergenceExecutor)
-	resumed, err := exploreWith(t.Context(), CampaignSpec{ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}}, executionDependencies{executor: executor.base})
+	resumed, err := exploreWith(t.Context(), CampaignSpec{ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, Backend: scriptProvider()}, executionDependencies{executor: executor.base})
 	if err != nil {
 		t.Fatal(err)
 	}

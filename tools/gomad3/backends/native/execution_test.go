@@ -12,6 +12,7 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/backends/native/execution"
+	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/target"
 )
@@ -57,6 +58,19 @@ func TestProviderExecutePreservesNativeProcessObservation(t *testing.T) {
 				t.Fatalf("misuse error = %v, want %s", err, misuse.want)
 			}
 		})
+	}
+	withIO := request
+	withIO.IO = &backends.IOCapability{Profile: recordedProfile(transcript.Default())}
+	for _, missing := range []struct {
+		config Config
+		want   string
+	}{
+		{Config{}, "supervisor command is required"},
+		{Config{SupervisorCommand: []string{"unused"}, BootstrapCommand: []string{""}}, "target bootstrap command is required"},
+	} {
+		if _, err := New(missing.config).Execute(t.Context(), withIO); err == nil || err.Error() != missing.want {
+			t.Fatalf("missing native command error = %v, want %s", err, missing.want)
+		}
 	}
 }
 

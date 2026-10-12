@@ -14,7 +14,6 @@ import (
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	romount "go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/internal/hostexec"
 )
 
 type Termination string
@@ -101,8 +100,8 @@ type Result struct {
 	Signal            string
 	WatchdogTimeout   bool
 	Cancelled         bool
-	Stdout            hostexec.Output
-	Stderr            hostexec.Output
+	Stdout            backends.Output
+	Stderr            backends.Output
 	PID               int
 	PGID              int
 	GroupGone         bool

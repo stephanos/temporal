@@ -23,18 +23,21 @@ type ExecutionRequest struct {
 	ExecutionTimeout time.Duration
 	TerminateGrace   time.Duration
 	OutputLimit      uint64
-	StdoutHead       *os.File
-	StderrHead       *os.File
-	World            WorldCapability
-	IO               *IOCapability
-	Diagnostics      bool
-	Choice           *ChoiceCapability
-	Simulation       *SimulationCapability
-	Coordinator      *CoordinatorRequest
+	// Output heads are borrowed. The caller owns their sync and close lifecycle.
+	StdoutHead  *os.File
+	StderrHead  *os.File
+	World       WorldCapability
+	IO          *IOCapability
+	Diagnostics bool
+	Choice      *ChoiceCapability
+	Simulation  *SimulationCapability
+	Coordinator *CoordinatorRequest
 }
 
 type CoordinatorRequest struct {
-	Input    []byte
+	Input []byte
+	// Execute takes ownership of Stdout and closes it after starting the child,
+	// or before returning any pre-start failure. The caller retains the read end.
 	Stdout   *os.File
 	Deadline time.Time
 }

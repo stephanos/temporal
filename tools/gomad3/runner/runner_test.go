@@ -31,7 +31,6 @@ import (
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
-	"go.temporal.io/server/tools/gomad3/internal/hostexec"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
 
@@ -404,7 +403,7 @@ func TestRunGuidanceWithoutReplayCapabilityFailsClosed(t *testing.T) {
 	config.Coverage = CoverageSemantic
 	config.Guide = true
 	config.Corpus = filepath.Join(t.TempDir(), "corpus")
-	config.SupervisorCommand = nil
+	config.Backend = noReplayProvider{scriptProvider()}
 	_, err := exploreWith(context.Background(), config, configDependencies)
 	var hostError *HostError
 	if !errors.As(err, &hostError) || hostError.Reason != "guided_corpus" {
@@ -965,7 +964,7 @@ func TestRunChoiceExplorationResumeRerunsTheWholeIncompleteRound(t *testing.T) {
 	}
 	resumedExecutor := &explorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit}
 	resumed, err := exploreWith(context.Background(), CampaignSpec{
-		ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"},
+		ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, Backend: scriptProvider(),
 	}, executionDependencies{executor: resumedExecutor},
 	)
 	if err != nil {
@@ -1001,7 +1000,7 @@ func TestRunChoiceExplorationLeavesNoOpSelectPollsUnexpandedAcrossResume(t *test
 	}
 	resumedExecutor := &explorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit, noOpSelect: true}
 	resumed, err := exploreWith(context.Background(), CampaignSpec{
-		ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"},
+		ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, Backend: scriptProvider(),
 	}, executionDependencies{executor: resumedExecutor},
 	)
 	if err != nil {
@@ -1048,7 +1047,7 @@ func TestRunChoiceExplorationResumesWithItsStartAndReportsItUnreached(t *testing
 		t.Fatalf("partial exploration = %#v, error = %v", partial, err)
 	}
 	resumed, err := exploreWith(context.Background(), CampaignSpec{
-		ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"},
+		ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, Backend: scriptProvider(),
 	}, executionDependencies{executor: &explorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit}},
 	)
 	if err != nil {
@@ -1164,7 +1163,7 @@ func TestRunSimulationExplorationResumePreservesCommittedCandidates(t *testing.T
 	}
 	resumedExecutor := &simulationExplorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit}
 	resumed, err := exploreWith(context.Background(), CampaignSpec{
-		ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"},
+		ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, Backend: scriptProvider(),
 	}, executionDependencies{executor: resumedExecutor},
 	)
 	if err != nil {
@@ -1225,7 +1224,7 @@ func TestRunChoiceExplorationFindsPinnedOutcomesWithinSeedSamplingBudget(t *test
 		Target: target.Spec{
 			Kind: target.KindGoRun, Source: "./choice_exploration", WorkingDir: testdata, ToolchainRoot: toolchainRoot,
 		},
-		SupervisorCommand: []string{supervisor, "__supervisor"}, RunnerBuild: "sha256:" + strings.Repeat("0", 64),
+		Backend: native.New(native.Config{ToolchainRoot: toolchainRoot, SupervisorCommand: []string{supervisor, "__supervisor"}}), RunnerBuild: "sha256:" + strings.Repeat("0", 64),
 	}
 	seedConfig := config
 	seedConfig.Strategy = StrategySeed
@@ -1326,7 +1325,7 @@ func TestRunPublishesValidatedChoiceTraceOverflowAsRunnerFailure(t *testing.T) {
 		return result
 	}}
 	resumed, err := exploreWith(context.Background(), CampaignSpec{
-		ResumeCampaign: summary.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"},
+		ResumeCampaign: summary.CampaignPath, RunnerBuild: config.RunnerBuild, Backend: scriptProvider(),
 	}, executionDependencies{executor: resumedExecutor},
 	)
 	if err != nil {
@@ -1373,7 +1372,7 @@ func TestRunResumesVerifiedBatchAndSkipsCompletedOrdinals(t *testing.T) {
 
 	resumedExecutor := &fakeExecutor{}
 	resumed, err := exploreWith(context.Background(), CampaignSpec{
-		ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"},
+		ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, Backend: scriptProvider(),
 	}, executionDependencies{executor: resumedExecutor},
 	)
 	if err != nil {
@@ -1421,7 +1420,7 @@ func TestRunResumeRestoresSeenChoiceFeaturesBeforeNovelRetention(t *testing.T) {
 		return result
 	}}
 	resumed, err := exploreWith(context.Background(), CampaignSpec{
-		ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"},
+		ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, Backend: scriptProvider(),
 	}, executionDependencies{executor: resumedExecutor},
 	)
 	if err != nil {
@@ -1461,7 +1460,7 @@ func TestRunResumesGuidedBatchWithoutReselectingSeeds(t *testing.T) {
 		return result
 	}}
 	resumed, err := exploreWith(context.Background(), CampaignSpec{
-		ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}, Replayer: replayer,
+		ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, Backend: scriptProvider(), Replayer: replayer,
 	}, executionDependencies{executor: resumedExecutor},
 	)
 	if err != nil {
@@ -1524,7 +1523,7 @@ func TestRunResumeRejectsChangedEvidence(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			partial, config := test.interrupt(t)
-			resume := CampaignSpec{ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, SupervisorCommand: []string{"unused"}}
+			resume := CampaignSpec{ResumeCampaign: partial.CampaignPath, RunnerBuild: config.RunnerBuild, Backend: scriptProvider()}
 			test.change(t, partial, &resume)
 			_, err := exploreWith(context.Background(), resume, executionDependencies{executor: &fakeExecutor{}})
 			if err == nil || !strings.Contains(err.Error(), test.wantErr) {
@@ -1650,7 +1649,7 @@ func TestClassifyStructuredWorldFailures(t *testing.T) {
 func TestIsolatedRunnerKillsAStuckCoordinatorInsideOverallDeadline(t *testing.T) {
 	config, configDependencies := testConfig(t, nil, nil, "1", PolicyFirst, 1)
 	config.OverallTimeout = 200 * time.Millisecond
-	config.CoordinatorCommand = []string{os.Args[0], "-test.run=TestBlockingCoordinatorHelper"}
+	config.Backend = native.New(native.Config{SupervisorCommand: []string{"unused"}, CoordinatorCommand: []string{os.Args[0], "-test.run=TestBlockingCoordinatorHelper"}, RunnerBuild: config.RunnerBuild})
 	started := time.Now()
 	_, err := exploreWith(context.Background(), config, configDependencies)
 	var hostError *HostError
@@ -1676,7 +1675,7 @@ func TestIsolatedRunnerPreservesContextReasonAfterCoordinatorExit(t *testing.T) 
 			t.Setenv("GOMAD3_COORDINATOR_EXIT_MARKER", marker)
 			config, configDependencies := testConfig(t, nil, nil, "1", PolicyFirst, 1)
 			config.OverallTimeout = 250 * time.Millisecond
-			config.CoordinatorCommand = []string{os.Args[0], "-test.run=^TestExitedCoordinatorWithOpenStdoutHelper$"}
+			config.Backend = native.New(native.Config{SupervisorCommand: []string{"unused"}, CoordinatorCommand: []string{os.Args[0], "-test.run=^TestExitedCoordinatorWithOpenStdoutHelper$"}, RunnerBuild: config.RunnerBuild})
 			ctx := context.Background()
 			if test.cancel {
 				cancelCtx, cancel := context.WithCancel(ctx)
@@ -1787,7 +1786,7 @@ func cannedCoordinatorConfig(t *testing.T, response string, policy FailurePolicy
 	t.Helper()
 	t.Setenv("GOMAD3_CANNED_COORDINATOR", response)
 	config, configDependencies := testConfig(t, nil, nil, "1", policy, 1)
-	config.CoordinatorCommand = []string{os.Args[0], "-test.run=^TestCannedCoordinatorHelper$"}
+	config.Backend = native.New(native.Config{SupervisorCommand: []string{"unused"}, CoordinatorCommand: []string{os.Args[0], "-test.run=^TestCannedCoordinatorHelper$"}, RunnerBuild: config.RunnerBuild})
 	return config, configDependencies
 }
 
@@ -1896,7 +1895,7 @@ func TestIsolatedRunnerRemovesCoordinatorProcessGroup(t *testing.T) {
 	t.Setenv("GOMAD3_COORDINATOR_DESCENDANT_MARKER", marker)
 	config, configDependencies := testConfig(t, nil, nil, "1", PolicyFirst, 1)
 	config.OverallTimeout = 250 * time.Millisecond
-	config.CoordinatorCommand = []string{os.Args[0], "-test.run=TestCoordinatorTreeHelper"}
+	config.Backend = native.New(native.Config{SupervisorCommand: []string{"unused"}, CoordinatorCommand: []string{os.Args[0], "-test.run=TestCoordinatorTreeHelper"}, RunnerBuild: config.RunnerBuild})
 	_, err := exploreWith(context.Background(), config, configDependencies)
 	var hostError *HostError
 	if !errors.As(err, &hostError) || hostError.Reason != "overall_timeout" {
@@ -2506,6 +2505,32 @@ func (executor *firstFailureExecutor) Run(ctx context.Context, request backend.E
 
 type scriptedProvider struct{ *native.Provider }
 
+func TestSimulationCapabilityRequiresProviderSupport(t *testing.T) {
+	for _, test := range []struct {
+		name     string
+		provider backend.Provider
+		want     bool
+	}{
+		{name: "peer without simulation", provider: &boundaryProvider{}, want: false},
+		{name: "simulation provider", provider: native.New(native.Config{}), want: true},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			capability, err := simulationCapabilityForJob(processExecutor{provider: test.provider}, runJob{})
+			if err != nil || (capability != nil) != test.want {
+				t.Fatalf("simulation capability=%+v error=%v want enabled=%t", capability, err, test.want)
+			}
+		})
+	}
+}
+
+type noReplayProvider struct{ backend.Provider }
+
+func (provider noReplayProvider) Capabilities() backend.Capabilities {
+	caps := provider.Provider.Capabilities()
+	caps.ReplayModes = nil
+	return caps
+}
+
 func scriptProvider() backend.Provider { return scriptedProvider{native.New(native.Config{})} }
 
 func (provider scriptedProvider) ValidatePrepared(_ target.Spec, prepared target.Prepared, _ []string) error {
@@ -2549,13 +2574,13 @@ func processResult(exitCode int, stdout, stderr string) backend.ExecutionResult 
 	}
 }
 
-func output(value string) hostexec.Output {
+func output(value string) backend.Output {
 	bytes := []byte(value)
 	digest := sha256.Sum256(bytes)
-	return hostexec.Output{Bytes: bytes, FullSHA256: digest, RetainedSHA256: digest, TotalBytes: uint64(len(bytes)), RetainedBytes: uint64(len(bytes))}
+	return backend.Output{Bytes: bytes, FullSHA256: digest, RetainedSHA256: digest, TotalBytes: uint64(len(bytes)), RetainedBytes: uint64(len(bytes))}
 }
 
-func semanticTranscript(t *testing.T, probe string) transcript.Transcript {
+func semanticTranscript(t *testing.T, probe string) backend.Transcript {
 	t.Helper()
 	digest := sha256.Sum256([]byte("gomad3-boundary-probe/v1\x00" + probe))
 	var argument [8]byte
@@ -2566,11 +2591,11 @@ func semanticTranscript(t *testing.T, probe string) transcript.Transcript {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return transcript.Transcript{Bytes: payload, SHA256: sha256.Sum256(payload), Records: 1, Complete: true}
+	return backend.Transcript{Bytes: payload, SHA256: sha256.Sum256(payload), Records: 1, Complete: true}
 }
 
-func completeEmptyTranscript() transcript.Transcript {
-	return transcript.Transcript{Complete: true, SHA256: sha256.Sum256(nil)}
+func completeEmptyTranscript() backend.Transcript {
+	return backend.Transcript{Complete: true, SHA256: sha256.Sum256(nil)}
 }
 
 func completeChoiceTrace(t *testing.T, buildKey string, limit uint64, records []choice.Record) backend.ChoiceTrace {

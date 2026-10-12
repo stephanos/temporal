@@ -273,7 +273,7 @@ func resumeRetentionCampaign(t *testing.T, interrupted CampaignSpec, campaignPat
 	_, executor, _ := retentionCampaign(t, interrupted.Strategy, interrupted.Parallel != 1, false)
 	executor.shape = shape
 	return exploreWith(context.Background(), CampaignSpec{
-		ResumeCampaign: campaignPath, RunnerBuild: interrupted.RunnerBuild, SupervisorCommand: []string{"unused"},
+		ResumeCampaign: campaignPath, RunnerBuild: interrupted.RunnerBuild, Backend: scriptProvider(),
 	}, executionDependencies{executor: executor},
 	)
 }
