@@ -85,7 +85,7 @@ func OpenArtifact(path string) (*Opened, error) {
 		if err != nil {
 			return nil, errors.Join(err, opened.Close())
 		}
-		if err := validateChoiceTracePayload(manifest, payload); err != nil {
+		if err := validateRecordedChoiceTracePayload(manifest, payload); err != nil {
 			return nil, errors.Join(err, opened.Close())
 		}
 	}

@@ -179,7 +179,6 @@ func validateChoiceTracePayload(manifest record.ExecutionRecord, payload []byte)
 		}
 		return nil
 	}
-	trace := manifest.ChoiceProfile.Trace
 	implementation, err := choice.ImplementationIdentity(manifest.Toolchain.BuildKey)
 	if err != nil {
 		return fmt.Errorf("derive choice trace implementation identity: %w", err)
@@ -187,6 +186,15 @@ func validateChoiceTracePayload(manifest record.ExecutionRecord, payload []byte)
 	if manifest.ChoiceProfile.ImplementationSHA256 != record.SHA256FromSum(implementation) {
 		return errors.New("choice trace implementation identity does not match the pinned toolchain")
 	}
+	return validateRecordedChoiceTracePayload(manifest, payload)
+}
+
+func validateRecordedChoiceTracePayload(manifest record.ExecutionRecord, payload []byte) error {
+	implementation, err := manifest.ChoiceProfile.ImplementationSHA256.Bytes()
+	if err != nil {
+		return fmt.Errorf("decode recorded choice implementation identity: %w", err)
+	}
+	trace := manifest.ChoiceProfile.Trace
 	if record.HashBytes(payload) != trace.SHA256 || uint64(len(payload)) != uint64(trace.Bytes) {
 		return errors.New("choice trace identity changed during publication")
 	}
