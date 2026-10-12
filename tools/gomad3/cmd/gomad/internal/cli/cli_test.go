@@ -1177,7 +1177,7 @@ func TestRunResumeForwardsCampaignAndClassifiesResult(t *testing.T) {
 			status := runResumeWith(test.arguments, &stdout, &stderr, dependencies)
 			want := runner.ResumeSpec{
 				CampaignPath: "/artifacts/v1/run-partial", RunnerBuild: "sha256:runner", ToolchainRoot: "/toolchain",
-				SupervisorCommand: []string{"/bin/gomad", "__supervisor"}, CoordinatorCommand: []string{"/bin/gomad", "__coordinator"}, ProgressInterval: 5 * time.Second,
+				ProgressInterval: 5 * time.Second,
 			}
 			if status != test.wantStatus || stderr.Len() != 0 || len(observed) != 1 || !reflect.DeepEqual(observed[0], want) || !reflect.DeepEqual(*installation.requested, test.wantRequested) {
 				t.Fatalf("status=%d requests=%#v roots=%q stdout=%q stderr=%q", status, observed, *installation.requested, stdout.String(), stderr.String())
@@ -1322,7 +1322,6 @@ func TestRunMinimizeForwardsFlags(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	supervisor := []string{"/bin/gomad", "__supervisor"}
 	for _, test := range []struct {
 		name       string
 		arguments  []string
@@ -1336,12 +1335,12 @@ func TestRunMinimizeForwardsFlags(t *testing.T) {
 				Artifact: artifact.Artifact{Path: "/artifacts/minimized/sha256-result"}, Changed: true,
 				Attempts: 7, AttemptBudget: 16, Accepted: []record.MinimizationReduction{{Kind: "fault_entries"}}, StopReason: "minimal",
 			},
-			want:       runner.MinimizeSpec{ArtifactPath: "/failure", OutputRoot: "/artifacts/minimized", AttemptBudget: 16, MaximumBytes: 8 << 20, ToolchainRoot: "/toolchain", SupervisorCommand: supervisor},
+			want:       runner.MinimizeSpec{ArtifactPath: "/failure", OutputRoot: "/artifacts/minimized", AttemptBudget: 16, MaximumBytes: 8 << 20, ToolchainRoot: "/toolchain"},
 			wantOutput: "accepted=1",
 		},
 		// Minimization resumes only on request.
-		{name: "initial run", arguments: []string{"/failure"}, want: runner.MinimizeSpec{ArtifactPath: "/failure", OutputRoot: filepath.Join(defaultRoot, "minimized"), AttemptBudget: 64, ToolchainRoot: "/toolchain", SupervisorCommand: supervisor}},
-		{name: "resume", arguments: []string{"--resume", "/failure"}, want: runner.MinimizeSpec{ArtifactPath: "/failure", OutputRoot: filepath.Join(defaultRoot, "minimized"), AttemptBudget: 64, ToolchainRoot: "/toolchain", SupervisorCommand: supervisor, Resume: true}},
+		{name: "initial run", arguments: []string{"/failure"}, want: runner.MinimizeSpec{ArtifactPath: "/failure", OutputRoot: filepath.Join(defaultRoot, "minimized"), AttemptBudget: 64, ToolchainRoot: "/toolchain"}},
+		{name: "resume", arguments: []string{"--resume", "/failure"}, want: runner.MinimizeSpec{ArtifactPath: "/failure", OutputRoot: filepath.Join(defaultRoot, "minimized"), AttemptBudget: 64, ToolchainRoot: "/toolchain", Resume: true}},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			var observed []runner.MinimizeSpec
@@ -1379,14 +1378,17 @@ func TestRunQualifySetForwardsFlags(t *testing.T) {
 		arguments  []string
 		wantStatus int
 		// want is the forwarded request, or nil when the set must not run.
-		want       *qualificationset.Spec
-		wantOutput string
-		wantError  string
+		want                 *qualificationset.Spec
+		wantOutput           string
+		wantError            string
+		installationManifest string
 	}{
 		{
 			name: "public paths and executable", arguments: []string{"--artifacts", "/artifacts", "--output", "/report.json", "--prune-qualified-artifacts", "--format", "json"},
+			installationManifest: "/selected/installation.json",
 			want: with(func(spec *qualificationset.Spec) {
 				spec.ArtifactRoot, spec.OutputPath, spec.PruneQualifiedArtifacts = "/artifacts", "/report.json", true
+				spec.InstallationManifest = "/selected/installation.json"
 			}),
 			wantOutput: `"schema":"gomad3.qualification-set-report/v1"`,
 		},
@@ -1405,8 +1407,9 @@ func TestRunQualifySetForwardsFlags(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			var observed []qualificationset.Spec
 			dependencies := qualifySetDependencies{
-				executable: func() (string, error) { return "/bin/gomad", nil },
-				load:       threeSuites,
+				installationManifest: test.installationManifest,
+				executable:           func() (string, error) { return "/bin/gomad", nil },
+				load:                 threeSuites,
 				run: func(_ context.Context, config qualificationset.Spec) (qualificationset.Report, error) {
 					observed = append(observed, config)
 					return publicSetReport(), nil

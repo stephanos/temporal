@@ -55,7 +55,7 @@ func runCampaignShardWith(arguments []string, stdout, stderr io.Writer, dependen
 	reporter := newExploreReporter(*jsonOutput, stdout, stderr)
 	result, err := dependencies.run(context.Background(), runner.CampaignShardSpec{
 		PlanPath: flags.Arg(0), Shard: shard, Artifacts: *artifacts, ToolchainRoot: installed.toolchainRoot, RunnerBuild: installed.runnerBuild,
-		SupervisorCommand: installed.supervisorCommand(), Progress: reporter.Progress, ProgressInterval: 5 * time.Second,
+		Backend: installed.backend, Progress: reporter.Progress, ProgressInterval: 5 * time.Second,
 	})
 	if err != nil {
 		classification := classifyExploreError(err)

@@ -284,7 +284,7 @@ func TestCharacterizeExploreRequestDefaultsAndWiring(t *testing.T) {
 	want := runner.CampaignSpec{
 		Strategy: runner.StrategySeed, Seeds: "1", Parallel: min(runtime.NumCPU(), 8), ExecutionTimeout: 30 * time.Second, OverallTimeout: 10 * time.Minute, TerminateGrace: 2 * time.Second,
 		OnFailure: runner.PolicyFirst, FailureBudget: 1, OutputLimit: 8 << 20, WorldTransitionLimit: 64 << 20, ClockTick: record.ClockTickStrict, IOTranscriptLimit: 64 << 20,
-		Artifacts: ".gomad/artifacts", SupervisorCommand: []string{"/bin/gomad", "__supervisor"}, CoordinatorCommand: []string{"/bin/gomad", "__coordinator"}, RunnerBuild: "sha256:runner",
+		Artifacts: ".gomad/artifacts", RunnerBuild: "sha256:runner",
 		Coverage: runner.CoverageNone, KeepSuccesses: runner.KeepSuccessesNone, ProgressInterval: 5 * time.Second,
 		Target: target.Spec{Kind: target.KindGoRun, Source: "./cmd", WorkingDir: "/workspace", ToolchainRoot: "/toolchain", CapabilityMode: target.CapabilityModeClosure},
 	}
@@ -315,8 +315,8 @@ func TestCharacterizeExploreRequestDefaultsAndWiring(t *testing.T) {
 		Strategy: runner.StrategySeed, Seeds: "0-3", Parallel: min(runtime.NumCPU(), 8), ExecutionTimeout: 30 * time.Second, OverallTimeout: 10 * time.Minute, TerminateGrace: 2 * time.Second,
 		OnFailure: runner.PolicyBudget, FailureBudget: 2, OutputLimit: 8 << 20, WorldTransitionLimit: 64 << 20, ChoiceTraceLimit: 2 << 20, ClockTick: record.ClockTickForward, IOTranscriptLimit: 128 << 20,
 		Artifacts: "/artifacts", Environment: []string{"A=1", "B=two words"}, IOROMounts: []string{"/host=/target"},
-		SupervisorCommand: []string{"/bin/gomad", "__supervisor"}, CoordinatorCommand: []string{"/bin/gomad", "__coordinator"}, RunnerBuild: "sha256:runner",
-		Coverage: runner.CoverageSemantic, RequiredSemanticProbes: []string{"stdlib.os.openfile"}, KeepSuccesses: runner.KeepSuccessesNovel, SuccessArtifactLimit: 3, SuccessBytesLimit: 4 << 20,
+		RunnerBuild: "sha256:runner",
+		Coverage:    runner.CoverageSemantic, RequiredSemanticProbes: []string{"stdlib.os.openfile"}, KeepSuccesses: runner.KeepSuccessesNovel, SuccessArtifactLimit: 3, SuccessBytesLimit: 4 << 20,
 		ProgressInterval: 5 * time.Second,
 		Target: target.Spec{
 			Kind: target.KindGoTest, Source: "./pkg", Args: []string{"-test.run=^TestName$", "literal;$value", "--", "--json"}, BuildTags: []string{"first", "second"},
@@ -413,7 +413,7 @@ func TestCharacterizePlanRequestAndOutput(t *testing.T) {
 	first := observed[0]
 	if first.Output != "/plans/plan.json" || first.Campaign.OnFailure != runner.PolicyAll || first.Campaign.Seeds != "0-3" || !reflect.DeepEqual(first.Campaign.Environment, []string{"A=1"}) ||
 		!reflect.DeepEqual(first.Campaign.Target.BuildTags, []string{"tag"}) || !reflect.DeepEqual(first.Campaign.Target.Args, []string{"argument"}) ||
-		!reflect.DeepEqual(first.Campaign.SupervisorCommand, []string{"/bin/gomad", "__supervisor"}) || !reflect.DeepEqual(first.Campaign.CoordinatorCommand, []string{"/bin/gomad", "__coordinator"}) || first.Campaign.RunnerBuild != "sha256:runner" || first.Campaign.Target.ToolchainRoot != "/toolchain" {
+		first.Campaign.RunnerBuild != "sha256:runner" || first.Campaign.Target.ToolchainRoot != "/toolchain" {
 		t.Fatalf("plan request = %#v", first)
 	}
 	// An explicit --on-failure follows plan's implicit --on-failure=all.
@@ -473,7 +473,7 @@ func TestCharacterizeReplayRequestOutputAndStatus(t *testing.T) {
 	}); got.status != 0 {
 		t.Fatalf("replay = %s", got)
 	}
-	want := runner.ReplaySpec{ArtifactPath: "/artifact", VerifyOnly: true, ToolchainRoot: "/toolchain", ObservedDir: "/observed", SupervisorCommand: []string{"/bin/gomad", "__supervisor"}}
+	want := runner.ReplaySpec{ArtifactPath: "/artifact", VerifyOnly: true, ToolchainRoot: "/toolchain", ObservedDir: "/observed"}
 	if len(observed) != 1 || !reflect.DeepEqual(observed[0], want) || (*installation.requested)[len(*installation.requested)-1] != "/bundle" {
 		t.Fatalf("replay request = %#v requested=%q", observed, *installation.requested)
 	}
@@ -502,7 +502,7 @@ func TestCharacterizeExecuteShardRequestOutputAndStatus(t *testing.T) {
 	}), (commandResult{status: 0, stdout: `{"schema":"gomad3.explore-event/v3","type":"result","classification":"success","campaign_path":"/artifacts/v1/shard","selected":1,"attempted":1,"succeeded":1,"stop_reason":"seeds_exhausted"}` + "\n"}); got != want {
 		t.Fatalf("execute-shard = %s, want %s", got, want)
 	}
-	want := runner.CampaignShardSpec{PlanPath: "/plan", Shard: runner.CampaignShard{Index: 1, Count: 2}, Artifacts: "/artifacts", ToolchainRoot: "/toolchain", RunnerBuild: "sha256:runner", SupervisorCommand: []string{"/bin/gomad", "__supervisor"}, ProgressInterval: 5 * time.Second}
+	want := runner.CampaignShardSpec{PlanPath: "/plan", Shard: runner.CampaignShard{Index: 1, Count: 2}, Artifacts: "/artifacts", ToolchainRoot: "/toolchain", RunnerBuild: "sha256:runner", ProgressInterval: 5 * time.Second}
 	if len(observed) != 1 || !reflect.DeepEqual(observed[0], want) {
 		t.Fatalf("execute-shard request = %#v", observed)
 	}
@@ -541,7 +541,7 @@ func TestCharacterizeInstallationWiring(t *testing.T) {
 		t.Fatalf("resume = %s", got)
 	}
 	regression := false
-	if want := (runner.ResumeSpec{CampaignPath: "/campaign", ToolchainRoot: "/toolchain", RunnerBuild: "sha256:runner", SupervisorCommand: []string{"/bin/gomad", "__supervisor"}, CoordinatorCommand: []string{"/bin/gomad", "__coordinator"}, ProgressInterval: 5 * time.Second, GuideRegression: &regression}); !reflect.DeepEqual(resumed, want) {
+	if want := (runner.ResumeSpec{CampaignPath: "/campaign", ToolchainRoot: "/toolchain", RunnerBuild: "sha256:runner", ProgressInterval: 5 * time.Second, GuideRegression: &regression}); !reflect.DeepEqual(resumed, want) {
 		t.Fatalf("resume request = %#v, want %#v", resumed, want)
 	}
 
@@ -555,7 +555,7 @@ func TestCharacterizeInstallationWiring(t *testing.T) {
 	}), (commandResult{status: 0, stdout: "gomad minimize: changed=false attempts=1/64 accepted=0 stop=minimal artifact=/minimized\n"}); got != want {
 		t.Fatalf("minimize = %s, want %s", got, want)
 	}
-	if want := (runner.MinimizeSpec{ArtifactPath: "/artifact", OutputRoot: "/artifacts/minimized", AttemptBudget: 64, ToolchainRoot: "/toolchain", SupervisorCommand: []string{"/bin/gomad", "__supervisor"}}); !reflect.DeepEqual(minimized, want) {
+	if want := (runner.MinimizeSpec{ArtifactPath: "/artifact", OutputRoot: "/artifacts/minimized", AttemptBudget: 64, ToolchainRoot: "/toolchain"}); !reflect.DeepEqual(minimized, want) {
 		t.Fatalf("minimize request = %#v, want %#v", minimized, want)
 	}
 
@@ -579,13 +579,13 @@ func TestCharacterizeInstallationWiring(t *testing.T) {
 		t.Fatalf("qualify requests = %d replays = %d", len(qualified), len(replayed))
 	}
 	for _, spec := range qualified {
-		if !reflect.DeepEqual(spec.SupervisorCommand, []string{"/bin/gomad", "__supervisor"}) || !reflect.DeepEqual(spec.CoordinatorCommand, []string{"/bin/gomad", "__coordinator"}) || spec.RunnerBuild != "sha256:runner" ||
+		if spec.RunnerBuild != "sha256:runner" ||
 			spec.Target.ToolchainRoot != "/toolchain" || !reflect.DeepEqual(spec.Environment, []string{"A=1"}) || !reflect.DeepEqual(spec.Target.BuildTags, []string{"tag"}) || !reflect.DeepEqual(spec.Target.Args, []string{"-test.run=X"}) {
 			t.Fatalf("qualify request = %#v", spec)
 		}
 	}
 	for _, spec := range replayed {
-		if spec.ToolchainRoot != "/toolchain" || !reflect.DeepEqual(spec.SupervisorCommand, []string{"/bin/gomad", "__supervisor"}) {
+		if spec.ToolchainRoot != "/toolchain" {
 			t.Fatalf("qualify replay request = %#v", spec)
 		}
 	}

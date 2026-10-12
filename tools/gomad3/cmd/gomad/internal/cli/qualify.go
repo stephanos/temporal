@@ -140,12 +140,13 @@ func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies q
 	}
 	command := append([]string{"gomad", "qualify"}, arguments...)
 	config := runner.CampaignSpec{
-		Seeds: strconv.FormatUint(*seed, 10), Parallel: 1, ExecutionTimeout: *runTimeout, OverallTimeout: *overallTimeout, TerminateGrace: *terminateGrace,
+		Backend: installed.backend,
+		Seeds:   strconv.FormatUint(*seed, 10), Parallel: 1, ExecutionTimeout: *runTimeout, OverallTimeout: *overallTimeout, TerminateGrace: *terminateGrace,
 		OnFailure: runner.PolicyAll, FailureBudget: 1, OutputLimit: uint64(outputLimit), WorldTransitionLimit: uint64(worldLimit),
 		Diagnostics: *diagnostics, ChoiceTraceLimit: resolvedChoiceLimit, ClockTick: *clockTick, IOTranscriptLimit: uint64(transcriptLimit),
 		Artifacts: *artifacts, Environment: environment, IOROMounts: ioROMounts,
-		SupervisorCommand: installed.supervisorCommand(), CoordinatorCommand: installed.coordinatorCommand(), RunnerBuild: installed.runnerBuild,
-		Coverage: coverage, RequiredSemanticProbes: requiredSemanticProbes, CollectExecutionEvidence: true,
+		RunnerBuild: installed.runnerBuild,
+		Coverage:    coverage, RequiredSemanticProbes: requiredSemanticProbes, CollectExecutionEvidence: true,
 		Target: target.Spec{
 			Kind: parsedTarget.kind, Source: parsedTarget.source, Provenance: parsedTarget.provenance, Args: parsedTarget.arguments,
 			BuildTags: buildTags, WorkingDir: workingDirectory, ToolchainRoot: installed.toolchainRoot, CapabilityMode: resolvedCapabilityMode,
@@ -164,7 +165,7 @@ func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies q
 	}
 	result, err := runWorkload(ctx, qualificationworkload.Spec{
 		Command: command, Seed: *seed, Repeat: *repeat, ArtifactRoot: *artifacts, Campaign: config,
-		Replay:          runner.ReplaySpec{ToolchainRoot: installed.toolchainRoot, SupervisorCommand: installed.supervisorCommand()},
+		Replay:          runner.ReplaySpec{Backend: installed.backend, ToolchainRoot: installed.toolchainRoot},
 		ReplaySuccesses: *replaySuccesses,
 		Progress: func(event qualificationworkload.Progress) error {
 			return reporter.Progress(event.Iteration, event.Repeat)

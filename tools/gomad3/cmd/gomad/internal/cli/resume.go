@@ -8,24 +8,27 @@ import (
 	"io"
 	"time"
 
+	"go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/runner"
 )
 
 type resumeDependencies struct {
-	install func(string) (installation, error)
-	run     func(context.Context, runner.ResumeSpec) (runner.CampaignResult, error)
+	capabilities *backends.Capabilities
+	install      func(string) (installation, error)
+	run          func(context.Context, runner.ResumeSpec) (runner.CampaignResult, error)
 }
 
 func (app application) runResume(arguments []string, stdout, stderr io.Writer) int {
-	return runResumeWith(arguments, stdout, stderr, resumeDependencies{install: app.install, run: runner.Resume})
+	return runResumeWith(arguments, stdout, stderr, resumeDependencies{capabilities: app.capabilities, install: app.install, run: runner.Resume})
 }
 
 func runResumeWith(arguments []string, stdout, stderr io.Writer, dependencies resumeDependencies) int {
 	flags := flag.NewFlagSet("gomad resume", flag.ContinueOnError)
 	flags.SetOutput(io.Discard)
-	guideRegression := flags.Bool("guide-regression", false, "require the recorded guidance regression mode")
+	nativeFlags, _, _, _ := featureFlags(flags, dependencies.capabilities)
+	guideRegression := nativeFlags.Bool("guide-regression", false, "require the recorded guidance regression mode")
 	jsonOutput := flags.Bool("json", false, "emit stable JSON events")
-	toolchainRoot := flags.String("toolchain-root", "", "absolute pinned toolchain root")
+	toolchainRoot := nativeFlags.String("toolchain-root", "", "absolute pinned toolchain root")
 	if err := flags.Parse(arguments); err != nil {
 		reporter := newExploreReporter(*jsonOutput, stdout, stderr)
 		if writeErr := reporter.Error("invalid_input", err); writeErr != nil {
@@ -71,7 +74,6 @@ func runResumeWith(arguments []string, stdout, stderr io.Writer, dependencies re
 	summary, err := dependencies.run(context.Background(), runner.ResumeSpec{
 		Backend:      installed.backend,
 		CampaignPath: flags.Arg(0), GuideRegression: regressionOverride, RunnerBuild: installed.runnerBuild, ToolchainRoot: installed.toolchainRoot,
-		SupervisorCommand: installed.supervisorCommand(), CoordinatorCommand: installed.coordinatorCommand(),
 		Progress: reporter.Progress, ProgressInterval: 5 * time.Second,
 	})
 	if err != nil {

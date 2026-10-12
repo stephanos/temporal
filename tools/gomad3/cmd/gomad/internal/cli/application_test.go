@@ -8,8 +8,11 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
+
+	"go.temporal.io/server/tools/gomad3/backends/native"
 )
 
 func writeInstalledExecutable(t *testing.T, mode os.FileMode) (string, string) {
@@ -55,11 +58,9 @@ func TestApplicationInstallResolvesToolchainRunnerBuildAndChildModes(t *testing.
 			if want := (installation{toolchainRoot: test.want, executable: executable, runnerBuild: digest}); installed != want {
 				t.Fatalf("installation = %#v, want %#v", installed, want)
 			}
-			if got := strings.Join(installed.supervisorCommand(), " "); got != executable+" __supervisor" {
-				t.Fatalf("supervisor command = %q", got)
-			}
-			if got := strings.Join(installed.coordinatorCommand(), " "); got != executable+" __coordinator" {
-				t.Fatalf("coordinator command = %q", got)
+			wantConfig := native.Config{ToolchainRoot: test.want, SupervisorCommand: []string{executable, supervisorMode}, CoordinatorCommand: []string{executable, coordinatorMode}, BootstrapCommand: []string{executable, targetBootstrapMode}, RunnerBuild: digest}
+			if got := nativeConfiguration(installed); !reflect.DeepEqual(got, wantConfig) {
+				t.Fatalf("native provider configuration = %#v, want %#v", got, wantConfig)
 			}
 		})
 	}
@@ -85,10 +86,10 @@ func TestApplicationRetainsInstallationIdentityAndPrivateCommands(t *testing.T) 
 	if err != nil || third.toolchainRoot != otherRoot || third.executable != first.executable || third.runnerBuild != first.runnerBuild {
 		t.Fatalf("installation with another root = %#v, %v; want cached executable and build with %q", third, err, otherRoot)
 	}
-	if got := strings.Join(second.supervisorCommand(), " "); got != executable+" __supervisor" {
+	if got := strings.Join(nativeConfiguration(second).SupervisorCommand, " "); got != executable+" __supervisor" {
 		t.Fatalf("supervisor command = %q", got)
 	}
-	if got := strings.Join(second.coordinatorCommand(), " "); got != executable+" __coordinator" {
+	if got := strings.Join(nativeConfiguration(second).CoordinatorCommand, " "); got != executable+" __coordinator" {
 		t.Fatalf("coordinator command = %q", got)
 	}
 }

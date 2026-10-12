@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"bytes"
 	"context"
 	"crypto/sha256"
 	"fmt"
@@ -9,10 +10,11 @@ import (
 	"path/filepath"
 	"strings"
 
+	"go.temporal.io/server/tools/gomad3/backends"
+	"go.temporal.io/server/tools/gomad3/backends/native"
+	"go.temporal.io/server/tools/gomad3/backends/native/toolchain"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner"
-	runnerbackend "go.temporal.io/server/tools/gomad3/runner/backend"
-	"go.temporal.io/server/tools/gomad3/backends/native/toolchain"
 )
 
 // The private child modes the gomad executable serves for its own Runner. The
@@ -37,11 +39,16 @@ const toolchainEnvironment = "GOMAD3_TOOLCHAIN_DIR"
 // only after it has validated its own input, so invalid input keeps precedence
 // over an unusable installation.
 type application struct {
-	backend     func() (BackendInstallation, error)
-	replayHook  func(context.Context, runner.ReplaySpec) (runner.ReplayResult, bool, error)
-	executable  func() (string, error)
-	environment func(string) string
-	cache       *installationCache
+	capabilities     *backends.Capabilities
+	command          func([]string, io.Writer, io.Writer) (int, bool)
+	selectedManifest string
+	manifestRoot     func() (string, error)
+	nativeProvider   func(installation) backends.Provider
+	backend          func() (BackendInstallation, error)
+	replayHook       func(context.Context, runner.ReplaySpec) (runner.ReplayResult, bool, error)
+	executable       func() (string, error)
+	environment      func(string) string
+	cache            *installationCache
 	// privateInput and privateOutput carry the coordinator's request and
 	// response protocol; the supervisor and target bootstrap modes ignore
 	// them and read their fixed descriptors. They are the process's standard
@@ -55,7 +62,7 @@ type application struct {
 // and the executable and Runner build that serve its private child modes.
 type installation struct {
 	replayCommand string
-	backend       runnerbackend.Provider
+	backend       backends.Provider
 	backendName   string
 	toolchainRoot string
 	executable    string
@@ -74,23 +81,16 @@ type installationCache struct {
 func hostApplication() application {
 	return application{
 		executable: os.Executable, environment: os.Getenv,
-		privateInput: os.Stdin, privateOutput: os.Stdout, dispatch: runner.DispatchPrivateMode,
+		privateInput: os.Stdin, privateOutput: os.Stdout, dispatch: dispatchPrivateMode,
+		nativeProvider: func(installed installation) backends.Provider {
+			return native.New(nativeConfiguration(installed))
+		},
 		cache: new(installationCache),
 	}
 }
 
-func (installation installation) supervisorCommand() []string {
-	if installation.backend != nil {
-		return nil
-	}
-	return []string{installation.executable, supervisorMode}
-}
-
-func (installation installation) coordinatorCommand() []string {
-	if installation.backend != nil {
-		return nil
-	}
-	return []string{installation.executable, coordinatorMode}
+func nativeConfiguration(installed installation) native.Config {
+	return native.Config{ToolchainRoot: installed.toolchainRoot, SupervisorCommand: []string{installed.executable, supervisorMode}, CoordinatorCommand: []string{installed.executable, coordinatorMode}, BootstrapCommand: []string{installed.executable, targetBootstrapMode}, RunnerBuild: installed.runnerBuild}
 }
 
 func isPrivateMode(mode string) bool {
@@ -128,6 +128,13 @@ func absoluteExecutable(executable string) (string, error) {
 // an explicit --toolchain-root first, then the environment, then the
 // installation beside the executable.
 func (app application) resolveInstallation(executable, explicitToolchainRoot string) (toolchain.Installation, error) {
+	if explicitToolchainRoot == "" && app.manifestRoot != nil {
+		var err error
+		explicitToolchainRoot, err = app.manifestRoot()
+		if err != nil {
+			return toolchain.Installation{}, err
+		}
+	}
 	return toolchain.ResolveInstallation(toolchain.InstallationSpec{
 		Executable: executable, ExplicitToolchainRoot: explicitToolchainRoot, EnvironmentToolchainRoot: app.environment(toolchainEnvironment),
 	})
@@ -193,11 +200,36 @@ func (app application) install(explicitToolchainRoot string) (installation, erro
 		build = string(digest)
 	}
 	installed := installation{toolchainRoot: resolved.ToolchainRoot, executable: executable, runnerBuild: build}
+	if app.nativeProvider != nil {
+		installed.backend = app.nativeProvider(installed)
+	}
 	if app.cache != nil {
 		app.cache.explicitRoot, app.cache.installed, app.cache.set = explicitToolchainRoot, installed, true
 		app.cache.executable, app.cache.runnerBuild, app.cache.identitySet = executable, build, true
 	}
 	return installed, nil
+}
+
+func dispatchPrivateMode(mode string, input io.Reader, output io.Writer) error {
+	if mode == coordinatorMode {
+		data, err := io.ReadAll(io.LimitReader(input, (16<<20)+1))
+		if err != nil {
+			return fmt.Errorf("decode coordinator request: %w", err)
+		}
+		if len(data) > 16<<20 {
+			return fmt.Errorf("coordinator request exceeds size bound")
+		}
+		config, wire, err := native.CoordinatorInput(data)
+		if err != nil {
+			return err
+		}
+		return runner.CoordinatorMain(bytes.NewReader(wire), output, native.New(config))
+	}
+	handled, err := native.DispatchPrivateMode(mode, input, output)
+	if !handled && err == nil {
+		return fmt.Errorf("unknown private runner mode %q", mode)
+	}
+	return err
 }
 
 // installedToolchain resolves only the toolchain root, for operations that

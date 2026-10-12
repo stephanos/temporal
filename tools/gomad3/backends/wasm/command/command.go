@@ -1,4 +1,4 @@
-package main
+package command
 
 import (
 	"context"
@@ -16,68 +16,41 @@ import (
 	"go.temporal.io/server/tools/gomad3/backends/wasm/qualification"
 	"go.temporal.io/server/tools/gomad3/backends/wasm/simulation"
 	"go.temporal.io/server/tools/gomad3/backends/wasm/wasi"
-	"go.temporal.io/server/tools/gomad3/cmd/gomad/api"
 	"go.temporal.io/server/tools/gomad3/hostexec"
 	gomadqualification "go.temporal.io/server/tools/gomad3/qualification"
 	"go.temporal.io/server/tools/gomad3/runner"
 )
 
-func main() { os.Exit(run(os.Args[1:], os.Stdout, os.Stderr)) }
-
-func run(arguments []string, stdout, stderr io.Writer) int {
-	flags := flag.NewFlagSet("gomad-wasm", flag.ContinueOnError)
-	flags.SetOutput(stderr)
-	manifest := flags.String("installation", "", "explicit pinned installation manifest (before command)")
-	if err := flags.Parse(arguments); err != nil {
-		return 2
-	}
-	arguments = flags.Args()
+func Run(arguments []string, stdout, stderr io.Writer, resolve func() (installation.Description, error)) (int, bool) {
 	if len(arguments) == 0 {
-		if _, err := fmt.Fprintln(stderr, "usage: gomad-wasm [--installation FILE] (install | discover | explore | replay | resume | recover | inspect | minimize | qualify | report) [flags]"); err != nil {
-			return 3
-		}
-		return 2
+		return 0, false
 	}
 	if arguments[0] == "install" {
-		return install(arguments[1:], stdout, stderr)
+		return install(arguments[1:], stdout, stderr), true
 	}
 	if arguments[0] == "report" {
-		return report(arguments[1:], stdout, stderr)
-	}
-	resolve := func() (installation.Description, error) {
-		executable, err := os.Executable()
-		if err != nil {
-			return installation.Description{}, err
-		}
-		return installation.Resolve(installation.Spec{Executable: executable, ExplicitManifest: *manifest, EnvironmentManifest: os.Getenv(installation.Environment)})
+		return report(arguments[1:], stdout, stderr), true
 	}
 	if arguments[0] == "qualify" {
-		return qualify(arguments[1:], stdout, stderr, resolve)
+		return qualify(arguments[1:], stdout, stderr, resolve), true
 	}
 	if arguments[0] == "discover" {
 		if len(arguments) != 1 {
-			return failure(stderr, fmt.Errorf("discover accepts no command arguments"), 2)
+			return failure(stderr, fmt.Errorf("discover accepts no command arguments"), 2), true
 		}
 		description, err := resolve()
 		if err != nil {
-			return failure(stderr, err, 3)
+			return failure(stderr, err, 3), true
 		}
 		if err := json.NewEncoder(stdout).Encode(description); err != nil {
-			return failure(stderr, err, 3)
+			return failure(stderr, err, 3), true
 		}
-		return 0
+		return 0, true
 	}
-	return api.RunWithBackendReplay(arguments, stdout, stderr, func() (api.BackendInstallation, error) {
-		description, err := resolve()
-		if err != nil {
-			return api.BackendInstallation{}, err
-		}
-		provider, err := description.Provider()
-		return api.BackendInstallation{Name: backend.Name, Provider: provider, ReplayCommand: []string{"gomad-wasm", "--installation", description.Path, "replay"}}, err
-	}, replayRetainedCluster)
+	return 0, false
 }
 
-func replayRetainedCluster(ctx context.Context, spec runner.ReplaySpec) (replay runner.ReplayResult, handled bool, retErr error) {
+func ReplayRetainedCluster(ctx context.Context, spec runner.ReplaySpec) (replay runner.ReplayResult, handled bool, retErr error) {
 	opened, err := artifact.OpenArtifact(spec.ArtifactPath)
 	if err != nil {
 		return runner.ReplayResult{}, false, nil
@@ -106,7 +79,7 @@ func replayRetainedCluster(ctx context.Context, spec runner.ReplaySpec) (replay 
 
 func qualify(arguments []string, stdout, stderr io.Writer, resolve func() (installation.Description, error)) int {
 	operatorStart := hostexec.CurrentProcessResourceUsage()
-	flags := flag.NewFlagSet("gomad-wasm qualify", flag.ContinueOnError)
+	flags := flag.NewFlagSet("gomad qualify", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	path := flags.String("spec", "", "qualification owner JSON spec; installation supplies backend Options")
 	if err := flags.Parse(arguments); err != nil {
@@ -125,7 +98,7 @@ func qualify(arguments []string, stdout, stderr io.Writer, resolve func() (insta
 		return failure(stderr, err, 3)
 	}
 	spec.Options = description.Manifest.Options
-	spec.Command = append([]string{"gomad-wasm", "--installation", description.Path, "qualify"}, arguments...)
+	spec.Command = append([]string{"gomad", "--installation", description.Path, "qualify"}, arguments...)
 	spec, err = qualification.Freeze(context.Background(), spec)
 	if err != nil {
 		return failure(stderr, err, 3)
@@ -179,7 +152,7 @@ func qualificationResponseFailure(stderr io.Writer, reason string, err error) in
 }
 
 func report(arguments []string, stdout, stderr io.Writer) int {
-	flags := flag.NewFlagSet("gomad-wasm report", flag.ContinueOnError)
+	flags := flag.NewFlagSet("gomad report", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	path := flags.String("result", "", "retained content-addressed WASM qualification result")
 	if err := flags.Parse(arguments); err != nil {
@@ -199,7 +172,7 @@ func report(arguments []string, stdout, stderr io.Writer) int {
 }
 
 func install(arguments []string, stdout, stderr io.Writer) int {
-	flags := flag.NewFlagSet("gomad-wasm install", flag.ContinueOnError)
+	flags := flag.NewFlagSet("gomad install", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	compiler := flags.String("compiler", "", "existing stock Go compiler executable")
 	helper := flags.String("helper", "", "existing pinned WASM helper executable")

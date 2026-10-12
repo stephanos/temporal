@@ -27,7 +27,7 @@ func TestReplayOutputVerifyOnly(t *testing.T) {
 				return runner.ReplayResult{Artifact: artifact.Artifact{Path: "/verified artifact/%s"}, Verified: true}, nil
 			})
 			status := runReplayWith([]string{"--toolchain-root=/bundle", "--observed=/observed", "--verify-only", "/requested-artifact"}, stdout, stderr, dependencies)
-			want := runner.ReplaySpec{ArtifactPath: "/requested-artifact", VerifyOnly: true, ToolchainRoot: "/toolchain", ObservedDir: "/observed", SupervisorCommand: []string{"/bin/gomad", "__supervisor"}}
+			want := runner.ReplaySpec{ArtifactPath: "/requested-artifact", VerifyOnly: true, ToolchainRoot: "/toolchain", ObservedDir: "/observed"}
 			if calls != 1 || !reflect.DeepEqual(observed, want) {
 				t.Fatalf("replay calls = %d, request = %#v, want %#v", calls, observed, want)
 			}
@@ -64,7 +64,7 @@ func TestReplayOutputEarlierErrors(t *testing.T) {
 			calls := 0
 			dependencies := installation.replayDependencies(func(_ context.Context, spec runner.ReplaySpec) (runner.ReplayResult, error) {
 				calls++
-				want := runner.ReplaySpec{ArtifactPath: "/artifact", VerifyOnly: true, ToolchainRoot: "/toolchain", SupervisorCommand: []string{"/bin/gomad", "__supervisor"}}
+				want := runner.ReplaySpec{ArtifactPath: "/artifact", VerifyOnly: true, ToolchainRoot: "/toolchain"}
 				if !reflect.DeepEqual(spec, want) || len(stdout.attempts) != 0 || len(stderr.attempts) != 0 {
 					t.Fatalf("replay request = %#v, want %#v before reporting", spec, want)
 				}

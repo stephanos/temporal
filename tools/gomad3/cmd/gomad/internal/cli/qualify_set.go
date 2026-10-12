@@ -7,19 +7,21 @@ import (
 	"fmt"
 	"io"
 
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	qualificationset "go.temporal.io/server/tools/gomad3/backends/native/qualification/set"
+	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 )
 
 type qualifySetDependencies struct {
-	executable func() (string, error)
-	load       func(string) (qualificationset.Manifest, error)
-	run        func(context.Context, qualificationset.Spec) (qualificationset.Report, error)
+	installationManifest string
+	executable           func() (string, error)
+	load                 func(string) (qualificationset.Manifest, error)
+	run                  func(context.Context, qualificationset.Spec) (qualificationset.Report, error)
 }
 
 func (app application) runQualifySet(arguments []string, stdout, stderr io.Writer) int {
 	return runQualifySetWith(arguments, stdout, stderr, qualifySetDependencies{
-		executable: app.executablePath, load: qualificationset.LoadManifest, run: qualificationset.Run,
+		installationManifest: app.selectedManifest,
+		executable:           app.executablePath, load: qualificationset.LoadManifest, run: qualificationset.Run,
 	})
 }
 
@@ -84,7 +86,8 @@ func runQualifySetWith(arguments []string, stdout, stderr io.Writer, dependencie
 		return writeCommandError(stderr, 3, "%v\n", err)
 	}
 	report, runErr := dependencies.run(context.Background(), qualificationset.Spec{
-		ManifestPath: *manifestPath, GomadPath: executable, WorkingDir: *workingDirectory,
+		InstallationManifest: dependencies.installationManifest,
+		ManifestPath:         *manifestPath, GomadPath: executable, WorkingDir: *workingDirectory,
 		ArtifactRoot: *artifacts, OutputPath: *output, Shard: shard, PruneQualifiedArtifacts: *pruneQualified, MinimumFreeBytes: uint64(minimumFree),
 	})
 	if err := writeQualificationSetResult(stdout, *format, report); err != nil {

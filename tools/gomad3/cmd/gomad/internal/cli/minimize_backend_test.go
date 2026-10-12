@@ -79,7 +79,7 @@ func TestExternalMinimizePreservesErrorClassification(t *testing.T) {
 					return installation{backend: commandBackend{}, backendName: "wasm"}, nil
 				},
 				minimize: func(_ context.Context, spec runner.MinimizeSpec) (runner.MinimizeResult, error) {
-					if spec.Backend == nil || spec.ToolchainRoot != "" || len(spec.SupervisorCommand) != 0 || len(spec.BootstrapCommand) != 0 {
+					if spec.Backend == nil || spec.ToolchainRoot != "" {
 						t.Fatalf("external backend lost or native launch configured: %+v", spec)
 					}
 					return runner.MinimizeResult{}, test.err

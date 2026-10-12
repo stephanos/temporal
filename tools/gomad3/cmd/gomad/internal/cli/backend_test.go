@@ -4,17 +4,54 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
+	"io"
 	"strings"
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
+	runnerbackend "go.temporal.io/server/tools/gomad3/backends"
+	wasmbackend "go.temporal.io/server/tools/gomad3/backends/wasm/backend"
+	"go.temporal.io/server/tools/gomad3/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner"
-	runnerbackend "go.temporal.io/server/tools/gomad3/runner/backend"
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
 type commandBackend struct{}
+
+func externalCapabilities() runnerbackend.Capabilities {
+	return wasmbackend.CapabilitiesForProfile(wasi.CooperativeProfile)
+}
+
+func RunWithBackend(arguments []string, stdout, stderr io.Writer, resolve func() (BackendInstallation, error)) int {
+	return RunWithBackendReplay(arguments, stdout, stderr, resolve, nil)
+}
+
+func RunWithBackendReplay(arguments []string, stdout, stderr io.Writer, resolve func() (BackendInstallation, error), replay func(context.Context, runner.ReplaySpec) (runner.ReplayResult, bool, error)) int {
+	app := hostApplication()
+	if resolve == nil {
+		if _, err := fmt.Fprintln(stderr, "external backend resolver is required"); err != nil {
+			return 3
+		}
+		return 2
+	}
+	app.backend, app.replayHook = resolve, replay
+	capabilities := externalCapabilities()
+	app.capabilities = &capabilities
+	return app.run(arguments, stdout, stderr)
+}
+
+func (commandBackend) Capabilities() runnerbackend.Capabilities { return externalCapabilities() }
+func (commandBackend) Describe(context.Context, runnerbackend.Configuration) (runnerbackend.Description, error) {
+	return runnerbackend.Description{}, errors.New("unused")
+}
+func (commandBackend) Execute(context.Context, runnerbackend.ExecutionRequest) (runnerbackend.ExecutionResult, error) {
+	return runnerbackend.ExecutionResult{}, errors.New("unused")
+}
+func (commandBackend) Evidence(context.Context, runnerbackend.EvidenceRequest) (runnerbackend.Evidence, error) {
+	return runnerbackend.Evidence{}, errors.New("unused")
+}
 
 func (commandBackend) Prepare(context.Context, target.Spec) (target.Prepared, error) {
 	return target.Prepared{}, errors.New("unused")
@@ -37,7 +74,7 @@ func TestRetainedBackendReplayUsesSharedGrammarAndClassificationWithoutInstallat
 			return BackendInstallation{}, nil
 		}, func(_ context.Context, spec runner.ReplaySpec) (runner.ReplayResult, bool, error) {
 			called = true
-			if spec.ArtifactPath != "/artifact" || spec.ObservedDir != "/observed" || spec.Backend != nil || spec.ToolchainRoot != "" || len(spec.SupervisorCommand) != 0 {
+			if spec.ArtifactPath != "/artifact" || spec.ObservedDir != "/observed" || spec.Backend != nil || spec.ToolchainRoot != "" {
 				t.Fatalf("retained replay changed shared arguments: %+v", spec)
 			}
 			return runner.ReplayResult{Match: test.match, Artifact: artifact.Artifact{Path: "/artifact", Manifest: record.ExecutionRecord{Outcome: record.Outcome{Domain: test.domain}}}}, true, nil
@@ -121,7 +158,7 @@ func TestExternalBackendUsesSharedCampaignGrammar(t *testing.T) {
 		t.Fatalf("status=%d stdout=%q stderr=%q", status, stdout.String(), stderr.String())
 	}
 	campaign := request.campaign
-	if campaign.Backend != provider || campaign.Target.Backend != "wasm" || campaign.Target.ToolchainRoot != "" || len(campaign.CoordinatorCommand) != 0 || len(campaign.SupervisorCommand) != 0 || len(campaign.Target.Args) != 2 || campaign.Target.Args[0] != "-test.run=Test Name" || campaign.Target.Args[1] != "literal;$value" {
+	if campaign.Backend != provider || campaign.Target.Backend != "wasm" || campaign.Target.ToolchainRoot != "" || len(campaign.Target.Args) != 2 || campaign.Target.Args[0] != "-test.run=Test Name" || campaign.Target.Args[1] != "literal;$value" {
 		t.Fatalf("external campaign routing: %#v", campaign)
 	}
 }
@@ -165,8 +202,8 @@ func TestExternalBackendMinimizeUsesSharedValidationBeforeResolution(t *testing.
 		{[]string{"minimize", "--attempt-budget=18446744073709551616", "/failure"}, "invalid value"},
 		{[]string{"minimize", "--max-bytes=0", "/failure"}, "invalid byte size"},
 		{[]string{"minimize", "--unknown", "/failure"}, "flag provided but not defined"},
-		{[]string{"minimize", "--toolchain-root=/native", "/failure"}, "--toolchain-root is unavailable"},
-		{[]string{"minimize", "--toolchain-root=", "/failure"}, "--toolchain-root is unavailable"},
+		{[]string{"minimize", "--toolchain-root=/native", "/failure"}, "flag provided but not defined"},
+		{[]string{"minimize", "--toolchain-root=", "/failure"}, "flag provided but not defined"},
 	} {
 		t.Run(strings.Join(test.arguments, " "), func(t *testing.T) {
 			var stdout, stderr bytes.Buffer

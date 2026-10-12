@@ -14,9 +14,9 @@ import (
 	"strings"
 	"time"
 
+	"go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner"
-	runnerbackend "go.temporal.io/server/tools/gomad3/runner/backend"
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
@@ -91,56 +91,35 @@ type targetInput struct {
 }
 
 func Run(arguments []string, stdout, stderr io.Writer) int {
-	return hostApplication().run(arguments, stdout, stderr)
+	return runLauncher(arguments, stdout, stderr)
 }
 
 type BackendInstallation struct {
 	Name          string
-	Provider      runnerbackend.Provider
+	Provider      backends.Provider
 	ReplayCommand []string
-}
-
-// RunWithBackend shares Gomad's grammar and reporting with an explicitly selected
-// external installation. Resolution stays after command input validation.
-func RunWithBackend(arguments []string, stdout, stderr io.Writer, resolve func() (BackendInstallation, error)) int {
-	return RunWithBackendReplay(arguments, stdout, stderr, resolve, nil)
-}
-
-// RunWithBackendReplay allows a retained backend artifact to handle replay after
-// the shared grammar validates, without resolving a build-time installation.
-// An unhandled artifact follows the unchanged installation and Runner path.
-func RunWithBackendReplay(arguments []string, stdout, stderr io.Writer, resolve func() (BackendInstallation, error), replay func(context.Context, runner.ReplaySpec) (runner.ReplayResult, bool, error)) int {
-	app := hostApplication()
-	if resolve == nil {
-		if _, err := fmt.Fprintln(stderr, "external backend resolver is required"); err != nil {
-			return 3
-		}
-		return 2
-	}
-	app.backend = resolve
-	app.replayHook = replay
-	if len(arguments) != 0 {
-		switch arguments[0] {
-		case "explore", "replay", "resume", "recover", "inspect", "minimize":
-		default:
-			if _, err := fmt.Fprintf(stderr, "command %q is unavailable with an external backend installation; use explore, replay, resume, recover, inspect, or minimize\n", arguments[0]); err != nil {
-				return 3
-			}
-			return 2
-		}
-	}
-	return app.run(arguments, stdout, stderr)
 }
 
 func (app application) run(arguments []string, stdout, stderr io.Writer) int {
 	if len(arguments) == 0 {
-		if _, printErr := fmt.Fprint(stderr, usage); printErr != nil {
+		if _, printErr := fmt.Fprint(stderr, commandUsage(app.capabilities)); printErr != nil {
+			return 2
+		}
+		return 2
+	}
+	if !supportsCommand(app.capabilities, arguments[0]) {
+		if _, printErr := fmt.Fprintf(stderr, "unknown gomad command %q\n%s", arguments[0], commandUsage(app.capabilities)); printErr != nil {
 			return 2
 		}
 		return 2
 	}
 	if isPrivateMode(arguments[0]) {
 		return app.runPrivateMode(arguments[0], stderr)
+	}
+	if app.command != nil {
+		if status, handled := app.command(arguments, stdout, stderr); handled {
+			return status
+		}
 	}
 	switch arguments[0] {
 	case "explore":
@@ -172,7 +151,7 @@ func (app application) run(arguments []string, stdout, stderr io.Writer) int {
 	case "doctor":
 		return app.runDoctor(arguments[1:], stdout, stderr)
 	case "inspect":
-		return runInspect(arguments[1:], stdout, stderr)
+		return runInspectWithCapabilities(arguments[1:], stdout, stderr, app.capabilities)
 	default:
 		if _, printErr := fmt.Fprintf(stderr, "unknown gomad command %q\n%s", arguments[0], usage); printErr != nil {
 			return 2
@@ -182,15 +161,20 @@ func (app application) run(arguments []string, stdout, stderr io.Writer) int {
 }
 
 func runInspect(arguments []string, stdout, stderr io.Writer) int {
+	return runInspectWithCapabilities(arguments, stdout, stderr, nil)
+}
+
+func runInspectWithCapabilities(arguments []string, stdout, stderr io.Writer, capabilities *backends.Capabilities) int {
 	flags := flag.NewFlagSet("gomad inspect", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	jsonOutput := flags.Bool("json", false, "emit stable JSON")
-	choices := flags.Bool("choices", false, "project a validated runtime choice trace")
+	_, choiceFlags, _, _ := featureFlags(flags, capabilities)
+	choices := choiceFlags.Bool("choices", false, "project a validated runtime choice trace")
 	if err := flags.Parse(arguments); err != nil {
 		return 2
 	}
 	if flags.NArg() != 1 {
-		if _, err := fmt.Fprint(stderr, usage); err != nil {
+		if _, err := fmt.Fprint(stderr, commandUsage(capabilities)); err != nil {
 			return 3
 		}
 		return 2
@@ -472,6 +456,7 @@ func (app application) runDoctor(arguments []string, stdout, stderr io.Writer) i
 }
 
 type exploreDependencies struct {
+	capabilities     *backends.Capabilities
 	install          func(string) (installation, error)
 	workingDirectory func() (string, error)
 	explore          func(context.Context, runner.CampaignSpec) (runner.CampaignResult, error)
@@ -479,7 +464,7 @@ type exploreDependencies struct {
 }
 
 func (app application) exploreDependencies() exploreDependencies {
-	return exploreDependencies{install: app.install, workingDirectory: os.Getwd, explore: runner.Explore, plan: runner.CreateCampaignPlan}
+	return exploreDependencies{capabilities: app.capabilities, install: app.install, workingDirectory: os.Getwd, explore: runner.Explore, plan: runner.CreateCampaignPlan}
 }
 
 func (app application) runExplore(arguments []string, stdout, stderr io.Writer) int {
@@ -598,19 +583,32 @@ type campaignRequest struct {
 func parseCampaignRequest(operation campaignOperation, arguments []string, stdout, stderr io.Writer, dependencies exploreDependencies) (request campaignRequest, status int, ok bool) {
 	flags := flag.NewFlagSet("gomad explore", flag.ContinueOnError)
 	flags.SetOutput(io.Discard)
-	strategy := flags.String("strategy", string(runner.StrategySeed), "seed, choice-exploration, or simulation-exploration")
+	nativeFlags, choiceFlags, simulationFlags, mountFlags := featureFlags(flags, dependencies.capabilities)
+	explorationFlags := optionalFlags{flags, choiceFlags.enabled || simulationFlags.enabled}
+	planFlags := optionalFlags{flags, supportsCommand(dependencies.capabilities, "plan")}
+	strategy := new(string)
+	*strategy = string(runner.StrategySeed)
+	if dependencies.capabilities != nil && !simulationFlags.enabled {
+		allowed := []string{string(runner.StrategySeed)}
+		if choiceFlags.enabled {
+			allowed = append(allowed, string(runner.StrategyChoiceExploration))
+		}
+		flags.Var(enumValue{strategy, allowed}, "strategy", "exploration strategy: "+strings.Join(allowed, ", "))
+	} else {
+		flags.StringVar(strategy, "strategy", string(runner.StrategySeed), "seed, choice-exploration, or simulation-exploration")
+	}
 	seeds := flags.String("seeds", "1", "seed set or inclusive ranges")
 	count := flags.Uint64("count", 0, "explore seeds 0 through N-1")
-	maxRuns := flags.Uint64("max-executions", 0, "maximum exploration candidates")
-	maxChoiceDepth := flags.Uint64("max-choice-depth", 0, "maximum forced choice decisions")
-	choiceStartOrdinal := flags.Uint64("choice-start-ordinal", 0, "first replay-plan decision ordinal choice exploration expands; inspect --choices lists ordinals")
-	maxForcedDecisions := flags.Uint64("max-forced-decisions", 0, "maximum combined forced decisions")
-	maxRuntimeDecisions := flags.Uint64("max-runtime-decisions", 0, "maximum runtime decision ordinal")
-	maxScenarioDecisions := flags.Uint64("max-scenario-decisions", 0, "maximum scenario decision ordinal")
-	maxNetworkDecisions := flags.Uint64("max-network-decisions", 0, "maximum network decision ordinal")
-	maxStorageDecisions := flags.Uint64("max-storage-decisions", 0, "maximum storage decision ordinal")
-	maxFaultDecisions := flags.Uint64("max-fault-decisions", 0, "maximum fault decision ordinal")
-	maxCrashDecisions := flags.Uint64("max-crash-decisions", 0, "maximum crash-state decision ordinal")
+	maxRuns := explorationFlags.Uint64("max-executions", 0, "maximum exploration candidates")
+	maxChoiceDepth := choiceFlags.Uint64("max-choice-depth", 0, "maximum forced choice decisions")
+	choiceStartOrdinal := choiceFlags.Uint64("choice-start-ordinal", 0, "first replay-plan decision ordinal choice exploration expands; inspect --choices lists ordinals")
+	maxForcedDecisions := simulationFlags.Uint64("max-forced-decisions", 0, "maximum combined forced decisions")
+	maxRuntimeDecisions := simulationFlags.Uint64("max-runtime-decisions", 0, "maximum runtime decision ordinal")
+	maxScenarioDecisions := simulationFlags.Uint64("max-scenario-decisions", 0, "maximum scenario decision ordinal")
+	maxNetworkDecisions := simulationFlags.Uint64("max-network-decisions", 0, "maximum network decision ordinal")
+	maxStorageDecisions := simulationFlags.Uint64("max-storage-decisions", 0, "maximum storage decision ordinal")
+	maxFaultDecisions := simulationFlags.Uint64("max-fault-decisions", 0, "maximum fault decision ordinal")
+	maxCrashDecisions := simulationFlags.Uint64("max-crash-decisions", 0, "maximum crash-state decision ordinal")
 	parallel := flags.Int("parallel", min(runtime.NumCPU(), 8), "maximum active targets")
 	runTimeout := flags.Duration("execution-timeout", 30*time.Second, "per-execution host deadline")
 	overallTimeout := flags.Duration("overall-timeout", 10*time.Minute, "complete exploration host deadline")
@@ -618,16 +616,22 @@ func parseCampaignRequest(operation campaignOperation, arguments []string, stdou
 	onFailure := flags.String("on-failure", string(runner.PolicyFirst), "first, budget, or all")
 	failureBudget := flags.Uint64("failure-budget", 1, "distinct failure signature threshold")
 	artifacts := flags.String("artifacts", ".gomad/artifacts", "artifact root")
-	toolchainRoot := flags.String("toolchain-root", "", "absolute pinned toolchain root")
-	capabilityMode := flags.String("capability-mode", string(target.CapabilityModeClosure), "closure, linked, or guarded capability assessment")
+	toolchainRoot := nativeFlags.String("toolchain-root", "", "absolute pinned toolchain root")
+	capabilityMode := nativeFlags.String("capability-mode", string(target.CapabilityModeClosure), "closure, linked, or guarded capability assessment")
 	jsonOutput := flags.Bool("json", false, "emit stable JSON events")
-	planOutput := flags.String("output", "", "campaign plan output")
-	choices := flags.Bool("choices", false, "record bounded runtime choices")
-	diagnostics := flags.Bool("diagnostics", false, "record runtime-state diagnostics; implies --choices")
-	coverage := flags.String("coverage", string(runner.CoverageNone), "none, semantic, choice, or semantic+choice")
-	guide := flags.Bool("guide", false, "exclude answered seeds using a bounded coverage corpus")
-	guideRegression := flags.Bool("guide-regression", false, "re-run corpus seeds with --guide; fully answered default requests execute zero seeds and exit 0")
-	corpus := flags.String("corpus", "", "guided coverage corpus directory")
+	planOutput := planFlags.String("output", "", "campaign plan output")
+	choices := choiceFlags.Bool("choices", false, "record bounded runtime choices")
+	diagnostics := choiceFlags.Bool("diagnostics", false, "record runtime-state diagnostics; implies --choices")
+	coverage := new(string)
+	*coverage = string(runner.CoverageNone)
+	if nativeFlags.enabled {
+		flags.StringVar(coverage, "coverage", string(runner.CoverageNone), "none, semantic, choice, or semantic+choice")
+	} else if choiceFlags.enabled {
+		flags.Var(enumValue{coverage, []string{string(runner.CoverageNone), string(runner.CoverageChoice)}}, "coverage", "none or choice")
+	}
+	guide := nativeFlags.Bool("guide", false, "exclude answered seeds using a bounded coverage corpus")
+	guideRegression := nativeFlags.Bool("guide-regression", false, "re-run corpus seeds with --guide; fully answered default requests execute zero seeds and exit 0")
+	corpus := nativeFlags.String("corpus", "", "guided coverage corpus directory")
 	keepSuccesses := flags.String("keep-successes", string(runner.KeepSuccessesNone), "none, novel, or all")
 	successLimit := flags.Uint64("success-limit", 0, "maximum retained successful executions")
 	outputLimit := byteSize(8 << 20)
@@ -639,21 +643,25 @@ func parseCampaignRequest(operation campaignOperation, arguments []string, stdou
 	flags.Var(&outputLimit, "output-limit", "retained bytes per output stream")
 	flags.Var(&worldLimit, "world-transition-limit", "World transition capacity")
 	flags.Var(&successBytes, "success-bytes", "total retained successful-execution bytes")
-	flags.Var(&choiceLimit, "choice-bytes", "runtime choice trace capacity")
+	choiceFlags.Var(&choiceLimit, "choice-bytes", "runtime choice trace capacity")
 	transcriptLimit := byteSize(64 << 20)
-	flags.Var(&transcriptLimit, "io-transcript-bytes", "I/O transcript capacity (64MiB to 1GiB, whole MiB)")
-	flags.Var(&explorationLimit, "max-exploration-bytes", "maximum live choice-exploration bytes")
-	flags.Var(&explorationResultLimit, "max-exploration-result-bytes", "maximum combined result bytes per candidate")
+	nativeFlags.Var(&transcriptLimit, "io-transcript-bytes", "I/O transcript capacity (64MiB to 1GiB, whole MiB)")
+	explorationFlags.Var(&explorationLimit, "max-exploration-bytes", "maximum live choice-exploration bytes")
+	simulationFlags.Var(&explorationResultLimit, "max-exploration-result-bytes", "maximum combined result bytes per candidate")
 	var environment stringList
 	var buildTags stringList
 	var ioROMounts stringList
 	var requiredSemanticProbes stringList
 	flags.Var(&environment, "env", "target NAME=VALUE")
 	flags.Var(&buildTags, "build-tag", "validated Go build tag")
-	flags.Var(&ioROMounts, "io-ro-mount", "read-only HOST_DIRECTORY=TARGET_DIRECTORY mapping")
-	flags.Var(&requiredSemanticProbes, "require-probe", "required semantic probe (requires --coverage=semantic)")
+	mountFlags.Var(&ioROMounts, "io-ro-mount", "read-only HOST_DIRECTORY=TARGET_DIRECTORY mapping")
+	nativeFlags.Var(&requiredSemanticProbes, "require-probe", "required semantic probe (requires --coverage=semantic)")
 	workingDir := flags.String("working-dir", "", "absolute target module root (default: the current directory)")
-	clockTick := flags.String("clock-tick", record.ClockTickStrict, "virtual-clock tick policy: strict or forward")
+	clockDefault := record.ClockTickStrict
+	if !nativeFlags.enabled {
+		clockDefault = ""
+	}
+	clockTick := nativeFlags.String("clock-tick", clockDefault, "virtual-clock tick policy: strict or forward")
 	if operation == planCampaign {
 		// A portable plan completes all planned work. An explicit
 		// --on-failure still parses over this fixed policy, and the plan
@@ -695,11 +703,9 @@ func parseCampaignRequest(operation campaignOperation, arguments []string, stdou
 		return campaignRequest{}, 2, false
 	}
 	var seedsSet, countSet, coverageSet, choiceLimitSet, maxRunsSet, maxChoiceDepthSet, choiceStartOrdinalSet, maxForcedDecisionsSet, maxExplorationBytesSet, maxExplorationResultBytesSet bool
-	var runtimeLimitSet, scenarioLimitSet, networkLimitSet, storageLimitSet, faultLimitSet, crashLimitSet, clockTickSet bool
+	var runtimeLimitSet, scenarioLimitSet, networkLimitSet, storageLimitSet, faultLimitSet, crashLimitSet bool
 	flags.Visit(func(visited *flag.Flag) {
 		switch visited.Name {
-		case "clock-tick":
-			clockTickSet = true
 		case "seeds":
 			seedsSet = true
 		case "count":
@@ -861,9 +867,6 @@ func parseCampaignRequest(operation campaignOperation, arguments []string, stdou
 	if installed.replayCommand != "" {
 		reporter.replayCommand = installed.replayCommand
 	}
-	if installed.backend != nil && !clockTickSet {
-		*clockTick = ""
-	}
 	config := runner.CampaignSpec{
 		Backend:  installed.backend,
 		Strategy: resolvedStrategy, Seeds: resolvedSeeds, Parallel: *parallel, ExecutionTimeout: *runTimeout, OverallTimeout: *overallTimeout, TerminateGrace: *terminateGrace,
@@ -874,7 +877,7 @@ func parseCampaignRequest(operation campaignOperation, arguments []string, stdou
 			Runtime: *maxRuntimeDecisions, Scenario: *maxScenarioDecisions, Network: *maxNetworkDecisions,
 			Storage: *maxStorageDecisions, Fault: *maxFaultDecisions, Crash: *maxCrashDecisions,
 		},
-		Artifacts: *artifacts, Environment: environment, IOROMounts: ioROMounts, SupervisorCommand: installed.supervisorCommand(), CoordinatorCommand: installed.coordinatorCommand(), RunnerBuild: installed.runnerBuild,
+		Artifacts: *artifacts, Environment: environment, IOROMounts: ioROMounts, RunnerBuild: installed.runnerBuild,
 		Coverage: coverageMode, RequiredSemanticProbes: requiredSemanticProbes,
 		KeepSuccesses: runner.KeepSuccesses(*keepSuccesses), SuccessArtifactLimit: *successLimit, SuccessBytesLimit: uint64(successBytes),
 		Guide: *guide, GuideRegression: *guideRegression, Corpus: *corpus,
@@ -1081,26 +1084,28 @@ func resolveChoiceTrace(enabled bool, limit byteSize, limitSet bool) (uint64, er
 }
 
 type replayDependencies struct {
-	install  func(string) (installation, error)
-	replay   func(context.Context, runner.ReplaySpec) (runner.ReplayResult, error)
-	retained func(context.Context, runner.ReplaySpec) (runner.ReplayResult, bool, error)
+	capabilities *backends.Capabilities
+	install      func(string) (installation, error)
+	replay       func(context.Context, runner.ReplaySpec) (runner.ReplayResult, error)
+	retained     func(context.Context, runner.ReplaySpec) (runner.ReplayResult, bool, error)
 }
 
 func (app application) runReplay(arguments []string, stdout, stderr io.Writer) int {
-	return runReplayWith(arguments, stdout, stderr, replayDependencies{install: app.install, replay: runner.Replay, retained: app.replayHook})
+	return runReplayWith(arguments, stdout, stderr, replayDependencies{capabilities: app.capabilities, install: app.install, replay: runner.Replay, retained: app.replayHook})
 }
 
 func runReplayWith(arguments []string, stdout, stderr io.Writer, dependencies replayDependencies) int {
 	flags := flag.NewFlagSet("gomad replay", flag.ContinueOnError)
 	flags.SetOutput(stderr)
+	nativeFlags, _, _, _ := featureFlags(flags, dependencies.capabilities)
 	verifyOnly := flags.Bool("verify-only", false, "validate without executing the target")
-	toolchainRoot := flags.String("toolchain-root", "", "absolute pinned toolchain root")
+	toolchainRoot := nativeFlags.String("toolchain-root", "", "absolute pinned toolchain root")
 	observedDir := flags.String("observed", "", "directory that receives the replayed target's stdout and stderr")
 	if err := flags.Parse(arguments); err != nil {
 		return 2
 	}
 	if flags.NArg() != 1 {
-		if _, printErr := fmt.Fprint(stderr, usage); printErr != nil {
+		if _, printErr := fmt.Fprint(stderr, commandUsage(dependencies.capabilities)); printErr != nil {
 			return 2
 		}
 		return 2
@@ -1120,7 +1125,7 @@ func runReplayWith(arguments []string, stdout, stderr io.Writer, dependencies re
 			}
 			return 3
 		}
-		config.Backend, config.ToolchainRoot, config.SupervisorCommand = installed.backend, installed.toolchainRoot, installed.supervisorCommand()
+		config.Backend, config.ToolchainRoot = installed.backend, installed.toolchainRoot
 		result, err = dependencies.replay(context.Background(), config)
 	}
 	if err != nil {
@@ -1153,21 +1158,22 @@ func runReplayWith(arguments []string, stdout, stderr io.Writer, dependencies re
 }
 
 type minimizeDependencies struct {
-	install         func(string) (installation, error)
-	minimize        func(context.Context, runner.MinimizeSpec) (runner.MinimizeResult, error)
-	externalBackend bool
+	capabilities *backends.Capabilities
+	install      func(string) (installation, error)
+	minimize     func(context.Context, runner.MinimizeSpec) (runner.MinimizeResult, error)
 }
 
 func (app application) runMinimize(arguments []string, stdout, stderr io.Writer) int {
-	return runMinimizeWith(arguments, stdout, stderr, minimizeDependencies{install: app.install, minimize: runner.Minimize, externalBackend: app.backend != nil})
+	return runMinimizeWith(arguments, stdout, stderr, minimizeDependencies{capabilities: app.capabilities, install: app.install, minimize: runner.Minimize})
 }
 
 func runMinimizeWith(arguments []string, stdout, stderr io.Writer, dependencies minimizeDependencies) int {
 	flags := flag.NewFlagSet("gomad minimize", flag.ContinueOnError)
 	flags.SetOutput(stderr)
+	nativeFlags, _, _, _ := featureFlags(flags, dependencies.capabilities)
 	jsonOutput := flags.Bool("json", false, "emit stable JSON")
 	artifacts := flags.String("artifacts", ".gomad/artifacts", "artifact root")
-	toolchainRoot := flags.String("toolchain-root", "", "absolute pinned toolchain root")
+	toolchainRoot := nativeFlags.String("toolchain-root", "", "absolute pinned toolchain root")
 	attemptBudget := flags.Uint64("attempt-budget", 64, "maximum fresh-process minimization candidates")
 	resume := flags.Bool("resume", false, "continue this artifact's interrupted minimization from its state under the artifact root")
 	maximumBytes := byteSize(0)
@@ -1176,18 +1182,7 @@ func runMinimizeWith(arguments []string, stdout, stderr io.Writer, dependencies 
 		return 2
 	}
 	if flags.NArg() != 1 || *attemptBudget == 0 {
-		return writeCommandError(stderr, 2, "%s", usage)
-	}
-	if dependencies.externalBackend {
-		nativeToolchain := false
-		flags.Visit(func(flag *flag.Flag) {
-			if flag.Name == "toolchain-root" {
-				nativeToolchain = true
-			}
-		})
-		if nativeToolchain {
-			return writeCommandError(stderr, 2, "--toolchain-root is unavailable with an external backend installation\n")
-		}
+		return writeCommandError(stderr, 2, "%s", commandUsage(dependencies.capabilities))
 	}
 	artifactRoot, err := filepath.Abs(*artifacts)
 	if err != nil {
@@ -1200,7 +1195,7 @@ func runMinimizeWith(arguments []string, stdout, stderr io.Writer, dependencies 
 	result, err := dependencies.minimize(context.Background(), runner.MinimizeSpec{
 		Backend: installed.backend, ArtifactPath: flags.Arg(0), OutputRoot: filepath.Join(artifactRoot, "minimized"),
 		AttemptBudget: *attemptBudget, MaximumBytes: uint64(maximumBytes), ToolchainRoot: installed.toolchainRoot,
-		SupervisorCommand: installed.supervisorCommand(), Resume: *resume,
+		Resume: *resume,
 	})
 	if err != nil {
 		var preflight *runner.ReplayPreflightError

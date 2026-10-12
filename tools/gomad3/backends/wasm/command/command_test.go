@@ -1,4 +1,4 @@
-package main
+package command
 
 import (
 	"bytes"
@@ -23,46 +23,14 @@ import (
 	"go.temporal.io/server/tools/gomad3/record"
 )
 
-func TestOperatorRejectsUnsupportedCommandsWithoutInstallation(t *testing.T) {
-	t.Setenv(installation.Environment, "/missing/manifest")
-	for _, arguments := range [][]string{{"plan"}, {"minimize"}, {"explore", "--count=0", "go-run", "."}, {"discover", "extra"}, {"install", "--output=x", "--profile=unknown"}} {
-		var stdout, stderr bytes.Buffer
-		if status := run(arguments, &stdout, &stderr); status != 2 || strings.Contains(stderr.String(), "/missing/manifest") {
-			t.Fatalf("%q: status=%d stdout=%q stderr=%q", arguments, status, stdout.String(), stderr.String())
-		}
+func run(arguments []string, stdout, stderr io.Writer) int {
+	status, handled := Run(arguments, stdout, stderr, func() (installation.Description, error) {
+		return installation.Resolve(installation.Spec{EnvironmentManifest: os.Getenv(installation.Environment)})
+	})
+	if !handled {
+		panic("backend command test selected a shared launcher command")
 	}
-}
-
-func TestOperatorMinimizeUsesSharedValidationAndInstallation(t *testing.T) {
-	manifest := "/missing/minimize-installation"
-	t.Setenv(installation.Environment, manifest)
-	for _, test := range []struct {
-		arguments []string
-		status    int
-		want      string
-	}{
-		{[]string{"minimize"}, 2, "usage:"},
-		{[]string{"minimize", "--attempt-budget=0", "/failure"}, 2, "usage:"},
-		{[]string{"minimize", "--max-bytes=0", "/failure"}, 2, "invalid byte size"},
-		{[]string{"minimize", "--toolchain-root=/native", "/failure"}, 2, "--toolchain-root is unavailable"},
-		{[]string{"minimize", "--toolchain-root=", "/failure"}, 2, "--toolchain-root is unavailable"},
-		{[]string{"minimize", "--resume", "--attempt-budget=4", "--max-bytes=2MiB", "/failure"}, 3, manifest},
-	} {
-		t.Run(strings.Join(test.arguments, " "), func(t *testing.T) {
-			var stdout, stderr bytes.Buffer
-			status := run(test.arguments, &stdout, &stderr)
-			if status != test.status || stdout.Len() != 0 || !strings.Contains(stderr.String(), test.want) || test.status == 2 && strings.Contains(stderr.String(), manifest) {
-				t.Fatalf("status=%d stdout=%q stderr=%q; want status=%d %q", status, stdout.String(), stderr.String(), test.status, test.want)
-			}
-		})
-	}
-}
-
-func TestOperatorUsageIncludesCompatibleMinimization(t *testing.T) {
-	var stdout, stderr bytes.Buffer
-	if status := run(nil, &stdout, &stderr); status != 2 || stdout.Len() != 0 || !strings.Contains(stderr.String(), "minimize") {
-		t.Fatalf("status=%d stdout=%q stderr=%q", status, stdout.String(), stderr.String())
-	}
+	return status
 }
 
 func TestQualifyValidatesSpecBeforeResolvingInstallation(t *testing.T) {
@@ -257,8 +225,8 @@ func TestInstalledOperatorReplaysRetainedClusterWithoutInstallation(t *testing.T
 		t.Fatal("test input is not typed retained cluster evidence")
 	}
 	root := t.TempDir()
-	binary := filepath.Join(root, "gomad-wasm")
-	build := exec.CommandContext(t.Context(), compiler, "build", "-trimpath", "-o", binary, ".")
+	binary := filepath.Join(root, "gomad")
+	build := exec.CommandContext(t.Context(), compiler, "build", "-p=1", "-trimpath", "-o", binary, "../../../cmd/gomad")
 	build.Env = operatorEnvironment()
 	if output, err := build.CombinedOutput(); err != nil {
 		t.Fatalf("build operator: %v\n%s", err, output)
@@ -302,25 +270,22 @@ func TestInstalledOperatorDiscoversInspectsAndReplaysWithoutBuildInputs(t *testi
 		t.Skip("explicit stock Go compiler selects the installed operator guest gate")
 	}
 	root := t.TempDir()
-	binary := filepath.Join(root, "gomad-wasm")
-	build := exec.CommandContext(t.Context(), compiler, "build", "-trimpath", "-o", binary, ".")
+	binary := filepath.Join(root, "gomad")
+	build := exec.CommandContext(t.Context(), compiler, "build", "-p=1", "-trimpath", "-o", binary, "../../../cmd/gomad")
 	build.Env = operatorEnvironment()
 	if output, err := build.CombinedOutput(); err != nil {
 		t.Fatalf("build installed operator: %v\n%s", err, output)
 	}
-	helper, err := filepath.Abs("../../wasmhost/target/release/gomad3-wasmhost")
+	helperPath := os.Getenv("GOMAD_WASM_TEST_HELPER")
+	if helperPath == "" {
+		helperPath = "../wasmhost/target/release/gomad3-wasmhost"
+	}
+	helper, err := filepath.Abs(helperPath)
 	if err != nil {
 		t.Fatal(err)
 	}
-	helperBytes, err := os.ReadFile(helper)
-	if err != nil {
-		t.Fatal(err)
-	}
-	pinnedHelper := filepath.Join(root, "helper")
-	if err := os.WriteFile(pinnedHelper, helperBytes, 0700); err != nil {
-		t.Fatal(err)
-	}
-	fixture, err := os.ReadFile("../../../native/conformance/testdata/io_failure/io_failure_test.go")
+	pinnedHelper := helper
+	fixture, err := os.ReadFile("../../native/conformance/testdata/io_failure/io_failure_test.go")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -369,7 +334,7 @@ func TestInstalledOperatorDiscoversInspectsAndReplaysWithoutBuildInputs(t *testi
 					t.Fatal(err)
 				}
 				for _, name := range []string{"gomad_semantics.go.txt", "gomad_choicewire_generated.go.txt"} {
-					data, err := os.ReadFile(filepath.Join("../../../../runtimesemantics", name))
+					data, err := os.ReadFile(filepath.Join("../../../runtimesemantics", name))
 					if err != nil {
 						t.Fatal(err)
 					}
@@ -405,7 +370,7 @@ func TestInstalledOperatorDiscoversInspectsAndReplaysWithoutBuildInputs(t *testi
 				}
 				if event.Type == "artifact" {
 					artifactPath = event.Path
-					if !strings.HasPrefix(event.ReplayCommand, "gomad-wasm --installation ") {
+					if !strings.HasPrefix(event.ReplayCommand, "gomad --installation ") {
 						t.Fatalf("incorrect replay command: %s", event.ReplayCommand)
 					}
 				}

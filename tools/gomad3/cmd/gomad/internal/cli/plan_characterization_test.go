@@ -46,7 +46,7 @@ func TestCharacterizePlanRequestDefaults(t *testing.T) {
 		Campaign: runner.CampaignSpec{
 			Strategy: runner.StrategySeed, Seeds: "1", Parallel: min(runtime.NumCPU(), 8), ExecutionTimeout: 30 * time.Second, OverallTimeout: 10 * time.Minute, TerminateGrace: 2 * time.Second,
 			OnFailure: runner.PolicyAll, FailureBudget: 1, OutputLimit: 8 << 20, WorldTransitionLimit: 64 << 20, ClockTick: record.ClockTickStrict, IOTranscriptLimit: 64 << 20,
-			Artifacts: ".gomad/artifacts", SupervisorCommand: []string{"/bin/gomad", "__supervisor"}, CoordinatorCommand: []string{"/bin/gomad", "__coordinator"}, RunnerBuild: "sha256:runner",
+			Artifacts: ".gomad/artifacts", RunnerBuild: "sha256:runner",
 			Coverage: runner.CoverageNone, KeepSuccesses: runner.KeepSuccessesNone, ProgressInterval: 5 * time.Second,
 			Target: target.Spec{Kind: target.KindGoRun, Source: "./cmd", WorkingDir: "/workspace", ToolchainRoot: "/toolchain", CapabilityMode: target.CapabilityModeClosure},
 		},
