@@ -4,6 +4,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strings"
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/target"
@@ -111,5 +112,38 @@ func TestStockPreparationDisablesAmbientPGO(t *testing.T) {
 		if !slices.Contains(pr.BuildFlags, "-pgo=off") {
 			t.Fatal("disabled PGO not bound by provenance")
 		}
+	}
+}
+
+func TestStockPreparationClearsAmbientCompilerSettings(t *testing.T) {
+	t.Setenv("GOWASM", "ambient-unknown-feature")
+	t.Setenv("GODEBUG", "gocachehash=1")
+	environment := buildEnvironment()
+	for _, name := range []string{"GOWASM", "GODEBUG"} {
+		var values []string
+		for _, value := range environment {
+			if key, setting, _ := strings.Cut(value, "="); key == name {
+				values = append(values, setting)
+			}
+		}
+		if !slices.Equal(values, []string{""}) {
+			t.Fatalf("%s reaches the compiler: %q", name, values)
+		}
+	}
+	provider := integrationProvider(t)
+	source := t.TempDir()
+	for path, data := range map[string]string{"go.mod": "module cache.environment.fixture\n\ngo 1.27.1\n", "main.go": "package main\nfunc main(){}\n"} {
+		if err := os.WriteFile(filepath.Join(source, path), []byte(data), 0600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	options := provider.options
+	options.CacheRoot = filepath.Join(t.TempDir(), "uncached")
+	uncached, err := New(options)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := uncached.Prepare(t.Context(), target.Spec{Backend: Name, Kind: target.KindGoRun, Source: ".", WorkingDir: source, PreparationRoot: t.TempDir(), BuildTags: []string{"test_dep"}}); err != nil {
+		t.Fatalf("ambient compiler settings affected preparation: %v", err)
 	}
 }

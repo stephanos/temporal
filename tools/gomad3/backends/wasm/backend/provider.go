@@ -570,12 +570,14 @@ func buildEnvironment() []string {
 	for _, value := range os.Environ() {
 		name, _, _ := strings.Cut(value, "=")
 		switch name {
-		case "GOROOT", "GOENV", "GOFLAGS", "GOTOOLCHAIN", "GOWORK", "GOOS", "GOARCH", "CGO_ENABLED", "GOEXPERIMENT", "GOMADSEED", "GOMAD3_CHILD_SEED", "GOCACHE", "GOCACHEPROG":
+		case "GOROOT", "GOENV", "GOFLAGS", "GOTOOLCHAIN", "GOWORK", "GOOS", "GOARCH", "CGO_ENABLED", "GOEXPERIMENT", "GOMADSEED", "GOMAD3_CHILD_SEED", "GOCACHE", "GOCACHEPROG", "GOWASM", "GODEBUG":
 			continue
 		}
 		env = append(env, value)
 	}
-	return append(env, "GOENV=off", "GOFLAGS=", "GOTOOLCHAIN=local", "GOWORK=off", "GOOS=wasip1", "GOARCH=wasm", "CGO_ENABLED=0", "GOEXPERIMENT=nogreenteagc", "GOCACHEPROG=")
+	// GOWASM and GODEBUG are not build-key inputs, so ambient values must not
+	// reach the compiler.
+	return append(env, "GOENV=off", "GOFLAGS=", "GOTOOLCHAIN=local", "GOWORK=off", "GOOS=wasip1", "GOARCH=wasm", "CGO_ENABLED=0", "GOEXPERIMENT=nogreenteagc", "GOCACHEPROG=", "GOWASM=", "GODEBUG=")
 }
 func sourceInventory(data []byte, includeDirectory string, overlays ...map[string]string) ([]sourceIdentity, error) {
 	decoder := json.NewDecoder(bytes.NewReader(data))
