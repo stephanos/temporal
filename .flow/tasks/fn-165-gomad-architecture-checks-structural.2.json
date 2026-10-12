@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-12T02:48:49.975828Z",
+  "depends_on": [
+    "fn-165-gomad-architecture-checks-structural.1"
+  ],
+  "id": "fn-165-gomad-architecture-checks-structural.2",
+  "priority": 2,
+  "spec": "fn-165-gomad-architecture-checks-structural",
+  "spec_path": ".flow/tasks/fn-165-gomad-architecture-checks-structural.2.md",
+  "status": "todo",
+  "title": "Give the wasm module its own architecture test and a helper-bridge unit test",
+  "updated_at": "2026-10-12T02:48:49.975828Z"
+}

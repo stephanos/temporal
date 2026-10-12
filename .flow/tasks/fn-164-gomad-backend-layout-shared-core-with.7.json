@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-12T02:48:50.316597Z",
+  "depends_on": [
+    "fn-164-gomad-backend-layout-shared-core-with.5",
+    "fn-164-gomad-backend-layout-shared-core-with.6"
+  ],
+  "id": "fn-164-gomad-backend-layout-shared-core-with.7",
+  "priority": 7,
+  "spec": "fn-164-gomad-backend-layout-shared-core-with",
+  "spec_path": ".flow/tasks/fn-164-gomad-backend-layout-shared-core-with.7.md",
+  "status": "todo",
+  "title": "One cmd/gomad launcher driven by Provider capabilities",
+  "updated_at": "2026-10-12T02:48:50.316597Z"
+}

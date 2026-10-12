@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-12T02:48:49.976748Z",
+  "depends_on": [
+    "fn-165-gomad-architecture-checks-structural.3"
+  ],
+  "id": "fn-165-gomad-architecture-checks-structural.4",
+  "priority": 4,
+  "spec": "fn-165-gomad-architecture-checks-structural",
+  "spec_path": ".flow/tasks/fn-165-gomad-architecture-checks-structural.4.md",
+  "status": "todo",
+  "title": "Implement the purity rules with review marks and re-triage the effect fixtures",
+  "updated_at": "2026-10-12T02:48:49.976748Z"
+}

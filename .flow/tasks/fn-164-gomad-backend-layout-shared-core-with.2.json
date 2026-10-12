@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-12T02:48:50.316128Z",
+  "depends_on": [],
+  "id": "fn-164-gomad-backend-layout-shared-core-with.2",
+  "priority": 2,
+  "spec": "fn-164-gomad-backend-layout-shared-core-with",
+  "spec_path": ".flow/tasks/fn-164-gomad-backend-layout-shared-core-with.2.md",
+  "status": "todo",
+  "title": "Create runtimesemantics and make both overlays include it verbatim",
+  "updated_at": "2026-10-12T02:48:50.316128Z"
+}

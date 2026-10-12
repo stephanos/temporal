@@ -1,0 +1,23 @@
+---
+satisfies: [R5, R9]
+---
+# fn-165-gomad-architecture-checks-structural.5 Mark the gomad3 pure set and switch the module tests to the new checkers
+
+Touches: tools/gomad3/world, tools/gomad3/record, tools/gomad3/architecture_test.go
+
+## Description
+Run `puritycheck` over the gomad3 pure set (`world`, `record`, `world/mailbox`, `runner/internal/exploration`, `target/internal/capabilitypolicy`, `internal/canonicaljson` while it exists, and the three single pure files). Add a dated review mark with a reason to every dynamic call it reports; do not change pure-set membership and do not restructure code to avoid a mark. Rewire `TestPureModulesHaveNoHostEffects` and `TestPublicPackagesDoNotExportTypeAliases` to `puritycheck`, running the host platform always and the other qualified platform when `GOMAD3_ARCH_ALL_PLATFORMS=1`. Record the mark count per package in the task notes.
+
+## Acceptance
+- `go test -run 'TestPureModulesHaveNoHostEffects|TestPublicPackagesDoNotExportTypeAliases' ./` passes on the host platform with zero `host-effect` and zero unmarked `dynamic-call` findings, and the log lists every mark.
+- The same run with `GOMAD3_ARCH_ALL_PLATFORMS=1` passes for darwin/arm64 and linux/amd64.
+- Both tests complete in under 60 seconds combined on the host platform.
+- No file was removed from the pure set and no function body was changed other than adding mark comments.
+
+## Done summary
+TBD
+
+## Evidence
+- Commits:
+- Tests:
+- PRs:

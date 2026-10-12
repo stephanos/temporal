@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-12T02:48:49.977203Z",
+  "depends_on": [
+    "fn-165-gomad-architecture-checks-structural.2",
+    "fn-165-gomad-architecture-checks-structural.5"
+  ],
+  "id": "fn-165-gomad-architecture-checks-structural.6",
+  "priority": 6,
+  "spec": "fn-165-gomad-architecture-checks-structural",
+  "spec_path": ".flow/tasks/fn-165-gomad-architecture-checks-structural.6.md",
+  "status": "todo",
+  "title": "Delete the old analyzer and enforce the line budget",
+  "updated_at": "2026-10-12T02:48:49.977203Z"
+}
