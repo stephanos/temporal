@@ -318,6 +318,21 @@ class SyntaxRuleSuite extends munit.FunSuite:
     )
     assert(found.head.contains("sugar defined in model/framework/Syntax.scala"), found.head)
 
+  test("a member selection reaches the sugar only when the sugar is an extension method"):
+    val core =
+      """package framework
+        |
+        |def owned(flags: Flags, phase: Int): Boolean =
+        |  flags.enter(phase) &&
+        |    phase.in(1, 2)
+        |""".stripMargin
+    val found =
+      findings("model/framework/Syntax.scala" -> syntax, "model/framework/Core.scala" -> core)
+    assertEquals(
+      found.map(f => f.takeWhile(_ != ' ') + f.replaceAll(".*uses (`[^`]+`).*", " $1")),
+      Vector("model/framework/Core.scala:5: `in`")
+    )
+
   test("the lifter's core may name its Syntax trait's hooks"):
     val lifterSyntax =
       """package umpire.irgen

@@ -923,7 +923,7 @@ abstract class Rules[S, O, F, P](using
   // Actions no state enables, which the machine binds all the same, such as a courier's strike it does
   // not feel. Core form: `action ~> (_ => Nil)`.
   inline def disabled(inline actions: Action[?]*): Unit =
-    disable(RuleSource.disabled(actions), actions*)
+    disable(RuleSource.disabledLabels(actions), actions*)
 
   private[framework] def disable(labels: Vector[String], actions: Action[?]*): Unit =
     for (a, label) <- actions.zip(labels) do

@@ -343,12 +343,11 @@ private[check] object StepLedger:
         case _ => fail("malformed original source manifest")
     }
     unique(entries.map(_._2), "original source paths")
-    var size = 0L
-    for (digest, relative) <- entries do
-      val source = contained(sources, relative)
-      val bytes = Files.readAllBytes(source)
-      size += bytes.length
+    val size = entries.foldLeft(0L): (total, entry) =>
+      val (digest, relative) = entry
+      val bytes = Files.readAllBytes(contained(sources, relative))
       if hash(bytes) != digest then fail(s"original input $relative changed")
+      total + bytes.length
     val stream = Files.walk(sources)
     val actual = try
       stream.iterator.asScala

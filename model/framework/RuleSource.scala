@@ -11,7 +11,8 @@ private[framework] object RuleSource:
   ): Unit =
     ${ qualifiedImpl('target, 'form, 'declarer, 'index) }
 
-  inline def disabled(inline targets: Seq[Action[?]]): Vector[String] = ${ disabledImpl('targets) }
+  inline def disabledLabels(inline targets: Seq[Action[?]]): Vector[String] =
+    ${ disabledImpl('targets) }
 
   inline def imports(inline body: Unit): String = ${ importsImpl('body) }
 

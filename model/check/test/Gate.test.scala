@@ -836,22 +836,22 @@ class GateSuite extends munit.FunSuite:
   // refuses each under a line naming it and writes none; it also records the update its test of the
   // lifter was given.
   private val lifting =
-    s"""case " $$* " in *" test model/irgen "*) echo "lifter update=[$$UMPIRE_LIFTER_UPDATE]" >> "$$TOOLS_LOG";; esac
+    """case " $* " in *" test model/irgen "*) echo "lifter update=[$UMPIRE_LIFTER_UPDATE]" >> "$TOOLS_LOG";; esac
       |program=; n=0; lifted=; names=
-      |for a in "$$@"; do
-      |  if [ -n "$$program" ]; then
-      |    n=$$((n + 1))
-      |    [ $$n -eq 4 ] && lifted=$$a
-      |    [ $$n -gt 4 ] && names="$$names $$a"
+      |for a in "$@"; do
+      |  if [ -n "$program" ]; then
+      |    n=$((n + 1))
+      |    [ $n -eq 4 ] && lifted=$a
+      |    [ $n -gt 4 ] && names="$names $a"
       |  fi
-      |  [ "$$a" = -- ] && program=yes
+      |  [ "$a" = -- ] && program=yes
       |done
-      |if [ -n "$$lifted" ]; then
-      |  if [ -n "$$FAILING_LIFTS" ]; then
-      |    for f in $$FAILING_LIFTS; do echo "lift: the roots of $$f did not lift:"; echo "lift: $$f: no IR form"; done
+      |if [ -n "$lifted" ]; then
+      |  if [ -n "$FAILING_LIFTS" ]; then
+      |    for f in $FAILING_LIFTS; do echo "lift: the roots of $f did not lift:"; echo "lift: $f: no IR form"; done
       |    exit 1
       |  fi
-      |  for name in $$names; do echo '{"lifted": true}' > "$$lifted/$$name.json"; done
+      |  for name in $names; do echo '{"lifted": true}' > "$lifted/$name.json"; done
       |fi
       |exit 0""".stripMargin
 

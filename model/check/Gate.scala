@@ -985,18 +985,21 @@ final class Gate(tools: Tools, log: PrintStream):
   // Generates and compiles what the lifter reads, then builds its fixtures and lifts the Models.
   private def build(update: Boolean, fast: Boolean = false): Path =
     val lifted = scratch("ir")
-    var completed = false
-    try
-      buildSelected(update, fast, lifted)
-      completed = true
-      if !fast then Gate.settleFeatures(root, lifted, selection.features, update)
-      lifted
-    finally
+    def report(completed: Boolean): Unit =
       selection
         .states(lifted)
         .foreach: (feature, state) =>
           val reported = if !completed && state == "current" then "behind" else state
           log.println(s"feature $feature: $reported")
+    try buildSelected(update, fast, lifted)
+    catch
+      case failed: Throwable =>
+        report(completed = false)
+        throw failed
+    try
+      if !fast then Gate.settleFeatures(root, lifted, selection.features, update)
+      lifted
+    finally report(completed = true)
 
   // Why the IR schema's Go code cannot be trusted, if it cannot: each file of the schema has its Go
   // code beside the others', as `make protoc` writes it, newer than the file.

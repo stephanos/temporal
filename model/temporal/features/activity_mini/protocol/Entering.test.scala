@@ -19,7 +19,9 @@ object NestedAnswerFixture:
     override def end(s: Envelope) = true
 
     object rules extends Rules:
-      on(fault.delayAnswer)(always ~> enters(AnswerPhase.backingOff))
+      on(fault.delayAnswer) {
+        always ~> enters(AnswerPhase.backingOff)
+      }
 
   object Inherited extends Derived(Nested.restrict(fault.delayAnswer))
 

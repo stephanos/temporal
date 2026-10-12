@@ -20,7 +20,9 @@ import scala.jdk.CollectionConverters.*
 //     tree's `Syntax.scala`, imports no `Syntax` module and no name that file defines. In
 //     model/framework and model/temporal/realize it names none of them either, outside comments and
 //     strings: top-level sugar of package `framework` needs no import there. A name the core of the tree
-//     declares itself, as a member, parameter or local, reads as that declaration and is left alone.
+//     declares itself, as a member, parameter or local, reads as that declaration and is left alone,
+//     and so does a member selection, `flags.is(...)`, of a name the sugar defines only outside an
+//     extension.
 //
 // The Models are scalafmt-formatted Scala 3 with significant indentation, so a definition's place is
 // read from the indentation of the lines that open its containers, on the source with its comments
@@ -77,14 +79,16 @@ private[check] object SyntaxRule:
     case Inner
 
   // A definition: its keyword and name (none for an anonymous given), its line, the offsets its
-  // doc comment may end before, whether it is private, and its place.
+  // doc comment may end before, whether it is private, its place, and whether it is an extension
+  // method, the one kind of sugar a member selection (`x.name`) reaches.
   final case class Definition(
       keyword: String,
       name: Option[String],
       line: Int,
       docAt: Seq[Int],
       isPrivate: Boolean,
-      place: Place
+      place: Place,
+      isExtension: Boolean = false
   ):
     def shown: String = name.fold("an anonymous given")(n => s"`$n`")
 
@@ -142,7 +146,13 @@ private[check] object SyntaxRule:
         case None      => None
     else Some(rest)
 
-  private def definition(text: String, line: Int, docAt: Seq[Int], place: Place) = text match
+  private def definition(
+      text: String,
+      line: Int,
+      docAt: Seq[Int],
+      place: Place,
+      isExtension: Boolean
+  ) = text match
     case definitionLine(modifiers, keyword, rest) =>
       val named =
         if keyword == "given" then
@@ -153,7 +163,15 @@ private[check] object SyntaxRule:
             )
         else nameAt.findPrefixMatchOf(rest).map(_.matched)
       Some(
-        Definition(keyword, named.map(unquoted), line, docAt, modifiers.contains("private"), place)
+        Definition(
+          keyword,
+          named.map(unquoted),
+          line,
+          docAt,
+          modifiers.contains("private"),
+          place,
+          isExtension
+        )
       )
     case _ => None
 
@@ -194,7 +212,9 @@ private[check] object SyntaxRule:
           def opened(kind: Kind) = Container(indent, kind, start, defined = false)
           trimmed match
             case extensionLine(rest) =>
-              afterParameters(rest).flatMap(definition(_, line, Seq(start), Place.Sugar)) match
+              afterParameters(rest).flatMap(
+                definition(_, line, Seq(start), Place.Sugar, isExtension = true)
+              ) match
                 case Some(inline) => (opened(Kind.Other) :: open, found :+ inline)
                 case None         => (opened(Kind.Extension) :: open, found)
             case _ =>
@@ -203,7 +223,8 @@ private[check] object SyntaxRule:
                 case top :: _ if top.kind == Kind.Extension && !top.defined =>
                   Seq(start, top.header)
                 case _ => Seq(start)
-              definition(trimmed, line, docAt, place) match
+              val inExtension = open.headOption.exists(_.kind == Kind.Extension)
+              definition(trimmed, line, docAt, place, inExtension) match
                 case Some(defined) =>
                   // An object local to a body is a local too; its members are no sugar.
                   val kind = defined.keyword match
@@ -362,6 +383,9 @@ private[check] object SyntaxRule:
       _.file == tree.syntax
     )
     val names = syntax.flatMap(sugar).flatMap(_.name).toSet
+    // A member selection, `flags.is(...)`, names a member of what precedes the dot; it reaches the
+    // sugar only when the sugar is an extension method.
+    val selectable = syntax.flatMap(sugar).filter(_.isExtension).flatMap(_.name).toSet
     val modules = Set("Syntax", "Syntax$package", "syntax")
     // A name the core declares itself reads as that declaration: `def in` of QueryOn is no sugar.
     val referenced = if tree.references then names -- core.flatMap(_.declared) else Set.empty
@@ -386,6 +410,8 @@ private[check] object SyntaxRule:
         .findAllMatchIn(file.code)
         .filter: found =>
           referenced(unquoted(found.matched)) &&
+            (selectable(unquoted(found.matched)) || found.start == 0 ||
+              file.code(found.start - 1) != '.') &&
             !clauses.exists((start, end) => found.start >= start && found.start < end) &&
             !declares.matches(file.code.substring(0 max (found.start - 16), found.start))
         .map: found =>

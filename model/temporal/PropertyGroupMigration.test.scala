@@ -5,41 +5,41 @@ import munit.FunSuite
 
 class PropertyGroupMigrationTest extends FunSuite:
   private lazy val safety: List[(String, Property[?])] = List(
-    "activityProtocol.cancelRequested" -> features.activity.standalone.protocol.ActivityProtocol.cancellation.properties.safety.cancelRequested,
-    "activityProtocol.canceledByWorker" -> features.activity.standalone.protocol.ActivityProtocol.cancellation.properties.safety.canceledByWorker,
-    "activityProtocol.canceledByID" -> features.activity.standalone.protocol.ActivityProtocol.cancellation.properties.safety.canceledByID,
-    "activityProtocol.completes" -> features.activity.standalone.protocol.ActivityProtocol.completion.properties.safety.completes,
-    "activityProtocol.dispatchRequiresReady" -> features.activity.standalone.protocol.ActivityProtocol.dispatching.properties.safety.dispatchRequiresReady,
-    "activityProtocol.scheduleToStartRequiresDispatch" -> features.activity.standalone.protocol.ActivityProtocol.dispatching.properties.safety.scheduleToStartRequiresDispatch,
-    "activityProtocol.cancelIsNotUndone" -> features.activity.standalone.protocol.ActivityProtocol.properties.safety.cancelIsNotUndone,
-    "activityProtocol.resetSettles" -> features.activity.standalone.protocol.ActivityProtocol.properties.safety.resetSettles,
-    "activityProtocol.resetResumes" -> features.activity.standalone.protocol.ActivityProtocol.properties.safety.resetResumes,
-    "activityProtocol.resetKeepsPaused" -> features.activity.standalone.protocol.ActivityProtocol.properties.safety.resetKeepsPaused,
-    "activityProtocol.controlPrecedence" -> features.activity.standalone.protocol.ActivityProtocol.properties.safety.controlPrecedence,
-    "activityProtocol.resetStaysPending" -> features.activity.standalone.protocol.ActivityProtocol.reset.properties.safety.resetStaysPending,
-    "activityProtocol.retryExhausts" -> features.activity.standalone.protocol.ActivityProtocol.retry.properties.safety.retryExhausts,
-    "standaloneActivity.startedByPollingWorker" -> features.activity.standalone.protocol.StandaloneActivity.properties.safety.startedByPollingWorker,
-    "activityProtocol.scheduleToStartFires" -> features.activity.standalone.protocol.ActivityProtocol.timeouts.properties.safety.scheduleToStartFires,
-    "activityProtocol.scheduleToCloseTimesOut" -> features.activity.standalone.protocol.ActivityProtocol.timeouts.properties.safety.scheduleToCloseTimesOut,
-    "nexusProduct.terminalIsFinal" -> features.nexus.shared.product.NexusProduct.properties.safety.terminalIsFinal,
-    "nexusCaller.repliedByPollingWorker" -> features.nexus.workflow.protocol.NexusCaller.properties.safety.repliedByPollingWorker,
-    "nexusProtocol.asyncStarts" -> features.nexus.workflow.protocol.NexusProtocol.properties.safety.asyncStarts,
-    "nexusProtocol.completionSucceeds" -> features.nexus.workflow.protocol.NexusProtocol.properties.safety.completionSucceeds
+    "activityProtocol.cancelRequested" -> temporal.features.activity.standalone.protocol.ActivityProtocol.cancellation.properties.safety.cancelRequested,
+    "activityProtocol.canceledByWorker" -> temporal.features.activity.standalone.protocol.ActivityProtocol.cancellation.properties.safety.canceledByWorker,
+    "activityProtocol.canceledByID" -> temporal.features.activity.standalone.protocol.ActivityProtocol.cancellation.properties.safety.canceledByID,
+    "activityProtocol.completes" -> temporal.features.activity.standalone.protocol.ActivityProtocol.completion.properties.safety.completes,
+    "activityProtocol.dispatchRequiresReady" -> temporal.features.activity.standalone.protocol.ActivityProtocol.dispatching.properties.safety.dispatchRequiresReady,
+    "activityProtocol.scheduleToStartRequiresDispatch" -> temporal.features.activity.standalone.protocol.ActivityProtocol.dispatching.properties.safety.scheduleToStartRequiresDispatch,
+    "activityProtocol.cancelIsNotUndone" -> temporal.features.activity.standalone.protocol.ActivityProtocol.properties.safety.cancelIsNotUndone,
+    "activityProtocol.resetSettles" -> temporal.features.activity.standalone.protocol.ActivityProtocol.properties.safety.resetSettles,
+    "activityProtocol.resetResumes" -> temporal.features.activity.standalone.protocol.ActivityProtocol.properties.safety.resetResumes,
+    "activityProtocol.resetKeepsPaused" -> temporal.features.activity.standalone.protocol.ActivityProtocol.properties.safety.resetKeepsPaused,
+    "activityProtocol.controlPrecedence" -> temporal.features.activity.standalone.protocol.ActivityProtocol.properties.safety.controlPrecedence,
+    "activityProtocol.resetStaysPending" -> temporal.features.activity.standalone.protocol.ActivityProtocol.reset.properties.safety.resetStaysPending,
+    "activityProtocol.retryExhausts" -> temporal.features.activity.standalone.protocol.ActivityProtocol.retry.properties.safety.retryExhausts,
+    "standaloneActivity.startedByPollingWorker" -> temporal.features.activity.standalone.protocol.StandaloneActivity.properties.safety.startedByPollingWorker,
+    "activityProtocol.scheduleToStartFires" -> temporal.features.activity.standalone.protocol.ActivityProtocol.timeouts.properties.safety.scheduleToStartFires,
+    "activityProtocol.scheduleToCloseTimesOut" -> temporal.features.activity.standalone.protocol.ActivityProtocol.timeouts.properties.safety.scheduleToCloseTimesOut,
+    "nexusProduct.terminalIsFinal" -> temporal.features.nexus.shared.product.NexusProduct.properties.safety.terminalIsFinal,
+    "nexusCaller.repliedByPollingWorker" -> temporal.features.nexus.workflow.protocol.NexusCaller.properties.safety.repliedByPollingWorker,
+    "nexusProtocol.asyncStarts" -> temporal.features.nexus.workflow.protocol.NexusProtocol.properties.safety.asyncStarts,
+    "nexusProtocol.completionSucceeds" -> temporal.features.nexus.workflow.protocol.NexusProtocol.properties.safety.completionSucceeds
   )
 
   private lazy val liveness: List[Progress[?]] = List(
-    features.activity.standalone.protocol.ServedDispatch.properties.liveness.startsWithinOneStep,
-    features.activity.standalone.protocol.UnservedDispatch.properties.liveness.startsWithinOneStep,
-    features.nexus.workflow.protocol.AckByOriginal.properties.liveness.ackByOriginalProgress,
-    features.nexus.workflow.protocol.AckByOriginalWithDeadline.properties.liveness.ackByOriginalWithDeadlineProgress,
-    features.nexus.workflow.protocol.RejectAfterClose.properties.liveness.rejectAfterCloseProgress,
-    features.nexus.workflow.protocol.RejectAfterCloseWithDeadline.properties.liveness.rejectAfterCloseWithDeadlineProgress,
-    features.nexus.workflow.protocol.RetainAndRoute.properties.liveness.retainAndRouteProgress,
-    features.nexus.workflow.protocol.RetainAndRoute.properties.liveness.retainedReachesOwner,
-    features.nexus.workflow.protocol.RetainAndRoute.properties.liveness.retainedWaitsWithoutRecovery,
-    features.nexus.workflow.protocol.RetainAndRouteBoundedRetry.properties.liveness.retainAndRouteBoundedRetryProgress,
-    features.nexus.workflow.protocol.RetainAndRouteBoundedRetry.properties.liveness.retainedReachesOwnerBoundedRetry,
-    features.nexus.workflow.protocol.RetainAndRouteWithDeadline.properties.liveness.retainAndRouteWithDeadlineProgress
+    temporal.features.activity.standalone.protocol.ServedDispatch.properties.liveness.startsWithinOneStep,
+    temporal.features.activity.standalone.protocol.UnservedDispatch.properties.liveness.startsWithinOneStep,
+    temporal.features.nexus.workflow.protocol.AckByOriginal.properties.liveness.ackByOriginalProgress,
+    temporal.features.nexus.workflow.protocol.AckByOriginalWithDeadline.properties.liveness.ackByOriginalWithDeadlineProgress,
+    temporal.features.nexus.workflow.protocol.RejectAfterClose.properties.liveness.rejectAfterCloseProgress,
+    temporal.features.nexus.workflow.protocol.RejectAfterCloseWithDeadline.properties.liveness.rejectAfterCloseWithDeadlineProgress,
+    temporal.features.nexus.workflow.protocol.RetainAndRoute.properties.liveness.retainAndRouteProgress,
+    temporal.features.nexus.workflow.protocol.RetainAndRoute.properties.liveness.retainedReachesOwner,
+    temporal.features.nexus.workflow.protocol.RetainAndRoute.properties.liveness.retainedWaitsWithoutRecovery,
+    temporal.features.nexus.workflow.protocol.RetainAndRouteBoundedRetry.properties.liveness.retainAndRouteBoundedRetryProgress,
+    temporal.features.nexus.workflow.protocol.RetainAndRouteBoundedRetry.properties.liveness.retainedReachesOwnerBoundedRetry,
+    temporal.features.nexus.workflow.protocol.RetainAndRouteWithDeadline.properties.liveness.retainAndRouteWithDeadlineProgress
   )
 
   test("every authored direct claim is initialized once in its declared group") {
@@ -93,44 +93,44 @@ class PropertyGroupMigrationTest extends FunSuite:
     assertEquals(
       liveness.map(_.assumptions),
       List(
-        List(features.activity.standalone.protocol.servedDispatchRuns),
-        List(features.activity.standalone.protocol.unservedDispatchRuns),
+        List(temporal.features.activity.standalone.protocol.servedDispatchRuns),
+        List(temporal.features.activity.standalone.protocol.unservedDispatchRuns),
         List(
-          features.nexus.workflow.protocol.reporting,
-          features.nexus.workflow.protocol.deliveryFair
+          temporal.features.nexus.workflow.protocol.reporting,
+          temporal.features.nexus.workflow.protocol.deliveryFair
         ),
         List(
-          features.nexus.workflow.protocol.reporting,
-          features.nexus.workflow.protocol.deliveryFair
+          temporal.features.nexus.workflow.protocol.reporting,
+          temporal.features.nexus.workflow.protocol.deliveryFair
         ),
         List(
-          features.nexus.workflow.protocol.reporting,
-          features.nexus.workflow.protocol.deliveryFair
+          temporal.features.nexus.workflow.protocol.reporting,
+          temporal.features.nexus.workflow.protocol.deliveryFair
         ),
         List(
-          features.nexus.workflow.protocol.reporting,
-          features.nexus.workflow.protocol.deliveryFair
+          temporal.features.nexus.workflow.protocol.reporting,
+          temporal.features.nexus.workflow.protocol.deliveryFair
         ),
         List(
-          features.nexus.workflow.protocol.reporting,
-          features.nexus.workflow.protocol.deliveryFair
+          temporal.features.nexus.workflow.protocol.reporting,
+          temporal.features.nexus.workflow.protocol.deliveryFair
         ),
         List(
-          features.nexus.workflow.protocol.deliveryFair,
-          features.nexus.workflow.protocol.recovery
+          temporal.features.nexus.workflow.protocol.deliveryFair,
+          temporal.features.nexus.workflow.protocol.recovery
         ),
-        List(features.nexus.workflow.protocol.deliveryFair),
+        List(temporal.features.nexus.workflow.protocol.deliveryFair),
         List(
-          features.nexus.workflow.protocol.reporting,
-          features.nexus.workflow.protocol.deliveryFair
-        ),
-        List(
-          features.nexus.workflow.protocol.deliveryFair,
-          features.nexus.workflow.protocol.recovery
+          temporal.features.nexus.workflow.protocol.reporting,
+          temporal.features.nexus.workflow.protocol.deliveryFair
         ),
         List(
-          features.nexus.workflow.protocol.reporting,
-          features.nexus.workflow.protocol.deliveryFair
+          temporal.features.nexus.workflow.protocol.deliveryFair,
+          temporal.features.nexus.workflow.protocol.recovery
+        ),
+        List(
+          temporal.features.nexus.workflow.protocol.reporting,
+          temporal.features.nexus.workflow.protocol.deliveryFair
         )
       )
     )
