@@ -140,7 +140,10 @@ func clusterArtifact(spec Spec, observed gomad3sim.Result, payload target.Backen
 	world, worldPayloads := record.NoneWorld() // Global broker World is sealed in backend evidence.
 	metadata := record.CloneBackendMetadata(spec.preparedTarget.Backend)
 	metadata.ReplayMode = record.ReplayExact
-	metadata.Evidence = &payload.Reference
+	// Copy the reference: &payload.Reference would keep the whole payload,
+	// including its Data, reachable from the retained execution evidence.
+	reference := payload.Reference
+	metadata.Evidence = &reference
 	targetRecord := spec.preparedTarget.RecordTarget()
 	targetRecord.Backend = metadata
 	profile := record.BackendIOProfile(*metadata)

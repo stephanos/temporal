@@ -135,15 +135,31 @@ func (p *Provider) RetentionPayload(spec gomad3sim.Spec, observed gomad3sim.Clus
 	if len(bundle.Boots) == 0 {
 		return target.BackendPayload{}, errors.New("WASM retention requires bound boots")
 	}
-	var data bytes.Buffer
-	data.Grow(len(encoded)/3*4 + 64<<10)
-	if err := writeRetainedCanonical(&data, bundle); err != nil {
+	// Size the single output buffer exactly with a counting pass, so encoding
+	// neither doubles a growing buffer nor holds a second whole-bundle copy.
+	var size retainedCountingWriter
+	if err := writeRetainedCanonical(&size, bundle); err != nil {
 		return target.BackendPayload{}, err
 	}
-	if data.Len() > 512<<20 {
-		return target.BackendPayload{}, &RetentionCapacityError{Required: uint64(data.Len()), Maximum: 512 << 20}
+	if size > 512<<20 {
+		return target.BackendPayload{}, &RetentionCapacityError{Required: uint64(size), Maximum: 512 << 20}
 	}
-	return target.BackendPayload{Reference: record.BackendPayload{Schema: RetainedSchema, File: "backend/simulation.json", SHA256: record.HashBytes(data.Bytes()), Bytes: record.Uint64String(data.Len())}, Data: data.Bytes()}, nil
+	data := bytes.NewBuffer(make([]byte, 0, int(size)))
+	hasher := sha256.New()
+	if err := writeRetainedCanonical(io.MultiWriter(data, hasher), bundle); err != nil {
+		return target.BackendPayload{}, err
+	}
+	if data.Len() != int(size) {
+		return target.BackendPayload{}, errors.New("WASM retained encoding changed size")
+	}
+	return target.BackendPayload{Reference: record.BackendPayload{Schema: RetainedSchema, File: "backend/simulation.json", SHA256: record.SHA256FromSum([sha256.Size]byte(hasher.Sum(nil))), Bytes: record.Uint64String(data.Len())}, Data: data.Bytes()}, nil
+}
+
+type retainedCountingWriter uint64
+
+func (w *retainedCountingWriter) Write(data []byte) (int, error) {
+	*w += retainedCountingWriter(len(data))
+	return len(data), nil
 }
 
 func validRetainedDigest(digest string) bool {
