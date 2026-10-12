@@ -14,10 +14,86 @@ import (
 	"strings"
 	"testing"
 
+	"go.temporal.io/server/tools/gomad3/internal/archcheck"
 	"go.temporal.io/server/tools/gomad3/internal/gomadtool/architecture"
 )
 
 const modulePath = "go.temporal.io/server/tools/gomad3"
+
+func backendImportConfig() archcheck.Config {
+	const wasmModule = "go.temporal.io/server/tools/gomad_wasm"
+	const moveNative = "fn-164-gomad-backend-layout-shared-core-with.3"
+	const splitTarget = "fn-164-gomad-backend-layout-shared-core-with.4"
+	const nativeProvider = "fn-164-gomad-backend-layout-shared-core-with.5"
+	return archcheck.Config{
+		Module: modulePath, WASMModule: wasmModule,
+		NativePackages: []string{
+			"deterministicio", "deterministicio/internal/wire",
+			"internal/gomadtool/conformance", "internal/gomadtool/generation/boundary", "internal/gomadtool/generation/protocol",
+			"runner/internal/execution",
+			"target/internal/build", "target/internal/capabilitypolicy", "target/internal/capabilityreview",
+			"target/internal/gocommand", "target/internal/livecap", "target/internal/provenance",
+			"toolchain", "toolchain/installation", "toolchain/version",
+			"toolchain/runtime/testdata/vfdnative", "toolchain/runtime/testdata/vfdpointer",
+			"upgrade", "upgrade/adapterregen", "upgrade/pinimpact",
+		},
+		Exceptions: []archcheck.Exception{
+			{From: modulePath + "/deterministicio/readonlymount", To: modulePath + "/deterministicio/internal/wire", RemovalTask: moveNative},
+			{From: modulePath + "/deterministicio/volume", To: modulePath + "/deterministicio/internal/wire", RemovalTask: moveNative},
+			{From: modulePath + "/internal/preparation", To: modulePath + "/deterministicio", RemovalTask: moveNative},
+			{From: modulePath + "/qualification/analysis", To: modulePath + "/deterministicio", RemovalTask: moveNative},
+			{From: modulePath + "/qualification/set", To: modulePath + "/deterministicio", RemovalTask: moveNative},
+			{From: modulePath + "/qualification/workload", To: modulePath + "/deterministicio", RemovalTask: moveNative},
+			{From: modulePath + "/runner", To: modulePath + "/deterministicio", RemovalTask: moveNative},
+			{From: modulePath + "/runner", To: modulePath + "/runner/internal/execution", RemovalTask: nativeProvider},
+			{From: modulePath + "/runner/internal/campaign", To: modulePath + "/deterministicio", RemovalTask: moveNative},
+			{From: modulePath + "/runner/internal/corpus", To: modulePath + "/deterministicio", RemovalTask: moveNative},
+			{From: modulePath + "/target", To: modulePath + "/target/internal/build", RemovalTask: splitTarget},
+			{From: modulePath + "/target", To: modulePath + "/target/internal/capabilitypolicy", RemovalTask: splitTarget},
+			{From: modulePath + "/target", To: modulePath + "/target/internal/capabilityreview", RemovalTask: splitTarget},
+			{From: modulePath + "/target", To: modulePath + "/target/internal/gocommand", RemovalTask: splitTarget},
+			{From: modulePath + "/target", To: modulePath + "/target/internal/livecap", RemovalTask: splitTarget},
+			{From: modulePath + "/target", To: modulePath + "/target/internal/provenance", RemovalTask: splitTarget},
+			{From: modulePath + "/target", To: modulePath + "/toolchain/installation", RemovalTask: splitTarget},
+			{From: wasmModule + "/qualification", To: modulePath + "/deterministicio", RemovalTask: moveNative},
+		},
+		WASMImports: []string{
+			modulePath + "/artifact", modulePath + "/choice", modulePath + "/cmd/gomad/api",
+			modulePath + "/deterministicio", modulePath + "/deterministicio/readonlymount", modulePath + "/deterministicio/volume",
+			modulePath + "/hostexec", modulePath + "/hostfs", modulePath + "/qualification", modulePath + "/qualification/workload",
+			modulePath + "/record", modulePath + "/runner", modulePath + "/runner/backend", modulePath + "/simulation/network",
+			modulePath + "/target", modulePath + "/world",
+		},
+	}
+}
+
+func TestBackendImportDirection(t *testing.T) {
+	var packages []archcheck.Package
+	for _, platform := range qualifiedSourcePlatforms() {
+		for _, root := range []string{".", "../gomad_wasm"} {
+			listed, err := architecture.List(root, "go", platform, false)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if len(listed) == 0 {
+				t.Fatalf("empty import inventory for %s on %s/%s", root, platform.OS, platform.Arch)
+			}
+			for _, pkg := range listed {
+				if architecture.Within(pkg.ImportPath, modulePath+"/toolchain/runtime/overlay") {
+					continue
+				}
+				if pkg.Error != nil || len(pkg.DepsErrors) != 0 {
+					t.Fatalf("invalid import inventory for %s on %s/%s: %+v %+v", pkg.ImportPath, platform.OS, platform.Arch, pkg.Error, pkg.DepsErrors)
+				}
+				packages = append(packages, archcheck.Package{ImportPath: pkg.ImportPath, Imports: pkg.Imports})
+			}
+		}
+	}
+	for _, finding := range backendImportConfig().CheckImports(packages) {
+		t.Error(finding)
+	}
+	t.Logf("checked %d package source sets across both supported platforms", len(packages))
+}
 
 func TestArchitectureInventoryFixtures(t *testing.T) {
 	for _, fixture := range []struct{ name, category, path, source string }{

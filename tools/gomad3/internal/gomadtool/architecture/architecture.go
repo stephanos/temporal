@@ -291,7 +291,7 @@ func Owner(module, importPath string) string {
 	if relative == "cmd/gomad" || relative == "cmd/gomad/api" || Within(relative, "cmd/gomad/internal/cli") {
 		return "cli"
 	}
-	if Within(relative, "cmd/gomadtool") || Within(relative, "internal/gomadtool") {
+	if Within(relative, "cmd/gomadtool") || Within(relative, "internal/gomadtool") || Within(relative, "internal/archcheck") {
 		return "developer"
 	}
 	for path, owner := range map[string]string{"internal/compatibilitypack": "compatibility", "internal/canonicaljson": "canonicaljson", "internal/hostexec": "hostexec", "hostexec": "hostexec", "internal/hostfs": "hostfs", "hostfs": "hostfs", "internal/preparation": "preparation", "internal/sourceinventory": "sourceinventory"} {
