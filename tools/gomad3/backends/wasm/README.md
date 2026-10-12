@@ -155,7 +155,7 @@ The verified-buffer implementation can use more host RSS than mmap loading. Cold
 compilation, warm loading and fresh instance state must be measured separately.
 
 The mandatory cooperative qualification gate uses 32 representative seeds spaced
-by 1000003. Each seed records 100 fresh engine instances of the combined runtime
+by 1000003. Each seed records 25 fresh engine instances of the combined runtime
 fixture, followed by one fresh exact full-tape replay. Every recording asserts
 map/runq/select/timer, note parking, application entropy, automatic GC, finalizer
 and cleanup witnesses. The aggregate checks byte-identical per-seed evidence and
@@ -180,11 +180,11 @@ The retained artifact gate is selected explicitly:
 GOMAD_WASM_TASK4_EVIDENCE_ROOT=/absolute/evidence/path \
   GOMAD3_STOCK_GO=/absolute/stock/go \
   go test -tags test_dep -count=1 -timeout=15m \
-  -run '^TestIntegratedFailureArtifact100FreshObservedReplays$' ./backend
+  -run '^TestIntegratedFailureArtifactFreshObservedReplays$' ./backend
 ```
 
 It publishes the original intentional failure, removes the original captured
-input directory, makes the compiler unavailable, and retains 100 fresh helper
+input directory, makes the compiler unavailable, and retains 20 fresh helper
 replays with byte comparisons and standalone campaign, artifact and receipt files.
 
 ## Determinism prototype

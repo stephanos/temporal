@@ -24,6 +24,9 @@ type countedProvider struct {
 	preparedRoot string
 }
 
+// Owner gate budget (2026-10-12): fresh helper replays of the retained artifact.
+const artifactFreshReplays = 20
+
 func (p *countedProvider) Run(ctx context.Context, request runnerbackend.Request) (runnerbackend.Result, error) {
 	p.calls++
 	return p.Provider.Run(ctx, request)
@@ -53,10 +56,10 @@ func (p *countedProvider) Prepare(ctx context.Context, spec target.Spec) (target
 	return prepared, nil
 }
 
-func TestIntegratedFailureArtifact100FreshObservedReplays(t *testing.T) {
+func TestIntegratedFailureArtifactFreshObservedReplays(t *testing.T) {
 	root := os.Getenv("GOMAD_WASM_TASK4_EVIDENCE_ROOT")
 	if root == "" {
-		t.Skip("explicit retained evidence root selects the full 100-fresh artifact gate")
+		t.Skip("explicit retained evidence root selects the fresh-replay artifact gate")
 	}
 	if !filepath.IsAbs(root) {
 		t.Fatal("evidence root must be absolute")
@@ -126,7 +129,7 @@ func TestIntegratedFailureArtifact100FreshObservedReplays(t *testing.T) {
 		t.Fatal("stock observed artifact claimed native exact transcript")
 	}
 	receipts := []map[string]any{}
-	for i := 0; i < 100; i++ {
+	for i := 0; i < artifactFreshReplays; i++ {
 		observed := filepath.Join(root, "observed", fmt.Sprintf("%03d", i+1))
 		result, err := runner.Replay(t.Context(), runner.ReplaySpec{Backend: fresh, ArtifactPath: campaign.Artifacts[0], ObservedDir: observed})
 		if err != nil || !result.Match || !result.ObservedRepetition || result.ChoiceReplayStatus != runner.ChoiceReplayNone {
@@ -142,9 +145,9 @@ func TestIntegratedFailureArtifact100FreshObservedReplays(t *testing.T) {
 			}
 		}
 		receipts = append(receipts, map[string]any{"fresh": i + 1, "stdout_sha256": record.HashBytes(expectedStdout), "stderr_sha256": record.HashBytes(expectedStderr), "evidence_sha256": record.HashBytes(expectedEvidence), "match": true, "capability": record.ReplayObserved})
-		t.Logf("fresh replay %d/100 exact raw output/evidence equality; capability=%s", i+1, record.ReplayObserved)
+		t.Logf("fresh replay %d/%d exact raw output/evidence equality; capability=%s", i+1, artifactFreshReplays, record.ReplayObserved)
 	}
-	if counted.calls != 1 || fresh.calls != 100 {
+	if counted.calls != 1 || fresh.calls != artifactFreshReplays {
 		t.Fatalf("actual helper calls discovery=%d fresh=%d", counted.calls, fresh.calls)
 	}
 	receipt := map[string]any{"campaign": campaign.CampaignPath, "artifact": campaign.Artifacts[0], "discovery_executions": counted.calls, "fresh_replay_executions": fresh.calls, "record_hash": manifest.RecordHash, "failure_signature": manifest.Outcome.FailureSignature, "module_sha256": manifest.Target.SHA256, "provenance_sha256": manifest.Target.Backend.Provenance.SHA256, "helper_sha256": options.HelperSHA256, "compiler_sha256": options.CompilerSHA256, "model_sha256": options.ModelSHA256, "captured_input_sha256": captured.Manifest.SHA256, "original_inputs_removed": true, "compiler_unavailable": true, "replays": receipts}

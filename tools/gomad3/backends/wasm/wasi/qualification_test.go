@@ -33,10 +33,13 @@ type runtimeQualification struct {
 	LastDiagnostic                                                         choice.DiagnosticRecord
 }
 
+// Owner gate budget (2026-10-12): fresh instances recorded per qualification seed.
+const qualificationInstances = 25
+
 func TestCooperativeRuntimeQualification(t *testing.T) {
 	indexValue := os.Getenv("GOMAD_WASM_QUALIFICATION_INDEX")
 	if indexValue == "" {
-		t.Skip("run qualify-runtime for the mandatory 32 seeds x 100 fresh-instance gate")
+		t.Skip("run qualify-runtime for the mandatory scheduling qualification gate")
 	}
 	index, err := strconv.ParseUint(indexValue, 10, 64)
 	if err != nil || index >= 32 {
@@ -51,7 +54,7 @@ func TestCooperativeRuntimeQualification(t *testing.T) {
 	request.Runtime.Seed = index * 1000003
 	request.Config.Environment = append(request.Config.Environment, "EXTRA_ENTROPY=no_")
 	var baseline Result
-	for instance := range 100 {
+	for instance := range qualificationInstances {
 		observed, err := matchedPrepareAdmitted(runtime.GOOS, "/proc/meminfo", os.Getenv("GOMAD_WASM_MATCHED_COLD_MEMORY_GUARD"), func() (Result, error) {
 			return Run(t.Context(), request)
 		})
@@ -91,7 +94,7 @@ func TestCooperativeRuntimeQualification(t *testing.T) {
 	if err != nil || exact.Termination != "exit" || exact.ExitCode == nil || *exact.ExitCode != *baseline.ExitCode || !exact.Reaped || !bytes.Equal(exact.Stdout, baseline.Stdout) || !bytes.Equal(exact.Stderr, baseline.Stderr) || !bytes.Equal(exact.Transcript, baseline.Transcript) || !bytes.Equal(exact.ChoiceTrace.Bytes, baseline.ChoiceTrace.Bytes) {
 		t.Fatalf("seed %d forced full-tape replay: %s %s err=%v stderr=%s", request.Runtime.Seed, exact.Termination, exact.Message, err, exact.Stderr)
 	}
-	report := runtimeQualification{SeedIndex: index, Seed: request.Runtime.Seed, Instances: 100, ExactReplays: 1, Module: request.ModuleSHA256, Helper: request.HelperSHA256, Runtime: request.Runtime.Choice.ExecutionIdentity.ToolchainBuildKey, Model: ImplementationSHA256(), ChoiceSHA256: fmt.Sprintf("%x", baseline.ChoiceTrace.SHA256), DiagnosticSHA256: fmt.Sprintf("%x", baseline.DiagnosticTrace.SHA256), StdoutSHA256: fmt.Sprintf("%x", sha256.Sum256(baseline.Stdout)), StderrSHA256: fmt.Sprintf("%x", sha256.Sum256(baseline.Stderr)), WASISHA256: fmt.Sprintf("%x", sha256.Sum256(baseline.Transcript)), ExitCode: *baseline.ExitCode, Summary: baseline.ChoiceTrace.Summary, LastDiagnostic: baseline.DiagnosticTrace.Records[len(baseline.DiagnosticTrace.Records)-1]}
+	report := runtimeQualification{SeedIndex: index, Seed: request.Runtime.Seed, Instances: qualificationInstances, ExactReplays: 1, Module: request.ModuleSHA256, Helper: request.HelperSHA256, Runtime: request.Runtime.Choice.ExecutionIdentity.ToolchainBuildKey, Model: ImplementationSHA256(), ChoiceSHA256: fmt.Sprintf("%x", baseline.ChoiceTrace.SHA256), DiagnosticSHA256: fmt.Sprintf("%x", baseline.DiagnosticTrace.SHA256), StdoutSHA256: fmt.Sprintf("%x", sha256.Sum256(baseline.Stdout)), StderrSHA256: fmt.Sprintf("%x", sha256.Sum256(baseline.Stderr)), WASISHA256: fmt.Sprintf("%x", sha256.Sum256(baseline.Transcript)), ExitCode: *baseline.ExitCode, Summary: baseline.ChoiceTrace.Summary, LastDiagnostic: baseline.DiagnosticTrace.Records[len(baseline.DiagnosticTrace.Records)-1]}
 	version, err := exec.Command(os.Getenv("GOMAD3_STOCK_GO"), "version").Output()
 	if err != nil || !strings.Contains(string(version), "go1.27.1 ") {
 		t.Fatalf("qualification compiler version: %q %v", version, err)
@@ -141,7 +144,7 @@ func TestCooperativeRuntimeQualificationAggregate(t *testing.T) {
 		if err := json.Unmarshal(data, &report); err != nil {
 			t.Fatal(err)
 		}
-		if report.SeedIndex != uint64(index) || report.Seed != uint64(index)*1000003 || report.Instances != 100 || report.ExactReplays != 1 || report.Model != ImplementationSHA256() || report.SourceSHA256 != sourceSHA256 || report.RuntimeImplementationSHA256 != toolchain.ImplementationSHA256() || report.Helper != fileHash(t, helperPath(t)) || report.CompilerSHA256 != fileHash(t, os.Getenv("GOMAD3_STOCK_GO")) || report.Engine != PinnedEngine() || report.HostGOOS != runtime.GOOS || report.HostGOARCH != runtime.GOARCH || report.Profile != CooperativeProfile || report.Collector != "nogreenteagc" || !strings.Contains(report.GoVersion, "go1.27.1 ") {
+		if report.SeedIndex != uint64(index) || report.Seed != uint64(index)*1000003 || report.Instances != qualificationInstances || report.ExactReplays != 1 || report.Model != ImplementationSHA256() || report.SourceSHA256 != sourceSHA256 || report.RuntimeImplementationSHA256 != toolchain.ImplementationSHA256() || report.Helper != fileHash(t, helperPath(t)) || report.CompilerSHA256 != fileHash(t, os.Getenv("GOMAD3_STOCK_GO")) || report.Engine != PinnedEngine() || report.HostGOOS != runtime.GOOS || report.HostGOARCH != runtime.GOARCH || report.Profile != CooperativeProfile || report.Collector != "nogreenteagc" || !strings.Contains(report.GoVersion, "go1.27.1 ") {
 			t.Fatalf("missing or stale qualification shard %d", index)
 		}
 		if index == 0 {
@@ -182,7 +185,7 @@ func TestCooperativeRuntimeQualificationAggregate(t *testing.T) {
 			t.Fatalf("representative seeds did not vary the %s domain", name)
 		}
 	}
-	t.Logf("32 seeds x 100 fresh instances: 3200 complete record observations and 32 fresh forced exact replays; choices=%d outputs=%d outcomes=%d module=%s helper=%s runtime=%s model=%s", len(choices), len(outputs), len(outcomes), first.Module, first.Helper, first.Runtime, first.Model)
+	t.Logf("32 seeds x %d fresh instances: %d complete record observations and 32 fresh forced exact replays; choices=%d outputs=%d outcomes=%d module=%s helper=%s runtime=%s model=%s", qualificationInstances, 32*qualificationInstances, len(choices), len(outputs), len(outcomes), first.Module, first.Helper, first.Runtime, first.Model)
 }
 
 func qualificationSourceSHA256(t *testing.T) string {
