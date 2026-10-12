@@ -17,9 +17,10 @@ Applied clarification: preserve the original pure roots and explicitly check the
 - No file was removed from the pure set and no function body was changed other than adding mark comments.
 
 ## Done summary
-TBD
+The gomad3 pure set passes puritycheck with zero host-effect and zero unmarked dynamic-call findings on host and both qualified platforms (about 21s combined); review marks are logged per package; pure-set membership and function bodies are unchanged apart from marks.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: c6afac5097, cae07fe76f, 016ec47b74
+- Tests: root architecture/purity selection with GOMAD3_ARCH_ALL_PLATFORMS=1 plus ./internal/archcheck ./internal/puritycheck (0), evidence: .flow/artifacts/wasm-section-acceptance-2026-10-12.md
 - PRs:
