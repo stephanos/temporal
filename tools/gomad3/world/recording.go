@@ -217,6 +217,7 @@ func EncodeRecording(recording Recording) ([]byte, error) {
 	}
 	terminal, err := canonicaljson.CanonicalJSON(recording.Terminal)
 	if err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return nil, fmt.Errorf("encode World terminal: %w", err)
 	}
 	result := make([]byte, 0, len(recordingMagic)+24+len(initial)+len(final)+len(terminal))
@@ -273,6 +274,7 @@ func DecodeRecording(data []byte) (Recording, error) {
 	}
 	var terminal Terminal
 	if err := json.Unmarshal(remaining, &terminal); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return Recording{}, fmt.Errorf("decode World terminal: %w", err)
 	}
 	canonical, err := canonicaljson.CanonicalJSON(terminal)

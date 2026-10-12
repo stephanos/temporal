@@ -30,6 +30,7 @@ func WriteCanonicalJSON(writer io.Writer, value any) error {
 	if err := validateStreamingStrings(root, make(map[streamVisit]struct{})); err != nil {
 		return err
 	}
+	//gomad:dynamic reviewed 2026-10-12 reviewed model or record values and in-memory streams constrain callback methods
 	stream := canonicalStream{output: bufio.NewWriterSize(writer, 4096), active: make(map[streamVisit]struct{})}
 	if err := stream.value(root); err != nil {
 		return err
@@ -95,6 +96,7 @@ func validateStreamingStrings(value reflect.Value, active map[streamVisit]struct
 			}
 		}
 	case reflect.Array, reflect.Slice:
+		//gomad:dynamic reviewed 2026-10-12 reflect runtime type metadata methods inspect memory only
 		if value.Type().Elem().Kind() == reflect.Uint8 {
 			return nil
 		}
@@ -119,6 +121,7 @@ var (
 )
 
 func hasStreamHook(typ reflect.Type) bool {
+	//gomad:dynamic reviewed 2026-10-12 reflect runtime type metadata methods inspect memory only
 	return typ.Implements(streamMarshalerType) || typ.Implements(streamTextMarshalerType)
 }
 
@@ -213,6 +216,7 @@ func (stream *canonicalStream) value(value reflect.Value) error {
 		}
 		return stream.value(value.Elem())
 	}
+	//gomad:dynamic reviewed 2026-10-12 reflect runtime type metadata methods inspect memory only
 	if value.CanAddr() && hasStreamHook(reflect.PointerTo(value.Type())) {
 		return stream.legacy(value.Addr())
 	}
@@ -221,6 +225,7 @@ func (stream *canonicalStream) value(value reflect.Value) error {
 	}
 	if key, tracked := streamIdentity(value); tracked {
 		if _, exists := stream.active[key]; exists {
+			//gomad:dynamic reviewed 2026-10-12 reflect runtime type metadata methods inspect memory only
 			return fmt.Errorf("encode JSON: %w", &json.UnsupportedValueError{Value: value, Str: "encountered a cycle via " + value.Type().String()})
 		}
 		stream.active[key] = struct{}{}
@@ -252,7 +257,9 @@ func (stream *canonicalStream) value(value reflect.Value) error {
 			stream.text("null")
 			return stream.err
 		}
+		//gomad:dynamic reviewed 2026-10-12 reflect runtime type metadata methods inspect memory only
 		if value.Type().Elem().Kind() == reflect.Uint8 {
+			//gomad:dynamic reviewed 2026-10-12 reflect runtime type metadata methods inspect memory only
 			if hasStreamHook(reflect.PointerTo(value.Type().Elem())) {
 				return stream.legacy(value)
 			}
@@ -314,7 +321,9 @@ func fieldsForStream(typ reflect.Type) streamFields {
 	}
 	result := streamFields{}
 	seen := make(map[string]struct{})
+	//gomad:dynamic reviewed 2026-10-12 reflect runtime type metadata methods inspect memory only
 	for index := 0; index < typ.NumField(); index++ {
+		//gomad:dynamic reviewed 2026-10-12 reflect runtime type metadata methods inspect memory only
 		field := typ.Field(index)
 		if field.Anonymous {
 			result.legacy = true
@@ -408,10 +417,13 @@ type streamMapKey struct {
 }
 
 func (stream *canonicalStream) mapping(value reflect.Value) error {
+	//gomad:dynamic reviewed 2026-10-12 reflect runtime type metadata methods inspect memory only
 	keyType := value.Type().Key()
+	//gomad:dynamic reviewed 2026-10-12 reflect runtime type metadata methods inspect memory only
 	if keyType.Kind() != reflect.String && keyType.Implements(streamTextMarshalerType) {
 		return stream.legacy(value)
 	}
+	//gomad:dynamic reviewed 2026-10-12 reflect runtime type metadata methods inspect memory only
 	switch keyType.Kind() {
 	case reflect.String, reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
 		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:

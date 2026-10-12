@@ -79,15 +79,20 @@ func AlternativeSetDigest(alternatives [][sha256.Size]byte) ([sha256.Size]byte, 
 		}
 	}
 	hasher := sha256.New()
+	//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
 	_, _ = hasher.Write([]byte("gomad3-choice-alternative-set/v1"))
+	//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
 	_, _ = hasher.Write([]byte{0})
 	var count [8]byte
 	binary.BigEndian.PutUint64(count[:], uint64(len(ordered)))
+	//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
 	_, _ = hasher.Write(count[:])
 	for _, identity := range ordered {
+		//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
 		_, _ = hasher.Write(identity[:])
 	}
 	var digest [sha256.Size]byte
+	//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
 	copy(digest[:], hasher.Sum(nil))
 	return digest, nil
 }
@@ -376,12 +381,14 @@ func encodeTape(identity ExecutionIdentity, sourceTrace [sha256.Size]byte, decis
 		if readiness != nil {
 			value.Readiness, err = readiness[index].Word()
 			if err != nil {
+				//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 				return ReplayPlan{}, errors.Join(ErrInvalidReplayPlan, fmt.Errorf("encode decision %d readiness: %w", index, err))
 			}
 			clonedReadiness[index] = readiness[index]
 		}
 		record, err := encodeRecord(value)
 		if err != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return ReplayPlan{}, errors.Join(ErrInvalidReplayPlan, fmt.Errorf("encode decision %d: %w", index, err))
 		}
 		copy(payload[index*replayPlanRecordBytes:], record[:])
@@ -408,17 +415,22 @@ func encodeTape(identity ExecutionIdentity, sourceTrace [sha256.Size]byte, decis
 
 func rankPrefixSourceHash(decisions []Decision) ([sha256.Size]byte, error) {
 	hasher := sha256.New()
+	//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
 	_, _ = hasher.Write([]byte("gomad3-choice-rank-prefix/v1"))
+	//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
 	_, _ = hasher.Write([]byte{0})
 	for index, decision := range decisions {
 		decision.Ordinal = uint64(index)
 		record, err := encodeRecord(decision.Record())
 		if err != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return [sha256.Size]byte{}, errors.Join(ErrInvalidReplayPlan, fmt.Errorf("encode rank prefix decision %d: %w", index, err))
 		}
+		//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
 		_, _ = hasher.Write(record[:])
 	}
 	var result [sha256.Size]byte
+	//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
 	copy(result[:], hasher.Sum(nil))
 	return result, nil
 }
@@ -453,6 +465,7 @@ func decodeTape(encoded []byte, identity ExecutionIdentity) (ReplayPlan, error) 
 	for index := range decisions {
 		record, err := decodeRecord(payload[index*replayPlanRecordBytes : (index+1)*replayPlanRecordBytes])
 		if err != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return ReplayPlan{}, errors.Join(ErrInvalidReplayPlan, fmt.Errorf("decode decision %d: %w", index, err))
 		}
 		if record.Ordinal != uint64(index) || record.Flags&FlagDecision == 0 {
@@ -493,11 +506,17 @@ func tapeHeaderIdentity(identity ExecutionIdentity) (encodedExecutionIdentity, e
 		return encodedExecutionIdentity{}, errors.Join(ErrInvalidReplayPlan, errors.New("choice toolchain build key is malformed"))
 	}
 	hasher := sha256.New()
+	//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
 	_, _ = hasher.Write([]byte("gomad3-choice-platform/v1"))
+	//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
 	_, _ = hasher.Write([]byte{0})
+	//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
 	_, _ = hasher.Write([]byte(identity.GOOS))
+	//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
 	_, _ = hasher.Write([]byte{0})
+	//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
 	_, _ = hasher.Write([]byte(identity.GOARCH))
+	//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
 	copy(result.platform[:], hasher.Sum(nil))
 	return result, nil
 }

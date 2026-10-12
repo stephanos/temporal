@@ -321,12 +321,14 @@ func validateConfig(config Config) error {
 
 func validateRequest(limits Limits, request Request) error {
 	if err := validateString(limits, "request.kind", request.Kind, false); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return classifiedError(invalidRequest, fmt.Sprintf("%v", err))
 	}
 	if !resourceComponentPattern.MatchString(request.Resource.Adapter) || !resourceComponentPattern.MatchString(request.Resource.Kind) || uint64(len(request.Resource.Adapter)) > uint64(limits.MaxStringBytes) || uint64(len(request.Resource.Kind)) > uint64(limits.MaxStringBytes) {
 		return classifiedError(invalidRequest, "request.resource")
 	}
 	if err := validateString(limits, "request.resource.key", request.Resource.Key, true); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return classifiedError(invalidRequest, fmt.Sprintf("%v", err))
 	}
 	if uint64(len(request.Payload)) > limits.MaxPayloadBytes {
@@ -340,9 +342,11 @@ func validateReadiness(limits Limits, readiness Readiness) error {
 		return classifiedError(unknownRequest, "readiness.requestId")
 	}
 	if err := validateString(limits, "readiness.kind", readiness.Kind, false); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return classifiedError(invalidRequest, fmt.Sprintf("%v", err))
 	}
 	if err := validateString(limits, "readiness.equivalenceClass", readiness.EquivalenceClass, true); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return classifiedError(invalidRequest, fmt.Sprintf("%v", err))
 	}
 	return nil

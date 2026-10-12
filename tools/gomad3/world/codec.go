@@ -39,18 +39,22 @@ func DecodeSnapshot(data []byte) (Snapshot, error) {
 		return Snapshot{}, invalidSnapshot("json.utf8")
 	}
 	if err := preflightSnapshotJSON(data); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 model codec and gzip errors expose memory-only messages
 		return Snapshot{}, invalidSnapshot("json.bounds: " + err.Error())
 	}
 	if err := validateJSONStructure(data); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 model codec and gzip errors expose memory-only messages
 		return Snapshot{}, invalidSnapshot("json: " + err.Error())
 	}
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.DisallowUnknownFields()
 	var snapshot Snapshot
 	if err := decoder.Decode(&snapshot); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 model codec and gzip errors expose memory-only messages
 		return Snapshot{}, invalidSnapshot("json: " + err.Error())
 	}
 	if err := requireJSONEOF(decoder); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 model codec and gzip errors expose memory-only messages
 		return Snapshot{}, invalidSnapshot("json: " + err.Error())
 	}
 	if _, err := Restore(snapshot, nil); err != nil {
@@ -78,6 +82,7 @@ func preflightSnapshotJSON(data []byte) error {
 	}
 	var config Config
 	if err := decoder.Decode(&config); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return fmt.Errorf("config: %w", err)
 	}
 	if err := validateConfig(config); err != nil {
@@ -124,6 +129,7 @@ func preflightSnapshotJSON(data []byte) error {
 		}
 		if limit != 0 {
 			if err := consumeBoundedJSONArray(decoder, limit, nestedArrayLimit, &elementBudget, 1); err != nil {
+				//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 				return fmt.Errorf("%s: %w", name, err)
 			}
 			continue
@@ -313,6 +319,7 @@ func consumeJSONValue(decoder *json.Decoder) error {
 		}
 		closing, closeErr := decoder.Token()
 		if closeErr != nil || closing != json.Delim('}') {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return fmt.Errorf("invalid object close: %w", closeErr)
 		}
 	case '[':
@@ -323,6 +330,7 @@ func consumeJSONValue(decoder *json.Decoder) error {
 		}
 		closing, closeErr := decoder.Token()
 		if closeErr != nil || closing != json.Delim(']') {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return fmt.Errorf("invalid array close: %w", closeErr)
 		}
 	default:
@@ -336,6 +344,7 @@ func requireJSONEOF(decoder *json.Decoder) error {
 		if err != nil {
 			return err
 		}
+		//gomad:dynamic reviewed 2026-10-12 reviewed model or record values and in-memory streams constrain callback methods
 		return fmt.Errorf("unexpected trailing token %v", token)
 	}
 	return nil

@@ -56,6 +56,7 @@ func EncodeReplayPlan(plan ReplayPlan) ([]byte, error) {
 	}
 	encoded, err := canonicaljson.CanonicalJSON(plan)
 	if err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return nil, fmt.Errorf("encode World replay plan: %w", err)
 	}
 	if len(encoded) > MaximumReplayPlanJSONBytes {
@@ -72,15 +73,18 @@ func DecodeReplayPlan(data []byte) (ReplayPlan, error) {
 		return ReplayPlan{}, fmt.Errorf("World replay plan is not valid UTF-8")
 	}
 	if err := validateJSONStructure(data); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return ReplayPlan{}, fmt.Errorf("decode World replay plan: %w", err)
 	}
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.DisallowUnknownFields()
 	var plan ReplayPlan
 	if err := decoder.Decode(&plan); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return ReplayPlan{}, fmt.Errorf("decode World replay plan: %w", err)
 	}
 	if err := requireJSONEOF(decoder); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return ReplayPlan{}, fmt.Errorf("decode World replay plan: %w", err)
 	}
 	if err := validateReplayPlanIdentity(plan); err != nil {
@@ -88,6 +92,7 @@ func DecodeReplayPlan(data []byte) (ReplayPlan, error) {
 	}
 	canonical, err := canonicaljson.CanonicalJSON(plan)
 	if err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return ReplayPlan{}, fmt.Errorf("canonicalize World replay plan: %w", err)
 	}
 	if !bytes.Equal(data, canonical) {

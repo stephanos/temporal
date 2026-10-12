@@ -20,7 +20,9 @@ func CanonicalJSON(value any) ([]byte, error) {
 	var initial bytes.Buffer
 	encoder := json.NewEncoder(&initial)
 	encoder.SetEscapeHTML(false)
+	//gomad:dynamic reviewed 2026-10-12 reviewed model or record values and in-memory streams constrain callback methods
 	if err := encoder.Encode(value); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return nil, fmt.Errorf("encode JSON: %w", err)
 	}
 	encoded := bytes.TrimSuffix(initial.Bytes(), []byte{'\n'})
@@ -31,7 +33,9 @@ func CanonicalJSON(value any) ([]byte, error) {
 	decoder := json.NewDecoder(bytes.NewReader(encoded))
 	decoder.UseNumber()
 	var decoded any
+	//gomad:dynamic reviewed 2026-10-12 reviewed model or record values and in-memory streams constrain callback methods
 	if err := decoder.Decode(&decoded); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return nil, fmt.Errorf("decode intermediate JSON: %w", err)
 	}
 	var canonical bytes.Buffer
@@ -50,7 +54,9 @@ func StrictDecode(data []byte, destination any) error {
 	}
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.DisallowUnknownFields()
+	//gomad:dynamic reviewed 2026-10-12 reviewed model or record values and in-memory streams constrain callback methods
 	if err := decoder.Decode(destination); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return fmt.Errorf("decode JSON: %w", err)
 	}
 	if err := requireEOF(decoder); err != nil {
@@ -65,6 +71,7 @@ func DecodeCanonicalJSON(data []byte, destination any) error {
 	}
 	canonical, err := CanonicalJSON(destination)
 	if err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return fmt.Errorf("canonicalize JSON: %w", err)
 	}
 	if !bytes.Equal(data, canonical) {
@@ -78,6 +85,7 @@ func CanonicalJSONLines(values []any) ([]byte, error) {
 	for index, value := range values {
 		encoded, err := CanonicalJSON(value)
 		if err != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return nil, fmt.Errorf("encode JSONL entry %d: %w", index, err)
 		}
 		output.Write(encoded)
@@ -101,6 +109,7 @@ func StrictDecodeJSONLines[T any](data []byte) ([]T, error) {
 		}
 		var value T
 		if err := DecodeCanonicalJSON(line, &value); err != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return nil, fmt.Errorf("decode JSONL entry %d: %w", index, err)
 		}
 		values = append(values, value)
@@ -204,6 +213,7 @@ func validateJSONStructure(data []byte) error {
 func consumeJSONValue(decoder *json.Decoder) error {
 	token, err := decoder.Token()
 	if err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return fmt.Errorf("decode JSON token: %w", err)
 	}
 	delimiter, isDelimiter := token.(json.Delim)
@@ -216,6 +226,7 @@ func consumeJSONValue(decoder *json.Decoder) error {
 		for decoder.More() {
 			keyToken, err := decoder.Token()
 			if err != nil {
+				//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 				return fmt.Errorf("decode JSON object key: %w", err)
 			}
 			key, ok := keyToken.(string)
@@ -232,6 +243,7 @@ func consumeJSONValue(decoder *json.Decoder) error {
 		}
 		closing, err := decoder.Token()
 		if err != nil || closing != json.Delim('}') {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return fmt.Errorf("decode JSON object closing delimiter: %w", err)
 		}
 	case '[':
@@ -242,6 +254,7 @@ func consumeJSONValue(decoder *json.Decoder) error {
 		}
 		closing, err := decoder.Token()
 		if err != nil || closing != json.Delim(']') {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return fmt.Errorf("decode JSON array closing delimiter: %w", err)
 		}
 	default:
@@ -253,8 +266,10 @@ func consumeJSONValue(decoder *json.Decoder) error {
 func requireEOF(decoder *json.Decoder) error {
 	if token, err := decoder.Token(); err != io.EOF {
 		if err != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return fmt.Errorf("decode trailing JSON token: %w", err)
 		}
+		//gomad:dynamic reviewed 2026-10-12 reviewed model or record values and in-memory streams constrain callback methods
 		return fmt.Errorf("unexpected trailing JSON token %v", token)
 	}
 	return nil
@@ -328,6 +343,7 @@ func appendJSONString(output *bytes.Buffer, value string) error {
 	encoder := json.NewEncoder(&encoded)
 	encoder.SetEscapeHTML(false)
 	if err := encoder.Encode(value); err != nil {
+		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return fmt.Errorf("encode JSON string: %w", err)
 	}
 	output.Write(bytes.TrimSuffix(encoded.Bytes(), []byte{'\n'}))

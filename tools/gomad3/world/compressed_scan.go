@@ -68,6 +68,7 @@ func (reader *compressedJSONReader) Read(output []byte) (int, error) {
 			if reader.sourceErr != nil {
 				return written, reader.sourceErr
 			}
+			//gomad:dynamic reviewed 2026-10-12 compressed model stream wraps memory readers writers and SHA256 only
 			n, err := reader.source.Read(reader.input[:])
 			reader.start, reader.end, reader.sourceErr = 0, n, err
 			if n == 0 {

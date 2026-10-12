@@ -61,6 +61,7 @@ func ValidatePrefixReplayDivergence(tape ReplayPlan, divergence Divergence) erro
 	terminal := terminal{State: TerminalDiverged, DivergentOrdinal: divergence.Ordinal, DivergenceReason: divergence.Reason, TapeRecords: divergence.TapeRecords}
 	if divergence.Expected != nil {
 		if _, err := encodeRecord(divergence.Expected.Record()); err != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return fmt.Errorf("choice divergence expected decision: %w", err)
 		}
 		terminal.ExpectedPresent, terminal.Expected = true, divergence.Expected.Record()
@@ -70,6 +71,7 @@ func ValidatePrefixReplayDivergence(tape ReplayPlan, divergence Divergence) erro
 			return errors.New("choice divergence observed decision is invalid")
 		}
 		if _, err := encodeRecord(divergence.Observed.Record()); err != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return fmt.Errorf("choice divergence observed decision: %w", err)
 		}
 		terminal.ObservedPresent, terminal.Observed = true, divergence.Observed.Record()

@@ -111,6 +111,7 @@ func Restore(snapshot Snapshot, replay *ReplayPlan) (*Model, error) {
 	reconstructed := newModel(snapshot.Config)
 	for index, expected := range snapshot.Transitions {
 		if err := replaySnapshotTransition(reconstructed, expected); err != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return nil, invalidSnapshot(fmt.Sprintf("transitions[%d]: %v", index, err))
 		}
 		actual := reconstructed.history[len(reconstructed.history)-1]
@@ -141,11 +142,13 @@ func validateSnapshotPayloads(snapshot Snapshot) error {
 		return nil
 	}
 	for _, request := range snapshot.Requests {
+		//gomad:dynamic reviewed 2026-10-12 local model closure or reviewed caller-supplied callback performs memory-only work
 		if err := add(uint64(len(request.Request.Payload))); err != nil {
 			return err
 		}
 	}
 	for _, event := range snapshot.Events {
+		//gomad:dynamic reviewed 2026-10-12 local model closure or reviewed caller-supplied callback performs memory-only work
 		if err := add(uint64(len(event.Readiness.Payload))); err != nil {
 			return err
 		}
@@ -155,6 +158,7 @@ func validateSnapshotPayloads(snapshot Snapshot) error {
 		if !ok {
 			return invalidSnapshot("payloadBytes")
 		}
+		//gomad:dynamic reviewed 2026-10-12 local model closure or reviewed caller-supplied callback performs memory-only work
 		if err := add(size); err != nil {
 			return err
 		}
@@ -209,6 +213,7 @@ func stateDigest(snapshot Snapshot) Digest {
 	data = appendUint64(data, uint64(snapshot.NextTransition))
 	data = appendUint64(data, snapshot.PayloadBytes)
 	data = appendUint64(data, uint64(len(snapshot.Requests)))
+	//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
 	_, _ = hasher.Write(data)
 	for _, request := range snapshot.Requests {
 		data = data[:0]
@@ -216,29 +221,37 @@ func stateDigest(snapshot Snapshot) Digest {
 		data = appendRequest(data, request.Request)
 		data = appendString(data, string(request.State))
 		data = appendUint64(data, uint64(request.EventID))
+		//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
 		_, _ = hasher.Write(data)
 	}
 	data = data[:0]
 	data = appendUint64(data, uint64(len(snapshot.Events)))
+	//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
 	_, _ = hasher.Write(data)
 	for _, event := range snapshot.Events {
 		data = data[:0]
 		data = appendUint64(data, uint64(event.ID))
 		data = appendReadiness(data, event.Readiness)
 		data = appendString(data, string(event.State))
+		//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
 		_, _ = hasher.Write(data)
 	}
 	data = data[:0]
 	data = appendUint64(data, uint64(len(snapshot.Transitions)))
+	//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
 	_, _ = hasher.Write(data)
 	for _, transition := range snapshot.Transitions {
 		encoded := transitionBytes(transition, true)
 		data = appendUint64(data[:0], uint64(len(encoded)))
+		//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
 		_, _ = hasher.Write(data)
+		//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
 		_, _ = hasher.Write(encoded)
 	}
 	data = appendString(data[:0], string(snapshot.TranscriptDigest))
+	//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
 	_, _ = hasher.Write(data)
+	//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
 	return Digest(hex.EncodeToString(hasher.Sum(nil)))
 }
 

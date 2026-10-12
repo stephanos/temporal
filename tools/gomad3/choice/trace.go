@@ -106,11 +106,16 @@ func ImplementationIdentity(toolchainBuildKey string) ([sha256.Size]byte, error)
 		return [sha256.Size]byte{}, errors.New("choice implementation toolchain build key is malformed")
 	}
 	hasher := sha256.New()
+	//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
 	_, _ = hasher.Write([]byte("gomad3-choice-implementation-v2"))
+	//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
 	_, _ = hasher.Write([]byte{0})
+	//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
 	_, _ = hasher.Write(implementationSourceSHA256[:])
+	//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
 	_, _ = hasher.Write(buildKey[:])
 	var result [sha256.Size]byte
+	//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
 	copy(result[:], hasher.Sum(nil))
 	return result, nil
 }
@@ -121,6 +126,7 @@ func ProjectComplete(payload []byte, metadata CompleteMetadata, targetIdentity [
 
 func Project(payload []byte, metadata TerminalMetadata, targetIdentity [sha256.Size]byte) (Projection, error) {
 	trace, err := DecodeStoredTrace(Profile, payload, metadata)
+	//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 	if errors.Is(err, ErrOverflow) && metadata.State == TerminalOverflow {
 		err = nil
 	}
@@ -187,6 +193,7 @@ func ProjectTrace(trace Trace, limit uint64, targetIdentity [sha256.Size]byte) (
 		return Projection{}, errors.Join(ErrMalformed, fmt.Errorf("unsupported choice trace version %d", trace.Version))
 	}
 	validated, err := DecodeStoredTrace(profile, trace.Bytes, TerminalMetadata{State: trace.Summary.Terminal, Limit: limit, Records: trace.Summary.Records, SHA256: trace.SHA256})
+	//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 	if errors.Is(err, ErrOverflow) && trace.Summary.Terminal == TerminalOverflow {
 		err = nil
 	}

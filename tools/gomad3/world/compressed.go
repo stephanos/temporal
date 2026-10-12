@@ -122,12 +122,15 @@ func (detached *DetachedSnapshot) Encode() ([]byte, error) {
 	model = nil
 	var compressed bytes.Buffer
 	compressedOutput := &compressedBoundedWriter{writer: &compressed, limit: limits.MaxCompressedBytes, dimension: "compressed-snapshot-gzip-bytes"}
+	//gomad:dynamic reviewed 2026-10-12 reviewed model or record values and in-memory streams constrain callback methods
 	compressor := gzip.NewWriter(compressedOutput)
 	hasher := sha256.New()
+	//gomad:dynamic reviewed 2026-10-12 reviewed model or record values and in-memory streams constrain callback methods
 	expandedOutput := &compressedBoundedWriter{writer: io.MultiWriter(compressor, hasher), limit: limits.MaxExpandedBytes, dimension: "compressed-snapshot-expanded-bytes"}
 	if err := canonicaljson.WriteCanonicalJSON(expandedOutput, snapshot); err != nil {
 		closeErr := compressor.Close()
 		if closeErr != nil {
+			//gomad:dynamic reviewed 2026-10-12 model codec and gzip errors expose memory-only messages
 			return nil, modelContextError("compressed.encode (close: "+closeErr.Error()+")", err)
 		}
 		return nil, modelContextError("compressed.encode", err)
@@ -137,6 +140,7 @@ func (detached *DetachedSnapshot) Encode() ([]byte, error) {
 	}
 	envelope := compressedSnapshotEnvelope{
 		Schema: CompressedSnapshotSchema, ExpandedBytes: expandedOutput.used,
+		//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
 		CompressedBytes: compressedOutput.used, ExpandedSHA256: Digest(hex.EncodeToString(hasher.Sum(nil))), Gzip: compressed.Bytes(),
 	}
 	var encoded bytes.Buffer
@@ -215,6 +219,7 @@ func (writer *compressedBoundedWriter) Write(data []byte) (int, error) {
 	if uint64(len(data)) > writer.limit-writer.used {
 		return 0, &CapacityError{Dimension: writer.dimension, Limit: writer.limit, Used: writer.used, Delta: uint64(len(data))}
 	}
+	//gomad:dynamic reviewed 2026-10-12 compressed model stream wraps memory readers writers and SHA256 only
 	written, err := writer.writer.Write(data)
 	writer.used += uint64(written)
 	return written, err
@@ -226,6 +231,7 @@ func compressedCanonicalDigest(value any, limit uint64) (Digest, uint64, error) 
 	if err := canonicaljson.WriteCanonicalJSON(writer, value); err != nil {
 		return "", 0, err
 	}
+	//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
 	return Digest(hex.EncodeToString(hasher.Sum(nil))), writer.used, nil
 }
 
@@ -233,19 +239,25 @@ func compressedGzipPass(envelope compressedSnapshotEnvelope, read func(io.Reader
 	source := bytes.NewReader(envelope.Gzip)
 	reader, err := gzip.NewReader(source)
 	if err != nil {
+		//gomad:dynamic reviewed 2026-10-12 model codec and gzip errors expose memory-only messages
 		return invalidSnapshot("compressed.gzip: " + err.Error())
 	}
 	reader.Multistream(false)
 	hasher := sha256.New()
+	//gomad:dynamic reviewed 2026-10-12 reviewed model or record values and in-memory streams constrain callback methods
 	bounded := &compressedHashReader{reader: io.LimitReader(reader, int64(envelope.ExpandedBytes)+1), hash: hasher, limit: envelope.ExpandedBytes}
+	//gomad:dynamic reviewed 2026-10-12 local model closure or reviewed caller-supplied callback performs memory-only work
 	readErr := read(bounded)
 	closeErr := reader.Close()
 	if readErr != nil {
+		//gomad:dynamic reviewed 2026-10-12 model codec and gzip errors expose memory-only messages
 		return invalidSnapshot("compressed.expanded: " + readErr.Error())
 	}
 	if closeErr != nil {
+		//gomad:dynamic reviewed 2026-10-12 model codec and gzip errors expose memory-only messages
 		return invalidSnapshot("compressed.gzip.close: " + closeErr.Error())
 	}
+	//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
 	if source.Len() != 0 || bounded.used != envelope.ExpandedBytes || Digest(hex.EncodeToString(hasher.Sum(nil))) != envelope.ExpandedSHA256 {
 		return invalidSnapshot("compressed.expanded.identity")
 	}
@@ -260,11 +272,13 @@ type compressedHashReader struct {
 }
 
 func (reader *compressedHashReader) Read(data []byte) (int, error) {
+	//gomad:dynamic reviewed 2026-10-12 compressed model stream wraps memory readers writers and SHA256 only
 	n, err := reader.reader.Read(data)
 	if uint64(n) > reader.limit-reader.used {
 		return 0, fmt.Errorf("expanded bytes exceed declared bound")
 	}
 	reader.used += uint64(n)
+	//gomad:dynamic reviewed 2026-10-12 compressed model stream wraps memory readers writers and SHA256 only
 	if _, hashErr := reader.hash.Write(data[:n]); hashErr != nil {
 		return 0, hashErr
 	}

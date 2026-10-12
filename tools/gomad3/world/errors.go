@@ -48,6 +48,7 @@ func modelContextError(prefix string, cause error) error {
 	if terminal, ok := ownedTerminal(cause); ok {
 		return &modelError{detail: prefix + ": " + terminal.Detail, kind: terminal.Kind, cause: cause}
 	}
+	//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 	return fmt.Errorf("%s: %w", prefix, cause)
 }
 

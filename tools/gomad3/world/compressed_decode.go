@@ -64,6 +64,7 @@ func DecodeCompressedSnapshot(data []byte, limits ProfileLimits) (CompressedSnap
 
 func decodeCompressedEnvelope(data []byte, limits ProfileLimits) (compressedSnapshotEnvelope, error) {
 	scanner := newCompressedEnvelopeJSONReader(bytes.NewReader(data), limits)
+	//gomad:dynamic reviewed 2026-10-12 reviewed model or record values and in-memory streams constrain callback methods
 	decoder := json.NewDecoder(scanner)
 	decoder.DisallowUnknownFields()
 	if err := compressedJSONDelimiter(decoder, '{'); err != nil {
@@ -85,6 +86,7 @@ func decodeCompressedEnvelope(data []byte, limits ProfileLimits) (compressedSnap
 				return compressedSnapshotEnvelope{}, err
 			}
 		}
+		//gomad:dynamic reviewed 2026-10-12 reviewed model or record values and in-memory streams constrain callback methods
 		if err := decoder.Decode(field.value); err != nil {
 			return compressedSnapshotEnvelope{}, invalidSnapshot("compressed.envelope." + field.name)
 		}
@@ -122,6 +124,7 @@ func compressedJSONField(decoder *json.Decoder, expected string) error {
 
 func preflightCompressedSnapshot(reader io.Reader, limits ProfileLimits, budget uint64) error {
 	scanner := newCompressedJSONReader(reader, limits.Limits)
+	//gomad:dynamic reviewed 2026-10-12 reviewed model or record values and in-memory streams constrain callback methods
 	decoder := json.NewDecoder(scanner)
 	decoder.UseNumber()
 	if err := compressedJSONDelimiter(decoder, '{'); err != nil {
@@ -175,6 +178,7 @@ var compressedSnapshotFields = [...]string{
 
 func decodeCompressedExpanded(reader io.Reader, limits ProfileLimits) (Snapshot, uint64, uint64, uint64, error) {
 	scanner := newCompressedJSONReader(reader, limits.Limits)
+	//gomad:dynamic reviewed 2026-10-12 reviewed model or record values and in-memory streams constrain callback methods
 	decoder := json.NewDecoder(scanner)
 	decoder.DisallowUnknownFields()
 	if err := compressedJSONDelimiter(decoder, '{'); err != nil {
@@ -223,6 +227,7 @@ func decodeCompressedExpanded(reader io.Reader, limits ProfileLimits) (Snapshot,
 				if err := validateReadiness(declared.Config.Limits, event.Readiness); err != nil {
 					return err
 				}
+				//gomad:dynamic reviewed 2026-10-12 local model closure or reviewed caller-supplied callback performs memory-only work
 				return addPayload(uint64(len(event.Readiness.Payload)))
 			})
 		case "requests":
@@ -239,6 +244,7 @@ func decodeCompressedExpanded(reader io.Reader, limits ProfileLimits) (Snapshot,
 				if err := validateRequest(declared.Config.Limits, request.Request); err != nil {
 					return err
 				}
+				//gomad:dynamic reviewed 2026-10-12 local model closure or reviewed caller-supplied callback performs memory-only work
 				return addPayload(uint64(len(request.Request.Payload)))
 			})
 		case "transitions":
@@ -254,6 +260,7 @@ func decodeCompressedExpanded(reader io.Reader, limits ProfileLimits) (Snapshot,
 				if !ok {
 					return invalidSnapshot("payloadBytes")
 				}
+				//gomad:dynamic reviewed 2026-10-12 local model closure or reviewed caller-supplied callback performs memory-only work
 				if err := addPayload(size); err != nil {
 					return err
 				}
@@ -286,6 +293,7 @@ func decodeCompressedExpanded(reader io.Reader, limits ProfileLimits) (Snapshot,
 			return Snapshot{}, 0, 0, 0, err
 		}
 		if destination != nil {
+			//gomad:dynamic reviewed 2026-10-12 reviewed model or record values and in-memory streams constrain callback methods
 			if err := decoder.Decode(destination); err != nil {
 				return Snapshot{}, 0, 0, 0, err
 			}
@@ -319,6 +327,7 @@ func decodeCompressedArray(decoder *json.Decoder, limit uint64, decode func() er
 		if count >= limit {
 			return 0, invalidSnapshot("compressed.array.count")
 		}
+		//gomad:dynamic reviewed 2026-10-12 local model closure or reviewed caller-supplied callback performs memory-only work
 		if err := decode(); err != nil {
 			return 0, err
 		}
