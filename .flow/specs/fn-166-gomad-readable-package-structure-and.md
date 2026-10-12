@@ -6,6 +6,8 @@ A reader must understand `tools/gomad3` from its file tree alone. Every non-nati
 
 Package doc comments are out of scope (owner decision, 2026-10-12).
 
+Owner decision (2026-10-12): approved the seven-entry top level (`cmd`, `runner`, `backends`, `evidence`, `model`, `internal`, `testdata`) in R7.
+
 Evidence: independent structure review on 2026-10-12 (summary below). Counts are production / test files.
 
 - Module root: 0 / 10 — architecture rules, native overlay ownership checks, the external Runner consumer test and CI routing tests have no production owner there.
