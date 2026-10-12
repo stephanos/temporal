@@ -475,7 +475,7 @@ is deleted once applied; the harness in `framework/migrate` is permanent (owner,
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-169.1 | ⬜ todo | Mechanical move into `framework/{dsl,export,check,migrate}` and `temporal/{export,check,migrate}` (DSL in `framework.dsl`; IR type names follow it); feature-parameterized migration harness; Temporal-free build boundary; docs; after fn-166.13 |
+| fn-169.1 | ⬜ todo | Mechanical move into `framework/{dsl,export,check,migrate}` and `temporal/{export,check,migrate}` (DSL in `framework.dsl`; IR type names follow it); tests colocated with what they test; feature-parameterized migration harness; Temporal-free build boundary; docs; after fn-166.13 |
 | fn-169.2 | ⬜ todo | Plug-in seam: layout conventions, kit lifting and API descriptors supplied by `temporal/export`; generic proto support with a registered API (proto lint, gate proto stage, realization lifting); after fn-141.8 |
 | fn-169.5 | ⬜ todo | `framework/samples/`: one-file Temporal-free sample Models (Kettle, Bank, TwoPhaseCommit) comparable with P and Quint; after .1 |
 | fn-169.3 | ⏸️ deferred (sweep) | IR schema to an Umpire-owned namespace (`umpire.ir.v1`) |
@@ -486,7 +486,8 @@ is deleted once applied; the harness in `framework/migrate` is permanent (owner,
 Ready 2026-10-08. Pulled forward by the owner on 2026-10-12: it runs after fn-160.3/.4,
 fn-166.11-.13 and fn-169.1 (so it works in the framework's final homes), before the remaining DSL specs, which then land on the smaller lifter. Its
 "spellings no Model uses" recount (fn-141.2) counts the current mini and shared code only, and must
-keep any spelling an open spec in this batch is about to use.
+keep any spelling an open spec in this batch is about to use. As each task rewrites a construct, it splits that
+construct's tests out of `Fixtures.test.scala` to sit beside the construct's code (owner, 2026-10-12).
 Because its tasks were planned against the earlier tree, each re-reads its files and recounts first.
 Tasks follow Flow's branching dependencies. Tasks 1 and 2 have overlapping declared files and run
 serially; after both finish, 3, 6 and 7 are disjoint parallel candidates. Task 5 is the proof for the
