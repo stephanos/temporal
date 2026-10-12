@@ -1,7 +1,7 @@
 ---
 satisfies: [R3]
 ---
-# fn-169-a-temporal-free-framework-the-lifter.2 Plug-in seam: layout conventions, realization-kit lifting and API descriptors supplied by temporal/lift (after fn-141.8)
+# fn-169-a-temporal-free-framework-the-lifter.2 Plug-in seam: layout conventions, realization-kit lifting and API descriptors supplied by temporal/export (after fn-141.8)
 
 ## Description
 TBD

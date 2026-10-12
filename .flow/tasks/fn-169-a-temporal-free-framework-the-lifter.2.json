@@ -11,6 +11,6 @@
   "spec": "fn-169-a-temporal-free-framework-the-lifter",
   "spec_path": ".flow/tasks/fn-169-a-temporal-free-framework-the-lifter.2.md",
   "status": "todo",
-  "title": "Plug-in seam: layout conventions, realization-kit lifting and API descriptors supplied by temporal/lift (after fn-141.8)",
+  "title": "Plug-in seam: layout conventions, realization-kit lifting and API descriptors supplied by temporal/export (after fn-141.8)",
   "updated_at": "2026-10-12T20:40:05.909964Z"
 }

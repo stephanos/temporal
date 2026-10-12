@@ -26,7 +26,7 @@ model/
   framework/                 package framework.*   (no Temporal jar on its classpath)
     dsl/                     package framework.dsl: the authoring DSL
     realize/                 generic realization core (as today)
-    lift/                    today's irgen minus the Temporal parts, plus a plug-in seam:
+    export/                    today's irgen minus the Temporal parts, plus a plug-in seam:
                                layout conventions as configuration,
                                realization-kit lifting as a registered kit,
                                target API descriptors injected, not imported
@@ -35,7 +35,7 @@ model/
   temporal/                  package temporal.*    (everything Temporal)
     Bounds.scala, actors/, capabilities/, foundations/, features/   (the Models)
     realize/                 the Temporal kit (as today)
-    lift/                    the Temporal plug-in: kit lifting, layout config, API descriptors
+    export/                    the Temporal plug-in: kit lifting, layout config, API descriptors
     check/                   the Gate, ProtoLiterals, kit syntax rules
     migrate/                 task rules and their mini proofs
 
@@ -53,15 +53,15 @@ Enforcement: `framework/` compiles without the Temporal API jar or `temporal.*` 
 
 - Mini-only scope (MILESTONES): only `framework/`, the lifter/check/migrate code, shared code and `features/activity_mini` change; real features stay behind. Moves must keep the mini lift byte-identical apart from recorded source paths, and mini step-table equivalence must hold.
 - The IR schema rename and the Go reorganisation touch proto, Go and regeneration: held for the owner's sweep.
-- fn-141 rewrites the lifter. The mechanical move runs before it, so fn-141 lands in the final homes; most kit coupling disappears in fn-141.8 (realizations exported from constructed values), and the residue moves to `temporal/lift/` after it.
+- fn-141 rewrites the lifter. The mechanical move runs before it, so fn-141 lands in the final homes; most kit coupling disappears in fn-141.8 (realizations exported from constructed values), and the residue moves to `temporal/export/` after it.
 - Retention (owner, 2026-10-12): the rule-proof harness is permanent and lives in `framework/migrate`. `temporal/migrate` holds only rules the sweep has not yet applied; once the sweep applies a rule to the real features, the rule, its proof and its README section are deleted (git keeps them). The guide's instruction to ship a rule with each DSL change stays.
 - Make targets, scala-cli project files, fn-166.13's coverage registry and every doc that names `model/irgen`/`model/check`/`model/migrate` paths follow the move.
 
 ## Acceptance Criteria
 
-- **R1:** The generic lifter, checks and migration harness live under `model/framework/{lift,check,migrate}` in `framework.*` packages; Temporal-specific parts live under `model/temporal/{lift,check,migrate}`.
+- **R1:** The generic lifter, checks and migration harness live under `model/framework/{export,check,migrate}` in `framework.*` packages; Temporal-specific parts live under `model/temporal/{export,check,migrate}`.
 - **R2:** `model/framework` (DSL, realize core, lift, check, migrate harness) compiles with no Temporal API jar and no `temporal.*` source on its classpath, enforced by a build/gate check that fails on a violation.
-- **R3:** Temporal specifics reach the generic lifter only through a plug-in seam: layout conventions, realization-kit lifting and target API descriptors are supplied by `temporal/lift`.
+- **R3:** Temporal specifics reach the generic lifter only through a plug-in seam: layout conventions, realization-kit lifting and target API descriptors are supplied by `temporal/export`.
 - **R4:** The mini lift is byte-identical except for recorded source-path changes; mini step-table equivalence holds; the targeted suites of the moved code pass at their new homes.
 - **R5:** `MILESTONES.md` Direction, `.plans/UMPIRE_MODULES.md`, `model/README.md` and `AGENTS.md` state the new layout and that the framework is Temporal-free; the fn-114.12/fn-122.8 position is recorded as superseded.
 - **R6 (held, sweep):** The IR schema moves to an Umpire-owned namespace (`umpire.ir.v1`).
@@ -73,6 +73,7 @@ Not in scope: changing Model meaning; the real features' sources; publishing the
 
 ## Decision Context
 
+- 2026-10-12, owner: the Model-to-IR module is named `export` (`framework/export`, `temporal/export`), not `lift`; the lifter's vocabulary in docs and diagnostics may stay. Go's `tools/umpire/export` (the Quint export) keeps its name.
 - 2026-10-12, owner: the DSL moves into `framework.dsl` in .1; IR type names may change with it (`framework.dsl.Step`, ...), and the Go interpreter's hard-coded names follow in .4.
 - 2026-10-12, owner: migration rules are temporary, the harness permanent (see Edge Cases).
 - 2026-10-12, owner: framework must be self-contained and Temporal-free; approved the layout above and the sequencing: mechanical move after fn-166.13 and before fn-141; plug-in seam completion after fn-141.8; Go and IR namespace at the sweep.

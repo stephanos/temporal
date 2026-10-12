@@ -123,7 +123,7 @@ facet vocabularies are recorded in fn-161.
 | 3 | fn-162 | realizations name their Queries; claim containers removed |
 | 4 | fn-160 | layout and realization layer (.3/.4, done) |
 | 5 | fn-166.11-.13 | the change-scoped model loop: lifter suites scoped to what they lift, Make without held API generation, one diff-scoped check with an evidence record (owner, 2026-10-12) |
-| 6 | fn-169.1 | the Temporal-free framework: generic lift/check/migrate moved into `model/framework`, Temporal parts into `model/temporal`, build boundary enforced (owner, 2026-10-12) |
+| 6 | fn-169.1 | the Temporal-free framework: the DSL and generic export/check/migrate moved into `model/framework`, Temporal parts into `model/temporal`, build boundary enforced (owner, 2026-10-12) |
 | 7 | fn-141 | lifter refactor (byte-identical lifts), pulled forward by the owner on 2026-10-12; fn-169.2's plug-in seam follows fn-141.8 |
 | 8 | fn-160 | Protocol level, flat `features/`, per-feature collection (.6/.7/.2) |
 | 9 | fn-163 | system/product capabilities, named system capabilities |
@@ -466,8 +466,8 @@ do not establish developer comprehension, and absent feedback must remain explic
 
 Captured and approved by the owner on 2026-10-12. `model/framework` becomes self-contained and
 Temporal-free, so it could be reused for other systems. Most of `model/irgen`, `model/check` and the
-`model/migrate` harness is generic and moves into `framework/{lift,check,migrate}`; the Temporal kit
-lifting, layout conventions, API descriptors, gate and task rules move into `temporal/{lift,check,migrate}`.
+`model/migrate` harness is generic and moves into `framework/{export,check,migrate}`; the Temporal kit
+lifting, layout conventions, API descriptors, gate and task rules move into `temporal/{export,check,migrate}`.
 A build boundary keeps the Temporal API and `temporal.*` sources off the framework's classpath. The
 mechanical move runs before fn-141; the plug-in seam completes after fn-141.8, which removes most of the
 kit coupling. The IR namespace and the Go `tools/umpire` Temporal adapter are held for the sweep.
@@ -477,8 +477,8 @@ is deleted once applied; the harness in `framework/migrate` is permanent (owner,
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-169.1 | ⬜ todo | Mechanical move into `framework/{dsl,lift,check,migrate}` and `temporal/{lift,check,migrate}` (DSL in `framework.dsl`; IR type names follow it); feature-parameterized migration harness; Temporal-free build boundary; docs; after fn-166.13 |
-| fn-169.2 | ⬜ todo | Plug-in seam: layout conventions, kit lifting and API descriptors supplied by `temporal/lift`; after fn-141.8 |
+| fn-169.1 | ⬜ todo | Mechanical move into `framework/{dsl,export,check,migrate}` and `temporal/{export,check,migrate}` (DSL in `framework.dsl`; IR type names follow it); feature-parameterized migration harness; Temporal-free build boundary; docs; after fn-166.13 |
+| fn-169.2 | ⬜ todo | Plug-in seam: layout conventions, kit lifting and API descriptors supplied by `temporal/export`; after fn-141.8 |
 | fn-169.3 | ⏸️ deferred (sweep) | IR schema to an Umpire-owned namespace (`umpire.ir.v1`) |
 | fn-169.4 | ⏸️ deferred (Go) | Go consumers follow the `framework.dsl` IR type names; Go `tools/umpire` Temporal adapter; Testpilot execution API behind `testpilot/temporal`; import rule |
 
