@@ -43,6 +43,13 @@ import scala.jdk.CollectionConverters.*
 // package-only general headers are checked at the configured source root because they emit no
 // TASTy. Kind admission does not change the flat `foundations` and `actors` layouts.
 //
+// The flat layout (fn-160 R7-R8) holds every Temporal Model, and a fixture with a `protocol/` or
+// `realization/` folder: one machine, composition or derivation per file, named after it; a level
+// folder's files named with a family prefix (`families`); realizations in `realization/`, named
+// after what they run, beside one `Kit.scala` (`layoutFiles`). The layers' one-way imports and the
+// Temporal API's place (R9) are the import lint's (Conventions.scala). A real feature not yet moved
+// fails them as behind.
+//
 // Every feature of the Temporal Models (model/temporal/) is held to these rules, whatever its
 // folders. The lifter's fixtures, single-file features of their own rules, are held only where they
 // have a `product/` or `system/` folder, as the template and the refusal fixtures do.
@@ -58,6 +65,7 @@ final private[irgen] class Structure(index: Index):
     val sources = checked.groupBy(fileOf).toSeq.sortBy(_._1).flatMap(source)
     facetFiles(sources)
     layoutFiles(sources)
+    families(sources)
     for (_, group) <- sources.groupBy(_.feature).toSeq.sortBy(_._1) do
       val hasForms = group.exists(s => s.sub.headOption.exists(Structure.formFolders))
       val pkg = group.head.feature.split('.')
@@ -268,12 +276,42 @@ final private[irgen] class Structure(index: Index):
     !realizesClass.isNoSymbol && c.isClassDef && c.flags.is(Flags.Module) &&
       c.typeRef.derivesFrom(realizesClass)
 
+  // Whether a source is held to the flat layout (fn-160 R7-R9): a Temporal Model's, or a lifter
+  // fixture's laid out in the levels' current names, with a `protocol/` or `realization/` folder
+  // (the older fixtures keep `system/` and the earlier rules).
+  private def flat(s: Source, sources: Seq[Source]): Boolean =
+    s.path.startsWith("model/temporal/") || sources.exists(o =>
+      o.feature == s.feature && o.sub.exists(Set("protocol", "realization"))
+    )
+
+  // The machine a realization object realizes: the machine its `Realizes(machine, ...)` or
+  // `DerivesFrom(base, machine, ...)` names.
+  private def realized(c: ClassDef): Option[Symbol] =
+    def unwrapped(t: Term): Term = t match
+      case NamedArg(_, value)     => unwrapped(value)
+      case Typed(value, _)        => unwrapped(value)
+      case Inlined(_, Nil, value) => unwrapped(value)
+      case _                      => t
+    def arguments(t: Tree): List[Term] = t match
+      case Apply(fn, values) => arguments(fn) ++ values
+      case TypeApply(fn, _)  => arguments(fn)
+      case Block(stats, last) =>
+        stats.collect { case v: ValDef => v.rhs.toList }.flatten ++ arguments(last)
+      case _ => Nil
+    c.parents.iterator
+      .flatMap(arguments)
+      .map(t => unwrapped(t).symbol)
+      .find(s => !s.isNoSymbol && s.flags.is(Flags.Module) && form(s.moduleClass))
+      .map(_.moduleClass)
+
   // Every Temporal Model file declares at most one machine, composition or derivation, in a file
   // named after it; a level's own file, `product/Product.scala` or `protocol/Protocol.scala`, holds
   // its primary machine. A realization sits in its feature's `realization/` folder, in a file named
-  // after it, and is named `<Form><Kind>Run` or `<Subject>Run`.
+  // after it, and is named after what it runs: `<Subject>Run`, or `<Form><Kind>Run`, after the
+  // feature file, for the one that runs a level's primary machine (fn-160 R8). Beside them the
+  // folder holds one `Kit.scala` of shared helpers.
   private def layoutFiles(sources: Seq[Source]): Unit =
-    for s <- sources if s.path.startsWith("model/temporal/") do
+    for s <- sources if flat(s, sources) do
       val forms = s.objects.filter(c => form(c.symbol))
       // A level's own file, or the feature file of a feature of one level, holds its primary machine.
       val folders = s.folder.split('/').filter(_.nonEmpty).toSeq
@@ -294,18 +332,94 @@ final private[irgen] class Structure(index: Index):
             s"${plain(c.name)} is declared in ${s.path}: a machine, composition or derivation " +
               s"sits in a file named after it, ${plain(c.name)}.scala"
           )
+      val inRealization = s.sub.lastOption.contains("realization")
       for c <- s.objects if realization(c.symbol) do
         val name = plain(c.name)
-        if !s.sub.lastOption.contains("realization") then
+        if !inRealization then
           refuse(
             c,
             s"$name is a realization in ${s.folder}: realizations sit in the feature's " +
               "realization/ folder"
           )
-        else if !name.endsWith("Run") then
-          refuse(c, s"$name is a realization: name it after what it runs, `<Subject>Run`")
-        else if s.file != s"$name.scala" then
-          refuse(c, s"$name is declared in ${s.path}: a realization sits in a file named after it")
+        else
+          val subject = realized(c)
+          // The feature file's name, `MiniActivity` for `activity_mini/`, names the main run.
+          val main = Structure.featureFileName(folders.dropRight(1))
+          val primary = subject.exists(m =>
+            sources.exists(o =>
+              o.sub.lastOption.exists(Structure.levels) &&
+                Set("Product.scala", "Protocol.scala", "System.scala")(o.file) &&
+                o.objects.exists(_.symbol == m)
+            )
+          )
+          val names = subject.toSeq.map(m => plain(m.name) + "Run") ++
+            main.filter(_ => primary).map(_ + "Run")
+          if !names.exists(_.equalsIgnoreCase(name)) then
+            refuse(
+              c,
+              s"$name is a realization of ${subject.fold("its machine")(m => plain(m.name))}: " +
+                s"name it after what it runs, ${names.distinct.mkString(" or ")}"
+            )
+          else if s.file != s"$name.scala" then
+            refuse(c, s"$name is declared in ${s.path}: a realization sits in a file named after it")
+      if inRealization && s.file != "Kit.scala" && !s.objects.exists(c => realization(c.symbol))
+      then
+        refuse(
+          s.top.headOption.fold(s.path)(fileOf),
+          s.top.headOption.fold(1)(lineOf),
+          s"${s.file} is in ${s.folder}, the realization layer, which holds one file per " +
+            "realization, `<Subject>Run.scala`, and its shared helpers in Kit.scala"
+        )
+
+  // ### Family prefixes (fn-160 R7): a level folder's files sort by family
+
+  // Each file of a level folder is the level's own file, a `Kit.scala`, or named with a family
+  // prefix: the level's name (`ProtocolMember`), its primary machine's (`TaskQueueProductUnder…`),
+  // a facet of the feature's vocabulary (`enum FacetName`; `DispatchingProgress`) or a design
+  // family the feature declares (`enum FamilyName`; `QueueScheduled`), the nearest enclosing
+  // package's of each. A prefix ends where the name does or at a capital letter.
+  private def families(sources: Seq[Source]): Unit =
+    def pkg(s: Source) = (s.feature :: s.sub).mkString(".")
+    val vocabularies = for
+      s <- sources
+      d <- s.top
+      if d.symbol.isClassDef && d.symbol.flags.is(Flags.Enum)
+      kind = plain(d.name)
+      if kind == "FacetName" || kind == "FamilyName"
+    yield (pkg(s), kind, d.symbol.children.map(c => plain(c.name).capitalize))
+    for
+      s <- sources
+      if flat(s, sources) && !s.path.endsWith(".test.scala")
+      level <- s.sub.lastOption.filter(l => l != "realization" && Structure.levels(l))
+    do
+      val owner = pkg(s).split('.').dropRight(1).mkString(".")
+      def nearest(kind: String) = vocabularies
+        .filter((p, k, _) => k == kind && (owner == p || owner.startsWith(p + ".")))
+        .sortBy(-_._1.length)
+        .headOption
+        .toSeq
+        .flatMap(_._3)
+      val levelName = level.capitalize
+      val primary = sources
+        .find(o => o.folder == s.folder && o.file == s"$levelName.scala")
+        .toSeq
+        .flatMap { o =>
+          val machines = o.objects.filter(c => form(c.symbol)).map(c => plain(c.name))
+          machines.find(_.endsWith(levelName)).orElse(machines.headOption)
+        }
+      val prefixes = (Seq(levelName) ++ primary ++ nearest("FacetName") ++ nearest("FamilyName")).distinct
+      val stem = s.file.stripSuffix(".scala")
+      def starts(prefix: String) =
+        stem == prefix || (stem.startsWith(prefix) && stem.charAt(prefix.length).isUpper)
+      if stem != "Kit" && !prefixes.exists(starts) then
+        refuse(
+          s.top.headOption.fold(s.path)(fileOf),
+          s.top.headOption.fold(1)(lineOf),
+          s"${s.file} in ${s.folder} starts with none of its family prefixes, " +
+            s"${prefixes.mkString(", ")}: a level folder's files are grouped by the level's name or " +
+            "its primary machine's, a facet's (enum FacetName) or a design family's (enum " +
+            "FamilyName); name it `<Family><Design>.scala`, renaming its object, or declare its family"
+        )
 
   // ### Machine objects and their refinements
 
@@ -705,13 +819,15 @@ object Structure:
     formSections.flatMap(n => if n == "rules" then Seq(n, "syncs") else Seq(n))
 
   // The name of a feature file in a folder: a form's under a kind, `<Form><Kind>`
-  // (`standalone/StandaloneActivity.scala`, fn-160 R13), any other's the folder's name.
+  // (`standalone/StandaloneActivity.scala`, fn-160 R13), any other's the folder's name; its
+  // readers compare it case aside.
   def featureFileName(folders: Seq[String]): Option[String] =
     folders.lastOption.map { last =>
       val flat = last.split('_').toSeq
-      if flat.sizeIs == 2 && formFolders(flat.last) then flat.last + flat.head
-      else if formFolders(last) && folders.sizeIs >= 2 then last + folders(folders.size - 2)
-      else last
+      if flat.sizeIs == 2 && formFolders(flat.last) then flat.last.capitalize + flat.head.capitalize
+      else if formFolders(last) && folders.sizeIs >= 2 then
+        last.capitalize + folders(folders.size - 2).capitalize
+      else last.capitalize
     }
 
   // Whether a source sits in a level folder, `product/` or `system/`, so the order lint reads it

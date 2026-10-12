@@ -77,13 +77,13 @@ trait Queueing extends Facet[QueueDetail, QueueOutcome, QueueFact], Phased[Queue
         case Custody.nowhere | Custody.history | Custody.persisted =>
           enter(s.copy(polled = false), QueueFact.crashed)
 
-      // Bound by LossyMatchingQueue alone.
+      // Bound by QueueLossyMatching alone.
       def storageLossDetail(@unused s: State) =
         List(
           Step(QueueOutcome.lost, TaskQueueProtocol.states.idleQueue, List(QueueFact.storageLost))
         )
 
-      // Bound by ForgetfulQueue alone. History drops its dispatch task when it invokes
+      // Bound by QueueForgetful alone. History drops its dispatch task when it invokes
       // AddActivityTask, before matching persists anything, so a crash there leaves no custodian for a
       // message the interface still calls committed.
       def forgetfulCrash(s: State) = s.custody match
@@ -92,7 +92,7 @@ trait Queueing extends Facet[QueueDetail, QueueOutcome, QueueFact], Phased[Queue
         case Custody.nowhere | Custody.history | Custody.persisted =>
           enter(s.copy(polled = false), QueueFact.crashed)
 
-      // Bound by VolatileQueue alone. A crash wipes the tasks matching persisted, which history no
+      // Bound by QueueVolatile alone. A crash wipes the tasks matching persisted, which history no
       // longer backs.
       def volatileCrash(s: State) = s.custody match
         case Custody.persisted => enter(TaskQueueProtocol.states.idleQueue, QueueFact.crashed)

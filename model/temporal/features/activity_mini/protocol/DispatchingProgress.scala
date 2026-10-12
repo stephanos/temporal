@@ -11,13 +11,13 @@ val _ = () => summon[CanEqual[Phase, Phase]]
 
 val workerFair = assume.fair(activityWorker.poll)
 
-object DispatchProgress extends Derived(ActivityProtocol.restrict(activityWorker.poll)):
+object DispatchingProgress extends Derived(ActivityProtocol.restrict(activityWorker.poll)):
   object states:
     def waiting(s: State): Boolean = s.phase == Phase.scheduled
     def started(s: State): Boolean = s.phase == Phase.started
   object properties:
     object liveness:
-      val workerStarts = DispatchProgress.leadsTo("workerStarts")(
+      val workerStarts = DispatchingProgress.leadsTo("workerStarts")(
         states.waiting, states.started, within = Bounds.dispatchSteps, workerFair)
   object queries:
     val starts = witness(activityWorker.poll).records(Fact.statusStarted).limits(three)

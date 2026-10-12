@@ -138,7 +138,8 @@ private[irgen] object FixturePositions:
     ),
     "taskqueue" -> (
       lines("model/temporal/foundations/taskqueue/TaskQueue.scala",
-        96 -> 100, 97 -> 101, 98 -> 102, 100 -> 104, 101 -> 105, 102 -> 106, 110 -> 114, 111 -> 115
+        40 -> 34, 43 -> 37, 46 -> 40, 53 -> 47, 56 -> 50, 63 -> 57, 66 -> 60, 70 -> 64, 96 -> 98, 97 -> 99,
+        98 -> 100, 100 -> 102, 101 -> 103, 102 -> 104, 110 -> 112, 111 -> 113
       ) ++
       lines("model/temporal/foundations/taskqueue/product/Product.scala",
         17 -> 16, 74 -> 30, 78 -> 32
@@ -149,7 +150,7 @@ private[irgen] object FixturePositions:
         60 -> 50, 61 -> 51, 62 -> 52, 63 -> 53, 64 -> 54, 79 -> 65, 80 -> 66, 82 -> 68, 83 -> 69, 85 -> 71,
         86 -> 72
       ) ++
-      relocate("model/temporal/foundations/taskqueue/system/System.scala", "model/temporal/foundations/taskqueue/protocol/ForgetfulQueue.scala",
+      relocate("model/temporal/foundations/taskqueue/system/System.scala", "model/temporal/foundations/taskqueue/protocol/QueueForgetful.scala",
         284 -> 13
       ) ++
       relocate("model/temporal/foundations/taskqueue/system/System.scala", "model/temporal/foundations/taskqueue/protocol/Protocol.scala",

@@ -8,11 +8,11 @@ import framework.Finite.given
 // A crash that wipes the tasks matching persisted.
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 
-object VolatileQueue
+object QueueVolatile
     extends Derived(
       TaskQueueProtocol.rebind(fault.crash ~> TaskQueueProtocol.queueing.effects.volatileCrash)
     ),
       NegativeControl:
 
   object queries:
-    val volatileQueueQueries = TaskQueueProtocol.queries.providerQueries(VolatileQueue)
+    val volatileQueueQueries = TaskQueueProtocol.queries.providerQueries(QueueVolatile)

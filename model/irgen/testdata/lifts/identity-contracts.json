@@ -48,7 +48,9 @@
       "temporal.foundations.taskqueue.system.TaskQueueSystem$.states$.deliverable": "temporal.foundations.taskqueue.protocol.TaskQueueProtocol$.states$.deliverable",
       "temporal.foundations.taskqueue.system.TaskQueueSystem$.states$.matchable": "temporal.foundations.taskqueue.protocol.TaskQueueProtocol$.states$.matchable",
       "temporal.foundations.taskqueue.system.TaskQueueSystem$.states$.oneMoreDelivery": "temporal.foundations.taskqueue.protocol.TaskQueueProtocol$.states$.oneMoreDelivery",
-      "temporal.foundations.taskqueue.system.TaskQueueSystem$.states$.queueEnds": "temporal.foundations.taskqueue.protocol.TaskQueueProtocol$.states$.queueEnds"
+      "temporal.foundations.taskqueue.system.TaskQueueSystem$.states$.queueEnds": "temporal.foundations.taskqueue.protocol.TaskQueueProtocol$.states$.queueEnds",
+      "forgetfulQueue": "queueForgetful",
+      "forgetfulQueue.rules.crash": "queueForgetful.rules.crash"
     }
   },
   "retryCapabilities": {

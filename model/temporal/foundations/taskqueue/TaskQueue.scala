@@ -17,18 +17,12 @@
 // messages in flight at once.
 //
 // The queue has two levels, each in a folder of its own (fn-126 decision 16): its contract is its
-// Product and its provider its System.
-//
-//   - this file: the types and the signature (the entity, the interface's actions, the fault actor
-//     and its actions, the storage-loss assumption and the bounds);
-//   - product/Product.scala: TaskQueueProduct, the opaque contract, and TaskQueueProductUnderStorageLoss,
-//     its storage-loss variant;
-//   - system/System.scala: TaskQueueProtocol, the detailed provider that refines it, and the providers
-//     derived from it, LossyMatchingQueue, ForgetfulQueue and VolatileQueue.
+// Product and its provider its Protocol. This file holds the types and the signature; each level
+// folder holds its level file, its facet and one file per derived provider, grouped by name prefix
+// (fn-160 R7; model/README.md, "The layers").
 //
 // A machine object reads its header (entity, init, end), then its sections in order: states,
-// refinement, effects, monitors, rules, properties and queries. The queue declares no IR file of
-// its own: the features that compose it export it.
+// refinement, effects, monitors, rules, properties and queries.
 package temporal
 package foundations.taskqueue
 
@@ -75,6 +69,10 @@ final case class QueueClaims(delivers: Property[QueueDetail], committedStays: Pr
 // The task queue's facet vocabulary (fn-161), shared by its levels: each level is one facet.
 enum FacetName:
   case queueing
+
+// The design family its derived providers share (fn-160 R7): QueueForgetful, QueueVolatile, ...
+enum FamilyName:
+  case queue
 
 // ### Signature
 

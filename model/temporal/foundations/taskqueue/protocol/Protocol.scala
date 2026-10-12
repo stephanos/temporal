@@ -1,7 +1,7 @@
 // The task queue's System: its provider, the route one message takes through history and matching
 // (fn-126 decision 16). The level's own file holds TaskQueueProtocol, the detailed provider whose
-// refinement says what the opaque contract (product/Product.scala) reads of it, and the providers
-// derived from it, LossyMatchingQueue, ForgetfulQueue and VolatileQueue.
+// refinement says what the opaque contract (product/Product.scala) reads of it; the providers
+// derived from it, QueueLossyMatching, QueueForgetful and QueueVolatile, have files of their own.
 package temporal
 package foundations.taskqueue
 package protocol

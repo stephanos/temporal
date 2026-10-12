@@ -150,7 +150,7 @@ of the feature file, and every level's machine binds the same actions.
 
 An *entity* is what a machine keeps state for; a realization keys recorded evidence to it.
 
-Source: [temporal/features/activity_mini/MiniActivity.scala:40](temporal/features/activity_mini/MiniActivity.scala#L40).
+Source: [temporal/features/activity_mini/MiniActivity.scala:37](temporal/features/activity_mini/MiniActivity.scala#L37).
 
 ```scala
 val activity = Entity(key = "activityId")
@@ -164,7 +164,7 @@ describe call); the realization's typed read does the reading.
 An *actor* is an object whose members are the actions it takes. `Actor.system` is reserved for the
 steps the system takes of its own: timers, internal steps, channel deliveries.
 
-Source: [temporal/features/activity_mini/MiniActivity.scala:45](temporal/features/activity_mini/MiniActivity.scala#L45).
+Source: [temporal/features/activity_mini/MiniActivity.scala:42](temporal/features/activity_mini/MiniActivity.scala#L42).
 
 ```scala
 object client extends Client:
@@ -188,7 +188,7 @@ An action may take finite *inputs*. Each assignment of the inputs is one *class*
 `activityWorker.respondFailed(Failure.retryable)` are two classes, and the table has one column per
 class. An action with no input has one class.
 
-Source: [temporal/features/activity_mini/MiniActivity.scala:41](temporal/features/activity_mini/MiniActivity.scala#L41).
+Source: [temporal/features/activity_mini/MiniActivity.scala:38](temporal/features/activity_mini/MiniActivity.scala#L38).
 
 ```scala
 val scheduleToStart = input[Timeout](default = Timeout.unset)
@@ -675,18 +675,18 @@ them away.
 **Writing it.** In `object properties.liveness`, always named, with an explicit finite bound and
 the assumptions on which the claim relies:
 
-Source: [temporal/features/activity_mini/protocol/DispatchProgress.scala:12](temporal/features/activity_mini/protocol/DispatchProgress.scala#L12).
+Source: [temporal/features/activity_mini/protocol/DispatchingProgress.scala:12](temporal/features/activity_mini/protocol/DispatchingProgress.scala#L12).
 
 ```scala
 val workerFair = assume.fair(activityWorker.poll)
 
-object DispatchProgress extends Derived(ActivityProtocol.restrict(activityWorker.poll)):
+object DispatchingProgress extends Derived(ActivityProtocol.restrict(activityWorker.poll)):
   object states:
     def waiting(s: State): Boolean = s.phase == Phase.scheduled
     def started(s: State): Boolean = s.phase == Phase.started
   object properties:
     object liveness:
-      val workerStarts = DispatchProgress.leadsTo("workerStarts")(
+      val workerStarts = DispatchingProgress.leadsTo("workerStarts")(
         states.waiting, states.started, within = Bounds.dispatchSteps, workerFair)
 ```
 
@@ -786,10 +786,10 @@ still hold, a restriction that isolates one path.
 
 **Writing it.** An object of its own, in its package's family; the derivation is one expression:
 
-Source: [temporal/features/activity_mini/protocol/TrustingAnswers.scala:13](temporal/features/activity_mini/protocol/TrustingAnswers.scala#L13).
+Source: [temporal/features/activity_mini/protocol/AnswerTrusting.scala:13](temporal/features/activity_mini/protocol/AnswerTrusting.scala#L13).
 
 ```scala
-object TrustingAnswers extends Derived(AnswerDispatch.rebind(answers.deliver ~> AnswerDispatch.answering.effects.trust)), NegativeControl:
+object AnswerTrusting extends Derived(AnswerDispatch.rebind(answers.deliver ~> AnswerDispatch.answering.effects.trust)), NegativeControl:
 ```
 
 Source: [temporal/features/activity_mini/protocol/ProtocolMember.scala:5](temporal/features/activity_mini/protocol/ProtocolMember.scala#L5).
@@ -961,7 +961,7 @@ object taskQueue:
   val schedule = internal.input(scheduleToStart).on(foundations.taskqueue.taskQueueEntity)
 
 object Queue extends Composition[OverQueue](
-    _.activity -> ProtocolMember, _.queue -> ScheduledQueue):
+    _.activity -> ProtocolMember, _.queue -> QueueScheduled):
   def end(s: State) = s.activity.phase.in[Closed]
   object syncs extends Syncs:
     sync(_.activity -> activityWorker.poll, _.queue -> foundationQueue.deliver)
@@ -1007,7 +1007,7 @@ Source: [temporal/features/activity_mini/protocol/AnswerDispatch.scala:22](tempo
 val answers = channel[Answer](capacity = 1, order = Order.fifo, loss = Loss.lossy)
 ```
 
-Source: [temporal/features/activity_mini/protocol/Faults.scala:18](temporal/features/activity_mini/protocol/Faults.scala#L18).
+Source: [temporal/features/activity_mini/protocol/AnswerFaults.scala:18](temporal/features/activity_mini/protocol/AnswerFaults.scala#L18).
 
 ```scala
 given Finite[AnswerState] =
@@ -1022,7 +1022,7 @@ is refused at the channel declaration even with `Finite.upTo(n)`; send bounded v
 Each `Inbox[UpTo[N]]` associates with the channel of that bound. The mini uses this channel in its
 `AnswerDispatch` FailureModel. `Answering.effects.send`
 enqueues a first- or second-attempt answer; `receive` rejects a stale answer, while
-`TrustingAnswers` rebinds delivery to `trust` as the NegativeControl. The task queue foundation
+`AnswerTrusting` rebinds delivery to `trust` as the NegativeControl. The task queue foundation
 separately models its one outstanding message as an enum.
 
 ## 19. Realizations

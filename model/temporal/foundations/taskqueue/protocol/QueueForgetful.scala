@@ -8,7 +8,7 @@ import framework.Finite.given
 // A crash that loses the message history dropped on invoking AddActivityTask.
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 
-object ForgetfulQueue
+object QueueForgetful
     extends Derived(
       TaskQueueProtocol.rebind(fault.crash ~> TaskQueueProtocol.queueing.effects.forgetfulCrash)
     ),
@@ -16,4 +16,4 @@ object ForgetfulQueue
 
   object queries:
     val forgetfulQueueQueries =
-      TaskQueueProtocol.queries.providerQueries(ForgetfulQueue)
+      TaskQueueProtocol.queries.providerQueries(QueueForgetful)

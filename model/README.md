@@ -557,7 +557,7 @@ Read its three levels in order: [Product](temporal/features/activity_mini/produc
 [Protocol](temporal/features/activity_mini/protocol/Protocol.scala), then
 [MiniActivityRun](temporal/features/activity_mini/realization/MiniActivityRun.scala) and its
 [Kit](temporal/features/activity_mini/realization/Kit.scala). The signature's header names
-these hard instances:
+these hard instances, and the tree shows where each lives:
 
 | Concept | Committed mini declaration |
 | --- | --- |
@@ -566,10 +566,10 @@ these hard instances:
 | Shared status | Protocol `backingOff` and `scheduled` both record `Fact.statusScheduled` |
 | Facets and cross-facet guard | Product and Protocol `Dispatching` / `Completion`; Completion's schedule deadline reads `dispatching.states.waiting` |
 | Capabilities and waivers | Product `Pollable` / `Closable` with reasoned `except(closedIsRejectedUniformly)`; Protocol `Retryable` / `Expirable`, overriding `failureReturnsToWaiting` with `retryBacksOff` and its reason |
-| Composition | `Queue` composes `ProtocolMember` and `ScheduledQueue`; its poll/deliver sync and `queueDelivery` claim |
-| Channel and failure model | `AnswerDispatch`, `Answering` and `Faults`: capacity-one FIFO lossy `answers` channel and `AnswerState`'s explicit finite inbox catalog |
-| Negative control | `TrustingAnswers` rebinds answer delivery to `trust`; `staleAnswerFound` / `staleAnswerRejected` exercise stale settlement |
-| Progress | `DispatchProgress.workerStarts` under `workerFair = assume.fair(activityWorker.poll)`, restricted to poll and bounded by `Bounds.dispatchSteps` |
+| Composition | `Queue` composes `ProtocolMember` and `QueueScheduled`; its poll/deliver sync and `queueDelivery` claim |
+| Channel and failure model | `AnswerDispatch`, `Answering` and `AnswerFaults`: capacity-one FIFO lossy `answers` channel and `AnswerState`'s explicit finite inbox catalog |
+| Negative control | `AnswerTrusting` rebinds answer delivery to `trust`; `staleAnswerFound` / `staleAnswerRejected` exercise stale settlement |
+| Progress | `DispatchingProgress.workerStarts` under `workerFair = assume.fair(activityWorker.poll)`, restricted to poll and bounded by `Bounds.dispatchSteps` |
 | Monitor, hole, assumption | `ActivityProtocol.monitors.attemptsNeverRewind`; `AnswerDispatch.monitors.cancelDuringBackoff` and `environment = delayedAnswersPossible` |
 | Realization | `MiniActivityRun`: seven evidence kinds, typed deadline presets for one/two attempts, an Activity worker script and dispatch hold |
 | Queries and expectations | Product `completed` witness / `terminalIsFinal` verify; Protocol `protocolCompleted.live(satisfied)` / `retryCompleted.live(inconclusive(Reason.explanationsDisagree, because = ...))`; named `Bounds.three` / `six` |
@@ -894,11 +894,20 @@ reads the Temporal API (the one exception: a Protocol's `Describable` names the 
 table). The root feature file keeps only genuinely shared types and the shared signature. A level
 folder holds the level's own file, named after the folder (`Product.scala`, `Protocol.scala`), with
 the level's `Phase`, `State` and `Fact` and its primary machine; every other machine, composition or
-derivation has a file of its own named after it, and every facet one named after the facet, so the
-sorted file list shows every machine and its family by name prefix (`RecordOver…`,
-`TrustingRecord…`). The realization folder holds one file per realization, named `<Form><Kind>Run`
-for a form's main one and `<Subject>Run` for any other, and one `Kit.scala` of shared helpers. A
-feature of one level keeps its machine in its feature file. The structure lint holds every Temporal
+derivation has a file of its own named after it, and every facet one named after the facet. The
+folders stay flat, with no nested packages; a level folder's files are grouped by name prefix, so the
+sorted file list shows every machine and its family. Each file's name starts with a family prefix:
+the level's name (`ProtocolMember`) or its primary machine's (`TaskQueueProductUnderStorageLoss`), a
+facet of the feature's vocabulary (`enum FacetName`; `DispatchingProgress`) or a design family the
+feature file declares beside it (`enum FamilyName: case answer, queue`; `AnswerTrusting`,
+`QueueScheduled`), whole words up to a capital letter; name a design `<Family><Design>`, not
+`<Design><Family>`. A `Kit.scala` of shared helpers needs no prefix. The realization folder holds one
+file per realization, named after what it runs: `<Form><Kind>Run`, after the feature file, for the
+realization of a level's primary machine (`MiniActivityRun`), and `<Subject>Run` for any other, the
+machine its `Realizes(...)` or `DerivesFrom(...)` names (`HeartbeatCompletionRun` for
+`HeartbeatCompletion`); beside them, one `Kit.scala` of shared helpers and nothing else. A feature
+of one level keeps its machine in its feature file. The tree is the inventory: a feature file lists
+no files. The structure lint holds every Temporal
 Model to this ("Starting a new feature" below), and the standalone activity is the example:
 
 ```text
@@ -955,7 +964,7 @@ foundations/
       TaskQueueProductUnderStorageLoss.scala
     protocol/
       Protocol.scala             TaskQueueProtocol, the provider that refines it
-      ForgetfulQueue.scala, LossyMatchingQueue.scala, VolatileQueue.scala
+      QueueForgetful.scala, QueueLossyMatching.scala, QueueVolatile.scala   (family queue)
 actors/
   client/
     Client.scala                 the caller of Temporal's public API
@@ -1427,7 +1436,7 @@ read while another initializes, initializes nothing and is not refused; a contex
 applies at once is read where it is written, and so are a rule heading's rules and guard. The lint follows no call: a
 `def` called during initialization that reads a later `val` is not caught. A feature file is a
 source named after its folder in a package under `features`, `foundations` or `actors`; the other files of a
-feature folder, its `Realization.scala` and tests, and the kit's files answer to (a) and (b) only. The lifter's refusal specimens (`*Rejects.scala` among its fixtures),
+feature folder, its `realization/` files and tests, and the kit's files answer to (a) and (b) only. The lifter's refusal specimens (`*Rejects.scala` among its fixtures),
 which read a `val` before it is declared on purpose, are left to the refusals they are specimens of. Each
 kind has its refusal fixture, `model/irgen/testdata/initOrder/` and, for the sections,
 `model/irgen/testdata/sectionOrder/`, and a misnamed feature file its own,
@@ -1518,11 +1527,18 @@ line by the fixture tests.
 The structure lint (`model/irgen/Structure.scala`, fn-126 R20) refuses any other layout, and an
 object in a machine object named other than `states`, `refinement`, `effects`, `monitors`, `rules`,
 `syncs`, `properties`, `capabilities` or `queries`; its refusal fixtures are under
-`model/irgen/testdata/layoutRefusals/`. It holds every feature under `model/temporal/`, where it also
-refuses a second machine in a file, a machine in a file not named after it, and a realization
-outside `realization/` or not named `…Run`; and a lifter fixture once it has a `product/`,
-`protocol/` or `system/` folder (the fixtures still use the former name `system/`). A file of a
-level folder reads in a feature file's order.
+`model/irgen/testdata/layoutRefusals/`. It holds every feature under `model/temporal/`, and a lifter
+fixture once it has a `product/`, `protocol/` or `system/` folder (the older fixtures still use the
+former name `system/`). The flat-layout rules (fn-160 R7-R9) hold every feature under
+`model/temporal/` and a fixture with a `protocol/` or `realization/` folder: they refuse, naming the
+file and the machine, a second machine, composition or derivation in a file and one in a file not
+named after it; a level folder's file with no family prefix; a realization outside `realization/` or
+not named after what it runs, naming both; and a file of `realization/` that is neither a
+realization's nor `Kit.scala`. The import lint (`Conventions.scala`) refuses, at its line, an import
+against the layers' direction and a use of the Temporal API outside `realization/`. Their refusal
+fixture is `model/irgen/testdata/layoutFiles/` (`LayoutFilesFixtures`). A real feature not yet moved
+to these rules fails them as behind until the owner's sweep (`model/migrate/README.md`, "Flat
+layout"). A file of a level folder reads in a feature file's order.
 
 ### Facets
 

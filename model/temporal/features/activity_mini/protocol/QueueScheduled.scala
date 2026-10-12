@@ -10,7 +10,7 @@ import foundations.taskqueue.product.TaskQueueProduct
 
 val _ = () => summon[CanEqual[Outstanding, Outstanding]]
 
-object ScheduledQueue extends Derived(TaskQueueProduct
+object QueueScheduled extends Derived(TaskQueueProduct
     .restrict(foundationQueue.deliver, foundationQueue.acknowledge)
     .extend(on(taskQueue.schedule) {
       where((s: QueueView) => s.outstanding == Outstanding.empty) ~> ActivityProtocol.dispatching.effects.scheduleQueue

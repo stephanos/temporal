@@ -4755,7 +4755,7 @@ class Fixtures extends munit.FunSuite:
     for (c, queue, target) <- Seq(
         ("jobOverQueue", "taskQueueProduct", ""),
         ("jobOverMatching", "taskQueueProtocol", "taskQueueProduct"),
-        ("jobOverForgetful", "forgetfulQueue", "taskQueueProduct")
+        ("jobOverForgetful", "queueForgetful", "taskQueueProduct")
       )
     do
       val members = named("compositions", c).path("members")

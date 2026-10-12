@@ -14,7 +14,7 @@ object RewriteEntersMini:
       "the proof rewrites copied sources only"
     )
     def parse(s: String) = dialects.Scala3(Input.String(s)).parse[Source].get
-    val context = List("Faults.scala", "AnswerDispatch.scala").map(n =>
+    val context = List("AnswerFaults.scala", "AnswerDispatch.scala").map(n =>
       parse(Files.readString(directory.resolve(n)))
     )
     val path = directory.resolve("Answering.scala")

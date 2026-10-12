@@ -16,7 +16,7 @@ object taskQueue:
   val schedule = internal.input(scheduleToStart).on(foundations.taskqueue.taskQueueEntity)
 
 object Queue extends Composition[OverQueue](
-    _.activity -> ProtocolMember, _.queue -> ScheduledQueue):
+    _.activity -> ProtocolMember, _.queue -> QueueScheduled):
   def end(s: State) = s.activity.phase.in[Closed]
   object syncs extends Syncs:
     sync(_.activity -> activityWorker.poll, _.queue -> foundationQueue.deliver)

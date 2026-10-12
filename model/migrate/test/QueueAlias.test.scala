@@ -15,7 +15,7 @@ class QueueAliasTest extends munit.FunSuite:
   private val prefix = "package temporal\npackage features.activity\npackage mini\npackage protocol\n\n"
 
   test("both committed mini imports and references rename exactly and converge"):
-    for name <- List("Queue.scala", "ScheduledQueue.scala") do
+    for name <- List("Queue.scala", "QueueScheduled.scala") do
       val path = Path.of("model/temporal/features/activity_mini/protocol", name)
       val source = Files.readString(path)
       val result = rewrite(source)

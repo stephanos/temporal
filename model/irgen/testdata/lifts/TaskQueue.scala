@@ -7,7 +7,7 @@ package fixture.taskqueue
 
 import temporal.foundations.taskqueue.*; import temporal.Bounds.{seven, twelve}
 import temporal.foundations.taskqueue.product.TaskQueueProduct
-import temporal.foundations.taskqueue.protocol.{ForgetfulQueue, TaskQueueProtocol}
+import temporal.foundations.taskqueue.protocol.{QueueForgetful, TaskQueueProtocol}
 import framework.*; import framework.Finite.given
 
 // ### The job
@@ -98,7 +98,7 @@ object JobOverMatching
 // The negative control: the replacement is what must fail. No Query asks it; the check of the
 // member that stands in for the opaque queue refutes it.
 object JobOverForgetful
-    extends Composition(JobOverMatching.withMember(_.queue -> ForgetfulQueue)),
+    extends Composition(JobOverMatching.withMember(_.queue -> QueueForgetful)),
       NegativeControl
 
 def overMatchingQueries(c: Composition[OverMatching]): Vector[Query] =

@@ -131,10 +131,10 @@ class BoundsTest extends munit.FunSuite:
       ("protocolCompleted", 3, "protocol/Protocol.scala", 78, 576),
       ("queueDelivery", 3, "protocol/Queue.scala", 29, 2304),
       ("retryCompleted", 6, "protocol/Protocol.scala", 73, 1152),
-      ("staleAnswerFound", 6, "protocol/TrustingAnswers.scala", 22, 450),
-      ("staleAnswerRejected", 6, "protocol/TrustingAnswers.scala", 23, 450),
+      ("staleAnswerFound", 6, "protocol/AnswerTrusting.scala", 22, 450),
+      ("staleAnswerRejected", 6, "protocol/AnswerTrusting.scala", 23, 450),
       ("staleIsFenced", 6, "protocol/AnswerDispatch.scala", 35, 450),
-      ("starts", 3, "protocol/DispatchProgress.scala", 22, 192),
+      ("starts", 3, "protocol/DispatchingProgress.scala", 22, 192),
       ("terminalIsFinal", 3, "product/Product.scala", 48, 315),
       ("terminalThroughProduct", 6, "protocol/Protocol.scala", 72, 18432)
     )

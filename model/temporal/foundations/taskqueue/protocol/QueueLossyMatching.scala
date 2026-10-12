@@ -11,7 +11,7 @@ import product.TaskQueueProductUnderStorageLoss
 // the interface that allows the loss.
 val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
 
-object LossyMatchingQueue
+object QueueLossyMatching
     extends Derived(
       TaskQueueProtocol
         .extend(on(fault.storageLoss) {
@@ -29,7 +29,7 @@ object LossyMatchingQueue
   // The crash cuts of every provider, and the storage loss.
   object queries:
     val lossyMatchingQueueQueries =
-      TaskQueueProtocol.queries.providerQueries(LossyMatchingQueue)
+      TaskQueueProtocol.queries.providerQueries(QueueLossyMatching)
     val storageLossQuery =
       witness("lossyMatchingQueue.storageLoss")(
         queue.enqueue,

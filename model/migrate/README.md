@@ -2,6 +2,63 @@
 
 DSL changes ship a task-named Scalafix rule under `model/migrate/rules/`, prove it on copied `activity_mini` sources before the real-feature sweep, and follow `model/migrate/README.md`; production loading remains held in fn-166.10.
 
+## Flat layout: Fn160Task3FamilyNames
+
+fn-160 R7-R9 hold every Model file to the flat layout: at most one machine, composition or
+derivation per file, named after it; a level folder's files named with a family prefix (the
+level's name or its primary machine's, a facet of `enum FacetName`, or a design family of
+`enum FamilyName` declared beside it in the feature file); realizations in `realization/`, each
+`<Subject>Run.scala` (`<Form><Kind>Run` for the one that runs a level's primary machine) beside one
+`Kit.scala`; product -> protocol -> realization imports one way, and the Temporal API only in
+`realization/`. The structure lint refuses the rest (`model/irgen/Structure.scala`,
+`LayoutFilesFixtures`). A real feature not yet moved fails these rules as behind; its lift is not
+part of the mini selection, so the mini and shared lift is unaffected.
+
+Most of the migration is moving files, which Scalafix cannot do, and choosing families, which is a
+judgement. The rule covers the one part a rule can express: renaming every reference to an
+inventoried object. It renames the shared task queue's providers everywhere (`ForgetfulQueue`,
+`LossyMatchingQueue`, `VolatileQueue` -> `QueueForgetful`, `QueueLossyMatching`, `QueueVolatile`),
+and the mini's own (`TrustingAnswers`, `ScheduledQueue`, `DispatchProgress` -> `AnswerTrusting`,
+`QueueScheduled`, `DispatchingProgress`) only inside the mini's packages. Comments and literals keep
+their text, and a target name already in use refuses the document (`family-name-collision`).
+The standalone activity's three `RecordOver…` compositions name the shared providers, so the sweep
+runs the rule there before anything else compiles.
+
+```sh
+mise exec -- scala-cli test --server=false model/migrate --test-only umpire.migrate.FamilyNamesTest
+timeout 1800 /bin/bash model/migrate/prove-mini.sh umpire.migrate.RewriteFamilyNamesMini
+```
+
+The copied-mini proof spells the accepted names back to their legacy identifiers at their legacy
+paths (`Faults.scala` included), runs the rule over every source of the copied mini and task queue
+protocol folders, moves each file to its new name, requires every accepted source byte for byte,
+and lifts the copy again: the complete mini lift and waivers compare byte for byte. The rename's
+identity change is recorded with the task (`.flow/tmp/fn160/task3/steps.map`): three mini and three
+task queue machine ids; the mini step tables are equivalent to the baseline under it.
+
+The manual recipe for a real feature in the sweep, one level folder at a time:
+
+1. Run the rule. Then list each file of `product/`, `protocol/` and `realization/` with the
+   machines, compositions, derivations and realizations it declares (`rg -n "^object "`).
+2. Split a file with a second machine: move each further object, with the comments that describe
+   it, into a file named after it; keep helpers several machines share in the level's own file or
+   the feature file, and add the imports each new file needs (the order lint names any declaration
+   read before it is declared).
+3. Group by family: keep the facets (`enum FacetName`), declare the design families the folder
+   needs in the feature file (`enum FamilyName: case reset, record, ...`), and rename each design
+   `<Family><Design>` (`DeferredReset` -> `ResetDeferred`, `TrustingActivityRecord` ->
+   `RecordTrusting` or a family the owner names). `git mv` the file with its object.
+4. Realizations: move each into `realization/` as `<Subject>Run.scala`, its subject the machine its
+   `Realizes(...)` / `DerivesFrom(...)` names (`HeartbeatThenCompletion` -> `HeartbeatCompletionRun`;
+   the form's main one `StandaloneActivityRun`), the helpers into `Kit.scala`. A realization's name
+   reaches the IR and Case names.
+5. Imports: the Product imports neither the Protocol nor the realization layer, the Protocol not
+   the realization; move the Temporal API's types into `realization/`.
+6. Delete the feature file's hand-written file list; keep a pointer to the template layout.
+7. Lift the feature and compare its step tables with its baseline under a map of every renamed
+   machine id (`old new`, and a composition member's short name); positions and source paths
+   change, and nothing else may.
+
 ## Declared gaps: Fn167Task4Gaps
 
 The pure transformation turns a feature's accepted lint findings into `@gap` stacks on the
@@ -215,7 +272,7 @@ That internal API belongs only to the isolated source proof, not a production lo
 
 ## Worked rename: Fn166Task9QueueAlias
 
-`Queue.scala` and `ScheduledQueue.scala` import `foundations.taskqueue.queue` as
+`Queue.scala` and `QueueScheduled.scala` import `foundations.taskqueue.queue` as
 `foundationQueue`. The rule renames that local alias to `taskQueueSource` and its
 qualified uses, inside `temporal.features.activity.mini.protocol`. It changes no
 exported definition. Equal-length identifiers retain source positions as well as
@@ -307,7 +364,7 @@ counter writes, rejection and conditional or choice-bearing definitions stay int
 An external phase is never assumed plain because its enum is absent.
 
 An inherited facet requires explicit source context: the copied-mini runner supplies its
-actual `Faults.scala` and `AnswerDispatch.scala`, proving AnswerPhase's plain enum and
+actual `AnswerFaults.scala` and `AnswerDispatch.scala`, proving AnswerPhase's plain enum and
 the concrete writer. Without that context, only private definitions/owners are rewritten;
 public effects require a caller inventory. Competing imports and lookalike DSL declarations,
 unknown types/status, absent or incorrect writers and escaping uses

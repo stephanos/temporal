@@ -12,7 +12,7 @@ object RewriteMini:
     val original = Path.of("model/temporal/features/activity_mini/protocol").toRealPath()
     require(directory != original, "the source proof must not rewrite the authored mini")
     val rules = Rules(List(new Fn166Task9QueueAlias))
-    val results = List("Queue.scala", "ScheduledQueue.scala").map { name =>
+    val results = List("Queue.scala", "QueueScheduled.scala").map { name =>
       val path = directory.resolve(name)
       val source = Files.readString(path)
       val tree = dialects.Scala3(Input.String(source)).parse[Source].get
