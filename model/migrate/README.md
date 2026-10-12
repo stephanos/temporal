@@ -1,5 +1,7 @@
 # Model migrations
 
+A rule is temporary and the harness is permanent (owner, 2026-10-12). Keep only rules the owner's sweep has not yet applied: once the sweep applies a rule to the real features, delete the rule, its proof and its section here; git keeps them. The harness (`prove-mini.sh`, the patch fixture and the proof runner) stays, and moves to `model/framework/migrate` with fn-169.
+
 DSL changes ship a task-named Scalafix rule under `model/migrate/rules/`, prove it on copied `activity_mini` sources before the real-feature sweep, and follow `model/migrate/README.md`; production loading remains held in fn-166.10.
 
 ## Flat layout: Fn160Task3FamilyNames

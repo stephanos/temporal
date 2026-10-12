@@ -54,6 +54,7 @@ Enforcement: `framework/` compiles without the Temporal API jar or `temporal.*` 
 - Mini-only scope (MILESTONES): only `framework/`, the lifter/check/migrate code, shared code and `features/activity_mini` change; real features stay behind. Moves must keep the mini lift byte-identical apart from recorded source paths, and mini step-table equivalence must hold.
 - The IR schema rename and the Go reorganisation touch proto, Go and regeneration: held for the owner's sweep.
 - fn-141 rewrites the lifter. The mechanical move runs before it, so fn-141 lands in the final homes; most kit coupling disappears in fn-141.8 (realizations exported from constructed values), and the residue moves to `temporal/lift/` after it.
+- Retention (owner, 2026-10-12): the rule-proof harness is permanent and lives in `framework/migrate`. `temporal/migrate` holds only rules the sweep has not yet applied; once the sweep applies a rule to the real features, the rule, its proof and its README section are deleted (git keeps them). The guide's instruction to ship a rule with each DSL change stays.
 - Make targets, scala-cli project files, fn-166.13's coverage registry and every doc that names `model/irgen`/`model/check`/`model/migrate` paths follow the move.
 
 ## Acceptance Criteria
@@ -72,6 +73,7 @@ Not in scope: changing Model meaning; the real features' sources; publishing the
 
 ## Decision Context
 
+- 2026-10-12, owner: migration rules are temporary, the harness permanent (see Edge Cases).
 - 2026-10-12, owner: framework must be self-contained and Temporal-free; approved the layout above and the sequencing: mechanical move after fn-166.13 and before fn-141; plug-in seam completion after fn-141.8; Go and IR namespace at the sweep.
 
 ## Quick commands

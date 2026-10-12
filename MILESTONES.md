@@ -471,6 +471,8 @@ lifting, layout conventions, API descriptors, gate and task rules move into `tem
 A build boundary keeps the Temporal API and `temporal.*` sources off the framework's classpath. The
 mechanical move runs before fn-141; the plug-in seam completes after fn-141.8, which removes most of the
 kit coupling. The IR namespace and the Go `tools/umpire` Temporal adapter are held for the sweep.
+Migration rules are temporary: `temporal/migrate` keeps only rules the sweep has not applied, and each
+is deleted once applied; the harness in `framework/migrate` is permanent (owner, 2026-10-12).
 [Spec](.flow/specs/fn-169-a-temporal-free-framework-the-lifter.md).
 
 | Name | Status | What |
