@@ -238,3 +238,16 @@ func TestRetainedV1ArtifactIsRefusedBeforeItsPayloadIsRead(t *testing.T) {
 		t.Fatalf("v1 selected-state Artifact: %v", err)
 	}
 }
+
+func TestRetainedTargetModuleIsBoundedBeforeCopy(t *testing.T) {
+	listed := record.Target{File: "target", SHA256: record.HashBytes(nil), Size: 512<<20 + 1}
+	// A nil Artifact proves the bound is checked from the listed size alone.
+	if _, err := retainedTargetModule(nil, listed); err == nil {
+		t.Fatal("oversized retained target module admitted for copy")
+	}
+	listed.Size = 512 << 20
+	module, err := retainedTargetModule(nil, listed)
+	if err != nil || module.SHA256 != string(listed.SHA256) || module.Copy == nil {
+		t.Fatalf("bounded retained target module: %+v %v", module, err)
+	}
+}

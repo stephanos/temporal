@@ -59,6 +59,15 @@ func retainedSchemaError(schema string) error {
 // maximumRetainedModuleBytes bounds the referenced module copy.
 const maximumRetainedModuleBytes = 512 << 20
 
+// CheckRetainedModuleSize rejects a module whose listed size exceeds the
+// retained module bound, so callers refuse it before copying any bytes.
+func CheckRetainedModuleSize(size uint64) error {
+	if size > maximumRetainedModuleBytes {
+		return errors.New("retained WASM module exceeds its bound")
+	}
+	return nil
+}
+
 var ErrRetentionCapacity = errors.New("WASM retained execution capacity exceeded")
 
 type RetentionCapacityError struct{ Required, Maximum uint64 }
@@ -353,8 +362,8 @@ func RetainedModuleFile(path, digest string) RetainedModule {
 			return err
 		}
 		defer func() { retErr = errors.Join(retErr, source.Close()) }()
-		if info.Size() > maximumRetainedModuleBytes {
-			return errors.New("retained WASM module exceeds its bound")
+		if err := CheckRetainedModuleSize(uint64(info.Size())); err != nil {
+			return err
 		}
 		return copyRetainedModule(destination, io.LimitReader(source, maximumRetainedModuleBytes+1))
 	}}

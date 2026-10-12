@@ -285,6 +285,10 @@ func replayClusterArtifactObserved(ctx context.Context, path, directory string, 
 	if err := simulation.CheckRetainedSchema(ref.Schema); err != nil {
 		return runner.ReplayResult{}, nil, err
 	}
+	module, err := retainedTargetModule(opened, manifest.Target)
+	if err != nil {
+		return runner.ReplayResult{}, nil, err
+	}
 	observeHostMemory(observer, "replay.read.before")
 	data, err := opened.ReadPayload(ref.File, 512<<20)
 	observeHostMemory(observer, "replay.read.after")
@@ -293,11 +297,6 @@ func replayClusterArtifactObserved(ctx context.Context, path, directory string, 
 	}
 	payload := target.BackendPayload{Reference: ref, Data: data}
 	observeHostMemory(observer, "replay.bound.before")
-	// The retained evidence references the module by digest; the verified
-	// Artifact target supplies its bytes, copied without whole-file buffering.
-	module := simulation.RetainedModule{SHA256: string(manifest.Target.SHA256), Copy: func(destination string) error {
-		return opened.CopyPayload(manifest.Target.File, destination, 0o700)
-	}}
 	observed, expected, completed, err := simulation.ReplayBoundRetained(ctx, payload, module, directory, installed)
 	observeHostMemory(observer, "replay.bound.after")
 	if err != nil {
@@ -319,6 +318,18 @@ func replayClusterArtifactObserved(ctx context.Context, path, directory string, 
 		result.Divergence = "retained WASM cluster execution changed"
 	}
 	return result, completed, nil
+}
+
+// retainedTargetModule supplies the module the retained evidence references by
+// digest. The verified Artifact target supplies its bytes, copied without
+// whole-file buffering once its listed size is within the module bound.
+func retainedTargetModule(opened *artifact.Opened, target record.Target) (simulation.RetainedModule, error) {
+	if err := simulation.CheckRetainedModuleSize(uint64(target.Size)); err != nil {
+		return simulation.RetainedModule{}, err
+	}
+	return simulation.RetainedModule{SHA256: string(target.SHA256), Copy: func(destination string) error {
+		return opened.CopyPayload(target.File, destination, 0o700)
+	}}, nil
 }
 
 func observeHostMemory(observer func(string), stage string) {

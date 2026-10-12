@@ -157,7 +157,8 @@ inspection and replay classification. The launcher recognizes only the verified
 `gomad3.wasm-simulation-retained/v2` evidence schema and delegates its sealed
 typed lifecycle to the existing cluster replay owner. The evidence references the
 single guest module by digest; its bytes are the artifact's verified target file,
-copied without following links and re-hashed before any helper starts. No helper
+copied without following links once its listed size is within the 512 MiB
+module bound, and re-hashed before any helper starts. No helper
 bytes are retained. Artifacts with the older `v1` schema, which embedded module
 and helper bytes, are refused with a versioned error and must be re-recorded.
 That refusal follows only the unsupported-option preflight (`--verify-only`,
