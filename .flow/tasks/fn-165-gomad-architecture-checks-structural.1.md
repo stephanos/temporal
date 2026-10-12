@@ -16,9 +16,10 @@ Create `tools/gomad3/internal/archcheck` with `Config`, `Discover` (moved unchan
 - Package is at most 700 non-test lines.
 
 ## Done summary
-TBD
+internal/archcheck provides Discover/Check/Finding with owner, module-edge, pure-import, pure-syntax and time/select rules over go list and go/ast only; inventory, package-architecture and host-vet tests run through it on both qualified platforms; 652 non-test lines with an enforced 700-line per-package budget.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: c6afac5097, 016ec47b74, d36476f98a
+- Tests: root architecture/purity selection with GOMAD3_ARCH_ALL_PLATFORMS=1 plus ./internal/archcheck ./internal/puritycheck (0), evidence: .flow/artifacts/wasm-section-acceptance-2026-10-12.md
 - PRs:
