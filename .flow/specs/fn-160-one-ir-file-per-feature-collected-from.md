@@ -144,3 +144,7 @@ None of these needs a split.
    - (b) A feature also collects the `queries` sections of foundations whose machines it reaches. This repeats them in every composing feature.
 
    `actors/worker` (`Polling`, no Queries) produces either a `worker` file under (a) or nothing new under (b), since it is already reached. This also decides whether kind folders (`features/nexus`, `features/activity`) produce a file. Today they hold `NexusProduct` and no machine respectively, and the inferred default is no.
+
+## Scope: the mini feature only (owner, 2026-10-11)
+
+Within the Scala DSL batch (`MILESTONES.md`), this spec changes only the framework, the lifter, the shared code and `features/activity_mini`. The real features (standalone activity, Nexus workflow, Nexus standalone and their legacy payloads) are not edited, migrated, lifted or regenerated, and they stay behind until the owner's sweep, which runs this spec's scalafix rules on them. Equivalence compares `FEATURES=activity_mini` against the mini baseline. This overrides any statement in this spec that edits, migrates or proves on a real feature. See fn-166's Scope. Layout, naming and the Protocol rename apply to the mini feature and the shared code. Moving and renaming the real features' files, including task .7's real forms, waits for the sweep.

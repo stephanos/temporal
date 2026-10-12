@@ -93,3 +93,7 @@ Three options were weighed, and the user chose option 1 ("yes option 1"). [user]
 ## Parked unknowns
 
 - Whether `disabled(...)` targets (such as `disabled(process.stop)`) fall under the same qualification rule. Today they are written qualified, but nothing enforces it. A decision from the user resolves this. [inferred]
+
+## Scope: the mini feature only (owner, 2026-10-11)
+
+Within the Scala DSL batch (`MILESTONES.md`), this spec changes only the framework, the lifter, the shared code and `features/activity_mini`. The real features (standalone activity, Nexus workflow, Nexus standalone and their legacy payloads) are not edited, migrated, lifted or regenerated, and they stay behind until the owner's sweep, which runs this spec's scalafix rules on them. Equivalence compares `FEATURES=activity_mini` against the mini baseline. This overrides any statement in this spec that edits, migrates or proves on a real feature. See fn-166's Scope. The source changes already integrated into the real features stay. Open proofs and closures run on the mini feature; the real features' lift and equivalence proofs wait for the sweep.

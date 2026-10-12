@@ -3,19 +3,36 @@
 The current state of Umpire work: what is being built, what is left, and what is not being done.
 Flow (`.flow/`, `flowctl`) is the record for specs and tasks; this page is the overview across them.
 
-As of 2026-10-11.
+As of 2026-10-12.
 
-**Current mode (owner, 2026-10-11): only the Scala DSL is open.** All Scala DSL, authoring and lifter
-work under `model/` is iterated on and validated within `model/`. Everything else, including every Go,
-Testpilot and tooling change, regeneration, full gate, review and live run, is deferred until the owner
-lifts this, and will then be done in one sweep.
+**Current goal (owner, 2026-10-12): complete the mini Scala DSL, then propagate its IR and Go changes end to end.**
+The source phase covers all remaining non-held work under Open: Scala DSL work, including fn-167's
+internal metadata, derivation and pure migration tasks. Source tasks use mini-focused checks;
+broad Scala validation, independent review and a requirement-by-requirement audit run at source
+batch end. Only after that boundary does the respective mini IR/schema/Go Umpire propagation,
+regeneration and consumer validation begin. The goal remains active through both phases.
 
-The current goal is to complete the Open: Scala DSL work section (owner, 2026-10-11), using the
-conductor's recommendations for routine decisions. Fn-166 is first; its approved Go exceptions
-remain bounded, and the remaining Scala batch resumes after the proving ground. The canonical
+**Scope (owner, 2026-10-11): `activity_mini` is the only feature.** The Scala DSL work changes the
+framework, the lifter, the shared code (foundations, actors, capabilities, `Bounds`) and
+`features/activity_mini`, and nothing else. The real features (the standalone activity, the Nexus
+workflow and the Nexus standalone operation, with their `generated/legacy/` payloads) are ignored:
+when the DSL changes they are not edited, migrated, lifted or regenerated, and they stay behind until
+the owner's sweep. The rules are under [Open: Scala DSL work](#open-scala-dsl-work).
+
+The conductor follows its recommendations for routine decisions. Fn-166's source proving ground
+is complete and the remaining Scala batch is active. Its approved Go exceptions remain bounded.
+The canonical
 Make gate currently fails on owner-held linked protobuf generation and stale real-feature artifacts;
 compiled exports also differ from their historical IR inventories. The spec permits the direct
 Scala route, whose failures are recorded rather than counted as passes.
+
+**Fast iteration (owner, 2026-10-11):** steps run mini-focused checks and targeted tests for changed
+framework/lifter files. Broad validation and independent review run once at the Scala batch end,
+not at every task or spec. This supersedes the older per-task/per-spec cadence below; each task
+records the deferred gates explicitly, without claiming unrun checks passed or review reached SHIP.
+Existing findings and their fixes remain part of the batch review. Go, regeneration and consumer
+work stays held until the complete source-phase boundary. Real-feature migration, lint/manual
+acceptance, push/PR and production deployment remain outside this run's authority.
 
 ## Keeping this page current
 
@@ -25,6 +42,7 @@ Scala route, whose failures are recorded rather than counted as passes.
   and the spec once it is closed. Flow and git keep the history.
 - Only the root agent edits this page. Workers report status in their handoffs.
 - Update the "As of" date with every edit.
+- Task/spec branch integration follows `AGENTS.md`'s Local milestone execution policy.
 
 ## Direction
 
@@ -38,24 +56,49 @@ The DSL framework (`model/framework`) stays Temporal-agnostic as far as is reali
 vocabulary, properties, realization vocabulary and kit live under `model/temporal/`, and the lifter and Testpilot IR
 are the parts that are Temporal's driver tooling by design (fn-114.12, fn-122.8).
 
-Now: iterate on the Scala DSL alone. Later, in one sweep: every Go-side change, one regeneration, the
-full gate, review and live run.
+Now, complete the mini Scala DSL. Then propagate its respective IR and Go consumer changes.
+Real-feature sources and historical payloads stay behind for the owner's separate sweep.
 
 ## Open: Scala DSL work
 
-**The Scala batch is active again at the owner's request; fn-166 is in progress.** The last integrated
-batch task is fn-149.2. Flow records fn-149.6/.7 done on `w-1d`, but their closure commits are not yet
-in this branch. After the proving ground, integrate and verify that existing work rather than repeat it,
-close the earlier source-integrated tasks and resume the remaining work in dependency order.
+**The Scala batch is active again at the owner's request; fn-166's current source lane is complete.**
+Completed mini and qualification source checkpoints are integrated into local `umpire`; the earlier
+pre-mini batch stopped at fn-149.2. Flow records fn-149.6/.7 done on `w-1d`, but their closure commits
+are not yet integrated. At fn-149's boundary, reuse and verify that existing work within the current
+mini/shared scope rather than repeat it; real-only branch changes wait for the sweep. Close the
+earlier source-integrated tasks and resume the remaining work in dependency order.
+
+**Only the mini feature (owner, 2026-10-11).** Every spec below is scoped to `features/activity_mini`
+plus the framework, the lifter and the shared code:
+
+- **Real features are not touched.** A DSL change does not edit, migrate, lift or regenerate the
+  standalone activity, the Nexus workflow or the Nexus standalone operation, nor their legacy
+  payloads. A change that breaks them is expected and leaves them behind (fn-166). They do not
+  constrain a DSL change, and no task proves anything on them.
+- **Real-feature tasks are retargeted or deferred.** A task written against a real feature applies its
+  change to the mini feature where the mini feature has the construct. What concerns only a real
+  feature moves to the sweep; such rows are marked "⏸️ deferred (sweep)".
+- **Migration rules are written, not run.** A DSL change still ships its scalafix rule, proven on the
+  mini feature (fn-166 R6). It is not applied to the real features; the owner's sweep runs it.
+- **Equivalence uses a mini baseline.** A step-table baseline of the mini feature is captured once,
+  before the next DSL change. Per-spec equivalence and the pre-fault seal compare
+  `FEATURES=activity_mini` against it. The batch-1d baseline and map stay untouched as the real
+  features' "before" for the sweep.
+  The native baseline is `.flow/tmp/scala-dsl/mini-selected-baseline-00d22597d2/`: 16 tables,
+  11,325 rows from the immutable realization-source jar, including the selected shared query roots.
+  The earlier 10-table mini-reachable dump remains unchanged beside it; all ten tables are exact
+  members of this complete set. Neither contains a generated Case or live-run baseline;
+  `baseline.txt` records the pre-change source/jar provenance and the discovery-scope correction.
+- **The batch-end gate is the mini feature's.** It runs with `FEATURES=activity_mini`. A default
+  (every-feature) run stays red, naming the real features as behind, until the sweep.
 
 One task owner at a time takes the overlapping model work below from the integrated local tip. Only `model/` is edited
 (one exception, granted 2026-10-11: fn-166.1 moves each feature's IR and Cases into its own `generated/` tree and
 re-points the Go readers, and safely scopes existing functional/canary pin publication, since a per-feature run would otherwise rewrite unselected Cases)
 and validated: Scala compile per step; the framework, Model, lifter and gate Scala tests per spec; and the step-table
-equivalence per spec (`make umpire-check-equivalence BASE=.flow/tmp/fn160/baseline-ae3f36ee51
-MAP=model/testdata/equivalence/batch-1d.map STEPS_ONLY=1`). Checked-in IR and Cases stay stale. The
-equivalence also runs once before fn-123, so a fault or activity change cannot hide inside the
-meaning-preserving migrations before it. Rows marked "Go part deferred" finish their Go half later.
+equivalence per spec, over `FEATURES=activity_mini` against the mini baseline. The real features' checked-in
+IR and Cases stay stale. The equivalence also runs once before fn-123, so a fault or activity change cannot
+hide inside the meaning-preserving migrations before it. Rows marked "Go part deferred" finish their Go half later.
 
 If Make prerequisites require owner-held linked-API generation, record that failure and run the
 same Scala `--check-equivalence ... --steps-only` gate directly using independently validated jars
@@ -73,7 +116,7 @@ facet vocabularies are recorded in fn-161.
 
 | Order | Spec | Scala scope |
 | --- | --- | --- |
-| 0 | fn-166 | the feature as the unit (`FEATURES`, discovered by default), the mini feature `activity_mini`, `make model-mini`; the batch below iterates on it and migrates the real features by rule |
+| 0 | fn-166 | the feature as the unit (`FEATURES`, discovered by default), the mini feature `activity_mini`, `make model-mini`; the batch below changes only it and ships each change's migration as a rule the sweep runs on the real features |
 | 1 | fn-159 | qualified names, renames, `enters` (source integrated; proof/closure open) |
 | 2 | fn-161 | facets |
 | 3 | fn-162 | realizations name their Queries; claim containers removed |
@@ -83,12 +126,14 @@ facet vocabularies are recorded in fn-161.
 | 7 | fn-140 | witness Queries and `.live` |
 | 8 | fn-149 | safety and liveness groups |
 | 9 | fn-164 | `expect:` blocks for Properties and consistent colon style |
-| — | seal | step-table equivalence before the first meaning change |
+| — | seal | the mini feature's step-table equivalence before the first meaning change |
 | 10 | fn-123 | fault declarations, durability, `crashes(...)` |
-| 11 | fn-128, fn-129 | remaining activity Model edits |
-| 12 | fn-153 | Property illustrations in the DSL |
-| 13 | fn-141 | lifter refactor on the final DSL (byte-identical lifts) |
-| 14 | fn-165 | inputs as records: named classes, declared defaults, `:=` removed from classes (after fn-141) |
+| 11 | fn-153 | Property illustrations in the DSL |
+| 12 | fn-141 | lifter refactor on the final DSL (byte-identical lifts) |
+| 13 | fn-165 | inputs as records: named classes, declared defaults, `:=` removed from classes (after fn-141) |
+
+fn-128 and fn-129, the remaining standalone activity edits, are about a real feature only and moved
+to [Deferred for now](#deferred-for-now).
 
 ### fn-166: Mini activity: the smallest complete feature, the DSL's fast loop and its example
 
@@ -106,8 +151,8 @@ failure model with a negative control, fair progress, a monitor, a hole, a real 
 state; nothing is parked or deleted. A DSL change ships its migration as a scalafix rule proven on
 the mini feature, so moving it into the real features is running the rule. The guide uses the mini
 feature as its running example. Excluding the real features from a run is on demand only, `FEATURES=activity_mini`,
-with no persistent state; the default build is red while they are behind, until the batch-end sweep migrates them
-(owner, 2026-10-11). Each feature keeps its outputs in its own `generated/` tree (`ir.json`, `ir.lint.json`, `manifest.json`,
+with no persistent state; the default build is red while they are behind, until the owner's sweep runs the rules on them
+(owner, 2026-10-11). The batch changes only the mini feature (see the scope above). Each feature keeps its outputs in its own `generated/` tree (`ir.json`, `ir.lint.json`, `manifest.json`,
 `<query>.case.json`), discovered by glob, so the scope of a run is the folder and CODEOWNERS covers a feature with
 one line; the central `model/ir` and `model/cases` go away. Extra historical payloads stay losslessly under
 their owning feature's `generated/legacy/` until fn-160 merges them; pins and equivalence baselines stay unchanged
@@ -120,11 +165,11 @@ Lint checks and manual acceptance work are set aside for this run at the owner's
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-166.6 | ⬜ todo | Path-only move of Case manifests and payloads to `generated/cases/`, historical Cases to `generated/cases/legacy/`; after task 1, before realization and final loop proof |
-| fn-166.3 | 🔄 in progress | Protocol level: refinement, shared input, shared status fact, composition with `sync`, channel, failure model, fair progress, monitor, hole, `Retryable`/`Expirable` with an override |
-| fn-166.4 | ⬜ todo | Realization and live witnesses; one Case run live once |
-| fn-166.5 | ⬜ todo | Loop under 90 s; migration as scalafix rules with a worked example; SEMANTICS and README written against the mini feature |
-| fn-166.7 | ⬜ todo | Model-side Make targets drop the `umpire-` prefix (`check-model`, `gen-model`, `lint-ir`, `gen-cases`, ...); runtime targets keep theirs; no aliases; live references swept (R10, owner 2026-10-11); after task 1, in the sweep |
+| fn-166.6 | ⏸️ deferred | Path-only Case subtree move to `generated/cases/`, preserving historical Cases; owner-held Go/tooling sweep |
+| fn-166.4 | ⏸️ deferred | Case lowering and one recorded live verdict after source task 8 and Case-layout task 6 |
+| fn-166.10 | ⏸️ deferred | Runnable custom-rule loading/Make integration and mini worked application; separate infrastructure producer for fn-167.7 |
+| fn-166.5 | ⏸️ deferred | Three canonical warm loops under 90 s and authorized consumer/full-set closure; source docs and rules are tasks 8/9 |
+| fn-166.7 | ⏸️ deferred | Model-side Make target rename and live-reference sweep; runtime target names retained |
 
 ### fn-167: Gaps declared in the Model: `@gap` replaces the lint file
 
@@ -150,7 +195,6 @@ open after the Scala groundwork.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-167.1 | ⬜ todo | Typed annotation/constructors and source admission; early TASTy order/mirror proof |
 | fn-167.2 | ⬜ todo | Internal gap/waiver metadata, canonical owner/subject keys and expiry references; current transport retained |
 | fn-167.3 | ⬜ todo | Derivation provenance and conservative inherited/local validation; no consumer suppression yet |
 | fn-167.4 | ⬜ todo | Pure migration transform and copied-mini source proof; after committed fn-166.3 |
@@ -168,22 +212,18 @@ product's never-enabled `disabled(process.stop)` binding goes, unless the lift n
 `Bounds` (fn-159.5), `Observation` drops its unchecked `read` text (fn-159.6), and a bounded integer has
 one spelling, `UpTo[N]` on the field, with the lifter reading ranges per field (fn-159.9), and an input a class may omit declares its
 default on its token, so `start()` reads as every default and no form reads catalog order (fn-159.10).
-fn-159.1, fn-159.3, fn-159.6, fn-159.9 and fn-159.10 leave the IR unchanged; the renames, bound moves and `enters` change ids or function names
-only. The IR-regenerating tasks wait on the tree's IR `Duration` migration. Not marked ready.
+fn-159.1, fn-159.3, fn-159.6 and fn-159.10 preserve the authored meaning; the renames, bound moves and `enters` change ids or function names
+only. Fn-159.9 also fixes a proven bounded-Option identity collision: five type/reference leaves change,
+while ranges, source positions, Query metadata and all sixteen mini/shared step tables stay unchanged.
+The IR-regenerating tasks wait on the tree's IR `Duration` migration. Not marked ready.
+The source changes already integrated into the real features stay; the open proofs and closures run
+on the mini feature, and the real features' lift and equivalence proofs wait for the sweep.
 [Spec](.flow/specs/fn-159-qualified-action-names-in-rules.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-159.1 | ⬜ todo | Qualified `on`/grouping-only `from`, `activityWorker`, models/tests/docs source integrated; refusal/equivalence evidence and closure still open |
-| fn-159.2 | ⬜ todo | By-ID actor renamed to `completionClient` in source; validation open, managed regeneration deferred |
-| fn-159.3 | ⬜ todo | Qualified phases and phase-import refusals integrated in source; focused proof and closure open |
-| fn-159.4 | ⬜ todo | `disabled(process.stop)` removed in source; lift/equivalence proof and closure open |
-| fn-159.5 | ⬜ todo | Bounds/name moves integrated in source; inventory/equivalence proof and closure open |
-| fn-159.6 | ⬜ todo | Free-text Observation `read` removed in source; typed response-field/lift proof and closure open |
-| fn-159.7 | ⬜ todo | `enters(Phase.X)` integrated, including worker stop/resume in Serving.scala; equivalence/shared closure still open |
-| fn-159.8 | ⬜ todo | Confirmed `Retryable`/`Expirable` renames integrated in source; identity/equivalence proof open, managed regeneration deferred |
-| fn-159.9 | ⬜ todo | `UpTo[N]` as the one bounded-integer spelling; per-state `given Finite[Int]` retired from the Model, fixtures and lifter; ranges read per field (added 2026-10-11 from `model/SEMANTICS_FEEDBACK.md` 1.3) |
-| fn-159.10 | ⬜ todo | `input[T](default = v)`; `start()` and named calls fill omitted inputs from declared defaults, never from catalog order (added 2026-10-11 from `model/SEMANTICS_FEEDBACK.md` 3.3) |
+| fn-159.2 | ⏸️ deferred (sweep) | By-ID actor renamed to `completionClient` in real-feature source; mini has no By-ID actor; real-feature proof/regeneration waits for the sweep |
+| fn-159.4 | ⏸️ deferred (sweep) | Real Product's `disabled(process.stop)` removed in source; mini has no such binding; real-feature proof waits for the sweep |
 
 `disabled(...)` targets are qualified like `on` (decided 2026-10-10).
 
@@ -193,16 +233,17 @@ A feature's machine is assembled from **facets**. Each facet is a feature-local 
 Cancellation, Reset, …) that owns a set of actions and holds their rules, effects, claims and the
 capabilities it declares. Each action has exactly one owning facet; cross-facet step use is declared in
 the facet's type. Only facets define rules, effects and capabilities in a declared machine, and each
-feature's levels share one facet vocabulary. Facets are named as nouns, capabilities as adjectives. Starts with the standalone
-activity, in two stages, after fn-159.7 (`enters`). Not marked ready.
+feature's levels share one facet vocabulary. Facets are named as nouns, capabilities as adjectives. Applies to
+the mini feature. The integrated contract, selected admission and compiled wrapping migration
+checkpoints are committed in `umpire`. The standalone activity's two stages
+wait for the sweep. Qualified effect paths define collisions; distinct namespaces may reuse a
+local effect name. The parent spec records this interpretation explicitly. Not marked ready.
 [Spec](.flow/specs/fn-161-facets-action-owning-behaviour-areas-of.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-161.1 | ⬜ todo | Facet construct: framework, lifter, one-owner-per-action check, layout rules, docs |
-| fn-161.2 | ⬜ todo | Stage 1: standalone activity effects and claims into facet files (rules stay by actor) |
-| fn-161.3 | ⬜ todo | Stage 2: standalone activity rules and capabilities into their owning facets |
-| fn-161.4 | ⬜ todo | Wrap the other 11 declared machines into facets; switch facets-only and facet-vocabulary rules on globally |
+| fn-161.2 | ⏸️ deferred (sweep) | Stage 1: standalone activity effects and claims into facet files (rules stay by actor) |
+| fn-161.3 | ⏸️ deferred (sweep) | Stage 2: standalone activity rules and capabilities into their owning facets |
 
 ### fn-162: Queries name their realization; each Property declared once
 
@@ -218,7 +259,7 @@ declared once in its facet, under its existing name, so the copies go. Query ans
 | Name | Status | What |
 | --- | --- | --- |
 | fn-162.2 | ⬜ todo | Realizations name the Queries they run (unnamed find Queries are model-only): framework, lifter, IR, lowering, assessment; duplicate-Property detection — Scala part open; Go part deferred |
-| fn-162.3 | ⬜ todo | Claim-container source and cancellation deduplication integrated; strict native controls pass at the witness checkpoint, full identity/source proof open; consumer closure deferred |
+| fn-162.3 | ⬜ todo | Claim-container source and cancellation deduplication integrated; strict native controls pass at the witness checkpoint, identity/source proof open on the mini feature (real features' at the sweep); consumer closure deferred |
 
 ### fn-160: One IR file per feature, collected from the feature's package
 
@@ -226,7 +267,7 @@ Replace the hand-written `irFile` root lists, three files each for the standalon
 workflow, with one IR file per feature folder, collected from the feature's package. Nothing is listed,
 so no section can be forgotten. The model content stays the same; file boundaries and derived names
 (Cases, lint acceptances, export slices) change. Since 2026-10-11 the file lives in the feature's `generated/` tree (fn-166.1). Each Model file then holds at most one machine, in flat
-level folders grouped by name prefix, and realizations get their own `realization/` layer. Since 2026-10-11 the tree is flat: a kind folder holds only shared parts and each form is a `<kind>_<form>` folder (fn-160.7). Not marked ready.
+level folders grouped by name prefix, and realizations get their own `realization/` layer. Since 2026-10-11 the tree is flat: a kind folder holds only shared parts and each form is a `<kind>_<form>` folder (fn-160.7). Layout, naming and the Protocol rename apply to the mini feature and the shared code; moving and renaming the real features' files waits for the sweep. Not marked ready.
 [Spec](.flow/specs/fn-160-one-ir-file-per-feature-collected-from.md).
 
 | Name | Status | What |
@@ -235,7 +276,7 @@ level folders grouped by name prefix, and realizations get their own `realizatio
 | fn-160.3 | ⬜ todo | One machine per file, named after it; flat level folders grouped by name prefix (no nested packages); forms' files `<Form><Kind>.scala`; forms' shared parts under the kind's `shared/` (Nexus Product → `nexus/shared/product/`); the lifter enforces it |
 | fn-160.4 | ⬜ todo | Realization layer: flat `realization/` folder, `<Subject>Run` naming, one-way layer dependencies, API only in realizations (after fn-160.3) |
 | fn-160.6 | ⬜ todo | Rename the System level to Protocol (folders, packages, machines, files, lint vocabulary, docs), so the levels read Product / Protocol / Realization |
-| fn-160.7 | ⬜ todo | Flatten `features/`: `activity/` and `nexus/` hold only shared parts; forms are `activity_standalone/`, `activity_mini/`, `nexus_workflow/`, `nexus_standalone/`; packages follow; lint refuses nesting (added 2026-10-11, after fn-160.3) |
+| fn-160.7 | ⬜ todo | Flatten `features/`: `activity/` and `nexus/` hold only shared parts; forms are `activity_standalone/`, `activity_mini/`, `nexus_workflow/`, `nexus_standalone/`; packages follow; lint refuses nesting (added 2026-10-11, after fn-160.3); now only `activity_mini` and the shared parts it uses, the real forms' moves at the sweep |
 | fn-160.8 | ⬜ todo | Drop the `scala.` vestige from Case ids, `explore.` prefixes, activity type names and provenance; the set derives from the feature package (`temporal.features.<feature>.case.<query>`); fixtures, canary binding and Driver Profile regenerated; baseline compared under a mapped identity (R15, owner 2026-10-11); after .2 and .7, in the sweep |
 
 ### fn-163: System capabilities: distributed-systems patterns as named capabilities
@@ -252,7 +293,7 @@ protocol promises) and `capabilities/product/` (what a user sees an entity can b
 even with a single use (owner): the name improves readability and is easy to revise when more uses
 arrive. Idempotency targets actions rather than entities, and fencing/single outcome need history, so
 some laws may need synthesized monitors; verdicts, answers and Case outcomes stay unchanged under a
-checked rename map.
+checked rename map. The pattern inventory and naming proofs cover the mini feature and the shared code.
 
 | Name | Status | What |
 | --- | --- | --- |
@@ -364,7 +405,7 @@ seal, using the pinned formatter's built-in rewrite where possible and focused l
 | fn-164.2 | ⬜ todo | Typed expectation contexts and action heads; before/after reads; short-circuit alternatives; compiler scope refusals |
 | fn-164.3 | ⬜ todo | Exact core-IR lifting, temporal predicate bridges, source-positioned refusals and early parity proof |
 | fn-164.4 | ⬜ todo | Capability/foundation predicates migrated with full declaration/function parity |
-| fn-164.5 | ⬜ todo | Feature/actor Properties migrated, including readable heartbeat/reset alternatives and exact preserved IR |
+| fn-164.5 | ⬜ todo | The mini feature's Properties migrated with exact preserved IR; the real features' Properties (heartbeat/reset alternatives) at the sweep |
 | fn-164.6 | ⬜ todo | Remove lambda finishers together; migrate fixtures/core forms; author docs and final expectation source seal |
 | fn-164.1 | ⬜ todo | Consistent colon blocks across the DSL, fixtures and docs; formatter/lint enforcement; source-only lift changes and unchanged step tables |
 
@@ -391,36 +432,16 @@ of R8 were dropped, since neither tool exists.
 | fn-123.7 | ⏸️ deferred (Go) | Trace output and Quint export of derived crashes and budgets |
 | fn-123.8 | ⏸️ deferred (Go) | `umpire-faults` report, docs; close |
 
-### fn-128: Close the activity's precision gaps
-
-Tasks 1-5 are done. Tasks 7 and 8 are parallel candidates after the source gates above; task 6
-closes the shared batch after both corrections and all activity sources.
-
-| Name | Status | What |
-| --- | --- | --- |
-| fn-128.7 | ⬜ todo | Accepted fatal-settlement classification through typed public last-failure evidence; unchanged fatal Property satisfied in scratch recording/replay — live recording deferred |
-| fn-128.8 | ⏸️ deferred (Go) | Separate caller-owned pauseResume and heartbeat-retry Profiles; immutable preflight/execution/replay binding, final-shape charge proof and admission negatives |
-| fn-128.6 | ⏸️ deferred (Go) | Evidence map, live Cases run once; close |
-
-### fn-129: Activity coverage
-
-Runs after fn-138. Tasks run in order.
-
-| Name | Status | What |
-| --- | --- | --- |
-| fn-129.3 | 🔄 in progress | Reset with `keepPaused` and deferred settlement joined: 65 Queries, `deferredResetCompletes` lowers and prepares, reset-aware laws via `overriding(…, of = …)`; open: direct `keepPaused` live Case (lowering refuses a reset indistinguishable from the pause before it) — live Case deferred |
-| fn-129.4 | ⏸️ deferred (Go) | Exploration on the activity's `find` Queries |
-| fn-129.5 | ⏸️ deferred (Go) | New Cases listed, live run; close |
-
 ### fn-153: Checked property examples pilot
 
 Six M-sized tasks cover all seven requirements. The plan passed independent review on 2026-10-10.
-Its authoring parts are open in the Scala DSL work, after the activity edits.
+Its authoring parts are open in the Scala DSL work, after fn-123. The pilot's three Properties are
+the mini feature's, not Nexus's.
 [Spec](.flow/specs/fn-153-checked-property-examples-pilot.md).
 
 Pilot checked examples and counterexamples attached to three existing Properties: a same-step
-promise, a before/after promise, and a promise with a subtle applicability boundary. Start with
-Nexus synchronous success, contrasting its required state and completion fact. The existing
+promise, a before/after promise, and a promise with a subtle applicability boundary, all three from
+the mini feature. The existing
 evaluator checks each illustration; unrelated actions are not applicable, and hypothetical
 violations remain distinct from reachable model counterexamples.
 
@@ -436,7 +457,7 @@ temporal-sequence examples and a repository-wide rollout are outside the pilot.
 | fn-153.2 | ⬜ todo | Typed authoring attachment, lifting and nested source locations |
 | fn-153.3 | ⏸️ deferred (Go) | Existing Property selector/predicate classifier, errors and local mutation controls |
 | fn-153.4 | ⬜ todo | Compact deterministic document and gate freshness; handwritten assessment outside its managed subtree — gate freshness deferred |
-| fn-153.5 | ⬜ todo | Three existing Nexus Properties' contrast pairs and classification drift evidence |
+| fn-153.5 | ⬜ todo | Three existing mini-feature Properties' contrast pairs and classification drift evidence |
 | fn-153.6 | ⬜ todo | Evidence-limited assessment, docs, complete compatibility comparison and full gates — full gates deferred |
 
 Tasks run in order. Re-anchor against the actual baseline after the delivery chain; keep
@@ -454,9 +475,10 @@ export part and task 8 its size proof; either can stop tasks 9 to 13, and tasks 
 them. Source: a full read of `model/irgen` on 2026-10-06 (8,242 lines, of which about 10% lifts
 function bodies and types and 1,479 are lints that emit no IR).
 
-Every step leaves `model/ir` and `model/cases` byte-identical, so each task's gate is that
+Every step leaves the mini feature's `generated/` tree byte-identical, so each task's gate is that
 byte-identity plus the lifter's own tests; the Go suite's baseline from batch 3 stays valid while the
-IR is unchanged, and runs once more at fn-141.14.
+IR is unchanged, and runs once more at fn-141.14. Spellings only the real features use do not count
+as used.
 
 Each DSL construct is described once. Four parts, in this order: the declaration-order lint, the
 structure lint and the marker checks leave `model/irgen` for their own gate step; spellings no Model
@@ -505,7 +527,7 @@ against the final lifter; fn-159.10 (explicit defaults on tokens) is superseded 
 | fn-165.2 | ⬜ todo | Framework: `inputs[In]`, `(s, in)` step functions, structural shared inputs; proof that class order and `Param` names are identical |
 | fn-165.3 | ⬜ todo | Lifter: classes from record construction, `in.field` reads, refusals (positional, computed default, `copy`), fixtures |
 | fn-165.4 | ⬜ todo | Realization kit: `deadlines` and presets by field selector |
-| fn-165.5 | ⬜ todo | Migrate the Models, byte-identical IR, equivalence |
+| fn-165.5 | ⬜ todo | Migrate the mini feature and the shared code, byte-identical IR, equivalence; the real Models by the rule at the sweep |
 | fn-165.6 | ⬜ todo | Remove the token form and `:=` on classes; README and SEMANTICS |
 
 ## Deferred for now
@@ -513,7 +535,9 @@ against the final lifter; fn-159.10 (explicit defaults on tokens) is superseded 
 Deferred by the owner on 2026-10-11 until the Scala DSL work is done. Then, in one sweep: the Go halves
 of the open specs above, one regeneration of IR, Cases, lint acceptances and fixtures, the IR
 equivalence under the batch map (`make umpire-check-equivalence` with `DUMPER=`), the full Go gate,
-one review and one live run. That sweep also closes the source-complete specs below.
+one review and one live run. That sweep also closes the source-complete specs below. It first brings
+the real features forward: it runs each DSL change's scalafix rule on them, does the rows marked
+"⏸️ deferred (sweep)" above, and proves their equivalence against the batch-1d baseline.
 
 - **Test speed** (branch `w-perf`, 11 commits, parked): Producer and lint check through their
   Realizer's interpretation (two builds instead of three, replay stays independent), `Row.Results`
@@ -522,6 +546,48 @@ one review and one live run. That sweep also closes the source-complete specs be
   (`make umpire-check-export`), no `-count=1` in the gate. Left: the ~3.5 GB live heap, lower/conformance
   sharing, a clean per-package before/after table, and cheaper Testpilot work accounting (defaults
   raised to 32M/16.4G by fn-148, to be lowered after measuring).
+
+### fn-128: Close the activity's precision gaps
+
+Moved out of the Scala DSL work on 2026-10-11: it edits only the standalone activity, which that
+work no longer touches. Resumes at the sweep, on the migrated activity. Tasks 1-5 are done. Tasks 7
+and 8 are parallel candidates; task 6 closes the shared batch after both corrections and all activity
+sources.
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-128.7 | ⏸️ deferred (sweep) | Accepted fatal-settlement classification through typed public last-failure evidence; unchanged fatal Property satisfied in scratch recording/replay — live recording deferred |
+| fn-128.8 | ⏸️ deferred (Go) | Separate caller-owned pauseResume and heartbeat-retry Profiles; immutable preflight/execution/replay binding, final-shape charge proof and admission negatives |
+| fn-128.6 | ⏸️ deferred (Go) | Evidence map, live Cases run once; close |
+
+### fn-129: Activity coverage
+
+Moved out of the Scala DSL work on 2026-10-11, like fn-128: reset, `keepPaused` and the activity's
+`find` Queries exist only in the standalone activity, not in the mini feature. Resumes at the sweep,
+after fn-138. Tasks run in order.
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-129.3 | ⏸️ deferred (sweep) | Reset with `keepPaused` and deferred settlement joined: 65 Queries, `deferredResetCompletes` lowers and prepares, reset-aware laws via `overriding(…, of = …)`; open: direct `keepPaused` live Case (lowering refuses a reset indistinguishable from the pause before it) — live Case deferred |
+| fn-129.4 | ⏸️ deferred (Go) | Exploration on the activity's `find` Queries |
+| fn-129.5 | ⏸️ deferred (Go) | New Cases listed, live run; close |
+
+### fn-168: Workflow Update: a real feature at the mini size over a workflow task foundation
+
+Captured and deferred by the owner on 2026-10-11. The owner asked whether a real Temporal feature exists
+that is small enough to be completely defined at the mini activity's size while showcasing the DSL and
+serving as a basis for its rapid iteration; Workflow Update is that feature. Its documented semantics
+(`docs/architecture/workflow-update.md`) hold one natural instance of nearly every hard construct fn-166
+lists, plus constructs the mini activity lacks: `Idempotent` through update ID deduplication, an outcome
+the caller sees but history never records (rejection), and a composition with a foundation that itself has
+attempts and a deadline. What keeps it small is what keeps the mini activity small: dispatch is a
+foundation. The spec adds `foundations/workflowtask` (Product and Protocol, about 400 lines: speculative,
+transient and normal tasks, bounded attempts, the start-to-close timer, stale completion rejected) and
+`features/update` (three levels, about 800 lines) over it. Scala only; the realization's worker
+instruction (`UpdateReply`) and every Go half are the sweep's. The mini activity stays the loop's feature
+and the guide's example. When taken up, its place in the batch is the owner's call: before fn-159 it is a
+second proving ground migrated by rule; after fn-165 it is written against the final DSL. Not planned,
+not marked ready. [Spec](.flow/specs/fn-168-workflow-update-a-real-feature-at-the.md).
 
 ### fn-155: Name the standalone activity's repeated patterns
 

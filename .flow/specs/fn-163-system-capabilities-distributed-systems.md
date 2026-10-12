@@ -62,3 +62,7 @@ A pattern becomes a named capability even with a single use: the name improves r
 - System capabilities are named law definitions in `temporal.capabilities.system` (one definition each, a single use is enough), called where the Model states the promise. They are not `CapabilityKind` sections: a section generates a Query per law, which would add Queries and answers, while R5 keeps every answer.
 - History laws stay monitors written in the machine's `monitors` section, because the lifter lifts a monitor only there (a monitor built by a helper def is refused); synthesizing them is left for later (R4).
 - `Retryable` and `Expirable` are system capabilities (`capabilities/system/`), the rest product (`capabilities/product/`).
+
+## Scope: the mini feature only (owner, 2026-10-11)
+
+Within the Scala DSL batch (`MILESTONES.md`), this spec changes only the framework, the lifter, the shared code and `features/activity_mini`. The real features (standalone activity, Nexus workflow, Nexus standalone and their legacy payloads) are not edited, migrated, lifted or regenerated, and they stay behind until the owner's sweep, which runs this spec's scalafix rules on them. Equivalence compares `FEATURES=activity_mini` against the mini baseline. This overrides any statement in this spec that edits, migrates or proves on a real feature. See fn-166's Scope. The pattern inventory and the naming proofs cover the mini feature and the shared code.
