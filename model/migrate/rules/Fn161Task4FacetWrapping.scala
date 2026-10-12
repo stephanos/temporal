@@ -118,7 +118,8 @@ final class Fn161Task4FacetWrapping extends SyntacticRule("Fn161Task4FacetWrappi
             aggregation.head.templ.body.stats.isEmpty && !badBody && !escaped && exactIndent
         if !valid then refused += own
         else
-          val end = own.pos.end + (if source.lift(own.pos.end).contains('\n') then 1 else 0)
+          val end = (own.pos.end + (if source.lift(own.pos.end).contains('\n') then 1 else 0))
+            .min(machine.pos.end)
           val body = source.substring(lineStart, own.pos.end)
           val before = source.substring(machine.pos.start, lineStart)
           val after = source.substring(end, machine.pos.end)
@@ -128,7 +129,7 @@ final class Fn161Task4FacetWrapping extends SyntacticRule("Fn161Task4FacetWrappi
           val self = dependency.fold("\n")(d => s"  this: $d =>\n")
           val declaration = s"trait $facet extends Facet[$state, Outcome, $fact], " +
             s"Phased[$state, $phase]:\n$self$body"
-          patches += Patch.replaceTree(machine, assembled + "\n\n" + declaration)
+          patches += Patch.replaceTree(machine, assembled.stripSuffix("\n") + "\n\n" + declaration)
     if refused.nonEmpty then
       Patch.lint(
         Diagnostic(

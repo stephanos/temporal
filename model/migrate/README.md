@@ -2,6 +2,51 @@
 
 DSL changes ship a task-named Scalafix rule under `model/migrate/rules/`, prove it on copied `activity_mini` sources before the real-feature sweep, and follow `model/migrate/README.md`; production loading remains held in fn-166.10.
 
+## Facet wrapping: Fn161Task4FacetWrapping
+
+The selected declared machines already use facets: worker Polling/Serving, taskqueue
+Product and Protocol/Queueing, mini Product and Protocol/Dispatching and Completion,
+and mini AnswerDispatch/Answering. Both facet admission switches default on for Temporal
+declarations. The copied-source proof independently discovers the six machines from compiled
+inheritance, excluding Derived/Built compositions, and checks their actual mixins and the
+worker, taskqueue and mini FacetName vocabularies. Default lifting checks their declarations
+and paired action ownership; no switch or authored source is changed to manufacture migration.
+
+The compiled rule supports an inline answering namespace in mini protocol AnswerDispatch,
+or completion in mini Product/Protocol with an existing Dispatching mixin. It requires the
+inventoried Machine/Phased types, framework imports, facet aggregation order and namespace
+sections. It preserves the namespace body bytes, effects, claims and machine-wide declarations,
+adding the typed facet and Completion's Dispatching self-type. Existing facets converge unchanged.
+Unsupported inventoried types, competing imports, collisions, nested machines, unowned machine sections,
+escaping core helpers and unsupported namespace declarations refuse the whole document.
+Unrelated owners are left untouched.
+
+Scalafix cannot create files. Its intermediate machine-plus-trait document is not an admitted
+layout. The proof's narrow companion operation splits only the three inventoried matching
+file pairs inside a private copied-source tree. It checks independently captured source pins,
+refuses existing destinations and symlinks, and restores only captured parent-clause layout
+and temporary seed imports; unaccounted source or semantic changes cannot be discarded.
+For other shapes, manually inventory action ownership, imports, vocabulary and dependencies;
+keep machine-wide state/init/end/projection/refinement/monitors/Queries in their original owner,
+move each owned namespace intact into its matching facet file, add its typed dependency,
+and compile/lift before accepting the extraction.
+
+```sh
+mise exec -- scala-cli test --server=false model/migrate --test-only umpire.migrate.FacetWrappingTest
+mise exec -- scala-cli test --server=false model/irgen --test-only umpire.irgen.FacetAdmissionTest
+timeout 600 /bin/bash model/migrate/prove-mini.sh umpire.migrate.RewriteFacetWrappingMini
+```
+
+The proof actually compiles three copied legacy namespaces against the current API; current
+source admission refuses those inline namespaces without emitting partial IR. It does not
+claim a legacy accepted lift or normalize its private physical paths. The compiled rule and
+companion operation restore independently captured accepted sources byte for byte, then the
+runner compiles/lifts them and compares complete raw IR and waivers, positions included.
+The permitted accepted-to-restored delta is empty; `check-facet-wrapping-delta.mjs` and its
+independent corruption tests enforce that boundary. Real-source wrapping, production loading,
+IR/Go propagation, Cases, live, canonical gates and lint/manual acceptance remain held;
+broad validation and independent review belong to the source batch end.
+
 ## Input defaults: Fn159Task10InputDefaults
 
 Omitted inputs use only `input[A](default = value)`. An `input[A]` token and a named string
