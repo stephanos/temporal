@@ -13,9 +13,9 @@ import (
 	"strings"
 	"testing"
 
+	compatibility "go.temporal.io/server/tools/gomad3/backends/native/compatibilitypack"
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/backends/native/upgrade/pinimpact"
-	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
 	"golang.org/x/mod/module"
 	"golang.org/x/mod/sumdb/dirhash"
 )
@@ -221,7 +221,7 @@ type pinImpactFixture struct {
 // a candidate that bumps it from a file-based module proxy.
 func newPinImpactFixture(t *testing.T) pinImpactFixture {
 	t.Helper()
-	root, err := filepath.Abs("../..")
+	root, err := filepath.Abs("../../../..")
 	if err != nil {
 		t.Fatal(err)
 	}

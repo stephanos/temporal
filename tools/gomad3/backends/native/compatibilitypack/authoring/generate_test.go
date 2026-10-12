@@ -14,8 +14,8 @@ import (
 	"strings"
 	"testing"
 
+	compatibility "go.temporal.io/server/tools/gomad3/backends/native/compatibilitypack"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
-	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
 )
 
 func TestGenerateStandaloneConsumerPackage(t *testing.T) {

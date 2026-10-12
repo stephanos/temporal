@@ -16,9 +16,9 @@ import (
 	"syscall"
 	"testing"
 
+	compatibility "go.temporal.io/server/tools/gomad3/backends/native/compatibilitypack"
+	"go.temporal.io/server/tools/gomad3/backends/native/compatibilitypack/authoring"
 	"go.temporal.io/server/tools/gomad3/backends/native/upgrade/pinimpact"
-	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
-	"go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring"
 	"go.temporal.io/server/tools/gomad3/target"
 	"golang.org/x/mod/module"
 )
@@ -105,7 +105,7 @@ func testRunCompatibilityPackRefresh(t *testing.T, environment string) {
 	if _, err := exec.LookPath("git"); err != nil {
 		t.Skip("git is unavailable")
 	}
-	root, err := filepath.Abs("../..")
+	root, err := filepath.Abs("../../../..")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -380,7 +380,7 @@ func testRunCompatibilityPackRefresh(t *testing.T, environment string) {
 // check to fail; a downstream --compatibility-root may omit it.
 func TestRunCompatibilityPackCheckRequiresTheRepositoryWorkingDirectoryTable(t *testing.T) {
 	root := t.TempDir()
-	packRoot := filepath.Join(root, "internal", "compatibilitypack")
+	packRoot := filepath.Join(root, "backends", "native", "compatibilitypack")
 	moduleDirectory := filepath.Join(root, "target")
 	for _, directory := range []string{packRoot, moduleDirectory} {
 		if err := os.MkdirAll(directory, 0o700); err != nil {
@@ -421,7 +421,7 @@ func TestRunCompatibilityPackCheckRequiresTheRepositoryWorkingDirectoryTable(t *
 	if status, stderr := check("--compatibility-root=" + packRoot); status != 0 {
 		t.Fatalf("check of a downstream root without the table = %d: %s", status, stderr)
 	}
-	table := `{"requests":[{"directory":"../../target","request":"check-pack"}],"schema":"` + authoring.WorkingDirectoriesSchema + `"}` + "\n"
+	table := `{"requests":[{"directory":"../../../target","request":"check-pack"}],"schema":"` + authoring.WorkingDirectoriesSchema + `"}` + "\n"
 	if err := os.WriteFile(filepath.Join(packRoot, authoring.WorkingDirectoriesFile), []byte(table), 0o600); err != nil {
 		t.Fatal(err)
 	}

@@ -69,7 +69,7 @@ func newFixture(t *testing.T) *fixture {
 		t.Fatal(err)
 	}
 	root := t.TempDir()
-	for _, relative := range []string{"backends/native/transcript", "backends/native/toolchain/version/version.json", "internal/compatibilitypack/packs"} {
+	for _, relative := range []string{"backends/native/transcript", "backends/native/toolchain/version/version.json", "backends/native/compatibilitypack/packs"} {
 		copyTree(t, filepath.Join(source, relative), filepath.Join(root, relative))
 	}
 	if err := os.WriteFile(filepath.Join(root, generatedFile), []byte("initial\n"), 0o644); err != nil {

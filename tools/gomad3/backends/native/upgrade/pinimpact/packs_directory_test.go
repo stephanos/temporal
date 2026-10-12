@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
+	compatibility "go.temporal.io/server/tools/gomad3/backends/native/compatibilitypack"
 	"go.temporal.io/server/tools/gomad3/backends/native/upgrade/pinimpact"
-	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
 )
 
 func authoringSpec(t *testing.T, directory string) pinimpact.Spec {
@@ -99,7 +99,7 @@ func TestMissingExplicitPackRootSelectsNoPacks(t *testing.T) {
 }
 
 func TestExplicitPackRootOverridesEnvironmentAndRetainsReports(t *testing.T) {
-	directory := filepath.Join(gomadRoot(t), "internal", "compatibilitypack", "packs")
+	directory := filepath.Join(gomadRoot(t), "backends", "native", "compatibilitypack", "packs")
 	spec := authoringSpec(t, directory)
 	baseline, err := pinimpact.Evaluate(context.Background(), spec)
 	if err != nil {

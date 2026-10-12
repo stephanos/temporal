@@ -73,7 +73,7 @@ func TestTerminalDiagnosticsPrimaryStatus(t *testing.T) {
 	root := t.TempDir()
 	maintainerWrite(t, root, "patch", "patch")
 	maintainerWrite(t, root, "overlay/gomad.go", "package gomad")
-	maintainerWrite(t, root, "internal/compatibilitypack/requests/invalid.json", "{} {}\n")
+	maintainerWrite(t, root, "backends/native/compatibilitypack/requests/invalid.json", "{} {}\n")
 	left, right := filepath.Join(root, "left.bin"), filepath.Join(root, "right.bin")
 	if err := os.WriteFile(left, toolDiagnosticBytes(0), 0o600); err != nil {
 		t.Fatal(err)
@@ -108,11 +108,11 @@ func TestTerminalDiagnosticsPrimaryStatus(t *testing.T) {
 		{"diagnostic missing actual", []string{"diagnostic-diff", left, missing}, 2, "open " + missing + ": no such file or directory\n"},
 		{"diagnostic invalid actual", []string{"diagnostic-diff", left, right}, 2, "diagnostic trace length does not match header\n"},
 		{"pack discover invalid paths", []string{pack[0], "discover", pack[1], "--request=../outside", "--working-dir=" + root}, 2, "compatibility-pack path is outside the Gomad v3 root\n"},
-		{"pack discover missing request", []string{pack[0], "discover", pack[1], "--request=internal/compatibilitypack/requests/missing.json", "--working-dir=" + root}, 2, "compatibility-pack input is not a bounded regular file: " + filepath.Join(root, "internal/compatibilitypack/requests/missing.json") + "\n"},
-		{"pack review invalid output", []string{pack[0], "review", pack[1], "--request=internal/compatibilitypack/requests/invalid.json", "--output=outside.md"}, 2, "compatibility-pack review output must be below internal/compatibilitypack\n"},
-		{"pack review invalid request", []string{pack[0], "review", pack[1], "--request=internal/compatibilitypack/requests/invalid.json", "--output=internal/compatibilitypack/reports/invalid.md"}, 2, "decode compatibility-pack request: unexpected trailing JSON token {\n"},
-		{"pack generate outside request", []string{pack[0], "generate", pack[1], "--request=outside.json", "--approve-review=approval"}, 2, "compatibility-pack request must be below internal/compatibilitypack\n"},
-		{"pack qualify outside request", []string{pack[0], "qualify", pack[1], "--request=outside.json", "--working-dir=" + root}, 2, "compatibility-pack request must be below internal/compatibilitypack\n"},
+		{"pack discover missing request", []string{pack[0], "discover", pack[1], "--request=backends/native/compatibilitypack/requests/missing.json", "--working-dir=" + root}, 2, "compatibility-pack input is not a bounded regular file: " + filepath.Join(root, "backends/native/compatibilitypack/requests/missing.json") + "\n"},
+		{"pack review invalid output", []string{pack[0], "review", pack[1], "--request=backends/native/compatibilitypack/requests/invalid.json", "--output=outside.md"}, 2, "compatibility-pack review output must be below backends/native/compatibilitypack\n"},
+		{"pack review invalid request", []string{pack[0], "review", pack[1], "--request=backends/native/compatibilitypack/requests/invalid.json", "--output=backends/native/compatibilitypack/reports/invalid.md"}, 2, "decode compatibility-pack request: unexpected trailing JSON token {\n"},
+		{"pack generate outside request", []string{pack[0], "generate", pack[1], "--request=outside.json", "--approve-review=approval"}, 2, "compatibility-pack request must be below backends/native/compatibilitypack\n"},
+		{"pack qualify outside request", []string{pack[0], "qualify", pack[1], "--request=outside.json", "--working-dir=" + root}, 2, "compatibility-pack request must be below backends/native/compatibilitypack\n"},
 		{"pack invalid override", []string{pack[0], "check", pack[1], "--compatibility-root=relative"}, 2, "--compatibility-root \"relative\" must be an absolute, clean path\n"},
 		{"upgrade missing baseline root", []string{"upgrade-dossier", "--root=" + missing, "--baseline-ref=HEAD"}, 1, "locate Gomad v3 Git prefix: exit status 128\n"},
 	} {

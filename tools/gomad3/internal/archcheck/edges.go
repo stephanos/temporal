@@ -20,12 +20,12 @@ func Owner(module, importPath string) string {
 		return "cli"
 	}
 	for path, owner := range map[string]string{
-		"backends/wasm": "wasm", "cmd/gomad/internal/cli": "cli", "cmd/gomadtool": "developer", "internal/gomadtool": "developer", "internal/archcheck": "developer", "internal/puritycheck": "developer",
+		"backends/wasm": "wasm", "cmd/gomad/internal/cli": "cli", "backends/native/cmd/gomadtool": "developer", "internal/archcheck": "developer", "internal/puritycheck": "developer",
 		"backends/native/toolchain": "toolchain", "backends/native/build": "target", "backends/native/transcript": "deterministicio", "backends/native/upgrade": "upgrade",
 		"backends/native/conformance": "developer", "backends/native/generation": "developer",
 		"backends/native/qualification": "qualification", "backends/native/preparation": "preparation",
 		"captured": "captured", "volume": "volume", "internal/iowire": "iowire",
-		"internal/compatibilitypack": "compatibility", "internal/canonicaljson": "canonicaljson", "internal/hostexec": "hostexec", "hostexec": "hostexec", "internal/hostfs": "hostfs", "hostfs": "hostfs", "internal/sourceinventory": "sourceinventory",
+		"backends/native/compatibilitypack": "compatibility", "internal/canonicaljson": "canonicaljson", "internal/hostexec": "hostexec", "hostexec": "hostexec", "internal/hostfs": "hostfs", "hostfs": "hostfs", "backends/native/sourceinventory": "sourceinventory",
 	} {
 		if Within(relative, path) {
 			return owner
@@ -95,8 +95,8 @@ func PackageEdges(module string, packages []HostPackage) []Finding {
 	var findings []Finding
 	add := func(category, path, detail string) { findings = append(findings, Finding{category, path, detail}) }
 	required := map[string][]string{
-		"backends/native/build": {"backends/native/build/internal/build", "backends/native/build/internal/capabilityreview", "backends/native/build/internal/provenance", "backends/native/toolchain/installation", "internal/sourceinventory"}, "backends/native/upgrade": {"backends/native/qualification/set", "backends/native/toolchain/version"},
-		"backends/native/toolchain": {"backends/native/toolchain/installation"}, "backends/native/transcript": {"backends/native/toolchain/installation", "internal/sourceinventory"},
+		"backends/native/build": {"backends/native/build/internal/build", "backends/native/build/internal/capabilityreview", "backends/native/build/internal/provenance", "backends/native/toolchain/installation", "backends/native/sourceinventory"}, "backends/native/upgrade": {"backends/native/qualification/set", "backends/native/toolchain/version"},
+		"backends/native/toolchain": {"backends/native/toolchain/installation"}, "backends/native/transcript": {"backends/native/toolchain/installation", "backends/native/sourceinventory"},
 	}
 	for _, pkg := range packages {
 		owner := Owner(module, pkg.ImportPath)
@@ -112,7 +112,7 @@ func PackageEdges(module string, packages []HostPackage) []Finding {
 			if !Within(imported, module) {
 				continue
 			}
-			if pkg.ImportPath == module+"/backends/native/toolchain/installation" || (pkg.ImportPath == module+"/internal/sourceinventory" && imported != module+"/internal/hostfs") || (pkg.ImportPath == module+"/backends/native/toolchain" && (Within(imported, module+"/qualification") || Within(imported, module+"/backends/native/qualification") || Within(imported, module+"/backends/native/upgrade"))) {
+			if pkg.ImportPath == module+"/backends/native/toolchain/installation" || (pkg.ImportPath == module+"/backends/native/sourceinventory" && imported != module+"/internal/hostfs") || (pkg.ImportPath == module+"/backends/native/toolchain" && (Within(imported, module+"/qualification") || Within(imported, module+"/backends/native/qualification") || Within(imported, module+"/backends/native/upgrade"))) {
 				add("module-edge", pkg.ImportPath, imported)
 			}
 			importedOwner := Owner(module, imported)

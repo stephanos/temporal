@@ -13,8 +13,8 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/backends/native/build/internal/livecap"
-	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
-	"go.temporal.io/server/tools/gomad3/internal/sourceinventory"
+	compatibility "go.temporal.io/server/tools/gomad3/backends/native/compatibilitypack"
+	"go.temporal.io/server/tools/gomad3/backends/native/sourceinventory"
 	"go.temporal.io/server/tools/gomad3/target"
 )
 

@@ -11,7 +11,7 @@ import (
 	"syscall"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring"
+	"go.temporal.io/server/tools/gomad3/backends/native/compatibilitypack/authoring"
 )
 
 type refreshOutput struct {
@@ -50,7 +50,7 @@ func newRefreshOutput(t *testing.T, successfulWrites int) *refreshOutput {
 }
 
 func TestRunCompatibilityPackRefreshOutputFailure(t *testing.T) {
-	root, err := filepath.Abs("../..")
+	root, err := filepath.Abs("../../../..")
 	if err != nil {
 		t.Fatal(err)
 	}

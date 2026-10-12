@@ -11,8 +11,8 @@ import (
 
 	targetbuild "go.temporal.io/server/tools/gomad3/backends/native/build/internal/build"
 	"go.temporal.io/server/tools/gomad3/backends/native/build/internal/gocommand"
+	compatibility "go.temporal.io/server/tools/gomad3/backends/native/compatibilitypack"
 	"go.temporal.io/server/tools/gomad3/backends/native/toolchain/installation"
-	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/target"
 )

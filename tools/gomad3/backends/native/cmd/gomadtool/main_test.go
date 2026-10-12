@@ -72,7 +72,7 @@ func TestRunRejectsRemovedTestMode(t *testing.T) {
 }
 
 func TestRunPatchValidateChecksCurrentModule(t *testing.T) {
-	root, err := filepath.Abs(filepath.Join("..", ".."))
+	root, err := filepath.Abs(filepath.Join("..", "..", "..", ".."))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -83,7 +83,7 @@ func TestRunPatchValidateChecksCurrentModule(t *testing.T) {
 }
 
 func TestRunScriptValidateChecksCurrentModule(t *testing.T) {
-	root, err := filepath.Abs(filepath.Join("..", ".."))
+	root, err := filepath.Abs(filepath.Join("..", "..", "..", ".."))
 	if err != nil {
 		t.Fatal(err)
 	}

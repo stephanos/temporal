@@ -12,8 +12,8 @@ import (
 	"sort"
 	"strings"
 
+	"go.temporal.io/server/tools/gomad3/backends/native/sourceinventory"
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
-	"go.temporal.io/server/tools/gomad3/internal/sourceinventory"
 )
 
 const (

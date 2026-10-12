@@ -214,7 +214,7 @@ gomad3-smoke-qualification: gomad3-runner
 # maximum batches per workload and seed.
 GOMAD3_SOAK_DIR ?= $(ROOT)/tools/gomad3/.toolchain/soak
 gomad3-soak: gomad3-runner
-	@cd tools/gomad3 && env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go run ./cmd/gomadtool soak \
+	@cd tools/gomad3 && env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go run ./backends/native/cmd/gomadtool soak \
 		--manifest="$(ROOT)/tools/gomad3integration/qualification/soak.json" \
 		--gomad="$(ROOT)/tools/gomad3/.bin/gomad" \
 		--work="$(GOMAD3_SOAK_DIR)/work" --ledger="$(GOMAD3_SOAK_DIR)/ledger" --output="$(GOMAD3_SOAK_DIR)/output" \

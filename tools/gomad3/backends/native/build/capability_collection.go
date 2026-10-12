@@ -19,10 +19,10 @@ import (
 	"go.temporal.io/server/tools/gomad3/backends/native/build/internal/capabilitypolicy"
 	"go.temporal.io/server/tools/gomad3/backends/native/build/internal/capabilityreview"
 	"go.temporal.io/server/tools/gomad3/backends/native/build/internal/gocommand"
+	compatibility "go.temporal.io/server/tools/gomad3/backends/native/compatibilitypack"
+	"go.temporal.io/server/tools/gomad3/backends/native/sourceinventory"
 	"go.temporal.io/server/tools/gomad3/backends/native/toolchain/installation"
-	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
-	"go.temporal.io/server/tools/gomad3/internal/sourceinventory"
 	"go.temporal.io/server/tools/gomad3/target"
 )
 

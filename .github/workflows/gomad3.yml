@@ -180,8 +180,7 @@ jobs:
           go test -count=1 -tags test_dep
           ./internal/hostexec
           ./internal/hostfs
-          ./internal/gomadtool/...
-          ./cmd/gomadtool
+          ./backends/native/cmd/gomadtool
 
   core-linux:
     needs: changes

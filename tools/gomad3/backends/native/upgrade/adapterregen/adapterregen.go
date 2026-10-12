@@ -20,9 +20,9 @@ import (
 	"strings"
 	"time"
 
+	compatibility "go.temporal.io/server/tools/gomad3/backends/native/compatibilitypack"
 	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
-	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
 	"go.temporal.io/server/tools/gomad3/internal/hostexec"
 )
 
@@ -217,7 +217,7 @@ func diffs(regeneration transcript.AdapterRegeneration) []SourceDiff {
 // stalePacks lists the pack bindings of module that will still name its
 // previous identity once the adapter pins version.
 func stalePacks(root, module, version string) ([]StalePack, error) {
-	names, err := filepath.Glob(filepath.Join(root, "internal", "compatibilitypack", "packs", "*.json"))
+	names, err := filepath.Glob(filepath.Join(root, "backends", "native", "compatibilitypack", "packs", "*.json"))
 	if err != nil {
 		return nil, err
 	}

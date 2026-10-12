@@ -29,10 +29,10 @@ wasm-test-helper:
 	$(MAKE) -C backends/wasm test-helper
 
 OVERLAY_FILES := $(shell find backends/native/toolchain/runtime/overlay -type f)
-VERSION_INPUTS := backends/native/toolchain/version/version.json $(shell find backends/native/toolchain/version -type f -not -name '*_test.go') cmd/gomadtool/version.go
+VERSION_INPUTS := backends/native/toolchain/version/version.json $(shell find backends/native/toolchain/version -type f -not -name '*_test.go') backends/native/cmd/gomadtool/version.go
 BOUNDARY_INPUTS := backends/native/transcript/boundary/manifest.json backends/native/transcript/boundary/compiler-tests.json $(shell find backends/native/transcript/boundary -type f -not -name '*_test.go') $(shell find backends/native/generation/boundary -name '*.go' -not -name '*_test.go')
 BOUNDARY_OUTPUTS := $(GOMAD3_COMPILER_SPEC) $(GOMAD3_EXPECTED_INTERCEPTS) $(GOMAD3_BOUNDARY_REPORT) backends/native/transcript/boundary_generated.go
-COMPATIBILITY_INPUTS := $(shell find internal/compatibilitypack/requests internal/compatibilitypack/authoring -type f) internal/compatibilitypack/working-directories.json internal/compatibilitypack/schema.go internal/compatibilitypack/v2_selection.go
+COMPATIBILITY_INPUTS := $(shell find backends/native/compatibilitypack/requests backends/native/compatibilitypack/authoring -type f) backends/native/compatibilitypack/working-directories.json backends/native/compatibilitypack/schema.go backends/native/compatibilitypack/v2_selection.go
 COMPILER_TEST_OVERLAY := $(CURDIR)/.toolchain/compiler-test-overlay
 COMPILER_TEST_COMPILE := $(CURDIR)/.toolchain/compiler-test/compile
 GOMAD3_CACHE_MAX_AGE_DAYS ?= 14
@@ -51,11 +51,11 @@ TESTS_QUALIFICATION_GENERATE := qualification-manifest-generate --root=$(CURDIR)
 	--output=tools/gomad3integration/qualification/tests.json
 
 generate: $(VERSION_INPUTS) $(BOUNDARY_INPUTS) $(COMPATIBILITY_INPUTS)
-	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./cmd/gomadtool version-generate
-	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./cmd/gomadtool protocol-generate
-	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate
-	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate -check-compiler-tests
-	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./cmd/gomadtool compatibility-pack generate --root=$(CURDIR)
+	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./backends/native/cmd/gomadtool version-generate
+	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./backends/native/cmd/gomadtool protocol-generate
+	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./backends/native/cmd/gomadtool boundary-generate
+	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./backends/native/cmd/gomadtool boundary-generate -check-compiler-tests
+	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./backends/native/cmd/gomadtool compatibility-pack generate --root=$(CURDIR)
 	$(MAKE) tests-qualification-generate
 
 .PHONY: lint-code
@@ -63,7 +63,7 @@ lint-code:
 	$(MAKE) -C ../.. lint-code-gomad3
 
 tests-qualification-generate:
-	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./cmd/gomadtool $(TESTS_QUALIFICATION_GENERATE)
+	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./backends/native/cmd/gomadtool $(TESTS_QUALIFICATION_GENERATE)
 
 clean:
 	rm -rf -- "$(CURDIR)/.bin" "$(COMPILER_TEST_OVERLAY)" "$(CURDIR)/.toolchain/compiler-test"
@@ -87,14 +87,14 @@ test-toolchain: toolchain
 
 compiler-test-compiler: toolchain
 	@mkdir -p $(COMPILER_TEST_OVERLAY) $(dir $(COMPILER_TEST_COMPILE))
-	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go run ./cmd/gomadtool boundary-generate \
+	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go run ./backends/native/cmd/gomadtool boundary-generate \
 		-compiler-test-overlay=$(COMPILER_TEST_OVERLAY) -goroot="$$(.toolchain/bin/go env GOROOT)"
 	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go build -trimpath \
 		-overlay=$(COMPILER_TEST_OVERLAY)/overlay.json -o $(COMPILER_TEST_COMPILE) cmd/compile
 
 intercept-test: compiler-test-compiler
-	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go run ./cmd/gomadtool boundary-generate -qualify
-	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go run ./cmd/gomadtool test \
+	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go run ./backends/native/cmd/gomadtool boundary-generate -qualify
+	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go run ./backends/native/cmd/gomadtool test \
 		--root=$(CURDIR) --mode=test-interception --go=$(CURDIR)/.toolchain/bin/go \
 		--compiler=$(COMPILER_TEST_COMPILE)
 
@@ -103,7 +103,7 @@ clock-audit: toolchain
 
 toolchain: validate-toolchain $(GOMAD3_PATCH_FILE) $(OVERLAY_FILES) $(BOUNDARY_OUTPUTS)
 	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOCACHE=$(CURDIR)/.toolchain/generator-cache GOTOOLCHAIN=local GOWORK=off \
-		go run ./cmd/gomadtool toolchain-build --root=$(CURDIR)
+		go run ./backends/native/cmd/gomadtool toolchain-build --root=$(CURDIR)
 
 runner: toolchain
 	@mkdir -p .bin
@@ -132,9 +132,9 @@ qualification-set-merge: runner
 
 # Packs are scoped to one platform, so each host qualifies only the requests
 # that name it, each in the working directory that
-# internal/compatibilitypack/working-directories.json maps it to.
+# backends/native/compatibilitypack/working-directories.json maps it to.
 compatibility-pack-qualification: toolchain
-	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go run ./cmd/gomadtool compatibility-pack qualify --root=$(CURDIR) --all
+	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go run ./backends/native/cmd/gomadtool compatibility-pack qualify --root=$(CURDIR) --all
 
 core-qualification-set: GOMAD3_QUALIFICATION_MANIFEST := $(CURDIR)/qualification/core.json
 core-qualification-set: GOMAD3_QUALIFICATION_WORKDIR := $(CURDIR)/qualification/corpus
@@ -145,7 +145,7 @@ core-qualification-set: qualification-set
 core-qualification: compatibility-pack-qualification core-qualification-set
 
 upgrade-dossier: core-qualification
-	GOWORK=off go run ./cmd/gomadtool upgrade-dossier \
+	GOWORK=off go run ./backends/native/cmd/gomadtool upgrade-dossier \
 		-baseline-ref="$(GOMAD3_BASELINE_REF)" -corpus-report=".toolchain/core-qualification-set.json" $(if $(GOMAD3_APPROVED_BOUNDARY_DIFF_SHA256),-approve-boundary-diff="$(GOMAD3_APPROVED_BOUNDARY_DIFF_SHA256)",)
 
 # Resolve stock Go before the patched test driver prepends its GOROOT/bin to PATH.
@@ -162,7 +162,8 @@ test-host: toolchain
 		./captured/... ./volume/... ./backends/native/transcript/... ./world/... \
 		./backends/native/toolchain/version ./backends/native/toolchain/installation \
 		./backends/native/upgrade/... ./backends/native/preparation/... ./backends/native/qualification/... \
-		./backends/native/generation/... ./backends/native/build/... ./internal/...
+		./backends/native/generation/... ./backends/native/build/... ./backends/native/cmd/... \
+		./backends/native/compatibilitypack/... ./backends/native/sourceinventory ./internal/...
 
 # internal/gomadsim keeps its tests external because testing reaches the
 # package through os.
@@ -198,38 +199,38 @@ world-test:
 validate: validate-toolchain validate-compatibility validate-qualification
 
 validate-toolchain:
-	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./cmd/gomadtool version-generate -check
-	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./cmd/gomadtool protocol-generate -check
-	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate -check
-	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./cmd/gomadtool boundary-generate -check-compiler-tests
-	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./cmd/gomadtool patch-validate --root=$(CURDIR)
-	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./cmd/gomadtool script-validate --root=$(CURDIR)
+	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./backends/native/cmd/gomadtool version-generate -check
+	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./backends/native/cmd/gomadtool protocol-generate -check
+	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./backends/native/cmd/gomadtool boundary-generate -check
+	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./backends/native/cmd/gomadtool boundary-generate -check-compiler-tests
+	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./backends/native/cmd/gomadtool patch-validate --root=$(CURDIR)
+	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./backends/native/cmd/gomadtool script-validate --root=$(CURDIR)
 
 validate-compatibility:
-	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./cmd/gomadtool compatibility-pack check --root=$(CURDIR)
-	GOCACHE=$(CURDIR)/.toolchain/generator-cache go test -count=1 -tags test_dep -run '^TestHostPacksBindCurrentProfile$$' ./internal/compatibilitypack
+	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./backends/native/cmd/gomadtool compatibility-pack check --root=$(CURDIR)
+	GOCACHE=$(CURDIR)/.toolchain/generator-cache go test -count=1 -tags test_dep -run '^TestHostPacksBindCurrentProfile$$' ./backends/native/compatibilitypack
 
 validate-qualification:
-	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./cmd/gomadtool $(TESTS_QUALIFICATION_GENERATE) -check
+	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./backends/native/cmd/gomadtool $(TESTS_QUALIFICATION_GENERATE) -check
 
 test-harness:
 	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go test -tags test_dep \
-		./internal/hostexec ./backends/native/conformance ./cmd/gomadtool
+		./internal/hostexec ./backends/native/conformance ./backends/native/cmd/gomadtool
 
 test-builder:
-	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go run ./cmd/gomadtool test \
+	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go run ./backends/native/cmd/gomadtool test \
 		--root=$(CURDIR) --mode=test-builder --go="$$(command -v go)"
 
 test-live-capability: toolchain
-	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go run ./cmd/gomadtool test \
+	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go run ./backends/native/cmd/gomadtool test \
 		--root=$(CURDIR) --mode=test-live-capability --go=$(CURDIR)/.toolchain/bin/go
 
 test-runtime: toolchain
-	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go run ./cmd/gomadtool test \
+	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go run ./backends/native/cmd/gomadtool test \
 		--root=$(CURDIR) --mode=test-runtime --go=$(CURDIR)/.toolchain/bin/go
 
 test-upstream: toolchain
-	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go run ./cmd/gomadtool test \
+	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go run ./backends/native/cmd/gomadtool test \
 		--root=$(CURDIR) --mode=test-upstream --go=$(CURDIR)/.toolchain/bin/go
 
 test: test-harness test-toolchain intercept-test test-host overlay-test test-simulation world-test test-builder test-live-capability test-runtime test-upstream

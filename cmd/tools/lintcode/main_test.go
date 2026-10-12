@@ -478,7 +478,7 @@ func TestFastLintReportsOwnedExclusions(t *testing.T) {
 		"tools/gomad3/backends/native/conformance/testdata/negative.go",
 		"tools/gomad3/cmd/gomad/testdata/source.go",
 		"tools/gomad3/backends/native/transcript/testdata/source.go",
-		"tools/gomad3/internal/compatibilitypack/testdata/source.go",
+		"tools/gomad3/backends/native/compatibilitypack/testdata/source.go",
 		"tools/gomad3/runner/testdata/source.go",
 		"tools/gomad3/qualification/corpus/source.go",
 		"tools/gomad3/backends/native/toolchain/runtime/overlay/src/os/gomad.go",
@@ -775,7 +775,7 @@ func newLintRepo(t *testing.T) *lintRepo {
 		repo.write(path, "module example.invalid/fixture\n\ngo 1.27.0\n")
 	}
 	repo.write("go.mod", "module example.invalid/root\n\ngo 1.27.0\n")
-	for _, dir := range []string{"proto/internal", "chasm/lib", "tools/gomad3/backends/native/toolchain/runtime/overlay", "tools/gomad3/backends/native/transcript/boundary", "tools/gomad3/backends/native/generation/boundary", "tools/gomad3/internal/compatibilitypack/requests", "tools/gomad3/internal/compatibilitypack/authoring"} {
+	for _, dir := range []string{"proto/internal", "chasm/lib", "tools/gomad3/backends/native/toolchain/runtime/overlay", "tools/gomad3/backends/native/transcript/boundary", "tools/gomad3/backends/native/generation/boundary", "tools/gomad3/backends/native/compatibilitypack/requests", "tools/gomad3/backends/native/compatibilitypack/authoring"} {
 		require.NoError(t, os.MkdirAll(filepath.Join(repo.root, dir), 0o700))
 	}
 	for _, path := range []string{"ordinary/source.go", "staged/staged.go", "deleted/only.go", "renameold/only.go", "tools/gomad3/runner/source.go", "tools/gomad3/backends/native/toolchain/source.go", "tests/mixedbrain/source.go", ".github/actions/build-docker-images/scripts/source.go", "tools/gomad3sim/source.go", "tools/gomad3integration/source.go"} {

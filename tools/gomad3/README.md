@@ -710,7 +710,7 @@ architecture, C/C++ tool, and compiler/linker tuning is cleared before
 `make.bash`. Set `GOMAD3_BOOTSTRAP_GO` to choose a bootstrap `go` command.
 
 Host-side policy is implemented in typed Go packages. `toolchain` provides the
-build, patch, validation, and upgrade interface; `cmd/gomadtool` is
+build, patch, validation, and upgrade interface; `backends/native/cmd/gomadtool` is
 its command adapter, and `backends/native/conformance` owns bounded
 black-box fixture execution and semantic result classification. The remaining
 scripts are reviewed argv adapters:
@@ -732,7 +732,7 @@ repetitions.
 To upgrade Go, update the canonical `backends/native/toolchain/version/version.json` descriptor
 and `backends/native/transcript/boundary/manifest.json`, materialize the old patch against the new pinned
 source, and regenerate the patch with `go -C tools/gomad3 run
-./cmd/gomadtool patch-regenerate --root="$PWD/tools/gomad3"
+./backends/native/cmd/gomadtool patch-regenerate --root="$PWD/tools/gomad3"
 --candidate-root=GO-SOURCE-ROOT`. `make -C
 tools/gomad3 generate` derives the Make, Go, compiler-spec,
 interception-report, public-inventory, and upgrade-guide consumers. The
@@ -768,15 +768,15 @@ root (for a module other than the root module, add `--module=DIR` to
 `pin-impact`):
 
 ```sh
-go -C tools/gomad3 run ./cmd/gomadtool pin-impact --root=.
-go -C tools/gomad3 run ./cmd/gomadtool adapter-regenerate \
+go -C tools/gomad3 run ./backends/native/cmd/gomadtool pin-impact --root=.
+go -C tools/gomad3 run ./backends/native/cmd/gomadtool adapter-regenerate \
   --module=<adapted-module> --version=<new-version>
-go -C tools/gomad3 run ./cmd/gomadtool adapter-regenerate \
+go -C tools/gomad3 run ./backends/native/cmd/gomadtool adapter-regenerate \
   --module=<adapted-module> --version=<new-version> \
   --approve-review=<digest the dry run printed>
-go -C tools/gomad3 run ./cmd/gomadtool compatibility-pack refresh --root=.
-go -C tools/gomad3 run ./cmd/gomadtool compatibility-pack generate --root=. \
-  --request=internal/compatibilitypack/requests/<id>.json \
+go -C tools/gomad3 run ./backends/native/cmd/gomadtool compatibility-pack refresh --root=.
+go -C tools/gomad3 run ./backends/native/cmd/gomadtool compatibility-pack generate --root=. \
+  --request=backends/native/compatibilitypack/requests/<id>.json \
   --approve-review=<digest refresh printed>
 make gomad3
 make -C tools/gomad3 validate compatibility-pack-qualification
@@ -1136,19 +1136,19 @@ The development workflow is discover, review, exact approval, generate, check,
 and qualify:
 
 ```sh
-go -C tools/gomad3 run ./cmd/gomadtool compatibility-pack discover \
-  --root="$PWD/tools/gomad3" --request=internal/compatibilitypack/requests/<id>.json \
+go -C tools/gomad3 run ./backends/native/cmd/gomadtool compatibility-pack discover \
+  --root="$PWD/tools/gomad3" --request=backends/native/compatibilitypack/requests/<id>.json \
   --working-dir=<target-module>
-go -C tools/gomad3 run ./cmd/gomadtool compatibility-pack review \
-  --root="$PWD/tools/gomad3" --request=internal/compatibilitypack/requests/<id>.json \
-  --output=internal/compatibilitypack/reports/<id>.md
-go -C tools/gomad3 run ./cmd/gomadtool compatibility-pack generate \
-  --root="$PWD/tools/gomad3" --request=internal/compatibilitypack/requests/<id>.json \
+go -C tools/gomad3 run ./backends/native/cmd/gomadtool compatibility-pack review \
+  --root="$PWD/tools/gomad3" --request=backends/native/compatibilitypack/requests/<id>.json \
+  --output=backends/native/compatibilitypack/reports/<id>.md
+go -C tools/gomad3 run ./backends/native/cmd/gomadtool compatibility-pack generate \
+  --root="$PWD/tools/gomad3" --request=backends/native/compatibilitypack/requests/<id>.json \
   --approve-review=<exact-review-sha256>
 make -C tools/gomad3 validate compatibility-pack-qualification
 ```
 
-`internal/compatibilitypack/working-directories.json` names the module
+`backends/native/compatibilitypack/working-directories.json` names the module
 directory each request is discovered and qualified in; every request needs
 exactly one entry in a directory holding a `go.mod`, and `check` rejects a
 request without one and, for this repository's root, a missing table.
@@ -1161,7 +1161,7 @@ a saved pair of `go.mod` files with adjacent `go.sum` files can be compared
 explicitly:
 
 ```sh
-go -C tools/gomad3 run ./cmd/gomadtool pin-impact \
+go -C tools/gomad3 run ./backends/native/cmd/gomadtool pin-impact \
   --root=. --baseline=/absolute/baseline/go.mod \
   --candidate=/absolute/candidate/go.mod --format=json > pin-impact.json
 ```
@@ -1180,7 +1180,7 @@ discover and review for every request the bump invalidates and stops at
 approval:
 
 ```sh
-go -C tools/gomad3 run ./cmd/gomadtool compatibility-pack refresh \
+go -C tools/gomad3 run ./backends/native/cmd/gomadtool compatibility-pack refresh \
   --root="$PWD/tools/gomad3"
 ```
 
@@ -1224,7 +1224,7 @@ own tree, so they never have to be committed here. Every authoring command
 takes `--compatibility-root=/absolute/dir`, which holds that module's
 `requests/`, `reports/`, `packs/`, `generation.json`, and, for `qualify --all`
 and `refresh`, `working-directories.json` in the same layout as
-`internal/compatibilitypack`; requests and review output must stay below it.
+`backends/native/compatibilitypack`; requests and review output must stay below it.
 Setting `GOMAD3_COMPATIBILITY_PACKS=/absolute/dir/packs` loads those packs next
 to the embedded ones for every command, including the Runner's supervisor and
 coordinator processes. They pass the same strict validation, so no external
@@ -1240,7 +1240,7 @@ infrastructure failures. Fresh-review disagreement is unsupported drift. None
 of these cases falls back to an older pack, partial inventory, arbitrary local
 replacement, host access, or truncated evidence. Requests, generated v2 packs,
 review reports, mutation fixtures, and their generation manifest live under
-`internal/compatibilitypack`.
+`backends/native/compatibilitypack`.
 
 `temporal-functional-tests-linux-amd64` admits the amd64 assembly, the
 reflect2 linknames, and the procfs process-metrics reads that the `gomad` build
@@ -1370,7 +1370,7 @@ retains the consumer lists and source-specific preservation evidence.
   remain pin-evaluation errors. `compatibility-pack refresh` supplies its
   selected root's pack directory. No new CLI flag is needed.
 - `target.DigestAdapterSourceInventory` is removed. Repository target/adapter
-  implementation callers use the neutral private `internal/sourceinventory`
+  implementation callers use the neutral private `backends/native/sourceinventory`
   owner, translating capacity errors to their existing public error types.
   External callers must stop calling the removed implementation helper; the
   public target preparation and capability-review operations retain inventory

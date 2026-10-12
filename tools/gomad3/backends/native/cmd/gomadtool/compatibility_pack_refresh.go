@@ -16,9 +16,9 @@ import (
 	"sort"
 	"strings"
 
+	"go.temporal.io/server/tools/gomad3/backends/native/compatibilitypack/authoring"
 	capabilityanalysis "go.temporal.io/server/tools/gomad3/backends/native/qualification/analysis"
 	"go.temporal.io/server/tools/gomad3/backends/native/upgrade/pinimpact"
-	"go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring"
 )
 
 const compatibilityPackRefreshUsage = "usage: gomadtool compatibility-pack refresh --root=DIR [--compatibility-root=DIR] [--baseline-ref=REV] [--go=GO] [--impact-report=FILE]"
@@ -43,7 +43,7 @@ func runCompatibilityPackRefresh(arguments []string, stdout, stderr io.Writer) i
 	flags := flag.NewFlagSet("gomadtool compatibility-pack refresh", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	root := flags.String("root", "", "Gomad v3 module root")
-	compatibilityRootOverride := flags.String("compatibility-root", "", "absolute pack authoring root owned by another module (default: internal/compatibilitypack)")
+	compatibilityRootOverride := flags.String("compatibility-root", "", "absolute pack authoring root owned by another module (default: backends/native/compatibilitypack)")
 	baselineRef := flags.String("baseline-ref", "HEAD", "Git revision holding each working directory's go.mod and go.sum before the bump")
 	impactPath := flags.String("impact-report", "", "existing pin-impact JSON report for the bumped checkout")
 	goCommand := flags.String("go", os.Getenv("GOMAD3_BOOTSTRAP_GO"), "go command that resolves module graphs")
@@ -139,7 +139,7 @@ func runCompatibilityPackRefresh(arguments []string, stdout, stderr io.Writer) i
 	base := ""
 	rootFlag := "--root=" + resolvedRoot
 	if *compatibilityRootOverride == "" {
-		base = "internal/compatibilitypack/"
+		base = "backends/native/compatibilitypack/"
 	} else {
 		rootFlag += " --compatibility-root=" + compatibilityRoot
 	}

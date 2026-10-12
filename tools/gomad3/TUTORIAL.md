@@ -677,7 +677,7 @@ choice point then also records a small digest of runtime state, and the report's
 names the first choice point where the runs disagreed and which counters moved:
 
 ```sh
-go -C tools/gomad3 run ./cmd/gomadtool diagnostic-diff EXPECTED_TRACE ACTUAL_TRACE
+go -C tools/gomad3 run ./backends/native/cmd/gomadtool diagnostic-diff EXPECTED_TRACE ACTUAL_TRACE
 ```
 
 For Gomad's own fault fixture, which injects one host-timed draw, it prints

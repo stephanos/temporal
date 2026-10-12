@@ -12,7 +12,7 @@ import (
 )
 
 func TestRunAdapterRegenerateDiagnosticFailuresPreserveStatus(t *testing.T) {
-	root, err := filepath.Abs("../..")
+	root, err := filepath.Abs("../../../..")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -84,7 +84,7 @@ func TestRunAdapterRegenerateDiagnosticFailuresPreserveStatus(t *testing.T) {
 }
 
 func TestRunAdapterRegenerateOutputFailuresPreserveStatus(t *testing.T) {
-	root, err := filepath.Abs("../..")
+	root, err := filepath.Abs("../../../..")
 	if err != nil {
 		t.Fatal(err)
 	}

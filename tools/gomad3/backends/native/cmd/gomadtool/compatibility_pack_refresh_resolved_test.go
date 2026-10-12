@@ -16,8 +16,8 @@ import (
 	"testing"
 
 	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
-	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
-	"go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring"
+	compatibility "go.temporal.io/server/tools/gomad3/backends/native/compatibilitypack"
+	"go.temporal.io/server/tools/gomad3/backends/native/compatibilitypack/authoring"
 	"go.temporal.io/server/tools/gomad3/target"
 	"golang.org/x/mod/sumdb/dirhash"
 )
@@ -35,7 +35,7 @@ type resolvedRefreshFixture struct {
 
 func newResolvedRefreshFixture(t *testing.T) *resolvedRefreshFixture {
 	t.Helper()
-	root, err := filepath.Abs("../..")
+	root, err := filepath.Abs("../../../..")
 	if err != nil {
 		t.Fatal(err)
 	}

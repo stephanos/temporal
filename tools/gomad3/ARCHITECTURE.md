@@ -406,7 +406,7 @@ prepared-target validation.
 
 Capability collection, pure policy evaluation, and linked projection have
 separate private ownership in `target`, behind the existing review operations.
-`internal/sourceinventory` hashes bounded adapter source inventories for both
+`backends/native/sourceinventory` hashes bounded adapter source inventories for both
 target and adapter preparation. Public `target.CompatibilityPackEvidence` and
 its complete nested target-owned graph project detached report data from private
 policy evidence. Runner's public journal and Artifact capacity inspection values
@@ -864,7 +864,7 @@ input, an approximate schema, or an unbounded allocation.
 Host policy is split into deep, typed modules: source archives, patch sets,
 toolchain publication, command supervision, bounded output capture, and the
 black-box test campaign each expose a narrow Go interface.
-`cmd/gomadtool` is their command adapter; Make retains stable target names but does not own
+`backends/native/cmd/gomadtool` is their command adapter; Make retains stable target names but does not own
 lifecycle or result-classification policy. The test driver records one bounded
 case result per external command and keeps equality, diversity, diagnostics,
 timeouts, and mandatory semantic markers as distinct oracles.

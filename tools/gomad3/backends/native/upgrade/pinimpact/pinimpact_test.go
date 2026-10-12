@@ -14,10 +14,10 @@ import (
 	"testing"
 
 	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
+	compatibility "go.temporal.io/server/tools/gomad3/backends/native/compatibilitypack"
 	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/backends/native/upgrade/pinimpact"
-	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
 	"go.temporal.io/server/tools/gomad3/target"
 	"golang.org/x/mod/modfile"
 )

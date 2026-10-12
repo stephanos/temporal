@@ -8,8 +8,8 @@ import (
 	"slices"
 	"testing"
 
+	compatibility "go.temporal.io/server/tools/gomad3/backends/native/compatibilitypack"
 	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
-	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
 	"go.temporal.io/server/tools/gomad3/target"
 )
 

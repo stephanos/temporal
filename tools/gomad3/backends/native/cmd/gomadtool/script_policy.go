@@ -1,4 +1,4 @@
-package validation
+package main
 
 import (
 	"errors"
@@ -23,7 +23,7 @@ var reviewedScripts = map[string]scriptOwner{
 	"backends/native/conformance/scripts/exec.sh":               {role: "upstream exec adapter", requiredText: "GOMAD3_CHILD_SEED", maxLines: 25},
 }
 
-func Validate(root string) error {
+func validateScripts(root string) error {
 	absolute, err := filepath.Abs(root)
 	if err != nil || absolute == string(filepath.Separator) {
 		return errors.Join(errors.New("gomad3 script-policy root must be an absolute non-root directory"), err)

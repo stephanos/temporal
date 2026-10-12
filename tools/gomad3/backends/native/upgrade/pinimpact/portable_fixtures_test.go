@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
+	compatibility "go.temporal.io/server/tools/gomad3/backends/native/compatibilitypack"
 	"go.temporal.io/server/tools/gomad3/backends/native/upgrade/pinimpact"
-	compatibility "go.temporal.io/server/tools/gomad3/internal/compatibilitypack"
 )
 
 func TestPortableFixturePinDecisions(t *testing.T) {

@@ -39,11 +39,11 @@ var skippedDirectories = map[string]bool{".toolchain": true, ".bin": true}
 // qualification manifest step reads the repository outside the Gomad module
 // and does not consume adapter pins, so the staged copy omits it.
 var DefaultGenerators = [][]string{
-	{"{go}", "run", "./cmd/gomadtool", "version-generate"},
-	{"{go}", "run", "./cmd/gomadtool", "protocol-generate"},
-	{"{go}", "run", "./cmd/gomadtool", "boundary-generate"},
-	{"{go}", "run", "./cmd/gomadtool", "boundary-generate", "-check-compiler-tests"},
-	{"{go}", "run", "./cmd/gomadtool", "compatibility-pack", "generate", "--root={root}"},
+	{"{go}", "run", "./backends/native/cmd/gomadtool", "version-generate"},
+	{"{go}", "run", "./backends/native/cmd/gomadtool", "protocol-generate"},
+	{"{go}", "run", "./backends/native/cmd/gomadtool", "boundary-generate"},
+	{"{go}", "run", "./backends/native/cmd/gomadtool", "boundary-generate", "-check-compiler-tests"},
+	{"{go}", "run", "./backends/native/cmd/gomadtool", "compatibility-pack", "generate", "--root={root}"},
 }
 
 // DefaultVerifiers check the staged set before publication: it builds, the
@@ -54,10 +54,10 @@ var DefaultGenerators = [][]string{
 var DefaultVerifiers = [][]string{
 	{"{go}", "build", "./cmd/..."},
 	{"{go}", "vet", "-tags", "test_dep", "./backends/native/transcript/...", "./backends/native/toolchain/version/..."},
-	{"{go}", "run", "./cmd/gomadtool", "version-generate", "-check"},
-	{"{go}", "run", "./cmd/gomadtool", "boundary-generate", "-check"},
-	{"{go}", "run", "./cmd/gomadtool", "compatibility-pack", "check", "--root={root}", "--staged-copy"},
-	{"{go}", "run", "./cmd/gomadtool", "adapter-regenerate", "--verify", "--module={module}", "--module-dir={candidate}", "--go={go}"},
+	{"{go}", "run", "./backends/native/cmd/gomadtool", "version-generate", "-check"},
+	{"{go}", "run", "./backends/native/cmd/gomadtool", "boundary-generate", "-check"},
+	{"{go}", "run", "./backends/native/cmd/gomadtool", "compatibility-pack", "check", "--root={root}", "--staged-copy"},
+	{"{go}", "run", "./backends/native/cmd/gomadtool", "adapter-regenerate", "--verify", "--module={module}", "--module-dir={candidate}", "--go={go}"},
 }
 
 type journalEntry struct {

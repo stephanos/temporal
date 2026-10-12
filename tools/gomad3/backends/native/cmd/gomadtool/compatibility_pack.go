@@ -13,8 +13,8 @@ import (
 	"strings"
 	"time"
 
+	"go.temporal.io/server/tools/gomad3/backends/native/compatibilitypack/authoring"
 	capabilityanalysis "go.temporal.io/server/tools/gomad3/backends/native/qualification/analysis"
-	"go.temporal.io/server/tools/gomad3/internal/compatibilitypack/authoring"
 )
 
 const compatibilityPackTimeout = 2 * time.Minute
@@ -51,7 +51,7 @@ func runCompatibilityPackDiscover(arguments []string, stdout, stderr io.Writer) 
 	flags := flag.NewFlagSet("gomadtool compatibility-pack discover", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	root := flags.String("root", "", "Gomad v3 module root")
-	compatibilityRootOverride := flags.String("compatibility-root", "", "absolute pack authoring root owned by another module (default: internal/compatibilitypack)")
+	compatibilityRootOverride := flags.String("compatibility-root", "", "absolute pack authoring root owned by another module (default: backends/native/compatibilitypack)")
 	requestPath := flags.String("request", "", "compatibility-pack request path")
 	workingDirectory := flags.String("working-dir", "", "target working directory")
 	if err := flags.Parse(arguments); err != nil || flags.NArg() != 0 || *root == "" || *requestPath == "" || *workingDirectory == "" {
@@ -99,7 +99,7 @@ func runCompatibilityPackDiscover(arguments []string, stdout, stderr io.Writer) 
 		return 1
 	}
 	if !pathWithin(compatibilityRoot, resolvedRequest) {
-		if _, writeErr := fmt.Fprintln(stderr, "compatibility-pack request must be below internal/compatibilitypack"); writeErr != nil {
+		if _, writeErr := fmt.Fprintln(stderr, "compatibility-pack request must be below backends/native/compatibilitypack"); writeErr != nil {
 			return 2
 		}
 		return 2
@@ -120,7 +120,7 @@ func runCompatibilityPackReview(arguments []string, stdout, stderr io.Writer) in
 	flags := flag.NewFlagSet("gomadtool compatibility-pack review", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	root := flags.String("root", "", "Gomad v3 module root")
-	compatibilityRootOverride := flags.String("compatibility-root", "", "absolute pack authoring root owned by another module (default: internal/compatibilitypack)")
+	compatibilityRootOverride := flags.String("compatibility-root", "", "absolute pack authoring root owned by another module (default: backends/native/compatibilitypack)")
 	requestPath := flags.String("request", "", "compatibility-pack request path")
 	outputPath := flags.String("output", "", "review report path")
 	if err := flags.Parse(arguments); err != nil || flags.NArg() != 0 || *root == "" || *requestPath == "" || *outputPath == "" {
@@ -135,7 +135,7 @@ func runCompatibilityPackReview(arguments []string, stdout, stderr io.Writer) in
 	}
 	resolvedOutput, err := resolveBelow(compatibilityPathBase(*root, compatibilityRoot, *compatibilityRootOverride), *outputPath)
 	if err != nil || !pathWithin(compatibilityRoot, resolvedOutput) {
-		if _, writeErr := fmt.Fprintln(stderr, "compatibility-pack review output must be below internal/compatibilitypack"); writeErr != nil {
+		if _, writeErr := fmt.Fprintln(stderr, "compatibility-pack review output must be below backends/native/compatibilitypack"); writeErr != nil {
 			return 2
 		}
 		return 2
@@ -161,7 +161,7 @@ func runCompatibilityPackGenerate(arguments []string, stdout, stderr io.Writer) 
 	flags := flag.NewFlagSet("gomadtool compatibility-pack generate", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	root := flags.String("root", "", "Gomad v3 module root")
-	compatibilityRootOverride := flags.String("compatibility-root", "", "absolute pack authoring root owned by another module (default: internal/compatibilitypack)")
+	compatibilityRootOverride := flags.String("compatibility-root", "", "absolute pack authoring root owned by another module (default: backends/native/compatibilitypack)")
 	requestPath := flags.String("request", "", "compatibility-pack request path")
 	approval := flags.String("approve-review", "", "exact canonical review SHA-256")
 	if err := flags.Parse(arguments); err != nil || flags.NArg() != 0 || *root == "" {
@@ -198,7 +198,7 @@ func runCompatibilityPackGenerate(arguments []string, stdout, stderr io.Writer) 
 	}
 	_, compatibilityRoot, resolvedRequest, err := resolveCompatibilityPackPaths(*root, *compatibilityRootOverride, *requestPath)
 	if err != nil || !pathWithin(compatibilityRoot, resolvedRequest) {
-		if _, writeErr := fmt.Fprintln(stderr, "compatibility-pack request must be below internal/compatibilitypack"); writeErr != nil {
+		if _, writeErr := fmt.Fprintln(stderr, "compatibility-pack request must be below backends/native/compatibilitypack"); writeErr != nil {
 			return 2
 		}
 		return 2
@@ -223,7 +223,7 @@ func runCompatibilityPackCheck(arguments []string, stdout, stderr io.Writer) int
 	flags := flag.NewFlagSet("gomadtool compatibility-pack check", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	root := flags.String("root", "", "Gomad v3 module root")
-	compatibilityRootOverride := flags.String("compatibility-root", "", "absolute pack authoring root owned by another module (default: internal/compatibilitypack)")
+	compatibilityRootOverride := flags.String("compatibility-root", "", "absolute pack authoring root owned by another module (default: backends/native/compatibilitypack)")
 	stagedCopy := flags.Bool("staged-copy", false, "root is a staged copy of the module without its repository: require the working-directory table but not a go.mod in the directories it maps outside the copy")
 	if err := flags.Parse(arguments); err != nil || flags.NArg() != 0 || *root == "" {
 		return 2
@@ -272,7 +272,7 @@ func runCompatibilityPackQualify(arguments []string, stdout, stderr io.Writer) i
 	flags := flag.NewFlagSet("gomadtool compatibility-pack qualify", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	root := flags.String("root", "", "Gomad v3 module root")
-	compatibilityRootOverride := flags.String("compatibility-root", "", "absolute pack authoring root owned by another module (default: internal/compatibilitypack)")
+	compatibilityRootOverride := flags.String("compatibility-root", "", "absolute pack authoring root owned by another module (default: backends/native/compatibilitypack)")
 	requestPath := flags.String("request", "", "compatibility-pack request path")
 	workingDirectory := flags.String("working-dir", "", "target working directory")
 	all := flags.Bool("all", false, "qualify every request that names the host platform in the working directory its table entry names")
@@ -290,7 +290,7 @@ func runCompatibilityPackQualify(arguments []string, stdout, stderr io.Writer) i
 	}
 	resolvedRoot, compatibilityRoot, resolvedRequest, err := resolveCompatibilityPackPaths(*root, *compatibilityRootOverride, *requestPath)
 	if err != nil || !pathWithin(compatibilityRoot, resolvedRequest) {
-		if _, writeErr := fmt.Fprintln(stderr, "compatibility-pack request must be below internal/compatibilitypack"); writeErr != nil {
+		if _, writeErr := fmt.Fprintln(stderr, "compatibility-pack request must be below backends/native/compatibilitypack"); writeErr != nil {
 			return 2
 		}
 		return 2
@@ -413,7 +413,7 @@ func resolveCompatibilityPackPaths(root, override, request string) (string, stri
 
 // compatibilityPathBase is the directory relative request and report paths are
 // resolved from: the Gomad v3 root by default, where they are spelled
-// internal/compatibilitypack/..., or the external authoring root itself.
+// backends/native/compatibilitypack/..., or the external authoring root itself.
 func compatibilityPathBase(root, compatibilityRoot, override string) string {
 	if override != "" {
 		return compatibilityRoot
@@ -422,12 +422,12 @@ func compatibilityPathBase(root, compatibilityRoot, override string) string {
 }
 
 // compatibilityRootFor returns the pack authoring root: this module's
-// internal/compatibilitypack, or an absolute directory another module owns so
+// backends/native/compatibilitypack, or an absolute directory another module owns so
 // that packs naming its dependencies never enter this repository. Packs
 // generated there are loaded through GOMAD3_COMPATIBILITY_PACKS=ROOT/packs.
 func compatibilityRootFor(resolvedRoot, override string) (string, error) {
 	if override == "" {
-		return filepath.Join(resolvedRoot, "internal", "compatibilitypack"), nil
+		return filepath.Join(resolvedRoot, "backends", "native", "compatibilitypack"), nil
 	}
 	if !filepath.IsAbs(override) || filepath.Clean(override) != override {
 		return "", fmt.Errorf("--compatibility-root %q must be an absolute, clean path", override)

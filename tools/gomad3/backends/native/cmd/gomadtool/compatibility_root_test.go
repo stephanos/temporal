@@ -9,8 +9,8 @@ func TestCompatibilityPackPathsHonorAnExternalRoot(t *testing.T) {
 	root := t.TempDir()
 	external := t.TempDir()
 
-	_, compatibilityRoot, request, err := resolveCompatibilityPackPaths(root, "", "internal/compatibilitypack/requests/x.json")
-	if err != nil || compatibilityRoot != filepath.Join(root, "internal", "compatibilitypack") || request != filepath.Join(root, "internal", "compatibilitypack", "requests", "x.json") {
+	_, compatibilityRoot, request, err := resolveCompatibilityPackPaths(root, "", "backends/native/compatibilitypack/requests/x.json")
+	if err != nil || compatibilityRoot != filepath.Join(root, "backends", "native", "compatibilitypack") || request != filepath.Join(root, "backends", "native", "compatibilitypack", "requests", "x.json") {
 		t.Fatalf("default paths = %q, %q, %v", compatibilityRoot, request, err)
 	}
 
@@ -35,7 +35,7 @@ func TestCompatibilityPackPathsHonorAnExternalRoot(t *testing.T) {
 func TestCompatibilityPathBaseKeepsDefaultPathsRootRelative(t *testing.T) {
 	root := t.TempDir()
 	external := t.TempDir()
-	if base := compatibilityPathBase(root, filepath.Join(root, "internal", "compatibilitypack"), ""); base != root {
+	if base := compatibilityPathBase(root, filepath.Join(root, "backends", "native", "compatibilitypack"), ""); base != root {
 		t.Fatalf("default base = %q, want %q", base, root)
 	}
 	if base := compatibilityPathBase(root, external, external); base != external {

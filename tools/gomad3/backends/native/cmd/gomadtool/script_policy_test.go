@@ -1,4 +1,4 @@
-package validation
+package main
 
 import (
 	"os"
@@ -8,17 +8,17 @@ import (
 )
 
 func TestValidateAcceptsReviewedScriptOwnership(t *testing.T) {
-	root, err := filepath.Abs(filepath.Join("..", "..", ".."))
+	root, err := filepath.Abs(filepath.Join("..", "..", "..", ".."))
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := Validate(root); err != nil {
+	if err := validateScripts(root); err != nil {
 		t.Fatal(err)
 	}
 }
 
 func TestValidateRejectsUnownedAndBashPolicyScripts(t *testing.T) {
-	root, err := filepath.Abs(filepath.Join("..", "..", ".."))
+	root, err := filepath.Abs(filepath.Join("..", "..", "..", ".."))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -36,8 +36,8 @@ func TestValidateRejectsUnownedAndBashPolicyScripts(t *testing.T) {
 			if err := os.WriteFile(path, []byte(test.contents), 0o700); err != nil {
 				t.Fatal(err)
 			}
-			if err := Validate(fixture); err == nil || !strings.Contains(err.Error(), test.want) {
-				t.Fatalf("Validate() error = %v, want %q", err, test.want)
+			if err := validateScripts(fixture); err == nil || !strings.Contains(err.Error(), test.want) {
+				t.Fatalf("validateScripts() error = %v, want %q", err, test.want)
 			}
 		})
 	}

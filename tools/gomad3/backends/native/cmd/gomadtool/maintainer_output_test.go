@@ -13,7 +13,7 @@ import (
 )
 
 func TestRunMaintainerOutputTerminalReports(t *testing.T) {
-	root, err := filepath.Abs("../..")
+	root, err := filepath.Abs("../../../..")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -64,7 +64,7 @@ func TestRunMaintainerOutputBoundaryDiscovery(t *testing.T) {
 }
 
 func TestRunMaintainerOutputAuthoring(t *testing.T) {
-	root, err := filepath.Abs("../..")
+	root, err := filepath.Abs("../../../..")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -15,7 +15,6 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/backends/native/conformance"
 	toolchainbuild "go.temporal.io/server/tools/gomad3/backends/native/toolchain"
-	"go.temporal.io/server/tools/gomad3/internal/gomadtool/validation"
 	"go.temporal.io/server/tools/gomad3/internal/hostexec"
 )
 
@@ -217,7 +216,7 @@ func runScriptValidate(arguments []string, stdout, stderr io.Writer) int {
 	if err := flags.Parse(arguments); err != nil || flags.NArg() != 0 || *root == "" {
 		return 2
 	}
-	if err := validation.Validate(*root); err != nil {
+	if err := validateScripts(*root); err != nil {
 		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
 			return 1
 		}

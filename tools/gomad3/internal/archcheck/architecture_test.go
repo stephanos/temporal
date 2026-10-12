@@ -48,7 +48,7 @@ func TestBackendImportDirection(t *testing.T) {
 		"embed", "encoding", "encoding/base64", "encoding/binary", "encoding/hex", "encoding/json", "errors", "fmt", "hash", "io",
 		"math", "math/bits", "path", "path/filepath", "reflect", "regexp", "slices", "sort", "strconv", "golang.org/x/mod/module",
 		"strings", "sync", "sync/atomic", "syscall", "time", "unicode", "unicode/utf8",
-		modulePath + "/choice", modulePath + "/target", modulePath + "/internal/compatibilitypack",
+		modulePath + "/choice", modulePath + "/target", modulePath + "/backends/native/compatibilitypack",
 	}
 	platforms := qualifiedSourcePlatforms()
 	host := archcheck.Platform{OS: runtime.GOOS, Arch: runtime.GOARCH}
@@ -140,10 +140,10 @@ func TestArchitectureInventoryFixtures(t *testing.T) {
 		t.Run(fixture.name, func(t *testing.T) {
 			root := t.TempDir()
 			files := map[string]string{"go.mod": "module example.invalid/fitness\n\ngo 1.27.1\n", "runner/source.go": "package runner\n", fixture.path: fixture.source}
-			for _, path := range []string{"backends/native/toolchain/runtime/overlay", "cmd/gomad/testdata", "backends/native/transcript/testdata", "internal/compatibilitypack/testdata", "backends/native/conformance/testdata", "runner/testdata", "qualification/corpus", "backends/wasm/testdata", "backends/wasm/wasi/testdata", "backends/wasm/toolchain/testdata", "backends/wasm/simulation/testdata", "backends/wasm/qualification/testdata", "backends/wasm/cmd/gomad-wasm/testdata"} {
+			for _, path := range []string{"backends/native/toolchain/runtime/overlay", "cmd/gomad/testdata", "backends/native/transcript/testdata", "backends/native/compatibilitypack/testdata", "backends/native/conformance/testdata", "runner/testdata", "qualification/corpus", "backends/wasm/testdata", "backends/wasm/wasi/testdata", "backends/wasm/toolchain/testdata", "backends/wasm/simulation/testdata", "backends/wasm/qualification/testdata", "backends/wasm/cmd/gomad-wasm/testdata"} {
 				files[path+"/fixture.go"] = "package fixture\n"
 			}
-			for _, path := range []string{"backends/native/transcript/testdata/cactusstatsd", "backends/native/transcript/testdata/hashicorpmetrics", "backends/native/transcript/testdata/memberlist", "backends/native/transcript/testdata/pebble", "backends/native/transcript/testdata/sentry", "backends/native/transcript/testdata/sockaddr", "backends/native/transcript/testdata/sprig", "backends/native/transcript/testdata/validator", "internal/compatibilitypack/testdata/v041", "internal/compatibilitypack/testdata/xsys", "backends/native/conformance/testdata", "backends/native/conformance/testdata/libc_adapter", "backends/native/conformance/testdata/sqlite_adapter", "qualification/corpus", "backends/wasm/qualification/testdata/fixture"} {
+			for _, path := range []string{"backends/native/transcript/testdata/cactusstatsd", "backends/native/transcript/testdata/hashicorpmetrics", "backends/native/transcript/testdata/memberlist", "backends/native/transcript/testdata/pebble", "backends/native/transcript/testdata/sentry", "backends/native/transcript/testdata/sockaddr", "backends/native/transcript/testdata/sprig", "backends/native/transcript/testdata/validator", "backends/native/compatibilitypack/testdata/v041", "backends/native/compatibilitypack/testdata/xsys", "backends/native/conformance/testdata", "backends/native/conformance/testdata/libc_adapter", "backends/native/conformance/testdata/sqlite_adapter", "qualification/corpus", "backends/wasm/qualification/testdata/fixture"} {
 				files[path+"/go.mod"] = "module example.invalid/fixture\n\ngo 1.27.1\n"
 				files[path+"/fixture.go"] = "package fixture\n"
 			}
@@ -359,8 +359,8 @@ func TestInspectionSourceOwnershipDelegation(t *testing.T) {
 	}{
 		{"cmd/gomad/internal/cli/analyze.go", "runAnalyze", "preparation.Inspect"},
 		{"backends/native/qualification/analysis/prepared_review.go", "PrepareCapabilityReview", "preparation.Inspect"},
-		{"cmd/gomadtool/compatibility_pack.go", "runCompatibilityPackDiscover", "capabilityanalysis.PrepareCapabilityReview"},
-		{"cmd/gomadtool/compatibility_pack.go", "qualifyCompatibilityPackRequest", "capabilityanalysis.PrepareCapabilityReview"},
+		{"backends/native/cmd/gomadtool/compatibility_pack.go", "runCompatibilityPackDiscover", "capabilityanalysis.PrepareCapabilityReview"},
+		{"backends/native/cmd/gomadtool/compatibility_pack.go", "qualifyCompatibilityPackRequest", "capabilityanalysis.PrepareCapabilityReview"},
 	} {
 		t.Run(consumer.function, func(t *testing.T) {
 			file, err := parser.ParseFile(token.NewFileSet(), consumer.file, nil, 0)
@@ -536,13 +536,13 @@ func TestExactModuleEdges(t *testing.T) {
 	// One neutral owner digests adapter source inventories for capability
 	// review and adapter preparation; target no longer exports the digest.
 	for _, consumer := range []string{modulePath + "/backends/native/build", modulePath + "/backends/native/transcript"} {
-		if !slices.Contains(imports[consumer], modulePath+"/internal/sourceinventory") {
-			t.Errorf("%s does not digest adapter inventories through internal/sourceinventory", consumer)
+		if !slices.Contains(imports[consumer], modulePath+"/backends/native/sourceinventory") {
+			t.Errorf("%s does not digest adapter inventories through backends/native/sourceinventory", consumer)
 		}
 	}
-	for _, imported := range imports[modulePath+"/internal/sourceinventory"] {
+	for _, imported := range imports[modulePath+"/backends/native/sourceinventory"] {
 		if strings.HasPrefix(imported, modulePath+"/") && imported != modulePath+"/internal/hostfs" {
-			t.Errorf("internal/sourceinventory imports module package %s", imported)
+			t.Errorf("backends/native/sourceinventory imports module package %s", imported)
 		}
 	}
 	if _, found := packageExports(t, "target")["DigestAdapterSourceInventory"]; found {
@@ -685,8 +685,8 @@ var pureDependencyFiles = []string{
 	"choice/tape.go", "choice/divergence.go", "choice/no_op_select.go",
 	"choice/wire.go", "choice/trace.go", "choice/legacy_v1.go", "choice/interrupted.go",
 	"choice/limits.go", "choice/internal/wire/wire_generated.go",
-	"internal/compatibilitypack/evaluation.go", "internal/compatibilitypack/selection_pure.go",
-	"internal/compatibilitypack/schema.go",
+	"backends/native/compatibilitypack/evaluation.go", "backends/native/compatibilitypack/selection_pure.go",
+	"backends/native/compatibilitypack/schema.go",
 	"internal/canonicaljson/canonical.go", "internal/canonicaljson/implementation.go", "internal/canonicaljson/streaming.go",
 }
 

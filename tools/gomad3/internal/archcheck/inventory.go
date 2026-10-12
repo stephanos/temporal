@@ -227,7 +227,7 @@ func Within(path, root string) bool { return within(path, root) }
 
 var sourceExclusions = []string{
 	"backends/native/toolchain/runtime/overlay", "backends/native/transcript/testdata", "backends/native/conformance/testdata",
-	"cmd/gomad/testdata", "internal/compatibilitypack/testdata", "runner/testdata", "qualification/corpus",
+	"cmd/gomad/testdata", "backends/native/compatibilitypack/testdata", "runner/testdata", "qualification/corpus",
 	"backends/wasm/testdata", "backends/wasm/wasi/testdata", "backends/wasm/toolchain/testdata", "backends/wasm/simulation/testdata", "backends/wasm/qualification/testdata", "backends/wasm/command/testdata",
 }
 
@@ -236,6 +236,6 @@ var hostSourcePackages = []string{"backends/native/toolchain/runtime/testdata/vf
 var expectedModules = map[string]bool{
 	"backends/native/transcript/testdata/cactusstatsd/go.mod": true, "backends/native/transcript/testdata/hashicorpmetrics/go.mod": true, "backends/native/transcript/testdata/memberlist/go.mod": true, "backends/native/transcript/testdata/pebble/go.mod": true,
 	"backends/native/transcript/testdata/sentry/go.mod": true, "backends/native/transcript/testdata/sockaddr/go.mod": true, "backends/native/transcript/testdata/sprig/go.mod": true, "backends/native/transcript/testdata/validator/go.mod": true,
-	"internal/compatibilitypack/testdata/v041/go.mod": true, "internal/compatibilitypack/testdata/xsys/go.mod": true, "backends/native/conformance/testdata/go.mod": true, "backends/native/conformance/testdata/libc_adapter/go.mod": true, "backends/native/conformance/testdata/sqlite_adapter/go.mod": true,
+	"backends/native/compatibilitypack/testdata/v041/go.mod": true, "backends/native/compatibilitypack/testdata/xsys/go.mod": true, "backends/native/conformance/testdata/go.mod": true, "backends/native/conformance/testdata/libc_adapter/go.mod": true, "backends/native/conformance/testdata/sqlite_adapter/go.mod": true,
 	"qualification/corpus/go.mod": true, "backends/wasm/qualification/testdata/fixture/go.mod": true,
 }
