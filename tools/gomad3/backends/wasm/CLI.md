@@ -262,10 +262,14 @@ execution/replay has a 15-minute budget. Missing process measurements remain an
 explicit budget failure. These declared bounds are not evidence that a
 particular Temporal cell passed them.
 
-The full-wall 5× acceleration gate remains red. A true guest-execution-boundary
-acceleration measurement is conditional on the tested workload, profile and
-clock; it does not replace full helper wall time or cold preparation, and cannot
-promote the full-wall gate. Virtual time is not compute time or schedule coverage.
+The owner accepted the measured 2.911× workflow execution speedup
+(authorization to validated terminal) for now; no all-workload 5× threshold
+applies. That acceptance covers execution cost only: the same retained workflow
+pair's full-wall ratio was 0.694×, so no end-to-end or WASM-versus-native speedup
+is claimed. Historical 5× gate failures remain unchanged evidence. An
+execution-boundary measurement is conditional on the tested workload, profile and
+clock and does not replace full helper wall time or cold preparation. Virtual time is not
+compute time or schedule coverage.
 
 ## Capabilities and limits
 
@@ -337,9 +341,12 @@ semantic input. The v2 cache binds actual helper/module/engine/platform identiti
 and validates a bounded envelope checksum before deserialization from memory.
 The trust boundary requires a current-user-owned 0700 directory and regular,
 single-link, no-follow 0600 entries. Old filename-only cache files are not
-trusted or reused. Cache poison and symlink rejection passed the installed
-stock/cooperative fixture gate; that is not qualification of arbitrary cached
-Temporal code. The current cache artifact bound is 1 GiB.
+trusted or reused. The helper's engine tests reject corrupt, stale, symlinked,
+hard-linked, permissive, directory-linked and oversized entries before a guest
+starts. The opt-in installed operator test requires a poisoned or symlinked
+compiled entry to fail replay of the stock and cooperative fixtures and a
+restored entry to replay again. These are source tests, not a retained installed
+gate result or qualification of arbitrary cached Temporal code. The current cache artifact bound is 1 GiB.
 
 A provisional cooperative ready-select/timer fixture measured one cold and one
 warm execution plus two fresh replays. The cold engine compilation took 1.256 s;

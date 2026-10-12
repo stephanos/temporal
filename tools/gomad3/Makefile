@@ -17,7 +17,7 @@ test-wasm:
 		GOMAD3_STOCK_GO="$$stock_go" PATH="$$(dirname "$$stock_go"):$$PATH" \
 		"$$stock_go" test -tags test_dep -count=1 -timeout=15m \
 		-run '^TestWASMTestsDoNotImportNativeBuilder$$|^TestGeneratedProjectionMatchesNativeSources$$|^TestGeneratedNetworkIsCurrent$$|^TestProjection' \
-		./backends/wasm ./volume ./simulation/network/generate && \
+		./backends/wasm ./volume ./volume/internal/projection ./simulation/network/generate && \
 	env -u GOROOT -u GOMADSEED -u GOMAD3_CHILD_SEED GOENV=off GOTOOLCHAIN=local GOWORK=off \
 		GOMAD3_STOCK_GO="$$stock_go" PATH="$$(dirname "$$stock_go"):$$PATH" \
 		"$$stock_go" test -v -tags test_dep -count=1 -timeout=15m ./backends/wasm/...

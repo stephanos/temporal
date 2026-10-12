@@ -25,9 +25,10 @@ The shared Go module is pinned to Go 1.27.1. The helper uses Rust 1.94.1 and Was
 
 The merged module carries the existing server simulation dependency through one
 local `go.temporal.io/server => ../..` replacement; shared core imports remain
-server-free. Shared volume and network models are checked projections of specific
-native overlay inputs, so CI tests both backends when those inputs change. This
-is a source dependency, not a native toolchain prerequisite for `test-wasm`.
+server-free. Shared volume and network models are generated projections of
+specific native overlay inputs; CI selects both backends when those inputs
+change. This is a source dependency, not a native toolchain prerequisite for
+`test-wasm`.
 
 The [operator guide](CLI.md) describes installation, discovery, campaigns,
 retained replay and recovery. Feature availability is not a qualification claim;
@@ -46,11 +47,12 @@ make -C tools/gomad3 test-wasm GOMAD3_STOCK_GO=/absolute/stock/go1.27.1
 tests; `test-go` includes fresh guest execution and repeatability tests. The Go
 targets resolve stock Go 1.27.1 and clear inherited `GOROOT`. Set
 `GOMAD3_STOCK_GO` to select an existing stock Go 1.27.1 executable for `test-wasm`.
-That target checks the shared volume and network projections against their native
-source inputs before running the WASM packages; it has no native toolchain build
-prerequisites. The backend-local targets
-also accept `GOMAD_WASM_STOCK_GO`; their `make test` combines the helper and Go
-suites. Writable stock Go copies are shared under `tools/gomad3/.toolchain/stock`.
+Before running the WASM packages, that target regenerates the volume and network
+projections from their native sources and requires the checked-in outputs to
+match, runs the projection generators' drift-rejection tests and checks that WASM
+tests import no native builder; it has no native toolchain build prerequisites.
+The backend-local targets also accept `GOMAD_WASM_STOCK_GO`; their `make test`
+combines the helper and Go suites. Writable stock Go copies are shared under `tools/gomad3/.toolchain/stock`.
 
 The isolated engine and environment gates include fresh stock Go guests with
 identical output and import transcripts. The accepted SQLite and Temporal guest
