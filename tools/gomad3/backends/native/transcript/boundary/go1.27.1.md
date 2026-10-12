@@ -1,6 +1,6 @@
 # Gomad deterministic boundary: go1.27.1-v1
 
-Generated from [`manifest.json`](manifest.json) for Go go1.27.1 on darwin/arm64, linux/amd64. Manifest identity: `sha256:ca18b6934d906b95235e04f83dfc2eef0a94d17d5417eb032cd086f7425ebbd0`. Do not edit this inventory directly.
+Generated from [`manifest.json`](manifest.json) for Go go1.27.1 on darwin/arm64, linux/amd64. Manifest identity: `sha256:222b2f9516c9f4f6c881787f6a95eb2cd6552b0e443de23df90af3417bf7c29d`. Do not edit this inventory directly.
 
 | Target | Signature | Operation | Probe | Disposition | Hook | Hook policy | Adapters | Conformance | Negative | Escape |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |

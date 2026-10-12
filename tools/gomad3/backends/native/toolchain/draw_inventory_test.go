@@ -675,7 +675,7 @@ func seededDrawReferences(goRoot string, platforms []string) (map[string]int, er
 		}
 		context := build.Default
 		context.GOROOT, context.GOOS, context.GOARCH, context.CgoEnabled = goRoot, goos, goarch, false
-		// Targets build with GOEXPERIMENT=nogreenteagc (target/internal/build).
+		// Targets build with GOEXPERIMENT=nogreenteagc (backends/native/build/internal/build).
 		context.ToolTags = slices.DeleteFunc(slices.Clone(context.ToolTags), func(tag string) bool { return tag == "goexperiment.greenteagc" })
 		files := map[string][]string{}
 		err := filepath.WalkDir(sourceRoot, func(path string, entry fs.DirEntry, err error) error {

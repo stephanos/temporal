@@ -134,7 +134,7 @@ func TestLintRuntimeHostPackages(t *testing.T) {
 			} else {
 				require.Error(t, err, output)
 			}
-			packages := []string{".", "./internal/gomadtool/architecture", "./runner", "./toolchain", "./backends/native/toolchain/runtime/testdata/vfdnative", "./backends/native/toolchain/runtime/testdata/vfdpointer"}
+			packages := []string{".", "./backends/native/toolchain", "./backends/native/toolchain/runtime/testdata/vfdnative", "./backends/native/toolchain/runtime/testdata/vfdpointer", "./internal/gomadtool/architecture", "./runner"}
 			want := []lintCall{{"golangci", "tools/gomad3", repo.lintArgs(packages...)}}
 			if tc.failure != "golangci" {
 				want = append(want, lintCall{"vet", "tools/gomad3", repo.vetArgs(packages...)})
@@ -232,8 +232,8 @@ func TestFastLintRoutesModuleOwners(t *testing.T) {
 		{"vet", ".", repo.vetArgs("./.github/actions/build-docker-images/scripts", "./ordinary", "./tools/gomad3sim")},
 		{"golangci", ".", integrationLintArgs},
 		{"vet", ".", integrationVetArgs},
-		{"golangci", "tools/gomad3", repo.lintArgs(".", "./internal/gomadtool/architecture", "./runner", "./toolchain")},
-		{"vet", "tools/gomad3", repo.vetArgs(".", "./internal/gomadtool/architecture", "./runner", "./toolchain")},
+		{"golangci", "tools/gomad3", repo.lintArgs(".", "./backends/native/toolchain", "./internal/gomadtool/architecture", "./runner")},
+		{"vet", "tools/gomad3", repo.vetArgs(".", "./backends/native/toolchain", "./internal/gomadtool/architecture", "./runner")},
 		{"golangci", "tests/mixedbrain", repo.lintArgs(".")},
 		{"vet", "tests/mixedbrain", repo.vetArgs(".")},
 	}, repo.calls())
@@ -245,22 +245,20 @@ func TestWASMLintModuleRoutesHostSourcesAndRetainsClosedInventory(t *testing.T) 
 		t.Run(target, func(t *testing.T) {
 			t.Parallel()
 			repo := newLintRepo(t)
-			repo.write("tools/gomad_wasm/go.mod", "module example.invalid/wasm\n\ngo 1.27.0\n")
-			repo.write("tools/gomad_wasm/wasi/source.go", "package wasi\n")
-			repo.write("tools/gomad_wasm/testdata/environment/main.go", "package main\n")
+			repo.write("tools/gomad3/backends/wasm/wasi/source.go", "package wasi\n")
+			repo.write("tools/gomad3/backends/wasm/testdata/environment/main.go", "package main\n")
 			repo.make(target)
 			require.Equal(t, []lintCall{
-				{"golangci", "tools/gomad_wasm", repo.lintArgs("./wasi")},
-				{"vet", "tools/gomad_wasm", repo.vetArgs("./wasi")},
+				{"golangci", "tools/gomad3", repo.lintArgs(".", "./backends/native/toolchain", "./backends/wasm/wasi", "./internal/gomadtool/architecture", "./runner")},
+				{"vet", "tools/gomad3", repo.vetArgs(".", "./backends/native/toolchain", "./backends/wasm/wasi", "./internal/gomadtool/architecture", "./runner")},
 			}, repo.calls())
 		})
 	}
-	for _, path := range []string{"tools/gomad_wasm_extra/go.mod", "tools/gomad_wasm/testdata/unknown/main.go", "tools/gomad_wasm/wasi/testdata/runtime_cost_extra/main.go", "tools/gomad_wasm/testdata/environment/nested/go.mod"} {
+	for _, path := range []string{"tools/gomad3/backends/wasm/go.mod", "tools/gomad3/backends/wasm_extra/go.mod", "tools/gomad3/backends/wasm/testdata/unknown/main.go", "tools/gomad3/backends/wasm/wasi/testdata/runtime_cost_extra/main.go", "tools/gomad3/backends/wasm/testdata/environment/nested/go.mod"} {
 		t.Run(path, func(t *testing.T) {
 			t.Parallel()
 			repo := newLintRepo(t)
-			repo.write("tools/gomad_wasm/go.mod", "module example.invalid/wasm\n\ngo 1.27.0\n")
-			repo.write("tools/gomad_wasm/wasi/source.go", "package wasi\n")
+			repo.write("tools/gomad3/backends/wasm/wasi/source.go", "package wasi\n")
 			contents := "package main\n"
 			if strings.HasSuffix(path, "go.mod") {
 				contents = "module example.invalid/unowned\n\ngo 1.27.0\n"
@@ -281,21 +279,19 @@ func TestWASMLintRoutesTemporalDiagnosticFixtures(t *testing.T) {
 			t.Run(owner+"/"+target, func(t *testing.T) {
 				t.Parallel()
 				repo := newLintRepo(t)
-				repo.write("tools/gomad_wasm/go.mod", "module example.invalid/wasm\n\ngo 1.27.0\n")
-				repo.write("tools/gomad_wasm/wasi/source.go", "package wasi\n")
-				repo.write("tools/gomad_wasm/testdata/"+owner+"/fixture_test.go", "package fixture\n")
+				repo.write("tools/gomad3/backends/wasm/wasi/source.go", "package wasi\n")
+				repo.write("tools/gomad3/backends/wasm/testdata/"+owner+"/fixture_test.go", "package fixture\n")
 				repo.make(target)
 				require.Equal(t, []lintCall{
-					{"golangci", "tools/gomad_wasm", repo.lintArgs("./wasi")},
-					{"vet", "tools/gomad_wasm", repo.vetArgs("./wasi")},
+					{"golangci", "tools/gomad3", repo.lintArgs(".", "./backends/native/toolchain", "./backends/wasm/wasi", "./internal/gomadtool/architecture", "./runner")},
+					{"vet", "tools/gomad3", repo.vetArgs(".", "./backends/native/toolchain", "./backends/wasm/wasi", "./internal/gomadtool/architecture", "./runner")},
 				}, repo.calls())
 			})
 		}
 		t.Run(owner+"/nested-module", func(t *testing.T) {
 			t.Parallel()
 			repo := newLintRepo(t)
-			repo.write("tools/gomad_wasm/go.mod", "module example.invalid/wasm\n\ngo 1.27.0\n")
-			path := "tools/gomad_wasm/testdata/" + owner + "/nested/go.mod"
+			path := "tools/gomad3/backends/wasm/testdata/" + owner + "/nested/go.mod"
 			repo.write(path, "module example.invalid/unowned\n\ngo 1.27.0\n")
 			output, err := repo.runMake("lint-code-fast")
 			require.Error(t, err)
@@ -311,13 +307,12 @@ func TestWASMLintRoutesRuntimeQualificationFixtures(t *testing.T) {
 		t.Run(fixture, func(t *testing.T) {
 			t.Parallel()
 			repo := newLintRepo(t)
-			repo.write("tools/gomad_wasm/go.mod", "module example.invalid/wasm\n\ngo 1.27.0\n")
-			repo.write("tools/gomad_wasm/wasi/source.go", "package wasi\n")
-			repo.write("tools/gomad_wasm/"+fixture+"/main.go", "package main\n")
+			repo.write("tools/gomad3/backends/wasm/wasi/source.go", "package wasi\n")
+			repo.write("tools/gomad3/backends/wasm/"+fixture+"/main.go", "package main\n")
 			repo.make("lint-code-fast")
 			require.Equal(t, []lintCall{
-				{"golangci", "tools/gomad_wasm", repo.lintArgs("./wasi")},
-				{"vet", "tools/gomad_wasm", repo.vetArgs("./wasi")},
+				{"golangci", "tools/gomad3", repo.lintArgs(".", "./backends/native/toolchain", "./backends/wasm/wasi", "./internal/gomadtool/architecture", "./runner")},
+				{"vet", "tools/gomad3", repo.vetArgs(".", "./backends/native/toolchain", "./backends/wasm/wasi", "./internal/gomadtool/architecture", "./runner")},
 			}, repo.calls())
 		})
 	}
@@ -329,20 +324,18 @@ func TestWASMLintRoutesProductionizationFixtures(t *testing.T) {
 		t.Run(fixture, func(t *testing.T) {
 			t.Parallel()
 			repo := newLintRepo(t)
-			repo.write("tools/gomad_wasm/go.mod", "module example.invalid/wasm\n\ngo 1.27.0\n")
-			repo.write("tools/gomad_wasm/wasi/source.go", "package wasi\n")
-			repo.write("tools/gomad_wasm/"+fixture+"/main.go", "package main\n")
+			repo.write("tools/gomad3/backends/wasm/wasi/source.go", "package wasi\n")
+			repo.write("tools/gomad3/backends/wasm/"+fixture+"/main.go", "package main\n")
 			repo.make("lint-code-fast")
 			require.Equal(t, []lintCall{
-				{"golangci", "tools/gomad_wasm", repo.lintArgs("./wasi")},
-				{"vet", "tools/gomad_wasm", repo.vetArgs("./wasi")},
+				{"golangci", "tools/gomad3", repo.lintArgs(".", "./backends/native/toolchain", "./backends/wasm/wasi", "./internal/gomadtool/architecture", "./runner")},
+				{"vet", "tools/gomad3", repo.vetArgs(".", "./backends/native/toolchain", "./backends/wasm/wasi", "./internal/gomadtool/architecture", "./runner")},
 			}, repo.calls())
 		})
 		t.Run(fixture+"/nested-module", func(t *testing.T) {
 			t.Parallel()
 			repo := newLintRepo(t)
-			repo.write("tools/gomad_wasm/go.mod", "module example.invalid/wasm\n\ngo 1.27.0\n")
-			fixtureModule := "tools/gomad_wasm/" + fixture + "/nested/go.mod"
+			fixtureModule := "tools/gomad3/backends/wasm/" + fixture + "/nested/go.mod"
 			repo.write(fixtureModule, "module example.invalid/unowned\n\ngo 1.27.0\n")
 			output, err := repo.runMake("lint-code-fast")
 			require.Error(t, err)
@@ -358,9 +351,8 @@ func TestWASMLintAdmitsOnlyDeclaredQualificationFixtureModule(t *testing.T) {
 		t.Run(extra, func(t *testing.T) {
 			t.Parallel()
 			repo := newLintRepo(t)
-			repo.write("tools/gomad_wasm/go.mod", "module example.invalid/wasm\n\ngo 1.27.0\n")
-			repo.write("tools/gomad_wasm/wasi/source.go", "package wasi\n")
-			fixture := "tools/gomad_wasm/qualification/testdata/fixture/"
+			repo.write("tools/gomad3/backends/wasm/wasi/source.go", "package wasi\n")
+			fixture := "tools/gomad3/backends/wasm/qualification/testdata/fixture/"
 			repo.write(fixture+"go.mod", "module example.invalid/qualification\n\ngo 1.27.0\n")
 			repo.write(fixture+"main.go", "package main\n")
 			if extra != "" {
@@ -375,8 +367,8 @@ func TestWASMLintAdmitsOnlyDeclaredQualificationFixtureModule(t *testing.T) {
 			}
 			require.NoError(t, err, output)
 			require.Equal(t, []lintCall{
-				{"golangci", "tools/gomad_wasm", repo.lintArgs("./wasi")},
-				{"vet", "tools/gomad_wasm", repo.vetArgs("./wasi")},
+				{"golangci", "tools/gomad3", repo.lintArgs(".", "./backends/native/toolchain", "./backends/wasm/wasi", "./internal/gomadtool/architecture", "./runner")},
+				{"vet", "tools/gomad3", repo.vetArgs(".", "./backends/native/toolchain", "./backends/wasm/wasi", "./internal/gomadtool/architecture", "./runner")},
 			}, repo.calls())
 		})
 	}
@@ -508,10 +500,10 @@ func TestScopedLintAndNestedFailure(t *testing.T) {
 		target, dir, fail string
 		packages          []string
 	}{
-		{"lint-code-gomad3", "tools/gomad3", "", []string{".", "./internal/gomadtool/architecture", "./runner", "./toolchain"}},
+		{"lint-code-gomad3", "tools/gomad3", "", []string{".", "./backends/native/toolchain", "./internal/gomadtool/architecture", "./runner"}},
 		{"lint-code-mixedbrain", "tests/mixedbrain", "", []string{"."}},
-		{"lint-code-fast", "tools/gomad3", "golangci", []string{".", "./internal/gomadtool/architecture", "./runner", "./toolchain"}},
-		{"lint-code-fast", "tools/gomad3", "vet", []string{".", "./internal/gomadtool/architecture", "./runner", "./toolchain"}},
+		{"lint-code-fast", "tools/gomad3", "golangci", []string{".", "./backends/native/toolchain", "./internal/gomadtool/architecture", "./runner"}},
+		{"lint-code-fast", "tools/gomad3", "vet", []string{".", "./backends/native/toolchain", "./internal/gomadtool/architecture", "./runner"}},
 	} {
 		t.Run(tc.target+tc.dir+tc.fail, func(t *testing.T) {
 			t.Parallel()
@@ -538,8 +530,8 @@ func TestGomadLocalLintTarget(t *testing.T) {
 	repo := newLintRepo(t)
 	repo.make("-C", "tools/gomad3", "lint-code")
 	require.Equal(t, []lintCall{
-		{"golangci", "tools/gomad3", repo.lintArgs(".", "./internal/gomadtool/architecture", "./runner", "./toolchain")},
-		{"vet", "tools/gomad3", repo.vetArgs(".", "./internal/gomadtool/architecture", "./runner", "./toolchain")},
+		{"golangci", "tools/gomad3", repo.lintArgs(".", "./backends/native/toolchain", "./internal/gomadtool/architecture", "./runner")},
+		{"vet", "tools/gomad3", repo.vetArgs(".", "./backends/native/toolchain", "./internal/gomadtool/architecture", "./runner")},
 	}, repo.calls())
 }
 
@@ -626,7 +618,7 @@ func TestCINestedLintSteps(t *testing.T) {
 		workflow, job, step, module string
 		packages                    []string
 	}{
-		{"gomad3.yml", "host-tools-linux", "Lint Gomad host module", "tools/gomad3", []string{".", "./internal/gomadtool/architecture", "./runner", "./toolchain"}},
+		{"gomad3.yml", "host-tools-linux", "Lint Gomad host module", "tools/gomad3", []string{".", "./backends/native/toolchain", "./internal/gomadtool/architecture", "./runner"}},
 		{"linters.yml", "golangci", "lint mixedbrain module", "tests/mixedbrain", []string{"."}},
 	} {
 		t.Run(tc.workflow, func(t *testing.T) {
@@ -741,7 +733,7 @@ func newLintRepo(t *testing.T) *lintRepo {
 	for _, dir := range []string{"proto/internal", "chasm/lib", "tools/gomad3/backends/native/toolchain/runtime/overlay", "tools/gomad3/backends/native/transcript/boundary", "tools/gomad3/backends/native/generation/boundary", "tools/gomad3/internal/compatibilitypack/requests", "tools/gomad3/internal/compatibilitypack/authoring"} {
 		require.NoError(t, os.MkdirAll(filepath.Join(repo.root, dir), 0o700))
 	}
-	for _, path := range []string{"ordinary/source.go", "staged/staged.go", "deleted/only.go", "renameold/only.go", "tools/gomad3/runner/source.go", "tools/gomad3/toolchain/source.go", "tests/mixedbrain/source.go", ".github/actions/build-docker-images/scripts/source.go", "tools/gomad3sim/source.go", "tools/gomad3integration/source.go"} {
+	for _, path := range []string{"ordinary/source.go", "staged/staged.go", "deleted/only.go", "renameold/only.go", "tools/gomad3/runner/source.go", "tools/gomad3/backends/native/toolchain/source.go", "tests/mixedbrain/source.go", ".github/actions/build-docker-images/scripts/source.go", "tools/gomad3sim/source.go", "tools/gomad3integration/source.go"} {
 		repo.write(path, "package sample\n")
 	}
 	repo.write("tools/gomad3/root_test.go", "package sample\n")

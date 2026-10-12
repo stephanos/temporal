@@ -62,7 +62,7 @@ func TestReadSimulationModelSchemaPinsBoundedOperationVocabulary(t *testing.T) {
 }
 
 func TestReadLiveCapabilitySchemaPinsClosedProtocol(t *testing.T) {
-	definition, err := readLiveCapabilitySchema(filepath.Join("..", "..", "..", "..", "target", "internal", "livecap", "livecap.json"))
+	definition, err := readLiveCapabilitySchema(filepath.Join("..", "..", "..", "..", "backends", "native", "build", "internal", "livecap", "livecap.json"))
 	if err != nil {
 		t.Fatal(err)
 	}

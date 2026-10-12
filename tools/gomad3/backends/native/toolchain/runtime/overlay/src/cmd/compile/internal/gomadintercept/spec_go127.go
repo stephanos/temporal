@@ -7,7 +7,7 @@
 package gomadintercept
 
 const boundaryManifestVersion = "go1.27.1-v1"
-const boundaryManifestSHA256 = "sha256:ca18b6934d906b95235e04f83dfc2eef0a94d17d5417eb032cd086f7425ebbd0"
+const boundaryManifestSHA256 = "sha256:222b2f9516c9f4f6c881787f6a95eb2cd6552b0e443de23df90af3417bf7c29d"
 
 var specs = []spec{
 	{PackagePath: "os", Function: "OpenFile", Hook: "gomadInterceptOpenFile", DeclarationSHA256: "sha256:d08e5b732697b374f939fb09958c41140fbe086567f00170cd938f53a2758522", ProbeID: 7387584446895609212},

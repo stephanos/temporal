@@ -51,7 +51,7 @@ func prepareOverlay(root, goroot, output string) (preparedOverlay, error) {
 	if err != nil {
 		return preparedOverlay{}, err
 	}
-	for _, sourceRoot := range []string{goroot, filepath.Join(root, "toolchain/runtime/overlay"), filepath.Join(root, "toolchain/runtime/testdata")} {
+	for _, sourceRoot := range []string{goroot, filepath.Join(root, "backends/native/toolchain/runtime/overlay"), filepath.Join(root, "backends/native/toolchain/runtime/testdata")} {
 		resolved, err := filepath.EvalSymlinks(sourceRoot)
 		if err != nil {
 			return preparedOverlay{}, err
@@ -67,7 +67,7 @@ func prepareOverlay(root, goroot, output string) (preparedOverlay, error) {
 	prepared := preparedOverlay{Manifest: filepath.Join(output, "overlay.json"), Hashes: make(map[string]string)}
 	var backend []byte
 	for _, source := range []string{"runtime/gomad_vfd.go", "runtime/gomad.go", "syscall/gomad_vfd_unix.go", "syscall/gomad_vfd_linux_amd64.go", "syscall/gomad_vfd_darwin_arm64.go", "internal/gomadio/descriptor_backend.go", "internal/gomadio/network.go", "internal/gomadio/gomadio.go", "internal/gomadvfd/descriptor.go", "net/gomad.go"} {
-		expected, err := readRegular(filepath.Join(root, "toolchain/runtime/overlay/src", source))
+		expected, err := readRegular(filepath.Join(root, "backends/native/toolchain/runtime/overlay/src", source))
 		if err != nil {
 			return preparedOverlay{}, err
 		}
@@ -105,7 +105,7 @@ func prepareOverlay(root, goroot, output string) (preparedOverlay, error) {
 		{"darwin_probe.go.txt", "syscall/gomad_native_darwin_arm64_test.go"},
 		{"gomadio_probe.go.txt", "internal/gomadio/gomad_native_gomadio_probe.go"},
 	} {
-		contents, err := readRegular(filepath.Join(root, "toolchain/runtime/testdata/vfdnative", file.source))
+		contents, err := readRegular(filepath.Join(root, "backends/native/toolchain/runtime/testdata/vfdnative", file.source))
 		if err != nil {
 			return preparedOverlay{}, err
 		}

@@ -23,6 +23,12 @@ guest semantics.
 The shared Go module is pinned to Go 1.27.1. The helper uses Rust 1.94.1 and Wasmtime
 47.0.3, with locked dependencies and an explicit engine configuration.
 
+The merged module carries the existing server simulation dependency through one
+local `go.temporal.io/server => ../..` replacement; shared core imports remain
+server-free. Shared volume and network models are checked projections of specific
+native overlay inputs, so CI tests both backends when those inputs change. This
+is a source dependency, not a native toolchain prerequisite for `test-wasm`.
+
 The [operator guide](CLI.md) describes installation, discovery, campaigns,
 retained replay and recovery. Feature availability is not a qualification claim;
 the corresponding retained gates must pass for the installed candidate.

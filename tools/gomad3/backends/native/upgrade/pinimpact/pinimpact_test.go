@@ -496,7 +496,7 @@ func TestUnknownPinsCountAsInvalidated(t *testing.T) {
 	}
 	requirePins(t, missingRoot, map[string]pinimpact.Status{
 		"interception-fingerprint backends/native/transcript/boundary/manifest.json": pinimpact.StatusUnknown,
-		"clock-reference toolchain/clock_inventory_test.go":                          pinimpact.StatusUnknown,
+		"clock-reference backends/native/toolchain/clock_inventory_test.go":          pinimpact.StatusUnknown,
 	})
 	if !missingRoot.Invalidated {
 		t.Fatal("unevaluated pins did not invalidate the candidate")

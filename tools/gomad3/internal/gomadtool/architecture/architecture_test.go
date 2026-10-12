@@ -171,7 +171,7 @@ func TestDiscoveryRejectsOmittedSource(t *testing.T) {
 
 func TestRequiredModuleNeedsItsOwnSource(t *testing.T) {
 	root := t.TempDir()
-	for name, source := range map[string]string{"go.mod": "module example.invalid/architecture\n\ngo 1.27.1\n", "deterministicio/testdata/cactusstatsd/go.mod": "module example.invalid/fixture\n\ngo 1.27.1\n", "deterministicio/testdata/other/source.go": "package other\n"} {
+	for name, source := range map[string]string{"go.mod": "module example.invalid/architecture\n\ngo 1.27.1\n", "backends/native/transcript/testdata/cactusstatsd/go.mod": "module example.invalid/fixture\n\ngo 1.27.1\n", "backends/native/transcript/testdata/other/source.go": "package other\n"} {
 		path := filepath.Join(root, name)
 		if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
 			t.Fatal(err)
@@ -185,7 +185,7 @@ func TestRequiredModuleNeedsItsOwnSource(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, finding := range findings {
-		if finding.Category == "stale-exclusion" && finding.Path == "deterministicio/testdata/cactusstatsd/go.mod" {
+		if finding.Category == "stale-exclusion" && finding.Path == "backends/native/transcript/testdata/cactusstatsd/go.mod" {
 			return
 		}
 	}

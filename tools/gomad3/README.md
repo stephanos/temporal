@@ -1,5 +1,27 @@
 # Gomad v3
 
+The shared core and both backends now use this Go module. Native runtime,
+transcript, build preparation, upgrade and generation code lives under
+`backends/native`; the stock-Go WASM backend lives under `backends/wasm`.
+`target` owns backend-neutral target data, while `captured`, `volume` and
+`runtimesemantics` own shared model inputs. Native Provider and unified-launcher
+extraction follow this mechanical layout; Runner's exact native import exceptions
+name those follow-up tasks while the backend boundary is being completed.
+
+The module retains one local `go.temporal.io/server => ../..` replacement for
+the existing WASM simulation integration. Shared packages do not import the
+server. The former separate WASM module and its core replacement are removed;
+this layout does not claim zero local replacements.
+
+Some shared projections still read specific native overlay sources: the volume
+projection reads `internal/gomadfs` and `internal/gomadchoicewire`, and the network
+projection reads `internal/gomadio`. Choice identity generation also binds the
+native runtime glue and patch. CI treats edits to these exact semantic inputs
+and their generators as shared changes, testing both backends; other native-only
+changes run native jobs, and WASM-only changes do not run native jobs. Projection
+guards reject stale generated models. Go import isolation alone does not imply
+independent source identities.
+
 Gomad v3 is an opt-in Go 1.27.1 toolchain with a small deterministic-runtime
 patch and source overlay. It uses native Go goroutines, channels, `select`,
 maps, synchronization, `go run`, and `go test`.

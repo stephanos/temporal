@@ -295,13 +295,13 @@ func renderMake(descriptor Descriptor) []byte {
 func renderUpgradeGuide(descriptor Descriptor) []byte {
 	var output strings.Builder
 	fmt.Fprintf(&output, "# Gomad v3 upgrade qualification: %s\n\n", descriptor.BoundaryManifestVersion)
-	output.WriteString("Generated from [`../../backends/native/toolchain/version/version.json`](../../backends/native/toolchain/version/version.json). Do not edit this guide directly.\n\n")
+	output.WriteString("Generated from [`../../../../backends/native/toolchain/version/version.json`](../../../../backends/native/toolchain/version/version.json). Do not edit this guide directly.\n\n")
 	output.WriteString("## Pinned inputs\n\n")
 	fmt.Fprintf(&output, "- Go release: `%s`\n", descriptor.GoVersion)
 	fmt.Fprintf(&output, "- source archive SHA-256: `%s`\n", descriptor.Archive.SHA256)
 	fmt.Fprintf(&output, "- supported platforms: `%s`\n", strings.Join(descriptor.SupportedPlatforms, "`, `"))
 	fmt.Fprintf(&output, "- boundary manifest: `%s`\n", descriptor.BoundaryManifestVersion)
-	fmt.Fprintf(&output, "- patch: [`../../%s`](../../%s)\n", descriptor.Patch, descriptor.Patch)
+	fmt.Fprintf(&output, "- patch: [`../../../../%s`](../../../../%s)\n", descriptor.Patch, descriptor.Patch)
 	for _, adapter := range descriptor.Adapters {
 		fmt.Fprintf(&output, "- adapter: `%s@%s` (`%s`)\n", adapter.Module, adapter.Version, adapter.Sum)
 	}
@@ -310,7 +310,7 @@ func renderUpgradeGuide(descriptor Descriptor) []byte {
 	output.WriteString("```sh\ngo -C tools/gomad3 run ./cmd/gomadtool pin-impact --root=. \\\n  --baseline=/absolute/baseline/go.mod --candidate=/absolute/candidate/go.mod \\\n  --format=json > pin-impact.json\n```\n\n")
 	output.WriteString("For each affected adapter, review the dry-run source changes and exact anchors before supplying the printed approval digest. Refresh always reevaluates every mapped target directory, then validates and merges the saved report for its scoped module. That report supplements live discovery and cannot suppress a mapped module. Refresh stops at per-request review and leaves the other platform unchanged:\n\n")
 	output.WriteString("```sh\ngo -C tools/gomad3 run ./cmd/gomadtool adapter-regenerate --root=. \\\n  --module=<module-path> --version=<exact-version>\ngo -C tools/gomad3 run ./cmd/gomadtool adapter-regenerate --root=. \\\n  --module=<module-path> --version=<exact-version> --approve=sha256:<reviewed-digest>\ngo -C tools/gomad3 run ./cmd/gomadtool compatibility-pack refresh --root=. \\\n  --impact-report=/absolute/path/to/pin-impact.json\n```\n\n")
-	output.WriteString("Review each changed pack report, then use `compatibility-pack generate --approve-review=<exact-review-sha256>` for that request. Validate generated outputs and qualify affected adapters, packs, the core set, and the complete test gate on both supported hosts. The [README](../../README.md#compatibility-pack-development) records the full procedure.\n\n")
+	output.WriteString("Review each changed pack report, then use `compatibility-pack generate --approve-review=<exact-review-sha256>` for that request. Validate generated outputs and qualify affected adapters, packs, the core set, and the complete test gate on both supported hosts. The [README](../../../../README.md#compatibility-pack-development) records the full procedure.\n\n")
 	output.WriteString("## Qualification command\n\n")
 	output.WriteString("Run from the Gomad source module root after updating `backends/native/toolchain/version/version.json`, the boundary manifest, patch, and overlays:\n\n")
 	output.WriteString("```sh\nmake generate\nmake upgrade-dossier GOMAD3_BASELINE_REF=<previous-commit>\n```\n\n")

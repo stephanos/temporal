@@ -21,48 +21,18 @@ import (
 const modulePath = "go.temporal.io/server/tools/gomad3"
 
 func backendImportConfig() archcheck.Config {
-	const wasmModule = "go.temporal.io/server/tools/gomad_wasm"
-	const moveNative = "fn-164-gomad-backend-layout-shared-core-with.3"
-	const splitTarget = "fn-164-gomad-backend-layout-shared-core-with.4"
 	const nativeProvider = "fn-164-gomad-backend-layout-shared-core-with.5"
+	const unifiedLauncher = "fn-164-gomad-backend-layout-shared-core-with.7"
 	return archcheck.Config{
-		Module: modulePath, WASMModule: wasmModule,
-		NativePackages: []string{
-			"deterministicio", "internal/iowire",
-			"backends/native/conformance", "backends/native/generation/boundary", "backends/native/generation/protocol",
-			"runner/internal/execution",
-			"target/internal/build", "target/internal/capabilitypolicy", "target/internal/capabilityreview",
-			"target/internal/gocommand", "target/internal/livecap", "target/internal/provenance",
-			"toolchain", "backends/native/toolchain/installation", "backends/native/toolchain/version",
-			"backends/native/toolchain/runtime/testdata/vfdnative", "backends/native/toolchain/runtime/testdata/vfdpointer",
-			"upgrade", "upgrade/adapterregen", "upgrade/pinimpact",
-		},
+		Module:         modulePath,
+		NativePackages: []string{"runner/internal/execution"},
 		Exceptions: []archcheck.Exception{
-			{From: modulePath + "/captured", To: modulePath + "/internal/iowire", RemovalTask: moveNative},
-			{From: modulePath + "/volume", To: modulePath + "/internal/iowire", RemovalTask: moveNative},
-			{From: modulePath + "/internal/preparation", To: modulePath + "/deterministicio", RemovalTask: moveNative},
-			{From: modulePath + "/qualification/analysis", To: modulePath + "/deterministicio", RemovalTask: moveNative},
-			{From: modulePath + "/qualification/set", To: modulePath + "/deterministicio", RemovalTask: moveNative},
-			{From: modulePath + "/qualification/workload", To: modulePath + "/deterministicio", RemovalTask: moveNative},
-			{From: modulePath + "/runner", To: modulePath + "/deterministicio", RemovalTask: moveNative},
+			{From: modulePath + "/runner", To: modulePath + "/backends/native/build", RemovalTask: nativeProvider},
+			{From: modulePath + "/runner", To: modulePath + "/backends/native/preparation", RemovalTask: nativeProvider},
+			{From: modulePath + "/runner", To: modulePath + "/backends/native/transcript", RemovalTask: nativeProvider},
 			{From: modulePath + "/runner", To: modulePath + "/runner/internal/execution", RemovalTask: nativeProvider},
-			{From: modulePath + "/runner/internal/campaign", To: modulePath + "/deterministicio", RemovalTask: moveNative},
-			{From: modulePath + "/runner/internal/corpus", To: modulePath + "/deterministicio", RemovalTask: moveNative},
-			{From: modulePath + "/target", To: modulePath + "/target/internal/build", RemovalTask: splitTarget},
-			{From: modulePath + "/target", To: modulePath + "/target/internal/capabilitypolicy", RemovalTask: splitTarget},
-			{From: modulePath + "/target", To: modulePath + "/target/internal/capabilityreview", RemovalTask: splitTarget},
-			{From: modulePath + "/target", To: modulePath + "/target/internal/gocommand", RemovalTask: splitTarget},
-			{From: modulePath + "/target", To: modulePath + "/target/internal/livecap", RemovalTask: splitTarget},
-			{From: modulePath + "/target", To: modulePath + "/target/internal/provenance", RemovalTask: splitTarget},
-			{From: modulePath + "/target", To: modulePath + "/backends/native/toolchain/installation", RemovalTask: splitTarget},
-			{From: wasmModule + "/qualification", To: modulePath + "/deterministicio", RemovalTask: moveNative},
-		},
-		WASMImports: []string{
-			modulePath + "/artifact", modulePath + "/choice", modulePath + "/cmd/gomad/api",
-			modulePath + "/deterministicio", modulePath + "/captured", modulePath + "/volume",
-			modulePath + "/hostexec", modulePath + "/hostfs", modulePath + "/qualification", modulePath + "/qualification/workload",
-			modulePath + "/record", modulePath + "/runner", modulePath + "/runner/backend", modulePath + "/runtimesemantics", modulePath + "/simulation/network",
-			modulePath + "/target", modulePath + "/world",
+			{From: modulePath + "/runner/internal/corpus", To: modulePath + "/backends/native/transcript", RemovalTask: nativeProvider},
+			{From: modulePath + "/backends/wasm/cmd/gomad-wasm", To: modulePath + "/cmd/gomad/api", RemovalTask: unifiedLauncher},
 		},
 	}
 }
@@ -70,7 +40,7 @@ func backendImportConfig() archcheck.Config {
 func TestBackendImportDirection(t *testing.T) {
 	var packages []archcheck.Package
 	for _, platform := range qualifiedSourcePlatforms() {
-		for _, root := range []string{".", "../gomad_wasm"} {
+		for _, root := range []string{"."} {
 			listed, err := architecture.List(root, "go", platform, false)
 			if err != nil {
 				t.Fatal(err)
@@ -180,15 +150,15 @@ func TestArchitectureInventoryFixtures(t *testing.T) {
 		{"excluded-root-module", "unclassified-module", "backends/native/transcript/testdata/extra/go.mod", "module example.invalid/extra\n\ngo 1.27.1\n"},
 		{"included-list-error", "package-error", "record/source.go", "package record\nimport _ \"example.invalid/missing\"\n"},
 		{"owner-edge", "owner-edge", "record/source.go", "package record\nimport _ \"example.invalid/fitness/runner\"\n"},
-		{"required-facade-edge", "required-edge", "target/source.go", "package target\n"},
+		{"required-facade-edge", "required-edge", "backends/native/build/source.go", "package build\n"},
 	} {
 		t.Run(fixture.name, func(t *testing.T) {
 			root := t.TempDir()
 			files := map[string]string{"go.mod": "module example.invalid/fitness\n\ngo 1.27.1\n", "runner/source.go": "package runner\n", fixture.path: fixture.source}
-			for _, path := range []string{"backends/native/toolchain/runtime/overlay", "cmd/gomad/testdata", "backends/native/transcript/testdata", "internal/compatibilitypack/testdata", "backends/native/conformance/testdata", "testdata", "qualification/corpus"} {
+			for _, path := range []string{"backends/native/toolchain/runtime/overlay", "cmd/gomad/testdata", "backends/native/transcript/testdata", "internal/compatibilitypack/testdata", "backends/native/conformance/testdata", "testdata", "qualification/corpus", "backends/wasm/testdata", "backends/wasm/wasi/testdata", "backends/wasm/toolchain/testdata", "backends/wasm/simulation/testdata", "backends/wasm/qualification/testdata", "backends/wasm/cmd/gomad-wasm/testdata"} {
 				files[path+"/fixture.go"] = "package fixture\n"
 			}
-			for _, path := range []string{"backends/native/transcript/testdata/cactusstatsd", "backends/native/transcript/testdata/hashicorpmetrics", "backends/native/transcript/testdata/memberlist", "backends/native/transcript/testdata/pebble", "backends/native/transcript/testdata/sentry", "backends/native/transcript/testdata/sockaddr", "backends/native/transcript/testdata/sprig", "backends/native/transcript/testdata/validator", "internal/compatibilitypack/testdata/v041", "internal/compatibilitypack/testdata/xsys", "backends/native/conformance/testdata", "backends/native/conformance/testdata/libc_adapter", "backends/native/conformance/testdata/sqlite_adapter", "qualification/corpus"} {
+			for _, path := range []string{"backends/native/transcript/testdata/cactusstatsd", "backends/native/transcript/testdata/hashicorpmetrics", "backends/native/transcript/testdata/memberlist", "backends/native/transcript/testdata/pebble", "backends/native/transcript/testdata/sentry", "backends/native/transcript/testdata/sockaddr", "backends/native/transcript/testdata/sprig", "backends/native/transcript/testdata/validator", "internal/compatibilitypack/testdata/v041", "internal/compatibilitypack/testdata/xsys", "backends/native/conformance/testdata", "backends/native/conformance/testdata/libc_adapter", "backends/native/conformance/testdata/sqlite_adapter", "qualification/corpus", "backends/wasm/qualification/testdata/fixture"} {
 				files[path+"/go.mod"] = "module example.invalid/fixture\n\ngo 1.27.1\n"
 				files[path+"/fixture.go"] = "package fixture\n"
 			}
@@ -358,7 +328,7 @@ func TestPackageArchitecture(t *testing.T) {
 
 func TestWASIPureEnvironmentAndPublicBoundary(t *testing.T) {
 	for _, platform := range qualifiedSourcePlatforms() {
-		program, err := architecture.Load("../gomad_wasm", "go", platform)
+		program, err := architecture.Load(".", "go", platform)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -620,10 +590,10 @@ func TestMakeTargetsMatchTheirOwnership(t *testing.T) {
 			t.Errorf("Makefile retains obsolete ownership %q", obsolete)
 		}
 	}
-	// test-builder runs ./toolchain under stock Go through gomadtool, so the
+	// test-builder runs the native builder under stock Go through gomadtool, so the
 	// Makefile names the package once, for the patched toolchain.
-	if recipes := regexp.MustCompile(`(?m)\s\./toolchain(\s|$)`).FindAllString(makefile, -1); len(recipes) != 1 {
-		t.Errorf("Makefile tests ./toolchain in %d recipes, want only test-toolchain", len(recipes))
+	if recipes := regexp.MustCompile(`(?m)\s\./backends/native/toolchain(\s|$)`).FindAllString(makefile, -1); len(recipes) != 1 {
+		t.Errorf("Makefile tests native toolchain in %d recipes, want only test-toolchain", len(recipes))
 	}
 }
 
@@ -634,27 +604,27 @@ func TestExactModuleEdges(t *testing.T) {
 		imports[pkg.ImportPath] = pkg.Imports
 	}
 	for _, required := range []string{
-		modulePath + "/target/internal/build",
-		modulePath + "/target/internal/capabilityreview",
-		modulePath + "/target/internal/provenance",
+		modulePath + "/backends/native/build/internal/build",
+		modulePath + "/backends/native/build/internal/capabilityreview",
+		modulePath + "/backends/native/build/internal/provenance",
 	} {
-		if !slices.Contains(imports[modulePath+"/target"], required) {
-			t.Errorf("target facade does not delegate to %s", required)
+		if !slices.Contains(imports[modulePath+"/backends/native/build"], required) {
+			t.Errorf("native build facade does not delegate to %s", required)
 		}
 	}
-	for _, forbidden := range []string{modulePath + "/qualification", modulePath + "/upgrade"} {
-		if slices.Contains(imports[modulePath+"/toolchain"], forbidden) {
+	for _, forbidden := range []string{modulePath + "/qualification", modulePath + "/backends/native/qualification", modulePath + "/backends/native/upgrade"} {
+		if slices.Contains(imports[modulePath+"/backends/native/toolchain"], forbidden) {
 			t.Errorf("toolchain imports orchestration package %s", forbidden)
 		}
 	}
-	for _, required := range []string{modulePath + "/qualification/set", modulePath + "/backends/native/toolchain/version"} {
-		if !slices.Contains(imports[modulePath+"/upgrade"], required) {
+	for _, required := range []string{modulePath + "/backends/native/qualification/set", modulePath + "/backends/native/toolchain/version"} {
+		if !slices.Contains(imports[modulePath+"/backends/native/upgrade"], required) {
 			t.Errorf("upgrade orchestration does not depend on %s", required)
 		}
 	}
 	// One installation description supplies build, cache and adapter
 	// locations to the builder and to their ordinary consumers.
-	for _, consumer := range []string{modulePath + "/toolchain", modulePath + "/target", modulePath + "/deterministicio"} {
+	for _, consumer := range []string{modulePath + "/backends/native/toolchain", modulePath + "/backends/native/build", modulePath + "/backends/native/transcript"} {
 		if !slices.Contains(imports[consumer], modulePath+"/backends/native/toolchain/installation") {
 			t.Errorf("%s does not read installation locations from backends/native/toolchain/installation", consumer)
 		}
@@ -666,7 +636,7 @@ func TestExactModuleEdges(t *testing.T) {
 	}
 	// One neutral owner digests adapter source inventories for capability
 	// review and adapter preparation; target no longer exports the digest.
-	for _, consumer := range []string{modulePath + "/target", modulePath + "/deterministicio"} {
+	for _, consumer := range []string{modulePath + "/backends/native/build", modulePath + "/backends/native/transcript"} {
 		if !slices.Contains(imports[consumer], modulePath+"/internal/sourceinventory") {
 			t.Errorf("%s does not digest adapter inventories through internal/sourceinventory", consumer)
 		}
@@ -689,7 +659,7 @@ func TestDomainModulesDoNotExportWireFraming(t *testing.T) {
 			"HeaderBytes", "RecordBytes", "TapeHeaderBytes", "TapeRecordBytes", "TapeChecksumOffset",
 			"TerminalFrameBytes", "TerminalChecksumOffset", "DigestBytes", "Hash",
 		},
-		"deterministicio": {
+		"backends/native/transcript": {
 			"ProducedTranscriptHeader", "ExpectedTranscriptHeader", "TranscriptRecord", "Terminal",
 			"MountLimits", "MountRequest", "MountChild", "MountEntry", "MountResponse",
 			"EncodeProducedTranscriptHeader", "DecodeProducedTranscriptHeader", "PublishProducedTranscript",
@@ -781,7 +751,7 @@ func moduleMayImport(importing, imported string) bool {
 }
 
 func TestPublicPackagesDoNotExportForwardingAliases(t *testing.T) {
-	for _, directory := range []string{"artifact", "choice", "deterministicio", "qualification", "record", "runner", "target", "toolchain", "upgrade", "world"} {
+	for _, directory := range []string{"artifact", "choice", "captured", "volume", "backends/native/transcript", "qualification", "record", "runner", "target", "backends/native/toolchain", "backends/native/upgrade", "world"} {
 		entries, err := os.ReadDir(directory)
 		if err != nil {
 			t.Fatalf("read package directory %s: %v", directory, err)

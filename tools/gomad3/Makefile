@@ -1,5 +1,7 @@
 .PHONY: generate clean prune-cache clean-qualifications clock-audit compatibility-pack-qualification compiler-test-compiler core-qualification core-qualification-set intercept-test test-toolchain test-simulation qualification-set qualification-set-merge runner test-host overlay-test world-test toolchain upgrade-dossier validate validate-toolchain validate-compatibility validate-qualification tests-qualification-generate test-harness test-builder test-live-capability test-runtime test-upstream test
 
+.DEFAULT_GOAL := generate
+
 include version_generated.mk
 
 GOMAD3_STOCK_GO ?=

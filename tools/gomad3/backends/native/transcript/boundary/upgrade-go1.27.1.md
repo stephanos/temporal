@@ -1,6 +1,6 @@
 # Gomad v3 upgrade qualification: go1.27.1-v1
 
-Generated from [`../../backends/native/toolchain/version/version.json`](../../backends/native/toolchain/version/version.json). Do not edit this guide directly.
+Generated from [`../../../../backends/native/toolchain/version/version.json`](../../../../backends/native/toolchain/version/version.json). Do not edit this guide directly.
 
 ## Pinned inputs
 
@@ -8,7 +8,7 @@ Generated from [`../../backends/native/toolchain/version/version.json`](../../ba
 - source archive SHA-256: `4e408abae126d916b6164627193f2c54f0e3ca1312d693b86db45f862ab238b1`
 - supported platforms: `darwin/arm64`, `linux/amd64`
 - boundary manifest: `go1.27.1-v1`
-- patch: [`../../backends/native/toolchain/runtime/go1.27.1.patch`](../../backends/native/toolchain/runtime/go1.27.1.patch)
+- patch: [`../../../../backends/native/toolchain/runtime/go1.27.1.patch`](../../../../backends/native/toolchain/runtime/go1.27.1.patch)
 - adapter: `github.com/Masterminds/sprig/v3@v3.3.0` (`h1:mQh0Yrg1XPo6vjYXgtf5OtijNAKJRNcTdOOGZe3tPhs=`)
 - adapter: `github.com/cactus/go-statsd-client/v5@v5.1.0` (`h1:sbbdfIl9PgisjEoXzvXI1lwUKWElngsjJKaZeC021P4=`)
 - adapter: `github.com/cockroachdb/pebble@v0.0.0-20260703021901-41f35d3cb7df` (`h1:p7vkumDcPw0de7t8pYA95HPC4cYQZGDG6b57d4Om5cA=`)
@@ -46,7 +46,7 @@ go -C tools/gomad3 run ./cmd/gomadtool compatibility-pack refresh --root=. \
   --impact-report=/absolute/path/to/pin-impact.json
 ```
 
-Review each changed pack report, then use `compatibility-pack generate --approve-review=<exact-review-sha256>` for that request. Validate generated outputs and qualify affected adapters, packs, the core set, and the complete test gate on both supported hosts. The [README](../../README.md#compatibility-pack-development) records the full procedure.
+Review each changed pack report, then use `compatibility-pack generate --approve-review=<exact-review-sha256>` for that request. Validate generated outputs and qualify affected adapters, packs, the core set, and the complete test gate on both supported hosts. The [README](../../../../README.md#compatibility-pack-development) records the full procedure.
 
 ## Qualification command
 

@@ -263,7 +263,7 @@ func TestOverlayRejectsMismatchSymlinkAndSourceOutput(t *testing.T) {
 				if err := os.Remove(path); err != nil {
 					t.Fatal(err)
 				}
-				if err := os.Symlink(filepath.Join(repo, "toolchain/runtime/overlay/src/runtime/gomad_vfd.go"), path); err != nil {
+				if err := os.Symlink(filepath.Join(repo, "backends/native/toolchain/runtime/overlay/src/runtime/gomad_vfd.go"), path); err != nil {
 					t.Fatal(err)
 				}
 			case "source-output":
@@ -298,11 +298,11 @@ func nativeInputTree(t *testing.T) (string, string, string) {
 			}
 			contents = string(actual)
 		}
-		put(filepath.Join(repo, "toolchain/runtime/overlay/src", path), contents)
+		put(filepath.Join(repo, "backends/native/toolchain/runtime/overlay/src", path), contents)
 		put(filepath.Join(goroot, "src", path), contents)
 	}
 	for _, file := range []string{"fixture_test.go.txt", "runtime_probe.go.txt", "linux_probe.go.txt", "darwin_probe.go.txt", "gomadio_probe.go.txt"} {
-		put(filepath.Join(repo, "toolchain/runtime/testdata/vfdnative", file), "template "+file)
+		put(filepath.Join(repo, "backends/native/toolchain/runtime/testdata/vfdnative", file), "template "+file)
 	}
 	return repo, goroot, output
 }

@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/backends/native/generation/boundary"
-	"go.temporal.io/server/tools/gomad3/internal/hostexec"
 	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
+	"go.temporal.io/server/tools/gomad3/internal/hostexec"
 )
 
 const fixtureOutputLimit = 1 << 20
@@ -148,7 +148,7 @@ func runWith(ctx context.Context, config Config, run func(context.Context, hoste
 func liveCapabilityFixtures(config Config) []fixture {
 	return []fixture{{
 		tier: "test-live-capability", name: "linked-capability-semantics",
-		command: []string{config.Go, "test", "-count=1", "-tags=test_dep", "./target/internal/livecap"},
+		command: []string{config.Go, "test", "-count=1", "-tags=test_dep", "./backends/native/build/internal/livecap"},
 		dir:     config.Root, env: append(filterEnvironment(os.Environ(), "GOMADSEED", "GOMAD3_CHILD_SEED", "GOWORK"), "GOWORK=off"),
 		timeout: 10 * time.Minute,
 	}}

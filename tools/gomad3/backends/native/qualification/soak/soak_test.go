@@ -427,7 +427,7 @@ func TestExhaustedBudgetIsReportedAsInfrastructure(t *testing.T) {
 }
 
 func TestSelectedManifestIsValid(t *testing.T) {
-	for _, path := range []string{"../../../gomad3integration/qualification/soak.json"} {
+	for _, path := range []string{"../../../../../gomad3integration/qualification/soak.json"} {
 		manifest, err := LoadManifest(path)
 		if err != nil {
 			t.Fatal(err)

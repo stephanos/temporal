@@ -18,9 +18,9 @@ func TestWASIHelperModelCalculationRemainsPureChecked(t *testing.T) {
 				calculation = "_=time.Now();e.now++;return e.now"
 			}
 			for name, source := range map[string]string{
-				"go.mod":               "module go.temporal.io/server/tools/gomad_wasm\n\ngo 1.27.1\n",
-				"wasi/helper_model.go": "package wasi\n" + imports + "\ntype Environment struct{now uint64};func(e *Environment)helperCallbackReply()uint64{" + calculation + "}",
-				"wasi/process.go":      "package wasi;import \"time\";func helperTransport(){_=time.Now()}",
+				"go.mod":                             "module go.temporal.io/server/tools/gomad3\n\ngo 1.27.1\n",
+				"backends/wasm/wasi/helper_model.go": "package wasi\n" + imports + "\ntype Environment struct{now uint64};func(e *Environment)helperCallbackReply()uint64{" + calculation + "}",
+				"backends/wasm/wasi/process.go":      "package wasi;import \"time\";func helperTransport(){_=time.Now()}",
 			} {
 				path := filepath.Join(root, name)
 				if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
@@ -37,10 +37,10 @@ func TestWASIHelperModelCalculationRemainsPureChecked(t *testing.T) {
 			findings := program.Effects()
 			modelHost := false
 			for _, finding := range findings {
-				if strings.Contains(filepath.ToSlash(finding.Path), "/wasi/process.go:") {
+				if strings.Contains(filepath.ToSlash(finding.Path), "/backends/wasm/wasi/process.go:") {
 					t.Fatalf("existing transport root exemption lost: %v", finding)
 				}
-				if finding.Category == "host-effect" && strings.Contains(filepath.ToSlash(finding.Path), "/wasi/helper_model.go:") && strings.Contains(finding.Detail, "Environment.helperCallbackReply") {
+				if finding.Category == "host-effect" && strings.Contains(filepath.ToSlash(finding.Path), "/backends/wasm/wasi/helper_model.go:") && strings.Contains(finding.Detail, "Environment.helperCallbackReply") {
 					modelHost = true
 				}
 			}

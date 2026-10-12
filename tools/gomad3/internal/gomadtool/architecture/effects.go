@@ -575,13 +575,13 @@ func (p *Program) IsPureFile(path string) bool {
 			continue
 		}
 		switch {
-		case p.Module == "go.temporal.io/server/tools/gomad_wasm" && Within(relative, "wasi"):
-			return relative != "wasi" || filepath.Base(path) != "process.go" && filepath.Base(path) != "broker_process.go"
-		case relative == "world", relative == "record", Within(relative, "world/mailbox"), Within(relative, "runner/internal/exploration"), Within(relative, "target/internal/capabilitypolicy"):
+		case p.Module == "go.temporal.io/server/tools/gomad3" && Within(relative, "backends/wasm/wasi"):
+			return relative != "backends/wasm/wasi" || filepath.Base(path) != "process.go" && filepath.Base(path) != "broker_process.go"
+		case relative == "world", relative == "record", Within(relative, "world/mailbox"), Within(relative, "runner/internal/exploration"), Within(relative, "backends/native/build/internal/capabilitypolicy"):
 			return true
 		case relative == "runner/internal/campaign":
 			return filepath.Base(path) == "controller.go"
-		case relative == "target":
+		case relative == "backends/native/build":
 			return filepath.Base(path) == "capability_evaluation.go"
 		case relative == "runner/internal/execution":
 			return filepath.Base(path) == "simulation_progress.go"

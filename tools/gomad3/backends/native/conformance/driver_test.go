@@ -9,8 +9,8 @@ import (
 	"strings"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/internal/hostexec"
 	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
+	"go.temporal.io/server/tools/gomad3/internal/hostexec"
 )
 
 func TestRunUpstreamExecutesTypedGatesInOrder(t *testing.T) {
@@ -101,7 +101,7 @@ func TestRunLiveCapabilityExecutesPinnedSemanticFixtures(t *testing.T) {
 	if !report.Passed || len(report.Cases) != 1 || len(requests) != 2 {
 		t.Fatalf("Run() report = %+v, requests = %d", report, len(requests))
 	}
-	if got := requests[1].Command; !slices.Equal(got, []string{goCommand, "test", "-count=1", "-tags=test_dep", "./target/internal/livecap"}) {
+	if got := requests[1].Command; !slices.Equal(got, []string{goCommand, "test", "-count=1", "-tags=test_dep", "./backends/native/build/internal/livecap"}) {
 		t.Fatalf("live-capability command = %v", got)
 	}
 }

@@ -100,7 +100,7 @@ func (campaign *runtimeCampaign) finishCase(planned runtimeCase, result hostexec
 }
 
 // runtimeExperiment selects the classic collector for seeded fixture builds,
-// as target/internal/build does for prepared targets.
+// as backends/native/build/internal/build does for prepared targets.
 const runtimeExperiment = "GOEXPERIMENT=nogreenteagc"
 
 func (campaign *runtimeCampaign) request(command []string, dir string, timeout time.Duration, unset []string, values ...string) hostexec.Request {

@@ -64,7 +64,7 @@ func Discover(root, goCommand string, platform Platform) (Inventory, []Finding, 
 			return inventory, findings, err
 		}
 		relative = filepath.ToSlash(relative)
-		if Within(relative, "backends/native/toolchain/runtime/overlay") {
+		if Within(relative, "backends/native/toolchain/runtime/overlay") || Within(relative, "backends/wasm/wasmhost/target") {
 			continue
 		}
 		if pkg.ImportPath != module && !Within(pkg.ImportPath, module) {
@@ -100,7 +100,7 @@ func Discover(root, goCommand string, platform Platform) (Inventory, []Finding, 
 			return nil
 		}
 		if entry.IsDir() {
-			if relative == ".toolchain" || relative == ".bin" {
+			if relative == "backends/wasm/wasmhost/target" {
 				return filepath.SkipDir
 			}
 			return nil
@@ -190,15 +190,21 @@ func Discover(root, goCommand string, platform Platform) (Inventory, []Finding, 
 }
 
 var hostSourcePackages = []string{"backends/native/toolchain/runtime/testdata/vfdpointer", "backends/native/toolchain/runtime/testdata/vfdnative"}
-var sourceExclusions = []string{"backends/native/toolchain/runtime/overlay", "cmd/gomad/testdata", "deterministicio/testdata", "internal/compatibilitypack/testdata", "internal/gomadtool/conformance/testdata", "testdata", "qualification/corpus"}
+var sourceExclusions = []string{
+	"backends/native/toolchain/runtime/overlay", "cmd/gomad/testdata", "backends/native/transcript/testdata",
+	"internal/compatibilitypack/testdata", "backends/native/conformance/testdata", "testdata", "qualification/corpus",
+	"backends/wasm/testdata", "backends/wasm/wasi/testdata", "backends/wasm/toolchain/testdata",
+	"backends/wasm/simulation/testdata", "backends/wasm/qualification/testdata", "backends/wasm/cmd/gomad-wasm/testdata",
+}
 var expectedModules = map[string]bool{
-	"deterministicio/testdata/cactusstatsd/go.mod": true, "deterministicio/testdata/hashicorpmetrics/go.mod": true,
-	"deterministicio/testdata/memberlist/go.mod": true, "deterministicio/testdata/pebble/go.mod": true,
-	"deterministicio/testdata/sentry/go.mod": true, "deterministicio/testdata/sockaddr/go.mod": true,
-	"deterministicio/testdata/sprig/go.mod": true, "deterministicio/testdata/validator/go.mod": true,
-	"internal/compatibilitypack/testdata/v041/go.mod": true, "internal/compatibilitypack/testdata/xsys/go.mod": true, "internal/gomadtool/conformance/testdata/go.mod": true,
-	"internal/gomadtool/conformance/testdata/libc_adapter/go.mod": true, "internal/gomadtool/conformance/testdata/sqlite_adapter/go.mod": true,
-	"qualification/corpus/go.mod": true,
+	"backends/native/transcript/testdata/cactusstatsd/go.mod": true, "backends/native/transcript/testdata/hashicorpmetrics/go.mod": true,
+	"backends/native/transcript/testdata/memberlist/go.mod": true, "backends/native/transcript/testdata/pebble/go.mod": true,
+	"backends/native/transcript/testdata/sentry/go.mod": true, "backends/native/transcript/testdata/sockaddr/go.mod": true,
+	"backends/native/transcript/testdata/sprig/go.mod": true, "backends/native/transcript/testdata/validator/go.mod": true,
+	"internal/compatibilitypack/testdata/v041/go.mod": true, "internal/compatibilitypack/testdata/xsys/go.mod": true, "backends/native/conformance/testdata/go.mod": true,
+	"backends/native/conformance/testdata/libc_adapter/go.mod": true, "backends/native/conformance/testdata/sqlite_adapter/go.mod": true,
+	"qualification/corpus/go.mod":                         true,
+	"backends/wasm/qualification/testdata/fixture/go.mod": true,
 }
 
 func Within(path, root string) bool { return path == root || strings.HasPrefix(path, root+"/") }
@@ -288,6 +294,23 @@ func Owner(module, importPath string) string {
 		return ""
 	}
 	relative := strings.TrimPrefix(importPath, module+"/")
+	if relative == "backends/wasm/cmd/gomad-wasm" {
+		return "cli"
+	}
+	if Within(relative, "backends/wasm") {
+		return "wasm"
+	}
+	for path, owner := range map[string]string{
+		"backends/native/toolchain": "toolchain", "backends/native/build": "target",
+		"backends/native/transcript": "deterministicio", "backends/native/upgrade": "upgrade",
+		"backends/native/conformance": "developer", "backends/native/generation": "developer",
+		"backends/native/qualification": "qualification", "backends/native/preparation": "preparation",
+		"captured": "captured", "volume": "volume", "internal/iowire": "iowire",
+	} {
+		if Within(relative, path) {
+			return owner
+		}
+	}
 	if relative == "cmd/gomad" || relative == "cmd/gomad/api" || Within(relative, "cmd/gomad/internal/cli") {
 		return "cli"
 	}
@@ -299,7 +322,7 @@ func Owner(module, importPath string) string {
 			return owner
 		}
 	}
-	for _, owner := range []string{"upgrade", "runner", "qualification", "target", "record", "artifact", "choice", "deterministicio", "world", "simulation", "toolchain", "runtimesemantics"} {
+	for _, owner := range []string{"runner", "qualification", "target", "record", "artifact", "choice", "world", "simulation", "runtimesemantics"} {
 		if Within(relative, owner) {
 			return owner
 		}

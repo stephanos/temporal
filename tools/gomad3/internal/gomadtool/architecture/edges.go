@@ -10,21 +10,44 @@ func OwnerMayImport(modulePath, owner, importedOwner, importing, imported string
 	if owner == importedOwner {
 		return true
 	}
+	if owner == "wasm" {
+		for _, path := range []string{
+			"artifact", "choice", "cmd/gomad/api", "captured", "volume", "hostexec", "hostfs",
+			"qualification", "qualification/workload", "record", "runner", "runner/backend",
+			"simulation/network", "target", "world", "runtimesemantics",
+		} {
+			if imported == modulePath+"/"+path {
+				return true
+			}
+		}
+		return false
+	}
+	if owner == "cli" && importedOwner == "wasm" {
+		return importing == modulePath+"/backends/wasm/cmd/gomad-wasm"
+	}
+	if owner == "cli" && importedOwner == "hostexec" {
+		return importing == modulePath+"/backends/wasm/cmd/gomad-wasm" && imported == modulePath+"/hostexec"
+	}
+	if owner == "developer" && importedOwner == "canonicaljson" {
+		return importing == modulePath+"/internal/gomadtool/architecture" && imported == modulePath+"/internal/canonicaljson"
+	}
 	allowed := map[string][]string{
-		"cli":              {"runner", "qualification", "target", "record", "artifact", "deterministicio", "preparation", "toolchain", "canonicaljson"},
+		"cli":              {"runner", "qualification", "target", "record", "artifact", "deterministicio", "captured", "volume", "iowire", "preparation", "toolchain", "canonicaljson"},
 		"developer":        {"choice", "compatibility", "qualification", "simulation", "toolchain", "upgrade", "hostexec", "hostfs", "runtimesemantics"},
-		"runner":           {"target", "record", "artifact", "choice", "deterministicio", "preparation", "world", "canonicaljson", "hostexec", "hostfs"},
-		"qualification":    {"runner", "target", "record", "artifact", "choice", "deterministicio", "preparation", "canonicaljson", "hostexec", "hostfs"},
+		"runner":           {"target", "record", "artifact", "choice", "deterministicio", "captured", "volume", "iowire", "preparation", "world", "canonicaljson", "hostexec", "hostfs"},
+		"qualification":    {"runner", "target", "record", "artifact", "choice", "deterministicio", "captured", "volume", "iowire", "preparation", "canonicaljson", "hostexec", "hostfs"},
 		"target":           {"compatibility", "record", "toolchain", "canonicaljson", "hostexec", "hostfs", "sourceinventory"},
 		"record":           {"canonicaljson"},
-		"artifact":         {"choice", "deterministicio", "target", "record", "hostfs"},
+		"artifact":         {"choice", "deterministicio", "captured", "volume", "iowire", "target", "record", "hostfs"},
 		"compatibility":    {"target", "record", "canonicaljson", "hostfs"},
-		"deterministicio":  {"target", "record", "toolchain", "canonicaljson", "hostfs", "sourceinventory"},
-		"preparation":      {"target", "deterministicio", "record"},
+		"deterministicio":  {"target", "record", "toolchain", "canonicaljson", "hostfs", "sourceinventory", "captured", "volume", "iowire"},
+		"captured":         {"record", "canonicaljson", "iowire"},
+		"volume":           {"iowire"},
+		"preparation":      {"target", "deterministicio", "captured", "volume", "iowire", "record"},
 		"world":            {"canonicaljson"},
 		"simulation":       {"record", "canonicaljson"},
 		"toolchain":        {"canonicaljson", "hostexec", "hostfs", "runtimesemantics"},
-		"upgrade":          {"qualification", "toolchain", "deterministicio", "compatibility", "canonicaljson", "hostexec", "hostfs"},
+		"upgrade":          {"qualification", "toolchain", "deterministicio", "captured", "volume", "iowire", "compatibility", "canonicaljson", "hostexec", "hostfs"},
 		"sourceinventory":  {"hostfs"},
 		"runtimesemantics": {"hostfs"},
 	}
@@ -38,9 +61,9 @@ func OwnerMayImport(modulePath, owner, importedOwner, importing, imported string
 	}
 	// Only the maintenance engines read adapters and compatibility packs.
 	// The public compatibility facade also serializes its report as JSON.
-	if owner == "upgrade" && (importedOwner == "compatibility" || importedOwner == "deterministicio" || importedOwner == "canonicaljson") {
-		return importing == modulePath+"/upgrade/pinimpact" || importing == modulePath+"/upgrade/adapterregen" ||
-			(importing == modulePath+"/upgrade" && importedOwner == "canonicaljson")
+	if owner == "upgrade" && slices.Contains([]string{"compatibility", "deterministicio", "captured", "volume", "iowire", "canonicaljson"}, importedOwner) {
+		return importing == modulePath+"/backends/native/upgrade/pinimpact" || importing == modulePath+"/backends/native/upgrade/adapterregen" ||
+			(importing == modulePath+"/backends/native/upgrade" && importedOwner == "canonicaljson")
 	}
 	return true
 }
@@ -77,10 +100,10 @@ func ModuleMayImport(modulePath, importing, imported string) bool {
 func PackageEdges(module string, packages []Package) []Finding {
 	var findings []Finding
 	required := map[string][]string{
-		"target":          {"target/internal/build", "target/internal/capabilityreview", "target/internal/provenance", "backends/native/toolchain/installation", "internal/sourceinventory"},
-		"upgrade":         {"qualification/set", "backends/native/toolchain/version"},
-		"toolchain":       {"backends/native/toolchain/installation"},
-		"deterministicio": {"backends/native/toolchain/installation", "internal/sourceinventory"},
+		"backends/native/build":      {"backends/native/build/internal/build", "backends/native/build/internal/capabilityreview", "backends/native/build/internal/provenance", "backends/native/toolchain/installation", "internal/sourceinventory"},
+		"backends/native/upgrade":    {"backends/native/qualification/set", "backends/native/toolchain/version"},
+		"backends/native/toolchain":  {"backends/native/toolchain/installation"},
+		"backends/native/transcript": {"backends/native/toolchain/installation", "internal/sourceinventory"},
 	}
 	for _, pkg := range packages {
 		owner := Owner(module, pkg.ImportPath)
@@ -93,7 +116,7 @@ func PackageEdges(module string, packages []Package) []Finding {
 			if !Within(imported, module) {
 				continue
 			}
-			if pkg.ImportPath == module+"/backends/native/toolchain/installation" || (pkg.ImportPath == module+"/internal/sourceinventory" && imported != module+"/internal/hostfs") || (pkg.ImportPath == module+"/toolchain" && (imported == module+"/qualification" || imported == module+"/upgrade")) {
+			if pkg.ImportPath == module+"/backends/native/toolchain/installation" || (pkg.ImportPath == module+"/internal/sourceinventory" && imported != module+"/internal/hostfs") || (pkg.ImportPath == module+"/backends/native/toolchain" && (Within(imported, module+"/qualification") || Within(imported, module+"/backends/native/qualification") || Within(imported, module+"/backends/native/upgrade"))) {
 				findings = append(findings, Finding{Category: "module-edge", Path: pkg.ImportPath, Detail: imported})
 			}
 			importedOwner := Owner(module, imported)

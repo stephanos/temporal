@@ -505,7 +505,7 @@ func GenerateProtocols(root string, check bool) error {
 }
 
 func generateLiveCapabilityProtocols(root string, check bool) error {
-	definition, err := readLiveCapabilitySchema(filepath.Join(root, "target", "internal", "livecap", "livecap.json"))
+	definition, err := readLiveCapabilitySchema(filepath.Join(root, "backends", "native", "build", "internal", "livecap", "livecap.json"))
 	if err != nil {
 		return err
 	}
@@ -539,7 +539,7 @@ func generateLiveCapabilityProtocols(root string, check bool) error {
 		{Package: "gomadcap", Template: "livecap.go.tmpl", Path: "backends/native/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go"},
 	}
 	for _, target := range outputs {
-		generated, generateErr := generate(filepath.Join(root, "target", "internal", "livecap", target.Template), liveCapabilityTemplateData{
+		generated, generateErr := generate(filepath.Join(root, "backends", "native", "build", "internal", "livecap", target.Template), liveCapabilityTemplateData{
 			Package: target.Package, Schema: definition, ImplementationDigest: implementationDigest, GuardImplementationDigest: implementationDigest,
 			UniverseDigest: universeDigest, BoundaryManifestDigest: boundaryDigest, Boundaries: boundaries, Platforms: platforms,
 		})

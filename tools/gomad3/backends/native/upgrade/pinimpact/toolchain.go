@@ -19,7 +19,7 @@ import (
 
 const (
 	boundaryManifestPath = "backends/native/transcript/boundary/manifest.json"
-	clockInventoryPath   = "toolchain/clock_inventory_test.go"
+	clockInventoryPath   = "backends/native/toolchain/clock_inventory_test.go"
 	clockInventoryName   = "reviewedHostClockReferences"
 )
 

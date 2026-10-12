@@ -4,7 +4,7 @@ package transcript
 
 const (
 	generatedBoundaryManifestVersion = "go1.27.1-v1"
-	generatedBoundaryManifestSHA256  = "sha256:ca18b6934d906b95235e04f83dfc2eef0a94d17d5417eb032cd086f7425ebbd0"
+	generatedBoundaryManifestSHA256  = "sha256:222b2f9516c9f4f6c881787f6a95eb2cd6552b0e443de23df90af3417bf7c29d"
 	generatedBoundaryGoVersion       = "go1.27.1"
 )
 
