@@ -15,9 +15,10 @@ Create `backends/backend.go` with `Provider` (today's four methods plus `Capabil
 - Any Provider method beyond `Capabilities` plus three is listed in the spec's Decision Context with its reason.
 
 ## Done summary
-TBD
+Native is a Provider behind backends/backend.go; runner imports only the backends root. Guest verification found and fixed resumed-plan, fresh-campaign and shard validation environments and restored the backend-selector error order.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: b97c0e9c63, c46b5058e8, a2b42872f8, 7299fb6be9, 4e9140c637, 8ea822b67b, c9486b7272
+- Tests: make -C tools/gomad3 test-wasm (0); root architecture selection with GOMAD3_ARCH_ALL_PLATFORMS=1 (0); make -C tools/gomad3 validate (0); make lint-code-fast base e43c7a59c7 (0), TestWASMChoiceCampaignInterruptedRoundRecoveryNoDuplicates, TestWASMCooperativeCampaignWithExplicitEnvironment, ./runner failure set identical to base (native-host only), evidence: .flow/artifacts/wasm-section-acceptance-2026-10-12.md
 - PRs:
