@@ -12,10 +12,10 @@ import (
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
-	choiceengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/choice"
+	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
 )
 
-func journalDivergence(t *testing.T) (string, choiceengine.State, *ExplorationJournal, choiceengine.RoundSegment) {
+func journalDivergence(t *testing.T) (string, exploration.ChoiceState, *ExplorationJournal, exploration.ChoiceRoundSegment) {
 	t.Helper()
 	path := privateDirectory(t)
 	initial := testExplorationState(t)
@@ -46,7 +46,7 @@ func journalDivergence(t *testing.T) (string, choiceengine.State, *ExplorationJo
 	if err := staged.RecordExecution(0, ExecutionRecord{Strategy: "choice-exploration", Round: &roundValue, CandidateSHA256: root.Candidates[0].SHA256, ForcedDepth: &depth, OutcomeSHA256: outcome, Seed: 7, Domain: "success", Reason: "success", Termination: "exit"}); err != nil {
 		t.Fatal(err)
 	}
-	state, segment, err := choiceengine.CommitRound(initial, root, []choiceengine.Result{{CandidateSHA256: root.Candidates[0].SHA256, OutcomeSHA256: outcome, Trace: &tape}})
+	state, segment, err := exploration.CommitChoiceRound(initial, root, []exploration.ChoiceResult{{CandidateSHA256: root.Candidates[0].SHA256, OutcomeSHA256: outcome, Trace: &tape}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -72,7 +72,7 @@ func journalDivergence(t *testing.T) (string, choiceengine.State, *ExplorationJo
 	if err := staged.RecordExecution(0, ExecutionRecord{Strategy: "choice-exploration", Round: &childRoundValue, CandidateSHA256: candidate.SHA256, ParentCandidateSHA256: candidate.ParentSHA256, PrefixSHA256: candidate.PrefixSHA256, ForcedDepth: &childDepth, SelectionOrdinal: 1, Seed: 7, Domain: "runner", Reason: "replay_divergence", Termination: "none", Divergence: &evidence}); err != nil {
 		t.Fatal(err)
 	}
-	final, segment, err := choiceengine.CommitRound(state, round, []choiceengine.Result{{CandidateSHA256: candidate.SHA256, Divergence: divergence}})
+	final, segment, err := exploration.CommitChoiceRound(state, round, []exploration.ChoiceResult{{CandidateSHA256: candidate.SHA256, Divergence: divergence}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -132,7 +132,7 @@ func TestResumeExplorationJournalRetainsDivergenceAndRejectsCorruption(t *testin
 }
 
 func TestDivergenceFieldsAreAbsentFromOrdinaryJSON(t *testing.T) {
-	for _, value := range []any{ExecutionRecord{}, CampaignRecord{}, choiceengine.SegmentResult{}} {
+	for _, value := range []any{ExecutionRecord{}, CampaignRecord{}, exploration.ChoiceSegmentResult{}} {
 		data, err := canonicaljson.CanonicalJSON(value)
 		if err != nil {
 			t.Fatal(err)

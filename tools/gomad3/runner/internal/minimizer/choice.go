@@ -6,7 +6,7 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/record"
-	simulationengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation"
+	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
 )
 
 const choiceSchema = "gomad3.minimizer-state/choice-prefix/v1"
@@ -30,21 +30,21 @@ func NewChoice(tape choice.ReplayPlan, attemptBudget uint64) (State, error) {
 	return seal(State{Schema: choiceSchema, ChoiceTape: &validated, Original: original, Current: cloneCandidate(original), AttemptBudget: attemptBudget, Evaluated: []record.SHA256{}, Accepted: []Reduction{}})
 }
 
-func choiceCandidate(tape choice.ReplayPlan, length uint64, parent record.SHA256) (simulationengine.Candidate, error) {
+func choiceCandidate(tape choice.ReplayPlan, length uint64, parent record.SHA256) (exploration.SimulationCandidate, error) {
 	prefix, err := tape.Prefix(length)
 	if err != nil {
-		return simulationengine.Candidate{}, err
+		return exploration.SimulationCandidate{}, err
 	}
 	control := record.ChoicePrefixControl{Length: record.Uint64String(length), SHA256: record.SHA256FromSum(prefix.SHA256)}
 	identity, err := control.CandidateSHA256()
 	if err != nil {
-		return simulationengine.Candidate{}, err
+		return exploration.SimulationCandidate{}, err
 	}
-	overrides := make([]simulationengine.ForcedDecision, length)
+	overrides := make([]exploration.ForcedDecision, length)
 	for index, decision := range prefix.Decisions {
-		overrides[index] = simulationengine.ForcedDecision{Dimension: simulationengine.DimensionRuntime, Ordinal: decision.Ordinal, Identity: record.SHA256FromSum(decision.SelectedIdentity)}
+		overrides[index] = exploration.ForcedDecision{Dimension: exploration.DimensionRuntime, Ordinal: decision.Ordinal, Identity: record.SHA256FromSum(decision.SelectedIdentity)}
 	}
-	return simulationengine.Candidate{SHA256: identity, ParentSHA256: parent, Overrides: overrides}, nil
+	return exploration.SimulationCandidate{SHA256: identity, ParentSHA256: parent, Overrides: overrides}, nil
 }
 
 func choiceProposals(state State, seen map[record.SHA256]struct{}) ([]proposal, error) {
@@ -66,7 +66,7 @@ func choiceProposals(state State, seen map[record.SHA256]struct{}) ([]proposal, 
 }
 
 func validateChoiceState(state State) error {
-	if state.Config != (simulationengine.Config{}) {
+	if state.Config != (exploration.SimulationConfig{}) {
 		return errors.New("choice minimizer cannot carry simulation configuration")
 	}
 	tape, err := choice.ValidateReplayPlan(*state.ChoiceTape, state.ChoiceTape.Identity)

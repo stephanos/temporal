@@ -11,7 +11,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
-	choiceengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/choice"
+	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
 )
 
 func TestExplorationJournalCommitsAndReplaysWholeRounds(t *testing.T) {
@@ -32,7 +32,7 @@ func TestExplorationJournalCommitsAndReplaysWholeRounds(t *testing.T) {
 	if _, err := os.Stat(filepath.Join(staged.Path(), "round.json")); err != nil {
 		t.Fatal(err)
 	}
-	next, segment, err := choiceengine.CommitRound(state, round, []choiceengine.Result{{
+	next, segment, err := exploration.CommitChoiceRound(state, round, []exploration.ChoiceResult{{
 		CandidateSHA256: round.Candidates[0].SHA256, OutcomeSHA256: record.HashBytes([]byte("success")),
 	}})
 	if err != nil {
@@ -54,11 +54,11 @@ func TestExplorationJournalCommitsAndReplaysWholeRounds(t *testing.T) {
 	if recoveryExecutions != 0 {
 		t.Fatalf("recovery executions = %d", recoveryExecutions)
 	}
-	got, err := choiceengine.StateSHA256(recovered)
+	got, err := exploration.ChoiceStateSHA256(recovered)
 	if err != nil {
 		t.Fatal(err)
 	}
-	want, err := choiceengine.StateSHA256(next)
+	want, err := exploration.ChoiceStateSHA256(next)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -126,7 +126,7 @@ func TestResumeExplorationJournalRejectsCorruptOrNonContiguousSegments(t *testin
 			if err != nil {
 				t.Fatal(err)
 			}
-			_, segment, err := choiceengine.CommitRound(state, round, []choiceengine.Result{{CandidateSHA256: round.Candidates[0].SHA256, OutcomeSHA256: record.HashBytes([]byte("success"))}})
+			_, segment, err := exploration.CommitChoiceRound(state, round, []exploration.ChoiceResult{{CandidateSHA256: round.Candidates[0].SHA256, OutcomeSHA256: record.HashBytes([]byte("success"))}})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -153,7 +153,7 @@ func TestExplorationJournalRejectsChangedPlanAndOversizedSegment(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, segment, err := choiceengine.CommitRound(state, round, []choiceengine.Result{{CandidateSHA256: round.Candidates[0].SHA256, OutcomeSHA256: record.HashBytes([]byte(strings.Repeat("x", 16)))}})
+	_, segment, err := exploration.CommitChoiceRound(state, round, []exploration.ChoiceResult{{CandidateSHA256: round.Candidates[0].SHA256, OutcomeSHA256: record.HashBytes([]byte(strings.Repeat("x", 16)))}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -188,7 +188,7 @@ func TestResumeExplorationJournalRejectsRunProjectionDivergence(t *testing.T) {
 	}); err != nil {
 		t.Fatal(err)
 	}
-	_, segment, err := choiceengine.CommitRound(state, round, []choiceengine.Result{{CandidateSHA256: round.Candidates[0].SHA256, OutcomeSHA256: outcome}})
+	_, segment, err := exploration.CommitChoiceRound(state, round, []exploration.ChoiceResult{{CandidateSHA256: round.Candidates[0].SHA256, OutcomeSHA256: outcome}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -226,16 +226,16 @@ func privateDirectory(t *testing.T) string {
 	return path
 }
 
-func testExplorationState(t *testing.T) choiceengine.State {
+func testExplorationState(t *testing.T) exploration.ChoiceState {
 	t.Helper()
-	state, err := choiceengine.New(choiceengine.Config{
+	state, err := exploration.NewChoice(exploration.ChoiceConfig{
 		Execution: choice.ExecutionIdentity{
 			TargetSHA256: sha256.Sum256([]byte("target")), ToolchainBuildKey: strings.Repeat("a", 64),
 			GOOS: "darwin", GOARCH: "arm64", ImplementationSHA256: sha256.Sum256([]byte("controller")),
 		},
-		ControllerSHA256: choiceengine.ImplementationSHA256(),
+		ControllerSHA256: exploration.ChoiceImplementationSHA256(),
 		BaseSeed:         7, Parallel: 2, MaxExecutions: 8, MaxChoiceDepth: 4, MaxExplorationBytes: 1 << 20,
-		FailurePolicy: choiceengine.PolicyAll, FailureBudget: 1,
+		FailurePolicy: exploration.PolicyAll, FailureBudget: 1,
 	})
 	if err != nil {
 		t.Fatal(err)

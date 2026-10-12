@@ -1,4 +1,4 @@
-package simulationrecord
+package exploration
 
 import (
 	"bytes"
@@ -10,7 +10,6 @@ import (
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
-	simulationengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation"
 )
 
 const recordSchema = "gomad3.cluster-record/v7"
@@ -22,16 +21,16 @@ type retainedRecord struct {
 	diverged      bool
 	outcomeSHA256 record.SHA256
 	failureSHA256 record.SHA256
-	decisions     []simulationengine.Decision
+	decisions     []Decision
 }
 
-func RuntimeDecisions(tape choice.ReplayPlan) ([]simulationengine.Decision, error) {
+func RuntimeDecisions(tape choice.ReplayPlan) ([]Decision, error) {
 	validated, err := choice.ValidateReplayPlan(tape, tape.Identity)
 	if err != nil {
 		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return nil, fmt.Errorf("validate runtime choice tape: %w", err)
 	}
-	decisions := make([]simulationengine.Decision, 0, len(validated.Decisions))
+	decisions := make([]Decision, 0, len(validated.Decisions))
 	for _, runtimeDecision := range validated.Decisions {
 		if runtimeDecision.Alternatives < 2 {
 			continue
@@ -52,8 +51,8 @@ func RuntimeDecisions(tape choice.ReplayPlan) ([]simulationengine.Decision, erro
 			}
 			controls[rank] = append([]byte(nil), prefix.Bytes...)
 		}
-		decision, err := simulationengine.CanonicalControlledDecision(
-			simulationengine.DimensionRuntime, runtimeDecision.Ordinal, site, alternatives, controls, runtimeDecision.Selected,
+		decision, err := CanonicalControlledDecision(
+			DimensionRuntime, runtimeDecision.Ordinal, site, alternatives, controls, runtimeDecision.Selected,
 		)
 		if err != nil {
 			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
@@ -96,46 +95,46 @@ func runtimeDecisionIdentities(runtimeDecision choice.Decision) (record.SHA256, 
 	return site, alternatives, nil
 }
 
-func ResultForRecord(config simulationengine.Config, candidate simulationengine.Candidate, recordBytes []byte, runtimeDecisions []simulationengine.Decision) (simulationengine.Result, error) {
-	if err := simulationengine.ValidateCandidate(config, candidate); err != nil {
-		return simulationengine.Result{}, err
+func ResultForRecord(config SimulationConfig, candidate SimulationCandidate, recordBytes []byte, runtimeDecisions []Decision) (SimulationResult, error) {
+	if err := ValidateCandidate(config, candidate); err != nil {
+		return SimulationResult{}, err
 	}
 	expectedPlan, err := PlanForCandidate(config, candidate)
 	if err != nil {
-		return simulationengine.Result{}, err
+		return SimulationResult{}, err
 	}
 	projected, err := projectRetainedRecord(recordBytes, expectedPlan)
 	if err != nil {
-		return simulationengine.Result{}, err
+		return SimulationResult{}, err
 	}
 	if projected.seed != config.BaseSeed {
-		return simulationengine.Result{}, errors.Join(errors.New("simulation exploration record seed does not match its candidate"), err)
+		return SimulationResult{}, errors.Join(errors.New("simulation exploration record seed does not match its candidate"), err)
 	}
-	decisions := append([]simulationengine.Decision(nil), runtimeDecisions...)
+	decisions := append([]Decision(nil), runtimeDecisions...)
 	decisions = append(decisions, projected.decisions...)
 	seen := make(map[string]struct{}, len(decisions))
 	for index, decision := range decisions {
-		if err := validateDecision(decision); err != nil {
+		if err := validateRecordDecision(decision); err != nil {
 			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
-			return simulationengine.Result{}, fmt.Errorf("simulation exploration decision %d: %w", index, err)
+			return SimulationResult{}, fmt.Errorf("simulation exploration decision %d: %w", index, err)
 		}
 		key := fmt.Sprintf("%s\x00%d", decision.Dimension, decision.Ordinal)
 		if _, ok := seen[key]; ok {
-			return simulationengine.Result{}, errors.New("simulation exploration decisions contain a duplicate dimension ordinal")
+			return SimulationResult{}, errors.New("simulation exploration decisions contain a duplicate dimension ordinal")
 		}
 		seen[key] = struct{}{}
 	}
-	result := simulationengine.Result{
+	result := SimulationResult{
 		CandidateSHA256: candidate.SHA256, OutcomeSHA256: projected.outcomeSHA256,
 		Failed: projected.failed, FailureSHA256: projected.failureSHA256, Diverged: projected.diverged, Decisions: decisions,
 	}
-	if err := simulationengine.ValidateResult(config, candidate, result); err != nil {
-		return simulationengine.Result{}, err
+	if err := ValidateResult(config, candidate, result); err != nil {
+		return SimulationResult{}, err
 	}
 	return result, nil
 }
 
-func ProjectArtifact(config simulationengine.Config, candidate simulationengine.Candidate, planBytes, recordBytes []byte, runtimeDecisions []simulationengine.Decision, recordLimit uint64) (record.SimulationProfile, error) {
+func ProjectArtifact(config SimulationConfig, candidate SimulationCandidate, planBytes, recordBytes []byte, runtimeDecisions []Decision, recordLimit uint64) (record.SimulationProfile, error) {
 	expectedPlan, err := PlanForCandidate(config, candidate)
 	if err != nil {
 		return record.SimulationProfile{}, err
@@ -227,7 +226,7 @@ func projectRetainedRecord(recordBytes, expectedPlan []byte) (retainedRecord, er
 	if !ok || !bytes.Equal(actualPlan, expectedPlan) {
 		return retainedRecord{}, errors.New("simulation exploration record plan does not match its candidate")
 	}
-	var recorded []simulationengine.Decision
+	var recorded []Decision
 	if raw, ok := fields["exploration_decisions"]; ok {
 		if err := json.Unmarshal(raw, &recorded); err != nil {
 			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
@@ -236,7 +235,7 @@ func projectRetainedRecord(recordBytes, expectedPlan []byte) (retainedRecord, er
 	}
 	seen := make(map[string]struct{}, len(recorded))
 	for index, decision := range recorded {
-		if err := validateDecision(decision); err != nil {
+		if err := validateRecordDecision(decision); err != nil {
 			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return retainedRecord{}, fmt.Errorf("simulation exploration decision %d: %w", index, err)
 		}
@@ -283,15 +282,15 @@ func projectRetainedRecord(recordBytes, expectedPlan []byte) (retainedRecord, er
 	return projected, nil
 }
 
-func validateDecision(decision simulationengine.Decision) error {
-	var canonical simulationengine.Decision
+func validateRecordDecision(decision Decision) error {
+	var canonical Decision
 	var err error
-	if decision.Dimension == simulationengine.DimensionRuntime {
-		canonical, err = simulationengine.CanonicalControlledDecision(
+	if decision.Dimension == DimensionRuntime {
+		canonical, err = CanonicalControlledDecision(
 			decision.Dimension, decision.Ordinal, decision.SiteSHA256, decision.Alternatives, decision.AlternativeControls, decision.Selected,
 		)
 	} else {
-		canonical, err = simulationengine.CanonicalDecision(decision.Dimension, decision.Ordinal, decision.SiteSHA256, decision.Alternatives, decision.Selected)
+		canonical, err = CanonicalDecision(decision.Dimension, decision.Ordinal, decision.SiteSHA256, decision.Alternatives, decision.Selected)
 	}
 	if err != nil {
 		return err

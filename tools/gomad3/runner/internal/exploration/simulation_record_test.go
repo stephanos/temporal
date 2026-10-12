@@ -1,4 +1,4 @@
-package simulationrecord
+package exploration
 
 import (
 	"crypto/sha256"
@@ -8,7 +8,6 @@ import (
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
-	simulationengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation"
 )
 
 func TestRuntimeDecisionsProjectsBranchingChoiceTapeByRank(t *testing.T) {
@@ -35,11 +34,11 @@ func TestRuntimeDecisionsProjectsBranchingChoiceTapeByRank(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(decisions) != 1 || decisions[0].Dimension != simulationengine.DimensionRuntime || decisions[0].Ordinal != 0 || len(decisions[0].Alternatives) != 2 || decisions[0].Selected != 1 {
+	if len(decisions) != 1 || decisions[0].Dimension != DimensionRuntime || decisions[0].Ordinal != 0 || len(decisions[0].Alternatives) != 2 || decisions[0].Selected != 1 {
 		t.Fatalf("runtime decisions = %#v", decisions)
 	}
-	canonical, err := simulationengine.CanonicalControlledDecision(
-		simulationengine.DimensionRuntime, decisions[0].Ordinal, decisions[0].SiteSHA256, decisions[0].Alternatives, decisions[0].AlternativeControls, decisions[0].Selected,
+	canonical, err := CanonicalControlledDecision(
+		DimensionRuntime, decisions[0].Ordinal, decisions[0].SiteSHA256, decisions[0].Alternatives, decisions[0].AlternativeControls, decisions[0].Selected,
 	)
 	if err != nil {
 		t.Fatal(err)
@@ -80,17 +79,17 @@ func TestExecutionForCandidateRestoresRuntimeRankPrefix(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	config := simulationengine.Config{
-		ExecutionSHA256: record.HashBytes([]byte("execution")), ControllerSHA256: simulationengine.ImplementationSHA256(), BaseSeed: 17,
+	config := SimulationConfig{
+		ExecutionSHA256: record.HashBytes([]byte("execution")), ControllerSHA256: SimulationImplementationSHA256(), BaseSeed: 17,
 		Parallel: 1, MaxExecutions: 2, MaxForcedDecisions: 1, MaxExplorationBytes: 1 << 20, MaxResultBytes: 1 << 20, FailureBudget: 1,
-		Limits: simulationengine.DimensionLimits{Runtime: 1, Scenario: 1, Network: 1, Storage: 1, Fault: 1, Crash: 1},
+		Limits: DimensionLimits{Runtime: 1, Scenario: 1, Network: 1, Storage: 1, Fault: 1, Crash: 1},
 	}
-	state, err := simulationengine.New(config)
+	state, err := NewSimulation(config)
 	if err != nil {
 		t.Fatal(err)
 	}
 	root, _ := state.NextRound()
-	state, _, err = simulationengine.CommitRound(state, root, []simulationengine.Result{{
+	state, _, err = CommitSimulationRound(state, root, []SimulationResult{{
 		CandidateSHA256: root.Candidates[0].SHA256, OutcomeSHA256: record.HashBytes([]byte("root")), Decisions: runtimeDecisions,
 	}})
 	if err != nil {
@@ -128,23 +127,23 @@ func TestCandidateForArtifactRestoresRuntimeControlAndFaultOverride(t *testing.T
 	if err != nil {
 		t.Fatal(err)
 	}
-	runtimeOverride, err := simulationengine.ForceDecision(runtimeDecisions[0], 1)
+	runtimeOverride, err := ForceDecision(runtimeDecisions[0], 1)
 	if err != nil {
 		t.Fatal(err)
 	}
-	faultDecision, err := simulationengine.CanonicalDecision(
-		simulationengine.DimensionFault, 0, record.HashBytes([]byte("fault site")),
+	faultDecision, err := CanonicalDecision(
+		DimensionFault, 0, record.HashBytes([]byte("fault site")),
 		[]record.SHA256{record.HashBytes([]byte("default")), record.HashBytes([]byte("drop"))}, 0,
 	)
 	if err != nil {
 		t.Fatal(err)
 	}
-	faultOverride, err := simulationengine.ForceDecision(faultDecision, 1)
+	faultOverride, err := ForceDecision(faultDecision, 1)
 	if err != nil {
 		t.Fatal(err)
 	}
 	config := testCombinedConfig()
-	candidate, err := simulationengine.CanonicalCandidate(config, []simulationengine.ForcedDecision{runtimeOverride, faultOverride}, "")
+	candidate, err := CanonicalCandidate(config, []ForcedDecision{runtimeOverride, faultOverride}, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -172,18 +171,18 @@ func TestCandidateForArtifactRestoresRuntimeControlAndFaultOverride(t *testing.T
 	if gotConfig.ExecutionSHA256 != config.ExecutionSHA256 || gotConfig.BaseSeed != config.BaseSeed || gotCandidate.SHA256 != candidate.SHA256 || len(gotCandidate.Overrides) != 2 {
 		t.Fatalf("reconstructed candidate = %#v with config %#v", gotCandidate, gotConfig)
 	}
-	if string(gotCandidate.Overrides[0].Control) != string(runtimeOverride.Control) || gotCandidate.Overrides[1].Dimension != simulationengine.DimensionFault {
+	if string(gotCandidate.Overrides[0].Control) != string(runtimeOverride.Control) || gotCandidate.Overrides[1].Dimension != DimensionFault {
 		t.Fatalf("reconstructed overrides = %#v", gotCandidate.Overrides)
 	}
 }
 
 func TestResultForRecordProjectsValidatedDecisionsAndSemanticOutcome(t *testing.T) {
-	config := simulationengine.Config{
-		ExecutionSHA256: record.HashBytes([]byte("execution")), ControllerSHA256: simulationengine.ImplementationSHA256(), BaseSeed: 17,
+	config := SimulationConfig{
+		ExecutionSHA256: record.HashBytes([]byte("execution")), ControllerSHA256: SimulationImplementationSHA256(), BaseSeed: 17,
 		Parallel: 1, MaxExecutions: 2, MaxForcedDecisions: 1, MaxExplorationBytes: 1 << 20, MaxResultBytes: 1 << 20, FailureBudget: 1,
-		Limits: simulationengine.DimensionLimits{Runtime: 1, Scenario: 1, Network: 1, Storage: 1, Fault: 1, Crash: 1},
+		Limits: DimensionLimits{Runtime: 1, Scenario: 1, Network: 1, Storage: 1, Fault: 1, Crash: 1},
 	}
-	state, err := simulationengine.New(config)
+	state, err := NewSimulation(config)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -196,25 +195,25 @@ func TestResultForRecordProjectsValidatedDecisionsAndSemanticOutcome(t *testing.
 	if err != nil {
 		t.Fatal(err)
 	}
-	decision, err := simulationengine.CanonicalDecision(
-		simulationengine.DimensionScenario, 0, record.HashBytes([]byte("route")),
+	decision, err := CanonicalDecision(
+		DimensionScenario, 0, record.HashBytes([]byte("route")),
 		[]record.SHA256{record.HashBytes([]byte("alpha")), record.HashBytes([]byte("beta"))}, 1,
 	)
 	if err != nil {
 		t.Fatal(err)
 	}
 	recordValue := struct {
-		Schema               string                      `json:"schema"`
-		Seed                 uint64                      `json:"seed"`
-		SpecSHA256           record.SHA256               `json:"spec_sha256"`
-		Outcome              string                      `json:"outcome"`
-		ExplorationPlan      json.RawMessage             `json:"exploration_plan"`
-		ExplorationDecisions []simulationengine.Decision `json:"exploration_decisions"`
-		ScenarioTape         []string                    `json:"scenario_tape"`
-		Identity             record.SHA256               `json:"identity"`
+		Schema               string          `json:"schema"`
+		Seed                 uint64          `json:"seed"`
+		SpecSHA256           record.SHA256   `json:"spec_sha256"`
+		Outcome              string          `json:"outcome"`
+		ExplorationPlan      json.RawMessage `json:"exploration_plan"`
+		ExplorationDecisions []Decision      `json:"exploration_decisions"`
+		ScenarioTape         []string        `json:"scenario_tape"`
+		Identity             record.SHA256   `json:"identity"`
 	}{
 		Schema: "gomad3.cluster-record/v7", Seed: 17, SpecSHA256: record.HashBytes([]byte("candidate-bound-spec")), Outcome: "completed",
-		ExplorationPlan: plan, ExplorationDecisions: []simulationengine.Decision{decision}, ScenarioTape: []string{"beta"}, Identity: record.HashBytes([]byte("record")),
+		ExplorationPlan: plan, ExplorationDecisions: []Decision{decision}, ScenarioTape: []string{"beta"}, Identity: record.HashBytes([]byte("record")),
 	}
 	encoded, err := json.Marshal(recordValue)
 	if err != nil {
@@ -243,12 +242,12 @@ func TestResultForRecordProjectsValidatedDecisionsAndSemanticOutcome(t *testing.
 }
 
 func TestProjectArtifactBindsExactReplayAndNormalizedFailure(t *testing.T) {
-	config := simulationengine.Config{
-		ExecutionSHA256: record.HashBytes([]byte("execution")), ControllerSHA256: simulationengine.ImplementationSHA256(), BaseSeed: 17,
+	config := SimulationConfig{
+		ExecutionSHA256: record.HashBytes([]byte("execution")), ControllerSHA256: SimulationImplementationSHA256(), BaseSeed: 17,
 		Parallel: 1, MaxExecutions: 2, MaxForcedDecisions: 1, MaxExplorationBytes: 1 << 20, MaxResultBytes: 1 << 20, FailureBudget: 1,
-		Limits: simulationengine.DimensionLimits{Runtime: 1, Scenario: 1, Network: 1, Storage: 1, Fault: 1, Crash: 1},
+		Limits: DimensionLimits{Runtime: 1, Scenario: 1, Network: 1, Storage: 1, Fault: 1, Crash: 1},
 	}
-	state, err := simulationengine.New(config)
+	state, err := NewSimulation(config)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -291,7 +290,7 @@ func TestProjectArtifactBindsExactReplayAndNormalizedFailure(t *testing.T) {
 
 	changedConfig := config
 	changedConfig.BaseSeed = 18
-	changedState, err := simulationengine.New(changedConfig)
+	changedState, err := NewSimulation(changedConfig)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -313,18 +312,18 @@ func TestProjectArtifactBindsExactReplayAndNormalizedFailure(t *testing.T) {
 
 func TestProjectArtifactRequiresEveryForcedDecisionRecord(t *testing.T) {
 	config := testCombinedConfig()
-	decision, err := simulationengine.CanonicalDecision(
-		simulationengine.DimensionFault, 0, record.HashBytes([]byte("fault site")),
+	decision, err := CanonicalDecision(
+		DimensionFault, 0, record.HashBytes([]byte("fault site")),
 		[]record.SHA256{record.HashBytes([]byte("none")), record.HashBytes([]byte("drop"))}, 0,
 	)
 	if err != nil {
 		t.Fatal(err)
 	}
-	forced, err := simulationengine.ForceDecision(decision, 1)
+	forced, err := ForceDecision(decision, 1)
 	if err != nil {
 		t.Fatal(err)
 	}
-	candidate, err := simulationengine.CanonicalCandidate(config, []simulationengine.ForcedDecision{forced}, "")
+	candidate, err := CanonicalCandidate(config, []ForcedDecision{forced}, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -353,11 +352,11 @@ func TestProjectArtifactRequiresEveryForcedDecisionRecord(t *testing.T) {
 	}
 }
 
-func testCombinedConfig() simulationengine.Config {
-	return simulationengine.Config{
-		ExecutionSHA256: record.HashBytes([]byte("execution")), ControllerSHA256: simulationengine.ImplementationSHA256(), BaseSeed: 17,
+func testCombinedConfig() SimulationConfig {
+	return SimulationConfig{
+		ExecutionSHA256: record.HashBytes([]byte("execution")), ControllerSHA256: SimulationImplementationSHA256(), BaseSeed: 17,
 		Parallel: 1, MaxExecutions: 8, MaxForcedDecisions: 8, MaxExplorationBytes: 1 << 20, MaxResultBytes: 1 << 20, FailureBudget: 1,
-		Limits: simulationengine.DimensionLimits{Runtime: 8, Scenario: 8, Network: 8, Storage: 8, Fault: 8, Crash: 8},
+		Limits: DimensionLimits{Runtime: 8, Scenario: 8, Network: 8, Storage: 8, Fault: 8, Crash: 8},
 	}
 }
 

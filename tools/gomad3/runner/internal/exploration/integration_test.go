@@ -1,6 +1,6 @@
 //go:build integration
 
-package simulationrecord_test
+package exploration_test
 
 import (
 	"context"
@@ -14,12 +14,11 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/backends/native/execution"
 	"go.temporal.io/server/tools/gomad3/record"
-	simulationengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation"
-	simulationrecord "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulationrecord"
+	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
 )
 
 func TestRootProcessSimulationUsesRunnerTransport(t *testing.T) {
-	root, err := filepath.Abs(filepath.Join("..", "..", "..", "..", "..", ".."))
+	root, err := filepath.Abs(filepath.Join("..", "..", "..", "..", ".."))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -77,8 +76,8 @@ func TestRootProcessSimulationUsesRunnerTransport(t *testing.T) {
 		for _, environment := range environments {
 			t.Run(testName+environment.suffix, func(t *testing.T) {
 				simulation := &execution.SimulationCapability{Role: execution.SimulationRoleCoordinator}
-				var explorationConfig simulationengine.Config
-				var explorationCandidate simulationengine.Candidate
+				var explorationConfig exploration.SimulationConfig
+				var explorationCandidate exploration.SimulationCandidate
 				if testName == "TestProcessExplorationConsumesExternalPlanAndPublishesRecord" {
 					explorationConfig, explorationCandidate, simulation.ExplorationPlan = rootExplorationPlan(t, 89)
 					simulation.ExplorationRecordLimit = 1 << 20
@@ -102,7 +101,7 @@ func TestRootProcessSimulationUsesRunnerTransport(t *testing.T) {
 					t.Fatalf("simulation exploration records = %d, want 1", len(result.SimulationRecords))
 				}
 				if testName == "TestProcessExplorationConsumesExternalPlanAndPublishesRecord" {
-					if _, err := simulationrecord.ResultForRecord(explorationConfig, explorationCandidate, result.SimulationRecords[0], nil); err != nil {
+					if _, err := exploration.ResultForRecord(explorationConfig, explorationCandidate, result.SimulationRecords[0], nil); err != nil {
 						t.Fatalf("project simulation exploration record: %v", err)
 					}
 				}
@@ -133,15 +132,15 @@ func TestTargetBootstrapHelper(t *testing.T) {
 	os.Exit(0)
 }
 
-func rootExplorationPlan(t *testing.T, seed uint64) (simulationengine.Config, simulationengine.Candidate, []byte) {
+func rootExplorationPlan(t *testing.T, seed uint64) (exploration.SimulationConfig, exploration.SimulationCandidate, []byte) {
 	t.Helper()
-	config := simulationengine.Config{
+	config := exploration.SimulationConfig{
 		ExecutionSHA256:  record.HashBytes([]byte("root process exploration integration")),
-		ControllerSHA256: simulationengine.ImplementationSHA256(), BaseSeed: seed,
+		ControllerSHA256: exploration.SimulationImplementationSHA256(), BaseSeed: seed,
 		Parallel: 1, MaxExecutions: 2, MaxForcedDecisions: 1, MaxExplorationBytes: 1 << 20, MaxResultBytes: 1 << 20, FailureBudget: 1,
-		Limits: simulationengine.DimensionLimits{Runtime: 1, Scenario: 1, Network: 1, Storage: 1, Fault: 1, Crash: 1},
+		Limits: exploration.DimensionLimits{Runtime: 1, Scenario: 1, Network: 1, Storage: 1, Fault: 1, Crash: 1},
 	}
-	state, err := simulationengine.New(config)
+	state, err := exploration.NewSimulation(config)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -149,7 +148,7 @@ func rootExplorationPlan(t *testing.T, seed uint64) (simulationengine.Config, si
 	if !ok || len(round.Candidates) != 1 {
 		t.Fatal("simulation exploration root candidate is unavailable")
 	}
-	encoded, err := simulationrecord.PlanForCandidate(config, round.Candidates[0])
+	encoded, err := exploration.PlanForCandidate(config, round.Candidates[0])
 	if err != nil {
 		t.Fatal(err)
 	}

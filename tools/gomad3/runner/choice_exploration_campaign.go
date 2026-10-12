@@ -15,13 +15,13 @@ import (
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
-	choiceengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/choice"
+	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
 type explorationRoundResult struct {
 	completion runCompletion
-	result     choiceengine.Result
+	result     exploration.ChoiceResult
 	run        campaign.ExecutionRecord
 }
 
@@ -50,12 +50,12 @@ func runChoiceExplorationLocal(
 	if err != nil {
 		return &HostError{Reason: "choice_exploration_setup", Err: err}
 	}
-	explorationConfig := choiceengine.Config{
-		Execution: executionIdentity, ControllerSHA256: choiceengine.ImplementationSHA256(), BaseSeed: baseSeed, Parallel: config.Parallel,
+	explorationConfig := exploration.ChoiceConfig{
+		Execution: executionIdentity, ControllerSHA256: exploration.ChoiceImplementationSHA256(), BaseSeed: baseSeed, Parallel: config.Parallel,
 		MaxExecutions: config.MaxExecutions, MaxChoiceDepth: config.MaxChoiceDepth, StartOrdinal: config.ChoiceStartOrdinal, MaxExplorationBytes: config.MaxExplorationBytes,
-		FailurePolicy: choiceengine.FailurePolicy(config.OnFailure), FailureBudget: config.FailureBudget,
+		FailurePolicy: exploration.FailurePolicy(config.OnFailure), FailureBudget: config.FailureBudget,
 	}
-	state, err := choiceengine.New(explorationConfig)
+	state, err := exploration.NewChoice(explorationConfig)
 	if err != nil {
 		return &HostError{Reason: "choice_exploration_setup", Err: err}
 	}
@@ -126,7 +126,7 @@ func runChoiceExplorationLocal(
 		roundDistinct := cloneFailurePaths(distinct)
 		roundProbes := cloneStringSet(semanticProbes)
 		roundChoiceFeatures := cloneStringSet(choiceFeatures)
-		results := make([]choiceengine.Result, len(round.Candidates))
+		results := make([]exploration.ChoiceResult, len(round.Candidates))
 		runs := make([]campaign.ExecutionRecord, len(round.Candidates))
 		for index, completion := range completions {
 			processed, err := processExplorationCompletion(ctx, config, prepared, baseEnvironment, readOnlyMounts, runID, journal.Path(), staged, state, round, index, completion, &roundSummary, roundDistinct, roundProbes, roundChoiceFeatures)
@@ -139,7 +139,7 @@ func runChoiceExplorationLocal(
 				return &HostError{Reason: "choice_exploration_stage", Err: err}
 			}
 		}
-		next, segment, err := choiceengine.CommitRound(state, round, results)
+		next, segment, err := exploration.CommitChoiceRound(state, round, results)
 		if err != nil {
 			return &HostError{Reason: "choice_exploration_commit", Err: err}
 		}
@@ -198,7 +198,7 @@ func runChoiceExplorationLocal(
 		Attempted: summary.Attempted, Succeeded: summary.Succeeded, Failures: summary.Failures, Watchdogs: summary.Watchdogs,
 		ReplayDivergences: summary.ReplayDivergences, Cancelled: summary.Cancelled, DistinctFailures: summary.DistinctFailures, RetainedSuccesses: summary.RetainedSuccesses,
 		RetainedSuccessBytes: summary.RetainedSuccessBytes, StopReason: string(summary.StopReason), FailureSignatures: failureSignatures,
-		ChoiceExploration: &explorationSummary, ChoiceExplorationImplementationSHA256: choiceengine.ImplementationSHA256(), ChoiceExplorationChainSHA256: explorationJournal.ChainSHA256(), RecoveryExecutions: summary.RecoveryExecutions,
+		ChoiceExploration: &explorationSummary, ChoiceExplorationImplementationSHA256: exploration.ChoiceImplementationSHA256(), ChoiceExplorationChainSHA256: explorationJournal.ChainSHA256(), RecoveryExecutions: summary.RecoveryExecutions,
 	}); err != nil {
 		return &HostError{Reason: "campaign_publish", Err: err}
 	}
@@ -217,8 +217,8 @@ func executeExplorationRound(
 	profile backend.Description,
 	readOnlyMounts []captured.Mapping,
 	staged *campaign.ExplorationRoundJournal,
-	state choiceengine.State,
-	round choiceengine.Round,
+	state exploration.ChoiceState,
+	round exploration.ChoiceRound,
 	reportProgress func(CampaignPhase, int) error,
 ) ([]runCompletion, error) {
 	roundCtx, cancel := context.WithCancel(ctx)
@@ -272,8 +272,8 @@ func processExplorationCompletion(
 	runID string,
 	batchPath string,
 	staged *campaign.ExplorationRoundJournal,
-	state choiceengine.State,
-	round choiceengine.Round,
+	state exploration.ChoiceState,
+	round exploration.ChoiceRound,
 	index int,
 	completion runCompletion,
 	summary *CampaignResult,
@@ -313,7 +313,7 @@ func processExplorationCompletion(
 		summary.Attempted++
 		summary.Failures++
 		summary.ReplayDivergences++
-		return explorationRoundResult{completion: completion, result: choiceengine.Result{CandidateSHA256: candidate.SHA256, Divergence: &divergence.Divergence}, run: run}, nil
+		return explorationRoundResult{completion: completion, result: exploration.ChoiceResult{CandidateSHA256: candidate.SHA256, Divergence: &divergence.Divergence}, run: run}, nil
 	}
 	worldBundle, err := assessWorld(completion.result, completion.job.seed, config.WorldTransitionLimit)
 	if err != nil {
@@ -359,7 +359,7 @@ func processExplorationCompletion(
 	if config.CollectExecutionEvidence {
 		runRecord := executionEvidence(config, prepared, baseEnvironment, completion, outcome, worldBundle.Manifest, mountArtifact, runCoverage, runChoiceProjection)
 		runRecord.ChoiceExploration = &ChoiceExplorationEvidence{
-			ImplementationSHA256: choiceengine.ImplementationSHA256(), Round: record.Uint64String(round.Index), CandidateSHA256: candidate.SHA256,
+			ImplementationSHA256: exploration.ChoiceImplementationSHA256(), Round: record.Uint64String(round.Index), CandidateSHA256: candidate.SHA256,
 			ParentSHA256: candidate.ParentSHA256, PrefixSHA256: candidate.PrefixSHA256, ForcedDepth: record.Uint64String(candidate.ForcedDepth), OutcomeSHA256: outcomeSHA256,
 		}
 		summary.ExecutionEvidence = &runRecord
@@ -443,14 +443,14 @@ func processExplorationCompletion(
 		return explorationRoundResult{}, &HostError{Reason: "partial_cleanup", Err: err}
 	}
 	failed := outcome.Domain == "target" || outcome.Domain == "watchdog"
-	explorationResult := choiceengine.Result{CandidateSHA256: candidate.SHA256, OutcomeSHA256: outcomeSHA256, Failed: failed, Trace: &tape}
+	explorationResult := exploration.ChoiceResult{CandidateSHA256: candidate.SHA256, OutcomeSHA256: outcomeSHA256, Failed: failed, Trace: &tape}
 	if run.FailureSignature != nil {
 		explorationResult.FailureSHA256 = *run.FailureSignature
 	}
 	return explorationRoundResult{completion: completion, result: explorationResult, run: run}, nil
 }
 
-func isCandidateReplayDivergence(completion runCompletion, candidate choiceengine.Candidate, identity choice.ExecutionIdentity) bool {
+func isCandidateReplayDivergence(completion runCompletion, candidate exploration.ChoiceCandidate, identity choice.ExecutionIdentity) bool {
 	if completion.result.Cancelled || completion.result.WatchdogTimeout || completion.job.choiceMode != choice.ModePrefix {
 		return false
 	}
@@ -467,7 +467,7 @@ func isCandidateReplayDivergence(completion runCompletion, candidate choiceengin
 		}
 	}
 	var divergence *backend.ChoiceReplayDivergenceError
-	return errors.As(completion.err, &divergence) && divergence != nil && choiceengine.ValidateCandidateDivergence(candidate, identity, divergence.Divergence) == nil
+	return errors.As(completion.err, &divergence) && divergence != nil && exploration.ValidateCandidateDivergence(candidate, identity, divergence.Divergence) == nil
 }
 
 func reconcileExplorationExecutions(journal *campaign.CampaignJournal, projected, committed []campaign.ExecutionRecord) error {

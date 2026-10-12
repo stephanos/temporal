@@ -16,7 +16,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
-	simulationrecord "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulationrecord"
+	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
 	"go.temporal.io/server/tools/gomad3/target"
 	"go.temporal.io/server/tools/gomad3/world"
 )
@@ -291,7 +291,7 @@ func simulationCapabilityForArtifact(opened *artifact.Opened) (simulationArtifac
 	if err != nil {
 		return simulationArtifactReplay{}, fmt.Errorf("read simulation exploration record: %w", err)
 	}
-	if err := simulationrecord.ValidateArtifact(*profile, plan, record); err != nil {
+	if err := exploration.ValidateArtifact(*profile, plan, record); err != nil {
 		return simulationArtifactReplay{}, fmt.Errorf("validate simulation exploration artifact: %w", err)
 	}
 	return simulationArtifactReplay{

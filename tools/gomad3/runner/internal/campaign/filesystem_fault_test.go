@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/record"
-	choiceengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/choice"
+	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
 )
 
 func TestPreparedCampaignMutationFaultsLeavePublishedOrResumableState(t *testing.T) {
@@ -591,7 +591,7 @@ func interruptedCampaignForResumeFault(t *testing.T) string {
 	return journal.Path()
 }
 
-func exerciseExplorationCommitMutations(t *testing.T, inject mutationHook) (string, choiceengine.Config, error) {
+func exerciseExplorationCommitMutations(t *testing.T, inject mutationHook) (string, exploration.ChoiceConfig, error) {
 	t.Helper()
 	controller := &mutationController{enabled: false, inject: inject}
 	ctx := withMutationHook(context.Background(), controller.observe)
@@ -609,7 +609,7 @@ func exerciseExplorationCommitMutations(t *testing.T, inject mutationHook) (stri
 	if err != nil {
 		return path, state.Config, err
 	}
-	_, segment, err := choiceengine.CommitRound(state, round, []choiceengine.Result{{
+	_, segment, err := exploration.CommitChoiceRound(state, round, []exploration.ChoiceResult{{
 		CandidateSHA256: round.Candidates[0].SHA256, OutcomeSHA256: record.HashBytes([]byte("success")),
 	}})
 	if err != nil {

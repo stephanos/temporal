@@ -16,7 +16,7 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
 	"go.temporal.io/server/tools/gomad3/record"
-	simulationengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation"
+	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
 )
 
 const workspaceLockHolderEnvironment = "GOMAD3_MINIMIZER_WORKSPACE_LOCK_HOLDER"
@@ -42,8 +42,8 @@ func workspaceInitialState(t *testing.T, attemptBudget uint64) State {
 	t.Helper()
 	config := testConfig()
 	state, err := New(config, testCandidate(t, config,
-		testForced(t, simulationengine.DimensionRuntime, 0),
-		testForced(t, simulationengine.DimensionFault, 0),
+		testForced(t, exploration.DimensionRuntime, 0),
+		testForced(t, exploration.DimensionFault, 0),
 	), attemptBudget)
 	if err != nil {
 		t.Fatal(err)
@@ -146,7 +146,7 @@ func TestWorkspaceResumeRejectsStateOfAnotherRun(t *testing.T) {
 		}, want: "attempt budget 8, not 9"},
 		{name: "starting candidate", change: func(t *testing.T, _ *Binding, initial *State) {
 			config := testConfig()
-			other, err := New(config, testCandidate(t, config, testForced(t, simulationengine.DimensionRuntime, 0)), 8)
+			other, err := New(config, testCandidate(t, config, testForced(t, exploration.DimensionRuntime, 0)), 8)
 			if err != nil {
 				t.Fatal(err)
 			}

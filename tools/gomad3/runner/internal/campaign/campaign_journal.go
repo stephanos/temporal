@@ -13,8 +13,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
 	"go.temporal.io/server/tools/gomad3/record"
-	choiceengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/choice"
-	simulationengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation"
+	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
 )
 
 type CampaignConfig struct {
@@ -43,10 +42,10 @@ type CampaignSummary struct {
 	RetainedSuccessBytes                      uint64
 	StopReason                                string
 	FailureSignatures                         []record.SHA256
-	ChoiceExploration                         *choiceengine.Summary
+	ChoiceExploration                         *exploration.ChoiceSummary
 	ChoiceExplorationImplementationSHA256     record.SHA256
 	ChoiceExplorationChainSHA256              record.SHA256
-	SimulationExploration                     *simulationengine.Summary
+	SimulationExploration                     *exploration.SimulationSummary
 	SimulationExplorationImplementationSHA256 record.SHA256
 	SimulationExplorationChainSHA256          record.SHA256
 	RecoveryExecutions                        uint64
@@ -119,35 +118,35 @@ type ExecutionJournal struct {
 }
 
 type CampaignRecord struct {
-	Guidance                                  *GuidancePlan              `json:"guidance,omitempty"`
-	SchemaVersion                             uint32                     `json:"schema_version"`
-	Schema                                    string                     `json:"schema"`
-	CampaignID                                string                     `json:"campaign_id"`
-	PlanSHA256                                record.SHA256              `json:"plan_sha256,omitempty"`
-	Shard                                     *CampaignShard             `json:"shard,omitempty"`
-	Strategy                                  string                     `json:"strategy"`
-	Selection                                 string                     `json:"selection"`
-	SelectionCount                            record.Uint64String        `json:"selection_count"`
-	Attempted                                 record.Uint64String        `json:"attempted"`
-	Succeeded                                 record.Uint64String        `json:"succeeded"`
-	Failures                                  record.Uint64String        `json:"failures"`
-	ReplayDivergences                         record.Uint64String        `json:"replay_divergences,omitempty"`
-	Watchdogs                                 record.Uint64String        `json:"watchdogs"`
-	Cancelled                                 record.Uint64String        `json:"cancelled"`
-	DistinctFailures                          record.Uint64String        `json:"distinct_failures"`
-	RetainedSuccesses                         record.Uint64String        `json:"retained_successes,omitempty"`
-	RetainedSuccessBytes                      record.Uint64String        `json:"retained_success_bytes,omitempty"`
-	StopReason                                string                     `json:"stop_reason"`
-	Journal                                   *ExecutionJournalReference `json:"journal,omitempty"`
-	Artifacts                                 *ArtifactCapacityPlan      `json:"artifacts,omitempty"`
-	FailureSignatures                         []record.SHA256            `json:"failure_signatures"`
-	ChoiceExploration                         *choiceengine.Summary      `json:"choice_exploration,omitempty"`
-	ChoiceExplorationImplementationSHA256     record.SHA256              `json:"choice_exploration_implementation_sha256,omitempty"`
-	ChoiceExplorationChainSHA256              record.SHA256              `json:"choice_exploration_chain_sha256,omitempty"`
-	SimulationExploration                     *simulationengine.Summary  `json:"simulation_exploration,omitempty"`
-	SimulationExplorationImplementationSHA256 record.SHA256              `json:"simulation_exploration_implementation_sha256,omitempty"`
-	SimulationExplorationChainSHA256          record.SHA256              `json:"simulation_exploration_chain_sha256,omitempty"`
-	RecoveryExecutions                        record.Uint64String        `json:"recovery_executions,omitempty"`
+	Guidance                                  *GuidancePlan                  `json:"guidance,omitempty"`
+	SchemaVersion                             uint32                         `json:"schema_version"`
+	Schema                                    string                         `json:"schema"`
+	CampaignID                                string                         `json:"campaign_id"`
+	PlanSHA256                                record.SHA256                  `json:"plan_sha256,omitempty"`
+	Shard                                     *CampaignShard                 `json:"shard,omitempty"`
+	Strategy                                  string                         `json:"strategy"`
+	Selection                                 string                         `json:"selection"`
+	SelectionCount                            record.Uint64String            `json:"selection_count"`
+	Attempted                                 record.Uint64String            `json:"attempted"`
+	Succeeded                                 record.Uint64String            `json:"succeeded"`
+	Failures                                  record.Uint64String            `json:"failures"`
+	ReplayDivergences                         record.Uint64String            `json:"replay_divergences,omitempty"`
+	Watchdogs                                 record.Uint64String            `json:"watchdogs"`
+	Cancelled                                 record.Uint64String            `json:"cancelled"`
+	DistinctFailures                          record.Uint64String            `json:"distinct_failures"`
+	RetainedSuccesses                         record.Uint64String            `json:"retained_successes,omitempty"`
+	RetainedSuccessBytes                      record.Uint64String            `json:"retained_success_bytes,omitempty"`
+	StopReason                                string                         `json:"stop_reason"`
+	Journal                                   *ExecutionJournalReference     `json:"journal,omitempty"`
+	Artifacts                                 *ArtifactCapacityPlan          `json:"artifacts,omitempty"`
+	FailureSignatures                         []record.SHA256                `json:"failure_signatures"`
+	ChoiceExploration                         *exploration.ChoiceSummary     `json:"choice_exploration,omitempty"`
+	ChoiceExplorationImplementationSHA256     record.SHA256                  `json:"choice_exploration_implementation_sha256,omitempty"`
+	ChoiceExplorationChainSHA256              record.SHA256                  `json:"choice_exploration_chain_sha256,omitempty"`
+	SimulationExploration                     *exploration.SimulationSummary `json:"simulation_exploration,omitempty"`
+	SimulationExplorationImplementationSHA256 record.SHA256                  `json:"simulation_exploration_implementation_sha256,omitempty"`
+	SimulationExplorationChainSHA256          record.SHA256                  `json:"simulation_exploration_chain_sha256,omitempty"`
+	RecoveryExecutions                        record.Uint64String            `json:"recovery_executions,omitempty"`
 }
 
 func NewCampaignJournal(ctx context.Context, config CampaignConfig) (_ *CampaignJournal, retErr error) {

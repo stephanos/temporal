@@ -10,7 +10,7 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
-	choiceengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/choice"
+	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
 )
 
 // The values below and testdata/pre-start-ordinal-journal were produced by the
@@ -28,7 +28,7 @@ const (
 
 func TestDefaultChoiceStartKeepsRetainedIdentityAndPlanBytes(t *testing.T) {
 	state := testExplorationState(t)
-	identity, err := choiceengine.StateSHA256(state)
+	identity, err := exploration.ChoiceStateSHA256(state)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -65,7 +65,7 @@ func TestResumeExplorationJournalWrittenBeforeTheStartOrdinal(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	identity, err := choiceengine.StateSHA256(state)
+	identity, err := exploration.ChoiceStateSHA256(state)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -77,7 +77,7 @@ func TestResumeExplorationJournalWrittenBeforeTheStartOrdinal(t *testing.T) {
 func TestResumeExplorationJournalRequiresItsStartOrdinal(t *testing.T) {
 	config := testExplorationState(t).Config
 	config.StartOrdinal = 1
-	state, err := choiceengine.New(config)
+	state, err := exploration.NewChoice(config)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -134,7 +134,7 @@ func testChoiceExplorationCampaignPlan() CampaignPlan {
 	plan.MaxExecutions = 8
 	plan.MaxChoiceDepth = 4
 	plan.MaxExplorationBytes = 1 << 20
-	plan.ChoiceExplorationImplementationSHA256 = choiceengine.ImplementationSHA256()
+	plan.ChoiceExplorationImplementationSHA256 = exploration.ChoiceImplementationSHA256()
 	return plan
 }
 

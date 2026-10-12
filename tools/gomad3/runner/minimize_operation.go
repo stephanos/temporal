@@ -14,8 +14,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/record"
-	simulationengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation"
-	simulationrecord "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulationrecord"
+	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
 	"go.temporal.io/server/tools/gomad3/runner/internal/minimizer"
 	"go.temporal.io/server/tools/gomad3/target"
 	"go.temporal.io/server/tools/gomad3/world"
@@ -340,7 +339,7 @@ func openMinimizationSession(ctx context.Context, config MinimizeSpec, dependenc
 		if readErr != nil {
 			return nil, fmt.Errorf("read minimization simulation plan: %w", readErr)
 		}
-		explorationConfig, candidate, candidateErr := simulationrecord.CandidateForArtifact(*manifest.SimulationProfile, plan, session.exactChoiceTape)
+		explorationConfig, candidate, candidateErr := exploration.CandidateForArtifact(*manifest.SimulationProfile, plan, session.exactChoiceTape)
 		if candidateErr != nil {
 			return nil, fmt.Errorf("reconstruct minimization candidate: %w", candidateErr)
 		}
@@ -452,11 +451,11 @@ func (session *minimizationSession) prepareWorkspace(ctx context.Context) error 
 	return nil
 }
 
-func (session *minimizationSession) evaluate(ctx context.Context, explorationConfig simulationengine.Config, candidate simulationengine.Candidate) (minimizationTrial, error) {
+func (session *minimizationSession) evaluate(ctx context.Context, explorationConfig exploration.SimulationConfig, candidate exploration.SimulationCandidate) (minimizationTrial, error) {
 	if session.prepared.Backend != nil {
 		return session.evaluateBackendChoice(ctx, candidate)
 	}
-	executionForCandidate, err := simulationrecord.ExecutionForCandidate(explorationConfig, candidate, session.choiceIdentity)
+	executionForCandidate, err := exploration.ExecutionForCandidate(explorationConfig, candidate, session.choiceIdentity)
 	if err != nil {
 		return minimizationTrial{}, err
 	}
@@ -512,14 +511,14 @@ func (session *minimizationSession) evaluate(ctx context.Context, explorationCon
 	}
 	completion.result.ChoiceTrace.TapeSHA256 = tape.SHA256
 	completion.result.ChoiceTrace.Decisions = uint64(len(tape.Decisions))
-	runtimeDecisions, err := simulationrecord.RuntimeDecisions(tape)
+	runtimeDecisions, err := exploration.RuntimeDecisions(tape)
 	if err != nil {
 		return minimizationTrial{}, err
 	}
 	if len(observed.SimulationRecords) != 1 {
 		return minimizationTrial{}, fmt.Errorf("minimization simulation records = %d, want 1", len(observed.SimulationRecords))
 	}
-	simulationProfile, err := simulationrecord.ProjectArtifact(
+	simulationProfile, err := exploration.ProjectArtifact(
 		explorationConfig, candidate, executionForCandidate.SimulationPlan, observed.SimulationRecords[0], runtimeDecisions,
 		uint64(manifest.SimulationProfile.Record.Limit),
 	)

@@ -16,8 +16,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
-	simulationengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation"
-	simulationrecord "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulationrecord"
+	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
 )
 
 // simulationExplorationPlanVector is the retained exploration plan the Runner
@@ -25,13 +24,13 @@ import (
 // cannot share code with the Runner, checks the same file from the target
 // side, so a plan identity that only one of them computes fails a test.
 type simulationExplorationPlanVector struct {
-	ExecutionSHA256  record.SHA256             `json:"execution_sha256"`
-	ControllerSHA256 record.SHA256             `json:"controller_sha256"`
-	BaseSeed         uint64                    `json:"base_seed"`
-	Decision         simulationengine.Decision `json:"decision"`
-	Forced           uint32                    `json:"forced"`
-	RootPlan         string                    `json:"root_plan"`
-	ForcedPlan       string                    `json:"forced_plan"`
+	ExecutionSHA256  record.SHA256        `json:"execution_sha256"`
+	ControllerSHA256 record.SHA256        `json:"controller_sha256"`
+	BaseSeed         uint64               `json:"base_seed"`
+	Decision         exploration.Decision `json:"decision"`
+	Forced           uint32               `json:"forced"`
+	RootPlan         string               `json:"root_plan"`
+	ForcedPlan       string               `json:"forced_plan"`
 }
 
 func TestSimulationExplorationPlanMatchesRetainedVector(t *testing.T) {
@@ -45,19 +44,19 @@ func TestSimulationExplorationPlanMatchesRetainedVector(t *testing.T) {
 	if err := decoder.Decode(&vector); err != nil {
 		t.Fatal(err)
 	}
-	if vector.ControllerSHA256 != simulationengine.ImplementationSHA256() {
-		t.Fatalf("vector controller = %s, want this implementation %s", vector.ControllerSHA256, simulationengine.ImplementationSHA256())
+	if vector.ControllerSHA256 != exploration.SimulationImplementationSHA256() {
+		t.Fatalf("vector controller = %s, want this implementation %s", vector.ControllerSHA256, exploration.SimulationImplementationSHA256())
 	}
-	config := simulationengine.Config{
+	config := exploration.SimulationConfig{
 		ExecutionSHA256: vector.ExecutionSHA256, ControllerSHA256: vector.ControllerSHA256, BaseSeed: vector.BaseSeed,
 		Parallel: 1, MaxExecutions: 2, MaxForcedDecisions: 1, MaxExplorationBytes: 1 << 20, MaxResultBytes: 1 << 20, FailureBudget: 1,
-		Limits: simulationengine.DimensionLimits{Runtime: 1, Scenario: 1, Network: 1, Storage: 1, Fault: 1, Crash: 1},
+		Limits: exploration.DimensionLimits{Runtime: 1, Scenario: 1, Network: 1, Storage: 1, Fault: 1, Crash: 1},
 	}
-	root, err := simulationengine.CanonicalCandidate(config, nil, "")
+	root, err := exploration.CanonicalCandidate(config, nil, "")
 	if err != nil {
 		t.Fatal(err)
 	}
-	rootPlan, err := simulationrecord.PlanForCandidate(config, root)
+	rootPlan, err := exploration.PlanForCandidate(config, root)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -65,7 +64,7 @@ func TestSimulationExplorationPlanMatchesRetainedVector(t *testing.T) {
 		t.Errorf("root plan = %s, want %s", rootPlan, vector.RootPlan)
 	}
 
-	decision, err := simulationengine.CanonicalDecision(
+	decision, err := exploration.CanonicalDecision(
 		vector.Decision.Dimension, vector.Decision.Ordinal, vector.Decision.SiteSHA256, vector.Decision.Alternatives, vector.Decision.Selected,
 	)
 	if err != nil {
@@ -74,15 +73,15 @@ func TestSimulationExplorationPlanMatchesRetainedVector(t *testing.T) {
 	if !reflect.DeepEqual(decision, vector.Decision) {
 		t.Errorf("decision = %#v, want %#v", decision, vector.Decision)
 	}
-	forced, err := simulationengine.ForceDecision(decision, vector.Forced)
+	forced, err := exploration.ForceDecision(decision, vector.Forced)
 	if err != nil {
 		t.Fatal(err)
 	}
-	child, err := simulationengine.CanonicalCandidate(config, []simulationengine.ForcedDecision{forced}, root.SHA256)
+	child, err := exploration.CanonicalCandidate(config, []exploration.ForcedDecision{forced}, root.SHA256)
 	if err != nil {
 		t.Fatal(err)
 	}
-	forcedPlan, err := simulationrecord.PlanForCandidate(config, child)
+	forcedPlan, err := exploration.PlanForCandidate(config, child)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -183,7 +182,7 @@ func TestRunSimulationExplorationRetainsExactDeduplicatedSimulationFailure(t *te
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := simulationrecord.ValidateArtifact(*profile, plan, record); err != nil {
+	if err := exploration.ValidateArtifact(*profile, plan, record); err != nil {
 		t.Fatal(err)
 	}
 	batch, err := campaign.OpenCampaign(summary.CampaignPath)

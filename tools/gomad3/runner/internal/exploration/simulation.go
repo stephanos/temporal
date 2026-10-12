@@ -1,4 +1,4 @@
-package simulation
+package exploration
 
 import (
 	"bytes"
@@ -9,21 +9,20 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
-	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
 )
 
 const (
-	candidateDomain    = "gomad3-simulation-exploration-candidate/v1"
-	decisionDomain     = "gomad3-simulation-exploration-decision/v1"
-	forcedDomain       = "gomad3-simulation-exploration-forced-decision/v1"
-	stateDomain        = "gomad3-simulation-exploration-state/v1"
-	roundSegmentDomain = "gomad3-simulation-exploration-round-segment/v1"
-	RoundSegmentSchema = "gomad3.simulation-exploration-round/v2"
-	controllerIdentity = "deterministic-rounds/breadth-first-combined-rank-overrides/v2"
+	simulationCandidateDomain    = "gomad3-simulation-exploration-candidate/v1"
+	decisionDomain               = "gomad3-simulation-exploration-decision/v1"
+	forcedDomain                 = "gomad3-simulation-exploration-forced-decision/v1"
+	simulationStateDomain        = "gomad3-simulation-exploration-state/v1"
+	simulationRoundSegmentDomain = "gomad3-simulation-exploration-round-segment/v1"
+	SimulationRoundSegmentSchema = "gomad3.simulation-exploration-round/v2"
+	simulationControllerIdentity = "deterministic-rounds/breadth-first-combined-rank-overrides/v2"
 )
 
-func ImplementationSHA256() record.SHA256 {
-	return record.DomainHash("gomad3-simulation-exploration-controller/v1", []byte(controllerIdentity))
+func SimulationImplementationSHA256() record.SHA256 {
+	return record.DomainHash("gomad3-simulation-exploration-controller/v1", []byte(simulationControllerIdentity))
 }
 
 type Dimension string
@@ -37,15 +36,15 @@ const (
 	DimensionCrash    Dimension = "crash"
 )
 
-type StopReason string
+type SimulationStopReason string
 
 const (
-	StopExhausted           StopReason = "exploration_exhausted"
-	StopDepthComplete       StopReason = "simulation_depth_complete"
-	StopDimensionComplete   StopReason = "dimension_depth_complete"
-	StopMaxExecutions       StopReason = "max_executions"
-	StopExplorationCapacity StopReason = "exploration_capacity"
-	StopFailureBudget       StopReason = "failure_budget"
+	SimulationStopExhausted           SimulationStopReason = "exploration_exhausted"
+	SimulationStopDepthComplete       SimulationStopReason = "simulation_depth_complete"
+	SimulationStopDimensionComplete   SimulationStopReason = "dimension_depth_complete"
+	SimulationStopMaxExecutions       SimulationStopReason = "max_executions"
+	SimulationStopExplorationCapacity SimulationStopReason = "exploration_capacity"
+	SimulationStopFailureBudget       SimulationStopReason = "failure_budget"
 )
 
 type DimensionLimits struct {
@@ -57,7 +56,7 @@ type DimensionLimits struct {
 	Crash    uint64 `json:"crash"`
 }
 
-type Config struct {
+type SimulationConfig struct {
 	ExecutionSHA256     record.SHA256   `json:"execution_sha256"`
 	ControllerSHA256    record.SHA256   `json:"controller_sha256"`
 	BaseSeed            uint64          `json:"base_seed"`
@@ -93,13 +92,13 @@ type ForcedDecision struct {
 	Identity             record.SHA256 `json:"identity"`
 }
 
-type Candidate struct {
+type SimulationCandidate struct {
 	SHA256       record.SHA256    `json:"sha256"`
 	ParentSHA256 record.SHA256    `json:"parent_sha256,omitempty"`
 	Overrides    []ForcedDecision `json:"overrides"`
 }
 
-type Result struct {
+type SimulationResult struct {
 	CandidateSHA256 record.SHA256 `json:"candidate_sha256"`
 	OutcomeSHA256   record.SHA256 `json:"outcome_sha256"`
 	Failed          bool          `json:"failed"`
@@ -108,59 +107,59 @@ type Result struct {
 	Decisions       []Decision    `json:"decisions"`
 }
 
-type State struct {
-	Config                  Config          `json:"config"`
-	Queue                   []Candidate     `json:"queue"`
-	Seen                    []record.SHA256 `json:"seen"`
-	Outcomes                []record.SHA256 `json:"outcomes"`
-	FailureSignatures       []record.SHA256 `json:"failure_signatures"`
-	LogicalExecutions       uint64          `json:"logical_executions"`
-	CommittedRounds         uint64          `json:"committed_rounds"`
-	PendingBytes            uint64          `json:"pending_bytes"`
-	DeepestOverride         uint64          `json:"deepest_override"`
-	OmittedByExecutionBound uint64          `json:"omitted_by_execution_bound"`
-	OmittedByDepth          uint64          `json:"omitted_by_depth"`
-	OmittedByDimension      uint64          `json:"omitted_by_dimension"`
-	OmittedByCapacity       uint64          `json:"omitted_by_capacity"`
-	StopReason              StopReason      `json:"stop_reason,omitempty"`
+type SimulationState struct {
+	Config                  SimulationConfig      `json:"config"`
+	Queue                   []SimulationCandidate `json:"queue"`
+	Seen                    []record.SHA256       `json:"seen"`
+	Outcomes                []record.SHA256       `json:"outcomes"`
+	FailureSignatures       []record.SHA256       `json:"failure_signatures"`
+	LogicalExecutions       uint64                `json:"logical_executions"`
+	CommittedRounds         uint64                `json:"committed_rounds"`
+	PendingBytes            uint64                `json:"pending_bytes"`
+	DeepestOverride         uint64                `json:"deepest_override"`
+	OmittedByExecutionBound uint64                `json:"omitted_by_execution_bound"`
+	OmittedByDepth          uint64                `json:"omitted_by_depth"`
+	OmittedByDimension      uint64                `json:"omitted_by_dimension"`
+	OmittedByCapacity       uint64                `json:"omitted_by_capacity"`
+	StopReason              SimulationStopReason  `json:"stop_reason,omitempty"`
 }
 
-type Round struct {
-	Index      uint64      `json:"index"`
-	Candidates []Candidate `json:"candidates"`
+type SimulationRound struct {
+	Index      uint64                `json:"index"`
+	Candidates []SimulationCandidate `json:"candidates"`
 }
 
-type RoundSegment struct {
-	Schema       string        `json:"schema"`
-	Index        uint64        `json:"index"`
-	BeforeSHA256 record.SHA256 `json:"before_sha256"`
-	AfterSHA256  record.SHA256 `json:"after_sha256"`
-	Results      []Result      `json:"results"`
-	SHA256       record.SHA256 `json:"sha256,omitempty"`
+type SimulationRoundSegment struct {
+	Schema       string             `json:"schema"`
+	Index        uint64             `json:"index"`
+	BeforeSHA256 record.SHA256      `json:"before_sha256"`
+	AfterSHA256  record.SHA256      `json:"after_sha256"`
+	Results      []SimulationResult `json:"results"`
+	SHA256       record.SHA256      `json:"sha256,omitempty"`
 }
 
-type Summary struct {
-	Parallel                int             `json:"parallel"`
-	MaxExecutions           uint64          `json:"max_executions"`
-	MaxForcedDecisions      uint64          `json:"max_forced_decisions"`
-	MaxExplorationBytes     uint64          `json:"max_exploration_bytes"`
-	MaxResultBytes          uint64          `json:"max_result_bytes"`
-	FailureBudget           uint64          `json:"failure_budget"`
-	Limits                  DimensionLimits `json:"dimension_limits"`
-	LogicalExecutions       uint64          `json:"logical_executions"`
-	CommittedRounds         uint64          `json:"committed_rounds"`
-	Pending                 uint64          `json:"pending"`
-	PendingBytes            uint64          `json:"pending_bytes"`
-	SeenCandidates          uint64          `json:"seen_candidates"`
-	DeduplicatedOutcomes    uint64          `json:"deduplicated_outcomes"`
-	DistinctFailures        uint64          `json:"distinct_failures"`
-	DeepestOverride         uint64          `json:"deepest_override"`
-	OmittedByExecutionBound uint64          `json:"omitted_by_execution_bound"`
-	OmittedByDepth          uint64          `json:"omitted_by_depth"`
-	OmittedByDimension      uint64          `json:"omitted_by_dimension"`
-	OmittedByCapacity       uint64          `json:"omitted_by_capacity"`
-	StopReason              StopReason      `json:"stop_reason,omitempty"`
-	BoundedComplete         bool            `json:"bounded_complete"`
+type SimulationSummary struct {
+	Parallel                int                  `json:"parallel"`
+	MaxExecutions           uint64               `json:"max_executions"`
+	MaxForcedDecisions      uint64               `json:"max_forced_decisions"`
+	MaxExplorationBytes     uint64               `json:"max_exploration_bytes"`
+	MaxResultBytes          uint64               `json:"max_result_bytes"`
+	FailureBudget           uint64               `json:"failure_budget"`
+	Limits                  DimensionLimits      `json:"dimension_limits"`
+	LogicalExecutions       uint64               `json:"logical_executions"`
+	CommittedRounds         uint64               `json:"committed_rounds"`
+	Pending                 uint64               `json:"pending"`
+	PendingBytes            uint64               `json:"pending_bytes"`
+	SeenCandidates          uint64               `json:"seen_candidates"`
+	DeduplicatedOutcomes    uint64               `json:"deduplicated_outcomes"`
+	DistinctFailures        uint64               `json:"distinct_failures"`
+	DeepestOverride         uint64               `json:"deepest_override"`
+	OmittedByExecutionBound uint64               `json:"omitted_by_execution_bound"`
+	OmittedByDepth          uint64               `json:"omitted_by_depth"`
+	OmittedByDimension      uint64               `json:"omitted_by_dimension"`
+	OmittedByCapacity       uint64               `json:"omitted_by_capacity"`
+	StopReason              SimulationStopReason `json:"stop_reason,omitempty"`
+	BoundedComplete         bool                 `json:"bounded_complete"`
 }
 
 func CanonicalDecision(dimension Dimension, ordinal uint64, site record.SHA256, alternatives []record.SHA256, selected uint32) (Decision, error) {
@@ -191,34 +190,34 @@ func canonicalDecision(dimension Dimension, ordinal uint64, site record.SHA256, 
 	return decision, nil
 }
 
-func New(config Config) (State, error) {
+func NewSimulation(config SimulationConfig) (SimulationState, error) {
 	if err := validateConfig(config); err != nil {
-		return State{}, err
+		return SimulationState{}, err
 	}
-	root, err := newCandidate(config, nil, "")
+	root, err := simulationNewCandidate(config, nil, "")
 	if err != nil {
-		return State{}, err
+		return SimulationState{}, err
 	}
-	pendingBytes, err := queueBytes([]Candidate{root})
+	pendingBytes, err := simulationQueueBytes([]SimulationCandidate{root})
 	if err != nil {
-		return State{}, err
+		return SimulationState{}, err
 	}
 	if pendingBytes > config.MaxExplorationBytes {
-		return State{}, fmt.Errorf("simulation exploration root requires %d bytes, exceeding the %d-byte exploration bound", pendingBytes, config.MaxExplorationBytes)
+		return SimulationState{}, fmt.Errorf("simulation exploration root requires %d bytes, exceeding the %d-byte exploration bound", pendingBytes, config.MaxExplorationBytes)
 	}
-	return State{
-		Config: config, Queue: []Candidate{root}, Seen: []record.SHA256{root.SHA256},
+	return SimulationState{
+		Config: config, Queue: []SimulationCandidate{root}, Seen: []record.SHA256{root.SHA256},
 		Outcomes: []record.SHA256{}, FailureSignatures: []record.SHA256{}, PendingBytes: pendingBytes,
 	}, nil
 }
 
-func (state State) NextRound() (Round, bool) {
-	candidates, ok := exploration.NextRound(state.Queue, state.Config.Parallel, state.StopReason != "", cloneCandidate)
-	return Round{Index: state.CommittedRounds, Candidates: candidates}, ok
+func (state SimulationState) NextRound() (SimulationRound, bool) {
+	candidates, ok := NextRound(state.Queue, state.Config.Parallel, state.StopReason != "", simulationCloneCandidate)
+	return SimulationRound{Index: state.CommittedRounds, Candidates: candidates}, ok
 }
 
-func (state State) Summary() Summary {
-	return Summary{
+func (state SimulationState) Summary() SimulationSummary {
+	return SimulationSummary{
 		Parallel: state.Config.Parallel, MaxExecutions: state.Config.MaxExecutions, MaxForcedDecisions: state.Config.MaxForcedDecisions,
 		MaxExplorationBytes: state.Config.MaxExplorationBytes, MaxResultBytes: state.Config.MaxResultBytes,
 		FailureBudget: state.Config.FailureBudget, Limits: state.Config.Limits,
@@ -228,30 +227,30 @@ func (state State) Summary() Summary {
 		DeepestOverride: state.DeepestOverride, OmittedByExecutionBound: state.OmittedByExecutionBound,
 		OmittedByDepth: state.OmittedByDepth, OmittedByDimension: state.OmittedByDimension, OmittedByCapacity: state.OmittedByCapacity,
 		StopReason:      state.StopReason,
-		BoundedComplete: state.StopReason == StopExhausted || state.StopReason == StopDepthComplete || state.StopReason == StopDimensionComplete,
+		BoundedComplete: state.StopReason == SimulationStopExhausted || state.StopReason == SimulationStopDepthComplete || state.StopReason == SimulationStopDimensionComplete,
 	}
 }
 
-func StateSHA256(state State) (record.SHA256, error) {
-	return stateIdentity(state)
+func SimulationStateSHA256(state SimulationState) (record.SHA256, error) {
+	return simulationStateIdentity(state)
 }
 
-func ValidateCandidate(config Config, candidate Candidate) error {
-	expected, err := newCandidate(config, candidate.Overrides, candidate.ParentSHA256)
+func ValidateCandidate(config SimulationConfig, candidate SimulationCandidate) error {
+	expected, err := simulationNewCandidate(config, candidate.Overrides, candidate.ParentSHA256)
 	if err != nil {
 		return err
 	}
-	if !sameCandidate(candidate, expected) {
+	if !simulationSameCandidate(candidate, expected) {
 		return errors.New("simulation exploration candidate identity does not match its contents")
 	}
 	return nil
 }
 
-func CanonicalCandidate(config Config, overrides []ForcedDecision, parent record.SHA256) (Candidate, error) {
+func CanonicalCandidate(config SimulationConfig, overrides []ForcedDecision, parent record.SHA256) (SimulationCandidate, error) {
 	if err := validateConfig(config); err != nil {
-		return Candidate{}, err
+		return SimulationCandidate{}, err
 	}
-	return newCandidate(config, overrides, parent)
+	return simulationNewCandidate(config, overrides, parent)
 }
 
 func CanonicalForcedDecision(forced ForcedDecision) (ForcedDecision, error) {
@@ -268,167 +267,167 @@ func ForceDecision(decision Decision, selected uint32) (ForcedDecision, error) {
 	return forcedDecisionFor(decision, selected)
 }
 
-func CommitRound(state State, round Round, results []Result) (State, RoundSegment, error) {
-	before, err := stateIdentity(state)
+func CommitSimulationRound(state SimulationState, round SimulationRound, results []SimulationResult) (SimulationState, SimulationRoundSegment, error) {
+	before, err := simulationStateIdentity(state)
 	if err != nil {
-		return State{}, RoundSegment{}, err
+		return SimulationState{}, SimulationRoundSegment{}, err
 	}
 	expected, ok := state.NextRound()
-	if !ok || round.Index != expected.Index || !sameCandidates(round.Candidates, expected.Candidates) {
-		return State{}, RoundSegment{}, errors.New("simulation exploration round does not match the current state")
+	if !ok || round.Index != expected.Index || !simulationSameCandidates(round.Candidates, expected.Candidates) {
+		return SimulationState{}, SimulationRoundSegment{}, errors.New("simulation exploration round does not match the current state")
 	}
 	if len(results) != len(round.Candidates) {
-		return State{}, RoundSegment{}, errors.New("simulation exploration result count does not match its round")
+		return SimulationState{}, SimulationRoundSegment{}, errors.New("simulation exploration result count does not match its round")
 	}
-	next := cloneState(state)
+	next := simulationCloneState(state)
 	next.Queue = next.Queue[len(round.Candidates):]
 	next.LogicalExecutions += uint64(len(results))
 	next.CommittedRounds++
-	canonicalResults := make([]Result, len(results))
-	children := make(map[record.SHA256]Candidate)
+	canonicalResults := make([]SimulationResult, len(results))
+	children := make(map[record.SHA256]SimulationCandidate)
 	for index, result := range results {
 		candidate := round.Candidates[index]
 		canonical, canonicalErr := canonicalResult(result, candidate, next.Config)
 		if canonicalErr != nil {
 			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
-			return State{}, RoundSegment{}, fmt.Errorf("simulation exploration result %d: %w", index, canonicalErr)
+			return SimulationState{}, SimulationRoundSegment{}, fmt.Errorf("simulation exploration result %d: %w", index, canonicalErr)
 		}
 		canonicalResults[index] = canonical
-		next.Outcomes = insertIdentity(next.Outcomes, canonical.OutcomeSHA256)
+		next.Outcomes = simulationInsertIdentity(next.Outcomes, canonical.OutcomeSHA256)
 		if canonical.Failed {
-			next.FailureSignatures = insertIdentity(next.FailureSignatures, canonical.FailureSHA256)
+			next.FailureSignatures = simulationInsertIdentity(next.FailureSignatures, canonical.FailureSHA256)
 			if uint64(len(next.FailureSignatures)) >= next.Config.FailureBudget {
-				next.StopReason = StopFailureBudget
+				next.StopReason = SimulationStopFailureBudget
 			}
 		}
 		if next.StopReason == "" && !canonical.Diverged {
-			if err := expandCandidate(&next, candidate, canonical.Decisions, children); err != nil {
-				return State{}, RoundSegment{}, err
+			if err := simulationExpandCandidate(&next, candidate, canonical.Decisions, children); err != nil {
+				return SimulationState{}, SimulationRoundSegment{}, err
 			}
 		}
 	}
-	admitted := make([]Candidate, 0, len(children))
+	admitted := make([]SimulationCandidate, 0, len(children))
 	for _, candidate := range children {
 		admitted = append(admitted, candidate)
 	}
-	sortCandidates(admitted)
-	if err := admitChildren(&next, admitted); err != nil {
-		return State{}, RoundSegment{}, err
+	simulationSortCandidates(admitted)
+	if err := simulationAdmitChildren(&next, admitted); err != nil {
+		return SimulationState{}, SimulationRoundSegment{}, err
 	}
 	if next.StopReason == "" && len(next.Queue) == 0 {
 		switch {
 		case next.OmittedByExecutionBound != 0 || next.LogicalExecutions >= next.Config.MaxExecutions:
-			next.StopReason = StopMaxExecutions
+			next.StopReason = SimulationStopMaxExecutions
 		case next.OmittedByDepth != 0:
-			next.StopReason = StopDepthComplete
+			next.StopReason = SimulationStopDepthComplete
 		case next.OmittedByDimension != 0:
-			next.StopReason = StopDimensionComplete
+			next.StopReason = SimulationStopDimensionComplete
 		default:
-			next.StopReason = StopExhausted
+			next.StopReason = SimulationStopExhausted
 		}
 	}
-	next.PendingBytes, err = queueBytes(next.Queue)
+	next.PendingBytes, err = simulationQueueBytes(next.Queue)
 	if err != nil {
-		return State{}, RoundSegment{}, err
+		return SimulationState{}, SimulationRoundSegment{}, err
 	}
-	after, err := stateIdentity(next)
+	after, err := simulationStateIdentity(next)
 	if err != nil {
-		return State{}, RoundSegment{}, err
+		return SimulationState{}, SimulationRoundSegment{}, err
 	}
-	segment := RoundSegment{
-		Schema: RoundSegmentSchema, Index: round.Index, BeforeSHA256: before, AfterSHA256: after, Results: canonicalResults,
+	segment := SimulationRoundSegment{
+		Schema: SimulationRoundSegmentSchema, Index: round.Index, BeforeSHA256: before, AfterSHA256: after, Results: canonicalResults,
 	}
-	segment.SHA256, err = segmentIdentity(segment)
+	segment.SHA256, err = simulationSegmentIdentity(segment)
 	if err != nil {
-		return State{}, RoundSegment{}, err
+		return SimulationState{}, SimulationRoundSegment{}, err
 	}
 	return next, segment, nil
 }
 
-func ValidateResult(config Config, candidate Candidate, result Result) error {
+func ValidateResult(config SimulationConfig, candidate SimulationCandidate, result SimulationResult) error {
 	_, err := canonicalResult(result, candidate, config)
 	return err
 }
 
-func ReplaySegment(state State, segment RoundSegment) (State, error) {
-	identity, err := segmentIdentity(segment)
+func SimulationReplaySegment(state SimulationState, segment SimulationRoundSegment) (SimulationState, error) {
+	identity, err := simulationSegmentIdentity(segment)
 	if err != nil || identity != segment.SHA256 {
-		return State{}, errors.Join(errors.New("simulation exploration segment identity does not match"), err)
+		return SimulationState{}, errors.Join(errors.New("simulation exploration segment identity does not match"), err)
 	}
-	before, err := stateIdentity(state)
-	if err != nil || before != segment.BeforeSHA256 || segment.Schema != RoundSegmentSchema {
-		return State{}, errors.Join(errors.New("simulation exploration segment does not link to its state"), err)
+	before, err := simulationStateIdentity(state)
+	if err != nil || before != segment.BeforeSHA256 || segment.Schema != SimulationRoundSegmentSchema {
+		return SimulationState{}, errors.Join(errors.New("simulation exploration segment does not link to its state"), err)
 	}
 	round, ok := state.NextRound()
 	if !ok || round.Index != segment.Index || len(round.Candidates) != len(segment.Results) {
-		return State{}, errors.New("simulation exploration segment round is unavailable")
+		return SimulationState{}, errors.New("simulation exploration segment round is unavailable")
 	}
 	results := cloneResults(segment.Results)
-	next, regenerated, err := CommitRound(state, round, results)
+	next, regenerated, err := CommitSimulationRound(state, round, results)
 	if err != nil {
-		return State{}, err
+		return SimulationState{}, err
 	}
 	left, err := canonicaljson.CanonicalJSON(segment)
 	if err != nil {
-		return State{}, err
+		return SimulationState{}, err
 	}
 	right, err := canonicaljson.CanonicalJSON(regenerated)
 	if err != nil {
-		return State{}, err
+		return SimulationState{}, err
 	}
-	after, err := stateIdentity(next)
+	after, err := simulationStateIdentity(next)
 	if err != nil || !bytes.Equal(left, right) || after != segment.AfterSHA256 {
-		return State{}, errors.Join(errors.New("simulation exploration segment replay changed its canonical result"), err)
+		return SimulationState{}, errors.Join(errors.New("simulation exploration segment replay changed its canonical result"), err)
 	}
 	return next, nil
 }
 
-func canonicalResult(result Result, candidate Candidate, config Config) (Result, error) {
+func canonicalResult(result SimulationResult, candidate SimulationCandidate, config SimulationConfig) (SimulationResult, error) {
 	if result.CandidateSHA256 != candidate.SHA256 {
-		return Result{}, errors.New("candidate identity does not match")
+		return SimulationResult{}, errors.New("candidate identity does not match")
 	}
 	if _, err := result.OutcomeSHA256.Bytes(); err != nil {
 		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
-		return Result{}, fmt.Errorf("outcome identity: %w", err)
+		return SimulationResult{}, fmt.Errorf("outcome identity: %w", err)
 	}
 	if result.Failed {
 		if _, err := result.FailureSHA256.Bytes(); err != nil {
 			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
-			return Result{}, fmt.Errorf("failure identity: %w", err)
+			return SimulationResult{}, fmt.Errorf("failure identity: %w", err)
 		}
 	} else if result.FailureSHA256 != "" {
-		return Result{}, errors.New("successful result contains a failure identity")
+		return SimulationResult{}, errors.New("successful result contains a failure identity")
 	}
 	result.Decisions = cloneDecisions(result.Decisions)
 	sortDecisions(result.Decisions)
 	for index, decision := range result.Decisions {
 		if err := validateDecision(decision); err != nil {
 			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
-			return Result{}, fmt.Errorf("decision %d: %w", index, err)
+			return SimulationResult{}, fmt.Errorf("decision %d: %w", index, err)
 		}
 		if index != 0 && sameDecisionKey(result.Decisions[index-1], decision) {
-			return Result{}, errors.New("decisions contain a duplicate dimension ordinal")
+			return SimulationResult{}, errors.New("decisions contain a duplicate dimension ordinal")
 		}
 	}
 	if !result.Diverged {
 		for _, override := range candidate.Overrides {
 			index, found := findDecision(result.Decisions, override.Dimension, override.Ordinal)
 			if !found || !forcedDecisionMatches(override, result.Decisions[index]) {
-				return Result{}, errors.New("result does not prove a forced decision")
+				return SimulationResult{}, errors.New("result does not prove a forced decision")
 			}
 		}
 	}
 	encoded, err := canonicaljson.CanonicalJSON(result)
 	if err != nil {
-		return Result{}, err
+		return SimulationResult{}, err
 	}
 	if uint64(len(encoded)) > config.MaxResultBytes {
-		return Result{}, fmt.Errorf("result requires %d bytes, exceeding the %d-byte result bound", len(encoded), config.MaxResultBytes)
+		return SimulationResult{}, fmt.Errorf("result requires %d bytes, exceeding the %d-byte result bound", len(encoded), config.MaxResultBytes)
 	}
 	return result, nil
 }
 
-func expandCandidate(state *State, parent Candidate, decisions []Decision, children map[record.SHA256]Candidate) error {
+func simulationExpandCandidate(state *SimulationState, parent SimulationCandidate, decisions []Decision, children map[record.SHA256]SimulationCandidate) error {
 	for _, decision := range decisions {
 		if _, found := findForcedDecision(parent.Overrides, decision.Dimension, decision.Ordinal); found {
 			continue
@@ -452,11 +451,11 @@ func expandCandidate(state *State, parent Candidate, decisions []Decision, child
 			}
 			overrides := append(cloneForcedDecisions(parent.Overrides), override)
 			sortForcedDecisions(overrides)
-			child, err := newCandidate(state.Config, overrides, parent.SHA256)
+			child, err := simulationNewCandidate(state.Config, overrides, parent.SHA256)
 			if err != nil {
 				return err
 			}
-			if containsIdentity(state.Seen, child.SHA256) {
+			if simulationContainsIdentity(state.Seen, child.SHA256) {
 				continue
 			}
 			if existing, found := children[child.SHA256]; found {
@@ -474,8 +473,8 @@ func expandCandidate(state *State, parent Candidate, decisions []Decision, child
 	return nil
 }
 
-func admitChildren(state *State, children []Candidate) error {
-	pendingBytes, err := queueBytes(state.Queue)
+func simulationAdmitChildren(state *SimulationState, children []SimulationCandidate) error {
+	pendingBytes, err := simulationQueueBytes(state.Queue)
 	if err != nil {
 		return err
 	}
@@ -484,7 +483,7 @@ func admitChildren(state *State, children []Candidate) error {
 			state.OmittedByExecutionBound += uint64(len(children) - index)
 			break
 		}
-		entryBytes, err := candidateBytes(candidate)
+		entryBytes, err := simulationCandidateBytes(candidate)
 		if err != nil {
 			return err
 		}
@@ -494,30 +493,30 @@ func admitChildren(state *State, children []Candidate) error {
 		if pendingBytes+entryBytes > state.Config.MaxExplorationBytes {
 			state.OmittedByCapacity += uint64(len(children) - index)
 			if state.StopReason == "" {
-				state.StopReason = StopExplorationCapacity
+				state.StopReason = SimulationStopExplorationCapacity
 			}
 			break
 		}
 		pendingBytes += entryBytes
-		state.Queue = append(state.Queue, cloneCandidate(candidate))
-		state.Seen = insertIdentity(state.Seen, candidate.SHA256)
+		state.Queue = append(state.Queue, simulationCloneCandidate(candidate))
+		state.Seen = simulationInsertIdentity(state.Seen, candidate.SHA256)
 		state.DeepestOverride = max(state.DeepestOverride, uint64(len(candidate.Overrides)))
 	}
-	sortCandidates(state.Queue)
+	simulationSortCandidates(state.Queue)
 	state.PendingBytes = pendingBytes
 	return nil
 }
 
-func newCandidate(config Config, overrides []ForcedDecision, parent record.SHA256) (Candidate, error) {
+func simulationNewCandidate(config SimulationConfig, overrides []ForcedDecision, parent record.SHA256) (SimulationCandidate, error) {
 	overrides = cloneForcedDecisions(overrides)
 	sortForcedDecisions(overrides)
 	for index, override := range overrides {
 		if err := validateForcedDecision(override); err != nil {
 			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
-			return Candidate{}, fmt.Errorf("forced decision %d: %w", index, err)
+			return SimulationCandidate{}, fmt.Errorf("forced decision %d: %w", index, err)
 		}
 		if index != 0 && sameForcedKey(overrides[index-1], override) {
-			return Candidate{}, errors.New("candidate contains duplicate forced decisions")
+			return SimulationCandidate{}, errors.New("candidate contains duplicate forced decisions")
 		}
 	}
 	projection := struct {
@@ -531,15 +530,15 @@ func newCandidate(config Config, overrides []ForcedDecision, parent record.SHA25
 	}
 	encoded, err := canonicaljson.CanonicalJSON(projection)
 	if err != nil {
-		return Candidate{}, err
+		return SimulationCandidate{}, err
 	}
-	candidate := Candidate{
-		SHA256: record.DomainHash(candidateDomain, encoded), ParentSHA256: parent, Overrides: overrides,
+	candidate := SimulationCandidate{
+		SHA256: record.DomainHash(simulationCandidateDomain, encoded), ParentSHA256: parent, Overrides: overrides,
 	}
 	if parent != "" {
 		if _, err := parent.Bytes(); err != nil {
 			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
-			return Candidate{}, fmt.Errorf("candidate parent identity: %w", err)
+			return SimulationCandidate{}, fmt.Errorf("candidate parent identity: %w", err)
 		}
 	}
 	return candidate, nil
@@ -568,7 +567,7 @@ func forcedDecisionFor(decision Decision, selected uint32) (ForcedDecision, erro
 	return forced, validateForcedDecision(forced)
 }
 
-func validateConfig(config Config) error {
+func validateConfig(config SimulationConfig) error {
 	if config.Parallel <= 0 || config.MaxExecutions == 0 || config.MaxExplorationBytes == 0 || config.MaxResultBytes == 0 || config.FailureBudget == 0 {
 		return errors.New("simulation exploration requires positive parallel, execution, exploration, result, and failure bounds")
 	}
@@ -584,7 +583,7 @@ func validateConfig(config Config) error {
 		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return fmt.Errorf("simulation exploration execution identity: %w", err)
 	}
-	if config.ControllerSHA256 != ImplementationSHA256() {
+	if config.ControllerSHA256 != SimulationImplementationSHA256() {
 		return errors.New("simulation exploration controller identity does not match this implementation")
 	}
 	return nil
@@ -771,7 +770,7 @@ func sortForcedDecisions(decisions []ForcedDecision) {
 	})
 }
 
-func sortCandidates(candidates []Candidate) {
+func simulationSortCandidates(candidates []SimulationCandidate) {
 	sort.Slice(candidates, func(left, right int) bool {
 		if len(candidates[left].Overrides) != len(candidates[right].Overrides) {
 			return len(candidates[left].Overrides) < len(candidates[right].Overrides)
@@ -806,11 +805,11 @@ func sameForcedKey(left, right ForcedDecision) bool {
 	return left.Dimension == right.Dimension && left.Ordinal == right.Ordinal
 }
 
-func sameCandidates(left, right []Candidate) bool {
-	return slices.EqualFunc(left, right, sameCandidate)
+func simulationSameCandidates(left, right []SimulationCandidate) bool {
+	return slices.EqualFunc(left, right, simulationSameCandidate)
 }
 
-func sameCandidate(left, right Candidate) bool {
+func simulationSameCandidate(left, right SimulationCandidate) bool {
 	return left.SHA256 == right.SHA256 && left.ParentSHA256 == right.ParentSHA256 && slices.EqualFunc(left.Overrides, right.Overrides, sameForcedDecision)
 }
 
@@ -821,26 +820,26 @@ func sameForcedDecision(left, right ForcedDecision) bool {
 		bytes.Equal(left.Control, right.Control)
 }
 
-func stateIdentity(state State) (record.SHA256, error) {
-	cloned := cloneState(state)
+func simulationStateIdentity(state SimulationState) (record.SHA256, error) {
+	cloned := simulationCloneState(state)
 	encoded, err := canonicaljson.CanonicalJSON(cloned)
 	if err != nil {
 		return "", err
 	}
-	return record.DomainHash(stateDomain, encoded), nil
+	return record.DomainHash(simulationStateDomain, encoded), nil
 }
 
-func segmentIdentity(segment RoundSegment) (record.SHA256, error) {
+func simulationSegmentIdentity(segment SimulationRoundSegment) (record.SHA256, error) {
 	segment.SHA256 = ""
 	segment.Results = cloneResults(segment.Results)
 	encoded, err := canonicaljson.CanonicalJSON(segment)
 	if err != nil {
 		return "", err
 	}
-	return record.DomainHash(roundSegmentDomain, encoded), nil
+	return record.DomainHash(simulationRoundSegmentDomain, encoded), nil
 }
 
-func candidateBytes(candidate Candidate) (uint64, error) {
+func simulationCandidateBytes(candidate SimulationCandidate) (uint64, error) {
 	encoded, err := canonicaljson.CanonicalJSON(candidate)
 	if err != nil {
 		return 0, err
@@ -848,19 +847,19 @@ func candidateBytes(candidate Candidate) (uint64, error) {
 	return uint64(len(encoded)), nil
 }
 
-func queueBytes(queue []Candidate) (uint64, error) {
-	return exploration.SumBytes(queue, candidateBytes)
+func simulationQueueBytes(queue []SimulationCandidate) (uint64, error) {
+	return SumBytes(queue, simulationCandidateBytes)
 }
 
-func insertIdentity(values []record.SHA256, value record.SHA256) []record.SHA256 {
-	return exploration.InsertIdentity(values, value)
+func simulationInsertIdentity(values []record.SHA256, value record.SHA256) []record.SHA256 {
+	return InsertIdentity(values, value)
 }
 
-func containsIdentity(values []record.SHA256, value record.SHA256) bool {
-	return exploration.ContainsIdentity(values, value)
+func simulationContainsIdentity(values []record.SHA256, value record.SHA256) bool {
+	return ContainsIdentity(values, value)
 }
 
-func cloneState(state State) State {
+func simulationCloneState(state SimulationState) SimulationState {
 	state.Queue = cloneCandidates(state.Queue)
 	state.Seen = append([]record.SHA256(nil), state.Seen...)
 	state.Outcomes = append([]record.SHA256(nil), state.Outcomes...)
@@ -868,15 +867,15 @@ func cloneState(state State) State {
 	return state
 }
 
-func cloneCandidates(candidates []Candidate) []Candidate {
-	cloned := make([]Candidate, len(candidates))
+func cloneCandidates(candidates []SimulationCandidate) []SimulationCandidate {
+	cloned := make([]SimulationCandidate, len(candidates))
 	for index, candidate := range candidates {
-		cloned[index] = cloneCandidate(candidate)
+		cloned[index] = simulationCloneCandidate(candidate)
 	}
 	return cloned
 }
 
-func cloneCandidate(candidate Candidate) Candidate {
+func simulationCloneCandidate(candidate SimulationCandidate) SimulationCandidate {
 	candidate.Overrides = cloneForcedDecisions(candidate.Overrides)
 	return candidate
 }
@@ -914,8 +913,8 @@ func cloneControls(controls [][]byte) [][]byte {
 	return cloned
 }
 
-func cloneResults(results []Result) []Result {
-	cloned := make([]Result, len(results))
+func cloneResults(results []SimulationResult) []SimulationResult {
+	cloned := make([]SimulationResult, len(results))
 	for index, result := range results {
 		cloned[index] = result
 		cloned[index].Decisions = cloneDecisions(result.Decisions)

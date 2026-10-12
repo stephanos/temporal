@@ -16,7 +16,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
-	simulationengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation"
+	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
 )
 
 func TestInspectReportsArtifactIdentityWithoutPresentation(t *testing.T) {
@@ -212,10 +212,10 @@ func TestOpenReportsInterruptedSimulationExplorationPendingAndStagedWork(t *test
 			t.Error(err)
 		}
 	})
-	state, err := simulationengine.New(simulationengine.Config{
-		ExecutionSHA256: record.HashBytes([]byte("execution")), ControllerSHA256: simulationengine.ImplementationSHA256(),
+	state, err := exploration.NewSimulation(exploration.SimulationConfig{
+		ExecutionSHA256: record.HashBytes([]byte("execution")), ControllerSHA256: exploration.SimulationImplementationSHA256(),
 		BaseSeed: 7, Parallel: 2, MaxExecutions: 8, MaxForcedDecisions: 4, MaxExplorationBytes: 1 << 20, MaxResultBytes: 1 << 20, FailureBudget: 4,
-		Limits: simulationengine.DimensionLimits{Runtime: 1, Scenario: 2, Network: 3, Storage: 4, Fault: 5, Crash: 6},
+		Limits: exploration.DimensionLimits{Runtime: 1, Scenario: 2, Network: 3, Storage: 4, Fault: 5, Crash: 6},
 	})
 	if err != nil {
 		t.Fatal(err)

@@ -1,4 +1,4 @@
-package choice
+package exploration
 
 import (
 	"bytes"
@@ -10,23 +10,22 @@ import (
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
-	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
 )
 
 const (
-	candidateDomain    = "gomad3-choice-exploration-candidate/v1"
-	stateDomain        = "gomad3-choice-exploration-state/v1"
-	roundSegmentDomain = "gomad3-choice-exploration-round-segment/v2"
-	RoundSegmentSchema = "gomad3.choice-exploration-round/v2"
+	choiceCandidateDomain    = "gomad3-choice-exploration-candidate/v1"
+	choiceStateDomain        = "gomad3-choice-exploration-state/v1"
+	choiceRoundSegmentDomain = "gomad3-choice-exploration-round-segment/v2"
+	ChoiceRoundSegmentSchema = "gomad3.choice-exploration-round/v2"
 	// controllerIdentity names the expansion rule, so a journal written under
 	// another rule is refused on resume rather than continued under this one.
 	// v3 leaves the select-poll decisions of a no-op shape unexpanded
 	// (select_readiness.go).
-	controllerIdentity = "deterministic-rounds/breadth-first-rank-prefix/v3"
+	choiceControllerIdentity = "deterministic-rounds/breadth-first-rank-prefix/v3"
 )
 
-func ImplementationSHA256() record.SHA256 {
-	return record.DomainHash("gomad3-choice-exploration-controller/v1", []byte(controllerIdentity))
+func ChoiceImplementationSHA256() record.SHA256 {
+	return record.DomainHash("gomad3-choice-exploration-controller/v1", []byte(choiceControllerIdentity))
 }
 
 type FailurePolicy string
@@ -37,19 +36,19 @@ const (
 	PolicyAll    FailurePolicy = "all"
 )
 
-type StopReason string
+type ChoiceStopReason string
 
 const (
-	StopExhausted           StopReason = "exploration_exhausted"
-	StopDepthComplete       StopReason = "choice_depth_complete"
-	StopMaxExecutions       StopReason = "max_executions"
-	StopExplorationCapacity StopReason = "exploration_capacity"
-	StopFirstFailure        StopReason = "first_failure"
-	StopFailureBudget       StopReason = "failure_budget"
-	StopStartUnreached      StopReason = "choice_start_unreached"
+	ChoiceStopExhausted           ChoiceStopReason = "exploration_exhausted"
+	ChoiceStopDepthComplete       ChoiceStopReason = "choice_depth_complete"
+	ChoiceStopMaxExecutions       ChoiceStopReason = "max_executions"
+	ChoiceStopExplorationCapacity ChoiceStopReason = "exploration_capacity"
+	ChoiceStopFirstFailure        ChoiceStopReason = "first_failure"
+	ChoiceStopFailureBudget       ChoiceStopReason = "failure_budget"
+	ChoiceStopStartUnreached      ChoiceStopReason = "choice_start_unreached"
 )
 
-type Config struct {
+type ChoiceConfig struct {
 	Execution           choice.ExecutionIdentity `json:"execution"`
 	ControllerSHA256    record.SHA256            `json:"controller_sha256"`
 	BaseSeed            uint64                   `json:"base_seed"`
@@ -62,7 +61,7 @@ type Config struct {
 	FailureBudget       uint64                   `json:"failure_budget"`
 }
 
-type Candidate struct {
+type ChoiceCandidate struct {
 	SHA256            record.SHA256 `json:"sha256"`
 	ParentSHA256      record.SHA256 `json:"parent_sha256,omitempty"`
 	SourceTraceSHA256 record.SHA256 `json:"source_trace_sha256,omitempty"`
@@ -71,7 +70,7 @@ type Candidate struct {
 	PrefixBytes       []byte        `json:"prefix_bytes,omitempty"`
 }
 
-type Result struct {
+type ChoiceResult struct {
 	CandidateSHA256 record.SHA256
 	OutcomeSHA256   record.SHA256
 	Failed          bool
@@ -80,32 +79,32 @@ type Result struct {
 	Trace           *choice.ReplayPlan
 }
 
-type State struct {
-	Config                  Config          `json:"config"`
-	Queue                   []Candidate     `json:"queue"`
-	Seen                    []record.SHA256 `json:"seen"`
-	Outcomes                []record.SHA256 `json:"outcomes"`
-	FailureSignatures       []record.SHA256 `json:"failure_signatures"`
-	LogicalExecutions       uint64          `json:"logical_executions"`
-	CommittedRounds         uint64          `json:"committed_rounds"`
-	PendingBytes            uint64          `json:"pending_bytes"`
-	DeepestPrefix           uint64          `json:"deepest_prefix"`
-	OmittedByExecutionBound uint64          `json:"omitted_by_execution_bound"`
-	OmittedByDepth          uint64          `json:"omitted_by_depth"`
-	OmittedByCapacity       uint64          `json:"omitted_by_capacity"`
+type ChoiceState struct {
+	Config                  ChoiceConfig      `json:"config"`
+	Queue                   []ChoiceCandidate `json:"queue"`
+	Seen                    []record.SHA256   `json:"seen"`
+	Outcomes                []record.SHA256   `json:"outcomes"`
+	FailureSignatures       []record.SHA256   `json:"failure_signatures"`
+	LogicalExecutions       uint64            `json:"logical_executions"`
+	CommittedRounds         uint64            `json:"committed_rounds"`
+	PendingBytes            uint64            `json:"pending_bytes"`
+	DeepestPrefix           uint64            `json:"deepest_prefix"`
+	OmittedByExecutionBound uint64            `json:"omitted_by_execution_bound"`
+	OmittedByDepth          uint64            `json:"omitted_by_depth"`
+	OmittedByCapacity       uint64            `json:"omitted_by_capacity"`
 	// OmittedBySelectReadiness counts the alternatives of no-op select-poll
 	// decisions. Unlike the bounds above it leaves nothing unexplored, so it
 	// does not make a stop reason.
-	OmittedBySelectReadiness uint64     `json:"omitted_by_select_readiness"`
-	StopReason               StopReason `json:"stop_reason,omitempty"`
+	OmittedBySelectReadiness uint64           `json:"omitted_by_select_readiness"`
+	StopReason               ChoiceStopReason `json:"stop_reason,omitempty"`
 }
 
-type Round struct {
-	Index      uint64      `json:"index"`
-	Candidates []Candidate `json:"candidates"`
+type ChoiceRound struct {
+	Index      uint64            `json:"index"`
+	Candidates []ChoiceCandidate `json:"candidates"`
 }
 
-type SegmentResult struct {
+type ChoiceSegmentResult struct {
 	CandidateSHA256   record.SHA256              `json:"candidate_sha256"`
 	OutcomeSHA256     record.SHA256              `json:"outcome_sha256,omitempty"`
 	Failed            bool                       `json:"failed"`
@@ -116,90 +115,90 @@ type SegmentResult struct {
 	TraceBytes        []byte                     `json:"trace_bytes,omitempty"`
 }
 
-type RoundSegment struct {
-	Schema       string          `json:"schema"`
-	Index        uint64          `json:"index"`
-	BeforeSHA256 record.SHA256   `json:"before_sha256"`
-	AfterSHA256  record.SHA256   `json:"after_sha256"`
-	Results      []SegmentResult `json:"results"`
-	SHA256       record.SHA256   `json:"sha256,omitempty"`
+type ChoiceRoundSegment struct {
+	Schema       string                `json:"schema"`
+	Index        uint64                `json:"index"`
+	BeforeSHA256 record.SHA256         `json:"before_sha256"`
+	AfterSHA256  record.SHA256         `json:"after_sha256"`
+	Results      []ChoiceSegmentResult `json:"results"`
+	SHA256       record.SHA256         `json:"sha256,omitempty"`
 }
 
-type Summary struct {
-	Parallel                 int        `json:"parallel"`
-	MaxExecutions            uint64     `json:"max_executions"`
-	MaxChoiceDepth           uint64     `json:"max_choice_depth"`
-	StartOrdinal             uint64     `json:"start_ordinal,omitempty"`
-	MaxExplorationBytes      uint64     `json:"max_exploration_bytes"`
-	LogicalExecutions        uint64     `json:"logical_executions"`
-	CommittedRounds          uint64     `json:"committed_rounds"`
-	Pending                  uint64     `json:"pending"`
-	PendingBytes             uint64     `json:"pending_bytes"`
-	SeenPrefixes             uint64     `json:"seen_prefixes"`
-	DeduplicatedOutcomes     uint64     `json:"deduplicated_outcomes"`
-	DeepestPrefix            uint64     `json:"deepest_prefix"`
-	OmittedByExecutionBound  uint64     `json:"omitted_by_execution_bound"`
-	OmittedByDepth           uint64     `json:"omitted_by_depth"`
-	OmittedByCapacity        uint64     `json:"omitted_by_capacity"`
-	OmittedBySelectReadiness uint64     `json:"omitted_by_select_readiness"`
-	StopReason               StopReason `json:"stop_reason,omitempty"`
-	BoundedComplete          bool       `json:"bounded_complete"`
+type ChoiceSummary struct {
+	Parallel                 int              `json:"parallel"`
+	MaxExecutions            uint64           `json:"max_executions"`
+	MaxChoiceDepth           uint64           `json:"max_choice_depth"`
+	StartOrdinal             uint64           `json:"start_ordinal,omitempty"`
+	MaxExplorationBytes      uint64           `json:"max_exploration_bytes"`
+	LogicalExecutions        uint64           `json:"logical_executions"`
+	CommittedRounds          uint64           `json:"committed_rounds"`
+	Pending                  uint64           `json:"pending"`
+	PendingBytes             uint64           `json:"pending_bytes"`
+	SeenPrefixes             uint64           `json:"seen_prefixes"`
+	DeduplicatedOutcomes     uint64           `json:"deduplicated_outcomes"`
+	DeepestPrefix            uint64           `json:"deepest_prefix"`
+	OmittedByExecutionBound  uint64           `json:"omitted_by_execution_bound"`
+	OmittedByDepth           uint64           `json:"omitted_by_depth"`
+	OmittedByCapacity        uint64           `json:"omitted_by_capacity"`
+	OmittedBySelectReadiness uint64           `json:"omitted_by_select_readiness"`
+	StopReason               ChoiceStopReason `json:"stop_reason,omitempty"`
+	BoundedComplete          bool             `json:"bounded_complete"`
 }
 
-func New(config Config) (State, error) {
+func NewChoice(config ChoiceConfig) (ChoiceState, error) {
 	if config.Parallel <= 0 || config.MaxExecutions == 0 || config.MaxChoiceDepth == 0 || config.MaxExplorationBytes == 0 {
-		return State{}, errors.New("choice exploration requires positive parallel, execution, depth, and byte bounds")
+		return ChoiceState{}, errors.New("choice exploration requires positive parallel, execution, depth, and byte bounds")
 	}
 	if err := choice.ValidateExecutionIdentity(config.Execution); err != nil {
 		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
-		return State{}, fmt.Errorf("choice exploration execution identity: %w", err)
+		return ChoiceState{}, fmt.Errorf("choice exploration execution identity: %w", err)
 	}
-	if config.ControllerSHA256 != ImplementationSHA256() {
-		return State{}, errors.New("choice exploration controller identity does not match this implementation")
+	if config.ControllerSHA256 != ChoiceImplementationSHA256() {
+		return ChoiceState{}, errors.New("choice exploration controller identity does not match this implementation")
 	}
 	switch config.FailurePolicy {
 	case PolicyFirst, PolicyAll:
 		if config.FailureBudget != 1 {
-			return State{}, errors.New("choice exploration failure budget is only configurable in budget mode")
+			return ChoiceState{}, errors.New("choice exploration failure budget is only configurable in budget mode")
 		}
 	case PolicyBudget:
 		if config.FailureBudget == 0 {
-			return State{}, errors.New("choice exploration failure budget must be positive")
+			return ChoiceState{}, errors.New("choice exploration failure budget must be positive")
 		}
 	default:
-		return State{}, fmt.Errorf("unknown choice exploration failure policy %q", config.FailurePolicy)
+		return ChoiceState{}, fmt.Errorf("unknown choice exploration failure policy %q", config.FailurePolicy)
 	}
-	root, err := newCandidate(config, nil, "", "")
+	root, err := choiceNewCandidate(config, nil, "", "")
 	if err != nil {
-		return State{}, err
+		return ChoiceState{}, err
 	}
-	pendingBytes, err := queueBytes([]Candidate{root})
+	pendingBytes, err := choiceQueueBytes([]ChoiceCandidate{root})
 	if err != nil {
-		return State{}, err
+		return ChoiceState{}, err
 	}
 	if pendingBytes > config.MaxExplorationBytes {
-		return State{}, fmt.Errorf("choice exploration root requires %d bytes, exceeding the %d-byte exploration bound", pendingBytes, config.MaxExplorationBytes)
+		return ChoiceState{}, fmt.Errorf("choice exploration root requires %d bytes, exceeding the %d-byte exploration bound", pendingBytes, config.MaxExplorationBytes)
 	}
-	return State{Config: config, Queue: []Candidate{root}, Seen: []record.SHA256{root.SHA256}, Outcomes: []record.SHA256{}, FailureSignatures: []record.SHA256{}, PendingBytes: pendingBytes}, nil
+	return ChoiceState{Config: config, Queue: []ChoiceCandidate{root}, Seen: []record.SHA256{root.SHA256}, Outcomes: []record.SHA256{}, FailureSignatures: []record.SHA256{}, PendingBytes: pendingBytes}, nil
 }
 
-func (state State) NextRound() (Round, bool) {
-	candidates, ok := exploration.NextRound(state.Queue, state.Config.Parallel, state.StopReason != "", cloneCandidate)
-	return Round{Index: state.CommittedRounds, Candidates: candidates}, ok
+func (state ChoiceState) NextRound() (ChoiceRound, bool) {
+	candidates, ok := NextRound(state.Queue, state.Config.Parallel, state.StopReason != "", choiceCloneCandidate)
+	return ChoiceRound{Index: state.CommittedRounds, Candidates: candidates}, ok
 }
 
-func (state State) Summary() Summary {
-	return Summary{
+func (state ChoiceState) Summary() ChoiceSummary {
+	return ChoiceSummary{
 		Parallel: state.Config.Parallel, MaxExecutions: state.Config.MaxExecutions, MaxChoiceDepth: state.Config.MaxChoiceDepth, StartOrdinal: state.Config.StartOrdinal, MaxExplorationBytes: state.Config.MaxExplorationBytes,
 		LogicalExecutions: state.LogicalExecutions, CommittedRounds: state.CommittedRounds,
 		Pending: uint64(len(state.Queue)), PendingBytes: state.PendingBytes, SeenPrefixes: uint64(len(state.Seen)),
 		DeduplicatedOutcomes: uint64(len(state.Outcomes)), DeepestPrefix: state.DeepestPrefix,
 		OmittedByExecutionBound: state.OmittedByExecutionBound, OmittedByDepth: state.OmittedByDepth, OmittedByCapacity: state.OmittedByCapacity, OmittedBySelectReadiness: state.OmittedBySelectReadiness,
-		StopReason: state.StopReason, BoundedComplete: state.StopReason == StopExhausted || state.StopReason == StopDepthComplete,
+		StopReason: state.StopReason, BoundedComplete: state.StopReason == ChoiceStopExhausted || state.StopReason == ChoiceStopDepthComplete,
 	}
 }
 
-func (candidate Candidate) PrefixReplayPlan(identity choice.ExecutionIdentity) (choice.ReplayPlan, error) {
+func (candidate ChoiceCandidate) PrefixReplayPlan(identity choice.ExecutionIdentity) (choice.ReplayPlan, error) {
 	if candidate.ForcedDepth == 0 {
 		if candidate.PrefixSHA256 != "" || len(candidate.PrefixBytes) != 0 {
 			return choice.ReplayPlan{}, errors.New("root choice candidate contains a prefix")
@@ -215,67 +214,67 @@ func (candidate Candidate) PrefixReplayPlan(identity choice.ExecutionIdentity) (
 	return choice.ValidatePrefixReplayPlan(tape, identity)
 }
 
-func CommitRound(state State, round Round, results []Result) (State, RoundSegment, error) {
-	before, err := stateIdentity(state)
+func CommitChoiceRound(state ChoiceState, round ChoiceRound, results []ChoiceResult) (ChoiceState, ChoiceRoundSegment, error) {
+	before, err := choiceStateIdentity(state)
 	if err != nil {
-		return State{}, RoundSegment{}, err
+		return ChoiceState{}, ChoiceRoundSegment{}, err
 	}
 	expected, ok := state.NextRound()
-	if !ok || round.Index != expected.Index || !sameCandidates(round.Candidates, expected.Candidates) {
-		return State{}, RoundSegment{}, errors.New("choice exploration round does not match the current state")
+	if !ok || round.Index != expected.Index || !choiceSameCandidates(round.Candidates, expected.Candidates) {
+		return ChoiceState{}, ChoiceRoundSegment{}, errors.New("choice exploration round does not match the current state")
 	}
 	if len(results) != len(round.Candidates) {
-		return State{}, RoundSegment{}, errors.New("choice exploration result count does not match its round")
+		return ChoiceState{}, ChoiceRoundSegment{}, errors.New("choice exploration result count does not match its round")
 	}
-	next := cloneState(state)
+	next := choiceCloneState(state)
 	next.Queue = next.Queue[len(round.Candidates):]
 	next.LogicalExecutions += uint64(len(results))
 	next.CommittedRounds++
-	segmentResults := make([]SegmentResult, len(results))
-	newChildren := make(map[record.SHA256]Candidate)
+	segmentResults := make([]ChoiceSegmentResult, len(results))
+	newChildren := make(map[record.SHA256]ChoiceCandidate)
 	policyStopped := false
 	startUnreached := false
 	for index, result := range results {
 		candidate := round.Candidates[index]
 		if result.CandidateSHA256 != candidate.SHA256 {
-			return State{}, RoundSegment{}, fmt.Errorf("choice exploration result %d does not match candidate", index)
+			return ChoiceState{}, ChoiceRoundSegment{}, fmt.Errorf("choice exploration result %d does not match candidate", index)
 		}
 		if result.Divergence != nil {
 			if result.OutcomeSHA256 != "" || result.Failed || result.FailureSHA256 != "" || result.Trace != nil {
-				return State{}, RoundSegment{}, fmt.Errorf("choice exploration result %d divergence contains outcome evidence", index)
+				return ChoiceState{}, ChoiceRoundSegment{}, fmt.Errorf("choice exploration result %d divergence contains outcome evidence", index)
 			}
 			if err := ValidateCandidateDivergence(candidate, state.Config.Execution, *result.Divergence); err != nil {
 				//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
-				return State{}, RoundSegment{}, fmt.Errorf("choice exploration result %d divergence: %w", index, err)
+				return ChoiceState{}, ChoiceRoundSegment{}, fmt.Errorf("choice exploration result %d divergence: %w", index, err)
 			}
 			divergence := choice.ProjectDivergenceEvidence(*result.Divergence)
-			segmentResults[index] = SegmentResult{CandidateSHA256: candidate.SHA256, Divergence: &divergence}
+			segmentResults[index] = ChoiceSegmentResult{CandidateSHA256: candidate.SHA256, Divergence: &divergence}
 			if next.Config.FailurePolicy == PolicyFirst {
-				next.StopReason = StopFirstFailure
+				next.StopReason = ChoiceStopFirstFailure
 				policyStopped = true
 			}
 			continue
 		}
 		if _, err := result.OutcomeSHA256.Bytes(); err != nil {
 			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
-			return State{}, RoundSegment{}, fmt.Errorf("choice exploration result %d outcome: %w", index, err)
+			return ChoiceState{}, ChoiceRoundSegment{}, fmt.Errorf("choice exploration result %d outcome: %w", index, err)
 		}
-		next.Outcomes = insertIdentity(next.Outcomes, result.OutcomeSHA256)
+		next.Outcomes = choiceInsertIdentity(next.Outcomes, result.OutcomeSHA256)
 		if result.Failed {
 			if _, err := result.FailureSHA256.Bytes(); err != nil {
 				//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
-				return State{}, RoundSegment{}, fmt.Errorf("choice exploration result %d failure signature: %w", index, err)
+				return ChoiceState{}, ChoiceRoundSegment{}, fmt.Errorf("choice exploration result %d failure signature: %w", index, err)
 			}
-			next.FailureSignatures = insertIdentity(next.FailureSignatures, result.FailureSHA256)
+			next.FailureSignatures = choiceInsertIdentity(next.FailureSignatures, result.FailureSHA256)
 			if next.Config.FailurePolicy == PolicyFirst {
-				next.StopReason = StopFirstFailure
+				next.StopReason = ChoiceStopFirstFailure
 				policyStopped = true
 			} else if next.Config.FailurePolicy == PolicyBudget && uint64(len(next.FailureSignatures)) >= next.Config.FailureBudget {
-				next.StopReason = StopFailureBudget
+				next.StopReason = ChoiceStopFailureBudget
 				policyStopped = true
 			}
 		}
-		segmentResult := SegmentResult{CandidateSHA256: result.CandidateSHA256, OutcomeSHA256: result.OutcomeSHA256, Failed: result.Failed, FailureSHA256: result.FailureSHA256}
+		segmentResult := ChoiceSegmentResult{CandidateSHA256: result.CandidateSHA256, OutcomeSHA256: result.OutcomeSHA256, Failed: result.Failed, FailureSHA256: result.FailureSHA256}
 		if candidate.ForcedDepth == 0 && next.Config.StartOrdinal != 0 && (result.Trace == nil || uint64(len(result.Trace.Decisions)) <= next.Config.StartOrdinal) {
 			startUnreached = true
 		}
@@ -283,78 +282,78 @@ func CommitRound(state State, round Round, results []Result) (State, RoundSegmen
 			trace, validateErr := choice.ValidateReplayPlan(*result.Trace, next.Config.Execution)
 			if validateErr != nil {
 				//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
-				return State{}, RoundSegment{}, fmt.Errorf("validate choice exploration result %d trace: %w", index, validateErr)
+				return ChoiceState{}, ChoiceRoundSegment{}, fmt.Errorf("validate choice exploration result %d trace: %w", index, validateErr)
 			}
 			if validateErr := validateCandidateTrace(candidate, trace, next.Config.Execution); validateErr != nil {
 				//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
-				return State{}, RoundSegment{}, fmt.Errorf("validate choice exploration result %d prefix: %w", index, validateErr)
+				return ChoiceState{}, ChoiceRoundSegment{}, fmt.Errorf("validate choice exploration result %d prefix: %w", index, validateErr)
 			}
 			segmentResult.TraceSHA256 = record.SHA256FromSum(trace.SHA256)
 			segmentResult.TraceSourceSHA256 = record.SHA256FromSum(trace.SourceTraceSHA256)
 			segmentResult.TraceBytes = append([]byte(nil), trace.Bytes...)
 			if !policyStopped {
-				if err := expandCandidate(&next, candidate, trace, newChildren); err != nil {
-					return State{}, RoundSegment{}, err
+				if err := choiceExpandCandidate(&next, candidate, trace, newChildren); err != nil {
+					return ChoiceState{}, ChoiceRoundSegment{}, err
 				}
 			}
 		}
 		segmentResults[index] = segmentResult
 	}
-	children := make([]Candidate, 0, len(newChildren))
+	children := make([]ChoiceCandidate, 0, len(newChildren))
 	for _, candidate := range newChildren {
 		children = append(children, candidate)
 	}
-	sortCandidates(children)
-	if err := admitChildren(&next, children); err != nil {
-		return State{}, RoundSegment{}, err
+	choiceSortCandidates(children)
+	if err := choiceAdmitChildren(&next, children); err != nil {
+		return ChoiceState{}, ChoiceRoundSegment{}, err
 	}
 	if next.StopReason == "" && len(next.Queue) == 0 {
 		switch {
 		case startUnreached:
-			next.StopReason = StopStartUnreached
+			next.StopReason = ChoiceStopStartUnreached
 		case next.OmittedByExecutionBound != 0 || next.LogicalExecutions >= next.Config.MaxExecutions:
-			next.StopReason = StopMaxExecutions
+			next.StopReason = ChoiceStopMaxExecutions
 		case next.OmittedByDepth != 0:
-			next.StopReason = StopDepthComplete
+			next.StopReason = ChoiceStopDepthComplete
 		default:
-			next.StopReason = StopExhausted
+			next.StopReason = ChoiceStopExhausted
 		}
 	}
-	next.PendingBytes, err = queueBytes(next.Queue)
+	next.PendingBytes, err = choiceQueueBytes(next.Queue)
 	if err != nil {
-		return State{}, RoundSegment{}, err
+		return ChoiceState{}, ChoiceRoundSegment{}, err
 	}
-	after, err := stateIdentity(next)
+	after, err := choiceStateIdentity(next)
 	if err != nil {
-		return State{}, RoundSegment{}, err
+		return ChoiceState{}, ChoiceRoundSegment{}, err
 	}
-	segment := RoundSegment{Schema: RoundSegmentSchema, Index: round.Index, BeforeSHA256: before, AfterSHA256: after, Results: segmentResults}
-	segment.SHA256, err = segmentIdentity(segment)
+	segment := ChoiceRoundSegment{Schema: ChoiceRoundSegmentSchema, Index: round.Index, BeforeSHA256: before, AfterSHA256: after, Results: segmentResults}
+	segment.SHA256, err = choiceSegmentIdentity(segment)
 	if err != nil {
-		return State{}, RoundSegment{}, err
+		return ChoiceState{}, ChoiceRoundSegment{}, err
 	}
 	return next, segment, nil
 }
 
-func ReplaySegment(state State, segment RoundSegment) (State, error) {
-	if segment.Schema != RoundSegmentSchema {
-		return State{}, fmt.Errorf("choice exploration segment schema %q is incompatible with %q", segment.Schema, RoundSegmentSchema)
+func ChoiceReplaySegment(state ChoiceState, segment ChoiceRoundSegment) (ChoiceState, error) {
+	if segment.Schema != ChoiceRoundSegmentSchema {
+		return ChoiceState{}, fmt.Errorf("choice exploration segment schema %q is incompatible with %q", segment.Schema, ChoiceRoundSegmentSchema)
 	}
-	identity, err := segmentIdentity(segment)
+	identity, err := choiceSegmentIdentity(segment)
 	if err != nil || identity != segment.SHA256 {
-		return State{}, errors.Join(errors.New("choice exploration segment identity does not match"), err)
+		return ChoiceState{}, errors.Join(errors.New("choice exploration segment identity does not match"), err)
 	}
-	before, err := stateIdentity(state)
-	if err != nil || before != segment.BeforeSHA256 || segment.Schema != RoundSegmentSchema {
-		return State{}, errors.Join(errors.New("choice exploration segment does not link to its state"), err)
+	before, err := choiceStateIdentity(state)
+	if err != nil || before != segment.BeforeSHA256 || segment.Schema != ChoiceRoundSegmentSchema {
+		return ChoiceState{}, errors.Join(errors.New("choice exploration segment does not link to its state"), err)
 	}
 	round, ok := state.NextRound()
 	if !ok || round.Index != segment.Index || len(round.Candidates) != len(segment.Results) {
-		return State{}, errors.New("choice exploration segment round is unavailable")
+		return ChoiceState{}, errors.New("choice exploration segment round is unavailable")
 	}
-	results := make([]Result, len(segment.Results))
+	results := make([]ChoiceResult, len(segment.Results))
 	for index, stored := range segment.Results {
-		result := Result{CandidateSHA256: stored.CandidateSHA256, OutcomeSHA256: stored.OutcomeSHA256, Failed: stored.Failed, FailureSHA256: stored.FailureSHA256}
+		result := ChoiceResult{CandidateSHA256: stored.CandidateSHA256, OutcomeSHA256: stored.OutcomeSHA256, Failed: stored.Failed, FailureSHA256: stored.FailureSHA256}
 		if stored.Divergence != nil {
 			divergence := stored.Divergence.Divergence()
 			result.Divergence = &divergence
@@ -362,37 +361,37 @@ func ReplaySegment(state State, segment RoundSegment) (State, error) {
 		if len(stored.TraceBytes) != 0 {
 			digest, decodeErr := stored.TraceSHA256.Bytes()
 			if decodeErr != nil {
-				return State{}, decodeErr
+				return ChoiceState{}, decodeErr
 			}
 			tape := choice.ReplayPlan{Identity: state.Config.Execution, Bytes: append([]byte(nil), stored.TraceBytes...), SHA256: digest}
 			validated, validateErr := choice.ValidateReplayPlan(tape, state.Config.Execution)
 			if validateErr != nil || record.SHA256FromSum(validated.SourceTraceSHA256) != stored.TraceSourceSHA256 {
-				return State{}, errors.Join(errors.New("choice exploration segment trace is invalid"), validateErr)
+				return ChoiceState{}, errors.Join(errors.New("choice exploration segment trace is invalid"), validateErr)
 			}
 			result.Trace = &validated
 		}
 		results[index] = result
 	}
-	next, regenerated, err := CommitRound(state, round, results)
+	next, regenerated, err := CommitChoiceRound(state, round, results)
 	if err != nil {
-		return State{}, err
+		return ChoiceState{}, err
 	}
 	left, err := canonicaljson.CanonicalJSON(segment)
 	if err != nil {
-		return State{}, err
+		return ChoiceState{}, err
 	}
 	right, err := canonicaljson.CanonicalJSON(regenerated)
 	if err != nil {
-		return State{}, err
+		return ChoiceState{}, err
 	}
-	after, err := stateIdentity(next)
+	after, err := choiceStateIdentity(next)
 	if err != nil || !bytes.Equal(left, right) || after != segment.AfterSHA256 {
-		return State{}, errors.Join(errors.New("choice exploration segment replay changed its canonical result"), err)
+		return ChoiceState{}, errors.Join(errors.New("choice exploration segment replay changed its canonical result"), err)
 	}
 	return next, nil
 }
 
-func ValidateCandidateDivergence(candidate Candidate, identity choice.ExecutionIdentity, divergence choice.Divergence) error {
+func ValidateCandidateDivergence(candidate ChoiceCandidate, identity choice.ExecutionIdentity, divergence choice.Divergence) error {
 	if candidate.ForcedDepth == 0 {
 		return errors.New("choice divergence requires a forced-prefix candidate")
 	}
@@ -411,7 +410,7 @@ func ValidateCandidateDivergence(candidate Candidate, identity choice.ExecutionI
 	return choice.ValidatePrefixReplayDivergence(prefix, divergence)
 }
 
-func expandCandidate(state *State, parent Candidate, trace choice.ReplayPlan, children map[record.SHA256]Candidate) error {
+func choiceExpandCandidate(state *ChoiceState, parent ChoiceCandidate, trace choice.ReplayPlan, children map[record.SHA256]ChoiceCandidate) error {
 	noOp := noOpSelectPolls(trace)
 	for ordinal, decision := range trace.Decisions {
 		if uint64(ordinal) < max(parent.ForcedDepth, state.Config.StartOrdinal) {
@@ -438,14 +437,14 @@ func expandCandidate(state *State, parent Candidate, trace choice.ReplayPlan, ch
 				//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 				return fmt.Errorf("build choice exploration child at decision %d rank %d: %w", ordinal, rank, err)
 			}
-			child, err := newCandidate(state.Config, &prefix, parent.SHA256, record.SHA256FromSum(trace.SourceTraceSHA256))
+			child, err := choiceNewCandidate(state.Config, &prefix, parent.SHA256, record.SHA256FromSum(trace.SourceTraceSHA256))
 			if err != nil {
 				return err
 			}
-			if containsIdentity(state.Seen, child.SHA256) {
+			if choiceContainsIdentity(state.Seen, child.SHA256) {
 				continue
 			}
-			if existing, found := children[child.SHA256]; found && !sameCandidate(existing, child) {
+			if existing, found := children[child.SHA256]; found && !choiceSameCandidate(existing, child) {
 				return errors.New("choice exploration candidate identity collision")
 			}
 			children[child.SHA256] = child
@@ -454,8 +453,8 @@ func expandCandidate(state *State, parent Candidate, trace choice.ReplayPlan, ch
 	return nil
 }
 
-func admitChildren(state *State, children []Candidate) error {
-	pendingBytes, err := queueBytes(state.Queue)
+func choiceAdmitChildren(state *ChoiceState, children []ChoiceCandidate) error {
+	pendingBytes, err := choiceQueueBytes(state.Queue)
 	if err != nil {
 		return err
 	}
@@ -464,7 +463,7 @@ func admitChildren(state *State, children []Candidate) error {
 			state.OmittedByExecutionBound += uint64(len(children) - index)
 			break
 		}
-		entryBytes, err := candidateBytes(candidate)
+		entryBytes, err := choiceCandidateBytes(candidate)
 		if err != nil {
 			return err
 		}
@@ -474,16 +473,16 @@ func admitChildren(state *State, children []Candidate) error {
 		if pendingBytes+entryBytes > state.Config.MaxExplorationBytes {
 			state.OmittedByCapacity += uint64(len(children) - index)
 			if state.StopReason == "" {
-				state.StopReason = StopExplorationCapacity
+				state.StopReason = ChoiceStopExplorationCapacity
 			}
 			break
 		}
 		pendingBytes += entryBytes
 		state.Queue = append(state.Queue, candidate)
-		state.Seen = insertIdentity(state.Seen, candidate.SHA256)
+		state.Seen = choiceInsertIdentity(state.Seen, candidate.SHA256)
 		state.DeepestPrefix = max(state.DeepestPrefix, candidate.ForcedDepth)
 	}
-	sortCandidates(state.Queue)
+	choiceSortCandidates(state.Queue)
 	state.PendingBytes = pendingBytes
 	return nil
 }
@@ -512,17 +511,17 @@ type decisionIdentityProjection struct {
 	AlternativeSetDigest record.SHA256       `json:"alternative_set_digest"`
 }
 
-func newCandidate(config Config, prefix *choice.ReplayPlan, parent, source record.SHA256) (Candidate, error) {
+func choiceNewCandidate(config ChoiceConfig, prefix *choice.ReplayPlan, parent, source record.SHA256) (ChoiceCandidate, error) {
 	decisions := []choice.Decision{}
-	candidate := Candidate{ParentSHA256: parent, SourceTraceSHA256: source}
+	candidate := ChoiceCandidate{ParentSHA256: parent, SourceTraceSHA256: source}
 	if prefix != nil {
 		validated, err := choice.ValidatePrefixReplayPlan(*prefix, config.Execution)
 		if err != nil {
-			return Candidate{}, err
+			return ChoiceCandidate{}, err
 		}
 		decisions = validated.Decisions
 		if uint64(len(decisions)) <= config.StartOrdinal {
-			return Candidate{}, fmt.Errorf("choice exploration candidate of forced depth %d alters a decision before start ordinal %d", len(decisions), config.StartOrdinal)
+			return ChoiceCandidate{}, fmt.Errorf("choice exploration candidate of forced depth %d alters a decision before start ordinal %d", len(decisions), config.StartOrdinal)
 		}
 		candidate.ForcedDepth = uint64(len(decisions))
 		candidate.PrefixSHA256 = record.SHA256FromSum(validated.SHA256)
@@ -547,13 +546,13 @@ func newCandidate(config Config, prefix *choice.ReplayPlan, parent, source recor
 	}
 	encoded, err := canonicaljson.CanonicalJSON(projection)
 	if err != nil {
-		return Candidate{}, err
+		return ChoiceCandidate{}, err
 	}
-	candidate.SHA256 = record.DomainHash(candidateDomain, encoded)
+	candidate.SHA256 = record.DomainHash(choiceCandidateDomain, encoded)
 	return candidate, nil
 }
 
-func validateCandidateTrace(candidate Candidate, trace choice.ReplayPlan, identity choice.ExecutionIdentity) error {
+func validateCandidateTrace(candidate ChoiceCandidate, trace choice.ReplayPlan, identity choice.ExecutionIdentity) error {
 	if candidate.ForcedDepth == 0 {
 		return nil
 	}
@@ -579,29 +578,29 @@ func validateCandidateTrace(candidate Candidate, trace choice.ReplayPlan, identi
 	return nil
 }
 
-func stateIdentity(state State) (record.SHA256, error) {
+func choiceStateIdentity(state ChoiceState) (record.SHA256, error) {
 	encoded, err := canonicaljson.CanonicalJSON(state)
 	if err != nil {
 		return "", err
 	}
-	return record.DomainHash(stateDomain, encoded), nil
+	return record.DomainHash(choiceStateDomain, encoded), nil
 }
 
-func StateSHA256(state State) (record.SHA256, error) {
-	return stateIdentity(state)
+func ChoiceStateSHA256(state ChoiceState) (record.SHA256, error) {
+	return choiceStateIdentity(state)
 }
 
-func segmentIdentity(segment RoundSegment) (record.SHA256, error) {
+func choiceSegmentIdentity(segment ChoiceRoundSegment) (record.SHA256, error) {
 	copy := segment
 	copy.SHA256 = ""
 	encoded, err := canonicaljson.CanonicalJSON(copy)
 	if err != nil {
 		return "", err
 	}
-	return record.DomainHash(roundSegmentDomain, encoded), nil
+	return record.DomainHash(choiceRoundSegmentDomain, encoded), nil
 }
 
-func candidateBytes(candidate Candidate) (uint64, error) {
+func choiceCandidateBytes(candidate ChoiceCandidate) (uint64, error) {
 	encoded, err := canonicaljson.CanonicalJSON(candidate)
 	if err != nil {
 		return 0, err
@@ -609,20 +608,20 @@ func candidateBytes(candidate Candidate) (uint64, error) {
 	return uint64(len(encoded)) + 1, nil
 }
 
-func queueBytes(queue []Candidate) (uint64, error) {
-	return exploration.SumBytes(queue, candidateBytes)
+func choiceQueueBytes(queue []ChoiceCandidate) (uint64, error) {
+	return SumBytes(queue, choiceCandidateBytes)
 }
 
-func insertIdentity(values []record.SHA256, value record.SHA256) []record.SHA256 {
-	return exploration.InsertIdentity(values, value)
+func choiceInsertIdentity(values []record.SHA256, value record.SHA256) []record.SHA256 {
+	return InsertIdentity(values, value)
 }
 
-func containsIdentity(values []record.SHA256, value record.SHA256) bool {
-	return exploration.ContainsIdentity(values, value)
+func choiceContainsIdentity(values []record.SHA256, value record.SHA256) bool {
+	return ContainsIdentity(values, value)
 }
 
-func sortCandidates(candidates []Candidate) {
-	slices.SortFunc(candidates, func(left, right Candidate) int {
+func choiceSortCandidates(candidates []ChoiceCandidate) {
+	slices.SortFunc(candidates, func(left, right ChoiceCandidate) int {
 		if left.ForcedDepth < right.ForcedDepth {
 			return -1
 		}
@@ -633,32 +632,32 @@ func sortCandidates(candidates []Candidate) {
 	})
 }
 
-func sameCandidates(left, right []Candidate) bool {
+func choiceSameCandidates(left, right []ChoiceCandidate) bool {
 	if len(left) != len(right) {
 		return false
 	}
 	for index := range left {
-		if !sameCandidate(left[index], right[index]) {
+		if !choiceSameCandidate(left[index], right[index]) {
 			return false
 		}
 	}
 	return true
 }
 
-func sameCandidate(left, right Candidate) bool {
+func choiceSameCandidate(left, right ChoiceCandidate) bool {
 	return left.SHA256 == right.SHA256 && left.ParentSHA256 == right.ParentSHA256 && left.SourceTraceSHA256 == right.SourceTraceSHA256 && left.ForcedDepth == right.ForcedDepth && left.PrefixSHA256 == right.PrefixSHA256 && bytes.Equal(left.PrefixBytes, right.PrefixBytes)
 }
 
-func cloneCandidate(candidate Candidate) Candidate {
+func choiceCloneCandidate(candidate ChoiceCandidate) ChoiceCandidate {
 	candidate.PrefixBytes = append([]byte(nil), candidate.PrefixBytes...)
 	return candidate
 }
 
-func cloneState(state State) State {
+func choiceCloneState(state ChoiceState) ChoiceState {
 	copy := state
-	copy.Queue = make([]Candidate, len(state.Queue))
+	copy.Queue = make([]ChoiceCandidate, len(state.Queue))
 	for index := range state.Queue {
-		copy.Queue[index] = cloneCandidate(state.Queue[index])
+		copy.Queue[index] = choiceCloneCandidate(state.Queue[index])
 	}
 	copy.Seen = append([]record.SHA256(nil), state.Seen...)
 	copy.Outcomes = append([]record.SHA256(nil), state.Outcomes...)

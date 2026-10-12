@@ -8,7 +8,7 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
-	simulationengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation"
+	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
 )
 
 func TestSimulationExplorationJournalCommitsAndResumesWholeRounds(t *testing.T) {
@@ -37,7 +37,7 @@ func TestSimulationExplorationJournalCommitsAndResumesWholeRounds(t *testing.T) 
 	if err := staged.RecordExecution(0, run); err != nil {
 		t.Fatal(err)
 	}
-	next, segment, err := simulationengine.CommitRound(state, round, []simulationengine.Result{{
+	next, segment, err := exploration.CommitSimulationRound(state, round, []exploration.SimulationResult{{
 		CandidateSHA256: round.Candidates[0].SHA256,
 		OutcomeSHA256:   outcome,
 	}})
@@ -57,11 +57,11 @@ func TestSimulationExplorationJournalCommitsAndResumesWholeRounds(t *testing.T) 
 	if recoveryExecutions != 0 {
 		t.Fatalf("recovery executions = %d", recoveryExecutions)
 	}
-	got, err := simulationengine.StateSHA256(recovered)
+	got, err := exploration.SimulationStateSHA256(recovered)
 	if err != nil {
 		t.Fatal(err)
 	}
-	want, err := simulationengine.StateSHA256(next)
+	want, err := exploration.SimulationStateSHA256(next)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -153,7 +153,7 @@ func TestInspectSimulationExplorationReportsPendingAndStagedWorkWithoutMutation(
 	if err != nil {
 		t.Fatal(err)
 	}
-	if inspected.Summary != state.Summary() || inspected.ImplementationSHA256 != simulationengine.ImplementationSHA256() || inspected.ChainSHA256 == "" || len(inspected.Pending) != 1 || inspected.Pending[0].SHA256 != round.Candidates[0].SHA256 {
+	if inspected.Summary != state.Summary() || inspected.ImplementationSHA256 != exploration.SimulationImplementationSHA256() || inspected.ChainSHA256 == "" || len(inspected.Pending) != 1 || inspected.Pending[0].SHA256 != round.Candidates[0].SHA256 {
 		t.Fatalf("simulation exploration inspection = %#v", inspected)
 	}
 	if inspected.StagedRound == nil || inspected.StagedRound.Index != 0 || inspected.StagedRound.Candidates != 1 || inspected.StagedRound.Attempted != 1 {
@@ -176,7 +176,7 @@ func TestResumeSimulationExplorationJournalRejectsCorruptSegment(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, segment, err := simulationengine.CommitRound(state, round, []simulationengine.Result{{
+	_, segment, err := exploration.CommitSimulationRound(state, round, []exploration.SimulationResult{{
 		CandidateSHA256: round.Candidates[0].SHA256,
 		OutcomeSHA256:   record.HashBytes([]byte("success")),
 	}})
@@ -195,13 +195,13 @@ func TestResumeSimulationExplorationJournalRejectsCorruptSegment(t *testing.T) {
 	}
 }
 
-func testSimulationExplorationState(t *testing.T) simulationengine.State {
+func testSimulationExplorationState(t *testing.T) exploration.SimulationState {
 	t.Helper()
-	state, err := simulationengine.New(simulationengine.Config{
-		ExecutionSHA256: record.HashBytes([]byte("execution")), ControllerSHA256: simulationengine.ImplementationSHA256(),
+	state, err := exploration.NewSimulation(exploration.SimulationConfig{
+		ExecutionSHA256: record.HashBytes([]byte("execution")), ControllerSHA256: exploration.SimulationImplementationSHA256(),
 		BaseSeed: 7, Parallel: 2, MaxExecutions: 8, MaxForcedDecisions: 4, MaxExplorationBytes: 1 << 20,
 		MaxResultBytes: 1 << 20, FailureBudget: 4,
-		Limits: simulationengine.DimensionLimits{Runtime: 4, Scenario: 4, Network: 4, Storage: 4, Fault: 4, Crash: 4},
+		Limits: exploration.DimensionLimits{Runtime: 4, Scenario: 4, Network: 4, Storage: 4, Fault: 4, Crash: 4},
 	})
 	if err != nil {
 		t.Fatal(err)

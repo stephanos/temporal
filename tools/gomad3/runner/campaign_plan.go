@@ -10,8 +10,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
-	choiceengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/choice"
-	simulationengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation"
+	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
@@ -44,7 +43,7 @@ func campaignPlanRecord(config campaignRequest, journalPlan campaign.ExecutionJo
 		Strategy: string(config.strategy()), Selection: config.Seeds, SelectionCount: record.Uint64String(selectionCount), Parallel: record.Uint64String(config.Parallel),
 		Journal:       &journalPlan,
 		MaxExecutions: record.Uint64String(config.MaxExecutions), MaxChoiceDepth: record.Uint64String(config.MaxChoiceDepth), ChoiceStartOrdinal: record.Uint64String(config.ChoiceStartOrdinal), MaxForcedDecisions: record.Uint64String(config.MaxForcedDecisions),
-		MaxExplorationBytes: record.Uint64String(config.MaxExplorationBytes), MaxExplorationResultBytes: record.Uint64String(config.MaxExplorationResultBytes), SimulationDimensionLimits: simulationengine.DimensionLimits(config.SimulationDimensionLimits),
+		MaxExplorationBytes: record.Uint64String(config.MaxExplorationBytes), MaxExplorationResultBytes: record.Uint64String(config.MaxExplorationResultBytes), SimulationDimensionLimits: exploration.DimensionLimits(config.SimulationDimensionLimits),
 		ExecutionTimeoutNanos: record.Uint64String(config.ExecutionTimeout), OverallTimeoutNanos: record.Uint64String(config.OverallTimeout), TerminateGraceNanos: record.Uint64String(config.TerminateGrace),
 		OnFailure: string(config.OnFailure), FailureBudget: record.Uint64String(config.FailureBudget), OutputBytes: record.Uint64String(config.OutputLimit), WorldTransitionBytes: record.Uint64String(config.WorldTransitionLimit),
 		RunnerBuild: config.RunnerBuild,
@@ -62,10 +61,10 @@ func campaignPlanRecord(config campaignRequest, journalPlan campaign.ExecutionJo
 		plan.IOProfile = record.IOContract{Name: identity.Name, ImplementationSHA256: record.SHA256(identity.ImplementationSHA256), InventorySHA256: record.SHA256(identity.InventorySHA256)}
 	}
 	if config.strategy() == StrategyChoiceExploration {
-		plan.ChoiceExplorationImplementationSHA256 = choiceengine.ImplementationSHA256()
+		plan.ChoiceExplorationImplementationSHA256 = exploration.ChoiceImplementationSHA256()
 	}
 	if config.strategy() == StrategySimulationExploration {
-		plan.SimulationExplorationImplementationSHA256 = simulationengine.ImplementationSHA256()
+		plan.SimulationExplorationImplementationSHA256 = exploration.SimulationImplementationSHA256()
 	}
 	if limit := ioTranscriptLimit(config); limit != record.DefaultIOTranscriptBytes {
 		plan.IOTranscriptBytes = record.Uint64String(limit)

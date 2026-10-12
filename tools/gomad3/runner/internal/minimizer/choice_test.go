@@ -8,7 +8,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
-	simulationengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation"
+	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
 )
 
 func TestChoiceModePreservesNativeControllerAndStateEncoding(t *testing.T) {
@@ -16,7 +16,7 @@ func TestChoiceModePreservesNativeControllerAndStateEncoding(t *testing.T) {
 		t.Fatal("native or versioned choice controller identity changed")
 	}
 	config := testConfig()
-	state, err := New(config, testCandidate(t, config, testForced(t, simulationengine.DimensionRuntime, 0)), 8)
+	state, err := New(config, testCandidate(t, config, testForced(t, exploration.DimensionRuntime, 0)), 8)
 	if err != nil {
 		t.Fatal(err)
 	}

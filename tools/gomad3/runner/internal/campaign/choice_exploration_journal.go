@@ -10,7 +10,7 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
-	choiceengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/choice"
+	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
 )
 
 const (
@@ -19,16 +19,16 @@ const (
 )
 
 type explorationPlan struct {
-	Schema              string              `json:"schema"`
-	Config              choiceengine.Config `json:"config"`
-	InitialStateSHA256  record.SHA256       `json:"initial_state_sha256"`
-	MaximumSegmentBytes record.Uint64String `json:"maximum_segment_bytes"`
+	Schema              string                   `json:"schema"`
+	Config              exploration.ChoiceConfig `json:"config"`
+	InitialStateSHA256  record.SHA256            `json:"initial_state_sha256"`
+	MaximumSegmentBytes record.Uint64String      `json:"maximum_segment_bytes"`
 }
 
 type ExplorationJournal struct {
 	ctx                 context.Context
 	batchPath           string
-	state               choiceengine.State
+	state               exploration.ChoiceState
 	maximumSegmentBytes uint64
 	runs                []ExecutionRecord
 	chainSHA256         record.SHA256
@@ -52,7 +52,7 @@ type explorationJournalDirectories struct {
 	partial     string
 }
 
-func NewExplorationJournal(ctx context.Context, batchPath string, initial choiceengine.State, maximumSegmentBytes uint64) (_ *ExplorationJournal, retErr error) {
+func NewExplorationJournal(ctx context.Context, batchPath string, initial exploration.ChoiceState, maximumSegmentBytes uint64) (_ *ExplorationJournal, retErr error) {
 	if ctx == nil {
 		ctx = context.Background()
 	}
@@ -66,15 +66,15 @@ func NewExplorationJournal(ctx context.Context, batchPath string, initial choice
 	if err := validatePrivateDirectory(batchPath, "exploration campaign"); err != nil {
 		return nil, err
 	}
-	expected, err := choiceengine.New(initial.Config)
+	expected, err := exploration.NewChoice(initial.Config)
 	if err != nil {
 		return nil, fmt.Errorf("validate initial exploration state: %w", err)
 	}
-	providedIdentity, err := choiceengine.StateSHA256(initial)
+	providedIdentity, err := exploration.ChoiceStateSHA256(initial)
 	if err != nil {
 		return nil, err
 	}
-	expectedIdentity, err := choiceengine.StateSHA256(expected)
+	expectedIdentity, err := exploration.ChoiceStateSHA256(expected)
 	if err != nil {
 		return nil, err
 	}
@@ -172,112 +172,112 @@ func (directories explorationJournalDirectories) remove(ctx context.Context, bat
 	return errors.Join(result, syncDirectoryContext(ctx, batchPath))
 }
 
-func ResumeExplorationJournal(ctx context.Context, batchPath string, config choiceengine.Config, maximumSegmentBytes uint64) (*ExplorationJournal, choiceengine.State, uint64, error) {
+func ResumeExplorationJournal(ctx context.Context, batchPath string, config exploration.ChoiceConfig, maximumSegmentBytes uint64) (*ExplorationJournal, exploration.ChoiceState, uint64, error) {
 	if ctx == nil {
 		ctx = context.Background()
 	}
 	batchPath, err := filepath.Abs(batchPath)
 	if err != nil {
-		return nil, choiceengine.State{}, 0, fmt.Errorf("resolve exploration campaign path: %w", err)
+		return nil, exploration.ChoiceState{}, 0, fmt.Errorf("resolve exploration campaign path: %w", err)
 	}
 	if err := validatePrivateDirectory(batchPath, "exploration campaign"); err != nil {
-		return nil, choiceengine.State{}, 0, err
+		return nil, exploration.ChoiceState{}, 0, err
 	}
 	planBytes, err := readExplorationFile(filepath.Join(batchPath, "choice-exploration", "plan.json"), maximumExplorationPlanBytes)
 	if err != nil {
-		return nil, choiceengine.State{}, 0, fmt.Errorf("read exploration plan: %w", err)
+		return nil, exploration.ChoiceState{}, 0, fmt.Errorf("read exploration plan: %w", err)
 	}
 	var plan explorationPlan
 	if err := canonicaljson.DecodeCanonicalJSON(planBytes, &plan); err != nil {
-		return nil, choiceengine.State{}, 0, fmt.Errorf("decode exploration plan: %w", err)
+		return nil, exploration.ChoiceState{}, 0, fmt.Errorf("decode exploration plan: %w", err)
 	}
 	if plan.Schema != explorationPlanSchema || plan.Config != config || uint64(plan.MaximumSegmentBytes) != maximumSegmentBytes || maximumSegmentBytes == 0 {
-		return nil, choiceengine.State{}, 0, errors.New("exploration plan identity or bounds changed")
+		return nil, exploration.ChoiceState{}, 0, errors.New("exploration plan identity or bounds changed")
 	}
-	state, err := choiceengine.New(config)
+	state, err := exploration.NewChoice(config)
 	if err != nil {
-		return nil, choiceengine.State{}, 0, err
+		return nil, exploration.ChoiceState{}, 0, err
 	}
-	initialIdentity, err := choiceengine.StateSHA256(state)
+	initialIdentity, err := exploration.ChoiceStateSHA256(state)
 	if err != nil || initialIdentity != plan.InitialStateSHA256 {
-		return nil, choiceengine.State{}, 0, errors.Join(errors.New("exploration initial state identity changed"), err)
+		return nil, exploration.ChoiceState{}, 0, errors.Join(errors.New("exploration initial state identity changed"), err)
 	}
 	roundsPath := filepath.Join(batchPath, "choice-exploration", "rounds")
 	if err := validatePrivateDirectory(roundsPath, "exploration rounds"); err != nil {
-		return nil, choiceengine.State{}, 0, err
+		return nil, exploration.ChoiceState{}, 0, err
 	}
 	entries, err := os.ReadDir(roundsPath)
 	if err != nil {
-		return nil, choiceengine.State{}, 0, fmt.Errorf("read exploration rounds: %w", err)
+		return nil, exploration.ChoiceState{}, 0, fmt.Errorf("read exploration rounds: %w", err)
 	}
 	if uint64(len(entries)) > config.MaxExecutions {
-		return nil, choiceengine.State{}, 0, errors.New("exploration round count exceeds its execution bound")
+		return nil, exploration.ChoiceState{}, 0, errors.New("exploration round count exceeds its execution bound")
 	}
 	journalRuns := []ExecutionRecord{}
 	chainSHA256 := initialIdentity
 	for index, entry := range entries {
 		name := fmt.Sprintf("%020d", index)
 		if entry.Name() != name {
-			return nil, choiceengine.State{}, 0, fmt.Errorf("exploration round sequence has a gap at %s", name)
+			return nil, exploration.ChoiceState{}, 0, fmt.Errorf("exploration round sequence has a gap at %s", name)
 		}
 		roundPath := filepath.Join(roundsPath, name)
 		if err := validateExplorationRoundDirectory(roundPath); err != nil {
-			return nil, choiceengine.State{}, 0, err
+			return nil, exploration.ChoiceState{}, 0, err
 		}
 		roundBytes, err := readExplorationFile(filepath.Join(roundPath, "round.json"), config.MaxExplorationBytes)
 		if err != nil {
-			return nil, choiceengine.State{}, 0, fmt.Errorf("read exploration round %d: %w", index, err)
+			return nil, exploration.ChoiceState{}, 0, fmt.Errorf("read exploration round %d: %w", index, err)
 		}
-		var storedRound choiceengine.Round
+		var storedRound exploration.ChoiceRound
 		if err := canonicaljson.DecodeCanonicalJSON(roundBytes, &storedRound); err != nil {
-			return nil, choiceengine.State{}, 0, fmt.Errorf("decode exploration round %d: %w", index, err)
+			return nil, exploration.ChoiceState{}, 0, fmt.Errorf("decode exploration round %d: %w", index, err)
 		}
 		expectedRound, ok := state.NextRound()
 		equal, equalErr := canonicalEqual(storedRound, expectedRound)
 		if equalErr != nil {
-			return nil, choiceengine.State{}, 0, fmt.Errorf("compare exploration round %d: %w", index, equalErr)
+			return nil, exploration.ChoiceState{}, 0, fmt.Errorf("compare exploration round %d: %w", index, equalErr)
 		}
 		if !ok || !equal {
-			return nil, choiceengine.State{}, 0, fmt.Errorf("exploration round %d does not match reconstructed state", index)
+			return nil, exploration.ChoiceState{}, 0, fmt.Errorf("exploration round %d does not match reconstructed state", index)
 		}
 		segmentBytes, err := readExplorationFile(filepath.Join(roundPath, "segment.json"), maximumSegmentBytes)
 		if err != nil {
-			return nil, choiceengine.State{}, 0, fmt.Errorf("read exploration segment %d: %w", index, err)
+			return nil, exploration.ChoiceState{}, 0, fmt.Errorf("read exploration segment %d: %w", index, err)
 		}
-		var segment choiceengine.RoundSegment
+		var segment exploration.ChoiceRoundSegment
 		if err := canonicaljson.DecodeCanonicalJSON(segmentBytes, &segment); err != nil {
-			return nil, choiceengine.State{}, 0, fmt.Errorf("decode exploration segment %d: %w", index, err)
+			return nil, exploration.ChoiceState{}, 0, fmt.Errorf("decode exploration segment %d: %w", index, err)
 		}
 		logicalStart := state.LogicalExecutions
-		state, err = choiceengine.ReplaySegment(state, segment)
+		state, err = exploration.ChoiceReplaySegment(state, segment)
 		if err != nil {
-			return nil, choiceengine.State{}, 0, fmt.Errorf("replay exploration segment %d: %w", index, err)
+			return nil, exploration.ChoiceState{}, 0, fmt.Errorf("replay exploration segment %d: %w", index, err)
 		}
 		chainSHA256 = segment.SHA256
 		roundRuns, err := readExplorationRoundExecutions(roundPath, len(storedRound.Candidates), maximumSegmentBytes)
 		if err != nil {
-			return nil, choiceengine.State{}, 0, fmt.Errorf("read exploration round %d execution records: %w", index, err)
+			return nil, exploration.ChoiceState{}, 0, fmt.Errorf("read exploration round %d execution records: %w", index, err)
 		}
 		if len(roundRuns) != 0 {
 			if err := validateExplorationRoundExecutions(storedRound, segment, roundRuns, logicalStart, config.BaseSeed); err != nil {
-				return nil, choiceengine.State{}, 0, fmt.Errorf("validate exploration round %d execution records: %w", index, err)
+				return nil, exploration.ChoiceState{}, 0, fmt.Errorf("validate exploration round %d execution records: %w", index, err)
 			}
 		}
 		journalRuns = append(journalRuns, roundRuns...)
 	}
 	recoveryExecutions, err := archiveIncompleteExploration(ctx, batchPath, state, config.MaxExplorationBytes)
 	if err != nil {
-		return nil, choiceengine.State{}, 0, err
+		return nil, exploration.ChoiceState{}, 0, err
 	}
 	journal := &ExplorationJournal{ctx: ctx, batchPath: batchPath, state: state, maximumSegmentBytes: maximumSegmentBytes, runs: journalRuns, chainSHA256: chainSHA256}
 	return journal, state, recoveryExecutions, nil
 }
 
-func (journal *ExplorationJournal) State() choiceengine.State {
+func (journal *ExplorationJournal) State() exploration.ChoiceState {
 	return journal.state
 }
 
-func (journal *ExplorationJournal) StageRound(round choiceengine.Round) (_ *ExplorationRoundJournal, retErr error) {
+func (journal *ExplorationJournal) StageRound(round exploration.ChoiceRound) (_ *ExplorationRoundJournal, retErr error) {
 	if journal == nil {
 		return nil, errors.New("exploration journal is required")
 	}
@@ -361,11 +361,11 @@ func (staged *ExplorationRoundJournal) RecordExecution(index int, run ExecutionR
 	return nil
 }
 
-func (journal *ExplorationJournal) CommitRound(staged *ExplorationRoundJournal, segment choiceengine.RoundSegment) error {
+func (journal *ExplorationJournal) CommitRound(staged *ExplorationRoundJournal, segment exploration.ChoiceRoundSegment) error {
 	if journal == nil || staged == nil || staged.journal != journal || staged.index != segment.Index {
 		return errors.New("exploration staged round does not match its segment")
 	}
-	next, err := choiceengine.ReplaySegment(journal.state, segment)
+	next, err := exploration.ChoiceReplaySegment(journal.state, segment)
 	if err != nil {
 		return fmt.Errorf("validate exploration segment before commit: %w", err)
 	}
@@ -425,7 +425,7 @@ func (journal *ExplorationJournal) ChainSHA256() record.SHA256 {
 	return journal.chainSHA256
 }
 
-func ValidatePublishedExploration(batchPath string, expectedSummary choiceengine.Summary, expectedImplementation, expectedChain record.SHA256, expectedRuns []ExecutionRecord) error {
+func ValidatePublishedExploration(batchPath string, expectedSummary exploration.ChoiceSummary, expectedImplementation, expectedChain record.SHA256, expectedRuns []ExecutionRecord) error {
 	planBytes, err := readExplorationFile(filepath.Join(batchPath, "choice-exploration", "plan.json"), maximumExplorationPlanBytes)
 	if err != nil {
 		return fmt.Errorf("read published exploration plan: %w", err)
@@ -434,14 +434,14 @@ func ValidatePublishedExploration(batchPath string, expectedSummary choiceengine
 	if err := canonicaljson.DecodeCanonicalJSON(planBytes, &plan); err != nil {
 		return fmt.Errorf("decode published exploration plan: %w", err)
 	}
-	if plan.Schema != explorationPlanSchema || plan.Config.ControllerSHA256 != expectedImplementation || expectedImplementation != choiceengine.ImplementationSHA256() || plan.MaximumSegmentBytes == 0 {
+	if plan.Schema != explorationPlanSchema || plan.Config.ControllerSHA256 != expectedImplementation || expectedImplementation != exploration.ChoiceImplementationSHA256() || plan.MaximumSegmentBytes == 0 {
 		return errors.New("published exploration plan identity is invalid")
 	}
-	state, err := choiceengine.New(plan.Config)
+	state, err := exploration.NewChoice(plan.Config)
 	if err != nil {
 		return err
 	}
-	initialIdentity, err := choiceengine.StateSHA256(state)
+	initialIdentity, err := exploration.ChoiceStateSHA256(state)
 	if err != nil || initialIdentity != plan.InitialStateSHA256 {
 		return errors.Join(errors.New("published exploration initial state identity changed"), err)
 	}
@@ -465,7 +465,7 @@ func ValidatePublishedExploration(batchPath string, expectedSummary choiceengine
 		if err != nil {
 			return err
 		}
-		var round choiceengine.Round
+		var round exploration.ChoiceRound
 		if err := canonicaljson.DecodeCanonicalJSON(roundBytes, &round); err != nil {
 			return err
 		}
@@ -478,12 +478,12 @@ func ValidatePublishedExploration(batchPath string, expectedSummary choiceengine
 		if err != nil {
 			return err
 		}
-		var segment choiceengine.RoundSegment
+		var segment exploration.ChoiceRoundSegment
 		if err := canonicaljson.DecodeCanonicalJSON(segmentBytes, &segment); err != nil {
 			return err
 		}
 		logicalStart := state.LogicalExecutions
-		state, err = choiceengine.ReplaySegment(state, segment)
+		state, err = exploration.ChoiceReplaySegment(state, segment)
 		if err != nil {
 			return err
 		}
@@ -549,7 +549,7 @@ func (staged *ExplorationRoundJournal) BeginExecution(ordinal, seed uint64) (*Ex
 	return run, nil
 }
 
-func archiveIncompleteExploration(ctx context.Context, batchPath string, state choiceengine.State, maximumRoundBytes uint64) (uint64, error) {
+func archiveIncompleteExploration(ctx context.Context, batchPath string, state exploration.ChoiceState, maximumRoundBytes uint64) (uint64, error) {
 	partialRoot := filepath.Join(batchPath, ".partial")
 	explorationRoot := filepath.Join(partialRoot, "choice-exploration")
 	if err := validatePrivateDirectory(explorationRoot, "partial exploration"); err != nil {
@@ -577,7 +577,7 @@ func archiveIncompleteExploration(ctx context.Context, batchPath string, state c
 	if err != nil {
 		return 0, fmt.Errorf("read partial exploration round: %w", err)
 	}
-	var round choiceengine.Round
+	var round exploration.ChoiceRound
 	if err := canonicaljson.DecodeCanonicalJSON(roundBytes, &round); err != nil {
 		return 0, fmt.Errorf("decode partial exploration round: %w", err)
 	}
@@ -614,18 +614,18 @@ func archiveIncompleteExploration(ctx context.Context, batchPath string, state c
 	return attempts, nil
 }
 
-func countExplorationAttempts(roundPath string, state choiceengine.State, round choiceengine.Round, maximumRoundBytes uint64) (uint64, error) {
+func countExplorationAttempts(roundPath string, state exploration.ChoiceState, round exploration.ChoiceRound, maximumRoundBytes uint64) (uint64, error) {
 	attemptsPath := filepath.Join(roundPath, "attempts")
 	if _, err := os.Lstat(attemptsPath); os.IsNotExist(err) {
 		segmentBytes, err := readExplorationFile(filepath.Join(roundPath, "segment.json"), maximumRoundBytes)
 		if err != nil {
 			return 0, fmt.Errorf("read cleaned partial exploration segment: %w", err)
 		}
-		var segment choiceengine.RoundSegment
+		var segment exploration.ChoiceRoundSegment
 		if err := canonicaljson.DecodeCanonicalJSON(segmentBytes, &segment); err != nil {
 			return 0, fmt.Errorf("decode cleaned partial exploration segment: %w", err)
 		}
-		if _, err := choiceengine.ReplaySegment(state, segment); err != nil || len(segment.Results) != len(round.Candidates) {
+		if _, err := exploration.ChoiceReplaySegment(state, segment); err != nil || len(segment.Results) != len(round.Candidates) {
 			return 0, errors.Join(errors.New("cleaned partial exploration segment is invalid"), err)
 		}
 		return uint64(len(round.Candidates)), nil
@@ -726,7 +726,7 @@ func readExplorationRoundExecutions(roundPath string, count int, maximumBytes ui
 	return runs, nil
 }
 
-func validateExplorationRoundExecutions(round choiceengine.Round, segment choiceengine.RoundSegment, runs []ExecutionRecord, logicalStart, baseSeed uint64) error {
+func validateExplorationRoundExecutions(round exploration.ChoiceRound, segment exploration.ChoiceRoundSegment, runs []ExecutionRecord, logicalStart, baseSeed uint64) error {
 	if len(runs) != len(round.Candidates) || len(runs) != len(segment.Results) {
 		return errors.New("exploration round execution records do not match its results")
 	}

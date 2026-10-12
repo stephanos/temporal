@@ -1,20 +1,19 @@
-package simulationrecord
+package exploration
 
 import (
 	"fmt"
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/record"
-	simulationengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation"
 )
 
 func TestPlanForCandidateEncodesCanonicalRootContract(t *testing.T) {
-	config := simulationengine.Config{
-		ExecutionSHA256: record.HashBytes([]byte("execution")), ControllerSHA256: simulationengine.ImplementationSHA256(), BaseSeed: 17,
+	config := SimulationConfig{
+		ExecutionSHA256: record.HashBytes([]byte("execution")), ControllerSHA256: SimulationImplementationSHA256(), BaseSeed: 17,
 		Parallel: 1, MaxExecutions: 2, MaxForcedDecisions: 1, MaxExplorationBytes: 1 << 20, MaxResultBytes: 1 << 20, FailureBudget: 1,
-		Limits: simulationengine.DimensionLimits{Runtime: 1, Scenario: 1, Network: 1, Storage: 1, Fault: 1, Crash: 1},
+		Limits: DimensionLimits{Runtime: 1, Scenario: 1, Network: 1, Storage: 1, Fault: 1, Crash: 1},
 	}
-	state, err := simulationengine.New(config)
+	state, err := NewSimulation(config)
 	if err != nil {
 		t.Fatal(err)
 	}

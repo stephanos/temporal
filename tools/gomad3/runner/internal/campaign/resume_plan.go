@@ -11,8 +11,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
-	choiceengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/choice"
-	simulationengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation"
+	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
 )
 
 const CampaignPlanSchema = "gomad3.campaign-plan/v1"
@@ -47,25 +46,25 @@ type CampaignShard struct {
 }
 
 type CampaignPlan struct {
-	Schema                                    string                           `json:"schema"`
-	PlanSHA256                                record.SHA256                    `json:"plan_sha256,omitempty"`
-	Shard                                     *CampaignShard                   `json:"shard,omitempty"`
-	Strategy                                  string                           `json:"strategy,omitempty"`
-	Selection                                 string                           `json:"selection"`
-	SelectionCount                            record.Uint64String              `json:"selection_count"`
-	Parallel                                  record.Uint64String              `json:"parallel"`
-	Journal                                   *ExecutionJournalPlan            `json:"journal,omitempty"`
-	Artifacts                                 *ArtifactCapacityPlan            `json:"artifacts,omitempty"`
-	MaxExecutions                             record.Uint64String              `json:"max_executions,omitempty"`
-	MaxChoiceDepth                            record.Uint64String              `json:"max_choice_depth,omitempty"`
-	ChoiceStartOrdinal                        record.Uint64String              `json:"choice_start_ordinal,omitempty"`
-	MaxForcedDecisions                        record.Uint64String              `json:"max_forced_decisions,omitempty"`
-	MaxExplorationBytes                       record.Uint64String              `json:"max_exploration_bytes,omitempty"`
-	MaxExplorationResultBytes                 record.Uint64String              `json:"max_exploration_result_bytes,omitempty"`
-	SimulationDimensionLimits                 simulationengine.DimensionLimits `json:"simulation_dimension_limits,omitempty"`
-	ChoiceExplorationImplementationSHA256     record.SHA256                    `json:"choice_exploration_implementation_sha256,omitempty"`
-	SimulationExplorationImplementationSHA256 record.SHA256                    `json:"simulation_exploration_implementation_sha256,omitempty"`
-	ExecutionTimeoutNanos                     record.Uint64String              `json:"execution_timeout_nanos"`
+	Schema                                    string                      `json:"schema"`
+	PlanSHA256                                record.SHA256               `json:"plan_sha256,omitempty"`
+	Shard                                     *CampaignShard              `json:"shard,omitempty"`
+	Strategy                                  string                      `json:"strategy,omitempty"`
+	Selection                                 string                      `json:"selection"`
+	SelectionCount                            record.Uint64String         `json:"selection_count"`
+	Parallel                                  record.Uint64String         `json:"parallel"`
+	Journal                                   *ExecutionJournalPlan       `json:"journal,omitempty"`
+	Artifacts                                 *ArtifactCapacityPlan       `json:"artifacts,omitempty"`
+	MaxExecutions                             record.Uint64String         `json:"max_executions,omitempty"`
+	MaxChoiceDepth                            record.Uint64String         `json:"max_choice_depth,omitempty"`
+	ChoiceStartOrdinal                        record.Uint64String         `json:"choice_start_ordinal,omitempty"`
+	MaxForcedDecisions                        record.Uint64String         `json:"max_forced_decisions,omitempty"`
+	MaxExplorationBytes                       record.Uint64String         `json:"max_exploration_bytes,omitempty"`
+	MaxExplorationResultBytes                 record.Uint64String         `json:"max_exploration_result_bytes,omitempty"`
+	SimulationDimensionLimits                 exploration.DimensionLimits `json:"simulation_dimension_limits,omitempty"`
+	ChoiceExplorationImplementationSHA256     record.SHA256               `json:"choice_exploration_implementation_sha256,omitempty"`
+	SimulationExplorationImplementationSHA256 record.SHA256               `json:"simulation_exploration_implementation_sha256,omitempty"`
+	ExecutionTimeoutNanos                     record.Uint64String         `json:"execution_timeout_nanos"`
 	// IOTranscriptBytes is absent for the default transcript bound, so plans
 	// that never raised it keep their bytes.
 	IOTranscriptBytes      record.Uint64String        `json:"io_transcript_bytes,omitempty"`
@@ -245,11 +244,11 @@ func validateCampaignPlan(plan CampaignPlan) error {
 			return fmt.Errorf("seed campaign plan contains exploration bounds")
 		}
 	case "choice-exploration":
-		if plan.SelectionCount != 1 || plan.MaxExecutions == 0 || plan.MaxChoiceDepth == 0 || plan.MaxExplorationBytes == 0 || plan.MaxForcedDecisions != 0 || plan.MaxExplorationResultBytes != 0 || plan.SimulationDimensionLimits != (simulationengine.DimensionLimits{}) || plan.Guidance != nil || plan.ChoiceProfile == nil || plan.ChoiceExplorationImplementationSHA256 != choiceengine.ImplementationSHA256() || plan.SimulationExplorationImplementationSHA256 != "" {
+		if plan.SelectionCount != 1 || plan.MaxExecutions == 0 || plan.MaxChoiceDepth == 0 || plan.MaxExplorationBytes == 0 || plan.MaxForcedDecisions != 0 || plan.MaxExplorationResultBytes != 0 || plan.SimulationDimensionLimits != (exploration.DimensionLimits{}) || plan.Guidance != nil || plan.ChoiceProfile == nil || plan.ChoiceExplorationImplementationSHA256 != exploration.ChoiceImplementationSHA256() || plan.SimulationExplorationImplementationSHA256 != "" {
 			return fmt.Errorf("choice-exploration campaign plan is invalid")
 		}
 	case "simulation-exploration":
-		if plan.SelectionCount != 1 || plan.MaxExecutions == 0 || plan.MaxChoiceDepth != 0 || plan.ChoiceStartOrdinal != 0 || plan.MaxForcedDecisions == 0 || plan.MaxExplorationBytes == 0 || plan.MaxExplorationResultBytes == 0 || plan.Guidance != nil || plan.ChoiceProfile == nil || plan.ChoiceExplorationImplementationSHA256 != "" || plan.SimulationExplorationImplementationSHA256 != simulationengine.ImplementationSHA256() || !validSimulationDimensionLimits(plan.SimulationDimensionLimits) {
+		if plan.SelectionCount != 1 || plan.MaxExecutions == 0 || plan.MaxChoiceDepth != 0 || plan.ChoiceStartOrdinal != 0 || plan.MaxForcedDecisions == 0 || plan.MaxExplorationBytes == 0 || plan.MaxExplorationResultBytes == 0 || plan.Guidance != nil || plan.ChoiceProfile == nil || plan.ChoiceExplorationImplementationSHA256 != "" || plan.SimulationExplorationImplementationSHA256 != exploration.SimulationImplementationSHA256() || !validSimulationDimensionLimits(plan.SimulationDimensionLimits) {
 			return fmt.Errorf("simulation-exploration campaign plan is invalid")
 		}
 	default:
@@ -351,10 +350,10 @@ func validateCampaignPlan(plan CampaignPlan) error {
 }
 
 func hasCampaignPlanExplorationFields(plan CampaignPlan) bool {
-	return plan.MaxExecutions != 0 || plan.MaxChoiceDepth != 0 || plan.ChoiceStartOrdinal != 0 || plan.MaxForcedDecisions != 0 || plan.MaxExplorationBytes != 0 || plan.MaxExplorationResultBytes != 0 || plan.SimulationDimensionLimits != (simulationengine.DimensionLimits{}) || plan.ChoiceExplorationImplementationSHA256 != "" || plan.SimulationExplorationImplementationSHA256 != ""
+	return plan.MaxExecutions != 0 || plan.MaxChoiceDepth != 0 || plan.ChoiceStartOrdinal != 0 || plan.MaxForcedDecisions != 0 || plan.MaxExplorationBytes != 0 || plan.MaxExplorationResultBytes != 0 || plan.SimulationDimensionLimits != (exploration.DimensionLimits{}) || plan.ChoiceExplorationImplementationSHA256 != "" || plan.SimulationExplorationImplementationSHA256 != ""
 }
 
-func validSimulationDimensionLimits(limits simulationengine.DimensionLimits) bool {
+func validSimulationDimensionLimits(limits exploration.DimensionLimits) bool {
 	return limits.Runtime != 0 && limits.Scenario != 0 && limits.Network != 0 && limits.Storage != 0 && limits.Fault != 0 && limits.Crash != 0
 }
 

@@ -19,8 +19,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
-	simulationengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation"
-	simulationrecord "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulationrecord"
+	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
@@ -587,30 +586,30 @@ func providerForcedSimulationArtifact(t *testing.T, provider *strategyRegression
 	if err != nil {
 		t.Fatal(err)
 	}
-	config := simulationengine.Config{ExecutionSHA256: profile.ExecutionSHA256, ControllerSHA256: profile.ControllerSHA256,
+	config := exploration.SimulationConfig{ExecutionSHA256: profile.ExecutionSHA256, ControllerSHA256: profile.ControllerSHA256,
 		BaseSeed: uint64(manifest.Seed), Parallel: 1, MaxExecutions: 4, MaxForcedDecisions: 2,
 		MaxExplorationBytes: 1 << 20, MaxResultBytes: 1 << 20, FailureBudget: 4,
-		Limits: simulationengine.DimensionLimits{Runtime: 2, Scenario: 2, Network: 2, Storage: 2, Fault: 2, Crash: 2}}
-	rootCandidate, err := simulationengine.CanonicalCandidate(config, nil, "")
+		Limits: exploration.DimensionLimits{Runtime: 2, Scenario: 2, Network: 2, Storage: 2, Fault: 2, Crash: 2}}
+	rootCandidate, err := exploration.CanonicalCandidate(config, nil, "")
 	if err != nil {
 		t.Fatal(err)
 	}
 	if rootCandidate.SHA256 != profile.CandidateSHA256 {
 		t.Fatal("fixture root candidate identity changed")
 	}
-	rootResult, err := simulationrecord.ResultForRecord(config, rootCandidate, observedRecord, nil)
+	rootResult, err := exploration.ResultForRecord(config, rootCandidate, observedRecord, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	forced, err := simulationengine.ForceDecision(rootResult.Decisions[0], 1)
+	forced, err := exploration.ForceDecision(rootResult.Decisions[0], 1)
 	if err != nil {
 		t.Fatal(err)
 	}
-	candidate, err := simulationengine.CanonicalCandidate(config, []simulationengine.ForcedDecision{forced}, rootCandidate.SHA256)
+	candidate, err := exploration.CanonicalCandidate(config, []exploration.ForcedDecision{forced}, rootCandidate.SHA256)
 	if err != nil {
 		t.Fatal(err)
 	}
-	execution, err := simulationrecord.ExecutionForCandidate(config, candidate, capability.ExecutionIdentity)
+	execution, err := exploration.ExecutionForCandidate(config, candidate, capability.ExecutionIdentity)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -621,7 +620,7 @@ func providerForcedSimulationArtifact(t *testing.T, provider *strategyRegression
 	if err != nil {
 		t.Fatal(err)
 	}
-	retained, err := simulationrecord.ProjectArtifact(config, candidate, execution.SimulationPlan, observed.SimulationRecords[0], nil, uint64(profile.Record.Limit))
+	retained, err := exploration.ProjectArtifact(config, candidate, execution.SimulationPlan, observed.SimulationRecords[0], nil, uint64(profile.Record.Limit))
 	if err != nil {
 		t.Fatal(err)
 	}

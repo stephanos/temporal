@@ -4,16 +4,16 @@ import (
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/record"
-	simulationengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation"
+	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
 )
 
 func TestStateReducesScheduleAndFaultEntriesDeterministically(t *testing.T) {
 	config := testConfig()
 	original := testCandidate(t, config,
-		testForced(t, simulationengine.DimensionRuntime, 0),
-		testForced(t, simulationengine.DimensionRuntime, 1),
-		testForced(t, simulationengine.DimensionFault, 0),
-		testForced(t, simulationengine.DimensionFault, 1),
+		testForced(t, exploration.DimensionRuntime, 0),
+		testForced(t, exploration.DimensionRuntime, 1),
+		testForced(t, exploration.DimensionFault, 0),
+		testForced(t, exploration.DimensionFault, 1),
 	)
 	state, err := New(config, original, 32)
 	if err != nil {
@@ -27,7 +27,7 @@ func TestStateReducesScheduleAndFaultEntriesDeterministically(t *testing.T) {
 		if !ok {
 			break
 		}
-		accepted := hasOverride(attempt.Candidate, simulationengine.DimensionRuntime, 0) && hasOverride(attempt.Candidate, simulationengine.DimensionFault, 0)
+		accepted := hasOverride(attempt.Candidate, exploration.DimensionRuntime, 0) && hasOverride(attempt.Candidate, exploration.DimensionFault, 0)
 		state, err = Commit(state, attempt, accepted)
 		if err != nil {
 			t.Fatal(err)
@@ -37,7 +37,7 @@ func TestStateReducesScheduleAndFaultEntriesDeterministically(t *testing.T) {
 	if state.StopReason != StopMinimal || state.Attempts == 0 || len(state.Accepted) != 2 {
 		t.Fatalf("minimizer state = %#v", state)
 	}
-	if len(state.Current.Overrides) != 2 || !hasOverride(state.Current, simulationengine.DimensionRuntime, 0) || !hasOverride(state.Current, simulationengine.DimensionFault, 0) {
+	if len(state.Current.Overrides) != 2 || !hasOverride(state.Current, exploration.DimensionRuntime, 0) || !hasOverride(state.Current, exploration.DimensionFault, 0) {
 		t.Fatalf("minimized candidate = %#v", state.Current)
 	}
 	if state.Accepted[0].Kind != ReductionScheduleSuffix || state.Accepted[1].Kind != ReductionFaultEntries {
@@ -51,8 +51,8 @@ func TestStateReducesScheduleAndFaultEntriesDeterministically(t *testing.T) {
 func TestStateStopsAtAttemptBudgetAndRoundTrips(t *testing.T) {
 	config := testConfig()
 	original := testCandidate(t, config,
-		testForced(t, simulationengine.DimensionRuntime, 0),
-		testForced(t, simulationengine.DimensionFault, 0),
+		testForced(t, exploration.DimensionRuntime, 0),
+		testForced(t, exploration.DimensionFault, 0),
 	)
 	state, err := New(config, original, 1)
 	if err != nil {
@@ -73,7 +73,7 @@ func TestStateStopsAtAttemptBudgetAndRoundTrips(t *testing.T) {
 
 func TestValidateRejectsInvalidConfigWithSelfConsistentStateIdentity(t *testing.T) {
 	config := testConfig()
-	state, err := New(config, testCandidate(t, config, testForced(t, simulationengine.DimensionRuntime, 0)), 2)
+	state, err := New(config, testCandidate(t, config, testForced(t, exploration.DimensionRuntime, 0)), 2)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -89,7 +89,7 @@ func TestValidateRejectsInvalidConfigWithSelfConsistentStateIdentity(t *testing.
 
 func TestCloneStateDoesNotAliasNestedControlsOrReductions(t *testing.T) {
 	config := testConfig()
-	forced := testForced(t, simulationengine.DimensionRuntime, 0)
+	forced := testForced(t, exploration.DimensionRuntime, 0)
 	state, err := New(config, testCandidate(t, config, forced), 2)
 	if err != nil {
 		t.Fatal(err)
@@ -107,22 +107,22 @@ func TestCloneStateDoesNotAliasNestedControlsOrReductions(t *testing.T) {
 	}
 }
 
-func testConfig() simulationengine.Config {
-	return simulationengine.Config{
-		ExecutionSHA256: record.HashBytes([]byte("execution")), ControllerSHA256: simulationengine.ImplementationSHA256(), BaseSeed: 7,
+func testConfig() exploration.SimulationConfig {
+	return exploration.SimulationConfig{
+		ExecutionSHA256: record.HashBytes([]byte("execution")), ControllerSHA256: exploration.SimulationImplementationSHA256(), BaseSeed: 7,
 		Parallel: 1, MaxExecutions: 16, MaxForcedDecisions: 16, MaxExplorationBytes: 1 << 20, MaxResultBytes: 1 << 20, FailureBudget: 1,
-		Limits: simulationengine.DimensionLimits{Runtime: 16, Scenario: 16, Network: 16, Storage: 16, Fault: 16, Crash: 16},
+		Limits: exploration.DimensionLimits{Runtime: 16, Scenario: 16, Network: 16, Storage: 16, Fault: 16, Crash: 16},
 	}
 }
 
-func testForced(t *testing.T, dimension simulationengine.Dimension, ordinal uint64) simulationengine.ForcedDecision {
+func testForced(t *testing.T, dimension exploration.Dimension, ordinal uint64) exploration.ForcedDecision {
 	t.Helper()
-	forced, err := simulationengine.CanonicalForcedDecision(simulationengine.ForcedDecision{
+	forced, err := exploration.CanonicalForcedDecision(exploration.ForcedDecision{
 		Dimension: dimension, Ordinal: ordinal, SiteSHA256: record.HashBytes([]byte(string(dimension) + "-site")),
 		Alternatives: 2, AlternativeSetSHA256: record.HashBytes([]byte(string(dimension) + "-alternatives")),
 		Selected: 1, SelectedSHA256: record.HashBytes([]byte(string(dimension) + "-selected")),
 		Control: func() []byte {
-			if dimension == simulationengine.DimensionRuntime {
+			if dimension == exploration.DimensionRuntime {
 				return []byte{byte(ordinal + 1)}
 			}
 			return nil
@@ -134,16 +134,16 @@ func testForced(t *testing.T, dimension simulationengine.Dimension, ordinal uint
 	return forced
 }
 
-func testCandidate(t *testing.T, config simulationengine.Config, overrides ...simulationengine.ForcedDecision) simulationengine.Candidate {
+func testCandidate(t *testing.T, config exploration.SimulationConfig, overrides ...exploration.ForcedDecision) exploration.SimulationCandidate {
 	t.Helper()
-	candidate, err := simulationengine.CanonicalCandidate(config, overrides, "")
+	candidate, err := exploration.CanonicalCandidate(config, overrides, "")
 	if err != nil {
 		t.Fatal(err)
 	}
 	return candidate
 }
 
-func hasOverride(candidate simulationengine.Candidate, dimension simulationengine.Dimension, ordinal uint64) bool {
+func hasOverride(candidate exploration.SimulationCandidate, dimension exploration.Dimension, ordinal uint64) bool {
 	for _, override := range candidate.Overrides {
 		if override.Dimension == dimension && override.Ordinal == ordinal {
 			return true

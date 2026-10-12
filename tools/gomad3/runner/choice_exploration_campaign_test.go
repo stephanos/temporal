@@ -20,7 +20,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
-	choiceengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/choice"
+	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
@@ -182,7 +182,7 @@ func TestProcessExplorationCompletionKeepsRunnerDomainFallback(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	state, err := choiceengine.New(choiceengine.Config{Execution: identity, ControllerSHA256: choiceengine.ImplementationSHA256(), BaseSeed: 7, Parallel: 1, MaxExecutions: 8, MaxChoiceDepth: 4, MaxExplorationBytes: 1 << 20, FailurePolicy: choiceengine.PolicyAll, FailureBudget: 1})
+	state, err := exploration.NewChoice(exploration.ChoiceConfig{Execution: identity, ControllerSHA256: exploration.ChoiceImplementationSHA256(), BaseSeed: 7, Parallel: 1, MaxExecutions: 8, MaxChoiceDepth: 4, MaxExplorationBytes: 1 << 20, FailurePolicy: exploration.PolicyAll, FailureBudget: 1})
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -29,7 +29,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
-	simulationengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation"
+	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
 	"go.temporal.io/server/tools/gomad3/target"
 	"go.temporal.io/server/tools/gomad3/world"
 )
@@ -1001,8 +1001,8 @@ func (executor *simulationExplorationExecutor) Run(_ context.Context, request ba
 	var plan struct {
 		BaseSeed  uint64 `json:"base_seed"`
 		Overrides []struct {
-			Dimension simulationengine.Dimension `json:"dimension"`
-			Selected  uint32                     `json:"selected"`
+			Dimension exploration.Dimension `json:"dimension"`
+			Selected  uint32                `json:"selected"`
 		} `json:"overrides"`
 	}
 	if err := json.Unmarshal(request.Simulation.ExplorationPlan, &plan); err != nil {
@@ -1010,7 +1010,7 @@ func (executor *simulationExplorationExecutor) Run(_ context.Context, request ba
 	}
 	selected := uint32(0)
 	for _, override := range plan.Overrides {
-		if override.Dimension == simulationengine.DimensionScenario {
+		if override.Dimension == exploration.DimensionScenario {
 			selected = override.Selected
 		}
 	}
@@ -1019,8 +1019,8 @@ func (executor *simulationExplorationExecutor) Run(_ context.Context, request ba
 	for index, scenario := range scenarios {
 		alternatives[index] = record.HashBytes([]byte(scenario))
 	}
-	decision, err := simulationengine.CanonicalDecision(
-		simulationengine.DimensionScenario, 0, record.HashBytes([]byte("route")), alternatives, selected,
+	decision, err := exploration.CanonicalDecision(
+		exploration.DimensionScenario, 0, record.HashBytes([]byte("route")), alternatives, selected,
 	)
 	if err != nil {
 		return backend.ExecutionResult{}, err
@@ -1030,19 +1030,19 @@ func (executor *simulationExplorationExecutor) Run(_ context.Context, request ba
 		outcome = "oracle_failed"
 	}
 	record, err := json.Marshal(struct {
-		Schema               string                      `json:"schema"`
-		Seed                 uint64                      `json:"seed"`
-		SpecSHA256           record.SHA256               `json:"spec_sha256"`
-		Outcome              string                      `json:"outcome"`
-		FailureIdentity      record.SHA256               `json:"failure_identity,omitempty"`
-		ExplorationPlan      json.RawMessage             `json:"exploration_plan"`
-		ExplorationDecisions []simulationengine.Decision `json:"exploration_decisions"`
-		ScenarioTape         []string                    `json:"scenario_tape"`
-		Identity             record.SHA256               `json:"identity"`
+		Schema               string                 `json:"schema"`
+		Seed                 uint64                 `json:"seed"`
+		SpecSHA256           record.SHA256          `json:"spec_sha256"`
+		Outcome              string                 `json:"outcome"`
+		FailureIdentity      record.SHA256          `json:"failure_identity,omitempty"`
+		ExplorationPlan      json.RawMessage        `json:"exploration_plan"`
+		ExplorationDecisions []exploration.Decision `json:"exploration_decisions"`
+		ScenarioTape         []string               `json:"scenario_tape"`
+		Identity             record.SHA256          `json:"identity"`
 	}{
 		Schema: "gomad3.cluster-record/v7", Seed: plan.BaseSeed, SpecSHA256: record.HashBytes([]byte("spec")), Outcome: outcome,
 		FailureIdentity: record.HashBytes([]byte("normalized oracle failure")),
-		ExplorationPlan: request.Simulation.ExplorationPlan, ExplorationDecisions: []simulationengine.Decision{decision},
+		ExplorationPlan: request.Simulation.ExplorationPlan, ExplorationDecisions: []exploration.Decision{decision},
 		ScenarioTape: []string{scenarios[selected]}, Identity: record.HashBytes([]byte(fmt.Sprintf("record-%d", selected))),
 	})
 	if err != nil {

@@ -12,8 +12,7 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
-	choiceengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/choice"
-	simulationengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation"
+	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
 )
 
 type Campaign struct {
@@ -139,8 +138,8 @@ func validateCampaign(batch CampaignRecord, runs []ExecutionRecord, executionByt
 	combinedEvidence := batch.SimulationExploration != nil || batch.SimulationExplorationImplementationSHA256 != "" || batch.SimulationExplorationChainSHA256 != ""
 	if batch.Strategy != "seed" && batch.Strategy != "choice-exploration" && batch.Strategy != "simulation-exploration" ||
 		batch.Strategy == "seed" && (choiceEvidence || combinedEvidence) ||
-		batch.Strategy == "choice-exploration" && (batch.ChoiceExploration == nil || batch.ChoiceExplorationImplementationSHA256 != choiceengine.ImplementationSHA256() || !validRecordSHA256(batch.ChoiceExplorationChainSHA256) || combinedEvidence) ||
-		batch.Strategy == "simulation-exploration" && (batch.SimulationExploration == nil || batch.SimulationExplorationImplementationSHA256 != simulationengine.ImplementationSHA256() || !validRecordSHA256(batch.SimulationExplorationChainSHA256) || choiceEvidence) {
+		batch.Strategy == "choice-exploration" && (batch.ChoiceExploration == nil || batch.ChoiceExplorationImplementationSHA256 != exploration.ChoiceImplementationSHA256() || !validRecordSHA256(batch.ChoiceExplorationChainSHA256) || combinedEvidence) ||
+		batch.Strategy == "simulation-exploration" && (batch.SimulationExploration == nil || batch.SimulationExplorationImplementationSHA256 != exploration.SimulationImplementationSHA256() || !validRecordSHA256(batch.SimulationExplorationChainSHA256) || choiceEvidence) {
 		return fmt.Errorf("campaign strategy evidence is invalid")
 	}
 	if batch.ReplayDivergences != 0 && batch.Strategy != "choice-exploration" {

@@ -10,7 +10,7 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
-	simulationengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation"
+	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
 )
 
 const (
@@ -19,16 +19,16 @@ const (
 )
 
 type simulationExplorationPlan struct {
-	Schema              string                  `json:"schema"`
-	Config              simulationengine.Config `json:"config"`
-	InitialStateSHA256  record.SHA256           `json:"initial_state_sha256"`
-	MaximumSegmentBytes record.Uint64String     `json:"maximum_segment_bytes"`
+	Schema              string                       `json:"schema"`
+	Config              exploration.SimulationConfig `json:"config"`
+	InitialStateSHA256  record.SHA256                `json:"initial_state_sha256"`
+	MaximumSegmentBytes record.Uint64String          `json:"maximum_segment_bytes"`
 }
 
 type SimulationExplorationJournal struct {
 	ctx                 context.Context
 	batchPath           string
-	state               simulationengine.State
+	state               exploration.SimulationState
 	maximumSegmentBytes uint64
 	runs                []ExecutionRecord
 	chainSHA256         record.SHA256
@@ -43,10 +43,10 @@ type SimulationExplorationRoundJournal struct {
 }
 
 type SimulationExplorationInspection struct {
-	Summary              simulationengine.Summary
+	Summary              exploration.SimulationSummary
 	ImplementationSHA256 record.SHA256
 	ChainSHA256          record.SHA256
-	Pending              []simulationengine.Candidate
+	Pending              []exploration.SimulationCandidate
 	StagedRound          *SimulationExplorationStagedRound
 }
 
@@ -58,7 +58,7 @@ type SimulationExplorationStagedRound struct {
 
 type reconstructedSimulationExploration struct {
 	plan         simulationExplorationPlan
-	state        simulationengine.State
+	state        exploration.SimulationState
 	runs         []ExecutionRecord
 	chainSHA256  record.SHA256
 	completeRuns bool
@@ -82,7 +82,7 @@ func InspectSimulationExploration(batchPath string) (SimulationExplorationInspec
 	}
 	return SimulationExplorationInspection{
 		Summary: reconstructed.state.Summary(), ImplementationSHA256: reconstructed.plan.Config.ControllerSHA256,
-		ChainSHA256: reconstructed.chainSHA256, Pending: append([]simulationengine.Candidate(nil), reconstructed.state.Queue...), StagedRound: staged,
+		ChainSHA256: reconstructed.chainSHA256, Pending: append([]exploration.SimulationCandidate(nil), reconstructed.state.Queue...), StagedRound: staged,
 	}, nil
 }
 
@@ -99,11 +99,11 @@ func reconstructSimulationExploration(batchPath string) (reconstructedSimulation
 	if plan.Schema != simulationExplorationPlanSchema || plan.MaximumSegmentBytes == 0 {
 		return reconstructedSimulationExploration{}, errors.New("simulation exploration plan identity or bounds are invalid")
 	}
-	state, err := simulationengine.New(plan.Config)
+	state, err := exploration.NewSimulation(plan.Config)
 	if err != nil {
 		return reconstructedSimulationExploration{}, err
 	}
-	initialIdentity, err := simulationengine.StateSHA256(state)
+	initialIdentity, err := exploration.SimulationStateSHA256(state)
 	if err != nil || initialIdentity != plan.InitialStateSHA256 {
 		return reconstructedSimulationExploration{}, errors.Join(errors.New("simulation exploration initial state identity changed"), err)
 	}
@@ -134,7 +134,7 @@ func reconstructSimulationExploration(batchPath string) (reconstructedSimulation
 		if err != nil {
 			return reconstructedSimulationExploration{}, fmt.Errorf("read simulation exploration round %d: %w", index, err)
 		}
-		var storedRound simulationengine.Round
+		var storedRound exploration.SimulationRound
 		if err := canonicaljson.DecodeCanonicalJSON(roundBytes, &storedRound); err != nil {
 			return reconstructedSimulationExploration{}, fmt.Errorf("decode simulation exploration round %d: %w", index, err)
 		}
@@ -147,12 +147,12 @@ func reconstructSimulationExploration(batchPath string) (reconstructedSimulation
 		if err != nil {
 			return reconstructedSimulationExploration{}, fmt.Errorf("read simulation exploration segment %d: %w", index, err)
 		}
-		var segment simulationengine.RoundSegment
+		var segment exploration.SimulationRoundSegment
 		if err := canonicaljson.DecodeCanonicalJSON(segmentBytes, &segment); err != nil {
 			return reconstructedSimulationExploration{}, fmt.Errorf("decode simulation exploration segment %d: %w", index, err)
 		}
 		logicalStart := state.LogicalExecutions
-		state, err = simulationengine.ReplaySegment(state, segment)
+		state, err = exploration.SimulationReplaySegment(state, segment)
 		if err != nil {
 			return reconstructedSimulationExploration{}, fmt.Errorf("replay simulation exploration segment %d: %w", index, err)
 		}
@@ -173,7 +173,7 @@ func reconstructSimulationExploration(batchPath string) (reconstructedSimulation
 	return reconstructedSimulationExploration{plan: plan, state: state, runs: journalRuns, chainSHA256: chainSHA256, completeRuns: completeRuns}, nil
 }
 
-func NewSimulationExplorationJournal(ctx context.Context, batchPath string, initial simulationengine.State, maximumSegmentBytes uint64) (_ *SimulationExplorationJournal, retErr error) {
+func NewSimulationExplorationJournal(ctx context.Context, batchPath string, initial exploration.SimulationState, maximumSegmentBytes uint64) (_ *SimulationExplorationJournal, retErr error) {
 	if ctx == nil {
 		ctx = context.Background()
 	}
@@ -187,15 +187,15 @@ func NewSimulationExplorationJournal(ctx context.Context, batchPath string, init
 	if err := validatePrivateDirectory(batchPath, "simulation exploration campaign"); err != nil {
 		return nil, err
 	}
-	expected, err := simulationengine.New(initial.Config)
+	expected, err := exploration.NewSimulation(initial.Config)
 	if err != nil {
 		return nil, fmt.Errorf("validate initial simulation exploration state: %w", err)
 	}
-	providedIdentity, err := simulationengine.StateSHA256(initial)
+	providedIdentity, err := exploration.SimulationStateSHA256(initial)
 	if err != nil {
 		return nil, err
 	}
-	expectedIdentity, err := simulationengine.StateSHA256(expected)
+	expectedIdentity, err := exploration.SimulationStateSHA256(expected)
 	if err != nil {
 		return nil, err
 	}
@@ -243,92 +243,92 @@ func NewSimulationExplorationJournal(ctx context.Context, batchPath string, init
 	}, nil
 }
 
-func ResumeSimulationExplorationJournal(ctx context.Context, batchPath string, config simulationengine.Config, maximumSegmentBytes uint64) (*SimulationExplorationJournal, simulationengine.State, uint64, error) {
+func ResumeSimulationExplorationJournal(ctx context.Context, batchPath string, config exploration.SimulationConfig, maximumSegmentBytes uint64) (*SimulationExplorationJournal, exploration.SimulationState, uint64, error) {
 	if ctx == nil {
 		ctx = context.Background()
 	}
 	batchPath, err := filepath.Abs(batchPath)
 	if err != nil {
-		return nil, simulationengine.State{}, 0, fmt.Errorf("resolve simulation exploration campaign path: %w", err)
+		return nil, exploration.SimulationState{}, 0, fmt.Errorf("resolve simulation exploration campaign path: %w", err)
 	}
 	if err := validatePrivateDirectory(batchPath, "simulation exploration campaign"); err != nil {
-		return nil, simulationengine.State{}, 0, err
+		return nil, exploration.SimulationState{}, 0, err
 	}
 	explorationPath := filepath.Join(batchPath, "simulation-exploration")
 	planBytes, err := readExplorationFile(filepath.Join(explorationPath, "plan.json"), maximumSimulationExplorationPlanBytes)
 	if err != nil {
-		return nil, simulationengine.State{}, 0, fmt.Errorf("read simulation exploration plan: %w", err)
+		return nil, exploration.SimulationState{}, 0, fmt.Errorf("read simulation exploration plan: %w", err)
 	}
 	var plan simulationExplorationPlan
 	if err := canonicaljson.DecodeCanonicalJSON(planBytes, &plan); err != nil {
-		return nil, simulationengine.State{}, 0, fmt.Errorf("decode simulation exploration plan: %w", err)
+		return nil, exploration.SimulationState{}, 0, fmt.Errorf("decode simulation exploration plan: %w", err)
 	}
 	if plan.Schema != simulationExplorationPlanSchema || plan.Config != config || uint64(plan.MaximumSegmentBytes) != maximumSegmentBytes || maximumSegmentBytes == 0 {
-		return nil, simulationengine.State{}, 0, errors.New("simulation exploration plan identity or bounds changed")
+		return nil, exploration.SimulationState{}, 0, errors.New("simulation exploration plan identity or bounds changed")
 	}
-	state, err := simulationengine.New(config)
+	state, err := exploration.NewSimulation(config)
 	if err != nil {
-		return nil, simulationengine.State{}, 0, err
+		return nil, exploration.SimulationState{}, 0, err
 	}
-	initialIdentity, err := simulationengine.StateSHA256(state)
+	initialIdentity, err := exploration.SimulationStateSHA256(state)
 	if err != nil || initialIdentity != plan.InitialStateSHA256 {
-		return nil, simulationengine.State{}, 0, errors.Join(errors.New("simulation exploration initial state identity changed"), err)
+		return nil, exploration.SimulationState{}, 0, errors.Join(errors.New("simulation exploration initial state identity changed"), err)
 	}
 	roundsPath := filepath.Join(explorationPath, "rounds")
 	if err := validatePrivateDirectory(roundsPath, "simulation exploration rounds"); err != nil {
-		return nil, simulationengine.State{}, 0, err
+		return nil, exploration.SimulationState{}, 0, err
 	}
 	entries, err := os.ReadDir(roundsPath)
 	if err != nil {
-		return nil, simulationengine.State{}, 0, fmt.Errorf("read simulation exploration rounds: %w", err)
+		return nil, exploration.SimulationState{}, 0, fmt.Errorf("read simulation exploration rounds: %w", err)
 	}
 	if uint64(len(entries)) > config.MaxExecutions {
-		return nil, simulationengine.State{}, 0, errors.New("simulation exploration round count exceeds its execution bound")
+		return nil, exploration.SimulationState{}, 0, errors.New("simulation exploration round count exceeds its execution bound")
 	}
 	chainSHA256 := initialIdentity
 	journalRuns := []ExecutionRecord{}
 	for index, entry := range entries {
 		name := fmt.Sprintf("%020d", index)
 		if entry.Name() != name {
-			return nil, simulationengine.State{}, 0, fmt.Errorf("simulation exploration round sequence has a gap at %s", name)
+			return nil, exploration.SimulationState{}, 0, fmt.Errorf("simulation exploration round sequence has a gap at %s", name)
 		}
 		roundPath := filepath.Join(roundsPath, name)
 		if err := validateSimulationExplorationRoundDirectory(roundPath, true); err != nil {
-			return nil, simulationengine.State{}, 0, err
+			return nil, exploration.SimulationState{}, 0, err
 		}
 		roundBytes, err := readExplorationFile(filepath.Join(roundPath, "round.json"), config.MaxExplorationBytes)
 		if err != nil {
-			return nil, simulationengine.State{}, 0, fmt.Errorf("read simulation exploration round %d: %w", index, err)
+			return nil, exploration.SimulationState{}, 0, fmt.Errorf("read simulation exploration round %d: %w", index, err)
 		}
-		var storedRound simulationengine.Round
+		var storedRound exploration.SimulationRound
 		if err := canonicaljson.DecodeCanonicalJSON(roundBytes, &storedRound); err != nil {
-			return nil, simulationengine.State{}, 0, fmt.Errorf("decode simulation exploration round %d: %w", index, err)
+			return nil, exploration.SimulationState{}, 0, fmt.Errorf("decode simulation exploration round %d: %w", index, err)
 		}
 		expectedRound, ok := state.NextRound()
 		equal, equalErr := canonicalEqual(storedRound, expectedRound)
 		if equalErr != nil || !ok || !equal {
-			return nil, simulationengine.State{}, 0, errors.Join(fmt.Errorf("simulation exploration round %d does not match reconstructed state", index), equalErr)
+			return nil, exploration.SimulationState{}, 0, errors.Join(fmt.Errorf("simulation exploration round %d does not match reconstructed state", index), equalErr)
 		}
 		segmentBytes, err := readExplorationFile(filepath.Join(roundPath, "segment.json"), maximumSegmentBytes)
 		if err != nil {
-			return nil, simulationengine.State{}, 0, fmt.Errorf("read simulation exploration segment %d: %w", index, err)
+			return nil, exploration.SimulationState{}, 0, fmt.Errorf("read simulation exploration segment %d: %w", index, err)
 		}
-		var segment simulationengine.RoundSegment
+		var segment exploration.SimulationRoundSegment
 		if err := canonicaljson.DecodeCanonicalJSON(segmentBytes, &segment); err != nil {
-			return nil, simulationengine.State{}, 0, fmt.Errorf("decode simulation exploration segment %d: %w", index, err)
+			return nil, exploration.SimulationState{}, 0, fmt.Errorf("decode simulation exploration segment %d: %w", index, err)
 		}
 		logicalStart := state.LogicalExecutions
-		state, err = simulationengine.ReplaySegment(state, segment)
+		state, err = exploration.SimulationReplaySegment(state, segment)
 		if err != nil {
-			return nil, simulationengine.State{}, 0, fmt.Errorf("replay simulation exploration segment %d: %w", index, err)
+			return nil, exploration.SimulationState{}, 0, fmt.Errorf("replay simulation exploration segment %d: %w", index, err)
 		}
 		runs, err := readExplorationRoundExecutions(roundPath, len(storedRound.Candidates), maximumSegmentBytes)
 		if err != nil {
-			return nil, simulationengine.State{}, 0, fmt.Errorf("read simulation exploration execution records %d: %w", index, err)
+			return nil, exploration.SimulationState{}, 0, fmt.Errorf("read simulation exploration execution records %d: %w", index, err)
 		}
 		if len(runs) != 0 {
 			if err := validateSimulationExplorationRoundExecutions(storedRound, segment, runs, logicalStart, config.BaseSeed); err != nil {
-				return nil, simulationengine.State{}, 0, fmt.Errorf("validate simulation exploration execution records %d: %w", index, err)
+				return nil, exploration.SimulationState{}, 0, fmt.Errorf("validate simulation exploration execution records %d: %w", index, err)
 			}
 			journalRuns = append(journalRuns, runs...)
 		}
@@ -336,7 +336,7 @@ func ResumeSimulationExplorationJournal(ctx context.Context, batchPath string, c
 	}
 	recoveryExecutions, err := discardIncompleteSimulationExplorationRound(ctx, batchPath, state)
 	if err != nil {
-		return nil, simulationengine.State{}, 0, err
+		return nil, exploration.SimulationState{}, 0, err
 	}
 	journal := &SimulationExplorationJournal{
 		ctx: ctx, batchPath: batchPath, state: state, maximumSegmentBytes: maximumSegmentBytes, runs: journalRuns, chainSHA256: chainSHA256,
@@ -344,9 +344,9 @@ func ResumeSimulationExplorationJournal(ctx context.Context, batchPath string, c
 	return journal, state, recoveryExecutions, nil
 }
 
-func (journal *SimulationExplorationJournal) State() simulationengine.State {
+func (journal *SimulationExplorationJournal) State() exploration.SimulationState {
 	if journal == nil {
-		return simulationengine.State{}
+		return exploration.SimulationState{}
 	}
 	return journal.state
 }
@@ -358,7 +358,7 @@ func (journal *SimulationExplorationJournal) ChainSHA256() record.SHA256 {
 	return journal.chainSHA256
 }
 
-func ValidatePublishedSimulationExploration(batchPath string, expectedSummary simulationengine.Summary, expectedImplementation, expectedChain record.SHA256, expectedRuns []ExecutionRecord) error {
+func ValidatePublishedSimulationExploration(batchPath string, expectedSummary exploration.SimulationSummary, expectedImplementation, expectedChain record.SHA256, expectedRuns []ExecutionRecord) error {
 	planBytes, err := readExplorationFile(filepath.Join(batchPath, "simulation-exploration", "plan.json"), maximumSimulationExplorationPlanBytes)
 	if err != nil {
 		return fmt.Errorf("read published simulation exploration plan: %w", err)
@@ -367,14 +367,14 @@ func ValidatePublishedSimulationExploration(batchPath string, expectedSummary si
 	if err := canonicaljson.DecodeCanonicalJSON(planBytes, &plan); err != nil {
 		return fmt.Errorf("decode published simulation exploration plan: %w", err)
 	}
-	if plan.Schema != simulationExplorationPlanSchema || plan.Config.ControllerSHA256 != expectedImplementation || expectedImplementation != simulationengine.ImplementationSHA256() || plan.MaximumSegmentBytes == 0 {
+	if plan.Schema != simulationExplorationPlanSchema || plan.Config.ControllerSHA256 != expectedImplementation || expectedImplementation != exploration.SimulationImplementationSHA256() || plan.MaximumSegmentBytes == 0 {
 		return errors.New("published simulation exploration plan identity is invalid")
 	}
-	state, err := simulationengine.New(plan.Config)
+	state, err := exploration.NewSimulation(plan.Config)
 	if err != nil {
 		return err
 	}
-	initialIdentity, err := simulationengine.StateSHA256(state)
+	initialIdentity, err := exploration.SimulationStateSHA256(state)
 	if err != nil || initialIdentity != plan.InitialStateSHA256 {
 		return errors.Join(errors.New("published simulation exploration initial state identity changed"), err)
 	}
@@ -398,7 +398,7 @@ func ValidatePublishedSimulationExploration(batchPath string, expectedSummary si
 		if err != nil {
 			return err
 		}
-		var round simulationengine.Round
+		var round exploration.SimulationRound
 		if err := canonicaljson.DecodeCanonicalJSON(roundBytes, &round); err != nil {
 			return err
 		}
@@ -411,12 +411,12 @@ func ValidatePublishedSimulationExploration(batchPath string, expectedSummary si
 		if err != nil {
 			return err
 		}
-		var segment simulationengine.RoundSegment
+		var segment exploration.SimulationRoundSegment
 		if err := canonicaljson.DecodeCanonicalJSON(segmentBytes, &segment); err != nil {
 			return err
 		}
 		logicalStart := state.LogicalExecutions
-		state, err = simulationengine.ReplaySegment(state, segment)
+		state, err = exploration.SimulationReplaySegment(state, segment)
 		if err != nil {
 			return err
 		}
@@ -450,7 +450,7 @@ func ValidatePublishedSimulationExploration(batchPath string, expectedSummary si
 	return nil
 }
 
-func (journal *SimulationExplorationJournal) StageRound(round simulationengine.Round) (_ *SimulationExplorationRoundJournal, retErr error) {
+func (journal *SimulationExplorationJournal) StageRound(round exploration.SimulationRound) (_ *SimulationExplorationRoundJournal, retErr error) {
 	if journal == nil {
 		return nil, errors.New("simulation exploration journal is required")
 	}
@@ -537,11 +537,11 @@ func (staged *SimulationExplorationRoundJournal) RecordExecution(index int, run 
 	return nil
 }
 
-func (journal *SimulationExplorationJournal) CommitRound(staged *SimulationExplorationRoundJournal, segment simulationengine.RoundSegment) error {
+func (journal *SimulationExplorationJournal) CommitRound(staged *SimulationExplorationRoundJournal, segment exploration.SimulationRoundSegment) error {
 	if journal == nil || staged == nil || staged.journal != journal || staged.index != segment.Index {
 		return errors.New("simulation exploration staged round does not match its segment")
 	}
-	next, err := simulationengine.ReplaySegment(journal.state, segment)
+	next, err := exploration.SimulationReplaySegment(journal.state, segment)
 	if err != nil {
 		return fmt.Errorf("validate simulation exploration segment before commit: %w", err)
 	}
@@ -659,7 +659,7 @@ func validateSimulationExplorationRoundDirectory(path string, complete bool) err
 	return nil
 }
 
-func validateSimulationExplorationRoundExecutions(round simulationengine.Round, segment simulationengine.RoundSegment, runs []ExecutionRecord, logicalStart, baseSeed uint64) error {
+func validateSimulationExplorationRoundExecutions(round exploration.SimulationRound, segment exploration.SimulationRoundSegment, runs []ExecutionRecord, logicalStart, baseSeed uint64) error {
 	if len(runs) != len(round.Candidates) || len(runs) != len(segment.Results) {
 		return errors.New("simulation exploration round execution records do not match its results")
 	}
@@ -677,7 +677,7 @@ func validateSimulationExplorationRoundExecutions(round simulationengine.Round, 
 	return nil
 }
 
-func inspectIncompleteSimulationExplorationRound(batchPath string, state simulationengine.State) (*SimulationExplorationStagedRound, error) {
+func inspectIncompleteSimulationExplorationRound(batchPath string, state exploration.SimulationState) (*SimulationExplorationStagedRound, error) {
 	partialPath := filepath.Join(batchPath, ".partial", "simulation-exploration")
 	if err := validatePrivateDirectory(partialPath, "partial simulation exploration"); err != nil {
 		return nil, err
@@ -705,7 +705,7 @@ func inspectIncompleteSimulationExplorationRound(batchPath string, state simulat
 	if err != nil {
 		return nil, err
 	}
-	var round simulationengine.Round
+	var round exploration.SimulationRound
 	if err := canonicaljson.DecodeCanonicalJSON(roundBytes, &round); err != nil {
 		return nil, err
 	}
@@ -720,7 +720,7 @@ func inspectIncompleteSimulationExplorationRound(batchPath string, state simulat
 	return &SimulationExplorationStagedRound{Index: round.Index, Candidates: uint64(len(round.Candidates)), Attempted: attempts}, nil
 }
 
-func discardIncompleteSimulationExplorationRound(ctx context.Context, batchPath string, state simulationengine.State) (uint64, error) {
+func discardIncompleteSimulationExplorationRound(ctx context.Context, batchPath string, state exploration.SimulationState) (uint64, error) {
 	staged, err := inspectIncompleteSimulationExplorationRound(batchPath, state)
 	if err != nil || staged == nil {
 		return 0, err
@@ -736,7 +736,7 @@ func discardIncompleteSimulationExplorationRound(ctx context.Context, batchPath 
 	return staged.Attempted, nil
 }
 
-func countSimulationExplorationAttempts(roundPath string, state simulationengine.State, round simulationengine.Round) (uint64, error) {
+func countSimulationExplorationAttempts(roundPath string, state exploration.SimulationState, round exploration.SimulationRound) (uint64, error) {
 	attemptsPath := filepath.Join(roundPath, "attempts")
 	if err := validatePrivateDirectory(attemptsPath, "partial simulation exploration attempts"); err != nil {
 		return 0, err

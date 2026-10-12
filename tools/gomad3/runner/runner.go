@@ -20,8 +20,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
-	choiceengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/choice"
-	simulationengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation"
+	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
 	"go.temporal.io/server/tools/gomad3/target"
 	"go.temporal.io/server/tools/gomad3/world"
 )
@@ -1068,7 +1067,7 @@ func cloneSimulationExplorationSummary(summary *SimulationExplorationSummary) *S
 	return &cloned
 }
 
-func projectChoiceExplorationSummary(summary choiceengine.Summary) ChoiceExplorationSummary {
+func projectChoiceExplorationSummary(summary exploration.ChoiceSummary) ChoiceExplorationSummary {
 	return ChoiceExplorationSummary{
 		Parallel: summary.Parallel, MaxExecutions: summary.MaxExecutions, MaxChoiceDepth: summary.MaxChoiceDepth, StartOrdinal: summary.StartOrdinal,
 		MaxExplorationBytes: summary.MaxExplorationBytes, LogicalExecutions: summary.LogicalExecutions,
@@ -1080,7 +1079,7 @@ func projectChoiceExplorationSummary(summary choiceengine.Summary) ChoiceExplora
 	}
 }
 
-func projectChoiceExplorationSummaryPointer(summary *choiceengine.Summary) *ChoiceExplorationSummary {
+func projectChoiceExplorationSummaryPointer(summary *exploration.ChoiceSummary) *ChoiceExplorationSummary {
 	if summary == nil {
 		return nil
 	}
@@ -1088,7 +1087,7 @@ func projectChoiceExplorationSummaryPointer(summary *choiceengine.Summary) *Choi
 	return &projected
 }
 
-func projectSimulationExplorationSummary(summary simulationengine.Summary) SimulationExplorationSummary {
+func projectSimulationExplorationSummary(summary exploration.SimulationSummary) SimulationExplorationSummary {
 	return SimulationExplorationSummary{
 		Parallel: summary.Parallel, MaxExecutions: summary.MaxExecutions, MaxForcedDecisions: summary.MaxForcedDecisions,
 		MaxExplorationBytes: summary.MaxExplorationBytes, MaxResultBytes: summary.MaxResultBytes, FailureBudget: summary.FailureBudget,
@@ -1101,7 +1100,7 @@ func projectSimulationExplorationSummary(summary simulationengine.Summary) Simul
 	}
 }
 
-func projectSimulationExplorationSummaryPointer(summary *simulationengine.Summary) *SimulationExplorationSummary {
+func projectSimulationExplorationSummaryPointer(summary *exploration.SimulationSummary) *SimulationExplorationSummary {
 	if summary == nil {
 		return nil
 	}

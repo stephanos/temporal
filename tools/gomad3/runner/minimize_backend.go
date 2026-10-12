@@ -8,10 +8,10 @@ import (
 	execution "go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/record"
-	simulationengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation"
+	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
 )
 
-func (session *minimizationSession) evaluateBackendChoice(ctx context.Context, candidate simulationengine.Candidate) (minimizationTrial, error) {
+func (session *minimizationSession) evaluateBackendChoice(ctx context.Context, candidate exploration.SimulationCandidate) (minimizationTrial, error) {
 	manifest := session.opened.Manifest()
 	capability := &execution.ChoiceCapability{Mode: choice.ModeRecord, Profile: choice.Profile,
 		ImplementationSHA256: session.choiceIdentity.ImplementationSHA256, ExecutionIdentity: session.choiceIdentity, Limit: uint64(manifest.Limits.ChoiceTraceBytes)}

@@ -15,15 +15,14 @@ import (
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
-	simulationengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation"
-	simulationrecord "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulationrecord"
+	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
 const combinedExplorationRecordLimit = uint64(128 << 20)
 
 type simulationExplorationRoundResult struct {
-	result simulationengine.Result
+	result exploration.SimulationResult
 	run    campaign.ExecutionRecord
 }
 
@@ -62,13 +61,13 @@ func runSimulationExplorationLocal(
 	if config.OnFailure == PolicyAll {
 		failureBudget = config.MaxExecutions
 	}
-	explorationConfig := simulationengine.Config{
-		ExecutionSHA256: executionSHA256, ControllerSHA256: simulationengine.ImplementationSHA256(), BaseSeed: baseSeed,
+	explorationConfig := exploration.SimulationConfig{
+		ExecutionSHA256: executionSHA256, ControllerSHA256: exploration.SimulationImplementationSHA256(), BaseSeed: baseSeed,
 		Parallel: config.Parallel, MaxExecutions: config.MaxExecutions, MaxForcedDecisions: config.MaxForcedDecisions,
 		MaxExplorationBytes: config.MaxExplorationBytes, MaxResultBytes: config.MaxExplorationResultBytes,
-		FailureBudget: failureBudget, Limits: simulationengine.DimensionLimits(config.SimulationDimensionLimits),
+		FailureBudget: failureBudget, Limits: exploration.DimensionLimits(config.SimulationDimensionLimits),
 	}
-	state, err := simulationengine.New(explorationConfig)
+	state, err := exploration.NewSimulation(explorationConfig)
 	if err != nil {
 		return &HostError{Reason: "simulation_exploration_setup", Err: err}
 	}
@@ -139,7 +138,7 @@ func runSimulationExplorationLocal(
 		roundDistinct := cloneFailurePaths(distinct)
 		roundProbes := cloneStringSet(semanticProbes)
 		roundChoiceFeatures := cloneStringSet(choiceFeatures)
-		results := make([]simulationengine.Result, len(round.Candidates))
+		results := make([]exploration.SimulationResult, len(round.Candidates))
 		runs := make([]campaign.ExecutionRecord, len(round.Candidates))
 		for index, completion := range completions {
 			processed, err := processSimulationExplorationCompletion(
@@ -155,7 +154,7 @@ func runSimulationExplorationLocal(
 				return &HostError{Reason: "simulation_exploration_stage", Err: err}
 			}
 		}
-		next, segment, err := simulationengine.CommitRound(state, round, results)
+		next, segment, err := exploration.CommitSimulationRound(state, round, results)
 		if err != nil {
 			return &HostError{Reason: "simulation_exploration_commit", Err: err}
 		}
@@ -214,7 +213,7 @@ func runSimulationExplorationLocal(
 		Attempted: summary.Attempted, Succeeded: summary.Succeeded, Failures: summary.Failures, Watchdogs: summary.Watchdogs,
 		Cancelled: summary.Cancelled, DistinctFailures: summary.DistinctFailures, RetainedSuccesses: summary.RetainedSuccesses,
 		RetainedSuccessBytes: summary.RetainedSuccessBytes, StopReason: string(summary.StopReason), FailureSignatures: failureSignatures,
-		SimulationExploration: &combinedSummary, SimulationExplorationImplementationSHA256: simulationengine.ImplementationSHA256(),
+		SimulationExploration: &combinedSummary, SimulationExplorationImplementationSHA256: exploration.SimulationImplementationSHA256(),
 		SimulationExplorationChainSHA256: explorationJournal.ChainSHA256(), RecoveryExecutions: summary.RecoveryExecutions,
 	}); err != nil {
 		return &HostError{Reason: "campaign_publish", Err: err}
@@ -234,8 +233,8 @@ func executeSimulationExplorationRound(
 	profile backend.Description,
 	readOnlyMounts []captured.Mapping,
 	staged *campaign.SimulationExplorationRoundJournal,
-	state simulationengine.State,
-	round simulationengine.Round,
+	state exploration.SimulationState,
+	round exploration.SimulationRound,
 	choiceIdentity choice.ExecutionIdentity,
 	reportProgress func(CampaignPhase, int) error,
 ) ([]runCompletion, error) {
@@ -244,7 +243,7 @@ func executeSimulationExplorationRound(
 	completionChannel := make(chan runCompletion, len(round.Candidates))
 	startOrdinal := state.LogicalExecutions
 	for index, candidate := range round.Candidates {
-		candidateExecution, err := simulationrecord.ExecutionForCandidate(state.Config, candidate, choiceIdentity)
+		candidateExecution, err := exploration.ExecutionForCandidate(state.Config, candidate, choiceIdentity)
 		if err != nil {
 			return nil, &HostError{Reason: "simulation_exploration_control", Err: err}
 		}
@@ -288,8 +287,8 @@ func processSimulationExplorationCompletion(
 	runID string,
 	batchPath string,
 	staged *campaign.SimulationExplorationRoundJournal,
-	state simulationengine.State,
-	round simulationengine.Round,
+	state exploration.SimulationState,
+	round exploration.SimulationRound,
 	index int,
 	completion runCompletion,
 	choiceIdentity choice.ExecutionIdentity,
@@ -324,20 +323,20 @@ func processSimulationExplorationCompletion(
 	completion.result.ChoiceTrace.TapeSHA256 = tape.SHA256
 	completion.result.ChoiceTrace.Decisions = uint64(len(tape.Decisions))
 	summary.ChoiceTrace = choiceTraceSummary(completion.job.seed, completion.result.ChoiceTrace)
-	runtimeDecisions, err := simulationrecord.RuntimeDecisions(tape)
+	runtimeDecisions, err := exploration.RuntimeDecisions(tape)
 	if err != nil {
 		return simulationExplorationRoundResult{}, &HostError{Reason: "simulation_exploration_runtime", Err: err}
 	}
 	if len(completion.result.SimulationRecords) != 1 {
 		return simulationExplorationRoundResult{}, &HostError{Reason: "simulation_exploration_record", Err: fmt.Errorf("simulation exploration records = %d, want 1", len(completion.result.SimulationRecords))}
 	}
-	explorationResult, err := simulationrecord.ResultForRecord(state.Config, candidate, completion.result.SimulationRecords[0], runtimeDecisions)
+	explorationResult, err := exploration.ResultForRecord(state.Config, candidate, completion.result.SimulationRecords[0], runtimeDecisions)
 	if err != nil {
 		return simulationExplorationRoundResult{}, &HostError{Reason: "simulation_exploration_record", Err: err}
 	}
 	simulationPlan := []byte(completion.job.simulationPlan)
 	simulationRecord := completion.result.SimulationRecords[0]
-	simulationProfile, err := simulationrecord.ProjectArtifact(
+	simulationProfile, err := exploration.ProjectArtifact(
 		state.Config, candidate, simulationPlan, simulationRecord, runtimeDecisions, completion.job.simulationRecordLimit,
 	)
 	if err != nil {

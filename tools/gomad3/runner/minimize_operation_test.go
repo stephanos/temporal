@@ -19,7 +19,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
 	"go.temporal.io/server/tools/gomad3/record"
-	simulationengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation"
+	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
 	"go.temporal.io/server/tools/gomad3/runner/internal/minimizer"
 	"go.temporal.io/server/tools/gomad3/target"
 )
@@ -463,7 +463,7 @@ func (executor *minimizationExecutor) Run(_ context.Context, request backend.Exe
 	}
 	var retained struct {
 		Overrides []struct {
-			Dimension simulationengine.Dimension `json:"dimension"`
+			Dimension exploration.Dimension `json:"dimension"`
 		} `json:"overrides"`
 	}
 	if err := json.Unmarshal(request.Simulation.ExplorationPlan, &retained); err != nil {
@@ -472,33 +472,33 @@ func (executor *minimizationExecutor) Run(_ context.Context, request backend.Exe
 	hasRuntime := false
 	hasFault := false
 	for _, override := range retained.Overrides {
-		hasRuntime = hasRuntime || override.Dimension == simulationengine.DimensionRuntime
-		hasFault = hasFault || override.Dimension == simulationengine.DimensionFault
+		hasRuntime = hasRuntime || override.Dimension == exploration.DimensionRuntime
+		hasFault = hasFault || override.Dimension == exploration.DimensionFault
 	}
 	failure := record.HashBytes([]byte("different failure"))
 	if hasRuntime {
 		failure = record.HashBytes([]byte("normalized replay failure"))
 	}
-	var decisions []simulationengine.Decision
+	var decisions []exploration.Decision
 	if hasFault {
-		fault, decisionErr := simulationengine.CanonicalDecision(
-			simulationengine.DimensionFault, 0, record.HashBytes([]byte("fault site")),
+		fault, decisionErr := exploration.CanonicalDecision(
+			exploration.DimensionFault, 0, record.HashBytes([]byte("fault site")),
 			[]record.SHA256{record.HashBytes([]byte("no fault")), record.HashBytes([]byte("drop"))}, 1,
 		)
 		if decisionErr != nil {
 			return backend.ExecutionResult{}, decisionErr
 		}
-		decisions = []simulationengine.Decision{fault}
+		decisions = []exploration.Decision{fault}
 	}
 	record, err := json.Marshal(struct {
-		Schema               string                      `json:"schema"`
-		Seed                 uint64                      `json:"seed"`
-		SpecSHA256           record.SHA256               `json:"spec_sha256"`
-		Outcome              string                      `json:"outcome"`
-		FailureIdentity      record.SHA256               `json:"failure_identity"`
-		ExplorationPlan      json.RawMessage             `json:"exploration_plan"`
-		ExplorationDecisions []simulationengine.Decision `json:"exploration_decisions,omitempty"`
-		Identity             record.SHA256               `json:"identity"`
+		Schema               string                 `json:"schema"`
+		Seed                 uint64                 `json:"seed"`
+		SpecSHA256           record.SHA256          `json:"spec_sha256"`
+		Outcome              string                 `json:"outcome"`
+		FailureIdentity      record.SHA256          `json:"failure_identity"`
+		ExplorationPlan      json.RawMessage        `json:"exploration_plan"`
+		ExplorationDecisions []exploration.Decision `json:"exploration_decisions,omitempty"`
+		Identity             record.SHA256          `json:"identity"`
 	}{
 		Schema: "gomad3.cluster-record/v7", Seed: 7, SpecSHA256: record.HashBytes([]byte("simulation spec")),
 		Outcome: "oracle_failed", FailureIdentity: failure, ExplorationPlan: request.Simulation.ExplorationPlan,

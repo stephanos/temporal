@@ -1,4 +1,4 @@
-package simulation
+package exploration
 
 import (
 	"slices"
@@ -9,9 +9,9 @@ import (
 )
 
 func TestSimulationExplorationExpandsEveryDimensionBreadthFirstAndDeduplicatesEvidenceOnly(t *testing.T) {
-	config := testConfig()
+	config := simulationTestConfig()
 	config.Parallel = 16
-	state, err := New(config)
+	state, err := NewSimulation(config)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -20,15 +20,15 @@ func TestSimulationExplorationExpandsEveryDimensionBreadthFirstAndDeduplicatesEv
 		t.Fatalf("root round = %#v, ok=%t", root, ok)
 	}
 	decisions := []Decision{
-		testDecision(t, DimensionRuntime, 0, 2, 0),
-		testDecision(t, DimensionScenario, 0, 3, 1),
-		testDecision(t, DimensionNetwork, 0, 2, 0),
-		testDecision(t, DimensionStorage, 0, 2, 0),
-		testDecision(t, DimensionFault, 0, 2, 1),
-		testDecision(t, DimensionCrash, 0, 2, 1),
+		simulationTestDecision(t, DimensionRuntime, 0, 2, 0),
+		simulationTestDecision(t, DimensionScenario, 0, 3, 1),
+		simulationTestDecision(t, DimensionNetwork, 0, 2, 0),
+		simulationTestDecision(t, DimensionStorage, 0, 2, 0),
+		simulationTestDecision(t, DimensionFault, 0, 2, 1),
+		simulationTestDecision(t, DimensionCrash, 0, 2, 1),
 	}
 	sharedOutcome := record.HashBytes([]byte("shared outcome"))
-	state, _, err = CommitRound(state, root, []Result{{
+	state, _, err = CommitSimulationRound(state, root, []SimulationResult{{
 		CandidateSHA256: root.Candidates[0].SHA256,
 		OutcomeSHA256:   sharedOutcome,
 		Decisions:       decisions,
@@ -50,16 +50,16 @@ func TestSimulationExplorationExpandsEveryDimensionBreadthFirstAndDeduplicatesEv
 	if !ok || len(next.Candidates) != 7 {
 		t.Fatalf("next round = %#v, ok=%t", next, ok)
 	}
-	results := make([]Result, len(next.Candidates))
+	results := make([]SimulationResult, len(next.Candidates))
 	for index, candidate := range next.Candidates {
 		childDecisions := append([]Decision(nil), decisions...)
 		if index == 0 {
-			childDecisions = append(childDecisions, testDecision(t, DimensionStorage, 1, 2, 0))
+			childDecisions = append(childDecisions, simulationTestDecision(t, DimensionStorage, 1, 2, 0))
 		}
 		childDecisions = forceObservedSelections(childDecisions, candidate.Overrides)
-		results[index] = Result{CandidateSHA256: candidate.SHA256, OutcomeSHA256: sharedOutcome, Decisions: childDecisions}
+		results[index] = SimulationResult{CandidateSHA256: candidate.SHA256, OutcomeSHA256: sharedOutcome, Decisions: childDecisions}
 	}
-	state, _, err = CommitRound(state, next, results)
+	state, _, err = CommitSimulationRound(state, next, results)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -75,13 +75,13 @@ func TestSimulationExplorationExpandsEveryDimensionBreadthFirstAndDeduplicatesEv
 }
 
 func TestSimulationExplorationRejectsUnprovenForcedDecisionUnlessCandidateDiverged(t *testing.T) {
-	state, err := New(testConfig())
+	state, err := NewSimulation(simulationTestConfig())
 	if err != nil {
 		t.Fatal(err)
 	}
 	root, _ := state.NextRound()
-	decision := testDecision(t, DimensionScenario, 0, 2, 0)
-	state, _, err = CommitRound(state, root, []Result{{
+	decision := simulationTestDecision(t, DimensionScenario, 0, 2, 0)
+	state, _, err = CommitSimulationRound(state, root, []SimulationResult{{
 		CandidateSHA256: root.Candidates[0].SHA256,
 		OutcomeSHA256:   record.HashBytes([]byte("root")),
 		Decisions:       []Decision{decision},
@@ -93,13 +93,13 @@ func TestSimulationExplorationRejectsUnprovenForcedDecisionUnlessCandidateDiverg
 	if len(child.Candidates) != 1 {
 		t.Fatalf("child round = %#v", child)
 	}
-	if _, _, err := CommitRound(state, child, []Result{{
+	if _, _, err := CommitSimulationRound(state, child, []SimulationResult{{
 		CandidateSHA256: child.Candidates[0].SHA256,
 		OutcomeSHA256:   record.HashBytes([]byte("missing override")),
 	}}); err == nil {
 		t.Fatal("CommitRound() accepted a result that did not prove its forced decision")
 	}
-	if _, _, err := CommitRound(state, child, []Result{{
+	if _, _, err := CommitSimulationRound(state, child, []SimulationResult{{
 		CandidateSHA256: child.Candidates[0].SHA256,
 		OutcomeSHA256:   record.HashBytes([]byte("typed divergence")),
 		Diverged:        true,
@@ -111,45 +111,47 @@ func TestSimulationExplorationRejectsUnprovenForcedDecisionUnlessCandidateDiverg
 func TestSimulationExplorationEnforcesDimensionDepthRunAndByteBounds(t *testing.T) {
 	for _, test := range []struct {
 		name      string
-		configure func(*Config, State)
+		configure func(*SimulationConfig, SimulationState)
 		decision  func(*testing.T) Decision
-		want      StopReason
-		omitted   func(Summary) uint64
+		want      SimulationStopReason
+		omitted   func(SimulationSummary) uint64
 	}{
 		{
-			name: "executions", configure: func(config *Config, _ State) { config.MaxExecutions = 1 },
-			decision: func(t *testing.T) Decision { return testDecision(t, DimensionRuntime, 0, 2, 0) },
-			want:     StopMaxExecutions, omitted: func(summary Summary) uint64 { return summary.OmittedByExecutionBound },
+			name: "executions", configure: func(config *SimulationConfig, _ SimulationState) { config.MaxExecutions = 1 },
+			decision: func(t *testing.T) Decision { return simulationTestDecision(t, DimensionRuntime, 0, 2, 0) },
+			want:     SimulationStopMaxExecutions, omitted: func(summary SimulationSummary) uint64 { return summary.OmittedByExecutionBound },
 		},
 		{
-			name: "combined depth", configure: func(config *Config, _ State) { config.MaxForcedDecisions = 0 },
-			decision: func(t *testing.T) Decision { return testDecision(t, DimensionRuntime, 0, 2, 0) },
-			want:     StopDepthComplete, omitted: func(summary Summary) uint64 { return summary.OmittedByDepth },
+			name: "combined depth", configure: func(config *SimulationConfig, _ SimulationState) { config.MaxForcedDecisions = 0 },
+			decision: func(t *testing.T) Decision { return simulationTestDecision(t, DimensionRuntime, 0, 2, 0) },
+			want:     SimulationStopDepthComplete, omitted: func(summary SimulationSummary) uint64 { return summary.OmittedByDepth },
 		},
 		{
-			name: "dimension", configure: func(config *Config, _ State) { config.Limits.Runtime = 1 },
-			decision: func(t *testing.T) Decision { return testDecision(t, DimensionRuntime, 1, 2, 0) },
-			want:     StopDimensionComplete, omitted: func(summary Summary) uint64 { return summary.OmittedByDimension },
+			name: "dimension", configure: func(config *SimulationConfig, _ SimulationState) { config.Limits.Runtime = 1 },
+			decision: func(t *testing.T) Decision { return simulationTestDecision(t, DimensionRuntime, 1, 2, 0) },
+			want:     SimulationStopDimensionComplete, omitted: func(summary SimulationSummary) uint64 { return summary.OmittedByDimension },
 		},
 		{
-			name: "capacity", configure: func(config *Config, initial State) { config.MaxExplorationBytes = initial.Summary().PendingBytes },
-			decision: func(t *testing.T) Decision { return testDecision(t, DimensionRuntime, 0, 2, 0) },
-			want:     StopExplorationCapacity, omitted: func(summary Summary) uint64 { return summary.OmittedByCapacity },
+			name: "capacity", configure: func(config *SimulationConfig, initial SimulationState) {
+				config.MaxExplorationBytes = initial.Summary().PendingBytes
+			},
+			decision: func(t *testing.T) Decision { return simulationTestDecision(t, DimensionRuntime, 0, 2, 0) },
+			want:     SimulationStopExplorationCapacity, omitted: func(summary SimulationSummary) uint64 { return summary.OmittedByCapacity },
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			config := testConfig()
-			initial, err := New(config)
+			config := simulationTestConfig()
+			initial, err := NewSimulation(config)
 			if err != nil {
 				t.Fatal(err)
 			}
 			test.configure(&config, initial)
-			state, err := New(config)
+			state, err := NewSimulation(config)
 			if err != nil {
 				t.Fatal(err)
 			}
 			round, _ := state.NextRound()
-			state, _, err = CommitRound(state, round, []Result{{
+			state, _, err = CommitSimulationRound(state, round, []SimulationResult{{
 				CandidateSHA256: round.Candidates[0].SHA256,
 				OutcomeSHA256:   record.HashBytes([]byte(test.name)),
 				Decisions:       []Decision{test.decision(t)},
@@ -166,20 +168,20 @@ func TestSimulationExplorationEnforcesDimensionDepthRunAndByteBounds(t *testing.
 }
 
 func TestSimulationExplorationRoundSegmentReplaysByteIdentically(t *testing.T) {
-	initial, err := New(testConfig())
+	initial, err := NewSimulation(simulationTestConfig())
 	if err != nil {
 		t.Fatal(err)
 	}
 	round, _ := initial.NextRound()
-	committed, segment, err := CommitRound(initial, round, []Result{{
+	committed, segment, err := CommitSimulationRound(initial, round, []SimulationResult{{
 		CandidateSHA256: round.Candidates[0].SHA256,
 		OutcomeSHA256:   record.HashBytes([]byte("root")),
-		Decisions:       []Decision{testDecision(t, DimensionFault, 0, 3, 1)},
+		Decisions:       []Decision{simulationTestDecision(t, DimensionFault, 0, 3, 1)},
 	}})
 	if err != nil {
 		t.Fatal(err)
 	}
-	replayed, err := ReplaySegment(initial, segment)
+	replayed, err := SimulationReplaySegment(initial, segment)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -195,14 +197,14 @@ func TestSimulationExplorationRoundSegmentReplaysByteIdentically(t *testing.T) {
 		t.Fatalf("replayed state differs:\n%s\n%s", left, right)
 	}
 	segment.Results[0].OutcomeSHA256 = record.HashBytes([]byte("corrupt"))
-	if _, err := ReplaySegment(initial, segment); err == nil {
+	if _, err := SimulationReplaySegment(initial, segment); err == nil {
 		t.Fatal("ReplaySegment() accepted a corrupted round")
 	}
 }
 
 func TestValidateCandidateRejectsChangedForcedDecision(t *testing.T) {
-	config := testConfig()
-	state, err := New(config)
+	config := simulationTestConfig()
+	state, err := NewSimulation(config)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -210,8 +212,8 @@ func TestValidateCandidateRejectsChangedForcedDecision(t *testing.T) {
 	if !ok {
 		t.Fatal("simulation exploration root round is unavailable")
 	}
-	decision := testDecision(t, DimensionScenario, 0, 2, 0)
-	next, _, err := CommitRound(state, round, []Result{{
+	decision := simulationTestDecision(t, DimensionScenario, 0, 2, 0)
+	next, _, err := CommitSimulationRound(state, round, []SimulationResult{{
 		CandidateSHA256: round.Candidates[0].SHA256, OutcomeSHA256: record.HashBytes([]byte("baseline")), Decisions: []Decision{decision},
 	}})
 	if err != nil {
@@ -231,10 +233,10 @@ func TestValidateCandidateRejectsChangedForcedDecision(t *testing.T) {
 	}
 }
 
-func testConfig() Config {
-	return Config{
+func simulationTestConfig() SimulationConfig {
+	return SimulationConfig{
 		ExecutionSHA256:     record.HashBytes([]byte("execution")),
-		ControllerSHA256:    ImplementationSHA256(),
+		ControllerSHA256:    SimulationImplementationSHA256(),
 		BaseSeed:            7,
 		Parallel:            8,
 		MaxExecutions:       64,
@@ -246,7 +248,7 @@ func testConfig() Config {
 	}
 }
 
-func testDecision(t *testing.T, dimension Dimension, ordinal uint64, alternatives, selected uint32) Decision {
+func simulationTestDecision(t *testing.T, dimension Dimension, ordinal uint64, alternatives, selected uint32) Decision {
 	t.Helper()
 	identities := make([]record.SHA256, alternatives)
 	for index := range identities {

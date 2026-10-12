@@ -9,7 +9,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
-	simulationengine "go.temporal.io/server/tools/gomad3/runner/internal/exploration/simulation"
+	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
 )
 
 const Schema = "gomad3.minimizer-state/v1"
@@ -30,9 +30,9 @@ const (
 )
 
 type DecisionReference struct {
-	Dimension simulationengine.Dimension `json:"dimension"`
-	Ordinal   uint64                     `json:"ordinal"`
-	Identity  record.SHA256              `json:"identity"`
+	Dimension exploration.Dimension `json:"dimension"`
+	Ordinal   uint64                `json:"ordinal"`
+	Identity  record.SHA256         `json:"identity"`
 }
 
 type Reduction struct {
@@ -43,34 +43,34 @@ type Reduction struct {
 }
 
 type Attempt struct {
-	Index     uint64                     `json:"index"`
-	Reduction Reduction                  `json:"reduction"`
-	Candidate simulationengine.Candidate `json:"candidate"`
+	Index     uint64                          `json:"index"`
+	Reduction Reduction                       `json:"reduction"`
+	Candidate exploration.SimulationCandidate `json:"candidate"`
 }
 
 type State struct {
-	Schema        string                     `json:"schema"`
-	Config        simulationengine.Config    `json:"config"`
-	Original      simulationengine.Candidate `json:"original"`
-	Current       simulationengine.Candidate `json:"current"`
-	AttemptBudget uint64                     `json:"attempt_budget"`
-	Attempts      uint64                     `json:"attempts"`
-	Evaluated     []record.SHA256            `json:"evaluated"`
-	Accepted      []Reduction                `json:"accepted"`
-	StopReason    StopReason                 `json:"stop_reason,omitempty"`
-	SHA256        record.SHA256              `json:"sha256"`
-	ChoiceTape    *choice.ReplayPlan         `json:"choice_tape,omitempty"`
+	Schema        string                          `json:"schema"`
+	Config        exploration.SimulationConfig    `json:"config"`
+	Original      exploration.SimulationCandidate `json:"original"`
+	Current       exploration.SimulationCandidate `json:"current"`
+	AttemptBudget uint64                          `json:"attempt_budget"`
+	Attempts      uint64                          `json:"attempts"`
+	Evaluated     []record.SHA256                 `json:"evaluated"`
+	Accepted      []Reduction                     `json:"accepted"`
+	StopReason    StopReason                      `json:"stop_reason,omitempty"`
+	SHA256        record.SHA256                   `json:"sha256"`
+	ChoiceTape    *choice.ReplayPlan              `json:"choice_tape,omitempty"`
 }
 
 func ImplementationSHA256() record.SHA256 {
 	return record.DomainHash("gomad3-minimizer-controller/v1", []byte("suffix/ranges/faults;deterministic;bounded/v1"))
 }
 
-func New(config simulationengine.Config, original simulationengine.Candidate, attemptBudget uint64) (State, error) {
+func New(config exploration.SimulationConfig, original exploration.SimulationCandidate, attemptBudget uint64) (State, error) {
 	if attemptBudget == 0 {
 		return State{}, errors.New("minimizer attempt budget must be positive")
 	}
-	canonical, err := simulationengine.CanonicalCandidate(config, original.Overrides, original.ParentSHA256)
+	canonical, err := exploration.CanonicalCandidate(config, original.Overrides, original.ParentSHA256)
 	if err != nil {
 		return State{}, err
 	}
@@ -130,11 +130,11 @@ func Validate(state State) error {
 			return err
 		}
 	}
-	for _, candidate := range []simulationengine.Candidate{state.Original, state.Current} {
+	for _, candidate := range []exploration.SimulationCandidate{state.Original, state.Current} {
 		if state.ChoiceTape != nil {
 			break
 		}
-		canonical, err := simulationengine.CanonicalCandidate(state.Config, candidate.Overrides, candidate.ParentSHA256)
+		canonical, err := exploration.CanonicalCandidate(state.Config, candidate.Overrides, candidate.ParentSHA256)
 		if err != nil {
 			return fmt.Errorf("validate minimizer candidate: %w", err)
 		}
@@ -172,7 +172,7 @@ func Validate(state State) error {
 
 type proposal struct {
 	Reduction Reduction
-	Candidate simulationengine.Candidate
+	Candidate exploration.SimulationCandidate
 }
 
 func proposals(state State) ([]proposal, error) {
@@ -198,12 +198,12 @@ func proposals(state State) ([]proposal, error) {
 	return result, nil
 }
 
-func proposalIndexes(candidate simulationengine.Candidate) (runtime, schedule, fault []int) {
+func proposalIndexes(candidate exploration.SimulationCandidate) (runtime, schedule, fault []int) {
 	for index, override := range candidate.Overrides {
-		if override.Dimension == simulationengine.DimensionRuntime {
+		if override.Dimension == exploration.DimensionRuntime {
 			runtime = append(runtime, index)
 		}
-		if override.Dimension == simulationengine.DimensionFault {
+		if override.Dimension == exploration.DimensionFault {
 			fault = append(fault, index)
 		} else {
 			schedule = append(schedule, index)
@@ -234,7 +234,7 @@ func appendRangeProposals(result *[]proposal, seen map[record.SHA256]struct{}, s
 	return nil
 }
 
-func reducedCandidate(config simulationengine.Config, current simulationengine.Candidate, kind ReductionKind, removedIndexes []int) (simulationengine.Candidate, Reduction, error) {
+func reducedCandidate(config exploration.SimulationConfig, current exploration.SimulationCandidate, kind ReductionKind, removedIndexes []int) (exploration.SimulationCandidate, Reduction, error) {
 	removedSet := make(map[int]struct{}, len(removedIndexes))
 	removed := make([]DecisionReference, len(removedIndexes))
 	for index, candidateIndex := range removedIndexes {
@@ -242,15 +242,15 @@ func reducedCandidate(config simulationengine.Config, current simulationengine.C
 		decision := current.Overrides[candidateIndex]
 		removed[index] = DecisionReference{Dimension: decision.Dimension, Ordinal: decision.Ordinal, Identity: decision.Identity}
 	}
-	overrides := make([]simulationengine.ForcedDecision, 0, len(current.Overrides)-len(removedIndexes))
+	overrides := make([]exploration.ForcedDecision, 0, len(current.Overrides)-len(removedIndexes))
 	for index, override := range current.Overrides {
 		if _, remove := removedSet[index]; !remove {
 			overrides = append(overrides, override)
 		}
 	}
-	candidate, err := simulationengine.CanonicalCandidate(config, overrides, current.SHA256)
+	candidate, err := exploration.CanonicalCandidate(config, overrides, current.SHA256)
 	if err != nil {
-		return simulationengine.Candidate{}, Reduction{}, err
+		return exploration.SimulationCandidate{}, Reduction{}, err
 	}
 	reduction := Reduction{Kind: kind, BeforeSHA256: current.SHA256, AfterSHA256: candidate.SHA256, Removed: removed}
 	return candidate, reduction, validateReduction(reduction)
@@ -314,7 +314,7 @@ func sameAttempt(left, right Attempt) bool {
 	return leftErr == nil && rightErr == nil && bytes.Equal(leftBytes, rightBytes)
 }
 
-func sameCandidate(left, right simulationengine.Candidate) bool {
+func sameCandidate(left, right exploration.SimulationCandidate) bool {
 	leftBytes, leftErr := canonicaljson.CanonicalJSON(left)
 	rightBytes, rightErr := canonicaljson.CanonicalJSON(right)
 	return leftErr == nil && rightErr == nil && bytes.Equal(leftBytes, rightBytes)
@@ -340,8 +340,8 @@ func cloneState(state State) State {
 	return state
 }
 
-func cloneCandidate(candidate simulationengine.Candidate) simulationengine.Candidate {
-	overrides := make([]simulationengine.ForcedDecision, len(candidate.Overrides))
+func cloneCandidate(candidate exploration.SimulationCandidate) exploration.SimulationCandidate {
+	overrides := make([]exploration.ForcedDecision, len(candidate.Overrides))
 	for index, override := range candidate.Overrides {
 		overrides[index] = override
 		overrides[index].Control = append([]byte(nil), override.Control...)
