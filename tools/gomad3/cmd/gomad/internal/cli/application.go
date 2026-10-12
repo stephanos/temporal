@@ -93,6 +93,11 @@ func nativeConfiguration(installed installation) native.Config {
 	return native.Config{ToolchainRoot: installed.toolchainRoot, SupervisorCommand: []string{installed.executable, supervisorMode}, CoordinatorCommand: []string{installed.executable, coordinatorMode}, BootstrapCommand: []string{installed.executable, targetBootstrapMode}, RunnerBuild: installed.runnerBuild}
 }
 
+func validateRequiredSemanticProbes(required []string) error {
+	_, err := native.New(native.Config{}).Describe(context.Background(), backends.Configuration{RequiredSemanticProbes: required})
+	return err
+}
+
 func isPrivateMode(mode string) bool {
 	return mode == coordinatorMode || mode == targetBootstrapMode || mode == supervisorMode
 }

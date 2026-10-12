@@ -56,7 +56,7 @@ func TestUnifiedLauncherDefersMalformedManifestForSourceFreeCommands(t *testing.
 		status    int
 		wantPath  bool
 	}{
-		{[]string{"--help"}, 2, false}, {[]string{"explore", "--help"}, 2, false}, {[]string{"inspect", missing}, 3, true}, {[]string{"recover", missing}, 2, true}, {[]string{"report", "--result", missing}, 3, true},
+		{[]string{"--help"}, 2, false}, {[]string{"explore", "--help"}, 2, false}, {[]string{"inspect", missing}, 2, true}, {[]string{"recover", missing}, 2, true}, {[]string{"report", "--result", missing}, 3, true},
 	} {
 		var stdout, stderr bytes.Buffer
 		status := Run(append([]string{"--installation", manifest}, test.arguments...), &stdout, &stderr)

@@ -1064,6 +1064,11 @@ func resolveExploreCoverage(value string, required []string) (runner.CoverageMod
 		}
 		return "", err
 	}
+	if len(required) != 0 {
+		if err := validateRequiredSemanticProbes(required); err != nil {
+			return "", err
+		}
+	}
 	return mode, nil
 }
 
