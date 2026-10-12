@@ -31,6 +31,44 @@ func TestResolvePrefersExplicitThenEnvironment(t *testing.T) {
 	}
 }
 
+func TestResolveSelectedManifestKeepsOverridePrecedence(t *testing.T) {
+	root := t.TempDir()
+	executable := filepath.Join(root, "bin", "gomad")
+	selected := filepath.Join(root, "selected", "installation.json")
+	if err := os.MkdirAll(filepath.Dir(selected), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(selected, []byte(`{"backend":"native","schema":"gomad3.installation/v1","toolchain_root":"toolchain"}`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	resolution, err := ResolveInstallation(InstallationSpec{Executable: executable, Manifest: selected})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resolution.ToolchainRoot != filepath.Join(root, "selected", "toolchain") || resolution.Source != "manifest" || resolution.ManifestPath != selected {
+		t.Fatalf("resolution = %#v", resolution)
+	}
+	environment := filepath.Join(root, "environment")
+	if resolution, err = ResolveInstallation(InstallationSpec{Executable: executable, Manifest: selected, EnvironmentToolchainRoot: environment}); err != nil || resolution.Source != "environment" || resolution.ToolchainRoot != environment {
+		t.Fatalf("resolution = %#v, err = %v", resolution, err)
+	}
+	for _, test := range []struct{ manifest, want string }{
+		{`{"backend":"wasm","schema":"gomad3.installation/v1","toolchain_root":"toolchain"}`, "installation manifest identity is invalid"},
+		{`{"schema":"gomad3.installation/v1","toolchain_root":"lib\\toolchain"}`, "installation manifest identity is invalid"},
+	} {
+		if err := os.WriteFile(selected, []byte(test.manifest), 0o600); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := ResolveInstallation(InstallationSpec{Executable: executable, Manifest: selected}); err == nil || err.Error() != test.want {
+			t.Fatalf("ResolveInstallation(%s) error = %v, want %q", test.manifest, err, test.want)
+		}
+	}
+	missing := filepath.Join(root, "missing.json")
+	if _, err := ResolveInstallation(InstallationSpec{Executable: executable, Manifest: missing}); err == nil || err.Error() != "installation manifest does not exist: "+missing {
+		t.Fatalf("ResolveInstallation(missing) error = %v", err)
+	}
+}
+
 func TestResolveReadsAdjacentBundleManifest(t *testing.T) {
 	root := t.TempDir()
 	bin := filepath.Join(root, "bin")

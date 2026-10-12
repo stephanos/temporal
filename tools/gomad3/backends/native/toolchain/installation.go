@@ -21,6 +21,9 @@ type InstallationSpec struct {
 	Executable               string
 	ExplicitToolchainRoot    string
 	EnvironmentToolchainRoot string
+	// Manifest is an explicitly selected installation manifest. It replaces
+	// the manifest search beside the executable but not the overrides.
+	Manifest string
 }
 
 type Installation struct {
@@ -31,6 +34,7 @@ type Installation struct {
 }
 
 type manifest struct {
+	Backend       string `json:"backend,omitempty"`
 	Schema        string `json:"schema"`
 	ToolchainRoot string `json:"toolchain_root"`
 }
@@ -50,15 +54,22 @@ func ResolveInstallation(config InstallationSpec) (Installation, error) {
 		return overrideResolution(config.EnvironmentToolchainRoot, "GOMAD3_TOOLCHAIN_DIR", "environment")
 	}
 	executableDirectory := filepath.Dir(executable)
-	for _, path := range []string{
+	candidates := []string{
 		filepath.Join(executableDirectory, InstallationManifestName),
 		filepath.Join(filepath.Dir(executableDirectory), InstallationManifestName),
-	} {
+	}
+	if config.Manifest != "" {
+		candidates = []string{config.Manifest}
+	}
+	for _, path := range candidates {
 		decoded, found, manifestErr := readManifest(path)
 		if manifestErr != nil {
 			return Installation{}, manifestErr
 		}
 		if !found {
+			if config.Manifest != "" {
+				return Installation{}, fmt.Errorf("installation manifest does not exist: %s", path)
+			}
 			continue
 		}
 		root := decoded.ToolchainRoot
@@ -137,7 +148,7 @@ func readManifest(path string) (manifest, bool, error) {
 	if err := decoder.Decode(&struct{}{}); !errors.Is(err, io.EOF) {
 		return manifest{}, false, errors.New("installation manifest has trailing data")
 	}
-	if decoded.Schema != manifestSchema || decoded.ToolchainRoot == "" || strings.Contains(decoded.ToolchainRoot, "\\") || strings.IndexByte(decoded.ToolchainRoot, 0) >= 0 {
+	if (decoded.Backend != "" && decoded.Backend != "native") || decoded.Schema != manifestSchema || decoded.ToolchainRoot == "" || strings.Contains(decoded.ToolchainRoot, "\\") || strings.IndexByte(decoded.ToolchainRoot, 0) >= 0 {
 		return manifest{}, false, errors.New("installation manifest identity is invalid")
 	}
 	return decoded, true, nil

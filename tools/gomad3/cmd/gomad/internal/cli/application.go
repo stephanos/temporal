@@ -42,7 +42,7 @@ type application struct {
 	capabilities     *backends.Capabilities
 	command          func([]string, io.Writer, io.Writer) (int, bool)
 	selectedManifest string
-	manifestRoot     func() (string, error)
+	nativeManifest   string
 	nativeProvider   func(installation) backends.Provider
 	backend          func() (BackendInstallation, error)
 	replayHook       func(context.Context, runner.ReplaySpec) (runner.ReplayResult, bool, error)
@@ -130,18 +130,12 @@ func absoluteExecutable(executable string) (string, error) {
 }
 
 // resolveInstallation locates the toolchain installation serving executable:
-// an explicit --toolchain-root first, then the environment, then the
-// installation beside the executable.
+// an explicit --toolchain-root first, then the environment, then the selected
+// --installation manifest or the installation beside the executable.
 func (app application) resolveInstallation(executable, explicitToolchainRoot string) (toolchain.Installation, error) {
-	if explicitToolchainRoot == "" && app.manifestRoot != nil {
-		var err error
-		explicitToolchainRoot, err = app.manifestRoot()
-		if err != nil {
-			return toolchain.Installation{}, err
-		}
-	}
 	return toolchain.ResolveInstallation(toolchain.InstallationSpec{
 		Executable: executable, ExplicitToolchainRoot: explicitToolchainRoot, EnvironmentToolchainRoot: app.environment(toolchainEnvironment),
+		Manifest: app.nativeManifest,
 	})
 }
 

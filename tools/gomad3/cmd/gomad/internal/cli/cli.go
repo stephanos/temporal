@@ -91,7 +91,7 @@ type targetInput struct {
 }
 
 func Run(arguments []string, stdout, stderr io.Writer) int {
-	return runLauncher(arguments, stdout, stderr)
+	return hostApplication().launch(arguments, stdout, stderr)
 }
 
 type BackendInstallation struct {

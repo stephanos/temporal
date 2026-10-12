@@ -25,25 +25,27 @@ type installationHeader struct {
 	Options struct{ Config struct{ Profile string } }
 }
 
-func runLauncher(arguments []string, stdout, stderr io.Writer) int {
+func (app application) launch(arguments []string, stdout, stderr io.Writer) int {
 	flags := flag.NewFlagSet("gomad", flag.ContinueOnError)
 	manifest := flags.String("installation", "", "selected backend installation manifest")
 	flags.SetOutput(io.Discard)
-	err := flags.Parse(arguments)
-	help := errors.Is(err, flag.ErrHelp)
-	if err != nil && !help {
+	// Only leading --installation options are global. Any other leading
+	// argument is the command, so the native grammar keeps reporting an unknown
+	// command rather than a flag-package error.
+	commandStart := installationOptionsEnd(arguments)
+	if err := flags.Parse(arguments[:commandStart]); err != nil {
 		status := writeCommandError(stderr, 2, "%v\n", err)
 		flags.SetOutput(stderr)
 		flags.Usage()
 		return status
 	}
-	app := hostApplication()
+	commandArguments := arguments[commandStart:]
 	// Private process protocols are not operator commands and do not load an
 	// installation or participate in the public command registry.
-	if len(flags.Args()) != 0 && isPrivateMode(flags.Arg(0)) {
-		return app.runPrivateMode(flags.Arg(0), stderr)
+	if len(commandArguments) != 0 && isPrivateMode(commandArguments[0]) {
+		return app.runPrivateMode(commandArguments[0], stderr)
 	}
-	path, fromWASMEnvironment := *manifest, false
+	path, discovered, fromWASMEnvironment := *manifest, false, false
 	if path == "" {
 		path = app.environment(wasminstallation.Environment)
 		fromWASMEnvironment = path != ""
@@ -59,7 +61,7 @@ func runLauncher(arguments []string, stdout, stderr io.Writer) int {
 				filepath.Join(filepath.Dir(filepath.Dir(executable)), toolchain.InstallationManifestName),
 			} {
 				if _, err := os.Lstat(candidate); err == nil {
-					path = candidate
+					path, discovered = candidate, true
 					break
 				}
 			}
@@ -93,6 +95,12 @@ func runLauncher(arguments []string, stdout, stderr io.Writer) int {
 			headerError = fmt.Errorf("read installation header: %w", err)
 		}
 	}
+	// A native manifest found beside the executable is the native resolver's
+	// lowest-precedence source: --toolchain-root and GOMAD3_TOOLCHAIN_DIR win,
+	// and the resolver reports a bad manifest only when neither applies.
+	if discovered && filepath.Base(path) == toolchain.InstallationManifestName && (headerError != nil || header.Backend == "native") {
+		path, header, headerError = "", installationHeader{Backend: "native"}, nil
+	}
 	registry := backends.Registry{
 		"native": native.New(native.Config{}).Capabilities(),
 		"wasm":   wasmbackend.CapabilitiesForProfile(header.Options.Config.Profile),
@@ -100,9 +108,9 @@ func runLauncher(arguments []string, stdout, stderr io.Writer) int {
 	// An unambiguous backend-owned verb, such as install or report, is usable
 	// before an installation exists. Shared verbs use the selected manifest.
 	selected := registry[header.Backend]
-	if (path == "" || headerError != nil) && len(flags.Args()) != 0 && !supportsCommand(&selected, flags.Arg(0)) {
+	if (path == "" || headerError != nil) && len(commandArguments) != 0 && !supportsCommand(&selected, commandArguments[0]) {
 		for name, capabilities := range registry {
-			if supportsCommand(&capabilities, flags.Arg(0)) {
+			if supportsCommand(&capabilities, commandArguments[0]) {
 				header.Backend = name
 				break
 			}
@@ -112,10 +120,22 @@ func runLauncher(arguments []string, stdout, stderr io.Writer) int {
 	if err != nil {
 		return writeCommandError(stderr, 2, "%v\n", err)
 	}
-	if help {
-		return writeCommandError(stderr, 2, "%s", commandUsage(&capabilities))
+	// Other backends keep the flag-package top-level grammar of the former
+	// gomad-wasm launcher.
+	if header.Backend != "native" && len(commandArguments) != 0 && strings.HasPrefix(commandArguments[0], "-") {
+		err := flags.Parse(commandArguments)
+		if errors.Is(err, flag.ErrHelp) {
+			return writeCommandError(stderr, 2, "%s", commandUsage(&capabilities))
+		}
+		if err != nil {
+			status := writeCommandError(stderr, 2, "%v\n", err)
+			flags.SetOutput(stderr)
+			flags.Usage()
+			return status
+		}
+		commandArguments = flags.Args()
 	}
-	if headerError != nil && len(flags.Args()) != 0 && !sourceFreeCommand(flags.Arg(0)) && !commandHelp(flags.Args()[1:]) {
+	if headerError != nil && len(commandArguments) != 0 && !sourceFreeCommand(commandArguments[0]) && !commandHelp(commandArguments) {
 		return writeCommandError(stderr, 2, "%v\n", headerError)
 	}
 	if path != "" {
@@ -150,34 +170,26 @@ func runLauncher(arguments []string, stdout, stderr io.Writer) int {
 			return wasmcommand.Run(args, out, diagnostic, resolve)
 		}
 	} else if path != "" {
-		app.manifestRoot = func() (string, error) {
-			data, err := hostfs.ReadBounded(path, 64<<10)
-			if err != nil {
-				return "", err
-			}
-			var manifest struct {
-				Schema, Backend string
-				ToolchainRoot   string `json:"toolchain_root"`
-			}
-			decoder := json.NewDecoder(strings.NewReader(string(data)))
-			decoder.DisallowUnknownFields()
-			if err := decoder.Decode(&manifest); err != nil {
-				return "", err
-			}
-			if err := decoder.Decode(new(any)); err != io.EOF {
-				return "", errors.New("installation manifest has trailing data")
-			}
-			if manifest.Schema != "gomad3.installation/v1" || manifest.ToolchainRoot == "" {
-				return "", errors.New("native installation schema and toolchain root are required")
-			}
-			root := manifest.ToolchainRoot
-			if !filepath.IsAbs(root) {
-				root = filepath.Join(filepath.Dir(path), root)
-			}
-			return filepath.Abs(root)
+		app.nativeManifest = path
+	}
+	return app.run(commandArguments, stdout, stderr)
+}
+
+// installationOptionsEnd is the index of the first argument after the leading
+// --installation options.
+func installationOptionsEnd(arguments []string) int {
+	index := 0
+	for index < len(arguments) && strings.HasPrefix(arguments[index], "-") {
+		name, _, assigned := strings.Cut(strings.TrimPrefix(arguments[index][1:], "-"), "=")
+		if name != "installation" {
+			break
+		}
+		index++
+		if !assigned && index < len(arguments) {
+			index++
 		}
 	}
-	return app.run(flags.Args(), stdout, stderr)
+	return index
 }
 
 func sourceFreeCommand(command string) bool {
