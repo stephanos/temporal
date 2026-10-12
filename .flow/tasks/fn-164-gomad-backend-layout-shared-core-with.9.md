@@ -14,9 +14,10 @@ Add a wasm job that runs `make -C tools/gomad3 test-wasm` with stock Go and the 
 - Workflow files pass `actionlint` with no findings.
 
 ## Done summary
-TBD
+CI path gates route backends/wasm-only changes to the WASM job, record to both and backends/native to native; tools/gomad3sim triggers WASM too. The WASM job pins Rust 1.94.1 with --locked and stock Go. No workflow was dispatched.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 3750cab464, 2079fdcea3
+- Tests: TestCIBackendGatesRoutePaths (0), actionlint v1.7.7 on gomad3.yml and gomad3-smoke.yml (0), evidence: .flow/artifacts/wasm-section-acceptance-2026-10-12.md
 - PRs:
