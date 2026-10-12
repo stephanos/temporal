@@ -15,9 +15,10 @@ Remove `tools/gomad3/internal/gomadtool/architecture` with all its tests and the
 - Full `go test ./...` in gomad3 with the architecture tests included is at least 50 seconds faster than the recorded baseline for the three replaced tests.
 
 ## Done summary
-TBD
+The old analyzer is deleted with no remaining references outside Flow history; archcheck+puritycheck are 2184 production / 743 test lines under enforced 2500/1500 and per-package budgets; the replaced tests run in seconds instead of the 86s baseline.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: c6afac5097, d36476f98a, 1520d5bf56
+- Tests: root architecture/purity selection with GOMAD3_ARCH_ALL_PLATFORMS=1 plus ./internal/archcheck ./internal/puritycheck (0), Budget tests including oversize rejection (0), evidence: .flow/artifacts/wasm-section-acceptance-2026-10-12.md
 - PRs:
