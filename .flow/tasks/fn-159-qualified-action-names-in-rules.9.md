@@ -105,9 +105,19 @@ Scala batch-end gate; no per-task SHIP, full-set or canonical-green credit.
   failed attempts and held consumer/lint/manual/batch-end broad-review gates are recorded honestly.
 
 ## Done summary
-TBD
+Bounded state fields and channels now derive ranges from their own UpTo[N] types; plain Int declarations refuse at their source location, while named opaque ranges and scalar helpers remain legitimate. Proven Inbox and Option parameter-identity collisions are fixed; the task-named compiled Scalafix rule migrates supported legacy declarations/writes atomically and refuses unsafe or ambiguous cases.
 
+Evidence: `.flow/tmp/fn159/task9/proof-notes.md`, `mini-delta.json`, `probe-delta.json`, `native-final.log` (2 tests), `lifter-frozen.log` (8), `unsafe-increment-green.log` (4), `guide-arithmetic-final.log` (30 exact citations), `proof-arithmetic-final.log` (compiled scratch legacy probe and complete copied-mini equality), `equivalence-corrected.log` (16 tables / 11,325 rows), and both integrity logs. Baseline: green selected package/lift and affected fixtures captured before edits. Corrected RED and setup/inconclusive logs are retained in the notes.
+
+Current raw mini SHA is 3579eef0fce64da34ee8b93afdd03256c5307120ecccfb037f0eefdeae77705b, not the pre-edit b153 hash: exactly five typed optional identity/reference leaves change; ranges, positions, other raw data and waivers remain unchanged. Existing expected fixture JSON is preserved with exact tested coordinate reconciliation; Touches includes the two required reconciliation tests. Frozen source/jar manifests and original baseline/payload/pin/map/external-dirt preservation checks are retained.
+
+Tier: session (jev-unavailable(no_key)); AGENTS implementer gpt-6.1-sol medium retained.
+stage: impl-review - skipped(config: REVIEW_MODE=none)
+
+Broad validation and independent review remain held for the Scala batch end; no per-task SHIP, canonical/full-set/consumer credit, lint/manual, production/runtime/Go/proto/schema/regeneration or tracker/plan-sync action is claimed.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: b7b76c849c812461dbd2f004b9a52ee9b08a8409, 68cc753a8d771260f7f03bd42d9cadb4e8bd0d72
+- Tests: Baseline green: selected package/lift and affected-fixture captures in .flow/tmp/fn159/task9/before/ and fixture-before/, native-final.log: framework.BoundedIntegersSuite, 2 passing focused controls, lifter-frozen.log: umpire.irgen.BoundedIntegersTest, 8 passing source-preparing focused controls, timeout 600 mise exec -- scala-cli test --server=false model/migrate --test-only umpire.migrate.BoundedIntegersTest (unsafe-increment-green.log, 4 passing tests), timeout 600 mise exec -- scala-cli test --server=false model/migrate --test-only umpire.migrate.GuideSourcesTest (guide-arithmetic-final.log, all 30 exact citations), timeout 600 /bin/bash /Users/stephan/Workspace/skunkworks/umpire/temporal/model/migrate/prove-mini.sh umpire.migrate.RewriteBoundedIntegersMini (proof-arithmetic-final.log, .flow/tmp/mini-migration.27qAbg), FEATURES=activity_mini timeout 600 mise exec -- scala-cli run --server=false model/check -- --check-equivalence /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/scala-dsl/mini-selected-baseline-00d22597d2/ /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn159/task9/mini.map --steps-only (16 complete tables equivalent), complete-integrity.log: exact 16 tables / 11325 rows; subset-integrity.log: historical 10 tables / 9878 rows preserved, integrity only, mini-delta.json: closed five-leaf typed identity/reference delta; test-bounded-mini-delta.mjs: 8 corruption/no-op controls refused, probe-delta.json: actual legacy source compiled and frozen pre-edit lifter compared; only exact scratch-source coordinates differ, sha256sum -c .flow/tmp/fn159/task9/frozen-sources.sha; sha256sum -c .flow/tmp/fn159/task9/goldens.sha; external patch cmp and external-untracked.sha: PASS, Scoped limitations and retained RED/setup/inconclusive observations: .flow/tmp/fn159/task9/proof-notes.md; broad/canonical/lint/manual and independent review held
 - PRs:
