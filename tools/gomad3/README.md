@@ -455,7 +455,7 @@ cycles, and the direct modernc/libc file boundary. The aggregate and all
 evidence are retained below `.toolchain/core-qualification*`.
 
 The checked representative Temporal corpus
-(`tools/gomad3integration/qualification/temporal.json`) holds fifteen tier 2
+(`tools/gomad3/backends/native/qualification/temporal.json`) holds fifteen tier 2
 package workloads and thirteen tier 3 functional workloads: twelve `./tests`
 suites and one `./tests/gomadfunctional` probe. Its expectations are per
 platform. On darwin/arm64 all twenty-eight workloads are expected to qualify;
@@ -1461,7 +1461,7 @@ The determinism soak runs from the repository root:
 make gomad3-soak GOMAD3_SOAK_WORKLOAD=functional-activity GOMAD3_SOAK_SEED=11
 ```
 
-It builds the Runner, runs `tools/gomad3integration/qualification/soak.json`,
+It builds the Runner, runs `tools/gomad3/backends/native/qualification/soak.json`,
 and writes its ledger, report, summary, and any divergence evidence under
 `tools/gomad3/.toolchain/soak`. The scheduled `determinism-soak-darwin` and
 `determinism-soak-linux` jobs of `gomad3.yml` run one workload and seed each,

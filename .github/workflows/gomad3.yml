@@ -419,7 +419,7 @@ jobs:
           retention-days: 90
 
   # The scheduled determinism soak (fn-112 R6, MILESTONES.md Q6). Each job runs
-  # one workload and seed of tools/gomad3integration/qualification/soak.json:
+  # one workload and seed of tools/gomad3/backends/native/qualification/soak.json:
   # N fresh same-seed repetitions in gomad qualify batches of 32, under two busy
   # host threads, with choice tracing and diagnostics on. Every batch is
   # compared with its cohort's baseline (workload, seed, platform, execution

@@ -42,7 +42,7 @@ func TestCIBackendGatesRoutePaths(t *testing.T) {
 		{"tools/gomad3/backends/native/build/build.go", "native=true\nwasm=false\n"},
 		{"tools/gomad3/backends/native/toolchain/runtime/overlay/src/runtime/gomad.go", "native=true\nwasm=true\n"},
 		{"tools/gomad3/record/record.go", "native=true\nwasm=true\n"},
-		{"tools/gomad3integration/qualification/tests.json", "native=true\nwasm=false\n"},
+		{"tools/gomad3/backends/native/qualification/tests.json", "native=true\nwasm=false\n"},
 	} {
 		t.Run(test.path, func(t *testing.T) {
 			repository := t.TempDir()

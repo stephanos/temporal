@@ -5,102 +5,13 @@ package gomad3integration
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
-	"os"
 	"os/exec"
 	"path/filepath"
-	"slices"
 	"strings"
 	"testing"
 	"time"
 )
-
-func TestQualificationManifestsUsePortableV3(t *testing.T) {
-	for _, test := range []struct {
-		path      string
-		module    string
-		seeds     []uint64
-		workloads int
-	}{
-		{path: filepath.Join("..", "gomad3", "qualification", "core.json"), module: "gomad3.core.corpus", seeds: []uint64{17}, workloads: 7},
-		{path: filepath.Join("qualification", "temporal.json"), module: "go.temporal.io/server", seeds: []uint64{11, 17}, workloads: 28},
-		{path: filepath.Join("qualification", "smoke.json"), module: "go.temporal.io/server", seeds: []uint64{11}, workloads: 4},
-	} {
-		contents, err := os.ReadFile(test.path)
-		if err != nil {
-			t.Fatal(err)
-		}
-		var manifest struct {
-			Schema string   `json:"schema"`
-			Module string   `json:"module"`
-			Seeds  []uint64 `json:"seeds"`
-			Suites []struct {
-				ID              string `json:"id"`
-				Tier            uint64 `json:"tier"`
-				Invariant       string `json:"invariant"`
-				ReplaySuccesses bool   `json:"replay_successes"`
-			} `json:"suites"`
-		}
-		if err := json.Unmarshal(contents, &manifest); err != nil {
-			t.Fatal(err)
-		}
-		if manifest.Schema != "gomad3.qualification-set/v3" || manifest.Module != test.module || !slices.Equal(manifest.Seeds, test.seeds) || len(manifest.Suites) != test.workloads {
-			t.Fatalf("manifest %s = %#v", test.path, manifest)
-		}
-		for _, suite := range manifest.Suites {
-			if suite.ID == "" || suite.Tier == 0 || suite.Invariant == "" || !suite.ReplaySuccesses {
-				t.Fatalf("manifest %s suite = %#v", test.path, suite)
-			}
-		}
-	}
-}
-
-// The smoke selection is the required CI gate; copying its suites verbatim
-// keeps its expectations, bounds, and mounts from drifting away from the
-// representative set that states them.
-func TestSmokeSuitesMatchRepresentativeSuites(t *testing.T) {
-	representative := manifestSuites(t, filepath.Join("qualification", "temporal.json"))
-	smoke := manifestSuites(t, filepath.Join("qualification", "smoke.json"))
-	for id, suite := range smoke {
-		source, found := representative[id]
-		if !found {
-			t.Fatalf("smoke suite %q is absent from temporal.json", id)
-		}
-		if !bytes.Equal(suite, source) {
-			t.Fatalf("smoke suite %q differs from temporal.json:\nsmoke: %s\nrepresentative: %s", id, suite, source)
-		}
-	}
-}
-
-func manifestSuites(t *testing.T, path string) map[string][]byte {
-	t.Helper()
-	contents, err := os.ReadFile(path)
-	if err != nil {
-		t.Fatal(err)
-	}
-	var manifest struct {
-		Suites []json.RawMessage `json:"suites"`
-	}
-	if err := json.Unmarshal(contents, &manifest); err != nil {
-		t.Fatal(err)
-	}
-	suites := map[string][]byte{}
-	for _, raw := range manifest.Suites {
-		var suite struct {
-			ID string `json:"id"`
-		}
-		if err := json.Unmarshal(raw, &suite); err != nil {
-			t.Fatal(err)
-		}
-		var canonical bytes.Buffer
-		if err := json.Compact(&canonical, raw); err != nil {
-			t.Fatal(err)
-		}
-		suites[suite.ID] = canonical.Bytes()
-	}
-	return suites
-}
 
 func TestPublicWrappers(t *testing.T) {
 	repositoryRoot, err := filepath.Abs(filepath.Join("..", ".."))

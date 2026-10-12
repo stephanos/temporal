@@ -502,8 +502,8 @@ func TestWorkloadID(t *testing.T) {
 }
 
 const (
-	checkedInSpec     = "tools/gomad3integration/qualification/tests.generator.json"
-	checkedInManifest = "tools/gomad3integration/qualification/tests.json"
+	checkedInSpec     = "tools/gomad3/backends/native/qualification/tests.generator.json"
+	checkedInManifest = "tools/gomad3/backends/native/qualification/tests.json"
 )
 
 func repositoryRoot(t *testing.T) string {

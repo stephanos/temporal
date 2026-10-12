@@ -47,8 +47,8 @@ GOMAD3_QUALIFICATION_SHARD ?=
 # The ./tests qualification manifest is generated from the package's test list
 # and the spec's defaults, overrides, and exclusions; never edit it by hand.
 TESTS_QUALIFICATION_GENERATE := qualification-manifest-generate --root=$(CURDIR)/../.. \
-	--spec=tools/gomad3integration/qualification/tests.generator.json \
-	--output=tools/gomad3integration/qualification/tests.json
+	--spec=tools/gomad3/backends/native/qualification/tests.generator.json \
+	--output=tools/gomad3/backends/native/qualification/tests.json
 
 generate: $(VERSION_INPUTS) $(BOUNDARY_INPUTS) $(COMPATIBILITY_INPUTS)
 	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run ./backends/native/cmd/gomadtool version-generate

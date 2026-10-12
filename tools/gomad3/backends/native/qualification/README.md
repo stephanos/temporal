@@ -1,9 +1,13 @@
-# Temporal integration for Gomad v3
+# Temporal qualification manifests for Gomad v3
 
-This directory owns Temporal-specific use of the application-neutral Gomad v3
-module. It contains the `test_dep` wrapper fixture, the bounded representative
-Temporal qualification manifest, the smoke and determinism soak selections,
-and outside-in tests of the root Make targets.
+This directory holds the Temporal-specific qualification manifests of the
+application-neutral Gomad v3 module: the bounded representative Temporal
+manifest, the generated `./tests` manifest, and the smoke and determinism soak
+selections. The tests of the `set` package beside them check their schema and
+that the smoke suites copy the representative ones. The `test_dep` wrapper
+fixture and the outside-in tests of the root Make targets stay in the root
+module, in `tools/gomad3integration`, because `make gomad3-test` runs in the
+root module.
 
 Run the wrapper contract and representative qualification with:
 
@@ -76,12 +80,12 @@ pack admits for these closures.
 
 ## The generated `./tests` manifest
 
-`qualification/tests.json` qualifies every top-level test of `./tests`, one
+`tests.json` qualifies every top-level test of `./tests`, one
 tier 3 workload per test. It is generated, never edited:
 `make -C tools/gomad3 generate` (or `tests-qualification-generate`) lists the
 tests `go test -list` reports under the `disable_grpc_modules`, `gomad`, and
 `test_dep` tags on darwin/arm64 and linux/amd64 and applies
-`qualification/tests.generator.json`, which holds the manifest and workload
+`tests.generator.json`, which holds the manifest and workload
 defaults (the F6 slice's closure mode, tags, schema mount, and timeouts, with
 no choice trace and no success replay), per-test overrides, and exclusions.
 `make -C tools/gomad3 validate`, which CI runs, fails when the checked-in
@@ -130,7 +134,7 @@ on-demand gate; CI does not run it.
 
 ### Functional smoke gate
 
-`qualification/smoke.json` names four `./tests` suites chosen for coverage per
+`smoke.json` names four `./tests` suites chosen for coverage per
 minute: user timers and the task poller, activities, updates, and child
 workflows (about 8 seconds of execution per seed on linux/amd64). Each suite is
 copied verbatim from `temporal.json`, which `make gomad3-integration-test`
@@ -152,7 +156,7 @@ make gomad3-smoke-qualification
 
 ### Determinism soak
 
-`qualification/soak.json` names the four smoke suites and the guarded-mode
+`soak.json` names the four smoke suites and the guarded-mode
 `frontend-system-info` probe, seeds 11 and 17, and the soak's size: each
 workload and seed runs at least two and at most four `gomad qualify
 --diagnostics` batches of 32 fresh repetitions (N = 64 to 128) under two busy

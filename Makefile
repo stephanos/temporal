@@ -188,11 +188,13 @@ gomad3-test:
 
 gomad3-integration-test: gomad3-runner
 	@go test -tags test_dep,gomad3_integration -count=1 ./tools/gomad3integration
+	@cd tools/gomad3 && GOWORK=off go test -tags test_dep -count=1 \
+		-run '^(TestQualificationManifestsUsePortableV3|TestSmokeSuitesMatchRepresentativeSuites)$$' ./backends/native/qualification/set
 
 gomad3-qualification: gomad3-runner
 	@$(MAKE) -C tools/gomad3 compatibility-pack-qualification
 	@$(MAKE) -C tools/gomad3 qualification-set \
-		GOMAD3_QUALIFICATION_MANIFEST="$(ROOT)/tools/gomad3integration/qualification/temporal.json" \
+		GOMAD3_QUALIFICATION_MANIFEST="$(ROOT)/tools/gomad3/backends/native/qualification/temporal.json" \
 		GOMAD3_QUALIFICATION_WORKDIR="$(ROOT)" \
 		GOMAD3_QUALIFICATION_ARTIFACTS="$(ROOT)/tools/gomad3/.toolchain/temporal-qualification" \
 		GOMAD3_QUALIFICATION_OUTPUT="$(ROOT)/tools/gomad3/.toolchain/temporal-qualification-set.json"
@@ -201,7 +203,7 @@ gomad3-qualification: gomad3-runner
 # are copied verbatim from temporal.json, which gomad3-integration-test checks.
 gomad3-smoke-qualification: gomad3-runner
 	@$(MAKE) -C tools/gomad3 qualification-set GOMAD3_QUALIFICATION_PRUNE=1 \
-		GOMAD3_QUALIFICATION_MANIFEST="$(ROOT)/tools/gomad3integration/qualification/smoke.json" \
+		GOMAD3_QUALIFICATION_MANIFEST="$(ROOT)/tools/gomad3/backends/native/qualification/smoke.json" \
 		GOMAD3_QUALIFICATION_WORKDIR="$(ROOT)" \
 		GOMAD3_QUALIFICATION_ARTIFACTS="$(ROOT)/tools/gomad3/.toolchain/smoke-qualification" \
 		GOMAD3_QUALIFICATION_OUTPUT="$(ROOT)/tools/gomad3/.toolchain/smoke-qualification-set.json"
@@ -215,7 +217,7 @@ gomad3-smoke-qualification: gomad3-runner
 GOMAD3_SOAK_DIR ?= $(ROOT)/tools/gomad3/.toolchain/soak
 gomad3-soak: gomad3-runner
 	@cd tools/gomad3 && env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go run ./backends/native/cmd/gomadtool soak \
-		--manifest="$(ROOT)/tools/gomad3integration/qualification/soak.json" \
+		--manifest="$(ROOT)/tools/gomad3/backends/native/qualification/soak.json" \
 		--gomad="$(ROOT)/tools/gomad3/.bin/gomad" \
 		--work="$(GOMAD3_SOAK_DIR)/work" --ledger="$(GOMAD3_SOAK_DIR)/ledger" --output="$(GOMAD3_SOAK_DIR)/output" \
 		$(if $(GOMAD3_SOAK_RUN_ID),--run-id="$(GOMAD3_SOAK_RUN_ID)") \
@@ -234,14 +236,14 @@ gomad3-tests-qualification: gomad3-runner
 	@$(MAKE) -C tools/gomad3 tests-qualification-generate
 	@$(MAKE) -C tools/gomad3 qualification-set GOMAD3_QUALIFICATION_PRUNE=1 \
 		GOMAD3_QUALIFICATION_SHARD="$(GOMAD3_QUALIFICATION_SHARD)" \
-		GOMAD3_QUALIFICATION_MANIFEST="$(ROOT)/tools/gomad3integration/qualification/tests.json" \
+		GOMAD3_QUALIFICATION_MANIFEST="$(ROOT)/tools/gomad3/backends/native/qualification/tests.json" \
 		GOMAD3_QUALIFICATION_WORKDIR="$(ROOT)" \
 		GOMAD3_QUALIFICATION_ARTIFACTS="$(ROOT)/tools/gomad3/.toolchain/tests-qualification$(GOMAD3_TESTS_QUALIFICATION_SUFFIX)" \
 		GOMAD3_QUALIFICATION_OUTPUT="$(ROOT)/tools/gomad3/.toolchain/tests-qualification-set$(GOMAD3_TESTS_QUALIFICATION_SUFFIX).json"
 
 gomad3-tests-qualification-merge: gomad3-runner
 	@$(MAKE) -C tools/gomad3 qualification-set-merge \
-		GOMAD3_QUALIFICATION_MANIFEST="$(ROOT)/tools/gomad3integration/qualification/tests.json" \
+		GOMAD3_QUALIFICATION_MANIFEST="$(ROOT)/tools/gomad3/backends/native/qualification/tests.json" \
 		GOMAD3_QUALIFICATION_OUTPUT="$(ROOT)/tools/gomad3/.toolchain/tests-qualification-set.json" \
 		GOMAD3_QUALIFICATION_SHARD_REPORTS="$(or $(GOMAD3_QUALIFICATION_SHARD_REPORTS),$(wildcard $(ROOT)/tools/gomad3/.toolchain/tests-qualification-set.shard-*.json))"
 

@@ -480,8 +480,8 @@ go -C tools/gomad3 run ./backends/native/cmd/gomadtool version-generate --check 
 go -C tools/gomad3 run ./backends/native/cmd/gomadtool protocol-generate --check --root=.
 go -C tools/gomad3 run ./backends/native/cmd/gomadtool boundary-generate --check --root=.
 go -C tools/gomad3 run ./backends/native/cmd/gomadtool qualification-manifest-generate --check --root=../.. \
-  --spec=tools/gomad3integration/qualification/tests.generator.json \
-  --output=tools/gomad3integration/qualification/tests.json
+  --spec=tools/gomad3/backends/native/qualification/tests.generator.json \
+  --output=tools/gomad3/backends/native/qualification/tests.json
 ```
 
 - `version-generate` derives consumers of the release descriptor.
@@ -639,7 +639,7 @@ Flags precede both trace paths. Status 0 means equal, 1 means different, 2 means
 ```sh
 make gomad3-soak GOMAD3_SOAK_WORKLOAD=functional-activity GOMAD3_SOAK_SEED=11
 go -C tools/gomad3 run ./backends/native/cmd/gomadtool soak \
-  --manifest="$PWD/tools/gomad3integration/qualification/soak.json" \
+  --manifest="$PWD/tools/gomad3/backends/native/qualification/soak.json" \
   --gomad="$PWD/tools/gomad3/.bin/gomad" \
   --work=/tmp/soak/work --ledger=/tmp/soak/ledger --output=/tmp/soak/output
 ```
