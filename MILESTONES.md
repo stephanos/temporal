@@ -218,9 +218,9 @@ CI, PR, or push authority.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-164.1](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.1.md) | 🚧 In progress | Enforce the shared-versus-backend import direction on the current tree |
-| [fn-164.2](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.2.md) | 🚧 In progress | Create runtimesemantics and make both overlays include it verbatim |
-| [fn-164.3](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.3.md) | ⬜ Todo | Move toolchain, upgrade, native transcript and conformance tooling under backends/native |
+| [fn-164.1](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.1.md) | 🚧 In progress | Import checker integrated; current-tree and forbidden-edge/stale-allowlist regressions passed; final batch acceptance remains open |
+| [fn-164.2](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.2.md) | 🚧 In progress | Canonical runtime sources integrated; identity/inventory regressions and tiny WASM link passed; final batch acceptance remains open |
+| [fn-164.3](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.3.md) | 🚧 In progress | Move toolchain, upgrade, native transcript and conformance tooling under backends/native |
 | [fn-164.4](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.4.md) | ⬜ Todo | Split target into shared types and native build preparation |
 | [fn-164.5](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.5.md) | ⬜ Todo | Make native a Provider behind backends/backend.go |
 | [fn-164.6](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.6.md) | ⬜ Todo | Fold the wasm module into backends/wasm with a stock-Go test target |
@@ -245,14 +245,14 @@ Owner-approved verification cadence (2026-10-11, revised): implement fn-156 as o
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-156.8](.flow/tasks/fn-156-wasm-gomad-productionization.8.md) | 🚧 In progress | Current architecture, scheduling and all five matched-suite comparisons passed with exact original-tape replay; unchanged architecture tests retain coverage; import-format correction and batch review remain open |
-| [fn-156.1](.flow/tasks/fn-156-wasm-gomad-productionization.1.md) | 🚧 In progress | v11 passed all 3200 fresh recordings, 32 exact replays, aggregate diversity and focused entropy/diagnostic/mutated-tape checks; batch review remains open |
-| [fn-156.2](.flow/tasks/fn-156-wasm-gomad-productionization.2.md) | 🚧 In progress | Current-source campaign ordering, byte bounds, interrupted resume, fuel/capacity and virtual-time checks passed; installed minimization and batch review remain open |
-| [fn-156.3](.flow/tasks/fn-156-wasm-gomad-productionization.3.md) | 🚧 In progress | Current-source full WAL/DELETE fault and crash recovery matrix plus unsynced-acknowledgement canary passed; selected-state corpus and batch review remain open |
-| [fn-156.4](.flow/tasks/fn-156-wasm-gomad-productionization.4.md) | 🚧 In progress | Negative/capacity, stream replay and genuine Temporal named-reset/retry/exact replay passed on the current source; batch review remains open |
-| [fn-156.5](.flow/tasks/fn-156-wasm-gomad-productionization.5.md) | 🚧 In progress | Current-source provider cleanup, ACK-crash/source-less and independent-incarnation replay passed; two-cluster Temporal recovery/replay and batch review remain open |
-| [fn-156.6](.flow/tasks/fn-156-wasm-gomad-productionization.6.md) | 🚧 In progress | Current-source qualification driver rebuilt with authentic terminal receipt; actual workload/operator receipts and full corpus remain open |
-| [fn-156.7](.flow/tasks/fn-156-wasm-gomad-productionization.7.md) | 🚧 In progress | Current-source CLI and original-test driver/witness built; observer fixes passed focused tests; installed minimization/replay, qualification corpus and measured documentation remain open |
+| [fn-156.8](.flow/tasks/fn-156-wasm-gomad-productionization.8.md) | 🚧 In progress | Pre-layout architecture, scheduling and five matched-suite comparisons passed; source-dependent acceptance and final review remain open |
+| [fn-156.1](.flow/tasks/fn-156-wasm-gomad-productionization.1.md) | 🚧 In progress | Pre-layout v11 passed 3200 fresh recordings, 32 exact replays and focused diversity/entropy/diagnostic checks; final-candidate acceptance remains open |
+| [fn-156.2](.flow/tasks/fn-156-wasm-gomad-productionization.2.md) | 🚧 In progress | Pre-layout campaign, capacity, interrupted-resume and minimization/replay checks passed; installed repeat and final batch acceptance remain open |
+| [fn-156.3](.flow/tasks/fn-156-wasm-gomad-productionization.3.md) | 🚧 In progress | Pre-layout WAL/DELETE fault and crash recovery matrix passed; selected-state corpus and final batch acceptance remain open |
+| [fn-156.4](.flow/tasks/fn-156-wasm-gomad-productionization.4.md) | 🚧 In progress | Pre-layout stream, negative/capacity and genuine Temporal reset/retry/exact replay passed; final-candidate acceptance remains open |
+| [fn-156.5](.flow/tasks/fn-156-wasm-gomad-productionization.5.md) | 🚧 In progress | Pre-layout provider cleanup, ACK-crash/source-less and independent-incarnation replay passed; two-cluster Temporal corpus and final acceptance remain open |
+| [fn-156.6](.flow/tasks/fn-156-wasm-gomad-productionization.6.md) | 🚧 In progress | Pre-layout qualification driver retained; final-candidate workload/operator receipts and full corpus remain open |
+| [fn-156.7](.flow/tasks/fn-156-wasm-gomad-productionization.7.md) | 🚧 In progress | Pre-layout CLI/minimization/replay evidence retained; installed support, final corpus and measured documentation remain open |
 
 ## Native
 

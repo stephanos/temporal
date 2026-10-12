@@ -61,7 +61,7 @@ func backendImportConfig() archcheck.Config {
 			modulePath + "/artifact", modulePath + "/choice", modulePath + "/cmd/gomad/api",
 			modulePath + "/deterministicio", modulePath + "/deterministicio/readonlymount", modulePath + "/deterministicio/volume",
 			modulePath + "/hostexec", modulePath + "/hostfs", modulePath + "/qualification", modulePath + "/qualification/workload",
-			modulePath + "/record", modulePath + "/runner", modulePath + "/runner/backend", modulePath + "/simulation/network",
+			modulePath + "/record", modulePath + "/runner", modulePath + "/runner/backend", modulePath + "/runtimesemantics", modulePath + "/simulation/network",
 			modulePath + "/target", modulePath + "/world",
 		},
 	}
