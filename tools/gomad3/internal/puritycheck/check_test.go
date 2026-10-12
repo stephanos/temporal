@@ -109,6 +109,24 @@ func TestEprefixedSyscallIsNotAConstant(t *testing.T) {
 	requireCategories(t, checkFixture(t, map[string]string{"record/pure.go": `package record;import "syscall";func F(){_,_=syscall.EpollCreate1(0)}`}, allPure), "host-effect")
 }
 
+func TestConcreteStdlibInterfaceRequiresPureMethods(t *testing.T) {
+	findings := checkFixture(t, map[string]string{
+		"record/pure.go": `package record;import "container/heap";type Queue []int;func F(q *Queue){heap.Push(q,1)}`,
+		"record/host.go": `package record;import "time";func(q Queue)Len()int{return len(q)};func(q Queue)Less(i,j int)bool{return q[i]<q[j]};func(q Queue)Swap(i,j int){q[i],q[j]=q[j],q[i]};func(q *Queue)Push(value any){_=time.Now()};func(q *Queue)Pop()any{return 0}`,
+	}, func(path string) bool { return path == "record/pure.go" })
+	requireCategories(t, findings, "dynamic-call")
+	findings = checkFixture(t, map[string]string{
+		"record/pure.go": `package record;import "io";type Buffer struct{};func(*Buffer)Write(data []byte)(int,error){return len(data),nil};func F(){_,_=io.WriteString(&Buffer{},"x")}`,
+		"record/host.go": `package record;import "time";func(*Buffer)WriteString(data string)(int,error){_=time.Now();return len(data),nil}`,
+	}, func(path string) bool { return path == "record/pure.go" })
+	requireCategories(t, findings, "dynamic-call")
+	findings = checkFixture(t, map[string]string{
+		"record/pure.go": `package record;import "encoding/json";type Writer interface{Write([]byte)(int,error)};type Buffer struct{};func(Buffer)Write(data []byte)(int,error){return len(data),nil};func F(w Writer){_,_=json.Marshal(w)}`,
+		"record/host.go": `package record;import "time";func(Buffer)MarshalJSON()([]byte,error){_=time.Now();return nil,nil}`,
+	}, func(path string) bool { return path == "record/pure.go" })
+	requireCategories(t, findings, "dynamic-call")
+}
+
 func TestDynamicMarks(t *testing.T) {
 	for _, tc := range []struct {
 		name, source string

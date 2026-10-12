@@ -135,7 +135,7 @@ func (a *analysis) call(pkg *sourcePackage, call *ast.CallExpr) (string, string)
 			}
 		case *types.Interface:
 			valueCallbacks := fn.Pkg().Path() == "encoding/json" || fn.Pkg().Path() == "fmt" && !formatTypesOnly(call, fn.Name())
-			if (formal.NumMethods() != 0 || valueCallbacks) && !a.callbackValue(pkg.info.TypeOf(arg), map[types.Type]bool{}) {
+			if (formal.NumMethods() != 0 || valueCallbacks) && (!a.callbackValue(pkg.info.TypeOf(arg), map[types.Type]bool{}) || !a.pureMethods(pkg.info.TypeOf(arg), formal)) {
 				if valueCallbacks && containsTime(pkg.info.TypeOf(arg), map[types.Type]bool{}) {
 					return "host-effect", "time.Time formatting or JSON callbacks may load local timezone state"
 				}
@@ -147,6 +147,39 @@ func (a *analysis) call(pkg *sourcePackage, call *ast.CallExpr) (string, string)
 		return "dynamic-call", dynamicDetail
 	}
 	return "", ""
+}
+
+func (a *analysis) pureMethods(typ types.Type, formal *types.Interface) bool {
+	if typ == nil {
+		return false
+	}
+	if _, ok := typ.Underlying().(*types.Interface); ok {
+		return a.pureInterface(typ)
+	}
+	methods := types.NewMethodSet(typ)
+	for i := 0; i < formal.NumMethods(); i++ {
+		required := formal.Method(i)
+		selected := methods.Lookup(required.Pkg(), required.Name())
+		if selected == nil {
+			return false
+		}
+		fn := selected.Obj().(*types.Func)
+		if fn.Pkg() == nil {
+			return false
+		}
+		path := fn.Pkg().Path()
+		if a.p.metadata[path].Standard {
+			if !allowed(path, symbol(fn)) {
+				return false
+			}
+		} else {
+			source := a.p.functions[functionID(fn)]
+			if source == "" || !a.p.pure(source) {
+				return false
+			}
+		}
+	}
+	return true
 }
 
 func containsTime(typ types.Type, seen map[types.Type]bool) bool {
@@ -224,7 +257,7 @@ func (a *analysis) callbackValue(typ types.Type, seen map[types.Type]bool) bool 
 			methods := types.NewMethodSet(types.NewPointer(typ))
 			for i := 0; i < methods.Len(); i++ {
 				fn := methods.At(i).Obj().(*types.Func)
-				if !slices.Contains([]string{"MarshalJSON", "MarshalText", "String", "GoString", "Format", "Error", "Read", "Write"}, fn.Name()) {
+				if !slices.Contains([]string{"MarshalJSON", "MarshalText", "String", "GoString", "Format", "Error", "Unwrap", "Is", "As", "Read", "Write", "WriteString", "ReadFrom", "WriteTo"}, fn.Name()) {
 					continue
 				}
 				if standard && !allowed(path, symbol(fn)) || !standard && !a.p.pure(a.p.functions[functionID(fn)]) {
@@ -397,10 +430,8 @@ func (a *analysis) pureImplementation(obj *types.TypeName, iface, foreign *types
 			return true, false
 		}
 		set := types.NewMethodSet(receiver)
-		for i := 0; i < iface.NumMethods(); i++ {
-			method := iface.Method(i)
-			selection := set.Lookup(method.Pkg(), method.Name())
-			fn, _ := selection.Obj().(*types.Func)
+		for i := 0; i < set.Len(); i++ {
+			fn, _ := set.At(i).Obj().(*types.Func)
 			if source := a.p.functions[functionID(fn)]; source == "" || !a.p.pure(source) {
 				return true, false
 			}
