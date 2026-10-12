@@ -224,22 +224,22 @@ The owner approved replacing the Go-release-boundary wait with targeted Provider
 | [fn-164.2](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.2.md) | 🚧 In progress | Canonical runtime sources integrated; identity/inventory regressions and tiny WASM link passed; final batch acceptance remains open |
 | [fn-164.3](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.3.md) | 🚧 In progress | Move toolchain, upgrade, native transcript and conformance tooling under backends/native |
 | [fn-164.4](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.4.md) | 🚧 In progress | Target data/build separation implemented privately; integration and final acceptance remain open |
-| [fn-164.5](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.5.md) | ⬜ Todo | Make native a Provider behind backends/backend.go |
+| [fn-164.5](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.5.md) | 🚧 In progress | Native Provider extraction released by owner approval; final isolation and compatibility remain open |
 | [fn-164.6](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.6.md) | 🚧 In progress | Private folded module passed cooperative and exploratory detached replay; final integration and test-wasm remain open |
-| [fn-164.7](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.7.md) | ⬜ Todo | One cmd/gomad launcher driven by Provider capabilities |
-| [fn-164.8](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.8.md) | ⬜ Todo | Keep pre-move artifacts inspectable and make identity mismatch explicit |
-| [fn-164.9](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.9.md) | ⬜ Todo | CI path filters for the wasm suite and shared packages |
+| [fn-164.7](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.7.md) | 🚧 In progress | Unify the launcher around Provider capabilities while preserving both command surfaces |
+| [fn-164.8](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.8.md) | 🚧 In progress | Verify genuine pre-move artifact inspection and explicit model-identity rejection |
+| [fn-164.9](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.9.md) | 🚧 In progress | CI routing implemented; private actionlint and 138 classifier cases passed; final integrated acceptance remains open |
 
 ### Architecture checks — [fn-165](.flow/specs/fn-165-gomad-architecture-checks-structural.md)
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-165.1](.flow/tasks/fn-165-gomad-architecture-checks-structural.1.md) | ⬜ Todo | Build the structural checker; move inventory, owner and edge rules onto it |
-| [fn-165.2](.flow/tasks/fn-165-gomad-architecture-checks-structural.2.md) | ⬜ Todo | Give the wasm module its own architecture test and a helper-bridge unit test |
+| [fn-165.1](.flow/tasks/fn-165-gomad-architecture-checks-structural.1.md) | 🚧 In progress | Integrate structural inventory, owner, import and syntax rules on the folded layout |
+| [fn-165.2](.flow/tasks/fn-165-gomad-architecture-checks-structural.2.md) | 🚧 In progress | Give the WASM backend its own structural test and hostile helper-reply unit test |
 | [fn-165.3](.flow/tasks/fn-165-gomad-architecture-checks-structural.3.md) | 🚧 In progress | Prepare the independent export-data loader and version-keyed stdlib allowlist; integrate after the layout batch |
-| [fn-165.4](.flow/tasks/fn-165-gomad-architecture-checks-structural.4.md) | ⬜ Todo | Implement purity rules with review marks; re-triage the effect fixtures |
-| [fn-165.5](.flow/tasks/fn-165-gomad-architecture-checks-structural.5.md) | ⬜ Todo | Mark the gomad3 pure set and switch module tests to the new checkers |
-| [fn-165.6](.flow/tasks/fn-165-gomad-architecture-checks-structural.6.md) | ⬜ Todo | Delete the old analyzer and enforce the line budget |
+| [fn-165.4](.flow/tasks/fn-165-gomad-architecture-checks-structural.4.md) | 🚧 In progress | Typed rules implemented privately; integrate review marks and re-triage retained fixtures |
+| [fn-165.5](.flow/tasks/fn-165-gomad-architecture-checks-structural.5.md) | 🚧 In progress | Preserve pure membership while marking dynamic calls and switching module tests |
+| [fn-165.6](.flow/tasks/fn-165-gomad-architecture-checks-structural.6.md) | 🚧 In progress | Retire the old analyzer and enforce the combined line budget after replacement coverage |
 
 ### Productionization — [fn-156](.flow/specs/fn-156-wasm-gomad-productionization.md) — Queued after fn-164 and fn-165
 
