@@ -296,10 +296,16 @@ func (a *analysis) callable(pkg *sourcePackage, expr ast.Expr) (string, string) 
 			return "", ""
 		}
 	}
-	if selector, ok := expr.(*ast.SelectorExpr); ok {
+	selector, _ := expr.(*ast.SelectorExpr)
+	if selector != nil {
 		if selection := pkg.info.Selections[selector]; selection != nil {
-			if _, ok := selection.Recv().Underlying().(*types.Interface); ok {
-				if a.pureInterface(selection.Recv()) {
+			receiver := selection.Recv()
+			// A method promoted from an embedded interface is still an interface call.
+			if fn, ok := selection.Obj().(*types.Func); ok && !types.IsInterface(receiver) && fn.Signature().Recv() != nil {
+				receiver = fn.Signature().Recv().Type()
+			}
+			if types.IsInterface(receiver) {
+				if a.pureInterface(receiver) {
 					return "", ""
 				}
 				return "dynamic-call", "interface method " + selection.Obj().Name()
@@ -312,10 +318,10 @@ func (a *analysis) callable(pkg *sourcePackage, expr ast.Expr) (string, string) 
 	}
 	path, name := fn.Pkg().Path(), symbol(fn)
 	if a.p.metadata[path].Standard {
-		if allowed(path, name) {
-			return "", ""
+		if !allowed(path, name) {
+			return "host-effect", path + "." + name + " is absent from the pure stdlib allowlist"
 		}
-		return "host-effect", path + "." + name + " is absent from the pure stdlib allowlist"
+		return "", ""
 	}
 	if path == "golang.org/x/mod/module" {
 		if err := reviewedModule(a.p.metadata[path], name); err != nil {
@@ -386,6 +392,10 @@ func (a *analysis) pureInterface(typ types.Type) bool {
 		return result
 	}
 	iface := typ.Underlying().(*types.Interface)
+	if !a.moduleBound(iface) {
+		a.interfaces[key] = false
+		return false
+	}
 	foreign, err := a.exportedInterface(named)
 	if err != nil {
 		a.fail(err)
@@ -412,6 +422,67 @@ func (a *analysis) pureInterface(typ types.Type) bool {
 	}
 	a.interfaces[key] = found
 	return found
+}
+
+// moduleBound reports interfaces only module types can implement: one method
+// is unexported or names a module type, which no standard-library or
+// third-party type can declare. Others may hold values from outside the module.
+func (a *analysis) moduleBound(iface *types.Interface) bool {
+	for i := 0; i < iface.NumMethods(); i++ {
+		if method := iface.Method(i); !method.Exported() || a.namesModuleType(method.Type(), map[types.Type]bool{}) {
+			return true
+		}
+	}
+	return false
+}
+
+func (a *analysis) namesModuleType(typ types.Type, seen map[types.Type]bool) bool {
+	if typ == nil || seen[typ] {
+		return false
+	}
+	seen[typ] = true
+	switch typ := types.Unalias(typ).(type) {
+	case *types.Named:
+		if typ.Obj().Pkg() != nil && within(typ.Obj().Pkg().Path(), a.p.module) {
+			return true
+		}
+		for i := 0; i < typ.TypeArgs().Len(); i++ {
+			if a.namesModuleType(typ.TypeArgs().At(i), seen) {
+				return true
+			}
+		}
+	case *types.Pointer:
+		return a.namesModuleType(typ.Elem(), seen)
+	case *types.Slice:
+		return a.namesModuleType(typ.Elem(), seen)
+	case *types.Array:
+		return a.namesModuleType(typ.Elem(), seen)
+	case *types.Chan:
+		return a.namesModuleType(typ.Elem(), seen)
+	case *types.Map:
+		return a.namesModuleType(typ.Key(), seen) || a.namesModuleType(typ.Elem(), seen)
+	case *types.Signature:
+		for _, tuple := range []*types.Tuple{typ.Params(), typ.Results()} {
+			for i := 0; i < tuple.Len(); i++ {
+				if a.namesModuleType(tuple.At(i).Type(), seen) {
+					return true
+				}
+			}
+		}
+	case *types.Struct:
+		for i := 0; i < typ.NumFields(); i++ {
+			if a.namesModuleType(typ.Field(i).Type(), seen) {
+				return true
+			}
+		}
+	case *types.Interface:
+		for i := 0; i < typ.NumMethods(); i++ {
+			if a.namesModuleType(typ.Method(i).Type(), seen) {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func (a *analysis) pureImplementation(obj *types.TypeName, iface, foreign *types.Interface) (bool, bool) {

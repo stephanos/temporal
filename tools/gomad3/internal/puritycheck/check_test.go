@@ -143,8 +143,11 @@ func TestDynamicMarks(t *testing.T) {
 		{"time-callback-mark", "import(\"time\";\"encoding/json\");func F(value time.Time){\n//gomad:dynamic reviewed 2026-10-12 known timezone callback cannot be reviewed away\n_,_=json.Marshal(value)\n}", []string{"host-effect", "stale-review"}},
 		{"external-interface", "import \"io\";func F(w io.Writer){_,_ = w.Write(nil)}", []string{"dynamic-call"}},
 		{"method-value", "import \"bytes\";func F(){var b bytes.Buffer;f:=b.Write;_,_ = f(nil)}", []string{"dynamic-call"}},
-		{"pure-interface", "type Writer interface{Write([]byte)(int,error)};type Buffer struct{};func(Buffer)Write(b []byte)(int,error){return len(b),nil};func F(w Writer){_,_ = w.Write(nil)}", nil},
-		{"private-interface", "type writer interface{Write([]byte)(int,error)};type buffer struct{};func(buffer)Write(b []byte)(int,error){return len(b),nil};func f(w writer){_,_ = w.Write(nil)}", nil},
+		{"pure-interface", "type Item struct{};type Writer interface{Write(Item)};type Buffer struct{};func(Buffer)Write(Item){};func F(w Writer){w.Write(Item{})}", nil},
+		{"private-interface", "type writer interface{write([]byte)(int,error)};type buffer struct{};func(buffer)write(b []byte)(int,error){return len(b),nil};func f(w writer){_,_ = w.write(nil)}", nil},
+		{"stdlib-implementable-interface", "type Writer interface{Write([]byte)(int,error)};type Buffer struct{};func(Buffer)Write(b []byte)(int,error){return len(b),nil};func F(w Writer){_,_ = w.Write(nil)}", []string{"dynamic-call"}},
+		{"promoted-interface", "type Env interface{Get(string)string};type Box struct{Env};func F(b Box)string{return b.Get(\"HOME\")}", []string{"dynamic-call"}},
+		{"promoted-pure-interface", "type Item struct{};type Writer interface{Write(Item)};type Buffer struct{};func(Buffer)Write(Item){};type Box struct{Writer};func F(b *Box){b.Write(Item{})}", nil},
 		{"empty-interface-implementations", "type Writer interface{Write([]byte)(int,error)};func F(w Writer){_,_ = w.Write(nil)}", []string{"dynamic-call"}},
 		{"stdlib-interface-input", "import \"encoding/json\";func F(v any){_,_ = json.Marshal(v)}", []string{"dynamic-call"}},
 		{"stdlib-callback-value", "import \"slices\";func F(f func(int,int)int){slices.SortFunc([]int{},f)}", []string{"dynamic-call"}},
@@ -158,32 +161,22 @@ func TestDynamicMarks(t *testing.T) {
 }
 
 func TestInterfaceImplementationsOutsidePurePackage(t *testing.T) {
+	const writer = "package record;type Item struct{};type Writer interface{Write(Item)};type Buffer struct{};func(Buffer)Write(Item){};func F(w Writer){w.Write(Item{})}"
 	for _, tc := range []struct {
-		name, source string
-		want         []string
+		name, record, host string
+		want               []string
 	}{
-		{"impure", "package host;type Buffer struct{};func(Buffer)Write(b []byte)(int,error){return len(b),nil}", []string{"dynamic-call"}},
-		{"private-impure", "package host;type buffer struct{};func(buffer)Write(b []byte)(int,error){return len(b),nil}", []string{"dynamic-call"}},
-		{"irrelevant-method", "package host;type Buffer struct{};func(Buffer)Write(string){}", nil},
+		{"impure", writer, "type Buffer struct{};func(Buffer)Write(record.Item){}", []string{"dynamic-call"}},
+		{"private-impure", strings.ReplaceAll(writer, "Writer", "writer"), "type buffer struct{};func(buffer)Write(record.Item){}", []string{"dynamic-call"}},
+		{"irrelevant-method", writer, "type Buffer struct{};func(Buffer)Write(string){};var _ record.Item", nil},
+		{"stdlib-file", "package record;type Source interface{Read([]byte)(int,error)};type Buffer struct{};func(Buffer)Read([]byte)(int,error){return 0,nil};func F(s Source){_,_ = s.Read(nil)}", "import \"os\";func G(){record.F(os.Stdin)}", []string{"dynamic-call"}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			findings := checkFixture(t, map[string]string{
-				"record/pure.go": "package record;type Writer interface{Write([]byte)(int,error)};type Buffer struct{};func(Buffer)Write(b []byte)(int,error){return len(b),nil};func F(w Writer){_,_ = w.Write(nil)}",
-				"host/host.go":   tc.source,
+				"record/pure.go": tc.record,
+				"host/host.go":   "package host;import \"example.invalid/fitness/record\"\n" + tc.host,
 			}, func(path string) bool { return strings.HasPrefix(path, "record/") })
 			requireCategories(t, findings, tc.want...)
-		})
-	}
-}
-
-func TestInterfaceImplementationUsesModuleTypes(t *testing.T) {
-	for _, name := range []string{"Writer", "writer"} {
-		t.Run(name, func(t *testing.T) {
-			findings := checkFixture(t, map[string]string{
-				"record/pure.go": strings.ReplaceAll("package record;type Item struct{};type Writer interface{Write(Item)};type Buffer struct{};func(Buffer)Write(Item){};func f(w Writer){w.Write(Item{})}", "Writer", name),
-				"host/host.go":   "package host;import \"example.invalid/fitness/record\";type Buffer struct{};func(Buffer)Write(record.Item){}",
-			}, func(path string) bool { return strings.HasPrefix(path, "record/") })
-			requireCategories(t, findings, "dynamic-call")
 		})
 	}
 }
