@@ -8,5 +8,7 @@ object MachineWildcardInline extends Machine[Job, Said, Nothing], Phased[Job, St
   val used = idle
   val init = Job(Stage.idle)
   override def end(s: Job) = true
+  object effects:
+    def keep(s: Job) = enter[Job, Said, Nothing](s)
   object rules extends Rules:
-    on(hand.press)(when(Stage.idle) ~> (s => enter[Job, Said, Nothing](s)))
+    on(hand.press)(when(Stage.idle) ~> effects.keep)

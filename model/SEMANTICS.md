@@ -390,6 +390,13 @@ native rule construction independently refuse bare action targets, including imp
 class forms whose arguments are dotted. Each refusal names the target, its source coordinate and
 the qualified form. Native construction also refuses imports it can inspect in a `from` body.
 
+The phase type is the `P` of `Phased[S, P]`, including a derived or composed machine's
+inherited projection. The lifter refuses wildcard, selective and renamed imports of its members
+at every authored level and same-line position. Imports of unrelated enums stay valid.
+A bare phase or eta-expanded named set in phase-form `when` is refused; qualified sets and
+`when[Role]` remain valid. Property-builder `when` selects actions. Phase-form varargs
+`when` has no runtime qualification check.
+
 ### Modalities: what a row means
 
 A machine's table says what *may* happen; the claims say what *must*.

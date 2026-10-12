@@ -758,7 +758,7 @@ The IR generator reads what an author wrote, as written:
   field, `field(_.info) { … }`; and `read(path, cardinality).into(targets…)`, in a call's scope,
   lifts as a `ResponseRead.typed(…)` of the call's reads.
 - **Blocks** (sugar, the same files): a section `val` of a machine object may declare a predicate
-  as `val held = is { phase.in(started, cancelRequested) }` and a step function of the state alone
+  as `val held = is { phase.in(Phase.started, Phase.cancelRequested) }` and a step function of the state alone
   as `val pause = effect { phase = Phase.paused; record(Fact.attempted) }`, beside the method forms
   `def held(s: State) = s.phase.in(…)` and `def pause(s: State) = enter(s.copy(phase = …), …)`, which
   stay valid. A block reads a field by its name and an `effect` block assigns it by name; each lifts
@@ -983,7 +983,7 @@ A machine object is the machine: `object ActivityProduct extends Machine[State, 
    projection without one, or through a writer whose state the projection does not read as the
    phase entered. Then `val init`, the state
    it starts in (`init` as Quint and TLA+ name it, its fields by
-   name, `system.State(phase = unstarted, attempts = UpTo(0), …)`). `Phased` supplies `end` as the
+   name, `system.State(phase = system.Phase.unstarted, attempts = UpTo(0), …)`). `Phased` supplies `end` as the
    `Closed` phases; a different stopping point declares `override def end(s)`. An omitted `end`
    with no `Closed` case is refused by the lifter and on the default's first evaluation, naming
    the object and phase type. A plain machine declares `def end(s)`. Then, where declared,
@@ -993,8 +993,8 @@ A machine object is the machine: `object ActivityProduct extends Machine[State, 
    names its own with `val entity`;
 2. `object states`, the vocabulary roles do not say: single-phase and other subsets, predicates over
    other fields or steps, projections, constants and helpers. A yes/no question about the state is
-   a def of it, `def running(s: State) = s.phase == started`, or a block,
-   `val running = is { phase == started }`; a predicate of the phase, a projection
+   a def of it, `def running(s: State) = s.phase == Phase.started`, or a block,
+   `val running = is { phase == Phase.started }`; a predicate of the phase, a projection
    (`def status(s: State) = s.phase`) and a constant keep their own forms. A member named after a
    state field shadows the field a block reads, so a projection takes another name. A derived name
    such as `created` keeps its name and reads `p.in[Live] || p.in[Closed]`. A set that only renames
@@ -1015,7 +1015,7 @@ A machine object is the machine: `object ActivityProduct extends Machine[State, 
    which never give `disabled` or `Nil`, and need no result type: `enter(…)`, `stay(s)` and
    `reject(Outcome.rejected(Rejection.notFound), s)`, a step that keeps the state with another outcome, say what each
    gives. An effect of the state alone may be a block instead, `val startAttempt = effect { phase =
-   started }`, `val notFound = effect { reject(Outcome.rejected(Rejection.notFound)) }`, which a rule binds as it binds
+   Phase.started }`, `val notFound = effect { reject(Outcome.rejected(Rejection.notFound)) }`, which a rule binds as it binds
    a def, `~> effects.startAttempt`; an effect that takes arguments beyond the state stays a def.
    An effect whose whole work is entering a phase is not declared: a rule enters it by the framework
    step `enters(Phase.completed)`, `when[Held] ~> enters(Phase.completed)`, and a `choose`
@@ -1052,7 +1052,11 @@ A machine object is the machine: `object ActivityProduct extends Machine[State, 
    `phase = Phase.started`, `State(Phase.scheduled)`, in rule cases, effects, `init`, states and
    properties alike: the IR generator refuses any import of a phase type's members (`import
    Phase.*`, `import Phase.{started}`, at any level), and a bare argument of the phase form of
-   `when`; a named set is selected on its object, `when(states.terminal)`. An effect
+   `when`; a named set is selected on its object, `when(states.terminal)`. The phase type is the
+   `P` of `Phased[S, P]`, whatever its name. Wildcard, selective and renamed member imports
+   are refused at file, machine, nested-section and rules positions, including same-line imports.
+   Unrelated enum imports and compiler-generated enum imports remain valid. Phase-form `when`
+   is checked by the lifter only; Property-builder `when` selects actions and is unchanged. An effect
    that takes arguments beyond the state binds them in place, `~> (effects.timeOut(_,
    system.TimeoutType.scheduleToClose))`. Where no case holds the action is disabled, and
    `disabled(process.stop)` binds an action no state enables. The cases of one action class

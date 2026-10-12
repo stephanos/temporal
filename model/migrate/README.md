@@ -70,3 +70,26 @@ and requires exactly the accepted source bytes. The shared proof packages and li
 mini before and after, comparing full IR and waiver bytes, positions included. This proves
 source transformation and preserved mini identities/meaning; production loading, real-feature
 application, consumer gates and the canonical Make route remain held.
+
+## Qualified phases: Fn159Task3QualifiedPhases
+
+The source rule reads the phase type from an explicit `Phased[S, P]` in the document.
+It qualifies visible selective and renamed imports of that type's members wherever used:
+init, states, effects, rules and properties. A wildcard is rewritten only when the enum's
+cases are declared in that same document. Unrelated enum imports stay intact.
+Ambiguous imports, shadowing, mixed importer statements, unsupported selectors and an external
+wildcard refuse the whole document before patching. Framework wildcard imports are the known
+DSL surface; arbitrary competing wildcards are refused. Inherited phase types with no local
+`Phased` declaration and external wildcard imports require manual qualification through their
+actual phase type, followed by removal of the member import.
+
+```sh
+mise exec -- scala-cli test --server=false model/migrate --test-only umpire.migrate.QualifiedPhasesTest
+timeout 600 /bin/bash model/migrate/prove-mini.sh umpire.migrate.RewriteQualifiedPhasesMini
+```
+
+The copied-mini runner introduces a renamed phase-member import in its isolated
+`Dispatching.scala`, rewrites rule and state references, checks idempotence and atomic
+ambiguity refusal, and requires exact accepted-source restoration. The shared proof compares
+the compiled complete mini's raw IR and waiver bytes, including every identity and position.
+Production loading, real-feature application and consumer gates remain held.

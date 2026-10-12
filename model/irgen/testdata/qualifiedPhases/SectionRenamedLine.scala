@@ -8,5 +8,7 @@ object SectionRenamedLine extends Machine[Job, Said, Nothing], Phased[Job, Stage
   object states:
     import Stage.idle as waiting
     val used = waiting
+  object effects:
+    def keep(s: Job) = enter[Job, Said, Nothing](s)
   object rules extends Rules:
-    on(hand.press)(when(Stage.idle) ~> (s => enter[Job, Said, Nothing](s)))
+    on(hand.press)(when(Stage.idle) ~> effects.keep)

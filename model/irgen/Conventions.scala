@@ -247,18 +247,25 @@ final private[irgen] class Conventions(index: Index):
 
   // fn-159.3: every phase is named through its phase type, `Phase.scheduled`, so no source imports
   // a phase type's members, wildcard or selective, at any level.
-  private def phaseImport(i: Import): Unit =
+  private def phaseImport(i: Import, owner: Symbol): Unit =
     val imported = i.expr.symbol
     val phase =
       if imported.flags.is(Flags.Module) then imported.companionClass
       else i.expr.tpe.widen.typeSymbol.companionClass
-    // An enum's own definition imports its cases into its companion; no source writes that.
-    val written = scala.util
-      .Try {
-        textOf(i).linesIterator.drop(lineOf(i) - 1).next().trim.startsWith("import")
-      }
-      .getOrElse(false)
-    if written && phaseTypes(phase) then
+    val synthetic = owner == phase && phase.flags.is(Flags.Enum) &&
+      i.expr.pos.start == i.expr.pos.end
+    if phaseTypes(phase) && !synthetic then
+      val sourceProblem = scala.util
+        .Try {
+          val text = textOf(i)
+          require(i.pos.start >= 0 && i.pos.end > i.pos.start && i.pos.end <= text.length)
+          require(
+            "(?s)^import\\s.*".r.matches(text.substring(i.pos.start, i.pos.end).trim),
+            "the import span no longer names its authored source"
+          )
+        }
+        .failed
+        .toOption
       val names = i.selectors.map {
         case SimpleSelector(n)    => if Set("_", "*")(n) then "*" else n
         case RenameSelector(n, a) => s"$n as $a"
@@ -271,9 +278,14 @@ final private[irgen] class Conventions(index: Index):
       refuse(
         i,
         "R9.phase-import",
-        s"import ${i.expr.show}.$selected brings " +
-          s"the cases of the phase type ${phase.name} into scope: drop it and name each phase " +
-          s"through its type, `${phase.name}.<case>`"
+        sourceProblem.fold(
+          s"import ${i.expr.show}.$selected brings " +
+            s"the cases of the phase type ${phase.name} into scope: drop it and name each phase " +
+            s"through its type, `${phase.name}.<case>`"
+        )(_ =>
+          s"cannot verify the authored import of phase type ${phase.name}: restore its source " +
+            s"and name each phase through `${phase.name}.<case>`"
+        )
       )
 
   private lazy val finiteTypes: Set[Symbol] = index.defs.values
@@ -449,7 +461,7 @@ final private[irgen] class Conventions(index: Index):
         t match
           case i: Import =>
             imports(i, owner)
-            phaseImport(i)
+            phaseImport(i, owner)
           case _ => super.traverseTree(t)(owner)
     checked.foreach(t => importCheck.traverseTree(t)(Symbol.spliceOwner))
     // fn-160 R9: the recorded status-table seam, independent of a feature's capability kind.

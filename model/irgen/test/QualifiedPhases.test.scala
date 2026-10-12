@@ -49,12 +49,12 @@ class QualifiedPhasesTest extends munit.FunSuite:
   private lazy val importsJar = packaged("imports", names)
   private lazy val headingsJar = packaged("headings", Vector("Headings"))
 
-  private def lift(jar: java.nio.file.Path, roots: Seq[String]) =
+  private def lift(jar: java.nio.file.Path, roots: Seq[String], prefix: String = stored) =
     val output = scratch.resolve(roots.head + ".json")
     val ran = InProcess.lift(
       tools.directory,
       Seq(
-        s"$jar=$stored,$modelJar=model/",
+        s"$jar=$prefix,$modelJar=model/",
         task.resolve("scoped-model.classpath").toString,
         output.toString
       ) ++ roots.map("fixture.qualifiedphases." + _)
@@ -70,17 +70,44 @@ class QualifiedPhasesTest extends munit.FunSuite:
     for name <- names do
       val source = Files.readAllLines(tools.directory.resolve(stored + name + ".scala")).asScala
       val line = source.indexWhere(_.contains("import Stage.")) + 1
+      assertEquals(source(line - 1).trim.startsWith("import"), name.endsWith("Line"), name)
       val diagnostic = ran.diagnostics.linesIterator.find(_.contains(s"$name.scala:$line:"))
       assert(diagnostic.nonEmpty, ran.diagnostics)
+      val imported =
+        if name.contains("Wildcard") then "Stage.*"
+        else if name.contains("Renamed") then "Stage.idle as waiting"
+        else "Stage.idle"
+      assert(diagnostic.get.contains(imported), diagnostic.get)
       assert(diagnostic.get.contains("phase type Stage"), diagnostic.get)
       assert(diagnostic.get.contains("Stage.<case>"), diagnostic.get)
     assertEquals(ran.diagnostics.linesIterator.count(_.contains("R9.phase-import")), names.size)
+
+  test("authored imports with unavailable or malformed source cannot masquerade as enum synthesis"):
+    val jar = packaged("damaged", Vector("FileWildcardInline"))
+    val source = jar.getParent.resolve("FileWildcardInline.scala")
+    val original = Files.readString(source)
+    for unavailable <- Vector(false, true) do
+      if unavailable then Files.move(source, source.resolveSibling("saved.txt")): Unit
+      else Files.writeString(source, original.replace("import Stage.*", "xxxxxx Stage.*")): Unit
+      try
+        val (ran, output) = lift(jar, Vector("FileWildcardInline"), jar.getParent.toString + "/")
+        assertEquals(ran.exit, 1, ran.diagnostics)
+        assert(!Files.exists(output))
+        assert(
+          ran.diagnostics.contains("cannot verify the authored import of phase type Stage"),
+          ran.diagnostics
+        )
+        assert(ran.diagnostics.contains("restore its source"), ran.diagnostics)
+        assert(ran.diagnostics.contains("Stage.<case>"), ran.diagnostics)
+      finally
+        if unavailable then Files.move(source.resolveSibling("saved.txt"), source): Unit
+        else Files.writeString(source, original): Unit
 
   test(
     "qualified phases, eta-expanded sets, roles and Property when accept unrelated enum imports"
   ):
     val (ran, output) =
-      lift(headingsJar, Vector("Accepted", "Accepted.properties", "QualifiedSet", "Inherited"))
+      lift(headingsJar, Vector("Accepted", "Accepted$.properties", "QualifiedSet", "Inherited"))
     assertEquals(ran.exit, 0, ran.diagnostics)
     val ir = new com.fasterxml.jackson.databind.ObjectMapper().readTree(Files.readString(output))
     assertEquals(ir.path("machines").size(), 3)
