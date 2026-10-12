@@ -15,7 +15,7 @@ object RewriteCentralBoundsMini:
     )
     val path = directory.resolve("Queue.scala")
     val accepted = Files.readString(path)
-    val target = "query verify properties.deliveredWasScheduled in delivery limits three"
+    val target = "query verify properties.safety.deliveredWasScheduled in delivery limits three"
     val legacy = accepted.replace(
       target,
       "{ val local = Limits(steps = 3, actions = 3, search = 4096); " +

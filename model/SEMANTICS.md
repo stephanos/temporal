@@ -481,7 +481,8 @@ Source: [temporal/features/activity_mini/product/Product.scala:39](temporal/feat
 
 ```scala
 object properties:
-  val terminalRemains = property.once(_.phase.in[Closed]).keeps(_.phase)
+  object safety:
+    val terminalRemains = property.once(_.phase.in[Closed]).keeps(_.phase)
 ```
 
 The checker classifies a declaration by its resolved kind, never by its name or predicate body.
@@ -546,7 +547,7 @@ Source: [temporal/features/activity_mini/protocol/Protocol.scala:69](temporal/fe
 object queries:
   capabilities.bound(six)
   val any = scenario.free
-  val terminalThroughProduct = query verify product.ActivityProduct.properties.terminalRemains in any limits six
+  val terminalThroughProduct = query verify product.ActivityProduct.properties.safety.terminalRemains in any limits six
   val retryCompleted = witness(client.start(maxAttempts := MaxAttempts.two), activityWorker.poll,
     activityWorker.respondFailed(Failure.retryable), timers.backoff, activityWorker.poll,
     activityWorker.respondCompleted).records(Fact.statusCompleted).ends(_.attempts == 2).limits(six)
@@ -665,11 +666,12 @@ object DispatchProgress extends Derived(ActivityProtocol.restrict(activityWorker
     def waiting(s: State): Boolean = s.phase == Phase.scheduled
     def started(s: State): Boolean = s.phase == Phase.started
   object properties:
-    val workerStarts = DispatchProgress.leadsTo("workerStarts")(
-      states.waiting, states.started, within = Bounds.dispatchSteps, workerFair)
+    object liveness:
+      val workerStarts = DispatchProgress.leadsTo("workerStarts")(
+        states.waiting, states.started, within = Bounds.dispatchSteps, workerFair)
 ```
 
-A safety postcondition such as `Queue.properties.deliveredWasScheduled` assumes no future action: it
+A safety postcondition such as `Queue.properties.safety.deliveredWasScheduled` assumes no future action: it
 must hold whenever its selected response step occurs, but does not say that response will occur.
 The progress claim is universal over every admitted path from `from`; it states its `within` bound
 and fairness or recovery assumptions separately. A `find` Query supplies one witness path and is
@@ -823,7 +825,8 @@ Source: [temporal/features/activity_mini/product/Product.scala:37](temporal/feat
 object rules extends Facets(dispatching.rules, completion.rules)
 
 object properties:
-  val terminalRemains = property.once(_.phase.in[Closed]).keeps(_.phase)
+  object safety:
+    val terminalRemains = property.once(_.phase.in[Closed]).keeps(_.phase)
 
 object capabilities extends FacetCapabilities(dispatching.capabilities, completion.capabilities)
 ```
@@ -944,12 +947,13 @@ object Queue extends Composition[OverQueue](
   object syncs extends Syncs:
     sync(_.activity -> activityWorker.poll, _.queue -> foundationQueue.deliver)
   object properties:
-    val deliveredWasScheduled = property.whenAction(synced(_.activity -> activityWorker.poll))
-      .holds(_.state.queue.outstanding.in(Outstanding.deliveredOnce, Outstanding.deliveredTwice))
+    object safety:
+      val deliveredWasScheduled = property.whenAction(synced(_.activity -> activityWorker.poll))
+        .holds(_.state.queue.outstanding.in(Outstanding.deliveredOnce, Outstanding.deliveredTwice))
   object queries:
     val delivery = scenario.actions(own(_.activity, client.start()), own(_.queue, taskQueue.schedule()),
       synced(_.activity -> activityWorker.poll))
-    val queueDelivery = query verify properties.deliveredWasScheduled in delivery limits three
+    val queueDelivery = query verify properties.safety.deliveredWasScheduled in delivery limits three
 ```
 
 `synced` finds the one sync that pairs that member's action; `own` an action the member binds and

@@ -21,9 +21,10 @@ object Queue extends Composition[OverQueue](
   object syncs extends Syncs:
     sync(_.activity -> activityWorker.poll, _.queue -> foundationQueue.deliver)
   object properties:
-    val deliveredWasScheduled = property.whenAction(synced(_.activity -> activityWorker.poll))
-      .holds(_.state.queue.outstanding.in(Outstanding.deliveredOnce, Outstanding.deliveredTwice))
+    object safety:
+      val deliveredWasScheduled = property.whenAction(synced(_.activity -> activityWorker.poll))
+        .holds(_.state.queue.outstanding.in(Outstanding.deliveredOnce, Outstanding.deliveredTwice))
   object queries:
     val delivery = scenario.actions(own(_.activity, client.start()), own(_.queue, taskQueue.schedule()),
       synced(_.activity -> activityWorker.poll))
-    val queueDelivery = query verify properties.deliveredWasScheduled in delivery limits three
+    val queueDelivery = query verify properties.safety.deliveredWasScheduled in delivery limits three

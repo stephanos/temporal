@@ -34,11 +34,12 @@ object AnswerDispatch
               Rejection.notFound
             ))
       )
-    val noStaleSettlement = oldAnswerKeepsAttempt(AnswerDispatch)
-    val backoffCancellation = property when fault.interruptBackoff holds
-      (after => after.state.attempts <= 2)
-    val lostAnswerLeavesBufferEmpty =
-      property when answers.lose(Answer.firstCompleted) holds (_.state.answers.isEmpty)
+    object safety:
+      val noStaleSettlement = oldAnswerKeepsAttempt(AnswerDispatch)
+      val backoffCancellation = property when fault.interruptBackoff holds
+        (after => after.state.attempts <= 2)
+      val lostAnswerLeavesBufferEmpty =
+        property when answers.lose(Answer.firstCompleted) holds (_.state.answers.isEmpty)
 
   object queries:
     val stale = scenario.actions(
@@ -55,11 +56,11 @@ object AnswerDispatch
       activityWorker.respondCompleted,
       answers.lose(Answer.firstCompleted)
     )
-    val staleIsFenced = query verify properties.noStaleSettlement in stale limits six total 450
+    val staleIsFenced = query verify properties.safety.noStaleSettlement in stale limits six total 450
     val cancellationUnknown =
-      query verify properties.backoffCancellation in canceled limits Bounds.three total 225
+      query verify properties.safety.backoffCancellation in canceled limits Bounds.three total 225
     val answerLoss =
-      query verify properties.lostAnswerLeavesBufferEmpty in lost limits Bounds.three total 225
+      query verify properties.safety.lostAnswerLeavesBufferEmpty in lost limits Bounds.three total 225
     val failedAnswer = witness(
       activityWorker.poll,
       activityWorker.respondFailed(Failure.fatal),

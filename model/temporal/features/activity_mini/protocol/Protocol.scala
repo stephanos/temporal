@@ -69,7 +69,7 @@ object ActivityProtocol
   object queries:
     capabilities.bound(six)
     val any = scenario.free
-    val terminalThroughProduct = query verify product.ActivityProduct.properties.terminalRemains in any limits six
+    val terminalThroughProduct = query verify product.ActivityProduct.properties.safety.terminalRemains in any limits six
     val retryCompleted = witness(client.start(maxAttempts := MaxAttempts.two), activityWorker.poll,
       activityWorker.respondFailed(Failure.retryable), timers.backoff, activityWorker.poll,
       activityWorker.respondCompleted).records(Fact.statusCompleted).ends(_.attempts == 2).limits(six)
