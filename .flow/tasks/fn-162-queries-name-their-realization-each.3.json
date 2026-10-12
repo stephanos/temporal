@@ -14,6 +14,6 @@
   "spec_path": ".flow/tasks/fn-162-queries-name-their-realization-each.3.md",
   "status": "todo",
   "sync": null,
-  "title": "Migrate the standalone activity off claim-container subjects",
-  "updated_at": "2026-10-11T07:31:52.400620Z"
+  "title": "Claim containers removed: mini feature and shared code (standalone activity proof at the sweep)",
+  "updated_at": "2026-10-12T18:53:55.837435Z"
 }

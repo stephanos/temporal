@@ -1,9 +1,11 @@
 ---
 satisfies: [R4, R7]
 ---
-# fn-162-queries-name-their-realization-each.3 Migrate the standalone activity off claim-container subjects
+# fn-162-queries-name-their-realization-each.3 Claim containers removed: mini feature and shared code (standalone activity proof at the sweep)
 
 ## Description
+**Scope (2026-10-12, Scala DSL batch rules; supersedes the text below where they conflict):** re-scoped to the mini feature and the shared code. The standalone activity's claim-container removal and cancellation deduplication are already integrated in source (3afd8b9f74 and follow-ups, Batch 1d); its identity/source proof, its strict native closure debt below, the `ActivitySubjectRegression` replacement and the regenerated IR/Cases/fixture trees wait for the owner's sweep and Batch 5b. Consumer closure stays deferred. This task: remove any claim container (a `Derived(m.unmonitored)` or bare `m.rebind()` holding only Properties and Queries) that `features/activity_mini` or the shared code (foundations, actors, capabilities, realize, `Bounds`) still has, or prove there are none; ship a scalafix rule under `model/migrate/rules/` if a source change is needed; and prove the mini identity and step tables equivalent to the mini baseline under this task's recorded rename map.
+
 Migrate the standalone activity off its 17 claim-container derivations (7 `rebind()` + 10 `unmonitored`, listed in the spec's Resolved via Codebase). Each Property is declared once, in its facet. Each Query sits on the base machine, and each realization lists the Queries it runs. Each realization realizes the base machine.
 
 **Size:** L
@@ -47,9 +49,9 @@ task's closure. Repair and verify the Scala portion before fn-140.10's final sou
 managed IR/Cases/Go checks remain held for Batch 5b. Neither an unchanged inherited red nor
 native evidence closes the deferred consumer/Case proof.
 ## Acceptance
-- [ ] The standalone activity has no claim-container derivations; each Property is declared once; each Query is run by the realization that ran it before (listed in its `runs`), or by none (model-only) as before.
-- [ ] Every Query answer and total and every Case expected outcome is unchanged; differences are limited to the ids in the recorded rename map (Property, Query, realization binding, derived Case names, machine-scoped target/state/action/fact ids).
-- [ ] The subject regression test is replaced by realization-binding and merged-Property pins; the gate checks pass at Batch 5b's close.
+- [ ] `features/activity_mini` and the shared code have no claim-container derivations (removed, or proven absent with every derivation classified); each mini Property is declared once (the lifter's duplicate refusal passes on the whole mini lift); each mini find Query keeps its realization binding or model-only standing.
+- [ ] The mini step tables are equivalent to `.flow/tmp/scala-dsl/mini-selected-baseline-00d22597d2/` under the recorded rename map; any source change ships its scalafix rule, proven on copied mini sources.
+- [ ] Deferred, not claimed: the standalone activity's identity/source proof, strict native closure debt and subject-regression replacement (owner's sweep), regenerated IR/Cases/fixtures and gate checks (Batch 5b), consumer closure.
 ## Done summary
 TBD
 
