@@ -97,9 +97,28 @@ once at the Scala batch end; no per-task SHIP/canonical/consumer/full-set credit
   failures remain recorded and all owner-held broad/consumer/real/lint obligations stay open.
 
 ## Done summary
-TBD
+Implemented R17 explicit token defaults in native construction and every lifter omission consumer, with declaration-name diagnostics and exact framework factory ownership. Mini/shared omissions retain their inventoried values; deadline presets retain required non-Timeout values and select unset/expires semantically; compiled Scalafix migration restores actual copied mini declarations and refuses unproven ownership atomically.
 
+Tier: session (jev-unavailable(no_key))
+stage: impl-review - skipped(config: REVIEW_MODE=none)
+
+Baseline: GREEN selected pre-edit package/classpath/lift, independently frozen in `before.jar`, `before.classpath` and `before/`. Final inputs are `final-model.jar`, `final.classpath` and `frozen-sources-final.sha` in this handover directory.
+
+Verified scoped results:
+
+- Native input suites: 10 tests (`native-final-corrected.log`); isolated lifter: 15 accepted classes plus seven located/no-output refusals (`lifter-final.log`); deadline controls: four tests (`deadlines-final.log`). True imported-alias/qualified factories are accepted; unrelated input-named helpers refuse.
+- Migration: three tests (`migration-final.log`); 30 exact guide excerpts (`citations-final.log`); admitted bounded-diagnostic suite: eight tests (`bounded-diagnostic-final.log`). Only the authorized required-input diagnostic changes in that assertion and rejection text were made; all other assertions and expected JSON remain unchanged.
+- Complete raw mini IR and waivers compare byte-for-byte before/after, positions included; SHA `3579eef0fce64da34ee8b93afdd03256c5307120ecccfb037f0eefdeae77705b`. Eight authored start presets and seven evidence bindings remain (`mini-preservation-final.log`).
+- Actual compiled copied-mini migration proof: `.flow/tmp/mini-migration.wrrt5E/`, `proof-final.log`; accepted/restored source packages and lifts independently, same complete IR SHA and waivers. Legacy migration text is parsed, not compiled as the old API.
+- Legacy Inputs five-root raw fixture preserves every byte and actual position: `inputs-before.json` versus `inputs-positioned.json`, SHA `6a92886972e925dae8e8d1bf395d5088bf5976d14c957ed9031a9d46317db6ad`. Independently old-API-compiled omission reproduction formerly emitted first; current reproduction refuses at Required.scala:15 with requiredAnswer named and no output (`required-lift-final.log`).
+- Direct FEATURES=activity_mini native equivalence: all 16 tables / 11,325 rows, exact current/baseline index bytes, including six shared roots (`equivalence-final.log`). Both immutable integrity scripts pass (`complete-integrity-final.log`, `subset-integrity-final.log`); original frozen jar, payloads, pins/maps and expected JSON remain preserved (`protected-final.log`). All 20 external dirty/untracked preimages remain exact.
+
+Genuine RED and failed setup observations remain retained: native omission, old lifter omission, reversed-deadline/helper contract, unrelated factory provenance, no-op migration stub and all-unproven-RHS migration fast path. Earlier compiler stalls were captured and terminated with their actual nonzero results; no completion credit. The empty combined test selector is INCONCLUSIVE, not GREEN; suites were then selected separately. Failed root-mode and positionless Inputs captures remain intact; the corrected source-root capture compares complete raw bytes, with no projection, position filling or golden rewrite. Verification-before-completion checks enforced exit/count/artifact observations.
+
+Broad validation and independent review remain the single Scala batch-end obligation. Lint/manual acceptance, real-feature edits/compilation/lifts/migration, canonical Make/Go, schema/regen, consumers/full-set, production loading, Cases/runtime/live were NOT RUN or changed. `gate-classification.log` records FULL (external MILESTONES); the owner-authorized task-specific focused cadence applies, with no fabricated skip/receipt or broad credit. Plan-sync=false; parent spec remains open for held real-only tasks.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 0396c4e876bc70ff526738908536bb07c74967a0
+- Tests: timeout 600 mise exec -- scala-cli test --server=false model/project.scala model/framework --test-only 'framework.Input*', timeout 600 mise exec -- scala-cli test --server=false model/irgen --test-only umpire.irgen.InputDefaultsTest, timeout 600 mise exec -- scala-cli test --server=false model/irgen --test-only umpire.irgen.InputDeadlinePresetsTest, timeout 600 mise exec -- scala-cli test --server=false model/irgen --test-only umpire.irgen.BoundedIntegersTest, timeout 600 mise exec -- scala-cli test --server=false model/migrate --test-only umpire.migrate.InputDefaultsTest, timeout 600 mise exec -- scala-cli test --server=false model/migrate --test-only umpire.migrate.GuideSourcesTest, timeout 600 /bin/bash /Users/stephan/Workspace/skunkworks/umpire/temporal/model/migrate/prove-mini.sh umpire.migrate.RewriteInputDefaultsMini, FEATURES=activity_mini timeout 600 mise exec -- scala-cli run --server=false model/check -- --check-equivalence /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/scala-dsl/mini-selected-baseline-00d22597d2/ /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn159/task10/mini.map --steps-only, node .flow/tmp/scala-dsl/mini-selected-baseline-00d22597d2/integrity.mjs && node .flow/tmp/scala-dsl/mini-baseline-00d22597d2/integrity.mjs, cmp .flow/tmp/fn159/task10/before/activity-mini.json .flow/tmp/fn159/task10/after/activity-mini.json && cmp .flow/tmp/fn159/task10/before/activity-mini.waivers.json .flow/tmp/fn159/task10/after/activity-mini.waivers.json, cmp .flow/tmp/fn159/task10/inputs-before.json .flow/tmp/fn159/task10/inputs-positioned.json, sha256sum -c .flow/tmp/fn159/task10/frozen-sources-final.sha
 - PRs:
