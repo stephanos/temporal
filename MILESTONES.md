@@ -122,7 +122,7 @@ facet vocabularies are recorded in fn-161.
 | 2 | fn-161 | facets |
 | 3 | fn-162 | realizations name their Queries; claim containers removed |
 | 4 | fn-160 | layout and realization layer (.3/.4, done) |
-| 5 | fn-166.11-.13 | the change-scoped model loop (.11 done: the full lifter suite is green on the mini scope, 274/0 with 6 sweep-held skips, 972 s to 755 s; .12 done: model Make targets run on cached API jars, opt-in `make gen-model-api`, mini loop about 52 s with held Go stages skipped by name): lifter suites scoped to what they lift, Make without held API generation, one diff-scoped check with an evidence record (owner, 2026-10-12) |
+| 5 | fn-166.11-.14 | the change-scoped model loop (.13 done: `make model-check-changed` is the default per-change check, a mini change 463 s, a lifter change 798 s; .14 next: fixture builds once per run; .11 done: the full lifter suite is green on the mini scope, 274/0 with 6 sweep-held skips, 972 s to 755 s; .12 done: model Make targets run on cached API jars, opt-in `make gen-model-api`, mini loop about 52 s with held Go stages skipped by name): lifter suites scoped to what they lift, Make without held API generation, one diff-scoped check with an evidence record (owner, 2026-10-12) |
 | 6 | fn-169.1, .5 | the Temporal-free framework: the DSL and generic export/check/migrate moved into `model/framework`, then the one-file samples (Kettle, Bank, TwoPhaseCommit), Temporal parts into `model/temporal`, build boundary enforced (owner, 2026-10-12) |
 | 7 | fn-141 | lifter refactor (byte-identical lifts), pulled forward by the owner on 2026-10-12; fn-169.2's plug-in seam follows fn-141.8 |
 | 8 | fn-160 | Protocol level, flat `features/`, per-feature collection (.6/.7/.2) |
@@ -174,7 +174,7 @@ Lint checks and manual acceptance work are set aside for this run at the owner's
 | fn-166.10 | ⏸️ deferred | Runnable custom-rule loading/Make integration and mini worked application; separate infrastructure producer for fn-167.7 |
 | fn-166.5 | ⏸️ deferred | Three canonical warm loops under 90 s and authorized consumer/full-set closure; source docs and rules are tasks 8/9 |
 | fn-166.7 | ⏸️ deferred | Model-side Make target rename and live-reference sweep; runtime target names retained |
-| fn-166.13 | ⬜ todo | Change-scoped model check: scope from the diff, a coverage registry for every Scala suite, a fixed evidence record; the default per-change check (owner, 2026-10-12) |
+| fn-166.14 | ⬜ todo | Lifter suites compile each fixture once per run and lift in a shared JVM; target a lifter change checked in under 5 minutes (conductor, 2026-10-12) |
 
 ### fn-167: Gaps declared in the Model: `@gap` replaces the lint file
 
