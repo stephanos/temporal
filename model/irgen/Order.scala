@@ -3,7 +3,8 @@ package umpire.irgen
 import scala.annotation.tailrec
 import scala.collection.mutable
 
-// The declaration-order lint (fn-126 R4), run over the inspected sources before anything is lifted.
+// The declaration-order lint (fn-126 R4), run over the sources a lift admits (Admission.scala) before
+// anything is lifted.
 // A Scala object initializes its vals in the order they are written, and an object read while
 // another initializes is initialized then. So a val read before it is declared is still null (or
 // zero) when it is read, and two objects that read each other while they initialize see each other
@@ -49,7 +50,8 @@ import scala.collection.mutable
 // declarations the lifter must refuse, `*Rejects.scala` among its fixtures (model/irgen/testdata),
 // holds specimens of other refusals, a val read before it is declared among them, and is left to
 // those refusals.
-final private[irgen] class Order(index: Index):
+// `admitted` are the sources a lift admits (Admission.scala): only those are read, every one by default.
+final private[irgen] class Order(index: Index, admitted: String => Boolean = _ => true):
   import index.quotes.reflect.*
   import index.given
 
@@ -87,7 +89,7 @@ final private[irgen] class Order(index: Index):
     refused += ((fileOf(t), lineOf(t), LiftError(at(t), message)))
 
   private def exempt(file: String): Boolean =
-    file.startsWith("model/irgen/testdata/") && file.endsWith("Rejects.scala")
+    !admitted(file) || (file.startsWith("model/irgen/testdata/") && file.endsWith("Rejects.scala"))
 
   // R5 is about authored declarations and their semantic readers, not generated IR names.
   // Resolve the actual typed symbols, and compare every input of the selected tail class.

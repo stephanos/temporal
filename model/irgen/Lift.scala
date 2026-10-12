@@ -79,9 +79,24 @@ class Lifter(
   def inspect(using Quotes)(tastys: List[Tasty[quotes.type]]): Unit =
     try
       val index = Index(tastys, prefixes)
-      // The declaration-order lint reads every inspected source first: a Model it refuses would
+      // The sources the lift admits (fn-166.11): those its roots reach, or every one for a lift of
+      // every IR file the sources declare. The IR files are read here to find their roots; when the
+      // lifter cannot read them, or a file asked for is declared by none, every source is admitted,
+      // so the lint reports what may keep it from being declared, and they are read again after it.
+      val admission = Admission(index)
+      val admitted = target match
+        case Target.Roots(roots)                  => admission.of(roots)
+        case Target.IrFiles(only) if only.isEmpty => admission.all
+        case Target.IrFiles(only)                 =>
+          scala.util.Try(Lifting(Context(index)).irFiles(_ => ())).toOption match
+            case Some(declared)
+                if only.forall(name => declared.exists(_._1 == name)) &&
+                  !declared.forall((name, _) => only.contains(name)) =>
+              admission.of(declared.filter((name, _) => only.contains(name)).flatMap(_._2))
+            case _ => admission.all
+      // The declaration-order lint reads every admitted source first: a Model it refuses would
       // be null or half made where it runs, so nothing of it is lifted.
-      val order = Order(index).refusals
+      val order = Order(index, admitted).refusals
       if order.nonEmpty then errors ++= order.map("" -> _)
       else
         target match
