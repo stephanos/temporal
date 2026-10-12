@@ -56,6 +56,30 @@ func Check(root, goCommand string, platform Platform, config Config) ([]Finding,
 			}
 		}
 		files[pkg.ImportPath], names[pkg.ImportPath] = map[string]*ast.File{}, map[string]bool{}
+		for _, name := range pkg.IgnoredGoFiles {
+			path := filepath.Join(pkg.Dir, name)
+			relative, err := filepath.Rel(root, path)
+			if err != nil {
+				return findings, err
+			}
+			relative = filepath.ToSlash(relative)
+			if config.PureFiles == nil || !config.PureFiles(relative) {
+				continue
+			}
+			file, err := parser.ParseFile(token.NewFileSet(), path, nil, parser.ImportsOnly)
+			if err != nil {
+				return findings, err
+			}
+			for _, spec := range file.Imports {
+				imported, err := strconv.Unquote(spec.Path.Value)
+				if err != nil {
+					return findings, err
+				}
+				if imported == "C" {
+					findings = append(findings, Finding{"pure-syntax", relative, "cgo is forbidden in pure files"})
+				}
+			}
+		}
 		sources := append(slices.Clone(pkg.GoFiles), pkg.CgoFiles...)
 		pure := len(sources) != 0
 		for _, name := range sources {

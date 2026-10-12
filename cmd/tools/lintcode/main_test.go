@@ -254,7 +254,7 @@ func TestWASMLintModuleRoutesHostSourcesAndRetainsClosedInventory(t *testing.T) 
 			}, repo.calls())
 		})
 	}
-	for _, path := range []string{"tools/gomad3/backends/wasm/go.mod", "tools/gomad3/backends/wasm_extra/go.mod", "tools/gomad3/backends/wasm/testdata/unknown/main.go", "tools/gomad3/backends/wasm/wasi/testdata/runtime_cost_extra/main.go", "tools/gomad3/backends/wasm/testdata/environment/nested/go.mod"} {
+	for _, path := range []string{"tools/gomad3/backends/wasm/go.mod", "tools/gomad3/backends/wasm_extra/go.mod", "tools/gomad3/backends/wasm/testdata/unknown/main.go", "tools/gomad3/backends/wasm/wasi/testdata/runtime_cost_extra/main.go", "tools/gomad3/backends/wasm/command/unknown/testdata/main.go", "tools/gomad3/backends/wasm/testdata/environment/nested/go.mod"} {
 		t.Run(path, func(t *testing.T) {
 			t.Parallel()
 			repo := newLintRepo(t)
@@ -320,7 +320,7 @@ func TestWASMLintRoutesRuntimeQualificationFixtures(t *testing.T) {
 
 func TestWASMLintRoutesProductionizationFixtures(t *testing.T) {
 	t.Parallel()
-	for _, fixture := range []string{"testdata/storage_sqlite", "testdata/network_streams", "testdata/temporal_storage", "testdata/temporal_broker", "wasi/testdata/runtime_cost", "simulation/testdata/service", "cmd/gomad-wasm/testdata"} {
+	for _, fixture := range []string{"testdata/storage_sqlite", "testdata/network_streams", "testdata/temporal_storage", "testdata/temporal_broker", "wasi/testdata/runtime_cost", "simulation/testdata/service", "command/testdata"} {
 		t.Run(fixture, func(t *testing.T) {
 			t.Parallel()
 			repo := newLintRepo(t)

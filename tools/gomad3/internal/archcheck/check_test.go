@@ -58,6 +58,23 @@ func TestPureStructure(t *testing.T) {
 	}
 }
 
+func TestPureCgoRejectedWhenDisabled(t *testing.T) {
+	t.Setenv("CGO_ENABLED", "0")
+	root := fixture(t, map[string]string{
+		"world/pure.go":             "package world\nimport \"C\"",
+		"world/host.go":             "package world\nfunc host(){}",
+		"world/inactive_windows.go": "package world\nimport \"os\";var _=os.Getenv",
+	})
+	config := Config{Module: "example.invalid/check", PureFiles: func(path string) bool { return strings.HasPrefix(path, "world/") && path != "world/host.go" }}
+	findings, err := Check(root, "go", Platform{"linux", "amd64"}, config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(findings) != 1 || findings[0].Category != "pure-syntax" || findings[0].Path != "world/pure.go" {
+		t.Fatalf("inactive cgo must be rejected without activating other platform files: %v", findings)
+	}
+}
+
 func TestConfigurationMustMatchSource(t *testing.T) {
 	root := fixture(t, map[string]string{"world/pure.go": "package world"})
 	_, err := Check(root, "go", Platform{runtime.GOOS, runtime.GOARCH}, Config{Module: "example.invalid/check", PureFiles: func(path string) bool { return path == "world/renamed.go" }})
