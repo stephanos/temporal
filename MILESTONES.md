@@ -7,13 +7,13 @@ the `testcore` one-box cluster with in-memory SQLite and loopback gRPC) under Go
 same seed produces the same run and a retained artifact replays byte-exactly.
 [GOMAD_NEXT.md](.plans/GOMAD_NEXT.md) remains the capability roadmap across all four tracks.
 
-The WASM backend lives alongside Gomad v3 in `tools/gomad_wasm` and shares its
+The WASM backend lives in `tools/gomad3/backends/wasm` and shares its
 campaign, artifact, replay, and choice owners. The completed
 [fn-151](.flow/specs/fn-151-wasm-gomad-execution-backend.md) determinism prototype recorded
 **GO** on 2026-10-10 ([report](.flow/artifacts/fn151-prototype-report-2026-10-10.md));
 [fn-156](.flow/specs/fn-156-wasm-gomad-productionization.md) productionizes it, starting with `.8`.
-Read [the WASM README](tools/gomad_wasm/README.md) before working on that backend;
-`make -C tools/gomad_wasm prototype` revalidates the prototype in a few minutes.
+Read [the WASM README](tools/gomad3/backends/wasm/README.md) before working on that backend;
+`make -C tools/gomad3/backends/wasm prototype` revalidates the prototype.
 
 ## Work tracking
 
@@ -222,24 +222,24 @@ The owner approved replacing the Go-release-boundary wait with targeted Provider
 | --- | --- | --- |
 | [fn-164.1](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.1.md) | 🚧 In progress | Import checker integrated; current-tree and forbidden-edge/stale-allowlist regressions passed; final batch acceptance remains open |
 | [fn-164.2](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.2.md) | 🚧 In progress | Canonical runtime sources integrated; identity/inventory regressions and tiny WASM link passed; final batch acceptance remains open |
-| [fn-164.3](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.3.md) | 🚧 In progress | Move toolchain, upgrade, native transcript and conformance tooling under backends/native |
-| [fn-164.4](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.4.md) | 🚧 In progress | Target data/build separation implemented privately; integration and final acceptance remain open |
-| [fn-164.5](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.5.md) | 🚧 In progress | Native Provider extraction released by owner approval; final isolation and compatibility remain open |
-| [fn-164.6](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.6.md) | 🚧 In progress | Private folded module passed cooperative and exploratory detached replay; final integration and test-wasm remain open |
-| [fn-164.7](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.7.md) | 🚧 In progress | Unify the launcher around Provider capabilities while preserving both command surfaces |
-| [fn-164.8](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.8.md) | 🚧 In progress | Verify genuine pre-move artifact inspection and explicit model-identity rejection |
+| [fn-164.3](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.3.md) | 🚧 In progress | Native tooling moves integrated; final generated validation remains open |
+| [fn-164.4](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.4.md) | 🚧 In progress | Target data/build separation integrated; final batch acceptance remains open |
+| [fn-164.5](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.5.md) | 🚧 In progress | Typed native Provider and neutral Runner integrated; isolation and lifecycle source checks passed |
+| [fn-164.6](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.6.md) | 🚧 In progress | Fold integrated and fresh detached replay passed; final generated identity and test-wasm remain open |
+| [fn-164.7](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.7.md) | 🚧 In progress | Sole capability-driven launcher integrated; both command surfaces tested; final review remains open |
+| [fn-164.8](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.8.md) | 🚧 In progress | Genuine historical artifact inspection and honest native/WASM preflight tested; final model binding remains open |
 | [fn-164.9](.flow/tasks/fn-164-gomad-backend-layout-shared-core-with.9.md) | 🚧 In progress | CI routing implemented; private actionlint and 138 classifier cases passed; final integrated acceptance remains open |
 
 ### Architecture checks — [fn-165](.flow/specs/fn-165-gomad-architecture-checks-structural.md)
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-165.1](.flow/tasks/fn-165-gomad-architecture-checks-structural.1.md) | 🚧 In progress | Integrate structural inventory, owner, import and syntax rules on the folded layout |
-| [fn-165.2](.flow/tasks/fn-165-gomad-architecture-checks-structural.2.md) | 🚧 In progress | Give the WASM backend its own structural test and hostile helper-reply unit test |
-| [fn-165.3](.flow/tasks/fn-165-gomad-architecture-checks-structural.3.md) | 🚧 In progress | Prepare the independent export-data loader and version-keyed stdlib allowlist; integrate after the layout batch |
-| [fn-165.4](.flow/tasks/fn-165-gomad-architecture-checks-structural.4.md) | 🚧 In progress | Typed rules implemented privately; integrate review marks and re-triage retained fixtures |
-| [fn-165.5](.flow/tasks/fn-165-gomad-architecture-checks-structural.5.md) | 🚧 In progress | Preserve pure membership while marking dynamic calls and switching module tests |
-| [fn-165.6](.flow/tasks/fn-165-gomad-architecture-checks-structural.6.md) | 🚧 In progress | Retire the old analyzer and enforce the combined line budget after replacement coverage |
+| [fn-165.1](.flow/tasks/fn-165-gomad-architecture-checks-structural.1.md) | 🚧 In progress | Structural checker integrated; three-platform graph passed; disabled-cgo fixture repair remains open |
+| [fn-165.2](.flow/tasks/fn-165-gomad-architecture-checks-structural.2.md) | 🚧 In progress | Backend-owned WASM structural and hostile helper-reply checks passed on the integrated tree |
+| [fn-165.3](.flow/tasks/fn-165-gomad-architecture-checks-structural.3.md) | 🚧 In progress | Export-data loader and version-keyed stdlib allowlist integrated; focused checks passed |
+| [fn-165.4](.flow/tasks/fn-165-gomad-architecture-checks-structural.4.md) | 🚧 In progress | Typed rules, review marks and retained fixture re-triage integrated; final review remains open |
+| [fn-165.5](.flow/tasks/fn-165-gomad-architecture-checks-structural.5.md) | 🚧 In progress | Explicit pure inventory, typed checks and three-platform vet passed; final batch acceptance remains open |
+| [fn-165.6](.flow/tasks/fn-165-gomad-architecture-checks-structural.6.md) | 🚧 In progress | Old analyzer removed; 2006 production/784 test lines satisfy budgets; final lint/review remains open |
 
 ### Productionization — [fn-156](.flow/specs/fn-156-wasm-gomad-productionization.md) — Queued after fn-164 and fn-165
 
