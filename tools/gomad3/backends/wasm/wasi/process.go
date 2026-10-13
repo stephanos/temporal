@@ -128,8 +128,15 @@ type Request struct {
 	CompileCache string
 	// DigestTranscript retains only the WASI transcript's SHA-256, bounding host
 	// memory for whole-program guests; Result.Transcript is then empty.
-	DigestTranscript bool
-	remoteModel      bool
+	DigestTranscript                bool
+	remoteModel                     bool
+	diagnosticConfigurationRevision string
+	guestProfile                    *guestProfileConfig
+}
+type guestProfileConfig struct {
+	Path           string `json:"path"`
+	IntervalMicros uint64 `json:"interval_micros"`
+	MaxSamples     uint64 `json:"max_samples"`
 }
 type Result struct {
 	Termination                                        string
@@ -179,15 +186,16 @@ type Telemetry struct {
 	ResourceUsageAvailable bool   `json:"resource_usage_available"`
 }
 type executeFrame struct {
-	Schema       string             `json:"schema"`
-	Type         string             `json:"type"`
-	ModulePath   string             `json:"module_path"`
-	ModuleSHA256 string             `json:"module_sha256"`
-	MemoryBytes  uint64             `json:"memory_bytes"`
-	Fuel         uint64             `json:"fuel"`
-	OutputBytes  uint64             `json:"output_bytes"`
-	CompileCache string             `json:"compile_cache,omitempty"`
-	LocalModel   *helperModelConfig `json:"local_model,omitempty"`
+	Schema       string              `json:"schema"`
+	Type         string              `json:"type"`
+	ModulePath   string              `json:"module_path"`
+	ModuleSHA256 string              `json:"module_sha256"`
+	MemoryBytes  uint64              `json:"memory_bytes"`
+	Fuel         uint64              `json:"fuel"`
+	OutputBytes  uint64              `json:"output_bytes"`
+	CompileCache string              `json:"compile_cache,omitempty"`
+	LocalModel   *helperModelConfig  `json:"local_model,omitempty"`
+	GuestProfile *guestProfileConfig `json:"guest_profile,omitempty"`
 }
 type resultFrame struct {
 	Type            string             `json:"type"`
@@ -235,6 +243,23 @@ func verifyFile(name, digest string) error {
 	return nil
 }
 func Run(ctx context.Context, request Request) (result Result, runErr error) {
+	pinned := PinnedEngine()
+	diagnostic := func(revision string) bool {
+		return revision == pinned.Configuration+"-guest-profile" || revision == pinned.Configuration+"-fuel-off" || revision == pinned.Configuration+"-guest-profile-fuel-off"
+	}
+	if request.diagnosticConfigurationRevision != "" {
+		if request.Engine != pinned || !diagnostic(request.diagnosticConfigurationRevision) {
+			return Result{}, invalid("diagnostic engine configuration")
+		}
+		request.Engine.Configuration = request.diagnosticConfigurationRevision
+	} else if diagnostic(request.Engine.Configuration) {
+		return Result{}, invalid("diagnostic engine configuration requires test opt-in")
+	}
+	if profile := request.guestProfile; profile != nil {
+		if (request.diagnosticConfigurationRevision != pinned.Configuration+"-guest-profile" && request.diagnosticConfigurationRevision != pinned.Configuration+"-guest-profile-fuel-off") || !filepath.IsAbs(profile.Path) || profile.IntervalMicros == 0 || profile.IntervalMicros > 1000000 || profile.MaxSamples == 0 || profile.MaxSamples > 100000 {
+			return Result{}, invalid("guest profile configuration")
+		}
+	}
 	if request.Config.Storage == nil && (request.StorageCrashSelection != nil || request.StorageCrashLimits != nil) {
 		return Result{}, invalid("storage crash controls without storage model")
 	}
@@ -320,7 +345,7 @@ func Run(ctx context.Context, request Request) (result Result, runErr error) {
 	if request.CompileCache != "" && !filepath.IsAbs(request.CompileCache) {
 		return Result{}, invalid("compile cache directory")
 	}
-	execute := executeFrame{Schema: "gomad3.wasm-host/v1", Type: "execute", ModulePath: request.ModulePath, ModuleSHA256: request.ModuleSHA256, MemoryBytes: request.MemoryBytes, Fuel: request.Fuel, OutputBytes: request.Config.Limits.OutputBytes, CompileCache: request.CompileCache}
+	execute := executeFrame{Schema: "gomad3.wasm-host/v1", Type: "execute", ModulePath: request.ModulePath, ModuleSHA256: request.ModuleSHA256, MemoryBytes: request.MemoryBytes, Fuel: request.Fuel, OutputBytes: request.Config.Limits.OutputBytes, CompileCache: request.CompileCache, GuestProfile: request.guestProfile}
 	if environment.runtime != nil && !request.remoteModel && request.Config.NetworkV2 == nil && request.Broker == nil {
 		execute.LocalModel = helperConfig(environment, request.DigestTranscript)
 		environment.helperOwned = true

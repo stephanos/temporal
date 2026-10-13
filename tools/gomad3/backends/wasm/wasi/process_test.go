@@ -18,6 +18,50 @@ import (
 	"time"
 )
 
+func TestDiagnosticTransportRequiresPrivateRevisionOptIn(t *testing.T) {
+	pinned := PinnedEngine()
+	for _, suffix := range []string{"-guest-profile", "-fuel-off", "-guest-profile-fuel-off"} {
+		request := Request{Engine: pinned}
+		request.Engine.Configuration += suffix
+		_, err := Run(context.Background(), request)
+		if err == nil || !strings.Contains(err.Error(), "requires test opt-in") {
+			t.Fatalf("diagnostic identity accepted without opt-in: %v", err)
+		}
+	}
+	for _, request := range []Request{
+		{Engine: pinned, diagnosticConfigurationRevision: pinned.Configuration},
+		{Engine: pinned, diagnosticConfigurationRevision: pinned.Configuration + "-unknown"},
+		{Engine: EngineIdentity{}, diagnosticConfigurationRevision: pinned.Configuration + "-guest-profile"},
+		{Engine: pinned, guestProfile: &guestProfileConfig{Path: "/tmp/profile.json", IntervalMicros: 1, MaxSamples: 1}},
+		{Engine: pinned, diagnosticConfigurationRevision: pinned.Configuration + "-fuel-off", guestProfile: &guestProfileConfig{Path: "/tmp/profile.json", IntervalMicros: 1, MaxSamples: 1}},
+		{Engine: pinned, diagnosticConfigurationRevision: pinned.Configuration + "-guest-profile", guestProfile: &guestProfileConfig{Path: "relative", IntervalMicros: 1, MaxSamples: 1}},
+		{Engine: pinned, diagnosticConfigurationRevision: pinned.Configuration + "-guest-profile", guestProfile: &guestProfileConfig{Path: "/tmp/profile.json", IntervalMicros: 0, MaxSamples: 1}},
+		{Engine: pinned, diagnosticConfigurationRevision: pinned.Configuration + "-guest-profile", guestProfile: &guestProfileConfig{Path: "/tmp/profile.json", IntervalMicros: 1, MaxSamples: 100001}},
+	} {
+		_, err := Run(context.Background(), request)
+		var boundary *BoundaryError
+		if !errors.As(err, &boundary) || boundary.Kind != "invalid" {
+			t.Fatalf("invalid diagnostic request accepted: %v", err)
+		}
+	}
+	data, err := json.Marshal(executeFrame{})
+	if err != nil || bytes.Contains(data, []byte("guest_profile")) {
+		t.Fatalf("normal request exposes diagnostic input: %s, %v", data, err)
+	}
+}
+
+func TestDiagnosticTransportRejectsReleaseHelperForDiagnosticIdentity(t *testing.T) {
+	request := fixtureRequest(t, `(module (memory (export "memory") 1) (func (export "_start") unreachable))`, nil)
+	request.diagnosticConfigurationRevision = PinnedEngine().Configuration + "-guest-profile"
+	result, err := Run(context.Background(), request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.Termination != "invalid" || result.Started != nil || len(result.Transcript) != 0 || !result.Reaped {
+		t.Fatalf("release helper accepted for diagnostic engine: %#v", result)
+	}
+}
+
 func TestHelperInputLargeBootstrapStartsBeforeReader(t *testing.T) {
 	input, err := newHelperInput()
 	if err != nil {
