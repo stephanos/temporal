@@ -69,7 +69,7 @@ Enforcement: `framework/` compiles without the Temporal API jar or `temporal.*` 
 - **R4:** The mini lift is byte-identical except for recorded source-path changes; mini step-table equivalence holds; the targeted suites of the moved code pass at their new homes.
 - **R5:** `MILESTONES.md` Direction, `.plans/UMPIRE_MODULES.md`, `model/README.md` and `AGENTS.md` state the new layout and that the framework is Temporal-free; the fn-114.12/fn-122.8 position is recorded as superseded.
 - **R8:** `framework/samples/` holds one-file, Temporal-free sample Models of rising complexity (Kettle, Bank, TwoPhaseCommit) with P/Quint counterparts named, checked by the gate.
-- **R6 (held, sweep):** The Umpire IR is Temporal-free: an Umpire-owned namespace, a generic realization layer, and the Temporal realization vocabulary (activation and instruction kinds, cause kinds, timeout bases, settlements, history evidence) in a Temporal-owned extension schema carried in typed extension slots.
+- **R6 (held, sweep):** The Umpire IR is Temporal-free, with no extension schema either: an Umpire-owned namespace and a generic realization layer, where Temporal's vocabulary is data (message type names, methods, field paths, kind names) validated against the system's descriptor set and each Driver's declared capabilities.
 - **R7 (held, sweep):** Go consumers follow the `framework.dsl` IR type names (`tools/umpire/interp/eval.go` `StepType`/`deliveryType`, test strings); the `tools/umpire` adapter separation is fn-170.2's, and Testpilot's `internal/execution` API use moves behind `testpilot/temporal/`, with an import rule.
 
 ## Boundaries
@@ -78,7 +78,7 @@ Not in scope: changing Model meaning; the real features' sources; publishing the
 
 ## Decision Context
 
-- 2026-10-13, owner: the Umpire IR must have no Temporal specifics (R6, .3); the Temporal realization vocabulary becomes an extension schema read and written through the fn-169.2 and fn-170.2 adapters.
+- 2026-10-13, owner: the Umpire IR must have no Temporal specifics, not even as an extension schema (R6, .3). The Temporal vocabulary is data validated against descriptors and Driver capabilities, produced by the Temporal kit and interpreted by the Temporal Driver.
 - 2026-10-12, owner: the Quint-specific parts of Go `tools/umpire/export` move into `export/quint`; with the rest of the `tools/umpire` layout this moved to fn-170.2.
 - 2026-10-12, owner: port the Python table comparator (`model/testdata/table-pins`) to Scala in `framework/check/equivalence` (.6); no Python under `model/`.
 - 2026-10-12, owner: tests are colocated with what they test (no `test/` folders); `Fixtures.test.scala` sits beside the lifter's entry point until fn-141 splits it per construct.
