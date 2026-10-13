@@ -73,9 +73,10 @@ Read-only first-cause evidence (2026-10-11). Captured active history events 1 th
 Original fn-151 Phase 8 exit gate.
 
 ## Done summary
-TBD
+Independent guest clusters with partition/heal/whole-cluster crash pass on 9d6012b52b; retained replay uses the installed helper and references the module by digest (schema v2, v1 refused); the multi-instance workload cell is within budget (operator 1.86 GB < 2 GiB).
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 9d6012b52b, 31162414fb, baa362e58d, 9aa7e6634a
+- Tests: TestTemporalIndependentClustersPartitionHealWholeClusterCrash, TestActualTemporalClusterQualification success/canary, evidence: .flow/artifacts/wasm-section-acceptance-2026-10-12.md
 - PRs:
