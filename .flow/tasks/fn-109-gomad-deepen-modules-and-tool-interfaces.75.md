@@ -67,9 +67,10 @@ Root records the actual owner/admission, reverse dependencies for fn-109.63 and 
 
 
 ## Done summary
-TBD
+Scripted diagnostics capacity bounds and simulation inspection coverage restored (6 attachments). Completed under the 2026-10-13 WASM-queue shared-subset closeout amendment; fast tier on gomad c9ac570968 (portable failure set unchanged, architecture, lint, validate, test-wasm).
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 4669923419, 87ab8ebdfb
+- Tests: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-75/ (reviewed evidence), fast tier on c9ac570968, evidence: .flow/artifacts/wasm-section-acceptance-2026-10-12.md
 - PRs:
