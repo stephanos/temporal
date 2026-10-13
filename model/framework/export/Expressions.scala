@@ -4,6 +4,7 @@ import com.google.protobuf.empty.Empty
 import io.temporal.server.api.umpire.v1 as ir
 import io.temporal.server.api.umpire.v1.Expr.Kind as E
 import io.temporal.server.api.umpire.v1.Pattern.Kind as P
+import framework.inspect.LiftableSubset
 
 private[`export`] trait Expressions:
   self: Lifting =>
@@ -113,20 +114,22 @@ private[`export`] trait Expressions:
   // The def of the lifted sources a function value names: the def, eta-expanded or called with a
   // lambda's own parameters, or a function-valued parameter bound to one, also called so.
   def forwardedDef(t: Term): Option[Symbol] = t match
-    case Typed(e, _)                                 => forwardedDef(e)
-    case Inlined(_, Nil, e)                          => forwardedDef(e)
-    case Block(Nil, e)                               => forwardedDef(e)
-    case r: Ref if boundFunctions.contains(r.symbol) => Some(boundFunctions(r.symbol))
+    case Typed(e, _)                                   => forwardedDef(e)
+    case Inlined(_, Nil, e)                            => forwardedDef(e)
+    case Block(Nil, e)                                 => forwardedDef(e)
+    case r: Ref if boundFunctions.contains(r.symbol)   => Some(boundFunctions(r.symbol))
     case r: Ref if isFunction(r.symbol) && !expands(r) => Some(r.symbol)
-    case c: Apply if throughCall(c)                  => Some(through(c))
-    case c: Apply if blockCall(c).nonEmpty           => misplacedBlock(blockCall(c).get.form, c)
-    case _                                           =>
+    case c: Apply if throughCall(c)                    => Some(through(c))
+    case c: Apply if blockCall(c).nonEmpty             => misplacedBlock(blockCall(c).get.form, c)
+    case _                                             =>
       lambda(t).flatMap { (params, body) =>
         def forwards(args: List[Term]) =
           args.map(_.symbol) == params.map(_.symbol)
         body match
           case Apply(target, args)
-              if forwards(args) && isFunction(target.symbol) && !sugared(target) && !expands(target) =>
+              if forwards(args) && isFunction(target.symbol) && !sugared(target) && !expands(
+                target
+              ) =>
             Some(target.symbol)
           case Apply(Select(f: Ref, "apply"), args)
               if forwards(args) && boundFunctions.contains(f.symbol) =>
@@ -453,10 +456,12 @@ private[`export`] trait Expressions:
 
   def lift(t: Term, expected: Option[TypeRepr] = None): ir.Expr = t match
     case r: Ref if boundExpressions.contains(r.symbol) => boundExpressions(r.symbol)
-    case PhasingRead(read) => read
-    case _ if t.symbol.name.contains("$default$") && defs.contains(t.symbol) => expanded(t, expected)
+    case PhasingRead(read)                             => read
+    case _ if t.symbol.name.contains("$default$") && defs.contains(t.symbol) =>
+      expanded(t, expected)
     case _ if memberCapture(t).nonEmpty => memberCapture(t).get
-    case Apply(fn, List(value)) if fn.symbol.fullName == "framework.dsl.Machine$package$.valueKey" =>
+    case Apply(fn, List(value))
+        if fn.symbol.fullName == "framework.dsl.Machine$package$.valueKey" =>
       text(valueKey(literalValue(resolve(value))), t)
     case Select(recv, "outcome") if isNamed(instantiated(recv.tpe), "framework.dsl.Ok") =>
       knownOutcome(recv)
@@ -470,13 +475,16 @@ private[`export`] trait Expressions:
         val e = lift(value)
         e.kind match
           case E.Literal(v) => valueKey(v)
-          case _ => fail(value, "a lifted string interpolation needs constant values")
+          case _            => fail(value, "a lifted string interpolation needs constant values")
       }
       text(strings.zipAll(rendered, "", "").map(_ + _).mkString, t)
 
     case Select(Apply(Select(test, "unapply"), List(value)), "nonEmpty")
-        if instantiated(test.tpe).widen.dealias.baseClasses.exists(_.fullName == "scala.reflect.TypeTest") =>
-      val args = instantiated(test.tpe.widen.dealias.baseType(Symbol.requiredClass("scala.reflect.TypeTest"))).typeArgs
+        if instantiated(test.tpe).widen.dealias.baseClasses
+          .exists(_.fullName == "scala.reflect.TypeTest") =>
+      val args = instantiated(
+        test.tpe.widen.dealias.baseType(Symbol.requiredClass("scala.reflect.TypeTest"))
+      ).typeArgs
       roleTest(value, args.last, expansionAt(t))
     // A step made where no step function is: the expression is at the wrong level.
     case _: Apply if makesSteps(t.tpe) && !making._1 => wrongLevel(t)
@@ -485,6 +493,10 @@ private[`export`] trait Expressions:
     case _ if blockCall(t).nonEmpty => misplacedBlock(blockCall(t).get.form, t)
 
     case _ if expands(t) => expanded(t, expected)
+    case a: Apply
+        if LiftableSubset.library(a.symbol.maybeOwner.fullName) &&
+          !LiftableSubset.permitted(using ctx.quotes)(a) =>
+      fail(a, s"outside the liftable subset: ${a.show}")
 
     // Declaration-level forms not yet expanded from their definitions.
     case _ if sugared(t) => sugar(t)
@@ -494,7 +506,7 @@ private[`export`] trait Expressions:
 
     // The arguments a varargs parameter collects: the list they make.
     case Typed(Repeated(items, elem), _) => list(items.map(i => lift(i, Some(elem.tpe))), t)
-    case Repeated(items, elem) => list(items.map(i => lift(i, Some(elem.tpe))), t)
+    case Repeated(items, elem)           => list(items.map(i => lift(i, Some(elem.tpe))), t)
     case Typed(e, tpt)                   => lift(e, expected.orElse(Some(tpt.tpe)))
     case Inlined(_, Nil, e)              => lift(e, expected)
     case Block(Nil, e)                   => lift(e, expected)
@@ -584,7 +596,7 @@ private[`export`] trait Expressions:
       expr(t)(E.If(ir.If(Some(binary(keep, l, r, t)), Some(l), Some(r))))
     // A varargs parameter read as the list it is.
     case Select(recv, "toList") if isList(recv.tpe.widen.dealias.typeSymbol) => lift(recv)
-    case Apply(TypeApply(Select(rest, "+:"), _), List(first)) =>
+    case Apply(TypeApply(Select(rest, "+:"), _), List(first))                =>
       writtenMembers(rest)
       lift(rest).kind match
         case E.List(items) => list(lift(first) +: items.items, t)
@@ -647,11 +659,15 @@ private[`export`] trait Expressions:
     // A call of another function of the lifted sources, or of a function-valued parameter bound to
     // one.
     case Apply(Select(f: Ref, "apply"), args) if boundValues.contains(f.symbol) =>
-      functionArgument(boundValues(f.symbol)) { target =>
+      declarationCallback(f, args).getOrElse(functionArgument(boundValues(f.symbol)) { target =>
         lambda(target) match
-          case Some((ps, body)) => binding(Map.empty, Map.empty, ps.map(_.symbol).zip(args).toMap)(lift(body, expected))
-          case None => forwardedDef(target).fold(fail(t, s"not a bound function: ${target.show}"))(fn => call(fn, args, t))
-      }
+          case Some((ps, body)) =>
+            binding(Map.empty, Map.empty, ps.map(_.symbol).zip(args).toMap)(lift(body, expected))
+          case None =>
+            forwardedDef(target).fold(fail(t, s"not a bound function: ${target.show}"))(fn =>
+              call(fn, args, t)
+            )
+      })
     case Apply(fn, args) if isFunction(fn.symbol) => call(fn.symbol, args, t)
     case Apply(Select(f: Ref, "apply"), args) if boundFunctions.contains(f.symbol) =>
       call(f.symbol, args, t)
@@ -669,7 +685,7 @@ private[`export`] trait Expressions:
     // A value parameter of a declaring function being folded: the value its call binds it to.
     case r: Ref if boundValues.contains(r.symbol) =>
       suppliedValue(r.symbol)(lift(boundValues(r.symbol), expected))
-    case r: Ref if isEnumCase(r.symbol)           => enumLiteral(r.symbol, t)
+    case r: Ref if isEnumCase(r.symbol) => enumLiteral(r.symbol, t)
     // A parameter, a local `val` or a pattern-bound name: every name a function's own scope owns.
     case r: Ref if local(r.symbol) => expr(t)(E.Var(nameOf(r.symbol)))
     // A string read off a declared value, such as an observation's name, is a constant.
@@ -680,7 +696,8 @@ private[`export`] trait Expressions:
           .exists(_.name == field) =>
       val base = lift(recv)
       base.kind match
-        case E.Construct(c) => c.args(recv.tpe.widen.dealias.typeSymbol.caseFields.indexWhere(_.name == field))
+        case E.Construct(c) =>
+          c.args(recv.tpe.widen.dealias.typeSymbol.caseFields.indexWhere(_.name == field))
         case _ => expr(t)(E.Field(ir.FieldAccess(Some(base), field)))
     // A value declared elsewhere: its definition, lifted in place.
     case r: Ref if r.symbol.isValDef && defs.contains(r.symbol) =>
@@ -703,15 +720,17 @@ private[`export`] trait Expressions:
       value match
         case r: Ref if !r.symbol.flags.is(Flags.Param) =>
           index.defs.get(r.symbol) match
-            case Some(ValDef(_, _, Some(rhs))) => known(rhs)
+            case Some(ValDef(_, _, Some(rhs)))      => known(rhs)
             case Some(DefDef(_, Nil, _, Some(rhs))) => known(rhs)
-            case _ => value
+            case _                                  => value
         case _ => value
     if boundExpressions.contains(recv.symbol) then return None
     val value = known(recv)
     def constructor(t: Term): Option[(Symbol, List[Term])] = t match
-      case Apply(TypeApply(Select(companion, "apply"), _), args) => Some(companion.tpe.typeSymbol.companionClass -> args)
-      case Apply(Select(companion, "apply"), args) => Some(companion.tpe.typeSymbol.companionClass -> args)
+      case Apply(TypeApply(Select(companion, "apply"), _), args) =>
+        Some(companion.tpe.typeSymbol.companionClass -> args)
+      case Apply(Select(companion, "apply"), args) =>
+        Some(companion.tpe.typeSymbol.companionClass -> args)
       case _ => None
     constructor(value).filterNot((cls, _) => namedByVal(cls)).flatMap { (cls, args) =>
       val i = cls.caseFields.indexWhere(_.name == field)

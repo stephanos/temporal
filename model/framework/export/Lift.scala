@@ -29,7 +29,7 @@ import io.temporal.server.api.umpire.v1 as ir
 import org.json4s.jackson.JsonMethods
 import scalapb.json4s.Printer
 import framework.inspect.Index
-import framework.lint.{unrefuted, Admission, GapAnnotations, Markers, Order, Refutation}
+import framework.lint.{unrefuted, Admission, GapAnnotations, Markers, Order, Refutation, Subset}
 
 // What one lifter run lifts: the roots named on its command line, or IR files a Model declares.
 enum Target:
@@ -44,7 +44,8 @@ class Lifter(
     target: Target,
     prefixes: Map[String, String],
     specs: () => SpecRegistry = () => SpecRegistry.flow(Path.of("")),
-    stage: String => Unit = _ => ()
+    stage: String => Unit = _ => (),
+    authorLint: Boolean = false
 ) extends Inspector:
   // The Model of each IR file lifted, by the file's name; a lift of roots has one, named "".
   val models = mutable.LinkedHashMap.empty[String, ir.Model]
@@ -100,7 +101,8 @@ class Lifter(
       // The declaration-order lint reads every admitted source first: a Model it refuses would
       // be null or half made where it runs, so nothing of it is lifted.
       stage("lint admitted sources")
-      val order = Order(index, admitted, Plugin.installed).refusals
+      val order = Order(index, admitted, Plugin.installed).refusals ++
+        (if authorLint then Subset(index).refusals(file => !admitted(file)).map(_._3) else Nil)
       if order.nonEmpty then errors ++= order.map("" -> _)
       else
         stage("lift IR")
@@ -269,7 +271,8 @@ private[`export`] def derivedIdTwins(models: Seq[(String, ir.Model)]): Seq[LiftE
     args,
     System.err,
     Switches.fromEnvironment,
-    stage => System.err.println(s"== $stage")
+    stage => System.err.println(s"== $stage"),
+    authorLint = true
   )
   if status != 0 then sys.exit(status)
 
@@ -285,14 +288,20 @@ object LiftRun:
       args: Seq[String],
       err: java.io.PrintStream,
       rules: Set[String],
-      stage: String => Unit = _ => ()
+      stage: String => Unit = _ => (),
+      authorLint: Boolean = false
   ): Int =
     try
-      Switches.within(rules)(lifting(args, err, stage))
+      Switches.within(rules)(lifting(args, err, stage, authorLint))
       0
     catch case e: Ended => e.status
 
-  private def lifting(args: Seq[String], err: java.io.PrintStream, stage: String => Unit): Unit =
+  private def lifting(
+      args: Seq[String],
+      err: java.io.PrintStream,
+      stage: String => Unit,
+      authorLint: Boolean
+  ): Unit =
     def usage(): Nothing =
       err.println(
         "usage: lift <jar=prefix>,... <classpath file> <out.json> <root>...\n" +
@@ -340,7 +349,7 @@ object LiftRun:
         .trim
         .split(java.io.File.pathSeparator)
         .toList
-      val lifter = Lifter(target, prefixes.toMap, stage = stage)
+      val lifter = Lifter(target, prefixes.toMap, stage = stage, authorLint = authorLint)
       TastyInspector.inspectAllTastyFiles(tastys, Nil, classpath)(lifter): Unit
       if lifter.errors.nonEmpty then
         if sys.env.contains("LIFT_DEBUG") then lifter.errors.foreach(_._2.printStackTrace())

@@ -16,6 +16,8 @@ private[`export`] object WitnessIdentity:
 // built by the calls chained onto it.
 private enum Decl:
   case Text(value: String)
+  case Truth(value: Boolean)
+  case Optional(value: Option[Decl])
 
   // A machine or a composition, by name.
   case Model(name: String)
@@ -344,13 +346,40 @@ private[`export`] trait Claims:
       env: Map[Symbol, Decl],
       named: Option[Symbol] = None
   ): Decl = t match
+    case _ if declarationExpansion(t)             => expandedDeclaration(t)(fold(_, env, named))
+    case r: Ref if env.contains(r.symbol)         => env(r.symbol)
+    case r: Ref if boundValues.contains(r.symbol) =>
+      suppliedValue(r.symbol)(fold(boundValues(r.symbol), env, named))
+    case Apply(fn, List(Select(declaration, "decl")))
+        if fn.symbol.isClassConstructor && fn.symbol.owner.fullName == "framework.dsl.Property" =>
+      fold(declaration, env, named)
     case Typed(e, _)                                => fold(e, env, named)
     case Inlined(_, Nil, e)                         => fold(e, env, named)
     case NamedArg(_, e)                             => fold(e, env, named)
     case Block(stats, _: Apply) if synthetic(stats) =>
       fold(arguments(t), env, named)
+    case Block(stats, e) if stats.exists {
+          case v: ValDef => v.tpt.tpe.widen.dealias.isFunctionType
+          case _         => false
+        } =>
+      val aliases = stats.collect {
+        case v @ ValDef(_, _, Some(rhs)) if v.tpt.tpe.widen.dealias.isFunctionType =>
+          v.symbol -> rhs
+      }.toMap
+      binding(Map.empty, Map.empty, aliases)(
+        fold(Block(stats.filterNot(s => aliases.contains(s.symbol)), e), env, named)
+      )
     case Block(stats, e) =>
       val inner = stats.foldLeft(env) {
+        case (acc, condition @ Apply(fn, List(predicate, message)))
+            if fn.symbol.name == "require" && fn.symbol.maybeOwner.fullName.stripSuffix(
+              "$"
+            ) == "scala.Predef" =>
+          fold(predicate, acc, named) match
+            case Decl.Truth(true)  => acc
+            case Decl.Truth(false) =>
+              fail(expansionAt(t), textOf(fold(message, acc, named), message))
+            case other => fail(condition, s"a declaration precondition is Boolean, not $other")
         case (acc, v @ ValDef(_, _, Some(rhs))) =>
           acc + (v.symbol -> fold(rhs, acc, Some(v.symbol)))
         case (_, other) => fail(other, s"not a declaration: ${other.show}")
@@ -364,11 +393,11 @@ private[`export`] trait Claims:
     case Ident(_) if declared(t)               => fold(onThis(t), env, named)
     case Apply(fn: Ident, args) if declared(t) =>
       fold(Apply(onThis(fn), args), env, named)
-    case Literal(StringConstant(s))       => Decl.Text(s)
-    case Literal(IntConstant(i))          => Decl.Number(i)
-    case Literal(LongConstant(l))         => Decl.Number(l)
-    case _ if composedOutcome(t)          => Decl.Text(composedOutcomeKey(t, env))
-    case r: Ref if env.contains(r.symbol) => env(r.symbol)
+    case Literal(StringConstant(s))  => Decl.Text(s)
+    case Literal(BooleanConstant(b)) => Decl.Truth(b)
+    case Literal(IntConstant(i))     => Decl.Number(i)
+    case Literal(LongConstant(l))    => Decl.Number(l)
+    case _ if composedOutcome(t)     => Decl.Text(composedOutcomeKey(t, env))
     // `s"..."`, with each argument folded to its text.
     case Apply(Select(Apply(Select(sc, "apply"), List(parts)), "s"), List(args))
         if sc.symbol.fullName == "scala.StringContext" =>
@@ -380,6 +409,18 @@ private[`export`] trait Claims:
           .map(_ + _)
           .mkString
       )
+    case Select(b, field @ ("name" | "when"))
+        if b.tpe.widen.dealias.typeSymbol.fullName == "framework.dsl.PropertyBuilder" =>
+      fold(b, env, named) match
+        case Decl.PropertyOn(_, name, when) =>
+          if field == "name" then Decl.Text(name)
+          else Decl.Optional(when.map(_.fold(c => Decl.Text(c.action), Decl.Text(_))))
+        case other => fail(t, s"$field reads a Property builder, not $other")
+    case Select(value, "isEmpty") =>
+      fold(value, env, named) match
+        case Decl.Optional(value) => Decl.Truth(value.isEmpty)
+        case Decl.Items(values)   => Decl.Truth(values.isEmpty)
+        case other => fail(t, s"isEmpty reads an optional value or sequence, not $other")
     case Select(m, "name") if declares(m.tpe) =>
       Decl.Text(modelName(fold(m, env), m))
     case Apply(
@@ -419,11 +460,27 @@ private[`export`] trait Claims:
     case Apply(Select(b, op @ ("holds" | "holdsAcross")), List(f)) =>
       fold(b, env, named) match
         case Decl.PropertyOn(m, name, when) =>
+          val builder = resolve(b).show
+          val metadata = boundValues.collect {
+            case (symbol, value)
+                if value.tpe.widen.dealias.typeSymbol.fullName == "framework.dsl.PropertyBuilder" &&
+                  resolve(value).show == builder =>
+              symbol -> Decl.PropertyOn(m, name, when)
+          }.toMap
+          checkingDeclaration {
+            case condition @ Apply(_, List(predicate, message)) =>
+              fold(predicate, env ++ metadata, named) match
+                case Decl.Truth(true)  => ()
+                case Decl.Truth(false) =>
+                  fail(expansionAt(t), textOf(fold(message, env ++ metadata, named), message))
+                case other => fail(condition, s"a declaration precondition is Boolean, not $other")
+            case other => fail(other, s"not a declaration precondition: ${other.show}")
+          }
           val p = ir.Property(
             machine = m,
             name = name,
             position = Some(pos(t)),
-            holds = stepFunction(f, s"$m.property", name),
+            holds = readingDeclaration(s"$m.property.$name")(stepFunction(f, s"$m.property", name)),
             transition = op == "holdsAcross",
             when = when.fold(ir.Property.When.Empty)(
               _.fold(
@@ -435,10 +492,7 @@ private[`export`] trait Claims:
           register(properties, (m, name), p, t, s"Property $name of $m")
           Decl.Claim(claim(m, name))
         case other => fail(t, s"$op finishes a Property, not $other")
-    // `once(...).keeps(...)`, `never(...)`, `never(...).from(...)`, `stays(...)` and
-    // `stays(...).unless(...)`, as the Properties they stand for.
     case _ if witnessDeclaration(t) => witness(t, env, named)
-    case _ if patterned(t)          => pattern(t, env, named)
     // `capabilities.claim(property)`: the Property a capabilities section generated.
     case _ if capable(t) => capabilitiesOf(t, env)
 
@@ -594,7 +648,7 @@ private[`export`] trait Claims:
         valDef(sym, r, "a declaration") match
           case _ if objectForm(sym) =>
             Decl.Model(modelOfObject(moduleClassOf(sym), r))
-          case _ if capabilitiesObject(sym)                 => capabilitiesSectionOf(sym, r)
+          case _ if capabilitiesObject(sym)                     => capabilitiesSectionOf(sym, r)
           case d if isNamed(d.tpt.tpe, "framework.dsl.Machine") =>
             Decl.Model(machineOf(sym, r).name)
           case d if isNamed(d.tpt.tpe, "framework.dsl.Composition") =>

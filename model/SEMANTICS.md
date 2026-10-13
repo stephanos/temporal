@@ -1157,6 +1157,76 @@ any other place is refused at its line.
 
 ### Expressions the reader evaluates
 
+#### Liftable subset
+
+The typed author lint and the lifter use `framework.inspect.LiftableSubset` for the library
+allowlist. A step, guard or predicate is a pure expression in the rows below. Other Scala tree
+forms and library operations are refused at the author's line, naming the construct and this
+table. Declaration computation is a different context: a library operation in a declaration
+does not thereby become legal in its captured function. The table records the currently supported
+source export, including the temporary declaration readers that constructed-value export retires.
+Adding an operation requires a row and its fixture; the fixture names below are functions in
+`framework/export/testdata/lifts/Subset.scala` unless another path is stated.
+
+| Source tree or operation | Context and IR lowering | Fixture |
+| --- | --- | --- |
+| Boolean literal | Body: Boolean `Literal` | `booleanLiteral` |
+| Integer literal | Body: integer `Literal` | `integerLiteral` |
+| String literal | Body: text `Literal` | `textLiteral` |
+| Parameter or local reference | Body: `Var`, or its bound argument | `reference` |
+| Field selection | Body: `Field` | `field` |
+| Source function application | Body: `Call` of the indexed function | `called` |
+| Case-class or enum constructor | Body: `Construct`, fields in declaration order | `constructed` |
+| Typed/type-applied/named/inlined wrappers | Body: underlying expression; type and argument binding retained | `wrapped` |
+| Local immutable `val` block | Body: ordered `Let` | `localValue` |
+| Structural lambda | Callback: `Function`; expression: `Lambda` | `predicate` |
+| Empty draft block | `effect` capture only: unchanged state with the declared ok outcome; Unit is not a body value | `EmptyDraft.effects.keep` |
+| `if` | Body: `If`, only the selected branch is read | `conditional` |
+| `match` and literal, case, bind, wildcard, alternative patterns | Body: `Match` and matching IR patterns; enum wildcard restrictions still apply | `matched` |
+| `List(...)` / `Nil` / repeated arguments | Body: `List` in written order | `listed` |
+| `Some(...)` / `None` | Body: synthetic finite Option enum | `optional` |
+| `Step(...)` | Step body only: core step `Construct` | `stepRecord` |
+| `==` | Body: structural `OP_EQ` | `equal` |
+| `!=` | Body: structural `OP_NE` | `unequal` |
+| `&&` | Body: short-circuit `OP_AND` | `conjoined` |
+| `||` | Body: short-circuit `OP_OR` | `disjoined` |
+| `!` | Body: `OP_NOT` | `negated` |
+| `<` | Body: integer `OP_LT` | `less` |
+| `<=` | Body: integer `OP_LE` | `lessEqual` |
+| `>` | Body: integer `OP_GT` | `greater` |
+| `>=` | Body: integer `OP_GE` | `greaterEqual` |
+| `+` | Body: integer `OP_ADD` | `added` |
+| `-` | Body: integer `OP_SUB` | `subtracted` |
+| `contains` | Body, Scala sequence receiver: list membership `OP_CONTAINS`; String and Java collection receivers are refused | `contained` |
+| `copy` | Body, case-class receiver: `Copy`; default getters preserve unchanged fields | `copied` |
+| `min` | Body, integer receiver: `If` with `OP_LE` | `minimum` |
+| `max` | Body, integer receiver: `If` with `OP_GE` | `maximum` |
+| `++` | Body, Scala sequence receiver: `OP_CONCAT`; unnamed step branching remains refused | `concatenated` |
+| `+:` | Body, Scala sequence receiver: prepend a literal item or `OP_CONCAT` | `prepended` |
+| `toList` | Body, Scala sequence receiver: identity of the already lifted list | `converted` |
+| `forall` | Capability's bound fact-family parameter only: ordered conjunction of the recorded-fact guards; no dynamic collection lowering | `lifts/DeadlineCapabilities.scala`; `lifts/DeadlineCapabilityRejects.scala` |
+| `map` | Declaration sequence reader: substitute each written item into a structural mapper; no body lowering | `LiftableSubsetFixtures` declaration control; body refusal control |
+| `toVector` | Declaration sequence reader: underlying written items; no body lowering | `LiftableSubsetFixtures` declaration control |
+| `find` | Query declaration: `FORM_FIND`; collection `find` has no body lowering | `lifts/Declarations.scala` find Query; `LiftableSubsetFixtures` body refusal control |
+| `require` | Function contract: precondition | `contracted` |
+| `ensuring` | Function contract: body; postcondition is not an IR assertion | `contracted` |
+| Builder `name`/`when`, optional/sequence `isEmpty` | Declaration precondition only: read already-bound core metadata, then check the definition's `require`; no Option body lowering | `DefinitionExpansionTest` restricted helper/core twin; existing `whenStays` refusal |
+| String interpolation | Constant values only: text `Literal` | `interpolated` |
+| Channel `empty` | Channel literal | `lifts/Channels.scala` |
+| Channel `send` | `Inbox` send | `lifts/Channels.scala` |
+| Channel `isEmpty` | `Inbox` empty test | `lifts/Channels.scala` |
+| Channel `isFull` | `Inbox` full test | `lifts/Channels.scala` |
+| Hole `reached` | Body: declared `Hole` read | `lifts/Hints.scala` |
+| Role test through a marked definition | Body: membership in the enum's role cases | `lifts/RolesCompatibility.scala` |
+| `choose` | Core choice naming | `lifts/Choices.scala` |
+| `because` | Core explanation | `lifts/Sugar.scala` |
+| `UpTo` | Bounded integer | `lifts/Inputs.scala` |
+| `through` | Projected source `Call` | `lifts/Members.scala` |
+
+`var`, assignment, loops, `return`, exceptions and comprehensions inside these bodies are outside
+the subset. A declaration may compute its declarations; the functions it hands them remain held
+to this table. The author-time refusal controls are `framework.lint.LiftableSubsetFixtures`.
+
 The IR holds functions as expression trees: literals, variables, field reads, calls (after the
 callee's precondition), constructors, `copy`, `not`/`and`/`or` (short-circuit), `=`/`≠`
 (structural), integer comparison and arithmetic, list concatenation and membership, `if`, `let`,
@@ -1206,12 +1276,12 @@ meaning a core form already says: `Rules` with `on`/`from`/`when`/`where`/`alway
 `enter`/`stay`/`reject`/`rejects`/`enters`/`disabled`, the `is { }` and `effect { }` blocks,
 `implies`, `in`, `records`, the claim patterns, `witness` (the same-named Property, Scenario and
 `find` Query triple), `sticky`/`stickyAcross`, and both spellings of `:=`.
-Sugar lives only in the `Syntax.scala` files (framework, kit, IR generator), each form documents its
+Sugar lives only in the framework and kit `Syntax.scala` files; each form documents its
 `Core form:`, and a fixture lifts it beside that spelling and requires the same IR. No core file
 imports sugar; `make lint-model` checks it.
 
 Function-body `enter`, `stay`, `reject`, `disabled`, both membership forms, `implies` and step
-`records` are marked `@sugar`. The lifter expands their indexed definitions with the supplied
+`records`, and the claim patterns and sticky monitors, are marked `@sugar`. The lifter expands their indexed definitions with the supplied
 types, values and functions bound; adding a marked kit definition requires no exporter registration.
 Generated nodes take the call's position, and explicit arguments keep their source positions.
 An unsupported definition names its definition position; recursive expansion names the cycle.
@@ -1225,8 +1295,27 @@ member and its fact type; a plain marked definition builds the canonical exact m
 the step's facts. Equal states and identically named facts of another member cannot satisfy it.
 Capture requires a direct field-selector expression at the call site. Plain selector parameters
 and selector `val` references are opaque and refused, rather than assigning invented metadata.
-Declaration-level witnesses, rules and blocks remain open in fn-141.4 and constructed-value export;
-they are not exceptions to the final definition-only sugar contract.
+The declaration expansion follows marked constructors and their core parent declarations, binding
+their type parameters and fields. Structural callback bindings preserve the originating method's
+function name; a selector-shaped generic callback retains its field path. Core `holds` and `monitor`
+read those bindings, without a registry of pattern or monitor names. Caller positions and the direct
+builder-chain refusals are retained. The syntax lint checks lifter references in code and dispatch
+strings, including its remaining `Syntax.scala`, against the temporary owners below.
+Definition preconditions are read from their `require` statements and core builder metadata;
+the framework patterns declare their no-`when` policy there. An unrelated marked helper over
+restricted `holds` has the same meaning as its core spelling.
+
+| Remaining source reduction | Removal owner |
+| --- | --- |
+| Named action inputs (`:=`, action application) | fn-141.9 |
+| Request field assignment/scopes, protobuf literal scopes, script helpers | fn-141.8 |
+| RuleBook headings and disabled actions, rule effects (`enters`/`rejects`), phase writers and `is`/`effect` blocks, captured `Ok` outcomes | fn-141.10 |
+| Composition selectors, syncs, own/synced and replacements | fn-141.11 |
+| Witness path, primary records/excludes, recordsWhen clauses and modifiers; claim/query builders | fn-141.12 |
+| Capability bound fact-family and Property expansion | fn-141.12/.13 |
+
+These owners are the bounded exceptions in `SyntaxRule.remainingExportSugar`. They are not
+permanent name-dispatch exemptions. Claim patterns and sticky monitors have no such exception.
 
 `Bindings` has no current mini/shared/kit/sample author use. Its core fixtures are reserved for
 fn-141.3/.4's sugar equivalence proofs, with retirement still open at constructed `RuleBook` export

@@ -1,6 +1,6 @@
 // Sugar: definitions whose meaning a core declaration already expresses, kept for readability. Each
-// names the core form it stands for, and the IR generator (model/framework/export/Syntax.scala) lowers it to
-// the IR that core form lifts to. No other file of the framework uses them. Among them are the
+// names the core form it stands for. Marked definitions expand through the shared typed index;
+// declaration witnesses, rules and blocks still await constructed-value export. Among them are the
 // block forms a machine object's section `val`s are written in, `is { }` for a predicate of the
 // state and `effect { }` for a step function of it, with an effect block's `record` and
 // `reject(outcome)` statements, the `View` and `Draft` the field accessors of the state read and
@@ -242,7 +242,11 @@ extension [S, O](step: Step[S, O, String])
     recorded(step, MemberPath.capture(member, fact), fact)
 
 // A captured member's exact composed fact key. Core form: `step.facts.contains(key)`.
-@sugar private[framework] def recorded[S, O](step: Step[S, O, String], member: MemberPath, fact: Any): Boolean =
+@sugar private[framework] def recorded[S, O](
+    step: Step[S, O, String],
+    member: MemberPath,
+    fact: Any
+): Boolean =
   step.facts.contains(s"${member.field}_${valueKey(fact)}")
 
 // `m.witness(a, b).records(fact)`: one path-and-outcome declaration, implicitly on the enclosing
@@ -377,93 +381,70 @@ private def witnessMemberFact[S <: Product, MS, O, F](
 // before a step, the step keeps the value the projection selects. Core form:
 // `holdsAcross((before, after) => !over(before) || after.state.phase == before.phase)`.
 extension [S, O, F](b: PropertyBuilder[S, O, F])
-  def once(over: S => Boolean): Once[S, O, F] = Once(b, over)
+  @sugar
+  def once(over: S => Boolean): Once[S, O, F] =
+    require(
+      b.when.isEmpty,
+      s"once declares ${b.name} about every step, so it takes no when: write the restriction into its predicates, or declare the Property with `holds`"
+    )
+    Once(b, over)
 
   // `never(to)`: no step is one `to` holds of, the same-step invariant. Core form:
   // `holds(after => !to(after))`. `never(to).from(before)` says it of the steps from a state `before`
   // holds of only.
-  def never(to: Step[S, O, F] => Boolean): Never[S, O, F] = Never(b, to)
+  @sugar
+  def never(to: Step[S, O, F] => Boolean): Never[S, O, F] =
+    require(
+      b.when.isEmpty,
+      s"never declares ${b.name} about every step, so it takes no when: write the restriction into its predicates, or declare the Property with `holds`"
+    )
+    Never(b, to)
 
   // `stays(p)`: a step from a state `p` holds of keeps it holding. Core form:
   // `holdsAcross((before, after) => !p(before) || p(after.state))`. `stays(p).unless(release)` also
   // lets a step `release` holds of leave it.
-  def stays(p: S => Boolean): Stays[S, O, F] = Stays(b, p)
+  @sugar
+  def stays(p: S => Boolean): Stays[S, O, F] =
+    require(
+      b.when.isEmpty,
+      s"stays declares ${b.name} about every step, so it takes no when: write the restriction into its predicates, or declare the Property with `holds`"
+    )
+    Stays(b, p)
 
 // What `once(over)` leaves to say: the value it keeps. Core form: the `holdsAcross` lambda `keeps`
 // finishes.
-final class Once[S, O, F] private[framework] (
+@sugar final class Once[S, O, F] private[framework] (
     b: PropertyBuilder[S, O, F],
     over: S => Boolean
 ):
   // The value a step from a state `over` holds of keeps, a field path such as `_.phase` or
   // `_.order.phase`. Core form:
   // `holdsAcross((before, after) => !over(before) || after.state.phase == before.phase)`.
-  def keeps[V](projection: S => V)(using CanEqual[V, V]): Property[S] =
-    Property(
-      PropertyDecl(
-        b.name,
-        b.m,
-        b.when,
-        None,
-        Some((before: S, after: Step[S, O, F]) =>
-          !over(before) || projection(after.state) == projection(before)
-        )
-      )
-    )
+  @sugar def keeps[V](projection: S => V)(using CanEqual[V, V]): Property[S] =
+    b.holdsAcross((before, after) => !over(before) || projection(after.state) == projection(before))
 
 // `never(to)`, a same-step Property, which `from` turns into a transition one. Core form:
 // `holds(after => !to(after))`.
-final class Never[S, O, F] private[framework] (
+@sugar final class Never[S, O, F] private[framework] (
     b: PropertyBuilder[S, O, F],
     to: Step[S, O, F] => Boolean
-) extends Property[S](
-      PropertyDecl(
-        b.name,
-        b.m,
-        b.when,
-        Some((after: Step[S, O, F]) => !to(after)),
-        None
-      )
-    ):
+) extends Property[S](b.holds(after => !to(after)).decl):
   // No step from a state `before` holds of is one `to` holds of. Core form:
   // `holdsAcross((before, after) => !before(before) || !to(after))`.
-  def from(before: S => Boolean): Property[S] =
-    Property(
-      PropertyDecl(
-        b.name,
-        b.m,
-        b.when,
-        None,
-        Some((s: S, after: Step[S, O, F]) => !before(s) || !to(after))
-      )
-    )
+  @sugar def from(before: S => Boolean): Property[S] =
+    val origin = before
+    b.holdsAcross((before, after) => !origin(before) || !to(after))
 
 // `stays(p)`, a transition Property, which `unless` releases. Core form:
 // `holdsAcross((before, after) => !p(before) || p(after.state))`.
-final class Stays[S, O, F] private[framework] (
+@sugar final class Stays[S, O, F] private[framework] (
     b: PropertyBuilder[S, O, F],
     p: S => Boolean
-) extends Property[S](
-      PropertyDecl(
-        b.name,
-        b.m,
-        b.when,
-        None,
-        Some((before: S, after: Step[S, O, F]) => !p(before) || p(after.state))
-      )
-    ):
+) extends Property[S](b.holdsAcross((before, after) => !p(before) || p(after.state)).decl):
   // A step `release` holds of may leave `p`. Core form:
   // `holdsAcross((before, after) => !p(before) || p(after.state) || release(after))`.
-  def unless(release: Step[S, O, F] => Boolean): Property[S] =
-    Property(
-      PropertyDecl(
-        b.name,
-        b.m,
-        b.when,
-        None,
-        Some((before: S, after: Step[S, O, F]) => !p(before) || p(after.state) || release(after))
-      )
-    )
+  @sugar def unless(release: Step[S, O, F] => Boolean): Property[S] =
+    b.holdsAcross((before, after) => !p(before) || p(after.state) || release(after))
 
 // A named slot with the value it receives, what `slot := value` writes. Core form: the value itself,
 // written at the slot's place, `expires` in `start(unset, expires, unset)`.
@@ -503,17 +484,18 @@ extension [I <: NonEmptyTuple](a: Action[I])
 // once a step breaks it, stays broken, named after its `val`. Its verdict is read after every step.
 // Core form:
 // `monitor[S, O, F, Boolean](false)((broken, before, after) => broken || !promise(after))(broken => broken)`.
-def sticky[S, O, F](
+@scala.annotation.nowarn("msg=unused explicit parameter")
+@sugar def sticky[S, O, F](
     promise: Step[S, O, F] => Boolean
 ): Monitor[S, O, F, Boolean] =
-  monitor[S, O, F, Boolean](false)((broken, _, after) => broken || !promise(after))(broken =>
+  monitor[S, O, F, Boolean](false)((broken, before, after) => broken || !promise(after))(broken =>
     broken
   )
 
 // `val ownerAcknowledgment = stickyAcross(ackOnlyWhenKept)`: `sticky` of a promise about the state
 // before a step and the step. Core form:
 // `monitor[S, O, F, Boolean](false)((broken, before, after) => broken || !promise(before, after))(broken => broken)`.
-def stickyAcross[S, O, F](
+@sugar def stickyAcross[S, O, F](
     promise: (S, Step[S, O, F]) => Boolean
 ): Monitor[S, O, F, Boolean] =
   monitor[S, O, F, Boolean](false)((broken, before, after) => broken || !promise(before, after))(
@@ -940,7 +922,8 @@ abstract class Rules[S, O, F, P](using
       names(a.decl) = label
 
   // `phase.in(a, b)` in a condition, as outside the rules. Core form: `List(a, b).contains(phase)`.
-  extension [A](value: A) @sugar def in(first: A, rest: A*): Boolean = (first +: rest).contains(value)
+  extension [A](value: A)
+    @sugar def in(first: A, rest: A*): Boolean = (first +: rest).contains(value)
 
   // `phase.in[Closed]` in a condition, as outside the rules. Core form:
   // `List(<the cases of Closed, in declaration order>).contains(phase)`.

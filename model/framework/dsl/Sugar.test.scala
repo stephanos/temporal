@@ -8,6 +8,22 @@ class SugarNativeTest extends munit.FunSuite:
 
   private val left: Pair => Boolean = _.left
 
+  test("never from retains its named argument and native transition meaning"):
+    object Checked extends Machine[Boolean, Boolean, Nothing]:
+      val init = false
+      def end(s: Boolean) = false
+      object rules extends Bindings[Boolean, Boolean, Nothing]()
+    val property = Checked.property.never(_.state).from(before = identity)
+    val holds = property.decl.holds2.get.asInstanceOf[
+      (Boolean, Step[Boolean, Boolean, Nothing]) => Boolean
+    ] // scalafix:ok DisableSyntax.asInstanceOf
+    assertEquals(holds(false, Step(true, true)), true)
+    assertEquals(holds(true, Step(true, true)), false)
+    assertEquals(holds(true, Step(true, false)), true)
+    val press = action(Actor("fixture"))
+    val refused = intercept[IllegalArgumentException](Checked.property.when(press).stays(identity))
+    assert(refused.getMessage.contains("takes no when"), refused.getMessage)
+
   test("composition records uses the selected member even when member states and facts coincide"):
     val after = Step(true, Pair(false, false), List("left_changed"))
     assert(after.records(_.left, Fact.changed))
@@ -27,9 +43,15 @@ class SugarNativeTest extends munit.FunSuite:
     assert(true implies reached)
     assertEquals(reads, 1)
     given Ok[Boolean] = Ok(true)
-    assertEquals(enter(false, "second", "first", "second").head.facts, List("second", "first", "second"))
+    assertEquals(
+      enter(false, "second", "first", "second").head.facts,
+      List("second", "first", "second")
+    )
 
-  @sugar private def forwarded(after: Step[Pair, Boolean, String], member: Pair => Boolean): Boolean =
+  @sugar private def forwarded(
+      after: Step[Pair, Boolean, String],
+      member: Pair => Boolean
+  ): Boolean =
     after.records(member, Fact.changed)
 
   test("plain marked definitions retain strict argument order and by-name laziness"):
@@ -53,6 +75,10 @@ class SugarNativeTest extends munit.FunSuite:
     val refused = intercept[IllegalArgumentException](forwarded(after, _.left))
     assert(refused.getMessage.contains("selector capture"), refused.getMessage)
     val local: Pair => Boolean = _.left
-    for read <- Seq(() => after.records(local, Fact.changed), () => after.records(left, Fact.changed)) do
+    for read <- Seq(
+        () => after.records(local, Fact.changed),
+        () => after.records(left, Fact.changed)
+      )
+    do
       val refused = intercept[IllegalArgumentException](read())
       assert(refused.getMessage.contains("selector capture"), refused.getMessage)

@@ -380,3 +380,21 @@ class SyntaxRuleSuite extends munit.FunSuite:
 
   test("the repository's sugar keeps to the rule"):
     assertEquals(SyntaxRule.findings(Tools.here.directory), Vector.empty)
+
+  test("exporter sugar dispatch is refused in code and string literals, including Syntax.scala"):
+    val found = findings(
+      "model/framework/dsl/Syntax.scala" -> syntax,
+      "model/framework/export/Declarations.scala" -> "val invalid = framework.dsl.sticky(predicate)\n",
+      "model/framework/export/Expressions.scala" -> "val names = Set(\"enter\")\n",
+      "model/framework/export/Syntax.scala" -> "private val word = \"sticky\"\n"
+    )
+    assertEquals(
+      found.map(_.takeWhile(_ != ' ')),
+      Vector(
+        "model/framework/export/Declarations.scala:1:",
+        "model/framework/export/Expressions.scala:1:",
+        "model/framework/export/Syntax.scala:1:"
+      )
+    )
+    assert(found(1).contains("`enter`"), found.mkString("\n"))
+    assert(found.last.contains("`sticky`"), found.mkString("\n"))

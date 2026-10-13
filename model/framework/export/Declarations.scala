@@ -50,7 +50,8 @@ private[`export`] trait Declarations:
 
   def action(ref: Term): String = ref match
     // A channel's delivery or loss: an action its declaration implies.
-    case Select(channel, op @ ("deliver" | "lose")) if isNamed(channel.tpe, "framework.dsl.Channel") =>
+    case Select(channel, op @ ("deliver" | "lose"))
+        if isNamed(channel.tpe, "framework.dsl.Channel") =>
       channelAction(resolveSymbol(channel), op, ref)
     case _ =>
       val declared = declaredAction(ref)
@@ -212,6 +213,7 @@ private[`export`] trait Declarations:
     // A lambda written as a block, `holds { s => ... }`, is positioned at the lambda.
     case Block(Nil, e)      => stepFunction(e, machine, actionName)
     case Typed(e, _)        => stepFunction(e, machine, actionName)
+    case NamedArg(_, e)     => stepFunction(e, machine, actionName)
     case Inlined(_, Nil, e) => stepFunction(e, machine, actionName)
     case _                  =>
       (forwardedDef(fn), lambda(fn)) match
@@ -309,7 +311,7 @@ private[`export`] trait Declarations:
       case Apply(fn, args)   => selected(fn).map((r, n, ts, as) => (r, n, ts, as ++ args))
       case TypeApply(fn, ts) => selected(fn).map((r, n, _, as) => (r, n, ts.map(_.tpe), as))
       case Select(r, n) if isNamed(r.tpe, "framework.dsl.Phasing") => Some((r, n, Nil, Nil))
-      case _                                                   => None
+      case _                                                       => None
     selected(t).flatMap { (receiver, name, roles, args) =>
       boundPhasings.get(receiver.symbol).map { (projection, reader) =>
         val (parameter, body) = lambda(projection) match
@@ -898,9 +900,9 @@ private[`export`] trait Declarations:
   // a class's arguments are not action references.
   private def actionReference(target: Term): Option[Term] = unwrapped(target) match
     case r: Ref if isNamed(r.tpe, "framework.dsl.Action") => Some(r)
-    case Select(q, "apply")                           => actionReference(q)
-    case TypeApply(fn, _)                             => actionReference(fn)
-    case Apply(fn, args)                              =>
+    case Select(q, "apply")                               => actionReference(q)
+    case TypeApply(fn, _)                                 => actionReference(fn)
+    case Apply(fn, args)                                  =>
       actionReference(fn).orElse(
         args.headOption.filter(a => isNamed(a.tpe, "framework.dsl.Action")).flatMap(actionReference)
       )
@@ -930,7 +932,7 @@ private[`export`] trait Declarations:
   private def declaredBy(target: Term, owner: Symbol): Boolean =
     def actionRef(t: Term): Option[Term] = unwrapped(t) match
       case r: Ref if isNamed(r.tpe, "framework.dsl.Action") => Some(r)
-      case Apply(fn, args)                              =>
+      case Apply(fn, args)                                  =>
         actionRef(fn).orElse(args.iterator.flatMap(actionRef).nextOption())
       case TypeApply(fn, _) => actionRef(fn)
       case Select(q, _)     => actionRef(q)
@@ -1243,9 +1245,9 @@ private[`export`] trait Declarations:
 
   // The action and the function of the core `action ~> function`, or a refusal.
   def coreBinding(binding: Term, should: => String): (Term, Term) = binding match
-    case Typed(e, _)                                                       => coreBinding(e, should)
-    case Block(Nil, e)                                                     => coreBinding(e, should)
-    case Inlined(_, Nil, e)                                                => coreBinding(e, should)
+    case Typed(e, _)        => coreBinding(e, should)
+    case Block(Nil, e)      => coreBinding(e, should)
+    case Inlined(_, Nil, e) => coreBinding(e, should)
     case t if t.symbol.maybeOwner.fullName == "framework.dsl.Machine$package$" =>
       call(t) match
         case Some(("~>", List(List(a), List(fn)))) => (a, fn)
@@ -1822,11 +1824,12 @@ private[`export`] trait Declarations:
           name = name,
           state = Some(typeRef(m.tpe, t)),
           initial = Some(lift(initial, Some(m.tpe))),
-          next = stepFunction(next, id, "next"),
-          violated = stepFunction(violated, id, "violated"),
+          next = readingDeclaration(id)(stepFunction(next, id, "next")),
+          violated = readingDeclaration(id)(stepFunction(violated, id, "violated")),
           evaluate = ir.Monitor.Evaluate.EveryStep(Empty())
         )
       def walk(t: Term): ir.Monitor = t match
+        case _ if declarationExpansion(t)               => expandedDeclaration(t)(walk)
         case Select(inner, "readAtEnds")                => walk(inner).withAtEnds(Empty())
         case Apply(Select(inner, "readAfter"), List(f)) =>
           walk(inner).withAfter(stepFunction(f, id, "after"))
@@ -1853,11 +1856,8 @@ private[`export`] trait Declarations:
               _
             ) =>
           declared(capturedName(sym, d, "a monitor"), m, initial, next, violated, t)
-        // `sticky(p)` and `stickyAcross(p)`, named after their val.
         case other =>
-          stickyMonitor(other, id)
-            .getOrElse(fail(other, s"not a part of a monitor declaration: ${other.show}"))
-            .copy(id = id, position = Some(pos(d)), name = capturedName(sym, d, "a monitor"))
+          fail(other, s"not a part of a monitor declaration: ${other.show}")
       val m = walk(d.rhs.get)
       if m.getState.ref.isList || m.getState.ref.isInt then
         fail(d, s"monitor ${m.name}'s state has no finite catalog")

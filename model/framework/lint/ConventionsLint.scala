@@ -16,8 +16,10 @@ final private[framework] class ConventionInspector(
   val errors = mutable.ArrayBuffer.empty[LiftError]
 
   def inspect(using quotes: Quotes)(tastys: List[Tasty[quotes.type]]): Unit =
-    errors ++= Conventions(Index(tastys, prefixes), policy)
+    val index = Index(tastys, prefixes)
+    errors ++= (Conventions(index, policy)
       .refusals(_ => false)
+      ++ Subset(index).refusals(_ => false))
       .sortBy((file, line, error) => (file, line, error.message))
       .map(_._3)
       .distinct

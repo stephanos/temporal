@@ -70,6 +70,106 @@ object SyntaxRule:
     "proto"
   )
 
+  val remainingExportSugar: Map[String, (String, Set[String])] = Map(
+    "Syntax.scala" -> (
+      "fn-141.8/.9/.10/.12",
+      Set(
+        "in",
+        "enters",
+        "record",
+        "reject",
+        "rejects",
+        "Rules",
+        "witness",
+        "records",
+        "recordsWhen",
+        "excludes",
+        "ends",
+        "limits",
+        "live",
+        "explore",
+        "is",
+        "effect",
+        "proto",
+        "field",
+        ":="
+      )
+    ),
+    "Declarations.scala" -> (
+      "fn-141.10",
+      Set(
+        "Rules",
+        "Case",
+        "Firing",
+        "Phased",
+        "PhasesOf",
+        "on",
+        "when",
+        "where",
+        "always",
+        "in",
+        "enters",
+        "rejects",
+        "is",
+        "effect",
+        "records",
+        "disabled",
+        "from"
+      )
+    ),
+    "Expressions.scala" -> ("fn-141.10", Set("is", "effect", "Ok")),
+    "Claims.scala" -> ("fn-141.12", Set("in", "when", "from", "witness", "records", "excludes")),
+    "Capabilities.scala" -> ("fn-141.12/.13", Set("records", "from", "when")),
+    "Context.scala" -> ("fn-141.10", Set("Rules", "Phased", "is", "effect")),
+    "Compositions.scala" -> ("fn-141.11", Set("field", "records")),
+    "Expansion.scala" -> ("fn-141.10", Set("Ok")),
+    "Realizations.scala" -> ("fn-141.8", Set("field", ":=", "proto", "records", "from", "when")),
+    "Roles.scala" -> ("fn-141.10", Set("Phased", "PhasesOf", "when", "in"))
+  )
+
+  private def exportSugar(files: Vector[Source]): Vector[Finding] =
+    val names =
+      sugarNames ++ Set("Once", "Never", "Stays", "enters", "witness", "recordsWhen", "excludes")
+    val exports = files.filter(_.file.startsWith("model/framework/export/"))
+    val referenced = names -- exports.flatMap(_.declared)
+    val selectable = files
+      .filter(_.file == "model/framework/dsl/Syntax.scala")
+      .flatMap(sugar)
+      .filter(_.isExtension)
+      .flatMap(_.name)
+      .toSet
+    exports.flatMap { file =>
+      val allowed = remainingExportSugar
+        .get(file.file.stripPrefix("model/framework/export/"))
+        .fold(Set.empty[String])(_._2)
+      def finding(name: String, line: Int) = Finding(
+        file.file,
+        line,
+        s"syntax rule: the lifter names `$name`, a sugar definition: expand its indexed definition or export its constructed core value"
+      )
+      val strings = Literals.literals(file.source).values.flatMap { literal =>
+        val name = literal.value.split('.').lastOption.getOrElse("").stripSuffix("$")
+        Option.when(names(name) && !allowed(name))(finding(name, literal.line))
+      }
+      val code = token
+        .findAllMatchIn(file.code)
+        .flatMap { matched =>
+          val name = unquoted(matched.matched)
+          val selected = matched.start > 0 && file.code(matched.start - 1) == '.'
+          val prefix = file.code.substring(0, matched.start)
+          val qualified = Seq("framework.dsl.", "framework.realize.", "Syntax.", "Syntax$package.")
+            .exists(prefix.endsWith)
+          Option.when(
+            !allowed(name) &&
+              ((referenced(name) && (!selected || selectable(name))) || (qualified && names(name)))
+          )(
+            finding(name, file.lineAt(matched.start))
+          )
+        }
+        .toVector
+      strings ++ code
+    }
+
   final case class Finding(file: String, line: Int, reason: String):
     override def toString: String = s"$file:$line: $reason"
 
@@ -466,6 +566,8 @@ object SyntaxRule:
       .filter(includes)
       .map(read(root, _))
     val (syntax, other) = files.partition(_.isSyntax)
-    (syntax.flatMap(undocumented) ++ other.flatMap(misplaced) ++ trees.flatMap(reaching(_, files)))
+    (syntax.flatMap(undocumented) ++ other.flatMap(misplaced) ++ trees.flatMap(
+      reaching(_, files)
+    ) ++ exportSugar(files))
       .sortBy(f => (f.file, f.line))
       .map(_.toString)
