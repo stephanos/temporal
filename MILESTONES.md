@@ -225,7 +225,7 @@ Owner decision (2026-10-12): these deferred specs change owners the WASM backend
 | --- | --- | --- |
 | [fn-166.6](.flow/tasks/fn-166-gomad-readable-package-structure-and.6.md) | ⬜ Todo | Identity-rotating renames; batched with fn-153/fn-154 |
 | [fn-166.7](.flow/tasks/fn-166-gomad-readable-package-structure-and.7.md) | ⬜ Todo | Group everything but cmd under internal/ (runner, backends, evidence, model, host, archcheck); batched with fn-153/fn-154 |
-| [fn-166.8](.flow/tasks/fn-166-gomad-readable-package-structure-and.8.md) | ⬜ Todo | Delete dead helper profile, network v1 and choice v1; batched with fn-153/fn-154 |
+| [fn-166.8](.flow/tasks/fn-166-gomad-readable-package-structure-and.8.md) | ⬜ Todo | Delete network v1 and choice v1 (diagnostic profile kept); batched with fn-153/fn-154 |
 | [fn-166.10](.flow/tasks/fn-166-gomad-readable-package-structure-and.10.md) | ⬜ Todo | Move gomad3sim into gomad3 as internal/model/cluster; batched with fn-153/fn-154 |
 | [fn-166.11](.flow/tasks/fn-166-gomad-readable-package-structure-and.11.md) | ⬜ Todo | Rename the gomad3 module and tree to gomad after the rotation batch |
 
@@ -260,17 +260,86 @@ Owner decision (2026-10-12): these deferred specs change owners the WASM backend
 
 ### Execution performance (Rust helper)
 
-Owner decision (2026-10-13): move per-call and per-run hot paths into the Rust helper; Go keeps build, campaign, evidence verification and publication. fn-173's identity and cache-format rotation joins or follows the fn-153/fn-154/fn-166 rotation batch so it shares one WASM requalification; fn-173 and fn-174 coordinate with fn-153.2 (helper cache) and fn-153.20 (helper-frame decoding). fn-177 and fn-178 port post-fn-154 network and post-fn-153 World semantics, so they wait for those specs. The specs are not yet planned into tasks.
+Owner decision (2026-10-13): move per-call and per-run hot paths into the Rust helper; Go keeps build, campaign, evidence verification and publication. fn-172 and fn-173 start now, in parallel with the shared-owner queue; the other specs follow their recorded dependencies. Requalification batches: fn-173 joins the fn-153/fn-154/fn-166 rotation batch if ready, otherwise lands right after it; fn-174 and fn-175 form a second batch with one shared WASM requalification; fn-176 and fn-178 requalify on their own. fn-173 and fn-174 coordinate with fn-153.2 (helper cache) and fn-153.20 (helper-frame decoding). fn-177 builds only the Rust network owner and its Go differential harness for fn-178, because network-v2 runs always attach a broker; fn-177 and fn-178 port post-fn-154 network and post-fn-153 World semantics, so they wait for those specs. fn-166 R8 keeps the helper `diagnostic-profile` feature as the measurement tool for this work. Task paths predate fn-166's renames and need a plan-sync after them.
+
+#### Guest-side cost experiments and baselines — [fn-172](.flow/specs/fn-172-gomad-guest-side-cost-experiments-and.md)
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-172](.flow/specs/fn-172-gomad-guest-side-cost-experiments-and.md) | ⬜ Todo | Guest flame profile, GC/`GOWASM`/fuel A/B, network-v2 and cluster baselines |
-| [fn-173](.flow/specs/fn-173-gomad-wasm-helper-per-run-preparation.md) | ⬜ Todo | Native unwind info off, no module hash on cache hit, fast cache checksum |
-| [fn-174](.flow/specs/fn-174-gomad-wasm-helper-local-host-call-fast.md) | ⬜ Todo | Typed imports, binary transcript, compact clock records, local argv/env/random |
-| [fn-175](.flow/specs/fn-175-gomad-filesystem-namespace-in-the-rust.md) | ⬜ Todo | Filesystem namespace in the helper with a Go/Rust differential harness |
-| [fn-176](.flow/specs/fn-176-gomad-durable-volume-crash-model-in-the.md) | ⬜ Todo | Durable volume crash model in the helper; waits for fn-175 |
-| [fn-177](.flow/specs/fn-177-gomad-network-models-in-the-rust-helper.md) | ⬜ Todo | Post-fn-154 network model in the helper; waits for fn-154 |
-| [fn-178](.flow/specs/fn-178-gomad-multi-instance-clusters-in-one.md) | ⬜ Todo | All cluster instances in one helper process; waits for fn-176, fn-177, fn-153, fn-154 |
+| [fn-172.1](.flow/tasks/fn-172-gomad-guest-side-cost-experiments-and.1.md) | 🚧 In progress | Diagnostic guest stack sampler and fuel-off engine variant in the helper |
+| [fn-172.2](.flow/tasks/fn-172-gomad-guest-side-cost-experiments-and.2.md) | 🚧 In progress | Committed diagnostic driver and guest-time attribution for Temporal selections |
+| [fn-172.3](.flow/tasks/fn-172-gomad-guest-side-cost-experiments-and.3.md) | ⬜ Todo | A/B report for GC, GOWASM and fuel-off variants |
+| [fn-172.4](.flow/tasks/fn-172-gomad-guest-side-cost-experiments-and.4.md) | ⬜ Todo | Multi-instance cluster baseline |
+
+#### Per-run preparation fast path — [fn-173](.flow/specs/fn-173-gomad-wasm-helper-per-run-preparation.md)
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-173.1](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.1.md) | 🚧 In progress | Disable native unwind info and rotate the engine configuration revision |
+| [fn-173.2](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.2.md) | ⬜ Todo | Skip module bytes on compile-cache hits and verify inside the miss path |
+| [fn-173.3](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.3.md) | ⬜ Todo | Drop the Go adapter's per-run module hash |
+| [fn-173.4](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.4.md) | ⬜ Todo | Compiled-artifact envelope v3 with a CRC-32 integrity check |
+| [fn-173.5](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.5.md) | ⬜ Todo | Measure warm preparation and evidence equality on the Temporal module |
+
+#### Local host-call fast path — [fn-174](.flow/specs/fn-174-gomad-wasm-helper-local-host-call-fast.md) — waits for fn-153
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-174.1](.flow/tasks/fn-174-gomad-wasm-helper-local-host-call-fast.1.md) | ⬜ Todo | Link every helper import as a typed host function |
+| [fn-174.2](.flow/tasks/fn-174-gomad-wasm-helper-local-host-call-fast.2.md) | ⬜ Todo | Shared binary WASI transcript records in Go and the helper |
+| [fn-174.3](.flow/tasks/fn-174-gomad-wasm-helper-local-host-call-fast.3.md) | ⬜ Todo | JSON-free typed local model path in the helper |
+| [fn-174.4](.flow/tasks/fn-174-gomad-wasm-helper-local-host-call-fast.4.md) | ⬜ Todo | Compact clock run records in both owners |
+| [fn-174.5](.flow/tasks/fn-174-gomad-wasm-helper-local-host-call-fast.5.md) | ⬜ Todo | Answer random_get, args and environ inside the helper |
+| [fn-174.6](.flow/tasks/fn-174-gomad-wasm-helper-local-host-call-fast.6.md) | ⬜ Todo | Measure local host-call cost and reconcile docs |
+
+#### Filesystem namespace in the helper — [fn-175](.flow/specs/fn-175-gomad-filesystem-namespace-in-the-rust.md) — waits for fn-174
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-175.1](.flow/tasks/fn-175-gomad-filesystem-namespace-in-the-rust.1.md) | ⬜ Todo | Namespace conformance harness: Rust driver, Go differential and state digest |
+| [fn-175.2](.flow/tasks/fn-175-gomad-filesystem-namespace-in-the-rust.2.md) | ⬜ Todo | Rust namespace core: tree, descriptors, path resolution and metadata/path ops |
+| [fn-175.3](.flow/tasks/fn-175-gomad-filesystem-namespace-in-the-rust.3.md) | ⬜ Todo | Rust namespace data ops, fd 1/2 output accounting and fd-subscription polling |
+| [fn-175.4](.flow/tasks/fn-175-gomad-filesystem-namespace-in-the-rust.4.md) | ⬜ Todo | Namespace image in the execute request: Go flattening, chunked frames, Rust validation |
+| [fn-175.5](.flow/tasks/fn-175-gomad-filesystem-namespace-in-the-rust.5.md) | ⬜ Todo | Route filesystem imports to the Rust namespace and return stdout/stderr from the helper |
+| [fn-175.6](.flow/tasks/fn-175-gomad-filesystem-namespace-in-the-rust.6.md) | ⬜ Todo | Activity-selection gate: zero fs callbacks, >=25% faster on darwin/arm64, docs |
+
+#### Durable volume crash model in the helper — [fn-176](.flow/specs/fn-176-gomad-durable-volume-crash-model-in-the.md) — waits for fn-175
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-176.1](.flow/tasks/fn-176-gomad-durable-volume-crash-model-in-the.1.md) | ⬜ Todo | Volume conformance harness: storage ops, faults, enumeration and recovery against the Go projection |
+| [fn-176.2](.flow/tasks/fn-176-gomad-durable-volume-crash-model-in-the.2.md) | ⬜ Todo | Rust volume persistence core: durable/volatile state, sync semantics, snapshots and identities |
+| [fn-176.3](.flow/tasks/fn-176-gomad-durable-volume-crash-model-in-the.3.md) | ⬜ Todo | Rust crash enumeration, selection, lifecycle and self-contained recovery image |
+| [fn-176.4](.flow/tasks/fn-176-gomad-durable-volume-crash-model-in-the.4.md) | ⬜ Todo | Rust storage fault engine, storage-model validation and namespace-to-volume routing |
+| [fn-176.5](.flow/tasks/fn-176-gomad-durable-volume-crash-model-in-the.5.md) | ⬜ Todo | Helper-owned storage runs: protocol, helper-originated storage_crash and strict Go evidence decoder |
+| [fn-176.6](.flow/tasks/fn-176-gomad-durable-volume-crash-model-in-the.6.md) | ⬜ Todo | Broker split ownership: helper-owned namespace and volume under the Go broker |
+| [fn-176.7](.flow/tasks/fn-176-gomad-durable-volume-crash-model-in-the.7.md) | ⬜ Todo | Durable gates with the Rust volume, Go reference retention and docs |
+
+#### Rust network owner for clusters — [fn-177](.flow/specs/fn-177-gomad-network-models-in-the-rust-helper.md) — waits for fn-154
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-177.1](.flow/tasks/fn-177-gomad-network-models-in-the-rust-helper.1.md) | ⬜ Todo | Go-owner network operation corpus with currency and drift pins |
+| [fn-177.2](.flow/tasks/fn-177-gomad-network-models-in-the-rust-helper.2.md) | ⬜ Todo | Rust network owner: connections, FIFO queues, topology and history |
+| [fn-177.3](.flow/tasks/fn-177-gomad-network-models-in-the-rust-helper.3.md) | ⬜ Todo | Rust network owner: stall expiry, dial stall and history reservations |
+
+#### Multi-instance clusters in one helper process — [fn-178](.flow/specs/fn-178-gomad-multi-instance-clusters-in-one.md) — waits for fn-153, fn-154, fn-172, fn-176, fn-177
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-178.1](.flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.1.md) | ⬜ Todo | Design record and handoff spike: control protocol, threading, terminal taxonomy, watchdog, memory budget |
+| [fn-178.2](.flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.2.md) | ⬜ Todo | World and clock conformance harness with Go drift guard |
+| [fn-178.3](.flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.3.md) | ⬜ Todo | Rust World model: ordering, seeded equivalence ranking, capacity and digests |
+| [fn-178.4](.flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.4.md) | ⬜ Todo | Generated Rust World snapshot writer from the shared schema, Go envelope round trip |
+| [fn-178.5](.flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.5.md) | ⬜ Todo | Rust simulation clock: arbiter, progress credits and restart holds |
+| [fn-178.6](.flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.6.md) | ⬜ Todo | Multi-store cluster host: shared engine, isolated per-instance stores, limits and results |
+| [fn-178.7](.flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.7.md) | ⬜ Todo | In-process broker scheduler: continuations, clock, World ordering and cross-instance network |
+| [fn-178.8](.flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.8.md) | ⬜ Todo | In-process incarnation lifecycle: boundaries, revocation, restart holds and recovery-image restart |
+| [fn-178.9](.flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.9.md) | ⬜ Todo | Go cluster client behind WASMExecution with Go-broker reference parity |
+| [fn-178.10](.flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.10.md) | ⬜ Todo | Parallel versus serialized instances: measure and decide |
+| [fn-178.11](.flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.11.md) | ⬜ Todo | Multi-instance gates, in-process memory budgets, speedup record and docs |
+| [fn-178.12](.flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.12.md) | ⬜ Todo | Rust net_stream ABI, cluster network glue and binary network evidence |
+| [fn-178.13](.flow/tasks/fn-178-gomad-multi-instance-clusters-in-one.13.md) | ⬜ Todo | Go cluster network configuration and strict decoding of helper network evidence |
 
 <a id="quality-assessment-2026-10-01"></a>
 

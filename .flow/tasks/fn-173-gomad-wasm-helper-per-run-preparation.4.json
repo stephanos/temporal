@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-13T18:45:56.811797Z",
+  "depends_on": [
+    "fn-173-gomad-wasm-helper-per-run-preparation.2"
+  ],
+  "id": "fn-173-gomad-wasm-helper-per-run-preparation.4",
+  "priority": null,
+  "spec": "fn-173-gomad-wasm-helper-per-run-preparation",
+  "spec_path": ".flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.4.md",
+  "status": "todo",
+  "title": "Compiled-artifact envelope v3 with a CRC-32 integrity check",
+  "updated_at": "2026-10-13T18:45:56.811797Z"
+}

@@ -1,0 +1,18 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-13T18:45:56.811838Z",
+  "depends_on": [
+    "fn-173-gomad-wasm-helper-per-run-preparation.1",
+    "fn-173-gomad-wasm-helper-per-run-preparation.3",
+    "fn-173-gomad-wasm-helper-per-run-preparation.4"
+  ],
+  "id": "fn-173-gomad-wasm-helper-per-run-preparation.5",
+  "priority": null,
+  "spec": "fn-173-gomad-wasm-helper-per-run-preparation",
+  "spec_path": ".flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.5.md",
+  "status": "todo",
+  "title": "Measure warm preparation and evidence equality on the Temporal module",
+  "updated_at": "2026-10-13T18:45:56.811838Z"
+}

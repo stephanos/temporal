@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-13T18:44:13.062751Z",
+  "depends_on": [
+    "fn-172-gomad-guest-side-cost-experiments-and.2"
+  ],
+  "id": "fn-172-gomad-guest-side-cost-experiments-and.4",
+  "priority": null,
+  "spec": "fn-172-gomad-guest-side-cost-experiments-and",
+  "spec_path": ".flow/tasks/fn-172-gomad-guest-side-cost-experiments-and.4.md",
+  "status": "todo",
+  "title": "Multi-instance cluster baseline",
+  "updated_at": "2026-10-13T19:05:12.533850Z"
+}
