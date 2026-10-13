@@ -362,6 +362,11 @@ func TestWorldDecodersRetainStrictAndExactWireRefusal(t *testing.T) {
 		return append(result, terminal...)
 	}
 	validFrame := frame([]byte(`{"detail":"x","kind":"invalid-input"}`))
+	malformedTerminal := append([]byte(nil), validFrame...)
+	malformedTerminal[len(malformedTerminal)-1] ^= 1
+	if _, err := DecodeRecording(malformedTerminal); err == nil || err.Error() != "decode World terminal: invalid character '|' after object key:value pair" {
+		t.Fatalf("DecodeRecording() malformed terminal error = %v", err)
+	}
 	oversizedInitial := append([]byte(nil), validFrame...)
 	binary.BigEndian.PutUint64(oversizedInitial[len(recordingMagic):], MaximumSnapshotJSONBytes+1)
 	oversizedTerminal := append([]byte(nil), validFrame...)

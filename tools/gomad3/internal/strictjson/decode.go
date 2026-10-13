@@ -7,10 +7,11 @@ import (
 )
 
 var (
-	unmarshal                   = json.Unmarshal
-	matchCaseInsensitiveNames   = json.MatchCaseInsensitiveNames
-	matchCaseSensitiveDelimiter = jsonv1.MatchCaseSensitiveDelimiter
-	rejectUnknownMembers        = json.RejectUnknownMembers
+	unmarshal                       = json.Unmarshal
+	matchCaseInsensitiveNames       = json.MatchCaseInsensitiveNames
+	matchCaseSensitiveDelimiter     = jsonv1.MatchCaseSensitiveDelimiter
+	reportErrorsWithLegacySemantics = jsonv1.ReportErrorsWithLegacySemantics
+	rejectUnknownMembers            = json.RejectUnknownMembers
 )
 
 // Decode unmarshals exactly one JSON value into destination. It rejects
@@ -25,6 +26,8 @@ func Decode(data []byte, destination any) error {
 		matchCaseInsensitiveNames(true),
 		//gomad:dynamic reviewed 2026-10-13 pinned JSON option constructor has no host effects
 		matchCaseSensitiveDelimiter(true),
+		//gomad:dynamic reviewed 2026-10-13 pinned JSON option constructor has no host effects
+		reportErrorsWithLegacySemantics(true),
 		//gomad:dynamic reviewed 2026-10-13 pinned JSON option constructor has no host effects
 		rejectUnknownMembers(true),
 	)

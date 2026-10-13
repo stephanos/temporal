@@ -91,3 +91,12 @@ func TestDecodeAcceptsPairedAndRejectsUnpairedUTF16Surrogates(t *testing.T) {
 		t.Fatalf("Decode() unpaired-surrogate error = %v", err)
 	}
 }
+
+func TestDecodeReportsLegacySyntaxErrors(t *testing.T) {
+	var got decodeDocument
+	err := Decode([]byte(`{"name":"value"|}`), &got)
+	const want = "invalid character '|' after object key:value pair"
+	if err == nil || err.Error() != want {
+		t.Fatalf("Decode() error = %v, want %q", err, want)
+	}
+}
