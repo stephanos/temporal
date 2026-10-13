@@ -1,16 +1,11 @@
 package runner
 
 import (
-	"context"
 	"errors"
 	"fmt"
-	"os"
-	"path/filepath"
-	"strings"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
 	backend "go.temporal.io/server/tools/gomad3/backends"
-	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
@@ -21,39 +16,21 @@ import (
 
 const combinedExplorationRecordLimit = uint64(128 << 20)
 
-type simulationExplorationRoundResult struct {
-	result exploration.SimulationResult
-	run    campaign.ExecutionRecord
-}
-
-func runSimulationExplorationLocal(
-	ctx context.Context,
-	config campaignRequest,
-	selection SeedSelection,
-	baseEnvironment []record.Environment,
-	readOnlyMounts []captured.Mapping,
-	prepared target.Prepared,
-	profile backend.Description,
-	journal *campaign.CampaignJournal,
-	runID string,
-	resuming bool,
-	resumedRuns []campaign.ExecutionRecord,
-	summary *CampaignResult,
-	reportProgress func(CampaignPhase, int) error,
-) error {
-	baseSeed, ok := selection.SeedAt(0)
-	if !ok || selection.Count() != 1 {
+func runSimulationExplorationLocal(run *explorationCampaign) error {
+	baseSeed, ok := run.selection.SeedAt(0)
+	if !ok || run.selection.Count() != 1 {
 		return errors.New("simulation-exploration base seed is unavailable")
 	}
-	choiceImplementation, err := choice.ImplementationIdentity(prepared.BuildKey)
+	config := run.config
+	choiceImplementation, err := choice.ImplementationIdentity(run.prepared.BuildKey)
 	if err != nil {
 		return &HostError{Reason: "simulation_exploration_setup", Err: err}
 	}
-	choiceIdentity, err := choiceExecutionIdentity(prepared, choiceImplementation)
+	choiceIdentity, err := choiceExecutionIdentity(run.prepared, choiceImplementation)
 	if err != nil {
 		return &HostError{Reason: "simulation_exploration_setup", Err: err}
 	}
-	executionSHA256, err := simulationExplorationExecutionIdentity(config, prepared, profile, choiceImplementation)
+	executionSHA256, err := simulationExplorationExecutionIdentity(config, run.prepared, run.profile, choiceImplementation)
 	if err != nil {
 		return &HostError{Reason: "simulation_exploration_setup", Err: err}
 	}
@@ -67,394 +44,137 @@ func runSimulationExplorationLocal(
 		MaxExplorationBytes: config.MaxExplorationBytes, MaxResultBytes: config.MaxExplorationResultBytes,
 		FailureBudget: failureBudget, Limits: exploration.DimensionLimits(config.SimulationDimensionLimits),
 	}
-	state, err := exploration.NewSimulation(explorationConfig)
+	if _, err := exploration.NewSimulation(explorationConfig); err != nil {
+		return &HostError{Reason: "simulation_exploration_setup", Err: err}
+	}
+	segmentBytes, err := explorationSegmentCapacity(config, config.MaxExplorationResultBytes, "simulation-exploration")
 	if err != nil {
 		return &HostError{Reason: "simulation_exploration_setup", Err: err}
 	}
-	segmentBytes, err := simulationExplorationSegmentCapacity(config)
-	if err != nil {
-		return &HostError{Reason: "simulation_exploration_setup", Err: err}
-	}
-	var explorationJournal *campaign.SimulationExplorationJournal
-	if resuming {
-		var recovery uint64
-		explorationJournal, state, recovery, err = campaign.ResumeSimulationExplorationJournal(ctx, journal.Path(), explorationConfig, segmentBytes)
-		if err != nil {
-			return &HostError{Reason: "resume_setup", Err: err}
-		}
-		summary.RecoveryExecutions += recovery
-		committedRuns := explorationJournal.CommittedExecutions()
-		if err := reconcileExplorationExecutions(journal, resumedRuns, committedRuns); err != nil {
-			return &HostError{Reason: "resume_setup", Err: err}
-		}
-		restored, err := restoreResumeSummary(journal.Path(), selection, committedRuns)
-		if err != nil {
-			return &HostError{Reason: "resume_setup", Err: err}
-		}
-		recoveryExecutions := summary.RecoveryExecutions
-		*summary = restored.summary
-		summary.RecoveryExecutions = recoveryExecutions
-	} else {
-		explorationJournal, err = campaign.NewSimulationExplorationJournal(ctx, journal.Path(), state, segmentBytes)
-		if err != nil {
-			return &HostError{Reason: "simulation_exploration_setup", Err: err}
-		}
-	}
-	combinedSummary := state.Summary()
-	projectedSummary := projectSimulationExplorationSummary(combinedSummary)
-	summary.SimulationExploration = &projectedSummary
-
-	distinct := make(map[record.SHA256]string)
-	semanticProbes := make(map[string]struct{})
-	choiceFeatures := make(map[string]struct{})
-	if len(explorationJournal.CommittedExecutions()) != 0 {
-		restored, err := restoreResumeSummary(journal.Path(), selection, explorationJournal.CommittedExecutions())
-		if err != nil {
-			return &HostError{Reason: "resume_setup", Err: err}
-		}
-		distinct = restored.distinct
-		semanticProbes = restored.probes
-		choiceFeatures = restored.choiceFeatures
-	}
-	executor := config.executor
-	if executor == nil {
-		executor = processExecutor{provider: config.Backend}
-	}
-
-	for {
-		round, available := state.NextRound()
-		if !available {
-			break
-		}
-		staged, err := explorationJournal.StageRound(round)
-		if err != nil {
-			return &HostError{Reason: "simulation_exploration_stage", Err: err}
-		}
-		completions, err := executeSimulationExplorationRound(ctx, config, executor, prepared, baseEnvironment, profile, readOnlyMounts, staged, state, round, choiceIdentity, reportProgress)
-		if err != nil {
-			return err
-		}
-		roundSummary := cloneSummary(*summary)
-		roundDistinct := cloneFailurePaths(distinct)
-		roundProbes := cloneStringSet(semanticProbes)
-		roundChoiceFeatures := cloneStringSet(choiceFeatures)
-		results := make([]exploration.SimulationResult, len(round.Candidates))
-		runs := make([]campaign.ExecutionRecord, len(round.Candidates))
-		for index, completion := range completions {
-			processed, err := processSimulationExplorationCompletion(
-				ctx, config, prepared, baseEnvironment, readOnlyMounts, runID, journal.Path(), staged,
-				state, round, index, completion, choiceIdentity, &roundSummary, roundDistinct, roundProbes, roundChoiceFeatures,
-			)
-			if err != nil {
-				return err
-			}
-			results[index] = processed.result
-			runs[index] = processed.run
-			if err := staged.RecordExecution(index, processed.run); err != nil {
-				return &HostError{Reason: "simulation_exploration_stage", Err: err}
-			}
-		}
-		next, segment, err := exploration.CommitSimulationRound(state, round, results)
-		if err != nil {
-			return &HostError{Reason: "simulation_exploration_commit", Err: err}
-		}
-		if err := explorationJournal.CommitRound(staged, segment); err != nil {
-			return &HostError{Reason: "simulation_exploration_commit", Err: err}
-		}
-		for _, run := range runs {
-			if err := journal.AppendExecution(run); err != nil {
-				return &HostError{Reason: "runs_append", Err: err}
-			}
-		}
-		state = next
-		distinct = roundDistinct
-		semanticProbes = roundProbes
-		choiceFeatures = roundChoiceFeatures
-		*summary = roundSummary
-		combinedSummary := state.Summary()
-		projectedSummary := projectSimulationExplorationSummary(combinedSummary)
-		summary.SimulationExploration = &projectedSummary
-		summary.StopReason = StopReason(combinedSummary.StopReason)
-		if err := reportProgress(ProgressRunning, 0); err != nil {
-			return &HostError{Reason: "progress_output", Err: err}
-		}
-	}
-
-	if coverageHasSemantic(config.Coverage) {
-		evidence, err := config.Backend.Evidence(context.WithoutCancel(ctx), backend.EvidenceRequest{Probes: sortedProbeList(semanticProbes)})
-		if err != nil {
-			return &HostError{Reason: "semantic_coverage", Err: err}
-		}
-		coverage := evidence.Coverage
-		summary.SemanticCoverage = &coverage
-		evidence, err = config.Backend.Evidence(context.WithoutCancel(ctx), backend.EvidenceRequest{Probes: coverage.Probes, RequiredSemanticProbes: config.RequiredSemanticProbes})
-		if err != nil {
-			return err
-		}
-		if len(evidence.MissingRequiredProbes) != 0 {
-			return &record.MissingSemanticProbesError{Probes: evidence.MissingRequiredProbes}
-		}
-	}
-	if err := config.Backend.ValidatePrepared(config.Target, prepared, recordedEnvironmentStrings(baseEnvironment)); err != nil {
-		return &HostError{Reason: "prepared_target_integrity", Err: err}
-	}
-	if err := ctx.Err(); err != nil {
-		return &HostError{Reason: contextFailureReason(err), Err: err}
-	}
-	failureSignatures := make([]record.SHA256, 0, len(distinct))
-	for signature := range distinct {
-		failureSignatures = append(failureSignatures, signature)
-	}
-	combinedSummary = state.Summary()
-	projectedSummary = projectSimulationExplorationSummary(combinedSummary)
-	summary.SimulationExploration = &projectedSummary
-	summary.StopReason = StopReason(combinedSummary.StopReason)
-	if err := journal.Publish(campaign.CampaignSummary{
-		Attempted: summary.Attempted, Succeeded: summary.Succeeded, Failures: summary.Failures, Watchdogs: summary.Watchdogs,
-		Cancelled: summary.Cancelled, DistinctFailures: summary.DistinctFailures, RetainedSuccesses: summary.RetainedSuccesses,
-		RetainedSuccessBytes: summary.RetainedSuccessBytes, StopReason: string(summary.StopReason), FailureSignatures: failureSignatures,
-		SimulationExploration: &combinedSummary, SimulationExplorationImplementationSHA256: exploration.SimulationImplementationSHA256(),
-		SimulationExplorationChainSHA256: explorationJournal.ChainSHA256(), RecoveryExecutions: summary.RecoveryExecutions,
-	}); err != nil {
-		return &HostError{Reason: "campaign_publish", Err: err}
-	}
-	if err := reportProgress(ProgressComplete, 0); err != nil {
-		return &HostError{Reason: "progress_output", Err: err}
-	}
-	return nil
+	return runExploration(run, explorationStrategy[exploration.SimulationConfig, exploration.SimulationState, exploration.SimulationRound, exploration.SimulationRoundSegment, exploration.SimulationResult]{
+		reason: "simulation_exploration", subject: "simulation exploration", engine: campaign.SimulationRounds, config: explorationConfig, segmentBytes: segmentBytes,
+		jobs: func(state exploration.SimulationState, round exploration.SimulationRound) ([]runJob, error) {
+			return simulationExplorationJobs(state, round, choiceIdentity)
+		},
+		process: func(round *explorationRound[exploration.SimulationState, exploration.SimulationRound], index int, completion runCompletion) (exploration.SimulationResult, campaign.ExecutionRecord, error) {
+			return processSimulationExplorationCompletion(round, index, completion, choiceIdentity)
+		},
+		commit: exploration.CommitSimulationRound,
+		project: func(summary *CampaignResult, state exploration.SimulationState) {
+			projected := projectSimulationExplorationSummary(state.Summary())
+			summary.SimulationExploration = &projected
+			summary.StopReason = StopReason(state.Summary().StopReason)
+		},
+		publish: func(published *campaign.CampaignSummary, state exploration.SimulationState, chain record.SHA256) {
+			explored := state.Summary()
+			published.SimulationExploration, published.SimulationExplorationImplementationSHA256 = &explored, exploration.SimulationImplementationSHA256()
+			published.SimulationExplorationChainSHA256 = chain
+		},
+	})
 }
 
-func executeSimulationExplorationRound(
-	ctx context.Context,
-	config campaignRequest,
-	executor executionRunner,
-	prepared target.Prepared,
-	baseEnvironment []record.Environment,
-	profile backend.Description,
-	readOnlyMounts []captured.Mapping,
-	staged *campaign.SimulationExplorationRoundJournal,
-	state exploration.SimulationState,
-	round exploration.SimulationRound,
-	choiceIdentity choice.ExecutionIdentity,
-	reportProgress func(CampaignPhase, int) error,
-) ([]runCompletion, error) {
-	roundCtx, cancel := context.WithCancel(ctx)
-	defer cancel()
-	completionChannel := make(chan runCompletion, len(round.Candidates))
-	startOrdinal := state.LogicalExecutions
+// simulationExplorationJobs runs a round's candidates from the base seed
+// under each candidate's forced simulation and choice decisions.
+func simulationExplorationJobs(state exploration.SimulationState, round exploration.SimulationRound, choiceIdentity choice.ExecutionIdentity) ([]runJob, error) {
+	jobs := make([]runJob, len(round.Candidates))
 	for index, candidate := range round.Candidates {
 		candidateExecution, err := exploration.ExecutionForCandidate(state.Config, candidate, choiceIdentity)
 		if err != nil {
 			return nil, &HostError{Reason: "simulation_exploration_control", Err: err}
 		}
-		job := runJob{
-			ordinal: startOrdinal + uint64(index), seed: state.Config.BaseSeed,
+		jobs[index] = runJob{
+			ordinal: state.LogicalExecutions + uint64(index), seed: state.Config.BaseSeed,
 			choiceMode: candidateExecution.ChoiceMode, choiceReplayPlan: candidateExecution.ChoiceReplayPlan,
 			simulationPlan: string(candidateExecution.SimulationPlan), simulationRecordLimit: combinedExplorationRecordLimit, simulationRecordCount: 1,
 		}
-		readiness := newRunReadiness()
-		go runSeed(roundCtx, config, executor, prepared, baseEnvironment, profile, readOnlyMounts, staged, job, readiness, completionChannel)
-		readiness.wait()
 	}
-	progressErr := reportProgress(ProgressRunning, len(round.Candidates))
-	if progressErr != nil {
-		cancel()
-	}
-	completions, err := collectRoundCompletions(ctx, cancel, completionChannel, startOrdinal, len(round.Candidates), "simulation_exploration_order", "simulation exploration")
-	if err != nil {
-		return nil, err
-	}
-	if progressErr != nil {
-		return nil, &HostError{Reason: "progress_output", Err: progressErr}
-	}
-	for _, completion := range completions {
-		if completion.err != nil {
-			return nil, &HostError{Reason: supervisionFailureReason(completion.err), Err: completion.err}
-		}
-		if completion.result.Cancelled {
-			return nil, &HostError{Reason: "runner_cancelled", Err: errors.New("simulation exploration candidate was cancelled")}
-		}
-	}
-	return completions, nil
+	return jobs, nil
 }
 
-func processSimulationExplorationCompletion(
-	ctx context.Context,
-	config campaignRequest,
-	prepared target.Prepared,
-	baseEnvironment []record.Environment,
-	readOnlyMounts []captured.Mapping,
-	runID string,
-	batchPath string,
-	staged *campaign.SimulationExplorationRoundJournal,
-	state exploration.SimulationState,
-	round exploration.SimulationRound,
-	index int,
-	completion runCompletion,
-	choiceIdentity choice.ExecutionIdentity,
-	summary *CampaignResult,
-	distinct map[record.SHA256]string,
-	semanticProbes map[string]struct{},
-	choiceFeatures map[string]struct{},
-) (simulationExplorationRoundResult, error) {
-	if err := ctx.Err(); err != nil {
-		return simulationExplorationRoundResult{}, &HostError{Reason: contextFailureReason(err), Err: err}
+func processSimulationExplorationCompletion(round *explorationRound[exploration.SimulationState, exploration.SimulationRound], index int, completion runCompletion, choiceIdentity choice.ExecutionIdentity) (exploration.SimulationResult, campaign.ExecutionRecord, error) {
+	if err := round.checkCandidate(); err != nil {
+		return exploration.SimulationResult{}, campaign.ExecutionRecord{}, err
 	}
-	if err := config.Backend.ValidatePrepared(config.Target, prepared, recordedEnvironmentStrings(baseEnvironment)); err != nil {
-		return simulationExplorationRoundResult{}, &HostError{Reason: "prepared_target_integrity", Err: err}
-	}
-	candidate := round.Candidates[index]
-	worldBundle, err := assessWorld(completion.result, completion.job.seed, config.WorldTransitionLimit)
+	state, candidate := round.state, round.round.Candidates[index]
+	outcome, err := round.assess(completion, "simulation-exploration")
 	if err != nil {
-		return simulationExplorationRoundResult{}, &HostError{Reason: "world_record", Err: err}
-	}
-	assessed, assessErr := assessCompletion(ctx, config.Backend, completion.result, worldBundle.Manifest.Terminal, config.Coverage, prepared)
-	if assessErr != nil {
-		return simulationExplorationRoundResult{}, assessErr
-	}
-	runCoverage, runChoiceFeatures, runChoiceProjection, outcome := assessed.coverage, assessed.choiceFeatures, assessed.choiceProjection, assessed.outcome
-	if outcome.Domain == "runner" {
-		return simulationExplorationRoundResult{}, &HostError{Reason: outcome.Reason, Err: errors.New("simulation-exploration controller result is not expandable")}
+		return exploration.SimulationResult{}, campaign.ExecutionRecord{}, err
 	}
 	tape, err := choice.ProjectReplayPlan(completion.result.ChoiceTrace.Trace, choiceIdentity)
 	if err != nil {
-		return simulationExplorationRoundResult{}, &HostError{Reason: "choice_trace_malformed", Err: err}
+		return exploration.SimulationResult{}, campaign.ExecutionRecord{}, &HostError{Reason: "choice_trace_malformed", Err: err}
 	}
 	completion.result.ChoiceTrace.TapeSHA256 = tape.SHA256
 	completion.result.ChoiceTrace.Decisions = uint64(len(tape.Decisions))
-	summary.ChoiceTrace = choiceTraceSummary(completion.job.seed, completion.result.ChoiceTrace)
-	runtimeDecisions, err := exploration.RuntimeDecisions(tape)
+	outcome.completion = completion
+	round.tally.summary.ChoiceTrace = choiceTraceSummary(completion.job.seed, completion.result.ChoiceTrace)
+	result, simulationProfile, err := simulationExplorationResult(state, candidate, completion, tape)
 	if err != nil {
-		return simulationExplorationRoundResult{}, &HostError{Reason: "simulation_exploration_runtime", Err: err}
+		return exploration.SimulationResult{}, campaign.ExecutionRecord{}, err
 	}
-	if len(completion.result.SimulationRecords) != 1 {
-		return simulationExplorationRoundResult{}, &HostError{Reason: "simulation_exploration_record", Err: fmt.Errorf("simulation exploration records = %d, want 1", len(completion.result.SimulationRecords))}
-	}
-	explorationResult, err := exploration.ResultForRecord(state.Config, candidate, completion.result.SimulationRecords[0], runtimeDecisions)
-	if err != nil {
-		return simulationExplorationRoundResult{}, &HostError{Reason: "simulation_exploration_record", Err: err}
-	}
-	simulationPlan := []byte(completion.job.simulationPlan)
-	simulationRecord := completion.result.SimulationRecords[0]
-	simulationProfile, err := exploration.ProjectArtifact(
-		state.Config, candidate, simulationPlan, simulationRecord, runtimeDecisions, completion.job.simulationRecordLimit,
-	)
-	if err != nil {
-		return simulationExplorationRoundResult{}, &HostError{Reason: "simulation_exploration_record", Err: err}
-	}
-	simulationPayloads := &artifact.SimulationPayloads{Plan: simulationPlan, Record: simulationRecord}
-	mountArtifact, err := mountArtifactForRun(readOnlyMounts, config.IOROMountLimits, completion.result.IOROMounts)
-	if err != nil {
-		return simulationExplorationRoundResult{}, &HostError{Reason: "manifest", Err: err}
-	}
-	roundValue := record.Uint64String(round.Index)
-	depthValue := record.Uint64String(len(candidate.Overrides))
+	assessed := outcome.assessed
+	roundValue, depthValue := record.Uint64String(round.round.Index), record.Uint64String(len(candidate.Overrides))
 	run := campaign.ExecutionRecord{
 		Strategy: string(StrategySimulationExploration), Round: &roundValue, CandidateSHA256: candidate.SHA256,
-		ParentCandidateSHA256: candidate.ParentSHA256, ForcedDepth: &depthValue, OutcomeSHA256: explorationResult.OutcomeSHA256,
+		ParentCandidateSHA256: candidate.ParentSHA256, ForcedDepth: &depthValue, OutcomeSHA256: result.OutcomeSHA256,
 		SelectionOrdinal: record.Uint64String(completion.job.ordinal), Seed: record.Uint64String(completion.job.seed),
-		Domain: outcome.Domain, Reason: outcome.Reason, Termination: outcome.Termination,
+		Domain: assessed.outcome.Domain, Reason: assessed.outcome.Reason, Termination: assessed.outcome.Termination,
 		ElapsedNanos: elapsedNanos(completion.startedAt, completion.finishedAt),
 	}
 	setRunTranscript(&run, completion.result.IOTranscript)
 	setRunChoiceTrace(&run, completion.result.ChoiceTrace)
-	run.SemanticProbes = append([]string(nil), runCoverage.Probes...)
-	run.ChoiceFeatures = append([]string(nil), runChoiceFeatures...)
-
-	if config.CollectExecutionEvidence {
-		runRecord := executionEvidence(config, prepared, baseEnvironment, completion, outcome, worldBundle.Manifest, mountArtifact, runCoverage, runChoiceProjection)
-		summary.ExecutionEvidence = &runRecord
-	}
-	if outcome.Domain == "success" {
-		if explorationResult.Failed {
-			return simulationExplorationRoundResult{}, &HostError{Reason: "simulation_exploration_outcome", Err: errors.New("simulation failure completed with a successful target outcome")}
-		}
-		retention, retentionErr := decideSuccessRetention(config, assessed, completion.result.IOTranscript.Complete, semanticProbes, choiceFeatures, summary.RetainedSuccesses, summary.RetainedSuccessBytes)
-		if retentionErr != nil {
-			return simulationExplorationRoundResult{}, retentionErr
-		}
-		if retention.retain {
-			manifest, err := manifestForRun(config, prepared, baseEnvironment, completion, outcome, runID, worldBundle.Manifest, mountArtifact)
-			if err != nil {
-				return simulationExplorationRoundResult{}, &HostError{Reason: "success_artifact_publication", Err: err}
-			}
-			manifest.SimulationProfile = &simulationProfile
-			input := executionArtifactInput(manifest, prepared, completion.result, mountArtifact, worldBundle)
-			input.Simulation = simulationPayloads
-			published, err := artifact.PublishArtifact(artifact.Store{Root: filepath.Join(staged.Path(), "successes"), Context: ctx, MaximumBytes: retention.maximumBytes, Key: artifact.StoreKeyExecution, TargetPool: artifact.TargetPool(config.Artifacts)}, input)
-			if err != nil {
-				return simulationExplorationRoundResult{}, successPublicationFailure(err)
-			}
-			finalPath, relative, err := simulationExplorationPublishedPath(batchPath, round.Index, staged.Path(), published.Path)
-			if err != nil {
-				return simulationExplorationRoundResult{}, &HostError{Reason: "artifact_path", Err: err}
-			}
-			retention.annotate(&run, relative, published.StoredBytes)
-			summary.SuccessArtifacts = append(summary.SuccessArtifacts, finalPath)
-			summary.RetainedSuccesses++
-			summary.RetainedSuccessBytes += published.StoredBytes
-		}
-		summary.Succeeded++
-	} else {
-		manifest, err := manifestForRun(config, prepared, baseEnvironment, completion, outcome, runID, worldBundle.Manifest, mountArtifact)
+	run.SemanticProbes = append([]string(nil), assessed.coverage.Probes...)
+	run.ChoiceFeatures = append([]string(nil), assessed.choiceFeatures...)
+	if round.config.CollectExecutionEvidence {
+		mountArtifact, err := mountArtifactForRun(round.readOnlyMounts, round.config.IOROMountLimits, completion.result.IOROMounts)
 		if err != nil {
-			return simulationExplorationRoundResult{}, &HostError{Reason: "manifest", Err: err}
+			return exploration.SimulationResult{}, run, &HostError{Reason: "manifest", Err: err}
 		}
-		manifest.SimulationProfile = &simulationProfile
-		input := executionArtifactInput(manifest, prepared, completion.result, mountArtifact, worldBundle)
+		runRecord := executionEvidence(round.config, round.prepared, round.baseEnvironment, completion, assessed.outcome, outcome.worldBundle.Manifest, mountArtifact, assessed.coverage, assessed.choiceProjection)
+		round.tally.summary.ExecutionEvidence = &runRecord
+	}
+	if assessed.outcome.Domain == "success" && result.Failed {
+		return exploration.SimulationResult{}, run, &HostError{Reason: "simulation_exploration_outcome", Err: errors.New("simulation failure completed with a successful target outcome")}
+	}
+	simulationPayloads := &artifact.SimulationPayloads{Plan: []byte(completion.job.simulationPlan), Record: completion.result.SimulationRecords[0]}
+	if err := round.retain(outcome, &run, completion.result.IOTranscript.Complete, func(input *artifact.ArtifactInput) {
+		input.Manifest.SimulationProfile = &simulationProfile
 		input.Simulation = simulationPayloads
-		published, err := publishBoundedFailureArtifact(ctx, config, filepath.Join(staged.Path(), "failures"), manifest.Outcome.FailureSignature, distinct, &summary.failureArtifactBytes, input)
-		if err != nil {
-			return simulationExplorationRoundResult{}, &HostError{Reason: "artifact_publication", Err: err}
-		}
-		signature := published.Manifest.Outcome.FailureSignature
-		artifactPath, found := distinct[signature]
-		if !found {
-			artifactPath, _, err = simulationExplorationPublishedPath(batchPath, round.Index, staged.Path(), published.Path)
-			if err != nil {
-				return simulationExplorationRoundResult{}, &HostError{Reason: "artifact_path", Err: err}
-			}
-			distinct[signature] = artifactPath
-			summary.Artifacts = append(summary.Artifacts, artifactPath)
-		} else {
-			currentRound := filepath.Join(batchPath, "simulation-exploration", "rounds", fmt.Sprintf("%020d", round.Index)) + string(filepath.Separator)
-			if !strings.HasPrefix(artifactPath, currentRound) {
-				if err := os.RemoveAll(published.Path); err != nil {
-					return simulationExplorationRoundResult{}, &HostError{Reason: "artifact_publication", Err: fmt.Errorf("remove duplicate staged failure: %w", err)}
-				}
-				if err := syncExplorationDirectory(filepath.Dir(published.Path)); err != nil {
-					return simulationExplorationRoundResult{}, &HostError{Reason: "artifact_publication", Err: fmt.Errorf("sync duplicate failure removal: %w", err)}
-				}
-			}
-		}
-		relative, err := filepath.Rel(batchPath, artifactPath)
-		if err != nil {
-			return simulationExplorationRoundResult{}, &HostError{Reason: "artifact_path", Err: err}
-		}
-		relative = filepath.ToSlash(relative)
-		run.FailureSignature = &signature
-		run.Artifact = &relative
-		summary.Failures++
-		if outcome.Domain == "watchdog" {
-			summary.Watchdogs++
-		}
-		if outcome.Reason == "world_replay_divergence" || explorationResult.Diverged {
-			summary.ReplayDivergences++
-		}
-		explorationResult.Failed = true
-		explorationResult.FailureSHA256 = signature
+	}); err != nil {
+		return exploration.SimulationResult{}, run, err
 	}
-	summary.Attempted++
-	summary.DistinctFailures = uint64(len(distinct))
-	addStrings(semanticProbes, runCoverage.Probes)
-	addStrings(choiceFeatures, runChoiceFeatures)
-	if err := completion.journal.Transition(campaign.ExecutionClassified); err != nil {
-		return simulationExplorationRoundResult{}, &HostError{Reason: "partial_write", Err: err}
+	if run.FailureSignature != nil {
+		if result.Diverged && assessed.outcome.Reason != "world_replay_divergence" {
+			round.tally.summary.ReplayDivergences++
+		}
+		result.Failed, result.FailureSHA256 = true, *run.FailureSignature
 	}
-	if err := completion.journal.Complete(); err != nil {
-		return simulationExplorationRoundResult{}, &HostError{Reason: "partial_cleanup", Err: err}
+	if err := completeCandidate(completion); err != nil {
+		return exploration.SimulationResult{}, run, err
 	}
-	return simulationExplorationRoundResult{result: explorationResult, run: run}, nil
+	return result, run, nil
+}
+
+// simulationExplorationResult derives a candidate's engine result and the
+// simulation profile its artifacts record from its one simulation record.
+func simulationExplorationResult(state exploration.SimulationState, candidate exploration.SimulationCandidate, completion runCompletion, tape choice.ReplayPlan) (exploration.SimulationResult, record.SimulationProfile, error) {
+	runtimeDecisions, err := exploration.RuntimeDecisions(tape)
+	if err != nil {
+		return exploration.SimulationResult{}, record.SimulationProfile{}, &HostError{Reason: "simulation_exploration_runtime", Err: err}
+	}
+	if len(completion.result.SimulationRecords) != 1 {
+		return exploration.SimulationResult{}, record.SimulationProfile{}, &HostError{Reason: "simulation_exploration_record", Err: fmt.Errorf("simulation exploration records = %d, want 1", len(completion.result.SimulationRecords))}
+	}
+	simulationRecord := completion.result.SimulationRecords[0]
+	result, err := exploration.ResultForRecord(state.Config, candidate, simulationRecord, runtimeDecisions)
+	if err != nil {
+		return exploration.SimulationResult{}, record.SimulationProfile{}, &HostError{Reason: "simulation_exploration_record", Err: err}
+	}
+	profile, err := exploration.ProjectArtifact(state.Config, candidate, []byte(completion.job.simulationPlan), simulationRecord, runtimeDecisions, completion.job.simulationRecordLimit)
+	if err != nil {
+		return exploration.SimulationResult{}, record.SimulationProfile{}, &HostError{Reason: "simulation_exploration_record", Err: err}
+	}
+	return result, profile, nil
 }
 
 func simulationExplorationExecutionIdentity(config campaignRequest, prepared target.Prepared, profile backend.Description, choiceImplementation [32]byte) (record.SHA256, error) {
@@ -475,37 +195,4 @@ func simulationExplorationExecutionIdentity(config campaignRequest, prepared tar
 		return "", err
 	}
 	return record.DomainHash("gomad3-simulation-exploration-execution/v1", encoded), nil
-}
-
-func simulationExplorationSegmentCapacity(config campaignRequest) (uint64, error) {
-	const maximum = uint64(1 << 30)
-	const overhead = uint64(4 << 20)
-	if config.MaxExplorationBytes > maximum-overhead {
-		return 0, errors.New("simulation-exploration round evidence exceeds the 1 GiB journal bound")
-	}
-	runsPerRound := uint64(config.Parallel)
-	if runsPerRound > config.MaxExecutions {
-		runsPerRound = config.MaxExecutions
-	}
-	if runsPerRound == 0 || config.MaxExplorationResultBytes > (maximum-config.MaxExplorationBytes)/runsPerRound {
-		return 0, errors.New("simulation-exploration round evidence exceeds the 1 GiB journal bound")
-	}
-	required := config.MaxExplorationBytes + runsPerRound*config.MaxExplorationResultBytes
-	if required > maximum-overhead {
-		return 0, errors.New("simulation-exploration round evidence exceeds the 1 GiB journal bound")
-	}
-	return required + overhead, nil
-}
-
-func simulationExplorationPublishedPath(batchPath string, round uint64, stagedPath, publishedPath string) (string, string, error) {
-	withinRound, err := filepath.Rel(stagedPath, publishedPath)
-	if err != nil || withinRound == ".." || len(withinRound) >= 3 && withinRound[:3] == ".."+string(filepath.Separator) {
-		return "", "", errors.Join(errors.New("simulation exploration artifact escaped its staged round"), err)
-	}
-	finalPath := filepath.Join(batchPath, "simulation-exploration", "rounds", fmt.Sprintf("%020d", round), withinRound)
-	relative, err := filepath.Rel(batchPath, finalPath)
-	if err != nil {
-		return "", "", err
-	}
-	return finalPath, filepath.ToSlash(relative), nil
 }

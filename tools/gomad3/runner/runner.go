@@ -1190,13 +1190,6 @@ func projectSimulationExplorationSummaryPointer(summary *exploration.SimulationS
 	return &projected
 }
 
-func preservePartial(run *campaign.ExecutionJournal) error {
-	if run == nil {
-		return nil
-	}
-	return run.Preserve()
-}
-
 func publishBoundedFailureArtifact(
 	ctx context.Context,
 	config campaignRequest,

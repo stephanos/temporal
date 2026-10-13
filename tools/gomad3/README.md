@@ -192,9 +192,13 @@ cases stay expanded. Source clauses with nil channels
 do not count as polled cases. The result reports their omitted alternatives
 separately from execution, depth, and byte bounds.
 
-Each completed round is an immutable, hash-linked transaction below the Campaign.
-An interrupted round is archived and rerun in full on `gomad resume`; logical
-and recovery execution counts are reported separately. `exploration_exhausted`
+Choice and Simulation Exploration commit each completed round as one
+hash-linked transaction in the Campaign log: the round's candidate order, the
+explorer's segment and every candidate's execution outcome together. Their
+artifacts live in the Campaign's own failure and success stores. A round that
+started without committing is discarded and rerun in full on `gomad resume`;
+logical and recovery execution counts are reported separately, and
+`gomad inspect` reports each committed round and any interrupted one. `exploration_exhausted`
 and `choice_depth_complete` are bounded completions, while `max_executions` and
 `exploration_capacity` identify incomplete search envelopes. Outcome deduplication
 reduces retained evidence only and never removes a distinct forced prefix.
@@ -576,7 +580,7 @@ printing its identity, outcome, transcripts, captured mounts, truncation,
 distinct failure paths, retained successes and byte totals, novelty reasons,
 copy-paste replay commands, and Campaign lifecycle, resumability, repairability,
 and recovery reason. Interrupted Campaigns can be inspected before publication.
-Add `--json` for the stable `gomad3.inspect/v6` report.
+Add `--json` for the stable `gomad3.inspect/v7` report.
 
 ### Deterministic I/O
 

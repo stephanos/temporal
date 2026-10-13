@@ -1,10 +1,7 @@
 package campaign
 
 import (
-	"bytes"
 	"context"
-	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 
@@ -13,16 +10,13 @@ import (
 	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
 )
 
-// The values below and testdata/pre-start-ordinal-journal were produced by the
-// Runner before choice exploration had a start ordinal. The root segment was
-// re-encoded through CommitRound when the choice tape header moved to v3,
-// which changed its trace digest, its identity, and the after-state identity
-// through the children's prefix bytes, and again when the controller identity
-// moved to v3 for the select-poll reduction, which changed the candidate
-// identities and every state identity; the decisions are as recorded.
+// The values below were produced by the Runner before choice exploration had
+// a start ordinal, and re-derived when the choice tape header moved to v3
+// and when the controller identity moved to v3 for the select-poll
+// reduction. A default start ordinal keeps the initial state identity and
+// the campaign plan's canonical bytes.
 const (
 	retainedInitialStateSHA256      record.SHA256 = "sha256:3c33957816f4bed22cba236db047973f8212092d911dbe879283774be9b84e73"
-	retainedAfterRootStateSHA256    record.SHA256 = "sha256:4e19f91f6cfca23b623329799a008bc9c7eb56bd5030ce10641d473168d77115"
 	retainedChoicePlanCanonicalHash record.SHA256 = "sha256:1c7cfef620e584c75cb5854eae44d79ec50b101717d42df44adc39a96893a76d"
 )
 
@@ -35,21 +29,6 @@ func TestDefaultChoiceStartKeepsRetainedIdentityAndPlanBytes(t *testing.T) {
 	if identity != retainedInitialStateSHA256 {
 		t.Fatalf("initial state identity = %s, want %s", identity, retainedInitialStateSHA256)
 	}
-	batchPath := privateDirectory(t)
-	if _, err := NewExplorationJournal(context.Background(), batchPath, state, 1<<20); err != nil {
-		t.Fatal(err)
-	}
-	got, err := os.ReadFile(filepath.Join(batchPath, "choice-exploration", "plan.json"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	want, err := os.ReadFile(filepath.Join("testdata", "pre-start-ordinal-journal", "choice-exploration", "plan.json"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !bytes.Equal(got, want) {
-		t.Fatalf("exploration plan = %s, want %s", got, want)
-	}
 	encoded, err := canonicaljson.CanonicalJSON(testChoiceExplorationCampaignPlan())
 	if err != nil {
 		t.Fatal(err)
@@ -59,49 +38,39 @@ func TestDefaultChoiceStartKeepsRetainedIdentityAndPlanBytes(t *testing.T) {
 	}
 }
 
-func TestResumeExplorationJournalWrittenBeforeTheStartOrdinal(t *testing.T) {
-	batchPath := copyRetainedExplorationJournal(t)
-	journal, state, recovery, err := ResumeExplorationJournal(context.Background(), batchPath, testExplorationState(t).Config, 1<<20)
-	if err != nil {
-		t.Fatal(err)
-	}
-	identity, err := exploration.ChoiceStateSHA256(state)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if identity != retainedAfterRootStateSHA256 || recovery != 0 || len(journal.CommittedExecutions()) != 1 {
-		t.Fatalf("resumed state = %s, recovery = %d, executions = %d", identity, recovery, len(journal.CommittedExecutions()))
-	}
-}
-
-func TestResumeExplorationJournalRequiresItsStartOrdinal(t *testing.T) {
+// A resumed exploration requires the start ordinal it recorded.
+func TestExplorationRoundsRequireTheirStartOrdinal(t *testing.T) {
 	config := testExplorationState(t).Config
 	config.StartOrdinal = 1
-	state, err := exploration.NewChoice(config)
+	journal := newExplorationCampaign(t, context.Background(), "choice-exploration")
+	if _, err := OpenRounds(journal, ChoiceRounds, config, 1<<20); err != nil {
+		t.Fatal(err)
+	}
+	if err := journal.Close(); err != nil {
+		t.Fatal(err)
+	}
+	resumed, _, err := ResumeCampaignJournal(context.Background(), journal.Path())
 	if err != nil {
 		t.Fatal(err)
 	}
-	batchPath := privateDirectory(t)
-	if _, err := NewExplorationJournal(context.Background(), batchPath, state, 1<<20); err != nil {
-		t.Fatal(err)
-	}
+	defer func() {
+		if err := resumed.Close(); err != nil {
+			t.Error(err)
+		}
+	}()
 	for _, start := range []uint64{0, 2} {
 		changed := config
 		changed.StartOrdinal = start
-		if _, _, _, err := ResumeExplorationJournal(context.Background(), batchPath, changed, 1<<20); err == nil || !strings.Contains(err.Error(), "exploration plan identity or bounds changed") {
-			t.Fatalf("ResumeExplorationJournal(start %d) error = %v", start, err)
+		if _, err := OpenRounds(resumed, ChoiceRounds, changed, 1<<20); err == nil || !strings.Contains(err.Error(), "exploration plan identity or bounds changed") {
+			t.Fatalf("OpenRounds(start %d) error = %v", start, err)
 		}
 	}
-	_, resumed, _, err := ResumeExplorationJournal(context.Background(), batchPath, config, 1<<20)
+	rounds, err := OpenRounds(resumed, ChoiceRounds, config, 1<<20)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if resumed.Config.StartOrdinal != 1 {
-		t.Fatalf("resumed start ordinal = %d", resumed.Config.StartOrdinal)
-	}
-	retained := copyRetainedExplorationJournal(t)
-	if _, _, _, err := ResumeExplorationJournal(context.Background(), retained, config, 1<<20); err == nil {
-		t.Fatal("ResumeExplorationJournal() accepted a start ordinal its journal was not written with")
+	if rounds.State().Config.StartOrdinal != 1 {
+		t.Fatalf("resumed start ordinal = %d", rounds.State().Config.StartOrdinal)
 	}
 }
 
@@ -136,43 +105,4 @@ func testChoiceExplorationCampaignPlan() CampaignPlan {
 	plan.MaxExplorationBytes = 1 << 20
 	plan.ChoiceExplorationImplementationSHA256 = exploration.ChoiceImplementationSHA256()
 	return plan
-}
-
-func copyRetainedExplorationJournal(t *testing.T) string {
-	t.Helper()
-	batchPath := copyRetainedRecords(t, "pre-start-ordinal-journal")
-	if err := os.MkdirAll(filepath.Join(batchPath, ".partial", "choice-exploration"), 0o700); err != nil {
-		t.Fatal(err)
-	}
-	return batchPath
-}
-
-// copyRetainedRecords copies a testdata directory into a private directory with
-// the modes the Runner publishes records with, which a checkout does not keep.
-func copyRetainedRecords(t *testing.T, name string) string {
-	t.Helper()
-	batchPath := privateDirectory(t)
-	source := filepath.Join("testdata", name)
-	err := filepath.WalkDir(source, func(path string, entry os.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-		relative, err := filepath.Rel(source, path)
-		if err != nil || relative == "." {
-			return err
-		}
-		destination := filepath.Join(batchPath, relative)
-		if entry.IsDir() {
-			return os.Mkdir(destination, 0o700)
-		}
-		contents, err := os.ReadFile(path)
-		if err != nil {
-			return err
-		}
-		return os.WriteFile(destination, contents, 0o600)
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	return batchPath
 }

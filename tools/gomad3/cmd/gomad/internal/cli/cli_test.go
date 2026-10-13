@@ -629,7 +629,7 @@ func TestRunInspectReportsBatchAsTextAndJSON(t *testing.T) {
 		want      []string
 	}{
 		{name: "text", arguments: []string{path}, want: []string{"gomad inspect: kind=campaign", "run-inspect-command", "attempted=1", "seed=7 domain=success"}},
-		{name: "json", arguments: []string{"--json", path}, want: []string{`"schema":"gomad3.inspect/v6"`, `"kind":"campaign"`, `"campaign_id":"run-inspect-command"`}},
+		{name: "json", arguments: []string{"--json", path}, want: []string{`"schema":"gomad3.inspect/v7"`, `"kind":"campaign"`, `"campaign_id":"run-inspect-command"`}},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			var stdout, stderr bytes.Buffer

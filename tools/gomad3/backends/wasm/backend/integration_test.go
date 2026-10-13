@@ -827,42 +827,29 @@ func explorationSpec(t *testing.T, provider *Provider, source string) runner.Cam
 	}
 }
 
-func canonicalRounds(t *testing.T, campaign string) map[string][]byte {
+// committedRounds reads a published exploration campaign's committed rounds
+// through the public Inspect report: each round's index, encoded round
+// length and identity, segment identity and logical ordinals.
+func committedRounds(t *testing.T, campaign string) []runner.ExplorationRoundInspection {
 	t.Helper()
-	files, err := filepath.Glob(filepath.Join(campaign, "choice-exploration", "rounds", "*", "*.json"))
-	if err != nil || len(files) == 0 {
-		t.Fatalf("missing committed rounds: %v", err)
+	report, err := runner.Inspect(campaign, runner.InspectOptions{})
+	if err != nil || report.Exploration == nil || len(report.Exploration.Rounds) == 0 {
+		t.Fatalf("missing committed rounds: %#v %v", report.Exploration, err)
 	}
-	rounds := make(map[string][]byte, len(files))
-	for _, file := range files {
-		data, err := os.ReadFile(file)
-		if err != nil {
-			t.Fatal(err)
-		}
-		rounds[filepath.Join(filepath.Base(filepath.Dir(file)), filepath.Base(file))] = data
-	}
-	return rounds
+	return report.Exploration.Rounds
 }
 
+// verifyLogicalExecutions checks through Inspect that a published campaign
+// committed every logical ordinal below want exactly once.
 func verifyLogicalExecutions(t *testing.T, campaign string, want uint64) {
 	t.Helper()
-	files, err := filepath.Glob(filepath.Join(campaign, "choice-exploration", "rounds", "*", "executions", "*.json"))
-	if err != nil || uint64(len(files)) != want {
-		t.Fatalf("logical execution count=%d want=%d err=%v", len(files), want, err)
+	report, err := runner.Inspect(campaign, runner.InspectOptions{})
+	if err != nil || report.Campaign == nil || uint64(len(report.Campaign.Executions)) != want {
+		t.Fatalf("logical executions = %#v want=%d err=%v", report.Campaign, want, err)
 	}
 	seen := map[uint64]bool{}
-	for _, file := range files {
-		var execution struct {
-			Ordinal record.Uint64String `json:"selection_ordinal"`
-		}
-		data, err := os.ReadFile(file)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if err := json.Unmarshal(data, &execution); err != nil {
-			t.Fatal(err)
-		}
-		ordinal := uint64(execution.Ordinal)
+	for _, execution := range report.Campaign.Executions {
+		ordinal := execution.SelectionOrdinal
 		if ordinal >= want || seen[ordinal] {
 			t.Fatalf("lost or duplicate logical ordinal %d", ordinal)
 		}
@@ -882,7 +869,7 @@ func TestWASMChoiceCampaignCanonicalRoundsAndDetachedReplay(t *testing.T) {
 	}
 	spec.Artifacts = t.TempDir()
 	second, err := runner.Explore(t.Context(), spec)
-	if err != nil || !reflect.DeepEqual(first.ChoiceExploration, second.ChoiceExploration) || !reflect.DeepEqual(canonicalRounds(t, first.CampaignPath), canonicalRounds(t, second.CampaignPath)) {
+	if err != nil || !reflect.DeepEqual(first.ChoiceExploration, second.ChoiceExploration) || !reflect.DeepEqual(committedRounds(t, first.CampaignPath), committedRounds(t, second.CampaignPath)) {
 		t.Fatalf("canonical campaigns differ: first=%+v second=%+v err=%v", first.ChoiceExploration, second.ChoiceExploration, err)
 	}
 	verifyLogicalExecutions(t, first.CampaignPath, first.Attempted)
@@ -899,15 +886,14 @@ func TestWASMChoiceCampaignCanonicalRoundsAndDetachedReplay(t *testing.T) {
 	if err != nil || limited.StopReason != runner.StopChoiceDepthComplete || limited.ChoiceExploration == nil || limited.ChoiceExploration.OmittedByDepth == 0 || limited.ChoiceExploration.DeepestPrefix != 1 {
 		t.Fatalf("depth envelope was not reported: %+v err=%v", limited, err)
 	}
-	rootRoundKey := filepath.Join("00000000000000000000", "round.json")
-	rootRound := canonicalRounds(t, first.CampaignPath)[rootRoundKey]
-	if len(rootRound) == 0 {
-		t.Fatal("missing canonical root round for byte-capacity envelope")
+	rootRound := committedRounds(t, first.CampaignPath)[0]
+	if rootRound.Index != 0 || rootRound.RoundBytes == 0 {
+		t.Fatalf("missing root round for byte-capacity envelope: %#v", rootRound)
 	}
 	bounded.Artifacts = t.TempDir()
 	bounded.MaxChoiceDepth = spec.MaxChoiceDepth
-	// Admit the initial queue and its journal envelope, but no larger forced prefix.
-	bounded.MaxExplorationBytes = uint64(len(rootRound))
+	// Admit the encoded root round, but no larger forced prefix.
+	bounded.MaxExplorationBytes = rootRound.RoundBytes
 	limited, err = runner.Explore(t.Context(), bounded)
 	if err != nil || limited.StopReason != runner.StopExplorationCapacity || limited.Attempted != 1 || limited.ChoiceExploration == nil {
 		t.Fatalf("byte envelope was not reported: %+v err=%v", limited, err)
@@ -917,8 +903,8 @@ func TestWASMChoiceCampaignCanonicalRoundsAndDetachedReplay(t *testing.T) {
 		t.Fatalf("byte-capacity queue/state escaped its envelope: %+v", capacity)
 	}
 	verifyLogicalExecutions(t, limited.CampaignPath, 1)
-	capacityRounds := canonicalRounds(t, limited.CampaignPath)
-	if len(capacityRounds) != 2 || !reflect.DeepEqual(rootRound, capacityRounds[rootRoundKey]) {
+	capacityRounds := committedRounds(t, limited.CampaignPath)
+	if len(capacityRounds) != 1 || capacityRounds[0].RoundSHA256 != rootRound.RoundSHA256 || capacityRounds[0].RoundBytes != rootRound.RoundBytes {
 		t.Fatalf("byte-capacity campaign changed canonical root order: %v", capacityRounds)
 	}
 	for _, directory := range []string{spec.Target.WorkingDir, provider.options.CacheRoot} {
@@ -982,7 +968,7 @@ func TestWASMChoiceCampaignInterruptedRoundRecoveryNoDuplicates(t *testing.T) {
 		t.Fatal(err)
 	}
 	resumed, err := runner.Resume(t.Context(), runner.ResumeSpec{Backend: provider, CampaignPath: partial.CampaignPath, RunnerBuild: spec.RunnerBuild})
-	if err != nil || resumed.Attempted != baseline.Attempted || resumed.RecoveryExecutions == 0 || !reflect.DeepEqual(baseline.ChoiceExploration, resumed.ChoiceExploration) || !reflect.DeepEqual(canonicalRounds(t, baseline.CampaignPath), canonicalRounds(t, resumed.CampaignPath)) {
+	if err != nil || resumed.Attempted != baseline.Attempted || resumed.RecoveryExecutions == 0 || !reflect.DeepEqual(baseline.ChoiceExploration, resumed.ChoiceExploration) || !reflect.DeepEqual(committedRounds(t, baseline.CampaignPath), committedRounds(t, resumed.CampaignPath)) {
 		t.Fatalf("resumed campaign differs: baseline=%+v resumed=%+v err=%v", baseline, resumed, err)
 	}
 	verifyLogicalExecutions(t, resumed.CampaignPath, resumed.Attempted)
@@ -1005,9 +991,9 @@ func TestWASMChoiceCampaignFuelCapacityIsNotApplicationFailure(t *testing.T) {
 	if !strings.Contains(strings.ToLower(failure.Message), "fuel") {
 		t.Fatalf("CPU loop exhausted a different capacity: %v", err)
 	}
-	files, globErr := filepath.Glob(filepath.Join(result.CampaignPath, "choice-exploration", "rounds", "*", "segment.json"))
-	if globErr != nil || len(files) != 0 {
-		t.Fatalf("capacity round was committed: %v err=%v", files, globErr)
+	report, inspectErr := runner.Inspect(result.CampaignPath, runner.InspectOptions{})
+	if inspectErr != nil || report.Exploration == nil || len(report.Exploration.Rounds) != 0 {
+		t.Fatalf("capacity round was committed: %#v err=%v", report.Exploration, inspectErr)
 	}
 	if strings.Contains(err.Error(), "nonzero_exit") {
 		t.Fatalf("fuel capacity fabricated a guest exit: %v", err)

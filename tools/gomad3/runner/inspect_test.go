@@ -1,6 +1,7 @@
 package runner
 
 import (
+	"bytes"
 	"context"
 	"crypto/sha256"
 	"encoding/json"
@@ -16,7 +17,6 @@ import (
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
-	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
 )
 
 func TestInspectReportsArtifactIdentityWithoutPresentation(t *testing.T) {
@@ -199,50 +199,44 @@ func TestOpenReportsInterruptedBatchLifecycle(t *testing.T) {
 	}
 }
 
+// An interrupted simulation exploration reports its committed rounds, its
+// pending candidates and the round it started without committing, read from
+// its log without changing it.
 func TestOpenReportsInterruptedSimulationExplorationPendingAndStagedWork(t *testing.T) {
-	journal, err := campaign.NewCampaignJournal(context.Background(), campaign.CampaignConfig{
-		Root: t.TempDir(), CampaignID: "run-interrupted-combined", Strategy: string(StrategySimulationExploration), Selection: "7", SelectionCount: 1,
-		MaxExecutions: 8,
-	})
+	preparer := newFakePreparer(t)
+	limit := choiceTraceLimit(t, 1)
+	baseExecutor := &simulationExplorationExecutor{t: t, buildKey: preparer.prepared.BuildKey, limit: limit}
+	config, configDependencies := testConfig(t, preparer, simulationExplorationInterruptExecutor{exploration: baseExecutor}, "7", PolicyAll, 1)
+	config.Strategy = StrategySimulationExploration
+	config.ChoiceTraceLimit = limit
+	config.MaxExecutions = 4
+	config.MaxForcedDecisions = 2
+	config.MaxExplorationBytes = 1 << 20
+	config.MaxExplorationResultBytes = 1 << 20
+	config.SimulationDimensionLimits = SimulationDimensionLimits{Runtime: 2, Scenario: 2, Network: 2, Storage: 2, Fault: 2, Crash: 2}
+	partial, err := exploreWith(context.Background(), config, configDependencies)
+	if err == nil {
+		t.Fatal("interrupted simulation exploration succeeded")
+	}
+	logPath := filepath.Join(partial.CampaignPath, "store", "log")
+	before, err := os.ReadFile(logPath)
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() {
-		if err := journal.Close(); err != nil {
-			t.Error(err)
-		}
-	})
-	state, err := exploration.NewSimulation(exploration.SimulationConfig{
-		ExecutionSHA256: record.HashBytes([]byte("execution")), ControllerSHA256: exploration.SimulationImplementationSHA256(),
-		BaseSeed: 7, Parallel: 2, MaxExecutions: 8, MaxForcedDecisions: 4, MaxExplorationBytes: 1 << 20, MaxResultBytes: 1 << 20, FailureBudget: 4,
-		Limits: exploration.DimensionLimits{Runtime: 1, Scenario: 2, Network: 3, Storage: 4, Fault: 5, Crash: 6},
-	})
+	report, err := Inspect(partial.CampaignPath, InspectOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}
-	exploration, err := campaign.NewSimulationExplorationJournal(context.Background(), journal.Path(), state, 1<<20)
-	if err != nil {
-		t.Fatal(err)
-	}
-	round, _ := state.NextRound()
-	staged, err := exploration.StageRound(round)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if _, err := staged.BeginExecution(0, 7); err != nil {
-		t.Fatal(err)
-	}
-
-	report, err := Inspect(journal.Path(), InspectOptions{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	combined := report.SimulationExploration
-	if report.Campaign != nil || combined == nil || combined.Summary.Pending != 1 || len(combined.Pending) != 1 || combined.Pending[0].SHA256 != round.Candidates[0].SHA256 || combined.StagedRound == nil || combined.StagedRound.Attempted != 1 {
+	combined, rounds := report.SimulationExploration, report.Exploration
+	if report.Campaign != nil || combined == nil || rounds == nil || combined.Summary.Pending != 1 || len(combined.Pending) != 1 || combined.StagedRound == nil || combined.StagedRound.Index != 1 || combined.StagedRound.Attempted != 1 {
 		t.Fatalf("interrupted simulation exploration report = %#v", report)
 	}
-	if _, err := os.Stat(staged.Path()); err != nil {
-		t.Fatalf("inspection mutated staged round: %v", err)
+	if rounds.Strategy != string(StrategySimulationExploration) || len(rounds.Rounds) != 1 || rounds.StagedRound == nil || rounds.StagedRound.Candidates != 1 || rounds.ChainSHA256 != combined.ChainSHA256 || rounds.Rounds[0].RoundBytes == 0 {
+		t.Fatalf("interrupted exploration rounds = %#v", rounds)
+	}
+	after, err := os.ReadFile(logPath)
+	if err != nil || !bytes.Equal(before, after) {
+		t.Fatalf("inspection changed the campaign log: %v", err)
 	}
 }
 
@@ -388,7 +382,7 @@ func TestInspectCleanupPreservesNoChoiceArtifact(t *testing.T) {
 	published := publishInspectCleanupArtifact(t)
 	exitCode := uint64(0)
 	want := Inspection{
-		Schema: "gomad3.inspect/v6", Kind: "artifact", Path: published.Path,
+		Schema: "gomad3.inspect/v7", Kind: "artifact", Path: published.Path,
 		Artifact: &ArtifactInspection{
 			ArtifactKind: "gomad3.success/v1", RecordHash: published.Manifest.RecordHash, CampaignID: "inspect-cleanup", Seed: 7, ReplayMode: "exact",
 			Runner:    record.Runner{RecordContract: record.RecordContract, RunnerBuild: "sha256:runner", HostOS: "darwin", HostArch: "arm64"},

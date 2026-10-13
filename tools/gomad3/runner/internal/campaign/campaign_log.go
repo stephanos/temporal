@@ -66,7 +66,10 @@ const (
 // An outcome transaction may hold every in-flight attempt of a stop group, so
 // its static bound is the store maximum; replay checks each execution against
 // the campaign's per-execution bound and the transaction against the
-// campaign's partial-execution bound.
+// campaign's partial-execution bound. A round transaction's static bound is
+// the store maximum too; replay bounds its round by the exploration byte
+// bound, its segment by the recorded segment bound and each execution by the
+// per-execution bound.
 var campaignLogKinds = map[logstore.Kind]uint32{
 	kindCampaignOpen:    maximumEnvelopeBytes,
 	kindLifecycle:       maximumLifecycleBytes,
@@ -75,6 +78,9 @@ var campaignLogKinds = map[logstore.Kind]uint32{
 	kindPublish:         maximumManifestBytes,
 	kindAdmission:       maximumAdmissionBytes,
 	kindReceipt:         maximumExecutionSegmentBytes + maximumReceiptReferenceBytes,
+	kindExploration:     maximumExplorationRecordBytes,
+	kindRoundStart:      maximumRoundStartBytes,
+	kindRound:           logstore.MaxPayloadBytes,
 	kindMergedOpen:      maximumMergedManifestBytes,
 	kindMergedExecution: maximumExecutionSegmentBytes,
 }
@@ -267,6 +273,9 @@ type campaignState struct {
 	totalBytes     uint64
 	published      *CampaignRecord
 	frontier       frontierState
+	// rounds is the exploration of a choice or simulation exploration
+	// campaign, nil for a seed campaign.
+	rounds roundReplay
 }
 
 func newCampaignState() *campaignState {
@@ -305,6 +314,8 @@ func (state *campaignState) prepare(kind logstore.Kind, payload []byte) (func(),
 		return state.prepareAdmission(payload)
 	case kindReceipt:
 		return state.prepareReceipt(payload)
+	case kindExploration, kindRoundStart, kindRound:
+		return state.prepareExplorationRecord(kind, payload)
 	default:
 		return nil, fmt.Errorf("campaign log record kind %d is not a campaign record", kind)
 	}
@@ -332,6 +343,7 @@ func (state *campaignState) prepareOpen(payload []byte) (func(), error) {
 	return func() {
 		state.open, state.opened, state.limits = open, true, limits
 		state.lifecycle, state.stable = lifecyclePlanned, lifecyclePlanned
+		state.rounds = newRoundReplay(open.Strategy)
 	}, nil
 }
 
@@ -377,6 +389,9 @@ func (state *campaignState) checkTransition(transition lifecycleRecord) error {
 func (state *campaignState) applyTransition(transition lifecycleRecord) {
 	if transition.State == lifecycleRunning && state.lifecycle != lifecyclePrepared {
 		state.discardUnreusableOutcomes()
+		if state.rounds != nil {
+			state.rounds.abandon()
+		}
 	}
 	state.lifecycle, state.reason, state.detail = transition.State, transition.Reason, transition.Detail
 	if transition.State != lifecycleRecoverableFailure {
@@ -450,6 +465,9 @@ func (state *campaignState) checkPlan(plan CampaignPlan) error {
 func (state *campaignState) prepareOutcome(payload []byte) (func(), error) {
 	if state.lifecycle != lifecycleRunning {
 		return nil, fmt.Errorf("campaign outcome is committed in lifecycle %q", state.lifecycle)
+	}
+	if state.rounds != nil {
+		return nil, errors.New("an exploration campaign commits its outcomes only in rounds")
 	}
 	var outcome outcomeRecord
 	if err := logstore.DecodeJSON(payload, &outcome); err != nil {
@@ -575,6 +593,11 @@ func (state *campaignState) preparePublish(payload []byte) (func(), error) {
 	}
 	if err := state.checkPublishedFrontier(published); err != nil {
 		return nil, err
+	}
+	if state.rounds != nil {
+		if err := state.rounds.checkPublished(published); err != nil {
+			return nil, err
+		}
 	}
 	return func() {
 		state.published = &published

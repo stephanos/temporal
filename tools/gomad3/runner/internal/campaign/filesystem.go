@@ -48,13 +48,6 @@ func syncFileContext(ctx context.Context, file *os.File, operation string) error
 	return file.Sync()
 }
 
-func renameContext(ctx context.Context, oldPath, newPath, operation string) error {
-	if err := observeMutation(ctx, mutationRename, operation); err != nil {
-		return err
-	}
-	return os.Rename(oldPath, newPath)
-}
-
 // logStoreHook bridges a context's mutation hook to the campaign log's
 // append, sync, repair and creation boundaries. Each log point is observed as
 // kind "log-<point>" with the log's operation name; a hook may return

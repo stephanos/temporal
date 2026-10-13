@@ -101,10 +101,6 @@ func successExecution(ordinal, seed uint64) ExecutionRecord {
 	return ExecutionRecord{SelectionOrdinal: record.Uint64String(ordinal), Seed: record.Uint64String(seed), Domain: "success", Reason: "success", Termination: "exit"}
 }
 
-func makePrivateDirectories(path string) error {
-	return makePrivateDirectoriesContext(context.Background(), path)
-}
-
 // campaignLogRecords replays a campaign's log read-only and returns its
 // record kinds in order.
 func campaignLogRecords(t *testing.T, path string) ([]logstore.Kind, logstore.Report) {
@@ -127,4 +123,17 @@ func logFileSize(t *testing.T, path string) int64 {
 		t.Fatal(err)
 	}
 	return info.Size()
+}
+
+// mutationController injects mutation faults once it is enabled.
+type mutationController struct {
+	enabled bool
+	inject  mutationHook
+}
+
+func (controller *mutationController) observe(point mutationPoint) error {
+	if !controller.enabled {
+		return nil
+	}
+	return controller.inject(point)
 }

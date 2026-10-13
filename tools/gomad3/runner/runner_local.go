@@ -99,14 +99,14 @@ func runLocal(ctx context.Context, config campaignRequest) (summary CampaignResu
 		return local.summary, &HostError{Reason: "progress_output", Err: err}
 	}
 	if local.config.strategy() == StrategyChoiceExploration {
-		err := runChoiceExplorationLocal(overallCtx, local.config, local.selection, local.baseEnvironment, local.readOnlyMounts, local.prepared, local.selectedProfile, local.journal, local.runID, local.resuming, local.resumedRuns, &local.summary, local.reportProgress)
+		err := runChoiceExplorationLocal(local.explorationCampaign())
 		if err == nil {
 			local.batchComplete = true
 		}
 		return local.summary, err
 	}
 	if local.config.strategy() == StrategySimulationExploration {
-		err := runSimulationExplorationLocal(overallCtx, local.config, local.selection, local.baseEnvironment, local.readOnlyMounts, local.prepared, local.selectedProfile, local.journal, local.runID, local.resuming, local.resumedRuns, &local.summary, local.reportProgress)
+		err := runSimulationExplorationLocal(local.explorationCampaign())
 		if err == nil {
 			local.batchComplete = true
 		}
@@ -395,11 +395,7 @@ func (local *localCampaign) observe(attempt *seedAttempt, completion runCompleti
 		if completion.result.ChoiceTrace.Profile != "" && completion.result.ChoiceTrace.Trace.Summary.Terminal == choice.TerminalOverflow {
 			attempt.choiceTrace = choiceTraceSummary(completion.job.seed, completion.result.ChoiceTrace)
 		}
-		cause := completion.err
-		if partialErr := preservePartial(completion.journal); partialErr != nil {
-			cause = errors.Join(cause, partialErr)
-		}
-		return &seedHostFailure{reason: supervisionFailureReason(completion.err), cause: cause, evidence: true}
+		return &seedHostFailure{reason: supervisionFailureReason(completion.err), cause: completion.err, evidence: true}
 	}
 	if err := local.config.Backend.ValidatePrepared(local.config.Target, local.prepared, recordedEnvironmentStrings(local.baseEnvironment)); err != nil {
 		return &seedHostFailure{reason: "prepared_target_integrity", cause: err}
@@ -416,11 +412,7 @@ func (local *localCampaign) observe(attempt *seedAttempt, completion runCompleti
 	}
 	assessed, assessErr := assessCompletion(local.overallCtx, local.config.Backend, completion.result, worldBundle.Manifest.Terminal, local.config.Coverage, local.prepared)
 	if assessErr != nil {
-		cause := assessErr.Err
-		if partialErr := preservePartial(completion.journal); partialErr != nil {
-			cause = errors.Join(cause, partialErr)
-		}
-		return &seedHostFailure{reason: assessErr.Reason, cause: cause}
+		return &seedHostFailure{reason: assessErr.Reason, cause: assessErr.Err}
 	}
 	observation := &seedObservation{}
 	if local.config.Diagnostics && len(completion.result.DiagnosticTrace.Bytes) != 0 {
@@ -443,11 +435,7 @@ func (local *localCampaign) observe(attempt *seedAttempt, completion runCompleti
 		return &seedHostFailure{reason: "partial_write", cause: err}
 	}
 	if err := local.overallCtx.Err(); err != nil {
-		cause := error(err)
-		if partialErr := preservePartial(completion.journal); partialErr != nil {
-			cause = errors.Join(cause, &HostError{Reason: "partial_write", Err: partialErr})
-		}
-		return &seedHostFailure{reason: contextFailureReason(err), cause: cause}
+		return &seedHostFailure{reason: contextFailureReason(err), cause: err}
 	}
 	var failure *seedHostFailure
 	if assessed.outcome.Domain == "success" {
@@ -479,7 +467,6 @@ func (local *localCampaign) cancellationRequested() bool {
 // stop requested as the attempt's receipt. A cancellation a host failure
 // requested is that failure's evidence instead.
 func (local *localCampaign) observeCancellation(attempt *seedAttempt, completion runCompletion) *seedHostFailure {
-	attempt.partialErr = preservePartial(completion.journal)
 	if local.hostFailure != nil || local.journal.Frontier().PendingStop != campaign.StopFirstFailure {
 		attempt.cancelled = true
 		return nil

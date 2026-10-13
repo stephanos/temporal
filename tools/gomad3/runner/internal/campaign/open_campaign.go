@@ -91,14 +91,9 @@ func openPublishedState(path string, state *campaignState) (Campaign, error) {
 			return Campaign{}, classifyIntegrityError(err)
 		}
 	}
-	if batch.Strategy == "choice-exploration" {
-		if err := validatePublishedExploration(path, *batch.ChoiceExploration, batch.ChoiceExplorationImplementationSHA256, batch.ChoiceExplorationChainSHA256, runs); err != nil {
-			return Campaign{}, fmt.Errorf("validate published exploration: %w", err)
-		}
-	}
-	if batch.Strategy == "simulation-exploration" {
-		if err := validatePublishedSimulationExploration(path, *batch.SimulationExploration, batch.SimulationExplorationImplementationSHA256, batch.SimulationExplorationChainSHA256, runs); err != nil {
-			return Campaign{}, fmt.Errorf("validate published simulation exploration: %w", err)
+	if state.rounds != nil {
+		if err := state.rounds.checkPublished(batch); err != nil {
+			return Campaign{}, newIntegrityError(fmt.Errorf("validate published exploration: %w", err))
 		}
 	}
 	journal := &ExecutionJournalInfo{Schema: batch.Journal.Schema, Records: uint64(batch.Journal.Records), Bytes: uint64(batch.Journal.Bytes), Limits: state.journalPlan()}
@@ -410,23 +405,18 @@ func validateChoiceExecutionSummary(run ExecutionRecord) error {
 	return errors.New("choice trace summary is invalid")
 }
 
+// validArtifactReference accepts a failure artifact in the campaign's owned
+// failure root, where every strategy publishes its failures.
 func validArtifactReference(reference string) bool {
 	clean := filepath.ToSlash(filepath.Clean(filepath.FromSlash(reference)))
-	return clean == reference && (strings.HasPrefix(reference, "failures/sha256-") || validExplorationArtifactReference(reference, "failures")) && !strings.Contains(reference, "..")
+	return clean == reference && strings.HasPrefix(reference, "failures/sha256-") && !strings.Contains(reference, "..") && strings.Count(reference, "/") == 1
 }
 
+// validSuccessArtifactReference accepts a success artifact in the campaign's
+// owned success root.
 func validSuccessArtifactReference(reference string) bool {
 	clean := filepath.ToSlash(filepath.Clean(filepath.FromSlash(reference)))
-	return clean == reference && (strings.HasPrefix(reference, "successes/sha256-") || validExplorationArtifactReference(reference, "successes")) && !strings.Contains(reference, "..")
-}
-
-func validExplorationArtifactReference(reference, kind string) bool {
-	parts := strings.Split(reference, "/")
-	if len(parts) != 5 || parts[0] != "choice-exploration" && parts[0] != "simulation-exploration" || parts[1] != "rounds" || len(parts[2]) != 20 || parts[3] != kind || !strings.HasPrefix(parts[4], "sha256-") {
-		return false
-	}
-	_, err := strconv.ParseUint(parts[2], 10, 64)
-	return err == nil
+	return clean == reference && strings.HasPrefix(reference, "successes/sha256-") && !strings.Contains(reference, "..") && strings.Count(reference, "/") == 1
 }
 
 func validateSemanticProbeLists(probes, novel []string) error {

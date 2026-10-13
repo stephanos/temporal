@@ -149,9 +149,6 @@ func TestResumeCampaignJournalReusesCommittedOutcomesAndReclaimsUncommittedWork(
 	if err := incomplete.Transition(ExecutionStarting); err != nil {
 		t.Fatal(err)
 	}
-	if err := incomplete.Preserve(); err != nil {
-		t.Fatal(err)
-	}
 	if err := journal.Close(); err != nil {
 		t.Fatal(err)
 	}

@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/fs"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -683,10 +682,8 @@ func TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState(t *testing.
 					if rank != test.blocked {
 						return
 					}
+					// Every strategy publishes into its campaign's success store.
 					pattern := filepath.Join(config.Artifacts, "v1", "*", "successes")
-					if strategy != StrategySeed {
-						pattern = filepath.Join(config.Artifacts, "v1", "*", ".partial", string(strategy), fmt.Sprintf("%020d", rank), "successes")
-					}
 					roots, err := filepath.Glob(filepath.Dir(pattern))
 					if err != nil || len(roots) != 1 {
 						t.Errorf("success store parents = %v, %v", roots, err)
@@ -1566,9 +1563,8 @@ func observeCompletion(t *testing.T, summary CampaignResult, err error) completi
 		}
 		observed.Artifacts = append(observed.Artifacts, manifest.ArtifactKind+" "+manifest.Outcome.Reason+" "+manifest.ReplayMode+" "+manifest.World.Terminal.Kind+" "+choices)
 	}
-	// Seed attempts keep their state only in memory; the campaign log holds
-	// the lifecycle and committed outcomes, and exploration candidates still
-	// stage their attempt state beside their work.
+	// Attempts keep their state only in memory; the campaign log holds the
+	// lifecycle and committed outcomes.
 	if committed, readErr := campaign.ReadCommittedState(summary.CampaignPath); readErr == nil {
 		if !committed.Lifecycle.Published {
 			observed.Partials = append(observed.Partials, "campaign "+string(committed.Lifecycle.State))
@@ -1578,26 +1574,6 @@ func observeCompletion(t *testing.T, summary CampaignResult, err error) completi
 		}
 	} else if !errors.Is(readErr, os.ErrNotExist) {
 		t.Fatal(readErr)
-	}
-	walkErr := filepath.WalkDir(summary.CampaignPath, func(path string, entry fs.DirEntry, walkErr error) error {
-		if walkErr != nil || entry.IsDir() || entry.Name() != "partial.json" {
-			return walkErr
-		}
-		contents, readErr := os.ReadFile(path)
-		if readErr != nil {
-			return readErr
-		}
-		var partial struct {
-			State string `json:"state"`
-		}
-		if decodeErr := json.Unmarshal(contents, &partial); decodeErr != nil {
-			return decodeErr
-		}
-		observed.Partials = append(observed.Partials, filepath.Base(filepath.Dir(path))+" "+partial.State)
-		return nil
-	})
-	if walkErr != nil {
-		t.Fatal(walkErr)
 	}
 	return observed
 }
@@ -1656,94 +1632,94 @@ func TestCompletionFaultsKeepReasonPrecedenceAndEvidence(t *testing.T) {
 		{
 			name: "malformed World", fault: malformedWorld,
 			seed:        completionObservation{Reason: "world_record", Cause: "decode World terminal: invalid character '|' after object key:value pair", Counts: [5]uint64{1, 0, 0, 0, 1}, Artifacts: []string{"gomad3.runner-failure/v1 world_record none none choices"}, Journal: []string{"runner world_record none"}, Partials: []string{failedCampaign}},
-			exploration: completionObservation{Reason: "world_record", Cause: "decode World terminal: invalid character '|' after object key:value pair", Partials: []string{failedCampaign, "00000000000000000000 captured"}},
+			exploration: completionObservation{Reason: "world_record", Cause: "decode World terminal: invalid character '|' after object key:value pair", Partials: []string{failedCampaign}},
 		},
 		{
 			name: "World seed mismatch", fault: seedMismatch,
 			statistics:  &campaign.CampaignStatistics{Attempted: 1, DistinctFailures: 1},
 			seed:        completionObservation{Reason: "world_record", Cause: "World record seed or schema does not match seed 7", Counts: [5]uint64{1, 0, 0, 0, 1}, Artifacts: []string{"gomad3.runner-failure/v1 world_record none none choices"}, Journal: []string{"runner world_record none"}, Partials: []string{failedCampaign}},
-			exploration: completionObservation{Reason: "world_record", Cause: "World record seed or schema does not match seed 7", Partials: []string{failedCampaign, "00000000000000000000 captured"}},
+			exploration: completionObservation{Reason: "world_record", Cause: "World record seed or schema does not match seed 7", Partials: []string{failedCampaign}},
 		},
 		{
 			name: "malformed semantic coverage", coverage: CoverageSemantic, fault: malformedCoverage,
 			statistics:  &campaign.CampaignStatistics{Attempted: 1},
 			seed:        completionObservation{Reason: "semantic_coverage", Cause: "I/O transcript has invalid length 21", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{failedCampaign}},
-			exploration: completionObservation{Reason: "semantic_coverage", Cause: "I/O transcript has invalid length 21", Partials: []string{failedCampaign, "00000000000000000000 captured"}},
+			exploration: completionObservation{Reason: "semantic_coverage", Cause: "I/O transcript has invalid length 21", Partials: []string{failedCampaign}},
 		},
 		{
 			name: "malformed choice trace", coverage: CoverageChoice, fault: malformedChoices,
 			seed:        completionObservation{Reason: "choice_coverage", Cause: "project choice coverage: malformed choice trace\ninvalid choice terminal values", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{failedCampaign}},
-			exploration: completionObservation{Reason: "choice_coverage", Cause: "project choice coverage: malformed choice trace\ninvalid choice terminal values", Partials: []string{failedCampaign, "00000000000000000000 captured"}},
+			exploration: completionObservation{Reason: "choice_coverage", Cause: "project choice coverage: malformed choice trace\ninvalid choice terminal values", Partials: []string{failedCampaign}},
 		},
 		{
 			name: "choice trace rejected by supervision", err: backend.ErrChoiceTraceMalformed,
 			seed:        completionObservation{Reason: "choice_trace_malformed", Cause: "choice trace malformed", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{failedCampaign}},
-			exploration: completionObservation{Reason: "choice_trace_malformed", Cause: "choice trace malformed", Partials: []string{failedCampaign, "00000000000000000000 exited"}},
+			exploration: completionObservation{Reason: "choice_trace_malformed", Cause: "choice trace malformed", Partials: []string{failedCampaign}},
 		},
 		{
 			name: "unterminated choice trace rejected by supervision", err: backend.ErrChoiceTraceUnterminated,
 			seed:        completionObservation{Reason: "choice_trace_unterminated", Cause: "choice trace unterminated", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{failedCampaign}},
-			exploration: completionObservation{Reason: "choice_trace_unterminated", Cause: "choice trace unterminated", Partials: []string{failedCampaign, "00000000000000000000 exited"}},
+			exploration: completionObservation{Reason: "choice_trace_unterminated", Cause: "choice trace unterminated", Partials: []string{failedCampaign}},
 		},
 		{
 			name: "missing terminal choice frame", fault: unterminated,
 			seed:        completionObservation{Reason: "choice_trace_unterminated", Cause: "choice trace unterminated", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{failedCampaign}},
-			exploration: completionObservation{Reason: "choice_trace_unterminated", Cause: "choice trace unterminated", Partials: []string{failedCampaign, "00000000000000000000 exited"}},
+			exploration: completionObservation{Reason: "choice_trace_unterminated", Cause: "choice trace unterminated", Partials: []string{failedCampaign}},
 		},
 		{
 			name: "watchdog", coverage: CoverageSemanticChoice, fault: watchdog,
 			seed:        completionObservation{Counts: [5]uint64{1, 0, 1, 1, 1}, Artifacts: []string{"gomad3.watchdog-timeout/v1 watchdog_timeout diagnostic none no-choices"}, Journal: []string{"watchdog watchdog_timeout timeout"}},
-			exploration: completionObservation{Reason: "choice_trace_malformed", Cause: "invalid choice decision tape\nchoice trace is not complete v3 evidence", Partials: []string{failedCampaign, "00000000000000000000 captured"}},
+			exploration: completionObservation{Reason: "choice_trace_malformed", Cause: "invalid choice decision tape\nchoice trace is not complete v3 evidence", Partials: []string{failedCampaign}},
 		},
 		{
 			name: "cancelled execution", coverage: CoverageSemanticChoice, fault: cancelled,
 			// A cancellation the campaign did not request fails the host for
 			// every strategy; it is never a committed cancellation.
 			seed:            completionObservation{Reason: "runner_cancelled", Cause: "seed execution was cancelled", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{failedCampaign}},
-			exploration:     completionObservation{Reason: "runner_cancelled", Cause: "choice-exploration candidate was cancelled", Partials: []string{failedCampaign, "00000000000000000000 captured"}},
+			exploration:     completionObservation{Reason: "runner_cancelled", Cause: "choice-exploration candidate was cancelled", Partials: []string{failedCampaign}},
 			simulationCause: "simulation exploration candidate was cancelled",
 		},
 		{
 			name: "malformed World, semantic coverage and choice trace", coverage: CoverageSemanticChoice, fault: all(malformedWorld, malformedCoverage, malformedChoices),
 			seed:        completionObservation{Reason: "world_record", Cause: "decode World terminal: invalid character '|' after object key:value pair\npublish Runner failure artifact: validate choice trace payload: malformed choice trace\ninvalid choice terminal values", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{failedCampaign}},
-			exploration: completionObservation{Reason: "world_record", Cause: "decode World terminal: invalid character '|' after object key:value pair", Partials: []string{failedCampaign, "00000000000000000000 captured"}},
+			exploration: completionObservation{Reason: "world_record", Cause: "decode World terminal: invalid character '|' after object key:value pair", Partials: []string{failedCampaign}},
 		},
 		{
 			name: "malformed semantic coverage and choice trace", coverage: CoverageSemanticChoice, fault: all(malformedCoverage, malformedChoices),
 			seed:        completionObservation{Reason: "semantic_coverage", Cause: "I/O transcript has invalid length 21", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{failedCampaign}},
-			exploration: completionObservation{Reason: "semantic_coverage", Cause: "I/O transcript has invalid length 21", Partials: []string{failedCampaign, "00000000000000000000 captured"}},
+			exploration: completionObservation{Reason: "semantic_coverage", Cause: "I/O transcript has invalid length 21", Partials: []string{failedCampaign}},
 		},
 		{
 			name: "watchdog and malformed World", fault: all(watchdog, malformedWorld),
 			seed:        completionObservation{Reason: "world_record", Cause: "decode World terminal: invalid character '|' after object key:value pair\nconstruct Runner failure manifest: enabled choice profile did not produce the required terminal trace", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{failedCampaign}},
-			exploration: completionObservation{Reason: "world_record", Cause: "decode World terminal: invalid character '|' after object key:value pair", Partials: []string{failedCampaign, "00000000000000000000 captured"}},
+			exploration: completionObservation{Reason: "world_record", Cause: "decode World terminal: invalid character '|' after object key:value pair", Partials: []string{failedCampaign}},
 		},
 		{
 			name: "watchdog and malformed semantic coverage", coverage: CoverageSemantic, fault: all(watchdog, malformedCoverage),
 			seed:        completionObservation{Reason: "semantic_coverage", Cause: "I/O transcript has invalid length 21", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{failedCampaign}},
-			exploration: completionObservation{Reason: "semantic_coverage", Cause: "I/O transcript has invalid length 21", Partials: []string{failedCampaign, "00000000000000000000 captured"}},
+			exploration: completionObservation{Reason: "semantic_coverage", Cause: "I/O transcript has invalid length 21", Partials: []string{failedCampaign}},
 		},
 		{
 			name: "watchdog and malformed choice trace", coverage: CoverageChoice, fault: all(watchdog, unprojectableChoices),
 			seed:        completionObservation{Reason: "artifact_publication", Cause: "unexpected choice trace payload", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{failedCampaign}},
-			exploration: completionObservation{Reason: "choice_trace_malformed", Cause: "invalid choice decision tape\nchoice trace is not complete v3 evidence", Partials: []string{failedCampaign, "00000000000000000000 captured"}},
+			exploration: completionObservation{Reason: "choice_trace_malformed", Cause: "invalid choice decision tape\nchoice trace is not complete v3 evidence", Partials: []string{failedCampaign}},
 		},
 		{
 			name: "cancelled execution and malformed World", fault: all(cancelled, malformedWorld),
 			seed:            completionObservation{Reason: "world_record", Cause: "decode World terminal: invalid character '|' after object key:value pair\nconstruct Runner failure manifest: enabled choice profile did not produce the required terminal trace", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{failedCampaign}},
-			exploration:     completionObservation{Reason: "runner_cancelled", Cause: "choice-exploration candidate was cancelled", Partials: []string{failedCampaign, "00000000000000000000 captured"}},
+			exploration:     completionObservation{Reason: "runner_cancelled", Cause: "choice-exploration candidate was cancelled", Partials: []string{failedCampaign}},
 			simulationCause: "simulation exploration candidate was cancelled",
 		},
 		{
 			name: "cancelled execution and malformed semantic coverage", coverage: CoverageSemantic, fault: all(cancelled, malformedCoverage),
 			seed:            completionObservation{Reason: "semantic_coverage", Cause: "I/O transcript has invalid length 21", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{failedCampaign}},
-			exploration:     completionObservation{Reason: "runner_cancelled", Cause: "choice-exploration candidate was cancelled", Partials: []string{failedCampaign, "00000000000000000000 captured"}},
+			exploration:     completionObservation{Reason: "runner_cancelled", Cause: "choice-exploration candidate was cancelled", Partials: []string{failedCampaign}},
 			simulationCause: "simulation exploration candidate was cancelled",
 		},
 		{
 			name: "supervision failure and World seed mismatch", fault: seedMismatch, err: backend.ErrChoiceTraceMalformed,
 			seed:        completionObservation{Reason: "choice_trace_malformed", Cause: "choice trace malformed", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{failedCampaign}},
-			exploration: completionObservation{Reason: "choice_trace_malformed", Cause: "choice trace malformed", Partials: []string{failedCampaign, "00000000000000000000 exited"}},
+			exploration: completionObservation{Reason: "choice_trace_malformed", Cause: "choice trace malformed", Partials: []string{failedCampaign}},
 		},
 	} {
 		for _, strategy := range completionStrategies {

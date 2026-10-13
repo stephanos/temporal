@@ -11,9 +11,10 @@ import (
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
+	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
 )
 
-const reportSchema = "gomad3.inspect/v6"
+const reportSchema = "gomad3.inspect/v7"
 
 type Inspection struct {
 	Schema                string                           `json:"schema"`
@@ -24,7 +25,37 @@ type Inspection struct {
 	Campaign              *CampaignInspection              `json:"campaign,omitempty"`
 	Merged                *MergedCampaignInspection        `json:"merged_campaign,omitempty"`
 	Lifecycle             *CampaignLifecycleInspection     `json:"lifecycle,omitempty"`
+	Exploration           *ExplorationInspection           `json:"exploration,omitempty"`
 	SimulationExploration *SimulationExplorationInspection `json:"simulation_exploration,omitempty"`
+}
+
+// ExplorationInspection reports an exploration campaign's rounds as its log
+// committed them. RoundBytes is the length of a round's encoded payload, the
+// measure the exploration byte bound applies to. A staged round started and
+// did not commit; a resume discards it and counts its candidates as recovery
+// executions.
+type ExplorationInspection struct {
+	Schema               string                       `json:"schema"`
+	Strategy             string                       `json:"strategy"`
+	ImplementationSHA256 record.SHA256                `json:"implementation_sha256,omitempty"`
+	ChainSHA256          record.SHA256                `json:"chain_sha256"`
+	RecoveryExecutions   uint64                       `json:"recovery_executions"`
+	StagedRound          *ExplorationStagedRound      `json:"staged_round,omitempty"`
+	Rounds               []ExplorationRoundInspection `json:"rounds"`
+}
+
+type ExplorationStagedRound struct {
+	Index      uint64 `json:"index"`
+	Candidates uint64 `json:"candidates"`
+}
+
+type ExplorationRoundInspection struct {
+	Index         uint64        `json:"index"`
+	RoundBytes    uint64        `json:"round_bytes"`
+	RoundSHA256   record.SHA256 `json:"round_sha256"`
+	SegmentSHA256 record.SHA256 `json:"segment_sha256"`
+	FirstOrdinal  uint64        `json:"first_ordinal"`
+	Executions    uint64        `json:"executions"`
 }
 
 type SimulationExplorationInspection struct {
@@ -451,21 +482,22 @@ func Inspect(path string, options InspectOptions) (result Inspection, retErr err
 		return Inspection{}, err
 	}
 	projectedLifecycle := projectCampaignLifecycle(lifecycle)
-	var combined *SimulationExplorationInspection
-	hasCombined, err := directoryChild(absolute, "simulation-exploration")
+	explored, isExploration, err := campaign.InspectExploration(absolute)
 	if err != nil {
-		return Inspection{}, err
+		return Inspection{}, fmt.Errorf("inspect exploration: %w", err)
 	}
-	if hasCombined {
-		status, err := campaign.InspectSimulationExploration(absolute)
-		if err != nil {
-			return Inspection{}, fmt.Errorf("inspect simulation exploration: %w", err)
+	var rounds *ExplorationInspection
+	var combined *SimulationExplorationInspection
+	if isExploration {
+		projected := projectExploration(explored)
+		rounds = &projected
+		if state, simulation := explored.State.(exploration.SimulationState); simulation {
+			projected := projectSimulationExploration(explored, state)
+			combined = &projected
 		}
-		projected := projectSimulationExploration(status)
-		combined = &projected
 	}
 	if !lifecycle.Published {
-		return Inspection{Schema: reportSchema, Kind: "campaign", Path: absolute, Lifecycle: &projectedLifecycle, SimulationExploration: combined}, nil
+		return Inspection{Schema: reportSchema, Kind: "campaign", Path: absolute, Lifecycle: &projectedLifecycle, Exploration: rounds, SimulationExploration: combined}, nil
 	}
 	opened, err := campaign.OpenCampaign(absolute)
 	if err != nil {
@@ -475,12 +507,26 @@ func Inspect(path string, options InspectOptions) (result Inspection, retErr err
 	if err != nil {
 		return Inspection{}, err
 	}
-	return Inspection{Schema: reportSchema, Kind: "campaign", Path: absolute, Campaign: &projected, Lifecycle: &projectedLifecycle, SimulationExploration: combined}, nil
+	return Inspection{Schema: reportSchema, Kind: "campaign", Path: absolute, Campaign: &projected, Lifecycle: &projectedLifecycle, Exploration: rounds, SimulationExploration: combined}, nil
 }
 
-func projectSimulationExploration(status campaign.SimulationExplorationInspection) SimulationExplorationInspection {
-	pending := make([]SimulationCandidateInspection, len(status.Pending))
-	for candidateIndex, candidate := range status.Pending {
+func projectExploration(explored campaign.ExplorationInspection) ExplorationInspection {
+	result := ExplorationInspection{
+		Schema: "gomad3.exploration-inspection/v1", Strategy: explored.Strategy, ImplementationSHA256: explored.ImplementationSHA256,
+		ChainSHA256: explored.ChainSHA256, RecoveryExecutions: explored.RecoveryExecutions, Rounds: make([]ExplorationRoundInspection, len(explored.Rounds)),
+	}
+	if staged := explored.StagedRound; staged != nil {
+		result.StagedRound = &ExplorationStagedRound{Index: staged.Index, Candidates: staged.Candidates}
+	}
+	for index, round := range explored.Rounds {
+		result.Rounds[index] = ExplorationRoundInspection(round)
+	}
+	return result
+}
+
+func projectSimulationExploration(explored campaign.ExplorationInspection, state exploration.SimulationState) SimulationExplorationInspection {
+	pending := make([]SimulationCandidateInspection, len(state.Queue))
+	for candidateIndex, candidate := range state.Queue {
 		overrides := make([]SimulationOverrideInspection, len(candidate.Overrides))
 		for overrideIndex, override := range candidate.Overrides {
 			projected := SimulationOverrideInspection{
@@ -497,13 +543,13 @@ func projectSimulationExploration(status campaign.SimulationExplorationInspectio
 		pending[candidateIndex] = SimulationCandidateInspection{SHA256: candidate.SHA256, ParentSHA256: candidate.ParentSHA256, Overrides: overrides}
 	}
 	result := SimulationExplorationInspection{
-		Schema: "gomad3.simulation-exploration-inspection/v1", Summary: projectSimulationExplorationSummary(status.Summary),
-		ImplementationSHA256: status.ImplementationSHA256, ChainSHA256: status.ChainSHA256, Pending: pending,
+		Schema: "gomad3.simulation-exploration-inspection/v1", Summary: projectSimulationExplorationSummary(state.Summary()),
+		ImplementationSHA256: explored.ImplementationSHA256, ChainSHA256: explored.ChainSHA256, Pending: pending,
 	}
-	if status.StagedRound != nil {
-		result.StagedRound = &SimulationStagedRoundInspection{
-			Index: status.StagedRound.Index, Candidates: status.StagedRound.Candidates, Attempted: status.StagedRound.Attempted,
-		}
+	if staged := explored.StagedRound; staged != nil {
+		// A round start records its candidates' launch, so every candidate
+		// of a staged round was attempted.
+		result.StagedRound = &SimulationStagedRoundInspection{Index: staged.Index, Candidates: staged.Candidates, Attempted: staged.Candidates}
 	}
 	return result
 }

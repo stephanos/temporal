@@ -41,7 +41,6 @@ type seedAttempt struct {
 	// cancelled is a cancellation the campaign requested for a host failure;
 	// it is reported as that failure's evidence, not as a receipt.
 	cancelled  bool
-	partialErr error
 	cleanupErr error
 	completion runCompletion
 	// observation is the attempt's actual classified completion; received
@@ -363,9 +362,6 @@ func (local *localCampaign) handle(attempt *seedAttempt) {
 	case attempt.cancelled:
 		local.statistics.Record(campaign.CompletedCancelled())
 		synchronizeCampaignStatistics(&local.summary, local.statistics)
-		if attempt.partialErr != nil {
-			local.hostFailure = errors.Join(local.hostFailure, &HostError{Reason: "partial_write", Err: attempt.partialErr})
-		}
 		reason := "runner_failure"
 		var hostError *HostError
 		if errors.As(local.hostFailure, &hostError) {

@@ -150,7 +150,6 @@ type ExecutionJournal struct {
 	ordinal        uint64
 	seed           uint64
 	state          executionState
-	stateFile      bool
 	releasePartial func()
 }
 
@@ -518,21 +517,7 @@ func (run *ExecutionJournal) Transition(next executionState) error {
 	if !allowed {
 		return fmt.Errorf("invalid execution journal transition %q -> %q", run.state, next)
 	}
-	if run.stateFile {
-		if err := run.writeState(next); err != nil {
-			return err
-		}
-	}
 	run.state = next
-	return nil
-}
-
-// Preserve keeps an interrupted attempt's work directory for inspection
-// until the campaign resumes, which reclaims it.
-func (run *ExecutionJournal) Preserve() error {
-	if run.stateFile {
-		return run.writeState("preserve-partial")
-	}
 	return nil
 }
 

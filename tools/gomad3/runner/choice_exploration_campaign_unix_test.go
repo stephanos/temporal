@@ -11,7 +11,6 @@ import (
 	"io"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"reflect"
 	"strings"
 	"syscall"
@@ -105,9 +104,8 @@ func TestRunChoiceExplorationKilledAfterDivergenceResumesSameState(t *testing.T)
 			t.Fatal("crash helper did not exit after closing stdout")
 		}
 	}
-	committedPath := filepath.Join(path, "choice-exploration", "rounds", "00000000000000000001", "segment.json")
-	if _, err := os.Stat(committedPath); err != nil {
-		t.Fatal(err)
+	if explored, ok, err := campaign.InspectExploration(path); err != nil || !ok || len(explored.Rounds) != 2 || explored.StagedRound != nil {
+		t.Fatalf("committed rounds before the kill = %#v, %v", explored, err)
 	}
 	if err := syscall.Kill(command.Process.Pid, syscall.SIGKILL); err != nil {
 		t.Fatal(err)

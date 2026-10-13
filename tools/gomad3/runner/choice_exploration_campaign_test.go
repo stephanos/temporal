@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/sha256"
 	"errors"
-	"os"
 	"os/exec"
 	"path/filepath"
 	"reflect"
@@ -189,7 +188,11 @@ func TestProcessExplorationCompletionKeepsRunnerDomainFallback(t *testing.T) {
 	round, _ := state.NextRound()
 	result := processResult(0, "", "")
 	result.Cancelled = true
-	_, err = processExplorationCompletion(t.Context(), campaignRequestFromSpec(config), prepared, nil, nil, "", "", nil, state, round, 0, runCompletion{job: runJob{seed: 7}, result: result}, &CampaignResult{}, nil, nil, nil)
+	explored := &explorationRound[exploration.ChoiceState, exploration.ChoiceRound]{
+		explorationCampaign: &explorationCampaign{ctx: t.Context(), config: campaignRequestFromSpec(config), prepared: prepared, summary: &CampaignResult{}},
+		state:               state, round: round, tally: &explorationTally{},
+	}
+	_, _, err = processExplorationCompletion(explored, 0, runCompletion{job: runJob{seed: 7}, result: result})
 	var host *HostError
 	if !errors.As(err, &host) || host.Reason != "runner_cancelled" {
 		t.Fatalf("runner-domain fallback = %v", err)
@@ -313,12 +316,9 @@ func TestRunChoiceExplorationExecutesRootAndEveryNonSelectedRank(t *testing.T) {
 	if batch.Record.Strategy != string(StrategyChoiceExploration) || batch.Record.ChoiceExploration == nil || len(batch.Executions) != 2 || batch.Executions[1].ParentCandidateSHA256 == "" || batch.Executions[1].ForcedDepth == nil || *batch.Executions[1].ForcedDepth != 1 {
 		t.Fatalf("exploration batch = %#v", batch)
 	}
-	segmentPath := filepath.Join(summary.CampaignPath, "choice-exploration", "rounds", "00000000000000000001", "segment.json")
-	if err := os.WriteFile(segmentPath, []byte("{}"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := campaign.OpenCampaign(summary.CampaignPath); err == nil {
-		t.Fatal("OpenBatch() accepted a corrupt exploration segment")
+	explored, ok, err := campaign.InspectExploration(summary.CampaignPath)
+	if err != nil || !ok || len(explored.Rounds) != 2 || explored.Rounds[1].FirstOrdinal != 1 || explored.Rounds[1].Executions != 1 || explored.ChainSHA256 != batch.Record.ChoiceExplorationChainSHA256 {
+		t.Fatalf("committed exploration rounds = %#v, %v", explored, err)
 	}
 }
 
