@@ -56,8 +56,17 @@ definitions; no independent native process JSON decoder exists.
   identity and actual-helper parity checks passed; the full simulation package
   passed in 114.297 s, and affected lint reported zero issues. The helper was
   the existing `c2e4ff2f...` binary, not rebuilt or requalified by this task.
-  Full architecture found the new tokenizer/pure-source inventory omissions;
-  those remain under repair before source review or completion.
+  Full architecture found the new tokenizer/pure-source inventory omissions.
+  `046ff9ecb8` fixes the exact import/source classification, removes a dynamic
+  identity closure and reconciles the caller contract without a brittle count.
+- `c467490c78` adds fn154.2's NC2 config, explicit shared limits, closed
+  held/timeout/reset vocabulary, matching generated host/overlay validation,
+  and selected WASM boot/spec equality. `42574e0753` binds the combined model
+  to `sha256:c27f0ae4168586879fc623eab2e34f97a349d2055538d8e966ac327b3d06b020`.
+  Integrated readers, protocol/projection, helper parity, portable simulator,
+  full WASM simulation (140.134 s), full all-platform architecture/purity,
+  generated/compatibility validation and scoped lint passed (exit 0).
+  Independent combined source review and final qualification remain open.
 
 ## Verification and remaining work
 
@@ -67,10 +76,12 @@ network/model projections, portable simulator, both-platform architecture and
 `make -C tools/gomad3 validate` pass. Changed-package fast lint passes with
 fixes disabled; log `/tmp/fn153-18-integrated-fast-lint-20261013.log`.
 Generator log: `/tmp/wasm-rotation-validate-20261013.log`.
-Current reader/simulation/lint source results are recorded separately from the
-still-red architecture candidate: `/tmp/fn153-20-root-simulation-20261013.log`,
+Earlier reader/simulation/lint source results are recorded separately from the
+then-red architecture candidate: `/tmp/fn153-20-root-simulation-20261013.log`,
 `/tmp/fn153-20-root-integrated-lint-20261013.log`, and
 `/tmp/fn153-20-root-architecture-red-20261013.log`.
+The combined correction/config logs are
+`/tmp/wasm-json-network-config-{architecture,validate,lint,simulator,simulation}-20261013.log`.
 Timeout candidate validation log: `/tmp/fn154-3-frozen-validate-20261013.log`;
 lint log: `/tmp/fn154-3-integrated-lint-20261013.log`. The reviewed source was
 frozen at `7e60601caf`; the first review dispatch was not accepted after a

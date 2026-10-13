@@ -7,8 +7,8 @@ satisfies: [R1, R4, R9, R11]
 Unify local connection mechanics behind a byte-bounded queue owner (R1, R9, R11). This task owns the named surface; root owns admission, integration and lifecycle.
 
 **Size:** M
-**Files:** `tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/network.go`, `tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/network_connection.go (new)`, `tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/simulation_handles.go`, `tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/simulation_network.go`, `tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/descriptor_backend.go`, `tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/network_handles_test.go`, `tools/gomad3/toolchain/version/version.json`, `tools/gomad3sim/network_handles_toolchain_test.go`
-**Touches:** [tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/network.go, tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/network_connection.go, tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/simulation_handles.go, tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/simulation_network.go, tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/descriptor_backend.go, tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/network_handles_test.go, tools/gomad3sim/network_handles_toolchain_test.go, tools/gomad3/toolchain/version/version.json, tools/gomad3/choice/internal/wire/wire_generated.go, tools/gomad3/target/internal/livecap/protocol_generated.go, tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/**, tools/gomad3/toolchain/runtime/overlay/src/internal/gomadlivecap/**]
+**Files:** `tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadio/network.go`, `tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadio/network_connection.go (new)`, `tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadio/simulation_handles.go`, `tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadio/simulation_network.go`, `tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadio/descriptor_backend.go`, `tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadio/network_handles_test.go`, `tools/gomad3/backends/native/toolchain/version/version.json`, `tools/gomad3sim/network_handles_toolchain_test.go`
+**Touches:** [tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadio/network.go, tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadio/network_connection.go, tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadio/network_connection_test.go, tools/gomad3/simulation/network/**, tools/gomad3/backends/native/generation/protocol/network_connection_test.go, tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadio/simulation_handles.go, tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadio/simulation_network.go, tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadio/descriptor_backend.go, tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadio/network_handles_test.go, tools/gomad3sim/network_handles_toolchain_test.go, tools/gomad3/backends/native/toolchain/version/version.json, tools/gomad3/choice/internal/wire/wire_generated.go, tools/gomad3/target/internal/livecap/protocol_generated.go, tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadchoicewire/**, tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadlivecap/**]
 
 ### Approach
 
@@ -22,24 +22,28 @@ Unify local connection mechanics behind a byte-bounded queue owner (R1, R9, R11)
 
 **Required:**
 
-- `tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/network.go:43`
-- `tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/simulation_handles.go:24`
-- `tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/simulation_network.go:139`
-- `tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/descriptor_backend.go:258`
-- `tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/network_handles_test.go:17`
+- `tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadio/network.go:43`
+- `tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadio/simulation_handles.go:24`
+- `tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadio/simulation_network.go:139`
+- `tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadio/descriptor_backend.go:258`
+- `tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadio/network_handles_test.go:17`
 - `tools/gomad3sim/network_handles_toolchain_test.go:27`
-- `tools/gomad3/toolchain/version/version.json`
+- `tools/gomad3/backends/native/toolchain/version/version.json`
 
 ### Quick commands
 
 ```bash
 (cd tools/gomad3 && .toolchain/bin/go test -tags test_dep internal/gomadio -run 'TestNetworkHandle')
-cd /Users/stephan/Workspace/skunkworks/gomad/temporal && env -u GOMADSEED CGO_ENABLED=0 GOEXPERIMENT=nogreenteagc GOTOOLCHAIN=local GOWORK=off TZ=UTC GOMAD3_CHILD_SEED=89 tools/gomad3/.toolchain/bin/go test -exec tools/gomad3/internal/gomadtool/conformance/scripts/exec.sh -count=1 -tags test_dep,gomad3_toolchain ./tools/gomad3sim -run 'TestNetworkHandleOperationParity'
+cd /Users/stephan/Workspace/skunkworks/gomad/temporal && env -u GOMADSEED CGO_ENABLED=0 GOEXPERIMENT=nogreenteagc GOTOOLCHAIN=local GOWORK=off TZ=UTC GOMAD3_CHILD_SEED=89 tools/gomad3/.toolchain/bin/go test -exec tools/gomad3/backends/native/conformance/scripts/exec.sh -count=1 -tags test_dep,gomad3_toolchain ./tools/gomad3sim -run 'TestNetworkHandleOperationParity'
 make -C tools/gomad3 generate validate
-(cd tools/gomad3 && go test -tags test_dep ./runner/internal/execution -run '^TestModelConformanceTCP$')
+(cd tools/gomad3 && go test -tags test_dep ./backends/native/execution -run '^TestModelConformanceTCP$')
 ```
 
 Patched-runtime selectors require the supported candidate and documented toolchain setup. New selectors named in acceptance are deliverables, not existing-test claims. Keep a missing required gate open; bind each result to the tested source and tool inputs.
+
+### Revival trigger (2026-10-13)
+
+The owner batch-first strategy admits the coherent connection/holding/expiry/dial/history source batch against integrated fn154.1 limits, fn154.3 timeout transport (c8dbb97c11) and fn154.2 generated NC2 config/vocabulary (c467490c78). Root's combined candidate passed portable simulator, protocol/projection, WASM reader/helper parity, full WASM simulation, all-platform architecture/purity, generated validation and affected lint. Source development may proceed while final independent batch review and exact native acceptance remain open. This does not waive completion dependencies, the early public-interface equivalence proof, any native gate or final current-source WASM qualification. No CI, PR, push or native qualification authority is revived. Use current backends/native paths above, one connection owner, and the accepted single generated semantic codec. Root serializes integration/identity regeneration and retains final lifecycle.
 
 ## Acceptance
 - [ ] One local queue/deadline owner serves standalone, simulation and descriptor primitives; no duplicate local operation loop remains.

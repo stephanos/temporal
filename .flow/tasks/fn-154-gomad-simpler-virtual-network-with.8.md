@@ -7,8 +7,8 @@ satisfies: [R7, R10, R11]
 Remove delivery history and hashes with coherent record and codec migration (R7, R10, R11). This task owns the named surface; root owns admission, integration and lifecycle.
 
 **Size:** M
-**Files:** `tools/gomad3sim/types.go`, `tools/gomad3sim/record.go`, `tools/gomad3sim/record_test.go`, `tools/gomad3sim/inspect.go`, `tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/simulation_network.go`, `tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/simulation_handles.go`, `tools/gomad3/simulation/schema/**`
-**Touches:** [tools/gomad3sim/**, tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/simulation_network.go, tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/simulation_handles.go, tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/network_handles_test.go, tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/simulation_wire.go, tools/gomad3/simulation/schema/**, tools/gomad3/runner/internal/execution/simulation_model_wire_generated.go, tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/model_transport_generated.go, tools/gomad3/toolchain/runtime/overlay/src/internal/gomadmodelwire/**, tools/gomad3/internal/gomadtool/generation/protocol/**]
+**Files:** `tools/gomad3sim/types.go`, `tools/gomad3sim/record.go`, `tools/gomad3sim/record_test.go`, `tools/gomad3sim/inspect.go`, `tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadio/simulation_network.go`, `tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadio/simulation_handles.go`, `tools/gomad3/simulation/schema/**`
+**Touches:** [tools/gomad3sim/**, tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadio/simulation_network.go, tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadio/simulation_handles.go, tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadio/network_handles_test.go, tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadio/simulation_wire.go, tools/gomad3/simulation/schema/**, tools/gomad3/backends/native/execution/simulation_model_wire_generated.go, tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadsim/model_transport_generated.go, tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadmodelwire/**, tools/gomad3/backends/native/generation/protocol/**]
 
 ### Approach
 
@@ -26,19 +26,23 @@ Remove delivery history and hashes with coherent record and codec migration (R7,
 - `tools/gomad3sim/record.go:810`
 - `tools/gomad3sim/record_test.go:271`
 - `tools/gomad3sim/inspect.go:83`
-- `tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/simulation_network.go:958`
-- `tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/simulation_handles.go:147`
-- `tools/gomad3/internal/gomadtool/generation/protocol/protocol.go:446`
+- `tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadio/simulation_network.go:958`
+- `tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadio/simulation_handles.go:147`
+- `tools/gomad3/backends/native/generation/protocol/protocol.go:446`
 
 ### Quick commands
 
 ```bash
 go test -tags test_dep ./tools/gomad3sim -run 'Test(ClusterRecord|DecodeClusterRecord|RuntimeNetwork|ValidateSpecRejectsReplay)'
 make -C tools/gomad3 generate validate
-cd /Users/stephan/Workspace/skunkworks/gomad/temporal && env -u GOMADSEED CGO_ENABLED=0 GOEXPERIMENT=nogreenteagc GOTOOLCHAIN=local GOWORK=off TZ=UTC GOMAD3_CHILD_SEED=89 tools/gomad3/.toolchain/bin/go test -exec tools/gomad3/internal/gomadtool/conformance/scripts/exec.sh -count=1 -tags test_dep,gomad3_toolchain ./tools/gomad3sim -run 'Test.*(Network|Fault)'
+cd /Users/stephan/Workspace/skunkworks/gomad/temporal && env -u GOMADSEED CGO_ENABLED=0 GOEXPERIMENT=nogreenteagc GOTOOLCHAIN=local GOWORK=off TZ=UTC GOMAD3_CHILD_SEED=89 tools/gomad3/.toolchain/bin/go test -exec tools/gomad3/backends/native/conformance/scripts/exec.sh -count=1 -tags test_dep,gomad3_toolchain ./tools/gomad3sim -run 'Test.*(Network|Fault)'
 ```
 
 Patched-runtime selectors require the supported candidate and documented toolchain setup. New selectors named in acceptance are deliverables, not existing-test claims. Keep a missing required gate open; bind each result to the tested source and tool inputs.
+
+### Revival trigger (2026-10-13)
+
+The owner batch-first strategy admits the coherent connection/holding/expiry/dial/history source batch against integrated fn154.1 limits, fn154.3 timeout transport (c8dbb97c11) and fn154.2 generated NC2 config/vocabulary (c467490c78). Root's combined candidate passed portable simulator, protocol/projection, WASM reader/helper parity, full WASM simulation, all-platform architecture/purity, generated validation and affected lint. Source development may proceed while final independent batch review and exact native acceptance remain open. This does not waive completion dependencies, the early public-interface equivalence proof, any native gate or final current-source WASM qualification. No CI, PR, push or native qualification authority is revived. Use current backends/native paths above, one connection owner, and the accepted single generated semantic codec. Root serializes integration/identity regeneration and retains final lifecycle.
 
 ## Acceptance
 - [ ] Network-only delivery/hash/count symbols and outcomes disappear from model/history consumers, while volume/generic-I/O hashes and explicit deliver fault matching remain.
