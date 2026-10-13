@@ -39,6 +39,9 @@ Final evidence forwards soft-assertion oracles unconditionally after guest finis
 
 **Replay comparison Touches:** [tools/gomad3/runner/replay_operation.go]
 This is the existing replay owner (the earlier replay.go discovery path does not exist). Compare persisted versus observed SoftAssertions while preserving prior error precedence. Inventory exact new semantic source-identity lists for conductor binding; no new implementation may escape current-build identity coverage.
+
+**Released provenance Touches:** [tools/gomad3/backends/wasm/backend/provider.go, tools/gomad3/backends/wasm/backend/provider_test.go]
+fn153.21 source is integrated at eb13e65f85/e986f971c3; checkpoint oracle work and merge the current root candidate before the exact report-only provenance/preparation/validation follow-up. Preserve shared staging, strict decoding and transaction failure behavior. No overlapping retained-bundle edits are needed.
 ## Acceptance
 - [ ] A fixture whose guest logs a soft assertion and then passes its test fails the Gomad run with a soft-assertion classification and the static message as signature (single-process and cluster).
 - [ ] An assertion logged after the guest test reported success still fails the run.

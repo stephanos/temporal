@@ -224,7 +224,7 @@ Owner decision (2026-10-12): these deferred specs change owners the WASM backend
 | Name / ID | Status | Description |
 | --- | --- | --- |
 | [fn-166.6](.flow/tasks/fn-166-gomad-readable-package-structure-and.6.md) | ⬜ Todo | Identity-rotating renames; batched with fn-153/fn-154 |
-| [fn-166.7](.flow/tasks/fn-166-gomad-readable-package-structure-and.7.md) | 🚧 In progress | Inspection integrated; retire library contracts in parallel, then finish internal grouping |
+| [fn-166.7](.flow/tasks/fn-166-gomad-readable-package-structure-and.7.md) | 🚧 In progress | Inspection/library retirement source joined; integrated checks and full grouping remain |
 | [fn-166.8](.flow/tasks/fn-166-gomad-readable-package-structure-and.8.md) | ⬜ Todo | Delete network v1 and choice v1 (diagnostic profile kept); batched with fn-153/fn-154 |
 | [fn-166.10](.flow/tasks/fn-166-gomad-readable-package-structure-and.10.md) | ⬜ Todo | Move gomad3sim into gomad3 as internal/model/cluster; batched with fn-153/fn-154 |
 | [fn-166.11](.flow/tasks/fn-166-gomad-readable-package-structure-and.11.md) | ⬜ Todo | Rename the gomad3 module and tree to gomad after the rotation batch |
@@ -237,7 +237,7 @@ Owner decision (2026-10-12): these deferred specs change owners the WASM backend
 | --- | --- | --- |
 | [fn-153.18](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.18.md) | 🚧 In progress | Reconcile contracts and verify the integrated cleanup |
 | [fn-153.20](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.20.md) | 🚧 In progress | Shared decoder source reviewed; final integrated WASM gates remain open |
-| [fn-153.21](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.21.md) | 🚧 In progress | Close audited WASM cache publication and World syntax gaps |
+| [fn-153.21](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.21.md) | 🚧 In progress | Publication/decoder corrections integrated; review and current-candidate gates remain |
 
 <a id="virtual-network-stalling-fn-154"></a>
 
