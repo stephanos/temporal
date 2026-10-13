@@ -421,7 +421,11 @@ pub fn execute() -> Result<()> {
     }
     metrics.sample_process();
     outcome.metrics = Some(Box::new(metrics));
-    protocol::send_frame(&mut store.data_mut().output, &outcome)
+    let sent = protocol::send_frame(&mut store.data_mut().output, &outcome);
+    // The process exits next. Dropping a large module deregisters unwind info
+    // one function at a time (tens of seconds on macOS), so leave it to exit.
+    std::mem::forget((store, linker, module, engine));
+    sent
 }
 fn prepare(
     request: &Execute,
