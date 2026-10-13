@@ -4,11 +4,10 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"unicode/utf8"
 
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+	"go.temporal.io/server/tools/gomad3/internal/strictjson"
 )
 
 const MaximumReplayPlanJSONBytes = 64 << 20
@@ -54,7 +53,11 @@ func EncodeReplayPlan(plan ReplayPlan) ([]byte, error) {
 	if err := validateReplayPlanIdentity(plan); err != nil {
 		return nil, err
 	}
-	encoded, err := canonicaljson.CanonicalJSON(plan)
+	if err := validateReplayPlanStrings(plan); err != nil {
+		//gomad:dynamic reviewed 2026-10-13 reviewed World validation errors expose memory-only methods
+		return nil, fmt.Errorf("encode World replay plan: %w", err)
+	}
+	encoded, err := encodeWorldJSON(plan)
 	if err != nil {
 		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return nil, fmt.Errorf("encode World replay plan: %w", err)
@@ -72,25 +75,15 @@ func DecodeReplayPlan(data []byte) (ReplayPlan, error) {
 	if !utf8.Valid(data) {
 		return ReplayPlan{}, fmt.Errorf("World replay plan is not valid UTF-8")
 	}
-	if err := validateJSONStructure(data); err != nil {
-		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
-		return ReplayPlan{}, fmt.Errorf("decode World replay plan: %w", err)
-	}
-	decoder := json.NewDecoder(bytes.NewReader(data))
-	decoder.DisallowUnknownFields()
 	var plan ReplayPlan
-	if err := decoder.Decode(&plan); err != nil {
-		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
-		return ReplayPlan{}, fmt.Errorf("decode World replay plan: %w", err)
-	}
-	if err := requireJSONEOF(decoder); err != nil {
+	if err := strictjson.Decode(data, &plan); err != nil {
 		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return ReplayPlan{}, fmt.Errorf("decode World replay plan: %w", err)
 	}
 	if err := validateReplayPlanIdentity(plan); err != nil {
 		return ReplayPlan{}, err
 	}
-	canonical, err := canonicaljson.CanonicalJSON(plan)
+	canonical, err := encodeWorldJSON(plan)
 	if err != nil {
 		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return ReplayPlan{}, fmt.Errorf("canonicalize World replay plan: %w", err)
@@ -109,6 +102,84 @@ func validateReplayPlanIdentity(plan ReplayPlan) error {
 		if err := validateTransitionShape(transition); err != nil {
 			return classifiedError(invalidSnapshotSentinel, fmt.Sprintf("replay transition %d", index))
 		}
+	}
+	return nil
+}
+
+func validateReplayPlanStrings(plan ReplayPlan) error {
+	for index, transition := range plan.Transitions {
+		if err := validateTransitionStrings(transition); err != nil {
+			//gomad:dynamic reviewed 2026-10-13 reviewed World validation errors expose memory-only methods
+			return fmt.Errorf("replay transition %d: %w", index, err)
+		}
+	}
+	return nil
+}
+
+func validateTransitionStrings(transition Transition) error {
+	switch transition.Kind {
+	case "register":
+		return validateRequestStrings(transition.Register.Request)
+	case "ready":
+		return validateReadinessStrings(transition.Ready.Readiness)
+	case "cancel":
+		return validateUTF8String("cancellation.status", string(transition.Cancel.Cancellation.Status))
+	case "quiesce":
+		if err := validateUTF8String("quiescence.kind", string(transition.Quiesce.Result.Kind)); err != nil {
+			return err
+		}
+		for index, delivery := range transition.Quiesce.Result.Deliveries {
+			if err := validateUTF8String(fmt.Sprintf("quiescence.deliveries[%d].kind", index), delivery.Kind); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func validateSnapshotStrings(snapshot Snapshot) error {
+	for index, request := range snapshot.Requests {
+		if err := validateUTF8String(fmt.Sprintf("requests[%d].state", index), string(request.State)); err != nil {
+			return err
+		}
+		if err := validateRequestStrings(request.Request); err != nil {
+			return err
+		}
+	}
+	for index, event := range snapshot.Events {
+		if err := validateUTF8String(fmt.Sprintf("events[%d].state", index), string(event.State)); err != nil {
+			return err
+		}
+		if err := validateReadinessStrings(event.Readiness); err != nil {
+			return err
+		}
+	}
+	return validateReplayPlanStrings(ReplayPlan{Transitions: snapshot.Transitions})
+}
+
+func validateRequestStrings(request Request) error {
+	if err := validateUTF8String("request.kind", request.Kind); err != nil {
+		return err
+	}
+	if err := validateUTF8String("request.resource.adapter", request.Resource.Adapter); err != nil {
+		return err
+	}
+	if err := validateUTF8String("request.resource.kind", request.Resource.Kind); err != nil {
+		return err
+	}
+	return validateUTF8String("request.resource.key", request.Resource.Key)
+}
+
+func validateReadinessStrings(readiness Readiness) error {
+	if err := validateUTF8String("readiness.kind", readiness.Kind); err != nil {
+		return err
+	}
+	return validateUTF8String("readiness.equivalenceClass", readiness.EquivalenceClass)
+}
+
+func validateUTF8String(field, value string) error {
+	if !utf8.ValidString(value) {
+		return fmt.Errorf("invalid UTF-8 in %s", field)
 	}
 	return nil
 }
@@ -382,7 +453,10 @@ func EncodeTransitions(transitions []Transition) ([]byte, error) {
 		if err := validateTransitionShape(transition); err != nil {
 			return nil, modelContextError(fmt.Sprintf("transition %d", index), err)
 		}
-		encoded, err := canonicaljson.CanonicalJSON(transition)
+		if err := validateTransitionStrings(transition); err != nil {
+			return nil, modelContextError(fmt.Sprintf("transition %d", index), err)
+		}
+		encoded, err := encodeWorldJSON(transition)
 		if err != nil {
 			return nil, modelContextError(fmt.Sprintf("transition %d", index), err)
 		}

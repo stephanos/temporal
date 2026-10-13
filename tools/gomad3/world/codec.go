@@ -8,7 +8,7 @@ import (
 	"math"
 	"unicode/utf8"
 
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+	"go.temporal.io/server/tools/gomad3/internal/strictjson"
 )
 
 const (
@@ -17,11 +17,41 @@ const (
 	maximumSnapshotNodes     = MaximumSnapshotJSONBytes
 )
 
+type worldJSONValue interface {
+	Snapshot | ReplayPlan | Transition | Terminal | RequestSnapshot | EventSnapshot | Quiescence | Cancellation | LogicalTime
+}
+
+func encodeWorldJSON[T worldJSONValue](value T) ([]byte, error) {
+	//gomad:dynamic reviewed 2026-10-13 closed World wire types marshal only caller-owned memory
+	initial, err := json.Marshal(value)
+	if err != nil {
+		return nil, err
+	}
+	decoder := json.NewDecoder(bytes.NewReader(initial))
+	decoder.UseNumber()
+	var normalized any
+	//gomad:dynamic reviewed 2026-10-13 stdlib JSON normalization decodes only the just-marshaled World value
+	if err := decoder.Decode(&normalized); err != nil {
+		return nil, err
+	}
+	var output bytes.Buffer
+	encoder := json.NewEncoder(&output)
+	encoder.SetEscapeHTML(false)
+	//gomad:dynamic reviewed 2026-10-13 stdlib JSON normalization encodes only its memory-owned intermediate value
+	if err := encoder.Encode(normalized); err != nil {
+		return nil, err
+	}
+	return bytes.TrimSuffix(output.Bytes(), []byte{'\n'}), nil
+}
+
 func EncodeSnapshot(snapshot Snapshot) ([]byte, error) {
 	if _, err := Restore(snapshot, nil); err != nil {
 		return nil, err
 	}
-	encoded, err := canonicaljson.CanonicalJSON(snapshot)
+	if err := validateSnapshotStrings(snapshot); err != nil {
+		return nil, err
+	}
+	encoded, err := encodeWorldJSON(snapshot)
 	if err != nil {
 		return nil, err
 	}
@@ -42,25 +72,15 @@ func DecodeSnapshot(data []byte) (Snapshot, error) {
 		//gomad:dynamic reviewed 2026-10-12 model codec and gzip errors expose memory-only messages
 		return Snapshot{}, invalidSnapshot("json.bounds: " + err.Error())
 	}
-	if err := validateJSONStructure(data); err != nil {
-		//gomad:dynamic reviewed 2026-10-12 model codec and gzip errors expose memory-only messages
-		return Snapshot{}, invalidSnapshot("json: " + err.Error())
-	}
-	decoder := json.NewDecoder(bytes.NewReader(data))
-	decoder.DisallowUnknownFields()
 	var snapshot Snapshot
-	if err := decoder.Decode(&snapshot); err != nil {
-		//gomad:dynamic reviewed 2026-10-12 model codec and gzip errors expose memory-only messages
-		return Snapshot{}, invalidSnapshot("json: " + err.Error())
-	}
-	if err := requireJSONEOF(decoder); err != nil {
+	if err := strictjson.Decode(data, &snapshot); err != nil {
 		//gomad:dynamic reviewed 2026-10-12 model codec and gzip errors expose memory-only messages
 		return Snapshot{}, invalidSnapshot("json: " + err.Error())
 	}
 	if _, err := Restore(snapshot, nil); err != nil {
 		return Snapshot{}, err
 	}
-	canonical, err := canonicaljson.CanonicalJSON(snapshot)
+	canonical, err := encodeWorldJSON(snapshot)
 	if err != nil {
 		return Snapshot{}, invalidSnapshot("json.canonical")
 	}
@@ -276,66 +296,6 @@ func consumeSnapshotBudget(budget *uint64) error {
 		return fmt.Errorf("aggregate JSON node count exceeds configured limit")
 	}
 	*budget--
-	return nil
-}
-
-func validateJSONStructure(data []byte) error {
-	decoder := json.NewDecoder(bytes.NewReader(data))
-	decoder.UseNumber()
-	if err := consumeJSONValue(decoder); err != nil {
-		return err
-	}
-	return requireJSONEOF(decoder)
-}
-
-func consumeJSONValue(decoder *json.Decoder) error {
-	token, err := decoder.Token()
-	if err != nil {
-		return err
-	}
-	delimiter, isDelimiter := token.(json.Delim)
-	if !isDelimiter {
-		return nil
-	}
-	switch delimiter {
-	case '{':
-		seen := make(map[string]struct{})
-		for decoder.More() {
-			keyToken, keyErr := decoder.Token()
-			if keyErr != nil {
-				return keyErr
-			}
-			key, ok := keyToken.(string)
-			if !ok {
-				return fmt.Errorf("object key is not a string")
-			}
-			if _, found := seen[key]; found {
-				return fmt.Errorf("duplicate object key %q", key)
-			}
-			seen[key] = struct{}{}
-			if err := consumeJSONValue(decoder); err != nil {
-				return err
-			}
-		}
-		closing, closeErr := decoder.Token()
-		if closeErr != nil || closing != json.Delim('}') {
-			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
-			return fmt.Errorf("invalid object close: %w", closeErr)
-		}
-	case '[':
-		for decoder.More() {
-			if err := consumeJSONValue(decoder); err != nil {
-				return err
-			}
-		}
-		closing, closeErr := decoder.Token()
-		if closeErr != nil || closing != json.Delim(']') {
-			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
-			return fmt.Errorf("invalid array close: %w", closeErr)
-		}
-	default:
-		return fmt.Errorf("unexpected delimiter %q", delimiter)
-	}
 	return nil
 }
 

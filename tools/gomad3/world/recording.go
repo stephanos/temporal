@@ -3,10 +3,9 @@ package world
 import (
 	"bytes"
 	"encoding/binary"
-	"encoding/json"
 	"fmt"
 
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+	"go.temporal.io/server/tools/gomad3/internal/strictjson"
 )
 
 const MaximumRecordingBytes = 2*MaximumSnapshotJSONBytes + (1 << 20) + 40
@@ -215,7 +214,11 @@ func EncodeRecording(recording Recording) ([]byte, error) {
 	if err := ValidateRecording(recording); err != nil {
 		return nil, err
 	}
-	terminal, err := canonicaljson.CanonicalJSON(recording.Terminal)
+	if err := validateUTF8String("terminal.detail", recording.Terminal.Detail); err != nil {
+		//gomad:dynamic reviewed 2026-10-13 reviewed World validation errors expose memory-only methods
+		return nil, fmt.Errorf("encode World terminal: %w", err)
+	}
+	terminal, err := encodeWorldJSON(recording.Terminal)
 	if err != nil {
 		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return nil, fmt.Errorf("encode World terminal: %w", err)
@@ -273,11 +276,11 @@ func DecodeRecording(data []byte) (Recording, error) {
 		return Recording{}, err
 	}
 	var terminal Terminal
-	if err := json.Unmarshal(remaining, &terminal); err != nil {
+	if err := strictjson.Decode(remaining, &terminal); err != nil {
 		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return Recording{}, fmt.Errorf("decode World terminal: %w", err)
 	}
-	canonical, err := canonicaljson.CanonicalJSON(terminal)
+	canonical, err := encodeWorldJSON(terminal)
 	if err != nil || !bytes.Equal(canonical, remaining) {
 		return Recording{}, fmt.Errorf("noncanonical World terminal")
 	}
