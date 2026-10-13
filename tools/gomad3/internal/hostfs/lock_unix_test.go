@@ -76,3 +76,47 @@ func TestSharedLocksExcludeTryButNotEachOther(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestTryDescriptorLocksTheHeldFileAndExcludesPathLocks(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "resource.lock")
+	if err := os.WriteFile(path, nil, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	file, err := os.OpenFile(path, os.O_RDWR, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	held, err := TryDescriptor(file)
+	if err != nil {
+		t.Fatal(errors.Join(err, file.Close()))
+	}
+	if _, err := Try(path); !errors.Is(err, ErrContended) {
+		t.Fatalf("Try() under descriptor lock error = %v", err)
+	}
+	other, err := os.OpenFile(path, os.O_RDWR, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := TryDescriptor(other); !errors.Is(err, ErrContended) {
+		t.Fatalf("second TryDescriptor() error = %v", err)
+	}
+	if _, err := other.Stat(); err != nil {
+		t.Fatalf("failed TryDescriptor closed the caller's file: %v", err)
+	}
+	if err := held.Release(); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := file.Stat(); !errors.Is(err, os.ErrClosed) {
+		t.Fatalf("Release left the owned descriptor open: %v", err)
+	}
+	reacquired, err := TryDescriptor(other)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := reacquired.Release(); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := TryDescriptor(nil); err == nil {
+		t.Fatal("nil descriptor accepted")
+	}
+}

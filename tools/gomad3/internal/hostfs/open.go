@@ -21,6 +21,12 @@ func OpenRoot(root *os.Root, path string) (*os.File, os.FileInfo, error) {
 }
 
 func openRegular(path string, lstat func(string) (os.FileInfo, error), open func(string) (*os.File, error)) (*os.File, os.FileInfo, error) {
+	return openRegularSized(path, lstat, open, false)
+}
+
+// openRegularSized validates path like openRegular; growing admits a file that
+// grew, but did not shrink, between the lstat and the open.
+func openRegularSized(path string, lstat func(string) (os.FileInfo, error), open func(string) (*os.File, error), growing bool) (*os.File, os.FileInfo, error) {
 	info, err := lstat(path)
 	if err != nil {
 		return nil, nil, err
@@ -40,7 +46,7 @@ func openRegular(path string, lstat func(string) (os.FileInfo, error), open func
 		return nil, nil, err
 	}
 	openedInfo, err := file.Stat()
-	if err != nil || !os.SameFile(info, openedInfo) || openedInfo.Mode() != info.Mode() || openedInfo.Size() != info.Size() {
+	if err != nil || !os.SameFile(info, openedInfo) || openedInfo.Mode() != info.Mode() || openedInfo.Size() < info.Size() || !growing && openedInfo.Size() != info.Size() {
 		return nil, nil, errors.Join(fmt.Errorf("%s changed while opening", name), err, file.Close())
 	}
 	if err := validateLinkCount(openedInfo); err != nil {

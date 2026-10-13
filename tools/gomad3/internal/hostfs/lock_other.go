@@ -2,9 +2,15 @@
 
 package hostfs
 
+import "os"
+
 type Lock struct{}
 
 func Try(string) (*Lock, error) {
+	return nil, ErrUnsupported
+}
+
+func TryDescriptor(*os.File) (*Lock, error) {
 	return nil, ErrUnsupported
 }
 

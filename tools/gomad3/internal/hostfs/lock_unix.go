@@ -36,17 +36,34 @@ func lock(path string, how int) (*Lock, error) {
 	if err := file.Chmod(0o600); err != nil {
 		return nil, errors.Join(err, file.Close())
 	}
-	err = syscall.Flock(int(file.Fd()), how)
-	for errors.Is(err, syscall.EINTR) {
-		err = syscall.Flock(int(file.Fd()), how)
-	}
-	if err != nil {
-		if errors.Is(err, syscall.EWOULDBLOCK) || errors.Is(err, syscall.EAGAIN) {
-			err = errors.Join(ErrContended, err)
-		}
+	if err := flock(file, how); err != nil {
 		return nil, errors.Join(err, file.Close())
 	}
 	return &Lock{file: file}, nil
+}
+
+// TryDescriptor takes an exclusive lock without waiting on a file the caller
+// has already opened and validated. On success the Lock owns file and Release
+// closes it; on failure the caller still owns file.
+func TryDescriptor(file *os.File) (*Lock, error) {
+	if file == nil {
+		return nil, errors.New("lock descriptor is required")
+	}
+	if err := flock(file, syscall.LOCK_EX|syscall.LOCK_NB); err != nil {
+		return nil, err
+	}
+	return &Lock{file: file}, nil
+}
+
+func flock(file *os.File, how int) error {
+	err := syscall.Flock(int(file.Fd()), how)
+	for errors.Is(err, syscall.EINTR) {
+		err = syscall.Flock(int(file.Fd()), how)
+	}
+	if errors.Is(err, syscall.EWOULDBLOCK) || errors.Is(err, syscall.EAGAIN) {
+		err = errors.Join(ErrContended, err)
+	}
+	return err
 }
 
 func (lock *Lock) Release() error {
