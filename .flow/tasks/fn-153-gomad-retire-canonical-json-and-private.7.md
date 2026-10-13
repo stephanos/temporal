@@ -40,13 +40,13 @@ Capture the frozen behavior pin named above, run focused negative controls and f
 - [ ] Report/evidence/cohort identities bind complete inputs, semantic clones preserve nil/pointer ownership and report corruption/staleness remains detectable.
 - [ ] Focused report/ledger parsing and publication negatives cover malformed/unknown/duplicate/trailing input, invalid strings, bounds, primary/cleanup error precedence and published-but-not-durable outcomes.
 ## Done summary
-TBD
+Migrated qualification, native capability-analysis/comparison, and soak evidence to complete deterministic stdlib identities with strict typed decoding, bounded reads, detached nested evidence, and invalid-string refusal. Routed qualification reports through disposition-aware hostfs staging and soak JSON through shared durable replacement without changing public filenames, modes, or formatting. Nil-preserving blocker clones now keep returned evidence reproducible from its recorded identity. Focused, race, hostfs/world, and architecture gates pass; the implementation re-review is SHIP. The full native analysis path remains host-inconclusive on linux/arm64, and aggregate validation reaches only fn153.17's known stale compatibility approval.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 1d24472a13020a7238919b7ebb1761c92d690059, 8743c3ad00a8a2af2ef44ef658bab256bf46770c, 24017f0edc81184582693daa348d07dae3322d96
+- Tests: go -C tools/gomad3 test -tags test_dep -count=1 ./qualification ./backends/native/qualification/comparison ./backends/native/qualification/soak: PASS, go -C tools/gomad3 test -tags test_dep -count=1 -run '^TestBuildRejectsInvalidOriginalIdentityStrings$' ./backends/native/qualification/analysis: PASS, go -C tools/gomad3 test -tags test_dep -race -count=1 ./qualification ./backends/native/qualification/comparison ./backends/native/qualification/soak: PASS, go -C tools/gomad3 test -tags test_dep -count=1 ./internal/hostfs ./world: PASS, go -C tools/gomad3 test -tags test_dep -count=1 ./internal/archcheck: PASS, make -C tools/gomad3 validate: EXPECTED FN153.17-OWNED DRIFT (compatibility-pack request golang-x-sys-v047-darwin-arm64 approval is stale), full native analysis suite: INCONCLUSIVE on linux/arm64 because the deterministic native profile/toolchain supports darwin/arm64 and linux/amd64, flowctl codex impl-review re-review: SHIP, prior blocker nil/empty identity finding fixed and no new findings
 - PRs:
-
 ## Revival trigger (2026-10-13)
 
 Revived after fn153.1, fn153.2 and fn153.3 completed with SHIP implementation reviews. Qualification report and soak publication now consume the integrated hostfs staging and record identity seams; general qualification ownership is disjoint from the concurrent compatibility and Runner migrations. The forced local claim is required only because Flow chain admission still sees the completed fn152 parent on an unpushed remote branch; pushing remains outside the requested scope.
