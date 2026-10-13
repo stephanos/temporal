@@ -864,6 +864,55 @@ the patched toolchain.
 
 ## Contract
 
+### JSON and whole-file publication
+
+Gomad uses `encoding/json` for ordinary JSON encoding. Persisted and hashed
+records obtain stability from versioned typed projections and complete
+current-build identities, not from a repository-wide byte-normalizing encoder.
+Changing insignificant JSON spelling is therefore not a compatibility event.
+There is no fallback decoder or migration path for an older Campaign, Artifact,
+plan, report, cache, or qualification lineage: current readers validate the
+current schema and reject unsupported lineages.
+
+The migrated owned typed JSON surfaces decode through `internal/strictjson`,
+using the pinned `github.com/go-json-experiment/json` implementation. It
+accepts one value,
+retains case-insensitive field-name matching while requiring exact delimiter
+spelling, and rejects malformed JSON, invalid UTF-8, duplicate object names,
+trailing data, and unknown typed-struct members. Keys inside maps and values
+captured as `json.RawMessage` are not typed schema members; each caller still
+owns byte bounds, framing, and semantic validation. Domain validation continues
+to reject invalid original strings, shapes, numeric bounds, hashes, and stale
+approvals. Fixed byte arrays retain the standard library's JSON-array input
+form. Record and failure identity remains an explicit projection: host
+paths and timestamps are excluded deliberately, while every semantic input is
+retained.
+
+The JSON rule does not redefine domain wire formats. The Campaign append log
+uses a binary `GMLG` frame and CRCs around its typed JSON record payload. Live
+capability evidence authenticates its original JSON payload bytes under a
+binary header. World evidence snapshots use the generated compressed binary
+envelope; the closed World transition/model JSON helpers retain their own
+number and escaping rules. Deterministic I/O, choice, simulation, and time
+transports remain their generated binary codecs, and paired simulation hashes
+retain their defined formulas. "Canonical" still describes semantic objects
+such as normalized outcomes and reviewed release inputs; it no longer names a
+generic JSON serializer.
+
+Whole-file atomic replacement is owned by `internal/hostfs` (and its public
+facade where an external package boundary requires it). The qualification and
+soak reports, streamed source archive, validated regenerated patch, and native
+builder's ordered stamp-and-launcher transaction all use the shared staged
+primitive. Staging creates a same-directory temporary file with the requested
+mode, fills, syncs, and closes it before caller validation and rename; cleanup
+is repeatable. Cancellation and fill, mode, sync, close, validation, rename,
+directory-sync, and cleanup failures remain visible. Before rename the prior
+destination remains authoritative. After rename the returned publication
+disposition is true even when directory sync fails, so callers report that the
+replacement happened without claiming durability. Append-only logs, immutable
+directory publication, no-replace content-addressed publication, and direct
+provenance streams retain their separate owners and transactions.
+
 A directly launched target activates Gomad with `GOMADSEED`. A Runner-managed
 target activates deterministic I/O through an identity-bound inherited
 bootstrap frame and a private activation marker. When neither path is present,
@@ -1276,7 +1325,7 @@ any entry that is not a pack named by its ID fail closed. Each selected pack's
 ID and SHA-256 are part of the target identity, so replaying, resuming, or
 executing a shard without the same pack fails before execution.
 
-Malformed or non-canonical requests and packs are invalid input. Source,
+Malformed or schema-invalid requests and packs are invalid input. Source,
 toolchain, module-cache, adapter, publication, and cleanup failures are
 infrastructure failures. Fresh-review disagreement is unsupported drift. None
 of these cases falls back to an older pack, partial inventory, arbitrary local

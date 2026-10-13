@@ -454,6 +454,28 @@ Commands expose machine-readable output where it is part of their contract:
 - `analyze`, `qualify-set`, `merge-set`, and `compare-support` select text or JSON with `--format`.
 - `qualify` emits newline-delimited qualification events with `--json`.
 
+Machine-readable JSON promises typed fields and their meanings, not one
+byte-for-byte spelling. Writers use Go's standard JSON encoder; owned typed
+inputs that use the shared strict decoder reject malformed input, invalid
+UTF-8, duplicate names, trailing data, unknown typed fields, and changed
+delimiter spelling. Case-only field aliases remain accepted, and fixed byte
+arrays use the standard library's JSON-array form. Open maps and raw JSON
+payloads are validated by their owning command for bounds and meaning. Commands
+never silently read or migrate an older Campaign, Artifact, plan, report,
+cache, or qualification lineage.
+Protocol payloads remain exceptions to the ordinary JSON rule: in particular,
+Campaign logs are binary framed, live-capability records authenticate their raw
+JSON payload bytes, and World evidence snapshots use the compressed binary
+envelope.
+
+Commands that replace a whole output file stage, sync, close, and validate it
+before rename, then sync its directory. If failure occurs before rename the old
+destination remains in force. If directory sync fails after rename, the command
+reports publication failure (status 3) without claiming that the replacement
+did not happen. Recovery should therefore follow the command-specific inspect
+or recovery workflow; copying an older file format into place is never a
+supported repair.
+
 Across user workflows, exit statuses preserve the same broad meaning:
 
 | Status | Meaning |

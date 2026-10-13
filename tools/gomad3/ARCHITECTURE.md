@@ -501,6 +501,31 @@ points, `validation.go` owns envelope validation, and `identity.go` owns the
 record and failure identity projections. These remain files in one package so
 the internal split does not add forwarding APIs.
 
+Ordinary JSON writers use `encoding/json`. The architecture deliberately has
+no generic canonical-JSON layer: versioned typed projections and complete
+producer identities define semantic stability, while wire-specific packages
+define any required byte identity. The 21 functional production users of
+`internal/strictjson` are the native build, compatibility-pack, native
+qualification, captured-state, qualification-report, Record, Runner
+simulation/minimizer/plan, and World recording/replay owners. The architecture
+checker is the remaining production import and enforces that ownership. The
+pinned experimental decoder rejects malformed input, invalid UTF-8, duplicate
+names, trailing data, and unknown typed members; it accepts case aliases but
+not changed delimiter spelling, and it preserves `encoding/json` array input
+for fixed byte arrays. Maps and raw JSON remain caller-validated open
+projections rather than gaining a fictitious closed schema.
+
+Record and failure identity projections retain semantic values while
+deliberately excluding diagnostic paths and host timestamps. The corresponding
+validation still checks original domain strings, numeric and shape bounds,
+complete hashes, and current approvals. World evidence snapshots are generated
+compressed binary envelopes, not protobuf or ordinary JSON. The closed World
+transition/model JSON helpers, live-capability header plus authenticated raw
+JSON payload, `GMLG` append-log frames around typed JSON payloads, generated
+deterministic-I/O/Choice/simulation/time codecs, and paired simulation identity
+formulas remain protocol-owned carve-outs. Unsupported prior lineages are
+identified only to return refusal; none is decoded or migrated.
+
 Record and failure hashes exclude diagnostic host timestamps and paths. Failure
 signatures also exclude the seed so byte-equivalent observations from different
 seeds can be grouped. Full stream hashes, not retained output fragments, enter
@@ -537,6 +562,22 @@ format is refused the same way (`artifact.UnsupportedFormatError`, matching
 with status 2. The envelope is reserved like the manifest; it is not counted
 in an artifact's stored bytes, so artifact capacities and recorded byte counts
 keep their meaning.
+
+Ordinary whole-file replacement is centralized in `internal/hostfs`; the
+public `hostfs` facade exposes the same owner where cross-package consumers need
+it. The five formerly private publication contracts are the qualification and
+soak reports, streamed toolchain source archive, validated regenerated patch,
+and the builder's ordered stamp-and-launcher transaction. The shared primitive
+creates a same-directory stage with its requested mode, streams the contents,
+syncs and closes it, exposes its path for caller validation, and then performs
+replace or no-replace rename plus directory sync. Cleanup is repeatable. Before
+rename, any error leaves the destination unchanged. After rename,
+`PublishContext` returns `published=true` even if directory sync fails, so a
+caller preserves publication disposition without asserting durability.
+Caller-owned validation, unique paths, guards, and transaction ordering remain
+outside the helper. Append-log mutation, immutable directory publication,
+content-addressed artifact publication, and direct provenance streams keep
+their existing owners.
 
 Cleanup is owned. `artifact.SweepOwnedRoot` takes one payload root its caller
 exclusively owns (holding the owner's lock) and the references the owner's

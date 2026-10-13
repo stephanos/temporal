@@ -405,6 +405,43 @@ Combined Exploration must coordinate bounded alternatives across runtime, scenar
 
 Every completed Execution must produce a canonical, versioned, bounded Record containing the execution-relevant identities, outcome, full output hashes, retained output metadata, and applicable runtime, World, interaction, and simulation evidence.
 
+### [EVIDENCE.JSON] JSON Ownership
+
+Ordinary JSON encoders must use the standard library. Persisted and hashed
+values must obtain stable meaning from versioned typed projections and complete
+current-build identities rather than a generic byte-normalizing encoder. A
+reader of an owned typed JSON schema must consume exactly one value and reject
+malformed input, invalid UTF-8, duplicate object names, trailing data, and
+unknown typed members. Map keys and raw JSON values are outside typed-member
+checking; their owner must enforce framing, byte bounds, and semantic validity.
+Case-only field aliases may be accepted, but changed delimiter spelling must not
+be. Fixed byte arrays must accept the standard library's JSON-array input form.
+Current readers must reject unsupported stored lineages rather than decode or
+migrate an older representation.
+
+The ordinary JSON contract must not change an independently specified wire
+format. Campaign log framing and integrity, live-capability payload bytes and
+header layout, World snapshot envelopes, deterministic-I/O, Choice,
+simulation, and time codecs, and paired simulation identity formulas remain
+owned by their respective protocols. Semantic canonicalization of Outcomes,
+identities, and reviewed release inputs remains required where separately
+specified.
+
+### [EVIDENCE.FILE.PUBLICATION] Whole-File Publication
+
+Every whole-file atomic replacement must use the shared host-filesystem staged
+publication owner. The owner must create the candidate in the destination
+directory with the requested mode, fill, sync, and close it before
+caller-specific validation and publication. Cancellation and fill, mode, sync,
+close, validation, rename, directory-durability, and cleanup failures must
+preserve their primary identity. A failure before rename must leave the prior
+destination authoritative. A failure after rename must report that publication
+occurred without claiming directory durability. Streaming writers, unique
+report paths, validation guards, and an ordered multi-file transaction remain
+caller contracts. Append logs, immutable directories, content-addressed
+no-replace publication, and provenance streams remain separate operations and
+must not be rewritten as whole-file replacement.
+
 ### [EVIDENCE.ARTIFACT] Artifact Publication
 
 Retained failures and retained successes must be published as immutable content-addressed Artifacts. Partial or interrupted publication must never appear complete, and existing content may be reused only after full validation.
@@ -550,7 +587,7 @@ The `gomadtool` command must expose the following maintainer workflows. Each row
 | `[COMMAND.GOMADTOOL.PATCH.REGENERATE]` | `patch-regenerate` | Recreate the canonical runtime patch from a reviewed candidate source tree. |
 | `[COMMAND.GOMADTOOL.PATCH.VALIDATE]` | `patch-validate` | Validate the runtime patch and overlay as complete governed inputs. |
 | `[COMMAND.GOMADTOOL.VERSION.GENERATE]` | `version-generate` | Generate or verify consumers of the canonical release descriptor. |
-| `[COMMAND.GOMADTOOL.PIN.IMPACT]` | `pin-impact` | Compare candidate and baseline module identities and report affected or unknown exact pins in human or canonical JSON form. |
+| `[COMMAND.GOMADTOOL.PIN.IMPACT]` | `pin-impact` | Compare candidate and baseline module identities and report affected or unknown exact pins in human or typed JSON form. |
 | `[COMMAND.GOMADTOOL.ADAPTER.REGENERATE]` | `adapter-regenerate` | Review changed source and proposed exact adapter anchors, then publish only with their matching approval digest. |
 | `[COMMAND.GOMADTOOL.BOUNDARY.GENERATE]` | `boundary-generate` | Discover, qualify, generate, refresh, or verify the reviewed host-capability boundary and its compiler conformance inputs. |
 | `[COMMAND.GOMADTOOL.PROTOCOL.GENERATE]` | `protocol-generate` | Generate or verify both endpoints of each declared cross-process protocol. |
