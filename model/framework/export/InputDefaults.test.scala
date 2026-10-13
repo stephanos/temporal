@@ -5,12 +5,13 @@ import scala.concurrent.duration.*
 import scala.jdk.CollectionConverters.*
 import framework.check.Tools
 import FixtureBuild.buildFixture
+import framework.check.RetainedScratch
 
-class InputDefaultsTest extends munit.FunSuite:
+class InputDefaultsTest extends munit.FunSuite with RetainedScratch:
   override val munitTimeout: Duration = 10.minutes
   private val tools = Tools.here
   private val scratch =
-    Files.createTempDirectory(tools.directory.resolve(".flow/tmp"), "input-defaults.")
+    retained(tools.directory.resolve(".flow/tmp"), "input-defaults.")
   private val json = new com.fasterxml.jackson.databind.ObjectMapper()
   // The packaged Models (ModelBuild): the framework this fixture reads, with the shared code and
   // the mini, which its lifts admit only where its roots reach them.

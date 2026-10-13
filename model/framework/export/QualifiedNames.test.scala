@@ -7,6 +7,7 @@ import scala.concurrent.duration.*
 import scala.jdk.CollectionConverters.*
 import framework.check.{Ran, Tools}
 import FixtureBuild.buildFixture
+import framework.check.RetainedScratch
 
 // A symbol-based Definition ID, a type's IR name and a machine's family are where the declaration
 // is declared (fn-126 decision 23): its fully qualified Scala name, the package and every object it
@@ -17,7 +18,7 @@ import FixtureBuild.buildFixture
 // another file of their package, which changes none of these names; under an object, which adds the
 // object to the name of what moved; and into a subpackage, which adds the package to every one of
 // them. The functions they declare carry the new owner, so the move took.
-class QualifiedNames extends munit.FunSuite:
+class QualifiedNames extends munit.FunSuite with RetainedScratch:
   override val munitTimeout: Duration = 20.minutes
 
   private val tools = Tools.here
@@ -27,7 +28,7 @@ class QualifiedNames extends munit.FunSuite:
   private val modelJar = build.resolve("model-scala.jar")
   private val modelClasspath = build.resolve("model-scala.classpath")
   private lazy val scratch =
-    Files.createTempDirectory(Files.createDirectories(build.resolve("history")), "names.")
+    retained(build.resolve("history"), "names.")
 
   // The roots the lifter's fixtures name, as Fixtures lifts them: file, package, roots by val name,
   // or by object name for a machine object (capitalized).

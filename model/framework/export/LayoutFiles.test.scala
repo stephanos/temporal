@@ -5,22 +5,20 @@ import scala.concurrent.duration.*
 import scala.jdk.CollectionConverters.*
 import framework.check.Tools
 import FixtureBuild.buildFixture
+import framework.check.RetainedScratch
 
 // The flat layout (fn-160 R7-R9) over model/framework/export/testdata/layoutFiles/urn: one machine per file,
 // named after it; a level folder's files grouped by family prefix; the realization layer, its
 // `<Subject>Run` names and its kit; and the layers' one-way imports, the Temporal API only in
 // realization/. Each refusal is pinned at its source line; the accepted files are refused nothing.
-class LayoutFilesFixtures extends munit.FunSuite:
+class LayoutFilesFixtures extends munit.FunSuite with RetainedScratch:
   override val munitTimeout: Duration = 10.minutes
   private val tools = Tools.here
   private val build = tools.directory.resolve("model/build")
   private val stored = "model/framework/export/testdata/layoutFiles/"
 
   test("the flat layout refuses each misplaced file, machine and import at its line"):
-    val scratch = Files.createTempDirectory(
-      Files.createDirectories(build.resolve("history")),
-      "layout-files."
-    )
+    val scratch = retained(build.resolve("history"), "layout-files.")
     val jar = scratch.resolve("layoutFiles.jar")
     tools
       .buildFixture(
@@ -99,10 +97,7 @@ class LayoutFilesFixtures extends munit.FunSuite:
   // R13 on the kind fixture (layout/kinds): a form's root feature file is `<Form><Kind>.scala`, and
   // what two forms share sits under the kind's `shared/`, never beside the forms.
   test("a misnamed form root and a shared Product beside the forms are refused, naming their files"):
-    val scratch = Files.createTempDirectory(
-      Files.createDirectories(build.resolve("history")),
-      "layout-kinds."
-    )
+    val scratch = retained(build.resolve("history"), "layout-kinds.")
     val modelJar = build.resolve("model-scala.jar")
     def variant(name: String)(change: java.nio.file.Path => Unit) =
       val tree = LayoutSources.materialize(

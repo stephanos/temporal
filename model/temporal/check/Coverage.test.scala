@@ -18,12 +18,17 @@ class CoverageSuite extends munit.FunSuite:
 
   test("an unregistered suite or a registry entry no suite declares is refused, by name"):
     val extra =
-      declared.head.copy(name = "temporal.check.UnregisteredSuite", file = "model/temporal/check/X.scala")
+      declared.head.copy(
+        name = "temporal.check.UnregisteredSuite",
+        file = "model/temporal/check/X.scala"
+      )
     val refused = intercept[GateError](
       Scope.of(root, Seq("model/temporal/check/Gate.scala"), declared :+ extra, Coverage)
     )
     assert(
-      refused.getMessage.contains("suite temporal.check.UnregisteredSuite (model/temporal/check/X.scala)")
+      refused.getMessage.contains(
+        "suite temporal.check.UnregisteredSuite (model/temporal/check/X.scala)"
+      )
     )
     val missing = intercept[GateError](
       Scope.of(root, Nil, declared.filterNot(_.name == "framework.check.ToolsSuite"), Coverage)

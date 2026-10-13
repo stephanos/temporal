@@ -8,15 +8,16 @@ import scala.jdk.CollectionConverters.*
 import com.fasterxml.jackson.databind.JsonNode
 import framework.check.{Ran, Tools}
 import FixtureBuild.buildFixture
+import framework.check.RetainedScratch
 
-class DefaultEndsSuite extends munit.FunSuite:
+class DefaultEndsSuite extends munit.FunSuite with RetainedScratch:
   override val munitTimeout: Duration = 10.minutes
   private val tools = Tools.here
   private val build = tools.directory.resolve("model/build")
   private val stored = "model/framework/export/testdata/defaultEnds/"
   private val modelJar = build.resolve("model-scala.jar")
   private val scratch =
-    Files.createTempDirectory(Files.createDirectories(build.resolve("history")), "ends.")
+    retained(build.resolve("history"), "ends.")
   private val fixtureJar = scratch.resolve("ends.jar")
   private val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
 

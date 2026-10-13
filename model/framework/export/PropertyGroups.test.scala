@@ -7,14 +7,15 @@ import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
 import com.fasterxml.jackson.databind.node.ObjectNode
 import framework.check.Tools
 import FixtureBuild.buildFixture
+import framework.check.RetainedScratch
 
-class PropertyGroupsFixtures extends munit.FunSuite:
+class PropertyGroupsFixtures extends munit.FunSuite with RetainedScratch:
   override val munitTimeout = 10.minutes
   private val tools = Tools.here
   private val build = tools.directory.resolve("model/build")
   private val stored = "model/framework/export/testdata/propertyGroups/"
   private val scratch =
-    Files.createTempDirectory(build.resolve("history"), "property-groups.")
+    retained(build.resolve("history"), "property-groups.")
   private val mapper = ObjectMapper()
   private lazy val frameworkJar =
     val out = Files.createDirectories(scratch.resolve("framework")).resolve("framework.jar")

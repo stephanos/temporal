@@ -5,8 +5,9 @@ import scalafix.v1.{SyntacticDocument, SyntacticRule}
 import scalafix.internal.v1.Rules
 import java.nio.file.{Files, Path}
 import java.lang.reflect.InvocationTargetException
+import framework.check.RetainedScratch
 
-class FacetWrappingTest extends munit.FunSuite:
+class FacetWrappingTest extends munit.FunSuite with RetainedScratch:
   test("independent compiled inventory refuses both missing and additional declared machines"):
     val module =
       Class.forName("temporal.migrate.RewriteFacetWrappingMini$").getField("MODULE$").get(null)
@@ -203,7 +204,7 @@ object ActivityProtocol extends Machine[State, Outcome, Fact], Phased[State, Pha
   private val acceptedMachine = expected.take(expected.indexOf("\n\ntrait Answering")) + "\n"
   private val acceptedFacet = prefix + "\n" + expected.drop(expected.indexOf("trait Answering"))
   private def scratch() =
-    val directory = Files.createTempDirectory(Path.of(".flow/tmp"), "facet-wrapping-file-test.")
+    val directory = retained(Path.of(".flow/tmp"), "facet-wrapping-file-test.")
     Files.writeString(directory.resolve("AnswerDispatch.scala"), legacy)
     directory
   private def split(

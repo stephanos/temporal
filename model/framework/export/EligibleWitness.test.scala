@@ -5,14 +5,15 @@ import scala.jdk.CollectionConverters.*
 import scala.concurrent.duration.*
 import framework.check.Tools
 import FixtureBuild.buildFixture
+import framework.check.RetainedScratch
 
-class EligibleWitnessFixtures extends munit.FunSuite:
+class EligibleWitnessFixtures extends munit.FunSuite with RetainedScratch:
   override val munitTimeout = 10.minutes
   private val tools = Tools.here
   private val build = tools.directory.resolve("model/build")
   private val stored = "model/framework/export/testdata/eligibleWitness/"
   private val scratch =
-    Files.createTempDirectory(build.resolve("history"), "eligible-witness.")
+    retained(build.resolve("history"), "eligible-witness.")
   private def fixture(positive: Boolean) =
     val from = tools.directory.resolve(stored)
     val directory = Files.createDirectories(

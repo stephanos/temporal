@@ -221,6 +221,7 @@ object Coverage extends Registry:
       .and(Area.Framework, Area.Shared, Area.Lifter)
       .everyFeature,
     "framework.check.ToolsSuite" -> check,
+    "framework.check.RetainedSuite" -> check,
     "framework.check.lint.GuideSourcesTest" ->
       check.and(Area.Framework, Area.Shared).reading(mini).files("model/SEMANTICS.md"),
     // The migration rules' suites, which rewrite source text; some read the mini feature's or the

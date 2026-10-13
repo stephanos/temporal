@@ -6,12 +6,13 @@ import scala.jdk.CollectionConverters.*
 import com.fasterxml.jackson.databind.JsonNode
 import framework.check.{Ran, Tools}
 import FixtureBuild.buildFixture
+import framework.check.RetainedScratch
 
-class InputDeadlinePresetsTest extends munit.FunSuite:
+class InputDeadlinePresetsTest extends munit.FunSuite with RetainedScratch:
   override val munitTimeout: Duration = 10.minutes
   private val tools = Tools.here
   private val scratch =
-    Files.createTempDirectory(tools.directory.resolve(".flow/tmp"), "input-deadlines.")
+    retained(tools.directory.resolve(".flow/tmp"), "input-deadlines.")
   // The packaged Models: the mini and the shared code this fixture reads.
   private val modelJar = ModelBuild.jar
   private def classpath = ModelBuild.classpath
@@ -168,16 +169,13 @@ object Ordinary:
     val json = new com.fasterxml.jackson.databind.ObjectMapper().readTree(Files.readString(out))
     assertEquals(json.at("/scenarios/0/actions/0/inputs/0/enum/case").asText(), "expires")
 
-class DeadlinePresetsSuite extends munit.FunSuite:
+class DeadlinePresetsSuite extends munit.FunSuite with RetainedScratch:
   override val munitTimeout: Duration = 10.minutes
   private val tools = Tools.here
   private val build = tools.directory.resolve("model/build")
   private val stored = "model/framework/export/testdata/deadlinePresets/"
   private val modelJar = build.resolve("model-scala.jar")
-  private val scratch = Files.createTempDirectory(
-    Files.createDirectories(build.resolve("history")),
-    "deadline-presets."
-  )
+  private val scratch = retained(build.resolve("history"), "deadline-presets.")
   private val fixtureJar = scratch.resolve("presets.jar")
   private val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
 

@@ -157,3 +157,58 @@ object Scratch:
       val stream = Files.walk(path)
       try stream.iterator.asScala.toList.reverse.foreach(p => Files.deleteIfExists(p): Unit)
       finally stream.close()
+
+// A run's scratch directory in a shared place that outlives the JVM (model/build/history,
+// .flow/tmp), kept only when the run fails (owner, 2026-10-13): a run that passes deletes its own,
+// a run that fails keeps it for inspection, marked, and only the newest `kept` runs' are kept. A run
+// prunes only directories that are not its own and that nothing changed within the last hour, so
+// another process's run is never removed while it goes on. The marks are files beside the
+// directory, `<name>.scratch` and `<name>.failed`, so the directory holds only what the run wrote.
+object Retained:
+  val kept = 10
+
+  private def mark(directory: Path, kind: String): Path =
+    directory.resolveSibling(s"${directory.getFileName}.$kind")
+
+  // A new scratch directory under `parent`, named `prefix` and a random suffix.
+  def directory(parent: Path, prefix: String): Path =
+    val made = Files.createTempDirectory(Files.createDirectories(parent), prefix)
+    Files.writeString(mark(made, "scratch"), s"${ProcessHandle.current.pid}\n")
+    made
+
+  private def delete(directory: Path): Unit =
+    Scratch.delete(directory)
+    Seq("scratch", "failed").foreach(kind => Files.deleteIfExists(mark(directory, kind)): Unit)
+
+  // The run that made `directories` is over: delete them when it passed; else mark them failed, with
+  // `why`, and prune the other runs' scratch beside them.
+  def finish(passed: Boolean, directories: Seq[Path], why: String = ""): Unit =
+    val existing = directories.map(_.toAbsolutePath.normalize).filter(Files.isDirectory(_))
+    if passed then existing.foreach(delete)
+    else
+      existing.foreach(d => Files.writeString(mark(d, "failed"), why): Unit)
+      existing.map(_.getParent).distinct.foreach(prune(_, existing.toSet))
+
+  // Deletes the scratch of earlier runs in `parent` beyond the newest `kept`: a failed run's, and a
+  // run's that ended without finishing (a killed JVM). Never one of `own`, never a directory that
+  // is no run's scratch, and never one changed within the last hour.
+  def prune(parent: Path, own: Set[Path]): Unit =
+    val ours = own.map(_.toAbsolutePath.normalize)
+    val cutoff = System.currentTimeMillis - 3600 * 1000L
+    val stream = Files.list(parent)
+    val earlier =
+      try
+        stream.iterator.asScala
+          .map(_.toAbsolutePath.normalize)
+          .filter(d => Files.isDirectory(d) && Files.isRegularFile(mark(d, "scratch")) && !ours(d))
+          .map(d => d -> Files.getLastModifiedTime(d).toMillis)
+          .toVector
+      finally stream.close()
+    val room = (kept - ours.size).max(0)
+    val (recent, old) = earlier.partition(_._2 >= cutoff)
+    old.sortBy(-_._2).drop((room - recent.size).max(0)).foreach((d, _) => delete(d))
+
+// `finishScratch passed|failed <directory>...`: the end of a run that made its scratch with a shell
+// (framework/migrate/prove.sh), as Retained.finish ends a JVM's.
+@main def finishScratch(status: String, directories: String*): Unit =
+  Retained.finish(status == "passed", directories.map(Path.of(_)))

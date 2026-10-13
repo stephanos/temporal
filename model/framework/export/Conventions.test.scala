@@ -5,13 +5,14 @@ import scala.concurrent.duration.*
 import scala.jdk.CollectionConverters.*
 import framework.check.{Ran, Tools}
 import FixtureBuild.buildFixture
+import framework.check.RetainedScratch
 
-class ConventionsFixtures extends munit.FunSuite:
+class ConventionsFixtures extends munit.FunSuite with RetainedScratch:
   override val munitTimeout = 10.minutes
   private val tools = Tools.here
   private val build = tools.directory.resolve("model/build")
   private lazy val scratch =
-    Files.createTempDirectory(Files.createDirectories(build.resolve("history")), "conventions.")
+    retained(build.resolve("history"), "conventions.")
 
   private def fixture(name: String): Path =
     val sources =

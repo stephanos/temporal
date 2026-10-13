@@ -127,13 +127,18 @@ final class Gate(tools: Tools, log: PrintStream):
             .mkString("\n")
         )
 
-  // Scratch directories are made fresh under the ignored model/build/history and kept for
-  // inspection: nothing is deleted, so another process's build state is never removed.
+  // Scratch directories are made fresh under the ignored model/build/history; a run that passes
+  // deletes its own and one that fails keeps them for inspection (Retained, Tools.scala), and no run
+  // removes another process's while it goes on.
+  private val made = _root_.scala.collection.mutable.ArrayBuffer.empty[Path]
   private def scratch(name: String): Path =
-    Files.createTempDirectory(
-      Files.createDirectories(build.resolve("history")),
-      s"$name."
-    )
+    val directory = Retained.directory(build.resolve("history"), s"$name.")
+    made.synchronized(made += directory): Unit
+    directory
+
+  // The run is over: its scratch is deleted when it passed, and kept when it failed.
+  def finishScratch(passed: Boolean): Unit =
+    Retained.finish(passed, made.synchronized(made.toVector))
 
   // The IR schema's files by their paths under proto/internal, sorted: the root,
   // proto/internal/temporal/server/api/umpire/v1/ir.proto, and every file of the IR it imports,
@@ -1119,7 +1124,9 @@ final class Gate(tools: Tools, log: PrintStream):
       step("compile the lifter and its tests"):
         tools.scalaCli(Seq("compile", "--test") ++ lifter).orFail()
     if !fast && selection.narrowed then
-      log.println("== skipped complete lifter fixture suite (narrowed FEATURES; run the full-set gate)")
+      log.println(
+        "== skipped complete lifter fixture suite (narrowed FEATURES; run the full-set gate)"
+      )
 
     // Both read the packaged Models and the lifter, and neither reads what the other writes.
     val fixtures =
@@ -1352,6 +1359,16 @@ object Gate:
         )
       )
 
+  // Runs `body` with a gate, then ends the run's scratch: deleted when it passed, kept when it failed.
+  def running(tools: Tools, out: PrintStream)(body: Gate => Unit): Unit =
+    val gate = Gate(tools, out)
+    try body(gate)
+    catch
+      case e: Throwable =>
+        gate.finishScratch(passed = false)
+        throw e
+    gate.finishScratch(passed = true)
+
   // Runs the gate as its command line says and answers its exit status.
   def main(
       arguments: Seq[String],
@@ -1369,10 +1386,10 @@ object Gate:
           2
         case Some((command, paths, stepsOnly, dumper)) =>
           try
-            val gate = Gate(tools, out)
-            val absolute = paths.map(p => tools.directory.resolve(p))
-            if command.equals("capture") then gate.captureBaseline(absolute.head, dumper)
-            else gate.checkEquivalence(absolute(0), absolute(1), stepsOnly, dumper)
+            running(tools, out): gate =>
+              val absolute = paths.map(p => tools.directory.resolve(p))
+              if command.equals("capture") then gate.captureBaseline(absolute.head, dumper)
+              else gate.checkEquivalence(absolute(0), absolute(1), stepsOnly, dumper)
             0
           catch
             case e: (GateError | ToolError) =>
@@ -1441,10 +1458,10 @@ object Gate:
           findings.foreach(err.println)
           if findings.isEmpty then 0 else 1
         else
-          val gate = Gate(tools, out)
-          if flags("--generate-ir") then gate.generateIr(flags("--if-stale"))
-          else if flags("--generate-api") then gate.generateApi(flags("--if-stale"))
-          else gate.run(flags("--update"), !flags("--skip-go-checks"))
+          running(tools, out): gate =>
+            if flags("--generate-ir") then gate.generateIr(flags("--if-stale"))
+            else if flags("--generate-api") then gate.generateApi(flags("--if-stale"))
+            else gate.run(flags("--update"), !flags("--skip-go-checks"))
           0
       catch
         case e: (GateError | ToolError) =>
@@ -1566,7 +1583,7 @@ private[check] def modelLoopStatus(
     2
   else
     try
-      Gate(tools, out).modelLoop(skipLint = arguments.contains("--skip-lint"))
+      Gate.running(tools, out)(_.modelLoop(skipLint = arguments.contains("--skip-lint")))
       0
     catch
       case e: (GateError | ToolError | java.io.IOException) =>

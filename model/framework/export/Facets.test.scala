@@ -7,15 +7,18 @@ import framework.check.Tools
 import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
 import com.fasterxml.jackson.databind.node.{ArrayNode, ObjectNode}
 import FixtureBuild.buildFixture
+import framework.check.RetainedScratch
 
-class FacetsTest extends munit.FunSuite:
+class FacetsTest extends munit.FunSuite with RetainedScratch:
   override val munitTimeout: Duration = 10.minutes
   private val tools = Tools.here
   private val scratch =
-    Files.createTempDirectory(tools.directory.resolve(".flow/tmp"), "facet-contract.")
+    retained(tools.directory.resolve(".flow/tmp"), "facet-contract.")
   private val json = ObjectMapper()
   private val source =
-    Files.readString(tools.directory.resolve("model/framework/export/testdata/facetContract/Contract.scala"))
+    Files.readString(
+      tools.directory.resolve("model/framework/export/testdata/facetContract/Contract.scala")
+    )
   // The packaged Models (ModelBuild): the framework this fixture reads, with the shared code and
   // the mini, which its lifts admit only where its roots reach them.
   private def frameworkJar = ModelBuild.jar
@@ -505,7 +508,9 @@ class FacetsTest extends munit.FunSuite:
 
   test("a genuinely separate design state retains its exemption"):
     val existing =
-      Files.readString(tools.directory.resolve("model/framework/export/testdata/facetRules/FacetRules.scala"))
+      Files.readString(
+        tools.directory.resolve("model/framework/export/testdata/facetRules/FacetRules.scala")
+      )
     val built = packaged("design", Map("FacetRules.scala" -> existing))
     val (ran, _) = lift(built, "design", Seq("fixture.facetrules.Design"), both)
     assertEquals(ran.exit, 0, ran.diagnostics)

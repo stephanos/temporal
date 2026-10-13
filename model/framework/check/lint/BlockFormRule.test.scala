@@ -1,7 +1,6 @@
 package framework.check
 package lint
 
-
 class BlockFormRuleSuite extends munit.FunSuite:
   test("an on whose cases are in parentheses is found at its line, and a block is not"):
     val source =

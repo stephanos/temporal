@@ -4,15 +4,16 @@ import java.nio.file.Files
 import scala.concurrent.duration.*
 import framework.check.Tools
 import FixtureBuild.buildFixture
+import framework.check.RetainedScratch
 
-class StatusTableSeamFixtures extends munit.FunSuite:
+class StatusTableSeamFixtures extends munit.FunSuite with RetainedScratch:
   override val munitTimeout = 10.minutes
   private val tools = Tools.here
   private val build = tools.directory.resolve("model/build")
   private val stored = "model/framework/export/testdata/statusTableSeam/"
   private def lift(name: String) =
     val scratch =
-      Files.createTempDirectory(build.resolve("history"), "status-seam.")
+      retained(build.resolve("history"), "status-seam.")
     for file <- Vector(
         "project.scala",
         "Kinds.scala",

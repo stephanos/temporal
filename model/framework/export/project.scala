@@ -17,6 +17,8 @@
 // through the checks' one place for running a tool. scala-cli has no directive that adds a source to
 // the test scope only, so the file is compiled beside the lifter, which uses only its `Scratch`.
 //> using file ../check/Tools.scala
+// The suites keep their scratch only when they fail (Retaining.test.scala).
+//> using file ../check/Retaining.test.scala
 //> using test.dep org.scalameta::munit:1.2.0
 // The tests build fixtures and lift in-process, three builds and three lifts at a time
 // (ModelBuild.test.scala, InProcess.test.scala); a bounded heap keeps the suite inside the memory

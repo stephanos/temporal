@@ -11,6 +11,7 @@ import scala.concurrent.duration.*
 import scala.jdk.CollectionConverters.*
 import framework.check.{Ran, Tools}
 import FixtureBuild.buildFixture
+import framework.check.RetainedScratch
 
 private object FixtureIdentityContract:
   private val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
@@ -115,17 +116,14 @@ private object HintFixtures:
   def roots(names: Seq[String]): Seq[String] =
     names.map("fixture.hints.Hints$package$." + _)
 
-class HintSnapshotsSuite extends munit.FunSuite:
+class HintSnapshotsSuite extends munit.FunSuite with RetainedScratch:
   override val munitTimeout: Duration = 5.minutes
   private val tools = Tools.here
   private val root = tools.directory
   private val build = root.resolve("model/build")
   private val stored = "model/framework/export/testdata/lifts/"
   private lazy val scratch =
-    Files.createTempDirectory(
-      Files.createDirectories(build.resolve("history")),
-      "hint-snapshots."
-    )
+    retained(build.resolve("history"), "hint-snapshots.")
   private lazy val jar =
     val sources = Files.createDirectories(scratch.resolve("sources"))
     for name <- Seq(
@@ -211,7 +209,7 @@ class HintSnapshotsSuite extends munit.FunSuite:
       )
     )
 
-class MiniLayoutFixtures extends munit.FunSuite:
+class MiniLayoutFixtures extends munit.FunSuite with RetainedScratch:
   override val munitTimeout: Duration = 10.minutes
 
   private def fixtureOnly(model: com.fasterxml.jackson.databind.JsonNode, family: String): Unit =
@@ -239,7 +237,7 @@ class MiniLayoutFixtures extends munit.FunSuite:
     val tools = Tools.here
     val build = tools.directory.resolve("model/build")
     val stored = "model/framework/export/testdata/layout/mini/"
-    val scratch = Files.createTempDirectory(build.resolve("history"), "mini-layout.")
+    val scratch = retained(build.resolve("history"), "mini-layout.")
     val modelJar = build.resolve("model-scala.jar")
     for layout <- Seq("nested", "flat", "flat-folder") do
       val sources = LayoutSources.materialize(tools.directory.resolve(stored), scratch.resolve(layout), modelJar, Set.empty)
@@ -260,12 +258,11 @@ class MiniLayoutFixtures extends munit.FunSuite:
       val family = if layout == "flat" then "fixture.features.activity_mini" else "fixture.features.activity.mini"
       fixtureOnly(model, family)
 
-class MiniRealizationFixtures extends munit.FunSuite:
+class MiniRealizationFixtures extends munit.FunSuite with RetainedScratch:
   override val munitTimeout: Duration = 10.minutes
   private val tools = Tools.here
   private val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
-  private lazy val scratch = Files.createTempDirectory(
-    Files.createDirectories(tools.directory.resolve("model/build/history")), "mini-realization.")
+  private lazy val scratch = retained(tools.directory.resolve("model/build/history"), "mini-realization.")
   // The packaged Models (ModelBuild): the mini, the shared code and the framework, lifted once.
   private val jar = ModelBuild.jar
   private def classpath = ModelBuild.classpath
@@ -540,7 +537,7 @@ private object LayoutSources:
     finally stream.close()
     to
 
-class LayoutWitnessFixtures extends munit.FunSuite:
+class LayoutWitnessFixtures extends munit.FunSuite with RetainedScratch:
   override val munitTimeout: Duration = 10.minutes
   private val tools = Tools.here
   private val build = tools.directory.resolve("model/build")
@@ -548,10 +545,7 @@ class LayoutWitnessFixtures extends munit.FunSuite:
   test(
     "the layout witness lifts its exact core alongside verify and refinement"
   ):
-    val scratch = Files.createTempDirectory(
-      Files.createDirectories(build.resolve("history")),
-      "layout-witness."
-    )
+    val scratch = retained(build.resolve("history"), "layout-witness.")
     val modelJar = build.resolve("model-scala.jar")
     val stored = "model/framework/export/testdata/layout/"
     val sources = LayoutSources.materialize(
@@ -762,15 +756,12 @@ class LayoutWitnessFixtures extends munit.FunSuite:
 // The fixtures build against the framework and the Temporal Models the gate packaged into
 // model/build, so the gate runs these tests after it packaged them. With UMPIRE_LIFTER_UPDATE set,
 // as the gate's --update sets it, the expected files are rewritten instead of compared.
-class WitnessFixtures extends munit.FunSuite:
+class WitnessFixtures extends munit.FunSuite with RetainedScratch:
   override val munitTimeout: Duration = 10.minutes
   private val tools = Tools.here
   private val build = tools.directory.resolve("model/build")
   private val stored = "model/framework/export/testdata/witness/"
-  private lazy val scratch = Files.createTempDirectory(
-    Files.createDirectories(build.resolve("history")),
-    "witness-lifter."
-  )
+  private lazy val scratch = retained(build.resolve("history"), "witness-lifter.")
   private lazy val jar: Path =
     val sources = Files.createDirectories(scratch.resolve("sources"))
     val stream =
@@ -1511,16 +1502,13 @@ class WitnessFixtures extends munit.FunSuite:
       )
     )
 
-class ActivityHeartbeatFixtures extends munit.FunSuite:
+class ActivityHeartbeatFixtures extends munit.FunSuite with RetainedScratch:
   override val munitTimeout: Duration = 5.minutes
   private val tools = Tools.here
   private val build = tools.directory.resolve("model/build")
   private val stored = "model/framework/export/testdata/realizationRefusals/heartbeat/"
   private lazy val scratch =
-    Files.createTempDirectory(
-      Files.createDirectories(build.resolve("history")),
-      "heartbeat-lifter."
-    )
+    retained(build.resolve("history"), "heartbeat-lifter.")
 
   private lazy val fixtureJar: Path =
     val sources = Files.createDirectories(scratch.resolve("sources"))
@@ -1804,16 +1792,13 @@ class ActivityHeartbeatFixtures extends munit.FunSuite:
       "2s"
     )
 
-class ExpectationFixtures extends munit.FunSuite:
+class ExpectationFixtures extends munit.FunSuite with RetainedScratch:
   override val munitTimeout: Duration = 5.minutes
   private val tools = Tools.here
   private val build = tools.directory.resolve("model/build")
   private val stored = "model/framework/export/testdata/expectations/"
   private lazy val scratch =
-    Files.createTempDirectory(
-      Files.createDirectories(build.resolve("history")),
-      "expectation-lifter."
-    )
+    retained(build.resolve("history"), "expectation-lifter.")
   private lazy val fixtureJar: Path =
     val sources = Files.createDirectories(scratch.resolve("sources"))
     val stream =
@@ -2080,7 +2065,7 @@ class ExpectationFixtures extends munit.FunSuite:
     assertEquals(capability.path("form").asText(), "FORM_FIND")
     assertEquals(capability.path("name").asText(), "validCapability.closes")
 
-class Fixtures extends munit.FunSuite:
+class Fixtures extends munit.FunSuite with RetainedScratch:
   // A test builds a fixture in this JVM, or through scala-cli's Bloop server where it reads that
   // server's report (FixtureBuild), and lifts it in this JVM (InProcess).
   override val munitTimeout: Duration = 20.minutes
@@ -2097,10 +2082,7 @@ class Fixtures extends munit.FunSuite:
   // Each run builds in a directory of its own under the ignored model/build/history, which is kept
   // for inspection: nothing is deleted, so another process's build state is never removed.
   private lazy val scratch =
-    Files.createTempDirectory(
-      Files.createDirectories(build.resolve("history")),
-      "lifter."
-    )
+    retained(build.resolve("history"), "lifter.")
   private def lifted(name: String) = scratch.resolve(s"$name.json")
 
   // Every build and lift holds one of these while it runs, so the tests run side by side within

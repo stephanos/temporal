@@ -67,7 +67,10 @@ class GateLintSuite extends munit.FunSuite:
       "model/temporal/features/kind/form/FormKind.scala",
       "object r:\n  on(a.b)(always ~> e)\n"
     ): Unit
-    write("model/framework/export/testdata/lifts/Rules.scala", "object r:\n  on(a.b)(always ~> e)\n"): Unit
+    write(
+      "model/framework/export/testdata/lifts/Rules.scala",
+      "object r:\n  on(a.b)(always ~> e)\n"
+    ): Unit
     val (out, err) = (ByteArrayOutputStream(), ByteArrayOutputStream())
     val status =
       Gate.main(
@@ -110,7 +113,10 @@ class GateLintSuite extends munit.FunSuite:
       printed.linesIterator
         .map(_.takeWhile(_ != ' '))
         .toVector,
-      Vector("model/framework/Machine.scala:3:", "model/framework/export/testdata/lifts/Fixture.scala:1:")
+      Vector(
+        "model/framework/Machine.scala:3:",
+        "model/framework/export/testdata/lifts/Fixture.scala:1:"
+      )
     )
     assert(printed.contains("comment rule: write the comment as // lines"), printed)
     assertEquals(
@@ -145,11 +151,18 @@ class GateLintSuite extends munit.FunSuite:
     val failure = intercept[GateError](Gate.settle(tree, produced, root, update = false))
     assert(failure.getMessage.contains("unlisted.json"))
 
-  test("the gate's --check-boundary holds model/framework to Temporal's packages and prints each finding"):
+  test(
+    "the gate's --check-boundary holds model/framework to Temporal's packages and prints each finding"
+  ):
     def run(root: Path): (Int, String) =
       val (out, err) = (ByteArrayOutputStream(), ByteArrayOutputStream())
       val status =
-        Gate.main(Seq("--check-boundary"), Tools(root, Map.empty), PrintStream(out), PrintStream(err))
+        Gate.main(
+          Seq("--check-boundary"),
+          Tools(root, Map.empty),
+          PrintStream(out),
+          PrintStream(err)
+        )
       assertEquals(out.toString, "")
       (status, err.toString)
     val (failed, printed) = run(

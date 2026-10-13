@@ -8,14 +8,15 @@ import scala.quoted.Quotes
 import scala.tasty.inspector.{Inspector, Tasty, TastyInspector}
 import framework.check.Tools
 import FixtureBuild.buildFixture
+import framework.check.RetainedScratch
 
-class SourcePositionsFixtures extends munit.FunSuite:
+class SourcePositionsFixtures extends munit.FunSuite with RetainedScratch:
   test("module and section refusals retain physical authored source lines"):
     val tools = Tools.here
     val build = tools.directory.resolve("model/build")
     val stored = "model/framework/export/testdata/layoutRefusals/c/"
     val scratch =
-      Files.createTempDirectory(build.resolve("history"), "source-positions.")
+      retained(build.resolve("history"), "source-positions.")
     val jar = scratch.resolve("fixture.jar")
     tools
       .buildFixture(

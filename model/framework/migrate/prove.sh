@@ -10,7 +10,7 @@
 # <target> is a path of the repository, mapped into the copy; it defaults to the feature's protocol
 # level, model/temporal/features/<feature>/protocol. The rules and their runners are a system's
 # (RULES, default model/temporal/migrate), and so is its lifter (LIFTER, default the framework's
-# with Temporal's half). The copy is under .flow/tmp/mini-migration.*.
+# with Temporal's half). The copy is under .flow/tmp/mini-migration.*, deleted when the proof passes.
 set -euo pipefail
 cd "$(dirname "$0")/../../.."
 repository=$PWD
@@ -26,6 +26,19 @@ quiet=(--server=false --suppress-outdated-dependency-warning)
 mkdir -p .flow/tmp
 scratch=$(mktemp -d "$PWD/.flow/tmp/mini-migration.XXXXXX")
 printf 'proof directory: %s\n' "$scratch"
+# The copy is deleted when the proof passes and kept, marked, when it fails, with only the newest
+# failed proofs' kept (Retained, framework/check/Tools.scala).
+printf '%s\n' "$$" > "$scratch.scratch"
+finish() {
+  local status=$?
+  local verdict=failed
+  [[ $status -eq 0 ]] && verdict=passed
+  [[ $verdict == failed ]] && printf 'proof failed (exit %s); kept for inspection: %s\n' "$status" "$scratch" >&2
+  "${cli[@]}" run "${quiet[@]}" model/framework/check -M framework.check.finishScratch -- \
+    "$verdict" "$scratch" > /dev/null || true
+  exit "$status"
+}
+trap finish EXIT
 mapfile -t selected < <("${cli[@]}" run "${quiet[@]}" model/framework/check \
   -M framework.check.selectedSources -- "$feature")
 [[ ${#selected[@]} -gt 0 ]] || { echo "no sources selected for $feature" >&2; exit 1; }

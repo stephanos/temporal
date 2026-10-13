@@ -4,6 +4,7 @@
 //   scala-cli run model/temporal/check --main-class temporal.check.metrics -- \
 //     model/temporal/features/activity/standalone [more directories]
 package temporal.check
+
 import framework.check.Tools
 
 @main def metrics(directories: String*): Unit =

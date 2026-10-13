@@ -131,8 +131,11 @@ class GateEquivalenceOutputsSuite extends munit.FunSuite:
     val map = root.resolve("rename.map")
     Files.writeString(map, "")
     val bin = Files.createDirectories(root.resolve("bin"))
-    val tools = Stubs(bin).tool("scala-cli",
-      "for directory in \"$@\"; do :; done\n/bin/mkdir -p \"$directory\"\n: > \"$directory/index.tsv\"")
+    val tools = Stubs(bin)
+      .tool(
+        "scala-cli",
+        "for directory in \"$@\"; do :; done\n/bin/mkdir -p \"$directory\"\n: > \"$directory/index.tsv\""
+      )
       .tools(root, "FEATURES" -> ModelSources(root, None).features.mkString(" "))
     val failed = intercept[GateError]:
       Gate(tools, PrintStream(ByteArrayOutputStream()))
@@ -943,13 +946,19 @@ class GateSuite extends munit.FunSuite:
       initializeFeatures(repository, "{\"lifted\": true}\n")
       val all = ModelSources(repository.root, None).features
       val selected = if narrowed then all.take(1) else all
-      val answer = gate(repository.tools.withEnvironment("FEATURES" -> selected.mkString(" ")), "--skip-go-checks")
+      val answer = gate(
+        repository.tools.withEnvironment("FEATURES" -> selected.mkString(" ")),
+        "--skip-go-checks"
+      )
       assertEquals(answer.status, if narrowed then 0 else 1, answer.err)
       val fixtures = repository.ran.filter(_.contains(" test model/framework/export "))
       assertEquals(fixtures.size, if narrowed then 0 else 1)
       val packaged = repository.ran.find(_.contains("model-scala.jar")).get
       for feature <- all do
-        assertEquals(packaged.contains("model/temporal/features/" + feature), selected.contains(feature))
+        assertEquals(
+          packaged.contains("model/temporal/features/" + feature),
+          selected.contains(feature)
+        )
       if narrowed then
         assert(!repository.ran.exists(_.contains("compile --test model/framework/export")))
         assert(answer.out.contains("skipped complete lifter fixture suite"))
@@ -1214,7 +1223,8 @@ class GateSuite extends munit.FunSuite:
     assert(repository.ran.find(_.contains(" --print-class-path ")).get.contains(" --server=false "))
 
   test("the gate stops at a mention the vocabulary check finds, and shows where"):
-    val found = "model/framework/dsl/Table.scala:7\\n--- FAIL: TestModelNamesNoRetiredFrontEnd (0.05s)"
+    val found =
+      "model/framework/dsl/Table.scala:7\\n--- FAIL: TestModelNamesNoRetiredFrontEnd (0.05s)"
     val repository = currentRepository(vocabulary(found, exit = 1))
     val answer = gate(repository.tools, "--skip-go-checks")
     assertEquals(answer.status, 1)
@@ -1340,7 +1350,10 @@ class GateSuite extends munit.FunSuite:
     assertEquals(answer.status, 1)
     val stream = Files.list(repository.root.resolve("model/build/history"))
     val lifted =
-      try stream.iterator.asScala.find(_.getFileName.toString.startsWith("ir.")).get
+      try
+        stream.iterator.asScala
+          .find(p => Files.isDirectory(p) && p.getFileName.toString.startsWith("ir."))
+          .get
       finally stream.close()
     assertEquals(
       answer.err,

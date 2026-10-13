@@ -335,7 +335,12 @@ object SyntaxRule:
   // The lifter's core reaches the hooks of its trait Syntax through its self-type, by name; only an
   // import of it is refused there.
   private val trees = Seq(
-    Tree("model/framework", "model/framework/dsl/Syntax.scala", recursive = true, references = true),
+    Tree(
+      "model/framework",
+      "model/framework/dsl/Syntax.scala",
+      recursive = true,
+      references = true
+    ),
     Tree(
       "model/temporal/realize",
       "model/temporal/realize/Syntax.scala",

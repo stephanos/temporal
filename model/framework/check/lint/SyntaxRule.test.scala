@@ -305,7 +305,10 @@ class SyntaxRuleSuite extends munit.FunSuite:
         |def scenario(q: QueryOn[Int], s: Scenario[Int]): QueryIn = q in s
         |""".stripMargin
     val found =
-      findings("model/framework/dsl/Syntax.scala" -> syntax, "model/framework/dsl/Core.scala" -> core)
+      findings(
+        "model/framework/dsl/Syntax.scala" -> syntax,
+        "model/framework/dsl/Core.scala" -> core
+      )
     assertEquals(
       found.map(
         _.takeWhile(_ != ' ')
@@ -327,7 +330,10 @@ class SyntaxRuleSuite extends munit.FunSuite:
         |    phase.in(1, 2)
         |""".stripMargin
     val found =
-      findings("model/framework/dsl/Syntax.scala" -> syntax, "model/framework/dsl/Core.scala" -> core)
+      findings(
+        "model/framework/dsl/Syntax.scala" -> syntax,
+        "model/framework/dsl/Core.scala" -> core
+      )
     assertEquals(
       found.map(f => f.takeWhile(_ != ' ') + f.replaceAll(".*uses (`[^`]+`).*", " $1")),
       Vector("model/framework/dsl/Core.scala:5: `in`")
@@ -349,7 +355,10 @@ class SyntaxRuleSuite extends munit.FunSuite:
         |  def lifted(t: Term): Boolean = sugared(t)
         |""".stripMargin
     assertEquals(
-      findings("model/framework/export/Syntax.scala" -> lifterSyntax, "model/framework/export/Lifting.scala" -> core),
+      findings(
+        "model/framework/export/Syntax.scala" -> lifterSyntax,
+        "model/framework/export/Lifting.scala" -> core
+      ),
       Vector.empty
     )
 

@@ -3,6 +3,7 @@ package framework.`export`
 import java.nio.file.{Files, Path}
 import scala.jdk.CollectionConverters.*
 import framework.check.Tools
+import framework.check.RetainedScratch
 
 // The lifter's fixtures hold Models of their own (fn-114.10). A fixture that copies a live Model's
 // text drifts whenever that Model changes and tests again what the gate already holds: it lifts every
@@ -16,7 +17,7 @@ import framework.check.Tools
 // same way, such as an `enum Outcome:` with its `case accepted`. The threshold is
 // Scripts.scala's: its core records spell the six correlation bounds the Temporal kit's helper
 // produces, which is what the fixture compares the helper with.
-class Overlap extends munit.FunSuite:
+class Overlap extends munit.FunSuite with RetainedScratch:
   private val root = Tools.here.directory
   private val run = 4
   private val threshold = 6
@@ -74,10 +75,7 @@ class Overlap extends munit.FunSuite:
 
   test("a copied run is counted, and a run shorter than the window is not"):
     val scratch =
-      Files.createTempDirectory(
-        Files.createDirectories(root.resolve("model/build/history")),
-        "overlap."
-      )
+      retained(root.resolve("model/build/history"), "overlap.")
     def write(name: String, text: String) = Files.writeString(scratch.resolve(name), text)
     val model = write(
       "Model.scala",

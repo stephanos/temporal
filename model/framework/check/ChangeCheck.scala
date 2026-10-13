@@ -194,7 +194,13 @@ final class ChangeCheck(outer: Tools, out: PrintStream, record: Path, registry: 
         if findings.isEmpty then (0, "no findings\n", "no findings")
         else (1, findings.mkString("", "\n", "\n"), s"${findings.size} findings")
     if scope.areas(Area.Check) then made("lint the checks with scalafix", "lint-model-check")
-    if (scope.areas & Set(Area.Framework, Area.Lifter, Area.Check, Area.Migrate, Area.Build)).nonEmpty
+    if (scope.areas & Set(
+        Area.Framework,
+        Area.Lifter,
+        Area.Check,
+        Area.Migrate,
+        Area.Build
+      )).nonEmpty
     then made("check the framework's boundary", "check-model-boundary")
     if features.nonEmpty then
       val selected = "FEATURES" -> features.mkString(" ")
