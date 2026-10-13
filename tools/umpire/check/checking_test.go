@@ -1547,6 +1547,19 @@ func TestProvenanceChangesNoResult(t *testing.T) {
 
 // ---- Replay ---------------------------------------------------------------------------------------
 
+func TestReplaySharesTheInterpretationOfTheSameModel(t *testing.T) {
+	m := counter{k: 2, skip: true, monitor: true}.model()
+	c := newChecker(m, DefaultScope, m)
+	require.Same(t, c.first, c.again())
+	require.Same(t, c.again(), c.again())
+
+	shared, err := json.Marshal(Check(m, DefaultScope))
+	require.NoError(t, err)
+	fresh, err := json.Marshal(check(m, DefaultScope, proto.Clone(m).(*umpirespb.Model)))
+	require.NoError(t, err)
+	require.Equal(t, string(fresh), string(shared))
+}
+
 func TestEveryWitnessReplaysThroughAFreshInterpretation(t *testing.T) {
 	for name, m := range everyModel(t) {
 		t.Run(name, func(t *testing.T) {
