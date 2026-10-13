@@ -7,6 +7,8 @@ import (
 	"encoding/binary"
 	"errors"
 	"io"
+	"reflect"
+	"strings"
 	"sync"
 	"testing"
 )
@@ -86,6 +88,31 @@ func TestCompressedSnapshotRoundTripSummary(t *testing.T) {
 	}
 	if _, err := w.DetachCompressedSnapshot(CompressedSnapshotProfile()); err == nil {
 		t.Fatal("model detached twice")
+	}
+}
+
+func TestSnapshotRoundTripsConfiguredLongString(t *testing.T) {
+	limits := testLimits()
+	limits.MaxStringBytes = 1 << 16
+	w, err := New(Config{Seed: 17, Limits: limits})
+	if err != nil {
+		t.Fatal(err)
+	}
+	key := strings.Repeat("x", 8<<10)
+	if _, err := w.Register(Request{Kind: "read", Resource: ResourceID{Adapter: "memory", Kind: "cell", Key: key}}); err != nil {
+		t.Fatal(err)
+	}
+	snapshot := w.Snapshot()
+	encoded, err := EncodeSnapshot(snapshot)
+	if err != nil {
+		t.Fatal(err)
+	}
+	decoded, err := DecodeSnapshot(encoded)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(decoded, snapshot) {
+		t.Fatal("populated long-string snapshot changed during binary round trip")
 	}
 }
 
