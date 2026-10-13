@@ -305,6 +305,7 @@ private[`export`] trait Syntax:
     case _ => None
 
   // The function-valued rule effect remains open for declaration-level expansion.
+  // Core form: `List(Step(outcome, state))`, with the phase in `state` replaced by the rule effect.
   def sugar(t: Term): ir.Expr = sugarCall(t) match
     case _ if entersApplied(t).nonEmpty =>
       val (call, state) = entersApplied(t).get
