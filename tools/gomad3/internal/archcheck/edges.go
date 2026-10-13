@@ -80,8 +80,14 @@ func OwnerMayImport(modulePath, owner, importedOwner, importing, imported string
 func ModuleMayImport(modulePath, importing, imported string) bool {
 	forbidden := map[string][]string{
 		"artifact": {"runner"}, "record": {"runner"},
-		"runner/internal/campaign": {"runner/internal/corpus", "runner/internal/minimizer"},
-		"runner/internal/corpus":   {"runner/internal/campaign", "runner/internal/exploration"},
+		"runner/internal/campaign":    {"runner/internal/corpus", "runner/internal/minimizer"},
+		"runner/internal/corpus":      {"runner/internal/campaign", "runner/internal/exploration"},
+		"runner/internal/exploration": {"runner/internal/logstore"},
+	}
+	// The shared log owner depends only on the standard library and hostfs, so
+	// campaign and corpus can both build on it without importing each other.
+	if Within(importing, modulePath+"/runner/internal/logstore") {
+		return imported == modulePath+"/internal/hostfs" || Within(imported, modulePath+"/runner/internal/logstore")
 	}
 	for module, denied := range forbidden {
 		if Within(importing, modulePath+"/"+module) && slices.ContainsFunc(denied, func(prefix string) bool { return Within(imported, modulePath+"/"+prefix) }) {

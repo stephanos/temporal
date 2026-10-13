@@ -225,7 +225,16 @@ type listedPackage struct {
 func TestPackageArchitecture(t *testing.T) {
 	packages := listHostPackages(t)
 	owners := map[string]bool{}
+	logstore := modulePath + "/runner/internal/logstore"
 	for _, pkg := range packages {
+		if pkg.ImportPath == logstore {
+			owners[logstore] = true
+			for _, imported := range pkg.Imports {
+				if first, _, _ := strings.Cut(imported, "/"); strings.Contains(first, ".") && imported != modulePath+"/internal/hostfs" {
+					t.Errorf("shared log owner imports %s; it may use only the standard library and internal/hostfs", imported)
+				}
+			}
+		}
 		owner := packageOwner(pkg.ImportPath)
 		if owner == "" {
 			t.Errorf("package %s has no architectural owner", pkg.ImportPath)
@@ -248,6 +257,17 @@ func TestPackageArchitecture(t *testing.T) {
 				t.Errorf("package %s imports forbidden module edge %s", pkg.ImportPath, imported)
 			}
 		}
+	}
+	if !owners[logstore] {
+		t.Errorf("shared log owner %s is missing", logstore)
+	}
+	for imported, allowed := range map[string]bool{modulePath + "/internal/hostfs": true, modulePath + "/internal/canonicaljson": false, modulePath + "/runner/internal/campaign": false, modulePath + "/runner/internal/corpus": false, modulePath + "/record": false} {
+		if moduleMayImport(logstore, imported) != allowed {
+			t.Errorf("shared log owner edge to %s admitted = %t", imported, !allowed)
+		}
+	}
+	if moduleMayImport(modulePath+"/runner/internal/exploration", logstore) {
+		t.Error("pure exploration engines may import the shared log owner")
 	}
 	for _, owner := range []string{"cli", "developer", "runner", "qualification", "target", "record", "artifact", "choice", "deterministicio", "world", "toolchain", "upgrade", "compatibility", "canonicaljson", "hostexec", "hostfs", "sourceinventory"} {
 		if !owners[owner] {
