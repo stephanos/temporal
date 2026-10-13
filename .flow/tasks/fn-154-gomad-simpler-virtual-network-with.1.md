@@ -48,3 +48,7 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+## Revival trigger (2026-10-13)
+
+The owner-requested WASM rotation batch has reached fn154 while fn153's final source audit and fn109.14's generated codec prerequisite finish in separate worktrees. This independent configuration surface can proceed under MILESTONES' provisional-interface rule: add and strictly validate explicit per-direction byte and stall capacities, preserve unrelated limits, and update Record/configuration consumers. Do not implement connection mechanics, timeout transport, or generator changes here; those retain their declared owners. Integration and current-source WASM qualification remain conductor-owned after the full rotation batch. Supported native qualification stays with fn128/fn149; no CI, PR, or push authority is added.
