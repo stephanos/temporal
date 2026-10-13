@@ -63,13 +63,13 @@ Capture the frozen behavior pin named above, run focused negative controls and f
 - [ ] The Rust cache uses rustix rather than raw libc declarations while preserving owner-only, no-follow, no-clobber and cleanup behavior.
 
 ## Done summary
-TBD
+Centralized same-directory staged whole-file publication and consolidated directory sync, link-count, and no-replace rename ownership in hostfs. Migrated artifact, captured, Runner, native toolchain builder/patch/source, adapter regeneration, and WASM Result/receipt consumers while preserving publication disposition, error identity, cleanup, cancellation, validation, and durability ordering. WASM collision losers now durably remove their stage and flush the winner directory. The Rust cache uses rustix instead of raw libc calls. Supported changed-package, race, architecture, cross-platform compile, Rust cache, and repository validation gates pass; the literal aggregate command remains host-inconclusive where runner needs the absent patched toolchain and deterministic-I/O platform, and adapterregen fixtures lack staged inputs.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 7a15ae608b7947b0321fa31cba1188393e32602e, b9060bb1a966a618f50f7041abb69af31557de1b, cf5b26ca1f7a4e177186750d3f485dfb52f8694b
+- Tests: changed Go packages, including complete native toolchain and WASM qualification suites: PASS, focused publication cleanup/error-identity/failpoint controls: PASS, race: internal/hostfs, public hostfs, and WASM qualification: PASS, go -C tools/gomad3 test -tags test_dep -count=1 ./internal/archcheck: PASS, Linux arm64, Darwin arm64, and Windows amd64 hostfs/artifact/captured compile checks: PASS, cargo test --manifest-path tools/gomad3/backends/wasm/wasmhost/Cargo.toml cache: PASS (9 tests), make -C tools/gomad3 validate: PASS, flowctl codex impl-review re-review: SHIP, both prior P1 findings fixed and no new findings, literal aggregate focused Go command: INCONCLUSIVE on linux/arm64 because runner requires the absent patched toolchain and deterministic-I/O host, while adapterregen fixtures lack staged version/Makefile inputs; constituent changed packages compile/test green
 - PRs:
-
 ## Host helper consolidation amendment (2026-10-12)
 
 Owner decision: consolidate the five `syncDirectory` copies, three link-count checks and `artifact/rename_noreplace_*` into `internal/hostfs` using `golang.org/x/sys/unix`; replace the Rust helper cache's raw `extern "C"` calls with `rustix`; route WASM qualification publication through the shared replace helper. Acceptance adds: one implementation of each helper remains; Darwin and Linux variants build; publication error identity and durability claims are unchanged.
