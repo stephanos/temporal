@@ -7,17 +7,18 @@ satisfies: [R3, R4, R16]
 Part A, second half. The claim patterns and the sticky monitors are compositions of core builders, so their definitions can be followed like any helper def. After this task the lifter names no sugar that Part A can reach, and the syntax lint says so.
 
 **Size:** M
-**Files:** `model/irgen/{Syntax,Claims,Declarations}.scala`, `model/umpire/Syntax.scala`, `model/check/{SyntaxRule,Gate}.scala`, `model/check/test/SyntaxRule.test.scala`
-**Touches:** [model/irgen/**, model/umpire/Syntax.scala, model/check/**]
-**Deferred:** see MILESTONES.md, Deferred, fn-141. Planned 2026-10-06 against the tree before the DSL batch. The files and names below are that tree's and carry no line numbers on purpose: when the spec is revived, re-read them and recount before starting, since the DSL batch and fn-140 rewrite them.
+**Files:** `model/framework/export/{Syntax,Claims,Declarations,Expansion,Expressions}.scala`, `model/framework/dsl/{Syntax,Claims}.scala`, `model/framework/check/lint/**`, `model/framework/inspect/**`, affected fixtures and coverage, `model/SEMANTICS.md`.
+**Touches:** [model/framework/export/**, model/framework/dsl/**, model/framework/check/**, model/framework/inspect/**, model/framework/lint/**, model/temporal/check/**, model/SEMANTICS.md, model/README.md]
+**Activation (2026-10-13):** fn-141.3 is committed and done (receipt `550ce56a0e`). Current homes replace the old `irgen`, `umpire`, and `check` paths below. Re-read and recount before editing. Mini/shared/framework/kit/sample scope only; no real activity/Nexus, generated payloads, schema, Go, tooling or Makefile edits. Stay on `umpire`, single writer, review none under the batch policy, planSync=false. Independent review, broad lint and strict IR/Go propagation run at the source-batch boundary, not as waived requirements.
 
 ### Approach
 - Write `once(...).keeps(...)`, `never(...)`, `never(...).from(...)`, `stays(...)` and `stays(...).unless(...)` as bodies over `holds` and `holdsAcross`. Today they construct the Property record directly, which the lifter cannot follow.
 - `sticky` and `stickyAcross` already call `monitor`; follow them.
 - Names must not move: a predicate passed as a lambda lifts today as a function named after the word that takes it, and a `keeps` projection as a field path. Reproduce those names through the generic binding, so the expected IR does not change.
-- Three forms evaluate at run time and cannot be followed as trees: named inputs (`start(x := v)`), the request-scope assignment and the script helpers. Leave their arms in place, list them in the done summary, and name the Part B task that removes each (task 8 for the realization forms, task 9 for named inputs).
+- Constructed-value-only forms retain their arms until their Part B owner: named inputs in .9, request assignments and script helpers in .8. Recount all remaining sugar reductions after .3, including declaration witnesses/rules/blocks; list each with its .4 or .10-.12 owner. No permanent name-dispatch exception, relabeling as core, or new sugar-specific intrinsic.
 - Extend the syntax lint: no lifter file names a sugar definition, apart from the arms just listed, each with the task that removes it. Delete the lifter's `Syntax.scala` if nothing is left in it.
-- Record `model/irgen` source lines before and after Part A (R16).
+- Record production export, lint and inspect lines before/after Part A (R16), excluding tests/testdata/project files and counting new generic infrastructure. The .3 census is export 12,426, lint 2,995, inspect 107, total 15,528. Do not claim net shrink unless the whole census proves it.
+- Reuse indexed definition expansion from .3, preserve strict/default/by-name evaluation, caller positions, callback names and all frozen expected IR/refusal contracts. Framework definitions remain in the shared Index without becoming authored Model roots; explicit framework-package lint fixtures remain supported by source provenance.
 
 ### Investigation targets
 **Required:**
@@ -35,7 +36,7 @@ Part A, second half. The claim patterns and the sticky monitors are compositions
 - [ ] The sugar fixture's pattern and monitor pairs lift to the same IR as before, function names included.
 - [ ] The syntax lint fails on a sugar name in a lifter file, naming file, line and sugar; its test covers it.
 - [ ] The remaining arms are listed with the task that removes each.
-- [ ] `scala-cli test model/irgen`, `make lint-model` and `make umpire-check-model` pass; `make umpire-gen-model` leaves `model/ir`, `model/cases` and the lifter fixtures' expected IR byte-identical (R11); any difference stops the task until it is traced.
+- [ ] Focused red/green tests cover declaration sugar and author-time refusal controls; then a fresh terminal `make model-check-changed BASE=<task-base>` passes (allow at least 1,100 seconds). All samples, mini baseline step-table equivalence and selected suites pass. Frozen fixture expected IR, function names, positions and refusal contracts are unchanged. Checked-in mini payload drift and full generated IR/Go gates remain explicitly held for propagation; no regeneration here.
 - [ ] Line counts before and after Part A are in the done summary.
 
 - The lint refuses a non-liftable construct in a step function at author time, naming it; the lint and the lifter share one allowlist.
