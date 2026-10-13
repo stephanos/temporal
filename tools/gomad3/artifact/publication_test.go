@@ -121,7 +121,7 @@ func TestPublishArtifactRejectsChangedChoiceTapeIdentity(t *testing.T) {
 func TestPublishArtifactWritesSimulationExplorationEvidence(t *testing.T) {
 	input := executionArtifactInput(t)
 	plan := []byte(`{"schema":"gomad3.simulation-exploration-plan/v1"}`)
-	record := []byte(`{"schema":"gomad3.cluster-record/v7"}`)
+	record := []byte(`{"schema":"gomad3.cluster-record/v8"}`)
 	input.Manifest.SimulationProfile = simulationProfile(plan, record)
 	input.Simulation = &SimulationPayloads{Plan: plan, Record: record}
 
@@ -155,7 +155,7 @@ func TestPublishArtifactWritesSimulationExplorationEvidence(t *testing.T) {
 func TestPublishArtifactRejectsChangedSimulationExplorationEvidence(t *testing.T) {
 	input := executionArtifactInput(t)
 	plan := []byte(`{"schema":"gomad3.simulation-exploration-plan/v1"}`)
-	record := []byte(`{"schema":"gomad3.cluster-record/v7"}`)
+	record := []byte(`{"schema":"gomad3.cluster-record/v8"}`)
 	input.Manifest.SimulationProfile = simulationProfile(plan, record)
 	input.Simulation = &SimulationPayloads{Plan: []byte("changed"), Record: record}
 
@@ -210,7 +210,7 @@ func simulationProfile(plan, recordBytes []byte) *record.SimulationProfile {
 			SHA256: record.HashBytes(plan), Bytes: record.Uint64String(len(plan)),
 		},
 		Record: record.SimulationRecord{
-			Schema: "gomad3.cluster-record/v7", File: "simulation/record.json",
+			Schema: "gomad3.cluster-record/v8", File: "simulation/record.json",
 			SHA256: record.HashBytes(recordBytes), Bytes: record.Uint64String(len(recordBytes)), Limit: 128 << 20,
 		},
 	}

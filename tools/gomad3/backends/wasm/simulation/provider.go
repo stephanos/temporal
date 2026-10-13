@@ -15,6 +15,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/hostexec"
+	netmodel "go.temporal.io/server/tools/gomad3/simulation/network"
 	"go.temporal.io/server/tools/gomad3/volume"
 	"go.temporal.io/server/tools/gomad3/world"
 	"go.temporal.io/server/tools/gomad3sim"
@@ -304,7 +305,7 @@ func (p *Provider) Open(ctx context.Context, spec gomad3sim.Spec) (gomad3sim.WAS
 		if config.WorldProfile != "" {
 			return nil, errors.New("explicit WASM World profile requires explicit configured capacities")
 		}
-		config.Limits = world.Limits{MaxRequests: spec.Limits.NetworkTransitions * 2, MaxEvents: spec.Limits.NetworkTransitions * 2, MaxQueuedEvents: spec.Limits.NetworkDeliveries, MaxTransitions: spec.Limits.NetworkTransitions * 8, MaxPayloadBytes: spec.Limits.ObservationBytes, MaxStringBytes: 1024}
+		config.Limits = world.Limits{MaxRequests: spec.Limits.NetworkTransitions * 2, MaxEvents: spec.Limits.NetworkTransitions * 2, MaxQueuedEvents: min(netmodel.MaximumPendingOperations, spec.Limits.NetworkTransitions*2), MaxTransitions: spec.Limits.NetworkTransitions * 8, MaxPayloadBytes: spec.Limits.ObservationBytes, MaxStringBytes: 1024}
 	}
 	boots := make(map[gomad3sim.BootID]wasi.Request, len(p.Boots))
 	for id, request := range p.Boots {

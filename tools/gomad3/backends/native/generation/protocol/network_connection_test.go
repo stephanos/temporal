@@ -101,7 +101,7 @@ func publicPair(t *testing.T, simulated bool) (*Conn,*Conn,func(bool)) {
  set:=func(bool) {}
  host:="127.0.0.1"
  if simulated {
-  config:=simulationNetworkConfig{Nodes:[]simulationNodeConfig{{Node:"a",Address:"10.0.0.1"},{Node:"b",Address:"10.0.0.2"}},Links:[]simulationLink{{From:"a",To:"b",Enabled:true},{From:"b",To:"a",Enabled:true}},Limits:simulationLimits{Listeners:8,Connections:8,Deliveries:4096,Bytes:16<<20,ConnectionBytes:4<<20,StallNanos:10_000_000_000,Transitions:16384}}
+  config:=simulationNetworkConfig{Nodes:[]simulationNodeConfig{{Node:"a",Address:"10.0.0.1"},{Node:"b",Address:"10.0.0.2"}},Links:[]simulationLink{{From:"a",To:"b",Enabled:true},{From:"b",To:"a",Enabled:true}},Limits:simulationLimits{Listeners:8,Connections:8,Bytes:16<<20,ConnectionBytes:4<<20,StallNanos:10_000_000_000,Transitions:16384}}
   n,err:=newSimulationNetwork(1,config);if err!=nil{t.Fatal(err)}
   simulationNetworkState.runs[1]=n
   set=func(client bool){if client {gomadsim.Current=gomadsim.NetworkDomain{Run:1,Node:"a",Address:"10.0.0.1",Incarnation:1}} else {gomadsim.Current=gomadsim.NetworkDomain{Run:1,Node:"b",Address:"10.0.0.2",Incarnation:1}}}
@@ -181,15 +181,33 @@ func TestNetworkHandleCommittedTerminalTimeout(t *testing.T) {
  })}
 }
 
+func TestNetworkHandleDescriptorByteCapacityAndUnreadTail(t *testing.T) {
+ gomadsim.Current=gomadsim.NetworkDomain{}
+ b:=descriptorBackend;l,status:=b.Socket();if status!=gomadvfd.OK{t.Fatal(status)}
+ if status:=b.Bind(l,gomadvfd.Address{IP:[4]byte{127,0,0,1}});status!=gomadvfd.OK{t.Fatal(status)}
+ if status:=b.Listen(l,4);status!=gomadvfd.OK{t.Fatal(status)}
+ address,status:=b.Local(l);if status!=gomadvfd.OK{t.Fatal(status)}
+ c,status:=b.Socket();if status!=gomadvfd.OK{t.Fatal(status)}
+ if status:=b.Connect(c,address);status!=gomadvfd.OK{t.Fatal(status)}
+ s,_,status:=b.Accept(l);if status!=gomadvfd.OK{t.Fatal(status)}
+ defer b.Close(c);defer b.Close(s);defer b.Close(l)
+ for index:=0;index<65;index++{if n,status:=b.Write(c,[]byte{'x'});n!=1||status!=gomadvfd.OK{t.Fatalf("tiny descriptor write %d=%d,%v",index,n,status)}}
+ for remaining:=(4<<20)-65;remaining>0;{n,status:=b.Write(c,make([]byte,min(remaining,maximumChunkBytes)));if n==0||status!=gomadvfd.OK{t.Fatalf("fill=%d,%v",n,status)};remaining-=n}
+ if n,status:=b.Write(c,[]byte{'z'});n!=0||status!=gomadvfd.WouldBlock{t.Fatalf("byte-full=%d,%v",n,status)}
+ if n,status:=b.Read(s,make([]byte,1));n!=1||status!=gomadvfd.OK{t.Fatalf("short read=%d,%v",n,status)}
+ if n,status:=b.Write(c,[]byte("ab"));n!=1||status!=gomadvfd.OK{t.Fatalf("unread tail charge=%d,%v",n,status)}
+ if n,status:=b.Write(c,[]byte{'z'});n!=0||status!=gomadvfd.WouldBlock{t.Fatalf("tail-byte-full=%d,%v",n,status)}
+}
+
 func TestNetworkHandleAutonomousStallSourceTimer(t *testing.T) {
  c,s,set:=publicPair(t,true)
  local:=c.implementation.(*simulationConn)
  n:=local.network;n.limits.StallNanos=1_000_000;n.limits.Transitions=6
  if err:=n.changeLink("a","b","disconnect",false,0);err!=nil{t.Fatal(err)}
  set(true);if count,err:=c.Write([]byte("held"));count!=4||err!=nil{t.Fatalf("held=%d,%v",count,err)}
- n.Lock();local.state.shared.Lock();changed:=local.state.shared.changed;local.state.shared.Unlock();n.Unlock()
+ n.Lock();local.state.shared.Lock();changed:=local.state.shared.changed;expired:=local.state.terminal!=nil;local.state.shared.Unlock();n.Unlock()
  timer:=time.NewTimer(time.Second);defer timer.Stop()
- select{case <-changed:case <-timer.C:t.Fatal("returned writer did not expire autonomously")}
+ if !expired { select{case <-changed:case <-timer.C:t.Fatal("returned writer did not expire autonomously")} }
  for index,connection:=range []*Conn{c,s}{set(index==0);_,err:=connection.Read(make([]byte,1));if !errors.Is(err,ErrStallTimeout){t.Fatalf("autonomous terminal=%v",err)}}
  if n.pendingBytes!=0||n.historyReserved!=0||len(n.transitions)!=6{t.Fatal("terminal reservation or bytes leaked")}
 }
@@ -202,5 +220,15 @@ func TestNetworkHandlePartitionedDialSourceTimer(t *testing.T) {
  if len(n.pendingDials)!=0||n.historyReserved!=0||n.nextConnection!=1{t.Fatal("pending dial leaked work or connection identity")}
  cancelled,stop:=context.WithCancel(context.Background());stop()
  if connection,err:=DialTCP(cancelled,"tcp4",c.LocalAddress().IP,c.LocalAddress().Port);connection!=nil||!errors.Is(err,context.Canceled){t.Fatalf("completed context=%v,%v",connection,err)}
+}
+
+func TestNetworkHandlePartialWriteSourceTimer(t *testing.T) {
+ c,_,set:=publicPair(t,true);n:=c.implementation.(*simulationConn).network
+ n.limits.ConnectionBytes=2;n.limits.StallNanos=1_000_000;n.limits.Transitions=6
+ if err:=n.changeLink("a","b","disconnect",false,0);err!=nil{t.Fatal(err)}
+ set(true);if err:=c.SetWriteDeadline(time.Now().Add(time.Second));err!=nil{t.Fatal(err)}
+ count,err:=c.Write([]byte("prefix"));timeout,ok:=err.(interface{Timeout()bool})
+ if count!=2||!errors.Is(err,ErrStallTimeout)||!ok||!timeout.Timeout(){t.Fatalf("partial stall=%d,%v",count,err)}
+ if n.pendingBytes!=0||n.historyReserved!=0||len(n.transitions)!=6{t.Fatal("partial timeout leaked work")}
 }
 `

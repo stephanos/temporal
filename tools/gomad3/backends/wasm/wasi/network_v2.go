@@ -18,7 +18,7 @@ import (
 const NetworkStreamProfile = netmodel.Profile
 const networkStreamHeader = 64
 
-// NetworkModelV2 keeps the native partition_drop/drain profile distinct from
+// NetworkModelV2 keeps the native hold/timeout profile distinct from
 // the retained v1 prototype's reset-on-partition behavior.
 type NetworkModelV2 struct {
 	Profile string           `json:"profile"`
@@ -55,7 +55,7 @@ func validateNetworkModelV2(config *NetworkModelV2) error {
 		return invalid("network v2 profile")
 	}
 	limits := config.Limits
-	if limits.Listeners == 0 || limits.Listeners > 4096 || limits.Connections == 0 || limits.Connections > 65536 || limits.Deliveries == 0 || limits.Deliveries > 65536 || limits.Bytes == 0 || limits.Bytes > 128<<20 || limits.Transitions == 0 || limits.Transitions > 1<<20 {
+	if limits.Listeners == 0 || limits.Listeners > 4096 || limits.Connections == 0 || limits.Connections > 65536 || limits.Bytes == 0 || limits.Bytes > 128<<20 || limits.Transitions == 0 || limits.Transitions > 1<<20 {
 		return invalid("network v2 limits")
 	}
 	if limits.ConnectionBytes == 0 || limits.ConnectionBytes > 1<<30 || limits.StallNanos == 0 || limits.StallNanos > math.MaxInt64-1 {
@@ -95,7 +95,7 @@ func newNetworkV2State(config *NetworkModelV2) (*networkV2State, error) {
 	if err != nil {
 		return nil, err
 	}
-	w, err := world.New(world.Config{Limits: world.Limits{MaxRequests: config.Limits.Transitions * 2, MaxEvents: config.Limits.Transitions * 2, MaxQueuedEvents: config.Limits.Deliveries, MaxTransitions: config.Limits.Transitions * 8, MaxPayloadBytes: config.Limits.Bytes * 8, MaxStringBytes: 1024}})
+	w, err := world.New(world.Config{Limits: world.Limits{MaxRequests: config.Limits.Transitions * 2, MaxEvents: config.Limits.Transitions * 2, MaxQueuedEvents: min(netmodel.MaximumPendingOperations, config.Limits.Transitions*2), MaxTransitions: config.Limits.Transitions * 8, MaxPayloadBytes: config.Limits.Bytes * 8, MaxStringBytes: 1024}})
 	if err != nil {
 		return nil, err
 	}

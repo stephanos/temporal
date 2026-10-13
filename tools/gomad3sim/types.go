@@ -6,9 +6,9 @@ import (
 	"fmt"
 )
 
-const SpecSchema = "gomad3.simulation-spec/v7"
-const ClusterRecordSchema = "gomad3.cluster-record/v7"
-const ClusterReplaySchema = "gomad3.cluster-replay/v7"
+const SpecSchema = "gomad3.simulation-spec/v8"
+const ClusterRecordSchema = "gomad3.cluster-record/v8"
+const ClusterReplaySchema = "gomad3.cluster-replay/v8"
 
 const MaximumClusterRecordBytes = 128 << 20
 const MaximumTerminalReasonBytes = 4096
@@ -127,7 +127,6 @@ const (
 	NetworkDial             NetworkTransitionKind = "dial"
 	NetworkAccept           NetworkTransitionKind = "accept"
 	NetworkWrite            NetworkTransitionKind = "write"
-	NetworkDeliver          NetworkTransitionKind = "deliver"
 	NetworkClose            NetworkTransitionKind = "close"
 	NetworkReset            NetworkTransitionKind = "reset"
 	NetworkListenerClose    NetworkTransitionKind = "listener_close"
@@ -142,17 +141,15 @@ const (
 )
 
 const (
-	NetworkOutcomeOK            NetworkOutcome = "ok"
-	NetworkOutcomeClosed        NetworkOutcome = "closed"
-	NetworkOutcomeRefused       NetworkOutcome = "refused"
-	NetworkOutcomeDeadline      NetworkOutcome = "deadline"
-	NetworkOutcomeHeld          NetworkOutcome = "held"
-	NetworkOutcomeTimeout       NetworkOutcome = "timeout"
-	NetworkOutcomePartitionDrop NetworkOutcome = "partition_drop"
-	NetworkOutcomeStaleDrop     NetworkOutcome = "stale_drop"
-	NetworkOutcomeReset         NetworkOutcome = "reset"
-	NetworkOutcomeCapacity      NetworkOutcome = "capacity"
-	NetworkOutcomeUnsupported   NetworkOutcome = "unsupported"
+	NetworkOutcomeOK          NetworkOutcome = "ok"
+	NetworkOutcomeClosed      NetworkOutcome = "closed"
+	NetworkOutcomeRefused     NetworkOutcome = "refused"
+	NetworkOutcomeDeadline    NetworkOutcome = "deadline"
+	NetworkOutcomeHeld        NetworkOutcome = "held"
+	NetworkOutcomeTimeout     NetworkOutcome = "timeout"
+	NetworkOutcomeReset       NetworkOutcome = "reset"
+	NetworkOutcomeCapacity    NetworkOutcome = "capacity"
+	NetworkOutcomeUnsupported NetworkOutcome = "unsupported"
 )
 
 type NodeHandle struct {
@@ -198,17 +195,15 @@ type NetworkEndpoint struct {
 }
 
 type NetworkTransition struct {
-	Ordinal       uint64                `json:"ordinal"`
-	Kind          NetworkTransitionKind `json:"kind"`
-	Source        NetworkEndpoint       `json:"source,omitempty"`
-	Destination   NetworkEndpoint       `json:"destination,omitempty"`
-	Connection    uint64                `json:"connection,omitempty"`
-	Delivery      uint64                `json:"delivery,omitempty"`
-	Bytes         uint64                `json:"bytes,omitempty"`
-	Count         uint64                `json:"count,omitempty"`
-	DelayNanos    uint64                `json:"delay_nanos,omitempty"`
-	Outcome       NetworkOutcome        `json:"outcome"`
-	PayloadSHA256 string                `json:"payload_sha256,omitempty"`
+	Ordinal     uint64                `json:"ordinal"`
+	Kind        NetworkTransitionKind `json:"kind"`
+	Source      NetworkEndpoint       `json:"source,omitempty"`
+	Destination NetworkEndpoint       `json:"destination,omitempty"`
+	Connection  uint64                `json:"connection,omitempty"`
+	Bytes       uint64                `json:"bytes,omitempty"`
+	Count       uint64                `json:"count,omitempty"`
+	DelayNanos  uint64                `json:"delay_nanos,omitempty"`
+	Outcome     NetworkOutcome        `json:"outcome"`
 }
 
 type NetworkNodeSnapshot struct {
@@ -232,20 +227,13 @@ type NetworkListenerSnapshot struct {
 }
 
 type NetworkConnectionSnapshot struct {
-	Identity uint64          `json:"identity"`
-	Client   NetworkEndpoint `json:"client"`
-	Server   NetworkEndpoint `json:"server"`
-	Closed   bool            `json:"closed"`
-	Reset    bool            `json:"reset"`
-}
-
-type NetworkDeliverySnapshot struct {
 	Identity    uint64          `json:"identity"`
-	Connection  uint64          `json:"connection"`
-	Source      NetworkEndpoint `json:"source"`
-	Destination NetworkEndpoint `json:"destination"`
-	Bytes       uint64          `json:"bytes"`
-	DelayNanos  uint64          `json:"delay_nanos"`
+	Client      NetworkEndpoint `json:"client"`
+	Server      NetworkEndpoint `json:"server"`
+	Closed      bool            `json:"closed"`
+	Reset       bool            `json:"reset"`
+	ClientBytes uint64          `json:"client_bytes"`
+	ServerBytes uint64          `json:"server_bytes"`
 }
 
 type NetworkSnapshot struct {
@@ -253,9 +241,7 @@ type NetworkSnapshot struct {
 	Links            []NetworkLinkSnapshot       `json:"links"`
 	Listeners        []NetworkListenerSnapshot   `json:"listeners"`
 	Connections      []NetworkConnectionSnapshot `json:"connections"`
-	Deliveries       []NetworkDeliverySnapshot   `json:"deliveries"`
 	NextConnection   uint64                      `json:"next_connection"`
-	NextDelivery     uint64                      `json:"next_delivery"`
 	TransitionSHA256 string                      `json:"transition_sha256"`
 	Identity         string                      `json:"identity"`
 }

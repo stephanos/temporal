@@ -19,8 +19,9 @@ import (
 
 //go:generate go run ./generate
 
-const Profile = "gomad3.simulation-network-stream/v2"
+const Profile = "gomad3.simulation-network-stream/v3"
 const MaximumChunkBytes = 64 << 10
+const MaximumPendingOperations = maximumPendingNetworkOperations
 
 type Domain struct {
 	Run         uint64 `json:"run"`
@@ -93,6 +94,10 @@ func New(run uint64, config Config) (*Model, error) {
 	if config.Replay != nil {
 		replay := *config.Replay
 		replay.Transitions = append([]simulationTransition(nil), replay.Transitions...)
+		replay.Snapshot.Nodes = append([]simulationNodeSnapshot(nil), replay.Snapshot.Nodes...)
+		replay.Snapshot.Links = append([]simulationLink(nil), replay.Snapshot.Links...)
+		replay.Snapshot.Listeners = append([]simulationListenerSnapshot(nil), replay.Snapshot.Listeners...)
+		replay.Snapshot.Connections = append([]simulationConnectionSnapshot(nil), replay.Snapshot.Connections...)
 		config.Replay = &replay
 	}
 	n, err := newSimulationNetwork(run, config)
@@ -101,7 +106,7 @@ func New(run uint64, config Config) (*Model, error) {
 	}
 	n.now = time.Unix(0, 0)
 	n.live = make(map[string]Domain)
-	return &Model{network: n, handles: make(map[uint64]ownedHandle), pending: make(map[uint64]*pending), maxPending: config.Limits.Deliveries}, nil
+	return &Model{network: n, handles: make(map[uint64]ownedHandle), pending: make(map[uint64]*pending), maxPending: MaximumPendingOperations}, nil
 }
 
 func (m *Model) Register(domain Domain) error {
@@ -597,7 +602,7 @@ func (m *Model) Record() (Record, error) {
 }
 
 // Reset derives the native crash reset of a connection without revoking its
-// listener domain. This extension has the separate stream v2 profile identity.
+// listener domain. This extension has the separate stream profile identity.
 func (m *Model) Reset(handle uint64) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -614,13 +619,13 @@ func (m *Model) Reset(handle uint64) error {
 		m.network.Unlock()
 		return nil
 	}
-	var pendingBytes uint64
-	for _, delivery := range m.network.deliveries {
-		if delivery.connection == connection.identity {
-			pendingBytes += delivery.bytes
-		}
+	pair := m.network.connections[connection.identity]
+	pendingBytes := pair.clientState.retainedBytes + pair.serverState.retainedBytes
+	var release uint64
+	if pair.reserved {
+		release = 1
 	}
-	err := m.network.commitTransitionLocked(simulationTransition{Kind: "crash", Source: simulationEndpoint{Node: connection.owner.Node, Incarnation: connection.owner.Incarnation, Address: connection.owner.Address}, Count: 1, Bytes: pendingBytes, Outcome: "reset"})
+	err := m.network.commitBatchLocked([]simulationTransition{{Kind: "crash", Source: simulationEndpoint{Node: connection.owner.Node, Incarnation: connection.owner.Incarnation, Address: connection.owner.Address}, Count: 1, Bytes: pendingBytes, Outcome: "reset"}}, 0, release)
 	m.network.Unlock()
 	if err != nil {
 		return err

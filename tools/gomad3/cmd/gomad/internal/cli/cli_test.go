@@ -751,7 +751,7 @@ func TestPrintInspectionReportsSimulationExplorationEvidence(t *testing.T) {
 				Profile: "gomad3-simulation-exploration/v1", ControllerSHA256: "sha256:controller", ExecutionSHA256: "sha256:execution",
 				CandidateSHA256: "sha256:candidate", OutcomeSHA256: "sha256:outcome", FailureSHA256: "sha256:failure",
 				Plan:   runner.SimulationPayloadInspection{Schema: "gomad3.simulation-exploration-plan/v1", SHA256: "sha256:plan", Bytes: 123},
-				Record: runner.SimulationRecordInspection{Schema: "gomad3.cluster-record/v7", SHA256: "sha256:record", Bytes: 456, Limit: 789},
+				Record: runner.SimulationRecordInspection{Schema: "gomad3.cluster-record/v8", SHA256: "sha256:record", Bytes: 456, Limit: 789},
 			},
 		},
 	}

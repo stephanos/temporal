@@ -452,7 +452,7 @@ func validateSimulationProfile(replayMode string, profile *SimulationProfile) er
 	if replayMode != ReplayExact {
 		return errors.New("simulation exploration evidence requires exact replay")
 	}
-	if profile.Name != "gomad3-simulation-exploration/v1" || profile.Plan.Schema != "gomad3.simulation-exploration-plan/v1" || profile.Plan.File != "simulation/plan.json" || profile.Record.Schema != "gomad3.cluster-record/v7" || profile.Record.File != "simulation/record.json" {
+	if profile.Name != "gomad3-simulation-exploration/v1" || profile.Plan.Schema != "gomad3.simulation-exploration-plan/v1" || profile.Plan.File != "simulation/plan.json" || profile.Record.Schema != "gomad3.cluster-record/v8" || profile.Record.File != "simulation/record.json" {
 		return errors.New("invalid simulation exploration identity")
 	}
 	for _, identity := range []struct {

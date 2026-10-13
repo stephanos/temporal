@@ -182,8 +182,12 @@ func TestDescriptorBackendCopiesPartialAndEOF(t *testing.T) {
 
 func TestDescriptorBackendBackpressureWakeAndHalfClose(t *testing.T) {
 	_, client, server := descriptorPair(t)
-	for i := 0; i < maximumPendingChunks; i++ {
-		if n, s := gomadvfd.Write(client, []byte{byte(i)}); n != 1 || s != gomadvfd.OK {
+	for i := 0; i < (4<<20)/maximumChunkBytes; i++ {
+		payload := make([]byte, maximumChunkBytes)
+		for index := range payload {
+			payload[index] = byte(i)
+		}
+		if n, s := gomadvfd.Write(client, payload); n != maximumChunkBytes || s != gomadvfd.OK {
 			t.Fatalf("fill=%d,%v", n, s)
 		}
 	}

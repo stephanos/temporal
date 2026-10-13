@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	netmodel "go.temporal.io/server/tools/gomad3/simulation/network"
 	"go.temporal.io/server/tools/gomad3/world"
 	"go.temporal.io/server/tools/gomad3sim"
 )
@@ -250,7 +251,7 @@ func TestBrokerImplicitProfileAdmitsDefaultSimulationLimits(t *testing.T) {
 	simulation := gomad3sim.DefaultLimits()
 	limits := world.Limits{
 		MaxRequests: simulation.NetworkTransitions * 2, MaxEvents: simulation.NetworkTransitions * 2,
-		MaxQueuedEvents: simulation.NetworkDeliveries, MaxTransitions: simulation.NetworkTransitions * 8,
+		MaxQueuedEvents: min(netmodel.MaximumPendingOperations, simulation.NetworkTransitions*2), MaxTransitions: simulation.NetworkTransitions * 8,
 		MaxPayloadBytes: simulation.ObservationBytes, MaxStringBytes: 1024,
 	}
 	if _, err := NewBroker(BrokerConfig{Nodes: []BrokerNode{{ID: "a", Incarnation: 1}}, Limits: limits}); err != nil {

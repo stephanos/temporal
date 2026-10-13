@@ -7,7 +7,6 @@
 package {{.Package}}
 
 import (
-	"encoding/hex"
 	"errors"
 	"fmt"
 )
@@ -24,7 +23,6 @@ const (
  {{index .Names "MaximumNetworkConnections"}} = {{.Schema.MaximumConnections}}
  {{index .Names "MaximumNetworkBytes"}} = {{.Schema.MaximumNetworkBytes}}
  {{index .Names "MaximumNetworkStallNanos"}} = {{.Schema.MaximumStallNanos}}
- {{index .Names "MaximumNetworkDeliveries"}} = {{.Schema.MaximumDeliveries}}
  {{index .Names "MaximumNetworkTransitions"}} = {{.Schema.MaximumTransitions}}
 )
 
@@ -158,7 +156,6 @@ func encodeRuntimeNetworkConfig(spec Spec) ([]byte, error) {
 	}
 	encoder.uint64(spec.Limits.NetworkListeners)
 	encoder.uint64(spec.Limits.NetworkConnections)
-	encoder.uint64(spec.Limits.NetworkDeliveries)
 	encoder.uint64(spec.Limits.NetworkBytes)
 	encoder.uint64(spec.Limits.NetworkConnectionBytes)
 	encoder.uint64(spec.Limits.NetworkStallNanos)
@@ -223,7 +220,7 @@ func decodeSimulationConfig(encoded []byte) (simulationNetworkConfig, error) {
 		})
 	}
 	config.Limits = simulationLimits{
-		Listeners: decoder.uint64(), Connections: decoder.uint64(), Deliveries: decoder.uint64(), Bytes: decoder.uint64(),
+		Listeners: decoder.uint64(), Connections: decoder.uint64(), Bytes: decoder.uint64(),
 		ConnectionBytes: decoder.uint64(), StallNanos: decoder.uint64(), Transitions: decoder.uint64(),
 	}
 	if decoder.boolean() {
@@ -280,7 +277,7 @@ func {{index .Names "validateRuntimeNetworkLimits"}}(limits {{index .Names "Limi
 
 func {{index .Names "validNetworkTransition"}}(transition {{index .Names "NetworkTransition"}}) bool {
 	switch transition.Kind {
-	case "listen", "dial", "accept", "write", "deliver", "close", "listener_close", "stop", "crash", "reset":
+	case "listen", "dial", "accept", "write", "close", "listener_close", "stop", "crash", "reset":
 		if !{{index .Names "validNetworkEndpoint"}}(transition.Source, true) { return false }
 	case "partition", "heal", "delay", "disconnect", "reconnect", "directional_delay":
 		if !{{index .Names "validNetworkEndpoint"}}(transition.Source, false) || !{{index .Names "validNetworkEndpoint"}}(transition.Destination, false) || transition.Source.Node == transition.Destination.Node { return false }
@@ -288,20 +285,19 @@ func {{index .Names "validNetworkTransition"}}(transition {{index .Names "Networ
 		return false
 	}
 	switch transition.Outcome {
-	case "ok", "closed", "refused", "deadline", "partition_drop", "stale_drop", "reset", "capacity", "unsupported", "held", "timeout":
+	case "ok", "closed", "refused", "deadline", "reset", "capacity", "unsupported", "held", "timeout":
 	default:
 		return false
 	}
-	if transition.PayloadSHA256 != "" && !{{index .Names "validNetworkPayloadSHA256"}}(transition.PayloadSHA256) { return false }
 	if transition.Kind == "reset" || transition.Outcome == "held" || transition.Outcome == "timeout" && transition.Kind == "write" {
 		if transition.Kind != "reset" && transition.Kind != "write" ||
 			transition.Connection == 0 || !{{index .Names "validNetworkEndpoint"}}(transition.Destination, true) ||
 			transition.Source.Node == transition.Destination.Node || transition.Source.Port == 0 || transition.Source.Port > 65535 || transition.Destination.Port == 0 || transition.Destination.Port > 65535 { return false }
-		if transition.Kind == "reset" && (transition.Outcome != "reset" && transition.Outcome != "timeout" || transition.Delivery != 0 || transition.PayloadSHA256 != "") { return false }
+		if transition.Kind == "reset" && (transition.Outcome != "reset" && transition.Outcome != "timeout") { return false }
 		if transition.Outcome == "held" && transition.Bytes == 0 { return false }
 	}
 	if transition.Outcome == "timeout" && transition.Kind != "write" && transition.Kind != "reset" {
-		if transition.Kind != "dial" || transition.Connection != 0 || transition.Delivery != 0 || transition.Source.Port > 65535 ||
+		if transition.Kind != "dial" || transition.Connection != 0 || transition.Source.Port > 65535 ||
 			!{{index .Names "validNetworkEndpoint"}}(transition.Destination, false) || transition.Source.Node == transition.Destination.Node || transition.Destination.Port == 0 || transition.Destination.Port > 65535 { return false }
 	}
 	return true
@@ -312,11 +308,6 @@ func {{index .Names "validNetworkEndpoint"}}(endpoint {{index .Names "NetworkEnd
 	return !requireIncarnation || endpoint.Incarnation != 0
 }
 
-func {{index .Names "validNetworkPayloadSHA256"}}(value string) bool {
-	if len(value) != 71 || value[:7] != "sha256:" { return false }
-	_, err := hex.DecodeString(value[7:])
-	return err == nil
-}
 
 func {{index .Names "networkTransitionLane"}}(transition {{index .Names "NetworkTransition"}}) string {
 	switch transition.Kind {
@@ -324,7 +315,7 @@ func {{index .Names "networkTransitionLane"}}(transition {{index .Names "Network
 		return "topology"
 	case "listen", "listener_close":
 		return "listener\x00" + {{index .Names "networkEndpointKey"}}(transition.Source)
-	case "dial", "accept", "write", "deliver", "close", "reset":
+	case "dial", "accept", "write", "close", "reset":
 		if transition.Connection != 0 { return fmt.Sprintf("connection\x00%020d", transition.Connection) }
 		return "operation\x00" + string(transition.Kind) + "\x00" + {{index .Names "networkEndpointKey"}}(transition.Source) + "\x00" + {{index .Names "networkEndpointKey"}}(transition.Destination)
 	case "stop", "crash":
@@ -358,12 +349,10 @@ func {{index .Names "encodeRuntimeNetworkTransition"}}(encoder *{{index .Names "
 	{{index .Names "encodeRuntimeNetworkEndpoint"}}(encoder, transition.Source)
 	{{index .Names "encodeRuntimeNetworkEndpoint"}}(encoder, transition.Destination)
 	encoder.uint64(transition.Connection)
-	encoder.uint64(transition.Delivery)
 	encoder.uint64(transition.Bytes)
 	encoder.uint64(transition.Count)
 	encoder.uint64(transition.DelayNanos)
 	encoder.string(string(transition.Outcome))
-	encoder.string(transition.PayloadSHA256)
 }
 
 func {{index .Names "decodeRuntimeNetworkTransition"}}(decoder *{{index .Names "runtimeNetworkWireDecoder"}}) {{index .Names "NetworkTransition"}} {
@@ -371,12 +360,10 @@ func {{index .Names "decodeRuntimeNetworkTransition"}}(decoder *{{index .Names "
 	transition.Source = {{index .Names "decodeRuntimeNetworkEndpoint"}}(decoder)
 	transition.Destination = {{index .Names "decodeRuntimeNetworkEndpoint"}}(decoder)
 	transition.Connection = decoder.uint64()
-	transition.Delivery = decoder.uint64()
 	transition.Bytes = decoder.uint64()
 	transition.Count = decoder.uint64()
 	transition.DelayNanos = decoder.uint64()
 	transition.Outcome = {{.Outcome}}(decoder.string())
-	transition.PayloadSHA256 = decoder.string()
 	return transition
 }
 
@@ -419,18 +406,10 @@ func {{index .Names "encodeRuntimeNetworkSnapshot"}}(encoder *{{index .Names "ru
 		{{index .Names "encodeRuntimeNetworkEndpoint"}}(encoder, connection.Server)
 		encoder.boolean(connection.Closed)
 		encoder.boolean(connection.Reset)
-	}
-	encoder.uint64(uint64(len(snapshot.Deliveries)))
-	for _, delivery := range snapshot.Deliveries {
-		encoder.uint64(delivery.Identity)
-		encoder.uint64(delivery.Connection)
-		{{index .Names "encodeRuntimeNetworkEndpoint"}}(encoder, delivery.Source)
-		{{index .Names "encodeRuntimeNetworkEndpoint"}}(encoder, delivery.Destination)
-		encoder.uint64(delivery.Bytes)
-		encoder.uint64(delivery.DelayNanos)
+		encoder.uint64(connection.ClientBytes)
+		encoder.uint64(connection.ServerBytes)
 	}
 	encoder.uint64(snapshot.NextConnection)
-	encoder.uint64(snapshot.NextDelivery)
 	encoder.string(snapshot.TransitionSHA256)
 	encoder.string(snapshot.Identity)
 }
@@ -458,18 +437,10 @@ func {{index .Names "decodeRuntimeNetworkSnapshot"}}(decoder *{{index .Names "ru
 		if decoder.err != nil { break }
 		snapshot.Connections = append(snapshot.Connections, {{index .Names "NetworkConnectionSnapshot"}}{
 			Identity: decoder.uint64(), Client: {{index .Names "decodeRuntimeNetworkEndpoint"}}(decoder), Server: {{index .Names "decodeRuntimeNetworkEndpoint"}}(decoder),
-			Closed: decoder.boolean(), Reset: decoder.boolean(),
-		})
-	}
-	for range decoder.count({{index .Names "MaximumNetworkDeliveries"}}) {
-		if decoder.err != nil { break }
-		snapshot.Deliveries = append(snapshot.Deliveries, {{index .Names "NetworkDeliverySnapshot"}}{
-			Identity: decoder.uint64(), Connection: decoder.uint64(), Source: {{index .Names "decodeRuntimeNetworkEndpoint"}}(decoder), Destination: {{index .Names "decodeRuntimeNetworkEndpoint"}}(decoder),
-			Bytes: decoder.uint64(), DelayNanos: decoder.uint64(),
+			Closed: decoder.boolean(), Reset: decoder.boolean(), ClientBytes: decoder.uint64(), ServerBytes: decoder.uint64(),
 		})
 	}
 	snapshot.NextConnection = decoder.uint64()
-	snapshot.NextDelivery = decoder.uint64()
 	snapshot.TransitionSHA256 = decoder.string()
 	snapshot.Identity = decoder.string()
 	return snapshot

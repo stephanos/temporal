@@ -3,6 +3,8 @@ package network
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
+	"fmt"
 	"io"
 	"os"
 	"reflect"
@@ -68,7 +70,7 @@ func testModel(t *testing.T, limits Limits) (*Model, Domain, Domain) {
 	return m, a, b
 }
 func testLimits() Limits {
-	return Limits{Listeners: 128, Connections: 128, Deliveries: 128, Bytes: 8 << 20, ConnectionBytes: 4 << 20, StallNanos: 10_000_000_000, Transitions: 8192}
+	return Limits{Listeners: 128, Connections: 128, Bytes: 8 << 20, ConnectionBytes: 4 << 20, StallNanos: 10_000_000_000, Transitions: 8192}
 }
 
 func TestModelRejectsInvalidExplicitNetworkLimits(t *testing.T) {
@@ -89,7 +91,16 @@ func TestModelHeldTimeoutReplayAdmission(t *testing.T) {
 	source := simulationEndpoint{Node: "a", Incarnation: 1, Address: "A", Port: 2}
 	destination := simulationEndpoint{Node: "b", Incarnation: 1, Address: "B", Port: 3}
 	valid := simulationTransition{Kind: "reset", Source: source, Destination: destination, Connection: 1, Outcome: "timeout"}
-	config := Config{Limits: testLimits(), Replay: &Record{Transitions: []Transition{valid}}}
+	owner, err := New(1, Config{Limits: testLimits()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	owner.network.transitions = []Transition{valid}
+	record, err := owner.Record()
+	if err != nil {
+		t.Fatal(err)
+	}
+	config := Config{Limits: testLimits(), Replay: &record}
 	if model, err := New(1, config); err != nil || model == nil {
 		t.Fatalf("valid reset replay rejected: %v", err)
 	}
@@ -120,6 +131,86 @@ func TestModelRejectsUnknownTransitionBeforeCommit(t *testing.T) {
 		if err := model.network.commitTransitionLocked(transition); err == nil || len(model.network.transitions) != 0 {
 			t.Fatalf("invalid transition committed: %+v error=%v", transition, err)
 		}
+	}
+}
+
+func TestModelReplayPreflightRejectsUnboundSnapshot(t *testing.T) {
+	m, a, b := testModel(t, testLimits())
+	_, client, _ := pair(t, m, a, b)
+	m.Dispatch(Request{Domain: a, Op: "write", Handle: client, RequestID: 4, Bytes: []byte("actual")})
+	record, err := m.Record()
+	if err != nil {
+		t.Fatal(err)
+	}
+	config := Config{Nodes: []Node{{Node: "a", Address: "a"}, {Node: "b", Address: "b"}}, Links: []Link{{From: "a", To: "b", Enabled: true}, {From: "b", To: "a", Enabled: true}}, Limits: testLimits(), Replay: &record}
+	if _, err := New(2, config); err != nil {
+		t.Fatal(err)
+	}
+	for _, mutate := range []func(*Record){
+		func(r *Record) { r.Snapshot.Identity = "sha256:corrupted" },
+		func(r *Record) { r.Snapshot.TransitionSHA256 = "sha256:corrupted" },
+		func(r *Record) { r.Snapshot.Connections[0].ServerBytes++ },
+		func(r *Record) { r.Transitions[len(r.Transitions)-1].Bytes++ },
+	} {
+		candidate := record
+		candidate.Transitions = append([]Transition(nil), record.Transitions...)
+		candidate.Snapshot.Connections = append([]simulationConnectionSnapshot(nil), record.Snapshot.Connections...)
+		mutate(&candidate)
+		config.Replay = &candidate
+		if model, err := New(2, config); err == nil || model != nil {
+			t.Fatal("unbound replay activated")
+		}
+	}
+}
+
+func TestModelReplayPreflightChecksSealedOccupancyAndOwnsInputs(t *testing.T) {
+	limits := testLimits()
+	limits.ConnectionBytes, limits.Bytes = 8, 10
+	m, a, b := testModel(t, limits)
+	_, client, _ := pair(t, m, a, b)
+	m.Dispatch(Request{Domain: a, Op: "write", Handle: client, RequestID: 4, Bytes: []byte("actual")})
+	record, err := m.Record()
+	if err != nil {
+		t.Fatal(err)
+	}
+	config := Config{Limits: limits, Replay: &record}
+	for _, mutate := range []func(*Snapshot){
+		func(s *Snapshot) { s.Connections[0].ServerBytes = 9 },
+		func(s *Snapshot) { s.Connections[0].ClientBytes = 5 },
+		func(s *Snapshot) { s.Connections[0].Reset, s.Connections[0].Closed = true, true },
+		func(s *Snapshot) { s.Connections[0].Identity = 0 },
+		func(s *Snapshot) { s.Nodes[0].NextClientPort = 0 },
+		func(s *Snapshot) { s.Links[0].To = s.Links[0].From },
+		func(s *Snapshot) { s.Listeners[0].Endpoint.Port = 65536 },
+	} {
+		candidate := record
+		candidate.Snapshot.Nodes = append([]simulationNodeSnapshot(nil), record.Snapshot.Nodes...)
+		candidate.Snapshot.Links = append([]Link(nil), record.Snapshot.Links...)
+		candidate.Snapshot.Listeners = append([]simulationListenerSnapshot(nil), record.Snapshot.Listeners...)
+		candidate.Snapshot.Connections = append([]simulationConnectionSnapshot(nil), record.Snapshot.Connections...)
+		mutate(&candidate.Snapshot)
+		candidate.Snapshot.Identity = ""
+		encoded, err := encodeSimulationSnapshotIdentity(candidate.Snapshot)
+		if err != nil {
+			t.Fatal(err)
+		}
+		candidate.Snapshot.Identity = fmt.Sprintf("sha256:%x", sha256.Sum256(append([]byte("gomad3-simulation-network-snapshot/v3\x00"), encoded...)))
+		config.Replay = &candidate
+		if model, err := New(2, config); err == nil || model != nil {
+			t.Fatalf("invalid sealed snapshot activated: %+v", candidate.Snapshot)
+		}
+	}
+	config.Replay = &record
+	replay, err := New(2, config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	record.Snapshot.Nodes[0].Address = "changed"
+	record.Snapshot.Links[0].Enabled = false
+	record.Snapshot.Listeners[0].Closed = true
+	record.Snapshot.Connections[0].ServerBytes = 0
+	if replay.network.replay.Snapshot.Nodes[0].Address == "changed" || !replay.network.replay.Snapshot.Links[0].Enabled || replay.network.replay.Snapshot.Listeners[0].Closed || replay.network.replay.Snapshot.Connections[0].ServerBytes != 6 {
+		t.Fatal("replay aliases caller snapshot")
 	}
 }
 func pair(t *testing.T, m *Model, a, b Domain) (uint64, uint64, uint64) {
@@ -322,11 +413,7 @@ func TestGeneratedOperationSequencesExactNativeReplay(t *testing.T) {
 			t.Run("negative_capacity", func(t *testing.T) {
 				run := func(replay *Record) Record {
 					limits := testLimits()
-					if seed%2 == 0 {
-						limits.Bytes = 3
-					} else {
-						limits.Deliveries = 1
-					}
+					limits.Bytes = 3
 					m, a, b := testModel(t, limits)
 					if replay != nil {
 						m.network.replay = replay
@@ -387,7 +474,7 @@ func TestGeneratedOperationSequencesExactNativeReplay(t *testing.T) {
 						if got, want := m.Dispatch(Request{Domain: a, Op: "write", Handle: c, RequestID: id + 4, Bytes: []byte("x")}), (Result{RequestID: id + 4, State: "completed", Error: "network resources exhausted"}); !reflect.DeepEqual(got, want) {
 							t.Fatalf("generated capacity: got=%+v want=%+v", got, want)
 						}
-						want := Transition{Kind: "write", Source: simulationEndpoint{Node: "a", Incarnation: 1, Address: "a", Port: 40000}, Destination: simulationEndpoint{Node: "b", Incarnation: 1, Address: "b", Port: 20000}, Connection: 1, Bytes: 1, Outcome: "capacity", PayloadSHA256: "sha256:2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881"}
+						want := Transition{Kind: "write", Source: simulationEndpoint{Node: "a", Incarnation: 1, Address: "a", Port: 40000}, Destination: simulationEndpoint{Node: "b", Incarnation: 1, Address: "b", Port: 20000}, Connection: 1, Bytes: 1, Outcome: "capacity"}
 						if got := m.network.transitions[len(m.network.transitions)-1]; got != want {
 							t.Fatalf("capacity transition: got=%+v want=%+v", got, want)
 						}
@@ -395,13 +482,13 @@ func TestGeneratedOperationSequencesExactNativeReplay(t *testing.T) {
 						if err != nil {
 							t.Fatal(err)
 						}
-						if queued.NextConnection != 1 || queued.NextDelivery != cycle+1 || len(queued.Deliveries) != 1 || queued.Deliveries[0].Bytes != 3 || m.network.pendingBytes != 3 || len(m.pending) != 0 {
+						if queued.NextConnection != 1 || len(queued.Connections) != 1 || queued.Connections[0].ServerBytes != 3 || queued.Connections[0].ClientBytes != 0 || m.network.pendingBytes != 3 || len(m.pending) != 0 {
 							t.Fatalf("rejected write changed bounded queue: %+v", queued)
 						}
 						if got, want := m.Dispatch(Request{Domain: b, Op: "read", Handle: s, RequestID: id + 5, Count: 3}), (Result{RequestID: id + 5, State: "completed", Count: 3, Bytes: payload}); !reflect.DeepEqual(got, want) {
 							t.Fatalf("capacity drain: got=%+v want=%+v", got, want)
 						}
-						if len(m.network.deliveries) != 0 || m.network.pendingBytes != 0 || len(m.pending) != 0 {
+						if m.network.pendingBytes != 0 || len(m.pending) != 0 {
 							t.Fatal("drain did not restore capacity")
 						}
 					}
@@ -409,8 +496,8 @@ func TestGeneratedOperationSequencesExactNativeReplay(t *testing.T) {
 					if err != nil {
 						t.Fatal(err)
 					}
-					if len(record.Transitions) != 35 {
-						t.Fatalf("generated transition count: got=%d want=35", len(record.Transitions))
+					if len(record.Transitions) != 27 {
+						t.Fatalf("generated transition count: got=%d want=27", len(record.Transitions))
 					}
 					return record
 				}

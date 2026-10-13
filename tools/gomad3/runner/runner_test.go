@@ -1045,7 +1045,7 @@ func (executor *simulationExplorationExecutor) Run(_ context.Context, request ba
 		ScenarioTape         []string               `json:"scenario_tape"`
 		Identity             record.SHA256          `json:"identity"`
 	}{
-		Schema: "gomad3.cluster-record/v7", Seed: plan.BaseSeed, SpecSHA256: record.HashBytes([]byte("spec")), Outcome: outcome,
+		Schema: "gomad3.cluster-record/v8", Seed: plan.BaseSeed, SpecSHA256: record.HashBytes([]byte("spec")), Outcome: outcome,
 		FailureIdentity: record.HashBytes([]byte("normalized oracle failure")),
 		ExplorationPlan: request.Simulation.ExplorationPlan, ExplorationDecisions: []exploration.Decision{decision},
 		ScenarioTape: []string{scenarios[selected]}, Identity: record.HashBytes([]byte(fmt.Sprintf("record-%d", selected))),

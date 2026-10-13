@@ -17,6 +17,24 @@ func TestValidateSpec(t *testing.T) {
 	require.Equal(t, original, spec)
 }
 
+func TestDecodeSpecRejectsRetiredNetworkDeliveryLimit(t *testing.T) {
+	encoded, err := json.Marshal(validSpec())
+	require.NoError(t, err)
+	current := strings.Replace(string(encoded), `"network_deliveries":65536,`, "", 1)
+	legacy := strings.Replace(current, `"network_bytes":`, `"network_deliveries":65536,"network_bytes":`, 1)
+	_, err = DecodeSpec([]byte(legacy))
+	require.ErrorContains(t, err, `unknown field "network_deliveries"`)
+}
+
+func TestDecodeSpecRejectsPreviousNetworkFormat(t *testing.T) {
+	spec := validSpec()
+	spec.Schema = "gomad3.simulation-spec/v7"
+	encoded, err := json.Marshal(spec)
+	require.NoError(t, err)
+	_, err = DecodeSpec(encoded)
+	require.ErrorContains(t, err, "schema")
+}
+
 func TestDefaultLimitsExplicitNetworkDefaults(t *testing.T) {
 	encoded, err := json.Marshal(DefaultLimits())
 	require.NoError(t, err)
@@ -28,7 +46,7 @@ func TestDefaultLimitsExplicitNetworkDefaults(t *testing.T) {
 		"history_operations": 1 << 16, "observations": 1 << 16, "oracle_results": 4096,
 		"scenario_evidence_bytes": 64 << 20, "boot_config_bytes": 1 << 20,
 		"volume_capacity_bytes": 1 << 30, "observation_bytes": 64 << 20,
-		"network_listeners": 4096, "network_connections": 65536, "network_deliveries": 65536,
+		"network_listeners": 4096, "network_connections": 65536,
 		"network_connection_bytes": 4 << 20, "network_stall_nanos": 10_000_000_000,
 		"network_bytes": 1 << 30, "network_transitions": 1 << 20,
 		"volume_operations": 1 << 20, "volume_transitions": 1 << 20,

@@ -7,7 +7,6 @@
 package gomadio
 
 import (
-	"encoding/hex"
 	"errors"
 	"fmt"
 )
@@ -15,16 +14,15 @@ import (
 const (
 	maximumSimulationWireBytes       = 134217728
 	maximumSimulationWireStringBytes = 1048576
-	simulationConfigMagic            = "GOMADNC2"
-	simulationFinishMagic            = "GOMADNR1"
-	simulationErrorMagic             = "GOMADNE1"
+	simulationConfigMagic            = "GOMADNC3"
+	simulationFinishMagic            = "GOMADNR2"
+	simulationErrorMagic             = "GOMADNE2"
 	maximumSimulationNodes           = 64
 	maximumSimulationLinks           = 4096
 	maximumSimulationListeners       = 4096
 	maximumSimulationConnections     = 65536
 	maximumSimulationNetworkBytes    = 1073741824
 	maximumSimulationStallNanos      = 9223372036854775806
-	maximumSimulationDeliveries      = 65536
 	maximumSimulationTransitions     = 1048576
 )
 
@@ -159,7 +157,7 @@ func decodeSimulationConfig(encoded []byte) (simulationNetworkConfig, error) {
 		})
 	}
 	config.Limits = simulationLimits{
-		Listeners: decoder.uint64(), Connections: decoder.uint64(), Deliveries: decoder.uint64(), Bytes: decoder.uint64(),
+		Listeners: decoder.uint64(), Connections: decoder.uint64(), Bytes: decoder.uint64(),
 		ConnectionBytes: decoder.uint64(), StallNanos: decoder.uint64(), Transitions: decoder.uint64(),
 	}
 	if decoder.boolean() {
@@ -215,7 +213,7 @@ func validateSimulationLimits(limits simulationLimits) error {
 
 func validSimulationTransition(transition simulationTransition) bool {
 	switch transition.Kind {
-	case "listen", "dial", "accept", "write", "deliver", "close", "listener_close", "stop", "crash", "reset":
+	case "listen", "dial", "accept", "write", "close", "listener_close", "stop", "crash", "reset":
 		if !validSimulationWireEndpoint(transition.Source, true) {
 			return false
 		}
@@ -227,11 +225,8 @@ func validSimulationTransition(transition simulationTransition) bool {
 		return false
 	}
 	switch transition.Outcome {
-	case "ok", "closed", "refused", "deadline", "partition_drop", "stale_drop", "reset", "capacity", "unsupported", "held", "timeout":
+	case "ok", "closed", "refused", "deadline", "reset", "capacity", "unsupported", "held", "timeout":
 	default:
-		return false
-	}
-	if transition.PayloadSHA256 != "" && !validSimulationWirePayloadSHA256(transition.PayloadSHA256) {
 		return false
 	}
 	if transition.Kind == "reset" || transition.Outcome == "held" || transition.Outcome == "timeout" && transition.Kind == "write" {
@@ -240,7 +235,7 @@ func validSimulationTransition(transition simulationTransition) bool {
 			transition.Source.Node == transition.Destination.Node || transition.Source.Port == 0 || transition.Source.Port > 65535 || transition.Destination.Port == 0 || transition.Destination.Port > 65535 {
 			return false
 		}
-		if transition.Kind == "reset" && (transition.Outcome != "reset" && transition.Outcome != "timeout" || transition.Delivery != 0 || transition.PayloadSHA256 != "") {
+		if transition.Kind == "reset" && (transition.Outcome != "reset" && transition.Outcome != "timeout") {
 			return false
 		}
 		if transition.Outcome == "held" && transition.Bytes == 0 {
@@ -248,7 +243,7 @@ func validSimulationTransition(transition simulationTransition) bool {
 		}
 	}
 	if transition.Outcome == "timeout" && transition.Kind != "write" && transition.Kind != "reset" {
-		if transition.Kind != "dial" || transition.Connection != 0 || transition.Delivery != 0 || transition.Source.Port > 65535 ||
+		if transition.Kind != "dial" || transition.Connection != 0 || transition.Source.Port > 65535 ||
 			!validSimulationWireEndpoint(transition.Destination, false) || transition.Source.Node == transition.Destination.Node || transition.Destination.Port == 0 || transition.Destination.Port > 65535 {
 			return false
 		}
@@ -263,21 +258,13 @@ func validSimulationWireEndpoint(endpoint simulationEndpoint, requireIncarnation
 	return !requireIncarnation || endpoint.Incarnation != 0
 }
 
-func validSimulationWirePayloadSHA256(value string) bool {
-	if len(value) != 71 || value[:7] != "sha256:" {
-		return false
-	}
-	_, err := hex.DecodeString(value[7:])
-	return err == nil
-}
-
 func simulationTransitionLane(transition simulationTransition) string {
 	switch transition.Kind {
 	case "partition", "heal", "delay", "disconnect", "reconnect", "directional_delay":
 		return "topology"
 	case "listen", "listener_close":
 		return "listener\x00" + simulationEndpointKey(transition.Source)
-	case "dial", "accept", "write", "deliver", "close", "reset":
+	case "dial", "accept", "write", "close", "reset":
 		if transition.Connection != 0 {
 			return fmt.Sprintf("connection\x00%020d", transition.Connection)
 		}
@@ -315,12 +302,10 @@ func encodeSimulationTransition(encoder *simulationWireEncoder, transition simul
 	encodeSimulationEndpoint(encoder, transition.Source)
 	encodeSimulationEndpoint(encoder, transition.Destination)
 	encoder.uint64(transition.Connection)
-	encoder.uint64(transition.Delivery)
 	encoder.uint64(transition.Bytes)
 	encoder.uint64(transition.Count)
 	encoder.uint64(transition.DelayNanos)
 	encoder.string(string(transition.Outcome))
-	encoder.string(transition.PayloadSHA256)
 }
 
 func decodeSimulationTransition(decoder *simulationWireDecoder) simulationTransition {
@@ -328,12 +313,10 @@ func decodeSimulationTransition(decoder *simulationWireDecoder) simulationTransi
 	transition.Source = decodeSimulationEndpoint(decoder)
 	transition.Destination = decodeSimulationEndpoint(decoder)
 	transition.Connection = decoder.uint64()
-	transition.Delivery = decoder.uint64()
 	transition.Bytes = decoder.uint64()
 	transition.Count = decoder.uint64()
 	transition.DelayNanos = decoder.uint64()
 	transition.Outcome = string(decoder.string())
-	transition.PayloadSHA256 = decoder.string()
 	return transition
 }
 
@@ -376,18 +359,10 @@ func encodeSimulationSnapshot(encoder *simulationWireEncoder, snapshot simulatio
 		encodeSimulationEndpoint(encoder, connection.Server)
 		encoder.boolean(connection.Closed)
 		encoder.boolean(connection.Reset)
-	}
-	encoder.uint64(uint64(len(snapshot.Deliveries)))
-	for _, delivery := range snapshot.Deliveries {
-		encoder.uint64(delivery.Identity)
-		encoder.uint64(delivery.Connection)
-		encodeSimulationEndpoint(encoder, delivery.Source)
-		encodeSimulationEndpoint(encoder, delivery.Destination)
-		encoder.uint64(delivery.Bytes)
-		encoder.uint64(delivery.DelayNanos)
+		encoder.uint64(connection.ClientBytes)
+		encoder.uint64(connection.ServerBytes)
 	}
 	encoder.uint64(snapshot.NextConnection)
-	encoder.uint64(snapshot.NextDelivery)
 	encoder.string(snapshot.TransitionSHA256)
 	encoder.string(snapshot.Identity)
 }
@@ -423,20 +398,10 @@ func decodeSimulationSnapshot(decoder *simulationWireDecoder) simulationSnapshot
 		}
 		snapshot.Connections = append(snapshot.Connections, simulationConnectionSnapshot{
 			Identity: decoder.uint64(), Client: decodeSimulationEndpoint(decoder), Server: decodeSimulationEndpoint(decoder),
-			Closed: decoder.boolean(), Reset: decoder.boolean(),
-		})
-	}
-	for range decoder.count(maximumSimulationDeliveries) {
-		if decoder.err != nil {
-			break
-		}
-		snapshot.Deliveries = append(snapshot.Deliveries, simulationDeliverySnapshot{
-			Identity: decoder.uint64(), Connection: decoder.uint64(), Source: decodeSimulationEndpoint(decoder), Destination: decodeSimulationEndpoint(decoder),
-			Bytes: decoder.uint64(), DelayNanos: decoder.uint64(),
+			Closed: decoder.boolean(), Reset: decoder.boolean(), ClientBytes: decoder.uint64(), ServerBytes: decoder.uint64(),
 		})
 	}
 	snapshot.NextConnection = decoder.uint64()
-	snapshot.NextDelivery = decoder.uint64()
 	snapshot.TransitionSHA256 = decoder.string()
 	snapshot.Identity = decoder.string()
 	return snapshot

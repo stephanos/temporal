@@ -12,7 +12,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/record"
 )
 
-const recordSchema = "gomad3.cluster-record/v7"
+const recordSchema = "gomad3.cluster-record/v8"
 const maximumRecordBytes = 128 << 20
 
 type retainedRecord struct {

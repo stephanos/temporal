@@ -107,6 +107,9 @@ func TestProjectionRejectsChangedExpiryTimer(t *testing.T) {
 		{"owned callback", "network.expireStallLocked(pair, state, epoch, due)", "network.expireStallLocked(pair, state, epoch + 1, due)"},
 		{"extra callback mutation", "err := network.expireStallLocked", "network.pendingBytes++\nerr := network.expireStallLocked"},
 		{"dial callback", "network.expireDialLocked(pending, epoch, due)", "network.expireDialLocked(pending, epoch, due.Add(1))"},
+		{"asynchronous lock", "network.Lock()\n\t\tpair.clientState.shared.Lock()", "go network.Lock()\n\t\tpair.clientState.shared.Lock()"},
+		{"deferred lock", "network.Lock()\n\t\tpair.clientState.shared.Lock()", "defer network.Lock()\n\t\tpair.clientState.shared.Lock()"},
+		{"conditional lock", "network.Lock()\n\t\tpair.clientState.shared.Lock()", "if false { network.Lock() }\n\t\tpair.clientState.shared.Lock()"},
 	} {
 		t.Run(mutation.name, func(t *testing.T) {
 			modified := strings.Replace(string(source), mutation.from, mutation.to, 1)

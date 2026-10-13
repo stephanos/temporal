@@ -29,7 +29,6 @@ const (
 	MaximumObservationBytes      uint64 = 64 << 20
 	MaximumNetworkListeners      uint64 = 4096
 	MaximumNetworkConnections    uint64 = 65536
-	MaximumNetworkDeliveries     uint64 = 65536
 	MaximumNetworkBytes          uint64 = 1 << 30
 	MaximumNetworkStallNanos     uint64 = math.MaxInt64 - 1
 	MaximumNetworkTransitions    uint64 = 1 << 20
@@ -82,7 +81,6 @@ type Limits struct {
 	ObservationBytes       uint64 `json:"observation_bytes"`
 	NetworkListeners       uint64 `json:"network_listeners"`
 	NetworkConnections     uint64 `json:"network_connections"`
-	NetworkDeliveries      uint64 `json:"network_deliveries"`
 	NetworkBytes           uint64 `json:"network_bytes"`
 	NetworkConnectionBytes uint64 `json:"network_connection_bytes"`
 	NetworkStallNanos      uint64 `json:"network_stall_nanos"`
@@ -152,7 +150,6 @@ func DefaultLimits() Limits {
 		ObservationBytes:       MaximumObservationBytes,
 		NetworkListeners:       MaximumNetworkListeners,
 		NetworkConnections:     MaximumNetworkConnections,
-		NetworkDeliveries:      MaximumNetworkDeliveries,
 		NetworkBytes:           MaximumNetworkBytes,
 		NetworkConnectionBytes: DefaultNetworkConnectionBytes,
 		NetworkStallNanos:      DefaultNetworkStallNanos,
@@ -342,7 +339,6 @@ func validateLimits(limits Limits) error {
 		{name: "observation_bytes", value: limits.ObservationBytes, maximum: MaximumObservationBytes},
 		{name: "network_listeners", value: limits.NetworkListeners, maximum: MaximumNetworkListeners},
 		{name: "network_connections", value: limits.NetworkConnections, maximum: MaximumNetworkConnections},
-		{name: "network_deliveries", value: limits.NetworkDeliveries, maximum: MaximumNetworkDeliveries},
 		{name: "network_bytes", value: limits.NetworkBytes, maximum: MaximumNetworkBytes},
 		{name: "network_transitions", value: limits.NetworkTransitions, maximum: MaximumNetworkTransitions},
 		{name: "volume_operations", value: limits.VolumeOperations, maximum: MaximumVolumeOperations},

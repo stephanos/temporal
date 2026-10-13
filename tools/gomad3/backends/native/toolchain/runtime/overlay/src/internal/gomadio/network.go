@@ -28,12 +28,12 @@ var (
 )
 
 const (
-	firstListenerPort    = 20000
-	firstClientPort      = 40000
-	maximumPort          = 65535
-	maximumPendingConns  = 64
-	maximumPendingChunks = 64
-	maximumChunkBytes    = 64 << 10
+	firstListenerPort               = 20000
+	firstClientPort                 = 40000
+	maximumPort                     = 65535
+	maximumPendingConns             = 64
+	maximumPendingNetworkOperations = 1 << 16
+	maximumChunkBytes               = 64 << 10
 )
 
 type Address struct {

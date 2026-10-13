@@ -47,7 +47,7 @@ func TestRootProcessSimulationUsesRunnerTransport(t *testing.T) {
 		"TestProcessNetworkHandlePartialWrite",
 		"TestProcessNetworkHandleCapacityPreservesIdentities",
 		"TestProcessNetworkHandleConnectionCapacity",
-		"TestProcessNetworkHandleDeliveryCapacity",
+		"TestProcessNetworkHandleTinyWritesUseByteCapacity",
 		"TestProcessNetworkHandleByteCapacity",
 		"TestProcessNetworkHandleRevocationDropsDelayedData",
 		"TestProcessNetworkHandleCrashDropsDelayedData",

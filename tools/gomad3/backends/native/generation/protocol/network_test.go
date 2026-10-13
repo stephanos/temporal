@@ -55,8 +55,8 @@ func TestNetworkWireConsumers(t *testing.T) {
 		"NodeID":     nil, "NetworkTransitionKind": nil, "NetworkOutcome": nil,
 		"NetworkEndpoint": nil, "NetworkTransition": nil, "NetworkNodeSnapshot": nil,
 		"NetworkLinkSnapshot": nil, "NetworkListenerSnapshot": nil,
-		"NetworkConnectionSnapshot": nil, "NetworkDeliverySnapshot": nil,
-		"NetworkSnapshot": nil, "NetworkRecord": nil, "runtimeNetworkError": nil,
+		"NetworkConnectionSnapshot": nil,
+		"NetworkSnapshot":           nil, "NetworkRecord": nil, "runtimeNetworkError": nil,
 	}
 	write("host_types.go", wireConsumerDeclarations(t, root, []string{
 		"../gomad3sim/spec.go", "../gomad3sim/types.go", "../gomad3sim/runtime_network.go", "../gomad3sim/record.go",
@@ -65,8 +65,8 @@ func TestNetworkWireConsumers(t *testing.T) {
 		"simulationNetworkConfig": nil, "simulationLimits": nil, "simulationNodeConfig": nil,
 		"simulationLink": nil, "simulationEndpoint": nil, "simulationTransition": nil,
 		"simulationNodeSnapshot": nil, "simulationListenerSnapshot": nil,
-		"simulationConnectionSnapshot": nil, "simulationDeliverySnapshot": nil,
-		"simulationSnapshot": nil, "simulationRecord": nil, "simulationBridgeError": nil,
+		"simulationConnectionSnapshot": nil,
+		"simulationSnapshot":           nil, "simulationRecord": nil, "simulationBridgeError": nil,
 	}
 	write("overlay_types.go", wireConsumerDeclarations(t, root, []string{
 		"backends/native/toolchain/runtime/overlay/src/internal/gomadio/simulation_network.go",
@@ -106,16 +106,15 @@ func fixtureRecord() NetworkRecord {
  return NetworkRecord{
   Transitions: []NetworkTransition{{
    Ordinal: 5, Kind: "write", Source: a, Destination: b,
-   Connection: 6, Delivery: 7, Bytes: 8, Count: 9, DelayNanos: 10,
-   Outcome: "partial", PayloadSHA256: "p",
+   Connection: 6, Bytes: 8, Count: 9, DelayNanos: 10,
+   Outcome: "partial",
   }},
   Snapshot: NetworkSnapshot{
    Nodes: []NetworkNodeSnapshot{{Node: "a", Address: "A", LastIncarnation: 11, NextListenerPort: 12, NextClientPort: 13}},
    Links: []NetworkLinkSnapshot{{From: "a", To: "b", Enabled: true, DelayNanos: 14}},
    Listeners: []NetworkListenerSnapshot{{Endpoint: a, Closed: true}},
-   Connections: []NetworkConnectionSnapshot{{Identity: 15, Client: a, Server: b, Closed: true, Reset: true}},
-   Deliveries: []NetworkDeliverySnapshot{{Identity: 16, Connection: 15, Source: a, Destination: b, Bytes: 17, DelayNanos: 18}},
-   NextConnection: 19, NextDelivery: 20, TransitionSHA256: "t", Identity: "s",
+   Connections: []NetworkConnectionSnapshot{{Identity: 15, Client: a, Server: b, Closed: true, Reset: true, ClientBytes: 16, ServerBytes: 17}},
+   NextConnection: 19, TransitionSHA256: "t", Identity: "s",
   },
  }
 }
@@ -133,12 +132,12 @@ func TestConfigCrossConsumer(t *testing.T) {
  spec := Spec{
   Nodes: []NodeSpec{{ID: "a", Address: "A"}},
   Links: []LinkSpec{{From: "a", To: "b", Enabled: true, DelayNanos: 14}},
-  Limits: Limits{NetworkListeners: 23, NetworkConnections: 24, NetworkDeliveries: 25, NetworkBytes: 26, NetworkTransitions: 27},
+  Limits: Limits{NetworkListeners: 23, NetworkConnections: 24, NetworkBytes: 26, NetworkTransitions: 27},
  }
  spec.Limits.NetworkConnectionBytes, spec.Limits.NetworkStallNanos = 28, 29
  encoded, err := encodeRuntimeNetworkConfig(spec)
  if err != nil { t.Fatal(err) }
- if hex.EncodeToString(encoded) != "474f4d41444e43320100000000000000010000000000000061010000000000000041010000000000000001000000000000006101000000000000006201000000000000000e000000000000001700000000000000180000000000000019000000000000001a000000000000001c000000000000001d000000000000001b000000000000000000000000000000" { t.Fatalf("config vector: %x", encoded) }
+ if hex.EncodeToString(encoded) != "474f4d41444e43330100000000000000010000000000000061010000000000000041010000000000000001000000000000006101000000000000006201000000000000000e00000000000000170000000000000018000000000000001a000000000000001c000000000000001d000000000000001b000000000000000000000000000000" { t.Fatalf("config vector: %x", encoded) }
  for _, replay := range []bool{false, true} {
   if replay { spec.Replay = &ReplayPlan{Network: fixtureRecord()} }
   encoded, err := encodeRuntimeNetworkConfig(spec)
@@ -147,7 +146,7 @@ func TestConfigCrossConsumer(t *testing.T) {
   if err != nil { t.Fatal(err) }
   if !reflect.DeepEqual(config.Nodes, []simulationNodeConfig{{Node: "a", Address: "A"}}) ||
    !reflect.DeepEqual(config.Links, []simulationLink{{From: "a", To: "b", Enabled: true, DelayNanos: 14}}) ||
-   config.Limits != (simulationLimits{Listeners: 23, Connections: 24, Deliveries: 25, Bytes: 26, ConnectionBytes: 28, StallNanos: 29, Transitions: 27}) {
+   config.Limits != (simulationLimits{Listeners: 23, Connections: 24, Bytes: 26, ConnectionBytes: 28, StallNanos: 29, Transitions: 27}) {
    t.Fatalf("config = %+v", config)
   }
   if replay {
@@ -162,13 +161,13 @@ func TestConfigLimitsAndOldVersionRejected(t *testing.T) {
  encoded, err := encodeRuntimeNetworkConfig(base)
  if err != nil { t.Fatal(err) }
  old := bytes.Clone(encoded)
- old[7] = '1'
+ old[7] = '2'
  if _, err := decodeSimulationConfig(old); err == nil { t.Fatal("old config header admitted") }
- omitted := append(bytes.Clone(encoded[:56]), encoded[72:]...)
+ omitted := append(bytes.Clone(encoded[:48]), encoded[64:]...)
  if _, err := decodeSimulationConfig(omitted); err == nil { t.Fatal("omitted limits admitted") }
  for _, field := range []struct{ offset int; invalid []uint64 }{
-  {56, []uint64{0, (1<<30)+1, math.MaxUint64}},
-  {64, []uint64{0, math.MaxInt64, uint64(math.MaxInt64)+1, math.MaxUint64}},
+  {48, []uint64{0, (1<<30)+1, math.MaxUint64}},
+  {56, []uint64{0, math.MaxInt64, uint64(math.MaxInt64)+1, math.MaxUint64}},
  } {
   for _, value := range field.invalid {
    malformed := bytes.Clone(encoded)
@@ -186,7 +185,7 @@ func TestConfigLimitsAndOldVersionRejected(t *testing.T) {
  }
 }
 
-func TestHeldTimeoutAndLegacySemanticsMatch(t *testing.T) {
+func TestHeldTimeoutAndPayloadFreeSemanticsMatch(t *testing.T) {
  source := NetworkEndpoint{Node:"a",Incarnation:1,Address:"A",Port:2}
  destination := NetworkEndpoint{Node:"b",Incarnation:3,Address:"B",Port:4}
  valid := []NetworkTransition{
@@ -199,9 +198,9 @@ func TestHeldTimeoutAndLegacySemanticsMatch(t *testing.T) {
  for _, kind := range []NetworkTransitionKind{"partition","heal","delay","disconnect","reconnect","directional_delay"} {
   valid=append(valid,NetworkTransition{Kind:kind,Source:source,Destination:destination,Outcome:"ok"})
  }
- for _, kind := range []NetworkTransitionKind{"listen","dial","accept","write","deliver","close","listener_close","stop","crash"} {
-  for _, outcome := range []NetworkOutcome{"ok","closed","refused","deadline","partition_drop","stale_drop","reset","capacity","unsupported"} {
-   valid=append(valid,NetworkTransition{Kind:kind,Source:source,Connection:6,Delivery:7,Outcome:outcome})
+ for _, kind := range []NetworkTransitionKind{"listen","dial","accept","write","close","listener_close","stop","crash"} {
+  for _, outcome := range []NetworkOutcome{"ok","closed","refused","deadline","reset","capacity","unsupported"} {
+   valid=append(valid,NetworkTransition{Kind:kind,Source:source,Connection:6,Outcome:outcome})
   }
  }
  check := func(transition NetworkTransition, want bool) {
@@ -221,12 +220,12 @@ func TestHeldTimeoutAndLegacySemanticsMatch(t *testing.T) {
   func(v *NetworkTransition){v.Source.Port=65536},
   func(v *NetworkTransition){v.Destination.Port=0},
   func(v *NetworkTransition){v.Destination.Node=v.Source.Node},
-  func(v *NetworkTransition){v.Delivery=1},
-  func(v *NetworkTransition){v.PayloadSHA256="sha256:"+strings.Repeat("a",64)},
   func(v *NetworkTransition){v.Kind="timeout_reset"},
   func(v *NetworkTransition){v.Outcome="unknown"},
   func(v *NetworkTransition){v.Outcome="held"},
  } {invalid:=reset;mutate(&invalid);check(invalid,false)}
+ for _,kind:=range []NetworkTransitionKind{"deliver","unknown"}{invalid:=valid[0];invalid.Kind=kind;check(invalid,false)}
+ for _,outcome:=range []NetworkOutcome{"partition_drop","stale_drop","unknown"}{invalid:=valid[0];invalid.Outcome=outcome;check(invalid,false)}
  held:=valid[0];held.Bytes=0;check(held,false)
  dial:=valid[4];dial.Connection=1;check(dial,false)
  dial=valid[4];dial.Source.Port=65536;check(dial,false)
@@ -239,7 +238,8 @@ func TestFinishAndIdentityCrossConsumer(t *testing.T) {
  overlay := toOverlayRecord(t, record)
  encoded, err := encodeSimulationFinishResponse(overlay, nil)
  if err != nil { t.Fatal(err) }
- if hex.EncodeToString(encoded) != "474f4d41444e52310100000000000000050000000000000005000000000000007772697465010000000000000061010000000000000001000000000000004102000000000000000100000000000000620300000000000000010000000000000042040000000000000006000000000000000700000000000000080000000000000009000000000000000a0000000000000007000000000000007061727469616c01000000000000007001000000000000000100000000000000610100000000000000410b000000000000000c000000000000000d00000000000000010000000000000001000000000000006101000000000000006201000000000000000e00000000000000010000000000000001000000000000006101000000000000000100000000000000410200000000000000010000000000000001000000000000000f00000000000000010000000000000061010000000000000001000000000000004102000000000000000100000000000000620300000000000000010000000000000042040000000000000001000000000000000100000000000000010000000000000010000000000000000f00000000000000010000000000000061010000000000000001000000000000004102000000000000000100000000000000620300000000000000010000000000000042040000000000000011000000000000001200000000000000130000000000000014000000000000000100000000000000740100000000000000730000000000000000" { t.Fatalf("finish vector: %x", encoded) }
+ if hex.EncodeToString(encoded) != "474f4d41444e5232010000000000000005000000000000000500000000000000777269746501000000000000006101000000000000000100000000000000410200000000000000010000000000000062030000000000000001000000000000004204000000000000000600000000000000080000000000000009000000000000000a0000000000000007000000000000007061727469616c01000000000000000100000000000000610100000000000000410b000000000000000c000000000000000d00000000000000010000000000000001000000000000006101000000000000006201000000000000000e00000000000000010000000000000001000000000000006101000000000000000100000000000000410200000000000000010000000000000001000000000000000f000000000000000100000000000000610100000000000000010000000000000041020000000000000001000000000000006203000000000000000100000000000000420400000000000000010000000000000001000000000000001000000000000000110000000000000013000000000000000100000000000000740100000000000000730000000000000000" { t.Fatalf("finish vector: %x", encoded) }
+ oldFrame:=bytes.Clone(encoded);oldFrame[7]='1';if _,_,err:=decodeRuntimeNetworkFinish(oldFrame);err==nil{t.Fatal("old finish identity accepted")}
  decoded, bridge, err := decodeRuntimeNetworkFinish(encoded)
  if err != nil || bridge != nil || !reflect.DeepEqual(decoded, record) {
   t.Fatalf("finish = %+v bridge=%+v error=%v", decoded, bridge, err)
@@ -272,6 +272,7 @@ func TestStructuredErrorCrossConsumer(t *testing.T) {
    want.Expected, want.Actual = &hostExpected, &hostActual
   }
   encoded := encodeSimulationBridgeError(bridge)
+  oldFrame:=bytes.Clone(encoded);oldFrame[7]='1';if _,err:=decodeRuntimeNetworkErrorWire(oldFrame);err==nil{t.Fatal("old error identity accepted")}
   decoded, err := decodeRuntimeNetworkErrorWire(encoded)
   if err != nil || !reflect.DeepEqual(decoded, want) { t.Fatalf("structured error = %+v, %v", decoded, err) }
   finish, err := encodeSimulationFinishResponse(overlay, bridge)
@@ -325,7 +326,7 @@ func TestMalformedCrossConsumer(t *testing.T) {
  invalidBool = bytes.Clone(config)
  invalidBool[len(invalidBool)-8] = 2
  if _, err := decodeSimulationConfig(invalidBool); err == nil { t.Fatal("accepted invalid config boolean") }
- for _, maximum := range []uint64{maximumSimulationNodes, maximumSimulationLinks, maximumSimulationListeners, maximumSimulationConnections, maximumSimulationDeliveries, maximumSimulationTransitions} {
+ for _, maximum := range []uint64{maximumSimulationNodes, maximumSimulationLinks, maximumSimulationListeners, maximumSimulationConnections, maximumSimulationTransitions} {
   data := appendSimulationUint64([]byte(simulationConfigMagic), maximum+1)
   overlay := newSimulationWireDecoder(data, simulationConfigMagic)
   host := newRuntimeNetworkWireDecoder(data, runtimeNetworkConfigMagic)

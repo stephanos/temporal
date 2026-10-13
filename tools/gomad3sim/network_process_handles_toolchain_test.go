@@ -22,8 +22,8 @@ func TestProcessNetworkHandleCapacityPreservesIdentities(t *testing.T) {
 func TestProcessNetworkHandleConnectionCapacity(t *testing.T) {
 	runProcessNetworkHandleCapacity(t, "connections")
 }
-func TestProcessNetworkHandleDeliveryCapacity(t *testing.T) {
-	runProcessNetworkHandleCapacity(t, "deliveries")
+func TestProcessNetworkHandleTinyWritesUseByteCapacity(t *testing.T) {
+	runProcessNetworkHandleCapacity(t, "tiny-writes")
 }
 func TestProcessNetworkHandleByteCapacity(t *testing.T) { runProcessNetworkHandleCapacity(t, "bytes") }
 func runProcessNetworkHandleCapacity(t *testing.T, mode string) {
@@ -55,13 +55,15 @@ func runProcessNetworkHandleCapacity(t *testing.T, mode string) {
 			return err
 		}
 		defer conn.Close()
-		if mode == "deliveries" {
-			// Keep the first byte queued until the client's failed second write.
+		if mode == "tiny-writes" {
 			<-time.After(10 * time.Millisecond)
 		}
 		buffer := make([]byte, 1)
-		if n, err := conn.Read(buffer); n != 1 || err != nil || buffer[0] != 'x' {
-			return fmt.Errorf("capacity data=%d,%v,%q", n, err, buffer)
+		if mode == "tiny-writes" {
+			buffer = make([]byte, 65)
+		}
+		if n, err := io.ReadFull(conn, buffer); n != len(buffer) || err != nil || string(buffer) != strings.Repeat("x", len(buffer)) {
+			return fmt.Errorf("capacity stream=%d,%v,%q", n, err, buffer)
 		}
 		if _, err := conn.Write([]byte{'r'}); err != nil {
 			return err
@@ -93,9 +95,14 @@ func runProcessNetworkHandleCapacity(t *testing.T, mode string) {
 		if _, err := conn.Write([]byte{'x'}); err != nil {
 			return err
 		}
-		if mode == "deliveries" {
+		if mode == "tiny-writes" {
+			for range 64 {
+				if n, err := conn.Write([]byte{'x'}); n != 1 || err != nil {
+					return fmt.Errorf("tiny write within byte capacity=%d,%v", n, err)
+				}
+			}
 			if n, err := conn.Write([]byte{'y'}); n != 0 || err == nil || !strings.Contains(err.Error(), "network resources exhausted") {
-				return fmt.Errorf("delivery capacity=%d,%v", n, err)
+				return fmt.Errorf("global byte capacity after 65 writes=%d,%v", n, err)
 			}
 		}
 		buffer := make([]byte, 1)
@@ -112,8 +119,9 @@ func runProcessNetworkHandleCapacity(t *testing.T, mode string) {
 		spec.Limits.NetworkListeners = 1
 	case "connections":
 		spec.Limits.NetworkConnections = 1
-	case "deliveries":
-		spec.Limits.NetworkDeliveries = 1
+	case "tiny-writes":
+		spec.Limits.NetworkBytes = 65
+		spec.Limits.NetworkConnectionBytes = 66
 	case "bytes":
 		spec.Limits.NetworkBytes = 1
 	}
@@ -141,7 +149,6 @@ func runProcessNetworkHandleCapacity(t *testing.T, mode string) {
 	}
 	first := run(spec)
 	require.Equal(t, uint64(1), first.Network.Snapshot.NextConnection)
-	require.Equal(t, uint64(2), first.Network.Snapshot.NextDelivery)
 	for _, node := range first.Network.Snapshot.Nodes {
 		if node.Node == "client" {
 			require.Equal(t, uint64(40001), node.NextClientPort)
@@ -293,7 +300,10 @@ func runProcessNetworkHandleRevocation(t *testing.T, graceful bool) {
 		return result
 	}
 	first := run(spec)
-	require.Empty(t, first.Network.Snapshot.Deliveries)
+	for _, connection := range first.Network.Snapshot.Connections {
+		require.Zero(t, connection.ClientBytes)
+		require.Zero(t, connection.ServerBytes)
+	}
 	if !graceful {
 		require.Equal(t, uint64(2), first.Network.Snapshot.NextConnection)
 		require.True(t, first.Network.Snapshot.Connections[0].Reset)
@@ -396,14 +406,13 @@ func TestProcessNetworkHandleReplayRejectsWriteBeforeMutation(t *testing.T) {
 	}
 	first := run(spec)
 	require.Equal(t, OutcomeCompleted, first.Outcome, first.Reason)
-	require.Equal(t, uint64(2), first.Network.Snapshot.NextDelivery)
 	plan, err := ReplayPlanFor(first.Record)
 	require.NoError(t, err)
 	changed := false
 	for index := range plan.Network.Transitions {
 		transition := &plan.Network.Transitions[index]
 		if transition.Kind == NetworkWrite && transition.Source.Node == "client" {
-			transition.PayloadSHA256 = fmt.Sprintf("sha256:%x", sha256.Sum256([]byte{'y'}))
+			transition.Bytes = 2
 			changed = true
 			break
 		}
@@ -419,7 +428,7 @@ func TestProcessNetworkHandleReplayRejectsWriteBeforeMutation(t *testing.T) {
 	}
 	encoded, err := encodeRuntimeNetworkTransitions(plan.Network.Transitions)
 	require.NoError(t, err)
-	plan.Network.Snapshot.TransitionSHA256 = fmt.Sprintf("sha256:%x", sha256.Sum256(append([]byte("gomad3-simulation-network-transitions/v2\x00"), encoded...)))
+	plan.Network.Snapshot.TransitionSHA256 = fmt.Sprintf("sha256:%x", sha256.Sum256(append([]byte("gomad3-simulation-network-transitions/v3\x00"), encoded...)))
 	plan.Network.Snapshot.Identity, err = networkSnapshotIdentity(plan.Network.Snapshot)
 	require.NoError(t, err)
 	// The intentionally rejected write fails this node. Admit that terminal
@@ -444,6 +453,8 @@ func TestProcessNetworkHandleReplayRejectsWriteBeforeMutation(t *testing.T) {
 	require.Equal(t, OutcomeReplayDiverged, second.Outcome, second.Reason)
 	require.Equal(t, ReplayDimensionNetwork, second.Divergence.Dimension)
 	require.Equal(t, NetworkWrite, second.Divergence.ActualNetwork.Kind)
-	require.Equal(t, uint64(1), second.Network.Snapshot.NextDelivery)
-	require.Empty(t, second.Network.Snapshot.Deliveries)
+	for _, connection := range second.Network.Snapshot.Connections {
+		require.Zero(t, connection.ClientBytes)
+		require.Zero(t, connection.ServerBytes)
+	}
 }

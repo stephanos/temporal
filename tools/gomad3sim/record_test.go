@@ -132,6 +132,128 @@ func TestClusterRecordReplayBindsNetworkLimits(t *testing.T) {
 	}
 }
 
+func TestClusterRecordNetworkEndpointOccupancy(t *testing.T) {
+	for _, test := range []struct {
+		name           string
+		client, server uint64
+		reset          bool
+		want           string
+	}{
+		{"both-endpoints-at-bound", 3, 2, false, ""},
+		{"client-direction-full", 4, 0, false, "network_connection_bytes"},
+		{"server-direction-full", 0, 4, false, "network_connection_bytes"},
+		{"combined-global-full", 3, 3, false, "network_bytes"},
+		{"unsigned-overflow", math.MaxUint64, 0, false, "network_connection_bytes"},
+		{"reset-retains-client-bytes", 1, 0, true, "retained bytes"},
+		{"reset-retains-server-bytes", 0, 1, true, "retained bytes"},
+		{"reset-releases-both-endpoints", 0, 0, true, ""},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			spec := validSpec()
+			spec.Limits.NetworkConnectionBytes = 3
+			spec.Limits.NetworkBytes = 5
+			network := emptyNetworkRecord()
+			fixture := fmt.Sprintf(`{"identity":1,"client":{"node":"client","incarnation":1,"address":"10.0.0.2","port":40000},"server":{"node":"server","incarnation":1,"address":"10.0.0.1","port":7233},"closed":%t,"reset":%t,"client_bytes":%d,"server_bytes":%d}`, test.reset, test.reset, test.client, test.server)
+			var connection NetworkConnectionSnapshot
+			require.NoError(t, json.Unmarshal([]byte(fixture), &connection))
+			network.Snapshot.Connections = []NetworkConnectionSnapshot{connection}
+			network.Snapshot.NextConnection = 1
+			var err error
+			network.Snapshot.Identity, err = networkSnapshotIdentity(network.Snapshot)
+			require.NoError(t, err)
+			specIdentity, err := hashSpec(spec)
+			require.NoError(t, err)
+			record, err := buildClusterRecord(spec, specIdentity, Result{Outcome: OutcomeCompleted, Network: network})
+			require.NoError(t, err)
+			_, err = EncodeClusterRecord(record)
+			if test.want == "" {
+				require.NoError(t, err)
+			} else {
+				require.ErrorContains(t, err, test.want)
+			}
+		})
+	}
+}
+
+func TestClusterRecordNetworkOccupancyAcrossConnections(t *testing.T) {
+	spec := validSpec()
+	spec.Limits.NetworkConnectionBytes = 3
+	spec.Limits.NetworkBytes = 9
+	network := emptyNetworkRecord()
+	network.Snapshot.Connections = []NetworkConnectionSnapshot{
+		{Identity: 1, Client: NetworkEndpoint{Node: "client", Incarnation: 1, Address: "10.0.0.2", Port: 40000}, Server: NetworkEndpoint{Node: "server", Incarnation: 1, Address: "10.0.0.1", Port: 7233}, ClientBytes: 3, ServerBytes: 2},
+		{Identity: 2, Client: NetworkEndpoint{Node: "client", Incarnation: 1, Address: "10.0.0.2", Port: 40001}, Server: NetworkEndpoint{Node: "server", Incarnation: 1, Address: "10.0.0.1", Port: 7233}, ClientBytes: 3, ServerBytes: 2},
+	}
+	network.Snapshot.NextConnection = 2
+	var err error
+	network.Snapshot.Identity, err = networkSnapshotIdentity(network.Snapshot)
+	require.NoError(t, err)
+	specIdentity, err := hashSpec(spec)
+	require.NoError(t, err)
+	record, err := buildClusterRecord(spec, specIdentity, Result{Outcome: OutcomeCompleted, Network: network})
+	require.NoError(t, err)
+	_, err = EncodeClusterRecord(record)
+	require.ErrorContains(t, err, "network_bytes")
+}
+
+func TestClusterRecordNetworkSnapshotRejectsInvalidEndpointPorts(t *testing.T) {
+	for _, port := range []uint64{0, 65536, math.MaxUint64} {
+		for _, listener := range []bool{false, true} {
+			network := emptyNetworkRecord()
+			endpoint := NetworkEndpoint{Node: "client", Incarnation: 1, Address: "10.0.0.2", Port: port}
+			if listener {
+				network.Snapshot.Listeners = []NetworkListenerSnapshot{{Endpoint: endpoint}}
+			} else {
+				network.Snapshot.Connections = []NetworkConnectionSnapshot{{Identity: 1, Client: endpoint, Server: NetworkEndpoint{Node: "server", Incarnation: 1, Address: "10.0.0.1", Port: 7233}}}
+			}
+			var err error
+			network.Snapshot.Identity, err = networkSnapshotIdentity(network.Snapshot)
+			require.NoError(t, err)
+			require.ErrorContains(t, validateNetworkRecord(network, DefaultLimits()), "snapshot is invalid")
+		}
+	}
+}
+
+func TestDecodeClusterRecordRejectsRetiredNetworkFields(t *testing.T) {
+	spec := validSpec()
+	specIdentity, err := hashSpec(spec)
+	require.NoError(t, err)
+	network := networkRecordForTransition(t, NetworkTransition{Kind: NetworkWrite, Source: NetworkEndpoint{Node: "client", Incarnation: 1, Address: "10.0.0.2", Port: 40000}, Destination: NetworkEndpoint{Node: "server", Incarnation: 1, Address: "10.0.0.1", Port: 7233}, Connection: 7, Bytes: 1, Outcome: NetworkOutcomeHeld})
+	record, err := buildClusterRecord(spec, specIdentity, Result{Outcome: OutcomeCompleted, Network: network})
+	require.NoError(t, err)
+	encoded, err := EncodeClusterRecord(record)
+	require.NoError(t, err)
+	for _, test := range []struct {
+		field, target, replacement string
+	}{
+		{"delivery", `"kind":"write",`, `"kind":"write","delivery":1,`},
+		{"payload_sha256", `"kind":"write",`, `"kind":"write","payload_sha256":"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",`},
+		{"deliveries", `"connections":null,`, `"connections":null,"deliveries":null,`},
+		{"next_delivery", `"next_connection":0,`, `"next_connection":0,"next_delivery":0,`},
+		{"network_deliveries", `"network_bytes":`, `"network_deliveries":65536,"network_bytes":`},
+	} {
+		t.Run(test.field, func(t *testing.T) {
+			text := string(encoded)
+			for _, retired := range []string{`"deliveries":null,`, `"next_delivery":0,`, `"network_deliveries":65536,`} {
+				text = strings.Replace(text, retired, "", 1)
+			}
+			_, err := DecodeClusterRecord([]byte(strings.Replace(text, test.target, test.replacement, 1)))
+			require.ErrorContains(t, err, `unknown field "`+test.field+`"`)
+		})
+	}
+}
+
+func TestClusterRecordRejectsPreviousNetworkFormat(t *testing.T) {
+	spec := validSpec()
+	specIdentity, err := hashSpec(spec)
+	require.NoError(t, err)
+	record, err := buildClusterRecord(spec, specIdentity, Result{Outcome: OutcomeCompleted})
+	require.NoError(t, err)
+	record.Schema = "gomad3.cluster-record/v7"
+	_, err = EncodeClusterRecord(record)
+	require.ErrorContains(t, err, "schema")
+}
+
 func TestClusterRecordNetworkHeldTimeoutVocabulary(t *testing.T) {
 	source := NetworkEndpoint{Node: "client", Incarnation: 1, Address: "10.0.0.2", Port: 40000}
 	destination := NetworkEndpoint{Node: "server", Incarnation: 1, Address: "10.0.0.1", Port: 7233}
@@ -160,11 +282,12 @@ func TestClusterRecordRejectsMalformedHeldTimeoutTransitions(t *testing.T) {
 		"zero destination port":           func(value *NetworkTransition) { value.Destination.Port = 0 },
 		"port overflow":                   func(value *NetworkTransition) { value.Source.Port = 65536 },
 		"same endpoint node":              func(value *NetworkTransition) { value.Destination.Node = value.Source.Node },
-		"delivery on reset":               func(value *NetworkTransition) { value.Delivery = 1 },
-		"payload on reset":                func(value *NetworkTransition) { value.PayloadSHA256 = rawSHA256([]byte("x")) },
 		"held reset":                      func(value *NetworkTransition) { value.Outcome = "held" },
 		"unknown outcome":                 func(value *NetworkTransition) { value.Outcome = "timed_out" },
 		"unknown kind":                    func(value *NetworkTransition) { value.Kind = "timeout_reset" },
+		"retired deliver kind":            func(value *NetworkTransition) { value.Kind = "deliver" },
+		"retired partition drop":          func(value *NetworkTransition) { value.Outcome = "partition_drop" },
+		"retired stale drop":              func(value *NetworkTransition) { value.Outcome = "stale_drop" },
 	} {
 		t.Run(name, func(t *testing.T) {
 			transition := valid
@@ -180,7 +303,7 @@ func networkRecordForTransition(t *testing.T, transition NetworkTransition) Netw
 	record.Transitions = []NetworkTransition{transition}
 	encoded, err := encodeRuntimeNetworkTransitions(record.Transitions)
 	require.NoError(t, err)
-	digest := sha256.Sum256(append([]byte("gomad3-simulation-network-transitions/v2\x00"), encoded...))
+	digest := sha256.Sum256(append([]byte("gomad3-simulation-network-transitions/v3\x00"), encoded...))
 	record.Snapshot.TransitionSHA256 = fmt.Sprintf("sha256:%x", digest)
 	record.Snapshot.Identity, err = networkSnapshotIdentity(record.Snapshot)
 	require.NoError(t, err)

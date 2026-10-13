@@ -125,7 +125,7 @@ func TestProviderBindsEverySelectedBootNetworkLimit(t *testing.T) {
 					Runtime: &wasi.RuntimeControl{Seed: 17, Choice: &runnerbackend.ChoiceRequest{}},
 					Config: wasi.Config{Profile: wasi.CooperativeProfile, Environment: []string{"PWD=/workspace"}, WorkingDirectory: "/workspace", WritableDirectories: []string{"/workspace"},
 						Limits:    wasi.Limits{OutputBytes: 1024, TranscriptBytes: 1 << 20, Calls: 128, Descriptors: 64, Files: 128, FilesystemBytes: 1 << 20, PendingEvents: 128},
-						NetworkV2: &wasi.NetworkModelV2{Profile: wasi.NetworkStreamProfile, Limits: netmodel.Limits{Listeners: 8, Connections: 8, Deliveries: 8, Bytes: 1024, ConnectionBytes: 123, StallNanos: 456, Transitions: 128}}},
+						NetworkV2: &wasi.NetworkModelV2{Profile: wasi.NetworkStreamProfile, Limits: netmodel.Limits{Listeners: 8, Connections: 8, Bytes: 1024, ConnectionBytes: 123, StallNanos: 456, Transitions: 128}}},
 				}
 				if test.networkFree {
 					request.Config.NetworkV2 = nil
@@ -245,7 +245,7 @@ func guestRequest(t *testing.T) wasi.Request {
 		t.Fatal(err)
 	}
 	t.Logf("actual small guest module-sha256=%x module-bytes=%d helper-sha256=%x implementation=%s", sha256.Sum256(data), len(data), sha256.Sum256(helperBytes), ImplementationSHA256())
-	config := wasi.Config{Profile: wasi.CooperativeProfile, Args: []string{"service", "server"}, Environment: []string{"PWD=/workspace", "TZ=UTC"}, WorkingDirectory: "/workspace", WritableDirectories: []string{"/workspace", "/tmp"}, EntropyKey: [32]byte{1, 2, 3}, Clock: wasi.ClockPolicy{EpochNanos: 946684800000000000}, Limits: wasi.Limits{OutputBytes: 1 << 20, TranscriptBytes: 32 << 20, Calls: 100000, Descriptors: 128, Files: 1024, FilesystemBytes: 8 << 20, PendingEvents: 4096}, NetworkV2: &wasi.NetworkModelV2{Profile: wasi.NetworkStreamProfile, Limits: netmodel.Limits{Listeners: 128, Connections: 128, Deliveries: 1024, Bytes: 8 << 20, ConnectionBytes: 4 << 20, StallNanos: 10_000_000_000, Transitions: 10000}}}
+	config := wasi.Config{Profile: wasi.CooperativeProfile, Args: []string{"service", "server"}, Environment: []string{"PWD=/workspace", "TZ=UTC"}, WorkingDirectory: "/workspace", WritableDirectories: []string{"/workspace", "/tmp"}, EntropyKey: [32]byte{1, 2, 3}, Clock: wasi.ClockPolicy{EpochNanos: 946684800000000000}, Limits: wasi.Limits{OutputBytes: 1 << 20, TranscriptBytes: 32 << 20, Calls: 100000, Descriptors: 128, Files: 1024, FilesystemBytes: 8 << 20, PendingEvents: 4096}, NetworkV2: &wasi.NetworkModelV2{Profile: wasi.NetworkStreamProfile, Limits: netmodel.Limits{Listeners: 128, Connections: 128, Bytes: 8 << 20, ConnectionBytes: 4 << 20, StallNanos: 10_000_000_000, Transitions: 10000}}}
 	identity := choice.ExecutionIdentity{TargetSHA256: sha256.Sum256(data), ToolchainBuildKey: key, GOOS: "wasip1", GOARCH: "wasm", ImplementationSHA256: sha256.Sum256([]byte(key))}
 	return wasi.Request{HelperPath: helper, HelperSHA256: fmt.Sprintf("%x", sha256.Sum256(helperBytes)), ModulePath: module, ModuleSHA256: fmt.Sprintf("%x", sha256.Sum256(data)), Engine: wasi.PinnedEngine(), Imports: imports, InitialMemoryPages: pages, MemoryBytes: 256 << 20, Fuel: 4_000_000_000, Config: config, Timeout: time.Minute, Runtime: &wasi.RuntimeControl{Seed: 7, Diagnostics: true, Choice: &runnerbackend.ChoiceRequest{Mode: choice.ModeRecord, ExecutionIdentity: identity, Limit: 8 << 20}}}
 }

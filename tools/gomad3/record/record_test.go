@@ -560,7 +560,7 @@ func manifestWithSimulationProfile(manifest ExecutionRecord, plan, record []byte
 			SHA256: HashBytes(plan), Bytes: Uint64String(len(plan)),
 		},
 		Record: SimulationRecord{
-			Schema: "gomad3.cluster-record/v7", File: "simulation/record.json",
+			Schema: "gomad3.cluster-record/v8", File: "simulation/record.json",
 			SHA256: HashBytes(record), Bytes: Uint64String(len(record)), Limit: 128 << 20,
 		},
 	}

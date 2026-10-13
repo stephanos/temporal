@@ -51,13 +51,8 @@ type connShared struct {
 }
 
 type networkChunk struct {
-	identity    uint64
-	connection  uint64
-	source      simulationEndpoint
-	destination simulationEndpoint
-	bytes       []byte
-	ready       time.Time
-	delayNanos  uint64
+	bytes []byte
+	ready time.Time
 }
 
 func (connection *pairedConn) validate() error {
@@ -300,18 +295,11 @@ func (connection *pairedConn) tryReadLocked(destination []byte) (int, error, tim
 	}
 	if len(connection.state.pending) == 0 && len(connection.state.incoming) != 0 {
 		chunk := connection.state.incoming[0]
-		if connection.network != nil && !connection.network.links[simulationLinkKey(chunk.source.Node, chunk.destination.Node)].Enabled {
+		if connection.network != nil && !connection.network.links[simulationLinkKey(connection.target.Node, connection.owner.Node)].Enabled {
 			return 0, errNetworkWouldBlock, time.Time{}, false
 		}
 		if connection.nowTime().Before(chunk.ready) {
 			return 0, errNetworkWouldBlock, chunk.ready, false
-		}
-		if connection.network != nil {
-			transition := simulationTransition{Kind: "deliver", Source: chunk.source, Destination: chunk.destination, Connection: chunk.connection, Delivery: chunk.identity, Bytes: uint64(len(chunk.bytes)), DelayNanos: chunk.delayNanos, Outcome: "ok", PayloadSHA256: simulationPayloadSHA256(chunk.bytes)}
-			if err := connection.network.commitTransitionLocked(transition); err != nil {
-				return 0, err, time.Time{}, false
-			}
-			delete(connection.network.deliveries, chunk.identity)
 		}
 		connection.state.pending = chunk.bytes
 		connection.state.incoming[0] = networkChunk{}
@@ -358,20 +346,18 @@ func (connection *pairedConn) tryWriteLocked(source []byte) (int, error) {
 		if !ok || !link.Enabled {
 			outcome = "held"
 		}
-		transition := simulationTransition{Kind: "write", Source: connection.owner, Destination: connection.target, Connection: connection.identity, Bytes: uint64(length), DelayNanos: link.DelayNanos, Outcome: outcome, PayloadSHA256: simulationPayloadSHA256(source[:length])}
-		if uint64(len(connection.network.deliveries)) >= connection.network.limits.Deliveries || uint64(length) > connection.network.limits.Bytes-connection.network.pendingBytes {
+		transition := simulationTransition{Kind: "write", Source: connection.owner, Destination: connection.target, Connection: connection.identity, Bytes: uint64(length), DelayNanos: link.DelayNanos, Outcome: outcome}
+		if uint64(length) > connection.network.limits.Bytes-connection.network.pendingBytes {
 			transition.Outcome = "capacity"
 			if err := connection.network.commitTransitionLocked(transition); err != nil {
 				return 0, err
 			}
 			return 0, ErrResourceExhausted
 		}
-		delivery := connection.network.nextDelivery + 1
 		ready, err := checkedNetworkReadyTime(connection.nowTime(), link.DelayNanos)
 		if err != nil {
 			return 0, err
 		}
-		transition.Delivery = delivery
 		var reservation uint64
 		var due time.Time
 		if outcome == "held" && !connection.peer.stalled {
@@ -387,7 +373,6 @@ func (connection *pairedConn) tryWriteLocked(source []byte) (int, error) {
 		if err := connection.network.commitBatchLocked([]simulationTransition{transition}, reservation, 0); err != nil {
 			return 0, err
 		}
-		connection.network.nextDelivery = delivery
 		if outcome == "held" && !connection.peer.stalled {
 			connection.peer.stalled = true
 			connection.peer.stallStart = connection.nowTime()
@@ -396,13 +381,7 @@ func (connection *pairedConn) tryWriteLocked(source []byte) (int, error) {
 			connection.state.shared.pair.reserved = true
 			connection.network.armStallTimerLocked(connection.peer)
 		}
-		chunk.identity = delivery
-		chunk.connection = connection.identity
-		chunk.source = connection.owner
-		chunk.destination = connection.target
 		chunk.ready = ready
-		chunk.delayNanos = link.DelayNanos
-		connection.network.deliveries[delivery] = simulationDelivery{identity: delivery, connection: connection.identity, source: connection.owner, destination: connection.target, bytes: uint64(length), delayNanos: link.DelayNanos}
 		connection.network.pendingBytes += uint64(length)
 	}
 	connection.peer.incoming = append(connection.peer.incoming, chunk)
@@ -415,7 +394,7 @@ func (connection *pairedConn) shutdownLocked(read, write bool) {
 	if read {
 		connection.state.readClosed = true
 		if connection.network != nil {
-			connection.network.dropStateDeliveriesLocked(connection.state)
+			connection.network.dropStateBytesLocked(connection.state)
 		} else {
 			connection.state.retainedBytes = 0
 			connection.state.incoming = nil
@@ -476,7 +455,6 @@ func (network *simulationNetwork) dropUndeliveredLocked(state *connState) {
 	var discarded uint64
 	for _, chunk := range state.incoming {
 		discarded += uint64(len(chunk.bytes))
-		delete(network.deliveries, chunk.identity)
 	}
 	state.incoming = nil
 	state.retainedBytes -= discarded

@@ -28,7 +28,7 @@ func TestRuntimeNetworkConfigExplicitLimits(t *testing.T) {
 			encoded, err := encodeRuntimeNetworkConfig(spec)
 			if test.valid {
 				require.NoError(t, err)
-				require.Equal(t, "GOMADNC2", string(encoded[:8]))
+				require.Equal(t, "GOMADNC3", string(encoded[:8]))
 			} else {
 				require.Error(t, err, "bytes=%d stall=%d", test.bytes, test.stall)
 			}
@@ -58,18 +58,13 @@ func TestRuntimeNetworkWireRecordRoundTrip(t *testing.T) {
 				Closed:   true,
 			}},
 			Connections: []NetworkConnectionSnapshot{{
-				Identity: 1,
-				Client:   NetworkEndpoint{Node: "client", Incarnation: 1, Address: "10.0.0.2", Port: 40000},
-				Server:   NetworkEndpoint{Node: "server", Incarnation: 1, Address: "10.0.0.1", Port: 7233},
-				Closed:   true,
+				Identity:    1,
+				Client:      NetworkEndpoint{Node: "client", Incarnation: 1, Address: "10.0.0.2", Port: 40000},
+				Server:      NetworkEndpoint{Node: "server", Incarnation: 1, Address: "10.0.0.1", Port: 7233},
+				Closed:      true,
+				ClientBytes: 2, ServerBytes: 3,
 			}},
-			Deliveries: []NetworkDeliverySnapshot{{
-				Identity: 1, Connection: 1,
-				Source:      NetworkEndpoint{Node: "client", Incarnation: 1, Address: "10.0.0.2", Port: 40000},
-				Destination: NetworkEndpoint{Node: "server", Incarnation: 1, Address: "10.0.0.1", Port: 7233},
-				Bytes:       3, DelayNanos: 7,
-			}},
-			NextConnection: 1, NextDelivery: 1,
+			NextConnection:   1,
 			TransitionSHA256: "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 			Identity:         "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
 		},

@@ -3,7 +3,6 @@
 package gomad3sim
 
 import (
-	"encoding/hex"
 	"errors"
 	"fmt"
 )
@@ -11,16 +10,15 @@ import (
 const (
 	maximumRuntimeNetworkWireBytes        = 134217728
 	maximumRuntimeNetworkWireStringBytes  = 1048576
-	runtimeNetworkConfigMagic             = "GOMADNC2"
-	runtimeNetworkFinishMagic             = "GOMADNR1"
-	runtimeNetworkErrorMagic              = "GOMADNE1"
+	runtimeNetworkConfigMagic             = "GOMADNC3"
+	runtimeNetworkFinishMagic             = "GOMADNR2"
+	runtimeNetworkErrorMagic              = "GOMADNE2"
 	maximumRuntimeNetworkWireNodes        = 64
 	maximumRuntimeNetworkWireLinks        = 4096
 	maximumRuntimeNetworkWireListeners    = 4096
 	maximumRuntimeNetworkWireConnections  = 65536
 	maximumRuntimeNetworkWireNetworkBytes = 1073741824
 	maximumRuntimeNetworkWireStallNanos   = 9223372036854775806
-	maximumRuntimeNetworkWireDeliveries   = 65536
 	maximumRuntimeNetworkWireTransitions  = 1048576
 )
 
@@ -153,7 +151,6 @@ func encodeRuntimeNetworkConfig(spec Spec) ([]byte, error) {
 	}
 	encoder.uint64(spec.Limits.NetworkListeners)
 	encoder.uint64(spec.Limits.NetworkConnections)
-	encoder.uint64(spec.Limits.NetworkDeliveries)
 	encoder.uint64(spec.Limits.NetworkBytes)
 	encoder.uint64(spec.Limits.NetworkConnectionBytes)
 	encoder.uint64(spec.Limits.NetworkStallNanos)
@@ -212,7 +209,7 @@ func validateRuntimeNetworkLimits(limits Limits) error {
 
 func validNetworkTransition(transition NetworkTransition) bool {
 	switch transition.Kind {
-	case "listen", "dial", "accept", "write", "deliver", "close", "listener_close", "stop", "crash", "reset":
+	case "listen", "dial", "accept", "write", "close", "listener_close", "stop", "crash", "reset":
 		if !validNetworkEndpoint(transition.Source, true) {
 			return false
 		}
@@ -224,11 +221,8 @@ func validNetworkTransition(transition NetworkTransition) bool {
 		return false
 	}
 	switch transition.Outcome {
-	case "ok", "closed", "refused", "deadline", "partition_drop", "stale_drop", "reset", "capacity", "unsupported", "held", "timeout":
+	case "ok", "closed", "refused", "deadline", "reset", "capacity", "unsupported", "held", "timeout":
 	default:
-		return false
-	}
-	if transition.PayloadSHA256 != "" && !validNetworkPayloadSHA256(transition.PayloadSHA256) {
 		return false
 	}
 	if transition.Kind == "reset" || transition.Outcome == "held" || transition.Outcome == "timeout" && transition.Kind == "write" {
@@ -237,7 +231,7 @@ func validNetworkTransition(transition NetworkTransition) bool {
 			transition.Source.Node == transition.Destination.Node || transition.Source.Port == 0 || transition.Source.Port > 65535 || transition.Destination.Port == 0 || transition.Destination.Port > 65535 {
 			return false
 		}
-		if transition.Kind == "reset" && (transition.Outcome != "reset" && transition.Outcome != "timeout" || transition.Delivery != 0 || transition.PayloadSHA256 != "") {
+		if transition.Kind == "reset" && (transition.Outcome != "reset" && transition.Outcome != "timeout") {
 			return false
 		}
 		if transition.Outcome == "held" && transition.Bytes == 0 {
@@ -245,7 +239,7 @@ func validNetworkTransition(transition NetworkTransition) bool {
 		}
 	}
 	if transition.Outcome == "timeout" && transition.Kind != "write" && transition.Kind != "reset" {
-		if transition.Kind != "dial" || transition.Connection != 0 || transition.Delivery != 0 || transition.Source.Port > 65535 ||
+		if transition.Kind != "dial" || transition.Connection != 0 || transition.Source.Port > 65535 ||
 			!validNetworkEndpoint(transition.Destination, false) || transition.Source.Node == transition.Destination.Node || transition.Destination.Port == 0 || transition.Destination.Port > 65535 {
 			return false
 		}
@@ -260,21 +254,13 @@ func validNetworkEndpoint(endpoint NetworkEndpoint, requireIncarnation bool) boo
 	return !requireIncarnation || endpoint.Incarnation != 0
 }
 
-func validNetworkPayloadSHA256(value string) bool {
-	if len(value) != 71 || value[:7] != "sha256:" {
-		return false
-	}
-	_, err := hex.DecodeString(value[7:])
-	return err == nil
-}
-
 func networkTransitionLane(transition NetworkTransition) string {
 	switch transition.Kind {
 	case "partition", "heal", "delay", "disconnect", "reconnect", "directional_delay":
 		return "topology"
 	case "listen", "listener_close":
 		return "listener\x00" + networkEndpointKey(transition.Source)
-	case "dial", "accept", "write", "deliver", "close", "reset":
+	case "dial", "accept", "write", "close", "reset":
 		if transition.Connection != 0 {
 			return fmt.Sprintf("connection\x00%020d", transition.Connection)
 		}
@@ -312,12 +298,10 @@ func encodeRuntimeNetworkTransition(encoder *runtimeNetworkWireEncoder, transiti
 	encodeRuntimeNetworkEndpoint(encoder, transition.Source)
 	encodeRuntimeNetworkEndpoint(encoder, transition.Destination)
 	encoder.uint64(transition.Connection)
-	encoder.uint64(transition.Delivery)
 	encoder.uint64(transition.Bytes)
 	encoder.uint64(transition.Count)
 	encoder.uint64(transition.DelayNanos)
 	encoder.string(string(transition.Outcome))
-	encoder.string(transition.PayloadSHA256)
 }
 
 func decodeRuntimeNetworkTransition(decoder *runtimeNetworkWireDecoder) NetworkTransition {
@@ -325,12 +309,10 @@ func decodeRuntimeNetworkTransition(decoder *runtimeNetworkWireDecoder) NetworkT
 	transition.Source = decodeRuntimeNetworkEndpoint(decoder)
 	transition.Destination = decodeRuntimeNetworkEndpoint(decoder)
 	transition.Connection = decoder.uint64()
-	transition.Delivery = decoder.uint64()
 	transition.Bytes = decoder.uint64()
 	transition.Count = decoder.uint64()
 	transition.DelayNanos = decoder.uint64()
 	transition.Outcome = NetworkOutcome(decoder.string())
-	transition.PayloadSHA256 = decoder.string()
 	return transition
 }
 
@@ -373,18 +355,10 @@ func encodeRuntimeNetworkSnapshot(encoder *runtimeNetworkWireEncoder, snapshot N
 		encodeRuntimeNetworkEndpoint(encoder, connection.Server)
 		encoder.boolean(connection.Closed)
 		encoder.boolean(connection.Reset)
-	}
-	encoder.uint64(uint64(len(snapshot.Deliveries)))
-	for _, delivery := range snapshot.Deliveries {
-		encoder.uint64(delivery.Identity)
-		encoder.uint64(delivery.Connection)
-		encodeRuntimeNetworkEndpoint(encoder, delivery.Source)
-		encodeRuntimeNetworkEndpoint(encoder, delivery.Destination)
-		encoder.uint64(delivery.Bytes)
-		encoder.uint64(delivery.DelayNanos)
+		encoder.uint64(connection.ClientBytes)
+		encoder.uint64(connection.ServerBytes)
 	}
 	encoder.uint64(snapshot.NextConnection)
-	encoder.uint64(snapshot.NextDelivery)
 	encoder.string(snapshot.TransitionSHA256)
 	encoder.string(snapshot.Identity)
 }
@@ -420,20 +394,10 @@ func decodeRuntimeNetworkSnapshot(decoder *runtimeNetworkWireDecoder) NetworkSna
 		}
 		snapshot.Connections = append(snapshot.Connections, NetworkConnectionSnapshot{
 			Identity: decoder.uint64(), Client: decodeRuntimeNetworkEndpoint(decoder), Server: decodeRuntimeNetworkEndpoint(decoder),
-			Closed: decoder.boolean(), Reset: decoder.boolean(),
-		})
-	}
-	for range decoder.count(maximumRuntimeNetworkWireDeliveries) {
-		if decoder.err != nil {
-			break
-		}
-		snapshot.Deliveries = append(snapshot.Deliveries, NetworkDeliverySnapshot{
-			Identity: decoder.uint64(), Connection: decoder.uint64(), Source: decodeRuntimeNetworkEndpoint(decoder), Destination: decodeRuntimeNetworkEndpoint(decoder),
-			Bytes: decoder.uint64(), DelayNanos: decoder.uint64(),
+			Closed: decoder.boolean(), Reset: decoder.boolean(), ClientBytes: decoder.uint64(), ServerBytes: decoder.uint64(),
 		})
 	}
 	snapshot.NextConnection = decoder.uint64()
-	snapshot.NextDelivery = decoder.uint64()
 	snapshot.TransitionSHA256 = decoder.string()
 	snapshot.Identity = decoder.string()
 	return snapshot

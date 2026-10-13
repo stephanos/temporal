@@ -8,10 +8,11 @@ import (
 	"testing"
 
 	netmodel "go.temporal.io/server/tools/gomad3/simulation/network"
+	"go.temporal.io/server/tools/gomad3/world"
 )
 
 func streamConfig() *NetworkModelV2 {
-	return &NetworkModelV2{Profile: NetworkStreamProfile, Limits: netmodel.Limits{Listeners: 128, Connections: 128, Deliveries: 128, Bytes: 8 << 20, ConnectionBytes: 4 << 20, StallNanos: 10_000_000_000, Transitions: 8192}}
+	return &NetworkModelV2{Profile: NetworkStreamProfile, Limits: netmodel.Limits{Listeners: 128, Connections: 128, Bytes: 8 << 20, ConnectionBytes: 4 << 20, StallNanos: 10_000_000_000, Transitions: 8192}}
 }
 
 func TestNetworkV2ExplicitByteAndStallLimits(t *testing.T) {
@@ -37,6 +38,29 @@ func TestNetworkV2ExplicitByteAndStallLimits(t *testing.T) {
 				t.Fatalf("bytes=%d stall=%d admitted=%v want=%v", test.bytes, test.stall, err == nil, test.valid)
 			}
 		})
+	}
+}
+
+func TestNetworkV2WorldReadinessIndependentOfPayloadBytes(t *testing.T) {
+	config := streamConfig()
+	config.Limits.Bytes, config.Limits.ConnectionBytes = 1, 1
+	config.Limits.Transitions = 128
+	e := streamEnvironment(t, config)
+	for i := 0; i < 129; i++ {
+		id, err := e.networkV2.world.Register(world.Request{Kind: "network", Resource: world.ResourceID{Adapter: "wasm", Kind: "stream", Key: "readiness"}})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := e.networkV2.world.Ready(world.Readiness{RequestID: id, At: world.InitialTime + 1, Kind: "network"}); err != nil {
+			t.Fatalf("request %d readiness depended on stream admission: %v", i, err)
+		}
+	}
+	q, err := e.networkV2.world.Quiesce()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(q.Deliveries) != 129 {
+		t.Fatalf("World lost bounded readiness events: %d", len(q.Deliveries))
 	}
 }
 func streamEnvironment(t *testing.T, model *NetworkModelV2) *Environment {
@@ -124,12 +148,72 @@ func TestNetworkV2StreamBytesDelayGlobalIdleAndCancel(t *testing.T) {
 	if len(e.networkV2.model.Ready()) != 0 {
 		t.Fatal("cancel retained pending completion")
 	}
-	if transcript := e.NetworkV2Transcript(); !bytes.Contains(transcript, []byte("payload_sha256")) || !bytes.Contains(transcript, []byte("world")) {
+	var evidence struct {
+		Profile string          `json:"profile"`
+		Native  netmodel.Record `json:"native"`
+		World   json.RawMessage `json:"world"`
+	}
+	transcript, err := e.NetworkV2Evidence()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := json.Unmarshal(transcript, &evidence); err != nil {
+		t.Fatal(err)
+	}
+	if evidence.Profile != NetworkStreamProfile || len(evidence.World) == 0 {
 		t.Fatal("missing native or World evidence")
+	}
+	writes := 0
+	for _, transition := range evidence.Native.Transitions {
+		if transition.Kind == "deliver" {
+			t.Fatal("network evidence retained per-delivery history")
+		}
+		if transition.Kind == "write" {
+			writes++
+			if transition.Bytes != uint64(len(data)) {
+				t.Fatalf("write evidence lost structural byte count: %+v", transition)
+			}
+		}
+	}
+	if writes != 1 {
+		t.Fatalf("write evidence count=%d want=1", writes)
+	}
+	var envelope map[string]json.RawMessage
+	if err := json.Unmarshal(transcript, &envelope); err != nil {
+		t.Fatal(err)
+	}
+	var native map[string]json.RawMessage
+	if err := json.Unmarshal(envelope["native"], &native); err != nil {
+		t.Fatal(err)
+	}
+	var transitions []map[string]json.RawMessage
+	if err := json.Unmarshal(native["transitions"], &transitions); err != nil {
+		t.Fatal(err)
+	}
+	for _, transition := range transitions {
+		for _, field := range []string{"payload_sha256", "delivery"} {
+			if _, present := transition[field]; present {
+				t.Fatalf("network transition retained %s", field)
+			}
+		}
+	}
+	var snapshot map[string]json.RawMessage
+	if err := json.Unmarshal(native["snapshot"], &snapshot); err != nil {
+		t.Fatal(err)
+	}
+	for _, field := range []string{"deliveries", "next_delivery"} {
+		if _, present := snapshot[field]; present {
+			t.Fatalf("network snapshot retained %s", field)
+		}
 	}
 }
 
 func TestNetworkV2ProfileIdentityAndNegativeFrames(t *testing.T) {
+	old := streamConfig()
+	old.Profile = "gomad3.simulation-network-stream/v2"
+	if _, err := newNetworkV2State(old); err == nil {
+		t.Fatal("old network profile activated")
+	}
 	e := streamEnvironment(t, streamConfig())
 	for _, data := range [][]byte{make([]byte, 63), streamFrame(5, 1, 1, 0, 0, 2, []byte{1, 2}), streamFrame(99, 1, 1, 0, 0, 0, nil)} {
 		if len(data) >= 64 && binary.BigEndian.Uint32(data[4:]) == 5 {

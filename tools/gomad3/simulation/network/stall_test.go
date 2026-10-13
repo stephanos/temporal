@@ -162,19 +162,31 @@ func TestModelStallOrderingIdleAndEpochInvalidation(t *testing.T) {
 	limits.StallNanos = 10
 	m, a, b := testModel(t, limits)
 	_, client, _ := pair(t, m, a, b)
-	m.Partition(a.Node, b.Node, false)
+	if err := m.Partition(a.Node, b.Node, false); err != nil {
+		t.Fatal(err)
+	}
 	m.Dispatch(Request{Domain: a, Op: "write", Handle: client, RequestID: 4, Bytes: []byte("held")})
-	m.Advance(5)
-	m.Heal(a.Node, b.Node, false)
-	m.Partition(a.Node, b.Node, false)
+	if _, err := m.Advance(5); err != nil {
+		t.Fatal(err)
+	}
+	if err := m.Heal(a.Node, b.Node, false); err != nil {
+		t.Fatal(err)
+	}
+	if err := m.Partition(a.Node, b.Node, false); err != nil {
+		t.Fatal(err)
+	}
 	if m.NextDeadline() != 16 {
 		t.Fatalf("replacement epoch deadline=%d", m.NextDeadline())
 	}
-	m.Advance(11)
+	if _, err := m.Advance(11); err != nil {
+		t.Fatal(err)
+	}
 	if m.network.pendingBytes != 4 {
 		t.Fatal("stale expiry reset replacement epoch")
 	}
-	m.Advance(16)
+	if _, err := m.Advance(16); err != nil {
+		t.Fatal(err)
+	}
 	if m.network.pendingBytes != 0 {
 		t.Fatal("replacement expiry did not reset")
 	}
@@ -282,6 +294,164 @@ func TestModelCloseAndHalfClosePreserveEnabledDelayAndHealedFIFO(t *testing.T) {
 		t.Fatal(err)
 	}
 	if r := m.Dispatch(Request{Domain: b, Op: "read", Handle: server, RequestID: 6, Count: 32}); string(r.Bytes) != "held" {
+		t.Fatal(r)
+	}
+	if r := m.Dispatch(Request{Domain: b, Op: "read", Handle: server, RequestID: 7, Count: 32}); r.Error != "EOF" {
+		t.Fatal(r)
+	}
+}
+
+func TestModelFullCloseBeforePartitionDoesNotStrandDelayedEOF(t *testing.T) {
+	m, a, b := testModel(t, testLimits())
+	_, client, server := pair(t, m, a, b)
+	if err := m.Delay(a.Node, b.Node, 10, false); err != nil {
+		t.Fatal(err)
+	}
+	if r := m.Dispatch(Request{Domain: a, Op: "write", Handle: client, RequestID: 4, Bytes: []byte("delayed")}); r.Count != 7 || r.Error != "" {
+		t.Fatal(r)
+	}
+	if r := m.Dispatch(Request{Domain: a, Op: "close", Handle: client, RequestID: 5}); r.Error != "" {
+		t.Fatal(r)
+	}
+	if err := m.Partition(a.Node, b.Node, false); err != nil {
+		t.Fatal(err)
+	}
+	if m.network.historyReserved != 0 || m.NextDeadline() != 0 {
+		t.Fatalf("closed pair acquired timeout work: reserved=%d next=%d", m.network.historyReserved, m.NextDeadline())
+	}
+	r := m.Dispatch(Request{Domain: b, Op: "read", Handle: server, RequestID: 6, Count: 32})
+	if r.Error != "EOF" || m.network.pendingBytes != 0 {
+		t.Fatalf("full close stranded delayed bytes: read=%+v bytes=%d reserved=%d", r, m.network.pendingBytes, m.network.historyReserved)
+	}
+}
+
+func TestModelStalledPartialWritePreservesAcceptedPrefix(t *testing.T) {
+	limits := testLimits()
+	limits.ConnectionBytes, limits.StallNanos = 2, 10
+	m, a, b := testModel(t, limits)
+	_, client, server := pair(t, m, a, b)
+	if err := m.Partition(a.Node, b.Node, false); err != nil {
+		t.Fatal(err)
+	}
+	r := m.Dispatch(Request{Domain: a, Op: "write", Handle: client, RequestID: 4, Bytes: []byte("prefix"), Deadline: 100})
+	if r.State != "pending" || r.Count != 2 {
+		t.Fatal(r)
+	}
+	if _, err := m.Advance(11); err != nil {
+		t.Fatal(err)
+	}
+	r = m.Dispatch(Request{Domain: a, Op: "poll", RequestID: 4})
+	if r.State != "completed" || r.Count != 2 || r.Error != "connection timed out" {
+		t.Fatal(r)
+	}
+	if r := m.Dispatch(Request{Domain: b, Op: "read", Handle: server, RequestID: 5, Count: 8}); r.Count != 0 || r.Error != "connection timed out" {
+		t.Fatal(r)
+	}
+}
+
+func TestModelExplicitResetSettlesHeldReservation(t *testing.T) {
+	m, a, b := testModel(t, testLimits())
+	_, client, server := pair(t, m, a, b)
+	if err := m.Partition(a.Node, b.Node, false); err != nil {
+		t.Fatal(err)
+	}
+	if r := m.Dispatch(Request{Domain: a, Op: "write", Handle: client, RequestID: 4, Bytes: []byte("held")}); r.Count != 4 || r.Error != "" {
+		t.Fatal(r)
+	}
+	if err := m.Reset(client); err != nil {
+		t.Fatal(err)
+	}
+	if m.network.historyReserved != 0 || m.network.pendingBytes != 0 || m.NextDeadline() != 0 {
+		t.Fatalf("reset leaked held work: reserved=%d bytes=%d next=%d", m.network.historyReserved, m.network.pendingBytes, m.NextDeadline())
+	}
+	if r := m.Dispatch(Request{Domain: b, Op: "read", Handle: server, RequestID: 5, Count: 32}); r.Error != ErrClosed.Error() {
+		t.Fatal(r)
+	}
+}
+
+func TestModelFullCloseBeforePartitionRetainsReceivedTail(t *testing.T) {
+	m, a, b := testModel(t, testLimits())
+	_, client, server := pair(t, m, a, b)
+	m.Dispatch(Request{Domain: a, Op: "write", Handle: client, RequestID: 4, Bytes: []byte("received")})
+	if r := m.Dispatch(Request{Domain: b, Op: "read", Handle: server, RequestID: 5, Count: 2}); string(r.Bytes) != "re" {
+		t.Fatal(r)
+	}
+	if err := m.Delay(a.Node, b.Node, 10, false); err != nil {
+		t.Fatal(err)
+	}
+	m.Dispatch(Request{Domain: a, Op: "write", Handle: client, RequestID: 6, Bytes: []byte("discard")})
+	m.Dispatch(Request{Domain: a, Op: "close", Handle: client, RequestID: 7})
+	if err := m.Partition(a.Node, b.Node, false); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := m.Advance(100); err != nil {
+		t.Fatal(err)
+	}
+	if r := m.Dispatch(Request{Domain: b, Op: "read", Handle: server, RequestID: 8, Count: 32}); string(r.Bytes) != "ceived" {
+		t.Fatal(r)
+	}
+	if r := m.Dispatch(Request{Domain: b, Op: "read", Handle: server, RequestID: 9, Count: 32}); r.Error != "EOF" {
+		t.Fatal(r)
+	}
+	if m.network.pendingBytes != 0 || m.network.historyReserved != 0 {
+		t.Fatal("closed suffix cleanup retained work")
+	}
+}
+
+func TestModelRejectedPartitionAfterFullClosePreservesEnabledQueue(t *testing.T) {
+	for _, mode := range []string{"direction", "pair", "group"} {
+		limits := testLimits()
+		limits.Transitions = 6
+		m, a, b := testModel(t, limits)
+		_, client, server := pair(t, m, a, b)
+		if err := m.Delay(a.Node, b.Node, 10, false); err != nil {
+			t.Fatal(err)
+		}
+		m.Dispatch(Request{Domain: a, Op: "write", Handle: client, RequestID: 4, Bytes: []byte("delayed")})
+		m.Dispatch(Request{Domain: a, Op: "close", Handle: client, RequestID: 5})
+		partition := func() error { return m.Partition(a.Node, b.Node, mode == "pair") }
+		if mode == "group" {
+			partition = func() error { return m.network.changeGroup([]string{a.Node}, []string{b.Node}, false) }
+		}
+		if err := partition(); err != ErrResourceExhausted {
+			t.Fatal(err)
+		}
+		if !m.network.links[simulationLinkKey(a.Node, b.Node)].Enabled || m.network.pendingBytes != 7 || m.network.historyReserved != 0 {
+			t.Fatal("rejected topology discarded bytes or changed link")
+		}
+		if _, err := m.Advance(10); err != nil {
+			t.Fatal(err)
+		}
+		if r := m.Dispatch(Request{Domain: b, Op: "read", Handle: server, RequestID: 6, Count: 32}); string(r.Bytes) != "delayed" {
+			t.Fatal(r)
+		}
+		if r := m.Dispatch(Request{Domain: b, Op: "read", Handle: server, RequestID: 7, Count: 32}); r.Error != "EOF" {
+			t.Fatal(r)
+		}
+	}
+}
+
+func TestModelHalfCloseBeforePartitionRetainsDelayedFIFO(t *testing.T) {
+	m, a, b := testModel(t, testLimits())
+	_, client, server := pair(t, m, a, b)
+	if err := m.Delay(a.Node, b.Node, 10, false); err != nil {
+		t.Fatal(err)
+	}
+	m.Dispatch(Request{Domain: a, Op: "write", Handle: client, RequestID: 4, Bytes: []byte("delayed")})
+	m.Dispatch(Request{Domain: a, Op: "close_write", Handle: client, RequestID: 5})
+	if err := m.Partition(a.Node, b.Node, false); err != nil {
+		t.Fatal(err)
+	}
+	if m.network.pendingBytes != 7 || m.network.historyReserved != 1 {
+		t.Fatal("half close incorrectly discarded suffix")
+	}
+	if err := m.Heal(a.Node, b.Node, false); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := m.Advance(10); err != nil {
+		t.Fatal(err)
+	}
+	if r := m.Dispatch(Request{Domain: b, Op: "read", Handle: server, RequestID: 6, Count: 32}); string(r.Bytes) != "delayed" {
 		t.Fatal(r)
 	}
 	if r := m.Dispatch(Request{Domain: b, Op: "read", Handle: server, RequestID: 7, Count: 32}); r.Error != "EOF" {
@@ -482,6 +652,53 @@ func TestModelSimulationSelfDialRejectsBeforePendingAdmission(t *testing.T) {
 	}
 	if r := m.Dispatch(Request{Domain: a, Op: "dial", Host: a.Address, Port: l.Local.Port, RequestID: 3, Deadline: 5}); r.Error != "context deadline exceeded" {
 		t.Fatalf("completed caller context lost precedence: %+v", r)
+	}
+}
+
+func TestModelPayloadFreeHistoryReexecutesActualBytesAndRejectsLengthMismatch(t *testing.T) {
+	m, a, b := testModel(t, testLimits())
+	_, client, server := pair(t, m, a, b)
+	if r := m.Dispatch(Request{Domain: a, Op: "write", Handle: client, RequestID: 4, Bytes: []byte("abc")}); r.Count != 3 || r.Error != "" {
+		t.Fatal(r)
+	}
+	if r := m.Dispatch(Request{Domain: b, Op: "read", Handle: server, RequestID: 5, Count: 3}); string(r.Bytes) != "abc" {
+		t.Fatal(r)
+	}
+	recorded, err := m.Record()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, payload := range []string{"xyz", "xy"} {
+		replay, err := New(1, Config{Nodes: []Node{{Node: "a", Address: "a"}, {Node: "b", Address: "b"}}, Links: []Link{{From: "a", To: "b", Enabled: true}, {From: "b", To: "a", Enabled: true}}, Limits: testLimits(), Replay: &recorded})
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, domain := range []Domain{a, b} {
+			if err := replay.Register(domain); err != nil {
+				t.Fatal(err)
+			}
+		}
+		_, c, s := pair(t, replay, a, b)
+		r := replay.Dispatch(Request{Domain: a, Op: "write", Handle: c, RequestID: 4, Bytes: []byte(payload)})
+		if len(payload) == 2 {
+			if r.Error == "" || r.Count != 0 || replay.network.pendingBytes != 0 {
+				t.Fatalf("length mismatch mutated stream: %+v", r)
+			}
+			continue
+		}
+		if r.Error != "" || r.Count != 3 {
+			t.Fatalf("direct same-length payload waiver rejected: %+v", r)
+		}
+		if r := replay.Dispatch(Request{Domain: b, Op: "read", Handle: s, RequestID: 5, Count: 3}); string(r.Bytes) != "xyz" {
+			t.Fatalf("delivery did not derive from current write: %+v", r)
+		}
+		actual, err := replay.Record()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !reflect.DeepEqual(recorded, actual) {
+			t.Fatal("payload-free network history retained same-length content")
+		}
 	}
 }
 

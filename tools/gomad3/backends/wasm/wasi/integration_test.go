@@ -1243,7 +1243,7 @@ func TestBrokerCrashRecoveryFreshGuest(t *testing.T) {
 func TestBrokerIndependentGuestStreamsReplay(t *testing.T) {
 	request := cooperativeRequest(t, "../simulation/testdata/service")
 	request.Config.Clock.ReadStepNanos = 0
-	request.Config.NetworkV2 = &NetworkModelV2{Profile: NetworkStreamProfile, Limits: netmodel.Limits{Listeners: 128, Connections: 128, Deliveries: 1024, Bytes: 8 << 20, ConnectionBytes: 4 << 20, StallNanos: 10_000_000_000, Transitions: 10000}}
+	request.Config.NetworkV2 = &NetworkModelV2{Profile: NetworkStreamProfile, Limits: netmodel.Limits{Listeners: 128, Connections: 128, Bytes: 8 << 20, ConnectionBytes: 4 << 20, StallNanos: 10_000_000_000, Transitions: 10000}}
 	request.Config.Limits.Calls = 100000
 	request.Config.Limits.TranscriptBytes = 32 << 20
 	request.Runtime.Choice.Limit = 8 << 20
@@ -1420,7 +1420,7 @@ func TestNetworkStreamsGuestRecordsAndReplays(t *testing.T) {
 	config := prototypeFixtureConfig()
 	config.Args = []string{"network_streams"}
 	config.NetworkV2 = &NetworkModelV2{Profile: NetworkStreamProfile,
-		Limits: netmodel.Limits{Listeners: 16, Connections: 128, Deliveries: 4096, Bytes: 8 << 20, ConnectionBytes: 4 << 20, StallNanos: 10_000_000_000, Transitions: 16384},
+		Limits: netmodel.Limits{Listeners: 16, Connections: 128, Bytes: 8 << 20, ConnectionBytes: 4 << 20, StallNanos: 10_000_000_000, Transitions: 16384},
 		Faults: []NetworkFaultV2{
 			{Name: "stream-delay", Action: "delay", DelayNanos: uint64(5 * time.Millisecond)},
 			{Name: "dial-partition", Action: "partition", AtNanos: uint64(50 * time.Millisecond)},
@@ -1441,7 +1441,7 @@ func TestNetworkStreamsGuestRecordsAndReplays(t *testing.T) {
 			t.Fatalf("missing %q in guest stdout: %s", want, observed.Stdout)
 		}
 	}
-	for _, want := range []string{"stream-delay", "dial-partition", "dial-heal", "connection-reset", `"kind":"deliver"`, `"kind":"network"`, `"op":"cancel"`, `"op":"poll"`, `"op":"close_read"`, `"op":"close_write"`} {
+	for _, want := range []string{"stream-delay", "dial-partition", "dial-heal", "connection-reset", `"kind":"write"`, `"kind":"network"`, `"op":"cancel"`, `"op":"poll"`, `"op":"close_read"`, `"op":"close_write"`} {
 		if !bytes.Contains(observed.NetworkTranscript, []byte(want)) {
 			t.Fatalf("missing %q in network evidence", want)
 		}
@@ -3399,7 +3399,7 @@ func TestTemporalNetworkNamedResetRetriesAndExactReplay(t *testing.T) {
 	module, _ := prototypeBuild(t, root, "test", "./"+filepath.ToSlash(staged), filepath.Join(prototypeRoot(t), "network-temporal-retry.wasm"), "test_dep", "disable_grpc_modules", "sqlite3_dotlk")
 	config := prototypeTemporalConfig(t, root, "/workspace/network-temporal", "-test.run=^TestTemporalWorkflowRecoversNamedNetworkReset$", "-persistenceType=sql", "-persistenceDriver=sqlite")
 	config.NetworkV2 = &NetworkModelV2{Profile: NetworkStreamProfile,
-		Limits: netmodel.Limits{Listeners: 128, Connections: 4096, Deliveries: 65536, Bytes: 128 << 20, ConnectionBytes: 4 << 20, StallNanos: 10_000_000_000, Transitions: 1 << 20},
+		Limits: netmodel.Limits{Listeners: 128, Connections: 4096, Bytes: 128 << 20, ConnectionBytes: 4 << 20, StallNanos: 10_000_000_000, Transitions: 1 << 20},
 		Faults: []NetworkFaultV2{{Name: "rpc-reset", Action: "reset", AtNanos: uint64(40 * time.Second)}},
 	}
 	request := prototypeRequest(t, module, config, 7, 15*time.Minute)
@@ -3484,7 +3484,7 @@ func TestTemporalHostDiagnosticInputs(t *testing.T) {
 
 func TestTemporalBrokerBoundedWorldAdmission(t *testing.T) {
 	config := temporalBrokerConfiguration(&NetworkModelV2{Profile: NetworkStreamProfile,
-		Limits: netmodel.Limits{Listeners: 128, Connections: 4096, Deliveries: 32768, Bytes: 128 << 20, ConnectionBytes: 4 << 20, StallNanos: 10_000_000_000, Transitions: 1 << 20}})
+		Limits: netmodel.Limits{Listeners: 128, Connections: 4096, Bytes: 128 << 20, ConnectionBytes: 4 << 20, StallNanos: 10_000_000_000, Transitions: 1 << 20}})
 	if config.WorldProfile != world.CompressedSnapshotSchema || config.Limits != world.CompressedSnapshotProfile().Limits {
 		t.Fatal("Temporal producer lost its explicit bounded World profile")
 	}
@@ -3594,7 +3594,7 @@ func temporalBrokerConfiguration(network *NetworkModelV2) BrokerConfig {
 func TestTemporalIndependentClustersPartitionHealWholeClusterCrash(t *testing.T) {
 	request, evidence := temporalRecoveryRequest(t, "temporal_broker")
 	request.Config.Args = []string{"replication.test", "-test.v", "-test.count=1", "-test.timeout=1h", "-test.run=^TestIndependentClusterReplicationRecovery$", "-persistenceType=sql", "-persistenceDriver=sqlite"}
-	network := &NetworkModelV2{Profile: NetworkStreamProfile, Limits: netmodel.Limits{Listeners: 128, Connections: 4096, Deliveries: 32768, Bytes: 128 << 20, ConnectionBytes: 4 << 20, StallNanos: 10_000_000_000, Transitions: 1 << 20}}
+	network := &NetworkModelV2{Profile: NetworkStreamProfile, Limits: netmodel.Limits{Listeners: 128, Connections: 4096, Bytes: 128 << 20, ConnectionBytes: 4 << 20, StallNanos: 10_000_000_000, Transitions: 1 << 20}}
 	request.Config.NetworkV2 = network
 	brokerConfig := temporalBrokerConfiguration(network)
 	temporalJSON(t, filepath.Join(evidence, "two-cluster-broker-config.json"), brokerConfig)

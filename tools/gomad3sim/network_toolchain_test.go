@@ -1115,13 +1115,10 @@ func TestNetworkListenerCapacityDoesNotConsumePort(t *testing.T) {
 	require.Contains(t, networkOutcomes(result.Network.Transitions), NetworkOutcomeCapacity)
 }
 
-func TestNetworkDeliveryAndByteCapacityDoNotConsumeDeliveryIdentity(t *testing.T) {
+func TestNetworkByteCapacityPreservesConnectionIdentity(t *testing.T) {
 	tests := map[string]func(*Limits){
 		"bytes": func(limits *Limits) {
 			limits.NetworkBytes = 1
-		},
-		"deliveries": func(limits *Limits) {
-			limits.NetworkDeliveries = 1
 		},
 	}
 	for name, setLimit := range tests {
@@ -1177,10 +1174,112 @@ func TestNetworkDeliveryAndByteCapacityDoNotConsumeDeliveryIdentity(t *testing.T
 				return cluster.Stop(ctx, server)
 			})
 			require.NoError(t, err)
-			require.Equal(t, uint64(1), result.Network.Snapshot.NextDelivery)
+			require.Equal(t, uint64(1), result.Network.Snapshot.NextConnection)
 			require.Contains(t, networkOutcomes(result.Network.Transitions), NetworkOutcomeCapacity)
 		})
 	}
+}
+
+func TestNetworkTinyWritesUseByteCapacity(t *testing.T) {
+	runNetworkStallPair(t, BackendInProcess, "tiny-writes-byte-capacity", func(spec *Spec) {
+		spec.Limits.NetworkBytes = 65
+		spec.Limits.NetworkConnectionBytes = 66
+	}, func(conn net.Conn) error {
+		<-time.After(10 * time.Millisecond)
+		payload := make([]byte, 65)
+		if _, err := io.ReadFull(conn, payload); err != nil || string(payload) != strings.Repeat("x", 65) {
+			return fmt.Errorf("tiny-write stream=%q,%v", payload, err)
+		}
+		_, err := conn.Write([]byte{'r'})
+		return err
+	}, func(conn net.Conn) error {
+		for range 65 {
+			if n, err := conn.Write([]byte{'x'}); n != 1 || err != nil {
+				return fmt.Errorf("tiny write within byte capacity=%d,%v", n, err)
+			}
+		}
+		if n, err := conn.Write([]byte{'y'}); n != 0 || err == nil || !strings.Contains(err.Error(), "network resources exhausted") {
+			return fmt.Errorf("global byte capacity after 65 writes=%d,%v", n, err)
+		}
+		payload := make([]byte, 1)
+		if _, err := io.ReadFull(conn, payload); err != nil || payload[0] != 'r' {
+			return fmt.Errorf("tiny-write acknowledgement=%q,%v", payload, err)
+		}
+		return nil
+	}, func(context.Context, Cluster, NodeHandle, NodeHandle) error { return nil })
+}
+
+func TestNetworkReplayPermitsSameLengthPayloadChange(t *testing.T) {
+	serverBoot := uniqueBootID("network-replay-payload-waiver-server")
+	clientBoot := uniqueBootID("network-replay-payload-waiver-client")
+	listening := make(chan struct{}, 1)
+	received := make(chan byte, 1)
+	payload := byte('x')
+	require.NoError(t, RegisterBoot(serverBoot, func(ctx context.Context, node NodeContext) error {
+		listener, err := net.Listen("tcp4", net.JoinHostPort(node.Address, "7233"))
+		if err != nil {
+			return err
+		}
+		defer listener.Close()
+		listening <- struct{}{}
+		conn, err := listener.Accept()
+		if err != nil {
+			return err
+		}
+		defer conn.Close()
+		buffer := make([]byte, 1)
+		if _, err := io.ReadFull(conn, buffer); err != nil {
+			return err
+		}
+		received <- buffer[0]
+		if _, err := conn.Write([]byte{'r'}); err != nil {
+			return err
+		}
+		<-ctx.Done()
+		return ctx.Err()
+	}))
+	require.NoError(t, RegisterBoot(clientBoot, func(ctx context.Context, _ NodeContext) error {
+		conn, err := dialNetworkHandlePeer(ctx)
+		if err != nil {
+			return err
+		}
+		defer conn.Close()
+		if _, err := conn.Write([]byte{payload}); err != nil {
+			return err
+		}
+		buffer := make([]byte, 1)
+		_, err = io.ReadFull(conn, buffer)
+		return err
+	}))
+	spec := twoNodeNetworkSpec(serverBoot, clientBoot)
+	scenario := func(ctx context.Context, cluster Cluster) error {
+		server, err := cluster.Start(ctx, "server")
+		if err != nil {
+			return err
+		}
+		<-listening
+		client, err := cluster.Start(ctx, "client")
+		if err != nil {
+			return err
+		}
+		if err := waitNetworkHandleExit(ctx, cluster, client); err != nil {
+			return err
+		}
+		return cluster.Stop(ctx, server)
+	}
+	recorded, err := Run(context.Background(), spec, scenario)
+	require.NoError(t, err)
+	require.Equal(t, OutcomeCompleted, recorded.Outcome, recorded.Reason)
+	require.Equal(t, byte('x'), <-received)
+	plan, err := ReplayPlanFor(recorded.Record)
+	require.NoError(t, err)
+	spec.Replay = &plan
+	payload = 'y'
+	replayed, err := Run(context.Background(), spec, scenario)
+	require.NoError(t, err)
+	require.Equal(t, OutcomeCompleted, replayed.Outcome, replayed.Reason)
+	require.Equal(t, byte('y'), <-received)
+	require.Equal(t, recorded.Network, replayed.Network)
 }
 
 func TestNetworkTransitionCapacityDoesNotHealPartition(t *testing.T) {

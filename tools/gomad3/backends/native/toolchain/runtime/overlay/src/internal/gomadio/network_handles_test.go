@@ -126,7 +126,7 @@ func networkHandleModel(t *testing.T) (*simulationNetwork, gomadsim.NetworkDomai
 	left := gomadsim.Register(run, "a", "10.0.0.1", 1)
 	right := gomadsim.Register(run, "b", "10.0.0.2", 1)
 	model, err := newSimulationNetwork(run, simulationNetworkConfig{
-		Limits: simulationLimits{Listeners: 8, Connections: 8, Deliveries: 8, Bytes: 1 << 20, ConnectionBytes: 4 << 20, StallNanos: 10_000_000_000, Transitions: 128},
+		Limits: simulationLimits{Listeners: 8, Connections: 8, Bytes: 1 << 20, ConnectionBytes: 4 << 20, StallNanos: 10_000_000_000, Transitions: 128},
 		Nodes:  []simulationNodeConfig{{Node: "a", Address: "10.0.0.1"}, {Node: "b", Address: "10.0.0.2"}},
 		Links:  []simulationLink{{From: "a", To: "b", Enabled: true}, {From: "b", To: "a", Enabled: true}},
 	})
@@ -199,8 +199,8 @@ func TestNetworkHandleSimulationValidationBeforeMutation(t *testing.T) {
 	if _, err := client.Write([]byte("xx")); !errors.Is(err, ErrResourceExhausted) {
 		t.Fatalf("capacity=%v", err)
 	}
-	if model.nextDelivery != 0 || model.pendingBytes != 0 {
-		t.Fatal("capacity consumed delivery identity")
+	if model.pendingBytes != 0 {
+		t.Fatal("capacity retained bytes")
 	}
 	model.limits.Bytes = 1 << 20
 	model.links[simulationLinkKey("a", "b")] = simulationLink{From: "a", To: "b", Enabled: true, DelayNanos: uint64(time.Hour)}
@@ -210,8 +210,8 @@ func TestNetworkHandleSimulationValidationBeforeMutation(t *testing.T) {
 	if err := model.revoke(a, false); err != nil {
 		t.Fatal(err)
 	}
-	if len(model.deliveries) != 0 || model.pendingBytes != 0 {
-		t.Fatal("crash left delayed delivery")
+	if model.pendingBytes != 0 {
+		t.Fatal("crash left retained bytes")
 	}
 	gomadsim.Enter(b.Token)
 	if n, err := server.Read(make([]byte, 1)); n != 0 || !errors.Is(err, ErrClosed) {
@@ -287,8 +287,8 @@ func TestNetworkHandleDeadlineChangeWakesBlockedRead(t *testing.T) {
 	}
 }
 
-func TestNetworkHandleReplayRejectsWriteAndDeliveryBeforeMutation(t *testing.T) {
-	for _, reject := range []string{"write", "deliver"} {
+func TestNetworkHandleReplayRejectsWriteAndCloseBeforeMutation(t *testing.T) {
+	for _, reject := range []string{"write", "close"} {
 		t.Run(reject, func(t *testing.T) {
 			model, a, b := networkHandleModel(t)
 			gomadsim.Enter(b.Token)
@@ -302,17 +302,12 @@ func TestNetworkHandleReplayRejectsWriteAndDeliveryBeforeMutation(t *testing.T) 
 				t.Fatal(err)
 			}
 			gomadsim.Enter(b.Token)
-			server, err := listener.Accept()
+			_, err = listener.Accept()
 			if err != nil {
 				t.Fatal(err)
 			}
 			gomadsim.Enter(a.Token)
-			if reject == "deliver" {
-				if _, err := client.Write([]byte{'x'}); err != nil {
-					t.Fatal(err)
-				}
-			}
-			beforeDelivery, beforeBytes := model.nextDelivery, model.pendingBytes
+			beforeBytes := model.pendingBytes
 			beforeTransitions := len(model.transitions)
 			model.replay = &simulationRecord{}
 			model.replayLanes = make(map[string][]simulationTransition)
@@ -320,17 +315,16 @@ func TestNetworkHandleReplayRejectsWriteAndDeliveryBeforeMutation(t *testing.T) 
 			if reject == "write" {
 				_, err = client.Write([]byte{'x'})
 			} else {
-				gomadsim.Enter(b.Token)
-				_, err = server.Read(make([]byte, 1))
+				err = client.Close()
 			}
 			if _, ok := err.(*simulationBridgeError); !ok {
 				t.Fatalf("replay error=%T,%v", err, err)
 			}
-			if model.nextDelivery != beforeDelivery || model.pendingBytes != beforeBytes || len(model.transitions) != beforeTransitions {
-				t.Fatal("replay rejection mutated delivery or tape")
+			if model.pendingBytes != beforeBytes || len(model.transitions) != beforeTransitions {
+				t.Fatal("replay rejection mutated bytes or tape")
 			}
-			if reject == "deliver" && len(model.deliveries) != 1 {
-				t.Fatal("replay rejection consumed incoming delivery")
+			if reject == "close" && client.implementation.(*simulationConn).state.closeCalled {
+				t.Fatal("replay rejection closed connection")
 			}
 		})
 	}

@@ -1,7 +1,7 @@
 {
-  "config_magic": "GOMADNC2",
-  "finish_magic": "GOMADNR1",
-  "error_magic": "GOMADNE1",
+  "config_magic": "GOMADNC3",
+  "finish_magic": "GOMADNR2",
+  "error_magic": "GOMADNE2",
   "maximum_bytes": 134217728,
   "maximum_string_bytes": 1048576,
   "maximum_nodes": 64,
@@ -10,6 +10,5 @@
   "maximum_connections": 65536,
   "maximum_network_bytes": 1073741824,
   "maximum_stall_nanos": 9223372036854775806,
-  "maximum_deliveries": 65536,
   "maximum_transitions": 1048576
 }

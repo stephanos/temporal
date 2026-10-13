@@ -178,7 +178,7 @@ func emptyNetworkRecord() NetworkRecord {
 	if err != nil {
 		return NetworkRecord{}
 	}
-	digest := sha256.Sum256(append([]byte("gomad3-simulation-network-transitions/v2\x00"), encoded...))
+	digest := sha256.Sum256(append([]byte("gomad3-simulation-network-transitions/v3\x00"), encoded...))
 	snapshot := NetworkSnapshot{TransitionSHA256: fmt.Sprintf("sha256:%x", digest)}
 	identity, err := networkSnapshotIdentity(snapshot)
 	if err != nil {
@@ -382,7 +382,7 @@ func currentClusterModelIdentities() (ClusterModelIdentities, error) {
 	definitions := []string{
 		"gomad3-runtime-domain-model/v1",
 		"gomad3-process-broker/v2-activation-barrier-bounded-private-descriptors-hard-reap",
-		"gomad3-network-model/v4-directional-links-atomic-groups",
+		"gomad3-network-model/v5-byte-stream-stall-reset",
 		"gomad3-volume-model/v2-explicit-crash-selection",
 		"gomad3-fault-controller/v2-stable-match-occurrence",
 		"gomad3-scenario-controller/v2-rank-bound-choice-plan",
@@ -831,7 +831,7 @@ func validateNetworkRecord(record NetworkRecord, limits Limits) error {
 	if err != nil {
 		return fmt.Errorf("encode cluster network transitions: %w", err)
 	}
-	digest := sha256.Sum256(append([]byte("gomad3-simulation-network-transitions/v2\x00"), encoded...))
+	digest := sha256.Sum256(append([]byte("gomad3-simulation-network-transitions/v3\x00"), encoded...))
 	if record.Snapshot.TransitionSHA256 != fmt.Sprintf("sha256:%x", digest) {
 		return errors.New("cluster network transition digest does not match its transitions")
 	}
@@ -851,9 +851,6 @@ func validateNetworkRecord(record NetworkRecord, limits Limits) error {
 	if err := checkCapacity("network_connections", uint64(len(record.Snapshot.Connections)), limits.NetworkConnections); err != nil {
 		return err
 	}
-	if err := checkCapacity("network_deliveries", uint64(len(record.Snapshot.Deliveries)), limits.NetworkDeliveries); err != nil {
-		return err
-	}
 	var pendingBytes uint64
 	for index, node := range record.Snapshot.Nodes {
 		if node.Node == "" || node.Address == "" || node.NextListenerPort == 0 || node.NextClientPort == 0 || index != 0 && record.Snapshot.Nodes[index-1].Node >= node.Node {
@@ -866,20 +863,23 @@ func validateNetworkRecord(record NetworkRecord, limits Limits) error {
 		}
 	}
 	for index, listener := range record.Snapshot.Listeners {
-		if !validNetworkEndpoint(listener.Endpoint, true) || index != 0 && !networkEndpointBefore(record.Snapshot.Listeners[index-1].Endpoint, listener.Endpoint) {
+		if !validNetworkEndpoint(listener.Endpoint, true) || listener.Endpoint.Port == 0 || listener.Endpoint.Port > 65535 || index != 0 && !networkEndpointBefore(record.Snapshot.Listeners[index-1].Endpoint, listener.Endpoint) {
 			return errors.New("cluster network listener snapshot is invalid or unordered")
 		}
 	}
 	for index, connection := range record.Snapshot.Connections {
-		if connection.Identity == 0 || !validNetworkEndpoint(connection.Client, true) || !validNetworkEndpoint(connection.Server, true) || connection.Reset && !connection.Closed || index != 0 && record.Snapshot.Connections[index-1].Identity >= connection.Identity {
+		if connection.Identity == 0 || !validNetworkEndpoint(connection.Client, true) || !validNetworkEndpoint(connection.Server, true) || connection.Client.Port == 0 || connection.Client.Port > 65535 || connection.Server.Port == 0 || connection.Server.Port > 65535 || connection.Reset && !connection.Closed || index != 0 && record.Snapshot.Connections[index-1].Identity >= connection.Identity {
 			return errors.New("cluster network connection snapshot is invalid or unordered")
 		}
-	}
-	for index, delivery := range record.Snapshot.Deliveries {
-		if delivery.Identity == 0 || delivery.Connection == 0 || delivery.Bytes == 0 || !validNetworkEndpoint(delivery.Source, true) || !validNetworkEndpoint(delivery.Destination, true) || index != 0 && record.Snapshot.Deliveries[index-1].Identity >= delivery.Identity {
-			return errors.New("cluster network delivery snapshot is invalid or unordered")
+		if connection.Reset && (connection.ClientBytes != 0 || connection.ServerBytes != 0) {
+			return errors.New("cluster network reset connection has retained bytes")
 		}
-		pendingBytes = saturatingAdd(pendingBytes, delivery.Bytes)
+		for _, retained := range []uint64{connection.ClientBytes, connection.ServerBytes} {
+			if err := checkCapacity("network_connection_bytes", retained, limits.NetworkConnectionBytes); err != nil {
+				return err
+			}
+			pendingBytes = saturatingAdd(pendingBytes, retained)
+		}
 	}
 	return checkCapacity("network_bytes", pendingBytes, limits.NetworkBytes)
 }
@@ -1079,7 +1079,7 @@ func networkSnapshotIdentity(snapshot NetworkSnapshot) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("encode cluster network snapshot identity: %w", err)
 	}
-	digest := sha256.Sum256(append([]byte("gomad3-simulation-network-snapshot/v2\x00"), encoded...))
+	digest := sha256.Sum256(append([]byte("gomad3-simulation-network-snapshot/v3\x00"), encoded...))
 	return fmt.Sprintf("sha256:%x", digest), nil
 }
 
@@ -1151,17 +1151,17 @@ func hashSpec(spec Spec) (string, error) {
 		exploration := cloneExplorationPlan(*spec.Exploration)
 		spec.Exploration = &exploration
 	}
-	return hashCanonical("gomad3-simulation-spec/v7", spec)
+	return hashCanonical("gomad3-simulation-spec/v8", spec)
 }
 
 func clusterRecordIdentity(record ClusterRecord) (string, error) {
 	record.Identity = ""
-	return hashCanonical("gomad3-cluster-record/v7", record)
+	return hashCanonical("gomad3-cluster-record/v8", record)
 }
 
 func replayPlanIdentity(plan ReplayPlan) (string, error) {
 	plan.Identity = ""
-	return hashCanonical("gomad3-cluster-replay/v7", plan)
+	return hashCanonical("gomad3-cluster-replay/v8", plan)
 }
 
 func hashCanonical(domain string, value any) (string, error) {
@@ -1211,7 +1211,6 @@ func cloneNetworkRecord(record NetworkRecord) NetworkRecord {
 	record.Snapshot.Links = append([]NetworkLinkSnapshot(nil), record.Snapshot.Links...)
 	record.Snapshot.Listeners = append([]NetworkListenerSnapshot(nil), record.Snapshot.Listeners...)
 	record.Snapshot.Connections = append([]NetworkConnectionSnapshot(nil), record.Snapshot.Connections...)
-	record.Snapshot.Deliveries = append([]NetworkDeliverySnapshot(nil), record.Snapshot.Deliveries...)
 	return record
 }
 

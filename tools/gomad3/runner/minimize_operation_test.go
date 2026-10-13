@@ -500,7 +500,7 @@ func (executor *minimizationExecutor) Run(_ context.Context, request backend.Exe
 		ExplorationDecisions []exploration.Decision `json:"exploration_decisions,omitempty"`
 		Identity             record.SHA256          `json:"identity"`
 	}{
-		Schema: "gomad3.cluster-record/v7", Seed: 7, SpecSHA256: record.HashBytes([]byte("simulation spec")),
+		Schema: "gomad3.cluster-record/v8", Seed: 7, SpecSHA256: record.HashBytes([]byte("simulation spec")),
 		Outcome: "oracle_failed", FailureIdentity: failure, ExplorationPlan: request.Simulation.ExplorationPlan,
 		ExplorationDecisions: decisions, Identity: record.HashBytes([]byte("simulation record")),
 	})

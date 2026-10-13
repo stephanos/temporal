@@ -32,7 +32,7 @@ func TestTemporalQualificationSealsStrictBidirectionalTopology(t *testing.T) {
 	configuration := wasi.BrokerConfig{
 		Nodes: []wasi.BrokerNode{{ID: "active", Incarnation: 1}, {ID: "standby", Incarnation: 1}}, Seed: 7,
 		WorldProfile: world.CompressedSnapshotSchema, Limits: world.CompressedSnapshotProfile().Limits,
-		Network:   &wasi.NetworkModelV2{Profile: wasi.NetworkStreamProfile, Limits: netmodel.Limits{Listeners: 128, Connections: 4096, Deliveries: 32768, Bytes: 128 << 20, ConnectionBytes: 4 << 20, StallNanos: 10_000_000_000, Transitions: 1 << 20}},
+		Network:   &wasi.NetworkModelV2{Profile: wasi.NetworkStreamProfile, Limits: netmodel.Limits{Listeners: 128, Connections: 4096, Bytes: 128 << 20, ConnectionBytes: 4 << 20, StallNanos: 10_000_000_000, Transitions: 1 << 20}},
 		Addresses: map[string]string{"active": "10.0.0.1", "standby": "10.0.0.2"}, StrictTopology: true,
 		Faults: []wasi.BrokerNetworkFault{{Name: "partition", Action: "partition", From: "active", To: "standby", AtNanos: 1}, {Name: "heal", Action: "heal", From: "active", To: "standby", AtNanos: 30_000_000_000}},
 	}

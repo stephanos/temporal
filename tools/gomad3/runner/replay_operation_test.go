@@ -831,7 +831,7 @@ func publishReplayArtifactForTargetAndCompatibility(t *testing.T, connected *exe
 			ExplorationDecisions []exploration.Decision `json:"exploration_decisions,omitempty"`
 			Identity             record.SHA256          `json:"identity"`
 		}{
-			Schema: "gomad3.cluster-record/v7", Seed: 7, SpecSHA256: record.HashBytes([]byte("simulation spec")), Outcome: "oracle_failed",
+			Schema: "gomad3.cluster-record/v8", Seed: 7, SpecSHA256: record.HashBytes([]byte("simulation spec")), Outcome: "oracle_failed",
 			FailureIdentity: record.HashBytes([]byte("normalized replay failure")), ExplorationPlan: plan,
 			ExplorationDecisions: explorationDecisions, Identity: record.HashBytes([]byte("simulation record")),
 		})

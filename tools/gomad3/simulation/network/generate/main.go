@@ -420,6 +420,16 @@ func nativeTimerProjectionValid(function *ast.FuncDecl) bool {
 	if !ok || len(callback.Type.Params.List) != 0 || callback.Type.Results != nil || len(callback.Body.List) != callbackSize {
 		return false
 	}
+	if !statementMatches(callback.Body.List[0], "network.Lock()") {
+		return false
+	}
+	if function.Name.Name == "armDialTimerLocked" {
+		if !statementMatches(callback.Body.List[2], "network.Unlock()") {
+			return false
+		}
+	} else if !statementMatches(callback.Body.List[1], "pair.clientState.shared.Lock()") || !statementMatches(callback.Body.List[5], "pair.clientState.shared.Unlock()") || !statementMatches(callback.Body.List[6], "network.Unlock()") || !statementMatches(callback.Body.List[7], "gomadvfd.Notify(notices...)") {
+		return false
+	}
 	var calls []string
 	valid := true
 	ast.Inspect(callback.Body, func(node ast.Node) bool {
@@ -430,7 +440,7 @@ func nativeTimerProjectionValid(function *ast.FuncDecl) bool {
 			if len(node.Lhs) != 1 || node.Tok != token.DEFINE || formattedNode(node.Lhs[0]) != "err" && formattedNode(node.Lhs[0]) != "notices" {
 				valid = false
 			}
-		case *ast.ReturnStmt, *ast.BranchStmt, *ast.IncDecStmt:
+		case *ast.ReturnStmt, *ast.BranchStmt, *ast.IncDecStmt, *ast.GoStmt, *ast.DeferStmt:
 			valid = false
 		}
 		return true

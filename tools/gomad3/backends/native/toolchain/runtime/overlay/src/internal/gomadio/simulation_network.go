@@ -34,7 +34,6 @@ type simulationNetworkConfig struct {
 type simulationLimits struct {
 	Listeners       uint64 `json:"listeners"`
 	Connections     uint64 `json:"connections"`
-	Deliveries      uint64 `json:"deliveries"`
 	Bytes           uint64 `json:"bytes"`
 	ConnectionBytes uint64 `json:"connection_bytes"`
 	StallNanos      uint64 `json:"stall_nanos"`
@@ -61,17 +60,15 @@ type simulationEndpoint struct {
 }
 
 type simulationTransition struct {
-	Ordinal       uint64             `json:"ordinal"`
-	Kind          string             `json:"kind"`
-	Source        simulationEndpoint `json:"source,omitempty"`
-	Destination   simulationEndpoint `json:"destination,omitempty"`
-	Connection    uint64             `json:"connection,omitempty"`
-	Delivery      uint64             `json:"delivery,omitempty"`
-	Bytes         uint64             `json:"bytes,omitempty"`
-	Count         uint64             `json:"count,omitempty"`
-	DelayNanos    uint64             `json:"delay_nanos,omitempty"`
-	Outcome       string             `json:"outcome"`
-	PayloadSHA256 string             `json:"payload_sha256,omitempty"`
+	Ordinal     uint64             `json:"ordinal"`
+	Kind        string             `json:"kind"`
+	Source      simulationEndpoint `json:"source,omitempty"`
+	Destination simulationEndpoint `json:"destination,omitempty"`
+	Connection  uint64             `json:"connection,omitempty"`
+	Bytes       uint64             `json:"bytes,omitempty"`
+	Count       uint64             `json:"count,omitempty"`
+	DelayNanos  uint64             `json:"delay_nanos,omitempty"`
+	Outcome     string             `json:"outcome"`
 }
 
 type simulationNodeSnapshot struct {
@@ -88,20 +85,13 @@ type simulationListenerSnapshot struct {
 }
 
 type simulationConnectionSnapshot struct {
-	Identity uint64             `json:"identity"`
-	Client   simulationEndpoint `json:"client"`
-	Server   simulationEndpoint `json:"server"`
-	Closed   bool               `json:"closed"`
-	Reset    bool               `json:"reset"`
-}
-
-type simulationDeliverySnapshot struct {
+	ClientBytes uint64             `json:"client_bytes"`
+	ServerBytes uint64             `json:"server_bytes"`
 	Identity    uint64             `json:"identity"`
-	Connection  uint64             `json:"connection"`
-	Source      simulationEndpoint `json:"source"`
-	Destination simulationEndpoint `json:"destination"`
-	Bytes       uint64             `json:"bytes"`
-	DelayNanos  uint64             `json:"delay_nanos"`
+	Client      simulationEndpoint `json:"client"`
+	Server      simulationEndpoint `json:"server"`
+	Closed      bool               `json:"closed"`
+	Reset       bool               `json:"reset"`
 }
 
 type simulationSnapshot struct {
@@ -109,9 +99,7 @@ type simulationSnapshot struct {
 	Links            []simulationLink               `json:"links"`
 	Listeners        []simulationListenerSnapshot   `json:"listeners"`
 	Connections      []simulationConnectionSnapshot `json:"connections"`
-	Deliveries       []simulationDeliverySnapshot   `json:"deliveries"`
 	NextConnection   uint64                         `json:"next_connection"`
-	NextDelivery     uint64                         `json:"next_delivery"`
 	TransitionSHA256 string                         `json:"transition_sha256"`
 	Identity         string                         `json:"identity"`
 }
@@ -162,15 +150,6 @@ type simulationDial struct {
 	terminal    error
 }
 
-type simulationDelivery struct {
-	identity    uint64
-	connection  uint64
-	source      simulationEndpoint
-	destination simulationEndpoint
-	bytes       uint64
-	delayNanos  uint64
-}
-
 type simulationNetwork struct {
 	sync.Mutex
 	run             uint64
@@ -181,9 +160,7 @@ type simulationNetwork struct {
 	listeners       map[Address]*simulationListener
 	listenerHistory []*simulationListener
 	connections     map[uint64]*simulationConnection
-	deliveries      map[uint64]simulationDelivery
 	nextConnection  uint64
-	nextDelivery    uint64
 	pendingBytes    uint64
 	transitions     []simulationTransition
 	replay          *simulationRecord
@@ -300,17 +277,15 @@ func FinishSimulation(run uint64) ([]byte, bool) {
 }
 
 func newSimulationNetwork(run uint64, config simulationNetworkConfig) (*simulationNetwork, error) {
-	if run == 0 || config.Limits.Listeners == 0 || config.Limits.Connections == 0 || config.Limits.Deliveries == 0 || config.Limits.Bytes == 0 || config.Limits.Transitions == 0 {
+	if run == 0 || config.Limits.Listeners == 0 || config.Limits.Connections == 0 || config.Limits.Bytes == 0 || config.Limits.Transitions == 0 {
 		return nil, errors.New("simulation network limits are invalid")
 	}
 	if err := validateSimulationLimits(config.Limits); err != nil {
 		return nil, err
 	}
 	if config.Replay != nil {
-		for index, transition := range config.Replay.Transitions {
-			if transition.Ordinal != uint64(index) || !validSimulationTransition(transition) || index != 0 && simulationTransitionLane(config.Replay.Transitions[index-1]) > simulationTransitionLane(transition) {
-				return nil, errors.New("simulation network replay transition is invalid or unordered")
-			}
+		if err := validateSimulationReplay(*config.Replay, config.Limits); err != nil {
+			return nil, err
 		}
 	}
 	network := &simulationNetwork{
@@ -321,7 +296,6 @@ func newSimulationNetwork(run uint64, config simulationNetworkConfig) (*simulati
 		links:        make(map[string]simulationLink, len(config.Links)),
 		listeners:    make(map[Address]*simulationListener),
 		connections:  make(map[uint64]*simulationConnection),
-		deliveries:   make(map[uint64]simulationDelivery),
 		changed:      make(chan struct{}),
 		pendingDials: make(map[*simulationDial]bool),
 		replay:       config.Replay,
@@ -354,6 +328,73 @@ func newSimulationNetwork(run uint64, config simulationNetworkConfig) (*simulati
 		previous = key
 	}
 	return network, nil
+}
+
+func validateSimulationReplay(record simulationRecord, limits simulationLimits) error {
+	if uint64(len(record.Transitions)) > limits.Transitions {
+		return ErrResourceExhausted
+	}
+	for index, transition := range record.Transitions {
+		if transition.Ordinal != uint64(index) || !validSimulationTransition(transition) || index != 0 && simulationTransitionLane(record.Transitions[index-1]) > simulationTransitionLane(transition) {
+			return errors.New("simulation network replay transition is invalid or unordered")
+		}
+	}
+	encoded, err := encodeSimulationTransitions(record.Transitions)
+	if err != nil {
+		return err
+	}
+	digest := sha256.Sum256(append([]byte("gomad3-simulation-network-transitions/v3\x00"), encoded...))
+	if record.Snapshot.TransitionSHA256 != "sha256:"+hex.EncodeToString(digest[:]) {
+		return errors.New("simulation network replay transition digest does not match")
+	}
+	snapshot := record.Snapshot
+	snapshot.Identity = ""
+	encoded, err = encodeSimulationSnapshotIdentity(snapshot)
+	if err != nil {
+		return err
+	}
+	digest = sha256.Sum256(append([]byte("gomad3-simulation-network-snapshot/v3\x00"), encoded...))
+	if record.Snapshot.Identity != "sha256:"+hex.EncodeToString(digest[:]) {
+		return errors.New("simulation network replay snapshot identity does not match")
+	}
+	return validateSimulationReplaySnapshot(record.Snapshot, limits)
+}
+
+func validateSimulationReplaySnapshot(snapshot simulationSnapshot, limits simulationLimits) error {
+	if uint64(len(snapshot.Listeners)) > limits.Listeners || uint64(len(snapshot.Connections)) > limits.Connections {
+		return ErrResourceExhausted
+	}
+	for index, node := range snapshot.Nodes {
+		if node.Node == "" || node.Address == "" || node.NextListenerPort == 0 || node.NextClientPort == 0 || index != 0 && snapshot.Nodes[index-1].Node >= node.Node {
+			return errors.New("simulation network replay node snapshot is invalid or unordered")
+		}
+	}
+	for index, link := range snapshot.Links {
+		if link.From == "" || link.To == "" || link.From == link.To || index != 0 && simulationLinkKey(snapshot.Links[index-1].From, snapshot.Links[index-1].To) >= simulationLinkKey(link.From, link.To) {
+			return errors.New("simulation network replay link snapshot is invalid or unordered")
+		}
+	}
+	for index, listener := range snapshot.Listeners {
+		if !validSimulationWireEndpoint(listener.Endpoint, true) || listener.Endpoint.Port == 0 || listener.Endpoint.Port > maximumPort || index != 0 && simulationEndpointKey(snapshot.Listeners[index-1].Endpoint) >= simulationEndpointKey(listener.Endpoint) {
+			return errors.New("simulation network replay listener snapshot is invalid or unordered")
+		}
+	}
+	var retained uint64
+	for index, connection := range snapshot.Connections {
+		if connection.Identity == 0 || !validSimulationWireEndpoint(connection.Client, true) || !validSimulationWireEndpoint(connection.Server, true) || connection.Client.Port == 0 || connection.Client.Port > maximumPort || connection.Server.Port == 0 || connection.Server.Port > maximumPort || connection.Reset && !connection.Closed || index != 0 && snapshot.Connections[index-1].Identity >= connection.Identity {
+			return errors.New("simulation network replay connection snapshot is invalid or unordered")
+		}
+		if connection.Reset && (connection.ClientBytes != 0 || connection.ServerBytes != 0) {
+			return errors.New("simulation network replay reset connection retains bytes")
+		}
+		for _, count := range []uint64{connection.ClientBytes, connection.ServerBytes} {
+			if count > limits.ConnectionBytes || count > limits.Bytes-retained {
+				return ErrResourceExhausted
+			}
+			retained += count
+		}
+	}
+	return nil
 }
 
 func simulationNetworkForRun(run uint64) *simulationNetwork {
@@ -499,7 +540,7 @@ func (network *simulationNetwork) dial(ctx context.Context, networkName, host st
 		link, linked := network.links[simulationLinkKey(domain.Node, targetNode.node)]
 		if !linked || !link.Enabled {
 			if pending == nil {
-				if len(network.pendingDials) >= 65536 {
+				if len(network.pendingDials) >= maximumPendingNetworkOperations {
 					network.Unlock()
 					return nil, ErrResourceExhausted
 				}
@@ -903,8 +944,8 @@ func (network *simulationNetwork) revoke(domain gomadsim.NetworkDomain, graceful
 		}
 		connection.clientState.shared.Lock()
 		connection.reserved = false
-		network.dropStateDeliveriesLocked(connection.clientState)
-		network.dropStateDeliveriesLocked(connection.serverState)
+		network.dropStateBytesLocked(connection.clientState)
+		network.dropStateBytesLocked(connection.serverState)
 		if graceful {
 			local := connection.serverState
 			if sameSimulationIncarnation(connection.client, endpoint) {
@@ -930,11 +971,7 @@ func (network *simulationNetwork) revoke(domain gomadsim.NetworkDomain, graceful
 	return nil
 }
 
-func (network *simulationNetwork) dropStateDeliveriesLocked(state *connState) {
-	for _, chunk := range state.incoming {
-		delete(network.deliveries, chunk.identity)
-
-	}
+func (network *simulationNetwork) dropStateBytesLocked(state *connState) {
 	network.pendingBytes -= state.retainedBytes
 	state.retainedBytes = 0
 	state.pending = nil
@@ -1000,12 +1037,11 @@ func (network *simulationNetwork) snapshotLocked() (simulationSnapshot, error) {
 	if err != nil {
 		return simulationSnapshot{}, fmt.Errorf("encode simulation network transitions: %w", err)
 	}
-	payload := append([]byte("gomad3-simulation-network-transitions/v2\x00"), encoded...)
+	payload := append([]byte("gomad3-simulation-network-transitions/v3\x00"), encoded...)
 	digest := sha256.Sum256(payload)
 	snapshot := simulationSnapshot{
 		TransitionSHA256: "sha256:" + hex.EncodeToString(digest[:]),
 		NextConnection:   network.nextConnection,
-		NextDelivery:     network.nextDelivery,
 	}
 	for _, node := range network.nodes {
 		snapshot.Nodes = append(snapshot.Nodes, simulationNodeSnapshot{
@@ -1029,25 +1065,17 @@ func (network *simulationNetwork) snapshotLocked() (simulationSnapshot, error) {
 	for _, connection := range network.connections {
 		snapshot.Connections = append(snapshot.Connections, simulationConnectionSnapshot{
 			Identity: connection.identity, Client: connection.client, Server: connection.server, Closed: connection.closed, Reset: connection.reset,
+			ClientBytes: connection.clientState.retainedBytes, ServerBytes: connection.serverState.retainedBytes,
 		})
 	}
 	sort.Slice(snapshot.Connections, func(left, right int) bool {
 		return snapshot.Connections[left].Identity < snapshot.Connections[right].Identity
 	})
-	for _, delivery := range network.deliveries {
-		snapshot.Deliveries = append(snapshot.Deliveries, simulationDeliverySnapshot{
-			Identity: delivery.identity, Connection: delivery.connection, Source: delivery.source, Destination: delivery.destination,
-			Bytes: delivery.bytes, DelayNanos: delivery.delayNanos,
-		})
-	}
-	sort.Slice(snapshot.Deliveries, func(left, right int) bool {
-		return snapshot.Deliveries[left].Identity < snapshot.Deliveries[right].Identity
-	})
 	encodedSnapshot, err := encodeSimulationSnapshotIdentity(snapshot)
 	if err != nil {
 		return simulationSnapshot{}, fmt.Errorf("encode simulation network snapshot: %w", err)
 	}
-	snapshotDigest := sha256.Sum256(append([]byte("gomad3-simulation-network-snapshot/v2\x00"), encodedSnapshot...))
+	snapshotDigest := sha256.Sum256(append([]byte("gomad3-simulation-network-snapshot/v3\x00"), encodedSnapshot...))
 	snapshot.Identity = "sha256:" + hex.EncodeToString(snapshotDigest[:])
 	return snapshot, nil
 }
@@ -1169,13 +1197,8 @@ func simulationTransitionSHA256(transition simulationTransition) (string, error)
 	if err != nil {
 		return "", fmt.Errorf("encode simulation network transition digest: %w", err)
 	}
-	digest := sha256.Sum256(append([]byte("gomad3-simulation-network-transition/v2\x00"), encoded...))
+	digest := sha256.Sum256(append([]byte("gomad3-simulation-network-transition/v3\x00"), encoded...))
 	return "sha256:" + hex.EncodeToString(digest[:]), nil
-}
-
-func simulationPayloadSHA256(payload []byte) string {
-	digest := sha256.Sum256(payload)
-	return "sha256:" + hex.EncodeToString(digest[:])
 }
 
 func (err *simulationBridgeError) Error() string {
@@ -1209,6 +1232,7 @@ func (network *simulationNetwork) signalLocked() {
 type simulationStallChange struct {
 	state   *connState
 	stalled bool
+	discard bool
 	due     time.Time
 	ready   time.Time
 }
@@ -1255,8 +1279,9 @@ func (network *simulationNetwork) applyLinksLocked(changes map[string]simulation
 		needsReservation := false
 		for _, direction := range []struct {
 			state    *connState
+			source   *connState
 			from, to string
-		}{{pair.clientState, pair.server.Node, pair.client.Node}, {pair.serverState, pair.client.Node, pair.server.Node}} {
+		}{{pair.clientState, pair.serverState, pair.server.Node, pair.client.Node}, {pair.serverState, pair.clientState, pair.client.Node, pair.server.Node}} {
 			key := simulationLinkKey(direction.from, direction.to)
 			prior := network.links[key]
 			next := prior
@@ -1265,6 +1290,7 @@ func (network *simulationNetwork) applyLinksLocked(changes map[string]simulation
 			}
 			stalled := !next.Enabled && len(direction.state.incoming) != 0 && !pair.clientState.closeCalled && !pair.serverState.closeCalled
 			plan := simulationStallChange{state: direction.state, stalled: stalled, due: direction.state.stallDue}
+			plan.discard = prior.Enabled && !next.Enabled && direction.source.closeCalled
 			if stalled && !direction.state.stalled {
 				var err error
 				plan.due, err = strictNetworkStallDeadline(now, network.limits.StallNanos)
@@ -1311,6 +1337,9 @@ func (network *simulationNetwork) applyLinksLocked(changes map[string]simulation
 	}
 	for _, plan := range plans {
 		state := plan.state
+		if plan.discard {
+			network.dropUndeliveredLocked(state)
+		}
 		if state.stalled != plan.stalled {
 			state.stallEpoch++
 			state.stalled = plan.stalled
@@ -1348,8 +1377,8 @@ func (network *simulationNetwork) expireStallLocked(pair *simulationConnection, 
 	pair.reserved = false
 	pair.closed = true
 	pair.reset = true
-	network.dropStateDeliveriesLocked(pair.clientState)
-	network.dropStateDeliveriesLocked(pair.serverState)
+	network.dropStateBytesLocked(pair.clientState)
+	network.dropStateBytesLocked(pair.serverState)
 	pair.clientState.reset = true
 	pair.serverState.reset = true
 	pair.clientState.terminal = ErrStallTimeout
