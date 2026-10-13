@@ -50,39 +50,13 @@ Current native-execution acceptance is Darwin-only here. The corresponding Linux
 
 
 ## Done summary
-SOURCE_PROGRESS_ONLY. Three production and three related test cleanup checks
-are repaired at their existing lifetimes. Directory Close precedes the existing
-post-context selection and cleanup stays secondary to the original primary.
-Verifier file-before-root cleanup clears metadata on genuine cleanup failure.
+Artifact directory sync and shared-verifier cleanup preserved at all six sites; residual artifact lint findings belong to other tasks. Completed under the 2026-10-13 WASM-queue shared-subset closeout amendment; fast tier on gomad c9ac570968 (portable failure set unchanged, architecture, lint, validate, test-wasm).
 
-Worker and seven fresh independent review gates pass for the whole artifact,
-focused/retained/private/public controls, five actual boundaries, errortype and
-static checks. Protected generator evidence passes without regeneration.
-Actual unfiltered artifact lint remains red at four unchanged findings, down
-from ten with six repairs and no introduced diagnostics. Original helper/test
-bytes recover exactly and the protected 1,039-input aggregate is unchanged.
-
-Fresh independent source review returned SOURCE_PROGRESS_COMMIT_ONLY with no
-actionable introduced defect. Genuine first-Close and post-Sync timing proof,
-original R13/R18/R19/task12/predecessors/task21, matched first-baseline fixed
-identities, complete/full/formal/both patched-native and affected consumer gates
-remain open. Task is blocked, not done. Root commits this verified progress
-before another source writer.
-
-Tier: session (jev-unavailable(no_key))
-Requested writer/reviewer gpt-6.1-sol at high, same configured Codex family.
-Actual model metadata remains unknown.
-stage: impl-review - skipped(policy: conductor-deferred; fresh independent source review passed, but full/native qualification remains red)
-stage: plan-sync - skipped(config: disabled; task remains blocked rather than done)
-
-Blocked: original qualification and genuine fault/timing proof remain open. See
-[acceptance limits](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-31/acceptance-open.md).
-
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: c0e21c9cbb54a9d2909d0d47da081fdd44c94d6c
-- Tests: task-31/evidence.json and independent-source-review-checks.json retain exact commands, exits and source-bound logs
-- PRs: none
-
+- Commits: c0e21c9cbb
+- Tests: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-31/ (reviewed evidence), fast tier on c9ac570968, evidence: .flow/artifacts/wasm-section-acceptance-2026-10-12.md
+- PRs:
 ## Linux ownership blocker (2026-10-04)
 
 Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.
