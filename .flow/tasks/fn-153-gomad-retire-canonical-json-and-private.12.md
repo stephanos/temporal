@@ -47,3 +47,7 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+## Revival trigger (2026-10-13)
+
+Revived after fn153.11 completed with a SHIP implementation review, satisfying the last dependency and freezing the paired simulation formulas and projected-record ownership that shared Runner fixtures consume. This task now owns the remaining replay-composition, minimizer-checkpoint, corpus-semantic, and surviving shared Runner/campaign test migrations after fn152; it must preserve World wire bytes, interruption/resume state, artifact lifetimes, and every identity input without reopening fn152 storage. Its write surface is disjoint from the active qualification and builder-transaction audits, and final generated outputs remain assigned to fn153.17. The forced local claim is required only because Flow chain admission still sees the completed fn152 parent on an unpushed remote branch; pushing remains outside the requested scope.
