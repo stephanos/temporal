@@ -28,6 +28,10 @@ class SamplesSuite extends munit.FunSuite:
            |  --power)
            |    while [ "$$1" != '-o' ]; do shift; done
            |    shift; printf 'lifter' > "$$1" ;;
+           |  run)
+           |    for argument in "$$@"; do
+           |      case "$$argument" in *.json) printf '{"type":"framework.dsl.Step"}\n' > "$$argument" ;; esac
+           |    done ;;
            |esac
            |""".stripMargin
       )
