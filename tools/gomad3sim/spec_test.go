@@ -3,6 +3,7 @@ package gomad3sim
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"strings"
 	"testing"
 
@@ -14,6 +15,106 @@ func TestValidateSpec(t *testing.T) {
 	original := cloneSpec(spec)
 	require.NoError(t, ValidateSpec(spec))
 	require.Equal(t, original, spec)
+}
+
+func TestDefaultLimitsExplicitNetworkDefaults(t *testing.T) {
+	encoded, err := json.Marshal(DefaultLimits())
+	require.NoError(t, err)
+	var limits map[string]uint64
+	require.NoError(t, json.Unmarshal(encoded, &limits))
+	require.Equal(t, map[string]uint64{
+		"nodes": 64, "directional_links": 4096, "volumes": 64,
+		"scenario_actions": 4096, "scenario_decisions": 4096, "fault_actions": 4096,
+		"history_operations": 1 << 16, "observations": 1 << 16, "oracle_results": 4096,
+		"scenario_evidence_bytes": 64 << 20, "boot_config_bytes": 1 << 20,
+		"volume_capacity_bytes": 1 << 30, "observation_bytes": 64 << 20,
+		"network_listeners": 4096, "network_connections": 65536, "network_deliveries": 65536,
+		"network_connection_bytes": 4 << 20, "network_stall_nanos": 10_000_000_000,
+		"network_bytes": 1 << 30, "network_transitions": 1 << 20,
+		"volume_operations": 1 << 20, "volume_transitions": 1 << 20,
+		"crash_states": 1 << 16, "crash_depth": 256, "crash_bytes": 128 << 20,
+		"crash_wall_nanos": 60_000_000_000,
+	}, limits)
+	require.NoError(t, ValidateSpec(validSpec()))
+}
+
+func TestValidateSpecNetworkLimits(t *testing.T) {
+	tests := []struct {
+		name            string
+		connectionBytes uint64
+		stallNanos      uint64
+		invalid         string
+	}{
+		{name: "minimum", connectionBytes: 1, stallNanos: 1},
+		{name: "maximum", connectionBytes: 1 << 30, stallNanos: math.MaxInt64 - 1},
+		{name: "zero connection bytes", stallNanos: 1, invalid: "network_connection_bytes"},
+		{name: "connection bytes above maximum", connectionBytes: (1 << 30) + 1, stallNanos: 1, invalid: "network_connection_bytes"},
+		{name: "connection bytes unsigned maximum", connectionBytes: math.MaxUint64, stallNanos: 1, invalid: "network_connection_bytes"},
+		{name: "zero stall", connectionBytes: 1, invalid: "network_stall_nanos"},
+		{name: "strict threshold overflow", connectionBytes: 1, stallNanos: math.MaxInt64, invalid: "network_stall_nanos"},
+		{name: "signed duration overflow", connectionBytes: 1, stallNanos: uint64(math.MaxInt64) + 1, invalid: "network_stall_nanos"},
+		{name: "stall unsigned maximum", connectionBytes: 1, stallNanos: math.MaxUint64, invalid: "network_stall_nanos"},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			spec := validSpec()
+			spec.Limits.NetworkConnectionBytes = test.connectionBytes
+			spec.Limits.NetworkStallNanos = test.stallNanos
+			spec.Limits.NetworkBytes = 1
+			before := cloneSpec(spec)
+			err := ValidateSpec(spec)
+			if test.invalid == "" {
+				require.NoError(t, err)
+			} else {
+				require.ErrorContains(t, err, test.invalid)
+			}
+			require.Equal(t, before, spec)
+		})
+	}
+}
+
+func TestValidateSpecNetworkLimitsPreserveValidationPrecedence(t *testing.T) {
+	spec := validSpec()
+	spec.Limits.NetworkConnectionBytes = 0
+	spec.Limits.NetworkStallNanos = 0
+	spec.Limits.CrashWallNanos = 0
+	require.ErrorContains(t, ValidateSpec(spec), "crash_wall_nanos")
+	spec.Limits.Nodes = 0
+	require.ErrorContains(t, ValidateSpec(spec), "nodes")
+	spec.Schema = "old"
+	require.ErrorContains(t, ValidateSpec(spec), "schema")
+}
+
+func TestDecodeSpecNetworkLimits(t *testing.T) {
+	spec := validSpec()
+	spec.Limits.NetworkConnectionBytes = 123
+	spec.Limits.NetworkStallNanos = 456
+	encoded, err := json.Marshal(spec)
+	require.NoError(t, err)
+	decoded, err := DecodeSpec(encoded)
+	require.NoError(t, err)
+	require.Equal(t, spec, decoded)
+	for _, field := range []struct {
+		name  string
+		value string
+	}{
+		{name: "network_connection_bytes", value: "123"},
+		{name: "network_stall_nanos", value: "456"},
+	} {
+		t.Run(field.name, func(t *testing.T) {
+			member := `"` + field.name + `":` + field.value
+			omitted := strings.Replace(string(encoded), member+",", "", 1)
+			_, err := DecodeSpec([]byte(omitted))
+			require.Error(t, err)
+			for _, value := range []string{"0", "-1", "18446744073709551616", "1.5", `"10s"`, "null"} {
+				t.Run(value, func(t *testing.T) {
+					invalid := strings.Replace(string(encoded), member, `"`+field.name+`":`+value, 1)
+					_, err := DecodeSpec([]byte(invalid))
+					require.Error(t, err)
+				})
+			}
+		})
+	}
 }
 
 func TestValidateSpecRejectsInvalidStructure(t *testing.T) {

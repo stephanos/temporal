@@ -2,7 +2,10 @@ package gomad3sim
 
 import (
 	"crypto/sha256"
+	"encoding/json"
 	"fmt"
+	"math"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -10,6 +13,8 @@ import (
 
 func TestClusterRecordCanonicalRoundTripIncludesLimitsAndLimitations(t *testing.T) {
 	limits := DefaultLimits()
+	limits.NetworkConnectionBytes = 123
+	limits.NetworkStallNanos = 456
 	payload := []byte("node output")
 	digest := sha256.Sum256(payload)
 	spec := Spec{
@@ -48,6 +53,83 @@ func TestClusterRecordCanonicalRoundTripIncludesLimitsAndLimitations(t *testing.
 	decoded, err := DecodeClusterRecord(encoded)
 	require.NoError(t, err)
 	require.Equal(t, record, decoded)
+}
+
+func TestClusterRecordRejectsInvalidNetworkLimitsBeforeIdentity(t *testing.T) {
+	spec := validSpec()
+	specSHA256, err := hashSpec(spec)
+	require.NoError(t, err)
+	record, err := buildClusterRecord(spec, specSHA256, Result{Outcome: OutcomeCompleted})
+	require.NoError(t, err)
+	tests := []struct {
+		name   string
+		mutate func(*Limits)
+	}{
+		{name: "network_connection_bytes", mutate: func(limits *Limits) { limits.NetworkConnectionBytes = 0 }},
+		{name: "network_connection_bytes", mutate: func(limits *Limits) { limits.NetworkConnectionBytes = (1 << 30) + 1 }},
+		{name: "network_stall_nanos", mutate: func(limits *Limits) { limits.NetworkStallNanos = 0 }},
+		{name: "network_stall_nanos", mutate: func(limits *Limits) { limits.NetworkStallNanos = math.MaxInt64 }},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			invalid := record
+			test.mutate(&invalid.Limits)
+			_, err := EncodeClusterRecord(invalid)
+			require.ErrorContains(t, err, test.name)
+			_, err = ReplayPlanFor(invalid)
+			require.ErrorContains(t, err, test.name)
+			encoded, err := json.Marshal(invalid)
+			require.NoError(t, err)
+			_, err = DecodeClusterRecord(encoded)
+			require.ErrorContains(t, err, test.name)
+		})
+	}
+}
+
+func TestClusterRecordRejectsOmittedNetworkLimits(t *testing.T) {
+	spec := validSpec()
+	specSHA256, err := hashSpec(spec)
+	require.NoError(t, err)
+	record, err := buildClusterRecord(spec, specSHA256, Result{Outcome: OutcomeCompleted})
+	require.NoError(t, err)
+	encoded, err := EncodeClusterRecord(record)
+	require.NoError(t, err)
+	for _, field := range []struct {
+		name   string
+		member string
+	}{
+		{name: "network_connection_bytes", member: `"network_connection_bytes":4194304,`},
+		{name: "network_stall_nanos", member: `"network_stall_nanos":10000000000,`},
+	} {
+		t.Run(field.name, func(t *testing.T) {
+			omitted := strings.Replace(string(encoded), field.member, "", 1)
+			_, err := DecodeClusterRecord([]byte(omitted))
+			require.ErrorContains(t, err, field.name)
+		})
+	}
+}
+
+func TestClusterRecordReplayBindsNetworkLimits(t *testing.T) {
+	spec := validSpec()
+	spec.Limits.NetworkConnectionBytes = 123
+	spec.Limits.NetworkStallNanos = 456
+	specSHA256, err := hashSpec(spec)
+	require.NoError(t, err)
+	record, err := buildClusterRecord(spec, specSHA256, Result{Outcome: OutcomeCompleted})
+	require.NoError(t, err)
+	plan, err := ReplayPlanFor(record)
+	require.NoError(t, err)
+	spec.Replay = &plan
+	require.NoError(t, ValidateSpec(spec))
+	for _, mutate := range []func(*Limits){
+		func(limits *Limits) { limits.NetworkConnectionBytes++ },
+		func(limits *Limits) { limits.NetworkStallNanos++ },
+	} {
+		changed := cloneSpec(spec)
+		mutate(&changed.Limits)
+		_, err := newInProcessCluster(changed)
+		require.ErrorContains(t, err, "specification")
+	}
 }
 
 func TestClusterRecordRejectsInconsistentOutputBeforeIdentity(t *testing.T) {

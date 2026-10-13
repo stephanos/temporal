@@ -31,6 +31,7 @@ const (
 	MaximumNetworkConnections    uint64 = 65536
 	MaximumNetworkDeliveries     uint64 = 65536
 	MaximumNetworkBytes          uint64 = 1 << 30
+	MaximumNetworkStallNanos     uint64 = math.MaxInt64 - 1
 	MaximumNetworkTransitions    uint64 = 1 << 20
 	MaximumVolumeOperations      uint64 = 1 << 20
 	MaximumVolumeTransitions     uint64 = 1 << 20
@@ -40,6 +41,11 @@ const (
 	MaximumCrashWallNanos        uint64 = 60_000_000_000
 	MaximumSpecJSONBytes                = 128 << 20
 	MaximumMountPathBytes               = 4096
+)
+
+const (
+	DefaultNetworkConnectionBytes uint64 = 4 << 20
+	DefaultNetworkStallNanos      uint64 = 10_000_000_000
 )
 
 var ErrCapacity = errors.New("simulation capacity exhausted")
@@ -61,30 +67,32 @@ func (err *CapacityError) Unwrap() error {
 }
 
 type Limits struct {
-	Nodes                 uint64 `json:"nodes"`
-	DirectionalLinks      uint64 `json:"directional_links"`
-	Volumes               uint64 `json:"volumes"`
-	ScenarioActions       uint64 `json:"scenario_actions"`
-	ScenarioDecisions     uint64 `json:"scenario_decisions"`
-	FaultActions          uint64 `json:"fault_actions"`
-	HistoryOperations     uint64 `json:"history_operations"`
-	Observations          uint64 `json:"observations"`
-	OracleResults         uint64 `json:"oracle_results"`
-	ScenarioEvidenceBytes uint64 `json:"scenario_evidence_bytes"`
-	BootConfigBytes       uint64 `json:"boot_config_bytes"`
-	VolumeCapacityBytes   uint64 `json:"volume_capacity_bytes"`
-	ObservationBytes      uint64 `json:"observation_bytes"`
-	NetworkListeners      uint64 `json:"network_listeners"`
-	NetworkConnections    uint64 `json:"network_connections"`
-	NetworkDeliveries     uint64 `json:"network_deliveries"`
-	NetworkBytes          uint64 `json:"network_bytes"`
-	NetworkTransitions    uint64 `json:"network_transitions"`
-	VolumeOperations      uint64 `json:"volume_operations"`
-	VolumeTransitions     uint64 `json:"volume_transitions"`
-	CrashStates           uint64 `json:"crash_states"`
-	CrashDepth            uint64 `json:"crash_depth"`
-	CrashBytes            uint64 `json:"crash_bytes"`
-	CrashWallNanos        uint64 `json:"crash_wall_nanos"`
+	Nodes                  uint64 `json:"nodes"`
+	DirectionalLinks       uint64 `json:"directional_links"`
+	Volumes                uint64 `json:"volumes"`
+	ScenarioActions        uint64 `json:"scenario_actions"`
+	ScenarioDecisions      uint64 `json:"scenario_decisions"`
+	FaultActions           uint64 `json:"fault_actions"`
+	HistoryOperations      uint64 `json:"history_operations"`
+	Observations           uint64 `json:"observations"`
+	OracleResults          uint64 `json:"oracle_results"`
+	ScenarioEvidenceBytes  uint64 `json:"scenario_evidence_bytes"`
+	BootConfigBytes        uint64 `json:"boot_config_bytes"`
+	VolumeCapacityBytes    uint64 `json:"volume_capacity_bytes"`
+	ObservationBytes       uint64 `json:"observation_bytes"`
+	NetworkListeners       uint64 `json:"network_listeners"`
+	NetworkConnections     uint64 `json:"network_connections"`
+	NetworkDeliveries      uint64 `json:"network_deliveries"`
+	NetworkBytes           uint64 `json:"network_bytes"`
+	NetworkConnectionBytes uint64 `json:"network_connection_bytes"`
+	NetworkStallNanos      uint64 `json:"network_stall_nanos"`
+	NetworkTransitions     uint64 `json:"network_transitions"`
+	VolumeOperations       uint64 `json:"volume_operations"`
+	VolumeTransitions      uint64 `json:"volume_transitions"`
+	CrashStates            uint64 `json:"crash_states"`
+	CrashDepth             uint64 `json:"crash_depth"`
+	CrashBytes             uint64 `json:"crash_bytes"`
+	CrashWallNanos         uint64 `json:"crash_wall_nanos"`
 }
 
 type Spec struct {
@@ -129,30 +137,32 @@ type VolumeMount struct {
 
 func DefaultLimits() Limits {
 	return Limits{
-		Nodes:                 MaximumNodes,
-		DirectionalLinks:      MaximumDirectionalLinks,
-		Volumes:               MaximumVolumes,
-		ScenarioActions:       MaximumScenarioActions,
-		ScenarioDecisions:     MaximumScenarioDecisions,
-		FaultActions:          MaximumFaultActions,
-		HistoryOperations:     MaximumHistoryOperations,
-		Observations:          MaximumObservations,
-		OracleResults:         MaximumOracleResults,
-		ScenarioEvidenceBytes: MaximumScenarioEvidenceBytes,
-		BootConfigBytes:       MaximumBootConfigBytes,
-		VolumeCapacityBytes:   MaximumVolumeCapacityBytes,
-		ObservationBytes:      MaximumObservationBytes,
-		NetworkListeners:      MaximumNetworkListeners,
-		NetworkConnections:    MaximumNetworkConnections,
-		NetworkDeliveries:     MaximumNetworkDeliveries,
-		NetworkBytes:          MaximumNetworkBytes,
-		NetworkTransitions:    MaximumNetworkTransitions,
-		VolumeOperations:      MaximumVolumeOperations,
-		VolumeTransitions:     MaximumVolumeTransitions,
-		CrashStates:           MaximumCrashStates,
-		CrashDepth:            MaximumCrashDepth,
-		CrashBytes:            MaximumCrashBytes,
-		CrashWallNanos:        MaximumCrashWallNanos,
+		Nodes:                  MaximumNodes,
+		DirectionalLinks:       MaximumDirectionalLinks,
+		Volumes:                MaximumVolumes,
+		ScenarioActions:        MaximumScenarioActions,
+		ScenarioDecisions:      MaximumScenarioDecisions,
+		FaultActions:           MaximumFaultActions,
+		HistoryOperations:      MaximumHistoryOperations,
+		Observations:           MaximumObservations,
+		OracleResults:          MaximumOracleResults,
+		ScenarioEvidenceBytes:  MaximumScenarioEvidenceBytes,
+		BootConfigBytes:        MaximumBootConfigBytes,
+		VolumeCapacityBytes:    MaximumVolumeCapacityBytes,
+		ObservationBytes:       MaximumObservationBytes,
+		NetworkListeners:       MaximumNetworkListeners,
+		NetworkConnections:     MaximumNetworkConnections,
+		NetworkDeliveries:      MaximumNetworkDeliveries,
+		NetworkBytes:           MaximumNetworkBytes,
+		NetworkConnectionBytes: DefaultNetworkConnectionBytes,
+		NetworkStallNanos:      DefaultNetworkStallNanos,
+		NetworkTransitions:     MaximumNetworkTransitions,
+		VolumeOperations:       MaximumVolumeOperations,
+		VolumeTransitions:      MaximumVolumeTransitions,
+		CrashStates:            MaximumCrashStates,
+		CrashDepth:             MaximumCrashDepth,
+		CrashBytes:             MaximumCrashBytes,
+		CrashWallNanos:         MaximumCrashWallNanos,
 	}
 }
 
@@ -341,6 +351,8 @@ func validateLimits(limits Limits) error {
 		{name: "crash_depth", value: limits.CrashDepth, maximum: MaximumCrashDepth},
 		{name: "crash_bytes", value: limits.CrashBytes, maximum: MaximumCrashBytes},
 		{name: "crash_wall_nanos", value: limits.CrashWallNanos, maximum: MaximumCrashWallNanos},
+		{name: "network_connection_bytes", value: limits.NetworkConnectionBytes, maximum: MaximumNetworkBytes},
+		{name: "network_stall_nanos", value: limits.NetworkStallNanos, maximum: MaximumNetworkStallNanos},
 	}
 	for _, limit := range configured {
 		if limit.value == 0 || limit.value > limit.maximum {
