@@ -235,7 +235,7 @@ These fn-109 tasks change Runner, artifact, choice-exploration and simulation ow
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-152.9](.flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.9.md) | ⬜ Todo | Retain integrated crash evidence and update current storage contracts |
+| [fn-152.9](.flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.9.md) | 🚧 In progress | Retain integrated crash evidence and update current storage contracts; WASM built-CLI crash proof and final source matrix underway |
 
 <a id="canonical-json-publication-cleanup-fn-153"></a>
 
