@@ -39,9 +39,10 @@ Quick commands: focused qualification/result/source-less replay regressions, act
 Original fn-151 Phase 9 exit gate.
 
 ## Done summary
-TBD
+make qualify-workloads passes on 9d6012b52b (fixture x4, SQLite durable, one-box and multi-instance success/canary, mandatory corpus aggregate, all within budget). Matched costs on the same baseline-era module and seeds: workflow 3.739x and activity 4.636x authorized-execution speedup.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 9d6012b52b, c926f7fb18, a936df0b75
+- Tests: make qualify-workloads, TestHelperMatchedSuiteQualification workflow,activity, evidence: .flow/artifacts/wasm-section-acceptance-2026-10-12.md
 - PRs:
