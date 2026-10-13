@@ -51,3 +51,7 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+## Revival trigger (2026-10-13)
+
+The WASM rotation batch reaches the independent timeout/error surface while fn109.14 finishes the generated semantic codec predecessor. Implement a stable stall-timeout error through the existing modelwire error owner, local/process/net wrappers, and selected descriptor consumer, preserving supplied-error identity and partial counts. Current paths are under `tools/gomad3/backends/native/{generation,toolchain}`. Coordinate provisional generated interfaces with fn109.14 and serialize integration of shared generator outputs; do not replace its single codec definition or implement connection expiry here. Fn154.1's explicit limit implementation is source-reviewed, while actual persistent resets, per-operation arithmetic and final native/WASM gates retain their later owners. Local forced claim bypasses only unpushed parent-chain admission; no native qualification, CI, PR, or push authority is revived.
