@@ -356,7 +356,7 @@ every difference the rename map does not explain, and on every map entry that ex
   manifest entry by its Query. Source positions, content fingerprints and IR files' root lists are
   left out.
 - **Interpreter tables.** With `DUMPER=<path>` (the table pins' dumper,
-  `model/testdata/table-pins/README.md`), capture also replays the pins and keeps the native
+  `model/temporal/check/table-pins/README.md`), capture also replays the pins and keeps the native
   streams, and the check dumps the current IR and compares the streams under the map.
 
 The rename map has one entry per line, `#` starting a comment. `old new` renames the whole word
@@ -1574,7 +1574,7 @@ realizations. A machine added to a feature is checked without a test edit for re
 results and its binding order (`model/testdata/binding-order.tsv`); each law a machine cannot meet
 is printed with its reason. A test whose subject is a `Finite` domain iterates the whole domain, and
 `MachineTablePins` holds every activity and Nexus machine's interpreter-built table to the pins in
-`model/testdata/table-pins`.
+`model/temporal/check/table-pins`.
 
 `-Yexplicit-nulls` and capture checking are not on. `.plans/SCALA.md` counts the explicit-nulls
 findings and why the flag was dropped; `.plans/SCALA_CAPTURE_CHECKING.md` reports what capture

@@ -7,7 +7,7 @@ import org.json4s.*
 import org.json4s.jackson.JsonMethods.parse
 
 class MachineTablePins extends munit.FunSuite:
-  private val pins = parse(Files.readString(Path.of("model/testdata/table-pins/pins.json")))
+  private val pins = parse(Files.readString(Path.of("model/temporal/check/table-pins/pins.json")))
   private def items(value: JValue): List[JValue] = value match
     case JArray(values) => values
     case other          => fail(s"expected pin array, got $other")

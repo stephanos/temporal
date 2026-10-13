@@ -20,7 +20,8 @@ state/outcome/fact/start/end/class catalogs and binding order to Scala values.
 Run the comparator's focused regression tests with:
 
 ```sh
-python3 model/testdata/table-pins/test_replay.py
+mise exec -- scala-cli run --server=false --test model/framework/check \
+  -M org.junit.runner.JUnitCore -- framework.check.equivalence.InterpreterTablesSuite
 ```
 
 Complete replay requires the existing, sealed fn155 native dumper (no new Go
@@ -28,14 +29,21 @@ runtime API). Supply its location explicitly; an absent or changed binary is
 inconclusive, never a pass. Choose a new output directory on every observation:
 
 ```sh
-python3 model/testdata/table-pins/replay.py --ir model/ir \
-  --dumper /path/to/fn155/tables/dump --out /fresh/scratch/native \
-  --receipt /scratch/replay-receipt.json
-python3 model/testdata/table-pins/mutants.py --native /scratch/baseline-native \
-  --out /fresh/scratch/mutants
+mise exec -- scala-cli run --server=false model/framework/check model/temporal/check \
+  -M temporal.check.replayTables -- /scratch/logical-ir /path/to/fn155/tables/dump \
+  /fresh/scratch/native /scratch/replay-receipt.json
+mise exec -- scala-cli run --server=false model/framework/check model/temporal/check \
+  -M temporal.check.tableMutants -- /scratch/baseline-native /fresh/scratch/mutants
 ```
 
-The replay takes the shared `/tmp/umpire-heavy-gates.lock`. It fails on missing or
+`framework/check/equivalence/InterpreterTables.scala` compares the streams, sharing
+`RenameMap` with the step-table check. Both exact replay and mapped comparison
+stream records with bounded memory; exact pins retain raw-byte identity, while a
+mapped comparison removes source positions and the header's artifact filename.
+The full equivalence gate calls this comparator directly and propagates failures.
+
+The replay takes the shared `/tmp/umpire-heavy-gates.lock` through native `flock`
+(which must be on PATH). It fails on missing or
 extra artifacts/subjects, incomplete dumps, catalog/row/result/order changes,
 changed interpreter scope, and input mutation during observation. The mutant
 probe uses a real independently captured ActivityProduct table, changing one

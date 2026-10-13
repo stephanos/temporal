@@ -8,7 +8,7 @@ import java.util.zip.GZIPOutputStream
 
 // The equivalence check's comparisons, over tables and IR written here as the step tables
 // (model/framework/dsl/StepTables.scala) and the IR generator write them. The negative controls are
-// the table pins' (model/testdata/table-pins/mutants.py): a changed row, result, alternative
+// the interpreter table pins': a changed row, result, alternative
 // order, fact order, binding order, explanation or pair, and a missing or extra machine.
 class EquivalenceSuite extends munit.FunSuite:
   private val product = Vector(

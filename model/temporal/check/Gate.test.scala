@@ -9,6 +9,33 @@ import framework.check.*
 import framework.check.equivalence.*
 
 class GateEquivalenceOutputsSuite extends munit.FunSuite:
+  test("a native comparison cannot discard an inconclusive dumper error"):
+    val root = Scratch.directory("umpire-inconclusive-interpreter")
+    val feature = Files.createDirectories(root.resolve("model/temporal/features/lamp"))
+    Files.writeString(feature.resolve("Lamp.scala"), "package fixture.lamp\n")
+    val pins = Files.createDirectories(root.resolve("model/temporal/check/table-pins"))
+    Files.writeString(
+      pins.resolve("pins.json"),
+      """{"format_version":1,"seam":{"binary_sha256":"unchanged"},"artifacts":[]}"""
+    )
+    val now = Files.createDirectories(root.resolve("now"))
+    val gate =
+      Gate(Tools(root, sys.env + ("FEATURES" -> "lamp")), PrintStream(ByteArrayOutputStream()))
+    val error = intercept[GateError](
+      gate.compareInterpreter(
+        root.resolve("baseline"),
+        now,
+        root.resolve("missing-dumper"),
+        RenameMap.empty
+      )
+    )
+    assert(error.getMessage.contains("inconclusive"))
+    assert(error.getMessage.contains("inherited dumper missing"))
+    val receipt =
+      Json.fields(Json.parse(Files.readString(now.resolve("native-receipt.json"))), "receipt")
+    assertEquals(receipt("status"), "inconclusive")
+    assert(!Files.exists(now.resolve("native")))
+
   test("selected equivalence outputs do not read another owner's corrupt manifest") {
     val root = Scratch.directory("umpire-selected-equivalence")
     for owner <- Vector("lamp", "sibling") do
@@ -90,7 +117,7 @@ class GateEquivalenceOutputsSuite extends munit.FunSuite:
     assertEquals(compared.differences.size, 2)
     assert(compared.differences.exists(_.contains("temporal.features.lamp.removed")))
     assert(compared.differences.exists(_.contains("temporal.actors.shared.removed")))
-    val pinsDirectory = Files.createDirectories(root.resolve("model/testdata/table-pins"))
+    val pinsDirectory = Files.createDirectories(root.resolve("model/temporal/check/table-pins"))
     val pin = Map[String, Any](
       "artifact" -> "lamp.json",
       "ir_sha256" -> "original",

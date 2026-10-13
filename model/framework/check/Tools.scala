@@ -91,13 +91,18 @@ final class Tools(val directory: Path, environment: Map[String, String]):
         )
       }
 
-  def run(tool: String, arguments: Seq[String], output: Output = Output.Kept): Ran =
+  private[check] def process(tool: String, arguments: Seq[String]): ProcessBuilder =
     val command = find(tool).toString +: arguments
     if !Files.isDirectory(directory) then
       throw ToolError(s"$tool cannot run in $directory: it is not a directory")
     val builder = ProcessBuilder(command.asJava).directory(directory.toFile)
     builder.environment().clear()
     builder.environment().putAll(environment.asJava)
+    builder
+
+  def run(tool: String, arguments: Seq[String], output: Output = Output.Kept): Ran =
+    val builder = process(tool, arguments)
+    val command = builder.command().asScala.toSeq
     // A file, not a pipe: a tool that prints more than a pipe holds would wait for a reader.
     val kept = output match
       case Output.Logged(file) => file

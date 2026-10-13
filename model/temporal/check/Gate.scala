@@ -520,8 +520,6 @@ final class Gate(tools: Tools, log: PrintStream):
       .filter(_.startsWith("wrote "))
       .foreach(l => log.println(s"   $l"))
 
-  private val tablePins = "model/testdata/table-pins/replay.py"
-
   private def equivalenceOwned(name: String): Boolean =
     !selection.narrowed || selection.features.exists(feature =>
       OutputPaths.generated(root, logicalFeature(feature)).equals(OutputPaths.generated(root, name))
@@ -675,7 +673,7 @@ final class Gate(tools: Tools, log: PrintStream):
       finally stream.close()
 
   private[check] def equivalencePins(out: Path): Path =
-    val original = root.resolve("model/testdata/table-pins/pins.json")
+    val original = root.resolve("model/temporal/check/table-pins/pins.json")
     if !selection.narrowed then original
     else
       val fields = Json.fields(Json.parse(Files.readString(original)), original.toString)
@@ -694,7 +692,7 @@ final class Gate(tools: Tools, log: PrintStream):
 
   // Captures a baseline of the tree into `out`, which must be absent or empty (Equivalence.scala).
   // With `dumper`, the interpreter reads the legacy logical view of relocated IR too, after
-  // the dumper and the IR are held to the table pins (model/testdata/table-pins).
+  // the dumper and the IR are held to the table pins (model/temporal/check/table-pins).
   def captureBaseline(out: Path, dumper: Option[Path]): Unit =
     if Files.exists(out) && Files.list(out).findAny().isPresent then
       throw GateError(
@@ -729,25 +727,14 @@ final class Gate(tools: Tools, log: PrintStream):
     dumper.foreach: d =>
       step("replay the interpreter tables of generated IR against the table pins"):
         val pins = equivalencePins(out)
-        tools
-          .run(
-            "python3",
-            Seq(
-              tablePins,
-              "--pins",
-              pins.toString,
-              "--ir",
-              out.resolve("ir").toString,
-              "--dumper",
-              d.toString,
-              "--out",
-              out.resolve("native").toString,
-              "--receipt",
-              out.resolve("native-receipt.json").toString
-            ),
-            Output.Shown
+        val receipt = InterpreterTables.observe(() =>
+          InterpreterTables.replay(out.resolve("ir"), d, out.resolve("native"), pins, tools)
+        )
+        Files.writeString(out.resolve("native-receipt.json"), Equivalence.canonical(receipt) + "\n")
+        if !receipt.get("status").contains("complete") then
+          throw GateError(
+            s"interpreter replay ${receipt("status")}: ${receipt.getOrElse("error", "did not complete")}"
           )
-          .orFail(): Unit
     val tables = Equivalence.index(out.resolve(Equivalence.stepTables))
     Files.writeString(
       out.resolve("baseline.txt"),
@@ -821,39 +808,11 @@ final class Gate(tools: Tools, log: PrintStream):
             s"$base holds no interpreter streams: capture it with --dumper"
           )
         step("compare the interpreter tables of generated IR with the baseline's"):
-          val receipt = now.resolve("native-receipt.json")
-          val ran = tools.run(
-            "python3",
-            Seq(
-              tablePins,
-              "--ir",
-              now.resolve("ir").toString,
-              "--dumper",
-              d.toString,
-              "--out",
-              now.resolve("native").toString,
-              "--receipt",
-              receipt.toString,
-              "--baseline",
-              comparisonBase.resolve("native").toString,
-              "--map",
-              mapFile.toString
-            )
-          )
-          if !Files.isRegularFile(receipt) then
-            throw GateError(
-              s"the interpreter tables were not compared:\n${ran.diagnostics}"
-            )
-          val fields =
-            Json.fields(Json.parse(Files.readString(receipt)), receipt.toString)
-          def texts(name: String) =
-            Json
-              .items(fields.getOrElse(name, Vector()), name)
-              .map(Json.text(_, name))
+          val compared = compareInterpreter(comparisonBase, now, d, map)
           (
-            texts("differences").map("interpreter " + _),
-            texts("used").toSet,
-            texts("used_removals").toSet
+            compared.differences.map("interpreter " + _),
+            map.used.toSet,
+            compared.removalsUsed
           )
       case _ => (Vector.empty, Set.empty[String], Set.empty[String])
     map.used ++= nativeUsed
@@ -872,6 +831,43 @@ final class Gate(tools: Tools, log: PrintStream):
           .mkString("\n")
       )
     log.println(s"== equivalent to the baseline $base")
+
+  private[check] def compareInterpreter(
+      base: Path,
+      now: Path,
+      dumper: Path,
+      map: RenameMap
+  ): Compared =
+    val receipt = InterpreterTables.observe(() =>
+      val compared = InterpreterTables.equivalence(
+        now.resolve("ir"),
+        dumper,
+        now.resolve("native"),
+        root.resolve("model/temporal/check/table-pins/pins.json"),
+        base.resolve("native"),
+        map,
+        tools
+      )
+      Map[String, Any](
+        "status" -> (if compared.differences.isEmpty then "equivalent" else "different"),
+        "differences" -> compared.differences,
+        "used" -> map.used.toVector.sorted,
+        "used_removals" -> compared.removalsUsed.toVector.sorted
+      )
+    )
+    Files.writeString(now.resolve("native-receipt.json"), Equivalence.canonical(receipt) + "\n")
+    receipt
+      .get("error")
+      .foreach(error => throw GateError(s"interpreter ${receipt("status")}: $error"))
+    Compared(
+      Json
+        .items(receipt("differences"), "interpreter differences")
+        .map(Json.text(_, "interpreter difference")),
+      Json
+        .items(receipt("used_removals"), "interpreter removals")
+        .map(Json.text(_, "interpreter removal"))
+        .toSet
+    )
 
   private def copyTree(from: Path, to: Path): Unit =
     if Files.isDirectory(from) then
