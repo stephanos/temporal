@@ -44,13 +44,15 @@ Capture the frozen behavior pin named above, run focused negative controls and f
 - [ ] Architecture test assertions remain meaningful; invalid callback, purity and error-flow mutations are still caught.
 
 ## Done summary
-TBD
+Rebound the seven fn165-retained audit-effect fixtures from the retired `internal/canonicaljson` synthetic path to their surviving `helper` package. All 36 effect categories, expected details, pure-file memberships, callback bodies, positive/negative behavior, and initializer coverage remain unchanged. The live architecture and purity consumers pass, and no affected fixture advertises the removed owner.
 
+The parent task's original module-root architecture command is obsolete after fn165 removed that package. Aggregate validation reaches only the known stale `golang-x-sys-v047-darwin-arm64` compatibility approval owned by fn153.17.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 155b8d085c8392b4d9d8f7bb85b99e65c3af7ecc, 7ad83c852e796a9a597014f501478ef77d6587e9
+- Tests: go -C tools/gomad3 test -tags test_dep -count=1 -run '^TestArchitectureEffectFixtures$' ./internal/archcheck, go -C tools/gomad3 test -tags test_dep -count=1 ./internal/archcheck ./internal/puritycheck, go -C tools/gomad3 test -tags test_dep -count=1 ./internal/hostfs ./world
 - PRs:
-
 ## Revival trigger (2026-10-13)
 
 Revived after fn153.12 completed with a SHIP implementation review, satisfying the last dependency and freezing the final replay, minimizer, corpus, and shared Runner migrations that architecture fixtures could still name. Because fn165 retired the old analyzer and moved retained host/dynamic fixture coverage, this task must first inventory the current tree and prove whether any live or synthetic canonical-JSON ownership remains; it should make only the smallest fixture correction still required and may close as a verified no-op if fn165 already satisfies every retained acceptance point. It must not revive Native production work, delete meaningful negative controls, or alter final generated approvals owned by fn153.17. The forced local claim is required only because Flow chain admission still sees completed parent work on an unpushed remote branch; pushing remains outside the requested scope.

@@ -237,7 +237,6 @@ These fn-109 tasks change Runner, artifact, choice-exploration and simulation ow
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-153.15](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.15.md) | 🚧 In progress | Migrate architecture effect fixtures before removing their source owner |
 | [fn-153.16](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.16.md) | ⬜ Todo | Delete the generic canonical package and its obsolete owner entries |
 | [fn-153.17](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.17.md) | ⬜ Todo | Regenerate final-input approvals, packs, goldens and identity outputs |
 | [fn-153.18](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.18.md) | ⬜ Todo | Reconcile contracts and verify the integrated cleanup |
