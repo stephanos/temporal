@@ -46,3 +46,7 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+## Revival trigger (2026-10-13)
+
+Revived after fn153.15 completed with a SHIP implementation review, proving that the last retained architecture fixtures no longer advertise or import the generic canonical-JSON owner. Every migration dependency is now done, so this task may delete the package only after a fresh integrated-tree inventory proves zero surviving production, test, fixture, or ownership consumers. fn165 retired the original module-root analyzer and its `internal/gomadtool/architecture` owner tables; use the live `internal/archcheck` and `internal/puritycheck` successors for preserved-boundary evidence, and treat any necessary successor assertion edit as a declared scope correction rather than reviving deleted analyzer code. Final approval and generated-output rotation remains owned by fn153.17. The forced local claim is required only because Flow chain admission still sees completed parent work on an unpushed remote branch; pushing remains outside the requested scope.
