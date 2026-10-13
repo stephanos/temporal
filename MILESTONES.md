@@ -34,6 +34,13 @@ Existing findings and their fixes remain part of the batch review. Go, regenerat
 work stays held until the complete source-phase boundary. Real-feature migration, lint/manual
 acceptance, push/PR and production deployment remain outside this run's authority.
 
+**Faster tasks (owner, 2026-10-13):** a task's evidence is its `make model-check-changed` record plus
+the mini step-table equivalence; no bespoke proof scripts, hash manifests or immutable captures for
+meaning-preserving changes. Workers iterate with only the suites their change touches and run the
+full check once at the end, citing the previous task's record as the baseline. The conductor trims
+and re-scopes each task to the mini feature and current paths before dispatch, and gives a small
+spec's tasks to one worker.
+
 ## Keeping this page current
 
 - This page describes the present. Rewrite a status in place; do not append dated entries.
@@ -79,8 +86,11 @@ plus the framework, the lifter and the shared code:
 - **Real-feature tasks are retargeted or deferred.** A task written against a real feature applies its
   change to the mini feature where the mini feature has the construct. What concerns only a real
   feature moves to the sweep; such rows are marked "⏸️ deferred (sweep)".
-- **Migration rules are written, not run.** A DSL change still ships its scalafix rule, proven on the
-  mini feature (fn-166 R6). It is not applied to the real features; the owner's sweep runs it.
+- **Migrations are recipes, not rules (owner, 2026-10-13).** A DSL change ships a short migration
+  recipe (concrete steps for a real feature) in the migrate README instead of a proven Scalafix rule;
+  this supersedes fn-166 R6's rule-per-change. The owner's sweep applies the recipes by hand. Rules
+  already written stay until the sweep applies them; no new rule is written unless a change is too
+  large to migrate by hand.
 - **Equivalence uses a mini baseline.** A step-table baseline of the mini feature is captured once,
   before the next DSL change. Per-spec equivalence and the pre-fault seal compare
   `FEATURES=activity_mini` against it. The batch-1d baseline and map stay untouched as the real
@@ -152,8 +162,8 @@ instance the real features have (refinement with a verify through it, a shared i
 fact, a cross-facet guard, a waiver and an override, a composition with a `sync` and a channel, a
 failure model with a negative control, fair progress, a monitor, a hole, a real realization with a
 `.live` witness). A real feature not yet migrated to a DSL change is *behind*, a per-feature gate
-state; nothing is parked or deleted. A DSL change ships its migration as a scalafix rule proven on
-the mini feature, so moving it into the real features is running the rule. The guide uses the mini
+state; nothing is parked or deleted. A DSL change ships its migration: since 2026-10-13 as a written recipe the sweep applies by hand,
+earlier as a scalafix rule proven on the mini feature. The guide uses the mini
 feature as its running example. Excluding the real features from a run is on demand only, `FEATURES=activity_mini`,
 with no persistent state; the default build is red while they are behind, until the owner's sweep runs the rules on them
 (owner, 2026-10-11). The batch changes only the mini feature (see the scope above). Each feature keeps its outputs in its own `generated/` tree (`ir.json`, `ir.lint.json`, `manifest.json`,
