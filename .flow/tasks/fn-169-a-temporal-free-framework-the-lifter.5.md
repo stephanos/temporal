@@ -16,7 +16,7 @@ Rules:
 - `model/README.md` links the samples as the framework's starting point; the mini activity stays the Temporal running example.
 
 ## Acceptance
-- `model/framework/samples/{Kettle,Bank,TwoPhaseCommit}.scala` exist, each one file, compiling with no Temporal source or API on the classpath.
+- R8: `model/framework/samples/{Kettle,Bank,TwoPhaseCommit}.scala` exist, each one file, compiling with no Temporal source or API on the classpath.
 - Each exports to IR and its Properties/Queries check as expected; the 2PC negative control is refuted.
 - Each names its P/Quint counterpart in its header; README links them.
 
