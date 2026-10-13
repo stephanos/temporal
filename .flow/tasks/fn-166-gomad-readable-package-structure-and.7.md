@@ -37,6 +37,9 @@ Revival: complete the approved R7/R9 tool-only end state alongside fn153 audit c
 **Library-retirement Touches:** [tools/gomad3/internal/archcheck/architecture_test.go, tools/gomad3/internal/puritycheck/signatures.go, tools/gomad3/internal/puritycheck/check_test.go, tools/gomad3/runner/integration_test.go, tools/gomad3/runner/testdata/runnerconsumer/**, tools/gomad3/backends/native/conformance/testdata/runner_external/**, tools/gomad3/backends/native/qualification/**, tools/gomad3integration/**, Makefile, tools/gomad3/Makefile]
 
 Root owns Flow, MILESTONES, review and integration. fn153.21 owns archcheck edges.go/inventory.go; this lane must not edit them. Inventory native external fixture users before removal; preserve unrelated fixture assertions. Ask for exact additional consumer paths before edits. Intermediate architecture public-signature red is expected until approved retirement; no ownership/purity rule weakening is authorized.
+
+**Tagged-relocation consumer Touches:** [cmd/tools/lintcode/main.go, cmd/tools/lintcode/main_test.go, .github/workflows/gomad3-smoke.yml]
+Limit changes to removing obsolete integration-module routing and preserving relocated tagged qualification selection; default lint behavior and actual qualification gates stay unchanged. Root coordinates the exact native qualification testdata fixture prefix with fn153.21's inventory.go owner.
 ## Acceptance
 The module top level holds only cmd, internal and testdata, and internal/ holds runner, backends, evidence, model, host and archcheck; Git renames preserve history; full WASM gate set passes on the integrated candidate.
 
