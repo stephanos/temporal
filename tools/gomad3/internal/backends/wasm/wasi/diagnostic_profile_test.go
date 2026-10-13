@@ -9,11 +9,328 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"reflect"
 	"runtime"
+	"slices"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
 )
+
+type variantEvidence struct {
+	Choice, WASI, Network, Stdout, Stderr []byte
+	Termination, Message                  string
+	ExitCode                              *uint32
+	VirtualNanos                          uint64
+}
+
+func projectVariantEvidence(result Result, maskEnvironment bool) (variantEvidence, error) {
+	transcript := result.Transcript
+	if maskEnvironment {
+		var projected bytes.Buffer
+		lines := bytes.Split(transcript, []byte{'\n'})
+		if len(transcript) != 0 && (len(lines)%2 != 1 || len(lines[len(lines)-1]) != 0) {
+			return variantEvidence{}, fmt.Errorf("incomplete WASI call/reply transcript")
+		}
+		for index := 0; index+1 < len(lines); index += 2 {
+			var call Call
+			var reply Reply
+			if err := json.Unmarshal(lines[index], &call); err != nil {
+				return variantEvidence{}, err
+			}
+			if err := json.Unmarshal(lines[index+1], &reply); err != nil {
+				return variantEvidence{}, err
+			}
+			if call.Type != "call" || reply.Type != "reply" || call.ID != reply.ID {
+				return variantEvidence{}, fmt.Errorf("invalid WASI call/reply pair")
+			}
+			output := lines[index+1]
+			if call.Op == "environ_get" || call.Op == "environ_sizes_get" {
+				reply.Output = json.RawMessage(`{}`)
+				var err error
+				output, err = json.Marshal(reply)
+				if err != nil {
+					return variantEvidence{}, err
+				}
+			}
+			projected.Write(lines[index])
+			projected.WriteByte('\n')
+			projected.Write(output)
+			projected.WriteByte('\n')
+		}
+		transcript = projected.Bytes()
+	}
+	return variantEvidence{Choice: result.ChoiceTrace.Bytes, WASI: transcript, Network: result.NetworkTranscript, Stdout: result.Stdout, Stderr: result.Stderr, Termination: result.Termination, Message: result.Message, ExitCode: result.ExitCode, VirtualNanos: result.VirtualTimeElapsedNanos}, nil
+}
+
+func variantIdentities(request Request, result Result) map[string]string {
+	engine := request.Engine.Configuration
+	if request.diagnosticConfigurationRevision != "" {
+		engine = request.diagnosticConfigurationRevision
+	}
+	identities := map[string]string{"module_sha256": request.ModuleSHA256, "helper_sha256": request.HelperSHA256, "environment_identity": result.EnvironmentIdentity, "engine_revision": engine, "model_sha256": ImplementationSHA256()}
+	if request.Runtime != nil && request.Runtime.Choice != nil {
+		identities["runtime_identity"] = request.Runtime.Choice.ExecutionIdentity.ToolchainBuildKey
+	}
+	return identities
+}
+
+type variantTimingRange struct {
+	Median uint64 `json:"median"`
+	Min    uint64 `json:"min"`
+	Max    uint64 `json:"max"`
+}
+
+func variantTiming(values []uint64) variantTimingRange {
+	if len(values) == 0 {
+		return variantTimingRange{}
+	}
+	ordered := slices.Clone(values)
+	slices.Sort(ordered)
+	return variantTimingRange{Median: ordered[len(ordered)/2], Min: ordered[0], Max: ordered[len(ordered)-1]}
+}
+
+func variantRecommendation(baseline, candidate []uint64, failed, identical bool) string {
+	if failed || !identical {
+		return "reject"
+	}
+	if len(baseline) == 0 || len(candidate) == 0 {
+		return "investigate"
+	}
+	before, after := variantTiming(baseline), variantTiming(candidate)
+	if after.Median >= before.Median {
+		return "reject"
+	}
+	if before.Median-after.Median > max(before.Max-before.Min, after.Max-after.Min) {
+		return "adopt"
+	}
+	return "investigate"
+}
+
+func diagnosticRunRoot(base, prefix string) (string, error) {
+	if err := os.MkdirAll(base, 0700); err != nil {
+		return "", err
+	}
+	return os.MkdirTemp(base, prefix)
+}
+
+func TestDiagnosticGuestVariants(t *testing.T) {
+	root := os.Getenv("GOMAD_WASM_GUEST_PROFILE_ROOT")
+	if root == "" {
+		t.Skip("set GOMAD_WASM_GUEST_PROFILE_ROOT for unsampled Temporal variant measurements")
+	}
+	helper, fuelHelper := os.Getenv("GOMAD_WASM_TEST_HELPER"), os.Getenv("GOMAD_WASM_FUEL_OFF_HELPER")
+	for _, path := range []string{root, helper, fuelHelper} {
+		if !filepath.IsAbs(path) {
+			t.Fatal("variant root, diagnostic-profile helper and diagnostic-fuel-off helper must be absolute")
+		}
+	}
+	if fileHash(t, helper) == fileHash(t, fuelHelper) {
+		t.Fatal("fuel-off helper must have a distinct identity")
+	}
+	repo, err := filepath.Abs("../../../../../..")
+	if err != nil {
+		t.Fatal(err)
+	}
+	relative, err := filepath.Rel(repo, root)
+	if err != nil || relative != ".." && !strings.HasPrefix(relative, ".."+string(os.PathSeparator)) {
+		t.Fatal("raw variant evidence must be retained outside the repository")
+	}
+	baseRoot := root
+	root, err = diagnosticRunRoot(baseRoot, "guest-variants-")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("retaining variant evidence in %s", root)
+	t.Setenv("GOMAD_WASM_PROTOTYPE_ROOT", root)
+	for _, directory := range []string{"modules", "variants"} {
+		if err := os.MkdirAll(filepath.Join(root, directory), 0700); err != nil {
+			t.Fatal(err)
+		}
+	}
+	module, optimized := filepath.Join(root, "modules", "variants-baseline.wasm"), filepath.Join(root, "modules", "variants-satconv-signext.wasm")
+	for _, build := range []struct{ module, gowasm string }{{module, ""}, {optimized, "satconv,signext"}} {
+		t.Setenv("GOWASM", build.gowasm)
+		_, seconds := prototypeBuild(t, repo, "test", "./tests", build.module, "disable_grpc_modules", "test_dep", "sqlite3_dotlk")
+		t.Logf("built GOWASM=%q guest in %.1fs", build.gowasm, seconds)
+	}
+	t.Setenv("GOWASM", "")
+	commit, err := exec.Command("git", "-C", repo, "rev-parse", "HEAD").Output()
+	if err != nil {
+		t.Fatal(err)
+	}
+	status, err := exec.Command("git", "-C", repo, "status", "--porcelain").Output()
+	if err != nil {
+		t.Fatal(err)
+	}
+	seeds := []uint64{0, 1000003, 2000006}
+	const repetitions = 5
+	variants := []struct{ name, gc, module, helper, revision, followup string }{
+		{"baseline", "", module, helper, "", "none; diagnostic control"},
+		{"gc200", "200", module, helper, "", "explicit GC environment and memory policy decision; requalify affected selections"},
+		{"gc400", "400", module, helper, "", "explicit GC environment and memory policy decision; requalify affected selections"},
+		{"gc-off", "off", module, helper, "", "bounded GOMEMLIMIT policy and GC decision; requalify affected selections"},
+		{"gowasm", "", optimized, helper, "", "production preparation currently forces GOWASM=; adopting requires preparation and build identity changes plus requalification"},
+		{"fuel-off", "", module, fuelHelper, PinnedEngine().Configuration + "-fuel-off", "explicit fuel/resource containment and engine identity decision; diagnostic helper is not a release configuration"},
+	}
+	evidence := filepath.Join(root, "variants")
+	var reports, recommendations []map[string]any
+	for _, selection := range []struct{ name, run string }{
+		{"workflow", "^TestWorkflowTypeEncodingSuite$/^TestPlainASCII$/^Succeeds$"},
+		{"activity", "^TestActivityTestSuite$"},
+	} {
+		requests := make([]Request, len(variants))
+		warmFailures := make([]string, len(variants))
+		for index, variant := range variants {
+			config := prototypeTemporalConfig(t, repo, "/workspace/tests", "-test.run="+selection.run, "-persistenceType=sql", "-persistenceDriver=sqlite")
+			request := prototypeRequest(t, variant.module, config, 0, 30*time.Minute)
+			request.HelperPath, request.HelperSHA256 = variant.helper, fileHash(t, variant.helper)
+			request.diagnosticConfigurationRevision = variant.revision
+			request.DigestTranscript = false
+			if variant.gc != "" {
+				request.Config.Environment = append(request.Config.Environment, "GOGC="+variant.gc)
+				if variant.gc == "off" {
+					request.Config.Environment = append(request.Config.Environment, "GOMEMLIMIT="+strconv.FormatUint(request.MemoryBytes/4*3, 10)+"B")
+				}
+			}
+			requests[index] = request
+			warm := request
+			warm.Config.Args = slices.Clone(request.Config.Args)
+			for argIndex, argument := range warm.Config.Args {
+				if strings.HasPrefix(argument, "-test.run=") {
+					warm.Config.Args[argIndex] = "-test.run=^$"
+				}
+			}
+			_, _, warmFailures[index] = runGuestVariant(t, evidence, selection.name+"-"+variant.name+"-prepare", warm, false)
+		}
+		decisions := make([][]string, len(variants))
+		for _, seed := range seeds {
+			execute, residual := make([][]uint64, len(variants)), make([][]uint64, len(variants))
+			failed, identical := make([]bool, len(variants)), make([]bool, len(variants))
+			for index := range identical {
+				identical[index] = true
+			}
+			var reference, maskedReference variantEvidence
+			var baselineSeen bool
+			var runs []map[string]any
+			for repetition := 0; repetition < repetitions; repetition++ {
+				// Rotate candidates to reduce a fixed ordering bias; baseline runs first.
+				for slot := range variants {
+					index := 0
+					if slot > 0 {
+						index = 1 + (slot-1+repetition)%(len(variants)-1)
+					}
+					variant, request := variants[index], requests[index]
+					request.Runtime.Seed = seed
+					name := fmt.Sprintf("%s-%s-seed%d-rep%d", selection.name, variant.name, seed, repetition)
+					result, profile, failure := runGuestVariant(t, evidence, name, request, true)
+					if warmFailures[index] != "" {
+						failure = "preparation: " + warmFailures[index] + "; " + failure
+					}
+					run := map[string]any{"variant": variant.name, "repetition": repetition, "identities": variantIdentities(request, result), "failure": failure, "termination": result.Termination, "exit_code": result.ExitCode, "memory_bytes": request.MemoryBytes, "peak_memory_bytes": result.PeakMemoryBytes, "environment": request.Config.Environment, "profile": profile, "status": "failed"}
+					if failure != "" {
+						failed[index] = true
+					} else {
+						projected, projectionErr := projectVariantEvidence(result, variant.gc != "")
+						if projectionErr != nil {
+							failed[index], run["failure"] = true, projectionErr.Error()
+						} else {
+							if index == 0 && !baselineSeen {
+								reference = projected
+								maskedReference, projectionErr = projectVariantEvidence(result, true)
+								if projectionErr != nil {
+									t.Fatal(projectionErr)
+								}
+								baselineSeen = true
+							}
+							before := reference
+							if variant.gc != "" {
+								before = maskedReference
+							}
+							matched := baselineSeen && reflect.DeepEqual(before, projected)
+							identical[index] = identical[index] && matched
+							if matched {
+								run["status"] = "identical"
+							} else if !baselineSeen {
+								run["status"] = "comparison-unavailable"
+							} else {
+								run["status"] = "evidence-changing"
+							}
+							data, err := json.Marshal(projected)
+							if err != nil {
+								t.Fatal(err)
+							}
+							run["behavior_projection_sha256"] = digest(data)
+							execute[index] = append(execute[index], profile.Phases["execute"].WallNanos)
+							residual[index] = append(residual[index], profile.Residual.ExecuteWallNanos)
+						}
+					}
+					runs = append(runs, run)
+				}
+			}
+			for index, variant := range variants {
+				decision := variantRecommendation(execute[0], execute[index], failed[0] || failed[index], identical[0] && identical[index])
+				if index == 0 {
+					decision = "control"
+				}
+				decisions[index] = append(decisions[index], decision)
+				reports = append(reports, map[string]any{"selection": selection.name, "test_run": selection.run, "seed": seed, "variant": variant.name, "warm_repetitions_requested": repetitions, "warm_repetitions_measured": len(execute[index]), "execute_nanos": variantTiming(execute[index]), "residual_nanos": variantTiming(residual[index]), "failed": failed[index], "evidence_identical": !failed[0] && !failed[index] && identical[0] && identical[index], "recommendation": decision})
+			}
+			temporalJSON(t, filepath.Join(evidence, fmt.Sprintf("%s-seed%d-runs.json", selection.name, seed)), runs)
+		}
+		for index, variant := range variants {
+			decision := "adopt"
+			if slices.Contains(decisions[index], "reject") {
+				decision = "reject"
+			} else if slices.Contains(decisions[index], "investigate") {
+				decision = "investigate"
+			}
+			if index == 0 {
+				decision = "control"
+			}
+			recommendations = append(recommendations, map[string]any{"selection": selection.name, "variant": variant.name, "recommendation": decision, "followup": variant.followup})
+		}
+	}
+	temporalJSON(t, filepath.Join(root, "guest-variants-report.json"), map[string]any{
+		"diagnostic_only": true, "source_commit": strings.TrimSpace(string(commit)), "source_dirty": len(status) != 0,
+		"host_goos": runtime.GOOS, "host_goarch": runtime.GOARCH, "go_version": runtime.Version(), "seeds": seeds, "warm_repetitions": repetitions,
+		"required_host": "darwin/arm64", "required_host_measured": runtime.GOOS == "darwin" && runtime.GOARCH == "arm64", "developmental": runtime.GOOS != "darwin" || runtime.GOARCH != "arm64",
+		"measurements": reports, "recommendations": recommendations,
+		"build_settings": map[string]string{"GOOS": "wasip1", "GOARCH": "wasm", "GOEXPERIMENT": "nogreenteagc", "baseline_GOWASM": "", "variant_GOWASM": "satconv,signext"},
+		"scope":          "unsampled diagnostic-profile timing; full transcript retention for exact behavior comparisons; residual includes guest plus Wasmtime/trampoline work, not guest-only CPU",
+		"equality":       "exact choice, WASI, network, stdout/stderr, outcome and virtual time; only GC environ reply outputs masked; module/environment/helper/engine identities separate",
+		"decision_rule":  "adopt only when all seeds have identical successful evidence and median execute gain strictly exceeds both baseline and candidate run-to-run ranges; adoption remains a follow-up decision",
+		"rerun":          map[string]any{"working_directory": filepath.Join(repo, "tools", "gomad3"), "environment": map[string]string{"GOMAD_WASM_GUEST_PROFILE_ROOT": baseRoot, "GOMAD_WASM_TEST_HELPER": helper, "GOMAD_WASM_FUEL_OFF_HELPER": fuelHelper, "GOMAD3_STOCK_GO": os.Getenv("GOMAD3_STOCK_GO")}, "command": "env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -timeout 180m -run '^TestDiagnosticGuestVariants$' ./internal/backends/wasm/wasi"},
+	})
+}
+
+func runGuestVariant(t *testing.T, root, name string, request Request, warm bool) (Result, diagnosticReport, string) {
+	t.Helper()
+	result, runErr := matchedPrepareAdmitted(runtime.GOOS, "/proc/meminfo", os.Getenv("GOMAD_WASM_MATCHED_COLD_MEMORY_GUARD"), func() (Result, error) {
+		return Run(t.Context(), request)
+	})
+	temporalWrite(t, filepath.Join(root, name+"-canonical.jsonl"), result.Transcript)
+	temporalWrite(t, filepath.Join(root, name+"-choice.bin"), result.ChoiceTrace.Bytes)
+	temporalWrite(t, filepath.Join(root, name+"-network.jsonl"), result.NetworkTranscript)
+	temporalWrite(t, filepath.Join(root, name+"-helper-stderr.txt"), result.helperStderr)
+	temporalWrite(t, filepath.Join(root, name+"-guest-stdout.txt"), result.Stdout)
+	temporalWrite(t, filepath.Join(root, name+"-guest-stderr.txt"), result.Stderr)
+	profile, profileErr := decodeDiagnosticReport(result.helperStderr)
+	if runErr != nil {
+		return result, profile, runErr.Error()
+	}
+	if result.Termination != "exit" || result.ExitCode == nil || *result.ExitCode != 0 {
+		return result, profile, fmt.Sprintf("termination=%s exit=%v message=%s", result.Termination, result.ExitCode, result.Message)
+	}
+	if profileErr != nil {
+		return result, profile, profileErr.Error()
+	}
+	if result.Telemetry == nil || warm && (!result.Telemetry.CacheHit || result.Telemetry.CompileNanos != 0) {
+		return result, profile, "missing telemetry or warm cache miss"
+	}
+	return result, profile, ""
+}
 
 var guestProfileBuckets = strings.Fields("gc scheduler allocation test server runtime stdlib other")
 
@@ -179,7 +496,6 @@ func TestDiagnosticGuestProfile(t *testing.T) {
 	if !filepath.IsAbs(root) || !filepath.IsAbs(os.Getenv("GOMAD_WASM_TEST_HELPER")) {
 		t.Fatal("guest profile root and GOMAD_WASM_TEST_HELPER must be absolute")
 	}
-	t.Setenv("GOMAD_WASM_PROTOTYPE_ROOT", root)
 	repo, err := filepath.Abs("../../../../../..")
 	if err != nil {
 		t.Fatal(err)
@@ -188,6 +504,13 @@ func TestDiagnosticGuestProfile(t *testing.T) {
 	if err != nil || relative != ".." && !strings.HasPrefix(relative, ".."+string(os.PathSeparator)) {
 		t.Fatal("raw guest profiles must be retained outside the repository")
 	}
+	baseRoot := root
+	root, err = diagnosticRunRoot(baseRoot, "guest-profile-")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("retaining guest profiles in %s", root)
+	t.Setenv("GOMAD_WASM_PROTOTYPE_ROOT", root)
 	for _, directory := range []string{"modules", "evidence"} {
 		if err := os.MkdirAll(filepath.Join(root, directory), 0700); err != nil {
 			t.Fatal(err)
@@ -260,11 +583,11 @@ func TestDiagnosticGuestProfile(t *testing.T) {
 		"rerun": map[string]any{
 			"working_directory": filepath.Join(repo, "tools", "gomad3"),
 			"environment": map[string]string{
-				"GOMAD_WASM_GUEST_PROFILE_ROOT": root,
+				"GOMAD_WASM_GUEST_PROFILE_ROOT": baseRoot,
 				"GOMAD_WASM_TEST_HELPER":        os.Getenv("GOMAD_WASM_TEST_HELPER"),
 				"GOMAD3_STOCK_GO":               os.Getenv("GOMAD3_STOCK_GO"),
 			},
-			"command": "env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -timeout 60m -run '^TestDiagnosticGuestProfile$' ./backends/wasm/wasi",
+			"command": "env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -timeout 60m -run '^TestDiagnosticGuestProfile$' ./internal/backends/wasm/wasi",
 		},
 	})
 }
