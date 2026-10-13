@@ -76,19 +76,26 @@ backend.
 
 The virtual network is a separate Execution-scoped deep module below ordinary `net`
 TCP calls. It owns node addresses, deterministic ports, directional links,
-fixed delay, partition/heal, listeners, streams, queued deliveries, lifecycle
-revocation, capacity, snapshots, and replay. Every endpoint and queued delivery
-is incarnation-bound. Graceful stop closes the local side and exposes EOF;
-crash resets both sides and removes pending traffic before a restart can reuse
-the stable node address.
+fixed delay, partition/heal, listeners, FIFO byte streams, lifecycle revocation,
+capacity, snapshots, and replay. Endpoints and retained bytes are
+incarnation-bound. Graceful stop discards queued and held bytes, closes the local
+side and exposes EOF; crash discards them and resets both sides before restart
+can reuse the stable node address. The approved fn-154 migration and its open
+integration/qualification gates are described in the
+[README](README.md#network-streams-partitions-and-replay).
 
 Network transitions are partitioned into canonical causal lanes. Operations on
 one connection or listener retain order, and all topology changes share one
 ordered lane; arrival order between independent resources is normalized.
 Replay validates the next transition in the affected lane before mutation and
-also requires exact final state. This network identity remains independent from
-runtime choice, lifecycle, output, volume, fault, scenario, and oracle
-identities.
+also requires the recorded terminal structure and byte occupancy. Delivery is
+derived during reexecution without per-delivery/release records or network
+payload hashes. Direct network-only replay therefore loses guaranteed detection
+of same-length payload changes. Composed Runner replay retains the separately
+bounded generic I/O content checks and first mismatch ordinal. Volume hashes,
+controller identities and artifact authentication remain. This network identity
+remains independent from runtime choice, lifecycle, output, volume, fault,
+scenario, and oracle identities.
 
 The durable-volume and fault controllers are separate deep modules. Volume
 owns persisted and volatile views, dependency-aware operations, sync, crash
@@ -116,10 +123,54 @@ backend. Invalid lifecycle transitions cannot partially commit model state.
 
 ### Network and persistence semantics
 
-Directional link changes affect newly submitted deliveries. Already queued
-deliveries keep their scheduled order and time unless an endpoint or incarnation
-is revoked. Delayed data cannot reach a restarted node through an old connection
-or a reused address/port.
+Each direction distinguishes received unread bytes from undelivered FIFO bytes.
+Partition holds every undelivered suffix, including traffic queued before the
+link changed. A scheduled ready time alone does not establish receipt.
+Already-received bytes remain readable; the enabled reverse link can progress
+until pair termination. Effective heal ends the continuous stall and makes the
+held FIFO eligible after normal link delay, with fresh writes behind it.
+Repartition holds the remaining suffix and the next effective heal applies a
+fresh delay. Redundant heal does not reschedule bytes, and redundant disable
+does not restart a continuous interval.
+
+Positive undelivered occupancy first encountering a disabled link starts the
+interval. Expiry is due at `start + limit + 1ns`, never at the exact limit.
+Either direction can reset the pair permanently with a timeout reason, freeing
+bytes once and waking waiters. Caller deadlines remain recoverable; clearing
+them cannot undo reset. Idle connections create no data-stall work. Native
+timers, the existing process time/progress arbiter and the host model's
+`NextDeadline`/`Advance` path drive expiry without requiring active application
+I/O. These owners retain scheduling and clock ownership.
+
+Each live data-stall pair reserves one terminal history slot across its two
+directions; a pending disabled-link dial reserves its own timeout slot. Held-write
+admission commits the ordinary write record and any new reservation atomically.
+Effective grouped partition similarly admits its topology record and all needed
+reservations before mutation. Committed transitions plus live reservations stay
+within the transition ceiling, and competing operations cannot spend reserved
+slots. Expiry consumes the slot; heal or terminal cleanup releases unused slots.
+Stale work can neither add a timeout nor release a replacement reservation.
+
+A pending dial observes its own disabled-link interval, separate from caller
+deadline/context and without an established connection. Effective heal ends it;
+effective repartition starts another. Its strict expiry uses the same threshold
+as data stalls. Completed caller context precedes admission; existing refusal,
+stale-endpoint, capacity and process cancellation contracts remain. Equal-time
+actions use seeded execution and serialized model order. Heal committed before
+due expiry invalidates the epoch; expiry committed first remains terminal.
+Close, stop, crash and restart invalidate obsolete epochs and incarnations.
+Delayed data cannot reach a restarted node through an old connection or reused
+address/port.
+
+History records operations, held-write outcomes, topology/fault changes and
+timeout resets, removing the former partition-drop outcome. Snapshots retain
+endpoint byte occupancy and bounded metadata,
+with no delivery inventory, delivery count admission or replacement payload hash.
+The affected model, transition, snapshot and config/record identities migrate
+together through the one generated semantic codec; old identities reject before
+activation. Explicit fault matching on `deliver` keeps its occurrence semantics.
+Structural replay validation, full consumption, identity preflight and nested
+model/controller/fault corruption checks retain their owners.
 
 A volume write updates the volatile view and adds dependency-tracked pending
 operations. File sync persists required data, size, allocation, and their
@@ -160,11 +211,26 @@ semantic replay identity.
 
 Network `Listener` and `Conn` factories select a private standalone, in-process,
 or process implementation once (`SIMULATION.NETWORK`). Both simulation paths use
-the shared network model. Local implementations own model state and incarnation;
-process implementations own remote identities and typed commands. Connection
-direction locks cover each complete Read or Write. Empty I/O, queued accepts,
-error precedence, chunking, deadlines, and transcripts retain their backend
-contracts; the common facade does not imply identical host behavior.
+the shared network model. Standalone and multi-node connections share one local
+owner for FIFO storage, read/write/deadline/close, half-close and nonblocking
+readiness. Process implementations own remote identities and typed commands;
+descriptors consume the local owner's primitives and notifications. Direction
+locks cover each complete Read or Write. Transport may chunk commands, while
+payload admission uses bytes only. Explicit `NetworkConnectionBytes` and
+`NetworkStallNanos` defaults are 4 MiB per direction and 10 virtual seconds;
+omitted/zero values reject. Held, received unread and short-read tail bytes count
+against the direction and preserved global byte budget until consumed or
+discarded. Local fullness blocks; global exhaustion returns resource-exhausted.
+Pending-operation, listener, connection, history and frame ceilings remain.
+Invalid limits or overflowing expiry arithmetic reject before mutation.
+
+For nonempty I/O, terminal read state precedes readable bytes, EOF and caller
+deadline. Writes check terminal state, available-capacity admission, then caller
+deadline. Empty I/O and partial-result contracts remain. Full close discards local unread and
+held outbound bytes while already-received peer data drains normally to EOF;
+`CloseRead` discards local unread bytes, while `CloseWrite` retains accepted
+outbound bytes for draining before EOF, including held bytes after heal. These
+model boundaries do not imply identical host behavior.
 
 Runtime, scenario, network, storage, and fault evidence retain independent
 identities. Replay validates static inputs before node activation, validates

@@ -343,6 +343,73 @@ The Simulation contract must distinguish the selected Backend from its Fidelity 
 
 The simulation must support deterministic multi-node addressing, directional links, listeners, connections, delivery delay, partitions, healing, and incarnation-aware connection outcomes. Stale traffic from a crashed incarnation must not be delivered after restart.
 
+The following requirements bind the approved fn-154 stream migration. Final
+integration and its execution evidence remain open as recorded in the
+[README](README.md#network-streams-partitions-and-replay) and owning Flow spec.
+
+Standalone and multi-node streams must share one local owner for FIFO bytes,
+read/write/deadline/close, half-close, partial results and nonblocking readiness.
+Process transport and descriptors must remain adapters to that owner.
+
+Stream admission must use explicit positive per-direction byte and virtual stall
+limits. Defaults must supply 4 MiB per direction and 10 virtual seconds while
+preserving the existing global byte default. Omitted, zero, invalid, out-of-range
+or overflowing limits and expiry additions must reject before activation or the
+affected mutation. Held bytes, received unread bytes and short-read tails must
+remain charged until consumption or discard. Local fullness must block writes;
+global exhaustion must retain the resource-exhausted result. A failed later
+admission must return the accepted prefix and error. Listener, connection,
+history, pending-operation and frame bounds must remain; payload admission must
+not depend on chunk or delivery counts.
+
+Partition must hold every undelivered byte in its direction, including queued
+pre-partition traffic. Already-received data must remain readable. An enabled
+reverse link must remain usable until pair termination. Effective heal must end
+the continuous stalled interval and release the held FIFO after normal delay,
+without fresh writes overtaking it. Repartition must hold the undelivered suffix
+and apply a fresh delay on the next effective heal. Redundant heal must add no
+delay; redundant disable must not restart a continuous stall.
+
+A continuous data stall must start when positive undelivered occupancy first
+encounters a disabled link. Its first expiry must be strictly after the limit,
+at `start + limit + 1ns`. Expiry of either direction must permanently reset both
+endpoints with timeout classification, free retained bytes once and wake waiters,
+even without active application I/O. Idle connections must survive partition.
+Heal committed before due expiry must invalidate the epoch; expiry committed
+first must remain terminal. Equal-time actions must retain seeded execution and
+serialized model order. Stale or cancelled epoch/incarnation work must have no
+effect, including after close, stop, crash or restart.
+
+A disabled-link pending dial must wait for effective heal, caller deadline/context
+or its independent strict stall expiry without allocating an established
+connection. Effective heal must end its interval; effective repartition must
+start another. Completed caller context must precede admission. Refusal, stale
+endpoints, capacity and the process transport's existing cancellation capabilities
+must retain their outcomes.
+
+For nonempty I/O, terminal read state must precede readable bytes, EOF and caller
+deadline. Write must check terminal state before available-capacity admission,
+then caller deadline. Caller deadlines must remain recoverable; clearing them must not undo
+a committed timeout reset. Full close must discard the local unread tail and
+held outbound bytes while preserving normal peer drain-to-EOF semantics for
+already-received data. Read half-close must discard local unread bytes; write
+half-close must retain accepted outbound bytes for draining before EOF, including
+held bytes after heal. Graceful stop must discard queued/held bytes and expose
+EOF; crash must discard them and reset. Restart must not revive old bytes,
+descriptors or expiry work. Framed streams must survive short partitions intact
+or terminate with timeout after
+long stalls rather than lose bytes and fail framing.
+
+History admission must atomically reserve terminal capacity before accepting
+stalled data or a disabled-link pending dial. One pair reservation must cover both
+data directions; each pending dial must have its own timeout reservation.
+Committed history plus live reservations must stay within the transition ceiling.
+Ordinary operations must not consume reserved capacity. Insufficient capacity or
+invalid grouped topology actions must reject before any affected state mutation.
+Expiry must consume its reserved outcome slot; heal, caller completion and
+terminal cleanup must release or consume reservations without leaks. Stale work
+must neither record a reset nor release a replacement reservation.
+
 ### [SIMULATION.STORAGE] Durable Storage Model
 
 The simulation must model durable volumes, file and directory synchronization, operation dependencies, persisted-only crash state, restart, and bounded resumable enumeration of valid crash states.
@@ -351,6 +418,11 @@ The simulation must model durable volumes, file and directory synchronization, o
 
 Scenarios must compose bounded sequential, repeated, chosen, and parallel actions. Fault plans must select stable eligible targets for partition, heal, crash, restart, and crash-persistence outcomes, and must record the realized action independently from the plan.
 
+Explicit network fault matching on the `deliver` operation and its occurrence
+semantics must remain valid when automatic delivery history is removed. Rejected
+actions must mutate nothing, and extra, unused, reordered or corrupt fault actions
+must retain their replay failures.
+
 ### [SIMULATION.ORACLES] Observations and Oracles
 
 The simulation must produce detached bounded observations and support named correctness checks including invariants, exact histories, duplicate-or-loss checks, and convergence checks. Oracle failures must be retained as part of simulation evidence.
@@ -358,6 +430,23 @@ The simulation must produce detached bounded observations and support named corr
 ### [SIMULATION.REPLAY] Simulation Replay
 
 Scenario, fault, network, storage, runtime-choice, and crash-state decisions must retain separate identities. Repeating the same specification, backend, seed, and inputs must reproduce equal semantic evidence; exact replay must report the first dimension and operation that diverges.
+
+Network history must record operations, held-write outcomes, topology/fault changes
+and timeout resets, with no partition-drop outcome, per-delivery/release steps,
+delivery IDs/counts or network payload hashes. Snapshots must retain bounded byte occupancy and metadata.
+Replay must derive delivery from reexecuted writes, links and virtual time, validate
+representable structure, lengths, ordering and outcomes before the relevant
+mutation, require complete consumption and reject nested model/controller/fault
+corruption. Affected identities must migrate coherently through the single
+generated semantic codec, rejecting old network/config identities before
+activation without a legacy decoder or unrelated execution-format change.
+
+Direct network-only Replay without the Deterministic I/O Contract deliberately
+does not guarantee detection of same-length payload changes. Other retained
+Observations may detect them. Composed Runner Replay must preserve the separate
+bounded generic I/O content checks and first mismatch ordinal, volume hashes,
+controller identities and Artifact authentication. It must not introduce a
+replacement network payload-hash layer.
 
 ## [CAMPAIGN] Campaigns and Exploration
 

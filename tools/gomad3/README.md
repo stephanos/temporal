@@ -1368,7 +1368,7 @@ harness. Its versioned schemas provide bounded specs, stable node and incarnatio
 identities, boot registration, detached results, lifecycle and topology
 control, typed scenario composition, stable histories and oracles, inspect,
 and exact replay. The in-process backend supplies deterministic
-multi-address TCP, per-node ports, bounded listeners/connections/deliveries,
+multi-address TCP, per-node ports, bounded listeners/connections/retained bytes,
 fixed link delay, partition/heal, graceful-stop versus crash/reset behavior,
 incarnation-bound delayed delivery, canonical network snapshots, and typed
 replay divergence. Its separate durable-volume model provides file and
@@ -1380,6 +1380,103 @@ The process backend adds private bounded bootstrap and model IPC, host-owned
 time arbitration, fresh package initialization, hard crash/reap, and
 cross-backend detached-model conformance. None of those process-isolation
 claims is implied by the in-process model.
+
+### Network streams, partitions and replay
+
+The following is the approved
+[fn-154 contract](../../.flow/specs/fn-154-gomad-simpler-virtual-network-with.md).
+Pending-dial and history migration source, final identity generation, independent
+integrated review and required execution gates remain open. This contract update
+does not qualify the intermediate source candidate. Existing native deferrals
+remain with fn-128 and fn-149; new fn-154 native regressions remain required under
+fn-154 until executed or explicitly transferred by the owner.
+
+Standalone loopback and multi-node streams share one local connection owner for
+FIFO bytes, read/write/deadline/close, half-close and nonblocking readiness.
+Process RPC and virtual descriptors adapt that owner. The model supports ordered
+streams and existing faults without simulating packets, retransmission,
+congestion windows or TCP handshakes.
+
+Simulation callers supply explicit positive `NetworkConnectionBytes` and
+`NetworkStallNanos` limits. `DefaultLimits()` supplies 4 MiB per direction and
+10 virtual seconds; it also retains the existing 1 GiB global `NetworkBytes`
+default. Omitted or zero limits do not request defaults. Invalid, out-of-range
+or overflowing durations and expiry additions reject before activation or the
+affected mutation. Ten seconds is a chosen model default, not a measured TCP or
+production timeout.
+
+Every retained byte, including held bytes, received unread bytes and short-read
+tails, counts toward its direction and the global budget until consumed or
+discarded. A full local direction blocks the writer. Global exhaustion returns
+the existing resource-exhausted error immediately. A later failed admission
+returns the accepted prefix and its error. Payload admission uses byte limits;
+listener, connection, history, pending-operation and IPC-frame limits remain.
+Empty I/O creates no queued byte range.
+
+A disabled directed link holds all undelivered bytes, including bytes queued
+before partition. Already-received bytes remain readable, and an enabled reverse
+link remains usable until the pair becomes terminal. Effective heal ends the
+continuous stalled interval and releases its FIFO after the normal link delay.
+Fresh writes cannot overtake it. Repartition holds any undelivered suffix and the
+next effective heal applies a fresh delay. Redundant heal adds no delay, and
+redundant disable does not restart the interval.
+
+Positive undelivered occupancy first encountering a disabled link starts a
+stall interval. The first expiry instant is `start + limit + 1ns`; at exactly
+`start + limit` the connection survives. Either direction's expiry resets both
+endpoints, frees retained bytes once and wakes waiters with a persistent timeout
+reason. Clearing an operation deadline cannot undo that reset. Idle partitioned
+connections have no data-stall expiry. Existing virtual-time owners drive expiry
+even after a successful writer returns and no application I/O is blocked.
+Heal committed before due expiry invalidates its epoch; expiry committed first
+is permanent. Equal-time actions retain seeded execution and serialized model
+order. Close, stop, crash and restart invalidate obsolete work and incarnations.
+
+A disabled-link pending dial has its own continuous stall interval and strict
+expiry, separate from its caller deadline/context. Effective heal ends that
+interval; effective repartition starts another. Completed caller context wins
+before admission. Heal permits ordinary listener/connection admission, preserving
+refusal, stale-endpoint and capacity outcomes. No connection is allocated merely
+to wait. Process cancellation retains the transport's existing capabilities;
+this contract adds no post-IPC cancellation command.
+
+For nonempty I/O, terminal state precedes readable data, EOF and caller read
+deadlines. Writes check terminal state, then available-capacity admission, then
+caller deadline.
+Thus available data/space can make progress before a caller deadline error, which
+remains recoverable. Full close discards the local unread tail and held outbound
+bytes; already-received peer data retains its normal drain-to-EOF behavior.
+`CloseRead` discards local unread bytes; `CloseWrite` keeps accepted outbound
+bytes eligible to drain before EOF, including held bytes after heal. Graceful stop
+discards queued and held bytes and exposes EOF; crash discards them and resets.
+Restart never revives old bytes, descriptors or expiry work. Short partitions preserve
+length-framed streams; long stalls terminate with timeout rather than missing
+bytes and a framing gap.
+
+History records operations, held-write outcomes, topology/fault changes and
+timeout resets. Before work can stall, admission atomically reserves one terminal
+history slot per connection pair or pending dial, within the existing transition
+ceiling. Competing operations cannot consume that slot. Rejected grouped topology
+changes, byte admission or reservation leave state unchanged. Expiry consumes the
+reservation; heal or terminal cleanup releases unused capacity. Stale work adds
+no reset and cannot release a replacement reservation.
+
+The versioned migration removes `partition_drop`, delivery IDs/counts/inventories,
+per-delivery/release steps and network payload hashes. Byte occupancy and bounded
+connection metadata remain in snapshots. Replay derives delivery from actual
+reexecuted writes, links and virtual time, checking representable operation
+structure, lengths, ordering, topology, faults and terminal behavior before the
+relevant mutation, with full consumption and identity preflight. Explicit fault
+matching on `deliver` and its occurrence semantics remain valid. Volume hashes,
+controller identities and artifact authentication retain their separate owners.
+Old network/config identities reject before activation through the single
+generated semantic codec; there is no legacy decoder or unrelated format bump.
+
+Direct network-only replay without the deterministic-I/O profile deliberately
+loses network-history detection of same-length payload changes. Other observations
+may detect them, but no universal rejection is promised. Composed Runner replay
+retains its separate bounded generic I/O content checks and first mismatch
+ordinal. The migration adds no replacement payload-hash layer.
 
 ## World
 
