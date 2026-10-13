@@ -1,0 +1,386 @@
+// Copyright 2026 The Go Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file.
+
+package gomadio
+
+import (
+	"internal/gomadvfd"
+	"io"
+	"os"
+	"sync"
+	"time"
+)
+
+type pairedConn struct {
+	local    Address
+	remote   Address
+	state    *connState
+	peer     *connState
+	network  *simulationNetwork
+	owner    simulationEndpoint
+	target   simulationEndpoint
+	identity uint64
+}
+
+type connState struct {
+	shared        *connShared
+	incoming      []networkChunk
+	reset         bool
+	terminal      error
+	pending       []byte
+	retainedBytes uint64
+	closeCalled   bool
+	readClosed    bool
+	writeClosed   bool
+	readDeadline  time.Time
+	writeDeadline time.Time
+	descriptor    descriptorIdentity
+}
+
+type connShared struct {
+	sync.Mutex
+	changed chan struct{}
+}
+
+type networkChunk struct {
+	identity    uint64
+	connection  uint64
+	source      simulationEndpoint
+	destination simulationEndpoint
+	bytes       []byte
+	ready       time.Time
+	delayNanos  uint64
+}
+
+func (connection *pairedConn) validate() error {
+	if connection.network != nil {
+		return validateSimulationEndpoint(connection.network, connection.owner)
+	}
+	return nil
+}
+func (connection *pairedConn) nowTime() time.Time { return time.Now() }
+func (connection *pairedConn) deadlineExpired(deadline time.Time) bool {
+	return !deadline.IsZero() && !connection.nowTime().Before(deadline)
+}
+func (connection *pairedConn) terminalError() error {
+	if connection.state.terminal != nil {
+		return connection.state.terminal
+	}
+	if connection.peer.terminal != nil {
+		return connection.peer.terminal
+	}
+	if connection.state.reset || connection.peer.reset {
+		return ErrClosed
+	}
+	return nil
+}
+
+func (connection *pairedConn) lockState() {
+	if connection.network != nil {
+		connection.network.Lock()
+	}
+	connection.state.shared.Lock()
+}
+
+func (connection *pairedConn) unlockState() {
+	connection.state.shared.Unlock()
+	if connection.network != nil {
+		connection.network.Unlock()
+	}
+}
+
+func (connection *pairedConn) Read(destination []byte) (int, error) {
+	if len(destination) == 0 {
+		record("net.read", networkArguments("tcp", connection.local.Port, connection.remote.Port, 0), nil, 0, 0, 0, 0)
+		return 0, nil
+	}
+
+	if err := connection.validate(); err != nil {
+		return 0, err
+	}
+	for {
+		connection.lockState()
+		length, err, ready, freed := connection.tryReadLocked(destination)
+		notice := connection.peer.descriptor.notice('w')
+		if err != errNetworkWouldBlock {
+			connection.unlockState()
+			record("net.read", networkArguments("tcp", connection.local.Port, connection.remote.Port, len(destination)), destination[:length], uint64(length), resultClass(err), 0, 0)
+			if freed {
+				gomadvfd.Notify(notice)
+			}
+			return length, err
+		}
+		deadline := connection.state.readDeadline
+		if !ready.IsZero() {
+			changed := connection.state.shared.changed
+			connection.unlockState()
+			waitForChange(changed, earliestDeadline(deadline, ready))
+			continue
+		}
+		if connection.deadlineExpired(deadline) {
+			connection.unlockState()
+			record("net.read", networkArguments("tcp", connection.local.Port, connection.remote.Port, len(destination)), nil, 0, resultClass(os.ErrDeadlineExceeded), 0, 0)
+			return 0, os.ErrDeadlineExceeded
+		}
+		changed := connection.state.shared.changed
+		connection.unlockState()
+		waitForChange(changed, deadline)
+	}
+}
+
+func (connection *pairedConn) Write(source []byte) (int, error) {
+	if err := connection.validate(); err != nil {
+		return 0, err
+	}
+	written := 0
+	input := source
+	for len(source) != 0 {
+		connection.lockState()
+		length, err := connection.tryWriteLocked(source)
+		notice := connection.peer.descriptor.notice('r')
+		if err != errNetworkWouldBlock {
+			connection.unlockState()
+			written += length
+			if length != 0 {
+				gomadvfd.Notify(notice)
+			}
+			if err != nil {
+				record("net.write", networkArguments("tcp", connection.local.Port, connection.remote.Port, len(input)), input[:written], uint64(written), resultClass(err), 0, 0)
+				return written, err
+			}
+			source = source[length:]
+			continue
+		}
+		deadline := connection.state.writeDeadline
+		if connection.deadlineExpired(deadline) {
+			connection.unlockState()
+			record("net.write", networkArguments("tcp", connection.local.Port, connection.remote.Port, len(input)), input[:written], uint64(written), resultClass(os.ErrDeadlineExceeded), 0, 0)
+			return written, os.ErrDeadlineExceeded
+		}
+		changed := connection.state.shared.changed
+		connection.unlockState()
+		waitForChange(changed, deadline)
+	}
+	record("net.write", networkArguments("tcp", connection.local.Port, connection.remote.Port, len(input)), input, uint64(written), 0, 0, 0)
+	return written, nil
+}
+
+func (connection *pairedConn) Close() error {
+	if err := connection.validate(); err != nil {
+		return err
+	}
+	connection.lockState()
+	if connection.state.closeCalled {
+		connection.unlockState()
+		record("net.close", networkArguments("tcp", connection.local.Port, connection.remote.Port), nil, 0, resultClass(ErrClosed), 0, 0)
+		return ErrClosed
+	}
+	if connection.network != nil {
+		if err := connection.network.commitTransitionLocked(simulationTransition{Kind: "close", Source: connection.owner, Destination: connection.target, Connection: connection.identity, Outcome: "ok"}); err != nil {
+			connection.unlockState()
+			return err
+		}
+	}
+	connection.state.closeCalled = true
+	connection.shutdownLocked(true, true)
+	notices := connection.descriptorNoticesLocked()
+	connection.unlockState()
+	record("net.close", networkArguments("tcp", connection.local.Port, connection.remote.Port), nil, 0, 0, 0, 0)
+	gomadvfd.Notify(notices...)
+	return nil
+}
+
+func (connection *pairedConn) CloseRead() error {
+	if err := connection.validate(); err != nil {
+		return err
+	}
+	connection.lockState()
+	if connection.state.readClosed {
+		connection.unlockState()
+		return ErrClosed
+	}
+	connection.shutdownLocked(true, false)
+	notices := connection.descriptorNoticesLocked()
+	connection.unlockState()
+	gomadvfd.Notify(notices...)
+	return nil
+}
+
+func (connection *pairedConn) CloseWrite() error {
+	if err := connection.validate(); err != nil {
+		return err
+	}
+	connection.lockState()
+	if connection.state.writeClosed {
+		connection.unlockState()
+		return ErrClosed
+	}
+	connection.shutdownLocked(false, true)
+	notices := connection.descriptorNoticesLocked()
+	connection.unlockState()
+	gomadvfd.Notify(notices...)
+	return nil
+}
+
+func (connection *pairedConn) LocalAddress() Address {
+	return connection.local
+}
+
+func (connection *pairedConn) RemoteAddress() Address {
+	return connection.remote
+}
+
+func (connection *pairedConn) SetDeadline(deadline time.Time) error {
+	if err := connection.validate(); err != nil {
+		return err
+	}
+	connection.lockState()
+	connection.state.readDeadline = deadline
+	connection.state.writeDeadline = deadline
+	connection.state.shared.signal()
+	connection.unlockState()
+	return nil
+}
+
+func (connection *pairedConn) SetReadDeadline(deadline time.Time) error {
+	if err := connection.validate(); err != nil {
+		return err
+	}
+	connection.lockState()
+	connection.state.readDeadline = deadline
+	connection.state.shared.signal()
+	connection.unlockState()
+	return nil
+}
+
+func (connection *pairedConn) SetWriteDeadline(deadline time.Time) error {
+	if err := connection.validate(); err != nil {
+		return err
+	}
+	connection.lockState()
+	connection.state.writeDeadline = deadline
+	connection.state.shared.signal()
+	connection.unlockState()
+	return nil
+}
+
+func (connection *pairedConn) tryReadLocked(destination []byte) (int, error, time.Time, bool) {
+	if len(destination) == 0 {
+		return 0, nil, time.Time{}, false
+	}
+	if err := connection.terminalError(); err != nil {
+		return 0, err, time.Time{}, false
+	}
+	if connection.state.readClosed {
+		return 0, ErrClosed, time.Time{}, false
+	}
+	if len(connection.state.pending) == 0 && len(connection.state.incoming) != 0 {
+		chunk := connection.state.incoming[0]
+		if connection.nowTime().Before(chunk.ready) {
+			return 0, errNetworkWouldBlock, chunk.ready, false
+		}
+		if connection.network != nil {
+			transition := simulationTransition{Kind: "deliver", Source: chunk.source, Destination: chunk.destination, Connection: chunk.connection, Delivery: chunk.identity, Bytes: uint64(len(chunk.bytes)), DelayNanos: chunk.delayNanos, Outcome: "ok", PayloadSHA256: simulationPayloadSHA256(chunk.bytes)}
+			if err := connection.network.commitTransitionLocked(transition); err != nil {
+				return 0, err, time.Time{}, false
+			}
+			delete(connection.network.deliveries, chunk.identity)
+		}
+		connection.state.pending = chunk.bytes
+		connection.state.incoming[0] = networkChunk{}
+		connection.state.incoming = connection.state.incoming[1:]
+	}
+	if len(connection.state.pending) != 0 {
+		length := copy(destination, connection.state.pending)
+		connection.state.pending = connection.state.pending[length:]
+		connection.state.retainedBytes -= uint64(length)
+		if connection.network != nil {
+			connection.network.pendingBytes -= uint64(length)
+		}
+		connection.state.shared.signal()
+		return length, nil, time.Time{}, true
+	}
+	if connection.peer.writeClosed {
+		return 0, io.EOF, time.Time{}, false
+	}
+	return 0, errNetworkWouldBlock, time.Time{}, false
+}
+
+func (connection *pairedConn) tryWriteLocked(source []byte) (int, error) {
+	if len(source) == 0 {
+		return 0, nil
+	}
+	if err := connection.terminalError(); err != nil {
+		return 0, err
+	}
+	if connection.state.writeClosed || connection.peer.readClosed {
+		return 0, ErrClosed
+	}
+	capacity := uint64(4 << 20)
+	if connection.network != nil {
+		capacity = connection.network.limits.ConnectionBytes
+	}
+	if connection.peer.retainedBytes >= capacity {
+		return 0, errNetworkWouldBlock
+	}
+	length := min(len(source), maximumChunkBytes, int(capacity-connection.peer.retainedBytes))
+	chunk := networkChunk{bytes: append([]byte(nil), source[:length]...)}
+	if connection.network != nil {
+		link, ok := connection.network.links[simulationLinkKey(connection.owner.Node, connection.target.Node)]
+		outcome := "ok"
+		if !ok || !link.Enabled {
+			outcome = "partition_drop"
+		}
+		transition := simulationTransition{Kind: "write", Source: connection.owner, Destination: connection.target, Connection: connection.identity, Bytes: uint64(length), DelayNanos: link.DelayNanos, Outcome: outcome, PayloadSHA256: simulationPayloadSHA256(source[:length])}
+		if outcome == "ok" && (uint64(len(connection.network.deliveries)) >= connection.network.limits.Deliveries || uint64(length) > connection.network.limits.Bytes-connection.network.pendingBytes) {
+			transition.Outcome = "capacity"
+			if err := connection.network.commitTransitionLocked(transition); err != nil {
+				return 0, err
+			}
+			return 0, ErrResourceExhausted
+		}
+		delivery := connection.network.nextDelivery + 1
+		transition.Delivery = delivery
+		if err := connection.network.commitTransitionLocked(transition); err != nil {
+			return 0, err
+		}
+		connection.network.nextDelivery = delivery
+		if outcome == "partition_drop" {
+			return length, nil
+		}
+		chunk.identity = delivery
+		chunk.connection = connection.identity
+		chunk.source = connection.owner
+		chunk.destination = connection.target
+		chunk.ready = connection.nowTime().Add(time.Duration(link.DelayNanos))
+		chunk.delayNanos = link.DelayNanos
+		connection.network.deliveries[delivery] = simulationDelivery{identity: delivery, connection: connection.identity, source: connection.owner, destination: connection.target, bytes: uint64(length), delayNanos: link.DelayNanos}
+		connection.network.pendingBytes += uint64(length)
+	}
+	connection.peer.incoming = append(connection.peer.incoming, chunk)
+	connection.peer.retainedBytes += uint64(length)
+	connection.state.shared.signal()
+	return length, nil
+}
+
+func (connection *pairedConn) shutdownLocked(read, write bool) {
+	if read {
+		connection.state.readClosed = true
+		if connection.network != nil {
+			connection.network.dropStateDeliveriesLocked(connection.state)
+		} else {
+			connection.state.retainedBytes = 0
+			connection.state.incoming = nil
+			connection.state.pending = nil
+		}
+	}
+	if write {
+		connection.state.writeClosed = true
+	}
+	connection.state.shared.signal()
+}
+
+func (connection *pairedConn) descriptorNoticesLocked() []gomadvfd.Notice {
+	return []gomadvfd.Notice{connection.state.descriptor.notice('r'), connection.state.descriptor.notice('w'), connection.peer.descriptor.notice('r'), connection.peer.descriptor.notice('w')}
+}

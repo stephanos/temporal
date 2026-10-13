@@ -64,11 +64,13 @@ type Result struct {
 type waiting struct {
 	Changed  <-chan struct{}
 	Deadline time.Time
+	Accepted int
 }
 type pending struct {
-	request Request
-	wait    waiting
-	result  *Result
+	request  Request
+	wait     waiting
+	result   *Result
+	accepted int
 }
 type ownedHandle struct {
 	domain     Domain
@@ -173,7 +175,10 @@ func (m *Model) Dispatch(request Request) Result {
 	request.Bytes = append([]byte(nil), request.Bytes...)
 	result, wait := m.attempt(request)
 	if wait != nil {
-		m.pending[request.RequestID] = &pending{request: request, wait: *wait}
+		if request.Op == "write" {
+			request.Bytes = request.Bytes[result.Count:]
+		}
+		m.pending[request.RequestID] = &pending{request: request, wait: *wait, accepted: result.Count}
 	}
 	return result
 }
@@ -241,7 +246,7 @@ func (m *Model) attempt(r Request) (result Result, blocked *waiting) {
 				result = failed(r, context.DeadlineExceeded)
 				return
 			}
-			result = Result{RequestID: r.RequestID, State: "pending", Deadline: virtualNanos(wait.Deadline)}
+			result = Result{RequestID: r.RequestID, State: "pending", Deadline: virtualNanos(wait.Deadline), Count: wait.Accepted}
 			blocked = &wait
 		}
 	}()
@@ -394,6 +399,11 @@ func (m *Model) ready() []uint64 {
 			continue
 		}
 		result, wait := m.attempt(p.request)
+		if p.request.Op == "write" {
+			p.accepted += result.Count
+			p.request.Bytes = p.request.Bytes[result.Count:]
+			result.Count = p.accepted
+		}
 		if wait == nil {
 			p.result = &result
 			completed = append(completed, id)

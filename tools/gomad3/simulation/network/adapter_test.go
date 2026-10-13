@@ -214,7 +214,9 @@ func TestPartitionQueuedDrainBlockedDialCancelAndHeal(t *testing.T) {
 }
 
 func TestQueueBackpressureCapacityDeadlineAndStaleDomain(t *testing.T) {
-	m, a, b := testModel(t, testLimits())
+	localLimits := testLimits()
+	localLimits.ConnectionBytes = 64
+	m, a, b := testModel(t, localLimits)
 	_, c, s := pair(t, m, a, b)
 	for i := uint64(0); i < 64; i++ {
 		r := m.Dispatch(Request{Domain: a, Op: "write", Handle: c, RequestID: 10 + i, Bytes: []byte{byte(i)}})
@@ -226,7 +228,9 @@ func TestQueueBackpressureCapacityDeadlineAndStaleDomain(t *testing.T) {
 	if r.State != "pending" {
 		t.Fatal(r)
 	}
-	m.Dispatch(Request{Domain: b, Op: "read", Handle: s, RequestID: 81, Count: 1})
+	for id := uint64(81); id < 85; id++ {
+		m.Dispatch(Request{Domain: b, Op: "read", Handle: s, RequestID: id, Count: 1})
+	}
 	if ids := m.Ready(); !reflect.DeepEqual(ids, []uint64{80}) {
 		t.Fatal(ids)
 	}
@@ -440,7 +444,9 @@ func TestDelayedReadDeadlineAndReset(t *testing.T) {
 }
 
 func TestPendingRequestOwnsBytesAndCapacityFailures(t *testing.T) {
-	m, a, b := testModel(t, testLimits())
+	localLimits := testLimits()
+	localLimits.ConnectionBytes = 64
+	m, a, b := testModel(t, localLimits)
 	_, c, s := pair(t, m, a, b)
 	for i := uint64(0); i < 64; i++ {
 		m.Dispatch(Request{Domain: a, Op: "write", Handle: c, RequestID: 10 + i, Bytes: []byte{0}})
@@ -455,8 +461,16 @@ func TestPendingRequestOwnsBytesAndCapacityFailures(t *testing.T) {
 		m.Ready()
 	}
 	m.Dispatch(Request{Domain: a, Op: "poll", RequestID: 80})
-	if r := m.Dispatch(Request{Domain: b, Op: "read", Handle: s, RequestID: 200, Count: 64}); string(r.Bytes) != "owned" {
-		t.Fatal("pending bytes alias caller", r)
+	var received []byte
+	for id := uint64(200); len(received) < 5; id++ {
+		r := m.Dispatch(Request{Domain: b, Op: "read", Handle: s, RequestID: id, Count: 64})
+		if r.State != "completed" || r.Error != "" {
+			t.Fatal(r)
+		}
+		received = append(received, r.Bytes...)
+	}
+	if string(received) != "owned" {
+		t.Fatalf("pending bytes alias or repeat caller data: %q", received)
 	}
 	limits := testLimits()
 	limits.Listeners = 1

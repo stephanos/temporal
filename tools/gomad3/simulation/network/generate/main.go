@@ -84,7 +84,7 @@ func generate(root string) ([]byte, error) {
 	selected.WriteString("package network\n\n")
 	imports := map[string]string{"time": "time"}
 	bridges := 0
-	for _, name := range []string{"network.go", "simulation_network.go", "simulation_handles.go", "simulation_wire.go"} {
+	for _, name := range []string{"network.go", "network_connection.go", "simulation_network.go", "simulation_handles.go", "simulation_wire.go"} {
 		path := filepath.Join(root, "backends/native/toolchain/runtime/overlay/src/internal/gomadio", name)
 		source, err := os.ReadFile(path)
 		if err != nil {
@@ -127,6 +127,9 @@ func generate(root string) ([]byte, error) {
 				}
 			case *ast.FuncDecl:
 				include = name != "network.go"
+				if name == "network_connection.go" && declaration.Name.Name == "descriptorNoticesLocked" {
+					include = false
+				}
 				if name == "simulation_network.go" && declaration.Recv == nil && nativeBridges[declaration.Name.Name] {
 					include = false
 					bridges++
@@ -161,10 +164,10 @@ func generate(root string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	expected := map[string]int{"record": 14, "record_input": 1, "domain": 3, "descriptor": 1, "closed": 1, "validate": 1, "fields": 1, "now": 2, "deadline": 3, "wait": 4, "dial_wait": 2, "wait_continue": 3}
+	expected := map[string]int{"record": 11, "record_input": 1, "domain": 3, "descriptor": 1, "closed": 1, "validate": 1, "fields": 1, "clock": 1, "notice": 5, "notify": 5, "deadline": 1, "wait": 4, "dial_wait": 2, "wait_continue": 3}
 	for name, want := range expected {
 		if counts[name] != want {
-			return nil, fmt.Errorf("native network rewrite %s changed: got %d, expected %d", name, counts[name], want)
+			return nil, fmt.Errorf("native network rewrite %s changed: got %d, expected %d; counts %v", name, counts[name], want, counts)
 		}
 	}
 	used := make(map[string]bool)
@@ -268,6 +271,10 @@ func adapt(file *ast.File) (map[string]int, error) {
 				counts["closed"]++
 			}
 		case *ast.FuncDecl:
+			if receiverType(node) == "pairedConn" && node.Name.Name == "nowTime" {
+				node.Body.List = []ast.Stmt{&ast.ReturnStmt{Results: []ast.Expr{parseExpression("connection.network.nowTime()")}}}
+				counts["clock"]++
+			}
 			if node.Name.Name == "validateSimulationEndpoint" {
 				node.Body.List = []ast.Stmt{&ast.ReturnStmt{Results: []ast.Expr{parseExpression("network.validateEndpoint(endpoint)")}}}
 				counts["validate"]++
@@ -288,6 +295,10 @@ func adapt(file *ast.File) (map[string]int, error) {
 				}
 				if assignment, ok := statement.(*ast.AssignStmt); ok && len(assignment.Lhs) == 1 && len(assignment.Rhs) == 1 {
 					left, leftOK := assignment.Lhs[0].(*ast.Ident)
+					if leftOK && (left.Name == "notice" || left.Name == "notices") {
+						counts["notice"]++
+						continue
+					}
 					right, rightOK := assignment.Rhs[0].(*ast.Ident)
 					if leftOK && rightOK && left.Name == "input" && right.Name == "source" && assignment.Tok == token.DEFINE {
 						counts["record_input"]++
@@ -296,6 +307,12 @@ func adapt(file *ast.File) (map[string]int, error) {
 				}
 				if callStatement, ok := statement.(*ast.ExprStmt); ok {
 					if call, ok := callStatement.X.(*ast.CallExpr); ok {
+						if selector, ok := call.Fun.(*ast.SelectorExpr); ok {
+							if identifier, ok := selector.X.(*ast.Ident); ok && identifier.Name == "gomadvfd" && selector.Sel.Name == "Notify" {
+								counts["notify"]++
+								continue
+							}
+						}
 						if identifier, ok := call.Fun.(*ast.Ident); ok && identifier.Name == "record" {
 							counts["record"]++
 							continue
@@ -331,10 +348,17 @@ func adapt(file *ast.File) (map[string]int, error) {
 			continue
 		}
 		receiver := "network"
-		if receiverType(function) == "simulationConn" {
+		if receiverType(function) == "simulationConn" || receiverType(function) == "pairedConn" {
 			receiver = "connection.network"
 		}
 		ast.Inspect(function, func(node ast.Node) bool {
+			if receiverType(function) == "pairedConn" && function.Name.Name == "Write" {
+				if literal, ok := node.(*ast.CompositeLit); ok {
+					if identifier, ok := literal.Type.(*ast.Ident); ok && identifier.Name == "waiting" {
+						literal.Elts = append(literal.Elts, &ast.KeyValueExpr{Key: ast.NewIdent("Accepted"), Value: ast.NewIdent("written")})
+					}
+				}
+			}
 			if call, ok := node.(*ast.CallExpr); ok {
 				if identifier, ok := call.Fun.(*ast.Ident); ok && identifier.Name == "deadlineExpired" {
 					call.Fun = parseExpression(receiver + ".deadlineExpired")

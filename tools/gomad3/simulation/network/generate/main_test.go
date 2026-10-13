@@ -36,10 +36,11 @@ func TestProjectionPreservesNativeOwnerBodies(t *testing.T) {
 		"simulationNetwork.accept": true, "simulationNetwork.revoke": true,
 		".validateSimulationEndpoint": true,
 		"simulationListener.Accept":   true, "simulationListener.Close": true,
-		"simulationConn.Read": true, "simulationConn.Write": true, "simulationConn.Close": true,
+		"pairedConn.Read": true, "pairedConn.Write": true, "pairedConn.Close": true,
+		"pairedConn.CloseRead": true, "pairedConn.CloseWrite": true, "pairedConn.nowTime": true,
 	}
 	compared := 0
-	for _, name := range []string{"network.go", "simulation_network.go", "simulation_handles.go", "simulation_wire.go"} {
+	for _, name := range []string{"network.go", "network_connection.go", "simulation_network.go", "simulation_handles.go", "simulation_wire.go"} {
 		native, err := parser.ParseFile(token.NewFileSet(), filepath.Join(root, "backends/native/toolchain/runtime/overlay/src/internal/gomadio", name), nil, 0)
 		if err != nil {
 			t.Fatal(err)

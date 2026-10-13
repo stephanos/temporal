@@ -27,7 +27,7 @@ type descriptorSocket struct {
 	bound         bool
 	closed        bool
 	listener      *standaloneListener
-	connection    *standaloneConn
+	connection    *pairedConn
 	waiting       *standaloneListener
 	connectStatus gomadvfd.Status
 }
@@ -197,7 +197,7 @@ func (backend *standaloneDescriptorBackend) Connect(handle any, address gomadvfd
 	var notices []gomadvfd.Notice
 	switch err {
 	case nil:
-		socket.connection = client.implementation.(*standaloneConn)
+		socket.connection = &client.implementation.(*standaloneConn).pairedConn
 		socket.connection.state.descriptor = socket.identity
 		socket.connectStatus = gomadvfd.OK
 		notices = append(notices, listener.descriptor.notice('r'), socket.identity.notice('w'))
@@ -248,14 +248,14 @@ func (backend *standaloneDescriptorBackend) Accept(handle any) (any, gomadvfd.Ad
 		next.waiting = nil
 		next.connectStatus = descriptorStatus(connectError)
 		if connectError == nil {
-			next.connection = client.implementation.(*standaloneConn)
+			next.connection = &client.implementation.(*standaloneConn).pairedConn
 			next.connection.state.descriptor = next.identity
 			notices = append(notices, listener.descriptor.notice('r'))
 		}
 		notices = append(notices, next.identity.notice('w'))
 	}
 	listener.mu.Unlock()
-	accepted := &descriptorSocket{connection: connection.implementation.(*standaloneConn)}
+	accepted := &descriptorSocket{connection: &connection.implementation.(*standaloneConn).pairedConn}
 	peer := leafAddress(accepted.connection.remote)
 	backend.Unlock()
 	gomadvfd.Notify(notices...)
@@ -297,7 +297,7 @@ func (backend *standaloneDescriptorBackend) resumeWaiting(listener *standaloneLi
 		next.waiting = nil
 		next.connectStatus = descriptorStatus(err)
 		if err == nil {
-			next.connection = client.implementation.(*standaloneConn)
+			next.connection = &client.implementation.(*standaloneConn).pairedConn
 			next.connection.state.descriptor = next.identity
 			notices = append(notices, listener.descriptor.notice('r'))
 		}
@@ -328,7 +328,7 @@ func (backend *standaloneDescriptorBackend) Read(handle any, destination []byte)
 	connection.lockState()
 	n, err, _, freed := connection.tryReadLocked(destination)
 	status := descriptorStatus(err)
-	if err != nil && connection.state.reset {
+	if err == ErrClosed && connection.state.reset {
 		status = gomadvfd.Reset
 	}
 	notice := connection.peer.descriptor.notice('w')
@@ -436,7 +436,7 @@ func (backend *standaloneDescriptorBackend) Close(handle any) gomadvfd.Status {
 		}
 		delete(backend.waiting, listener)
 		for _, pending := range listener.pending {
-			connection := pending.implementation.(*standaloneConn)
+			connection := &pending.implementation.(*standaloneConn).pairedConn
 			connection.lockState()
 			connection.state.reset = true
 			connection.peer.reset = true

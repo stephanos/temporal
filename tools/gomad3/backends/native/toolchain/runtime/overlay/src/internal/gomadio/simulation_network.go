@@ -501,8 +501,8 @@ func (network *simulationNetwork) dial(ctx context.Context, networkName, host st
 		clientState, serverState := newConnStates()
 		clientAddress := Address{IP: domain.Address, Port: clientPort}
 		serverAddress := listener.address
-		client := &simulationConn{pairedConn: pairedConn{local: clientAddress, remote: serverAddress, state: clientState, peer: serverState}, owner: clientEndpoint, target: serverEndpoint, network: network, identity: identity}
-		server := &simulationConn{pairedConn: pairedConn{local: serverAddress, remote: clientAddress, state: serverState, peer: clientState}, owner: serverEndpoint, target: clientEndpoint, network: network, identity: identity}
+		client := &simulationConn{pairedConn: pairedConn{local: clientAddress, remote: serverAddress, state: clientState, peer: serverState, owner: clientEndpoint, target: serverEndpoint, network: network, identity: identity}}
+		server := &simulationConn{pairedConn: pairedConn{local: serverAddress, remote: clientAddress, state: serverState, peer: clientState, owner: serverEndpoint, target: clientEndpoint, network: network, identity: identity}}
 		network.connections[identity] = &simulationConnection{identity: identity, client: clientEndpoint, server: serverEndpoint, clientState: clientState, serverState: serverState}
 		listener.pending = append(listener.pending, server)
 		listener.signal()
@@ -870,8 +870,11 @@ func (network *simulationNetwork) revoke(domain gomadsim.NetworkDomain, graceful
 func (network *simulationNetwork) dropStateDeliveriesLocked(state *connState) {
 	for _, chunk := range state.incoming {
 		delete(network.deliveries, chunk.identity)
-		network.pendingBytes -= uint64(len(chunk.bytes))
+
 	}
+	network.pendingBytes -= state.retainedBytes
+	state.retainedBytes = 0
+	state.pending = nil
 	state.incoming = nil
 }
 

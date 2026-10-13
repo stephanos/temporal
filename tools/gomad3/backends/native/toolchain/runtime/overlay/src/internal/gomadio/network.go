@@ -7,7 +7,6 @@ package gomadio
 import (
 	"context"
 	"errors"
-	"io"
 	"os"
 	"sync"
 	"syscall"
@@ -98,14 +97,6 @@ func (connection *Conn) SetWriteDeadline(deadline time.Time) error {
 	return connection.implementation.SetWriteDeadline(deadline)
 }
 
-type pairedConn struct {
-	local   Address
-	remote  Address
-	state   *connState
-	peer    *connState
-	pending []byte
-	close   sync.Once
-}
 type standaloneConn struct{ pairedConn }
 type standaloneListener struct {
 	address    Address
@@ -116,31 +107,6 @@ type standaloneListener struct {
 	deadline   time.Time
 	changed    chan struct{}
 	descriptor descriptorIdentity
-}
-type connState struct {
-	shared        *connShared
-	incoming      []networkChunk
-	reset         bool
-	readClosed    bool
-	writeClosed   bool
-	readDeadline  time.Time
-	writeDeadline time.Time
-	descriptor    descriptorIdentity
-}
-
-type connShared struct {
-	sync.Mutex
-	changed chan struct{}
-}
-
-type networkChunk struct {
-	identity    uint64
-	connection  uint64
-	source      simulationEndpoint
-	destination simulationEndpoint
-	bytes       []byte
-	ready       time.Time
-	delayNanos  uint64
 }
 
 var networkState = struct {
@@ -327,162 +293,6 @@ func (listener *standaloneListener) signal() {
 	listener.changed = make(chan struct{})
 }
 
-func (connection *standaloneConn) lockState() {
-	connection.state.shared.Lock()
-}
-
-func (connection *standaloneConn) unlockState() {
-	connection.state.shared.Unlock()
-}
-
-func (connection *standaloneConn) Read(destination []byte) (int, error) {
-	if len(destination) == 0 {
-		record("net.read", networkArguments("tcp", connection.local.Port, connection.remote.Port, 0), nil, 0, 0, 0, 0)
-		return 0, nil
-	}
-
-	for {
-		connection.lockState()
-		length, err, ready, freed := connection.tryReadLocked(destination)
-		notice := connection.peer.descriptor.notice('w')
-		if err != errNetworkWouldBlock {
-			connection.unlockState()
-			record("net.read", networkArguments("tcp", connection.local.Port, connection.remote.Port, len(destination)), destination[:length], uint64(length), resultClass(err), 0, 0)
-			if freed {
-				gomadvfd.Notify(notice)
-			}
-			return length, err
-		}
-		deadline := connection.state.readDeadline
-		if !ready.IsZero() {
-			changed := connection.state.shared.changed
-			connection.unlockState()
-			waitForChange(changed, earliestDeadline(deadline, ready))
-			continue
-		}
-		if deadlineExpired(deadline) {
-			connection.unlockState()
-			record("net.read", networkArguments("tcp", connection.local.Port, connection.remote.Port, len(destination)), nil, 0, resultClass(os.ErrDeadlineExceeded), 0, 0)
-			return 0, os.ErrDeadlineExceeded
-		}
-		changed := connection.state.shared.changed
-		connection.unlockState()
-		waitForChange(changed, deadline)
-	}
-}
-
-func (connection *standaloneConn) Write(source []byte) (int, error) {
-	written := 0
-	input := source
-	for len(source) != 0 {
-		connection.lockState()
-		length, err := connection.tryWriteLocked(source)
-		if err == ErrClosed {
-			connection.unlockState()
-			record("net.write", networkArguments("tcp", connection.local.Port, connection.remote.Port, len(input)), input[:written], uint64(written), resultClass(ErrClosed), 0, 0)
-			return written, ErrClosed
-		}
-		if err == nil {
-			notice := connection.peer.descriptor.notice('r')
-			connection.unlockState()
-			written += length
-			source = source[length:]
-			gomadvfd.Notify(notice)
-			continue
-		}
-		deadline := connection.state.writeDeadline
-		if deadlineExpired(deadline) {
-			connection.unlockState()
-			record("net.write", networkArguments("tcp", connection.local.Port, connection.remote.Port, len(input)), input[:written], uint64(written), resultClass(os.ErrDeadlineExceeded), 0, 0)
-			return written, os.ErrDeadlineExceeded
-		}
-		changed := connection.state.shared.changed
-		connection.unlockState()
-		waitForChange(changed, deadline)
-	}
-	record("net.write", networkArguments("tcp", connection.local.Port, connection.remote.Port, len(input)), input, uint64(written), 0, 0, 0)
-	return written, nil
-}
-
-func (connection *standaloneConn) Close() error {
-	closed := false
-	var notices []gomadvfd.Notice
-	connection.close.Do(func() {
-		closed = true
-		connection.lockState()
-
-		connection.shutdownLocked(true, true)
-		notices = connection.descriptorNoticesLocked()
-		connection.unlockState()
-	})
-	if !closed {
-		record("net.close", networkArguments("tcp", connection.local.Port, connection.remote.Port), nil, 0, resultClass(ErrClosed), 0, 0)
-		return ErrClosed
-	}
-	record("net.close", networkArguments("tcp", connection.local.Port, connection.remote.Port), nil, 0, 0, 0, 0)
-	gomadvfd.Notify(notices...)
-	return nil
-}
-
-func (connection *standaloneConn) CloseRead() error {
-	connection.lockState()
-	if connection.state.readClosed {
-		connection.unlockState()
-		return ErrClosed
-	}
-	connection.shutdownLocked(true, false)
-	notices := connection.descriptorNoticesLocked()
-	connection.unlockState()
-	gomadvfd.Notify(notices...)
-	return nil
-}
-
-func (connection *standaloneConn) CloseWrite() error {
-	connection.lockState()
-	if connection.state.writeClosed {
-		connection.unlockState()
-		return ErrClosed
-	}
-	connection.shutdownLocked(false, true)
-	notices := connection.descriptorNoticesLocked()
-	connection.unlockState()
-	gomadvfd.Notify(notices...)
-	return nil
-}
-
-func (connection *standaloneConn) LocalAddress() Address {
-	return connection.local
-}
-
-func (connection *standaloneConn) RemoteAddress() Address {
-	return connection.remote
-}
-
-func (connection *standaloneConn) SetDeadline(deadline time.Time) error {
-	connection.lockState()
-	connection.state.readDeadline = deadline
-	connection.state.writeDeadline = deadline
-	connection.state.shared.signal()
-	connection.unlockState()
-	return nil
-}
-
-func (connection *standaloneConn) SetReadDeadline(deadline time.Time) error {
-	connection.lockState()
-	connection.state.readDeadline = deadline
-	connection.state.shared.signal()
-	connection.unlockState()
-	return nil
-}
-
-func (connection *standaloneConn) SetWriteDeadline(deadline time.Time) error {
-	connection.lockState()
-	connection.state.writeDeadline = deadline
-	connection.state.shared.signal()
-	connection.unlockState()
-	return nil
-}
-
 func newConnStates() (*connState, *connState) {
 	shared := &connShared{changed: make(chan struct{})}
 	return &connState{shared: shared}, &connState{shared: shared}
@@ -526,66 +336,6 @@ func (listener *standaloneListener) tryAcceptLocked() (*Conn, error) {
 		return nil, ErrClosed
 	}
 	return nil, errNetworkWouldBlock
-}
-
-func (connection *standaloneConn) tryReadLocked(destination []byte) (int, error, time.Time, bool) {
-	if len(destination) == 0 {
-		return 0, nil, time.Time{}, false
-	}
-	if connection.state.reset || connection.state.readClosed {
-		return 0, ErrClosed, time.Time{}, false
-	}
-	freed := false
-	if len(connection.pending) == 0 && len(connection.state.incoming) != 0 {
-		chunk := connection.state.incoming[0]
-		if time.Now().Before(chunk.ready) {
-			return 0, errNetworkWouldBlock, chunk.ready, false
-		}
-		connection.pending = chunk.bytes
-		connection.state.incoming[0] = networkChunk{}
-		connection.state.incoming = connection.state.incoming[1:]
-		connection.state.shared.signal()
-		freed = true
-	}
-	if len(connection.pending) != 0 {
-		length := copy(destination, connection.pending)
-		connection.pending = connection.pending[length:]
-		return length, nil, time.Time{}, freed
-	}
-	if connection.peer.writeClosed {
-		return 0, io.EOF, time.Time{}, freed
-	}
-	return 0, errNetworkWouldBlock, time.Time{}, freed
-}
-
-func (connection *standaloneConn) tryWriteLocked(source []byte) (int, error) {
-	if len(source) == 0 {
-		return 0, nil
-	}
-	if connection.state.reset || connection.peer.reset || connection.state.writeClosed || connection.peer.readClosed {
-		return 0, ErrClosed
-	}
-	if len(connection.peer.incoming) == maximumPendingChunks {
-		return 0, errNetworkWouldBlock
-	}
-	length := min(len(source), maximumChunkBytes)
-	connection.peer.incoming = append(connection.peer.incoming, networkChunk{bytes: append([]byte(nil), source[:length]...)})
-	connection.state.shared.signal()
-	return length, nil
-}
-
-func (connection *standaloneConn) shutdownLocked(read, write bool) {
-	if read {
-		connection.state.readClosed = true
-	}
-	if write {
-		connection.state.writeClosed = true
-	}
-	connection.state.shared.signal()
-}
-
-func (connection *standaloneConn) descriptorNoticesLocked() []gomadvfd.Notice {
-	return []gomadvfd.Notice{connection.state.descriptor.notice('r'), connection.state.descriptor.notice('w'), connection.peer.descriptor.notice('r'), connection.peer.descriptor.notice('w')}
 }
 
 func earliestDeadline(left, right time.Time) time.Time {

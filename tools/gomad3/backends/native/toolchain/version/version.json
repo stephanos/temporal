@@ -158,6 +158,7 @@
     "src/internal/gomadio/mount/client.go",
     "src/internal/gomadio/mount/client_test.go",
     "src/internal/gomadio/network.go",
+    "src/internal/gomadio/network_connection.go",
     "src/internal/gomadio/network_handles_test.go",
     "src/internal/gomadio/process_commands.go",
     "src/internal/gomadio/process_commands_export_test.go",
