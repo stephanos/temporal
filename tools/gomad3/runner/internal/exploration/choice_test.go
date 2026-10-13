@@ -2,13 +2,13 @@ package exploration
 
 import (
 	"crypto/sha256"
+	"encoding/json"
 	"reflect"
 	"slices"
 	"strings"
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 )
 
@@ -365,18 +365,18 @@ func TestExplorationRoundSegmentReplaysByteIdentically(t *testing.T) {
 	if replayed.OmittedBySelectReadiness != 1 || len(replayed.Queue) != 2 {
 		t.Fatalf("replayed state = %#v", replayed.Summary())
 	}
-	committedBytes, err := canonicaljson.CanonicalJSON(committed)
+	committedBytes, err := json.Marshal(committed)
 	if err != nil {
 		t.Fatal(err)
 	}
-	replayedBytes, err := canonicaljson.CanonicalJSON(replayed)
+	replayedBytes, err := json.Marshal(replayed)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if !slices.Equal(committedBytes, replayedBytes) {
 		t.Fatalf("replayed state differs:\n%s\n%s", committedBytes, replayedBytes)
 	}
-	segmentBytes, err := canonicaljson.CanonicalJSON(segment)
+	segmentBytes, err := json.Marshal(segment)
 	if err != nil || segment.SHA256 != record.DomainHash(choiceRoundSegmentDomain, segmentBytesWithoutIdentity(t, segment)) {
 		t.Fatalf("segment identity = %q, bytes=%s, error=%v", segment.SHA256, segmentBytes, err)
 	}
@@ -391,6 +391,97 @@ func choiceTestConfig() ChoiceConfig {
 		ControllerSHA256: ChoiceImplementationSHA256(),
 		BaseSeed:         7, Parallel: 4, MaxExecutions: 32, MaxChoiceDepth: 8, MaxExplorationBytes: 1 << 20,
 		FailurePolicy: PolicyAll, FailureBudget: 1,
+	}
+}
+
+func TestChoiceIdentitiesUseCompleteRepeatableStdlibProjections(t *testing.T) {
+	config := choiceTestConfig()
+	root, err := choiceNewCandidate(config, nil, "", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	projection := candidateIdentityProjection{
+		TargetSHA256:         record.SHA256FromSum(config.Execution.TargetSHA256),
+		ToolchainBuildKey:    config.Execution.ToolchainBuildKey,
+		GOOS:                 config.Execution.GOOS,
+		GOARCH:               config.Execution.GOARCH,
+		ImplementationSHA256: record.SHA256FromSum(config.Execution.ImplementationSHA256),
+		ControllerSHA256:     config.ControllerSHA256,
+		BaseSeed:             record.Uint64String(config.BaseSeed),
+		Decisions:            []decisionIdentityProjection{},
+	}
+	encoded, err := json.Marshal(projection)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := record.DomainHash(choiceCandidateDomain, encoded); root.SHA256 != want {
+		t.Fatalf("candidate identity = %s, want stdlib projection %s", root.SHA256, want)
+	}
+
+	for range 32 {
+		repeated, err := choiceNewCandidate(config, nil, "", "")
+		if err != nil || repeated.SHA256 != root.SHA256 {
+			t.Fatalf("repeated candidate = %#v, error = %v; want %s", repeated, err, root.SHA256)
+		}
+	}
+
+	for _, test := range []struct {
+		name   string
+		change func(*ChoiceConfig)
+	}{
+		{name: "target", change: func(config *ChoiceConfig) { config.Execution.TargetSHA256 = sha256.Sum256([]byte("other target")) }},
+		{name: "toolchain", change: func(config *ChoiceConfig) { config.Execution.ToolchainBuildKey = strings.Repeat("b", 64) }},
+		{name: "goos", change: func(config *ChoiceConfig) { config.Execution.GOOS = "linux" }},
+		{name: "goarch", change: func(config *ChoiceConfig) { config.Execution.GOARCH = "amd64" }},
+		{name: "choice implementation", change: func(config *ChoiceConfig) {
+			config.Execution.ImplementationSHA256 = sha256.Sum256([]byte("other choice implementation"))
+		}},
+		{name: "controller", change: func(config *ChoiceConfig) { config.ControllerSHA256 = record.HashBytes([]byte("other controller")) }},
+		{name: "base seed", change: func(config *ChoiceConfig) { config.BaseSeed++ }},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			changed := config
+			test.change(&changed)
+			candidate, err := choiceNewCandidate(changed, nil, "", "")
+			if err != nil {
+				t.Fatal(err)
+			}
+			if candidate.SHA256 == root.SHA256 {
+				t.Fatalf("candidate identity did not bind %s", test.name)
+			}
+		})
+	}
+}
+
+func TestChoiceRoundIdentityIsStableAcrossFrontierMapIteration(t *testing.T) {
+	config := choiceTestConfig()
+	initial, err := NewChoice(config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	round, _ := initial.NextRound()
+	trace := testTape(t, config.Execution,
+		choiceTestDecision(t, 0, choice.KindRunnable, 8, 0),
+		choiceTestDecision(t, 1, choice.KindRunnable, 8, 0),
+	)
+	result := []ChoiceResult{testResult(round.Candidates[0], trace, "repeatable frontier")}
+	var wantState, wantSegment record.SHA256
+	for iteration := range 64 {
+		next, segment, err := CommitChoiceRound(initial, round, result)
+		if err != nil {
+			t.Fatal(err)
+		}
+		stateIdentity, err := ChoiceStateSHA256(next)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if iteration == 0 {
+			wantState, wantSegment = stateIdentity, segment.SHA256
+			continue
+		}
+		if stateIdentity != wantState || segment.SHA256 != wantSegment {
+			t.Fatalf("iteration %d identities = %s/%s, want %s/%s", iteration, stateIdentity, segment.SHA256, wantState, wantSegment)
+		}
 	}
 }
 
@@ -456,7 +547,7 @@ func testResult(candidate ChoiceCandidate, trace choice.ReplayPlan, outcome stri
 func segmentBytesWithoutIdentity(t *testing.T, segment ChoiceRoundSegment) []byte {
 	t.Helper()
 	segment.SHA256 = ""
-	encoded, err := canonicaljson.CanonicalJSON(segment)
+	encoded, err := json.Marshal(segment)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -478,21 +569,21 @@ func TestExplorationFailurePolicyBaseline(t *testing.T) {
 		wantRound record.SHA256
 	}{
 		{name: "all", policy: PolicyAll, budget: 1, distinct: true, maxRuns: 32, wantQueue: 5, wantSeen: 11,
-			wantState: "sha256:29c4dc08452b7a9c12c30903218e5c5713bb0674d7942bd05d57711aa0cb8812", wantRound: "sha256:d79236e601b0d4d3d311c978546064b692d2aaad5d8cfcfe192a1744e2117a01"},
+			wantState: "sha256:f48d53744225258a34a532ca15e0292d2f754dd97dc0ad0f89b40f359402e274", wantRound: "sha256:7d28600fcf094403de165b531566d052db274969b46b10247e6b1036139cd495"},
 		{name: "first", policy: PolicyFirst, budget: 1, distinct: true, maxRuns: 32, wantStop: ChoiceStopFirstFailure, wantQueue: 3, wantSeen: 9,
-			wantState: "sha256:69d352959f1ebdaaec6279e5867daa536c2916089012ca7e12a9f4ee028779c7", wantRound: "sha256:cd9f2e71a90ba558444242bfca04c258d1ada489a8a19d74a283e0df3f0157da"},
+			wantState: "sha256:407f80eb5092dd492fcc390bd1db5b4ca3128d491b17ce7dc7daf83215347864", wantRound: "sha256:9f1c836d9bf4e13b1e63ebf3e78d9cc9f7e2fd6c462bb955570a021165b7449d"},
 		{name: "budget repeated below threshold", policy: PolicyBudget, budget: 2, maxRuns: 32, wantQueue: 5, wantSeen: 11,
-			wantState: "sha256:ad662230644933921d3511069dbdd3eee5a80e5a4f4f643db927520e56e91572", wantRound: "sha256:8e90e14dab1db2dc893780a122765b46cd3568647f97ec13d3e178cc160dac83"},
+			wantState: "sha256:177bd2fc687016e812e1f8a47b8589cd4c4e428891590d68be8b5860a4a962bc", wantRound: "sha256:53bd08ff393f6e1586005afe70afc74593db8e101075c9bcedbe63d8fe3957e0"},
 		{name: "budget distinct reaches threshold", policy: PolicyBudget, budget: 2, distinct: true, maxRuns: 32, wantStop: ChoiceStopFailureBudget, wantQueue: 3, wantSeen: 9,
-			wantState: "sha256:37aa647022748626a86853c558a4b18a30c0b21e56be9eb1f740053040383dcf", wantRound: "sha256:259ad174f01508c79720a50b5780451ab28479ef7522ac1fbc3b7a0da6c89c9a"},
+			wantState: "sha256:08ad4ff0f575127c05464e6ae906f7d6c2661d0164e8e91b0c01225bd520f497", wantRound: "sha256:33be59b15b29244b3da86180dfb9d69a31c9428265af89e40c8fc0716813b43b"},
 		{name: "budget distinct below threshold", policy: PolicyBudget, budget: 3, distinct: true, maxRuns: 32, wantQueue: 5, wantSeen: 11,
-			wantState: "sha256:bfb984e3d3b5cadeb6284f88342c0ec010024bfc586d90d3e7baad4c72ce1724", wantRound: "sha256:04d682021b88e11f50290d9c480be9cb10aa95f25a055f4d258bd910e4ce20c4"},
+			wantState: "sha256:2bef8f84e0f38e2ae26951af29e41dec569efdcbb20222d140c4b17b97fb790a", wantRound: "sha256:98ecb4eaa79ad7251119653395ccf0f749f39fe3820ea711e6133c35951fc3c5"},
 		{name: "budget one", policy: PolicyBudget, budget: 1, distinct: true, maxRuns: 32, wantStop: ChoiceStopFailureBudget, wantQueue: 3, wantSeen: 9,
-			wantState: "sha256:1b1c5fff432f820a56902b1c7fe6e91a72aedfd696d6a8c943d7162f78a2d893", wantRound: "sha256:e0fe60a8086f9be356128259c1f6157eee1e719cb8e045c1a199c37431262114"},
+			wantState: "sha256:12d9732da1d6082df7e2cb1fe447a92d6996e0a0e4d7582b4ef4d14254371612", wantRound: "sha256:be04ea1de1a4f223c0d3388484c09963318d601c5ada6e5ba6015d1b12c0b1fc"},
 		{name: "first bounded children", policy: PolicyFirst, budget: 1, distinct: true, maxRuns: 8, wantStop: ChoiceStopFirstFailure, wantQueue: 2, wantSeen: 8, wantOmit: 1,
-			wantState: "sha256:c6f2a7990fbb953456acc42b99915236936c8697457124702973efa76a8158a7", wantRound: "sha256:74925aad7beecf12e50bf04d61075c6491deeb501e3458f6d3dbd99695b1a1a4"},
+			wantState: "sha256:298c772dbd549e80b29f4e0e5e1c67a76670ec58a9b67d94bb82507642b1cf77", wantRound: "sha256:74f72d85ff1943ca9ab6a74acbb63f453f0326327d47ed2d686b8deca7474506"},
 		{name: "manually invalid policy", policy: FailurePolicy("invalid"), budget: 1, distinct: true, maxRuns: 32, wantQueue: 5, wantSeen: 11,
-			wantState: "sha256:89bf69a4c85ef03f3663a2963e37a8c78d9ef15393b49bf58eca78c59b3e75f2", wantRound: "sha256:eb11a099847a5b68fe653378c0cd7c1741a0c2d8667205678944f11377b2f746"},
+			wantState: "sha256:113b7297b22907680f8895fbe22c2d806e998c33259fe3f4fcc713a7bf4495c4", wantRound: "sha256:90e943e164f78685fb3f2530e18dde4d51d5d32a50f715131092d9082893244f"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			state, round, results := failurePolicyRound(t, test.policy, test.budget, test.maxRuns, test.distinct)
@@ -603,7 +694,7 @@ func TestExplorationValidatesSiblingsAfterPolicyStop(t *testing.T) {
 		} {
 			t.Run(string(policy)+"/"+test.name, func(t *testing.T) {
 				state, round, results := failurePolicyRound(t, policy, 1, 32, true)
-				before, err := canonicaljson.CanonicalJSON(state)
+				before, err := json.Marshal(state)
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -615,7 +706,7 @@ func TestExplorationValidatesSiblingsAfterPolicyStop(t *testing.T) {
 				if next.Config.ControllerSHA256 != "" || len(next.Queue) != 0 || next.LogicalExecutions != 0 || segment.Schema != "" || len(segment.Results) != 0 {
 					t.Fatalf("failed transaction returned state = %#v, segment = %#v", next, segment)
 				}
-				after, err := canonicaljson.CanonicalJSON(state)
+				after, err := json.Marshal(state)
 				if err != nil || !slices.Equal(before, after) {
 					t.Fatalf("failed transaction mutated input, error = %v", err)
 				}

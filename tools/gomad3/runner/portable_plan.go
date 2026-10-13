@@ -10,11 +10,12 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"unicode/utf8"
 
 	backend "go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/captured"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
+	"go.temporal.io/server/tools/gomad3/internal/strictjson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
 	"go.temporal.io/server/tools/gomad3/target"
@@ -195,7 +196,7 @@ func createCampaignPlanWith(ctx context.Context, spec CampaignPlanSpec, dependen
 		return CampaignPlanResult{}, err
 	}
 	document := portableCampaignPlan{Schema: campaignPlanSchema, Storage: campaignPlanStorage, Mapping: campaignPlanMapping, Mounts: mountIdentity, Campaign: plan}
-	encoded, err := canonicaljson.CanonicalJSON(document)
+	encoded, err := encodePortableCampaignPlan(document)
 	if err != nil {
 		return CampaignPlanResult{}, fmt.Errorf("encode campaign plan: %w", err)
 	}
@@ -241,7 +242,7 @@ func openCampaignPlan(path string) (_ openedCampaignPlan, retErr error) {
 		return openedCampaignPlan{}, err
 	}
 	var document portableCampaignPlan
-	if err := canonicaljson.DecodeCanonicalJSON(contents, &document); err != nil {
+	if err := strictjson.Decode(contents, &document); err != nil {
 		return openedCampaignPlan{}, fmt.Errorf("decode campaign plan: %w", err)
 	}
 	if document.Schema != campaignPlanSchema || document.Storage != campaignPlanStorage || document.Mapping != campaignPlanMapping || document.Campaign.Strategy != string(StrategySeed) || document.Campaign.OnFailure != string(PolicyAll) || document.Campaign.PlanSHA256 != "" || document.Campaign.Shard != nil {
@@ -290,6 +291,82 @@ func openCampaignPlan(path string) (_ openedCampaignPlan, retErr error) {
 		return openedCampaignPlan{}, err
 	}
 	return openedCampaignPlan{path: path, identity: record.HashBytes(contents), plan: document.Campaign, mounts: document.Mounts, prepared: prepared}, nil
+}
+
+func encodePortableCampaignPlan(document portableCampaignPlan) ([]byte, error) {
+	if !portableCampaignPlanStringsValid(document) {
+		return nil, errors.New("campaign plan contains strings that are not valid UTF-8")
+	}
+	return json.Marshal(document)
+}
+
+func portableCampaignPlanStringsValid(document portableCampaignPlan) bool {
+	plan := document.Campaign
+	values := []string{
+		document.Schema, document.Storage, document.Mapping,
+		plan.Schema, string(plan.PlanSHA256), plan.Strategy, plan.Selection,
+		string(plan.ChoiceExplorationImplementationSHA256), string(plan.SimulationExplorationImplementationSHA256),
+		plan.OnFailure, plan.RunnerBuild,
+		plan.Toolchain.GoVersion, plan.Toolchain.BuildKey, plan.Toolchain.TargetGOOS, plan.Toolchain.TargetGOARCH,
+		plan.Prepared.Path,
+		plan.IOProfile.Name, string(plan.IOProfile.ImplementationSHA256), string(plan.IOProfile.InventorySHA256),
+		plan.Coverage, plan.KeepSuccesses,
+	}
+	values = append(values, plan.IOROMounts...)
+	values = append(values, plan.RequiredSemanticProbes...)
+	for _, entry := range plan.Environment {
+		values = append(values, entry.Name, entry.Value)
+	}
+	if profile := plan.ChoiceProfile; profile != nil {
+		values = append(values, profile.Name, string(profile.ImplementationSHA256))
+	}
+	if guidance := plan.Guidance; guidance != nil {
+		values = append(values, guidance.Corpus, string(guidance.SnapshotSHA256), guidance.RequestedSelection)
+	}
+	if mounts := document.Mounts; mounts != nil {
+		values = append(values, mounts.Schema, string(mounts.SHA256))
+		values = append(values, mounts.Mappings...)
+	}
+	appendPortableTargetStrings(&values, plan.Prepared.Target)
+	for _, value := range values {
+		if !utf8.ValidString(value) {
+			return false
+		}
+	}
+	return true
+}
+
+func appendPortableTargetStrings(values *[]string, targetRecord record.Target) {
+	*values = append(*values,
+		targetRecord.Kind, targetRecord.Source, targetRecord.File, string(targetRecord.SHA256), targetRecord.CapabilityMode,
+		targetRecord.BuildInfo.GoVersion, targetRecord.BuildInfo.Path, targetRecord.BuildInfo.MainModule,
+	)
+	*values = append(*values, targetRecord.Argv...)
+	*values = append(*values, targetRecord.BuildTags...)
+	for _, adapter := range targetRecord.Adapters {
+		*values = append(*values, adapter.Module, adapter.Version, adapter.Sum)
+	}
+	for _, pack := range targetRecord.Compatibility {
+		*values = append(*values, pack.ID, string(pack.SHA256))
+	}
+	for _, setting := range targetRecord.BuildInfo.Settings {
+		*values = append(*values, setting.Key, setting.Value)
+	}
+	if backendRecord := targetRecord.Backend; backendRecord != nil {
+		*values = append(*values,
+			backendRecord.Name, backendRecord.ReplayMode,
+			backendRecord.Provenance.Schema, backendRecord.Provenance.File, string(backendRecord.Provenance.SHA256),
+		)
+		if evidence := backendRecord.Evidence; evidence != nil {
+			*values = append(*values, evidence.Schema, evidence.File, string(evidence.SHA256))
+		}
+	}
+	if manifest := targetRecord.CapabilityManifest; manifest != nil {
+		*values = append(*values,
+			manifest.Schema, manifest.File, string(manifest.SHA256), string(manifest.ProducerImplementationSHA256),
+			string(manifest.GuardImplementationSHA256), string(manifest.CapabilityUniverseSHA256),
+		)
+	}
 }
 
 // UnsupportedCampaignPlanError refuses a portable plan whose lineage is not

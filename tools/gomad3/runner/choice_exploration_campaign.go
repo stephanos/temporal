@@ -1,11 +1,12 @@
 package runner
 
 import (
+	"encoding/json"
 	"errors"
+	"unicode/utf8"
 
 	backend "go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
 	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
@@ -181,20 +182,22 @@ func isCandidateReplayDivergence(completion runCompletion, candidate exploration
 	return errors.As(completion.err, &divergence) && divergence != nil && exploration.ValidateCandidateDivergence(candidate, identity, divergence.Divergence) == nil
 }
 
+type choiceOutcomeIdentityProjection struct {
+	Domain             string               `json:"domain"`
+	Reason             string               `json:"reason"`
+	Termination        string               `json:"termination"`
+	ExitCode           *record.Uint64String `json:"exit_code,omitempty"`
+	Signal             *string              `json:"signal,omitempty"`
+	StdoutSHA256       record.SHA256        `json:"stdout_sha256"`
+	StderrSHA256       record.SHA256        `json:"stderr_sha256"`
+	IOTranscriptSHA256 record.SHA256        `json:"io_transcript_sha256"`
+	BackendSHA256      record.SHA256        `json:"backend_evidence_sha256,omitempty"`
+	WorldTerminal      record.WorldTerminal `json:"world_terminal"`
+	WorldFinal         record.SHA256        `json:"world_final"`
+}
+
 func explorationOutcomeSHA256(outcome backend.Classification, result backend.ExecutionResult, worldRecord record.World) (record.SHA256, error) {
-	projection := struct {
-		Domain             string               `json:"domain"`
-		Reason             string               `json:"reason"`
-		Termination        string               `json:"termination"`
-		ExitCode           *record.Uint64String `json:"exit_code,omitempty"`
-		Signal             *string              `json:"signal,omitempty"`
-		StdoutSHA256       record.SHA256        `json:"stdout_sha256"`
-		StderrSHA256       record.SHA256        `json:"stderr_sha256"`
-		IOTranscriptSHA256 record.SHA256        `json:"io_transcript_sha256"`
-		BackendSHA256      record.SHA256        `json:"backend_evidence_sha256,omitempty"`
-		WorldTerminal      record.WorldTerminal `json:"world_terminal"`
-		WorldFinal         record.SHA256        `json:"world_final"`
-	}{
+	projection := choiceOutcomeIdentityProjection{
 		Domain: outcome.Domain, Reason: outcome.Reason, Termination: outcome.Termination,
 		ExitCode: outcome.ExitCode, Signal: outcome.Signal,
 		StdoutSHA256: record.SHA256FromSum(result.Stdout.FullSHA256), StderrSHA256: record.SHA256FromSum(result.Stderr.FullSHA256),
@@ -203,7 +206,16 @@ func explorationOutcomeSHA256(outcome backend.Classification, result backend.Exe
 	if len(result.BackendEvidence) != 0 {
 		projection.BackendSHA256 = record.HashBytes(result.BackendEvidence)
 	}
-	encoded, err := canonicaljson.CanonicalJSON(projection)
+	strings := []string{projection.Domain, projection.Reason, projection.Termination, projection.WorldTerminal.Kind, projection.WorldTerminal.Detail, string(projection.WorldFinal)}
+	if projection.Signal != nil {
+		strings = append(strings, *projection.Signal)
+	}
+	for _, value := range strings {
+		if !utf8.ValidString(value) {
+			return "", errors.New("choice exploration outcome identity is not valid UTF-8")
+		}
+	}
+	encoded, err := json.Marshal(projection)
 	if err != nil {
 		return "", err
 	}

@@ -3,6 +3,7 @@ package runner
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"io/fs"
 	"os"
@@ -14,13 +15,13 @@ import (
 
 	backend "go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+	"go.temporal.io/server/tools/gomad3/internal/strictjson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
-func TestCreateCampaignPlanPublishesCanonicalPreparedTargetBundle(t *testing.T) {
+func TestCreateCampaignPlanPublishesStablePreparedTargetBundle(t *testing.T) {
 	preparer := newFakePreparer(t)
 	config, configDependencies := testConfig(t, preparer, &fakeExecutor{}, "9-11,2", PolicyAll, 2)
 	firstPath := filepath.Join(t.TempDir(), "campaign.plan.json")
@@ -45,7 +46,7 @@ func TestCreateCampaignPlanPublishesCanonicalPreparedTargetBundle(t *testing.T) 
 		t.Fatal(err)
 	}
 	if string(firstBytes) != string(secondBytes) {
-		t.Fatal("canonical plan bytes depend on their output path")
+		t.Fatal("plan bytes depend on their output path")
 	}
 	opened, err := openCampaignPlan(firstPath)
 	if err != nil {
@@ -60,6 +61,33 @@ func TestCreateCampaignPlanPublishesCanonicalPreparedTargetBundle(t *testing.T) 
 	}
 	if inspection.Kind != "campaign-plan" || inspection.Plan == nil || inspection.Plan.SHA256 != first.SHA256 || inspection.Plan.SelectionCount != 4 || inspection.Plan.Schema != campaignPlanSchema || inspection.Plan.Storage != campaign.CampaignLogFormat || inspection.Log != nil {
 		t.Fatalf("campaign plan inspection = %#v", inspection)
+	}
+	ordinaryPath := filepath.Join(t.TempDir(), "ordinary.plan.json")
+	var ordinary bytes.Buffer
+	if err := json.Indent(&ordinary, firstBytes, "", "  "); err != nil {
+		t.Fatal(err)
+	}
+	ordinary.WriteByte('\n')
+	if err := os.WriteFile(ordinaryPath, ordinary.Bytes(), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.CopyFS(ordinaryPath+campaignPlanBundleSuffix, os.DirFS(firstPath+campaignPlanBundleSuffix)); err != nil {
+		t.Fatal(err)
+	}
+	for _, fix := range []struct {
+		path string
+		mode os.FileMode
+	}{{ordinaryPath + campaignPlanBundleSuffix, 0o700}, {filepath.Join(ordinaryPath+campaignPlanBundleSuffix, campaignPlanTargetFile), 0o500}} {
+		if err := os.Chmod(fix.path, fix.mode); err != nil {
+			t.Fatal(err)
+		}
+	}
+	ordinaryOpened, err := openCampaignPlan(ordinaryPath)
+	if err != nil {
+		t.Fatalf("open ordinary JSON plan: %v", err)
+	}
+	if ordinaryOpened.identity != record.HashBytes(ordinary.Bytes()) || !reflect.DeepEqual(ordinaryOpened.plan, opened.plan) {
+		t.Fatalf("ordinary plan = %#v, want semantic plan %#v", ordinaryOpened, opened)
 	}
 
 	targetPath := filepath.Join(firstPath+campaignPlanBundleSuffix, campaignPlanTargetFile)
@@ -514,12 +542,12 @@ func runnerTreeSnapshot(t *testing.T, root string) map[string]string {
 	return snapshot
 }
 
-func TestOpenCampaignPlanRejectsNoncanonicalAndInvalidDocuments(t *testing.T) {
-	canonical, err := canonicaljson.CanonicalJSON(portableCampaignPlan{Schema: campaignPlanSchema, Storage: campaignPlanStorage, Mapping: campaignPlanMapping})
+func TestOpenCampaignPlanRejectsStrictlyInvalidDocuments(t *testing.T) {
+	ordinary, err := json.Marshal(portableCampaignPlan{Schema: campaignPlanSchema, Storage: campaignPlanStorage, Mapping: campaignPlanMapping})
 	if err != nil {
 		t.Fatal(err)
 	}
-	invalidIdentity, err := canonicaljson.CanonicalJSON(portableCampaignPlan{Schema: campaignPlanSchema, Storage: campaignPlanStorage, Mapping: "ordinal-modulo/v0"})
+	invalidIdentity, err := json.Marshal(portableCampaignPlan{Schema: campaignPlanSchema, Storage: campaignPlanStorage, Mapping: "ordinal-modulo/v0"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -529,16 +557,17 @@ func TestOpenCampaignPlanRejectsNoncanonicalAndInvalidDocuments(t *testing.T) {
 		contents string
 		want     string
 	}{
-		{name: "incomplete object", contents: `{` + lineage + `,"mapping":"ordinal-modulo/v1"}`, want: "decode campaign plan: JSON is not canonical"},
-		{name: "trailing whitespace", contents: string(canonical) + "\n", want: "decode campaign plan: JSON is not canonical"},
-		{name: "trailing data", contents: string(canonical) + "{}", want: "decode campaign plan: unexpected trailing JSON token {"},
-		{name: "unknown field", contents: `{"extra":true,` + lineage + `}`, want: `decode campaign plan: decode JSON: json: unknown field "extra"`},
-		{name: "malformed", contents: `{"schema":`, want: "decode campaign plan: decode JSON token: EOF"},
+		{name: "incomplete object", contents: `{` + lineage + `,"mapping":"ordinal-modulo/v1"}`, want: "campaign plan protocol identity is invalid"},
+		{name: "trailing data", contents: string(ordinary) + "{}", want: "decode campaign plan:"},
+		{name: "unknown field", contents: `{"extra":true,` + lineage + `}`, want: "decode campaign plan:"},
+		{name: "duplicate field", contents: `{"schema":"gomad3.portable-campaign-plan/v1",` + lineage + `}`, want: "decode campaign plan:"},
+		{name: "malformed", contents: `{"schema":`, want: "decode campaign plan:"},
+		{name: "invalid UTF-8", contents: `{` + lineage + `,"mapping":"` + string([]byte{0xff}) + `"}`, want: "decode campaign plan:"},
 		{name: "invalid protocol identity", contents: string(invalidIdentity), want: "campaign plan protocol identity is invalid"},
 		{name: "earlier lineage", contents: `{"campaign":{},"mapping":"ordinal-modulo/v1","schema":"gomad3.campaign-plan/v1"}`, want: `unsupported campaign plan format "gomad3.campaign-plan/v1" for storage ""`},
 		{name: "another storage", contents: `{"schema":"gomad3.portable-campaign-plan/v1","storage":"gomad3.campaign-directory/v1"}`, want: `unsupported campaign plan format "gomad3.portable-campaign-plan/v1" for storage "gomad3.campaign-directory/v1"`},
 		{name: "current schema without storage", contents: `{"schema":"gomad3.portable-campaign-plan/v1"}`, want: `unsupported campaign plan format "gomad3.portable-campaign-plan/v1" for storage ""`},
-		{name: "no lineage", contents: `{}`, want: "decode campaign plan: JSON is not canonical"},
+		{name: "no lineage", contents: `{}`, want: "campaign plan protocol identity is invalid"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			path := filepath.Join(t.TempDir(), "campaign.plan.json")
@@ -547,6 +576,32 @@ func TestOpenCampaignPlanRejectsNoncanonicalAndInvalidDocuments(t *testing.T) {
 			}
 			if _, err := openCampaignPlan(path); err == nil || !strings.HasPrefix(err.Error(), test.want) {
 				t.Fatalf("openCampaignPlan() error = %v, want %s", err, test.want)
+			}
+		})
+	}
+}
+
+func TestEncodePortableCampaignPlanRejectsInvalidOriginalStrings(t *testing.T) {
+	invalid := string([]byte{0xff})
+	for _, test := range []struct {
+		name   string
+		change func(*portableCampaignPlan)
+	}{
+		{name: "document", change: func(document *portableCampaignPlan) { document.Schema = invalid }},
+		{name: "campaign", change: func(document *portableCampaignPlan) { document.Campaign.RunnerBuild = invalid }},
+		{name: "environment", change: func(document *portableCampaignPlan) {
+			document.Campaign.Environment = []record.Environment{{Name: "KEY", Value: invalid}}
+		}},
+		{name: "target", change: func(document *portableCampaignPlan) { document.Campaign.Prepared.Target.Argv = []string{invalid} }},
+		{name: "mounts", change: func(document *portableCampaignPlan) {
+			document.Mounts = &campaignPlanMountIdentity{Mappings: []string{invalid}}
+		}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			document := portableCampaignPlan{Schema: campaignPlanSchema, Storage: campaignPlanStorage, Mapping: campaignPlanMapping}
+			test.change(&document)
+			if _, err := encodePortableCampaignPlan(document); err == nil || !strings.Contains(err.Error(), "valid UTF-8") {
+				t.Fatalf("encodePortableCampaignPlan() error = %v", err)
 			}
 		})
 	}
@@ -561,11 +616,11 @@ func rewriteCampaignPlan(t *testing.T, path string, change func(*portableCampaig
 		t.Fatal(err)
 	}
 	var document portableCampaignPlan
-	if err := canonicaljson.DecodeCanonicalJSON(contents, &document); err != nil {
+	if err := strictjson.Decode(contents, &document); err != nil {
 		t.Fatal(err)
 	}
 	change(&document)
-	encoded, err := canonicaljson.CanonicalJSON(document)
+	encoded, err := encodePortableCampaignPlan(document)
 	if err != nil {
 		t.Fatal(err)
 	}

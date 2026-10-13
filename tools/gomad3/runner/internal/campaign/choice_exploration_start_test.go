@@ -13,10 +13,11 @@ import (
 // The values below were produced by the Runner before choice exploration had
 // a start ordinal, and re-derived when the choice tape header moved to v3
 // and when the controller identity moved to v3 for the select-poll
-// reduction. A default start ordinal keeps the initial state identity and
-// the campaign plan's canonical bytes.
+// reduction. The initial state identity was re-derived when choice state
+// projections moved to encoding/json. A default start ordinal keeps that
+// identity and the campaign plan's canonical bytes.
 const (
-	retainedInitialStateSHA256      record.SHA256 = "sha256:3c33957816f4bed22cba236db047973f8212092d911dbe879283774be9b84e73"
+	retainedInitialStateSHA256      record.SHA256 = "sha256:bfa322bbbdacdf4ff0e9752fc0b8721e798fdfb6ad43013e047b419d899d4738"
 	retainedChoicePlanCanonicalHash record.SHA256 = "sha256:1c7cfef620e584c75cb5854eae44d79ec50b101717d42df44adc39a96893a76d"
 )
 

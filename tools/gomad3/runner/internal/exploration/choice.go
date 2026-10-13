@@ -3,12 +3,13 @@ package exploration
 import (
 	"bytes"
 	"crypto/sha256"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"slices"
+	"unicode/utf8"
 
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 )
 
@@ -376,17 +377,17 @@ func ChoiceReplaySegment(state ChoiceState, segment ChoiceRoundSegment) (ChoiceS
 	if err != nil {
 		return ChoiceState{}, err
 	}
-	left, err := canonicaljson.CanonicalJSON(segment)
+	left, err := json.Marshal(segment)
 	if err != nil {
 		return ChoiceState{}, err
 	}
-	right, err := canonicaljson.CanonicalJSON(regenerated)
+	right, err := json.Marshal(regenerated)
 	if err != nil {
 		return ChoiceState{}, err
 	}
 	after, err := choiceStateIdentity(next)
 	if err != nil || !bytes.Equal(left, right) || after != segment.AfterSHA256 {
-		return ChoiceState{}, errors.Join(errors.New("choice exploration segment replay changed its canonical result"), err)
+		return ChoiceState{}, errors.Join(errors.New("choice exploration segment replay changed its recorded result"), err)
 	}
 	return next, nil
 }
@@ -512,6 +513,9 @@ type decisionIdentityProjection struct {
 }
 
 func choiceNewCandidate(config ChoiceConfig, prefix *choice.ReplayPlan, parent, source record.SHA256) (ChoiceCandidate, error) {
+	if !utf8.ValidString(config.Execution.ToolchainBuildKey) || !utf8.ValidString(config.Execution.GOOS) || !utf8.ValidString(config.Execution.GOARCH) {
+		return ChoiceCandidate{}, errors.New("choice exploration execution identity is not valid UTF-8")
+	}
 	decisions := []choice.Decision{}
 	candidate := ChoiceCandidate{ParentSHA256: parent, SourceTraceSHA256: source}
 	if prefix != nil {
@@ -544,7 +548,7 @@ func choiceNewCandidate(config ChoiceConfig, prefix *choice.ReplayPlan, parent, 
 			Selected: decision.Selected, Data: decision.Data, SelectedIdentity: selected, AlternativeSetDigest: record.SHA256FromSum(decision.AlternativeSetDigest),
 		}
 	}
-	encoded, err := canonicaljson.CanonicalJSON(projection)
+	encoded, err := json.Marshal(projection)
 	if err != nil {
 		return ChoiceCandidate{}, err
 	}
@@ -579,7 +583,7 @@ func validateCandidateTrace(candidate ChoiceCandidate, trace choice.ReplayPlan, 
 }
 
 func choiceStateIdentity(state ChoiceState) (record.SHA256, error) {
-	encoded, err := canonicaljson.CanonicalJSON(state)
+	encoded, err := json.Marshal(state)
 	if err != nil {
 		return "", err
 	}
@@ -593,7 +597,7 @@ func ChoiceStateSHA256(state ChoiceState) (record.SHA256, error) {
 func choiceSegmentIdentity(segment ChoiceRoundSegment) (record.SHA256, error) {
 	copy := segment
 	copy.SHA256 = ""
-	encoded, err := canonicaljson.CanonicalJSON(copy)
+	encoded, err := json.Marshal(copy)
 	if err != nil {
 		return "", err
 	}
@@ -601,7 +605,7 @@ func choiceSegmentIdentity(segment ChoiceRoundSegment) (record.SHA256, error) {
 }
 
 func choiceCandidateBytes(candidate ChoiceCandidate) (uint64, error) {
-	encoded, err := canonicaljson.CanonicalJSON(candidate)
+	encoded, err := json.Marshal(candidate)
 	if err != nil {
 		return 0, err
 	}

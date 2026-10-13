@@ -3,6 +3,7 @@ package runner
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"path/filepath"
@@ -13,7 +14,6 @@ import (
 	backend "go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/captured"
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
 	"go.temporal.io/server/tools/gomad3/target"
@@ -150,11 +150,11 @@ func runnerCampaignShard(shard *campaign.CampaignShard) CampaignShard {
 }
 
 func equalBatchPlans(left, right campaign.CampaignPlan) (bool, error) {
-	leftBytes, err := canonicaljson.CanonicalJSON(left)
+	leftBytes, err := json.Marshal(left)
 	if err != nil {
 		return false, err
 	}
-	rightBytes, err := canonicaljson.CanonicalJSON(right)
+	rightBytes, err := json.Marshal(right)
 	return bytes.Equal(leftBytes, rightBytes), err
 }
 

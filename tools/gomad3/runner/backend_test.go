@@ -377,6 +377,98 @@ func TestExternalChoiceOutcomeBindsBackendEvidence(t *testing.T) {
 	}
 }
 
+func TestChoiceOutcomeIdentityUsesACompleteStdlibProjection(t *testing.T) {
+	exitCode := record.Uint64String(0)
+	baseOutcome := backend.Classification{Domain: "success", Reason: "world_idle", Termination: "exit", ExitCode: &exitCode}
+	baseResult := processResult(0, "stdout", "stderr")
+	baseResult.IOTranscript.SHA256[0] = 1
+	baseResult.BackendEvidence = []byte("backend evidence")
+	baseWorld := record.World{
+		Terminal: record.WorldTerminal{Kind: "idle", Detail: "settled"},
+		Final:    record.WorldPayload{SemanticDigest: record.HashBytes([]byte("world final"))},
+	}
+	base, err := explorationOutcomeSHA256(baseOutcome, baseResult, baseWorld)
+	if err != nil {
+		t.Fatal(err)
+	}
+	projection := choiceOutcomeIdentityProjection{
+		Domain: baseOutcome.Domain, Reason: baseOutcome.Reason, Termination: baseOutcome.Termination,
+		ExitCode: baseOutcome.ExitCode, Signal: baseOutcome.Signal,
+		StdoutSHA256: record.SHA256FromSum(baseResult.Stdout.FullSHA256), StderrSHA256: record.SHA256FromSum(baseResult.Stderr.FullSHA256),
+		IOTranscriptSHA256: record.SHA256FromSum(baseResult.IOTranscript.SHA256), BackendSHA256: record.HashBytes(baseResult.BackendEvidence),
+		WorldTerminal: baseWorld.Terminal, WorldFinal: baseWorld.Final.SemanticDigest,
+	}
+	encoded, err := json.Marshal(projection)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := record.DomainHash("gomad3-choice-exploration-outcome/v1", encoded); base != want {
+		t.Fatalf("outcome identity = %s, want stdlib projection %s", base, want)
+	}
+
+	for _, test := range []struct {
+		name   string
+		change func(*backend.Classification, *backend.ExecutionResult, *record.World)
+	}{
+		{name: "domain", change: func(value *backend.Classification, _ *backend.ExecutionResult, _ *record.World) {
+			value.Domain = "target"
+		}},
+		{name: "reason", change: func(value *backend.Classification, _ *backend.ExecutionResult, _ *record.World) {
+			value.Reason = "nonzero_exit"
+		}},
+		{name: "termination", change: func(value *backend.Classification, _ *backend.ExecutionResult, _ *record.World) {
+			value.Termination = "signal"
+		}},
+		{name: "exit code", change: func(value *backend.Classification, _ *backend.ExecutionResult, _ *record.World) {
+			changed := record.Uint64String(1)
+			value.ExitCode = &changed
+		}},
+		{name: "signal", change: func(value *backend.Classification, _ *backend.ExecutionResult, _ *record.World) {
+			changed := "SIGTERM"
+			value.Signal = &changed
+		}},
+		{name: "stdout", change: func(_ *backend.Classification, value *backend.ExecutionResult, _ *record.World) {
+			value.Stdout.FullSHA256[0]++
+		}},
+		{name: "stderr", change: func(_ *backend.Classification, value *backend.ExecutionResult, _ *record.World) {
+			value.Stderr.FullSHA256[0]++
+		}},
+		{name: "I/O transcript", change: func(_ *backend.Classification, value *backend.ExecutionResult, _ *record.World) {
+			value.IOTranscript.SHA256[0]++
+		}},
+		{name: "backend evidence", change: func(_ *backend.Classification, value *backend.ExecutionResult, _ *record.World) {
+			value.BackendEvidence = []byte("changed backend evidence")
+		}},
+		{name: "World terminal kind", change: func(_ *backend.Classification, _ *backend.ExecutionResult, value *record.World) {
+			value.Terminal.Kind = "deadlock"
+		}},
+		{name: "World terminal detail", change: func(_ *backend.Classification, _ *backend.ExecutionResult, value *record.World) {
+			value.Terminal.Detail = "changed detail"
+		}},
+		{name: "World final", change: func(_ *backend.Classification, _ *backend.ExecutionResult, value *record.World) {
+			value.Final.SemanticDigest = record.HashBytes([]byte("changed world final"))
+		}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			outcome, result, worldRecord := baseOutcome, baseResult, baseWorld
+			test.change(&outcome, &result, &worldRecord)
+			changed, err := explorationOutcomeSHA256(outcome, result, worldRecord)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if changed == base {
+				t.Fatalf("outcome identity did not bind %s", test.name)
+			}
+		})
+	}
+
+	invalid := baseOutcome
+	invalid.Reason = string([]byte{0xff})
+	if _, err := explorationOutcomeSHA256(invalid, baseResult, baseWorld); err == nil || !strings.Contains(err.Error(), "valid UTF-8") {
+		t.Fatalf("invalid outcome string error = %v", err)
+	}
+}
+
 func TestExternalExecutionValidatesChoiceAndDiagnosticTransport(t *testing.T) {
 	prepared := newFakePreparer(t).prepared
 	capability, err := choiceCapabilityForJob(campaignRequest{ChoiceTraceLimit: 4096}, prepared, runJob{seed: 7})
