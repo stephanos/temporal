@@ -7,11 +7,16 @@ satisfies: [R2]
 The integrated requirements audit found that the explicit 2026-10-12 amendment still has handwritten duplicate-key and UTF-8/trailing scanners in backends/wasm/wasi/protocol.go, backends/wasm/qualification/spec.go, backends/wasm/installation/installation.go and backends/wasm/simulation/oracles.go. Migrate these named surfaces to the pinned shared strict JSON owner; retain field ownership, protocol framing, transport buffers and mutable caller-buffer ownership, numeric semantics, capacity/depth limits, refusal classes, error precedence, and model identity inputs. Update permitted architecture edges and tests before using the shared owner. No encoder, generic canonical comparison, compatibility fallback or new handwritten strictness scanner. This is a missing explicit spec requirement, not a new feature.
 
 **Size:** M
-**Touches:** [tools/gomad3/backends/wasm/wasi/protocol*, tools/gomad3/backends/wasm/wasi/helper_model*, tools/gomad3/backends/wasm/wasi/identity_test.go, tools/gomad3/backends/wasm/qualification/spec*, tools/gomad3/backends/wasm/installation/**, tools/gomad3/backends/wasm/simulation/oracles*, tools/gomad3/internal/strictjson/**, tools/gomad3/internal/archcheck/**]
+**Touches:** [tools/gomad3/backends/wasm/wasi/protocol*, tools/gomad3/backends/wasm/wasi/helper_model*, tools/gomad3/backends/wasm/wasi/identity*, tools/gomad3/backends/wasm/qualification/spec*, tools/gomad3/backends/wasm/qualification/*_test.go, tools/gomad3/backends/wasm/installation/**, tools/gomad3/backends/wasm/simulation/oracles*, tools/gomad3/internal/strictjson/**, tools/gomad3/internal/archcheck/**]
 
 ## Revival trigger (2026-10-13)
 
 The final fn153 requirements audit demonstrated that the named WASM readers still contain the owner-amended handwritten JSON scanners. Finish this missing migration within the authorized shared-owner rotation batch before fn153.18's final audit and completion review. Preserve existing transport/model semantics and resource/error contracts; update generated identities from the integrated candidate and keep historical qualification bound to its original sources. Native deferrals and the no-CI/PR/push boundary remain in force.
+
+
+### Identity owner binding
+
+The caller migration also binds the actual strictjson implementation sources and pinned library version/content sum into the WASI composite identity. `internal/strictjson/identity.go` embeds source without runtime host reads; tests verify its pin against go.mod/go.sum and reject missing-source/drift. `wasi/identity.go` consumes that identity and fails closed when absent. This exact source/identity edge was authorized before implementation. Caller depth enforcement uses only the pinned tokenizer API, preserving legacy root-zero empty-container boundaries; duplicate/UTF-8/schema syntax remains library-owned.
 
 ## Verification
 

@@ -48,15 +48,29 @@ definitions; no independent native process JSON decoder exists.
   `/tmp/impl-review-receipt-657da2bc4466-fn-154-gomad-simpler-virtual-network-with.3.json`.
   Fn154.3 remains open for its explicitly required patched-runtime adapter
   execution; portable actual-source coverage does not satisfy that gate.
+- `2cdde5cf18` integrates fn153.20's four WASM reader migrations, removes their
+  handwritten syntax scanners and binds the decoder source plus pinned library
+  version/content sum into the WASI identity
+  `sha256:bb14f0ed4249d17e7474cda0864ce6f8ae521b169e7aa80c9d3844b7d1ba149c`.
+  Root-zero empty-container boundaries have red/green regressions. Root reader,
+  identity and actual-helper parity checks passed; the full simulation package
+  passed in 114.297 s, and affected lint reported zero issues. The helper was
+  the existing `c2e4ff2f...` binary, not rebuilt or requalified by this task.
+  Full architecture found the new tokenizer/pure-source inventory omissions;
+  those remain under repair before source review or completion.
 
 ## Verification and remaining work
 
 Stock Go is 1.27.1 on linux/arm64. Tests use `-tags test_dep -count=1`.
-Integrated World/Record/strictjson/hostfs/minimizer, protocol generation,
+Earlier integrated World/Record/strictjson/hostfs/minimizer, protocol generation,
 network/model projections, portable simulator, both-platform architecture and
 `make -C tools/gomad3 validate` pass. Changed-package fast lint passes with
 fixes disabled; log `/tmp/fn153-18-integrated-fast-lint-20261013.log`.
 Generator log: `/tmp/wasm-rotation-validate-20261013.log`.
+Current reader/simulation/lint source results are recorded separately from the
+still-red architecture candidate: `/tmp/fn153-20-root-simulation-20261013.log`,
+`/tmp/fn153-20-root-integrated-lint-20261013.log`, and
+`/tmp/fn153-20-root-architecture-red-20261013.log`.
 Timeout candidate validation log: `/tmp/fn154-3-frozen-validate-20261013.log`;
 lint log: `/tmp/fn154-3-integrated-lint-20261013.log`. The reviewed source was
 frozen at `7e60601caf`; the first review dispatch was not accepted after a
