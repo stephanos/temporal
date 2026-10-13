@@ -36,6 +36,7 @@ type connState struct {
 	stallStart    time.Time
 	stallDue      time.Time
 	stallEpoch    uint64
+	stallTimer    *time.Timer
 	readClosed    bool
 	writeClosed   bool
 	readDeadline  time.Time
@@ -70,6 +71,9 @@ func (connection *pairedConn) deadlineExpired(deadline time.Time) bool {
 	return !deadline.IsZero() && !connection.nowTime().Before(deadline)
 }
 func (connection *pairedConn) terminalError() error {
+	if connection.network != nil && connection.network.divergence != nil {
+		return connection.network.divergence
+	}
 	if connection.state.terminal != nil {
 		return connection.state.terminal
 	}
@@ -118,16 +122,16 @@ func (connection *pairedConn) Read(destination []byte) (int, error) {
 			return length, err
 		}
 		deadline := connection.state.readDeadline
+		if connection.deadlineExpired(deadline) {
+			connection.unlockState()
+			record("net.read", networkArguments("tcp", connection.local.Port, connection.remote.Port, len(destination)), nil, 0, resultClass(os.ErrDeadlineExceeded), 0, 0)
+			return 0, os.ErrDeadlineExceeded
+		}
 		if !ready.IsZero() {
 			changed := connection.state.shared.changed
 			connection.unlockState()
 			waitForChange(changed, earliestDeadline(deadline, ready))
 			continue
-		}
-		if connection.deadlineExpired(deadline) {
-			connection.unlockState()
-			record("net.read", networkArguments("tcp", connection.local.Port, connection.remote.Port, len(destination)), nil, 0, resultClass(os.ErrDeadlineExceeded), 0, 0)
-			return 0, os.ErrDeadlineExceeded
 		}
 		changed := connection.state.shared.changed
 		connection.unlockState()
@@ -183,9 +187,22 @@ func (connection *pairedConn) Close() error {
 		return ErrClosed
 	}
 	if connection.network != nil {
-		if err := connection.network.commitTransitionLocked(simulationTransition{Kind: "close", Source: connection.owner, Destination: connection.target, Connection: connection.identity, Outcome: "ok"}); err != nil {
+		var release uint64
+		if connection.state.shared.pair.reserved {
+			release = 1
+		}
+		if err := connection.network.commitBatchLocked([]simulationTransition{{Kind: "close", Source: connection.owner, Destination: connection.target, Connection: connection.identity, Outcome: "ok"}}, 0, release); err != nil {
 			connection.unlockState()
 			return err
+		}
+		connection.state.shared.pair.reserved = false
+		for _, state := range []*connState{connection.state, connection.peer} {
+			state.stalled = false
+			state.stallEpoch++
+			connection.network.armStallTimerLocked(state)
+		}
+		if !connection.network.links[simulationLinkKey(connection.owner.Node, connection.target.Node)].Enabled {
+			connection.network.dropUndeliveredLocked(connection.peer)
 		}
 	}
 	connection.state.closeCalled = true
@@ -377,6 +394,7 @@ func (connection *pairedConn) tryWriteLocked(source []byte) (int, error) {
 			connection.peer.stallDue = due
 			connection.peer.stallEpoch++
 			connection.state.shared.pair.reserved = true
+			connection.network.armStallTimerLocked(connection.peer)
 		}
 		chunk.identity = delivery
 		chunk.connection = connection.identity
@@ -429,3 +447,38 @@ func checkedNetworkReadyTime(start time.Time, delay uint64) (time.Time, error) {
 }
 
 func (network *simulationNetwork) nowTime() time.Time { return time.Now() }
+
+func (network *simulationNetwork) armStallTimerLocked(state *connState) {
+	if state.stallTimer != nil {
+		state.stallTimer.Stop()
+		state.stallTimer = nil
+	}
+	if !state.stalled {
+		return
+	}
+	pair, epoch, due := state.shared.pair, state.stallEpoch, state.stallDue
+	state.stallTimer = time.AfterFunc(max(time.Until(due), 0), func() {
+		network.Lock()
+		pair.clientState.shared.Lock()
+		err := network.expireStallLocked(pair, state, epoch, due)
+		if err != nil {
+			pair.clientState.shared.signal()
+			network.signalLocked()
+		}
+		notices := []gomadvfd.Notice{pair.clientState.descriptor.notice('r'), pair.clientState.descriptor.notice('w'), pair.serverState.descriptor.notice('r'), pair.serverState.descriptor.notice('w')}
+		pair.clientState.shared.Unlock()
+		network.Unlock()
+		gomadvfd.Notify(notices...)
+	})
+}
+
+func (network *simulationNetwork) dropUndeliveredLocked(state *connState) {
+	var discarded uint64
+	for _, chunk := range state.incoming {
+		discarded += uint64(len(chunk.bytes))
+		delete(network.deliveries, chunk.identity)
+	}
+	state.incoming = nil
+	state.retainedBytes -= discarded
+	network.pendingBytes -= discarded
+}

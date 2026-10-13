@@ -180,4 +180,17 @@ func TestNetworkHandleCommittedTerminalTimeout(t *testing.T) {
   }
  })}
 }
+
+func TestNetworkHandleAutonomousStallSourceTimer(t *testing.T) {
+ c,s,set:=publicPair(t,true)
+ local:=c.implementation.(*simulationConn)
+ n:=local.network;n.limits.StallNanos=1_000_000;n.limits.Transitions=6
+ if err:=n.changeLink("a","b","disconnect",false,0);err!=nil{t.Fatal(err)}
+ set(true);if count,err:=c.Write([]byte("held"));count!=4||err!=nil{t.Fatalf("held=%d,%v",count,err)}
+ n.Lock();local.state.shared.Lock();changed:=local.state.shared.changed;local.state.shared.Unlock();n.Unlock()
+ timer:=time.NewTimer(time.Second);defer timer.Stop()
+ select{case <-changed:case <-timer.C:t.Fatal("returned writer did not expire autonomously")}
+ for index,connection:=range []*Conn{c,s}{set(index==0);_,err:=connection.Read(make([]byte,1));if !errors.Is(err,ErrStallTimeout){t.Fatalf("autonomous terminal=%v",err)}}
+ if n.pendingBytes!=0||n.historyReserved!=0||len(n.transitions)!=6{t.Fatal("terminal reservation or bytes leaked")}
+}
 `

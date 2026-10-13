@@ -438,7 +438,7 @@ func TestDelayedReadDeadlineAndReset(t *testing.T) {
 	if _, err := m.Advance(10); err != nil {
 		t.Fatal(err)
 	}
-	if r = m.Dispatch(Request{Domain: b, Op: "poll", RequestID: 6}); r.Error != "context deadline exceeded" {
+	if r = m.Dispatch(Request{Domain: b, Op: "poll", RequestID: 6}); r.Error != "i/o timeout" {
 		t.Fatal(r)
 	}
 	if err := m.Reset(c); err != nil {

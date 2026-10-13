@@ -38,6 +38,7 @@ func TestProjectionPreservesNativeOwnerBodies(t *testing.T) {
 		"simulationListener.Accept":   true, "simulationListener.Close": true,
 		"pairedConn.Read": true, "pairedConn.Write": true, "pairedConn.Close": true,
 		"pairedConn.CloseRead": true, "pairedConn.CloseWrite": true, "pairedConn.nowTime": true,
+		"simulationNetwork.armStallTimerLocked": true,
 	}
 	compared := 0
 	for _, name := range []string{"network.go", "network_connection.go", "simulation_network.go", "simulation_handles.go", "simulation_wire.go"} {

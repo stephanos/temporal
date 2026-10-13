@@ -164,7 +164,7 @@ func generate(root string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	expected := map[string]int{"record": 11, "record_input": 1, "domain": 3, "descriptor": 1, "closed": 1, "validate": 1, "fields": 1, "clock": 1, "notice": 5, "notify": 5, "deadline": 1, "wait": 4, "dial_wait": 2, "wait_continue": 3}
+	expected := map[string]int{"record": 11, "record_input": 1, "domain": 3, "descriptor": 1, "closed": 1, "validate": 1, "fields": 1, "clock": 1, "expiry_timer": 1, "notice": 5, "notify": 5, "deadline": 1, "wait": 4, "dial_wait": 2, "wait_continue": 3}
 	for name, want := range expected {
 		if counts[name] != want {
 			return nil, fmt.Errorf("native network rewrite %s changed: got %d, expected %d; counts %v", name, counts[name], want, counts)
@@ -271,6 +271,10 @@ func adapt(file *ast.File) (map[string]int, error) {
 				counts["closed"]++
 			}
 		case *ast.FuncDecl:
+			if receiverType(node) == "simulationNetwork" && node.Name.Name == "armStallTimerLocked" {
+				node.Body.List = nil
+				counts["expiry_timer"]++
+			}
 			if receiverType(node) == "pairedConn" && node.Name.Name == "nowTime" {
 				node.Body.List = []ast.Stmt{&ast.ReturnStmt{Results: []ast.Expr{parseExpression("connection.network.nowTime()")}}}
 				counts["clock"]++

@@ -152,6 +152,7 @@ type connState struct {
 	stallStart    time.Time
 	stallDue      time.Time
 	stallEpoch    uint64
+	stallTimer    *time.Timer
 	readClosed    bool
 	writeClosed   bool
 	readDeadline  time.Time
@@ -185,6 +186,9 @@ func (connection *pairedConn) deadlineExpired(deadline time.Time) bool {
 	return !deadline.IsZero() && !connection.nowTime().Before(deadline)
 }
 func (connection *pairedConn) terminalError() error {
+	if connection.network != nil && connection.network.divergence != nil {
+		return connection.network.divergence
+	}
 	if connection.state.terminal != nil {
 		return connection.state.terminal
 	}
@@ -225,14 +229,14 @@ func (connection *pairedConn) Read(destination []byte) (int, error) {
 			return length, err
 		}
 		deadline := connection.state.readDeadline
+		if connection.deadlineExpired(deadline) {
+			connection.unlockState()
+			return 0, os.ErrDeadlineExceeded
+		}
 		if !ready.IsZero() {
 			changed := connection.state.shared.changed
 			connection.unlockState()
 			panic(waiting{Changed: changed, Deadline: earliestDeadline(deadline, ready)})
-		}
-		if connection.deadlineExpired(deadline) {
-			connection.unlockState()
-			return 0, os.ErrDeadlineExceeded
 		}
 		changed := connection.state.shared.changed
 		connection.unlockState()
@@ -279,9 +283,22 @@ func (connection *pairedConn) Close() error {
 		return ErrClosed
 	}
 	if connection.network != nil {
-		if err := connection.network.commitTransitionLocked(simulationTransition{Kind: "close", Source: connection.owner, Destination: connection.target, Connection: connection.identity, Outcome: "ok"}); err != nil {
+		var release uint64
+		if connection.state.shared.pair.reserved {
+			release = 1
+		}
+		if err := connection.network.commitBatchLocked([]simulationTransition{{Kind: "close", Source: connection.owner, Destination: connection.target, Connection: connection.identity, Outcome: "ok"}}, 0, release); err != nil {
 			connection.unlockState()
 			return err
+		}
+		connection.state.shared.pair.reserved = false
+		for _, state := range []*connState{connection.state, connection.peer} {
+			state.stalled = false
+			state.stallEpoch++
+			connection.network.armStallTimerLocked(state)
+		}
+		if !connection.network.links[simulationLinkKey(connection.owner.Node, connection.target.Node)].Enabled {
+			connection.network.dropUndeliveredLocked(connection.peer)
 		}
 	}
 	connection.state.closeCalled = true
@@ -457,6 +474,7 @@ func (connection *pairedConn) tryWriteLocked(source []byte) (int, error) {
 			connection.peer.stallDue = due
 			connection.peer.stallEpoch++
 			connection.state.shared.pair.reserved = true
+			connection.network.armStallTimerLocked(connection.peer)
 		}
 		chunk.identity = delivery
 		chunk.connection = connection.identity
@@ -499,6 +517,18 @@ func checkedNetworkReadyTime(start time.Time, delay uint64) (time.Time, error) {
 		return time.Time{}, ErrUnsupported
 	}
 	return start.Add(time.Duration(delay)), nil
+}
+func (network *simulationNetwork) armStallTimerLocked(state *connState) {
+}
+func (network *simulationNetwork) dropUndeliveredLocked(state *connState) {
+	var discarded uint64
+	for _, chunk := range state.incoming {
+		discarded += uint64(len(chunk.bytes))
+		delete(network.deliveries, chunk.identity)
+	}
+	state.incoming = nil
+	state.retainedBytes -= discarded
+	network.pendingBytes -= discarded
 }
 
 const maximumSimulationConfigBytes = 128 << 20
@@ -1104,6 +1134,7 @@ func (network *simulationNetwork) dropStateDeliveriesLocked(state *connState) {
 	state.incoming = nil
 	state.stalled = false
 	state.stallEpoch++
+	network.armStallTimerLocked(state)
 	if pair := state.shared.pair; pair != nil && pair.reserved && !pair.clientState.stalled && !pair.serverState.stalled {
 		pair.reserved = false
 		network.historyReserved--
@@ -1116,6 +1147,15 @@ func (network *simulationNetwork) finish() (simulationRecord, error) {
 		return simulationRecord{}, errors.New("simulation network is already finished")
 	}
 	network.finished = true
+	for _, pair := range network.connections {
+		for _, state := range []*connState{pair.clientState, pair.serverState} {
+			state.stalled = false
+			state.stallEpoch++
+			network.armStallTimerLocked(state)
+		}
+		pair.reserved = false
+	}
+	network.historyReserved = 0
 	canonicalizeSimulationTransitions(network.transitions)
 	var finishErr error
 	if network.divergence != nil {
@@ -1351,7 +1391,7 @@ func (network *simulationNetwork) applyLinksLocked(changes map[string]simulation
 			if changed, ok := changes[key]; ok {
 				next = changed
 			}
-			stalled := !next.Enabled && len(direction.state.incoming) != 0
+			stalled := !next.Enabled && len(direction.state.incoming) != 0 && !pair.clientState.closeCalled && !pair.serverState.closeCalled
 			plan := simulationStallChange{state: direction.state, stalled: stalled, due: direction.state.stallDue}
 			if stalled && !direction.state.stalled {
 				var err error
@@ -1399,6 +1439,7 @@ func (network *simulationNetwork) applyLinksLocked(changes map[string]simulation
 				state.stallStart = time.Time{}
 				state.stallDue = time.Time{}
 			}
+			network.armStallTimerLocked(state)
 		}
 		if !plan.ready.IsZero() {
 			for index := range state.incoming {
@@ -1407,6 +1448,30 @@ func (network *simulationNetwork) applyLinksLocked(changes map[string]simulation
 		}
 		state.shared.signal()
 	}
+	network.signalLocked()
+	return nil
+}
+func (network *simulationNetwork) expireStallLocked(pair *simulationConnection, state *connState, epoch uint64, due time.Time) error {
+	if network.finished || network.connections[pair.identity] != pair || pair.closed || pair.reset || pair.clientState.closeCalled || pair.serverState.closeCalled || !pair.reserved || !state.stalled || state.stallEpoch != epoch || state.stallDue != due || network.nowTime().Before(due) {
+		return nil
+	}
+	if network.nodes[pair.client.Node].lastIncarnation > pair.client.Incarnation || network.nodes[pair.server.Node].lastIncarnation > pair.server.Incarnation {
+		return nil
+	}
+	transition := simulationTransition{Kind: "reset", Source: pair.client, Destination: pair.server, Connection: pair.identity, Bytes: pair.clientState.retainedBytes + pair.serverState.retainedBytes, Outcome: "timeout"}
+	if err := network.commitBatchLocked([]simulationTransition{transition}, 0, 1); err != nil {
+		return err
+	}
+	pair.reserved = false
+	pair.closed = true
+	pair.reset = true
+	network.dropStateDeliveriesLocked(pair.clientState)
+	network.dropStateDeliveriesLocked(pair.serverState)
+	pair.clientState.reset = true
+	pair.serverState.reset = true
+	pair.clientState.terminal = ErrStallTimeout
+	pair.serverState.terminal = ErrStallTimeout
+	pair.clientState.shared.signal()
 	network.signalLocked()
 	return nil
 }

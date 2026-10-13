@@ -423,6 +423,24 @@ func (m *Model) Advance(now uint64) ([]uint64, error) {
 		return nil, errors.New("network clock moved backwards or overflowed")
 	}
 	m.network.now = time.Unix(0, int64(now))
+	m.network.Lock()
+	identities := make([]uint64, 0, len(m.network.connections))
+	for identity := range m.network.connections {
+		identities = append(identities, identity)
+	}
+	sort.Slice(identities, func(i, j int) bool { return identities[i] < identities[j] })
+	for _, identity := range identities {
+		pair := m.network.connections[identity]
+		for _, state := range []*connState{pair.clientState, pair.serverState} {
+			if state.stalled && !m.network.now.Before(state.stallDue) {
+				if err := m.network.expireStallLocked(pair, state, state.stallEpoch, state.stallDue); err != nil {
+					m.network.Unlock()
+					return nil, err
+				}
+			}
+		}
+	}
+	m.network.Unlock()
 	return m.ready(), nil
 }
 func (m *Model) NextDeadline() uint64 {
@@ -432,6 +450,16 @@ func (m *Model) NextDeadline() uint64 {
 		return 0
 	}
 	var next uint64
+	for _, pair := range m.network.connections {
+		for _, state := range []*connState{pair.clientState, pair.serverState} {
+			if state.stalled {
+				due := virtualNanos(state.stallDue)
+				if due != 0 && (next == 0 || due < next) {
+					next = due
+				}
+			}
+		}
+	}
 	for _, p := range m.pending {
 		if p.result != nil {
 			continue

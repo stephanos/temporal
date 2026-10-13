@@ -4,16 +4,596 @@ package gomad3sim
 
 import (
 	"context"
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"io"
 	"net"
+	"os"
 	"strings"
+	"syscall"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 )
+
+func TestNetworkHeldFIFO(t *testing.T) { runNetworkHeldFIFO(t, BackendInProcess) }
+func TestProcessNetworkHeldFIFO(t *testing.T) {
+	if !processBackendAvailable() {
+		t.Skip("Runner simulation transport is unavailable")
+	}
+	runNetworkHeldFIFO(t, BackendProcess)
+}
+
+func runNetworkHeldFIFO(t *testing.T, backend Backend) {
+	t.Helper()
+	for _, before := range []bool{true, false} {
+		t.Run(fmt.Sprintf("partition-before-write=%t", before), func(t *testing.T) {
+			actions := []FaultAction{
+				{ID: "delay", Kind: FaultDelay, From: "client", To: "server", DelayNanos: uint64(5 * time.Millisecond)},
+				{ID: "hold", Kind: FaultDisconnect, From: "client", To: "server"},
+				{ID: "hold-again", Kind: FaultDisconnect, From: "client", To: "server"},
+				{ID: "release", Kind: FaultReconnect, From: "client", To: "server"},
+				{ID: "release-again", Kind: FaultReconnect, From: "client", To: "server"},
+				{ID: "repartition", Kind: FaultDisconnect, From: "client", To: "server"},
+				{ID: "release-final", Kind: FaultReconnect, From: "client", To: "server"},
+			}
+			plan, err := NewFaultPlan(actions)
+			require.NoError(t, err)
+			result := runNetworkStallPair(t, backend, "held-fifo", func(spec *Spec) {
+				spec.Faults = &plan
+				spec.Limits.NetworkConnectionBytes = 32
+				spec.Limits.NetworkStallNanos = uint64(30 * time.Millisecond)
+			}, func(conn net.Conn) error {
+				started := time.Now()
+				<-time.After(3 * time.Millisecond)
+				if err := conn.SetReadDeadline(time.Now().Add(time.Millisecond)); err != nil {
+					return err
+				}
+				if n, err := conn.Read(make([]byte, 1)); n != 0 || !errors.Is(err, os.ErrDeadlineExceeded) {
+					return fmt.Errorf("held read=%d,%v", n, err)
+				}
+				if err := conn.SetReadDeadline(time.Time{}); err != nil {
+					return err
+				}
+				if _, err := conn.Write([]byte{'v'}); err != nil {
+					return fmt.Errorf("enabled reverse write: %w", err)
+				}
+				for _, want := range []string{"one", "two", "fresh"} {
+					var header [2]byte
+					if _, err := io.ReadFull(conn, header[:]); err != nil {
+						return err
+					}
+					length := binary.BigEndian.Uint16(header[:])
+					if length != uint16(len(want)) {
+						return fmt.Errorf("frame length=%d, want %d", length, len(want))
+					}
+					payload := make([]byte, length)
+					if _, err := io.ReadFull(conn, payload); err != nil || string(payload) != want {
+						return fmt.Errorf("frame=%q,%v, want %q", payload, err, want)
+					}
+				}
+				if elapsed := time.Since(started); elapsed < 15*time.Millisecond {
+					return fmt.Errorf("repartitioned FIFO released early at %s", elapsed)
+				}
+				if err := conn.SetReadDeadline(time.Now().Add(time.Millisecond)); err != nil {
+					return err
+				}
+				if n, err := conn.Read(make([]byte, 1)); n != 0 || !errors.Is(err, os.ErrDeadlineExceeded) {
+					return fmt.Errorf("duplicate frame tail=%d,%v", n, err)
+				}
+				if err := conn.SetReadDeadline(time.Time{}); err != nil {
+					return err
+				}
+				_, err := conn.Write([]byte{'d'})
+				return err
+			}, func(conn net.Conn) error {
+				for _, frame := range []string{"\x00\x03one", "\x00\x03two"} {
+					if n, err := conn.Write([]byte(frame)); n != len(frame) || err != nil {
+						return fmt.Errorf("held frame write=%d,%v", n, err)
+					}
+				}
+				buffer := make([]byte, 1)
+				if _, err := io.ReadFull(conn, buffer); err != nil || buffer[0] != 'v' {
+					return fmt.Errorf("enabled reverse read=%q,%v", buffer, err)
+				}
+				<-time.After(4 * time.Millisecond)
+				if n, err := conn.Write([]byte("\x00\x05fresh")); n != 7 || err != nil {
+					return fmt.Errorf("fresh frame write=%d,%v", n, err)
+				}
+				if _, err := io.ReadFull(conn, buffer); err != nil || buffer[0] != 'd' {
+					return fmt.Errorf("framed stream acknowledgement=%q,%v", buffer, err)
+				}
+				return nil
+			}, func(ctx context.Context, cluster Cluster, _, _ NodeHandle) error {
+				<-time.After(time.Millisecond + time.Nanosecond)
+				if _, err := cluster.ApplyFault(ctx, actions[0]); err != nil {
+					return err
+				}
+				if !before {
+					<-time.After(2 * time.Millisecond)
+				}
+				if _, err := cluster.ApplyFault(ctx, actions[1]); err != nil {
+					return err
+				}
+				if _, err := cluster.ApplyFault(ctx, actions[2]); err != nil {
+					return err
+				}
+				wait := 7 * time.Millisecond
+				if !before {
+					wait = 5 * time.Millisecond
+				}
+				<-time.After(wait - time.Nanosecond)
+				if _, err := cluster.ApplyFault(ctx, actions[3]); err != nil {
+					return err
+				}
+				<-time.After(time.Millisecond)
+				if _, err := cluster.ApplyFault(ctx, actions[4]); err != nil {
+					return err
+				}
+				<-time.After(time.Millisecond)
+				if _, err := cluster.ApplyFault(ctx, actions[5]); err != nil {
+					return err
+				}
+				<-time.After(time.Millisecond)
+				_, err := cluster.ApplyFault(ctx, actions[6])
+				return err
+			})
+			require.Contains(t, networkOutcomes(result.Network.Transitions), NetworkOutcomeHeld)
+			require.NotContains(t, networkOutcomes(result.Network.Transitions), NetworkOutcomeTimeout)
+		})
+	}
+}
+
+func TestNetworkStallExpiry(t *testing.T) { runNetworkStallExpiry(t, BackendInProcess) }
+func TestProcessNetworkStallExpiry(t *testing.T) {
+	if !processBackendAvailable() {
+		t.Skip("Runner simulation transport is unavailable")
+	}
+	runNetworkStallExpiry(t, BackendProcess)
+}
+
+func runNetworkStallExpiry(t *testing.T, backend Backend) {
+	t.Helper()
+	t.Run("returned-writer-and-both-endpoints", func(t *testing.T) {
+		result := runNetworkStallPair(t, backend, "autonomous-expiry", func(spec *Spec) {
+			spec.Limits.NetworkStallNanos = uint64(5 * time.Millisecond)
+		}, func(conn net.Conn) error {
+			<-time.After(12 * time.Millisecond)
+			return checkNetworkPersistentStallTimeout(conn)
+		}, func(conn net.Conn) error {
+			if n, err := conn.Write([]byte("\x00\x03one")); n != 5 || err != nil {
+				return fmt.Errorf("returned held writer=%d,%v", n, err)
+			}
+			<-time.After(10 * time.Millisecond)
+			return checkNetworkPersistentStallTimeout(conn)
+		}, func(ctx context.Context, cluster Cluster, _, _ NodeHandle) error {
+			<-time.After(time.Millisecond + time.Nanosecond)
+			if err := cluster.Partition(ctx, "client", "server"); err != nil {
+				return err
+			}
+			<-time.After(3 * time.Millisecond)
+			if err := cluster.Partition(ctx, "client", "server"); err != nil {
+				return err
+			}
+			<-time.After(4 * time.Millisecond)
+			return cluster.Heal(ctx, "client", "server")
+		})
+		resets := 0
+		for _, transition := range result.Network.Transitions {
+			if transition.Kind == NetworkReset && transition.Outcome == NetworkOutcomeTimeout {
+				resets++
+			}
+		}
+		require.Equal(t, 1, resets)
+	})
+	t.Run("idle-survives-and-old-epoch-cannot-reset", func(t *testing.T) {
+		result := runNetworkStallPair(t, backend, "idle-survival", func(spec *Spec) {
+			spec.Limits.NetworkStallNanos = uint64(3 * time.Millisecond)
+		}, func(conn net.Conn) error {
+			buffer := make([]byte, 1)
+			if _, err := io.ReadFull(conn, buffer); err != nil || buffer[0] != 'x' {
+				return fmt.Errorf("healed byte=%q,%v", buffer, err)
+			}
+			<-time.After(12 * time.Millisecond)
+			if _, err := conn.Write([]byte{'r'}); err != nil {
+				return fmt.Errorf("idle server survived: %w", err)
+			}
+			return nil
+		}, func(conn net.Conn) error {
+			if _, err := conn.Write([]byte{'x'}); err != nil {
+				return err
+			}
+			<-time.After(12 * time.Millisecond)
+			buffer := make([]byte, 1)
+			if _, err := io.ReadFull(conn, buffer); err != nil || buffer[0] != 'r' {
+				return fmt.Errorf("idle client survived=%q,%v", buffer, err)
+			}
+			return nil
+		}, func(ctx context.Context, cluster Cluster, _, _ NodeHandle) error {
+			<-time.After(time.Millisecond + time.Nanosecond)
+			if err := cluster.Partition(ctx, "client", "server"); err != nil {
+				return err
+			}
+			<-time.After(2 * time.Millisecond)
+			if err := cluster.Heal(ctx, "client", "server"); err != nil {
+				return err
+			}
+			<-time.After(time.Millisecond)
+			if err := cluster.Partition(ctx, "client", "server"); err != nil {
+				return err
+			}
+			<-time.After(8 * time.Millisecond)
+			return cluster.Heal(ctx, "client", "server")
+		})
+		require.NotContains(t, networkOutcomes(result.Network.Transitions), NetworkOutcomeTimeout)
+	})
+}
+
+func TestNetworkStallOrdering(t *testing.T) { runNetworkStallOrdering(t, BackendInProcess) }
+func TestProcessNetworkStallOrdering(t *testing.T) {
+	if !processBackendAvailable() {
+		t.Skip("Runner simulation transport is unavailable")
+	}
+	runNetworkStallOrdering(t, BackendProcess)
+}
+
+func runNetworkStallOrdering(t *testing.T, backend Backend) {
+	t.Helper()
+	for _, test := range []struct {
+		name  string
+		heal  time.Duration
+		reset bool
+		tie   bool
+	}{
+		{"limit-minus-one-nanosecond", 5*time.Millisecond - time.Nanosecond, false, false},
+		{"exact-limit", 5 * time.Millisecond, false, false},
+		{"first-due-instant", 5*time.Millisecond + time.Nanosecond, false, true},
+		{"expiry-before-heal", 5*time.Millisecond + 2*time.Nanosecond, true, false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			result := runNetworkStallPair(t, backend, "stall-order-"+test.name, func(spec *Spec) {
+				spec.Limits.NetworkStallNanos = uint64(3 * time.Millisecond)
+			}, func(conn net.Conn) error {
+				<-time.After(8 * time.Millisecond)
+				if test.reset {
+					return checkNetworkPersistentStallTimeout(conn)
+				}
+				buffer := make([]byte, 1)
+				_, err := io.ReadFull(conn, buffer)
+				if test.tie && errors.Is(err, syscall.ETIMEDOUT) {
+					return checkNetworkPersistentStallTimeout(conn)
+				}
+				if err != nil || buffer[0] != 'x' {
+					return fmt.Errorf("boundary heal data=%q,%v", buffer, err)
+				}
+				_, err = conn.Write([]byte{'r'})
+				return err
+			}, func(conn net.Conn) error {
+				if _, err := conn.Write([]byte{'x'}); err != nil {
+					return err
+				}
+				<-time.After(6 * time.Millisecond)
+				if test.reset {
+					return checkNetworkPersistentStallTimeout(conn)
+				}
+				buffer := make([]byte, 1)
+				_, err := io.ReadFull(conn, buffer)
+				if test.tie && errors.Is(err, syscall.ETIMEDOUT) {
+					return checkNetworkPersistentStallTimeout(conn)
+				}
+				if err != nil || buffer[0] != 'r' {
+					return fmt.Errorf("boundary heal reply=%q,%v", buffer, err)
+				}
+				return nil
+			}, func(ctx context.Context, cluster Cluster, _, _ NodeHandle) error {
+				<-time.After(time.Millisecond + time.Nanosecond)
+				if err := cluster.Partition(ctx, "client", "server"); err != nil {
+					return err
+				}
+				<-time.After(test.heal - time.Millisecond - time.Nanosecond)
+				return cluster.Heal(ctx, "client", "server")
+			})
+			if !test.tie {
+				require.Equal(t, test.reset, result.Network.Snapshot.Connections[0].Reset)
+			}
+		})
+	}
+}
+
+func checkNetworkPersistentStallTimeout(conn net.Conn) error {
+	for range 2 {
+		if err := conn.SetDeadline(time.Time{}); err != nil {
+			return err
+		}
+		for _, operation := range []func([]byte) (int, error){conn.Read, conn.Write} {
+			n, err := operation([]byte{'x'})
+			var timeout net.Error
+			if n != 0 || !errors.Is(err, syscall.ETIMEDOUT) || !errors.As(err, &timeout) || !timeout.Timeout() || errors.Is(err, os.ErrDeadlineExceeded) || errors.Is(err, context.DeadlineExceeded) {
+				return fmt.Errorf("persistent stall timeout=%d,%v", n, err)
+			}
+		}
+	}
+	return nil
+}
+
+func TestNetworkPartitionedDialStall(t *testing.T) {
+	runNetworkPartitionedDialStall(t, BackendInProcess)
+}
+func TestProcessNetworkPartitionedDialStall(t *testing.T) {
+	if !processBackendAvailable() {
+		t.Skip("Runner simulation transport is unavailable")
+	}
+	runNetworkPartitionedDialStall(t, BackendProcess)
+}
+
+func runNetworkPartitionedDialStall(t *testing.T, backend Backend) {
+	t.Helper()
+	for _, mode := range []string{"heal", "heal-at-exact-limit", "caller-deadline", "stall", "completed-context"} {
+		t.Run(mode, func(t *testing.T) {
+			serverBoot := uniqueBootID("dial-stall-server-" + string(backend) + "-" + mode)
+			clientBoot := uniqueBootID("dial-stall-client-" + string(backend) + "-" + mode)
+			listening := make(chan struct{}, 1)
+			dialing := make(chan struct{}, 1)
+			require.NoError(t, RegisterBoot(serverBoot, func(ctx context.Context, node NodeContext) error {
+				listener, err := net.Listen("tcp4", net.JoinHostPort(node.Address, "7233"))
+				if err != nil {
+					return err
+				}
+				closed := make(chan error, 1)
+				go func() {
+					<-ctx.Done()
+					closed <- listener.Close()
+				}()
+				if backend == BackendInProcess {
+					listening <- struct{}{}
+				}
+				conn, err := listener.Accept()
+				if err != nil {
+					if ctx.Err() != nil {
+						return errors.Join(ctx.Err(), <-closed)
+					}
+					return err
+				}
+				defer conn.Close()
+				buffer := make([]byte, 1)
+				if _, err := io.ReadFull(conn, buffer); err != nil || buffer[0] != 'x' {
+					return fmt.Errorf("healed dial request=%q,%v", buffer, err)
+				}
+				if _, err := conn.Write(buffer); err != nil {
+					return err
+				}
+				<-ctx.Done()
+				return errors.Join(ctx.Err(), <-closed)
+			}))
+			require.NoError(t, RegisterBoot(clientBoot, func(ctx context.Context, _ NodeContext) error {
+				dialCtx := ctx
+				if mode == "caller-deadline" {
+					var cancel context.CancelFunc
+					dialCtx, cancel = context.WithTimeout(ctx, 2*time.Millisecond)
+					defer cancel()
+				}
+				if mode == "completed-context" {
+					var cancel context.CancelFunc
+					dialCtx, cancel = context.WithCancel(ctx)
+					cancel()
+				}
+				if backend == BackendInProcess && mode != "completed-context" {
+					dialing <- struct{}{}
+				}
+				started := time.Now()
+				conn, err := (&net.Dialer{}).DialContext(dialCtx, "tcp4", "10.0.0.1:7233")
+				if conn != nil {
+					defer conn.Close()
+				}
+				switch mode {
+				case "caller-deadline":
+					if conn != nil || !errors.Is(err, context.DeadlineExceeded) || errors.Is(err, syscall.ETIMEDOUT) {
+						return fmt.Errorf("caller dial deadline=%v", err)
+					}
+				case "completed-context":
+					if conn != nil || !errors.Is(err, context.Canceled) {
+						return fmt.Errorf("completed dial context=%v", err)
+					}
+				case "stall":
+					var timeout net.Error
+					if conn != nil || !errors.Is(err, syscall.ETIMEDOUT) || !errors.As(err, &timeout) || !timeout.Timeout() || errors.Is(err, context.DeadlineExceeded) {
+						return fmt.Errorf("independent dial stall=%v", err)
+					}
+					if elapsed := time.Since(started); elapsed != 5*time.Millisecond+time.Nanosecond {
+						return fmt.Errorf("redundant partition restarted dial stall: elapsed=%s", elapsed)
+					}
+				case "heal", "heal-at-exact-limit":
+					if err != nil {
+						return err
+					}
+					wantElapsed := 2 * time.Millisecond
+					if mode == "heal-at-exact-limit" {
+						wantElapsed = 5 * time.Millisecond
+					}
+					if elapsed := time.Since(started); elapsed != wantElapsed {
+						return fmt.Errorf("healed dial elapsed=%s", elapsed)
+					}
+					if _, err := conn.Write([]byte{'x'}); err != nil {
+						return err
+					}
+					buffer := make([]byte, 1)
+					if _, err := io.ReadFull(conn, buffer); err != nil || buffer[0] != 'x' {
+						return fmt.Errorf("healed dial response=%q,%v", buffer, err)
+					}
+				}
+				return nil
+			}))
+			spec := twoNodeNetworkSpec(serverBoot, clientBoot)
+			spec.Backend = backend
+			if backend == BackendProcess {
+				spec.Fidelity = FidelityHardIsolation
+			}
+			spec.Limits.NetworkStallNanos = uint64(5 * time.Millisecond)
+			scenario := func(ctx context.Context, cluster Cluster) error {
+				server, err := cluster.Start(ctx, "server")
+				if err != nil {
+					return err
+				}
+				if backend == BackendProcess {
+					if err := waitNetworkHandleModelRead(ctx, cluster, server, 2); err != nil {
+						return err
+					}
+				} else {
+					<-listening
+				}
+				if err := cluster.Partition(ctx, "client", "server"); err != nil {
+					return err
+				}
+				client, err := cluster.Start(ctx, "client")
+				if err != nil {
+					return err
+				}
+				if mode != "completed-context" {
+					if backend == BackendProcess {
+						if err := waitNetworkHandleModelRead(ctx, cluster, client, 1); err != nil {
+							return err
+						}
+					} else {
+						<-dialing
+					}
+				}
+				if mode == "heal" || mode == "heal-at-exact-limit" || mode == "stall" {
+					wait := 2 * time.Millisecond
+					if mode == "heal-at-exact-limit" {
+						wait = 5 * time.Millisecond
+					}
+					<-time.After(wait)
+					if mode != "stall" {
+						if err := cluster.Heal(ctx, "client", "server"); err != nil {
+							return err
+						}
+					} else if err := cluster.Partition(ctx, "client", "server"); err != nil {
+						return err
+					}
+				}
+				if err := waitNetworkHandleExit(ctx, cluster, client); err != nil {
+					return err
+				}
+				return cluster.Stop(ctx, server)
+			}
+			recorded, err := Run(context.Background(), spec, scenario)
+			require.NoError(t, err)
+			require.Equal(t, OutcomeCompleted, recorded.Outcome, recorded.Reason)
+			if mode != "heal" && mode != "heal-at-exact-limit" {
+				require.Zero(t, recorded.Network.Snapshot.NextConnection)
+				require.Empty(t, recorded.Network.Snapshot.Connections)
+			}
+			plan, err := ReplayPlanFor(recorded.Record)
+			require.NoError(t, err)
+			spec.Replay = &plan
+			replayed, err := Run(context.Background(), spec, scenario)
+			require.NoError(t, err)
+			require.Equal(t, OutcomeCompleted, replayed.Outcome, replayed.Reason)
+			require.Equal(t, recorded.Record.Identity, replayed.Record.Identity)
+		})
+	}
+}
+
+func runNetworkStallPair(t *testing.T, backend Backend, name string, configure func(*Spec), serverAction, clientAction func(net.Conn) error, action func(context.Context, Cluster, NodeHandle, NodeHandle) error) Result {
+	t.Helper()
+	serverBoot := uniqueBootID(name + "-server-" + string(backend))
+	clientBoot := uniqueBootID(name + "-client-" + string(backend))
+	listening := make(chan struct{}, 1)
+	accepted := make(chan struct{}, 1)
+	require.NoError(t, RegisterBoot(serverBoot, func(ctx context.Context, node NodeContext) error {
+		listener, err := net.Listen("tcp4", net.JoinHostPort(node.Address, "7233"))
+		if err != nil {
+			return err
+		}
+		defer listener.Close()
+		if backend == BackendInProcess {
+			listening <- struct{}{}
+		}
+		conn, err := listener.Accept()
+		if err != nil {
+			return err
+		}
+		defer conn.Close()
+		if _, err := conn.Write([]byte{'r'}); err != nil {
+			return err
+		}
+		if backend == BackendInProcess {
+			accepted <- struct{}{}
+		}
+		marker := make([]byte, 1)
+		if _, err := io.ReadFull(conn, marker); err != nil || marker[0] != 's' {
+			return fmt.Errorf("setup marker=%q,%v", marker, err)
+		}
+		return serverAction(conn)
+	}))
+	require.NoError(t, RegisterBoot(clientBoot, func(ctx context.Context, _ NodeContext) error {
+		conn, err := dialNetworkHandlePeer(ctx)
+		if err != nil {
+			return err
+		}
+		defer conn.Close()
+		greeting := make([]byte, 1)
+		if _, err := io.ReadFull(conn, greeting); err != nil || greeting[0] != 'r' {
+			return fmt.Errorf("setup greeting=%q,%v", greeting, err)
+		}
+		<-time.After(time.Millisecond)
+		if _, err := conn.Write([]byte{'s'}); err != nil {
+			return err
+		}
+		<-time.After(time.Millisecond)
+		return clientAction(conn)
+	}))
+	spec := twoNodeNetworkSpec(serverBoot, clientBoot)
+	spec.Backend = backend
+	if backend == BackendProcess {
+		spec.Fidelity = FidelityHardIsolation
+	}
+	configure(&spec)
+	scenario := func(ctx context.Context, cluster Cluster) error {
+		server, err := cluster.Start(ctx, "server")
+		if err != nil {
+			return err
+		}
+		if backend == BackendProcess {
+			if err := waitNetworkHandleModelRead(ctx, cluster, server, 2); err != nil {
+				return err
+			}
+		} else {
+			<-listening
+		}
+		client, err := cluster.Start(ctx, "client")
+		if err != nil {
+			return err
+		}
+		if backend == BackendProcess {
+			if err := waitNetworkHandleModelRead(ctx, cluster, server, 4); err != nil {
+				return err
+			}
+		} else {
+			<-accepted
+		}
+		if err := action(ctx, cluster, server, client); err != nil {
+			return err
+		}
+		if err := waitNetworkHandleExit(ctx, cluster, client); err != nil {
+			return err
+		}
+		return waitNetworkHandleExit(ctx, cluster, server)
+	}
+	recorded, err := Run(context.Background(), spec, scenario)
+	require.NoError(t, err)
+	require.Equal(t, OutcomeCompleted, recorded.Outcome, recorded.Reason)
+	plan, err := ReplayPlanFor(recorded.Record)
+	require.NoError(t, err)
+	spec.Replay = &plan
+	replayed, err := Run(context.Background(), spec, scenario)
+	require.NoError(t, err)
+	require.Equal(t, OutcomeCompleted, replayed.Outcome, replayed.Reason)
+	require.Equal(t, recorded.Record.Identity, replayed.Record.Identity)
+	return recorded
+}
 
 func TestNetworkPartitionTimeoutHealReconnect(t *testing.T) {
 	serverBoot := uniqueBootID("network-partition-server")
