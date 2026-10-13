@@ -41,13 +41,13 @@ Capture the frozen behavior pin named above, run focused negative controls and f
 - [ ] Livecap payload bytes/header layout and authentication order match the producer fixtures; both source-derived producer identities regenerate together with their exact inputs bound.
 - [ ] Required UTF-8/duplicate/unknown/trailing, sorted fact, size/count and governance failures retain refusal; ordinary cache/provenance spelling checks alone retire.
 ## Done summary
-TBD
+Migrated preparation cache and provenance records to ordinary stdlib JSON with strict typed decoding while preserving complete cache identity and binary verification. Live-capability decoding now authenticates the header and raw payload before strict decoding, then requires the exact producer field order and HTML-unescaped wire encoding. Domain-bounded UTF-8 validation prevents replacement-character collisions before closure hashing, cache publication, or provenance storage. Both generated live-capability implementation identities were refreshed together. Supported focused, race, protocol, architecture, and repository validation gates pass; the complete native build-package command remains unavailable because the patched linux/arm64 toolchain is absent, so final integrated WASM requalification remains queued.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 7939df04e1183c3f6a78a027dd0f2fe75c83026c, 4c4dfeb3ebe8292ee6c8ff40930d4eabd1090e8e, 86ee696f2b9ab50f01f16272f8c2dfa13559e501, 7898b80f0254149d70d036559cc2b69185ad365d
+- Tests: protocol-generate and protocol-generate -check (stock Go 1.27.1): PASS, focused preparation, provenance, livecap, protocol, and gomadcap tests with -tags test_dep -count=1: PASS, same focused suites with -race: PASS, go -C tools/gomad3 test -tags test_dep -count=1 ./internal/archcheck: PASS, make -C tools/gomad3 validate: PASS, flowctl codex impl-review re-review: SHIP, all three prior findings fixed and no new findings, complete native build package: INCONCLUSIVE because tools/gomad3/.toolchain/bin/go is absent and patched toolchain construction is unsupported on linux/arm64; final integrated WASM requalification remains required
 - PRs:
-
 ## Revival trigger (2026-10-13)
 
 Revived after fn153.1 completed with a SHIP implementation review and its integrated strict-decoder, architecture and validation gates green. Paths were reconciled with fn166's completed package move into backends/native/build before dispatch. This consumer migration is disjoint from the in-flight fn153.2 and fn153.3 owners. The forced local claim is only needed because Flow chain admission requires the completed fn152 parent on an unpushed remote branch; pushing remains outside the user's requested scope.
