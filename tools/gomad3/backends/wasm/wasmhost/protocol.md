@@ -31,7 +31,7 @@ are admitted. Start sections execute only after validation and `started`.
 The helper emits `started` after compilation/validation, before instantiation:
 
 ```json
-{"schema":"gomad3.wasm-host/v1","type":"started","engine":{"name":"wasmtime","version":"47.0.3","configuration":"cranelift-fuel-nan-canonical-v1","host_os":"macos","host_arch":"aarch64"},"module_sha256":"...","imports":[{"module":"wasi_snapshot_preview1","name":"fd_write","params":["i32","i32","i32","i32"],"results":["i32"]}],"exports":[{"name":"memory","kind":"memory"},{"name":"_start","kind":"func"}],"initial_memory_pages":1}
+{"schema":"gomad3.wasm-host/v1","type":"started","engine":{"name":"wasmtime","version":"47.0.3","configuration":"cranelift-fuel-nan-canonical-nounwind-v2","host_os":"macos","host_arch":"aarch64"},"module_sha256":"...","imports":[{"module":"wasi_snapshot_preview1","name":"fd_write","params":["i32","i32","i32","i32"],"results":["i32"]}],"exports":[{"name":"memory","kind":"memory"},{"name":"_start","kind":"func"}],"initial_memory_pages":1}
 ```
 
 Import entries preserve module order and duplicate entries. Signatures must match
@@ -41,7 +41,7 @@ below and five runtime operations described below are admitted. Threaded/shared,
 memory64 and multiple memories are unsupported by the engine configuration.
 
 The host validates the engine/module/import identity and then sends exactly
-`{"type":"authorize","module_sha256":"...","configuration":"cranelift-fuel-nan-canonical-v1"}`.
+`{"type":"authorize","module_sha256":"...","configuration":"cranelift-fuel-nan-canonical-nounwind-v2"}`.
 Both identity fields must match `started`; unknown fields, mismatches and EOF
 terminate as `invalid` before instantiation or any guest start-section code.
 
@@ -233,7 +233,7 @@ before callback delivery (including positional writes); overrun terminates witho
 Fuel counts engine work and supplies no goroutine preemption or virtual-time advance.
 A stalled callback is bounded by the Go adapter's process watchdog/cancellation.
 The configuration revision binds Cranelift compilation, fuel enabled, canonical
-NaNs, relaxed SIMD/memory64/multiple memories disabled, no WASI/cache/threads
+NaNs, native unwind info disabled, relaxed SIMD/memory64/multiple memories disabled, no WASI/cache/threads
 features, and the fixed frame/buffer/iovec/subscription/callback/module limits.
 Wasmtime exposes its existing wasmparser 0.252.0 API for validation-error
 classification. Exact pinned disabled-feature messages classify memory64, shared

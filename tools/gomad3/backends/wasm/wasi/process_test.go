@@ -334,6 +334,15 @@ func TestGuestTransportAuthorizesIdentityBeforeStart(t *testing.T) {
 		t.Fatalf("identity permitted guest start: %#v", result)
 	}
 	request.Engine = PinnedEngine()
+	request.Engine.Configuration = strings.Join([]string{"cranelift-fuel-nan-canonical", "v1"}, "-")
+	result, err = Run(context.Background(), request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.Termination != "invalid" || len(result.Stdout) != 0 || len(result.Transcript) != 0 || !result.Reaped {
+		t.Fatalf("old configuration permitted guest start: %#v", result)
+	}
+	request.Engine = PinnedEngine()
 	request.Imports = nil
 	result, err = Run(context.Background(), request)
 	if err != nil {

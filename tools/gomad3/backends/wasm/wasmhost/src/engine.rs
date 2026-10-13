@@ -270,6 +270,8 @@ impl State {
         self.callback_input(protocol::CallbackInput::Json { op, input: &input })
     }
 }
+pub(crate) const CONFIGURATION_REVISION: &str = "cranelift-fuel-nan-canonical-nounwind-v2";
+
 pub fn execute() -> Result<()> {
     let mut input: Box<dyn BufRead + Send> = Box::new(BufReader::new(std::io::stdin()));
     let mut output: Box<dyn Write + Send> = Box::new(std::io::stdout());
@@ -315,7 +317,7 @@ pub fn execute() -> Result<()> {
                 .map_err(|e| Error::msg(e.to_string()))?;
         if authorization.kind != "authorize"
             || authorization.module_sha256 != request.module_sha256
-            || authorization.configuration != "cranelift-fuel-nan-canonical-v1"
+            || authorization.configuration != CONFIGURATION_REVISION
         {
             return Err(Error::msg("execution authorization identity mismatch"));
         }
@@ -422,8 +424,8 @@ pub fn execute() -> Result<()> {
     metrics.sample_process();
     outcome.metrics = Some(Box::new(metrics));
     let sent = protocol::send_frame(&mut store.data_mut().output, &outcome);
-    // The process exits next. Dropping a large module deregisters unwind info
-    // one function at a time (tens of seconds on macOS), so leave it to exit.
+    // Keep the exit workaround until the no-unwind configuration has measured
+    // Temporal success and post-load error exits within 1 s on darwin/arm64.
     std::mem::forget((store, linker, module, engine));
     sent
 }
@@ -456,6 +458,7 @@ fn prepare(
     let mut config = Config::new();
     config
         .consume_fuel(true)
+        .native_unwind_info(false)
         .cranelift_nan_canonicalization(true)
         .wasm_relaxed_simd(false)
         .wasm_memory64(false)
@@ -547,7 +550,7 @@ fn prepare(
             "initial guest memory exceeds limit",
         ));
     }
-    let started = json!({"schema":protocol::SCHEMA,"type":"started","engine":{"name":"wasmtime","version":"47.0.3","configuration":"cranelift-fuel-nan-canonical-v1","host_os":std::env::consts::OS,"host_arch":std::env::consts::ARCH},"module_sha256":request.module_sha256,"imports":imports,"exports":exports,"initial_memory_pages":pages});
+    let started = json!({"schema":protocol::SCHEMA,"type":"started","engine":{"name":"wasmtime","version":"47.0.3","configuration":CONFIGURATION_REVISION,"host_os":std::env::consts::OS,"host_arch":std::env::consts::ARCH},"module_sha256":request.module_sha256,"imports":imports,"exports":exports,"initial_memory_pages":pages});
     Ok((engine, module, started))
 }
 pub(crate) fn compile(
@@ -676,6 +679,7 @@ mod tests {
             let mut config = Config::new();
             config
                 .consume_fuel(true)
+                .native_unwind_info(false)
                 .cranelift_nan_canonicalization(true)
                 .wasm_relaxed_simd(false)
                 .wasm_memory64(false)

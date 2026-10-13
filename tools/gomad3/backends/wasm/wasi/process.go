@@ -214,7 +214,7 @@ func PinnedEngine() EngineIdentity {
 	if arch == "amd64" {
 		arch = "x86_64"
 	}
-	return EngineIdentity{"wasmtime", "47.0.3", "cranelift-fuel-nan-canonical-v1", os, arch}
+	return EngineIdentity{"wasmtime", "47.0.3", "cranelift-fuel-nan-canonical-nounwind-v2", os, arch}
 }
 func verifyFile(name, digest string) error {
 	if !filepath.IsAbs(name) || len(digest) != 64 {

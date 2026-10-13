@@ -127,7 +127,7 @@ fn identity(engine: &Engine, module_sha256: &str) -> Result<Vec<u8>, Outcome> {
         .hash(&mut compatibility);
     serde_json::to_vec(&serde_json::json!({
         "version":2, "module_sha256":module_sha256, "helper_sha256":format!("{:x}", hash.finalize()),
-        "engine":"wasmtime-47.0.3", "configuration":"cranelift-fuel-nan-canonical-v1",
+        "engine":"wasmtime-47.0.3", "configuration":crate::engine::CONFIGURATION_REVISION,
         "host_os":std::env::consts::OS, "host_arch":std::env::consts::ARCH,
         "engine_compatibility_sha256":format!("{:x}", compatibility.0.finalize())
     })).map_err(host)
@@ -658,6 +658,12 @@ mod tests {
         config.consume_fuel(true);
         let different = Engine::new(&config).unwrap();
         assert_ne!(identity_a, identity(&different, &"a".repeat(64)));
+        config.native_unwind_info(false);
+        let no_unwind = Engine::new(&config).unwrap();
+        assert_ne!(
+            identity(&different, &"a".repeat(64)),
+            identity(&no_unwind, &"a".repeat(64))
+        );
         let manifest: serde_json::Value = serde_json::from_slice(&identity_a).unwrap();
         assert_eq!(manifest["host_arch"], std::env::consts::ARCH);
         assert_eq!(manifest["host_os"], std::env::consts::OS);

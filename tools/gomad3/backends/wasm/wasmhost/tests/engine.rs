@@ -37,7 +37,13 @@ fn run_authorized(
     for line in BufReader::new(child.stdout.take().unwrap()).lines() {
         let frame: Value = serde_json::from_str(&line.unwrap()).unwrap();
         if frame["type"] == "started" {
-            writeln!(input, "{}",json!({"type":"authorize","module_sha256":if mismatch {"bad"}else{frame["module_sha256"].as_str().unwrap()},"configuration":frame["engine"]["configuration"]})).unwrap();
+            let configuration = if mismatch {
+                // Build the previous revision without preserving a live identity literal.
+                Value::String(["cranelift-fuel-nan-canonical", "v1"].join("-"))
+            } else {
+                frame["engine"]["configuration"].clone()
+            };
+            writeln!(input, "{}",json!({"type":"authorize","module_sha256":frame["module_sha256"],"configuration":configuration})).unwrap();
         }
         if frame["type"] == "call" {
             writeln!(input, "{}", reply(&frame)).unwrap();
@@ -75,7 +81,7 @@ fn diagnostic_run(wat: &str, malformed_reply: bool) -> (Vec<Value>, Value) {
     for line in BufReader::new(child.stdout.take().unwrap()).lines() {
         let frame: Value = serde_json::from_str(&line.unwrap()).unwrap();
         if frame["type"] == "started" {
-            writeln!(input, "{}", json!({"type":"authorize","module_sha256":hash,"configuration":"cranelift-fuel-nan-canonical-v1"})).unwrap();
+            writeln!(input, "{}", json!({"type":"authorize","module_sha256":hash,"configuration":frame["engine"]["configuration"]})).unwrap();
         }
         if frame["type"] == "call" {
             let transcript = b"{\"type\":\"call\",\"id\":2,\"op\":\"fd_sync\",\"input\":{\"fd\":3}}\n{\"type\":\"reply\",\"id\":2,\"errno\":0,\"output\":{}}\n";
