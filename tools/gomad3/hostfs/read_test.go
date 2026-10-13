@@ -45,7 +45,11 @@ func TestPublicStagingAndLinkCountDelegateToSharedHostOwner(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer staged.Cleanup()
+	defer func() {
+		if err := staged.Cleanup(); err != nil {
+			t.Errorf("Cleanup() = %v", err)
+		}
+	}()
 	published, err := staged.PublishNoReplaceContext(context.Background(), destination)
 	if err != nil || !published {
 		t.Fatalf("PublishNoReplaceContext() = %t, %v", published, err)
