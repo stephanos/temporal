@@ -20,7 +20,7 @@ Evidence: independent structure review on 2026-10-12 (summary below). Counts are
 
 ## Constraint: identity-bound sources
 
-`backends/wasm/wasi`, `backends/wasm/simulation`, `world`, `volume`, `backends/wasm/toolchain`, `simulation/clock`, `simulation/network`, `internal/canonicaljson`, `choice/interrupted.go` and `runner/simulation_broker.go` embed and hash their own sources, including import lines. Renaming those files or any package they import (`hostfs`, `hostexec`, `captured`, `runner`, `choice`, `backends`, `volume`, `world`, `simulation/network`, `internal/iowire`, `runtimesemantics`) rotates model/runtime identities and requires a full WASM requalification. Such moves are confined to R5 and batched with the fn-153/fn-154 requalification.
+`backends/wasm/wasi`, `backends/wasm/simulation`, `world`, `volume`, `backends/wasm/toolchain`, `simulation/clock`, `simulation/network`, `choice/interrupted.go` and `runner/simulation_broker.go` embed and hash their own sources, including import lines. Renaming those files or any package they import (`hostfs`, `hostexec`, `captured`, `runner`, `choice`, `backends`, `volume`, `world`, `simulation/network`, `internal/iowire`, `runtimesemantics`) rotates model/runtime identities and requires a full WASM requalification. Such moves are confined to R5 and batched with the fn-153/fn-154 requalification.
 
 ## Target tree
 
