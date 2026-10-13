@@ -21,6 +21,10 @@ The approved inspection extraction may proceed independently while the helper an
 Stop and request conductor scope binding before modifying a surviving consumer outside this declaration. In particular do not edit runner/internal/exploration/integration_test.go, currently owned by fn154 conformance.
 
 The listed recovery/Runner/campaign/portable-mount and six exact test consumers were admitted after the worker's dependency inventory. Preserve their operational behavior while relocating shared inspection projections and plan admission; no unbounded cross-owner consumer permission is implied.
+
+**Mechanical inspection consumer Touches:** [tools/gomad3/backends/wasm/backend/integration_test.go, tools/gomad3/backends/wasm/command/kill_resume_linux_test.go, tools/gomad3/cmd/gomad/integration_test.go, tools/gomad3/qualification/qualification.go, tools/gomad3/qualification/qualification_test.go, tools/gomad3/backends/native/qualification/soak/soak.go, tools/gomad3/backends/native/qualification/soak/soak_test.go, tools/gomad3/backends/native/conformance/testdata/runner_external/consumer.go, tools/gomad3/runner/characterization_test.go, tools/gomad3/runner/coverage_test.go, tools/gomad3/runner/diagnostics_test.go, tools/gomad3/runner/minimize_operation_test.go, tools/gomad3/runner/replay_operation_test.go]
+
+These additional exact consumers may receive import/type/call migration only, without changing their semantics, expectations or qualification requirements. Preserve the external fixture until its separately authorized removal. No changes to helper transport or network conformance are admitted. Shared detached inspection projections belong beneath both inspection and operational Runner; preserve operational result types without public forwarding aliases.
 ## Acceptance
 The module top level holds only cmd, internal and testdata, and internal/ holds runner, backends, evidence, model, host and archcheck; Git renames preserve history; full WASM gate set passes on the integrated candidate.
 
