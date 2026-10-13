@@ -18,7 +18,7 @@ class PropertyGroupsFixtures extends munit.FunSuite:
   private lazy val frameworkJar =
     val out = Files.createDirectories(scratch.resolve("framework")).resolve("framework.jar")
     val _ = tools
-      .scalaCli(
+      .buildFixture(
         Seq(
           "--power",
           "package",
@@ -87,7 +87,7 @@ class PropertyGroupsFixtures extends munit.FunSuite:
         "3.9.0"
       )
     val result = tools
-      .scalaCli(
+      .buildFixture(
         Seq(
           "--power",
           "package",

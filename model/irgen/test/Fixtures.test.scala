@@ -149,7 +149,7 @@ class HintSnapshotsSuite extends munit.FunSuite:
       ): Unit
     val packaged = scratch.resolve("hints.jar")
     tools
-      .scalaCli(
+      .buildFixture(
         Seq(
           "--power",
           "package",
@@ -251,7 +251,7 @@ class MiniLayoutFixtures extends munit.FunSuite:
               Files.writeString(file, Files.readString(file).replace("fixture.features.activity.mini", "fixture.features.activity_mini")): Unit
           finally files.close()
       val jar = scratch.resolve(s"$layout.jar")
-      tools.scalaCli(Seq("--power", "package", "--server=false", "--library", sources.toString, "-f", "-o", jar.toString)).orFail(): Unit
+      tools.buildFixture(Seq("--power", "package", "--server=false", "--library", sources.toString, "-f", "-o", jar.toString)).orFail(): Unit
       val out = scratch.resolve(s"$layout-ir")
       val result = InProcess.lift(tools.directory, Seq("--ir", s"$jar=$stored", build.resolve("model-scala.classpath").toString, out.toString, "activity-mini"))
       assertEquals(result.exit, 0, result.output)
@@ -409,7 +409,7 @@ class MiniRealizationFixtures extends munit.FunSuite:
       |      .live(inconclusive(Reason.explanationsDisagree, because = " "))
       |""".stripMargin): Unit
     val controls = scratch.resolve("controls.jar")
-    tools.scalaCli(Seq("--power", "package", "--server=false", "--library", source.toString,
+    tools.buildFixture(Seq("--power", "package", "--server=false", "--library", source.toString,
       "-f", "-o", controls.toString)).orFail(): Unit
     for (root, refusal) <- Seq(
       "WrongOwnerRun" -> "a Query of activityProduct",
@@ -458,7 +458,7 @@ class MiniRealizationFixtures extends munit.FunSuite:
       |      query verify properties.safety.completesAgain in any limits temporal.Bounds.three
       |""".stripMargin): Unit
     val compiled = scratch.resolve("bindings.jar")
-    tools.scalaCli(Seq("--power", "package", "--server=false", "--library", source.toString,
+    tools.buildFixture(Seq("--power", "package", "--server=false", "--library", source.toString,
       "-f", "-o", compiled.toString)).orFail(): Unit
     compiled
 
@@ -561,7 +561,7 @@ class LayoutWitnessFixtures extends munit.FunSuite:
     )
     val jar = scratch.resolve("layout.jar")
     tools
-      .scalaCli(
+      .buildFixture(
         Seq(
           "--power",
           "package",
@@ -792,7 +792,7 @@ class WitnessFixtures extends munit.FunSuite:
     finally stream.close()
     val out = scratch.resolve("witness.jar")
     tools
-      .scalaCli(
+      .buildFixture(
         Seq(
           "--power",
           "package",
@@ -1261,7 +1261,7 @@ class WitnessFixtures extends munit.FunSuite:
       sources.resolve("CompilerRejects.scala"),
       Files.readString(from)
     ): Unit
-    val ran = tools.scalaCli(
+    val ran = tools.buildFixture(
       Seq(
         "compile",
         "--server=false",
@@ -1312,7 +1312,7 @@ class WitnessFixtures extends munit.FunSuite:
       Files.writeString(directory.resolve("Placement.scala"), source): Unit
       val out = scratch.resolve(name + ".jar")
       tools
-        .scalaCli(
+        .buildFixture(
           Seq(
             "--power",
             "package",
@@ -1543,7 +1543,7 @@ class ActivityHeartbeatFixtures extends munit.FunSuite:
     finally stream.close()
     val jar = scratch.resolve("heartbeat.jar")
     tools
-      .scalaCli(
+      .buildFixture(
         Seq(
           "--power",
           "package",
@@ -1622,7 +1622,7 @@ class ActivityHeartbeatFixtures extends munit.FunSuite:
     do assert(!scheduledBasis.has(absent), absent)
 
   test("controller-only completion refuses a typed failure method and request"):
-    val result = tools.scalaCli(
+    val result = tools.buildFixture(
       Seq(
         "compile",
         "--server=false",
@@ -1680,7 +1680,7 @@ class ActivityHeartbeatFixtures extends munit.FunSuite:
     val storedEnums = "model/irgen/testdata/realizationRefusals/enumRefusals/"
     val jar = scratch.resolve("enums.jar")
     tools
-      .scalaCli(
+      .buildFixture(
         Seq(
           "--power",
           "package",
@@ -1841,7 +1841,7 @@ class ExpectationFixtures extends munit.FunSuite:
     ): Unit
     val jar = scratch.resolve("expectations.jar")
     tools
-      .scalaCli(
+      .buildFixture(
         Seq(
           "--power",
           "package",
@@ -2080,7 +2080,8 @@ class ExpectationFixtures extends munit.FunSuite:
     assertEquals(capability.path("name").asText(), "validCapability.closes")
 
 class Fixtures extends munit.FunSuite:
-  // A test builds a fixture with scala-cli and lifts it in a JVM of its own.
+  // A test builds a fixture in this JVM, or through scala-cli's Bloop server where it reads that
+  // server's report (FixtureBuild), and lifts it in this JVM (InProcess).
   override val munitTimeout: Duration = 20.minutes
 
   private val tools = Tools.here
@@ -2101,8 +2102,9 @@ class Fixtures extends munit.FunSuite:
     )
   private def lifted(name: String) = scratch.resolve(s"$name.json")
 
-  // Every build and lifter JVM holds one of these while it runs, so the tests run side by side
-  // within the memory of the machine. A test awaiting a lift holds none, so none waits on itself.
+  // Every build and lift holds one of these while it runs, so the tests run side by side within
+  // the memory of the machine; the builds and lifts in this JVM are bounded again by their own
+  // slots (FixtureBuild, InProcess). A test awaiting a lift holds none, so none waits on itself.
   private val slots = Semaphore(6, true)
   private def bounded[A](work: => A): A =
     slots.acquire()
@@ -2150,7 +2152,7 @@ class Fixtures extends munit.FunSuite:
   // The lines of the stored files at which the fixture's build fails, as `<file>:<line>:<column>`.
   private def refusals(fixture: String, because: Option[String] = None): Seq[String] =
     val built = bounded(
-      tools.scalaCli(Seq("compile", materialize(fixture).toString))
+      tools.buildFixture(Seq("compile", materialize(fixture).toString))
     )
     assert(built.failed, s"model/irgen/testdata/$fixture built")
     because.foreach(message => assert(built.output.contains(message), built.output))
@@ -2165,22 +2167,21 @@ class Fixtures extends munit.FunSuite:
 
   private def packaged(
       name: String,
-      sources: Path,
-      options: Seq[String] = Nil
+      sources: Path
   ): Path =
     val jar = scratch.resolve(s"$name.jar")
     bounded(
-      tools.scalaCli(
+      tools.buildFixture(
         Seq(
           "--power",
           "package",
+          "--server=false",
           "--library",
           sources.toString,
           "-f",
           "-o",
           jar.toString
-        ) ++
-          options
+        )
       )
     ).orFail(): Unit
     jar
@@ -2793,7 +2794,7 @@ class Fixtures extends munit.FunSuite:
   // fn-139.7: `in(...)` is membership alone; rule cases use `when(...)`.
   concurrently("the build refuses a retired rule-case in with its replacement"):
     val built = bounded(
-      tools.scalaCli(Seq("compile", materialize("retiredRuleCase").toString))
+      tools.buildFixture(Seq("compile", materialize("retiredRuleCase").toString))
     )
     assert(built.failed, "model/irgen/testdata/retiredRuleCase built")
     assertEquals(
@@ -5753,7 +5754,7 @@ class Fixtures extends munit.FunSuite:
   concurrently(
     "a form binds a shared action's entity without redeclaring its identity"
   ):
-    val jar = packaged("binding", materialize("binding"), Seq("--server=false"))
+    val jar = packaged("binding", materialize("binding"))
     val out = lifted("binding")
     val result = lift(
       s"$jar=${stored("binding")},$modelJar=model/",
@@ -5897,7 +5898,7 @@ class Fixtures extends munit.FunSuite:
         "project.scala"
       )
     )
-    val jar = packaged("layout", tree, Seq("--server=false"))
+    val jar = packaged("layout", tree)
     val explicit = scratch.resolve("layout-explicit.json")
     val direct = lift(
       s"$jar=${stored("layout")},$modelJar=model/",
@@ -5945,7 +5946,7 @@ class Fixtures extends munit.FunSuite:
 
   concurrently("typed generic realization alone requests a file while unrelated values do not"):
     val tree = materializeTree("coreDiscovery")
-    val jar = packaged("coreDiscovery", tree, Seq("--server=false"))
+    val jar = packaged("coreDiscovery", tree)
     val out = scratch.resolve("coreDiscovery-out")
     val result = liftIr(out, s"$jar=${stored("coreDiscovery")},$modelJar=model/")
     assertEquals(result.exit, 0, result.diagnostics)
@@ -5979,7 +5980,7 @@ class Fixtures extends munit.FunSuite:
     "kind scaffolds and their one or two forms lift with local or kind Products"
   ):
     val tree = materializeTree("layout/kinds", "kind-layout")
-    val jar = packaged("kind-layout", tree, Seq("--server=false"))
+    val jar = packaged("kind-layout", tree)
     val out = scratch.resolve("kind-layout-out")
     val result = liftIr(
       out,
@@ -6162,7 +6163,7 @@ class Fixtures extends munit.FunSuite:
           Files.createDirectories(changed.getParent)
           Files.writeString(changed, text)
         case None => Files.delete(changed)
-      val jar = packaged(s"kind-$name", variant, Seq("--server=false"))
+      val jar = packaged(s"kind-$name", variant)
       val out = scratch.resolve(s"kind-$name-out")
       val result = liftIr(out, s"$jar=$variant/,$modelJar=model/")
       assertNotEquals(result.exit, 0, name)
@@ -6203,7 +6204,7 @@ class Fixtures extends munit.FunSuite:
         changed,
         java.nio.file.StandardCopyOption.REPLACE_EXISTING
       )
-      val jar = packaged(s"r4-$name", tree, Seq("--server=false"))
+      val jar = packaged(s"r4-$name", tree)
       val out = scratch.resolve(s"r4-$name-out")
       val result = liftIr(out, s"$jar=$tree/,$modelJar=model/")
       assert(
@@ -6229,7 +6230,7 @@ class Fixtures extends munit.FunSuite:
             .replace("fixture.features.nexus", "fixture.foundations.nexus")
         )
     finally stream.close()
-    val jar = packaged("shared-forms", tree, Seq("--server=false"))
+    val jar = packaged("shared-forms", tree)
     val out = scratch.resolve("shared-forms-out")
     val result = liftIr(out, s"$jar=$tree/,$modelJar=model/", "nexus-workflow")
     assertNotEquals(result.exit, 0)
@@ -6251,7 +6252,7 @@ class Fixtures extends munit.FunSuite:
       tree.resolve("nexus/workflow"),
       Files.createDirectories(tree.resolve("other")).resolve("workflow")
     )
-    val jar = packaged("wrong-parent-kind", tree, Seq("--server=false"))
+    val jar = packaged("wrong-parent-kind", tree)
     val out = scratch.resolve("wrong-parent-kind-out")
     val result = liftIr(out, s"$jar=$tree/,$modelJar=model/", "nexus-workflow")
     assertNotEquals(result.exit, 0)
@@ -6291,7 +6292,7 @@ class Fixtures extends munit.FunSuite:
           feature,
           Files.readString(feature).replace("system.RelaySystem", "system.Copy")
         ): Unit
-      val jar = packaged(variantName, tree, Seq("--server=false"))
+      val jar = packaged(variantName, tree)
       val out = scratch.resolve(s"$variantName-out")
       val result =
         liftIr(out, s"$jar=$tree/,$modelJar=model/", "relay-workflow")
@@ -6318,7 +6319,7 @@ class Fixtures extends munit.FunSuite:
         path,
         s"package $pkg\nfinal case class Extra(value: Boolean)\n"
       )
-    val jar = packaged("type-only-folders", tree, Seq("--server=false"))
+    val jar = packaged("type-only-folders", tree)
     val out = scratch.resolve("type-only-folders-out")
     val result = liftIr(out, s"$jar=$tree/,$modelJar=model/", "relay-workflow")
     assertNotEquals(result.exit, 0)

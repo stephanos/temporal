@@ -33,7 +33,7 @@ class FacetsTest extends munit.FunSuite:
     val jar = dir.resolve("fixture.jar")
     tools
       .inDirectory(dir)
-      .scalaCli(
+      .buildFixture(
         Seq(
           "--power",
           "package",
@@ -229,7 +229,7 @@ class FacetsTest extends munit.FunSuite:
   test("ordered facet union and core functions agree under a closed declaration map"):
     val native = tools
       .inDirectory(original._1)
-      .scalaCli(
+      .buildFixture(
         Seq(
           "run",
           "--server=false",

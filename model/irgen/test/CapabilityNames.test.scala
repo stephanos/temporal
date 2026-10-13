@@ -20,7 +20,7 @@ class CapabilityNamesTest extends munit.FunSuite:
     ): Unit
     val jar = scratch.resolve("names.jar")
     tools
-      .scalaCli(
+      .buildFixture(
         Seq(
           "--power",
           "package",

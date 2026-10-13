@@ -31,7 +31,7 @@ class BoundsTest extends munit.FunSuite:
     ): Unit
     val jar = directory.resolve("fixture.jar")
     tools
-      .scalaCli(
+      .buildFixture(
         Seq(
           "--power",
           "package",

@@ -15,7 +15,7 @@ class GapsSuite extends munit.FunSuite:
   private lazy val jar =
     val output = scratch.resolve("gaps.jar")
     tools
-      .scalaCli(
+      .buildFixture(
         Seq(
           "--power",
           "package",

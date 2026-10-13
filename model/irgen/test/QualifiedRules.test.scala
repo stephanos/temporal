@@ -24,7 +24,7 @@ class QualifiedRulesTest extends munit.FunSuite:
       s"//> using scala 3.9.0\n//> using jvm 27\n//> using jar $modelJar\n"
     ): Unit
     tools
-      .scalaCli(
+      .buildFixture(
         Seq(
           "--power",
           "package",

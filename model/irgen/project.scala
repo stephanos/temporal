@@ -17,8 +17,9 @@
 // The registry of what every suite covers (fn-166.13), which the lifter's tests read too.
 //> using file ../check/Coverage.scala
 //> using test.dep org.scalameta::munit:1.2.0
-// The tests lift in-process, two lifts at a time (test/InProcess.scala); a bounded heap keeps the
-// suite inside the memory of a shared machine, and the lifter's own runs fit it as well.
+// The tests build fixtures and lift in-process, three builds and three lifts at a time
+// (test/ModelBuild.scala, test/InProcess.scala); a bounded heap keeps the suite inside the memory
+// of a shared machine, and the lifter's own runs fit it as well.
 //> using javaOpt -Xmx3g
 // The fixtures under testdata are their own builds, and some must not compile; the tests copy them
 // out and build each apart.

@@ -33,13 +33,13 @@ class GapResolutionSuite extends munit.FunSuite:
     )
     val jar = scratch.resolve("scoped.jar")
     tools
-      .scalaCli(
+      .buildFixture(
         Seq("--power", "package", "--server=false", "--library") ++ roots ++
           Seq("-f", "-o", jar.toString)
       )
       .orFail(): Unit
     val printed = tools
-      .scalaCli(Seq("compile", "--server=false", "--print-class-path") ++ roots)
+      .buildFixture(Seq("compile", "--server=false", "--print-class-path") ++ roots)
       .orFail()
       .diagnostics
       .trim
@@ -61,7 +61,7 @@ class GapResolutionSuite extends munit.FunSuite:
     val jar = dir.resolve("fixture.jar")
     tools
       .inDirectory(dir)
-      .scalaCli(
+      .buildFixture(
         Seq(
           "--power",
           "package",

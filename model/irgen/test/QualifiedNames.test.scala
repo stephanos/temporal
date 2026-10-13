@@ -133,7 +133,18 @@ class QualifiedNames extends munit.FunSuite:
     finally stream.close()
     val jar = scratch.resolve(s"$name.jar")
     tools
-      .scalaCli(Seq("--power", "package", "--library", dir.toString, "-f", "-o", jar.toString))
+      .buildFixture(
+        Seq(
+          "--power",
+          "package",
+          "--server=false",
+          "--library",
+          dir.toString,
+          "-f",
+          "-o",
+          jar.toString
+        )
+      )
       .orFail(): Unit
     val runs = probed.map: (fixture, stem, pkg, roots) =>
       // A val's root is its owner's member, its file's package object or an object; an object's

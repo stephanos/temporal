@@ -44,7 +44,7 @@ class EligibleWitnessFixtures extends munit.FunSuite:
     finally files.close()
     val out = directory.resolve("fixture.jar")
     tools
-      .scalaCli(
+      .buildFixture(
         Seq(
           "--power",
           "package",

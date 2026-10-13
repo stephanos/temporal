@@ -24,7 +24,7 @@ class EnteringTest extends munit.FunSuite:
     ): Unit
     val jar = dir.resolve("fixture.jar")
     tools
-      .scalaCli(
+      .buildFixture(
         Seq(
           "--power",
           "package",

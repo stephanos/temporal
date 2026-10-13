@@ -30,8 +30,17 @@ class PhaseCapabilitiesSuite extends munit.FunSuite:
         )
     finally stream.close()
     tools
-      .scalaCli(
-        Seq("--power", "package", "--library", scratch.toString, "-f", "-o", fixtureJar.toString)
+      .buildFixture(
+        Seq(
+          "--power",
+          "package",
+          "--server=false",
+          "--library",
+          scratch.toString,
+          "-f",
+          "-o",
+          fixtureJar.toString
+        )
       )
       .orFail(): Unit
 

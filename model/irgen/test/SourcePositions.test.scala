@@ -17,7 +17,7 @@ class SourcePositionsFixtures extends munit.FunSuite:
       Files.createTempDirectory(build.resolve("history"), "source-positions.")
     val jar = scratch.resolve("fixture.jar")
     tools
-      .scalaCli(
+      .buildFixture(
         Seq(
           "--power",
           "package",

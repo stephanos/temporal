@@ -31,10 +31,11 @@ class StatusTableSeamFixtures extends munit.FunSuite:
       ): Unit
     val jar = scratch.resolve("fixture.jar")
     tools
-      .scalaCli(
+      .buildFixture(
         Seq(
           "--power",
           "package",
+          "--server=false",
           "--library",
           scratch.toString,
           "-f",

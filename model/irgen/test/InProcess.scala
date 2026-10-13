@@ -12,7 +12,7 @@ import umpire.check.Ran
 // Lifts run side by side share the JVM's heap, so at most `slots` lift at once, whatever the suites'
 // own limits on builds and lifts.
 object InProcess:
-  private val slots = java.util.concurrent.Semaphore(2, true)
+  private val slots = java.util.concurrent.Semaphore(3, true)
 
   def lift(directory: Path, arguments: Seq[String], rules: Set[String] = Set.empty): Ran =
     slots.acquire()

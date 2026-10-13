@@ -22,7 +22,7 @@ class LayoutFilesFixtures extends munit.FunSuite:
     )
     val jar = scratch.resolve("layoutFiles.jar")
     tools
-      .scalaCli(
+      .buildFixture(
         Seq(
           "--power",
           "package",
@@ -113,7 +113,7 @@ class LayoutFilesFixtures extends munit.FunSuite:
       change(tree)
       val jar = scratch.resolve(s"$name.jar")
       tools
-        .scalaCli(Seq("--power", "package", "--server=false", "--library", tree.toString, "-f", "-o",
+        .buildFixture(Seq("--power", "package", "--server=false", "--library", tree.toString, "-f", "-o",
           jar.toString))
         .orFail(): Unit
       val result = InProcess.lift(

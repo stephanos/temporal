@@ -20,8 +20,18 @@ class ConventionsFixtures extends munit.FunSuite:
       )
     val jar = scratch.resolve(s"$name.jar")
     tools
-      .scalaCli(
-        Seq("--power", "package", "--library", "--test", sources.toString, "-f", "-o", jar.toString)
+      .buildFixture(
+        Seq(
+          "--power",
+          "package",
+          "--server=false",
+          "--library",
+          "--test",
+          sources.toString,
+          "-f",
+          "-o",
+          jar.toString
+        )
       )
       .orFail(): Unit
     jar

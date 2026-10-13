@@ -30,7 +30,7 @@ class AdmissionSuite extends munit.FunSuite:
       ): Unit
     }
     tools
-      .scalaCli(
+      .buildFixture(
         Seq(
           "--power",
           "package",

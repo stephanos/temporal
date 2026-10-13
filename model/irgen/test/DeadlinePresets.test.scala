@@ -55,7 +55,7 @@ object Preset extends Realizes(Device):
     ): Unit
     val jar = directory.resolve("fixture.jar")
     tools
-      .scalaCli(
+      .buildFixture(
         Seq(
           "--power",
           "package",
@@ -197,7 +197,7 @@ class DeadlinePresetsSuite extends munit.FunSuite:
         )
     finally stream.close()
     tools
-      .scalaCli(
+      .buildFixture(
         Seq(
           "--power",
           "package",

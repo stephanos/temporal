@@ -27,7 +27,7 @@ class BoundedIntegersTest extends munit.FunSuite:
     ): Unit
     val jar = directory.resolve("fixture.jar")
     tools
-      .scalaCli(
+      .buildFixture(
         Seq(
           "--power",
           "package",
@@ -203,7 +203,7 @@ object Messages extends Machine[Mail, Outcome, Nothing]:
     ): Unit
     val jar = directory.resolve("fixtures.jar")
     tools
-      .scalaCli(
+      .buildFixture(
         Seq(
           "--power",
           "package",
