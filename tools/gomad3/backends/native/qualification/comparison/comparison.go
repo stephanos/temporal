@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"slices"
 	"sort"
 	"strings"
 	"unicode/utf8"
@@ -359,8 +360,8 @@ func blockerIdentities(blockers []capabilityanalysis.Blocker) map[record.SHA256]
 func cloneBlocker(blocker capabilityanalysis.Blocker) capabilityanalysis.Blocker {
 	cloned := blocker
 	cloned.Module = cloneCapabilityModule(blocker.Module)
-	cloned.Directives = append([]string(nil), blocker.Directives...)
-	cloned.DependencyPath = append([]target.CapabilityPackageReference(nil), blocker.DependencyPath...)
+	cloned.Directives = slices.Clone(blocker.Directives)
+	cloned.DependencyPath = slices.Clone(blocker.DependencyPath)
 	return cloned
 }
 

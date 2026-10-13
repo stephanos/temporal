@@ -1,6 +1,7 @@
 package comparison
 
 import (
+	"encoding/json"
 	"strings"
 	"testing"
 
@@ -107,6 +108,39 @@ func TestCompareOwnsNestedBlockerEvidenceAndRejectsInvalidStrings(t *testing.T) 
 	baseline.Workloads[0].Blockers[0].Directives[0] = "invalid\xff"
 	if _, err := Compare(Input{Baseline: baseline, Candidate: candidate}); err == nil || !strings.Contains(err.Error(), "valid UTF-8") {
 		t.Fatalf("Compare() error = %v", err)
+	}
+}
+
+func TestBlockerIdentitiesPreserveSlicePresenceInReturnedEvidence(t *testing.T) {
+	for _, test := range []struct {
+		name           string
+		directives     []string
+		dependencyPath []target.CapabilityPackageReference
+	}{
+		{name: "nil slices"},
+		{name: "present empty slices", directives: []string{}, dependencyPath: []target.CapabilityPackageReference{}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			blocker := comparisonBlocker("example.com/dependency", "import:os/exec")
+			blocker.Directives = test.directives
+			blocker.DependencyPath = test.dependencyPath
+			identities := blockerIdentities([]capabilityanalysis.Blocker{blocker})
+			if len(identities) != 1 {
+				t.Fatalf("blocker identities = %#v", identities)
+			}
+			for _, identity := range identities {
+				encoded, err := json.Marshal(identity.Blocker)
+				if err != nil {
+					t.Fatal(err)
+				}
+				if want := record.DomainHash("gomad3.support-blocker/v1", encoded); identity.SHA256 != want {
+					t.Fatalf("returned blocker identity = %s, recomputed %s; blocker = %#v", identity.SHA256, want, identity.Blocker)
+				}
+				if (identity.Blocker.Directives == nil) != (test.directives == nil) || (identity.Blocker.DependencyPath == nil) != (test.dependencyPath == nil) {
+					t.Fatalf("returned blocker changed slice presence: %#v", identity.Blocker)
+				}
+			}
+		})
 	}
 }
 
