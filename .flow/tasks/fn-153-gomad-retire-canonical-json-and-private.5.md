@@ -41,13 +41,13 @@ Capture the frozen behavior pin named above, run focused negative controls and f
 - [ ] Unknown/duplicate/trailing/raw-invalid-UTF8, alternate wire spelling/surrogates, malformed lengths/magic and configured allocation limits retain refusal.
 - [ ] The implementation uses stdlib normalization only inside the closed World domain and contains no copied recursive canonical encoder.
 ## Done summary
-TBD
+Replaced World canonicaljson usage with a bounded domain-local stdlib codec, retained exact bytes across the frozen 5,029-case matrix, added original-string validation and strict typed decoding, and preserved legacy malformed-recording diagnostics consumed by Runner.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 30f64a5fa44a14270f89f5a53647d4bfb86068c2, 379884b30c86a50a73546816213f51737aaa0f11, 570818e777ba9dc979d130167e77a925c34b7d56
+- Tests: go -C tools/gomad3 test -tags test_dep -count=1 ./internal/strictjson ./world/..., go -C tools/gomad3 test -tags test_dep -count=1 -run '^TestAssessWorldValidatesTheRecordAgainstItsSeed$|^TestCompletionFaultsKeepReasonPrecedenceAndEvidence$' ./runner, go -C tools/gomad3 test -race -tags test_dep -count=1 ./world/..., go -C tools/gomad3 test -tags test_dep -count=1 ./internal/archcheck, make -C tools/gomad3 validate
 - PRs:
-
 ## Revival trigger (2026-10-13)
 
 Revived after fn153.1 completed with a SHIP implementation review and its integrated strict-decoder, architecture and validation gates green. The World codec owner is disjoint from the in-flight hostfs, record/deterministicio and native-build migrations; fn153.19 remains held because it overlaps World. The forced local claim is only needed because Flow chain admission requires the completed fn152 parent on an unpushed remote branch; pushing remains outside the user's requested scope.

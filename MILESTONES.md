@@ -240,7 +240,6 @@ These fn-109 tasks change Runner, artifact, choice-exploration and simulation ow
 | [fn-153.2](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.2.md) | 🚧 In progress | Centralize staged publication and all surviving private host helpers |
 | [fn-153.3](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.3.md) | 🚧 In progress | Migrate execution records and I/O identity validation |
 | [fn-153.4](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.4.md) | 🚧 In progress | Migrate preparation identities and preserve live-capability payloads |
-| [fn-153.5](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.5.md) | 🚧 In progress | Replace World's generic encoder with a bounded domain-local stdlib codec |
 | [fn-153.6](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.6.md) | ⬜ Todo | Migrate compatibility authoring without changing approvals' meaning |
 | [fn-153.7](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.7.md) | ⬜ Todo | Migrate qualification evidence and shared report publication |
 | [fn-153.8](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.8.md) | ⬜ Todo | Migrate qualification sets and generated manifest inputs |
