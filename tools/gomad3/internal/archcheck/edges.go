@@ -25,7 +25,7 @@ func Owner(module, importPath string) string {
 		"backends/native/conformance": "developer", "backends/native/generation": "developer",
 		"backends/native/qualification": "qualification", "backends/native/preparation": "preparation",
 		"captured": "captured", "volume": "volume", "internal/iowire": "iowire",
-		"backends/native/compatibilitypack": "compatibility", "internal/canonicaljson": "canonicaljson", "internal/hostexec": "hostexec", "hostexec": "hostexec", "internal/hostfs": "hostfs", "hostfs": "hostfs", "backends/native/sourceinventory": "sourceinventory",
+		"backends/native/compatibilitypack": "compatibility", "internal/canonicaljson": "canonicaljson", "internal/strictjson": "strictjson", "internal/hostexec": "hostexec", "hostexec": "hostexec", "internal/hostfs": "hostfs", "hostfs": "hostfs", "backends/native/sourceinventory": "sourceinventory",
 	} {
 		if Within(relative, path) {
 			return owner
@@ -45,7 +45,7 @@ func OwnerMayImport(modulePath, owner, importedOwner, importing, imported string
 		return slices.ContainsFunc([]string{
 			"artifact", "choice", "captured", "volume", "hostexec", "hostfs",
 			"qualification", "qualification/workload", "record", "runner", "backends",
-			"simulation/network", "target", "world", "runtimesemantics",
+			"simulation/network", "target", "world", "runtimesemantics", "internal/strictjson",
 		}, func(path string) bool { return imported == modulePath+"/"+path })
 	}
 	if owner == "cli" && slices.Contains([]string{"wasm", "native", "hostexec", "hostfs"}, importedOwner) {
@@ -55,14 +55,14 @@ func OwnerMayImport(modulePath, owner, importedOwner, importing, imported string
 		return true
 	}
 	allowed := map[string][]string{
-		"native": {"runner", "target", "record", "artifact", "choice", "deterministicio", "captured", "volume", "iowire", "preparation", "world", "canonicaljson", "hostexec", "hostfs", "simulation"},
-		"cli":    {"runner", "qualification", "target", "record", "artifact", "deterministicio", "captured", "volume", "iowire", "preparation", "toolchain", "canonicaljson"}, "developer": {"choice", "compatibility", "qualification", "simulation", "toolchain", "upgrade", "hostexec", "hostfs", "runtimesemantics"},
-		"runner": {"target", "record", "artifact", "choice", "deterministicio", "captured", "volume", "iowire", "preparation", "world", "canonicaljson", "hostexec", "hostfs"}, "qualification": {"runner", "target", "record", "artifact", "choice", "deterministicio", "captured", "volume", "iowire", "preparation", "canonicaljson", "hostexec", "hostfs"},
-		"target": {"compatibility", "record", "toolchain", "canonicaljson", "hostexec", "hostfs", "sourceinventory"}, "record": {"canonicaljson"}, "world": {"canonicaljson"}, "simulation": {"record", "canonicaljson"},
-		"artifact": {"choice", "deterministicio", "captured", "volume", "iowire", "target", "record", "hostfs"}, "compatibility": {"target", "record", "canonicaljson", "hostfs"},
-		"deterministicio": {"target", "record", "toolchain", "canonicaljson", "hostfs", "sourceinventory", "captured", "volume", "iowire"}, "captured": {"record", "canonicaljson", "iowire"}, "volume": {"iowire"},
-		"preparation": {"target", "deterministicio", "captured", "volume", "iowire", "record"}, "toolchain": {"canonicaljson", "hostexec", "hostfs", "runtimesemantics"},
-		"upgrade": {"qualification", "toolchain", "deterministicio", "captured", "volume", "iowire", "compatibility", "canonicaljson", "hostexec", "hostfs"}, "sourceinventory": {"hostfs"}, "runtimesemantics": {"hostfs"},
+		"native": {"runner", "target", "record", "artifact", "choice", "deterministicio", "captured", "volume", "iowire", "preparation", "world", "canonicaljson", "strictjson", "hostexec", "hostfs", "simulation"},
+		"cli":    {"runner", "qualification", "target", "record", "artifact", "deterministicio", "captured", "volume", "iowire", "preparation", "toolchain", "canonicaljson", "strictjson"}, "developer": {"choice", "compatibility", "qualification", "simulation", "toolchain", "upgrade", "hostexec", "hostfs", "runtimesemantics"},
+		"runner": {"target", "record", "artifact", "choice", "deterministicio", "captured", "volume", "iowire", "preparation", "world", "canonicaljson", "strictjson", "hostexec", "hostfs"}, "qualification": {"runner", "target", "record", "artifact", "choice", "deterministicio", "captured", "volume", "iowire", "preparation", "canonicaljson", "strictjson", "hostexec", "hostfs"},
+		"target": {"compatibility", "record", "toolchain", "canonicaljson", "strictjson", "hostexec", "hostfs", "sourceinventory"}, "record": {"canonicaljson", "strictjson"}, "world": {"canonicaljson", "strictjson"}, "simulation": {"record", "canonicaljson", "strictjson"},
+		"artifact": {"choice", "deterministicio", "captured", "volume", "iowire", "target", "record", "hostfs"}, "compatibility": {"target", "record", "canonicaljson", "strictjson", "hostfs"},
+		"deterministicio": {"target", "record", "toolchain", "canonicaljson", "strictjson", "hostfs", "sourceinventory", "captured", "volume", "iowire"}, "captured": {"record", "canonicaljson", "strictjson", "iowire"}, "volume": {"iowire"},
+		"preparation": {"target", "deterministicio", "captured", "volume", "iowire", "record"}, "toolchain": {"canonicaljson", "strictjson", "hostexec", "hostfs", "runtimesemantics"},
+		"upgrade": {"qualification", "toolchain", "deterministicio", "captured", "volume", "iowire", "compatibility", "canonicaljson", "strictjson", "hostexec", "hostfs"}, "sourceinventory": {"hostfs"}, "runtimesemantics": {"hostfs"},
 	}
 	if !slices.Contains(allowed[owner], importedOwner) {
 		return false

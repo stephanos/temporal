@@ -48,6 +48,7 @@ func TestBackendImportDirection(t *testing.T) {
 		"embed", "encoding", "encoding/base64", "encoding/binary", "encoding/hex", "encoding/json", "errors", "fmt", "hash", "io",
 		"math", "math/bits", "path", "path/filepath", "reflect", "regexp", "slices", "sort", "strconv", "golang.org/x/mod/module",
 		"strings", "sync", "sync/atomic", "syscall", "time", "unicode", "unicode/utf8",
+		"github.com/go-json-experiment/json",
 		modulePath + "/choice", modulePath + "/target", modulePath + "/backends/native/compatibilitypack",
 	}
 	platforms := qualifiedSourcePlatforms()
@@ -269,10 +270,41 @@ func TestPackageArchitecture(t *testing.T) {
 	if moduleMayImport(modulePath+"/runner/internal/exploration", logstore) {
 		t.Error("pure exploration engines may import the shared log owner")
 	}
-	for _, owner := range []string{"cli", "developer", "runner", "qualification", "target", "record", "artifact", "choice", "deterministicio", "world", "toolchain", "upgrade", "compatibility", "canonicaljson", "hostexec", "hostfs", "sourceinventory"} {
+	for _, owner := range []string{"cli", "developer", "runner", "qualification", "target", "record", "artifact", "choice", "deterministicio", "world", "toolchain", "upgrade", "compatibility", "canonicaljson", "strictjson", "hostexec", "hostfs", "sourceinventory"} {
 		if !owners[owner] {
 			t.Errorf("architectural owner %s has no package", owner)
 		}
+	}
+}
+
+func TestStrictJSONOwnerEdges(t *testing.T) {
+	imported := modulePath + "/internal/strictjson"
+	if got := packageOwner(imported); got != "strictjson" {
+		t.Fatalf("strict JSON owner = %q, want strictjson", got)
+	}
+	for _, test := range []struct {
+		owner, importing string
+	}{
+		{"wasm", modulePath + "/backends/wasm/qualification"},
+		{"native", modulePath + "/backends/native"},
+		{"cli", modulePath + "/cmd/gomad/internal/cli"},
+		{"runner", modulePath + "/runner"},
+		{"qualification", modulePath + "/qualification"},
+		{"target", modulePath + "/target"},
+		{"record", modulePath + "/record"},
+		{"world", modulePath + "/world"},
+		{"simulation", modulePath + "/simulation"},
+		{"compatibility", modulePath + "/backends/native/compatibilitypack"},
+		{"deterministicio", modulePath + "/backends/native/transcript"},
+		{"captured", modulePath + "/captured"},
+		{"toolchain", modulePath + "/backends/native/toolchain"},
+		{"upgrade", modulePath + "/backends/native/upgrade"},
+	} {
+		t.Run(test.owner, func(t *testing.T) {
+			if !ownerMayImport(test.owner, "strictjson", test.importing, imported) {
+				t.Errorf("owner %s may not import strictjson", test.owner)
+			}
+		})
 	}
 }
 
@@ -708,6 +740,7 @@ var pureDependencyFiles = []string{
 	"backends/native/compatibilitypack/evaluation.go", "backends/native/compatibilitypack/selection_pure.go",
 	"backends/native/compatibilitypack/schema.go",
 	"internal/canonicaljson/canonical.go", "internal/canonicaljson/implementation.go", "internal/canonicaljson/streaming.go",
+	"internal/strictjson/decode.go",
 }
 
 func nativePureFile(path string) bool {
