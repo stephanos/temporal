@@ -1,7 +1,9 @@
 package hostfs_test
 
 import (
+	"context"
 	"errors"
+	"io"
 	"os"
 	"path/filepath"
 	"testing"
@@ -30,5 +32,29 @@ func TestPublicReadAcceptsCompleteBoundedBytesAndRejectsOverflowOrLinks(t *testi
 	}
 	if _, _, err := hostfs.OpenPath(link); !errors.Is(err, hostfs.ErrSymbolicLink) {
 		t.Fatalf("symlink open: %v", err)
+	}
+}
+
+func TestPublicStagingAndLinkCountDelegateToSharedHostOwner(t *testing.T) {
+	directory := t.TempDir()
+	destination := filepath.Join(directory, "result")
+	staged, err := hostfs.StageContext(context.Background(), directory, ".result-*", 0o600, func(_ context.Context, writer io.Writer) error {
+		_, err := io.WriteString(writer, "published")
+		return err
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer staged.Cleanup()
+	published, err := staged.PublishNoReplaceContext(context.Background(), destination)
+	if err != nil || !published {
+		t.Fatalf("PublishNoReplaceContext() = %t, %v", published, err)
+	}
+	info, err := os.Stat(destination)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if links, known := hostfs.LinkCount(info); known && links != 1 {
+		t.Fatalf("LinkCount() = %d, %t", links, known)
 	}
 }

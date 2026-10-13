@@ -350,9 +350,5 @@ func publishRegeneratedPatch(ctx context.Context, root, pristineRoot, output str
 		return fmt.Errorf("publish regenerated patch: %w", err)
 	}
 	published = true
-	directoryFile, err := os.Open(directory)
-	if err != nil {
-		return err
-	}
-	return errors.Join(directoryFile.Sync(), directoryFile.Close())
+	return hostfs.SyncDirectory(directory)
 }

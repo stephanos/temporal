@@ -347,18 +347,10 @@ func retireJournal(state, directory string) error {
 	if err := os.Rename(directory, retired); err != nil {
 		return fmt.Errorf("retire adapter publication journal: %w", err)
 	}
-	if err := syncDirectory(state); err != nil {
+	if err := hostfs.SyncDirectory(state); err != nil {
 		return err
 	}
 	return os.RemoveAll(retired)
-}
-
-func syncDirectory(path string) error {
-	directory, err := os.Open(path)
-	if err != nil {
-		return err
-	}
-	return errors.Join(directory.Sync(), directory.Close())
 }
 
 // writeJournal records every staged change and its contents in a pending
@@ -392,7 +384,7 @@ func writeJournal(state, stage string, entries []journalEntry) error {
 	if err := os.Rename(pending, filepath.Join(state, journalDirectory)); err != nil {
 		return fmt.Errorf("commit adapter publication journal: %w", err)
 	}
-	return syncDirectory(state)
+	return hostfs.SyncDirectory(state)
 }
 
 // copyCheckout copies root into stage and returns the digest of every file it

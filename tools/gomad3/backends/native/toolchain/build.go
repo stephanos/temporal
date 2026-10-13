@@ -573,7 +573,7 @@ func publishBuild(sourceRoot, buildDir string) error {
 	if err := os.Rename(sourceRoot, buildDir); err != nil {
 		return fmt.Errorf("publish immutable gomad3 build: %w", err)
 	}
-	return syncDirectory(filepath.Dir(buildDir))
+	return hostfs.SyncDirectory(filepath.Dir(buildDir))
 }
 
 func publishStable(layout installation.Layout, key string, config BuildSpec) (retErr error) {
@@ -627,7 +627,7 @@ func publishStable(layout installation.Layout, key string, config BuildSpec) (re
 		return fmt.Errorf("publish gomad3 build key: %w", err)
 	}
 	stampPublished = true
-	if err := syncDirectory(toolchainRoot); err != nil {
+	if err := hostfs.SyncDirectory(toolchainRoot); err != nil {
 		return err
 	}
 	if err := inject(config, "after-stamp-publish"); err != nil {
@@ -637,7 +637,7 @@ func publishStable(layout installation.Layout, key string, config BuildSpec) (re
 		return fmt.Errorf("publish gomad3 launcher: %w", err)
 	}
 	launcherPublished = true
-	if err := syncDirectory(binRoot); err != nil {
+	if err := hostfs.SyncDirectory(binRoot); err != nil {
 		return err
 	}
 	return inject(config, "after-launcher-publish")
@@ -734,12 +734,4 @@ func filteredEnvironment(environment []string, names ...string) []string {
 		}
 	}
 	return filtered
-}
-
-func syncDirectory(path string) error {
-	directory, err := os.Open(path)
-	if err != nil {
-		return err
-	}
-	return errors.Join(directory.Sync(), directory.Close())
 }

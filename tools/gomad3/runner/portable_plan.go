@@ -205,7 +205,7 @@ func createCampaignPlanWith(ctx context.Context, spec CampaignPlanSpec, dependen
 	if err := syncRegularFile(targetPath); err != nil {
 		return CampaignPlanResult{}, err
 	}
-	if err := syncDirectory(bundle); err != nil {
+	if err := hostfs.SyncDirectory(bundle); err != nil {
 		return CampaignPlanResult{}, err
 	}
 	if err := publishPlanFile(output, encoded); err != nil {
@@ -385,7 +385,7 @@ func publishPlanFile(path string, contents []byte) (retErr error) {
 			if removeErr := os.Remove(path); removeErr != nil && !errors.Is(removeErr, os.ErrNotExist) {
 				retErr = errors.Join(retErr, removeErr)
 			} else {
-				retErr = errors.Join(retErr, syncDirectory(filepath.Dir(path)))
+				retErr = errors.Join(retErr, hostfs.SyncDirectory(filepath.Dir(path)))
 			}
 		}
 	}()
@@ -408,7 +408,7 @@ func publishPlanFile(path string, contents []byte) (retErr error) {
 	if err := os.Remove(temporaryPath); err != nil {
 		return err
 	}
-	return syncDirectory(filepath.Dir(path))
+	return hostfs.SyncDirectory(filepath.Dir(path))
 }
 
 func syncRegularFile(path string) error {
@@ -417,12 +417,4 @@ func syncRegularFile(path string) error {
 		return err
 	}
 	return errors.Join(file.Sync(), file.Close())
-}
-
-func syncDirectory(path string) error {
-	directory, err := os.Open(path)
-	if err != nil {
-		return err
-	}
-	return errors.Join(directory.Sync(), directory.Close())
 }

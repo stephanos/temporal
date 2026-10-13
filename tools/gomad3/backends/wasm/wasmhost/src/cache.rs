@@ -159,48 +159,11 @@ fn same_file(a: &std::fs::Metadata, b: &std::fs::Metadata) -> bool {
 ))]
 mod private {
     use super::*;
-    use std::{
-        ffi::CString,
-        os::{
-            fd::{AsRawFd, FromRawFd},
-            unix::fs::{DirBuilderExt, MetadataExt, OpenOptionsExt},
-        },
+    use rustix::{
+        fs::{AtFlags, Mode, OFlags, open, openat, renameat, unlinkat},
+        process::geteuid,
     };
-    unsafe extern "C" {
-        fn geteuid() -> u32;
-        fn openat(dir: i32, path: *const std::ffi::c_char, flags: i32, mode: u32) -> i32;
-        fn renameat(
-            from_dir: i32,
-            from: *const std::ffi::c_char,
-            to_dir: i32,
-            to: *const std::ffi::c_char,
-        ) -> i32;
-        fn unlinkat(dir: i32, path: *const std::ffi::c_char, flags: i32) -> i32;
-    }
-    #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
-    const NOFOLLOW: i32 = 0x20000;
-    #[cfg(all(target_os = "linux", target_arch = "aarch64"))]
-    const NOFOLLOW: i32 = 0x8000;
-    #[cfg(target_os = "macos")]
-    const NOFOLLOW: i32 = 0x100;
-    #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
-    const DIRECTORY: i32 = 0x10000;
-    #[cfg(all(target_os = "linux", target_arch = "aarch64"))]
-    const DIRECTORY: i32 = 0x4000;
-    #[cfg(target_os = "macos")]
-    const DIRECTORY: i32 = 0x100000;
-    #[cfg(target_os = "linux")]
-    const CREATE_EXCLUSIVE: i32 = 0x40 | 0x80;
-    #[cfg(target_os = "macos")]
-    const CREATE_EXCLUSIVE: i32 = 0x200 | 0x800;
-    #[cfg(target_os = "linux")]
-    const CLOEXEC: i32 = 0x80000;
-    #[cfg(target_os = "macos")]
-    const CLOEXEC: i32 = 0x1000000;
-    #[cfg(target_os = "linux")]
-    const NONBLOCK: i32 = 0x800;
-    #[cfg(target_os = "macos")]
-    const NONBLOCK: i32 = 4;
+    use std::os::unix::fs::{DirBuilderExt, MetadataExt};
 
     pub struct Directory(File);
     impl Directory {
@@ -219,14 +182,18 @@ mod private {
                 }
                 Err(error) => return Err(io(error)),
             }
-            let file = std::fs::OpenOptions::new()
-                .read(true)
-                .custom_flags(NOFOLLOW | DIRECTORY)
-                .open(path)
-                .map_err(host)?;
+            let file = File::from(
+                open(
+                    path,
+                    OFlags::RDONLY | OFlags::NOFOLLOW | OFlags::DIRECTORY | OFlags::CLOEXEC,
+                    Mode::empty(),
+                )
+                .map_err(std::io::Error::from)
+                .map_err(host)?,
+            );
             let metadata = file.metadata().map_err(io)?;
             if !metadata.is_dir()
-                || metadata.uid() != unsafe { geteuid() }
+                || metadata.uid() != geteuid().as_raw()
                 || metadata.mode() & 0o7777 != 0o700
             {
                 return Err(host("directory must be owned and mode 0700"));
@@ -234,42 +201,26 @@ mod private {
             Ok(Self(file))
         }
         pub fn open_entry(&self, name: &str, create: bool) -> Result<File, std::io::Error> {
-            let name = CString::new(name).unwrap();
-            let flags =
-                NOFOLLOW | CLOEXEC | NONBLOCK | if create { 2 | CREATE_EXCLUSIVE } else { 2 };
-            let fd = unsafe { openat(self.0.as_raw_fd(), name.as_ptr(), flags, 0o600) };
-            if fd < 0 {
-                return Err(std::io::Error::last_os_error());
+            let mut flags = OFlags::RDWR | OFlags::NOFOLLOW | OFlags::CLOEXEC | OFlags::NONBLOCK;
+            if create {
+                flags |= OFlags::CREATE | OFlags::EXCL;
             }
-            Ok(unsafe { File::from_raw_fd(fd) })
+            openat(&self.0, name, flags, Mode::RUSR | Mode::WUSR)
+                .map(File::from)
+                .map_err(std::io::Error::from)
         }
         pub fn publish(&self, staging: &str, target: &str) -> std::io::Result<()> {
-            let from = CString::new(staging).unwrap();
-            let to = CString::new(target).unwrap();
-            if unsafe {
-                renameat(
-                    self.0.as_raw_fd(),
-                    from.as_ptr(),
-                    self.0.as_raw_fd(),
-                    to.as_ptr(),
-                )
-            } != 0
-            {
-                return Err(std::io::Error::last_os_error());
-            }
+            renameat(&self.0, staging, &self.0, target).map_err(std::io::Error::from)?;
             self.0.sync_all()
         }
         pub fn remove(&self, name: &str) {
-            let name = CString::new(name).unwrap();
-            unsafe {
-                unlinkat(self.0.as_raw_fd(), name.as_ptr(), 0);
-            }
+            let _ = unlinkat(&self.0, name, AtFlags::empty());
         }
     }
     pub fn validate(file: &File, entry: &std::path::Path) -> Result<std::fs::Metadata, Outcome> {
         let metadata = file.metadata().map_err(io)?;
         if !metadata.is_file()
-            || metadata.uid() != unsafe { geteuid() }
+            || metadata.uid() != geteuid().as_raw()
             || metadata.nlink() != 1
             || metadata.mode() & 0o7777 != 0o600
         {

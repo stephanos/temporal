@@ -54,6 +54,9 @@ func OwnerMayImport(modulePath, owner, importedOwner, importing, imported string
 	if owner == "runner" && imported == modulePath+"/simulation/clock" {
 		return true
 	}
+	if owner == "captured" && importedOwner == "hostfs" {
+		return imported == modulePath+"/hostfs"
+	}
 	allowed := map[string][]string{
 		"native": {"runner", "target", "record", "artifact", "choice", "deterministicio", "captured", "volume", "iowire", "preparation", "world", "canonicaljson", "strictjson", "hostexec", "hostfs", "simulation"},
 		"cli":    {"runner", "qualification", "target", "record", "artifact", "deterministicio", "captured", "volume", "iowire", "preparation", "toolchain", "canonicaljson", "strictjson"}, "developer": {"choice", "compatibility", "qualification", "simulation", "toolchain", "upgrade", "hostexec", "hostfs", "runtimesemantics"},

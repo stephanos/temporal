@@ -159,7 +159,7 @@ func (workspace *Workspace) create(binding Binding, initial State) error {
 		}
 	}
 	for _, directory := range []string{workspace.stateRoot(), workspace.root} {
-		if err := syncDirectory(directory); err != nil {
+		if err := hostfs.SyncDirectory(directory); err != nil {
 			return fmt.Errorf("sync minimize output directory: %w", err)
 		}
 	}
@@ -296,14 +296,14 @@ func (workspace *Workspace) Complete() error {
 	if err := os.Remove(workspace.checkpointPath()); err != nil && !errors.Is(err, os.ErrNotExist) {
 		return fmt.Errorf("remove minimizer state: %w", err)
 	}
-	if err := syncDirectory(workspace.stateDirectory()); err != nil {
+	if err := hostfs.SyncDirectory(workspace.stateDirectory()); err != nil {
 		return fmt.Errorf("sync minimizer state directory: %w", err)
 	}
 	workspace.completed = true
 	if err := os.RemoveAll(workspace.stateDirectory()); err != nil {
 		return fmt.Errorf("remove minimizer state directory: %w", err)
 	}
-	if err := syncDirectory(workspace.stateRoot()); err != nil {
+	if err := hostfs.SyncDirectory(workspace.stateRoot()); err != nil {
 		return fmt.Errorf("sync minimizer state root: %w", err)
 	}
 	return nil
@@ -518,12 +518,4 @@ func requireDirectory(path string) error {
 		return fmt.Errorf("%s is not a directory", filepath.Base(path))
 	}
 	return nil
-}
-
-func syncDirectory(path string) error {
-	directory, err := os.Open(path)
-	if err != nil {
-		return err
-	}
-	return errors.Join(directory.Sync(), directory.Close())
 }

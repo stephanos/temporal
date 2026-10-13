@@ -394,9 +394,5 @@ func copyWithContext(ctx context.Context, destination io.Writer, source io.Reade
 }
 
 func syncSourceDirectory(directory string) error {
-	file, err := os.Open(directory)
-	if err != nil {
-		return err
-	}
-	return errors.Join(file.Sync(), file.Close())
+	return hostfs.SyncDirectory(directory)
 }

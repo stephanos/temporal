@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"go.temporal.io/server/tools/gomad3/captured"
+	"go.temporal.io/server/tools/gomad3/internal/hostfs"
 	"go.temporal.io/server/tools/gomad3/record"
 )
 
@@ -127,7 +128,7 @@ func materializeCampaignPlanMounts(bundle string, inputs *captured.CapturedInput
 			return err
 		}
 	}
-	return syncDirectory(mountRoot)
+	return hostfs.SyncDirectory(mountRoot)
 }
 
 func campaignPlanMountDestination(root string, mappings []captured.Mapping, targetPath string) (string, int, error) {

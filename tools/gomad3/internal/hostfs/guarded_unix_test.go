@@ -23,6 +23,9 @@ func TestGuardedOpenRejectsHardLinkAliases(t *testing.T) {
 	if err := SingleLink(info); err != nil {
 		t.Fatalf("single link rejected: %v", err)
 	}
+	if links, known := LinkCount(info); !known || links != 1 {
+		t.Fatalf("LinkCount(single link) = %d, %t", links, known)
+	}
 	if err := os.Link(path, filepath.Join(directory, "alias")); err != nil {
 		t.Fatal(err)
 	}
@@ -34,5 +37,8 @@ func TestGuardedOpenRejectsHardLinkAliases(t *testing.T) {
 	}
 	if err := SingleLink(info); err == nil {
 		t.Fatal("hard-linked file reported as single link")
+	}
+	if links, known := LinkCount(info); !known || links != 2 {
+		t.Fatalf("LinkCount(hard link) = %d, %t", links, known)
 	}
 }

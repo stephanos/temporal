@@ -13,6 +13,7 @@ import (
 	"sort"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
+	"go.temporal.io/server/tools/gomad3/internal/hostfs"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/logstore"
 )
@@ -429,7 +430,7 @@ func MergeCampaigns(ctx context.Context, spec MergeSpec) (_ MergedCampaign, retE
 	if err := observeMutation(ctx, mutationRename, "merged-campaign"); err != nil {
 		return MergedCampaign{}, err
 	}
-	if err := artifact.RenameNoReplace(staging, output); err != nil {
+	if err := hostfs.RenameNoReplace(staging, output); err != nil {
 		return MergedCampaign{}, fmt.Errorf("publish merged campaign: %w", err)
 	}
 	if err := syncDirectoryContext(ctx, filepath.Dir(output)); err != nil {

@@ -15,6 +15,7 @@ import (
 	"sort"
 	"strings"
 
+	"go.temporal.io/server/tools/gomad3/internal/hostfs"
 	"go.temporal.io/server/tools/gomad3/record"
 )
 
@@ -201,7 +202,7 @@ func (store Store) PublishArtifact(publication Publication) (_ Artifact, retErr 
 			return Artifact{}, fmt.Errorf("artifact signature collision at %s", finalPath)
 		}
 		tried[finalPath] = struct{}{}
-		if err := renameNoReplace(staging, finalPath); err == nil {
+		if err := hostfs.RenameNoReplace(staging, finalPath); err == nil {
 			break
 		} else if !errors.Is(err, os.ErrExist) {
 			return Artifact{}, fmt.Errorf("publish artifact: %w", err)
@@ -567,33 +568,16 @@ func makeDurableDirectory(ctx context.Context, directory string) error {
 	return nil
 }
 
-func syncDirectory(path string) (operationErr, closeErr error) {
-	directory, err := os.Open(path)
-	if err != nil {
-		return err, nil
-	}
-	defer func() {
-		closeErr = directory.Close()
-	}()
-	return directory.Sync(), nil
-}
-
 func syncDirectoryContext(ctx context.Context, path string) error {
 	if err := ctx.Err(); err != nil {
 		return err
 	}
-	err, closeErr := syncDirectory(path)
+	err := hostfs.SyncDirectory(path)
 	if err == nil && syncObserver != nil {
 		syncObserver(path)
 	}
 	if err == nil {
 		err = ctx.Err()
-	}
-	if closeErr != nil {
-		if err == nil {
-			return closeErr
-		}
-		return errors.Join(err, closeErr)
 	}
 	return err
 }

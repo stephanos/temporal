@@ -133,3 +133,13 @@ func TestBackendNamespaceOwners(t *testing.T) {
 		t.Fatal("CLI descendant wiring admitted")
 	}
 }
+
+func TestCapturedMayUseOnlyThePublicHostFSFacade(t *testing.T) {
+	const module = "example.invalid/check"
+	if !OwnerMayImport(module, "captured", "hostfs", module+"/captured", module+"/hostfs") {
+		t.Fatal("captured cannot use the public hostfs facade")
+	}
+	if OwnerMayImport(module, "captured", "hostfs", module+"/captured", module+"/internal/hostfs") {
+		t.Fatal("captured may bypass the public hostfs facade")
+	}
+}

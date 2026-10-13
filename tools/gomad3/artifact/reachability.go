@@ -234,7 +234,7 @@ func interruptedOwnedFilePublications(entries []os.DirEntry, infos map[string]os
 		if !info.Mode().IsRegular() {
 			continue
 		}
-		links, known := linkCount(info)
+		links, known := hostfs.LinkCount(info)
 		if !known || links != 2 {
 			continue
 		}
@@ -271,7 +271,7 @@ func reclaimable(name string, info os.FileInfo, interruptedPublication bool) err
 	case info.Mode().IsRegular() && interruptedPublication:
 		return nil
 	case info.Mode().IsRegular():
-		if links, known := linkCount(info); !known || links != 1 {
+		if links, known := hostfs.LinkCount(info); !known || links != 1 {
 			return fmt.Errorf("owned payload root entry %s has other links and is not owned by this root", name)
 		}
 		return nil
@@ -341,7 +341,7 @@ func PublishOwnedFile(ctx context.Context, root, name string, data []byte) (_ Fi
 		return FileReference{}, fmt.Errorf("close owned file %s: %w", name, err)
 	}
 	final := filepath.Join(root, name)
-	if err := renameNoReplace(temporaryPath, final); err != nil {
+	if err := hostfs.RenameNoReplace(temporaryPath, final); err != nil {
 		if !errors.Is(err, os.ErrExist) {
 			return FileReference{}, fmt.Errorf("publish owned file %s: %w", name, err)
 		}

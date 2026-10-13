@@ -144,7 +144,7 @@ func PruneTargetPool(pool string, exclusive bool) (retErr error) {
 		}
 		switch {
 		case isPoolEntryName(name) && info.Mode().IsRegular():
-			if links, known := linkCount(info); !known || links != 1 {
+			if links, known := hostfs.LinkCount(info); !known || links != 1 {
 				continue
 			}
 			err = root.Remove(name)
@@ -196,7 +196,7 @@ func createPoolEntry(ctx context.Context, pool, entry string, payload Payload) (
 	if file.SHA256 != payload.SHA256 || file.Size != payload.Size {
 		return fmt.Errorf("artifact payload %s identity changed during publication", payload.Path)
 	}
-	if err := renameNoReplace(staged, entry); err != nil {
+	if err := hostfs.RenameNoReplace(staged, entry); err != nil {
 		if errors.Is(err, os.ErrExist) {
 			return nil
 		}
@@ -275,7 +275,7 @@ func (opened *Opened) TargetSharing() (TargetSharing, error) {
 	if err != nil {
 		return "", fmt.Errorf("inspect artifact target: %w", err)
 	}
-	links, known := linkCount(info)
+	links, known := hostfs.LinkCount(info)
 	switch {
 	case !known:
 		return "", nil

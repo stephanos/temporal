@@ -9,6 +9,8 @@ import (
 	"sort"
 	"strings"
 	"sync"
+
+	"go.temporal.io/server/tools/gomad3/hostfs"
 )
 
 type Kind uint8
@@ -239,7 +241,7 @@ func rejectSymlinkParents(root *os.Root, relative string) error {
 }
 
 func (broker *Broker) captureFile(root *os.Root, targetPath, relative string, before os.FileInfo) (Entry, error) {
-	if hardLinked(before) {
+	if links, known := hostfs.LinkCount(before); known && links > 1 {
 		return Entry{}, fmt.Errorf("read-only mount path %q is hard linked", targetPath)
 	}
 	if uint64(before.Size()) > broker.limits.SingleFileBytes || broker.totalBytes > broker.limits.TotalBytes-uint64(before.Size()) || uint64(len(broker.entries)) == broker.limits.Files {

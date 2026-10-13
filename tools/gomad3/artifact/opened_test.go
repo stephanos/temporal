@@ -12,6 +12,7 @@ import (
 	"testing"
 	"unsafe"
 
+	"go.temporal.io/server/tools/gomad3/internal/hostfs"
 	"go.temporal.io/server/tools/gomad3/record"
 )
 
@@ -133,7 +134,7 @@ func TestOpenedArtifactPayloadAccess(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, known := linkCount(info); known && sharing != TargetPrivate {
+	if _, known := hostfs.LinkCount(info); known && sharing != TargetPrivate {
 		t.Fatalf("TargetSharing() = %q, want %q", sharing, TargetPrivate)
 	}
 }

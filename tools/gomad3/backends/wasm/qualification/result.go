@@ -2,8 +2,10 @@ package qualification
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
+	"io"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -190,7 +192,7 @@ func writeResult(root string, result Result, observer func(string)) (string, err
 }
 
 // This mirrors the existing qualification owner's staging/fsync publication
-// discipline, with a hard link providing immutable no-clobber publication.
+// discipline, with an exclusive rename providing immutable no-clobber publication.
 func publishResultBytes(root string, encoded []byte) (path string, retErr error) {
 	name := "result-" + strings.TrimPrefix(string(record.HashBytes(encoded)), "sha256:") + ".json"
 	return publishQualificationBytes(root, name, encoded, 64<<20)
@@ -228,43 +230,34 @@ func publishQualificationBytes(root, name string, encoded []byte, limit int) (pa
 		}
 	}
 	path = filepath.Join(directory, name)
-	file, err := os.CreateTemp(directory, ".result-*.partial")
+	staged, err := hostfs.StageContext(context.Background(), directory, ".result-*.partial", 0o600, func(_ context.Context, writer io.Writer) error {
+		_, err := io.Copy(writer, bytes.NewReader(encoded))
+		return err
+	})
 	if err != nil {
 		return "", err
 	}
-	temporary := file.Name()
 	defer func() {
-		if err := os.Remove(temporary); err != nil && !errors.Is(err, os.ErrNotExist) {
-			retErr = errors.Join(retErr, err)
-		}
+		retErr = errors.Join(retErr, staged.Cleanup())
 	}()
-	if _, err := file.Write(encoded); err != nil {
-		return "", errors.Join(err, file.Close())
-	}
-	if err := errors.Join(file.Sync(), file.Close()); err != nil {
-		return "", err
-	}
-	if err := os.Link(temporary, path); err != nil {
+	published, err := staged.PublishNoReplaceContext(context.Background(), path)
+	if err != nil {
 		if !errors.Is(err, os.ErrExist) {
+			if published {
+				return path, err
+			}
 			return "", err
 		}
 		if err := awaitCompletePublication(path, encoded, uint64(limit)); err != nil {
 			return "", err
 		}
 	}
-	if err := os.Remove(temporary); err != nil {
-		return path, err
-	}
-	dir, err := os.Open(directory)
-	if err != nil {
-		return path, err
-	}
-	return path, errors.Join(dir.Sync(), dir.Close())
+	return path, nil
 }
 
-// The winning link temporarily has final+stage links until its publisher
-// removes its own stage. Every retry retains hostfs's strict single-link,
-// no-symlink, bounded read; a crashed or foreign hardlink never becomes accepted.
+// A concurrent winner may not have completed its directory sync when the
+// exclusive rename reports a collision. Every retry retains hostfs's strict
+// single-link, no-symlink, bounded read.
 func awaitCompletePublication(path string, expected []byte, limit uint64) error {
 	deadline := time.NewTimer(250 * time.Millisecond)
 	defer deadline.Stop()
