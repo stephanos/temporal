@@ -240,13 +240,26 @@ func writeCompressedTransition(w *compressedWireWriter, transition Transition) {
 	}
 }
 
+type compressedWireInput interface {
+	io.Reader
+	Remaining() uint64
+}
+
 type compressedWireReader struct {
-	input  io.Reader
+	input  compressedWireInput
 	limits Limits
 	buffer [8]byte
 }
 
+func (r *compressedWireReader) remaining() uint64 {
+	//gomad:dynamic reviewed 2026-10-13 binary World wire reads only from a bounded in-memory gzip stream
+	return r.input.Remaining()
+}
+
 func (r *compressedWireReader) read(data []byte, field string) error {
+	if uint64(len(data)) > r.remaining() {
+		return invalidSnapshot("compressed.wire." + field)
+	}
 	//gomad:dynamic reviewed 2026-10-13 binary World wire reads only from a bounded in-memory gzip stream
 	if _, err := io.ReadFull(r.input, data); err != nil {
 		return invalidSnapshot("compressed.wire." + field)
@@ -303,7 +316,7 @@ func (r *compressedWireReader) textLimit(field string, empty bool, limit uint64)
 	if err != nil {
 		return "", err
 	}
-	if uint64(size) > limit {
+	if uint64(size) > limit || uint64(size) > r.remaining() {
 		return "", invalidSnapshot("compressed.wire." + field + ".length")
 	}
 	value := make([]byte, size)
@@ -321,7 +334,7 @@ func (r *compressedWireReader) bytes(field string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	if size > r.limits.MaxPayloadBytes || size > uint64(int(^uint(0)>>1)) {
+	if size > r.limits.MaxPayloadBytes || size > r.remaining() || size > uint64(int(^uint(0)>>1)) {
 		return nil, invalidSnapshot("compressed.wire." + field + ".length")
 	}
 	value := make([]byte, int(size))
@@ -331,7 +344,7 @@ func (r *compressedWireReader) bytes(field string) ([]byte, error) {
 	return value, nil
 }
 
-func decodeCompressedSnapshotWire(input io.Reader, limits ProfileLimits) (Snapshot, uint64, uint64, uint64, error) {
+func decodeCompressedSnapshotWire(input compressedWireInput, limits ProfileLimits) (Snapshot, uint64, uint64, uint64, error) {
 	r := &compressedWireReader{input: input, limits: limits.Limits}
 	var magic [8]byte
 	if err := r.read(magic[:], "magic"); err != nil || magic != compressedSnapshotMagic {
@@ -427,7 +440,7 @@ func decodeCompressedSnapshotWire(input io.Reader, limits ProfileLimits) (Snapsh
 	}
 	var payloadBytes uint64
 	requests, err := r.uint64("requests.count")
-	if err != nil || requests > declared.Config.Limits.MaxRequests {
+	if err != nil || requests > declared.Config.Limits.MaxRequests || requests > r.remaining() {
 		return Snapshot{}, 0, 0, 0, invalidSnapshot("compressed.requests.count")
 	}
 	var previousRequest RequestID
@@ -453,7 +466,7 @@ func decodeCompressedSnapshotWire(input io.Reader, limits ProfileLimits) (Snapsh
 		}
 	}
 	events, err := r.uint64("events.count")
-	if err != nil || events > declared.Config.Limits.MaxEvents {
+	if err != nil || events > declared.Config.Limits.MaxEvents || events > r.remaining() {
 		return Snapshot{}, 0, 0, 0, invalidSnapshot("compressed.events.count")
 	}
 	var previousEvent EventID
@@ -476,7 +489,7 @@ func decodeCompressedSnapshotWire(input io.Reader, limits ProfileLimits) (Snapsh
 		}
 	}
 	transitions, err := r.uint64("transitions.count")
-	if err != nil || transitions > declared.Config.Limits.MaxTransitions {
+	if err != nil || transitions > declared.Config.Limits.MaxTransitions || transitions > r.remaining() {
 		return Snapshot{}, 0, 0, 0, invalidSnapshot("compressed.transitions.count")
 	}
 	model := newModel(declared.Config)
@@ -721,10 +734,10 @@ func (r *compressedWireReader) quiescence(depth int) (Quiescence, error) {
 	result.After = LogicalTime(int64(after))
 
 	deliveryCount, err := r.uint64("quiescence.deliveries.count")
-	if err != nil || deliveryCount > r.limits.MaxEvents {
+	if err != nil || deliveryCount > r.limits.MaxEvents || deliveryCount > r.remaining() {
 		return Quiescence{}, invalidSnapshot("compressed.wire.quiescence.deliveries.count")
 	}
-	result.Deliveries = make([]Delivery, 0, int(deliveryCount))
+	result.Deliveries = []Delivery{}
 	for range deliveryCount {
 
 		requestID, err := r.uint64("delivery.request-id")
@@ -756,10 +769,10 @@ func (r *compressedWireReader) quiescence(depth int) (Quiescence, error) {
 	}
 
 	blockedCount, err := r.uint64("quiescence.blocked.count")
-	if err != nil || blockedCount > r.limits.MaxRequests {
+	if err != nil || blockedCount > r.limits.MaxRequests || blockedCount > r.remaining() {
 		return Quiescence{}, invalidSnapshot("compressed.wire.quiescence.blocked.count")
 	}
-	result.Blocked = make([]RequestID, 0, int(blockedCount))
+	result.Blocked = []RequestID{}
 	for range blockedCount {
 		blocked, err := r.uint64("quiescence.blocked")
 		if err != nil || blocked == 0 {

@@ -147,6 +147,58 @@ func TestCompressedSnapshotRejectsMalformedExpandedWire(t *testing.T) {
 	}
 }
 
+type compressedAllocationGuardReader struct {
+	*bytes.Reader
+	oversizedRead int
+}
+
+func (r *compressedAllocationGuardReader) Read(data []byte) (int, error) {
+	if len(data) > r.Len() {
+		r.oversizedRead = len(data)
+		return 0, io.ErrUnexpectedEOF
+	}
+	return r.Reader.Read(data)
+}
+
+func (r *compressedAllocationGuardReader) Remaining() uint64 { return uint64(r.Len()) }
+
+func TestCompressedWireReaderRejectsAllocationBeyondRemainingBytes(t *testing.T) {
+	const fieldClaim = 1 << 20
+	text := binary.BigEndian.AppendUint32(nil, fieldClaim)
+	payload := binary.BigEndian.AppendUint64(nil, fieldClaim)
+	quiescence := func(deliveries, blocked uint64) []byte {
+		wire := binary.BigEndian.AppendUint32(nil, uint32(len(QuiescenceIdle)))
+		wire = append(wire, QuiescenceIdle...)
+		wire = binary.BigEndian.AppendUint64(wire, uint64(InitialTime))
+		wire = binary.BigEndian.AppendUint64(wire, uint64(InitialTime))
+		wire = binary.BigEndian.AppendUint64(wire, deliveries)
+		if deliveries == 0 {
+			wire = binary.BigEndian.AppendUint64(wire, blocked)
+		}
+		return wire
+	}
+	for name, test := range map[string]struct {
+		wire   []byte
+		decode func(*compressedWireReader) error
+	}{
+		"text":           {text, func(r *compressedWireReader) error { _, err := r.text("test", true); return err }},
+		"bytes":          {payload, func(r *compressedWireReader) error { _, err := r.bytes("test"); return err }},
+		"delivery count": {quiescence(1024, 0), func(r *compressedWireReader) error { _, err := r.quiescence(1); return err }},
+		"blocked count":  {quiescence(0, 1024), func(r *compressedWireReader) error { _, err := r.quiescence(1); return err }},
+	} {
+		t.Run(name, func(t *testing.T) {
+			input := &compressedAllocationGuardReader{Reader: bytes.NewReader(test.wire)}
+			reader := &compressedWireReader{input: input, limits: CompressedSnapshotProfile().Limits}
+			if err := test.decode(reader); err == nil {
+				t.Fatal("length beyond remaining expanded bytes was accepted")
+			}
+			if input.oversizedRead != 0 {
+				t.Fatalf("decoder requested %d bytes from a smaller expanded envelope", input.oversizedRead)
+			}
+		})
+	}
+}
+
 func TestCompressedSnapshotRejectsCorruptedEnvelopeAndGzip(t *testing.T) {
 	encoded, err := EncodeSnapshot(newTestWorld(t, 0).Snapshot())
 	if err != nil {

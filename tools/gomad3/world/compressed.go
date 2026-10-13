@@ -251,7 +251,7 @@ func compressedSnapshotWireDigest(snapshot Snapshot, limit uint64) (Digest, uint
 	return Digest(hex.EncodeToString(hasher.Sum(nil))), writer.used, nil
 }
 
-func compressedGzipPass(envelope compressedSnapshotEnvelope, read func(io.Reader) error) error {
+func compressedGzipPass(envelope compressedSnapshotEnvelope, read func(*compressedHashReader) error) error {
 	source := bytes.NewReader(envelope.Gzip)
 	reader, err := gzip.NewReader(source)
 	if err != nil {
@@ -285,6 +285,8 @@ type compressedHashReader struct {
 	limit  uint64
 	used   uint64
 }
+
+func (reader *compressedHashReader) Remaining() uint64 { return reader.limit - reader.used }
 
 func (reader *compressedHashReader) Read(data []byte) (int, error) {
 	//gomad:dynamic reviewed 2026-10-12 compressed model stream wraps memory readers writers and SHA256 only

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/hex"
-	"io"
 )
 
 func DecodeCompressedSnapshot(data []byte, limits ProfileLimits) (CompressedSnapshotSummary, error) {
@@ -29,7 +28,7 @@ func decodeCompressedSnapshot(data []byte, limits ProfileLimits) (Snapshot, uint
 	}
 	var snapshot Snapshot
 	var requests, events, transitions uint64
-	if err := compressedGzipPass(envelope, func(reader io.Reader) error {
+	if err := compressedGzipPass(envelope, func(reader *compressedHashReader) error {
 		var decodeErr error
 		snapshot, requests, events, transitions, decodeErr = decodeCompressedSnapshotWire(reader, limits)
 		return decodeErr
