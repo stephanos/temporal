@@ -7,11 +7,60 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
 	"go.temporal.io/server/tools/gomad3/record"
+	"go.temporal.io/server/tools/gomad3/target"
 )
+
+func TestPreparedTargetIdentityRejectsInvalidOriginalStrings(t *testing.T) {
+	invalidText := "invalid-" + string([]byte{0xff})
+	replacementText := "invalid-\ufffd"
+	invalid := preparedTargetIdentity{
+		Schema: preparedTargetSchema, GoVersion: "go1.26.4", Package: invalidText,
+		Environment: []string{}, BuildTags: []string{}, Embedded: []embeddedSource{}, Modules: []moduleSource{},
+	}
+	replacement := invalid
+	replacement.Package = replacementText
+	invalidJSON, err := json.Marshal(invalid)
+	requireTestNoError(t, err)
+	replacementJSON, err := json.Marshal(replacement)
+	requireTestNoError(t, err)
+	if !bytes.Equal(invalidJSON, replacementJSON) {
+		t.Fatalf("encoding/json collision control differs:\ninvalid: %s\nreplacement: %s", invalidJSON, replacementJSON)
+	}
+	if _, err := encodePreparedTargetIdentity(invalid); err == nil || !strings.Contains(err.Error(), "valid UTF-8") {
+		t.Fatalf("encodePreparedTargetIdentity(invalid) error = %v", err)
+	}
+	if _, err := encodePreparedTargetIdentity(replacement); err != nil {
+		t.Fatalf("encodePreparedTargetIdentity(replacement): %v", err)
+	}
+
+	closure := target.CapabilityClosure{
+		Schema: target.CapabilityClosureSchema, Compatibility: []target.CompatibilityIdentity{},
+		Packages: []target.CapabilityPackage{{
+			ImportPath: "example.com/target", Name: "main", Imports: []string{invalidText},
+			Sources: []target.CapabilitySource{}, ForeignSources: []target.CapabilityForeignSource{},
+		}},
+	}
+	if _, err := encodeCapabilityClosure(closure); err == nil || !strings.Contains(err.Error(), "valid UTF-8") {
+		t.Fatalf("encodeCapabilityClosure(invalid) error = %v", err)
+	}
+
+	root := t.TempDir()
+	cache := &preparedTargetCache{root: root, digest: "invalid-entry", identity: invalid}
+	targetPath := filepath.Join(t.TempDir(), "target")
+	writeFile(t, targetPath, "prepared target")
+	requireTestNoError(t, os.Chmod(targetPath, 0o700))
+	if err := cache.publish(targetPath); err == nil || !strings.Contains(err.Error(), "valid UTF-8") {
+		t.Fatalf("publish(invalid identity) error = %v", err)
+	}
+	if _, err := os.Stat(cache.entry()); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("invalid identity published a cache entry: %v", err)
+	}
+}
 
 func TestPreparedTargetCacheUsesOrdinaryStrictRecordJSON(t *testing.T) {
 	root := t.TempDir()

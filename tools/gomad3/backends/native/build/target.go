@@ -663,6 +663,9 @@ func normalizeCapabilityMode(mode target.CapabilityMode) (target.CapabilityMode,
 }
 
 func validateProvenance(provenance provenanceWire) error {
+	if err := validateProvenanceStrings(provenance); err != nil {
+		return err
+	}
 	if provenance.SchemaVersion != 3 || provenance.Schema != provenanceSchema {
 		return fmt.Errorf("unsupported exec provenance schema")
 	}
@@ -693,6 +696,44 @@ func validateProvenance(provenance provenanceWire) error {
 		return fmt.Errorf("exec provenance capability closure: %w", unsupportedFinding(review.Findings[0]))
 	}
 	return nil
+}
+
+func validateProvenanceStrings(provenance provenanceWire) error {
+	values := []originalString{
+		{"exec provenance schema", provenance.Schema},
+		{"exec provenance Go version", provenance.GoVersion},
+		{"exec provenance build key", provenance.BuildKey},
+		{"exec provenance GOOS", provenance.TargetGOOS},
+		{"exec provenance GOARCH", provenance.TargetGOARCH},
+		{"exec provenance binary hash", provenance.BinarySHA256},
+		{"exec provenance build info Go version", provenance.BuildInfo.GoVersion},
+		{"exec provenance build info path", provenance.BuildInfo.Path},
+		{"exec provenance build info main module", provenance.BuildInfo.MainModule},
+		{"exec provenance capability mode", string(provenance.CapabilityMode)},
+	}
+	for _, setting := range provenance.BuildInfo.Settings {
+		values = append(values,
+			originalString{"exec provenance build setting key", setting.Key},
+			originalString{"exec provenance build setting value", setting.Value},
+		)
+	}
+	if err := validateOriginalStrings(values...); err != nil {
+		return err
+	}
+	if err := validateCapabilityClosureStrings(provenance.CapabilityClosure); err != nil {
+		return err
+	}
+	if provenance.CapabilityManifest == nil {
+		return nil
+	}
+	manifest := provenance.CapabilityManifest
+	return validateOriginalStrings(
+		originalString{"exec provenance capability manifest schema", manifest.Schema},
+		originalString{"exec provenance capability manifest hash", string(manifest.SHA256)},
+		originalString{"exec provenance capability manifest producer hash", manifest.ProducerImplementationSHA256},
+		originalString{"exec provenance capability manifest guard hash", manifest.GuardImplementationSHA256},
+		originalString{"exec provenance capability manifest universe hash", manifest.CapabilityUniverseSHA256},
+	)
 }
 
 func validateDeterministicBuildInfo(info record.BuildInfo) error {

@@ -116,7 +116,7 @@ func TestDecodeValidatesManifestAndHeaderIdentity(t *testing.T) {
 		CapabilityUniverseSHA256: CapabilityUniverseSHA256,
 		Facts: []Fact{{
 			Capability: "import:syscall", Kind: FactKindCapability, OwnerPackage: "example.test/dependency",
-			OwnerSource: "dependency.go", OwnerSymbol: "example.test/dependency.Live",
+			OwnerSource: "<dependency>.go", OwnerSymbol: "example.test/dependency.Live",
 		}},
 		GoVersion: expected.GoVersion, GOARCH: expected.GOARCH, GOOS: expected.GOOS,
 		GuardImplementationSHA256:    GuardImplementationSHA256,
@@ -124,10 +124,13 @@ func TestDecodeValidatesManifestAndHeaderIdentity(t *testing.T) {
 		ProducerImplementationSHA256: ProducerImplementationSHA256,
 		Schema:                       ManifestSchema, ToolchainBuildKey: expected.ToolchainBuildKey,
 	}
-	payload, err := json.Marshal(manifest)
-	if err != nil {
+	var producer bytes.Buffer
+	encoder := json.NewEncoder(&producer)
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(manifest); err != nil {
 		t.Fatal(err)
 	}
+	payload := bytes.TrimSuffix(producer.Bytes(), []byte{'\n'})
 	recordBytes := liveCapabilityRecord(payload, uint64(len(manifest.Facts)))
 	decoded, err := Decode(recordBytes, expected)
 	if err != nil {
@@ -141,12 +144,15 @@ func TestDecodeValidatesManifestAndHeaderIdentity(t *testing.T) {
 		t.Fatal(err)
 	}
 	indented.WriteByte('\n')
-	decoded, err = Decode(liveCapabilityRecord(indented.Bytes(), uint64(len(manifest.Facts))), expected)
-	if err != nil {
-		t.Fatalf("Decode(indented ordinary JSON): %v", err)
+	if _, err := Decode(liveCapabilityRecord(indented.Bytes(), uint64(len(manifest.Facts))), expected); err == nil || !strings.Contains(err.Error(), "producer wire encoding") {
+		t.Fatalf("Decode(indented alternate encoding) error = %v", err)
 	}
-	if decoded.Manifest.Facts[0] != manifest.Facts[0] {
-		t.Fatalf("Decode(indented ordinary JSON) = %#v", decoded.Manifest)
+	escaped := bytes.ReplaceAll(payload, []byte("<dependency>"), []byte(`\u003cdependency\u003e`))
+	if bytes.Equal(escaped, payload) {
+		t.Fatal("HTML-escaped alternate encoding did not change the payload")
+	}
+	if _, err := Decode(liveCapabilityRecord(escaped, uint64(len(manifest.Facts))), expected); err == nil || !strings.Contains(err.Error(), "producer wire encoding") {
+		t.Fatalf("Decode(HTML-escaped alternate encoding) error = %v", err)
 	}
 
 	mutated := append([]byte(nil), recordBytes...)

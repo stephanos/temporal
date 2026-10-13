@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -763,6 +764,45 @@ func TestReadProvenanceRoundTripsValidatedDocument(t *testing.T) {
 	}
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("ReadProvenance() = %#v, want %#v", got, want)
+	}
+}
+
+func TestWriteProvenanceRejectsInvalidOriginalStringsBeforePublication(t *testing.T) {
+	invalidText := "invalid-" + string([]byte{0xff})
+	for name, mutate := range map[string]func(*Provenance){
+		"identity": func(provenance *Provenance) {
+			provenance.GoVersion = invalidText
+		},
+		"build info": func(provenance *Provenance) {
+			provenance.BuildInfo.Path = invalidText
+		},
+		"build setting": func(provenance *Provenance) {
+			provenance.BuildInfo.Settings[0].Value = invalidText
+		},
+		"capability closure": func(provenance *Provenance) {
+			provenance.CapabilityClosure.Packages[0].ImportPath = invalidText
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			provenance := Provenance{
+				SchemaVersion: 3, GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64),
+				TargetGOOS: runtime.GOOS, TargetGOARCH: runtime.GOARCH,
+				BinarySHA256: "sha256:" + strings.Repeat("b", 64), BinarySize: 1,
+				BuildInfo: record.BuildInfo{
+					GoVersion: "go1.26.4", Path: "example.com/target",
+					Settings: []record.BuildSetting{{Key: "-buildmode", Value: "exe"}, {Key: "CGO_ENABLED", Value: "0"}},
+				},
+				CapabilityClosure: validCapabilityClosure(), CapabilityMode: target.CapabilityModeClosure,
+			}
+			mutate(&provenance)
+			path := filepath.Join(t.TempDir(), "provenance.json")
+			if err := WriteProvenance(path, provenance); err == nil || !strings.Contains(err.Error(), "valid UTF-8") {
+				t.Fatalf("WriteProvenance() error = %v", err)
+			}
+			if _, err := os.Stat(path); !errors.Is(err, os.ErrNotExist) {
+				t.Fatalf("invalid provenance was published: %v", err)
+			}
+		})
 	}
 }
 

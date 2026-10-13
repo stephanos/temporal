@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"encoding/binary"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
@@ -79,10 +80,27 @@ func Decode(data []byte, expected Expectation) (Record, error) {
 	if err := strictjson.Decode(payload, &manifest); err != nil {
 		return Record{}, fmt.Errorf("decode live capability manifest: %w", err)
 	}
+	encoded, err := encodeManifest(manifest)
+	if err != nil {
+		return Record{}, err
+	}
+	if !bytes.Equal(payload, encoded) {
+		return Record{}, errors.New("live capability manifest does not use the producer wire encoding")
+	}
 	if err := validateManifest(manifest, expected, factCount, payloadBytes); err != nil {
 		return Record{}, err
 	}
 	return Record{Manifest: manifest, Payload: bytes.Clone(payload), SHA256: record.SHA256FromSum(digest)}, nil
+}
+
+func encodeManifest(manifest Manifest) ([]byte, error) {
+	var payload bytes.Buffer
+	encoder := json.NewEncoder(&payload)
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(manifest); err != nil {
+		return nil, fmt.Errorf("encode live capability manifest: %w", err)
+	}
+	return bytes.TrimSuffix(payload.Bytes(), []byte{'\n'}), nil
 }
 
 func validateManifest(manifest Manifest, expected Expectation, factCount, payloadBytes uint64) error {

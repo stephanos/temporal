@@ -106,9 +106,9 @@ func openPreparedTargetCache(spec target.Spec, tags []string, toolchain pinnedTo
 	if err != nil {
 		return nil, err
 	}
-	encoded, err := json.Marshal(identity)
+	encoded, err := encodePreparedTargetIdentity(identity)
 	if err != nil {
-		return nil, fmt.Errorf("encode prepared target identity: %w", err)
+		return nil, err
 	}
 	digest := sha256.Sum256(encoded)
 	root := preparedTargetCacheRoot(toolchain.installation)
@@ -119,9 +119,9 @@ func openPreparedTargetCache(spec target.Spec, tags []string, toolchain pinnedTo
 }
 
 func newPreparedTargetIdentity(spec target.Spec, tags []string, toolchain target.ToolchainIdentity, commandDirectory, packageArgument string, review target.CapabilityReview, packages []listedPackage) (preparedTargetIdentity, error) {
-	closure, err := json.Marshal(review.Closure)
+	closure, err := encodeCapabilityClosure(review.Closure)
 	if err != nil {
-		return preparedTargetIdentity{}, fmt.Errorf("encode reviewed closure: %w", err)
+		return preparedTargetIdentity{}, err
 	}
 	identity := preparedTargetIdentity{
 		Schema: preparedTargetSchema, GoVersion: toolchain.GoVersion, BuildKey: toolchain.BuildKey,
@@ -178,6 +178,9 @@ func newPreparedTargetIdentity(spec target.Spec, tags []string, toolchain target
 		}
 		return left.Name < right.Name
 	})
+	if err := validatePreparedTargetIdentityStrings(identity); err != nil {
+		return preparedTargetIdentity{}, err
+	}
 	return identity, nil
 }
 
@@ -319,6 +322,9 @@ func (cache *preparedTargetCache) discard(reason error) error {
 // concurrent publication of the same identity is byte-identical, so whichever
 // entry lands first stays.
 func (cache *preparedTargetCache) publish(targetPath string) (retErr error) {
+	if err := validatePreparedTargetIdentityStrings(cache.identity); err != nil {
+		return err
+	}
 	hash, size, err := hostfs.HashExecutable(targetPath)
 	if err != nil {
 		return fmt.Errorf("hash prepared target: %w", err)
