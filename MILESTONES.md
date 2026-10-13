@@ -7,12 +7,12 @@ the `testcore` one-box cluster with in-memory SQLite and loopback gRPC) under Go
 same seed produces the same run and a retained artifact replays byte-exactly.
 [GOMAD_NEXT.md](.plans/GOMAD_NEXT.md) remains the capability roadmap across all four tracks.
 
-The WASM backend lives in `tools/gomad3/backends/wasm` and shares its
+The WASM backend lives in `tools/gomad3/internal/backends/wasm` and shares its
 campaign, artifact, replay, and choice owners. The completed
 [fn-151](.flow/specs/fn-151-wasm-gomad-execution-backend.md) determinism prototype recorded
 **GO** on 2026-10-10 ([report](.flow/artifacts/fn151-prototype-report-2026-10-10.md));
 [fn-156](.flow/specs/fn-156-wasm-gomad-productionization.md) productionized it (completed
-2026-10-13). Read [the WASM README](tools/gomad3/backends/wasm/README.md) before working on that
+2026-10-13). Read [the WASM README](tools/gomad3/internal/backends/wasm/README.md) before working on that
 backend; [the WASM section acceptance evidence](.flow/artifacts/wasm-section-acceptance-2026-10-12.md)
 lists the gates a shared-owner change must pass.
 
@@ -224,7 +224,7 @@ Owner decision (2026-10-12): these deferred specs change owners the WASM backend
 | Name / ID | Status | Description |
 | --- | --- | --- |
 | [fn-166.6](.flow/tasks/fn-166-gomad-readable-package-structure-and.6.md) | 🚧 In progress | Owner renames and facade retirement joined; final review and qualification remain |
-| [fn-166.7](.flow/tasks/fn-166-gomad-readable-package-structure-and.7.md) | 🚧 In progress | Six-group tree joined; Runner exports 151 → 75; final review and qualification remain |
+| [fn-166.7](.flow/tasks/fn-166-gomad-readable-package-structure-and.7.md) | 🚧 In progress | Six-group tree and 151 → 75 exports joined; consumer fixes pass, final batch gates remain |
 | [fn-166.8](.flow/tasks/fn-166-gomad-readable-package-structure-and.8.md) | 🚧 In progress | Retire network v1 and choice v1; retain diagnostic profile; integrated gates remain |
 | [fn-166.10](.flow/tasks/fn-166-gomad-readable-package-structure-and.10.md) | 🚧 In progress | Cluster API and lower history/wire split joined; final qualification remains |
 | [fn-166.11](.flow/tasks/fn-166-gomad-readable-package-structure-and.11.md) | ⬜ Todo | Rename the gomad3 module and tree to gomad after the rotation batch |
@@ -246,10 +246,10 @@ Owner decision (2026-10-12): these deferred specs change owners the WASM backend
 | Name / ID | Status | Description |
 | --- | --- | --- |
 | [fn-154.2](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.2.md) | 🚧 In progress | Generated limits/timeout codec source reviewed; integrated acceptance remains open |
-| [fn-154.3](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.3.md) | 🚧 In progress | Timeout propagation source reviewed; patched-native adapter execution remains open |
+| [fn-154.3](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.3.md) | 🚧 In progress | Shared timeout propagation joined; reviewed WASM status/identity correction and native gates remain |
 | [fn-154.4](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.4.md) | 🚧 In progress | Shared byte-bounded connection checkpoint integrated; batch/native acceptance open |
-| [fn-154.5](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.5.md) | 🚧 In progress | Held FIFO and atomic reservation checkpoint integrated; batch/native acceptance open |
-| [fn-154.6](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.6.md) | 🚧 In progress | Autonomous expiry checkpoint integrated; batch/native acceptance open |
+| [fn-154.5](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.5.md) | 🚧 In progress | Shared FIFO/reservations joined; WASM topology timing/group-atomicity corrections being verified |
+| [fn-154.6](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.6.md) | 🚧 In progress | Shared expiry joined; scheduled-fault time correction and both-backend acceptance remain |
 | [fn-154.7](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.7.md) | 🚧 In progress | Pending-dial/registration checkpoint integrated; batch/native acceptance open |
 | [fn-154.8](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.8.md) | 🚧 In progress | Payload-free history/codec checkpoint integrated; batch/native acceptance open |
 | [fn-154.9](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.9.md) | 🚧 In progress | Conformance source checkpoint integrated; native execution remains open |
@@ -267,9 +267,9 @@ Owner decision (2026-10-13): move per-call and per-run hot paths into the Rust h
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-172.1](.flow/tasks/fn-172-gomad-guest-side-cost-experiments-and.1.md) | 🚧 In progress | Sampler/fuel-off checkpoint integrated; source review remains open |
+| [fn-172.1](.flow/tasks/fn-172-gomad-guest-side-cost-experiments-and.1.md) | 🚧 In progress | Sampler/fuel-off source reviewed; required feature and actual Darwin gates remain |
 | [fn-172.2](.flow/tasks/fn-172-gomad-guest-side-cost-experiments-and.2.md) | 🚧 In progress | Profile driver/parser integrated; actual Darwin attribution remains open |
-| [fn-172.3](.flow/tasks/fn-172-gomad-guest-side-cost-experiments-and.3.md) | ⬜ Todo | A/B report for GC, GOWASM and fuel-off variants |
+| [fn-172.3](.flow/tasks/fn-172-gomad-guest-side-cost-experiments-and.3.md) | ⬜ Todo | Isolated A/B driver source reviewed; integration, Darwin prerequisite and measured report remain |
 | [fn-172.4](.flow/tasks/fn-172-gomad-guest-side-cost-experiments-and.4.md) | ⬜ Todo | Multi-instance cluster baseline |
 
 #### Per-run preparation fast path — [fn-173](.flow/specs/fn-173-gomad-wasm-helper-per-run-preparation.md)
@@ -283,6 +283,8 @@ Owner decision (2026-10-13): move per-call and per-run hot paths into the Rust h
 | [fn-173.5](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.5.md) | ⬜ Todo | Measure warm preparation and evidence equality on the Temporal module |
 
 #### Local host-call fast path — [fn-174](.flow/specs/fn-174-gomad-wasm-helper-local-host-call-fast.md) — waits for fn-153
+
+Provisional fn-174.1–.5 source development uses an isolated worktree against the reviewed fn-153 interfaces. It is not part of the current rotation candidate; integration and completion retain the fn-153 prerequisite and the declared second requalification batch.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
@@ -349,7 +351,7 @@ Owner decision (2026-10-13): fn-179 starts now, in parallel with the shared-owne
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-179.1](.flow/tasks/fn-179-gomad-temporal-server-consistency.1.md) | 🚧 In progress | Real single/cluster oracle and replay tests pass in source lane; root integration remains |
+| [fn-179.1](.flow/tasks/fn-179-gomad-temporal-server-consistency.1.md) | 🚧 In progress | Real guest checks pass; merge, reviewed brace/capacity corrections and final gates remain |
 
 <a id="replay-instrumentation"></a>
 
