@@ -3,14 +3,19 @@ package cli
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"go/ast"
+	"go/parser"
+	"go/token"
 	"io"
 	"os"
 	"path/filepath"
 	"reflect"
 	"runtime"
 	"strings"
+	"syscall"
 	"testing"
 	"time"
 
@@ -24,6 +29,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/qualification"
+	qualificationworkload "go.temporal.io/server/tools/gomad3/qualification/workload"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner"
 	"go.temporal.io/server/tools/gomad3/target"
@@ -1462,6 +1468,656 @@ func TestRunMergeSetMapsStatuses(t *testing.T) {
 			}
 			if merged && (observed.ManifestPath != "/corpus.json" || len(observed.ShardReports) == 0 || observed.OutputPath == "") {
 				t.Fatalf("merge spec = %#v", observed)
+			}
+		})
+	}
+}
+
+func TestFullyAnsweredGuidanceReportsZeroExecutionsAndSuccessStatus(t *testing.T) {
+	summary := runner.CampaignResult{CampaignPath: "/campaign", StopReason: runner.StopSeedsExhausted, Guidance: &runner.GuidanceSummary{Requested: 4, Answered: 4}}
+	for _, jsonOutput := range []bool{false, true} {
+		var stdout, stderr bytes.Buffer
+		if err := newExploreReporter(jsonOutput, &stdout, &stderr).Result(summary); err != nil {
+			t.Fatal(err)
+		}
+		if exploreSummaryStatus(summary) != 0 || stderr.Len() != 0 {
+			t.Fatalf("status=%d stderr=%s", exploreSummaryStatus(summary), &stderr)
+		}
+		if jsonOutput {
+			var event exploreEvent
+			if err := json.Unmarshal(stdout.Bytes(), &event); err != nil {
+				t.Fatal(err)
+			}
+			if event.Classification != "success" || event.Guidance == nil || *event.Guidance != *summary.Guidance {
+				t.Fatalf("event=%#v", event)
+			}
+			for _, want := range []string{`"requested":4`, `"answered":4`, `"guided":0`, `"new_executions":0`} {
+				if !strings.Contains(stdout.String(), want) {
+					t.Fatalf("output=%s missing=%s", &stdout, want)
+				}
+			}
+		} else {
+			for _, want := range []string{"requested=4 answered=4 guided=0 new-executions=0", "all requested seeds are answered", "--guide-regression", "exit 0"} {
+				if !strings.Contains(stdout.String(), want) {
+					t.Fatalf("output=%s missing=%s", &stdout, want)
+				}
+			}
+		}
+	}
+}
+
+func TestGuidanceReportsNoCorpusSelectionAndNewExecutions(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	summary := runner.CampaignResult{SelectionCount: 3, Attempted: 3, Succeeded: 3, StopReason: runner.StopSeedsExhausted, Guidance: &runner.GuidanceSummary{Requested: 4, Answered: 1, NewExecutions: 3}}
+	if err := newExploreReporter(false, &stdout, &stderr).Result(summary); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(stdout.String(), "guidance selected no corpus seeds") || !strings.Contains(stdout.String(), "new-executions=3") {
+		t.Fatalf("output=%s", &stdout)
+	}
+}
+
+func TestResumeGuidanceModePreservesExplicitFalseAndTrue(t *testing.T) {
+	for _, value := range []string{"false", "true"} {
+		var got *bool
+		dependencies := resumeDependencies{install: func(string) (installation, error) {
+			return installation{toolchainRoot: "/toolchain", executable: "/gomad", runnerBuild: "runner"}, nil
+		}, run: func(_ context.Context, spec runner.ResumeSpec) (runner.CampaignResult, error) {
+			got = spec.GuideRegression
+			return runner.CampaignResult{StopReason: runner.StopSeedsExhausted}, nil
+		}}
+		var stdout, stderr bytes.Buffer
+		status := runResumeWith([]string{"--guide-regression=" + value, "/campaign"}, &stdout, &stderr, dependencies)
+		if status != 0 || got == nil || *got != (value == "true") {
+			t.Fatalf("status=%d mode=%v", status, got)
+		}
+	}
+}
+
+func TestGuideRegressionRequiresGuidance(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	status := hostApplication().runExplore([]string{"--json", "--guide-regression", "go-run", "./fixture"}, &stdout, &stderr)
+	if status != 2 || !strings.Contains(stdout.String(), "--guide-regression requires --guide") {
+		t.Fatalf("status=%d stdout=%s stderr=%s", status, &stdout, &stderr)
+	}
+}
+
+func TestEmptyShardDoesNotReportPartiallyAnsweredPlanAsFullyAnswered(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	summary := runner.CampaignResult{SelectionCount: 0, StopReason: runner.StopSeedsExhausted, Guidance: &runner.GuidanceSummary{Requested: 2, Answered: 1}}
+	if err := newExploreReporter(false, &stdout, &stderr).Result(summary); err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(stdout.String(), "all requested seeds are answered") || !strings.Contains(stdout.String(), "requested=2 answered=1") || !strings.Contains(stdout.String(), "guidance selected no corpus seeds") {
+		t.Fatalf("empty shard output=%s", &stdout)
+	}
+}
+
+func TestChoiceExplorationDivergenceClassificationAndStatus(t *testing.T) {
+	for _, test := range []struct {
+		name           string
+		summary        runner.CampaignResult
+		classification string
+		status         int
+	}{
+		{"choice confidence failure", runner.CampaignResult{Failures: 1, ReplayDivergences: 1, ChoiceExploration: &runner.ChoiceExplorationSummary{}}, "replay_divergence", 3},
+		{"choice mixed failure", runner.CampaignResult{Failures: 2, ReplayDivergences: 1, ChoiceExploration: &runner.ChoiceExplorationSummary{}}, "mixed_failure", 3},
+		{"confidence counter without target failure", runner.CampaignResult{ReplayDivergences: 1, ChoiceExploration: &runner.ChoiceExplorationSummary{}}, "replay_divergence", 3},
+		{"world replay divergence", runner.CampaignResult{Failures: 1, ReplayDivergences: 1}, "replay_divergence", 1},
+		{"target failure", runner.CampaignResult{Failures: 1}, "target_failure", 1},
+		{"success", runner.CampaignResult{}, "success", 0},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			if got := classifyExploreSummary(test.summary); got != test.classification {
+				t.Fatalf("classification = %s", got)
+			}
+			if got := exploreSummaryStatus(test.summary); got != test.status {
+				t.Fatalf("status = %d", got)
+			}
+			var stdout, stderr bytes.Buffer
+			status := runResumeWith([]string{"--json", "campaign"}, &stdout, &stderr, resumeDependencies{
+				install: func(string) (installation, error) {
+					return installation{toolchainRoot: "toolchain", executable: "gomad", runnerBuild: "runner"}, nil
+				},
+				run: func(context.Context, runner.ResumeSpec) (runner.CampaignResult, error) { return test.summary, nil },
+			})
+			if status != test.status {
+				t.Fatalf("resume status=%d output=%s stderr=%s", status, stdout.String(), stderr.String())
+			}
+			var result exploreEvent
+			if err := json.Unmarshal(stdout.Bytes(), &result); err != nil {
+				t.Fatal(err)
+			}
+			if result.Classification != test.classification {
+				t.Fatalf("reported classification=%s", result.Classification)
+			}
+		})
+	}
+}
+
+func TestInspectReportsCandidateReplayDivergence(t *testing.T) {
+	candidate := runner.ExecutionInspection{Strategy: string(runner.StrategyChoiceExploration), Domain: "runner", Reason: "replay_divergence", Divergence: &choice.DivergenceEvidence{Ordinal: 7, Reason: choice.DivergenceAlternativeSet}}
+	inspected := runner.CampaignInspection{ReplayDivergences: 1, Executions: []runner.ExecutionInspection{candidate}}
+	var output bytes.Buffer
+	printer := &inspectionPrinter{output: &output}
+	printCampaignInspection(printer, &inspected)
+	if printer.err != nil {
+		t.Fatal(printer.err)
+	}
+	for _, expected := range []string{"reason=replay_divergence", "divergence-ordinal=7", "divergence-reason=alternative_set"} {
+		if !strings.Contains(output.String(), expected) {
+			t.Fatalf("inspect missing %s: %s", expected, output.String())
+		}
+	}
+	encoded, err := json.Marshal(inspected)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, expected := range []string{"\"divergence\"", "\"ordinal\":7", "\"reason\":5", "\"replay_divergences\":1"} {
+		if !bytes.Contains(encoded, []byte(expected)) {
+			t.Fatalf("inspect JSON missing %s: %s", expected, encoded)
+		}
+	}
+}
+
+func TestExploreDiagnosticsRejectsForcedPrefixesBeforePreparation(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	status := hostApplication().runExplore([]string{"--diagnostics", "--strategy=choice-exploration", "--max-executions=2", "--max-choice-depth=1", "--max-exploration-bytes=1MiB", "go-run", "./fixture"}, &stdout, &stderr)
+	if status != 2 || !strings.Contains(stderr.String(), "forced-prefix exploration is unsupported") {
+		t.Fatalf("status %d: %s", status, stderr.String())
+	}
+}
+
+func TestReplayOutputVerifyOnly(t *testing.T) {
+	for _, failed := range []bool{false, true} {
+		t.Run(map[bool]string{false: "healthy", true: "EBADF"}[failed], func(t *testing.T) {
+			stdout := terminalDiagnostics(t, map[int]bool{1: failed})
+			stderr := terminalDiagnostics(t, nil)
+			installation := newFakeInstallation()
+			calls := 0
+			var observed runner.ReplaySpec
+			dependencies := installation.replayDependencies(func(ctx context.Context, spec runner.ReplaySpec) (runner.ReplayResult, error) {
+				calls++
+				observed = spec
+				if ctx != context.Background() || len(stdout.attempts) != 0 || len(stderr.attempts) != 0 || !reflect.DeepEqual(*installation.requested, []string{"/bundle"}) {
+					t.Fatal("replay callback did not follow installation and precede reporting")
+				}
+				return runner.ReplayResult{Artifact: artifact.Artifact{Path: "/verified artifact/%s"}, Verified: true}, nil
+			})
+			status := runReplayWith([]string{"--toolchain-root=/bundle", "--observed=/observed", "--verify-only", "/requested-artifact"}, stdout, stderr, dependencies)
+			want := runner.ReplaySpec{ArtifactPath: "/requested-artifact", VerifyOnly: true, ToolchainRoot: "/toolchain", ObservedDir: "/observed"}
+			if calls != 1 || !reflect.DeepEqual(observed, want) {
+				t.Fatalf("replay calls = %d, request = %#v, want %#v", calls, observed, want)
+			}
+			checkTerminalDiagnostics(t, stdout, []string{"gomad: verified /verified artifact/%s\n"})
+			checkTerminalDiagnostics(t, stderr, nil)
+			wantStatus := 0
+			if failed {
+				wantStatus = 3
+			}
+			if status != wantStatus {
+				t.Fatalf("status = %d, want %d after completed verification", status, wantStatus)
+			}
+		})
+	}
+}
+
+func TestReplayOutputEarlierErrors(t *testing.T) {
+	for _, test := range []struct {
+		name       string
+		installErr error
+		replayErr  error
+		status     int
+		calls      int
+		diagnostic string
+	}{
+		{"installation", errFakeInstallation, nil, 3, 0, "resolve Gomad installation: fake installation is unavailable\n"},
+		{"preflight", nil, &runner.ReplayPreflightError{Err: errors.New("toolchain changed")}, 2, 1, "incompatible replay artifact: toolchain changed\n"},
+		{"replay", nil, errors.New("supervisor failed"), 3, 1, "supervisor failed\n"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			stdout := terminalDiagnostics(t, map[int]bool{1: true})
+			stderr := terminalDiagnostics(t, nil)
+			installation := newFakeInstallation().failing(test.installErr)
+			calls := 0
+			dependencies := installation.replayDependencies(func(_ context.Context, spec runner.ReplaySpec) (runner.ReplayResult, error) {
+				calls++
+				want := runner.ReplaySpec{ArtifactPath: "/artifact", VerifyOnly: true, ToolchainRoot: "/toolchain"}
+				if !reflect.DeepEqual(spec, want) || len(stdout.attempts) != 0 || len(stderr.attempts) != 0 {
+					t.Fatalf("replay request = %#v, want %#v before reporting", spec, want)
+				}
+				return runner.ReplayResult{}, test.replayErr
+			})
+			status := runReplayWith([]string{"--toolchain-root=/bundle", "--verify-only", "/artifact"}, stdout, stderr, dependencies)
+			if status != test.status || calls != test.calls || !reflect.DeepEqual(*installation.requested, []string{"/bundle"}) {
+				t.Fatalf("status = %d, calls = %d, installation requests = %q", status, calls, *installation.requested)
+			}
+			checkTerminalDiagnostics(t, stdout, nil)
+			checkTerminalDiagnostics(t, stderr, []string{test.diagnostic})
+		})
+	}
+}
+
+func TestExternalMinimizeForwardsProviderBoundsResumeAndSharedOutput(t *testing.T) {
+	defaultRoot, err := filepath.Abs(".gomad/artifacts")
+	if err != nil {
+		t.Fatal(err)
+	}
+	provider := commandBackend{}
+	for _, test := range []struct {
+		name      string
+		arguments []string
+		want      runner.MinimizeSpec
+		output    string
+	}{
+		{
+			name: "defaults", arguments: []string{"/failure"},
+			want:   runner.MinimizeSpec{Backend: provider, ArtifactPath: "/failure", OutputRoot: filepath.Join(defaultRoot, "minimized"), AttemptBudget: 64},
+			output: "gomad minimize: changed=true attempts=2/64 accepted=0 stop=minimal artifact=/minimized\n",
+		},
+		{
+			name: "resume bounded root", arguments: []string{"--resume", "--artifacts=/artifacts", "--attempt-budget=4", "--max-bytes=2MiB", "/failure"},
+			want:   runner.MinimizeSpec{Backend: provider, ArtifactPath: "/failure", OutputRoot: "/artifacts/minimized", AttemptBudget: 4, MaximumBytes: 2 << 20, Resume: true},
+			output: "gomad minimize: changed=true attempts=2/4 accepted=0 stop=minimal artifact=/minimized\n",
+		},
+		{
+			name: "shared JSON", arguments: []string{"--json", "--artifacts=/artifacts", "--attempt-budget=4", "/failure"},
+			want:   runner.MinimizeSpec{Backend: provider, ArtifactPath: "/failure", OutputRoot: "/artifacts/minimized", AttemptBudget: 4},
+			output: "{\"artifact_path\":\"/minimized\",\"record_hash\":\"\",\"changed\":true,\"attempts\":2,\"attempt_budget\":4,\"accepted\":null,\"stop_reason\":\"minimal\"}\n",
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			var observed []runner.MinimizeSpec
+			var stdout, stderr bytes.Buffer
+			status := runMinimizeWith(test.arguments, &stdout, &stderr, minimizeDependencies{
+				install: func(root string) (installation, error) {
+					if root != "" {
+						t.Fatalf("external minimization selected native toolchain: %s", root)
+					}
+					return installation{backend: provider, backendName: "wasm"}, nil
+				},
+				minimize: func(_ context.Context, spec runner.MinimizeSpec) (runner.MinimizeResult, error) {
+					observed = append(observed, spec)
+					return runner.MinimizeResult{Artifact: artifact.Artifact{Path: "/minimized"}, Changed: true, Attempts: 2, AttemptBudget: test.want.AttemptBudget, StopReason: "minimal"}, nil
+				},
+			})
+			if status != 0 || stderr.Len() != 0 || len(observed) != 1 || !reflect.DeepEqual(observed[0], test.want) || stdout.String() != test.output {
+				t.Fatalf("status=%d requests=%#v want=%#v stdout=%q stderr=%q", status, observed, test.want, stdout.String(), stderr.String())
+			}
+		})
+	}
+}
+
+func TestExternalMinimizePreservesErrorClassification(t *testing.T) {
+	for _, test := range []struct {
+		name   string
+		err    error
+		status int
+	}{
+		{"preflight", &runner.ReplayPreflightError{Err: errors.New("incompatible retained choice failure")}, 2},
+		{"runner", errors.New("minimization infrastructure failure"), 3},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			var stdout, stderr bytes.Buffer
+			status := runMinimizeWith([]string{"/failure"}, &stdout, &stderr, minimizeDependencies{
+				install: func(string) (installation, error) {
+					return installation{backend: commandBackend{}, backendName: "wasm"}, nil
+				},
+				minimize: func(_ context.Context, spec runner.MinimizeSpec) (runner.MinimizeResult, error) {
+					if spec.Backend == nil || spec.ToolchainRoot != "" {
+						t.Fatalf("external backend lost or native launch configured: %+v", spec)
+					}
+					return runner.MinimizeResult{}, test.err
+				},
+			})
+			if status != test.status || stdout.Len() != 0 || !strings.Contains(stderr.String(), test.err.Error()) {
+				t.Fatalf("status=%d stdout=%q stderr=%q", status, stdout.String(), stderr.String())
+			}
+		})
+	}
+}
+
+type terminalDiagnosticWriter struct {
+	output   bytes.Buffer
+	file     *os.File
+	failures map[int]bool
+	attempts []string
+	errors   []error
+}
+
+func (writer *terminalDiagnosticWriter) Write(contents []byte) (int, error) {
+	writer.attempts = append(writer.attempts, string(contents))
+	if writer.failures[len(writer.attempts)] {
+		written, err := writer.file.Write(contents)
+		writer.errors = append(writer.errors, err)
+		return written, err
+	}
+	writer.errors = append(writer.errors, nil)
+	return writer.output.Write(contents)
+}
+
+func terminalDiagnostics(t *testing.T, failures map[int]bool) *terminalDiagnosticWriter {
+	t.Helper()
+	path := filepath.Join(t.TempDir(), "read-only")
+	if err := os.WriteFile(path, nil, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	file, err := os.Open(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		if err := file.Close(); err != nil {
+			t.Error(err)
+		}
+	})
+	return &terminalDiagnosticWriter{file: file, failures: failures}
+}
+
+func checkTerminalDiagnostics(t *testing.T, writer *terminalDiagnosticWriter, want []string) {
+	t.Helper()
+	if !reflect.DeepEqual(writer.attempts, want) {
+		t.Fatalf("attempts = %q, want %q", writer.attempts, want)
+	}
+	var delivered strings.Builder
+	for index, contents := range want {
+		if writer.failures[index+1] {
+			if !errors.Is(writer.errors[index], syscall.EBADF) {
+				t.Fatalf("attempt %d error = %v, want actual EBADF", index+1, writer.errors[index])
+			}
+		} else {
+			if writer.errors[index] != nil {
+				t.Fatal(writer.errors[index])
+			}
+			delivered.WriteString(contents)
+		}
+	}
+	if writer.output.String() != delivered.String() {
+		t.Fatalf("delivered = %q, want %q", writer.output.String(), delivered.String())
+	}
+	contents, err := os.ReadFile(writer.file.Name())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(contents) != 0 {
+		t.Fatalf("read-only file received %q", contents)
+	}
+}
+
+func TestTerminalDiagnosticsPublicFailures(t *testing.T) {
+	t.Setenv("GOMAD3_TOOLCHAIN_DIR", "relative")
+	root := t.TempDir()
+	plan := filepath.Join(root, "plan.json")
+	if err := os.WriteFile(plan, []byte("{}\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	for _, test := range []struct {
+		name       string
+		arguments  []string
+		status     int
+		diagnostic string
+		reporter   bool
+	}{
+		{"usage", nil, 2, usage, false},
+		{"unknown", []string{"unknown"}, 2, "unknown gomad command \"unknown\"\n" + usage, false},
+		{"doctor usage", []string{"doctor", "extra"}, 2, usage, false},
+		{"replay usage", []string{"replay"}, 2, usage, false},
+		{"shard usage", []string{"execute-shard"}, 2, usage, false},
+		{"shard syntax", []string{"execute-shard", "--shard=1", plan}, 2, "invalid shard \"1\": want zero-based INDEX/COUNT\n", false},
+		{"merge usage", []string{"merge"}, 2, usage, false},
+		{"merge invalid plan", []string{"merge", "--output=" + filepath.Join(root, "merged"), plan, filepath.Join(root, "shard")}, 2, "gomad: invalid_input: merge campaign shards: decode campaign plan: JSON is not canonical\n", false},
+		{"explore output", []string{"explore", "--output=plan", "go-run", "./pkg"}, 2, "gomad: invalid_input: --output is only valid with gomad plan\n", true},
+		{"explore capability", []string{"explore", "--capability-mode=open"}, 2, "gomad: invalid_input: unknown capability mode \"open\"\n", true},
+		{"explore strategy", []string{"explore", "--strategy=random"}, 2, "gomad: invalid_input: unknown exploration strategy \"random\"\n", true},
+		{"explore seeds", []string{"explore", "--count=0"}, 2, "gomad: invalid_input: --count must be greater than zero\n", true},
+		{"explore regression", []string{"explore", "--guide-regression"}, 2, "gomad: invalid_input: --guide-regression requires --guide\n", true},
+		{"explore guidance", []string{"explore", "--guide"}, 2, "gomad: invalid_input: --guide requires --corpus DIR\n", true},
+		{"explore coverage", []string{"explore", "--require-probe=stdlib.os.openfile"}, 2, "gomad: invalid_input: --require-probe requires --coverage=semantic\n", true},
+		{"explore choices", []string{"explore", "--choice-bytes=1MiB"}, 2, "gomad: invalid_input: --choice-bytes requires --choices\n", true},
+		{"explore target", []string{"explore"}, 2, "gomad: invalid_input: target kind is required\n", true},
+		{"explore working directory", []string{"explore", "--working-dir=module", "go-run", "./pkg"}, 2, "gomad: invalid_input: working directory \"module\" must be an absolute, clean path\n", true},
+		{"qualify input", []string{"qualify", "--repeat=0"}, 2, "gomad: invalid_input: --repeat must be between 2 and 32\n", true},
+		{"resume input", []string{"resume"}, 2, "gomad: invalid_input: resume requires one interrupted campaign path\n", true},
+		{"replay installation", []string{"replay", plan}, 3, "resolve Gomad installation: GOMAD3_TOOLCHAIN_DIR toolchain root must be an absolute non-root clean path: \"relative\"\n", false},
+		{"shard installation", []string{"execute-shard", "--shard=0/1", plan}, 3, "resolve Gomad installation: GOMAD3_TOOLCHAIN_DIR toolchain root must be an absolute non-root clean path: \"relative\"\n", false},
+		{"explore installation", []string{"explore", "go-run", "./pkg"}, 3, "gomad: runner_failure: resolve Gomad installation: GOMAD3_TOOLCHAIN_DIR toolchain root must be an absolute non-root clean path: \"relative\"\n", true},
+		{"qualify installation", []string{"qualify", "go-run", "./pkg"}, 3, "gomad: runner_failure: resolve Gomad installation: GOMAD3_TOOLCHAIN_DIR toolchain root must be an absolute non-root clean path: \"relative\"\n", true},
+		{"resume installation", []string{"resume", plan}, 3, "gomad: runner_failure: resolve Gomad installation: GOMAD3_TOOLCHAIN_DIR toolchain root must be an absolute non-root clean path: \"relative\"\n", true},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			for _, failures := range []map[int]bool{nil, {1: true}, {1: true, 2: true}} {
+				stdout := terminalDiagnostics(t, nil)
+				stderr := terminalDiagnostics(t, failures)
+				status := Run(test.arguments, stdout, stderr)
+				want, wantStatus := []string{test.diagnostic}, test.status
+				if failures[1] && test.reporter {
+					want = append(want, "write "+stderr.file.Name()+": bad file descriptor\n")
+					wantStatus = 3
+				}
+				if status != wantStatus || len(stdout.attempts) != 0 {
+					t.Fatalf("status = %d, want %d; stdout attempts = %q", status, wantStatus, stdout.attempts)
+				}
+				checkTerminalDiagnostics(t, stderr, want)
+				contents, err := os.ReadFile(plan)
+				if err != nil || string(contents) != "{}\n" {
+					t.Fatalf("plan = %q, %v", contents, err)
+				}
+				entries, err := os.ReadDir(root)
+				if err != nil || len(entries) != 1 || entries[0].Name() != "plan.json" {
+					t.Fatalf("publication entries = %v, %v", entries, err)
+				}
+			}
+		})
+	}
+}
+
+func TestTerminalDiagnosticsPrivateDispatch(t *testing.T) {
+	for _, mode := range []string{coordinatorMode, supervisorMode, targetBootstrapMode} {
+		t.Run(mode, func(t *testing.T) {
+			for _, failed := range []bool{false, true} {
+				stdout := terminalDiagnostics(t, nil)
+				stderr := terminalDiagnostics(t, map[int]bool{1: failed})
+				input, output := strings.NewReader("request"), new(bytes.Buffer)
+				calls := 0
+				app := application{privateInput: input, privateOutput: output, dispatch: func(got string, in io.Reader, out io.Writer) error {
+					if got != mode || in != input || out != output || len(stderr.attempts) != 0 {
+						t.Fatal("private dispatch streams or ordering changed")
+					}
+					calls++
+					return errors.New("decode private request: EOF")
+				}}
+				if status := app.run([]string{mode, "ignored"}, stdout, stderr); status != 3 || calls != 1 || len(stdout.attempts) != 0 || output.Len() != 0 {
+					t.Fatalf("status = %d, calls = %d, stdout = %q, private output = %q", status, calls, stdout.attempts, output.String())
+				}
+				checkTerminalDiagnostics(t, stderr, []string{"decode private request: EOF\n"})
+			}
+		})
+	}
+}
+
+func TestTerminalDiagnosticsReplayClassifications(t *testing.T) {
+	for _, test := range []struct {
+		name   string
+		err    error
+		status int
+		text   string
+	}{
+		{"preflight", &runner.ReplayPreflightError{Err: errors.New("invalid retained artifact")}, 2, "incompatible replay artifact: invalid retained artifact\n"},
+		{"host", &runner.HostError{Reason: "replay", Err: errors.New("child failed")}, 3, "gomad3 Runner/host failure: replay: child failed\n"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			for _, failed := range []bool{false, true} {
+				stdout := terminalDiagnostics(t, nil)
+				stderr := terminalDiagnostics(t, map[int]bool{1: failed})
+				calls := 0
+				dependencies := newFakeInstallation().replayDependencies(func(_ context.Context, spec runner.ReplaySpec) (runner.ReplayResult, error) {
+					if spec.ArtifactPath != "/artifact" || len(stderr.attempts) != 0 {
+						t.Fatal("replay operation or ordering changed")
+					}
+					calls++
+					return runner.ReplayResult{}, test.err
+				})
+				if status := runReplayWith([]string{"/artifact"}, stdout, stderr, dependencies); status != test.status || calls != 1 || len(stdout.attempts) != 0 {
+					t.Fatalf("status = %d, calls = %d, stdout = %q", status, calls, stdout.attempts)
+				}
+				checkTerminalDiagnostics(t, stderr, []string{test.text})
+			}
+		})
+	}
+}
+
+func TestTerminalDiagnosticsCompletedOperations(t *testing.T) {
+	for _, command := range []string{"explore", "execute-shard", "resume", "replay", "qualify"} {
+		t.Run(command, func(t *testing.T) {
+			for _, failed := range []bool{false, true} {
+				root := t.TempDir()
+				published := filepath.Join(root, "completed")
+				stdout := terminalDiagnostics(t, map[int]bool{1: true})
+				stderr := terminalDiagnostics(t, map[int]bool{1: failed})
+				completed := 0
+				finish := func() {
+					if len(stdout.attempts) != 0 || len(stderr.attempts) != 0 {
+						t.Fatal("reporting preceded the operation")
+					}
+					if err := os.WriteFile(published, []byte("committed\n"), 0o600); err != nil {
+						t.Fatal(err)
+					}
+					completed++
+				}
+				result := runner.CampaignResult{CampaignPath: published, Attempted: 1, Succeeded: 1}
+				fake := newFakeInstallation()
+				var status int
+				var wantOutput string
+				switch command {
+				case "explore":
+					dependencies := fake.exploreDependencies(func(context.Context, runner.CampaignSpec) (runner.CampaignResult, error) {
+						finish()
+						return result, nil
+					}, nil)
+					status = runExploreWith([]string{"go-run", "./pkg"}, stdout, stderr, dependencies)
+				case "execute-shard":
+					dependencies := fake.campaignShardDependencies(func(context.Context, runner.CampaignShardSpec) (runner.CampaignResult, error) {
+						finish()
+						return result, nil
+					})
+					status = runCampaignShardWith([]string{"--shard=0/1", "/plan"}, stdout, stderr, dependencies)
+				case "resume":
+					dependencies := fake.resumeDependencies(func(context.Context, runner.ResumeSpec) (runner.CampaignResult, error) {
+						finish()
+						return result, nil
+					})
+					status = runResumeWith([]string{"/campaign"}, stdout, stderr, dependencies)
+				case "replay":
+					dependencies := fake.replayDependencies(func(context.Context, runner.ReplaySpec) (runner.ReplayResult, error) {
+						finish()
+						return runner.ReplayResult{Match: true}, nil
+					})
+					status = runReplayWith([]string{"/artifact"}, stdout, stderr, dependencies)
+					wantOutput = "gomad: reproduced=true diagnostic=false result=target_failure choice-replay=\n"
+				case "qualify":
+					dependencies := qualifyDependencies{
+						install: fake.install, workingDirectory: func() (string, error) { return "/workspace", nil },
+						workload: func(context.Context, qualificationworkload.Spec) (qualificationworkload.Result, error) {
+							finish()
+							return qualificationworkload.Result{ReportPath: published, Report: qualification.QualificationReport{Qualified: true, Deterministic: true, TargetSuccess: true}}, nil
+						},
+					}
+					status = runQualifyWith([]string{"go-run", "./pkg"}, stdout, stderr, dependencies)
+					wantOutput = "gomad: qualification qualified=true deterministic=true target-success=true seed=0 repeat=0 report=" + published + "\n"
+				}
+				if wantOutput == "" {
+					wantOutput = "gomad: classification=success attempted=1 succeeded=1 failures=0 watchdogs=0 replay-divergences=0 distinct=0 retained-successes=0 retained-success-bytes=0 stop= artifact=" + published + "\n"
+				}
+				if status != 3 || completed != 1 {
+					t.Fatalf("status = %d, completed = %d", status, completed)
+				}
+				checkTerminalDiagnostics(t, stdout, []string{wantOutput})
+				checkTerminalDiagnostics(t, stderr, []string{"write " + stdout.file.Name() + ": bad file descriptor\n"})
+				contents, err := os.ReadFile(published)
+				if err != nil || string(contents) != "committed\n" {
+					t.Fatalf("completed operation file = %q, %v", contents, err)
+				}
+			}
+		})
+	}
+}
+
+func TestCampaignSemanticValidationBelongsToRunner(t *testing.T) {
+	files := token.NewFileSet()
+	file, err := parser.ParseFile(files, "cli.go", nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, rule := range []struct {
+		function string
+		calls    map[string]int
+		forbid   map[string]bool
+	}{
+		{"resolveExploreStrategy", map[string]int{"ParseSingleBaseSeed": 2}, map[string]bool{"Count": true, "ParseSeeds": true}},
+		{"resolveExploreCoverage", map[string]int{"ValidateCoverage": 1}, map[string]bool{"MissingRequiredSemanticProbes": true, "CoverageNone": true, "CoverageChoice": true, "CoverageSemantic": true, "CoverageSemanticChoice": true}},
+		{"resolveChoiceTrace", map[string]int{"ValidateChoiceTraceLimit": 1}, nil},
+		{"parseCampaignRequest", map[string]int{"ValidateChoiceCoverage": 1}, map[string]bool{"CoverageChoice": true, "CoverageSemanticChoice": true}},
+		{"resolveExploreGuidance", map[string]int{"NormalizeCoverage": 1}, nil},
+	} {
+		t.Run(rule.function, func(t *testing.T) {
+			var body *ast.BlockStmt
+			for _, declaration := range file.Decls {
+				if function, ok := declaration.(*ast.FuncDecl); ok && function.Name.Name == rule.function {
+					body = function.Body
+				}
+			}
+			if body == nil {
+				t.Fatal("campaign validation function is missing")
+			}
+			calls := make(map[string]int)
+			ast.Inspect(body, func(node ast.Node) bool {
+				if comparison, ok := node.(*ast.BinaryExpr); ok && rule.function == "resolveChoiceTrace" {
+					ast.Inspect(comparison, func(node ast.Node) bool {
+						if selector, ok := node.(*ast.SelectorExpr); ok && (selector.Sel.Name == "MinimumChoiceTraceBytes" || selector.Sel.Name == "MaximumChoiceTraceBytes") {
+							t.Errorf("%s: CLI duplicates Runner's trace capacity rule", files.Position(selector.Pos()))
+						}
+						return true
+					})
+				}
+				if selector, ok := node.(*ast.SelectorExpr); ok && rule.forbid[selector.Sel.Name] {
+					t.Errorf("%s: CLI duplicates Runner's semantic responsibility through %s", files.Position(selector.Pos()), selector.Sel.Name)
+				}
+				var expressions []ast.Expr
+				switch value := node.(type) {
+				case *ast.IfStmt:
+					condition, ok := value.Cond.(*ast.BinaryExpr)
+					if !ok || condition.Op != token.NEQ {
+						break
+					}
+					left, leftOK := condition.X.(*ast.Ident)
+					right, rightOK := condition.Y.(*ast.Ident)
+					if !leftOK || !rightOK || left.Name != "err" || right.Name != "nil" {
+						break
+					}
+					if assignment, ok := value.Init.(*ast.AssignStmt); ok {
+						expressions = assignment.Rhs
+					}
+				case *ast.ReturnStmt:
+					expressions = value.Results
+				}
+				for _, expression := range expressions {
+					ast.Inspect(expression, func(node ast.Node) bool {
+						if call, ok := node.(*ast.CallExpr); ok {
+							if selector, ok := call.Fun.(*ast.SelectorExpr); ok {
+								if owner, ok := selector.X.(*ast.Ident); ok && owner.Name == "runner" {
+									calls[selector.Sel.Name]++
+								}
+							}
+						}
+						return true
+					})
+				}
+				return true
+			})
+			for name, want := range rule.calls {
+				if got := calls[name]; got != want {
+					t.Errorf("%s: %d checked Runner.%s calls, want %d in actual validation", rule.function, got, name, want)
+				}
 			}
 		})
 	}

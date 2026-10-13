@@ -92,14 +92,6 @@ func TestQualifyDiagnosticsRetainsFreshPairAndReplaysSuccesses(t *testing.T) {
 	}
 }
 
-func TestExploreDiagnosticsRejectsForcedPrefixesBeforePreparation(t *testing.T) {
-	var stdout, stderr bytes.Buffer
-	status := hostApplication().runExplore([]string{"--diagnostics", "--strategy=choice-exploration", "--max-executions=2", "--max-choice-depth=1", "--max-exploration-bytes=1MiB", "go-run", "./fixture"}, &stdout, &stderr)
-	if status != 2 || !strings.Contains(stderr.String(), "forced-prefix exploration is unsupported") {
-		t.Fatalf("status %d: %s", status, stderr.String())
-	}
-}
-
 func TestQualifyDiagnosticsRetainsInterruptedReports(t *testing.T) {
 	for _, cancellation := range []bool{false, true} {
 		for _, interruptedFirst := range []bool{false, true} {
