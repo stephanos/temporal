@@ -16,6 +16,7 @@ Classify the current refusal kinds before fn-174 retires tree-based export, so n
 - A kept refusal names the author's file and line. Note for each whether a capture point supplies it.
 - Carry over every validation of a path that is folded away; memory `consolidated-extractor-dropped-a-2026-09-27` records a regression from skipping this.
 - Name the fn-174 task that handles each kind (.1–.8), so each has its checklist. Retain every folded-path validation and initialization-order check. Report counts by outcome to the owner without requiring routine approval.
+- Account for checks on declarations that no capture reaches: `Declarations.givesNoEmpty` checks every declared effect, both conditional branches and every match result, including unused effects. A caller-only macro path cannot silently replace that coverage; identify its retained owner and fixture explicitly.
 
 ### Investigation targets
 **Required:**
