@@ -1,35 +1,28 @@
 ---
 satisfies: [R2, R16]
 ---
-# fn-141-shrink-the-ir-generator-one-description.2 Retire the spellings no Model and no kit file uses
+# fn-141-shrink-the-ir-generator-one-description.2 Retire unused authoring spellings
 
 ## Description
-Part D. A spelling that only the lifter's own fixtures use still costs a matcher, a refusal and fixtures. Recount, list, confirm, remove.
+Part D: recount the DSL's alternative spellings, retain every spelling used by the current mini/shared/kit/sample sources or a kept sugar's implementation, and retire unused author-facing alternatives with their lifter arms and obsolete fixtures. MILESTONES.md's pull-forward, mini-only and faster-tasks policies supersede the original paths and full-gate cadence. The owner authorizes the conductor to follow its recommendations for routine choices; report the count-based list to the conductor before removal, without a new user-approval gate.
 
 **Size:** M
-**Files:** `model/umpire/**`, `model/irgen/**`, `model/irgen/testdata/**`, `model/README.md`
-**Touches:** [model/umpire/**, model/irgen/**, model/README.md, model/SEMANTICS.md]
-**Deferred:** see MILESTONES.md, Deferred, fn-141. Planned 2026-10-06 against the tree before the DSL batch. The files and names below are that tree's and carry no line numbers on purpose: when the spec is revived, re-read them and recount before starting, since the DSL batch and fn-140 rewrite them.
+**Touches:** [model/framework/dsl/**, model/framework/realize/**, model/framework/export/**, model/framework/lint/**, model/framework/check/**, model/temporal/check/**, model/temporal/migrate/README.md, model/README.md, model/SEMANTICS.md]
 
 ### Approach
-- Recount first. For each construct that has more than one spelling, count uses under `model/temporal` (Models and kit) and under `model/irgen/testdata`. Put the table in the done summary.
-- Candidates on 2026-10-06, each to be re-checked: hand-bound `Bindings`, the hand-written `Typed*` realization constructors, `Instruction.readUntil`, the receiver-less `capabilities(limits)(…)`, the chained `.overriding(…)`, `.total(n)`. The DSL batch removes or reshapes several of them.
-- Keep a spelling that a kept sugar's definition is written in: task 3 makes sugar bodies the lowering, so their core forms must stay liftable.
-- Show the owner the final list before deleting anything (R2 lists candidates, the recount decides).
-- Delete each retired spelling from the framework, the lifter and the fixtures together, with its lift and reject fixtures.
-
-### Investigation targets
-**Required:**
-- `model/irgen/Declarations.scala` (`coreBinding`, `stepBinding`), `Realizations.scala` (`written`), `Capabilities.scala` (`declaration`, `peel`), `Claims.scala` (`totalOf`)
-- `model/umpire/Machine.scala` (`Bindings`), `model/umpire/realize/*.scala`, `model/umpire/Claims.scala`
-- `model/irgen/testdata/lifts/*.scala` (which fixtures exist only for a retired spelling)
+- Re-read the current framework and exporter and recount first. Inventory every multi-spelling construct, separating live mini/shared/kit/sample use, internal core/sugar dependencies, generic tests and exporter fixtures. Real-feature-only use does not constrain retirement and real-feature sources are not edited. Immutable historical sources and payloads remain untouched.
+- Re-check the historical candidates individually: hand-bound Bindings, hand-written Typed* realization constructors, Instruction.readUntil versus scoped readUntil, receiver-less capabilities(limits)(...), chained overriding, and explicit Query.total(n). A class used as a kept sugar's return type or core representation is not automatically an unused author-facing spelling; retain the core mechanism and type safety.
+- Reserve spellings explicitly needed by remaining approved source specs. Consult fn-141.3-.13 and fn-164/fn-165 and the current milestone before deciding a spelling is unused. A used core form or future requirement stays; record why. Do not preserve obsolete public syntax merely because an exporter fixture uses it.
+- Report the full count-based removal/retention list to the conductor before deletion. The conductor's recommendation authority already comes from the user. Delete each retired author-facing spelling, its exporter recognition, obsolete positive/reject fixtures and obsolete guide text together. A surviving DSL test using retired surface syntax is converted to its canonical spelling without reducing its assertion coverage; do not substitute a renamed compatibility alias for retirement.
+- Add meaningful compile-negative controls proving retired public spellings are unavailable, alongside positive controls for retained/canonical forms. Retain surviving fixture expected IR and refusal contracts; expected artifacts solely for explicitly retired fixtures may be removed with them. Keep changes minimal and split affected construct tests from Fixtures.test.scala beside their construct as required by the milestone.
+- Write a concise migration recipe in model/temporal/migrate/README.md for the real-feature sweep. Record before/after source counts and the exact uses/removal decisions in the task receipt; no bespoke proof scripts, immutable captures or hash manifests.
+- Baseline is fn-141.1's green .flow/tmp/checks/20261013-023527/record.md (432 tests). Iterate only affected suites, then run make model-check-changed BASE=<task-base> once at the end, including mini step-table equivalence. Strict model-mini generated-IR comparison, Go, regeneration, broad lint and independent review remain held. Existing generated artifacts are not edited.
 
 ## Acceptance
-- [ ] A use-count table covers every multi-spelling construct; the owner confirmed the removal list.
-- [ ] Each retired spelling no longer compiles; no fixture, doc or lifter arm names it.
-- [ ] A spelling with a use under `model/temporal`, or one a kept sugar is written in, is still there.
-- [ ] `scala-cli test model/irgen` and `make umpire-check-model` pass; `make umpire-gen-model` leaves `model/ir`, `model/cases` and the lifter fixtures' expected IR byte-identical (R11); any difference stops the task until it is traced.
-- [ ] Line counts before and after are in the done summary.
+- R2: a use-count and dependency table covers every multi-spelling construct; removal/retention decisions follow the current mini/shared scope, retained core/sugar and upcoming approved requirements, under the owner's recommendation delegation.
+- Retired public spellings no longer compile, their lifter arms and obsolete fixtures/docs are gone, and canonical spellings still compile. Internal representations required by kept sugar stay usable without preserving an obsolete author-facing alternative.
+- Surviving fixture expected IR/refusal behavior and mini/shared semantics are preserved. The task's model-check-changed record passes with mini step-table equivalence. Generated/real-feature sources are unchanged.
+- R16: before/after source counts, retired fixture inventory, migration recipe, focused checks and deferred gates are recorded in the done summary.
 
 ## Done summary
 TBD
