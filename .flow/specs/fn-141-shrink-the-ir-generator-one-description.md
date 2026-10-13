@@ -1,6 +1,6 @@
 # Shrink the IR generator: one description of each DSL construct
 
-DSL changes ship a task-named Scalafix rule under `model/migrate/rules/`, prove it on copied `activity_mini` sources before the real-feature sweep, and follow `model/migrate/README.md`; production loading remains held in fn-166.10.
+DSL changes ship a migration recipe in `model/temporal/migrate/README.md`; existing rules remain until the owner's real-feature sweep applies them. This follows MILESTONES.md's 2026-10-13 recipe policy.
 
 ## Conversation Evidence
 
@@ -22,7 +22,9 @@ DSL changes ship a task-named Scalafix rule under `model/migrate/rules/`, prove 
 <!-- scope: business -->
 <!-- Goal & Context: 30% [user], 40% [paraphrase], 30% [inferred] -->
 
-**Ready for the final Scala lane.** The owner approved executing this spec last, after the final committed Scala authoring/lifter seals, including fn-140 witnesses, fn-149 groups, fn-164 expectation/colon blocks, fault/activity work and illustrations. Whole-spec dependencies on mixed Scala/Go predecessors record their eventual shared closure, not permission to bypass the owner's Scala-only sequencing or require deferred non-Scala work first. The conductor admits this work only from the settled integrated Scala source baseline; Go, regeneration, full gates, review and live runs stay deferred until the owner reopens them. Its tasks were planned on 2026-10-06 against the earlier tree, so each task re-reads its files and recounts on this final baseline. The byte-identity and expressiveness contracts below apply to that baseline.
+**Ready after the framework move and comparator port.** The owner's 2026-10-12 pull-forward decision in MILESTONES.md places this spec after fn-160.3/.4, fn-166.11-.14 and fn-169.1/.5/.6, before the remaining DSL specs. Those source checkpoints are integrated on local `umpire`; fn-169.6 closed at `40cf2802ae`. The earlier whole-spec dependencies on mixed Scala/Go work and later fault/expectation work are superseded for source admission; their deferred closure obligations remain in their own specs. Fn-169.2 follows fn-141.8. Each task re-reads its files and recounts against the current `model/framework/export` layout before implementation. Go, regeneration, broad validation, independent review and live runs stay deferred to the source-batch boundary or propagation phase.
+
+**Current execution contract (owner, 2026-10-13):** only the framework, tooling, shared code and `features/activity_mini` are in scope. Historical `model/irgen`, `model/check`, `model/umpire`, `model/ir` and `model/cases` paths below refer to their current fn-169/fn-166 homes. Iterate with affected suites; run `make model-check-changed BASE=<task-base>` once at task end and cite its mini step-table equivalence. Reuse the preceding task's record as the baseline; no bespoke captures, hash manifests or proof scripts. Preserve fixture expected IR and refusal text/positions, and do not write generated payloads. Byte-identity compares the current source lift and its fixtures; stale checked-in IR and real-feature replay are held. Later expectation, fault and illustration constructs are reserved future work, rather than prerequisites that delay this refactor.
 
 A Model author and a framework maintainer both pay for the IR generator's size. `model/irgen` is 8,242 source lines against 2,958 for the framework it reads (`model/umpire`). Every new DSL word costs a tree matcher, a lowering, a refusal and two fixtures in the lifter. The owner wants that code reduced, accepts reasonable DSL changes to get there, and sets two limits. The DSL must lose no expressiveness. The Umpire IR must stay clean, so that the Quint export and later exports such as TLA+ keep working from it.
 

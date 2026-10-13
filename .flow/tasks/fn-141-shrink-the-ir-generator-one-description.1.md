@@ -1,38 +1,28 @@
 ---
 satisfies: [R1, R16]
 ---
-# fn-141-shrink-the-ir-generator-one-description.1 Move the order lint, the structure lint and the marker checks out of model/irgen
+# fn-141-shrink-the-ir-generator-one-description.1 Move the order lint, structure lint and marker checks out of the exporter
 
 ## Description
-Part C. Three files of the lifter (1,479 lines on 2026-10-06) emit no IR. Give them a home of their own and a gate step of their own, with no change to what they refuse.
+Part C: give the declaration-order lint, structure lint and marker checks a home and gate step of their own, preserving what they refuse. This task runs now under the owner's pull-forward and faster-tasks decisions in MILESTONES.md, from the integrated fn-169.6 source checkpoint. The original model/irgen paths are superseded by model/framework/export.
 
 **Size:** M
-**Files:** `model/irgen/{Order,Structure,Markers,Lift,Lifting,Context}.scala`, a new lint module beside `model/check`, `model/check/Gate.scala`, `model/irgen/test/Fixtures.test.scala`, the lint fixtures under `model/irgen/testdata/{initOrder,sectionOrder,layout,grouping,retiredNames,objectForms}`
-**Touches:** [model/irgen/**, model/check/**, model/lint/**, model/README.md]
-**Deferred:** see MILESTONES.md, Deferred, fn-141. Planned 2026-10-06 against the tree before the DSL batch. The files and names below are that tree's and carry no line numbers on purpose: when the spec is revived, re-read them and recount before starting, since the DSL batch and fn-140 rewrite them.
+**Touches:** [model/framework/export/**, model/framework/check/**, model/framework/lint/**, model/framework/inspect/**, model/temporal/export/**, model/temporal/check/**, model/README.md, model/SEMANTICS.md]
+New lint/shared-reader directories are options, not a prescribed layout. Keep modules deep, reuse the existing typed-tree index, and do not duplicate a TASTy read or create lint/export dependency cycles.
 
 ### Approach
-- The two lints read whole typed trees through the lifter's `Index`. Keep one TASTy read: either the lint module owns the index and the lifter reuses it, or both build on a small shared reader. Record the choice.
-- The marker checks read what a file lifted (machines, Queries, fault actions) and the marker traits, which the IR does not carry. Keep them after the lift and before anything is written, behind an interface that takes the index and the lifted Models.
-- A lint refusal still stops the lift: `Lifter.inspect` lifts nothing when the order lint refuses.
-- Move the lint fixtures and their tests with the code. Refusal texts and positions do not change.
-- Record `model/irgen` source lines before and after (R16).
+- Re-read Order.scala, Structure.scala, Markers.scala, Lift.scala, Lifting.scala and Context.scala in model/framework/export before changing them. Preserve the single Index/TASTy read: both passes may use a small shared reader, or lint may own that reader and the exporter reuse it. Record the choice.
+- Move the non-IR lints to their own module and expose their own gate step. Order and structure refusals stop export; marker checks remain after lifting and before any file is written, through an interface taking the index and lifted Models. Existing direct lift entry points must preserve refusal behavior.
+- Move affected fixture tests with the code and split them out of Fixtures.test.scala beside their construct. Retain expected text/positions and unchanged expected IR. Historical fixture paths may remain as input data where a move would otherwise change author positions; record that choice.
+- The mini feature, framework samples and shared code are the production scope. Real-feature sources/generated artifacts are untouched. Go, Makefile edits, regeneration, broad lint/full gates and independent review remain held.
+- Before changes, record source lines by category for fn-141.14: declaration/DSL re-parsing, sugar matching, realization-kit matching, function-body/type lifting, lints and refusals. Record after counts and additions in the receipt; no standalone proof artifact is needed.
+- Iterate only the affected suites. Baseline is .flow/tmp/checks/20261012-235203/record.md from fn-169.6. End once with make model-check-changed BASE=<task-base>, including mini step-table equivalence. The strict make model-mini gate remains red on held generated IR and is not a prerequisite. No bespoke captures, hash manifests or proof scripts.
 
-### Investigation targets
-**Required:**
-- `model/irgen/Lift.scala` (`Lifter.inspect`, `liftRoots`: where the lints and marker checks run)
-- `model/irgen/Order.scala`, `Structure.scala`, `Markers.scala` and their use of `Index` and `Context`
-- `model/check/Gate.scala` (the steps that compile and run the lifter) and `model/irgen/project.scala`
-- `model/irgen/test/Fixtures.test.scala` (the lint fixture tests)
-
-
-**Baseline for fn-141.14 (owner, 2026-10-13):** before any change, record the lifter's line counts by category (declaration/DSL surface re-parsing, sugar matching, realization-kit matching, function-body and type lifting, lints and refusals) in the receipt.
 ## Acceptance
-- [ ] `model/irgen` holds no lint: `Order.scala`, `Structure.scala` and `Markers.scala` are gone from it.
-- [ ] Every lint and marker reject fixture refuses with the same text at the same position from its new home.
-- [ ] A source a lint refuses writes no IR file; the gate reports the refusal as before.
-- [ ] `make umpire-check-model` and `make lint-model` pass; `make umpire-gen-model` leaves `model/ir`, `model/cases` and the lifter fixtures' expected IR byte-identical (R11); any difference stops the task until it is traced.
-- [ ] Line counts before and after are in the done summary.
+- R1: model/framework/export holds no Order.scala, Structure.scala or Markers.scala; these non-IR passes live in their own module and run as the gate's lint/check step with one shared TASTy read.
+- Every moved order/structure/marker reject fixture retains its refusal text and source position. A source refused by a lint writes no IR, through the gate and direct lift routes.
+- Fixture expected IR and mini/shared semantics are preserved. The task's make model-check-changed record passes, including mini step-table equivalence; generated artifacts are unchanged.
+- R16: before/after source counts and category baseline, the shared-reader choice, affected tests, and deferred gates are recorded in the done summary.
 
 ## Done summary
 TBD

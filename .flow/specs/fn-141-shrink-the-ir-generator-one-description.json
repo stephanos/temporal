@@ -6,19 +6,7 @@
   "default_impl": null,
   "default_review": null,
   "default_sync": null,
-  "depends_on_epics": [
-    "fn-133-lean-typed-realizations",
-    "fn-134-capabilities-own-their-properties",
-    "fn-135-effect-and-is-blocks-for-effects-and",
-    "fn-136-phase-roles-on-lifecycle-enums",
-    "fn-137-capabilities-read-phase-roles",
-    "fn-139-actor-grouped-rules-per-rpc-actions",
-    "fn-140-one-sentence-witness-queries-with",
-    "fn-123-declare-faults-as-the-environments",
-    "fn-148-consolidate-testpilot-evidence-and",
-    "fn-146-adopt-cel-for-runtime-predicates-and",
-    "fn-147-migrate-elapsed-time-fields-to-protobuf"
-  ],
+  "depends_on_epics": [],
   "id": "fn-141-shrink-the-ir-generator-one-description",
   "impl_review_rounds": {},
   "next_task": 1,
@@ -40,5 +28,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-12T00:25:30.079618Z"
+  "updated_at": "2026-10-13T09:14:54.349095Z"
 }
