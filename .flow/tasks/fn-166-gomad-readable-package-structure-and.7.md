@@ -8,6 +8,9 @@ Move runner, backends, record/artifact/captured/qualification (as evidence), cho
 
 Carried from .4 and .9 (2026-10-13): move inspection to `runner/inspect` (needs plan reading moved into `runner/internal/campaign` first so `Inspect` uses no Runner-private projections and Runner tests keep their fakes without an import cycle; 36 Runner identifiers named from `backends/wasm` and the 7 `SimulationClock` methods in identity-bound `runner/simulation_broker.go` must move with it to halve Runner's exports), and remove the remaining `tools/gomad3integration` module (`TestPublicWrappers`, `testdata/tagged`) together with the library-contract checks; update the `soak.json` description path when its manifest digest is rotated anyway.
 
+### Final six-group binding
+
+Keep target as internal/backends/target to avoid Provider → artifact → target import cycles. Place shared strictjson and runtimesource under internal/model, and semantic generator definitions under internal/model/schema; no extra immediate internal owner remains. This realizes the spec's 2026-10-13 final rotation integration bindings. Complete inspection extraction and export reduction, not merely import/path replacement.
 ## Acceptance
 The module top level holds only cmd, internal and testdata, and internal/ holds runner, backends, evidence, model, host and archcheck; Git renames preserve history; full WASM gate set passes on the integrated candidate.
 

@@ -6,6 +6,9 @@ satisfies: [R10, R6]
 ## Description
 Replace gomad3sim's single server common/collection use with the standard library, move tools/gomad3sim into tools/gomad3/model/cluster, and split it into the public cluster API and internal runtime-domain wire codecs and history records. Update WASM backend, native build and overlay references. Land in the same integrated candidate as fn-153, fn-154 and fn-166 tasks 6-8.
 
+### Codec split binding
+
+Establish lower-level internal record/identity DTO ownership before extracting wire codecs, so cluster API and codecs depend downward without a codec → parent cluster import. Include every moved semantic source in the cluster implementation identity. Integrate fn154 history removal before relocating these active write surfaces. Preserve the explicitly required native source and final WASM gates.
 ## Acceptance
 tools/gomad3sim no longer exists; gomad3 core imports no server package; full WASM gate set and native source checks pass on the integrated candidate.
 
