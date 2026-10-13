@@ -46,6 +46,7 @@ type simulationFailureProjection struct {
 }
 
 type targetProjection struct {
+	SoftAssertionReportOnly bool `json:"soft_assertion_report_only,omitempty"`
 	Backend            *BackendMetadata                    `json:"backend,omitempty"`
 	Kind               string                              `json:"kind"`
 	SHA256             SHA256                              `json:"sha256"`
@@ -139,6 +140,7 @@ type readOnlyMountProjection struct {
 }
 
 type outcomeProjection struct {
+	SoftAssertions *SoftAssertions `json:"soft_assertions,omitempty"`
 	Domain      string        `json:"domain"`
 	Reason      string        `json:"reason"`
 	Termination string        `json:"termination"`
@@ -219,6 +221,12 @@ func cloneMinimization(minimization *Minimization) *Minimization {
 }
 
 func failureProjectionOf(manifest ExecutionRecord) any {
+	if manifest.Outcome.Reason == "soft_assertion" && manifest.Outcome.SoftAssertions != nil {
+		return struct {
+			Reason string `json:"reason"`
+			Messages []string `json:"messages"`
+		}{Reason: "soft_assertion", Messages: manifest.Outcome.SoftAssertions.Messages}
+	}
 	if profile := manifest.SimulationProfile; profile != nil {
 		failure := profile.FailureSHA256
 		if failure == "" {
@@ -298,6 +306,7 @@ func projectIOProfile(profile IOProfile) ioProfileProjection {
 
 func projectTarget(target Target) targetProjection {
 	projected := targetProjection{
+		SoftAssertionReportOnly: target.SoftAssertionReportOnly,
 		Backend: CloneBackendMetadata(target.Backend),
 		Kind:    target.Kind, SHA256: target.SHA256, Size: target.Size, Argv: target.Argv, BuildTags: target.BuildTags,
 		Adapters: target.Adapters, Compatibility: target.Compatibility, BuildInfo: target.BuildInfo, CapabilityMode: target.CapabilityMode,
@@ -347,7 +356,7 @@ func SameTargetIdentity(left, right Target) (bool, error) {
 }
 
 func projectOutcome(outcome Outcome) outcomeProjection {
-	return outcomeProjection{Domain: outcome.Domain, Reason: outcome.Reason, Termination: outcome.Termination, ExitCode: outcome.ExitCode, Signal: outcome.Signal, Deadline: outcome.Deadline}
+	return outcomeProjection{SoftAssertions: outcome.SoftAssertions, Domain: outcome.Domain, Reason: outcome.Reason, Termination: outcome.Termination, ExitCode: outcome.ExitCode, Signal: outcome.Signal, Deadline: outcome.Deadline}
 }
 
 func projectWorld(value World) worldProjection {

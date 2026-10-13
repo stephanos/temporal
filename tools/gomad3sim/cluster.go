@@ -181,6 +181,14 @@ func run(ctx context.Context, spec Spec, scenario Scenario, wasm WASMExecution) 
 		evidence, err := wasm.Finish()
 		volumes, network, outputs, finishErr = evidence.Volumes, evidence.Network, evidence.Outputs, err
 		wasmEvidence = cloneWASMExecution(evidence.Execution)
+		if err == nil {
+			for _, oracle := range evidence.Oracles {
+				if err := cluster.RecordOracle(context.WithoutCancel(ctx), oracle); err != nil {
+					finishErr = err
+					break
+				}
+			}
+		}
 	} else {
 		volumes, volumeFinishErr = runtimeVolumeFinish(cluster.runtimeRun)
 		network, networkFinishErr = runtimeNetworkFinish(cluster.runtimeRun)

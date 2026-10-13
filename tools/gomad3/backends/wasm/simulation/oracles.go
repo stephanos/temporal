@@ -14,10 +14,12 @@ import (
 
 const HistoryObservationSchema = "gomad.wasm.history-observation/v1"
 const SQLiteObservationSchema = "gomad.wasm.sqlite-observation/v1"
+const SoftAssertionObservationSchema = "gomad.wasm.soft-assertion-observation/v1"
 
 // OraclePlan is concrete scenario intent over newly observed guest output. It
 // never supplies an already observed oracle result as the replay expectation.
 type OraclePlan struct {
+	SoftAssertions []SoftAssertionPolicy `json:"soft_assertions,omitempty"`
 	Schema       string               `json:"schema"`
 	Prefix       string               `json:"prefix"`
 	MaximumBytes uint64               `json:"maximum_bytes"`
@@ -52,6 +54,15 @@ type historyObservation struct {
 
 func validateOraclePlan(plan *OraclePlan, spec gomad3sim.Spec) error {
 	if plan == nil {
+		return nil
+	}
+	if err := validateSoftAssertionPolicies(plan, spec); err != nil {
+		return err
+	}
+	if plan.Schema == SoftAssertionObservationSchema {
+		if len(plan.SoftAssertions) == 0 || len(plan.Histories)+len(plan.Convergence)+len(plan.SQLite) != 0 || plan.Prefix != "" || plan.MaximumBytes == 0 || plan.MaximumBytes > spec.Limits.ScenarioEvidenceBytes {
+			return errors.New("invalid soft assertion observation plan")
+		}
 		return nil
 	}
 	if plan.Schema != HistoryObservationSchema && plan.Schema != SQLiteObservationSchema || len(plan.Prefix) == 0 || len(plan.Prefix) > 256 || bytes.ContainsAny([]byte(plan.Prefix), "\r\n") || plan.MaximumBytes == 0 || plan.MaximumBytes > 1<<20 || plan.MaximumBytes > spec.Limits.ScenarioEvidenceBytes || len(plan.Histories)+len(plan.Convergence)+len(plan.SQLite) == 0 {
@@ -169,6 +180,9 @@ func (p *Provider) RecordOracles(ctx context.Context, cluster gomad3sim.Cluster)
 	}
 	plan := e.provider.Oracles
 	if plan == nil {
+		return nil
+	}
+	if plan.Schema == SoftAssertionObservationSchema {
 		return nil
 	}
 	if plan.Schema == SQLiteObservationSchema {

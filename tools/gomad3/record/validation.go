@@ -93,6 +93,21 @@ func validateManifest(manifest ExecutionRecord, requireIdentities bool) error {
 	if manifest.Outcome.Reason == "" || manifest.Outcome.Termination == "" {
 		return fmt.Errorf("outcome reason and termination are required")
 	}
+	if assertions := manifest.Outcome.SoftAssertions; assertions != nil {
+		for i, message := range assertions.Messages {
+			if message == "" || len(message) > 4096 || !utf8.ValidString(message) || i > 0 && assertions.Messages[i-1] >= message {
+				return errors.New("invalid static soft assertion messages")
+			}
+		}
+		if manifest.Outcome.Reason == "soft_assertion" && (assertions.ReportOnly || assertions.Inconclusive || len(assertions.Messages) == 0 || manifest.Outcome.Domain != "target") {
+			return errors.New("invalid soft assertion failure outcome")
+		}
+		if manifest.Outcome.Reason == "soft_assertion_inconclusive" && (!assertions.Inconclusive || manifest.Outcome.Domain != "target") {
+			return errors.New("invalid inconclusive soft assertion outcome")
+		}
+	} else if manifest.Outcome.Reason == "soft_assertion" || manifest.Outcome.Reason == "soft_assertion_inconclusive" {
+		return errors.New("soft assertion outcome lacks its observation")
+	}
 	if err := validateOutcome(manifest.Outcome); err != nil {
 		return err
 	}

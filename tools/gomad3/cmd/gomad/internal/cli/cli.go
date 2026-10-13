@@ -728,6 +728,7 @@ func parseCampaignRequest(operation campaignOperation, arguments []string, stdou
 	var requiredSemanticProbes stringList
 	flags.Var(&environment, "env", "target NAME=VALUE")
 	flags.Var(&buildTags, "build-tag", "validated Go build tag")
+	softAssertionReportOnly := flags.Bool("soft-assertion-report-only", false, "report soft assertions without failing a supported Go test workload")
 	mountFlags.Var(&ioROMounts, "io-ro-mount", "read-only HOST_DIRECTORY=TARGET_DIRECTORY mapping")
 	nativeFlags.Var(&requiredSemanticProbes, "require-probe", "required semantic probe (requires --coverage=semantic)")
 	workingDir := flags.String("working-dir", "", "absolute target module root (default: the current directory)")
@@ -957,6 +958,7 @@ func parseCampaignRequest(operation campaignOperation, arguments []string, stdou
 		Guide: *guide, GuideRegression: *guideRegression, Corpus: *corpus,
 		Progress: reporter.Progress, ProgressInterval: 5 * time.Second,
 		Target: target.Spec{
+			SoftAssertionReportOnly: *softAssertionReportOnly,
 			Backend: installed.backendName,
 			Kind:    parsedTarget.kind, Source: parsedTarget.source, Provenance: parsedTarget.provenance, Args: parsedTarget.arguments,
 			BuildTags: buildTags, WorkingDir: workingDirectory, ToolchainRoot: installed.toolchainRoot, CapabilityMode: resolvedCapabilityMode,

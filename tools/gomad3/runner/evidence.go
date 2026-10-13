@@ -11,6 +11,7 @@ import (
 const ExecutionEvidenceSchema = "gomad3.execution-evidence/v1"
 
 type OutcomeEvidence struct {
+	SoftAssertions *record.SoftAssertions `json:"soft_assertions,omitempty"`
 	Domain      string               `json:"domain"`
 	Reason      string               `json:"reason"`
 	Termination string               `json:"termination"`
@@ -109,6 +110,7 @@ func executionEvidence(
 			ChoiceTraceBytes: record.Uint64String(config.ChoiceTraceLimit),
 		},
 		Outcome: OutcomeEvidence{
+			SoftAssertions: outcome.SoftAssertions,
 			Domain: outcome.Domain, Reason: outcome.Reason, Termination: outcome.Termination,
 			ExitCode: cloneUint64String(outcome.ExitCode), Signal: cloneString(outcome.Signal), Deadline: cloneString(outcome.Deadline),
 		},

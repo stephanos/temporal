@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"slices"
 	"sort"
+	"strings"
 	"unicode/utf8"
 )
 
@@ -34,11 +35,44 @@ type OracleEvidence struct {
 }
 
 type OracleResult struct {
+	SoftAssertion   bool             `json:"soft_assertion,omitempty"`
+	ReportOnly      bool             `json:"report_only,omitempty"`
+	Inconclusive    bool             `json:"inconclusive,omitempty"`
 	Name            string           `json:"name"`
 	Passed          bool             `json:"passed"`
 	Evidence        []OracleEvidence `json:"evidence"`
 	FailureIdentity string           `json:"failure_identity,omitempty"`
 	Identity        string           `json:"identity"`
+}
+
+func SoftAssertion(instance string, messages []string, inconclusive, reportOnly bool, maximumBytes uint64) (OracleResult, error) {
+	if instance == "" || len(instance) > MaximumOperationTextBytes || !utf8.ValidString(instance) {
+		return OracleResult{}, errors.New("invalid soft assertion instance")
+	}
+	for i, message := range messages {
+		if message == "" || len(message) > MaximumOperationTextBytes || !utf8.ValidString(message) || i > 0 && messages[i-1] >= message {
+			return OracleResult{}, errors.New("invalid static soft assertion messages")
+		}
+	}
+	encoded, err := json.Marshal(messages)
+	if err != nil {
+		return OracleResult{}, err
+	}
+	status := "observed"
+	if inconclusive {
+		status = "inconclusive"
+	}
+	instanceIdentity, err := hashCanonical("gomad3-soft-assertion-instance/v1", instance)
+	if err != nil {
+		return OracleResult{}, err
+	}
+	result, err := newOracleResult("soft-assertion.instance-"+strings.TrimPrefix(instanceIdentity, "sha256:"), !inconclusive && (len(messages) == 0 || reportOnly), []OracleEvidence{{Label: "instance", Value: []byte(instance)}, {Label: "messages", Value: encoded}, {Label: "status", Value: []byte(status)}}, maximumBytes)
+	if err != nil {
+		return OracleResult{}, err
+	}
+	result.SoftAssertion, result.ReportOnly, result.Inconclusive = true, reportOnly, inconclusive
+	result.Identity, err = oracleResultIdentity(result)
+	return result, err
 }
 
 func StateInvariant(name string, passed bool, evidence []OracleEvidence, maximumBytes uint64) (OracleResult, error) {
@@ -196,7 +230,23 @@ func newOracleResult(name string, passed bool, evidence []OracleEvidence, maximu
 }
 
 func validateOracleResult(result OracleResult, maximumBytes uint64) error {
-	rebuilt, err := newOracleResult(result.Name, result.Passed, result.Evidence, maximumBytes)
+	var rebuilt OracleResult
+	var err error
+	if result.SoftAssertion {
+		if len(result.Evidence) != 3 || result.Evidence[0].Label != "instance" || result.Evidence[1].Label != "messages" || result.Evidence[2].Label != "status" {
+			return errors.New("invalid soft assertion oracle evidence")
+		}
+		var messages []string
+		if err := json.Unmarshal(result.Evidence[1].Value, &messages); err != nil {
+			return err
+		}
+		rebuilt, err = SoftAssertion(string(result.Evidence[0].Value), messages, result.Inconclusive, result.ReportOnly, maximumBytes)
+	} else {
+		if result.ReportOnly || result.Inconclusive {
+			return errors.New("non-soft-assertion oracle has soft assertion controls")
+		}
+		rebuilt, err = newOracleResult(result.Name, result.Passed, result.Evidence, maximumBytes)
+	}
 	if err != nil {
 		return err
 	}

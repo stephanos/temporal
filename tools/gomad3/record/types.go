@@ -218,6 +218,7 @@ type Toolchain struct {
 }
 
 type Target struct {
+	SoftAssertionReportOnly bool `json:"soft_assertion_report_only,omitempty"`
 	Backend            *BackendMetadata          `json:"backend,omitempty"`
 	Kind               string                    `json:"kind"`
 	Source             string                    `json:"source"`
@@ -337,6 +338,7 @@ type WorldPayloads struct {
 }
 
 type Outcome struct {
+	SoftAssertions   *SoftAssertions `json:"soft_assertions,omitempty"`
 	Domain           string        `json:"domain"`
 	Reason           string        `json:"reason"`
 	Termination      string        `json:"termination"`
@@ -345,6 +347,12 @@ type Outcome struct {
 	Deadline         *string       `json:"deadline"`
 	FailureSignature SHA256        `json:"failure_signature"`
 	ReplayMatch      *bool         `json:"replay_match"`
+}
+
+type SoftAssertions struct {
+	Messages     []string `json:"messages"`
+	ReportOnly   bool     `json:"report_only,omitempty"`
+	Inconclusive bool     `json:"inconclusive,omitempty"`
 }
 
 type Streams struct {

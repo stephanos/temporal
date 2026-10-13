@@ -22,6 +22,27 @@ func TestStateInvariantFailureIdentityIsSeedIndependent(t *testing.T) {
 	require.NotEqual(t, first.Identity, passed.Identity)
 }
 
+func TestSoftAssertionOracleRetainsStaticInstanceSignature(t *testing.T) {
+	first, err := SoftAssertion("history/1", []string{"invalid state"}, false, false, 4096)
+	require.NoError(t, err)
+	require.False(t, first.Passed)
+	require.True(t, first.SoftAssertion)
+	require.NoError(t, validateOracleResult(first, 4096))
+	other, err := SoftAssertion("history/2", []string{"invalid state"}, false, false, 4096)
+	require.NoError(t, err)
+	require.NotEqual(t, first.FailureIdentity, other.FailureIdentity)
+	reported, err := SoftAssertion("history/1", []string{"invalid state"}, false, true, 4096)
+	require.NoError(t, err)
+	require.True(t, reported.Passed)
+	require.True(t, reported.ReportOnly)
+	require.NoError(t, validateOracleResult(reported, 4096))
+	incomplete, err := SoftAssertion("history/1", nil, true, true, 4096)
+	require.NoError(t, err)
+	require.False(t, incomplete.Passed)
+	require.True(t, incomplete.Inconclusive)
+	require.NoError(t, validateOracleResult(incomplete, 4096))
+}
+
 func TestExactHistoryAndDuplicateLostOracles(t *testing.T) {
 	expected := []HistoryOperation{
 		{ID: "op-1", Actor: "client-a", Kind: "enqueue", Invocation: 1, Completion: 2, Input: []byte("a"), Output: []byte("ok")},

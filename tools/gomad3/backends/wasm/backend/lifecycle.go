@@ -14,6 +14,9 @@ func (p *Provider) Describe(ctx context.Context, config backends.Configuration) 
 	if err := ctx.Err(); err != nil {
 		return backends.Description{}, err
 	}
+	if config.Target.SoftAssertionReportOnly && config.Target.Kind != target.KindGoTest {
+		return backends.Description{}, errors.New("soft assertion report-only mode requires a prepared Go test workload")
+	}
 	if config.Target.Backend != "" && config.Target.Backend != Name || config.IOProfile != "" && config.IOProfile != Name || config.ClockTick != "" && config.ClockTick != record.ClockTickStrict || len(config.RequiredSemanticProbes) != 0 {
 		return backends.Description{}, errors.New("unsupported WASM execution configuration")
 	}
@@ -78,5 +81,10 @@ func (p *Provider) Execute(ctx context.Context, request backends.ExecutionReques
 	if err != nil {
 		return backends.ExecutionResult{}, err
 	}
-	return backends.ProjectObservedResult(converted, observed, request.StdoutHead, request.StderrHead)
+	result, err := backends.ProjectObservedResult(converted, observed, request.StdoutHead, request.StderrHead)
+	if err != nil {
+		return backends.ExecutionResult{}, err
+	}
+	result.SoftAssertions = observeSoftAssertions(result, request.Target.SoftAssertionReportOnly)
+	return result, nil
 }

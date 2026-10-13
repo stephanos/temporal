@@ -64,6 +64,9 @@ func (provider *Provider) Describe(ctx context.Context, config backends.Configur
 	if err := ctx.Err(); err != nil {
 		return backends.Description{}, err
 	}
+	if config.Target.SoftAssertionReportOnly {
+		return backends.Description{}, errors.New("native provider does not support soft assertion report-only mode")
+	}
 	if config.ForExecution {
 		if len(provider.config.SupervisorCommand) == 0 || provider.config.SupervisorCommand[0] == "" {
 			return backends.Description{}, errors.New("supervisor command is required")
@@ -101,6 +104,9 @@ func recordedProfile(profile transcript.Spec) record.IOProfile {
 func (provider *Provider) Prepare(ctx context.Context, spec target.Spec) (target.Prepared, error) {
 	if err := ctx.Err(); err != nil {
 		return target.Prepared{}, err
+	}
+	if spec.SoftAssertionReportOnly {
+		return target.Prepared{}, errors.New("native provider does not support soft assertion report-only mode")
 	}
 	if spec.Backend != "" && spec.Backend != "native" {
 		return target.Prepared{}, fmt.Errorf("native provider does not support backend %q", spec.Backend)

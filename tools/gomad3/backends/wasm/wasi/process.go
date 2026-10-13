@@ -19,6 +19,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/hostexec"
 	"go.temporal.io/server/tools/gomad3/hostfs"
+	"go.temporal.io/server/tools/gomad3/target"
 	"go.temporal.io/server/tools/gomad3/volume"
 )
 
@@ -110,6 +111,7 @@ type Started struct {
 	InitialMemoryPages uint64         `json:"initial_memory_pages"`
 }
 type Request struct {
+	WorkloadKind target.Kind `json:",omitempty"`
 	HelperPath, HelperSHA256, ModulePath, ModuleSHA256 string
 	Engine                                             EngineIdentity
 	Imports                                            []Import

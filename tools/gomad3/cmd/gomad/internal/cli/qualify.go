@@ -73,6 +73,7 @@ func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies q
 	var requiredSemanticProbes stringList
 	flags.Var(&environment, "env", "target NAME=VALUE")
 	flags.Var(&buildTags, "build-tag", "validated Go build tag")
+	softAssertionReportOnly := flags.Bool("soft-assertion-report-only", false, "report soft assertions without failing a supported Go test workload")
 	flags.Var(&ioROMounts, "io-ro-mount", "read-only HOST_DIRECTORY=TARGET_DIRECTORY mapping")
 	flags.Var(&requiredSemanticProbes, "require-probe", "required semantic probe")
 	workingDir := flags.String("working-dir", "", "absolute target module root (default: the current directory)")
@@ -148,6 +149,7 @@ func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies q
 		RunnerBuild: installed.runnerBuild,
 		Coverage:    coverage, RequiredSemanticProbes: requiredSemanticProbes, CollectExecutionEvidence: true,
 		Target: target.Spec{
+			SoftAssertionReportOnly: *softAssertionReportOnly,
 			Kind: parsedTarget.kind, Source: parsedTarget.source, Provenance: parsedTarget.provenance, Args: parsedTarget.arguments,
 			BuildTags: buildTags, WorkingDir: workingDirectory, ToolchainRoot: installed.toolchainRoot, CapabilityMode: resolvedCapabilityMode,
 		},

@@ -15,6 +15,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/hostexec"
+	"go.temporal.io/server/tools/gomad3/target"
 	netmodel "go.temporal.io/server/tools/gomad3/simulation/network"
 	"go.temporal.io/server/tools/gomad3/volume"
 	"go.temporal.io/server/tools/gomad3/world"
@@ -215,6 +216,7 @@ func (p *Provider) CompletedResults() []IncarnationResult {
 }
 
 type bootIdentity struct {
+	WorkloadKind target.Kind `json:",omitempty"`
 	Module, Helper, Environment   string
 	Implementation                string
 	Engine                        wasi.EngineIdentity
@@ -230,6 +232,9 @@ type bootIdentity struct {
 }
 
 func BootConfiguration(request wasi.Request) ([]byte, error) {
+	if !validWorkloadKind(request.WorkloadKind) {
+		return nil, errors.New("unsupported WASM boot workload kind")
+	}
 	if request.Runtime == nil || request.Runtime.Choice == nil {
 		return nil, errors.New("WASM simulation requires cooperative control")
 	}
@@ -237,7 +242,7 @@ func BootConfiguration(request wasi.Request) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	return json.Marshal(bootIdentity{Module: request.ModuleSHA256, Helper: request.HelperSHA256, Environment: environment.Identity(), Implementation: ImplementationSHA256(), Engine: request.Engine, Memory: request.MemoryBytes, Fuel: request.Fuel, Runtime: request.Runtime.Choice.ExecutionIdentity, Imports: request.Imports, InitialMemoryPages: request.InitialMemoryPages, Timeout: request.Timeout, ChoiceLimit: request.Runtime.Choice.Limit, Diagnostics: request.Runtime.Diagnostics, DigestTranscript: request.DigestTranscript, StorageCrashSelection: request.StorageCrashSelection, StorageCrashLimits: request.StorageCrashLimits})
+	return json.Marshal(bootIdentity{WorkloadKind: request.WorkloadKind, Module: request.ModuleSHA256, Helper: request.HelperSHA256, Environment: environment.Identity(), Implementation: ImplementationSHA256(), Engine: request.Engine, Memory: request.MemoryBytes, Fuel: request.Fuel, Runtime: request.Runtime.Choice.ExecutionIdentity, Imports: request.Imports, InitialMemoryPages: request.InitialMemoryPages, Timeout: request.Timeout, ChoiceLimit: request.Runtime.Choice.Limit, Diagnostics: request.Runtime.Diagnostics, DigestTranscript: request.DigestTranscript, StorageCrashSelection: request.StorageCrashSelection, StorageCrashLimits: request.StorageCrashLimits})
 }
 
 func validateBootNetworkLimits(model *wasi.NetworkModelV2, limits gomad3sim.Limits) error {
@@ -275,6 +280,9 @@ func (p *Provider) Open(ctx context.Context, spec gomad3sim.Spec) (gomad3sim.WAS
 		return nil, &gomad3sim.BackendUnavailableError{Backend: gomad3sim.BackendWASM}
 	}
 	if err := validateOraclePlan(p.Oracles, spec); err != nil {
+		return nil, err
+	}
+	if err := p.validateSoftAssertionWorkloads(spec); err != nil {
 		return nil, err
 	}
 	var oraclePlan *OraclePlan
@@ -788,6 +796,11 @@ func (e *execution) Finish() (gomad3sim.WASMEvidence, error) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	var evidence gomad3sim.WASMEvidence
+	oracles, err := e.softAssertionOracles()
+	if err != nil {
+		return evidence, err
+	}
+	evidence.Oracles = oracles
 	evidence.Execution = &gomad3sim.WASMExecutionEvidence{ConfigurationSHA256: e.configurationIdentity, VirtualElapsedNanos: e.broker.Current(), WorldEncoding: e.provider.Broker.WorldProfile}
 	for _, n := range e.nodes {
 		select {

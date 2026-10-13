@@ -24,6 +24,7 @@ const (
 )
 
 type Spec struct {
+	SoftAssertionReportOnly bool `json:",omitempty"`
 	Backend             string `json:",omitempty"`
 	Kind                Kind
 	Source              string
@@ -65,6 +66,7 @@ type ToolchainIdentity struct {
 }
 
 type Prepared struct {
+	SoftAssertionReportOnly bool `json:",omitempty"`
 	Backend            *record.BackendMetadata `json:",omitempty"`
 	BackendPayloads    []BackendPayload        `json:",omitempty"`
 	Path               string
@@ -113,6 +115,7 @@ func (prepared Prepared) RecordTarget() record.Target {
 	buildInfo := prepared.BuildInfo
 	buildInfo.Settings = append([]record.BuildSetting(nil), prepared.BuildInfo.Settings...)
 	recorded := record.Target{
+		SoftAssertionReportOnly: prepared.SoftAssertionReportOnly,
 		Backend: record.CloneBackendMetadata(prepared.Backend),
 		Kind:    string(prepared.Kind), Source: prepared.Source, SHA256: record.SHA256(prepared.SHA256), Size: record.Uint64String(prepared.Size),
 		Argv: append([]string{}, prepared.Argv...), BuildTags: append([]string{}, prepared.BuildTags...),
