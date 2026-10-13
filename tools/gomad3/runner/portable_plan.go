@@ -385,7 +385,7 @@ func (err *UnsupportedCampaignPlanError) Error() string {
 // checkCampaignPlanLineage reads only the lineage a plan names, its schema
 // and storage, so a plan of another lineage is refused by name before its
 // current document is decoded. A document that names no schema is left to
-// the strict decoder, which refuses it as malformed or invalid.
+// typed decoding and the subsequent protocol-identity validation.
 func checkCampaignPlanLineage(contents []byte) error {
 	var lineage struct {
 		Schema  *string `json:"schema"`
