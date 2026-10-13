@@ -3,13 +3,15 @@ package soak
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"slices"
+	"unicode/utf8"
 
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+	"go.temporal.io/server/tools/gomad3/internal/strictjson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner"
 )
@@ -135,7 +137,7 @@ func LoadLedger(directory string) (*Ledger, error) {
 		return nil, fmt.Errorf("read soak ledger: %w", err)
 	}
 	ledger := newLedger()
-	if err := canonicaljson.StrictDecode(contents, ledger); err != nil {
+	if err := strictjson.Decode(contents, ledger); err != nil {
 		return nil, fmt.Errorf("decode soak ledger: %w", err)
 	}
 	if ledger.Schema != LedgerSchema {
@@ -164,7 +166,10 @@ func localPath(path string) bool {
 }
 
 func cohortID(key CohortKey) string {
-	encoded, err := canonicaljson.CanonicalJSON(key)
+	if !utf8.ValidString(key.Workload) || !utf8.ValidString(key.Platform) || !utf8.ValidString(string(key.ExecutionIdentity)) {
+		return ""
+	}
+	encoded, err := json.Marshal(key)
 	if err != nil {
 		return ""
 	}
@@ -233,6 +238,9 @@ func (ledger *Ledger) observe(batch observation) (outcome, comparison string, co
 // target binary, the I/O profile, environment, limits, mounts, and the choice
 // and diagnostic profiles.
 func executionIdentity(evidence runner.ExecutionEvidence) (record.SHA256, error) {
+	if err := validateExecutionIdentityStrings(evidence); err != nil {
+		return "", err
+	}
 	type choiceIdentity struct {
 		Profile              string              `json:"profile"`
 		ImplementationSHA256 record.SHA256       `json:"implementation_sha256"`
@@ -258,9 +266,57 @@ func executionIdentity(evidence runner.ExecutionEvidence) (record.SHA256, error)
 	if evidence.Diagnostics != nil {
 		projection.DiagnosticProfile = evidence.Diagnostics.Profile
 	}
-	encoded, err := canonicaljson.CanonicalJSON(projection)
+	encoded, err := json.Marshal(projection)
 	if err != nil {
 		return "", err
 	}
 	return record.HashBytes(encoded), nil
+}
+
+func validateExecutionIdentityStrings(evidence runner.ExecutionEvidence) error {
+	values := []string{
+		evidence.RunnerBuild, evidence.Toolchain.GoVersion, evidence.Toolchain.BuildKey, evidence.Toolchain.TargetGOOS, evidence.Toolchain.TargetGOARCH,
+		evidence.IOProfile.Name, string(evidence.IOProfile.ImplementationSHA256), string(evidence.IOProfile.InventorySHA256),
+		evidence.Target.Kind, evidence.Target.Source, evidence.Target.File, string(evidence.Target.SHA256), evidence.Target.CapabilityMode,
+		evidence.Target.BuildInfo.GoVersion, evidence.Target.BuildInfo.Path, evidence.Target.BuildInfo.MainModule,
+	}
+	values = append(values, evidence.Target.Argv...)
+	values = append(values, evidence.Target.BuildTags...)
+	for _, adapter := range evidence.Target.Adapters {
+		values = append(values, adapter.Module, adapter.Version, adapter.Sum)
+	}
+	for _, pack := range evidence.Target.Compatibility {
+		values = append(values, pack.ID, string(pack.SHA256))
+	}
+	for _, setting := range evidence.Target.BuildInfo.Settings {
+		values = append(values, setting.Key, setting.Value)
+	}
+	if manifest := evidence.Target.CapabilityManifest; manifest != nil {
+		values = append(values, manifest.Schema, manifest.File, string(manifest.SHA256), string(manifest.ProducerImplementationSHA256),
+			string(manifest.GuardImplementationSHA256), string(manifest.CapabilityUniverseSHA256))
+	}
+	if backend := evidence.Target.Backend; backend != nil {
+		values = append(values, backend.Name, backend.ReplayMode, backend.Provenance.Schema, backend.Provenance.File, string(backend.Provenance.SHA256))
+		if backend.Evidence != nil {
+			values = append(values, backend.Evidence.Schema, backend.Evidence.File, string(backend.Evidence.SHA256))
+		}
+	}
+	for _, entry := range evidence.Environment {
+		values = append(values, entry.Name, entry.Value)
+	}
+	if evidence.ReadOnlyMountsSHA256 != nil {
+		values = append(values, string(*evidence.ReadOnlyMountsSHA256))
+	}
+	if evidence.Choices != nil {
+		values = append(values, evidence.Choices.Profile, string(evidence.Choices.ImplementationSHA256))
+	}
+	if evidence.Diagnostics != nil {
+		values = append(values, evidence.Diagnostics.Profile)
+	}
+	for _, value := range values {
+		if !utf8.ValidString(value) {
+			return errors.New("soak execution identity string is not valid UTF-8")
+		}
+	}
+	return nil
 }

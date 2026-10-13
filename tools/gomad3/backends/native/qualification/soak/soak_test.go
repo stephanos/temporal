@@ -110,6 +110,46 @@ func TestNewToolchainIdentityStartsANewCohort(t *testing.T) {
 	}
 }
 
+func TestExecutionIdentityBindsCompleteInputsAndRejectsInvalidStrings(t *testing.T) {
+	baseline := evidence(11, "one")
+	want, err := executionIdentity(baseline)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, mutate := range []func(*runner.ExecutionEvidence){
+		func(value *runner.ExecutionEvidence) { value.Environment[0].Value = "12" },
+		func(value *runner.ExecutionEvidence) { value.Target.Argv[0] = "changed" },
+		func(value *runner.ExecutionEvidence) { value.Limits.OutputBytes = 1 },
+		func(value *runner.ExecutionEvidence) {
+			digest := record.HashBytes([]byte("mounts"))
+			value.ReadOnlyMountsSHA256 = &digest
+		},
+		func(value *runner.ExecutionEvidence) {
+			value.Choices = &runner.ChoiceEvidence{Profile: "choice", ImplementationSHA256: record.HashBytes([]byte("choice")), Limit: 1}
+		},
+		func(value *runner.ExecutionEvidence) {
+			value.Diagnostics = &runner.DiagnosticEvidence{Profile: "diagnostic"}
+		},
+	} {
+		changed := baseline
+		changed.Environment = append([]record.Environment(nil), baseline.Environment...)
+		changed.Target.Argv = append([]string(nil), baseline.Target.Argv...)
+		mutate(&changed)
+		got, err := executionIdentity(changed)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if got == want {
+			t.Fatalf("identity did not bind mutation: %#v", changed)
+		}
+	}
+	invalid := baseline
+	invalid.RunnerBuild = "runner\xff"
+	if _, err := executionIdentity(invalid); err == nil || !strings.Contains(err.Error(), "valid UTF-8") {
+		t.Fatalf("executionIdentity() error = %v", err)
+	}
+}
+
 func TestCumulativeCountsAccumulateAcrossRetainedRuns(t *testing.T) {
 	directory := t.TempDir()
 	ledger := newLedger()
@@ -141,6 +181,38 @@ func TestLoadLedgerRejectsTamperedCohort(t *testing.T) {
 	}
 	if _, err := LoadLedger(directory); err == nil {
 		t.Fatal("a cohort whose key no longer matches its id loaded")
+	}
+}
+
+func TestLedgerPublicationAndStrictParsing(t *testing.T) {
+	directory := t.TempDir()
+	ledger := newLedger()
+	ledger.observe(observation{run: "1", key: key(t, "one"), outcome: OutcomeTargetFailure})
+	if err := ledger.save(directory); err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(directory, ledgerFile)
+	contents, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	info, err := os.Stat(path)
+	if err != nil || info.Mode().Perm() != 0o644 || len(contents) == 0 || contents[len(contents)-1] != '\n' || !bytes.Contains(contents, []byte("\n  \"runs\"")) {
+		t.Fatalf("ledger publication = mode %v bytes %q error %v", info.Mode(), contents, err)
+	}
+	for _, invalid := range [][]byte{
+		[]byte("{"),
+		bytes.Replace(contents, []byte(`"schema":`), []byte(`"schema":"gomad3.determinism-soak-ledger/v1","schema":`), 1),
+		bytes.Replace(contents, []byte(`{`), []byte(`{"unknown":true,`), 1),
+		append(append([]byte(nil), contents...), []byte(`{}`)...),
+		{'{', '"', 'x', '"', ':', '"', 0xff, '"', '}'},
+	} {
+		if err := os.WriteFile(path, invalid, 0o644); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := LoadLedger(directory); err == nil {
+			t.Fatalf("LoadLedger() accepted %q", invalid)
+		}
 	}
 }
 

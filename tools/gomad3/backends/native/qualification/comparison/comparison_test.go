@@ -90,6 +90,26 @@ func TestCompareRequiresReviewForAnyChangedUnsupportedBlocker(t *testing.T) {
 	}
 }
 
+func TestCompareOwnsNestedBlockerEvidenceAndRejectsInvalidStrings(t *testing.T) {
+	blocker := comparisonBlocker("example.com/dependency", "import:os/exec")
+	blocker.Directives = []string{"//go:linkname local remote"}
+	baseline := comparisonReport("unsupported_target")
+	baseline.Workloads[0].Blockers = []capabilityanalysis.Blocker{blocker}
+	candidate := comparisonReport("unsupported_target")
+	result, err := Compare(Input{Baseline: baseline, Candidate: candidate})
+	if err != nil {
+		t.Fatal(err)
+	}
+	baseline.Workloads[0].Blockers[0].Directives[0] = "changed"
+	if removed := result.Workloads[0].BlockersRemoved; len(removed) != 1 || removed[0].Blocker.Directives[0] != "//go:linkname local remote" {
+		t.Fatalf("comparison aliases blocker input: %#v", removed)
+	}
+	baseline.Workloads[0].Blockers[0].Directives[0] = "invalid\xff"
+	if _, err := Compare(Input{Baseline: baseline, Candidate: candidate}); err == nil || !strings.Contains(err.Error(), "valid UTF-8") {
+		t.Fatalf("Compare() error = %v", err)
+	}
+}
+
 func TestCompareMarksWorkloadMembershipChangesIncomparable(t *testing.T) {
 	populated := comparisonReport("qualified")
 	empty := comparisonReport("qualified")

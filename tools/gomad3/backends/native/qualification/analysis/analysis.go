@@ -2,15 +2,17 @@ package analysis
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"path/filepath"
 	"sort"
 	"strings"
+	"unicode/utf8"
 
 	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+	"go.temporal.io/server/tools/gomad3/internal/strictjson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/target"
 )
@@ -101,6 +103,9 @@ type Blocker struct {
 }
 
 func Build(input Input) (Report, error) {
+	if err := validateInputStrings(input); err != nil {
+		return Report{}, err
+	}
 	if input.Spec.Kind != target.KindGoRun && input.Spec.Kind != target.KindGoTest {
 		return Report{}, errors.New("capability analysis requires a go-run or go-test target")
 	}
@@ -110,7 +115,7 @@ func Build(input Input) (Report, error) {
 	if len(input.Review.Roots) == 0 || len(input.Review.Closure.Packages) == 0 {
 		return Report{}, errors.New("capability analysis closure has no roots or packages")
 	}
-	closureBytes, err := canonicaljson.CanonicalJSON(input.Review.Closure)
+	closureBytes, err := json.Marshal(input.Review.Closure)
 	if err != nil {
 		return Report{}, fmt.Errorf("encode target capability closure: %w", err)
 	}
@@ -157,7 +162,7 @@ func Build(input Input) (Report, error) {
 		classification = ClassificationUnsupported
 	}
 	boundaryVersion, boundaryDigest := transcript.BoundaryManifestIdentity()
-	return Report{
+	report := Report{
 		Schema: AnalysisSchema, Classification: classification,
 		Target: Target{
 			Kind: input.Spec.Kind, Source: safeSource(input.Spec.Source), Arguments: safeArguments(input.Spec.Args),
@@ -175,7 +180,134 @@ func Build(input Input) (Report, error) {
 		},
 		IOProfile: input.IOProfile.Identity(), Packs: append([]target.CompatibilityPackEvidence{}, input.Review.Packs...),
 		Requirements: requirements, Blockers: blockers, GuardedBlockers: guarded, EliminatedBlockers: eliminated,
-	}, nil
+	}
+	return cloneReport(report)
+}
+
+func validateInputStrings(input Input) error {
+	values := []string{
+		string(input.Spec.Kind), input.Spec.Source, string(input.Spec.CapabilityMode), input.Review.Schema, string(input.Review.CapabilityMode),
+		input.Toolchain.GoVersion, input.Toolchain.BuildKey, input.Toolchain.TargetGOOS, input.Toolchain.TargetGOARCH,
+	}
+	values = append(values, input.Spec.Args...)
+	values = append(values, input.Review.BuildTags...)
+	identity := input.IOProfile.Identity()
+	values = append(values, identity.Name, string(identity.ImplementationSHA256), string(identity.InventorySHA256))
+	for _, adapter := range input.Adapters {
+		values = append(values, adapter.Module, adapter.Sum, adapter.Version)
+	}
+	appendClosureStrings(&values, input.Review.Closure)
+	for _, root := range input.Review.Roots {
+		appendReferenceStrings(&values, root)
+	}
+	for _, pack := range input.Review.Packs {
+		appendPackStrings(&values, pack)
+	}
+	for _, findings := range [][]target.CapabilityFinding{input.Review.Findings, input.Review.GuardedFindings, input.Review.EliminatedFindings} {
+		for _, finding := range findings {
+			appendFindingStrings(&values, finding)
+		}
+	}
+	if manifest := input.Review.CapabilityManifest; manifest != nil {
+		values = append(values, manifest.Schema, string(manifest.SHA256), manifest.ProducerImplementationSHA256, manifest.GuardImplementationSHA256, manifest.CapabilityUniverseSHA256)
+	}
+	for _, value := range values {
+		if !utf8.ValidString(value) {
+			return errors.New("capability analysis string is not valid UTF-8")
+		}
+	}
+	return nil
+}
+
+func appendClosureStrings(values *[]string, closure target.CapabilityClosure) {
+	*values = append(*values, closure.Schema)
+	for _, compatibility := range closure.Compatibility {
+		*values = append(*values, compatibility.ID, compatibility.SHA256)
+	}
+	for _, pkg := range closure.Packages {
+		*values = append(*values, pkg.ImportPath, pkg.ForTest, pkg.Name)
+		*values = append(*values, pkg.Imports...)
+		appendModuleStrings(values, pkg.Module)
+		for _, source := range pkg.Sources {
+			*values = append(*values, source.Name, source.SHA256)
+			*values = append(*values, source.LinknameDirectives...)
+		}
+		for _, source := range pkg.ForeignSources {
+			*values = append(*values, source.Kind, source.Name, source.SHA256)
+		}
+	}
+}
+
+func appendModuleStrings(values *[]string, module *target.CapabilityModule) {
+	if module == nil {
+		return
+	}
+	*values = append(*values, module.Path, module.Version, module.Sum)
+	appendModuleStrings(values, module.Replacement)
+	if adapter := module.Adapter; adapter != nil {
+		*values = append(*values, adapter.ProfileName, adapter.ProfileImplementationSHA256,
+			adapter.Adapter.Path, adapter.Adapter.Version, adapter.Adapter.Sum,
+			adapter.OriginalSourceInventorySHA256, adapter.ReplacementSourceInventorySHA256, adapter.PreparedSourceSetSHA256)
+	}
+}
+
+func appendReferenceStrings(values *[]string, reference target.CapabilityPackageReference) {
+	*values = append(*values, reference.ImportPath, reference.ForTest, reference.Name)
+}
+
+func appendFindingStrings(values *[]string, finding target.CapabilityFinding) {
+	*values = append(*values, string(finding.Kind), finding.SourceSetSHA256, finding.SourceName, finding.SourceSHA256,
+		finding.Capability, string(finding.PolicyDisposition), string(finding.Remediation), finding.PackID)
+	appendReferenceStrings(values, finding.Package)
+	appendModuleStrings(values, finding.Module)
+	*values = append(*values, finding.Directives...)
+}
+
+func appendPackStrings(values *[]string, pack target.CompatibilityPackEvidence) {
+	*values = append(*values, pack.ID, pack.SHA256, pack.RequestSHA256)
+	if governance := pack.Governance; governance != nil {
+		*values = append(*values, governance.Owner, governance.ReviewedAt, governance.Justification, governance.ApprovalSHA256)
+		*values = append(*values, governance.Workloads...)
+		*values = append(*values, governance.Platforms...)
+	}
+	for _, activation := range pack.Activation {
+		appendCompatibilityModuleStrings(values, activation)
+	}
+	for _, rule := range pack.Rules {
+		*values = append(*values, rule.ImportPath, rule.SourceSetSHA256)
+		appendCompatibilityModuleStrings(values, rule.Module)
+		*values = append(*values, rule.Capabilities...)
+		for _, source := range rule.GoSources {
+			*values = append(*values, source.Name, source.SHA256)
+		}
+		for _, source := range rule.ForeignSources {
+			*values = append(*values, source.Kind, source.Name, source.SHA256)
+		}
+		for _, linkname := range rule.Linknames {
+			*values = append(*values, linkname.Source, linkname.SHA256)
+			*values = append(*values, linkname.Directives...)
+		}
+	}
+}
+
+func appendCompatibilityModuleStrings(values *[]string, module target.CompatibilityModuleEvidence) {
+	*values = append(*values, module.Path, module.Version, module.Sum, module.Replacement)
+	if adapter := module.Adapter; adapter != nil {
+		*values = append(*values, adapter.ProfileName, adapter.ProfileImplementationSHA256, adapter.Module, adapter.Version, adapter.Sum,
+			adapter.OriginalSourceInventorySHA256, adapter.ReplacementSourceInventorySHA256, adapter.PreparedSourceSetSHA256)
+	}
+}
+
+func cloneReport(report Report) (Report, error) {
+	encoded, err := json.Marshal(report)
+	if err != nil {
+		return Report{}, fmt.Errorf("encode capability analysis report: %w", err)
+	}
+	var cloned Report
+	if err := strictjson.Decode(encoded, &cloned); err != nil {
+		return Report{}, fmt.Errorf("clone capability analysis report: %w", err)
+	}
+	return cloned, nil
 }
 
 // ForArguments rebinds the report to another argument list for the same
@@ -203,7 +335,7 @@ func Decode(data []byte) (Report, error) {
 		return Report{}, fmt.Errorf("capability analysis report must be between 1 and %d bytes", MaximumAnalysisReportBytes)
 	}
 	var report Report
-	if err := canonicaljson.DecodeCanonicalJSON(data, &report); err != nil {
+	if err := strictjson.Decode(data, &report); err != nil {
 		return Report{}, fmt.Errorf("decode capability analysis report: %w", err)
 	}
 	if err := validateAnalysisReport(report); err != nil {

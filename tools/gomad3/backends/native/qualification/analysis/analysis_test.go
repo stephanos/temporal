@@ -1,6 +1,7 @@
 package analysis
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"path/filepath"
@@ -9,7 +10,6 @@ import (
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/target"
 )
@@ -87,7 +87,7 @@ func TestBuildRedactsPathBearingArgumentsDeterministically(t *testing.T) {
 	if report.Target.Arguments[0] == absolute || report.Target.Arguments[1] == "--output="+absolute || report.Target.Arguments[2] != "-test.run=TestScenario" {
 		t.Fatalf("projected arguments = %#v", report.Target.Arguments)
 	}
-	encoded, err := canonicaljson.CanonicalJSON(report)
+	encoded, err := json.Marshal(report)
 	requireTestNoError(t, err)
 	if strings.Contains(string(encoded), absolute) || !strings.Contains(string(encoded), string(record.HashBytes([]byte(absolute)))) {
 		t.Fatalf("report arguments expose an absolute host path: %s", encoded)
@@ -116,7 +116,7 @@ func TestBuildUsesAllSortedRootsAndRejectsUnreachableFindings(t *testing.T) {
 	}
 }
 
-func TestBuildSupportedReportHasCanonicalNonNullEvidence(t *testing.T) {
+func TestBuildSupportedReportHasNonNullEvidence(t *testing.T) {
 	review := graphReview([]target.CapabilityPackage{{
 		ImportPath: "example.com/target", Name: "main", Root: true, Imports: []string{}, Sources: sourceEvidence("main.go"),
 	}})
@@ -131,11 +131,11 @@ func TestBuildSupportedReportHasCanonicalNonNullEvidence(t *testing.T) {
 		t.Fatalf("non-null empty evidence: blockers=%#v packs=%#v requirements=%#v", report.Blockers, report.Packs, report.Requirements)
 	}
 
-	encoded, err := canonicaljson.CanonicalJSON(report)
+	encoded, err := json.Marshal(report)
 	requireTestNoError(t, err)
 	for _, want := range []string{`"blockers":[]`, `"packs":[]`, `"requirements":[]`} {
 		if !strings.Contains(string(encoded), want) {
-			t.Fatalf("canonical report = %s", encoded)
+			t.Fatalf("report = %s", encoded)
 		}
 	}
 }
@@ -197,7 +197,7 @@ func TestBuildGuardedReportSeparatesNonblockingGuardEvidence(t *testing.T) {
 	}
 }
 
-func TestDecodeValidatesCanonicalCapabilityReport(t *testing.T) {
+func TestDecodeValidatesStrictCapabilityReport(t *testing.T) {
 	review := graphReview([]target.CapabilityPackage{{
 		ImportPath: "example.com/target", Name: "main", Root: true, Imports: []string{}, Sources: sourceEvidence("main.go"),
 	}})
@@ -207,7 +207,7 @@ func TestDecodeValidatesCanonicalCapabilityReport(t *testing.T) {
 		IOProfile: transcript.Default(), Adapters: []transcript.Adapter{},
 	})
 	requireTestNoError(t, err)
-	encoded, err := canonicaljson.CanonicalJSON(report)
+	encoded, err := json.Marshal(report)
 	requireTestNoError(t, err)
 	decoded, err := Decode(encoded)
 	requireTestNoError(t, err)
@@ -215,17 +215,78 @@ func TestDecodeValidatesCanonicalCapabilityReport(t *testing.T) {
 
 	unsupported := report
 	unsupported.Schema = "gomad3.capability-analysis/v3"
-	encoded, err = canonicaljson.CanonicalJSON(unsupported)
+	encoded, err = json.Marshal(unsupported)
 	requireTestNoError(t, err)
 	if _, err := Decode(encoded); err == nil {
 		t.Fatal("Decode() accepted superseded capability evidence as current")
 	}
 
 	report.Classification = ClassificationUnsupported
-	encoded, err = canonicaljson.CanonicalJSON(report)
+	encoded, err = json.Marshal(report)
 	requireTestNoError(t, err)
 	if _, err := Decode(encoded); err == nil {
 		t.Fatal("Decode() accepted unsupported analysis without blockers")
+	}
+}
+
+func TestBuildOwnsNestedReviewEvidence(t *testing.T) {
+	review := graphReview([]target.CapabilityPackage{{
+		ImportPath: "example.com/target", Name: "main", Root: true, Imports: []string{}, Sources: sourceEvidence("main.go"),
+	}})
+	review.Packs = []target.CompatibilityPackEvidence{{
+		ID: "pack", SHA256: string(record.HashBytes([]byte("pack"))),
+		Governance: &target.CompatibilityPackGovernance{Owner: "owner", Workloads: []string{"workload"}, Platforms: []string{"darwin/arm64"}},
+		Activation: []target.CompatibilityModuleEvidence{}, Rules: []target.CompatibilityPackageRuleEvidence{},
+	}}
+	report, err := Build(Input{
+		Spec: target.Spec{Kind: target.KindGoRun, Source: "example.com/target", Args: []string{}, BuildTags: []string{}}, Review: review,
+		Toolchain: target.ToolchainIdentity{GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64), TargetGOOS: "darwin", TargetGOARCH: "arm64"},
+		IOProfile: transcript.Default(), Adapters: []transcript.Adapter{},
+	})
+	requireTestNoError(t, err)
+	review.Packs[0].Governance.Owner = "changed"
+	review.Packs[0].Governance.Workloads[0] = "changed"
+	if report.Packs[0].Governance.Owner == "changed" || report.Packs[0].Governance.Workloads[0] == "changed" {
+		t.Fatalf("report aliases review evidence: %#v", report.Packs[0])
+	}
+}
+
+func TestBuildRejectsInvalidOriginalIdentityStrings(t *testing.T) {
+	review := graphReview([]target.CapabilityPackage{{
+		ImportPath: "example.com/target", Name: "main", Root: true, Sources: sourceEvidence("main.go\xff"),
+	}})
+	_, err := Build(Input{
+		Spec: target.Spec{Kind: target.KindGoRun, Source: "example.com/target", Args: []string{}, BuildTags: []string{}}, Review: review,
+		Toolchain: target.ToolchainIdentity{GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64), TargetGOOS: "darwin", TargetGOARCH: "arm64"},
+		IOProfile: transcript.Default(), Adapters: []transcript.Adapter{},
+	})
+	if err == nil || !strings.Contains(err.Error(), "valid UTF-8") {
+		t.Fatalf("Build() error = %v", err)
+	}
+}
+
+func TestDecodeAcceptsFormattingButRejectsAmbiguousInput(t *testing.T) {
+	review := graphReview([]target.CapabilityPackage{{ImportPath: "example.com/target", Name: "main", Root: true, Sources: sourceEvidence("main.go")}})
+	report, err := Build(Input{
+		Spec: target.Spec{Kind: target.KindGoRun, Source: "example.com/target", Args: []string{}, BuildTags: []string{}}, Review: review,
+		Toolchain: target.ToolchainIdentity{GoVersion: "go1.26.4", BuildKey: strings.Repeat("a", 64), TargetGOOS: "darwin", TargetGOARCH: "arm64"},
+		IOProfile: transcript.Default(), Adapters: []transcript.Adapter{},
+	})
+	requireTestNoError(t, err)
+	encoded, err := json.MarshalIndent(report, "", "  ")
+	requireTestNoError(t, err)
+	if _, err := Decode(append([]byte(" \n"), encoded...)); err != nil {
+		t.Fatalf("Decode() rejected ordinary formatting: %v", err)
+	}
+	for _, data := range [][]byte{
+		bytes.Replace(encoded, []byte(`"schema":`), []byte(`"schema":"gomad3.capability-analysis/v1","schema":`), 1),
+		bytes.Replace(encoded, []byte(`{`), []byte(`{"unknown":true,`), 1),
+		append(append([]byte(nil), encoded...), []byte(`{}`)...),
+		{'{', '"', 'x', '"', ':', '"', 0xff, '"', '}'},
+	} {
+		if _, err := Decode(data); err == nil {
+			t.Fatalf("Decode() accepted ambiguous input %q", data)
+		}
 	}
 }
 

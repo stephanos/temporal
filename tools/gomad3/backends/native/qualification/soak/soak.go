@@ -18,6 +18,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/backends/native/qualification/set"
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/internal/hostexec"
+	"go.temporal.io/server/tools/gomad3/internal/hostfs"
 	"go.temporal.io/server/tools/gomad3/qualification"
 	"go.temporal.io/server/tools/gomad3/record"
 )
@@ -713,14 +714,7 @@ func writeJSON(path string, value any) error {
 	if err != nil {
 		return err
 	}
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-		return err
-	}
-	temporary := path + ".tmp"
-	if err := os.WriteFile(temporary, append(encoded, '\n'), 0o644); err != nil {
-		return err
-	}
-	return os.Rename(temporary, path)
+	return hostfs.Replace(path, append(encoded, '\n'), 0o644)
 }
 
 // Summary renders the report as the Markdown a workflow step summary shows.

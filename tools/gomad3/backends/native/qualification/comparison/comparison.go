@@ -1,16 +1,18 @@
 package comparison
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"sort"
 	"strings"
+	"unicode/utf8"
 
 	capabilityanalysis "go.temporal.io/server/tools/gomad3/backends/native/qualification/analysis"
 	qualificationset "go.temporal.io/server/tools/gomad3/backends/native/qualification/set"
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
+	"go.temporal.io/server/tools/gomad3/target"
 )
 
 const Schema = "gomad3.support-comparison/v1"
@@ -89,6 +91,9 @@ func Compare(input Input) (Result, error) {
 	if input.Baseline.Schema != qualificationset.ReportSchema || input.Candidate.Schema != qualificationset.ReportSchema {
 		return Result{}, errors.New("support comparison requires normalized qualification-set reports")
 	}
+	if err := validateComparisonStrings(input); err != nil {
+		return Result{}, err
+	}
 	result := Result{
 		Schema: Schema, IdentityDifferences: []IdentityDifference{}, Workloads: []WorkloadChange{},
 		Boundary: compareBoundary(input.Baseline, input.Candidate, input.ApprovedBoundaryDiff),
@@ -107,6 +112,60 @@ func Compare(input Input) (Result, error) {
 	}
 	result.ReviewRequired = result.Classification == Regressed || result.Boundary.Changed && !result.Boundary.Approved
 	return result, nil
+}
+
+func validateComparisonStrings(input Input) error {
+	reports := []qualificationset.Report{input.Baseline, input.Candidate}
+	values := []string{}
+	for _, report := range reports {
+		values = append(values, report.Schema, report.Name, report.Module.Path, string(report.Module.GoModSHA256),
+			report.Platform.GOOS, report.Platform.GOARCH, report.Toolchain.GoVersion, report.Toolchain.BuildKey,
+			report.Toolchain.BoundaryManifestVersion, string(report.Toolchain.BoundaryManifestSHA256), report.IOProfile.Name,
+			string(report.IOProfile.ImplementationSHA256), string(report.IOProfile.InventorySHA256))
+		for _, workload := range report.Workloads {
+			values = append(values, workload.ID, workload.Classification)
+			for _, blocker := range workload.Blockers {
+				values = appendBlockerStrings(values, blocker)
+			}
+			for _, feature := range workload.Choice.Features {
+				values = append(values, string(feature.Kind), feature.Value)
+			}
+		}
+	}
+	for _, value := range values {
+		if !utf8.ValidString(value) {
+			return errors.New("support comparison string is not valid UTF-8")
+		}
+	}
+	return nil
+}
+
+func appendBlockerStrings(values []string, blocker capabilityanalysis.Blocker) []string {
+	finding := blocker.CapabilityFinding
+	values = append(values, string(finding.Kind), finding.Package.ImportPath, finding.Package.ForTest, finding.Package.Name,
+		finding.SourceSetSHA256, finding.SourceName, finding.SourceSHA256, finding.Capability,
+		string(finding.PolicyDisposition), string(finding.Remediation), finding.PackID)
+	values = append(values, finding.Directives...)
+	if finding.Module != nil {
+		values = appendCapabilityModuleStrings(values, finding.Module)
+	}
+	for _, reference := range blocker.DependencyPath {
+		values = append(values, reference.ImportPath, reference.ForTest, reference.Name)
+	}
+	return values
+}
+
+func appendCapabilityModuleStrings(values []string, module *target.CapabilityModule) []string {
+	if module == nil {
+		return values
+	}
+	values = append(values, module.Path, module.Version, module.Sum)
+	values = appendCapabilityModuleStrings(values, module.Replacement)
+	if adapter := module.Adapter; adapter != nil {
+		values = append(values, adapter.ProfileName, adapter.ProfileImplementationSHA256, adapter.Adapter.Path, adapter.Adapter.Version, adapter.Adapter.Sum,
+			adapter.OriginalSourceInventorySHA256, adapter.ReplacementSourceInventorySHA256, adapter.PreparedSourceSetSHA256)
+	}
+	return values
 }
 
 type workloadComparison struct {
@@ -237,7 +296,7 @@ func compareBoundary(baseline, candidate qualificationset.Report, approval recor
 	if !result.Changed {
 		return result
 	}
-	payload, _ := canonicaljson.CanonicalJSON(struct {
+	payload, _ := json.Marshal(struct {
 		BaselineVersion  string        `json:"baseline_version"`
 		BaselineSHA256   record.SHA256 `json:"baseline_sha256"`
 		CandidateVersion string        `json:"candidate_version"`
@@ -290,11 +349,32 @@ func compareBlockers(baseline, candidate []capabilityanalysis.Blocker) (added []
 func blockerIdentities(blockers []capabilityanalysis.Blocker) map[record.SHA256]BlockerIdentity {
 	result := make(map[record.SHA256]BlockerIdentity, len(blockers))
 	for _, blocker := range blockers {
-		encoded, _ := canonicaljson.CanonicalJSON(blocker)
+		encoded, _ := json.Marshal(blocker)
 		digest := record.DomainHash("gomad3.support-blocker/v1", encoded)
-		result[digest] = BlockerIdentity{SHA256: digest, Blocker: blocker}
+		result[digest] = BlockerIdentity{SHA256: digest, Blocker: cloneBlocker(blocker)}
 	}
 	return result
+}
+
+func cloneBlocker(blocker capabilityanalysis.Blocker) capabilityanalysis.Blocker {
+	cloned := blocker
+	cloned.Module = cloneCapabilityModule(blocker.Module)
+	cloned.Directives = append([]string(nil), blocker.Directives...)
+	cloned.DependencyPath = append([]target.CapabilityPackageReference(nil), blocker.DependencyPath...)
+	return cloned
+}
+
+func cloneCapabilityModule(module *target.CapabilityModule) *target.CapabilityModule {
+	if module == nil {
+		return nil
+	}
+	cloned := *module
+	cloned.Replacement = cloneCapabilityModule(module.Replacement)
+	if module.Adapter != nil {
+		adapter := *module.Adapter
+		cloned.Adapter = &adapter
+	}
+	return &cloned
 }
 
 func sortBlockers(blockers []BlockerIdentity) {

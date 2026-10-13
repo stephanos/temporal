@@ -2,6 +2,8 @@ package qualification
 
 import (
 	"bytes"
+	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -9,9 +11,11 @@ import (
 	"path/filepath"
 	"reflect"
 	"strings"
+	"unicode/utf8"
 
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+	"go.temporal.io/server/tools/gomad3/internal/hostfs"
+	"go.temporal.io/server/tools/gomad3/internal/strictjson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner"
 )
@@ -27,6 +31,18 @@ const (
 )
 
 const maximumQualificationReportBytes = 16 << 20
+
+type qualificationStagedFile interface {
+	Path() string
+	PublishContext(context.Context, string) (bool, error)
+	Cleanup() error
+}
+
+type qualificationStage func(context.Context, string, string, os.FileMode, func(context.Context, io.Writer) error) (qualificationStagedFile, error)
+
+func stageQualification(ctx context.Context, directory, pattern string, mode os.FileMode, fill func(context.Context, io.Writer) error) (qualificationStagedFile, error) {
+	return hostfs.StageContext(ctx, directory, pattern, mode, fill)
+}
 
 type QualificationExecution struct {
 	CampaignPath     string
@@ -93,6 +109,9 @@ type QualificationReport struct {
 }
 
 func BuildQualificationReport(input QualificationInput) (QualificationReport, error) {
+	if err := validateQualificationInputStrings(input); err != nil {
+		return QualificationReport{}, err
+	}
 	if len(input.Command) == 0 || input.Command[0] == "" {
 		return QualificationReport{}, fmt.Errorf("qualification command is required")
 	}
@@ -166,6 +185,14 @@ func BuildQualificationReport(input QualificationInput) (QualificationReport, er
 }
 
 func BuildQualificationFailure(command []string, seed uint64, repeat uint64, completed []QualificationExecution, failure QualificationFailure) (QualificationReport, error) {
+	if err := validateUTF8Strings(append(append([]string{}, command...), failure.Classification, failure.Message, failure.ImportPath, failure.Capability)); err != nil {
+		return QualificationReport{}, err
+	}
+	for _, run := range completed {
+		if err := validateQualificationExecutionStrings(run); err != nil {
+			return QualificationReport{}, err
+		}
+	}
 	if len(command) == 0 || command[0] == "" {
 		return QualificationReport{}, fmt.Errorf("qualification command is required")
 	}
@@ -222,13 +249,24 @@ func BuildQualificationFailure(command []string, seed uint64, repeat uint64, com
 }
 
 func WriteQualificationReport(artifactRoot string, report QualificationReport) (reportPath string, retErr error) {
+	return writeQualificationReport(context.Background(), artifactRoot, report)
+}
+
+func writeQualificationReport(ctx context.Context, artifactRoot string, report QualificationReport) (reportPath string, retErr error) {
+	return writeQualificationReportWith(ctx, artifactRoot, report, stageQualification)
+}
+
+func writeQualificationReportWith(ctx context.Context, artifactRoot string, report QualificationReport, stage qualificationStage) (reportPath string, retErr error) {
 	if artifactRoot == "" {
 		return "", fmt.Errorf("artifact root is required")
+	}
+	if err := ctx.Err(); err != nil {
+		return "", err
 	}
 	if err := validateQualificationReport(report); err != nil {
 		return "", err
 	}
-	encoded, err := canonicaljson.CanonicalJSON(report)
+	encoded, err := json.Marshal(report)
 	if err != nil {
 		return "", fmt.Errorf("encode qualification report: %w", err)
 	}
@@ -240,57 +278,31 @@ func WriteQualificationReport(artifactRoot string, report QualificationReport) (
 	if err := os.Chmod(root, 0o700); err != nil {
 		return "", fmt.Errorf("make qualification report directory private: %w", err)
 	}
-	temporary, err := os.CreateTemp(root, ".qualification-*.partial")
+	staged, err := stage(ctx, root, ".qualification-*.partial", 0o600, func(_ context.Context, writer io.Writer) error {
+		_, err := writer.Write(encoded)
+		return err
+	})
 	if err != nil {
-		return "", fmt.Errorf("create qualification report staging file: %w", err)
+		return "", fmt.Errorf("stage qualification report: %w", err)
 	}
-	temporaryPath := temporary.Name()
 	defer func() {
-		if removeErr := os.Remove(temporaryPath); removeErr != nil && (reportPath == "" || !errors.Is(removeErr, os.ErrNotExist)) {
+		if cleanupErr := staged.Cleanup(); cleanupErr != nil {
+			cleanupErr = fmt.Errorf("clean qualification report staging file: %w", cleanupErr)
 			if retErr == nil {
-				retErr = removeErr
+				retErr = cleanupErr
 			} else {
-				retErr = errors.Join(retErr, removeErr)
+				retErr = errors.Join(retErr, cleanupErr)
 			}
 		}
 	}()
-	if err := temporary.Chmod(0o600); err != nil {
-		if closeErr := temporary.Close(); closeErr != nil {
-			return "", errors.Join(fmt.Errorf("make qualification report private: %w", err), closeErr)
-		}
-		return "", fmt.Errorf("make qualification report private: %w", err)
-	}
-	if _, err := temporary.Write(encoded); err != nil {
-		if closeErr := temporary.Close(); closeErr != nil {
-			return "", errors.Join(fmt.Errorf("write qualification report: %w", err), closeErr)
-		}
-		return "", fmt.Errorf("write qualification report: %w", err)
-	}
-	if err := temporary.Sync(); err != nil {
-		if closeErr := temporary.Close(); closeErr != nil {
-			return "", errors.Join(fmt.Errorf("sync qualification report: %w", err), closeErr)
-		}
-		return "", fmt.Errorf("sync qualification report: %w", err)
-	}
-	if err := temporary.Close(); err != nil {
-		return "", fmt.Errorf("close qualification report: %w", err)
-	}
-	name := strings.TrimSuffix(strings.TrimPrefix(filepath.Base(temporaryPath), ".qualification-"), ".partial")
+	name := strings.TrimSuffix(strings.TrimPrefix(filepath.Base(staged.Path()), ".qualification-"), ".partial")
 	path := filepath.Join(root, "qualification-"+name+".json")
-	if err := os.Rename(temporaryPath, path); err != nil {
-		return "", fmt.Errorf("publish qualification report: %w", err)
-	}
-	directory, err := os.Open(root)
+	published, err := staged.PublishContext(ctx, path)
 	if err != nil {
-		return path, fmt.Errorf("open qualification report directory: %w", err)
-	}
-	syncErr := directory.Sync()
-	closeErr := directory.Close()
-	if syncErr != nil {
-		return path, fmt.Errorf("sync qualification report directory: %w", syncErr)
-	}
-	if closeErr != nil {
-		return path, fmt.Errorf("close qualification report directory: %w", closeErr)
+		if published {
+			return path, fmt.Errorf("publish qualification report: %w", err)
+		}
+		return "", fmt.Errorf("publish qualification report: %w", err)
 	}
 	return path, nil
 }
@@ -330,7 +342,7 @@ func DecodeQualificationReport(data []byte) (QualificationReport, error) {
 		return QualificationReport{}, fmt.Errorf("qualification report must be between 1 and %d bytes", maximumQualificationReportBytes)
 	}
 	var report QualificationReport
-	if err := canonicaljson.DecodeCanonicalJSON(data, &report); err != nil {
+	if err := strictjson.Decode(data, &report); err != nil {
 		return QualificationReport{}, fmt.Errorf("decode qualification report: %w", err)
 	}
 	if err := validateQualificationReport(report); err != nil {
@@ -340,6 +352,9 @@ func DecodeQualificationReport(data []byte) (QualificationReport, error) {
 }
 
 func validateQualificationReport(report QualificationReport) error {
+	if err := validateQualificationReportStrings(report); err != nil {
+		return err
+	}
 	if report.Schema != QualificationReportSchema {
 		return fmt.Errorf("unsupported qualification report schema %q", report.Schema)
 	}
@@ -412,6 +427,141 @@ func validateQualificationReport(report QualificationReport) error {
 	return nil
 }
 
+func validateQualificationInputStrings(input QualificationInput) error {
+	if err := validateUTF8Strings(input.Command); err != nil {
+		return err
+	}
+	for _, run := range input.Executions {
+		if err := validateQualificationExecutionStrings(run); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func validateQualificationExecutionStrings(run QualificationExecution) error {
+	values := []string{run.CampaignPath, run.ArtifactPath}
+	appendExecutionEvidenceStrings(&values, run.Evidence)
+	if run.Replay != nil {
+		values = append(values, run.Replay.ArtifactPath, run.Replay.Divergence, run.Replay.ChoiceReplayStatus)
+	}
+	if run.Diagnostics != nil {
+		values = append(values, run.Diagnostics.Path, run.Diagnostics.Profile, string(run.Diagnostics.SHA256))
+	}
+	return validateUTF8Strings(values)
+}
+
+func validateQualificationReportStrings(report QualificationReport) error {
+	values := append([]string{report.Schema, string(report.EvidenceDigest), report.FirstDivergence}, report.Command...)
+	if report.Evidence != nil {
+		appendExecutionEvidenceStrings(&values, *report.Evidence)
+	}
+	if report.Failure != nil {
+		values = append(values, report.Failure.Classification, report.Failure.Message, report.Failure.ImportPath, report.Failure.Capability)
+	}
+	if report.DiagnosticDivergence != nil {
+		values = append(values, report.DiagnosticDivergence.Fields...)
+	}
+	for _, run := range report.Executions {
+		values = append(values, run.DiagnosticStatus, run.CampaignPath, run.ArtifactPath, string(run.EvidenceDigest))
+		if run.Evidence != nil {
+			appendExecutionEvidenceStrings(&values, *run.Evidence)
+		}
+		if run.Diagnostics != nil {
+			values = append(values, run.Diagnostics.Path, run.Diagnostics.Profile, string(run.Diagnostics.SHA256))
+		}
+		if run.Replay != nil {
+			values = append(values, run.Replay.ArtifactPath, run.Replay.Divergence, run.Replay.ChoiceReplayStatus)
+		}
+	}
+	return validateUTF8Strings(values)
+}
+
+func appendExecutionEvidenceStrings(values *[]string, evidence runner.ExecutionEvidence) {
+	*values = append(*values,
+		evidence.Schema, evidence.RunnerBuild,
+		evidence.Toolchain.GoVersion, evidence.Toolchain.BuildKey, evidence.Toolchain.TargetGOOS, evidence.Toolchain.TargetGOARCH,
+		evidence.IOProfile.Name, string(evidence.IOProfile.ImplementationSHA256), string(evidence.IOProfile.InventorySHA256),
+		evidence.Outcome.Domain, evidence.Outcome.Reason, evidence.Outcome.Termination,
+		evidence.Stdout.File, string(evidence.Stdout.RetainedSHA256), string(evidence.Stdout.FullSHA256),
+		evidence.Stderr.File, string(evidence.Stderr.RetainedSHA256), string(evidence.Stderr.FullSHA256), string(evidence.IOTranscriptSHA256),
+		string(evidence.BackendEvidenceSHA256), evidence.World.Initial.Schema, evidence.World.Initial.File,
+		string(evidence.World.Initial.RawSHA256), string(evidence.World.Initial.SemanticDigest),
+		evidence.World.Transitions.Schema, evidence.World.Transitions.File, string(evidence.World.Transitions.RawSHA256),
+		string(evidence.World.Transitions.TranscriptDigest), evidence.World.Final.Schema, evidence.World.Final.File,
+		string(evidence.World.Final.RawSHA256), string(evidence.World.Final.SemanticDigest),
+		evidence.World.Terminal.Kind, evidence.World.Terminal.Detail,
+		evidence.SemanticCoverage.Schema, string(evidence.SemanticCoverage.Digest),
+	)
+	appendTargetStrings(values, evidence.Target)
+	for _, entry := range evidence.Environment {
+		*values = append(*values, entry.Name, entry.Value)
+	}
+	if evidence.Outcome.Signal != nil {
+		*values = append(*values, *evidence.Outcome.Signal)
+	}
+	if evidence.Outcome.Deadline != nil {
+		*values = append(*values, *evidence.Outcome.Deadline)
+	}
+	for _, adapter := range evidence.World.Adapters {
+		*values = append(*values, adapter.Schema, string(adapter.InitialDigest), string(adapter.FinalDigest))
+	}
+	*values = append(*values, evidence.SemanticCoverage.Probes...)
+	if evidence.Diagnostics != nil {
+		*values = append(*values, evidence.Diagnostics.Profile, string(evidence.Diagnostics.SHA256))
+	}
+	if evidence.Choices != nil {
+		choices := evidence.Choices
+		*values = append(*values, choices.Profile, string(choices.ImplementationSHA256), string(choices.SHA256), choices.TerminalState, string(choices.TapeSHA256))
+		for _, feature := range choices.Features {
+			*values = append(*values, string(feature.Kind), feature.Value)
+		}
+	}
+	if evidence.ReadOnlyMountsSHA256 != nil {
+		*values = append(*values, string(*evidence.ReadOnlyMountsSHA256))
+	}
+	if evidence.ChoiceExploration != nil {
+		exploration := evidence.ChoiceExploration
+		*values = append(*values, string(exploration.ImplementationSHA256), string(exploration.CandidateSHA256), string(exploration.ParentSHA256), string(exploration.PrefixSHA256), string(exploration.OutcomeSHA256))
+	}
+}
+
+func appendTargetStrings(values *[]string, target record.Target) {
+	*values = append(*values, target.Kind, target.Source, target.File, string(target.SHA256), target.CapabilityMode,
+		target.BuildInfo.GoVersion, target.BuildInfo.Path, target.BuildInfo.MainModule)
+	*values = append(*values, target.Argv...)
+	*values = append(*values, target.BuildTags...)
+	for _, adapter := range target.Adapters {
+		*values = append(*values, adapter.Module, adapter.Version, adapter.Sum)
+	}
+	for _, pack := range target.Compatibility {
+		*values = append(*values, pack.ID, string(pack.SHA256))
+	}
+	for _, setting := range target.BuildInfo.Settings {
+		*values = append(*values, setting.Key, setting.Value)
+	}
+	if target.CapabilityManifest != nil {
+		manifest := target.CapabilityManifest
+		*values = append(*values, manifest.Schema, manifest.File, string(manifest.SHA256), string(manifest.ProducerImplementationSHA256), string(manifest.GuardImplementationSHA256), string(manifest.CapabilityUniverseSHA256))
+	}
+	if target.Backend != nil {
+		backend := target.Backend
+		*values = append(*values, backend.Name, backend.ReplayMode, backend.Provenance.Schema, backend.Provenance.File, string(backend.Provenance.SHA256))
+		if backend.Evidence != nil {
+			*values = append(*values, backend.Evidence.Schema, backend.Evidence.File, string(backend.Evidence.SHA256))
+		}
+	}
+}
+
+func validateUTF8Strings(values []string) error {
+	for _, value := range values {
+		if !utf8.ValidString(value) {
+			return errors.New("qualification string is not valid UTF-8")
+		}
+	}
+	return nil
+}
+
 func cloneReplay(replay *QualificationReplay, artifactPath string) (*QualificationReplay, error) {
 	if replay == nil {
 		return nil, nil
@@ -437,7 +587,7 @@ func cloneReplay(replay *QualificationReplay, artifactPath string) (*Qualificati
 }
 
 func evidenceDigest(runRecord runner.ExecutionEvidence) (record.SHA256, error) {
-	encoded, err := canonicaljson.CanonicalJSON(runRecord)
+	encoded, err := json.Marshal(runRecord)
 	if err != nil {
 		return "", err
 	}
@@ -447,12 +597,12 @@ func evidenceDigest(runRecord runner.ExecutionEvidence) (record.SHA256, error) {
 const ExecutionEvidenceDigestDomain = "gomad3.qualification-evidence/v1"
 
 func cloneEvidence(runRecord runner.ExecutionEvidence) (runner.ExecutionEvidence, error) {
-	encoded, err := canonicaljson.CanonicalJSON(runRecord)
+	encoded, err := json.Marshal(runRecord)
 	if err != nil {
 		return runner.ExecutionEvidence{}, err
 	}
 	var cloned runner.ExecutionEvidence
-	if err := canonicaljson.StrictDecode(encoded, &cloned); err != nil {
+	if err := strictjson.Decode(encoded, &cloned); err != nil {
 		return runner.ExecutionEvidence{}, err
 	}
 	return cloned, nil
