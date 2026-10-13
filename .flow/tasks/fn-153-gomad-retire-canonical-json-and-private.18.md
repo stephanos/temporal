@@ -48,3 +48,7 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+## Revival trigger (2026-10-13)
+
+fn153.17 is complete with all 12 final compatibility-pack triples regenerated, aggregate validation green, and a three-axis SHIP review. Every fn153 source migration is now integrated on the current `gomad` candidate, so the final documentation, caller/publisher inventory, code-delta accounting, source gates and independent review can run against one frozen tree. Preserve the milestone's batching rule: current-source WASM qualification is not inherited from fn151/fn156 and remains an integrated rotation-batch gate after fn154 and fn166.6-.8/.10; native supported-host execution remains owned by fn128/fn149. No CI, PR or push action is revived.
