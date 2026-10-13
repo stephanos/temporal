@@ -48,3 +48,7 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+## Revival trigger (2026-10-13)
+
+Revived after fn153.1 completed with a SHIP implementation review and its integrated strict-decoder, architecture and validation gates green. This consumer migration is disjoint from the in-flight fn153.2 hostfs/publication owner. The forced local claim is only needed because Flow chain admission requires the completed fn152 parent on an unpushed remote branch; pushing remains outside the user's requested scope.

@@ -7,8 +7,8 @@ satisfies: [R2]
 Implements R2 for this owner; see the parent Architecture and Delivery sections.
 
 **Size:** M
-**Files:** target/{prepared_cache,target}.go; target/internal/{provenance/store,livecap/livecap}.go; focused tests and two generated livecap protocol consumers (4 core callers). Six capability goldens belong to task17.
-**Touches:** [tools/gomad3/target/prepared_cache*.go, tools/gomad3/target/target*.go, tools/gomad3/target/*_test.go, tools/gomad3/target/internal/provenance/**, tools/gomad3/target/internal/livecap/**, tools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go]
+**Files:** backends/native/build/{prepared_cache,target}.go; build/internal/{provenance,livecap}; focused tests and generated livecap protocol consumers. Six capability goldens belong to task17.
+**Touches:** [tools/gomad3/backends/native/build/**, tools/gomad3/backends/native/generation/protocol/**, tools/gomad3/backends/native/toolchain/runtime/overlay/src/cmd/internal/gomadcap/**]
 
 ### Approach
 
@@ -23,17 +23,17 @@ Implements R2 for this owner; see the parent Architecture and Delivery sections.
 
 **Required** (read before coding):
 
-- `tools/gomad3/target/prepared_cache.go:45`
-- `tools/gomad3/target/prepared_cache_test.go`
-- `tools/gomad3/target/prepared_cache_digest_test.go`
-- `tools/gomad3/target/internal/provenance/store.go:14`
-- `tools/gomad3/target/internal/livecap/livecap.go:38`
-- `tools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/encode.go:68`
-- `tools/gomad3/internal/gomadtool/generation/protocol/protocol.go:564`
+- `tools/gomad3/backends/native/build/prepared_cache.go:45`
+- `tools/gomad3/backends/native/build/prepared_cache_test.go`
+- `tools/gomad3/backends/native/build/prepared_cache_digest_test.go`
+- `tools/gomad3/backends/native/build/internal/provenance/store.go:14`
+- `tools/gomad3/backends/native/build/internal/livecap/livecap.go:38`
+- `tools/gomad3/backends/native/toolchain/runtime/overlay/src/cmd/internal/gomadcap/encode.go:68`
+- `tools/gomad3/backends/native/generation/protocol/protocol.go:384`
 
 ### Verification
 
-Focused command: go -C tools/gomad3 test -tags test_dep -count=1 ./target/internal/provenance ./target/internal/livecap
+Focused command: go -C tools/gomad3 test -tags test_dep -count=1 ./backends/native/build/internal/provenance ./backends/native/build/internal/livecap ./backends/native/build
 
 Capture the frozen behavior pin named above, run focused negative controls and follow the parent Delivery and verification section. Declare scope growth to the conductor before implementation. Shared gates run serially on the integrated frozen candidate.
 ## Acceptance
@@ -47,3 +47,7 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+## Revival trigger (2026-10-13)
+
+Revived after fn153.1 completed with a SHIP implementation review and its integrated strict-decoder, architecture and validation gates green. Paths were reconciled with fn166's completed package move into backends/native/build before dispatch. This consumer migration is disjoint from the in-flight fn153.2 and fn153.3 owners. The forced local claim is only needed because Flow chain admission requires the completed fn152 parent on an unpushed remote branch; pushing remains outside the user's requested scope.
