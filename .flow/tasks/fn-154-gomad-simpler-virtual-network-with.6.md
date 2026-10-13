@@ -7,8 +7,9 @@ satisfies: [R4, R7]
 Expire stalled connections through autonomous virtual-time work (R4). This task owns the named surface; root owns admission, integration and lifecycle.
 
 **Size:** M
-**Files:** `tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadio/network_connection.go`, `tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadio/simulation_network.go`, `tools/gomad3sim/network_toolchain_test.go`, `tools/gomad3/backends/native/execution/simulation_time.go`, `tools/gomad3/backends/native/execution/simulation_progress.go`, `tools/gomad3/backends/native/execution/simulation_progress_test.go`, `tools/gomad3/runner/internal/exploration/integration_test.go`, `tools/gomad3/internal/archcheck/integration_test.go`, `tools/gomad3/Makefile`
-**Touches:** [tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadio/network_connection.go, tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadio/simulation_network.go, tools/gomad3sim/network_toolchain_test.go, tools/gomad3/backends/native/execution/simulation_time.go, tools/gomad3/backends/native/execution/simulation_progress.go, tools/gomad3/backends/native/execution/simulation_progress_test.go, tools/gomad3/runner/internal/exploration/integration_test.go, tools/gomad3/internal/archcheck/integration_test.go, tools/gomad3/Makefile]
+**Files:** `tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadio/network_connection.go`, `tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadio/simulation_network.go`, `tools/gomad3sim/network_toolchain_test.go`, `tools/gomad3/backends/native/execution/simulation_time.go`, `tools/gomad3/simulation/clock/simulation_progress.go`, `tools/gomad3/simulation/clock/simulation_progress_test.go`, `tools/gomad3/runner/internal/exploration/integration_test.go`, `tools/gomad3/internal/archcheck/integration_test.go`, `tools/gomad3/Makefile`
+`tools/gomad3/simulation/network/adapter.go`, `tools/gomad3/simulation/network/stall_test.go`, `tools/gomad3/simulation/network/generate/main.go`, `tools/gomad3/simulation/network/generate/main_test.go`, `tools/gomad3/simulation/network/generated.go`
+**Touches:** [tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadio/network_connection.go, tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadio/simulation_network.go, tools/gomad3sim/network_toolchain_test.go, tools/gomad3/backends/native/execution/simulation_time.go, tools/gomad3/simulation/clock/simulation_progress.go, tools/gomad3/simulation/clock/simulation_progress_test.go, tools/gomad3/runner/internal/exploration/integration_test.go, tools/gomad3/internal/archcheck/integration_test.go, tools/gomad3/Makefile, tools/gomad3/simulation/network/adapter.go, tools/gomad3/simulation/network/stall_test.go, tools/gomad3/simulation/network/generate/main.go, tools/gomad3/simulation/network/generate/main_test.go, tools/gomad3/simulation/network/generated.go]
 
 ### Approach
 
@@ -28,14 +29,14 @@ Expire stalled connections through autonomous virtual-time work (R4). This task 
 - `tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadio/network.go:605`
 - `tools/gomad3sim/network_toolchain_test.go:225`
 - `tools/gomad3/backends/native/execution/simulation_time.go`
-- `tools/gomad3/backends/native/execution/simulation_progress.go:119`
-- `tools/gomad3/backends/native/execution/simulation_progress_test.go`
+- `tools/gomad3/simulation/clock/simulation_progress.go:119`
+- `tools/gomad3/simulation/clock/simulation_progress_test.go`
 
 ### Quick commands
 
 ```bash
 cd /Users/stephan/Workspace/skunkworks/gomad/temporal && env -u GOMADSEED CGO_ENABLED=0 GOEXPERIMENT=nogreenteagc GOTOOLCHAIN=local GOWORK=off TZ=UTC GOMAD3_CHILD_SEED=89 tools/gomad3/.toolchain/bin/go test -exec tools/gomad3/backends/native/conformance/scripts/exec.sh -count=1 -tags test_dep,gomad3_toolchain ./tools/gomad3sim -run 'TestNetworkStall'
-cd tools/gomad3 && go test -tags test_dep ./backends/native/execution -run 'Test.*Simulation.*Progress'
+cd tools/gomad3 && go test -tags test_dep ./simulation/clock ./backends/native/execution -run 'Test.*(Simulation|Broker|Progress)'
 ```
 
 Process acceptance command: `make -C tools/gomad3 test-simulation`, with newly registered Runner-backed selectors retained in the handover. A direct seeded-wrapper process skip supplies no acceptance.
@@ -45,6 +46,9 @@ Patched-runtime selectors require the supported candidate and documented toolcha
 ### Revival trigger (2026-10-13)
 
 The owner batch-first strategy admits the coherent connection/holding/expiry/dial/history source batch against integrated fn154.1 limits, fn154.3 timeout transport (c8dbb97c11) and fn154.2 generated NC2 config/vocabulary (c467490c78). Root's combined candidate passed portable simulator, protocol/projection, WASM reader/helper parity, full WASM simulation, all-platform architecture/purity, generated validation and affected lint. Source development may proceed while final independent batch review and exact native acceptance remain open. This does not waive completion dependencies, the early public-interface equivalence proof, any native gate or final current-source WASM qualification. No CI, PR, push or native qualification authority is revived. Use current backends/native paths above, one connection owner, and the accepted single generated semantic codec. Root serializes integration/identity regeneration and retains final lifecycle.
+### Current expiry projection binding
+
+Use the existing native runtime timer and WASM Model.NextDeadline/Advance owners. The exact projected adapter, stall tests and generator files above belong to this task within the already declared connection batch. No clock/progress interface edit is required or authorized by this binding. Preserve native seeded timer ownership and existing broker ordering; a no-op projected timer seam must be guarded by generator drift/shape tests and autonomous model expiry tests.
 ## Acceptance
 - [ ] New TestNetworkStallExpiry cases cover writer-returned/no-reader expiry, persistent both-end timeout and idle survival.
 - [ ] New TestNetworkStallOrdering cases cover limit-minus/equal/plus-one-ns and both heal/expiry commit orders.
