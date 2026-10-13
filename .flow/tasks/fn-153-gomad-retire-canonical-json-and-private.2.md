@@ -8,7 +8,7 @@ Implements R1 for this owner; see the parent Architecture and Delivery sections.
 
 **Size:** L
 **Files:** internal/hostfs replacement/staging and host-helper owner, all surviving private helper consumers, WASM qualification publication, and the Rust helper cache.
-**Touches:** [tools/gomad3/internal/hostfs/**, tools/gomad3/artifact/**, tools/gomad3/captured/**, tools/gomad3/runner/portable_plan*.go, tools/gomad3/runner/internal/minimizer/**, tools/gomad3/runner/internal/campaign/**, tools/gomad3/backends/native/toolchain/**, tools/gomad3/backends/native/upgrade/adapterregen/**, tools/gomad3/qualification/**, tools/gomad3/backends/wasm/qualification/**, tools/gomad3/backends/wasm/wasmhost/Cargo.toml, tools/gomad3/backends/wasm/wasmhost/Cargo.lock, tools/gomad3/backends/wasm/wasmhost/src/cache.rs, tools/gomad3/go.mod, tools/gomad3/go.sum]
+**Touches:** [tools/gomad3/internal/hostfs/**, tools/gomad3/artifact/**, tools/gomad3/captured/**, tools/gomad3/runner/portable_plan*.go, tools/gomad3/runner/internal/minimizer/**, tools/gomad3/runner/internal/campaign/**, tools/gomad3/backends/native/toolchain/**, tools/gomad3/backends/native/upgrade/adapterregen/**, tools/gomad3/backends/wasm/qualification/**, tools/gomad3/backends/wasm/wasmhost/Cargo.toml, tools/gomad3/backends/wasm/wasmhost/Cargo.lock, tools/gomad3/backends/wasm/wasmhost/src/cache.rs, tools/gomad3/go.mod, tools/gomad3/go.sum]
 
 ### Approach
 
@@ -17,7 +17,7 @@ Implements R1 for this owner; see the parent Architecture and Delivery sections.
 - Keep primary and cleanup errors discoverable via errors.Is/As. Track rename success separately from directory open/sync/close errors and cancellation before publish.
 - Behavior pin: replay existing replacement controls plus injected create/chmod/fill/write/sync/close/rename/directory/cleanup failures. The helper does not create new containment or locking promises.
 - Owner amendment reconciliation: the post-fn152 tree has six surviving Go directory-sync implementations (artifact, portable plan, minimizer, campaign, native toolchain and adapter regeneration), not the amendment's stale count of five. Consolidate all six, the artifact/hostfs/captured link-count implementations and artifact's no-replace rename variants into internal/hostfs so only one implementation of each operation remains.
-- Use `golang.org/x/sys/unix` for Linux `Renameat2` and Darwin `RenamexNp`; retain the existing unsupported-platform and Windows behavior. Route general and WASM qualification staged publication through the shared staging/publication owner without weakening immutable no-clobber Result paths or receipt durability.
+- Use `golang.org/x/sys/unix` for Linux `Renameat2` and Darwin `RenamexNp`; retain the existing unsupported-platform and Windows behavior. Route the owner-amended WASM qualification Result and receipt publication through the shared staging/publication owner without weakening immutable no-clobber paths or durability. General qualification report/soak migration remains owned by dependent task fn153.7.
 - Replace the Rust cache's raw libc declarations and unsafe calls with a direct `rustix` dependency already present transitively in Cargo.lock. Preserve owner-only, no-follow, no-clobber and cleanup behavior.
 
 ### Investigation targets
@@ -59,7 +59,7 @@ Capture the frozen behavior pin named above, run focused negative controls and f
 - [ ] Failure before rename preserves the old destination and cleans staged state; after-rename failures report published=true without claiming durability.
 - [ ] Fault controls cover primary/close/cleanup joins, cancellation, cleanup idempotence and caller-visible published status; existing guarded opens/locks retain their tests.
 - [ ] Exactly one Go implementation remains for directory sync, link-count extraction and no-replace rename; every surviving consumer uses internal/hostfs and Darwin/Linux cross-builds pass.
-- [ ] General and WASM qualification publication use the shared staged owner without weakening no-clobber Result publication, receipt durability, error identity or cleanup semantics.
+- [ ] WASM qualification Result and receipt publication use the shared staged owner without weakening no-clobber publication, receipt durability, error identity or cleanup semantics; general qualification remains scoped to fn153.7.
 - [ ] The Rust cache uses rustix rather than raw libc declarations while preserving owner-only, no-follow, no-clobber and cleanup behavior.
 
 ## Done summary
