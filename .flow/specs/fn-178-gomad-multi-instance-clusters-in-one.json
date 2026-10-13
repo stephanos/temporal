@@ -1,0 +1,29 @@
+{
+  "branch_name": "fn-178-gomad-multi-instance-clusters-in-one",
+  "created_at": "2026-10-13T18:25:07.622572Z",
+  "depends_on_epics": [
+    "fn-176-gomad-durable-volume-crash-model-in-the",
+    "fn-177-gomad-network-models-in-the-rust-helper",
+    "fn-154-gomad-simpler-virtual-network-with",
+    "fn-153-gomad-retire-canonical-json-and-private"
+  ],
+  "id": "fn-178-gomad-multi-instance-clusters-in-one",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-178-gomad-multi-instance-clusters-in-one.md",
+  "status": "open",
+  "title": "Gomad: Multi-instance clusters in one helper process",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-13T18:25:12.114011Z"
+}

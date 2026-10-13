@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-173-gomad-wasm-helper-per-run-preparation",
+  "created_at": "2026-10-13T18:25:03.283416Z",
+  "depends_on_epics": [],
+  "id": "fn-173-gomad-wasm-helper-per-run-preparation",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-173-gomad-wasm-helper-per-run-preparation.md",
+  "status": "open",
+  "title": "Gomad: WASM helper per-run preparation fast path",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-13T18:25:03.286780Z"
+}

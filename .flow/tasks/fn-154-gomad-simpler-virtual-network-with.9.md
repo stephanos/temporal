@@ -7,8 +7,8 @@ satisfies: [R1, R2, R3, R4, R9, R11, R12]
 Pin shared-connection and in-process fault conformance (R1, R2, R3, R4, R9, R11, R12). This task owns the named surface; root owns admission, integration and lifecycle.
 
 **Size:** M
-**Files:** `tools/gomad3sim/network_handles_toolchain_test.go`, `tools/gomad3sim/network_toolchain_test.go`, `tools/gomad3sim/fault_toolchain_test.go`, `tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/network_handles_test.go`, `tools/gomad3/runner/internal/execution/model_conformance_test.go`
-**Touches:** [tools/gomad3sim/network_handles_toolchain_test.go, tools/gomad3sim/network_toolchain_test.go, tools/gomad3sim/fault_toolchain_test.go, tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/network_handles_test.go, tools/gomad3/runner/internal/execution/model_conformance_test.go]
+**Files:** `tools/gomad3sim/network_handles_toolchain_test.go`, `tools/gomad3sim/network_toolchain_test.go`, `tools/gomad3sim/fault_toolchain_test.go`, `tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadio/network_handles_test.go`, `tools/gomad3/backends/native/execution/model_conformance_test.go`
+**Touches:** [tools/gomad3sim/network_handles_toolchain_test.go, tools/gomad3sim/network_toolchain_test.go, tools/gomad3sim/fault_toolchain_test.go, tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadio/network_handles_test.go, tools/gomad3/backends/native/execution/model_conformance_test.go]
 
 ### Approach
 
@@ -25,19 +25,18 @@ Pin shared-connection and in-process fault conformance (R1, R2, R3, R4, R9, R11,
 - `tools/gomad3sim/network_toolchain_test.go:335`
 - `tools/gomad3sim/network_toolchain_test.go:538`
 - `tools/gomad3sim/fault_toolchain_test.go:76`
-- `tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/network_handles_test.go:17`
-- `tools/gomad3/runner/internal/execution/model_conformance_test.go:110`
+- `tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadio/network_handles_test.go:17`
+- `tools/gomad3/backends/native/execution/model_conformance_test.go:110`
 
 ### Quick commands
 
 ```bash
 cd tools/gomad3 && .toolchain/bin/go test -tags test_dep internal/gomadio -run 'TestNetworkHandle'
-cd /Users/stephan/Workspace/skunkworks/gomad/temporal && env -u GOMADSEED CGO_ENABLED=0 GOEXPERIMENT=nogreenteagc GOTOOLCHAIN=local GOWORK=off TZ=UTC GOMAD3_CHILD_SEED=89 tools/gomad3/.toolchain/bin/go test -exec tools/gomad3/internal/gomadtool/conformance/scripts/exec.sh -count=1 -tags test_dep,gomad3_toolchain ./tools/gomad3sim -run 'TestNetwork|Test.*Fault'
-cd tools/gomad3 && go test -tags test_dep ./runner/internal/execution -run '^TestModelConformanceTCP$'
+cd /Users/stephan/Workspace/skunkworks/gomad/temporal && env -u GOMADSEED CGO_ENABLED=0 GOEXPERIMENT=nogreenteagc GOTOOLCHAIN=local GOWORK=off TZ=UTC GOMAD3_CHILD_SEED=89 tools/gomad3/.toolchain/bin/go test -exec tools/gomad3/backends/native/conformance/scripts/exec.sh -count=1 -tags test_dep,gomad3_toolchain ./tools/gomad3sim -run 'TestNetwork|Test.*Fault'
+cd tools/gomad3 && go test -tags test_dep ./backends/native/execution -run '^TestModelConformanceTCP$'
 ```
 
 Patched-runtime selectors require the supported candidate and documented toolchain setup. New selectors named in acceptance are deliverables, not existing-test claims. Keep a missing required gate open; bind each result to the tested source and tool inputs.
-
 ## Acceptance
 - [ ] Local and in-process operation-sequence equivalence is pinned through the public interface.
 - [ ] Each byte/caller-deadline/revocation boundary has a concrete positive and negative case.

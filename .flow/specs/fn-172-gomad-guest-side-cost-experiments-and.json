@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-172-gomad-guest-side-cost-experiments-and",
+  "created_at": "2026-10-13T18:25:02.250103Z",
+  "depends_on_epics": [],
+  "id": "fn-172-gomad-guest-side-cost-experiments-and",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-172-gomad-guest-side-cost-experiments-and.md",
+  "status": "open",
+  "title": "Gomad: Guest-side cost experiments and baselines",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-13T18:25:02.256110Z"
+}

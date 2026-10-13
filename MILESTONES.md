@@ -70,6 +70,11 @@ fn-156 completion. Defer further speedup optimization. Preserve current-source
 cost measurement, correctness/replay, scheduling, source/review and resource gates.
 The measured full-wall ratio was 0.694x, not an end-to-end speedup.
 
+Owner performance decision (2026-10-13): resume WASM execution-speed work in the
+Rust helper, accepting Go→Rust duplication where it buys performance; embedding
+Wasmtime in Go (`wasmtime-go`) is rejected. The work is tracked in the
+[execution performance](#wasm-execution-performance) specs fn-172–fn-178.
+
 ## Batch-first execution strategy
 
 Owner decision (2026-10-10). Optimize milestone execution for implemented and verified
@@ -249,7 +254,23 @@ Owner decision (2026-10-12): these deferred specs change owners the WASM backend
 | [fn-154.9](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.9.md) | ⬜ Todo | Pin shared-connection and in-process fault conformance |
 | [fn-154.10](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.10.md) | ⬜ Todo | Execute process network cases through registered isolated Runner gates |
 | [fn-154.11](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.11.md) | ⬜ Todo | Verify framed streams and the divided payload replay guarantees |
-| [fn-154.12](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.12.md) | ⬜ Todo | Reconcile network contracts and verify the frozen integrated candidate |
+| [fn-154.12](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.12.md) | 🚧 In progress | Reconcile contracts in parallel; final frozen/native verification remains open |
+
+<a id="wasm-execution-performance"></a>
+
+### Execution performance (Rust helper)
+
+Owner decision (2026-10-13): move per-call and per-run hot paths into the Rust helper; Go keeps build, campaign, evidence verification and publication. fn-173's identity and cache-format rotation joins or follows the fn-153/fn-154/fn-166 rotation batch so it shares one WASM requalification; fn-173 and fn-174 coordinate with fn-153.2 (helper cache) and fn-153.20 (helper-frame decoding). fn-177 and fn-178 port post-fn-154 network and post-fn-153 World semantics, so they wait for those specs. The specs are not yet planned into tasks.
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-172](.flow/specs/fn-172-gomad-guest-side-cost-experiments-and.md) | ⬜ Todo | Guest flame profile, GC/`GOWASM`/fuel A/B, network-v2 and cluster baselines |
+| [fn-173](.flow/specs/fn-173-gomad-wasm-helper-per-run-preparation.md) | ⬜ Todo | Native unwind info off, no module hash on cache hit, fast cache checksum |
+| [fn-174](.flow/specs/fn-174-gomad-wasm-helper-local-host-call-fast.md) | ⬜ Todo | Typed imports, binary transcript, compact clock records, local argv/env/random |
+| [fn-175](.flow/specs/fn-175-gomad-filesystem-namespace-in-the-rust.md) | ⬜ Todo | Filesystem namespace in the helper with a Go/Rust differential harness |
+| [fn-176](.flow/specs/fn-176-gomad-durable-volume-crash-model-in-the.md) | ⬜ Todo | Durable volume crash model in the helper; waits for fn-175 |
+| [fn-177](.flow/specs/fn-177-gomad-network-models-in-the-rust-helper.md) | ⬜ Todo | Post-fn-154 network model in the helper; waits for fn-154 |
+| [fn-178](.flow/specs/fn-178-gomad-multi-instance-clusters-in-one.md) | ⬜ Todo | All cluster instances in one helper process; waits for fn-176, fn-177, fn-153, fn-154 |
 
 <a id="quality-assessment-2026-10-01"></a>
 

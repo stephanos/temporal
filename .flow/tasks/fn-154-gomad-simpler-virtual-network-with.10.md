@@ -7,8 +7,8 @@ satisfies: [R1, R2, R3, R4, R5, R6, R7, R11, R12]
 Execute process network cases through registered isolated Runner gates (R1, R2, R3, R4, R5, R6, R7, R11, R12). This task owns the named surface; root owns admission, integration and lifecycle.
 
 **Size:** M
-**Files:** `tools/gomad3sim/network_process_handles_toolchain_test.go`, `tools/gomad3sim/network_handles_toolchain_test.go`, `tools/gomad3/runner/internal/execution/simulation_root_integration_test.go`, `tools/gomad3/simulation_gate_selection_test.go`, `tools/gomad3/Makefile`
-**Touches:** [tools/gomad3sim/network_process_handles_toolchain_test.go, tools/gomad3sim/network_handles_toolchain_test.go, tools/gomad3/runner/internal/execution/simulation_root_integration_test.go, tools/gomad3/simulation_gate_selection_test.go, tools/gomad3/Makefile]
+**Files:** `tools/gomad3sim/network_process_handles_toolchain_test.go`, `tools/gomad3sim/network_handles_toolchain_test.go`, `tools/gomad3/runner/internal/exploration/integration_test.go`, `tools/gomad3/internal/archcheck/integration_test.go`, `tools/gomad3/Makefile`
+**Touches:** [tools/gomad3sim/network_process_handles_toolchain_test.go, tools/gomad3sim/network_handles_toolchain_test.go, tools/gomad3/runner/internal/exploration/integration_test.go, tools/gomad3/internal/archcheck/integration_test.go, tools/gomad3/Makefile]
 
 ### Approach
 
@@ -23,15 +23,15 @@ Execute process network cases through registered isolated Runner gates (R1, R2, 
 
 - `tools/gomad3sim/network_process_handles_toolchain_test.go:19`
 - `tools/gomad3sim/network_handles_toolchain_test.go:65`
-- `tools/gomad3/runner/internal/execution/simulation_root_integration_test.go:33`
-- `tools/gomad3/simulation_gate_selection_test.go`
+- `tools/gomad3/runner/internal/exploration/integration_test.go:33`
+- `tools/gomad3/internal/archcheck/integration_test.go`
 - `tools/gomad3/Makefile:154`
 
 ### Quick commands
 
 ```bash
 make -C tools/gomad3 test-simulation
-cd tools/gomad3 && go test -tags test_dep -run '^TestSimulationGateSelectsProcessNetworkHandles$' .
+cd tools/gomad3 && go test -tags test_dep -run '^TestSimulationGateSelectsProcessNetworkHandles$' ./internal/archcheck
 ```
 
 Patched-runtime selectors require the supported candidate and documented toolchain setup. New selectors named in acceptance are deliverables, not existing-test claims. Keep a missing required gate open; bind each result to the tested source and tool inputs.

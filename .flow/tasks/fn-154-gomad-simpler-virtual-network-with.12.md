@@ -7,8 +7,8 @@ satisfies: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12]
 Reconcile network contracts and verify the frozen integrated candidate (R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12). This task owns the named surface; root owns admission, integration and lifecycle.
 
 **Size:** M
-**Files:** `tools/gomad3/README.md`, `tools/gomad3/SPEC.md`, `tools/gomad3/ARCHITECTURE.md`, `tools/gomad3/architecture_test.go`, `tools/gomad3/deterministicio/profile.go`, `tools/gomad3/toolchain/version/version.json`
-**Touches:** [tools/gomad3/README.md, tools/gomad3/SPEC.md, tools/gomad3/ARCHITECTURE.md, tools/gomad3/architecture_test.go, tools/gomad3/deterministicio/profile.go, tools/gomad3/toolchain/version/version.json, tools/gomad3/internal/compatibilitypack/**, tools/gomad3/qualification/**, tools/gomad3/choice/internal/wire/wire_generated.go, tools/gomad3/target/internal/livecap/protocol_generated.go, tools/gomad3/toolchain/runtime/overlay/src/internal/gomadchoicewire/**, tools/gomad3/toolchain/runtime/overlay/src/internal/gomadlivecap/**]
+**Files:** `tools/gomad3/README.md`, `tools/gomad3/SPEC.md`, `tools/gomad3/ARCHITECTURE.md`, `tools/gomad3/internal/archcheck/architecture_test.go`, `tools/gomad3/backends/native/transcript/profile.go`, `tools/gomad3/backends/native/toolchain/version/version.json`
+**Touches:** [tools/gomad3/README.md, tools/gomad3/SPEC.md, tools/gomad3/ARCHITECTURE.md, tools/gomad3/internal/archcheck/architecture_test.go, tools/gomad3/backends/native/transcript/profile.go, tools/gomad3/backends/native/toolchain/version/version.json, tools/gomad3/backends/native/compatibilitypack/**, tools/gomad3/backends/native/qualification/**, tools/gomad3/choice/internal/wire/wire_generated.go, tools/gomad3/target/internal/livecap/protocol_generated.go, tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadchoicewire/**, tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadlivecap/**, tools/gomad3/simulation/network/README.md]
 
 ### Approach
 
@@ -24,15 +24,15 @@ Reconcile network contracts and verify the frozen integrated candidate (R1, R2, 
 - `tools/gomad3/README.md:1233`
 - `tools/gomad3/SPEC.md:342`
 - `tools/gomad3/ARCHITECTURE.md:77`
-- `tools/gomad3/architecture_test.go`
-- `tools/gomad3/deterministicio/profile.go:17`
-- `tools/gomad3/toolchain/version/version.json`
+- `tools/gomad3/internal/archcheck/architecture_test.go`
+- `tools/gomad3/backends/native/transcript/profile.go:17`
+- `tools/gomad3/backends/native/toolchain/version/version.json`
 
 ### Quick commands
 
 ```bash
 make -C tools/gomad3 validate
-(cd tools/gomad3 && go test -tags test_dep -run '^Test(PackageArchitecture|PublicPackagesDoNotExportTypeAliases|PureModulesHaveNoHostEffects|ArchitecturePublicSignatureFixtures|ExactModuleEdges|DomainModulesDoNotExportWireFraming|PublicPackagesDoNotExportForwardingAliases)$' .)
+(cd tools/gomad3 && go test -tags test_dep -run '^Test(PackageArchitecture|PublicPackagesDoNotExportTypeAliases|PureModulesHaveNoHostEffects|ArchitecturePublicSignatureFixtures|ExactModuleEdges|DomainModulesDoNotExportWireFraming|PublicPackagesDoNotExportForwardingAliases)$' ./internal/archcheck ./internal/puritycheck)
 make lint-code-fast
 make -C tools/gomad3 lint-code
 GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host
@@ -40,6 +40,10 @@ make -C tools/gomad3 overlay-test test-simulation
 ```
 
 Patched-runtime selectors require the supported candidate and documented toolchain setup. New selectors named in acceptance are deliverables, not existing-test claims. Keep a missing required gate open; bind each result to the tested source and tool inputs.
+
+### Provisional documentation admission (2026-10-13)
+
+The owner batch-first strategy permits the disjoint README/SPEC/ARCHITECTURE/network README contract surface to develop against the approved fn154 specification while pending-dial/history implementation settles. Integrate documentation only after checking it against the actual source. This admission does not waive predecessor completion, native execution, frozen identity/generation checks, independent review or final qualification. Root retains final verification/lifecycle; the documentation worker changes only these four files and claims no runtime or task completion.
 
 ## Acceptance
 - [ ] Current contracts state every intentional behavior/format/replay guarantee change and preserved boundary.

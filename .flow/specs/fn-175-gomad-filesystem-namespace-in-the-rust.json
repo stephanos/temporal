@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-175-gomad-filesystem-namespace-in-the-rust",
+  "created_at": "2026-10-13T18:25:05.055038Z",
+  "depends_on_epics": [],
+  "id": "fn-175-gomad-filesystem-namespace-in-the-rust",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-175-gomad-filesystem-namespace-in-the-rust.md",
+  "status": "open",
+  "title": "Gomad: Filesystem namespace in the Rust helper",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-13T18:25:05.058728Z"
+}
