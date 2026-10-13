@@ -41,13 +41,15 @@ Capture the frozen behavior pin named above, run focused negative controls and f
 - [ ] Checkpoint interruption/resume, artifact ownership and corpus selection behavior match the frozen pin; storage ownership remains fn152's.
 - [ ] Malformed/duplicate/unknown/trailing, invalid string/numeric/config, stale parent/candidate and changed replay evidence retain rejection and public errors.
 ## Done summary
-TBD
+Migrated replay composition, World transitions, minimizer checkpoints, corpus identities, and the surviving shared Runner fixtures away from generic canonical JSON. World wire data now uses domain codecs; ordinary state identities use deterministic standard-library JSON with explicit string validation and strict typed reads. Review fixes restore invalid UTF-8 rejection for terminal details and compare diagnostic fixtures semantically while retaining repeatability and identity assertions.
 
+Focused packages, affected Runner selectors, race, vet, architecture, toolchain, and qualification gates pass. Aggregate validation reaches only the known stale `golang-x-sys-v047-darwin-arm64` compatibility approval owned by fn153.17. The repository lint executable is unavailable on this linux/arm64 host because it has the wrong executable format; the worker's isolated base-scoped lint passed before integration.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: f0a1166772ef7ba01f763030a275bdcd4b3d4af7, c5fbe3bb575311e76d8d4176eb63206ee282c1e5, 950a452ad6db54cb5581a1a478be828df2f7f9e1
+- Tests: go -C tools/gomad3 test -tags test_dep -count=1 ./world ./backends ./runner/internal/minimizer ./runner/internal/corpus ./runner/internal/campaign, go -C tools/gomad3 test -tags test_dep -count=1 -run <affected-runner-selectors> ./runner, go -C tools/gomad3 test -race -tags test_dep -count=1 ./world ./backends ./runner/internal/minimizer ./runner/internal/corpus, go -C tools/gomad3 vet -tags test_dep ./world ./backends ./runner ./runner/internal/minimizer ./runner/internal/corpus ./runner/internal/campaign, go -C tools/gomad3 test -tags test_dep -count=1 ./internal/archcheck, make -C tools/gomad3 validate-toolchain validate-qualification
 - PRs:
-
 ## Revival trigger (2026-10-13)
 
 Revived after fn153.11 completed with a SHIP implementation review, satisfying the last dependency and freezing the paired simulation formulas and projected-record ownership that shared Runner fixtures consume. This task now owns the remaining replay-composition, minimizer-checkpoint, corpus-semantic, and surviving shared Runner/campaign test migrations after fn152; it must preserve World wire bytes, interruption/resume state, artifact lifetimes, and every identity input without reopening fn152 storage. Its write surface is disjoint from the active qualification and builder-transaction audits, and final generated outputs remain assigned to fn153.17. The forced local claim is required only because Flow chain admission still sees the completed fn152 parent on an unpushed remote branch; pushing remains outside the requested scope.
