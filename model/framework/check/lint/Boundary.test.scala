@@ -35,7 +35,9 @@ class BoundarySuite extends munit.FunSuite:
     )
     assert(found.forall(_.contains("boundary: the framework names `")), found)
 
-  test("comments, strings, other packages' members and the fixtures under testdata do not cross it"):
+  test(
+    "comments, strings, other packages' members and the fixtures under testdata do not cross it"
+  ):
     assertEquals(
       findings(
         "model/framework/export/Realizations.scala" ->
@@ -47,7 +49,9 @@ class BoundarySuite extends munit.FunSuite:
       Vector.empty
     )
 
-  test("a framework build that takes a system's jar or a source from outside the framework crosses it"):
+  test(
+    "a framework build that takes a system's jar or a source from outside the framework crosses it"
+  ):
     val found = findings(
       "model/framework/export/project.scala" ->
         """//> using jar ../../build/ir-scalapb.jar

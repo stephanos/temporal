@@ -110,7 +110,9 @@ object ModelSources:
 
   // Whether a path, relative to the repository, is in one of the tools' directories.
   def tool(path: String): Boolean =
-    tools.exists(t => path.startsWith(s"model/framework/$t/") || path.startsWith(s"model/temporal/$t/"))
+    tools.exists(t =>
+      path.startsWith(s"model/framework/$t/") || path.startsWith(s"model/temporal/$t/")
+    )
 
   // The build settings and the framework's sources the Models compile against: the DSL and the
   // generic realization core, not the tools beside them (export, check, migrate).
@@ -120,3 +122,8 @@ object ModelSources:
   // The framework's core, which builds on its own (framework/dsl/project.scala), with no system's
   // API or Models on its classpath.
   val frameworkCore: Seq[String] = Seq("model/framework/dsl", "model/framework/realize")
+
+// `selectedSources <feature>...`: the sources the selected features compile from, one a line, as the
+// change-scoped check selects them (the migration harness copies them, framework/migrate/prove.sh).
+@main def selectedSources(features: String*): Unit =
+  ModelSources(Tools.here.directory, Some(features.mkString(" "))).sources.foreach(println)

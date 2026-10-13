@@ -38,7 +38,7 @@ object Boundary:
         stream.iterator.asScala
           .filter: path =>
             Files.isRegularFile(path) && path.getFileName.toString.endsWith(".scala") &&
-            !base.relativize(path).iterator.asScala.toSeq.init.exists(p => skipped(p.toString))
+              !base.relativize(path).iterator.asScala.toSeq.init.exists(p => skipped(p.toString))
           .toVector
           .sortBy(_.toString)
       finally stream.close()
@@ -67,16 +67,19 @@ object Boundary:
       val directives = source.linesIterator.zipWithIndex.toVector.flatMap: (line, i) =>
         line.trim match
           case directive(kind, values) =>
-            values.trim.split("\\s+").toVector.flatMap: value =>
-              val target = path.getParent.resolve(value).normalize
-              val inModel = target.startsWith(model)
-              val relative = if inModel then model.relativize(target).toString else value
-              val allowed =
-                if kind == "jar" then inModel && jars(relative)
-                else target.startsWith(framework) || (inModel && shared(relative))
-              Option.unless(allowed)(
-                s"$file:${i + 1}: boundary: the framework's build takes $value, from outside " +
-                  "the framework; it takes no system's jar or source"
-              )
+            values.trim
+              .split("\\s+")
+              .toVector
+              .flatMap: value =>
+                val target = path.getParent.resolve(value).normalize
+                val inModel = target.startsWith(model)
+                val relative = if inModel then model.relativize(target).toString else value
+                val allowed =
+                  if kind == "jar" then inModel && jars(relative)
+                  else target.startsWith(framework) || (inModel && shared(relative))
+                Option.unless(allowed)(
+                  s"$file:${i + 1}: boundary: the framework's build takes $value, from outside " +
+                    "the framework; it takes no system's jar or source"
+                )
           case _ => Vector.empty
       names ++ directives

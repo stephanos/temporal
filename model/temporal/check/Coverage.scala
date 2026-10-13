@@ -207,6 +207,7 @@ object Coverage extends Registry:
       check.and(Area.Framework, Area.Shared, Area.Lifter, Area.Migrate, Area.Make),
     "temporal.check.EqualitySuite" -> check,
     "framework.check.equivalence.EquivalenceSuite" -> check,
+    "framework.check.equivalence.LiftsSuite" -> check,
     "temporal.check.GateEquivalenceOutputsSuite" -> check,
     "temporal.check.GateSuite" -> check,
     // It also holds the repository's framework to its boundary.

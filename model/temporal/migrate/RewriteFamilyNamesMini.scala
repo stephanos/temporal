@@ -8,7 +8,7 @@ import scalafix.internal.v1.Rules
 
 // fn-160.3 on a copied mini: the copy's accepted family names are spelled back to their legacy
 // names and files, then the sweep's recipe runs, the compiled rule over every source and the file
-// moves, and must restore every accepted source byte for byte (prove-mini.sh then lifts it again).
+// moves, and must restore every accepted source byte for byte (prove.sh then lifts it again).
 object RewriteFamilyNamesMini:
   def main(args: Array[String]): Unit =
     require(args.length == 1, "provide the isolated copied-mini protocol directory")

@@ -4,17 +4,16 @@ import java.nio.file.{Files, Path}
 import scala.jdk.CollectionConverters.*
 import Fn167Task4Gaps.*
 
-// fn-167.4: the gap migration on copied mini sources (prove-mini.sh). The acceptance input is
-// `gaps-mini.lint.json`: one hole, and the mini's two capability waivers with the reasons their
-// except/overriding declarations state, read from the copy's own `before` lift. The hole's
+// fn-167.4: the gap migration on copied mini sources (framework/migrate/prove.sh). The acceptance
+// input is `gaps-mini.lint.json`: one hole, and the mini's two capability waivers with the reasons
+// their except/overriding declarations state, read from the copy's own `before` lift. The hole's
 // declaration is resolved here by hand; the IR-backed resolver is fn-167.7's adapter.
 object RewriteGapsMini:
   private val product = "model/temporal/features/activity_mini/product/Product.scala"
 
   def main(args: Array[String]): Unit = args.toList match
-    case List(protocol)           => rewrite(Path.of(protocol).toRealPath())
-    case List("compare", scratch) => compare(Path.of(scratch).toRealPath())
-    case _ => sys.error("provide the copied-mini protocol directory, or `compare <scratch>`")
+    case List(protocol) => rewrite(Path.of(protocol).toRealPath())
+    case _              => sys.error("provide the copied-mini protocol directory")
 
   private def rewrite(protocol: Path): Unit =
     require(
@@ -71,35 +70,8 @@ object RewriteGapsMini:
       val at = before.linesIterator.indexWhere(_.startsWith("object ActivityProduct")) + 1
       val added = text.linesIterator.size - before.linesIterator.size
       Files.writeString(mini.resolve(file), text): Unit
-      Files.writeString(scratch.resolve("gap-insertion.txt"), s"$product $at $added\n"): Unit
+      // The harness compares the lifts under this delta: the positions below the inserted lines
+      // move down by their count, and nothing else changes (Lifts.scala).
+      Files.writeString(scratch.resolve("delta.txt"), s"moved $product $at $added\n"): Unit
       println(s"inserted ${migrated.inserted.head} above line $at of $file (+$added lines)")
     migrated.dropped.foreach(d => println(s"dropped $d"))
-
-  // The after lift equals the before lift but for the positions below the inserted lines, which move
-  // down by their count; the waivers are byte for byte the same.
-  private def compare(scratch: Path): Unit =
-    val Array(file, at, added) =
-      Files.readString(scratch.resolve("gap-insertion.txt")).trim.split(' ')
-    def read(stage: String, name: String) = Files.readString(scratch.resolve(s"$stage/$name"))
-    val after = read("after", "activity-mini.json").linesIterator.toVector
-    val line = "^(\\s*\"line\": )([0-9]+)(,?)$".r
-    val restored = after.indices.map { i =>
-      after(i) match
-        case line(prefix, n, comma)
-            if i > 0 && after(i - 1).contains(s"\"file\": \"$file\"") &&
-              n.toInt >= at.toInt + added.toInt =>
-          s"$prefix${n.toInt - added.toInt}$comma"
-        case other => other
-    }
-    val moved = restored.zip(after).count(_ != _)
-    require(
-      restored.mkString("\n") + "\n" == read("before", "activity-mini.json"),
-      "IR delta beyond moved lines"
-    )
-    require(
-      read("after", "activity-mini.waivers.json") == read("before", "activity-mini.waivers.json")
-    )
-    require(moved > 0, "the insertion must move the positions below it")
-    println(
-      s"PASS: mini IR equal but for $moved positions moved by $added lines below $file:$at; waivers identical"
-    )

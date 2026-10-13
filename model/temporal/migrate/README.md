@@ -1,6 +1,6 @@
 # Model migrations
 
-A rule is temporary and the harness is permanent (owner, 2026-10-12). Keep only rules the owner's sweep has not yet applied: once the sweep applies a rule to the real features, delete the rule, its proof and its section here; git keeps them. The harness (`prove-mini.sh`, the patch fixture and the proof runner) stays, and moves to `model/framework/migrate` with fn-169.
+A rule is temporary and the harness is permanent (owner, 2026-10-12). Keep only rules the owner's sweep has not yet applied: once the sweep applies a rule to the real features, delete the rule, its proof and its section here; git keeps them. The harness stays: `model/framework/migrate/prove.sh` ([its README](../../framework/migrate/README.md)) proves a rule's runner on a copy of the feature `FEATURES` selects (default `activity_mini`) and compares the lifts before and after with `model/framework/check/equivalence` (`Lifts.scala`): byte for byte, or under the delta the runner declares. Each rule, its proof runner (`Rewrite*Mini.scala`) and its suite sit side by side in this folder, package `temporal.migrate`.
 
 DSL changes ship a task-named Scalafix rule under `model/temporal/migrate/`, prove it on copied `activity_mini` sources before the real-feature sweep, and follow `model/temporal/migrate/README.md`; production loading remains held in fn-166.10.
 
@@ -28,7 +28,7 @@ runs the rule there before anything else compiles.
 
 ```sh
 mise exec -- scala-cli test --server=false model/temporal/migrate --test-only temporal.migrate.FamilyNamesTest
-timeout 1800 /bin/bash model/framework/migrate/prove-mini.sh temporal.migrate.RewriteFamilyNamesMini
+FEATURES=activity_mini timeout 1800 model/framework/migrate/prove.sh temporal.migrate.RewriteFamilyNamesMini
 ```
 
 The copied-mini proof spells the accepted names back to their legacy identifiers at their legacy
@@ -83,17 +83,18 @@ declaration that owns it, with the subject constructor of its lint kind, and kee
 
 ```sh
 mise exec -- scala-cli test --server=false model/temporal/migrate --test-only temporal.migrate.GapsSuite
-timeout 1800 /bin/bash model/framework/migrate/prove-mini.sh temporal.migrate.RewriteGapsMini compare
+FEATURES=activity_mini timeout 1800 model/framework/migrate/prove.sh temporal.migrate.RewriteGapsMini
 ```
 
-The copied-mini runner reads `proof/gaps-mini.lint.json` (one unproduced status fact and the
+The copied-mini runner reads `gaps-mini.lint.json` (one unproduced status fact and the
 mini's two capability waivers, with the reasons from the copy's own lift), places the hole on
 `ActivityProduct` by hand, and requires one insertion, two dropped waivers, convergence and
-refusal of a reworded waiver. `prove-mini.sh` now lifts every copy from the copy's own directory,
-so positions and source checks read the copied sources rather than the authored ones (an unchanged
-copy lifts byte for byte as before). The `compare` mode requires the complete mini IR to equal the
-original but for the positions below the insertion in `Product.scala`, which move down by its line
-count; waivers compare byte for byte. Gap metadata is not
+refusal of a reworded waiver. The harness lifts every copy from the copy's own directory, so
+positions and source checks read the copied sources rather than the authored ones (an unchanged
+copy lifts byte for byte as before). The runner declares its delta, `moved <Product.scala> <line>
+<count>`: the complete mini IR must equal the original but for the positions below the insertion
+in `Product.scala`, which move down by its line count, and the move must move a position; waivers
+compare byte for byte. Gap metadata is not
 yet carried in the IR (fn-167.5), so the lift has no other delta. Production loading, IR transport,
 gap-aware lint, real-feature migration and the batch-end broad validation and review remain held.
 
@@ -129,7 +130,7 @@ and compile/lift before accepting the extraction.
 ```sh
 mise exec -- scala-cli test --server=false model/temporal/migrate --test-only temporal.migrate.FacetWrappingTest
 mise exec -- scala-cli test --server=false model/framework/export --test-only framework.export.FacetAdmissionTest
-timeout 600 /bin/bash model/framework/migrate/prove-mini.sh temporal.migrate.RewriteFacetWrappingMini
+FEATURES=activity_mini timeout 600 model/framework/migrate/prove.sh temporal.migrate.RewriteFacetWrappingMini
 ```
 
 The proof actually compiles three copied legacy namespaces against the current API; current
@@ -137,8 +138,9 @@ source admission refuses those inline namespaces without emitting partial IR. It
 claim a legacy accepted lift or normalize its private physical paths. The compiled rule and
 companion operation restore independently captured accepted sources byte for byte, then the
 runner compiles/lifts them and compares complete raw IR and waivers, positions included.
-The permitted accepted-to-restored delta is empty; `check-facet-wrapping-delta.mjs` and its
-independent corruption tests enforce that boundary. Real-source wrapping, production loading,
+The permitted accepted-to-restored delta is empty, which the harness's byte-for-byte comparison
+enforces (the earlier `check-facet-wrapping-delta.mjs` and its corruption tests are retired).
+Real-source wrapping, production loading,
 IR/Go propagation, Cases, live, canonical gates and lint/manual acceptance remain held;
 broad validation and independent review belong to the source batch end.
 
@@ -179,7 +181,7 @@ Resolve ambiguity before changing any declaration and compile/lift the selected 
 
 ```sh
 mise exec -- scala-cli test --server=false model/temporal/migrate --test-only temporal.migrate.InputDefaultsTest
-timeout 600 /bin/bash /Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/migrate/prove-mini.sh temporal.migrate.RewriteInputDefaultsMini
+FEATURES=activity_mini timeout 600 model/framework/migrate/prove.sh temporal.migrate.RewriteInputDefaultsMini
 ```
 
 The copied-mini proof removes the three explicit defaults from actual copied MiniActivity
@@ -213,7 +215,7 @@ opaque catalogs and scalar helpers. Check ranges before wrapping expressions tha
 
 ```sh
 mise exec -- scala-cli test --server=false model/temporal/migrate --test-only temporal.migrate.BoundedIntegersTest
-timeout 600 /bin/bash /Users/stephan/Workspace/skunkworks/umpire/temporal/model/framework/migrate/prove-mini.sh temporal.migrate.RewriteBoundedIntegersMini
+FEATURES=activity_mini timeout 600 model/framework/migrate/prove.sh temporal.migrate.RewriteBoundedIntegersMini
 ```
 
 The copied mini already uses UpTo; its source remains unchanged. A separately labelled scratch
@@ -251,7 +253,7 @@ The authored declaration files already have their current names and are not move
 
 ```sh
 mise exec -- scala-cli test --server=false model/temporal/migrate --test-only temporal.migrate.CapabilityNamesTest
-timeout 600 /bin/bash model/framework/migrate/prove-mini.sh temporal.migrate.RewriteCapabilityNamesMini
+FEATURES=activity_mini timeout 600 model/framework/migrate/prove.sh temporal.migrate.RewriteCapabilityNamesMini
 ```
 
 The copied-mini runner introduces actual legacy imports, constructors and the retry override
@@ -265,7 +267,9 @@ Production loading, real-feature application, consumers, Cases, live, lint/manua
 the single batch-end broad validation/review remain held; this proof grants none of their credit.
 
 Name a rule `Fn<spec>Task<task><Change>.scala`, with the same class and Scalafix rule
-name in `umpire.migrate`. Keep its focused source fixtures in `test/`. Use the existing
+name in `temporal.migrate`. Keep its focused suite beside it (`<Change>.test.scala`) and its
+proof runner `Rewrite<Change>Mini.scala`, which takes its target directory as its argument and
+may declare a delta in the copy's `delta.txt`. Use the existing
 Scalafix 0.14.9 dependency and JDK 25; `project.scala` isolates this rule build from
 the DSL and Models. The public rule API follows the [Scalafix tutorial](https://scalacenter.github.io/scalafix/docs/developers/tutorial.html).
 The fixture applies patches through the version-pinned [Rules.syntacticPatch](https://github.com/scalacenter/scalafix/blob/v0.14.9/scalafix-core/src/main/scala/scalafix/internal/v1/Rules.scala),
@@ -290,15 +294,15 @@ Run from the repository root:
 
 ```sh
 mise exec -- scala-cli test --server=false model/temporal/migrate --test-only temporal.migrate.QueueAliasTest
-timeout 600 /bin/bash model/framework/migrate/prove-mini.sh
+FEATURES=activity_mini timeout 600 model/framework/migrate/prove.sh temporal.migrate.RewriteMini
 ```
 
-The proof creates an ignored unique directory under `.flow/tmp/`, copies the mini,
-the shared framework/kit/foundations/actors and linked API jar, then packages and
-lifts the selected mini. The test runner applies the compiled Scalafix rule to
+The proof creates an ignored unique directory under `.flow/tmp/`, copies the sources the
+selected feature compiles from (the change-scoped check's selection) and the linked API jar, then
+packages and lifts the selected mini. The test runner applies the compiled Scalafix rule to
 both copied queue files and checks that a second application is unchanged. It
 packages and lifts the same source paths again, comparing full `activity-mini.json`
-and waiver bytes with `cmp`, including all declaration identities and positions.
+and waiver bytes (`Lifts.scala`), including all declaration identities and positions.
 Its classpaths replace mutable compilation output with the corresponding frozen
 jar. Logs and both jars/lifts remain in the printed proof directory for inspection.
 It neither recaptures the native batch baseline nor writes generated feature data.
@@ -323,7 +327,7 @@ document atomically with a manual qualified remedy. An ordinary wildcard import 
 
 ```sh
 mise exec -- scala-cli test --server=false model/temporal/migrate --test-only temporal.migrate.QualifiedActionsTest
-timeout 600 /bin/bash model/framework/migrate/prove-mini.sh temporal.migrate.RewriteQualifiedMini
+FEATURES=activity_mini timeout 600 model/framework/migrate/prove.sh temporal.migrate.RewriteQualifiedMini
 ```
 
 The copied-mini runner introduces an imported bare poll into its isolated `Dispatching.scala`,
@@ -347,7 +351,7 @@ actual phase type, followed by removal of the member import.
 
 ```sh
 mise exec -- scala-cli test --server=false model/temporal/migrate --test-only temporal.migrate.QualifiedPhasesTest
-timeout 600 /bin/bash model/framework/migrate/prove-mini.sh temporal.migrate.RewriteQualifiedPhasesMini
+FEATURES=activity_mini timeout 600 model/framework/migrate/prove.sh temporal.migrate.RewriteQualifiedPhasesMini
 ```
 
 The copied-mini runner introduces a renamed phase-member import in its isolated
@@ -377,7 +381,7 @@ The syntactic source harness does not establish arbitrary whole-program/export v
 
 ```sh
 mise exec -- scala-cli test --server=false model/temporal/migrate --test-only temporal.migrate.EntersTest
-timeout 600 /bin/bash model/framework/migrate/prove-mini.sh temporal.migrate.RewriteEntersMini
+FEATURES=activity_mini timeout 600 model/framework/migrate/prove.sh temporal.migrate.RewriteEntersMini
 ```
 
 The runner restores legacy backOff/resume definitions and calls in copied actual Answering,
@@ -389,13 +393,11 @@ inlined rule bodies and explicitly inventoried source positions change while eve
 ordinary declaration, Query budget/total and negative control remains fixed. Production loading,
 real-feature sweep, consumers, Cases and live execution remain held.
 
-`proof/check-enters-delta.mjs` checks the complete authored raw lifts, with two explicitly
-named call expansions and a closed source-coordinate ledger for Answering/AnswerDispatch.
-Every remaining value and declaration order must match. It validates all source positions
-individually and keeps the full raw changes and deleted functions in an evidence ledger;
-it does not globally remove positions or rename strings. `proof/test-enters-delta.mjs`
-requires six independently mutated fact, state, outcome, choice, total and source controls
-to fail. Function-body digests in that ledger are byte identities, not Go Behavior Fingerprints.
+The authored pre/post comparison (`check-enters-delta.mjs`, with two explicitly named call
+expansions and a closed source-coordinate ledger for Answering/AnswerDispatch, and its six
+mutation controls) was that change's own evidence and is retired with fn-169.1 (git keeps it);
+a new comparison of lifts declares its moved lines and renamed identities as a delta to the
+harness's `Lifts.scala` instead of a script of its own.
 
 ## Central bounds: Fn159Task5CentralBounds
 
@@ -418,7 +420,7 @@ An unknown budget requires an explicit Bounds decision before removing it. Keep
 ```sh
 mise exec -- scala-cli test --server=false model/temporal/migrate --test-only temporal.migrate.CentralBoundsTest
 mise exec -- scala-cli test --server=false model/temporal/migrate --test-only temporal.migrate.BoundsInventoryTest
-timeout 600 /bin/bash model/framework/migrate/prove-mini.sh temporal.migrate.RewriteCentralBoundsMini
+FEATURES=activity_mini timeout 600 model/framework/migrate/prove.sh temporal.migrate.RewriteCentralBoundsMini
 ```
 
 The copied-mini runner adds a known local bound only to the isolated Queue Query, applies
@@ -448,7 +450,7 @@ the field path. A full `ActivityExecutionInfo` read selects `info`, not `info.at
 
 ```sh
 mise exec -- scala-cli test --server=false model/temporal/migrate --test-only temporal.migrate.ObservationReadTest
-timeout 600 /bin/bash model/framework/migrate/prove-mini.sh temporal.migrate.RewriteObservationMini
+FEATURES=activity_mini timeout 600 model/framework/migrate/prove.sh temporal.migrate.RewriteObservationMini
 ```
 
 The mini has no authored Observation. Its copied-source proof adds a separate scratch
