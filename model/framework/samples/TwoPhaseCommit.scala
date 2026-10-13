@@ -9,6 +9,11 @@ import framework.dsl.Finite.given
 // manager, which commits once every one of them has prepared, or aborts at any time before; a
 // resource manager may also abort on its own while it still works. Messages are never lost and
 // never consumed, so the network is the set of messages ever sent.
+//
+// TODO: model after two_phase_commit_modules.qnt in the same directory instead, which splits the
+// state into message, resource manager and transaction manager modules: a composition of three
+// members. It waits on bounded collections and on syncs that pair equal inputs; today a sync pairs
+// every input of one member with every input of the other.
 object TwoPhaseCommit:
   enum ResourceManager:
     case rm1, rm2, rm3
@@ -245,19 +250,6 @@ object TwoPhaseCommit:
         where(_.tmState == TransactionManagerState.init) ~> effects.decideOnAbort
       )
 
-    object properties:
-
-      object liveness:
-        val fairCommits = assume.fair(rm.commit)
-        // once the transaction manager commits, every resource manager commits within three steps
-        val commitReachesEveryone: Progress[Transaction] =
-          Model.leadsTo("commitReachesEveryone")(
-            _.tmState == TransactionManagerState.committed,
-            allCommitted,
-            within = 3,
-            fairCommits
-          )
-
   // A transaction manager that commits once any one resource manager has prepared.
   object EagerCommit
       extends Derived(
@@ -280,6 +272,16 @@ object TwoPhaseCommit:
     Model.property.when(rm.commit(ResourceManager.rm3)) holds { after =>
       allCommitted(after.state)
     }
+
+  val fairCommits = assume.fair(rm.commit)
+  // once the transaction manager commits, every resource manager commits within three steps
+  val commitReachesEveryone: Progress[Transaction] =
+    Model.leadsTo("commitReachesEveryone")(
+      _.tmState == TransactionManagerState.committed,
+      allCommitted,
+      within = 3,
+      fairCommits
+    )
 
   val anyRun: Scenario[Transaction] = Model.scenario.starts(Model.init).free
   val anyEagerRun: Scenario[Transaction] = EagerCommit.scenario.starts(Model.init).free

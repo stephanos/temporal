@@ -44,3 +44,15 @@ class SamplesSuite extends munit.FunSuite:
     assert(
       Files.readString(output.resolve("check-samples.go")).contains("umpirespb.Query_FORM_VERIFY")
     )
+
+  test("a sample's progress claims are the Progress vals its object declares as members"):
+    val source =
+      """object Tanks:
+        |  val fair = assume.fair(pump.run)
+        |  val drains: Progress[Tank] = Model.leadsTo("drains")(_.full, _.empty, within = 2, fair)
+        |  object Model extends Machine[Tank, Outcome, Nothing]:
+        |    val nested: Progress[Tank] = leadsTo("nested")(_.full, _.empty, within = 1)
+        |  val fills: Progress[Tank] =
+        |    Model.leadsTo("fills")(_.empty, _.full, within = 2, fair)
+        |""".stripMargin
+    assertEquals(Samples.progressClaims(source), Vector("drains", "fills"))

@@ -1,12 +1,20 @@
 // Discovers the framework's one-file samples and checks the complete source-to-answer path. A
 // sample is its source filename and an object of the same name whose `queries` section is the lift
-// root; adding a file therefore adds it to this check without another registry.
+// root, with every progress claim the object declares as its own member (`val name: Progress[S] =
+// ...`), since no list of Queries holds one; adding a file therefore adds it to this check without
+// another registry.
 package framework.check
 
 import java.nio.file.{Files, Path}
 import scala.jdk.CollectionConverters.*
 
-final case class Sample(name: String, source: Path, root: String, ir: Path)
+final case class Sample(
+    name: String,
+    source: Path,
+    root: String,
+    ir: Path,
+    progress: Vector[String] = Vector.empty
+)
 
 object Samples:
   private val checker =
@@ -60,8 +68,13 @@ object Samples:
       |      }
       |      checked++
       |    }
+      |    progress := map[string]bool{}
       |    for _, receipt := range report.Receipts {
-      |      if receipt.Subject == check.ProgressSubject && receipt.Kind != check.Verified {
+      |      if receipt.Subject != check.ProgressSubject {
+      |        continue
+      |      }
+      |      progress[receipt.Key.Owner+"."+receipt.Key.Name] = true
+      |      if receipt.Kind != check.Verified {
       |        fmt.Fprintf(os.Stderr, "%s: progress %s %s: got %s, want %s (%s)\n",
       |          path, receipt.Key.Owner, receipt.Key.Name, receipt.Kind, check.Verified,
       |          receipt.Explanation)
@@ -72,7 +85,8 @@ object Samples:
       |      fmt.Fprintf(os.Stderr, "%s: no Query to check\n", path)
       |      failed = true
       |    } else {
-      |      fmt.Printf("%s: checked %d Queries (%d negative controls)\n", path, checked, refuted)
+      |      fmt.Printf("%s: checked %d Queries (%d negative controls) and %d progress claims\n",
+      |        path, checked, refuted, len(progress))
       |    }
       |  }
       |  if failed { os.Exit(1) }
@@ -103,8 +117,13 @@ object Samples:
         name,
         source,
         s"samples.$name$$.queries",
-        output.resolve(name + ".json")
+        output.resolve(name + ".json"),
+        progressClaims(Files.readString(source)).map(claim => s"samples.$name$$.$claim")
       )
+
+  // The progress claims a sample object declares as its own members, at its body's indentation.
+  private[check] def progressClaims(source: String): Vector[String] =
+    """(?m)^  val (\w+): Progress\[""".r.findAllMatchIn(source).map(_.group(1)).toVector
 
   def check(tools: Tools, output: Path): Vector[Sample] =
     val root = tools.directory
@@ -140,7 +159,7 @@ object Samples:
             classpath.toString,
             sample.ir.toString,
             sample.root
-          )
+          ) ++ sample.progress
         )
         .orFail(): Unit
       if !Files.isRegularFile(sample.ir) then

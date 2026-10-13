@@ -637,11 +637,15 @@ For a run that defers lint, `MODEL_GATE_ARGS=--skip-lint` skips IR and Scala
 syntax/style lint while retaining the fresh-IR Go reader and lowering checks;
 the default loop still runs lint.
 
-Start with the framework-only, one-file samples: [Kettle](framework/samples/Kettle.scala) is one
-machine with internal steps, safety Properties, a witness and a negative control;
+Start with the framework-only, one-file samples, in order: [Kettle](framework/samples/Kettle.scala)
+is one machine with internal steps, safety Properties, a witness and a negative control;
 [Bank](framework/samples/Bank.scala) adds action inputs, rejecting outcomes and a derived negative
 control; [TwoPhaseCommit](framework/samples/TwoPhaseCommit.scala) adds a message set, a fairness
-assumption and a progress claim. They compile, lift and check without
+assumption and a progress claim; [TwoLayeredCache](framework/samples/TwoLayeredCache.scala) adds a
+timer, facts and monitors that remember history; [ReliableBroadcast](framework/samples/ReliableBroadcast.scala)
+adds a channel, a fault under a FailureModel and a monitor read at ends; and
+[Voting](framework/samples/Voting.scala) refines Consensus and reads a Consensus Property through the
+refinement. Each one's header links the specification it is modelled after. They compile, lift and check without
 the system Models or API. The smallest complete running system example remains
 [activity_mini](temporal/features/activity_mini/MiniActivity.scala).
 Read its three levels in order: [Product](temporal/features/activity_mini/product/Product.scala),

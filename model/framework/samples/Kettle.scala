@@ -51,18 +51,18 @@ object Kettle:
     object effects:
       // turn on the heating element
       def pressButton(state: Snapshot) =
-        enter[Snapshot, Kettle.Outcome, Nothing](state.copy(heatingOn = true, beeping = false))
+        enter(state.copy(heatingOn = true, beeping = false))
       // turn off the kettle when the temperature is too high
       def failover(state: Snapshot) =
-        enter[Snapshot, Kettle.Outcome, Nothing](state.copy(heatingOn = false, beeping = true))
+        enter(state.copy(heatingOn = false, beeping = true))
       // heat up the water by 1C
       def heat(state: Snapshot) =
-        enter[Snapshot, Kettle.Outcome, Nothing](
+        enter(
           state.copy(reading = UpTo(state.reading + 1), heatingOn = true, beeping = false)
         )
       // turn off the heating element
       def depressButton(state: Snapshot) =
-        enter[Snapshot, Kettle.Outcome, Nothing](state.copy(heatingOn = false, beeping = false))
+        enter(state.copy(heatingOn = false, beeping = false))
 
     // one step of the state machine: any enabled action
     object rules extends Rules:
