@@ -128,10 +128,12 @@ func TestStrictDecodeRetainsQualificationDepthLimit(t *testing.T) {
 		name       string
 		depth      int
 		emptyValue bool
+		invalid    bool
 		fail       bool
 	}{
 		{name: "edge", depth: 128},
 		{name: "overflow", depth: 129, fail: true},
+		{name: "malformed-overflow", depth: 129, invalid: true, fail: true},
 		{name: "empty-container-edge", depth: 129, emptyValue: true},
 		{name: "empty-container-overflow", depth: 130, emptyValue: true, fail: true},
 	} {
@@ -139,6 +141,8 @@ func TestStrictDecodeRetainsQualificationDepthLimit(t *testing.T) {
 			leaf := "0"
 			if test.emptyValue {
 				leaf = ""
+			} else if test.invalid {
+				leaf = "|"
 			}
 			data := []byte(strings.Repeat("[", test.depth) + leaf + strings.Repeat("]", test.depth))
 			var value any

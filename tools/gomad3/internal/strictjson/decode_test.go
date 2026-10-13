@@ -130,6 +130,7 @@ func TestCheckSyntaxPreservesLibraryErrorsAndCallerDepth(t *testing.T) {
 		want  error
 	}{
 		{name: "depth", input: []byte(`{"open":{"nested":true}}`), limit: 1, want: ErrNestingLimit},
+		{name: "depth before malformed child", input: []byte(strings.Repeat("[", 33) + "|" + strings.Repeat("]", 33)), limit: 32, want: ErrNestingLimit},
 		{name: "duplicate", input: []byte(`{"open":1,"open":2}`), want: ErrDuplicateName},
 		{name: "trailing", input: []byte(`{} {}`), want: ErrTrailingData},
 		{name: "malformed trailing", input: []byte(`{} |`), want: ErrTrailingData},
