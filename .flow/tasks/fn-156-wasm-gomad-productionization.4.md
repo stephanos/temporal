@@ -20,9 +20,10 @@ Typed full-stream helper/protocol integration is serialized with the helper owne
 Original fn-151 Phase 7 exit gate.
 
 ## Done summary
-TBD
+Named Temporal network reset/retry with exact replay passes on 9d6012b52b.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 9d6012b52b
+- Tests: TestTemporalNetworkNamedResetRetriesAndExactReplay, evidence: .flow/artifacts/wasm-section-acceptance-2026-10-12.md
 - PRs:
