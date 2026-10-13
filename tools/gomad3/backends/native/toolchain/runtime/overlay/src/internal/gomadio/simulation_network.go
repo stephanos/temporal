@@ -14,6 +14,7 @@ import (
 	"sort"
 	"sync"
 	"syscall"
+	"time"
 	_ "unsafe"
 
 	"internal/gomadsim"
@@ -146,6 +147,7 @@ type simulationConnection struct {
 	serverState *connState
 	closed      bool
 	reset       bool
+	reserved    bool
 }
 
 type simulationDelivery struct {
@@ -178,6 +180,7 @@ type simulationNetwork struct {
 	divergence      *simulationBridgeError
 	changed         chan struct{}
 	finished        bool
+	historyReserved uint64
 }
 
 var simulationNetworkState = struct {
@@ -503,7 +506,9 @@ func (network *simulationNetwork) dial(ctx context.Context, networkName, host st
 		serverAddress := listener.address
 		client := &simulationConn{pairedConn: pairedConn{local: clientAddress, remote: serverAddress, state: clientState, peer: serverState, owner: clientEndpoint, target: serverEndpoint, network: network, identity: identity}}
 		server := &simulationConn{pairedConn: pairedConn{local: serverAddress, remote: clientAddress, state: serverState, peer: clientState, owner: serverEndpoint, target: clientEndpoint, network: network, identity: identity}}
-		network.connections[identity] = &simulationConnection{identity: identity, client: clientEndpoint, server: serverEndpoint, clientState: clientState, serverState: serverState}
+		pair := &simulationConnection{identity: identity, client: clientEndpoint, server: serverEndpoint, clientState: clientState, serverState: serverState}
+		clientState.shared.pair = pair
+		network.connections[identity] = pair
 		listener.pending = append(listener.pending, server)
 		listener.signal()
 		listener.mu.Unlock()
@@ -649,9 +654,6 @@ func (network *simulationNetwork) changeLink(from, to, kind string, enabled bool
 		DelayNanos:  delayNanos,
 		Outcome:     "ok",
 	}
-	if err := network.commitTransitionLocked(transition); err != nil {
-		return err
-	}
 	switch kind {
 	case "disconnect", "reconnect":
 		link.Enabled = enabled
@@ -660,9 +662,7 @@ func (network *simulationNetwork) changeLink(from, to, kind string, enabled bool
 	default:
 		return ErrUnsupported
 	}
-	network.links[key] = link
-	network.signalLocked()
-	return nil
+	return network.applyLinksLocked(map[string]simulationLink{key: link}, []simulationTransition{transition})
 }
 
 func (network *simulationNetwork) changeGroup(left, right []string, enabled bool) error {
@@ -687,51 +687,23 @@ func (network *simulationNetwork) changeGroup(left, right []string, enabled bool
 			}
 		}
 	}
-	required := uint64(len(left) * len(right))
-	if uint64(len(network.transitions))+required > network.limits.Transitions {
-		return ErrResourceExhausted
-	}
 	kind := "partition"
 	if enabled {
 		kind = "heal"
 	}
-	transitions := make([]simulationTransition, 0, required)
+	var transitions []simulationTransition
+	changes := make(map[string]simulationLink)
 	for _, leftNode := range left {
 		for _, rightNode := range right {
-			transitions = append(transitions, simulationTransition{
-				Kind:        kind,
-				Source:      simulationEndpoint{Node: leftNode, Address: network.nodes[leftNode].address},
-				Destination: simulationEndpoint{Node: rightNode, Address: network.nodes[rightNode].address},
-				Count:       2, Outcome: "ok",
-			})
+			transitions = append(transitions, simulationTransition{Kind: kind, Source: simulationEndpoint{Node: leftNode, Address: network.nodes[leftNode].address}, Destination: simulationEndpoint{Node: rightNode, Address: network.nodes[rightNode].address}, Count: 2, Outcome: "ok"})
+			for _, key := range []string{simulationLinkKey(leftNode, rightNode), simulationLinkKey(rightNode, leftNode)} {
+				link := network.links[key]
+				link.Enabled = enabled
+				changes[key] = link
+			}
 		}
 	}
-	start := len(network.transitions)
-	replayNext := make(map[string]int, len(network.replayNext))
-	for lane, next := range network.replayNext {
-		replayNext[lane] = next
-	}
-	for _, transition := range transitions {
-		if err := network.commitTransitionLocked(transition); err != nil {
-			network.transitions = network.transitions[:start]
-			network.replayNext = replayNext
-			return err
-		}
-	}
-	for _, leftNode := range left {
-		for _, rightNode := range right {
-			forwardKey := simulationLinkKey(leftNode, rightNode)
-			reverseKey := simulationLinkKey(rightNode, leftNode)
-			forward := network.links[forwardKey]
-			reverse := network.links[reverseKey]
-			forward.Enabled = enabled
-			reverse.Enabled = enabled
-			network.links[forwardKey] = forward
-			network.links[reverseKey] = reverse
-		}
-	}
-	network.signalLocked()
-	return nil
+	return network.applyLinksLocked(changes, transitions)
 }
 
 func validSimulationNodeGroup(nodes []string) bool {
@@ -767,9 +739,6 @@ func (network *simulationNetwork) changePair(left, right, kind string, enabled b
 		DelayNanos:  delayNanos,
 		Outcome:     "ok",
 	}
-	if err := network.commitTransitionLocked(transition); err != nil {
-		return err
-	}
 	switch kind {
 	case "partition", "heal":
 		forward.Enabled = enabled
@@ -780,10 +749,7 @@ func (network *simulationNetwork) changePair(left, right, kind string, enabled b
 	default:
 		return ErrUnsupported
 	}
-	network.links[forwardKey] = forward
-	network.links[reverseKey] = reverse
-	network.signalLocked()
-	return nil
+	return network.applyLinksLocked(map[string]simulationLink{forwardKey: forward, reverseKey: reverse}, []simulationTransition{transition})
 }
 
 func (network *simulationNetwork) revoke(domain gomadsim.NetworkDomain, graceful bool) error {
@@ -876,6 +842,12 @@ func (network *simulationNetwork) dropStateDeliveriesLocked(state *connState) {
 	state.retainedBytes = 0
 	state.pending = nil
 	state.incoming = nil
+	state.stalled = false
+	state.stallEpoch++
+	if pair := state.shared.pair; pair != nil && pair.reserved && !pair.clientState.stalled && !pair.serverState.stalled {
+		pair.reserved = false
+		network.historyReserved--
+	}
 }
 
 func (network *simulationNetwork) finish() (simulationRecord, error) {
@@ -975,7 +947,7 @@ func (network *simulationNetwork) commitTransitionLocked(transition simulationTr
 		return errors.New("simulation network transition is invalid")
 	}
 	ordinal := uint64(len(network.transitions))
-	if ordinal >= network.limits.Transitions {
+	if ordinal+network.historyReserved >= network.limits.Transitions {
 		return ErrResourceExhausted
 	}
 	if network.replay != nil {
@@ -1010,6 +982,29 @@ func sameSimulationTransition(left, right simulationTransition) bool {
 	left.Ordinal = 0
 	right.Ordinal = 0
 	return left == right
+}
+
+func (network *simulationNetwork) commitBatchLocked(transitions []simulationTransition, reserve, release uint64) error {
+	if release > network.historyReserved || uint64(len(network.transitions))+uint64(len(transitions))+network.historyReserved-release+reserve > network.limits.Transitions {
+		return ErrResourceExhausted
+	}
+	start := len(network.transitions)
+	priorReserved := network.historyReserved
+	priorReplay := make(map[string]int, len(network.replayNext))
+	for lane, next := range network.replayNext {
+		priorReplay[lane] = next
+	}
+	network.historyReserved += reserve
+	network.historyReserved -= release
+	for _, transition := range transitions {
+		if err := network.commitTransitionLocked(transition); err != nil {
+			network.transitions = network.transitions[:start]
+			network.historyReserved = priorReserved
+			network.replayNext = priorReplay
+			return err
+		}
+	}
+	return nil
 }
 
 func canonicalizeSimulationTransitions(transitions []simulationTransition) {
@@ -1099,4 +1094,91 @@ func sameSimulationIncarnation(left, right simulationEndpoint) bool {
 func (network *simulationNetwork) signalLocked() {
 	close(network.changed)
 	network.changed = make(chan struct{})
+}
+
+type simulationStallChange struct {
+	state   *connState
+	stalled bool
+	due     time.Time
+	ready   time.Time
+}
+
+func (network *simulationNetwork) applyLinksLocked(changes map[string]simulationLink, transitions []simulationTransition) error {
+	var plans []simulationStallChange
+	var reserve, release uint64
+	nextReservations := make(map[*simulationConnection]bool)
+	now := network.nowTime()
+	for _, pair := range network.connections {
+		if pair.closed || pair.reset {
+			continue
+		}
+		needsReservation := false
+		for _, direction := range []struct {
+			state    *connState
+			from, to string
+		}{{pair.clientState, pair.server.Node, pair.client.Node}, {pair.serverState, pair.client.Node, pair.server.Node}} {
+			key := simulationLinkKey(direction.from, direction.to)
+			prior := network.links[key]
+			next := prior
+			if changed, ok := changes[key]; ok {
+				next = changed
+			}
+			stalled := !next.Enabled && len(direction.state.incoming) != 0
+			plan := simulationStallChange{state: direction.state, stalled: stalled, due: direction.state.stallDue}
+			if stalled && !direction.state.stalled {
+				var err error
+				plan.due, err = strictNetworkStallDeadline(now, network.limits.StallNanos)
+				if err != nil {
+					return err
+				}
+			}
+			if !prior.Enabled && next.Enabled && len(direction.state.incoming) != 0 {
+				var err error
+				plan.ready, err = checkedNetworkReadyTime(now, next.DelayNanos)
+				if err != nil {
+					return err
+				}
+			}
+			plans = append(plans, plan)
+			needsReservation = needsReservation || stalled
+		}
+		nextReservations[pair] = needsReservation
+		if needsReservation && !pair.reserved {
+			reserve++
+		}
+		if !needsReservation && pair.reserved {
+			release++
+		}
+	}
+	if err := network.commitBatchLocked(transitions, reserve, release); err != nil {
+		return err
+	}
+	for key, link := range changes {
+		network.links[key] = link
+	}
+	for pair, reserved := range nextReservations {
+		pair.reserved = reserved
+	}
+	for _, plan := range plans {
+		state := plan.state
+		if state.stalled != plan.stalled {
+			state.stallEpoch++
+			state.stalled = plan.stalled
+			if plan.stalled {
+				state.stallStart = now
+				state.stallDue = plan.due
+			} else {
+				state.stallStart = time.Time{}
+				state.stallDue = time.Time{}
+			}
+		}
+		if !plan.ready.IsZero() {
+			for index := range state.incoming {
+				state.incoming[index].ready = plan.ready
+			}
+		}
+		state.shared.signal()
+	}
+	network.signalLocked()
+	return nil
 }

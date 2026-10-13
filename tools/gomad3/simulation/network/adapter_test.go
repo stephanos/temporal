@@ -172,19 +172,19 @@ func TestStreamDelayDrainHalfClose(t *testing.T) {
 	}
 }
 
-func TestPartitionQueuedDrainBlockedDialCancelAndHeal(t *testing.T) {
+func TestPartitionQueuedHoldBlockedDialCancelAndHeal(t *testing.T) {
 	m, a, b := testModel(t, testLimits())
 	l, c, s := pair(t, m, a, b)
 	m.Dispatch(Request{Domain: a, Op: "write", Handle: c, RequestID: 4, Bytes: []byte("queued")})
 	if err := m.Partition("a", "b", true); err != nil {
 		t.Fatal(err)
 	}
-	w := m.Dispatch(Request{Domain: a, Op: "write", Handle: c, RequestID: 5, Bytes: []byte("dropped")})
-	if w.Error != "" || w.Count != 7 {
+	w := m.Dispatch(Request{Domain: a, Op: "write", Handle: c, RequestID: 5, Bytes: []byte("held")})
+	if w.Error != "" || w.Count != 4 {
 		t.Fatal(w)
 	}
 	r := m.Dispatch(Request{Domain: b, Op: "read", Handle: s, RequestID: 6, Count: 64})
-	if string(r.Bytes) != "queued" {
+	if r.State != "pending" {
 		t.Fatal(r)
 	}
 	d := m.Dispatch(Request{Domain: a, Op: "dial", Host: b.Address, Port: m.handles[l].listener.Address().Port, RequestID: 7, Deadline: 20})
@@ -205,11 +205,17 @@ func TestPartitionQueuedDrainBlockedDialCancelAndHeal(t *testing.T) {
 	if err := m.Heal("a", "b", true); err != nil {
 		t.Fatal(err)
 	}
-	if ids := m.Ready(); !reflect.DeepEqual(ids, []uint64{8}) {
+	if ids := m.Ready(); !reflect.DeepEqual(ids, []uint64{6, 8}) {
 		t.Fatal(ids)
 	}
 	if d = m.Dispatch(Request{Domain: a, Op: "poll", RequestID: 8}); d.Error != "" || d.Handle == 0 {
 		t.Fatal(d)
+	}
+	if r = m.Dispatch(Request{Domain: b, Op: "poll", RequestID: 6}); string(r.Bytes) != "queued" {
+		t.Fatal(r)
+	}
+	if r = m.Dispatch(Request{Domain: b, Op: "read", Handle: s, RequestID: 9, Count: 64}); string(r.Bytes) != "held" {
+		t.Fatal(r)
 	}
 }
 

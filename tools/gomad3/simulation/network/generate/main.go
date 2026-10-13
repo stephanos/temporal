@@ -127,7 +127,7 @@ func generate(root string) ([]byte, error) {
 				}
 			case *ast.FuncDecl:
 				include = name != "network.go"
-				if name == "network_connection.go" && declaration.Name.Name == "descriptorNoticesLocked" {
+				if name == "network_connection.go" && (declaration.Name.Name == "descriptorNoticesLocked" || declaration.Name.Name == "nowTime" && receiverType(declaration) == "simulationNetwork") {
 					include = false
 				}
 				if name == "simulation_network.go" && declaration.Recv == nil && nativeBridges[declaration.Name.Name] {

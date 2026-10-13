@@ -7,6 +7,7 @@ package gomadio
 import (
 	"internal/gomadvfd"
 	"io"
+	"math"
 	"os"
 	"sync"
 	"time"
@@ -31,6 +32,10 @@ type connState struct {
 	pending       []byte
 	retainedBytes uint64
 	closeCalled   bool
+	stalled       bool
+	stallStart    time.Time
+	stallDue      time.Time
+	stallEpoch    uint64
 	readClosed    bool
 	writeClosed   bool
 	readDeadline  time.Time
@@ -41,6 +46,7 @@ type connState struct {
 type connShared struct {
 	sync.Mutex
 	changed chan struct{}
+	pair    *simulationConnection
 }
 
 type networkChunk struct {
@@ -277,6 +283,9 @@ func (connection *pairedConn) tryReadLocked(destination []byte) (int, error, tim
 	}
 	if len(connection.state.pending) == 0 && len(connection.state.incoming) != 0 {
 		chunk := connection.state.incoming[0]
+		if connection.network != nil && !connection.network.links[simulationLinkKey(chunk.source.Node, chunk.destination.Node)].Enabled {
+			return 0, errNetworkWouldBlock, time.Time{}, false
+		}
 		if connection.nowTime().Before(chunk.ready) {
 			return 0, errNetworkWouldBlock, chunk.ready, false
 		}
@@ -330,10 +339,10 @@ func (connection *pairedConn) tryWriteLocked(source []byte) (int, error) {
 		link, ok := connection.network.links[simulationLinkKey(connection.owner.Node, connection.target.Node)]
 		outcome := "ok"
 		if !ok || !link.Enabled {
-			outcome = "partition_drop"
+			outcome = "held"
 		}
 		transition := simulationTransition{Kind: "write", Source: connection.owner, Destination: connection.target, Connection: connection.identity, Bytes: uint64(length), DelayNanos: link.DelayNanos, Outcome: outcome, PayloadSHA256: simulationPayloadSHA256(source[:length])}
-		if outcome == "ok" && (uint64(len(connection.network.deliveries)) >= connection.network.limits.Deliveries || uint64(length) > connection.network.limits.Bytes-connection.network.pendingBytes) {
+		if uint64(len(connection.network.deliveries)) >= connection.network.limits.Deliveries || uint64(length) > connection.network.limits.Bytes-connection.network.pendingBytes {
 			transition.Outcome = "capacity"
 			if err := connection.network.commitTransitionLocked(transition); err != nil {
 				return 0, err
@@ -341,19 +350,39 @@ func (connection *pairedConn) tryWriteLocked(source []byte) (int, error) {
 			return 0, ErrResourceExhausted
 		}
 		delivery := connection.network.nextDelivery + 1
+		ready, err := checkedNetworkReadyTime(connection.nowTime(), link.DelayNanos)
+		if err != nil {
+			return 0, err
+		}
 		transition.Delivery = delivery
-		if err := connection.network.commitTransitionLocked(transition); err != nil {
+		var reservation uint64
+		var due time.Time
+		if outcome == "held" && !connection.peer.stalled {
+			var err error
+			due, err = strictNetworkStallDeadline(connection.nowTime(), connection.network.limits.StallNanos)
+			if err != nil {
+				return 0, err
+			}
+			if !connection.state.shared.pair.reserved {
+				reservation = 1
+			}
+		}
+		if err := connection.network.commitBatchLocked([]simulationTransition{transition}, reservation, 0); err != nil {
 			return 0, err
 		}
 		connection.network.nextDelivery = delivery
-		if outcome == "partition_drop" {
-			return length, nil
+		if outcome == "held" && !connection.peer.stalled {
+			connection.peer.stalled = true
+			connection.peer.stallStart = connection.nowTime()
+			connection.peer.stallDue = due
+			connection.peer.stallEpoch++
+			connection.state.shared.pair.reserved = true
 		}
 		chunk.identity = delivery
 		chunk.connection = connection.identity
 		chunk.source = connection.owner
 		chunk.destination = connection.target
-		chunk.ready = connection.nowTime().Add(time.Duration(link.DelayNanos))
+		chunk.ready = ready
 		chunk.delayNanos = link.DelayNanos
 		connection.network.deliveries[delivery] = simulationDelivery{identity: delivery, connection: connection.identity, source: connection.owner, destination: connection.target, bytes: uint64(length), delayNanos: link.DelayNanos}
 		connection.network.pendingBytes += uint64(length)
@@ -384,3 +413,19 @@ func (connection *pairedConn) shutdownLocked(read, write bool) {
 func (connection *pairedConn) descriptorNoticesLocked() []gomadvfd.Notice {
 	return []gomadvfd.Notice{connection.state.descriptor.notice('r'), connection.state.descriptor.notice('w'), connection.peer.descriptor.notice('r'), connection.peer.descriptor.notice('w')}
 }
+
+func strictNetworkStallDeadline(start time.Time, limit uint64) (time.Time, error) {
+	if limit == 0 || limit > math.MaxInt64-1 || start.UnixNano() < 0 || uint64(start.UnixNano()) > uint64(math.MaxInt64)-limit-1 {
+		return time.Time{}, ErrUnsupported
+	}
+	return start.Add(time.Duration(limit) + 1), nil
+}
+
+func checkedNetworkReadyTime(start time.Time, delay uint64) (time.Time, error) {
+	if delay > math.MaxInt64 || start.UnixNano() < 0 || uint64(start.UnixNano()) > uint64(math.MaxInt64)-delay {
+		return time.Time{}, ErrUnsupported
+	}
+	return start.Add(time.Duration(delay)), nil
+}
+
+func (network *simulationNetwork) nowTime() time.Time { return time.Now() }
