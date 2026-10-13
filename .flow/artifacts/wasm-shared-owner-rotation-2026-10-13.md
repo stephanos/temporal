@@ -162,6 +162,40 @@ definitions; no independent native process JSON decoder exists.
 
 ## Verification and remaining work
 
+### Integrated network-history checkpoint
+
+`126ba41fee` integrates the framed and divided payload-replay fixtures;
+`5ee4a93d58` integrates fn154.8's 45-file payload-free history migration;
+`f28b1bbdaa` joins contract documentation. Worker details and exact source
+checks are in `/tmp/fn154-connection-summary.md` and
+`/tmp/fn154-connection-evidence.json`. NC3/NR2/NE2, simulation v8, network
+model v5 and network digests v3 replace their affected earlier contracts.
+Generic I/O and volume payload hashes retain their separate owners.
+
+On integrated `18e5cf42b4`, the combined WASI model pin is
+`sha256:b30ccfcaec96690e0624d105d77b5693981787181354a39cd6ac46a44f7c387a`.
+The previous pin failed before this intentional source rotation; the identity
+and missing-source/strict-JSON binding tests now pass. Integrated full network,
+projection generator, protocol, Record, artifact and exploration tests exit 0.
+All-platform architecture exits 0 in 80.151 s, purity in 7.422 s; full generated,
+overlay, script, compatibility-pack and qualification-manifest validation
+exits 0. The full shared clock suite exits 0.
+
+The broad native execution selector exits 1 because the replay fixture cannot
+find `.toolchain/bin/go`. The narrower TCP-conformance command exits 0 but
+its test explicitly skips unsupported linux/arm64; it supplies no TCP/native
+conformance proof. Supported native execution remains open. Framed registration
+and the late-full-close contract clarification are a serialized follow-up;
+fn154.9/.10 now have an isolated conformance source owner, with native acceptance
+unchanged. No final helper rebuild or WASM qualification is claimed here.
+
+`156c633d2c` carries current fn172/fn173 plans and starts the independent
+profiling/preparation lanes. One helper owner implements fn172.1 and fn173.1;
+a disjoint Go owner implements fn172.2's parser/driver against their agreed
+provisional API. Diagnostic-only GuestProfiler dependencies are owner-approved.
+Sampler evidence equality and required Darwin measurements remain actual gates;
+dependent cache changes are not admitted past fn173's early proof yet.
+
 Stock Go is 1.27.1 on linux/arm64. Tests use `-tags test_dep -count=1`.
 Earlier integrated World/Record/strictjson/hostfs/minimizer, protocol generation,
 network/model projections, portable simulator, both-platform architecture and
