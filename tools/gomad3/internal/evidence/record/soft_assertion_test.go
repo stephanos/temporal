@@ -3,7 +3,7 @@ package record
 import (
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/record/softassert"
+	"go.temporal.io/server/tools/gomad3/internal/evidence/record/softassert"
 )
 
 func TestSoftAssertionLiteralBracesKeepDistinctSignatures(t *testing.T) {

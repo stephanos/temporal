@@ -617,17 +617,29 @@ func isolatedSimulationCampaign(t *testing.T) CampaignSpec {
 	return config
 }
 
-// simulationTarget is the root module's Simulation fixture. It is prepared in
-// the default closure capability mode from the repository root, the only
-// module whose tools/gomad3/internal/model/cluster bridges capability review admits.
+func TestSimulationCampaignTargetResolvesInGomadModule(t *testing.T) {
+	spec := simulationTarget(t)
+	command := exec.CommandContext(t.Context(), "go", "list", "-mod=readonly", "-tags", strings.Join(spec.BuildTags, ","), "-f", "{{.Module.Path}}|{{.ImportPath}}", spec.Source)
+	command.Dir = spec.WorkingDir
+	command.Env = append(os.Environ(), "GOTOOLCHAIN=local", "GOWORK=off", "GOFLAGS=")
+	output, err := command.CombinedOutput()
+	if err != nil {
+		t.Fatalf("resolve simulation campaign target: %v: %s", err, output)
+	}
+	const expected = "go.temporal.io/server/tools/gomad3|go.temporal.io/server/tools/gomad3/internal/model/cluster/testdata/simulation_exploration"
+	if strings.TrimSpace(string(output)) != expected {
+		t.Fatalf("simulation campaign target ownership = %q, want %q", output, expected)
+	}
+}
+
 func simulationTarget(t *testing.T) target.Spec {
 	t.Helper()
-	workingDir, err := filepath.Abs(filepath.Join("..", "..", ".."))
+	workingDir, err := filepath.Abs(filepath.Join("..", ".."))
 	if err != nil {
 		t.Fatal(err)
 	}
 	return target.Spec{
-		Kind: target.KindGoRun, Source: "./tools/gomad3/internal/model/cluster/testdata/simulation_exploration", WorkingDir: workingDir,
+		Kind: target.KindGoRun, Source: "./internal/model/cluster/testdata/simulation_exploration", WorkingDir: workingDir,
 		BuildTags: []string{"gomad3_toolchain"}, ToolchainRoot: toolchainRoot(t),
 	}
 }

@@ -4,7 +4,9 @@ import (
 	"context"
 	"crypto/sha256"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -14,15 +16,35 @@ import (
 	"go.temporal.io/server/tools/gomad3/internal/backends/target"
 )
 
-func TestSimulationReplayPayloadDivergence(t *testing.T) {
-	root, err := filepath.Abs(filepath.Join("..", "..", "..", "..", "..", ".."))
+func simulationReplayTarget(t *testing.T) target.Spec {
+	t.Helper()
+	root, err := filepath.Abs(filepath.Join("..", "..", "..", ".."))
 	if err != nil {
 		t.Fatal(err)
 	}
-	prepared, err := nativebuild.Prepare(context.Background(), target.Spec{
-		Kind: target.KindGoRun, Source: "./tools/gomad3/internal/model/cluster/testdata/simulation_replay", WorkingDir: root,
-		BuildTags: []string{"test_dep", "gomad3_toolchain"}, PreparationRoot: t.TempDir(), ToolchainRoot: filepath.Join(root, "tools", "gomad3", ".toolchain"),
-	})
+	return target.Spec{
+		Kind: target.KindGoRun, Source: "./internal/model/cluster/testdata/simulation_replay", WorkingDir: root,
+		BuildTags: []string{"test_dep", "gomad3_toolchain"}, PreparationRoot: t.TempDir(), ToolchainRoot: filepath.Join(root, ".toolchain"),
+	}
+}
+
+func TestSimulationReplayTargetResolvesInGomadModule(t *testing.T) {
+	spec := simulationReplayTarget(t)
+	command := exec.CommandContext(t.Context(), "go", "list", "-mod=readonly", "-tags", strings.Join(spec.BuildTags, ","), "-f", "{{.Module.Path}}|{{.ImportPath}}", spec.Source)
+	command.Dir = spec.WorkingDir
+	command.Env = append(os.Environ(), "GOTOOLCHAIN=local", "GOWORK=off", "GOFLAGS=")
+	output, err := command.CombinedOutput()
+	if err != nil {
+		t.Fatalf("resolve simulation replay target: %v: %s", err, output)
+	}
+	const expected = "go.temporal.io/server/tools/gomad3|go.temporal.io/server/tools/gomad3/internal/model/cluster/testdata/simulation_replay"
+	if strings.TrimSpace(string(output)) != expected {
+		t.Fatalf("simulation replay target ownership = %q, want %q", output, expected)
+	}
+}
+
+func TestSimulationReplayPayloadDivergence(t *testing.T) {
+	prepared, err := nativebuild.Prepare(context.Background(), simulationReplayTarget(t))
 	if err != nil {
 		t.Fatal(err)
 	}

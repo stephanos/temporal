@@ -17,14 +17,34 @@ import (
 	"go.temporal.io/server/tools/gomad3/internal/runner/internal/exploration"
 )
 
-func TestRootProcessSimulationUsesRunnerTransport(t *testing.T) {
-	root, err := filepath.Abs(filepath.Join("..", "..", "..", "..", ".."))
+func rootSimulationTarget(t *testing.T) (root, toolchainRoot, source string) {
+	t.Helper()
+	root, err := filepath.Abs(filepath.Join("..", "..", "..", ".."))
 	if err != nil {
 		t.Fatal(err)
 	}
-	toolchainRoot := filepath.Join(root, "tools", "gomad3", ".toolchain")
+	return root, filepath.Join(root, ".toolchain"), "./internal/model/cluster"
+}
+
+func TestRootSimulationTargetResolvesInGomadModule(t *testing.T) {
+	root, _, source := rootSimulationTarget(t)
+	command := exec.CommandContext(t.Context(), "go", "list", "-mod=readonly", "-tags", "test_dep,gomad3_toolchain", "-f", "{{.Module.Path}}|{{.ImportPath}}", source)
+	command.Dir = root
+	command.Env = append(filteredSimulationBuildEnvironment(os.Environ()), "GOTOOLCHAIN=local", "GOWORK=off", "GOFLAGS=")
+	output, err := command.CombinedOutput()
+	if err != nil {
+		t.Fatalf("resolve root simulation target: %v: %s", err, output)
+	}
+	const expected = "go.temporal.io/server/tools/gomad3|go.temporal.io/server/tools/gomad3/internal/model/cluster"
+	if strings.TrimSpace(string(output)) != expected {
+		t.Fatalf("root simulation target ownership = %q, want %q", output, expected)
+	}
+}
+
+func TestRootProcessSimulationUsesRunnerTransport(t *testing.T) {
+	root, toolchainRoot, source := rootSimulationTarget(t)
 	target := filepath.Join(t.TempDir(), "gomad3sim.test")
-	command := exec.CommandContext(context.Background(), filepath.Join(toolchainRoot, "bin", "go"), "test", "-c", "-trimpath", "-tags", "test_dep,gomad3_toolchain", "-o", target, "./tools/gomad3/internal/model/cluster")
+	command := exec.CommandContext(context.Background(), filepath.Join(toolchainRoot, "bin", "go"), "test", "-c", "-trimpath", "-tags", "test_dep,gomad3_toolchain", "-o", target, source)
 	command.Dir = root
 	command.Env = append(filteredSimulationBuildEnvironment(os.Environ()), "CGO_ENABLED=0", "GOEXPERIMENT=nogreenteagc", "GOTOOLCHAIN=local", "GOWORK=off")
 	if output, buildErr := command.CombinedOutput(); buildErr != nil {

@@ -612,10 +612,10 @@ func writeUpgradeFixtureForPlatforms(t *testing.T, collide bool, supportedPlatfo
 		}
 	}
 	patch := "diff --git a/src/runtime/proc.go b/src/runtime/proc.go\n--- a/src/runtime/proc.go\n+++ b/src/runtime/proc.go\n"
-	if err := os.WriteFile(filepath.Join(root, "toolchain", "runtime", "go1.26.4.patch"), []byte(patch), 0o600); err != nil {
+	if err := os.WriteFile(filepath.Join(root, "internal", "backends", "native", "toolchain", "runtime", "go1.26.4.patch"), []byte(patch), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(root, "toolchain", "runtime", "overlay", "src", "os", "gomad.go"), []byte("package os\n"), 0o600); err != nil {
+	if err := os.WriteFile(filepath.Join(root, "internal", "backends", "native", "toolchain", "runtime", "overlay", "src", "os", "gomad.go"), []byte("package os\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	platforms, err := json.Marshal(supportedPlatforms)
@@ -644,7 +644,7 @@ func writeUpgradeFixtureForPlatforms(t *testing.T, collide bool, supportedPlatfo
   "overlay_allowlist": ["src/os/gomad.go"]
 }
 `, digest, platforms)
-	if err := os.WriteFile(filepath.Join(root, "toolchain", "version", "version.json"), []byte(descriptor), 0o600); err != nil {
+	if err := os.WriteFile(filepath.Join(root, "internal", "backends", "native", "toolchain", "version", "version.json"), []byte(descriptor), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	return root
