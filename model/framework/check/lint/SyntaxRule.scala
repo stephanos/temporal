@@ -27,7 +27,8 @@ import scala.jdk.CollectionConverters.*
 //     outside an extension.
 //
 // The tools beside the Models (ModelSources.tool: the lifter, the checks, the migration harness) are
-// no Model source: only the lifter's own files are held, as their tree.
+// no Model source: only the lifter's own files are held, as their tree. The one-file framework
+// samples are authored Models, not framework core, so they may use the public syntax they teach.
 //
 // The Models are scalafmt-formatted Scala 3 with significant indentation, so a definition's place is
 // read from the indentation of the lines that open its containers, on the source with its comments
@@ -330,6 +331,7 @@ object SyntaxRule:
   ):
     def holds(file: String): Boolean =
       file.startsWith(s"$directory/") &&
+        !file.startsWith("model/framework/samples/") &&
         (if recursive then !ModelSources.tool(file)
          else !file.stripPrefix(s"$directory/").contains('/'))
 

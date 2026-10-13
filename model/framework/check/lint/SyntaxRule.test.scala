@@ -321,6 +321,22 @@ class SyntaxRuleSuite extends munit.FunSuite:
     )
     assert(found.head.contains("sugar defined in model/framework/dsl/Syntax.scala"), found.head)
 
+  test("framework samples are authored Models and may use the public DSL syntax"):
+    val sample =
+      """package samples
+        |
+        |object Kettle:
+        |  object rules extends Rules
+        |  def warm(state: Int) = enter(state + 1)
+        |""".stripMargin
+    assertEquals(
+      findings(
+        "model/framework/dsl/Syntax.scala" -> syntax,
+        "model/framework/samples/Kettle.scala" -> sample
+      ),
+      Vector.empty
+    )
+
   test("a member selection reaches the sugar only when the sugar is an extension method"):
     val core =
       """package framework
