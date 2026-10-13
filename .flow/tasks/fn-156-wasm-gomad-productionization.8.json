@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-156-wasm-gomad-productionization",
   "spec_path": ".flow/tasks/fn-156-wasm-gomad-productionization.8.md",
-  "status": "todo",
+  "status": "done",
   "title": "Move runtime decisions and clock handling into the helper",
   "updated_at": "2026-10-11T23:32:17.419316Z"
 }

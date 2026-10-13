@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-156-wasm-gomad-productionization",
   "spec_path": ".flow/tasks/fn-156-wasm-gomad-productionization.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Complete network model and reference checks",
   "updated_at": "2026-10-11T18:35:17.679047Z"
 }

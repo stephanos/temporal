@@ -1,7 +1,7 @@
 {
   "branch_name": "gomad",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-13T01:35:52.292958Z",
   "created_at": "2026-10-10T23:14:47.986406Z",
   "default_impl": null,
   "default_review": null,
@@ -16,7 +16,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-156-wasm-gomad-productionization.md",
-  "status": "open",
+  "status": "done",
   "title": "WASM Gomad productionization",
   "tracker": {
     "baseHashFlow": null,
@@ -29,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-11T19:51:07.663690Z"
+  "updated_at": "2026-10-13T01:35:52.717580Z"
 }

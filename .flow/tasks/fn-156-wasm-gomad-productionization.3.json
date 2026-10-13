@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-156-wasm-gomad-productionization",
   "spec_path": ".flow/tasks/fn-156-wasm-gomad-productionization.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "File-backed SQLite faults and crash recovery",
   "updated_at": "2026-10-11T05:21:09.574157Z"
 }

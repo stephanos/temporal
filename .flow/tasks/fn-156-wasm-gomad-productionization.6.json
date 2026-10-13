@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-156-wasm-gomad-productionization",
   "spec_path": ".flow/tasks/fn-156-wasm-gomad-productionization.6.md",
-  "status": "todo",
+  "status": "done",
   "title": "Qualify support and compare measured backend costs",
   "updated_at": "2026-10-11T13:00:51.239356Z"
 }

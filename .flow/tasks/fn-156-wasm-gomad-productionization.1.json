@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-156-wasm-gomad-productionization",
   "spec_path": ".flow/tasks/fn-156-wasm-gomad-productionization.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Full scheduling qualification and optional checkpoints",
   "updated_at": "2026-10-12T00:20:01.326647Z"
 }

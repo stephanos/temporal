@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-156-wasm-gomad-productionization",
   "spec_path": ".flow/tasks/fn-156-wasm-gomad-productionization.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "Independent guest nodes and broker",
   "updated_at": "2026-10-11T18:27:48.593740Z"
 }
