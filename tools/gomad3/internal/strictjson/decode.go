@@ -1,12 +1,16 @@
 // Package strictjson decodes owned typed JSON schemas with strict syntax.
 package strictjson
 
-import json "github.com/go-json-experiment/json"
+import (
+	json "github.com/go-json-experiment/json"
+	jsonv1 "github.com/go-json-experiment/json/v1"
+)
 
 var (
-	unmarshal                 = json.Unmarshal
-	matchCaseInsensitiveNames = json.MatchCaseInsensitiveNames
-	rejectUnknownMembers      = json.RejectUnknownMembers
+	unmarshal                   = json.Unmarshal
+	matchCaseInsensitiveNames   = json.MatchCaseInsensitiveNames
+	matchCaseSensitiveDelimiter = jsonv1.MatchCaseSensitiveDelimiter
+	rejectUnknownMembers        = json.RejectUnknownMembers
 )
 
 // Decode unmarshals exactly one JSON value into destination. It rejects
@@ -19,6 +23,8 @@ func Decode(data []byte, destination any) error {
 	return unmarshal(data, destination,
 		//gomad:dynamic reviewed 2026-10-13 pinned JSON option constructor has no host effects
 		matchCaseInsensitiveNames(true),
+		//gomad:dynamic reviewed 2026-10-13 pinned JSON option constructor has no host effects
+		matchCaseSensitiveDelimiter(true),
 		//gomad:dynamic reviewed 2026-10-13 pinned JSON option constructor has no host effects
 		rejectUnknownMembers(true),
 	)

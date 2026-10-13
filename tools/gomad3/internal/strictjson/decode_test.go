@@ -33,6 +33,8 @@ func TestDecodeRejectsStrictSyntaxAndTypedUnknownMembers(t *testing.T) {
 		{name: "duplicate member in array", input: []byte(`{"items":[{"name":"first","name":"second"}]}`)},
 		{name: "duplicate member in map", input: []byte(`{"fields":{"value":1,"value":2}}`)},
 		{name: "duplicate member in raw projection", input: []byte(`{"raw":{"value":1,"value":2}}`)},
+		{name: "inserted dash in typed member", input: []byte(`{"li-mit":1}`)},
+		{name: "inserted underscore in typed member", input: []byte(`{"li_mit":1}`)},
 		{name: "trailing value", input: []byte(`{"name":"ok"} {}`)},
 		{name: "raw invalid UTF-8", input: invalidUTF8},
 	} {

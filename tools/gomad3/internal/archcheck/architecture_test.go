@@ -48,7 +48,7 @@ func TestBackendImportDirection(t *testing.T) {
 		"embed", "encoding", "encoding/base64", "encoding/binary", "encoding/hex", "encoding/json", "errors", "fmt", "hash", "io",
 		"math", "math/bits", "path", "path/filepath", "reflect", "regexp", "slices", "sort", "strconv", "golang.org/x/mod/module",
 		"strings", "sync", "sync/atomic", "syscall", "time", "unicode", "unicode/utf8",
-		"github.com/go-json-experiment/json",
+		"github.com/go-json-experiment/json", "github.com/go-json-experiment/json/v1",
 		modulePath + "/choice", modulePath + "/target", modulePath + "/backends/native/compatibilitypack",
 	}
 	platforms := qualifiedSourcePlatforms()
