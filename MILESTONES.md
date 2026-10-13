@@ -212,13 +212,12 @@ CI, PR, or push authority.
 
 ### Shared-owner queue
 
-Owner decision (2026-10-12): these deferred specs change owners the WASM backend shares, so they form the WASM queue. Work them in this order: fn-166 tasks 1–5 and 9 (identity-neutral structure and test layout; done 2026-10-13 except .3), the fn-109 shared subset (closeout amendment 2026-10-13 in the spec) (Runner orchestration split and portable scripted Runner coverage first), then fn-152, then fn-153, fn-154 and fn-166 tasks 6–8 and 10 as one batch (including the owner-approved fn-109.14 volume/process codec and fn-153 strict-JSON and host-helper amendments) so their codec, projection, rename and identity rotations need a single WASM requalification. Each shared-owner change requires the WASM gates in the [acceptance evidence](.flow/artifacts/wasm-section-acceptance-2026-10-12.md) to pass on the integrated candidate. Record each revived task's revival trigger in its Flow task before implementation.
+Owner decision (2026-10-12): these deferred specs change owners the WASM backend shares, so they form the WASM queue. Work them in this order: fn-166 tasks 1–5 and 9 (identity-neutral structure and test layout; done 2026-10-13), the fn-109 shared subset (closeout amendment 2026-10-13 in the spec) (Runner orchestration split and portable scripted Runner coverage first), then fn-152, then fn-153, fn-154 and fn-166 tasks 6–8 and 10 as one batch (including the owner-approved fn-109.14 volume/process codec and fn-153 strict-JSON and host-helper amendments) so their codec, projection, rename and identity rotations need a single WASM requalification. Each shared-owner change requires the WASM gates in the [acceptance evidence](.flow/artifacts/wasm-section-acceptance-2026-10-12.md) to pass on the integrated candidate. Record each revived task's revival trigger in its Flow task before implementation.
 
 ### Readable package structure — [fn-166](.flow/specs/fn-166-gomad-readable-package-structure-and.md)
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-166.3](.flow/tasks/fn-166-gomad-readable-package-structure-and.3.md) | ⬜ Todo | Consolidate WASM, CLI and gomadtool tests by behavior |
 | [fn-166.6](.flow/tasks/fn-166-gomad-readable-package-structure-and.6.md) | ⬜ Todo | Identity-rotating renames; batched with fn-153/fn-154 |
 | [fn-166.7](.flow/tasks/fn-166-gomad-readable-package-structure-and.7.md) | ⬜ Todo | Group everything but cmd under internal/ (runner, backends, evidence, model, host, archcheck); batched with fn-153/fn-154 |
 | [fn-166.8](.flow/tasks/fn-166-gomad-readable-package-structure-and.8.md) | ⬜ Todo | Delete dead helper profile, network v1 and choice v1; batched with fn-153/fn-154 |
