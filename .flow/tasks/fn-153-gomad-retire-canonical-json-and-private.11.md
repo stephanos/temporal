@@ -41,13 +41,13 @@ Capture the frozen behavior pin named above, run focused negative controls and f
 - [ ] Semantic exploration outcomes and full host identity projections match the frozen pin; raw plan authentication and runtime binary wire contracts remain intact.
 
 ## Done summary
-TBD
+Migrated simulation exploration identities and projected records from canonical JSON to domain-owned stdlib projections while preserving paired target formulas, nil/empty semantics, exact authentication, producer-field ownership, and strict owned-field decoding. Review fixes restored invalid-UTF-8 refusal across every string-bearing SimulationState identity field. Implementation review reached SHIP. Aggregate validation stops only at the fn153.17-owned stale compatibility approval; the patched native toolchain remains unavailable on this linux/arm64 host.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 10d3699a2fdf8d8474ac16ab189bc53d90d954ec, 3cb6e12c71ea8dab658512f9ea900cf57f0a2b36, 6e91794fcbb4805e248f78a0f7d03fcae6dae6da
+- Tests: go -C tools/gomad3 test -tags test_dep -count=1 ./runner/internal/exploration, go -C tools/gomad3 test -race -tags test_dep -count=1 ./runner/internal/exploration, go test -tags test_dep -count=1 ./tools/gomad3sim, go -C tools/gomad3 test -tags test_dep -count=1 ./internal/archcheck, go -C tools/gomad3 vet -tags test_dep ./runner/internal/exploration ./runner, make -C tools/gomad3 validate-toolchain validate-qualification
 - PRs:
-
 ## Revival trigger (2026-10-13)
 
 Revived after fn153.10 completed with a SHIP implementation review, establishing the adjacent Runner identity projections without entering simulation ownership. This task now owns the paired host/target simulation formulas and projected simulation records; it must preserve the existing target map encoders and escalate any concrete target-source conflict rather than silently widening scope. The owner is disjoint from the returned qualification and native publication candidates, and final generated outputs remain assigned to fn153.17. The forced local claim is required only because Flow chain admission still sees the completed fn152 parent on an unpushed remote branch; pushing remains outside the requested scope.
