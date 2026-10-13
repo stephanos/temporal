@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/sha256"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -12,6 +13,7 @@ import (
 	"testing"
 	"time"
 
+	"go.temporal.io/server/tools/gomad3/internal/backends"
 	"go.temporal.io/server/tools/gomad3/internal/backends/target"
 	wasmbackend "go.temporal.io/server/tools/gomad3/internal/backends/wasm/backend"
 	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/internal/stockgo"
@@ -259,5 +261,95 @@ func TestSoftAssertionRetainedLiteralBracesRederiveCompleteMessage(t *testing.T)
 				t.Fatalf("literal %q retained as %q: %v", fixture.output, message, err)
 			}
 		}
+	}
+}
+
+func TestSoftAssertionActualClusterOutputCapacityRemainsInfrastructureFailure(t *testing.T) {
+	base := guestRequestWithTestBinary(t, true)
+	base.WorkloadKind = target.KindGoTest
+	base.Config.Args = []string{"capacity", "-test.run=TestOutputCapacity"}
+	base.Config.Limits.OutputBytes = 4
+	base.CompileCache = t.TempDir()
+	if err := os.Chmod(base.CompileCache, 0700); err != nil {
+		t.Fatal(err)
+	}
+	boot, err := BootConfiguration(base)
+	if err != nil {
+		t.Fatal(err)
+	}
+	handle := gomad3sim.NodeHandle{Node: "a", Incarnation: 1}
+	spec := gomad3sim.Spec{Schema: gomad3sim.SpecSchema, Backend: gomad3sim.BackendWASM, Fidelity: gomad3sim.FidelityHardIsolation, Seed: 7,
+		Limits: gomad3sim.DefaultLimits(), Nodes: []gomad3sim.NodeSpec{{ID: "a", Boot: "fixture", Address: "10.0.0.1", Config: boot}}}
+	for _, reportOnly := range []bool{false, true} {
+		t.Run(fmt.Sprintf("report_only=%t", reportOnly), func(t *testing.T) {
+			provider := &Provider{Boots: map[gomad3sim.BootID]wasi.Request{"fixture": base}}
+			if reportOnly {
+				provider.Oracles = &OraclePlan{Schema: SoftAssertionObservationSchema, MaximumBytes: 4096, SoftAssertions: []SoftAssertionPolicy{{Handle: handle, ReportOnly: true}}}
+			}
+			result, runErr := gomad3sim.RunWASM(t.Context(), spec, func(ctx context.Context, cluster gomad3sim.Cluster) error {
+				if _, err := cluster.Start(ctx, handle.Node); err != nil {
+					return err
+				}
+				_, err := cluster.Wait(ctx, handle)
+				return err
+			}, provider)
+			completed := provider.CompletedResults()
+			if len(completed) != 1 {
+				t.Fatalf("capacity guest did not terminate: %+v %v", completed, runErr)
+			}
+			observed := completed[0].Result
+			t.Logf("actual capacity report_only=%t termination=%s message=%q stdout=%q offered=%d choice_bytes=%d run_error=%v", reportOnly, observed.Termination, observed.Message, observed.Stdout, observed.OfferedOutputBytes, len(observed.ChoiceTrace.Bytes), runErr)
+			if observed.Termination != "capacity" || !observed.Reaped || string(observed.Stdout) != "PASS" || observed.OfferedOutputBytes != 4 || len(observed.ChoiceTrace.Bytes) != 0 {
+				t.Fatalf("capacity control did not exercise matching accepted-output counters and missing choice evidence: %+v", observed)
+			}
+			var failure *backends.FailureError
+			if !errors.As(runErr, &failure) || failure.Termination != backends.Capacity || failure.Message != "output capacity" || failure.SoftAssertions == nil || !failure.SoftAssertions.Inconclusive || failure.SoftAssertions.ReportOnly != reportOnly {
+				t.Fatalf("capacity/oracle truth lost: %v", runErr)
+			}
+			if !strings.Contains(runErr.Error(), "choice trace is not complete") {
+				t.Fatalf("capacity error hid incomplete choice evidence: %v", runErr)
+			}
+			if result.Record.Schema != "" || result.WASM != nil {
+				t.Fatalf("incomplete capacity execution acquired replayable evidence: %+v", result)
+			}
+			if _, err := provider.RetentionPayload(spec, result.Record); err == nil {
+				t.Fatal("capacity execution published retained replay evidence")
+			}
+			oracles, err := provider.latest.softAssertionOracles()
+			if err != nil || len(oracles) != 1 || oracles[0].Passed || !oracles[0].Inconclusive || oracles[0].ReportOnly != reportOnly {
+				t.Fatalf("capacity output treated as complete: %+v %v", oracles, err)
+			}
+		})
+	}
+}
+
+func TestSoftAssertionClusterCapacityCountersNeverProveCompleteness(t *testing.T) {
+	handle := gomad3sim.NodeHandle{Node: "a", Incarnation: 1}
+	for _, reportOnly := range []bool{false, true} {
+		execution := execution{provider: Provider{}, limits: gomad3sim.DefaultLimits(), results: map[gomad3sim.NodeHandle]wasi.Result{
+			handle: {Reaped: true, Termination: "capacity", Message: "output capacity", OfferedOutputBytes: 4, Stdout: []byte("PASS")},
+		}}
+		if reportOnly {
+			execution.provider.Oracles = &OraclePlan{MaximumBytes: 4096, SoftAssertions: []SoftAssertionPolicy{{Handle: handle, ReportOnly: true}}}
+		}
+		oracles, err := execution.softAssertionOracles()
+		if err != nil || len(oracles) != 1 || oracles[0].Passed || !oracles[0].Inconclusive || oracles[0].ReportOnly != reportOnly {
+			t.Errorf("report_only=%t capacity passed oracle: %+v %v", reportOnly, oracles, err)
+		}
+	}
+}
+
+func TestSoftAssertionOutputCapacityAnnotationDoesNotBroadenOtherFailures(t *testing.T) {
+	handle := gomad3sim.NodeHandle{Node: "a", Incarnation: 1}
+	execution := execution{provider: Provider{Oracles: &OraclePlan{SoftAssertions: []SoftAssertionPolicy{{Handle: handle, ReportOnly: true}}}}}
+	for _, result := range []wasi.Result{{Termination: "infrastructure", Message: "output capacity"}, {Termination: "capacity", Message: "transcript capacity"}, {Termination: "exit"}} {
+		if err := execution.outputCapacityFailure(handle, result); err != nil {
+			t.Fatalf("unrelated failure mapped to output capacity: %+v %v", result, err)
+		}
+	}
+	result := wasi.Result{Termination: "capacity", Message: "output capacity", Stdout: []byte(`failed assertion: invalid {state}`)}
+	var failure *backends.FailureError
+	if err := execution.outputCapacityFailure(handle, result); !errors.As(err, &failure) || failure.SoftAssertions == nil || !failure.SoftAssertions.Inconclusive || !failure.SoftAssertions.ReportOnly || len(failure.SoftAssertions.Messages) != 1 || failure.SoftAssertions.Messages[0] != "invalid {state}" {
+		t.Fatalf("capacity annotation lost observed static assertion or policy: %+v %v", failure, err)
 	}
 }

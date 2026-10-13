@@ -826,6 +826,12 @@ func (e *execution) Finish() (gomad3sim.WASMEvidence, error) {
 			tape, err = choice.ProjectInterruptedReplayPlan(result.InterruptedChoiceBytes, request.Runtime.Choice.Limit, request.Runtime.Choice.ExecutionIdentity)
 			trace, diagnostic = result.InterruptedChoiceBytes, result.InterruptedDiagnosticBytes
 		}
+		if capacity := e.outputCapacityFailure(handle, result); capacity != nil {
+			if err != nil {
+				err = fmt.Errorf("retain WASM %s/%d choice control: %w", handle.Node, handle.Incarnation, err)
+			}
+			return evidence, errors.Join(capacity, err)
+		}
 		if err != nil {
 			return evidence, fmt.Errorf("retain WASM %s/%d choice control: %w", handle.Node, handle.Incarnation, err)
 		}

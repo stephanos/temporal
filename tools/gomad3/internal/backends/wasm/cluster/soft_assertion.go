@@ -7,6 +7,7 @@ import (
 	"slices"
 	"strings"
 
+	"go.temporal.io/server/tools/gomad3/internal/backends"
 	"go.temporal.io/server/tools/gomad3/internal/backends/target"
 	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
@@ -100,7 +101,7 @@ func (e *execution) softAssertionOracles() ([]gomad3sim.OracleResult, error) {
 	for _, handle := range handles {
 		result, exists := e.results[handle]
 		policy, requested := policies[handle]
-		complete := exists && result.Reaped && (!result.Cancelled || result.RuntimeInterrupted) && !result.WatchdogTimeout && result.OfferedOutputBytes == uint64(len(result.Stdout))+uint64(len(result.Stderr))
+		complete := exists && result.Reaped && result.Termination != "capacity" && (!result.Cancelled || result.RuntimeInterrupted) && !result.WatchdogTimeout && result.OfferedOutputBytes == uint64(len(result.Stdout))+uint64(len(result.Stderr))
 		observation := softassert.Observe(result.Stdout, result.Stderr, complete)
 		if len(observation.Messages) == 0 && observation.Complete && !requested {
 			continue
@@ -115,6 +116,23 @@ func (e *execution) softAssertionOracles() ([]gomad3sim.OracleResult, error) {
 		return strings.Compare(a.Name, b.Name)
 	})
 	return oracles, nil
+}
+
+func (e *execution) outputCapacityFailure(handle gomad3sim.NodeHandle, result wasi.Result) error {
+	if result.Termination != "capacity" || result.Message != "output capacity" {
+		return nil
+	}
+	reportOnly := false
+	if plan := e.provider.Oracles; plan != nil {
+		for _, policy := range plan.SoftAssertions {
+			if policy.Handle == handle {
+				reportOnly = policy.ReportOnly
+			}
+		}
+	}
+	observation := softassert.Observe(result.Stdout, result.Stderr, false)
+	return &backends.FailureError{Termination: backends.Capacity, Message: result.Message,
+		SoftAssertions: &record.SoftAssertions{Messages: observation.Messages, ReportOnly: reportOnly, Inconclusive: true}}
 }
 
 func validWorkloadKind(kind target.Kind) bool {

@@ -206,6 +206,10 @@ func installedHelper(r wasi.Request) InstalledHelper {
 }
 
 func guestRequest(t *testing.T) wasi.Request {
+	return guestRequestWithTestBinary(t, false)
+}
+
+func guestRequestWithTestBinary(t *testing.T, testBinary bool) wasi.Request {
 	t.Helper()
 	if !filepath.IsAbs(os.Getenv("GOMAD3_STOCK_GO")) {
 		t.Fatal("GOMAD3_STOCK_GO must name stock Go 1.27.1")
@@ -220,7 +224,11 @@ func guestRequest(t *testing.T) wasi.Request {
 		t.Fatal(err)
 	}
 	module := filepath.Join(t.TempDir(), "service.wasm")
-	cmd := exec.Command(filepath.Join(root, "bin/go"), "build", "-trimpath", "-overlay", overlay, "-o", module, "./testdata/service")
+	arguments := []string{"build", "-trimpath", "-overlay", overlay, "-o", module, "./testdata/service"}
+	if testBinary {
+		arguments = append([]string{"test", "-c"}, arguments[1:]...)
+	}
+	cmd := exec.Command(filepath.Join(root, "bin/go"), arguments...)
 	cmd.Env = append(os.Environ(), "GOROOT="+root, "GOOS=wasip1", "GOARCH=wasm", "GOEXPERIMENT=nogreenteagc", "GOWORK=off", "GOENV=off", "GOFLAGS=", "GOTOOLCHAIN=local", "CGO_ENABLED=0")
 	if output, err := cmd.CombinedOutput(); err != nil {
 		t.Fatalf("compile real guest %v %s", err, output)
