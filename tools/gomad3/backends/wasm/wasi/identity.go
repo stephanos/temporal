@@ -7,6 +7,7 @@ import (
 	"io/fs"
 
 	"go.temporal.io/server/tools/gomad3/choice"
+	"go.temporal.io/server/tools/gomad3/internal/strictjson"
 	"go.temporal.io/server/tools/gomad3/runner"
 	"go.temporal.io/server/tools/gomad3/simulation/network"
 	"go.temporal.io/server/tools/gomad3/volume"
@@ -21,6 +22,13 @@ func ImplementationSHA256() string {
 }
 
 func implementationSHA256(sources fs.ReadFileFS) string {
+	return implementationSHA256WithStrictJSON(sources, strictjson.ImplementationSHA256())
+}
+
+func implementationSHA256WithStrictJSON(sources fs.ReadFileFS, strictJSON string) string {
+	if strictJSON == "" {
+		return ""
+	}
 	var inventory []byte
 	for _, name := range []string{"broker.go", "broker_network.go", "broker_process.go", "clock.go", "environment.go", "helper_model.go", "identity.go", "namespace.go", "network.go", "network_v2.go", "process.go", "protocol.go", "runtime.go", "volume.go"} {
 		data, err := sources.ReadFile(name)
@@ -34,5 +42,6 @@ func implementationSHA256(sources fs.ReadFileFS) string {
 	inventory = fmt.Appendf(inventory, "interrupted-replay:%s\n", choice.InterruptedReplayImplementationSHA256())
 	inventory = fmt.Appendf(inventory, "broker-clock:%s\n", runner.SimulationClockImplementationSHA256())
 	inventory = fmt.Appendf(inventory, "broker-world:%s\n", world.ImplementationSHA256())
+	inventory = fmt.Appendf(inventory, "strict-json:%s\n", strictJSON)
 	return fmt.Sprintf("sha256:%x", sha256.Sum256(inventory))
 }

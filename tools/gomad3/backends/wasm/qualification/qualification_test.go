@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/backends/wasm/backend"
@@ -94,9 +95,11 @@ func TestSourceManifestBindsActualFilesAndKeepsSpacePaths(t *testing.T) {
 }
 
 func TestReadSpecRejectsAmbiguousAndCompetingInputs(t *testing.T) {
-	for _, data := range []string{`{"Manifest":{},"manifest":{}}`, `{"unknown":1}`, `{} {}`, `{"Options":{}}`} {
+	invalidUTF8 := append([]byte(`{"Manifest":{"ID":"`), 0xff)
+	invalidUTF8 = append(invalidUTF8, []byte(`","Workload":"fixture","Seed":7,"Repeat":2}}`)...)
+	for _, data := range [][]byte{[]byte(`{"Manifest":{},"manifest":{}}`), []byte(`{"unknown":1}`), []byte(`{} {}`), []byte(`{"Options":{}}`), invalidUTF8} {
 		path := filepath.Join(t.TempDir(), "spec.json")
-		if err := os.WriteFile(path, []byte(data), 0600); err != nil {
+		if err := os.WriteFile(path, data, 0600); err != nil {
 			t.Fatal(err)
 		}
 		if _, err := ReadSpec(path); err == nil {
@@ -104,12 +107,52 @@ func TestReadSpecRejectsAmbiguousAndCompetingInputs(t *testing.T) {
 		}
 	}
 	path := filepath.Join(t.TempDir(), "spec.json")
+	if err := os.WriteFile(path, []byte(`{"Options":{},"unknown":true}`), 0600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := ReadSpec(path); err == nil || err.Error() != "qualification spec Options must be absent; installation owns the pinned backend" {
+		t.Fatalf("Options rejection lost precedence: %v", err)
+	}
+	path = filepath.Join(t.TempDir(), "spec.json")
 	if err := os.WriteFile(path, []byte(`{"Manifest":{"ID":"fixture","Workload":"fixture","Seed":7,"Repeat":2}}`), 0600); err != nil {
 		t.Fatal(err)
 	}
 	spec, err := ReadSpec(path)
 	if err != nil || spec.Manifest.ID != "fixture" {
 		t.Fatalf("valid draft spec: %+v %v", spec, err)
+	}
+}
+
+func TestStrictDecodeRetainsQualificationDepthLimit(t *testing.T) {
+	for _, test := range []struct {
+		name       string
+		depth      int
+		emptyValue bool
+		fail       bool
+	}{
+		{name: "edge", depth: 128},
+		{name: "overflow", depth: 129, fail: true},
+		{name: "empty-container-edge", depth: 129, emptyValue: true},
+		{name: "empty-container-overflow", depth: 130, emptyValue: true, fail: true},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			leaf := "0"
+			if test.emptyValue {
+				leaf = ""
+			}
+			data := []byte(strings.Repeat("[", test.depth) + leaf + strings.Repeat("]", test.depth))
+			var value any
+			err := strictDecode(data, &value)
+			if test.fail {
+				if err == nil || err.Error() != "qualification JSON nesting limit" {
+					t.Fatalf("depth %d error = %v", test.depth, err)
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("depth %d rejected: %v", test.depth, err)
+			}
+		})
 	}
 }
 

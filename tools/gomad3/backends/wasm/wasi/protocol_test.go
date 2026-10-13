@@ -35,6 +35,7 @@ func TestTransportInputValidationPrecedenceAndMutation(t *testing.T) {
 		{name: "calls-before-length", id: 2, next: 2, calls: 1, op: "random_get", input: `{"length":-1}`, transportError: "WASI capacity: callbacks"},
 		{name: "reservation-before-schema", transcript: 1, op: "fd_write", input: `{}`, transportError: "WASI capacity: transcript-bytes"},
 		{name: "full-frame-depth-edge", op: "unsupported", input: `{"x":` + strings.Repeat("[", 30) + "0" + strings.Repeat("]", 30) + `}`},
+		{name: "full-frame-empty-container-depth-edge", op: "unsupported", input: `{"x":` + strings.Repeat("[", 31) + strings.Repeat("]", 31) + `}`},
 		{name: "full-frame-depth-overflow", op: "unsupported", input: `{"x":` + strings.Repeat("[", 31) + "0" + strings.Repeat("]", 31) + `}`, transportError: "WASI invalid: JSON nesting", publicError: "accepted"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
@@ -154,6 +155,14 @@ func TestValidatedFrameOwnsBytesAndOperationIsLazy(t *testing.T) {
 	_, err = newTestEnvironment(t, testConfig()).handleValidated(call)
 	if err == nil || err.Error() != "WASI invalid: callback sequence" || call.input.decoded {
 		t.Fatalf("lazy operation changed sequence precedence: %v", err)
+	}
+}
+
+func TestValidatedFrameRejectsInvalidUTF8(t *testing.T) {
+	data := append([]byte(`{"type":"call","id":1,"op":"`), 0xff)
+	data = append(data, []byte(`","input":{}}`)...)
+	if _, err := newValidatedFrame(data); err == nil {
+		t.Fatal("invalid UTF-8 frame was accepted")
 	}
 }
 

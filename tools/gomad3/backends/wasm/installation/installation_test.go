@@ -124,6 +124,29 @@ func TestWritePreservesExistingInstallation(t *testing.T) {
 	}
 }
 
+func TestReadConfigPreservesOpenMapKeysAndRejectsInvalidText(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.json")
+	data := []byte(`{"CapturedInputs":{"Payloads":{"Name":"","name":""}}}`)
+	if err := os.WriteFile(path, data, 0600); err != nil {
+		t.Fatal(err)
+	}
+	config, err := ReadConfig(path)
+	if err != nil {
+		t.Fatalf("open payload map keys: %v", err)
+	}
+	if len(config.CapturedInputs.Payloads) != 2 {
+		t.Fatalf("payload keys = %#v", config.CapturedInputs.Payloads)
+	}
+	invalidUTF8 := append([]byte(`{"Profile":"`), 0xff)
+	invalidUTF8 = append(invalidUTF8, []byte(`"}`)...)
+	if err := os.WriteFile(path, invalidUTF8, 0600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := ReadConfig(path); err == nil {
+		t.Fatal("invalid UTF-8 config was accepted")
+	}
+}
+
 func TestInstallationRejectsUnqualifiedModelsBeforePreparation(t *testing.T) {
 	stock, _ := installedManifest(t)
 	options := stock.Options

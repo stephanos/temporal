@@ -283,24 +283,27 @@ func TestStrictJSONOwnerEdges(t *testing.T) {
 		t.Fatalf("strict JSON owner = %q, want strictjson", got)
 	}
 	for _, test := range []struct {
-		owner, importing string
+		name, owner, importing string
 	}{
-		{"wasm", modulePath + "/backends/wasm/qualification"},
-		{"native", modulePath + "/backends/native"},
-		{"cli", modulePath + "/cmd/gomad/internal/cli"},
-		{"runner", modulePath + "/runner"},
-		{"qualification", modulePath + "/qualification"},
-		{"target", modulePath + "/target"},
-		{"record", modulePath + "/record"},
-		{"world", modulePath + "/world"},
-		{"simulation", modulePath + "/simulation"},
-		{"compatibility", modulePath + "/backends/native/compatibilitypack"},
-		{"deterministicio", modulePath + "/backends/native/transcript"},
-		{"captured", modulePath + "/captured"},
-		{"toolchain", modulePath + "/backends/native/toolchain"},
-		{"upgrade", modulePath + "/backends/native/upgrade"},
+		{"wasm-wasi", "wasm", modulePath + "/backends/wasm/wasi"},
+		{"wasm-qualification", "wasm", modulePath + "/backends/wasm/qualification"},
+		{"wasm-installation", "wasm", modulePath + "/backends/wasm/installation"},
+		{"wasm-simulation", "wasm", modulePath + "/backends/wasm/simulation"},
+		{"native", "native", modulePath + "/backends/native"},
+		{"cli", "cli", modulePath + "/cmd/gomad/internal/cli"},
+		{"runner", "runner", modulePath + "/runner"},
+		{"qualification", "qualification", modulePath + "/qualification"},
+		{"target", "target", modulePath + "/target"},
+		{"record", "record", modulePath + "/record"},
+		{"world", "world", modulePath + "/world"},
+		{"simulation", "simulation", modulePath + "/simulation"},
+		{"compatibility", "compatibility", modulePath + "/backends/native/compatibilitypack"},
+		{"deterministicio", "deterministicio", modulePath + "/backends/native/transcript"},
+		{"captured", "captured", modulePath + "/captured"},
+		{"toolchain", "toolchain", modulePath + "/backends/native/toolchain"},
+		{"upgrade", "upgrade", modulePath + "/backends/native/upgrade"},
 	} {
-		t.Run(test.owner, func(t *testing.T) {
+		t.Run(test.name, func(t *testing.T) {
 			if !ownerMayImport(test.owner, "strictjson", test.importing, imported) {
 				t.Errorf("owner %s may not import strictjson", test.owner)
 			}

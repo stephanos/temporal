@@ -3,7 +3,9 @@ package wasi
 import (
 	"bytes"
 	"encoding/json"
-	"io"
+	"errors"
+
+	"go.temporal.io/server/tools/gomad3/internal/strictjson"
 )
 
 func decodeInput(data []byte, target any, keys ...string) error {
@@ -11,7 +13,7 @@ func decodeInput(data []byte, target any, keys ...string) error {
 		return err
 	}
 	var fields map[string]json.RawMessage
-	if err := json.Unmarshal(data, &fields); err != nil {
+	if err := strictjson.Decode(data, &fields); err != nil {
 		return invalid("operation fields")
 	}
 	return decodeFields(data, fields, target, keys...)
@@ -27,9 +29,7 @@ func decodeFields(data []byte, fields map[string]json.RawMessage, target any, ke
 			return invalid("missing operation field " + key)
 		}
 	}
-	decoder := json.NewDecoder(bytes.NewReader(data))
-	decoder.DisallowUnknownFields()
-	if err := decoder.Decode(target); err != nil {
+	if err := strictjson.Decode(data, target); err != nil {
 		return invalid("operation JSON types")
 	}
 	return nil
@@ -58,7 +58,7 @@ func newValidatedFrame(data []byte) (*validatedFrame, error) {
 		return nil, err
 	}
 	var fields map[string]json.RawMessage
-	if err := json.Unmarshal(data, &fields); err != nil {
+	if err := strictjson.Decode(data, &fields); err != nil {
 		return nil, invalid("protocol object")
 	}
 	return &validatedFrame{data: data, fields: fields}, nil
@@ -93,7 +93,7 @@ func (e *Environment) handleValidated(call validatedCall) (Reply, error) {
 func (input *validatedInput) fields() (map[string]json.RawMessage, error) {
 	if !input.decoded {
 		input.decoded = true
-		if err := json.Unmarshal(input.data, &input.object); err != nil || input.object == nil {
+		if err := strictjson.Decode(input.data, &input.object); err != nil || input.object == nil {
 			input.err = invalid("operation input")
 		}
 	}
@@ -112,56 +112,17 @@ func decodeOperationInput(data []byte, input *validatedInput, target any, keys .
 }
 
 func validateJSON(data []byte) error {
-	decoder := json.NewDecoder(bytes.NewReader(data))
-	decoder.UseNumber()
-	if err := validateValue(decoder, 0); err != nil {
-		return err
-	}
-	if _, err := decoder.Token(); err != io.EOF {
-		return invalid("trailing JSON")
-	}
-	return nil
-}
-func validateValue(decoder *json.Decoder, depth int) error {
-	if depth > 32 {
+	err := strictjson.CheckSyntax(data, 32)
+	switch {
+	case errors.Is(err, strictjson.ErrNestingLimit):
 		return invalid("JSON nesting")
-	}
-	token, err := decoder.Token()
-	if err != nil {
+	case errors.Is(err, strictjson.ErrDuplicateName):
+		return invalid("duplicate JSON field")
+	case errors.Is(err, strictjson.ErrTrailingData):
+		return invalid("trailing JSON")
+	case err != nil:
 		return invalid("malformed JSON")
-	}
-	delimiter, ok := token.(json.Delim)
-	if !ok {
+	default:
 		return nil
 	}
-	switch delimiter {
-	case '{':
-		seen := map[string]bool{}
-		for decoder.More() {
-			key, err := decoder.Token()
-			if err != nil {
-				return invalid("JSON key")
-			}
-			name, ok := key.(string)
-			if !ok || seen[name] {
-				return invalid("duplicate JSON field")
-			}
-			seen[name] = true
-			if err := validateValue(decoder, depth+1); err != nil {
-				return err
-			}
-		}
-	case '[':
-		for decoder.More() {
-			if err := validateValue(decoder, depth+1); err != nil {
-				return err
-			}
-		}
-	default:
-		return invalid("JSON delimiter")
-	}
-	if _, err := decoder.Token(); err != nil {
-		return invalid("JSON close")
-	}
-	return nil
 }

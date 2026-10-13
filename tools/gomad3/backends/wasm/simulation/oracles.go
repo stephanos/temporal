@@ -3,13 +3,12 @@ package simulation
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"strconv"
 	"strings"
 
+	"go.temporal.io/server/tools/gomad3/internal/strictjson"
 	"go.temporal.io/server/tools/gomad3sim"
 )
 
@@ -144,40 +143,11 @@ func decodeHistoryObservation(stdout []byte, plan *OraclePlan) (historyObservati
 	if count != 1 || uint64(len(line)) > plan.MaximumBytes {
 		return historyObservation{}, errors.New("missing, ambiguous or oversized WASM history observation")
 	}
-	// Validate object keys separately: encoding/json otherwise permits duplicate
-	// keys, which cannot be an unambiguous detached correctness observation.
-	d := json.NewDecoder(bytes.NewReader(line))
-	token, err := d.Token()
-	if err != nil || token != json.Delim('{') {
-		return historyObservation{}, errors.New("invalid WASM history observation object")
-	}
-	seen := map[string]bool{}
-	for d.More() {
-		key, err := d.Token()
-		if err != nil {
-			return historyObservation{}, err
-		}
-		name, ok := key.(string)
-		if !ok || seen[name] || name != "cluster_id" && name != "history" && name != "event_ids" && name != "types" {
-			return historyObservation{}, errors.New("unknown or duplicate WASM history observation field")
-		}
-		seen[name] = true
-		var value json.RawMessage
-		if err := d.Decode(&value); err != nil {
-			return historyObservation{}, err
-		}
-	}
-	if _, err := d.Token(); err != nil {
-		return historyObservation{}, err
-	}
-	if err := d.Decode(&struct{}{}); !errors.Is(err, io.EOF) {
-		return historyObservation{}, errors.New("trailing WASM history observation")
-	}
 	var value historyObservation
-	if err := json.Unmarshal(line, &value); err != nil {
+	if err := strictjson.Decode(line, &value); err != nil {
 		return value, err
 	}
-	if len(seen) != 4 || value.ClusterID == "" || len(value.History) == 0 || len(value.EventIDs) == 0 || len(value.EventIDs) != len(value.Types) {
+	if value.ClusterID == "" || len(value.History) == 0 || len(value.EventIDs) == 0 || len(value.EventIDs) != len(value.Types) {
 		return value, errors.New("incomplete WASM history observation")
 	}
 	for i, id := range value.EventIDs {

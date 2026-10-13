@@ -2,19 +2,17 @@
 package installation
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"go.temporal.io/server/tools/gomad3/backends/wasm/backend"
 	"go.temporal.io/server/tools/gomad3/backends/wasm/toolchain"
 	"go.temporal.io/server/tools/gomad3/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad3/hostfs"
+	"go.temporal.io/server/tools/gomad3/internal/strictjson"
 	"go.temporal.io/server/tools/gomad3/record"
 )
 
@@ -205,50 +203,10 @@ func executableDigest(path string) (string, error) {
 }
 
 func decode(data []byte, value any) error {
-	if err := uniqueKeys(json.NewDecoder(bytes.NewReader(data))); err != nil {
-		return err
-	}
-	decoder := json.NewDecoder(bytes.NewReader(data))
-	decoder.DisallowUnknownFields()
-	if err := decoder.Decode(value); err != nil {
-		return err
-	}
-	if err := decoder.Decode(new(any)); !errors.Is(err, io.EOF) {
+	if err := strictjson.CheckSyntax(data, 0); errors.Is(err, strictjson.ErrTrailingData) {
 		return errors.New("WASM installation input has trailing JSON")
-	}
-	return nil
-}
-
-func uniqueKeys(decoder *json.Decoder) error {
-	token, err := decoder.Token()
-	if err != nil {
+	} else if err != nil {
 		return err
 	}
-	delimiter, nested := token.(json.Delim)
-	if !nested {
-		return nil
-	}
-	keys := make(map[string]bool)
-	for decoder.More() {
-		if delimiter == '{' {
-			token, err := decoder.Token()
-			if err != nil {
-				return err
-			}
-			key, ok := token.(string)
-			if !ok {
-				return errors.New("invalid WASM installation object key")
-			}
-			folded := strings.ToLower(key)
-			if keys[folded] {
-				return fmt.Errorf("duplicate WASM installation object key %q", key)
-			}
-			keys[folded] = true
-		}
-		if err := uniqueKeys(decoder); err != nil {
-			return err
-		}
-	}
-	_, err = decoder.Token()
-	return err
+	return strictjson.Decode(data, value)
 }

@@ -2,6 +2,7 @@ package strictjson
 
 import (
 	"encoding/json"
+	"errors"
 	"strings"
 	"testing"
 )
@@ -110,5 +111,33 @@ func TestDecodeReportsLegacySyntaxErrors(t *testing.T) {
 	const want = "invalid character '|' after object key:value pair"
 	if err == nil || err.Error() != want {
 		t.Fatalf("Decode() error = %v, want %q", err, want)
+	}
+}
+
+func TestCheckSyntaxPreservesLibraryErrorsAndCallerDepth(t *testing.T) {
+	if err := CheckSyntax([]byte(`{"open":{"nested":true}}`), 2); err != nil {
+		t.Fatal(err)
+	}
+	for _, input := range [][]byte{[]byte(`[[]]`), []byte(`{"open":{}}`)} {
+		if err := CheckSyntax(input, 1); err != nil {
+			t.Fatalf("empty container at maximum depth rejected: %v", err)
+		}
+	}
+	for _, test := range []struct {
+		name  string
+		input []byte
+		limit int
+		want  error
+	}{
+		{name: "depth", input: []byte(`{"open":{"nested":true}}`), limit: 1, want: ErrNestingLimit},
+		{name: "duplicate", input: []byte(`{"open":1,"open":2}`), want: ErrDuplicateName},
+		{name: "trailing", input: []byte(`{} {}`), want: ErrTrailingData},
+		{name: "malformed trailing", input: []byte(`{} |`), want: ErrTrailingData},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			if err := CheckSyntax(test.input, test.limit); !errors.Is(err, test.want) {
+				t.Fatalf("CheckSyntax() error = %v, want %v", err, test.want)
+			}
+		})
 	}
 }

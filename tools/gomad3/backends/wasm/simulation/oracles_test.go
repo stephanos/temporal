@@ -15,8 +15,10 @@ import (
 func TestHistoryObservationRejectsAmbiguousInputs(t *testing.T) {
 	plan := &OraclePlan{Schema: HistoryObservationSchema, Prefix: "OBS ", MaximumBytes: 4096}
 	good := `{"cluster_id":"cluster","history":"YQ==","event_ids":[1],"types":["started"]}`
-	for _, stdout := range []string{"", "OBS " + good + "\nOBS " + good, "OBS " + good[:len(good)-1] + `,"history":"Yg=="}`, "OBS " + good[:len(good)-1] + `,"unknown":true}`, "OBS {}", "OBS " + good + " {}"} {
-		if _, err := decodeHistoryObservation([]byte(stdout), plan); err == nil {
+	invalidUTF8 := append([]byte(`OBS {"cluster_id":"cluster","history":"YQ==","event_ids":[1],"types":["`), 0xff)
+	invalidUTF8 = append(invalidUTF8, []byte(`"]}`)...)
+	for _, stdout := range [][]byte{nil, []byte("OBS " + good + "\nOBS " + good), []byte("OBS " + good[:len(good)-1] + `,"history":"Yg=="}`), []byte("OBS " + good[:len(good)-1] + `,"unknown":true}`), []byte("OBS {}"), []byte("OBS " + good + " {}"), invalidUTF8} {
+		if _, err := decodeHistoryObservation(stdout, plan); err == nil {
 			t.Fatal("ambiguous or missing observation admitted", stdout)
 		}
 	}
