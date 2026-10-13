@@ -67,44 +67,13 @@ Current native-execution acceptance is Darwin-only here. The corresponding Linux
 - [ ] Overlay inventories are regenerated and validated; overlay and gomad3sim process tests pass on darwin/arm64, with linux/amd64 recorded as incomplete.
 
 ## Done summary
-Blocked:
-# Task 14 acceptance remains open
+Generated the mirrored network, volume, and process semantic codecs from one shared definition per domain through the existing generator. Retained typed command owners, partial results and structured errors; fixed rejected-count continuation and untrusted allocation loops. Integrated protocol, simulator, model projections, World/Record, architecture and generated-validation checks pass. Cross-consumer vectors, drift tests, scoped lint and both supported-target compile checks pass; the three-axis independent source review is SHIP. Final WASM qualification and identity rotation remain in the shared rotation batch; supported native execution stays transferred to fn128/fn149.
 
-The typed-command source candidate, pre-edit byte fixtures, red/green ownership
-check, generation/validation and developmental tests are retained in handover.md
-and evidence.json. Two fresh independent source audits found no concrete defect;
-the conductor reran the bounded frozen-batch checks (source-audit.md).
-
-This linux/arm64 host has no patched `.toolchain/bin/go`. Acceptance still needs
-the supported darwin/arm64 and linux/amd64 rebuild, pinned focused tests, overlay
-suite and real process/simulation conformance. External stock-runtime stand-ins
-do not supply those results. Existing broad developmental vet findings are
-retained in unchanged files without suppressing a gate.
-
-Keep R14 and task 14 open. The user owns commits. MILESTONES.md permits the
-next source task to advance after this reviewed candidate, while native adoption
-and the final qualification tasks remain open.
-
-Blocked:
-# Task 14 acceptance remains open after source checkpoint
-
-The exact task-14 source boundary and task-owned evidence are verified for a
-separate progress commit. See source-checkpoint.md, checkpoint-reconstruction.json
-and the original source-audit.md. Source checks are not supported-host acceptance.
-
-Both native darwin/arm64 and linux/amd64 still require the patched toolchain,
-overlay focused/full tests, real process/simulation conformance, gomad3sim toolchain
-tests and full host gates listed in evidence.json. This linux/arm64 host cannot
-provide those results; external stock-runtime stand-ins remain developmental.
-
-Keep task 14 and R14 open until all required gates pass. The conductor commits
-verified progress under MILESTONES item 5, preserving successor working-tree bytes
-and unrelated changes. The older user-only commit instructions are superseded.
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 0b0971431c, e1d0791e89
+- Tests: integrated go test -tags test_dep -count=1 ./backends/native/generation/protocol ./simulation/network ./simulation/network/generate ./volume/internal/projection: exit 0, integrated go test -tags test_dep -count=1 ./tools/gomad3sim: exit 0, integrated both-platform archcheck selection: exit 0, integrated make -C tools/gomad3 validate: exit 0; /tmp/wasm-rotation-validate-20261013.log, integrated WASI model identity pin 246f2174: exit 0, worker cross-consumer and drift, scoped lint/vet, darwin-arm64 and linux-amd64 compile-only controls: /tmp/fn109-14-codec-evidence.json, three-axis gpt-6.1-sol/high source review SHIP: /tmp/impl-review-receipt-657da2bc4466-fn-109-gomad-deepen-modules-and-tool-interfaces.14.json
 - PRs:
-
 ## Linux ownership blocker (2026-10-04)
 
 Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.

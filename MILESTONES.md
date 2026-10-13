@@ -224,14 +224,6 @@ Owner decision (2026-10-12): these deferred specs change owners the WASM backend
 | [fn-166.10](.flow/tasks/fn-166-gomad-readable-package-structure-and.10.md) | ⬜ Todo | Move gomad3sim into gomad3 as internal/model/cluster; batched with fn-153/fn-154 |
 | [fn-166.11](.flow/tasks/fn-166-gomad-readable-package-structure-and.11.md) | ⬜ Todo | Rename the gomad3 module and tree to gomad after the rotation batch |
 
-### Shared Runner and simulation owners — [fn-109](.flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md) (shared subset)
-
-These fn-109 tasks change Runner, artifact, choice-exploration and simulation owners that the WASM backend shares. All but .14 completed on 2026-10-13; .14's generated codecs run with the rotation batch. The remaining fn-109 tasks stay under Native.
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-109.14](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.14.md) | 🚧 In progress | Typed commands done; generated network/volume/process codecs run with the rotation batch |
-
 <a id="canonical-json-publication-cleanup-fn-153"></a>
 
 ### JSON and file-publication cleanup - [fn-153](.flow/specs/fn-153-gomad-retire-canonical-json-and-private.md)
@@ -239,7 +231,7 @@ These fn-109 tasks change Runner, artifact, choice-exploration and simulation ow
 | Name / ID | Status | Description |
 | --- | --- | --- |
 | [fn-153.18](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.18.md) | 🚧 In progress | Reconcile contracts and verify the integrated cleanup |
-| [fn-153.20](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.20.md) | ⬜ Todo | Replace the remaining WASM strict JSON scanners with the shared decoder |
+| [fn-153.20](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.20.md) | 🚧 In progress | Replace the remaining WASM strict JSON scanners with the shared decoder |
 
 <a id="virtual-network-stalling-fn-154"></a>
 
