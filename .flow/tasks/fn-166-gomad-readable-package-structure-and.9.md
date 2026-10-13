@@ -10,9 +10,10 @@ Move tools/gomad3integration qualification manifests, testdata/tagged and its th
 tools/gomad3integration no longer exists; manifest checks pass from their new location; make targets and actionlint pass; R6 checks pass.
 
 ## Done summary
-TBD
+Temporal qualification manifests, README and manifest checks moved to backends/native/qualification. The remaining gomad3integration module (TestPublicWrappers, testdata/tagged) is removed with the library-contract checks in fn-166.7.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 3450f373a8
+- Tests: manifest checks in the gomad3 module, evidence: .flow/artifacts/wasm-section-acceptance-2026-10-12.md
 - PRs:
