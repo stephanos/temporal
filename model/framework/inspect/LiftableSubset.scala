@@ -43,7 +43,7 @@ private[framework] object LiftableSubset:
     val receiver = on(call)
     val tpe = receiver.map(_.tpe.widen.dealias)
     val integer = tpe.exists(_ <:< defn.IntClass.typeRef)
-    val boolean = tpe.exists(_ =:= defn.BooleanClass.typeRef)
+    val boolean = tpe.exists(_ <:< defn.BooleanClass.typeRef)
     val sequence = tpe.exists(
       _.baseClasses.exists(s =>
         Set(

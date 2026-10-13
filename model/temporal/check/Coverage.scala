@@ -168,6 +168,7 @@ object Coverage extends Registry:
     "framework.export.RetiredSpellingsTest" -> lifter,
     "framework.export.TypedDeclarationsTest" -> lifter,
     "framework.export.DefinitionExpansionTest" -> lifter,
+    "framework.export.DeclarationSugarFixtures" -> lifter,
     "framework.lint.LiftableSubsetFixtures" -> lifter,
     "framework.export.SugarFixtures" -> lifter,
     "framework.export.BoundsTest" -> lifter.reading(mini),
