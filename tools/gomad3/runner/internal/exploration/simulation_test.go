@@ -239,6 +239,51 @@ func TestSimulationRoundIdentityIsStableAcrossFrontierMapIteration(t *testing.T)
 	}
 }
 
+func TestSimulationStateIdentityRejectsInvalidUTF8(t *testing.T) {
+	invalid := "\xff"
+	tests := []struct {
+		name   string
+		mutate func(*SimulationState)
+	}{
+		{name: "execution identity", mutate: func(state *SimulationState) { state.Config.ExecutionSHA256 = record.SHA256(invalid) }},
+		{name: "controller identity", mutate: func(state *SimulationState) { state.Config.ControllerSHA256 = record.SHA256(invalid) }},
+		{name: "candidate identity", mutate: func(state *SimulationState) { state.Queue[0].SHA256 = record.SHA256(invalid) }},
+		{name: "candidate parent identity", mutate: func(state *SimulationState) { state.Queue[0].ParentSHA256 = record.SHA256(invalid) }},
+		{name: "forced dimension", mutate: func(state *SimulationState) {
+			state.Queue[0].Overrides = []ForcedDecision{{Dimension: Dimension(invalid)}}
+		}},
+		{name: "forced site identity", mutate: func(state *SimulationState) {
+			state.Queue[0].Overrides = []ForcedDecision{{SiteSHA256: record.SHA256(invalid)}}
+		}},
+		{name: "forced alternative-set identity", mutate: func(state *SimulationState) {
+			state.Queue[0].Overrides = []ForcedDecision{{AlternativeSetSHA256: record.SHA256(invalid)}}
+		}},
+		{name: "forced selected identity", mutate: func(state *SimulationState) {
+			state.Queue[0].Overrides = []ForcedDecision{{SelectedSHA256: record.SHA256(invalid)}}
+		}},
+		{name: "forced identity", mutate: func(state *SimulationState) {
+			state.Queue[0].Overrides = []ForcedDecision{{Identity: record.SHA256(invalid)}}
+		}},
+		{name: "seen identity", mutate: func(state *SimulationState) { state.Seen[0] = record.SHA256(invalid) }},
+		{name: "outcome identity", mutate: func(state *SimulationState) { state.Outcomes = []record.SHA256{record.SHA256(invalid)} }},
+		{name: "failure identity", mutate: func(state *SimulationState) { state.FailureSignatures = []record.SHA256{record.SHA256(invalid)} }},
+		{name: "stop reason", mutate: func(state *SimulationState) { state.StopReason = SimulationStopReason(invalid) }},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			state, err := NewSimulation(simulationTestConfig())
+			if err != nil {
+				t.Fatal(err)
+			}
+			test.mutate(&state)
+			if _, err := SimulationStateSHA256(state); err == nil {
+				t.Fatal("SimulationStateSHA256() accepted invalid UTF-8")
+			}
+		})
+	}
+}
+
 func TestValidateCandidateRejectsChangedForcedDecision(t *testing.T) {
 	config := simulationTestConfig()
 	state, err := NewSimulation(config)

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"slices"
 	"sort"
+	"unicode/utf8"
 
 	"go.temporal.io/server/tools/gomad3/record"
 )
@@ -824,12 +825,62 @@ func sameForcedDecision(left, right ForcedDecision) bool {
 }
 
 func simulationStateIdentity(state SimulationState) (record.SHA256, error) {
+	if err := validateSimulationStateIdentityStrings(state); err != nil {
+		return "", err
+	}
 	cloned := simulationCloneState(state)
 	encoded, err := json.Marshal(cloned)
 	if err != nil {
 		return "", err
 	}
 	return record.DomainHash(simulationStateDomain, encoded), nil
+}
+
+func validateSimulationStateIdentityStrings(state SimulationState) error {
+	if err := validateSimulationStateIdentityStringGroup("config", string(state.Config.ExecutionSHA256), string(state.Config.ControllerSHA256)); err != nil {
+		return err
+	}
+	if err := validateSimulationStateIdentityStringGroup("stop_reason", string(state.StopReason)); err != nil {
+		return err
+	}
+	for candidateIndex, candidate := range state.Queue {
+		if err := validateSimulationStateIdentityStringGroup(fmt.Sprintf("queue[%d]", candidateIndex), string(candidate.SHA256), string(candidate.ParentSHA256)); err != nil {
+			return err
+		}
+		for overrideIndex, override := range candidate.Overrides {
+			if err := validateSimulationStateIdentityStringGroup(
+				fmt.Sprintf("queue[%d].overrides[%d]", candidateIndex, overrideIndex),
+				string(override.Dimension), string(override.SiteSHA256), string(override.AlternativeSetSHA256), string(override.SelectedSHA256), string(override.Identity),
+			); err != nil {
+				return err
+			}
+		}
+	}
+	for index, value := range state.Seen {
+		if err := validateSimulationStateIdentityStringGroup(fmt.Sprintf("seen[%d]", index), string(value)); err != nil {
+			return err
+		}
+	}
+	for index, value := range state.Outcomes {
+		if err := validateSimulationStateIdentityStringGroup(fmt.Sprintf("outcomes[%d]", index), string(value)); err != nil {
+			return err
+		}
+	}
+	for index, value := range state.FailureSignatures {
+		if err := validateSimulationStateIdentityStringGroup(fmt.Sprintf("failure_signatures[%d]", index), string(value)); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func validateSimulationStateIdentityStringGroup(name string, values ...string) error {
+	for _, value := range values {
+		if !utf8.ValidString(value) {
+			return fmt.Errorf("simulation exploration state %s contains invalid UTF-8", name)
+		}
+	}
+	return nil
 }
 
 func simulationSegmentIdentity(segment SimulationRoundSegment) (record.SHA256, error) {
