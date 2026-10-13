@@ -74,6 +74,12 @@ definitions; no independent native process JSON decoder exists.
   malformed-overdepth refusal precedence, and installation typed/unknown-field
   versus trailing-data precedence. The existing JSON and network workers own
   the corresponding fixes; no acceptance or qualification is claimed.
+  `f44ccd6726` integrates the two network fixes (worker `ed6a7966c1`, frozen
+  review `439b0e2eb2`). Byte/stall override and source-port-overflow negatives
+  were red before and green after; matching broker and zero/65535 source-port
+  controls remain valid without overwriting captured inputs. Root's focused
+  broker selector and full protocol/network/projection generator checks pass.
+  JSON precedence fixes and the single-session re-review remain pending.
 - `49e4f12d5b` integrates fn154.4's shared byte-bounded local connection owner.
   Exact-source projected public-operation equivalence controls and full
   protocol/network/projection suites pass (exit 0), including 65 tiny writes,
@@ -82,6 +88,15 @@ definitions; no independent native process JSON decoder exists.
   the `c27f0ae4...` pin; a fresh combined pin and validation remain required.
   Native execution acceptance remains open. Holding/reservation development
   proceeds in the same connection worker's isolated worktree.
+  Root architecture checks pass in 63.571 s at the connection checkpoint;
+  purity and protocol/network/projection checks pass after the network fixes.
+  Logs: `/tmp/wasm-shared-connection-architecture-20261013.log` and
+  `/tmp/wasm-shared-connection-review-fix-source-20261013.log`. The first
+  command also named the absent `internal/purity` package and exited 1 for
+  setup; the corrected `internal/puritycheck` run exits 0. The frozen review
+  projection command similarly used an absent generator path; its corrected
+  `simulation/network/generate` run exits 0. Neither setup error is a semantic
+  regression or a full qualification result.
 - `df06ec9c73` binds tasks fn154.5/.6/.7 to current Runner registration and
   portable gate-selection owners, replacing absent historical paths without
   changing their actual-run acceptance requirements.
