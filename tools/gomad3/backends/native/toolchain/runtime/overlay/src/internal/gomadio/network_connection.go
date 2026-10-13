@@ -482,3 +482,46 @@ func (network *simulationNetwork) dropUndeliveredLocked(state *connState) {
 	state.retainedBytes -= discarded
 	network.pendingBytes -= discarded
 }
+
+func (network *simulationNetwork) armDialTimerLocked(pending *simulationDial) {
+	if pending.timer != nil {
+		pending.timer.Stop()
+		pending.timer = nil
+	}
+	if !pending.stalled {
+		return
+	}
+	epoch, due := pending.epoch, pending.due
+	pending.timer = time.AfterFunc(max(time.Until(due), 0), func() {
+		network.Lock()
+		if err := network.expireDialLocked(pending, epoch, due); err != nil {
+			network.signalLocked()
+		}
+		network.Unlock()
+	})
+}
+
+func (network *simulationNetwork) finishDialLocked(pending *simulationDial) {
+	if pending == nil {
+		return
+	}
+	pending.stalled = false
+	pending.reserved = false
+	pending.epoch++
+	network.armDialTimerLocked(pending)
+	delete(network.pendingDials, pending)
+}
+
+func (network *simulationNetwork) expireDialLocked(pending *simulationDial, epoch uint64, due time.Time) error {
+	if network.finished || !network.pendingDials[pending] || !pending.stalled || !pending.reserved || pending.epoch != epoch || pending.due != due || network.nowTime().Before(due) {
+		return nil
+	}
+	transition := simulationTransition{Kind: "dial", Source: pending.source, Destination: pending.destination, Outcome: "timeout"}
+	if err := network.commitBatchLocked([]simulationTransition{transition}, 0, 1); err != nil {
+		return err
+	}
+	pending.terminal = ErrStallTimeout
+	network.finishDialLocked(pending)
+	network.signalLocked()
+	return nil
+}

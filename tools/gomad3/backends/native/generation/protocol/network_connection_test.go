@@ -193,4 +193,14 @@ func TestNetworkHandleAutonomousStallSourceTimer(t *testing.T) {
  for index,connection:=range []*Conn{c,s}{set(index==0);_,err:=connection.Read(make([]byte,1));if !errors.Is(err,ErrStallTimeout){t.Fatalf("autonomous terminal=%v",err)}}
  if n.pendingBytes!=0||n.historyReserved!=0||len(n.transitions)!=6{t.Fatal("terminal reservation or bytes leaked")}
 }
+
+func TestNetworkHandlePartitionedDialSourceTimer(t *testing.T) {
+ c,s,set:=publicPair(t,true);n:=c.implementation.(*simulationConn).network;n.limits.StallNanos=1_000_000
+ if err:=n.changeLink("a","b","disconnect",false,0);err!=nil{t.Fatal(err)}
+ set(true);ctx,cancel:=context.WithTimeout(context.Background(),time.Second);defer cancel()
+ if connection,err:=DialTCP(ctx,"tcp4",s.LocalAddress().IP,s.LocalAddress().Port);connection!=nil||!errors.Is(err,ErrStallTimeout){t.Fatalf("dial stall=%v,%v",connection,err)}
+ if len(n.pendingDials)!=0||n.historyReserved!=0||n.nextConnection!=1{t.Fatal("pending dial leaked work or connection identity")}
+ cancelled,stop:=context.WithCancel(context.Background());stop()
+ if connection,err:=DialTCP(cancelled,"tcp4",c.LocalAddress().IP,c.LocalAddress().Port);connection!=nil||!errors.Is(err,context.Canceled){t.Fatalf("completed context=%v,%v",connection,err)}
+}
 `

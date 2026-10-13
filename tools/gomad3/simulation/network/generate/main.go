@@ -164,7 +164,7 @@ func generate(root string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	expected := map[string]int{"record": 11, "record_input": 1, "domain": 3, "descriptor": 1, "closed": 1, "validate": 1, "fields": 1, "clock": 1, "expiry_timer": 1, "notice": 5, "notify": 5, "deadline": 1, "wait": 4, "dial_wait": 2, "wait_continue": 3}
+	expected := map[string]int{"record": 11, "record_input": 1, "domain": 3, "descriptor": 1, "closed": 1, "validate": 1, "fields": 1, "clock": 1, "expiry_timer": 2, "notice": 5, "notify": 5, "deadline": 1, "wait": 4, "dial_wait": 2, "wait_continue": 3}
 	for name, want := range expected {
 		if counts[name] != want {
 			return nil, fmt.Errorf("native network rewrite %s changed: got %d, expected %d; counts %v", name, counts[name], want, counts)
@@ -271,7 +271,11 @@ func adapt(file *ast.File) (map[string]int, error) {
 				counts["closed"]++
 			}
 		case *ast.FuncDecl:
-			if receiverType(node) == "simulationNetwork" && node.Name.Name == "armStallTimerLocked" {
+			if receiverType(node) == "simulationNetwork" && (node.Name.Name == "armStallTimerLocked" || node.Name.Name == "armDialTimerLocked") {
+				if !nativeTimerProjectionValid(node) {
+					adaptationErr = fmt.Errorf("native expiry timer %s changed outside its projection seam", node.Name.Name)
+					return false
+				}
 				node.Body.List = nil
 				counts["expiry_timer"]++
 			}
@@ -356,6 +360,20 @@ func adapt(file *ast.File) (map[string]int, error) {
 			receiver = "connection.network"
 		}
 		ast.Inspect(function, func(node ast.Node) bool {
+			if receiverType(function) == "simulationNetwork" && function.Name.Name == "dial" {
+				if literal, ok := node.(*ast.CompositeLit); ok {
+					if identifier, ok := literal.Type.(*ast.Ident); ok && identifier.Name == "waiting" {
+						literal.Elts = append(literal.Elts, &ast.KeyValueExpr{Key: ast.NewIdent("Dial"), Value: ast.NewIdent("pending")})
+						for _, field := range literal.Elts {
+							if key, ok := field.(*ast.KeyValueExpr); ok {
+								if identifier, ok := key.Key.(*ast.Ident); ok && identifier.Name == "Deadline" {
+									key.Value = parseExpression("pendingDialDeadline(ctx,pending)")
+								}
+							}
+						}
+					}
+				}
+			}
 			if receiverType(function) == "pairedConn" && function.Name.Name == "Write" {
 				if literal, ok := node.(*ast.CompositeLit); ok {
 					if identifier, ok := literal.Type.(*ast.Ident); ok && identifier.Name == "waiting" {
@@ -373,6 +391,78 @@ func adapt(file *ast.File) (map[string]int, error) {
 		})
 	}
 	return counts, adaptationErr
+}
+
+func nativeTimerProjectionValid(function *ast.FuncDecl) bool {
+	if function.Body == nil || len(function.Body.List) != 4 {
+		return false
+	}
+	owner, field, capture := "state", "stallTimer", "pair, epoch, due := state.shared.pair, state.stallEpoch, state.stallDue"
+	callbackSize := 8
+	wantCalls := []string{"network.Lock()", "pair.clientState.shared.Lock()", "network.expireStallLocked(pair, state, epoch, due)", "pair.clientState.shared.signal()", "network.signalLocked()", "pair.clientState.descriptor.notice('r')", "pair.clientState.descriptor.notice('w')", "pair.serverState.descriptor.notice('r')", "pair.serverState.descriptor.notice('w')", "pair.clientState.shared.Unlock()", "network.Unlock()", "gomadvfd.Notify(notices...)"}
+	if function.Name.Name == "armDialTimerLocked" {
+		owner, field, capture = "pending", "timer", "epoch, due := pending.epoch, pending.due"
+		callbackSize = 3
+		wantCalls = []string{"network.Lock()", "network.expireDialLocked(pending, epoch, due)", "network.signalLocked()", "network.Unlock()"}
+	}
+	if !statementMatches(function.Body.List[0], "if "+owner+"."+field+" != nil { "+owner+"."+field+".Stop(); "+owner+"."+field+" = nil }") || !statementMatches(function.Body.List[1], "if !"+owner+".stalled { return }") || !statementMatches(function.Body.List[2], capture) {
+		return false
+	}
+	assignment, ok := function.Body.List[3].(*ast.AssignStmt)
+	if !ok || assignment.Tok != token.ASSIGN || len(assignment.Lhs) != 1 || len(assignment.Rhs) != 1 || formattedNode(assignment.Lhs[0]) != owner+"."+field {
+		return false
+	}
+	call, ok := assignment.Rhs[0].(*ast.CallExpr)
+	if !ok || formattedNode(call.Fun) != "time.AfterFunc" || len(call.Args) != 2 || formattedNode(call.Args[0]) != "max(time.Until(due), 0)" {
+		return false
+	}
+	callback, ok := call.Args[1].(*ast.FuncLit)
+	if !ok || len(callback.Type.Params.List) != 0 || callback.Type.Results != nil || len(callback.Body.List) != callbackSize {
+		return false
+	}
+	var calls []string
+	valid := true
+	ast.Inspect(callback.Body, func(node ast.Node) bool {
+		switch node := node.(type) {
+		case *ast.CallExpr:
+			calls = append(calls, formattedNode(node))
+		case *ast.AssignStmt:
+			if len(node.Lhs) != 1 || node.Tok != token.DEFINE || formattedNode(node.Lhs[0]) != "err" && formattedNode(node.Lhs[0]) != "notices" {
+				valid = false
+			}
+		case *ast.ReturnStmt, *ast.BranchStmt, *ast.IncDecStmt:
+			valid = false
+		}
+		return true
+	})
+	if !valid || len(calls) != len(wantCalls) {
+		return false
+	}
+	for index, want := range wantCalls {
+		if calls[index] != want {
+			return false
+		}
+	}
+	if function.Name.Name == "armDialTimerLocked" {
+		return statementMatches(callback.Body.List[1], "if err := network.expireDialLocked(pending, epoch, due); err != nil { network.signalLocked() }")
+	}
+	return statementMatches(callback.Body.List[3], "if err != nil { pair.clientState.shared.signal(); network.signalLocked() }")
+}
+
+func formattedNode(node ast.Node) string {
+	var output bytes.Buffer
+	if err := format.Node(&output, token.NewFileSet(), node); err != nil {
+		return ""
+	}
+	return output.String()
+}
+
+func statementMatches(statement ast.Stmt, source string) bool {
+	file, err := parser.ParseFile(token.NewFileSet(), "shape.go", "package shape\nfunc shape(){"+source+"}", 0)
+	if err != nil {
+		return false
+	}
+	return formattedNode(statement) == formattedNode(file.Decls[0].(*ast.FuncDecl).Body.List[0])
 }
 
 func unlocks(statement ast.Stmt) bool {

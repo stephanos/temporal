@@ -338,6 +338,153 @@ func TestModelSimultaneousPairExpiryReplay(t *testing.T) {
 	}
 }
 
+func TestModelPartitionedDialStallIndependentFromCallerDeadline(t *testing.T) {
+	for _, caller := range []uint64{5, 100} {
+		limits := testLimits()
+		limits.StallNanos = 10
+		m, a, b := testModel(t, limits)
+		l := m.Dispatch(Request{Domain: b, Op: "listen", RequestID: 1})
+		if err := m.Partition(a.Node, b.Node, false); err != nil {
+			t.Fatal(err)
+		}
+		r := m.Dispatch(Request{Domain: a, Op: "dial", Host: b.Address, Port: l.Local.Port, RequestID: 2, Deadline: caller})
+		want := uint64(11)
+		if caller < want {
+			want = caller
+		}
+		if r.State != "pending" || r.Deadline != want || m.NextDeadline() != want {
+			t.Fatalf("independent dial interval: %+v next=%d", r, m.NextDeadline())
+		}
+		if _, err := m.Advance(want); err != nil {
+			t.Fatal(err)
+		}
+		r = m.Dispatch(Request{Domain: a, Op: "poll", RequestID: 2})
+		wantError := "connection timed out"
+		if caller == 5 {
+			wantError = "context deadline exceeded"
+		}
+		if r.State != "completed" || r.Error != wantError || r.Handle != 0 || m.network.nextConnection != 0 || m.NextDeadline() != 0 || m.network.historyReserved != 0 {
+			t.Fatalf("pending dial terminal=%+v", r)
+		}
+	}
+}
+
+func TestModelPartitionedDialHealRepartitionAndRedundantDisable(t *testing.T) {
+	limits := testLimits()
+	limits.StallNanos = 10
+	m, a, b := testModel(t, limits)
+	l := m.Dispatch(Request{Domain: b, Op: "listen", RequestID: 1})
+	if err := m.Partition(a.Node, b.Node, false); err != nil {
+		t.Fatal(err)
+	}
+	if r := m.Dispatch(Request{Domain: a, Op: "dial", Host: b.Address, Port: l.Local.Port, RequestID: 2}); r.State != "pending" || r.Deadline != 11 {
+		t.Fatal(r)
+	}
+	if _, err := m.Advance(5); err != nil {
+		t.Fatal(err)
+	}
+	if err := m.Partition(a.Node, b.Node, false); err != nil {
+		t.Fatal(err)
+	}
+	if m.NextDeadline() != 11 {
+		t.Fatal("redundant disable restarted pending dial")
+	}
+	if err := m.Heal(a.Node, b.Node, false); err != nil {
+		t.Fatal(err)
+	}
+	if err := m.Partition(a.Node, b.Node, false); err != nil {
+		t.Fatal(err)
+	}
+	if m.NextDeadline() != 16 {
+		t.Fatal("new effective dial interval missing")
+	}
+	if _, err := m.Advance(11); err != nil {
+		t.Fatal(err)
+	}
+	if r := m.Dispatch(Request{Domain: a, Op: "poll", RequestID: 2}); r.State != "pending" || r.Deadline != 16 {
+		t.Fatal(r)
+	}
+	if err := m.Heal(a.Node, b.Node, false); err != nil {
+		t.Fatal(err)
+	}
+	m.Ready()
+	if r := m.Dispatch(Request{Domain: a, Op: "poll", RequestID: 2}); r.Error != "" || r.Handle == 0 || m.network.historyReserved != 0 || m.NextDeadline() != 0 {
+		t.Fatal(r)
+	}
+}
+
+func TestModelPendingDialReservationAndOverflowRejectBeforeWork(t *testing.T) {
+	for _, overflow := range []bool{false, true} {
+		limits := testLimits()
+		limits.StallNanos = 10
+		limits.Transitions = 2
+		if overflow {
+			limits.StallNanos = math.MaxInt64 - 1
+			limits.Transitions = 100
+		}
+		m, a, b := testModel(t, limits)
+		l := m.Dispatch(Request{Domain: b, Op: "listen", RequestID: 1})
+		if _, err := m.Advance(2); err != nil {
+			t.Fatal(err)
+		}
+		if err := m.Partition(a.Node, b.Node, false); err != nil {
+			t.Fatal(err)
+		}
+		before := len(m.network.transitions)
+		r := m.Dispatch(Request{Domain: a, Op: "dial", Host: b.Address, Port: l.Local.Port, RequestID: 2})
+		if r.State != "completed" || r.Error == "" || r.Handle != 0 || len(m.pending) != 0 || m.network.historyReserved != 0 || len(m.network.transitions) != before || m.network.nextConnection != 0 {
+			t.Fatalf("rejected pending dial admitted work: %+v", r)
+		}
+	}
+}
+
+func TestModelPendingDialRevocationReleasesReservationAndStaleWork(t *testing.T) {
+	limits := testLimits()
+	limits.StallNanos = 10
+	limits.Transitions = 3
+	m, a, b := testModel(t, limits)
+	l := m.Dispatch(Request{Domain: b, Op: "listen", RequestID: 1})
+	if err := m.Partition(a.Node, b.Node, false); err != nil {
+		t.Fatal(err)
+	}
+	if r := m.Dispatch(Request{Domain: a, Op: "dial", Host: b.Address, Port: l.Local.Port, RequestID: 2}); r.State != "pending" {
+		t.Fatal(r)
+	}
+	if err := m.Revoke(a, false); err != nil {
+		t.Fatal(err)
+	}
+	if m.NextDeadline() != 0 || m.network.historyReserved != 0 {
+		t.Fatal("revoked pending dial retained work")
+	}
+	if _, err := m.Advance(11); err != nil {
+		t.Fatal(err)
+	}
+	if r := m.Dispatch(Request{Domain: a, Op: "poll", RequestID: 2}); r.Error != "stale file handle" {
+		t.Fatal(r)
+	}
+	if len(m.network.transitions) != 2 || m.network.nextConnection != 0 {
+		t.Fatal("stale dial expiry committed")
+	}
+}
+
+func TestModelSimulationSelfDialRejectsBeforePendingAdmission(t *testing.T) {
+	m, a, _ := testModel(t, testLimits())
+	l := m.Dispatch(Request{Domain: a, Op: "listen", RequestID: 1})
+	before := len(m.network.transitions)
+	if r := m.Dispatch(Request{Domain: a, Op: "dial", Host: a.Address, Port: l.Local.Port, RequestID: 2}); r.Error != "unsupported Gomad network operation" || r.State != "completed" {
+		t.Fatal(r)
+	}
+	if len(m.network.transitions) != before || m.network.nextConnection != 0 || m.network.historyReserved != 0 || len(m.pending) != 0 {
+		t.Fatal("self dial mutated model")
+	}
+	if _, err := m.Advance(5); err != nil {
+		t.Fatal(err)
+	}
+	if r := m.Dispatch(Request{Domain: a, Op: "dial", Host: a.Address, Port: l.Local.Port, RequestID: 3, Deadline: 5}); r.Error != "context deadline exceeded" {
+		t.Fatalf("completed caller context lost precedence: %+v", r)
+	}
+}
+
 func TestModelReceivedTailSurvivesPartitionAndRepartitionDelaysSuffix(t *testing.T) {
 	m, a, b := testModel(t, testLimits())
 	_, client, server := pair(t, m, a, b)

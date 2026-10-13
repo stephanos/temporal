@@ -150,6 +150,18 @@ type simulationConnection struct {
 	reserved    bool
 }
 
+type simulationDial struct {
+	identity    uint64
+	source      simulationEndpoint
+	destination simulationEndpoint
+	stalled     bool
+	reserved    bool
+	due         time.Time
+	epoch       uint64
+	timer       *time.Timer
+	terminal    error
+}
+
 type simulationDelivery struct {
 	identity    uint64
 	connection  uint64
@@ -181,6 +193,8 @@ type simulationNetwork struct {
 	changed         chan struct{}
 	finished        bool
 	historyReserved uint64
+	pendingDials    map[*simulationDial]bool
+	nextPendingDial uint64
 }
 
 var simulationNetworkState = struct {
@@ -300,16 +314,17 @@ func newSimulationNetwork(run uint64, config simulationNetworkConfig) (*simulati
 		}
 	}
 	network := &simulationNetwork{
-		run:         run,
-		limits:      config.Limits,
-		nodes:       make(map[string]*simulationNode, len(config.Nodes)),
-		addresses:   make(map[string]*simulationNode, len(config.Nodes)),
-		links:       make(map[string]simulationLink, len(config.Links)),
-		listeners:   make(map[Address]*simulationListener),
-		connections: make(map[uint64]*simulationConnection),
-		deliveries:  make(map[uint64]simulationDelivery),
-		changed:     make(chan struct{}),
-		replay:      config.Replay,
+		run:          run,
+		limits:       config.Limits,
+		nodes:        make(map[string]*simulationNode, len(config.Nodes)),
+		addresses:    make(map[string]*simulationNode, len(config.Nodes)),
+		links:        make(map[string]simulationLink, len(config.Links)),
+		listeners:    make(map[Address]*simulationListener),
+		connections:  make(map[uint64]*simulationConnection),
+		deliveries:   make(map[uint64]simulationDelivery),
+		changed:      make(chan struct{}),
+		pendingDials: make(map[*simulationDial]bool),
+		replay:       config.Replay,
 	}
 	if config.Replay != nil {
 		network.replayLanes = make(map[string][]simulationTransition)
@@ -410,19 +425,47 @@ func (network *simulationNetwork) listen(networkName, host string, requestedPort
 	return &Listener{implementation: listener}, nil
 }
 
-func (network *simulationNetwork) dial(ctx context.Context, networkName, host string, port int, domain gomadsim.NetworkDomain) (*Conn, error) {
+func (network *simulationNetwork) dial(ctx context.Context, networkName, host string, port int, domain gomadsim.NetworkDomain, retained ...*simulationDial) (*Conn, error) {
 	if host == "" {
 		return nil, ErrUnsupported
 	}
+	var pending *simulationDial
+	if len(retained) != 0 {
+		pending = retained[0]
+	}
 	for {
+		network.Lock()
+		if pending != nil && pending.terminal != nil {
+			err := pending.terminal
+			network.Unlock()
+			return nil, err
+		}
+		if network.divergence != nil {
+			err := network.divergence
+			network.Unlock()
+			return nil, err
+		}
+		network.Unlock()
 		if err := ctx.Err(); err != nil {
 			network.Lock()
+			if pending != nil && pending.terminal != nil {
+				err := pending.terminal
+				network.Unlock()
+				return nil, err
+			}
 			source := simulationEndpoint{Node: domain.Node, Incarnation: domain.Incarnation, Address: domain.Address}
 			destination := simulationEndpoint{Address: host, Port: uint64(port)}
 			if target := network.addresses[host]; target != nil {
 				destination.Node = target.node
 			}
-			recordErr := network.commitTransitionLocked(simulationTransition{Kind: "dial", Source: source, Destination: destination, Outcome: "deadline"})
+			var release uint64
+			if pending != nil && pending.reserved {
+				release = 1
+			}
+			recordErr := network.commitBatchLocked([]simulationTransition{{Kind: "dial", Source: source, Destination: destination, Outcome: "deadline"}}, 0, release)
+			if recordErr == nil {
+				network.finishDialLocked(pending)
+			}
 			network.Unlock()
 			if recordErr != nil {
 				return nil, recordErr
@@ -449,8 +492,41 @@ func (network *simulationNetwork) dial(ctx context.Context, networkName, host st
 			}
 			return nil, ErrConnectionRefused
 		}
+		if targetNode.node == sourceNode.node {
+			network.Unlock()
+			return nil, ErrUnsupported
+		}
 		link, linked := network.links[simulationLinkKey(domain.Node, targetNode.node)]
 		if !linked || !link.Enabled {
+			if pending == nil {
+				if len(network.pendingDials) >= 65536 {
+					network.Unlock()
+					return nil, ErrResourceExhausted
+				}
+				pending = &simulationDial{source: source, destination: destination}
+			}
+			if !pending.stalled {
+				due, err := strictNetworkStallDeadline(network.nowTime(), network.limits.StallNanos)
+				if err != nil {
+					network.Unlock()
+					return nil, err
+				}
+				if uint64(len(network.transitions))+network.historyReserved >= network.limits.Transitions {
+					network.Unlock()
+					return nil, ErrResourceExhausted
+				}
+				if pending.identity == 0 {
+					network.nextPendingDial++
+					pending.identity = network.nextPendingDial
+				}
+				network.historyReserved++
+				pending.reserved = true
+				pending.stalled = true
+				pending.due = due
+				pending.epoch++
+				network.pendingDials[pending] = true
+				network.armDialTimerLocked(pending)
+			}
 			changed := network.changed
 			network.Unlock()
 			select {
@@ -462,6 +538,9 @@ func (network *simulationNetwork) dial(ctx context.Context, networkName, host st
 		listener := network.listeners[Address{IP: host, Port: port}]
 		if listener == nil || listener.closed {
 			err := network.commitTransitionLocked(simulationTransition{Kind: "dial", Source: source, Destination: destination, Outcome: "refused"})
+			if err == nil {
+				network.finishDialLocked(pending)
+			}
 			network.Unlock()
 			if err != nil {
 				return nil, err
@@ -470,7 +549,7 @@ func (network *simulationNetwork) dial(ctx context.Context, networkName, host st
 		}
 		listener.mu.Lock()
 		if len(listener.pending) >= maximumPendingConns {
-			changed := listener.changed
+			changed := network.changed
 			listener.mu.Unlock()
 			network.Unlock()
 			select {
@@ -482,6 +561,9 @@ func (network *simulationNetwork) dial(ctx context.Context, networkName, host st
 		if uint64(len(network.connections)) >= network.limits.Connections || sourceNode.nextClientPort > maximumPort {
 			listener.mu.Unlock()
 			err := network.commitTransitionLocked(simulationTransition{Kind: "dial", Source: source, Destination: destination, Outcome: "capacity"})
+			if err == nil {
+				network.finishDialLocked(pending)
+			}
 			network.Unlock()
 			if err != nil {
 				return nil, err
@@ -499,6 +581,7 @@ func (network *simulationNetwork) dial(ctx context.Context, networkName, host st
 			network.Unlock()
 			return nil, err
 		}
+		network.finishDialLocked(pending)
 		sourceNode.nextClientPort++
 		network.nextConnection = identity
 		clientState, serverState := newConnStates()
@@ -535,6 +618,7 @@ func (network *simulationNetwork) accept(listener *simulationListener) (*simulat
 			}
 			listener.pending = listener.pending[1:]
 			listener.signal()
+			network.signalLocked()
 			listener.mu.Unlock()
 			network.Unlock()
 			return connection, nil
@@ -758,22 +842,23 @@ func (network *simulationNetwork) revoke(domain gomadsim.NetworkDomain, graceful
 	if network.finished {
 		return syscall.ESTALE
 	}
-	if node := network.nodes[domain.Node]; node != nil && domain.Incarnation > node.lastIncarnation {
-		node.lastIncarnation = domain.Incarnation
-	}
 	endpoint := simulationEndpoint{Node: domain.Node, Incarnation: domain.Incarnation, Address: domain.Address}
 	var count uint64
 	var listeners uint64
 	var pendingBytes uint64
+	var release uint64
 	for _, connection := range network.connections {
 		if sameSimulationIncarnation(connection.client, endpoint) || sameSimulationIncarnation(connection.server, endpoint) {
 			count++
-			for _, chunk := range connection.clientState.incoming {
-				pendingBytes += uint64(len(chunk.bytes))
+			pendingBytes += connection.clientState.retainedBytes + connection.serverState.retainedBytes
+			if connection.reserved {
+				release++
 			}
-			for _, chunk := range connection.serverState.incoming {
-				pendingBytes += uint64(len(chunk.bytes))
-			}
+		}
+	}
+	for pending := range network.pendingDials {
+		if sameSimulationIncarnation(pending.source, endpoint) && pending.reserved {
+			release++
 		}
 	}
 	for _, listener := range network.listeners {
@@ -787,9 +872,20 @@ func (network *simulationNetwork) revoke(domain gomadsim.NetworkDomain, graceful
 		kind = "stop"
 		outcome = "ok"
 	}
+	var transitions []simulationTransition
 	if count != 0 || listeners != 0 {
-		if err := network.commitTransitionLocked(simulationTransition{Kind: kind, Source: endpoint, Count: count + listeners, Bytes: pendingBytes, Outcome: outcome}); err != nil {
-			return err
+		transitions = append(transitions, simulationTransition{Kind: kind, Source: endpoint, Count: count + listeners, Bytes: pendingBytes, Outcome: outcome})
+	}
+	if err := network.commitBatchLocked(transitions, 0, release); err != nil {
+		return err
+	}
+	if node := network.nodes[domain.Node]; node != nil && domain.Incarnation > node.lastIncarnation {
+		node.lastIncarnation = domain.Incarnation
+	}
+	for pending := range network.pendingDials {
+		if sameSimulationIncarnation(pending.source, endpoint) {
+			pending.terminal = syscall.ESTALE
+			network.finishDialLocked(pending)
 		}
 	}
 	for address, listener := range network.listeners {
@@ -806,6 +902,7 @@ func (network *simulationNetwork) revoke(domain gomadsim.NetworkDomain, graceful
 			continue
 		}
 		connection.clientState.shared.Lock()
+		connection.reserved = false
 		network.dropStateDeliveriesLocked(connection.clientState)
 		network.dropStateDeliveriesLocked(connection.serverState)
 		if graceful {
@@ -867,6 +964,9 @@ func (network *simulationNetwork) finish() (simulationRecord, error) {
 		pair.reserved = false
 	}
 	network.historyReserved = 0
+	for pending := range network.pendingDials {
+		network.finishDialLocked(pending)
+	}
 	canonicalizeSimulationTransitions(network.transitions)
 	var finishErr error
 	if network.divergence != nil {
@@ -1118,6 +1218,36 @@ func (network *simulationNetwork) applyLinksLocked(changes map[string]simulation
 	var reserve, release uint64
 	nextReservations := make(map[*simulationConnection]bool)
 	now := network.nowTime()
+	var dialPlans []struct {
+		pending *simulationDial
+		stalled bool
+		due     time.Time
+	}
+	for pending := range network.pendingDials {
+		key := simulationLinkKey(pending.source.Node, pending.destination.Node)
+		link := network.links[key]
+		if changed, ok := changes[key]; ok {
+			link = changed
+		}
+		stalled := !link.Enabled
+		due := pending.due
+		if stalled && !pending.stalled {
+			var err error
+			due, err = strictNetworkStallDeadline(now, network.limits.StallNanos)
+			if err != nil {
+				return err
+			}
+			reserve++
+		}
+		if !stalled && pending.reserved {
+			release++
+		}
+		dialPlans = append(dialPlans, struct {
+			pending *simulationDial
+			stalled bool
+			due     time.Time
+		}{pending, stalled, due})
+	}
 	for _, pair := range network.connections {
 		if pair.closed || pair.reset {
 			continue
@@ -1168,6 +1298,16 @@ func (network *simulationNetwork) applyLinksLocked(changes map[string]simulation
 	}
 	for pair, reserved := range nextReservations {
 		pair.reserved = reserved
+	}
+	for _, plan := range dialPlans {
+		pending := plan.pending
+		if pending.stalled != plan.stalled {
+			pending.epoch++
+			pending.stalled = plan.stalled
+			pending.reserved = plan.stalled
+			pending.due = plan.due
+			network.armDialTimerLocked(pending)
+		}
 	}
 	for _, plan := range plans {
 		state := plan.state

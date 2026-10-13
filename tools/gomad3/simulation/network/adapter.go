@@ -65,6 +65,7 @@ type waiting struct {
 	Changed  <-chan struct{}
 	Deadline time.Time
 	Accepted int
+	Dial     *simulationDial
 }
 type pending struct {
 	request  Request
@@ -230,7 +231,11 @@ func modelErrorMessage(err error) string {
 	}
 }
 
-func (m *Model) attempt(r Request) (result Result, blocked *waiting) {
+func (m *Model) attempt(r Request, retained ...*simulationDial) (result Result, blocked *waiting) {
+	var pendingDial *simulationDial
+	if len(retained) != 0 {
+		pendingDial = retained[0]
+	}
 	result = Result{RequestID: r.RequestID, State: "completed"}
 	m.network.current = r.Domain
 	defer func() {
@@ -274,7 +279,7 @@ func (m *Model) attempt(r Request) (result Result, blocked *waiting) {
 			return failed(r, ErrUnsupported), nil
 		}
 		var conn *Conn
-		conn, err = m.network.dial(virtualContext{network: m.network, deadline: virtualTime(r.Deadline), cancelled: m.cancelErr}, "tcp", r.Host, r.Port, r.Domain)
+		conn, err = m.network.dial(virtualContext{network: m.network, deadline: virtualTime(r.Deadline), cancelled: m.cancelErr}, "tcp", r.Host, r.Port, r.Domain, pendingDial)
 		if err == nil {
 			result.Handle = m.add(ownedHandle{domain: r.Domain, connection: conn})
 			result.Local = conn.LocalAddress()
@@ -367,6 +372,14 @@ func (v virtualContext) Err() error {
 func (v virtualContext) Value(any) any         { return nil }
 func deadlineOf(ctx context.Context) time.Time { value, _ := ctx.Deadline(); return value }
 
+func pendingDialDeadline(ctx context.Context, pending *simulationDial) time.Time {
+	deadline := deadlineOf(ctx)
+	if pending != nil && pending.stalled {
+		return earliestDeadline(deadline, pending.due)
+	}
+	return deadline
+}
+
 // Ready settles signaled operations in stable request order without waiting.
 func (m *Model) Ready() []uint64 {
 	m.mu.Lock()
@@ -398,7 +411,7 @@ func (m *Model) ready() []uint64 {
 		if !signaled {
 			continue
 		}
-		result, wait := m.attempt(p.request)
+		result, wait := m.attempt(p.request, p.wait.Dial)
 		if p.request.Op == "write" {
 			p.accepted += result.Count
 			p.request.Bytes = p.request.Bytes[result.Count:]
@@ -424,6 +437,19 @@ func (m *Model) Advance(now uint64) ([]uint64, error) {
 	}
 	m.network.now = time.Unix(0, int64(now))
 	m.network.Lock()
+	dials := make([]*simulationDial, 0, len(m.network.pendingDials))
+	for pending := range m.network.pendingDials {
+		dials = append(dials, pending)
+	}
+	sort.Slice(dials, func(i, j int) bool { return dials[i].identity < dials[j].identity })
+	for _, pending := range dials {
+		if pending.stalled && !m.network.now.Before(pending.due) {
+			if err := m.network.expireDialLocked(pending, pending.epoch, pending.due); err != nil {
+				m.network.Unlock()
+				return nil, err
+			}
+		}
+	}
 	identities := make([]uint64, 0, len(m.network.connections))
 	for identity := range m.network.connections {
 		identities = append(identities, identity)
@@ -450,6 +476,14 @@ func (m *Model) NextDeadline() uint64 {
 		return 0
 	}
 	var next uint64
+	for pending := range m.network.pendingDials {
+		if pending.stalled {
+			due := virtualNanos(pending.due)
+			if due != 0 && (next == 0 || due < next) {
+				next = due
+			}
+		}
+	}
 	for _, pair := range m.network.connections {
 		for _, state := range []*connState{pair.clientState, pair.serverState} {
 			if state.stalled {
@@ -465,6 +499,9 @@ func (m *Model) NextDeadline() uint64 {
 			continue
 		}
 		d := virtualNanos(p.wait.Deadline)
+		if p.request.Op == "dial" {
+			d = virtualNanos(pendingDialDeadline(virtualContext{network: m.network, deadline: virtualTime(p.request.Deadline)}, p.wait.Dial))
+		}
 		if d != 0 && (next == 0 || d < next) {
 			next = d
 		}
@@ -484,7 +521,7 @@ func (m *Model) Cancel(domain Domain, id uint64) error {
 	result := failed(p.request, context.Canceled)
 	if p.request.Op == "dial" && p.result == nil {
 		m.cancelErr = context.Canceled
-		result, _ = m.attempt(p.request)
+		result, _ = m.attempt(p.request, p.wait.Dial)
 		m.cancelErr = nil
 	}
 	p.result = &result

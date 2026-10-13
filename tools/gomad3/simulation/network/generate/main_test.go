@@ -6,7 +6,9 @@ import (
 	"go/format"
 	"go/parser"
 	"go/token"
+	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -39,6 +41,7 @@ func TestProjectionPreservesNativeOwnerBodies(t *testing.T) {
 		"pairedConn.Read": true, "pairedConn.Write": true, "pairedConn.Close": true,
 		"pairedConn.CloseRead": true, "pairedConn.CloseWrite": true, "pairedConn.nowTime": true,
 		"simulationNetwork.armStallTimerLocked": true,
+		"simulationNetwork.armDialTimerLocked":  true,
 	}
 	compared := 0
 	for _, name := range []string{"network.go", "network_connection.go", "simulation_network.go", "simulation_handles.go", "simulation_wire.go"} {
@@ -85,6 +88,39 @@ func (network *simulationNetwork) accept() {
 	}
 	if _, err := adapt(file); err == nil {
 		t.Fatal("generation accepted a wait before the native unlock")
+	}
+}
+
+func TestProjectionRejectsChangedExpiryTimer(t *testing.T) {
+	root, err := moduleRoot()
+	if err != nil {
+		t.Fatal(err)
+	}
+	source, err := os.ReadFile(filepath.Join(root, "backends/native/toolchain/runtime/overlay/src/internal/gomadio/network_connection.go"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, mutation := range []struct{ name, from, to string }{
+		{"scheduler", "time.AfterFunc(", "time.NewTimer("},
+		{"deadline", "time.Until(due)", "time.Duration(1)"},
+		{"epoch capture", "state.stallEpoch, state.stallDue", "state.stallEpoch + 1, state.stallDue"},
+		{"owned callback", "network.expireStallLocked(pair, state, epoch, due)", "network.expireStallLocked(pair, state, epoch + 1, due)"},
+		{"extra callback mutation", "err := network.expireStallLocked", "network.pendingBytes++\nerr := network.expireStallLocked"},
+		{"dial callback", "network.expireDialLocked(pending, epoch, due)", "network.expireDialLocked(pending, epoch, due.Add(1))"},
+	} {
+		t.Run(mutation.name, func(t *testing.T) {
+			modified := strings.Replace(string(source), mutation.from, mutation.to, 1)
+			if modified == string(source) {
+				t.Fatal("timer mutation did not change fixture")
+			}
+			file, err := parser.ParseFile(token.NewFileSet(), "timer.go", modified, 0)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if _, err := adapt(file); err == nil {
+				t.Fatal("projection silently removed changed native timer semantics")
+			}
+		})
 	}
 }
 
