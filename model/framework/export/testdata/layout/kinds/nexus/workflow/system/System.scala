@@ -1,7 +1,7 @@
 package fixture.features.nexus.workflow
 package system
 
-import framework.*; import framework.Finite.given
+import framework.dsl.*; import framework.dsl.Finite.given
 import product.NexusProduct
 val _ = () => summon[CanEqual[Phase, Phase]]
 enum Phase:

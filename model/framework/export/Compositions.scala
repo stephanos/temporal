@@ -515,7 +515,7 @@ private[`export`] trait Compositions:
           s"$op names ${a.name} of $field, and ${m.machine} binds no action of ${cls.action}: name " +
             s"the action $field binds, not one of another declaration spelled alike"
         )
-      Selected(c, op, field, cls, a, !isNamed(value.tpe.widen, "framework.Action"), None)
+      Selected(c, op, field, cls, a, !isNamed(value.tpe.widen, "framework.dsl.Action"), None)
     def pairs(s: ir.Sync, field: String, action: String): Boolean =
       Seq(s.getFirst, s.getSecond).exists(mv => mv.member == field && mv.action == action)
     op match

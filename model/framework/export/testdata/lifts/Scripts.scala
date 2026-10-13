@@ -11,7 +11,7 @@
 // to be equal apart from positions, ids and names.
 package fixture.scripts
 
-import framework.*
+import framework.dsl.*
 import framework.realize.*
 import framework.realize.Instruction.Release, temporal.realize.WorkerInstruction.Fault
 import temporal.realize.*

@@ -8,7 +8,7 @@ import temporal.capabilities.product.{Closable, Describable, Pausable, Pollable,
 import temporal.capabilities.system.{Expirable, Retryable}
 // Every shared capability Property has two machines with their own state types.
 
-import framework.{
+import framework.dsl.{
   Capabilities,
   CapabilityKind,
   CapabilityOf,
@@ -17,7 +17,7 @@ import framework.{
   Property,
   RetryFixture
 }
-import framework.outcomes.{Outcome, Rejection}
+import framework.dsl.outcomes.{Outcome, Rejection}
 import temporal.features.activity.standalone.{product, protocol}
 import temporal.features.nexus.standalone.protocol.NexusProtocol
 import temporal.features.nexus.workflow.protocol.NexusProtocol as WorkflowNexusProtocol
@@ -91,7 +91,7 @@ class CapabilityPropertiesTest extends munit.FunSuite:
   def declaring[S, O, F](m: Machine[S, O, F], section: Capabilities[S, O, F]): Declared =
     // A machine of facets declares its facets' capabilities (fn-161).
     def sections(c: Capabilities[S, O, F]): Seq[Capabilities[S, O, F]] = c match
-      case f: framework.FacetCapabilities[S, O, F] @unchecked => f.facets.flatMap(sections)
+      case f: framework.dsl.FacetCapabilities[S, O, F] @unchecked => f.facets.flatMap(sections)
       case other                                              => Seq(other)
     val bindings = sections(section).flatMap(c =>
       c.getClass.getMethods

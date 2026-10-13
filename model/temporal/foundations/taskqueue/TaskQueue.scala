@@ -26,7 +26,7 @@
 package temporal
 package foundations.taskqueue
 
-import framework.*
+import framework.dsl.*
 
 // ### Types
 

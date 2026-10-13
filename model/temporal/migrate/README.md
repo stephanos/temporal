@@ -2,7 +2,40 @@
 
 A rule is temporary and the harness is permanent (owner, 2026-10-12). Keep only rules the owner's sweep has not yet applied: once the sweep applies a rule to the real features, delete the rule, its proof and its section here; git keeps them. The harness stays: `model/framework/migrate/prove.sh` ([its README](../../framework/migrate/README.md)) proves a rule's runner on a copy of the feature `FEATURES` selects (default `activity_mini`) and compares the lifts before and after with `model/framework/check/equivalence` (`Lifts.scala`): byte for byte, or under the delta the runner declares. Each rule, its proof runner (`Rewrite*Mini.scala`) and its suite sit side by side in this folder, package `temporal.migrate`.
 
+A rule written before fn-169.1 reads the DSL as the real features still spell it, `import
+framework.*`, and the sweep runs it before `Fn169Task1DslPackage`. Its proof runs in that order:
+`INNER=<runner> prove.sh temporal.migrate.OnLegacyDsl` spells the copy back to the legacy package,
+runs the runner, then applies `Fn169Task1DslPackage` (`OnLegacyDsl.scala`); a runner's own probes
+compile in the current spelling. `Fn161Task4FacetWrapping`, whose proof compiles its legacy
+namespaces mid-way, reads either spelling and runs unwrapped.
+
 DSL changes ship a task-named Scalafix rule under `model/temporal/migrate/`, prove it on copied `activity_mini` sources before the real-feature sweep, and follow `model/temporal/migrate/README.md`; production loading remains held in fn-166.10.
+
+## DSL package: Fn169Task1DslPackage
+
+fn-169.1 moved the authoring DSL from package `framework` into `framework.dsl`, so a Model's
+`import framework.dsl.*` brings the authoring API alone into scope, and the IR names the DSL's types by
+their package (`framework.dsl.Step`, `framework.dsl.outcomes.Outcome`). The rule adds `.dsl` wherever a
+source names the DSL through `framework`: `import framework.*`, `import framework.X`, `import
+framework.{A, B}`, a reference `framework.X` or `_root_.framework.X`, and a package clause `package
+framework` (a test of the DSL's internals). The framework's other packages, `realize`, `export`,
+`check` and `migrate`, keep their names; a moved test, or a source that imported `framework.*`, that
+named one of them relatively (`realize.X`) names it from the root (`framework.realize.X`). Comments and
+literals keep their text, every line keeps its place, and an import naming a framework package beside
+a DSL name refuses the document (`mixed-framework-import`). Run it after every older rule of this
+folder, whose matchers read the legacy `framework` imports.
+
+```sh
+mise exec -- scala-cli test --server=false model/temporal/migrate --test-only temporal.migrate.DslPackageTest
+FEATURES=activity_mini timeout 900 model/framework/migrate/prove.sh temporal.migrate.RewriteDslPackageMini
+```
+
+The proof spells every Model source of the copied mini and shared code back to the legacy package,
+runs the rule over each and requires every accepted source back byte for byte and convergence; the
+lifts before and after compare byte for byte. The IR identity delta for the sweep's equivalence is the
+`ir` entries of `model/temporal/check/baselines/activity_mini.map`: `framework.Step`,
+`framework.outcomes.Outcome`, `framework.outcomes.Rejection` and `framework.Domain$package$.UpTo` gain
+`.dsl`. The Go interpreter's hard-coded `framework.Step` and `framework.Delivery` follow in held fn-169.4.
 
 ## Flat layout: Fn160Task3FamilyNames
 
@@ -181,7 +214,7 @@ Resolve ambiguity before changing any declaration and compile/lift the selected 
 
 ```sh
 mise exec -- scala-cli test --server=false model/temporal/migrate --test-only temporal.migrate.InputDefaultsTest
-FEATURES=activity_mini timeout 600 model/framework/migrate/prove.sh temporal.migrate.RewriteInputDefaultsMini
+INNER=temporal.migrate.RewriteInputDefaultsMini FEATURES=activity_mini timeout 600 model/framework/migrate/prove.sh temporal.migrate.OnLegacyDsl
 ```
 
 The copied-mini proof removes the three explicit defaults from actual copied MiniActivity
@@ -215,7 +248,7 @@ opaque catalogs and scalar helpers. Check ranges before wrapping expressions tha
 
 ```sh
 mise exec -- scala-cli test --server=false model/temporal/migrate --test-only temporal.migrate.BoundedIntegersTest
-FEATURES=activity_mini timeout 600 model/framework/migrate/prove.sh temporal.migrate.RewriteBoundedIntegersMini
+INNER=temporal.migrate.RewriteBoundedIntegersMini FEATURES=activity_mini timeout 600 model/framework/migrate/prove.sh temporal.migrate.OnLegacyDsl
 ```
 
 The copied mini already uses UpTo; its source remains unchanged. A separately labelled scratch
@@ -253,7 +286,7 @@ The authored declaration files already have their current names and are not move
 
 ```sh
 mise exec -- scala-cli test --server=false model/temporal/migrate --test-only temporal.migrate.CapabilityNamesTest
-FEATURES=activity_mini timeout 600 model/framework/migrate/prove.sh temporal.migrate.RewriteCapabilityNamesMini
+INNER=temporal.migrate.RewriteCapabilityNamesMini FEATURES=activity_mini timeout 600 model/framework/migrate/prove.sh temporal.migrate.OnLegacyDsl
 ```
 
 The copied-mini runner introduces actual legacy imports, constructors and the retry override
@@ -327,7 +360,7 @@ document atomically with a manual qualified remedy. An ordinary wildcard import 
 
 ```sh
 mise exec -- scala-cli test --server=false model/temporal/migrate --test-only temporal.migrate.QualifiedActionsTest
-FEATURES=activity_mini timeout 600 model/framework/migrate/prove.sh temporal.migrate.RewriteQualifiedMini
+INNER=temporal.migrate.RewriteQualifiedMini FEATURES=activity_mini timeout 600 model/framework/migrate/prove.sh temporal.migrate.OnLegacyDsl
 ```
 
 The copied-mini runner introduces an imported bare poll into its isolated `Dispatching.scala`,
@@ -351,7 +384,7 @@ actual phase type, followed by removal of the member import.
 
 ```sh
 mise exec -- scala-cli test --server=false model/temporal/migrate --test-only temporal.migrate.QualifiedPhasesTest
-FEATURES=activity_mini timeout 600 model/framework/migrate/prove.sh temporal.migrate.RewriteQualifiedPhasesMini
+INNER=temporal.migrate.RewriteQualifiedPhasesMini FEATURES=activity_mini timeout 600 model/framework/migrate/prove.sh temporal.migrate.OnLegacyDsl
 ```
 
 The copied-mini runner introduces a renamed phase-member import in its isolated
@@ -381,7 +414,7 @@ The syntactic source harness does not establish arbitrary whole-program/export v
 
 ```sh
 mise exec -- scala-cli test --server=false model/temporal/migrate --test-only temporal.migrate.EntersTest
-FEATURES=activity_mini timeout 600 model/framework/migrate/prove.sh temporal.migrate.RewriteEntersMini
+INNER=temporal.migrate.RewriteEntersMini FEATURES=activity_mini timeout 600 model/framework/migrate/prove.sh temporal.migrate.OnLegacyDsl
 ```
 
 The runner restores legacy backOff/resume definitions and calls in copied actual Answering,
@@ -420,7 +453,7 @@ An unknown budget requires an explicit Bounds decision before removing it. Keep
 ```sh
 mise exec -- scala-cli test --server=false model/temporal/migrate --test-only temporal.migrate.CentralBoundsTest
 mise exec -- scala-cli test --server=false model/temporal/migrate --test-only temporal.migrate.BoundsInventoryTest
-FEATURES=activity_mini timeout 600 model/framework/migrate/prove.sh temporal.migrate.RewriteCentralBoundsMini
+INNER=temporal.migrate.RewriteCentralBoundsMini FEATURES=activity_mini timeout 600 model/framework/migrate/prove.sh temporal.migrate.OnLegacyDsl
 ```
 
 The copied-mini runner adds a known local bound only to the isolated Queue Query, applies
@@ -450,7 +483,7 @@ the field path. A full `ActivityExecutionInfo` read selects `info`, not `info.at
 
 ```sh
 mise exec -- scala-cli test --server=false model/temporal/migrate --test-only temporal.migrate.ObservationReadTest
-FEATURES=activity_mini timeout 600 model/framework/migrate/prove.sh temporal.migrate.RewriteObservationMini
+INNER=temporal.migrate.RewriteObservationMini FEATURES=activity_mini timeout 600 model/framework/migrate/prove.sh temporal.migrate.OnLegacyDsl
 ```
 
 The mini has no authored Observation. Its copied-source proof adds a separate scratch

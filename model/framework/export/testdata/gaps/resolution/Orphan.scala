@@ -1,7 +1,7 @@
 // fn-167.2: a gap in a package no IR file is collected from (see Gapfile.scala).
 package fixture.gaporphan
 
-import framework.*
+import framework.dsl.*
 
 enum Spare:
   case only

@@ -1,6 +1,6 @@
-package framework
+package framework.dsl
 
-import framework.Finite.given
+import framework.dsl.Finite.given
 // Input tokens, inputs supplied by name and bounded counters, run as Scala. The IR generator's
 // fixtures (irgen/testdata/lifts/Inputs.scala) prove the IR; these pin the framework's own values.
 

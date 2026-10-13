@@ -549,11 +549,12 @@ class PropertyGroupsFixtures extends munit.FunSuite with RetainedScratch:
       .mkString
 
   // fn-169.1 moved the fixtures from model/irgen/testdata: their positions name the
-  // new path, and each digest with the old path is the one it had.
+  // new path, and the DSL its new package, framework.dsl; each digest with the old path and
+  // package is the one it had.
   private lazy val legacyHashes = Map(
-    "bundleonly" -> "99138c5d08d73e83552eafafe279cc1a895d3a79d38045db206a2c2d442fc1e2",
-    "lonely" -> "95327b713cee7638009e471893ea1e3f1aa20b9055d9dbeca175fb251b9f97c8",
-    "specimen-workflow" -> "8e3a72aea1773c6e9f29876a355759db5574f32eb914c96f295853d5694eacb8"
+    "bundleonly" -> "04ee185ced447d933465579745ae8a8df6a8a773dfa92a15e444658c40d7b6bd",
+    "lonely" -> "7d8d9682440f07e0b043cdbe2e28cc3cc372d8cdcbea5d23be16a8a07daa4d89",
+    "specimen-workflow" -> "4f63a7ce5085e806d8292ca1a6cb1be9b291fe76e678885e4f1c0c9043dd02d7"
   )
 
   test(
@@ -598,7 +599,7 @@ class PropertyGroupsFixtures extends munit.FunSuite with RetainedScratch:
       ) ++ dependencies).distinct.mkString(java.io.File.pathSeparator)
       val result = tools.run(
         "java",
-        Seq("-cp", classpath, "framework.PropertyGroupsNative")
+        Seq("-cp", classpath, "framework.dsl.PropertyGroupsNative")
       )
       Files.writeString(
         scratch.resolve(variant).resolve("native.log"),
@@ -776,13 +777,13 @@ class PropertyGroupsFixtures extends munit.FunSuite with RetainedScratch:
           else
             id match
               case "subject.property.stable" =>
-                """[{"name":"before","type":{"named":"propertygroups.State"}},{"name":"after","type":{"named":"framework.Step"}}]"""
+                """[{"name":"before","type":{"named":"propertygroups.State"}},{"name":"after","type":{"named":"framework.dsl.Step"}}]"""
               case "propertygroups.seal.next" =>
-                """[{"name":"boolean","type":{"bool":{}}},{"name":"state","type":{"named":"propertygroups.State"}},{"name":"after","type":{"named":"framework.Step"}}]"""
+                """[{"name":"boolean","type":{"bool":{}}},{"name":"state","type":{"named":"propertygroups.State"}},{"name":"after","type":{"named":"framework.dsl.Step"}}]"""
               case "propertygroups.seal.violated" =>
                 """[{"name":"s","type":{"bool":{}}}]"""
               case _ =>
-                """[{"name":"after","type":{"named":"framework.Step"}}]"""
+                """[{"name":"after","type":{"named":"framework.dsl.Step"}}]"""
         assertEquals(found.head.path("params"), mapper.readTree(params), id)
         found.head.path("body")
       val never = body(model, "joined.property.memberClosed.never")

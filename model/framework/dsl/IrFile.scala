@@ -1,4 +1,4 @@
-package framework
+package framework.dsl
 
 import scala.collection.mutable
 import java.nio.file.{Files, Path}

@@ -1,6 +1,6 @@
 package fixture.features.placement
 
-import framework.*
+import framework.dsl.*
 import fixture.witness.{worker, Input, Note, Subject}
 
 object Placed extends Derived(Subject.restrict(worker.begin, worker.finish)):

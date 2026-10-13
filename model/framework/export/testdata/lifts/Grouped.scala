@@ -4,7 +4,7 @@
 // machine of the two, but for names and positions.
 package fixture.grouped
 
-import framework.*; import framework.Finite.given
+import framework.dsl.*; import framework.dsl.Finite.given
 
 enum Mode:
   case idle, busy, halted

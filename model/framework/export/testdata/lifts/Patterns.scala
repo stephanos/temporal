@@ -5,7 +5,7 @@
 // and require one IR, but for names, positions and the names of the functions they refer to.
 package fixture.patterns
 
-import framework.*; import framework.Finite.given
+import framework.dsl.*; import framework.dsl.Finite.given
 
 enum Phase:
   case idle, running, paused, done

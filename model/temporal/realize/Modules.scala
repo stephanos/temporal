@@ -9,7 +9,7 @@ import io.grpc.MethodDescriptor
 import scala.annotation.unused
 import scalapb.{GeneratedEnum, GeneratedMessage}
 import io.temporal.api.history.v1.HistoryEvent
-import framework.{Action, Class, Input, Machine}
+import framework.dsl.{Action, Class, Input, Machine}
 import framework.realize.*
 
 // The fields every call on `role` assigns, each a request field by its protobuf name and the

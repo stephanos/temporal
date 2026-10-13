@@ -4,9 +4,9 @@
 // status, which would hand the draft no status to record.
 package fixture.statusfactrejects
 
-import framework.*; import framework.Finite.given
+import framework.dsl.*; import framework.dsl.Finite.given
 import fixture.statusfacts.{phase, phase_=, user, Fact, Job, Outcome, Phase, given}
-val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
+val _ = () => summon[CanEqual[framework.dsl.outcomes.Outcome, framework.dsl.outcomes.Outcome]]
 // Assigns the phase without handing the draft the phase it assigns.
 def stage(using v: View[Job]): Phase = v.get(_.phase)
 def stage_=(p: Phase)(using d: Draft[Job, ?, ?]): Unit = d.set(_.copy(phase = p))

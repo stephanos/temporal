@@ -4,7 +4,7 @@
 // no Model declarations and stay.
 package fixture.features.misnamed
 
-import framework.*
+import framework.dsl.*
 
 final case class Lamp(lit: Boolean)
 

@@ -1,4 +1,4 @@
-package framework
+package framework.dsl
 
 import scala.annotation.unused
 

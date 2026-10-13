@@ -1,7 +1,7 @@
 package temporal.features.urn
 package product
 
-import framework.*
+import framework.dsl.*
 import temporal.features.urn.protocol.UrnProtocol
 
 val upward = UrnProtocol.name

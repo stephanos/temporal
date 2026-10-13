@@ -12,7 +12,7 @@ package temporal.realize
 import io.grpc.MethodDescriptor
 import io.temporal.api.common.v1.Payloads
 import scalapb.GeneratedMessage
-import framework.ClassRef
+import framework.dsl.ClassRef
 import framework.realize.{
   Activation,
   Addressee,

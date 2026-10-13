@@ -1,6 +1,6 @@
 package fixture.deadlinecapabilities
 
-import framework.*; import framework.Finite.given
+import framework.dsl.*; import framework.dsl.Finite.given
 import temporal.capabilities.system.Expirable
 
 enum Phase:

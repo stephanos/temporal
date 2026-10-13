@@ -5,7 +5,7 @@
 // to. The control action reports results by name, with no enum of that name.
 package fixture.inputs
 
-import framework.*; import framework.Finite.given
+import framework.dsl.*; import framework.dsl.Finite.given
 
 enum Outcome:
   case accepted

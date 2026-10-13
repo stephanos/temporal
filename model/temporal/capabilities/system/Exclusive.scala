@@ -6,7 +6,7 @@
 // record's `atMostOneActiveAttempt` monitor, written in its `monitors` section (fn-163 R4).
 package temporal.capabilities.system
 
-import framework.*
+import framework.dsl.*
 
 object Exclusive:
   // No step leaves two admitted attempts active, as the design's state counts them.

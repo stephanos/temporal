@@ -3,7 +3,7 @@
 // at the refinement (system/System.scala).
 package fixture.features.urn
 
-import framework.*
+import framework.dsl.*
 
 final case class Urn(full: Boolean)
 

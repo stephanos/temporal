@@ -1,4 +1,4 @@
-package framework
+package framework.dsl
 
 object MachineLawsHoleFixture:
   enum State derives CanEqual:

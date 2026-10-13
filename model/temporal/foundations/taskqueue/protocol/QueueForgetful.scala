@@ -2,11 +2,11 @@ package temporal
 package foundations.taskqueue
 package protocol
 
-import framework.*
-import framework.Finite.given
+import framework.dsl.*
+import framework.dsl.Finite.given
 
 // A crash that loses the message history dropped on invoking AddActivityTask.
-val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
+val _ = () => summon[CanEqual[framework.dsl.outcomes.Outcome, framework.dsl.outcomes.Outcome]]
 
 object QueueForgetful
     extends Derived(

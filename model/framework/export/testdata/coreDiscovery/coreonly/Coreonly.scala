@@ -1,6 +1,6 @@
 package fixture.foundations.coreonly
 
-import framework.*
+import framework.dsl.*
 import framework.realize.*
 
 enum Outcome:

@@ -1,7 +1,7 @@
 package fixture.features.kettle
 package system
 
-import framework.*
+import framework.dsl.*
 import product.KettleContract
 
 object KettleSystem extends Machine[Kettle, Outcome, Nothing]:

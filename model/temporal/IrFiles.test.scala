@@ -5,7 +5,7 @@ package temporal
 
 import java.nio.file.{Files, Path}
 import temporal.actors.client.Client
-import framework.IrFile
+import framework.dsl.IrFile
 
 class IrFilesTest extends munit.FunSuite:
   val declared: Vector[IrFile] = CompiledInventory.files
@@ -29,7 +29,7 @@ class IrFilesTest extends munit.FunSuite:
       )
       .toVector
 
-  def declarationKey(model: framework.Model): String =
+  def declarationKey(model: framework.dsl.Model): String =
     IrFile.identity(model).split('.').dropRight(1).mkString(".") + "." + model.name
 
   def assertComplete(actual: Seq[String], expected: Seq[String], context: String): Unit =
@@ -91,7 +91,7 @@ class IrFilesTest extends munit.FunSuite:
     assert(projected.nonEmpty)
     for model <- projected do
       model match
-        case _: framework.Phased[?, ?] => ()
+        case _: framework.dsl.Phased[?, ?] => ()
         case _                         => fail(model.getClass.getName)
   }
 

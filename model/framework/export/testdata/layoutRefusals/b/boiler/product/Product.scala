@@ -1,7 +1,7 @@
 package fixture.features.boiler
 package product
 
-import framework.*
+import framework.dsl.*
 
 object BoilerContract extends Machine[Boiler, Outcome, Nothing]:
   val init = Boiler(hot = false)

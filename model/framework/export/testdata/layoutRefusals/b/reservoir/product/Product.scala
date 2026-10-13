@@ -1,7 +1,7 @@
 package fixture.features.reservoir
 package product
 
-import framework.*; import framework.Finite.given
+import framework.dsl.*; import framework.dsl.Finite.given
 val _ = () => summon[CanEqual[ProductPhase, ProductPhase]]
 object ReservoirProduct extends Machine[ProductState, Outcome, ProductFact]:
   val init = ProductState(ProductPhase.empty)

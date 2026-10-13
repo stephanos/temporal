@@ -3,7 +3,7 @@
 // matches. The IR generator (model/framework/export) reads the declarations into the IR, and the Go reader
 // (tools/umpire/interp and tools/umpire/check) builds the tables, checks the refinements and answers the Queries from it;
 // nothing here computes them.
-package framework
+package framework.dsl
 
 import scala.deriving.Mirror
 

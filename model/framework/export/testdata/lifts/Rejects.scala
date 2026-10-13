@@ -4,7 +4,7 @@
 // step functions are written out binds them by hand in the core, `object rules extends Bindings(...)`.
 package fixture.rejects
 
-import framework.*; import framework.Finite.given
+import framework.dsl.*; import framework.dsl.Finite.given
 
 enum Note:
   case ping

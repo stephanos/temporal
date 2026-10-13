@@ -1,6 +1,6 @@
 package fixture.features.pump
 
-import framework.*
+import framework.dsl.*
 
 final case class Pump(on: Boolean)
 

@@ -20,7 +20,7 @@ import scala.compiletime.error
 import scalapb.{GeneratedEnum, GeneratedMessage, GeneratedMessageCompanion, UnrecognizedEnum}
 import scala.util.NotGiven
 import com.google.protobuf.ByteString
-import framework.{Channel, ClassRef, Machine, Monitor}
+import framework.dsl.{Channel, ClassRef, Machine, Monitor}
 
 // The root of the Definition IDs a realization declares, such as its evidence's,
 // `family + ".evidence." + kind`: the package of the declaration being lifted, which the IR

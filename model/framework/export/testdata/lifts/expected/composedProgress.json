@@ -144,7 +144,7 @@
                 "line": 34
               },
               "construct": {
-                "type": "framework.Step",
+                "type": "framework.dsl.Step",
                 "args": [ {
                   "position": {
                     "file": "model/framework/export/testdata/lifts/ComposedProgress.scala",
@@ -276,7 +276,7 @@
                 "line": 30
               },
               "construct": {
-                "type": "framework.Step",
+                "type": "framework.dsl.Step",
                 "args": [ {
                   "position": {
                     "file": "model/framework/export/testdata/lifts/ComposedProgress.scala",
@@ -403,7 +403,7 @@
                 "line": 32
               },
               "construct": {
-                "type": "framework.Step",
+                "type": "framework.dsl.Step",
                 "args": [ {
                   "position": {
                     "file": "model/framework/export/testdata/lifts/ComposedProgress.scala",

@@ -16,8 +16,8 @@ package temporal
 package actors.worker
 
 import scala.annotation.unused
-import framework.*
-import framework.outcomes.Outcome
+import framework.dsl.*
+import framework.dsl.outcomes.Outcome
 
 // ### Types
 

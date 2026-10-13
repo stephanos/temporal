@@ -1,7 +1,7 @@
 // A shared feature: its root feature file may name no IR file.
 package fixture.foundations.pump
 
-import framework.*
+import framework.dsl.*
 
 final case class Pump(running: Boolean)
 

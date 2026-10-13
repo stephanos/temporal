@@ -3,8 +3,8 @@
 // each pair, but for names, positions and the names of the functions the declarations refer to.
 package fixture.derived
 
-import framework.*; import framework.Finite.given
-val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
+import framework.dsl.*; import framework.dsl.Finite.given
+val _ = () => summon[CanEqual[framework.dsl.outcomes.Outcome, framework.dsl.outcomes.Outcome]]
 enum Light:
   case off, on, broken
 

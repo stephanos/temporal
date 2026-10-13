@@ -3,7 +3,7 @@
 // provably the source's.
 package fixture.gapresolution
 
-import framework.*
+import framework.dsl.*
 
 val calm = assume
 val other = assume

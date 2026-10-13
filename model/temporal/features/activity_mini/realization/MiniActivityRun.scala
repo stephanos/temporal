@@ -4,7 +4,7 @@ package mini
 package realization
 
 import protocol.ActivityProtocol
-import framework.*
+import framework.dsl.*
 import framework.realize.*
 import temporal.realize.*
 import io.temporal.api.workflowservice.v1.StartActivityExecutionRequest

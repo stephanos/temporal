@@ -11,7 +11,7 @@ package fixture.referenceInvalid
 
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.METHOD_START_WORKFLOW_EXECUTION
 import io.temporal.api.history.v1.HistoryEvent
-import framework.*
+import framework.dsl.*
 import framework.realize.*
 import framework.realize.Instruction.{AwaitCommand, AwaitLearned}
 import temporal.realize.*, temporal.realize.WorkerInstruction.Fault

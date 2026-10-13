@@ -3,7 +3,7 @@
 // stale message and rejects it rather than starting the attempt. Its law lowers to the IR's Property.
 package temporal.capabilities.system
 
-import framework.*
+import framework.dsl.*
 
 object Fenced:
   // A delivery the server met and rejected records its rejection.

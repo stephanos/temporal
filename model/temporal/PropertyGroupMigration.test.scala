@@ -1,6 +1,6 @@
 package temporal
 
-import framework.*
+import framework.dsl.*
 import munit.FunSuite
 
 class PropertyGroupMigrationTest extends FunSuite:

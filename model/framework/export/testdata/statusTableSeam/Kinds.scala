@@ -1,6 +1,6 @@
 package temporal.capabilities.statusfixture
 
-import framework.{CapabilityKind, CapabilityOf}
+import framework.dsl.{CapabilityKind, CapabilityOf}
 import framework.realize.StatusTable
 
 final case class Observable(statusTable: StatusTable[String])

@@ -1,7 +1,7 @@
 package fixture.features.kettle
 package product
 
-import framework.*
+import framework.dsl.*
 
 object KettleContract extends Machine[Kettle, Outcome, Nothing]:
   val init = Kettle(hot = false)

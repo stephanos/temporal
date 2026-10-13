@@ -1,7 +1,7 @@
 package fixture.deadlinepresets
 
-import framework.*; import framework.Finite.given
-import framework.outcomes.Outcome
+import framework.dsl.*; import framework.dsl.Finite.given
+import framework.dsl.outcomes.Outcome
 import framework.realize.*
 import temporal.realize.*
 import temporal.features.activity.mini.{client, maxAttempts, startToClose, MaxAttempts}

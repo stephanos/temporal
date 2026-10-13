@@ -94,7 +94,7 @@ class GapsSuite extends munit.FunSuite:
       assertEquals(
         mirrored
           .flatMap(_.annotations)
-          .count(_.tpe.typeSymbol.fullName == "framework.gap"),
+          .count(_.tpe.typeSymbol.fullName == "framework.dsl.gap"),
         4
       )
     }

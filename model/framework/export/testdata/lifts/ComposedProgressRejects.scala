@@ -5,7 +5,7 @@
 // no sync pairs, and a bound of no step.
 package fixture.composedprogressrejects
 
-import framework.*
+import framework.dsl.*
 import fixture.composedprogress.{drain, fill, flowing, send, Line, Pipeline, Tanks}
 
 object Mirror extends Composition[Line](_.left -> Tanks, _.right -> Tanks):

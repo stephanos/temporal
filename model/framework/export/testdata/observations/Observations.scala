@@ -1,6 +1,6 @@
 package fixture.observations
 
-import framework.*
+import framework.dsl.*
 import framework.realize.*
 import temporal.realize.{Role, RoleKind}
 import io.temporal.api.activity.v1.ActivityExecutionInfo

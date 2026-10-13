@@ -1,7 +1,7 @@
 // Terminating a live entity settles it in the same step.
 package temporal.capabilities.product
 
-import framework.*
+import framework.dsl.*
 import framework.realize.RunExpectation
 
 final case class Terminable[S, F](

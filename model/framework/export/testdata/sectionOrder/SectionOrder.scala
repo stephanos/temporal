@@ -9,7 +9,7 @@
 // one name, each read by a machine of its own, are named apart by their objects, and refused nothing.
 package fixture.features.sectionorder
 
-import framework.*; import framework.Finite.given
+import framework.dsl.*; import framework.dsl.Finite.given
 
 final case class Lamp(lit: Boolean)
 

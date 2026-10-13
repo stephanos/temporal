@@ -241,7 +241,7 @@ class FacetsTest extends munit.FunSuite with RetainedScratch:
           ModelBuild.classpathEntries,
           ".",
           "-M",
-          "framework.nativeRows"
+          "framework.dsl.nativeRows"
         )
       )
     assertEquals(native.exit, 0, native.diagnostics)

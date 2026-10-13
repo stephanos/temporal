@@ -1,6 +1,6 @@
 package temporal.features.urn
 
-import framework.*
+import framework.dsl.*
 
 final case class Water(hot: Boolean)
 

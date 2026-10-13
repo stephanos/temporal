@@ -1,6 +1,6 @@
 package propertygroups.foundations.zero
 
-import framework.*
+import framework.dsl.*
 import propertygroups.*
 
 object Zero extends Machine[State, Outcome, Nothing]:

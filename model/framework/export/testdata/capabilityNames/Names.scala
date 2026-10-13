@@ -1,7 +1,7 @@
 package fixture.capabilitynames
 
-import framework.*
-import framework.Finite.given
+import framework.dsl.*
+import framework.dsl.Finite.given
 import temporal.Bounds.three
 import temporal.capabilities.system.{Expirable, Retryable}
 

@@ -1,7 +1,7 @@
 package fixture.features.relay
 package standalone
 
-import framework.*
+import framework.dsl.*
 
 val task = Entity(name = "task", key = "operationId")
 object formBindings:

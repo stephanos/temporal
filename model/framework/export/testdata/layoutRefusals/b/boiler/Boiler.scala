@@ -1,6 +1,6 @@
 package fixture.features.boiler
 
-import framework.*
+import framework.dsl.*
 
 final case class Boiler(hot: Boolean)
 

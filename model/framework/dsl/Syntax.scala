@@ -5,7 +5,7 @@
 // state and `effect { }` for a step function of it, with an effect block's `record` and
 // `reject(outcome)` statements, the `View` and `Draft` the field accessors of the state read and
 // assign through, and `Recorded`, the status fact a phase enum's case declares.
-package framework
+package framework.dsl
 
 import scala.annotation.{implicitNotFound, targetName, unused}
 import scala.collection.mutable
@@ -46,7 +46,7 @@ def reject[S, O](outcome: O, s: S): List[Step[S, O, Nothing]] = List(
 val disabled: List[Nothing] = Nil
 
 // The outcomes shared by every machine whose steps answer a request, accepted or rejected for a
-// reason, which a machine adopts by name, `import framework.outcomes.{Outcome, Rejection}`, in place of
+// reason, which a machine adopts by name, `import framework.dsl.outcomes.{Outcome, Rejection}`, in place of
 // its own. `import framework.*` does not open it, so a Model's own `Outcome` stays its own. Core form: a
 // machine's own outcome enum, `enum Outcome: case accepted, notFound`.
 object outcomes:
@@ -69,8 +69,8 @@ object outcomes:
 // `reject(Outcome.rejected(Rejection.notFound), s)`.
 def rejects[S](why: outcomes.Rejection)(using
     @implicitNotFound(
-      "rejects answers the shared framework.outcomes.Outcome, so it is an effect of a rule, in an `on` " +
-        "block, of a machine on the shared outcomes: `import framework.outcomes.{Outcome, Rejection}`"
+      "rejects answers the shared framework.dsl.outcomes.Outcome, so it is an effect of a rule, in an `on` " +
+        "block, of a machine on the shared outcomes: `import framework.dsl.outcomes.{Outcome, Rejection}`"
     ) @unused firing: Firing[S, outcomes.Outcome, ?, ?]
 ): Rejects[S] = Rejects(why)
 

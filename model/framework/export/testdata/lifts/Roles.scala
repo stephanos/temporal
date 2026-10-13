@@ -5,8 +5,8 @@
 // a Model's own role and its framework role, a one-case enum, and a binding type pattern.
 package fixture.roles
 
-import framework.*; import framework.Finite.given
-val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
+import framework.dsl.*; import framework.dsl.Finite.given
+val _ = () => summon[CanEqual[framework.dsl.outcomes.Outcome, framework.dsl.outcomes.Outcome]]
 // A Model's own role, through the framework role it extends.
 trait Expired extends TimedOut
 

@@ -60,17 +60,17 @@ final private[`export`] class Lifting(val ctx: Context)
                 "of Queries, or a progress claim"
             )
           case _ => ()
-    else if isNamed(d.tpt.tpe, "framework.Machine") then machineOf(sym, d): Unit
-    else if isNamed(d.tpt.tpe, "framework.Composition") then compositionOf(sym, d): Unit
+    else if isNamed(d.tpt.tpe, "framework.dsl.Machine") then machineOf(sym, d): Unit
+    else if isNamed(d.tpt.tpe, "framework.dsl.Composition") then compositionOf(sym, d): Unit
     else if isNamed(d.tpt.tpe, "framework.realize.Realization") then realizationOf(sym, d): Unit
     else
       val kind = d.tpt.tpe.widen.dealias
       val claims =
         Set(
-          "framework.Query",
-          "framework.Witness",
-          "framework.Progress",
-          "framework.Property"
+          "framework.dsl.Query",
+          "framework.dsl.Witness",
+          "framework.dsl.Progress",
+          "framework.dsl.Property"
         )
       val listed =
         isList(
@@ -79,7 +79,7 @@ final private[`export`] class Lifting(val ctx: Context)
       if !claims(kind.typeSymbol.fullName) && !propertyRoot(
           kind
         ) && !(listed && kind.typeArgs.headOption
-          .exists(a => Seq("framework.Query", "framework.Witness").exists(isNamed(a, _))))
+          .exists(a => Seq("framework.dsl.Query", "framework.dsl.Witness").exists(isNamed(a, _))))
       then
         fail(
           d,
@@ -101,7 +101,7 @@ final private[`export`] class Lifting(val ctx: Context)
 
   private def propertyRoot(tpe: TypeRepr): Boolean =
     tpe.widen.dealias.baseClasses.exists(c =>
-      Set("framework.Property", "framework.Progress")(c.fullName)
+      Set("framework.dsl.Property", "framework.dsl.Progress")(c.fullName)
     ) ||
       bundle(tpe.widen.dealias.typeSymbol)
 
@@ -119,7 +119,7 @@ final private[`export`] class Lifting(val ctx: Context)
     val kind = v.tpt.tpe.widen.dealias
     !v.symbol.flags.is(Flags.Private) && !v.symbol.flags.is(Flags.Protected) &&
     (kind.baseClasses.exists(
-      _.fullName == "framework.Query"
+      _.fullName == "framework.dsl.Query"
     ) ||
       kind.baseClasses.exists(
         _.fullName == "scala.collection.Seq"
@@ -132,11 +132,11 @@ final private[`export`] class Lifting(val ctx: Context)
       isList(
         kind.typeSymbol
       ) || kind.typeSymbol.fullName == "scala.collection.immutable.Vector"
-    Set("framework.Query", "framework.Witness", "framework.Progress")(
+    Set("framework.dsl.Query", "framework.dsl.Witness", "framework.dsl.Progress")(
       kind.typeSymbol.fullName
     ) ||
     (listed && kind.typeArgs.headOption.exists(a =>
-      Seq("framework.Query", "framework.Witness").exists(isNamed(a, _))
+      Seq("framework.dsl.Query", "framework.dsl.Witness").exists(isNamed(a, _))
     ))
 
   // fn-160 R2, R10: one IR file per feature, collected from its package. A feature is a form under a
@@ -175,7 +175,7 @@ final private[`export`] class Lifting(val ctx: Context)
           case _                 => None
     def progress(v: ValDef) =
       val owner = v.symbol.maybeOwner
-      isNamed(v.tpt.tpe, "framework.Progress") &&
+      isNamed(v.tpt.tpe, "framework.dsl.Progress") &&
       (propertiesSection(owner) || propertyGroup(owner) || queriesSection(
         owner
       ) ||
@@ -186,7 +186,7 @@ final private[`export`] class Lifting(val ctx: Context)
           case p: ValDef =>
             progress(p) || (bundle(p.tpt.tpe.widen.dealias.typeSymbol) &&
               fieldTypes(p.tpt.tpe.widen.dealias.typeSymbol).exists((_, tpe) =>
-                isNamed(tpe, "framework.Progress")
+                isNamed(tpe, "framework.dsl.Progress")
               ))
           case _ => false
         }

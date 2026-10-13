@@ -18,7 +18,7 @@ import scala.collection.mutable
 //     feature file, a Model declaration of another file; and in a Model package whose folder has
 //     no feature file, a Model declaration of a file not named after its folder;
 //   - (e) in a feature file, R17's section rules: in a machine or composition object
-//     (`framework.Machine`, `Derived`, `Composition`), its header and sections out of the order
+//     (`framework.dsl.Machine`, `Derived`, `Composition`), its header and sections out of the order
 //     states, refinement, effects, monitors, rules (a composition's syncs), properties,
 //     capabilities, queries; a declaration in a section other than its kind's,
 //     vocabulary outside `states`, a refinement's member outside `refinement`, an effect outside
@@ -173,7 +173,7 @@ final private[`export`] class Order(index: Index, admitted: String => Boolean = 
     def key(t: Term): Option[String] = plain(t) match
       case Apply(Select(action, "apply"), Nil)
           if action.tpe.widen.dealias.derivesFrom(
-            Symbol.requiredClass("framework.Action")
+            Symbol.requiredClass("framework.dsl.Action")
           ) =>
         key(action)
       case NamedArg(name, value) => key(value).map(name + "=" + _)
@@ -218,7 +218,7 @@ final private[`export`] class Order(index: Index, admitted: String => Boolean = 
             .requiredClass("scala.collection.immutable.List")
             .methodMember("contains")
             .contains(fn.symbol) &&
-          collection.symbol.name == "facts" && collection.symbol.maybeOwner.fullName == "framework.Step"
+          collection.symbol.name == "facts" && collection.symbol.maybeOwner.fullName == "framework.dsl.Step"
         case _ => false
       var positive = false
       var negative = false
@@ -232,7 +232,7 @@ final private[`export`] class Order(index: Index, admitted: String => Boolean = 
               negated = !negated
             case Apply(fn, _)
                 if fn.symbol.name == "records" &&
-                  fn.symbol.maybeOwner.fullName == "framework.Syntax$package$" =>
+                  fn.symbol.maybeOwner.fullName == "framework.dsl.Syntax$package$" =>
               if negated then negative = true else positive = true
               super.traverseTree(t)(owner)
             case Apply(fn, _) if stepFactsContains(fn) =>
@@ -249,8 +249,8 @@ final private[`export`] class Order(index: Index, admitted: String => Boolean = 
       rhs <- q.rhs
     do
       for
-        (find, scenarioArgs) <- chain(rhs, "framework.QueryOn", "in")
-        (_, propertyArgs) <- call(find, "framework.QueryDecl", "find")
+        (find, scenarioArgs) <- chain(rhs, "framework.dsl.QueryOn", "in")
+        (_, propertyArgs) <- call(find, "framework.dsl.QueryDecl", "find")
         propertyRef <- propertyArgs.headOption
         scenarioRef <- scenarioArgs.headOption
         property <- privateTo(propertyRef, q)
@@ -259,13 +259,13 @@ final private[`export`] class Order(index: Index, admitted: String => Boolean = 
         scenarioBody <- scenario.rhs
         (builder, claim) <- call(
           expanded(propertyBody),
-          "framework.PropertyBuilder",
+          "framework.dsl.PropertyBuilder",
           "holds"
         )
-        (_, selected) <- call(builder, "framework.PropertyBuilder", "when")
+        (_, selected) <- call(builder, "framework.dsl.PropertyBuilder", "when")
         (start, actionArgs) <- call(
           scenarioBody,
-          "framework.ScenarioBuilder",
+          "framework.dsl.ScenarioBuilder",
           "actions"
         )
       do
@@ -277,7 +277,7 @@ final private[`export`] class Order(index: Index, admitted: String => Boolean = 
         val keys = path.map(key)
         val tail = selected.headOption.flatMap(key)
         val custom =
-          chain(start, "framework.ScenarioBuilder", "starts").nonEmpty
+          chain(start, "framework.dsl.ScenarioBuilder", "starts").nonEmpty
         if path.nonEmpty && keys.forall(
             _.nonEmpty
           ) && tail.nonEmpty && keys.last == tail &&
@@ -292,11 +292,11 @@ final private[`export`] class Order(index: Index, admitted: String => Boolean = 
 
   // ### Object forms and sections
 
-  private val machineClass = Symbol.requiredClass("framework.Machine")
-  private val compositionClass = Symbol.requiredClass("framework.Composition")
-  private val rulesClass = Symbol.requiredClass("framework.Rules")
-  private val caseClass = Symbol.requiredClass("framework.Case")
-  private val phasedClass = Symbol.requiredClass("framework.Phased")
+  private val machineClass = Symbol.requiredClass("framework.dsl.Machine")
+  private val compositionClass = Symbol.requiredClass("framework.dsl.Composition")
+  private val rulesClass = Symbol.requiredClass("framework.dsl.Rules")
+  private val caseClass = Symbol.requiredClass("framework.dsl.Case")
+  private val phasedClass = Symbol.requiredClass("framework.dsl.Phased")
 
   // Whether `c` is an object that is a machine or a composition: `object M extends Machine[...]`.
   private def objectForm(c: Symbol): Boolean =
@@ -401,7 +401,7 @@ final private[`export`] class Order(index: Index, admitted: String => Boolean = 
             // A context function the DSL applies at once is read now; any other lambda later.
             if l.tpe.isContextFunctionType then traverseTree(body)(o)
           // A rule heading runs its rules at once, and the disjointness check calls its guard, and
-          // the rules' phase projection, while the rules initialize (framework.Rules).
+          // the rules' phase projection, while the rules initialize (framework.dsl.Rules).
           case Apply(fn, args) if appliesAtOnce(fn.symbol) =>
             traverseTree(fn)(o)
             def atOnce(a: Tree): Unit = a match
@@ -485,7 +485,7 @@ final private[`export`] class Order(index: Index, admitted: String => Boolean = 
       (owner == caseClass && s.name == "where") ||
       (Set("on", "where")(
         s.name
-      ) && owner.fullName == "framework.Syntax$package$")
+      ) && owner.fullName == "framework.dsl.Syntax$package$")
     }
 
   // Each cycle of owners, once, at its first read in source order: the owners of one strongly
@@ -593,22 +593,22 @@ final private[`export`] class Order(index: Index, admitted: String => Boolean = 
         val sym = w.typeSymbol
         def one(k: Kind) = List("" -> k)
         sym.fullName match
-          case "framework.Step" => one(Kind.Step)
-          case "framework.Monitor" | "framework.Assumption" | "framework.Hole" |
-              "framework.Channel" =>
+          case "framework.dsl.Step" => one(Kind.Step)
+          case "framework.dsl.Monitor" | "framework.dsl.Assumption" | "framework.dsl.Hole" |
+              "framework.dsl.Channel" =>
             one(Kind.Watch)
-          case "framework.Machine" | "framework.Composition" =>
+          case "framework.dsl.Machine" | "framework.dsl.Composition" =>
             one(Kind.Machine)
-          case "framework.Property"                    => one(Kind.Claim)
-          case "framework.Progress"                    => one(Kind.Progress)
-          case "framework.Scenario"                    => one(Kind.Scenario)
-          case "framework.Query" | "framework.Witness" => one(Kind.Query)
-          case "framework.IrFile"                      => one(Kind.File)
-          case _ if w.baseClasses.exists(_.fullName == "framework.CapabilityOf") =>
+          case "framework.dsl.Property"                    => one(Kind.Claim)
+          case "framework.dsl.Progress"                    => one(Kind.Progress)
+          case "framework.dsl.Scenario"                    => one(Kind.Scenario)
+          case "framework.dsl.Query" | "framework.dsl.Witness" => one(Kind.Query)
+          case "framework.dsl.IrFile"                      => one(Kind.File)
+          case _ if w.baseClasses.exists(_.fullName == "framework.dsl.CapabilityOf") =>
             one(Kind.Capability)
-          case _ if w.baseClasses.exists(_.fullName == "framework.Property") =>
+          case _ if w.baseClasses.exists(_.fullName == "framework.dsl.Property") =>
             one(Kind.Claim)
-          case _ if w.baseClasses.exists(_.fullName == "framework.Progress") =>
+          case _ if w.baseClasses.exists(_.fullName == "framework.dsl.Progress") =>
             one(Kind.Progress)
           case _ if w.derivesFrom(iterable) =>
             w.baseType(iterable).typeArgs.headOption.toList.flatMap(kindsOf(_, seen))
@@ -642,7 +642,7 @@ final private[`export`] class Order(index: Index, admitted: String => Boolean = 
     case Inlined(_, Nil, e) => effectBlock(e)
     case Block(Nil, e)      => effectBlock(e)
     case c: Apply           =>
-      c.symbol.fullName == "framework.Syntax$package$.effect"
+      c.symbol.fullName == "framework.dsl.Syntax$package$.effect"
     case _ => false
 
   // The place a kind belongs in: in an object form, a monitor's is the `monitors` section.
@@ -870,7 +870,7 @@ final private[`export`] class Order(index: Index, admitted: String => Boolean = 
           noModelIn(c, s"${plain(c.name)}, an object of the signature")
         // An assumption no machine makes of its own, which a derivation adds with `assuming` or
         // a progress claim names with `under`, is the feature's: it sits in the signature.
-        case None if typed(d, Set("framework.Assumption")) => ()
+        case None if typed(d, Set("framework.dsl.Assumption")) => ()
         case None                                          =>
           for k <- kindOf(d) do
             refuse(
@@ -879,7 +879,7 @@ final private[`export`] class Order(index: Index, admitted: String => Boolean = 
                 s"belongs in ${k.belongs}"
             )
 
-  private val facetClass = Symbol.requiredClass("framework.Facet")
+  private val facetClass = Symbol.requiredClass("framework.dsl.Facet")
   private def facetTrait(s: Symbol): Boolean =
     s.isClassDef && s.flags.is(Flags.Trait) && s.typeRef.derivesFrom(facetClass)
 
@@ -887,7 +887,7 @@ final private[`export`] class Order(index: Index, admitted: String => Boolean = 
     val namespace = plain(c.name).take(1).toLowerCase + plain(c.name).drop(1)
     def action(d: Definition): Unit = d match
       case v: ValDef
-          if v.tpt.tpe.widen.dealias.baseClasses.exists(_.fullName == "framework.Action") =>
+          if v.tpt.tpe.widen.dealias.baseClasses.exists(_.fullName == "framework.dsl.Action") =>
         refuse(
           v,
           s"${v.name} declares an action inside facet ${c.name}: actions belong in the feature's signature, grouped by their actor"
@@ -986,16 +986,16 @@ final private[`export`] class Order(index: Index, admitted: String => Boolean = 
             case None              => vocabulary(m)
     handBound(c, owner)
 
-  // Refuses a step function bound by hand, `action ~> step` (framework.Machine's core binding), in a
+  // Refuses a step function bound by hand, `action ~> step` (framework.dsl.Machine's core binding), in a
   // machine or composition object (R17): its `rules` say when each action fires. A derivation's
   // `rebind(action ~> effect)`, which keeps the action's rules, and the rules a derivation binds,
   // `on(action) { where(g) ~> effect }`, are no hand-written step function.
   private def handBound(c: ClassDef, owner: String): Unit =
     def core(s: Symbol) =
-      s.exists && s.name == "~>" && s.maybeOwner.fullName == "framework.Machine$package$"
+      s.exists && s.name == "~>" && s.maybeOwner.fullName == "framework.dsl.Machine$package$"
     def derivation(s: Symbol) =
       s.exists && ((s.name == "rebind" && s.maybeOwner == machineClass) ||
-        (s.name == "on" && s.maybeOwner.fullName == "framework.Syntax$package$"))
+        (s.name == "on" && s.maybeOwner.fullName == "framework.dsl.Syntax$package$"))
     object bindings extends TreeTraverser:
       override def traverseTree(t: Tree)(o: Symbol): Unit = t match
         // The rebind's own bindings keep rules; whatever it is applied to is still read.
@@ -1054,7 +1054,7 @@ final private[`export`] class Order(index: Index, admitted: String => Boolean = 
         case r: Ref if env.contains(r.symbol) => origin(env(r.symbol), seen, env)
         case r: Ref if !seen(r.symbol)        =>
           treeOf(r.symbol).flatMap {
-            case v: ValDef if typed(v, Set("framework.Monitor")) =>
+            case v: ValDef if typed(v, Set("framework.dsl.Monitor")) =>
               v.rhs.flatMap(rhs => origin(rhs, seen + r.symbol, env).orElse(Some(v.symbol)))
             case f: DefDef => f.rhs.flatMap(origin(_, seen + r.symbol, env))
             case _         => None
@@ -1073,7 +1073,7 @@ final private[`export`] class Order(index: Index, admitted: String => Boolean = 
           }
         case _ => None
       d match
-        case v: ValDef if typed(v, Set("framework.Monitor")) =>
+        case v: ValDef if typed(v, Set("framework.dsl.Monitor")) =>
           origin(Ref(v.symbol), Set.empty, Map.empty)
         case _ => None
     val attached = members(machineObject)

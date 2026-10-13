@@ -159,12 +159,12 @@ class ConventionsFixtures extends munit.FunSuite with RetainedScratch:
     val zip = new java.util.zip.ZipFile(negative.toFile)
     val entries = try zip.entries().asScala.map(_.getName).filter(_.endsWith(".tasty")).toSet
     finally zip.close()
-    assert(entries.exists(_.startsWith("framework/conventionfixtures/")), entries.toString)
+    assert(entries.exists(_.startsWith("framework/dsl/conventionfixtures/")), entries.toString)
     assert(
       entries.exists(_.startsWith("temporal/capabilities/discoveryfixtures/")),
       entries.toString
     )
-    assert(entries.exists(_.startsWith("framework/discoveryfixtures/")), entries.toString)
+    assert(entries.exists(_.startsWith("framework/dsl/discoveryfixtures/")), entries.toString)
     val result = tools.run(
       Path.of(System.getProperty("java.home"), "bin", "java").toString,
       Seq(
@@ -181,8 +181,8 @@ class ConventionsFixtures extends munit.FunSuite with RetainedScratch:
       result.output.contains("/FrameworkImports.test.scala:3: R4.module-import:"),
       result.output
     )
-    assert(result.output.contains("framework.conventionfixtures may not import"), result.output)
-    assert(result.output.contains("framework.discoveryfixtures may not import"), result.output)
+    assert(result.output.contains("framework.dsl.conventionfixtures may not import"), result.output)
+    assert(result.output.contains("framework.dsl.discoveryfixtures may not import"), result.output)
     assert(!result.output.contains("/Imports.test.scala:"), result.output)
     for site <- Seq(3, 4) do
       assert(

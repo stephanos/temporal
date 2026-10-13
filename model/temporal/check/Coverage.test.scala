@@ -45,10 +45,10 @@ class CoverageSuite extends munit.FunSuite:
       val covers = Coverage.suites(suite)
       assert(covers.features("activity_mini") || covers.anyFeature, suite)
     assert(selected("framework.export.MiniLayoutFixtures"))
-    assert(selected("framework.AnswerEnteringTest"))
+    assert(selected("framework.dsl.AnswerEnteringTest"))
     assert(selected("temporal.migrate.QueueAliasTest"))
     assert(!selected("framework.export.AdmissionSuite"))
-    assert(!selected("framework.RulesTest"))
+    assert(!selected("framework.dsl.RulesTest"))
     assert(!selected("temporal.check.GateSuite"))
 
   test("a lifter change selects the lifter's suites and every current feature, and no Model suite"):

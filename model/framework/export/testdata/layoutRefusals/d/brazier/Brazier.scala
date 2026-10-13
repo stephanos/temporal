@@ -1,6 +1,6 @@
 package fixture.features.brazier
 
-import framework.*
+import framework.dsl.*
 
 final case class Light(lit: Boolean)
 

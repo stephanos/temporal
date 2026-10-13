@@ -1,6 +1,6 @@
 package fixture.features.relay
 
-import framework.*
+import framework.dsl.*
 
 enum Outcome:
   case accepted

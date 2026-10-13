@@ -16,7 +16,7 @@ import io.temporal.api.workflowservice.v1.{
 import io.temporal.api.workflow.v1.WorkflowExecutionInfo
 import io.temporal.api.history.v1.HistoryEvent
 import temporal.server.api.testpilot.v1.InstructionOutcome
-import framework.*
+import framework.dsl.*
 import framework.realize.*
 
 // An action names no message since fn-133.8: testdata/retiredSchema holds that refusal.

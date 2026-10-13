@@ -1,6 +1,6 @@
 package fixture.gaps
 
-import framework.*
+import framework.dsl.*
 
 object TestOnly:
   @gap(unasked)(because = "tests are not source declarations")

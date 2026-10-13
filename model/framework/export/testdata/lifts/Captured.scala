@@ -6,7 +6,7 @@
 // compare its IR with expected/captured.json and check those IDs and names.
 package fixture.captured
 
-import framework.*; import framework.Finite.given
+import framework.dsl.*; import framework.dsl.Finite.given
 import framework.realize.*, temporal.realize.{Role, RoleKind}
 import temporal.server.api.testpilot.v1.CorrelatedEvidence
 import Entities.{entry, lostData}

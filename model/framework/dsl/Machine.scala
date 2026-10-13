@@ -1,4 +1,4 @@
-package framework
+package framework.dsl
 
 import scala.annotation.unused
 import scala.reflect.{ClassTag, TypeTest}
@@ -174,7 +174,7 @@ final class Phasing[S, P] private[framework] (
       phaseType: ClassTag[P],
       role: ClassTag[R]
   ): IndexedSeq[P] =
-    framework.roleCases[P, R](owner, role.runtimeClass.getSimpleName)(using
+    framework.dsl.roleCases[P, R](owner, role.runtimeClass.getSimpleName)(using
       finite,
       witness,
       phaseType
@@ -360,7 +360,7 @@ private[framework] def writtenPath(code: String): String =
   path
     .findAllIn(untyped)
     .map(_.stripSuffix(".apply"))
-    .find(p => p.nonEmpty && p != "framework" && p != "apply")
+    .find(p => p.nonEmpty && p != "framework" && p != "framework.dsl" && p != "apply")
     .getOrElse(code)
 
 // A machine: a transition relation over the finite state type `S` with outcomes `O` and facts `F`.
@@ -382,9 +382,9 @@ private[framework] def writtenPath(code: String): String =
 // Its members are its header, the state it starts in, `init`, the states it may end in, `end`, and
 // where it declares them, `entity` and `evidence`; then its sections, objects named after what they
 // hold, in this order: `states`, its vocabulary (the named sets and projections of its states);
-// `refinement`, where it refines another machine (framework.Refinement); `effects`; `monitors`;
+// `refinement`, where it refines another machine (framework.dsl.Refinement); `effects`; `monitors`;
 // `rules`, which it must declare; `properties`; `capabilities`, its capabilities
-// `framework.Capabilities`; and `queries`. Its `entity` is the one entity its
+// `framework.dsl.Capabilities`; and `queries`. Its `entity` is the one entity its
 // actions are `on`, or create, unless it names another. The IR generator (model/framework/export) reads them
 // from the source, and names each of its declarations after where it is declared: its package and
 // the objects it sits in. At run time a machine is its init, its end and the step function each

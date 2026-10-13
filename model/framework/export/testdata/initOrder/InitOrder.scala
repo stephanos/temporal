@@ -8,7 +8,7 @@
 // (Realization.scala), which reads it back through its base class.
 package fixture.features.initorder
 
-import framework.*
+import framework.dsl.*
 
 final case class Lamp(lit: Boolean)
 

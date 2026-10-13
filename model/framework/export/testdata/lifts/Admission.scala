@@ -7,9 +7,9 @@
 // Go tests read that IR as a small fixed system.
 package fixture.specimens.admission
 
-import framework.*; import framework.Finite.given
+import framework.dsl.*; import framework.dsl.Finite.given
 import Entities.activity
-val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
+val _ = () => summon[CanEqual[framework.dsl.outcomes.Outcome, framework.dsl.outcomes.Outcome]]
 // ### The product: what a caller reads of the activity, as far as the designs' refinement reads it
 
 object caller extends Actor

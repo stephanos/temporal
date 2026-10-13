@@ -1,7 +1,7 @@
 package temporal.features.activity.mini.protocol
 
-import framework.*
-import framework.outcomes.Outcome
+import framework.dsl.*
+import framework.dsl.outcomes.Outcome
 import temporal.features.activity.{Failure, Timeout}
 import temporal.features.activity.mini.{MaxAttempts, client, scheduleToStart}
 import AnswerDispatch.monitors.answers
@@ -30,7 +30,7 @@ class MiniProtocolTest extends munit.FunSuite:
     val good = AnswerDispatch.answering.effects.receive(second, old).head
     val bad = AnswerDispatch.answering.effects.trust(second, old).head
     assertEquals(good.state.phase, AnswerPhase.held)
-    assertEquals(good.outcome, Outcome.rejected(framework.outcomes.Rejection.notFound))
+    assertEquals(good.outcome, Outcome.rejected(framework.dsl.outcomes.Rejection.notFound))
     assertEquals(bad.state.phase, AnswerPhase.completed)
     assertEquals(answers.capacity, 1)
     assertEquals(answers.loss, Loss.lossy)

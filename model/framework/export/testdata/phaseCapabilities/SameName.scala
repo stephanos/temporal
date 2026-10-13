@@ -1,6 +1,6 @@
 package fixture.phasecapabilities
 
-import framework.*
+import framework.dsl.*
 import temporal.capabilities.product.*
 
 package first:

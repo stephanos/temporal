@@ -1,7 +1,7 @@
 // format: off
 package fixture.qualifiedphases
 
-import framework.*
+import framework.dsl.*
 
 object SectionRenamedInline extends Machine[Job, Said, Nothing], Phased[Job, Stage](_.stage):
   val init = Job(Stage.idle)

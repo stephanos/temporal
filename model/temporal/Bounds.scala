@@ -5,7 +5,7 @@
 // same depth.
 package temporal
 
-import framework.*
+import framework.dsl.*
 
 object Bounds:
   val dispatchSteps = 1

@@ -1,6 +1,6 @@
 package fixture.features.contract
 
-import framework.*
+import framework.dsl.*
 
 enum FacetName:
   case pressing, breaking

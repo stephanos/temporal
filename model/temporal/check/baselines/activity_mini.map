@@ -13,3 +13,11 @@ temporal.foundations.taskqueue.protocol.lossyMatchingQueue temporal.foundations.
 temporal.foundations.taskqueue.protocol.volatileQueue temporal.foundations.taskqueue.protocol.queueVolatile
 # the composition member a composition table names by its machine's short name
 scheduledQueue queueScheduled
+# fn-169.1 IR type-name rename map (ir old new): the authoring DSL moved from package framework
+# into framework.dsl, and the IR names the DSL's types by their package (owner, 2026-10-12). The
+# step tables name none of them, so a steps-only comparison leaves them to the IR; the mini lift
+# equals the one before the move under them (framework/check/equivalence/Lifts.scala).
+ir framework.Step framework.dsl.Step
+ir framework.outcomes.Outcome framework.dsl.outcomes.Outcome
+ir framework.outcomes.Rejection framework.dsl.outcomes.Rejection
+ir framework.Domain$package$.UpTo framework.dsl.Domain$package$.UpTo

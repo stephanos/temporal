@@ -1,6 +1,6 @@
 package propertygroups.foundations.negativebound
 
-import framework.*
+import framework.dsl.*
 import propertygroups.*
 
 object NegativeBound extends Machine[State, Outcome, Nothing]:

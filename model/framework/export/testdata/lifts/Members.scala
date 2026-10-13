@@ -8,7 +8,7 @@
 // `withMember` derives from it keeps and `synced` selects from either member.
 package fixture.members
 
-import framework.*; import framework.Finite.given
+import framework.dsl.*; import framework.dsl.Finite.given
 
 // ### Separators in composed keys, and actions spelled alike in two members
 

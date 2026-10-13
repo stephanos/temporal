@@ -1,7 +1,7 @@
 package fixture.features.nexus
 package workflow
 
-import framework.*
+import framework.dsl.*
 
 enum Outcome:
   case accepted

@@ -3,7 +3,7 @@
 // returns, and a block reading a field through an accessor of any shape but the fixed one.
 package fixture.blockrejects
 
-import framework.*; import framework.Finite.given
+import framework.dsl.*; import framework.dsl.Finite.given
 import fixture.blocks.{phase, phase_=, retried, retried_=, user, Fact, Job, Outcome, Phase, given}
 // format: off
 // Reads the phase it compares rather than one field.
@@ -18,7 +18,7 @@ object NestedIs extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase)
     def keep(s: Job) = stay[Job, Outcome, Fact](s)
   object rules extends Rules:
     on(user.start)(where(states.nested) ~> effects.keep)
-val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
+val _ = () => summon[CanEqual[framework.dsl.outcomes.Outcome, framework.dsl.outcomes.Outcome]]
 object HeaderIs extends Machine[Job, Outcome, Fact], Phased[Job, Phase](_.phase):
   val init = Job(Phase.idle, false)
   override def end(s: State) = true // format: off

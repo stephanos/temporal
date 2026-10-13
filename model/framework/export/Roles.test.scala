@@ -18,8 +18,8 @@ class RolesSuite extends munit.FunSuite:
     "Canceled" -> List("Closed"),
     "Terminated" -> List("Closed"),
     "TimedOut" -> List("Closed")
-  ).map((r, ps) => s"framework.$r" -> ps.map("framework." + _)) ++ Map(
-    "fixture.Expired" -> List("framework.TimedOut"),
+  ).map((r, ps) => s"framework.dsl.$r" -> ps.map("framework.dsl." + _)) ++ Map(
+    "fixture.Expired" -> List("framework.dsl.TimedOut"),
     "fixture.Audited" -> Nil
   )
   private def bases(c: String): Seq[String] =
@@ -30,7 +30,7 @@ class RolesSuite extends munit.FunSuite:
     name -> (Seq("fixture.Phase") ++ roles.flatMap(r => bases(qualified(r))).distinct ++
       Seq("scala.reflect.Enum", "java.lang.Object", "scala.Any"))
   private def qualified(r: String) =
-    if parents.contains(s"framework.$r") then s"framework.$r" else s"fixture.$r"
+    if parents.contains(s"framework.dsl.$r") then s"framework.dsl.$r" else s"fixture.$r"
 
   private val phases = Seq(
     phase("unstarted"),
@@ -47,7 +47,7 @@ class RolesSuite extends munit.FunSuite:
     val roles = Roles.closure(phases, bases)
     assertEquals(
       Seq("Live", "Waiting", "Retrying", "Closed", "TimedOut").map(r =>
-        roles.cases(s"framework.$r")
+        roles.cases(s"framework.dsl.$r")
       ),
       Seq(
         Seq("queued", "backingOff", "running", "paused"),
@@ -59,12 +59,12 @@ class RolesSuite extends munit.FunSuite:
     )
     assertEquals(roles.cases("fixture.Expired"), Seq("expired"), "a Model's own role")
     assertEquals(roles.cases("fixture.Audited"), Nil, "a stand-alone trait is no role")
-    assertEquals(roles.cases("framework.Canceled"), Nil, "a role no case has")
+    assertEquals(roles.cases("framework.dsl.Canceled"), Nil, "a role no case has")
     assertEquals(roles.conflicts, Nil, "Retrying with Waiting is no conflict")
 
   test("a stand-alone trait is no role, and a trait extending a role is one"):
     assertEquals(
-      Seq("fixture.Audited", "fixture.Expired", "framework.Closed").map(c =>
+      Seq("fixture.Audited", "fixture.Expired", "framework.dsl.Closed").map(c =>
         Roles.isRole(bases(c))
       ),
       Seq(false, true, true)
@@ -82,18 +82,18 @@ class RolesSuite extends munit.FunSuite:
       Seq(
         (
           "both",
-          Seq("framework.Retrying", "framework.Failed"),
-          Seq("framework.Live", "framework.Closed")
+          Seq("framework.dsl.Retrying", "framework.dsl.Failed"),
+          Seq("framework.dsl.Live", "framework.dsl.Closed")
         ),
         (
           "twoLive",
-          Seq("framework.Held", "framework.Suspended"),
-          Seq("framework.Held", "framework.Suspended")
+          Seq("framework.dsl.Held", "framework.dsl.Suspended"),
+          Seq("framework.dsl.Held", "framework.dsl.Suspended")
         ),
         (
           "twoClosed",
-          Seq("fixture.Expired", "framework.Canceled"),
-          Seq("framework.Canceled", "framework.TimedOut")
+          Seq("fixture.Expired", "framework.dsl.Canceled"),
+          Seq("framework.dsl.Canceled", "framework.dsl.TimedOut")
         )
       )
     )

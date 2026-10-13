@@ -1,7 +1,7 @@
 package fixture.features.boiler
 package system
 
-import framework.*
+import framework.dsl.*
 import product.BoilerContract
 
 object BoilerImplementation extends Machine[Boiler, Outcome, Nothing]:

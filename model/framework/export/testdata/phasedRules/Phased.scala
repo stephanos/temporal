@@ -3,7 +3,7 @@
 // lifts equal byte for byte (expected.json).
 package fixture.phased
 
-import framework.*; import framework.Finite.given
+import framework.dsl.*; import framework.dsl.Finite.given
 
 enum Light:
   case off, on, broken

@@ -16,7 +16,7 @@ import io.temporal.api.workflowservice.v1.{
   WorkflowServiceGrpc
 }
 import temporal.server.api.testpilot.v1.InstructionOutcome
-import framework.*
+import framework.dsl.*
 import framework.realize.*, temporal.realize.{Role, RoleKind, WorkerInstruction}
 
 val one = action(Actor("caller"))

@@ -19,8 +19,8 @@ class RolePredicatesTest extends munit.FunSuite:
       "temporal.features.nexus.standalone.protocol.NexusProtocol" -> Set("over", "live")
     )
     for
-      model <- framework.IrFile.discover("temporal").flatMap(_.subjects()).distinct
-      names <- retired.get(framework.IrFile.identity(model))
+      model <- framework.dsl.IrFile.discover("temporal").flatMap(_.subjects()).distinct
+      names <- retired.get(framework.dsl.IrFile.identity(model))
     do
       val states = Class
         .forName(model.getClass.getName + "states$")

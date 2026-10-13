@@ -4,7 +4,7 @@
 // in `when` (fn-159.3); and `enters` through a projection that declares no writer (fn-159.7).
 package fixture.rulerejects
 
-import framework.*
+import framework.dsl.*
 import fixture.grouped.{clock, cook, Dial, Kettle, Mode, Modes, Outcome, Plain}
 import fixture.grouped.given
 

@@ -1,6 +1,6 @@
 package fixture.retrycapabilities
 
-import framework.*; import framework.Finite.given
+import framework.dsl.*; import framework.dsl.Finite.given
 import temporal.capabilities.product.Closable
 import temporal.capabilities.system.Retryable
 

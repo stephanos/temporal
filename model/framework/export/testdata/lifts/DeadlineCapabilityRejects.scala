@@ -1,10 +1,10 @@
 package fixture.deadlinecapabilityrejects
 
-import framework.*; import framework.Finite.given
+import framework.dsl.*; import framework.dsl.Finite.given
 import temporal.capabilities.system.Expirable
 import fixture.deadlinecapabilities.*
 import fixture.deadlinecapabilities.given
-val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
+val _ = () => summon[CanEqual[framework.dsl.outcomes.Outcome, framework.dsl.outcomes.Outcome]]
 final case class FamilyQuantifier[S, F <: Product](
     timeout: F,
     timeoutFacts: Seq[F],

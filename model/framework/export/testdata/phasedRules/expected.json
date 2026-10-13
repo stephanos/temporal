@@ -65,7 +65,7 @@
             "line": 29
           },
           "construct": {
-            "type": "framework.Step",
+            "type": "framework.dsl.Step",
             "args": [ {
               "position": {
                 "file": "model/framework/export/testdata/phasedRules/Phased.scala",
@@ -149,7 +149,7 @@
             "line": 30
           },
           "construct": {
-            "type": "framework.Step",
+            "type": "framework.dsl.Step",
             "args": [ {
               "position": {
                 "file": "model/framework/export/testdata/phasedRules/Phased.scala",
@@ -210,7 +210,7 @@
             "line": 28
           },
           "construct": {
-            "type": "framework.Step",
+            "type": "framework.dsl.Step",
             "args": [ {
               "position": {
                 "file": "model/framework/export/testdata/phasedRules/Phased.scala",

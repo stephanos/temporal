@@ -1,4 +1,4 @@
-package framework
+package framework.dsl
 
 import java.lang.reflect.InvocationTargetException
 import java.nio.file.{Files, Path}

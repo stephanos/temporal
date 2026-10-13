@@ -5,7 +5,7 @@
 // The tests lift `queries` and `durableEventually` and compare the IR with expected/declarations.json.
 package fixture.declarations
 
-import framework.*; import framework.Finite.given
+import framework.dsl.*; import framework.dsl.Finite.given
 
 enum Kept:
   case nothing, held

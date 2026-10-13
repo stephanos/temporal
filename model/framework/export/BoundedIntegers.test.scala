@@ -173,8 +173,8 @@ class BoundedIntegersTest extends munit.FunSuite with RetainedScratch:
 
   test("plain Int channels refuse their declaration even with Finite.upTo"):
     val source = """package fixture.boundedintegers
-import framework.*
-import framework.Finite.given
+import framework.dsl.*
+import framework.dsl.Finite.given
 enum Outcome:
   case accepted
 val small: Channel[Int] = channel[Int](capacity = 1, order = Order.fifo, loss = Loss.reliable)(using Finite.upTo(1))
@@ -203,7 +203,7 @@ object Messages extends Machine[Mail, Outcome, Nothing]:
     do Files.copy(tools.directory.resolve(stored + name), directory.resolve(name)): Unit
     Files.writeString(
       directory.resolve("project.scala"),
-      "//> using scala 3.9.0\n//> using jvm 27\n//> using options -Wconf:src=/Rejects[.]scala$&id=E176&msg=framework.StepBinding:s\n"
+      "//> using scala 3.9.0\n//> using jvm 27\n//> using options -Wconf:src=/Rejects[.]scala$&id=E176&msg=framework.dsl.StepBinding:s\n"
     ): Unit
     val jar = directory.resolve("fixtures.jar")
     tools

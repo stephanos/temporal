@@ -8,7 +8,7 @@
 // field, an assignment alone, an empty block and a rejection.
 package fixture.blocks
 
-import framework.*; import framework.Finite.given
+import framework.dsl.*; import framework.dsl.Finite.given
 
 enum Phase:
   case idle, running, paused, done

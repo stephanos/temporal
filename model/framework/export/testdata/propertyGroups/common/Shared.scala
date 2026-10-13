@@ -1,6 +1,6 @@
 package propertygroups
 
-import framework.*
+import framework.dsl.*
 
 enum State:
   case open, closed

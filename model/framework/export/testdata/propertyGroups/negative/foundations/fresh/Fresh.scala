@@ -1,6 +1,6 @@
 package propertygroups.foundations.fresh
 
-import framework.*
+import framework.dsl.*
 import propertygroups.*
 
 object Fresh extends Machine[State, Outcome, Nothing]:

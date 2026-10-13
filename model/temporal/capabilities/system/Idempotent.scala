@@ -5,7 +5,7 @@
 // to the IR's Property; a machine reads it as its reading of Closable's closedIsRejectedUniformly.
 package temporal.capabilities.system
 
-import framework.*
+import framework.dsl.*
 
 object Idempotent:
   // Why a repeated request is answered OK even after close (operation.go RequestCancel, Terminate).

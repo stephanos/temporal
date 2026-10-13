@@ -5,8 +5,8 @@
 // unnamed twins of these functions are retired; the Go tooling holds the names inert.
 package fixture.choices
 
-import framework.*; import framework.Finite.given
-val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
+import framework.dsl.*; import framework.dsl.Finite.given
+val _ = () => summon[CanEqual[framework.dsl.outcomes.Outcome, framework.dsl.outcomes.Outcome]]
 enum Phase:
   case scheduled, started, paused
 

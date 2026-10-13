@@ -1,6 +1,6 @@
 package fixture.qualifiedphases
 
-import framework.*
+import framework.dsl.*
 
 enum Stage:
   case idle extends Stage, Waiting

@@ -1,7 +1,7 @@
 // format: off
 package fixture.qualifiedphases
 
-import framework.*
+import framework.dsl.*
 val markerFileRenamedInline = (); import Stage.{idle as waiting}
 val usedFileRenamedInline = waiting
 

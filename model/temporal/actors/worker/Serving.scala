@@ -3,8 +3,8 @@
 package temporal
 package actors.worker
 
-import framework.*
-import framework.outcomes.Outcome
+import framework.dsl.*
+import framework.dsl.outcomes.Outcome
 
 trait Serving extends Facet[State, Outcome, Fact], Phased[State, Phase]:
 

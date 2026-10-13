@@ -70,10 +70,10 @@ private[`export`] trait Realizations:
   // A value the IR names rather than writes out: a machine, a channel, an action or a class.
   def namedByIR(tpe: TypeRepr): Boolean =
     isMachine(tpe) || Set(
-      "framework.Machine",
-      "framework.Channel",
-      "framework.Action",
-      "framework.Class"
+      "framework.dsl.Machine",
+      "framework.dsl.Channel",
+      "framework.dsl.Action",
+      "framework.dsl.Class"
     )(
       tpe.widen.dealias.typeSymbol.fullName
     )
@@ -805,7 +805,7 @@ private[`export`] trait Realizations:
       f.term match
         case t if commandLike(t.tpe)                  => commandName(f)
         case r: Ref if factCase(r.symbol)             => r.symbol.name
-        case t if isNamed(t.tpe, "framework.Monitor") => monitorName(t)
+        case t if isNamed(t.tpe, "framework.dsl.Monitor") => monitorName(t)
         case _                                        => reducedText(b0)
 
   // The name of a monitor written by value, `MonitorExpectation(terminalFinality, …)`: the one the
@@ -852,7 +852,7 @@ private[`export`] trait Realizations:
       case Literal(StringConstant(s)) => s
       case r: Ref if isMachine(r.tpe) =>
         machineOf(resolveSymbol(r), r).name
-      case r: Ref if isNamed(r.tpe, "framework.Channel") =>
+      case r: Ref if isNamed(r.tpe, "framework.dsl.Channel") =>
         channelOf(resolveSymbol(r), r)
       case Apply(
             Select(Apply(Select(sc, "apply"), List(parts)), "s"),
@@ -1716,7 +1716,7 @@ private[`export`] trait Realizations:
     itemsOf(b).flatMap { item =>
       reduce(item).term match
         case r: Ref
-            if isNamed(r.tpe, "framework.Action") && actions
+            if isNamed(r.tpe, "framework.dsl.Action") && actions
               .get(action(r))
               .exists(_.inputs.nonEmpty) =>
           deadlineClasses
@@ -2007,7 +2007,7 @@ private[`export`] trait Realizations:
       case (sym, v: ValDef)
           if isNamed(
             v.tpt.tpe,
-            "framework.Entity"
+            "framework.dsl.Entity"
           ) && sym.name == machine.entity =>
         sym
     }.toVector

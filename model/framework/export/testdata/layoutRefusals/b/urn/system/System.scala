@@ -1,7 +1,7 @@
 package fixture.features.urn
 package system
 
-import framework.*
+import framework.dsl.*
 
 object UrnSystem extends Machine[Urn, Outcome, Nothing]:
   val init = Urn(hot = false)

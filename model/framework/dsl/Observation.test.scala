@@ -1,4 +1,4 @@
-package framework
+package framework.dsl
 
 import scala.compiletime.testing.typeCheckErrors
 
@@ -16,10 +16,10 @@ class ObservationTest extends munit.FunSuite:
 
   test("retired named and positional read arguments are compile errors"):
     val named = typeCheckErrors(
-      "framework.Observation(name = \"attempts\", on = framework.Entity(), read = \"info.attempt\")"
+      "framework.dsl.Observation(name = \"attempts\", on = framework.dsl.Entity(), read = \"info.attempt\")"
     )
     val positional =
-      typeCheckErrors("framework.Observation(\"attempts\", framework.Entity(), \"info.attempt\")")
+      typeCheckErrors("framework.dsl.Observation(\"attempts\", framework.dsl.Entity(), \"info.attempt\")")
     assertEquals(
       named.map(_.message).filter(_.contains("does not have a parameter read")).size,
       1,

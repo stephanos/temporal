@@ -16,7 +16,7 @@ package framework.realize
 import io.grpc.MethodDescriptor
 import scala.annotation.unused
 import scalapb.GeneratedMessage
-import framework.{Action, ClassRef}
+import framework.dsl.{Action, ClassRef}
 
 // A fact as a machine records it: a case of its fact enum (`system.Fact.statusPaused`), or for a
 // case with fields the case itself (`system.Fact.statusTimedOut`), which names every value of it.

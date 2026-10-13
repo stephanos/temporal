@@ -496,18 +496,26 @@ by id.
 
 | Path | What it holds |
 | --- | --- |
-| `model/framework` | The DSL: what an author writes a Model with. It names no Temporal concept. Realization declarations any system needs, the open traits a system's kit extends and the script helpers are in `framework/realize` |
+| `model/framework` | The framework: self-contained and Temporal-free, so it could serve another system (fn-169). It compiles with no Temporal API jar and no `temporal.*` source on its classpath (`make check-model-boundary`) |
+| `model/framework/dsl` | The DSL, package `framework.dsl`: what an author writes a Model with (`import framework.dsl.*`). It names no Temporal concept |
+| `model/framework/realize` | The generic realization core: the declarations any system needs, the open traits a system's kit extends, the script helpers and the protobuf authoring sugar (`field`, `proto`, `read`) |
+| `model/framework/export` | The IR generator (the lifter), package ``framework.`export` ``, with its suites beside it. `testdata` holds Models it must lift and Models it must refuse |
+| `model/framework/check` | The checks' generic half: the one runner of tools, the change-scoped check (`ChangeCheck.scala`) over a system's coverage registry, `lint/` (comment, block-form, syntax, boundary rules and the literal scanner) and `equivalence/` (step tables, rename maps, ledgers, the lift comparison) |
+| `model/framework/migrate` | The migration harness, `prove.sh` ([README](framework/migrate/README.md)) |
 | `model/temporal` | The Models: `features`, grouped by kind (`nexus`, `activity`) and form (`workflow`, `standalone`), with one general file per kind and the form's feature file below it; `foundations/taskqueue`, the task queue features compose; `actors`, the shared worker and client; `Bounds.scala`, every Query bound; `capabilities`, shared capability Properties; and `realize`, Temporal's realization vocabulary (`Realize.scala`) and shared kit modules |
-| `model/framework/export` | The IR generator. `testdata` holds Models it must lift and Models it must refuse |
+| `model/temporal/export` | Temporal's half of the lifter: its plug-in (`TemporalPlugin.scala`, the module map of the Temporal Models) and the Temporal API on the lifter's classpath |
+| `model/temporal/check` | Temporal's gate: it generates the IR's ScalaPB classes from the schema into `model/build` (`--generate-ir`) and runs the IR generator once over every IR file the Models declare; Temporal's coverage registry (`Coverage.scala`), the Temporal API proto-name rule (`lint/`), the mini baseline's rename map (`baselines/`) and the source metrics (`temporal.check.metrics`) |
+| `model/temporal/migrate` | The migration rules the sweep has not applied yet, each with its proof runner and suite ([README](temporal/migrate/README.md)) |
 | `model/temporal/features/<feature>/generated` | The feature's checked-in `ir.json`, accepted lint findings, Cases and `manifest.json`; retained supplemental outputs live in `legacy/` |
-| `model/temporal/check` | The gate program. It generates the IR's ScalaPB classes from the schema into `model/build` (`--generate-ir`) and runs the IR generator once over every IR file the Models declare. Its second entry point, `umpire.check.metrics`, prints the source metrics of the Model folders it is given |
-| `model/project.scala` | The build settings of the DSL and the Models |
+| `model/project.scala` | The build settings of the Temporal Models, on top of the framework's core (`framework/dsl/project.scala`) |
 | [SEMANTICS.md](SEMANTICS.md) | The evaluation rules of the Umpire IR: what every construct means |
 | [Known bugs](../.plans/UMPIRE4_VISION.md#known-bugs-knownbugs) | Vision for acknowledging a known bug; not implemented |
 | `model/build` | Build output of the gate; ignored by git |
 
 The framework, `model/framework`, names no Temporal concept, in its prose or its identifiers, so a
-Model of another system could be written in it. What a system has of its own its realization kit
+Model of another system could be written in it. A Temporal tool builds from both halves, the
+framework's first: `scala-cli <command> model/framework/export model/temporal/export` (and
+`.../check`), where the framework's `project.scala` is the build's own. What a system has of its own its realization kit
 declares, by extending the framework's open traits `Addressee`, `Activation`, `Instruction`,
 `Recorded`, `Setting`, `Behavior` and `SystemStep`. Temporal's are in `temporal.realize`: `Role` and
 `RoleKind`, the worker activations `WorkerActivation.{Workflow, NexusHandler, Activity}`, the
@@ -517,9 +525,31 @@ dynamic-configuration `RequiredSetting`, and the API behavior hints `ApiBehavior
 with `WaitBound`, `Visible`, `CauseKind`, `AttemptNumbering` and `InstructionLimit`. `TestFrameworkNamesNoTemporal` in `tools/umpire/ir`
 fails when a file under `model/framework` names a Temporal term, the eight capability kinds among them; a
 mention stays only under an allowance that states its reason, and none has one today. The
-tooling downstream of the DSL is Temporal's driver tooling by design: the IR generator matches the kit's
-vocabulary by fully qualified name and writes it into the IR's realization messages, whose names are
-Temporal's, and lowering turns a Query into a Testpilot Case the Temporal Driver runs.
+tooling is the framework's too (fn-169, superseding fn-114.12 and fn-122.8, which held the lifter to be
+Temporal's driver tooling by design): the boundary rule (`framework/check/lint/Boundary.scala`) refuses
+a framework source that declares, imports or names a Temporal package, or a framework build that
+takes a Temporal jar or source, and `make check-model-boundary` also compiles the framework's core,
+lifter and checks on their own. Temporal reaches the lifter through its plug-in
+(`framework/export/Plugin.scala`, a Java service `temporal/export` registers).
+
+#### Residual Temporal coupling (fn-169.2)
+
+The move was mechanical; what a mechanical move could not take out of the framework stays as text,
+names the lifter and the checks match, until fn-169.2 completes the plug-in seam after fn-141.8:
+
+- the realization kit's lifting (`framework/export/Realizations.scala`, `Syntax.scala`) matches
+  `temporal.realize` constructs by name, and reads a realization's messages from the Temporal API
+  classes the Temporal lifter build puts on its classpath;
+- the layout conventions (`Structure.scala`, `Lifting.scala`, `Context.scala`, `Admission.scala`,
+  `Switches.scala`) name `model/temporal`, `features`, `foundations`, `capabilities` and `actors`;
+- the IR's ScalaPB classes are in the IR schema's namespace, `io.temporal.server.api.umpire.v1`
+  (held, fn-169.3);
+- `framework/check` selects the Temporal Models' sources (`ModelSources.scala`), and its syntax and
+  block-form rules name `model/temporal`'s trees (`lint/SyntaxRule.scala`, `lint/BlockFormRule.scala`);
+  the step ledger records a Temporal package rename (`equivalence/StepLedger.scala`);
+- the gate stays whole in `temporal/check/Gate.scala`: its generic driver is not yet split from the
+  Temporal configuration (which protos, which Go checks), and the source metrics classify Temporal
+  API names (`temporal/check/SourceMetrics.scala`).
 
 The module map, [.plans/UMPIRE_MODULES.md](../.plans/UMPIRE_MODULES.md), states each module's job,
 its public interface and what it may import. Each module outside this directory has its own README:
@@ -627,10 +657,10 @@ production migration loader. The current focused source checks do not close thos
 
 ### Migration as code
 
-DSL changes ship a task-named Scalafix rule under `model/temporal/migrate/`, prove it on copied `activity_mini` sources before the real-feature sweep, and follow `model/temporal/migrate/README.md`; production loading remains held in fn-166.10.
+DSL changes ship a task-named Scalafix rule under `model/temporal/migrate/`, prove it on copied `activity_mini` sources with the harness (`FEATURES=activity_mini model/framework/migrate/prove.sh <runner>`, [README](framework/migrate/README.md)) before the real-feature sweep, and follow `model/temporal/migrate/README.md`; production loading remains held in fn-166.10.
 
 Use `Fn<spec>Task<task><Change>.scala` for the source and the same class/rule name.
-[Fn166Task9QueueAlias](migrate/rules/Fn166Task9QueueAlias.scala) is the compiled worked
+[Fn166Task9QueueAlias](temporal/migrate/Fn166Task9QueueAlias.scala) is the compiled worked
 example: it renames the local import alias `foundationQueue` to `taskQueueSource` and
 qualified uses in copied mini queue sources. Both spellings have fifteen characters,
 refer to the same foundation action and retain every source coordinate. The isolated
@@ -642,7 +672,7 @@ From the repository root, the source-test route is:
 
 ```sh
 mise exec -- scala-cli test --server=false model/temporal/migrate --test-only temporal.migrate.QueueAliasTest
-timeout 600 /bin/bash model/framework/migrate/prove-mini.sh
+FEATURES=activity_mini timeout 600 model/framework/migrate/prove.sh temporal.migrate.RewriteMini
 ```
 
 The fixture invokes Scalafix's pinned in-process patch application on the actual custom
@@ -806,7 +836,7 @@ The IR generator reads what an author wrote, as written:
   class, a lookup of a fact its table lists twice or not at all, a request-scope line of an `rpc`
   or a `readUntil` that is neither `field(_.x) := v` nor `Assignment.typed(…)`, and evidence that
   records a case of another enum than the facts its machine records.
-- **Sugar** (`framework/dsl/Syntax.scala`, lifted by `irgen/Syntax.scala`): `enter(state, facts*)`,
+- **Sugar** (`framework/dsl/Syntax.scala`, lifted by `framework/export/Syntax.scala`): `enter(state, facts*)`,
   `stay(s)`, `disabled`, `x.in(a, b, …)`, `a implies b` and `after.records(fact)`. Each is lifted to
   the IR its core form lifts to, and nothing else: `List(Step(accepted, state, List(facts*)))`,
   `List(Step(accepted, s))`, `Nil`, `List(a, b, …).contains(x)`, `!a || b` and
@@ -1388,8 +1418,9 @@ already says: the rules (`Rules` with `on`, `from`, `when`, `where`, `always` an
 `in`, `records`, `enter`, `stay`, `reject`, `disabled`, the claim patterns (`once`,
 `keeps`, `never`, `from`, `stays`, `unless`), `witness`, the monitor pattern (`sticky`, `stickyAcross`)
 and both spellings of `:=`, named inputs and request
-fields. It lives in the `Syntax.scala` files of the DSL (`framework/dsl/Syntax.scala`), the kit
-(`temporal/realize/Syntax.scala`) and the IR generator (`irgen/Syntax.scala`). Each form is documented
+fields. It lives in the `Syntax.scala` files of the DSL (`framework/dsl/Syntax.scala`), the
+realization core (`framework/realize/Syntax.scala`, the protobuf authoring sugar) and the IR generator
+(`framework/export/Syntax.scala`). Each form is documented
 with `Core form:` and the core spelling it stands for, and an IR generator fixture lifts it beside that
 spelling and requires the same IR. No core file imports sugar, and a sugar word is defined in no
 other file; `make lint-model` checks these three rules.
@@ -1505,7 +1536,7 @@ gives; the refusal fixtures keep their own options, so each still fails for the 
 
 Strict equality needs a `CanEqual` for each type compared with `==`. Every `Finite` type has one,
 `given [T](using Finite[T]): CanEqual[T, T]` in `framework.Finite`, which a file brings in with
-`import framework.Finite.given`; a `Finite` instance alone does not put it in scope. A type that is
+`import framework.dsl.Finite.given`; a `Finite` instance alone does not put it in scope. A type that is
 compared and is not `Finite` declares `derives CanEqual` itself. Nothing grants `CanEqual[Any, Any]`
 or evidence between two levels' types, so `Phase == OtherPhase` stays a compile error
 (`model/framework/dsl/Equality.test.scala`). Scala 3.9 reports the `Finite.given` import unused where
@@ -1720,7 +1751,7 @@ retry. The three Nexus workflow deadlines cover Live, Waiting and Held and alway
 Closable binds only its rejection outcome. It reads the declaring object's `Phased` projection,
 or its derivation source, through `Phasing.phase` and witnessed `Phasing.roleCases[Closed]`.
 The latter requires a nonempty role set. A companion declares its owned role with a type alias,
-`type Closed = framework.Closed`; reading that role counts as reading its own capability field, so
+`type Closed = framework.dsl.Closed`; reading that role counts as reading its own capability field, so
 both Closable Properties are brought exactly where Closable is declared. Declaring it without
 `Phased`, or on a phase with no `Closed` case, is refused with the declaring machine's name.
 
@@ -2072,7 +2103,7 @@ build refuses it with that diagnostic. For example:
 
 ```scala
 import io.temporal.api.workflowservice.v1.WorkflowServiceGrpc.METHOD_START_ACTIVITY_EXECUTION
-import framework.*
+import framework.dsl.*
 import framework.realize.*
 import temporal.realize.*
 

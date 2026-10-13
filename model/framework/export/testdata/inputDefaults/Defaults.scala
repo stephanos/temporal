@@ -1,8 +1,8 @@
 package fixture.inputdefaults
 
-import framework.*
-import framework.input as declaredInput
-import framework.Finite.given
+import framework.dsl.*
+import framework.dsl.input as declaredInput
+import framework.dsl.Finite.given
 
 enum Mode:
   case first, second
@@ -17,11 +17,11 @@ val count = input[UpTo[2]](default = UpTo(0))
 val answer = input[Answer](default = Answer.failed(true))
 val settings = input[Settings](default = Settings(Mode.second, false))
 val optional = input[Option[Mode]](default = Some(Mode.second))
-val absent = framework.input[Option[Mode]](default = None)
+val absent = framework.dsl.input[Option[Mode]](default = None)
 val required = input[Mode]
 object factory:
   def input(default: Mode)(using Finite[Mode]): Input[Mode] =
-    framework.input[Mode](default = Mode.first)
+    framework.dsl.input[Mode](default = Mode.first)
 val computed = factory.input(Mode.second)
 val alias = preferred
 val entity = Entity(key = "id")

@@ -1,6 +1,6 @@
 package fixture.admission.reaching
 
-import framework.*
+import framework.dsl.*
 import fixture.admission.unrelated.Broken
 
 final case class State(on: Boolean)

@@ -1,4 +1,4 @@
-package framework
+package framework.dsl
 
 object DiscoveryFixtures:
   enum State:
@@ -77,12 +77,12 @@ object DiscoveryFixtures:
     val one: Query = bounded
     val many: Seq[Query] = Seq(bounded)
   lazy val progress = Original.leadsTo("reaches")(_ => true, _ => true, 1)
-  lazy val realization = realize.Realization(
+  lazy val realization = framework.realize.Realization(
     machine = Added,
     producer = "fixture",
     producerVersion = "1",
     roles = Vector.empty,
-    correlation = realize.Correlation("", "", "", "", 0, 0, 0, 0, 0, 0),
+    correlation = framework.realize.Correlation("", "", "", "", 0, 0, 0, 0, 0, 0),
     scripts = Vector.empty
   )
 

@@ -2,7 +2,7 @@
 // the parameter has no default, so the build refuses the case at its line.
 package fixture.crossed
 
-import framework.*
+import framework.dsl.*
 
 enum Status:
   case statusIdle, statusBusy

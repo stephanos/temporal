@@ -1,6 +1,6 @@
 package fixture.qualifiedrules
 
-import framework.*
+import framework.dsl.*
 
 object BareWholeOutside extends Machine[State, Outcome, Nothing]:
   import hand.press

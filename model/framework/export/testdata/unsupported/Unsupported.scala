@@ -2,7 +2,7 @@
 // form for. The lifter's tests lift it and expect the refusal at the loop's line.
 package fixture.unsupported
 
-import framework.*
+import framework.dsl.*
 
 enum Phase:
   case idle, done

@@ -68,7 +68,7 @@ private[`export`] trait Constants:
 
   // Whether a declaration of this class takes its name from its val where it states none.
   def namedByVal(cls: Symbol): Boolean =
-    Set("framework.Entity", "framework.Observation")(cls.fullName)
+    Set("framework.dsl.Entity", "framework.dsl.Observation")(cls.fullName)
 
   // The val whose right-hand side `resolve` reaches: the last of the vals it goes through.
   private def resolvedVal(t: Term): Option[Symbol] = t match

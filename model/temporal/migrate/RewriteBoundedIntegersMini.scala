@@ -79,8 +79,10 @@ object Probe extends Machine[State, Outcome, Nothing]:
         .inheritIO()
         .start()
       require(process.waitFor() == 0, arguments.mkString(" "))
+    // The probe compiles in the DSL's current spelling, as the sweep leaves it after
+    // Fn169Task1DslPackage; the rule read the legacy one (run under OnLegacyDsl).
     for (stage, source) <- List("accepted" -> accepted, "fixed" -> fixed.fixed) do
-      Files.writeString(path, source): Unit
+      Files.writeString(path, OnLegacyDsl.forward(path, source)): Unit
       val jar = probe.resolve(stage + ".jar")
       run(
         Seq(

@@ -1,4 +1,4 @@
-package framework.conventionfixtures
+package framework.dsl.conventionfixtures
 
 import temporal.features.activity.mini.product.ActivityProduct
 

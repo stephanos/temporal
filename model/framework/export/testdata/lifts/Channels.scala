@@ -3,7 +3,7 @@
 // tests lift `Relay` and `Tallying` and compare the IR with expected/channels.json.
 package fixture.channels
 
-import framework.*; import framework.Finite.given
+import framework.dsl.*; import framework.dsl.Finite.given
 
 enum Note:
   case ping, pong

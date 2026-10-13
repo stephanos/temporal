@@ -1,4 +1,4 @@
-package framework
+package framework.dsl
 
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.{Files, Path}

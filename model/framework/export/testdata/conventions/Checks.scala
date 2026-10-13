@@ -3,8 +3,8 @@
 //> using jar ../../../../build/model-scala.jar
 package fixture.conventions
 
-import framework.*
-import framework.Finite.given CanEqual[?, ?]
+import framework.dsl.*
+import framework.dsl.Finite.given CanEqual[?, ?]
 import temporal.features.activity.mini.protocol.{
   Fact as WorkflowFact,
   Phase as WorkflowPhase,

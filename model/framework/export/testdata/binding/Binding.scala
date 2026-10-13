@@ -1,6 +1,6 @@
 package fixture.binding
 
-import framework.*
+import framework.dsl.*
 // Its actions name no message: a realization binding derives what a class carries (fn-133.8).
 
 enum Outcome:

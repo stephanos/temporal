@@ -8,7 +8,7 @@
 // directly (`directLamp`, `directPlainLamp`) do, but for the words `bundled` and `direct` in their names.
 package fixture.totals
 
-import framework.*
+import framework.dsl.*
 
 // A lamp's state, named apart from the machine object `Lamp`.
 final case class LampState(lit: Boolean)
@@ -55,12 +55,12 @@ val flipTwice = Lamp.scenario.actions(flip, flip)
 val infixTotal = query find litOnce in flipTwice limits two total 4
 val dottedTotal = (query find litOnce in flipTwice limits two).total(4)
 
-val run = realize.RunExpectation(
-  realize.Conformance.conformant,
-  realize.PropertyOutcome.satisfied,
-  realize.PropertyOutcome.satisfied,
-  realize.Disposition.completed,
-  realize.Cleanup.succeeded
+val run = framework.realize.RunExpectation(
+  framework.realize.Conformance.conformant,
+  framework.realize.PropertyOutcome.satisfied,
+  framework.realize.PropertyOutcome.satisfied,
+  framework.realize.Disposition.completed,
+  framework.realize.Cleanup.succeeded
 )
 val totalThenExpect =
   (query find litOnce in flipTwice limits two total 4).live(run)

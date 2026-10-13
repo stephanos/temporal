@@ -1,12 +1,12 @@
 // A selected timer fires only inside its armed role and settles from before-state retry policy.
 package temporal.capabilities.system
 
-import framework.*
-import framework.Finite.given
+import framework.dsl.*
+import framework.dsl.Finite.given
 import scala.annotation.unused
 import scala.reflect.{ClassTag, TypeTest}
 
-val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
+val _ = () => summon[CanEqual[framework.dsl.outcomes.Outcome, framework.dsl.outcomes.Outcome]]
 
 final case class Expirable[S, P, R, F <: Product](
     timer: ClassRef,

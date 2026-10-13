@@ -1,7 +1,7 @@
 package fixture.features.contract
 package protocol
 
-import framework.*
+import framework.dsl.*
 
 enum Phase:
   case off

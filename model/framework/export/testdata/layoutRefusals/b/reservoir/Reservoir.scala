@@ -1,7 +1,7 @@
 // R20 (b): a two-level feature's Phase, State and Fact belong to the level files, not here.
 package fixture.features.reservoir
 
-import framework.*
+import framework.dsl.*
 
 enum ProductPhase:
   case empty, full

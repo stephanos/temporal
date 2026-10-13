@@ -2,7 +2,7 @@ package fixture.features.relay
 package shared
 package product
 
-import framework.*
+import framework.dsl.*
 
 enum Phase:
   case idle, done

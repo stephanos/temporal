@@ -49,7 +49,7 @@ final private[`export`] class Index(using val quotes: Quotes)(
     t match
       case d: Definition =>
         val gaps = d.symbol.annotations.filter(a =>
-          a.tpe.typeSymbol.fullName == "framework.gap" &&
+          a.tpe.typeSymbol.fullName == "framework.dsl.gap" &&
             scala.util.Try(a.pos.sourceFile.path == t.pos.sourceFile.path).getOrElse(false) &&
             a.pos.start >= start && a.pos.end <= t.pos.end
         )
@@ -122,7 +122,7 @@ final private[`export`] class Context(val index: Index):
     def body: Term = call.body
 
   private val blockForms = Set("is", "effect")
-  private val syntaxOwner = "framework.Syntax$package$"
+  private val syntaxOwner = "framework.dsl.Syntax$package$"
 
   // The call of a block form a term is.
   def blockCall(t: Term): Option[BlockCall] = t match
@@ -325,7 +325,7 @@ final private[`export`] class Context(val index: Index):
   // The name each parameter with a compiler-synthesized name is lifted with, by its symbol.
   val renamed = mutable.Map.empty[Symbol, String]
   def nameOf(sym: Symbol): String = renamed.getOrElse(sym, sym.name)
-  val stepType = "framework.Step"
+  val stepType = "framework.dsl.Step"
   val noneModule = Symbol.requiredModule("scala.None")
   val someModule = Symbol.requiredModule("scala.Some")
 
@@ -427,18 +427,18 @@ final private[`export`] class Context(val index: Index):
     ) == name &&
       !owner.maybeOwner.isPackageDef
 
-  // ### Object forms: an object that is a machine or a composition (framework.Machine, framework.Derived,
-  // framework.Composition), and the sections it reads
+  // ### Object forms: an object that is a machine or a composition (framework.dsl.Machine, framework.dsl.Derived,
+  // framework.dsl.Composition), and the sections it reads
 
-  lazy val machineClass: Symbol = Symbol.requiredClass("framework.Machine")
-  lazy val derivedClass: Symbol = Symbol.requiredClass("framework.Derived")
-  lazy val compositionClass: Symbol = Symbol.requiredClass("framework.Composition")
-  lazy val rulesClass: Symbol = Symbol.requiredClass("framework.Rules")
-  lazy val bindingsClass: Symbol = Symbol.requiredClass("framework.Bindings")
-  lazy val failureModelClass: Symbol = Symbol.requiredClass("framework.FailureModel")
-  lazy val negativeControlClass: Symbol = Symbol.requiredClass("framework.NegativeControl")
-  lazy val syncsClass: Symbol = Symbol.requiredClass("framework.Syncs")
-  lazy val refinementClass: Symbol = Symbol.requiredClass("framework.Refinement")
+  lazy val machineClass: Symbol = Symbol.requiredClass("framework.dsl.Machine")
+  lazy val derivedClass: Symbol = Symbol.requiredClass("framework.dsl.Derived")
+  lazy val compositionClass: Symbol = Symbol.requiredClass("framework.dsl.Composition")
+  lazy val rulesClass: Symbol = Symbol.requiredClass("framework.dsl.Rules")
+  lazy val bindingsClass: Symbol = Symbol.requiredClass("framework.dsl.Bindings")
+  lazy val failureModelClass: Symbol = Symbol.requiredClass("framework.dsl.FailureModel")
+  lazy val negativeControlClass: Symbol = Symbol.requiredClass("framework.dsl.NegativeControl")
+  lazy val syncsClass: Symbol = Symbol.requiredClass("framework.dsl.Syncs")
+  lazy val refinementClass: Symbol = Symbol.requiredClass("framework.dsl.Refinement")
 
   // Whether a value of this type is a machine: a machine object, or a derivation of one.
   def isMachine(t: TypeRepr): Boolean = t.widen.dealias.derivesFrom(machineClass)
@@ -458,8 +458,8 @@ final private[`export`] class Context(val index: Index):
     !cls.isNoSymbol && cls.flags.is(Flags.Module) &&
     (cls.typeRef.derivesFrom(machineClass) || cls.typeRef.derivesFrom(compositionClass))
 
-  lazy val facetClass: Symbol = Symbol.requiredClass("framework.Facet")
-  lazy val facetsClass: Symbol = Symbol.requiredClass("framework.Facets")
+  lazy val facetClass: Symbol = Symbol.requiredClass("framework.dsl.Facet")
+  lazy val facetsClass: Symbol = Symbol.requiredClass("framework.dsl.Facets")
 
   // Whether `sym` names a facet's object, `object pausing` in `trait Pausing extends Facet[...]`,
   // whose sections are its machine's (framework/dsl/Facet.scala).

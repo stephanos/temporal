@@ -1,6 +1,6 @@
 package fixture.witness.compiler
 
-import framework.{records, witness, Query}
+import framework.dsl.{records, witness, Query}
 import fixture.witness.*
 import fixture.witness.worker.finish
 

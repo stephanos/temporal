@@ -4,7 +4,7 @@
 package temporal
 package features.activity
 
-import framework.*
+import framework.dsl.*
 import actors.worker.worker as process
 
 // ### Types

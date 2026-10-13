@@ -21,7 +21,7 @@
 // record `temporalRealization` writes.
 package temporal.realize
 
-import framework.Machine
+import framework.dsl.Machine
 import framework.realize.*
 
 // The header of a realization object of `machine`: what is not derived.

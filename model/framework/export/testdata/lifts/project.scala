@@ -8,8 +8,8 @@
 // These expressions deliberately reach the lifter's bare-expression, unheaded-rule and wrong-field
 // refusals; making them compiler refusals would stop those diagnostic controls from running.
 //> using options "-Wconf:src=/BlockRejects[.]scala$&id=E176&msg=unused value of type Boolean:s"
-//> using options "-Wconf:src=/Rejects[.]scala$&id=E176&msg=unused value of type framework.StepBinding:s"
-//> using options "-Wconf:src=/ScriptRejects[.]scala$&id=E175&msg=framework.Assigned:s"
+//> using options "-Wconf:src=/Rejects[.]scala$&id=E176&msg=unused value of type framework.dsl.StepBinding:s"
+//> using options "-Wconf:src=/ScriptRejects[.]scala$&id=E175&msg=framework.dsl.Assigned:s"
 // RequestScope is a Unit collector boundary. Its two core TypedAssignment expressions are lifted
 // as assignments; adding a Unit ascription makes that supported core syntax a lifter refusal.
 //> using options "-Wconf:src=/Scripts[.]scala$&id=E175&msg=framework.realize.TypedAssignment:s"

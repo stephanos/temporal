@@ -3,7 +3,7 @@
 // diagnostics with expected/rejects.txt.
 package fixture.scriptrejects
 
-import framework.*
+import framework.dsl.*
 import framework.realize.*
 import temporal.realize.WorkerInstruction.{AttemptFailure, Fault}
 import temporal.realize.*

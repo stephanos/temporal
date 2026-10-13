@@ -1,6 +1,6 @@
 package fixture.gaps
 
-import framework.*
+import framework.dsl.*
 import scala.annotation.{targetName, unused}
 
 enum Outcome:

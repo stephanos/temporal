@@ -3,7 +3,7 @@
 // diagnostics rather than its exit status, and this one is expected at the match's line.
 package fixture.werror
 
-import framework.*
+import framework.dsl.*
 
 enum Phase:
   case idle, working, done

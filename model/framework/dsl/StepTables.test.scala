@@ -1,4 +1,4 @@
-package framework
+package framework.dsl
 
 // The step tables (StepTables.scala): every pair of a state and a class is a row, disabled ones
 // included, so a changed fact or rule result changes the table; a composition's table holds its

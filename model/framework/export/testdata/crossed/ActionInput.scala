@@ -1,6 +1,6 @@
 package fixture.crossed.actioninput
 
-import framework.*
+import framework.dsl.*
 
 final case class State(on: Boolean)
 

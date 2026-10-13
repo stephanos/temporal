@@ -1,4 +1,4 @@
-package framework
+package framework.dsl
 
 // A named assumption a check makes, which every result the check reports names: that a machine
 // stands for an opaque provider, that it includes a fault only this assumption allows, or the

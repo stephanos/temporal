@@ -10,8 +10,8 @@ import io.temporal.server.api.umpire.v1.Pattern.Kind as P
 // framework role or a trait that extends one; a Model's own role takes part in a conflict only
 // through the framework roles it extends.
 private[`export`] object Roles:
-  private val live = "framework.Live"
-  private val closed = "framework.Closed"
+  private val live = "framework.dsl.Live"
+  private val closed = "framework.dsl.Closed"
 
   // The framework's roles, in the order model/framework/dsl/Roles.scala declares them.
   val framework: Seq[String] =
@@ -27,14 +27,14 @@ private[`export`] object Roles:
       "Canceled",
       "Terminated",
       "TimedOut"
-    ).map("framework." + _)
+    ).map("framework.dsl." + _)
 
   // The roles a phase has at most one of, each with what the refusal says of them.
   private val exclusive: Seq[(Seq[String], String)] = Seq(
     Seq(live, closed) -> "a phase is live or closed, never both",
-    Seq("Waiting", "Held", "Suspended").map("framework." + _) ->
+    Seq("Waiting", "Held", "Suspended").map("framework.dsl." + _) ->
       "a live phase is at most one of Waiting, Held and Suspended",
-    Seq("Succeeded", "Failed", "Canceled", "Terminated", "TimedOut").map("framework." + _) ->
+    Seq("Succeeded", "Failed", "Canceled", "Terminated", "TimedOut").map("framework.dsl." + _) ->
       ("a closed phase has at most one closure role of Succeeded, Failed, Canceled, Terminated " +
         "and TimedOut")
   )

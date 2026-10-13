@@ -1,4 +1,4 @@
-package framework
+package framework.dsl
 
 import scala.annotation.StaticAnnotation
 import framework.realize.{Command, Instruction}

@@ -1,6 +1,6 @@
 package temporal.features.statusfixture.protocol
 
-import framework.*
+import framework.dsl.*
 import temporal.capabilities.statusfixture.{Extra, Observable}
 
 object Negative extends Machine[Boolean, Boolean, Nothing]:

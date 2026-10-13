@@ -5,7 +5,7 @@
 // `queries` section bounds, and a bound override of a Property not brought and of one waived.
 package fixture.capabilitysectionrejects
 
-import framework.*; import framework.Finite.given
+import framework.dsl.*; import framework.dsl.Finite.given
 import fixture.capabilitysections.{hold, release, take, three, Answer, Note, Phase}
 import fixture.capabilitysections.{Holdable, Sealable, Takeable, Tasks, TaskState}
 

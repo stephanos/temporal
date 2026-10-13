@@ -2,7 +2,7 @@
 // sit, wildcard or selective; the type itself, imported by name, is no member import.
 package fixture.conventions.phases
 
-import framework.*
+import framework.dsl.*
 import Stage.done
 
 enum Stage:

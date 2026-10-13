@@ -1,6 +1,6 @@
-package framework
+package framework.dsl
 
-import framework.Finite.given
+import framework.dsl.Finite.given
 
 object PhasedFixture:
   enum Phase:
@@ -137,5 +137,5 @@ class PhasedSuite extends munit.FunSuite:
     val error = intercept[IllegalArgumentException](OpenEnd.end(OpenEnd.init))
     assertEquals(
       error.getMessage,
-      "requirement failed: openEnd's phase type framework.PhasedFixture$OpenPhase has no Closed case"
+      "requirement failed: openEnd's phase type framework.dsl.PhasedFixture$OpenPhase has no Closed case"
     )

@@ -74,7 +74,7 @@ final case class State(phase: Phase, attempts: UpTo[2], scheduleToStart: Timeout
 ```
 
 Nothing is declared about finiteness: every enum and case class is a domain, and the compiler
-derives its catalog (`framework.Finite`) where one is first needed, at the `Machine`, `input` or
+derives its catalog (`framework.dsl.Finite`) where one is first needed, at the `Machine`, `input` or
 `Refinement` that takes the type. `UpTo[2]` has the values 0, 1, 2 and reads as an `Int`; write one
 with `UpTo(n)`. A type whose catalog is not structural declares its own `given Finite[T]`, which
 wins over the derived one: a named opaque integer type with its own `Finite.upTo(n)` range,
@@ -83,7 +83,7 @@ even with a local `Finite[Int]`: write `UpTo[N]`. Optional bounded values retain
 synthetic enum identity, so `Option[UpTo[1]]` and `Option[UpTo[3]]` have independent catalogs.
 
 The build runs with `-language:strictEquality`, so comparing two values needs a `CanEqual`. Every
-`Finite` type gets one from `import framework.Finite.given`; a file that only uses it in a
+`Finite` type gets one from `import framework.dsl.Finite.given`; a file that only uses it in a
 comparison keeps the import alive with `val _ = () => summon[CanEqual[Phase, Phase]]`. Comparing
 two levels' phases (`product.Phase == protocol.Phase`) does not compile, which is the point.
 
@@ -223,7 +223,7 @@ Every step answers an *outcome*. A machine declares its own enum, or adopts the 
 Source: [temporal/features/activity_mini/product/Completion.scala:8](temporal/features/activity_mini/product/Completion.scala#L8).
 
 ```scala
-import framework.outcomes.{Outcome, Rejection}
+import framework.dsl.outcomes.{Outcome, Rejection}
 ```
 
 `enter` and `stay` answer the outcome one `given Ok[Outcome] = Ok(Outcome.accepted)` names,

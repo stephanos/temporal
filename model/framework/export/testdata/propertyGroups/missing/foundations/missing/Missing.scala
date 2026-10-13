@@ -1,6 +1,6 @@
 package propertygroups.foundations.missing
 
-import framework.*
+import framework.dsl.*
 import propertygroups.*
 
 object Missing extends Machine[State, Outcome, Nothing]:

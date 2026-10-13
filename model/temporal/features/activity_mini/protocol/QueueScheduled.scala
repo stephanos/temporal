@@ -3,8 +3,8 @@ package features.activity
 package mini
 package protocol
 
-import framework.*
-import framework.Finite.given
+import framework.dsl.*
+import framework.dsl.Finite.given
 import foundations.taskqueue.{QueueView, Outstanding, queue as foundationQueue}
 import foundations.taskqueue.product.TaskQueueProduct
 

@@ -1,6 +1,6 @@
 package propertygroups.foundations.crossed
 
-import framework.*
+import framework.dsl.*
 import propertygroups.*
 
 object Crossed extends Machine[State, Outcome, Nothing]:

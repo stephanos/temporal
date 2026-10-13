@@ -1,6 +1,6 @@
 package propertygroups.foundations.wrongowner
 
-import framework.*
+import framework.dsl.*
 import propertygroups.*
 
 object Home extends Machine[State, Outcome, Nothing]:

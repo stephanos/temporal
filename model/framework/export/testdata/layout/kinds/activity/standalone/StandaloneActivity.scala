@@ -1,7 +1,7 @@
 package fixture.features.activity
 package standalone
 
-import framework.*
+import framework.dsl.*
 
 enum Outcome:
   case accepted

@@ -26,11 +26,13 @@ final class Fn161Task4FacetWrapping extends SyntacticRule("Fn161Task4FacetWrappi
     }
     val imports = doc.tree.collect { case i: Importer => i }
     val reserved = Set("Machine", "Phased", "Facet", "Facets", "FacetCapabilities", "Rules")
+    // The DSL's package, as the real features still spell it and as fn-169.1 spells it.
+    def dsl(ref: String) = ref == "framework" || ref == "framework.dsl"
     val framework = imports.exists(i =>
-      i.ref.syntax == "framework" && i.importees.exists(_.isInstanceOf[Importee.Wildcard])
+      dsl(i.ref.syntax) && i.importees.exists(_.isInstanceOf[Importee.Wildcard])
     )
     val competing = imports.exists(i =>
-      i.ref.syntax != "framework" && i.importees.exists {
+      !dsl(i.ref.syntax) && i.importees.exists {
         case n: Importee.Name     => reserved(n.name.value)
         case n: Importee.Rename   => reserved(n.rename.value)
         case _: Importee.Wildcard => true
@@ -67,7 +69,10 @@ final class Fn161Task4FacetWrapping extends SyntacticRule("Fn161Task4FacetWrappi
           case _              => true
         } || own.collect {
           case _: Defn.Var                                                      => true
-          case a: Term.Apply if Set("action", "framework.action")(a.fun.syntax) => true
+          case a: Term.Apply if Set("action", "framework.action", "framework.dsl.action")(
+                a.fun.syntax
+              ) =>
+            true
         }.nonEmpty
         val namespaceNames = own.templ.body.stats.collect { case o: Defn.Object =>
           o.name.value

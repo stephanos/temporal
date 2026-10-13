@@ -1,4 +1,4 @@
-package framework
+package framework.dsl
 
 object WitnessFixture:
   enum State:
@@ -45,7 +45,7 @@ class WitnessTest extends munit.FunSuite:
   import WitnessFixture.*
 
   test("absent primary and subsequent guards retain typed fact and member identity") {
-    import realize.*
+    import framework.realize.*
     val expected = RunExpectation(
       Conformance.conformant,
       PropertyOutcome.satisfied,
@@ -221,7 +221,7 @@ class WitnessTest extends munit.FunSuite:
   test(
     "a satisfied live witness needs no reason and keeps its typed modifiers"
   ) {
-    import realize.*
+    import framework.realize.*
     val satisfied = RunExpectation(
       Conformance.conformant,
       PropertyOutcome.satisfied,
@@ -253,7 +253,7 @@ class WitnessTest extends munit.FunSuite:
   test(
     "conditional facts inspect the after state and survive every immutable modifier"
   ) {
-    import realize.*
+    import framework.realize.*
     val expected = RunExpectation(
       Conformance.conformant,
       PropertyOutcome.satisfied,

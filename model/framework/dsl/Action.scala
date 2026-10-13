@@ -1,4 +1,4 @@
-package framework
+package framework.dsl
 
 // Who takes an action: an object that extends it, `object caller extends Actor`, whose members are
 // the actions it takes, `val start = action(this)`, named after its object with the first letter

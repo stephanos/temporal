@@ -16,8 +16,11 @@ object RewriteObservationMini:
     )
     val scratch = directory.getParent.getParent.getParent.getParent.getParent
     val probe = Files.createDirectory(scratch.resolve("observation-probe"))
-    val accepted = Files
-      .readString(Path.of("model/framework/export/testdata/observations/Observations.scala"))
+    // The rule reads the legacy spelling of the DSL (run under OnLegacyDsl); the probe compiles in
+    // the current one, as the sweep leaves it after Fn169Task1DslPackage.
+    val fixture = Path.of("model/framework/export/testdata/observations/Observations.scala")
+    val accepted = OnLegacyDsl
+      .legacy(Files.readString(fixture))
       .replace("Observation(", "_root_.framework.Observation(")
     val legacy = accepted
       .replace(
@@ -60,7 +63,7 @@ object RewriteObservationMini:
         .start()
       require(process.waitFor() == 0, arguments.mkString(" "))
     for (stage, source) <- List("accepted" -> accepted, "fixed" -> result.fixed) do
-      Files.writeString(path, source): Unit
+      Files.writeString(path, OnLegacyDsl.forward(path, source)): Unit
       val jar = probe.resolve(stage + ".jar")
       run(
         Seq(

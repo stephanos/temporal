@@ -13,9 +13,9 @@
 // declaration the lifter reads, by value, into the realizations that use it.
 package temporal.realize
 
-import framework.{Entity, Machine}
-import framework.Finite.given
-import framework.outcomes.Rejection
+import framework.dsl.{Entity, Machine}
+import framework.dsl.Finite.given
+import framework.dsl.outcomes.Rejection
 import framework.realize.*
 import temporal.server.api.testpilot.v1.{
   ActivityAttempt,
@@ -24,7 +24,7 @@ import temporal.server.api.testpilot.v1.{
   InstructionOutcomeStatus
 }
 
-val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
+val _ = () => summon[CanEqual[framework.dsl.outcomes.Outcome, framework.dsl.outcomes.Outcome]]
 // ### Roles, and the environment bindings a run supplies for them
 
 private val workerNamespaceBinding = "temporal.worker.namespace"

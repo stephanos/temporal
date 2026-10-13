@@ -1,6 +1,6 @@
 package fixture.samestate
 
-import framework.*
+import framework.dsl.*
 
 final case class State(on: Boolean)
 

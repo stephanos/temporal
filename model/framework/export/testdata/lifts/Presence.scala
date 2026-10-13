@@ -3,7 +3,7 @@
 // The tests lift `presence` and compare the IR with expected/presence.json.
 package fixture.presence
 
-import framework.*; import framework.Finite.given
+import framework.dsl.*; import framework.dsl.Finite.given
 
 enum Result:
   case succeeded, failed

@@ -1,7 +1,7 @@
 package fixture.features.furnace
 package system
 
-import framework.*
+import framework.dsl.*
 
 object FurnaceSystem extends Machine[Light, Outcome, Nothing]:
   val init = Light(lit = false)

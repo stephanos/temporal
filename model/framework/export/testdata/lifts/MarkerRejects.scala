@@ -7,7 +7,7 @@
 // other rejected declarations and compare the diagnostics with expected/rejects.txt.
 package fixture.markers
 
-import framework.*
+import framework.dsl.*
 import framework.realize.*
 
 final case class Lamp(lit: Boolean)

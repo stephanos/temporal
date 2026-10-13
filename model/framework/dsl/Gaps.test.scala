@@ -1,4 +1,4 @@
-package framework
+package framework.dsl
 
 import scala.compiletime.testing.typeCheckErrors
 
@@ -67,11 +67,11 @@ class GapsSuite extends munit.FunSuite:
 
   test("subject references cannot be authored as string identities"):
     for errors <- Seq(
-        typeCheckErrors("framework.silent(\"caller.move\")"),
-        typeCheckErrors("framework.unconstrained(\"caller.move\")"),
-        typeCheckErrors("framework.unproduced(\"finished\")"),
-        typeCheckErrors("framework.untaken(\"choice\")"),
-        typeCheckErrors("framework.unmapped(\"API_VALUE\")"),
-        typeCheckErrors("framework.explicitWait(\"poll\")")
+        typeCheckErrors("framework.dsl.silent(\"caller.move\")"),
+        typeCheckErrors("framework.dsl.unconstrained(\"caller.move\")"),
+        typeCheckErrors("framework.dsl.unproduced(\"finished\")"),
+        typeCheckErrors("framework.dsl.untaken(\"choice\")"),
+        typeCheckErrors("framework.dsl.unmapped(\"API_VALUE\")"),
+        typeCheckErrors("framework.dsl.explicitWait(\"poll\")")
       )
     do assert(errors.nonEmpty)

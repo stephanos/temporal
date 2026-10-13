@@ -4,7 +4,7 @@
 package fixture.features.lamp
 package system
 
-import framework.*
+import framework.dsl.*
 
 // The bulb's filament, the bulb's own type: whether current through it makes it glow.
 final case class Filament(glowing: Boolean)

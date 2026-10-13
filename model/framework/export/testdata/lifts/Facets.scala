@@ -5,7 +5,7 @@
 // its object, which the machine lists and asks of, as Whole declares them in its own sections.
 package fixture.facets
 
-import framework.*
+import framework.dsl.*
 import temporal.capabilities.product.Closable
 
 val two = Limits(steps = 2, actions = 2, search = 64)

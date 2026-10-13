@@ -3,8 +3,8 @@
 //> using jar ../../../../build/model-scala.jar
 package fixture.enumpatterns
 
-import framework.*
-import framework.Finite.given CanEqual[?, ?]
+import framework.dsl.*
+import framework.dsl.Finite.given CanEqual[?, ?]
 
 enum Kind:
   case a, b, c

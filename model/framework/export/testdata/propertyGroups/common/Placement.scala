@@ -1,6 +1,6 @@
 package propertygroups
 
-import framework.*
+import framework.dsl.*
 
 final case class Mixed(safety: Property[State], progress: Progress[State])
 final case class Reversed(progress: Progress[State], safety: Property[State])

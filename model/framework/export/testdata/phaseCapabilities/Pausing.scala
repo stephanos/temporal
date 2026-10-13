@@ -1,6 +1,6 @@
 package fixture.phasecapabilities
 
-import framework.*
+import framework.dsl.*
 import temporal.capabilities.product.*
 
 val bounds = Limits(steps = 2, actions = 3, search = 64)

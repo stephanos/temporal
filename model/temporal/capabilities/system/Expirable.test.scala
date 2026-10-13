@@ -1,6 +1,6 @@
-package framework
+package framework.dsl
 
-import framework.Finite.given
+import framework.dsl.Finite.given
 
 import temporal.capabilities.system.Expirable
 

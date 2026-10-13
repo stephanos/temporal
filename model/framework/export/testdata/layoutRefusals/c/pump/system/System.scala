@@ -1,7 +1,7 @@
 package fixture.foundations.pump
 package system
 
-import framework.*
+import framework.dsl.*
 import product.PumpProduct
 
 object PumpSystem extends Machine[Pump, Outcome, Nothing]:

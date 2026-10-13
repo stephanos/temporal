@@ -2,7 +2,7 @@
 // vocabulary. A capability kind's companion defines the Properties it brings. The IR generator
 // expands them for each machine's `capabilities` section, and its `queries` section bounds their
 // generated Queries.
-package framework
+package framework.dsl
 
 import scala.annotation.unused
 

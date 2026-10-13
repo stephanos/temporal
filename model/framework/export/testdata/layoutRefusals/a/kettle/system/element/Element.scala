@@ -3,7 +3,7 @@ package fixture.features.kettle
 package system
 package element
 
-import framework.*
+import framework.dsl.*
 
 object Element extends Machine[Kettle, Outcome, Nothing]:
   val init = Kettle(hot = false)

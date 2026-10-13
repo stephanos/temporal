@@ -1,4 +1,4 @@
-package framework
+package framework.dsl
 
 import temporal.capabilities.system.{Expirable, Retryable}
 

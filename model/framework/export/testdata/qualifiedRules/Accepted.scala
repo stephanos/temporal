@@ -1,6 +1,6 @@
 package fixture.qualifiedrules
 
-import framework.*
+import framework.dsl.*
 
 object WholeOutside extends Machine[State, Outcome, Nothing]:
   val init = State(false)

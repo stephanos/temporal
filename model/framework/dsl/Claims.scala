@@ -1,4 +1,4 @@
-package framework
+package framework.dsl
 
 // A Property's untyped part. A same-step Property names the action it is about under `when` and
 // holds of the step that action produces; a transition Property holds of the state before a step
@@ -104,14 +104,14 @@ class Query private[framework] (
     val property: PropertyDecl,
     val scenario: ScenarioDecl,
     val limits: Limits,
-    val expectedRun: Option[realize.RunExpectation] = None,
-    val exploration: Option[realize.Exploration] = None,
+    val expectedRun: Option[framework.realize.RunExpectation] = None,
+    val exploration: Option[framework.realize.Exploration] = None,
     // The static combination count the author asserts, which `total(n)` sets.
     val total: Option[Long] = None
 ):
   // Marks a Query as one that generates a live Case, and states what its Run is expected to show
   // (fn-140 R3): a Query without it is checked in the model alone.
-  def live(expected: realize.RunExpectation): Query =
+  def live(expected: framework.realize.RunExpectation): Query =
     Query(
       name,
       form,
@@ -123,7 +123,7 @@ class Query private[framework] (
       total
     )
 
-  def explore(space: realize.Exploration): Query =
+  def explore(space: framework.realize.Exploration): Query =
     Query(
       name,
       form,
@@ -214,8 +214,8 @@ final class Witness[S, O, F] private[framework] (
     private[framework] val conditional: Vector[Step[S, O, F] => Boolean],
     private[framework] val ending: Option[S => Boolean],
     bounds: Limits,
-    expected: Option[realize.RunExpectation] = None,
-    space: Option[realize.Exploration] = None
+    expected: Option[framework.realize.RunExpectation] = None,
+    space: Option[framework.realize.Exploration] = None
 ) extends Query(
       named,
       QueryForm.find,
@@ -280,7 +280,7 @@ final class Witness[S, O, F] private[framework] (
       exploration
     )
 
-  override def live(expected: realize.RunExpectation): Witness[S, O, F] =
+  override def live(expected: framework.realize.RunExpectation): Witness[S, O, F] =
     Witness(
       owner,
       name,
@@ -293,7 +293,7 @@ final class Witness[S, O, F] private[framework] (
       exploration
     )
 
-  override def explore(space: realize.Exploration): Witness[S, O, F] =
+  override def explore(space: framework.realize.Exploration): Witness[S, O, F] =
     Witness(
       owner,
       name,

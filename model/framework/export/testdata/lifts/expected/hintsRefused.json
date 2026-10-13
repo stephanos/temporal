@@ -1,7 +1,7 @@
 {
   "source": "model: fixture.hints.Hints$package$.deliveryDeadline, fixture.hints.Hints$package$.intervalOverBound, fixture.hints.Hints$package$.nonPositiveBound, fixture.hints.Hints$package$.timerNoDeadline, fixture.hints.Hints$package$.unboundedStep, fixture.hints.Hints$package$.zeroInterval",
   "types": [ {
-    "name": "framework.outcomes.Outcome",
+    "name": "framework.dsl.outcomes.Outcome",
     "position": {
       "file": "model/framework/dsl/Syntax.scala",
       "line": 62
@@ -14,13 +14,13 @@
         "fields": [ {
           "name": "why",
           "type": {
-            "named": "framework.outcomes.Rejection"
+            "named": "framework.dsl.outcomes.Rejection"
           }
         } ]
       } ]
     }
   }, {
-    "name": "framework.outcomes.Rejection",
+    "name": "framework.dsl.outcomes.Rejection",
     "position": {
       "file": "model/framework/dsl/Syntax.scala",
       "line": 57
@@ -482,14 +482,14 @@
                 "line": 25
               },
               "construct": {
-                "type": "framework.Step",
+                "type": "framework.dsl.Step",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/features/activity_mini/product/Completion.scala",
                     "line": 25
                   },
                   "construct": {
-                    "type": "framework.outcomes.Outcome",
+                    "type": "framework.dsl.outcomes.Outcome",
                     "case": "rejected",
                     "args": [ {
                       "position": {
@@ -498,7 +498,7 @@
                       },
                       "literal": {
                         "enum": {
-                          "type": "framework.outcomes.Rejection",
+                          "type": "framework.dsl.outcomes.Rejection",
                           "case": "notFound"
                         }
                       }
@@ -592,7 +592,7 @@
                     "line": 26
                   },
                   "construct": {
-                    "type": "framework.Step",
+                    "type": "framework.dsl.Step",
                     "args": [ {
                       "position": {
                         "file": "model/temporal/features/activity_mini/product/Completion.scala",
@@ -600,7 +600,7 @@
                       },
                       "literal": {
                         "enum": {
-                          "type": "framework.outcomes.Outcome",
+                          "type": "framework.dsl.outcomes.Outcome",
                           "case": "accepted"
                         }
                       }
@@ -728,7 +728,7 @@
                         "line": 27
                       },
                       "construct": {
-                        "type": "framework.Step",
+                        "type": "framework.dsl.Step",
                         "args": [ {
                           "position": {
                             "file": "model/temporal/features/activity_mini/product/Completion.scala",
@@ -736,7 +736,7 @@
                           },
                           "literal": {
                             "enum": {
-                              "type": "framework.outcomes.Outcome",
+                              "type": "framework.dsl.outcomes.Outcome",
                               "case": "accepted"
                             }
                           }
@@ -864,14 +864,14 @@
                             "line": 28
                           },
                           "construct": {
-                            "type": "framework.Step",
+                            "type": "framework.dsl.Step",
                             "args": [ {
                               "position": {
                                 "file": "model/temporal/features/activity_mini/product/Completion.scala",
                                 "line": 28
                               },
                               "construct": {
-                                "type": "framework.outcomes.Outcome",
+                                "type": "framework.dsl.outcomes.Outcome",
                                 "case": "rejected",
                                 "args": [ {
                                   "position": {
@@ -880,7 +880,7 @@
                                   },
                                   "literal": {
                                     "enum": {
-                                      "type": "framework.outcomes.Rejection",
+                                      "type": "framework.dsl.outcomes.Rejection",
                                       "case": "failedPrecondition"
                                     }
                                   }
@@ -1001,7 +1001,7 @@
                 "line": 27
               },
               "construct": {
-                "type": "framework.Step",
+                "type": "framework.dsl.Step",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/features/activity_mini/product/Dispatching.scala",
@@ -1009,7 +1009,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "framework.outcomes.Outcome",
+                      "type": "framework.dsl.outcomes.Outcome",
                       "case": "accepted"
                     }
                   }
@@ -1169,7 +1169,7 @@
                 "line": 32
               },
               "construct": {
-                "type": "framework.Step",
+                "type": "framework.dsl.Step",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/features/activity_mini/product/Completion.scala",
@@ -1177,7 +1177,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "framework.outcomes.Outcome",
+                      "type": "framework.dsl.outcomes.Outcome",
                       "case": "accepted"
                     }
                   }
@@ -1364,7 +1364,7 @@
                       "line": 35
                     },
                     "construct": {
-                      "type": "framework.Step",
+                      "type": "framework.dsl.Step",
                       "args": [ {
                         "position": {
                           "file": "model/temporal/features/activity_mini/product/Completion.scala",
@@ -1372,7 +1372,7 @@
                         },
                         "literal": {
                           "enum": {
-                            "type": "framework.outcomes.Outcome",
+                            "type": "framework.dsl.outcomes.Outcome",
                             "case": "accepted"
                           }
                         }
@@ -1585,7 +1585,7 @@
                           "line": 39
                         },
                         "construct": {
-                          "type": "framework.Step",
+                          "type": "framework.dsl.Step",
                           "args": [ {
                             "position": {
                               "file": "model/temporal/features/activity_mini/product/Completion.scala",
@@ -1593,7 +1593,7 @@
                             },
                             "literal": {
                               "enum": {
-                                "type": "framework.outcomes.Outcome",
+                                "type": "framework.dsl.outcomes.Outcome",
                                 "case": "accepted"
                               }
                             }
@@ -1718,7 +1718,7 @@
                 "line": 42
               },
               "construct": {
-                "type": "framework.Step",
+                "type": "framework.dsl.Step",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/features/activity_mini/product/Completion.scala",
@@ -1726,7 +1726,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "framework.outcomes.Outcome",
+                      "type": "framework.dsl.outcomes.Outcome",
                       "case": "accepted"
                     }
                   }
@@ -2007,7 +2007,7 @@
                 "line": 45
               },
               "construct": {
-                "type": "framework.Step",
+                "type": "framework.dsl.Step",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/features/activity_mini/product/Completion.scala",
@@ -2015,7 +2015,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "framework.outcomes.Outcome",
+                      "type": "framework.dsl.outcomes.Outcome",
                       "case": "accepted"
                     }
                   }
@@ -2318,7 +2318,7 @@
                 "line": 38
               },
               "construct": {
-                "type": "framework.Step",
+                "type": "framework.dsl.Step",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/features/activity_mini/protocol/Dispatching.scala",
@@ -2326,7 +2326,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "framework.outcomes.Outcome",
+                      "type": "framework.dsl.outcomes.Outcome",
                       "case": "accepted"
                     }
                   }
@@ -2508,14 +2508,14 @@
                 "line": 25
               },
               "construct": {
-                "type": "framework.Step",
+                "type": "framework.dsl.Step",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/features/activity_mini/protocol/Completion.scala",
                     "line": 25
                   },
                   "construct": {
-                    "type": "framework.outcomes.Outcome",
+                    "type": "framework.dsl.outcomes.Outcome",
                     "case": "rejected",
                     "args": [ {
                       "position": {
@@ -2524,7 +2524,7 @@
                       },
                       "literal": {
                         "enum": {
-                          "type": "framework.outcomes.Rejection",
+                          "type": "framework.dsl.outcomes.Rejection",
                           "case": "notFound"
                         }
                       }
@@ -2629,7 +2629,7 @@
                     "line": 26
                   },
                   "construct": {
-                    "type": "framework.Step",
+                    "type": "framework.dsl.Step",
                     "args": [ {
                       "position": {
                         "file": "model/temporal/features/activity_mini/protocol/Completion.scala",
@@ -2637,7 +2637,7 @@
                       },
                       "literal": {
                         "enum": {
-                          "type": "framework.outcomes.Outcome",
+                          "type": "framework.dsl.outcomes.Outcome",
                           "case": "accepted"
                         }
                       }
@@ -2765,7 +2765,7 @@
                         "line": 27
                       },
                       "construct": {
-                        "type": "framework.Step",
+                        "type": "framework.dsl.Step",
                         "args": [ {
                           "position": {
                             "file": "model/temporal/features/activity_mini/protocol/Completion.scala",
@@ -2773,7 +2773,7 @@
                           },
                           "literal": {
                             "enum": {
-                              "type": "framework.outcomes.Outcome",
+                              "type": "framework.dsl.outcomes.Outcome",
                               "case": "accepted"
                             }
                           }
@@ -2901,14 +2901,14 @@
                             "line": 28
                           },
                           "construct": {
-                            "type": "framework.Step",
+                            "type": "framework.dsl.Step",
                             "args": [ {
                               "position": {
                                 "file": "model/temporal/features/activity_mini/protocol/Completion.scala",
                                 "line": 28
                               },
                               "construct": {
-                                "type": "framework.outcomes.Outcome",
+                                "type": "framework.dsl.outcomes.Outcome",
                                 "case": "rejected",
                                 "args": [ {
                                   "position": {
@@ -2917,7 +2917,7 @@
                                   },
                                   "literal": {
                                     "enum": {
-                                      "type": "framework.outcomes.Rejection",
+                                      "type": "framework.dsl.outcomes.Rejection",
                                       "case": "failedPrecondition"
                                     }
                                   }
@@ -3162,7 +3162,7 @@
                 "line": 31
               },
               "construct": {
-                "type": "framework.Step",
+                "type": "framework.dsl.Step",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/features/activity_mini/protocol/Completion.scala",
@@ -3170,7 +3170,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "framework.outcomes.Outcome",
+                      "type": "framework.dsl.outcomes.Outcome",
                       "case": "accepted"
                     }
                   }
@@ -3425,7 +3425,7 @@
                 "line": 37
               },
               "construct": {
-                "type": "framework.Step",
+                "type": "framework.dsl.Step",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/features/activity_mini/protocol/Completion.scala",
@@ -3433,7 +3433,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "framework.outcomes.Outcome",
+                      "type": "framework.dsl.outcomes.Outcome",
                       "case": "accepted"
                     }
                   }
@@ -3764,7 +3764,7 @@
                 "line": 40
               },
               "construct": {
-                "type": "framework.Step",
+                "type": "framework.dsl.Step",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/features/activity_mini/protocol/Completion.scala",
@@ -3772,7 +3772,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "framework.outcomes.Outcome",
+                      "type": "framework.dsl.outcomes.Outcome",
                       "case": "accepted"
                     }
                   }
@@ -3870,7 +3870,7 @@
             "line": 19
           },
           "construct": {
-            "type": "framework.Step",
+            "type": "framework.dsl.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/activity_mini/product/Completion.scala",
@@ -3878,7 +3878,7 @@
               },
               "literal": {
                 "enum": {
-                  "type": "framework.outcomes.Outcome",
+                  "type": "framework.dsl.outcomes.Outcome",
                   "case": "accepted"
                 }
               }
@@ -3947,7 +3947,7 @@
             "line": 20
           },
           "construct": {
-            "type": "framework.Step",
+            "type": "framework.dsl.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/activity_mini/product/Completion.scala",
@@ -3955,7 +3955,7 @@
               },
               "literal": {
                 "enum": {
-                  "type": "framework.outcomes.Outcome",
+                  "type": "framework.dsl.outcomes.Outcome",
                   "case": "accepted"
                 }
               }
@@ -4060,7 +4060,7 @@
             "line": 20
           },
           "construct": {
-            "type": "framework.Step",
+            "type": "framework.dsl.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/activity_mini/product/Dispatching.scala",
@@ -4068,7 +4068,7 @@
               },
               "literal": {
                 "enum": {
-                  "type": "framework.outcomes.Outcome",
+                  "type": "framework.dsl.outcomes.Outcome",
                   "case": "accepted"
                 }
               }
@@ -4372,7 +4372,7 @@
     "params": [ {
       "name": "o",
       "type": {
-        "named": "framework.outcomes.Outcome"
+        "named": "framework.dsl.outcomes.Outcome"
       }
     } ],
     "body": {
@@ -4396,7 +4396,7 @@
           },
           "literal": {
             "enum": {
-              "type": "framework.outcomes.Outcome",
+              "type": "framework.dsl.outcomes.Outcome",
               "case": "accepted"
             }
           }
@@ -4643,7 +4643,7 @@
     }, {
       "name": "after",
       "type": {
-        "named": "framework.Step"
+        "named": "framework.dsl.Step"
       }
     } ],
     "body": {
@@ -4858,7 +4858,7 @@
                 "line": 18
               },
               "construct": {
-                "type": "framework.Step",
+                "type": "framework.dsl.Step",
                 "args": [ {
                   "position": {
                     "file": "model/temporal/features/activity_mini/protocol/Completion.scala",
@@ -4866,7 +4866,7 @@
                   },
                   "literal": {
                     "enum": {
-                      "type": "framework.outcomes.Outcome",
+                      "type": "framework.dsl.outcomes.Outcome",
                       "case": "accepted"
                     }
                   }
@@ -5002,7 +5002,7 @@
                     "line": 20
                   },
                   "construct": {
-                    "type": "framework.Step",
+                    "type": "framework.dsl.Step",
                     "args": [ {
                       "position": {
                         "file": "model/temporal/features/activity_mini/protocol/Completion.scala",
@@ -5010,7 +5010,7 @@
                       },
                       "literal": {
                         "enum": {
-                          "type": "framework.outcomes.Outcome",
+                          "type": "framework.dsl.outcomes.Outcome",
                           "case": "accepted"
                         }
                       }
@@ -5087,7 +5087,7 @@
                     "line": 21
                   },
                   "construct": {
-                    "type": "framework.Step",
+                    "type": "framework.dsl.Step",
                     "args": [ {
                       "position": {
                         "file": "model/temporal/features/activity_mini/protocol/Completion.scala",
@@ -5095,7 +5095,7 @@
                       },
                       "literal": {
                         "enum": {
-                          "type": "framework.outcomes.Outcome",
+                          "type": "framework.dsl.outcomes.Outcome",
                           "case": "accepted"
                         }
                       }
@@ -5203,7 +5203,7 @@
             "line": 25
           },
           "construct": {
-            "type": "framework.Step",
+            "type": "framework.dsl.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/activity_mini/protocol/Dispatching.scala",
@@ -5211,7 +5211,7 @@
               },
               "literal": {
                 "enum": {
-                  "type": "framework.outcomes.Outcome",
+                  "type": "framework.dsl.outcomes.Outcome",
                   "case": "accepted"
                 }
               }
@@ -5313,7 +5313,7 @@
             "line": 27
           },
           "construct": {
-            "type": "framework.Step",
+            "type": "framework.dsl.Step",
             "args": [ {
               "position": {
                 "file": "model/temporal/features/activity_mini/protocol/Dispatching.scala",
@@ -5321,7 +5321,7 @@
               },
               "literal": {
                 "enum": {
-                  "type": "framework.outcomes.Outcome",
+                  "type": "framework.dsl.outcomes.Outcome",
                   "case": "accepted"
                 }
               }
@@ -5709,7 +5709,7 @@
     },
     "entity": "activity",
     "stateType": "temporal.features.activity.mini.product.State",
-    "outcomeType": "framework.outcomes.Outcome",
+    "outcomeType": "framework.dsl.outcomes.Outcome",
     "factType": "temporal.features.activity.mini.product.Fact",
     "starts": [ {
       "position": {
@@ -5884,7 +5884,7 @@
     },
     "entity": "activity",
     "stateType": "temporal.features.activity.mini.protocol.State",
-    "outcomeType": "framework.outcomes.Outcome",
+    "outcomeType": "framework.dsl.outcomes.Outcome",
     "factType": "temporal.features.activity.mini.protocol.Fact",
     "starts": [ {
       "position": {

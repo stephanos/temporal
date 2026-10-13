@@ -12,7 +12,7 @@
 // and require one expected Run of the two.
 package fixture.realizations
 
-import framework.*; import framework.Finite.given
+import framework.dsl.*; import framework.dsl.Finite.given
 import DoorEntity.door
 import ErrandEntity.errand
 import framework.realize.*, temporal.realize.{Role, RoleKind, WorkerActivation, WorkflowHistory}

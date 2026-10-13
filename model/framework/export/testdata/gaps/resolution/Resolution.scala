@@ -3,7 +3,7 @@
 // composes two of `Plain`; `runs.one` and `runs.two` realize `Worker`.
 package fixture.gapresolution
 
-import framework.*
+import framework.dsl.*
 import framework.realize.*
 import temporal.capabilities.product.Closable
 import temporal.realize.{Role, RoleKind}

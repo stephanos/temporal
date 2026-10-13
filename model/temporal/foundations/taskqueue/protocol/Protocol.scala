@@ -6,8 +6,8 @@ package temporal
 package foundations.taskqueue
 package protocol
 
-import framework.*
-import framework.Finite.given
+import framework.dsl.*
+import framework.dsl.Finite.given
 import Bounds.{seven, twelve}
 import product.TaskQueueProduct
 

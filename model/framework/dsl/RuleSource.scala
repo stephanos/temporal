@@ -1,4 +1,4 @@
-package framework
+package framework.dsl
 
 import scala.quoted.*
 
@@ -40,7 +40,7 @@ private[framework] object RuleSource:
     def actionOwner(term: Term): Option[String] = term match
       case Inlined(_, _, body) => actionOwner(body)
       case Typed(body, _)      => actionOwner(body)
-      case ref: Ref if ref.tpe.widen.baseClasses.exists(_.fullName == "framework.Action") =>
+      case ref: Ref if ref.tpe.widen.baseClasses.exists(_.fullName == "framework.dsl.Action") =>
         val owner = ref.symbol.owner
         Option.when(owner.flags.is(Flags.Module))(owner.name.stripSuffix("$"))
       case Select(body, "apply") => actionOwner(body)

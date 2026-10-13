@@ -1,4 +1,4 @@
-package framework
+package framework.dsl
 
 // A passive monitor over the steps of machines whose steps are `Step[S, O, F]`: a finite state `M`
 // of its own that every step advances, and a verdict read at its evaluation point. It reads steps

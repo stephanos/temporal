@@ -1,6 +1,6 @@
 package fixture.retiredrulecaselifter
 
-import framework.*
+import framework.dsl.*
 
 enum Phase:
   case idle, done

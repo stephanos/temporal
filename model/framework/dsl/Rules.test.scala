@@ -1,6 +1,6 @@
-package framework
+package framework.dsl
 
-import framework.Finite.given
+import framework.dsl.Finite.given
 // The object forms' runtime wiring, run as Scala: a machine object is the machine, its `rules` the
 // one section it reads, lowered to one step function per action, and an overlap is refused as the
 // rules object is constructed.
@@ -562,7 +562,7 @@ class RulesTest extends munit.FunSuite:
     "a derived machine cannot replace its final source end with Phased's default"
   ) {
     val refused = compileErrors(
-      "import framework.*\nimport framework.RulesFixture.*\n" +
+      "import framework.*\nimport framework.dsl.RulesFixture.*\n" +
         "object Rephased extends Derived(PhasedLamp.unmonitored), Phased[Lamp, Lit](_.light)"
     )
     assert(refused.contains("cannot override final member"), refused)
@@ -787,7 +787,8 @@ class RulesTest extends munit.FunSuite:
     assertEquals(
       refusal(AcrossBlocks),
       "acrossBlocks fires turn-down by two rules in Lamp(off,0): rule 1, when(off), and rule 3, " +
-        "when((l: framework.RulesFixture.Lit) => framework.RulesFixture.lights.unlit(l)).where: the " +
+        "when((l: framework.dsl.RulesFixture.Lit) =>\n  " +
+        "framework.dsl.RulesFixture.lights.unlit(l)).where: the " +
         "rules of one action class hold in no common state, so write alternatives as one effect " +
         "that names each with `choose`"
     )
@@ -803,7 +804,7 @@ class RulesTest extends munit.FunSuite:
     )
     assertEquals(
       writtenAction(
-        "framework.apply[(A, B)](example.orders.buyer.place)(x := y)"
+        "framework.dsl.apply[(A, B)](example.orders.buyer.place)(x := y)"
       ),
       "place"
     )

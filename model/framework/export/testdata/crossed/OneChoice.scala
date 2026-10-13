@@ -3,7 +3,7 @@
 // this and expect a type error at the marked line.
 package fixture.crossed.onechoice
 
-import framework.*
+import framework.dsl.*
 
 enum Outcome:
   case accepted

@@ -1,7 +1,7 @@
 package fixture.features.pump
 package product
 
-import framework.*
+import framework.dsl.*
 
 object PumpProduct extends Machine[Pump, Outcome, Nothing]:
   val init = Pump(on = false)

@@ -1,6 +1,6 @@
 package propertygroups.foundations.bundleonly
 
-import framework.*
+import framework.dsl.*
 import propertygroups.*
 
 object BundleOnly extends Machine[State, Outcome, Nothing]:

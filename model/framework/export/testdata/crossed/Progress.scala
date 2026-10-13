@@ -2,7 +2,7 @@
 // holds it to before anything is lifted.
 package fixture.crossed
 
-import framework.*
+import framework.dsl.*
 
 enum Level:
   case empty, full

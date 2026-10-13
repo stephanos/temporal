@@ -1,6 +1,6 @@
 package fixture.features.urn
 
-import framework.*
+import framework.dsl.*
 
 final case class Urn(hot: Boolean)
 

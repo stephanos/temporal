@@ -1,6 +1,6 @@
 package propertygroups.foundations.unattached
 
-import framework.*
+import framework.dsl.*
 import propertygroups.*
 
 object Unattached extends Machine[State, Outcome, Nothing]:

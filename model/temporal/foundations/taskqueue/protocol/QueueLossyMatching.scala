@@ -2,14 +2,14 @@ package temporal
 package foundations.taskqueue
 package protocol
 
-import framework.*
-import framework.Finite.given
+import framework.dsl.*
+import framework.dsl.Finite.given
 import Bounds.seven
 import product.TaskQueueProductUnderStorageLoss
 
 // The detailed provider with the storage-loss fault, which only its assumption allows. It refines
 // the interface that allows the loss.
-val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
+val _ = () => summon[CanEqual[framework.dsl.outcomes.Outcome, framework.dsl.outcomes.Outcome]]
 
 object QueueLossyMatching
     extends Derived(

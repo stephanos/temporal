@@ -1,12 +1,12 @@
-package framework
+package framework.dsl
 
 import scala.compiletime.testing.typeCheckErrors
 
 class Equality extends munit.FunSuite:
   private inline val domains = """
     import scala.language.strictEquality
-    import framework.Finite
-    import framework.UpTo
+    import framework.dsl.Finite
+    import framework.dsl.UpTo
     object product {
       enum Phase { case initial, done }
       enum Fact { case kept }
@@ -23,17 +23,17 @@ class Equality extends munit.FunSuite:
   test("Finite supplies imported evidence for same-type domains and their containers"):
     assertEquals(
       typeCheckErrors(domains + """
-        import framework.Finite.given
+        import framework.dsl.Finite.given
         def phase(a: product.Phase, b: product.Phase) = a == b
         def fact(a: product.Fact, b: product.Fact) = a == b
         def state(a: product.State, b: product.State) = a == b
         def answer(a: Answer, b: Answer) = a == b
         def optional(a: Option[product.Fact], b: Option[product.Fact]) = a == b
         def bounded(a: UpTo[2], b: UpTo[2]) = a == b
-        def declaration(a: framework.ActionDecl, b: framework.ActionDecl) = a == b
-        def actionClass(a: framework.Class, b: framework.Class) = a == b
-        def order(a: framework.Order, b: framework.Order) = a == b
-        def loss(a: framework.Loss, b: framework.Loss) = a == b
+        def declaration(a: framework.dsl.ActionDecl, b: framework.dsl.ActionDecl) = a == b
+        def actionClass(a: framework.dsl.Class, b: framework.dsl.Class) = a == b
+        def order(a: framework.dsl.Order, b: framework.dsl.Order) = a == b
+        def loss(a: framework.dsl.Loss, b: framework.dsl.Loss) = a == b
         def operand(a: framework.realize.Operand, b: framework.realize.Operand) = a == b
       """),
       Nil
@@ -42,38 +42,38 @@ class Equality extends munit.FunSuite:
   test("finite evidence refuses unrelated levels and widened evidence"):
     val failures = List(
       typeCheckErrors(domains + """
-        import framework.Finite.given
+        import framework.dsl.Finite.given
         def compare(a: product.Phase, b: system.Phase) = a == b
       """),
       typeCheckErrors(domains + """
-        import framework.Finite.given
+        import framework.dsl.Finite.given
         def compare(a: product.Fact, b: system.Fact) = a == b
       """),
       typeCheckErrors(domains + """
-        import framework.Finite.given
+        import framework.dsl.Finite.given
         def compare(a: product.State, b: system.State) = a == b
       """),
       typeCheckErrors(domains + """
-        import framework.Finite.given
+        import framework.dsl.Finite.given
         summon[CanEqual[Any, Any]]
       """),
       typeCheckErrors(domains + """
-        import framework.Finite.given
+        import framework.dsl.Finite.given
         summon[CanEqual[product.Phase | system.Phase, product.Phase | system.Phase]]
       """),
       typeCheckErrors(domains + """
-        import framework.Finite.given
+        import framework.dsl.Finite.given
         def compare(a: product.Phase, b: product.Fact) = a == b
       """),
       typeCheckErrors(domains + """
-        import framework.Finite.given
+        import framework.dsl.Finite.given
         def compare(a: Option[product.Fact], b: Option[system.Fact]) = a == b
       """),
       typeCheckErrors(domains + """
-        def compare(a: framework.Order, b: framework.Loss) = a == b
+        def compare(a: framework.dsl.Order, b: framework.dsl.Loss) = a == b
       """),
       typeCheckErrors(domains + """
-        def keeps[S, O, F, V](once: framework.Once[S, O, F], projection: S => V) =
+        def keeps[S, O, F, V](once: framework.dsl.Once[S, O, F], projection: S => V) =
           once.keeps(projection)
       """)
     )

@@ -21,7 +21,7 @@
 // after the feature, and replace the lamp with what the server does.
 package fixture.features.lamp
 
-import framework.*
+import framework.dsl.*
 
 // ### Types
 // Every type the levels genuinely share sits here. Phase, State and Fact belong to the level files;

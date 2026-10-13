@@ -1,7 +1,7 @@
 package temporal.features.urn
 package protocol
 
-import framework.*
+import framework.dsl.*
 import temporal.features.urn.realization.UrnRun
 
 val outward = UrnRun.machine.name

@@ -1,6 +1,6 @@
 package fixture.actors.quiet
 
-import framework.*
+import framework.dsl.*
 
 enum Outcome:
   case accepted

@@ -1,6 +1,6 @@
 package fixture.qualifiedrules
 
-import framework.*
+import framework.dsl.*
 
 enum Dial:
   case low, high

@@ -35,6 +35,9 @@ import scala.util.matching.Regex
 //                    character other than a letter, a digit or `_`, so `a.b`, `pkg.Machine` and
 //                    `activity-standalone-race` are words, and `activity-standalone-race` renames
 //                    the Case files and ids derived from that IR file too.
+//   ir old new       renames `old` as above, a name only the IR holds, such as a framework type's
+//                    (fn-169.1): a comparison of the step tables alone does not expect it there,
+//                    and the lift comparison (Lifts.scala) holds the IR to it
 //   key -            the change removes the table `key`
 //   key/action -     the change removes the rows of `action` (`actor.action`) from the table `key`
 //
@@ -42,7 +45,8 @@ import scala.util.matching.Regex
 // `b a` swap two names.
 final case class RenameMap(
     renames: Vector[(String, String)],
-    removals: Vector[String]
+    removals: Vector[String],
+    irOnly: Set[String] = Set.empty
 ):
   private val ordered = renames.sortBy(-_._1.length)
   private val byOld = renames.toMap
@@ -82,10 +86,11 @@ object RenameMap:
       .filter(_._1.nonEmpty)
       .map: (line, at) =>
         line.split("\\s+").toList match
-          case List(from, to) => (from, to)
-          case _              =>
+          case List(from, to)       => (from, to, false)
+          case List("ir", from, to) => (from, to, true)
+          case _                    =>
             throw GateError(
-              s"rename map line $at is `old new` or `old -`, got `$line`"
+              s"rename map line $at is `old new`, `ir old new` or `old -`, got `$line`"
             )
       .toVector
     val repeated =
@@ -95,8 +100,9 @@ object RenameMap:
         s"the rename map names ${repeated.mkString(", ")} more than once"
       )
     RenameMap(
-      entries.filterNot(_._2.equals("-")),
-      entries.filter(_._2.equals("-")).map(_._1)
+      entries.filterNot(_._2.equals("-")).map((from, to, _) => (from, to)),
+      entries.filter(_._2.equals("-")).map(_._1),
+      entries.filter(_._3).map(_._1).toSet
     )
 
   def read(file: Path): RenameMap = parse(Files.readString(file))
@@ -575,7 +581,7 @@ object Equivalence:
       val texts = jsonFiles(base.resolve("ir"), _.endsWith(".json")) ++
         jsonFiles(base.resolve("cases"), _.endsWith(".json"))
       val (later, none) = renames.partition: r =>
-        texts.exists(f =>
+        map.irOnly(r) || texts.exists(f =>
           map.mentions(f.getFileName.toString, r) || map.mentions(
             Files.readString(f),
             r

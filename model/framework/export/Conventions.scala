@@ -18,7 +18,7 @@ final private[`export`] class GapAnnotations(val index: Index):
   )
 
   private val refused = mutable.ArrayBuffer.empty[(String, Int, LiftError)]
-  private lazy val subjectClass = Symbol.classSymbol("framework.Subject")
+  private lazy val subjectClass = Symbol.classSymbol("framework.dsl.Subject")
   private lazy val constructors =
     if subjectClass.isNoSymbol then Set.empty[String]
     else subjectClass.children.map(_.fullName.stripSuffix("$")).toSet
@@ -39,12 +39,12 @@ final private[`export`] class GapAnnotations(val index: Index):
     !base.isNoSymbol && t.widen.dealias.derivesFrom(base)
 
   private def supportedObject(s: Symbol): Boolean =
-    (s.flags.is(Flags.Trait) && derives(s.typeRef, "framework.Facet")) ||
+    (s.flags.is(Flags.Trait) && derives(s.typeRef, "framework.dsl.Facet")) ||
       (s.flags.is(Flags.Module) &&
         List(
-          "framework.Machine",
-          "framework.Composition",
-          "framework.Refinement",
+          "framework.dsl.Machine",
+          "framework.dsl.Composition",
+          "framework.dsl.Refinement",
           "temporal.realize.Realizes"
         ).exists(derives(s.typeRef, _)))
 
@@ -57,7 +57,7 @@ final private[`export`] class GapAnnotations(val index: Index):
           supportedObject(v.symbol.moduleClass)
         case v: ValDef =>
           !v.symbol.flags.is(Flags.Mutable) && !v.symbol.maybeOwner.isDefDef &&
-          List("framework.Property", "framework.Query", "framework.realize.Realization")
+          List("framework.dsl.Property", "framework.dsl.Query", "framework.realize.Realization")
             .exists(derives(v.tpt.tpe, _))
         case _ => false
 
@@ -81,7 +81,7 @@ final private[`export`] class GapAnnotations(val index: Index):
     case Literal(StringConstant(value)) => Some(value)
     case _
         if t.symbol.name.contains("default") &&
-          t.symbol.maybeOwner.fullName.stripSuffix("$") == "framework.gap" =>
+          t.symbol.maybeOwner.fullName.stripSuffix("$") == "framework.dsl.gap" =>
       Some("")
     case _ => None
 
@@ -113,7 +113,7 @@ final private[`export`] class GapAnnotations(val index: Index):
               val at = annotation.pos
               val key = (canonical(definition.symbol), at.sourceFile.path, at.start, at.end)
               if seen.add(key) then
-                if annotation.tpe.typeSymbol.fullName != "framework.gap" then
+                if annotation.tpe.typeSymbol.fullName != "framework.dsl.gap" then
                   refuse(
                     annotation,
                     s"${annotation.tpe.typeSymbol.fullName} is not the framework gap annotation"
@@ -171,9 +171,9 @@ final private[`export`] class Conventions(index: Index):
   import index.given
 
   private val refused = mutable.ArrayBuffer.empty[(String, Int, LiftError)]
-  private val machine = Symbol.requiredClass("framework.Machine")
-  private val composition = Symbol.requiredClass("framework.Composition")
-  private val finite = Symbol.requiredClass("framework.Finite")
+  private val machine = Symbol.requiredClass("framework.dsl.Machine")
+  private val composition = Symbol.requiredClass("framework.dsl.Composition")
+  private val finite = Symbol.requiredClass("framework.dsl.Finite")
   private val sourceText = mutable.Map.empty[String, String]
   private val importedRefusals = mutable.Set.empty[(String, String, String)]
   private val plugin = Plugin.installed
@@ -250,7 +250,7 @@ final private[`export`] class Conventions(index: Index):
       collect.foldTree(found, tree)(Symbol.spliceOwner)
     )
 
-  private val phased = Symbol.requiredClass("framework.Phased")
+  private val phased = Symbol.requiredClass("framework.dsl.Phased")
 
   // The phase types of the lifted sources: the `P` of every `Phased[S, P]` an object mixes in. A
   // derived machine or composition reads its source's, which is among them.
@@ -448,8 +448,8 @@ final private[`export`] class Conventions(index: Index):
     checked.foreach(t => importCheck.traverseTree(t)(Symbol.spliceOwner))
     // fn-160 R9: the recorded status-table seam, independent of a feature's capability kind.
     // Only a genuine capabilities binding's sole constructor field may cross that layer.
-    val capability = Symbol.requiredClass("framework.CapabilityOf")
-    val section = Symbol.requiredClass("framework.Capabilities")
+    val capability = Symbol.requiredClass("framework.dsl.CapabilityOf")
+    val section = Symbol.requiredClass("framework.dsl.Capabilities")
     val statusTable = Symbol.requiredClass("framework.realize.StatusTable")
     def statusBinding(t: Tree): Boolean = t match
       case v: ValDef
@@ -507,7 +507,7 @@ final private[`export`] class Conventions(index: Index):
               )
           case r: Ref
               if r.symbol.name == "in" &&
-                Set("framework.Syntax$package$", "framework.Rules")(
+                Set("framework.dsl.Syntax$package$", "framework.dsl.Rules")(
                   r.symbol.maybeOwner.fullName
                 ) =>
             dotted(r) match

@@ -1,4 +1,4 @@
-package framework.discoveryfixtures
+package framework.dsl.discoveryfixtures
 
 import temporal.features.activity.mini.product.ActivityProduct
 

@@ -1,6 +1,6 @@
 package propertygroups.features.specimen.workflow
 
-import framework.*
+import framework.dsl.*
 import propertygroups.*
 import propertygroups.shared as imported
 

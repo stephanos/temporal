@@ -1,6 +1,6 @@
 package fixture.qualifiedphases
 
-import framework.*
+import framework.dsl.*
 import Phase.low as quiet
 import Phase.*
 import sets.working

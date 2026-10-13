@@ -1,6 +1,6 @@
 package fixture.features.pan
 
-import framework.*
+import framework.dsl.*
 
 final case class Light(lit: Boolean)
 

@@ -7,7 +7,7 @@
 package fixture.features.lamp
 package product
 
-import framework.*; import framework.Finite.given
+import framework.dsl.*; import framework.dsl.Finite.given
 val _ = () => summon[CanEqual[Phase, Phase]]
 enum Phase:
   case dark, lit

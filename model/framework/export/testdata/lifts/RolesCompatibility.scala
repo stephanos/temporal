@@ -1,6 +1,6 @@
 package fixture.roles
 
-import framework.Finite
+import framework.dsl.Finite
 
 @main def verifyRolePrefixes(): Unit =
   val phases = Finite[Phase].values

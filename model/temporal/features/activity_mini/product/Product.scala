@@ -3,12 +3,12 @@ package features.activity
 package mini
 package product
 
-import framework.*
-import framework.Finite.given
-import framework.outcomes.Outcome
+import framework.dsl.*
+import framework.dsl.Finite.given
+import framework.dsl.outcomes.Outcome
 import Bounds.three
 
-val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
+val _ = () => summon[CanEqual[framework.dsl.outcomes.Outcome, framework.dsl.outcomes.Outcome]]
 
 enum Phase(val status: Fact) extends Recorded[Fact]:
   case scheduled extends Phase(Fact.statusScheduled), Waiting

@@ -1,6 +1,6 @@
 package temporal.realize
 
-import framework.outcomes.Rejection
+import framework.dsl.outcomes.Rejection
 
 class RejectionsTest extends munit.FunSuite:
   test("the Temporal rejection-code table is exhaustive and unique"):

@@ -7,8 +7,8 @@
 // lifter's tests lift the roots `rules` lists and compare the IR with expected/rules.json.
 package fixture.rules
 
-import framework.*; import framework.Finite.given
-val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
+import framework.dsl.*; import framework.dsl.Finite.given
+val _ = () => summon[CanEqual[framework.dsl.outcomes.Outcome, framework.dsl.outcomes.Outcome]]
 enum Light:
   case off, on, broken
 

@@ -5,7 +5,7 @@
 // mixes in its role, so its type is narrower than the phase type, and still records its status.
 package fixture.entering
 
-import framework.*
+import framework.dsl.*
 
 enum Status:
   case waiting, working, resting

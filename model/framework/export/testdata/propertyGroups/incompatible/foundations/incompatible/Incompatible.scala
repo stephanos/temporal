@@ -1,6 +1,6 @@
 package propertygroups.foundations.incompatible
 
-import framework.*
+import framework.dsl.*
 import propertygroups.*
 
 enum Other:

@@ -6,10 +6,10 @@ package temporal
 package foundations.taskqueue
 package product
 
-import framework.*
-import framework.Finite.given
+import framework.dsl.*
+import framework.dsl.Finite.given
 
-val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
+val _ = () => summon[CanEqual[framework.dsl.outcomes.Outcome, framework.dsl.outcomes.Outcome]]
 // ### The opaque provider: the interface, and the interface under the storage-loss assumption
 
 // The opaque provider.

@@ -17,9 +17,9 @@ class InputDeadlinePresetsTest extends munit.FunSuite with RetainedScratch:
   private val modelJar = ModelBuild.jar
   private def classpath = ModelBuild.classpath
   private val source = """package fixture.inputdeadlines
-import framework.*
-import framework.Finite.given
-import framework.outcomes.Outcome
+import framework.dsl.*
+import framework.dsl.Finite.given
+import framework.dsl.outcomes.Outcome
 import framework.realize.*
 import temporal.realize.*
 import temporal.features.activity.Timeout

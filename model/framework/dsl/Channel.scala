@@ -1,4 +1,4 @@
-package framework
+package framework.dsl
 
 // The order a channel delivers the messages it holds in.
 enum Order derives CanEqual:

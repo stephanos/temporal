@@ -3,7 +3,7 @@
 // one ID, `fixture.derivedtwins.query.anyLit`, over two machines: the run refuses the second.
 package fixture.features.derivedtwins
 
-import framework.*
+import framework.dsl.*
 
 final case class LampState(lit: Boolean)
 

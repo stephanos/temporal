@@ -129,6 +129,16 @@ class EquivalenceSuite extends munit.FunSuite:
       found
     )
 
+  test("an IR-only entry is left to the IR where only the tables are compared"):
+    val renames = RenameMap.parse("ir framework.Step framework.dsl.Step\n")
+    assertEquals(renames.irOnly, Set("framework.Step"))
+    val found = Equivalence.compareTables(tables(baseline), tables(baseline), renames)
+    val base = Scratch.directory("b")
+    val (failed, later) = Equivalence.unused(renames, found.removalsUsed, false, base)
+    assertEquals(failed, Vector.empty)
+    assertEquals(later.size, 1)
+    assertEquals(Equivalence.unused(renames, found.removalsUsed, true, base)._1.size, 1)
+
   test("a removal explains a removed table and a removed action's rows"):
     val withoutStart = changed(
       _.filterNot(_.startsWith("step\tclient.start")).map(

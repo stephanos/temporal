@@ -80,8 +80,8 @@ object RewriteFacetWrappingMini:
           name -> parents(Class.forName(name, false, loader))
         }
         .filter { (_, chain) =>
-          chain.contains("framework.Machine") &&
-          !chain.exists(Set("framework.Derived", "framework.Built"))
+          chain.contains("framework.dsl.Machine") &&
+          !chain.exists(Set("framework.dsl.Derived", "framework.dsl.Built"))
         }
         .map(_._1)
         .toList
@@ -110,7 +110,7 @@ object RewriteFacetWrappingMini:
           .forName(name, false, loader)
           .getInterfaces
           .toList
-          .filter(_.getInterfaces.exists(_.getName == "framework.Facet"))
+          .filter(_.getInterfaces.exists(_.getName == "framework.dsl.Facet"))
           .map(_.getSimpleName)
           .toSet
         require(

@@ -205,7 +205,7 @@ class HintSnapshotsSuite extends munit.FunSuite with RetainedScratch:
     assertEquals(
       result.output.linesIterator.filter(_.startsWith("lift: ")).toVector,
       Vector(
-        "lift: model/framework/export/testdata/lifts/Rejects.scala:28: fixture.rejects.Rejects$package$.closed is a framework.Channel[fixture.rejects.Note]; a root is a machine, a composition, a Property, a Query, a list of Queries, a progress claim, a claim bundle, a realization, or a machine's `properties`, `capabilities` or `queries` section"
+        "lift: model/framework/export/testdata/lifts/Rejects.scala:28: fixture.rejects.Rejects$package$.closed is a framework.dsl.Channel[fixture.rejects.Note]; a root is a machine, a composition, a Property, a Query, a list of Queries, a progress claim, a claim bundle, a realization, or a machine's `properties`, `capabilities` or `queries` section"
       )
     )
 
@@ -394,7 +394,7 @@ class MiniRealizationFixtures extends munit.FunSuite with RetainedScratch:
       |//> using jar $jar
       |//> using jar ${tools.directory.resolve("model/build/api-scalapb.jar")}
       |package fixture.minirealization
-      |import framework.*
+      |import framework.dsl.*
       |import framework.realize.Reason
       |import temporal.realize.*
       |import temporal.features.activity.mini.{client, activityWorker, product, protocol}
@@ -439,8 +439,8 @@ class MiniRealizationFixtures extends munit.FunSuite with RetainedScratch:
       |  runs = Seq(ActivityProtocol.queries.retryCompleted))
       |object AgainRun extends DerivesFrom(MiniActivityRun, ActivityProtocol,
       |  runs = Seq(ActivityProtocol.queries.protocolCompleted))
-      |object Twice extends framework.Derived(ActivityProtocol.unmonitored):
-      |  import framework.*
+      |object Twice extends framework.dsl.Derived(ActivityProtocol.unmonitored):
+      |  import framework.dsl.*
       |  import temporal.features.activity.mini.activityWorker
       |  import temporal.features.activity.mini.protocol
       |  object properties:
@@ -956,7 +956,7 @@ class WitnessFixtures extends munit.FunSuite with RetainedScratch:
       ir.Function(
         name,
         Some(ir.Position(stored + "Witnesses.scala", position)),
-        Seq(ir.Param("after", Some(ir.TypeRef().withNamed("framework.Step")))),
+        Seq(ir.Param("after", Some(ir.TypeRef().withNamed("framework.dsl.Step")))),
         body = Some(body)
       )
     for name <- Seq("conditional", "conditionalMember", "absent", "guarded", "absentMember") do
@@ -4449,7 +4449,7 @@ class Fixtures extends munit.FunSuite with RetainedScratch:
         .flatMap(all(_, keep))
     def steps(f: JsonNode) = all(
       f,
-      _.at("/construct/type").asText() == "framework.Step"
+      _.at("/construct/type").asText() == "framework.dsl.Step"
     )
     def choices(f: JsonNode) = steps(f).map(_.at("/construct/choice").asText())
     def calls(f: JsonNode) =
@@ -5570,8 +5570,9 @@ class Fixtures extends munit.FunSuite with RetainedScratch:
     assertEquals(
       digest.map(b => f"${b & 0xff}%02x").mkString,
       // fn-159.10 reworded the refusal of an input without a default (Rejects.scala:573); fn-169.1
-      // moved the fixtures to model/framework/export/testdata and the DSL to model/framework/dsl.
-      "6f5602fedb087de9c54ece0d9453315ed8401fb486ac329c400286f75950da87"
+      // moved the fixtures to model/framework/export/testdata and the DSL to model/framework/dsl,
+      // package framework.dsl, whose type names the refusals spell.
+      "1508edff707b185b595a8bb221c94243f01359a65cb608386c19a9ed3497d66c"
     )
     val historical =
       Files.readAllLines(expected.resolve("rejects.txt")).asScala.toVector
@@ -5584,8 +5585,8 @@ class Fixtures extends munit.FunSuite with RetainedScratch:
         (prefix + "ScriptRejects.scala:203: inspect is no action activityProtocol binds: a realization binds its own machine's actions"),
       (prefix + "ScriptRejects.scala:105: expires is a case of Timeout, and activitySystem records facts of temporal.features.activity.standalone.system.Fact: a realization names the facts its machine records") ->
         (prefix + "ScriptRejects.scala:105: expires is a case of Timeout, and activityProtocol records facts of temporal.features.activity.standalone.protocol.Fact: a realization names the facts its machine records"),
-      (prefix + "Rejects.scala:28: fixture.rejects.Rejects$package$.closed is a framework.Channel[fixture.rejects.Note]; a root is a machine, a composition, a Query, a list of Queries, a progress claim, a realization, or a machine's `capabilities` or `queries` section") ->
-        (prefix + "Rejects.scala:28: fixture.rejects.Rejects$package$.closed is a framework.Channel[fixture.rejects.Note]; a root is a machine, a composition, a Property, a Query, a list of Queries, a progress claim, a claim bundle, a realization, or a machine's `properties`, `capabilities` or `queries` section")
+      (prefix + "Rejects.scala:28: fixture.rejects.Rejects$package$.closed is a framework.dsl.Channel[fixture.rejects.Note]; a root is a machine, a composition, a Query, a list of Queries, a progress claim, a realization, or a machine's `capabilities` or `queries` section") ->
+        (prefix + "Rejects.scala:28: fixture.rejects.Rejects$package$.closed is a framework.dsl.Channel[fixture.rejects.Note]; a root is a machine, a composition, a Property, a Query, a list of Queries, a progress claim, a claim bundle, a realization, or a machine's `properties`, `capabilities` or `queries` section")
     )
     assert(adaptations.keys.forall(old => historical.count(_ == old) == 1))
     val markerSource =
@@ -6084,7 +6085,7 @@ class Fixtures extends munit.FunSuite with RetainedScratch:
       "nexus/workflow/system/extra/Extra.scala",
       Some(
         "package fixture.features.nexus.workflow.system.extra\n" +
-          "import framework.*\n" +
+          "import framework.dsl.*\n" +
           "object Extra extends Derived(fixture.features.nexus.workflow.system.NexusSystem)\n"
       ),
       "no level folder"
@@ -6117,8 +6118,8 @@ class Fixtures extends munit.FunSuite with RetainedScratch:
           )
           // Strict equality: the refinement compares phases with the evidence Finite supplies.
           .replace(
-            "import framework.*\n",
-            "import framework.*\nimport framework.Finite.given\n" +
+            "import framework.dsl.*\n",
+            "import framework.dsl.*\nimport framework.dsl.Finite.given\n" +
               "val _ = () => summon[CanEqual[Phase, Phase]]\n"
           )
           .replace(
@@ -6266,7 +6267,7 @@ class Fixtures extends munit.FunSuite with RetainedScratch:
               ""
             )
         else
-          "package fixture.features.relay.workflow\npackage system\nimport framework.*\n" +
+          "package fixture.features.relay.workflow\npackage system\nimport framework.dsl.*\n" +
             "import fixture.features.relay.shared.product.RelayProduct\nobject Copy extends Derived(RelayProduct.unmonitored)\n"
       Files.delete(system)
       Files.writeString(system.resolveSibling("Other.scala"), text)

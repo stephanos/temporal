@@ -4,7 +4,7 @@
 // (crossed/Rules.scala), as the build reports them in an earlier phase.
 package fixture.objectforms
 
-import framework.*
+import framework.dsl.*
 
 enum Glow:
   case dim, bright

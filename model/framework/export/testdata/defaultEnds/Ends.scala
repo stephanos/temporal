@@ -1,6 +1,6 @@
 package fixture.defaultends
 
-import framework.*; import framework.Finite.given
+import framework.dsl.*; import framework.dsl.Finite.given
 
 enum Phase:
   case waiting extends Phase, Waiting

@@ -245,7 +245,7 @@ final private[`export`] class Structure(index: Index):
 
   // ### Facets (fn-161 R7): one facet per file, named after it
 
-  private val facetClass = Symbol.requiredClass("framework.Facet")
+  private val facetClass = Symbol.requiredClass("framework.dsl.Facet")
 
   private def facetFiles(sources: Seq[Source]): Unit =
     for s <- sources if s.path.startsWith("model/temporal/") || s.level do
@@ -423,9 +423,9 @@ final private[`export`] class Structure(index: Index):
 
   // ### Machine objects and their refinements
 
-  private val machineClass = Symbol.requiredClass("framework.Machine")
-  private val compositionClass = Symbol.requiredClass("framework.Composition")
-  private val refinementClass = Symbol.requiredClass("framework.Refinement")
+  private val machineClass = Symbol.requiredClass("framework.dsl.Machine")
+  private val compositionClass = Symbol.requiredClass("framework.dsl.Composition")
+  private val refinementClass = Symbol.requiredClass("framework.dsl.Refinement")
 
   // Whether an object is a machine, `Derived` or `Composition` object.
   private def form(c: Symbol): Boolean =

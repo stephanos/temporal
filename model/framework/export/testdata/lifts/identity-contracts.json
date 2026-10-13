@@ -1,23 +1,35 @@
 {
   "admission": {
     "sha256": "456e3b3ae6248a19affec27381b2104f9d1700d26441d384627e465f004accaf",
-    "identities": {}
+    "identities": {
+      "framework.Step": "framework.dsl.Step"
+    }
   },
   "realizations": {
     "sha256": "f8433cc59441298e966ca4f88f9e8e9186e38ef51c5c75eb2ba73f92e2ef001e",
-    "identities": {}
+    "identities": {
+      "framework.Step": "framework.dsl.Step"
+    }
   },
   "rules": {
     "sha256": "1c09529d7811581cb2307b7a93fa82f63a812bdd6d95cd28a5c90aefe85ca5db",
-    "identities": {}
+    "identities": {
+      "framework.Step": "framework.dsl.Step"
+    }
   },
   "rejections": {
     "sha256": "4bbeef5ce6f7a8dbee6c8e6530c69aeb701daabda62328506a9c4ef8d133fcda",
-    "identities": {}
+    "identities": {
+      "framework.Step": "framework.dsl.Step",
+      "framework.outcomes.Outcome": "framework.dsl.outcomes.Outcome",
+      "framework.outcomes.Rejection": "framework.dsl.outcomes.Rejection"
+    }
   },
   "taskqueue": {
     "sha256": "fe657df91fafd7e1c216c0cecc313f064e0e2a09adf91ded5e6112f11bb65f10",
-    "identities": {}
+    "identities": {
+      "framework.Step": "framework.dsl.Step"
+    }
   },
   "retryCapabilities": {
     "sha256": "d20f27bb494264f6aa8b8a549f7e81ed1122110272b49c79970fe57e38d61667",
@@ -29,7 +41,8 @@
       "temporal.capabilities.Retryable.failureEndsFailed": "temporal.capabilities.system.Retryable.failureEndsFailed",
       "temporal.capabilities.Retryable.failurePauses": "temporal.capabilities.system.Retryable.failurePauses",
       "temporal.capabilities.Retryable.failureReturnsToWaiting": "temporal.capabilities.system.Retryable.failureReturnsToWaiting",
-      "scala.Option[framework.Domain$package$.UpTo]": "scala.Option[framework.Domain$package$.UpTo[2]]"
+      "scala.Option[framework.Domain$package$.UpTo]": "scala.Option[framework.dsl.Domain$package$.UpTo[2]]",
+      "framework.Step": "framework.dsl.Step"
     }
   },
   "retrySelection": {
@@ -40,7 +53,8 @@
       "temporal.capabilities.Retryable.failureEndsFailed": "temporal.capabilities.system.Retryable.failureEndsFailed",
       "temporal.capabilities.Retryable.failurePauses": "temporal.capabilities.system.Retryable.failurePauses",
       "temporal.capabilities.Retryable.failureReturnsToWaiting": "temporal.capabilities.system.Retryable.failureReturnsToWaiting",
-      "scala.Option[framework.Domain$package$.UpTo]": "scala.Option[framework.Domain$package$.UpTo[2]]"
+      "scala.Option[framework.Domain$package$.UpTo]": "scala.Option[framework.dsl.Domain$package$.UpTo[2]]",
+      "framework.Step": "framework.dsl.Step"
     }
   },
   "deadlineCapabilities": {
@@ -49,7 +63,8 @@
       "temporal.capabilities.Expirable.deadlinePauses": "temporal.capabilities.system.Expirable.deadlinePauses",
       "temporal.capabilities.Expirable.deadlineReturnsToWaiting": "temporal.capabilities.system.Expirable.deadlineReturnsToWaiting",
       "temporal.capabilities.Expirable.deadlineTimesOut": "temporal.capabilities.system.Expirable.deadlineTimesOut",
-      "temporal.capabilities.Expirable.firesInWindow": "temporal.capabilities.system.Expirable.firesInWindow"
+      "temporal.capabilities.Expirable.firesInWindow": "temporal.capabilities.system.Expirable.firesInWindow",
+      "framework.Step": "framework.dsl.Step"
     }
   }
 }

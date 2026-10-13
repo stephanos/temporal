@@ -3,7 +3,7 @@
 // marked line.
 package fixture.crossed.namedinput
 
-import framework.*
+import framework.dsl.*
 
 enum Timeout:
   case unset, expires

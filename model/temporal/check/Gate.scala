@@ -509,7 +509,7 @@ final class Gate(tools: Tools, log: PrintStream):
       .scalaCli(
         Seq("run", "--server=false") ++ models ++ Seq(
           "--main-class",
-          "framework.writeStepTables",
+          "framework.dsl.writeStepTables",
           "--",
           "temporal",
           dir.toString

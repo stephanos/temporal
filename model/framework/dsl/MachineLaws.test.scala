@@ -1,4 +1,4 @@
-package framework
+package framework.dsl
 
 import java.util.Objects
 import scala.util.Try

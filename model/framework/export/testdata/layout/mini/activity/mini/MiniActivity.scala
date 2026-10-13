@@ -1,6 +1,6 @@
 package fixture.features.activity.mini
 
-import framework.*
+import framework.dsl.*
 
 enum Outcome:
   case accepted

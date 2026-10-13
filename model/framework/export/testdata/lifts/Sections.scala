@@ -7,7 +7,7 @@
 // compare the IR with expected/sections.json and check those IDs.
 package fixture.sections
 
-import framework.*
+import framework.dsl.*
 
 final case class Light(on: Boolean)
 

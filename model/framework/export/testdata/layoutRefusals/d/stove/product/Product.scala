@@ -1,7 +1,7 @@
 package fixture.features.stove
 package product
 
-import framework.*
+import framework.dsl.*
 
 object StoveProduct extends Machine[Light, Outcome, Nothing]:
   val init = Light(lit = false)

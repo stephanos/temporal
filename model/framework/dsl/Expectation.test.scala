@@ -1,6 +1,6 @@
-package framework
+package framework.dsl
 
-import realize.*
+import framework.realize.*
 
 class ExpectationTest extends munit.FunSuite:
   test("satisfied full Run and monitor expectations refuse source explanations") {

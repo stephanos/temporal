@@ -3,9 +3,9 @@ package features.activity
 package mini
 package product
 
-import framework.*
-import framework.Finite.given
-import framework.outcomes.{Outcome, Rejection}
+import framework.dsl.*
+import framework.dsl.Finite.given
+import framework.dsl.outcomes.{Outcome, Rejection}
 import temporal.features.activity.{Failure, deadline}
 import temporal.capabilities.product.Closable
 

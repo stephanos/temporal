@@ -1,6 +1,6 @@
 package fixture.bounds
 
-import framework.*
+import framework.dsl.*
 import temporal.Bounds
 import temporal.Bounds.{five, fiveWide, seven, three, twelve}
 

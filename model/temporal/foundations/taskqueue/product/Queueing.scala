@@ -5,10 +5,10 @@ package foundations.taskqueue
 package product
 
 import scala.annotation.unused
-import framework.*
-import framework.Finite.given
+import framework.dsl.*
+import framework.dsl.Finite.given
 
-val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
+val _ = () => summon[CanEqual[framework.dsl.outcomes.Outcome, framework.dsl.outcomes.Outcome]]
 
 trait Queueing extends Facet[QueueView, QueueOutcome, QueueFact], Phased[QueueView, Outstanding]:
 

@@ -2,7 +2,7 @@
 // on its declaration, is declared twice, or names an expiry no Flow spec answers.
 package fixture.gapresolution
 
-import framework.*
+import framework.dsl.*
 import framework.realize.{everyCase, Activation, Correlation, Observed, Realization, Script}
 import temporal.realize.{Role, RoleKind}
 import io.temporal.api.activity.v1.ActivityExecutionInfo

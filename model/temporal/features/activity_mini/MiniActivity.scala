@@ -16,7 +16,7 @@ package temporal
 package features.activity
 package mini
 
-import framework.*
+import framework.dsl.*
 import temporal.actors.client.Client
 import temporal.features.activity.{Timeout, worker}
 

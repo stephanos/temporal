@@ -1,7 +1,7 @@
 package fixture.features.stove
 package system
 
-import framework.*
+import framework.dsl.*
 
 object StoveSystem extends Machine[Light, Outcome, Nothing]:
   val init = Light(lit = false)

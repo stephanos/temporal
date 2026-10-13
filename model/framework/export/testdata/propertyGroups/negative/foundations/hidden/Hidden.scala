@@ -1,6 +1,6 @@
 package propertygroups.foundations.hidden
 
-import framework.*
+import framework.dsl.*
 import propertygroups.*
 
 object Hidden extends Machine[State, Outcome, Nothing]:

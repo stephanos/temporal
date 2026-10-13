@@ -93,7 +93,7 @@ private[`export`] trait Claims:
         values.zip(actions(id).inputs).map((value, param) => literalValue(value, param.`type`))
       )
     case ref => ir.ActionClass(action(ref))
-  private def isAction(t: Term): Boolean = isNamed(t.tpe, "framework.Action")
+  private def isAction(t: Term): Boolean = isNamed(t.tpe, "framework.dsl.Action")
 
   // `start()`: the class of every input of the action `a` at its declared default, as
   // `start(unset, unset, unset)` writes it, and the one class of an action with no input.
@@ -193,7 +193,7 @@ private[`export`] trait Claims:
   // Limits, named by their `name` or else by `named`, the val that declares them.
   def limitsOf(t: Term, named: => String): ir.Limits = arguments(t) match
     case Apply(Select(companion, "apply"), List(name, steps, actions, search))
-        if companion.tpe.typeSymbol.companionClass.fullName == "framework.Limits" =>
+        if companion.tpe.typeSymbol.companionClass.fullName == "framework.dsl.Limits" =>
       val l = ir.Limits(
         if isDefault(name) then named else constString(name),
         constInt(steps).toInt,
@@ -310,7 +310,7 @@ private[`export`] trait Claims:
 
   // Whether a type is one a claim is declared on: a machine, a composition, or `Declares[S]`.
   def declares(tpe: TypeRepr): Boolean =
-    tpe.widen.dealias.derivesFrom(Symbol.requiredClass("framework.Declares"))
+    tpe.widen.dealias.derivesFrom(Symbol.requiredClass("framework.dsl.Declares"))
 
   // An inherited member read without a receiver, read on the object it is inherited by.
   def onThis(t: Term): Term =
@@ -334,7 +334,7 @@ private[`export`] trait Claims:
 
   // Whether a call is one of `Declares`'s, `property` or `scenario`, which every model inherits.
   def declared(t: Term): Boolean =
-    t.symbol.maybeOwner.fullName == "framework.Declares"
+    t.symbol.maybeOwner.fullName == "framework.dsl.Declares"
 
   // What a declaration of the lifted sources folds to, with the helper function parameters bound
   // in `env`. `named` is the name of the val whose right-hand side `t` is: a declaration that takes
@@ -518,7 +518,7 @@ private[`export`] trait Claims:
           query(name, form, p, s, limits, t)
         case other => fail(t, s"limits bounds a Query, not $other")
     case Apply(Select(companion, "apply"), _)
-        if companion.tpe.typeSymbol.companionClass.fullName == "framework.Limits" =>
+        if companion.tpe.typeSymbol.companionClass.fullName == "framework.dsl.Limits" =>
       Decl.Bounds(
         limitsOf(t, captured(named, "Limits", "`Limits(\"...\", ...)`", t))
       )
@@ -595,9 +595,9 @@ private[`export`] trait Claims:
           case _ if objectForm(sym) =>
             Decl.Model(modelOfObject(moduleClassOf(sym), r))
           case _ if capabilitiesObject(sym)                 => capabilitiesSectionOf(sym, r)
-          case d if isNamed(d.tpt.tpe, "framework.Machine") =>
+          case d if isNamed(d.tpt.tpe, "framework.dsl.Machine") =>
             Decl.Model(machineOf(sym, r).name)
-          case d if isNamed(d.tpt.tpe, "framework.Composition") =>
+          case d if isNamed(d.tpt.tpe, "framework.dsl.Composition") =>
             Decl.Model(compositionOf(sym, r).name)
           case d => fold(d.rhs.get, Map.empty, Some(sym))
       )
@@ -686,11 +686,11 @@ private[`export`] trait Claims:
       fieldTypes(cls).forall((_, tpe) => claimType(tpe))
   def claimType(tpe: TypeRepr): Boolean =
     Seq(
-      "framework.Property",
-      "framework.Progress",
-      "framework.Scenario",
-      "framework.Query",
-      "framework.Witness"
+      "framework.dsl.Property",
+      "framework.dsl.Progress",
+      "framework.dsl.Scenario",
+      "framework.dsl.Query",
+      "framework.dsl.Witness"
     ).exists(name => tpe.widen.dealias.baseClasses.exists(_.fullName == name))
 
   // Records the total the Query `name` asserts, `n`: an integer literal, or a parameter of the
@@ -800,7 +800,7 @@ private[`export`] trait Claims:
   def valued(p: ValDef): Boolean =
     val tpe = instantiated(p.tpt.tpe).widen.dealias
     val folds = Seq(
-      "framework.Limits",
+      "framework.dsl.Limits",
       "java.lang.String",
       "scala.Int",
       "scala.Long",
@@ -808,7 +808,7 @@ private[`export`] trait Claims:
     )
     !(declares(tpe) || claimType(tpe) || folds.exists(isNamed(tpe, _)) ||
       bundle(tpe.typeSymbol) || isList(tpe.typeSymbol) ||
-      tpe.derivesFrom(Symbol.requiredClass("framework.Capabilities")))
+      tpe.derivesFrom(Symbol.requiredClass("framework.dsl.Capabilities")))
 
   // The value argument `a` of the parameter `p` of `d`, folded: an integer parameter, such as the
   // total of a Query the def declares, takes a literal the author computed, or a parameter of the

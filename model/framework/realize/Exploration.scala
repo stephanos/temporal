@@ -1,6 +1,6 @@
 package framework.realize
 
-import framework.ClassRef
+import framework.dsl.ClassRef
 
 final case class Alternative(name: String, priority: Int, actions: Vector[ClassRef])
 final case class Variation(index: Int, choices: Vector[Alternative])

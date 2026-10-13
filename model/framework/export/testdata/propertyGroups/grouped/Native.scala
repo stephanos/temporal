@@ -1,4 +1,4 @@
-package framework
+package framework.dsl
 
 import propertygroups.*
 import propertygroups.features.specimen.workflow.*

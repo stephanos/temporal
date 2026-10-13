@@ -1,4 +1,4 @@
-package framework
+package framework.dsl
 
 import java.nio.file.{Files, Path}
 

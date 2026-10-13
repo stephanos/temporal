@@ -1,7 +1,7 @@
 package fixture.features.activity.mini
 package product
 
-import framework.*
+import framework.dsl.*
 
 enum Phase:
   case idle, done

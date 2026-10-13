@@ -1,7 +1,7 @@
-package framework
+package framework.dsl
 
-import framework.outcomes.Outcome
-import framework.Finite.given
+import framework.dsl.outcomes.Outcome
+import framework.dsl.Finite.given
 import temporal.features.activity.mini.protocol.*
 import temporal.features.activity.timers
 import AnswerDispatch.given

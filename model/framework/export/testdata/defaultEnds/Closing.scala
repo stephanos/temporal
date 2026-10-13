@@ -1,6 +1,6 @@
 package fixture.defaultends
 
-import framework.*
+import framework.dsl.*
 import temporal.capabilities.product.*
 
 val closingBounds = Limits(steps = 2, actions = 2, search = 32)

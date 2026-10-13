@@ -1,7 +1,7 @@
 package fixture.features.nexus
 package standalone
 
-import framework.*
+import framework.dsl.*
 
 enum Phase:
   case idle, done

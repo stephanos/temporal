@@ -1,7 +1,7 @@
 package fixture.features.kiln
 package product
 
-import framework.*
+import framework.dsl.*
 
 object KilnProduct extends Machine[Kiln, Outcome, Nothing]:
   val init = Kiln(hot = false)

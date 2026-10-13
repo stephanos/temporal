@@ -1,6 +1,6 @@
 package fixture.gaps
 
-import framework.*
+import framework.dsl.*
 
 object Helpers:
   @gap(unasked)(because = "not a lifted helper")
@@ -14,7 +14,7 @@ object Utility
 final class Parameters(@gap(unasked)(because = "constructor parameter") val parameter: Boolean)
 
 object Foreign:
-  def unasked: Subject = framework.unasked
+  def unasked: Subject = framework.dsl.unasked
 
 @gap(Foreign.unasked)(because = "foreign constructor")
 object ForeignSubject extends Machine[Boolean, Outcome, Nothing]:

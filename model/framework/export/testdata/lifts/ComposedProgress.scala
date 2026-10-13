@@ -5,7 +5,7 @@
 // and compare the IR with expected/composedProgress.json.
 package fixture.composedprogress
 
-import framework.*; import framework.Finite.given
+import framework.dsl.*; import framework.dsl.Finite.given
 
 enum Level:
   case empty, filled, sent

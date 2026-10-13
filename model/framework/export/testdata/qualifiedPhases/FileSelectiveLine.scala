@@ -1,6 +1,6 @@
 package fixture.qualifiedphases
 
-import framework.*
+import framework.dsl.*
 import Stage.idle
 val usedFileSelectiveLine = idle
 

@@ -2,7 +2,7 @@
 // of a package no IR file is collected from. Built and lifted apart from the other fixtures.
 package fixture.features.gapfile
 
-import framework.*
+import framework.dsl.*
 
 enum Light:
   case off, on

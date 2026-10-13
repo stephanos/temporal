@@ -1,6 +1,6 @@
 package fixture.witness
 
-import framework.*
+import framework.dsl.*
 import fixture.witness.worker.{begin, finish}
 
 val repeatedTail =

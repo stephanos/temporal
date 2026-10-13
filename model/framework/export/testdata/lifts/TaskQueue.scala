@@ -8,7 +8,7 @@ package fixture.taskqueue
 import temporal.foundations.taskqueue.*; import temporal.Bounds.{seven, twelve}
 import temporal.foundations.taskqueue.product.TaskQueueProduct
 import temporal.foundations.taskqueue.protocol.{QueueForgetful, TaskQueueProtocol}
-import framework.*; import framework.Finite.given
+import framework.dsl.*; import framework.dsl.Finite.given
 
 // ### The job
 

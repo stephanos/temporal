@@ -11,7 +11,7 @@
 // The kinds are the fixture's own, each a case class whose companion defines its Properties.
 package fixture.capabilitysections
 
-import framework.*; import framework.Finite.given
+import framework.dsl.*; import framework.dsl.Finite.given
 
 enum Phase:
   case queued, running, held, done

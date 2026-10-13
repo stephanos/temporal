@@ -1,7 +1,7 @@
 package fixture.features.brazier
 package system
 
-import framework.*
+import framework.dsl.*
 
 object BrazierSystem extends Machine[Light, Outcome, Nothing]:
   val init = Light(lit = false)

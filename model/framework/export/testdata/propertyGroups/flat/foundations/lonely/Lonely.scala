@@ -1,6 +1,6 @@
 package propertygroups.foundations.lonely
 
-import framework.*
+import framework.dsl.*
 import propertygroups.*
 
 object Lonely extends Machine[State, Outcome, Nothing]:

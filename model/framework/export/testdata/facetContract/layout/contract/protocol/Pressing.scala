@@ -1,7 +1,7 @@
 package fixture.features.contract
 package protocol
 
-import framework.*
+import framework.dsl.*
 
 trait Pressing extends Facet[QueueDetail, Outcome, Fact], Phased[QueueDetail, Phase]:
   object pressing:

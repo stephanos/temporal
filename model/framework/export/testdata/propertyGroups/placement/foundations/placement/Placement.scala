@@ -1,6 +1,6 @@
 package propertygroups.foundations.placement
 
-import framework.*
+import framework.dsl.*
 import propertygroups.*
 
 object Owner extends Machine[State, Outcome, Nothing]:

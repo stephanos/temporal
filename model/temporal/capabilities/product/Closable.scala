@@ -1,12 +1,12 @@
 // Closing an entity; Closed phases define the terminal statuses its Properties read.
 package temporal.capabilities.product
 
-import framework.*
-import framework.Finite.given
+import framework.dsl.*
+import framework.dsl.Finite.given
 import scala.annotation.unused
 import scala.reflect.{ClassTag, TypeTest}
 
-val _ = () => summon[CanEqual[framework.outcomes.Outcome, framework.outcomes.Outcome]]
+val _ = () => summon[CanEqual[framework.dsl.outcomes.Outcome, framework.dsl.outcomes.Outcome]]
 
 final case class Closable[S, P, O](rejected: O)(using
     @unused phasing: Phasing[S, P],
@@ -16,7 +16,7 @@ final case class Closable[S, P, O](rejected: O)(using
 ) extends CapabilityOf[S, O, Nothing]
 
 object Closable extends CapabilityKind:
-  type Closed = framework.Closed
+  type Closed = framework.dsl.Closed
   // No step moves an entity out of a terminal status, or between terminal statuses.
   // This promises neither rejection of a mutation, reporting the status nor recording close once.
   // See chasm/lib/activity/statemachine.go and chasm/lib/nexusoperation/operation_statemachine.go.

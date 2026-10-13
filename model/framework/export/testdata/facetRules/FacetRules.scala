@@ -4,7 +4,7 @@
 // the Product and the Protocol level (`facet-vocabulary`). `Agreeing` keeps both rules.
 package fixture.facetrules
 
-import framework.*
+import framework.dsl.*
 
 enum FacetName:
   case pressing, breaking

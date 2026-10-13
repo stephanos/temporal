@@ -1,7 +1,7 @@
 package fixture.features.tap
 package product
 
-import framework.*
+import framework.dsl.*
 
 object Faucet extends Machine[Tap, Outcome, Nothing]:
   val init = Tap(open = false)

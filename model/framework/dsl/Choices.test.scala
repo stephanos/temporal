@@ -1,4 +1,4 @@
-package framework
+package framework.dsl
 // Named choices, run as Scala. The IR generator's fixtures (irgen/testdata/lifts/Choices.scala) prove
 // the IR; these pin the framework's own values.
 

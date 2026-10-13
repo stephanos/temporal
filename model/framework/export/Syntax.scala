@@ -29,7 +29,7 @@ private[`export`] trait Syntax:
   import ctx.quotes.reflect.*
 
   // Top-level definitions of a file are members of its package object.
-  private val sugarOwner = "framework.Syntax$package$"
+  private val sugarOwner = "framework.dsl.Syntax$package$"
 
   // The sugar definition a term applies, if it applies one: its name and its argument lists.
   private def sugarCall(t: Term): Option[(String, List[List[Term]])] = t match
@@ -38,7 +38,7 @@ private[`export`] trait Syntax:
     case r: Ref if r.symbol.maybeOwner.fullName == sugarOwner =>
       Some(r.symbol.name -> Nil)
     // A guard of a machine's rules reads `phase.in(a, b)` as the rules repeat it.
-    case r: Ref if r.symbol.maybeOwner.fullName == "framework.Rules" && r.symbol.name == "in" =>
+    case r: Ref if r.symbol.maybeOwner.fullName == "framework.dsl.Rules" && r.symbol.name == "in" =>
       Some("in" -> Nil)
     case _ => None
 
@@ -64,16 +64,16 @@ private[`export`] trait Syntax:
   // Hook: whether a term declares a witness. Core form: `query(name) find p in s limits l`.
   def witnessDeclaration(t: Term): Boolean = t match
     case _: Apply =>
-      isNamed(t.tpe, "framework.Witness") || isNamed(
+      isNamed(t.tpe, "framework.dsl.Witness") || isNamed(
         t.tpe,
-        "framework.WitnessBuilder"
+        "framework.dsl.WitnessBuilder"
       )
     case _ => false
 
   private def witnessSource(t: Term): WitnessSource = t match
     case Typed(e, _)        => witnessSource(e)
     case Inlined(_, Nil, e) => witnessSource(e)
-    case Apply(Select(base, modifier), List(value)) if isNamed(base.tpe, "framework.Witness") =>
+    case Apply(Select(base, modifier), List(value)) if isNamed(base.tpe, "framework.dsl.Witness") =>
       val source = witnessSource(base)
       modifier match
         case "ends"    => source.copy(ending = Some(value))
@@ -95,12 +95,12 @@ private[`export`] trait Syntax:
           source.copy(conditional = source.conditional :+ ((Some(condition), Some(member), fact)))
         case Some(("excludes", List(List(base), List(fact), _))) =>
           val source = witnessSource(base)
-          if isNamed(base.tpe, "framework.WitnessBuilder") then
+          if isNamed(base.tpe, "framework.dsl.WitnessBuilder") then
             source.copy(fact = Some(None -> fact), excluded = true)
           else source.copy(conditional = source.conditional :+ ((None, None, fact)))
         case Some(("excludes", List(List(base), List(member, fact)))) =>
           val source = witnessSource(base)
-          if isNamed(base.tpe, "framework.WitnessBuilder") then
+          if isNamed(base.tpe, "framework.dsl.WitnessBuilder") then
             source.copy(fact = Some(Some(member) -> fact), excluded = true)
           else source.copy(conditional = source.conditional :+ ((None, Some(member), fact)))
         case Some(("records", List(List(builder), List(fact), _))) =>
@@ -399,7 +399,7 @@ private[`export`] trait Syntax:
       case Record(_, _)           => "record(...)"
       case Reject(_, _)           => "reject(...)"
 
-  private lazy val recordedClass = Symbol.requiredClass("framework.Recorded")
+  private lazy val recordedClass = Symbol.requiredClass("framework.dsl.Recorded")
 
   // The status fact an enum case declares, the argument its case passes to the enum's parameter
   // `status`: `Fact.statusStarted` of `case started extends Phase(Fact.statusStarted)`.
@@ -619,7 +619,7 @@ private[`export`] trait Syntax:
   def rejection(effect: Term, state: ir.Expr): Option[ir.Expr] =
     val (rejects, reason) = unwrapped(effect) match
       case Apply(sel @ Select(inner, "because"), List(r))
-          if sel.symbol.maybeOwner.fullName == "framework.Rejects" =>
+          if sel.symbol.maybeOwner.fullName == "framework.dsl.Rejects" =>
         (unwrapped(inner), constString(r))
       case other => (other, "")
     sugarCall(rejects)
@@ -1275,9 +1275,9 @@ private[`export`] trait Syntax:
     Map("once" -> "keeps", "never" -> "from", "stays" -> "unless")
   private val finished =
     Map(
-      "framework.Once" -> "keeps",
-      "framework.Never" -> "from",
-      "framework.Stays" -> "unless"
+      "framework.dsl.Once" -> "keeps",
+      "framework.dsl.Never" -> "from",
+      "framework.dsl.Stays" -> "unless"
     )
 
   // Hook: whether a declaration applies a claim pattern, which `pattern` folds. Core form: none of
@@ -1314,7 +1314,7 @@ private[`export`] trait Syntax:
       case Apply(
             call @ Apply(TypeApply(Select(r, w @ "keeps"), _), List(x)),
             List(_)
-          ) if call.symbol.maybeOwner.fullName == "framework.Once" && (call.tpe match
+          ) if call.symbol.maybeOwner.fullName == "framework.dsl.Once" && (call.tpe match
             case m: MethodType =>
               m.isImplicit && m.paramTypes.size == 1 &&
               m.paramTypes.head.typeSymbol.fullName == "scala.CanEqual"
@@ -1490,9 +1490,9 @@ private[`export`] trait Syntax:
       .flatten
       .orElse(forwardedDef(x).flatMap(defPath))
 
-  // The shared outcomes of the framework (framework.outcomes), which no lifted source declares.
+  // The shared outcomes of the framework (framework.dsl.outcomes), which no lifted source declares.
   private lazy val sharedOutcome =
-    Symbol.requiredClass("framework.outcomes.Outcome")
+    Symbol.requiredClass("framework.dsl.outcomes.Outcome")
 
   // The outcome a `given Ok[O] = Ok(o)` names: `o`; for the shared outcomes, the framework's own
   // given, `Outcome.accepted`.
@@ -1500,7 +1500,7 @@ private[`export`] trait Syntax:
     val shared = ok match
       case r: Ref
           if resolveSymbol(r).maybeOwner == Symbol
-            .requiredModule("framework.Ok")
+            .requiredModule("framework.dsl.Ok")
             .moduleClass =>
         Some(
           enumLiteral(sharedOutcome.companionModule.fieldMember("accepted"), ok)
@@ -1519,7 +1519,7 @@ private[`export`] trait Syntax:
     declared.map(arguments) match
       case Some(Apply(fn, List(outcome)))
           if fn.symbol.name == "apply" &&
-            fn.symbol.owner.companionClass.fullName == "framework.Ok" =>
+            fn.symbol.owner.companionClass.fullName == "framework.dsl.Ok" =>
         lift(outcome)
       case _ =>
         fail(

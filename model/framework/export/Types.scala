@@ -66,7 +66,7 @@ private[`export`] trait Types:
         )
       else if isList(sym) then ir.TypeRef(ir.TypeRef.Ref.List(typeRef(t.typeArgs.head, at, owner)))
       else if sym.fullName == "scala.Option" then named(optionType(t.typeArgs.head, at))
-      else if sym.fullName == "framework.Inbox" then
+      else if sym.fullName == "framework.dsl.Inbox" then
         if owner.isEmpty then
           fail(at, "an Inbox is held in a state field; a function reads it from the state")
         val channel = channelFields.getOrElse(
@@ -84,7 +84,7 @@ private[`export`] trait Types:
         named(irTypeName(sym))
 
   // The framework's bounded counter, `UpTo[N]`: the values `0..N` of its field.
-  val upToType = "framework.Domain$package$.UpTo"
+  val upToType = "framework.dsl.Domain$package$.UpTo"
 
   // The bound `N` of an `UpTo[N]`: a constant, at least 0.
   def upToBound(tpe: TypeRepr, at: Tree): Long =

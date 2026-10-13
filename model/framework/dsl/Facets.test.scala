@@ -1,4 +1,4 @@
-package framework
+package framework.dsl
 
 // Facets run as Scala: a machine assembled from facets binds what the same machine written as one
 // object binds, an action bound by two facets is refused, and a facet's self-type makes a machine

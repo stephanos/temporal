@@ -3,9 +3,9 @@ package features.activity
 package mini
 package protocol
 
-import framework.*
-import framework.Finite.given
-import framework.outcomes.Outcome
+import framework.dsl.*
+import framework.dsl.Finite.given
+import framework.dsl.outcomes.Outcome
 import temporal.features.activity.{Timeout, timers}
 import temporal.capabilities.product.Pollable
 import scala.annotation.unused

@@ -3,7 +3,7 @@
 package fixture.features.tap
 package valve
 
-import framework.*
+import framework.dsl.*
 
 object Valve extends Machine[Tap, Outcome, Nothing]:
   val init = Tap(open = false)

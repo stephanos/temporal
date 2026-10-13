@@ -1,7 +1,7 @@
 package fixture.features.witnesses
 
-import framework.*
-import framework.Finite.given
+import framework.dsl.*
+import framework.dsl.Finite.given
 
 enum Bit:
   case first, second

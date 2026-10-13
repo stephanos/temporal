@@ -1,6 +1,6 @@
 package fixture.binding
 
-import framework.*
+import framework.dsl.*
 
 object firstCycle:
   val job = Entity()

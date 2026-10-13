@@ -50,7 +50,7 @@ private[`export`] trait Declarations:
 
   def action(ref: Term): String = ref match
     // A channel's delivery or loss: an action its declaration implies.
-    case Select(channel, op @ ("deliver" | "lose")) if isNamed(channel.tpe, "framework.Channel") =>
+    case Select(channel, op @ ("deliver" | "lose")) if isNamed(channel.tpe, "framework.dsl.Channel") =>
       channelAction(resolveSymbol(channel), op, ref)
     case _ =>
       val declared = declaredAction(ref)
@@ -126,11 +126,11 @@ private[`export`] trait Declarations:
     case This(_) if isActor(t.symbol) => objectActor(t.symbol)
     case r: Ref if r.symbol.flags.is(Flags.Module) && isActor(r.symbol.moduleClass) =>
       objectActor(r.symbol.moduleClass)
-    case r: Ref if r.symbol.fullName == "framework.Actor$.system" =>
+    case r: Ref if r.symbol.fullName == "framework.dsl.Actor$.system" =>
       "system"
     case _ => constString(t)
 
-  private lazy val actorClass = Symbol.requiredClass("framework.Actor")
+  private lazy val actorClass = Symbol.requiredClass("framework.dsl.Actor")
   private def isActor(cls: Symbol): Boolean =
     cls.isClassDef && cls.flags.is(Flags.Module) && cls.typeRef.derivesFrom(actorClass)
   private def objectActor(cls: Symbol): String =
@@ -157,7 +157,7 @@ private[`export`] trait Declarations:
   private def isInputDeclaration(t: Term): Boolean = t match
     case Apply(fn, _)     => isInputDeclaration(fn)
     case TypeApply(fn, _) => isInputDeclaration(fn)
-    case fn               => fn.symbol.fullName == "framework.Action$package$.input"
+    case fn               => fn.symbol.fullName == "framework.dsl.Action$package$.input"
 
   // A constant value, for an example: an enum case, with constant fields.
   def literalValue(t: Term): ir.Value = literalValue(t, None)
@@ -258,7 +258,7 @@ private[`export`] trait Declarations:
   def parentArguments(c: ClassDef): List[List[Term]] =
     c.parents.collectFirst { case t: Term => t }.flatMap(call).fold(Nil)(_._2)
 
-  private lazy val phasedClass = Symbol.requiredClass("framework.Phased")
+  private lazy val phasedClass = Symbol.requiredClass("framework.dsl.Phased")
 
   // The phase projection of each object form lifted that reads one, by its name, as its source
   // writes it: its own, or a derived machine's or derived composition's source's.
@@ -308,7 +308,7 @@ private[`export`] trait Declarations:
     def selected(t: Term): Option[(Term, String, List[TypeRepr], List[Term])] = t match
       case Apply(fn, args)   => selected(fn).map((r, n, ts, as) => (r, n, ts, as ++ args))
       case TypeApply(fn, ts) => selected(fn).map((r, n, _, as) => (r, n, ts.map(_.tpe), as))
-      case Select(r, n) if isNamed(r.tpe, "framework.Phasing") => Some((r, n, Nil, Nil))
+      case Select(r, n) if isNamed(r.tpe, "framework.dsl.Phasing") => Some((r, n, Nil, Nil))
       case _                                                   => None
     selected(t).flatMap { (receiver, name, roles, args) =>
       boundPhasings.get(receiver.symbol).map { (projection, reader) =>
@@ -357,7 +357,7 @@ private[`export`] trait Declarations:
       lambda(projection) match
         case Some((List(p), body)) =>
           renamed(p.symbol) = "s"
-          val closed = Symbol.requiredClass("framework.Closed").typeRef
+          val closed = Symbol.requiredClass("framework.dsl.Closed").typeRef
           val cases = roleSet(body.tpe, closed, projection, Some(objectFormName(cls)))
           val test = binary(ir.Binary.Op.OP_CONTAINS, lift(body), cases, projection)
           expr(at)(E.Lambda(ir.Lambda(Seq(ir.Param("s", Some(typeRef(state, at)))), Some(test))))
@@ -494,15 +494,15 @@ private[`export`] trait Declarations:
             // A monitor reads the steps of the machine that watches it, so it is of its states.
             for
               watched <- tpe.widen.dealias.typeArgs.headOption
-              if isNamed(tpe, "framework.Monitor") && !(watched =:= s)
+              if isNamed(tpe, "framework.dsl.Monitor") && !(watched =:= s)
             do
               fail(
                 v,
                 s"${v.name} is a monitor of ${watched.show}, and $name's states are ${s.show}: a " +
                   "machine watches monitors of its own state type"
               )
-            if isNamed(tpe, "framework.Monitor") then b.addMonitors(monitorOf(sym, v))
-            else if isNamed(tpe, "framework.Assumption") then
+            if isNamed(tpe, "framework.dsl.Monitor") then b.addMonitors(monitorOf(sym, v))
+            else if isNamed(tpe, "framework.dsl.Assumption") then
               b.addAssumes(machineAssumption(sym, v))
             else b
           case (b, _) => b
@@ -537,7 +537,7 @@ private[`export`] trait Declarations:
         for
           section <- sectionOf(c, "capabilities")
           if !section.symbol.typeRef.derivesFrom(
-            Symbol.requiredClass("framework.FacetCapabilities")
+            Symbol.requiredClass("framework.dsl.FacetCapabilities")
           )
         do
           fail(
@@ -558,7 +558,7 @@ private[`export`] trait Declarations:
       val steps =
         if core then
           parentArguments(rules).flatten
-            .filter(a => !isNamed(a.tpe, "framework.Owner"))
+            .filter(a => !isNamed(a.tpe, "framework.dsl.Owner"))
             .flatMap(varargs)
             .map(stepBinding(_, name, "a core binding is `action ~> function`"))
         else
@@ -674,7 +674,7 @@ private[`export`] trait Declarations:
             case Some(("on", List(targets, List(block)))) if targets.sizeIs <= 4 =>
               val fired = targets.map { target =>
                 val (id, cls) = unwrapped(target) match
-                  case r if isNamed(r.tpe, "framework.Class") =>
+                  case r if isNamed(r.tpe, "framework.dsl.Class") =>
                     val c = classOf(r)
                     c.action -> Some(c.inputs)
                   case r => action(r) -> None
@@ -796,7 +796,7 @@ private[`export`] trait Declarations:
     if !rules.symbol.typeRef.derivesFrom(facetsClass) then Nil
     else
       parentArguments(rules).flatten
-        .filterNot(a => isNamed(a.tpe, "framework.Owner"))
+        .filterNot(a => isNamed(a.tpe, "framework.dsl.Owner"))
         .flatMap(varargs)
         .map { a =>
           val cls = moduleClassOf(unwrapped(a).symbol)
@@ -809,7 +809,7 @@ private[`export`] trait Declarations:
                   call(t) match
                     case Some(("on", List(targets, _))) =>
                       targets.map { target =>
-                        val id = if isNamed(unwrapped(target).tpe, "framework.Class") then
+                        val id = if isNamed(unwrapped(target).tpe, "framework.dsl.Class") then
                           classOf(unwrapped(target)).action
                         else action(target)
                         actions(id).name
@@ -897,12 +897,12 @@ private[`export`] trait Declarations:
   // class applies, `worker.respondFailed(Failure.fatal)` or `start(scheduleToStart := expires)`;
   // a class's arguments are not action references.
   private def actionReference(target: Term): Option[Term] = unwrapped(target) match
-    case r: Ref if isNamed(r.tpe, "framework.Action") => Some(r)
+    case r: Ref if isNamed(r.tpe, "framework.dsl.Action") => Some(r)
     case Select(q, "apply")                           => actionReference(q)
     case TypeApply(fn, _)                             => actionReference(fn)
     case Apply(fn, args)                              =>
       actionReference(fn).orElse(
-        args.headOption.filter(a => isNamed(a.tpe, "framework.Action")).flatMap(actionReference)
+        args.headOption.filter(a => isNamed(a.tpe, "framework.dsl.Action")).flatMap(actionReference)
       )
     case _ => None
 
@@ -929,7 +929,7 @@ private[`export`] trait Declarations:
   // Whether the action a target fires, or the class of it, is a member of the object `owner`.
   private def declaredBy(target: Term, owner: Symbol): Boolean =
     def actionRef(t: Term): Option[Term] = unwrapped(t) match
-      case r: Ref if isNamed(r.tpe, "framework.Action") => Some(r)
+      case r: Ref if isNamed(r.tpe, "framework.dsl.Action") => Some(r)
       case Apply(fn, args)                              =>
         actionRef(fn).orElse(args.iterator.flatMap(actionRef).nextOption())
       case TypeApply(fn, _) => actionRef(fn)
@@ -991,7 +991,7 @@ private[`export`] trait Declarations:
     case Select(q, _)    => q
     case other           => fail(other, s"not a case: ${other.show}")
 
-  private lazy val caseClass = Symbol.requiredClass("framework.Case")
+  private lazy val caseClass = Symbol.requiredClass("framework.dsl.Case")
 
   // Where a case fires: `when(...)`, `where(g)`, `always`, or one of them `.where(g)`.
   private def heading(c: Term, machine: String): Heading = unwrapped(c) match
@@ -1023,7 +1023,7 @@ private[`export`] trait Declarations:
               "`when(phases)`, `when(states.set)`, `where(g)` or `always`"
           )
 
-  private val syntaxPackage = "framework.Syntax$package$"
+  private val syntaxPackage = "framework.dsl.Syntax$package$"
 
   // Refuses a bare argument of the phase form of `when`: a phase is selected on its phase type,
   // `when(Phase.scheduled)`, and a named set on the object that declares it, `when(states.terminal)`.
@@ -1220,7 +1220,7 @@ private[`export`] trait Declarations:
       case If(_, a, b)        => empty(a) ++ empty(b)
       case Match(_, cases)    => cases.flatMap(c => empty(c.rhs))
       case Ident("Nil")       => List(t)
-      case r: Ref if r.symbol.fullName == "framework.Syntax$package$.disabled" =>
+      case r: Ref if r.symbol.fullName == "framework.dsl.Syntax$package$.disabled" =>
         List(t)
       case Apply(TypeApply(Select(Ident("List"), "apply"), _), List(items))
           if varargs(items).isEmpty =>
@@ -1246,7 +1246,7 @@ private[`export`] trait Declarations:
     case Typed(e, _)                                                       => coreBinding(e, should)
     case Block(Nil, e)                                                     => coreBinding(e, should)
     case Inlined(_, Nil, e)                                                => coreBinding(e, should)
-    case t if t.symbol.maybeOwner.fullName == "framework.Machine$package$" =>
+    case t if t.symbol.maybeOwner.fullName == "framework.dsl.Machine$package$" =>
       call(t) match
         case Some(("~>", List(List(a), List(fn)))) => (a, fn)
         case _                                     => fail(t, s"$should, not ${t.show}")
@@ -1721,7 +1721,7 @@ private[`export`] trait Declarations:
         case r: Ref
             if isEnumCase(r.symbol) && enumOf(
               r.symbol
-            ).fullName == s"framework.$enumName" =>
+            ).fullName == s"framework.dsl.$enumName" =>
           cases(r.symbol.name)
         case other =>
           fail(

@@ -1,7 +1,7 @@
 // format: off
 package fixture.qualifiedphases
 
-import framework.*
+import framework.dsl.*
 val markerFileSelectiveInline = (); import Stage.idle
 val usedFileSelectiveInline = idle
 

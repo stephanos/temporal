@@ -1,7 +1,7 @@
 package fixture.features.kiln
 package system
 
-import framework.*
+import framework.dsl.*
 import product.KilnProduct
 
 object KilnSystem extends Machine[Kiln, Outcome, Nothing]:

@@ -3,7 +3,7 @@ package features.activity
 package mini
 package protocol
 
-import framework.*
+import framework.dsl.*
 
 enum AnswerResult:
   case completed, failed

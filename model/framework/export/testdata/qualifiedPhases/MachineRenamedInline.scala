@@ -1,7 +1,7 @@
 // format: off
 package fixture.qualifiedphases
 
-import framework.*
+import framework.dsl.*
 
 object MachineRenamedInline extends Machine[Job, Said, Nothing], Phased[Job, Stage](_.stage):
   val marker = (); import Stage.{idle as waiting}

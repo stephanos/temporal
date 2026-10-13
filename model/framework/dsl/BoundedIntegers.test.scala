@@ -1,6 +1,6 @@
-package framework
+package framework.dsl
 
-import framework.Finite.given
+import framework.dsl.Finite.given
 
 class BoundedIntegersSuite extends munit.FunSuite:
   final val one = 1

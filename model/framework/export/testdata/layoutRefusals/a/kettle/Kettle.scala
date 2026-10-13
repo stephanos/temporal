@@ -8,7 +8,7 @@
 // product/Product.scala (urn/system/System.scala).
 package fixture.features.kettle
 
-import framework.*
+import framework.dsl.*
 
 final case class Kettle(hot: Boolean)
 
