@@ -67,14 +67,9 @@ func TestInstalledOperatorKillResume(t *testing.T) {
 		"go.mod": "module gomad.wasm.killresume.fixture\n\ngo 1.27.1\n",
 		"work_test.go": `package fixture
 
-import (
-	"testing"
-	"time"
-)
+import "testing"
 
-func TestWASMKillResumeWork(t *testing.T) {
-	time.Sleep(750 * time.Millisecond)
-}
+func TestWASMKillResumeWork(t *testing.T) {}
 `,
 	} {
 		if err := os.WriteFile(filepath.Join(source, name), []byte(contents), 0o600); err != nil {
@@ -132,6 +127,24 @@ func TestWASMKillResumeWork(t *testing.T) {
 		return report.Lifecycle.State == "running" && report.Lifecycle.Resumable && committed >= 1
 	})
 
+	if err := syscall.Kill(-command.Process.Pid, syscall.SIGSTOP); err != nil {
+		t.Fatal(err)
+	}
+	wasmPoll(t, func() bool {
+		for _, process := range wasmCLIProcesses(t) {
+			if process.pid == command.Process.Pid {
+				return strings.Contains(process.state, "T")
+			}
+		}
+		return false
+	})
+	// The stopped CLI still owns the writer. Inspect must remain lock-free, and
+	// this second read fixes the durable prefix before descendant discovery.
+	frozen := wasmInspectCampaign(t, binary, interruptedPath)
+	if frozen.Lifecycle == nil || frozen.Committed == nil || frozen.Lifecycle.State != "running" || !frozen.Lifecycle.Resumable || frozen.Committed.Outcomes < committed {
+		t.Fatalf("stopped committed state = lifecycle %#v committed %#v, want at least %d outcomes", frozen.Lifecycle, frozen.Committed, committed)
+	}
+	committed = frozen.Committed.Outcomes
 	wasmDiscoverOwnedProcesses(owned, wasmCLIProcesses(t))
 	if err := syscall.Kill(-command.Process.Pid, syscall.SIGKILL); err != nil {
 		t.Fatal(err)
@@ -154,6 +167,15 @@ func TestWASMKillResumeWork(t *testing.T) {
 		t.Fatalf("SIGKILLed explore CLI did not exit: %v", ctx.Err())
 	}
 	delete(owned, command.Process.Pid)
+	wasmPoll(t, func() bool {
+		for _, process := range wasmCLIProcesses(t) {
+			if owned[process.pid] {
+				return false
+			}
+		}
+		return true
+	})
+	clear(owned)
 
 	afterKill := wasmInspectCampaign(t, binary, interruptedPath)
 	if afterKill.Lifecycle == nil || afterKill.Committed == nil || afterKill.Lifecycle.State != "running" || !afterKill.Lifecycle.Resumable || afterKill.Committed.Outcomes != committed {
@@ -245,21 +267,21 @@ func wasmCampaignSemantics(campaign runner.CampaignInspection) runner.CampaignIn
 
 type wasmCLIProcess struct {
 	pid, parent, group int
-	arguments          string
+	state, arguments   string
 }
 
 func wasmCLIProcesses(t *testing.T) []wasmCLIProcess {
 	t.Helper()
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	output, err := exec.CommandContext(ctx, "ps", "-axo", "pid=,ppid=,pgid=,args=").Output()
+	output, err := exec.CommandContext(ctx, "ps", "-axo", "pid=,ppid=,pgid=,stat=,args=").Output()
 	if err != nil {
 		t.Fatal(err)
 	}
 	var processes []wasmCLIProcess
 	for line := range strings.SplitSeq(string(output), "\n") {
 		fields := strings.Fields(line)
-		if len(fields) < 4 {
+		if len(fields) < 5 {
 			continue
 		}
 		pid, e1 := strconv.Atoi(fields[0])
@@ -268,7 +290,7 @@ func wasmCLIProcesses(t *testing.T) []wasmCLIProcess {
 		if err := errors.Join(e1, e2, e3); err != nil {
 			t.Fatal(err)
 		}
-		processes = append(processes, wasmCLIProcess{pid, parent, group, strings.Join(fields[3:], " ")})
+		processes = append(processes, wasmCLIProcess{pid, parent, group, fields[3], strings.Join(fields[4:], " ")})
 	}
 	return processes
 }
@@ -300,5 +322,5 @@ func wasmPoll(t *testing.T, condition func() bool) {
 }
 
 func (process wasmCLIProcess) String() string {
-	return fmt.Sprintf("pid=%d ppid=%d pgid=%d args=%q", process.pid, process.parent, process.group, process.arguments)
+	return fmt.Sprintf("pid=%d ppid=%d pgid=%d state=%q args=%q", process.pid, process.parent, process.group, process.state, process.arguments)
 }
