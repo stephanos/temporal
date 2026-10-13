@@ -37,7 +37,17 @@ definitions; no independent native process JSON decoder exists.
   exception. Full lintcode tests with actual root/nested policy fixtures pass.
 - `e1d0791e89` binds the combined World/network compiled model to
   `sha256:246f21740b12a0fa680648c3a40778049e136e951d68ef0013731f16f32dc1bf`.
-  The literal identity assertion passes; standalone worker pins are historical.
+  That source passed its literal identity assertion; standalone worker pins are historical.
+- `c8dbb97c11` preserves supplied stall timeout identity through local/process/net
+  and selected descriptor adapters, with closed wire code 22 and pre-narrowing
+  unknown-code rejection. `eda3f1b007` binds that integrated model to
+  `sha256:04d18f1c559ba4dd7896e343332e0181d93657dc979e2f5bd43f485ec6fe2441`.
+  Full protocol/network/projection, identity, all-platform architecture/purity,
+  generated/compatibility validation and scoped lint passed (exit 0).
+  Three-axis source review SHIP is finalized at receipt
+  `/tmp/impl-review-receipt-657da2bc4466-fn-154-gomad-simpler-virtual-network-with.3.json`.
+  Fn154.3 remains open for its explicitly required patched-runtime adapter
+  execution; portable actual-source coverage does not satisfy that gate.
 
 ## Verification and remaining work
 
@@ -47,6 +57,10 @@ network/model projections, portable simulator, both-platform architecture and
 `make -C tools/gomad3 validate` pass. Changed-package fast lint passes with
 fixes disabled; log `/tmp/fn153-18-integrated-fast-lint-20261013.log`.
 Generator log: `/tmp/wasm-rotation-validate-20261013.log`.
+Timeout candidate validation log: `/tmp/fn154-3-frozen-validate-20261013.log`;
+lint log: `/tmp/fn154-3-integrated-lint-20261013.log`. The reviewed source was
+frozen at `7e60601caf`; the first review dispatch was not accepted after a
+tracker-only HEAD movement, and a fresh frozen dispatch supplied the receipt.
 
 The standard `make test-wasm` run completed with exit 0, WASI package 385.042 s,
 on the earlier `0f314174` World model before the allocation and codec changes.
@@ -59,7 +73,10 @@ readers still using handwritten scanners; fn153.20 now owns their required
 library migration and precedes the final cleanup audit. Fn154.3 supplies the
 timeout error transport; later tasks still own connection mechanics, stalls,
 expiry reservations, payload-free history, process/framed-stream behavior and
-the final identity cutover. Fn166 structural/module renames and the integrated
+the final identity cutover. Fn154.2 is implementing the generated config and
+vocabulary against the accepted source interface under the batch-first
+strategy; its provisional admission waives no completion or native gate.
+Fn166 structural/module renames and the integrated
 WASM scheduling, retained replay, installed operator, workload, resource and
 cost gates remain outstanding. No full native gate, PR, push or CI action is
 claimed.

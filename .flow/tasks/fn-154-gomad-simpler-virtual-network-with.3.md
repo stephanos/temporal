@@ -38,6 +38,14 @@ make -C tools/gomad3 generate validate
 
 Patched-runtime selectors require the supported candidate and documented toolchain setup. New selectors named in acceptance are deliverables, not existing-test claims. Keep a missing required gate open; bind each result to the tested source and tool inputs.
 
+
+### Source acceptance checkpoint (2026-10-13)
+
+Integrated implementation c8dbb97c11 and combined model pin eda3f1b007 are source accepted. Root executed full protocol/network/projection tests, all-platform architecture/purity, generated and compatibility validation, scoped lint with fixes disabled and identity check: exit 0. Three fresh-context gpt-6.1-sol/high draws (same GPT family as implementation) returned SHIP; finalized receipt /tmp/impl-review-receipt-657da2bc4466-fn-154-gomad-simpler-virtual-network-with.3.json, rid cf74bdfaa7a34cd88cbeba68acab3b52. First dispatch 8b2b797e... was not accepted because tracker-only HEAD movement violated the finalizer freeze; the second dispatch was frozen and accepted.
+
+The exact patched-runtime adapter selector in this task's Quick commands has NOT executed: this host is linux/arm64 and has no supported patched native toolchain. The portable actual-source fixture is not that native pass. Acceptance remains open here; source-review SHIP is not Flow done. Persistent reset/timing producers remain .4/.6/.7. Task2 is admitted against this integrated interface under the owner batch-first strategy without waiving dependencies at completion or native requirements. Final current-source WASM qualification also remains outstanding.
+
+stage: impl-review - ran (model: gpt-6.1-sol high)
 ## Acceptance
 - [ ] Stall timeout retains stable identity and Timeout classification through each selected adapter.
 - [ ] Supplied timeout and caller-deadline errors remain distinguishable through error transport/wrappers; actual post-reset deadline/read/write persistence belongs to .4/.6.
