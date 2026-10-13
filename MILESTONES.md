@@ -235,8 +235,6 @@ These fn-109 tasks change Runner, artifact, choice-exploration and simulation ow
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-152.4](.flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.4.md) | ⬜ Todo | Integrate durable seed outcomes, scheduling and resume |
-| [fn-152.5](.flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.5.md) | ⬜ Todo | Commit both exploration strategies through one atomic round owner |
 | [fn-152.7](.flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.7.md) | ⬜ Todo | Concatenate source-scoped shard logs after complete preflight |
 | [fn-152.8](.flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.8.md) | ⬜ Todo | Inspect log and corpus state and migrate storage consumers |
 | [fn-152.9](.flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.9.md) | ⬜ Todo | Retain integrated crash evidence and update current storage contracts |
