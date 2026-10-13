@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-152-gomad-runner-storage-on-one-append-only",
-  "completion_review_status": "needs_work",
-  "completion_reviewed_at": "2026-10-13T07:57:30.405574Z",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-13T08:02:37.058378Z",
   "created_at": "2026-10-09T23:27:40.316878Z",
   "default_impl": null,
   "default_review": null,
@@ -13,7 +13,7 @@
     "fn-152-gomad-runner-storage-on-one-append-only.9": 0
   },
   "next_task": 1,
-  "plan_review_rounds": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "ship",
   "plan_reviewed_at": "2026-10-10T13:03:36.424211Z",
   "review_attempts": [
@@ -546,13 +546,57 @@
       "timestamp": "2026-10-13T07:57:30.389623Z",
       "tool_calls": 39,
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "726d7205c058e8e1efadb19f43d5e5cefc1fc1cf8352d4cbd0a82bcc7721b63a",
+      "backend": "codex",
+      "base_sha": "c5d07e5f0ee5469e653e459846e7aaecd7fbd767",
+      "counter_kind": "plan",
+      "effort": "xhigh",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-819617d0eef4159746e5dfe6f79960ba",
+            "classification": "introduced",
+            "findingId": "finding-819617d0eef4159746e5dfe6f79960ba",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e8b5724670a40e3a3801ec25318fdd7238ebaf91",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 4885,
+      "output_sha256": "75142f99cdec429c8fbce5e15bd8c56f28be7a1196d4f410d46153c0f63809c8",
+      "reservation_id": "53a97c1989594b05a3a752cd0efce00a",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-13T08:02:37.047521Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-152-gomad-runner-storage-on-one-append-only.8": 1,
     "impl:fn-152-gomad-runner-storage-on-one-append-only.9": 1,
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -576,5 +620,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-13T07:57:30.411890Z"
+  "updated_at": "2026-10-13T08:02:37.059811Z"
 }
