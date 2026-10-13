@@ -46,3 +46,7 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+## Revival trigger (2026-10-13)
+
+Revived after fn153.13 completed with a SHIP implementation review, satisfying this task's final dependency. The current builder already uses the shared hostfs staging owner after fn153.2, so this is an audit-and-gap pass over the launcher/stamp transaction: retain two-stage-before-publish ordering, modes, guards, failpoint visibility, publication disposition, and cleanup/error identity without redoing the migration. Generated and compatibility outputs remain assigned to fn153.17. The forced local claim is required only because Flow chain admission still sees the completed fn152 parent on an unpushed remote branch; pushing remains outside the requested scope.
