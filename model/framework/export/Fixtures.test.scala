@@ -2756,7 +2756,7 @@ class Fixtures extends munit.FunSuite with RetainedScratch:
     val jar = packaged("retired-rule-case-lifter", materialize(fixture))
     val out = lifted("retired-rule-case-lifter")
     val result = lift(
-      s"$jar=${stored(fixture)}",
+      s"$jar=${stored(fixture)},$modelJar=model/",
       modelClasspath.toString,
       out.toString,
       "fixture.retiredrulecaselifter.Retired"
@@ -3043,18 +3043,20 @@ class Fixtures extends munit.FunSuite with RetainedScratch:
     "a derived machine's and a derived composition's projection is their source's"
   ):
     val tastys = Files.createDirectories(scratch.resolve("phasedTasty"))
-    val zip = java.util.zip.ZipFile(phasedMixinJar.toFile)
-    val files =
+    val indexed = Seq(phasedMixinJar -> stored("phasedMixin"), modelJar -> "model/").zipWithIndex.flatMap { case ((jar, prefix), i) =>
+      val zip = java.util.zip.ZipFile(jar.toFile)
       try
         zip.entries.asScala.toList
           .filter(_.getName.endsWith(".tasty"))
           .map { e =>
-            val to = tastys.resolve(e.getName)
+            val to = tastys.resolve(s"$i/${e.getName}")
             Files.createDirectories(to.getParent)
             Files.copy(zip.getInputStream(e), to): Unit
-            to.toString
+            to.toString -> prefix
           }
       finally zip.close()
+    }
+    val files = indexed.map(_._1).toList
     val classpath = phasedMixinJar.toString +: Files
       .readString(modelClasspath)
       .trim
@@ -3063,7 +3065,7 @@ class Fixtures extends munit.FunSuite with RetainedScratch:
     val roots =
       Seq("Switch", "Stiffer", "Twins", "Lopsided").map("fixture.phased." + _)
     val lifter =
-      Lifter(Target.Roots(roots), files.map(_ -> stored("phasedMixin")).toMap)
+      Lifter(Target.Roots(roots), indexed.toMap)
     bounded(
       scala.tasty.inspector.TastyInspector
         .inspectAllTastyFiles(files, Nil, classpath)(lifter)
@@ -3301,8 +3303,6 @@ class Fixtures extends munit.FunSuite with RetainedScratch:
       String => String,
       String => String
   ) =
-    import com.fasterxml.jackson.databind.JsonNode
-    import com.fasterxml.jackson.databind.node.ObjectNode
     val mapper = new com.fasterxml.jackson.databind.ObjectMapper()
     val pkg = s"fixture.$fixture.${fixture.capitalize}$$package$$"
     val out = lifted(s"$fixture-pairs")
@@ -3316,51 +3316,7 @@ class Fixtures extends munit.FunSuite with RetainedScratch:
     )
     assert(!result.failed, result.diagnostics)
     val model = mapper.readTree(Files.readString(out))
-    def strip(n: JsonNode): Unit =
-      n match
-        case o: ObjectNode =>
-          o.remove(java.util.List.of("position", "source")): Unit
-        case _ => ()
-      n.elements().asScala.foreach(strip)
-    val functions = model
-      .path("functions")
-      .elements()
-      .asScala
-      .map { f =>
-        val body = f.deepCopy[ObjectNode]()
-        body.remove("name")
-        strip(body)
-        f.path("name").asText() -> body
-      }
-      .toMap
-    def deref(o: JsonNode, fields: String*): Unit = o match
-      case o: ObjectNode =>
-        for field <- fields if o.path(field).asText().nonEmpty do
-          o.set(field, functions(o.path(field).asText())): Unit
-      case _ => ()
-    def find(kind: String, name: String): ObjectNode =
-      model
-        .path(kind)
-        .elements()
-        .asScala
-        .find(_.path("name").asText() == name)
-        .getOrElse(fail(s"the $fixture fixture lifted no $kind named $name"))
-        .deepCopy[ObjectNode]()
-    def machine(name: String): String =
-      val m = find("machines", name)
-      m.remove(java.util.List.of("name"))
-      deref(m, "evidence")
-      m.path("steps").elements().asScala.foreach(deref(_, "function"))
-      deref(m.path("refines"), "map", "visible", "visibleOutcomes")
-      strip(m)
-      m.toPrettyString
-    def property(name: String): String =
-      val p = find("properties", name)
-      p.remove(java.util.List.of("name", "machine"))
-      deref(p, "holds")
-      strip(p)
-      p.toPrettyString
-    (model, machine, property)
+    FixtureDeclarations(model, fixture)
 
   // Each derived machine beside the machine it stands for, spelled out (lifts/Derived.scala).
   concurrently(
@@ -3577,90 +3533,6 @@ class Fixtures extends munit.FunSuite with RetainedScratch:
         "press is owned by the facet breaking of crossed and by the facet pressing of agreeing, " +
           "which it refines"
       )
-    )
-
-  // Each sugar form beside its core spelling (lifts/Sugar.scala).
-  concurrently(
-    "enter, stay, disabled, because, in, implies, records and sticky lift as their core forms do"
-  ):
-    val (model, machine, property) =
-      declarations(
-        "sugar",
-        Seq(
-          "fixture.sugar.Sugared",
-          "fixture.sugar.Cored",
-          "claims",
-          "fixture.sugar.Watched"
-        )
-      )
-    assertEquals(machine("sugared"), machine("cored"))
-    for form <- Seq("records", "implies", "paused") do
-      assertEquals(property(s"${form}Sugar"), property(s"${form}Core"), form)
-    // Each sticky monitor beside its `monitor` spelling: one monitor but for its ID, name, position
-    // and the names of its functions, whose bodies are compared in their place.
-    def monitor(name: String): String =
-      import com.fasterxml.jackson.databind.node.ObjectNode
-      val m = model
-        .path("monitors")
-        .elements()
-        .asScala
-        .find(_.path("name").asText() == name)
-        .getOrElse(fail(s"the sugar fixture lifted no monitor named $name"))
-        .deepCopy[ObjectNode]()
-      m.remove(java.util.List.of("id", "name", "position"))
-      m.path("initial") match
-        case i: ObjectNode => i.remove("position"): Unit
-        case _             => ()
-      for field <- Seq("next", "violated") do
-        val f = model
-          .path("functions")
-          .elements()
-          .asScala
-          .find(
-            _.path("name").asText() == m.path(field).asText()
-          )
-          .get
-          .deepCopy[ObjectNode]()
-        f.remove(java.util.List.of("name", "position"))
-        f.findParents("position").asScala.foreach {
-          case o: ObjectNode => o.remove("position"): Unit
-          case _             => ()
-        }
-        m.set(field, f): Unit
-      m.toPrettyString
-    for (sugar, spelled) <- Seq(
-        "refusedOnce" -> "refusedOnceSpelled",
-        "retriedLost" -> "retriedLostSpelled"
-      )
-    do assertEquals(monitor(sugar), monitor(spelled), sugar)
-    assert(
-      monitor("refusedOnce").contains("neverRefused"),
-      monitor("refusedOnce")
-    )
-    val functions = model
-      .path("functions")
-      .elements()
-      .asScala
-      .map(_.path("name").asText())
-      .toList
-    assert(
-      functions.forall(!_.startsWith("framework.")),
-      s"a framework definition was lifted as a function: ${functions.mkString(", ")}"
-    )
-    val resume = model
-      .path("functions")
-      .elements()
-      .asScala
-      .find(_.path("name").asText().endsWith(".resumeSugar"))
-      .get
-    // R4 refuses a whole-case wildcard on a Model enum, and the earlier guarded arm leaves no typed
-    // remainder, so the fallback arm names every case as written.
-    val cases = Seq("idle", "running", "paused", "done")
-      .map(c => s"""{"literal":{"enum":{"type":"fixture.sugar.Phase","case":"$c"}}}""")
-    assertEquals(
-      resume.at("/body/match/cases/1/pattern").toString,
-      s"""{"alternatives":{"patterns":[${cases.mkString(",")}]}}""",
-      "a fallback arm that names every case lifts as their alternatives"
     )
 
   // fn-135.2: each `is { }` val of `Blocked` beside the def of `Defined` it stands for, read by a

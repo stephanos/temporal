@@ -158,7 +158,7 @@ class GapResolutionSuite extends munit.FunSuite:
         val zip = ZipFile(from.toFile)
         try
           zip.entries.asScala
-            .filter(e => e.getName.endsWith(".tasty") && !e.getName.startsWith("framework/"))
+            .filter(e => e.getName.endsWith(".tasty"))
             .map { e =>
               val entry = s"$i/${e.getName}"
               val path = tastyDir.resolve(entry)

@@ -125,6 +125,7 @@ object Coverage extends Registry:
     "framework.dsl.RuleSourceTest" -> framework,
     "framework.dsl.RulesTest" -> framework,
     "framework.dsl.StepTablesTest" -> framework,
+    "framework.dsl.SugarNativeTest" -> framework,
     "framework.dsl.WitnessTest" -> framework,
     // The shared code's suites; the laws, pins and IR files of every compiled feature.
     "framework.dsl.ExportedMachineLawsTest" -> models.everyFeature,
@@ -166,6 +167,8 @@ object Coverage extends Registry:
     "framework.export.BoundedIntegersTest" -> lifter,
     "framework.export.RetiredSpellingsTest" -> lifter,
     "framework.export.TypedDeclarationsTest" -> lifter,
+    "framework.export.DefinitionExpansionTest" -> lifter,
+    "framework.export.SugarFixtures" -> lifter,
     "framework.export.BoundsTest" -> lifter.reading(mini),
     "framework.export.CapabilityNamesTest" -> lifter.reading(mini),
     "framework.lint.ConventionsFixtures" -> lifter.reading(mini),

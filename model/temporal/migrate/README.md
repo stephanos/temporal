@@ -13,6 +13,25 @@ Since 2026-10-13, DSL changes ship a written recipe here; existing rules stay un
 sweep applies them. A new rule is written only when the change is too large to migrate by hand.
 Production loading of the existing rules remains held in fn-166.10.
 
+## Function-body sugar: fn-141.3
+
+Existing `enter`, `stay`, `reject`, `disabled`, membership, implication and step `records` calls
+keep their syntax. A kit sugar definition opts into expansion with `@sugar` in its `Syntax.scala`;
+write its body in liftable core forms and package its definitions beside the Models and framework.
+No exporter name registration is needed. Definition-generated expressions use the call position;
+explicit arguments keep their own positions.
+
+Composition `after.records(_.member, fact)` now tests that exact member's canonical fact key at
+run time too. A call that intended a different member must select that member explicitly; a
+same-named fact from another member no longer satisfies it. No source rewrite or Scalafix rule
+is needed for correctly selected calls. The inline boundary captures only selector metadata;
+the predicate remains a plain marked definition. Witness/rule/block declarations remain open for
+the following definition and constructed-value export tasks.
+Pass the selector directly, `_.member`, rather than through a plain function parameter or selector
+`val`: those forms remain outside the direct-selector admission contract and native capture now
+refuses them too. A kit wrapper can write its selector directly in its marked body. Reusable
+recorded selector data is still an obligation of fn-141.5, not an implicit function-body capture.
+
 ## Typed realization construction: fn-141.2
 
 The typed records remain the factories' results and internal data. Their constructors, generated

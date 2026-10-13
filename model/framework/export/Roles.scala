@@ -166,7 +166,7 @@ private[`export`] trait PhaseRoles:
 
   // `value.isInstanceOf[R]` and `value.in[R]`, as `value.in(<the cases of R>)` lifts.
   def roleTest(value: Term, role: TypeRepr, at: Term): ir.Expr =
-    val cases = roleSet(value.tpe, role, at)
+    val cases = roleSet(instantiated(value.tpe.widen.dealias), role, at)
     binary(ir.Binary.Op.OP_CONTAINS, lift(value), cases, at)
 
   // The type pattern `case _: R` of a `scrutinee`, as the alternatives of the cases of R written

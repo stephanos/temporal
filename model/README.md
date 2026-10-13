@@ -671,6 +671,28 @@ delivery/backoff evidence; its text remains source-only and cannot supply a judg
 fn-166.4 owns lowering/live proof, .5 the complete loop, .6 the Case subtree and .10 the
 production migration loader. The current focused source checks do not close those tasks.
 
+### Function-body sugar
+
+The seven function-body sugar families (`enter`, `stay`, `reject`, `disabled`, `in`, `implies`,
+and step `records`) expand from definitions marked `@sugar`. A kit can add a plain marked
+definition in its `Syntax.scala`, written in the same liftable core subset; the exporter needs
+no name registration. Defaults, contextual values, type arguments, functions and repeated arguments
+are bound at each call. Generated expressions take the call's position, while explicit arguments
+keep their original positions. An unsupported body names the sugar and its definition, and a cycle
+names every definition it passes through.
+Observable by-value arguments are evaluated once in caller order before the body; unused,
+conditional or repeated reads use core `let` bindings. A single unconditional read in caller order
+can substitute the argument directly. By-name arguments remain lazy.
+
+The composition overload keeps `after.records(_.member, fact)`. Its inline boundary captures only
+the typed selector path; it never lifts a function body. A plain definition forms the member's
+canonical fact key and checks membership. Framework definitions and Model/kit definitions share
+one index, while framework sources remain outside author root discovery and source admission.
+The capture point requires a direct selector expression: a plain function parameter or selector
+`val` is opaque and refused both natively and by the lifter. A kit can compose `records(_.member,
+fact)` directly; forwarding recorded selector data remains part of the capture-value work in .5.
+Witness, rule and block declaration sugar is still open for fn-141.4 and constructed-value export.
+
 ### Migration as code
 
 DSL changes ship a task-named Scalafix rule under `model/temporal/migrate/`, prove it on copied `activity_mini` sources with the harness (`FEATURES=activity_mini model/framework/migrate/prove.sh <runner>`, [README](framework/migrate/README.md)) before the real-feature sweep, and follow `model/temporal/migrate/README.md`; production loading remains held in fn-166.10.

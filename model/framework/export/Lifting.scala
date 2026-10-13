@@ -15,6 +15,7 @@ final private[`export`] class Lifting(val ctx: Context)
       Capabilities,
       Gaps,
       Syntax,
+      Expansion,
       PhaseRoles:
   import ctx.*
   import ctx.quotes.reflect.*

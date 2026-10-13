@@ -15,7 +15,7 @@ final private[`export`] class Context(val index: Index):
   given CanEqual[Symbol, Symbol] = CanEqual.derived
   given CanEqual[Term, Term] = CanEqual.derived
 
-  val defs: collection.Map[Symbol, Definition] = index.defs
+  val defs: collection.Map[Symbol, Definition] = index.defs.filterNot((sym, _) => sym.fullName.startsWith("framework."))
   val sourceRoots: collection.Map[String, String] = index.sourceRoots
   // A function of the lifted sources: a def, or a section member a block declares (`blockVal`).
   def isFunction(sym: Symbol): Boolean = defs.get(sym) match
@@ -139,6 +139,8 @@ final private[`export`] class Context(val index: Index):
   // And the value each of its value parameters is bound to, such as an outcome, a fact or an action
   // class, which an expression or a class reads in its place.
   var boundValues = Map.empty[Symbol, Term] // scalafix:ok DisableSyntax.var
+  var boundExpressions = Map.empty[Symbol, ir.Expr] // scalafix:ok DisableSyntax.var
+  private var boundValuePositions = Map.empty[Symbol, Option[ir.Position]] // scalafix:ok DisableSyntax.var
   var boundPhasings = Map.empty[Symbol, (Term, String)] // scalafix:ok DisableSyntax.var
 
   // A member's def read from the composed state, `through(select, read)`: the function
@@ -166,15 +168,18 @@ final private[`export`] class Context(val index: Index):
       phasings: Map[Symbol, (Term, String)] = Map.empty
   )(body: => A): A =
     val (fs, ts, vs, ps) = (boundFunctions, boundTypes, boundValues, boundPhasings)
+    val positions = boundValuePositions
     boundFunctions = fs ++ functions
     boundTypes = ts ++ types
     boundValues = vs ++ values
+    boundValuePositions = positions ++ values.keys.map(_ -> placedAt)
     boundPhasings = ps ++ phasings
     try body
     finally
       boundFunctions = fs
       boundTypes = ts
       boundValues = vs
+      boundValuePositions = positions
       boundPhasings = ps
 
   // While a capability Property is expanded: the generated `<machine>.<property>` name it takes,
@@ -245,8 +250,8 @@ final private[`export`] class Context(val index: Index):
 
   // TASTy records a source path relative to the build that compiled it; the prefix makes it
   // relative to the repository. A tree the lifter builds itself, such as the block left after a
-  // `require`, has no span. Framework TASTy is deliberately not inspected, but a lifted expression
-  // may still retain a position in it; those sources live under model/framework.
+  // `require`, has no span. Framework definitions are indexed for expansion, but only author
+  // sources supply declarations; framework sources live under model/framework.
   // The prefix is the one of the jar the source came from.
   def pos(t: Tree): ir.Position = placedAt.getOrElse(written(t))
 
@@ -275,6 +280,18 @@ final private[`export`] class Context(val index: Index):
     finally placedAt = was
 
   def where(t: Tree): String = s"${written(t).file}:${written(t).line}"
+  def unplacing[A](body: => A): A =
+    val was = placedAt
+    placedAt = None
+    try body
+    finally placedAt = was
+
+  def argumentAt[A](sym: Symbol)(body: => A): A =
+    val was = placedAt
+    placedAt = boundValuePositions.getOrElse(sym, None)
+    try body
+    finally placedAt = was
+
   def fail(t: Tree, message: String): Nothing =
     val section = Iterator
       .iterate(t.symbol)(_.maybeOwner)

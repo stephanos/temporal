@@ -74,9 +74,9 @@ final private[framework] class Index(using val quotes: Quotes)(
           past(start)
       case _ => start
 
-  // Each inspected file's typed tree, in the order the files were given, for the declaration-order
+  // Each author file's typed tree, in the order the files were given, for the declaration-order
   // lint (Order.scala), which reads whole files rather than declarations.
-  val trees: List[Tree] = tastys.map(_.ast)
+  val trees: List[Tree] = tastys.filterNot(_.path.matches(".*[ /]framework/.*")).map(_.ast)
   for t <- tastys do
     object index extends TreeTraverser:
       override def traverseTree(tree: Tree)(owner: Symbol): Unit =

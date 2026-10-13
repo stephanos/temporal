@@ -28,22 +28,22 @@ object Ok:
 
 // One step with the ok outcome into `state`, recording `facts`. Core form:
 // `List(Step(Outcome.accepted, state, List(facts*)))`.
-def enter[S, O, F](state: S, facts: F*)(using ok: Ok[O]): List[Step[S, O, F]] =
+@sugar def enter[S, O, F](state: S, facts: F*)(using ok: Ok[O]): List[Step[S, O, F]] =
   List(Step(ok.outcome, state, facts.toList))
 
 // One step with the ok outcome that keeps the state and records nothing. Core form:
 // `List(Step(Outcome.accepted, s))`.
-def stay[S, O, F](s: S)(using ok: Ok[O]): List[Step[S, O, F]] =
+@sugar def stay[S, O, F](s: S)(using ok: Ok[O]): List[Step[S, O, F]] =
   List(Step(ok.outcome, s))
 
 // One step with the outcome `outcome` that keeps the state and records nothing, such as a request
 // the machine refuses: `reject(Outcome.notFound, s)`. Core form: `List(Step(Outcome.notFound, s))`.
-def reject[S, O](outcome: O, s: S): List[Step[S, O, Nothing]] = List(
+@sugar def reject[S, O](outcome: O, s: S): List[Step[S, O, Nothing]] = List(
   Step(outcome, s)
 )
 
 // No step: the action is disabled here. Core form: `Nil`.
-val disabled: List[Nothing] = Nil
+@sugar val disabled: List[Nothing] = Nil
 
 // The outcomes shared by every machine whose steps answer a request, accepted or rejected for a
 // reason, which a machine adopts by name, `import framework.dsl.outcomes.{Outcome, Rejection}`, in place of
@@ -216,30 +216,34 @@ def reject[S, O, F](using draft: Draft[S, O, F])(outcome: O): Unit =
 
 // `phase.in(a, b, c)`: whether the value is one of the members listed, of which there is at least
 // one. Written dotted, never infix. Core form: `List(a, b, c).contains(phase)`.
-extension [A](value: A) def in(first: A, rest: A*): Boolean = (first +: rest).contains(value)
+extension [A](value: A) @sugar def in(first: A, rest: A*): Boolean = (first +: rest).contains(value)
 
 // `phase.in[Closed]`: whether the phase has the role `Closed` (model/framework/dsl/Roles.scala), the roles
 // its case declares and the broader ones they extend. Written dotted, never infix. Core form:
 // `List(<the cases of Closed, in declaration order>).contains(phase)`.
 extension [A](value: A)
-  def in[R](using role: TypeTest[A, R]): Boolean = role.unapply(value).nonEmpty
+  @sugar def in[R](using role: TypeTest[A, R]): Boolean = role.unapply(value).nonEmpty
 
 // `a implies b`: `b` holds wherever `a` does. `b` is read only where `a` holds, so a hole it reaches
 // is not reached where `a` is false. Core form: `!a || b`.
-extension (a: Boolean) infix def implies(b: => Boolean): Boolean = !a || b
+extension (a: Boolean) @sugar infix def implies(b: => Boolean): Boolean = !a || b
 
 // `after.records(fact)`: whether the step records the fact, which is of the step's own fact type:
 // a step's facts are covariant, so the evidence keeps a fact of another type from widening it.
 // Core form: `after.facts.contains(fact)`.
 extension [S, O, F](step: Step[S, O, F])
-  def records[G](fact: G)(using G <:< F): Boolean = step.facts.contains(fact)
+  @sugar def records[G](fact: G)(using G <:< F): Boolean = step.facts.contains(fact)
 
 // `after.records(_.member, fact)`: whether a composition's step records the fact of the member the
 // selector names, the composition form of `after.records(fact)`. Core form:
 // `after.facts.contains("member_fact")`, the composed key `<field>_<fact>` a composition records.
 extension [S, O](step: Step[S, O, String])
-  def records[M](@unused member: S => M, fact: Any): Boolean =
-    step.facts.exists(_.endsWith(s"_$fact"))
+  @sugar inline def records[M](inline member: S => M, fact: Any): Boolean =
+    recorded(step, MemberPath.capture(member, fact), fact)
+
+// A captured member's exact composed fact key. Core form: `step.facts.contains(key)`.
+@sugar private[framework] def recorded[S, O](step: Step[S, O, String], member: MemberPath, fact: Any): Boolean =
+  step.facts.contains(s"${member.field}_${valueKey(fact)}")
 
 // `m.witness(a, b).records(fact)`: one path-and-outcome declaration, implicitly on the enclosing
 // machine or composition. Its default search budget is 512, with depth and schedule length equal
@@ -936,12 +940,12 @@ abstract class Rules[S, O, F, P](using
       names(a.decl) = label
 
   // `phase.in(a, b)` in a condition, as outside the rules. Core form: `List(a, b).contains(phase)`.
-  extension [A](value: A) def in(first: A, rest: A*): Boolean = (first +: rest).contains(value)
+  extension [A](value: A) @sugar def in(first: A, rest: A*): Boolean = (first +: rest).contains(value)
 
   // `phase.in[Closed]` in a condition, as outside the rules. Core form:
   // `List(<the cases of Closed, in declaration order>).contains(phase)`.
   extension [A](value: A)
-    def in[R](using role: TypeTest[A, R]): Boolean =
+    @sugar def in[R](using role: TypeTest[A, R]): Boolean =
       role.unapply(value).nonEmpty
 
   private[framework] def table: Vector[(ActionDecl, Bound[S, O, F])] =
@@ -1009,3 +1013,6 @@ private[framework] def derivedRules[S, O, F, I <: Tuple](
   )
   cases(using firing)
   RuleGroup(rules.toVector)
+
+// A plain definition expanded from its body where a lifted function calls it. Core form: its `body`.
+final class sugar extends scala.annotation.StaticAnnotation

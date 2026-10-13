@@ -1210,6 +1210,24 @@ Sugar lives only in the `Syntax.scala` files (framework, kit, IR generator), eac
 `Core form:`, and a fixture lifts it beside that spelling and requires the same IR. No core file
 imports sugar; `make lint-model` checks it.
 
+Function-body `enter`, `stay`, `reject`, `disabled`, both membership forms, `implies` and step
+`records` are marked `@sugar`. The lifter expands their indexed definitions with the supplied
+types, values and functions bound; adding a marked kit definition requires no exporter registration.
+Generated nodes take the call's position, and explicit arguments keep their source positions.
+An unsupported definition names its definition position; recursive expansion names the cycle.
+Observable by-value arguments retain eager, once-only evaluation in caller order through core
+`let` bindings where substitution would drop, delay, duplicate or reorder a read. By-name arguments
+remain under the definition's short-circuit or conditional control.
+
+Composition `records(_.member, fact)` has a thin inline selector capture point. It records the
+typed field path, without executing or lifting the selector. The core capture validates the selected
+member and its fact type; a plain marked definition builds the canonical exact member key and tests
+the step's facts. Equal states and identically named facts of another member cannot satisfy it.
+Capture requires a direct field-selector expression at the call site. Plain selector parameters
+and selector `val` references are opaque and refused, rather than assigning invented metadata.
+Declaration-level witnesses, rules and blocks remain open in fn-141.4 and constructed-value export;
+they are not exceptions to the final definition-only sugar contract.
+
 `Bindings` has no current mini/shared/kit/sample author use. Its core fixtures are reserved for
 fn-141.3/.4's sugar equivalence proofs, with retirement still open at constructed `RuleBook` export
 in fn-141.10/.14. The fn-141.2 checkpoint does not close that obligation.

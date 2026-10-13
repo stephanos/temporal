@@ -15,9 +15,9 @@ import scalapb.descriptors.{
   ScalaType
 }
 
-// The lifting of the framework's sugar (model/framework/dsl/Syntax.scala). The lifter does not inline a
-// framework body, so each sugar form is matched here by its definition and lowered to the IR its core
-// form lifts to; the lifter's tests lift both spellings and require the same IR. The block forms
+// Declaration-level sugar still open for definition and constructed-value export. Function-body
+// definitions expand through Expansion.scala; this file retains declaration and block forms,
+// whose fixtures lift both spellings and require the same IR. The block forms
 // lift as the functions their method forms give: an `is { ... }` section val as its predicate
 // (`blockFunction`, Expressions.scala) and an `effect { ... }` one as its steps (`effectSteps`),
 // which record the status a phase's case declares when the block assigns it.
@@ -304,14 +304,7 @@ private[`export`] trait Syntax:
       sugarCall(inner).collect { case ("enters", _) => (inner, state) }
     case _ => None
 
-  // Hook: a sugar form lifted to the IR of its core form. Core form: `enter(s, f)` lifts as
-  // `List(Step(Outcome.accepted, s, List(f)))`, `stay(s)` as `List(Step(Outcome.accepted, s))`,
-  // `reject(Outcome.notFound, s)` as `List(Step(Outcome.notFound, s))`,
-  // `disabled` as `Nil`, `x.in(a, b)` as `List(a, b).contains(x)`, `x.in[Closed]` as
-  // `x.isInstanceOf[Closed]`, `a implies b` as `!a || b`,
-  // `after.records(f)` as `after.facts.contains(f)` and a composition's `after.records(_.member, f)`
-  // as `after.facts.contains("member_f")`. The blocks `is { ... }` and `effect { ... }` are not
-  // lifted here but as section vals, by `blockFunction` and `effectSteps`.
+  // The function-valued rule effect remains open for declaration-level expansion.
   def sugar(t: Term): ir.Expr = sugarCall(t) match
     case _ if entersApplied(t).nonEmpty =>
       val (call, state) = entersApplied(t).get
@@ -322,62 +315,6 @@ private[`export`] trait Syntax:
         "enters(...) is a step function of the state: a rule's effect, `when(...) ~> " +
           "enters(Phase.x)`, or applied to the state in a step function, `enters(Phase.x)(s)`"
       )
-    case Some(("enter", List(List(state, facts), List(ok)))) =>
-      list(
-        Seq(
-          step(outcomeOf(ok, "enter"), lift(state), lift(facts), text("", t), t)
-        ),
-        t
-      )
-    case Some(("stay", List(List(state), List(ok)))) =>
-      list(
-        Seq(
-          step(outcomeOf(ok, "stay"), lift(state), list(Nil, t), text("", t), t)
-        ),
-        t
-      )
-    case Some(("reject", List(List(outcome, state)))) =>
-      list(
-        Seq(step(lift(outcome), lift(state), list(Nil, t), text("", t), t)),
-        t
-      )
-    case Some(("disabled", Nil))                  => list(Nil, t)
-    case Some(("in", List(List(value), List(_)))) =>
-      roleTest(value, typeArgs(t).head, t)
-    case Some(("in", List(List(value), List(first, rest)))) =>
-      val member = typeArgs(t).headOption
-      val members = rest match
-        case Typed(Repeated(items, _), _) => first :: items
-        case other                        =>
-          fail(
-            other,
-            "in lists its members, so a list passed as `xs*` has no IR form: write them out"
-          )
-      binary(
-        ir.Binary.Op.OP_CONTAINS,
-        lift(value),
-        list(members.map(lift(_, member)), t),
-        t
-      )
-    case Some(("implies", List(List(a), List(b)))) =>
-      binary(
-        ir.Binary.Op.OP_OR,
-        expr(t)(E.Unary(ir.Unary(ir.Unary.Op.OP_NOT, Some(lift(a))))),
-        lift(b),
-        t
-      )
-    // A composition's step records the member's fact under the composed key `<field>_<fact>`.
-    case Some(("records", List(List(after), List(member, fact)))) =>
-      val facts = expr(t)(E.Field(ir.FieldAccess(Some(lift(after)), "facts")))
-      binary(
-        ir.Binary.Op.OP_CONTAINS,
-        text(composedFact(member, fact, t), t),
-        facts,
-        t
-      )
-    case Some(("records", List(List(after), List(fact), _))) =>
-      val facts = expr(t)(E.Field(ir.FieldAccess(Some(lift(after)), "facts")))
-      binary(ir.Binary.Op.OP_CONTAINS, lift(fact), facts, t)
     case _ => fail(t, s"outside the liftable subset: ${t.show}")
 
   // A statement of an `effect { ... }` block: a field assignment by its setter, `phase = p`, which
@@ -1222,53 +1159,6 @@ private[`export`] trait Syntax:
             s"an input supplied by name is written `token := value` in the call, not $written"
           )
 
-  // The composed key of the fact a composition's `after.records(_.member, fact)` reads,
-  // `<field>_<fact>`. The selector is one field of the composed state, and where a lifted
-  // composition of that state exists, a member fills the field and records facts of the fact's type.
-  private def composedFact(member: Term, fact: Term, at: Term): String =
-    val (field, state) = lambda(member)
-      .collect { case (List(p), body) => (fieldPath(p, body), p.tpt.tpe) }
-      .collect { case (Some(List(field)), tpe) =>
-        (field, instantiated(tpe).widen.dealias)
-      }
-      .getOrElse(
-        fail(
-          at,
-          "records reads the facts of the member one field of the composed state names, such as " +
-            s"`_.activity`, not ${written(member)}"
-        )
-      )
-    val value = literalValue(fact)
-    val factType = value.kind match
-      case ir.Value.Kind.Enum(e) => e.`type`
-      case _                     => irTypeName(fact.tpe.widen.dealias.typeSymbol)
-    for c <- compositions.values if c.stateType == irTypeName(state.typeSymbol)
-    do
-      val m = c.members
-        .find(_.field == field)
-        .getOrElse(
-          fail(
-            at,
-            s"records reads the facts of $field, and no member of ${c.name} fills it"
-          )
-        )
-      for machine <- machineNamed(m.machine) if machine.factType != factType
-      do
-        val records =
-          if machine.factType.isEmpty then "no" else machine.factType
-        fail(
-          at,
-          s"records reads the $factType fact ${valueKey(value)} of $field, and its member " +
-            s"${m.machine} records $records facts"
-        )
-    s"${field}_${valueKey(value)}"
-
-  // A selector as it was written: the compiler names the parameter of `_.field`.
-  private def written(selector: Term): String = lambda(selector)
-    .collect { case (List(p), body) => fieldPath(p, body) }
-    .flatten
-    .fold(selector.show)(path => ("_" +: path).mkString("`", ".", "`"))
-
   // The claim patterns: the words that begin one on a PropertyBuilder, and the word that finishes
   // each, a method of the class the beginning returns.
   private val finishers =
@@ -1489,41 +1379,3 @@ private[`export`] trait Syntax:
       .collect { case (List(p), body) => fieldPath(p, body) }
       .flatten
       .orElse(forwardedDef(x).flatMap(defPath))
-
-  // The shared outcomes of the framework (framework.dsl.outcomes), which no lifted source declares.
-  private lazy val sharedOutcome =
-    Symbol.requiredClass("framework.dsl.outcomes.Outcome")
-
-  // The outcome a `given Ok[O] = Ok(o)` names: `o`; for the shared outcomes, the framework's own
-  // given, `Outcome.accepted`.
-  private def outcomeOf(ok: Term, form: String): ir.Expr =
-    val shared = ok match
-      case r: Ref
-          if resolveSymbol(r).maybeOwner == Symbol
-            .requiredModule("framework.dsl.Ok")
-            .moduleClass =>
-        Some(
-          enumLiteral(sharedOutcome.companionModule.fieldMember("accepted"), ok)
-        )
-      case _ => None
-    shared.getOrElse(declaredOutcome(ok, form))
-
-  private def declaredOutcome(ok: Term, form: String): ir.Expr =
-    val declared = ok match
-      case r: Ref =>
-        defs.get(resolveSymbol(r)) match
-          case Some(ValDef(_, _, Some(rhs)))      => Some(rhs)
-          case Some(DefDef(_, Nil, _, Some(rhs))) => Some(rhs)
-          case _                                  => None
-      case other => Some(other)
-    declared.map(arguments) match
-      case Some(Apply(fn, List(outcome)))
-          if fn.symbol.name == "apply" &&
-            fn.symbol.owner.companionClass.fullName == "framework.dsl.Ok" =>
-        lift(outcome)
-      case _ =>
-        fail(
-          ok,
-          s"$form answers the outcome a `given Ok[O] = Ok(o)` of the lifted sources names, " +
-            s"not ${ok.show}"
-        )

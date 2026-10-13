@@ -324,7 +324,7 @@ object LiftRun:
       val tastys = specs.zipWithIndex.flatMap { case ((jar, prefix), i) =>
         val zip = ZipFile(jar)
         zip.entries.asScala
-          .filter(e => lifted(e.getName) && e.getName.endsWith(".tasty"))
+          .filter(e => e.getName.endsWith(".tasty"))
           .map { e =>
             val entry = s"$i/${e.getName}"
             val p = scratch.resolve(entry)
@@ -403,9 +403,6 @@ private def duplicateProperties(
         )
       )
     }
-
-// Whether a jar entry is of the lifted sources: a Model's, never the framework's.
-private def lifted(entry: String): Boolean = !entry.startsWith("framework/")
 
 // Jackson's indented layout, with a field's value after `": "` as ProtoJSON is usually written.
 final private class Pretty extends DefaultPrettyPrinter:
