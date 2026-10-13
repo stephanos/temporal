@@ -11,9 +11,10 @@ The WASM backend lives in `tools/gomad3/backends/wasm` and shares its
 campaign, artifact, replay, and choice owners. The completed
 [fn-151](.flow/specs/fn-151-wasm-gomad-execution-backend.md) determinism prototype recorded
 **GO** on 2026-10-10 ([report](.flow/artifacts/fn151-prototype-report-2026-10-10.md));
-[fn-156](.flow/specs/fn-156-wasm-gomad-productionization.md) productionizes it, starting with `.8`.
-Read [the WASM README](tools/gomad3/backends/wasm/README.md) before working on that backend;
-`make -C tools/gomad3/backends/wasm prototype` revalidates the prototype.
+[fn-156](.flow/specs/fn-156-wasm-gomad-productionization.md) productionized it (completed
+2026-10-13). Read [the WASM README](tools/gomad3/backends/wasm/README.md) before working on that
+backend; [the WASM section acceptance evidence](.flow/artifacts/wasm-section-acceptance-2026-10-12.md)
+lists the gates a shared-owner change must pass.
 
 ## Work tracking
 
@@ -31,8 +32,6 @@ Both platforms remain unverified for the current candidate until their owners re
 No PR, push or CI action is authorized by the deferral or its revival.
 fn-151 migrated from the retired `temporal_wasm` checkout on 2026-10-10 and is complete;
 both backends are developed together here, and `tools/gomad3` remains a shared owner.
-The GO decision was recorded under the owner's instruction to follow Claude's
-recommendations; the owner may override it before fn-156 work starts.
 List only unfinished tasks of each open spec below; completed tasks and their evidence
 remain in Flow and Git history. Remove empty spec sections. Keep descriptions to one line and
 spec sections to task tables—no progress prose. Refresh statuses from `flowctl list --json`;
@@ -53,21 +52,20 @@ and [search-path findings](.flow/specs/fn-114-gomad-correct-search-path-defects-
 ## Immediate delivery order
 
 Owner execution scope: complete the WASM section. The
-[fn-164 layout](.flow/specs/fn-164-gomad-backend-layout-shared-core-with.md) and
-[fn-165 checker](.flow/specs/fn-165-gomad-architecture-checks-structural.md) batches
-were completed on 2026-10-12
-([evidence](.flow/artifacts/wasm-section-acceptance-2026-10-12.md)).
-[fn-156: WASM productionization](.flow/specs/fn-156-wasm-gomad-productionization.md)
-is the active WASM spec; qualify it on one frozen integrated candidate. The
-shared-owner queue in the WASM section (fn-109 shared subset, fn-152, fn-153,
-fn-154) follows fn-156.
+[fn-164 layout](.flow/specs/fn-164-gomad-backend-layout-shared-core-with.md),
+[fn-165 checker](.flow/specs/fn-165-gomad-architecture-checks-structural.md) and
+[fn-156 productionization](.flow/specs/fn-156-wasm-gomad-productionization.md)
+batches were completed on 2026-10-12/13; fn-156 was qualified on final candidate
+`9d6012b52b` ([evidence](.flow/artifacts/wasm-section-acceptance-2026-10-12.md)).
+The shared-owner queue in the WASM section (fn-166, fn-109 shared subset, fn-152,
+fn-153, fn-154) is next.
 Preserve prior evidence under its original identities, without claiming it
 qualifies changed runtime inputs. Remove completed task rows only after verified
 Flow completion. Native deferrals, qualification resource limits, and PR, push
 and CI restrictions remain in force.
 
 Owner performance decision (2026-10-11): accept the measured 2.911x workflow
-execution speedup for now; the previous all-workload 5x target no longer blocks
+execution speedup for now (final fn-156 matched costs: workflow 3.739x, activity 4.636x); the previous all-workload 5x target no longer blocks
 fn-156 completion. Defer further speedup optimization. Preserve current-source
 cost measurement, correctness/replay, scheduling, source/review and resource gates.
 The measured full-wall ratio was 0.694x, not an end-to-end speedup.
@@ -212,26 +210,9 @@ CI, PR, or push authority.
 
 ## WASM
 
-### Productionization — [fn-156](.flow/specs/fn-156-wasm-gomad-productionization.md)
+### Shared-owner queue
 
-Owner-approved verification cadence (2026-10-11, revised): implement fn-156 as one coherent batch. During iteration, run only the regressions needed for the current change; do not require broad architecture/package gates, independent reviews or qualification-preparation packets after each fix or task. Intermediate broken states and provisional dependent interfaces are allowed. Run broad source/package/lint checks, mandatory runtime/workload qualification and independent review once on the stable final integrated candidate, then complete tasks against that shared evidence. After a review fix, rerun affected checks unless shared inputs invalidate broader evidence. Final acceptance scope, including 32×100 scheduling qualification, fresh exact replay and qualification resource limits, remains intact; optional experiments stay deferred. Use proportionate bounded budgets for ordinary source-only development tests, not the qualification envelope.
-
-Owner gate-budget decision (2026-10-12): drop the fn-151 prototype gates from final acceptance; scheduling qualification is 32×25 plus 32 exact replays; the retained-artifact gate uses 20 fresh replays; matched costs measure two suites with four alternating seeds; independent gates may run concurrently and cost measurements alone. Run the full guest tier once after the final independent review.
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-156.8](.flow/tasks/fn-156-wasm-gomad-productionization.8.md) | 🚧 In progress | Review fixes integrated in candidate 0e3eb30e; source gates and `test-wasm` passed; guest gates and matched costs running |
-| [fn-156.1](.flow/tasks/fn-156-wasm-gomad-productionization.1.md) | 🚧 In progress | Passed 32×100 on 6283a4ec; candidate 0e3eb30e rerun running (helper identity changed) |
-| [fn-156.2](.flow/tasks/fn-156-wasm-gomad-productionization.2.md) | 🚧 In progress | Resume/fresh-campaign validation fixed; installed positive minimization passed; candidate 0e3eb30e rerun running |
-| [fn-156.3](.flow/tasks/fn-156-wasm-gomad-productionization.3.md) | 🚧 In progress | Temporal crash/reopen passed on 6283a4ec; SQLite supplementary gates and candidate 0e3eb30e rerun running |
-| [fn-156.4](.flow/tasks/fn-156-wasm-gomad-productionization.4.md) | 🚧 In progress | Named Temporal reset/retry exact replay passed on 6283a4ec; candidate 0e3eb30e rerun running |
-| [fn-156.5](.flow/tasks/fn-156-wasm-gomad-productionization.5.md) | 🚧 In progress | Two-cluster recovery passed on 6283a4ec; installed-helper-only replay integrated; candidate 0e3eb30e rerun running |
-| [fn-156.6](.flow/tasks/fn-156-wasm-gomad-productionization.6.md) | 🚧 In progress | One-box `invalid_input` fixed; full workload corpus on candidate 0e3eb30e running; matched costs pending |
-| [fn-156.7](.flow/tasks/fn-156-wasm-gomad-productionization.7.md) | 🚧 In progress | Installed operator gate passed; review documentation fixes integrated; candidate 0e3eb30e rerun running |
-
-### Shared-owner queue after fn-156
-
-Owner decision (2026-10-12): these deferred specs change owners the WASM backend shares, so they move into the WASM queue after fn-156. Work them in this order: fn-166 tasks 1–5 and 9 (identity-neutral structure and test layout), the fn-109 shared subset (Runner orchestration split and portable scripted Runner coverage first), then fn-152, then fn-153, fn-154 and fn-166 tasks 6–8 and 10 as one batch (including the owner-approved fn-109.14 volume/process codec and fn-153 strict-JSON and host-helper amendments) so their codec, projection, rename and identity rotations need a single WASM requalification. Each shared-owner change requires the WASM gates in the [acceptance evidence](.flow/artifacts/wasm-section-acceptance-2026-10-12.md) to pass on the integrated candidate. Record each revived task's revival trigger in its Flow task before implementation.
+Owner decision (2026-10-12): these deferred specs change owners the WASM backend shares, so they form the WASM queue. Work them in this order: fn-166 tasks 1–5 and 9 (identity-neutral structure and test layout), the fn-109 shared subset (Runner orchestration split and portable scripted Runner coverage first), then fn-152, then fn-153, fn-154 and fn-166 tasks 6–8 and 10 as one batch (including the owner-approved fn-109.14 volume/process codec and fn-153 strict-JSON and host-helper amendments) so their codec, projection, rename and identity rotations need a single WASM requalification. Each shared-owner change requires the WASM gates in the [acceptance evidence](.flow/artifacts/wasm-section-acceptance-2026-10-12.md) to pass on the integrated candidate. Record each revived task's revival trigger in its Flow task before implementation.
 
 ### Readable package structure — [fn-166](.flow/specs/fn-166-gomad-readable-package-structure-and.md)
 
