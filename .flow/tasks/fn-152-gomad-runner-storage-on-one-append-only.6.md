@@ -39,9 +39,10 @@ Follow the parent spec's Delivery and verification section. Retain exact selecto
 - [ ] R8: old corpus layouts and malformed/unknown new lineage fail clearly before mutation; parked largest-corpus memory/replay/log-growth measurement stays empirical unless actual retained input exists.
 
 ## Done summary
-TBD
+The guided corpus is a logstore log (gomad3.guide-corpus-log/v1: header plus one-transaction admission records with evictions, generation, and coverage and snapshot hashes) replayed into a bounded live hash index. corpus.json and corpus.lock are gone; old layouts and unknown lineage are refused before mutation. Count, ranking, the 1 GiB rule and the snapshot golden are unchanged; history bytes are reported separately; live cases are validated before SweepOwnedRoot cleanup. Failure sets unchanged; integrated test-wasm passes.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 54754dfd28
+- Tests: go test -race ./runner/internal/corpus, go test ./runner ./cmd/gomad/... failure-set comparison, make -C tools/gomad3 test-wasm (integrated), architecture selection, lint-code-fast, evidence: .flow/artifacts/wasm-section-acceptance-2026-10-12.md
 - PRs:
