@@ -19,9 +19,10 @@ Root admits this source-only decomposition under [the isolated admission](../art
 
 
 ## Done summary
-TBD
+Local campaign orchestration decomposed: runner_local.go functions are at most about 100 lines, and validateCampaignRequest (231 lines) is split into nine named steps with identical error text and precedence (new TestCampaignRequestValidationStepPrecedence, also green on the old source). Exploration orchestration functions over 150 lines are rewritten by fn-152.5's shared round owner, which carries the length limit. Runner/CLI failure set unchanged; native gates transfer to fn-128/fn-149.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: e7cf327405, 1bb3b85317
+- Tests: go test ./runner ./cmd/gomad/... failure-set comparison, architecture selection, lint-code-fast, make -C tools/gomad3 validate, evidence: .flow/artifacts/wasm-section-acceptance-2026-10-12.md
 - PRs:

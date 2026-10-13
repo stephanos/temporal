@@ -37,6 +37,7 @@ Follow the parent spec's Delivery and verification section. Retain exact selecto
 - [ ] R3: scripted uninterrupted/resumed comparisons enumerate every round append/sync failpoint, cancellation/watchdog/policy transitions and parallel completion orders for both strategies.
 - [ ] R3/R4: test identities distinguish logical round/candidate/ordinal even when every exploration candidate uses the same numeric base seed; committed rounds never rerun and interrupted rounds rerun in full.
 - [ ] R7: referenced round artifacts are durably published before commit and uncommitted round files are removable only under campaign ownership.
+- Carried from fn-109.63 (2026-10-13): after the shared round owner lands, no local exploration orchestration function (`runChoiceExplorationLocal`, `runSimulationExplorationLocal`, `processExplorationCompletion`, `processSimulationExplorationCompletion`) exceeds about 150 lines.
 
 ## Done summary
 TBD
