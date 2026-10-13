@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"io"
 
-	qualificationset "go.temporal.io/server/tools/gomad3/backends/native/qualification/set"
+	qualificationset "go.temporal.io/server/tools/gomad3/internal/backends/native/qualification/set"
 )
 
 type qualifySetDependencies struct {

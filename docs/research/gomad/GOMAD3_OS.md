@@ -145,7 +145,7 @@ and ordered campaign commits
 The current descriptor and I/O manifest support only `darwin/arm64`
 ([descriptor](../../../tools/gomad3/toolchain/version/version.json)). Replay requires
 the artifact host and target platform to match the current process
-([replay check](../../../tools/gomad3/runner/replay_operation.go)). Linux support is
+([replay check](../../../tools/gomad3/internal/runner/replay_operation.go)). Linux support is
 therefore a new qualified platform bundle and artifact identity, not
 cross-platform replay of existing Darwin artifacts.
 

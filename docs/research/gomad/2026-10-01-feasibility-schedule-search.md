@@ -95,7 +95,7 @@ Kinds are enumerated in `overlay/src/runtime/gomad_choicewire_generated.go:14-16
 - Map hash seeds, `rand`/`cheaprand` consumers on the P (`patch:614-647`; `gomad.go:375-404`).
 - `time.Now` forward ticks (`gomad.go:123-170`).
 - World equivalent-event order: stateless HMAC rank, never a runtime choice
-  (`tools/gomad3/world/choice.go:9-20`).
+  (`tools/gomad3/internal/model/world/choice.go:9-20`).
 
 **Not choices at all (deterministic policy).** [V]
 
@@ -186,7 +186,7 @@ a prohibited patch area.
 Runtime side of such a hook: a new decision kind whose alternatives are "continue" plus the run
 queue, followed by `goyield`-style requeue to the *local* queue. All of that is overlay code in
 `gomad.go`; it needs no new patch hunk if it is reached through a linknamed entry point. It does
-need a choice-wire version bump (`tools/gomad3/choice/schema/choicewire.json`), which changes the
+need a choice-wire version bump (`tools/gomad3/internal/model/choice/schema/choicewire.json`), which changes the
 choice implementation identity (`choice/trace.go:100-116`).
 
 ### Patch-policy constraints
@@ -291,7 +291,7 @@ There is a seam, and the decision does not have to come from a tape. [V]
   Recording and exact replay are unaffected because replay is by identity.
 - Policy selection has a precedent: `GOMAD3_CLOCK_TICK` is read in `gomadClockTickInit`
   (`gomad.go:140-151`) and is bound into Campaign/Artifact identity through the recorded
-  environment (`tools/gomad3/record/validation.go:514`; `runner/runner.go:1356`).
+  environment (`tools/gomad3/internal/evidence/record/validation.go:514`; `runner/runner.go:1356`).
 - Modes today: seed, record, replay, prefix (`gomad_choicewire_generated.go:24-27`). Prefix mode
   forces the tape and then falls back to the seeded stream (`gomad.go:539`).
 
@@ -354,8 +354,8 @@ exponentially unlikely.
 
 ### (a) What the BFS choice-prefix exploration does [V]
 
-Controller: `tools/gomad3/runner/internal/exploration/choice/engine.go` (pure, 593 lines);
-driver: `tools/gomad3/runner/choice_exploration_campaign.go`.
+Controller: `tools/gomad3/internal/runner/internal/exploration/choice/engine.go` (pure, 593 lines);
+driver: `tools/gomad3/internal/runner/choice_exploration_campaign.go`.
 
 1. Root candidate = base seed, no prefix (`engine.go:157-168`). It runs in record mode
    (`choice_exploration_campaign.go:229-239`).
@@ -387,7 +387,7 @@ the identity at that rank in sorted order (`gomad.go:539-567`, `573-587`). After
 divergence terminal frame (`gomad.go:693-698`).
 
 **Combined simulation exploration** (`runner/simulation_exploration_campaign.go`,
-`runner/internal/exploration/simulation/frontier.go`, plan wire in `tools/gomad3sim/exploration.go`)
+`runner/internal/exploration/simulation/frontier.go`, plan wire in `tools/gomad3/internal/model/cluster/exploration.go`)
 is the same breadth-first frontier over six dimensions (runtime, scenario, network, storage,
 fault, crash) with per-dimension ordinal limits and `MaxForcedDecisions`
 (`frontier.go:51-70`, `427-471`). Runtime overrides must compose into one rank prefix
@@ -401,7 +401,7 @@ choice features (site, branching site, first/last/interior rank class, adjacent 
 - Fixture: `tools/gomad3/internal/gomadtool/conformance/testdata/choice_exploration/main.go`.
   One goroutine, one `select` over two ready buffered channels, prints which case won.
 - Benchmark: `TestRunChoiceExplorationPinnedOutcomeEfficiencyMatchesEqualBudgetSeedSampling`
-  (`tools/gomad3/runner/runner_test.go:1155-1206`). Seeds 211–226 versus exploration from seed
+  (`tools/gomad3/internal/runner/runner_test.go:1155-1206`). Seeds 211–226 versus exploration from seed
   211 with `MaxExecutions=16`, depth 32. It asserts each side attempted 16 executions and saw 2
   distinct stdout hashes, and that outcomes-per-execution are equal.
 - No report is retained; the evidence is the test. `docs/research/gomad/GOMAD_CMPv2.md:270-274`
@@ -551,14 +551,14 @@ search feedback" is not what the choice explorer does today.
   class, so the only allowed observation points are `proc.go` (`ready`, `park_m`) and
   `select.go`.
 - **World:** every request names `ResourceID{Adapter, Kind, Key}`
-  (`tools/gomad3/world/types.go:38-49`); event order is keyed on it (ARCHITECTURE "Event
+  (`tools/gomad3/internal/model/world/types.go:38-49`); event order is keyed on it (ARCHITECTURE "Event
   ordering"); an adapter can declare an `EquivalenceClass` meaning "swapping these events cannot
   change semantics" (`world/types.go:51-57`; `world/choice.go:9-20`). That is a declared
   independence relation, already used to randomise order. Transitions are a hash-linked log
   (`world/replay.go:16-25`).
 - **gomad3sim:** network and volume transitions are partitioned into causal lanes: per
   connection, per listener, one topology lane, per (node, volume)
-  (`tools/gomad3sim/record.go:1109-1124`, `962-964`), and replay validates per lane.
+  (`tools/gomad3/internal/model/cluster/record.go:1109-1124`, `962-964`), and replay validates per lane.
 - Explicit architectural limit: "An explicit-model digest cannot establish equivalence of
   arbitrary native Go execution state or justify pruning its schedule frontier"
   (`tools/gomad3/ARCHITECTURE.md:159-160`, `275-276`).
@@ -580,7 +580,7 @@ Skip general DPOR. Two sound reductions are available from facts the runtime can
    BFS on a finite fixture and comparing outcome sets and deadlocks, which is exactly CMP's
    adoption gate.
 2. In the combined frontier, treat two model decisions on different lanes as independent and
-   compare reduced versus unreduced search on `tools/gomad3sim/testdata/simulation_exploration`.
+   compare reduced versus unreduced search on `tools/gomad3/internal/model/cluster/testdata/simulation_exploration`.
 
 ### (d) Size and risk
 
@@ -603,10 +603,10 @@ or storage model" has more to build on than the text implies.
 
 - Build arguments are fixed by target preparation: `go build` or `go test -c` with `-trimpath
   -buildvcs=false -o`, optional `-gcflags=all=-gomadcap [-gomadguard]`, `-ldflags=-linkmode=internal
-  -gomadcap=…`, `-overlay`, `-modfile`, `-tags` (`tools/gomad3/target/target.go:702-726`). The
+  -gomadcap=…`, `-overlay`, `-modfile`, `-tags` (`tools/gomad3/internal/backends/target/target.go:702-726`). The
   only user-controllable build input is `--build-tag` (`tools/gomad3/CLI.md:58`). There is no path
   to pass `-race` or `-cover`.
-- The `race` build tag is refused (`tools/gomad3/target/internal/build/context.go:65`).
+- The `race` build tag is refused (`tools/gomad3/internal/backends/target/internal/build/context.go:65`).
 - A prebuilt `exec` target whose build info says `-race=true` is refused, as are `CGO_ENABLED≠0`,
   non-exe build modes, and external linking (`target/target.go:827-850`).
 - The runtime exits before user init if `iscgo || gomadExternal` (`gomad.go:107-110`), and the
@@ -667,9 +667,9 @@ Nothing that is a "known bug + corrected counterpart" pair. Related material:
 | `choice_exploration` | `conformance/testdata/choice_exploration` | Two-outcome select. No failure. |
 | `sync`, `scheduler`, `runqueue`, `channels`, `select`, `clock_race`, `io_net_races`, `io_handoff_contention`, `clock_deadlock` | `conformance/testdata/…` | Order-printing and model-contract fixtures. Correct programs. |
 | Target-failure expansion test | `runner/runner_test.go:1135-1153` | Exploration over a target that fails on every path. |
-| Duplicate-delivery scenario | `tools/gomad3sim/temporal_scenario_toolchain_test.go:17` | A scripted matching-style failure with exact replay. No corrected twin that I found. |
-| `simulation_exploration` | `tools/gomad3sim/testdata/simulation_exploration/main.go` | Two-route scenario choice. No failure. |
-| Qualification manifests | `tools/gomad3integration/qualification/{smoke,temporal,tests}.json`, `tools/gomad3/qualification/core.json` | Expectations are about Gomad repeatability (`qualified`, `unrepeatable`, `unsupported_target`), not target bugs. |
+| Duplicate-delivery scenario | `tools/gomad3/internal/model/cluster/temporal_scenario_toolchain_test.go:17` | A scripted matching-style failure with exact replay. No corrected twin that I found. |
+| `simulation_exploration` | `tools/gomad3/internal/model/cluster/testdata/simulation_exploration/main.go` | Two-route scenario choice. No failure. |
+| Qualification manifests | `tools/gomad3integration/qualification/{smoke,temporal,tests}.json`, `tools/gomad3/internal/evidence/qualification/core.json` | Expectations are about Gomad repeatability (`qualified`, `unrepeatable`, `unsupported_target`), not target bugs. |
 
 A caveat on the one real regression: per the commit message it was "two updates admitted within one
 virtual clock tick reordered" through a sort over a map. It is triggered by strict virtual-clock

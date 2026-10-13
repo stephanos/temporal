@@ -34,11 +34,11 @@ Its snapshot remains in Git history; the research below assumes those mechanisms
 | Reduction | Forced schedule suffix/range and fault-entry reduction | Typed scenario shrinking and durable minimizer resume |
 
 Sources: [runtime and Runner contract](../../../tools/gomad3/README.md),
-[choice frontier](../../../tools/gomad3/runner/internal/exploration/choice/engine.go),
-[combined frontier](../../../tools/gomad3/runner/internal/exploration/simulation/frontier.go),
-[fault vocabulary](../../../tools/gomad3sim/fault.go),
-[oracles](../../../tools/gomad3sim/oracle.go), and
-[minimizer](../../../tools/gomad3/runner/internal/minimizer/minimizer.go).
+[choice frontier](../../../tools/gomad3/internal/runner/internal/exploration/choice/engine.go),
+[combined frontier](../../../tools/gomad3/internal/runner/internal/exploration/simulation/frontier.go),
+[fault vocabulary](../../../tools/gomad3/internal/model/cluster/fault.go),
+[oracles](../../../tools/gomad3/internal/model/cluster/oracle.go), and
+[minimizer](../../../tools/gomad3/internal/runner/internal/minimizer/minimizer.go).
 Implemented mechanisms do not establish that every target or platform qualifies;
 the milestone reports retain the observed limitations.
 
@@ -148,7 +148,7 @@ monitor should own those obligations, including a nonempty set of work to
 complete. Distinguish unmet recovery preconditions, a bounded liveness failure,
 and a wall-watchdog termination. A finite deadline is a tested recovery bound,
 not a proof of eventual progress under all fair schedules.
-[Current oracle implementation](../../../tools/gomad3sim/oracle.go)
+[Current oracle implementation](../../../tools/gomad3/internal/model/cluster/oracle.go)
 
 ### Check both public behavior and internal protocol invariants
 
@@ -173,7 +173,7 @@ operations may admit several legal orders, and a timeout can leave an operation'
 effect unknown. Model those cases explicitly and bound any history search.
 
 The existing
-[matching duplicate-delivery scenario](../../../tools/gomad3sim/temporal_scenario_toolchain_test.go)
+[matching duplicate-delivery scenario](../../../tools/gomad3/internal/model/cluster/temporal_scenario_toolchain_test.go)
 is a TCP harness using `collection.SyncMap`, not a running Temporal matching
 service. It proves a failure can be recorded and replayed. It does not establish
 a production matching bug or an exactly-once transport guarantee. Place any

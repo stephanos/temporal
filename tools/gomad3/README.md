@@ -2,13 +2,19 @@
 
 The shared core and both backends now use this Go module. Native runtime,
 transcript, build preparation, upgrade and generation code lives under
-`backends/native`; the stock-Go WASM backend lives under `backends/wasm`.
-`target` owns backend-neutral target data, while `captured`, `volume` and
-`runtimesemantics` own shared model inputs. `backends.Provider` is the neutral
+`internal/backends/native`; the stock-Go WASM backend lives under `internal/backends/wasm`.
+`internal/backends/target` owns backend-neutral target data, while `internal/evidence/artifact/capture`, `internal/model/volume` and
+`internal/model/runtimesource` own shared model inputs. `backends.Provider` is the neutral
 execution contract; Runner imports no concrete backend. Native bootstrap,
 process supervision and transcript decoding belong to the native provider.
-The unchanged shared progress/time algorithms live in `simulation/clock`, and
-compiled WASM identities bind those actual sources through the public clock facade.
+The unchanged shared progress/time algorithms live in `internal/model/clock`, and
+compiled WASM identities bind those actual sources through the clock owner.
+
+Gomad is a command-line tool. Its implementation lives under six internal groups:
+`runner`, `backends`, `evidence`, `model`, `host` and `archcheck`. The module root
+contains only `cmd`, `internal` and `testdata` directories; `cmd/gomad` is the
+user entry point. Inspection belongs to `internal/runner/inspect`, host operations
+to `internal/host/{fs,exec}`, and cluster models to `internal/model/cluster`.
 
 The sole `cmd/gomad` launcher selects native or WASM from the installation header:
 `gomad --installation FILE COMMAND`. Each provider advertises its supported
@@ -18,7 +24,7 @@ This extraction and its source checks do not qualify native execution on a new
 platform or replace the backend owners' workload qualification gates.
 
 The module retains one local `go.temporal.io/server => ../..` replacement for
-the existing WASM simulation integration. Shared packages do not import the
+the Temporal guest fixtures. Shared packages do not import the
 server. The former separate WASM module and its core replacement are removed;
 this layout does not claim zero local replacements.
 
@@ -187,7 +193,7 @@ only for Choice Exploration and is frozen in the Campaign plan for resume.
 Select polls of the seven proven shapes with two polled non-nil cases and
 fewer than two ready cases remain in the Choice Trace but do not create frontier
 branches. Unknown readiness, shapes outside
-[the proven list](choice/no_op_select.go), and selects with three or more polled
+[the proven list](internal/model/choice/no_op_select.go), and selects with three or more polled
 cases stay expanded. Source clauses with nil channels
 do not count as polled cases. The result reports their omitted alternatives
 separately from execution, depth, and byte bounds.
@@ -244,7 +250,7 @@ analysis infrastructure failure.
 
 Add `--json` to emit newline-delimited `gomad3.explore-event/v3` records on
 stdout and no routine output on stderr. Event types are `progress`, `result`,
-`artifact`, and `error`. Result classifications are `success`,
+`internal/evidence/artifact`, and `error`. Result classifications are `success`,
 `target_failure`, `watchdog_observation`, `replay_divergence`, and
 `mixed_failure`; error classifications are `invalid_input`,
 `unsupported_target`, `semantic_coverage_failure`, `capacity`, `cancelled`,
@@ -456,7 +462,7 @@ prints an exact domain-separated digest; approval applies only when
 actual supported/unsupported counts remain separate.
 
 `make -C tools/gomad3 core-qualification` runs the checked
-`qualification/core.json` corpus from its self-contained fixture module. Its
+`internal/evidence/qualification/core.json` corpus from its self-contained fixture module. Its
 seven assertion-based workloads cover concurrent state invariants, filesystem
 lifecycle semantics, loopback TCP request/response, SQLite commit/rollback,
 a WAL-mode SQLite database, read-only mount lookups while the collector
@@ -464,7 +470,7 @@ cycles, and the direct modernc/libc file boundary. The aggregate and all
 evidence are retained below `.toolchain/core-qualification*`.
 
 The checked representative Temporal corpus
-(`tools/gomad3/backends/native/qualification/temporal.json`) holds fifteen tier 2
+(`tools/gomad3/internal/backends/native/qualification/temporal.json`) holds fifteen tier 2
 package workloads and thirteen tier 3 functional workloads: twelve `./tests`
 suites and one `./tests/gomadfunctional` probe. Its expectations are per
 platform. On darwin/arm64 all twenty-eight workloads are expected to qualify;
@@ -486,7 +492,7 @@ and it is untraced by default: its generator spec sets `choice_bytes` 0 and
 repeatability and makes no choice-tape replay claim. A test records a bounded
 choice trace and replays its successes only where the spec opts it in by name.
 The tracing-enabled replay gates are this representative corpus, the smoke
-selection copied from it, and `qualification/core.json`: each of their
+selection copied from it, and `internal/evidence/qualification/core.json`: each of their
 workloads records a choice trace and replays its successes, and a seed there
 verifies choice-tape replay when it reports `choice_replay_exact`. An
 `intermittent` expectation in those manifests still accepts a seed that
@@ -742,7 +748,7 @@ for both Make and the recipe shell.
 
 The stable Go command is `tools/gomad3/.toolchain/bin/go`. The build verifies
 the official Go source checksum, snapshots and validates
-`backends/native/toolchain/runtime/go1.27.1.patch` and `backends/native/toolchain/runtime/overlay`, rejects
+`internal/backends/native/toolchain/runtime/go1.27.1.patch` and `internal/backends/native/toolchain/runtime/overlay`, rejects
 upstream overlay collisions, copies the exact overlay
 snapshot, applies the exact patch snapshot with zero fuzz, and caches immutable
 builds by the Go version, source checksum, patch and overlay checksums, host OS
@@ -752,8 +758,8 @@ architecture, C/C++ tool, and compiler/linker tuning is cleared before
 `make.bash`. Set `GOMAD3_BOOTSTRAP_GO` to choose a bootstrap `go` command.
 
 Host-side policy is implemented in typed Go packages. `toolchain` provides the
-build, patch, validation, and upgrade interface; `backends/native/cmd/gomadtool` is
-its command adapter, and `backends/native/conformance` owns bounded
+build, patch, validation, and upgrade interface; `internal/backends/native/cmd/gomadtool` is
+its command adapter, and `internal/backends/native/conformance` owns bounded
 black-box fixture execution and semantic result classification. The remaining
 scripts are reviewed argv adapters:
 POSIX compatibility entrypoints, the two upstream `-exec`/`-toolexec`
@@ -771,10 +777,10 @@ inventory, because the go command records a directory replacement's path in the
 binary and a per-campaign path would change the target identity between
 repetitions.
 
-To upgrade Go, update the canonical `backends/native/toolchain/version/version.json` descriptor
-and `backends/native/transcript/boundary/manifest.json`, materialize the old patch against the new pinned
+To upgrade Go, update the canonical `internal/backends/native/toolchain/version/version.json` descriptor
+and `internal/backends/native/transcript/boundary/manifest.json`, materialize the old patch against the new pinned
 source, and regenerate the patch with `go -C tools/gomad3 run
-./backends/native/cmd/gomadtool patch-regenerate --root="$PWD/tools/gomad3"
+./internal/backends/native/cmd/gomadtool patch-regenerate --root="$PWD/tools/gomad3"
 --candidate-root=GO-SOURCE-ROOT`. `make -C
 tools/gomad3 generate` derives the Make, Go, compiler-spec,
 interception-report, public-inventory, and upgrade-guide consumers. The
@@ -810,15 +816,15 @@ root (for a module other than the root module, add `--module=DIR` to
 `pin-impact`):
 
 ```sh
-go -C tools/gomad3 run ./backends/native/cmd/gomadtool pin-impact --root=.
-go -C tools/gomad3 run ./backends/native/cmd/gomadtool adapter-regenerate \
+go -C tools/gomad3 run ./internal/backends/native/cmd/gomadtool pin-impact --root=.
+go -C tools/gomad3 run ./internal/backends/native/cmd/gomadtool adapter-regenerate \
   --module=<adapted-module> --version=<new-version>
-go -C tools/gomad3 run ./backends/native/cmd/gomadtool adapter-regenerate \
+go -C tools/gomad3 run ./internal/backends/native/cmd/gomadtool adapter-regenerate \
   --module=<adapted-module> --version=<new-version> \
   --approve-review=<digest the dry run printed>
-go -C tools/gomad3 run ./backends/native/cmd/gomadtool compatibility-pack refresh --root=.
-go -C tools/gomad3 run ./backends/native/cmd/gomadtool compatibility-pack generate --root=. \
-  --request=backends/native/compatibilitypack/requests/<id>.json \
+go -C tools/gomad3 run ./internal/backends/native/cmd/gomadtool compatibility-pack refresh --root=.
+go -C tools/gomad3 run ./internal/backends/native/cmd/gomadtool compatibility-pack generate --root=. \
+  --request=internal/backends/native/compatibilitypack/requests/<id>.json \
   --approve-review=<digest refresh printed>
 make gomad3
 make -C tools/gomad3 validate compatibility-pack-qualification
@@ -847,9 +853,9 @@ bump pass the revision before it with `--baseline-ref`. [CLI.md](CLI.md#bump-a-d
 exit statuses.
 
 The standard-library boundary is declared in
-`tools/gomad3/backends/native/transcript/boundary/manifest.json`, and the cross-process
+`tools/gomad3/internal/backends/native/transcript/boundary/manifest.json`, and the cross-process
 deterministic-I/O layouts are declared in
-`tools/gomad3/backends/native/transcript/schema/iowire.json`. After changing
+`tools/gomad3/internal/backends/native/transcript/schema/iowire.json`. After changing
 either schema or its templates, regenerate and verify the derived artifacts
 with:
 
@@ -874,7 +880,7 @@ There is no fallback decoder or migration path for an older Campaign, Artifact,
 plan, report, cache, or qualification lineage: current readers validate the
 current schema and reject unsupported lineages.
 
-The migrated owned typed JSON surfaces decode through `internal/strictjson`,
+The migrated owned typed JSON surfaces decode through `internal/model/strictjson`,
 using the pinned `github.com/go-json-experiment/json` implementation. It
 accepts one value,
 retains case-insensitive field-name matching while requiring exact delimiter
@@ -904,7 +910,7 @@ retain their defined formulas. "Canonical" still describes semantic objects
 such as normalized outcomes and reviewed release inputs; it no longer names a
 generic JSON serializer.
 
-Whole-file atomic replacement is owned by `internal/hostfs` (and its public
+Whole-file atomic replacement is owned by `internal/host/fs` (and its public
 facade where an external package boundary requires it). The qualification and
 soak reports, streamed source archive, validated regenerated patch, and native
 builder's ordered stamp-and-launcher transaction all use the shared staged
@@ -1148,7 +1154,7 @@ depend on when the host answered; simulation transport reads are exempt
 because they block until the simulation advances.
 
 The seeded stream's draw sites are classified, not assumed.
-`backends/native/toolchain/draw_inventory_test.go` lists every reference to the patched
+`internal/backends/native/toolchain/draw_inventory_test.go` lists every reference to the patched
 runtime's seeded random helpers on both qualified platforms (269 references in
 135 classified rows when it was taken) as target-ordered or host-timed, and the
 toolchain tier fails on an unclassified reference, a changed count, or a
@@ -1232,19 +1238,19 @@ The development workflow is discover, review, exact approval, generate, check,
 and qualify:
 
 ```sh
-go -C tools/gomad3 run ./backends/native/cmd/gomadtool compatibility-pack discover \
-  --root="$PWD/tools/gomad3" --request=backends/native/compatibilitypack/requests/<id>.json \
+go -C tools/gomad3 run ./internal/backends/native/cmd/gomadtool compatibility-pack discover \
+  --root="$PWD/tools/gomad3" --request=internal/backends/native/compatibilitypack/requests/<id>.json \
   --working-dir=<target-module>
-go -C tools/gomad3 run ./backends/native/cmd/gomadtool compatibility-pack review \
-  --root="$PWD/tools/gomad3" --request=backends/native/compatibilitypack/requests/<id>.json \
-  --output=backends/native/compatibilitypack/reports/<id>.md
-go -C tools/gomad3 run ./backends/native/cmd/gomadtool compatibility-pack generate \
-  --root="$PWD/tools/gomad3" --request=backends/native/compatibilitypack/requests/<id>.json \
+go -C tools/gomad3 run ./internal/backends/native/cmd/gomadtool compatibility-pack review \
+  --root="$PWD/tools/gomad3" --request=internal/backends/native/compatibilitypack/requests/<id>.json \
+  --output=internal/backends/native/compatibilitypack/reports/<id>.md
+go -C tools/gomad3 run ./internal/backends/native/cmd/gomadtool compatibility-pack generate \
+  --root="$PWD/tools/gomad3" --request=internal/backends/native/compatibilitypack/requests/<id>.json \
   --approve-review=<exact-review-sha256>
 make -C tools/gomad3 validate compatibility-pack-qualification
 ```
 
-`backends/native/compatibilitypack/working-directories.json` names the module
+`internal/backends/native/compatibilitypack/working-directories.json` names the module
 directory each request is discovered and qualified in; every request needs
 exactly one entry in a directory holding a `go.mod`, and `check` rejects a
 request without one and, for this repository's root, a missing table.
@@ -1257,7 +1263,7 @@ a saved pair of `go.mod` files with adjacent `go.sum` files can be compared
 explicitly:
 
 ```sh
-go -C tools/gomad3 run ./backends/native/cmd/gomadtool pin-impact \
+go -C tools/gomad3 run ./internal/backends/native/cmd/gomadtool pin-impact \
   --root=. --baseline=/absolute/baseline/go.mod \
   --candidate=/absolute/candidate/go.mod --format=json > pin-impact.json
 ```
@@ -1276,7 +1282,7 @@ discover and review for every request the bump invalidates and stops at
 approval:
 
 ```sh
-go -C tools/gomad3 run ./backends/native/cmd/gomadtool compatibility-pack refresh \
+go -C tools/gomad3 run ./internal/backends/native/cmd/gomadtool compatibility-pack refresh \
   --root="$PWD/tools/gomad3"
 ```
 
@@ -1312,7 +1318,7 @@ Inspect each changed report and use `compatibility-pack generate
 `make -C tools/gomad3 validate compatibility-pack-qualification
 core-qualification-set` and the full `test` gate on both supported hosts.
 A Darwin run does not qualify Linux packs or adapters. The generated
-[upgrade guide](backends/native/transcript/boundary/upgrade-go1.27.1.md) covers the
+[upgrade guide](internal/backends/native/transcript/boundary/upgrade-go1.27.1.md) covers the
 Go-release dossier and this dependency flow.
 
 A module outside this repository keeps packs for its own dependencies in its
@@ -1320,7 +1326,7 @@ own tree, so they never have to be committed here. Every authoring command
 takes `--compatibility-root=/absolute/dir`, which holds that module's
 `requests/`, `reports/`, `packs/`, `generation.json`, and, for `qualify --all`
 and `refresh`, `working-directories.json` in the same layout as
-`backends/native/compatibilitypack`; requests and review output must stay below it.
+`internal/backends/native/compatibilitypack`; requests and review output must stay below it.
 Setting `GOMAD3_COMPATIBILITY_PACKS=/absolute/dir/packs` loads those packs next
 to the embedded ones for every command, including the Runner's supervisor and
 coordinator processes. They pass the same strict validation, so no external
@@ -1336,7 +1342,7 @@ infrastructure failures. Fresh-review disagreement is unsupported drift. None
 of these cases falls back to an older pack, partial inventory, arbitrary local
 replacement, host access, or truncated evidence. Requests, generated v2 packs,
 review reports, mutation fixtures, and their generation manifest live under
-`backends/native/compatibilitypack`.
+`internal/backends/native/compatibilitypack`.
 
 `temporal-functional-tests-linux-amd64` admits the amd64 assembly, the
 reflect2 linknames, and the procfs process-metrics reads that the `gomad` build
@@ -1368,7 +1374,7 @@ and hard isolation. Parity Case, the name for one of those mapped cases, is a
 historical term: the manifest was its only carrier, and it is not part of the
 current vocabulary.
 
-The root `tools/gomad3sim` package defines the no-dependency application
+The root `tools/gomad3/internal/model/cluster` package defines the no-dependency application
 harness. Its versioned schemas provide bounded specs, stable node and incarnation
 identities, boot registration, detached results, lifecycle and topology
 control, typed scenario composition, stable histories and oracles, inspect,
@@ -1489,16 +1495,16 @@ ordinal. The migration adds no replacement payload-hash layer.
 
 ## World
 
-`world` is a pure in-memory model for deterministic events outside the Go
+`internal/model/world` is a pure in-memory model for deterministic events outside the Go
 runtime. It performs no host I/O, starts no goroutines, invokes no callbacks,
 and requires no runtime hook. Callers register requests, mark them ready, and
 explicitly quiesce to choose and deliver ready events.
 
-`world/mailbox` is the initial explicit adapter. It demonstrates lifecycle,
+`internal/model/world/mailbox` is the initial explicit adapter. It demonstrates lifecycle,
 snapshot/restore, and replay without giving World ownership of application
-state. `backends` composes World semantic records with the
+state. `internal/backends` composes World semantic records with the
 Runner's raw process record while keeping those identities separate. A target connects
-its World with `world/process.Open`, takes the session-owned World returned by
+its World with `internal/model/world/process.Open`, takes the session-owned World returned by
 `Session.Model()`, performs all modeled work, and calls
 `Session.Finish` after that work has stopped, or `Session.FinishError` for a
 World error. General `Error`, `Is`, and `Unwrap` callbacks are normalized at
@@ -1557,7 +1563,7 @@ retains the consumer lists and source-specific preservation evidence.
   `CompatibilityModuleEvidence`, `CompatibilityPackAdapter`,
   `CompatibilityPackageRuleEvidence`, `CompatibilityPackSource`,
   `CompatibilityPackForeignSource`, and `CompatibilityLinknameEvidence` from
-  `target`, replacing internal policy types. Explicit projections copy nested
+  `internal/backends/target`, replacing internal policy types. Explicit projections copy nested
   evidence while preserving report field order, tags, nil/empty slices, and
   pointer presence.
 - `pinimpact.Spec.Packs` becomes `PacksDirectory string`. Pass the directory
@@ -1566,13 +1572,13 @@ retains the consumer lists and source-specific preservation evidence.
   Pack loading still follows baseline/candidate module validation; load errors
   remain pin-evaluation errors. `compatibility-pack refresh` supplies its
   selected root's pack directory. No new CLI flag is needed.
-- `target.DigestAdapterSourceInventory` is removed. Repository target/adapter
-  implementation callers use the neutral private `backends/native/sourceinventory`
+- `target.DigestAdapterSourceInventory` is removed. Repository internal/backends/target/adapter
+  implementation callers use the neutral private `internal/backends/native/sourceinventory`
   owner, translating capacity errors to their existing public error types.
   External callers must stop calling the removed implementation helper; the
   public target preparation and capability-review operations retain inventory
   validation. No new public hashing API replaces it.
-- `backends/native/toolchain/installation` adds `Layout`, `Build`, and validated `Description`
+- `internal/backends/native/toolchain/installation` adds `Layout`, `Build`, and validated `Description`
   values. Existing toolchain resolution and target identity APIs keep their
   signatures. Implementation callers obtain owned paths from the description;
   no external request migration is required.
@@ -1603,7 +1609,7 @@ recorded, err := recorder.FinishTerminal(world.Terminal{
 })
 ```
 
-A connected target can instead report through `world/process.Session.FinishError`.
+A connected target can instead report through `internal/model/world/process.Session.FinishError`.
 That effectful seam validates the session, captures `Error` detail before `Is`
 classification in capacity, replay-divergence, then invalid-input order, and
 preserves unknown-error wrapping and descriptor cleanup/error precedence.
@@ -1635,7 +1641,7 @@ upstream tiers
 in that order. The focused targets reproduce the corresponding portion without
 weakening the full gate.
 
-`test-simulation` runs the directly seeded `tools/gomad3sim` toolchain tests
+`test-simulation` runs the directly seeded `tools/gomad3/internal/model/cluster` toolchain tests
 and the Runner transport selection in the Makefile, including process network
 and filesystem handle cases. The strict
 `TestProcessBackendSynchronizesNodeClockWithModelDelay` case retains its open
@@ -1643,7 +1649,7 @@ watchdog finding; its forward-mode regression runs separately. `overlay-test`
 includes `internal/gomadsim`,
 `internal/gomadmodelwire`, `internal/gomadio`, `os`, and
 `cmd/internal/gomadcap`. In the host tier, `TestModelConformanceFilesystem` and
-`TestModelConformanceTCP` (`backends/native/execution`) run 64-operation
+`TestModelConformanceTCP` (`internal/backends/native/execution`) run 64-operation
 sequences generated from five fixed seeds against the in-memory filesystem and
 loopback TCP models and against stock Go on the host, and report the shortest
 reproducing prefix of a mismatch. `modelDeclaredDifferences` in
@@ -1658,7 +1664,7 @@ The determinism soak runs from the repository root:
 make gomad3-soak GOMAD3_SOAK_WORKLOAD=functional-activity GOMAD3_SOAK_SEED=11
 ```
 
-It builds the Runner, runs `tools/gomad3/backends/native/qualification/soak.json`,
+It builds the Runner, runs `tools/gomad3/internal/backends/native/qualification/soak.json`,
 and writes its ledger, report, summary, and any divergence evidence under
 `tools/gomad3/.toolchain/soak`. The scheduled `determinism-soak-darwin` and
 `determinism-soak-linux` jobs of `gomad3.yml` run one workload and seed each,

@@ -60,7 +60,7 @@ variant ran in a throwaway copy of the source tree that was deleted afterwards.
 Suite runs use the pattern `^TestNexusOTELSuite$` and leaf runs add `/^TestOperation$`. All run
 with `-test.parallel=8`, the manifest's build tags, closure mode, and the schema mount. "env=2"
 means `--env=TEMPORAL_TEST_DEDICATED_CLUSTERS=2`, or the `environment` field of a `qualify-set`
-workload, which becomes that flag (`tools/gomad3/qualification/set/set.go:804`).
+workload, which becomes that flag (`tools/gomad3/internal/evidence/qualification/set/set.go:804`).
 
 | Run | Pool | Tick | Seeds | Outcome |
 | --- | --- | --- | --- | --- |
@@ -101,10 +101,10 @@ The artifact manifest of the same execution records the supplied entries next to
 
 1. The CLI accepts `--env` as "target NAME=VALUE"
    (`tools/gomad3/cmd/gomad/internal/cli/cli.go:456`, `qualify.go:72`). The Runner validates each
-   entry and rejects reserved names (`tools/gomad3/runner/runner.go:1425-1448`).
+   entry and rejects reserved names (`tools/gomad3/internal/runner/runner.go:1425-1448`).
 2. The Runner adds the seed and `TZ=UTC`, records the list, and passes it to the target process
    (`runner.go:1622-1638`, `runner.go:1497`). The bootstrap calls `syscall.Exec` with it
-   (`tools/gomad3/runner/internal/execution/bootstrap_unix.go:130`).
+   (`tools/gomad3/internal/runner/internal/execution/bootstrap_unix.go:130`).
 3. The runtime copies the process environment and drops only the control variables with the
    prefixes `GOMAD3_` and `GOMADSEED=`
    (`tools/gomad3/toolchain/runtime/overlay/src/runtime/gomad.go:857-890`). A supplied entry
@@ -123,7 +123,7 @@ The documentation states the opposite for supplied entries. The tutorial says th
 architecture says the Runner adds "explicitly supplied validated entries"
 (`tools/gomad3/ARCHITECTURE.md:300-301`). The generator documents its `environment` field as
 "target variables for the test, such as a pool size the test harness reads"
-(`tools/gomad3/qualification/set/manifestgen/manifestgen.go:99-101`). No test was found that
+(`tools/gomad3/internal/evidence/qualification/set/manifestgen/manifestgen.go:99-101`). No test was found that
 supplies an entry and reads it inside a target.
 
 The evidence therefore records an environment the target's code never observed. A supplied entry
@@ -183,7 +183,7 @@ failure, and Runner failure from ordinary replay divergence.
   write one. The Runner treats that as part of the outcome: it does not validate a killed run's
   trace, a watchdog artifact records no choice profile (`runner.go:1515-1520`,
   `runner.go:1653-1656`), and such an artifact must use diagnostic replay
-  (`tools/gomad3/record/validation.go:383-384`). A trace overflow in a killed run would therefore
+  (`tools/gomad3/internal/evidence/record/validation.go:383-384`). A trace overflow in a killed run would therefore
   not be reported, and these runs cannot exclude one.
 - **Runner failure.** None in these runs; the set reports show `infrastructure_errors: 0`. The
   check that produced one earlier still exists for targets that exit: a traced run without a
@@ -197,7 +197,7 @@ failure, and Runner failure from ordinary replay divergence.
 
 The set report still classifies the workload `nondeterministic` with `timed_out: 0`. Two
 repetitions that were both killed by the watchdog are compared field by field, and the comparison
-stops at the first mismatch (`tools/gomad3/qualification/qualification.go:394`). That mismatch is
+stops at the first mismatch (`tools/gomad3/internal/evidence/qualification/qualification.go:394`). That mismatch is
 the virtual time at which each was killed: 37,061 s on seed 11 and 14,044 s on seed 17 in the
 first repetition. The value is host-timed for a killed target. Whether later fields also differ
 was not retained, apart from stderr, whose digest is equal across repetitions.
@@ -225,7 +225,7 @@ were recorded, and none of them indicates a diverging choice.
   (`common/membership/grpc_resolver.go:79`). Both replays produce the same stderr as each other,
   and a fresh untraced run of the same seed produces exactly the replays' stderr. The recording
   ran with tracing and the diagnostic replay runs without it
-  (`tools/gomad3/runner/replay_operation.go:355-360`: an artifact with no choice profile gets no
+  (`tools/gomad3/internal/runner/replay_operation.go:355-360`: an artifact with no choice profile gets no
   choice capability). One heap object sits 16 bytes apart between the two modes. The seed-17
   recordings contain no `membership://` line and no hex address before the wait, and their
   replays match (scan at the end of `fn105-d17-seed11-replay-stderr.txt`).

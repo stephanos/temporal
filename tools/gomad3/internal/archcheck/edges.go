@@ -10,30 +10,30 @@ func Owner(module, importPath string) string {
 		return ""
 	}
 	relative := strings.TrimPrefix(importPath, module+"/")
-	if relative == "backends" {
+	if relative == "internal/backends" {
 		return "runner"
 	}
-	if relative == "backends/native" || Within(relative, "backends/native/execution") {
+	if relative == "internal/backends/native" || Within(relative, "internal/backends/native/execution") {
 		return "native"
 	}
 	if relative == "cmd/gomad" {
 		return "cli"
 	}
+	if Within(relative, "internal/evidence/artifact/capture") {
+		return "captured"
+	}
 	for path, owner := range map[string]string{
-		"backends/wasm": "wasm", "cmd/gomad/internal/cli": "cli", "backends/native/cmd/gomadtool": "developer", "internal/archcheck": "developer", "internal/puritycheck": "developer",
-		"backends/native/toolchain": "toolchain", "backends/native/build": "target", "backends/native/transcript": "deterministicio", "backends/native/upgrade": "upgrade",
-		"backends/native/conformance": "developer", "backends/native/generation": "developer",
-		"backends/native/qualification": "qualification", "backends/native/preparation": "preparation",
-		"captured": "captured", "volume": "volume", "internal/iowire": "iowire",
-		"backends/native/compatibilitypack": "compatibility", "internal/strictjson": "strictjson", "internal/hostexec": "hostexec", "hostexec": "hostexec", "internal/hostfs": "hostfs", "hostfs": "hostfs", "backends/native/sourceinventory": "sourceinventory",
+		"internal/backends/wasm": "wasm", "cmd/gomad/internal/cli": "cli", "internal/backends/native/cmd/gomadtool": "developer", "internal/archcheck": "developer",
+		"internal/backends/native/toolchain": "toolchain", "internal/backends/native/build": "target", "internal/backends/native/transcript": "deterministicio", "internal/backends/native/upgrade": "upgrade",
+		"internal/backends/native/conformance": "developer", "internal/backends/native/generation": "developer",
+		"internal/backends/native/qualification": "qualification", "internal/backends/native/preparation": "preparation",
+		"internal/evidence/artifact/capture": "captured", "internal/model/volume": "volume", "internal/model/iowire": "iowire",
+		"internal/backends/native/compatibilitypack": "compatibility", "internal/model/strictjson": "strictjson", "internal/host/exec": "hostexec", "internal/host/fs": "hostfs", "internal/backends/native/sourceinventory": "sourceinventory",
+		"internal/runner": "runner", "internal/evidence/qualification": "qualification", "internal/backends/target": "target", "internal/evidence/record": "record", "internal/evidence/artifact": "artifact", "internal/model/choice": "choice", "internal/model/world": "world", "internal/model/clock": "simulation", "internal/model/network": "simulation", "internal/model/schema": "developer", "internal/model/cluster": "simulation", "internal/model/runtimesource": "runtimesemantics",
 	} {
 		if Within(relative, path) {
 			return owner
 		}
-	}
-	owner, _, _ := strings.Cut(relative, "/")
-	if slices.Contains([]string{"runner", "qualification", "target", "record", "artifact", "choice", "world", "simulation", "runtimesemantics"}, owner) {
-		return owner
 	}
 	return ""
 }
@@ -42,29 +42,29 @@ func OwnerMayImport(modulePath, owner, importedOwner, importing, imported string
 		return true
 	}
 	if owner == "wasm" {
-		if importing == modulePath+"/backends/wasm/backend" && imported == modulePath+"/internal/hostfs" {
+		if importing == modulePath+"/internal/backends/wasm/backend" && imported == modulePath+"/internal/host/fs" {
 			return true
 		}
 		return slices.ContainsFunc([]string{
-			"artifact", "choice", "captured", "volume", "hostexec", "hostfs",
-			"qualification", "qualification/workload", "record", "runner", "backends",
-			"simulation/network", "target", "world", "runtimesemantics", "internal/strictjson",
+			"internal/evidence/artifact", "internal/model/choice", "internal/evidence/artifact/capture", "internal/model/volume", "internal/host/exec", "internal/host/fs",
+			"internal/evidence/qualification", "internal/evidence/record", "internal/runner", "internal/runner/inspect", "internal/runner/options", "internal/backends",
+			"internal/model/clock", "internal/model/network", "internal/model/cluster", "internal/backends/target", "internal/model/world", "internal/model/runtimesource", "internal/model/strictjson",
 		}, func(path string) bool { return imported == modulePath+"/"+path })
 	}
 	if owner == "cli" && slices.Contains([]string{"wasm", "native", "hostexec", "hostfs"}, importedOwner) {
-		return importing == modulePath+"/cmd/gomad/internal/cli" && slices.Contains([]string{modulePath + "/backends/wasm/backend", modulePath + "/backends/wasm/command", modulePath + "/backends/wasm/installation", modulePath + "/backends/native", modulePath + "/hostexec", modulePath + "/hostfs"}, imported)
+		return importing == modulePath+"/cmd/gomad/internal/cli" && slices.Contains([]string{modulePath + "/internal/backends/wasm/backend", modulePath + "/internal/backends/wasm/command", modulePath + "/internal/backends/wasm/installation", modulePath + "/internal/backends/wasm/qualification", modulePath + "/internal/backends/native", modulePath + "/internal/host/exec", modulePath + "/internal/host/fs"}, imported)
 	}
-	if owner == "runner" && imported == modulePath+"/simulation/clock" {
+	if owner == "runner" && imported == modulePath+"/internal/model/clock" {
 		return true
 	}
 	if owner == "captured" && importedOwner == "hostfs" {
-		return imported == modulePath+"/hostfs"
+		return imported == modulePath+"/internal/host/fs"
 	}
 	allowed := map[string][]string{
 		"native": {"runner", "target", "record", "artifact", "choice", "deterministicio", "captured", "volume", "iowire", "preparation", "world", "strictjson", "hostexec", "hostfs", "simulation"},
 		"cli":    {"runner", "qualification", "target", "record", "artifact", "deterministicio", "captured", "volume", "iowire", "preparation", "toolchain", "strictjson"}, "developer": {"choice", "compatibility", "qualification", "simulation", "toolchain", "upgrade", "hostexec", "hostfs", "runtimesemantics"},
 		"runner": {"target", "record", "artifact", "choice", "deterministicio", "captured", "volume", "iowire", "preparation", "world", "strictjson", "hostexec", "hostfs"}, "qualification": {"runner", "target", "record", "artifact", "choice", "deterministicio", "captured", "volume", "iowire", "preparation", "strictjson", "hostexec", "hostfs"},
-		"target": {"compatibility", "record", "toolchain", "strictjson", "hostexec", "hostfs", "sourceinventory"}, "record": {"strictjson"}, "world": {"strictjson"}, "simulation": {"record", "strictjson"},
+		"target": {"compatibility", "record", "toolchain", "strictjson", "hostexec", "hostfs", "sourceinventory"}, "record": {"strictjson", "choice"}, "world": {"strictjson"}, "simulation": {"record", "strictjson"},
 		"artifact": {"choice", "deterministicio", "captured", "volume", "iowire", "target", "record", "hostfs"}, "compatibility": {"target", "record", "strictjson", "hostfs"},
 		"deterministicio": {"target", "record", "toolchain", "strictjson", "hostfs", "sourceinventory", "captured", "volume", "iowire"}, "captured": {"record", "strictjson", "iowire"}, "volume": {"iowire"},
 		"preparation": {"target", "deterministicio", "captured", "volume", "iowire", "record"}, "toolchain": {"strictjson", "hostexec", "hostfs", "runtimesemantics"},
@@ -74,25 +74,25 @@ func OwnerMayImport(modulePath, owner, importedOwner, importing, imported string
 		return false
 	}
 	if (owner == "target" || owner == "deterministicio") && importedOwner == "toolchain" {
-		return imported == modulePath+"/backends/native/toolchain/version" || imported == modulePath+"/backends/native/toolchain/installation"
+		return imported == modulePath+"/internal/backends/native/toolchain/version" || imported == modulePath+"/internal/backends/native/toolchain/installation"
 	}
 	if owner == "upgrade" && slices.Contains([]string{"compatibility", "deterministicio", "captured", "volume", "iowire"}, importedOwner) {
-		return importing == modulePath+"/backends/native/upgrade/pinimpact" || importing == modulePath+"/backends/native/upgrade/adapterregen"
+		return importing == modulePath+"/internal/backends/native/upgrade/pinimpact" || importing == modulePath+"/internal/backends/native/upgrade/adapterregen"
 	}
 	return true
 }
 
 func ModuleMayImport(modulePath, importing, imported string) bool {
 	forbidden := map[string][]string{
-		"artifact": {"runner"}, "record": {"runner"},
-		"runner/internal/campaign":    {"runner/internal/corpus", "runner/internal/minimizer"},
-		"runner/internal/corpus":      {"runner/internal/campaign", "runner/internal/exploration"},
-		"runner/internal/exploration": {"runner/internal/logstore"},
+		"internal/evidence/artifact": {"internal/runner"}, "internal/evidence/record": {"internal/runner"},
+		"internal/runner/internal/campaign":    {"internal/runner/internal/corpus", "internal/runner/internal/minimizer"},
+		"internal/runner/internal/corpus":      {"internal/runner/internal/campaign", "internal/runner/internal/exploration"},
+		"internal/runner/internal/exploration": {"internal/runner/internal/logstore"},
 	}
 	// The shared log owner depends only on the standard library and hostfs, so
 	// campaign and corpus can both build on it without importing each other.
-	if Within(importing, modulePath+"/runner/internal/logstore") {
-		return imported == modulePath+"/internal/hostfs" || Within(imported, modulePath+"/runner/internal/logstore")
+	if Within(importing, modulePath+"/internal/runner/internal/logstore") {
+		return imported == modulePath+"/internal/host/fs" || Within(imported, modulePath+"/internal/runner/internal/logstore")
 	}
 	for module, denied := range forbidden {
 		if Within(importing, modulePath+"/"+module) && slices.ContainsFunc(denied, func(prefix string) bool { return Within(imported, modulePath+"/"+prefix) }) {
@@ -106,8 +106,8 @@ func PackageEdges(module string, packages []HostPackage) []Finding {
 	var findings []Finding
 	add := func(category, path, detail string) { findings = append(findings, Finding{category, path, detail}) }
 	required := map[string][]string{
-		"backends/native/build": {"backends/native/build/internal/build", "backends/native/build/internal/capabilityreview", "backends/native/build/internal/provenance", "backends/native/toolchain/installation", "backends/native/sourceinventory"}, "backends/native/upgrade": {"backends/native/qualification/set", "backends/native/toolchain/version"},
-		"backends/native/toolchain": {"backends/native/toolchain/installation"}, "backends/native/transcript": {"backends/native/toolchain/installation", "backends/native/sourceinventory"},
+		"internal/backends/native/build": {"internal/backends/native/build/internal/build", "internal/backends/native/build/internal/capabilityreview", "internal/backends/native/build/internal/provenance", "internal/backends/native/toolchain/installation", "internal/backends/native/sourceinventory"}, "internal/backends/native/upgrade": {"internal/backends/native/qualification/set", "internal/backends/native/toolchain/version"},
+		"internal/backends/native/toolchain": {"internal/backends/native/toolchain/installation"}, "internal/backends/native/transcript": {"internal/backends/native/toolchain/installation", "internal/backends/native/sourceinventory"},
 	}
 	for _, pkg := range packages {
 		owner := Owner(module, pkg.ImportPath)
@@ -123,7 +123,7 @@ func PackageEdges(module string, packages []HostPackage) []Finding {
 			if !Within(imported, module) {
 				continue
 			}
-			if pkg.ImportPath == module+"/backends/native/toolchain/installation" || (pkg.ImportPath == module+"/backends/native/sourceinventory" && imported != module+"/internal/hostfs") || (pkg.ImportPath == module+"/backends/native/toolchain" && (Within(imported, module+"/qualification") || Within(imported, module+"/backends/native/qualification") || Within(imported, module+"/backends/native/upgrade"))) {
+			if pkg.ImportPath == module+"/internal/backends/native/toolchain/installation" || (pkg.ImportPath == module+"/internal/backends/native/sourceinventory" && imported != module+"/internal/host/fs") || (pkg.ImportPath == module+"/internal/backends/native/toolchain" && (Within(imported, module+"/internal/evidence/qualification") || Within(imported, module+"/internal/backends/native/qualification") || Within(imported, module+"/internal/backends/native/upgrade"))) {
 				add("module-edge", pkg.ImportPath, imported)
 			}
 			importedOwner := Owner(module, imported)

@@ -5,7 +5,7 @@ Dated research snapshot (2026-10-01); read-only code study, not a statement of c
 Read-only study of `/Users/stephan/Workspace/temporal/gomad` on branch `stephanos/gomad`
 (working tree, 2026-10-01). Nothing was built or run except `grep`/`sed`/small JSON reads of
 reports already on disk. Paths are relative to the repo root. `g3/` abbreviates `tools/gomad3/`
-and `sim/` abbreviates `tools/gomad3sim/`.
+and `sim/` abbreviates `tools/gomad3/internal/model/cluster/`.
 
 Each claim is tagged **[V]** verified in source or in a retained report, or **[I]** inferred
 from what was read and not executed.

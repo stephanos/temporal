@@ -9,10 +9,10 @@ import (
 	"strings"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/backends/native/preparation"
-	capabilityanalysis "go.temporal.io/server/tools/gomad3/backends/native/qualification/analysis"
-	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
-	"go.temporal.io/server/tools/gomad3/target"
+	"go.temporal.io/server/tools/gomad3/internal/backends/native/preparation"
+	capabilityanalysis "go.temporal.io/server/tools/gomad3/internal/backends/native/qualification/analysis"
+	"go.temporal.io/server/tools/gomad3/internal/backends/native/transcript"
+	"go.temporal.io/server/tools/gomad3/internal/backends/target"
 )
 
 func TestAnalyzeSourceInspectionForwardsCompleteEvidence(t *testing.T) {

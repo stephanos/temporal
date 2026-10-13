@@ -114,7 +114,7 @@ PROTO_OUT := api
 
 ALL_SRC         := $(shell find . -path "./.gomad" -prune -o -path "./.tmp" -prune -o -path "./.flow/artifacts" -prune -o -path "./.worktrees" -prune -o -path "./tools/gomad3" -prune -o -name "*.go" -print)
 ALL_SRC         += go.mod
-ALL_SCRIPTS     := $(shell find . -path "./.gomad" -prune -o -path "./.tmp" -prune -o -path "./.flow/artifacts" -prune -o -path "./.worktrees" -prune -o -path "./tools/gomad3/.toolchain" -prune -o -path "./tools/gomad3/backends/wasm/wasmhost/target" -prune -o -name "*.sh" -print)
+ALL_SCRIPTS     := $(shell find . -path "./.gomad" -prune -o -path "./.tmp" -prune -o -path "./.flow/artifacts" -prune -o -path "./.worktrees" -prune -o -path "./tools/gomad3/.toolchain" -prune -o -path "./tools/gomad3/internal/backends/wasm/wasmhost/target" -prune -o -name "*.sh" -print)
 
 MAIN_BRANCH    := main
 
@@ -177,24 +177,24 @@ gomad3-run:
 	@test -n "$(GOMAD3_RUN)" || { echo "GOMAD3_RUN is required: make gomad3-run GOMADSEED=<uint64> GOMAD3_RUN=<package>" >&2; exit 1; }
 	@$(MAKE) gomad3-go
 	@env -u GOMADSEED CGO_ENABLED=0 GOEXPERIMENT=nogreenteagc TZ=UTC GOMAD3_CHILD_SEED="$(GOMADSEED)" \
-		$(GOMAD3_GO) run -exec "$(ROOT)/tools/gomad3/backends/native/conformance/scripts/exec.sh" $(GOMAD3_RUN) $(GOMAD3_ARGS)
+		$(GOMAD3_GO) run -exec "$(ROOT)/tools/gomad3/internal/backends/native/conformance/scripts/exec.sh" $(GOMAD3_RUN) $(GOMAD3_ARGS)
 
 gomad3-test:
 	@test "$(origin GOMADSEED)" != undefined || { echo "GOMADSEED is required: make gomad3-test GOMADSEED=<uint64> GOMAD3_PACKAGES=<packages>" >&2; exit 1; }
 	@test -n "$(GOMAD3_PACKAGES)" || { echo "GOMAD3_PACKAGES is required: make gomad3-test GOMADSEED=<uint64> GOMAD3_PACKAGES=<packages>" >&2; exit 1; }
 	@$(MAKE) gomad3-go
 	@env -u GOMADSEED CGO_ENABLED=0 GOEXPERIMENT=nogreenteagc TZ=UTC GOMAD3_CHILD_SEED="$(GOMADSEED)" \
-		$(GOMAD3_GO) test -exec "$(ROOT)/tools/gomad3/backends/native/conformance/scripts/exec.sh" -count=1 -tags test_dep $(GOMAD3_PACKAGES) $(GOMAD3_ARGS)
+		$(GOMAD3_GO) test -exec "$(ROOT)/tools/gomad3/internal/backends/native/conformance/scripts/exec.sh" -count=1 -tags test_dep $(GOMAD3_PACKAGES) $(GOMAD3_ARGS)
 
 gomad3-integration-test: gomad3-runner
-	@cd tools/gomad3 && GOWORK=off go test -tags test_dep,gomad3_integration -count=1 ./backends/native/qualification
+	@cd tools/gomad3 && GOWORK=off go test -tags test_dep,gomad3_integration -count=1 ./internal/backends/native/qualification
 	@cd tools/gomad3 && GOWORK=off go test -tags test_dep -count=1 \
-		-run '^(TestQualificationManifestsUsePortableV3|TestSmokeSuitesMatchRepresentativeSuites)$$' ./backends/native/qualification/set
+		-run '^(TestQualificationManifestsUsePortableV3|TestSmokeSuitesMatchRepresentativeSuites)$$' ./internal/backends/native/qualification/set
 
 gomad3-qualification: gomad3-runner
 	@$(MAKE) -C tools/gomad3 compatibility-pack-qualification
 	@$(MAKE) -C tools/gomad3 qualification-set \
-		GOMAD3_QUALIFICATION_MANIFEST="$(ROOT)/tools/gomad3/backends/native/qualification/temporal.json" \
+		GOMAD3_QUALIFICATION_MANIFEST="$(ROOT)/tools/gomad3/internal/backends/native/qualification/temporal.json" \
 		GOMAD3_QUALIFICATION_WORKDIR="$(ROOT)" \
 		GOMAD3_QUALIFICATION_ARTIFACTS="$(ROOT)/tools/gomad3/.toolchain/temporal-qualification" \
 		GOMAD3_QUALIFICATION_OUTPUT="$(ROOT)/tools/gomad3/.toolchain/temporal-qualification-set.json"
@@ -203,7 +203,7 @@ gomad3-qualification: gomad3-runner
 # are copied verbatim from temporal.json, which gomad3-integration-test checks.
 gomad3-smoke-qualification: gomad3-runner
 	@$(MAKE) -C tools/gomad3 qualification-set GOMAD3_QUALIFICATION_PRUNE=1 \
-		GOMAD3_QUALIFICATION_MANIFEST="$(ROOT)/tools/gomad3/backends/native/qualification/smoke.json" \
+		GOMAD3_QUALIFICATION_MANIFEST="$(ROOT)/tools/gomad3/internal/backends/native/qualification/smoke.json" \
 		GOMAD3_QUALIFICATION_WORKDIR="$(ROOT)" \
 		GOMAD3_QUALIFICATION_ARTIFACTS="$(ROOT)/tools/gomad3/.toolchain/smoke-qualification" \
 		GOMAD3_QUALIFICATION_OUTPUT="$(ROOT)/tools/gomad3/.toolchain/smoke-qualification-set.json"
@@ -216,8 +216,8 @@ gomad3-smoke-qualification: gomad3-runner
 # maximum batches per workload and seed.
 GOMAD3_SOAK_DIR ?= $(ROOT)/tools/gomad3/.toolchain/soak
 gomad3-soak: gomad3-runner
-	@cd tools/gomad3 && env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go run ./backends/native/cmd/gomadtool soak \
-		--manifest="$(ROOT)/tools/gomad3/backends/native/qualification/soak.json" \
+	@cd tools/gomad3 && env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off go run ./internal/backends/native/cmd/gomadtool soak \
+		--manifest="$(ROOT)/tools/gomad3/internal/backends/native/qualification/soak.json" \
 		--gomad="$(ROOT)/tools/gomad3/.bin/gomad" \
 		--work="$(GOMAD3_SOAK_DIR)/work" --ledger="$(GOMAD3_SOAK_DIR)/ledger" --output="$(GOMAD3_SOAK_DIR)/output" \
 		$(if $(GOMAD3_SOAK_RUN_ID),--run-id="$(GOMAD3_SOAK_RUN_ID)") \
@@ -236,14 +236,14 @@ gomad3-tests-qualification: gomad3-runner
 	@$(MAKE) -C tools/gomad3 tests-qualification-generate
 	@$(MAKE) -C tools/gomad3 qualification-set GOMAD3_QUALIFICATION_PRUNE=1 \
 		GOMAD3_QUALIFICATION_SHARD="$(GOMAD3_QUALIFICATION_SHARD)" \
-		GOMAD3_QUALIFICATION_MANIFEST="$(ROOT)/tools/gomad3/backends/native/qualification/tests.json" \
+		GOMAD3_QUALIFICATION_MANIFEST="$(ROOT)/tools/gomad3/internal/backends/native/qualification/tests.json" \
 		GOMAD3_QUALIFICATION_WORKDIR="$(ROOT)" \
 		GOMAD3_QUALIFICATION_ARTIFACTS="$(ROOT)/tools/gomad3/.toolchain/tests-qualification$(GOMAD3_TESTS_QUALIFICATION_SUFFIX)" \
 		GOMAD3_QUALIFICATION_OUTPUT="$(ROOT)/tools/gomad3/.toolchain/tests-qualification-set$(GOMAD3_TESTS_QUALIFICATION_SUFFIX).json"
 
 gomad3-tests-qualification-merge: gomad3-runner
 	@$(MAKE) -C tools/gomad3 qualification-set-merge \
-		GOMAD3_QUALIFICATION_MANIFEST="$(ROOT)/tools/gomad3/backends/native/qualification/tests.json" \
+		GOMAD3_QUALIFICATION_MANIFEST="$(ROOT)/tools/gomad3/internal/backends/native/qualification/tests.json" \
 		GOMAD3_QUALIFICATION_OUTPUT="$(ROOT)/tools/gomad3/.toolchain/tests-qualification-set.json" \
 		GOMAD3_QUALIFICATION_SHARD_REPORTS="$(or $(GOMAD3_QUALIFICATION_SHARD_REPORTS),$(wildcard $(ROOT)/tools/gomad3/.toolchain/tests-qualification-set.shard-*.json))"
 
@@ -485,7 +485,7 @@ temporal-server-debug: $(ALL_SRC)
 ##### Checks #####
 goimports: fmt-imports $(GOIMPORTS)
 	@printf $(COLOR) "Run goimports for all files..."
-	@UNGENERATED_FILES=$$(find . -path './.gomad' -prune -o -path './.tmp' -prune -o -path './.flow/artifacts' -prune -o -path './.worktrees' -prune -o -path './tools/gomad3/.toolchain' -prune -o -path './tools/gomad3/backends/native/toolchain/runtime/overlay' -prune -o -path './tools/gomad3/backends/wasm/wasmhost/target' -prune -o -type f -name '*.go' -print0 | xargs -0 grep -L -e "Code generated by .* DO NOT EDIT." || true) && \
+	@UNGENERATED_FILES=$$(find . -path './.gomad' -prune -o -path './.tmp' -prune -o -path './.flow/artifacts' -prune -o -path './.worktrees' -prune -o -path './tools/gomad3/.toolchain' -prune -o -path './tools/gomad3/internal/backends/native/toolchain/runtime/overlay' -prune -o -path './tools/gomad3/internal/backends/wasm/wasmhost/target' -prune -o -type f -name '*.go' -print0 | xargs -0 grep -L -e "Code generated by .* DO NOT EDIT." || true) && \
 		$(GOIMPORTS) -w $$UNGENERATED_FILES
 
 lint: lint-code lint-actions lint-api lint-protos lint-yaml
@@ -575,7 +575,7 @@ fmt-gofix:
 
 fmt-imports: $(GCI) # Don't get confused, there is a single linter called gci, which is a part of the mega linter we use is called golangci-lint.
 	@printf $(COLOR) "Formatting imports..."
-	@find . -path './.gomad' -prune -o -path './.tmp' -prune -o -path './.flow/artifacts' -prune -o -path './.worktrees' -prune -o -path './tools/gomad3/.toolchain' -prune -o -path './tools/gomad3/backends/native/toolchain/runtime/overlay' -prune -o -path './tools/gomad3/backends/wasm/wasmhost/target' -prune -o -type f -name '*.go' -print0 | \
+	@find . -path './.gomad' -prune -o -path './.tmp' -prune -o -path './.flow/artifacts' -prune -o -path './.worktrees' -prune -o -path './tools/gomad3/.toolchain' -prune -o -path './tools/gomad3/internal/backends/native/toolchain/runtime/overlay' -prune -o -path './tools/gomad3/internal/backends/wasm/wasmhost/target' -prune -o -type f -name '*.go' -print0 | \
 		xargs -0 $(GCI) write --skip-generated -s standard -s default
 
 parallelize-tests:

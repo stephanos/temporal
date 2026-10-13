@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -21,20 +22,20 @@ import (
 	"testing"
 	"time"
 
-	"go.temporal.io/server/tools/gomad3/artifact"
-	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
-	"go.temporal.io/server/tools/gomad3/backends/native/preparation"
-	capabilityanalysis "go.temporal.io/server/tools/gomad3/backends/native/qualification/analysis"
-	supportcomparison "go.temporal.io/server/tools/gomad3/backends/native/qualification/comparison"
-	qualificationset "go.temporal.io/server/tools/gomad3/backends/native/qualification/set"
-	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
-	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/qualification"
-	qualificationworkload "go.temporal.io/server/tools/gomad3/qualification/workload"
-	"go.temporal.io/server/tools/gomad3/record"
-	"go.temporal.io/server/tools/gomad3/runner"
-	"go.temporal.io/server/tools/gomad3/runner/inspect"
-	"go.temporal.io/server/tools/gomad3/target"
+	nativebuild "go.temporal.io/server/tools/gomad3/internal/backends/native/build"
+	"go.temporal.io/server/tools/gomad3/internal/backends/native/preparation"
+	capabilityanalysis "go.temporal.io/server/tools/gomad3/internal/backends/native/qualification/analysis"
+	supportcomparison "go.temporal.io/server/tools/gomad3/internal/backends/native/qualification/comparison"
+	qualificationset "go.temporal.io/server/tools/gomad3/internal/backends/native/qualification/set"
+	"go.temporal.io/server/tools/gomad3/internal/backends/native/transcript"
+	"go.temporal.io/server/tools/gomad3/internal/backends/target"
+	qualificationworkload "go.temporal.io/server/tools/gomad3/internal/backends/wasm/qualification"
+	"go.temporal.io/server/tools/gomad3/internal/evidence/artifact"
+	"go.temporal.io/server/tools/gomad3/internal/evidence/qualification"
+	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
+	"go.temporal.io/server/tools/gomad3/internal/model/choice"
+	"go.temporal.io/server/tools/gomad3/internal/runner"
+	"go.temporal.io/server/tools/gomad3/internal/runner/inspect"
 )
 
 func TestByteSizeFlagParsesBinaryUnitsCanonically(t *testing.T) {
@@ -314,13 +315,13 @@ func TestResolveExploreCoverageRequiresSemanticModeAndKnownProbes(t *testing.T) 
 	for _, test := range []struct {
 		mode      string
 		required  []string
-		want      runner.CoverageMode
+		want      campaignoptions.CoverageMode
 		wantError bool
 	}{
-		{mode: "none", want: runner.CoverageNone},
-		{mode: "semantic", required: []string{"stdlib.os.openfile"}, want: runner.CoverageSemantic},
-		{mode: "choice", want: runner.CoverageChoice},
-		{mode: "semantic+choice", required: []string{"stdlib.os.openfile"}, want: runner.CoverageSemanticChoice},
+		{mode: "none", want: campaignoptions.CoverageNone},
+		{mode: "semantic", required: []string{"stdlib.os.openfile"}, want: campaignoptions.CoverageSemantic},
+		{mode: "choice", want: campaignoptions.CoverageChoice},
+		{mode: "semantic+choice", required: []string{"stdlib.os.openfile"}, want: campaignoptions.CoverageSemanticChoice},
 		{mode: "none", required: []string{"stdlib.os.openfile"}, wantError: true},
 		{mode: "choice", required: []string{"stdlib.os.openfile"}, wantError: true},
 		{mode: "semantic", required: []string{"unknown.probe"}, wantError: true},
@@ -1026,7 +1027,7 @@ func TestExploreErrorReportsClassificationAfterChoiceDiagnosticWriterFailure(t *
 	var stdout bytes.Buffer
 	stderr := failingWriter{}
 	reporter := newExploreReporter(true, &stdout, stderr)
-	status := reportExploreFailure(runner.CampaignResult{ChoiceTrace: &runner.ChoiceTraceSummary{}}, errors.New("bad request"), reporter, stderr)
+	status := reportExploreFailure(runner.CampaignResult{ChoiceTrace: &record.ChoiceTraceSummary{}}, errors.New("bad request"), reporter, stderr)
 	if status != 2 || !strings.Contains(stdout.String(), `"classification":"invalid_input"`) || !strings.Contains(stdout.String(), "bad request") {
 		t.Fatalf("status=%d stdout=%q", status, stdout.String())
 	}
@@ -1089,7 +1090,7 @@ func TestRunQualifyForwardsFlagsAndClassifiesOutcome(t *testing.T) {
 			wantOutput: []string{`"schema":"gomad3.qualify-event/v1"`, `"type":"result"`, `"classification":"qualified"`, `"report_path":"/artifacts/qualifications/v1/report.json"`, `"qualified":true`},
 			check: func(t *testing.T, observed qualifyObservation) bool {
 				for _, config := range observed.runs {
-					if config.Seeds != "7" || config.Parallel != 1 || config.OnFailure != runner.PolicyAll || config.Coverage != runner.CoverageSemanticChoice || !config.CollectExecutionEvidence || config.ChoiceTraceLimit != 1<<20 || config.Target.Source != "./pkg" || config.Target.WorkingDir != "/workspace" || len(config.RequiredSemanticProbes) != 1 {
+					if config.Seeds != "7" || config.Parallel != 1 || config.OnFailure != runner.PolicyAll || config.Coverage != campaignoptions.CoverageSemanticChoice || !config.CollectExecutionEvidence || config.ChoiceTraceLimit != 1<<20 || config.Target.Source != "./pkg" || config.Target.WorkingDir != "/workspace" || len(config.RequiredSemanticProbes) != 1 {
 						t.Fatalf("config = %#v", config)
 					}
 				}
@@ -1114,7 +1115,7 @@ func TestRunQualifyForwardsFlagsAndClassifiesOutcome(t *testing.T) {
 			name: "replays repeated target failure", arguments: []string{"--json", "--seed", "7", "go-test", "./pkg"},
 			run: func(call int, _ runner.CampaignSpec) (runner.CampaignResult, error) {
 				evidence := qualificationEvidence(7)
-				evidence.Outcome = runner.OutcomeEvidence{Domain: "target", Reason: "nonzero_exit", Termination: "exit"}
+				evidence.Outcome = record.OutcomeEvidence{Domain: "target", Reason: "nonzero_exit", Termination: "exit"}
 				return runner.CampaignResult{CampaignPath: fmt.Sprintf("/artifacts/run-%d", call), SelectionCount: 1, Attempted: 1, Failures: 1, Artifacts: []string{fmt.Sprintf("/artifacts/failure-%d", call)}, ExecutionEvidence: &evidence}, nil
 			},
 			replay:     replayOf("failure"),
@@ -1282,14 +1283,14 @@ func qualificationDependencies(t *testing.T) qualifyDependencies {
 	}
 }
 
-func qualificationEvidence(seed uint64) runner.ExecutionEvidence {
-	return runner.ExecutionEvidence{
-		Schema: runner.ExecutionEvidenceSchema, Seed: record.Uint64String(seed), RunnerBuild: "sha256:runner",
+func qualificationEvidence(seed uint64) record.ExecutionEvidence {
+	return record.ExecutionEvidence{
+		Schema: record.ExecutionEvidenceSchema, Seed: record.Uint64String(seed), RunnerBuild: "sha256:runner",
 		Toolchain:   record.Toolchain{GoVersion: "go1.26.4", BuildKey: "build", TargetGOOS: "darwin", TargetGOARCH: "arm64"},
 		Target:      record.Target{Kind: "go-test", Source: "./pkg", SHA256: "sha256:target", Size: 12, Argv: []string{"gomad3-target"}, BuildTags: []string{"gomad_fixture"}},
 		IOProfile:   record.IOContract{Name: "deterministic", ImplementationSHA256: "sha256:io", InventorySHA256: "sha256:inventory"},
 		Environment: []record.Environment{{Name: "GOMADSEED", Value: fmt.Sprintf("%d", seed)}, {Name: "TZ", Value: "UTC"}},
-		Outcome:     runner.OutcomeEvidence{Domain: "success", Reason: "success", Termination: "exit"}, GroupGone: true,
+		Outcome:     record.OutcomeEvidence{Domain: "success", Reason: "success", Termination: "exit"}, GroupGone: true,
 		Stdout: record.Stream{FullSHA256: "sha256:stdout"}, Stderr: record.Stream{FullSHA256: "sha256:stderr"},
 		IOTranscriptSHA256: "sha256:transcript", IOTranscriptRecords: 1, IOTranscriptComplete: true,
 		SemanticCoverage: record.SemanticCoverage{Schema: record.SemanticCoverageSchema, Digest: "sha256:coverage", Probes: []string{"stdlib.os.openfile"}},
@@ -1307,7 +1308,7 @@ func TestExploreReporterHumanOutputIncludesProgressAndReplayCommands(t *testing.
 	if err := reporter.Result(runner.CampaignResult{
 		CampaignPath: "/batch", SelectionCount: 5, Attempted: 5, Succeeded: 4, Failures: 1, DistinctFailures: 1,
 		StopReason: runner.StopSeedsExhausted, Artifacts: []string{"/batch/failures/one"},
-		ChoiceTrace: &runner.ChoiceTraceSummary{Seed: 7, Profile: choice.Profile, Records: 3, BranchingRecords: 2, SHA256: record.HashBytes([]byte("choices")), TerminalState: "complete"},
+		ChoiceTrace: &record.ChoiceTraceSummary{Seed: 7, Profile: choice.Profile, Records: 3, BranchingRecords: 2, SHA256: record.HashBytes([]byte("choices")), TerminalState: "complete"},
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -2080,9 +2081,9 @@ func TestTerminalDiagnosticsCompletedOperations(t *testing.T) {
 				case "qualify":
 					dependencies := qualifyDependencies{
 						install: fake.install, workingDirectory: func() (string, error) { return "/workspace", nil },
-						workload: func(context.Context, qualificationworkload.Spec) (qualificationworkload.Result, error) {
+						workload: func(context.Context, qualificationworkload.WorkloadSpec) (qualificationworkload.WorkloadResult, error) {
 							finish()
-							return qualificationworkload.Result{ReportPath: published, Report: qualification.QualificationReport{Qualified: true, Deterministic: true, TargetSuccess: true}}, nil
+							return qualificationworkload.WorkloadResult{ReportPath: published, Report: qualification.QualificationReport{Qualified: true, Deterministic: true, TargetSuccess: true}}, nil
 						},
 					}
 					status = runQualifyWith([]string{"go-run", "./pkg"}, stdout, stderr, dependencies)
@@ -2113,14 +2114,15 @@ func TestCampaignSemanticValidationBelongsToRunner(t *testing.T) {
 	}
 	for _, rule := range []struct {
 		function string
+		owner    string
 		calls    map[string]int
 		forbid   map[string]bool
 	}{
-		{"resolveExploreStrategy", map[string]int{"ParseSingleBaseSeed": 2}, map[string]bool{"Count": true, "ParseSeeds": true}},
-		{"resolveExploreCoverage", map[string]int{"ValidateCoverage": 1}, map[string]bool{"MissingRequiredSemanticProbes": true, "CoverageNone": true, "CoverageChoice": true, "CoverageSemantic": true, "CoverageSemanticChoice": true}},
-		{"resolveChoiceTrace", map[string]int{"ValidateChoiceTraceLimit": 1}, nil},
-		{"parseCampaignRequest", map[string]int{"ValidateChoiceCoverage": 1}, map[string]bool{"CoverageChoice": true, "CoverageSemanticChoice": true}},
-		{"resolveExploreGuidance", map[string]int{"NormalizeCoverage": 1}, nil},
+		{"resolveExploreStrategy", "runner", map[string]int{"ParseSingleBaseSeed": 2}, map[string]bool{"Count": true, "ParseSeeds": true}},
+		{"resolveExploreCoverage", "campaignoptions", map[string]int{"ValidateCoverage": 1}, map[string]bool{"MissingRequiredSemanticProbes": true, "CoverageNone": true, "CoverageChoice": true, "CoverageSemantic": true, "CoverageSemanticChoice": true}},
+		{"resolveChoiceTrace", "campaignoptions", map[string]int{"ValidateChoiceTraceLimit": 1}, nil},
+		{"parseCampaignRequest", "campaignoptions", map[string]int{"ValidateChoiceCoverage": 1}, map[string]bool{"CoverageChoice": true, "CoverageSemanticChoice": true}},
+		{"resolveExploreGuidance", "campaignoptions", map[string]int{"NormalizeCoverage": 1}, nil},
 	} {
 		t.Run(rule.function, func(t *testing.T) {
 			var body *ast.BlockStmt
@@ -2167,7 +2169,7 @@ func TestCampaignSemanticValidationBelongsToRunner(t *testing.T) {
 					ast.Inspect(expression, func(node ast.Node) bool {
 						if call, ok := node.(*ast.CallExpr); ok {
 							if selector, ok := call.Fun.(*ast.SelectorExpr); ok {
-								if owner, ok := selector.X.(*ast.Ident); ok && owner.Name == "runner" {
+								if owner, ok := selector.X.(*ast.Ident); ok && owner.Name == rule.owner {
 									calls[selector.Sel.Name]++
 								}
 							}
@@ -2179,7 +2181,7 @@ func TestCampaignSemanticValidationBelongsToRunner(t *testing.T) {
 			})
 			for name, want := range rule.calls {
 				if got := calls[name]; got != want {
-					t.Errorf("%s: %d checked Runner.%s calls, want %d in actual validation", rule.function, got, name, want)
+					t.Errorf("%s: %d checked %s.%s calls, want %d in actual validation", rule.function, got, rule.owner, name, want)
 				}
 			}
 		})

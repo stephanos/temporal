@@ -56,8 +56,8 @@ func TestPureStructure(t *testing.T) {
 		{"pure-init", "func pure() {}; func init() { pure() }", ""},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			root := fixture(t, map[string]string{"world/pure.go": "package world\n" + test.source, "world/host.go": "package world\nfunc host() {}"})
-			config := Config{Module: "example.invalid/check", PureFiles: func(path string) bool { return path == "world/pure.go" }, PureImports: []string{"time", "syscall"}}
+			root := fixture(t, map[string]string{"internal/model/world/pure.go": "package world\n" + test.source, "internal/model/world/host.go": "package world\nfunc host() {}"})
+			config := Config{Module: "example.invalid/check", PureFiles: func(path string) bool { return path == "internal/model/world/pure.go" }, PureImports: []string{"time", "syscall"}}
 			findings, err := Check(root, "go", Platform{runtime.GOOS, runtime.GOARCH}, config)
 			if err != nil {
 				t.Fatal(err)
@@ -76,37 +76,41 @@ func TestPureStructure(t *testing.T) {
 func TestPureCgoRejectedWhenDisabled(t *testing.T) {
 	t.Setenv("CGO_ENABLED", "0")
 	root := fixture(t, map[string]string{
-		"world/pure.go":             "package world\nimport \"C\"",
-		"world/host.go":             "package world\nfunc host(){}",
-		"world/inactive_windows.go": "package world\nimport \"os\";var _=os.Getenv",
+		"internal/model/world/pure.go":             "package world\nimport \"C\"",
+		"internal/model/world/host.go":             "package world\nfunc host(){}",
+		"internal/model/world/inactive_windows.go": "package world\nimport \"os\";var _=os.Getenv",
 	})
-	config := Config{Module: "example.invalid/check", PureFiles: func(path string) bool { return strings.HasPrefix(path, "world/") && path != "world/host.go" }}
+	config := Config{Module: "example.invalid/check", PureFiles: func(path string) bool {
+		return strings.HasPrefix(path, "internal/model/world/") && path != "internal/model/world/host.go"
+	}}
 	findings, err := Check(root, "go", Platform{"linux", "amd64"}, config)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(findings) != 1 || findings[0].Category != "pure-syntax" || findings[0].Path != "world/pure.go" {
+	if len(findings) != 1 || findings[0].Category != "pure-syntax" || findings[0].Path != "internal/model/world/pure.go" {
 		t.Fatalf("inactive cgo must be rejected without activating other platform files: %v", findings)
 	}
 }
 
 func TestConfigurationMustMatchSource(t *testing.T) {
-	root := fixture(t, map[string]string{"world/pure.go": "package world"})
-	_, err := Check(root, "go", Platform{runtime.GOOS, runtime.GOARCH}, Config{Module: "example.invalid/check", PureFiles: func(path string) bool { return path == "world/renamed.go" }})
+	root := fixture(t, map[string]string{"internal/model/world/pure.go": "package world"})
+	_, err := Check(root, "go", Platform{runtime.GOOS, runtime.GOARCH}, Config{Module: "example.invalid/check", PureFiles: func(path string) bool { return path == "internal/model/world/renamed.go" }})
 	if err == nil || !strings.Contains(err.Error(), "pure") {
 		t.Fatalf("unmatched pure set accepted: %v", err)
 	}
 }
 
 func TestConfiguredEdgesAndOwners(t *testing.T) {
-	root := fixture(t, map[string]string{"world/source.go": "package world\nimport _ \"example.invalid/check/backends/native\"", "backends/native/source.go": "package native"})
-	config := Config{Module: "example.invalid/check", Owners: map[string][]string{"shared": {"example.invalid/check/world"}, "native": {"example.invalid/check/backends/native"}}, OwnerEdges: map[string][]string{}}
+	root := fixture(t, map[string]string{"internal/model/world/source.go": "package world\nimport _ \"example.invalid/check/internal/backends/native\"", "internal/backends/native/source.go": "package native"})
+	config := Config{Module: "example.invalid/check", Owners: map[string][]string{"shared": {"example.invalid/check/world"}, "native": {"example.invalid/check/internal/backends/native"}}, OwnerEdges: map[string][]string{}}
 	findings, err := Check(root, "go", Platform{runtime.GOOS, runtime.GOARCH}, config)
 	if err != nil {
 		t.Fatal(err)
 	}
 	for _, category := range []string{"module-edge", "owner-edge"} {
-		if !slices.ContainsFunc(findings, func(f Finding) bool { return f.Category == category && strings.Contains(f.Detail, "backends/native") }) {
+		if !slices.ContainsFunc(findings, func(f Finding) bool {
+			return f.Category == category && strings.Contains(f.Detail, "internal/backends/native")
+		}) {
 			t.Fatalf("missing %s: %v", category, findings)
 		}
 	}
@@ -118,8 +122,8 @@ func TestConfiguredEdgesAndOwners(t *testing.T) {
 }
 
 func TestSubtreeAndBuildTags(t *testing.T) {
-	root := fixture(t, map[string]string{"backends/wasm/wasi/pure.go": "package wasi", "backends/wasm/wasi/ignored.go": "//go:build windows\n\npackage wasi\nimport _ \"os\"", "backends/wasm/wasi/tagged.go": "//go:build test_dep\n\npackage wasi\nimport _ \"os\""})
-	findings, err := Check(filepath.Join(root, "backends/wasm"), "go", Platform{"linux", "amd64"}, Config{Module: "example.invalid/check", PureFiles: func(path string) bool { return strings.HasPrefix(path, "wasi/") }})
+	root := fixture(t, map[string]string{"internal/backends/wasm/wasi/pure.go": "package wasi", "internal/backends/wasm/wasi/ignored.go": "//go:build windows\n\npackage wasi\nimport _ \"os\"", "internal/backends/wasm/wasi/tagged.go": "//go:build test_dep\n\npackage wasi\nimport _ \"os\""})
+	findings, err := Check(filepath.Join(root, "internal/backends/wasm"), "go", Platform{"linux", "amd64"}, Config{Module: "example.invalid/check", PureFiles: func(path string) bool { return strings.HasPrefix(path, "wasi/") }})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -131,30 +135,30 @@ func TestSubtreeAndBuildTags(t *testing.T) {
 func TestBackendNamespaceOwners(t *testing.T) {
 	const module = "example.invalid/check"
 	root := fixture(t, map[string]string{
-		"backends/source.go":        "package backends",
-		"backends/native/source.go": "package native;import _ \"example.invalid/check/backends\"",
-		"backends/wasm/source.go":   "package wasm;import _ \"example.invalid/check/backends\"",
-		"backends/shadow/source.go": "package shadow",
+		"internal/backends/source.go":        "package backends",
+		"internal/backends/native/source.go": "package native;import _ \"example.invalid/check/internal/backends\"",
+		"internal/backends/wasm/source.go":   "package wasm;import _ \"example.invalid/check/internal/backends\"",
+		"internal/backends/shadow/source.go": "package shadow",
 	})
 	packages, err := List(root, "go", Platform{runtime.GOOS, runtime.GOARCH}, false)
 	if err != nil {
 		t.Fatal(err)
 	}
 	findings := PackageEdges(module, packages)
-	if len(findings) != 1 || findings[0].Category != "ownerless" || findings[0].Path != module+"/backends/shadow" {
+	if len(findings) != 1 || findings[0].Category != "ownerless" || findings[0].Path != module+"/internal/backends/shadow" {
 		t.Fatalf("shadow namespace must not inherit the neutral protocol owner: %v", findings)
 	}
-	if OwnerMayImport(module, "cli", "wasm", module+"/cmd/gomad/internal/cli", module+"/backends/wasm/command/unchecked") {
+	if OwnerMayImport(module, "cli", "wasm", module+"/cmd/gomad/internal/cli", module+"/internal/backends/wasm/command/unchecked") {
 		t.Fatal("CLI descendant wiring admitted")
 	}
 }
 
-func TestCapturedMayUseOnlyThePublicHostFSFacade(t *testing.T) {
+func TestCapturedMayUseOnlyTheHostFSOwner(t *testing.T) {
 	const module = "example.invalid/check"
-	if !OwnerMayImport(module, "captured", "hostfs", module+"/captured", module+"/hostfs") {
-		t.Fatal("captured cannot use the public hostfs facade")
+	if !OwnerMayImport(module, "captured", "hostfs", module+"/internal/evidence/artifact/capture", module+"/internal/host/fs") {
+		t.Fatal("capture cannot use its host filesystem owner")
 	}
-	if OwnerMayImport(module, "captured", "hostfs", module+"/captured", module+"/internal/hostfs") {
-		t.Fatal("captured may bypass the public hostfs facade")
+	if OwnerMayImport(module, "captured", "hostfs", module+"/internal/evidence/artifact/capture", module+"/internal/host/fs/unchecked") {
+		t.Fatal("capture may bypass the exact host filesystem owner")
 	}
 }

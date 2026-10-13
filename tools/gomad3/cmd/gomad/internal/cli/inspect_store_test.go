@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/runner/inspect"
+	"go.temporal.io/server/tools/gomad3/internal/runner/inspect"
 )
 
 func readInspectFixtureLog(t *testing.T, path string) []byte {

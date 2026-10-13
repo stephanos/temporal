@@ -6,6 +6,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 	"io"
 	"os"
 	"path/filepath"
@@ -14,11 +15,11 @@ import (
 	"strings"
 	"time"
 
-	"go.temporal.io/server/tools/gomad3/backends"
-	"go.temporal.io/server/tools/gomad3/record"
-	"go.temporal.io/server/tools/gomad3/runner"
-	"go.temporal.io/server/tools/gomad3/runner/inspect"
-	"go.temporal.io/server/tools/gomad3/target"
+	"go.temporal.io/server/tools/gomad3/internal/backends"
+	"go.temporal.io/server/tools/gomad3/internal/backends/target"
+	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
+	"go.temporal.io/server/tools/gomad3/internal/runner"
+	"go.temporal.io/server/tools/gomad3/internal/runner/inspect"
 )
 
 const usage = `usage:
@@ -697,11 +698,11 @@ func parseCampaignRequest(operation campaignOperation, arguments []string, stdou
 	choices := choiceFlags.Bool("choices", false, "record bounded runtime choices")
 	diagnostics := choiceFlags.Bool("diagnostics", false, "record runtime-state diagnostics; implies --choices")
 	coverage := new(string)
-	*coverage = string(runner.CoverageNone)
+	*coverage = string(campaignoptions.CoverageNone)
 	if nativeFlags.enabled {
-		flags.StringVar(coverage, "coverage", string(runner.CoverageNone), "none, semantic, choice, or semantic+choice")
+		flags.StringVar(coverage, "coverage", string(campaignoptions.CoverageNone), "none, semantic, choice, or semantic+choice")
 	} else if choiceFlags.enabled {
-		flags.Var(enumValue{coverage, coverageValues(runner.SupportedCoverageModes(false, true))}, "coverage", "none or choice")
+		flags.Var(enumValue{coverage, coverageValues(campaignoptions.SupportedCoverageModes(false, true))}, "coverage", "none or choice")
 	}
 	guide := nativeFlags.Bool("guide", false, "exclude answered seeds using a bounded coverage corpus")
 	guideRegression := nativeFlags.Bool("guide-regression", false, "re-run corpus seeds with --guide; fully answered default requests execute zero seeds and exit 0")
@@ -891,7 +892,7 @@ func parseCampaignRequest(operation campaignOperation, arguments []string, stdou
 		}
 		return campaignRequest{}, 2, false
 	}
-	if err := runner.ValidateChoiceCoverage(coverageMode, resolvedChoiceLimit); err != nil {
+	if err := campaignoptions.ValidateChoiceCoverage(coverageMode, resolvedChoiceLimit); err != nil {
 		if writeErr := reporter.Error("invalid_input", fmt.Errorf("--coverage=%s requires --choices", coverageMode)); writeErr != nil {
 			if _, printErr := fmt.Fprintln(stderr, writeErr); printErr != nil {
 				return campaignRequest{}, 3, false
@@ -1099,11 +1100,11 @@ func resolveExploreGuidance(enabled bool, corpus, coverage string, coverageSet b
 	if corpus == "" {
 		return "", fmt.Errorf("--guide requires --corpus DIR")
 	}
-	if coverageSet && coverage != string(runner.CoverageSemantic) && coverage != string(runner.CoverageChoice) && coverage != string(runner.CoverageSemanticChoice) {
+	if coverageSet && coverage != string(campaignoptions.CoverageSemantic) && coverage != string(campaignoptions.CoverageChoice) && coverage != string(campaignoptions.CoverageSemanticChoice) {
 		return "", errors.New("--guide requires semantic or choice coverage")
 	}
 	if !coverageSet {
-		return string(runner.NormalizeCoverage("", true)), nil
+		return string(campaignoptions.NormalizeCoverage("", true)), nil
 	}
 	return coverage, nil
 }
@@ -1126,13 +1127,13 @@ func resolveExploreSeeds(seeds string, count uint64, seedsSet, countSet bool) (s
 
 // resolveExploreCoverage reads --coverage through Runner and checks the
 // --require-probe flags given for it.
-func resolveExploreCoverage(value string, required []string) (runner.CoverageMode, error) {
+func resolveExploreCoverage(value string, required []string) (campaignoptions.CoverageMode, error) {
 	mode, err := runner.ParseCoverageMode(value)
 	if err != nil {
 		return "", err
 	}
-	if err := runner.ValidateCoverage(mode, required); err != nil {
-		var required *runner.SemanticCoverageRequiredError
+	if err := campaignoptions.ValidateCoverage(mode, required); err != nil {
+		var required *campaignoptions.SemanticCoverageRequiredError
 		if errors.As(err, &required) {
 			return "", errors.New("--require-probe requires --coverage=semantic")
 		}
@@ -1154,10 +1155,10 @@ func resolveChoiceTrace(enabled bool, limit byteSize, limitSet bool) (uint64, er
 		return 0, nil
 	}
 	if limit == 0 {
-		return 0, fmt.Errorf("--choice-bytes must be between %d bytes and 64MiB", runner.MinimumChoiceTraceBytes)
+		return 0, fmt.Errorf("--choice-bytes must be between %d bytes and 64MiB", backends.MinimumChoiceTraceBytes)
 	}
-	if err := runner.ValidateChoiceTraceLimit(uint64(limit)); err != nil {
-		return 0, fmt.Errorf("--choice-bytes must be between %d bytes and 64MiB", runner.MinimumChoiceTraceBytes)
+	if err := campaignoptions.ValidateChoiceTraceLimit(uint64(limit)); err != nil {
+		return 0, fmt.Errorf("--choice-bytes must be between %d bytes and 64MiB", backends.MinimumChoiceTraceBytes)
 	}
 	return uint64(limit), nil
 }

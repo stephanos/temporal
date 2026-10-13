@@ -42,7 +42,7 @@ tools/gomad3/.bin/gomad
 Maintainer examples invoke the developer command directly from its module:
 
 ```sh
-go -C tools/gomad3 run ./backends/native/cmd/gomadtool COMMAND
+go -C tools/gomad3 run ./internal/backends/native/cmd/gomadtool COMMAND
 ```
 
 Commands that prepare a target use one of three forms:
@@ -207,7 +207,7 @@ tools/gomad3/.bin/gomad explore \
 
 The strategy requires one base seed and explicit positive bounds. It implies choice recording and does not combine with `--count` or guided exploration.
 
-`--choice-start-ordinal=N` expands only replay-plan decisions at ordinal N or later, while retaining earlier decisions in each forced prefix. The default is 0. Find the ordinals with `inspect --choices`; resume restores the recorded start ordinal. Negative, malformed, or overflowing uint64 values are rejected. Using this flag with seed or Combined Exploration, including an explicit zero, is invalid input (status 2). Select polls of the seven proven shapes with two polled non-nil cases and fewer than two ready cases are recorded but do not expand the Frontier; unknown readiness, unlisted shapes, and selects with three or more polled cases remain expanded. Source clauses with nil channels do not count as polled cases. Results report omitted alternatives separately; [the source list](choice/no_op_select.go) fixes the covered shapes.
+`--choice-start-ordinal=N` expands only replay-plan decisions at ordinal N or later, while retaining earlier decisions in each forced prefix. The default is 0. Find the ordinals with `inspect --choices`; resume restores the recorded start ordinal. Negative, malformed, or overflowing uint64 values are rejected. Using this flag with seed or Combined Exploration, including an explicit zero, is invalid input (status 2). Select polls of the seven proven shapes with two polled non-nil cases and fewer than two ready cases are recorded but do not expand the Frontier; unknown readiness, unlisted shapes, and selects with three or more polled cases remain expanded. Source clauses with nil channels do not count as polled cases. Results report omitted alternatives separately; [the source list](internal/model/choice/no_op_select.go) fixes the covered shapes.
 
 For a Gomad simulation target, Combined Exploration coordinates runtime, scenario, network, storage, fault, and crash-state alternatives through `--strategy=simulation-exploration`. Every dimension is explicit so “complete” always means complete within the declared bounds:
 
@@ -498,12 +498,12 @@ The user journey depends on a maintained deterministic product. `gomadtool` prov
 Four commands generate or verify different canonical domains:
 
 ```sh
-go -C tools/gomad3 run ./backends/native/cmd/gomadtool version-generate --check --root=.
-go -C tools/gomad3 run ./backends/native/cmd/gomadtool protocol-generate --check --root=.
-go -C tools/gomad3 run ./backends/native/cmd/gomadtool boundary-generate --check --root=.
-go -C tools/gomad3 run ./backends/native/cmd/gomadtool qualification-manifest-generate --check --root=../.. \
-  --spec=tools/gomad3/backends/native/qualification/tests.generator.json \
-  --output=tools/gomad3/backends/native/qualification/tests.json
+go -C tools/gomad3 run ./internal/backends/native/cmd/gomadtool version-generate --check --root=.
+go -C tools/gomad3 run ./internal/backends/native/cmd/gomadtool protocol-generate --check --root=.
+go -C tools/gomad3 run ./internal/backends/native/cmd/gomadtool boundary-generate --check --root=.
+go -C tools/gomad3 run ./internal/backends/native/cmd/gomadtool qualification-manifest-generate --check --root=../.. \
+  --spec=tools/gomad3/internal/backends/native/qualification/tests.generator.json \
+  --output=tools/gomad3/internal/backends/native/qualification/tests.json
 ```
 
 - `version-generate` derives consumers of the release descriptor.
@@ -518,13 +518,13 @@ Without `--check`, these commands update generated outputs. `boundary-generate` 
 Validate the governed runtime patch and overlay:
 
 ```sh
-go -C tools/gomad3 run ./backends/native/cmd/gomadtool patch-validate --root=.
+go -C tools/gomad3 run ./internal/backends/native/cmd/gomadtool patch-validate --root=.
 ```
 
 Apply the exact patch to an already verified Go source tree when inspecting or updating it:
 
 ```sh
-go -C tools/gomad3 run ./backends/native/cmd/gomadtool patch-materialize \
+go -C tools/gomad3 run ./internal/backends/native/cmd/gomadtool patch-materialize \
   --root=. \
   --source-root=/absolute/path/to/go-source
 ```
@@ -532,7 +532,7 @@ go -C tools/gomad3 run ./backends/native/cmd/gomadtool patch-materialize \
 After making reviewed changes in a candidate source tree, regenerate the canonical patch:
 
 ```sh
-go -C tools/gomad3 run ./backends/native/cmd/gomadtool patch-regenerate \
+go -C tools/gomad3 run ./internal/backends/native/cmd/gomadtool patch-regenerate \
   --root=. \
   --candidate-root=/absolute/path/to/modified-go-source
 ```
@@ -542,7 +542,7 @@ go -C tools/gomad3 run ./backends/native/cmd/gomadtool patch-regenerate \
 `toolchain-build` performs the verified build and immutable publication:
 
 ```sh
-go -C tools/gomad3 run ./backends/native/cmd/gomadtool toolchain-build --root=.
+go -C tools/gomad3 run ./internal/backends/native/cmd/gomadtool toolchain-build --root=.
 ```
 
 The ordinary repository entry point remains `make gomad3`; direct maintainer commands are useful when debugging one stage or qualifying an upgrade.
@@ -555,7 +555,7 @@ For an exact dependency bump, first compare candidate and saved baseline
 `go.mod` files, each with an adjacent `go.sum`:
 
 ```sh
-go -C tools/gomad3 run ./backends/native/cmd/gomadtool pin-impact --root=. \
+go -C tools/gomad3 run ./internal/backends/native/cmd/gomadtool pin-impact --root=. \
   --baseline=/absolute/baseline/go.mod --candidate=/absolute/candidate/go.mod \
   --format=json > pin-impact.json
 ```
@@ -565,11 +565,11 @@ entries before making changes. For each affected adapter, inspect the dry-run
 source diff and exact anchor proposal, then explicitly approve its digest:
 
 ```sh
-go -C tools/gomad3 run ./backends/native/cmd/gomadtool adapter-regenerate --root=. \
+go -C tools/gomad3 run ./internal/backends/native/cmd/gomadtool adapter-regenerate --root=. \
   --module=<module-path> --version=<exact-version>
-go -C tools/gomad3 run ./backends/native/cmd/gomadtool adapter-regenerate --root=. \
+go -C tools/gomad3 run ./internal/backends/native/cmd/gomadtool adapter-regenerate --root=. \
   --module=<module-path> --version=<exact-version> --approve=sha256:<reviewed-digest>
-go -C tools/gomad3 run ./backends/native/cmd/gomadtool compatibility-pack refresh --root=. \
+go -C tools/gomad3 run ./internal/backends/native/cmd/gomadtool compatibility-pack refresh --root=. \
   --impact-report=/absolute/path/to/pin-impact.json
 ```
 
@@ -585,49 +585,49 @@ evidence. The [README](README.md#compatibility-pack-development) gives the
 complete dependency-bump procedure.
 
 ```sh
-go -C tools/gomad3 run ./backends/native/cmd/gomadtool compatibility-pack discover \
+go -C tools/gomad3 run ./internal/backends/native/cmd/gomadtool compatibility-pack discover \
   --root=. \
-  --request=backends/native/compatibilitypack/requests/PACK.json \
+  --request=internal/backends/native/compatibilitypack/requests/PACK.json \
   --working-dir=/absolute/path/to/target-module
 ```
 
 Publish a human review and capture the digest it prints:
 
 ```sh
-go -C tools/gomad3 run ./backends/native/cmd/gomadtool compatibility-pack review \
+go -C tools/gomad3 run ./internal/backends/native/cmd/gomadtool compatibility-pack review \
   --root=. \
-  --request=backends/native/compatibilitypack/requests/PACK.json \
-  --output=backends/native/compatibilitypack/reports/PACK.md
+  --request=internal/backends/native/compatibilitypack/requests/PACK.json \
+  --output=internal/backends/native/compatibilitypack/reports/PACK.md
 ```
 
 After reviewing that exact report, generate only with its exact approval digest:
 
 ```sh
-go -C tools/gomad3 run ./backends/native/cmd/gomadtool compatibility-pack generate \
+go -C tools/gomad3 run ./internal/backends/native/cmd/gomadtool compatibility-pack generate \
   --root=. \
-  --request=backends/native/compatibilitypack/requests/PACK.json \
+  --request=internal/backends/native/compatibilitypack/requests/PACK.json \
   --approve-review=sha256:REVIEWED_REPORT_HEX
 ```
 
 Then qualify the request against its target and verify the complete generated set:
 
 ```sh
-go -C tools/gomad3 run ./backends/native/cmd/gomadtool compatibility-pack qualify \
+go -C tools/gomad3 run ./internal/backends/native/cmd/gomadtool compatibility-pack qualify \
   --root=. \
-  --request=backends/native/compatibilitypack/requests/PACK.json \
+  --request=internal/backends/native/compatibilitypack/requests/PACK.json \
   --working-dir=/absolute/path/to/target-module
 
-go -C tools/gomad3 run ./backends/native/cmd/gomadtool compatibility-pack check --root=.
+go -C tools/gomad3 run ./internal/backends/native/cmd/gomadtool compatibility-pack check --root=.
 ```
 
 Calling `compatibility-pack generate --root=.` without a request or approval regenerates already approved packs, and removes the packs and reports it no longer renders; it does not approve a new request.
 
-`backends/native/compatibilitypack/working-directories.json` maps every request to the module directory, relative to the compatibility directory, that it is discovered and qualified in. `check` rejects a request without an entry, an entry whose directory holds no `go.mod`, and, for this repository's root, a missing table. `adapter-regenerate` verifies its staged copy of the module with `check --staged-copy`, which still requires the table but not a `go.mod` in the directories it maps outside the copy. `compatibility-pack qualify --root=. --all` qualifies every request naming the host platform in its mapped directory, which is what `make compatibility-pack-qualification` runs.
+`internal/backends/native/compatibilitypack/working-directories.json` maps every request to the module directory, relative to the compatibility directory, that it is discovered and qualified in. `check` rejects a request without an entry, an entry whose directory holds no `go.mod`, and, for this repository's root, a missing table. `adapter-regenerate` verifies its staged copy of the module with `check --staged-copy`, which still requires the table but not a `go.mod` in the directories it maps outside the copy. `compatibility-pack qualify --root=. --all` qualifies every request naming the host platform in its mapped directory, which is what `make compatibility-pack-qualification` runs.
 
 After a dependency bump is applied to the checkout, refresh every invalidated request up to approval in one command:
 
 ```sh
-go -C tools/gomad3 run ./backends/native/cmd/gomadtool compatibility-pack refresh \
+go -C tools/gomad3 run ./internal/backends/native/cmd/gomadtool compatibility-pack refresh \
   --root=.
 ```
 
@@ -640,7 +640,7 @@ For a downstream module, pass `--compatibility-root=/absolute/pack-root` to thes
 `test` executes one selected conformance campaign against an explicit toolchain:
 
 ```sh
-go -C tools/gomad3 run ./backends/native/cmd/gomadtool test \
+go -C tools/gomad3 run ./internal/backends/native/cmd/gomadtool test \
   --root=. \
   --mode=test-builder \
   --go="$(command -v go)"
@@ -651,7 +651,7 @@ The available tiers cover the builder, live capability semantics, runtime behavi
 `diagnostic-diff` compares two complete runtime diagnostic traces and reports the first divergent ordinal and fields:
 
 ```sh
-go -C tools/gomad3 run ./backends/native/cmd/gomadtool diagnostic-diff --json EXPECTED_TRACE ACTUAL_TRACE
+go -C tools/gomad3 run ./internal/backends/native/cmd/gomadtool diagnostic-diff --json EXPECTED_TRACE ACTUAL_TRACE
 ```
 
 Flags precede both trace paths. Status 0 means equal, 1 means different, 2 means invalid arguments or an unreadable, malformed, or incomplete trace, and 3 means output failed. Both traces are fully validated before comparison; differences are diagnostic evidence, not a replay guarantee.
@@ -660,8 +660,8 @@ Flags precede both trace paths. Status 0 means equal, 1 means different, 2 means
 
 ```sh
 make gomad3-soak GOMAD3_SOAK_WORKLOAD=functional-activity GOMAD3_SOAK_SEED=11
-go -C tools/gomad3 run ./backends/native/cmd/gomadtool soak \
-  --manifest="$PWD/tools/gomad3/backends/native/qualification/soak.json" \
+go -C tools/gomad3 run ./internal/backends/native/cmd/gomadtool soak \
+  --manifest="$PWD/tools/gomad3/internal/backends/native/qualification/soak.json" \
   --gomad="$PWD/tools/gomad3/.bin/gomad" \
   --work=/tmp/soak/work --ledger=/tmp/soak/ledger --output=/tmp/soak/output
 ```
@@ -671,7 +671,7 @@ A cohort is one workload, seed, platform, and execution identity, so a new toolc
 `checked-run` is the small bounded process adapter beneath several scripted checks. It verifies an expected exit status and records stdout, stderr, status, timeout, and truncation separately:
 
 ```sh
-go -C tools/gomad3 run ./backends/native/cmd/gomadtool checked-run \
+go -C tools/gomad3 run ./internal/backends/native/cmd/gomadtool checked-run \
   30 0 go-version .toolchain/checked-go-version -- \
   "$PWD/tools/gomad3/.toolchain/bin/go" version
 ```
@@ -679,7 +679,7 @@ go -C tools/gomad3 run ./backends/native/cmd/gomadtool checked-run \
 `script-validate` keeps shell at reviewed argument and platform boundaries:
 
 ```sh
-go -C tools/gomad3 run ./backends/native/cmd/gomadtool script-validate --root=.
+go -C tools/gomad3 run ./internal/backends/native/cmd/gomadtool script-validate --root=.
 ```
 
 ### Bump a dependency
@@ -698,7 +698,7 @@ A dependency bump never widens a pin; three commands find and re-derive the pins
 Before applying a dependency bump, report which exact-version pins it breaks:
 
 ```sh
-go -C tools/gomad3 run ./backends/native/cmd/gomadtool pin-impact \
+go -C tools/gomad3 run ./internal/backends/native/cmd/gomadtool pin-impact \
   --root=. \
   --module=/absolute/path/to/candidate-module
 ```
@@ -710,7 +710,7 @@ The candidate is the `go.mod` and `go.sum` in `--module`, by default the reposit
 When the report names an adapter, re-derive its anchors for the new exact version. A dry run writes nothing:
 
 ```sh
-go -C tools/gomad3 run ./backends/native/cmd/gomadtool adapter-regenerate \
+go -C tools/gomad3 run ./internal/backends/native/cmd/gomadtool adapter-regenerate \
   --module=google.golang.org/grpc --version=v1.84.0
 ```
 
@@ -719,7 +719,7 @@ It downloads the pinned and the candidate version into a private module cache un
 Add `--stage-only` with the printed digest to stage and verify the regeneration and list every file the apply would publish, with the diff of each `go.mod` and `go.sum` that fixture tidying changed, without publishing anything. After reviewing the changed source, apply with the printed digest:
 
 ```sh
-go -C tools/gomad3 run ./backends/native/cmd/gomadtool adapter-regenerate \
+go -C tools/gomad3 run ./internal/backends/native/cmd/gomadtool adapter-regenerate \
   --module=google.golang.org/grpc --version=v1.84.0 \
   --approve-review=sha256:REVIEWED_DIGEST
 ```
@@ -738,7 +738,7 @@ make -C tools/gomad3 upgrade-dossier \
 The Make target supplies the retained core qualification report and invokes:
 
 ```sh
-go -C tools/gomad3 run ./backends/native/cmd/gomadtool upgrade-dossier \
+go -C tools/gomad3 run ./internal/backends/native/cmd/gomadtool upgrade-dossier \
   --root=. \
   --baseline-ref=BASELINE_COMMIT \
   --corpus-report=.toolchain/core-qualification-set.json

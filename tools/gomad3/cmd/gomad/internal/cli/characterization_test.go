@@ -5,6 +5,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	backend "go.temporal.io/server/tools/gomad3/internal/backends"
+	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 	"io"
 	"io/fs"
 	"os"
@@ -16,12 +18,12 @@ import (
 	"testing"
 	"time"
 
-	"go.temporal.io/server/tools/gomad3/artifact"
-	"go.temporal.io/server/tools/gomad3/qualification"
-	qualificationworkload "go.temporal.io/server/tools/gomad3/qualification/workload"
-	"go.temporal.io/server/tools/gomad3/record"
-	"go.temporal.io/server/tools/gomad3/runner"
-	"go.temporal.io/server/tools/gomad3/target"
+	"go.temporal.io/server/tools/gomad3/internal/backends/target"
+	qualificationworkload "go.temporal.io/server/tools/gomad3/internal/backends/wasm/qualification"
+	"go.temporal.io/server/tools/gomad3/internal/evidence/artifact"
+	"go.temporal.io/server/tools/gomad3/internal/evidence/qualification"
+	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
+	"go.temporal.io/server/tools/gomad3/internal/runner"
 )
 
 // Characterization of the gomad command grammar, defaults, output routing and
@@ -138,7 +140,7 @@ func TestCharacterizeInputRejection(t *testing.T) {
 		{"simulation exploration count", withBounds("--count=1"), invalid("--strategy=simulation-exploration does not accept --count")},
 		{"simulation exploration diagnostics", withBounds("--diagnostics"), invalid("--diagnostics requires the seed strategy; forced-prefix exploration is unsupported")},
 		{"choice bytes without choices", []string{"explore", "--choice-bytes=1MiB", "go-run", "./cmd"}, invalid("--choice-bytes requires --choices")},
-		{"choice bytes above maximum", []string{"explore", "--choices", "--choice-bytes=65MiB", "go-run", "./cmd"}, invalid(fmt.Sprintf("--choice-bytes must be between %d bytes and 64MiB", runner.MinimumChoiceTraceBytes))},
+		{"choice bytes above maximum", []string{"explore", "--choices", "--choice-bytes=65MiB", "go-run", "./cmd"}, invalid(fmt.Sprintf("--choice-bytes must be between %d bytes and 64MiB", backend.MinimumChoiceTraceBytes))},
 		{"choice coverage without choices", []string{"explore", "--coverage=choice", "go-run", "./cmd"}, invalid("--coverage=choice requires --choices")},
 		{"unknown coverage", []string{"explore", "--coverage=all", "go-run", "./cmd"}, invalid(`unknown coverage mode "all"`)},
 		{"probe without semantic coverage", []string{"explore", "--require-probe=stdlib.os.openfile", "go-run", "./cmd"}, invalid("--require-probe requires --coverage=semantic")},
@@ -287,7 +289,7 @@ func TestCharacterizeExploreRequestDefaultsAndWiring(t *testing.T) {
 		Strategy: runner.StrategySeed, Seeds: "1", Parallel: min(runtime.NumCPU(), 8), ExecutionTimeout: 30 * time.Second, OverallTimeout: 10 * time.Minute, TerminateGrace: 2 * time.Second,
 		OnFailure: runner.PolicyFirst, FailureBudget: 1, OutputLimit: 8 << 20, WorldTransitionLimit: 64 << 20, ClockTick: record.ClockTickStrict, IOTranscriptLimit: 64 << 20,
 		Artifacts: ".gomad/artifacts", RunnerBuild: "sha256:runner",
-		Coverage: runner.CoverageNone, KeepSuccesses: runner.KeepSuccessesNone, ProgressInterval: 5 * time.Second,
+		Coverage: campaignoptions.CoverageNone, KeepSuccesses: runner.KeepSuccessesNone, ProgressInterval: 5 * time.Second,
 		Target: target.Spec{Kind: target.KindGoRun, Source: "./cmd", WorkingDir: "/workspace", ToolchainRoot: "/toolchain", CapabilityMode: target.CapabilityModeClosure},
 	}
 	if len(observed) != 1 || !reflect.DeepEqual(observed[0], want) {
@@ -318,7 +320,7 @@ func TestCharacterizeExploreRequestDefaultsAndWiring(t *testing.T) {
 		OnFailure: runner.PolicyBudget, FailureBudget: 2, OutputLimit: 8 << 20, WorldTransitionLimit: 64 << 20, ChoiceTraceLimit: 2 << 20, ClockTick: record.ClockTickForward, IOTranscriptLimit: 128 << 20,
 		Artifacts: "/artifacts", Environment: []string{"A=1", "B=two words"}, IOROMounts: []string{"/host=/target"},
 		RunnerBuild: "sha256:runner",
-		Coverage:    runner.CoverageSemantic, RequiredSemanticProbes: []string{"stdlib.os.openfile"}, KeepSuccesses: runner.KeepSuccessesNovel, SuccessArtifactLimit: 3, SuccessBytesLimit: 4 << 20,
+		Coverage:    campaignoptions.CoverageSemantic, RequiredSemanticProbes: []string{"stdlib.os.openfile"}, KeepSuccesses: runner.KeepSuccessesNovel, SuccessArtifactLimit: 3, SuccessBytesLimit: 4 << 20,
 		ProgressInterval: 5 * time.Second,
 		Target: target.Spec{
 			Kind: target.KindGoTest, Source: "./pkg", Args: []string{"-test.run=^TestName$", "literal;$value", "--", "--json"}, BuildTags: []string{"first", "second"},
@@ -620,14 +622,14 @@ func TestCharacterizeInstallationWiring(t *testing.T) {
 	}
 }
 
-func characterizationEvidence() runner.ExecutionEvidence {
-	return runner.ExecutionEvidence{
-		Schema: runner.ExecutionEvidenceSchema, Seed: record.Uint64String(1), RunnerBuild: "sha256:runner",
+func characterizationEvidence() record.ExecutionEvidence {
+	return record.ExecutionEvidence{
+		Schema: record.ExecutionEvidenceSchema, Seed: record.Uint64String(1), RunnerBuild: "sha256:runner",
 		Toolchain:   record.Toolchain{GoVersion: "go1.27.1", BuildKey: "build", TargetGOOS: "darwin", TargetGOARCH: "arm64"},
 		Target:      record.Target{Kind: "go-test", Source: "./pkg", SHA256: "sha256:target", Size: 1, Argv: []string{"gomad3-target"}},
 		IOProfile:   record.IOContract{Name: "deterministic", ImplementationSHA256: "sha256:io", InventorySHA256: "sha256:inventory"},
 		Environment: []record.Environment{{Name: "GOMADSEED", Value: "1"}, {Name: "TZ", Value: "UTC"}},
-		Outcome:     runner.OutcomeEvidence{Domain: "target_failure", Reason: "exit_status", Termination: "exit"}, GroupGone: true,
+		Outcome:     record.OutcomeEvidence{Domain: "target_failure", Reason: "exit_status", Termination: "exit"}, GroupGone: true,
 		Stdout: record.Stream{FullSHA256: "sha256:stdout"}, Stderr: record.Stream{FullSHA256: "sha256:stderr"},
 		IOTranscriptSHA256: "sha256:transcript", IOTranscriptRecords: 1, IOTranscriptComplete: true,
 		SemanticCoverage: record.SemanticCoverage{Schema: record.SemanticCoverageSchema, Digest: "sha256:coverage"},
@@ -876,15 +878,15 @@ func TestPublicCommandWriterFailuresPreserveStatus(t *testing.T) {
 
 func TestQualifyGrammarPreservesEnvironmentTagsAndTargetArguments(t *testing.T) {
 	for _, jsonOutput := range []bool{false, true} {
-		var observed qualificationworkload.Spec
+		var observed qualificationworkload.WorkloadSpec
 		dependencies := qualifyDependencies{
 			install: func(string) (installation, error) {
 				return installation{toolchainRoot: "/toolchain", executable: "/bin/gomad", runnerBuild: "sha256:runner"}, nil
 			},
 			workingDirectory: func() (string, error) { return "/workspace", nil },
-			workload: func(_ context.Context, spec qualificationworkload.Spec) (qualificationworkload.Result, error) {
+			workload: func(_ context.Context, spec qualificationworkload.WorkloadSpec) (qualificationworkload.WorkloadResult, error) {
 				observed = spec
-				return qualificationworkload.Result{
+				return qualificationworkload.WorkloadResult{
 					Report:     qualification.QualificationReport{Qualified: true, Deterministic: true, TargetSuccess: true},
 					ReportPath: "/report.json",
 				}, nil
@@ -944,7 +946,7 @@ func TestCharacterizePlanRequestDefaults(t *testing.T) {
 			Strategy: runner.StrategySeed, Seeds: "1", Parallel: min(runtime.NumCPU(), 8), ExecutionTimeout: 30 * time.Second, OverallTimeout: 10 * time.Minute, TerminateGrace: 2 * time.Second,
 			OnFailure: runner.PolicyAll, FailureBudget: 1, OutputLimit: 8 << 20, WorldTransitionLimit: 64 << 20, ClockTick: record.ClockTickStrict, IOTranscriptLimit: 64 << 20,
 			Artifacts: ".gomad/artifacts", RunnerBuild: "sha256:runner",
-			Coverage: runner.CoverageNone, KeepSuccesses: runner.KeepSuccessesNone, ProgressInterval: 5 * time.Second,
+			Coverage: campaignoptions.CoverageNone, KeepSuccesses: runner.KeepSuccessesNone, ProgressInterval: 5 * time.Second,
 			Target: target.Spec{Kind: target.KindGoRun, Source: "./cmd", WorkingDir: "/workspace", ToolchainRoot: "/toolchain", CapabilityMode: target.CapabilityModeClosure},
 		},
 	}

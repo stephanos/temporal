@@ -2,10 +2,11 @@ package cli
 
 import (
 	"errors"
+	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
 	"reflect"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/runner"
+	"go.temporal.io/server/tools/gomad3/internal/runner"
 )
 
 type exploreFailureWriter struct {
@@ -37,7 +38,7 @@ func TestExploreErrorJoinsDiagnosticAndReporterWriterFailures(t *testing.T) {
 			stdout := &exploreFailureWriter{stream: "stdout", writes: &writes, errors: []error{errors.New("reporter write failed")}}
 			stderr := &exploreFailureWriter{stream: "stderr", writes: &writes, errors: []error{errors.New("diagnostic write failed"), finalError}}
 			reporter := newExploreReporter(true, stdout, stderr)
-			status := reportExploreFailure(runner.CampaignResult{ChoiceTrace: &runner.ChoiceTraceSummary{}}, errors.New("bad request"), reporter, stderr)
+			status := reportExploreFailure(runner.CampaignResult{ChoiceTrace: &record.ChoiceTraceSummary{}}, errors.New("bad request"), reporter, stderr)
 			want := []string{
 				"stderr: gomad: choices-seed=0 choices-profile= choices-records=0 choices-decisions=0 choices-branching=0 choices-runnable=0 choices-select-poll=0 choices-select-result=0 choices-sha256= choices-tape-sha256= choices-terminal=\n",
 				"stdout: {\"schema\":\"gomad3.explore-event/v3\",\"type\":\"error\",\"classification\":\"invalid_input\",\"message\":\"bad request\"}\n",

@@ -242,12 +242,12 @@ linters:
       - text: "SA1019: go.temporal.io/server/service/history/hsm/(callbacks|nexusoperations) is deprecated"
         linters:
           - staticcheck
-      - path: ^tools/gomad3/runner/internal/campaign/controller\.go$
+      - path: ^tools/gomad3/internal/runner/internal/campaign/controller\.go$
         source: '^\t\tpanic\("gomad3: completed a campaign attempt without a classification"\)$'
         text: '^use of `panic` forbidden because "Please avoid using panic in application code"$'
         linters:
           - forbidigo
-      - path: ^tools/gomad3/runner/inspect/inspect\.go$
+      - path: ^tools/gomad3/internal/runner/inspect/inspect\.go$
         source: '^\t\tpanic\(fmt\.Sprintf\("unknown validated choice kind %d", kind\)\)$'
         text: '^use of `panic` forbidden because "Please avoid using panic in application code"$'
         linters:

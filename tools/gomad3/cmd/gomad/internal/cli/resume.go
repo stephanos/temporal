@@ -8,8 +8,8 @@ import (
 	"io"
 	"time"
 
-	"go.temporal.io/server/tools/gomad3/backends"
-	"go.temporal.io/server/tools/gomad3/runner"
+	"go.temporal.io/server/tools/gomad3/internal/backends"
+	"go.temporal.io/server/tools/gomad3/internal/runner"
 )
 
 type resumeDependencies struct {

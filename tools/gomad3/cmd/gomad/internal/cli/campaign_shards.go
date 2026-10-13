@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"go.temporal.io/server/tools/gomad3/runner"
+	"go.temporal.io/server/tools/gomad3/internal/runner"
 )
 
 type campaignShardDependencies struct {

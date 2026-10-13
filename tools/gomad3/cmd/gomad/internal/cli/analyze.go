@@ -10,11 +10,11 @@ import (
 	"os"
 	"time"
 
-	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
-	"go.temporal.io/server/tools/gomad3/backends/native/preparation"
-	capabilityanalysis "go.temporal.io/server/tools/gomad3/backends/native/qualification/analysis"
-	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
-	"go.temporal.io/server/tools/gomad3/target"
+	nativebuild "go.temporal.io/server/tools/gomad3/internal/backends/native/build"
+	"go.temporal.io/server/tools/gomad3/internal/backends/native/preparation"
+	capabilityanalysis "go.temporal.io/server/tools/gomad3/internal/backends/native/qualification/analysis"
+	"go.temporal.io/server/tools/gomad3/internal/backends/native/transcript"
+	"go.temporal.io/server/tools/gomad3/internal/backends/target"
 )
 
 const capabilityAnalysisTimeout = 30 * time.Second

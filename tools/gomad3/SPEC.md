@@ -503,7 +503,7 @@ Every completed Execution must produce a canonical, versioned, bounded Record co
 Ordinary JSON encoders must use the standard library. Persisted and hashed
 values must obtain stable meaning from versioned typed projections and complete
 current-build identities rather than a generic byte-normalizing encoder. A
-A migrated typed JSON reader using `internal/strictjson` must consume exactly
+A migrated typed JSON reader using `internal/model/strictjson` must consume exactly
 one value and reject malformed input, invalid UTF-8, duplicate object names,
 trailing data, and unknown typed members. Map keys and raw JSON values are outside typed-member
 checking; their owner must enforce framing, byte bounds, and semantic validity.

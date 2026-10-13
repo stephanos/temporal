@@ -5,15 +5,16 @@ import (
 	"context"
 	"encoding/binary"
 	"fmt"
+	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/qualification"
-	"go.temporal.io/server/tools/gomad3/record"
-	"go.temporal.io/server/tools/gomad3/runner"
+	"go.temporal.io/server/tools/gomad3/internal/evidence/qualification"
+	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
+	"go.temporal.io/server/tools/gomad3/internal/model/choice"
+	"go.temporal.io/server/tools/gomad3/internal/runner"
 )
 
 func TestQualifyDiagnosticsRetainsFreshPairAndReplaysSuccesses(t *testing.T) {
@@ -23,7 +24,7 @@ func TestQualifyDiagnosticsRetainsFreshPairAndReplaysSuccesses(t *testing.T) {
 			dependencies := qualificationDependencies(t)
 			calls, replayCalls := 0, 0
 			dependencies.run = func(_ context.Context, config runner.CampaignSpec) (runner.CampaignResult, error) {
-				if !config.Diagnostics || config.ChoiceTraceLimit != 8<<20 || config.Coverage != runner.CoverageSemanticChoice {
+				if !config.Diagnostics || config.ChoiceTraceLimit != 8<<20 || config.Coverage != campaignoptions.CoverageSemanticChoice {
 					t.Fatalf("diagnostic config = %+v", config)
 				}
 				data := make([]byte, 160)
@@ -43,8 +44,8 @@ func TestQualifyDiagnosticsRetainsFreshPairAndReplaysSuccesses(t *testing.T) {
 					t.Fatal(err)
 				}
 				evidence := qualificationEvidence(7)
-				evidence.Diagnostics = &runner.DiagnosticEvidence{Profile: choice.DiagnosticProfile, SHA256: record.SHA256FromSum(trace.SHA256), Records: 1}
-				summary := runner.CampaignResult{CampaignPath: fmt.Sprintf("/campaign-%d", calls), ExecutionEvidence: &evidence, Diagnostics: &runner.DiagnosticTraceReference{Path: path, DiagnosticEvidence: *evidence.Diagnostics}}
+				evidence.Diagnostics = &record.DiagnosticEvidence{Profile: choice.DiagnosticProfile, SHA256: record.SHA256FromSum(trace.SHA256), Records: 1}
+				summary := runner.CampaignResult{CampaignPath: fmt.Sprintf("/campaign-%d", calls), ExecutionEvidence: &evidence, Diagnostics: &record.DiagnosticTraceReference{Path: path, DiagnosticEvidence: *evidence.Diagnostics}}
 				if replay {
 					summary.RetainedSuccesses = 1
 					summary.SuccessArtifacts = []string{fmt.Sprintf("/success-%d", calls)}
@@ -123,13 +124,13 @@ func TestQualifyDiagnosticsRetainsInterruptedReports(t *testing.T) {
 					if interrupted {
 						summary.Artifacts = []string{"/failure"}
 						if cancellation {
-							evidence.Outcome = runner.OutcomeEvidence{Domain: "runner", Reason: "runner_cancelled", Termination: "none"}
+							evidence.Outcome = record.OutcomeEvidence{Domain: "runner", Reason: "runner_cancelled", Termination: "none"}
 							return summary, &runner.HostError{Reason: "cancelled", Err: context.Canceled}
 						}
-						evidence.Outcome = runner.OutcomeEvidence{Domain: "watchdog", Reason: "watchdog_timeout", Termination: "timeout"}
+						evidence.Outcome = record.OutcomeEvidence{Domain: "watchdog", Reason: "watchdog_timeout", Termination: "timeout"}
 					} else {
-						evidence.Diagnostics = &runner.DiagnosticEvidence{Profile: choice.DiagnosticProfile, SHA256: record.SHA256FromSum(trace.SHA256), Records: 1}
-						summary.Diagnostics = &runner.DiagnosticTraceReference{Path: tracePath, DiagnosticEvidence: *evidence.Diagnostics}
+						evidence.Diagnostics = &record.DiagnosticEvidence{Profile: choice.DiagnosticProfile, SHA256: record.SHA256FromSum(trace.SHA256), Records: 1}
+						summary.Diagnostics = &record.DiagnosticTraceReference{Path: tracePath, DiagnosticEvidence: *evidence.Diagnostics}
 					}
 					return summary, nil
 				}

@@ -13,14 +13,14 @@ import (
 	"strings"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/artifact"
-	runnerbackend "go.temporal.io/server/tools/gomad3/backends"
-	"go.temporal.io/server/tools/gomad3/backends/native"
-	wasmbackend "go.temporal.io/server/tools/gomad3/backends/wasm/backend"
-	"go.temporal.io/server/tools/gomad3/backends/wasm/wasi"
-	"go.temporal.io/server/tools/gomad3/record"
-	"go.temporal.io/server/tools/gomad3/runner"
-	"go.temporal.io/server/tools/gomad3/target"
+	runnerbackend "go.temporal.io/server/tools/gomad3/internal/backends"
+	"go.temporal.io/server/tools/gomad3/internal/backends/native"
+	"go.temporal.io/server/tools/gomad3/internal/backends/target"
+	wasmbackend "go.temporal.io/server/tools/gomad3/internal/backends/wasm/backend"
+	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/wasi"
+	"go.temporal.io/server/tools/gomad3/internal/evidence/artifact"
+	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
+	"go.temporal.io/server/tools/gomad3/internal/runner"
 )
 
 func writeInstalledExecutable(t *testing.T, mode os.FileMode) (string, string) {

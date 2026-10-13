@@ -5,10 +5,10 @@ import (
 	"os"
 	"strings"
 
-	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
-	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
-	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
-	"go.temporal.io/server/tools/gomad3/record"
+	nativebuild "go.temporal.io/server/tools/gomad3/internal/backends/native/build"
+	gomadversion "go.temporal.io/server/tools/gomad3/internal/backends/native/toolchain/version"
+	"go.temporal.io/server/tools/gomad3/internal/backends/native/transcript"
+	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
 )
 
 const reportSchema = "gomad3.doctor/v3"

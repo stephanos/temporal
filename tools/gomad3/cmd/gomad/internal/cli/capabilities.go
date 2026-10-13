@@ -3,11 +3,11 @@ package cli
 import (
 	"flag"
 	"fmt"
+	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 	"slices"
 	"strings"
 
-	"go.temporal.io/server/tools/gomad3/backends"
-	"go.temporal.io/server/tools/gomad3/runner"
+	"go.temporal.io/server/tools/gomad3/internal/backends"
 )
 
 type optionalFlags struct {
@@ -48,7 +48,7 @@ func (flags optionalFlags) Var(value flag.Value, name, usage string) {
 	}
 }
 
-func coverageValues(modes []runner.CoverageMode) []string {
+func coverageValues(modes []campaignoptions.CoverageMode) []string {
 	values := make([]string, len(modes))
 	for index, mode := range modes {
 		values[index] = string(mode)

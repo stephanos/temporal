@@ -1,0 +1,385 @@
+package version
+
+import (
+	"bytes"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"go/format"
+	"io"
+	"os"
+	"path/filepath"
+	"regexp"
+	"slices"
+	"strings"
+
+	"go.temporal.io/server/tools/gomad3/internal/host/fs"
+	"golang.org/x/mod/module"
+)
+
+const descriptorPath = "internal/backends/native/toolchain/version/version.json"
+
+var (
+	goVersionPattern = regexp.MustCompile(`^go[1-9][0-9]*\.[0-9]+\.[0-9]+$`)
+	sha256Pattern    = regexp.MustCompile(`^[0-9a-f]{64}$`)
+)
+
+type Descriptor struct {
+	SchemaVersion           uint                `json:"schema_version"`
+	GoVersion               string              `json:"go_version"`
+	Archive                 Archive             `json:"archive"`
+	SupportedPlatforms      []string            `json:"supported_platforms"`
+	BoundaryManifestVersion string              `json:"boundary_manifest_version"`
+	Patch                   string              `json:"patch"`
+	Adapters                []descriptorAdapter `json:"adapters"`
+	PatchAllowlist          []string            `json:"patch_allowlist"`
+	OverlayAllowlist        []string            `json:"overlay_allowlist"`
+}
+
+type Archive struct {
+	Name   string `json:"name"`
+	URL    string `json:"url"`
+	SHA256 string `json:"sha256"`
+}
+
+type descriptorAdapter struct {
+	Module  string `json:"module"`
+	Version string `json:"version"`
+	Sum     string `json:"sum"`
+}
+
+type boundaryIdentity struct {
+	ManifestVersion string   `json:"manifest_version"`
+	GoVersion       string   `json:"go_version"`
+	Platforms       []string `json:"platforms"`
+}
+
+type artifact struct {
+	path    string
+	content []byte
+}
+
+func Load(root string) (Descriptor, error) {
+	path := filepath.Join(root, descriptorPath)
+	contents, err := os.ReadFile(path)
+	if err != nil {
+		return Descriptor{}, fmt.Errorf("read version descriptor: %w", err)
+	}
+	decoder := json.NewDecoder(bytes.NewReader(contents))
+	decoder.DisallowUnknownFields()
+	var descriptor Descriptor
+	if err := decoder.Decode(&descriptor); err != nil {
+		return Descriptor{}, fmt.Errorf("decode version descriptor: %w", err)
+	}
+	if err := decoder.Decode(&struct{}{}); !errors.Is(err, io.EOF) {
+		return Descriptor{}, errors.New("version descriptor has trailing data")
+	}
+	if err := validate(descriptor); err != nil {
+		return Descriptor{}, err
+	}
+	return descriptor, nil
+}
+
+func Generate(root string, check bool) error {
+	descriptor, err := Load(root)
+	if err != nil {
+		return err
+	}
+	if err := validateBoundaryIdentity(root, descriptor); err != nil {
+		return err
+	}
+	if err := validateSourceAllowlists(root, descriptor); err != nil {
+		return err
+	}
+	artifacts, err := render(descriptor)
+	if err != nil {
+		return err
+	}
+	for _, generated := range artifacts {
+		path := filepath.Join(root, filepath.FromSlash(generated.path))
+		if check {
+			current, readErr := os.ReadFile(path)
+			if readErr != nil || !bytes.Equal(current, generated.content) {
+				return fmt.Errorf("generated version artifact is stale: %s", generated.path)
+			}
+			continue
+		}
+		if err := hostfs.Replace(path, generated.content, 0o644); err != nil {
+			return fmt.Errorf("write generated version artifact: %w", err)
+		}
+	}
+	return nil
+}
+
+func validateSourceAllowlists(root string, descriptor Descriptor) error {
+	patch, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(descriptor.Patch)))
+	if err != nil {
+		return fmt.Errorf("read versioned patch: %w", err)
+	}
+	var patchPaths []string
+	for _, line := range strings.Split(string(patch), "\n") {
+		fields := strings.Fields(line)
+		if len(fields) == 4 && fields[0] == "diff" && fields[1] == "--git" {
+			if !strings.HasPrefix(fields[2], "a/") || !strings.HasPrefix(fields[3], "b/") || fields[2][2:] != fields[3][2:] {
+				return errors.New("versioned patch has a non-canonical file header")
+			}
+			patchPaths = append(patchPaths, fields[2][2:])
+		}
+	}
+	slices.Sort(patchPaths)
+	patchPaths = slices.Compact(patchPaths)
+	if !slices.Equal(patchPaths, descriptor.PatchAllowlist) {
+		return fmt.Errorf("patch allowlist does not match patch paths: got %v, want %v", descriptor.PatchAllowlist, patchPaths)
+	}
+
+	overlayRoot := filepath.Join(root, "internal", "backends", "native", "toolchain", "runtime", "overlay")
+	var overlayPaths []string
+	err = filepath.WalkDir(overlayRoot, func(path string, entry os.DirEntry, visitErr error) error {
+		if visitErr != nil {
+			return visitErr
+		}
+		if entry.IsDir() {
+			return nil
+		}
+		if !entry.Type().IsRegular() {
+			return fmt.Errorf("versioned overlay has a non-regular entry: %s", path)
+		}
+		relative, relativeErr := filepath.Rel(overlayRoot, path)
+		if relativeErr != nil {
+			return relativeErr
+		}
+		overlayPaths = append(overlayPaths, filepath.ToSlash(relative))
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("walk versioned overlay: %w", err)
+	}
+	if slices.Contains(descriptor.OverlayAllowlist, "src/runtime/gomad_semantics.go") {
+		for _, name := range []string{"gomad_semantics.go", "gomad_choicewire_generated.go"} {
+			if _, err := os.Stat(filepath.Join(root, "internal/model/runtimesource", name+".txt")); err != nil {
+				return fmt.Errorf("runtime semantics %s: %w", name, err)
+			}
+			overlayPaths = append(overlayPaths, "src/runtime/"+name)
+		}
+	}
+	slices.Sort(overlayPaths)
+	if !slices.Equal(overlayPaths, descriptor.OverlayAllowlist) {
+		return fmt.Errorf("overlay allowlist does not match overlay paths: got %v, want %v", descriptor.OverlayAllowlist, overlayPaths)
+	}
+	return nil
+}
+
+func validate(descriptor Descriptor) error {
+	if descriptor.SchemaVersion != 1 {
+		return fmt.Errorf("version descriptor schema version %d is unsupported", descriptor.SchemaVersion)
+	}
+	if !goVersionPattern.MatchString(descriptor.GoVersion) {
+		return fmt.Errorf("version descriptor Go version is invalid: %q", descriptor.GoVersion)
+	}
+	wantArchive := descriptor.GoVersion + ".src.tar.gz"
+	if descriptor.Archive.Name != wantArchive {
+		return fmt.Errorf("version descriptor archive name is %q, want %q", descriptor.Archive.Name, wantArchive)
+	}
+	if descriptor.Archive.URL != "https://go.dev/dl/"+descriptor.Archive.Name {
+		return errors.New("version descriptor archive URL does not match its name")
+	}
+	if !sha256Pattern.MatchString(descriptor.Archive.SHA256) {
+		return errors.New("version descriptor archive SHA-256 is invalid")
+	}
+	if descriptor.BoundaryManifestVersion == "" {
+		return errors.New("version descriptor boundary manifest version is empty")
+	}
+	if err := validateRelativeFile("patch", descriptor.Patch); err != nil {
+		return err
+	}
+	if len(descriptor.SupportedPlatforms) == 0 {
+		return errors.New("version descriptor has no supported platforms")
+	}
+	if err := validateSortedUnique("supported platform", descriptor.SupportedPlatforms, validatePlatform); err != nil {
+		return err
+	}
+	for index, adapter := range descriptor.Adapters {
+		if adapter.Module == "" || adapter.Version == "" || module.CanonicalVersion(adapter.Version) != adapter.Version || !strings.HasPrefix(adapter.Sum, "h1:") {
+			return fmt.Errorf("version descriptor adapter %d is invalid", index+1)
+		}
+		if index > 0 && adapter.Module <= descriptor.Adapters[index-1].Module {
+			return fmt.Errorf("version descriptor adapters are not sorted and unique at %s", adapter.Module)
+		}
+	}
+	if err := validateSortedUnique("patch allowlist path", descriptor.PatchAllowlist, func(path string) error {
+		return validateRelativeFile("patch allowlist", path)
+	}); err != nil {
+		return err
+	}
+	if err := validateSortedUnique("overlay allowlist path", descriptor.OverlayAllowlist, func(path string) error {
+		return validateRelativeFile("overlay allowlist", path)
+	}); err != nil {
+		return err
+	}
+	return nil
+}
+
+func validateBoundaryIdentity(root string, descriptor Descriptor) error {
+	path := filepath.Join(root, "internal/backends/native/transcript", "boundary", "manifest.json")
+	contents, err := os.ReadFile(path)
+	if err != nil {
+		return fmt.Errorf("read boundary manifest identity: %w", err)
+	}
+	decoder := json.NewDecoder(bytes.NewReader(contents))
+	var identity boundaryIdentity
+	if err := decoder.Decode(&identity); err != nil {
+		return fmt.Errorf("decode boundary manifest identity: %w", err)
+	}
+	if identity.ManifestVersion != descriptor.BoundaryManifestVersion {
+		return fmt.Errorf("boundary manifest version is %q, descriptor requires %q", identity.ManifestVersion, descriptor.BoundaryManifestVersion)
+	}
+	if identity.GoVersion != descriptor.GoVersion {
+		return fmt.Errorf("boundary manifest Go version is %q, descriptor requires %q", identity.GoVersion, descriptor.GoVersion)
+	}
+	if !slices.Equal(identity.Platforms, descriptor.SupportedPlatforms) {
+		return fmt.Errorf("boundary manifest platforms are %v, descriptor requires %v", identity.Platforms, descriptor.SupportedPlatforms)
+	}
+	return nil
+}
+
+func validateSortedUnique(name string, values []string, validateValue func(string) error) error {
+	if len(values) == 0 {
+		return fmt.Errorf("version descriptor has no %ss", name)
+	}
+	for index, value := range values {
+		if err := validateValue(value); err != nil {
+			return err
+		}
+		if index > 0 && value <= values[index-1] {
+			if value == values[index-1] {
+				return fmt.Errorf("version descriptor %s is duplicated: %s", name, value)
+			}
+			return fmt.Errorf("version descriptor %ss are not sorted at %s", name, value)
+		}
+	}
+	return nil
+}
+
+func validatePlatform(value string) error {
+	parts := strings.Split(value, "/")
+	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
+		return fmt.Errorf("version descriptor supported platform is invalid: %q", value)
+	}
+	return nil
+}
+
+func validateRelativeFile(name, value string) error {
+	if value == "" || filepath.IsAbs(value) || filepath.Clean(value) != value || value == "." || strings.HasPrefix(value, ".."+string(filepath.Separator)) || strings.Contains(value, "\\") {
+		return fmt.Errorf("version descriptor %s path is invalid: %q", name, value)
+	}
+	return nil
+}
+
+func render(descriptor Descriptor) ([]artifact, error) {
+	makefile := renderMake(descriptor)
+	goSource, err := renderGo(descriptor)
+	if err != nil {
+		return nil, err
+	}
+	return []artifact{
+		{path: "version_generated.mk", content: makefile},
+		{path: "internal/backends/native/toolchain/version/generated.go", content: goSource},
+		{path: upgradeGuideName(descriptor), content: renderUpgradeGuide(descriptor)},
+	}, nil
+}
+
+func renderMake(descriptor Descriptor) []byte {
+	return []byte(fmt.Sprintf("# Code generated by internal/backends/native/cmd/gomadtool version-generate. DO NOT EDIT.\n\nGOMAD3_GO_VERSION := %s\nGOMAD3_PATCH_FILE := %s\nGOMAD3_EXPECTED_INTERCEPTS := %s\nGOMAD3_BOUNDARY_REPORT := %s\nGOMAD3_COMPILER_SPEC := %s\nGOMAD3_UPGRADE_GUIDE := %s\n", descriptor.GoVersion, descriptor.Patch, expectedInterceptsName(descriptor), boundaryReportName(descriptor), compilerSpecName(descriptor), upgradeGuideName(descriptor)))
+}
+
+func renderUpgradeGuide(descriptor Descriptor) []byte {
+	var output strings.Builder
+	fmt.Fprintf(&output, "# Gomad v3 upgrade qualification: %s\n\n", descriptor.BoundaryManifestVersion)
+	output.WriteString("Generated from [`../../../../backends/native/toolchain/version/version.json`](../../../../backends/native/toolchain/version/version.json). Do not edit this guide directly.\n\n")
+	output.WriteString("## Pinned inputs\n\n")
+	fmt.Fprintf(&output, "- Go release: `%s`\n", descriptor.GoVersion)
+	fmt.Fprintf(&output, "- source archive SHA-256: `%s`\n", descriptor.Archive.SHA256)
+	fmt.Fprintf(&output, "- supported platforms: `%s`\n", strings.Join(descriptor.SupportedPlatforms, "`, `"))
+	fmt.Fprintf(&output, "- boundary manifest: `%s`\n", descriptor.BoundaryManifestVersion)
+	fmt.Fprintf(&output, "- patch: [`../../../../%s`](../../../../%s)\n", descriptor.Patch, descriptor.Patch)
+	for _, adapter := range descriptor.Adapters {
+		fmt.Fprintf(&output, "- adapter: `%s@%s` (`%s`)\n", adapter.Module, adapter.Version, adapter.Sum)
+	}
+	output.WriteString("\n## Dependency pin update\n\n")
+	output.WriteString("Compare candidate and saved baseline `go.mod` files with adjacent `go.sum` files. From the repository root, status 1 means an invalidated or unknown pin; retain the JSON for the repair steps:\n\n")
+	output.WriteString("```sh\ngo -C tools/gomad3 run ./backends/native/cmd/gomadtool pin-impact --root=. \\\n  --baseline=/absolute/baseline/go.mod --candidate=/absolute/candidate/go.mod \\\n  --format=json > pin-impact.json\n```\n\n")
+	output.WriteString("For each affected adapter, review the dry-run source changes and exact anchors before supplying the printed approval digest. Refresh always reevaluates every mapped target directory, then validates and merges the saved report for its scoped module. That report supplements live discovery and cannot suppress a mapped module. Refresh stops at per-request review and leaves the other platform unchanged:\n\n")
+	output.WriteString("```sh\ngo -C tools/gomad3 run ./backends/native/cmd/gomadtool adapter-regenerate --root=. \\\n  --module=<module-path> --version=<exact-version>\ngo -C tools/gomad3 run ./backends/native/cmd/gomadtool adapter-regenerate --root=. \\\n  --module=<module-path> --version=<exact-version> --approve=sha256:<reviewed-digest>\ngo -C tools/gomad3 run ./backends/native/cmd/gomadtool compatibility-pack refresh --root=. \\\n  --impact-report=/absolute/path/to/pin-impact.json\n```\n\n")
+	output.WriteString("Review each changed pack report, then use `compatibility-pack generate --approve-review=<exact-review-sha256>` for that request. Validate generated outputs and qualify affected adapters, packs, the core set, and the complete test gate on both supported hosts. The [README](../../../../README.md#compatibility-pack-development) records the full procedure.\n\n")
+	output.WriteString("## Qualification command\n\n")
+	output.WriteString("Run from the Gomad source module root after updating `internal/backends/native/toolchain/version/version.json`, the boundary manifest, patch, and overlays:\n\n")
+	output.WriteString("```sh\nmake generate\nmake upgrade-dossier GOMAD3_BASELINE_REF=<previous-commit>\n```\n\n")
+	output.WriteString("The command publishes `.toolchain/upgrade-dossier.json`, even when a behavioral gate or boundary approval fails. The dossier contains the complete upstream patch diff, semantic boundary-manifest diff, expected and applied interception evidence, archive-based overlay collision results, disabled-mode upstream results, mandatory-probe gates, host-clock escape audit, retained core-corpus report, and platform qualification. If the dossier reports boundary changes, rerun only after reviewing and approving the complete diff:\n\n")
+	output.WriteString("```sh\nmake upgrade-dossier GOMAD3_BASELINE_REF=<previous-commit> GOMAD3_APPROVED_BOUNDARY_DIFF_SHA256=<boundary_manifest_diff.sha256>\n```\n\n")
+	output.WriteString("CI uploads the dossier on every run.\n\n")
+	output.WriteString("## Dependency bumps\n\n")
+	output.WriteString("A bump of an adapted or compatibility-packed module keeps every pin exact. With the bump applied to the target module and not yet committed, run from the Gomad source module root (add `--module=<dir>` to `pin-impact` for a module other than the repository root module):\n\n")
+	output.WriteString("```sh\ngo run ./backends/native/cmd/gomadtool pin-impact\ngo run ./backends/native/cmd/gomadtool adapter-regenerate --module=<adapted-module> --version=<new-version>\ngo run ./backends/native/cmd/gomadtool adapter-regenerate --module=<adapted-module> --version=<new-version> --approve-review=<reviewed-digest>\ngo run ./backends/native/cmd/gomadtool compatibility-pack refresh --root=.\n```\n\n")
+	output.WriteString("`pin-impact` lists the invalidated pins. Regenerate each adapter it names, reviewing the dry run's upstream diff before applying its digest; an anchor that no longer matches exactly once stops the command and needs a person. `compatibility-pack refresh` re-reviews every invalidated request and prints the `compatibility-pack generate --approve-review` command for each; each platform's host approves and qualifies its own requests with `make validate compatibility-pack-qualification`. A pack pinned to the replaced version stays invalidated after the bump is committed; when the bump removes a module, pass the revision before it with `--baseline-ref` so its pins are reported stale. A changed adapter changes the target identity, so rebuild `.bin/gomad` and requalify its workloads.\n")
+	return []byte(output.String())
+}
+
+func renderGo(descriptor Descriptor) ([]byte, error) {
+	source := fmt.Sprintf(`// Code generated by internal/backends/native/cmd/gomadtool version-generate. DO NOT EDIT.
+
+package version
+
+type AdapterIdentity struct {
+	Module string
+	Version string
+	Sum string
+}
+
+const (
+	GoVersion = %q
+	BoundaryManifestVersion = %q
+)
+
+var SupportedPlatforms = [...]string{%s}
+
+var Adapters = [...]AdapterIdentity{%s}
+`, descriptor.GoVersion, descriptor.BoundaryManifestVersion, quotedGoStrings(descriptor.SupportedPlatforms), quotedGoAdapters(descriptor.Adapters))
+	formatted, err := format.Source([]byte(source))
+	if err != nil {
+		return nil, fmt.Errorf("format generated version Go source: %w", err)
+	}
+	return formatted, nil
+}
+
+func expectedInterceptsName(descriptor Descriptor) string {
+	return "expected-intercepts-" + descriptor.GoVersion + ".txt"
+}
+
+func boundaryReportName(descriptor Descriptor) string {
+	return "internal/backends/native/transcript/boundary/" + descriptor.BoundaryManifestVersion[:strings.LastIndex(descriptor.BoundaryManifestVersion, "-v")] + ".md"
+}
+
+func compilerSpecName(descriptor Descriptor) string {
+	parts := strings.Split(strings.TrimPrefix(descriptor.GoVersion, "go"), ".")
+	return "internal/backends/native/toolchain/runtime/overlay/src/cmd/compile/internal/gomadintercept/spec_go" + parts[0] + parts[1] + ".go"
+}
+
+func upgradeGuideName(descriptor Descriptor) string {
+	return "internal/backends/native/transcript/boundary/upgrade-" + descriptor.BoundaryManifestVersion[:strings.LastIndex(descriptor.BoundaryManifestVersion, "-v")] + ".md"
+}
+
+func quotedGoStrings(values []string) string {
+	quoted := make([]string, len(values))
+	for index, value := range values {
+		quoted[index] = fmt.Sprintf("%q", value)
+	}
+	return strings.Join(quoted, ", ")
+}
+
+func quotedGoAdapters(values []descriptorAdapter) string {
+	quoted := make([]string, len(values))
+	for index, value := range values {
+		quoted[index] = fmt.Sprintf("{Module: %q, Version: %q, Sum: %q}", value.Module, value.Version, value.Sum)
+	}
+	return strings.Join(quoted, ", ")
+}

@@ -1,7 +1,7 @@
 package cli
 
 import (
-	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
+	nativebuild "go.temporal.io/server/tools/gomad3/internal/backends/native/build"
 )
 
 // invalidWorkingDirectoryError marks a --working-dir the caller supplied that

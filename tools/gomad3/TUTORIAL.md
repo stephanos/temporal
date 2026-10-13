@@ -334,8 +334,8 @@ times, compete with one another, be cancelled, or change modeled state.
 
 That is what `World` is for.
 
-World is an opt-in, in-memory event engine under `tools/gomad3/world`. A target
-connects through `world/process`, registers requests and readiness, and explicitly
+World is an opt-in, in-memory event engine under `tools/gomad3/internal/model/world`. A target
+connects through `internal/model/world/process`, registers requests and readiness, and explicitly
 calls `Quiesce` when application work cannot proceed. World then advances to the
 earliest event time and delivers all events at that instant in canonical order.
 Seed-derived ranks can choose between events that an adapter has declared
@@ -353,7 +353,7 @@ not need an event scheduler. An adapter reaches for World only when readiness,
 competition, cancellation, or logical-time coordination is actually part of
 the behavior being tested.
 
-For a distributed test, the optional `tools/gomad3sim` harness models Nodes,
+For a distributed test, the optional `tools/gomad3/internal/model/cluster` harness models Nodes,
 Incarnations, network links, durable Volumes, Scenarios, Fault Plans, and Oracles.
 Its **Backend** describes how Nodes execute: in-process logical Nodes or separate
 Node processes. **Fidelity** describes the guarantee you can claim. Both Backends
@@ -677,7 +677,7 @@ choice point then also records a small digest of runtime state, and the report's
 names the first choice point where the runs disagreed and which counters moved:
 
 ```sh
-go -C tools/gomad3 run ./backends/native/cmd/gomadtool diagnostic-diff EXPECTED_TRACE ACTUAL_TRACE
+go -C tools/gomad3 run ./internal/backends/native/cmd/gomadtool diagnostic-diff EXPECTED_TRACE ACTUAL_TRACE
 ```
 
 For Gomad's own fault fixture, which injects one host-timed draw, it prints

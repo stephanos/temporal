@@ -10,11 +10,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"go.temporal.io/server/tools/gomad3/backends"
-	"go.temporal.io/server/tools/gomad3/backends/native"
-	"go.temporal.io/server/tools/gomad3/backends/native/toolchain"
-	"go.temporal.io/server/tools/gomad3/record"
-	"go.temporal.io/server/tools/gomad3/runner"
+	"go.temporal.io/server/tools/gomad3/internal/backends"
+	"go.temporal.io/server/tools/gomad3/internal/backends/native"
+	"go.temporal.io/server/tools/gomad3/internal/backends/native/toolchain"
+	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
+	"go.temporal.io/server/tools/gomad3/internal/runner"
 )
 
 // The private child modes the gomad executable serves for its own Runner. The

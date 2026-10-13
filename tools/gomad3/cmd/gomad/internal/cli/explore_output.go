@@ -8,9 +8,9 @@ import (
 	"strings"
 	"sync"
 
-	"go.temporal.io/server/tools/gomad3/record"
-	"go.temporal.io/server/tools/gomad3/runner"
-	"go.temporal.io/server/tools/gomad3/target"
+	"go.temporal.io/server/tools/gomad3/internal/backends/target"
+	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
+	"go.temporal.io/server/tools/gomad3/internal/runner"
 )
 
 const exploreEventSchema = "gomad3.explore-event/v3"
@@ -37,7 +37,7 @@ type exploreEvent struct {
 	RetainedSuccessBytes  uint64                               `json:"retained_success_bytes,omitempty"`
 	StopReason            runner.StopReason                    `json:"stop_reason,omitempty"`
 	SemanticCoverage      *record.SemanticCoverage             `json:"semantic_coverage,omitempty"`
-	ChoiceTrace           *runner.ChoiceTraceSummary           `json:"choice_trace,omitempty"`
+	ChoiceTrace           *record.ChoiceTraceSummary           `json:"choice_trace,omitempty"`
 	CorpusPath            string                               `json:"corpus_path,omitempty"`
 	CorpusEntries         uint64                               `json:"corpus_entries,omitempty"`
 	Guidance              *runner.GuidanceSummary              `json:"guidance,omitempty"`
@@ -163,7 +163,7 @@ func formatSimulationExploration(exploration *runner.SimulationExplorationSummar
 	return fmt.Sprintf(" simulation-exploration-rounds=%d simulation-exploration-executions=%d simulation-exploration-pending=%d simulation-exploration-bytes=%d simulation-exploration-seen=%d simulation-exploration-outcomes=%d simulation-exploration-failures=%d simulation-exploration-depth=%d simulation-exploration-max-executions=%d simulation-exploration-max-forced=%d simulation-exploration-max-bytes=%d simulation-exploration-max-result-bytes=%d simulation-exploration-runtime=%d simulation-exploration-scenario=%d simulation-exploration-network=%d simulation-exploration-storage=%d simulation-exploration-fault=%d simulation-exploration-crash=%d simulation-exploration-omitted-executions=%d simulation-exploration-omitted-depth=%d simulation-exploration-omitted-dimension=%d simulation-exploration-omitted-bytes=%d simulation-exploration-complete=%t recovery-executions=%d", exploration.CommittedRounds, exploration.LogicalExecutions, exploration.Pending, exploration.PendingBytes, exploration.SeenCandidates, exploration.DeduplicatedOutcomes, exploration.DistinctFailures, exploration.DeepestOverride, exploration.MaxExecutions, exploration.MaxForcedDecisions, exploration.MaxExplorationBytes, exploration.MaxResultBytes, limits.Runtime, limits.Scenario, limits.Network, limits.Storage, limits.Fault, limits.Crash, exploration.OmittedByExecutionBound, exploration.OmittedByDepth, exploration.OmittedByDimension, exploration.OmittedByCapacity, exploration.BoundedComplete, recoveryExecutions)
 }
 
-func formatChoiceTrace(trace *runner.ChoiceTraceSummary) string {
+func formatChoiceTrace(trace *record.ChoiceTraceSummary) string {
 	if trace == nil {
 		return ""
 	}

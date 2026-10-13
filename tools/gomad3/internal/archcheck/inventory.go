@@ -130,7 +130,7 @@ func discover(root, goCommand string, platform Platform, legacy bool) (Inventory
 		}
 		relative = filepath.ToSlash(relative)
 		moduleRelative := filepath.ToSlash(filepath.Join(scope, relative))
-		if Within(moduleRelative, "backends/native/toolchain/runtime/overlay") || Within(moduleRelative, "backends/wasm/wasmhost/target") || !Within(pkg.ImportPath, module) {
+		if Within(moduleRelative, "internal/backends/native/toolchain/runtime/overlay") || Within(moduleRelative, "internal/backends/wasm/wasmhost/target") || !Within(pkg.ImportPath, module) {
 			continue
 		}
 		inventory.Packages = append(inventory.Packages, pkg)
@@ -154,7 +154,7 @@ func discover(root, goCommand string, platform Platform, legacy bool) (Inventory
 		}
 		relative := filepath.ToSlash(strings.TrimPrefix(path, root+string(filepath.Separator)))
 		moduleRelative := filepath.ToSlash(filepath.Join(scope, relative))
-		if entry.IsDir() && (slices.Contains([]string{".toolchain", ".bin"}, relative) || moduleRelative == "backends/wasm/wasmhost/target") {
+		if entry.IsDir() && (slices.Contains([]string{".toolchain", ".bin"}, relative) || moduleRelative == "internal/backends/wasm/wasmhost/target") {
 			return filepath.SkipDir
 		}
 		if entry.IsDir() {
@@ -226,16 +226,17 @@ func discover(root, goCommand string, platform Platform, legacy bool) (Inventory
 func Within(path, root string) bool { return within(path, root) }
 
 var sourceExclusions = []string{
-	"backends/native/toolchain/runtime/overlay", "backends/native/transcript/testdata", "backends/native/conformance/testdata", "backends/native/qualification/testdata/tagged",
-	"cmd/gomad/testdata", "backends/native/compatibilitypack/testdata", "qualification/corpus",
-	"backends/wasm/testdata", "backends/wasm/wasi/testdata", "backends/wasm/toolchain/testdata", "backends/wasm/simulation/testdata", "backends/wasm/qualification/testdata", "backends/wasm/command/testdata",
+	"internal/model/cluster/testdata/simulation_exploration", "internal/model/cluster/testdata/simulation_replay",
+	"internal/backends/native/toolchain/runtime/overlay", "internal/backends/native/transcript/testdata", "internal/backends/native/conformance/testdata", "internal/backends/native/qualification/testdata/tagged",
+	"cmd/gomad/testdata", "internal/backends/native/compatibilitypack/testdata", "internal/evidence/qualification/corpus",
+	"internal/backends/wasm/testdata", "internal/backends/wasm/wasi/testdata", "internal/backends/wasm/toolchain/testdata", "internal/backends/wasm/cluster/testdata", "internal/backends/wasm/qualification/testdata", "internal/backends/wasm/command/testdata",
 }
 
-var hostSourcePackages = []string{"backends/native/toolchain/runtime/testdata/vfdpointer", "backends/native/toolchain/runtime/testdata/vfdnative"}
+var hostSourcePackages = []string{"internal/backends/native/toolchain/runtime/testdata/vfdpointer", "internal/backends/native/toolchain/runtime/testdata/vfdnative"}
 
 var expectedModules = map[string]bool{
-	"backends/native/transcript/testdata/cactusstatsd/go.mod": true, "backends/native/transcript/testdata/hashicorpmetrics/go.mod": true, "backends/native/transcript/testdata/memberlist/go.mod": true, "backends/native/transcript/testdata/pebble/go.mod": true,
-	"backends/native/transcript/testdata/sentry/go.mod": true, "backends/native/transcript/testdata/sockaddr/go.mod": true, "backends/native/transcript/testdata/sprig/go.mod": true, "backends/native/transcript/testdata/validator/go.mod": true,
-	"backends/native/compatibilitypack/testdata/v041/go.mod": true, "backends/native/compatibilitypack/testdata/xsys/go.mod": true, "backends/native/conformance/testdata/go.mod": true, "backends/native/conformance/testdata/libc_adapter/go.mod": true, "backends/native/conformance/testdata/sqlite_adapter/go.mod": true,
-	"qualification/corpus/go.mod": true, "backends/wasm/qualification/testdata/fixture/go.mod": true,
+	"internal/backends/native/transcript/testdata/cactusstatsd/go.mod": true, "internal/backends/native/transcript/testdata/hashicorpmetrics/go.mod": true, "internal/backends/native/transcript/testdata/memberlist/go.mod": true, "internal/backends/native/transcript/testdata/pebble/go.mod": true,
+	"internal/backends/native/transcript/testdata/sentry/go.mod": true, "internal/backends/native/transcript/testdata/sockaddr/go.mod": true, "internal/backends/native/transcript/testdata/sprig/go.mod": true, "internal/backends/native/transcript/testdata/validator/go.mod": true,
+	"internal/backends/native/compatibilitypack/testdata/v041/go.mod": true, "internal/backends/native/compatibilitypack/testdata/xsys/go.mod": true, "internal/backends/native/conformance/testdata/go.mod": true, "internal/backends/native/conformance/testdata/libc_adapter/go.mod": true, "internal/backends/native/conformance/testdata/sqlite_adapter/go.mod": true,
+	"internal/evidence/qualification/corpus/go.mod": true, "internal/backends/wasm/qualification/testdata/fixture/go.mod": true,
 }

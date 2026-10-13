@@ -38,12 +38,12 @@ func TestCIBackendGatesRoutePaths(t *testing.T) {
 	for _, test := range []struct {
 		path, want string
 	}{
-		{"tools/gomad3sim/simulation.go", "native=true\nwasm=true\n"},
-		{"tools/gomad3/backends/wasm/backend/provider.go", "native=false\nwasm=true\n"},
-		{"tools/gomad3/backends/native/build/build.go", "native=true\nwasm=false\n"},
-		{"tools/gomad3/backends/native/toolchain/runtime/overlay/src/runtime/gomad.go", "native=true\nwasm=true\n"},
-		{"tools/gomad3/record/record.go", "native=true\nwasm=true\n"},
-		{"tools/gomad3/backends/native/qualification/tests.json", "native=true\nwasm=false\n"},
+		{"tools/gomad3/internal/model/cluster/simulation.go", "native=true\nwasm=true\n"},
+		{"tools/gomad3/internal/backends/wasm/backend/provider.go", "native=false\nwasm=true\n"},
+		{"tools/gomad3/internal/backends/native/build/build.go", "native=true\nwasm=false\n"},
+		{"tools/gomad3/internal/backends/native/toolchain/runtime/overlay/src/runtime/gomad.go", "native=true\nwasm=true\n"},
+		{"tools/gomad3/internal/evidence/record/record.go", "native=true\nwasm=true\n"},
+		{"tools/gomad3/internal/backends/native/qualification/tests.json", "native=true\nwasm=false\n"},
 	} {
 		t.Run(test.path, func(t *testing.T) {
 			repository := t.TempDir()
@@ -115,7 +115,7 @@ func TestSimulationGateSelectsProcessNetworkHandles(t *testing.T) {
 		return true
 	}
 	root := "TestRootProcessSimulationUsesRunnerTransport/"
-	runner, err := parser.ParseFile(token.NewFileSet(), "runner/internal/exploration/integration_test.go", nil, 0)
+	runner, err := parser.ParseFile(token.NewFileSet(), "internal/runner/internal/exploration/integration_test.go", nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -148,7 +148,7 @@ func TestSimulationGateSelectsProcessNetworkHandles(t *testing.T) {
 			return true
 		})
 	}
-	files, err := filepath.Glob("../../tools/gomad3sim/*toolchain_test.go")
+	files, err := filepath.Glob("internal/model/cluster/*toolchain_test.go")
 	if err != nil {
 		t.Fatal(err)
 	}

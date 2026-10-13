@@ -10,13 +10,13 @@ import (
 	"path/filepath"
 	"strings"
 
-	"go.temporal.io/server/tools/gomad3/backends"
-	"go.temporal.io/server/tools/gomad3/backends/native"
-	"go.temporal.io/server/tools/gomad3/backends/native/toolchain"
-	wasmbackend "go.temporal.io/server/tools/gomad3/backends/wasm/backend"
-	wasmcommand "go.temporal.io/server/tools/gomad3/backends/wasm/command"
-	wasminstallation "go.temporal.io/server/tools/gomad3/backends/wasm/installation"
-	"go.temporal.io/server/tools/gomad3/hostfs"
+	"go.temporal.io/server/tools/gomad3/internal/backends"
+	"go.temporal.io/server/tools/gomad3/internal/backends/native"
+	"go.temporal.io/server/tools/gomad3/internal/backends/native/toolchain"
+	wasmbackend "go.temporal.io/server/tools/gomad3/internal/backends/wasm/backend"
+	wasmcommand "go.temporal.io/server/tools/gomad3/internal/backends/wasm/command"
+	wasminstallation "go.temporal.io/server/tools/gomad3/internal/backends/wasm/installation"
+	"go.temporal.io/server/tools/gomad3/internal/host/fs"
 )
 
 type installationHeader struct {

@@ -55,9 +55,9 @@ func TestLintPolicyPathExpressions(t *testing.T) {
 		{"functional test context", []int{9}, true, []string{"tests/value_test.go", "tests/nested/value_test.go"}, []string{"tests/value.go", "ordinary/value_test.go", "tests/value_testXgo", "tests/value.txt"}},
 		{"legacy eventually", []int{10}, false, []string{"tests/nexus_standalone_test.go", "tests/nexus_workflow_test.go", "tests/schedule_test.go", "tests/schedule_migration_test.go"}, []string{"tests/nexus_standalone_testXgo", "tests/schedule_test.go.txt", "tests/schedule_extra_test.go", "tests/nested/schedule_test.go"}},
 		{"legacy collect", []int{11}, false, []string{"tests/nexus_standalone_test.go", "tests/nexus_workflow_test.go"}, []string{"tests/schedule_test.go", "tests/nexus_workflow_testXgo", "tests/nexus_workflow_test.go.txt", "tests/nested/nexus_workflow_test.go"}},
-		{"tools revive", []int{15}, false, []string{"tools/gomad3/policy.go", "tools/gomad3sim/policy_test.go", "tools/helper.go"}, []string{"tools_extra/helper.go", "ordinary/tools/helper.go", "../tools/gomad3/policy.go", "tools/helperXgo", "tools/helper.txt"}},
-		{"campaign completion invariants", []int{17}, false, []string{"tools/gomad3/runner/internal/campaign/controller.go"}, []string{"tools/gomad3/runner/internal/campaign/other.go", "tools/gomad3/runner/internal/campaign/controller_test.go", "tools/gomad3/runner/internal/campaign/controllerXgo", "tools/gomad3/runner/internal/campaign/controller.go.txt", "ordinary/tools/gomad3/runner/internal/campaign/controller.go", "../tools/gomad3/runner/internal/campaign/controller.go"}},
-		{"inspection choice invariants", []int{18}, false, []string{"tools/gomad3/runner/inspect/inspect.go"}, []string{"tools/gomad3/runner/inspect/other.go", "tools/gomad3/runner/inspect/inspect_test.go", "tools/gomad3/runner/inspect/inspectXgo", "tools/gomad3/runner/inspect/inspect.go.txt", "ordinary/tools/gomad3/runner/inspect/inspect.go", "../tools/gomad3/runner/inspect/inspect.go"}},
+		{"tools revive", []int{15}, false, []string{"tools/gomad3/policy.go", "tools/gomad3/internal/model/cluster/policy_test.go", "tools/helper.go"}, []string{"tools_extra/helper.go", "ordinary/tools/helper.go", "../tools/gomad3/policy.go", "tools/helperXgo", "tools/helper.txt"}},
+		{"campaign completion invariants", []int{17}, false, []string{"tools/gomad3/internal/runner/internal/campaign/controller.go"}, []string{"tools/gomad3/internal/runner/internal/campaign/other.go", "tools/gomad3/internal/runner/internal/campaign/controller_test.go", "tools/gomad3/internal/runner/internal/campaign/controllerXgo", "tools/gomad3/internal/runner/internal/campaign/controller.go.txt", "ordinary/tools/gomad3/internal/runner/internal/campaign/controller.go", "../tools/gomad3/internal/runner/internal/campaign/controller.go"}},
+		{"inspection choice invariants", []int{18}, false, []string{"tools/gomad3/internal/runner/inspect/inspect.go"}, []string{"tools/gomad3/internal/runner/inspect/other.go", "tools/gomad3/internal/runner/inspect/inspect_test.go", "tools/gomad3/internal/runner/inspect/inspectXgo", "tools/gomad3/internal/runner/inspect/inspect.go.txt", "ordinary/tools/gomad3/internal/runner/inspect/inspect.go", "../tools/gomad3/internal/runner/inspect/inspect.go"}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			for _, index := range tc.rules {
@@ -104,7 +104,7 @@ func TestLintPolicyCampaignInvariantSourceBinding(t *testing.T) {
 	require.Len(t, policy.Linters.Exclusions.Rules, 19)
 	pattern, err := regexp.Compile(policy.Linters.Exclusions.Rules[17].Source)
 	require.NoError(t, err)
-	data, err := os.ReadFile("../../../tools/gomad3/runner/internal/campaign/controller.go")
+	data, err := os.ReadFile("../../../tools/gomad3/internal/runner/internal/campaign/controller.go")
 	require.NoError(t, err)
 	fset := token.NewFileSet()
 	file, err := parser.ParseFile(fset, "controller.go", data, 0)
@@ -228,13 +228,13 @@ func TestLintPolicyRealGolangci(t *testing.T) {
 				name, path, source string
 				allowed            bool
 			}{
-				{"approved guard", "tools/gomad3/runner/internal/campaign/controller.go", "func Record(classified bool) bool {\nif !classified {\npanic(\"gomad3: completed a campaign attempt without a classification\")\n}\nreturn false\n}", true},
-				{"retired inactive panic at approved path", "tools/gomad3/runner/internal/campaign/controller.go", "func Fail(active bool) {\nif !active {\npanic(\"gomad3: completed an inactive campaign attempt\")\n}\n}", false},
-				{"other panic at approved path", "tools/gomad3/runner/internal/campaign/controller.go", "func Fail(active bool) {\nif !active {\npanic(\"ordinary finding\")\n}\n}", false},
-				{"inactive panic at other path", "tools/gomad3/runner/internal/campaign/other.go", "func Fail(active bool) {\nif !active {\npanic(\"gomad3: completed an inactive campaign attempt\")\n}\n}", false},
-				{"classification panic at other path", "tools/gomad3/runner/internal/campaign/other.go", "func Fail(active bool) {\nif !active {\npanic(\"gomad3: completed a campaign attempt without a classification\")\n}\n}", false},
-				{"changed message at approved path", "tools/gomad3/runner/internal/campaign/controller.go", "func Fail(active bool) {\nif !active {\npanic(\"gomad3: completed a campaign attempt without a classification extra\")\n}\n}", false},
-				{"trailing comment on approved line", "tools/gomad3/runner/internal/campaign/controller.go", "func Fail(active bool) {\nif !active {\npanic(\"gomad3: completed a campaign attempt without a classification\") // other source\n}\n}", false},
+				{"approved guard", "tools/gomad3/internal/runner/internal/campaign/controller.go", "func Record(classified bool) bool {\nif !classified {\npanic(\"gomad3: completed a campaign attempt without a classification\")\n}\nreturn false\n}", true},
+				{"retired inactive panic at approved path", "tools/gomad3/internal/runner/internal/campaign/controller.go", "func Fail(active bool) {\nif !active {\npanic(\"gomad3: completed an inactive campaign attempt\")\n}\n}", false},
+				{"other panic at approved path", "tools/gomad3/internal/runner/internal/campaign/controller.go", "func Fail(active bool) {\nif !active {\npanic(\"ordinary finding\")\n}\n}", false},
+				{"inactive panic at other path", "tools/gomad3/internal/runner/internal/campaign/other.go", "func Fail(active bool) {\nif !active {\npanic(\"gomad3: completed an inactive campaign attempt\")\n}\n}", false},
+				{"classification panic at other path", "tools/gomad3/internal/runner/internal/campaign/other.go", "func Fail(active bool) {\nif !active {\npanic(\"gomad3: completed a campaign attempt without a classification\")\n}\n}", false},
+				{"changed message at approved path", "tools/gomad3/internal/runner/internal/campaign/controller.go", "func Fail(active bool) {\nif !active {\npanic(\"gomad3: completed a campaign attempt without a classification extra\")\n}\n}", false},
+				{"trailing comment on approved line", "tools/gomad3/internal/runner/internal/campaign/controller.go", "func Fail(active bool) {\nif !active {\npanic(\"gomad3: completed a campaign attempt without a classification\") // other source\n}\n}", false},
 			} {
 				t.Run(tc.name, func(t *testing.T) {
 					formatted, err := format.Source([]byte("package campaign\n\n" + tc.source + "\n"))
@@ -242,9 +242,9 @@ func TestLintPolicyRealGolangci(t *testing.T) {
 					fixture.write(tc.path, string(formatted))
 					t.Cleanup(func() { require.NoError(t, os.Remove(filepath.Join(fixture.root, tc.path))) })
 					outputPath := filepath.Join(t.TempDir(), "issues.json")
-					packagePath := "./tools/gomad3/runner/internal/campaign"
+					packagePath := "./tools/gomad3/internal/runner/internal/campaign"
 					if module != "." {
-						packagePath = "./runner/internal/campaign"
+						packagePath = "./internal/runner/internal/campaign"
 					}
 					args := []string{"run", "--config=" + filepath.Join(fixture.root, ".github/.golangci.yml"), "--fix=false", "--build-tags=test_dep", "--output.json.path=" + outputPath, packagePath}
 					command := exec.CommandContext(t.Context(), binary, args...)
@@ -301,7 +301,7 @@ func TestLintPolicyInspectionInvariantSourceBinding(t *testing.T) {
 	require.Equal(t, "^use of `panic` forbidden because \"Please avoid using panic in application code\"$", rule.Text)
 	pattern, err := regexp.Compile(rule.Source)
 	require.NoError(t, err)
-	data, err := os.ReadFile("../../../tools/gomad3/runner/inspect/inspect.go")
+	data, err := os.ReadFile("../../../tools/gomad3/internal/runner/inspect/inspect.go")
 	require.NoError(t, err)
 	files := token.NewFileSet()
 	file, err := parser.ParseFile(files, "inspect.go", data, 0)

@@ -18,9 +18,9 @@ import (
 	"testing"
 	"time"
 
-	"go.temporal.io/server/tools/gomad3/record"
-	"go.temporal.io/server/tools/gomad3/runner"
-	"go.temporal.io/server/tools/gomad3/runner/inspect"
+	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
+	"go.temporal.io/server/tools/gomad3/internal/runner"
+	"go.temporal.io/server/tools/gomad3/internal/runner/inspect"
 )
 
 var cliBinary, cliModuleRoot, cliToolchainRoot string

@@ -46,9 +46,11 @@ func (config Config) backend(path string) string {
 	if within(relative, "cmd") {
 		return "cmd"
 	}
-	if backend, rest, found := strings.Cut(relative, "/"); backend == "backends" && found {
+	if rest, found := strings.CutPrefix(relative, "internal/backends/"); found {
 		name, _, _ := strings.Cut(rest, "/")
-		return "backend:" + name
+		if name != "target" {
+			return "backend:" + name
+		}
 	}
 	return ""
 }

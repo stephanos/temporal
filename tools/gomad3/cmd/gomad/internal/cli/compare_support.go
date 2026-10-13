@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"io"
 
-	supportcomparison "go.temporal.io/server/tools/gomad3/backends/native/qualification/comparison"
-	qualificationset "go.temporal.io/server/tools/gomad3/backends/native/qualification/set"
-	"go.temporal.io/server/tools/gomad3/record"
+	supportcomparison "go.temporal.io/server/tools/gomad3/internal/backends/native/qualification/comparison"
+	qualificationset "go.temporal.io/server/tools/gomad3/internal/backends/native/qualification/set"
+	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
 )
 
 type compareSupportDependencies struct {

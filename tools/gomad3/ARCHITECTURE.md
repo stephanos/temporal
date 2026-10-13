@@ -4,7 +4,7 @@ This document records the design decisions that are not obvious from the code.
 The [SPEC](SPEC.md) owns product requirements and the
 [canonical vocabulary](SPEC.md#productvocabulary-ubiquitous-language).
 The [README](README.md) describes supported commands and current behavior.
-Public types, wire schemas, defaults, and limits are authoritative in the
+Internal types, wire schemas, defaults, and limits are authoritative in the
 implementation and its tests.
 
 ## System boundary
@@ -65,7 +65,7 @@ target deliberately issuing raw syscalls.
 
 ## Cluster simulation
 
-`tools/gomad3sim` owns the application-facing cluster seam. An Execution selects one
+`tools/gomad3/internal/model/cluster` owns the application-facing cluster seam. An Execution selects one
 backend and records bounded node, topology, lifecycle, output, network, volume,
 fault, scenario, history, and oracle evidence. The in-process backend assigns
 inheritable runtime domains to logical
@@ -196,7 +196,7 @@ spins prevents quiescence and reaches the wall watchdog. Process death must leav
 an operation classified as committed or uncommitted, with no ambiguous partial
 model transition.
 
-`simulation/clock/simulation_progress.go` owns complete typed progress
+`internal/model/clock/simulation_progress.go` owns complete typed progress
 transitions under the arbiter mutex (`SIMULATION.BACKENDS`). Admission,
 forwarding, response reservation/delivery, arrival consumption, abandonment
 accounting, and participant removal validate participant incarnation, response
@@ -352,9 +352,9 @@ identities and canonical alternative sets avoid treating physical run-queue
 order as replay identity. Replay validates a decision before applying it,
 requires complete tape consumption, and still compares the final Record.
 
-`choice/trace.go` explicitly refuses stored v2 traces because their select
+`internal/model/choice/trace.go` explicitly refuses stored v2 traces because their select
 results carry no readiness. Legacy v1 traces remain decodable for inspection,
-but `choice/tape.go` returns `ErrReplayUnavailable` when projecting them into
+but `internal/model/choice/tape.go` returns `ErrReplayUnavailable` when projecting them into
 a replay plan. For v3, `ProjectReplayPlan` uses `projectSelectReadiness` to
 carry each final `select` result's readiness onto its matching poll decisions.
 A poll decision named by no result keeps unknown readiness. Readiness annotates
@@ -435,7 +435,7 @@ clean batch establishes or matches a baseline.
 
 ### Campaign intent and operation construction
 
-`runner/campaign_options.go` owns serializable `campaignOptions`, grouped into
+`internal/runner/campaign_options.go` owns serializable `campaignOptions`, grouped into
 identity, target, search, resource, observation, retention, and guidance settings
 (`CAMPAIGN.SELECTION`, `CAMPAIGN.EXECUTION`, `PLATFORM.IDENTITY`). A private
 `campaignRequest` combines that intent with `campaignRuntime` dependencies,
@@ -462,7 +462,7 @@ describe the intentional source changes.
 
 ### Complete preparation and inspection
 
-`backends/native/preparation` composes target and deterministic-I/O adapter owners
+`internal/backends/native/preparation` composes target and deterministic-I/O adapter owners
 without reversing their dependencies (`TARGET.PREPARATION`, `TARGET.CAPABILITY`).
 `Prepare` returns a validated `target.Prepared` with selected adapter identities
 attached. It owns temporary adapter-workspace cleanup; Campaign and portable
@@ -474,8 +474,8 @@ repetitions prepare independently, and custom preparers still pass complete
 prepared-target validation.
 
 Capability collection, pure policy evaluation, and linked projection have
-separate private ownership in `target`, behind the existing review operations.
-`backends/native/sourceinventory` hashes bounded adapter source inventories for both
+separate private ownership in `internal/backends/target`, behind the existing review operations.
+`internal/backends/native/sourceinventory` hashes bounded adapter source inventories for both
 target and adapter preparation. Public `target.CompatibilityPackEvidence` and
 its complete nested target-owned graph project detached report data from private
 policy evidence. Runner's public journal and Artifact capacity inspection values
@@ -526,7 +526,7 @@ Runner drains stdout and stderr concurrently, hashes every byte, and retains a
 bounded head and tail. Output timing and host completion order are diagnostics
 and never enter runtime or World decisions.
 
-`backends/native/execution.Spec` groups World and deterministic-I/O inputs as typed execution
+`internal/backends/native/execution.Spec` groups World and deterministic-I/O inputs as typed execution
 capabilities. On Unix, one process-owned launch-resource plan creates the pipes
 and backings, fixes every stage's descriptor numbers and inheritance order, and
 defines which ends close after each process start. The supervisor and bootstrap
@@ -539,7 +539,7 @@ that unchanged launch plan.
 World transport remains enabled for every Runner-managed target. Although the
 launch plan now represents World explicitly, making its descriptors optional is
 deferred until external targets have been audited for calls to
-`world/process.Open` and migrated to an explicit declaration. Until then, an empty
+`internal/model/world/process.Open` and migrated to an explicit declaration. Until then, an empty
 child record continues to become the canonical `none` World record. This keeps
 the descriptor refactor compatible rather than silently disconnecting an
 existing World-aware target.
@@ -574,7 +574,7 @@ Ordinary JSON writers use `encoding/json`. The architecture deliberately has
 no generic canonical-JSON layer: versioned typed projections and complete
 producer identities define semantic stability, while wire-specific packages
 define any required byte identity. The functional production users of
-`internal/strictjson` span the native build, compatibility-pack, native
+`internal/model/strictjson` span the native build, compatibility-pack, native
 qualification, captured-state, qualification-report, Record, Runner
 simulation/minimizer/plan, World recording/replay, and the WASM protocol,
 qualification-spec, installation, and oracle readers. The WASI model identity
@@ -586,9 +586,9 @@ changed delimiter spelling, and it preserves `encoding/json` array input for
 fixed byte arrays. Maps and raw JSON remain caller-validated open projections
 rather than gaining a fictitious closed schema.
 
-Artifact storage envelopes (`artifact/lineage.go`), Campaign log payloads
-(`runner/internal/logstore/json.go`), and native installation manifests
-(`backends/native/toolchain/installation.go`) still use standard-library
+Artifact storage envelopes (`internal/evidence/artifact/lineage.go`), Campaign log payloads
+(`internal/runner/internal/logstore/json.go`), and native installation manifests
+(`internal/backends/native/toolchain/installation.go`) still use standard-library
 decoders. Their unknown-field and single-value checks do not reject duplicate
 names or invalid raw UTF-8; these older readers were not canonical-JSON users
 and are outside the migrated-reader guarantee.
@@ -631,7 +631,7 @@ validation and a store sync.
 Artifact storage lineage is separate from the execution record. The storage
 envelope declares `gomad3.artifact-storage/v1`; `OpenArtifact` checks it before
 reading or decoding the manifest, which keeps `record.SchemaVersion`,
-`RecordContract` and the runtime choice/World/I/O/simulation encodings
+`RecordContract` and the runtime internal/model/choice/World/I/O/simulation encodings
 unchanged. An artifact of an earlier Gomad has no envelope and is refused as
 the unsupported format `pre-lineage`; a malformed envelope or another declared
 format is refused the same way (`artifact.UnsupportedFormatError`, matching
@@ -641,8 +641,8 @@ with status 2. The envelope is reserved like the manifest; it is not counted
 in an artifact's stored bytes, so artifact capacities and recorded byte counts
 keep their meaning.
 
-Ordinary whole-file replacement is centralized in `internal/hostfs`; the
-public `hostfs` facade exposes the same owner where cross-package consumers need
+Ordinary whole-file replacement is centralized in `internal/host/fs`; the
+public `internal/host/fs` facade exposes the same owner where cross-package consumers need
 it. The five formerly private publication contracts are the qualification and
 soak reports, streamed toolchain source archive, validated regenerated patch,
 and the builder's ordered stamp-and-launcher transaction. The shared primitive
@@ -690,7 +690,7 @@ separate copies. Each Artifact's stored bytes and a Campaign's byte limits
 continue to charge the full target per Artifact. The Campaign's recorded
 success-byte sum and record-only validation require that standalone accounting.
 
-`runner/internal/logstore` owns the one append-only storage engine shared by
+`internal/runner/internal/logstore` owns the one append-only storage engine shared by
 Campaign, merged-Campaign, and guided-corpus owners. A private store contains a
 single-link 0600 `log` and `lock` beneath a 0700 directory. Each append is one
 typed, length-bounded frame with versioned `GMLG` header CRC32C and payload
@@ -700,7 +700,7 @@ recognized torn final frame; read-only replay takes no lock and never mutates.
 Unknown kinds or versions, oversized declarations, invalid complete frames,
 consumer-invalid records, and earlier damage are corruption.
 
-`runner/internal/campaign` owns the durable Campaign state machine: planned,
+`internal/runner/internal/campaign` owns the durable Campaign state machine: planned,
 prepared, running, published, and recoverable-failure state; the frozen plan;
 durable ordinal admissions and terminal receipts; committed outcomes and
 exploration rounds; preparation and per-Execution partial directories;
@@ -811,7 +811,7 @@ model-produced context errors without dispatching arbitrary callbacks. Custom
 errors, external wrappers, and rebound public sentinels are not model inputs.
 `FinishTerminal` accepts detached capacity, replay-divergence, or invalid-input
 kind/detail data; invalid data leaves recording active. `Finish` alone infers
-quiescence. `world/process.Session.FinishError` performs general error reporting
+quiescence. `internal/model/world/process.Session.FinishError` performs general error reporting
 after session validation and captures `Error` detail before ordered `Is`/`Unwrap`
 classification and descriptor cleanup. The process boundary may execute those
 callbacks; the pure model does not.
@@ -988,8 +988,8 @@ standard library. `make -C tools/gomad3 generate` updates checked-in output,
 while `make -C tools/gomad3 validate` rejects drift. Protocol changes require an explicit version and
 compatibility decision.
 
-`simulation/schema/timewire.json` defines the versioned simulation-time layout
-and generates host codecs in `backends/native/execution/simulation_time_wire_generated.go`
+`internal/model/schema/timewire.json` defines the versioned simulation-time layout
+and generates host codecs in `internal/backends/native/execution/simulation_time_wire_generated.go`
 and allocation-free runtime codecs (`RUNTIME.TIME`, `SIMULATION.BACKENDS`, `MAINTENANCE.GOVERNANCE`). Golden
 vectors bind magic, kinds, reserved fields, correlation, and byte order. Runtime
 descriptor I/O, native timers, quiescence hooks, and host arbitration remain
@@ -1032,12 +1032,12 @@ input, an approximate schema, or an unbounded allocation.
 Host policy is split into deep, typed modules: source archives, patch sets,
 toolchain publication, command supervision, bounded output capture, and the
 black-box test campaign each expose a narrow Go interface.
-`backends/native/cmd/gomadtool` is their command adapter; Make retains stable target names but does not own
+`internal/backends/native/cmd/gomadtool` is their command adapter; Make retains stable target names but does not own
 lifecycle or result-classification policy. The test driver records one bounded
 case result per external command and keeps equality, diversity, diagnostics,
 timeouts, and mandatory semantic markers as distinct oracles.
 
-`backends/native/build/internal/gocommand` uses supervised `internal/hostexec` processes for
+`internal/backends/native/build/internal/gocommand` uses supervised `internal/host/exec` processes for
 target compilation, Go identity queries, and package/module listing
 (`TARGET.PREPARATION`). Both output contracts retain context cancellation,
 finite watchdogs, process-group cleanup, and command exit classification.
@@ -1077,7 +1077,7 @@ that sample establishes headroom, not qualification of every prepared adapter.
 Command infrastructure/cleanup errors precede stdout overflow, stderr overflow,
 watchdog and raw command outcomes; failed stdout never reaches source projection.
 
-`backends/native/toolchain/installation.Layout` names locations for the builder, while
+`internal/backends/native/toolchain/installation.Layout` names locations for the builder, while
 `Description` validates the executable launcher, build key, and pinned build
 (`PLATFORM.INSTALLATION`, `PLATFORM.IDENTITY`). Consumers obtain target caches,
 prepared-target caches, and adapter locations from these values. CLI resolution
@@ -1086,7 +1086,7 @@ installation. Adapter replacement locations remain stable identity inputs
 because Go records replacement paths in binary build information.
 
 Shell is limited to reviewed argv and platform boundaries. The patch-regeneration
-scripts are owned by `backends/native/conformance/scripts`: `exec.sh` and
+scripts are owned by `internal/backends/native/conformance/scripts`: `exec.sh` and
 `compiler_test_exec.sh` adapt upstream Go hooks, while `clock_audit_test.sh` owns the
 Darwin DTrace invocation. A Go-owned content check rejects new script owners,
 Bash outside the explicit platform adapter, and Perl policy. Platform-neutral
@@ -1096,7 +1096,7 @@ audit remain Darwin-specific.
 
 ## Maintenance gates
 
-`backends/native/toolchain/version/version.json` is the canonical release descriptor. It owns
+`internal/backends/native/toolchain/version/version.json` is the canonical release descriptor. It owns
 the Go archive and digest, supported platforms, patch name, boundary-manifest
 version, adapter versions, and exact patch/overlay source sets. Generation
 produces its Make, Go, and human-guide consumers; validation requires the
@@ -1110,18 +1110,16 @@ fixture, and module exclusions are checked for stale entries. Ownership and
 module edges operate on listed imports; uncovered source and package-list/type
 errors are findings rather than silently uninspected packages.
 
-Typed public-signature analysis walks externally reachable type graphs,
-including nested containers, generic arguments and constraints, aliases,
-defined types, and promoted methods, using the external consumer's Go internal
-import permissions. Private storage and accessible builtin-only definitions do
-not acquire a blanket alias prohibition. Reports expose detached public values
-instead of requiring callers to name private policy or execution types.
+The module is a tool with one user entry point, `cmd/gomad`. Its six internal
+groups are Runner, backends, evidence, models, host operations and architecture
+checks. Backend-neutral targets remain below `internal/backends/target` so the
+provider contract and artifact owner can both use them without an import cycle.
 
-`internal/puritycheck` checks every declaration in the original World, mailbox,
+`internal/archcheck` checks every declaration in the original World, mailbox,
 Record, exploration, capability-policy, controller, capability-evaluation and
 simulation-progress pure files. An exact reviewed dependency-file inventory
 makes their formerly implicit pure helpers explicit; host-loading siblings stay
-outside it. The WASM subtree owns its separate pure-file and public-boundary
+outside it. The WASM subtree owns its separate pure-file and backend-boundary
 tests while using the same folded module inventory.
 
 Typing uses compiler export data from actual `go list` metadata and parses only

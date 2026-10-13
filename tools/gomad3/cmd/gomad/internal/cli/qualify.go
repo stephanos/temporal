@@ -5,17 +5,18 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 	"io"
 	"os"
 	"strconv"
 	"strings"
 	"time"
 
-	"go.temporal.io/server/tools/gomad3/qualification"
-	qualificationworkload "go.temporal.io/server/tools/gomad3/qualification/workload"
-	"go.temporal.io/server/tools/gomad3/record"
-	"go.temporal.io/server/tools/gomad3/runner"
-	"go.temporal.io/server/tools/gomad3/target"
+	"go.temporal.io/server/tools/gomad3/internal/backends/target"
+	qualificationworkload "go.temporal.io/server/tools/gomad3/internal/backends/wasm/qualification"
+	"go.temporal.io/server/tools/gomad3/internal/evidence/qualification"
+	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
+	"go.temporal.io/server/tools/gomad3/internal/runner"
 )
 
 const maximumQualificationRepeats = 32
@@ -23,7 +24,7 @@ const maximumQualificationRepeats = 32
 type qualifyDependencies struct {
 	install          func(string) (installation, error)
 	workingDirectory func() (string, error)
-	workload         func(context.Context, qualificationworkload.Spec) (qualificationworkload.Result, error)
+	workload         func(context.Context, qualificationworkload.WorkloadSpec) (qualificationworkload.WorkloadResult, error)
 	run              func(context.Context, runner.CampaignSpec) (runner.CampaignResult, error)
 	replay           func(context.Context, runner.ReplaySpec) (runner.ReplayResult, error)
 	write            func(string, qualification.QualificationReport) (string, error)
@@ -37,7 +38,7 @@ type qualifyReporter struct {
 
 func (app application) runQualify(arguments []string, stdout, stderr io.Writer) int {
 	return runQualifyWith(arguments, stdout, stderr, qualifyDependencies{
-		install: app.install, workingDirectory: os.Getwd, workload: qualificationworkload.Run,
+		install: app.install, workingDirectory: os.Getwd, workload: qualificationworkload.RunWorkload,
 	})
 }
 
@@ -115,9 +116,9 @@ func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies q
 	if !*replaySuccesses && (*successLimit != 0 || successBytes != 0) {
 		return reportQualifyInputError(reporter, stderr, errors.New("--success-limit and --success-bytes require --replay-successes"))
 	}
-	coverage := runner.CoverageSemantic
+	coverage := campaignoptions.CoverageSemantic
 	if *choices || *diagnostics {
-		coverage = runner.CoverageSemanticChoice
+		coverage = campaignoptions.CoverageSemanticChoice
 	}
 	if _, err := resolveExploreCoverage(string(coverage), requiredSemanticProbes); err != nil {
 		return reportQualifyInputError(reporter, stderr, err)
@@ -161,13 +162,13 @@ func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies q
 	defer cancel()
 	runWorkload := dependencies.workload
 	if runWorkload == nil {
-		runWorkload = qualificationworkload.Run
+		runWorkload = qualificationworkload.RunWorkload
 	}
-	result, err := runWorkload(ctx, qualificationworkload.Spec{
+	result, err := runWorkload(ctx, qualificationworkload.WorkloadSpec{
 		Command: command, Seed: *seed, Repeat: *repeat, ArtifactRoot: *artifacts, Campaign: config,
 		Replay:          runner.ReplaySpec{Backend: installed.backend, ToolchainRoot: installed.toolchainRoot},
 		ReplaySuccesses: *replaySuccesses,
-		Progress: func(event qualificationworkload.Progress) error {
+		Progress: func(event qualificationworkload.WorkloadProgress) error {
 			return reporter.Progress(event.Iteration, event.Repeat)
 		},
 		Explore: dependencies.run, ReplayArtifact: dependencies.replay, Write: dependencies.write,

@@ -3,7 +3,7 @@ package cli
 import (
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/runner"
+	"go.temporal.io/server/tools/gomad3/internal/runner"
 )
 
 func TestParseCampaignShardUsesZeroBasedIndex(t *testing.T) {

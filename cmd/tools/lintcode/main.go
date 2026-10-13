@@ -20,7 +20,7 @@ import (
 )
 
 const gomadModule = "tools/gomad3"
-const wasmBackend = gomadModule + "/backends/wasm"
+const wasmBackend = gomadModule + "/internal/backends/wasm"
 const mixedbrainModule = "tests/mixedbrain"
 
 func within(path, root string) bool {
@@ -209,7 +209,7 @@ func lintScopes(ctx context.Context, root, tags string, selected, changedDirs ma
 func moduleScopes(ctx context.Context, root, owner, tags string, sources []source) ([]lintScope, error) {
 	var ordinary, integration []source
 	for _, entry := range sources {
-		if owner == gomadModule && entry.path == gomadModule+"/backends/native/qualification/integration_test.go" {
+		if owner == gomadModule && entry.path == gomadModule+"/internal/backends/native/qualification/integration_test.go" {
 			integration = append(integration, entry)
 		} else {
 			ordinary = append(ordinary, entry)
@@ -297,7 +297,7 @@ func loadOwnership(root string) (ownership, error) {
 	if len(policy.fixtures) == 0 || len(policy.modules) == 0 || len(policy.hostPackages) == 0 {
 		return policy, errors.New("gomad source classifications need literal sourceExclusions, expectedModules and hostSourcePackages")
 	}
-	data, err := os.ReadFile(filepath.Join(root, gomadModule, "backends/native/toolchain/version/version.json"))
+	data, err := os.ReadFile(filepath.Join(root, gomadModule, "internal/backends/native/toolchain/version/version.json"))
 	if err != nil {
 		return policy, err
 	}
@@ -334,7 +334,7 @@ func classificationPaths(file *ast.File, name string) ([]string, error) {
 func (p ownership) registerHostPackages(root string, entries []string) error {
 	for _, entry := range entries {
 		base := filepath.Base(entry)
-		if filepath.ToSlash(filepath.Dir(entry)) != "backends/native/toolchain/runtime/testdata" || strings.HasPrefix(base, ".") || strings.HasPrefix(base, "_") || strings.ContainsAny(base, "*?[]") || p.hostPackages[entry] {
+		if filepath.ToSlash(filepath.Dir(entry)) != "internal/backends/native/toolchain/runtime/testdata" || strings.HasPrefix(base, ".") || strings.HasPrefix(base, "_") || strings.ContainsAny(base, "*?[]") || p.hostPackages[entry] {
 			return fmt.Errorf("invalid Gomad host source package %q", entry)
 		}
 		if err := regularHostDirectory(root, gomadModule+"/"+entry); err != nil {
@@ -395,7 +395,7 @@ func (p ownership) moduleDirectories(root string, paths []string) ([]string, err
 			return nil, fmt.Errorf("uncovered module symlink %s", path)
 		}
 		directory := filepath.ToSlash(filepath.Dir(path))
-		if directory != "." && directory != gomadModule && directory != wasmBackend+"/qualification/testdata/fixture" && directory != mixedbrainModule && !p.modules[path] {
+		if directory != "." && directory != gomadModule && directory != wasmBackend+"/internal/evidence/qualification/testdata/fixture" && directory != mixedbrainModule && !p.modules[path] {
 			return nil, fmt.Errorf("unclassified module %s", path)
 		}
 		modules = append(modules, directory)
@@ -414,9 +414,9 @@ func (p ownership) classify(path string, modules []string) (source, error) {
 	switch {
 	case within(path, ".flow"):
 		entry.disposition = "retained evidence"
-	case within(path, "tools/gomad3sim/testdata/simulation_exploration"):
+	case within(path, "tools/gomad3/internal/model/cluster/testdata/simulation_exploration"):
 		entry.disposition = "simulation fixture"
-	case within(path, gomadModule+"/backends/native/qualification/testdata/tagged"):
+	case within(path, gomadModule+"/internal/backends/native/qualification/testdata/tagged"):
 		entry.disposition = "integration fixture"
 	case within(path, wasmBackend+"/testdata/environment"):
 		entry.disposition = "WASM environment fixture"
@@ -426,7 +426,7 @@ func (p ownership) classify(path string, modules []string) (source, error) {
 		entry.disposition = "WASM Temporal diagnostic fixture"
 	case within(path, wasmBackend+"/testdata/time_probes"), within(path, wasmBackend+"/testdata/network_probes"), within(path, wasmBackend+"/testdata/prototype_temporal"):
 		entry.disposition = "WASM determinism prototype fixture"
-	case within(path, wasmBackend+"/testdata/storage_sqlite"), within(path, wasmBackend+"/testdata/network_streams"), within(path, wasmBackend+"/testdata/temporal_storage"), within(path, wasmBackend+"/testdata/temporal_broker"), within(path, wasmBackend+"/wasi/testdata/runtime_cost"), within(path, wasmBackend+"/simulation/testdata/service"), within(path, wasmBackend+"/command/testdata"):
+	case within(path, wasmBackend+"/testdata/storage_sqlite"), within(path, wasmBackend+"/testdata/network_streams"), within(path, wasmBackend+"/testdata/temporal_storage"), within(path, wasmBackend+"/testdata/temporal_broker"), within(path, wasmBackend+"/wasi/testdata/runtime_cost"), within(path, wasmBackend+"/cluster/testdata/service"), within(path, wasmBackend+"/command/testdata"):
 		entry.disposition = "WASM productionization fixture"
 	case within(path, wasmBackend+"/qualification/testdata/fixture"):
 		entry.disposition = "WASM support and cost qualification fixture"
@@ -435,8 +435,8 @@ func (p ownership) classify(path string, modules []string) (source, error) {
 		if err := p.validateWASMHostSource(path, relative); err != nil {
 			return entry, err
 		}
-	case within(path, gomadModule+"/backends/native/toolchain/runtime/overlay"):
-		relative := strings.TrimPrefix(path, gomadModule+"/backends/native/toolchain/runtime/overlay/")
+	case within(path, gomadModule+"/internal/backends/native/toolchain/runtime/overlay"):
+		relative := strings.TrimPrefix(path, gomadModule+"/internal/backends/native/toolchain/runtime/overlay/")
 		if !p.overlays[relative] {
 			return entry, fmt.Errorf("unclassified runtime overlay source %s", path)
 		}
@@ -444,7 +444,7 @@ func (p ownership) classify(path string, modules []string) (source, error) {
 	case within(path, gomadModule):
 		relative := strings.TrimPrefix(path, gomadModule+"/")
 		for _, fixture := range p.fixtures {
-			if fixture != "backends/native/toolchain/runtime/overlay" && within(relative, fixture) {
+			if fixture != "internal/backends/native/toolchain/runtime/overlay" && within(relative, fixture) {
 				entry.disposition = "Gomad qualification fixture"
 				return entry, nil
 			}
@@ -482,7 +482,7 @@ func (p ownership) validateGomadHostSource(path, relative string) error {
 				return fmt.Errorf("uncovered Gomad host source %s", path)
 			}
 		}
-		if within(relative, "backends/native/toolchain/runtime") {
+		if within(relative, "internal/backends/native/toolchain/runtime") {
 			return fmt.Errorf("uncovered Gomad host source %s", path)
 		}
 	}

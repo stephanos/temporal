@@ -83,7 +83,7 @@ jobs:
                 native=false
                 while IFS= read -r -d '' path; do
                   case "$path" in
-                    tools/gomad3/backends/wasm/*) ;;
+                    tools/gomad3/internal/backends/wasm/*) ;;
                     *) native=true ;;
                   esac
                 done < "$paths_file"
@@ -177,7 +177,7 @@ jobs:
           .schema == "gomad3.qualification-set/v3" and
           .seeds == [11] and (.suites | length) == 4 and
           ([.suites[] | .choice_bytes > 0 and .replay_successes == true] | all)
-          ' tools/gomad3/backends/native/qualification/smoke.json
+          ' tools/gomad3/internal/backends/native/qualification/smoke.json
 
       - name: Qualify the functional smoke selection
         run: make gomad3-smoke-qualification
