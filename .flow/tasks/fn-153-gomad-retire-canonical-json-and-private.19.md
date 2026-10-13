@@ -9,7 +9,7 @@ Owner decision (2026-10-12). Retire the plain World snapshot profile and the JSO
 Protobuf is excluded by owner decision (2026-10-12).
 
 **Size:** L
-**Touches:** [tools/gomad3/world/**, tools/gomad3/backends/native/replay*.go, tools/gomad3/backends/wasm/wasi/broker*.go, tools/gomad3/backends/wasm/wasi/identity_test.go, tools/gomad3/backends/wasm/wasi/integration_test.go, tools/gomad3/backends/wasm/simulation/retained*.go, tools/gomad3/backends/wasm/simulation/world_codec_test.go, tools/gomad3/backends/wasm/simulation/world_compressed_probe_test.go, tools/gomad3/backends/wasm/simulation/world_profile_test.go, tools/gomad3/internal/archcheck/**, tools/gomad3sim/wasm.go, tools/gomad3sim/wasm_test.go]
+**Touches:** [tools/gomad3/world/**, tools/gomad3/backends/native/replay*.go, tools/gomad3/backends/wasm/wasi/broker*.go, tools/gomad3/backends/wasm/wasi/identity_test.go, tools/gomad3/backends/wasm/wasi/integration_test.go, tools/gomad3/backends/wasm/simulation/provider_test.go, tools/gomad3/backends/wasm/simulation/retained*.go, tools/gomad3/backends/wasm/simulation/world_codec_test.go, tools/gomad3/backends/wasm/simulation/world_compressed_probe_test.go, tools/gomad3/backends/wasm/simulation/world_profile_test.go, tools/gomad3/internal/archcheck/**, tools/gomad3sim/wasm.go, tools/gomad3sim/wasm_test.go]
 
 ### Verification
 
