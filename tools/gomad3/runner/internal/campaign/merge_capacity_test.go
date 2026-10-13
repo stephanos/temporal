@@ -64,7 +64,7 @@ func TestOpenMergedCampaignRejectsInvalidEnvelopes(t *testing.T) {
 			if err := os.Mkdir(path, 0o700); err != nil {
 				t.Fatal(err)
 			}
-			rewriteMergedLog(t, path, []byte(test.contents))
+			rewriteMergedLog(t, path, mergedLogRecord{kind: kindMergedOpen, payload: []byte(test.contents)})
 			if _, err := OpenMergedCampaign(path); err == nil || !IsIntegrityError(err) || !strings.Contains(err.Error(), test.want) {
 				t.Fatalf("OpenMergedCampaign() error = %v, want %s", err, test.want)
 			}
@@ -72,9 +72,27 @@ func TestOpenMergedCampaignRejectsInvalidEnvelopes(t *testing.T) {
 	}
 }
 
-// rewriteMergedLog replaces a merged campaign's log with an envelope payload
-// followed by execution payloads.
-func rewriteMergedLog(t *testing.T, path string, envelope []byte, executions ...[]byte) {
+// mergedLogRecord is one raw record of a merged campaign log.
+type mergedLogRecord struct {
+	kind    logstore.Kind
+	payload []byte
+}
+
+// mergedLogRecords returns a merged campaign's log records in order.
+func mergedLogRecords(t *testing.T, path string) []mergedLogRecord {
+	t.Helper()
+	var records []mergedLogRecord
+	if _, err := logstore.Replay(filepath.Join(path, storeDirectory), campaignLogOptions(nil, false), func(entry logstore.Record) error {
+		records = append(records, mergedLogRecord{kind: entry.Kind, payload: bytes.Clone(entry.Payload)})
+		return nil
+	}); err != nil {
+		t.Fatal(err)
+	}
+	return records
+}
+
+// rewriteMergedLog replaces a merged campaign's log with records.
+func rewriteMergedLog(t *testing.T, path string, records ...mergedLogRecord) {
 	t.Helper()
 	store := filepath.Join(path, storeDirectory)
 	if err := os.RemoveAll(store); err != nil {
@@ -89,14 +107,29 @@ func rewriteMergedLog(t *testing.T, path string, envelope []byte, executions ...
 			t.Error(err)
 		}
 	}()
-	if err := writer.Append(kindMergedOpen, envelope); err != nil {
-		t.Fatal(err)
-	}
-	for _, execution := range executions {
-		if err := writer.Append(kindMergedExecution, execution); err != nil {
+	for _, entry := range records {
+		if err := writer.Append(entry.kind, entry.payload); err != nil {
 			t.Fatal(err)
 		}
 	}
+}
+
+// rewriteMergedEnvelope rewrites a merged campaign's envelope and keeps every
+// later record.
+func rewriteMergedEnvelope(t *testing.T, path string, change func(*mergedCampaignRecord)) {
+	t.Helper()
+	records := mergedLogRecords(t, path)
+	var envelope mergedCampaignRecord
+	if err := logstore.DecodeJSON(records[0].payload, &envelope); err != nil {
+		t.Fatal(err)
+	}
+	change(&envelope)
+	encoded, err := logstore.EncodeJSON(envelope)
+	if err != nil {
+		t.Fatal(err)
+	}
+	records[0].payload = encoded
+	rewriteMergedLog(t, path, records...)
 }
 
 const (
@@ -191,7 +224,14 @@ func publishMergeShard(t *testing.T, artifacts string, index uint64) (string, []
 
 func mergeTestSpec(t *testing.T, shards []string, successBytes uint64, partial bool) MergeSpec {
 	t.Helper()
-	limits, err := normalizeExecutionJournalLimits(CampaignConfig{SelectionCount: mergeTestOrdinals})
+	return mergeTestSpecWith(t, shards, successBytes, partial, 0)
+}
+
+// mergeTestSpecWith is mergeTestSpec for shards that ran with parallel
+// partial executions.
+func mergeTestSpecWith(t *testing.T, shards []string, successBytes uint64, partial bool, parallel uint64) MergeSpec {
+	t.Helper()
+	limits, err := normalizeExecutionJournalLimits(CampaignConfig{SelectionCount: mergeTestOrdinals, Parallel: parallel})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -364,19 +404,7 @@ func TestOpenMergedCampaignChecksItsOtherLimitsWhenExecutionsReportMoreSuccessBy
 		"no transcript bytes": func(limits *ArtifactCapacityPlan) { limits.TranscriptBytes = 0 },
 	} {
 		t.Run(name, func(t *testing.T) {
-			changed := merged.Record
-			change(&changed.Artifacts)
-			manifest, err := logstore.EncodeJSON(changed)
-			if err != nil {
-				t.Fatal(err)
-			}
-			executions := make([][]byte, len(merged.Executions))
-			for index, run := range merged.Executions {
-				if executions[index], err = logstore.EncodeJSON(run); err != nil {
-					t.Fatal(err)
-				}
-			}
-			rewriteMergedLog(t, merged.Path, manifest, executions...)
+			rewriteMergedEnvelope(t, merged.Path, func(envelope *mergedCampaignRecord) { change(&envelope.Artifacts) })
 			const want = "validate merged executions: campaign artifact capacity is invalid"
 			if _, err := OpenMergedCampaign(merged.Path); err == nil || err.Error() != want {
 				t.Fatalf("OpenMergedCampaign() error = %v, want %s", err, want)

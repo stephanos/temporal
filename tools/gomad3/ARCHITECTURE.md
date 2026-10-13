@@ -588,16 +588,20 @@ advances semantic Execution states but does not implement filesystem publication
 or integrity decisions.
 
 The portable campaign-plan module separates immutable work identity from
-execution. A `gomad3.campaign-plan/v1` file binds the Runner, toolchain,
+execution. A `gomad3.portable-campaign-plan/v1` file names its
+`gomad3.campaign-log/v1` storage and binds the Runner, toolchain,
 deterministic profiles, environment, complete selection, ordinal mapping,
 bounds, prepared target, and captured read-only mount digest. Its adjacent
 private bundle contains only the verified target and path-independent numbered
 mount trees; the plan file is published last. Static seed shards own disjoint
 global ordinals by `ordinal % count`, and resume preserves that assignment.
-Merge validates every Campaign v1 source through the Campaign module, requires one
-plan identity, rejects overlap or unexplained gaps, stores content-deduplicated
-evidence metadata once in a bounded segmented journal, and publishes an
-immutable `gomad3.merged-campaign/v1` without changing source artifacts.
+Merge validates every Campaign v1 source log and its live evidence through the
+Campaign module before creating output, requires one plan identity, and rejects
+overlap or unexplained gaps. It publishes one immutable merged log: an envelope
+with the aggregate summary and each source's path and record identity, each
+source's own records replayed in an isolated scope, and content-deduplicated
+evidence attributions. Source artifacts, diagnostics and target pools stay
+owned by their shards; the aggregate only borrows them by reference.
 
 Replay performs all identity and payload validation before starting the stored
 target. It never rebuilds from source, substitutes a local binary, silently

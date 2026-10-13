@@ -501,7 +501,8 @@ outcome, and the final publication. Replaying that log is the only way to learn
 the Campaign's state; Artifacts, the prepared target and attempt work
 directories are payload files the log references.
 
-`gomad plan` publishes a canonical `gomad3.campaign-plan/v1` and adjacent
+`gomad plan` publishes a canonical `gomad3.portable-campaign-plan/v1` for
+`gomad3.campaign-log/v1` storage and an adjacent
 private bundle containing the verified prepared target and complete bounded
 copies of configured read-only mount trees. Plan identity is independent of
 the plan output path and original mount source paths. The initial protocol
@@ -509,10 +510,15 @@ accepts only seed campaigns with `--on-failure=all`; dynamically
 discovered choice-exploration prefixes require a later round coordinator.
 `gomad execute-shard --shard INDEX/COUNT` uses a zero-based ordinal-modulo
 partition, revalidates the entire bundle before execution, and records global
-selection ordinals in Campaign v1. `gomad merge` accepts only shards from the same
-plan, rejects duplicate or missing ordinals unless `--partial` is explicit,
-deduplicates retained evidence by content identity, enforces aggregate bounds,
-and publishes a new `gomad3.merged-campaign-log/v1` log without mutating shard artifacts.
+selection ordinals in Campaign v1. Plans of the earlier `gomad3.campaign-plan/v1`
+lineage are refused by name. `gomad merge` validates every shard log, its
+evidence and the aggregate bounds before it creates any output: it accepts only
+complete, published shards of the same plan, rejects duplicate or missing
+ordinals unless `--partial` is explicit, and deduplicates retained evidence by
+content identity. It publishes one `gomad3.merged-campaign-log/v1` log that
+concatenates each shard's own records in a separate source scope and records
+each shard's path and record identity; the aggregate borrows shard artifacts,
+diagnostics and target pools by reference and never copies, mutates or sweeps them.
 Both plan and aggregate are available through `gomad inspect`.
 The Campaign log records the explicit `planned`, `prepared`, `running`,
 `published`, and `recoverable-failure` lifecycle; publication is one log

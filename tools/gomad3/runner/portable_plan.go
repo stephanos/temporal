@@ -1,7 +1,9 @@
 package runner
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -19,7 +21,15 @@ import (
 )
 
 const (
-	campaignPlanSchema       = "gomad3.campaign-plan/v1"
+	// campaignPlanSchema is the portable plan lineage this build writes and
+	// the only one it opens. Its embedded execution limits are the campaign
+	// log's: the per-execution payload bound, the outcome count and byte
+	// bounds and the partial executions, under campaignPlanStorage.
+	// Plans of the earlier gomad3.campaign-plan/v1 lineage bound a segmented
+	// journal and are refused by name.
+	campaignPlanSchema = "gomad3.portable-campaign-plan/v1"
+	// campaignPlanStorage is the campaign storage a plan's shards write.
+	campaignPlanStorage      = campaign.CampaignLogFormat
 	campaignPlanMapping      = "ordinal-modulo/v1"
 	campaignPlanBundleSuffix = ".bundle"
 	campaignPlanTargetFile   = "target"
@@ -41,6 +51,7 @@ type CampaignPlanResult struct {
 
 type portableCampaignPlan struct {
 	Schema   string                     `json:"schema"`
+	Storage  string                     `json:"storage"`
 	Mapping  string                     `json:"mapping"`
 	Mounts   *campaignPlanMountIdentity `json:"mounts,omitempty"`
 	Campaign campaign.CampaignPlan      `json:"campaign"`
@@ -183,7 +194,7 @@ func createCampaignPlanWith(ctx context.Context, spec CampaignPlanSpec, dependen
 	if err := campaign.ValidateCampaignPlan(plan); err != nil {
 		return CampaignPlanResult{}, err
 	}
-	document := portableCampaignPlan{Schema: campaignPlanSchema, Mapping: campaignPlanMapping, Mounts: mountIdentity, Campaign: plan}
+	document := portableCampaignPlan{Schema: campaignPlanSchema, Storage: campaignPlanStorage, Mapping: campaignPlanMapping, Mounts: mountIdentity, Campaign: plan}
 	encoded, err := canonicaljson.CanonicalJSON(document)
 	if err != nil {
 		return CampaignPlanResult{}, fmt.Errorf("encode campaign plan: %w", err)
@@ -226,15 +237,22 @@ func openCampaignPlan(path string) (_ openedCampaignPlan, retErr error) {
 	if len(contents) > maximumCampaignPlanBytes {
 		return openedCampaignPlan{}, errors.New("campaign plan exceeds its byte capacity")
 	}
+	if err := checkCampaignPlanLineage(contents); err != nil {
+		return openedCampaignPlan{}, err
+	}
 	var document portableCampaignPlan
 	if err := canonicaljson.DecodeCanonicalJSON(contents, &document); err != nil {
 		return openedCampaignPlan{}, fmt.Errorf("decode campaign plan: %w", err)
 	}
-	if document.Schema != campaignPlanSchema || document.Mapping != campaignPlanMapping || document.Campaign.Strategy != string(StrategySeed) || document.Campaign.OnFailure != string(PolicyAll) || document.Campaign.PlanSHA256 != "" || document.Campaign.Shard != nil {
+	if document.Schema != campaignPlanSchema || document.Storage != campaignPlanStorage || document.Mapping != campaignPlanMapping || document.Campaign.Strategy != string(StrategySeed) || document.Campaign.OnFailure != string(PolicyAll) || document.Campaign.PlanSHA256 != "" || document.Campaign.Shard != nil {
 		return openedCampaignPlan{}, errors.New("campaign plan protocol identity is invalid")
 	}
 	if err := campaign.ValidateCampaignPlan(document.Campaign); err != nil {
 		return openedCampaignPlan{}, err
+	}
+	journal, err := campaign.DeriveExecutionJournalPlan(document.Campaign.Strategy, uint64(document.Campaign.SelectionCount), uint64(document.Campaign.MaxExecutions), uint64(document.Campaign.Parallel))
+	if err != nil || *document.Campaign.Journal != journal {
+		return openedCampaignPlan{}, errors.Join(errors.New("campaign plan execution limits are not the campaign log limits"), err)
 	}
 	if (document.Mounts == nil) != (len(document.Campaign.IOROMounts) == 0) {
 		return openedCampaignPlan{}, errors.New("campaign plan mount identity is incomplete")
@@ -272,6 +290,37 @@ func openCampaignPlan(path string) (_ openedCampaignPlan, retErr error) {
 		return openedCampaignPlan{}, err
 	}
 	return openedCampaignPlan{path: path, identity: record.HashBytes(contents), plan: document.Campaign, mounts: document.Mounts, prepared: prepared}, nil
+}
+
+// UnsupportedCampaignPlanError refuses a portable plan whose lineage is not
+// the one this build writes: a plan an earlier Gomad wrote for another
+// campaign storage, or one that names no storage. It is never decoded or
+// migrated.
+type UnsupportedCampaignPlanError struct {
+	Schema  string
+	Storage string
+}
+
+func (err *UnsupportedCampaignPlanError) Error() string {
+	return fmt.Sprintf("unsupported campaign plan format %q for storage %q: this Gomad opens only %q plans for storage %q, and no migration exists", err.Schema, err.Storage, campaignPlanSchema, campaignPlanStorage)
+}
+
+// checkCampaignPlanLineage reads only the lineage a plan names, its schema
+// and storage, so a plan of another lineage is refused by name before its
+// current document is decoded. A document that names no schema is left to
+// the strict decoder, which refuses it as malformed or invalid.
+func checkCampaignPlanLineage(contents []byte) error {
+	var lineage struct {
+		Schema  *string `json:"schema"`
+		Storage string  `json:"storage"`
+	}
+	if err := json.NewDecoder(bytes.NewReader(contents)).Decode(&lineage); err != nil || lineage.Schema == nil {
+		return nil
+	}
+	if *lineage.Schema != campaignPlanSchema || lineage.Storage != campaignPlanStorage {
+		return &UnsupportedCampaignPlanError{Schema: *lineage.Schema, Storage: lineage.Storage}
+	}
+	return nil
 }
 
 func validateCampaignPlanMountIdentity(plan campaign.CampaignPlan, identity *campaignPlanMountIdentity, bundle string) error {

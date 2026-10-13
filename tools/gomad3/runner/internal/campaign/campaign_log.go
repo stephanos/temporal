@@ -40,16 +40,19 @@ const (
 
 // Record kinds of campaign and merged-campaign logs. One record is one
 // transaction; replay validates a whole record before applying any of it.
+// Kind 17 held a copied merged execution in the earlier merged layout and is
+// retired: a merged log now concatenates its sources' own records.
 const (
-	kindCampaignOpen    logstore.Kind = 1
-	kindLifecycle       logstore.Kind = 2
-	kindPlan            logstore.Kind = 3
-	kindOutcome         logstore.Kind = 4
-	kindPublish         logstore.Kind = 5
-	kindAdmission       logstore.Kind = 6
-	kindReceipt         logstore.Kind = 7
-	kindMergedOpen      logstore.Kind = 16
-	kindMergedExecution logstore.Kind = 17
+	kindCampaignOpen   logstore.Kind = 1
+	kindLifecycle      logstore.Kind = 2
+	kindPlan           logstore.Kind = 3
+	kindOutcome        logstore.Kind = 4
+	kindPublish        logstore.Kind = 5
+	kindAdmission      logstore.Kind = 6
+	kindReceipt        logstore.Kind = 7
+	kindMergedOpen     logstore.Kind = 16
+	kindMergedSource   logstore.Kind = 18
+	kindMergedEvidence logstore.Kind = 19
 )
 
 const (
@@ -71,18 +74,19 @@ const (
 // bound, its segment by the recorded segment bound and each execution by the
 // per-execution bound.
 var campaignLogKinds = map[logstore.Kind]uint32{
-	kindCampaignOpen:    maximumEnvelopeBytes,
-	kindLifecycle:       maximumLifecycleBytes,
-	kindPlan:            maximumCampaignPlanBytes,
-	kindOutcome:         logstore.MaxPayloadBytes,
-	kindPublish:         maximumManifestBytes,
-	kindAdmission:       maximumAdmissionBytes,
-	kindReceipt:         maximumExecutionSegmentBytes + maximumReceiptReferenceBytes,
-	kindExploration:     maximumExplorationRecordBytes,
-	kindRoundStart:      maximumRoundStartBytes,
-	kindRound:           logstore.MaxPayloadBytes,
-	kindMergedOpen:      maximumMergedManifestBytes,
-	kindMergedExecution: maximumExecutionSegmentBytes,
+	kindCampaignOpen:   maximumEnvelopeBytes,
+	kindLifecycle:      maximumLifecycleBytes,
+	kindPlan:           maximumCampaignPlanBytes,
+	kindOutcome:        logstore.MaxPayloadBytes,
+	kindPublish:        maximumManifestBytes,
+	kindAdmission:      maximumAdmissionBytes,
+	kindReceipt:        maximumExecutionSegmentBytes + maximumReceiptReferenceBytes,
+	kindExploration:    maximumExplorationRecordBytes,
+	kindRoundStart:     maximumRoundStartBytes,
+	kindRound:          logstore.MaxPayloadBytes,
+	kindMergedOpen:     maximumMergedManifestBytes,
+	kindMergedSource:   maximumMergedSourceBytes,
+	kindMergedEvidence: maximumMergedEvidenceBytes,
 }
 
 func campaignLogOptions(hook logstore.Hook, create bool) logstore.Options {

@@ -2,8 +2,11 @@ package runner
 
 import (
 	"context"
+	"errors"
+	"io/fs"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -363,36 +366,278 @@ func TestMergeCampaignShardsDeduplicatesSharedFailureEvidence(t *testing.T) {
 	}
 }
 
+// The merged log concatenates the shards' own logs, including their
+// admissions and receipts, and its inspection reports the totals the shards
+// report combined. Neither merge nor inspection changes a shard.
+func TestMergedCampaignInspectionReportsTheShardsCombinedTotals(t *testing.T) {
+	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1-6", PolicyAll, 2)
+	planPath := filepath.Join(t.TempDir(), "campaign.plan.json")
+	if _, err := createCampaignPlanWith(context.Background(), CampaignPlanSpec{Campaign: config, Output: planPath}, configDependencies); err != nil {
+		t.Fatal(err)
+	}
+	executor := &fakeExecutor{result: func(seed uint64) backend.ExecutionResult {
+		if seed%2 == 1 {
+			return processResult(7, "same failure", "")
+		}
+		return processResult(0, "", "")
+	}}
+	roots := make([]string, 2)
+	shards := make([]string, 2)
+	var attempted, succeeded, failures uint64
+	for index := range shards {
+		roots[index] = t.TempDir()
+		result, err := runCampaignShardWith(context.Background(), CampaignShardSpec{
+			PlanPath: planPath, Shard: CampaignShard{Index: uint64(index), Count: 2}, Artifacts: roots[index], RunnerBuild: config.RunnerBuild, Backend: scriptProvider(),
+		}, executionDependencies{executor: executor})
+		if err != nil {
+			t.Fatal(err)
+		}
+		shards[index] = result.CampaignPath
+		attempted += result.Attempted
+		succeeded += result.Succeeded
+		failures += result.Failures
+	}
+	before := make([]map[string]string, len(roots))
+	for index, root := range roots {
+		before[index] = runnerTreeSnapshot(t, root)
+	}
+	merged, err := MergeCampaignShards(context.Background(), CampaignMergeSpec{PlanPath: planPath, Shards: shards, Output: filepath.Join(t.TempDir(), "merged")})
+	if err != nil {
+		t.Fatal(err)
+	}
+	inspection, err := Inspect(merged.Path, InspectOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	report := inspection.Merged
+	if inspection.Kind != "merged-campaign" || report == nil || report.Attempted != attempted || report.Succeeded != succeeded || report.Failures != failures || attempted != 6 || failures == 0 ||
+		report.DistinctFailures != 1 || report.Shards != 2 || report.Partial || len(report.SourceCampaignIDs) != 2 || uint64(len(report.EvidenceIdentities)) != report.RetainedEvidence {
+		t.Fatalf("merged inspection = %#v, shards attempted %d succeeded %d failed %d", report, attempted, succeeded, failures)
+	}
+	if merged.Attempted != report.Attempted || merged.RetainedEvidence != report.RetainedEvidence || merged.RetainedBytes != report.EvidenceBytes || merged.JournalBytes != report.JournalBytes {
+		t.Fatalf("merge result %#v differs from its inspection %#v", merged, report)
+	}
+	for index, root := range roots {
+		if after := runnerTreeSnapshot(t, root); !reflect.DeepEqual(after, before[index]) {
+			t.Fatalf("shard root %d changed by merge or inspection", index)
+		}
+	}
+}
+
+func runnerTreeSnapshot(t *testing.T, root string) map[string]string {
+	t.Helper()
+	snapshot := map[string]string{}
+	if err := filepath.WalkDir(root, func(path string, entry fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		info, err := entry.Info()
+		if err != nil {
+			return err
+		}
+		value := info.Mode().String()
+		if info.Mode().IsRegular() {
+			contents, err := os.ReadFile(path)
+			if err != nil {
+				return err
+			}
+			value += " " + string(record.HashBytes(contents))
+		}
+		snapshot[path] = value
+		return nil
+	}); err != nil {
+		t.Fatal(err)
+	}
+	return snapshot
+}
+
 func TestOpenCampaignPlanRejectsNoncanonicalAndInvalidDocuments(t *testing.T) {
-	canonical, err := canonicaljson.CanonicalJSON(portableCampaignPlan{Schema: campaignPlanSchema, Mapping: campaignPlanMapping})
+	canonical, err := canonicaljson.CanonicalJSON(portableCampaignPlan{Schema: campaignPlanSchema, Storage: campaignPlanStorage, Mapping: campaignPlanMapping})
 	if err != nil {
 		t.Fatal(err)
 	}
-	invalidIdentity, err := canonicaljson.CanonicalJSON(portableCampaignPlan{Schema: "gomad3.campaign-plan/v0", Mapping: campaignPlanMapping})
+	invalidIdentity, err := canonicaljson.CanonicalJSON(portableCampaignPlan{Schema: campaignPlanSchema, Storage: campaignPlanStorage, Mapping: "ordinal-modulo/v0"})
 	if err != nil {
 		t.Fatal(err)
 	}
+	lineage := `"schema":"gomad3.portable-campaign-plan/v1","storage":"gomad3.campaign-log/v1"`
 	for _, test := range []struct {
 		name     string
 		contents string
 		want     string
 	}{
-		{name: "incomplete object", contents: `{"schema":"gomad3.campaign-plan/v1","mapping":"ordinal-modulo/v1"}`, want: "decode campaign plan: JSON is not canonical"},
+		{name: "incomplete object", contents: `{` + lineage + `,"mapping":"ordinal-modulo/v1"}`, want: "decode campaign plan: JSON is not canonical"},
 		{name: "trailing whitespace", contents: string(canonical) + "\n", want: "decode campaign plan: JSON is not canonical"},
 		{name: "trailing data", contents: string(canonical) + "{}", want: "decode campaign plan: unexpected trailing JSON token {"},
-		{name: "unknown field", contents: `{"extra":true}`, want: `decode campaign plan: decode JSON: json: unknown field "extra"`},
+		{name: "unknown field", contents: `{"extra":true,` + lineage + `}`, want: `decode campaign plan: decode JSON: json: unknown field "extra"`},
 		{name: "malformed", contents: `{"schema":`, want: "decode campaign plan: decode JSON token: EOF"},
 		{name: "invalid protocol identity", contents: string(invalidIdentity), want: "campaign plan protocol identity is invalid"},
+		{name: "earlier lineage", contents: `{"campaign":{},"mapping":"ordinal-modulo/v1","schema":"gomad3.campaign-plan/v1"}`, want: `unsupported campaign plan format "gomad3.campaign-plan/v1" for storage ""`},
+		{name: "another storage", contents: `{"schema":"gomad3.portable-campaign-plan/v1","storage":"gomad3.campaign-directory/v1"}`, want: `unsupported campaign plan format "gomad3.portable-campaign-plan/v1" for storage "gomad3.campaign-directory/v1"`},
+		{name: "current schema without storage", contents: `{"schema":"gomad3.portable-campaign-plan/v1"}`, want: `unsupported campaign plan format "gomad3.portable-campaign-plan/v1" for storage ""`},
+		{name: "no lineage", contents: `{}`, want: "decode campaign plan: JSON is not canonical"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			path := filepath.Join(t.TempDir(), "campaign.plan.json")
 			if err := os.WriteFile(path, []byte(test.contents), 0o600); err != nil {
 				t.Fatal(err)
 			}
-			if _, err := openCampaignPlan(path); err == nil || err.Error() != test.want {
+			if _, err := openCampaignPlan(path); err == nil || !strings.HasPrefix(err.Error(), test.want) {
 				t.Fatalf("openCampaignPlan() error = %v, want %s", err, test.want)
 			}
 		})
+	}
+}
+
+// rewriteCampaignPlan re-encodes a published plan document after change, as
+// a plan of another lineage or with other contents would be written.
+func rewriteCampaignPlan(t *testing.T, path string, change func(*portableCampaignPlan)) {
+	t.Helper()
+	contents, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var document portableCampaignPlan
+	if err := canonicaljson.DecodeCanonicalJSON(contents, &document); err != nil {
+		t.Fatal(err)
+	}
+	change(&document)
+	encoded, err := canonicaljson.CanonicalJSON(document)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, encoded, 0o600); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// A plan of the earlier lineage bound its shards to the segmented journal.
+// It is refused by name before anything runs, merges or is inspected, and a
+// current plan whose execution limits are not the log's is refused too.
+func TestCampaignPlanOfAnotherLineageIsRefusedBeforeExecutionMergeAndInspection(t *testing.T) {
+	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1-2", PolicyAll, 1)
+	planPath := filepath.Join(t.TempDir(), "campaign.plan.json")
+	if _, err := createCampaignPlanWith(context.Background(), CampaignPlanSpec{Campaign: config, Output: planPath}, configDependencies); err != nil {
+		t.Fatal(err)
+	}
+	contents, err := os.ReadFile(planPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(contents), `"schema":"gomad3.portable-campaign-plan/v1"`) || !strings.Contains(string(contents), `"storage":"gomad3.campaign-log/v1"`) {
+		t.Fatalf("published plan does not name its lineage: %s", contents)
+	}
+	executor := &fakeExecutor{result: func(uint64) backend.ExecutionResult { return processResult(0, "", "") }}
+	shard, err := runCampaignShardWith(context.Background(), CampaignShardSpec{
+		PlanPath: planPath, Shard: CampaignShard{Index: 0, Count: 1}, Artifacts: t.TempDir(), RunnerBuild: config.RunnerBuild, Backend: scriptProvider(),
+	}, executionDependencies{executor: executor})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for name, test := range map[string]struct {
+		change func(*portableCampaignPlan)
+		check  func(error) bool
+	}{
+		"earlier lineage": {change: func(document *portableCampaignPlan) {
+			document.Schema, document.Storage = "gomad3.campaign-plan/v1", ""
+		}, check: func(err error) bool {
+			var unsupported *UnsupportedCampaignPlanError
+			return errors.As(err, &unsupported) && unsupported.Schema == "gomad3.campaign-plan/v1" && unsupported.Storage == ""
+		}},
+		"retired storage": {change: func(document *portableCampaignPlan) {
+			document.Storage = campaign.LegacyCampaignFormat
+		}, check: func(err error) bool {
+			var unsupported *UnsupportedCampaignPlanError
+			return errors.As(err, &unsupported) && unsupported.Storage == campaign.LegacyCampaignFormat
+		}},
+		"execution limits that are not the log's": {change: func(document *portableCampaignPlan) {
+			journal := *document.Campaign.Journal
+			journal.MaximumBytes *= 2
+			document.Campaign.Journal = &journal
+		}, check: func(err error) bool {
+			return err != nil && err.Error() == "campaign plan execution limits are not the campaign log limits"
+		}},
+	} {
+		t.Run(name, func(t *testing.T) {
+			changed := filepath.Join(t.TempDir(), "changed.plan.json")
+			if err := os.WriteFile(changed, contents, 0o600); err != nil {
+				t.Fatal(err)
+			}
+			if err := os.CopyFS(changed+campaignPlanBundleSuffix, os.DirFS(planPath+campaignPlanBundleSuffix)); err != nil {
+				t.Fatal(err)
+			}
+			for _, fix := range []struct {
+				path string
+				mode os.FileMode
+			}{{changed + campaignPlanBundleSuffix, 0o700}, {filepath.Join(changed+campaignPlanBundleSuffix, campaignPlanTargetFile), 0o500}} {
+				if err := os.Chmod(fix.path, fix.mode); err != nil {
+					t.Fatal(err)
+				}
+			}
+			if _, err := openCampaignPlan(changed); err != nil {
+				t.Fatalf("copied plan does not open before it changes: %v", err)
+			}
+			rewriteCampaignPlan(t, changed, test.change)
+			if _, err := openCampaignPlan(changed); !test.check(err) {
+				t.Fatalf("openCampaignPlan() error = %v", err)
+			}
+			executor := &fakeExecutor{result: func(uint64) backend.ExecutionResult { return processResult(0, "", "") }}
+			artifacts := t.TempDir()
+			if _, err := runCampaignShardWith(context.Background(), CampaignShardSpec{
+				PlanPath: changed, Shard: CampaignShard{Index: 0, Count: 1}, Artifacts: artifacts, RunnerBuild: config.RunnerBuild, Backend: scriptProvider(),
+			}, executionDependencies{executor: executor}); !test.check(err) {
+				t.Fatalf("runCampaignShardWith() error = %v", err)
+			}
+			if entries, err := os.ReadDir(artifacts); err != nil || len(entries) != 0 || len(executor.requests) != 0 {
+				t.Fatalf("refused plan executed or stored work: %v %v, %d requests", entries, err, len(executor.requests))
+			}
+			output := filepath.Join(t.TempDir(), "merged")
+			if _, err := MergeCampaignShards(context.Background(), CampaignMergeSpec{PlanPath: changed, Shards: []string{shard.CampaignPath}, Output: output}); !test.check(err) {
+				t.Fatalf("MergeCampaignShards() error = %v", err)
+			}
+			if _, err := os.Lstat(output); !errors.Is(err, os.ErrNotExist) {
+				t.Fatalf("refused plan merged: %v", err)
+			}
+			if _, err := Inspect(changed, InspectOptions{}); !test.check(err) {
+				t.Fatalf("Inspect() error = %v", err)
+			}
+		})
+	}
+}
+
+// Shards of a current plan still revalidate its prepared bundle before the
+// target runs.
+func TestRunCampaignShardRevalidatesThePreparedBundleBeforeExecution(t *testing.T) {
+	config, configDependencies := testConfig(t, newFakePreparer(t), &fakeExecutor{}, "1-2", PolicyAll, 1)
+	planPath := filepath.Join(t.TempDir(), "campaign.plan.json")
+	if _, err := createCampaignPlanWith(context.Background(), CampaignPlanSpec{Campaign: config, Output: planPath}, configDependencies); err != nil {
+		t.Fatal(err)
+	}
+	targetPath := filepath.Join(planPath+campaignPlanBundleSuffix, campaignPlanTargetFile)
+	original, err := os.ReadFile(targetPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	changed := append([]byte(nil), original...)
+	changed[len(changed)-1] ^= 0xff
+	if err := os.Chmod(targetPath, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(targetPath, changed, 0o500); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Chmod(targetPath, 0o500); err != nil {
+		t.Fatal(err)
+	}
+	executor := &fakeExecutor{result: func(uint64) backend.ExecutionResult { return processResult(0, "", "") }}
+	artifacts := t.TempDir()
+	if _, err := runCampaignShardWith(context.Background(), CampaignShardSpec{
+		PlanPath: planPath, Shard: CampaignShard{Index: 0, Count: 1}, Artifacts: artifacts, RunnerBuild: config.RunnerBuild, Backend: scriptProvider(),
+	}, executionDependencies{executor: executor}); err == nil {
+		t.Fatal("runCampaignShardWith() accepted a changed prepared target")
+	}
+	if entries, err := os.ReadDir(artifacts); err != nil || len(entries) != 0 || len(executor.requests) != 0 {
+		t.Fatalf("changed bundle executed or stored work: %v %v, %d requests", entries, err, len(executor.requests))
 	}
 }
 
