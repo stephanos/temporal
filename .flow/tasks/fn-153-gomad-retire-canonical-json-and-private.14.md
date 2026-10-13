@@ -40,13 +40,13 @@ Capture the frozen behavior pin named above, run focused negative controls and f
 - [ ] No private atomic file publisher remains in the builder; immutable directory publication and unsupported-host refusal are unchanged.
 
 ## Done summary
-TBD
+Audited the builder stable launcher/stamp transaction on shared hostfs staging and added deterministic controls for two-stage-before-publish ordering, modes/patterns/contents, stable-bin guards, stage write/close failures, preimage preservation, cleanup joins, failpoint visibility, and pre/post-rename durability disposition. Production retains the shared stager and immutable build-directory behavior. All three implementation-review axes reached SHIP. Aggregate validation stops only at the fn153.17-owned stale compatibility approval; patched-native gates remain unavailable on linux/arm64.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 0f5d26288e213c10c61ae70874ed440d0b58a235, a88e11097658bd56baf9dd7acedce741e07130c8
+- Tests: go -C tools/gomad3 test -tags test_dep -count=1 ./backends/native/toolchain, go -C tools/gomad3 test -race -tags test_dep -count=1 -run '^TestBuild' ./backends/native/toolchain, go -C tools/gomad3 vet -tags test_dep ./backends/native/toolchain, go -C tools/gomad3 test -tags test_dep -count=1 ./internal/archcheck, make -C tools/gomad3 validate-toolchain validate-qualification
 - PRs:
-
 ## Revival trigger (2026-10-13)
 
 Revived after fn153.13 completed with a SHIP implementation review, satisfying this task's final dependency. The current builder already uses the shared hostfs staging owner after fn153.2, so this is an audit-and-gap pass over the launcher/stamp transaction: retain two-stage-before-publish ordering, modes, guards, failpoint visibility, publication disposition, and cleanup/error identity without redoing the migration. Generated and compatibility outputs remain assigned to fn153.17. The forced local claim is required only because Flow chain admission still sees the completed fn152 parent on an unpushed remote branch; pushing remains outside the requested scope.
