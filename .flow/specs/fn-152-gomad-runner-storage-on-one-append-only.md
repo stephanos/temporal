@@ -1,5 +1,29 @@
 # Gomad runner storage on one append-only log
 
+
+## WASM-queue execution decisions (2026-10-13)
+
+Recorded under the owner's direction to follow Claude's recommendations and defer native issues:
+
+1. R8 stays in fn-152. The fn-164 pre-move artifact tests become negative controls that expect the unsupported-format refusal; the native fn-113 artifact path is dropped. Earlier retained fn-112/113/114 artifacts are historical and are not reopened by the new build.
+2. Log payloads decode with stdlib `encoding/json` (`DisallowUnknownFields` plus trailing-EOF check) in one helper. They are excluded from fn-153's `go-json-experiment/json` strict-decoding switch, so R10 holds.
+3. Frame: binary protected header (magic, version, kind, payload length, header CRC32C), then the stdlib-JSON payload, then the payload CRC32C (`hash/crc32` Castagnoli). No canonical JSON. New fn-152 code does not import `canonicaljson`, and the campaign/corpus `syncDirectory` copies are replaced by `internal/hostfs`.
+4. `MaxExplorationBytes` measures the byte length of the encoded round payload; the WASM exploration test derives its bound through public Inspect, not file sizes.
+5. On linux/arm64, the supported-host crash gate for .9 is a WASM-backed built-CLI `explore` → SIGKILL → `inspect --json` → `resume` test in `backends/wasm/command` (stock Go, runs under `make test-wasm`), plus a portable self-SIGKILL child test at env-selected failpoints. Native `TestCLIKillResume` is updated in source and runs under fn-128/fn-149.
+6. fn-155 is not a blocking edge; fn-152 starts after the fn-109 `runner.go` change lands.
+7. The Inspect report schema version is bumped for the changed campaign `Journal` fields and the new `corpus` kind.
+8. The corpus-size unknown is recorded as "no source-bound input on this host"; no estimate.
+
+fn-152 touches no identity-bound source (`runner/simulation_broker.go`, `choice/interrupted.go`, hashed `backends/wasm` sources, `world`, `volume`, `simulation/**`, `internal/canonicaljson`). Each assignment passes the fast tier (validate, architecture, lint, portable failure-set comparison, `make test-wasm`) plus an empty identity-path diff. The single full WASM requalification runs with the fn-153/fn-154/fn-166 rotation batch.
+
+Path updates since the tasks were written (fn-164/fn-166 moves):
+- `internal/gomadtool/architecture` is now `internal/archcheck`, and the root `architecture_test.go` is now `internal/archcheck/architecture_test.go`;
+- `qualification/{set,soak}` are now under `backends/native/qualification/`;
+- `cmd/gomadtool` is now `backends/native/cmd/gomadtool`;
+- the conformance consumer is now `backends/native/conformance/testdata/runner_external/consumer.go`;
+- the seed-completion and retention characterization files were merged into `runner/characterization_test.go`;
+- `backends/wasm/backend/exploration_integration_test.go` and `artifact_migration_test.go` are also in scope.
+
 ## Conversation Evidence
 
 > user (turn 4): "no need for  byte-for-byte compatibility requirements"
