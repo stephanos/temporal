@@ -137,9 +137,10 @@ Owner iteration decision (2026-10-11, revised): the owner explicitly rejected he
 The fn-151 prototype gates produce byte-identical evidence before and after the move for the same seeds and tapes. Retain current-source same-host matched execution and full-wall measurements for the Temporal workflow and unchanged `./tests` suite guests, reporting preparation and publication separately. The owner accepts the retained 2.911x workflow execution speedup for now; neither a universal 5x threshold nor further speedup optimization is required. Preserve model identity, divergence classification, capacity outcomes, exact canonical bytes and fresh replay. Formal architecture/source checks, integrated 32x100 scheduling qualification, independent review and all existing resource gates remain required. The historical 0.694x workflow full-wall ratio is not an end-to-end speedup.
 
 ## Done summary
-TBD
+Runtime decisions and clock handling run in the helper; review fixes, the operator/helper memory fixes and the revocation-after-reply race fix are integrated in final candidate 9d6012b52b, which passed the full source and guest tiers.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 9d6012b52b, 9aa7e6634a, 0e3eb30e6c
+- Tests: make -C tools/gomad3 test-wasm, make -C tools/gomad3 validate, architecture all-platforms selection, lint-code-fast, evidence: .flow/artifacts/wasm-section-acceptance-2026-10-12.md
 - PRs:
