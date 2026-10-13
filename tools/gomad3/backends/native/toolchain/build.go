@@ -576,7 +576,11 @@ func publishBuild(sourceRoot, buildDir string) error {
 	return hostfs.SyncDirectory(filepath.Dir(buildDir))
 }
 
-func publishStable(layout installation.Layout, key string, config BuildSpec) (retErr error) {
+func publishStable(layout installation.Layout, key string, config BuildSpec) error {
+	return publishStableWithStager(layout, key, config, stagePublicationContext)
+}
+
+func publishStableWithStager(layout installation.Layout, key string, config BuildSpec, stager stagePublicationFunc) (retErr error) {
 	toolchainRoot := layout.Root()
 	binRoot := layout.Bin()
 	if info, err := os.Lstat(binRoot); err == nil {
@@ -595,7 +599,7 @@ func publishStable(layout installation.Layout, key string, config BuildSpec) (re
 		"build_key=$(cat \"$toolchain_dir/build-key\") || exit\n" +
 		"unset GOROOT\n" +
 		"exec \"$toolchain_dir/builds/$build_key/bin/go\" \"$@\"\n")
-	launcherStaged, err := hostfs.StageContext(context.Background(), binRoot, ".go.next-*", 0o755, func(_ context.Context, writer io.Writer) error {
+	launcherStaged, err := stager(context.Background(), binRoot, ".go.next-*", 0o755, func(_ context.Context, writer io.Writer) error {
 		_, err := writer.Write(launcher)
 		return err
 	})
@@ -607,7 +611,7 @@ func publishStable(layout installation.Layout, key string, config BuildSpec) (re
 			retErr = errors.Join(retErr, err)
 		}
 	}()
-	stampStaged, err := hostfs.StageContext(context.Background(), toolchainRoot, ".build-key.next-*", 0o644, func(_ context.Context, writer io.Writer) error {
+	stampStaged, err := stager(context.Background(), toolchainRoot, ".build-key.next-*", 0o644, func(_ context.Context, writer io.Writer) error {
 		_, err := io.WriteString(writer, key+"\n")
 		return err
 	})
