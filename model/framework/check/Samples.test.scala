@@ -81,16 +81,21 @@ class SamplesSuite extends munit.FunSuite:
     assertEquals(again.linesIterator.count(_.startsWith("java -Xmx3g -jar ")), 2)
     assert(Files.isRegularFile(warm.resolve("Alpha.json")))
 
-    var compiles = 1
-    var packages = 1
     def rebuild(compile: Boolean, pack: Boolean)(change: => Unit): Unit =
+      val previous = Files.readString(calls)
+      val compiles = previous.linesIterator.count(_.startsWith("scala-cli compile "))
+      val packages = previous.linesIterator.count(_.startsWith("scala-cli --power package "))
       change
       Samples.check(stubs.tools(root), warm): Unit
-      if compile then compiles += 1
-      if pack then packages += 1
       val log = Files.readString(calls)
-      assertEquals(log.linesIterator.count(_.startsWith("scala-cli compile ")), compiles)
-      assertEquals(log.linesIterator.count(_.startsWith("scala-cli --power package ")), packages)
+      assertEquals(
+        log.linesIterator.count(_.startsWith("scala-cli compile ")),
+        compiles + (if compile then 1 else 0)
+      )
+      assertEquals(
+        log.linesIterator.count(_.startsWith("scala-cli --power package ")),
+        packages + (if pack then 1 else 0)
+      )
     rebuild(true, false):
       Files.writeString(samples.resolve("Alpha.scala"), "package samples\nobject Alpha\n"): Unit
     rebuild(true, false):
