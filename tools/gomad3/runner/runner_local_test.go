@@ -226,3 +226,48 @@ func TestLocalStoppedCancellationPreservesPriorFailure(t *testing.T) {
 		t.Fatal("cancelled campaign was completed")
 	}
 }
+
+// TestCampaignRequestValidationStepPrecedence pins the error precedence across
+// each adjacent pair of campaign request validation steps. Every case combines a
+// fault owned by one step with a fault owned by the following step and expects
+// the earlier step's exact error.
+func TestCampaignRequestValidationStepPrecedence(t *testing.T) {
+	bases := make(map[string]CampaignSpec)
+	for _, test := range campaignOptionsCases() {
+		bases[test.name] = test.config
+	}
+	for _, test := range []struct {
+		name   string
+		base   string
+		change func(*CampaignSpec)
+		want   string
+	}{
+		{name: "resume skips request checks", base: "resume", change: func(c *CampaignSpec) { c.Parallel = 0; c.Seeds = "" }},
+		{name: "selection before shard", base: "sharded", change: func(c *CampaignSpec) { c.Seeds = ""; c.PlanSHA256 = "" }, want: "invalid seed selection: empty input"},
+		{name: "shard before strategy bounds", base: "sharded", change: func(c *CampaignSpec) { c.PlanSHA256 = ""; c.MaxExecutions = 1 }, want: "sharded campaign requires a canonical plan identity"},
+		{name: "strategy bounds before execution limits", base: "seed-default", change: func(c *CampaignSpec) { c.MaxExecutions = 1; c.Parallel = 0 }, want: "exploration bounds require the choice-exploration strategy"},
+		{name: "execution limits before success retention", base: "seed-default", change: func(c *CampaignSpec) { c.Parallel = 0; c.SuccessArtifactLimit = 1 }, want: "parallelism must be positive"},
+		{name: "success retention before evidence", base: "seed-default", change: func(c *CampaignSpec) { c.SuccessArtifactLimit = 1; c.CollectExecutionEvidence = true }, want: "disabled success retention does not accept capacity limits"},
+		{name: "evidence before failure policy", base: "seed-default", change: func(c *CampaignSpec) { c.CollectExecutionEvidence = true; c.FailureBudget = 2 }, want: "execution evidence requires exactly one seed and semantic coverage"},
+		{name: "failure policy before provider", base: "seed-default", change: func(c *CampaignSpec) { c.FailureBudget = 2; c.Backend = nil }, want: "failure budget is only configurable in budget mode"},
+		{name: "provider before read-only mounts", base: "seed-default", change: func(c *CampaignSpec) { c.Backend = nil; c.IOROMounts = []string{"/tmp=data"} }, want: "backend provider is required"},
+		{name: "read-only mounts before environment", base: "seed-default", change: func(c *CampaignSpec) { c.IOROMounts = []string{"/tmp=data"}; c.Environment = []string{"bad"} }, want: "read-only mounts require a target working directory"},
+		{name: "environment before clock tick", base: "seed-default", change: func(c *CampaignSpec) { c.Environment = []string{"bad"}; c.ClockTick = "unknown" }, want: `invalid target environment entry "bad"`},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			config, found := bases[test.base]
+			if !found {
+				t.Fatalf("missing campaign options base %q", test.base)
+			}
+			test.change(&config)
+			_, _, err := validateConfig(config)
+			got := ""
+			if err != nil {
+				got = err.Error()
+			}
+			if got != test.want {
+				t.Fatalf("validateConfig() error = %q, want %q", got, test.want)
+			}
+		})
+	}
+}

@@ -405,184 +405,266 @@ func validateCampaignRequest(config campaignRequest) (SeedSelection, []record.En
 		}
 		return SeedSelection{}, nil, nil
 	}
+	selection, err := parseCampaignRequestSelection(config)
+	if err != nil {
+		return SeedSelection{}, nil, err
+	}
+	if err := validateCampaignShard(config); err != nil {
+		return SeedSelection{}, nil, err
+	}
+	if err := validateCampaignStrategyBounds(config, selection); err != nil {
+		return SeedSelection{}, nil, err
+	}
+	if err := validateCampaignExecutionLimits(config); err != nil {
+		return SeedSelection{}, nil, err
+	}
+	if err := validateSuccessRetention(config); err != nil {
+		return SeedSelection{}, nil, err
+	}
+	if err := validateEvidenceAndGuidance(config, selection); err != nil {
+		return SeedSelection{}, nil, err
+	}
+	if err := validateFailurePolicy(config); err != nil {
+		return SeedSelection{}, nil, err
+	}
+	if config.Backend == nil {
+		return SeedSelection{}, nil, errors.New("backend provider is required")
+	}
+	if err := validateReadOnlyMounts(config); err != nil {
+		return SeedSelection{}, nil, err
+	}
+	environment, err := campaignEnvironment(config)
+	if err != nil {
+		return SeedSelection{}, nil, err
+	}
+	return selection, environment, nil
+}
+
+// parseCampaignRequestSelection parses the requested seeds, bounded by the
+// remaining frozen guidance plan when one is present.
+func parseCampaignRequestSelection(config campaignRequest) (SeedSelection, error) {
 	selection, err := ParseSeeds(config.Seeds)
 	if config.guidancePlan != nil {
 		selection, err = parseCampaignSelection(config.Seeds, uint64(config.guidancePlan.RequestedCount-config.guidancePlan.AnsweredCount))
 	}
 	if err != nil {
-		return SeedSelection{}, nil, err
+		return SeedSelection{}, err
 	}
+	return selection, nil
+}
+
+// validateCampaignShard checks the static shard and its plan identity.
+func validateCampaignShard(config campaignRequest) error {
 	strategy := config.strategy()
 	shard := config.shard()
 	if err := shard.Validate(); err != nil {
-		return SeedSelection{}, nil, err
+		return err
 	}
 	if config.Shard.Count != 0 {
 		if config.PlanSHA256 == "" {
-			return SeedSelection{}, nil, errors.New("sharded campaign requires a canonical plan identity")
+			return errors.New("sharded campaign requires a canonical plan identity")
 		}
 		if _, err := record.ParseSHA256(string(config.PlanSHA256)); err != nil {
-			return SeedSelection{}, nil, fmt.Errorf("canonical plan identity: %w", err)
+			return fmt.Errorf("canonical plan identity: %w", err)
 		}
 		if strategy != StrategySeed || config.Guide && config.guidancePlan == nil {
-			return SeedSelection{}, nil, errors.New("static sharding requires a seed campaign with frozen guidance")
+			return errors.New("static sharding requires a seed campaign with frozen guidance")
 		}
 		if config.OnFailure != PolicyAll {
-			return SeedSelection{}, nil, errors.New("sharded campaign requires on-failure=all")
+			return errors.New("sharded campaign requires on-failure=all")
 		}
 	}
+	return nil
+}
+
+// validateCampaignStrategyBounds checks that exploration bounds match the
+// selected strategy.
+func validateCampaignStrategyBounds(config campaignRequest, selection SeedSelection) error {
+	strategy := config.strategy()
 	switch strategy {
 	case StrategySeed:
 		if config.MaxExecutions != 0 || config.MaxChoiceDepth != 0 || config.ChoiceStartOrdinal != 0 || config.MaxForcedDecisions != 0 || config.MaxExplorationBytes != 0 || config.MaxExplorationResultBytes != 0 || config.SimulationDimensionLimits != (SimulationDimensionLimits{}) {
-			return SeedSelection{}, nil, errors.New("exploration bounds require the choice-exploration strategy")
+			return errors.New("exploration bounds require the choice-exploration strategy")
 		}
 	case StrategyChoiceExploration:
 		if config.MaxForcedDecisions != 0 || config.MaxExplorationResultBytes != 0 || config.SimulationDimensionLimits != (SimulationDimensionLimits{}) {
-			return SeedSelection{}, nil, errors.New("simulation exploration bounds require the simulation-exploration strategy")
+			return errors.New("simulation exploration bounds require the simulation-exploration strategy")
 		}
 		if err := requireSingleBaseSeed(selection); err != nil {
-			return SeedSelection{}, nil, errors.New("choice-exploration exploration requires exactly one base seed")
+			return errors.New("choice-exploration exploration requires exactly one base seed")
 		}
 		if config.Guide {
-			return SeedSelection{}, nil, errors.New("choice-exploration strategy does not support guided exploration")
+			return errors.New("choice-exploration strategy does not support guided exploration")
 		}
 		if config.ChoiceTraceLimit == 0 {
-			return SeedSelection{}, nil, errors.New("choice-exploration strategy requires an enabled choice trace")
+			return errors.New("choice-exploration strategy requires an enabled choice trace")
 		}
 		if config.MaxExecutions == 0 {
-			return SeedSelection{}, nil, errors.New("choice-exploration max executions must be positive")
+			return errors.New("choice-exploration max executions must be positive")
 		}
 		if config.MaxChoiceDepth == 0 {
-			return SeedSelection{}, nil, errors.New("choice-exploration choice depth must be positive")
+			return errors.New("choice-exploration choice depth must be positive")
 		}
 		if config.MaxExplorationBytes == 0 {
-			return SeedSelection{}, nil, errors.New("choice-exploration exploration bytes must be positive")
+			return errors.New("choice-exploration exploration bytes must be positive")
 		}
 	case StrategySimulationExploration:
 		if err := requireSingleBaseSeed(selection); err != nil {
-			return SeedSelection{}, nil, errors.New("simulation-exploration exploration requires exactly one base seed")
+			return errors.New("simulation-exploration exploration requires exactly one base seed")
 		}
 		if config.Guide {
-			return SeedSelection{}, nil, errors.New("simulation-exploration strategy does not support guided exploration")
+			return errors.New("simulation-exploration strategy does not support guided exploration")
 		}
 		if config.ChoiceTraceLimit == 0 {
-			return SeedSelection{}, nil, errors.New("simulation-exploration strategy requires an enabled choice trace")
+			return errors.New("simulation-exploration strategy requires an enabled choice trace")
 		}
 		if config.MaxExecutions == 0 {
-			return SeedSelection{}, nil, errors.New("simulation-exploration max executions must be positive")
+			return errors.New("simulation-exploration max executions must be positive")
 		}
 		if config.MaxChoiceDepth != 0 {
-			return SeedSelection{}, nil, errors.New("choice depth requires the choice-exploration strategy")
+			return errors.New("choice depth requires the choice-exploration strategy")
 		}
 		if config.ChoiceStartOrdinal != 0 {
-			return SeedSelection{}, nil, errors.New("choice start ordinal requires the choice-exploration strategy")
+			return errors.New("choice start ordinal requires the choice-exploration strategy")
 		}
 		if config.MaxForcedDecisions == 0 {
-			return SeedSelection{}, nil, errors.New("simulation-exploration forced decisions must be positive")
+			return errors.New("simulation-exploration forced decisions must be positive")
 		}
 		if config.MaxExplorationBytes == 0 {
-			return SeedSelection{}, nil, errors.New("simulation-exploration exploration bytes must be positive")
+			return errors.New("simulation-exploration exploration bytes must be positive")
 		}
 		if config.MaxExplorationResultBytes == 0 {
-			return SeedSelection{}, nil, errors.New("simulation-exploration result bytes must be positive")
+			return errors.New("simulation-exploration result bytes must be positive")
 		}
 		if err := validateSimulationDimensionLimits(config.SimulationDimensionLimits); err != nil {
-			return SeedSelection{}, nil, err
+			return err
 		}
 	default:
-		return SeedSelection{}, nil, fmt.Errorf("unknown exploration strategy %q", config.Strategy)
+		return fmt.Errorf("unknown exploration strategy %q", config.Strategy)
 	}
+	return nil
+}
+
+// validateCampaignExecutionLimits checks parallelism, deadlines, capture limits
+// and coverage.
+func validateCampaignExecutionLimits(config campaignRequest) error {
 	if config.Parallel <= 0 {
-		return SeedSelection{}, nil, fmt.Errorf("parallelism must be positive")
+		return fmt.Errorf("parallelism must be positive")
 	}
 	if config.ExecutionTimeout <= 0 || config.OverallTimeout <= 0 {
-		return SeedSelection{}, nil, errors.New("execution and overall timeouts must be positive")
+		return errors.New("execution and overall timeouts must be positive")
 	}
 	if config.TerminateGrace < 0 || config.TerminateGrace > config.ExecutionTimeout || config.TerminateGrace > config.OverallTimeout {
-		return SeedSelection{}, nil, errors.New("termination grace must fit inside all deadlines")
+		return errors.New("termination grace must fit inside all deadlines")
 	}
 	if config.OutputLimit == 0 || config.WorldTransitionLimit == 0 {
-		return SeedSelection{}, nil, errors.New("output and World transition limits must be positive")
+		return errors.New("output and World transition limits must be positive")
 	}
 	if config.Diagnostics && (config.ChoiceTraceLimit == 0 || config.strategy() != StrategySeed) {
-		return SeedSelection{}, nil, errors.New("diagnostics require choice recording with the seed strategy")
+		return errors.New("diagnostics require choice recording with the seed strategy")
 	}
 	if err := ValidateChoiceTraceLimit(config.ChoiceTraceLimit); err != nil {
-		return SeedSelection{}, nil, err
+		return err
 	}
 	if config.Artifacts == "" || config.RunnerBuild == "" {
-		return SeedSelection{}, nil, errors.New("artifact root and Runner build identity are required")
+		return errors.New("artifact root and Runner build identity are required")
 	}
 	if err := ValidateCoverage(config.Coverage, config.RequiredSemanticProbes); err != nil {
-		return SeedSelection{}, nil, err
+		return err
 	}
 	if coverageHasSemantic(config.Coverage) && config.Backend != nil {
 		if _, err := config.Backend.Describe(context.Background(), backend.Configuration{RequiredSemanticProbes: config.RequiredSemanticProbes}); err != nil {
-			return SeedSelection{}, nil, err
+			return err
 		}
 	}
 	if err := ValidateChoiceCoverage(config.Coverage, config.ChoiceTraceLimit); err != nil {
-		return SeedSelection{}, nil, err
+		return err
 	}
+	return nil
+}
+
+// validateSuccessRetention checks the successful-execution retention policy and
+// its capacity limits.
+func validateSuccessRetention(config campaignRequest) error {
 	switch normalizedKeepSuccesses(config.KeepSuccesses) {
 	case KeepSuccessesNone:
 		if config.SuccessArtifactLimit != 0 || config.SuccessBytesLimit != 0 {
-			return SeedSelection{}, nil, errors.New("disabled success retention does not accept capacity limits")
+			return errors.New("disabled success retention does not accept capacity limits")
 		}
 	case KeepSuccessesNovel:
 		if NormalizeCoverage(config.Coverage, false) == CoverageNone || config.SuccessArtifactLimit == 0 || config.SuccessBytesLimit == 0 {
-			return SeedSelection{}, nil, errors.New("novel success retention requires coverage and explicit count and byte limits")
+			return errors.New("novel success retention requires coverage and explicit count and byte limits")
 		}
 	case KeepSuccessesAll:
 		if config.SuccessArtifactLimit == 0 || config.SuccessBytesLimit == 0 {
-			return SeedSelection{}, nil, errors.New("success retention requires explicit count and byte limits")
+			return errors.New("success retention requires explicit count and byte limits")
 		}
 	default:
-		return SeedSelection{}, nil, fmt.Errorf("unknown successful-execution retention policy %q", config.KeepSuccesses)
+		return fmt.Errorf("unknown successful-execution retention policy %q", config.KeepSuccesses)
 	}
+	return nil
+}
+
+// validateEvidenceAndGuidance checks execution-evidence collection and guided
+// corpus options.
+func validateEvidenceAndGuidance(config campaignRequest, selection SeedSelection) error {
 	if config.CollectExecutionEvidence && (selection.Count() != 1 || !coverageHasSemantic(config.Coverage) && config.Target.Backend == "") {
-		return SeedSelection{}, nil, errors.New("execution evidence requires exactly one seed and semantic coverage")
+		return errors.New("execution evidence requires exactly one seed and semantic coverage")
 	}
 	if config.Guide {
 		if config.Corpus == "" || NormalizeCoverage(config.Coverage, false) == CoverageNone {
-			return SeedSelection{}, nil, errors.New("guided exploration requires a corpus and coverage")
+			return errors.New("guided exploration requires a corpus and coverage")
 		}
 	} else if config.GuideRegression || config.Corpus != "" || config.GuideSnapshotSHA256 != "" {
-		return SeedSelection{}, nil, errors.New("a guided corpus requires guided exploration")
+		return errors.New("a guided corpus requires guided exploration")
 	}
+	return nil
+}
+
+// validateFailurePolicy checks the failure policy and its budget.
+func validateFailurePolicy(config campaignRequest) error {
 	switch config.OnFailure {
 	case PolicyFirst, PolicyAll:
 		if config.FailureBudget != 1 {
-			return SeedSelection{}, nil, errors.New("failure budget is only configurable in budget mode")
+			return errors.New("failure budget is only configurable in budget mode")
 		}
 	case PolicyBudget:
 		if config.FailureBudget == 0 {
-			return SeedSelection{}, nil, errors.New("failure budget must be positive")
+			return errors.New("failure budget must be positive")
 		}
 	default:
-		return SeedSelection{}, nil, fmt.Errorf("unknown failure policy %q", config.OnFailure)
+		return fmt.Errorf("unknown failure policy %q", config.OnFailure)
 	}
-	if config.Backend == nil {
-		return SeedSelection{}, nil, errors.New("backend provider is required")
+	return nil
+}
+
+// validateReadOnlyMounts checks the requested read-only mounts and their limits.
+func validateReadOnlyMounts(config campaignRequest) error {
+	if len(config.IOROMounts) == 0 {
+		return nil
 	}
-	if len(config.IOROMounts) != 0 {
-		if config.Target.WorkingDir == "" {
-			return SeedSelection{}, nil, errors.New("read-only mounts require a target working directory")
-		}
-		if _, err := captured.ParseMappings(config.IOROMounts, config.Target.WorkingDir); err != nil {
-			return SeedSelection{}, nil, err
-		}
-		limits := config.IOROMountLimits
-		if limits == (captured.Limits{}) {
-			limits = captured.DefaultLimits()
-		}
-		if _, err := captured.Prepare(nil, limits); err != nil {
-			return SeedSelection{}, nil, err
-		}
+	if config.Target.WorkingDir == "" {
+		return errors.New("read-only mounts require a target working directory")
 	}
+	if _, err := captured.ParseMappings(config.IOROMounts, config.Target.WorkingDir); err != nil {
+		return err
+	}
+	limits := config.IOROMountLimits
+	if limits == (captured.Limits{}) {
+		limits = captured.DefaultLimits()
+	}
+	if _, err := captured.Prepare(nil, limits); err != nil {
+		return err
+	}
+	return nil
+}
+
+// campaignEnvironment validates the target environment and backend selection
+// and returns the sorted recorded environment.
+func campaignEnvironment(config campaignRequest) ([]record.Environment, error) {
 	environment, err := parseEnvironment(config.Environment)
 	if err != nil {
-		return SeedSelection{}, nil, err
+		return nil, err
 	}
 	// An external backend is selected by the target's backend name; the native
 	// provider records its transcript profile and takes no selector.
@@ -590,14 +672,14 @@ func validateCampaignRequest(config campaignRequest) (SeedSelection, []record.En
 	if config.Target.Backend != "" {
 		coverage := NormalizeCoverage(config.Coverage, false)
 		if native || config.Preparer != nil || config.strategy() != StrategySeed && config.strategy() != StrategyChoiceExploration || coverage != CoverageNone && coverage != CoverageChoice || config.Guide || len(config.IOROMounts) != 0 || config.ClockTick != "" {
-			return SeedSelection{}, nil, errors.New("external backend request requires its provider and a supported seed or choice profile")
+			return nil, errors.New("external backend request requires its provider and a supported seed or choice profile")
 		}
 	} else if !native {
-		return SeedSelection{}, nil, errors.New("backend provider requires an explicit backend selector")
+		return nil, errors.New("backend provider requires an explicit backend selector")
 	}
 	description, err := config.Backend.Describe(context.Background(), backend.Configuration{Target: config.Target})
 	if err != nil {
-		return SeedSelection{}, nil, err
+		return nil, err
 	}
 	ioProfile := description.Name()
 	if config.Target.Backend != "" {
@@ -605,14 +687,14 @@ func validateCampaignRequest(config campaignRequest) (SeedSelection, []record.En
 	}
 	environment = append(environment, record.Environment{Name: "GOMAD3_IO_PROFILE", Value: ioProfile})
 	if err := record.ValidateIOTranscriptLimit(ioTranscriptLimit(config)); err != nil {
-		return SeedSelection{}, nil, err
+		return nil, err
 	}
 	switch config.ClockTick {
 	case "", record.ClockTickStrict:
 	case record.ClockTickForward:
 		environment = append(environment, record.Environment{Name: record.ClockTickEnvironment, Value: record.ClockTickForward})
 	default:
-		return SeedSelection{}, nil, fmt.Errorf("clock tick policy %q must be strict or forward", config.ClockTick)
+		return nil, fmt.Errorf("clock tick policy %q must be strict or forward", config.ClockTick)
 	}
 	if config.ChoiceTraceLimit != 0 {
 		environment = append(environment, record.Environment{Name: "GOMAD3_CHOICE_PROFILE", Value: choice.Profile})
@@ -621,7 +703,7 @@ func validateCampaignRequest(config campaignRequest) (SeedSelection, []record.En
 		environment = append(environment, record.Environment{Name: choice.DiagnosticProfileEnvironment, Value: choice.DiagnosticProfile})
 	}
 	sort.Slice(environment, func(i, j int) bool { return environment[i].Name < environment[j].Name })
-	return selection, environment, nil
+	return environment, nil
 }
 
 func validateSimulationDimensionLimits(limits SimulationDimensionLimits) error {
