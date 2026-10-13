@@ -243,21 +243,40 @@ func (scope *sourceScope) identity() record.SHA256 {
 	return record.SHA256FromSum(sum)
 }
 
+// validatePublishedLog validates only the state encoded in a replayed source
+// scope. Borrowed artifacts are deliberately excluded so callers can
+// distinguish aggregate-log corruption from external evidence failures.
+func (scope *sourceScope) validatePublishedLog() error {
+	state := scope.state
+	if !state.opened {
+		return newIntegrityError(errors.New("campaign log has no envelope"))
+	}
+	if state.published == nil {
+		return newIntegrityError(errors.New("campaign is not published"))
+	}
+	if len(state.frontier.outstanding) != 0 || len(state.frontier.receipts) != 0 {
+		return newIntegrityError(errors.New("published shard campaign has unretired admissions or receipts"))
+	}
+	if err := validateCampaign(*state.published, state.executions, executionSuccessBytesBounded); err != nil {
+		return newIntegrityError(err)
+	}
+	if state.rounds != nil {
+		if err := state.rounds.checkPublished(*state.published); err != nil {
+			return newIntegrityError(fmt.Errorf("validate published exploration: %w", err))
+		}
+	}
+	return nil
+}
+
 // published validates a replayed source as a mergeable shard: a published
 // campaign whose admitted work and receipts are all retired, whose summary
 // matches its outcomes, and whose every live artifact and diagnostic sidecar
 // under path is present and intact. It reads and changes nothing else.
 func (scope *sourceScope) published(path string) (Campaign, error) {
+	if err := scope.validatePublishedLog(); err != nil {
+		return Campaign{}, err
+	}
 	state := scope.state
-	if !state.opened {
-		return Campaign{}, newIntegrityError(errors.New("campaign log has no envelope"))
-	}
-	if state.published == nil {
-		return Campaign{}, newIntegrityError(errors.New("campaign is not published"))
-	}
-	if len(state.frontier.outstanding) != 0 || len(state.frontier.receipts) != 0 {
-		return Campaign{}, newIntegrityError(errors.New("published shard campaign has unretired admissions or receipts"))
-	}
 	opened, err := openPublishedState(path, state)
 	if err != nil {
 		return Campaign{}, err
@@ -843,7 +862,10 @@ func (replay *mergedCampaignReplay) executions() ([]mergedExecution, error) {
 	for index, scope := range replay.scopes {
 		recorded := campaign.Shards[index]
 		if !filepath.IsAbs(recorded.Path) || filepath.Clean(recorded.Path) != recorded.Path {
-			return nil, fmt.Errorf("merged source %d path is not a clean absolute path", recorded.Index)
+			return nil, mergedLogCorruption(fmt.Errorf("merged source %d path is not a clean absolute path", recorded.Index))
+		}
+		if err := scope.validatePublishedLog(); err != nil {
+			return nil, mergedLogCorruption(fmt.Errorf("merged source %s: %w", recorded.Path, err))
 		}
 		opened, err := scope.published(recorded.Path)
 		if err != nil {

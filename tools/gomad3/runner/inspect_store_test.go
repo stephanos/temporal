@@ -100,6 +100,33 @@ func rewriteInspectEnvelope(t *testing.T, path string, change func(map[string]an
 	}
 }
 
+// removeInspectRecord removes the first complete record selected by remove
+// without changing any other frame.
+func removeInspectRecord(t *testing.T, path string, remove func(kind uint16, payload []byte) bool) {
+	t.Helper()
+	log := readInspectLog(t, path)
+	rewritten := make([]byte, 0, len(log))
+	removed := false
+	for offset := 0; offset < len(log); {
+		length := int(binary.LittleEndian.Uint32(log[offset+8:]))
+		end := offset + 16 + length + 4
+		kind := binary.LittleEndian.Uint16(log[offset+6:])
+		payload := log[offset+16 : offset+16+length]
+		if !removed && remove(kind, payload) {
+			removed = true
+		} else {
+			rewritten = append(rewritten, log[offset:end]...)
+		}
+		offset = end
+	}
+	if !removed {
+		t.Fatal("inspection log has no matching record to remove")
+	}
+	if err := os.WriteFile(filepath.Join(path, "store", logstore.LogFile), rewritten, 0o600); err != nil {
+		t.Fatal(err)
+	}
+}
+
 // inspectFrameBoundaries returns the offset of every frame of a valid log and
 // its end.
 func inspectFrameBoundaries(log []byte) []int64 {

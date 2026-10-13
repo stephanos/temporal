@@ -1,6 +1,7 @@
 package runner
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"io/fs"
@@ -421,6 +422,7 @@ func TestMergedCampaignInspectionReportsTheShardsCombinedTotals(t *testing.T) {
 	if log == nil || log.Format != campaign.MergedCampaignLogFormat || log.State != "valid" || log.Records == 0 || log.ValidBytes != log.SnapshotBytes || log.RepairedBytes != 0 {
 		t.Fatalf("merged log inspection = %#v", log)
 	}
+	cleanLog := bytes.Clone(readInspectLog(t, merged.Path))
 	if report.Limits.MaximumExecutions != 6 || report.Limits.MaximumPartialExecutions == 0 || report.ArtifactCapacity.TotalBytes == 0 || len(report.Sources) != len(shards) {
 		t.Fatalf("merged limits and sources = %#v", report)
 	}
@@ -442,15 +444,46 @@ func TestMergedCampaignInspectionReportsTheShardsCombinedTotals(t *testing.T) {
 	} else if invalid := new(InvalidStoreError); !errors.As(err, &invalid) || invalid.Report.Kind != "merged-campaign" || invalid.Report.Log.Invalid.Problem != "incomplete" || invalid.Report.Log.Tail != "short-frame" || invalid.Report.Log.Invalid.Records != log.Records {
 		t.Fatalf("torn merged log diagnosis = %#v", err)
 	}
-	if err := os.WriteFile(filepath.Join(merged.Path, "store", "log"), readInspectLog(t, merged.Path)[:log.SnapshotBytes], 0o600); err != nil {
+	if err := os.WriteFile(filepath.Join(merged.Path, "store", "log"), cleanLog, 0o600); err != nil {
 		t.Fatal(err)
 	}
-	rewriteInspectEnvelope(t, merged.Path, func(envelope map[string]any) { envelope["attempted"] = "7" })
-	if _, err := Inspect(merged.Path, InspectOptions{}); err == nil {
-		t.Fatal("Inspect() accepted an inconsistent merged summary")
-	} else if invalid := new(InvalidStoreError); !errors.As(err, &invalid) || invalid.Report.Kind != "merged-campaign" || invalid.Report.Log == nil || invalid.Report.Log.Invalid == nil ||
-		invalid.Report.Log.Invalid.Problem != "corrupt" || invalid.Report.Log.Invalid.Offset != 0 || invalid.Report.Log.Invalid.Records != 0 {
-		t.Fatalf("inconsistent merged log diagnosis = %#v", err)
+	for _, test := range []struct {
+		name   string
+		mutate func()
+	}{
+		{name: "inconsistent summary", mutate: func() {
+			rewriteInspectEnvelope(t, merged.Path, func(envelope map[string]any) { envelope["attempted"] = "7" })
+		}},
+		{name: "relative source path", mutate: func() {
+			rewriteInspectEnvelope(t, merged.Path, func(envelope map[string]any) {
+				shards := envelope["shards"].([]any)
+				shards[0].(map[string]any)["path"] = "relative/shard"
+			})
+		}},
+		{name: "source scope without publication", mutate: func() {
+			const mergedSourceKind, campaignPublishKind = 18, 5
+			inSource := false
+			removeInspectRecord(t, merged.Path, func(kind uint16, _ []byte) bool {
+				if kind == mergedSourceKind {
+					inSource = true
+					return false
+				}
+				return inSource && kind == campaignPublishKind
+			})
+		}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			if err := os.WriteFile(filepath.Join(merged.Path, "store", "log"), cleanLog, 0o600); err != nil {
+				t.Fatal(err)
+			}
+			test.mutate()
+			if _, err := Inspect(merged.Path, InspectOptions{}); err == nil {
+				t.Fatal("Inspect() accepted a semantically invalid merged log")
+			} else if invalid := new(InvalidStoreError); !errors.As(err, &invalid) || invalid.Report.Kind != "merged-campaign" || invalid.Report.Log == nil || invalid.Report.Log.Invalid == nil ||
+				invalid.Report.Log.Invalid.Problem != "corrupt" || invalid.Report.Log.Invalid.Offset != 0 || invalid.Report.Log.Invalid.Records != 0 {
+				t.Fatalf("semantically invalid merged log diagnosis = %#v", err)
+			}
+		})
 	}
 }
 
