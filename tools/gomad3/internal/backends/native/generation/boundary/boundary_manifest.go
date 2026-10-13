@@ -20,7 +20,7 @@ import (
 	"slices"
 	"strings"
 
-	"go.temporal.io/server/tools/gomad3/internal/host/fs"
+	hostfs "go.temporal.io/server/tools/gomad3/internal/host/fs"
 )
 
 const manifestPath = "internal/backends/native/transcript/boundary/manifest.json"

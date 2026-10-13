@@ -20,7 +20,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/internal/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/internal/backends/target"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
-	"go.temporal.io/server/tools/gomad3/internal/host/fs"
+	hostfs "go.temporal.io/server/tools/gomad3/internal/host/fs"
 	"go.temporal.io/server/tools/gomad3/internal/runner/internal/campaign"
 )
 

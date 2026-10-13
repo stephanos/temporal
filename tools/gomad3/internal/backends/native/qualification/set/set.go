@@ -18,13 +18,13 @@ import (
 
 	capabilityanalysis "go.temporal.io/server/tools/gomad3/internal/backends/native/qualification/analysis"
 	"go.temporal.io/server/tools/gomad3/internal/backends/native/transcript"
-	"go.temporal.io/server/tools/gomad3/internal/model/choice"
-	"go.temporal.io/server/tools/gomad3/internal/host/exec"
-	"go.temporal.io/server/tools/gomad3/internal/host/fs"
-	"go.temporal.io/server/tools/gomad3/internal/model/strictjson"
+	"go.temporal.io/server/tools/gomad3/internal/backends/target"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/qualification"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
-	"go.temporal.io/server/tools/gomad3/internal/backends/target"
+	hostexec "go.temporal.io/server/tools/gomad3/internal/host/exec"
+	hostfs "go.temporal.io/server/tools/gomad3/internal/host/fs"
+	"go.temporal.io/server/tools/gomad3/internal/model/choice"
+	"go.temporal.io/server/tools/gomad3/internal/model/strictjson"
 )
 
 const ManifestSchema = "gomad3.qualification-set/v3"

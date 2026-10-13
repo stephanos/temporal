@@ -7,8 +7,8 @@ import (
 	"io"
 	"os"
 
-	iowire "go.temporal.io/server/tools/gomad3/internal/model/iowire"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
+	iowire "go.temporal.io/server/tools/gomad3/internal/model/iowire"
 )
 
 var ErrTranscriptUnterminated = errors.New("I/O transcript terminal is absent")

@@ -13,12 +13,12 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/wasi"
+	hostexec "go.temporal.io/server/tools/gomad3/internal/host/exec"
 	"go.temporal.io/server/tools/gomad3/internal/model/choice"
-	"go.temporal.io/server/tools/gomad3/internal/host/exec"
+	gomad3sim "go.temporal.io/server/tools/gomad3/internal/model/cluster"
 	netmodel "go.temporal.io/server/tools/gomad3/internal/model/network"
 	"go.temporal.io/server/tools/gomad3/internal/model/volume"
 	"go.temporal.io/server/tools/gomad3/internal/model/world"
-	gomad3sim "go.temporal.io/server/tools/gomad3/internal/model/cluster"
 )
 
 type Provider struct {

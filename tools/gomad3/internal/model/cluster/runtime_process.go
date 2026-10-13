@@ -3,9 +3,10 @@ package cluster
 import (
 	"errors"
 	"fmt"
-	"go.temporal.io/server/tools/gomad3/internal/model/cluster/internal/wire"
 	"sync"
 	_ "unsafe"
+
+	"go.temporal.io/server/tools/gomad3/internal/model/cluster/internal/wire"
 )
 
 type processRole uint8

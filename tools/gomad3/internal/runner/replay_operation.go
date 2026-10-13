@@ -13,7 +13,7 @@ import (
 	execution "go.temporal.io/server/tools/gomad3/internal/backends"
 	"go.temporal.io/server/tools/gomad3/internal/backends/target"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/artifact"
-	"go.temporal.io/server/tools/gomad3/internal/evidence/artifact/capture"
+	captured "go.temporal.io/server/tools/gomad3/internal/evidence/artifact/capture"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad3/internal/model/choice"
 	"go.temporal.io/server/tools/gomad3/internal/model/world"
@@ -353,9 +353,6 @@ func choiceCapabilityForArtifact(opened *artifact.Opened) (*execution.ChoiceCapa
 	choices := manifest.ChoiceProfile
 	if choices == nil {
 		return nil, false, nil
-	}
-	if choices.Name == choice.LegacyProfile {
-		return nil, true, nil
 	}
 	implementation, err := choice.ImplementationIdentity(manifest.Toolchain.BuildKey)
 	if err != nil || choices.Name != choice.Profile || choices.ImplementationSHA256 != record.SHA256FromSum(implementation) {

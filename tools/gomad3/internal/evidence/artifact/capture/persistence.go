@@ -10,8 +10,8 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"go.temporal.io/server/tools/gomad3/internal/model/strictjson"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
+	"go.temporal.io/server/tools/gomad3/internal/model/strictjson"
 )
 
 const descriptorPath = "io/mounts.json"

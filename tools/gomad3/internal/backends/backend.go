@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
+	"go.temporal.io/server/tools/gomad3/internal/backends/target"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/artifact"
 	"go.temporal.io/server/tools/gomad3/internal/model/choice"
-	"go.temporal.io/server/tools/gomad3/internal/backends/target"
 )
 
 type Provider interface {

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 	"reflect"
 	"slices"
 	"strings"
@@ -14,6 +13,7 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/internal/backends"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
+	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 )
 
 func TestCampaignRequestNormalizesTheRequest(t *testing.T) {

@@ -14,8 +14,8 @@ import (
 	"time"
 
 	gomadversion "go.temporal.io/server/tools/gomad3/internal/backends/native/toolchain/version"
+	hostexec "go.temporal.io/server/tools/gomad3/internal/host/exec"
 	"go.temporal.io/server/tools/gomad3/internal/model/choice"
-	"go.temporal.io/server/tools/gomad3/internal/host/exec"
 )
 
 func TestRuntimeCampaignCollectorProfile(t *testing.T) {

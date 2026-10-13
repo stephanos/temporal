@@ -12,8 +12,8 @@ import (
 
 	nativebuild "go.temporal.io/server/tools/gomad3/internal/backends/native/build"
 	"go.temporal.io/server/tools/gomad3/internal/backends/native/transcript"
-	"go.temporal.io/server/tools/gomad3/internal/model/choice"
 	"go.temporal.io/server/tools/gomad3/internal/backends/target"
+	"go.temporal.io/server/tools/gomad3/internal/model/choice"
 )
 
 // TestDiagnosticDrawCheckStopsHostTimedSeededDraw runs the draw_check fixture

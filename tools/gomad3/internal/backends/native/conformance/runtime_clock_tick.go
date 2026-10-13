@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"go.temporal.io/server/tools/gomad3/internal/host/exec"
+	hostexec "go.temporal.io/server/tools/gomad3/internal/host/exec"
 )
 
 // requireClockTickBehavior checks the virtual-clock tick policies on the actual

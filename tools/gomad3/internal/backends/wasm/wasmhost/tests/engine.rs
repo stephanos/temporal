@@ -589,6 +589,85 @@ fn reports_compile_cache_execution_and_resource_metrics_separately() {
 }
 #[cfg(unix)]
 #[test]
+fn cache_hit_ignores_missing_or_replaced_module_bytes() {
+    use std::os::unix::fs::PermissionsExt;
+    let cache = std::env::temp_dir().join(format!("gomad-cache-module-hit-{}", std::process::id()));
+    std::fs::create_dir(&cache).unwrap();
+    std::fs::set_permissions(&cache, std::fs::Permissions::from_mode(0o700)).unwrap();
+    let guest = "(module (memory (export \"memory\") 1) (func (export \"_start\")))";
+    let initial = run(guest, json!({"compile_cache":cache}), deny);
+    assert_eq!(termination(&initial), "exit", "{initial:?}");
+    assert_eq!(initial.last().unwrap()["metrics"]["cache_hit"], false);
+    let source = cache.join("unused-module.wat");
+    for replacement in [
+        None,
+        Some("(module (memory (export \"memory\") 1) (func (export \"_start\") unreachable))"),
+    ] {
+        if let Some(bytes) = replacement {
+            std::fs::write(&source, bytes).unwrap();
+        }
+        let (frames, stderr) = run_captured(
+            guest,
+            json!({"compile_cache":cache,"module_path":source}),
+            deny,
+            AuthorizationMismatch::None,
+        );
+        assert_eq!(termination(&frames), "exit", "{frames:?}");
+        assert_eq!(frames.last().unwrap()["metrics"]["cache_hit"], true);
+        #[cfg(feature = "diagnostic-profile")]
+        {
+            let profile: Value = serde_json::from_str(
+                stderr
+                    .lines()
+                    .find_map(|line| line.strip_prefix("gomad-wasm-profile-v1 "))
+                    .unwrap(),
+            )
+            .unwrap();
+            assert_eq!(profile["phases"]["module_read"]["count"], 0);
+            assert_eq!(profile["phases"]["module_hash"]["count"], 0);
+        }
+        #[cfg(not(feature = "diagnostic-profile"))]
+        assert!(stderr.is_empty());
+    }
+    std::fs::remove_dir_all(cache).unwrap();
+}
+#[cfg(unix)]
+#[test]
+fn cache_miss_verifies_module_before_compilation_or_publication() {
+    use std::os::unix::fs::PermissionsExt;
+    let cache =
+        std::env::temp_dir().join(format!("gomad-cache-module-miss-{}", std::process::id()));
+    std::fs::create_dir(&cache).unwrap();
+    std::fs::set_permissions(&cache, std::fs::Permissions::from_mode(0o700)).unwrap();
+    let guest = "(module (memory (export \"memory\") 1) (func (export \"_start\")))";
+    for configured_cache in [json!(cache), Value::Null] {
+        let mismatch = run(
+            guest,
+            json!({"compile_cache":configured_cache,"module_sha256":"0".repeat(64)}),
+            deny,
+        );
+        assert_eq!(termination(&mismatch), "invalid", "{mismatch:?}");
+        assert_eq!(mismatch.len(), 1);
+        assert_eq!(mismatch[0]["message"], "module SHA-256 mismatch");
+        let missing = run(
+            guest,
+            json!({"compile_cache":configured_cache,"module_path":cache.join("missing-module.wat")}),
+            deny,
+        );
+        assert_eq!(termination(&missing), "infrastructure", "{missing:?}");
+        assert_eq!(missing.len(), 1);
+        assert!(std::fs::read_dir(&cache).unwrap().all(|entry| {
+            entry
+                .unwrap()
+                .path()
+                .extension()
+                .is_some_and(|extension| extension == "lock")
+        }));
+    }
+    std::fs::remove_dir_all(cache).unwrap();
+}
+#[cfg(unix)]
+#[test]
 fn cache_rejects_poison_stale_links_and_permissive_storage() {
     use std::os::unix::fs::{PermissionsExt, symlink};
     static NEXT: AtomicU64 = AtomicU64::new(0);
@@ -596,6 +675,9 @@ fn cache_rejects_poison_stale_links_and_permissive_storage() {
     for case in [
         "corrupt",
         "stale",
+        "truncated",
+        "magic",
+        "length",
         "symlink",
         "permissive",
         "hardlink",
@@ -617,7 +699,7 @@ fn cache_rejects_poison_stale_links_and_permissive_storage() {
             .map(|entry| entry.unwrap().path())
             .find(|path| {
                 path.extension()
-                    .is_some_and(|extension| extension == "cwasm" || extension == "gomad-cache-v2")
+                    .is_some_and(|extension| extension == "gomad-cache-v3")
             })
             .unwrap();
         let other = cache.with_extension("other");
@@ -625,8 +707,19 @@ fn cache_rejects_poison_stale_links_and_permissive_storage() {
         match case {
             "corrupt" | "stale" => {
                 let mut bytes = std::fs::read(&entry).unwrap();
-                let offset = if case == "stale" { 60 } else { bytes.len() - 1 };
+                let offset = if case == "stale" { 24 } else { bytes.len() - 1 };
                 bytes[offset] ^= 1;
+                std::fs::write(&entry, bytes).unwrap();
+            }
+            "truncated" => std::fs::write(&entry, b"GOMADC03").unwrap(),
+            "magic" => {
+                let mut bytes = std::fs::read(&entry).unwrap();
+                bytes[7] = b'2';
+                std::fs::write(&entry, bytes).unwrap();
+            }
+            "length" => {
+                let mut bytes = std::fs::read(&entry).unwrap();
+                bytes[12..20].copy_from_slice(&0u64.to_le_bytes());
                 std::fs::write(&entry, bytes).unwrap();
             }
             "symlink" => {
@@ -664,7 +757,14 @@ fn cache_rejects_poison_stale_links_and_permissive_storage() {
         );
         if matches!(
             case,
-            "corrupt" | "stale" | "symlink" | "permissive" | "hardlink"
+            "corrupt"
+                | "stale"
+                | "truncated"
+                | "magic"
+                | "length"
+                | "symlink"
+                | "permissive"
+                | "hardlink"
         ) {
             let message = frames.last().unwrap()["message"].as_str().unwrap();
             assert!(
@@ -721,7 +821,7 @@ fn cache_serializes_parallel_publication_without_preserving_guest_heap() {
         .map(|entry| entry.unwrap().path())
         .filter(|path| {
             path.extension()
-                .is_some_and(|extension| extension == "gomad-cache-v2")
+                .is_some_and(|extension| extension == "gomad-cache-v3")
         })
         .collect();
     assert_eq!(entries.len(), 1);
@@ -773,12 +873,12 @@ fn cache_identity_uses_running_inode_after_atomic_helper_replacement() {
         .map(|entry| entry.unwrap().path())
         .find(|path| {
             path.extension()
-                .is_some_and(|extension| extension == "gomad-cache-v2")
+                .is_some_and(|extension| extension == "gomad-cache-v3")
         })
         .unwrap();
     let envelope = std::fs::read(entry).unwrap();
     let manifest_len = u32::from_le_bytes(envelope[8..12].try_into().unwrap()) as usize;
-    let manifest: Value = serde_json::from_slice(&envelope[52..52 + manifest_len]).unwrap();
+    let manifest: Value = serde_json::from_slice(&envelope[24..24 + manifest_len]).unwrap();
     assert_eq!(manifest["helper_sha256"], original);
     std::fs::remove_dir_all(cache).unwrap();
 }
@@ -1194,6 +1294,7 @@ fn runtime_imports_copy_bounded_buffers_back_into_guest_memory() {
 #[test]
 fn runtime_imports_require_exact_module_name_and_signature_before_started() {
     for (module, name, signature) in [
+        ("gomad_wasm_v1", "net", "(param i32 i32) (result i32)"),
         ("gomad_wasm_v1", "other", "(param i32 i32) (result i32)"),
         (
             "gomad_wasm_v1",

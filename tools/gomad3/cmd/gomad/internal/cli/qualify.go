@@ -5,7 +5,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 	"io"
 	"os"
 	"strconv"
@@ -17,6 +16,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/internal/evidence/qualification"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad3/internal/runner"
+	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 )
 
 const maximumQualificationRepeats = 32

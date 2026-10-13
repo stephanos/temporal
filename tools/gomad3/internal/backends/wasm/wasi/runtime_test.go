@@ -73,6 +73,13 @@ func TestCooperativeEnvironmentSeparatesRuntimeControlFromWASIObservations(t *te
 	if bytes.Contains(environment.Transcript(), []byte("runtime_")) || !bytes.Contains(environment.Transcript(), []byte("random_get")) {
 		t.Fatal("runtime and application observation domains mixed")
 	}
+	before := environment.Transcript()
+	if _, err := environment.Handle(Call{Type: "call", ID: 4, Op: "runtime_net", Input: json.RawMessage(`{"data_base64":""}`)}); err == nil {
+		t.Fatal("retired network v1 callback admitted")
+	}
+	if environment.nextCall != 4 || !bytes.Equal(environment.Transcript(), before) {
+		t.Fatal("retired network v1 callback mutated environment")
+	}
 }
 
 func runtimeChoiceInput(kind uint32, site uint64, identities [][32]byte, selected uint32) []byte {

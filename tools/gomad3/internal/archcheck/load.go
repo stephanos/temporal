@@ -253,7 +253,3 @@ func symbol(fn *types.Func) string {
 	}
 	return fn.Name()
 }
-
-func withinPurity(path, root string) bool {
-	return root != "" && (path == root || strings.HasPrefix(path, root+"/"))
-}

@@ -3,7 +3,6 @@ package runner
 import (
 	"context"
 	"errors"
-	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -17,6 +16,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/internal/model/choice"
 	"go.temporal.io/server/tools/gomad3/internal/runner/inspect"
 	"go.temporal.io/server/tools/gomad3/internal/runner/internal/campaign"
+	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 )
 
 func TestGuidedCorpusSeedReproducesRetainedExecution(t *testing.T) {

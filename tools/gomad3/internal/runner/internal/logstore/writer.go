@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	"go.temporal.io/server/tools/gomad3/internal/host/fs"
+	hostfs "go.temporal.io/server/tools/gomad3/internal/host/fs"
 )
 
 // Writer is the exclusive appender of one store. Its methods are safe for

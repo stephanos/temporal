@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"slices"
 
+	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad3/internal/model/choice"
 	"go.temporal.io/server/tools/gomad3/internal/model/strictjson"
-	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
 )
 
 const recordSchema = "gomad3.cluster-record/v8"

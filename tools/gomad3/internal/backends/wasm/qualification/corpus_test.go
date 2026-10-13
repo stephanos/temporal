@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/internal/host/exec"
+	hostexec "go.temporal.io/server/tools/gomad3/internal/host/exec"
 )
 
 func TestMandatoryCorpusCannotAcceptPartialOrProvisionalEvidence(t *testing.T) {

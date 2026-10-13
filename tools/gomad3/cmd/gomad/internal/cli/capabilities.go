@@ -3,11 +3,11 @@ package cli
 import (
 	"flag"
 	"fmt"
-	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 	"slices"
 	"strings"
 
 	"go.temporal.io/server/tools/gomad3/internal/backends"
+	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 )
 
 type optionalFlags struct {

@@ -16,7 +16,7 @@ import (
 	"time"
 
 	gomadversion "go.temporal.io/server/tools/gomad3/internal/backends/native/toolchain/version"
-	"go.temporal.io/server/tools/gomad3/internal/host/exec"
+	hostexec "go.temporal.io/server/tools/gomad3/internal/host/exec"
 	"golang.org/x/mod/modfile"
 	"golang.org/x/mod/module"
 )

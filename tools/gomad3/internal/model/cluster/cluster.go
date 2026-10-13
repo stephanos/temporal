@@ -4,12 +4,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"go.temporal.io/server/tools/gomad3/internal/model/cluster/internal/history"
-	"go.temporal.io/server/tools/gomad3/internal/model/cluster/internal/wire"
 	"sort"
 	"strings"
 	"sync"
 	"unicode/utf8"
+
+	"go.temporal.io/server/tools/gomad3/internal/model/cluster/internal/history"
+	"go.temporal.io/server/tools/gomad3/internal/model/cluster/internal/wire"
 )
 
 type bootCompletion struct {

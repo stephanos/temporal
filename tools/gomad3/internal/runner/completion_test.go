@@ -2,7 +2,6 @@ package runner
 
 import (
 	"bytes"
-	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 	"reflect"
 	"testing"
 
@@ -11,6 +10,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad3/internal/model/choice"
 	"go.temporal.io/server/tools/gomad3/internal/model/world"
+	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 )
 
 func TestAssessWorldValidatesTheRecordAgainstItsSeed(t *testing.T) {

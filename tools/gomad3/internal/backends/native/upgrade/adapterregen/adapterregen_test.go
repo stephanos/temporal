@@ -18,7 +18,7 @@ import (
 
 	gomadversion "go.temporal.io/server/tools/gomad3/internal/backends/native/toolchain/version"
 	"go.temporal.io/server/tools/gomad3/internal/backends/native/transcript"
-	"go.temporal.io/server/tools/gomad3/internal/host/fs"
+	hostfs "go.temporal.io/server/tools/gomad3/internal/host/fs"
 	"golang.org/x/mod/module"
 	modzip "golang.org/x/mod/zip"
 )

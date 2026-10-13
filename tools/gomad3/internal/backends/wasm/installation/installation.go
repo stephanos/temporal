@@ -12,7 +12,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/toolchain"
 	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
-	"go.temporal.io/server/tools/gomad3/internal/host/fs"
+	hostfs "go.temporal.io/server/tools/gomad3/internal/host/fs"
 	"go.temporal.io/server/tools/gomad3/internal/model/strictjson"
 )
 
@@ -162,7 +162,7 @@ func validate(manifest Manifest) error {
 	if manifest.Schema != Schema || !filepath.IsAbs(options.CompilerPath) || !filepath.IsAbs(options.HelperPath) || !filepath.IsAbs(options.CacheRoot) {
 		return errors.New("WASM installation schema and absolute tool/cache paths are required")
 	}
-	if options.Config.Network != nil || options.Config.NetworkV2 != nil || options.Config.Storage != nil {
+	if options.Config.NetworkV2 != nil || options.Config.Storage != nil {
 		return errors.New("operator network and storage profiles await qualification")
 	}
 	if options.Config.Profile == wasi.CooperativeProfile {

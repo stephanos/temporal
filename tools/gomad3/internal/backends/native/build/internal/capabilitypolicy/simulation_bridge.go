@@ -12,15 +12,15 @@ const simulationImportPath = "go.temporal.io/server/tools/gomad3/internal/model/
 
 var builtInSimulationLinknames = map[string]Source{
 	"runtime_domain.go": {
-		Name: "runtime_domain.go", SHA256: "sha256:b5c009150952ab3f9cf4cc51cbd84b438fb56ddcaa4990e9340307c0e09e4d90",
+		Name: "runtime_domain.go", SHA256: "sha256:2fff74d148dd42b4d4ade4a17d87cff549c712c74782c3860ff593d9d76edf20",
 		LinknameDirectives: []string{"gomadSimulationEnabled runtime.gomadDeterministicEnabled", "gomadSimulationBegin internal/gomadsim.Begin", "gomadSimulationRegister internal/gomadsim.Register", "gomadSimulationEnter internal/gomadsim.Enter", "gomadSimulationLeave internal/gomadsim.Leave", "gomadSimulationRevoke internal/gomadsim.Revoke", "gomadSimulationFinish internal/gomadsim.Finish"},
 	},
 	"runtime_network.go": {
-		Name: "runtime_network.go", SHA256: "sha256:586574458cab49a947e7cc07adaabd2b9ef652731f05df820b6cb7c1436c064e",
+		Name: "runtime_network.go", SHA256: "sha256:5fe4575e73442191b765b698a58d58cbcd2389bcf7663dd2bfc5f71767adb701",
 		LinknameDirectives: []string{"gomadNetworkBegin internal/gomadio.BeginSimulation", "gomadNetworkPartition internal/gomadio.PartitionSimulation", "gomadNetworkHeal internal/gomadio.HealSimulation", "gomadNetworkDelay internal/gomadio.DelaySimulation", "gomadNetworkGroup internal/gomadio.ChangeSimulationGroup", "gomadNetworkRevoke internal/gomadio.RevokeSimulation", "gomadNetworkFinish internal/gomadio.FinishSimulation"},
 	},
 	"runtime_process.go": {
-		Name: "runtime_process.go", SHA256: "sha256:b46684862f5abd341a0abf09069e86d05d9e988c8635e4dfdd4a9ef03779bcd0",
+		Name: "runtime_process.go", SHA256: "sha256:1b90fbe867259aee59287d194d56486daa62612542edad8139d5bb6d211a8d2a",
 		LinknameDirectives: []string{"gomadProcessAvailable internal/gomadsim.ProcessAvailable", "gomadProcessRole internal/gomadsim.ProcessRole", "gomadProcessBootstrap internal/gomadsim.ProcessBootstrap", "gomadProcessExchange internal/gomadsim.ProcessExchange", "gomadProcessWaitStop internal/gomadsim.ProcessWaitStop", "gomadProcessServeModel internal/gomadsim.ProcessServeModel"},
 	},
 	"runtime_process_model.go": {
@@ -32,7 +32,7 @@ var builtInSimulationLinknames = map[string]Source{
 		LinknameDirectives: []string{"gomadSimulationTimeAdvance runtime.gomadSimulationTimeAdvance", "gomadSimulationTimeCurrent runtime.gomadSimulationTimeCurrent", "gomadSimulationTimeTakeArrivals runtime.gomadSimulationTimeTakeArrivals"},
 	},
 	"runtime_volume.go": {
-		Name: "runtime_volume.go", SHA256: "sha256:308b882501ade5a21a902a5fdeb89be03f78745d66ef9f5a5242919104314cf7",
+		Name: "runtime_volume.go", SHA256: "sha256:152dfdebe740e5273a4d8ac0273d5fc29d214f1a8f34ca1041429189a9f57098",
 		LinknameDirectives: []string{"gomadVolumeBegin internal/gomadfs.BeginSimulationVolumes", "gomadInitializeVolumeFilesystem os.gomadInitializeSimulationFilesystem", "gomadVolumeRegister internal/gomadfs.RegisterSimulationVolumes", "gomadVolumeRevoke internal/gomadfs.RevokeSimulationVolumes", "gomadVolumeEnumerate internal/gomadfs.EnumerateSimulationVolume", "gomadVolumeFinish internal/gomadfs.FinishSimulationVolumes"},
 	},
 }

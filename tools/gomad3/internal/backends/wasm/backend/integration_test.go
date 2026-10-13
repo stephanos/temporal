@@ -1,7 +1,6 @@
 package backend
 
 import (
-	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -17,16 +16,17 @@ import (
 	"testing"
 	"time"
 
-	"go.temporal.io/server/tools/gomad3/internal/evidence/artifact"
 	runnerbackend "go.temporal.io/server/tools/gomad3/internal/backends"
+	"go.temporal.io/server/tools/gomad3/internal/backends/target"
 	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/internal/stockgo"
 	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/wasi"
-	"go.temporal.io/server/tools/gomad3/internal/evidence/artifact/capture"
-	"go.temporal.io/server/tools/gomad3/internal/model/choice"
+	"go.temporal.io/server/tools/gomad3/internal/evidence/artifact"
+	captured "go.temporal.io/server/tools/gomad3/internal/evidence/artifact/capture"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
+	"go.temporal.io/server/tools/gomad3/internal/model/choice"
 	"go.temporal.io/server/tools/gomad3/internal/runner"
 	"go.temporal.io/server/tools/gomad3/internal/runner/inspect"
-	"go.temporal.io/server/tools/gomad3/internal/backends/target"
+	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 )
 
 func integrationProvider(t *testing.T) *Provider {
@@ -1074,7 +1074,6 @@ func (r *minimizationPublicationReplayer) Replay(ctx context.Context, spec runne
 
 func TestWASMMinimizeEssentialPrefixDetachedReplayRepeatAndResume(t *testing.T) {
 	provider := explorationProvider(t)
-	provider.options.Config.Network = &wasi.NetworkModel{Seed: 11, MaxDelayNanos: 1000, Faults: []wasi.NetworkFault{{AtNanos: 5_000_000_000, Action: "reset", Port: 9000}}}
 	spec := explorationSpec(t, provider, minimizationGuest)
 	spec.Parallel = 1
 	seeded := spec

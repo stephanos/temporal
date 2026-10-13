@@ -13,9 +13,9 @@ import (
 	"go.temporal.io/server/tools/gomad3/internal/backends/native/build/internal/livecap"
 	compatibility "go.temporal.io/server/tools/gomad3/internal/backends/native/compatibilitypack"
 	"go.temporal.io/server/tools/gomad3/internal/backends/native/sourceinventory"
-	"go.temporal.io/server/tools/gomad3/internal/model/strictjson"
-	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad3/internal/backends/target"
+	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
+	"go.temporal.io/server/tools/gomad3/internal/model/strictjson"
 )
 
 // TestCapabilityReviewGoldenSemantics pins the complete typed reviews over

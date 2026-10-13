@@ -6,7 +6,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 	"io"
 	"os"
 	"path/filepath"
@@ -20,6 +19,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad3/internal/runner"
 	"go.temporal.io/server/tools/gomad3/internal/runner/inspect"
+	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 )
 
 const usage = `usage:

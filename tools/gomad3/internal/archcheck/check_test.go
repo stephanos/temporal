@@ -102,7 +102,7 @@ func TestConfigurationMustMatchSource(t *testing.T) {
 
 func TestConfiguredEdgesAndOwners(t *testing.T) {
 	root := fixture(t, map[string]string{"internal/model/world/source.go": "package world\nimport _ \"example.invalid/check/internal/backends/native\"", "internal/backends/native/source.go": "package native"})
-	config := Config{Module: "example.invalid/check", Owners: map[string][]string{"shared": {"example.invalid/check/world"}, "native": {"example.invalid/check/internal/backends/native"}}, OwnerEdges: map[string][]string{}}
+	config := Config{Module: "example.invalid/check", Owners: map[string][]string{"shared": {"example.invalid/check/internal/model/world"}, "native": {"example.invalid/check/internal/backends/native"}}, OwnerEdges: map[string][]string{}}
 	findings, err := Check(root, "go", Platform{runtime.GOOS, runtime.GOARCH}, config)
 	if err != nil {
 		t.Fatal(err)

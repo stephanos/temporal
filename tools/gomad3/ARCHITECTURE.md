@@ -352,10 +352,9 @@ identities and canonical alternative sets avoid treating physical run-queue
 order as replay identity. Replay validates a decision before applying it,
 requires complete tape consumption, and still compares the final Record.
 
-`internal/model/choice/trace.go` explicitly refuses stored v2 traces because their select
-results carry no readiness. Legacy v1 traces remain decodable for inspection,
-but `internal/model/choice/tape.go` returns `ErrReplayUnavailable` when projecting them into
-a replay plan. For v3, `ProjectReplayPlan` uses `projectSelectReadiness` to
+`internal/model/choice/trace.go` explicitly refuses stored v1 and v2 traces by profile name:
+v1 lacks stable logical alternatives and v2 select results carry no readiness.
+For v3, `ProjectReplayPlan` uses `projectSelectReadiness` to
 carry each final `select` result's readiness onto its matching poll decisions.
 A poll decision named by no result keeps unknown readiness. Readiness annotates
 the tape without becoming a forced decision.
@@ -641,9 +640,8 @@ with status 2. The envelope is reserved like the manifest; it is not counted
 in an artifact's stored bytes, so artifact capacities and recorded byte counts
 keep their meaning.
 
-Ordinary whole-file replacement is centralized in `internal/host/fs`; the
-public `internal/host/fs` facade exposes the same owner where cross-package consumers need
-it. The five formerly private publication contracts are the qualification and
+Ordinary whole-file replacement is centralized in `internal/host/fs`, shared
+directly by its consumers. The five publication contracts are the qualification and
 soak reports, streamed toolchain source archive, validated regenerated patch,
 and the builder's ordered stamp-and-launcher transaction. The shared primitive
 creates a same-directory stage with its requested mode, streams the contents,

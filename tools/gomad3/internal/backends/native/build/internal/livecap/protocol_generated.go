@@ -31,10 +31,10 @@ const (
 	MaximumFacts                 = 100000
 	MaximumStringBytes           = 4096
 	MaximumOwnerFacts            = 4096
-	ProducerImplementationSHA256 = "sha256:ad7435a0bdbdb588941d40e9b936a65188049ac6c918c229602d68c48e20cdbc"
-	GuardImplementationSHA256    = "sha256:ad7435a0bdbdb588941d40e9b936a65188049ac6c918c229602d68c48e20cdbc"
-	CapabilityUniverseSHA256     = "sha256:35ab206359d44a272998426e9fcdf7a4fa6cfaedde234e10d150423bd5b13f4b"
-	BoundaryManifestSHA256       = "sha256:222b2f9516c9f4f6c881787f6a95eb2cd6552b0e443de23df90af3417bf7c29d"
+	ProducerImplementationSHA256 = "sha256:0e1843ba6fb6420befcce8fd92a37d2d6feacf7e04cf965b1ade007f84815348"
+	GuardImplementationSHA256    = "sha256:0e1843ba6fb6420befcce8fd92a37d2d6feacf7e04cf965b1ade007f84815348"
+	CapabilityUniverseSHA256     = "sha256:c77df708f610d6a7218a960bebb501b02ca3b064b98598a12555ce54f8c6a7c7"
+	BoundaryManifestSHA256       = "sha256:d1fb1620a54d56775e6fb3d139403524e9ce8999ce8d376af3ba18a62b3b6f55"
 )
 
 var HeaderMagic = [16]byte{'G', 'O', 'M', 'A', 'D', 'C', 'A', 'P', 'A', 'B', 'I', 'L', 'I', 'T', 'Y', '\x00'}

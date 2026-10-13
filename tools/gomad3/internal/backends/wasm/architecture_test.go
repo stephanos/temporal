@@ -26,6 +26,7 @@ func wasmArchitectureConfig() archcheck.Config {
 			"strings", "sync", "syscall", "unicode/utf8",
 			wasmModule + "/internal/evidence/artifact/capture", wasmModule + "/internal/model/choice", wasmModule + "/internal/runner",
 			wasmModule + "/internal/backends", wasmModule + "/internal/model/network",
+			wasmModule + "/internal/model/clock",
 			wasmModule + "/internal/model/volume", wasmModule + "/internal/model/world",
 			wasmModule + "/internal/model/strictjson",
 		},

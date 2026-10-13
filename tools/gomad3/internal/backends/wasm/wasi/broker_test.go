@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
+	gomad3sim "go.temporal.io/server/tools/gomad3/internal/model/cluster"
 	netmodel "go.temporal.io/server/tools/gomad3/internal/model/network"
 	"go.temporal.io/server/tools/gomad3/internal/model/world"
-	gomad3sim "go.temporal.io/server/tools/gomad3/internal/model/cluster"
 )
 
 func brokerTestConfig() BrokerConfig {

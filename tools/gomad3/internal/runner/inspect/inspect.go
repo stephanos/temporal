@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 
 	"go.temporal.io/server/tools/gomad3/internal/evidence/artifact"
-	"go.temporal.io/server/tools/gomad3/internal/model/choice"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
+	"go.temporal.io/server/tools/gomad3/internal/model/choice"
 	"go.temporal.io/server/tools/gomad3/internal/runner/internal/campaign"
 	"go.temporal.io/server/tools/gomad3/internal/runner/internal/corpus"
 	"go.temporal.io/server/tools/gomad3/internal/runner/internal/exploration"

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -22,6 +21,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/internal/runner/inspect"
 	"go.temporal.io/server/tools/gomad3/internal/runner/internal/campaign"
 	"go.temporal.io/server/tools/gomad3/internal/runner/internal/exploration"
+	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 )
 
 type boundaryProvider struct {

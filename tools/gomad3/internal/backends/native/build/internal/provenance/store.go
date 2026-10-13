@@ -7,7 +7,7 @@ import (
 	"io"
 	"os"
 
-	"go.temporal.io/server/tools/gomad3/internal/host/fs"
+	hostfs "go.temporal.io/server/tools/gomad3/internal/host/fs"
 	"go.temporal.io/server/tools/gomad3/internal/model/strictjson"
 )
 

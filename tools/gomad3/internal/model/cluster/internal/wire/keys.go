@@ -2,6 +2,7 @@ package wire
 
 import (
 	"fmt"
+
 	"go.temporal.io/server/tools/gomad3/internal/model/cluster/internal/history"
 )
 

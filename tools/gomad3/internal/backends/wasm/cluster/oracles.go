@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"strings"
 
-	"go.temporal.io/server/tools/gomad3/internal/model/strictjson"
 	gomad3sim "go.temporal.io/server/tools/gomad3/internal/model/cluster"
+	"go.temporal.io/server/tools/gomad3/internal/model/strictjson"
 )
 
 const HistoryObservationSchema = "gomad.wasm.history-observation/v1"

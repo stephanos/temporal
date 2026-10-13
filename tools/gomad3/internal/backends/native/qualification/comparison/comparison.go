@@ -11,9 +11,9 @@ import (
 
 	capabilityanalysis "go.temporal.io/server/tools/gomad3/internal/backends/native/qualification/analysis"
 	qualificationset "go.temporal.io/server/tools/gomad3/internal/backends/native/qualification/set"
-	"go.temporal.io/server/tools/gomad3/internal/model/choice"
-	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad3/internal/backends/target"
+	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
+	"go.temporal.io/server/tools/gomad3/internal/model/choice"
 )
 
 const Schema = "gomad3.support-comparison/v1"

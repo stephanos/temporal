@@ -22,8 +22,8 @@ import (
 	compatibility "go.temporal.io/server/tools/gomad3/internal/backends/native/compatibilitypack"
 	"go.temporal.io/server/tools/gomad3/internal/backends/native/sourceinventory"
 	"go.temporal.io/server/tools/gomad3/internal/backends/native/toolchain/installation"
-	"go.temporal.io/server/tools/gomad3/internal/host/fs"
 	"go.temporal.io/server/tools/gomad3/internal/backends/target"
+	hostfs "go.temporal.io/server/tools/gomad3/internal/host/fs"
 )
 
 // Capability evidence collection owns the host effects of a capability

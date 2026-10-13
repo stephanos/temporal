@@ -2,9 +2,10 @@ package cluster
 
 import (
 	"errors"
+	_ "unsafe"
+
 	"go.temporal.io/server/tools/gomad3/internal/model/cluster/internal/history"
 	"go.temporal.io/server/tools/gomad3/internal/model/cluster/internal/wire"
-	_ "unsafe"
 )
 
 func runtimeNetworkBegin(uint64, []byte) error {

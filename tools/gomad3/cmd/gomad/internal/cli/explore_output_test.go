@@ -2,10 +2,10 @@ package cli
 
 import (
 	"errors"
-	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
 	"reflect"
 	"testing"
 
+	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad3/internal/runner"
 )
 

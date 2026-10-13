@@ -15,15 +15,12 @@ import (
 	"slices"
 	"strings"
 
-	"go.temporal.io/server/tools/gomad3/internal/host/fs"
-	"go.temporal.io/server/tools/gomad3/internal/model/runtimesource"
+	hostfs "go.temporal.io/server/tools/gomad3/internal/host/fs"
+	runtimesemantics "go.temporal.io/server/tools/gomad3/internal/model/runtimesource"
 )
 
 //go:embed runtime_wasm.go.txt
 var runtimeGlue []byte
-
-//go:embed net_wasm.go.txt
-var netGlue []byte
 
 //go:embed net_stream_wasm.go.txt
 var netStreamGlue []byte
@@ -33,7 +30,7 @@ var overlayImplementation []byte
 
 func ImplementationSHA256() string {
 	input := []byte("gomad-wasm-runtime-implementation/v1\x00")
-	for _, source := range [][]byte{overlayImplementation, runtimeGlue, netGlue, netStreamGlue} {
+	for _, source := range [][]byte{overlayImplementation, runtimeGlue, netStreamGlue} {
 		var size [8]byte
 		binary.BigEndian.PutUint64(size[:], uint64(len(source)))
 		input = append(input, size[:]...)
@@ -77,7 +74,7 @@ func BuildOverlay(stockRoot, semanticsRoot, outputRoot string) (overlayPath, ide
 	if err != nil {
 		return "", "", err
 	}
-	inputs := map[string][]byte{"VERSION": version, "wasm-glue": runtimeGlue, "wasm-net-glue": netGlue, "wasm-net-stream-glue": netStreamGlue}
+	inputs := map[string][]byte{"VERSION": version, "wasm-glue": runtimeGlue, "wasm-net-stream-glue": netStreamGlue}
 	for name, data := range sources {
 		inputs["semantics/"+name] = data
 	}
@@ -109,15 +106,11 @@ func BuildOverlay(stockRoot, semanticsRoot, outputRoot string) (overlayPath, ide
 	for name, data := range sources {
 		outputs[name] = data
 	}
-	outputs["net/gomad_wasm_net.go"], err = format.Source(netGlue)
-	if err != nil {
-		return "", "", fmt.Errorf("format WASM network glue: %w", err)
-	}
 	outputs["net/gomad_wasm_net_stream.go"], err = format.Source(netStreamGlue)
 	if err != nil {
 		return "", "", fmt.Errorf("format WASM network stream glue: %w", err)
 	}
-	for _, name := range []string{"gomad_wasm.go", "gomad_semantics.go", "gomad_choicewire_generated.go", "net/gomad_wasm_net.go", "net/gomad_wasm_net_stream.go"} {
+	for _, name := range []string{"gomad_wasm.go", "gomad_semantics.go", "gomad_choicewire_generated.go", "net/gomad_wasm_net_stream.go"} {
 		if _, err := os.Lstat(filepath.Join(stockRoot, sourcePath(name))); err == nil || !os.IsNotExist(err) {
 			return "", "", fmt.Errorf("WASM runtime overlay collides with stock file %s", name)
 		}
@@ -289,14 +282,13 @@ func stockRewrites() map[string][]rewrite {
 			{"func fakeConnect(ctx context.Context, fd *netFD, laddr, raddr sockaddr) error {\n", "func fakeConnect(ctx context.Context, fd *netFD, laddr, raddr sockaddr) error {\n\tif gomadStreamEnabled(fd) {\n\t\treturn gomadStreamConnectFD(ctx, fd, laddr, raddr)\n\t}\n", 1},
 			{"func (ffd *fakeNetFD) accept(laddr Addr) (*netFD, error) {\n", "func (ffd *fakeNetFD) accept(laddr Addr) (*netFD, error) {\n\tif ffd.gomadStreamHandle != 0 {\n\t\treturn ffd.gomadStreamAcceptFD()\n\t}\n", 1},
 			{"func (ffd *fakeNetFD) Read(p []byte) (n int, err error) {\n", "func (ffd *fakeNetFD) Read(p []byte) (n int, err error) {\n\tif ffd.gomadStreamHandle != 0 {\n\t\treturn ffd.gomadStreamReadBytes(p)\n\t}\n", 1},
-			{"func (ffd *fakeNetFD) Write(p []byte) (nn int, err error) {\n", "func (ffd *fakeNetFD) Write(p []byte) (nn int, err error) {\n\tif ffd.gomadStreamHandle != 0 {\n\t\treturn ffd.gomadStreamWriteBytes(p)\n\t}\n\tif err := ffd.gomadNetWrite(len(p)); err != nil {\n\t\treturn 0, err\n\t}\n", 1},
+			{"func (ffd *fakeNetFD) Write(p []byte) (nn int, err error) {\n", "func (ffd *fakeNetFD) Write(p []byte) (nn int, err error) {\n\tif ffd.gomadStreamHandle != 0 {\n\t\treturn ffd.gomadStreamWriteBytes(p)\n\t}\n", 1},
 			{"func (ffd *fakeNetFD) Close() (err error) {\n", "func (ffd *fakeNetFD) Close() (err error) {\n\tif ffd.gomadStreamHandle != 0 {\n\t\treturn ffd.gomadStreamOperation(gomadStreamClose, time.Time{})\n\t}\n", 1},
 			{"func (ffd *fakeNetFD) closeRead() error {\n", "func (ffd *fakeNetFD) closeRead() error {\n\tif ffd.gomadStreamHandle != 0 {\n\t\treturn ffd.gomadStreamOperation(gomadStreamCloseRead, time.Time{})\n\t}\n", 1},
 			{"func (ffd *fakeNetFD) closeWrite() error {\n", "func (ffd *fakeNetFD) closeWrite() error {\n\tif ffd.gomadStreamHandle != 0 {\n\t\treturn ffd.gomadStreamOperation(gomadStreamCloseWrite, time.Time{})\n\t}\n", 1},
 			{"func (ffd *fakeNetFD) SetDeadline(t time.Time) error {\n", "func (ffd *fakeNetFD) SetDeadline(t time.Time) error {\n\tif ffd.gomadStreamHandle != 0 {\n\t\treturn ffd.gomadStreamOperation(gomadStreamDeadline, t)\n\t}\n", 1},
 			{"func (ffd *fakeNetFD) SetReadDeadline(t time.Time) error {\n", "func (ffd *fakeNetFD) SetReadDeadline(t time.Time) error {\n\tif ffd.gomadStreamHandle != 0 {\n\t\treturn ffd.gomadStreamOperation(gomadStreamReadDeadline, t)\n\t}\n", 1},
 			{"func (ffd *fakeNetFD) SetWriteDeadline(t time.Time) error {\n", "func (ffd *fakeNetFD) SetWriteDeadline(t time.Time) error {\n\tif ffd.gomadStreamHandle != 0 {\n\t\treturn ffd.gomadStreamOperation(gomadStreamWriteDeadline, t)\n\t}\n", 1},
-			{"\tfa := fakeAddr(raddr)\n\tlni, ok := sockets.Load(fa)\n", "\tif err := gomadNetConnect(fd, raddr); err != nil {\n\t\treturn wrapErr(err)\n\t}\n\tfa := fakeAddr(raddr)\n\tlni, ok := sockets.Load(fa)\n", 1},
 		},
 		"note_other.go": {{"\tkey uintptr\n", "\tkey uintptr\n\twaiter guintptr\n\tdeadline int64\n\tnext *note\n\tstatus uint8\n", 1}},
 		"lock_wasip1.go": {

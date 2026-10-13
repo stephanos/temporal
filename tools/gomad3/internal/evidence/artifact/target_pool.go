@@ -11,8 +11,8 @@ import (
 	"strings"
 	"syscall"
 
-	"go.temporal.io/server/tools/gomad3/internal/host/fs"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
+	hostfs "go.temporal.io/server/tools/gomad3/internal/host/fs"
 )
 
 // TargetSharing says how a published artifact holds its target.

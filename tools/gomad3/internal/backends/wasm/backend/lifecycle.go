@@ -6,8 +6,8 @@ import (
 	"slices"
 
 	"go.temporal.io/server/tools/gomad3/internal/backends"
-	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad3/internal/backends/target"
+	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
 )
 
 func (p *Provider) Describe(ctx context.Context, config backends.Configuration) (backends.Description, error) {

@@ -7,8 +7,8 @@ import (
 	"os"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad3/internal/backends/target"
+	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/wasi"
 	gomad3sim "go.temporal.io/server/tools/gomad3/internal/model/cluster"
 )
 

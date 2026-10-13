@@ -3,13 +3,13 @@ package runner
 import (
 	"context"
 	"fmt"
-	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 
 	backend "go.temporal.io/server/tools/gomad3/internal/backends"
 	"go.temporal.io/server/tools/gomad3/internal/backends/target"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad3/internal/model/choice"
 	"go.temporal.io/server/tools/gomad3/internal/model/world"
+	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 )
 
 // completedExecution is what every strategy reads from one captured execution

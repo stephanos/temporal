@@ -19,8 +19,8 @@ import (
 
 	qualificationset "go.temporal.io/server/tools/gomad3/internal/backends/native/qualification/set"
 	gomadversion "go.temporal.io/server/tools/gomad3/internal/backends/native/toolchain/version"
-	"go.temporal.io/server/tools/gomad3/internal/host/exec"
-	"go.temporal.io/server/tools/gomad3/internal/host/fs"
+	hostexec "go.temporal.io/server/tools/gomad3/internal/host/exec"
+	hostfs "go.temporal.io/server/tools/gomad3/internal/host/fs"
 )
 
 const maximumGateOutput = 16 << 20

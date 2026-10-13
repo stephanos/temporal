@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/internal/evidence/artifact"
 	"go.temporal.io/server/tools/gomad3/internal/backends/native/transcript"
+	"go.temporal.io/server/tools/gomad3/internal/evidence/artifact"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
 )
 

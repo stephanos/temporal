@@ -5,8 +5,9 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"go.temporal.io/server/tools/gomad3/internal/model/cluster/internal/wire"
 	"os"
+
+	"go.temporal.io/server/tools/gomad3/internal/model/cluster/internal/wire"
 )
 
 func (cluster *inProcessCluster) startProcessNode(node *clusterNode, handle NodeHandle) error {

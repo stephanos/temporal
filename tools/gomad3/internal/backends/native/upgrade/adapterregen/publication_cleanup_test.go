@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/internal/backends/native/transcript"
-	"go.temporal.io/server/tools/gomad3/internal/host/fs"
+	hostfs "go.temporal.io/server/tools/gomad3/internal/host/fs"
 )
 
 func TestRunScratchCleanupBeforePublication(t *testing.T) {

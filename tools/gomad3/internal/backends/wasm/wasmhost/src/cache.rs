@@ -12,8 +12,8 @@ use std::{
 };
 use wasmtime::{Engine, Module};
 
-const MAGIC: &[u8; 8] = b"GOMADC02";
-const HEADER: usize = 52;
+const MAGIC: &[u8; 8] = b"GOMADC03";
+const HEADER: usize = 24;
 const MAX_ARTIFACT: usize = 1024 * 1024 * 1024;
 const MAX_MANIFEST: usize = 16 * 1024;
 
@@ -126,7 +126,7 @@ fn identity(engine: &Engine, module_sha256: &str) -> Result<Vec<u8>, Outcome> {
         .precompile_compatibility_hash()
         .hash(&mut compatibility);
     serde_json::to_vec(&serde_json::json!({
-        "version":2, "module_sha256":module_sha256, "helper_sha256":format!("{:x}", hash.finalize()),
+        "version":3, "module_sha256":module_sha256, "helper_sha256":format!("{:x}", hash.finalize()),
         "engine":"wasmtime-47.0.3", "configuration":crate::engine::CONFIGURATION_REVISION,
         "host_os":std::env::consts::OS, "host_arch":std::env::consts::ARCH,
         "engine_compatibility_sha256":format!("{:x}", compatibility.0.finalize())
@@ -240,7 +240,7 @@ mod private {
 ))]
 pub fn module(
     engine: &Engine,
-    bytes: &[u8],
+    load: impl FnOnce() -> Result<Vec<u8>, Outcome>,
     directory: &str,
     module_sha256: &str,
     metrics: &mut Metrics,
@@ -248,7 +248,7 @@ pub fn module(
     let phase = Instant::now();
     let prepared = (|| {
         let manifest = identity(engine, module_sha256)?;
-        let name = format!("{:x}.gomad-cache-v2", Sha256::digest(&manifest));
+        let name = format!("{:x}.gomad-cache-v3", Sha256::digest(&manifest));
         let root = std::path::Path::new(directory).to_owned();
         let entry = root.join(&name);
         let directory = private::Directory::open(directory)?;
@@ -304,7 +304,9 @@ pub fn module(
                     return Err(corrupt(&entry, "envelope identity or length"));
                 }
                 let artifact = &envelope[HEADER + manifest_len..];
-                if Sha256::digest(artifact)[..] != envelope[20..52] {
+                if crc32fast::hash(artifact)
+                    != u32::from_le_bytes(envelope[20..24].try_into().unwrap())
+                {
                     return Err(corrupt(&entry, "artifact checksum"));
                 }
                 #[cfg(feature = "diagnostic-profile")]
@@ -335,7 +337,7 @@ pub fn module(
         metrics.cache_hit = true;
         return Ok(module);
     }
-    let module = compile(engine, bytes, metrics)?;
+    let module = compile(engine, &load()?, metrics)?;
     #[cfg(feature = "diagnostic-profile")]
     let _diagnostic_phase = crate::diagnostic::PhaseSpan::new(crate::diagnostic::Phase::CacheWrite);
     let phase = Instant::now();
@@ -370,7 +372,7 @@ pub fn module(
             file.write_all(MAGIC)
                 .and_then(|_| file.write_all(&(manifest.len() as u32).to_le_bytes()))
                 .and_then(|_| file.write_all(&(artifact.len() as u64).to_le_bytes()))
-                .and_then(|_| file.write_all(&Sha256::digest(&artifact)))
+                .and_then(|_| file.write_all(&crc32fast::hash(&artifact).to_le_bytes()))
                 .and_then(|_| file.write_all(&manifest))
                 .and_then(|_| file.write_all(&artifact))
                 .and_then(|_| file.sync_all())
@@ -396,7 +398,13 @@ pub fn module(
     any(target_arch = "x86_64", target_arch = "aarch64"),
     any(target_os = "linux", target_os = "macos")
 )))]
-pub fn module(_: &Engine, _: &[u8], _: &str, _: &str, _: &mut Metrics) -> Result<Module, Outcome> {
+pub fn module(
+    _: &Engine,
+    _: impl FnOnce() -> Result<Vec<u8>, Outcome>,
+    _: &str,
+    _: &str,
+    _: &mut Metrics,
+) -> Result<Module, Outcome> {
     Err(Outcome::new(
         "unsupported",
         "private compile cache requires Linux or macOS",
@@ -406,6 +414,27 @@ pub fn module(_: &Engine, _: &[u8], _: &str, _: &str, _: &mut Metrics) -> Result
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    #[ignore = "manual host throughput measurement"]
+    fn crc_throughput() {
+        let bytes = vec![0xa5; 16 * 1024 * 1024];
+        let expected = crc32fast::hash(&bytes);
+        let started = Instant::now();
+        for _ in 0..64 {
+            assert_eq!(crc32fast::hash(std::hint::black_box(&bytes)), expected);
+        }
+        let seconds = started.elapsed().as_secs_f64();
+        let total = bytes.len() as u64 * 64;
+        let gb_per_second = total as f64 / seconds / 1e9;
+        println!(
+            "CRC-32: host={}/{} bytes={} seconds={seconds:.6} GB/s={gb_per_second:.3}",
+            std::env::consts::OS,
+            std::env::consts::ARCH,
+            total,
+        );
+        #[cfg(all(target_os = "macos", target_arch = "aarch64"))]
+        assert!(gb_per_second >= 2.0);
+    }
     #[cfg(all(
         feature = "diagnostic-profile",
         target_pointer_width = "64",
@@ -430,7 +459,7 @@ mod tests {
             assert!(
                 module(
                     &engine,
-                    bytes,
+                    || Ok(bytes.to_vec()),
                     directory.to_str().unwrap(),
                     &digest,
                     &mut metrics
@@ -448,7 +477,7 @@ mod tests {
             assert!(
                 module(
                     &engine,
-                    bytes,
+                    || panic!("cache hit read module bytes"),
                     directory.to_str().unwrap(),
                     &digest,
                     &mut metrics
@@ -472,7 +501,7 @@ mod tests {
         let entry = std::fs::read_dir(&directory)
             .unwrap()
             .map(|e| e.unwrap().path())
-            .find(|p| p.extension().is_some_and(|e| e == "gomad-cache-v2"))
+            .find(|p| p.extension().is_some_and(|e| e == "gomad-cache-v3"))
             .unwrap();
         let mut envelope = std::fs::read(&entry).unwrap();
         envelope[HEADER - 1] ^= 1;
@@ -481,7 +510,7 @@ mod tests {
             let _session = crate::diagnostic::Session::start();
             let outcome = module(
                 &engine,
-                bytes,
+                || panic!("corrupt entry read module bytes"),
                 directory.to_str().unwrap(),
                 &digest,
                 &mut metrics,
@@ -539,7 +568,7 @@ mod tests {
                 let mut metrics = Metrics::default();
                 let result = module(
                     &self.engine,
-                    WAT,
+                    || Ok(WAT.to_vec()),
                     self.directory.to_str().unwrap(),
                     &self.digest,
                     &mut metrics,
@@ -550,7 +579,7 @@ mod tests {
                 let manifest = identity(&self.engine, &self.digest)
                     .unwrap_or_else(|outcome| panic!("{}", outcome.message));
                 self.directory
-                    .join(format!("{:x}.gomad-cache-v2", Sha256::digest(&manifest)))
+                    .join(format!("{:x}.gomad-cache-v3", Sha256::digest(&manifest)))
             }
         }
         impl Drop for Fixture {
@@ -582,6 +611,42 @@ mod tests {
             );
             // Fail closed: the corrupt entry is neither replaced nor removed.
             assert_eq!(std::fs::read(&entry).unwrap(), envelope);
+        }
+
+        #[test]
+        fn v2_envelope_is_ignored_and_preserved() {
+            let fixture = Fixture::new("v2");
+            assert!(fixture.run().0.is_ok());
+            let entry = fixture.entry();
+            let envelope = std::fs::read(&entry).unwrap();
+            let manifest_len = u32::from_le_bytes(envelope[8..12].try_into().unwrap()) as usize;
+            let artifact = &envelope[HEADER + manifest_len..];
+            assert_eq!(&envelope[..8], MAGIC);
+            assert_eq!(
+                u32::from_le_bytes(envelope[20..24].try_into().unwrap()),
+                crc32fast::hash(artifact)
+            );
+            let mut manifest: serde_json::Value =
+                serde_json::from_slice(&envelope[HEADER..HEADER + manifest_len]).unwrap();
+            assert_eq!(manifest["version"], 3);
+            manifest["version"] = serde_json::json!(2);
+            let manifest = serde_json::to_vec(&manifest).unwrap();
+            let old = fixture
+                .directory
+                .join(format!("{:x}.gomad-cache-v2", Sha256::digest(&manifest)));
+            let mut previous = b"GOMADC02".to_vec();
+            previous.extend_from_slice(&(manifest.len() as u32).to_le_bytes());
+            previous.extend_from_slice(&(artifact.len() as u64).to_le_bytes());
+            previous.extend_from_slice(&Sha256::digest(artifact));
+            previous.extend_from_slice(&manifest);
+            previous.extend_from_slice(artifact);
+            std::fs::write(&old, &previous).unwrap();
+            std::fs::remove_file(entry).unwrap();
+            let (result, metrics) = fixture.run();
+            assert!(result.is_ok());
+            assert!(!metrics.cache_hit);
+            assert_eq!(std::fs::read(old).unwrap(), previous);
+            assert!(fixture.run().1.cache_hit);
         }
 
         #[test]

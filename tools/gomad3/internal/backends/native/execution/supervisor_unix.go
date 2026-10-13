@@ -15,8 +15,8 @@ import (
 	"syscall"
 	"time"
 
+	hostexec "go.temporal.io/server/tools/gomad3/internal/host/exec"
 	"go.temporal.io/server/tools/gomad3/internal/model/choice"
-	"go.temporal.io/server/tools/gomad3/internal/host/exec"
 	"go.temporal.io/server/tools/gomad3/internal/model/world"
 	worldprocess "go.temporal.io/server/tools/gomad3/internal/model/world/process"
 )

@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"go.temporal.io/server/tools/gomad3/internal/host/exec"
-	"go.temporal.io/server/tools/gomad3/internal/host/fs"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
+	hostexec "go.temporal.io/server/tools/gomad3/internal/host/exec"
+	hostfs "go.temporal.io/server/tools/gomad3/internal/host/fs"
 )
 
 const publicationReceiptLimit = 8 << 10

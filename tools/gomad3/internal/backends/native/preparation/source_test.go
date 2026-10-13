@@ -11,8 +11,8 @@ import (
 	nativebuild "go.temporal.io/server/tools/gomad3/internal/backends/native/build"
 	"go.temporal.io/server/tools/gomad3/internal/backends/native/toolchain/installation"
 	"go.temporal.io/server/tools/gomad3/internal/backends/native/transcript"
-	"go.temporal.io/server/tools/gomad3/internal/host/fs"
 	"go.temporal.io/server/tools/gomad3/internal/backends/target"
+	hostfs "go.temporal.io/server/tools/gomad3/internal/host/fs"
 )
 
 func sourceInstallation(t *testing.T) (installation.Description, string) {

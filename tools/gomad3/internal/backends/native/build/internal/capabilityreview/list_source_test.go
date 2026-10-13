@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/internal/backends/native/build/internal/gocommand"
-	"go.temporal.io/server/tools/gomad3/internal/host/exec"
+	hostexec "go.temporal.io/server/tools/gomad3/internal/host/exec"
 )
 
 func TestListSourcePreservesActualCommandError(t *testing.T) {

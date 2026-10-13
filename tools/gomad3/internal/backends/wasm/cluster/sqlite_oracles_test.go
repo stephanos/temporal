@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/wasi"
-	"go.temporal.io/server/tools/gomad3/internal/model/world"
 	gomad3sim "go.temporal.io/server/tools/gomad3/internal/model/cluster"
+	"go.temporal.io/server/tools/gomad3/internal/model/world"
 )
 
 type sqliteOracleCollector struct {

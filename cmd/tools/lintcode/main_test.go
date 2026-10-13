@@ -352,7 +352,7 @@ func TestWASMLintRoutesRuntimeQualificationFixtures(t *testing.T) {
 
 func TestWASMLintRoutesProductionizationFixtures(t *testing.T) {
 	t.Parallel()
-	for _, fixture := range []string{"testdata/storage_sqlite", "testdata/network_streams", "testdata/temporal_storage", "testdata/temporal_broker", "wasi/testdata/runtime_cost", "simulation/testdata/service", "command/testdata"} {
+	for _, fixture := range []string{"testdata/storage_sqlite", "testdata/network_streams", "testdata/temporal_storage", "testdata/temporal_broker", "wasi/testdata/runtime_cost", "cluster/testdata/service", "command/testdata"} {
 		t.Run(fixture, func(t *testing.T) {
 			t.Parallel()
 			repo := newLintRepo(t)

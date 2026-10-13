@@ -11,11 +11,11 @@ import (
 	"strings"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/internal/evidence/artifact"
 	"go.temporal.io/server/tools/gomad3/internal/backends"
 	"go.temporal.io/server/tools/gomad3/internal/backends/native/transcript"
-	"go.temporal.io/server/tools/gomad3/internal/model/strictjson"
+	"go.temporal.io/server/tools/gomad3/internal/evidence/artifact"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
+	"go.temporal.io/server/tools/gomad3/internal/model/strictjson"
 	"go.temporal.io/server/tools/gomad3/internal/runner/internal/logstore"
 )
 

@@ -11,8 +11,8 @@ import (
 	nativebuild "go.temporal.io/server/tools/gomad3/internal/backends/native/build"
 	"go.temporal.io/server/tools/gomad3/internal/backends/native/execution"
 	"go.temporal.io/server/tools/gomad3/internal/backends/native/transcript"
-	"go.temporal.io/server/tools/gomad3/internal/evidence/artifact/capture"
 	"go.temporal.io/server/tools/gomad3/internal/backends/target"
+	captured "go.temporal.io/server/tools/gomad3/internal/evidence/artifact/capture"
 )
 
 func TestProfileFilesystemStaysInMemory(t *testing.T) {

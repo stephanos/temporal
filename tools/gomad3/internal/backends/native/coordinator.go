@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/internal/backends"
-	"go.temporal.io/server/tools/gomad3/internal/host/exec"
+	hostexec "go.temporal.io/server/tools/gomad3/internal/host/exec"
 )
 
 const maximumCoordinatorMessageBytes = 16 << 20

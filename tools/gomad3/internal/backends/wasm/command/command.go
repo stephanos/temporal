@@ -12,13 +12,13 @@ import (
 	"strings"
 
 	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/backend"
-	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/cluster"
+	simulation "go.temporal.io/server/tools/gomad3/internal/backends/wasm/cluster"
 	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/installation"
 	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/qualification"
 	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/artifact"
 	gomadqualification "go.temporal.io/server/tools/gomad3/internal/evidence/qualification"
-	"go.temporal.io/server/tools/gomad3/internal/host/exec"
+	hostexec "go.temporal.io/server/tools/gomad3/internal/host/exec"
 	"go.temporal.io/server/tools/gomad3/internal/runner"
 )
 

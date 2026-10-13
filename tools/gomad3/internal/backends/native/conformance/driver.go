@@ -12,7 +12,7 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/internal/backends/native/generation/boundary"
 	gomadversion "go.temporal.io/server/tools/gomad3/internal/backends/native/toolchain/version"
-	"go.temporal.io/server/tools/gomad3/internal/host/exec"
+	hostexec "go.temporal.io/server/tools/gomad3/internal/host/exec"
 )
 
 const fixtureOutputLimit = 1 << 20

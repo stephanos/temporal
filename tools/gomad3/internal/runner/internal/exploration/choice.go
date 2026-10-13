@@ -9,8 +9,8 @@ import (
 	"slices"
 	"unicode/utf8"
 
-	"go.temporal.io/server/tools/gomad3/internal/model/choice"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
+	"go.temporal.io/server/tools/gomad3/internal/model/choice"
 )
 
 const (

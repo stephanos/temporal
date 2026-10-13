@@ -22,9 +22,9 @@ import (
 	"go.temporal.io/server/tools/gomad3/internal/backends/native/build/internal/livecap"
 	targetprovenance "go.temporal.io/server/tools/gomad3/internal/backends/native/build/internal/provenance"
 	"go.temporal.io/server/tools/gomad3/internal/backends/native/toolchain/installation"
-	"go.temporal.io/server/tools/gomad3/internal/host/fs"
-	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad3/internal/backends/target"
+	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
+	hostfs "go.temporal.io/server/tools/gomad3/internal/host/fs"
 )
 
 const provenanceSchema = "gomad3.exec-provenance/v3"

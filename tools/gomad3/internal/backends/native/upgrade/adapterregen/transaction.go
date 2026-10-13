@@ -17,8 +17,8 @@ import (
 	"time"
 
 	"go.temporal.io/server/tools/gomad3/internal/backends/native/transcript"
-	"go.temporal.io/server/tools/gomad3/internal/host/exec"
-	"go.temporal.io/server/tools/gomad3/internal/host/fs"
+	hostexec "go.temporal.io/server/tools/gomad3/internal/host/exec"
+	hostfs "go.temporal.io/server/tools/gomad3/internal/host/fs"
 	"golang.org/x/mod/modfile"
 )
 

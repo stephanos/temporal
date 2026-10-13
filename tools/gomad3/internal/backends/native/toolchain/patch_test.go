@@ -72,6 +72,25 @@ new file mode 100644
 	}
 }
 
+func TestGeneratedWireOverlayPathsAreExact(t *testing.T) {
+	for _, test := range []struct {
+		path    string
+		allowed bool
+	}{
+		{"src/internal/gomadfs/simulation_volume_wire.go", true},
+		{"src/internal/gomadio/simulation_wire.go", true},
+		{"src/internal/gomadfs/simulation_volume_wire_extra.go", false},
+		{"src/internal/gomadio/simulation_wire_extra.go", false},
+		{"src/internal/gomadfs/other.go", false},
+		{"src/internal/gomadio/other.go", false},
+		{"src/internal/other/simulation_wire.go", false},
+	} {
+		if generatedOverlay(test.path) != test.allowed {
+			t.Errorf("generated overlay %s admitted = %t, want %t", test.path, !test.allowed, test.allowed)
+		}
+	}
+}
+
 func TestValidateRejectsUnlistedAndBinaryOverlayEntries(t *testing.T) {
 	for _, test := range []struct {
 		name     string

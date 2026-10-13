@@ -9,8 +9,8 @@ import (
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/internal/backends/native/transcript"
-	"go.temporal.io/server/tools/gomad3/internal/model/choice"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
+	"go.temporal.io/server/tools/gomad3/internal/model/choice"
 )
 
 func TestPublishArtifactWritesAndValidatesChoiceTrace(t *testing.T) {

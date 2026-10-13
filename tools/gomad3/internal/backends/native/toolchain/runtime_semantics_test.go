@@ -13,7 +13,7 @@ import (
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/internal/backends/native/toolchain/version"
-	"go.temporal.io/server/tools/gomad3/internal/model/runtimesource"
+	runtimesemantics "go.temporal.io/server/tools/gomad3/internal/model/runtimesource"
 )
 
 var runtimeSemanticFunctions = strings.Fields(`gomadDiagnosticAllocations gomadChoiceRecordSelectResult gomadChoiceSelectOrigin gomadChoiceSelectReadiness gomadChoiceWaiterPresent gomadChoiceSeedRandom gomadTimerRand gomadRuntimeRand gomadRuntimeCheapRand gomadSeededDrawCheck gomadChoiceRunqSeeded gomadChoiceRunnextSeeded gomadChoiceRandom gomadChoiceSelectSeeded gomadChoiceEncodeRecord gomadChoiceZero gomadChoiceEqual gomadChoiceSite gomadChoiceRootIdentity gomadChoiceAssignGoroutineIdentity gomadChoiceTimerCreated gomadChoiceTimerFire gomadChoiceTimerFired gomadChoiceRunqIndex gomadChoiceSelectPollIndex gomadChoiceSelectIdentity`)

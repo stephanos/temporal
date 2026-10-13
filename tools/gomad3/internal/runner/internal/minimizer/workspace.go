@@ -12,9 +12,9 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"go.temporal.io/server/tools/gomad3/internal/host/fs"
-	"go.temporal.io/server/tools/gomad3/internal/model/strictjson"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
+	hostfs "go.temporal.io/server/tools/gomad3/internal/host/fs"
+	"go.temporal.io/server/tools/gomad3/internal/model/strictjson"
 )
 
 const CheckpointSchema = "gomad3.minimizer-checkpoint/v1"

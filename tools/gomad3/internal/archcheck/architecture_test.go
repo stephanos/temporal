@@ -23,6 +23,36 @@ import (
 
 const modulePath = "go.temporal.io/server/tools/gomad3"
 
+func TestToolPackageLayout(t *testing.T) {
+	for _, layout := range []struct {
+		root   string
+		groups []string
+	}{
+		{".", []string{"cmd", "internal", "testdata"}},
+		{"internal", []string{"archcheck", "backends", "evidence", "host", "model", "runner"}},
+		{"cmd", []string{"gomad"}},
+	} {
+		entries, err := os.ReadDir(layout.root)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var groups []string
+		for _, entry := range entries {
+			if strings.HasPrefix(entry.Name(), ".") {
+				continue
+			}
+			if entry.IsDir() {
+				groups = append(groups, entry.Name())
+			} else if filepath.Ext(entry.Name()) == ".go" {
+				t.Errorf("owner group root %s holds Go source %s", layout.root, entry.Name())
+			}
+		}
+		if !slices.Equal(groups, layout.groups) {
+			t.Errorf("owner groups under %s = %v, want %v", layout.root, groups, layout.groups)
+		}
+	}
+}
+
 // TestMain runs the module's architecture and CI routing tests from the
 // module root, the directory their source, Makefile and workflow paths name.
 func TestMain(m *testing.M) {
@@ -468,7 +498,7 @@ func TestMakeTargetsMatchTheirOwnership(t *testing.T) {
 	}
 	// test-builder runs the native builder under stock Go through gomadtool, so the
 	// Makefile names the package once, for the patched toolchain.
-	if recipes := regexp.MustCompile(`(?m)\s\./backends/native/toolchain(\s|$)`).FindAllString(makefile, -1); len(recipes) != 1 {
+	if recipes := regexp.MustCompile(`(?m)\s\./internal/backends/native/toolchain(\s|$)`).FindAllString(makefile, -1); len(recipes) != 1 {
 		t.Errorf("Makefile tests native toolchain in %d recipes, want only test-toolchain", len(recipes))
 	}
 }

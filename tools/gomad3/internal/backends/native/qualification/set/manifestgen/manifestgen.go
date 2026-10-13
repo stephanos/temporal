@@ -25,9 +25,9 @@ import (
 	"unicode/utf8"
 
 	"go.temporal.io/server/tools/gomad3/internal/backends/native/qualification/set"
-	"go.temporal.io/server/tools/gomad3/internal/host/fs"
-	"go.temporal.io/server/tools/gomad3/internal/model/strictjson"
 	"go.temporal.io/server/tools/gomad3/internal/backends/target"
+	hostfs "go.temporal.io/server/tools/gomad3/internal/host/fs"
+	"go.temporal.io/server/tools/gomad3/internal/model/strictjson"
 )
 
 const SpecSchema = "gomad3.qualification-set-generator/v1"

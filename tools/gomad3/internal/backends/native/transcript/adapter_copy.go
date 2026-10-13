@@ -13,7 +13,7 @@ import (
 	"strings"
 
 	"go.temporal.io/server/tools/gomad3/internal/backends/native/sourceinventory"
-	"go.temporal.io/server/tools/gomad3/internal/host/fs"
+	hostfs "go.temporal.io/server/tools/gomad3/internal/host/fs"
 )
 
 const (

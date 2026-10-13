@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 	"os"
 	"sync"
 	"time"
@@ -16,10 +15,11 @@ import (
 	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/wasi"
 	gomadqualification "go.temporal.io/server/tools/gomad3/internal/evidence/qualification"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
-	"go.temporal.io/server/tools/gomad3/internal/host/exec"
-	"go.temporal.io/server/tools/gomad3/internal/host/fs"
+	hostexec "go.temporal.io/server/tools/gomad3/internal/host/exec"
+	hostfs "go.temporal.io/server/tools/gomad3/internal/host/fs"
 	"go.temporal.io/server/tools/gomad3/internal/model/volume"
 	"go.temporal.io/server/tools/gomad3/internal/runner"
+	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 )
 
 type Spec struct {

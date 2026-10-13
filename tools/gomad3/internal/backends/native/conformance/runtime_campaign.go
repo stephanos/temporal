@@ -14,7 +14,7 @@ import (
 	"strings"
 	"time"
 
-	"go.temporal.io/server/tools/gomad3/internal/host/exec"
+	hostexec "go.temporal.io/server/tools/gomad3/internal/host/exec"
 )
 
 var randomLinePattern = regexp.MustCompile(`^[0-9a-f]{16} [0-9a-f]{8}$`)

@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -20,6 +19,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/internal/runner/inspect"
 	"go.temporal.io/server/tools/gomad3/internal/runner/internal/campaign"
 	"go.temporal.io/server/tools/gomad3/internal/runner/internal/logstore"
+	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 )
 
 // seedStep scripts one seed's attempt.

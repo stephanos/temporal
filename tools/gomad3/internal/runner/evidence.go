@@ -3,7 +3,7 @@ package runner
 import (
 	backend "go.temporal.io/server/tools/gomad3/internal/backends"
 	"go.temporal.io/server/tools/gomad3/internal/backends/target"
-	"go.temporal.io/server/tools/gomad3/internal/evidence/artifact/capture"
+	captured "go.temporal.io/server/tools/gomad3/internal/evidence/artifact/capture"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad3/internal/model/choice"
 )

@@ -6,7 +6,6 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
-	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 	"io"
 	"os"
 	"path/filepath"
@@ -20,6 +19,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad3/internal/model/choice"
 	"go.temporal.io/server/tools/gomad3/internal/runner/internal/campaign"
+	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 )
 
 type diagnosticExecutor struct {

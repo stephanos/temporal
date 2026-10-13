@@ -23,9 +23,8 @@ import (
 	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/artifact"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
-	"go.temporal.io/server/tools/gomad3/internal/host/exec"
-	"go.temporal.io/server/tools/gomad3/internal/host/fs"
-	stagedfs "go.temporal.io/server/tools/gomad3/internal/host/fs"
+	hostexec "go.temporal.io/server/tools/gomad3/internal/host/exec"
+	hostfs "go.temporal.io/server/tools/gomad3/internal/host/fs"
 	"go.temporal.io/server/tools/gomad3/internal/model/choice"
 	"go.temporal.io/server/tools/gomad3/internal/model/strictjson"
 )
@@ -110,10 +109,10 @@ func New(options Options) (*Provider, error) {
 	return &Provider{options: options}, nil
 }
 func (p *Provider) Prepare(ctx context.Context, spec target.Spec) (target.Prepared, error) {
-	return p.prepareWithStager(ctx, spec, stagedfs.StageContext)
+	return p.prepareWithStager(ctx, spec, hostfs.StageContext)
 }
 
-func (p *Provider) prepareWithStager(ctx context.Context, spec target.Spec, stage func(context.Context, string, string, os.FileMode, func(context.Context, io.Writer) error) (*stagedfs.StagedFile, error)) (preparedResult target.Prepared, retErr error) {
+func (p *Provider) prepareWithStager(ctx context.Context, spec target.Spec, stage func(context.Context, string, string, os.FileMode, func(context.Context, io.Writer) error) (*hostfs.StagedFile, error)) (preparedResult target.Prepared, retErr error) {
 	if p.options.ObserveCompilerCommand != nil {
 		ctx = context.WithValue(ctx, compilerObserverKey{}, p.options.ObserveCompilerCommand)
 	}

@@ -12,9 +12,9 @@ import (
 
 	nativebuild "go.temporal.io/server/tools/gomad3/internal/backends/native/build"
 	"go.temporal.io/server/tools/gomad3/internal/backends/native/transcript"
-	"go.temporal.io/server/tools/gomad3/internal/model/strictjson"
-	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad3/internal/backends/target"
+	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
+	"go.temporal.io/server/tools/gomad3/internal/model/strictjson"
 )
 
 const (

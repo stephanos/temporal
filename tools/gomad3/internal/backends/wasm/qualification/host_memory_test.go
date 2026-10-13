@@ -9,8 +9,8 @@ import (
 	"strings"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/cluster"
-	"go.temporal.io/server/tools/gomad3/internal/host/exec"
+	simulation "go.temporal.io/server/tools/gomad3/internal/backends/wasm/cluster"
+	hostexec "go.temporal.io/server/tools/gomad3/internal/host/exec"
 )
 
 func temporalHostMemoryObserver(mode string, log func(string)) (func(string), error) {

@@ -12,12 +12,12 @@ import (
 	"strings"
 	"testing"
 
+	"go.temporal.io/server/tools/gomad3/internal/backends/target"
 	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/toolchain"
 	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/wasi"
-	"go.temporal.io/server/tools/gomad3/internal/model/choice"
-	stagedfs "go.temporal.io/server/tools/gomad3/internal/host/fs"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
-	"go.temporal.io/server/tools/gomad3/internal/backends/target"
+	stagedfs "go.temporal.io/server/tools/gomad3/internal/host/fs"
+	"go.temporal.io/server/tools/gomad3/internal/model/choice"
 )
 
 func TestCachePublicationStagesAndValidatesBeforeReplacing(t *testing.T) {

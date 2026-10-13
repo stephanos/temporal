@@ -92,7 +92,7 @@ jobs:
                         tools/gomad3/internal/backends/native/generation/protocol/*) wasm=true ;;
                       esac
                       ;;
-                    # internal/backends/wasm/simulation and qualification import tools/gomad3/internal/model/cluster.
+                    # internal/backends/wasm/cluster and qualification import tools/gomad3/internal/model/cluster.
                     tools/gomad3/*|tools/gomad3/internal/model/cluster/*|.github/workflows/gomad3.yml|.github/workflows/gomad3-smoke.yml|Makefile|go.mod|go.sum)
                       native=true
                       wasm=true
@@ -176,8 +176,8 @@ jobs:
         working-directory: tools/gomad3
         run: >-
           go test -count=1 -tags test_dep
-          ./internal/hostexec
-          ./internal/hostfs
+          ./internal/host/exec
+          ./internal/host/fs
           ./internal/backends/native/cmd/gomadtool
 
   core-linux:

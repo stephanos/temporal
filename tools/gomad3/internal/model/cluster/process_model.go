@@ -2,8 +2,9 @@ package cluster
 
 import (
 	"errors"
-	"go.temporal.io/server/tools/gomad3/internal/model/cluster/internal/wire"
 	"sync"
+
+	"go.temporal.io/server/tools/gomad3/internal/model/cluster/internal/wire"
 )
 
 var processModel = struct {

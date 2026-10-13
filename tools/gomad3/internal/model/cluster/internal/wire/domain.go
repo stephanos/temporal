@@ -3,8 +3,9 @@ package wire
 import (
 	"errors"
 	"fmt"
-	"go.temporal.io/server/tools/gomad3/internal/model/cluster/internal/history"
 	"sort"
+
+	"go.temporal.io/server/tools/gomad3/internal/model/cluster/internal/history"
 )
 
 func DecodeOutputs(encoded []byte) ([]history.OutputObservation, error) {

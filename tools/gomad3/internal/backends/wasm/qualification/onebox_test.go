@@ -12,9 +12,9 @@ import (
 	"go.temporal.io/server/tools/gomad3/internal/backends/target"
 	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/backend"
 	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/wasi"
-	"go.temporal.io/server/tools/gomad3/internal/evidence/artifact/capture"
+	captured "go.temporal.io/server/tools/gomad3/internal/evidence/artifact/capture"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
-	"go.temporal.io/server/tools/gomad3/internal/host/exec"
+	hostexec "go.temporal.io/server/tools/gomad3/internal/host/exec"
 	"go.temporal.io/server/tools/gomad3/internal/runner"
 )
 

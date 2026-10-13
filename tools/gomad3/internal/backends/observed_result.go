@@ -4,8 +4,8 @@ import (
 	"errors"
 	"os"
 
+	hostexec "go.temporal.io/server/tools/gomad3/internal/host/exec"
 	"go.temporal.io/server/tools/gomad3/internal/model/choice"
-	"go.temporal.io/server/tools/gomad3/internal/host/exec"
 )
 
 func ProjectObservedResult(request Request, observed Result, stdout, stderr *os.File) (ExecutionResult, error) {

@@ -11,9 +11,9 @@ import (
 	"strings"
 	"testing"
 
+	"go.temporal.io/server/tools/gomad3/internal/backends/target"
 	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
-	"go.temporal.io/server/tools/gomad3/internal/backends/target"
 	gomad3sim "go.temporal.io/server/tools/gomad3/internal/model/cluster"
 )
 

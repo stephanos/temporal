@@ -10,8 +10,8 @@ import (
 	"strings"
 
 	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/toolchain"
-	"go.temporal.io/server/tools/gomad3/internal/host/fs"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
+	hostfs "go.temporal.io/server/tools/gomad3/internal/host/fs"
 )
 
 func (p *Provider) runtimeOverlay(ctx context.Context, dir string, environment []string, includeDirectory string) (string, string, map[string]string, error) {

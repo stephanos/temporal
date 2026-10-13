@@ -15,13 +15,13 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/internal/backends/target"
 	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/backend"
-	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/cluster"
+	simulation "go.temporal.io/server/tools/gomad3/internal/backends/wasm/cluster"
 	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/installation"
 	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/internal/stockgo"
 	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/qualification"
 	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/artifact"
-	"go.temporal.io/server/tools/gomad3/internal/evidence/artifact/capture"
+	captured "go.temporal.io/server/tools/gomad3/internal/evidence/artifact/capture"
 	gomadqualification "go.temporal.io/server/tools/gomad3/internal/evidence/qualification"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad3/internal/runner"
@@ -480,7 +480,7 @@ func TestInstalledOperatorDiscoversInspectsAndReplaysWithoutBuildInputs(t *testi
 			}
 			var compiledEntry string
 			for _, entry := range entries {
-				if strings.HasSuffix(entry.Name(), ".gomad-cache-v2") {
+				if strings.HasSuffix(entry.Name(), ".gomad-cache-v3") {
 					if compiledEntry != "" {
 						t.Fatal("same retained module generated multiple compiled-code identities")
 					}

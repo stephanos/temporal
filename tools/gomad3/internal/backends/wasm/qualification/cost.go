@@ -5,8 +5,8 @@ import (
 	"math"
 
 	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/wasi"
-	"go.temporal.io/server/tools/gomad3/internal/host/exec"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
+	hostexec "go.temporal.io/server/tools/gomad3/internal/host/exec"
 )
 
 // Sample contains observed values only. ReplayableBugSHA256 is populated only

@@ -8,13 +8,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-
-	"go.temporal.io/server/tools/gomad3/internal/model/cluster/internal/history"
-	"go.temporal.io/server/tools/gomad3/internal/model/cluster/internal/wire"
 	"io"
 	"runtime"
 	"slices"
 	"unicode/utf8"
+
+	"go.temporal.io/server/tools/gomad3/internal/model/cluster/internal/history"
+	"go.temporal.io/server/tools/gomad3/internal/model/cluster/internal/wire"
 )
 
 func EncodeClusterRecord(record ClusterRecord) ([]byte, error) {

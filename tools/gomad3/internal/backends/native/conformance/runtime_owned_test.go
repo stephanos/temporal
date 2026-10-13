@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	hostexec "go.temporal.io/server/tools/gomad3/internal/host/exec"
 	"go.temporal.io/server/tools/gomad3/internal/model/choice"
-	"go.temporal.io/server/tools/gomad3/internal/host/exec"
 )
 
 func TestRuntimeOwnedControlProbe(t *testing.T) {

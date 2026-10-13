@@ -359,6 +359,14 @@ func fixtureRequest(t *testing.T, wat string, imports []Import) Request {
 	helper := helperPath(t)
 	return Request{HelperPath: helper, HelperSHA256: fileHash(t, helper), ModulePath: name, ModuleSHA256: fileHash(t, name), Engine: PinnedEngine(), Imports: imports, InitialMemoryPages: 1, MemoryBytes: 128 << 20, Fuel: 100000000, Config: testConfig(), Timeout: 30 * time.Second}
 }
+func privateCompileCache(t *testing.T) string {
+	t.Helper()
+	directory := t.TempDir()
+	if err := os.Chmod(directory, 0700); err != nil {
+		t.Fatal(err)
+	}
+	return directory
+}
 func TestGuestTransportAuthorizesIdentityBeforeStart(t *testing.T) {
 	imports := []Import{{Module: "wasi_snapshot_preview1", Name: "fd_write", Params: []string{"i32", "i32", "i32", "i32"}, Results: []string{"i32"}}}
 	request := fixtureRequest(t, `(module (import "wasi_snapshot_preview1" "fd_write" (func $write (param i32 i32 i32 i32) (result i32))) (memory (export "memory") 1) (data (i32.const 0) "hello") (data (i32.const 16) "\00\00\00\00\05\00\00\00") (func $init i32.const 1 i32.const 16 i32.const 1 i32.const 32 call $write drop) (start $init) (func (export "_start")))`, imports)
@@ -424,17 +432,64 @@ func TestGuestTransportClassifiesCapacityMalformedAndUnsupported(t *testing.T) {
 	}
 }
 
-func TestTransportRejectsChangedFilesAndInvalidTerminalClaims(t *testing.T) {
+func TestTransportRejectsChangedFilesOnCacheMiss(t *testing.T) {
 	request := fixtureRequest(t, `(module (memory (export "memory") 1) (func (export "_start")))`, nil)
-	request.ModuleSHA256 = strings.Repeat("0", 64)
-	if _, err := Run(context.Background(), request); err == nil {
-		t.Fatal("changed module bytes accepted")
+	if err := os.WriteFile(request.ModulePath, []byte(`(module (memory (export "memory") 1) (func (export "_start") unreachable))`), 0600); err != nil {
+		t.Fatal(err)
+	}
+	for _, cache := range []string{"", privateCompileCache(t)} {
+		request.CompileCache = cache
+		_, err := Run(context.Background(), request)
+		var boundary *BoundaryError
+		if !errors.As(err, &boundary) || boundary.Kind != "invalid" || boundary.Dimension != "module/helper bytes changed" {
+			t.Fatalf("changed module boundary = %v", err)
+		}
+		if cache != "" {
+			entries, err := os.ReadDir(cache)
+			if err != nil {
+				t.Fatal(err)
+			}
+			for _, entry := range entries {
+				if !strings.HasSuffix(entry.Name(), ".lock") {
+					t.Fatalf("module mismatch published %s", entry.Name())
+				}
+			}
+		}
 	}
 	request.ModuleSHA256 = fileHash(t, request.ModulePath)
 	request.HelperSHA256 = strings.Repeat("0", 64)
 	if _, err := Run(context.Background(), request); err == nil {
 		t.Fatal("changed helper bytes accepted")
 	}
+}
+func TestTransportUsesPreparedModuleIdentityOnCacheHit(t *testing.T) {
+	request := fixtureRequest(t, `(module (memory (export "memory") 1) (func (export "_start")))`, nil)
+	request.CompileCache = privateCompileCache(t)
+	result, err := Run(context.Background(), request)
+	if err != nil || result.Termination != "exit" || result.Telemetry == nil || result.Telemetry.CacheHit {
+		t.Fatalf("cold cache = %s %s err=%v", result.Termination, result.Message, err)
+	}
+	if err := os.WriteFile(request.ModulePath, []byte(`(module (memory (export "memory") 1) (func (export "_start") unreachable))`), 0600); err != nil {
+		t.Fatal(err)
+	}
+	for _, missing := range []bool{false, true} {
+		if missing {
+			if err := os.Remove(request.ModulePath); err != nil {
+				t.Fatal(err)
+			}
+		}
+		result, err := Run(context.Background(), request)
+		if err != nil || result.Termination != "exit" || !result.Reaped || result.Telemetry == nil || !result.Telemetry.CacheHit {
+			t.Fatalf("warm cache missing=%v: %s %s err=%v", missing, result.Termination, result.Message, err)
+		}
+	}
+	request.CompileCache = privateCompileCache(t)
+	result, err = Run(context.Background(), request)
+	if err != nil || result.Termination != "infrastructure" || !result.Reaped {
+		t.Fatalf("missing module on cold cache = %s %s err=%v", result.Termination, result.Message, err)
+	}
+}
+func TestTransportRejectsInvalidTerminalClaims(t *testing.T) {
 	for _, fixture := range []struct{ name, terminal, want string }{
 		{"invented-output", `{"type":"result","termination":"exit","exit_code":0,"message":"","fuel_remaining":0,"peak_memory_bytes":65536,"output_bytes":1}`, "invalid"},
 		{"excess-fuel", `{"type":"result","termination":"exit","exit_code":0,"message":"","fuel_remaining":100000001,"peak_memory_bytes":65536,"output_bytes":0}`, "invalid"},

@@ -6,8 +6,8 @@ import (
 	"reflect"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad3/internal/backends/target"
+	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
 )
 
 func externalFixture() (target.Spec, target.Prepared) {

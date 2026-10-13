@@ -6,7 +6,6 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"errors"
-	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 	"hash/crc32"
 	"maps"
 	"os"
@@ -20,6 +19,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/internal/runner/internal/campaign"
 	"go.temporal.io/server/tools/gomad3/internal/runner/internal/corpus"
 	"go.temporal.io/server/tools/gomad3/internal/runner/internal/logstore"
+	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 )
 
 // inspectLogFrame encodes one log record as the log store frames it.

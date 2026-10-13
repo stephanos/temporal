@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -32,6 +31,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/internal/model/world"
 	"go.temporal.io/server/tools/gomad3/internal/runner/internal/campaign"
 	"go.temporal.io/server/tools/gomad3/internal/runner/internal/exploration"
+	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 )
 
 func TestRunPreparesOnceBoundsParallelismAndGroupsMatchingFailures(t *testing.T) {

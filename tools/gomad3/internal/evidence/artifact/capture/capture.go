@@ -10,7 +10,7 @@ import (
 	"strings"
 	"sync"
 
-	"go.temporal.io/server/tools/gomad3/internal/host/fs"
+	hostfs "go.temporal.io/server/tools/gomad3/internal/host/fs"
 )
 
 type Kind uint8

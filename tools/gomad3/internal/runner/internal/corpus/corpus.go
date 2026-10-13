@@ -14,11 +14,11 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"go.temporal.io/server/tools/gomad3/internal/evidence/artifact"
 	"go.temporal.io/server/tools/gomad3/internal/backends"
-	"go.temporal.io/server/tools/gomad3/internal/model/choice"
-	"go.temporal.io/server/tools/gomad3/internal/host/fs"
+	"go.temporal.io/server/tools/gomad3/internal/evidence/artifact"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
+	hostfs "go.temporal.io/server/tools/gomad3/internal/host/fs"
+	"go.temporal.io/server/tools/gomad3/internal/model/choice"
 	"go.temporal.io/server/tools/gomad3/internal/runner/internal/logstore"
 )
 

@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -19,6 +18,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad3/internal/model/choice"
 	"go.temporal.io/server/tools/gomad3/internal/runner/internal/campaign"
+	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 )
 
 type resumeProfileProvider struct {

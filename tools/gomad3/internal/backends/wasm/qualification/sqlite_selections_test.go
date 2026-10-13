@@ -3,10 +3,10 @@ package qualification
 import (
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/cluster"
+	simulation "go.temporal.io/server/tools/gomad3/internal/backends/wasm/cluster"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
-	"go.temporal.io/server/tools/gomad3/internal/model/volume"
 	gomad3sim "go.temporal.io/server/tools/gomad3/internal/model/cluster"
+	"go.temporal.io/server/tools/gomad3/internal/model/volume"
 )
 
 func TestSQLiteSelectionCoverageRejectsMissingExtraOrAlteredNativeStates(t *testing.T) {

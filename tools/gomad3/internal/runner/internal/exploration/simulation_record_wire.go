@@ -6,9 +6,9 @@ import (
 	"errors"
 	"fmt"
 
+	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad3/internal/model/choice"
 	"go.temporal.io/server/tools/gomad3/internal/model/strictjson"
-	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
 )
 
 const planSchema = "gomad3.simulation-exploration-plan/v1"

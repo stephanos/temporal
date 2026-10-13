@@ -11,8 +11,8 @@ import (
 	"testing"
 
 	targetbuild "go.temporal.io/server/tools/gomad3/internal/backends/native/build/internal/build"
-	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad3/internal/backends/target"
+	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
 )
 
 func TestPinnedCoverageBuildSettingsRejectInstrumentation(t *testing.T) {

@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"go.temporal.io/server/tools/gomad3/internal/host/fs"
+	hostfs "go.temporal.io/server/tools/gomad3/internal/host/fs"
 )
 
 type networkWireSchema struct {

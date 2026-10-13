@@ -12,9 +12,9 @@ import (
 
 	targetbuild "go.temporal.io/server/tools/gomad3/internal/backends/native/build/internal/build"
 	"go.temporal.io/server/tools/gomad3/internal/backends/native/build/internal/gocommand"
-	"go.temporal.io/server/tools/gomad3/internal/host/exec"
-	"go.temporal.io/server/tools/gomad3/internal/host/fs"
 	"go.temporal.io/server/tools/gomad3/internal/backends/target"
+	hostexec "go.temporal.io/server/tools/gomad3/internal/host/exec"
+	hostfs "go.temporal.io/server/tools/gomad3/internal/host/fs"
 )
 
 func TestPrepareWithGoCommandAdapterPreservesFreshAndCachedTarget(t *testing.T) {

@@ -6,9 +6,9 @@ import (
 	"errors"
 	"fmt"
 
-	iowire "go.temporal.io/server/tools/gomad3/internal/model/iowire"
-	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad3/internal/backends/target"
+	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
+	iowire "go.temporal.io/server/tools/gomad3/internal/model/iowire"
 )
 
 const bootstrapFrameBytes = iowire.BootstrapFrameBytes

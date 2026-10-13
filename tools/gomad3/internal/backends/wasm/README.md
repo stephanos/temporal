@@ -96,7 +96,7 @@ identities without reopening original source, compiler or runtime inputs. Runtim
 control frames remain separate from the application WASI transcript. The stock
 profile and diagnostics-off native canonical bytes retain their existing defaults.
 
-The public `runner.Minimize` API supports exact standalone cooperative target
+The shared `runner.Minimize` operation supports exact standalone cooperative target
 failures with complete choice traces. It removes effective forcing suffixes from
 the retained choice tape while keeping the seed, module, arguments, captured
 inputs, model and fault configuration fixed. Every accepted prefix reproduces the
@@ -111,8 +111,8 @@ incompatible replay profiles are rejected. `gomad --installation FILE minimize` 
 compatible standalone choice-prefix mode through the shared Runner, including
 its existing output, attempt, byte and resume bounds.
 
-Seeded and forced decisions, observations and frozen-clock idle advances
-execute inside the Rust helper. Bounded choice,
+Seeded and forced decisions, observations, frozen-clock idle advances and the
+runtime control decisions execute inside the Rust helper. Bounded choice,
 diagnostic, WASI and network evidence streams are emitted once at termination;
 filesystem and other host-owned callbacks retain canonical transcript ordering.
 The Go owner remains the differential reference. V2 network and broker runs use
@@ -146,10 +146,13 @@ and is reported alongside full-run wall costs rather than replacing them.
 
 The opt-in compiled cache is a same-UID trusted host cache, inaccessible to guests.
 Its private directory and immutable entries require restrictive ownership, modes,
-link and no-follow checks. A versioned envelope binds module bytes, actual helper,
+link and no-follow checks. The v3 CRC-32 envelope binds module bytes, actual helper,
 engine configuration, platform and engine compilation compatibility. Compiled bytes
 are read once, bounded and verified before deserialization; malformed existing
 entries fail closed. Checksums detect corruption, not malicious cache-owner writes.
+On a cache hit the helper uses the artifact for the prepared module digest without
+opening or hashing the module; misses verify module bytes before compilation.
+Earlier v2 and filename-only entries are ignored and preserved.
 The verified-buffer implementation can use more host RSS than mmap loading. Cold
 compilation, warm loading and fresh instance state must be measured separately.
 
@@ -194,17 +197,19 @@ simulated network. Its gates use the cooperative profile with a frozen clock
 (zero read-step): time moves only when every guest goroutine is blocked, then
 jumps to the earliest deadline.
 
-The simulated network is optional. `NetworkV2` and the cluster broker use the
-generated native stream model, with virtual-time delays, partition/heal, reset
-and bounded byte occupancy. The prototype's separate v1 network model is retired;
-its retained results describe the historical candidate.
+The simulated network uses `Config.NetworkV2` and the generated host stream
+model. Named `reset`, `partition`, `heal` and `delay` faults apply at virtual
+times; partitions hold pending operations until healing or their deadline.
+Model decisions form the `NetworkTranscript` evidence stream. The prototype
+network-v1 model and its guest import have been retired; its retained results
+describe the historical candidate.
 
 ```sh
 GOMAD_WASM_PROTOTYPE_ROOT=/absolute/evidence \
   make -C tools/gomad3/internal/backends/wasm prototype GOMAD_WASM_STOCK_GO=/absolute/stock/go1.27.1
 ```
 
-The default run covers the fixture gates (scheduling, virtual time, network),
+The default run covers the fixture gates (scheduling and virtual time),
 a Temporal one-box workflow with sleeps, retries, a reset and a partition, and
 the unchanged `tests/gomadfunctional` `TestFrontendSystemInfo`. Every Temporal
 gate runs two seeds and replays the first in a fresh guest; the evidence must

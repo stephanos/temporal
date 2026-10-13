@@ -13,8 +13,8 @@ import (
 	"time"
 
 	gomadversion "go.temporal.io/server/tools/gomad3/internal/backends/native/toolchain/version"
-	"go.temporal.io/server/tools/gomad3/internal/host/exec"
-	"go.temporal.io/server/tools/gomad3/internal/host/fs"
+	hostexec "go.temporal.io/server/tools/gomad3/internal/host/exec"
+	hostfs "go.temporal.io/server/tools/gomad3/internal/host/fs"
 )
 
 const maximumPatchBytes = 64 << 20
@@ -300,7 +300,9 @@ func platformRuntimeFile(name string) bool {
 }
 
 func generatedOverlay(path string) bool {
-	return strings.HasPrefix(path, "src/cmd/compile/internal/gomadintercept/spec_go") ||
+	return path == "src/internal/gomadfs/simulation_volume_wire.go" ||
+		path == "src/internal/gomadio/simulation_wire.go" ||
+		strings.HasPrefix(path, "src/cmd/compile/internal/gomadintercept/spec_go") ||
 		strings.HasSuffix(path, "_generated.go") || strings.HasSuffix(path, "_generated_test.go")
 }
 

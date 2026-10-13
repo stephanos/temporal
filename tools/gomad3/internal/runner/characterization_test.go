@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -26,12 +25,13 @@ import (
 	"go.temporal.io/server/tools/gomad3/internal/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/internal/backends/target"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/artifact"
-	"go.temporal.io/server/tools/gomad3/internal/evidence/artifact/capture"
+	captured "go.temporal.io/server/tools/gomad3/internal/evidence/artifact/capture"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad3/internal/model/choice"
 	"go.temporal.io/server/tools/gomad3/internal/model/world"
 	"go.temporal.io/server/tools/gomad3/internal/runner/internal/campaign"
 	guide "go.temporal.io/server/tools/gomad3/internal/runner/internal/corpus"
+	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 )
 
 const (

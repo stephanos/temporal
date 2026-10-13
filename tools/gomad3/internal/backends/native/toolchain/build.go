@@ -13,9 +13,9 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/internal/backends/native/toolchain/installation"
 	gomadversion "go.temporal.io/server/tools/gomad3/internal/backends/native/toolchain/version"
-	"go.temporal.io/server/tools/gomad3/internal/host/exec"
-	"go.temporal.io/server/tools/gomad3/internal/host/fs"
-	"go.temporal.io/server/tools/gomad3/internal/model/runtimesource"
+	hostexec "go.temporal.io/server/tools/gomad3/internal/host/exec"
+	hostfs "go.temporal.io/server/tools/gomad3/internal/host/fs"
+	runtimesemantics "go.temporal.io/server/tools/gomad3/internal/model/runtimesource"
 )
 
 const buildRecipeVersion = "canonical-v5"

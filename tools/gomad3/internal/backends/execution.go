@@ -5,10 +5,10 @@ import (
 	"os"
 	"time"
 
-	"go.temporal.io/server/tools/gomad3/internal/evidence/artifact/capture"
-	"go.temporal.io/server/tools/gomad3/internal/model/choice"
-	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad3/internal/backends/target"
+	captured "go.temporal.io/server/tools/gomad3/internal/evidence/artifact/capture"
+	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
+	"go.temporal.io/server/tools/gomad3/internal/model/choice"
 )
 
 type ExecutionRequest struct {

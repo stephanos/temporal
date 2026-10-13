@@ -16,9 +16,9 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/internal/backends/native/build/internal/gocommand"
 	"go.temporal.io/server/tools/gomad3/internal/backends/native/build/internal/livecap"
-	"go.temporal.io/server/tools/gomad3/internal/host/exec"
-	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad3/internal/backends/target"
+	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
+	hostexec "go.temporal.io/server/tools/gomad3/internal/host/exec"
 )
 
 func sourceLinkedObject(t *testing.T, key string) []byte {

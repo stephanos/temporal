@@ -7,7 +7,7 @@ import (
 	"slices"
 	"strings"
 
-	"go.temporal.io/server/tools/gomad3/internal/evidence/artifact/capture"
+	captured "go.temporal.io/server/tools/gomad3/internal/evidence/artifact/capture"
 	"go.temporal.io/server/tools/gomad3/internal/model/volume"
 )
 

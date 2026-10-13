@@ -12,8 +12,8 @@ import (
 
 	targetbuild "go.temporal.io/server/tools/gomad3/internal/backends/native/build/internal/build"
 	"go.temporal.io/server/tools/gomad3/internal/backends/native/build/internal/gocommand"
-	"go.temporal.io/server/tools/gomad3/internal/host/exec"
 	"go.temporal.io/server/tools/gomad3/internal/backends/target"
+	hostexec "go.temporal.io/server/tools/gomad3/internal/host/exec"
 )
 
 const installationRepair = "; set --toolchain-root or GOMAD3_TOOLCHAIN_DIR to a complete Gomad installation"

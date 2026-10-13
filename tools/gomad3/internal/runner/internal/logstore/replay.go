@@ -8,7 +8,7 @@ import (
 	"io"
 	"os"
 
-	"go.temporal.io/server/tools/gomad3/internal/host/fs"
+	hostfs "go.temporal.io/server/tools/gomad3/internal/host/fs"
 )
 
 const replayBufferBytes = 64 << 10

@@ -17,7 +17,7 @@ test-wasm:
 		GOMAD3_STOCK_GO="$$stock_go" PATH="$$(dirname "$$stock_go"):$$PATH" \
 		"$$stock_go" test -tags test_dep -count=1 -timeout=15m \
 		-run '^TestWASMTestsDoNotImportNativeBuilder$$|^TestGeneratedProjectionMatchesNativeSources$$|^TestGeneratedNetworkIsCurrent$$|^TestProjection' \
-		./internal/backends/wasm ./volume ./internal/model/volume/internal/projection ./internal/model/network/generate && \
+		./internal/backends/wasm ./internal/model/volume ./internal/model/volume/internal/projection ./internal/model/network/generate && \
 	env -u GOROOT -u GOMADSEED -u GOMAD3_CHILD_SEED GOENV=off GOTOOLCHAIN=local GOWORK=off \
 		GOMAD3_STOCK_GO="$$stock_go" PATH="$$(dirname "$$stock_go"):$$PATH" \
 		"$$stock_go" test -v -tags test_dep -count=1 -timeout=15m ./internal/backends/wasm/...
@@ -136,8 +136,8 @@ qualification-set-merge: runner
 compatibility-pack-qualification: toolchain
 	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go run ./internal/backends/native/cmd/gomadtool compatibility-pack qualify --root=$(CURDIR) --all
 
-core-qualification-set: GOMAD3_QUALIFICATION_MANIFEST := $(CURDIR)/qualification/core.json
-core-qualification-set: GOMAD3_QUALIFICATION_WORKDIR := $(CURDIR)/qualification/corpus
+core-qualification-set: GOMAD3_QUALIFICATION_MANIFEST := $(CURDIR)/internal/evidence/qualification/core.json
+core-qualification-set: GOMAD3_QUALIFICATION_WORKDIR := $(CURDIR)/internal/evidence/qualification/corpus
 core-qualification-set: GOMAD3_QUALIFICATION_ARTIFACTS := $(CURDIR)/.toolchain/core-qualification
 core-qualification-set: GOMAD3_QUALIFICATION_OUTPUT := $(CURDIR)/.toolchain/core-qualification-set.json
 core-qualification-set: qualification-set
@@ -163,7 +163,8 @@ test-host: toolchain
 		./internal/backends/native/toolchain/version ./internal/backends/native/toolchain/installation \
 		./internal/backends/native/upgrade/... ./internal/backends/native/preparation/... ./internal/backends/native/qualification/... \
 		./internal/backends/native/generation/... ./internal/backends/native/build/... ./internal/backends/native/cmd/... \
-		./internal/backends/native/compatibilitypack/... ./internal/backends/native/sourceinventory ./internal/...
+		./internal/backends/native/compatibilitypack/... ./internal/backends/native/sourceinventory \
+		./internal/host/... ./internal/archcheck ./internal/model/iowire ./internal/model/strictjson
 
 # internal/gomadsim keeps its tests external because testing reaches the
 # package through os.
@@ -179,15 +180,15 @@ overlay-test: toolchain
 	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOEXPERIMENT=nogreenteagc GOWORK=off \
 		.toolchain/bin/go run ./internal/backends/native/toolchain/runtime/testdata/vfdnative -root=$(CURDIR) -go=$(CURDIR)/.toolchain/bin/go
 
-# The gomad3_toolchain tests of the root module's tools/gomad3/internal/model/cluster need a seeded
+# The gomad3_toolchain tests of internal/model/cluster need a seeded
 # runtime, so they run through the exec wrapper. The tests that need the
 # Runner's simulation transport skip there; the integration-tagged Runner test
 # is their executor. The strict node-clock delay test has a recorded watchdog
 # failure and remains a finding; its forward-mode regression runs separately.
 test-simulation: toolchain
-	cd $(CURDIR)/../.. && env -u GOMADSEED CGO_ENABLED=0 GOEXPERIMENT=nogreenteagc GOTOOLCHAIN=local GOWORK=off TZ=UTC GOMAD3_CHILD_SEED=89 \
+	env -u GOMADSEED CGO_ENABLED=0 GOEXPERIMENT=nogreenteagc GOTOOLCHAIN=local GOWORK=off TZ=UTC GOMAD3_CHILD_SEED=89 \
 		$(CURDIR)/.toolchain/bin/go test -exec $(CURDIR)/internal/backends/native/conformance/scripts/exec.sh \
-		-count=1 -tags test_dep,gomad3_toolchain ./tools/gomad3/internal/model/cluster
+		-count=1 -tags test_dep,gomad3_toolchain ./internal/model/cluster
 	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep,integration \
 		-run '^TestRootProcessSimulationUsesRunnerTransport$$/^Test(Scenario|ProcessExploration|ProcessAndInProcess|ProcessNetwork(Handle|HeldFIFO|StallExpiry|StallOrdering|PartitionedDialStall|FramedPartition)|ProcessFilesystemHandle|ProcessBackend(Carries|Resets|Routes|Preserves|Crash|Model))' ./internal/runner/internal/exploration
 	env -u GOMADSEED -u GOMAD3_CHILD_SEED GOWORK=off .toolchain/bin/go test -count=1 -tags test_dep,integration \

@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"sort"
 
-	iowire "go.temporal.io/server/tools/gomad3/internal/model/iowire"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
+	iowire "go.temporal.io/server/tools/gomad3/internal/model/iowire"
 )
 
 func DecodeSemanticCoverage(transcript []byte) (record.SemanticCoverage, error) {

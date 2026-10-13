@@ -13,7 +13,7 @@ import (
 	"testing"
 	"time"
 
-	"go.temporal.io/server/tools/gomad3/internal/host/exec"
+	hostexec "go.temporal.io/server/tools/gomad3/internal/host/exec"
 )
 
 const limitedPublicationRoot = "GOMAD3_UPGRADE_LIMITED_PUBLICATION_ROOT"

@@ -9,8 +9,8 @@ import (
 	"fmt"
 	"strings"
 
-	"go.temporal.io/server/tools/gomad3/internal/model/strictjson"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
+	"go.temporal.io/server/tools/gomad3/internal/model/strictjson"
 )
 
 type Expectation struct {

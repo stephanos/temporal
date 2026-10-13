@@ -7,9 +7,9 @@ import (
 	"strings"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/internal/host/exec"
 	gomadqualification "go.temporal.io/server/tools/gomad3/internal/evidence/qualification"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
+	hostexec "go.temporal.io/server/tools/gomad3/internal/host/exec"
 )
 
 func TestPublicationReceiptBindsTerminalObservation(t *testing.T) {

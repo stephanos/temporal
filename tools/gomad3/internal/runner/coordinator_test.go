@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 	"io"
 	"os"
 	"os/exec"
@@ -25,6 +24,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/internal/backends/native/transcript"
 	"go.temporal.io/server/tools/gomad3/internal/backends/target"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
+	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 )
 
 func TestDecodeCoordinatorMessagesForwardsProgressAndFinalResponse(t *testing.T) {

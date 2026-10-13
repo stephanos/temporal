@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	iowire "go.temporal.io/server/tools/gomad3/internal/model/iowire"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
+	iowire "go.temporal.io/server/tools/gomad3/internal/model/iowire"
 )
 
 func TestSemanticCoverageEmptyCanonicalBytes(t *testing.T) {

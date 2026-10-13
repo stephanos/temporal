@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"text/scanner"
 
-	"go.temporal.io/server/tools/gomad3/internal/host/fs"
+	hostfs "go.temporal.io/server/tools/gomad3/internal/host/fs"
 )
 
 func assemblyIncludes(file, packageDirectory, sourceDirectory, includeDirectory string, files, visited map[string]bool) error {

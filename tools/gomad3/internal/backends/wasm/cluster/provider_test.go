@@ -20,12 +20,12 @@ import (
 	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/internal/stockgo"
 	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/toolchain"
 	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/wasi"
-	"go.temporal.io/server/tools/gomad3/internal/model/choice"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
+	"go.temporal.io/server/tools/gomad3/internal/model/choice"
+	gomad3sim "go.temporal.io/server/tools/gomad3/internal/model/cluster"
 	netmodel "go.temporal.io/server/tools/gomad3/internal/model/network"
 	"go.temporal.io/server/tools/gomad3/internal/model/volume"
 	"go.temporal.io/server/tools/gomad3/internal/model/world"
-	gomad3sim "go.temporal.io/server/tools/gomad3/internal/model/cluster"
 )
 
 func TestProviderMandatoryCleanupReapsWithoutLifecycleActions(t *testing.T) {

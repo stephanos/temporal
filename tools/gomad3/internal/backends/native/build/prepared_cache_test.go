@@ -12,7 +12,7 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/internal/backends/native/toolchain/installation"
 	"go.temporal.io/server/tools/gomad3/internal/backends/target"
-	"go.temporal.io/server/tools/gomad3/internal/host/fs"
+	hostfs "go.temporal.io/server/tools/gomad3/internal/host/fs"
 )
 
 func TestPrepareRestoresCachedTargetForIdenticalInputs(t *testing.T) {

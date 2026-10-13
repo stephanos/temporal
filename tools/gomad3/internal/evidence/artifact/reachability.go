@@ -13,8 +13,8 @@ import (
 	"slices"
 	"strings"
 
-	"go.temporal.io/server/tools/gomad3/internal/host/fs"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
+	hostfs "go.temporal.io/server/tools/gomad3/internal/host/fs"
 )
 
 // References is the live state that an owner's final committed state

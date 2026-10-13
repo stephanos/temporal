@@ -12,16 +12,16 @@ import (
 	"time"
 
 	runnerbackend "go.temporal.io/server/tools/gomad3/internal/backends"
-	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/backend"
-	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/cluster"
-	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/wasi"
-	"go.temporal.io/server/tools/gomad3/internal/model/choice"
-	"go.temporal.io/server/tools/gomad3/internal/host/exec"
-	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
-	"go.temporal.io/server/tools/gomad3/internal/runner"
 	"go.temporal.io/server/tools/gomad3/internal/backends/target"
-	"go.temporal.io/server/tools/gomad3/internal/model/volume"
+	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/backend"
+	simulation "go.temporal.io/server/tools/gomad3/internal/backends/wasm/cluster"
+	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/wasi"
+	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
+	hostexec "go.temporal.io/server/tools/gomad3/internal/host/exec"
+	"go.temporal.io/server/tools/gomad3/internal/model/choice"
 	gomad3sim "go.temporal.io/server/tools/gomad3/internal/model/cluster"
+	"go.temporal.io/server/tools/gomad3/internal/model/volume"
+	"go.temporal.io/server/tools/gomad3/internal/runner"
 )
 
 // The canary really omits SQLite's sync. Expected history remains [1,2] and is

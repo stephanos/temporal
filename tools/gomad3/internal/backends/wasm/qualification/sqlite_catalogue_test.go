@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/internal/host/exec"
+	hostexec "go.temporal.io/server/tools/gomad3/internal/host/exec"
 	gomad3sim "go.temporal.io/server/tools/gomad3/internal/model/cluster"
 )
 

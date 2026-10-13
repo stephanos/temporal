@@ -12,7 +12,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"go.temporal.io/server/tools/gomad3/internal/host/exec"
+	hostexec "go.temporal.io/server/tools/gomad3/internal/host/exec"
 )
 
 func (campaign *runtimeCampaign) requireRepeatability(binaries map[string]string) error {

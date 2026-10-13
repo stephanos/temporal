@@ -19,9 +19,8 @@ const (
 	Version2 = wire.Version2
 	Version3 = wire.Version3
 
-	// SupersededProfile is the v2 profile, whose select results recorded no
-	// readiness. Its traces are refused by name; LegacyProfile keeps v1
-	// inspectable.
+	// Superseded profiles are refused by name rather than decoded as current evidence.
+	LegacyProfile     = "gomad3-choice-trace/v1"
 	SupersededProfile = "gomad3-choice-trace/v2"
 )
 

@@ -23,7 +23,7 @@ import (
 	compatibility "go.temporal.io/server/tools/gomad3/internal/backends/native/compatibilitypack"
 	gomadversion "go.temporal.io/server/tools/gomad3/internal/backends/native/toolchain/version"
 	"go.temporal.io/server/tools/gomad3/internal/backends/native/transcript"
-	"go.temporal.io/server/tools/gomad3/internal/host/exec"
+	hostexec "go.temporal.io/server/tools/gomad3/internal/host/exec"
 )
 
 const (

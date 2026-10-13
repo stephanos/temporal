@@ -461,10 +461,7 @@ pub fn execute() -> Result<()> {
     std::mem::forget((store, linker, module, engine));
     sent
 }
-fn prepare(
-    request: &Execute,
-    metrics: &mut crate::metrics::Metrics,
-) -> std::result::Result<(Engine, Module, Value), Outcome> {
+fn module_bytes(request: &Execute) -> std::result::Result<Vec<u8>, Outcome> {
     #[cfg(feature = "diagnostic-profile")]
     let diagnostic_phase = crate::diagnostic::PhaseSpan::new(crate::diagnostic::Phase::ModuleRead);
     let file = std::fs::File::open(&request.module_path)
@@ -485,6 +482,12 @@ fn prepare(
     }
     #[cfg(feature = "diagnostic-profile")]
     drop(diagnostic_phase);
+    Ok(bytes)
+}
+fn prepare(
+    request: &Execute,
+    metrics: &mut crate::metrics::Metrics,
+) -> std::result::Result<(Engine, Module, Value), Outcome> {
     #[cfg(feature = "diagnostic-profile")]
     let diagnostic_phase = crate::diagnostic::PhaseSpan::new(crate::diagnostic::Phase::EngineInit);
     let mut config = Config::new();
@@ -502,10 +505,14 @@ fn prepare(
     #[cfg(feature = "diagnostic-profile")]
     drop(diagnostic_phase);
     let module = match &request.compile_cache {
-        Some(directory) => {
-            crate::cache::module(&engine, &bytes, directory, &request.module_sha256, metrics)?
-        }
-        None => compile(&engine, &bytes, metrics)?,
+        Some(directory) => crate::cache::module(
+            &engine,
+            || module_bytes(request),
+            directory,
+            &request.module_sha256,
+            metrics,
+        )?,
+        None => compile(&engine, &module_bytes(request)?, metrics)?,
     };
     let resources = module.resources_required();
     if resources.num_tables > 8

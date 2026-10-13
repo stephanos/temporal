@@ -10,8 +10,8 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/internal/backends/native/build/internal/capabilitypolicy"
 	compatibility "go.temporal.io/server/tools/gomad3/internal/backends/native/compatibilitypack"
-	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad3/internal/backends/target"
+	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
 )
 
 // Capability evaluation is pure: it judges collected or recorded evidence

@@ -10,8 +10,8 @@ import (
 	"strings"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/cluster"
-	"go.temporal.io/server/tools/gomad3/internal/host/fs"
+	simulation "go.temporal.io/server/tools/gomad3/internal/backends/wasm/cluster"
+	hostfs "go.temporal.io/server/tools/gomad3/internal/host/fs"
 	gomad3sim "go.temporal.io/server/tools/gomad3/internal/model/cluster"
 )
 

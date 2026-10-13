@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -21,6 +20,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/internal/model/strictjson"
 	"go.temporal.io/server/tools/gomad3/internal/runner/inspect"
 	"go.temporal.io/server/tools/gomad3/internal/runner/internal/campaign"
+	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 )
 
 func TestCreateCampaignPlanPublishesStablePreparedTargetBundle(t *testing.T) {

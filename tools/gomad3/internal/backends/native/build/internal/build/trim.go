@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"sort"
 
-	"go.temporal.io/server/tools/gomad3/internal/host/fs"
+	hostfs "go.temporal.io/server/tools/gomad3/internal/host/fs"
 )
 
 // MaximumCacheBytes bounds the target build cache. Every go build stores its

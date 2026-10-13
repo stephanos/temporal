@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad3/internal/backends/target"
+	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
 )
 
 // PreparedIdentity exposes already frozen build inventories to qualification,

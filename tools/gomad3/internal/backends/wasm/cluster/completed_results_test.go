@@ -5,10 +5,10 @@ import (
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/wasi"
+	hostexec "go.temporal.io/server/tools/gomad3/internal/host/exec"
 	"go.temporal.io/server/tools/gomad3/internal/model/choice"
-	"go.temporal.io/server/tools/gomad3/internal/host/exec"
-	"go.temporal.io/server/tools/gomad3/internal/model/volume"
 	gomad3sim "go.temporal.io/server/tools/gomad3/internal/model/cluster"
+	"go.temporal.io/server/tools/gomad3/internal/model/volume"
 )
 
 func TestCompletedSummariesDetachCountersWithoutEvidencePayloads(t *testing.T) {

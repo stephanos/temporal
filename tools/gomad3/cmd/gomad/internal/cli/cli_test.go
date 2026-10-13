@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -36,6 +35,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/internal/model/choice"
 	"go.temporal.io/server/tools/gomad3/internal/runner"
 	"go.temporal.io/server/tools/gomad3/internal/runner/inspect"
+	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 )
 
 func TestByteSizeFlagParsesBinaryUnitsCanonically(t *testing.T) {

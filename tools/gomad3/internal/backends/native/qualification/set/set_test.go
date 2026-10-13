@@ -16,11 +16,11 @@ import (
 
 	capabilityanalysis "go.temporal.io/server/tools/gomad3/internal/backends/native/qualification/analysis"
 	"go.temporal.io/server/tools/gomad3/internal/backends/native/transcript"
-	"go.temporal.io/server/tools/gomad3/internal/model/choice"
-	"go.temporal.io/server/tools/gomad3/internal/model/strictjson"
+	"go.temporal.io/server/tools/gomad3/internal/backends/target"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/qualification"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
-	"go.temporal.io/server/tools/gomad3/internal/backends/target"
+	"go.temporal.io/server/tools/gomad3/internal/model/choice"
+	"go.temporal.io/server/tools/gomad3/internal/model/strictjson"
 )
 
 func TestRunPublishesCheckedExpectedBoundaryEvidence(t *testing.T) {

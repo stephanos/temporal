@@ -1,10 +1,10 @@
 package wire
 
 import (
-	"go.temporal.io/server/tools/gomad3/internal/model/cluster/internal/history"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.temporal.io/server/tools/gomad3/internal/model/cluster/internal/history"
 )
 
 func TestRuntimeVolumeWireConfigProjectsMountedCapacitiesAndReplay(t *testing.T) {

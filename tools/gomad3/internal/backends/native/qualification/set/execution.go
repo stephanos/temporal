@@ -10,12 +10,12 @@ import (
 	"strings"
 	"time"
 
-	"go.temporal.io/server/tools/gomad3/internal/evidence/artifact"
 	capabilityanalysis "go.temporal.io/server/tools/gomad3/internal/backends/native/qualification/analysis"
-	"go.temporal.io/server/tools/gomad3/internal/model/choice"
+	"go.temporal.io/server/tools/gomad3/internal/backends/target"
+	"go.temporal.io/server/tools/gomad3/internal/evidence/artifact"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/qualification"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
-	"go.temporal.io/server/tools/gomad3/internal/backends/target"
+	"go.temporal.io/server/tools/gomad3/internal/model/choice"
 )
 
 // maximumAnalysisTimeout is the largest --timeout gomad analyze accepts.

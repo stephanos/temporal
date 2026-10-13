@@ -18,10 +18,10 @@ import (
 
 	targetbuild "go.temporal.io/server/tools/gomad3/internal/backends/native/build/internal/build"
 	"go.temporal.io/server/tools/gomad3/internal/backends/native/toolchain/installation"
-	"go.temporal.io/server/tools/gomad3/internal/host/fs"
-	"go.temporal.io/server/tools/gomad3/internal/model/strictjson"
-	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad3/internal/backends/target"
+	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
+	hostfs "go.temporal.io/server/tools/gomad3/internal/host/fs"
+	"go.temporal.io/server/tools/gomad3/internal/model/strictjson"
 )
 
 const preparedTargetSchema = "gomad3.prepared-target/v2"

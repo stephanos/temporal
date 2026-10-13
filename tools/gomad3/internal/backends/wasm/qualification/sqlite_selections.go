@@ -6,12 +6,12 @@ import (
 	"reflect"
 	"strings"
 
-	"go.temporal.io/server/tools/gomad3/internal/evidence/artifact"
-	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/cluster"
-	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad3/internal/backends/target"
-	"go.temporal.io/server/tools/gomad3/internal/model/volume"
+	simulation "go.temporal.io/server/tools/gomad3/internal/backends/wasm/cluster"
+	"go.temporal.io/server/tools/gomad3/internal/evidence/artifact"
+	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
 	gomad3sim "go.temporal.io/server/tools/gomad3/internal/model/cluster"
+	"go.temporal.io/server/tools/gomad3/internal/model/volume"
 )
 
 // ValidateSQLiteSelectionCoverage checks coverage against an actual complete

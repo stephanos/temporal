@@ -5,8 +5,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	backend "go.temporal.io/server/tools/gomad3/internal/backends"
-	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 	"io"
 	"io/fs"
 	"os"
@@ -18,12 +16,14 @@ import (
 	"testing"
 	"time"
 
+	backend "go.temporal.io/server/tools/gomad3/internal/backends"
 	"go.temporal.io/server/tools/gomad3/internal/backends/target"
 	qualificationworkload "go.temporal.io/server/tools/gomad3/internal/backends/wasm/qualification"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/artifact"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/qualification"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad3/internal/runner"
+	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 )
 
 // Characterization of the gomad command grammar, defaults, output routing and
@@ -1152,7 +1152,7 @@ func TestCharacterizeHiddenPlanFlag(t *testing.T) {
 // move and before artifacts declared a storage lineage. The native fn-113
 // pre-move artifact is no longer read: historical artifacts are not reopened
 // by the new build.
-const preMoveWASMArtifact = "../../../../backends/wasm/backend/testdata/premove-stock-artifact"
+const preMoveWASMArtifact = "../../../../internal/backends/wasm/backend/testdata/premove-stock-artifact"
 
 // stageRetainedArtifact copies a checked-in artifact with the private modes
 // that OpenArtifact requires and version control does not keep.

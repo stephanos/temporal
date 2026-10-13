@@ -12,7 +12,7 @@ pub fn signature(module: &str, name: &str) -> Option<(Vec<&'static str>, Vec<&'s
     }
     if module == "gomad_wasm_v1" {
         return match name {
-            "config" | "decision" | "observation" | "finish" | "idle" | "net" => {
+            "config" | "decision" | "observation" | "finish" | "idle" => {
                 Some((vec!["i32", "i32"], vec!["i32"]))
             }
             _ => None,
@@ -653,7 +653,6 @@ fn invoke_runtime(
     let input = (|| -> Result<Vec<u8>> {
         let maximum = match op {
             "config" | "finish" | "idle" => 16,
-            "net" => 32,
             "net_stream" => 64 + 64 * 1024,
             "decision" => 32 + 256 * 32 + 96,
             "observation" => 192,
@@ -665,7 +664,6 @@ fn invoke_runtime(
         let valid_length = match op {
             "decision" => length >= 96 && (length - 32).is_multiple_of(32),
             "observation" => length == 96 || length == 192,
-            "net" => length == 32,
             "net_stream" => (64..=64 + 64 * 1024).contains(&length),
             _ => length == 16,
         };

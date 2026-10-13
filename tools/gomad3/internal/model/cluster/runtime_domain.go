@@ -2,8 +2,9 @@ package cluster
 
 import (
 	"errors"
-	"go.temporal.io/server/tools/gomad3/internal/model/cluster/internal/wire"
 	_ "unsafe"
+
+	"go.temporal.io/server/tools/gomad3/internal/model/cluster/internal/wire"
 )
 
 var ErrRuntimeUnavailable = errors.New("gomad3 simulation runtime is unavailable")

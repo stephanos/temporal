@@ -15,8 +15,8 @@ import (
 	"sort"
 	"strings"
 
-	"go.temporal.io/server/tools/gomad3/internal/host/fs"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
+	hostfs "go.temporal.io/server/tools/gomad3/internal/host/fs"
 )
 
 type Store struct {

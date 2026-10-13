@@ -4,13 +4,12 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
-
-	"go.temporal.io/server/tools/gomad3/internal/model/cluster/internal/wire"
 	"math"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.temporal.io/server/tools/gomad3/internal/model/cluster/internal/wire"
 )
 
 func TestClusterRecordCanonicalRoundTripIncludesLimitsAndLimitations(t *testing.T) {

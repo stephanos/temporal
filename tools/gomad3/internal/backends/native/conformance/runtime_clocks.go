@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"go.temporal.io/server/tools/gomad3/internal/host/exec"
+	hostexec "go.temporal.io/server/tools/gomad3/internal/host/exec"
 )
 
 func (campaign *runtimeCampaign) requireClockBehavior(binaries map[string]string) error {

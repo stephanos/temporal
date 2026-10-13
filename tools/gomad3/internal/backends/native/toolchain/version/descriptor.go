@@ -13,7 +13,7 @@ import (
 	"slices"
 	"strings"
 
-	"go.temporal.io/server/tools/gomad3/internal/host/fs"
+	hostfs "go.temporal.io/server/tools/gomad3/internal/host/fs"
 	"golang.org/x/mod/module"
 )
 

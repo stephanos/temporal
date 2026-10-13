@@ -10,9 +10,9 @@ import (
 	"sort"
 	"strings"
 
-	"go.temporal.io/server/tools/gomad3/internal/evidence/artifact/capture"
-	"go.temporal.io/server/tools/gomad3/internal/host/fs"
+	captured "go.temporal.io/server/tools/gomad3/internal/evidence/artifact/capture"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
+	hostfs "go.temporal.io/server/tools/gomad3/internal/host/fs"
 )
 
 const campaignPlanMountDirectory = "mounts"

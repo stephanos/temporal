@@ -2,17 +2,17 @@ package runner
 
 import (
 	"fmt"
-	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 	"path/filepath"
 	"sort"
 	"strings"
 
 	"go.temporal.io/server/tools/gomad3/internal/backends/target"
-	"go.temporal.io/server/tools/gomad3/internal/evidence/artifact/capture"
+	captured "go.temporal.io/server/tools/gomad3/internal/evidence/artifact/capture"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad3/internal/model/choice"
 	"go.temporal.io/server/tools/gomad3/internal/runner/internal/campaign"
 	"go.temporal.io/server/tools/gomad3/internal/runner/internal/exploration"
+	campaignoptions "go.temporal.io/server/tools/gomad3/internal/runner/options"
 )
 
 func campaignPlan(config campaignRequest, journal *campaign.CampaignJournal, prepared target.Prepared, environment []record.Environment, mounts []captured.Mapping, selectionCount uint64) (campaign.CampaignPlan, error) {

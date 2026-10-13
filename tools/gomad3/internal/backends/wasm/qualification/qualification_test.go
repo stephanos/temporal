@@ -11,7 +11,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/backend"
 	gomadqualification "go.temporal.io/server/tools/gomad3/internal/evidence/qualification"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
-	"go.temporal.io/server/tools/gomad3/internal/host/exec"
+	hostexec "go.temporal.io/server/tools/gomad3/internal/host/exec"
 )
 
 func TestResultRetainsCanonicalOwnerBytesSourceLess(t *testing.T) {

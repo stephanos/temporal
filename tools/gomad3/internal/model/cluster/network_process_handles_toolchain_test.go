@@ -7,7 +7,6 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
-	"go.temporal.io/server/tools/gomad3/internal/model/cluster/internal/wire"
 	"io"
 	"net"
 	"strings"
@@ -15,6 +14,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"go.temporal.io/server/tools/gomad3/internal/model/cluster/internal/wire"
 )
 
 func TestProcessNetworkHandleFaultConformance(t *testing.T) {

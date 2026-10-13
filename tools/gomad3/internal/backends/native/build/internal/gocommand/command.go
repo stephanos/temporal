@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"time"
 
-	"go.temporal.io/server/tools/gomad3/internal/host/exec"
+	hostexec "go.temporal.io/server/tools/gomad3/internal/host/exec"
 )
 
 const defaultTimeout = 15 * time.Minute

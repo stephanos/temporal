@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	gomadversion "go.temporal.io/server/tools/gomad3/internal/backends/native/toolchain/version"
-	"go.temporal.io/server/tools/gomad3/internal/host/fs"
+	hostfs "go.temporal.io/server/tools/gomad3/internal/host/fs"
 )
 
 // canonicalPatchContext is the number of unchanged lines the checked-in patch

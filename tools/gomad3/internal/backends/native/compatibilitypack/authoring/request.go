@@ -10,9 +10,9 @@ import (
 	"unicode/utf8"
 
 	compatibility "go.temporal.io/server/tools/gomad3/internal/backends/native/compatibilitypack"
-	"go.temporal.io/server/tools/gomad3/internal/model/strictjson"
-	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad3/internal/backends/target"
+	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
+	"go.temporal.io/server/tools/gomad3/internal/model/strictjson"
 	"golang.org/x/mod/module"
 )
 

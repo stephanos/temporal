@@ -11,11 +11,11 @@ import (
 	"slices"
 	"unicode/utf8"
 
-	"go.temporal.io/server/tools/gomad3/internal/evidence/artifact/capture"
-	"go.temporal.io/server/tools/gomad3/internal/host/fs"
-	"go.temporal.io/server/tools/gomad3/internal/model/strictjson"
-	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad3/internal/backends/target"
+	captured "go.temporal.io/server/tools/gomad3/internal/evidence/artifact/capture"
+	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
+	hostfs "go.temporal.io/server/tools/gomad3/internal/host/fs"
+	"go.temporal.io/server/tools/gomad3/internal/model/strictjson"
 )
 
 const (
