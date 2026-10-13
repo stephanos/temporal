@@ -239,6 +239,7 @@ These fn-109 tasks change Runner, artifact, choice-exploration and simulation ow
 | Name / ID | Status | Description |
 | --- | --- | --- |
 | [fn-153.18](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.18.md) | 🚧 In progress | Reconcile contracts and verify the integrated cleanup |
+| [fn-153.20](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.20.md) | ⬜ Todo | Replace the remaining WASM strict JSON scanners with the shared decoder |
 
 <a id="virtual-network-stalling-fn-154"></a>
 
