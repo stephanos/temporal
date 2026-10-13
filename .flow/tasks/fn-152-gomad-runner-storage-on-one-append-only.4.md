@@ -49,9 +49,10 @@ Follow the parent spec's Delivery and verification section. Retain exact selecto
 - Diagnostics under `diagnostics/` are validated but never swept; sweep them once every sidecar is recorded in receipts.
 
 ## Done summary
-TBD
+Seed campaigns run on durable Admit/RecordReceipt/CommitOutcome/CommitStopGroup with resume from the frontier; counters change only after durability; SeedController replaced by CampaignStatistics+PolicyStop; publish summary validation restored; logstore creates its directory under any umask; diagnostics swept. Failure sets unchanged; test-wasm 0 failures; identity paths unchanged.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 667de6ea60
+- Tests: TestSeedCampaignResumesEveryAppendFaultToTheUninterruptedOutcome, TestSeedCampaignRepeatedResumeConverges, TestWriterCreatesStoreUnderAFullUmask, go test ./runner/... ./cmd/gomad/... ./backends/wasm/... (failure set unchanged), -race ./runner/internal/..., make validate, lint-code-fast, make test-wasm, evidence: .flow/artifacts/wasm-section-acceptance-2026-10-12.md
 - PRs:
