@@ -91,7 +91,8 @@ func runCampaignShardWith(ctx context.Context, spec CampaignShardSpec, dependenc
 		Diagnostics: campaignPlanDiagnostics(plan), ChoiceTraceLimit: campaignPlanChoiceLimit(plan.ChoiceProfile), ClockTick: clockTick, IOTranscriptLimit: uint64(plan.IOTranscriptBytes), Artifacts: spec.Artifacts, Environment: environment,
 		IOROMounts: campaign.PlanRuntimeMountValues(mappings), IOROMountLimits: mountLimits,
 		Target: target.Spec{
-			Kind: target.Kind(targetRecord.Kind), Source: targetRecord.Source, Args: append([]string(nil), targetRecord.Argv[1:]...), BuildTags: append([]string(nil), targetRecord.BuildTags...),
+			SoftAssertionReportOnly: targetRecord.SoftAssertionReportOnly,
+			Kind:                    target.Kind(targetRecord.Kind), Source: targetRecord.Source, Args: append([]string(nil), targetRecord.Argv[1:]...), BuildTags: append([]string(nil), targetRecord.BuildTags...),
 			WorkingDir: filepath.Dir(opened.Path), ToolchainRoot: spec.ToolchainRoot, CapabilityMode: target.CapabilityMode(targetRecord.CapabilityMode),
 		},
 		RunnerBuild: spec.RunnerBuild,

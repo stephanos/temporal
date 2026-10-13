@@ -186,17 +186,18 @@ type ArtifactInspection struct {
 }
 
 type TargetReport struct {
-	Kind               string                           `json:"kind"`
-	Source             string                           `json:"source"`
-	SHA256             record.SHA256                    `json:"sha256"`
-	Size               uint64                           `json:"size"`
-	Argv               []string                         `json:"argv"`
-	BuildTags          []string                         `json:"build_tags"`
-	Adapters           []record.TargetAdapter           `json:"adapters"`
-	Compatibility      []record.CompatibilityPack       `json:"compatibility"`
-	BuildInfo          record.BuildInfo                 `json:"build_info"`
-	CapabilityMode     string                           `json:"capability_mode"`
-	CapabilityManifest *record.TargetCapabilityManifest `json:"capability_manifest,omitempty"`
+	SoftAssertionReportOnly bool                             `json:"soft_assertion_report_only,omitempty"`
+	Kind                    string                           `json:"kind"`
+	Source                  string                           `json:"source"`
+	SHA256                  record.SHA256                    `json:"sha256"`
+	Size                    uint64                           `json:"size"`
+	Argv                    []string                         `json:"argv"`
+	BuildTags               []string                         `json:"build_tags"`
+	Adapters                []record.TargetAdapter           `json:"adapters"`
+	Compatibility           []record.CompatibilityPack       `json:"compatibility"`
+	BuildInfo               record.BuildInfo                 `json:"build_info"`
+	CapabilityMode          string                           `json:"capability_mode"`
+	CapabilityManifest      *record.TargetCapabilityManifest `json:"capability_manifest,omitempty"`
 	// Sharing is "shared" when the inspected artifact's target file has other
 	// hard links, as a target linked to a store's pool has, and "private" when
 	// the artifact holds the only link. It is read from the link count alone:
@@ -205,14 +206,15 @@ type TargetReport struct {
 }
 
 type OutcomeReport struct {
-	Domain           string        `json:"domain"`
-	Reason           string        `json:"reason"`
-	Termination      string        `json:"termination"`
-	ExitCode         *uint64       `json:"exit_code,omitempty"`
-	Signal           *string       `json:"signal,omitempty"`
-	Deadline         *string       `json:"deadline,omitempty"`
-	FailureSignature record.SHA256 `json:"failure_signature"`
-	ReplayMatch      *bool         `json:"replay_match,omitempty"`
+	SoftAssertions   *record.SoftAssertions `json:"soft_assertions,omitempty"`
+	Domain           string                 `json:"domain"`
+	Reason           string                 `json:"reason"`
+	Termination      string                 `json:"termination"`
+	ExitCode         *uint64                `json:"exit_code,omitempty"`
+	Signal           *string                `json:"signal,omitempty"`
+	Deadline         *string                `json:"deadline,omitempty"`
+	FailureSignature record.SHA256          `json:"failure_signature"`
+	ReplayMatch      *bool                  `json:"replay_match,omitempty"`
 }
 
 type Transcript struct {
@@ -732,7 +734,8 @@ func projectArtifact(manifest record.ExecutionRecord, path string) ArtifactInspe
 		SelectionOrdinal: uint64(manifest.SelectionOrdinal), Seed: uint64(manifest.Seed), ReplayMode: manifest.ReplayMode,
 		Runner: manifest.Runner, Toolchain: manifest.Toolchain,
 		Target: TargetReport{
-			Kind: manifest.Target.Kind, Source: manifest.Target.Source, SHA256: manifest.Target.SHA256, Size: uint64(manifest.Target.Size),
+			SoftAssertionReportOnly: manifest.Target.SoftAssertionReportOnly,
+			Kind:                    manifest.Target.Kind, Source: manifest.Target.Source, SHA256: manifest.Target.SHA256, Size: uint64(manifest.Target.Size),
 			Argv: append([]string(nil), manifest.Target.Argv...), BuildTags: append([]string(nil), manifest.Target.BuildTags...), Adapters: append([]record.TargetAdapter(nil), manifest.Target.Adapters...), Compatibility: append([]record.CompatibilityPack(nil), manifest.Target.Compatibility...), BuildInfo: manifest.Target.BuildInfo,
 			CapabilityMode: manifest.Target.CapabilityMode, CapabilityManifest: cloneTargetCapabilityEvidence(manifest.Target.CapabilityManifest),
 		},
@@ -792,6 +795,11 @@ func projectOutcome(outcome record.Outcome) OutcomeReport {
 	result := OutcomeReport{
 		Domain: outcome.Domain, Reason: outcome.Reason, Termination: outcome.Termination, Signal: outcome.Signal,
 		Deadline: outcome.Deadline, FailureSignature: outcome.FailureSignature, ReplayMatch: outcome.ReplayMatch,
+	}
+	if outcome.SoftAssertions != nil {
+		assertions := *outcome.SoftAssertions
+		assertions.Messages = append([]string(nil), assertions.Messages...)
+		result.SoftAssertions = &assertions
 	}
 	if outcome.ExitCode != nil {
 		value := uint64(*outcome.ExitCode)

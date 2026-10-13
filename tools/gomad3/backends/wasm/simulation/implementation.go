@@ -11,12 +11,12 @@ import (
 	"go.temporal.io/server/tools/gomad3sim"
 )
 
-//go:embed implementation.go oracles.go provider.go replay.go retained.go
+//go:embed implementation.go oracles.go provider.go replay.go retained.go soft_assertion.go
 var implementationSources embed.FS
 
 func ImplementationSHA256() string {
 	data := []byte("gomad3-wasm-simulation-implementation/v1\n")
-	for _, name := range []string{"implementation.go", "oracles.go", "provider.go", "replay.go", "retained.go"} {
+	for _, name := range []string{"implementation.go", "oracles.go", "provider.go", "replay.go", "retained.go", "soft_assertion.go"} {
 		source, err := implementationSources.ReadFile(name)
 		if err != nil {
 			return ""

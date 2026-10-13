@@ -8,9 +8,12 @@ import (
 func TestObserveStaticMessagesFromBothStreams(t *testing.T) {
 	for _, test := range []struct {
 		name, output string
-		want []string
+		want         []string
 	}{
 		{"json", `{"msg":"failed assertion: invalid state","failed-assertion":true,"seed":7}`, []string{"invalid state"}},
+		{"test logger json", `    fixture.go:42: {"msg":"failed assertion: invalid state","failed-assertion":true,"seed":7}`, []string{"invalid state"}},
+		{"alternate shared tag", `{"msg":"invalid state","FailedAssertion":true,"seed":7}`, []string{"invalid state"}},
+		{"console shared tag", "2000-01-01\terror\tinvalid state\t{\"failed-assertion\":true,\"seed\":7}", []string{"invalid state"}},
 		{"tag", `{"message":"invalid state","failed-assertion":true,"seed":8}`, []string{"invalid state"}},
 		{"console", "PASS\n2000-01-01\terror\tfailed assertion: invalid state\t{\"seed\":9}", []string{"invalid state"}},
 		{"plain", "PASS\nfailed assertion: invalid state", []string{"invalid state"}},
@@ -35,6 +38,7 @@ func TestObserveIncompleteEvidenceNeverPasses(t *testing.T) {
 		{0xff},
 		[]byte(`{"msg":"failed assertion: broken`),
 		[]byte(`{"failed-assertion":true}`),
+		[]byte(`{"msg":"failed assertion: broken","failed-assertion":"true"}`),
 		[]byte("failed assertion: "),
 	} {
 		if got := Observe(output, nil, true); got.Complete {

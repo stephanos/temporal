@@ -183,7 +183,7 @@ func run(ctx context.Context, spec Spec, scenario Scenario, wasm WASMExecution) 
 		wasmEvidence = cloneWASMExecution(evidence.Execution)
 		if err == nil {
 			for _, oracle := range evidence.Oracles {
-				if err := cluster.RecordOracle(context.WithoutCancel(ctx), oracle); err != nil {
+				if err := cluster.recordOracle(oracle); err != nil {
 					finishErr = err
 					break
 				}
@@ -224,6 +224,12 @@ func run(ctx context.Context, spec Spec, scenario Scenario, wasm WASMExecution) 
 		} else if failed := firstFailedOracle(result.Oracles); failed != nil {
 			result.Outcome = OutcomeOracleFailed
 			result.Reason = boundedTerminalText("oracle " + failed.Name + " failed")
+			if failed.SoftAssertion {
+				result.Reason = "soft_assertion"
+				if failed.Inconclusive {
+					result.Reason = "soft_assertion_inconclusive"
+				}
+			}
 			result.FailureIdentity = failed.FailureIdentity
 		} else {
 			result.Outcome = OutcomeCompleted

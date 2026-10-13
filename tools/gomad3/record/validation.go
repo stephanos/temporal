@@ -94,6 +94,9 @@ func validateManifest(manifest ExecutionRecord, requireIdentities bool) error {
 		return fmt.Errorf("outcome reason and termination are required")
 	}
 	if assertions := manifest.Outcome.SoftAssertions; assertions != nil {
+		if assertions.ReportOnly != manifest.Target.SoftAssertionReportOnly {
+			return errors.New("soft assertion observation differs from recorded policy")
+		}
 		for i, message := range assertions.Messages {
 			if message == "" || len(message) > 4096 || !utf8.ValidString(message) || i > 0 && assertions.Messages[i-1] >= message {
 				return errors.New("invalid static soft assertion messages")
@@ -107,6 +110,9 @@ func validateManifest(manifest ExecutionRecord, requireIdentities bool) error {
 		}
 	} else if manifest.Outcome.Reason == "soft_assertion" || manifest.Outcome.Reason == "soft_assertion_inconclusive" {
 		return errors.New("soft assertion outcome lacks its observation")
+	}
+	if manifest.Target.SoftAssertionReportOnly && (manifest.Target.Kind != "go-test" || manifest.Target.Backend == nil || manifest.Target.Backend.Name != "wasm") {
+		return errors.New("soft assertion report-only policy requires a WASM Go test target")
 	}
 	if err := validateOutcome(manifest.Outcome); err != nil {
 		return err

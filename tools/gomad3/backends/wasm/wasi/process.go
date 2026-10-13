@@ -111,7 +111,7 @@ type Started struct {
 	InitialMemoryPages uint64         `json:"initial_memory_pages"`
 }
 type Request struct {
-	WorkloadKind target.Kind `json:",omitempty"`
+	WorkloadKind                                       target.Kind `json:",omitempty"`
 	HelperPath, HelperSHA256, ModulePath, ModuleSHA256 string
 	Engine                                             EngineIdentity
 	Imports                                            []Import
@@ -427,6 +427,7 @@ func Run(ctx context.Context, request Request) (result Result, runErr error) {
 	result.Started = stream.started
 	result.AuthorizationToTerminalNanos = stream.authorizationToTerminalNanos
 	result.Reaped = host.GroupGone
+	result.OfferedOutputBytes = environment.offeredOutput
 	result.Cancelled = ctx.Err() != nil
 	result.WatchdogTimeout = !result.Cancelled && (errors.Is(executionContext.Err(), context.DeadlineExceeded) || host.WatchdogTimeout)
 	if networkEvidenceErr != nil {

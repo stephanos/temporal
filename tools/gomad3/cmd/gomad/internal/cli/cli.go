@@ -351,6 +351,9 @@ func printArtifactInspection(printer *inspectionPrinter, inspected *inspect.Arti
 	}
 	printer.printf("target: kind=%s source=%s sha256=%s size=%d argv=%q tags=%q%s\n", inspected.Target.Kind, inspected.Target.Source, inspected.Target.SHA256, inspected.Target.Size, inspected.Target.Argv, inspected.Target.BuildTags, sharing)
 	printer.printf("outcome: domain=%s reason=%s termination=%s signature=%s replay-match=%s\n", inspected.Outcome.Domain, inspected.Outcome.Reason, inspected.Outcome.Termination, inspected.Outcome.FailureSignature, optionalBool(inspected.Outcome.ReplayMatch))
+	if assertions := inspected.Outcome.SoftAssertions; assertions != nil {
+		printer.printf("soft-assertions: report-only=%t inconclusive=%t messages=%q\n", assertions.ReportOnly, assertions.Inconclusive, assertions.Messages)
+	}
 	if inspected.FirstDivergence != "" {
 		printer.printf("first-divergence: %s\n", inspected.FirstDivergence)
 	}
@@ -959,8 +962,8 @@ func parseCampaignRequest(operation campaignOperation, arguments []string, stdou
 		Progress: reporter.Progress, ProgressInterval: 5 * time.Second,
 		Target: target.Spec{
 			SoftAssertionReportOnly: *softAssertionReportOnly,
-			Backend: installed.backendName,
-			Kind:    parsedTarget.kind, Source: parsedTarget.source, Provenance: parsedTarget.provenance, Args: parsedTarget.arguments,
+			Backend:                 installed.backendName,
+			Kind:                    parsedTarget.kind, Source: parsedTarget.source, Provenance: parsedTarget.provenance, Args: parsedTarget.arguments,
 			BuildTags: buildTags, WorkingDir: workingDirectory, ToolchainRoot: installed.toolchainRoot, CapabilityMode: resolvedCapabilityMode,
 		},
 	}

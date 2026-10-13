@@ -53,7 +53,7 @@ func observeLine(line string) (string, bool, bool) {
 					tagged = tagged || value
 				}
 			}
-			if at == 0 {
+			if at == 0 || !strings.Contains(line[:at], Prefix) && (fields["msg"] != nil || fields["message"] != nil) {
 				var message string
 				for _, key := range []string{"msg", "message"} {
 					if data := fields[key]; data != nil {

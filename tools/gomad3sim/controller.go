@@ -360,6 +360,10 @@ func (cluster *inProcessCluster) RecordOracle(ctx context.Context, result Oracle
 		return err
 	}
 	defer cluster.endCall()
+	return cluster.recordOracle(result)
+}
+
+func (cluster *inProcessCluster) recordOracle(result OracleResult) error {
 	result = cloneOracleResult(result)
 	if err := validateOracleResult(result, cluster.limits.ScenarioEvidenceBytes); err != nil {
 		return err
