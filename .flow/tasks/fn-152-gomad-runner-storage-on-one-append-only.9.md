@@ -41,9 +41,48 @@ Follow the parent spec's Delivery and verification section. Retain exact selecto
 - [ ] R1-R10: fresh independent review and full required source gates retain existing red obligations, fn-155 priority and fn-128/fn-149 deferrals; parked corpus measurement reports actual source-bound inputs or absence without manufacturing a result.
 
 ## Done summary
-TBD
+Closed the integrated fn-152 final candidate with a retained R1-R10 source/test matrix, current append-only storage documentation, deletion of the stale merged-storage golden, and a Linux/arm64 built-WASM-CLI `explore -> SIGSTOP/stable inspect -> SIGKILL -> inspect --json -> resume` gate. The gate fixes the durable prefix before process discovery, proves exact post-kill state, and resumes to the uninterrupted 12-outcome semantics.
 
+Tier: session (jev-unavailable(no_key))
+stage: impl-review - ran [2026-10-13T07:25:35Z..2026-10-13T07:47:52Z] (SHIP after one NEEDS_WORK fix loop)
+
+### Result
+
+- Retained `.flow/artifacts/fn-152-gomad-runner-storage-on-one-append-only/final-candidate-matrix.md` maps R1-R10 to current controls, tests, source review, owner append/sync boundaries, and final verification outcomes.
+- Removed the tracked `pre-target-evidence-merged` storage golden and its redundant storage-only assertion; dynamic behavioral lineage refusal remains.
+- Updated README, ARCHITECTURE, SPEC, and CLI for protected `GMLG` framing, lock-free read-only inspection, exclusive writer repair, uncertain commits, lineage refusal, payload ownership, live corpus limits, and separately growing history bytes.
+- Added the supported-host built-CLI WASM crash/resume gate. Resume preparation now treats nil and empty ordered argv/tag slices as semantically identical, with a focused regression test.
+- Source inventory found no active old storage decoder or tracked stale merged golden. Identity-bound paths, generated paths, `go.mod`, and `go.sum` have empty diffs. No source-bound corpus input exists on this host, so no measurement or estimate is claimed.
+
+### Verification
+
+- PASS: `go -C tools/gomad3 test -tags test_dep -count=1 ./runner/internal/logstore ./runner/internal/corpus`; committed-head receipt `9f7a325b-unittest.json` was honored in Phase 5.
+- PASS: stock-Go owner packages `./runner/internal/logstore ./runner/internal/campaign ./runner/internal/corpus ./artifact` with `-tags test_dep -count=1`.
+- PASS: exact storage Runner/CLI/backend selector retained in the final-candidate matrix, including append-fault resume, repeated resume, inspect tail/corruption/lineage behavior, CLI rendering, and `TestValidatePreparedAcceptsCanonicalEmptySequences`.
+- PASS: stock-Go `go -C tools/gomad3 test -tags test_dep -race -count=1 ./runner/internal/...`.
+- PASS: focused stock-Go `TestValidatePreparedAcceptsCanonicalEmptySequences|TestInstalledOperatorKillResume`.
+- PASS five of five: stock-Go `go test -v -tags test_dep -count=5 -timeout=10m -run '^TestInstalledOperatorKillResume$' ./backends/wasm/command`; every run killed after one committed outcome and resumed to the 12-outcome baseline.
+- PASS: `make -C tools/gomad3 test-wasm GOMAD3_STOCK_GO=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go`; the required built-CLI gate executed and passed. Optional prototype gates kept their explicit missing-root skips.
+- PASS: stock-Go `make -C tools/gomad3 validate`.
+- PASS: `GOMAD3_ARCH_ALL_PLATFORMS=1` architecture and purity packages with `-tags test_dep -count=1`.
+- PASS, 0 issues: task-base `make ... lint-code-fast` and `make ... lint-code-gomad3` using Linux-native golangci-lint/errortype and `GOLANGCI_LINT_FIX=false`, both before and after SHIP.
+- Expected unrelated RED diagnostic: default-main broad `make lint-code-fast` reports untouched `cmd/tools/lintcode/main.go:412` cyclomatic complexity 28 (>25). Its initial wrong-host cached-binary launch was inconclusive; the single blank-line `--fix` side effect was inspected and removed.
+
+### Review and obligations
+
+- Review receipt: `/tmp/impl-review-receipt-657da2bc4466-fn-152-gomad-runner-storage-on-one-append-only.9.json`; terminal verdict SHIP, R1-R10 met, no surviving findings.
+- The older native `tools/gomad3/cmd/gomad.TestCLIKillResume` remains source-only under fn-128/fn-149 and is not claimed as executed here.
+- fn-155 priority and the fn-128/fn-149 native qualification/rotation deferrals remain unchanged; `MILESTONES.md` was not edited.
+- Full rotation/requalification remains with the recorded owners; portable tests were not substituted for it.
+
+### Commits and changed files
+
+- `4137ce1a04` — implementation, docs, fixture retirement, matrix, WASM gate, and prepared-identity fix.
+- `9f7a325bdc` — freeze-before-discovery review fix and completed gate ledger.
+- Changed task files: the final-candidate matrix; README/ARCHITECTURE/SPEC/CLI; WASM backend provider/test and command kill-resume test; campaign merge test and retired fixture; flow review ledger. The required post-review memory entry is committed with the task receipt.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 4137ce1a04aecfc9284615603e20dbcd1acfb3b7, 9f7a325bdcce098883e8ebc2ee899ecfaeb38e7a
+- Tests: go -C tools/gomad3 test -tags test_dep -count=1 ./runner/internal/logstore ./runner/internal/corpus, env -u GOROOT -u GOMADSEED -u GOMAD3_CHILD_SEED GOENV=off GOTOOLCHAIN=local GOWORK=off GOFLAGS= GOMAD3_STOCK_GO=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH go -C tools/gomad3 test -tags test_dep -count=1 ./runner/internal/logstore ./runner/internal/campaign ./runner/internal/corpus ./artifact, env -u GOROOT GOTOOLCHAIN=local GOWORK=off GOFLAGS= PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -tags test_dep -race -count=1 ./runner/internal/..., env -u GOROOT -u GOMADSEED -u GOMAD3_CHILD_SEED GOENV=off GOTOOLCHAIN=local GOWORK=off GOFLAGS= GOMAD3_STOCK_GO=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -v -tags test_dep -count=1 -timeout=10m -run '^(TestValidatePreparedAcceptsCanonicalEmptySequences|TestInstalledOperatorKillResume)$' ./backends/wasm/backend ./backends/wasm/command (from tools/gomad3), env -u GOROOT -u GOMADSEED -u GOMAD3_CHILD_SEED GOENV=off GOTOOLCHAIN=local GOWORK=off GOFLAGS= GOMAD3_STOCK_GO=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go test -v -tags test_dep -count=5 -timeout=10m -run '^TestInstalledOperatorKillResume$' ./backends/wasm/command (from tools/gomad3), make -C tools/gomad3 test-wasm GOMAD3_STOCK_GO=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go, env -u GOROOT GOTOOLCHAIN=local GOWORK=off GOFLAGS= PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH make -C tools/gomad3 validate, env -u GOROOT GOTOOLCHAIN=local GOWORK=off GOFLAGS= GOMAD3_ARCH_ALL_PLATFORMS=1 PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH /home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go -C tools/gomad3 test -tags test_dep -count=1 ./internal/archcheck ./internal/puritycheck, PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH make GOLANGCI_LINT_BASE_REV=35fecd5fc974b4d294456b98635dce480747addc GOLANGCI_LINT_FIX=false GOLANGCI_LINT=.flow/tmp/fn152-8-linux-tools/golangci-lint ERRORTYPE=.flow/tmp/fn152-8-linux-tools/errortype lint-code-fast, PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH make GOLANGCI_LINT_BASE_REV=35fecd5fc974b4d294456b98635dce480747addc GOLANGCI_LINT_FIX=false GOLANGCI_LINT=.flow/tmp/fn152-8-linux-tools/golangci-lint ERRORTYPE=.flow/tmp/fn152-8-linux-tools/errortype lint-code-gomad3, GATE_SKIPPED:unittest:green-receipt 9f7a325b - baseline reused from prior post-gate pass
 - PRs:
