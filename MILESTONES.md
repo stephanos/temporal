@@ -499,6 +499,11 @@ is deleted once applied; the harness in `framework/migrate` is permanent (owner,
 
 ### fn-141: Shrink the IR generator: one description of each DSL construct
 
+The lint extraction (.1) is complete: `framework/inspect` owns the shared typed-tree index,
+`framework/lint` owns source and marker checks, and the gate runs them around export in one
+inspector invocation. Exporter production sources are 12,249 lines; the census across export,
+lint and inspect is 15,339 lines. Unused-spelling retirement (.2) is next.
+
 Ready 2026-10-08. Pulled forward by the owner on 2026-10-12: it runs after fn-160.3/.4,
 fn-166.11-.13 and fn-169.1 (so it works in the framework's final homes), before the remaining DSL specs, which then land on the smaller lifter. Its
 "spellings no Model uses" recount (fn-141.2) counts the current mini and shared code only, and must
@@ -534,7 +539,6 @@ half of the realization lifter's lines net of what it adds.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-141.1 | ⬜ todo | Order lint, structure lint and marker checks out of `model/irgen` into their own gate step |
 | fn-141.2 | ⬜ todo | Spellings no Model or kit uses retired, after a recount the owner confirms |
 | fn-141.3 | ⬜ todo | Generic sugar expansion; `enter`, `stay`, `reject`, `disabled`, `in`, `implies`, `records` lifted from their definitions (proof for the sugar part) |
 | fn-141.4 | ⬜ todo | Claim patterns and sticky monitors by definition; lifter's sugar file gone; syntax lint holds the lifter to core |
