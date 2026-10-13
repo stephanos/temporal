@@ -129,6 +129,34 @@ func TestValidateRejectsSemanticAndTransitionDivergence(t *testing.T) {
 	}
 }
 
+func TestComposeRecordingAndValidateRejectInvalidTerminalUTF8(t *testing.T) {
+	core, err := world.New(world.Config{Seed: 9, Limits: worldLimits()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	snapshot := core.Snapshot()
+	recording := world.Recording{
+		Initial:  snapshot,
+		Final:    snapshot,
+		Terminal: world.Terminal{Kind: world.TerminalInvalidInput, Detail: "invalid input"},
+	}
+	bundle, err := ComposeRecording(recording, 1<<20)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	invalidDetail := string([]byte{0xff})
+	recording.Terminal.Detail = invalidDetail
+	if _, err := ComposeRecording(recording, 1<<20); err == nil {
+		t.Fatal("ComposeRecording() accepted invalid UTF-8 terminal detail")
+	}
+
+	bundle.Manifest.Terminal.Detail = invalidDetail
+	if _, _, err := Validate(bundle.Manifest, bundle.Payloads); err == nil {
+		t.Fatal("Validate() accepted invalid UTF-8 terminal detail")
+	}
+}
+
 func worldLimits() world.Limits {
 	return world.Limits{MaxRequests: 100, MaxEvents: 100, MaxQueuedEvents: 100, MaxTransitions: 500, MaxPayloadBytes: 1 << 20, MaxStringBytes: 1024}
 }

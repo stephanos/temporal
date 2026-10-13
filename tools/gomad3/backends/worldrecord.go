@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"reflect"
+	"unicode/utf8"
 
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/world"
@@ -176,6 +177,9 @@ func compose(initial, final world.Snapshot, terminal world.Terminal, transitionL
 }
 
 func validateTerminal(terminal world.Terminal) error {
+	if !utf8.ValidString(terminal.Detail) {
+		return fmt.Errorf("World terminal detail contains invalid UTF-8")
+	}
 	switch terminal.Kind {
 	case world.TerminalNone, world.TerminalDelivered, world.TerminalIdle, world.TerminalDeadlock:
 		if terminal.Detail != "" {

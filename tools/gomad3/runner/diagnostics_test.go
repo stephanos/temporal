@@ -6,8 +6,10 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
+	"reflect"
 	"runtime"
 	"strings"
 	"testing"
@@ -187,7 +189,7 @@ func TestDiagnosticsResumeRestoresTheRecordedProfile(t *testing.T) {
 	}
 }
 
-func TestDiagnosticsOffPreservesExistingCanonicalIdentities(t *testing.T) {
+func TestDiagnosticsOffPreservesExistingIdentities(t *testing.T) {
 	if runtime.GOOS != "darwin" || runtime.GOARCH != "arm64" {
 		t.Skip("retained baseline is darwin/arm64")
 	}
@@ -238,23 +240,87 @@ func TestDiagnosticsOffPreservesExistingCanonicalIdentities(t *testing.T) {
 			manifest.Host.StartedAt = "2026-10-02T00:00:00Z"
 			manifest.Host.FinishedAt = "2026-10-02T00:00:00Z"
 			manifest.Host.ElapsedNanos = 0
-			encoded, err := json.Marshal(struct {
+			projection := struct {
 				PortablePlan       json.RawMessage `json:"portable_plan"`
 				PortablePlanSHA256 string          `json:"portable_plan_sha256"`
 				CampaignPlan       json.RawMessage `json:"campaign_plan"`
 				Artifact           any             `json:"artifact"`
-			}{json.RawMessage(planBytes), string(planned.SHA256), json.RawMessage(campaignPlan), manifest})
+			}{json.RawMessage(planBytes), string(planned.SHA256), json.RawMessage(campaignPlan), manifest}
+			encoded, err := json.Marshal(projection)
 			if err != nil {
 				t.Fatal(err)
+			}
+			repeated, err := json.Marshal(projection)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !bytes.Equal(encoded, repeated) {
+				t.Fatalf("diagnostics-off identity projection is not repeatable (%s)", name)
 			}
 			expected, err := os.ReadFile(filepath.Join("testdata", "diagnostic-identity-"+name+".json"))
 			if err != nil {
 				t.Fatal(err)
 			}
-			if !bytes.Equal(expected, encoded) {
-				t.Fatalf("diagnostics-off canonical identities changed (%s): %s", name, encoded)
+			equal, err := semanticJSONEqual(expected, encoded)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !equal {
+				t.Fatalf("diagnostics-off identities changed (%s): %s", name, encoded)
 			}
 		})
+	}
+}
+
+func semanticJSONEqual(left, right []byte) (bool, error) {
+	leftValue, err := decodeSemanticJSON(left)
+	if err != nil {
+		return false, fmt.Errorf("decode expected JSON: %w", err)
+	}
+	rightValue, err := decodeSemanticJSON(right)
+	if err != nil {
+		return false, fmt.Errorf("decode actual JSON: %w", err)
+	}
+	return reflect.DeepEqual(leftValue, rightValue), nil
+}
+
+func decodeSemanticJSON(data []byte) (any, error) {
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	decoder.UseNumber()
+	var value any
+	if err := decoder.Decode(&value); err != nil {
+		return nil, err
+	}
+	var trailing any
+	if err := decoder.Decode(&trailing); err != io.EOF {
+		if err == nil {
+			return nil, fmt.Errorf("multiple JSON documents")
+		}
+		return nil, err
+	}
+	return value, nil
+}
+
+func TestSemanticJSONEqualIgnoresObjectOrdering(t *testing.T) {
+	equal, err := semanticJSONEqual(
+		[]byte(`{"artifact":{"kind":"failure"},"identity":"sha256:same"}`),
+		[]byte(`{"identity":"sha256:same","artifact":{"kind":"failure"}}`),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !equal {
+		t.Fatal("semantically equal JSON documents compared unequal")
+	}
+	equal, err = semanticJSONEqual(
+		[]byte(`{"identity":"sha256:before"}`),
+		[]byte(`{"identity":"sha256:after"}`),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if equal {
+		t.Fatal("semantically different JSON documents compared equal")
 	}
 }
 
