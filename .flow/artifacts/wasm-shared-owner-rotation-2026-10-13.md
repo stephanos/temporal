@@ -2,7 +2,8 @@
 
 This handover records source acceptance as the fn153/fn154/fn166 batch proceeds.
 It does not qualify the changed candidate with historical fn151/fn156 evidence.
-Native runtime execution remains transferred to fn128/fn149.
+Previously transferred native execution remains with fn128/fn149. New explicit
+fn154 native execution requirements remain open in their owning tasks.
 
 ## Source accepted
 
@@ -66,7 +67,24 @@ definitions; no independent native process JSON decoder exists.
   Integrated readers, protocol/projection, helper parity, portable simulator,
   full WASM simulation (140.134 s), full all-platform architecture/purity,
   generated/compatibility validation and scoped lint passed (exit 0).
-  Independent combined source review and final qualification remain open.
+  Combined source review on frozen `a23880029f` finalized NEEDS_WORK at
+  `/tmp/wasm-json-network-config-source-review-20261013.json` (gpt-6.1-sol/high,
+  same-family three-axis review). Four distinct introduced findings remain:
+  effective broker limits bypass, timeout-dial source-port overflow,
+  malformed-overdepth refusal precedence, and installation typed/unknown-field
+  versus trailing-data precedence. The existing JSON and network workers own
+  the corresponding fixes; no acceptance or qualification is claimed.
+- `49e4f12d5b` integrates fn154.4's shared byte-bounded local connection owner.
+  Exact-source projected public-operation equivalence controls and full
+  protocol/network/projection suites pass (exit 0), including 65 tiny writes,
+  byte-capacity/short-read accounting, half-close, descriptor primitives and
+  persistent timeout identity. This checkpoint changes model source after
+  the `c27f0ae4...` pin; a fresh combined pin and validation remain required.
+  Native execution acceptance remains open. Holding/reservation development
+  proceeds in the same connection worker's isolated worktree.
+- `df06ec9c73` binds tasks fn154.5/.6/.7 to current Runner registration and
+  portable gate-selection owners, replacing absent historical paths without
+  changing their actual-run acceptance requirements.
 
 ## Verification and remaining work
 
@@ -98,9 +116,11 @@ readers still using handwritten scanners; fn153.20 now owns their required
 library migration and precedes the final cleanup audit. Fn154.3 supplies the
 timeout error transport; later tasks still own connection mechanics, stalls,
 expiry reservations, payload-free history, process/framed-stream behavior and
-the final identity cutover. Fn154.2 is implementing the generated config and
-vocabulary against the accepted source interface under the batch-first
-strategy; its provisional admission waives no completion or native gate.
+the final identity cutover. Fn154.2's generated config and vocabulary are
+integrated, with the review fixes above pending. Its provisional admission
+waives no completion or native gate. Fn154.4-.8 are admitted as one
+connection/holding/expiry/dial/history source batch; final review, integrated
+validation and each explicit execution requirement remain open.
 Fn166 structural/module renames and the integrated
 WASM scheduling, retained replay, installed operator, workload, resource and
 cost gates remain outstanding. No full native gate, PR, push or CI action is
