@@ -42,9 +42,10 @@ Follow the parent spec's Delivery and verification section. Retain exact selecto
 - [ ] R2: existing execution/artifact/frontier/partial-attempt capacities retain their semantics; checked frame bounds preserve the allowed component envelope. Retired SegmentRecords/MaximumSegments/public inspection fields have tested and documented compatibility disposition; SegmentBytes cannot silently become a new aggregate/whole-round cap.
 
 ## Done summary
-TBD
+One campaign log (gomad3.campaign-log/v1: open, lifecycle, plan, outcome and publish records; merged campaigns gomad3.merged-campaign-log/v1) replaces the lifecycle, segmented journal, resume journal, resume lock and recovery files. Old directories and unknown formats are refused before mutation; live evidence is validated before reclaiming; faults at every append/sync point replay to the durable prefix; Inspect schema bumped to gomad3.inspect/v6. Failure sets unchanged; test-wasm passes (campaign resume and interrupted-round tests).
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 014605bb92, bff28c6b38
+- Tests: go test -race ./runner/internal/campaign, go test ./runner ./cmd/gomad/... ./backends/wasm/... failure-set comparison, make -C tools/gomad3 test-wasm, architecture selection, lint-code-fast, evidence: .flow/artifacts/wasm-section-acceptance-2026-10-12.md
 - PRs:

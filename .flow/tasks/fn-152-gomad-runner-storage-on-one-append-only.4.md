@@ -44,6 +44,9 @@ Follow the parent spec's Delivery and verification section. Retain exact selecto
 - [ ] R2/R3: frozen guided selection, prepared identity, retained byte/count limits and repeated resume behavior survive, including an already-satisfied stopping policy.
 - [ ] R3: first-failure parallel3 retains one real failure plus two real cancellations; budget stop never policy-cancels active work. Buffered real successes/failures retain their classifications through pre-group crashes; normal completion preserves incremental refill, not fixed batches.
 - [ ] R3/R7: complete stop-group replay restores every cancellation ordinal and Cancelled counter once, launches no new work, and retains durable pending payloads until adopted or retired. Missing/corrupt receipt payloads fail before cleanup, not by silently retrying a durably observed completion.
+- Carried from fn-152.3 (2026-10-13): campaign publish currently skips full summary validation because the Runner commits a cancelled outcome carrying a runner-failure artifact; fix the outcome at the source in the Runner and restore full summary validation on publish.
+- Carried from fn-152.1 (2026-10-13): `logstore.OpenWriter` cannot pin a store directory it creates itself under umask 0777 (campaign code pre-creates `store/` at 0700 as a workaround); fix creation in logstore and remove the workaround.
+- Diagnostics under `diagnostics/` are validated but never swept; sweep them once every sidecar is recorded in receipts.
 
 ## Done summary
 TBD
