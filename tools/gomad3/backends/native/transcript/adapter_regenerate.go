@@ -2,6 +2,7 @@ package transcript
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -10,10 +11,10 @@ import (
 	"slices"
 	"sort"
 	"strings"
+	"unicode/utf8"
 
 	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	gomadversion "go.temporal.io/server/tools/gomad3/backends/native/toolchain/version"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 )
 
@@ -277,11 +278,53 @@ func regenerateRewrittenModule(ctx context.Context, spec rewrittenModule, reques
 }
 
 func (regeneration AdapterRegeneration) approval() (string, error) {
-	encoded, err := canonicaljson.CanonicalJSON(regeneration)
+	if err := validateAdapterRegenerationStrings(regeneration); err != nil {
+		return "", err
+	}
+	encoded, err := json.Marshal(regeneration)
 	if err != nil {
 		return "", fmt.Errorf("encode adapter regeneration review: %w", err)
 	}
 	return string(record.DomainHash(AdapterRegenerationSchema, encoded)), nil
+}
+
+func validateAdapterRegenerationStrings(regeneration AdapterRegeneration) error {
+	values := []string{regeneration.Schema, regeneration.Module}
+	values = appendAdapterAnchorStrings(values, regeneration.Previous)
+	values = appendAdapterAnchorStrings(values, regeneration.Proposed)
+	for _, source := range regeneration.Sources {
+		values = append(values, source.Path, source.PreviousSHA256, source.CandidateSHA256)
+	}
+	for _, value := range values {
+		if !utf8.ValidString(value) {
+			return errors.New("adapter regeneration review string is not valid UTF-8")
+		}
+	}
+	return nil
+}
+
+func appendAdapterAnchorStrings(values []string, anchors AdapterAnchors) []string {
+	values = append(values,
+		anchors.Version,
+		anchors.Sum,
+		anchors.GoModSum,
+		anchors.OriginalSourceInventorySHA256,
+		anchors.ReplacementSourceInventorySHA256,
+		anchors.PreparedPackage,
+	)
+	for _, platform := range sortedKeys(anchors.PreparedSourceSetSHA256) {
+		values = append(values, platform, anchors.PreparedSourceSetSHA256[platform])
+	}
+	for _, rewrite := range anchors.Rewrites {
+		values = append(values,
+			rewrite.Path,
+			rewrite.SourceSHA256,
+			rewrite.Base,
+			rewrite.BaseSHA256,
+			rewrite.ReplacementSHA256,
+		)
+	}
+	return values
 }
 
 func pinnedAnchors(spec rewrittenModule) AdapterAnchors {

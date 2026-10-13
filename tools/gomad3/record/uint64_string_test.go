@@ -1,21 +1,22 @@
 package record
 
 import (
+	"encoding/json"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+	"go.temporal.io/server/tools/gomad3/internal/strictjson"
 )
 
 func TestUint64StringJSONUsesStrictDecimalStrings(t *testing.T) {
 	type document struct {
 		Value Uint64String `json:"value"`
 	}
-	encoded, err := canonicaljson.CanonicalJSON(document{Value: Uint64String(^uint64(0))})
+	encoded, err := json.Marshal(document{Value: Uint64String(^uint64(0))})
 	if err != nil {
 		t.Fatal(err)
 	}
 	if got, want := string(encoded), `{"value":"18446744073709551615"}`; got != want {
-		t.Fatalf("CanonicalJSON() = %s, want %s", got, want)
+		t.Fatalf("json.Marshal() = %s, want %s", got, want)
 	}
 
 	for _, input := range []string{
@@ -26,8 +27,8 @@ func TestUint64StringJSONUsesStrictDecimalStrings(t *testing.T) {
 		`{"value":"18446744073709551616"}`,
 	} {
 		var decoded document
-		if err := canonicaljson.StrictDecode([]byte(input), &decoded); err == nil {
-			t.Fatalf("StrictDecode(%s) succeeded", input)
+		if err := strictjson.Decode([]byte(input), &decoded); err == nil {
+			t.Fatalf("strictjson.Decode(%s) succeeded", input)
 		}
 	}
 }

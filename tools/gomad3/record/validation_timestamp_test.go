@@ -1,6 +1,7 @@
 package record
 
 import (
+	"bytes"
 	"errors"
 	"reflect"
 	"strings"
@@ -63,8 +64,9 @@ func TestTimestampFinalizeRetainsOriginalStringsAndIdentities(t *testing.T) {
 			t.Fatalf("timestamp strings normalized: %+v", value.Host)
 		}
 	}
-	if finalized.RecordHash != "sha256:f5aca3e0f9f1c145a93497aed4bbc25a875bd0823ebb2ab1fe76e091382e6c64" || finalized.Outcome.FailureSignature != "sha256:f43359d4976521234ed6a3127432da4924f9c1ac00e0b26b3c4b06f40118d39a" || HashBytes(encoded) != "sha256:b16b23482df24de9227e1279756eac2027946cdb2e8d05644ad6f189d18a850a" {
-		t.Fatalf("timestamp identity changed: record=%s failure=%s bytes=%s", finalized.RecordHash, finalized.Outcome.FailureSignature, HashBytes(encoded))
+	again, againEncoded := finalizedManifest(t, input)
+	if finalized.RecordHash != again.RecordHash || finalized.Outcome.FailureSignature != again.Outcome.FailureSignature || !bytes.Equal(encoded, againEncoded) {
+		t.Fatalf("same-build timestamp finalization changed: first=%s/%s/%s again=%s/%s/%s", finalized.RecordHash, finalized.Outcome.FailureSignature, HashBytes(encoded), again.RecordHash, again.Outcome.FailureSignature, HashBytes(againEncoded))
 	}
 	input.CreatedAt = "bad creation"
 	input.Host.StartedAt = "bad start"

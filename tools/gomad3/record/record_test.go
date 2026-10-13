@@ -3,12 +3,11 @@ package record
 import (
 	"bytes"
 	"crypto/sha256"
+	"encoding/json"
 	"reflect"
 	"sort"
 	"strings"
 	"testing"
-
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 )
 
 func TestSHA256FromSumUsesCanonicalIdentity(t *testing.T) {
@@ -180,6 +179,56 @@ func TestFinalizeManifestBindsIOProfileInventory(t *testing.T) {
 	}
 }
 
+func TestFinalizeManifestAcceptsOpaqueIOInventorySpelling(t *testing.T) {
+	manifest := manifestFixture()
+	manifest.IOProfile.Inventory = "{\n  \"producer_owned\": {\"count\": 7},\n  \"schema\": \"inventory/v1\"\n}"
+	manifest.IOProfile.InventorySHA256 = HashBytes([]byte(manifest.IOProfile.Inventory))
+	finalized, _, err := FinalizeExecutionRecord(manifest)
+	if err != nil {
+		t.Fatalf("FinalizeExecutionRecord(opaque inventory): %v", err)
+	}
+	if finalized.IOProfile.Inventory != manifest.IOProfile.Inventory || finalized.IOProfile.InventorySHA256 != HashBytes([]byte(manifest.IOProfile.Inventory)) {
+		t.Fatalf("finalized inventory = %q, %s", finalized.IOProfile.Inventory, finalized.IOProfile.InventorySHA256)
+	}
+}
+
+func TestFinalizeManifestRejectsInvalidIOInventory(t *testing.T) {
+	invalidUTF8 := append([]byte(`{"value":"`), 0xff)
+	invalidUTF8 = append(invalidUTF8, []byte(`"}`)...)
+	for _, test := range []struct {
+		name      string
+		inventory []byte
+	}{
+		{name: "malformed", inventory: []byte(`{"value":`)},
+		{name: "duplicate member", inventory: []byte(`{"value":1,"value":2}`)},
+		{name: "trailing value", inventory: []byte(`{} {}`)},
+		{name: "invalid UTF-8", inventory: invalidUTF8},
+		{name: "fractional number", inventory: []byte(`{"value":1.0}`)},
+		{name: "exponent number", inventory: []byte(`{"value":1e0}`)},
+		{name: "integer overflow", inventory: []byte(`{"value":18446744073709551616}`)},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			manifest := manifestFixture()
+			manifest.IOProfile.Inventory = string(test.inventory)
+			manifest.IOProfile.InventorySHA256 = HashBytes(test.inventory)
+			if _, _, err := FinalizeExecutionRecord(manifest); err == nil {
+				t.Fatalf("FinalizeExecutionRecord() accepted inventory %q", test.inventory)
+			}
+		})
+	}
+}
+
+func TestFinalizeManifestRejectsInvalidOriginalString(t *testing.T) {
+	manifest := manifestFixture()
+	manifest.Target.Argv[1] = string([]byte{0xff})
+	if _, _, err := FinalizeExecutionRecord(manifest); err == nil || !strings.Contains(err.Error(), "valid UTF-8") {
+		t.Fatalf("FinalizeExecutionRecord(invalid target argument) error = %v", err)
+	}
+	if _, err := SameTargetIdentity(manifest.Target, manifest.Target); err == nil || !strings.Contains(err.Error(), "valid UTF-8") {
+		t.Fatalf("SameTargetIdentity(invalid target argument) error = %v", err)
+	}
+}
+
 func TestFinalizeManifestRejectsMissingIOProfile(t *testing.T) {
 	manifest := manifestFixture()
 	manifest.IOProfile = IOProfile{}
@@ -287,11 +336,11 @@ func TestIdentityProjectionsExcludeArtifactPaths(t *testing.T) {
 		"record":  {recordProjectionOf(first), recordProjectionOf(second)},
 		"failure": {failureProjectionOf(first), failureProjectionOf(second)},
 	} {
-		left, err := canonicaljson.CanonicalJSON(projections[0])
+		left, err := json.Marshal(projections[0])
 		if err != nil {
 			t.Fatal(err)
 		}
-		right, err := canonicaljson.CanonicalJSON(projections[1])
+		right, err := json.Marshal(projections[1])
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -301,22 +350,50 @@ func TestIdentityProjectionsExcludeArtifactPaths(t *testing.T) {
 	}
 }
 
-func TestDecodeManifestRejectsNoncanonicalAndChangedIdentity(t *testing.T) {
+func TestDecodeManifestAcceptsOrdinaryWhitespace(t *testing.T) {
 	manifest, encoded := finalizedManifest(t, manifestFixture())
-	var noncanonical bytes.Buffer
-	noncanonical.WriteByte(' ')
-	noncanonical.Write(encoded)
-	if _, err := DecodeExecutionRecord(noncanonical.Bytes()); err == nil {
-		t.Fatal("DecodeExecutionRecord accepted noncanonical whitespace")
+	var indented bytes.Buffer
+	if err := json.Indent(&indented, encoded, "", "  "); err != nil {
+		t.Fatal(err)
 	}
+	decoded, err := DecodeExecutionRecord(indented.Bytes())
+	if err != nil {
+		t.Fatalf("DecodeExecutionRecord(indented record): %v", err)
+	}
+	if !reflect.DeepEqual(decoded, manifest) {
+		t.Fatalf("decoded record changed:\n got %#v\nwant %#v", decoded, manifest)
+	}
+}
 
+func TestDecodeManifestRejectsChangedIdentity(t *testing.T) {
+	manifest, _ := finalizedManifest(t, manifestFixture())
 	manifest.RecordHash = HashBytes([]byte("changed"))
-	changed, err := canonicaljson.CanonicalJSON(manifest)
+	changed, err := json.Marshal(manifest)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if _, err := DecodeExecutionRecord(changed); err == nil {
 		t.Fatal("DecodeExecutionRecord accepted changed record hash")
+	}
+}
+
+func TestDecodeManifestRejectsStrictSyntaxAndTypedUnknownMembers(t *testing.T) {
+	_, encoded := finalizedManifest(t, manifestFixture())
+	invalidUTF8 := append(append([]byte(nil), encoded...), 0xff)
+	for _, test := range []struct {
+		name string
+		data []byte
+	}{
+		{name: "unknown member", data: append(append([]byte(nil), encoded[:len(encoded)-1]...), []byte(`,"producer_owned":true}`)...)},
+		{name: "duplicate member", data: append([]byte(`{"schema_version":1,`), encoded[1:]...)},
+		{name: "trailing value", data: append(append([]byte(nil), encoded...), []byte(` {}`)...)},
+		{name: "invalid UTF-8", data: invalidUTF8},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			if decoded, err := DecodeExecutionRecord(test.data); err == nil {
+				t.Fatalf("DecodeExecutionRecord(%q) succeeded: %#v", test.data, decoded)
+			}
+		})
 	}
 }
 

@@ -2,8 +2,7 @@ package record
 
 import (
 	"bytes"
-
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+	"encoding/json"
 )
 
 type recordProjection struct {
@@ -329,11 +328,18 @@ func cloneTargetCapabilityManifest(manifest *TargetCapabilityManifest) *TargetCa
 }
 
 func SameTargetIdentity(left, right Target) (bool, error) {
-	leftBytes, err := canonicaljson.CanonicalJSON(projectTarget(left))
+	values := []string{}
+	if err := appendTargetStrings(&values, left); err != nil {
+		return false, err
+	}
+	if err := appendTargetStrings(&values, right); err != nil {
+		return false, err
+	}
+	leftBytes, err := json.Marshal(projectTarget(left))
 	if err != nil {
 		return false, err
 	}
-	rightBytes, err := canonicaljson.CanonicalJSON(projectTarget(right))
+	rightBytes, err := json.Marshal(projectTarget(right))
 	if err != nil {
 		return false, err
 	}

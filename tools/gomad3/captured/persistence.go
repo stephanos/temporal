@@ -1,14 +1,16 @@
 package captured
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path"
 	"sort"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+	"go.temporal.io/server/tools/gomad3/internal/strictjson"
 	"go.temporal.io/server/tools/gomad3/record"
 )
 
@@ -83,6 +85,9 @@ func EncodeCapturedInputs(mappings []Mapping, limits Limits, snapshot Snapshot) 
 		return CapturedInputs{}, err
 	}
 	targets := mappingTargets(mappings)
+	if !sortedTargets(targets) {
+		return CapturedInputs{}, fmt.Errorf("read-only mount mappings must be valid, sorted, and unique")
+	}
 	entries := append([]Entry(nil), snapshot.Entries...)
 	sort.Slice(entries, func(left, right int) bool { return entries[left].Path < entries[right].Path })
 	notExist := append([]string(nil), snapshot.NotExist...)
@@ -97,6 +102,9 @@ func EncodeCapturedInputs(mappings []Mapping, limits Limits, snapshot Snapshot) 
 	var totalBytes uint64
 	previous := ""
 	for index, entry := range entries {
+		if !utf8.ValidString(entry.Path) {
+			return CapturedInputs{}, fmt.Errorf("captured read-only mount path is not valid UTF-8")
+		}
 		if index > 0 && entry.Path == previous {
 			return CapturedInputs{}, fmt.Errorf("duplicate captured read-only mount path %q", entry.Path)
 		}
@@ -121,6 +129,9 @@ func EncodeCapturedInputs(mappings []Mapping, limits Limits, snapshot Snapshot) 
 			children := append([]Child(nil), entry.Children...)
 			sort.Slice(children, func(left, right int) bool { return children[left].Name < children[right].Name })
 			for _, child := range children {
+				if !utf8.ValidString(child.Name) {
+					return CapturedInputs{}, fmt.Errorf("captured read-only mount child name is not valid UTF-8")
+				}
 				encoded.Children = append(encoded.Children, capturedInputChild{
 					Name: child.Name, Mode: formatEntryMode(child.Mode), Kind: kindName(child.Kind),
 				})
@@ -132,6 +143,9 @@ func EncodeCapturedInputs(mappings []Mapping, limits Limits, snapshot Snapshot) 
 	}
 	previous = ""
 	for index, name := range descriptor.NotExist {
+		if !utf8.ValidString(name) {
+			return CapturedInputs{}, fmt.Errorf("missing read-only mount path is not valid UTF-8")
+		}
 		if index > 0 && name == previous || !withinTargets(name, targets) {
 			return CapturedInputs{}, fmt.Errorf("missing read-only mount paths must be sorted, unique, and mapped")
 		}
@@ -145,7 +159,7 @@ func EncodeCapturedInputs(mappings []Mapping, limits Limits, snapshot Snapshot) 
 	if totalBytes != snapshot.TotalBytes {
 		return CapturedInputs{}, fmt.Errorf("captured read-only mount byte count is %d, want %d", totalBytes, snapshot.TotalBytes)
 	}
-	encoded, err := canonicaljson.CanonicalJSON(descriptor)
+	encoded, err := json.Marshal(descriptor)
 	if err != nil {
 		return CapturedInputs{}, fmt.Errorf("encode read-only mount descriptor: %w", err)
 	}
@@ -166,7 +180,7 @@ func DecodeCapturedInputs(manifest CapturedInputsManifest, descriptorBytes []byt
 		return nil, Limits{}, Snapshot{}, fmt.Errorf("read-only mount descriptor identity mismatch")
 	}
 	var descriptor capturedInputsDescriptor
-	if err := canonicaljson.DecodeCanonicalJSON(descriptorBytes, &descriptor); err != nil {
+	if err := strictjson.Decode(descriptorBytes, &descriptor); err != nil {
 		return nil, Limits{}, Snapshot{}, fmt.Errorf("decode read-only mount descriptor: %w", err)
 	}
 	limits, err := decodeCapturedInputLimits(descriptor.Limits)
@@ -343,7 +357,7 @@ func withinTargets(name string, targets []string) bool {
 
 func sortedTargets(targets []string) bool {
 	for index, target := range targets {
-		if target == "" || target[0] != '/' || path.Clean(target) != target || target == "/" || index > 0 && (target <= targets[index-1] || overlaps(target, targets[index-1])) {
+		if target == "" || !utf8.ValidString(target) || target[0] != '/' || path.Clean(target) != target || target == "/" || index > 0 && (target <= targets[index-1] || overlaps(target, targets[index-1])) {
 			return false
 		}
 	}

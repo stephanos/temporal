@@ -385,3 +385,28 @@ func TestVersionReferencesNeverMatchInsideAnotherModulePath(t *testing.T) {
 		}
 	}
 }
+
+func TestAdapterRegenerationApprovalRejectsInvalidOriginalStrings(t *testing.T) {
+	invalid := string([]byte{0xff})
+	tests := map[string]AdapterRegeneration{
+		"review": {
+			Schema: invalid,
+		},
+		"anchor": {
+			Previous: AdapterAnchors{PreparedSourceSetSHA256: map[string]string{invalid: "sha256:value"}},
+		},
+		"rewrite": {
+			Proposed: AdapterAnchors{Rewrites: []RewriteAnchors{{Path: invalid}}},
+		},
+		"source": {
+			Sources: []ChangedSource{{CandidateSHA256: invalid}},
+		},
+	}
+	for name, regeneration := range tests {
+		t.Run(name, func(t *testing.T) {
+			if _, err := regeneration.approval(); err == nil || !strings.Contains(err.Error(), "valid UTF-8") {
+				t.Fatalf("approval() error = %v, want invalid UTF-8 refusal", err)
+			}
+		})
+	}
+}

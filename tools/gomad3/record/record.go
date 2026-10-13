@@ -3,9 +3,10 @@ package record
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+	"go.temporal.io/server/tools/gomad3/internal/strictjson"
 )
 
 func HashBytes(data []byte) SHA256 {
@@ -92,13 +93,14 @@ func FinalizeExecutionRecord(input ExecutionRecord) (ExecutionRecord, []byte, er
 	if err := validateManifest(input, false); err != nil {
 		return ExecutionRecord{}, nil, err
 	}
-	failureProjectionBytes, err := canonicaljson.CanonicalJSON(failureProjectionOf(input))
+	//gomad:dynamic reviewed 2026-10-13 stdlib JSON marshaling dispatches only over domain-owned record types
+	failureProjectionBytes, err := json.Marshal(failureProjectionOf(input))
 	if err != nil {
 		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return ExecutionRecord{}, nil, fmt.Errorf("encode failure projection: %w", err)
 	}
 	input.Outcome.FailureSignature = DomainHash("gomad3-failure-signature-v1", failureProjectionBytes)
-	recordProjectionBytes, err := canonicaljson.CanonicalJSON(recordProjectionOf(input))
+	recordProjectionBytes, err := json.Marshal(recordProjectionOf(input))
 	if err != nil {
 		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return ExecutionRecord{}, nil, fmt.Errorf("encode record projection: %w", err)
@@ -107,7 +109,7 @@ func FinalizeExecutionRecord(input ExecutionRecord) (ExecutionRecord, []byte, er
 	if err := validateManifest(input, true); err != nil {
 		return ExecutionRecord{}, nil, err
 	}
-	encoded, err := canonicaljson.CanonicalJSON(input)
+	encoded, err := json.Marshal(input)
 	if err != nil {
 		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return ExecutionRecord{}, nil, fmt.Errorf("encode manifest: %w", err)
@@ -117,7 +119,7 @@ func FinalizeExecutionRecord(input ExecutionRecord) (ExecutionRecord, []byte, er
 
 func DecodeExecutionRecord(data []byte) (ExecutionRecord, error) {
 	var manifest ExecutionRecord
-	if err := canonicaljson.DecodeCanonicalJSON(data, &manifest); err != nil {
+	if err := strictjson.Decode(data, &manifest); err != nil {
 		return ExecutionRecord{}, err
 	}
 	wantRecordHash := manifest.RecordHash

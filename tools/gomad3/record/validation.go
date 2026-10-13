@@ -1,20 +1,27 @@
 package record
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"path"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+	"go.temporal.io/server/tools/gomad3/internal/strictjson"
 )
 
 var environmentNamePattern = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
 
 func validateManifest(manifest ExecutionRecord, requireIdentities bool) error {
+	if err := validateManifestStrings(manifest); err != nil {
+		return err
+	}
 	if manifest.SchemaVersion != SchemaVersion {
 		return fmt.Errorf("unsupported manifest schema version %d", manifest.SchemaVersion)
 	}
@@ -178,6 +185,111 @@ func validateManifest(manifest ExecutionRecord, requireIdentities bool) error {
 	if _, err := time.ParseInLocation(time.RFC3339Nano, manifest.Host.FinishedAt, time.UTC); err != nil {
 		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return fmt.Errorf("invalid host finish time: %w", err)
+	}
+	return nil
+}
+
+func validateManifestStrings(manifest ExecutionRecord) error {
+	values := []string{
+		manifest.ArtifactKind, string(manifest.RecordHash), manifest.CreatedAt, manifest.CampaignID, manifest.ReplayMode,
+		manifest.Runner.RecordContract, manifest.Runner.RunnerBuild, manifest.Runner.HostOS, manifest.Runner.HostArch,
+		manifest.Toolchain.GoVersion, manifest.Toolchain.BuildKey, manifest.Toolchain.TargetGOOS, manifest.Toolchain.TargetGOARCH,
+		manifest.IOProfile.Name, string(manifest.IOProfile.ImplementationSHA256), manifest.IOProfile.Inventory, string(manifest.IOProfile.InventorySHA256),
+		manifest.World.Terminal.Kind, manifest.World.Terminal.Detail,
+		manifest.World.Initial.Schema, manifest.World.Initial.File, string(manifest.World.Initial.RawSHA256), string(manifest.World.Initial.SemanticDigest),
+		manifest.World.Transitions.Schema, manifest.World.Transitions.File, string(manifest.World.Transitions.RawSHA256), string(manifest.World.Transitions.TranscriptDigest),
+		manifest.World.Final.Schema, manifest.World.Final.File, string(manifest.World.Final.RawSHA256), string(manifest.World.Final.SemanticDigest),
+		manifest.Outcome.Domain, manifest.Outcome.Reason, manifest.Outcome.Termination, string(manifest.Outcome.FailureSignature),
+		manifest.Streams.Stdout.File, string(manifest.Streams.Stdout.RetainedSHA256), string(manifest.Streams.Stdout.FullSHA256),
+		manifest.Streams.Stderr.File, string(manifest.Streams.Stderr.RetainedSHA256), string(manifest.Streams.Stderr.FullSHA256),
+		manifest.Host.StartedAt, manifest.Host.FinishedAt,
+	}
+	if err := appendTargetStrings(&values, manifest.Target); err != nil {
+		return err
+	}
+	if transcript := manifest.IOProfile.Transcript; transcript != nil {
+		values = append(values, transcript.Schema, transcript.File, string(transcript.SHA256))
+	}
+	if mounts := manifest.IOProfile.ReadOnlyMounts; mounts != nil {
+		values = append(values, mounts.Schema, mounts.File, string(mounts.SHA256))
+		values = append(values, mounts.Mappings...)
+	}
+	if profile := manifest.ChoiceProfile; profile != nil {
+		values = append(values, profile.Name, string(profile.ImplementationSHA256), profile.Trace.Schema, profile.Trace.File,
+			string(profile.Trace.SHA256), profile.Trace.TerminalState, string(profile.Trace.TapeSHA256))
+	}
+	if profile := manifest.SimulationProfile; profile != nil {
+		values = append(values, profile.Name, string(profile.ControllerSHA256), string(profile.ExecutionSHA256), string(profile.CandidateSHA256),
+			string(profile.OutcomeSHA256), string(profile.FailureSHA256), profile.Plan.Schema, profile.Plan.File, string(profile.Plan.SHA256),
+			profile.Record.Schema, profile.Record.File, string(profile.Record.SHA256))
+	}
+	if minimization := manifest.Minimization; minimization != nil {
+		values = append(values, minimization.Schema, string(minimization.ImplementationSHA256), string(minimization.ParentRecordHash),
+			string(minimization.ParentFailureSignature), string(minimization.OriginalCandidateSHA256), string(minimization.FinalCandidateSHA256),
+			string(minimization.Predicate.FailureSignature), minimization.Predicate.Domain, minimization.Predicate.Reason,
+			minimization.Predicate.Termination, minimization.Predicate.ChoiceReplay, minimization.Predicate.SimulationReplay)
+		if minimization.ChoicePrefix != nil {
+			values = append(values, string(minimization.ChoicePrefix.Original.SHA256), string(minimization.ChoicePrefix.Final.SHA256))
+		}
+		for _, reduction := range minimization.Accepted {
+			values = append(values, reduction.Kind, string(reduction.BeforeSHA256), string(reduction.AfterSHA256))
+			for _, removed := range reduction.Removed {
+				values = append(values, removed.Dimension, string(removed.Identity))
+			}
+		}
+	}
+	for _, entry := range manifest.Environment {
+		values = append(values, entry.Name, entry.Value)
+	}
+	for _, adapter := range manifest.World.Adapters {
+		values = append(values, adapter.Schema, string(adapter.InitialDigest), string(adapter.FinalDigest))
+	}
+	if manifest.Outcome.Signal != nil {
+		values = append(values, *manifest.Outcome.Signal)
+	}
+	if manifest.Outcome.Deadline != nil {
+		values = append(values, *manifest.Outcome.Deadline)
+	}
+	for _, file := range manifest.Files {
+		values = append(values, file.Path, file.Mode, string(file.SHA256))
+	}
+	return validateUTF8Strings(values)
+}
+
+func appendTargetStrings(values *[]string, target Target) error {
+	*values = append(*values, target.Kind, target.Source, target.File, string(target.SHA256), target.CapabilityMode,
+		target.BuildInfo.GoVersion, target.BuildInfo.Path, target.BuildInfo.MainModule)
+	*values = append(*values, target.Argv...)
+	*values = append(*values, target.BuildTags...)
+	for _, adapter := range target.Adapters {
+		*values = append(*values, adapter.Module, adapter.Version, adapter.Sum)
+	}
+	for _, pack := range target.Compatibility {
+		*values = append(*values, pack.ID, string(pack.SHA256))
+	}
+	for _, setting := range target.BuildInfo.Settings {
+		*values = append(*values, setting.Key, setting.Value)
+	}
+	if target.CapabilityManifest != nil {
+		manifest := target.CapabilityManifest
+		*values = append(*values, manifest.Schema, manifest.File, string(manifest.SHA256), string(manifest.ProducerImplementationSHA256),
+			string(manifest.GuardImplementationSHA256), string(manifest.CapabilityUniverseSHA256))
+	}
+	if target.Backend != nil {
+		backend := target.Backend
+		*values = append(*values, backend.Name, backend.ReplayMode, backend.Provenance.Schema, backend.Provenance.File, string(backend.Provenance.SHA256))
+		if backend.Evidence != nil {
+			*values = append(*values, backend.Evidence.Schema, backend.Evidence.File, string(backend.Evidence.SHA256))
+		}
+	}
+	return validateUTF8Strings(*values)
+}
+
+func validateUTF8Strings(values []string) error {
+	for _, value := range values {
+		if !utf8.ValidString(value) {
+			return errors.New("record string is not valid UTF-8")
+		}
 	}
 	return nil
 }
@@ -386,8 +498,7 @@ func validateIOProfile(profile IOProfile) error {
 	if HashBytes([]byte(profile.Inventory)) != profile.InventorySHA256 {
 		return errors.New("I/O profile inventory hash does not match its bytes")
 	}
-	var decoded any
-	if err := canonicaljson.DecodeCanonicalJSON([]byte(profile.Inventory), &decoded); err != nil {
+	if err := validateIOInventory([]byte(profile.Inventory)); err != nil {
 		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return fmt.Errorf("decode I/O profile inventory: %w", err)
 	}
@@ -417,6 +528,49 @@ func validateIOProfile(profile IOProfile) error {
 				return errors.New("read-only mount mappings must be absolute, sorted, unique, and non-overlapping")
 			}
 			previous = target
+		}
+	}
+	return nil
+}
+
+func validateIOInventory(data []byte) error {
+	var raw json.RawMessage
+	if err := strictjson.Decode(data, &raw); err != nil {
+		return err
+	}
+	decoder := json.NewDecoder(bytes.NewReader(raw))
+	decoder.UseNumber()
+	var value any
+	//gomad:dynamic reviewed 2026-10-13 stdlib JSON decoding writes only to a local in-memory value tree
+	if err := decoder.Decode(&value); err != nil {
+		return err
+	}
+	return validateIOInventoryNumbers(value)
+}
+
+func validateIOInventoryNumbers(value any) error {
+	switch value := value.(type) {
+	case json.Number:
+		number := string(value)
+		if strings.ContainsAny(number, ".eE") {
+			return errors.New("floating-point I/O inventory values are forbidden")
+		}
+		if _, err := strconv.ParseInt(number, 10, 64); err != nil {
+			if _, unsignedErr := strconv.ParseUint(number, 10, 64); unsignedErr != nil {
+				return fmt.Errorf("I/O inventory integer %q is out of range", number)
+			}
+		}
+	case []any:
+		for _, item := range value {
+			if err := validateIOInventoryNumbers(item); err != nil {
+				return err
+			}
+		}
+	case map[string]any:
+		for _, item := range value {
+			if err := validateIOInventoryNumbers(item); err != nil {
+				return err
+			}
 		}
 	}
 	return nil

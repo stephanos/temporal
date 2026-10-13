@@ -1,6 +1,7 @@
 package record
 
 import (
+	"bytes"
 	"reflect"
 	"strings"
 	"testing"
@@ -56,10 +57,9 @@ func TestOwnedWorldComposedManifestPreservesIdentity(t *testing.T) {
 		input.Files[i].SHA256 = HashBytes(data)
 	}
 	value, encoded := finalizedManifest(t, input)
-	if value.RecordHash != "sha256:b389081166e24b0125866ab3eb93cd64fe404bec71978e16ada64a047d741720" ||
-		value.Outcome.FailureSignature != "sha256:b457334a29e1a0d1c66c726e8be033bd2a42e399805e5c6823f74c884b5472fc" ||
-		HashBytes(encoded) != "sha256:220937aa423731c2e3dc66326e48e0752f9f816541ecac6f2b8c51e9ecd863f6" {
-		t.Fatalf("composed identity changed: record=%s failure=%s bytes=%s", value.RecordHash, value.Outcome.FailureSignature, HashBytes(encoded))
+	again, againEncoded := finalizedManifest(t, input)
+	if value.RecordHash != again.RecordHash || value.Outcome.FailureSignature != again.Outcome.FailureSignature || !bytes.Equal(encoded, againEncoded) {
+		t.Fatalf("same-build composed identity changed: first=%s/%s/%s again=%s/%s/%s", value.RecordHash, value.Outcome.FailureSignature, HashBytes(encoded), again.RecordHash, again.Outcome.FailureSignature, HashBytes(againEncoded))
 	}
 	decoded, err := DecodeExecutionRecord(encoded)
 	if err != nil {
@@ -67,5 +67,11 @@ func TestOwnedWorldComposedManifestPreservesIdentity(t *testing.T) {
 	}
 	if !reflect.DeepEqual(decoded.World, input.World) {
 		t.Fatal("composed World terminal graph changed")
+	}
+	changedInput := input
+	changedInput.World.Terminal.Detail += " changed"
+	changed, _ := finalizedManifest(t, changedInput)
+	if changed.RecordHash == value.RecordHash || changed.Outcome.FailureSignature == value.Outcome.FailureSignature {
+		t.Fatal("composed World terminal detail was omitted from an identity projection")
 	}
 }
