@@ -235,7 +235,6 @@ These fn-109 tasks change Runner, artifact, choice-exploration and simulation ow
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-152.8](.flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.8.md) | 🟡 In progress | Inspect log and corpus state and migrate storage consumers (implemented on branch `fn152-inspect`, 08bff5e6a1; test-wasm and repeat runs pending) |
 | [fn-152.9](.flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.9.md) | ⬜ Todo | Retain integrated crash evidence and update current storage contracts |
 
 <a id="canonical-json-publication-cleanup-fn-153"></a>
