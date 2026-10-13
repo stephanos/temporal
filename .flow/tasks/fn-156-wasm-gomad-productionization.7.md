@@ -21,9 +21,10 @@ README/Makefile integration is serialized with the helper owner. Final admission
 Original fn-151 Phase 10 exit gate.
 
 ## Done summary
-TBD
+Supported profiles, immutable compile caching and installed discovery/replay are documented (CLI.md, README.md, QUALIFICATION.md) and match behavior; the installed operator gate passes on 9d6012b52b.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 9d6012b52b, 7cf3da2110, 77517b9b01
+- Tests: installed operator gate, make -C tools/gomad3 validate, evidence: .flow/artifacts/wasm-section-acceptance-2026-10-12.md
 - PRs:
