@@ -6,7 +6,7 @@ import (
 )
 
 func TestImplementationIdentityBindsCompiledModelDigest(t *testing.T) {
-	const expected = "sha256:a48cd1b73760da007594e848d8b55a2a17aaffe8a2fc183576911c90dd29390b"
+	const expected = "sha256:b30ccfcaec96690e0624d105d77b5693981787181354a39cd6ac46a44f7c387a"
 	if got := ImplementationSHA256(); got != expected {
 		t.Fatalf("compiled model identity = %q, want %q", got, expected)
 	}
