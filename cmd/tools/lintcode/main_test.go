@@ -513,7 +513,6 @@ func TestFastLintReportsOwnedExclusions(t *testing.T) {
 		"tools/gomad3/cmd/gomad/testdata/source.go",
 		"tools/gomad3/backends/native/transcript/testdata/source.go",
 		"tools/gomad3/backends/native/compatibilitypack/testdata/source.go",
-		"tools/gomad3/runner/testdata/source.go",
 		"tools/gomad3/qualification/corpus/source.go",
 		"tools/gomad3/backends/native/toolchain/runtime/overlay/src/os/gomad.go",
 	} {
@@ -537,6 +536,7 @@ func TestLintRejectsUnclassifiedSource(t *testing.T) {
 		"tools/gomad3/backends/native/toolchain/runtime/overlayextra/source.go",
 		"tools/gomad3/backends/native/toolchain/runtime/overlay/src/os/uninventoried.go",
 		"tools/gomad3/record/testdata/source.go",
+		"tools/gomad3/runner/testdata/source.go",
 		"tools/gomad3/runner/.hidden/source.go",
 		"tools/gomad3/runner/_hidden/source.go",
 		"tools/gomad3/backends/native/toolchain/runtime/testdata/unknown/source.go",
