@@ -11,6 +11,14 @@ Carried from .4 and .9 (2026-10-13): move inspection to `runner/inspect` (needs 
 ### Final six-group binding
 
 Keep target as internal/backends/target to avoid Provider → artifact → target import cycles. Place shared strictjson and runtimesource under internal/model, and semantic generator definitions under internal/model/schema; no extra immediate internal owner remains. This realizes the spec's 2026-10-13 final rotation integration bindings. Complete inspection extraction and export reduction, not merely import/path replacement.
+
+### Inspection source-lane admission (2026-10-13)
+
+The approved inspection extraction may proceed independently while the helper and fn154 conformance owners finish. This lane changes no helper, broker, network, generated source, Make target, or architecture inventory. It extracts inspection into runner/inspect, moves plan reading/admission into runner/internal/campaign, and places necessary shared operational projections below both users. Update exact Runner/CLI inspection consumers and tests without compatibility forwarding aliases. Preserve all behavior, refusals, output and tests. Record pre/post exported inventories; full reduction also depends on the later clock/backend extraction. Other package moves and task acceptance remain with the final rotation batch. Root integrates in serialized order and retains Flow completion, review and final qualification.
+
+**Inspection lane Touches:** [tools/gomad3/runner/inspect*.go, tools/gomad3/runner/inspect/**, tools/gomad3/runner/portable_plan.go, tools/gomad3/runner/portable_plan_test.go, tools/gomad3/runner/internal/campaign/**, tools/gomad3/runner/internal/inspection/**, tools/gomad3/cmd/gomad/internal/cli/inspect*.go, tools/gomad3/cmd/gomad/internal/cli/cli.go, tools/gomad3/cmd/gomad/internal/cli/cli_test.go]
+
+Stop and request conductor scope binding before modifying a surviving consumer outside this declaration. In particular do not edit runner/internal/exploration/integration_test.go, currently owned by fn154 conformance.
 ## Acceptance
 The module top level holds only cmd, internal and testdata, and internal/ holds runner, backends, evidence, model, host and archcheck; Git renames preserve history; full WASM gate set passes on the integrated candidate.
 
