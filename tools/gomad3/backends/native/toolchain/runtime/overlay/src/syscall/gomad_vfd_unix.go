@@ -64,6 +64,8 @@ func gomadVirtualErr(status gomadvfd.Status) error {
 		return EPIPE
 	case gomadvfd.Reset:
 		return ECONNRESET
+	case gomadvfd.StallTimeout:
+		return ETIMEDOUT
 	case gomadvfd.Invalid:
 		return EINVAL
 	}

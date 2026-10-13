@@ -119,6 +119,8 @@ func encodeProcessNetworkError(err error) gomadmodelwire.WireError {
 	}
 	result := gomadmodelwire.WireError{Code: gomadmodelwire.ErrorGeneric, Message: err.Error()}
 	switch {
+	case errors.Is(err, ErrStallTimeout):
+		result.Code = gomadmodelwire.ErrorStallTimeout
 	case errors.Is(err, io.EOF):
 		result.Code = gomadmodelwire.ErrorEOF
 	case errors.Is(err, os.ErrDeadlineExceeded), errors.Is(err, context.DeadlineExceeded):
@@ -149,6 +151,8 @@ func decodeProcessNetworkError(source gomadmodelwire.WireError) error {
 		return io.EOF
 	case gomadmodelwire.ErrorDeadline:
 		return os.ErrDeadlineExceeded
+	case gomadmodelwire.ErrorStallTimeout:
+		return ErrStallTimeout
 	case gomadmodelwire.ErrorCanceled:
 		return context.Canceled
 	case gomadmodelwire.ErrorAddressInUse:

@@ -26,6 +26,7 @@ const (
 	EndOfStream
 	BrokenPipe
 	Reset
+	StallTimeout
 )
 
 const FirstFD = 1 << 20

@@ -82,6 +82,7 @@
     "enodev": 18,
     "estale": 19,
     "enotempty": 20,
-    "capacity": 21
+    "capacity": 21,
+    "stall_timeout": 22
   }
 }

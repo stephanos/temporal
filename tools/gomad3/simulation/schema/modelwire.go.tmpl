@@ -96,6 +96,7 @@ const (
 	ErrorESTALE ErrorCode = {{.Schema.Errors.ESTALE}}
 	ErrorENOTEMPTY ErrorCode = {{.Schema.Errors.ENOTEMPTY}}
 	ErrorCapacity ErrorCode = {{.Schema.Errors.Capacity}}
+	ErrorStallTimeout ErrorCode = {{.Schema.Errors.StallTimeout}}
 )
 
 type Request struct {
@@ -238,13 +239,18 @@ func DecodeResponse(encoded []byte) (Response, error) {
 			ModTime: decoder.int64(), Data: decoder.bytes(),
 		}
 	}
+	errorCode := decoder.uint64()
 	response.Error = WireError{
-		Code: ErrorCode(decoder.uint64()), Message: decoder.string(), Resource: decoder.string(),
+		Message: decoder.string(), Resource: decoder.string(),
 		Required: decoder.uint64(), Maximum: decoder.uint64(),
 	}
 	if err := decoder.finish(); err != nil {
 		return Response{}, err
 	}
+	if errorCode > uint64(ErrorStallTimeout) {
+		return Response{}, errors.New("simulation model response error code is invalid")
+	}
+	response.Error.Code = ErrorCode(errorCode)
 	if err := validateResponse(response); err != nil {
 		return Response{}, err
 	}
@@ -384,7 +390,7 @@ func validateRequest(request Request) error {
 }
 
 func validateResponse(response Response) error {
-	if response.Error.Code > ErrorCapacity || uint64(len(response.String1)) > MaximumStringBytes || uint64(len(response.String2)) > MaximumStringBytes || uint64(len(response.Data)) > MaximumDataBytes || uint64(len(response.Entries)) > MaximumEntries || uint64(len(response.Error.Message)) > MaximumStringBytes || uint64(len(response.Error.Resource)) > MaximumStringBytes {
+	if response.Error.Code > ErrorStallTimeout || uint64(len(response.String1)) > MaximumStringBytes || uint64(len(response.String2)) > MaximumStringBytes || uint64(len(response.Data)) > MaximumDataBytes || uint64(len(response.Entries)) > MaximumEntries || uint64(len(response.Error.Message)) > MaximumStringBytes || uint64(len(response.Error.Resource)) > MaximumStringBytes {
 		return errors.New("simulation model response field is invalid or exceeds its bound")
 	}
 	if response.Error.Code == ErrorNone && response.Error != (WireError{}) {

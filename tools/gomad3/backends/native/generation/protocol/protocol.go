@@ -312,6 +312,7 @@ type simulationModelSchema struct {
 		ESTALE            uint16 `json:"estale"`
 		ENOTEMPTY         uint16 `json:"enotempty"`
 		Capacity          uint16 `json:"capacity"`
+		StallTimeout      uint16 `json:"stall_timeout"`
 	} `json:"errors"`
 }
 
@@ -870,7 +871,7 @@ func readSimulationModelSchema(path string) (simulationModelSchema, error) {
 		definition.Models.Network != 1 || definition.Models.Volume != 2 ||
 		!slices.Equal([]uint16{network.Listen, network.Dial, network.Accept, network.ListenerClose, network.ListenerSetDeadline, network.ConnRead, network.ConnWrite, network.ConnClose, network.ConnCloseRead, network.ConnCloseWrite, network.ConnSetDeadline, network.ConnSetReadDeadline, network.ConnSetWriteDeadline}, sequence16(1, 13)) ||
 		!slices.Equal([]uint16{volume.Resolve, volume.Mkdir, volume.MkdirAll, volume.Stat, volume.Open, volume.Rename, volume.Remove, volume.RemoveAll, volume.Chmod, volume.Chtimes, volume.Chdir, volume.Getwd, volume.HandleRead, volume.HandleReadAt, volume.HandleWrite, volume.HandleWriteAt, volume.HandleTruncate, volume.HandleChmod, volume.HandleChtimes, volume.HandleChdir, volume.HandleSeek, volume.HandleStat, volume.HandleReadDir, volume.HandleClose, volume.HandleSync, volume.HandleMap, volume.MappingBytes, volume.MappingClose}, sequence16(1, 28)) ||
-		!slices.Equal([]uint16{errorCodes.None, errorCodes.Generic, errorCodes.EOF, errorCodes.Deadline, errorCodes.Canceled, errorCodes.AddressInUse, errorCodes.Closed, errorCodes.ConnectionRefused, errorCodes.ResourceExhausted, errorCodes.Unsupported, errorCodes.EINVAL, errorCodes.EEXIST, errorCodes.ENOENT, errorCodes.ENOTDIR, errorCodes.EISDIR, errorCodes.EROFS, errorCodes.ENOSPC, errorCodes.EBADF, errorCodes.ENODEV, errorCodes.ESTALE, errorCodes.ENOTEMPTY, errorCodes.Capacity}, sequence16(0, 21)) {
+		!slices.Equal([]uint16{errorCodes.None, errorCodes.Generic, errorCodes.EOF, errorCodes.Deadline, errorCodes.Canceled, errorCodes.AddressInUse, errorCodes.Closed, errorCodes.ConnectionRefused, errorCodes.ResourceExhausted, errorCodes.Unsupported, errorCodes.EINVAL, errorCodes.EEXIST, errorCodes.ENOENT, errorCodes.ENOTDIR, errorCodes.EISDIR, errorCodes.EROFS, errorCodes.ENOSPC, errorCodes.EBADF, errorCodes.ENODEV, errorCodes.ESTALE, errorCodes.ENOTEMPTY, errorCodes.Capacity, errorCodes.StallTimeout}, sequence16(0, 22)) {
 		return simulationModelSchema{}, errors.New("simulation model wire schema is unsupported by this generator")
 	}
 	return definition, nil

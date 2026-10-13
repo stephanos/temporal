@@ -7,11 +7,27 @@
 package syscall_test
 
 import (
+	"errors"
 	"internal/gomadvfd"
+	"os"
 	"syscall"
 	"testing"
 	"unsafe"
 )
+
+func TestGomadVirtualStallTimeoutIdentity(t *testing.T) {
+	err := syscall.GomadVirtualError(gomadvfd.StallTimeout)
+	if !errors.Is(err, syscall.ETIMEDOUT) || errors.Is(err, os.ErrDeadlineExceeded) {
+		t.Fatalf("descriptor timeout identity=%v", err)
+	}
+	if _, ok := err.(syscall.Errno); !ok {
+		t.Fatalf("descriptor timeout is not an errno: %T", err)
+	}
+	timeout, ok := err.(interface{ Timeout() bool })
+	if !ok || !timeout.Timeout() {
+		t.Fatalf("descriptor timeout classification=%v", err)
+	}
+}
 
 func TestGomadVirtualValidation(t *testing.T) {
 	if status := gomadvfd.RegisterBackend(&gomadStackBackend{}); status != gomadvfd.OK {
@@ -35,7 +51,10 @@ func TestGomadVirtualValidation(t *testing.T) {
 		{"nil write", func() error { _, e := syscall.GomadGenericWrite(1<<20, nil, 1); return e }, syscall.EFAULT},
 		{"oversized vectors", func() error { _, e := syscall.GomadGenericWritev(1<<20, nil, 1025); return e }, syscall.EINVAL},
 		{"nil vectors", func() error { _, e := syscall.GomadGenericWritev(1<<20, nil, 1); return e }, syscall.EFAULT},
-		{"short address", func() error { var sa syscall.RawSockaddrAny; return syscall.GomadVirtualBind(1<<20, unsafe.Pointer(&sa), 1) }, syscall.EINVAL},
+		{"short address", func() error {
+			var sa syscall.RawSockaddrAny
+			return syscall.GomadVirtualBind(1<<20, unsafe.Pointer(&sa), 1)
+		}, syscall.EINVAL},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			if got := test.call(); got != test.want {

@@ -204,6 +204,8 @@ func modelErrorMessage(err error) string {
 		return "context deadline exceeded"
 	case os.ErrDeadlineExceeded:
 		return "i/o timeout"
+	case ErrStallTimeout:
+		return "connection timed out"
 	case io.EOF:
 		return "EOF"
 	case ErrAddressInUse:

@@ -4,6 +4,7 @@ package {{.Package}}_test
 
 import (
 	"bytes"
+	"encoding/binary"
 	"testing"
 
 	"internal/gomadmodelwire"
@@ -45,5 +46,64 @@ func TestGeneratedSimulationModelWireRejectsMalformedAndOversizedValues(t *testi
 	}
 	if _, err := gomadmodelwire.EncodeRequest(gomadmodelwire.Request{Model: gomadmodelwire.ModelNetwork, Operation: gomadmodelwire.NetworkConnWrite, Data: make([]byte, gomadmodelwire.MaximumDataBytes+1)}); err == nil {
 		t.Fatal("oversized request was accepted")
+	}
+}
+
+func TestGeneratedSimulationModelWireStallTimeout(t *testing.T) {
+	for code := uint16(0); code <= 22; code++ {
+		response := gomadmodelwire.Response{Uint1: 3, Data: []byte("abc"), Error: gomadmodelwire.WireError{Code: gomadmodelwire.ErrorCode(code)}}
+		encoded, err := gomadmodelwire.EncodeResponse(response)
+		if err != nil {
+			t.Fatalf("code %d encode: %v", code, err)
+		}
+		decoded, err := gomadmodelwire.DecodeResponse(encoded)
+		if err != nil || decoded.Error.Code != response.Error.Code || decoded.Uint1 != 3 || !bytes.Equal(decoded.Data, []byte("abc")) {
+			t.Fatalf("code %d response = %+v, %v", code, decoded, err)
+		}
+	}
+}
+
+func TestGeneratedSimulationModelWireRejectsUnknownErrorCodes(t *testing.T) {
+	for _, code := range []uint64{23, 65535, 65536, 65558, ^uint64(0)} {
+		if code <= 65535 {
+			if _, err := gomadmodelwire.EncodeResponse(gomadmodelwire.Response{Error: gomadmodelwire.WireError{Code: gomadmodelwire.ErrorCode(code)}}); err == nil {
+				t.Fatalf("unknown code %d encoded", code)
+			}
+		}
+		encoded, err := gomadmodelwire.EncodeResponse(gomadmodelwire.Response{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		binary.BigEndian.PutUint64(encoded[96:104], code)
+		if _, err := gomadmodelwire.DecodeResponse(encoded); err == nil {
+			t.Fatalf("unknown code %d decoded", code)
+		}
+	}
+}
+
+func TestGeneratedSimulationModelWireStallTimeoutBoundsAndFramingPrecedence(t *testing.T) {
+	response := gomadmodelwire.Response{Error: gomadmodelwire.WireError{Code: gomadmodelwire.ErrorCode(22), Message: string(bytes.Repeat([]byte{'x'}, 4096))}}
+	if _, err := gomadmodelwire.EncodeResponse(response); err != nil {
+		t.Fatalf("maximum timeout message: %v", err)
+	}
+	response.Error.Message += "x"
+	if _, err := gomadmodelwire.EncodeResponse(response); err == nil {
+		t.Fatal("oversized timeout message accepted")
+	}
+	encoded, err := gomadmodelwire.EncodeResponse(gomadmodelwire.Response{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	binary.BigEndian.PutUint64(encoded[96:104], 65558)
+	for _, test := range []struct {
+		frame []byte
+		want  string
+	}{
+		{encoded[:len(encoded)-1], "simulation model wire value is truncated"},
+		{append(bytes.Clone(encoded), 0), "simulation model wire value contains trailing data"},
+	} {
+		if _, err := gomadmodelwire.DecodeResponse(test.frame); err == nil || err.Error() != test.want {
+			t.Fatalf("framing precedence=%v want=%q", err, test.want)
+		}
 	}
 }

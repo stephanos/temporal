@@ -4,8 +4,28 @@ import (
 	"bytes"
 	"context"
 	"internal/gomadvfd"
+	"io"
+	"syscall"
 	"testing"
 )
+
+func TestDescriptorBackendStallTimeoutStatus(t *testing.T) {
+	for _, test := range []struct {
+		err  error
+		want gomadvfd.Status
+	}{
+		{ErrStallTimeout, gomadvfd.StallTimeout},
+		{nil, gomadvfd.OK},
+		{ErrClosed, gomadvfd.Closed},
+		{ErrConnectionRefused, gomadvfd.Refused},
+		{io.EOF, gomadvfd.EndOfStream},
+		{syscall.ESTALE, gomadvfd.Unsupported},
+	} {
+		if got := descriptorStatus(test.err); got != test.want {
+			t.Fatalf("%v status=%v want=%v", test.err, got, test.want)
+		}
+	}
+}
 
 func descriptorPair(t *testing.T) (listener, client, server int) {
 	t.Helper()

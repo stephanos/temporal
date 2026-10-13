@@ -63,6 +63,63 @@ func TestNetworkHandleLocalOperations(t *testing.T) {
 	}
 }
 
+type suppliedErrorConn struct{ err error }
+
+func (connection *suppliedErrorConn) Read(destination []byte) (int, error) {
+	return copy(destination, "abc"), connection.err
+}
+func (connection *suppliedErrorConn) Write(source []byte) (int, error) {
+	return min(3, len(source)), connection.err
+}
+func (*suppliedErrorConn) Close() error                     { return nil }
+func (*suppliedErrorConn) CloseRead() error                 { return nil }
+func (*suppliedErrorConn) CloseWrite() error                { return nil }
+func (*suppliedErrorConn) LocalAddress() Address            { return Address{IP: "127.0.0.1", Port: 1} }
+func (*suppliedErrorConn) RemoteAddress() Address           { return Address{IP: "127.0.0.1", Port: 2} }
+func (*suppliedErrorConn) SetDeadline(time.Time) error      { return nil }
+func (*suppliedErrorConn) SetReadDeadline(time.Time) error  { return nil }
+func (*suppliedErrorConn) SetWriteDeadline(time.Time) error { return nil }
+
+func TestNetworkHandleSuppliedTimeoutAndDeadline(t *testing.T) {
+	if !errors.Is(ErrStallTimeout, syscall.ETIMEDOUT) {
+		t.Fatalf("stall timeout identity=%v", ErrStallTimeout)
+	}
+	for _, supplied := range []error{ErrStallTimeout, os.ErrDeadlineExceeded} {
+		connection := &Conn{implementation: &suppliedErrorConn{err: supplied}}
+		buffer := make([]byte, 8)
+		read, readErr := connection.Read(buffer)
+		written, writeErr := connection.Write([]byte("abcdef"))
+		if read != 3 || string(buffer[:read]) != "abc" || written != 3 {
+			t.Fatalf("partial counts read=%d write=%d buffer=%q", read, written, buffer)
+		}
+		for _, source := range []error{readErr, writeErr} {
+			timeout, ok := source.(interface{ Timeout() bool })
+			if !errors.Is(source, supplied) || !ok || !timeout.Timeout() {
+				t.Fatalf("local error=%v timeout=%v", source, timeout)
+			}
+			other := error(os.ErrDeadlineExceeded)
+			if supplied == os.ErrDeadlineExceeded {
+				other = ErrStallTimeout
+			}
+			if errors.Is(source, other) {
+				t.Fatalf("timeout and caller deadline identities conflated: %v", source)
+			}
+		}
+		encoded, ok := encodeProcessNetworkResponse(processNetworkResult{BytesTransferred: 3, Data: []byte("abc"), Err: supplied})
+		if !ok {
+			t.Fatal("response encoding failed")
+		}
+		decoded, err := decodeProcessNetworkResult(encoded)
+		if err != nil || decoded.BytesTransferred != 3 || string(decoded.Data) != "abc" || !errors.Is(decoded.Err, supplied) {
+			t.Fatalf("partial timeout response=%+v decode=%v", decoded, err)
+		}
+		timeout, ok := decoded.Err.(interface{ Timeout() bool })
+		if !ok || !timeout.Timeout() {
+			t.Fatalf("decoded error lost timeout classification: %v", decoded.Err)
+		}
+	}
+}
+
 func networkHandleModel(t *testing.T) (*simulationNetwork, gomadsim.NetworkDomain, gomadsim.NetworkDomain) {
 	t.Helper()
 	run := gomadsim.Begin(1<<20, 8)

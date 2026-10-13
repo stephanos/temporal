@@ -32,6 +32,15 @@ func TestRequestErrorSerializationIsClosedAndPreservesMessages(t *testing.T) {
 	}
 }
 
+func TestRequestStallTimeoutMessageIsDistinctFromCallerDeadline(t *testing.T) {
+	if got := modelErrorMessage(syscall.ETIMEDOUT); got != "connection timed out" {
+		t.Fatalf("stall timeout message=%q", got)
+	}
+	if got := modelErrorMessage(os.ErrDeadlineExceeded); got != "i/o timeout" {
+		t.Fatalf("caller deadline message=%q", got)
+	}
+}
+
 func TestProjectedWaitBoundaryPreservesUnrelatedNativePanic(t *testing.T) {
 	m, _, b := testModel(t, testLimits())
 	close(m.network.changed)

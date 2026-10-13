@@ -272,6 +272,8 @@ func descriptorStatus(err error) gomadvfd.Status {
 		return gomadvfd.Closed
 	case ErrConnectionRefused:
 		return gomadvfd.Refused
+	case ErrStallTimeout:
+		return gomadvfd.StallTimeout
 	case io.EOF:
 		return gomadvfd.EndOfStream
 	default:

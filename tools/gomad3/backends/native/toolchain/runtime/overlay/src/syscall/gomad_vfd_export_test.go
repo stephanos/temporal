@@ -12,5 +12,6 @@ var (
 	GomadGenericWritev = gomadGenericWritev
 	GomadVirtualBind   = gomadVirtualBind
 	GomadVirtualSocket = gomadVirtualSocket
+	GomadVirtualError  = gomadVirtualErr
 	GomadGeneric       = gomadGeneric
 )

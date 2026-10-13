@@ -126,6 +126,9 @@ func TestProcessNetworkErrorTranslation(t *testing.T) {
 		{nil, 0, nil}, {io.EOF, 2, io.EOF}, {context.DeadlineExceeded, 3, os.ErrDeadlineExceeded}, {os.ErrDeadlineExceeded, 3, os.ErrDeadlineExceeded},
 		{context.Canceled, 4, context.Canceled}, {ErrAddressInUse, 5, ErrAddressInUse}, {ErrClosed, 6, ErrClosed}, {ErrConnectionRefused, 7, ErrConnectionRefused},
 		{ErrResourceExhausted, 8, ErrResourceExhausted}, {ErrUnsupported, 9, ErrUnsupported}, {syscall.ESTALE, 19, syscall.ESTALE},
+		{syscall.ETIMEDOUT, 22, syscall.ETIMEDOUT},
+		{errors.Join(os.ErrDeadlineExceeded, syscall.ETIMEDOUT), 22, syscall.ETIMEDOUT},
+		{errors.Join(io.EOF, syscall.ETIMEDOUT), 22, syscall.ETIMEDOUT},
 		{errors.Join(context.Canceled, io.EOF), 2, io.EOF}, {errors.Join(ErrClosed, context.DeadlineExceeded), 3, os.ErrDeadlineExceeded},
 		{errors.Join(ErrUnsupported, ErrResourceExhausted), 8, ErrResourceExhausted},
 	}

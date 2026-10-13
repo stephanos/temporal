@@ -2,6 +2,7 @@ package protocol
 
 import (
 	"bytes"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
@@ -57,6 +58,54 @@ func TestReadSimulationModelSchemaPinsBoundedOperationVocabulary(t *testing.T) {
 	}
 	if definition.Models.Network != 1 || definition.Models.Volume != 2 || definition.NetworkOperations.Listen != 1 || definition.NetworkOperations.ConnSetWriteDeadline != 13 || definition.VolumeOperations.Resolve != 1 || definition.VolumeOperations.MappingClose != 28 {
 		t.Fatalf("simulation model operation vocabulary = network %+v volume %+v", definition.NetworkOperations, definition.VolumeOperations)
+	}
+}
+
+func TestReadSimulationModelSchemaRequiresDeclaredStallTimeout(t *testing.T) {
+	contents, err := os.ReadFile(filepath.Join("..", "..", "..", "..", "simulation", "schema", "modelwire.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var document map[string]json.RawMessage
+	if err := json.Unmarshal(contents, &document); err != nil {
+		t.Fatal(err)
+	}
+	var codes map[string]uint16
+	if err := json.Unmarshal(document["errors"], &codes); err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(t.TempDir(), "modelwire.json")
+	write := func() {
+		t.Helper()
+		encoded, err := json.Marshal(codes)
+		if err != nil {
+			t.Fatal(err)
+		}
+		document["errors"] = encoded
+		encoded, err = json.Marshal(document)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(path, encoded, 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	codes["stall_timeout"] = 22
+	write()
+	if _, err := readSimulationModelSchema(path); err != nil {
+		t.Fatalf("declared stall timeout rejected: %v", err)
+	}
+	for _, invalid := range []uint16{0, 21, 23} {
+		codes["stall_timeout"] = invalid
+		write()
+		if _, err := readSimulationModelSchema(path); err == nil {
+			t.Fatalf("invalid code accepted: %d", invalid)
+		}
+	}
+	delete(codes, "stall_timeout")
+	write()
+	if _, err := readSimulationModelSchema(path); err == nil {
+		t.Fatal("omitted stall timeout accepted")
 	}
 }
 

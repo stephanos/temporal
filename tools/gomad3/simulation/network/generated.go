@@ -24,6 +24,7 @@ var (
 	ErrAddressInUse      = errors.New("address already in use")
 	ErrClosed            = errors.New("use of closed network connection")
 	ErrConnectionRefused = errors.New("connection refused")
+	ErrStallTimeout      = syscall.ETIMEDOUT
 	ErrResourceExhausted = errors.New("network resources exhausted")
 	ErrUnsupported       = errors.New("unsupported Gomad network operation")
 	errNetworkWouldBlock = errors.New("Gomad network would block")
