@@ -47,3 +47,7 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+## Revival trigger (2026-10-13)
+
+Revived after fn153.10 completed with a SHIP implementation review, establishing the adjacent Runner identity projections without entering simulation ownership. This task now owns the paired host/target simulation formulas and projected simulation records; it must preserve the existing target map encoders and escalate any concrete target-source conflict rather than silently widening scope. The owner is disjoint from the returned qualification and native publication candidates, and final generated outputs remain assigned to fn153.17. The forced local claim is required only because Flow chain admission still sees the completed fn152 parent on an unpushed remote branch; pushing remains outside the requested scope.
