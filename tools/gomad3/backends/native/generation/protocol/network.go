@@ -11,17 +11,19 @@ import (
 )
 
 type networkWireSchema struct {
-	ConfigMagic        string `json:"config_magic"`
-	FinishMagic        string `json:"finish_magic"`
-	ErrorMagic         string `json:"error_magic"`
-	MaximumBytes       uint64 `json:"maximum_bytes"`
-	MaximumStringBytes uint64 `json:"maximum_string_bytes"`
-	MaximumNodes       uint64 `json:"maximum_nodes"`
-	MaximumLinks       uint64 `json:"maximum_links"`
-	MaximumListeners   uint64 `json:"maximum_listeners"`
-	MaximumConnections uint64 `json:"maximum_connections"`
-	MaximumDeliveries  uint64 `json:"maximum_deliveries"`
-	MaximumTransitions uint64 `json:"maximum_transitions"`
+	ConfigMagic         string `json:"config_magic"`
+	FinishMagic         string `json:"finish_magic"`
+	ErrorMagic          string `json:"error_magic"`
+	MaximumBytes        uint64 `json:"maximum_bytes"`
+	MaximumStringBytes  uint64 `json:"maximum_string_bytes"`
+	MaximumNodes        uint64 `json:"maximum_nodes"`
+	MaximumLinks        uint64 `json:"maximum_links"`
+	MaximumListeners    uint64 `json:"maximum_listeners"`
+	MaximumConnections  uint64 `json:"maximum_connections"`
+	MaximumNetworkBytes uint64 `json:"maximum_network_bytes"`
+	MaximumStallNanos   uint64 `json:"maximum_stall_nanos"`
+	MaximumDeliveries   uint64 `json:"maximum_deliveries"`
+	MaximumTransitions  uint64 `json:"maximum_transitions"`
 }
 
 type networkWireTemplateData struct {
@@ -49,6 +51,8 @@ func networkWireConsumer(host bool, definition networkWireSchema) networkWireTem
 			"MaximumDirectionalLinks":              "maximumSimulationLinks",
 			"MaximumNetworkListeners":              "maximumSimulationListeners",
 			"MaximumNetworkConnections":            "maximumSimulationConnections",
+			"MaximumNetworkBytes":                  "maximumSimulationNetworkBytes",
+			"MaximumNetworkStallNanos":             "maximumSimulationStallNanos",
 			"MaximumNetworkDeliveries":             "maximumSimulationDeliveries",
 			"MaximumNetworkTransitions":            "maximumSimulationTransitions",
 			"runtimeNetworkWireEncoder":            "simulationWireEncoder",
@@ -75,6 +79,15 @@ func networkWireConsumer(host bool, definition networkWireSchema) networkWireTem
 			"NetworkListenerSnapshot":              "simulationListenerSnapshot",
 			"NetworkConnectionSnapshot":            "simulationConnectionSnapshot",
 			"NetworkDeliverySnapshot":              "simulationDeliverySnapshot",
+			"Limits":                               "simulationLimits",
+			"NetworkConnectionBytes":               "ConnectionBytes",
+			"NetworkStallNanos":                    "StallNanos",
+			"validateRuntimeNetworkLimits":         "validateSimulationLimits",
+			"validNetworkTransition":               "validSimulationTransition",
+			"validNetworkEndpoint":                 "validSimulationWireEndpoint",
+			"validNetworkPayloadSHA256":            "validSimulationWirePayloadSHA256",
+			"networkTransitionLane":                "simulationTransitionLane",
+			"networkEndpointKey":                   "simulationEndpointKey",
 		},
 	}
 	if host {
@@ -87,6 +100,8 @@ func networkWireConsumer(host bool, definition networkWireSchema) networkWireTem
 		data.Names["MaximumDirectionalLinks"] = "maximumRuntimeNetworkWireLinks"
 		data.Names["MaximumNetworkListeners"] = "maximumRuntimeNetworkWireListeners"
 		data.Names["MaximumNetworkConnections"] = "maximumRuntimeNetworkWireConnections"
+		data.Names["MaximumNetworkBytes"] = "maximumRuntimeNetworkWireNetworkBytes"
+		data.Names["MaximumNetworkStallNanos"] = "maximumRuntimeNetworkWireStallNanos"
 		data.Names["MaximumNetworkDeliveries"] = "maximumRuntimeNetworkWireDeliveries"
 		data.Names["MaximumNetworkTransitions"] = "maximumRuntimeNetworkWireTransitions"
 	}
@@ -106,7 +121,8 @@ func generateNetworkProtocols(root string, check bool) error {
 		definition.MaximumBytes == 0 || definition.MaximumStringBytes == 0 ||
 		definition.MaximumStringBytes > definition.MaximumBytes || definition.MaximumNodes == 0 ||
 		definition.MaximumLinks == 0 || definition.MaximumListeners == 0 || definition.MaximumConnections == 0 ||
-		definition.MaximumDeliveries == 0 || definition.MaximumTransitions == 0 {
+		definition.MaximumDeliveries == 0 || definition.MaximumTransitions == 0 ||
+		definition.MaximumNetworkBytes != 1<<30 || definition.MaximumStallNanos != 9223372036854775806 {
 		return fmt.Errorf("network wire schema has invalid framing or limits")
 	}
 	for _, target := range []struct {

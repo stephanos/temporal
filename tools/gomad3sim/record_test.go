@@ -132,6 +132,61 @@ func TestClusterRecordReplayBindsNetworkLimits(t *testing.T) {
 	}
 }
 
+func TestClusterRecordNetworkHeldTimeoutVocabulary(t *testing.T) {
+	source := NetworkEndpoint{Node: "client", Incarnation: 1, Address: "10.0.0.2", Port: 40000}
+	destination := NetworkEndpoint{Node: "server", Incarnation: 1, Address: "10.0.0.1", Port: 7233}
+	for _, transition := range []NetworkTransition{
+		{Kind: "write", Source: source, Destination: destination, Connection: 7, Bytes: 3, Outcome: "held"},
+		{Kind: "write", Source: source, Destination: destination, Connection: 7, Bytes: 1, Outcome: "timeout"},
+		{Kind: "reset", Source: source, Destination: destination, Connection: 7, Bytes: 3, Count: 2, Outcome: "timeout"},
+		{Kind: "reset", Source: source, Destination: destination, Connection: 7, Outcome: "reset"},
+		{Kind: "dial", Source: NetworkEndpoint{Node: source.Node, Incarnation: 1, Address: source.Address}, Destination: NetworkEndpoint{Node: destination.Node, Address: destination.Address, Port: destination.Port}, Outcome: "timeout"},
+	} {
+		t.Run(string(transition.Kind)+"/"+string(transition.Outcome), func(t *testing.T) {
+			record := networkRecordForTransition(t, transition)
+			require.NoError(t, validateNetworkRecord(record, DefaultLimits()))
+			if transition.Connection != 0 {
+				require.Equal(t, "connection\x0000000000000000000007", networkTransitionLane(transition))
+			}
+		})
+	}
+}
+
+func TestClusterRecordRejectsMalformedHeldTimeoutTransitions(t *testing.T) {
+	valid := NetworkTransition{Kind: "reset", Source: NetworkEndpoint{Node: "client", Incarnation: 1, Address: "10.0.0.2", Port: 40000}, Destination: NetworkEndpoint{Node: "server", Incarnation: 1, Address: "10.0.0.1", Port: 7233}, Connection: 7, Outcome: "timeout"}
+	for name, mutate := range map[string]func(*NetworkTransition){
+		"zero connection":                 func(value *NetworkTransition) { value.Connection = 0 },
+		"missing destination incarnation": func(value *NetworkTransition) { value.Destination.Incarnation = 0 },
+		"zero destination port":           func(value *NetworkTransition) { value.Destination.Port = 0 },
+		"port overflow":                   func(value *NetworkTransition) { value.Source.Port = 65536 },
+		"same endpoint node":              func(value *NetworkTransition) { value.Destination.Node = value.Source.Node },
+		"delivery on reset":               func(value *NetworkTransition) { value.Delivery = 1 },
+		"payload on reset":                func(value *NetworkTransition) { value.PayloadSHA256 = rawSHA256([]byte("x")) },
+		"held reset":                      func(value *NetworkTransition) { value.Outcome = "held" },
+		"unknown outcome":                 func(value *NetworkTransition) { value.Outcome = "timed_out" },
+		"unknown kind":                    func(value *NetworkTransition) { value.Kind = "timeout_reset" },
+	} {
+		t.Run(name, func(t *testing.T) {
+			transition := valid
+			mutate(&transition)
+			require.Error(t, validateNetworkRecord(networkRecordForTransition(t, transition), DefaultLimits()))
+		})
+	}
+}
+
+func networkRecordForTransition(t *testing.T, transition NetworkTransition) NetworkRecord {
+	t.Helper()
+	record := emptyNetworkRecord()
+	record.Transitions = []NetworkTransition{transition}
+	encoded, err := encodeRuntimeNetworkTransitions(record.Transitions)
+	require.NoError(t, err)
+	digest := sha256.Sum256(append([]byte("gomad3-simulation-network-transitions/v2\x00"), encoded...))
+	record.Snapshot.TransitionSHA256 = fmt.Sprintf("sha256:%x", digest)
+	record.Snapshot.Identity, err = networkSnapshotIdentity(record.Snapshot)
+	require.NoError(t, err)
+	return record
+}
+
 func TestClusterRecordRejectsInconsistentOutputBeforeIdentity(t *testing.T) {
 	payload := []byte("bounded")
 	digest := sha256.Sum256(payload)

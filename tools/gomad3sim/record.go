@@ -1083,55 +1083,6 @@ func networkSnapshotIdentity(snapshot NetworkSnapshot) (string, error) {
 	return fmt.Sprintf("sha256:%x", digest), nil
 }
 
-func validNetworkTransition(transition NetworkTransition) bool {
-	switch transition.Kind {
-	case NetworkListen, NetworkDial, NetworkAccept, NetworkWrite, NetworkDeliver, NetworkClose, NetworkListenerClose, NetworkStop, NetworkCrash:
-		if !validNetworkEndpoint(transition.Source, true) {
-			return false
-		}
-	case NetworkPartition, NetworkHeal, NetworkDelay, NetworkDisconnect, NetworkReconnect, NetworkDirectionalDelay:
-		if !validNetworkEndpoint(transition.Source, false) || !validNetworkEndpoint(transition.Destination, false) || transition.Source.Node == transition.Destination.Node {
-			return false
-		}
-	default:
-		return false
-	}
-	switch transition.Outcome {
-	case NetworkOutcomeOK, NetworkOutcomeClosed, NetworkOutcomeRefused, NetworkOutcomeDeadline, NetworkOutcomePartitionDrop, NetworkOutcomeStaleDrop, NetworkOutcomeReset, NetworkOutcomeCapacity, NetworkOutcomeUnsupported:
-	default:
-		return false
-	}
-	if transition.PayloadSHA256 != "" && !validSHA256(transition.PayloadSHA256) {
-		return false
-	}
-	return true
-}
-
-func validNetworkEndpoint(endpoint NetworkEndpoint, requireIncarnation bool) bool {
-	if endpoint.Node == "" || endpoint.Address == "" {
-		return false
-	}
-	return !requireIncarnation || endpoint.Incarnation != 0
-}
-
-func networkTransitionLane(transition NetworkTransition) string {
-	switch transition.Kind {
-	case NetworkPartition, NetworkHeal, NetworkDelay, NetworkDisconnect, NetworkReconnect, NetworkDirectionalDelay:
-		return "topology"
-	case NetworkListen, NetworkListenerClose:
-		return "listener\x00" + networkEndpointKey(transition.Source)
-	case NetworkDial, NetworkAccept, NetworkWrite, NetworkDeliver, NetworkClose:
-		if transition.Connection != 0 {
-			return fmt.Sprintf("connection\x00%020d", transition.Connection)
-		}
-		return "operation\x00" + string(transition.Kind) + "\x00" + networkEndpointKey(transition.Source) + "\x00" + networkEndpointKey(transition.Destination)
-	case NetworkStop, NetworkCrash:
-		return "lifecycle\x00" + networkEndpointKey(transition.Source)
-	default:
-		return "unknown\x00" + string(transition.Kind)
-	}
-}
-
 func networkEndpointKey(endpoint NetworkEndpoint) string {
 	return fmt.Sprintf("%s\x00%020d\x00%s\x00%05d", endpoint.Node, endpoint.Incarnation, endpoint.Address, endpoint.Port)
 }

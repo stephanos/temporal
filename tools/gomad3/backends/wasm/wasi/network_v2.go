@@ -58,6 +58,9 @@ func validateNetworkModelV2(config *NetworkModelV2) error {
 	if limits.Listeners == 0 || limits.Listeners > 4096 || limits.Connections == 0 || limits.Connections > 65536 || limits.Deliveries == 0 || limits.Deliveries > 65536 || limits.Bytes == 0 || limits.Bytes > 128<<20 || limits.Transitions == 0 || limits.Transitions > 1<<20 {
 		return invalid("network v2 limits")
 	}
+	if limits.ConnectionBytes == 0 || limits.ConnectionBytes > 1<<30 || limits.StallNanos == 0 || limits.StallNanos > math.MaxInt64-1 {
+		return invalid("network v2 byte or stall limits")
+	}
 	names := map[string]bool{}
 	if len(config.Faults) > int(limits.Transitions) {
 		return invalid("network v2 fault capacity")

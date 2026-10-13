@@ -92,6 +92,79 @@ func TestProviderMandatoryCleanupReapsWithoutLifecycleActions(t *testing.T) {
 	}
 }
 
+func TestProviderBindsEverySelectedBootNetworkLimit(t *testing.T) {
+	for _, test := range []struct {
+		name            string
+		mismatch        int
+		stallMismatch   bool
+		networkFree     bool
+		restartMismatch bool
+		unusedMismatch  bool
+	}{
+		{name: "matching", mismatch: -1},
+		{name: "network free", mismatch: -1, networkFree: true},
+		{name: "first byte mismatch", mismatch: 0},
+		{name: "later byte mismatch", mismatch: 1},
+		{name: "first stall mismatch", mismatch: 0, stallMismatch: true},
+		{name: "later stall mismatch", mismatch: 1, stallMismatch: true},
+		{name: "restart byte mismatch", mismatch: -1, restartMismatch: true},
+		{name: "restart stall mismatch", mismatch: -1, stallMismatch: true, restartMismatch: true},
+		{name: "unused mismatch", mismatch: -1, unusedMismatch: true},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			spec := gomad3sim.Spec{Schema: gomad3sim.SpecSchema, Backend: gomad3sim.BackendWASM, Fidelity: gomad3sim.FidelityHardIsolation, Seed: 17, Limits: gomad3sim.DefaultLimits()}
+			spec.Limits.NetworkConnectionBytes, spec.Limits.NetworkStallNanos = 123, 456
+			provider := &Provider{Boots: make(map[gomad3sim.BootID]wasi.Request)}
+			for index, id := range []gomad3sim.NodeID{"a", "b"} {
+				request := wasi.Request{
+					Runtime: &wasi.RuntimeControl{Seed: 17, Choice: &runnerbackend.ChoiceRequest{}},
+					Config: wasi.Config{Profile: wasi.CooperativeProfile, Environment: []string{"PWD=/workspace"}, WorkingDirectory: "/workspace", WritableDirectories: []string{"/workspace"},
+						Limits:    wasi.Limits{OutputBytes: 1024, TranscriptBytes: 1 << 20, Calls: 128, Descriptors: 64, Files: 128, FilesystemBytes: 1 << 20, PendingEvents: 128},
+						NetworkV2: &wasi.NetworkModelV2{Profile: wasi.NetworkStreamProfile, Limits: netmodel.Limits{Listeners: 8, Connections: 8, Deliveries: 8, Bytes: 1024, ConnectionBytes: 123, StallNanos: 456, Transitions: 128}}},
+				}
+				if test.networkFree {
+					request.Config.NetworkV2 = nil
+				} else if index == test.mismatch {
+					if test.stallMismatch {
+						request.Config.NetworkV2.Limits.StallNanos++
+					} else {
+						request.Config.NetworkV2.Limits.ConnectionBytes++
+					}
+				}
+				identity, err := BootConfiguration(request)
+				if err != nil {
+					t.Fatal(err)
+				}
+				boot := gomad3sim.BootID(id)
+				provider.Boots[boot] = request
+				spec.Nodes = append(spec.Nodes, gomad3sim.NodeSpec{ID: id, Boot: boot, Address: fmt.Sprintf("10.0.0.%d", index+1), Config: identity})
+			}
+			if test.restartMismatch || test.unusedMismatch {
+				request := provider.Boots["a"]
+				model := *request.Config.NetworkV2
+				request.Config.NetworkV2 = &model
+				if test.stallMismatch {
+					model.Limits.StallNanos++
+				} else {
+					model.Limits.ConnectionBytes++
+				}
+				provider.Boots["extra"] = request
+				if test.restartMismatch {
+					provider.IncarnationBoots = []IncarnationBoot{{Handle: gomad3sim.NodeHandle{Node: "a", Incarnation: 2}, Boot: "extra"}}
+				}
+			}
+			_, err := provider.Open(t.Context(), spec)
+			if test.mismatch >= 0 || test.restartMismatch {
+				if err == nil || !strings.Contains(err.Error(), "network limits") {
+					t.Fatalf("identity-bound mismatch admitted: %v", err)
+				}
+			} else if err != nil {
+				t.Fatal(err)
+			}
+		})
+	}
+}
+
 // retainedTargetModule stands in for the Artifact target: a detached copy of
 // the module, taken before the original path is made unavailable.
 func retainedTargetModule(t *testing.T, r wasi.Request) RetainedModule {
@@ -151,7 +224,7 @@ func guestRequest(t *testing.T) wasi.Request {
 		t.Fatal(err)
 	}
 	t.Logf("actual small guest module-sha256=%x module-bytes=%d helper-sha256=%x implementation=%s", sha256.Sum256(data), len(data), sha256.Sum256(helperBytes), ImplementationSHA256())
-	config := wasi.Config{Profile: wasi.CooperativeProfile, Args: []string{"service", "server"}, Environment: []string{"PWD=/workspace", "TZ=UTC"}, WorkingDirectory: "/workspace", WritableDirectories: []string{"/workspace", "/tmp"}, EntropyKey: [32]byte{1, 2, 3}, Clock: wasi.ClockPolicy{EpochNanos: 946684800000000000}, Limits: wasi.Limits{OutputBytes: 1 << 20, TranscriptBytes: 32 << 20, Calls: 100000, Descriptors: 128, Files: 1024, FilesystemBytes: 8 << 20, PendingEvents: 4096}, NetworkV2: &wasi.NetworkModelV2{Profile: wasi.NetworkStreamProfile, Limits: netmodel.Limits{Listeners: 128, Connections: 128, Deliveries: 1024, Bytes: 8 << 20, Transitions: 10000}}}
+	config := wasi.Config{Profile: wasi.CooperativeProfile, Args: []string{"service", "server"}, Environment: []string{"PWD=/workspace", "TZ=UTC"}, WorkingDirectory: "/workspace", WritableDirectories: []string{"/workspace", "/tmp"}, EntropyKey: [32]byte{1, 2, 3}, Clock: wasi.ClockPolicy{EpochNanos: 946684800000000000}, Limits: wasi.Limits{OutputBytes: 1 << 20, TranscriptBytes: 32 << 20, Calls: 100000, Descriptors: 128, Files: 1024, FilesystemBytes: 8 << 20, PendingEvents: 4096}, NetworkV2: &wasi.NetworkModelV2{Profile: wasi.NetworkStreamProfile, Limits: netmodel.Limits{Listeners: 128, Connections: 128, Deliveries: 1024, Bytes: 8 << 20, ConnectionBytes: 4 << 20, StallNanos: 10_000_000_000, Transitions: 10000}}}
 	identity := choice.ExecutionIdentity{TargetSHA256: sha256.Sum256(data), ToolchainBuildKey: key, GOOS: "wasip1", GOARCH: "wasm", ImplementationSHA256: sha256.Sum256([]byte(key))}
 	return wasi.Request{HelperPath: helper, HelperSHA256: fmt.Sprintf("%x", sha256.Sum256(helperBytes)), ModulePath: module, ModuleSHA256: fmt.Sprintf("%x", sha256.Sum256(data)), Engine: wasi.PinnedEngine(), Imports: imports, InitialMemoryPages: pages, MemoryBytes: 256 << 20, Fuel: 4_000_000_000, Config: config, Timeout: time.Minute, Runtime: &wasi.RuntimeControl{Seed: 7, Diagnostics: true, Choice: &runnerbackend.ChoiceRequest{Mode: choice.ModeRecord, ExecutionIdentity: identity, Limit: 8 << 20}}}
 }

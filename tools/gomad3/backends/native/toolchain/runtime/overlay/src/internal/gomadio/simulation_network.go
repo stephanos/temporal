@@ -31,11 +31,13 @@ type simulationNetworkConfig struct {
 }
 
 type simulationLimits struct {
-	Listeners   uint64 `json:"listeners"`
-	Connections uint64 `json:"connections"`
-	Deliveries  uint64 `json:"deliveries"`
-	Bytes       uint64 `json:"bytes"`
-	Transitions uint64 `json:"transitions"`
+	Listeners       uint64 `json:"listeners"`
+	Connections     uint64 `json:"connections"`
+	Deliveries      uint64 `json:"deliveries"`
+	Bytes           uint64 `json:"bytes"`
+	ConnectionBytes uint64 `json:"connection_bytes"`
+	StallNanos      uint64 `json:"stall_nanos"`
+	Transitions     uint64 `json:"transitions"`
 }
 
 type simulationNodeConfig struct {
@@ -283,6 +285,16 @@ func FinishSimulation(run uint64) ([]byte, bool) {
 func newSimulationNetwork(run uint64, config simulationNetworkConfig) (*simulationNetwork, error) {
 	if run == 0 || config.Limits.Listeners == 0 || config.Limits.Connections == 0 || config.Limits.Deliveries == 0 || config.Limits.Bytes == 0 || config.Limits.Transitions == 0 {
 		return nil, errors.New("simulation network limits are invalid")
+	}
+	if err := validateSimulationLimits(config.Limits); err != nil {
+		return nil, err
+	}
+	if config.Replay != nil {
+		for index, transition := range config.Replay.Transitions {
+			if transition.Ordinal != uint64(index) || !validSimulationTransition(transition) || index != 0 && simulationTransitionLane(config.Replay.Transitions[index-1]) > simulationTransitionLane(transition) {
+				return nil, errors.New("simulation network replay transition is invalid or unordered")
+			}
+		}
 	}
 	network := &simulationNetwork{
 		run:         run,
@@ -956,6 +968,9 @@ func (network *simulationNetwork) snapshotLocked() (simulationSnapshot, error) {
 }
 
 func (network *simulationNetwork) commitTransitionLocked(transition simulationTransition) error {
+	if !validSimulationTransition(transition) {
+		return errors.New("simulation network transition is invalid")
+	}
 	ordinal := uint64(len(network.transitions))
 	if ordinal >= network.limits.Transitions {
 		return ErrResourceExhausted
@@ -1000,24 +1015,6 @@ func canonicalizeSimulationTransitions(transitions []simulationTransition) {
 	})
 	for index := range transitions {
 		transitions[index].Ordinal = uint64(index)
-	}
-}
-
-func simulationTransitionLane(transition simulationTransition) string {
-	switch transition.Kind {
-	case "partition", "heal", "delay":
-		return "topology"
-	case "listen", "listener_close":
-		return "listener\x00" + simulationEndpointKey(transition.Source)
-	case "dial", "accept", "write", "deliver", "close":
-		if transition.Connection != 0 {
-			return fmt.Sprintf("connection\x00%020d", transition.Connection)
-		}
-		return "operation\x00" + transition.Kind + "\x00" + simulationEndpointKey(transition.Source) + "\x00" + simulationEndpointKey(transition.Destination)
-	case "stop", "crash":
-		return "lifecycle\x00" + simulationEndpointKey(transition.Source)
-	default:
-		return "unknown\x00" + transition.Kind
 	}
 }
 

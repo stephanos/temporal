@@ -126,7 +126,7 @@ func networkHandleModel(t *testing.T) (*simulationNetwork, gomadsim.NetworkDomai
 	left := gomadsim.Register(run, "a", "10.0.0.1", 1)
 	right := gomadsim.Register(run, "b", "10.0.0.2", 1)
 	model, err := newSimulationNetwork(run, simulationNetworkConfig{
-		Limits: simulationLimits{Listeners: 8, Connections: 8, Deliveries: 8, Bytes: 1 << 20, Transitions: 128},
+		Limits: simulationLimits{Listeners: 8, Connections: 8, Deliveries: 8, Bytes: 1 << 20, ConnectionBytes: 4 << 20, StallNanos: 10_000_000_000, Transitions: 128},
 		Nodes:  []simulationNodeConfig{{Node: "a", Address: "10.0.0.1"}, {Node: "b", Address: "10.0.0.2"}},
 		Links:  []simulationLink{{From: "a", To: "b", Enabled: true}, {From: "b", To: "a", Enabled: true}},
 	})

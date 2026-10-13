@@ -59,8 +59,8 @@ func TestNetworkWireConsumers(t *testing.T) {
 		"NetworkSnapshot": nil, "NetworkRecord": nil, "runtimeNetworkError": nil,
 	}
 	write("host_types.go", wireConsumerDeclarations(t, root, []string{
-		"../gomad3sim/spec.go", "../gomad3sim/types.go", "../gomad3sim/runtime_network.go",
-	}, hostTypes, nil))
+		"../gomad3sim/spec.go", "../gomad3sim/types.go", "../gomad3sim/runtime_network.go", "../gomad3sim/record.go",
+	}, hostTypes, map[string]bool{"networkEndpointKey": true}))
 	overlayTypes := map[string][]string{
 		"simulationNetworkConfig": nil, "simulationLimits": nil, "simulationNodeConfig": nil,
 		"simulationLink": nil, "simulationEndpoint": nil, "simulationTransition": nil,
@@ -70,7 +70,7 @@ func TestNetworkWireConsumers(t *testing.T) {
 	}
 	write("overlay_types.go", wireConsumerDeclarations(t, root, []string{
 		"backends/native/toolchain/runtime/overlay/src/internal/gomadio/simulation_network.go",
-	}, overlayTypes, map[string]bool{"Error": true}))
+	}, overlayTypes, map[string]bool{"Error": true, "simulationEndpointKey": true}))
 	write("wire_test.go", []byte(networkWireConsumerTests))
 	goCommand := os.Getenv("GOMAD3_STOCK_GO")
 	if goCommand == "" {
@@ -94,6 +94,7 @@ import (
  "encoding/hex"
  "encoding/json"
  "errors"
+ "math"
  "reflect"
  "strings"
  "testing"
@@ -134,9 +135,10 @@ func TestConfigCrossConsumer(t *testing.T) {
   Links: []LinkSpec{{From: "a", To: "b", Enabled: true, DelayNanos: 14}},
   Limits: Limits{NetworkListeners: 23, NetworkConnections: 24, NetworkDeliveries: 25, NetworkBytes: 26, NetworkTransitions: 27},
  }
+ spec.Limits.NetworkConnectionBytes, spec.Limits.NetworkStallNanos = 28, 29
  encoded, err := encodeRuntimeNetworkConfig(spec)
  if err != nil { t.Fatal(err) }
- if hex.EncodeToString(encoded) != "474f4d41444e43310100000000000000010000000000000061010000000000000041010000000000000001000000000000006101000000000000006201000000000000000e000000000000001700000000000000180000000000000019000000000000001a000000000000001b000000000000000000000000000000" { t.Fatalf("config vector: %x", encoded) }
+ if hex.EncodeToString(encoded) != "474f4d41444e43320100000000000000010000000000000061010000000000000041010000000000000001000000000000006101000000000000006201000000000000000e000000000000001700000000000000180000000000000019000000000000001a000000000000001c000000000000001d000000000000001b000000000000000000000000000000" { t.Fatalf("config vector: %x", encoded) }
  for _, replay := range []bool{false, true} {
   if replay { spec.Replay = &ReplayPlan{Network: fixtureRecord()} }
   encoded, err := encodeRuntimeNetworkConfig(spec)
@@ -145,7 +147,7 @@ func TestConfigCrossConsumer(t *testing.T) {
   if err != nil { t.Fatal(err) }
   if !reflect.DeepEqual(config.Nodes, []simulationNodeConfig{{Node: "a", Address: "A"}}) ||
    !reflect.DeepEqual(config.Links, []simulationLink{{From: "a", To: "b", Enabled: true, DelayNanos: 14}}) ||
-   config.Limits != (simulationLimits{Listeners: 23, Connections: 24, Deliveries: 25, Bytes: 26, Transitions: 27}) {
+   config.Limits != (simulationLimits{Listeners: 23, Connections: 24, Deliveries: 25, Bytes: 26, ConnectionBytes: 28, StallNanos: 29, Transitions: 27}) {
    t.Fatalf("config = %+v", config)
   }
   if replay {
@@ -153,6 +155,80 @@ func TestConfigCrossConsumer(t *testing.T) {
    if config.Replay == nil || !reflect.DeepEqual(*config.Replay, want) { t.Fatalf("replay config = %+v", config.Replay) }
   } else if config.Replay != nil { t.Fatal("unexpected replay") }
  }
+}
+
+func TestConfigLimitsAndOldVersionRejected(t *testing.T) {
+ base := Spec{Limits: Limits{NetworkConnectionBytes: 1, NetworkStallNanos: 1}}
+ encoded, err := encodeRuntimeNetworkConfig(base)
+ if err != nil { t.Fatal(err) }
+ old := bytes.Clone(encoded)
+ old[7] = '1'
+ if _, err := decodeSimulationConfig(old); err == nil { t.Fatal("old config header admitted") }
+ omitted := append(bytes.Clone(encoded[:56]), encoded[72:]...)
+ if _, err := decodeSimulationConfig(omitted); err == nil { t.Fatal("omitted limits admitted") }
+ for _, field := range []struct{ offset int; invalid []uint64 }{
+  {56, []uint64{0, (1<<30)+1, math.MaxUint64}},
+  {64, []uint64{0, math.MaxInt64, uint64(math.MaxInt64)+1, math.MaxUint64}},
+ } {
+  for _, value := range field.invalid {
+   malformed := bytes.Clone(encoded)
+   copy(malformed[field.offset:field.offset+8], appendSimulationUint64(nil, value))
+   if _, err := decodeSimulationConfig(malformed); err == nil { t.Fatalf("field %d accepted %d", field.offset, value) }
+  }
+ }
+ for _, pair := range [][2]uint64{{1,1},{1<<30,math.MaxInt64-1}} {
+  spec := base
+  spec.Limits.NetworkConnectionBytes, spec.Limits.NetworkStallNanos = pair[0], pair[1]
+  encoded, err := encodeRuntimeNetworkConfig(spec)
+  if err != nil { t.Fatal(err) }
+  config, err := decodeSimulationConfig(encoded)
+  if err != nil || config.Limits.ConnectionBytes != pair[0] || config.Limits.StallNanos != pair[1] { t.Fatalf("boundaries = %+v %v", config, err) }
+ }
+}
+
+func TestHeldTimeoutAndLegacySemanticsMatch(t *testing.T) {
+ source := NetworkEndpoint{Node:"a",Incarnation:1,Address:"A",Port:2}
+ destination := NetworkEndpoint{Node:"b",Incarnation:3,Address:"B",Port:4}
+ valid := []NetworkTransition{
+  {Kind:"write",Source:source,Destination:destination,Connection:6,Bytes:8,Outcome:"held"},
+  {Kind:"write",Source:source,Destination:destination,Connection:6,Bytes:8,Outcome:"timeout"},
+  {Kind:"reset",Source:source,Destination:destination,Connection:6,Outcome:"timeout"},
+  {Kind:"reset",Source:source,Destination:destination,Connection:6,Outcome:"reset"},
+  {Kind:"dial",Source:source,Destination:NetworkEndpoint{Node:"b",Address:"B",Port:4},Outcome:"timeout"},
+ }
+ for _, kind := range []NetworkTransitionKind{"partition","heal","delay","disconnect","reconnect","directional_delay"} {
+  valid=append(valid,NetworkTransition{Kind:kind,Source:source,Destination:destination,Outcome:"ok"})
+ }
+ for _, kind := range []NetworkTransitionKind{"listen","dial","accept","write","deliver","close","listener_close","stop","crash"} {
+  for _, outcome := range []NetworkOutcome{"ok","closed","refused","deadline","partition_drop","stale_drop","reset","capacity","unsupported"} {
+   valid=append(valid,NetworkTransition{Kind:kind,Source:source,Connection:6,Delivery:7,Outcome:outcome})
+  }
+ }
+ check := func(transition NetworkTransition, want bool) {
+  t.Helper()
+  encoded, err := json.Marshal(transition)
+  if err != nil {t.Fatal(err)}
+  var overlay simulationTransition
+  if err:=json.Unmarshal(encoded,&overlay);err!=nil {t.Fatal(err)}
+  if host, native:=validNetworkTransition(transition),validSimulationTransition(overlay);host!=want||native!=want {t.Fatalf("transition %+v validation host=%v overlay=%v want=%v",transition,host,native,want)}
+  if host,native:=networkTransitionLane(transition),simulationTransitionLane(overlay);host!=native {t.Fatalf("transition %+v lane host=%q overlay=%q",transition,host,native)}
+ }
+ for _, transition:=range valid {check(transition,true)}
+ reset:=valid[2]
+ for _, mutate:=range []func(*NetworkTransition){
+  func(v *NetworkTransition){v.Connection=0},
+  func(v *NetworkTransition){v.Destination.Incarnation=0},
+  func(v *NetworkTransition){v.Source.Port=65536},
+  func(v *NetworkTransition){v.Destination.Port=0},
+  func(v *NetworkTransition){v.Destination.Node=v.Source.Node},
+  func(v *NetworkTransition){v.Delivery=1},
+  func(v *NetworkTransition){v.PayloadSHA256="sha256:"+strings.Repeat("a",64)},
+  func(v *NetworkTransition){v.Kind="timeout_reset"},
+  func(v *NetworkTransition){v.Outcome="unknown"},
+  func(v *NetworkTransition){v.Outcome="held"},
+ } {invalid:=reset;mutate(&invalid);check(invalid,false)}
+ held:=valid[0];held.Bytes=0;check(held,false)
+ dial:=valid[4];dial.Connection=1;check(dial,false)
 }
 
 func TestFinishAndIdentityCrossConsumer(t *testing.T) {
@@ -219,7 +295,7 @@ func TestTruncatedRecordStopsAtFailure(t *testing.T) {
 }
 
 func TestMalformedCrossConsumer(t *testing.T) {
- config, err := encodeRuntimeNetworkConfig(Spec{})
+ config, err := encodeRuntimeNetworkConfig(Spec{Limits: Limits{NetworkConnectionBytes: 1, NetworkStallNanos: 1}})
  if err != nil { t.Fatal(err) }
  finish, err := encodeSimulationFinishResponse(simulationRecord{}, nil)
  if err != nil { t.Fatal(err) }
@@ -268,6 +344,9 @@ func TestMalformedCrossConsumer(t *testing.T) {
 func wireConsumerDeclarations(t *testing.T, root string, paths []string, selected map[string][]string, methods map[string]bool) []byte {
 	t.Helper()
 	output := []byte("package networkwiretest\n")
+	if methods["networkEndpointKey"] || methods["simulationEndpointKey"] {
+		output = append(output, []byte("import \"fmt\"\n")...)
+	}
 	found := make(map[string]bool)
 	for _, path := range paths {
 		fset := token.NewFileSet()
@@ -308,12 +387,14 @@ func wireConsumerDeclarations(t *testing.T, root string, paths []string, selecte
 					output = append(output, '\n')
 				}
 			case *ast.FuncDecl:
-				if declaration.Recv == nil || !methods[declaration.Name.Name] {
+				if !methods[declaration.Name.Name] {
 					continue
 				}
-				receiver := declaration.Recv.List[0].Type.(*ast.StarExpr).X.(*ast.Ident).Name
-				if _, ok := selected[receiver]; !ok {
-					continue
+				if declaration.Recv != nil {
+					receiver := declaration.Recv.List[0].Type.(*ast.StarExpr).X.(*ast.Ident).Name
+					if _, ok := selected[receiver]; !ok {
+						continue
+					}
 				}
 				var encoded bytes.Buffer
 				if err := format.Node(&encoded, fset, declaration); err != nil {

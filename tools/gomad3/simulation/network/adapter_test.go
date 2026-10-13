@@ -68,7 +68,59 @@ func testModel(t *testing.T, limits Limits) (*Model, Domain, Domain) {
 	return m, a, b
 }
 func testLimits() Limits {
-	return Limits{Listeners: 128, Connections: 128, Deliveries: 128, Bytes: 8 << 20, Transitions: 8192}
+	return Limits{Listeners: 128, Connections: 128, Deliveries: 128, Bytes: 8 << 20, ConnectionBytes: 4 << 20, StallNanos: 10_000_000_000, Transitions: 8192}
+}
+
+func TestModelRejectsInvalidExplicitNetworkLimits(t *testing.T) {
+	for _, test := range []struct {
+		bytes, stall uint64
+	}{
+		{0, 1}, {(1 << 30) + 1, 1}, {1, 0}, {1, 9223372036854775807}, {^uint64(0), ^uint64(0)},
+	} {
+		limits := testLimits()
+		limits.ConnectionBytes, limits.StallNanos = test.bytes, test.stall
+		if model, err := New(1, Config{Limits: limits}); err == nil || model != nil {
+			t.Fatalf("invalid limits activated model: bytes=%d stall=%d", test.bytes, test.stall)
+		}
+	}
+}
+
+func TestModelHeldTimeoutReplayAdmission(t *testing.T) {
+	source := simulationEndpoint{Node: "a", Incarnation: 1, Address: "A", Port: 2}
+	destination := simulationEndpoint{Node: "b", Incarnation: 1, Address: "B", Port: 3}
+	valid := simulationTransition{Kind: "reset", Source: source, Destination: destination, Connection: 1, Outcome: "timeout"}
+	config := Config{Limits: testLimits(), Replay: &Record{Transitions: []Transition{valid}}}
+	if model, err := New(1, config); err != nil || model == nil {
+		t.Fatalf("valid reset replay rejected: %v", err)
+	}
+	for _, mutate := range []func(*Transition){
+		func(value *Transition) { value.Connection = 0 },
+		func(value *Transition) { value.Kind = "unknown" },
+		func(value *Transition) { value.Destination.Incarnation = 0 },
+		func(value *Transition) { value.Ordinal = 1 },
+	} {
+		invalid := valid
+		mutate(&invalid)
+		config.Replay = &Record{Transitions: []Transition{invalid}}
+		if model, err := New(1, config); err == nil || model != nil {
+			t.Fatalf("invalid replay activated model: %+v", invalid)
+		}
+	}
+}
+
+func TestModelRejectsUnknownTransitionBeforeCommit(t *testing.T) {
+	model, err := New(1, Config{Limits: testLimits()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, transition := range []Transition{
+		{Kind: "unknown", Outcome: "ok"},
+		{Kind: "reset", Source: simulationEndpoint{Node: "a", Incarnation: 1, Address: "A", Port: 2}, Destination: simulationEndpoint{Node: "b", Incarnation: 1, Address: "B", Port: 3}, Outcome: "timeout"},
+	} {
+		if err := model.network.commitTransitionLocked(transition); err == nil || len(model.network.transitions) != 0 {
+			t.Fatalf("invalid transition committed: %+v error=%v", transition, err)
+		}
+	}
 }
 func pair(t *testing.T, m *Model, a, b Domain) (uint64, uint64, uint64) {
 	t.Helper()

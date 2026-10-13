@@ -1,10 +1,40 @@
 package gomad3sim
 
 import (
+	"fmt"
+	"math"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
+
+func TestRuntimeNetworkConfigExplicitLimits(t *testing.T) {
+	for _, test := range []struct {
+		bytes, stall uint64
+		valid        bool
+	}{
+		{1, 1, true},
+		{1 << 30, math.MaxInt64 - 1, true},
+		{0, 1, false},
+		{(1 << 30) + 1, 1, false},
+		{1, 0, false},
+		{1, math.MaxInt64, false},
+		{math.MaxUint64, math.MaxUint64, false},
+	} {
+		t.Run(fmt.Sprintf("%d/%d", test.bytes, test.stall), func(t *testing.T) {
+			spec := validSpec()
+			spec.Limits.NetworkConnectionBytes = test.bytes
+			spec.Limits.NetworkStallNanos = test.stall
+			encoded, err := encodeRuntimeNetworkConfig(spec)
+			if test.valid {
+				require.NoError(t, err)
+				require.Equal(t, "GOMADNC2", string(encoded[:8]))
+			} else {
+				require.Error(t, err, "bytes=%d stall=%d", test.bytes, test.stall)
+			}
+		})
+	}
+}
 
 func TestRuntimeNetworkWireRecordRoundTrip(t *testing.T) {
 	record := NetworkRecord{

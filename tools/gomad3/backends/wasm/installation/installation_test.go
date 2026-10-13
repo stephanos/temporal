@@ -168,7 +168,7 @@ func TestInstallationRejectsUnqualifiedModelsBeforePreparation(t *testing.T) {
 	}{
 		{"network v1", func(c *wasi.Config) { c.Network = &wasi.NetworkModel{} }},
 		{"network v2", func(c *wasi.Config) {
-			c.NetworkV2 = &wasi.NetworkModelV2{Profile: wasi.NetworkStreamProfile, Limits: netmodel.Limits{Listeners: 1, Connections: 1, Deliveries: 1, Bytes: 1024, Transitions: 16}}
+			c.NetworkV2 = &wasi.NetworkModelV2{Profile: wasi.NetworkStreamProfile, Limits: netmodel.Limits{Listeners: 1, Connections: 1, Deliveries: 1, Bytes: 1024, ConnectionBytes: 4 << 20, StallNanos: 10_000_000_000, Transitions: 16}}
 		}},
 		{"storage", func(c *wasi.Config) { c.Storage = &wasi.StorageModel{} }},
 	} {

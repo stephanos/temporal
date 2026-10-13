@@ -239,6 +239,13 @@ func BootConfiguration(request wasi.Request) ([]byte, error) {
 	return json.Marshal(bootIdentity{Module: request.ModuleSHA256, Helper: request.HelperSHA256, Environment: environment.Identity(), Implementation: ImplementationSHA256(), Engine: request.Engine, Memory: request.MemoryBytes, Fuel: request.Fuel, Runtime: request.Runtime.Choice.ExecutionIdentity, Imports: request.Imports, InitialMemoryPages: request.InitialMemoryPages, Timeout: request.Timeout, ChoiceLimit: request.Runtime.Choice.Limit, Diagnostics: request.Runtime.Diagnostics, DigestTranscript: request.DigestTranscript, StorageCrashSelection: request.StorageCrashSelection, StorageCrashLimits: request.StorageCrashLimits})
 }
 
+func validateBootNetworkLimits(model *wasi.NetworkModelV2, limits gomad3sim.Limits) error {
+	if model != nil && (model.Limits.ConnectionBytes != limits.NetworkConnectionBytes || model.Limits.StallNanos != limits.NetworkStallNanos) {
+		return errors.New("WASM boot network limits differ from simulation specification")
+	}
+	return nil
+}
+
 type node struct {
 	handle  gomad3sim.NodeHandle
 	request wasi.Request
@@ -311,6 +318,9 @@ func (p *Provider) Open(ctx context.Context, spec gomad3sim.Spec) (gomad3sim.WAS
 		if request.Config.Profile != wasi.CooperativeProfile || request.Config.Clock.ReadStepNanos != 0 || request.Broker != nil || request.StorageImage != nil {
 			return nil, errors.New("WASM node must have a fresh cooperative frozen-clock environment")
 		}
+		if err := validateBootNetworkLimits(request.Config.NetworkV2, spec.Limits); err != nil {
+			return nil, err
+		}
 		identity, err := BootConfiguration(request)
 		if err != nil {
 			return nil, err
@@ -363,6 +373,9 @@ func (p *Provider) Open(ctx context.Context, spec gomad3sim.Spec) (gomad3sim.WAS
 		r, ok := boots[binding.Boot]
 		if initial == nil || binding.Handle.Incarnation < 2 || !ok || r.Config.Profile != wasi.CooperativeProfile || r.Config.Clock.ReadStepNanos != 0 || r.Broker != nil || r.StorageImage != nil || r.Runtime == nil || r.Runtime.Seed != spec.Seed {
 			return nil, errors.New("invalid WASM incarnation boot binding")
+		}
+		if err := validateBootNetworkLimits(r.Config.NetworkV2, spec.Limits); err != nil {
+			return nil, err
 		}
 		storage, _ := json.Marshal(r.Config.Storage)
 		originalStorage, _ := json.Marshal(initial.Config.Storage)

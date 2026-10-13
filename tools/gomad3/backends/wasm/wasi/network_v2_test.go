@@ -4,13 +4,40 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/json"
+	"math"
 	"testing"
 
 	netmodel "go.temporal.io/server/tools/gomad3/simulation/network"
 )
 
 func streamConfig() *NetworkModelV2 {
-	return &NetworkModelV2{Profile: NetworkStreamProfile, Limits: netmodel.Limits{Listeners: 128, Connections: 128, Deliveries: 128, Bytes: 8 << 20, Transitions: 8192}}
+	return &NetworkModelV2{Profile: NetworkStreamProfile, Limits: netmodel.Limits{Listeners: 128, Connections: 128, Deliveries: 128, Bytes: 8 << 20, ConnectionBytes: 4 << 20, StallNanos: 10_000_000_000, Transitions: 8192}}
+}
+
+func TestNetworkV2ExplicitByteAndStallLimits(t *testing.T) {
+	for _, test := range []struct {
+		name         string
+		bytes, stall uint64
+		valid        bool
+	}{
+		{"minimum", 1, 1, true},
+		{"maximum", 1 << 30, math.MaxInt64 - 1, true},
+		{"zero bytes", 0, 1, false},
+		{"oversized bytes", (1 << 30) + 1, 1, false},
+		{"zero stall", 1, 0, false},
+		{"threshold overflow", 1, math.MaxInt64, false},
+		{"signed overflow", 1, uint64(math.MaxInt64) + 1, false},
+		{"unsigned overflow", math.MaxUint64, math.MaxUint64, false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			config := streamConfig()
+			config.Limits.ConnectionBytes, config.Limits.StallNanos = test.bytes, test.stall
+			err := validateNetworkModelV2(config)
+			if test.valid && err != nil || !test.valid && err == nil {
+				t.Fatalf("bytes=%d stall=%d admitted=%v want=%v", test.bytes, test.stall, err == nil, test.valid)
+			}
+		})
+	}
 }
 func streamEnvironment(t *testing.T, model *NetworkModelV2) *Environment {
 	t.Helper()

@@ -7,6 +7,7 @@
 package gomadio
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
 )
@@ -14,13 +15,15 @@ import (
 const (
 	maximumSimulationWireBytes       = 134217728
 	maximumSimulationWireStringBytes = 1048576
-	simulationConfigMagic            = "GOMADNC1"
+	simulationConfigMagic            = "GOMADNC2"
 	simulationFinishMagic            = "GOMADNR1"
 	simulationErrorMagic             = "GOMADNE1"
 	maximumSimulationNodes           = 64
 	maximumSimulationLinks           = 4096
 	maximumSimulationListeners       = 4096
 	maximumSimulationConnections     = 65536
+	maximumSimulationNetworkBytes    = 1073741824
+	maximumSimulationStallNanos      = 9223372036854775806
 	maximumSimulationDeliveries      = 65536
 	maximumSimulationTransitions     = 1048576
 )
@@ -156,7 +159,8 @@ func decodeSimulationConfig(encoded []byte) (simulationNetworkConfig, error) {
 		})
 	}
 	config.Limits = simulationLimits{
-		Listeners: decoder.uint64(), Connections: decoder.uint64(), Deliveries: decoder.uint64(), Bytes: decoder.uint64(), Transitions: decoder.uint64(),
+		Listeners: decoder.uint64(), Connections: decoder.uint64(), Deliveries: decoder.uint64(), Bytes: decoder.uint64(),
+		ConnectionBytes: decoder.uint64(), StallNanos: decoder.uint64(), Transitions: decoder.uint64(),
 	}
 	if decoder.boolean() {
 		replay := decodeSimulationRecord(decoder)
@@ -164,6 +168,9 @@ func decodeSimulationConfig(encoded []byte) (simulationNetworkConfig, error) {
 	}
 	if err := decoder.finish(); err != nil {
 		return simulationNetworkConfig{}, fmt.Errorf("decode simulation network configuration: %w", err)
+	}
+	if err := validateSimulationLimits(config.Limits); err != nil {
+		return simulationNetworkConfig{}, err
 	}
 	return config, nil
 }
@@ -194,6 +201,92 @@ func encodeSimulationBridgeError(source error) []byte {
 	fallback := &simulationWireEncoder{data: []byte(simulationErrorMagic)}
 	encodeSimulationError(fallback, &simulationBridgeError{Kind: "runtime", Message: "encode simulation network error"})
 	return fallback.data
+}
+
+func validateSimulationLimits(limits simulationLimits) error {
+	if limits.ConnectionBytes == 0 || limits.ConnectionBytes > maximumSimulationNetworkBytes {
+		return errors.New("simulation network connection byte limit is invalid")
+	}
+	if limits.StallNanos == 0 || limits.StallNanos > maximumSimulationStallNanos {
+		return errors.New("simulation network stall duration limit is invalid")
+	}
+	return nil
+}
+
+func validSimulationTransition(transition simulationTransition) bool {
+	switch transition.Kind {
+	case "listen", "dial", "accept", "write", "deliver", "close", "listener_close", "stop", "crash", "reset":
+		if !validSimulationWireEndpoint(transition.Source, true) {
+			return false
+		}
+	case "partition", "heal", "delay", "disconnect", "reconnect", "directional_delay":
+		if !validSimulationWireEndpoint(transition.Source, false) || !validSimulationWireEndpoint(transition.Destination, false) || transition.Source.Node == transition.Destination.Node {
+			return false
+		}
+	default:
+		return false
+	}
+	switch transition.Outcome {
+	case "ok", "closed", "refused", "deadline", "partition_drop", "stale_drop", "reset", "capacity", "unsupported", "held", "timeout":
+	default:
+		return false
+	}
+	if transition.PayloadSHA256 != "" && !validSimulationWirePayloadSHA256(transition.PayloadSHA256) {
+		return false
+	}
+	if transition.Kind == "reset" || transition.Outcome == "held" || transition.Outcome == "timeout" && transition.Kind == "write" {
+		if transition.Kind != "reset" && transition.Kind != "write" ||
+			transition.Connection == 0 || !validSimulationWireEndpoint(transition.Destination, true) ||
+			transition.Source.Node == transition.Destination.Node || transition.Source.Port == 0 || transition.Source.Port > 65535 || transition.Destination.Port == 0 || transition.Destination.Port > 65535 {
+			return false
+		}
+		if transition.Kind == "reset" && (transition.Outcome != "reset" && transition.Outcome != "timeout" || transition.Delivery != 0 || transition.PayloadSHA256 != "") {
+			return false
+		}
+		if transition.Outcome == "held" && transition.Bytes == 0 {
+			return false
+		}
+	}
+	if transition.Outcome == "timeout" && transition.Kind != "write" && transition.Kind != "reset" {
+		if transition.Kind != "dial" || transition.Connection != 0 || transition.Delivery != 0 ||
+			!validSimulationWireEndpoint(transition.Destination, false) || transition.Source.Node == transition.Destination.Node || transition.Destination.Port == 0 || transition.Destination.Port > 65535 {
+			return false
+		}
+	}
+	return true
+}
+
+func validSimulationWireEndpoint(endpoint simulationEndpoint, requireIncarnation bool) bool {
+	if endpoint.Node == "" || endpoint.Address == "" {
+		return false
+	}
+	return !requireIncarnation || endpoint.Incarnation != 0
+}
+
+func validSimulationWirePayloadSHA256(value string) bool {
+	if len(value) != 71 || value[:7] != "sha256:" {
+		return false
+	}
+	_, err := hex.DecodeString(value[7:])
+	return err == nil
+}
+
+func simulationTransitionLane(transition simulationTransition) string {
+	switch transition.Kind {
+	case "partition", "heal", "delay", "disconnect", "reconnect", "directional_delay":
+		return "topology"
+	case "listen", "listener_close":
+		return "listener\x00" + simulationEndpointKey(transition.Source)
+	case "dial", "accept", "write", "deliver", "close", "reset":
+		if transition.Connection != 0 {
+			return fmt.Sprintf("connection\x00%020d", transition.Connection)
+		}
+		return "operation\x00" + string(transition.Kind) + "\x00" + simulationEndpointKey(transition.Source) + "\x00" + simulationEndpointKey(transition.Destination)
+	case "stop", "crash":
+		return "lifecycle\x00" + simulationEndpointKey(transition.Source)
+	default:
+		return "unknown\x00" + string(transition.Kind)
+	}
 }
 
 func encodeSimulationRecord(encoder *simulationWireEncoder, record simulationRecord) {
