@@ -20,6 +20,8 @@ keep their syntax. A kit sugar definition opts into expansion with `@sugar` in i
 write its body in liftable core forms and package its definitions beside the Models and framework.
 No exporter name registration is needed. Definition-generated expressions use the call position;
 explicit arguments keep their own positions.
+Supply function arguments as a lambda or named def. Opaque function-producing calls remain outside
+the core binding contract and are refused even when a marked definition ignores that argument.
 
 Composition `after.records(_.member, fact)` now tests that exact member's canonical fact key at
 run time too. A call that intended a different member must select that member explicitly; a

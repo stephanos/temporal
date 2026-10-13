@@ -683,6 +683,8 @@ names every definition it passes through.
 Observable by-value arguments are evaluated once in caller order before the body; unused,
 conditional or repeated reads use core `let` bindings. A single unconditional read in caller order
 can substitute the argument directly. By-name arguments remain lazy.
+Function arguments use a structural lambda or a named def. An opaque function-producing call is
+refused at its argument, including when the marked definition would otherwise ignore it.
 
 The composition overload keeps `after.records(_.member, fact)`. Its inline boundary captures only
 the typed selector path; it never lifts a function body. A plain definition forms the member's

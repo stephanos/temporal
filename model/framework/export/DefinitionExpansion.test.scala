@@ -175,3 +175,13 @@ val checked = PairUnderTest.property holds (after => kit.selectedMember(after))
     assertEquals(result.exit, 0, result.diagnostics)
     val body = mapper.readTree(Files.readString(out)).at("/machines/0/ends/lambda/body")
     assertEquals(body.at("/unary/operand/unary/op").asText(), "OP_NOT", body.toPrettyString)
+
+  test("an opaque function producer cannot silently discard its eager Hole read"):
+    val (result, out) = liftSource("function-producer", """  def makeFn(): Boolean => Boolean =
+    val forced: Boolean = missing.reached
+    value => value && forced
+  @sugar def selected(predicate: Boolean => Boolean): Boolean = true
+""", "kit.selected(kit.makeFn())", "val missing = hole")
+    assertEquals(result.exit, 1, result.diagnostics)
+    assert(result.diagnostics.contains("function-producing argument"), result.diagnostics)
+    assert(!Files.exists(out))

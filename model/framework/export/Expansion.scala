@@ -123,6 +123,13 @@ private[`export`] trait Expansion:
         expressions.values.flatMap(e => e.kind match
           case ir.Expr.Kind.Var(name) => Some(name)
           case _ => None)
+      for (parameter, argument) <- parameters.zip(args) do
+        parameter.tpt.tpe match
+          case ByNameType(_) => ()
+          case _ if argument.tpe.widen.dealias.isFunctionType &&
+              lambda(resolve(argument)).isEmpty && forwardedDef(resolve(argument)).isEmpty =>
+            fail(argument, "a function-producing argument is opaque: supply a lambda or a named def")
+          case _ => ()
       val strict = parameters.zip(args).filter { (p, arg) =>
         p.tpt.tpe match
           case ByNameType(_) => false
@@ -171,7 +178,7 @@ private[`export`] trait Expansion:
     case _ => Nil
 
   private def observable(t: Term, seen: Set[Symbol] = Set.empty): Boolean =
-    if t.tpe.widen.dealias.isFunctionType then return false
+    if lambda(t).nonEmpty then return false
     def called(sym: Symbol): Boolean =
       index.defs.get(sym).exists { case _: DefDef => true; case _ => false } && !sym.flags.is(Flags.Synthetic) &&
         !sym.flags.is(Flags.Inline) && !sym.name.contains("$default$") &&
