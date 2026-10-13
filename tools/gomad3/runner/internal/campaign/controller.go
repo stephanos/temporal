@@ -156,16 +156,33 @@ func (controller *SeedController) Complete(completion Completion) bool {
 	if controller.stopped {
 		return false
 	}
-	if controller.policy == failurePolicyFirst {
-		controller.statistics.StopReason = StopFirstFailure
-		controller.stopped = true
-		return true
+	stop := PolicyStop(controller.policy, controller.failureBudget, completion)
+	if stop == "" {
+		return false
 	}
-	if controller.policy == failurePolicyBudget && completion.DistinctFailures >= controller.failureBudget {
-		controller.statistics.StopReason = StopFailureBudget
-		controller.stopped = true
+	controller.statistics.StopReason = stop
+	controller.stopped = true
+	return stop == StopFirstFailure
+}
+
+// PolicyStop is the failure policy's pure decision for one ordered
+// completion: the stop it triggers, or "". First-failure stops on any
+// failure and requests cancellation of active attempts; a failure budget
+// stops once the distinct failures reach it and lets active attempts finish.
+// The campaign log derives a pending stop from the next ordered receipt with
+// the same decision.
+func PolicyStop(policy FailurePolicy, failureBudget uint64, completion Completion) ControllerStopReason {
+	if completion.Kind != completionFailure {
+		return ""
 	}
-	return false
+	switch {
+	case policy == failurePolicyFirst:
+		return StopFirstFailure
+	case policy == failurePolicyBudget && completion.DistinctFailures >= failureBudget:
+		return StopFailureBudget
+	default:
+		return ""
+	}
 }
 
 func (controller *SeedController) Stop() {

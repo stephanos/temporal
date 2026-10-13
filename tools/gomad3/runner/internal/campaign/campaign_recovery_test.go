@@ -24,9 +24,25 @@ type failureCampaign struct {
 
 func newFailureCampaign(t *testing.T) failureCampaign {
 	t.Helper()
+	return newFailureCampaignWith(t, failureCampaignOptions{selection: "7-9", count: 3, policy: "all", budget: 1})
+}
+
+type failureCampaignOptions struct {
+	ctx             context.Context
+	selection       string
+	count, parallel uint64
+	policy          string
+	budget          uint64
+}
+
+func newFailureCampaignWith(t *testing.T, options failureCampaignOptions) failureCampaign {
+	t.Helper()
+	if options.ctx == nil {
+		options.ctx = context.Background()
+	}
 	input := campaignArtifactInput(t)
-	journal, err := NewCampaignJournal(context.Background(), CampaignConfig{
-		Root: t.TempDir(), CampaignID: input.Manifest.CampaignID, Selection: "7-9", SelectionCount: 3,
+	journal, err := NewCampaignJournal(options.ctx, CampaignConfig{
+		Root: t.TempDir(), CampaignID: input.Manifest.CampaignID, Selection: options.selection, SelectionCount: options.count, Parallel: options.parallel,
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -54,6 +70,8 @@ func newFailureCampaign(t *testing.T) failureCampaign {
 	plan.RunnerBuild = input.Manifest.Runner.RunnerBuild
 	plan.Toolchain = input.Manifest.Toolchain
 	plan.Prepared.Target = input.Manifest.Target
+	plan.Selection, plan.SelectionCount = options.selection, record.Uint64String(options.count)
+	plan.OnFailure, plan.FailureBudget = options.policy, record.Uint64String(options.budget)
 	artifacts, err := DeriveArtifactCapacityPlan(plan)
 	if err != nil {
 		t.Fatal(err)

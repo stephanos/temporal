@@ -43,9 +43,13 @@ type ResumePreflight struct {
 	Plan      CampaignPlan
 }
 
+// ResumeState is what a resumed campaign continues from: its frozen plan,
+// committed outcomes and, for a campaign that admits ordinals, its durable
+// admission frontier and receipts.
 type ResumeState struct {
 	Plan       CampaignPlan
 	Executions []ExecutionRecord
+	Frontier   Frontier
 }
 
 // InspectCampaignLifecycle replays a campaign log read-only and reports its
@@ -213,7 +217,7 @@ func ResumeCampaignJournal(ctx context.Context, path string) (_ *CampaignJournal
 	if !samePlanIdentity(plan, preflight.Plan) {
 		return nil, ResumeState{}, newIntegrityError(errors.New("campaign plan changed while acquiring its resume lock"))
 	}
-	retained, err := validateResumeExecutions(path, plan, state.executions)
+	retained, err := validateResumeExecutions(path, plan, state.executions, state.stopGroupMember)
 	if err != nil {
 		return nil, ResumeState{}, classifyIntegrityError(err)
 	}
@@ -221,6 +225,9 @@ func ResumeCampaignJournal(ctx context.Context, path string) (_ *CampaignJournal
 		Root: filepath.Dir(filepath.Dir(path)), CampaignID: state.open.CampaignID, PlanSHA256: plan.PlanSHA256, Shard: cloneCampaignShard(plan.Shard), Strategy: plan.Strategy,
 		Guidance: plan.Guidance, Selection: plan.Selection, SelectionCount: uint64(plan.SelectionCount), MaxExecutions: uint64(plan.MaxExecutions), Parallel: uint64(plan.Parallel),
 		Journal: state.limits,
+	}
+	if err := validateLiveReferences(path, state); err != nil {
+		return nil, ResumeState{}, err
 	}
 	if err := journal.transition(ctx, lifecycleRunning, "", nil); err != nil {
 		return nil, ResumeState{}, err
@@ -231,7 +238,7 @@ func ResumeCampaignJournal(ctx context.Context, path string) (_ *CampaignJournal
 	if _, err := reclaimOwnedPayloads(ctx, path, state, true); err != nil {
 		return nil, ResumeState{}, err
 	}
-	return journal, ResumeState{Plan: plan, Executions: append([]ExecutionRecord(nil), state.executions...)}, nil
+	return journal, ResumeState{Plan: plan, Executions: append([]ExecutionRecord(nil), state.executions...), Frontier: state.frontierSnapshot()}, nil
 }
 
 // classifyStoreError marks damaged or unsupported storage as an integrity
@@ -294,7 +301,7 @@ func RecoverCampaign(ctx context.Context, path string) (_ recoveryResult, retErr
 		if err != nil {
 			return recoveryResult{}, classifyIntegrityError(err)
 		}
-		if _, err := validateResumeExecutions(absolute, plan, state.executions); err != nil {
+		if _, err := validateResumeExecutions(absolute, plan, state.executions, state.stopGroupMember); err != nil {
 			return recoveryResult{}, classifyIntegrityError(err)
 		}
 	}
@@ -350,7 +357,26 @@ func (state *campaignState) liveReferences() map[string]artifact.References {
 		add(run.Artifact)
 		add(run.SuccessArtifact)
 	}
+	state.pendingLiveReferences(add)
 	return live
+}
+
+// validateLiveReferences validates every payload the committed state and
+// its durable receipts reference: owned failure and success artifacts and
+// pending diagnostic sidecars, which are validated but never swept here.
+func validateLiveReferences(path string, state *campaignState) error {
+	live := state.liveReferences()
+	for _, root := range []string{"failures", "successes"} {
+		if err := artifact.ValidateReferences(filepath.Join(path, root), live[root]); err != nil {
+			return newIntegrityError(err)
+		}
+	}
+	if diagnostics := state.pendingDiagnostics(); len(diagnostics) != 0 {
+		if err := artifact.ValidateReferences(filepath.Join(path, "diagnostics"), artifact.References{Files: diagnostics}); err != nil {
+			return newIntegrityError(err)
+		}
+	}
+	return nil
 }
 
 var executionWorkPattern = regexp.MustCompile(`^[0-9]{20}-[0-9]+$`)
@@ -361,12 +387,10 @@ var executionWorkPattern = regexp.MustCompile(`^[0-9]{20}-[0-9]+$`)
 // work directories of attempts whose outcomes were never committed. Shared
 // target pools and exploration round stores are not swept here.
 func reclaimOwnedPayloads(ctx context.Context, path string, state *campaignState, work bool) (int, error) {
-	live := state.liveReferences()
-	for _, root := range []string{"failures", "successes"} {
-		if err := artifact.ValidateReferences(filepath.Join(path, root), live[root]); err != nil {
-			return 0, newIntegrityError(err)
-		}
+	if err := validateLiveReferences(path, state); err != nil {
+		return 0, err
 	}
+	live := state.liveReferences()
 	removed := 0
 	for _, root := range []string{"failures", "successes"} {
 		if err := observeMutation(ctx, mutationDelete, "owned-payload-sweep"); err != nil {
@@ -407,7 +431,11 @@ func reclaimOwnedPayloads(ctx context.Context, path string, state *campaignState
 	return removed + reclaimed, nil
 }
 
-func validateResumeExecutions(batchPath string, plan CampaignPlan, runs []ExecutionRecord) ([]ExecutionRecord, error) {
+// validateResumeExecutions validates committed outcomes and their evidence
+// and returns the ones a resumed campaign reuses. keepCancelled reports a
+// cancellation committed in a stop group, which is reused; other Runner
+// outcomes run again.
+func validateResumeExecutions(batchPath string, plan CampaignPlan, runs []ExecutionRecord, keepCancelled func(uint64) bool) ([]ExecutionRecord, error) {
 	strategy := plan.Strategy
 	ordinalLimit := uint64(plan.SelectionCount)
 	if strategy == "choice-exploration" || strategy == "simulation-exploration" {
@@ -541,6 +569,9 @@ func validateResumeExecutions(batchPath string, plan CampaignPlan, runs []Execut
 				}
 			} else if run.Reason != "runner_cancelled" || run.Termination != "none" {
 				return nil, fmt.Errorf("resumable Runner record %d is invalid", index+1)
+			} else if keepCancelled(ordinal) {
+				retained = append(retained, run)
+				continue
 			}
 			delete(ordinals, ordinal)
 		default:

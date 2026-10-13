@@ -46,6 +46,8 @@ const (
 	kindPlan            logstore.Kind = 3
 	kindOutcome         logstore.Kind = 4
 	kindPublish         logstore.Kind = 5
+	kindAdmission       logstore.Kind = 6
+	kindReceipt         logstore.Kind = 7
 	kindMergedOpen      logstore.Kind = 16
 	kindMergedExecution logstore.Kind = 17
 )
@@ -54,6 +56,10 @@ const (
 	maximumLifecycleBytes = 64 << 10
 	maximumLifecycleText  = 4 << 10
 	maximumEnvelopeBytes  = maximumCampaignPlanBytes + 64<<10
+	// maximumAdmissionBytes bounds one admission: at most the campaign's
+	// partial executions, each an ordinal and a seed.
+	maximumAdmissionBytes        = maximumExecutionJournalExecutions * 64
+	maximumReceiptReferenceBytes = 64 << 10
 )
 
 // campaignLogKinds bounds each record kind before its payload is allocated.
@@ -67,6 +73,8 @@ var campaignLogKinds = map[logstore.Kind]uint32{
 	kindPlan:            maximumCampaignPlanBytes,
 	kindOutcome:         logstore.MaxPayloadBytes,
 	kindPublish:         maximumManifestBytes,
+	kindAdmission:       maximumAdmissionBytes,
+	kindReceipt:         maximumExecutionSegmentBytes + maximumReceiptReferenceBytes,
 	kindMergedOpen:      maximumMergedManifestBytes,
 	kindMergedExecution: maximumExecutionSegmentBytes,
 }
@@ -230,9 +238,14 @@ type lifecycleRecord struct {
 	Detail string         `json:"detail,omitempty"`
 }
 
-// outcomeRecord commits execution outcomes as one transaction.
+// outcomeRecord commits execution outcomes as one transaction. A campaign
+// that admits ordinals commits either one ordered outcome with the refill it
+// reserves (Admit), or a stop group: the trigger and every admitted ordinal's
+// actual outcome, in ordinal order, under Stop.
 type outcomeRecord struct {
-	Executions []ExecutionRecord `json:"executions"`
+	Executions []ExecutionRecord    `json:"executions"`
+	Admit      []admittedJob        `json:"admit,omitempty"`
+	Stop       ControllerStopReason `json:"stop,omitempty"`
 }
 
 // campaignState is the replayed state of a campaign log. prepare validates a
@@ -253,10 +266,11 @@ type campaignState struct {
 	ordinals       map[uint64]struct{}
 	totalBytes     uint64
 	published      *CampaignRecord
+	frontier       frontierState
 }
 
 func newCampaignState() *campaignState {
-	return &campaignState{ordinals: make(map[uint64]struct{})}
+	return &campaignState{ordinals: make(map[uint64]struct{}), frontier: newFrontierState()}
 }
 
 func (state *campaignState) consume(record logstore.Record) error {
@@ -287,6 +301,10 @@ func (state *campaignState) prepare(kind logstore.Kind, payload []byte) (func(),
 		return state.prepareOutcome(payload)
 	case kindPublish:
 		return state.preparePublish(payload)
+	case kindAdmission:
+		return state.prepareAdmission(payload)
+	case kindReceipt:
+		return state.prepareReceipt(payload)
 	default:
 		return nil, fmt.Errorf("campaign log record kind %d is not a campaign record", kind)
 	}
@@ -364,13 +382,14 @@ func (state *campaignState) applyTransition(transition lifecycleRecord) {
 }
 
 // discardUnreusableOutcomes applies a resume: Runner outcomes other than a
-// choice-exploration replay divergence are not reusable, so a resumed
-// campaign executes their ordinals again.
+// choice-exploration replay divergence or a committed stop group's
+// cancellation are not reusable, so a resumed campaign executes their
+// ordinals again.
 func (state *campaignState) discardUnreusableOutcomes() {
 	kept := state.executions[:0]
 	keptBytes := state.executionBytes[:0]
 	for index, run := range state.executions {
-		if reusableOutcome(state.open.Strategy, run) {
+		if _, grouped := state.frontier.stopGroup[uint64(run.SelectionOrdinal)]; grouped || reusableOutcome(state.open.Strategy, run) {
 			kept = append(kept, run)
 			keptBytes = append(keptBytes, state.executionBytes[index])
 			continue
@@ -433,14 +452,27 @@ func (state *campaignState) prepareOutcome(payload []byte) (func(), error) {
 	if err := logstore.DecodeJSON(payload, &outcome); err != nil {
 		return nil, err
 	}
-	if len(outcome.Executions) != 1 {
-		return nil, errors.New("campaign outcome transaction must commit one execution")
+	if len(outcome.Executions) == 0 || uint64(len(outcome.Executions)) > max(state.limits.MaximumPartialExecutions, 1) {
+		return nil, errors.New("campaign outcome transaction must commit between one and the campaign's partial executions")
 	}
 	sizes, err := state.checkExecutions(outcome.Executions)
 	if err != nil {
 		return nil, err
 	}
-	return func() { state.applyExecutions(outcome.Executions, sizes) }, nil
+	if !state.frontier.admitted {
+		if len(outcome.Executions) != 1 || len(outcome.Admit) != 0 || outcome.Stop != "" {
+			return nil, errors.New("a campaign that admits no ordinal commits one outcome per transaction")
+		}
+		return func() { state.applyExecutions(outcome.Executions, sizes) }, nil
+	}
+	releases, err := state.checkFrontierOutcome(outcome)
+	if err != nil {
+		return nil, err
+	}
+	return func() {
+		state.applyExecutions(outcome.Executions, sizes)
+		state.applyFrontierOutcome(outcome, releases)
+	}, nil
 }
 
 // checkExecutions validates new committed outcomes against the campaign's
@@ -458,13 +490,9 @@ func (state *campaignState) checkExecutions(runs []ExecutionRecord) ([]uint64, e
 	sizes := make([]uint64, len(runs))
 	total := state.totalBytes
 	for index, run := range runs {
-		encoded, err := json.Marshal(run)
+		size, err := state.checkExecutionSize(run)
 		if err != nil {
 			return nil, err
-		}
-		size := uint64(len(encoded))
-		if size > limits.SegmentBytes {
-			return nil, &JournalCapacityError{Limit: journalLimitSegmentBytes, Required: size, Maximum: limits.SegmentBytes, Outcome: CapacityInfrastructureFailure}
 		}
 		if size > limits.MaximumBytes-total {
 			return nil, &JournalCapacityError{Limit: journalLimitBytes, Required: total + size, Maximum: limits.MaximumBytes, Outcome: CapacityInfrastructureFailure}
@@ -490,6 +518,20 @@ func (state *campaignState) checkExecutions(runs []ExecutionRecord) ([]uint64, e
 		}
 	}
 	return sizes, nil
+}
+
+// checkExecutionSize bounds one execution's encoded bytes by the campaign's
+// per-execution payload bound.
+func (state *campaignState) checkExecutionSize(run ExecutionRecord) (uint64, error) {
+	encoded, err := json.Marshal(run)
+	if err != nil {
+		return 0, err
+	}
+	size := uint64(len(encoded))
+	if size > state.limits.SegmentBytes {
+		return 0, &JournalCapacityError{Limit: journalLimitSegmentBytes, Required: size, Maximum: state.limits.SegmentBytes, Outcome: CapacityInfrastructureFailure}
+	}
+	return size, nil
 }
 
 func (state *campaignState) applyExecutions(runs []ExecutionRecord, sizes []uint64) {

@@ -230,3 +230,40 @@ func TestSeedControllerRejectsInvalidConfiguration(t *testing.T) {
 		}
 	}
 }
+
+func TestPolicyStopIsTheControllersStopDecision(t *testing.T) {
+	for _, test := range []struct {
+		policy     FailurePolicy
+		budget     uint64
+		completion Completion
+		want       ControllerStopReason
+	}{
+		{failurePolicyFirst, 1, CompletedFailure("target", "nonzero_exit", 1), StopFirstFailure},
+		{failurePolicyFirst, 1, CompletedSuccess(), ""},
+		{failurePolicyFirst, 1, CompletedCancelled(), ""},
+		{failurePolicyBudget, 2, CompletedFailure("target", "nonzero_exit", 1), ""},
+		{failurePolicyBudget, 2, CompletedFailure("watchdog", "watchdog_timeout", 2), StopFailureBudget},
+		{failurePolicyAll, 1, CompletedFailure("target", "nonzero_exit", 5), ""},
+	} {
+		if got := PolicyStop(test.policy, test.budget, test.completion); got != test.want {
+			t.Fatalf("PolicyStop(%s, %d, %#v) = %q, want %q", test.policy, test.budget, test.completion, got, test.want)
+		}
+		jobs := []SeedJob{{Ordinal: 0, Seed: 1}}
+		controller, err := NewSeedController(SeedControllerConfig{Next: func() (SeedJob, bool) {
+			if len(jobs) == 0 {
+				return SeedJob{}, false
+			}
+			job := jobs[0]
+			jobs = jobs[1:]
+			return job, true
+		}, Parallel: 1, Policy: test.policy, FailureBudget: test.budget})
+		if err != nil {
+			t.Fatal(err)
+		}
+		controller.Next()
+		cancel := controller.Complete(test.completion)
+		if controller.Statistics().StopReason != test.want || cancel != (test.want == StopFirstFailure) {
+			t.Fatalf("controller stop = %q cancel=%t, want %q", controller.Statistics().StopReason, cancel, test.want)
+		}
+	}
+}
