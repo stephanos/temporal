@@ -89,3 +89,14 @@ The candidate's same-module, same-seed, same-tape execution speedup holds at or 
 - the candidate refused a non-0700 compile-cache directory (fail-closed, operator error).
 
 Final independent review of `0e3eb30e6c..9aa7e6634a` found nothing blocking; its five findings, nits and the gate-found race are fixed in `a936df0b75..9d6012b52b`.
+
+## fn-166 identity-neutral batch (2026-10-13)
+
+Commits `33485603e1..fdc02e77a0` (tasks .1, .2, .4 neutral part, .5, .9 neutral part), fast-forwarded onto `gomad` after fn-156 closed. The fast tier ran on the rebased tip `fdc02e77a0`:
+- helper build, `validate` and canonical lint: exit 0;
+- architecture selection on `./internal/archcheck ./internal/puritycheck` (the module root no longer has Go files): exit 0;
+- portable shared packages: the failing test names are identical to the fn-156 final candidate (native-host only);
+- `make test-wasm`: exit 0;
+- the WASI model identity pin is unchanged (`9ef9041f…`).
+
+Runner test files: 54 → 25. `runner/internal/campaign` exports: 119 → 72. Exploration is one package. Scope that needs identity-rotating edits moved into fn-166.6 and .7: `runner/inspect`, the `qualification/workload` merge, the `gomad3integration` remnant and the generated headers. Stale `runner/internal/execution` names in the native boundary manifest feed the native boundary identity and stay with fn-128.
