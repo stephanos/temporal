@@ -47,9 +47,10 @@ Follow the parent spec's Delivery and verification section. Retain exact selecto
 - [ ] R10: stdlib-only dependencies and architecture checks retain campaign/corpus separation and pure exploration engines.
 
 ## Done summary
-TBD
+runner/internal/logstore: binary GMLG frame (16-byte header with CRC32C, strict stdlib-JSON payload, CRC32C over header plus payload); read-only Replay never mutates; the exclusive OpenWriter repairs only a torn tail; a poisoned writer after any write/sync/identity failure; guarded opens and descriptor locks added to internal/hostfs. Every-byte flip, every-cut truncation, partial-write, lost-unsynced and replacement/alias fault matrices pass, with -race. Archcheck limits logstore to stdlib plus hostfs; go.mod unchanged; identity paths untouched.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 3e27fe37f1, 63e0bd1b1a
+- Tests: go test -race ./runner/internal/logstore ./internal/hostfs, architecture selection (all platforms), make -C tools/gomad3 validate, lint-code-fast, evidence: .flow/artifacts/wasm-section-acceptance-2026-10-12.md
 - PRs:
