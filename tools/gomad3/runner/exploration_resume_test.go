@@ -169,7 +169,7 @@ func TestExplorationResumesEveryRoundAppendFaultToTheUninterruptedRounds(t *test
 							t.Fatalf("interrupted exploration error = %v, injected = %t, late appends = %d", err, fault.injected, fault.late)
 						}
 						for range 3 {
-							explored, _, err := campaign.InspectExploration(interrupted.CampaignPath)
+							explored, _, err := inspectedRounds(interrupted.CampaignPath)
 							if err != nil {
 								t.Fatal(err)
 							}
@@ -237,7 +237,7 @@ func TestExplorationRecoveryExecutionsCountEveryDiscardedRound(t *testing.T) {
 		if err == nil || !fault.injected {
 			t.Fatalf("interruption %d error = %v, injected = %t", interruption, err, fault.injected)
 		}
-		explored, _, err := campaign.InspectExploration(config.ResumeCampaign)
+		explored, _, err := inspectedRounds(config.ResumeCampaign)
 		if err != nil || explored.StagedRound == nil || explored.StagedRound.Index != 0 {
 			t.Fatalf("interruption %d exploration = %#v, %v", interruption, explored, err)
 		}

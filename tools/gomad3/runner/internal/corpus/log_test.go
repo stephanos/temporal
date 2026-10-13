@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"slices"
+	"strings"
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
@@ -412,6 +413,11 @@ func TestCorpusRejectsLegacyAndUnknownLineageBeforeMutation(t *testing.T) {
 				if _, readErr := ReadLog(root); !errors.Is(readErr, ErrUnsupportedFormat) {
 					t.Fatalf("ReadLog(legacy) = %v", readErr)
 				}
+				// Inspection keys on the lock alone: a bare corpus.json may be
+				// an unrelated qualification manifest.
+				if lockErr := RefuseLegacyLock(root); (test.legacy == "corpus.lock") != errors.Is(lockErr, ErrUnsupportedFormat) {
+					t.Fatalf("RefuseLegacyLock(%s) = %v", test.legacy, lockErr)
+				}
 			}
 		})
 	}
@@ -488,5 +494,31 @@ func TestCorpusTornTailIsReportedReadOnlyAndRepairedByOpen(t *testing.T) {
 	defer closeTest(t, reopened)
 	if !reflect.DeepEqual(reopened.Snapshot(), committed) || reopened.History() != history || int64(len(logBytes(t, root))) != history.Bytes {
 		t.Fatalf("reopened after a torn tail = %#v, %#v", reopened.Snapshot(), reopened.History())
+	}
+}
+
+// Read-only replay refuses a corpus root that is not a directory before it
+// reads anything below it.
+func TestReadLogRefusesARootThatIsNotADirectory(t *testing.T) {
+	parent := t.TempDir()
+	directory := filepath.Join(parent, "corpus")
+	if err := os.MkdirAll(directory, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	link := filepath.Join(parent, "link")
+	if err := os.Symlink(directory, link); err != nil {
+		t.Fatal(err)
+	}
+	file := filepath.Join(parent, "file")
+	if err := os.WriteFile(file, nil, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	for _, root := range []string{link, file} {
+		if _, err := ReadLog(root); err == nil || !strings.Contains(err.Error(), "private directory") {
+			t.Fatalf("ReadLog(%s) = %v", root, err)
+		}
+	}
+	if _, err := ReadLog(filepath.Join(parent, "missing")); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("ReadLog(missing) = %v", err)
 	}
 }

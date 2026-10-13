@@ -18,6 +18,16 @@ import (
 	"go.temporal.io/server/tools/gomad3/runner/internal/logstore"
 )
 
+// inspectRounds reads a campaign's exploration rounds through the read-only
+// store inspection; it reports false for a seed campaign.
+func inspectRounds(path string) (ExplorationInspection, bool, error) {
+	inspected, err := InspectCampaignStore(path)
+	if err != nil || inspected.Exploration == nil {
+		return ExplorationInspection{}, false, err
+	}
+	return *inspected.Exploration, true, nil
+}
+
 func privateDirectory(t *testing.T) string {
 	t.Helper()
 	path := t.TempDir()
@@ -326,9 +336,9 @@ func TestExplorationRoundsCommitAndReplayWholeRounds(t *testing.T) {
 					transactions = append(transactions, kind)
 				}
 			}
-			inspected, ok, err := InspectExploration(journal.Path())
+			inspected, ok, err := inspectRounds(journal.Path())
 			if err != nil || !ok {
-				t.Fatalf("InspectExploration() = %v, %v", ok, err)
+				t.Fatalf("inspectRounds() = %v, %v", ok, err)
 			}
 			wantTransactions := []logstore.Kind{kindExploration}
 			for range inspected.Rounds {
@@ -383,7 +393,7 @@ func TestExplorationRoundsDiscardAnUncommittedRoundOnResume(t *testing.T) {
 			if err := journal.Close(); err != nil {
 				t.Fatal(err)
 			}
-			inspected, _, err := InspectExploration(journal.Path())
+			inspected, _, err := inspectRounds(journal.Path())
 			if err != nil || inspected.StagedRound == nil || inspected.StagedRound.Index != 0 || inspected.StagedRound.Candidates != 1 {
 				t.Fatalf("staged inspection = %#v, %v", inspected, err)
 			}
@@ -392,7 +402,7 @@ func TestExplorationRoundsDiscardAnUncommittedRoundOnResume(t *testing.T) {
 				if err != nil {
 					t.Fatal(err)
 				}
-				inspected, _, err = InspectExploration(journal.Path())
+				inspected, _, err = inspectRounds(journal.Path())
 				if err != nil || inspected.StagedRound != nil || inspected.RecoveryExecutions != attempt {
 					t.Fatalf("resume %d inspection = %#v, %v", attempt, inspected, err)
 				}
@@ -655,7 +665,7 @@ func TestExplorationPublicationMatchesItsRounds(t *testing.T) {
 			if err := runScript(t, script, journal); err != nil {
 				t.Fatal(err)
 			}
-			inspected, _, err := InspectExploration(journal.Path())
+			inspected, _, err := inspectRounds(journal.Path())
 			if err != nil {
 				t.Fatal(err)
 			}

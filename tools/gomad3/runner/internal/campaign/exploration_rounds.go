@@ -450,19 +450,6 @@ func (rounds *Rounds[C, S, R, G]) Commit(round R, segment G, runs []ExecutionRec
 	return rounds.journal.append(kindRound, roundRecord{Round: encodedRound, Segment: encodedSegment, Executions: runs})
 }
 
-// InspectExploration replays a campaign log read-only and reports its
-// exploration rounds. It reports false for a seed campaign.
-func InspectExploration(path string) (ExplorationInspection, bool, error) {
-	state, _, err := replayCampaign(path)
-	if err != nil {
-		return ExplorationInspection{}, false, classifyIntegrityError(err)
-	}
-	if state.rounds == nil {
-		return ExplorationInspection{}, false, nil
-	}
-	return state.rounds.inspection(), true, nil
-}
-
 func validateChoiceRoundExecutions(round exploration.ChoiceRound, segment exploration.ChoiceRoundSegment, runs []ExecutionRecord, logicalStart, baseSeed uint64) error {
 	if len(runs) != len(round.Candidates) || len(runs) != len(segment.Results) {
 		return errors.New("exploration round execution records do not match its results")

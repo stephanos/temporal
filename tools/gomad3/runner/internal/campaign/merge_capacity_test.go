@@ -368,8 +368,8 @@ func TestOpenMergedCampaignRefusesARecordWrittenInTheEarlierFormat(t *testing.T)
 	if !errors.As(err, &unsupported) || unsupported.Format != LegacyMergedCampaignFormat || !IsIntegrityError(err) {
 		t.Fatalf("OpenMergedCampaign() earlier-format error = %v", err)
 	}
-	if kind, err := StoreKind(copyRetainedRecords(t, "pre-target-evidence-merged")); !errors.As(err, &unsupported) || kind != "" {
-		t.Fatalf("StoreKind() earlier-format = %q, %v", kind, err)
+	if err := RefuseLegacyLayout(copyRetainedRecords(t, "pre-target-evidence-merged")); !errors.As(err, &unsupported) || unsupported.Format != LegacyMergedCampaignFormat {
+		t.Fatalf("RefuseLegacyLayout() earlier-format = %v", err)
 	}
 }
 

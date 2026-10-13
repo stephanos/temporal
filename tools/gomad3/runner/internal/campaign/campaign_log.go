@@ -89,6 +89,13 @@ var campaignLogKinds = map[logstore.Kind]uint32{
 	kindMergedEvidence: maximumMergedEvidenceBytes,
 }
 
+// EnvelopeKinds returns the record kinds and bounds that may begin a campaign
+// or merged campaign log. A store's first record is its envelope, and the
+// envelope names the store's format.
+func EnvelopeKinds() map[logstore.Kind]uint32 {
+	return map[logstore.Kind]uint32{kindCampaignOpen: campaignLogKinds[kindCampaignOpen], kindMergedOpen: campaignLogKinds[kindMergedOpen]}
+}
+
 func campaignLogOptions(hook logstore.Hook, create bool) logstore.Options {
 	return logstore.Options{Kinds: campaignLogKinds, Create: create, Hook: hook}
 }
@@ -157,37 +164,13 @@ func legacyCampaignFormat(path string) string {
 	return ""
 }
 
-// StoreKind reports what a directory's log holds: "campaign",
-// "merged-campaign", or "" when the directory has no log store. A directory
-// an earlier Gomad wrote fails with an UnsupportedFormatError. It reads only
-// the envelope and mutates nothing.
-func StoreKind(path string) (string, error) {
-	store, err := campaignStorePath(path)
-	if err != nil {
-		return "", err
-	}
-	if _, err := os.Lstat(store); errors.Is(err, os.ErrNotExist) {
-		return "", nil
-	}
-	var first logstore.Kind
-	_, err = logstore.Replay(store, campaignLogOptions(nil, false), func(record logstore.Record) error {
-		first = record.Kind
-		return errEnvelopeRead
-	})
-	if err != nil && !errors.Is(err, errEnvelopeRead) {
-		return "", classifyIntegrityError(err)
-	}
-	switch first {
-	case kindCampaignOpen:
-		return "campaign", nil
-	case kindMergedOpen:
-		return "merged-campaign", nil
-	default:
-		return "", newIntegrityError(errors.New("campaign log does not begin with an envelope"))
-	}
+// RefuseLegacyLayout fails with an UnsupportedFormatError when path holds a
+// campaign or merged campaign an earlier Gomad wrote and no log store. It
+// reads only directory entries and mutates nothing.
+func RefuseLegacyLayout(path string) error {
+	_, err := campaignStorePath(path)
+	return err
 }
-
-var errEnvelopeRead = errors.New("campaign log envelope read")
 
 // campaignOpenRecord is the envelope of a campaign log: its storage format
 // and the identity the campaign was created with. A later plan record may

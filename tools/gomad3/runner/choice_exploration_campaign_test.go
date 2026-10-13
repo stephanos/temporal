@@ -316,7 +316,7 @@ func TestRunChoiceExplorationExecutesRootAndEveryNonSelectedRank(t *testing.T) {
 	if batch.Record.Strategy != string(StrategyChoiceExploration) || batch.Record.ChoiceExploration == nil || len(batch.Executions) != 2 || batch.Executions[1].ParentCandidateSHA256 == "" || batch.Executions[1].ForcedDepth == nil || *batch.Executions[1].ForcedDepth != 1 {
 		t.Fatalf("exploration batch = %#v", batch)
 	}
-	explored, ok, err := campaign.InspectExploration(summary.CampaignPath)
+	explored, ok, err := inspectedRounds(summary.CampaignPath)
 	if err != nil || !ok || len(explored.Rounds) != 2 || explored.Rounds[1].FirstOrdinal != 1 || explored.Rounds[1].Executions != 1 || explored.ChainSHA256 != batch.Record.ChoiceExplorationChainSHA256 {
 		t.Fatalf("committed exploration rounds = %#v, %v", explored, err)
 	}

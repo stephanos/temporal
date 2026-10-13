@@ -104,7 +104,7 @@ func TestRunChoiceExplorationKilledAfterDivergenceResumesSameState(t *testing.T)
 			t.Fatal("crash helper did not exit after closing stdout")
 		}
 	}
-	if explored, ok, err := campaign.InspectExploration(path); err != nil || !ok || len(explored.Rounds) != 2 || explored.StagedRound != nil {
+	if explored, ok, err := inspectedRounds(path); err != nil || !ok || len(explored.Rounds) != 2 || explored.StagedRound != nil {
 		t.Fatalf("committed rounds before the kill = %#v, %v", explored, err)
 	}
 	if err := syscall.Kill(command.Process.Pid, syscall.SIGKILL); err != nil {

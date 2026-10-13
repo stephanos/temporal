@@ -237,7 +237,7 @@ func qualifiedWithoutReplayExecutor(t *testing.T) ExecuteFunc {
 		executions := []qualification.QualificationExecution{}
 		for _, name := range []string{"campaign-1", "campaign-2"} {
 			campaign := filepath.Join(command.ArtifactRoot, "v1", name)
-			writeFile(t, filepath.Join(campaign, "campaign.json"))
+			writeFile(t, filepath.Join(campaign, "store", "log"))
 			executions = append(executions, qualification.QualificationExecution{CampaignPath: campaign, Evidence: evidence})
 		}
 		report, err := qualification.BuildQualificationReport(qualification.QualificationInput{Command: append([]string{"gomad"}, command.Args...), Executions: executions})

@@ -38,6 +38,20 @@ const (
 
 var logKinds = map[logstore.Kind]uint32{kindHeader: maximumRecordBytes, kindAdmission: maximumRecordBytes}
 
+// EnvelopeKinds returns the record kind and bound that begin a corpus log:
+// its header, which names the corpus format.
+func EnvelopeKinds() map[logstore.Kind]uint32 {
+	return map[logstore.Kind]uint32{kindHeader: maximumRecordBytes}
+}
+
+// MaximumEntries and MaximumBytes are the live corpus capacity: its entry
+// count and its retained bytes under the stored-bytes rule. Historical log
+// bytes are not charged against them.
+const (
+	MaximumEntries = maximumEntries
+	MaximumBytes   = maximumBytes
+)
+
 // logHeader is the first record of a corpus log: its lineage and the
 // identity every case must match.
 type logHeader struct {
@@ -103,6 +117,21 @@ func refuseLegacyLayout(root string) error {
 		if !errors.Is(err, os.ErrNotExist) {
 			return fmt.Errorf("inspect guided corpus layout: %w", err)
 		}
+	}
+	return nil
+}
+
+// RefuseLegacyLock fails with an UnsupportedFormatError when root holds the
+// writer lock of a corpus.json corpus. Inspection keys on the lock alone: a
+// directory that merely holds a file named corpus.json may hold an unrelated
+// qualification manifest.
+func RefuseLegacyLock(root string) error {
+	_, err := os.Lstat(filepath.Join(root, "corpus.lock"))
+	if err == nil {
+		return &UnsupportedFormatError{Format: LegacySnapshotFormat}
+	}
+	if !errors.Is(err, os.ErrNotExist) {
+		return fmt.Errorf("inspect guided corpus layout: %w", err)
 	}
 	return nil
 }
@@ -245,6 +274,13 @@ type Replayed struct {
 // creates, repairs and removes nothing, and it does not open the cases; Open
 // validates those. A torn tail is reported, not repaired.
 func ReadLog(root string) (Replayed, error) {
+	info, err := os.Lstat(root)
+	if err != nil {
+		return Replayed{}, fmt.Errorf("inspect guided corpus: %w", err)
+	}
+	if !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
+		return Replayed{}, errors.New("guided corpus must be a private directory")
+	}
 	if err := refuseLegacyLayout(root); err != nil {
 		return Replayed{}, err
 	}

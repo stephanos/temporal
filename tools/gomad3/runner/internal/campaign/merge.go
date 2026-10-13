@@ -892,41 +892,55 @@ func (replay *mergedCampaignReplay) executions() ([]mergedExecution, error) {
 	return runs, nil
 }
 
-func OpenMergedCampaign(path string) (_ MergedCampaign, retErr error) {
+// ErrIncompleteLog reports a merged campaign log whose replay ends before
+// its envelope and every source scope it declares: a merge publishes its log
+// complete, so a shorter or torn log is an invalid store.
+var ErrIncompleteLog = errors.New("merged campaign log is incomplete")
+
+func OpenMergedCampaign(path string) (MergedCampaign, error) {
+	opened, _, err := InspectMergedCampaign(path)
+	return opened, err
+}
+
+// InspectMergedCampaign replays a merged campaign log once without its lock,
+// validates it and its borrowed source evidence, and returns the replay
+// report with the campaign. It creates, repairs and removes nothing. A failed
+// replay returns the report of its validated prefix with the error.
+func InspectMergedCampaign(path string) (MergedCampaign, logstore.Report, error) {
 	rootInfo, err := os.Lstat(path)
 	if err != nil || !rootInfo.IsDir() || rootInfo.Mode()&os.ModeSymlink != 0 || rootInfo.Mode().Perm() != 0o700 {
-		return MergedCampaign{}, errors.Join(errors.New("merged campaign path is not a private directory"), err)
+		return MergedCampaign{}, logstore.Report{}, errors.Join(errors.New("merged campaign path is not a private directory"), err)
 	}
 	if legacy := legacyCampaignFormat(path); legacy != "" {
-		return MergedCampaign{}, newIntegrityError(&UnsupportedFormatError{Format: legacy})
+		return MergedCampaign{}, logstore.Report{}, newIntegrityError(&UnsupportedFormatError{Format: legacy})
 	}
 	entries, err := os.ReadDir(path)
 	if err != nil {
-		return MergedCampaign{}, err
+		return MergedCampaign{}, logstore.Report{}, err
 	}
 	if len(entries) != 1 || entries[0].Name() != storeDirectory {
-		return MergedCampaign{}, newIntegrityError(errors.New("merged campaign inventory is invalid"))
+		return MergedCampaign{}, logstore.Report{}, newIntegrityError(errors.New("merged campaign inventory is invalid"))
 	}
 	var replay mergedCampaignReplay
 	report, err := logstore.Replay(filepath.Join(path, storeDirectory), campaignLogOptions(nil, false), replay.consume)
 	if err != nil {
-		return MergedCampaign{}, classifyIntegrityError(fmt.Errorf("replay merged campaign log: %w", err))
+		return MergedCampaign{}, report, classifyIntegrityError(fmt.Errorf("replay merged campaign log: %w", err))
 	}
 	if report.Tail != logstore.TailNone || replay.campaign == nil || len(replay.scopes) != len(replay.campaign.Shards) {
-		return MergedCampaign{}, newIntegrityError(errors.New("merged campaign log is incomplete"))
+		return MergedCampaign{}, report, newIntegrityError(ErrIncompleteLog)
 	}
 	campaign := *replay.campaign
 	runs, err := replay.executions()
 	if err != nil {
-		return MergedCampaign{}, classifyIntegrityError(err)
+		return MergedCampaign{}, report, classifyIntegrityError(err)
 	}
 	if err := validateMergedCampaign(campaign, runs); err != nil {
-		return MergedCampaign{}, newIntegrityError(err)
+		return MergedCampaign{}, report, newIntegrityError(err)
 	}
 	if err := verifyMergedEvidence(campaign, runs); err != nil {
-		return MergedCampaign{}, classifyIntegrityError(err)
+		return MergedCampaign{}, report, classifyIntegrityError(err)
 	}
-	return MergedCampaign{Path: path, Record: campaign, Executions: runs}, nil
+	return MergedCampaign{Path: path, Record: campaign, Executions: runs}, report, nil
 }
 
 // verifyMergedEvidence resolves the evidence the aggregate counts against the

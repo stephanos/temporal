@@ -319,23 +319,39 @@ func pollCLI(t *testing.T, condition func() bool) {
 	}
 }
 
-func journalCount(t *testing.T, path string) int {
+// inspectLiveCampaign reads a running campaign through `gomad inspect --json`,
+// which replays its log without the writer lock. It reports false while the
+// log does not yet hold its envelope, which inspect diagnoses as an invalid
+// store; every other status fails the test.
+func inspectLiveCampaign(t *testing.T, path string) (runner.Inspection, bool) {
 	t.Helper()
-	count := 0
-	for _, directory := range []string{"executions", ".partial/executions"} {
-		paths, err := filepath.Glob(filepath.Join(path, directory, "*.jsonl"))
-		if err != nil {
-			t.Fatal(err)
-		}
-		for _, path := range paths {
-			data, err := os.ReadFile(path)
-			if err != nil {
-				t.Fatal(err)
-			}
-			count += bytes.Count(data, []byte{'\n'})
-		}
+	ctx, cancel := context.WithTimeout(t.Context(), 90*time.Second)
+	defer cancel()
+	command := cliCommand(ctx, "inspect", "--json", path)
+	var stdout, stderr bytes.Buffer
+	command.Stdout, command.Stderr = &stdout, &stderr
+	err := command.Run()
+	var exited *exec.ExitError
+	if errors.As(err, &exited) && exited.ExitCode() == 2 {
+		return runner.Inspection{}, false
 	}
-	return count
+	if err != nil {
+		t.Fatalf("inspect %s: %v\n%s", path, err, stderr.Bytes())
+	}
+	var report runner.Inspection
+	if err := json.Unmarshal(stdout.Bytes(), &report); err != nil {
+		t.Fatalf("inspect %s: %v\n%s", path, err, stdout.Bytes())
+	}
+	return report, true
+}
+
+// committedOutcomes is the number of outcomes a campaign's log has committed.
+func committedOutcomes(t *testing.T, report runner.Inspection) int {
+	t.Helper()
+	if report.Committed == nil {
+		t.Fatalf("campaign inspection omitted its committed state: %#v", report)
+	}
+	return int(report.Committed.Outcomes)
 }
 
 func killCampaign(t *testing.T, completed int) string {
@@ -376,7 +392,7 @@ func killCampaign(t *testing.T, completed int) string {
 	}
 	var path string
 	pollCLI(t, func() bool {
-		paths, err := filepath.Glob(filepath.Join(root, "v1", "campaign-*", ".prepared", "plan.json"))
+		paths, err := filepath.Glob(filepath.Join(root, "v1", "campaign-*", "store", "log"))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -388,7 +404,13 @@ func killCampaign(t *testing.T, completed int) string {
 		if err != nil {
 			t.Fatal(err)
 		}
-		return journalCount(t, path) >= completed && len(partials) != 0
+		if len(partials) == 0 {
+			return false
+		}
+		// The log commits the plan before the campaign runs, so a running
+		// lifecycle is a prepared campaign.
+		report, ready := inspectLiveCampaign(t, path)
+		return ready && report.Lifecycle != nil && report.Lifecycle.State == "running" && committedOutcomes(t, report) >= completed
 	})
 	if err := syscall.Kill(coordinator.pid, syscall.SIGSTOP); err != nil {
 		t.Fatal(err)
@@ -401,8 +423,10 @@ func killCampaign(t *testing.T, completed int) string {
 		}
 		return false
 	})
-	if count := journalCount(t, path); count != completed {
-		t.Fatalf("stopped journal has %d completed executions, want %d", count, completed)
+	// The stopped coordinator still holds the writer lock; inspect replays
+	// the log without it.
+	if count := committedOutcomes(t, inspectCLI(t, path)); count != completed {
+		t.Fatalf("stopped campaign log has %d committed outcomes, want %d", count, completed)
 	}
 	discoverOwnedProcesses(owned, cliProcesses(t))
 	if err := syscall.Kill(-coordinator.group, syscall.SIGKILL); err != nil {
@@ -435,7 +459,7 @@ func killCampaign(t *testing.T, completed int) string {
 	})
 	clear(owned)
 	t.Logf("killed coordinator CLI output: %s", output.Bytes())
-	t.Logf("SIGKILL coordinator pid=%d pgid=%d after %d journaled executions; owned descendants exited", coordinator.pid, coordinator.group, completed)
+	t.Logf("SIGKILL coordinator pid=%d pgid=%d after %d committed outcomes; owned descendants exited", coordinator.pid, coordinator.group, completed)
 	return path
 }
 

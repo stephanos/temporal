@@ -57,7 +57,7 @@ func TestCreateCampaignPlanPublishesCanonicalPreparedTargetBundle(t *testing.T) 
 	if err != nil {
 		t.Fatal(err)
 	}
-	if inspection.Kind != "campaign-plan" || inspection.Plan == nil || inspection.Plan.SHA256 != first.SHA256 || inspection.Plan.SelectionCount != 4 {
+	if inspection.Kind != "campaign-plan" || inspection.Plan == nil || inspection.Plan.SHA256 != first.SHA256 || inspection.Plan.SelectionCount != 4 || inspection.Plan.Schema != campaignPlanSchema || inspection.Plan.Storage != campaign.CampaignLogFormat || inspection.Log != nil {
 		t.Fatalf("campaign plan inspection = %#v", inspection)
 	}
 
@@ -417,10 +417,30 @@ func TestMergedCampaignInspectionReportsTheShardsCombinedTotals(t *testing.T) {
 	if merged.Attempted != report.Attempted || merged.RetainedEvidence != report.RetainedEvidence || merged.RetainedBytes != report.EvidenceBytes || merged.JournalBytes != report.JournalBytes {
 		t.Fatalf("merge result %#v differs from its inspection %#v", merged, report)
 	}
+	log := inspection.Log
+	if log == nil || log.Format != campaign.MergedCampaignLogFormat || log.State != "valid" || log.Records == 0 || log.ValidBytes != log.SnapshotBytes || log.RepairedBytes != 0 {
+		t.Fatalf("merged log inspection = %#v", log)
+	}
+	if report.Limits.MaximumExecutions != 6 || report.Limits.MaximumPartialExecutions == 0 || report.ArtifactCapacity.TotalBytes == 0 || len(report.Sources) != len(shards) {
+		t.Fatalf("merged limits and sources = %#v", report)
+	}
+	for index, source := range report.Sources {
+		if source.Index != uint64(index) || source.Count != 2 || source.Path != shards[index] || source.Records == 0 || source.LogSHA256 == "" || source.CampaignID != report.SourceCampaignIDs[index] {
+			t.Fatalf("merged source %d = %#v", index, source)
+		}
+	}
 	for index, root := range roots {
 		if after := runnerTreeSnapshot(t, root); !reflect.DeepEqual(after, before[index]) {
 			t.Fatalf("shard root %d changed by merge or inspection", index)
 		}
+	}
+	// A merge publishes its log complete, so a torn tail is an invalid store
+	// rather than state to report.
+	appendInspectLog(t, merged.Path, inspectLogFrame(19, []byte(`{}`))[:9])
+	if _, err := Inspect(merged.Path, InspectOptions{}); !errors.Is(err, campaign.ErrIncompleteLog) {
+		t.Fatalf("Inspect(torn merged log) error = %v", err)
+	} else if invalid := new(InvalidStoreError); !errors.As(err, &invalid) || invalid.Report.Kind != "merged-campaign" || invalid.Report.Log.Invalid.Problem != "incomplete" || invalid.Report.Log.Tail != "short-frame" || invalid.Report.Log.Invalid.Records != log.Records {
+		t.Fatalf("torn merged log diagnosis = %#v", err)
 	}
 }
 

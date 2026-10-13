@@ -260,8 +260,12 @@ func TestMergeConcatenatesSourceScopesAndReplaysTheirCombinedTotals(t *testing.T
 			t.Fatalf("shard %d provenance = %#v", index, shard)
 		}
 	}
-	if kind, err := StoreKind(merged.Path); err != nil || kind != "merged-campaign" {
-		t.Fatalf("StoreKind() = %q, %v", kind, err)
+	if err := RefuseLegacyLayout(merged.Path); err != nil {
+		t.Fatalf("RefuseLegacyLayout() = %v", err)
+	}
+	inspected, report, err := InspectMergedCampaign(merged.Path)
+	if err != nil || !reflect.DeepEqual(inspected.Record, merged.Record) || report.Tail != logstore.TailNone || report.Records == 0 || report.ValidBytes != report.SnapshotBytes || report.RepairedBytes != 0 {
+		t.Fatalf("InspectMergedCampaign() = %#v, %v", report, err)
 	}
 	assertTreeUnchanged(t, root, before)
 }
@@ -549,8 +553,11 @@ func TestOpenMergedCampaignRefusesDamagedScopes(t *testing.T) {
 	}
 	rewriteMergedLog(t, merged.Path, original...)
 	appendLogBytes(t, merged.Path, []byte{1, 2, 3})
-	if _, err := OpenMergedCampaign(merged.Path); err == nil || !IsIntegrityError(err) || !strings.Contains(err.Error(), "incomplete") {
+	if _, err := OpenMergedCampaign(merged.Path); err == nil || !IsIntegrityError(err) || !errors.Is(err, ErrIncompleteLog) {
 		t.Fatalf("OpenMergedCampaign() with a torn tail error = %v", err)
+	}
+	if _, report, err := InspectMergedCampaign(merged.Path); !errors.Is(err, ErrIncompleteLog) || report.Tail != logstore.TailShortFrame || report.ObservedTailBytes != 3 || report.RepairedBytes != 0 {
+		t.Fatalf("InspectMergedCampaign() with a torn tail = %#v, %v", report, err)
 	}
 }
 

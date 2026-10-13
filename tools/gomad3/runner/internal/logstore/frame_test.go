@@ -117,7 +117,7 @@ func TestEveryTruncationIsATornTailNeverCorruption(t *testing.T) {
 			before := tree(t, path)
 			replayed, report := replayState(t, path)
 			requireEntries(t, replayed.entries, complete)
-			if report != (Report{Records: uint64(complete), ValidBytes: valid, ObservedTailBytes: int64(length) - valid, Tail: wantTail}) {
+			if report != (Report{SnapshotBytes: int64(length), Records: uint64(complete), ValidBytes: valid, ObservedTailBytes: int64(length) - valid, Tail: wantTail}) {
 				t.Fatalf("read-only report = %#v", report)
 			}
 			assertTree(t, path, before)
@@ -191,6 +191,9 @@ func TestEveryByteFlipIsClassified(t *testing.T) {
 			}
 			if writer != nil {
 				t.Fatal("writer opened over corruption")
+			}
+			if report.SnapshotBytes != int64(len(log)) || report.ValidBytes != boundaries[frame] || report.Records != uint64(frame) {
+				t.Fatalf("corrupt read report = %#v", report)
 			}
 			requireEntries(t, replayed.entries, frame)
 			assertTree(t, path, before)

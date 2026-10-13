@@ -23,7 +23,7 @@ var errShortRead = errors.New("log ended before its snapshot size")
 // and the consumer must validate it completely before applying any of it.
 func scan(log io.ReaderAt, size int64, kinds map[Kind]uint32, consume func(Record) error) (Report, error) {
 	reader := bufio.NewReaderSize(io.NewSectionReader(log, 0, size), replayBufferBytes)
-	var report Report
+	report := Report{SnapshotBytes: size}
 	torn := func(tail Tail) (Report, error) {
 		report.Tail = tail
 		report.ObservedTailBytes = size - report.ValidBytes

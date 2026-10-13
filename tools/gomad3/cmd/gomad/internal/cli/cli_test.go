@@ -628,8 +628,8 @@ func TestRunInspectReportsBatchAsTextAndJSON(t *testing.T) {
 		arguments []string
 		want      []string
 	}{
-		{name: "text", arguments: []string{path}, want: []string{"gomad inspect: kind=campaign", "run-inspect-command", "attempted=1", "seed=7 domain=success"}},
-		{name: "json", arguments: []string{"--json", path}, want: []string{`"schema":"gomad3.inspect/v7"`, `"kind":"campaign"`, `"campaign_id":"run-inspect-command"`}},
+		{name: "text", arguments: []string{path}, want: []string{"gomad inspect: kind=campaign", "run-inspect-command", "attempted=1", "seed=7 domain=success", "log: format=gomad3.campaign-log/v1 frame-version=1 state=valid records=5 ", "tail=none tail-bytes=0 repaired-bytes=0", "committed: outcomes=1 "}},
+		{name: "json", arguments: []string{"--json", path}, want: []string{`"schema":"gomad3.inspect/v7"`, `"kind":"campaign"`, `"campaign_id":"run-inspect-command"`, `"log":{"format":"gomad3.campaign-log/v1","frame_version":1,"state":"valid"`, `"committed":{"outcomes":1,`}},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			var stdout, stderr bytes.Buffer
@@ -787,6 +787,32 @@ func TestRunRecoverRepairsPublishedBatchPrivateState(t *testing.T) {
 	}
 }
 
+// inspectFrame encodes one record as the Runner's log store frames it.
+func inspectFrame(kind uint16, payload []byte) []byte {
+	table := crc32.MakeTable(crc32.Castagnoli)
+	frame := make([]byte, 16+len(payload)+4)
+	copy(frame, "GMLG")
+	frame[4] = 1
+	binary.LittleEndian.PutUint16(frame[6:], kind)
+	binary.LittleEndian.PutUint32(frame[8:], uint32(len(payload)))
+	binary.LittleEndian.PutUint32(frame[12:], crc32.Checksum(frame[:12], table))
+	copy(frame[16:], payload)
+	binary.LittleEndian.PutUint32(frame[16+len(payload):], crc32.Update(crc32.Checksum(frame[:16], table), table, payload))
+	return frame
+}
+
+// writeInspectLog writes log and an empty writer lock into the private store
+// directory store.
+func writeInspectLog(t *testing.T, store string, log []byte) {
+	t.Helper()
+	if err := os.WriteFile(filepath.Join(store, "log"), log, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(store, "lock"), nil, 0o600); err != nil {
+		t.Fatal(err)
+	}
+}
+
 // writeInspectBatchFixture writes a published one-execution campaign as the
 // campaign log the Runner writes: a private store holding a log of framed
 // JSON records and its lock file.
@@ -811,25 +837,11 @@ func writeInspectBatchFixture(t *testing.T) string {
 		{4, `{"executions":[` + execution + `]}`},
 		{5, fmt.Sprintf(`{"schema_version":%d,"schema":"gomad3.campaign/v1","campaign_id":"run-inspect-command","strategy":"seed","selection":"7","selection_count":"1","attempted":"1","succeeded":"1","failures":"0","watchdogs":"0","cancelled":"0","distinct_failures":"0","stop_reason":"seeds_exhausted","journal":{"schema":"gomad3.campaign-log/v1","records":"1","bytes":"%d"},"failure_signatures":[]}`, record.SchemaVersion, len(execution))},
 	}
-	table := crc32.MakeTable(crc32.Castagnoli)
 	var log []byte
 	for _, entry := range records {
-		frame := make([]byte, 16+len(entry.payload)+4)
-		copy(frame, "GMLG")
-		frame[4] = 1
-		binary.LittleEndian.PutUint16(frame[6:], entry.kind)
-		binary.LittleEndian.PutUint32(frame[8:], uint32(len(entry.payload)))
-		binary.LittleEndian.PutUint32(frame[12:], crc32.Checksum(frame[:12], table))
-		copy(frame[16:], entry.payload)
-		binary.LittleEndian.PutUint32(frame[16+len(entry.payload):], crc32.Update(crc32.Checksum(frame[:16], table), table, []byte(entry.payload)))
-		log = append(log, frame...)
+		log = append(log, inspectFrame(entry.kind, []byte(entry.payload))...)
 	}
-	if err := os.WriteFile(filepath.Join(store, "log"), log, 0o600); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(filepath.Join(store, "lock"), nil, 0o600); err != nil {
-		t.Fatal(err)
-	}
+	writeInspectLog(t, store, log)
 	return path
 }
 

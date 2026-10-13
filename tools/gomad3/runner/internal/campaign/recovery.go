@@ -55,49 +55,40 @@ type ResumeState struct {
 // InspectCampaignLifecycle replays a campaign log read-only and reports its
 // lifecycle. It takes no lock and mutates nothing; a torn final record is
 // observed, not repaired.
-func InspectCampaignLifecycle(path string) (_ LifecycleStatus, retErr error) {
-	defer func() {
-		retErr = classifyIntegrityError(retErr)
-	}()
-	absolute, err := filepath.Abs(path)
-	if err != nil {
-		return LifecycleStatus{}, fmt.Errorf("resolve campaign lifecycle path: %w", err)
-	}
-	info, err := os.Lstat(absolute)
-	if err != nil {
-		return LifecycleStatus{}, fmt.Errorf("inspect campaign lifecycle directory: %w", err)
-	}
-	if !info.IsDir() || info.Mode()&os.ModeSymlink != 0 || info.Mode().Perm() != 0o700 {
-		return LifecycleStatus{}, errors.New("campaign lifecycle directory metadata is invalid")
-	}
-	state, _, err := replayCampaign(absolute)
-	if err != nil {
-		return LifecycleStatus{}, err
-	}
-	return lifecycleStatus(absolute, state)
+func InspectCampaignLifecycle(path string) (LifecycleStatus, error) {
+	inspected, err := InspectCampaignStore(path)
+	return inspected.Lifecycle, err
 }
 
 func lifecycleStatus(path string, state *campaignState) (LifecycleStatus, error) {
+	status, _, err := publishedLifecycle(path, state)
+	return status, err
+}
+
+// publishedLifecycle projects the replayed lifecycle and, for a published
+// campaign, validates and returns the published campaign.
+func publishedLifecycle(path string, state *campaignState) (LifecycleStatus, *Campaign, error) {
 	status := state.status()
 	if status.Published {
-		if _, err := openPublishedState(path, state); err != nil {
-			return LifecycleStatus{}, fmt.Errorf("validate published campaign lifecycle: %w", err)
+		opened, err := openPublishedState(path, state)
+		if err != nil {
+			return LifecycleStatus{}, nil, fmt.Errorf("validate published campaign lifecycle: %w", err)
 		}
 		stale, err := privateDirectoryPresent(filepath.Join(path, ".prepared"))
 		if err != nil {
-			return LifecycleStatus{}, err
+			return LifecycleStatus{}, nil, err
 		}
 		if stale {
 			status.Repairable = true
 			status.Action = recoveryFinalizePublication
 		}
-		return status, nil
+		return status, &opened, nil
 	}
 	if state.resumable() == nil {
 		_, err := resumePlan(path, state)
 		status.Resumable = err == nil
 	}
-	return status, nil
+	return status, nil, nil
 }
 
 func privateDirectoryPresent(path string) (bool, error) {

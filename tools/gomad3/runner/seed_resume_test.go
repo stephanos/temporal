@@ -275,6 +275,7 @@ func durableOrdinals(t *testing.T, path string) (map[uint64]struct{}, campaign.C
 	if err != nil {
 		t.Fatal(err)
 	}
+	requireInspectedFrontier(t, path, state)
 	durable := map[uint64]struct{}{}
 	for _, run := range state.Executions {
 		if run.Domain != "runner" || run.Reason == "runner_cancelled" {
@@ -285,6 +286,28 @@ func durableOrdinals(t *testing.T, path string) (map[uint64]struct{}, campaign.C
 		durable[ordinal] = struct{}{}
 	}
 	return durable, state
+}
+
+// requireInspectedFrontier checks that public inspection reports the
+// committed outcomes and the admission frontier the campaign log replays to.
+func requireInspectedFrontier(t *testing.T, path string, state campaign.CommittedState) {
+	t.Helper()
+	report, err := Inspect(path, InspectOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	committed := report.Committed
+	if committed == nil || committed.Outcomes != uint64(len(state.Executions)) || len(committed.Admitted) != len(state.Frontier.Outstanding) ||
+		committed.Available != state.Frontier.Available || committed.PendingStop != string(state.Frontier.PendingStop) || committed.Stopped != string(state.Frontier.Stopped) {
+		t.Fatalf("inspected committed state = %#v, log replays to %#v", committed, state.Frontier)
+	}
+	for index, admitted := range committed.Admitted {
+		job := state.Frontier.Outstanding[index]
+		receipt, received := state.Frontier.Receipts[job.Ordinal]
+		if admitted.Ordinal != job.Ordinal || admitted.Seed != job.Seed || (admitted.Receipt != nil) != received || received && (admitted.Receipt.Domain != receipt.Observation.Domain || len(admitted.Receipt.Artifacts) != len(receipt.Artifacts)) {
+			t.Fatalf("inspected admission %d = %#v, log replays to %#v %#v", index, admitted, job, receipt)
+		}
+	}
 }
 
 // classifiedOutcomes counts the durable successes and failures. A host
@@ -368,6 +391,19 @@ func TestSeedCampaignResumesEveryAppendFaultToTheUninterruptedOutcome(t *testing
 							t.Fatalf("%d appends reached the log after the failed append", fault.late)
 						}
 						_, state := durableOrdinals(t, interrupted.CampaignPath)
+						// A partial append leaves its torn bytes for the next
+						// writer; inspection observes them without repair.
+						report, err := Inspect(interrupted.CampaignPath, InspectOptions{})
+						if err != nil {
+							t.Fatal(err)
+						}
+						wantTail, wantTailBytes := "none", uint64(0)
+						if mode == "partial" {
+							wantTail, wantTailBytes = "short-frame", 9
+						}
+						if report.Log.Tail != wantTail || report.Log.TailBytes != wantTailBytes || report.Log.RepairedBytes != 0 {
+							t.Fatalf("interrupted log inspection = %#v", report.Log)
+						}
 						reported := interrupted.Succeeded + interrupted.Failures
 						durable := classifiedOutcomes(state)
 						if reported > durable || (mode == "write" || mode == "partial") && reported != durable {

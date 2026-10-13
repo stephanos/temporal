@@ -1,6 +1,7 @@
 package campaign
 
 import (
+	"bytes"
 	"context"
 	"encoding/binary"
 	"errors"
@@ -614,7 +615,8 @@ func TestCampaignStorageRefusesLegacyAndUnknownFormatsBeforeMutation(t *testing.
 				"plan":    func() error { _, err := ReadResumePlan(path); return err },
 				"resume":  func() error { _, _, err := ResumeCampaignJournal(context.Background(), path); return err },
 				"recover": func() error { _, err := RecoverCampaign(context.Background(), path); return err },
-				"kind":    func() error { _, err := StoreKind(path); return err },
+				"legacy":  func() error { return RefuseLegacyLayout(path) },
+				"store":   func() error { _, err := InspectCampaignStore(path); return err },
 			} {
 				err := open()
 				var unsupported *UnsupportedFormatError
@@ -670,12 +672,43 @@ func TestCampaignStorageRefusesLegacyAndUnknownFormatsBeforeMutation(t *testing.
 	}
 }
 
-func TestStoreKindDistinguishesCampaignLogs(t *testing.T) {
-	journal := newPreparedLifecycleJournal(t, "run-kind")
-	if kind, err := StoreKind(journal.Path()); err != nil || kind != "campaign" {
-		t.Fatalf("StoreKind(campaign) = %q, %v", kind, err)
+// InspectCampaignStore reads one snapshot of a log a writer still holds: it
+// reports the committed outcomes and the frontier, and observes a torn final
+// record without truncating it or taking the writer lock.
+func TestInspectCampaignStoreReadsALiveLogWithoutRepairingIt(t *testing.T) {
+	journal := newPreparedLifecycleJournal(t, "run-inspect-store")
+	if err := journal.StartExecutions(); err != nil {
+		t.Fatal(err)
 	}
-	if kind, err := StoreKind(t.TempDir()); err != nil || kind != "" {
-		t.Fatalf("StoreKind(empty) = %q, %v", kind, err)
+	if err := journal.AppendExecution(ExecutionRecord{SelectionOrdinal: 0, Seed: 7, Domain: "success", Reason: "success", Termination: "exit", ElapsedNanos: 5}); err != nil {
+		t.Fatal(err)
+	}
+	inspected, err := InspectCampaignStore(journal.Path())
+	if err != nil {
+		t.Fatal(err)
+	}
+	report := inspected.Report
+	if inspected.Lifecycle.State != lifecycleRunning || inspected.Published != nil || inspected.Exploration != nil || inspected.Committed.Outcomes != 1 || inspected.Committed.Bytes == 0 ||
+		inspected.Committed.Limits.MaximumExecutions != 3 || report.Tail != logstore.TailNone || report.Records == 0 || report.ValidBytes != report.SnapshotBytes {
+		t.Fatalf("live campaign store = %#v", inspected)
+	}
+	appendLogBytes(t, journal.Path(), []byte("GMLG"))
+	logPath := filepath.Join(journal.Path(), storeDirectory, logstore.LogFile)
+	before, err := os.ReadFile(logPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	torn, err := InspectCampaignStore(journal.Path())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if torn.Committed.Outcomes != 1 || torn.Report.Records != report.Records || torn.Report.Tail != logstore.TailShortFrame || torn.Report.ObservedTailBytes != 4 || torn.Report.RepairedBytes != 0 || torn.Report.SnapshotBytes != report.SnapshotBytes+4 {
+		t.Fatalf("torn campaign store = %#v", torn.Report)
+	}
+	if after, err := os.ReadFile(logPath); err != nil || !bytes.Equal(after, before) {
+		t.Fatalf("inspection changed the log: %v", err)
+	}
+	if err := RefuseLegacyLayout(t.TempDir()); err != nil {
+		t.Fatalf("RefuseLegacyLayout(empty) = %v", err)
 	}
 }

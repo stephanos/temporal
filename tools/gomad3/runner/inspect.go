@@ -11,20 +11,30 @@ import (
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
+	"go.temporal.io/server/tools/gomad3/runner/internal/corpus"
 	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
+	"go.temporal.io/server/tools/gomad3/runner/internal/logstore"
 )
 
 const reportSchema = "gomad3.inspect/v7"
 
+// Inspection is the report of one inspected path. Kind names what the path
+// holds: "campaign-plan", "artifact", "campaign", "merged-campaign", "corpus",
+// or "store" for a log store whose envelope is damaged, missing or names a
+// storage format this build does not open. Log, Lifecycle and Committed come from one read-only replay of
+// a store's log; an invalid store reports only Kind, Path and Log.
 type Inspection struct {
 	Schema                string                           `json:"schema"`
 	Kind                  string                           `json:"kind"`
 	Path                  string                           `json:"path"`
 	Plan                  *CampaignPlanInspection          `json:"campaign_plan,omitempty"`
 	Artifact              *ArtifactInspection              `json:"artifact,omitempty"`
+	Log                   *LogInspection                   `json:"log,omitempty"`
 	Campaign              *CampaignInspection              `json:"campaign,omitempty"`
 	Merged                *MergedCampaignInspection        `json:"merged_campaign,omitempty"`
+	Corpus                *CorpusInspection                `json:"corpus,omitempty"`
 	Lifecycle             *CampaignLifecycleInspection     `json:"lifecycle,omitempty"`
+	Committed             *CommittedCampaignInspection     `json:"committed,omitempty"`
 	Exploration           *ExplorationInspection           `json:"exploration,omitempty"`
 	SimulationExploration *SimulationExplorationInspection `json:"simulation_exploration,omitempty"`
 }
@@ -93,6 +103,8 @@ type SimulationStagedRoundInspection struct {
 }
 
 type CampaignPlanInspection struct {
+	Schema           string                           `json:"schema"`
+	Storage          string                           `json:"storage"`
 	SHA256           record.SHA256                    `json:"sha256"`
 	BundlePath       string                           `json:"bundle_path"`
 	Mapping          string                           `json:"mapping"`
@@ -127,9 +139,28 @@ type MergedCampaignInspection struct {
 	EvidenceBytes    uint64                 `json:"evidence_bytes"`
 	JournalBytes     uint64                 `json:"journal_bytes"`
 	// JournalSegments described the retired segmented journal; it is always zero.
-	JournalSegments    uint64          `json:"journal_segments"`
-	SourceCampaignIDs  []string        `json:"source_campaign_ids"`
-	EvidenceIdentities []record.SHA256 `json:"evidence_identities"`
+	JournalSegments    uint64                           `json:"journal_segments"`
+	SourceCampaignIDs  []string                         `json:"source_campaign_ids"`
+	EvidenceIdentities []record.SHA256                  `json:"evidence_identities"`
+	Limits             ExecutionJournalLimitsInspection `json:"limits"`
+	ArtifactCapacity   ArtifactCapacityInspection       `json:"artifact_capacity"`
+	Sources            []MergedSourceInspection         `json:"sources"`
+}
+
+// MergedSourceInspection is the recorded provenance of one source shard. The
+// aggregate borrows the shard's artifacts under Path, so the shard must stay
+// at that absolute path; Records and LogSHA256 identify exactly the source
+// records the aggregate concatenates in this shard's scope.
+type MergedSourceInspection struct {
+	Index          uint64        `json:"index"`
+	Count          uint64        `json:"count"`
+	CampaignID     string        `json:"campaign_id"`
+	CampaignSHA256 record.SHA256 `json:"campaign_sha256"`
+	Attempted      uint64        `json:"attempted"`
+	JournalBytes   uint64        `json:"journal_bytes"`
+	Path           string        `json:"path"`
+	Records        uint64        `json:"records"`
+	LogSHA256      record.SHA256 `json:"log_sha256"`
 }
 
 type CampaignLifecycleInspection struct {
@@ -394,7 +425,7 @@ type InspectOptions struct {
 	Choices bool
 }
 
-func Inspect(path string, options InspectOptions) (result Inspection, retErr error) {
+func Inspect(path string, options InspectOptions) (Inspection, error) {
 	absolute, err := filepath.Abs(path)
 	if err != nil {
 		return Inspection{}, fmt.Errorf("resolve inspection path: %w", err)
@@ -418,96 +449,167 @@ func Inspect(path string, options InspectOptions) (result Inspection, retErr err
 	if err != nil {
 		return Inspection{}, err
 	}
-	hasStore, err := directoryChild(absolute, "store")
+	hasStore, err := directoryChild(absolute, logStoreDirectory)
 	if err != nil {
 		return Inspection{}, err
 	}
-	if boolCount(hasManifest, hasStore) > 1 {
-		return Inspection{}, errors.New("inspection path contains conflicting artifact records")
-	}
-	storeKind := ""
-	if !hasManifest {
-		storeKind, err = campaign.StoreKind(absolute)
-		if err != nil {
-			return Inspection{}, err
-		}
-	}
-	hasBatch, hasMerge := storeKind == "campaign", storeKind == "merged-campaign"
-	if present := boolCount(hasManifest, hasBatch, hasMerge); present > 1 {
+	if hasManifest && hasStore {
 		return Inspection{}, errors.New("inspection path contains conflicting artifact records")
 	}
 	if hasManifest {
-		opened, err := artifact.OpenArtifact(absolute)
-		if err != nil {
+		return inspectArtifact(absolute, options)
+	}
+	// A directory without a log store is a campaign or corpus an earlier
+	// Gomad wrote, refused by name, or is inspected as a campaign so its
+	// diagnostics keep their precedence.
+	format := campaign.CampaignLogFormat
+	var envelope logstore.Report
+	if !hasStore {
+		if err := campaign.RefuseLegacyLayout(absolute); err != nil {
 			return Inspection{}, err
 		}
-		defer func(opened *artifact.Opened) {
-			if err := opened.Close(); err != nil {
-				result = Inspection{}
-				if retErr == nil {
-					retErr = err
-				} else {
-					retErr = errors.Join(retErr, err)
-				}
-			}
-		}(opened)
-		projected := projectArtifact(opened.Manifest(), absolute)
-		sharing, err := opened.TargetSharing()
-		if err != nil {
+		if err := corpus.RefuseLegacyLock(absolute); err != nil {
 			return Inspection{}, err
 		}
-		projected.Target.Sharing = string(sharing)
-		if options.Choices {
-			choices, projectErr := projectChoices(opened)
-			if projectErr != nil {
-				return Inspection{}, projectErr
-			}
-			projected.Choices = &choices
+	} else {
+		format, envelope, err = readStoreLineage(absolute)
+		if err != nil {
+			return invalidStore("store", absolute, "", envelope, err)
 		}
-		return Inspection{Schema: reportSchema, Kind: "artifact", Path: absolute, Artifact: &projected}, nil
 	}
 	if options.Choices {
 		return Inspection{}, errors.New("choice inspection requires a traced artifact")
 	}
-	if hasMerge {
-		opened, err := campaign.OpenMergedCampaign(absolute)
+	switch format {
+	case campaign.CampaignLogFormat:
+		return inspectCampaign(absolute)
+	case campaign.MergedCampaignLogFormat:
+		return inspectMergedCampaign(absolute)
+	case corpus.LogFormat:
+		return inspectCorpus(absolute)
+	default:
+		return invalidStore("store", absolute, format, envelope, &unsupportedLineageError{Format: format})
+	}
+}
+
+func inspectArtifact(absolute string, options InspectOptions) (result Inspection, retErr error) {
+	opened, err := artifact.OpenArtifact(absolute)
+	if err != nil {
+		return Inspection{}, err
+	}
+	defer func(opened *artifact.Opened) {
+		if err := opened.Close(); err != nil {
+			result = Inspection{}
+			if retErr == nil {
+				retErr = err
+			} else {
+				retErr = errors.Join(retErr, err)
+			}
+		}
+	}(opened)
+	projected := projectArtifact(opened.Manifest(), absolute)
+	sharing, err := opened.TargetSharing()
+	if err != nil {
+		return Inspection{}, err
+	}
+	projected.Target.Sharing = string(sharing)
+	if options.Choices {
+		choices, projectErr := projectChoices(opened)
+		if projectErr != nil {
+			return Inspection{}, projectErr
+		}
+		projected.Choices = &choices
+	}
+	return Inspection{Schema: reportSchema, Kind: "artifact", Path: absolute, Artifact: &projected}, nil
+}
+
+// inspectCampaign reports a campaign from one read-only replay of its log.
+func inspectCampaign(absolute string) (Inspection, error) {
+	inspected, err := campaign.InspectCampaignStore(absolute)
+	if err != nil {
+		return invalidStore("campaign", absolute, campaign.CampaignLogFormat, inspected.Report, err)
+	}
+	lifecycle := projectCampaignLifecycle(inspected.Lifecycle)
+	committed := projectCommittedCampaign(inspected.Committed)
+	result := Inspection{Schema: reportSchema, Kind: "campaign", Path: absolute, Log: projectLog(campaign.CampaignLogFormat, inspected.Report), Lifecycle: &lifecycle, Committed: &committed}
+	if explored := inspected.Exploration; explored != nil {
+		projected := projectExploration(*explored)
+		result.Exploration = &projected
+		if state, simulation := explored.State.(exploration.SimulationState); simulation {
+			projected := projectSimulationExploration(*explored, state)
+			result.SimulationExploration = &projected
+		}
+	}
+	if inspected.Published != nil {
+		projected, err := projectCampaign(*inspected.Published)
 		if err != nil {
 			return Inspection{}, err
 		}
-		projected := projectMergedCampaign(opened)
-		return Inspection{Schema: reportSchema, Kind: "merged-campaign", Path: absolute, Merged: &projected}, nil
+		result.Campaign = &projected
 	}
-	lifecycle, err := campaign.InspectCampaignLifecycle(absolute)
+	return result, nil
+}
+
+func inspectMergedCampaign(absolute string) (Inspection, error) {
+	opened, report, err := campaign.InspectMergedCampaign(absolute)
 	if err != nil {
-		return Inspection{}, err
+		return invalidStore("merged-campaign", absolute, campaign.MergedCampaignLogFormat, report, err)
 	}
-	projectedLifecycle := projectCampaignLifecycle(lifecycle)
-	explored, isExploration, err := campaign.InspectExploration(absolute)
+	projected := projectMergedCampaign(opened)
+	return Inspection{Schema: reportSchema, Kind: "merged-campaign", Path: absolute, Log: projectLog(campaign.MergedCampaignLogFormat, report), Merged: &projected}, nil
+}
+
+// inspectCorpus reports a guided corpus from one read-only replay of its log.
+// Its cases are not opened; the corpus validates them when a writer opens it.
+func inspectCorpus(absolute string) (Inspection, error) {
+	replayed, err := corpus.ReadLog(absolute)
 	if err != nil {
-		return Inspection{}, fmt.Errorf("inspect exploration: %w", err)
+		return invalidStore("corpus", absolute, corpus.LogFormat, replayed.Report, err)
 	}
-	var rounds *ExplorationInspection
-	var combined *SimulationExplorationInspection
-	if isExploration {
-		projected := projectExploration(explored)
-		rounds = &projected
-		if state, simulation := explored.State.(exploration.SimulationState); simulation {
-			projected := projectSimulationExploration(explored, state)
-			combined = &projected
+	projected := projectCorpus(absolute, replayed.Snapshot)
+	return Inspection{Schema: reportSchema, Kind: "corpus", Path: absolute, Log: projectLog(corpus.LogFormat, replayed.Report), Corpus: &projected}, nil
+}
+
+func projectCommittedCampaign(committed campaign.CommittedLog) CommittedCampaignInspection {
+	frontier := committed.Frontier
+	result := CommittedCampaignInspection{
+		Outcomes: committed.Outcomes, OutcomeBytes: committed.Bytes, Limits: projectExecutionJournalLimits(committed.Limits),
+		Admitted: make([]AdmittedOrdinalInspection, len(frontier.Outstanding)), Available: frontier.Available,
+		PendingStop: string(frontier.PendingStop), Stopped: string(frontier.Stopped),
+	}
+	for index, job := range frontier.Outstanding {
+		admitted := AdmittedOrdinalInspection{Ordinal: job.Ordinal, Seed: job.Seed}
+		if receipt, received := frontier.Receipts[job.Ordinal]; received {
+			admitted.Receipt = &AdmissionReceiptInspection{
+				Domain: receipt.Observation.Domain, Reason: receipt.Observation.Reason, Termination: receipt.Observation.Termination,
+				Artifacts: append([]string{}, receipt.Artifacts...), Diagnostics: uint64(len(receipt.Diagnostics)),
+			}
+		}
+		result.Admitted[index] = admitted
+	}
+	return result
+}
+
+func projectCorpus(root string, snapshot corpus.Snapshot) CorpusInspection {
+	identity := snapshot.Identity
+	result := CorpusInspection{
+		Schema: snapshot.Schema, Generation: uint64(snapshot.Generation), TargetSHA256: identity.TargetSHA256, EnvironmentSHA256: identity.EnvironmentSHA256,
+		ToolchainBuildKey: identity.Toolchain.BuildKey, InstrumentationSchema: identity.InstrumentationSchema,
+		CoverageSHA256: snapshot.CoverageSHA256, SnapshotSHA256: snapshot.SnapshotSHA256, Entries: uint64(len(snapshot.Entries)),
+		MaximumEntries: corpus.MaximumEntries, MaximumBytes: corpus.MaximumBytes, Cases: make([]CorpusCaseInspection, len(snapshot.Entries)),
+	}
+	for index, entry := range snapshot.Entries {
+		reasons := make([]CorpusFeatureInspection, len(entry.NoveltyReasons))
+		for reasonIndex, reason := range entry.NoveltyReasons {
+			reasons[reasonIndex] = CorpusFeatureInspection{Kind: reason.Kind, Value: reason.Value}
+		}
+		result.EntryStoredBytes += uint64(entry.StoredBytes)
+		result.Cases[index] = CorpusCaseInspection{
+			Seed: uint64(entry.Seed), RecordHash: entry.RecordHash, Path: filepath.Join(root, filepath.FromSlash(entry.Artifact)),
+			StoredBytes: uint64(entry.StoredBytes), PayloadBytes: uint64(entry.PayloadBytes), NoveltyReasons: reasons,
 		}
 	}
-	if !lifecycle.Published {
-		return Inspection{Schema: reportSchema, Kind: "campaign", Path: absolute, Lifecycle: &projectedLifecycle, Exploration: rounds, SimulationExploration: combined}, nil
-	}
-	opened, err := campaign.OpenCampaign(absolute)
-	if err != nil {
-		return Inspection{}, err
-	}
-	projected, err := projectCampaign(opened)
-	if err != nil {
-		return Inspection{}, err
-	}
-	return Inspection{Schema: reportSchema, Kind: "campaign", Path: absolute, Campaign: &projected, Lifecycle: &projectedLifecycle, Exploration: rounds, SimulationExploration: combined}, nil
+	return result
 }
 
 func projectExploration(explored campaign.ExplorationInspection) ExplorationInspection {
@@ -558,7 +660,7 @@ func projectCampaignPlan(opened openedCampaignPlan) CampaignPlanInspection {
 	plan := opened.plan
 	target := plan.Prepared.Target
 	result := CampaignPlanInspection{
-		SHA256: opened.identity, BundlePath: opened.path + campaignPlanBundleSuffix, Mapping: campaignPlanMapping, Strategy: plan.Strategy, Selection: plan.Selection, SelectionCount: uint64(plan.SelectionCount), Parallel: uint64(plan.Parallel),
+		Schema: campaignPlanSchema, Storage: campaignPlanStorage, SHA256: opened.identity, BundlePath: opened.path + campaignPlanBundleSuffix, Mapping: campaignPlanMapping, Strategy: plan.Strategy, Selection: plan.Selection, SelectionCount: uint64(plan.SelectionCount), Parallel: uint64(plan.Parallel),
 		RunnerBuild: plan.RunnerBuild, Toolchain: plan.Toolchain,
 		Target:      TargetReport{Kind: target.Kind, Source: target.Source, SHA256: target.SHA256, Size: uint64(target.Size), Argv: append([]string(nil), target.Argv...), BuildTags: append([]string(nil), target.BuildTags...), Adapters: append([]record.TargetAdapter(nil), target.Adapters...), Compatibility: append([]record.CompatibilityPack(nil), target.Compatibility...), BuildInfo: target.BuildInfo, CapabilityMode: target.CapabilityMode, CapabilityManifest: cloneTargetCapabilityEvidence(target.CapabilityManifest)},
 		Environment: append([]record.Environment(nil), plan.Environment...), ReadOnlyMounts: append([]string(nil), plan.IOROMounts...),
@@ -575,21 +677,16 @@ func projectCampaignPlan(opened openedCampaignPlan) CampaignPlanInspection {
 	return result
 }
 
-func boolCount(values ...bool) int {
-	count := 0
-	for _, value := range values {
-		if value {
-			count++
-		}
-	}
-	return count
-}
-
 func projectMergedCampaign(opened campaign.MergedCampaign) MergedCampaignInspection {
 	result := campaignMergeResult(opened)
 	sources := make([]string, len(opened.Record.Shards))
+	provenance := make([]MergedSourceInspection, len(opened.Record.Shards))
 	for index, shard := range opened.Record.Shards {
 		sources[index] = shard.CampaignID
+		provenance[index] = MergedSourceInspection{
+			Index: uint64(shard.Index), Count: uint64(shard.Count), CampaignID: shard.CampaignID, CampaignSHA256: shard.CampaignSHA256,
+			Attempted: uint64(shard.Attempted), JournalBytes: uint64(shard.JournalBytes), Path: shard.Path, Records: uint64(shard.Records), LogSHA256: shard.LogSHA256,
+		}
 	}
 	evidenceIdentities := make([]record.SHA256, 0, uint64(opened.Record.RetainedEvidence))
 	for _, run := range opened.Executions {
@@ -602,6 +699,7 @@ func projectMergedCampaign(opened campaign.MergedCampaign) MergedCampaignInspect
 		Shards: result.Shards, Attempted: result.Attempted, Succeeded: result.Succeeded, Failures: result.Failures, Watchdogs: result.Watchdogs, Cancelled: result.Cancelled, DistinctFailures: result.DistinctFailures,
 		RetainedEvidence: result.RetainedEvidence, EvidenceBytes: result.RetainedBytes, JournalBytes: result.JournalBytes, JournalSegments: result.JournalSegments,
 		SourceCampaignIDs: sources, EvidenceIdentities: evidenceIdentities,
+		Limits: projectExecutionJournalLimits(opened.Record.Limits), ArtifactCapacity: projectArtifactCapacity(opened.Record.Artifacts), Sources: provenance,
 	}
 }
 

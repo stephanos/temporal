@@ -33,9 +33,12 @@ import (
 )
 
 const (
-	headerSize   = 16
-	trailerSize  = 4
-	frameVersion = 1
+	headerSize  = 16
+	trailerSize = 4
+
+	// FrameVersion is the frame format this build writes and the only one
+	// it reads.
+	FrameVersion = 1
 
 	// MaxPayloadBytes is the largest per-kind payload bound Options accepts.
 	MaxPayloadBytes = 1 << 30
@@ -57,7 +60,7 @@ type header struct {
 func encodeFrame(kind Kind, payload []byte) []byte {
 	frame := make([]byte, headerSize+len(payload)+trailerSize)
 	copy(frame, frameMagic[:])
-	frame[4] = frameVersion
+	frame[4] = FrameVersion
 	binary.LittleEndian.PutUint16(frame[6:], uint16(kind))
 	binary.LittleEndian.PutUint32(frame[8:], uint32(len(payload)))
 	binary.LittleEndian.PutUint32(frame[12:], crc32.Checksum(frame[:12], castagnoli))
@@ -80,7 +83,7 @@ func decodeHeader(raw []byte, kinds map[Kind]uint32) (header, error) {
 	if binary.LittleEndian.Uint32(raw[12:]) != crc32.Checksum(raw[:12], castagnoli) {
 		return header{}, errors.New("frame header checksum mismatch")
 	}
-	if raw[4] != frameVersion {
+	if raw[4] != FrameVersion {
 		return header{}, fmt.Errorf("unsupported frame version %d", raw[4])
 	}
 	if raw[5] != 0 {
@@ -165,12 +168,15 @@ func (tail Tail) String() string {
 	}
 }
 
-// Report describes one replay. ValidBytes and Records describe the validated
-// prefix; a read-only replay observes those frames without claiming that each
-// append's sync was acknowledged. ObservedTailBytes counts the torn bytes
-// found after that prefix; RepairedBytes counts the bytes a writer-open
-// truncated and is always zero for read-only replay.
+// Report describes one replay. SnapshotBytes is the log size the replay
+// captured when it opened the log. ValidBytes and Records describe the
+// validated prefix; a read-only replay observes those frames without claiming
+// that each append's sync was acknowledged. ObservedTailBytes counts the torn
+// bytes found after that prefix; RepairedBytes counts the bytes a writer-open
+// truncated and is always zero for read-only replay. A replay that fails as
+// corruption still reports its snapshot and validated prefix.
 type Report struct {
+	SnapshotBytes     int64
 	Records           uint64
 	ValidBytes        int64
 	ObservedTailBytes int64
