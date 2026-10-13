@@ -1,6 +1,6 @@
 # Compatibility Pack Review: golang-x-sys-v047-darwin-arm64
 
-Review SHA-256: `sha256:b5953a9fc5af8f4f9091a7b2df3346f1153d43169b59db1c19b892dbb2b310b5`
+Review SHA-256: `sha256:a9e7d05d228901401380d124d12f47af29a998267e59fdc1dcbd249f7afeda86`
 
 Owner: `temporal-server`
 
