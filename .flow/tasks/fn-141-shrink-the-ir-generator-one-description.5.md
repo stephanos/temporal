@@ -14,6 +14,7 @@ Part B's early proof. The framework learns to record where a declaration is writ
 ### Approach
 - Naming context: a context parameter the framework supplies from the enclosing `val` or object. It carries the name, the qualified path the Definition ID is made of, and file and line. Hold it to the lifter's `capturedName`, `qualifiedName` and `familyOf`, which define today's values.
 - Recorded function: the function, its source span, and the values it closes over, by name. A def reference and a lambda both convert at the call site.
+- Carry forward fn-141.3's selector boundary: composition `records` currently captures a direct typed member selector at its thin call-site macro. Prove reusable recorded selector data can be passed through helpers and reused in both native Scala and lifting, retaining exact member identity and canonical fact typing. Do not substitute function identity, compiler-generated names, reflection or state equality for recorded data. Opaque raw selector functions remain refused until this explicit data path is proven.
 - These are the only `inline` or macro uses in the framework. Weigh `sourcecode` against a small macro of our own and record both line counts (fn-113 R25).
 - Lifter: find the function whose tree has the recorded span, lift it under the liftable subset, and bind each captured value. A finite Model value becomes the IR value it is; a recorded function becomes a call. The spike of 2026-10-06 proved the capture and did not prove this lookup.
 - Refuse a captured value that is neither, naming it and its type, and a span with no function.
@@ -31,6 +32,7 @@ Part B's early proof. The framework learns to record where a declaration is writ
 - [ ] munit: name, ID and line are recorded from a `val`, an object, a helper def with the context, and a comprehension; a declaration with nothing to name it does not compile or is refused at its position.
 - [ ] munit: a recorded function carries its span and captured values; a def reference and a lambda both convert.
 - [ ] A fixture Property declared through the capture points exports the same IR as its tree-lifted twin.
+- [ ] Reusable recorded composition selector data works through helpers in native Scala and lifting; equal-state/different-member and wrong-fact-type controls retain exact member/fact identity.
 - [ ] Reject fixtures: a captured value of no finite Model type; a function body outside the liftable subset is refused with today's text at today's position.
 - [ ] The `sourcecode` weighing and both line counts are in the done summary.
 - [ ] If the lookup or the binding cannot be made to work, stop: Part B does not continue (see the spec's Early proof point).
