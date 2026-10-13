@@ -64,31 +64,13 @@ Current native-execution acceptance is Darwin-only here. The corresponding Linux
 - [ ] Publication bytes, manifests and store identities for fixed inputs are unchanged.
 
 ## Done summary
-Blocked:
-Blocked: R13 is implemented and reviewed (SHIP, two rounds). Only native darwin/arm64 and linux/amd64 gates remain, and they belong to task 21.
+Detached Artifact references are separated from owned opened handles (R13); review round 2 SHIP. Native gates transfer to fn-128/fn-149; the .11 dependency is a native deferral. Completed under the 2026-10-13 WASM-queue shared-subset closeout amendment; fast tier on gomad c9ac570968 (portable failure set unchanged, architecture, lint, validate, test-wasm).
 
-Done (commits 3a3c31b0a7 and 6a52807659 on gomad-fn109, base 48c95c0c97):
-- `artifact.Artifact` is now only a detached reference. It loses its private `root`, keeps the same exported fields, and has no Close.
-- `OpenArtifact` returns an owned `*artifact.Opened`. Its path, manifest, stored bytes and pinned root are private. `Close` is idempotent and nil-safe.
-- `Manifest()` and `Snapshot()` (which replaces `Detached()`) return deep copies through the reflective `cloneManifest`.
-- `OpenPayload`, `ReadPayload`, `CopyPayload` and `TargetSharing` (which replaces `TargetSharingOf`) are now handle methods. Their bodies, check order and error texts are unchanged. Use after close fails with `artifact is not open`.
-- All consumers are migrated: runner replay, minimize, inspect, resume, corpus, campaign retained evidence and qualification/set. The declarations, consumers and migrations are recorded in go-interface-changes.md.
-- Migration fix: `runner.preflight` never closed a rejected artifact's root, because its deferred close saw the zeroed named result. It now closes it.
-
-Local evidence (linux/arm64, developmental only, with the uncommitted shim; details in task-12/local-evidence.json):
-- Fixed-input publication bytes, manifests and store identities are byte-identical to base across 12 store configurations, checked with a scratch test.
-- Eight new artifact tests cover published and detached references, open/close, use after close, directory replacement, snapshot isolation, valid access, and the rejection matrix (unlisted, bound, mode, size, hash, symlink, escape). A mutation check showed they catch a shallow snapshot and a close that keeps the root.
-- Quick commands: exit 1 at baseline (122s, 21 failures) and after (133s). The run after has the same 21 failures plus 4 timing tests that pass on an isolated rerun.
-- Architecture tests: exit 0. go vet and gofmt: clean.
-- Full `make test-host`: exit 2 (244s). Every failure is in the baseline or in the task-11 shim/pin-drift set, in packages that do not depend on artifact, apart from one watchdog timing test that passes when rerun alone.
-- golangci-lint: not run, because the repository binary is a darwin build.
-
-Remaining native gates: on darwin/arm64 and linux/amd64 hosts (task 21), full `make -C tools/gomad3 test-host`, the task Quick commands and scoped golangci-lint.
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 59ca3d1739
+- Tests: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-12/ (reviewed evidence), fast tier on c9ac570968, evidence: .flow/artifacts/wasm-section-acceptance-2026-10-12.md
 - PRs:
-
 ## Linux ownership blocker (2026-10-04)
 
 Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.

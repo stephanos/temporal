@@ -1,5 +1,9 @@
 # Gomad deep modules and tool interfaces
 
+## WASM-queue shared-subset closeout (2026-10-13)
+
+Under the owner's WASM-section direction ("defer any issues the native backend has"; "when in doubt, follow your own recommendations"), shared-subset tasks whose source work is on `gomad` complete on their existing reviewed evidence plus the current portable, architecture, lint, `validate` and `test-wasm` fast tier. Their remaining native, patched-toolchain and full-host gates transfer to [fn-128](fn-128-gomad-deferred-linux-qualification-and.md) / [fn-149](fn-149-gomad-deferred-darwin-qualification.md); this supersedes, for these tasks only, the clause that verified source progress does not complete a task while native gates are open. Dependency edges on native-section work (.12 → .11) and on the rotation-batch codec scope of .14 (.15 → .14) do not block completion: .11 stays a native deferral and .14's remaining generated network/volume/process codecs run with the fn-153/fn-154/fn-166 rotation batch.
+
 ## Format-compatibility removal and storage handoff (2026-10-09)
 
 The owner dropped every byte-for-byte and format-compatibility requirement for Gomad: "no need for byte-for-byte compatibility requirements". Recorded formats (artifact, record, choice trace, transcript, campaign plan, journal, corpus, provenance, qualification and model-wire), canonical projections, fixed-identity canonical bytes and committed digests may change. Artifacts and campaigns written by an earlier Gomad need not resume or replay; refusing them with a clear error is enough.
