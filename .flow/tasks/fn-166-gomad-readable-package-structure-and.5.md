@@ -10,9 +10,10 @@ Move cmd/gomadtool to backends/native/cmd/gomadtool, internal/compatibilitypack 
 Root cmd/ holds only cmd/gomad; root internal/ holds no package imported only by the native backend; make targets using gomadtool pass; R6 checks pass.
 
 ## Done summary
-TBD
+gomadtool, compatibilitypack (with authoring) and sourceinventory live under backends/native; script validation folded into gomadtool; Make targets, docs and CI follow. Generated-code headers inside identity-bound files move with fn-166.6.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 5cd08aa19b
+- Tests: go test ./backends/native/cmd/gomadtool/... (failure set unchanged), make -C tools/gomad3 validate, lint-code-fast, evidence: .flow/artifacts/wasm-section-acceptance-2026-10-12.md
 - PRs:
