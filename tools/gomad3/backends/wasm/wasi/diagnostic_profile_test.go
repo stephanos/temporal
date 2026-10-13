@@ -93,7 +93,7 @@ func guestFrameBucket(name string) string {
 		if !strings.Contains(name, "/") {
 			first, _, _ = strings.Cut(name, ".")
 		}
-		if first != "" && !strings.ContainsAny(first, ". <>[]") {
+		if first != "" && first != "main" && !strings.ContainsAny(first, ". <>[]:") {
 			return "stdlib"
 		}
 	}
@@ -184,6 +184,10 @@ func TestDiagnosticGuestProfile(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	relative, err := filepath.Rel(repo, root)
+	if err != nil || relative != ".." && !strings.HasPrefix(relative, ".."+string(os.PathSeparator)) {
+		t.Fatal("raw guest profiles must be retained outside the repository")
+	}
 	for _, directory := range []string{"modules", "evidence"} {
 		if err := os.MkdirAll(filepath.Join(root, directory), 0700); err != nil {
 			t.Fatal(err)
@@ -253,7 +257,15 @@ func TestDiagnosticGuestProfile(t *testing.T) {
 		"required_host": "darwin/arm64", "required_host_measured": runtime.GOOS == "darwin" && runtime.GOARCH == "arm64",
 		"scope":  "weighted guest stack samples; epoch function-entry/loop bias; host-call ticks excluded; no timestamp-gap charge; sampled wall times are not baselines",
 		"limits": "scheduler-frame share does not quantify all unwind/rewind work; fuel checks are distributed across ordinary guest frames",
-		"rerun":  "GOMAD_WASM_GUEST_PROFILE_ROOT=" + root + " GOMAD_WASM_TEST_HELPER=" + os.Getenv("GOMAD_WASM_TEST_HELPER") + " GOMAD3_STOCK_GO=" + os.Getenv("GOMAD3_STOCK_GO") + " go test -tags test_dep -count=1 -timeout 60m -run '^TestDiagnosticGuestProfile$' ./backends/wasm/wasi (from tools/gomad3)",
+		"rerun": map[string]any{
+			"working_directory": filepath.Join(repo, "tools", "gomad3"),
+			"environment": map[string]string{
+				"GOMAD_WASM_GUEST_PROFILE_ROOT": root,
+				"GOMAD_WASM_TEST_HELPER":        os.Getenv("GOMAD_WASM_TEST_HELPER"),
+				"GOMAD3_STOCK_GO":               os.Getenv("GOMAD3_STOCK_GO"),
+			},
+			"command": "env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -count=1 -timeout 60m -run '^TestDiagnosticGuestProfile$' ./backends/wasm/wasi",
+		},
 	})
 }
 
@@ -266,7 +278,7 @@ func TestDiagnosticGuestFrameBuckets(t *testing.T) {
 		{"server", "go.temporal.io/server/service/history.(*Engine).Execute"},
 		{"runtime", "runtime.memmove runtime/atomic.Store internal/runtime/maps.(*Map).get"},
 		{"stdlib", "encoding/json.Marshal net/http.(*Client).Do testing.tRunner reflect.Value.Call sync.(*Mutex).Lock"},
-		{"other", "github.com/stretchr/testify/require.NoError <wasm-function[1]>"},
+		{"other", "github.com/stretchr/testify/require.NoError main.main type:.eq.go.temporal.io/server.Task <wasm-function[1]>"},
 	} {
 		for _, name := range strings.Fields(test.names) {
 			t.Run(name, func(t *testing.T) {
@@ -283,6 +295,7 @@ func TestDiagnosticGuestFrameBuckets(t *testing.T) {
 		{[]string{"runtime.mallocgc", "runtime.gcAssistAlloc", "go.temporal.io/server/tests.Test"}, "allocation"},
 		{[]string{"runtime.gcDrain", "runtime.schedule"}, "gc"},
 		{[]string{"runtime.schedule", "runtime.gcDrain"}, "scheduler"},
+		{[]string{"runtime.schedule.func1", "go.temporal.io/server/tests.Test"}, "scheduler"},
 		{[]string{"go.temporal.io/server/tests.Test", "runtime.gcDrain"}, "test"},
 		{[]string{"runtime.memmove", "go.temporal.io/server/tests.Test"}, "runtime"},
 		{[]string{"<wasm-function[1]>", "runtime.gcDrain"}, "gc"},
@@ -329,6 +342,7 @@ func TestDiagnosticGuestAttributionRejectsMalformedTables(t *testing.T) {
 		{"sample length", `"length":4`, `"length":3`},
 		{"weight length", `[3,2,5,7]`, `[3,2,5]`},
 		{"negative weight", `[3,2,5,7]`, `[-3,2,5,7]`},
+		{"weight overflow", `[3,2,5,7]`, `[9223372036854775807,9223372036854775807,5,7]`},
 		{"allocation weight", `"weightType":"samples"`, `"weightType":"bytes"`},
 		{"stack length", `"frame":[2,0,1]`, `"frame":[2,0]`},
 		{"prefix length", `"prefix":[null,0,0]`, `"prefix":[null,0]`},
