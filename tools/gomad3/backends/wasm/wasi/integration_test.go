@@ -523,6 +523,93 @@ var prototypeFaults = []NetworkFaultV2{
 	{Name: "workflow-heal", AtNanos: uint64(110 * time.Second), Action: "heal"},
 }
 
+type prototypeResetEvidence struct {
+	Connections, StreamErrors, Reconnections uint64
+}
+
+func prototypeNetworkResetWitness(data []byte, fault NetworkFaultV2) (prototypeResetEvidence, error) {
+	var transcript struct {
+		Operations []struct {
+			At      uint64           `json:"at"`
+			Fault   *NetworkFaultV2  `json:"fault"`
+			Request netmodel.Request `json:"request"`
+			Result  netmodel.Result  `json:"result"`
+		} `json:"operations"`
+		Native netmodel.Record `json:"native"`
+	}
+	if err := json.Unmarshal(data, &transcript); err != nil {
+		return prototypeResetEvidence{}, err
+	}
+	var evidence prototypeResetEvidence
+	for _, transition := range transcript.Native.Transitions {
+		if transition.Kind == "crash" && transition.Outcome == "reset" {
+			evidence.Connections += transition.Count
+		}
+	}
+	named := false
+	handles := map[uint64]bool{}
+	pending := map[uint64]uint64{}
+	for _, operation := range transcript.Operations {
+		if operation.Fault != nil && *operation.Fault == fault {
+			named = true
+		}
+		if operation.Request.Op == "dial" && operation.Result.State == "completed" && operation.Result.Error == "" && operation.Result.Handle != 0 {
+			if operation.At < fault.AtNanos {
+				handles[operation.Result.Handle] = true
+			} else {
+				evidence.Reconnections++
+			}
+		}
+		if operation.Request.Op == "read" || operation.Request.Op == "write" {
+			pending[operation.Request.RequestID] = operation.Request.Handle
+		}
+		handle := operation.Request.Handle
+		if operation.Request.Op == "poll" {
+			handle = pending[operation.Request.RequestID]
+		}
+		if operation.At >= fault.AtNanos && handles[handle] && (operation.Request.Op == "read" || operation.Request.Op == "write" || operation.Request.Op == "poll") && (operation.Result.Error == "use of closed network connection" || operation.Result.Error == "connection reset by peer") {
+			evidence.StreamErrors++
+		}
+	}
+	if !named || evidence.Connections == 0 || evidence.StreamErrors == 0 || evidence.Reconnections == 0 {
+		return evidence, fmt.Errorf("named reset lacks connection reset and recovery: named=%v evidence=%+v", named, evidence)
+	}
+	return evidence, nil
+}
+
+func TestPrototypeNetworkResetWitnessRequiresAffectedConnection(t *testing.T) {
+	fault := NetworkFaultV2{Name: "workflow-reset", Action: "reset", AtNanos: 10}
+	t.Run("no connections", func(t *testing.T) {
+		e := streamEnvironment(t, streamConfig())
+		e.networkV2.config.Faults = []NetworkFaultV2{fault}
+		if err := e.networkV2Advance(fault.AtNanos); err != nil {
+			t.Fatal(err)
+		}
+		data := e.NetworkV2Transcript()
+		if !bytes.Contains(data, []byte(`"name":"workflow-reset"`)) {
+			t.Fatal("negative control did not record named reset")
+		}
+		if evidence, err := prototypeNetworkResetWitness(data, fault); err == nil || evidence.Connections != 0 {
+			t.Fatalf("reset without connections passed witness: %+v, %v", evidence, err)
+		}
+	})
+	t.Run("reset and reconnect", func(t *testing.T) {
+		e := streamEnvironment(t, streamConfig())
+		e.networkV2.config.Faults = []NetworkFaultV2{fault}
+		listener := streamCall(t, e, streamFrame(1, 1, 0, 0, 0, 0, nil))
+		port := binary.BigEndian.Uint32(listener[48:])
+		client := streamCall(t, e, streamFrame(2, 2, 0, 0, port, 0, nil))
+		streamCall(t, e, streamFrame(3, 3, binary.BigEndian.Uint64(listener[16:]), 0, 0, 0, nil))
+		e.now = fault.AtNanos
+		streamCall(t, e, streamFrame(5, 4, binary.BigEndian.Uint64(client[16:]), 0, 0, 1, []byte{1}))
+		streamCall(t, e, streamFrame(2, 5, 0, 0, port, 0, nil))
+		evidence, err := prototypeNetworkResetWitness(e.NetworkV2Transcript(), fault)
+		if err != nil || evidence.Connections != 1 || evidence.StreamErrors != 1 || evidence.Reconnections != 1 {
+			t.Fatalf("reset and reconnect witness: %+v, %v", evidence, err)
+		}
+	})
+}
+
 // TestPrototypeTemporal runs the fn-151.6/.7/.8 one-box gates: a workflow with
 // timers, retries and network faults, and an unchanged functional suite.
 func TestPrototypeTemporal(t *testing.T) {
@@ -560,19 +647,21 @@ func TestPrototypeTemporal(t *testing.T) {
 		config.NetworkV2 = &NetworkModelV2{Profile: NetworkStreamProfile, Limits: netmodel.Limits{Listeners: 128, Connections: 4096, Bytes: 128 << 20, ConnectionBytes: 4 << 20, StallNanos: 10_000_000_000, Transitions: 1 << 20}, Faults: prototypeFaults}
 		request := prototypeRequest(t, module, config, 0, 30*time.Minute)
 		baselines := prototypeDeterminism(t, report, "temporal", "workflow", request, seeds, instances, 0)
+		resetEvidence := map[string]prototypeResetEvidence{}
 		for seed, result := range baselines {
-			if !bytes.Contains(result.Stdout, []byte("--- PASS: TestPrototypeWorkflow")) {
-				t.Fatalf("seed %d: workflow did not pass", seed)
+			if !bytes.Contains(result.Stdout, []byte("--- PASS: TestPrototypeWorkflow")) || !bytes.Contains(result.Stdout, []byte("workflow completed [step 0 attempt 2 step 1 attempt 2]")) {
+				t.Fatalf("seed %d: workflow did not pass with both activity retries", seed)
 			}
+			witness, err := prototypeNetworkResetWitness(result.NetworkTranscript, prototypeFaults[0])
+			if err != nil {
+				t.Fatalf("seed %d: %v", seed, err)
+			}
+			resetEvidence[strconv.FormatUint(seed, 10)] = witness
 		}
 		result := baselines[seeds[0]]
-		resets := bytes.Count(result.NetworkTranscript, []byte(`"name":"workflow-reset"`))
 		partitions := bytes.Count(result.NetworkTranscript, []byte(`"name":"workflow-partition"`))
 		info, _ := os.Stat(module)
-		report.guest("prototype-temporal", map[string]any{"module_sha256": request.ModuleSHA256, "module_bytes": info.Size(), "build_seconds": seconds, "model": config.NetworkV2, "resets": resets, "partitions": partitions, "distinct_schedules": distinctChoiceTraces(baselines)})
-		if resets == 0 {
-			t.Fatal("network faults never reset a connection")
-		}
+		report.guest("prototype-temporal", map[string]any{"module_sha256": request.ModuleSHA256, "module_bytes": info.Size(), "build_seconds": seconds, "model": config.NetworkV2, "reset_evidence": resetEvidence, "activity_retries": 2, "partitions": partitions, "distinct_schedules": distinctChoiceTraces(baselines)})
 		if distinctChoiceTraces(baselines) < 2 {
 			t.Fatal("seeds produced identical schedules")
 		}
