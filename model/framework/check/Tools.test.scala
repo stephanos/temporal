@@ -94,6 +94,18 @@ class ToolsSuite extends munit.FunSuite:
       s"${work.toRealPath()}"
     )
 
+  test("build identity keeps compiler environment settings, apart from run settings"):
+    val tools = stubs().tools(
+      work,
+      "JAVA_HOME" -> "/jdk",
+      "COURSIER_REPOSITORIES" -> "repository",
+      "FEATURES" -> "activity_mini"
+    )
+    assertEquals(
+      tools.buildEnvironment,
+      Seq("COURSIER_REPOSITORIES=repository", "JAVA_HOME=/jdk")
+    )
+
   for tool <- Seq("scala-cli", "protoc", "go") do
     test(s"a missing $tool fails with its name and the directories that were searched"):
       val empty = stubs()

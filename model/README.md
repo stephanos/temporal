@@ -605,6 +605,13 @@ Samples keeps standard output apart from compiler diagnostics and rejects either
 printed compiler errors. Make keeps normal compilation and publishes its temporary jar and classpath
 only after the compiler succeeds.
 
+Sample checks reuse the compiled samples jar and classpath and a packaged batch lifter under
+`model/build/sample-check/`, across check output directories. Content stamps cover the source paths
+and bytes, build directives, generated schema jars, tool versions and compiler environment. Missing
+or changed build outputs trigger a rebuild; rejected compilations leave no reusable stamp. Each check
+discovers its roots again, lifts every sample afresh, adapts only its temporary IR and runs the Go
+checker. Removing this cache only makes the next check rebuild it.
+
 The default check of a change is one command:
 
 ```

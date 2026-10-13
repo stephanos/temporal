@@ -68,6 +68,13 @@ final case class Ran(
 final class Tools(val directory: Path, environment: Map[String, String]):
   def modelFeatures: Option[String] = environment.get("FEATURES")
 
+  private[check] def buildEnvironment: Seq[String] =
+    environment.toSeq.sorted.collect:
+      case (name, value)
+          if Set("JAVA_HOME", "JAVA_TOOL_OPTIONS", "JDK_JAVA_OPTIONS", "_JAVA_OPTIONS")
+            .contains(name) || Seq("COURSIER_", "SCALA_CLI_", "BLOOP_").exists(name.startsWith) =>
+        s"$name=$value"
+
   def withEnvironment(more: (String, String)*): Tools = Tools(directory, environment ++ more)
 
   def withoutEnvironment(names: String*): Tools = Tools(directory, environment -- names)
