@@ -226,7 +226,7 @@ func discover(root, goCommand string, platform Platform, legacy bool) (Inventory
 func Within(path, root string) bool { return within(path, root) }
 
 var sourceExclusions = []string{
-	"backends/native/toolchain/runtime/overlay", "backends/native/transcript/testdata", "backends/native/conformance/testdata",
+	"backends/native/toolchain/runtime/overlay", "backends/native/transcript/testdata", "backends/native/conformance/testdata", "backends/native/qualification/testdata/tagged",
 	"cmd/gomad/testdata", "backends/native/compatibilitypack/testdata", "runner/testdata", "qualification/corpus",
 	"backends/wasm/testdata", "backends/wasm/wasi/testdata", "backends/wasm/toolchain/testdata", "backends/wasm/simulation/testdata", "backends/wasm/qualification/testdata", "backends/wasm/command/testdata",
 }

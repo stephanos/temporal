@@ -2,8 +2,17 @@ package world
 
 import (
 	"errors"
+	"strings"
 	"testing"
 )
+
+func TestReplayPlanRawSyntaxUsesStrictDecoder(t *testing.T) {
+	for _, data := range []string{`{"schemaVersion":1,"schemaVersion":1}`, `{"schemaVersion":1,"initialDigest":"` + string([]byte{0xff}) + `"}`, `{`, `{} {}`, `{"unknown":true}`} {
+		if _, err := DecodeReplayPlan([]byte(data)); err == nil || !strings.HasPrefix(err.Error(), "decode World replay plan:") {
+			t.Fatalf("raw syntax did not retain decoder classification: %v", err)
+		}
+	}
+}
 
 func TestWorldReplayValidatesEveryTransitionAndFinalDigest(t *testing.T) {
 	initialWorld := newTestWorld(t, 41)

@@ -21,6 +21,7 @@ var (
 var (
 	unmarshal                       = json.Unmarshal
 	formatByteArrayAsArray          = jsonv1.FormatByteArrayAsArray
+	formatDurationAsNano            = jsonv1.FormatDurationAsNano
 	matchCaseInsensitiveNames       = json.MatchCaseInsensitiveNames
 	matchCaseSensitiveDelimiter     = jsonv1.MatchCaseSensitiveDelimiter
 	reportErrorsWithLegacySemantics = jsonv1.ReportErrorsWithLegacySemantics
@@ -44,6 +45,8 @@ func Decode(data []byte, destination any) error {
 	return unmarshal(data, destination,
 		//gomad:dynamic reviewed 2026-10-13 pinned JSON option preserves encoding/json byte-array input
 		formatByteArrayAsArray(true),
+		//gomad:dynamic reviewed 2026-10-13 pinned JSON option preserves encoding/json numeric durations
+		formatDurationAsNano(true),
 		//gomad:dynamic reviewed 2026-10-13 pinned JSON option constructor has no host effects
 		matchCaseInsensitiveNames(true),
 		//gomad:dynamic reviewed 2026-10-13 pinned JSON option constructor has no host effects

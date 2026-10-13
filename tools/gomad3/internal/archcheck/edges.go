@@ -42,6 +42,9 @@ func OwnerMayImport(modulePath, owner, importedOwner, importing, imported string
 		return true
 	}
 	if owner == "wasm" {
+		if importing == modulePath+"/backends/wasm/backend" && imported == modulePath+"/internal/hostfs" {
+			return true
+		}
 		return slices.ContainsFunc([]string{
 			"artifact", "choice", "captured", "volume", "hostexec", "hostfs",
 			"qualification", "qualification/workload", "record", "runner", "backends",

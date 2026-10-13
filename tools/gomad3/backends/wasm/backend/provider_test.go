@@ -1,18 +1,192 @@
 package backend
 
 import (
+	"bytes"
+	"context"
 	"encoding/json"
+	"errors"
+	"io"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/backends/wasm/toolchain"
 	"go.temporal.io/server/tools/gomad3/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad3/choice"
+	stagedfs "go.temporal.io/server/tools/gomad3/internal/hostfs"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/target"
 )
+
+func TestCachePublicationStagesAndValidatesBeforeReplacing(t *testing.T) {
+	for _, fault := range []string{"module-stage", "receipt-stage", "module-validation", "receipt-validation", "cancel", "cleanup", "receipt-rename", "success"} {
+		t.Run(fault, func(t *testing.T) {
+			p := integrationProvider(t)
+			source := t.TempDir()
+			for name, data := range map[string]string{"go.mod": "module cache.stages.fixture\n\ngo 1.27.1\n", "main.go": "package main\nfunc main(){}\n"} {
+				if err := os.WriteFile(filepath.Join(source, name), []byte(data), 0600); err != nil {
+					t.Fatal(err)
+				}
+			}
+			ctx, cancel := context.WithCancel(t.Context())
+			defer cancel()
+			failure := errors.New("cache fill failure")
+			var paths []string
+			var cache string
+			var moduleMode os.FileMode
+			stage := func(ctx context.Context, directory, pattern string, mode os.FileMode, fill func(context.Context, io.Writer) error) (*stagedfs.StagedFile, error) {
+				cache = directory
+				index := len(paths)
+				if index == 0 {
+					moduleMode = mode
+					for name, data := range map[string]string{"module.wasm": "prior module", "receipt.json": "prior receipt"} {
+						if err := os.WriteFile(filepath.Join(cache, name), []byte(data), 0600); err != nil {
+							t.Fatal(err)
+						}
+					}
+				}
+				if fault == "module-stage" && index == 0 || (fault == "receipt-stage" || fault == "cleanup") && index == 1 {
+					fill = func(context.Context, io.Writer) error { return failure }
+				}
+				staged, err := stagedfs.StageContext(ctx, directory, pattern, mode, fill)
+				if err != nil {
+					return nil, err
+				}
+				paths = append(paths, staged.Path())
+				if filepath.Dir(staged.Path()) != directory {
+					t.Fatal("cache stage is outside publication directory")
+				}
+				if index == 0 && fault == "module-validation" || index == 1 && fault == "receipt-validation" {
+					if err := os.WriteFile(staged.Path(), []byte("changed exact stage"), mode); err != nil {
+						t.Fatal(err)
+					}
+				}
+				if index == 0 && fault == "cleanup" {
+					if err := os.Remove(staged.Path()); err != nil {
+						t.Fatal(err)
+					}
+					if err := os.Mkdir(staged.Path(), 0700); err != nil {
+						t.Fatal(err)
+					}
+					if err := os.WriteFile(filepath.Join(staged.Path(), "child"), []byte("blocks removal"), 0600); err != nil {
+						t.Fatal(err)
+					}
+				}
+				if index == 1 && fault == "cancel" {
+					cancel()
+				}
+				if index == 1 && fault == "receipt-rename" {
+					if err := os.Remove(filepath.Join(cache, "receipt.json")); err != nil {
+						t.Fatal(err)
+					}
+					if err := os.Mkdir(filepath.Join(cache, "receipt.json"), 0700); err != nil {
+						t.Fatal(err)
+					}
+				}
+				return staged, nil
+			}
+			prepared, err := p.prepareWithStager(ctx, target.Spec{Backend: Name, Kind: target.KindGoRun, Source: ".", WorkingDir: source, PreparationRoot: t.TempDir()}, stage)
+			if fault == "success" {
+				if err != nil {
+					t.Fatal(err)
+				}
+				for name, mode := range map[string]os.FileMode{"module.wasm": moduleMode, "receipt.json": 0600} {
+					info, err := os.Stat(filepath.Join(cache, name))
+					if err != nil || info.Mode().Perm() != mode {
+						t.Fatalf("cache mode changed: %s %v", name, err)
+					}
+				}
+				if prepared.BuildKey != filepath.Base(cache) {
+					t.Fatal("publication changed build identity")
+				}
+			} else if err == nil {
+				t.Fatal("cache publication fault was ignored")
+			}
+			if fault == "module-stage" || fault == "receipt-stage" || fault == "cleanup" {
+				if !errors.Is(err, failure) {
+					t.Fatalf("primary fill error lost: %v", err)
+				}
+			}
+			if fault == "cleanup" && !strings.Contains(err.Error(), "directory not empty") {
+				t.Fatalf("real cleanup failure not joined: %v", err)
+			}
+			if fault == "cancel" && !errors.Is(err, context.Canceled) {
+				t.Fatalf("cancellation identity lost: %v", err)
+			}
+			if fault == "receipt-rename" {
+				if !strings.Contains(err.Error(), "receipt (published=false)") || stringMustRead(t, filepath.Join(cache, "module.wasm")) == "prior module" {
+					t.Fatalf("receipt failure did not follow module publication: %v", err)
+				}
+			} else if fault != "success" {
+				if stringMustRead(t, filepath.Join(cache, "module.wasm")) != "prior module" || stringMustRead(t, filepath.Join(cache, "receipt.json")) != "prior receipt" {
+					t.Fatal("prepublication failure replaced prior destinations")
+				}
+			}
+			for _, path := range paths {
+				if _, err := os.Lstat(path); !errors.Is(err, os.ErrNotExist) && fault != "cleanup" {
+					t.Fatalf("unpublished stage remains: %s %v", path, err)
+				}
+			}
+		})
+	}
+}
+
+func TestCachePublicationCancellationLeavesNoCommitMarker(t *testing.T) {
+	p := integrationProvider(t)
+	source := t.TempDir()
+	for name, data := range map[string]string{"go.mod": "module cache.cancel.fixture\n\ngo 1.27.1\n", "main.go": "package main\nfunc main(){}\n"} {
+		if err := os.WriteFile(filepath.Join(source, name), []byte(data), 0600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	ctx, cancel := context.WithCancel(t.Context())
+	defer cancel()
+	environments := 0
+	p.options.ObserveCompilerCommand = func(metrics CompilerCommandMetrics) {
+		if metrics.Arguments[0] == "env" {
+			environments++
+			if environments == 2 {
+				cancel()
+			}
+		}
+	}
+	_, err := p.Prepare(ctx, target.Spec{Backend: Name, Kind: target.KindGoRun, Source: ".", WorkingDir: source, PreparationRoot: t.TempDir()})
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("cancelled cache publication returned %v", err)
+	}
+	markers, err := filepath.Glob(filepath.Join(p.options.CacheRoot, "*", "receipt.json"))
+	if err != nil || len(markers) != 0 {
+		t.Fatalf("cancelled publication committed receipt: %v %v", markers, err)
+	}
+}
+
+func TestProvenanceAcceptsOrdinaryJSONSpellings(t *testing.T) {
+	pr := provenance{Schema: provenanceSchema, Source: "<&", Args: []string{}, BuildTags: nil}
+	encoded, err := json.Marshal(pr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var indented bytes.Buffer
+	if err := json.Indent(&indented, encoded, "", "  "); err != nil {
+		t.Fatal(err)
+	}
+	for _, data := range [][]byte{indented.Bytes(), append(bytes.Clone(encoded), '\n'), bytes.Replace(encoded, []byte(`"Schema":`), []byte(`"schema":`), 1), bytes.Replace(encoded, []byte(`\u003c`), []byte("<"), 1)} {
+		decoded, err := decodeProvenance(data)
+		if err != nil || !reflect.DeepEqual(decoded, pr) {
+			t.Fatalf("ordinary provenance spelling rejected or changed values: %v", err)
+		}
+	}
+}
+
+func TestProvenanceRejectsStrictSyntaxAndUnknownFields(t *testing.T) {
+	for _, data := range []string{`{"Schema":"a","Schema":"b"}`, `{"Config":{"Args":[],"Args":[]}}`, `{"Source":"` + string([]byte{0xff}) + `"}`, `{"unknown":1}`, `{} {}`, `{`, `{"ModuleBytes":18446744073709551616}`} {
+		if _, err := decodeProvenance([]byte(data)); err == nil {
+			t.Fatalf("invalid provenance admitted: %q", data)
+		}
+	}
+}
 
 func TestProviderAdmitsPinnedCooperativeProfile(t *testing.T) {
 	options := portableProviderOptions(wasi.CooperativeProfile)
@@ -123,14 +297,16 @@ func TestCooperativeProvenanceRejectsChangedRuntimeImplementation(t *testing.T) 
 	}
 }
 
-func TestStockProvenancePreservesCanonicalBytes(t *testing.T) {
-	const legacy = `{"BuildCachePolicy":"","BuildFlags":null,"BuildEnvironment":null,"Schema":"","Profile":"","ReplayMode":"","CompilerSHA256":"","GoVersion":"","HelperSHA256":"","ModelSHA256":"","ModuleSHA256":"","BuildKey":"","Engine":{"name":"","version":"","configuration":"","host_os":"","host_arch":""},"Sources":null,"Kind":"","Source":"","Args":null,"BuildTags":null,"Imports":null,"InitialMemoryPages":0,"MemoryBytes":0,"Fuel":0,"ModuleBytes":0,"Config":{"Profile":"","Args":null,"Environment":null,"WorkingDirectory":"","WritableDirectories":null,"CapturedInputs":{"Manifest":{"Bytes":0,"Entries":0,"File":"","Limits":{"DirectoryEntries":0,"Files":0,"PathBytes":0,"Requests":0,"SingleFileBytes":0,"TotalBytes":0},"Mappings":null,"NotExist":0,"Schema":"","SHA256":"","TotalBytes":0},"Descriptor":null,"Payloads":null},"Stdin":null,"EntropyKey":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"Clock":{"EpochNanos":0,"ReadStepNanos":0},"Limits":{"OutputBytes":0,"TranscriptBytes":0,"Calls":0,"Descriptors":0,"Files":0,"FilesystemBytes":0,"PendingEvents":0}}}`
-	data, err := json.Marshal(provenance{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if string(data) != legacy {
-		t.Fatalf("stock provenance canonical bytes changed: %s", data)
+func TestStockProvenanceRoundTripKeepsNilAndEmpty(t *testing.T) {
+	for _, pr := range []provenance{{}, {Args: []string{}, BuildTags: []string{}, Sources: []sourceIdentity{}, Imports: []wasi.Import{}}} {
+		data, err := json.Marshal(pr)
+		if err != nil {
+			t.Fatal(err)
+		}
+		decoded, err := decodeProvenance(data)
+		if err != nil || !reflect.DeepEqual(decoded, pr) {
+			t.Fatalf("stock provenance round trip changed typed values: %v", err)
+		}
 	}
 }
 

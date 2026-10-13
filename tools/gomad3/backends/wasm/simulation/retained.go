@@ -15,6 +15,7 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad3/hostfs"
+	"go.temporal.io/server/tools/gomad3/internal/strictjson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/target"
 	"go.temporal.io/server/tools/gomad3/volume"
@@ -499,37 +500,14 @@ func decodeRetained(payload target.BackendPayload) (retainedExecution, error) {
 	if payload.Reference.File != "backend/simulation.json" || uint64(payload.Reference.Bytes) != uint64(len(payload.Data)) || record.HashBytes(payload.Data) != payload.Reference.SHA256 || len(payload.Data) > 512<<20 {
 		return retainedExecution{}, errors.New("WASM retained payload reference mismatch")
 	}
-	decoder := json.NewDecoder(bytes.NewReader(payload.Data))
-	decoder.DisallowUnknownFields()
 	var bundle retainedExecution
-	if err := decoder.Decode(&bundle); err != nil {
+	if err := strictjson.Decode(payload.Data, &bundle); err != nil {
 		return retainedExecution{}, err
 	}
-	if err := decoder.Decode(&struct{}{}); !errors.Is(err, io.EOF) {
-		return retainedExecution{}, errors.New("trailing retained WASM payload")
-	}
-	if !retainedCanonicalEqual(bundle, payload.Data) || bundle.Schema != RetainedSchema {
-		return retainedExecution{}, errors.New("noncanonical retained WASM payload")
+	if bundle.Schema != RetainedSchema || bundle.ModuleSHA256 == "" {
+		return retainedExecution{}, errors.New("invalid retained WASM payload identity")
 	}
 	return bundle, nil
-}
-
-type retainedCanonicalComparator struct {
-	expected []byte
-	offset   int
-}
-
-func (w *retainedCanonicalComparator) Write(data []byte) (int, error) {
-	if len(data) > len(w.expected)-w.offset || !bytes.Equal(data, w.expected[w.offset:w.offset+len(data)]) {
-		return 0, errors.New("retained canonical bytes differ")
-	}
-	w.offset += len(data)
-	return len(data), nil
-}
-
-func retainedCanonicalEqual(bundle retainedExecution, expected []byte) bool {
-	w := retainedCanonicalComparator{expected: expected}
-	return writeRetainedCanonical(&w, bundle) == nil && w.offset == len(expected)
 }
 
 type retainedCheckedWriter struct{ io.Writer }
