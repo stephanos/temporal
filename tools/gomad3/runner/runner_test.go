@@ -322,6 +322,7 @@ func TestRunFirstFailureCancelsActiveTargetsWithoutPublishingThem(t *testing.T) 
 	preparer := newFakePreparer(t)
 	executor := newFirstFailureExecutor(3)
 	config, configDependencies := testConfig(t, preparer, executor, "1-10", PolicyFirst, 3)
+	configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
 	summary, err := exploreWith(context.Background(), config, configDependencies)
 	if err != nil {
 		t.Fatal(err)
@@ -352,6 +353,7 @@ func TestRunBudgetCountsDistinctSignatures(t *testing.T) {
 	}}
 	config, configDependencies := testConfig(t, preparer, executor, "1-10", PolicyBudget, 1)
 	config.FailureBudget = 2
+	configDependencies = scriptedPreparationDependencies(t, config.Preparer, configDependencies.executor)
 	summary, err := exploreWith(context.Background(), config, configDependencies)
 	if err != nil {
 		t.Fatal(err)
