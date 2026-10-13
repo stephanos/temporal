@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -74,9 +75,17 @@ func TestDecodeCapturedInputsRejectsCorruptPayload(t *testing.T) {
 
 func TestDecodeCapturedInputsAcceptsAuthenticatedOrdinaryWhitespace(t *testing.T) {
 	limits := DefaultLimits()
-	encoded, err := EncodeCapturedInputs([]Mapping{{Target: "/schema"}}, limits, Snapshot{
-		TotalBytes: 4, Entries: []Entry{{Path: "/schema/file", Mode: 0o600, Kind: KindFile, Data: []byte("data")}},
-	})
+	limits.Requests = 17
+	mappings := []Mapping{{Target: "/schema"}, {Target: "/vendor"}}
+	snapshot := Snapshot{
+		Requests: 9, TotalBytes: 8, NotExist: []string{"/schema/missing", "/vendor/absent"},
+		Entries: []Entry{
+			{Path: "/schema", Mode: 0o755, Kind: KindDirectory, Children: []Child{{Name: "file", Mode: 0o640, Kind: KindFile}, {Name: "subdir", Mode: 0o750, Kind: KindDirectory}}},
+			{Path: "/schema/file", Mode: 0o640, Kind: KindFile, Data: []byte("data"), Children: []Child{}},
+			{Path: "/vendor/file", Mode: 0o600, Kind: KindFile, Data: []byte("more"), Children: []Child{}},
+		},
+	}
+	encoded, err := EncodeCapturedInputs(mappings, limits, snapshot)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -88,14 +97,17 @@ func TestDecodeCapturedInputsAcceptsAuthenticatedOrdinaryWhitespace(t *testing.T
 	manifest := encoded.Manifest
 	manifest.Bytes = uint64(len(descriptor))
 	manifest.SHA256 = record.HashBytes(descriptor)
-	_, _, decoded, err := DecodeCapturedInputs(manifest, descriptor, func(name string, maximum uint64) ([]byte, error) {
+	decodedMappings, decodedLimits, decoded, err := DecodeCapturedInputs(manifest, descriptor, func(name string, maximum uint64) ([]byte, error) {
 		return encoded.Payloads[name], nil
 	})
 	if err != nil {
 		t.Fatalf("DecodeCapturedInputs(indented descriptor): %v", err)
 	}
-	if len(decoded.Entries) != 1 || string(decoded.Entries[0].Data) != "data" {
-		t.Fatalf("decoded snapshot = %#v", decoded)
+	for index := range mappings {
+		mappings[index].Source = ""
+	}
+	if !reflect.DeepEqual(decodedMappings, mappings) || decodedLimits != limits || !reflect.DeepEqual(decoded, snapshot) {
+		t.Fatalf("decoded mount state = %#v, %#v, %#v; want %#v, %#v, %#v", decodedMappings, decodedLimits, decoded, mappings, limits, snapshot)
 	}
 }
 

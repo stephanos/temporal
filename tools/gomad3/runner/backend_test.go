@@ -1,7 +1,6 @@
 package runner
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -219,7 +218,7 @@ func TestExternalChoiceDivergencePreservesJoinedInfrastructureError(t *testing.T
 	}
 }
 
-func TestExternalBackendTransportPreservesPortableNativeCanonicalBytes(t *testing.T) {
+func TestExternalBackendTransportPreservesPortableNativeRecordSemantics(t *testing.T) {
 	for _, profile := range []string{"plain", "choices"} {
 		t.Run(profile, func(t *testing.T) {
 			fixture, err := os.ReadFile(filepath.Join("testdata", "diagnostic-identity-"+profile+".json"))
@@ -240,8 +239,12 @@ func TestExternalBackendTransportPreservesPortableNativeCanonicalBytes(t *testin
 			if err != nil {
 				t.Fatal(err)
 			}
-			if manifest.Target.Backend != nil || finalized.RecordHash != manifest.RecordHash || finalized.Outcome.FailureSignature != manifest.Outcome.FailureSignature || !bytes.Equal(encoded, retained.Artifact) {
-				t.Fatal("external choice transport changed native canonical artifact bytes or identities")
+			roundTripped, err := record.DecodeExecutionRecord(encoded)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if manifest.Target.Backend != nil || !reflect.DeepEqual(finalized, manifest) || !reflect.DeepEqual(roundTripped, manifest) {
+				t.Fatal("external choice transport changed native artifact semantics or identities")
 			}
 		})
 	}

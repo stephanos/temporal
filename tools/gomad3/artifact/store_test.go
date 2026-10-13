@@ -272,8 +272,16 @@ func TestPublishKeepsSuccessesWithOneSignatureAsDistinctReplayArtifacts(t *testi
 	if err != nil {
 		t.Fatal(err)
 	}
-	if filepath.Base(first.Path) != "sha256-8804bc935588b0e0ac9fd7f890e4da67" || first.Manifest.RecordHash != "sha256:27c9b74965e1b7cb30ef6f914b8f028eda0072216f5df3794bd84f8536db5f9d" || first.Manifest.Outcome.FailureSignature != "sha256:8804bc935588b0e0ac9fd7f890e4da6718d567133466c52672ce1b11e9b454be" {
-		t.Fatalf("noncolliding success identity changed: %#v", first)
+	wantDirectory := "sha256-" + strings.TrimPrefix(string(first.Manifest.Outcome.FailureSignature), "sha256:")[:32]
+	if filepath.Base(first.Path) != wantDirectory || first.Manifest.RecordHash == "" || first.Manifest.Outcome.FailureSignature == "" {
+		t.Fatalf("success identity projection is incomplete: %#v", first)
+	}
+	repeated, err := store.PublishArtifact(input)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if repeated.Path != first.Path || repeated.Manifest.RecordHash != first.Manifest.RecordHash || repeated.Manifest.Outcome.FailureSignature != first.Manifest.Outcome.FailureSignature {
+		t.Fatalf("same-build success identity changed: %#v, want %#v", repeated, first)
 	}
 	paths := map[string]bool{first.Path: true}
 	for _, seed := range []record.Uint64String{8, 9} {

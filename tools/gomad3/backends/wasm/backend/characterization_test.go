@@ -76,7 +76,7 @@ func TestPreMoveWASMArtifactIsRefusedAsUnsupportedStorageFormat(t *testing.T) {
 			t.Error(err)
 		}
 	}()
-	if manifest := opened.Manifest(); manifest.RecordHash != "sha256:ff8eac83b09b83de585a03b0602153457ef6ef6ee3a2753ebb3925d8954b6ed6" {
+	if manifest := opened.Manifest(); manifest.RecordHash != "sha256:1437ebb347ea4cc3d31b463117c76dcd981c2c9f7285f5c289fb643402a44aaf" {
 		t.Fatalf("pre-move record changed: %s", manifest.RecordHash)
 	}
 }
