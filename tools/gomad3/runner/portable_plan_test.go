@@ -442,6 +442,16 @@ func TestMergedCampaignInspectionReportsTheShardsCombinedTotals(t *testing.T) {
 	} else if invalid := new(InvalidStoreError); !errors.As(err, &invalid) || invalid.Report.Kind != "merged-campaign" || invalid.Report.Log.Invalid.Problem != "incomplete" || invalid.Report.Log.Tail != "short-frame" || invalid.Report.Log.Invalid.Records != log.Records {
 		t.Fatalf("torn merged log diagnosis = %#v", err)
 	}
+	if err := os.WriteFile(filepath.Join(merged.Path, "store", "log"), readInspectLog(t, merged.Path)[:log.SnapshotBytes], 0o600); err != nil {
+		t.Fatal(err)
+	}
+	rewriteInspectEnvelope(t, merged.Path, func(envelope map[string]any) { envelope["attempted"] = "7" })
+	if _, err := Inspect(merged.Path, InspectOptions{}); err == nil {
+		t.Fatal("Inspect() accepted an inconsistent merged summary")
+	} else if invalid := new(InvalidStoreError); !errors.As(err, &invalid) || invalid.Report.Kind != "merged-campaign" || invalid.Report.Log == nil || invalid.Report.Log.Invalid == nil ||
+		invalid.Report.Log.Invalid.Problem != "corrupt" || invalid.Report.Log.Invalid.Offset != 0 || invalid.Report.Log.Invalid.Records != 0 {
+		t.Fatalf("inconsistent merged log diagnosis = %#v", err)
+	}
 }
 
 func runnerTreeSnapshot(t *testing.T, root string) map[string]string {

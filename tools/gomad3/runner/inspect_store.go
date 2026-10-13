@@ -218,6 +218,7 @@ func projectLog(format string, report logstore.Report) *LogInspection {
 func invalidStore(kind, path, format string, report logstore.Report, err error) (Inspection, error) {
 	var corruption *logstore.CorruptionError
 	var lineage *unsupportedLineageError
+	var corpusFormat *corpus.UnsupportedFormatError
 	invalid := InvalidLogInspection{Problem: problemCorrupt, Offset: uint64(report.ValidBytes), Records: report.Records, Reason: err.Error()}
 	switch {
 	case errors.As(err, &lineage):
@@ -226,9 +227,11 @@ func invalidStore(kind, path, format string, report logstore.Report, err error) 
 		invalid.Problem = problemIncomplete
 	case errors.As(err, &corruption):
 		invalid.Offset, invalid.Records, invalid.Reason = uint64(corruption.Offset), corruption.Records, corruption.Err.Error()
-		if errors.Is(err, campaign.ErrUnsupportedFormat) || errors.Is(err, corpus.ErrUnsupportedFormat) {
+		if errors.Is(err, campaign.ErrUnsupportedFormat) || errors.As(err, &corpusFormat) && corpusFormat.Malformed == nil {
 			invalid.Problem = problemUnsupportedLineage
 		}
+	case campaign.IsMergedLogCorruption(err):
+		invalid.Offset, invalid.Records = 0, 0
 	case errors.Is(err, logstore.ErrCorrupt):
 	default:
 		return Inspection{}, err

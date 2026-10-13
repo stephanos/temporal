@@ -382,7 +382,7 @@ func TestInspectCleanupPreservesNoChoiceArtifact(t *testing.T) {
 	published := publishInspectCleanupArtifact(t)
 	exitCode := uint64(0)
 	want := Inspection{
-		Schema: "gomad3.inspect/v7", Kind: "artifact", Path: published.Path,
+		Schema: "gomad3.inspect/v8", Kind: "artifact", Path: published.Path,
 		Artifact: &ArtifactInspection{
 			ArtifactKind: "gomad3.success/v1", RecordHash: published.Manifest.RecordHash, CampaignID: "inspect-cleanup", Seed: 7, ReplayMode: "exact",
 			Runner:    record.Runner{RecordContract: record.RecordContract, RunnerBuild: "sha256:runner", HostOS: "darwin", HostArch: "arm64"},

@@ -832,7 +832,7 @@ func (replay *mergedCampaignReplay) executions() ([]mergedExecution, error) {
 	campaign := replay.campaign
 	limits := executionJournalLimitsFromPlan(campaign.Limits)
 	if _, err := normalizeExecutionJournalLimits(CampaignConfig{Journal: limits}); err != nil || campaign.Limits.CapacityOutcome != CapacityInfrastructureFailure || limits.MaximumExecutions != uint64(campaign.SelectionCount) {
-		return nil, errors.Join(errors.New("merged campaign limits are invalid"), err)
+		return nil, mergedLogCorruption(errors.Join(errors.New("merged campaign limits are invalid"), err))
 	}
 	identity := mergeIdentity{
 		planSHA256: campaign.PlanSHA256, selection: campaign.Selection, selectionCount: uint64(campaign.SelectionCount), guidance: campaign.Guidance,
@@ -850,17 +850,17 @@ func (replay *mergedCampaignReplay) executions() ([]mergedExecution, error) {
 			return nil, fmt.Errorf("merged source %s: %w", recorded.Path, err)
 		}
 		if err := identity.checkSource(recorded.Path, opened, scope.state); err != nil {
-			return nil, err
+			return nil, mergedLogCorruption(err)
 		}
 		provenance, err := scope.provenance(recorded.Path, opened)
 		if err != nil {
 			return nil, err
 		}
 		if provenance != recorded {
-			return nil, fmt.Errorf("merged source %s does not match its recorded provenance", recorded.Path)
+			return nil, mergedLogCorruption(fmt.Errorf("merged source %s does not match its recorded provenance", recorded.Path))
 		}
 		if uint64(recorded.JournalBytes) > limits.MaximumBytes-journalBytes {
-			return nil, errors.New("merged campaign outcomes exceed the plan's byte bound")
+			return nil, mergedLogCorruption(errors.New("merged campaign outcomes exceed the plan's byte bound"))
 		}
 		journalBytes += uint64(recorded.JournalBytes)
 		for _, run := range opened.Executions {
@@ -868,26 +868,26 @@ func (replay *mergedCampaignReplay) executions() ([]mergedExecution, error) {
 		}
 	}
 	if uint64(len(runs)) > limits.MaximumExecutions || journalBytes != uint64(campaign.Journal.Bytes) {
-		return nil, errors.New("merged campaign outcomes do not match the plan's execution bounds")
+		return nil, mergedLogCorruption(errors.New("merged campaign outcomes do not match the plan's execution bounds"))
 	}
 	sort.Slice(runs, func(i, j int) bool { return runs[i].Execution.SelectionOrdinal < runs[j].Execution.SelectionOrdinal })
 	attributed := 0
 	for index := range runs {
 		if index > 0 && runs[index-1].Execution.SelectionOrdinal == runs[index].Execution.SelectionOrdinal {
-			return nil, fmt.Errorf("campaign selection ordinal is duplicated: %d", runs[index].Execution.SelectionOrdinal)
+			return nil, mergedLogCorruption(fmt.Errorf("campaign selection ordinal is duplicated: %d", runs[index].Execution.SelectionOrdinal))
 		}
 		if !retainsEvidence(runs[index].Execution) {
 			continue
 		}
 		if attributed >= len(replay.evidence) || replay.evidence[attributed].Ordinal != runs[index].Execution.SelectionOrdinal {
-			return nil, fmt.Errorf("merged execution %d has no evidence record", runs[index].Execution.SelectionOrdinal)
+			return nil, mergedLogCorruption(fmt.Errorf("merged execution %d has no evidence record", runs[index].Execution.SelectionOrdinal))
 		}
 		runs[index].EvidenceSHA256 = replay.evidence[attributed].EvidenceSHA256
 		runs[index].Evidence = replay.evidence[attributed].Evidence
 		attributed++
 	}
 	if attributed != len(replay.evidence) {
-		return nil, errors.New("merged evidence record has no execution that retains evidence")
+		return nil, mergedLogCorruption(errors.New("merged evidence record has no execution that retains evidence"))
 	}
 	return runs, nil
 }
@@ -896,6 +896,41 @@ func (replay *mergedCampaignReplay) executions() ([]mergedExecution, error) {
 // its envelope and every source scope it declares: a merge publishes its log
 // complete, so a shorter or torn log is an invalid store.
 var ErrIncompleteLog = errors.New("merged campaign log is incomplete")
+
+type mergedLogCorruptionError struct {
+	err error
+}
+
+func (err *mergedLogCorruptionError) Error() string {
+	return err.err.Error()
+}
+
+func (err *mergedLogCorruptionError) Unwrap() error {
+	return err.err
+}
+
+func (err *mergedLogCorruptionError) Is(target error) bool {
+	return target == logstore.ErrCorrupt
+}
+
+func mergedLogCorruption(err error) error {
+	if err == nil {
+		return nil
+	}
+	var corruption *mergedLogCorruptionError
+	if errors.As(err, &corruption) {
+		return err
+	}
+	return &mergedLogCorruptionError{err: err}
+}
+
+// IsMergedLogCorruption reports semantic inconsistency between the merged log
+// envelope and the complete records it contains. The envelope is the rejected
+// record, so inspection reports an empty validated prefix for this class.
+func IsMergedLogCorruption(err error) bool {
+	var corruption *mergedLogCorruptionError
+	return errors.As(err, &corruption)
+}
 
 func OpenMergedCampaign(path string) (MergedCampaign, error) {
 	opened, _, err := InspectMergedCampaign(path)
@@ -935,7 +970,7 @@ func InspectMergedCampaign(path string) (MergedCampaign, logstore.Report, error)
 		return MergedCampaign{}, report, classifyIntegrityError(err)
 	}
 	if err := validateMergedCampaign(campaign, runs); err != nil {
-		return MergedCampaign{}, report, newIntegrityError(err)
+		return MergedCampaign{}, report, newIntegrityError(mergedLogCorruption(err))
 	}
 	if err := verifyMergedEvidence(campaign, runs); err != nil {
 		return MergedCampaign{}, report, classifyIntegrityError(err)

@@ -459,6 +459,12 @@ func TestCorpusReplayRejectsInvalidAdmissionsBeforeApplying(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			root := filepath.Join(t.TempDir(), "corpus")
 			writeLog(t, root, test.records...)
+			if test.name == "snapshot identity" {
+				replayed, err := ReadLog(root)
+				if !errors.Is(err, logstore.ErrCorrupt) || replayed.Report.Records != 1 || replayed.Report.ValidBytes != int64(len(header.payload)+20) {
+					t.Fatalf("ReadLog(snapshot identity) = %#v, %v", replayed.Report, err)
+				}
+			}
 			limits := test.limits
 			if limits == (capacity{}) {
 				limits = defaultCapacity

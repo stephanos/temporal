@@ -609,15 +609,31 @@ func artifactPayloadBytes(manifest record.ExecutionRecord) (uint64, error) {
 }
 
 func validateIdentity(identity Identity, instrumentation record.SHA256) error {
-	_, targetErr := record.ParseSHA256(string(identity.TargetSHA256))
-	_, environmentErr := record.ParseSHA256(string(identity.EnvironmentSHA256))
-	_, boundaryErr := record.ParseSHA256(string(identity.BoundarySHA256))
+	if err := validateStoredIdentity(identity); err != nil {
+		return err
+	}
 	_, instrumentationErr := record.ParseSHA256(string(instrumentation))
 	validInstrumentation := instrumentationErr == nil && identity.ChoiceProfile == nil && identity.InstrumentationSchema == SemanticFeatureSchema && identity.InstrumentationSHA256 == semanticInstrumentationIdentity(instrumentation)
 	if identity.ChoiceProfile != nil {
 		implementation, err := choice.ImplementationIdentity(identity.Toolchain.BuildKey)
 		profileIdentity, profileErr := choiceInstrumentationIdentity(*identity.ChoiceProfile, instrumentation)
 		validInstrumentation = instrumentationErr == nil && err == nil && profileErr == nil && identity.ChoiceProfile.Profile == choice.Profile && identity.ChoiceProfile.ImplementationSHA256 == record.SHA256FromSum(implementation) && identity.ChoiceProfile.Limit >= choice.MinimumTraceBytes && identity.ChoiceProfile.Limit <= choice.MaximumTraceBytes && identity.InstrumentationSchema == ChoiceFeatureSchema && identity.InstrumentationSHA256 == profileIdentity
+	}
+	if !validInstrumentation {
+		return errors.New("guided corpus identity is invalid")
+	}
+	return nil
+}
+
+func validateStoredIdentity(identity Identity) error {
+	_, targetErr := record.ParseSHA256(string(identity.TargetSHA256))
+	_, environmentErr := record.ParseSHA256(string(identity.EnvironmentSHA256))
+	_, boundaryErr := record.ParseSHA256(string(identity.BoundarySHA256))
+	_, instrumentationErr := record.ParseSHA256(string(identity.InstrumentationSHA256))
+	validInstrumentation := instrumentationErr == nil && identity.ChoiceProfile == nil && identity.InstrumentationSchema == SemanticFeatureSchema
+	if identity.ChoiceProfile != nil {
+		implementation, err := choice.ImplementationIdentity(identity.Toolchain.BuildKey)
+		validInstrumentation = instrumentationErr == nil && err == nil && identity.ChoiceProfile.Profile == choice.Profile && identity.ChoiceProfile.ImplementationSHA256 == record.SHA256FromSum(implementation) && identity.ChoiceProfile.Limit >= choice.MinimumTraceBytes && identity.ChoiceProfile.Limit <= choice.MaximumTraceBytes && identity.InstrumentationSchema == ChoiceFeatureSchema
 	}
 	if targetErr != nil || environmentErr != nil || identity.Toolchain.GoVersion == "" || identity.Toolchain.BuildKey == "" || identity.Toolchain.TargetGOOS == "" || identity.Toolchain.TargetGOARCH == "" || identity.BoundaryVersion == "" || boundaryErr != nil || !validInstrumentation || identity.ManifestSchemaVersion != record.SchemaVersion || identity.ManifestRecordContract != record.RecordContract {
 		return errors.New("guided corpus identity is invalid")

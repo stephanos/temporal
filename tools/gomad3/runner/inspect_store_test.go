@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"context"
 	"encoding/binary"
+	"encoding/json"
 	"errors"
 	"hash/crc32"
 	"maps"
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 	"testing"
 
 	backend "go.temporal.io/server/tools/gomad3/backends"
@@ -78,6 +78,28 @@ func appendInspectLog(t *testing.T, path string, data []byte) {
 	}
 }
 
+// rewriteInspectEnvelope changes the first record without disturbing the
+// records that follow it.
+func rewriteInspectEnvelope(t *testing.T, path string, change func(map[string]any)) {
+	t.Helper()
+	log := readInspectLog(t, path)
+	length := int(binary.LittleEndian.Uint32(log[8:]))
+	end := 16 + length + 4
+	var envelope map[string]any
+	if err := json.Unmarshal(log[16:16+length], &envelope); err != nil {
+		t.Fatal(err)
+	}
+	change(envelope)
+	payload, err := logstore.EncodeJSON(envelope)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rewritten := append(inspectLogFrame(uint16(binary.LittleEndian.Uint16(log[6:])), payload), log[end:]...)
+	if err := os.WriteFile(filepath.Join(path, "store", logstore.LogFile), rewritten, 0o600); err != nil {
+		t.Fatal(err)
+	}
+}
+
 // inspectFrameBoundaries returns the offset of every frame of a valid log and
 // its end.
 func inspectFrameBoundaries(log []byte) []int64 {
@@ -109,22 +131,27 @@ func TestInspectReportsCampaignLogStateWhileAWriterAppends(t *testing.T) {
 	if err := journal.StartExecutions(); err != nil {
 		t.Fatal(err)
 	}
-	var appendErr error
-	var wait sync.WaitGroup
-	wait.Go(func() {
+	appendDone := make(chan error, 1)
+	go func() {
 		for ordinal := range uint64(executions) {
-			if appendErr = journal.AppendExecution(campaign.ExecutionRecord{
+			if err := journal.AppendExecution(campaign.ExecutionRecord{
 				SelectionOrdinal: record.Uint64String(ordinal), Seed: record.Uint64String(ordinal), Domain: "success", Reason: "success", Termination: "exit", ElapsedNanos: 5,
-			}); appendErr != nil {
+			}); err != nil {
+				appendDone <- err
 				return
 			}
 		}
-	})
+		appendDone <- nil
+	}()
+	var appendErr error
+	appending := true
 	var observed uint64
 	for observed < executions {
 		report, err := Inspect(journal.Path(), InspectOptions{})
 		if err != nil {
-			wait.Wait()
+			if appending {
+				appendErr = <-appendDone
+			}
 			t.Fatalf("Inspect() while appending after %d outcomes: %v (append: %v)", observed, err, appendErr)
 		}
 		log, committed := report.Log, report.Committed
@@ -136,11 +163,18 @@ func TestInspectReportsCampaignLogStateWhileAWriterAppends(t *testing.T) {
 			t.Fatalf("committed outcomes went from %d to %#v", observed, committed)
 		}
 		observed = committed.Outcomes
+		select {
+		case appendErr = <-appendDone:
+			appending = false
+		default:
+		}
 		if appendErr != nil {
 			break
 		}
 	}
-	wait.Wait()
+	if appending {
+		appendErr = <-appendDone
+	}
 	if appendErr != nil {
 		t.Fatal(appendErr)
 	}
@@ -206,6 +240,10 @@ func TestInspectObservesATornCampaignTailWithoutRepairingIt(t *testing.T) {
 
 const inspectCampaignEnvelope = `{"format":"gomad3.campaign-log/v1","campaign_id":"run-damaged","strategy":"seed","selection":"7","selection_count":"1"}`
 
+func inspectCorpusEnvelope() []byte {
+	return []byte(`{"format":"gomad3.guide-corpus-log/v1","identity":{"environment_sha256":"sha256:` + strings.Repeat("e", 64) + `","target_sha256":"sha256:` + strings.Repeat("a", 64) + `","toolchain":{"go_version":"go1.27.1","build_key":"key","target_goos":"linux","target_goarch":"arm64"},"boundary_version":"v1","boundary_sha256":"sha256:` + strings.Repeat("b", 64) + `","instrumentation_schema":"gomad3.semantic-features/v1","instrumentation_sha256":"sha256:` + strings.Repeat("c", 64) + `","manifest_schema_version":1,"manifest_record_contract":"gomad3.execution-record/v1"}}`)
+}
+
 // Damage that is not a torn final record, an envelope of another lineage, or
 // a log without its envelope is an invalid store: inspection reports where its
 // validated prefix ends and why, reports no state, and changes nothing.
@@ -218,6 +256,8 @@ func TestInspectDiagnosesADamagedLogAsAnInvalidStore(t *testing.T) {
 	unknownKind := append(inspectLogFrame(1, []byte(inspectCampaignEnvelope)), inspectLogFrame(99, []byte(`{}`))...)
 	invalidTransition := append(inspectLogFrame(1, []byte(inspectCampaignEnvelope)), inspectLogFrame(2, []byte(`{"state":"published"}`))...)
 	envelopeBytes := uint64(len(inspectLogFrame(1, []byte(inspectCampaignEnvelope))))
+	corpusEnvelope := inspectCorpusEnvelope()
+	corpusEnvelopeBytes := uint64(len(inspectLogFrame(1, corpusEnvelope)))
 	for _, test := range []struct {
 		name    string
 		log     []byte
@@ -236,7 +276,7 @@ func TestInspectDiagnosesADamagedLogAsAnInvalidStore(t *testing.T) {
 		{name: "envelope without lineage", log: inspectLogFrame(1, []byte(`{"campaign_id":"x"}`)), kind: "store", problem: "unsupported-lineage", reason: "does not name a format"},
 		{name: "empty log", log: nil, kind: "store", problem: "incomplete", reason: "no envelope"},
 		{name: "torn envelope", log: inspectLogFrame(1, []byte(inspectCampaignEnvelope))[:10], kind: "store", problem: "incomplete", reason: "no envelope"},
-		{name: "corrupt corpus admission", log: append(inspectLogFrame(1, []byte(`{"format":"gomad3.guide-corpus-log/v1","identity":{}}`)), inspectLogFrame(2, []byte(`{"generation":"7"}`))...), kind: "corpus", format: corpus.LogFormat, problem: "corrupt", offset: uint64(len(inspectLogFrame(1, []byte(`{"format":"gomad3.guide-corpus-log/v1","identity":{}}`)))), records: 1, reason: "generation"},
+		{name: "corrupt corpus admission", log: append(inspectLogFrame(1, corpusEnvelope), inspectLogFrame(2, []byte(`{"generation":"7"}`))...), kind: "corpus", format: corpus.LogFormat, problem: "corrupt", offset: corpusEnvelopeBytes, records: 1, reason: "generation"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			path := writeInspectStore(t, test.log)
@@ -292,6 +332,49 @@ func TestInspectDiagnosesADamagedLogAsAnInvalidStore(t *testing.T) {
 			}
 		}
 	})
+}
+
+func TestInspectClassifiesInvalidCurrentCorpusHeadersAsCorruption(t *testing.T) {
+	for _, test := range []struct {
+		name    string
+		payload string
+		reason  string
+	}{
+		{name: "invalid identity", payload: `{"format":"gomad3.guide-corpus-log/v1","identity":{}}`, reason: "identity is invalid"},
+		{name: "unknown field", payload: `{"format":"gomad3.guide-corpus-log/v1","identity":{},"future":true}`, reason: "unknown field"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			path := writeInspectStore(t, inspectLogFrame(1, []byte(test.payload)))
+			_, err := Inspect(path, InspectOptions{})
+			var invalid *InvalidStoreError
+			if !errors.As(err, &invalid) || invalid.Report.Kind != "corpus" || invalid.Report.Log == nil || invalid.Report.Log.Invalid == nil ||
+				invalid.Report.Log.Invalid.Problem != "corrupt" || invalid.Report.Log.Invalid.Offset != 0 || invalid.Report.Log.Invalid.Records != 0 || !strings.Contains(err.Error(), test.reason) {
+				t.Fatalf("Inspect() error = %#v", err)
+			}
+		})
+	}
+}
+
+func TestInspectRejectsANonPrivateCorpusRootWithoutMutation(t *testing.T) {
+	log := inspectLogFrame(1, []byte(`{"format":"gomad3.guide-corpus-log/v1","identity":{}}`))
+	path := writeInspectStore(t, log)
+	if err := os.Chmod(path, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	_, err := Inspect(path, InspectOptions{})
+	var invalid *InvalidStoreError
+	if err == nil || errors.As(err, &invalid) || !strings.Contains(err.Error(), "private directory") {
+		t.Fatalf("Inspect() error = %v", err)
+	}
+	if after := readInspectLog(t, path); !bytes.Equal(after, log) {
+		t.Fatal("inspection changed a non-private corpus")
+	}
+}
+
+func TestAppendOnlyStoreInspectionUsesVersionedSchema(t *testing.T) {
+	if reportSchema != "gomad3.inspect/v8" {
+		t.Fatalf("append-only store report schema = %q, want gomad3.inspect/v8", reportSchema)
+	}
 }
 
 // A guided corpus inspects through the same dispatcher as a campaign: its log

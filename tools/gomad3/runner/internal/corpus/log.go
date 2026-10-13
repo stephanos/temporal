@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"math"
 	"os"
 	"path/filepath"
@@ -196,6 +197,9 @@ func decodeHeader(payload []byte) (logHeader, error) {
 	if err := logstore.DecodeJSON(payload, &header); err != nil {
 		return logHeader{}, &UnsupportedFormatError{Malformed: err}
 	}
+	if err := validateStoredIdentity(header.Identity); err != nil {
+		return logHeader{}, err
+	}
 	return header, nil
 }
 
@@ -236,11 +240,21 @@ func (state *replayState) admit(payload []byte) error {
 	if len(state.live)-len(evicted) >= state.limits.entries {
 		return errors.New("guided corpus entry capacity is exceeded")
 	}
+	next := maps.Clone(state.live)
 	for retired := range evicted {
-		delete(state.live, retired)
+		delete(next, retired)
 	}
-	state.live[hash] = admission.Entry
-	state.generation++
+	next[hash] = admission.Entry
+	generation := state.generation + 1
+	snapshot, err := replaySnapshot(*state.identity, generation, next)
+	if err != nil {
+		return err
+	}
+	if snapshot.SnapshotSHA256 != admission.SnapshotSHA256 || snapshot.CoverageSHA256 != admission.CoverageSHA256 {
+		return fmt.Errorf("%w: guided corpus snapshot identity mismatch", logstore.ErrCorrupt)
+	}
+	state.live = next
+	state.generation = generation
 	state.coverage, state.snapshot = admission.CoverageSHA256, admission.SnapshotSHA256
 	return nil
 }
@@ -248,16 +262,24 @@ func (state *replayState) admit(payload []byte) error {
 // result finalizes the replayed live entries and checks them against the
 // snapshot identity the latest admission committed.
 func (state *replayState) result() (Snapshot, error) {
-	entries := make([]Entry, 0, len(state.live))
-	for _, entry := range state.live {
-		entries = append(entries, entry)
-	}
-	snapshot, _, err := finalizeSnapshot(Snapshot{Schema: CorpusSchema, Identity: *state.identity, Generation: record.Uint64String(state.generation), Entries: entries})
+	snapshot, err := replaySnapshot(*state.identity, state.generation, state.live)
 	if err != nil {
 		return Snapshot{}, err
 	}
 	if state.generation != 0 && (snapshot.SnapshotSHA256 != state.snapshot || snapshot.CoverageSHA256 != state.coverage) {
 		return Snapshot{}, fmt.Errorf("%w: guided corpus snapshot identity mismatch", logstore.ErrCorrupt)
+	}
+	return snapshot, nil
+}
+
+func replaySnapshot(identity Identity, generation uint64, live map[record.SHA256]Entry) (Snapshot, error) {
+	entries := make([]Entry, 0, len(live))
+	for _, entry := range live {
+		entries = append(entries, entry)
+	}
+	snapshot, _, err := finalizeSnapshot(Snapshot{Schema: CorpusSchema, Identity: identity, Generation: record.Uint64String(generation), Entries: entries})
+	if err != nil {
+		return Snapshot{}, err
 	}
 	return snapshot, nil
 }
@@ -278,7 +300,7 @@ func ReadLog(root string) (Replayed, error) {
 	if err != nil {
 		return Replayed{}, fmt.Errorf("inspect guided corpus: %w", err)
 	}
-	if !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
+	if !info.IsDir() || info.Mode()&os.ModeSymlink != 0 || info.Mode().Perm() != 0o700 {
 		return Replayed{}, errors.New("guided corpus must be a private directory")
 	}
 	if err := refuseLegacyLayout(root); err != nil {

@@ -58,7 +58,7 @@ func TestRunInspectDiagnosesAnInvalidStoreOnStderrOnly(t *testing.T) {
 	if err := decoder.Decode(&report); err != nil {
 		t.Fatal(err)
 	}
-	if report.Schema != "gomad3.inspect/v7" || report.Kind != "campaign" || report.Log == nil || report.Log.State != "invalid" || report.Log.Invalid == nil ||
+	if report.Schema != "gomad3.inspect/v8" || report.Kind != "campaign" || report.Log == nil || report.Log.State != "invalid" || report.Log.Invalid == nil ||
 		report.Log.Invalid.Offset != uint64(envelope) || report.Log.Invalid.Records != 1 || report.Campaign != nil || report.Lifecycle != nil || report.Committed != nil {
 		t.Fatalf("json diagnosis = %#v %#v", report, report.Log)
 	}
@@ -112,7 +112,7 @@ func TestRunInspectReportsAGuidedCorpusDirectory(t *testing.T) {
 	if err := os.MkdirAll(store, 0o700); err != nil {
 		t.Fatal(err)
 	}
-	header := `{"format":"gomad3.guide-corpus-log/v1","identity":{"environment_sha256":"sha256:` + strings.Repeat("e", 64) + `","target_sha256":"sha256:` + strings.Repeat("a", 64) + `","toolchain":{"go_version":"go1.26.4","build_key":"key","target_goos":"linux","target_goarch":"arm64"},"boundary_version":"v1","boundary_sha256":"sha256:` + strings.Repeat("b", 64) + `","instrumentation_schema":"gomad3.semantic-features/v1","instrumentation_sha256":"sha256:` + strings.Repeat("c", 64) + `","manifest_schema_version":1,"manifest_record_contract":"contract"}}`
+	header := `{"format":"gomad3.guide-corpus-log/v1","identity":{"environment_sha256":"sha256:` + strings.Repeat("e", 64) + `","target_sha256":"sha256:` + strings.Repeat("a", 64) + `","toolchain":{"go_version":"go1.26.4","build_key":"key","target_goos":"linux","target_goarch":"arm64"},"boundary_version":"v1","boundary_sha256":"sha256:` + strings.Repeat("b", 64) + `","instrumentation_schema":"gomad3.semantic-features/v1","instrumentation_sha256":"sha256:` + strings.Repeat("c", 64) + `","manifest_schema_version":1,"manifest_record_contract":"gomad3.execution-record/v1"}}`
 	writeInspectLog(t, store, inspectFrame(1, []byte(header)))
 	for _, test := range []struct {
 		arguments []string

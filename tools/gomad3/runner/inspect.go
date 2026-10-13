@@ -16,7 +16,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/runner/internal/logstore"
 )
 
-const reportSchema = "gomad3.inspect/v7"
+const reportSchema = "gomad3.inspect/v8"
 
 // Inspection is the report of one inspected path. Kind names what the path
 // holds: "campaign-plan", "artifact", "campaign", "merged-campaign", "corpus",
