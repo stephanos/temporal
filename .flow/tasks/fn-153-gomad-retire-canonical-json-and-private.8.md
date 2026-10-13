@@ -41,13 +41,13 @@ Capture the frozen behavior pin named above, run focused negative controls and f
 - [ ] Generated-spec inputs use current encoding without qualification dispatch, capability changes or ownership changes; final regenerated outputs are inventoried.
 
 ## Done summary
-TBD
+Migrated qualification-set manifests, reports, checkpoints, generator specs, soak manifests, and nested analysis validation from canonical JSON to deterministic stdlib projections plus strict typed decoding. Preserved semantic identities, invalid-original-string refusal, checkpoint/report framing, shard/merge/prune behavior, and all affected CLI contracts while leaving retained-output rotation to fn153.17. All three implementation-review axes reached SHIP. Aggregate validation stops only at the fn153.17-owned stale compatibility approval; patched-native gates remain unavailable on linux/arm64.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: ee3c4b551b700735a681332e53c31ab3f9acaf9e, 14b9ed5fcee88860a6798830d1b7854d5c0ad3f6
+- Tests: go -C tools/gomad3 test -tags test_dep -count=1 ./backends/native/qualification/set ./backends/native/qualification/set/manifestgen ./backends/native/qualification/soak ./backends/native/qualification/comparison, go -C tools/gomad3 test -race -tags test_dep -count=1 ./backends/native/qualification/set ./backends/native/qualification/set/manifestgen ./backends/native/qualification/soak, go -C tools/gomad3 test -tags test_dep -count=1 ./internal/archcheck, go -C tools/gomad3 vet -tags test_dep ./backends/native/qualification/set ./backends/native/qualification/set/manifestgen ./backends/native/qualification/soak, make -C tools/gomad3 validate-toolchain validate-qualification
 - PRs:
-
 ## Revival trigger (2026-10-13)
 
 Revived after fn153.7 completed with a SHIP implementation review, establishing the qualification evidence and publication seams consumed here. Reconcile the task's pre-fn166 paths with the current `backends/native/qualification/{set,soak}/**` owners, preserve set/merge/prune and generated-spec input semantics, and inventory but do not rotate retained manifests; final generated outputs remain assigned to fn153.17. The owner is disjoint from the active simulation identity task and returned native publication audit. The forced local claim is required only because Flow chain admission still sees the completed fn152 parent on an unpushed remote branch; pushing remains outside the requested scope.
