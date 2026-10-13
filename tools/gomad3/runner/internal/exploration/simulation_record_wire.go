@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+	"go.temporal.io/server/tools/gomad3/internal/strictjson"
 	"go.temporal.io/server/tools/gomad3/record"
 )
 
@@ -140,7 +140,7 @@ func validateRetainedPlan(encoded []byte) (plan, error) {
 		return plan{}, errors.New("simulation exploration plan size is invalid")
 	}
 	var decoded plan
-	if err := canonicaljson.StrictDecode(encoded, &decoded); err != nil {
+	if err := strictjson.Decode(encoded, &decoded); err != nil {
 		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return plan{}, fmt.Errorf("decode simulation exploration plan: %w", err)
 	}
@@ -174,7 +174,8 @@ func validateRetainedPlan(encoded []byte) (plan, error) {
 				return plan{}, fmt.Errorf("simulation exploration plan override %d: %w", index, err)
 			}
 		}
-		encodedOverride, err := canonicaljson.CanonicalJSON(map[string]any{
+		//gomad:dynamic reviewed 2026-10-13 stdlib JSON marshals only validated simulation wire identity values
+		encodedOverride, err := json.Marshal(map[string]any{
 			"alternative_set_sha256": override.AlternativeSetSHA256, "alternatives": override.Alternatives,
 			"dimension": override.Dimension, "identity": "", "ordinal": override.Ordinal, "selected": override.Selected,
 			"selected_sha256": override.SelectedSHA256, "site_sha256": override.SiteSHA256,
@@ -191,7 +192,8 @@ func validateRetainedPlan(encoded []byte) (plan, error) {
 			"selected": override.Selected, "selected_sha256": override.SelectedSHA256, "site_sha256": override.SiteSHA256,
 		}
 	}
-	candidateBytes, err := canonicaljson.CanonicalJSON(map[string]any{
+	//gomad:dynamic reviewed 2026-10-13 stdlib JSON marshals only validated simulation wire identity values
+	candidateBytes, err := json.Marshal(map[string]any{
 		"base_seed": decoded.BaseSeed, "controller_sha256": decoded.ControllerSHA256,
 		"execution_sha256": decoded.ExecutionSHA256, "overrides": identityOverrides,
 	})
@@ -268,12 +270,11 @@ func runtimeOverrideMatches(override ForcedDecision, decision choice.Decision) b
 }
 
 func combinedAlternativeSetIdentity(ordinal uint64, site record.SHA256, alternatives []record.SHA256) record.SHA256 {
-	encoded, err := canonicaljson.CanonicalJSON(struct {
-		Dimension    Dimension       `json:"dimension"`
-		Ordinal      uint64          `json:"ordinal"`
-		SiteSHA256   record.SHA256   `json:"site_sha256"`
-		Alternatives []record.SHA256 `json:"alternatives"`
-	}{DimensionRuntime, ordinal, site, append([]record.SHA256(nil), alternatives...)})
+	//gomad:dynamic reviewed 2026-10-13 stdlib JSON marshals only validated simulation wire identity values
+	encoded, err := json.Marshal(map[string]any{
+		"alternatives": append([]record.SHA256(nil), alternatives...), "dimension": DimensionRuntime,
+		"ordinal": ordinal, "site_sha256": site,
+	})
 	if err != nil {
 		return ""
 	}
@@ -293,7 +294,8 @@ func rootOverrides(config SimulationConfig, candidate SimulationCandidate) ([]ro
 			Alternatives: override.Alternatives, AlternativeSetSHA256: override.AlternativeSetSHA256,
 			Selected: override.Selected, SelectedSHA256: override.SelectedSHA256,
 		}
-		encoded, err := canonicaljson.CanonicalJSON(map[string]any{
+		//gomad:dynamic reviewed 2026-10-13 stdlib JSON marshals only validated simulation wire identity values
+		encoded, err := json.Marshal(map[string]any{
 			"alternative_set_sha256": root.AlternativeSetSHA256, "alternatives": root.Alternatives,
 			"dimension": root.Dimension, "identity": "", "ordinal": root.Ordinal, "selected": root.Selected,
 			"selected_sha256": root.SelectedSHA256, "site_sha256": root.SiteSHA256,
@@ -309,7 +311,8 @@ func rootOverrides(config SimulationConfig, candidate SimulationCandidate) ([]ro
 			"selected": root.Selected, "selected_sha256": root.SelectedSHA256, "site_sha256": root.SiteSHA256,
 		}
 	}
-	encoded, err := canonicaljson.CanonicalJSON(map[string]any{
+	//gomad:dynamic reviewed 2026-10-13 stdlib JSON marshals only validated simulation wire identity values
+	encoded, err := json.Marshal(map[string]any{
 		"base_seed": config.BaseSeed, "controller_sha256": config.ControllerSHA256,
 		"execution_sha256": config.ExecutionSHA256, "overrides": identityOverrides,
 	})

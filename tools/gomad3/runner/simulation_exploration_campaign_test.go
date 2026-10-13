@@ -3,6 +3,7 @@ package runner
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"os"
@@ -17,6 +18,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
 	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
+	"go.temporal.io/server/tools/gomad3/target"
 )
 
 // simulationExplorationPlanVector is the retained exploration plan the Runner
@@ -87,6 +89,85 @@ func TestSimulationExplorationPlanMatchesRetainedVector(t *testing.T) {
 	}
 	if string(forcedPlan) != vector.ForcedPlan {
 		t.Errorf("forced plan = %s, want %s", forcedPlan, vector.ForcedPlan)
+	}
+}
+
+func TestSimulationExplorationExecutionIdentityBindsEveryInput(t *testing.T) {
+	type inputs struct {
+		config               campaignRequest
+		prepared             target.Prepared
+		profile              backend.Description
+		choiceImplementation [sha256.Size]byte
+	}
+	base := inputs{
+		config: campaignRequest{campaignRuntime: campaignRuntime{RunnerBuild: "runner-build"}},
+		prepared: target.Prepared{
+			SHA256: string(record.HashBytes([]byte("target"))), BuildKey: "toolchain-build", TargetGOOS: "linux", TargetGOARCH: "amd64",
+		},
+		profile: backend.Description{IOProfile: record.IOProfile{
+			Name: "io-profile", ImplementationSHA256: record.HashBytes([]byte("implementation")), InventorySHA256: record.HashBytes([]byte("inventory")),
+		}},
+		choiceImplementation: sha256.Sum256([]byte("choice implementation")),
+	}
+	want, err := simulationExplorationExecutionIdentity(base.config, base.prepared, base.profile, base.choiceImplementation)
+	if err != nil {
+		t.Fatal(err)
+	}
+	encoded, err := json.Marshal(simulationExplorationExecutionIdentityProjection{
+		TargetSHA256: record.SHA256(base.prepared.SHA256), ToolchainBuildKey: base.prepared.BuildKey,
+		GOOS: base.prepared.TargetGOOS, GOARCH: base.prepared.TargetGOARCH, ChoiceImplementation: record.SHA256FromSum(base.choiceImplementation),
+		IOProfile:   record.IOContract{Name: base.profile.IOProfile.Name, ImplementationSHA256: base.profile.IOProfile.ImplementationSHA256, InventorySHA256: base.profile.IOProfile.InventorySHA256},
+		RunnerBuild: base.config.RunnerBuild,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if projected := record.DomainHash("gomad3-simulation-exploration-execution/v1", encoded); want != projected {
+		t.Fatalf("execution identity = %s, want stdlib projection %s", want, projected)
+	}
+	repeated, err := simulationExplorationExecutionIdentity(base.config, base.prepared, base.profile, base.choiceImplementation)
+	if err != nil || repeated != want {
+		t.Fatalf("repeated identity = %s, error = %v, want %s", repeated, err, want)
+	}
+	for name, mutate := range map[string]func(*inputs){
+		"target":                func(value *inputs) { value.prepared.SHA256 = string(record.HashBytes([]byte("changed target"))) },
+		"toolchain build":       func(value *inputs) { value.prepared.BuildKey = "changed toolchain" },
+		"GOOS":                  func(value *inputs) { value.prepared.TargetGOOS = "darwin" },
+		"GOARCH":                func(value *inputs) { value.prepared.TargetGOARCH = "arm64" },
+		"choice implementation": func(value *inputs) { value.choiceImplementation = sha256.Sum256([]byte("changed choice")) },
+		"I/O profile":           func(value *inputs) { value.profile.IOProfile.Name = "changed-profile" },
+		"I/O implementation": func(value *inputs) {
+			value.profile.IOProfile.ImplementationSHA256 = record.HashBytes([]byte("changed implementation"))
+		},
+		"I/O inventory": func(value *inputs) {
+			value.profile.IOProfile.InventorySHA256 = record.HashBytes([]byte("changed inventory"))
+		},
+		"Runner build": func(value *inputs) { value.config.RunnerBuild = "changed-runner" },
+	} {
+		t.Run(name, func(t *testing.T) {
+			changed := base
+			mutate(&changed)
+			got, err := simulationExplorationExecutionIdentity(changed.config, changed.prepared, changed.profile, changed.choiceImplementation)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if got == want {
+				t.Fatal("changed input did not change the execution identity")
+			}
+		})
+	}
+}
+
+func TestSimulationExplorationExecutionIdentityRejectsInvalidOriginalStrings(t *testing.T) {
+	prepared := target.Prepared{
+		SHA256: string(record.HashBytes([]byte("target"))), BuildKey: "toolchain-build", TargetGOOS: "linux", TargetGOARCH: "amd64",
+	}
+	profile := backend.Description{IOProfile: record.IOProfile{
+		Name: "io-profile", ImplementationSHA256: record.HashBytes([]byte("implementation")), InventorySHA256: record.HashBytes([]byte("inventory")),
+	}}
+	config := campaignRequest{campaignRuntime: campaignRuntime{RunnerBuild: string([]byte{0xff})}}
+	if _, err := simulationExplorationExecutionIdentity(config, prepared, profile, sha256.Sum256([]byte("choice"))); err == nil {
+		t.Fatal("simulationExplorationExecutionIdentity() accepted invalid UTF-8")
 	}
 }
 

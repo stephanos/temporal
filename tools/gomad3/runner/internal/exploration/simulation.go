@@ -2,12 +2,12 @@ package exploration
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"slices"
 	"sort"
 
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 )
 
@@ -367,11 +367,11 @@ func SimulationReplaySegment(state SimulationState, segment SimulationRoundSegme
 	if err != nil {
 		return SimulationState{}, err
 	}
-	left, err := canonicaljson.CanonicalJSON(segment)
+	left, err := json.Marshal(segment)
 	if err != nil {
 		return SimulationState{}, err
 	}
-	right, err := canonicaljson.CanonicalJSON(regenerated)
+	right, err := json.Marshal(regenerated)
 	if err != nil {
 		return SimulationState{}, err
 	}
@@ -417,7 +417,7 @@ func canonicalResult(result SimulationResult, candidate SimulationCandidate, con
 			}
 		}
 	}
-	encoded, err := canonicaljson.CanonicalJSON(result)
+	encoded, err := json.Marshal(result)
 	if err != nil {
 		return SimulationResult{}, err
 	}
@@ -519,16 +519,18 @@ func simulationNewCandidate(config SimulationConfig, overrides []ForcedDecision,
 			return SimulationCandidate{}, errors.New("candidate contains duplicate forced decisions")
 		}
 	}
-	projection := struct {
-		ExecutionSHA256  record.SHA256    `json:"execution_sha256"`
-		ControllerSHA256 record.SHA256    `json:"controller_sha256"`
-		BaseSeed         uint64           `json:"base_seed"`
-		Overrides        []ForcedDecision `json:"overrides"`
-	}{
-		ExecutionSHA256: config.ExecutionSHA256, ControllerSHA256: config.ControllerSHA256,
-		BaseSeed: config.BaseSeed, Overrides: overrides,
+	var identityOverrides []any
+	if overrides != nil {
+		identityOverrides = make([]any, len(overrides))
+		for index, override := range overrides {
+			identityOverrides[index] = forcedDecisionIdentityProjection(override, true)
+		}
 	}
-	encoded, err := canonicaljson.CanonicalJSON(projection)
+	//gomad:dynamic reviewed 2026-10-13 stdlib JSON marshals only domain-owned simulation identity values
+	encoded, err := json.Marshal(map[string]any{
+		"base_seed": config.BaseSeed, "controller_sha256": config.ControllerSHA256,
+		"execution_sha256": config.ExecutionSHA256, "overrides": identityOverrides,
+	})
 	if err != nil {
 		return SimulationCandidate{}, err
 	}
@@ -675,12 +677,11 @@ func alternativeSetIdentity(dimension Dimension, ordinal uint64, site record.SHA
 			return "", err
 		}
 	}
-	encoded, err := canonicaljson.CanonicalJSON(struct {
-		Dimension    Dimension       `json:"dimension"`
-		Ordinal      uint64          `json:"ordinal"`
-		SiteSHA256   record.SHA256   `json:"site_sha256"`
-		Alternatives []record.SHA256 `json:"alternatives"`
-	}{dimension, ordinal, site, append([]record.SHA256(nil), alternatives...)})
+	//gomad:dynamic reviewed 2026-10-13 stdlib JSON marshals only domain-owned simulation identity values
+	encoded, err := json.Marshal(map[string]any{
+		"alternatives": append([]record.SHA256(nil), alternatives...), "dimension": dimension,
+		"ordinal": ordinal, "site_sha256": site,
+	})
 	if err != nil {
 		return "", err
 	}
@@ -691,7 +692,8 @@ func decisionIdentity(decision Decision) (record.SHA256, error) {
 	decision.Identity = ""
 	decision.Alternatives = append([]record.SHA256(nil), decision.Alternatives...)
 	decision.AlternativeControls = cloneControls(decision.AlternativeControls)
-	encoded, err := canonicaljson.CanonicalJSON(decision)
+	//gomad:dynamic reviewed 2026-10-13 stdlib JSON marshals only domain-owned simulation identity values
+	encoded, err := json.Marshal(simulationDecisionIdentityProjection(decision))
 	if err != nil {
 		return "", err
 	}
@@ -700,7 +702,8 @@ func decisionIdentity(decision Decision) (record.SHA256, error) {
 
 func forcedDecisionIdentity(forced ForcedDecision) (record.SHA256, error) {
 	forced.Identity = ""
-	encoded, err := canonicaljson.CanonicalJSON(forced)
+	//gomad:dynamic reviewed 2026-10-13 stdlib JSON marshals only domain-owned simulation identity values
+	encoded, err := json.Marshal(forcedDecisionIdentityProjection(forced, true))
 	if err != nil {
 		return "", err
 	}
@@ -822,7 +825,7 @@ func sameForcedDecision(left, right ForcedDecision) bool {
 
 func simulationStateIdentity(state SimulationState) (record.SHA256, error) {
 	cloned := simulationCloneState(state)
-	encoded, err := canonicaljson.CanonicalJSON(cloned)
+	encoded, err := json.Marshal(cloned)
 	if err != nil {
 		return "", err
 	}
@@ -832,7 +835,7 @@ func simulationStateIdentity(state SimulationState) (record.SHA256, error) {
 func simulationSegmentIdentity(segment SimulationRoundSegment) (record.SHA256, error) {
 	segment.SHA256 = ""
 	segment.Results = cloneResults(segment.Results)
-	encoded, err := canonicaljson.CanonicalJSON(segment)
+	encoded, err := json.Marshal(segment)
 	if err != nil {
 		return "", err
 	}
@@ -840,7 +843,7 @@ func simulationSegmentIdentity(segment SimulationRoundSegment) (record.SHA256, e
 }
 
 func simulationCandidateBytes(candidate SimulationCandidate) (uint64, error) {
-	encoded, err := canonicaljson.CanonicalJSON(candidate)
+	encoded, err := json.Marshal(candidate)
 	if err != nil {
 		return 0, err
 	}
@@ -920,4 +923,37 @@ func cloneResults(results []SimulationResult) []SimulationResult {
 		cloned[index].Decisions = cloneDecisions(result.Decisions)
 	}
 	return cloned
+}
+
+func simulationDecisionIdentityProjection(decision Decision) map[string]any {
+	projection := map[string]any{
+		"alternative_set_sha256": decision.AlternativeSetSHA256,
+		"alternatives":           append([]record.SHA256(nil), decision.Alternatives...),
+		"dimension":              decision.Dimension,
+		"identity":               decision.Identity,
+		"ordinal":                decision.Ordinal,
+		"selected":               decision.Selected,
+		"site_sha256":            decision.SiteSHA256,
+	}
+	if len(decision.AlternativeControls) != 0 {
+		projection["alternative_controls"] = cloneControls(decision.AlternativeControls)
+	}
+	return projection
+}
+
+func forcedDecisionIdentityProjection(forced ForcedDecision, includeControl bool) map[string]any {
+	projection := map[string]any{
+		"alternative_set_sha256": forced.AlternativeSetSHA256,
+		"alternatives":           forced.Alternatives,
+		"dimension":              forced.Dimension,
+		"identity":               forced.Identity,
+		"ordinal":                forced.Ordinal,
+		"selected":               forced.Selected,
+		"selected_sha256":        forced.SelectedSHA256,
+		"site_sha256":            forced.SiteSHA256,
+	}
+	if includeControl && len(forced.Control) != 0 {
+		projection["control"] = append([]byte(nil), forced.Control...)
+	}
+	return projection
 }

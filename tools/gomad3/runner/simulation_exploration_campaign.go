@@ -1,13 +1,14 @@
 package runner
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"unicode/utf8"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
 	backend "go.temporal.io/server/tools/gomad3/backends"
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/runner/internal/campaign"
 	"go.temporal.io/server/tools/gomad3/runner/internal/exploration"
@@ -177,16 +178,31 @@ func simulationExplorationResult(state exploration.SimulationState, candidate ex
 	return result, profile, nil
 }
 
+type simulationExplorationExecutionIdentityProjection struct {
+	TargetSHA256         record.SHA256     `json:"target_sha256"`
+	ToolchainBuildKey    string            `json:"toolchain_build_key"`
+	GOOS                 string            `json:"goos"`
+	GOARCH               string            `json:"goarch"`
+	ChoiceImplementation record.SHA256     `json:"choice_implementation_sha256"`
+	IOProfile            record.IOContract `json:"io_profile"`
+	RunnerBuild          string            `json:"runner_build"`
+}
+
 func simulationExplorationExecutionIdentity(config campaignRequest, prepared target.Prepared, profile backend.Description, choiceImplementation [32]byte) (record.SHA256, error) {
-	encoded, err := canonicaljson.CanonicalJSON(struct {
-		TargetSHA256         record.SHA256     `json:"target_sha256"`
-		ToolchainBuildKey    string            `json:"toolchain_build_key"`
-		GOOS                 string            `json:"goos"`
-		GOARCH               string            `json:"goarch"`
-		ChoiceImplementation record.SHA256     `json:"choice_implementation_sha256"`
-		IOProfile            record.IOContract `json:"io_profile"`
-		RunnerBuild          string            `json:"runner_build"`
+	for _, input := range []struct {
+		name  string
+		value string
 	}{
+		{name: "target identity", value: prepared.SHA256}, {name: "toolchain build key", value: prepared.BuildKey},
+		{name: "GOOS", value: prepared.TargetGOOS}, {name: "GOARCH", value: prepared.TargetGOARCH},
+		{name: "I/O profile name", value: profile.IOProfile.Name}, {name: "I/O implementation identity", value: string(profile.IOProfile.ImplementationSHA256)},
+		{name: "I/O inventory identity", value: string(profile.IOProfile.InventorySHA256)}, {name: "Runner build", value: config.RunnerBuild},
+	} {
+		if !utf8.ValidString(input.value) {
+			return "", fmt.Errorf("simulation exploration %s is not valid UTF-8", input.name)
+		}
+	}
+	encoded, err := json.Marshal(simulationExplorationExecutionIdentityProjection{
 		TargetSHA256: record.SHA256(prepared.SHA256), ToolchainBuildKey: prepared.BuildKey,
 		GOOS: prepared.TargetGOOS, GOARCH: prepared.TargetGOARCH, ChoiceImplementation: record.SHA256FromSum(choiceImplementation),
 		IOProfile: record.IOContract{Name: profile.IOProfile.Name, ImplementationSHA256: profile.IOProfile.ImplementationSHA256, InventorySHA256: profile.IOProfile.InventorySHA256}, RunnerBuild: config.RunnerBuild,

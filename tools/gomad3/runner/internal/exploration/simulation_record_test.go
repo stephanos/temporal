@@ -3,10 +3,11 @@ package exploration
 import (
 	"crypto/sha256"
 	"encoding/json"
+	"fmt"
+	"strings"
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 )
 
@@ -43,11 +44,11 @@ func TestRuntimeDecisionsProjectsBranchingChoiceTapeByRank(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	actual, err := canonicaljson.CanonicalJSON(decisions[0])
+	actual, err := json.Marshal(decisions[0])
 	if err != nil {
 		t.Fatal(err)
 	}
-	want, err := canonicaljson.CanonicalJSON(canonical)
+	want, err := json.Marshal(canonical)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -238,6 +239,176 @@ func TestResultForRecordProjectsValidatedDecisionsAndSemanticOutcome(t *testing.
 	}
 	if _, err := ResultForRecord(config, candidate, changed, nil); err == nil {
 		t.Fatal("ResultForRecord() accepted a changed decision identity")
+	}
+}
+
+func TestResultForRecordRejectsUnknownOwnedDecisionFields(t *testing.T) {
+	config := testCombinedConfig()
+	state, err := NewSimulation(config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	round, ok := state.NextRound()
+	if !ok {
+		t.Fatal("simulation exploration root round is unavailable")
+	}
+	candidate := round.Candidates[0]
+	plan, err := PlanForCandidate(config, candidate)
+	if err != nil {
+		t.Fatal(err)
+	}
+	decision, err := CanonicalDecision(
+		DimensionScenario, 0, record.HashBytes([]byte("route")),
+		[]record.SHA256{record.HashBytes([]byte("alpha")), record.HashBytes([]byte("beta"))}, 1,
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	encodedDecision, err := json.Marshal(decision)
+	if err != nil {
+		t.Fatal(err)
+	}
+	encodedDecision = append(encodedDecision[:len(encodedDecision)-1], []byte(`,"producer_owned":true}`)...)
+	recordBytes := []byte(fmt.Sprintf(
+		`{"schema":"%s","seed":%d,"spec_sha256":%q,"outcome":"completed","exploration_plan":%s,"exploration_decisions":[%s],"identity":%q}`,
+		recordSchema, config.BaseSeed, record.HashBytes([]byte("spec")), plan, encodedDecision, record.HashBytes([]byte("record")),
+	))
+
+	if _, err := ResultForRecord(config, candidate, recordBytes, nil); err == nil {
+		t.Fatal("ResultForRecord() accepted an unknown owned decision field")
+	}
+}
+
+func TestResultForRecordRejectsUnpairedSurrogateInProjectedProducerField(t *testing.T) {
+	config := testCombinedConfig()
+	state, err := NewSimulation(config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	round, ok := state.NextRound()
+	if !ok {
+		t.Fatal("simulation exploration root round is unavailable")
+	}
+	candidate := round.Candidates[0]
+	plan, err := PlanForCandidate(config, candidate)
+	if err != nil {
+		t.Fatal(err)
+	}
+	recordBytes := []byte(fmt.Sprintf(
+		`{"schema":"%s","seed":%d,"spec_sha256":%q,"outcome":"completed","exploration_plan":%s,"producer_owned":"\ud800","identity":%q}`,
+		recordSchema, config.BaseSeed, record.HashBytes([]byte("spec")), plan, record.HashBytes([]byte("record")),
+	))
+
+	_, err = ResultForRecord(config, candidate, recordBytes, nil)
+	if err == nil || !strings.Contains(err.Error(), "surrogate") {
+		t.Fatalf("ResultForRecord() unpaired-surrogate error = %v", err)
+	}
+}
+
+func TestProjectRetainedRecordRejectsMalformedOwnedFieldsIndependently(t *testing.T) {
+	expectedPlan := []byte(`{"plan":"exact"}`)
+	valid := fmt.Sprintf(
+		`{"schema":%q,"seed":17,"spec_sha256":%q,"outcome":"completed","exploration_plan":%s,"producer_owned":{"value":1},"identity":%q}`,
+		recordSchema, record.HashBytes([]byte("spec")), expectedPlan, record.HashBytes([]byte("record")),
+	)
+	tests := []struct {
+		name  string
+		value []byte
+	}{
+		{name: "malformed", value: []byte(`{"schema":`)},
+		{name: "duplicate", value: []byte(strings.Replace(valid, `"seed":17`, `"seed":17,"seed":17`, 1))},
+		{name: "trailing", value: append([]byte(valid), []byte(` {}`)...)},
+		{name: "invalid numeric", value: []byte(strings.Replace(valid, `"seed":17`, `"seed":1.5`, 1))},
+		{name: "invalid string", value: []byte(strings.Replace(valid, fmt.Sprintf(`"schema":%q`, recordSchema), `"schema":1`, 1))},
+		{name: "changed raw plan", value: []byte(strings.Replace(valid, string(expectedPlan), `{"plan": "exact"}`, 1))},
+		{name: "malformed decision", value: []byte(strings.Replace(valid, `"outcome":"completed",`, `"outcome":"completed","exploration_decisions":[{"dimension":1}],`, 1))},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if _, err := projectRetainedRecord(test.value, expectedPlan); err == nil {
+				t.Fatal("projectRetainedRecord() accepted malicious owned input")
+			}
+		})
+	}
+}
+
+func TestProjectRetainedRecordKeepsProducerFieldsInOutcomeIdentity(t *testing.T) {
+	expectedPlan := []byte(`{"plan":"exact"}`)
+	recordForValue := func(value string) []byte {
+		return []byte(fmt.Sprintf(
+			`{"schema":%q,"seed":17,"spec_sha256":%q,"outcome":"completed","exploration_plan":%s,"producer_owned":%q,"identity":%q}`,
+			recordSchema, record.HashBytes([]byte("spec")), expectedPlan, value, record.HashBytes([]byte("record")),
+		))
+	}
+	first, err := projectRetainedRecord(recordForValue("first"), expectedPlan)
+	if err != nil {
+		t.Fatal(err)
+	}
+	second, err := projectRetainedRecord(recordForValue("second"), expectedPlan)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if first.outcomeSHA256 == second.outcomeSHA256 {
+		t.Fatal("producer-owned extra field did not contribute to the outcome identity")
+	}
+}
+
+func TestResultForRecordRejectsEachChangedDecisionIdentityInput(t *testing.T) {
+	config := testCombinedConfig()
+	state, err := NewSimulation(config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	round, ok := state.NextRound()
+	if !ok {
+		t.Fatal("simulation exploration root round is unavailable")
+	}
+	candidate := round.Candidates[0]
+	plan, err := PlanForCandidate(config, candidate)
+	if err != nil {
+		t.Fatal(err)
+	}
+	decision := simulationTestDecision(t, DimensionScenario, 2, 3, 1)
+	tests := map[string]func(*Decision){
+		"dimension":                func(value *Decision) { value.Dimension = DimensionFault },
+		"ordinal":                  func(value *Decision) { value.Ordinal++ },
+		"site identity":            func(value *Decision) { value.SiteSHA256 = record.HashBytes([]byte("changed site")) },
+		"alternative":              func(value *Decision) { value.Alternatives[0] = record.HashBytes([]byte("changed alternative")) },
+		"alternative set identity": func(value *Decision) { value.AlternativeSetSHA256 = record.HashBytes([]byte("changed set")) },
+		"selected rank":            func(value *Decision) { value.Selected = 0 },
+		"decision identity":        func(value *Decision) { value.Identity = record.HashBytes([]byte("changed decision")) },
+	}
+	for name, mutate := range tests {
+		t.Run(name, func(t *testing.T) {
+			changed := decision
+			changed.Alternatives = append([]record.SHA256(nil), decision.Alternatives...)
+			mutate(&changed)
+			recordBytes, err := json.Marshal(struct {
+				Schema               string          `json:"schema"`
+				Seed                 uint64          `json:"seed"`
+				SpecSHA256           record.SHA256   `json:"spec_sha256"`
+				Outcome              string          `json:"outcome"`
+				ExplorationPlan      json.RawMessage `json:"exploration_plan"`
+				ExplorationDecisions []Decision      `json:"exploration_decisions"`
+				ProducerOwned        string          `json:"producer_owned"`
+				Identity             record.SHA256   `json:"identity"`
+			}{
+				Schema: recordSchema, Seed: config.BaseSeed, SpecSHA256: record.HashBytes([]byte("spec")), Outcome: "completed",
+				ExplorationPlan: plan, ExplorationDecisions: []Decision{changed}, ProducerOwned: "retained", Identity: record.HashBytes([]byte("record")),
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+			if _, err := ResultForRecord(config, candidate, recordBytes, nil); err == nil {
+				t.Fatal("ResultForRecord() accepted a changed decision identity input")
+			}
+		})
+	}
+
+	runtimeDecision := simulationTestDecision(t, DimensionRuntime, 0, 2, 0)
+	runtimeDecision.AlternativeControls[1][0] ^= 0xff
+	if err := validateRecordDecision(runtimeDecision); err == nil {
+		t.Fatal("validateRecordDecision() accepted changed runtime control bytes")
 	}
 }
 

@@ -2,6 +2,7 @@ package exploration
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/record"
@@ -35,5 +36,48 @@ func TestPlanForCandidateEncodesCanonicalRootContract(t *testing.T) {
 	changed.SHA256 = record.HashBytes([]byte("changed"))
 	if _, err := PlanForCandidate(config, changed); err == nil {
 		t.Fatal("PlanForCandidate() accepted a changed candidate identity")
+	}
+}
+
+func TestPlanForCandidatePreservesNilAndEmptyOverrideCollections(t *testing.T) {
+	config := simulationTestConfig()
+	nilCandidate, err := CanonicalCandidate(config, nil, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	emptyCandidate, err := CanonicalCandidate(config, []ForcedDecision{}, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if nilCandidate.SHA256 == emptyCandidate.SHA256 {
+		t.Fatal("nil and empty override collections produced one candidate identity")
+	}
+	nilPlan, err := PlanForCandidate(config, nilCandidate)
+	if err != nil {
+		t.Fatal(err)
+	}
+	emptyPlan, err := PlanForCandidate(config, emptyCandidate)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(nilPlan), `"overrides":null`) || !strings.Contains(string(emptyPlan), `"overrides":[]`) {
+		t.Fatalf("nil plan = %s; empty plan = %s", nilPlan, emptyPlan)
+	}
+	if _, err := validateRetainedPlan(nilPlan); err != nil {
+		t.Fatalf("validate nil-override plan: %v", err)
+	}
+	if _, err := validateRetainedPlan(emptyPlan); err != nil {
+		t.Fatalf("validate empty-override plan: %v", err)
+	}
+}
+
+func TestCombinedAlternativeSetIdentityMatchesPairedFormula(t *testing.T) {
+	decision := simulationTestDecision(t, DimensionRuntime, 3, 3, 1)
+	want, err := alternativeSetIdentity(decision.Dimension, decision.Ordinal, decision.SiteSHA256, decision.Alternatives)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := combinedAlternativeSetIdentity(decision.Ordinal, decision.SiteSHA256, decision.Alternatives); got != want {
+		t.Fatalf("combined alternative-set identity = %s, want paired identity %s", got, want)
 	}
 }

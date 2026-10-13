@@ -8,7 +8,7 @@ import (
 	"slices"
 
 	"go.temporal.io/server/tools/gomad3/choice"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+	"go.temporal.io/server/tools/gomad3/internal/strictjson"
 	"go.temporal.io/server/tools/gomad3/record"
 )
 
@@ -76,14 +76,14 @@ func runtimeDecisionIdentities(runtimeDecision choice.Decision) (record.SHA256, 
 		SiteMissing: runtimeDecision.SiteMissing, Data: runtimeDecision.Data, Alternatives: runtimeDecision.Alternatives,
 		AlternativeSetSHA256: record.SHA256FromSum(runtimeDecision.AlternativeSetDigest),
 	}
-	encodedSite, err := canonicaljson.CanonicalJSON(siteProjection)
+	encodedSite, err := json.Marshal(siteProjection)
 	if err != nil {
 		return "", nil, err
 	}
 	site := record.DomainHash("gomad3-runtime-choice-site/v1", encodedSite)
 	alternatives := make([]record.SHA256, runtimeDecision.Alternatives)
 	for rank := range alternatives {
-		encodedAlternative, err := canonicaljson.CanonicalJSON(struct {
+		encodedAlternative, err := json.Marshal(struct {
 			SiteSHA256 record.SHA256 `json:"site_sha256"`
 			Rank       uint32        `json:"rank"`
 		}{SiteSHA256: site, Rank: uint32(rank)})
@@ -206,7 +206,7 @@ func projectRetainedRecord(recordBytes, expectedPlan []byte) (retainedRecord, er
 		return retainedRecord{}, errors.New("simulation exploration record size is invalid")
 	}
 	var fields map[string]json.RawMessage
-	if err := canonicaljson.StrictDecode(recordBytes, &fields); err != nil {
+	if err := strictjson.Decode(recordBytes, &fields); err != nil {
 		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return retainedRecord{}, fmt.Errorf("decode simulation exploration record: %w", err)
 	}
@@ -228,7 +228,7 @@ func projectRetainedRecord(recordBytes, expectedPlan []byte) (retainedRecord, er
 	}
 	var recorded []Decision
 	if raw, ok := fields["exploration_decisions"]; ok {
-		if err := json.Unmarshal(raw, &recorded); err != nil {
+		if err := strictjson.Decode(raw, &recorded); err != nil {
 			//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 			return retainedRecord{}, fmt.Errorf("decode simulation exploration decisions: %w", err)
 		}
@@ -266,7 +266,8 @@ func projectRetainedRecord(recordBytes, expectedPlan []byte) (retainedRecord, er
 	for _, name := range []string{"identity", "spec_sha256", "exploration_plan", "exploration_decisions"} {
 		delete(semantic, name)
 	}
-	encodedSemantic, err := canonicaljson.CanonicalJSON(semantic)
+	//gomad:dynamic reviewed 2026-10-13 stdlib JSON marshals strict producer-owned raw values in memory
+	encodedSemantic, err := json.Marshal(semantic)
 	if err != nil {
 		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return retainedRecord{}, fmt.Errorf("encode simulation exploration outcome: %w", err)
@@ -307,7 +308,7 @@ func requiredString(fields map[string]json.RawMessage, name string) (string, err
 		return "", fmt.Errorf("simulation exploration record field %q is missing", name)
 	}
 	var value string
-	if err := json.Unmarshal(raw, &value); err != nil {
+	if err := strictjson.Decode(raw, &value); err != nil {
 		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return "", fmt.Errorf("decode simulation exploration record field %q: %w", name, err)
 	}
@@ -320,7 +321,7 @@ func requiredUint64(fields map[string]json.RawMessage, name string) (uint64, err
 		return 0, fmt.Errorf("simulation exploration record field %q is missing", name)
 	}
 	var value uint64
-	if err := json.Unmarshal(raw, &value); err != nil {
+	if err := strictjson.Decode(raw, &value); err != nil {
 		//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 		return 0, fmt.Errorf("decode simulation exploration record field %q: %w", name, err)
 	}

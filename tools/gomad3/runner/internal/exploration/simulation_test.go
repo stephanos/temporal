@@ -1,10 +1,10 @@
 package exploration
 
 import (
+	"encoding/json"
 	"slices"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 )
 
@@ -185,11 +185,11 @@ func TestSimulationExplorationRoundSegmentReplaysByteIdentically(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	left, err := canonicaljson.CanonicalJSON(committed)
+	left, err := json.Marshal(committed)
 	if err != nil {
 		t.Fatal(err)
 	}
-	right, err := canonicaljson.CanonicalJSON(replayed)
+	right, err := json.Marshal(replayed)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -199,6 +199,43 @@ func TestSimulationExplorationRoundSegmentReplaysByteIdentically(t *testing.T) {
 	segment.Results[0].OutcomeSHA256 = record.HashBytes([]byte("corrupt"))
 	if _, err := SimulationReplaySegment(initial, segment); err == nil {
 		t.Fatal("ReplaySegment() accepted a corrupted round")
+	}
+}
+
+func TestSimulationRoundIdentityIsStableAcrossFrontierMapIteration(t *testing.T) {
+	initial, err := NewSimulation(simulationTestConfig())
+	if err != nil {
+		t.Fatal(err)
+	}
+	round, ok := initial.NextRound()
+	if !ok {
+		t.Fatal("simulation exploration root round is unavailable")
+	}
+	result := []SimulationResult{{
+		CandidateSHA256: round.Candidates[0].SHA256,
+		OutcomeSHA256:   record.HashBytes([]byte("repeatable outcome")),
+		Decisions: []Decision{
+			simulationTestDecision(t, DimensionScenario, 0, 3, 1),
+			simulationTestDecision(t, DimensionFault, 0, 2, 0),
+		},
+	}}
+	var wantState, wantSegment record.SHA256
+	for iteration := range 64 {
+		next, segment, err := CommitSimulationRound(initial, round, result)
+		if err != nil {
+			t.Fatal(err)
+		}
+		stateIdentity, err := SimulationStateSHA256(next)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if iteration == 0 {
+			wantState, wantSegment = stateIdentity, segment.SHA256
+			continue
+		}
+		if stateIdentity != wantState || segment.SHA256 != wantSegment {
+			t.Fatalf("iteration %d identities = %s/%s, want %s/%s", iteration, stateIdentity, segment.SHA256, wantState, wantSegment)
+		}
 	}
 }
 
