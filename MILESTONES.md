@@ -226,16 +226,11 @@ Owner decision (2026-10-12): these deferred specs change owners the WASM backend
 
 ### Shared Runner and simulation owners — [fn-109](.flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md) (shared subset)
 
-These fn-109 tasks change Runner, artifact, choice-exploration and simulation owners that the WASM backend shares. The remaining fn-109 tasks stay under Native.
+These fn-109 tasks change Runner, artifact, choice-exploration and simulation owners that the WASM backend shares. All but .14 completed on 2026-10-13; .14's generated codecs run with the rotation batch. The remaining fn-109 tasks stay under Native.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
 | [fn-109.14](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.14.md) | 🚧 In progress | Typed commands done; generated network/volume/process codecs run with the rotation batch |
-| [fn-109.15](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.15.md) | ⬜ Todo | Characterize simulation progress ordering and choose the lifecycle interface from two designs |
-| [fn-109.16](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.16.md) | ⬜ Todo | Implement the simulation progress lifecycle owner and remove caller-side accounting |
-| [fn-109.63](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.63.md) | 🚧 In progress | Decompose local campaign orchestration before further Runner changes |
-| [fn-109.74](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.74.md) | 🚧 In progress | Restore explicit scripted retention calibration and policy coverage |
-| [fn-109.76](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.76.md) | ⬜ Todo | Restore scripted first-failure and distinct-budget coverage |
 
 ### Runner append-log storage — [fn-152](.flow/specs/fn-152-gomad-runner-storage-on-one-append-only.md)
 
