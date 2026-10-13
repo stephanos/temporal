@@ -100,6 +100,10 @@ class SamplesSuite extends munit.FunSuite:
     rebuild(true, false):
       Files.writeString(root.resolve("model/project.scala"), "//> using scala 3.9.0\n"): Unit
     rebuild(true, false):
+      Files.writeString(root.resolve("model/project.scala"), ""): Unit
+    rebuild(true, false):
+      Files.delete(root.resolve("model/project.scala"))
+    rebuild(true, false):
       Files.writeString(root.resolve("model/build/api-scalapb.jar"), "new api"): Unit
     rebuild(false, true):
       Files.writeString(root.resolve("model/build/ir-scalapb.jar"), "new ir"): Unit

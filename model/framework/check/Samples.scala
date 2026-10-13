@@ -179,6 +179,7 @@ object Samples:
     settings.foreach(value => add(value.getBytes(java.nio.charset.StandardCharsets.UTF_8)))
     for path <- paths do
       add(path.toString.getBytes(java.nio.charset.StandardCharsets.UTF_8))
+      digest.update(if Files.isRegularFile(path) then 1.toByte else 0.toByte)
       add(if Files.isRegularFile(path) then Files.readAllBytes(path) else Array.emptyByteArray)
     digest.digest().map("%02x".format(_)).mkString
 
