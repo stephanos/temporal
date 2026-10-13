@@ -29,9 +29,64 @@ Runs after fn-166.13 and before fn-141 (owner, 2026-10-12). Read the spec's surv
 - No `test/` folder remains in the moved code; every suite is colocated with what it tests and registered at its new path.
 - A passing suite run leaves no scratch directory behind; failed runs are capped at 10.
 ## Done summary
-TBD
+### Done (fn-169.1)
 
+Requirement evidence:
+- R1 move: model/irgen -> model/framework/export (package framework.`export`); model/check split into
+  model/framework/check (Tools, ModelSources, ChangeCheck over a generic Registry, Json, lint/: comment,
+  block-form, syntax, boundary, literal scanner; equivalence/: Equivalence, StepLedger, Lifts) and
+  model/temporal/check (Gate, Temporal coverage registry, source metrics, lint/ProtoLiterals, baselines/);
+  migration rules/proofs/suites -> model/temporal/migrate, harness -> model/framework/migrate/prove.sh;
+  lifter plug-in hook (framework/export/Plugin.scala, Java service) with TemporalPlugin (Temporal module map)
+  in model/temporal/export. Old model/irgen, model/check, model/migrate are gone. Tests colocated, no test/
+  folders; fixtures in framework/export/testdata. A Temporal tool builds from both halves, framework first.
+- R2 boundary: framework/dsl/project.scala builds the core with no Temporal API; Boundary.scala rule +
+  `make check-model-boundary` (also compiles framework core, export, check alone); run by
+  model-check-changed. Deliberate violations (import temporal.realize.Kit in Lift.scala; api-scalapb.jar
+  directive) fail it (.flow/tmp/fn169/task1/boundary). It found one real crossing (DSL test used a Temporal enum).
+- Harness: prove.sh parameterized by FEATURES, sources from framework.check.selectedSources, target is the
+  runner's argument, comparison via framework/check/equivalence/Lifts.scala (byte-for-byte or declared delta);
+  cmp, RewriteGapsMini compare mode and check-*-delta.mjs retired; GuideSourcesTest in framework/check/lint.
+  All 13 rule proofs pass (.flow/tmp/fn169/task1/proofs/final, RewriteMini rerun in final-rerun after a
+  broken-incremental-class flake).
+- Retention: Retained (Tools.scala) + RetainedScratch mixin; passing runs delete scratch, failed keep it
+  marked (<name>.failed), newest 10 kept, others' dirs pruned only when older than 1 h; applied to lifter
+  and migrate suites, the gate's own scratch and prove.sh. A passing model-check-changed left no new
+  history directories.
+- Proto sugar: temporal/realize/Syntax.scala (all Temporal-free) -> framework/realize/Syntax.scala.
+- DSL: framework/dsl, package framework.dsl; mini/shared/kit import framework.dsl.*. IR type renames
+  (framework.Step, framework.outcomes.Outcome/Rejection, framework.Domain$package$.UpTo gain .dsl) recorded as
+  `ir` entries in model/temporal/check/baselines/activity_mini.map (RenameMap learned `ir old new`, left to the
+  IR in steps-only mode). Mini lift equals the pre-task lift under those renames plus the Syntax.scala path move.
+- Coverage.scala path rules and modules updated; docs: model/README.md (layout, boundary, residual coupling),
+  AGENTS.md, .plans/UMPIRE_MODULES.md (fn-114.12/fn-122.8 superseded), migrate READMEs, sweep recipe.
+
+Verification: make model-check-changed passed, .flow/tmp/checks/20261012-221229/record.md (boundary, compile,
+lift, mini step-table equivalence, models 139, lifter 275, check 139, migrate 68 tests). Earlier checkpoints:
+20261012-185201, -191004, -194243, -201617, -204457.
+
+Notes: the owner committed the in-progress DSL rename and docs as `wip` (4fcd8c2b5b); d088870ccd adds the
+sweep recipe. Fn169Task1DslPackage + its proof and OnLegacyDsl were built before the owner dropped the
+rule-per-change policy; they are kept, the recipe is the migration of record.
+
+### Open obligations
+- fn-169.2: residual Temporal coupling as text in framework/export (kit lifting, layout conventions,
+  Switches), framework/check (ModelSources, Syntax/BlockForm trees, StepLedger constant), whole Gate in
+  temporal/check, SourceMetrics' API category (listed in model/README.md).
+- fn-169.3: IR namespace io.temporal.server.api.umpire.v1 still on the framework's classpath.
+- fn-169.4 (held, Go): Go tests read lifter fixtures at model/irgen/testdata paths (now
+  model/framework/export/testdata) and hard-code framework.Step/Delivery; the checked-in mini IR is stale.
+- Sweep: real features are behind (old imports, old package framework tests); apply the recipe; add the
+  `ir` renames to the sweep's map.
+- Flaky in-process fixture races seen (FacetsTest "zip file is empty", PropertyGroupsFixtures native run):
+  pre-existing, pass on rerun.
+
+### Deferred gates
+lint-model (scalafmt of whole model, scalafix of Models/lifter, lint-model-conventions with the new jar
+prefixes), umpire-check-model, make model-mini, full Go, independent review: batch end.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: c6f9f309ca, 25ffe44e08, 2031e5bb58, bc09cd51f6, a3d1321015, 4fcd8c2b5b, d088870ccd
+- Tests: make model-check-changed: .flow/tmp/checks/20261012-221229/record.md (passed), make check-model-boundary with deliberate violations: .flow/tmp/fn169/task1/boundary, prove.sh x13: .flow/tmp/fn169/task1/proofs/final
 - PRs:
