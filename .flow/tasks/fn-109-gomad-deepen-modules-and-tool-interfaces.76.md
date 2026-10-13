@@ -57,9 +57,10 @@ go test -tags test_dep -count=1 -json -run '^(TestPreparationDependencies(Forwar
 
 
 ## Done summary
-TBD
+Scripted first-failure and distinct-signature budget coverage restored: the two attachments are added to TestRunFirstFailureCancelsActiveTargetsWithoutPublishingThem and TestRunBudgetCountsDistinctSignatures; both pass.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 0d62243ac3
+- Tests: go test ./runner -run 'TestRunFirstFailure|TestRunBudgetCountsDistinctSignatures', evidence: .flow/artifacts/wasm-section-acceptance-2026-10-12.md
 - PRs:
