@@ -199,9 +199,7 @@ func NewCampaignJournal(ctx context.Context, config CampaignConfig) (_ *Campaign
 	if err := os.Chmod(path, 0o700); err != nil {
 		return nil, fmt.Errorf("set campaign journal directory mode: %w", err)
 	}
-	// The store directory is created here with its private mode, so the log
-	// store pins a 0700 directory even under a restrictive umask.
-	for _, directory := range []string{journal.FailuresPath(), journal.SuccessesPath(), filepath.Join(path, ".partial"), filepath.Join(path, storeDirectory)} {
+	for _, directory := range []string{journal.FailuresPath(), journal.SuccessesPath(), filepath.Join(path, ".partial")} {
 		if err := makePrivateDirectoriesContext(ctx, directory); err != nil {
 			return nil, err
 		}
@@ -437,6 +435,14 @@ func (journal *CampaignJournal) Publish(summary CampaignSummary) error {
 		return err
 	}
 	if err := removeCompletedPartialContext(journal.ctx, journal.PreparedPath(), "prepared-target"); err != nil {
+		return err
+	}
+	// Payloads an outcome retired, such as a success its ordered outcome did
+	// not retain, are no longer live once the campaign is published.
+	journal.mu.Lock()
+	_, err = reclaimOwnedPayloads(journal.ctx, journal.path, journal.state, false)
+	journal.mu.Unlock()
+	if err != nil {
 		return err
 	}
 	return syncDirectoryContext(journal.ctx, journal.path)

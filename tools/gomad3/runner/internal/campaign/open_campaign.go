@@ -464,11 +464,14 @@ func validRecordSHA256(value record.SHA256) bool {
 	return err == nil
 }
 
-// CommittedState is a read-only view of a campaign log: its lifecycle and the
-// outcomes it has committed so far.
+// CommittedState is a read-only view of a campaign log: its lifecycle, the
+// outcomes it has committed so far and its admission frontier.
 type CommittedState struct {
 	Lifecycle  LifecycleStatus
 	Executions []ExecutionRecord
+	// Frontier is the durable admission frontier: the admitted ordinals
+	// without a committed outcome, their receipts and any stop.
+	Frontier Frontier
 }
 
 // ReadCommittedState replays a campaign log without its lock and without
@@ -479,5 +482,5 @@ func ReadCommittedState(path string) (CommittedState, error) {
 	if err != nil {
 		return CommittedState{}, classifyIntegrityError(err)
 	}
-	return CommittedState{Lifecycle: state.status(), Executions: append([]ExecutionRecord(nil), state.executions...)}, nil
+	return CommittedState{Lifecycle: state.status(), Executions: append([]ExecutionRecord(nil), state.executions...), Frontier: state.frontierSnapshot()}, nil
 }

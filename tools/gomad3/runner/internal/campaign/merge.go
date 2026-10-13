@@ -458,9 +458,6 @@ func mergedJournalReference(limits executionJournalLimits, runs []mergedExecutio
 // writeMergedCampaignLog writes a complete merged campaign log into the
 // staging directory that publication renames into place.
 func writeMergedCampaignLog(ctx context.Context, path string, campaign mergedCampaignRecord, runs []mergedExecution) (retErr error) {
-	if err := makePrivateDirectoriesContext(ctx, path); err != nil {
-		return err
-	}
 	writer, _, err := logstore.OpenWriter(path, campaignLogOptions(logStoreHook(ctx), true), nil)
 	if err != nil {
 		return fmt.Errorf("create merged campaign log: %w", err)

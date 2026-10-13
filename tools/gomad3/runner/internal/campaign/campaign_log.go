@@ -570,6 +570,12 @@ func (state *campaignState) preparePublish(payload []byte) (func(), error) {
 	if published.Attempted != expected.Journal.Records {
 		return nil, errors.New("published campaign summary does not count its committed outcomes")
 	}
+	if err := validateCampaign(published, state.executions, executionSuccessBytesBounded); err != nil {
+		return nil, fmt.Errorf("published campaign summary is invalid: %w", err)
+	}
+	if err := state.checkPublishedFrontier(published); err != nil {
+		return nil, err
+	}
 	return func() {
 		state.published = &published
 	}, nil

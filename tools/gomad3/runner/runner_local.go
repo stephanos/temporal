@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
-	"time"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
 	backend "go.temporal.io/server/tools/gomad3/backends"
@@ -17,33 +16,40 @@ import (
 )
 
 type localCampaign struct {
-	config               campaignRequest
-	resuming             bool
-	selection            SeedSelection
-	baseEnvironment      []record.Environment
-	readOnlyMounts       []captured.Mapping
-	prepared             target.Prepared
-	resumePlan           campaign.CampaignPlan
-	guidance             *guidanceCampaign
-	overallCtx           context.Context
-	runID                string
-	batchPath            string
-	journal              *campaign.CampaignJournal
-	resumedRuns          []campaign.ExecutionRecord
-	summary              CampaignResult
-	batchComplete        bool
-	selectedProfile      backend.Description
-	executor             executionRunner
-	activeCtx            context.Context
-	activeCancel         context.CancelFunc
-	rawCompletions       chan runCompletion
-	completed            map[uint64]struct{}
-	hostFailure          error
+	config          campaignRequest
+	resuming        bool
+	selection       SeedSelection
+	baseEnvironment []record.Environment
+	readOnlyMounts  []captured.Mapping
+	prepared        target.Prepared
+	resumePlan      campaign.CampaignPlan
+	guidance        *guidanceCampaign
+	overallCtx      context.Context
+	runID           string
+	batchPath       string
+	journal         *campaign.CampaignJournal
+	resumedRuns     []campaign.ExecutionRecord
+	summary         CampaignResult
+	batchComplete   bool
+	selectedProfile backend.Description
+	executor        executionRunner
+	activeCtx       context.Context
+	activeCancel    context.CancelFunc
+	rawCompletions  chan runCompletion
+	launched        int
+	attempts        map[uint64]*seedAttempt
+	jobs            *pendingJobs
+	group           *stopGroup
+	stopped         bool
+	statistics      campaign.CampaignStatistics
+	hostFailure     error
+	// distinct holds the committed failure signatures; published holds every
+	// failure artifact the campaign published, committed or still pending.
 	distinct             map[record.SHA256]string
+	published            map[record.SHA256]string
 	failureArtifactBytes uint64
 	semanticProbes       map[string]struct{}
 	choiceFeatures       map[string]struct{}
-	controller           *campaign.SeedController
 }
 
 func runLocal(ctx context.Context, config campaignRequest) (summary CampaignResult, retErr error) {
@@ -317,81 +323,16 @@ func (local *localCampaign) prepareTarget() error {
 	return nil
 }
 
-func (local *localCampaign) runSeeds() error {
-	var err error
-	local.activeCtx, local.activeCancel = context.WithCancel(local.overallCtx)
-	defer local.activeCancel()
-	local.rawCompletions = make(chan runCompletion, local.config.Parallel)
-	completions := make(chan runCompletion, local.config.Parallel)
-	local.completed = make(map[uint64]struct{})
-	local.distinct = make(map[record.SHA256]string)
-	local.failureArtifactBytes = uint64(0)
-	local.semanticProbes = make(map[string]struct{})
-	local.choiceFeatures = make(map[string]struct{})
-	if local.resuming {
-		var restored resumeSummaryState
-		restored, err = restoreResumeSummary(local.batchPath, local.selection, local.resumedRuns)
-		if err != nil {
-			return &HostError{Reason: "resume_setup", Err: err}
-		}
-		local.summary = restored.summary
-		local.summary.Guidance = guidanceSummary(local.config.guidancePlan, newGuidedExecutions(local.config.guidancePlan, local.resumedRuns))
-		if local.config.guidancePlan != nil {
-			local.summary.CorpusPath = local.config.guidancePlan.Corpus
-		}
-		local.summary.SelectionCount = local.config.shard().SelectionCount(local.selection.Count())
-		local.distinct = restored.distinct
-		local.failureArtifactBytes = restored.failureArtifactBytes
-		local.semanticProbes = restored.probes
-		local.choiceFeatures = restored.choiceFeatures
-		local.completed = restored.completed
-		if local.guidance != nil {
-			snapshot := local.guidance.Snapshot()
-			local.summary.CorpusPath = local.guidance.corpus.Path()
-			local.summary.CorpusEntries = uint64(len(snapshot.Entries))
-		}
-	}
-	completionOrderDone := make(chan struct{})
-	go func() {
-		defer close(completionOrderDone)
-		orderShardRunCompletions(local.selection, local.config.Shard, local.completed, local.rawCompletions, completions)
-	}()
-	defer func() {
-		close(local.rawCompletions)
-		<-completionOrderDone
-	}()
-	local.controller, err = newShardedSeedController(local.selection, local.config.Shard, local.completed, local.config.Parallel, local.config.OnFailure, local.config.FailureBudget, local.summary)
-	if err != nil {
-		return &HostError{Reason: "campaign_setup", Err: err}
-	}
-	synchronizeCampaignStatistics(&local.summary, local.controller.Statistics())
-	var progressTicker *time.Ticker
-	var progressTicks <-chan time.Time
-	if local.config.Progress != nil {
-		interval := local.config.ProgressInterval
-		if interval <= 0 {
-			interval = 5 * time.Second
-		}
-		progressTicker = time.NewTicker(interval)
-		progressTicks = progressTicker.C
-		defer progressTicker.Stop()
-	}
-	local.scheduleSeeds(completions, progressTicks)
-	return local.finishSeedCampaign()
-}
-
-func (local *localCampaign) recordCompletion(outcome campaign.Completion) bool {
-	cancelActive := local.controller.Complete(outcome)
-	synchronizeCampaignStatistics(&local.summary, local.controller.Statistics())
-	return cancelActive
-}
-
-func (local *localCampaign) publishRunnerFailure(completion runCompletion, reason string) error {
+// publishRunnerFailure publishes a captured attempt that failed the host as a
+// Runner failure artifact and returns the evidence record that references
+// it; an attempt that captured nothing, or only a choice trace supervision
+// rejected, has none.
+func (local *localCampaign) publishRunnerFailure(completion runCompletion, reason string) (*campaign.ExecutionRecord, error) {
 	if !completion.result.Captured {
-		return nil
+		return nil, nil
 	}
 	if reason == "choice_trace_malformed" || reason == "choice_trace_unterminated" {
-		return nil
+		return nil, nil
 	}
 	worldBundle := noneWorldBundle()
 	outcome := backend.Classification{
@@ -400,17 +341,20 @@ func (local *localCampaign) publishRunnerFailure(completion runCompletion, reaso
 	}
 	mountArtifact, err := mountArtifactForRun(local.readOnlyMounts, local.config.IOROMountLimits, completion.result.IOROMounts)
 	if err != nil {
-		return fmt.Errorf("construct read-only mount artifact: %w", err)
+		return nil, fmt.Errorf("construct read-only mount artifact: %w", err)
 	}
 	manifest, err := manifestForRun(local.config, local.prepared, local.baseEnvironment, completion, outcome, local.runID, worldBundle.Manifest, mountArtifact)
 	if err != nil {
-		return fmt.Errorf("construct Runner failure manifest: %w", err)
+		return nil, fmt.Errorf("construct Runner failure manifest: %w", err)
 	}
-	published, err := publishBoundedFailureArtifact(local.overallCtx, local.config, local.journal.FailuresPath(), manifest.Outcome.FailureSignature, local.distinct, &local.failureArtifactBytes, executionArtifactInput(manifest, local.prepared, completion.result, mountArtifact, worldBundle))
+	published, err := publishBoundedFailureArtifact(local.overallCtx, local.config, local.journal.FailuresPath(), manifest.Outcome.FailureSignature, local.published, &local.failureArtifactBytes, executionArtifactInput(manifest, local.prepared, completion.result, mountArtifact, worldBundle))
 	if err != nil {
-		return fmt.Errorf("publish Runner failure artifact: %w", err)
+		return nil, fmt.Errorf("publish Runner failure artifact: %w", err)
 	}
 	signature := published.Manifest.Outcome.FailureSignature
+	if _, found := local.published[signature]; !found {
+		local.published[signature] = published.Path
+	}
 	if _, found := local.distinct[signature]; !found {
 		local.distinct[signature] = published.Path
 		local.summary.Artifacts = append(local.summary.Artifacts, published.Path)
@@ -418,7 +362,7 @@ func (local *localCampaign) publishRunnerFailure(completion runCompletion, reaso
 	local.summary.DistinctFailures = uint64(len(local.distinct))
 	artifactRelative, err := filepath.Rel(local.batchPath, published.Path)
 	if err != nil {
-		return fmt.Errorf("make Runner failure artifact path relative: %w", err)
+		return nil, fmt.Errorf("make Runner failure artifact path relative: %w", err)
 	}
 	run := campaign.ExecutionRecord{
 		SelectionOrdinal: record.Uint64String(completion.job.ordinal), Seed: record.Uint64String(completion.job.seed),
@@ -427,377 +371,225 @@ func (local *localCampaign) publishRunnerFailure(completion runCompletion, reaso
 	}
 	setRunTranscript(&run, completion.result.IOTranscript)
 	setRunChoiceTrace(&run, completion.result.ChoiceTrace)
-	if err := local.journal.AppendExecution(run); err != nil {
-		return fmt.Errorf("append Runner failure result: %w", err)
-	}
-	return nil
+	return &run, nil
 }
 
-func (local *localCampaign) completePartial(run *campaign.ExecutionJournal) {
-	if cleanupErr := run.Complete(); cleanupErr != nil && local.hostFailure == nil {
-		local.hostFailure = &HostError{Reason: "partial_cleanup", Err: cleanupErr}
-		local.controller.Stop()
-		local.activeCancel()
-	}
+// arrive observes one attempt's completion as soon as it arrives: it
+// classifies the attempt, publishes its evidence and records its terminal
+// receipt, or keeps the host failure it observed for the attempt's turn.
+func (local *localCampaign) arrive(completion runCompletion) {
+	attempt := local.attempts[completion.job.ordinal]
+	attempt.arrived = true
+	attempt.completion = completion
+	attempt.failure = local.observe(attempt, completion)
 }
 
-func (local *localCampaign) launchSeed(job runJob) {
-	readiness := newRunReadiness()
-	go runSeed(local.activeCtx, local.config, local.executor, local.prepared, local.baseEnvironment, local.selectedProfile, local.readOnlyMounts, local.journal, job, readiness, local.rawCompletions)
-	readiness.wait()
-}
-
-func (local *localCampaign) scheduleSeeds(completions <-chan runCompletion, progressTicks <-chan time.Time) {
-	runningReported := false
-	for !local.controller.Done() {
-		admittedThisTurn := false
-		for local.overallCtx.Err() == nil {
-			scheduled, ok := local.controller.Next()
-			if !ok {
-				break
-			}
-			job := runJob{ordinal: scheduled.Ordinal, seed: scheduled.Seed}
-			if local.summary.Guidance != nil && !answeredSeed(local.config.guidancePlan, job.seed) {
-				local.summary.Guidance.NewExecutions++
-			}
-			local.launchSeed(job)
-			admittedThisTurn = true
-		}
-		if local.controller.Active() > 0 && !runningReported {
-			runningReported = true
-			if err := local.reportProgress(ProgressRunning, local.controller.Active()); err != nil {
-				local.hostFailure = &HostError{Reason: "progress_output", Err: err}
-				local.controller.Stop()
-				local.activeCancel()
-			}
-		}
-		if local.overallCtx.Err() != nil && local.hostFailure == nil && !local.controller.Stopped() {
-			local.hostFailure = &HostError{Reason: contextFailureReason(local.overallCtx.Err()), Err: local.overallCtx.Err()}
-			local.controller.Stop()
-			local.activeCancel()
-		}
-		if local.controller.Active() == 0 {
-			break
-		}
-		var completion runCompletion
-		select {
-		case completion = <-completions:
-		case <-progressTicks:
-			if admittedThisTurn {
-				continue
-			}
-			if err := local.reportProgress(ProgressRunning, local.controller.Active()); err != nil {
-				local.hostFailure = &HostError{Reason: "progress_output", Err: err}
-				local.controller.Stop()
-				local.activeCancel()
-			}
-			continue
-		}
-		local.handleCompletion(completion)
-	}
-}
-
-func (local *localCampaign) handleCompletion(completion runCompletion) {
-	if local.overallCtx.Err() != nil {
-		local.recordCompletion(campaign.CompletedUnclassified())
-		if local.hostFailure == nil {
-			local.hostFailure = &HostError{Reason: contextFailureReason(local.overallCtx.Err()), Err: local.overallCtx.Err()}
-		}
-		local.controller.Stop()
-		local.activeCancel()
-		return
+// observe classifies an arrived completion in the order the Runner has always
+// checked it. It returns a host failure, or leaves the attempt's observation
+// or campaign-requested cancellation on the attempt.
+func (local *localCampaign) observe(attempt *seedAttempt, completion runCompletion) *seedHostFailure {
+	if err := local.overallCtx.Err(); err != nil {
+		return &seedHostFailure{reason: contextFailureReason(err), cause: err}
 	}
 	if completion.err != nil {
-		local.recordCompletion(campaign.CompletedUnclassified())
-		reason := supervisionFailureReason(completion.err)
 		if completion.result.ChoiceTrace.Profile != "" && completion.result.ChoiceTrace.Trace.Summary.Terminal == choice.TerminalOverflow {
-			local.summary.ChoiceTrace = choiceTraceSummary(completion.job.seed, completion.result.ChoiceTrace)
+			attempt.choiceTrace = choiceTraceSummary(completion.job.seed, completion.result.ChoiceTrace)
 		}
+		cause := completion.err
 		if partialErr := preservePartial(completion.journal); partialErr != nil {
-			completion.err = errors.Join(completion.err, partialErr)
+			cause = errors.Join(cause, partialErr)
 		}
-		if publishErr := local.publishRunnerFailure(completion, reason); publishErr != nil {
-			completion.err = errors.Join(completion.err, publishErr)
-		}
-		if local.hostFailure == nil {
-			local.hostFailure = &HostError{Reason: reason, Err: completion.err}
-			local.controller.Stop()
-			local.activeCancel()
-		}
-		return
+		return &seedHostFailure{reason: supervisionFailureReason(completion.err), cause: cause, evidence: true}
 	}
 	if err := local.config.Backend.ValidatePrepared(local.config.Target, local.prepared, recordedEnvironmentStrings(local.baseEnvironment)); err != nil {
-		local.recordCompletion(campaign.CompletedUnclassified())
-		if local.hostFailure == nil {
-			local.hostFailure = &HostError{Reason: "prepared_target_integrity", Err: err}
-			local.controller.Stop()
-			local.activeCancel()
-		}
-		return
+		return &seedHostFailure{reason: "prepared_target_integrity", cause: err}
 	}
 	if local.config.ChoiceTraceLimit != 0 {
-		local.summary.ChoiceTrace = choiceTraceSummary(completion.job.seed, completion.result.ChoiceTrace)
+		attempt.choiceTrace = choiceTraceSummary(completion.job.seed, completion.result.ChoiceTrace)
 	}
-	if completion.result.Cancelled && local.controller.Stopped() {
-		local.recordCompletion(campaign.CompletedCancelled())
-		if partialErr := preservePartial(completion.journal); partialErr != nil {
-			local.hostFailure = errors.Join(local.hostFailure, &HostError{Reason: "partial_write", Err: partialErr})
-		}
-		if local.hostFailure != nil {
-			reason := "runner_failure"
-			var hostError *HostError
-			if errors.As(local.hostFailure, &hostError) {
-				reason = hostError.Reason
-			}
-			if publishErr := local.publishRunnerFailure(completion, reason); publishErr != nil {
-				local.hostFailure = errors.Join(local.hostFailure, publishErr)
-			}
-			return
-		}
-		run := campaign.ExecutionRecord{
-			SelectionOrdinal: record.Uint64String(completion.job.ordinal), Seed: record.Uint64String(completion.job.seed),
-			Domain: "runner", Reason: "runner_cancelled", Termination: "none", ElapsedNanos: elapsedNanos(completion.startedAt, completion.finishedAt),
-		}
-		if err := local.journal.AppendExecution(run); err != nil && local.hostFailure == nil {
-			local.hostFailure = &HostError{Reason: "runs_append", Err: err}
-			local.controller.Stop()
-			local.activeCancel()
-		}
-		return
+	if completion.result.Cancelled && local.cancellationRequested() {
+		return local.observeCancellation(attempt, completion)
 	}
 	worldBundle, err := assessWorld(completion.result, completion.job.seed, local.config.WorldTransitionLimit)
 	if err != nil {
-		local.recordCompletion(campaign.CompletedUnclassified())
-		if publishErr := local.publishRunnerFailure(completion, "world_record"); publishErr != nil {
-			err = errors.Join(err, publishErr)
-		}
-		if local.hostFailure == nil {
-			local.hostFailure = &HostError{Reason: "world_record", Err: err}
-			local.controller.Stop()
-			local.activeCancel()
-		}
-		return
+		return &seedHostFailure{reason: "world_record", cause: err, evidence: true}
 	}
 	assessed, assessErr := assessCompletion(local.overallCtx, local.config.Backend, completion.result, worldBundle.Manifest.Terminal, local.config.Coverage, local.prepared)
 	if assessErr != nil {
-		local.recordCompletion(campaign.CompletedUnclassified())
+		cause := assessErr.Err
 		if partialErr := preservePartial(completion.journal); partialErr != nil {
-			assessErr.Err = errors.Join(assessErr.Err, partialErr)
+			cause = errors.Join(cause, partialErr)
 		}
-		if local.hostFailure == nil {
-			local.hostFailure = assessErr
-			local.controller.Stop()
-			local.activeCancel()
-		}
-		return
+		return &seedHostFailure{reason: assessErr.Reason, cause: cause}
 	}
-	local.recordAssessedCompletion(completion, worldBundle, assessed)
-}
-
-func (local *localCampaign) recordAssessedCompletion(completion runCompletion, worldBundle backend.Bundle, assessed completedExecution) {
-	runCoverage, runChoiceProjection, outcome := assessed.coverage, assessed.choiceProjection, assessed.outcome
+	observation := &seedObservation{}
 	if local.config.Diagnostics && len(completion.result.DiagnosticTrace.Bytes) != 0 {
-		trace, err := retainDiagnosticTrace(local.journal.Path(), completion.job.ordinal, completion.result.DiagnosticTrace)
+		trace, file, err := retainDiagnosticTrace(local.overallCtx, local.journal.Path(), completion.job.ordinal, completion.result.DiagnosticTrace)
 		if err != nil {
-			local.recordCompletion(campaign.CompletedUnclassified())
-			local.hostFailure = &HostError{Reason: "diagnostic_write", Err: err}
-			local.controller.Stop()
-			local.activeCancel()
-			return
+			return &seedHostFailure{reason: "diagnostic_write", cause: err}
 		}
-		local.summary.Diagnostics = trace
+		observation.diagnostic, observation.diagnostics = trace, []artifact.FileReference{file}
 	}
 	if local.config.CollectExecutionEvidence {
-		mountArtifact, evidenceErr := mountArtifactForRun(local.readOnlyMounts, local.config.IOROMountLimits, completion.result.IOROMounts)
-		if evidenceErr != nil {
-			local.recordCompletion(campaign.CompletedUnclassified())
-			if local.hostFailure == nil {
-				local.hostFailure = &HostError{Reason: "execution_evidence", Err: evidenceErr}
-				local.controller.Stop()
-				local.activeCancel()
-			}
-			return
+		mountArtifact, err := mountArtifactForRun(local.readOnlyMounts, local.config.IOROMountLimits, completion.result.IOROMounts)
+		if err != nil {
+			return &seedHostFailure{reason: "execution_evidence", cause: err}
 		}
-		runRecord := executionEvidence(local.config, local.prepared, local.baseEnvironment, completion, outcome, worldBundle.Manifest, mountArtifact, runCoverage, runChoiceProjection)
-		local.summary.ExecutionEvidence = &runRecord
-		local.summary.ExecutionElapsedNanos = uint64(elapsedNanos(completion.startedAt, completion.finishedAt))
+		evidence := executionEvidence(local.config, local.prepared, local.baseEnvironment, completion, assessed.outcome, worldBundle.Manifest, mountArtifact, assessed.coverage, assessed.choiceProjection)
+		observation.evidence = &evidence
+		observation.evidenceElapsed = uint64(elapsedNanos(completion.startedAt, completion.finishedAt))
 	}
 	if err := completion.journal.Transition(campaign.ExecutionClassified); err != nil {
-		local.recordCompletion(campaign.CompletedUnclassified())
-		if local.hostFailure == nil {
-			local.hostFailure = &HostError{Reason: "partial_write", Err: err}
-			local.controller.Stop()
-			local.activeCancel()
-		}
-		return
+		return &seedHostFailure{reason: "partial_write", cause: err}
 	}
-	if overallErr := local.overallCtx.Err(); overallErr != nil {
-		local.recordCompletion(campaign.CompletedUnclassified())
-		if local.hostFailure == nil {
-			local.hostFailure = &HostError{Reason: contextFailureReason(overallErr), Err: overallErr}
-			local.controller.Stop()
-			local.activeCancel()
-		}
+	if err := local.overallCtx.Err(); err != nil {
+		cause := error(err)
 		if partialErr := preservePartial(completion.journal); partialErr != nil {
-			local.hostFailure = errors.Join(local.hostFailure, &HostError{Reason: "partial_write", Err: partialErr})
+			cause = errors.Join(cause, &HostError{Reason: "partial_write", Err: partialErr})
 		}
-		return
+		return &seedHostFailure{reason: contextFailureReason(err), cause: cause}
 	}
-	if outcome.Domain == "success" {
-		local.recordSuccessfulExecution(completion, worldBundle, assessed)
-		return
+	var failure *seedHostFailure
+	if assessed.outcome.Domain == "success" {
+		failure = local.observeSuccess(observation, completion, worldBundle, assessed)
+	} else {
+		failure = local.observeFailure(observation, completion, worldBundle, assessed)
 	}
-	local.recordFailedExecution(completion, worldBundle, assessed)
+	if failure != nil {
+		return failure
+	}
+	attempt.observation = observation
+	if observation.successErr == nil {
+		if err := local.recordReceipt(observation); err != nil {
+			return &seedHostFailure{reason: "runs_append", cause: err}
+		}
+		attempt.received = true
+	}
+	attempt.cleanupErr = completion.journal.Complete()
+	return nil
 }
 
-func (local *localCampaign) recordSuccessfulExecution(completion runCompletion, worldBundle backend.Bundle, assessed completedExecution) {
-	runCoverage, runChoiceFeatures, outcome := assessed.coverage, assessed.choiceFeatures, assessed.outcome
+// cancellationRequested reports whether the campaign has cancelled its active
+// attempts, for a pending first-failure stop or a host failure.
+func (local *localCampaign) cancellationRequested() bool {
+	return local.activeCtx.Err() != nil
+}
+
+// observeCancellation records the actual cancellation a pending first-failure
+// stop requested as the attempt's receipt. A cancellation a host failure
+// requested is that failure's evidence instead.
+func (local *localCampaign) observeCancellation(attempt *seedAttempt, completion runCompletion) *seedHostFailure {
+	attempt.partialErr = preservePartial(completion.journal)
+	if local.hostFailure != nil || local.journal.Frontier().PendingStop != campaign.StopFirstFailure {
+		attempt.cancelled = true
+		return nil
+	}
+	observation := &seedObservation{run: campaign.ExecutionRecord{
+		SelectionOrdinal: record.Uint64String(completion.job.ordinal), Seed: record.Uint64String(completion.job.seed),
+		Domain: "runner", Reason: "runner_cancelled", Termination: "none", ElapsedNanos: elapsedNanos(completion.startedAt, completion.finishedAt),
+	}}
+	if err := local.recordReceipt(observation); err != nil {
+		return &seedHostFailure{reason: "runs_append", cause: err}
+	}
+	attempt.observation, attempt.received = observation, true
+	return nil
+}
+
+// observeSuccess publishes a success the ordered outcome may retain before
+// its receipt. It is published when the committed state would retain it;
+// the ordered outcome judges against at least that state, so it retains at
+// most what was published. A retention error is kept for that judgement.
+func (local *localCampaign) observeSuccess(observation *seedObservation, completion runCompletion, worldBundle backend.Bundle, assessed completedExecution) *seedHostFailure {
+	outcome := assessed.outcome
 	run := campaign.ExecutionRecord{
 		SelectionOrdinal: record.Uint64String(completion.job.ordinal), Seed: record.Uint64String(completion.job.seed),
 		Domain: "success", Reason: outcome.Reason, Termination: "exit", ElapsedNanos: elapsedNanos(completion.startedAt, completion.finishedAt),
 	}
 	setRunTranscript(&run, completion.result.IOTranscript)
 	setRunChoiceTrace(&run, completion.result.ChoiceTrace)
-	run.SemanticProbes = append([]string(nil), runCoverage.Probes...)
-	run.ChoiceFeatures = append([]string(nil), runChoiceFeatures...)
-	retention, retentionErr := decideSuccessRetention(local.config, assessed, completion.result.IOTranscript.Complete || len(completion.result.BackendEvidence) != 0, local.semanticProbes, local.choiceFeatures, local.summary.RetainedSuccesses, local.summary.RetainedSuccessBytes)
+	run.SemanticProbes = append([]string(nil), assessed.coverage.Probes...)
+	run.ChoiceFeatures = append([]string(nil), assessed.choiceFeatures...)
+	observation.run = run
+	observation.transcriptComplete = completion.result.IOTranscript.Complete || len(completion.result.BackendEvidence) != 0
+	retention, retentionErr := decideSuccessRetention(local.config, assessed, observation.transcriptComplete, local.semanticProbes, local.choiceFeatures, local.summary.RetainedSuccesses, local.summary.RetainedSuccessBytes)
 	if retentionErr != nil {
-		local.recordCompletion(campaign.CompletedUnclassified())
-		local.hostFailure = retentionErr
-		local.controller.Stop()
-		local.activeCancel()
-		return
-	}
-	if retention.retain {
-		mountArtifact, publishErr := mountArtifactForRun(local.readOnlyMounts, local.config.IOROMountLimits, completion.result.IOROMounts)
-		if publishErr == nil {
-			var manifest record.ExecutionRecord
-			manifest, publishErr = manifestForRun(local.config, local.prepared, local.baseEnvironment, completion, outcome, local.runID, worldBundle.Manifest, mountArtifact)
-			if publishErr == nil {
-				var published artifact.Artifact
-				published, publishErr = artifact.PublishArtifact(artifact.Store{Root: local.journal.SuccessesPath(), Context: local.overallCtx, MaximumBytes: retention.maximumBytes, Key: artifact.StoreKeyExecution, TargetPool: artifact.TargetPool(local.config.Artifacts)}, executionArtifactInput(manifest, local.prepared, completion.result, mountArtifact, worldBundle))
-				if publishErr == nil {
-					relative, relErr := filepath.Rel(local.batchPath, published.Path)
-					if relErr != nil {
-						publishErr = relErr
-					} else {
-						retention.annotate(&run, relative, published.StoredBytes)
-						local.summary.SuccessArtifacts = append(local.summary.SuccessArtifacts, published.Path)
-						local.summary.RetainedSuccesses++
-						local.summary.RetainedSuccessBytes += published.StoredBytes
-					}
-				}
-			}
+		observation.successErr = retentionErr
+	} else if retention.retain {
+		published, err := local.publishSuccess(completion, worldBundle, outcome, retention.maximumBytes)
+		if err != nil {
+			observation.successErr = successPublicationFailure(err)
 		}
-		if publishErr != nil {
-			local.recordCompletion(campaign.CompletedUnclassified())
-			local.hostFailure = successPublicationFailure(publishErr)
-			local.controller.Stop()
-			local.activeCancel()
-			return
-		}
+		observation.success = published
 	}
 	if local.guidance != nil {
-		mountArtifact, guideErr := mountArtifactForRun(local.readOnlyMounts, local.config.IOROMountLimits, completion.result.IOROMounts)
-		var added bool
-		if guideErr == nil {
-			added, guideErr = local.guidance.MergeRun(local.overallCtx, completion, outcome, worldBundle, mountArtifact, runCoverage)
+		mountArtifact, err := mountArtifactForRun(local.readOnlyMounts, local.config.IOROMountLimits, completion.result.IOROMounts)
+		if err == nil {
+			observation.corpusAdded, err = local.guidance.MergeRun(local.overallCtx, completion, outcome, worldBundle, mountArtifact, assessed.coverage)
 		}
-		if guideErr != nil {
-			local.recordCompletion(campaign.CompletedUnclassified())
-			local.hostFailure = &HostError{Reason: "guided_corpus", Err: guideErr}
-			local.controller.Stop()
-			local.activeCancel()
-			return
-		}
-		if added {
-			local.summary.CorpusAdded++
-			local.summary.CorpusEntries = uint64(len(local.guidance.Snapshot().Entries))
+		if err != nil {
+			return &seedHostFailure{reason: "guided_corpus", cause: err}
 		}
 	}
-	if err := local.journal.AppendExecution(run); err != nil && local.hostFailure == nil {
-		local.hostFailure = &HostError{Reason: "runs_append", Err: err}
-		local.controller.Stop()
-		local.activeCancel()
-	}
-	if local.hostFailure == nil {
-		local.recordCompletion(campaign.CompletedSuccess())
-		addStrings(local.semanticProbes, runCoverage.Probes)
-		addStrings(local.choiceFeatures, runChoiceFeatures)
-	} else {
-		local.recordCompletion(campaign.CompletedUnclassified())
-	}
-	local.completePartial(completion.journal)
+	return nil
 }
 
-func (local *localCampaign) recordFailedExecution(completion runCompletion, worldBundle backend.Bundle, assessed completedExecution) {
-	runCoverage, runChoiceFeatures, outcome := assessed.coverage, assessed.choiceFeatures, assessed.outcome
-	mountArtifact, manifestErr := mountArtifactForRun(local.readOnlyMounts, local.config.IOROMountLimits, completion.result.IOROMounts)
-	if manifestErr != nil {
-		local.recordCompletion(campaign.CompletedUnclassified())
-		if local.hostFailure == nil {
-			local.hostFailure = &HostError{Reason: "manifest", Err: manifestErr}
-			local.controller.Stop()
-			local.activeCancel()
-		}
-		return
+func (local *localCampaign) publishSuccess(completion runCompletion, worldBundle backend.Bundle, outcome backend.Classification, maximumBytes uint64) (*publishedSuccess, error) {
+	mountArtifact, err := mountArtifactForRun(local.readOnlyMounts, local.config.IOROMountLimits, completion.result.IOROMounts)
+	if err != nil {
+		return nil, err
 	}
-	manifest, manifestErr := manifestForRun(local.config, local.prepared, local.baseEnvironment, completion, outcome, local.runID, worldBundle.Manifest, mountArtifact)
-	if manifestErr != nil {
-		local.recordCompletion(campaign.CompletedUnclassified())
-		if local.hostFailure == nil {
-			local.hostFailure = &HostError{Reason: "manifest", Err: manifestErr}
-			local.controller.Stop()
-			local.activeCancel()
-		}
-		return
+	manifest, err := manifestForRun(local.config, local.prepared, local.baseEnvironment, completion, outcome, local.runID, worldBundle.Manifest, mountArtifact)
+	if err != nil {
+		return nil, err
 	}
-	published, publishErr := publishBoundedFailureArtifact(local.overallCtx, local.config, local.journal.FailuresPath(), manifest.Outcome.FailureSignature, local.distinct, &local.failureArtifactBytes, executionArtifactInput(manifest, local.prepared, completion.result, mountArtifact, worldBundle))
-	if publishErr != nil {
-		local.recordCompletion(campaign.CompletedUnclassified())
-		if local.hostFailure == nil {
-			local.hostFailure = &HostError{Reason: "artifact_publication", Err: publishErr}
-			local.controller.Stop()
-			local.activeCancel()
-		}
-		return
+	published, err := artifact.PublishArtifact(artifact.Store{Root: local.journal.SuccessesPath(), Context: local.overallCtx, MaximumBytes: maximumBytes, Key: artifact.StoreKeyExecution, TargetPool: artifact.TargetPool(local.config.Artifacts)}, executionArtifactInput(manifest, local.prepared, completion.result, mountArtifact, worldBundle))
+	if err != nil {
+		return nil, err
 	}
-	if overallErr := local.overallCtx.Err(); overallErr != nil {
-		local.recordCompletion(campaign.CompletedUnclassified())
-		if local.hostFailure == nil {
-			local.hostFailure = &HostError{Reason: contextFailureReason(overallErr), Err: overallErr}
-			local.controller.Stop()
-			local.activeCancel()
-		}
-		return
+	relative, err := filepath.Rel(local.batchPath, published.Path)
+	if err != nil {
+		return nil, err
 	}
-	if local.guidance != nil {
-		added, guideErr := local.guidance.MergeRun(local.overallCtx, completion, outcome, worldBundle, mountArtifact, runCoverage)
-		if guideErr != nil {
-			local.recordCompletion(campaign.CompletedUnclassified())
-			local.hostFailure = &HostError{Reason: "guided_corpus", Err: guideErr}
-			local.controller.Stop()
-			local.activeCancel()
-			return
-		}
-		if added {
-			local.summary.CorpusAdded++
-			local.summary.CorpusEntries = uint64(len(local.guidance.Snapshot().Entries))
-		}
+	return &publishedSuccess{relative: filepath.ToSlash(relative), path: published.Path, storedBytes: published.StoredBytes}, nil
+}
+
+// observeFailure publishes a classified failure's artifact before its
+// receipt. A cancellation the campaign did not request fails the host.
+func (local *localCampaign) observeFailure(observation *seedObservation, completion runCompletion, worldBundle backend.Bundle, assessed completedExecution) *seedHostFailure {
+	outcome := assessed.outcome
+	if outcome.Domain == "runner" {
+		return &seedHostFailure{reason: "runner_cancelled", cause: errors.New("seed execution was cancelled")}
+	}
+	mountArtifact, err := mountArtifactForRun(local.readOnlyMounts, local.config.IOROMountLimits, completion.result.IOROMounts)
+	if err != nil {
+		return &seedHostFailure{reason: "manifest", cause: err}
+	}
+	manifest, err := manifestForRun(local.config, local.prepared, local.baseEnvironment, completion, outcome, local.runID, worldBundle.Manifest, mountArtifact)
+	if err != nil {
+		return &seedHostFailure{reason: "manifest", cause: err}
+	}
+	published, err := publishBoundedFailureArtifact(local.overallCtx, local.config, local.journal.FailuresPath(), manifest.Outcome.FailureSignature, local.published, &local.failureArtifactBytes, executionArtifactInput(manifest, local.prepared, completion.result, mountArtifact, worldBundle))
+	if err != nil {
+		return &seedHostFailure{reason: "artifact_publication", cause: err}
 	}
 	signature := published.Manifest.Outcome.FailureSignature
-	if _, found := local.distinct[signature]; !found {
-		local.distinct[signature] = published.Path
-		local.summary.Artifacts = append(local.summary.Artifacts, published.Path)
+	if _, found := local.published[signature]; !found {
+		local.published[signature] = published.Path
 	}
-	cancelActive := local.recordCompletion(campaign.CompletedFailure(outcome.Domain, outcome.Reason, uint64(len(local.distinct))))
-	artifactRelative, relErr := filepath.Rel(local.batchPath, published.Path)
-	if relErr != nil {
-		local.hostFailure = &HostError{Reason: "artifact_path", Err: relErr}
-		local.controller.Stop()
-		local.activeCancel()
-		return
+	if err := local.overallCtx.Err(); err != nil {
+		return &seedHostFailure{reason: contextFailureReason(err), cause: err}
 	}
+	if local.guidance != nil {
+		observation.corpusAdded, err = local.guidance.MergeRun(local.overallCtx, completion, outcome, worldBundle, mountArtifact, assessed.coverage)
+		if err != nil {
+			return &seedHostFailure{reason: "guided_corpus", cause: err}
+		}
+	}
+	artifactRelative, err := filepath.Rel(local.batchPath, published.Path)
+	if err != nil {
+		return &seedHostFailure{reason: "artifact_path", cause: err}
+	}
+	artifactRelative = filepath.ToSlash(artifactRelative)
 	run := campaign.ExecutionRecord{
 		SelectionOrdinal: record.Uint64String(completion.job.ordinal), Seed: record.Uint64String(completion.job.seed),
 		Domain: outcome.Domain, Reason: outcome.Reason, Termination: outcome.Termination, FailureSignature: &signature,
@@ -805,22 +597,10 @@ func (local *localCampaign) recordFailedExecution(completion runCompletion, worl
 	}
 	setRunTranscript(&run, completion.result.IOTranscript)
 	setRunChoiceTrace(&run, completion.result.ChoiceTrace)
-	run.SemanticProbes = append([]string(nil), runCoverage.Probes...)
-	run.ChoiceFeatures = append([]string(nil), runChoiceFeatures...)
-	if err := local.journal.AppendExecution(run); err != nil && local.hostFailure == nil {
-		local.hostFailure = &HostError{Reason: "runs_append", Err: err}
-		local.controller.Stop()
-		local.activeCancel()
-	}
-	if local.hostFailure == nil {
-		addStrings(local.semanticProbes, runCoverage.Probes)
-		addStrings(local.choiceFeatures, runChoiceFeatures)
-	}
-	local.completePartial(completion.journal)
-
-	if cancelActive {
-		local.activeCancel()
-	}
+	run.SemanticProbes = append([]string(nil), assessed.coverage.Probes...)
+	run.ChoiceFeatures = append([]string(nil), assessed.choiceFeatures...)
+	observation.run, observation.failurePath = run, published.Path
+	return nil
 }
 
 func (local *localCampaign) finishSeedCampaign() error {
@@ -864,8 +644,8 @@ func (local *localCampaign) finishSeedCampaign() error {
 	if err := local.overallCtx.Err(); err != nil {
 		return &HostError{Reason: contextFailureReason(err), Err: err}
 	}
-	local.controller.Finalize()
-	synchronizeCampaignStatistics(&local.summary, local.controller.Statistics())
+	local.statistics.Finalize()
+	synchronizeCampaignStatistics(&local.summary, local.statistics)
 	if err := local.overallCtx.Err(); err != nil {
 		return &HostError{Reason: contextFailureReason(err), Err: err}
 	}

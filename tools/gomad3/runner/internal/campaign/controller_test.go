@@ -2,236 +2,138 @@ package campaign
 
 import "testing"
 
-func TestSeedControllerSchedulesAndAggregatesDeterministically(t *testing.T) {
-	jobs := []SeedJob{{Ordinal: 0, Seed: 10}, {Ordinal: 2, Seed: 12}, {Ordinal: 3, Seed: 13}}
-	next := 0
-	controller, err := NewSeedController(SeedControllerConfig{
-		Next: func() (SeedJob, bool) {
-			if next == len(jobs) {
-				return SeedJob{}, false
-			}
-			job := jobs[next]
-			next++
-			return job, true
+type completionStep struct {
+	completion Completion
+	cancel     bool
+}
+
+var (
+	succeeded    = completionStep{completion: CompletedSuccess()}
+	cancelled    = completionStep{completion: CompletedCancelled()}
+	unclassified = completionStep{completion: CompletedUnclassified()}
+)
+
+func failed(domain, reason string, distinct uint64, cancel bool) completionStep {
+	return completionStep{completion: CompletedFailure(domain, reason, distinct), cancel: cancel}
+}
+
+// Each row records its completions in order and pins the whole statistics
+// value and the first policy stop any of them triggers; only a first-failure
+// stop requests cancellation of active attempts.
+func TestCampaignStatisticsRecordKeepsWholeStatistics(t *testing.T) {
+	for _, test := range []struct {
+		name     string
+		policy   FailurePolicy
+		budget   uint64
+		initial  CampaignStatistics
+		steps    []completionStep
+		want     CampaignStatistics
+		wantStop ControllerStopReason
+	}{
+		{name: "success", policy: failurePolicyAll, steps: []completionStep{succeeded}, want: CampaignStatistics{Attempted: 1, Succeeded: 1}},
+		{name: "cancellation", policy: failurePolicyAll, steps: []completionStep{cancelled}, want: CampaignStatistics{Attempted: 1, Cancelled: 1}},
+		{name: "unclassified attempt", policy: failurePolicyAll, steps: []completionStep{unclassified}, want: CampaignStatistics{Attempted: 1}},
+		{
+			name: "watchdog", policy: failurePolicyAll, steps: []completionStep{failed("watchdog", "watchdog_timeout", 1, false)},
+			want: CampaignStatistics{Attempted: 1, Failures: 1, Watchdogs: 1, DistinctFailures: 1},
 		},
-		Parallel: 2, Policy: failurePolicyAll, FailureBudget: 1,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	first, ok := controller.Next()
-	if !ok || first != jobs[0] {
-		t.Fatalf("first job = %#v, %t", first, ok)
-	}
-	second, ok := controller.Next()
-	if !ok || second != jobs[1] {
-		t.Fatalf("second job = %#v, %t", second, ok)
-	}
-	_, ok = controller.Next()
-	if ok {
-		t.Fatal("controller exceeded parallelism")
-	}
-	controller.Complete(Completion{Kind: CompletionSuccess})
-	_, ok = controller.Next()
-	if !ok {
-		t.Fatal("third job was not scheduled")
-	}
-	controller.Complete(Completion{Kind: completionFailure, Domain: "watchdog", Reason: "world_replay_divergence", DistinctFailures: 1})
-	controller.Complete(Completion{Kind: CompletionCancelled})
-	_, ok = controller.Next()
-	if ok || !controller.Done() {
-		t.Fatal("controller did not exhaust")
-	}
-	controller.Finalize()
-	want := CampaignStatistics{
-		Attempted: 3, Succeeded: 1, Failures: 1, Watchdogs: 1, ReplayDivergences: 1,
-		Cancelled: 1, DistinctFailures: 1, StopReason: StopSeedsExhausted,
-	}
-	if got := controller.Statistics(); got != want {
-		t.Fatalf("statistics = %#v, want %#v", got, want)
-	}
-}
-
-func TestSeedControllerAppliesFailurePolicies(t *testing.T) {
-	for _, test := range []struct {
-		name       string
-		policy     FailurePolicy
-		budget     uint64
-		distinct   uint64
-		wantReason ControllerStopReason
-		wantCancel bool
-	}{
-		{name: "first", policy: failurePolicyFirst, budget: 1, distinct: 1, wantReason: StopFirstFailure, wantCancel: true},
-		{name: "budget", policy: failurePolicyBudget, budget: 2, distinct: 2, wantReason: StopFailureBudget},
-		{name: "all", policy: failurePolicyAll, budget: 1, distinct: 1},
+		{
+			name: "replay divergence", policy: failurePolicyAll, steps: []completionStep{failed("target", "world_replay_divergence", 0, false)},
+			want: CampaignStatistics{Attempted: 1, Failures: 1, ReplayDivergences: 1},
+		},
+		{
+			name: "distinct and duplicate failures", policy: failurePolicyAll,
+			steps: []completionStep{failed("target", "nonzero_exit", 1, false), failed("target", "nonzero_exit", 1, false), succeeded, failed("target", "nonzero_exit", 2, false)},
+			want:  CampaignStatistics{Attempted: 4, Succeeded: 1, Failures: 3, DistinctFailures: 2},
+		},
+		{
+			name: "first failure cancels active work once", policy: failurePolicyFirst,
+			steps:    []completionStep{succeeded, cancelled, failed("target", "nonzero_exit", 1, true), failed("target", "nonzero_exit", 2, true), cancelled},
+			want:     CampaignStatistics{Attempted: 5, Succeeded: 1, Failures: 2, Cancelled: 2, DistinctFailures: 2},
+			wantStop: StopFirstFailure,
+		},
+		{
+			name: "budget counts distinct failures", policy: failurePolicyBudget, budget: 2,
+			steps:    []completionStep{failed("target", "nonzero_exit", 1, false), failed("target", "nonzero_exit", 1, false), failed("watchdog", "watchdog_timeout", 2, false), unclassified},
+			want:     CampaignStatistics{Attempted: 4, Failures: 3, Watchdogs: 1, DistinctFailures: 2},
+			wantStop: StopFailureBudget,
+		},
+		{
+			name: "budget unclassified attempts never stop", policy: failurePolicyBudget, budget: 1,
+			steps: []completionStep{unclassified, unclassified},
+			want:  CampaignStatistics{Attempted: 2},
+		},
+		{
+			name: "all never stops", policy: failurePolicyAll,
+			steps: []completionStep{failed("target", "nonzero_exit", 1, false), failed("target", "nonzero_exit", 2, false), failed("target", "nonzero_exit", 3, false)},
+			want:  CampaignStatistics{Attempted: 3, Failures: 3, DistinctFailures: 3},
+		},
+		{
+			name: "resume seeded counters accumulate", policy: failurePolicyBudget, budget: 3,
+			initial: CampaignStatistics{Attempted: 5, Succeeded: 2, Failures: 3, Watchdogs: 1, ReplayDivergences: 1, Cancelled: 0, DistinctFailures: 2},
+			steps:   []completionStep{succeeded, failed("target", "world_replay_divergence", 2, false), failed("watchdog", "watchdog_timeout", 3, false)},
+			want: CampaignStatistics{
+				Attempted: 8, Succeeded: 3, Failures: 5, Watchdogs: 2, ReplayDivergences: 2, DistinctFailures: 3,
+			},
+			wantStop: StopFailureBudget,
+		},
+		{
+			name: "resume seeded first policy without failures", policy: failurePolicyFirst,
+			initial:  CampaignStatistics{Attempted: 2, Succeeded: 1, Cancelled: 1},
+			steps:    []completionStep{failed("target", "nonzero_exit", 1, true)},
+			want:     CampaignStatistics{Attempted: 3, Succeeded: 1, Failures: 1, Cancelled: 1, DistinctFailures: 1},
+			wantStop: StopFirstFailure,
+		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			controller, err := NewSeedController(SeedControllerConfig{
-				Next:     func() (SeedJob, bool) { return SeedJob{}, true },
-				Parallel: 2, Policy: test.policy, FailureBudget: test.budget,
-			})
-			if err != nil {
-				t.Fatal(err)
-			}
-			_, ok := controller.Next()
-			if !ok {
-				t.Fatal("first job was not scheduled")
-			}
-			_, ok = controller.Next()
-			if !ok {
-				t.Fatal("second job was not scheduled")
-			}
-			if cancel := controller.Complete(Completion{Kind: completionFailure, Domain: "watchdog", Reason: "world_replay_divergence", DistinctFailures: test.distinct}); cancel != test.wantCancel {
-				t.Fatalf("cancel = %t, want %t", cancel, test.wantCancel)
-			}
-			want := CampaignStatistics{
-				Attempted: 1, Failures: 1, Watchdogs: 1, ReplayDivergences: 1,
-				DistinctFailures: test.distinct, StopReason: test.wantReason,
-			}
-			if got := controller.Statistics(); controller.Stopped() != (test.wantReason != "") || got != want || controller.Active() != 1 {
-				t.Fatalf("controller stopped = %t, statistics = %#v, want %#v", controller.Stopped(), got, want)
-			}
-			_, ok = controller.Next()
-			if ok != (test.wantReason == "") {
-				t.Fatal("stopped controller scheduled another job")
-			}
-			if test.wantReason == "" {
-				controller.Complete(Completion{Kind: completionUnclassified})
-			}
-			controller.Complete(Completion{Kind: completionUnclassified})
-			if test.wantReason == "" {
-				controller.Stop()
-			}
-			if !controller.Done() {
-				t.Fatal("stopped controller did not drain")
-			}
-		})
-	}
-}
-
-func TestSeedControllerCompletesUnclassifiedAndDuplicateFailureAtomically(t *testing.T) {
-	initial := CampaignStatistics{Attempted: 4, Succeeded: 2, Failures: 2, DistinctFailures: 1}
-	controller, err := NewSeedController(SeedControllerConfig{
-		Next:     func() (SeedJob, bool) { return SeedJob{Ordinal: 4, Seed: 14}, true },
-		Parallel: 2, Policy: failurePolicyBudget, FailureBudget: 2, Initial: initial,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	controller.Next()
-	controller.Next()
-	if cancel := controller.Complete(Completion{Kind: completionUnclassified}); cancel {
-		t.Fatal("unclassified completion cancelled active work")
-	}
-	want := CampaignStatistics{Attempted: 5, Succeeded: 2, Failures: 2, DistinctFailures: 1}
-	if got := controller.Statistics(); got != want || controller.Active() != 1 {
-		t.Fatalf("statistics = %#v, active = %d, want %#v and 1", got, controller.Active(), want)
-	}
-	if cancel := controller.Complete(Completion{Kind: completionFailure, Domain: "target", Reason: "exit_nonzero", DistinctFailures: 1}); cancel {
-		t.Fatal("duplicate failure cancelled active work")
-	}
-	want = CampaignStatistics{Attempted: 6, Succeeded: 2, Failures: 3, DistinctFailures: 1}
-	if got := controller.Statistics(); got != want || controller.Active() != 0 || controller.Stopped() {
-		t.Fatalf("statistics = %#v, active = %d, stopped = %t, want %#v", got, controller.Active(), controller.Stopped(), want)
-	}
-}
-
-func TestSeedControllerRejectsInactiveCompletionBeforeChangingStatistics(t *testing.T) {
-	controller, err := NewSeedController(SeedControllerConfig{
-		Next: func() (SeedJob, bool) { return SeedJob{}, false }, Parallel: 1, Policy: failurePolicyAll,
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() {
-		if recovered := recover(); recovered != "gomad3: completed an inactive campaign attempt" {
-			t.Fatalf("panic = %#v", recovered)
-		}
-		if got := controller.Statistics(); got != (CampaignStatistics{}) {
-			t.Fatalf("statistics after rejected completion = %#v", got)
-		}
-	}()
-	controller.Complete(Completion{Kind: CompletionSuccess})
-}
-
-func TestSeedControllerRestoresSatisfiedPolicy(t *testing.T) {
-	controller, err := NewSeedController(SeedControllerConfig{
-		Next: func() (SeedJob, bool) { return SeedJob{}, true }, Parallel: 1,
-		Policy: failurePolicyFirst, FailureBudget: 1,
-		Initial: CampaignStatistics{Failures: 1, DistinctFailures: 1},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !controller.Stopped() || !controller.Done() || controller.Statistics().StopReason != StopFirstFailure {
-		t.Fatalf("restored controller = %#v", controller)
-	}
-}
-
-func TestSeedControllerRestoresAdmissionAndWholeStatistics(t *testing.T) {
-	for _, test := range []struct {
-		name    string
-		policy  FailurePolicy
-		budget  uint64
-		stopped bool
-		want    CampaignStatistics
-	}{
-		{name: "all admits retained failures", policy: failurePolicyAll, budget: 1,
-			want: CampaignStatistics{Attempted: 8, Succeeded: 3, Failures: 4, Watchdogs: 2, ReplayDivergences: 1, Cancelled: 1, DistinctFailures: 2}},
-		{name: "budget below threshold admits", policy: failurePolicyBudget, budget: 3,
-			want: CampaignStatistics{Attempted: 8, Succeeded: 3, Failures: 4, Watchdogs: 2, ReplayDivergences: 1, Cancelled: 1, DistinctFailures: 2}},
-		{name: "budget at threshold stops", policy: failurePolicyBudget, budget: 2, stopped: true,
-			want: CampaignStatistics{Attempted: 8, Succeeded: 3, Failures: 4, Watchdogs: 2, ReplayDivergences: 1, Cancelled: 1, DistinctFailures: 2, StopReason: StopFailureBudget}},
-		{name: "budget above threshold stops", policy: failurePolicyBudget, budget: 1, stopped: true,
-			want: CampaignStatistics{Attempted: 8, Succeeded: 3, Failures: 4, Watchdogs: 2, ReplayDivergences: 1, Cancelled: 1, DistinctFailures: 2, StopReason: StopFailureBudget}},
-	} {
-		t.Run(test.name, func(t *testing.T) {
-			calls := 0
-			controller, err := NewSeedController(SeedControllerConfig{
-				Next: func() (SeedJob, bool) {
-					calls++
-					return SeedJob{Ordinal: 8, Seed: 18}, true
-				},
-				Parallel: 1, Policy: test.policy, FailureBudget: test.budget,
-				Initial: CampaignStatistics{Attempted: 8, Succeeded: 3, Failures: 4, Watchdogs: 2, ReplayDivergences: 1, Cancelled: 1, DistinctFailures: 2},
-			})
-			if err != nil {
-				t.Fatal(err)
-			}
-			if got := controller.Statistics(); got != test.want || controller.Stopped() != test.stopped || controller.Done() != test.stopped || controller.Active() != 0 {
-				t.Fatalf("restored statistics = %#v, stopped = %t, done = %t, active = %d, want %#v, stopped = %t", got, controller.Stopped(), controller.Done(), controller.Active(), test.want, test.stopped)
-			}
-			job, ok := controller.Next()
-			if test.stopped {
-				if ok || job != (SeedJob{}) || calls != 0 {
-					t.Fatalf("stopped admission = %#v, %t, source calls = %d", job, ok, calls)
+			statistics := test.initial
+			var stop ControllerStopReason
+			for index, step := range test.steps {
+				statistics.Record(step.completion)
+				decided := PolicyStop(test.policy, test.budget, step.completion)
+				if (decided == StopFirstFailure) != step.cancel {
+					t.Fatalf("completion %d stop = %q, want cancellation %t", index, decided, step.cancel)
 				}
-			} else if !ok || job != (SeedJob{Ordinal: 8, Seed: 18}) || calls != 1 || controller.Active() != 1 {
-				t.Fatalf("resumed admission = %#v, %t, source calls = %d, active = %d", job, ok, calls, controller.Active())
+				if stop == "" {
+					stop = decided
+				}
 			}
-			if got := controller.Statistics(); got != test.want {
-				t.Fatalf("admission changed statistics = %#v, want %#v", got, test.want)
+			if statistics != test.want || stop != test.wantStop {
+				t.Fatalf("statistics = %#v, stop = %q, want %#v, %q", statistics, stop, test.want, test.wantStop)
 			}
 		})
 	}
 }
 
-func TestSeedControllerRejectsInvalidConfiguration(t *testing.T) {
-	validNext := func() (SeedJob, bool) { return SeedJob{}, false }
-	for _, config := range []SeedControllerConfig{
-		{},
-		{Next: validNext},
-		{Next: validNext, Parallel: 1, Policy: failurePolicyBudget},
-		{Next: validNext, Parallel: 1, Policy: "unknown"},
-	} {
-		_, err := NewSeedController(config)
-		if err == nil {
-			t.Fatalf("NewSeedController(%#v) succeeded", config)
+func TestCampaignStatisticsRejectsCompletionWithoutClassification(t *testing.T) {
+	for _, completion := range []Completion{{}, {Kind: completionFailure + 1}} {
+		statistics := CampaignStatistics{Attempted: 3, Succeeded: 3}
+		func() {
+			defer func() {
+				if recovered := recover(); recovered != "gomad3: completed a campaign attempt without a classification" {
+					t.Fatalf("completion %#v recovered %#v", completion, recovered)
+				}
+			}()
+			statistics.Record(completion)
+			t.Fatalf("completion %#v was recorded", completion)
+		}()
+		if statistics != (CampaignStatistics{Attempted: 3, Succeeded: 3}) {
+			t.Fatalf("rejected completion changed statistics: %#v", statistics)
 		}
 	}
 }
 
-func TestPolicyStopIsTheControllersStopDecision(t *testing.T) {
+func TestCampaignStatisticsFinalizeKeepsACommittedStop(t *testing.T) {
+	exhausted := CampaignStatistics{Attempted: 1}
+	exhausted.Finalize()
+	stopped := CampaignStatistics{Attempted: 1, StopReason: StopFirstFailure}
+	stopped.Finalize()
+	if exhausted.StopReason != StopSeedsExhausted || stopped.StopReason != StopFirstFailure {
+		t.Fatalf("finalized stops = %q, %q", exhausted.StopReason, stopped.StopReason)
+	}
+}
+
+func TestPolicyStopDecidesOneOrderedCompletion(t *testing.T) {
 	for _, test := range []struct {
 		policy     FailurePolicy
 		budget     uint64
@@ -241,29 +143,14 @@ func TestPolicyStopIsTheControllersStopDecision(t *testing.T) {
 		{failurePolicyFirst, 1, CompletedFailure("target", "nonzero_exit", 1), StopFirstFailure},
 		{failurePolicyFirst, 1, CompletedSuccess(), ""},
 		{failurePolicyFirst, 1, CompletedCancelled(), ""},
+		{failurePolicyFirst, 1, CompletedUnclassified(), ""},
 		{failurePolicyBudget, 2, CompletedFailure("target", "nonzero_exit", 1), ""},
 		{failurePolicyBudget, 2, CompletedFailure("watchdog", "watchdog_timeout", 2), StopFailureBudget},
+		{failurePolicyBudget, 2, CompletedFailure("watchdog", "watchdog_timeout", 3), StopFailureBudget},
 		{failurePolicyAll, 1, CompletedFailure("target", "nonzero_exit", 5), ""},
 	} {
 		if got := PolicyStop(test.policy, test.budget, test.completion); got != test.want {
 			t.Fatalf("PolicyStop(%s, %d, %#v) = %q, want %q", test.policy, test.budget, test.completion, got, test.want)
-		}
-		jobs := []SeedJob{{Ordinal: 0, Seed: 1}}
-		controller, err := NewSeedController(SeedControllerConfig{Next: func() (SeedJob, bool) {
-			if len(jobs) == 0 {
-				return SeedJob{}, false
-			}
-			job := jobs[0]
-			jobs = jobs[1:]
-			return job, true
-		}, Parallel: 1, Policy: test.policy, FailureBudget: test.budget})
-		if err != nil {
-			t.Fatal(err)
-		}
-		controller.Next()
-		cancel := controller.Complete(test.completion)
-		if controller.Statistics().StopReason != test.want || cancel != (test.want == StopFirstFailure) {
-			t.Fatalf("controller stop = %q cancel=%t, want %q", controller.Statistics().StopReason, cancel, test.want)
 		}
 	}
 }

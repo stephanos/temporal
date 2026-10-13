@@ -527,6 +527,12 @@ returns status 2; storage, locking, and publication failures return status 3.
 Runner, toolchain, I/O profile, prepared binary, completed records, and every
 referenced failure or successful-Execution Artifact, reclaims uncommitted attempt work and
 unreferenced owned Artifacts, and schedules only ordinals without a committed outcome.
+A seed Campaign admits ordinals in its log before their attempts launch and
+records each attempt's actual completion as a terminal receipt before its
+outcome commits in ordinal order; resume reruns only admitted attempts
+without a receipt. A stopping failure commits together with every attempt
+admitted beside it: first-failure cancels them, a failure budget lets them
+finish, and a committed stop admits nothing more.
 A torn final log record is dropped; every acknowledged record survives. It appends to and eventually publishes the original
 Campaign; repeated resumes are safe when the recorded aggregate deadline is too
 short to finish all remaining seeds. Published batches, changed inputs,

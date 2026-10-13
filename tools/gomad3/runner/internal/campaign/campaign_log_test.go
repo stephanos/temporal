@@ -55,6 +55,17 @@ func TestCampaignLogPublishesLifecycleAndOutcomesAsItsOnlyState(t *testing.T) {
 	if err := run.Complete(); err != nil {
 		t.Fatal(err)
 	}
+	// Publication validates the whole summary against the committed
+	// outcomes and appends nothing for one that disagrees.
+	for _, summary := range []CampaignSummary{
+		{Attempted: 3, Succeeded: 2, Cancelled: 1, StopReason: "seeds_exhausted"},
+		{Attempted: 3, Succeeded: 3, Failures: 0, DistinctFailures: 1, StopReason: "seeds_exhausted"},
+		{Attempted: 3, Succeeded: 3, StopReason: "unknown"},
+	} {
+		if err := journal.Publish(summary); err == nil || !strings.Contains(err.Error(), "published campaign summary is invalid") {
+			t.Fatalf("Publish(%#v) error = %v", summary, err)
+		}
+	}
 	if err := journal.Publish(CampaignSummary{Attempted: 3, Succeeded: 3, StopReason: "seeds_exhausted"}); err != nil {
 		t.Fatal(err)
 	}

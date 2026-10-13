@@ -71,3 +71,16 @@ func logStoreHook(ctx context.Context) logstore.Hook {
 		return hook(mutationPoint{Kind: mutationKind("log-" + string(point.Kind)), Operation: point.Operation})
 	}
 }
+
+// WithStoreFaults returns ctx with hook observing every campaign log and
+// payload mutation point a campaign opened with it reaches: kind is
+// "log-<point>" for the log's append, sync and repair boundaries, or a payload
+// mutation kind; operation names the object or step. A non-nil error aborts
+// that mutation, and *logstore.PartialWrite at "log-write" interrupts an
+// append midway. It exists for deterministic fault injection by the Runner's
+// tests.
+func WithStoreFaults(ctx context.Context, hook func(kind, operation string) error) context.Context {
+	return withMutationHook(ctx, func(point mutationPoint) error {
+		return hook(string(point.Kind), point.Operation)
+	})
+}

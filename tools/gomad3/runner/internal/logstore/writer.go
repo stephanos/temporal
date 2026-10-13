@@ -40,7 +40,7 @@ func OpenWriter(path string, options Options, consume func(Record) error) (_ *Wr
 			if err := hook.observe(PointCreate, "root"); err != nil {
 				return nil, Report{}, err
 			}
-			if err := os.Mkdir(path, storeMode.Perm()); err != nil {
+			if err := createStoreDirectory(path); err != nil {
 				return nil, Report{}, fmt.Errorf("create log store: %w", err)
 			}
 			createdRoot = true
@@ -95,6 +95,30 @@ func OpenWriter(path string, options Options, consume func(Record) error) (_ *Wr
 		report.RepairedBytes = report.ObservedTailBytes
 	}
 	return &Writer{store: s, kinds: kinds, hook: hook, offset: report.ValidBytes, records: report.Records}, report, nil
+}
+
+// createStoreDirectory creates the final store component with its private
+// mode set explicitly, so a restrictive umask cannot leave a directory the
+// writer cannot then pin. Both steps are confined to the pinned parent, and
+// pinRoot binds the result's identity afterwards.
+func createStoreDirectory(path string) (retErr error) {
+	parent, err := os.OpenRoot(filepath.Dir(path))
+	if err != nil {
+		return err
+	}
+	defer func() { retErr = errors.Join(retErr, parent.Close()) }()
+	name := filepath.Base(path)
+	if err := parent.Mkdir(name, storeMode.Perm()); err != nil {
+		return err
+	}
+	info, err := parent.Lstat(name)
+	if err != nil {
+		return err
+	}
+	if err := validateRootInfo(info, false); err != nil {
+		return err
+	}
+	return parent.Chmod(name, storeMode.Perm())
 }
 
 // inspectMembers validates every existing member before anything is created,

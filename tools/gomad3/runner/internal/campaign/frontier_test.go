@@ -557,6 +557,12 @@ func TestFrontierPendingPayloadsStayLiveUntilTheirOutcomeAdoptsOrRetiresThem(t *
 	if err := resumed.Close(); err != nil {
 		t.Fatal(err)
 	}
+	// A sidecar no receipt or outcome references is an orphan of an attempt
+	// that never recorded its receipt.
+	orphan := filepath.Join(journal.Path(), "diagnostics", "00000000000000000002-orphan.bin")
+	if err := os.WriteFile(orphan, []byte("orphan"), 0o600); err != nil {
+		t.Fatal(err)
+	}
 	if _, err := RecoverCampaign(context.Background(), journal.Path()); err != nil {
 		t.Fatal(err)
 	}
@@ -565,6 +571,18 @@ func TestFrontierPendingPayloadsStayLiveUntilTheirOutcomeAdoptsOrRetiresThem(t *
 	}
 	if _, err := os.Lstat(successPath); !errors.Is(err, os.ErrNotExist) {
 		t.Fatalf("retired success candidate survived recovery: %v", err)
+	}
+	if _, err := os.Lstat(filepath.Join(journal.Path(), "diagnostics", diagnostic.Name)); err != nil {
+		t.Fatalf("diagnostic adopted by its outcome was reclaimed: %v", err)
+	}
+	if _, err := os.Lstat(orphan); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("orphaned diagnostic survived recovery: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(journal.Path(), "diagnostics", diagnostic.Name), []byte("changed"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := RecoverCampaign(context.Background(), journal.Path()); err == nil || !errors.Is(err, artifact.ErrCorruptReference) {
+		t.Fatalf("recovery with a corrupt adopted diagnostic error = %v", err)
 	}
 }
 

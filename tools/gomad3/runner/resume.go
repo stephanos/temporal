@@ -222,6 +222,11 @@ func restoreResumeSummary(batchPath string, selection SeedSelection, runs []camp
 				state.summary.Artifacts = append(state.summary.Artifacts, path)
 			}
 		case "runner":
+			if run.Strategy == "" && run.Reason == "runner_cancelled" && run.Artifact == nil {
+				// A committed stop group's cancellation keeps its ordinal.
+				state.summary.Cancelled++
+				continue
+			}
 			if run.Strategy != string(StrategyChoiceExploration) || run.Reason != "replay_divergence" || run.Divergence == nil {
 				return resumeSummaryState{}, fmt.Errorf("resumable execution %d runner result cannot be reused", index+1)
 			}

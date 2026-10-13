@@ -12,6 +12,28 @@ import (
 	"testing"
 )
 
+// A umask that grants the owner nothing still yields a private store the
+// writer pins: creation sets the directory's mode itself.
+func TestWriterCreatesStoreUnderAFullUmask(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "store")
+	previous := syscall.Umask(0o777)
+	writer, _, err := OpenWriter(path, testOptions(true, nil), nil)
+	syscall.Umask(previous)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer closeWriter(t, writer)
+	for name, mode := range map[string]os.FileMode{".": storeMode, LogFile: memberMode, LockFile: memberMode} {
+		info, err := os.Lstat(filepath.Join(path, name))
+		if err != nil || info.Mode() != mode {
+			t.Fatalf("%s mode = %v, %v; want %v", name, info.Mode(), err, mode)
+		}
+	}
+	if err := writer.AppendJSON(kindEntry, makeEntry(0)); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestWriterLifecycleCreatesPrivateStoreAndReplays(t *testing.T) {
 	// A restrictive umask proves that creation sets private modes through the
 	// new descriptors rather than relying on the process umask.

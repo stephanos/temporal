@@ -81,23 +81,13 @@ func TestLocalCompletionErrorPrecedence(t *testing.T) {
 		{name: "World evidence before watchdog outcome", prepared: true, want: "world_record"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			selection, err := ParseSeeds("1")
-			if err != nil {
-				t.Fatal(err)
-			}
-			controller, err := newShardedSeedController(selection, CampaignShard{}, nil, 1, PolicyAll, 1, CampaignResult{})
-			if err != nil {
-				t.Fatal(err)
-			}
-			if _, ok := controller.Next(); !ok {
-				t.Fatal("seed was not admitted")
-			}
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 			local := localCampaign{
 				config:     campaignRequest{campaignRuntime: campaignRuntime{Backend: scriptProvider()}},
-				overallCtx: ctx, activeCancel: cancel, controller: controller,
+				overallCtx: ctx, activeCtx: ctx, activeCancel: cancel,
 				prepared: target.Prepared{Path: "missing prepared target"},
+				attempts: map[uint64]*seedAttempt{0: {job: runJob{seed: 1}}},
 			}
 			if test.prepared {
 				local.prepared = newFakePreparer(t).prepared
@@ -105,9 +95,10 @@ func TestLocalCompletionErrorPrecedence(t *testing.T) {
 			if test.cancel {
 				cancel()
 			}
-			local.handleCompletion(runCompletion{job: runJob{seed: 1}, err: test.runErr, result: backend.ExecutionResult{
+			local.arrive(runCompletion{job: runJob{seed: 1}, err: test.runErr, result: backend.ExecutionResult{
 				WorldRecord: []byte("malformed World evidence"), WatchdogTimeout: true,
 			}})
+			local.advance()
 			var hostError *HostError
 			if !errors.As(local.hostFailure, &hostError) || hostError.Reason != test.want {
 				t.Fatalf("error = %v, want HostError reason %q", local.hostFailure, test.want)
@@ -115,8 +106,8 @@ func TestLocalCompletionErrorPrecedence(t *testing.T) {
 			if test.runErr != nil && !test.cancel && !errors.Is(local.hostFailure, primary) {
 				t.Fatalf("error lost supervisor cause: %v", local.hostFailure)
 			}
-			if local.summary.Attempted != 1 || local.summary.Watchdogs != 0 || controller.Active() != 0 || !controller.Stopped() {
-				t.Fatalf("summary = %#v, active=%d stopped=%v", local.summary, controller.Active(), controller.Stopped())
+			if local.summary.Attempted != 1 || local.summary.Watchdogs != 0 || local.active() != 0 || !local.stopped || ctx.Err() == nil {
+				t.Fatalf("summary = %#v, active=%d stopped=%v", local.summary, local.active(), local.stopped)
 			}
 		})
 	}
@@ -125,32 +116,28 @@ func TestLocalCompletionErrorPrecedence(t *testing.T) {
 func TestLocalFinalizationPreservesHostFailureBeforePublication(t *testing.T) {
 	for _, priorFailure := range []bool{false, true} {
 		t.Run(fmt.Sprintf("prior_failure=%t", priorFailure), func(t *testing.T) {
-			selection, err := ParseSeeds("1")
-			if err != nil {
-				t.Fatal(err)
-			}
-			controller, err := newShardedSeedController(selection, CampaignShard{}, nil, 1, PolicyAll, 1, CampaignResult{})
-			if err != nil {
-				t.Fatal(err)
-			}
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
-			local := localCampaign{overallCtx: context.Background(), activeCancel: cancel, controller: controller}
+			cleanup := errors.New("cannot remove attempt work")
+			local := localCampaign{
+				overallCtx: context.Background(), activeCtx: ctx, activeCancel: cancel,
+				attempts: map[uint64]*seedAttempt{0: {job: runJob{seed: 1}, arrived: true, cancelled: true, cleanupErr: cleanup}},
+			}
 			if priorFailure {
 				local.hostFailure = errors.New("earlier failure")
 			}
 			primary := local.hostFailure
-			local.completePartial(&campaign.ExecutionJournal{})
+			local.advance()
 			if priorFailure {
-				if local.hostFailure != primary || ctx.Err() != nil || controller.Stopped() {
-					t.Fatalf("earlier error changed: error=%v context=%v stopped=%v", local.hostFailure, ctx.Err(), controller.Stopped())
+				if local.hostFailure != primary || ctx.Err() != nil || local.stopped {
+					t.Fatalf("earlier error changed: error=%v context=%v stopped=%v", local.hostFailure, ctx.Err(), local.stopped)
 				}
 			} else {
 				var hostError *HostError
-				if !errors.As(local.hostFailure, &hostError) || hostError.Reason != "partial_cleanup" || hostError.Err.Error() != "cannot complete execution journal in \"\" state" {
-					t.Fatalf("error = %v, want journal cleanup failure", local.hostFailure)
+				if !errors.As(local.hostFailure, &hostError) || hostError.Reason != "partial_cleanup" || !errors.Is(local.hostFailure, cleanup) {
+					t.Fatalf("error = %v, want attempt cleanup failure", local.hostFailure)
 				}
-				if !errors.Is(ctx.Err(), context.Canceled) || !controller.Stopped() {
+				if !errors.Is(ctx.Err(), context.Canceled) || !local.stopped {
 					t.Fatal("cleanup failure did not stop active work")
 				}
 			}
@@ -169,20 +156,11 @@ func TestLocalFinalizationClassifiesPublicationFailure(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	controller, err := newShardedSeedController(selection, CampaignShard{}, nil, 1, PolicyAll, 1, CampaignResult{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if _, ok := controller.Next(); !ok {
-		t.Fatal("seed was not admitted")
-	}
-	controller.Complete(campaign.CompletedSuccess())
-	if _, ok := controller.Next(); ok {
-		t.Fatal("selection has an unexpected second seed")
-	}
+	statistics := campaign.CampaignStatistics{}
+	statistics.Record(campaign.CompletedSuccess())
 	local := localCampaign{
 		config:     campaignRequest{campaignRuntime: campaignRuntime{Backend: scriptProvider()}},
-		overallCtx: context.Background(), selection: selection, controller: controller,
+		overallCtx: context.Background(), selection: selection, statistics: statistics,
 		prepared: newFakePreparer(t).prepared, journal: &campaign.CampaignJournal{},
 	}
 	err = local.finishSeedCampaign()
@@ -196,29 +174,20 @@ func TestLocalFinalizationClassifiesPublicationFailure(t *testing.T) {
 }
 
 func TestLocalStoppedCancellationPreservesPriorFailure(t *testing.T) {
-	selection, err := ParseSeeds("1")
-	if err != nil {
-		t.Fatal(err)
-	}
-	controller, err := newShardedSeedController(selection, CampaignShard{}, nil, 1, PolicyAll, 1, CampaignResult{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if _, ok := controller.Next(); !ok {
-		t.Fatal("seed was not admitted")
-	}
-	controller.Stop()
 	primary := &HostError{Reason: "progress_output", Err: errors.New("progress failed")}
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+	cancel()
 	local := localCampaign{
 		config:     campaignRequest{campaignRuntime: campaignRuntime{Backend: scriptProvider()}},
-		overallCtx: ctx, activeCancel: cancel, controller: controller,
+		overallCtx: context.Background(), activeCtx: ctx, activeCancel: cancel, stopped: true,
 		hostFailure: primary, prepared: newFakePreparer(t).prepared,
+		attempts: map[uint64]*seedAttempt{0: {job: runJob{seed: 1}}},
 	}
-	local.handleCompletion(runCompletion{result: backend.ExecutionResult{Cancelled: true}})
-	if local.hostFailure != primary || local.summary.Attempted != 1 || local.summary.Cancelled != 1 || controller.Active() != 0 {
-		t.Fatalf("error = %v, summary = %#v, active=%d", local.hostFailure, local.summary, controller.Active())
+	local.arrive(runCompletion{job: runJob{seed: 1}, result: backend.ExecutionResult{Cancelled: true}})
+	local.advance()
+	if local.hostFailure != primary || local.summary.Attempted != 1 || local.summary.Cancelled != 1 || local.active() != 0 {
+		t.Fatalf("error = %v, summary = %#v, active=%d", local.hostFailure, local.summary, local.active())
 	}
 	if local.batchComplete {
 		t.Fatal("cancelled campaign was completed")

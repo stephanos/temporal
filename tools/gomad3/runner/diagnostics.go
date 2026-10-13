@@ -1,11 +1,11 @@
 package runner
 
 import (
-	"errors"
+	"context"
 	"fmt"
-	"os"
 	"path/filepath"
 
+	"go.temporal.io/server/tools/gomad3/artifact"
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/record"
 )
@@ -21,45 +21,20 @@ type DiagnosticTraceReference struct {
 	DiagnosticEvidence
 }
 
-func retainDiagnosticTrace(campaignPath string, ordinal uint64, observed choice.DiagnosticTrace) (_ *DiagnosticTraceReference, retErr error) {
+// retainDiagnosticTrace durably publishes an attempt's diagnostic trace as a
+// sidecar under the campaign's diagnostics directory before the attempt's
+// receipt references it.
+func retainDiagnosticTrace(ctx context.Context, campaignPath string, ordinal uint64, observed choice.DiagnosticTrace) (*DiagnosticTraceReference, artifact.FileReference, error) {
 	trace, err := choice.DecodeDiagnosticTrace(observed.Bytes)
 	if err != nil {
-		return nil, err
+		return nil, artifact.FileReference{}, err
 	}
 	directory := filepath.Join(campaignPath, "diagnostics")
-	if err := os.MkdirAll(directory, 0o700); err != nil {
-		return nil, err
-	}
-	if err := syncDirectory(campaignPath); err != nil {
-		return nil, err
-	}
-	file, err := os.CreateTemp(directory, ".diagnostic-*.partial")
+	name := fmt.Sprintf("%020d-%x.bin", ordinal, trace.SHA256)
+	file, err := artifact.PublishOwnedFile(ctx, directory, name, trace.Bytes)
 	if err != nil {
-		return nil, err
+		return nil, artifact.FileReference{}, err
 	}
-	temporary := file.Name()
-	defer func() {
-		retErr = errors.Join(retErr, file.Close())
-		if err := os.Remove(temporary); err != nil && !os.IsNotExist(err) {
-			retErr = errors.Join(retErr, err)
-		}
-		retErr = errors.Join(retErr, syncDirectory(directory))
-	}()
-	if _, err := file.Write(trace.Bytes); err != nil {
-		return nil, err
-	}
-	if err := file.Sync(); err != nil {
-		return nil, err
-	}
-	path := filepath.Join(directory, fmt.Sprintf("%020d-%x.bin", ordinal, trace.SHA256))
-	if err := os.Link(temporary, path); err != nil {
-		if !os.IsExist(err) {
-			return nil, err
-		}
-		existing, readErr := choice.ReadDiagnosticTrace(path)
-		if readErr != nil || existing.SHA256 != trace.SHA256 {
-			return nil, errors.Join(errors.New("retained diagnostic trace identity changed"), readErr)
-		}
-	}
-	return &DiagnosticTraceReference{Path: path, DiagnosticEvidence: DiagnosticEvidence{Profile: choice.DiagnosticProfile, SHA256: record.SHA256FromSum(trace.SHA256), Records: record.Uint64String(len(trace.Records))}}, nil
+	reference := &DiagnosticTraceReference{Path: filepath.Join(directory, name), DiagnosticEvidence: DiagnosticEvidence{Profile: choice.DiagnosticProfile, SHA256: record.SHA256FromSum(trace.SHA256), Records: record.Uint64String(len(trace.Records))}}
+	return reference, file, nil
 }

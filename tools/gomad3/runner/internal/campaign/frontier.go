@@ -3,8 +3,10 @@ package campaign
 import (
 	"errors"
 	"fmt"
+	"maps"
 	"reflect"
 	"slices"
+	"strings"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
 	"go.temporal.io/server/tools/gomad3/record"
@@ -110,10 +112,16 @@ type frontierState struct {
 	stopped     ControllerStopReason
 	stopGroup   map[uint64]struct{}
 	signatures  map[record.SHA256]struct{}
+	// diagnostics are the sidecars committed outcomes adopted from their
+	// receipts. They stay live with those outcomes.
+	diagnostics map[string]artifact.FileReference
 }
 
 func newFrontierState() frontierState {
-	return frontierState{outstanding: map[uint64]uint64{}, receipts: map[uint64]receiptRecord{}, stopGroup: map[uint64]struct{}{}, signatures: map[record.SHA256]struct{}{}}
+	return frontierState{
+		outstanding: map[uint64]uint64{}, receipts: map[uint64]receiptRecord{}, stopGroup: map[uint64]struct{}{},
+		signatures: map[record.SHA256]struct{}{}, diagnostics: map[string]artifact.FileReference{},
+	}
 }
 
 func (state *campaignState) policy() (FailurePolicy, uint64) {
@@ -430,7 +438,13 @@ func hostFailureEvidence(run ExecutionRecord) bool {
 }
 
 func (state *campaignState) applyFrontierOutcome(outcome outcomeRecord, releases map[uint64]struct{}) {
+	adopts := len(outcome.Executions) != 1 || outcome.Stop != "" || !hostFailureEvidence(outcome.Executions[0])
 	for ordinal := range releases {
+		if receipt, received := state.frontier.receipts[ordinal]; received && adopts {
+			for _, file := range receipt.Pending.Diagnostics {
+				state.frontier.diagnostics[file.Name] = file
+			}
+		}
 		delete(state.frontier.outstanding, ordinal)
 		delete(state.frontier.receipts, ordinal)
 		if outcome.Stop != "" {
@@ -465,11 +479,17 @@ func (state *campaignState) pendingLiveReferences(add func(*string)) {
 	}
 }
 
-func (state *campaignState) pendingDiagnostics() []artifact.FileReference {
-	var files []artifact.FileReference
+// liveDiagnostics projects the diagnostic sidecars committed outcomes adopted
+// and durable receipts still hold, in name order.
+func (state *campaignState) liveDiagnostics() []artifact.FileReference {
+	live := maps.Clone(state.frontier.diagnostics)
 	for _, receipt := range state.frontier.receipts {
-		files = append(files, receipt.Pending.Diagnostics...)
+		for _, file := range receipt.Pending.Diagnostics {
+			live[file.Name] = file
+		}
 	}
+	files := slices.Collect(maps.Values(live))
+	slices.SortFunc(files, func(left, right artifact.FileReference) int { return strings.Compare(left.Name, right.Name) })
 	return files
 }
 
@@ -527,6 +547,26 @@ func (journal *CampaignJournal) Frontier() Frontier {
 	journal.mu.Lock()
 	defer journal.mu.Unlock()
 	return journal.state.frontierSnapshot()
+}
+
+// checkPublishedFrontier refuses to publish a campaign that admits ordinals
+// while admitted work is outstanding, or under a stop reason other than its
+// committed stop.
+func (state *campaignState) checkPublishedFrontier(published CampaignRecord) error {
+	if !state.frontier.admitted {
+		return nil
+	}
+	if len(state.frontier.outstanding) != 0 {
+		return fmt.Errorf("campaign is published with %d admitted ordinals outstanding", len(state.frontier.outstanding))
+	}
+	stop := state.frontier.stopped
+	if stop == "" {
+		stop = StopSeedsExhausted
+	}
+	if published.StopReason != string(stop) {
+		return fmt.Errorf("published stop reason %q is not the committed stop %q", published.StopReason, stop)
+	}
+	return nil
 }
 
 func (state *campaignState) stopGroupMember(ordinal uint64) bool {

@@ -634,20 +634,18 @@ func TestRetentionFailureLeavesNoveltyAndCountersAtTheCommittedState(t *testing.
 		},
 		{
 			// The second execution fails to retain the probe the third repeats.
-			// The seed strategy has the third completed beside it, still finds
-			// its probe novel and journals it; the resumed second execution then
-			// repeats a committed probe. The exploration strategies rerun the
-			// round in order.
+			// The seed strategy has the third completed beside it with a
+			// durable receipt, but commits outcomes only in ordinal order: the
+			// resumed second execution retains the probe and the received third
+			// then repeats it. The exploration strategies rerun the round in
+			// order. Both resume to the uninterrupted retention.
 			name: "incomplete transcript ahead of its repeat", policy: KeepSuccessesNovel, probes: [3]string{probeA, probeB, probeB},
 			parallel: true, incomplete: 1, blocked: 3, cancelled: 3,
 			interrupted: seedAndExploration(
-				retentionObservation{Reason: "success_artifact_publication", Cause: incomplete, Counts: [5]uint64{3, 1, 0, 0, 2}, Runs: []string{"0 success/world_idle kept novel=" + probeA, "2 success/world_idle kept novel=" + probeB}},
+				retentionObservation{Reason: "success_artifact_publication", Cause: incomplete, Counts: [5]uint64{2, 1, 0, 0, 1}, Runs: []string{"0 success/world_idle kept novel=" + probeA}},
 				retentionObservation{Reason: "success_artifact_publication", Cause: incomplete, Counts: [5]uint64{1, 1, 0, 0, 1}, Runs: []string{"0 success/world_idle kept novel=" + probeA}},
 			),
-			resumed: seedAndExploration(
-				retentionObservation{Counts: [5]uint64{3, 3, 0, 0, 2}, Runs: []string{"0 success/world_idle kept novel=" + probeA, "2 success/world_idle kept novel=" + probeB, "1 success/world_idle"}},
-				retentionObservation{Counts: [5]uint64{3, 3, 0, 0, 2}, Runs: []string{"0 success/world_idle kept novel=" + probeA, "1 success/world_idle kept novel=" + probeB, "2 success/world_idle"}},
-			),
+			resumed: everyStrategy(retentionObservation{Counts: [5]uint64{3, 3, 0, 0, 2}, Runs: []string{"0 success/world_idle kept novel=" + probeA, "1 success/world_idle kept novel=" + probeB, "2 success/world_idle"}}),
 		},
 		{
 			name: "unusable success store", policy: KeepSuccessesAll, probes: [3]string{probeA, probeA, probeB},
@@ -1699,7 +1697,9 @@ func TestCompletionFaultsKeepReasonPrecedenceAndEvidence(t *testing.T) {
 		},
 		{
 			name: "cancelled execution", coverage: CoverageSemanticChoice, fault: cancelled,
-			seed:            completionObservation{Counts: [5]uint64{1, 0, 1, 0, 1}, Artifacts: []string{"gomad3.runner-failure/v1 runner_cancelled none none no-choices"}, Journal: []string{"runner runner_cancelled none"}},
+			// A cancellation the campaign did not request fails the host for
+			// every strategy; it is never a committed cancellation.
+			seed:            completionObservation{Reason: "runner_cancelled", Cause: "seed execution was cancelled", Counts: [5]uint64{1, 0, 0, 0, 0}, Partials: []string{failedCampaign}},
 			exploration:     completionObservation{Reason: "runner_cancelled", Cause: "choice-exploration candidate was cancelled", Partials: []string{failedCampaign, "00000000000000000000 captured"}},
 			simulationCause: "simulation exploration candidate was cancelled",
 		},
@@ -2162,7 +2162,7 @@ func TestSeedCompletionFaultsKeepCampaignStatistics(t *testing.T) {
 		{name: "malformed World", fault: malformedWorld, want: campaign.CampaignStatistics{Attempted: 1, DistinctFailures: 1}},
 		{name: "supervision rejected the choice trace", err: backend.ErrChoiceTraceMalformed, want: campaign.CampaignStatistics{Attempted: 1}},
 		{name: "watchdog", coverage: CoverageSemanticChoice, fault: watchdog, want: campaign.CampaignStatistics{Attempted: 1, Failures: 1, Watchdogs: 1, DistinctFailures: 1, StopReason: campaign.StopSeedsExhausted}},
-		{name: "cancelled execution", coverage: CoverageSemanticChoice, fault: cancelled, want: campaign.CampaignStatistics{Attempted: 1, Failures: 1, DistinctFailures: 1, StopReason: campaign.StopSeedsExhausted}},
+		{name: "cancelled execution", coverage: CoverageSemanticChoice, fault: cancelled, want: campaign.CampaignStatistics{Attempted: 1}},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			config, _ := injectedCompletionCampaign(t, StrategySeed, test.coverage, test.fault, test.err)

@@ -358,32 +358,32 @@ func (state *campaignState) liveReferences() map[string]artifact.References {
 		add(run.SuccessArtifact)
 	}
 	state.pendingLiveReferences(add)
+	live["diagnostics"] = artifact.References{Files: state.liveDiagnostics()}
 	return live
 }
 
 // validateLiveReferences validates every payload the committed state and
 // its durable receipts reference: owned failure and success artifacts and
-// pending diagnostic sidecars, which are validated but never swept here.
+// the diagnostic sidecars outcomes adopted or receipts still hold.
 func validateLiveReferences(path string, state *campaignState) error {
 	live := state.liveReferences()
-	for _, root := range []string{"failures", "successes"} {
+	for _, root := range ownedPayloadRoots {
 		if err := artifact.ValidateReferences(filepath.Join(path, root), live[root]); err != nil {
-			return newIntegrityError(err)
-		}
-	}
-	if diagnostics := state.pendingDiagnostics(); len(diagnostics) != 0 {
-		if err := artifact.ValidateReferences(filepath.Join(path, "diagnostics"), artifact.References{Files: diagnostics}); err != nil {
 			return newIntegrityError(err)
 		}
 	}
 	return nil
 }
 
+// ownedPayloadRoots are the campaign directory's exclusively owned payload
+// roots: failure and success artifacts and diagnostic sidecars.
+var ownedPayloadRoots = []string{"failures", "successes", "diagnostics"}
+
 var executionWorkPattern = regexp.MustCompile(`^[0-9]{20}-[0-9]+$`)
 
-// reclaimOwnedPayloads validates every live artifact of the campaign's owned
-// failure and success roots before it removes anything, then removes the
-// artifacts no committed outcome references. With work it also removes the
+// reclaimOwnedPayloads validates every live payload of the campaign's owned
+// failure, success and diagnostic roots before it removes anything, then
+// removes what neither a committed outcome nor a durable receipt references. With work it also removes the
 // work directories of attempts whose outcomes were never committed. Shared
 // target pools and exploration round stores are not swept here.
 func reclaimOwnedPayloads(ctx context.Context, path string, state *campaignState, work bool) (int, error) {
@@ -392,7 +392,7 @@ func reclaimOwnedPayloads(ctx context.Context, path string, state *campaignState
 	}
 	live := state.liveReferences()
 	removed := 0
-	for _, root := range []string{"failures", "successes"} {
+	for _, root := range ownedPayloadRoots {
 		if err := observeMutation(ctx, mutationDelete, "owned-payload-sweep"); err != nil {
 			return removed, err
 		}

@@ -1,7 +1,5 @@
 package campaign
 
-import "errors"
-
 type FailurePolicy string
 
 const (
@@ -67,102 +65,38 @@ func CompletedFailure(domain, reason string, distinctFailures uint64) Completion
 // as one whose evidence failed the host. It counts as attempted only.
 func CompletedUnclassified() Completion { return Completion{Kind: completionUnclassified} }
 
-type SeedControllerConfig struct {
-	Next          func() (SeedJob, bool)
-	Parallel      int
-	Policy        FailurePolicy
-	FailureBudget uint64
-	Initial       CampaignStatistics
-}
-
-type SeedController struct {
-	next          func() (SeedJob, bool)
-	parallel      int
-	policy        FailurePolicy
-	failureBudget uint64
-	statistics    CampaignStatistics
-	active        int
-	exhausted     bool
-	stopped       bool
-}
-
-func NewSeedController(config SeedControllerConfig) (*SeedController, error) {
-	if config.Next == nil || config.Parallel <= 0 {
-		return nil, errors.New("seed campaign controller requires a source and positive parallelism")
-	}
-	if config.Policy == failurePolicyBudget && config.FailureBudget == 0 {
-		return nil, errors.New("seed campaign failure budget must be positive")
-	}
-	if config.Policy != failurePolicyFirst && config.Policy != failurePolicyBudget && config.Policy != failurePolicyAll {
-		return nil, errors.New("seed campaign failure policy is invalid")
-	}
-	controller := &SeedController{
-		next: config.Next, parallel: config.Parallel, policy: config.Policy,
-		failureBudget: config.FailureBudget, statistics: config.Initial,
-	}
-	if config.Policy == failurePolicyFirst && config.Initial.Failures != 0 {
-		controller.statistics.StopReason = StopFirstFailure
-		controller.stopped = true
-	}
-	if config.Policy == failurePolicyBudget && config.Initial.DistinctFailures >= config.FailureBudget {
-		controller.statistics.StopReason = StopFailureBudget
-		controller.stopped = true
-	}
-	return controller, nil
-}
-
-func (controller *SeedController) Next() (SeedJob, bool) {
-	if controller.stopped || controller.exhausted || controller.active >= controller.parallel {
-		return SeedJob{}, false
-	}
-	//gomad:dynamic reviewed 2026-10-12 seed source callback only advances the reviewed in-memory seed schedule
-	job, ok := controller.next()
-	if !ok {
-		controller.exhausted = true
-		return SeedJob{}, false
-	}
-	controller.active++
-	return job, true
-}
-
-func (controller *SeedController) Complete(completion Completion) bool {
-	if controller.active == 0 {
-		panic("gomad3: completed an inactive campaign attempt")
-	}
+// Record counts one ordered completion into the statistics. A failure
+// replaces DistinctFailures with the completion's count, which includes it.
+// The stop reason is not decided here: it is the committed stop group's, or
+// seeds_exhausted once a campaign finishes without one (Finalize).
+func (statistics *CampaignStatistics) Record(completion Completion) {
 	if completion.Kind == completionInvalid || completion.Kind > completionFailure {
 		panic("gomad3: completed a campaign attempt without a classification")
 	}
-	controller.active--
-	controller.statistics.Attempted++
-	if completion.Kind == CompletionSuccess {
-		controller.statistics.Succeeded++
-		return false
+	statistics.Attempted++
+	switch completion.Kind {
+	case CompletionSuccess:
+		statistics.Succeeded++
+	case CompletionCancelled:
+		statistics.Cancelled++
+	case completionFailure:
+		statistics.Failures++
+		if completion.Domain == "watchdog" {
+			statistics.Watchdogs++
+		}
+		if completion.Reason == "world_replay_divergence" {
+			statistics.ReplayDivergences++
+		}
+		statistics.DistinctFailures = completion.DistinctFailures
+	case completionInvalid, completionUnclassified:
 	}
-	if completion.Kind == CompletionCancelled {
-		controller.statistics.Cancelled++
-		return false
+}
+
+// Finalize names a campaign that finished without a policy stop exhausted.
+func (statistics *CampaignStatistics) Finalize() {
+	if statistics.StopReason == "" {
+		statistics.StopReason = StopSeedsExhausted
 	}
-	if completion.Kind != completionFailure {
-		return false
-	}
-	controller.statistics.Failures++
-	if completion.Domain == "watchdog" {
-		controller.statistics.Watchdogs++
-	}
-	if completion.Reason == "world_replay_divergence" {
-		controller.statistics.ReplayDivergences++
-	}
-	controller.statistics.DistinctFailures = completion.DistinctFailures
-	if controller.stopped {
-		return false
-	}
-	stop := PolicyStop(controller.policy, controller.failureBudget, completion)
-	if stop == "" {
-		return false
-	}
-	controller.statistics.StopReason = stop
-	controller.stopped = true
-	return stop == StopFirstFailure
 }
 
 // PolicyStop is the failure policy's pure decision for one ordered
@@ -170,7 +104,8 @@ func (controller *SeedController) Complete(completion Completion) bool {
 // failure and requests cancellation of active attempts; a failure budget
 // stops once the distinct failures reach it and lets active attempts finish.
 // The campaign log derives a pending stop from the next ordered receipt with
-// the same decision.
+// this decision, and the Runner requests cancellation or lets active attempts
+// drain by it.
 func PolicyStop(policy FailurePolicy, failureBudget uint64, completion Completion) ControllerStopReason {
 	if completion.Kind != completionFailure {
 		return ""
@@ -183,30 +118,4 @@ func PolicyStop(policy FailurePolicy, failureBudget uint64, completion Completio
 	default:
 		return ""
 	}
-}
-
-func (controller *SeedController) Stop() {
-	controller.stopped = true
-}
-
-func (controller *SeedController) Stopped() bool {
-	return controller.stopped
-}
-
-func (controller *SeedController) Active() int {
-	return controller.active
-}
-
-func (controller *SeedController) Done() bool {
-	return controller.active == 0 && (controller.exhausted || controller.stopped)
-}
-
-func (controller *SeedController) Finalize() {
-	if controller.statistics.StopReason == "" {
-		controller.statistics.StopReason = StopSeedsExhausted
-	}
-}
-
-func (controller *SeedController) Statistics() CampaignStatistics {
-	return controller.statistics
 }

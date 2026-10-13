@@ -96,41 +96,31 @@ func TestCampaignPlanPreparerValidatesWithRecordedEnvironment(t *testing.T) {
 	}
 }
 
-func TestShardedSeedControllerSchedulesPendingOrdinalsAndSynchronizesStatistics(t *testing.T) {
-	selection, err := ParseSeeds("10-14")
+// A resumed shard schedules the ordinals it owns that are neither committed
+// nor already admitted, and its summary mirrors its recorded statistics.
+func TestPendingJobsSkipsCommittedAndAdmittedOrdinalsAndSynchronizesStatistics(t *testing.T) {
+	selection, err := ParseSeeds("10-16")
 	if err != nil {
 		t.Fatal(err)
 	}
-
+	jobs := pendingJobs{seeds: selection.Iterator(), shard: CampaignShard{Index: 0, Count: 2}, completed: map[uint64]struct{}{2: {}, 4: {}}}
+	var scheduled []runJob
+	for {
+		job, ok := jobs.Next()
+		if !ok {
+			break
+		}
+		scheduled = append(scheduled, job)
+	}
+	if want := []runJob{{ordinal: 0, seed: 10}, {ordinal: 6, seed: 16}}; !slices.Equal(scheduled, want) {
+		t.Fatalf("scheduled = %#v, want %#v", scheduled, want)
+	}
+	statistics := campaign.CampaignStatistics{}
+	statistics.Record(campaign.CompletedSuccess())
+	statistics.Record(campaign.CompletedCancelled())
+	statistics.Finalize()
 	summary := CampaignResult{SelectionCount: selection.Count()}
-	controller, err := newShardedSeedController(selection, CampaignShard{Index: 0, Count: 2}, map[uint64]struct{}{2: {}}, 2, PolicyAll, 1, summary)
-	if err != nil {
-		t.Fatal(err)
-	}
-	synchronizeCampaignStatistics(&summary, controller.Statistics())
-
-	first, ok := controller.Next()
-	if !ok || first.Ordinal != 0 || first.Seed != 10 {
-		t.Fatalf("first job = %#v, %t", first, ok)
-	}
-	second, ok := controller.Next()
-	if !ok || second.Ordinal != 4 || second.Seed != 14 {
-		t.Fatalf("second job = %#v, %t", second, ok)
-	}
-	_, ok = controller.Next()
-	if ok {
-		t.Fatal("controller exceeded parallelism")
-	}
-
-	controller.Complete(campaign.Completion{Kind: campaign.CompletionSuccess})
-	controller.Complete(campaign.Completion{Kind: campaign.CompletionCancelled})
-	_, ok = controller.Next()
-	if ok || !controller.Done() {
-		t.Fatal("controller did not exhaust")
-	}
-	controller.Finalize()
-	synchronizeCampaignStatistics(&summary, controller.Statistics())
-
+	synchronizeCampaignStatistics(&summary, statistics)
 	if summary.Attempted != 2 || summary.Succeeded != 1 || summary.Cancelled != 1 || summary.StopReason != StopSeedsExhausted {
 		t.Fatalf("summary = %#v", summary)
 	}
