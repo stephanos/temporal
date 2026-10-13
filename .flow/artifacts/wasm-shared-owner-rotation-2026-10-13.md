@@ -196,6 +196,21 @@ provisional API. Diagnostic-only GuestProfiler dependencies are owner-approved.
 Sampler evidence equality and required Darwin measurements remain actual gates;
 dependent cache changes are not admitted past fn173's early proof yet.
 
+`f043196018` joins the framed process registration and narrow full-close
+contract follow-up. Runner and canonical Make both select
+`TestProcessNetworkFramedPartition`; the guard checks the actual Runner loop
+inventory and exact family count, not Make alone. Missing both registrations
+was red before the worker fix. Root's integrated guard exits 0 in 0.021 s.
+The four contracts distinguish full-close undelivered suffix cleanup on a
+later effective partition from received tails, CloseWrite-held FIFO and
+ordinary enabled delayed drainage. Worker checks are retained in the same
+connection handover; supported runtime/framed execution remains unverified.
+On unchanged semantics, the canonical WASM test-model gate exits 0 in 0.422 s;
+focused NetworkV2 and the eight named unit broker cases exit 0 in 0.020 s.
+An initial broad Broker selector also picked three fresh-guest integration
+gates and exited 1 for missing explicit GOMAD3_STOCK_GO. Those integration
+gates were not rerun or qualified by the corrected unit-only selection.
+
 Stock Go is 1.27.1 on linux/arm64. Tests use `-tags test_dep -count=1`.
 Earlier integrated World/Record/strictjson/hostfs/minimizer, protocol generation,
 network/model projections, portable simulator, both-platform architecture and

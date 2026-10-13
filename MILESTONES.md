@@ -253,8 +253,8 @@ Owner decision (2026-10-12): these deferred specs change owners the WASM backend
 | [fn-154.8](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.8.md) | 🚧 In progress | Payload-free history/codec checkpoint integrated; batch/native acceptance open |
 | [fn-154.9](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.9.md) | 🚧 In progress | Pin shared-connection and in-process fault conformance |
 | [fn-154.10](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.10.md) | 🚧 In progress | Execute process network cases through registered isolated Runner gates |
-| [fn-154.11](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.11.md) | 🚧 In progress | Develop framed/composed replay fixtures; integrated/native execution remains open |
-| [fn-154.12](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.12.md) | 🚧 In progress | Reconcile contracts in parallel; final frozen/native verification remains open |
+| [fn-154.11](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.11.md) | 🚧 In progress | Framed/composed replay fixtures registered; native execution remains open |
+| [fn-154.12](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.12.md) | 🚧 In progress | Contracts integrated; final frozen/native verification remains open |
 
 <a id="wasm-execution-performance"></a>
 
