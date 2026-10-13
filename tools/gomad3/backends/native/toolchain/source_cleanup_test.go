@@ -270,6 +270,129 @@ func TestSourceCleanupPrimaryErrors(t *testing.T) {
 	}
 }
 
+func TestEnsureDownloadRefusalsPreserveExistingArchive(t *testing.T) {
+	for _, test := range []struct {
+		name    string
+		maximum int64
+		want    string
+		cause   error
+		prepare func(context.CancelFunc, *SourceSpec, *http.Response, *sourceCleanupBody)
+	}{
+		{
+			name: "http", maximum: 32, want: "HTTP status 503 Service Unavailable",
+			prepare: func(_ context.CancelFunc, _ *SourceSpec, response *http.Response, _ *sourceCleanupBody) {
+				response.StatusCode, response.Status = 503, "503 Service Unavailable"
+			},
+		},
+		{
+			name: "cancel", maximum: 32, want: "context canceled", cause: context.Canceled,
+			prepare: func(cancel context.CancelFunc, _ *SourceSpec, _ *http.Response, body *sourceCleanupBody) {
+				body.Reader = sourceCleanupReader(func([]byte) (int, error) { cancel(); return 0, nil })
+			},
+		},
+		{
+			name: "overflow", maximum: 4, want: "source archive download exceeds 4 bytes",
+		},
+		{
+			name: "checksum", maximum: 32, want: "source archive checksum mismatch",
+			prepare: func(_ context.CancelFunc, spec *SourceSpec, _ *http.Response, _ *sourceCleanupBody) {
+				spec.SHA256 = strings.Repeat("a", 64)
+			},
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			contents := []byte("verified archive")
+			body := &sourceCleanupBody{Reader: bytes.NewReader(contents)}
+			response := sourceCleanupResponse(body)
+			config := sourceCleanupSpec(t, contents, func(*http.Request) (*http.Response, error) {
+				return response, nil
+			})
+			archivePath := filepath.Join(config.CacheDir, config.Name)
+			if err := os.WriteFile(archivePath, []byte("previous archive\n"), 0o600); err != nil {
+				t.Fatal(err)
+			}
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+			if test.prepare != nil {
+				test.prepare(cancel, &config, response, body)
+			}
+
+			err := download(ctx, config.Client, config, archivePath, test.maximum)
+			if err == nil || !strings.Contains(err.Error(), test.want) || (test.cause != nil && !errors.Is(err, test.cause)) {
+				t.Fatalf("download() error = %v, want %q", err, test.want)
+			}
+			stored, readErr := os.ReadFile(archivePath)
+			if readErr != nil || string(stored) != "previous archive\n" {
+				t.Fatalf("refused download changed archive = %q, %v", stored, readErr)
+			}
+			info, statErr := os.Stat(archivePath)
+			if statErr != nil || info.Mode().Perm() != 0o600 {
+				t.Fatalf("refused download changed archive mode = %v, %v", info, statErr)
+			}
+			entries, readErr := os.ReadDir(config.CacheDir)
+			if readErr != nil || len(entries) != 1 || entries[0].Name() != config.Name {
+				t.Fatalf("refused download left cache entries = %v, %v", entries, readErr)
+			}
+			if body.closes != 1 {
+				t.Fatalf("body closes = %d, want 1", body.closes)
+			}
+		})
+	}
+}
+
+func TestEnsureDownloadReportsPostRenameDirectoryFailure(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("directory permission fault requires Unix permissions")
+	}
+	contents := []byte("verified archive")
+	reader := bytes.NewReader(contents)
+	body := &sourceCleanupBody{}
+	config := sourceCleanupSpec(t, contents, func(*http.Request) (*http.Response, error) {
+		return sourceCleanupResponse(body), nil
+	})
+	body.Reader = sourceCleanupReader(func(buffer []byte) (int, error) {
+		read, err := reader.Read(buffer)
+		if errors.Is(err, io.EOF) {
+			if chmodErr := os.Chmod(config.CacheDir, 0o300); chmodErr != nil {
+				t.Fatal(chmodErr)
+			}
+		}
+		return read, err
+	})
+	archivePath := filepath.Join(config.CacheDir, config.Name)
+	if err := os.WriteFile(archivePath, []byte("previous archive\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		if err := os.Chmod(config.CacheDir, 0o700); err != nil {
+			t.Error(err)
+		}
+	}()
+
+	err := download(context.Background(), config.Client, config, archivePath, maximumDownloadBytes)
+	if chmodErr := os.Chmod(config.CacheDir, 0o700); chmodErr != nil {
+		t.Fatal(chmodErr)
+	}
+	if !errors.Is(err, syscall.EACCES) || strings.Contains(err.Error(), "publish source archive download") {
+		t.Fatalf("download() error = %v, want post-rename directory failure", err)
+	}
+	stored, readErr := os.ReadFile(archivePath)
+	if readErr != nil || !bytes.Equal(stored, contents) {
+		t.Fatalf("post-rename archive = %q, %v", stored, readErr)
+	}
+	info, statErr := os.Stat(archivePath)
+	if statErr != nil || info.Mode().Perm() != 0o644 {
+		t.Fatalf("post-rename archive mode = %v, %v", info, statErr)
+	}
+	entries, readErr := os.ReadDir(config.CacheDir)
+	if readErr != nil || len(entries) != 1 || entries[0].Name() != config.Name {
+		t.Fatalf("post-rename cache entries = %v, %v", entries, readErr)
+	}
+	if body.closes != 1 {
+		t.Fatalf("body closes = %d, want 1", body.closes)
+	}
+}
+
 func TestSourceCleanupRemoveFailure(t *testing.T) {
 	for _, failedClose := range []bool{false, true} {
 		t.Run(fmt.Sprintf("failed-close=%t", failedClose), func(t *testing.T) {

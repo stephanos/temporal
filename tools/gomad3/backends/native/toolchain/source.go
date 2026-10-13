@@ -67,7 +67,7 @@ func EnsureSource(ctx context.Context, config SourceSpec) (string, error) {
 		if err := ctx.Err(); err != nil {
 			return "", err
 		}
-		if err := download(ctx, client, config, archivePath); err == nil {
+		if err := download(ctx, client, config, archivePath, maximumDownloadBytes); err == nil {
 			return archivePath, nil
 		} else {
 			lastErr = err
@@ -230,7 +230,7 @@ func matchesDigest(filePath, want string) (match bool, retErr error) {
 	return fmt.Sprintf("%x", digest.Sum(nil)) == want, nil
 }
 
-func download(ctx context.Context, client *http.Client, config SourceSpec, archivePath string) (retErr error) {
+func download(ctx context.Context, client *http.Client, config SourceSpec, archivePath string, maximumBytes int64) (retErr error) {
 	request, err := http.NewRequestWithContext(ctx, http.MethodGet, config.URL, nil)
 	if err != nil {
 		return fmt.Errorf("construct source archive request: %w", err)
@@ -255,14 +255,14 @@ func download(ctx context.Context, client *http.Client, config SourceSpec, archi
 	var fillErr error
 	var readErr error
 	staged, err := hostfs.StageContext(ctx, config.CacheDir, ".source-archive-*", 0o644, func(ctx context.Context, writer io.Writer) error {
-		written, err := copyWithContext(ctx, io.MultiWriter(writer, digest), io.LimitReader(response.Body, maximumDownloadBytes+1))
+		written, err := copyWithContext(ctx, io.MultiWriter(writer, digest), io.LimitReader(response.Body, maximumBytes+1))
 		if err != nil {
 			readErr = err
 			fillErr = err
 			return fillErr
 		}
-		if written > maximumDownloadBytes {
-			fillErr = fmt.Errorf("source archive download exceeds %d bytes", maximumDownloadBytes)
+		if written > maximumBytes {
+			fillErr = fmt.Errorf("source archive download exceeds %d bytes", maximumBytes)
 			return fillErr
 		}
 		actual := fmt.Sprintf("%x", digest.Sum(nil))

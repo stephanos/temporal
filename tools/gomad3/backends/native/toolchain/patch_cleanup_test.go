@@ -5,6 +5,8 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"runtime"
+	"strings"
 	"syscall"
 	"testing"
 )
@@ -191,6 +193,83 @@ func TestPatchCleanupRegenerate(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+func TestRegenerateChecksExactStagedFile(t *testing.T) {
+	root, archive, candidate := writeRegenerateFixture(t)
+	if err := os.WriteFile(filepath.Join(candidate, "src", "runtime", "proc.go"), []byte("package runtime\n\nfunc replacement() {}\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	output := filepath.Join(t.TempDir(), "result.patch")
+	if err := os.WriteFile(output, []byte("previous\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	boundary := &patchCleanupContext{Context: context.Background(), directory: filepath.Dir(output)}
+	boundary.atTemporary = func(path string) {
+		if err := os.WriteFile(path, []byte("not a patch\n"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	err := RegeneratePatch(boundary, PatchSpec{
+		Root: root, CandidateRoot: candidate, Archive: archive, Output: output, Gofmt: "gofmt", ToolchainRoot: filepath.Join(t.TempDir(), "work"),
+	})
+	if !boundary.fired || err == nil || !strings.Contains(err.Error(), "verify regenerated patch against pristine source") {
+		t.Fatalf("RegeneratePatch() fired = %t, error = %v", boundary.fired, err)
+	}
+	contents, readErr := os.ReadFile(output)
+	if readErr != nil || string(contents) != "previous\n" {
+		t.Fatalf("rejected staged patch changed output = %q, %v", contents, readErr)
+	}
+	if _, statErr := os.Stat(boundary.temporary); !errors.Is(statErr, os.ErrNotExist) {
+		t.Fatalf("rejected staged patch remains: %v", statErr)
+	}
+}
+
+func TestRegenerateReportsPostRenameDirectoryFailure(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("directory permission fault requires Unix permissions")
+	}
+	root, archive, candidate := writeRegenerateFixture(t)
+	if err := os.WriteFile(filepath.Join(candidate, "src", "runtime", "proc.go"), []byte("package runtime\n\nfunc replacement() {}\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	directory := t.TempDir()
+	output := filepath.Join(directory, "result.patch")
+	if err := os.WriteFile(output, []byte("previous\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		if err := os.Chmod(directory, 0o700); err != nil {
+			t.Error(err)
+		}
+	}()
+	boundary := &patchCleanupContext{Context: context.Background(), directory: directory}
+	boundary.atTemporary = func(string) {
+		if err := os.Chmod(directory, 0o300); err != nil {
+			t.Fatal(err)
+		}
+	}
+	err := RegeneratePatch(boundary, PatchSpec{
+		Root: root, CandidateRoot: candidate, Archive: archive, Output: output, Gofmt: "gofmt", ToolchainRoot: filepath.Join(t.TempDir(), "work"),
+	})
+	if chmodErr := os.Chmod(directory, 0o700); chmodErr != nil {
+		t.Fatal(chmodErr)
+	}
+	if !boundary.fired || !errors.Is(err, syscall.EACCES) || strings.Contains(err.Error(), "publish regenerated patch") {
+		t.Fatalf("RegeneratePatch() fired = %t, error = %v; want post-rename directory failure", boundary.fired, err)
+	}
+	contents, readErr := os.ReadFile(output)
+	if readErr != nil || string(contents) != cleanupRegeneratedPatch {
+		t.Fatalf("post-rename output = %q, %v", contents, readErr)
+	}
+	info, statErr := os.Stat(output)
+	if statErr != nil || info.Mode().Perm() != 0o644 {
+		t.Fatalf("post-rename output mode = %v, %v", info, statErr)
+	}
+	entries, readErr := os.ReadDir(directory)
+	if readErr != nil || len(entries) != 1 || entries[0].Name() != filepath.Base(output) {
+		t.Fatalf("post-rename directory entries = %v, %v", entries, readErr)
 	}
 }
 
