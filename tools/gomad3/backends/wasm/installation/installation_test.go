@@ -67,7 +67,6 @@ func TestResolveRejectsChangedIdentityAndUnsafeManifest(t *testing.T) {
 		func(m *Manifest) { m.Options.Engine.Version = "unknown" },
 		func(m *Manifest) { m.Options.Config.Profile = "unknown" },
 		func(m *Manifest) { m.Options.Config.Clock.ReadStepNanos = 0 },
-		func(m *Manifest) { m.Options.Config.Network = &wasi.NetworkModel{} },
 		func(m *Manifest) { m.Options.HelperSHA256 = "sha256:" + strings.Repeat("0", 64) },
 		func(m *Manifest) { m.Options.CacheRoot = "relative" },
 	} {
@@ -192,7 +191,6 @@ func TestInstallationRejectsUnqualifiedModelsBeforePreparation(t *testing.T) {
 		name   string
 		mutate func(*wasi.Config)
 	}{
-		{"network v1", func(c *wasi.Config) { c.Network = &wasi.NetworkModel{} }},
 		{"network v2", func(c *wasi.Config) {
 			c.NetworkV2 = &wasi.NetworkModelV2{Profile: wasi.NetworkStreamProfile, Limits: netmodel.Limits{Listeners: 1, Connections: 1, Bytes: 1024, ConnectionBytes: 4 << 20, StallNanos: 10_000_000_000, Transitions: 16}}
 		}},

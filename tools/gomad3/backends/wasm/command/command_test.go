@@ -480,7 +480,7 @@ func TestInstalledOperatorDiscoversInspectsAndReplaysWithoutBuildInputs(t *testi
 			}
 			var compiledEntry string
 			for _, entry := range entries {
-				if strings.HasSuffix(entry.Name(), ".gomad-cache-v2") {
+				if strings.HasSuffix(entry.Name(), ".gomad-cache-v3") {
 					if compiledEntry != "" {
 						t.Fatal("same retained module generated multiple compiled-code identities")
 					}

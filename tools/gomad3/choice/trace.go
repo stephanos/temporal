@@ -142,7 +142,7 @@ func DecodeStoredTrace(profile string, payload []byte, metadata TerminalMetadata
 		terminal := encodeTerminal(terminal{State: metadata.State, Records: metadata.Records, MappingBytes: traceHeaderBytes + uint64(len(payload)), PayloadHash: metadata.SHA256})
 		return DecodeTrace(payload, terminal[:], metadata.Limit)
 	case LegacyProfile:
-		return decodeStoredLegacyV1Trace(payload, metadata)
+		return Trace{}, errors.Join(ErrMalformed, fmt.Errorf("superseded choice trace profile %q records no stable logical alternatives", profile))
 	case SupersededProfile:
 		// A v2 record is byte-compatible with v3 apart from the readiness its
 		// select results lack, so it is refused by name rather than decoded as
@@ -186,13 +186,10 @@ func TraceRecordCount(encoded []byte) (uint64, error) {
 }
 
 func ProjectTrace(trace Trace, limit uint64, targetIdentity [sha256.Size]byte) (Projection, error) {
-	profile := Profile
-	if trace.Version == Version1 {
-		profile = LegacyProfile
-	} else if trace.Version != Version3 {
+	if trace.Version != Version3 {
 		return Projection{}, errors.Join(ErrMalformed, fmt.Errorf("unsupported choice trace version %d", trace.Version))
 	}
-	validated, err := DecodeStoredTrace(profile, trace.Bytes, TerminalMetadata{State: trace.Summary.Terminal, Limit: limit, Records: trace.Summary.Records, SHA256: trace.SHA256})
+	validated, err := DecodeStoredTrace(Profile, trace.Bytes, TerminalMetadata{State: trace.Summary.Terminal, Limit: limit, Records: trace.Summary.Records, SHA256: trace.SHA256})
 	//gomad:dynamic reviewed 2026-10-12 reviewed codec and validator errors have memory-only methods
 	if errors.Is(err, ErrOverflow) && trace.Summary.Terminal == TerminalOverflow {
 		err = nil
@@ -232,16 +229,9 @@ func projectTrace(trace Trace, limit uint64, targetIdentity [sha256.Size]byte) (
 		return sites[i].Fingerprint < sites[j].Fingerprint
 	})
 	return Projection{
-		Profile: profileForVersion(trace.Version), Limit: limit, PayloadBytes: uint64(len(trace.Bytes)), SHA256: trace.SHA256, Summary: trace.Summary, Sites: sites,
+		Profile: Profile, Limit: limit, PayloadBytes: uint64(len(trace.Bytes)), SHA256: trace.SHA256, Summary: trace.Summary, Sites: sites,
 		Features: projectFeatures(trace, sites, targetIdentity),
 	}, nil
-}
-
-func profileForVersion(version int) string {
-	if version == Version1 {
-		return LegacyProfile
-	}
-	return Profile
 }
 
 func projectFeatures(trace Trace, sites []Site, targetIdentity [sha256.Size]byte) FeatureProjection {

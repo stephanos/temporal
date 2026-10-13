@@ -226,13 +226,19 @@ func PinnedEngine() EngineIdentity {
 	}
 	return EngineIdentity{"wasmtime", "47.0.3", "cranelift-fuel-nan-canonical-nounwind-v2", os, arch}
 }
-func verifyFile(name, digest string) error {
+func validateInputIdentity(name, digest string) error {
 	if !filepath.IsAbs(name) || len(digest) != 64 {
 		return invalid("module/helper path or digest")
 	}
 	decoded, err := hex.DecodeString(digest)
 	if err != nil || hex.EncodeToString(decoded) != digest {
 		return invalid("module/helper digest")
+	}
+	return nil
+}
+func verifyFile(name, digest string) error {
+	if err := validateInputIdentity(name, digest); err != nil {
+		return err
 	}
 	data, err := hostfs.ReadBounded(name, 512<<20)
 	if err != nil {
@@ -301,8 +307,6 @@ func Run(ctx context.Context, request Request) (result Result, runErr error) {
 	}
 	if environment.runtime != nil {
 		remaining := map[string]bool{"config": true, "decision": true, "observation": true, "finish": true, "idle": true}
-		// The network import is optional: guests without net never link it.
-		seenNet := false
 		for _, imported := range request.Imports {
 			if imported.Module == "gomad_wasm_v2" {
 				if imported.Name != "net_stream" || !slices.Equal(imported.Params, []string{"i32", "i32"}) || !slices.Equal(imported.Results, []string{"i32"}) {
@@ -313,9 +317,7 @@ func Run(ctx context.Context, request Request) (result Result, runErr error) {
 			if imported.Module != "gomad_wasm_v1" {
 				continue
 			}
-			if imported.Name == "net" && !seenNet {
-				seenNet = true
-			} else if !remaining[imported.Name] {
+			if !remaining[imported.Name] {
 				return Result{}, invalid("cooperative runtime import signature")
 			}
 			if !slices.Equal(imported.Params, []string{"i32", "i32"}) || !slices.Equal(imported.Results, []string{"i32"}) {
@@ -330,7 +332,7 @@ func Run(ctx context.Context, request Request) (result Result, runErr error) {
 	if err := verifyFile(request.HelperPath, request.HelperSHA256); err != nil {
 		return Result{}, err
 	}
-	if err := verifyFile(request.ModulePath, request.ModuleSHA256); err != nil {
+	if err := validateInputIdentity(request.ModulePath, request.ModuleSHA256); err != nil {
 		return Result{}, err
 	}
 	environment.mirror = request.StdoutMirror
@@ -395,7 +397,6 @@ func Run(ctx context.Context, request Request) (result Result, runErr error) {
 	result.helperStderr = host.Stderr
 	result.Stdout, result.Stderr = environment.Output()
 	result.Transcript = environment.Transcript()
-	result.NetworkTranscript = environment.NetworkTranscript()
 	var networkEvidenceErr error
 	if request.Config.NetworkV2 != nil {
 		result.NetworkTranscript, networkEvidenceErr = environment.NetworkV2Evidence()
@@ -486,6 +487,9 @@ func Run(ctx context.Context, request Request) (result Result, runErr error) {
 		return result, nil
 	}
 	terminal := stream.terminal
+	if stream.started == nil && terminal.Termination == "invalid" && terminal.Message == "module SHA-256 mismatch" {
+		return Result{}, invalid("module/helper bytes changed")
+	}
 	result.Termination = terminal.Termination
 	result.ExitCode = terminal.ExitCode
 	result.Message = terminal.Message

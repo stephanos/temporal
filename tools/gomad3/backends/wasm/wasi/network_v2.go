@@ -18,8 +18,7 @@ import (
 const NetworkStreamProfile = netmodel.Profile
 const networkStreamHeader = 64
 
-// NetworkModelV2 keeps the native hold/timeout profile distinct from
-// the retained v1 prototype's reset-on-partition behavior.
+// NetworkModelV2 declares the native hold/timeout stream profile.
 type NetworkModelV2 struct {
 	Profile string           `json:"profile"`
 	Limits  netmodel.Limits  `json:"limits"`

@@ -10,6 +10,10 @@ Carried from .4 and .5 (2026-10-13, identity-neutral work could not complete the
 ## Acceptance
 The listed packages no longer exist under their old names; one host filesystem helper implementation; full WASM gate set passes on the integrated candidate under the 2026-10-12 gate budgets.
 
+### Revival (2026-10-13)
+
+Resume the final six-group layout in an isolated worktree from a1f0be7e96 after the shared fn153/fn154 source joined. The fn166.6/.7/.10 batch owns facade retirement, owner relocation and cluster codec splitting. Root integrates the helper/cache/oracle/corpus lanes before freezing identities and running final WASM qualification. No source-only pass completes this task.
+
 ## Done summary
 TBD
 

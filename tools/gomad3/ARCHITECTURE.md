@@ -352,10 +352,9 @@ identities and canonical alternative sets avoid treating physical run-queue
 order as replay identity. Replay validates a decision before applying it,
 requires complete tape consumption, and still compares the final Record.
 
-`choice/trace.go` explicitly refuses stored v2 traces because their select
-results carry no readiness. Legacy v1 traces remain decodable for inspection,
-but `choice/tape.go` returns `ErrReplayUnavailable` when projecting them into
-a replay plan. For v3, `ProjectReplayPlan` uses `projectSelectReadiness` to
+`choice/trace.go` explicitly refuses stored v1 and v2 traces by profile name:
+v1 lacks stable logical alternatives and v2 select results carry no readiness.
+For v3, `ProjectReplayPlan` uses `projectSelectReadiness` to
 carry each final `select` result's readiness onto its matching poll decisions.
 A poll decision named by no result keeps unknown readiness. Readiness annotates
 the tape without becoming a forced decision.

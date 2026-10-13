@@ -9,6 +9,10 @@ Delete WASM network v1 (Go and Rust) and the legacy choice-trace v1 decoder as s
 ## Acceptance
 No network v1 model or choice v1 decoder remains; the `diagnostic-profile` feature still builds and its tests pass; README model table drops Network v1; v1 traces are refused by name; Rust fmt/clippy/tests and the full WASM gate set pass on the integrated candidate.
 
+### Revival (2026-10-13)
+
+Resume under the owner's active instruction to complete the WASM section. Remove both retired paths together, retaining NetworkV2, broker networking and the diagnostic measurement feature. Integrate with fn-153/fn-154 and the remaining fn-166 identity rotations before final qualification; focused source checks do not complete the task.
+
 ## Done summary
 TBD
 

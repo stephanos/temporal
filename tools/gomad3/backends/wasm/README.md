@@ -112,7 +112,7 @@ compatible standalone choice-prefix mode through the shared Runner, including
 its existing output, attempt, byte and resume bounds.
 
 Seeded and forced decisions, observations, frozen-clock idle advances and the
-optional v1 network decisions execute inside the Rust helper. Bounded choice,
+runtime control decisions execute inside the Rust helper. Bounded choice,
 diagnostic, WASI and network evidence streams are emitted once at termination;
 filesystem and other host-owned callbacks retain canonical transcript ordering.
 The Go owner remains the differential reference. V2 network and broker runs use
@@ -126,7 +126,6 @@ such a prefix must also reproduce its fault, durable image and recovered history
 | Default namespace | Captured inputs and process-local writable files; no durability claim |
 | `Storage` volumes | Native-source projected persistence operations and bounded dependency-closed crash states |
 | `Storage.SQLiteLockDatabases` | Opt-in exact ncruces `.lock` and `-shm` process-owned artifacts are ephemeral; database, journal and WAL persistence is unchanged |
-| `Network` v1 | Seeded connect/write delays and reset/partition/heal decisions |
 | `NetworkV2` | Generated host stream model; cooperative frozen clock only |
 
 The SQLite policy does not delete arbitrary locks or imply POSIX/native-platform
@@ -147,10 +146,13 @@ and is reported alongside full-run wall costs rather than replacing them.
 
 The opt-in compiled cache is a same-UID trusted host cache, inaccessible to guests.
 Its private directory and immutable entries require restrictive ownership, modes,
-link and no-follow checks. A versioned envelope binds module bytes, actual helper,
+link and no-follow checks. The v3 CRC-32 envelope binds module bytes, actual helper,
 engine configuration, platform and engine compilation compatibility. Compiled bytes
 are read once, bounded and verified before deserialization; malformed existing
 entries fail closed. Checksums detect corruption, not malicious cache-owner writes.
+On a cache hit the helper uses the artifact for the prepared module digest without
+opening or hashing the module; misses verify module bytes before compilation.
+Earlier v2 and filename-only entries are ignored and preserved.
 The verified-buffer implementation can use more host RSS than mmap loading. Cold
 compilation, warm loading and fresh instance state must be measured separately.
 
@@ -195,22 +197,18 @@ simulated network. Its gates use the cooperative profile with a frozen clock
 (zero read-step): time moves only when every guest goroutine is blocked, then
 jumps to the earliest deadline.
 
-The simulated network is optional. A `Config.Network` model makes the guest's
-in-process fake TCP (`net/net_fake.go`, patched by the overlay) ask the host
-before each stream connect and write. The model draws seeded per-operation
-delays and applies `reset`, `partition` and `heal` faults at virtual times;
-port 0 matches every connection. Delays hold the writer, which keeps each
-connection's byte order. A reset fails the next write on every connection
-open at that time and closes both directions. Model decisions form the
-`NetworkTranscript` evidence stream. Without a model the guest never consults
-the host.
+The simulated network uses `Config.NetworkV2` and the generated host stream
+model. Named `reset`, `partition`, `heal` and `delay` faults apply at virtual
+times; partitions hold pending operations until healing or their deadline.
+Model decisions form the `NetworkTranscript` evidence stream. The prototype
+network-v1 model and its guest import have been retired.
 
 ```sh
 GOMAD_WASM_PROTOTYPE_ROOT=/absolute/evidence \
   make -C tools/gomad3/backends/wasm prototype GOMAD_WASM_STOCK_GO=/absolute/stock/go1.27.1
 ```
 
-The default run covers the fixture gates (scheduling, virtual time, network),
+The default run covers the fixture gates (scheduling and virtual time),
 a Temporal one-box workflow with sleeps, retries, a reset and a partition, and
 the unchanged `tests/gomadfunctional` `TestFrontendSystemInfo`. Every Temporal
 gate runs two seeds and replays the first in a fresh guest; the evidence must

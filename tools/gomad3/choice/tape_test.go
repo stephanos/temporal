@@ -2,6 +2,7 @@ package choice
 
 import (
 	"crypto/sha256"
+	"errors"
 	"slices"
 	"strings"
 	"testing"
@@ -208,7 +209,7 @@ func TestProjectDecisionTapeRejectsObservationOnlyAndLegacyTrace(t *testing.T) {
 		TargetSHA256: sha256.Sum256([]byte("target")), ToolchainBuildKey: strings.Repeat("a", 64),
 		GOOS: "darwin", GOARCH: "arm64", ImplementationSHA256: sha256.Sum256([]byte("implementation")),
 	}
-	if _, err := ProjectReplayPlan(Trace{Version: Version1, Summary: Summary{Terminal: TerminalComplete}}, identity); !strings.Contains(errString(err), "unavailable") {
+	if _, err := ProjectReplayPlan(Trace{Version: Version1, Summary: Summary{Terminal: TerminalComplete}}, identity); !errors.Is(err, ErrInvalidReplayPlan) {
 		t.Fatalf("legacy ProjectReplayPlan() error = %v", err)
 	}
 	if _, err := ProjectReplayPlan(Trace{Version: Version3, Summary: Summary{Terminal: TerminalOverflow}}, identity); err == nil {

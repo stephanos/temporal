@@ -56,6 +56,16 @@ func init() {
 	gomadStreamRegisterPoll(gomadStreamPollPending)
 }
 
+func gomadStreamPort(addr Addr) uint32 {
+	switch addr := addr.(type) {
+	case *TCPAddr:
+		return uint32(addr.Port)
+	case *UDPAddr:
+		return uint32(addr.Port)
+	}
+	return 0
+}
+
 func gomadStreamInvoke(buffer []byte) {
 	if gomadWasmNetStream(&buffer[0], uint32(len(buffer))) != 0 {
 		panic("net: gomad stream model rejected operation")
@@ -277,7 +287,7 @@ func gomadStreamConnectFD(ctx context.Context, fd *netFD, laddr, raddr sockaddr)
 	if t, ok := ctx.Deadline(); ok {
 		deadline = gomadStreamTime(t)
 	}
-	buffer := gomadStreamFrame(gomadStreamDial, 0, gomadNetPort(remote), local, 0, deadline)
+	buffer := gomadStreamFrame(gomadStreamDial, 0, gomadStreamPort(remote), local, 0, deadline)
 	if ip := remote.(*TCPAddr).IP.To4(); ip != nil {
 		byteorder.BEPutUint32(buffer[56:], byteorder.BEUint32(ip))
 	}
