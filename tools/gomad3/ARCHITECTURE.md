@@ -226,8 +226,11 @@ Invalid limits or overflowing expiry arithmetic reject before mutation.
 
 For nonempty I/O, terminal read state precedes readable bytes, EOF and caller
 deadline. Writes check terminal state, available-capacity admission, then caller
-deadline. Empty I/O and partial-result contracts remain. Full close discards local unread and
-held outbound bytes while already-received peer data drains normally to EOF;
+deadline. Empty I/O and partial-result contracts remain. Full close discards local
+unread bytes and partition-held outbound suffixes, preserving normal enabled-link
+delayed draining and the peer's received tail before EOF. An effective later
+partition discards only the still-undelivered suffix from an already full-closed
+source; it does not revive timeout work or discard write-half-close bytes.
 `CloseRead` discards local unread bytes, while `CloseWrite` retains accepted
 outbound bytes for draining before EOF, including held bytes after heal. These
 model boundaries do not imply identical host behavior.

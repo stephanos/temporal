@@ -56,6 +56,7 @@ func TestRootProcessSimulationUsesRunnerTransport(t *testing.T) {
 		"TestProcessNetworkStallExpiry",
 		"TestProcessNetworkStallOrdering",
 		"TestProcessNetworkPartitionedDialStall",
+		"TestProcessNetworkFramedPartition",
 		"TestProcessFilesystemHandlePartialIOAndLifetime",
 		"TestProcessFilesystemHandleDirectoryAndChdir",
 		"TestProcessFilesystemHandleAccessAndBounds",

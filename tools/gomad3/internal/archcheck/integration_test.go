@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -114,6 +115,39 @@ func TestSimulationGateSelectsProcessNetworkHandles(t *testing.T) {
 		return true
 	}
 	root := "TestRootProcessSimulationUsesRunnerTransport/"
+	runner, err := parser.ParseFile(token.NewFileSet(), "runner/internal/exploration/integration_test.go", nil, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	registered := make(map[string]bool)
+	for _, declaration := range runner.Decls {
+		function, ok := declaration.(*ast.FuncDecl)
+		if !ok || function.Name.Name != "TestRootProcessSimulationUsesRunnerTransport" {
+			continue
+		}
+		ast.Inspect(function.Body, func(node ast.Node) bool {
+			loop, ok := node.(*ast.RangeStmt)
+			if !ok {
+				return true
+			}
+			list, ok := loop.X.(*ast.CompositeLit)
+			if !ok {
+				return true
+			}
+			for _, element := range list.Elts {
+				literal, ok := element.(*ast.BasicLit)
+				if !ok || literal.Kind != token.STRING {
+					continue
+				}
+				name, err := strconv.Unquote(literal.Value)
+				if err != nil {
+					t.Fatal(err)
+				}
+				registered[name] = true
+			}
+			return true
+		})
+	}
 	files, err := filepath.Glob("../../tools/gomad3sim/*toolchain_test.go")
 	if err != nil {
 		t.Fatal(err)
@@ -130,7 +164,7 @@ func TestSimulationGateSelectsProcessNetworkHandles(t *testing.T) {
 				continue
 			}
 			prefix := ""
-			for _, family := range []string{"TestProcessNetworkHandle", "TestProcessFilesystemHandle", "TestProcessNetworkHeldFIFO", "TestProcessNetworkStallExpiry", "TestProcessNetworkStallOrdering", "TestProcessNetworkPartitionedDialStall"} {
+			for _, family := range []string{"TestProcessNetworkHandle", "TestProcessFilesystemHandle", "TestProcessNetworkHeldFIFO", "TestProcessNetworkStallExpiry", "TestProcessNetworkStallOrdering", "TestProcessNetworkPartitionedDialStall", "TestProcessNetworkFramedPartition"} {
 				if strings.HasPrefix(function.Name.Name, family) {
 					prefix = family
 				}
@@ -139,6 +173,9 @@ func TestSimulationGateSelectsProcessNetworkHandles(t *testing.T) {
 				continue
 			}
 			handles[prefix]++
+			if !registered[function.Name.Name] {
+				t.Errorf("Runner simulation transport does not register %s", function.Name.Name)
+			}
 			if !selected(root+function.Name.Name, filters[0][1]) {
 				t.Errorf("canonical main simulation gate excludes %s", function.Name.Name)
 			}
@@ -147,7 +184,7 @@ func TestSimulationGateSelectsProcessNetworkHandles(t *testing.T) {
 			}
 		}
 	}
-	for prefix, want := range map[string]int{"TestProcessNetworkHandle": 13, "TestProcessFilesystemHandle": 4, "TestProcessNetworkHeldFIFO": 1, "TestProcessNetworkStallExpiry": 1, "TestProcessNetworkStallOrdering": 1, "TestProcessNetworkPartitionedDialStall": 1} {
+	for prefix, want := range map[string]int{"TestProcessNetworkHandle": 13, "TestProcessFilesystemHandle": 4, "TestProcessNetworkHeldFIFO": 1, "TestProcessNetworkStallExpiry": 1, "TestProcessNetworkStallOrdering": 1, "TestProcessNetworkPartitionedDialStall": 1, "TestProcessNetworkFramedPartition": 1} {
 		if handles[prefix] != want {
 			t.Fatalf("%s cases=%d, want %d", prefix, handles[prefix], want)
 		}

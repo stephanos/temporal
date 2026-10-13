@@ -1385,9 +1385,9 @@ claims is implied by the in-process model.
 
 The following is the approved
 [fn-154 contract](../../.flow/specs/fn-154-gomad-simpler-virtual-network-with.md).
-Pending-dial and history migration source, final identity generation, independent
-integrated review and required execution gates remain open. This contract update
-does not qualify the intermediate source candidate. Existing native deferrals
+Final identity generation, independent integrated review and required execution
+gates remain open. This contract update does not qualify the intermediate source
+candidate. Existing native deferrals
 remain with fn-128 and fn-149; new fn-154 native regressions remain required under
 fn-154 until executed or explicitly transferred by the owner.
 
@@ -1444,8 +1444,12 @@ For nonempty I/O, terminal state precedes readable data, EOF and caller read
 deadlines. Writes check terminal state, then available-capacity admission, then
 caller deadline.
 Thus available data/space can make progress before a caller deadline error, which
-remains recoverable. Full close discards the local unread tail and held outbound
-bytes; already-received peer data retains its normal drain-to-EOF behavior.
+remains recoverable. Full close discards the local unread tail and partition-held
+outbound suffix, while preserving normal enabled-link delayed draining and the
+peer's already-received tail before EOF. If an effective later partition disables
+that direction before receipt, it discards only the still-undelivered suffix from
+the already full-closed source. This explicit-close cleanup does not discard bytes
+from `CloseWrite` or otherwise make partitions lossy.
 `CloseRead` discards local unread bytes; `CloseWrite` keeps accepted outbound
 bytes eligible to drain before EOF, including held bytes after heal. Graceful stop
 discards queued and held bytes and exposes EOF; crash discards them and resets.

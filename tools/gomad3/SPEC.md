@@ -391,10 +391,14 @@ For nonempty I/O, terminal read state must precede readable bytes, EOF and calle
 deadline. Write must check terminal state before available-capacity admission,
 then caller deadline. Caller deadlines must remain recoverable; clearing them must not undo
 a committed timeout reset. Full close must discard the local unread tail and
-held outbound bytes while preserving normal peer drain-to-EOF semantics for
-already-received data. Read half-close must discard local unread bytes; write
-half-close must retain accepted outbound bytes for draining before EOF, including
-held bytes after heal. Graceful stop must discard queued/held bytes and expose
+partition-held outbound suffix while preserving normal enabled-link delayed
+draining and the peer's already-received tail before EOF. An effective later
+partition must discard only the still-undelivered suffix from an already
+full-closed source, without reviving timeout work or affecting write-half-close
+bytes. This is explicit-close cleanup, not general partition loss.
+Read half-close must discard local unread bytes; write half-close must retain
+accepted outbound bytes for draining before EOF, including held bytes after heal.
+Graceful stop must discard queued/held bytes and expose
 EOF; crash must discard them and reset. Restart must not revive old bytes,
 descriptors or expiry work. Framed streams must survive short partitions intact
 or terminate with timeout after

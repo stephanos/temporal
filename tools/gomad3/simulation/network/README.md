@@ -23,8 +23,8 @@ retain their detached message.
 
 The following policies describe the approved
 [fn-154 migration](../../../../.flow/specs/fn-154-gomad-simpler-virtual-network-with.md).
-Pending-dial/history source, final generated identities, integrated review and
-execution gates remain open; this document does not qualify the checkpoint.
+Final generated identities, integrated review and execution gates remain open;
+this document does not qualify the checkpoint.
 The stream profile and affected config/record/model/transition identities must
 rotate together. Old identities reject before activation through the single
 generated semantic codec. See the
@@ -65,8 +65,12 @@ obsolete work. Listener identity survives connection reset.
 
 For nonempty I/O, terminal reads precede readable bytes, EOF and caller deadline;
 writes check terminal state, available capacity, then caller deadline. Caller
-deadlines remain recoverable, while clearing them cannot undo timeout reset. Full close discards
-local unread and held outbound bytes; received peer data drains normally to EOF.
+deadlines remain recoverable, while clearing them cannot undo timeout reset.
+Full close discards local unread bytes and partition-held outbound suffixes,
+preserving normal enabled-link delayed draining and the received peer tail before
+EOF. An effective later partition discards only the still-undelivered suffix from
+an already full-closed source, without reviving timeout work or discarding
+write-half-close bytes. This is explicit-close cleanup, not partition loss.
 Read half-close discards local unread bytes; write half-close keeps accepted
 outbound bytes for draining before EOF, including held bytes after heal. Graceful
 stop discards queued/held bytes and exposes EOF; crash discards them and resets.
