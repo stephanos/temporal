@@ -32,14 +32,9 @@ type storageEnvelope struct {
 	Format string `json:"format"`
 }
 
-// storageEnvelopeBytes is the envelope publication writes.
-var storageEnvelopeBytes = func() []byte {
-	encoded, err := json.Marshal(storageEnvelope{Format: StorageFormat})
-	if err != nil {
-		panic(err)
-	}
-	return append(encoded, '\n')
-}()
+// storageEnvelopeBytes is the envelope publication writes. A test checks
+// that it decodes as the current format.
+var storageEnvelopeBytes = []byte(`{"format":"` + StorageFormat + `"}` + "\n")
 
 // ErrUnsupportedFormat matches every UnsupportedFormatError.
 var ErrUnsupportedFormat = errors.New("unsupported artifact storage format")

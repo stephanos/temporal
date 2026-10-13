@@ -50,6 +50,13 @@ func TestPublishWritesTheStorageEnvelopeOutsideStoredBytes(t *testing.T) {
 	}
 }
 
+func TestWrittenStorageEnvelopeDecodesAsTheCurrentFormat(t *testing.T) {
+	envelope, err := decodeStorageEnvelope(storageEnvelopeBytes)
+	if err != nil || envelope.Format != StorageFormat {
+		t.Fatalf("decodeStorageEnvelope() = %#v, %v", envelope, err)
+	}
+}
+
 func TestPublishRejectsAPayloadNamedLikeTheStorageEnvelope(t *testing.T) {
 	input := artifactInput(t)
 	input.Payloads[1].Path = "storage.json"
