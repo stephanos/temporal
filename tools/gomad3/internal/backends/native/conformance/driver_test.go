@@ -77,7 +77,7 @@ func TestRunBuilderExecutesTypedPackageGate(t *testing.T) {
 	if !report.Passed || len(report.Cases) != 1 || len(requests) != 2 {
 		t.Fatalf("Run() report = %+v, requests = %d", report, len(requests))
 	}
-	if got := requests[1].Command; !slices.Equal(got, []string{goCommand, "test", "-count=1", "-tags=test_dep", "./toolchain"}) {
+	if got := requests[1].Command; !slices.Equal(got, []string{goCommand, "test", "-count=1", "-tags=test_dep", "./internal/backends/native/toolchain"}) {
 		t.Fatalf("builder command = %v", got)
 	}
 }
@@ -101,7 +101,7 @@ func TestRunLiveCapabilityExecutesPinnedSemanticFixtures(t *testing.T) {
 	if !report.Passed || len(report.Cases) != 1 || len(requests) != 2 {
 		t.Fatalf("Run() report = %+v, requests = %d", report, len(requests))
 	}
-	if got := requests[1].Command; !slices.Equal(got, []string{goCommand, "test", "-count=1", "-tags=test_dep", "./backends/native/build/internal/livecap"}) {
+	if got := requests[1].Command; !slices.Equal(got, []string{goCommand, "test", "-count=1", "-tags=test_dep", "./internal/backends/native/build/internal/livecap"}) {
 		t.Fatalf("live-capability command = %v", got)
 	}
 }

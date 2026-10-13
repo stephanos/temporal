@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/fs"
 
+	"go.temporal.io/server/tools/gomad3/internal/evidence/record/softassert"
 	"go.temporal.io/server/tools/gomad3/internal/model/choice"
 	"go.temporal.io/server/tools/gomad3/internal/model/clock"
 	"go.temporal.io/server/tools/gomad3/internal/model/network"
@@ -43,5 +44,6 @@ func implementationSHA256WithStrictJSON(sources fs.ReadFileFS, strictJSON string
 	inventory = fmt.Appendf(inventory, "broker-clock:%s\n", clock.BrokerImplementationSHA256())
 	inventory = fmt.Appendf(inventory, "broker-world:%s\n", world.ImplementationSHA256())
 	inventory = fmt.Appendf(inventory, "strict-json:%s\n", strictJSON)
+	inventory = fmt.Appendf(inventory, "soft-assertion:%s\n", softassert.ImplementationSHA256())
 	return fmt.Sprintf("sha256:%x", sha256.Sum256(inventory))
 }

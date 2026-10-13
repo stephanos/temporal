@@ -8,14 +8,15 @@ import (
 )
 
 type Classification struct {
-	Domain       string
-	Reason       string
-	Termination  string
-	ExitCode     *record.Uint64String
-	Signal       *string
-	Deadline     *string
-	ArtifactKind string
-	ReplayMode   string
+	SoftAssertions *record.SoftAssertions
+	Domain         string
+	Reason         string
+	Termination    string
+	ExitCode       *record.Uint64String
+	Signal         *string
+	Deadline       *string
+	ArtifactKind   string
+	ReplayMode     string
 }
 
 func Classify(result ExecutionResult, cancelled bool, terminal record.WorldTerminal) Classification {
@@ -31,15 +32,24 @@ func Classify(result ExecutionResult, cancelled bool, terminal record.WorldTermi
 		setTargetTermination(&classified, result)
 		return classified
 	}
+	if assertions := result.SoftAssertions; assertions != nil && (assertions.Inconclusive || len(assertions.Messages) != 0 && !assertions.ReportOnly) {
+		reason := "soft_assertion"
+		if assertions.Inconclusive {
+			reason = "soft_assertion_inconclusive"
+		}
+		classified := Classification{SoftAssertions: assertions, Domain: "target", Reason: reason, ArtifactKind: record.ArtifactTargetFailure, ReplayMode: record.ReplayExact}
+		setTargetTermination(&classified, result)
+		return classified
+	}
 	if result.Termination == TerminationExit && result.ExitCode == 0 {
 		reason := "success"
 		if terminal.Kind == string(world.TerminalIdle) {
 			reason = "world_idle"
 		}
 		exitCode := record.Uint64String(0)
-		return Classification{Domain: "success", Reason: reason, Termination: "exit", ExitCode: &exitCode, ArtifactKind: record.ArtifactSuccess, ReplayMode: record.ReplayExact}
+		return Classification{SoftAssertions: result.SoftAssertions, Domain: "success", Reason: reason, Termination: "exit", ExitCode: &exitCode, ArtifactKind: record.ArtifactSuccess, ReplayMode: record.ReplayExact}
 	}
-	classified := Classification{Domain: "target", Reason: diagnosticReason(result.Stderr.Bytes), ArtifactKind: record.ArtifactTargetFailure, ReplayMode: record.ReplayExact}
+	classified := Classification{SoftAssertions: result.SoftAssertions, Domain: "target", Reason: diagnosticReason(result.Stderr.Bytes), ArtifactKind: record.ArtifactTargetFailure, ReplayMode: record.ReplayExact}
 	setTargetTermination(&classified, result)
 	if result.Termination == TerminationSignal {
 		classified.Reason = "external_signal"

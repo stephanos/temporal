@@ -29,6 +29,7 @@ func wasmArchitectureConfig() archcheck.Config {
 			wasmModule + "/internal/model/clock",
 			wasmModule + "/internal/model/volume", wasmModule + "/internal/model/world",
 			wasmModule + "/internal/model/strictjson",
+			wasmModule + "/internal/evidence/record/softassert",
 		},
 	}
 }

@@ -34,7 +34,8 @@ func executionEvidence(
 			ChoiceTraceBytes: record.Uint64String(config.ChoiceTraceLimit),
 		},
 		Outcome: record.OutcomeEvidence{
-			Domain: outcome.Domain, Reason: outcome.Reason, Termination: outcome.Termination,
+			SoftAssertions: outcome.SoftAssertions,
+			Domain:         outcome.Domain, Reason: outcome.Reason, Termination: outcome.Termination,
 			ExitCode: cloneUint64String(outcome.ExitCode), Signal: cloneString(outcome.Signal), Deadline: cloneString(outcome.Deadline),
 		},
 		GroupGone:               completion.result.GroupGone,

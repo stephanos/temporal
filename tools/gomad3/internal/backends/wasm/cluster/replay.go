@@ -20,6 +20,11 @@ func validateRetainedLifecycle(spec gomad3sim.Spec, p *Provider) error {
 	if p.Oracles != nil {
 		expectedOracles = len(p.Oracles.Histories)*3 + len(p.Oracles.Convergence) + len(p.Oracles.SQLite)*3
 	}
+	softAssertions, err := validateRetainedSoftAssertions(spec, p)
+	if err != nil {
+		return err
+	}
+	expectedOracles += softAssertions
 	if len(plan.Oracles) != expectedOracles {
 		return errors.New("retained WASM oracle evidence lacks its sealed observation plan")
 	}

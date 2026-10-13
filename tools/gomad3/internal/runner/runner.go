@@ -75,6 +75,8 @@ const (
 )
 
 type CampaignEvent struct {
+	SoftAssertions        *record.SoftAssertions `json:"soft_assertions,omitempty"`
+	ExecutionSeed         *uint64                `json:"execution_seed,omitempty"`
 	Phase                 CampaignPhase
 	CampaignPath          string `json:"campaign_path"`
 	Selected              uint64
@@ -1013,7 +1015,7 @@ func manifestForRun(config campaignRequest, prepared target.Prepared, baseEnviro
 			ChoiceTraceBytes:     record.Uint64String(config.ChoiceTraceLimit),
 		},
 		World:   recordedWorld,
-		Outcome: record.Outcome{Domain: outcome.Domain, Reason: outcome.Reason, Termination: outcome.Termination, ExitCode: outcome.ExitCode, Signal: outcome.Signal, Deadline: outcome.Deadline},
+		Outcome: record.Outcome{SoftAssertions: outcome.SoftAssertions, Domain: outcome.Domain, Reason: outcome.Reason, Termination: outcome.Termination, ExitCode: outcome.ExitCode, Signal: outcome.Signal, Deadline: outcome.Deadline},
 		Streams: record.Streams{Stdout: streamRecord(completion.result.Stdout), Stderr: streamRecord(completion.result.Stderr)},
 		Host:    record.Host{StartedAt: completion.startedAt.Format(time.RFC3339Nano), FinishedAt: completion.finishedAt.Format(time.RFC3339Nano), ElapsedNanos: elapsedNanos(completion.startedAt, completion.finishedAt)},
 	}

@@ -5,12 +5,13 @@ import "go.temporal.io/server/tools/gomad3/internal/model/choice"
 const ExecutionEvidenceSchema = "gomad3.execution-evidence/v1"
 
 type OutcomeEvidence struct {
-	Domain      string        `json:"domain"`
-	Reason      string        `json:"reason"`
-	Termination string        `json:"termination"`
-	ExitCode    *Uint64String `json:"exit_code,omitempty"`
-	Signal      *string       `json:"signal,omitempty"`
-	Deadline    *string       `json:"deadline,omitempty"`
+	SoftAssertions *SoftAssertions `json:"soft_assertions,omitempty"`
+	Domain         string          `json:"domain"`
+	Reason         string          `json:"reason"`
+	Termination    string          `json:"termination"`
+	ExitCode       *Uint64String   `json:"exit_code,omitempty"`
+	Signal         *string         `json:"signal,omitempty"`
+	Deadline       *string         `json:"deadline,omitempty"`
 }
 
 type ExecutionLimitsEvidence struct {

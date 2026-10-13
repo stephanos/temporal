@@ -39,11 +39,11 @@ var skippedDirectories = map[string]bool{".toolchain": true, ".bin": true}
 // qualification manifest step reads the repository outside the Gomad module
 // and does not consume adapter pins, so the staged copy omits it.
 var DefaultGenerators = [][]string{
-	{"{go}", "run", "./backends/native/cmd/gomadtool", "version-generate"},
-	{"{go}", "run", "./backends/native/cmd/gomadtool", "protocol-generate"},
-	{"{go}", "run", "./backends/native/cmd/gomadtool", "boundary-generate"},
-	{"{go}", "run", "./backends/native/cmd/gomadtool", "boundary-generate", "-check-compiler-tests"},
-	{"{go}", "run", "./backends/native/cmd/gomadtool", "compatibility-pack", "generate", "--root={root}"},
+	{"{go}", "run", "./internal/backends/native/cmd/gomadtool", "version-generate"},
+	{"{go}", "run", "./internal/backends/native/cmd/gomadtool", "protocol-generate"},
+	{"{go}", "run", "./internal/backends/native/cmd/gomadtool", "boundary-generate"},
+	{"{go}", "run", "./internal/backends/native/cmd/gomadtool", "boundary-generate", "-check-compiler-tests"},
+	{"{go}", "run", "./internal/backends/native/cmd/gomadtool", "compatibility-pack", "generate", "--root={root}"},
 }
 
 // DefaultVerifiers check the staged set before publication: it builds, the
@@ -53,11 +53,11 @@ var DefaultGenerators = [][]string{
 // go.mod in the working directories the table maps outside it.
 var DefaultVerifiers = [][]string{
 	{"{go}", "build", "./cmd/..."},
-	{"{go}", "vet", "-tags", "test_dep", "./backends/native/transcript/...", "./backends/native/toolchain/version/..."},
-	{"{go}", "run", "./backends/native/cmd/gomadtool", "version-generate", "-check"},
-	{"{go}", "run", "./backends/native/cmd/gomadtool", "boundary-generate", "-check"},
-	{"{go}", "run", "./backends/native/cmd/gomadtool", "compatibility-pack", "check", "--root={root}", "--staged-copy"},
-	{"{go}", "run", "./backends/native/cmd/gomadtool", "adapter-regenerate", "--verify", "--module={module}", "--module-dir={candidate}", "--go={go}"},
+	{"{go}", "vet", "-tags", "test_dep", "./internal/backends/native/transcript/...", "./internal/backends/native/toolchain/version/..."},
+	{"{go}", "run", "./internal/backends/native/cmd/gomadtool", "version-generate", "-check"},
+	{"{go}", "run", "./internal/backends/native/cmd/gomadtool", "boundary-generate", "-check"},
+	{"{go}", "run", "./internal/backends/native/cmd/gomadtool", "compatibility-pack", "check", "--root={root}", "--staged-copy"},
+	{"{go}", "run", "./internal/backends/native/cmd/gomadtool", "adapter-regenerate", "--verify", "--module={module}", "--module-dir={candidate}", "--go={go}"},
 }
 
 type journalEntry struct {
@@ -509,7 +509,7 @@ func runStaged(ctx context.Context, spec Spec, directory, stage, candidate strin
 // candidate identity. The entry is matched exactly once, like a rewrite
 // anchor, so a reformatted descriptor fails instead of being guessed at.
 func editDescriptor(stage string, regeneration transcript.AdapterRegeneration) error {
-	path := filepath.Join(stage, "toolchain", "version", "version.json")
+	path := filepath.Join(stage, "internal", "backends", "native", "toolchain", "version", "version.json")
 	contents, err := os.ReadFile(path)
 	if err != nil {
 		return err

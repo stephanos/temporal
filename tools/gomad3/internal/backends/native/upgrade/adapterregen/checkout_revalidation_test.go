@@ -87,7 +87,7 @@ func TestRunCheckoutRevalidation(t *testing.T) {
 						return err
 					}
 				case "new-symlink":
-					if err := os.Symlink(external, filepath.Join(fixture.root, "toolchain", "version", "added.txt")); err != nil {
+					if err := os.Symlink(external, filepath.Join(fixture.root, "internal", "backends", "native", "toolchain", "version", "added.txt")); err != nil {
 						return err
 					}
 				}
@@ -129,7 +129,7 @@ func TestRunCheckoutRevalidation(t *testing.T) {
 			if test.symlink {
 				link := path
 				if test.name == "new-symlink" {
-					link = filepath.Join(fixture.root, "toolchain", "version", "added.txt")
+					link = filepath.Join(fixture.root, "internal", "backends", "native", "toolchain", "version", "added.txt")
 				}
 				if target, err := os.Readlink(link); err != nil || target != external {
 					t.Errorf("user symlink was changed: target = %q, error = %v", target, err)

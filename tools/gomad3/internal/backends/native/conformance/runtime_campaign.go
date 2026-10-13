@@ -149,7 +149,7 @@ func (campaign *runtimeCampaign) validateInstallation() error {
 	}
 	overlayRoot := os.Getenv("GOMAD3_OVERLAY_DIR")
 	if overlayRoot == "" {
-		overlayRoot = filepath.Join(campaign.config.Root, "toolchain", "runtime", "overlay")
+		overlayRoot = filepath.Join(campaign.config.Root, "internal", "backends", "native", "toolchain", "runtime", "overlay")
 	}
 	return filepath.WalkDir(overlayRoot, func(path string, entry os.DirEntry, visitErr error) error {
 		if visitErr != nil {

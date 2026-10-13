@@ -14,6 +14,7 @@ import (
 	"go.temporal.io/server/tools/gomad3/internal/backends/target"
 	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/backend"
 	simulation "go.temporal.io/server/tools/gomad3/internal/backends/wasm/cluster"
+	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/installation"
 	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/artifact"
 	"go.temporal.io/server/tools/gomad3/internal/evidence/record"
@@ -69,6 +70,57 @@ func TestIncarnationSamplesUseDetachedCountersAndActualOSFallback(t *testing.T) 
 	}
 }
 
+func clusterQualificationServiceTarget(directory, preparationRoot string) target.Spec {
+	return target.Spec{Backend: backend.Name, Kind: target.KindGoRun, Source: "./internal/backends/wasm/cluster/testdata/service", WorkingDir: directory, PreparationRoot: preparationRoot}
+}
+
+func TestClusterQualificationServicePreparation(t *testing.T) {
+	compiler := os.Getenv("GOMAD3_STOCK_GO")
+	if compiler == "" {
+		t.Skip("explicit stock compiler is required for source preparation")
+	}
+	helper, err := filepath.Abs("../wasmhost/target/release/gomad3-wasmhost")
+	if err != nil {
+		t.Fatal(err)
+	}
+	digest := func(path string) string {
+		data, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return string(record.HashBytes(data))
+	}
+	provider, err := backend.New(backend.Options{
+		CompilerPath: compiler, CompilerSHA256: digest(compiler), GoVersion: "go1.27.1",
+		HelperPath: helper, HelperSHA256: digest(helper), ModelSHA256: wasi.ImplementationSHA256(),
+		CacheRoot: t.TempDir(), Engine: wasi.PinnedEngine(), MemoryBytes: 256 << 20, Fuel: 4_000_000_000,
+		Config: installation.DefaultConfig(wasi.StockProfile),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	directory, err := filepath.Abs("../../../..")
+	if err != nil {
+		t.Fatal(err)
+	}
+	spec := clusterQualificationServiceTarget(directory, t.TempDir())
+	prepared, err := provider.Prepare(t.Context(), spec)
+	if err != nil {
+		t.Fatal(err)
+	}
+	module, err := os.ReadFile(prepared.Path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	imports, pages, err := backend.InspectModule(module)
+	if err != nil || len(imports) == 0 || pages == 0 {
+		t.Fatalf("prepared service is not a runnable WASI module: imports=%d pages=%d err=%v", len(imports), pages, err)
+	}
+	if err := provider.ValidatePrepared(spec, prepared, nil); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestActualClusterQualificationAndDetachedReplay(t *testing.T) {
 	start := hostexec.CurrentProcessResourceUsage()
 	qualificationIntent(t)
@@ -110,7 +162,7 @@ func TestActualClusterQualificationAndDetachedReplay(t *testing.T) {
 	if root == "" {
 		root = t.TempDir()
 	}
-	frozen, err := Freeze(t.Context(), Spec{OperatorStart: start, Manifest: Manifest{Cell: os.Getenv("GOMAD_WASM_QUALIFICATION_CELL"), Provisional: os.Getenv("GOMAD_WASM_INTEGRATED_SOURCE_MANIFEST") == "", IntegratedSourceManifestPath: os.Getenv("GOMAD_WASM_INTEGRATED_SOURCE_MANIFEST"), ID: "independent-guest-lifecycle", Workload: "fixture", IntegratedSourceSHA256: integrated, Seed: 7, Repeat: 2}, Options: options, Campaign: runner.CampaignSpec{Target: target.Spec{Backend: backend.Name, Kind: target.KindGoRun, Source: "./backends/wasm/simulation/testdata/service", WorkingDir: directory, PreparationRoot: t.TempDir()}, RunnerBuild: "fn156-qualification"}, ArtifactRoot: root, Command: []string{"wasm-qualify", "independent-guest-lifecycle"}})
+	frozen, err := Freeze(t.Context(), Spec{OperatorStart: start, Manifest: Manifest{Cell: os.Getenv("GOMAD_WASM_QUALIFICATION_CELL"), Provisional: os.Getenv("GOMAD_WASM_INTEGRATED_SOURCE_MANIFEST") == "", IntegratedSourceManifestPath: os.Getenv("GOMAD_WASM_INTEGRATED_SOURCE_MANIFEST"), ID: "independent-guest-lifecycle", Workload: "fixture", IntegratedSourceSHA256: integrated, Seed: 7, Repeat: 2}, Options: options, Campaign: runner.CampaignSpec{Target: clusterQualificationServiceTarget(directory, t.TempDir()), RunnerBuild: "fn156-qualification"}, ArtifactRoot: root, Command: []string{"wasm-qualify", "independent-guest-lifecycle"}})
 	if err != nil {
 		t.Fatal(err)
 	}

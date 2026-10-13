@@ -453,6 +453,10 @@ func (local *localCampaign) handleObservation(attempt *seedAttempt) {
 	}
 	delete(local.attempts, attempt.job.ordinal)
 	local.applyEffect(effect)
+	if err := reportSoftAssertions(local.config.Progress, local.summary.CampaignPath, run); err != nil {
+		local.failHost(&HostError{Reason: "progress_output", Err: err})
+		return
+	}
 	launch := local.admitting()
 	for _, job := range refill {
 		if !launch {
@@ -595,12 +599,26 @@ func (local *localCampaign) commitStopGroup() {
 	}
 	local.group = nil
 	local.stopped = true
+	for _, run := range group.runs {
+		if err := reportSoftAssertions(local.config.Progress, local.summary.CampaignPath, run); err != nil {
+			local.failHost(&HostError{Reason: "progress_output", Err: err})
+			return
+		}
+	}
 	if local.hostFailure == nil {
 		// A campaign that failed the host reports that failure, not the
 		// policy stop it drained into.
 		local.statistics.StopReason = group.reason
 		synchronizeCampaignStatistics(&local.summary, local.statistics)
 	}
+}
+
+func reportSoftAssertions(progress CampaignEventFunc, path string, run campaign.ExecutionRecord) error {
+	if progress == nil || run.SoftAssertions == nil || !run.SoftAssertions.ReportOnly || len(run.SoftAssertions.Messages) == 0 {
+		return nil
+	}
+	seed := uint64(run.Seed)
+	return progress(CampaignEvent{Phase: ProgressRunning, CampaignPath: path, ExecutionSeed: &seed, SoftAssertions: campaign.CloneSoftAssertionReport(run.SoftAssertions)})
 }
 
 // pendingJobs yields the selection's ordinals that this campaign shard owns

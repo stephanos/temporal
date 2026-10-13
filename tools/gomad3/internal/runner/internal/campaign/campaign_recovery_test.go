@@ -28,11 +28,12 @@ func newFailureCampaign(t *testing.T) failureCampaign {
 }
 
 type failureCampaignOptions struct {
-	ctx             context.Context
-	selection       string
-	count, parallel uint64
-	policy          string
-	budget          uint64
+	softAssertionReportOnly bool
+	ctx                     context.Context
+	selection               string
+	count, parallel         uint64
+	policy                  string
+	budget                  uint64
 }
 
 func newFailureCampaignWith(t *testing.T, options failureCampaignOptions) failureCampaign {
@@ -70,6 +71,10 @@ func newFailureCampaignWith(t *testing.T, options failureCampaignOptions) failur
 	plan.RunnerBuild = input.Manifest.Runner.RunnerBuild
 	plan.Toolchain = input.Manifest.Toolchain
 	plan.Prepared.Target = input.Manifest.Target
+	if options.softAssertionReportOnly {
+		plan.Prepared.Target.Kind, plan.Prepared.Target.SoftAssertionReportOnly = "go-test", true
+		plan.Prepared.Target.Backend = &record.BackendMetadata{Name: "wasm", ReplayMode: record.ReplayObserved, Provenance: record.BackendPayload{Schema: "fixture/v1", File: "backend/provenance.json", SHA256: record.HashBytes(nil)}}
+	}
 	plan.Selection, plan.SelectionCount = options.selection, record.Uint64String(options.count)
 	plan.OnFailure, plan.FailureBudget = options.policy, record.Uint64String(options.budget)
 	artifacts, err := DeriveArtifactCapacityPlan(plan)

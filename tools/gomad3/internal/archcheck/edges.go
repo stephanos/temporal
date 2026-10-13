@@ -47,7 +47,7 @@ func OwnerMayImport(modulePath, owner, importedOwner, importing, imported string
 		}
 		return slices.ContainsFunc([]string{
 			"internal/evidence/artifact", "internal/model/choice", "internal/evidence/artifact/capture", "internal/model/volume", "internal/host/exec", "internal/host/fs",
-			"internal/evidence/qualification", "internal/evidence/record", "internal/runner", "internal/runner/inspect", "internal/runner/options", "internal/backends",
+			"internal/evidence/qualification", "internal/evidence/record", "internal/evidence/record/softassert", "internal/runner", "internal/runner/inspect", "internal/runner/options", "internal/backends",
 			"internal/model/clock", "internal/model/network", "internal/model/cluster", "internal/backends/target", "internal/model/world", "internal/model/runtimesource", "internal/model/strictjson",
 		}, func(path string) bool { return imported == modulePath+"/"+path })
 	}

@@ -46,17 +46,18 @@ type simulationFailureProjection struct {
 }
 
 type targetProjection struct {
-	Backend            *BackendMetadata                    `json:"backend,omitempty"`
-	Kind               string                              `json:"kind"`
-	SHA256             SHA256                              `json:"sha256"`
-	Size               Uint64String                        `json:"size"`
-	Argv               []string                            `json:"argv"`
-	BuildTags          []string                            `json:"build_tags"`
-	Adapters           []TargetAdapter                     `json:"adapters"`
-	Compatibility      []CompatibilityPack                 `json:"compatibility"`
-	BuildInfo          BuildInfo                           `json:"build_info"`
-	CapabilityMode     string                              `json:"capability_mode,omitempty"`
-	CapabilityManifest *targetCapabilityManifestProjection `json:"capability_manifest,omitempty"`
+	SoftAssertionReportOnly bool                                `json:"soft_assertion_report_only,omitempty"`
+	Backend                 *BackendMetadata                    `json:"backend,omitempty"`
+	Kind                    string                              `json:"kind"`
+	SHA256                  SHA256                              `json:"sha256"`
+	Size                    Uint64String                        `json:"size"`
+	Argv                    []string                            `json:"argv"`
+	BuildTags               []string                            `json:"build_tags"`
+	Adapters                []TargetAdapter                     `json:"adapters"`
+	Compatibility           []CompatibilityPack                 `json:"compatibility"`
+	BuildInfo               BuildInfo                           `json:"build_info"`
+	CapabilityMode          string                              `json:"capability_mode,omitempty"`
+	CapabilityManifest      *targetCapabilityManifestProjection `json:"capability_manifest,omitempty"`
 }
 
 type targetCapabilityManifestProjection struct {
@@ -139,12 +140,13 @@ type readOnlyMountProjection struct {
 }
 
 type outcomeProjection struct {
-	Domain      string        `json:"domain"`
-	Reason      string        `json:"reason"`
-	Termination string        `json:"termination"`
-	ExitCode    *Uint64String `json:"exit_code"`
-	Signal      *string       `json:"signal"`
-	Deadline    *string       `json:"deadline"`
+	SoftAssertions *SoftAssertions `json:"soft_assertions,omitempty"`
+	Domain         string          `json:"domain"`
+	Reason         string          `json:"reason"`
+	Termination    string          `json:"termination"`
+	ExitCode       *Uint64String   `json:"exit_code"`
+	Signal         *string         `json:"signal"`
+	Deadline       *string         `json:"deadline"`
 }
 
 type worldProjection struct {
@@ -219,6 +221,12 @@ func cloneMinimization(minimization *Minimization) *Minimization {
 }
 
 func failureProjectionOf(manifest ExecutionRecord) any {
+	if manifest.Outcome.Reason == "soft_assertion" && manifest.Outcome.SoftAssertions != nil {
+		return struct {
+			Reason   string   `json:"reason"`
+			Messages []string `json:"messages"`
+		}{Reason: "soft_assertion", Messages: manifest.Outcome.SoftAssertions.Messages}
+	}
 	if profile := manifest.SimulationProfile; profile != nil {
 		failure := profile.FailureSHA256
 		if failure == "" {
@@ -298,8 +306,9 @@ func projectIOProfile(profile IOProfile) ioProfileProjection {
 
 func projectTarget(target Target) targetProjection {
 	projected := targetProjection{
-		Backend: CloneBackendMetadata(target.Backend),
-		Kind:    target.Kind, SHA256: target.SHA256, Size: target.Size, Argv: target.Argv, BuildTags: target.BuildTags,
+		SoftAssertionReportOnly: target.SoftAssertionReportOnly,
+		Backend:                 CloneBackendMetadata(target.Backend),
+		Kind:                    target.Kind, SHA256: target.SHA256, Size: target.Size, Argv: target.Argv, BuildTags: target.BuildTags,
 		Adapters: target.Adapters, Compatibility: target.Compatibility, BuildInfo: target.BuildInfo, CapabilityMode: target.CapabilityMode,
 	}
 	if projected.Backend != nil {
@@ -347,7 +356,7 @@ func SameTargetIdentity(left, right Target) (bool, error) {
 }
 
 func projectOutcome(outcome Outcome) outcomeProjection {
-	return outcomeProjection{Domain: outcome.Domain, Reason: outcome.Reason, Termination: outcome.Termination, ExitCode: outcome.ExitCode, Signal: outcome.Signal, Deadline: outcome.Deadline}
+	return outcomeProjection{SoftAssertions: outcome.SoftAssertions, Domain: outcome.Domain, Reason: outcome.Reason, Termination: outcome.Termination, ExitCode: outcome.ExitCode, Signal: outcome.Signal, Deadline: outcome.Deadline}
 }
 
 func projectWorld(value World) worldProjection {

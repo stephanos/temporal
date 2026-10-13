@@ -16,6 +16,8 @@ import (
 const exploreEventSchema = "gomad3.explore-event/v3"
 
 type exploreEvent struct {
+	SoftAssertions        *record.SoftAssertions               `json:"soft_assertions,omitempty"`
+	ExecutionSeed         *uint64                              `json:"execution_seed,omitempty"`
 	Schema                string                               `json:"schema"`
 	Type                  string                               `json:"type"`
 	Phase                 runner.CampaignPhase                 `json:"phase,omitempty"`
@@ -62,8 +64,12 @@ func newExploreReporter(jsonOutput bool, stdout, stderr io.Writer) *exploreRepor
 func (reporter *exploreReporter) Progress(progress runner.CampaignEvent) error {
 	reporter.mu.Lock()
 	defer reporter.mu.Unlock()
+	if progress.SoftAssertions != nil && progress.ExecutionSeed == nil {
+		return errors.New("soft assertion observation lacks its execution seed")
+	}
 	if reporter.json {
 		return reporter.writeEvent(exploreEvent{
+			SoftAssertions: progress.SoftAssertions, ExecutionSeed: progress.ExecutionSeed,
 			Schema: exploreEventSchema, Type: "progress", Phase: progress.Phase, CampaignPath: progress.CampaignPath,
 			Selected: progress.Selected, Attempted: progress.Attempted, Running: progress.Running, Succeeded: progress.Succeeded,
 			Failures: progress.Failures, Watchdogs: progress.Watchdogs, ReplayDivergences: progress.ReplayDivergences, Cancelled: progress.Cancelled, Novelty: progress.DistinctFailures,
@@ -71,6 +77,10 @@ func (reporter *exploreReporter) Progress(progress runner.CampaignEvent) error {
 			Guidance: progress.Guidance, CorpusPath: progress.CorpusPath, CorpusEntries: progress.CorpusEntries, CorpusAdded: progress.CorpusAdded,
 			ChoiceTrace: progress.ChoiceTrace, ChoiceExploration: progress.ChoiceExploration, SimulationExploration: progress.SimulationExploration, RecoveryExecutions: progress.RecoveryExecutions,
 		})
+	}
+	if assertions := progress.SoftAssertions; assertions != nil {
+		_, err := fmt.Fprintf(reporter.stderr, "gomad: soft-assertions seed=%d report-only=%t inconclusive=%t messages=%q\n", *progress.ExecutionSeed, assertions.ReportOnly, assertions.Inconclusive, assertions.Messages)
+		return err
 	}
 	_, err := fmt.Fprintf(reporter.stderr, "gomad: phase=%s selected=%d attempted=%d running=%d succeeded=%d failures=%d watchdogs=%d replay-divergences=%d novelty=%d retained-successes=%d retained-success-bytes=%d artifact=%s%s%s%s\n", progress.Phase, progress.Selected, progress.Attempted, progress.Running, progress.Succeeded, progress.Failures, progress.Watchdogs, progress.ReplayDivergences, progress.DistinctFailures, progress.RetainedSuccesses, progress.RetainedSuccessBytes, progress.CampaignPath, formatChoiceTrace(progress.ChoiceTrace), formatExploration(progress.ChoiceExploration, progress.RecoveryExecutions), formatSimulationExploration(progress.SimulationExploration, progress.RecoveryExecutions))
 	return err

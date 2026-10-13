@@ -227,6 +227,9 @@ type OracleEvidence struct {
 }
 
 type OracleResult struct {
+	SoftAssertion   bool             `json:"soft_assertion,omitempty"`
+	ReportOnly      bool             `json:"report_only,omitempty"`
+	Inconclusive    bool             `json:"inconclusive,omitempty"`
 	Name            string           `json:"name"`
 	Passed          bool             `json:"passed"`
 	Evidence        []OracleEvidence `json:"evidence"`

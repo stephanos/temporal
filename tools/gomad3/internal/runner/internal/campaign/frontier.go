@@ -188,8 +188,10 @@ func (state *campaignState) frontierSnapshot() Frontier {
 	}
 	slices.SortFunc(frontier.Outstanding, func(left, right SeedJob) int { return compareUint64(left.Ordinal, right.Ordinal) })
 	for ordinal, receipt := range state.frontier.receipts {
+		observation := receipt.Observation
+		observation.SoftAssertions = CloneSoftAssertionReport(observation.SoftAssertions)
 		frontier.Receipts[ordinal] = Receipt{
-			Observation: receipt.Observation, Artifacts: slices.Clone(receipt.Pending.Artifacts), Diagnostics: slices.Clone(receipt.Pending.Diagnostics),
+			Observation: observation, Artifacts: slices.Clone(receipt.Pending.Artifacts), Diagnostics: slices.Clone(receipt.Pending.Diagnostics),
 		}
 	}
 	if frontier.PendingStop == "" && frontier.Stopped == "" {

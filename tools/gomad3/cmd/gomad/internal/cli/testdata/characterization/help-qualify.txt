@@ -39,6 +39,8 @@ Usage of gomad qualify:
     	required semantic probe
   -seed uint
     	schedule seed (default 1)
+  -soft-assertion-report-only
+    	report soft assertions without failing a supported Go test workload
   -success-bytes value
     	retained successful-execution bytes per repetition
   -success-limit uint

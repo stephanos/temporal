@@ -141,6 +141,9 @@ func runExploration[C, S, R, G, X any](run *explorationCampaign, strategy explor
 			if results[index], runs[index], err = strategy.process(explored, index, completion); err != nil {
 				return err
 			}
+			if assertions := completion.result.SoftAssertions; assertions != nil && assertions.ReportOnly {
+				runs[index].SoftAssertions = campaign.CloneSoftAssertionReport(assertions)
+			}
 		}
 		next, segment, err := strategy.commit(state, round, results)
 		if err == nil {
@@ -152,6 +155,11 @@ func runExploration[C, S, R, G, X any](run *explorationCampaign, strategy explor
 		state, tally = next, roundTally
 		*run.summary = roundTally.summary
 		strategy.project(run.summary, state)
+		for _, observed := range runs {
+			if err := reportSoftAssertions(run.config.Progress, run.summary.CampaignPath, observed); err != nil {
+				return &HostError{Reason: "progress_output", Err: err}
+			}
+		}
 		if err := run.reportProgress(ProgressRunning, 0); err != nil {
 			return &HostError{Reason: "progress_output", Err: err}
 		}

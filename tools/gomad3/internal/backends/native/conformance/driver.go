@@ -148,7 +148,7 @@ func runWith(ctx context.Context, config Config, run func(context.Context, hoste
 func liveCapabilityFixtures(config Config) []fixture {
 	return []fixture{{
 		tier: "test-live-capability", name: "linked-capability-semantics",
-		command: []string{config.Go, "test", "-count=1", "-tags=test_dep", "./backends/native/build/internal/livecap"},
+		command: []string{config.Go, "test", "-count=1", "-tags=test_dep", "./internal/backends/native/build/internal/livecap"},
 		dir:     config.Root, env: append(filterEnvironment(os.Environ(), "GOMADSEED", "GOMAD3_CHILD_SEED", "GOWORK"), "GOWORK=off"),
 		timeout: 10 * time.Minute,
 	}}
@@ -157,7 +157,7 @@ func liveCapabilityFixtures(config Config) []fixture {
 func builderFixtures(config Config) []fixture {
 	return []fixture{{
 		tier: "test-builder", name: "toolchain-builder-unit",
-		command: []string{config.Go, "test", "-count=1", "-tags=test_dep", "./toolchain"},
+		command: []string{config.Go, "test", "-count=1", "-tags=test_dep", "./internal/backends/native/toolchain"},
 		dir:     config.Root, env: append(filterEnvironment(os.Environ(), "GOMADSEED", "GOMAD3_CHILD_SEED", "GOWORK"), "GOWORK=off"),
 		timeout: 10 * time.Minute,
 	}}

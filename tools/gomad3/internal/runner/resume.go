@@ -79,8 +79,9 @@ func resumeConfiguration(request campaignRequest, plan campaign.CampaignPlan) (C
 		return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, err
 	}
 	prepared := target.Prepared{
-		Backend: record.CloneBackendMetadata(plan.Prepared.Target.Backend),
-		Path:    filepath.Join(request.ResumeCampaign, filepath.FromSlash(plan.Prepared.Path)), Kind: target.Kind(plan.Prepared.Target.Kind), Source: plan.Prepared.Target.Source,
+		SoftAssertionReportOnly: plan.Prepared.Target.SoftAssertionReportOnly,
+		Backend:                 record.CloneBackendMetadata(plan.Prepared.Target.Backend),
+		Path:                    filepath.Join(request.ResumeCampaign, filepath.FromSlash(plan.Prepared.Path)), Kind: target.Kind(plan.Prepared.Target.Kind), Source: plan.Prepared.Target.Source,
 		SHA256: string(plan.Prepared.Target.SHA256), Size: uint64(plan.Prepared.Target.Size), Argv: append([]string(nil), plan.Prepared.Target.Argv...),
 		BuildTags: append([]string(nil), plan.Prepared.Target.BuildTags...), Adapters: cloneAdapters(plan.Prepared.Target.Adapters), Compatibility: cloneCompatibility(plan.Prepared.Target.Compatibility), BuildInfo: cloneBuildInfo(plan.Prepared.Target.BuildInfo),
 		GoVersion: plan.Toolchain.GoVersion, BuildKey: plan.Toolchain.BuildKey, TargetGOOS: plan.Toolchain.TargetGOOS, TargetGOARCH: plan.Toolchain.TargetGOARCH,
@@ -91,7 +92,7 @@ func resumeConfiguration(request campaignRequest, plan campaign.CampaignPlan) (C
 			return CampaignSpec{}, SeedSelection{}, nil, nil, target.Prepared{}, err
 		}
 	}
-	preparedSpec := target.Spec{Kind: prepared.Kind, Source: prepared.Source, Args: append([]string(nil), prepared.Argv[1:]...), BuildTags: append([]string(nil), prepared.BuildTags...), ToolchainRoot: request.Target.ToolchainRoot, CapabilityMode: prepared.CapabilityMode}
+	preparedSpec := target.Spec{SoftAssertionReportOnly: prepared.SoftAssertionReportOnly, Kind: prepared.Kind, Source: prepared.Source, Args: append([]string(nil), prepared.Argv[1:]...), BuildTags: append([]string(nil), prepared.BuildTags...), ToolchainRoot: request.Target.ToolchainRoot, CapabilityMode: prepared.CapabilityMode}
 	if prepared.Backend != nil {
 		preparedSpec.Backend = prepared.Backend.Name
 	}
@@ -112,7 +113,7 @@ func resumeConfiguration(request campaignRequest, plan campaign.CampaignPlan) (C
 		Progress: request.Progress, ProgressInterval: request.ProgressInterval, Replayer: request.Replayer,
 	}
 	if prepared.Backend != nil {
-		config.Target = target.Spec{Backend: prepared.Backend.Name, Kind: prepared.Kind, Source: prepared.Source, Args: append([]string(nil), prepared.Argv[1:]...), BuildTags: append([]string(nil), prepared.BuildTags...)}
+		config.Target = target.Spec{SoftAssertionReportOnly: prepared.SoftAssertionReportOnly, Backend: prepared.Backend.Name, Kind: prepared.Kind, Source: prepared.Source, Args: append([]string(nil), prepared.Argv[1:]...), BuildTags: append([]string(nil), prepared.BuildTags...)}
 	}
 	if plan.ChoiceProfile != nil {
 		config.ChoiceTraceLimit = uint64(plan.ChoiceProfile.Limit)

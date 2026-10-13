@@ -186,17 +186,18 @@ type ArtifactInspection struct {
 }
 
 type TargetReport struct {
-	Kind               string                           `json:"kind"`
-	Source             string                           `json:"source"`
-	SHA256             record.SHA256                    `json:"sha256"`
-	Size               uint64                           `json:"size"`
-	Argv               []string                         `json:"argv"`
-	BuildTags          []string                         `json:"build_tags"`
-	Adapters           []record.TargetAdapter           `json:"adapters"`
-	Compatibility      []record.CompatibilityPack       `json:"compatibility"`
-	BuildInfo          record.BuildInfo                 `json:"build_info"`
-	CapabilityMode     string                           `json:"capability_mode"`
-	CapabilityManifest *record.TargetCapabilityManifest `json:"capability_manifest,omitempty"`
+	SoftAssertionReportOnly bool                             `json:"soft_assertion_report_only,omitempty"`
+	Kind                    string                           `json:"kind"`
+	Source                  string                           `json:"source"`
+	SHA256                  record.SHA256                    `json:"sha256"`
+	Size                    uint64                           `json:"size"`
+	Argv                    []string                         `json:"argv"`
+	BuildTags               []string                         `json:"build_tags"`
+	Adapters                []record.TargetAdapter           `json:"adapters"`
+	Compatibility           []record.CompatibilityPack       `json:"compatibility"`
+	BuildInfo               record.BuildInfo                 `json:"build_info"`
+	CapabilityMode          string                           `json:"capability_mode"`
+	CapabilityManifest      *record.TargetCapabilityManifest `json:"capability_manifest,omitempty"`
 	// Sharing is "shared" when the inspected artifact's target file has other
 	// hard links, as a target linked to a store's pool has, and "private" when
 	// the artifact holds the only link. It is read from the link count alone:
@@ -205,14 +206,15 @@ type TargetReport struct {
 }
 
 type OutcomeReport struct {
-	Domain           string        `json:"domain"`
-	Reason           string        `json:"reason"`
-	Termination      string        `json:"termination"`
-	ExitCode         *uint64       `json:"exit_code,omitempty"`
-	Signal           *string       `json:"signal,omitempty"`
-	Deadline         *string       `json:"deadline,omitempty"`
-	FailureSignature record.SHA256 `json:"failure_signature"`
-	ReplayMatch      *bool         `json:"replay_match,omitempty"`
+	SoftAssertions   *record.SoftAssertions `json:"soft_assertions,omitempty"`
+	Domain           string                 `json:"domain"`
+	Reason           string                 `json:"reason"`
+	Termination      string                 `json:"termination"`
+	ExitCode         *uint64                `json:"exit_code,omitempty"`
+	Signal           *string                `json:"signal,omitempty"`
+	Deadline         *string                `json:"deadline,omitempty"`
+	FailureSignature record.SHA256          `json:"failure_signature"`
+	ReplayMatch      *bool                  `json:"replay_match,omitempty"`
 }
 
 type Transcript struct {
@@ -372,6 +374,7 @@ type ExecutionJournalInspection struct {
 }
 
 type ExecutionInspection struct {
+	SoftAssertions              *record.SoftAssertions     `json:"soft_assertions,omitempty"`
 	Strategy                    string                     `json:"strategy,omitempty"`
 	Round                       *uint64                    `json:"round,omitempty"`
 	CandidateSHA256             record.SHA256              `json:"candidate_sha256,omitempty"`
@@ -566,7 +569,7 @@ func projectCampaignPlan(opened campaign.OpenedPortablePlan) CampaignPlanInspect
 	result := CampaignPlanInspection{
 		Schema: campaign.PortablePlanSchema, Storage: campaign.PortablePlanStorage, SHA256: opened.Identity, BundlePath: opened.Path + campaign.PortablePlanBundleSuffix, Mapping: campaign.PortablePlanMapping, Strategy: plan.Strategy, Selection: plan.Selection, SelectionCount: uint64(plan.SelectionCount), Parallel: uint64(plan.Parallel),
 		RunnerBuild: plan.RunnerBuild, Toolchain: plan.Toolchain,
-		Target:      TargetReport{Kind: target.Kind, Source: target.Source, SHA256: target.SHA256, Size: uint64(target.Size), Argv: append([]string(nil), target.Argv...), BuildTags: append([]string(nil), target.BuildTags...), Adapters: append([]record.TargetAdapter(nil), target.Adapters...), Compatibility: append([]record.CompatibilityPack(nil), target.Compatibility...), BuildInfo: target.BuildInfo, CapabilityMode: target.CapabilityMode, CapabilityManifest: cloneTargetCapabilityEvidence(target.CapabilityManifest)},
+		Target:      TargetReport{SoftAssertionReportOnly: target.SoftAssertionReportOnly, Kind: target.Kind, Source: target.Source, SHA256: target.SHA256, Size: uint64(target.Size), Argv: append([]string(nil), target.Argv...), BuildTags: append([]string(nil), target.BuildTags...), Adapters: append([]record.TargetAdapter(nil), target.Adapters...), Compatibility: append([]record.CompatibilityPack(nil), target.Compatibility...), BuildInfo: target.BuildInfo, CapabilityMode: target.CapabilityMode, CapabilityManifest: cloneTargetCapabilityEvidence(target.CapabilityManifest)},
 		Environment: append([]record.Environment(nil), plan.Environment...), ReadOnlyMounts: append([]string(nil), plan.IOROMounts...),
 	}
 	if plan.Journal != nil {
@@ -732,7 +735,8 @@ func projectArtifact(manifest record.ExecutionRecord, path string) ArtifactInspe
 		SelectionOrdinal: uint64(manifest.SelectionOrdinal), Seed: uint64(manifest.Seed), ReplayMode: manifest.ReplayMode,
 		Runner: manifest.Runner, Toolchain: manifest.Toolchain,
 		Target: TargetReport{
-			Kind: manifest.Target.Kind, Source: manifest.Target.Source, SHA256: manifest.Target.SHA256, Size: uint64(manifest.Target.Size),
+			SoftAssertionReportOnly: manifest.Target.SoftAssertionReportOnly,
+			Kind:                    manifest.Target.Kind, Source: manifest.Target.Source, SHA256: manifest.Target.SHA256, Size: uint64(manifest.Target.Size),
 			Argv: append([]string(nil), manifest.Target.Argv...), BuildTags: append([]string(nil), manifest.Target.BuildTags...), Adapters: append([]record.TargetAdapter(nil), manifest.Target.Adapters...), Compatibility: append([]record.CompatibilityPack(nil), manifest.Target.Compatibility...), BuildInfo: manifest.Target.BuildInfo,
 			CapabilityMode: manifest.Target.CapabilityMode, CapabilityManifest: cloneTargetCapabilityEvidence(manifest.Target.CapabilityManifest),
 		},
@@ -793,6 +797,11 @@ func projectOutcome(outcome record.Outcome) OutcomeReport {
 		Domain: outcome.Domain, Reason: outcome.Reason, Termination: outcome.Termination, Signal: outcome.Signal,
 		Deadline: outcome.Deadline, FailureSignature: outcome.FailureSignature, ReplayMatch: outcome.ReplayMatch,
 	}
+	if outcome.SoftAssertions != nil {
+		assertions := *outcome.SoftAssertions
+		assertions.Messages = append([]string(nil), assertions.Messages...)
+		result.SoftAssertions = &assertions
+	}
 	if outcome.ExitCode != nil {
 		value := uint64(*outcome.ExitCode)
 		result.ExitCode = &value
@@ -844,7 +853,8 @@ func projectCampaign(opened campaign.Campaign) (CampaignInspection, error) {
 	seenArtifacts := make(map[string]struct{})
 	for _, run := range opened.Executions {
 		projected := ExecutionInspection{
-			Divergence: run.Divergence, Strategy: run.Strategy, CandidateSHA256: run.CandidateSHA256, ParentCandidateSHA256: run.ParentCandidateSHA256, PrefixSHA256: run.PrefixSHA256, OutcomeSHA256: run.OutcomeSHA256,
+			SoftAssertions: campaign.CloneSoftAssertionReport(run.SoftAssertions),
+			Divergence:     run.Divergence, Strategy: run.Strategy, CandidateSHA256: run.CandidateSHA256, ParentCandidateSHA256: run.ParentCandidateSHA256, PrefixSHA256: run.PrefixSHA256, OutcomeSHA256: run.OutcomeSHA256,
 			SelectionOrdinal: uint64(run.SelectionOrdinal), Seed: uint64(run.Seed), Domain: run.Domain, Reason: run.Reason,
 			Termination: run.Termination, ElapsedNanos: uint64(run.ElapsedNanos), FailureSignature: run.FailureSignature, Artifact: run.Artifact,
 			TranscriptSHA256:  run.IOTranscriptSHA256,

@@ -67,6 +67,7 @@ type sourceIdentity struct {
 	SHA256 record.SHA256
 }
 type provenance struct {
+	SoftAssertionReportOnly                                                                                   bool `json:",omitempty"`
 	BuildCachePolicy                                                                                          string
 	BuildFlags, BuildEnvironment                                                                              []string
 	Schema, Profile, ReplayMode, CompilerSHA256, GoVersion, HelperSHA256, ModelSHA256, ModuleSHA256, BuildKey string
@@ -113,6 +114,9 @@ func (p *Provider) Prepare(ctx context.Context, spec target.Spec) (target.Prepar
 }
 
 func (p *Provider) prepareWithStager(ctx context.Context, spec target.Spec, stage func(context.Context, string, string, os.FileMode, func(context.Context, io.Writer) error) (*hostfs.StagedFile, error)) (preparedResult target.Prepared, retErr error) {
+	if spec.SoftAssertionReportOnly && spec.Kind != target.KindGoTest {
+		return target.Prepared{}, errors.New("soft assertion report-only mode requires a prepared Go test workload")
+	}
 	if p.options.ObserveCompilerCommand != nil {
 		ctx = context.WithValue(ctx, compilerObserverKey{}, p.options.ObserveCompilerCommand)
 	}
@@ -191,6 +195,7 @@ func (p *Provider) prepareWithStager(ctx context.Context, spec target.Spec, stag
 		pr.RuntimeImplementationSHA256 = toolchain.ImplementationSHA256()
 		pr.BuildFlags = append(pr.BuildFlags, "-overlay", overlayPath)
 	}
+	pr.SoftAssertionReportOnly = spec.SoftAssertionReportOnly
 	pr.BuildKey, err = buildKey(pr)
 	if err != nil {
 		return target.Prepared{}, err
@@ -381,9 +386,12 @@ func (p *Provider) prepareWithStager(ctx context.Context, spec target.Spec, stag
 }
 func preparedFrom(pr provenance, data []byte) target.Prepared {
 	reference := record.BackendPayload{Schema: provenanceSchema, File: "backend/provenance.json", SHA256: record.HashBytes(data), Bytes: record.Uint64String(len(data))}
-	return target.Prepared{Kind: pr.Kind, Source: pr.Source, SHA256: pr.ModuleSHA256, Size: pr.ModuleBytes, Argv: append([]string{"gomad3-target"}, pr.Args...), BuildTags: pr.BuildTags, Adapters: []record.TargetAdapter{}, Compatibility: []record.CompatibilityPack{}, GoVersion: pr.GoVersion, BuildKey: pr.BuildKey, TargetGOOS: "wasip1", TargetGOARCH: "wasm", CapabilityMode: target.CapabilityModeClosure, BuildInfo: record.BuildInfo{GoVersion: pr.GoVersion, Path: pr.Source, Settings: []record.BuildSetting{}}, Backend: &record.BackendMetadata{Name: Name, ReplayMode: pr.ReplayMode, Provenance: reference}, BackendPayloads: []target.BackendPayload{{Reference: reference, Data: append([]byte(nil), data...)}}}
+	return target.Prepared{SoftAssertionReportOnly: pr.SoftAssertionReportOnly, Kind: pr.Kind, Source: pr.Source, SHA256: pr.ModuleSHA256, Size: pr.ModuleBytes, Argv: append([]string{"gomad3-target"}, pr.Args...), BuildTags: pr.BuildTags, Adapters: []record.TargetAdapter{}, Compatibility: []record.CompatibilityPack{}, GoVersion: pr.GoVersion, BuildKey: pr.BuildKey, TargetGOOS: "wasip1", TargetGOARCH: "wasm", CapabilityMode: target.CapabilityModeClosure, BuildInfo: record.BuildInfo{GoVersion: pr.GoVersion, Path: pr.Source, Settings: []record.BuildSetting{}}, Backend: &record.BackendMetadata{Name: Name, ReplayMode: pr.ReplayMode, Provenance: reference}, BackendPayloads: []target.BackendPayload{{Reference: reference, Data: append([]byte(nil), data...)}}}
 }
 func (p *Provider) ValidatePrepared(spec target.Spec, prepared target.Prepared, environment []string) error {
+	if prepared.SoftAssertionReportOnly != spec.SoftAssertionReportOnly {
+		return errors.New("WASM prepared soft assertion policy mismatch")
+	}
 	if prepared.Backend == nil || prepared.Backend.Name != Name || spec.Backend != Name || prepared.Kind != spec.Kind || prepared.Source != spec.Source || !reflect.DeepEqual(prepared.Argv, append([]string{"gomad3-target"}, spec.Args...)) {
 		return errors.New("WASM prepared specification mismatch")
 	}
@@ -435,6 +443,9 @@ func (p *Provider) ValidateReplay(_ context.Context, opened *artifact.Opened) (t
 		return target.Prepared{}, err
 	}
 	prepared := preparedFrom(pr, data)
+	if prepared.SoftAssertionReportOnly != manifest.Target.SoftAssertionReportOnly {
+		return target.Prepared{}, errors.New("WASM retained soft assertion policy mismatch")
+	}
 	prepared.Size = uint64(manifest.Target.Size)
 	if pr.ModuleBytes != uint64(manifest.Target.Size) || pr.ModuleSHA256 != string(manifest.Target.SHA256) || !reflect.DeepEqual(pr.BuildTags, manifest.Target.BuildTags) || len(manifest.Target.Adapters) != 0 || len(manifest.Target.Compatibility) != 0 || manifest.Target.CapabilityMode != "closure" || !reflect.DeepEqual(prepared.RecordToolchain(), manifest.Toolchain) || !reflect.DeepEqual(prepared.Argv, manifest.Target.Argv) || prepared.Kind != target.Kind(manifest.Target.Kind) || prepared.Source != manifest.Target.Source || !reflect.DeepEqual(prepared.RecordTarget().BuildInfo, manifest.Target.BuildInfo) || !reflect.DeepEqual(record.BackendIOProfile(*prepared.Backend), manifest.IOProfile) {
 		return target.Prepared{}, errors.New("WASM artifact provenance does not match retained record")
@@ -465,6 +476,9 @@ func (p *Provider) ValidateReplay(_ context.Context, opened *artifact.Opened) (t
 	return prepared, nil
 }
 func (p *Provider) validateProvenance(pr provenance, prepared target.Prepared) error {
+	if pr.SoftAssertionReportOnly != prepared.SoftAssertionReportOnly || pr.SoftAssertionReportOnly && pr.Kind != target.KindGoTest {
+		return errors.New("WASM soft assertion policy identity mismatch")
+	}
 	replayMode := record.ReplayObserved
 	if p.options.Config.Profile == wasi.CooperativeProfile {
 		replayMode = record.ReplayExact

@@ -497,11 +497,11 @@ func requireTestEqual(t *testing.T, want, got any) {
 // fixture is the closure-supported way to run the harness.
 func TestClosureReviewSupportsSimulationFixtureAndRefusesHarnessTests(t *testing.T) {
 	const harness = "go.temporal.io/server/tools/gomad3/internal/model/cluster"
-	root, err := filepath.Abs(filepath.Join("..", "..", "..", "..", "..", ".."))
+	root, err := filepath.Abs(filepath.Join("..", "..", "..", ".."))
 	requireTestNoError(t, err)
 
 	fixture, err := ReviewCapabilities(context.Background(), target.Spec{
-		Kind: target.KindGoRun, Source: "./tools/gomad3/internal/model/cluster/testdata/simulation_exploration", WorkingDir: root,
+		Kind: target.KindGoRun, Source: "./internal/model/cluster/testdata/simulation_exploration", WorkingDir: root,
 		BuildTags: []string{"gomad3_toolchain"}, ToolchainRoot: toolchainRoot(t),
 	})
 	requireTestNoError(t, err)
@@ -517,7 +517,7 @@ func TestClosureReviewSupportsSimulationFixtureAndRefusesHarnessTests(t *testing
 	}
 
 	tests, err := ReviewCapabilities(context.Background(), target.Spec{
-		Kind: target.KindGoTest, Source: "./tools/gomad3/internal/model/cluster", WorkingDir: root,
+		Kind: target.KindGoTest, Source: "./internal/model/cluster", WorkingDir: root,
 		BuildTags: []string{"gomad3_toolchain", "test_dep"}, ToolchainRoot: toolchainRoot(t),
 	})
 	requireTestNoError(t, err)

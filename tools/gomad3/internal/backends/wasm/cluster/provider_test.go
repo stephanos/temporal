@@ -236,7 +236,11 @@ func guestRequest(t *testing.T) wasi.Request {
 	if err != nil {
 		t.Fatal(err)
 	}
-	helper, err := filepath.Abs("../wasmhost/target/release/gomad3-wasmhost")
+	helperPath := os.Getenv("GOMAD_WASM_TEST_HELPER")
+	if helperPath == "" {
+		helperPath = "../wasmhost/target/release/gomad3-wasmhost"
+	}
+	helper, err := filepath.Abs(helperPath)
 	if err != nil {
 		t.Fatal(err)
 	}

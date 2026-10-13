@@ -560,7 +560,7 @@ func TestStalePacksNameBindingsOfThePreviousIdentity(t *testing.T) {
 }
 
 func TestDefaultGeneratorsAreTheModuleLocalMakeGenerateSteps(t *testing.T) {
-	makefile, err := os.ReadFile("../../Makefile")
+	makefile, err := os.ReadFile("../../../../../Makefile")
 	if err != nil {
 		t.Fatal(err)
 	}

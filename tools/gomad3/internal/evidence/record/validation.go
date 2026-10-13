@@ -93,6 +93,30 @@ func validateManifest(manifest ExecutionRecord, requireIdentities bool) error {
 	if manifest.Outcome.Reason == "" || manifest.Outcome.Termination == "" {
 		return fmt.Errorf("outcome reason and termination are required")
 	}
+	if assertions := manifest.Outcome.SoftAssertions; assertions != nil {
+		if manifest.Outcome.Domain == "success" && (assertions.Inconclusive || len(assertions.Messages) != 0 && !assertions.ReportOnly) {
+			return errors.New("successful outcome has a failing soft assertion observation")
+		}
+		if assertions.ReportOnly != manifest.Target.SoftAssertionReportOnly {
+			return errors.New("soft assertion observation differs from recorded policy")
+		}
+		for i, message := range assertions.Messages {
+			if message == "" || len(message) > 4096 || !utf8.ValidString(message) || i > 0 && assertions.Messages[i-1] >= message {
+				return errors.New("invalid static soft assertion messages")
+			}
+		}
+		if manifest.Outcome.Reason == "soft_assertion" && (assertions.ReportOnly || assertions.Inconclusive || len(assertions.Messages) == 0 || manifest.Outcome.Domain != "target") {
+			return errors.New("invalid soft assertion failure outcome")
+		}
+		if manifest.Outcome.Reason == "soft_assertion_inconclusive" && (!assertions.Inconclusive || manifest.Outcome.Domain != "target") {
+			return errors.New("invalid inconclusive soft assertion outcome")
+		}
+	} else if manifest.Outcome.Reason == "soft_assertion" || manifest.Outcome.Reason == "soft_assertion_inconclusive" {
+		return errors.New("soft assertion outcome lacks its observation")
+	}
+	if manifest.Target.SoftAssertionReportOnly && (manifest.Target.Kind != "go-test" || manifest.Target.Backend == nil || manifest.Target.Backend.Name != "wasm") {
+		return errors.New("soft assertion report-only policy requires a WASM Go test target")
+	}
 	if err := validateOutcome(manifest.Outcome); err != nil {
 		return err
 	}

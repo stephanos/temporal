@@ -8,6 +8,7 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"reflect"
 	"time"
 
 	execution "go.temporal.io/server/tools/gomad3/internal/backends"
@@ -508,6 +509,9 @@ func replayDivergence(manifest record.ExecutionRecord, observed execution.Execut
 	}
 	if actualReason(observed, observedWorld) != expected.Reason {
 		return "outcome.reason"
+	}
+	if !reflect.DeepEqual(observed.SoftAssertions, expected.SoftAssertions) {
+		return "outcome.soft_assertions"
 	}
 	if record.SHA256FromSum(observed.Stdout.FullSHA256) != manifest.Streams.Stdout.FullSHA256 {
 		return "stdout.full_sha256"

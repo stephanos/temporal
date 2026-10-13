@@ -171,8 +171,9 @@ func run(ctx context.Context, spec Spec, scenario Scenario, wasm WASMExecution) 
 		}
 	}
 	scenarioErr := scenario(ctx, cluster)
-	controllerErr := cluster.finishControllers()
-	scenarioErr = errors.Join(scenarioErr, controllerErr)
+	if wasm == nil {
+		scenarioErr = errors.Join(scenarioErr, cluster.finishControllers())
+	}
 	cleanupErr := cluster.shutdown(ctx)
 	modelBrokerErr := stopProcessModelBroker()
 	var volumes VolumeRecord
@@ -184,6 +185,15 @@ func run(ctx context.Context, spec Spec, scenario Scenario, wasm WASMExecution) 
 		evidence, err := wasm.Finish()
 		volumes, network, outputs, finishErr = evidence.Volumes, evidence.Network, evidence.Outputs, err
 		wasmEvidence = cloneWASMExecution(evidence.Execution)
+		if err == nil {
+			for _, oracle := range evidence.Oracles {
+				if err := cluster.recordOracle(oracle); err != nil {
+					finishErr = err
+					break
+				}
+			}
+		}
+		scenarioErr = errors.Join(scenarioErr, cluster.finishControllers())
 	} else {
 		volumes, volumeFinishErr = runtimeVolumeFinish(cluster.runtimeRun)
 		network, networkFinishErr = runtimeNetworkFinish(cluster.runtimeRun)
@@ -219,6 +229,12 @@ func run(ctx context.Context, spec Spec, scenario Scenario, wasm WASMExecution) 
 		} else if failed := firstFailedOracle(result.Oracles); failed != nil {
 			result.Outcome = OutcomeOracleFailed
 			result.Reason = boundedTerminalText("oracle " + failed.Name + " failed")
+			if failed.SoftAssertion {
+				result.Reason = "soft_assertion"
+				if failed.Inconclusive {
+					result.Reason = "soft_assertion_inconclusive"
+				}
+			}
 			result.FailureIdentity = failed.FailureIdentity
 		} else {
 			result.Outcome = OutcomeCompleted

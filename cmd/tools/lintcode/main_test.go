@@ -304,6 +304,19 @@ func TestWASMLintHostSourceBoundaries(t *testing.T) {
 	}
 }
 
+func TestWASMLintRoutesSoftAssertionFixtureToItsServerOwner(t *testing.T) {
+	t.Parallel()
+	for _, path := range []string{"tests/gomadfunctional/testdata/softassert/softassert_test.go", "tests/gomadfunctional/testdata/softassert_extra/softassert_test.go"} {
+		entry, err := (ownership{}).classify(path, []string{"tools/gomad3", "."})
+		require.NoError(t, err)
+		if strings.Contains(path, "softassert_extra") {
+			require.Equal(t, source{path: path, module: "."}, entry)
+		} else {
+			require.Equal(t, source{path: path, disposition: "WASM soft assertion fixture"}, entry)
+		}
+	}
+}
+
 func TestWASMLintRoutesTemporalDiagnosticFixtures(t *testing.T) {
 	t.Parallel()
 	for _, owner := range []string{"frontend_namespace", "sqlite_contention"} {

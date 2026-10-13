@@ -348,6 +348,8 @@ func checkCleanupResult(t *testing.T, result, review Result, applied bool) {
 		t.Fatalf("regeneration result changed: %+v", result)
 	}
 	want := []string{
+		generatedFile,
+		"internal/backends/native/toolchain/version/version.json",
 		"internal/backends/native/transcript/adapter_pin_decisions_test.go",
 		"internal/backends/native/transcript/adapter_registry_test.go",
 		"internal/backends/native/transcript/sentry_adapter.go",
@@ -355,8 +357,6 @@ func checkCleanupResult(t *testing.T, result, review Result, applied bool) {
 		"internal/backends/native/transcript/testdata/pebble/go.sum",
 		"internal/backends/native/transcript/testdata/sentry/go.mod",
 		"internal/backends/native/transcript/testdata/sentry/go.sum",
-		generatedFile,
-		"internal/backends/native/toolchain/version/version.json",
 	}
 	paths := make([]string, len(result.Staged))
 	for index, file := range result.Staged {

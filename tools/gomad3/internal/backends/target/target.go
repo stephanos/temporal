@@ -24,19 +24,20 @@ const (
 )
 
 type Spec struct {
-	Backend             string `json:",omitempty"`
-	Kind                Kind
-	Source              string
-	Provenance          string
-	Args                []string
-	BuildTags           []string
-	WorkingDir          string
-	PreparationRoot     string
-	ToolchainRoot       string
-	BuildOverlay        string
-	BuildModFile        string
-	AdapterReplacements []AdapterReplacement
-	CapabilityMode      CapabilityMode
+	SoftAssertionReportOnly bool   `json:",omitempty"`
+	Backend                 string `json:",omitempty"`
+	Kind                    Kind
+	Source                  string
+	Provenance              string
+	Args                    []string
+	BuildTags               []string
+	WorkingDir              string
+	PreparationRoot         string
+	ToolchainRoot           string
+	BuildOverlay            string
+	BuildModFile            string
+	AdapterReplacements     []AdapterReplacement
+	CapabilityMode          CapabilityMode
 }
 
 type ModuleIdentity struct {
@@ -65,24 +66,25 @@ type ToolchainIdentity struct {
 }
 
 type Prepared struct {
-	Backend            *record.BackendMetadata `json:",omitempty"`
-	BackendPayloads    []BackendPayload        `json:",omitempty"`
-	Path               string
-	Kind               Kind
-	Source             string
-	SHA256             string
-	Size               uint64
-	Argv               []string
-	BuildTags          []string
-	Adapters           []record.TargetAdapter
-	Compatibility      []record.CompatibilityPack
-	BuildInfo          record.BuildInfo
-	GoVersion          string
-	BuildKey           string
-	TargetGOOS         string
-	TargetGOARCH       string
-	CapabilityMode     CapabilityMode
-	CapabilityManifest *CapabilityManifest
+	SoftAssertionReportOnly bool                    `json:",omitempty"`
+	Backend                 *record.BackendMetadata `json:",omitempty"`
+	BackendPayloads         []BackendPayload        `json:",omitempty"`
+	Path                    string
+	Kind                    Kind
+	Source                  string
+	SHA256                  string
+	Size                    uint64
+	Argv                    []string
+	BuildTags               []string
+	Adapters                []record.TargetAdapter
+	Compatibility           []record.CompatibilityPack
+	BuildInfo               record.BuildInfo
+	GoVersion               string
+	BuildKey                string
+	TargetGOOS              string
+	TargetGOARCH            string
+	CapabilityMode          CapabilityMode
+	CapabilityManifest      *CapabilityManifest
 }
 
 type CapabilityManifest struct {
@@ -113,8 +115,9 @@ func (prepared Prepared) RecordTarget() record.Target {
 	buildInfo := prepared.BuildInfo
 	buildInfo.Settings = append([]record.BuildSetting(nil), prepared.BuildInfo.Settings...)
 	recorded := record.Target{
-		Backend: record.CloneBackendMetadata(prepared.Backend),
-		Kind:    string(prepared.Kind), Source: prepared.Source, SHA256: record.SHA256(prepared.SHA256), Size: record.Uint64String(prepared.Size),
+		SoftAssertionReportOnly: prepared.SoftAssertionReportOnly,
+		Backend:                 record.CloneBackendMetadata(prepared.Backend),
+		Kind:                    string(prepared.Kind), Source: prepared.Source, SHA256: record.SHA256(prepared.SHA256), Size: record.Uint64String(prepared.Size),
 		Argv: append([]string{}, prepared.Argv...), BuildTags: append([]string{}, prepared.BuildTags...),
 		Adapters: append([]record.TargetAdapter{}, prepared.Adapters...), Compatibility: append([]record.CompatibilityPack{}, prepared.Compatibility...), BuildInfo: buildInfo,
 		CapabilityMode: string(prepared.CapabilityMode),
