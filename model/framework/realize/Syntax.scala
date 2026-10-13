@@ -1,25 +1,13 @@
-// The Temporal kit's sugar: definitions whose meaning a core realization declaration already
-// expresses, kept for readability. Each names the core form it stands for, and the IR
-// generator (model/framework/export/Syntax.scala) lowers it to the IR that core form lifts to. No core file
-// of the kit uses them.
-package temporal.realize
+// The realization core's sugar, the generic protobuf authoring of a realization: a call's request
+// fields, protobuf messages written out and reads of a response, for whatever API a system
+// registers (fn-169.1 moved it from the Temporal kit, as it names no Temporal API). Each definition
+// names the core form it stands for, and the IR generator (model/framework/export/Syntax.scala)
+// lowers it to the IR that core form lifts to. No core file of the framework or a kit uses them.
+package framework.realize
 
 import scala.annotation.targetName
 import com.google.protobuf.ByteString
 import scalapb.GeneratedMessage
-import framework.realize.{
-  Addressee,
-  Cardinality,
-  Field,
-  Name,
-  Observed,
-  Proto,
-  RequestScope,
-  Target,
-  TypedOperand,
-  TypedProto,
-  TypedProtoValue
-}
 
 // A field of the request of the scope it is written in, the named slot `:=` gives an operand.
 // Core form: the typed field `Field[Req, V](_.name)` that `Assignment.typed` takes.

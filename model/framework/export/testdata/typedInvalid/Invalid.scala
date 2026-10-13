@@ -166,5 +166,5 @@ val nonMessageObserved = Observed[String]("bad")
 // A request scope's fields are its call's request's: a selector of another request's field does not
 // type-check against it (fn-112.9's `field(_.name) :=`).
 val foreignField = rpc("endpoint", WorkflowServiceGrpc.METHOD_START_ACTIVITY_EXECUTION) {
-  temporal.realize.field(_.query) := Operand.text("q")
+  framework.realize.field(_.query) := Operand.text("q")
 }

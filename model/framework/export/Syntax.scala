@@ -765,7 +765,7 @@ private[`export`] trait Syntax:
       ir.ActionClass(id, values)
     case _ => fail(t, s"outside the liftable subset: ${t.show}")
 
-  // Hook: one line of a request scope written with the Temporal kit's sugar, `field(_.name) :=
+  // Hook: one line of a request scope written with the realization sugar, `field(_.name) :=
   // operand`, lifted as the assignment record its core form writes, or None for a line that is not
   // one. The field's request type is the scope's, `root`, which the enclosing `rpc`/`readUntil`
   // call opened; the selector is read against it. A message written out for a message field,
@@ -785,7 +785,7 @@ private[`export`] trait Syntax:
     }
     val message = applied(t).collect {
       case (fn @ Select(slot, ":="), List(value))
-          if fn.symbol.maybeOwner.fullName == "temporal.realize.RequestField" =>
+          if fn.symbol.maybeOwner.fullName == "framework.realize.RequestField" =>
         (slot, value, isNamed(value.tpe, "framework.realize.TypedProto"))
     }
     sugared.orElse(message).map { (slot, value, written) =>
@@ -827,13 +827,13 @@ private[`export`] trait Syntax:
       .filter((fn, _) => fn.symbol.maybeOwner.fullName == kitSugar && fn.symbol.name == "field")
       .map(_._2)
       .getOrElse(Nil)
-      .partition(a => a.tpe.baseClasses.exists(_.fullName == "temporal.realize.FieldScope"))
+      .partition(a => a.tpe.baseClasses.exists(_.fullName == "framework.realize.FieldScope"))
     (scopes, selectors) match
       case (List(s), List(selector))
           if s.tpe
             .baseType(
               s.tpe.baseClasses
-                .find(_.fullName == "temporal.realize.FieldScope")
+                .find(_.fullName == "framework.realize.FieldScope")
                 .get
             )
             .typeArgs
@@ -900,7 +900,7 @@ private[`export`] trait Syntax:
     applied(t)
       .collect {
         case (fn @ Select(readCall, "into"), targets)
-            if fn.symbol.maybeOwner.fullName == "temporal.realize.ResponseReadLine" =>
+            if fn.symbol.maybeOwner.fullName == "framework.realize.ResponseReadLine" =>
           (readCall, targets)
       }
       .map { (readCall, targets) =>
@@ -958,8 +958,9 @@ private[`export`] trait Syntax:
       case Some((_, id :: _)) => textOfBound(Bound(id, r.env))
       case _                  => fail(b.term, s"${b.term.show} is no observation written out")
 
-  // The Temporal kit's sugar, by the package object its top-level definitions are members of.
-  private val kitSugar = "temporal.realize.Syntax$package$"
+  // The realization sugar (framework/realize/Syntax.scala), by the package object its top-level
+  // definitions are members of.
+  private val kitSugar = "framework.realize.Syntax$package$"
 
   // Hook: a protobuf message written in the literal scope `proto[M] { … }`, lifted as the Proto its
   // core form writes, or None for a term that is not one. Each line sets one field, by a value of
@@ -1046,7 +1047,7 @@ private[`export`] trait Syntax:
           val t = line.term
           applied(t) match
             case Some((fn @ Select(slot, ":="), List(value, _)))
-                if fn.symbol.maybeOwner.fullName == "temporal.realize.LiteralField" =>
+                if fn.symbol.maybeOwner.fullName == "framework.realize.LiteralField" =>
               val (name, field) = literalField(slot, message, t)
               List(
                 (
@@ -1056,7 +1057,7 @@ private[`export`] trait Syntax:
                 )
               )
             case Some((fn @ Select(slot, "apply"), List(nested)))
-                if fn.symbol.maybeOwner.fullName == "temporal.realize.LiteralField" =>
+                if fn.symbol.maybeOwner.fullName == "framework.realize.LiteralField" =>
               val (name, field) = literalField(slot, message, t)
               val inner = slot.tpe.widen.dealias.typeArgs(1)
               val m = literal(

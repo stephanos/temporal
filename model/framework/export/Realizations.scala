@@ -38,7 +38,7 @@ private[`export`] trait Realizations:
   // is lowered by name (Syntax.scala).
   private def vocabularyMember(sym: Symbol): Boolean =
     inVocabulary(sym) && (!sym.maybeOwner.fullName.endsWith("$package$") ||
-      sym.maybeOwner.fullName == "temporal.realize.Syntax$package$") &&
+      sym.maybeOwner.fullName == "framework.realize.Syntax$package$") &&
       sym.maybeOwner.fullName != "temporal.realize.Realizes"
 
   // A case object of the vocabulary, such as `Activation.Controller`, written as an enum case is.

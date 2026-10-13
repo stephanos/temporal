@@ -2844,7 +2844,7 @@ class Fixtures extends munit.FunSuite with RetainedScratch:
         "Invalid.scala:157:31",
         "Invalid.scala:160:3",
         "Invalid.scala:165:49",
-        "Invalid.scala:169:26",
+        "Invalid.scala:169:27",
         "Invalid.scala:29:7",
         "Invalid.scala:43:9",
         "Invalid.scala:66:7",

@@ -17,10 +17,11 @@ import scala.jdk.CollectionConverters.*
 //   - No other file of model/framework, model/temporal or the lifter (its own files, not its
 //     fixtures or tests) defines a sugar name at the top level, in an object or as an extension
 //     method. Members of a class, trait or enum, constructor parameters and locals are not sugar.
-//   - A core file, the files of model/framework, model/temporal/realize and the lifter beside their
-//     tree's `Syntax.scala`, imports no `Syntax` module and no name that file defines. In
-//     model/framework and model/temporal/realize it names none of them either, outside comments and
-//     strings: top-level sugar of package `framework` needs no import there. A name the core of the
+//   - A core file, the files of a tree beside its `Syntax.scala` (model/framework with the DSL's,
+//     model/framework/realize with the realization sugar's, model/temporal/realize with the
+//     Temporal kit's, and the lifter), imports no `Syntax` module and no name that file defines. In
+//     the first three it names none of them either, outside comments and strings: top-level
+//     sugar of the package needs no import there. A name the core of the
 //     tree declares itself, as a member, parameter or local, reads as that declaration and is left
 //     alone, and so does a member selection, `flags.is(...)`, of a name the sugar defines only
 //     outside an extension.
@@ -342,6 +343,12 @@ object SyntaxRule:
       references = true
     ),
     Tree(
+      "model/framework/realize",
+      "model/framework/realize/Syntax.scala",
+      recursive = true,
+      references = true
+    ),
+    Tree(
       "model/temporal/realize",
       "model/temporal/realize/Syntax.scala",
       recursive = true,
@@ -357,6 +364,7 @@ object SyntaxRule:
 
   private def home(file: String): String =
     if file.startsWith("model/framework/export/") then "model/framework/export/Syntax.scala"
+    else if file.startsWith("model/framework/realize/") then "model/framework/realize/Syntax.scala"
     else if file.startsWith("model/temporal/") then "model/temporal/realize/Syntax.scala"
     else "model/framework/dsl/Syntax.scala"
 
