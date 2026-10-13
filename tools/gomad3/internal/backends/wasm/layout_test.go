@@ -132,7 +132,7 @@ func TestWASMTargetUsesStockGo(t *testing.T) {
 			t.Fatalf("WASM target invokes native builder %q:\n%s", forbidden, output)
 		}
 	}
-	if !strings.Contains(string(output), "/stock/bin/go") || !strings.Contains(string(output), "./backends/wasm/...") {
+	if !strings.Contains(string(output), "/stock/bin/go") || !strings.Contains(string(output), "./internal/backends/wasm/...") {
 		t.Fatalf("WASM target does not test the WASM subtree with stock Go:\n%s", output)
 	}
 }

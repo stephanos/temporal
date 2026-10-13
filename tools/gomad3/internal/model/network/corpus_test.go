@@ -143,6 +143,15 @@ func (b *networkCorpusBuilder) poll(domain Domain, id uint64) Result {
 
 func (b *networkCorpusBuilder) step(input networkCorpusInput) networkCorpusOutput {
 	b.t.Helper()
+	if input.Domain != nil {
+		domain := *input.Domain
+		input.Domain = &domain
+	}
+	if input.Request != nil {
+		request := *input.Request
+		request.Bytes = bytes.Clone(request.Bytes)
+		input.Request = &request
+	}
 	if b.model == nil {
 		b.t.Fatalf("%s model creation: %s", b.corpus.Name, b.corpus.CreationError)
 	}
@@ -851,5 +860,80 @@ func TestNetworkCorpusIsCurrent(t *testing.T) {
 		if filepath.Ext(entry.Name()) == ".json" && !wantNames[entry.Name()] {
 			t.Errorf("unexpected network corpus %s", entry.Name())
 		}
+	}
+}
+
+func checkNetworkCorpusSerializedReplay(t *testing.T, data []byte) {
+	t.Helper()
+	var corpus networkCorpus
+	if err := json.Unmarshal(data, &corpus); err != nil {
+		t.Fatal(err)
+	}
+	replay := newNetworkCorpus(t, corpus.Name, corpus.Config)
+	if corpus.Run != replay.corpus.Run || corpus.CreationError != replay.corpus.CreationError {
+		t.Fatalf("%s creation differs: run=%d error=%q, want run=%d error=%q", corpus.Name, replay.corpus.Run, replay.corpus.CreationError, corpus.Run, corpus.CreationError)
+	}
+	for index, step := range corpus.Steps {
+		got, err := json.Marshal(replay.step(step.Input))
+		if err != nil {
+			t.Fatal(err)
+		}
+		want, err := json.Marshal(step.Expected)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !bytes.Equal(got, want) {
+			t.Fatalf("%s serialized replay differs at step %d (%s): got %s, want %s", corpus.Name, index, step.Input.Action, got, want)
+		}
+	}
+	got := replay.finish()
+	if got.FinalError != corpus.FinalError || !reflect.DeepEqual(got.Final, corpus.Final) {
+		t.Fatalf("%s serialized replay terminal differs: got record=%+v error=%q, want record=%+v error=%q", corpus.Name, got.Final, got.FinalError, corpus.Final, corpus.FinalError)
+	}
+}
+
+func TestNetworkCorpusSerializedReplay(t *testing.T) {
+	entries, err := os.ReadDir(networkCorpusDirectory)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, entry := range entries {
+		if filepath.Ext(entry.Name()) != ".json" {
+			continue
+		}
+		t.Run(entry.Name(), func(t *testing.T) {
+			data, err := os.ReadFile(filepath.Join(networkCorpusDirectory, entry.Name()))
+			if err != nil {
+				t.Fatal(err)
+			}
+			checkNetworkCorpusSerializedReplay(t, data)
+		})
+	}
+}
+
+func TestNetworkCorpusDetachesMutableInputs(t *testing.T) {
+	for _, mutation := range []string{"domain", "request", "payload"} {
+		t.Run(mutation, func(t *testing.T) {
+			b := newNetworkCorpus(t, "detached-inputs", networkCorpusConfig(testLimits()))
+			a, c := b.domains()
+			_, x, y, _ := b.pair(a, c, 0)
+			request := Request{Domain: a, Op: "write", Handle: x, RequestID: 4, Bytes: []byte("before")}
+			b.step(networkCorpusInput{Action: "dispatch", Request: &request})
+			b.io(c, "read", y, "", 32)
+			b.step(networkCorpusInput{Action: "revoke", Domain: &c})
+			switch mutation {
+			case "domain":
+				c.Incarnation++
+			case "request":
+				request.Op = "read"
+			case "payload":
+				request.Bytes[0] = 'x'
+			}
+			data, err := json.Marshal(b.finish())
+			if err != nil {
+				t.Fatal(err)
+			}
+			checkNetworkCorpusSerializedReplay(t, data)
+		})
 	}
 }
