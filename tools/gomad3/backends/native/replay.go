@@ -9,11 +9,11 @@ import (
 	"os"
 	"runtime"
 	"runtime/debug"
+	"slices"
 
 	"go.temporal.io/server/tools/gomad3/artifact"
 	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/target"
 )
@@ -129,15 +129,8 @@ func validateBuildInfo(info *debug.BuildInfo, expected record.BuildInfo) error {
 	if nativebuild.HasCoverageInstrumentation(actual) {
 		return errors.New("stored target uses unsupported coverage instrumentation")
 	}
-	expectedBytes, err := canonicaljson.CanonicalJSON(expected)
-	if err != nil {
-		return fmt.Errorf("encode recorded target build info: %w", err)
-	}
-	actualBytes, err := canonicaljson.CanonicalJSON(actual)
-	if err != nil {
-		return fmt.Errorf("encode stored target build info: %w", err)
-	}
-	if string(expectedBytes) != string(actualBytes) {
+	if expected.GoVersion != actual.GoVersion || expected.Path != actual.Path || expected.MainModule != actual.MainModule ||
+		(expected.Settings == nil) != (actual.Settings == nil) || !slices.Equal(expected.Settings, actual.Settings) {
 		return fmt.Errorf("stored target build info does not match manifest")
 	}
 	return nil

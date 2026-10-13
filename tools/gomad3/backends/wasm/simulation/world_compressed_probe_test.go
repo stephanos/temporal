@@ -1,11 +1,6 @@
 package simulation
 
 import (
-	"bytes"
-	"compress/gzip"
-	"crypto/sha256"
-	"encoding/json"
-	"io"
 	"os"
 	"runtime"
 	"strconv"
@@ -16,8 +11,8 @@ import (
 )
 
 // This explicitly requested operator probe is not a guest execution or a
-// qualification cost sample. Legacy materialization runs only after measuring
-// the production compressed ownership/validation path.
+// qualification cost sample. It measures the production binary ownership and
+// streaming validation path at both required cardinalities.
 func TestCompressedWorldOwnerMeasuredCardinality(t *testing.T) {
 	if os.Getenv("GOMAD3_COMPRESSED_WORLD_PROBE") != "1" {
 		t.Skip("explicit allocation probe")
@@ -103,37 +98,4 @@ func TestCompressedWorldOwnerMeasuredCardinality(t *testing.T) {
 	}
 	logStage("compressed_streaming_semantic_decode")
 	t.Logf("envelope_bytes=%d gzip_bytes=%d expanded_bytes=%d expanded_sha256=%s implementation_sha256=%s", len(encoded), decoded.CompressedBytes, decoded.ExpandedBytes, decoded.ExpandedSHA256, world.ImplementationSHA256())
-	if decoded.ExpandedBytes > world.MaximumSnapshotJSONBytes {
-		t.Logf("legacy_materialization=not_attempted expanded_bytes=%d exceeds unchanged legacy_codec_capacity=%d; all compressed semantic/canonical validation completed", decoded.ExpandedBytes, world.MaximumSnapshotJSONBytes)
-		return
-	}
-
-	// Materialize only for the independent legacy-owner byte equality check.
-	var envelope struct {
-		Gzip []byte `json:"gzip"`
-	}
-	if err := json.Unmarshal(encoded, &envelope); err != nil {
-		t.Fatal(err)
-	}
-	reader, err := gzip.NewReader(bytes.NewReader(envelope.Gzip))
-	if err != nil {
-		t.Fatal(err)
-	}
-	expanded, err := io.ReadAll(reader)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := reader.Close(); err != nil {
-		t.Fatal(err)
-	}
-	legacy, err := world.DecodeSnapshot(expanded)
-	if err != nil {
-		t.Fatal(err)
-	}
-	again, err := world.EncodeSnapshot(legacy)
-	if err != nil || !bytes.Equal(expanded, again) {
-		t.Fatalf("expanded snapshot differs from legacy canonical owner: %v", err)
-	}
-	logStage("legacy_independent_byte_equivalence")
-	t.Logf("legacy_bytes=%d legacy_sha256=%x", len(again), sha256.Sum256(again))
 }

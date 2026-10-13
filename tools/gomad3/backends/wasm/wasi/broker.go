@@ -35,7 +35,7 @@ type BrokerConfig struct {
 	Links          []BrokerLink
 	StrictTopology bool
 	Diagnostics    bool
-	// WorldProfile is empty for the unchanged legacy snapshot owner codec.
+	// WorldProfile optionally carries the binary snapshot schema in retained identities.
 	WorldProfile string `json:",omitempty"`
 }
 
@@ -104,13 +104,11 @@ type BrokerSession struct {
 }
 
 func NewBroker(config BrokerConfig) (*Broker, error) {
-	if config.WorldProfile != "" {
-		if config.WorldProfile != world.CompressedSnapshotSchema {
-			return nil, invalid("broker World profile")
-		}
-		if err := world.ValidateCompressedSnapshotConfiguration(world.Config{Seed: world.Seed(config.Seed), Limits: config.Limits}, world.CompressedSnapshotProfile()); err != nil {
-			return nil, err
-		}
+	if config.WorldProfile != "" && config.WorldProfile != world.CompressedSnapshotSchema {
+		return nil, invalid("broker World profile")
+	}
+	if err := world.ValidateCompressedSnapshotConfiguration(world.Config{Seed: world.Seed(config.Seed), Limits: config.Limits}, world.CompressedSnapshotProfile()); err != nil {
+		return nil, err
 	}
 	model, err := world.New(world.Config{Seed: world.Seed(config.Seed), Limits: config.Limits})
 	if err != nil {
@@ -159,11 +157,6 @@ func (b *Broker) Snapshot() world.Snapshot {
 // helper has finished. Serialization runs outside both Broker and World locks.
 func (b *Broker) EncodeWorldEvidence() ([]byte, error) {
 	b.mu.Lock()
-	if b.worldProfile == "" {
-		snapshot := b.world.Snapshot()
-		b.mu.Unlock()
-		return world.EncodeSnapshot(snapshot)
-	}
 	if b.worldFinalized {
 		b.mu.Unlock()
 		return nil, invalid("broker World finalized")

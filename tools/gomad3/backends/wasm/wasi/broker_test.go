@@ -228,16 +228,19 @@ func TestBrokerCompressedWorldProfileAdmissionAndTerminalOwnership(t *testing.T)
 	}
 }
 
-func TestBrokerAbsentWorldProfilePreservesLegacyOwnerCodec(t *testing.T) {
+func TestBrokerAbsentWorldProfileUsesBinaryOwnerCodec(t *testing.T) {
 	b, err := NewBroker(BrokerConfig{Nodes: []BrokerNode{{ID: "a", Incarnation: 1}}, Limits: world.CompressedSnapshotProfile().Limits})
 	if err != nil {
+		t.Fatal(err)
+	}
+	if err := b.Session("a").Finished(); err != nil {
 		t.Fatal(err)
 	}
 	data, err := b.EncodeWorldEvidence()
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := world.DecodeSnapshot(data); err != nil {
+	if _, err := world.DecodeCompressedSnapshot(data, world.CompressedSnapshotProfile()); err != nil {
 		t.Fatal(err)
 	}
 }

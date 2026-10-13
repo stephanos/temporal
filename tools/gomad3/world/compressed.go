@@ -4,17 +4,20 @@ import (
 	"bytes"
 	"compress/gzip"
 	"crypto/sha256"
+	"encoding/binary"
 	"encoding/hex"
 	"fmt"
 	"hash"
 	"io"
 	"sort"
 	"sync"
-
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 )
 
-const CompressedSnapshotSchema = "gomad3/world/compressed-snapshot/v1"
+const CompressedSnapshotSchema = "gomad3/world/compressed-snapshot/v2"
+
+const compressedEnvelopeHeaderBytes = 64
+
+var compressedEnvelopeMagic = [8]byte{'G', 'M', 'W', 'O', 'R', 'L', 'D', '2'}
 
 type ProfileLimits struct {
 	MaxExpandedBytes   uint64
@@ -46,11 +49,10 @@ type CompressedSnapshotSummary struct {
 }
 
 type compressedSnapshotEnvelope struct {
-	Schema          string `json:"schema"`
-	ExpandedBytes   uint64 `json:"expanded_bytes"`
-	CompressedBytes uint64 `json:"compressed_bytes"`
-	ExpandedSHA256  Digest `json:"expanded_sha256"`
-	Gzip            []byte `json:"gzip"`
+	ExpandedBytes   uint64
+	CompressedBytes uint64
+	ExpandedSHA256  Digest
+	Gzip            []byte
 }
 
 // DetachedSnapshot copies share the consumption state.
@@ -120,6 +122,19 @@ func (detached *DetachedSnapshot) Encode() ([]byte, error) {
 	state.mu.Unlock()
 	snapshot := ownedSnapshot(model)
 	model = nil
+	return encodeCompressedSnapshot(snapshot, limits)
+}
+
+func encodeCompressedSnapshot(snapshot Snapshot, limits ProfileLimits) ([]byte, error) {
+	if err := validateCompressedProfile(limits); err != nil {
+		return nil, err
+	}
+	if err := validateCompressedConfig(snapshot.Config, limits); err != nil {
+		return nil, err
+	}
+	if err := validateSnapshotStrings(snapshot); err != nil {
+		return nil, err
+	}
 	var compressed bytes.Buffer
 	compressedOutput := &compressedBoundedWriter{writer: &compressed, limit: limits.MaxCompressedBytes, dimension: "compressed-snapshot-gzip-bytes"}
 	//gomad:dynamic reviewed 2026-10-12 reviewed model or record values and in-memory streams constrain callback methods
@@ -127,7 +142,7 @@ func (detached *DetachedSnapshot) Encode() ([]byte, error) {
 	hasher := sha256.New()
 	//gomad:dynamic reviewed 2026-10-12 reviewed model or record values and in-memory streams constrain callback methods
 	expandedOutput := &compressedBoundedWriter{writer: io.MultiWriter(compressor, hasher), limit: limits.MaxExpandedBytes, dimension: "compressed-snapshot-expanded-bytes"}
-	if err := canonicaljson.WriteCanonicalJSON(expandedOutput, snapshot); err != nil {
+	if err := writeCompressedSnapshotWire(expandedOutput, snapshot); err != nil {
 		closeErr := compressor.Close()
 		if closeErr != nil {
 			//gomad:dynamic reviewed 2026-10-12 model codec and gzip errors expose memory-only messages
@@ -138,16 +153,16 @@ func (detached *DetachedSnapshot) Encode() ([]byte, error) {
 	if err := compressor.Close(); err != nil {
 		return nil, modelContextError("compressed.close", err)
 	}
-	envelope := compressedSnapshotEnvelope{
-		Schema: CompressedSnapshotSchema, ExpandedBytes: expandedOutput.used,
-		//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
-		CompressedBytes: compressedOutput.used, ExpandedSHA256: Digest(hex.EncodeToString(hasher.Sum(nil))), Gzip: compressed.Bytes(),
-	}
-	var encoded bytes.Buffer
-	if err := canonicaljson.WriteCanonicalJSON(&encoded, envelope); err != nil {
-		return nil, err
-	}
-	return encoded.Bytes(), nil
+	encoded := make([]byte, compressedEnvelopeHeaderBytes+compressed.Len())
+	copy(encoded[:8], compressedEnvelopeMagic[:])
+	binary.BigEndian.PutUint32(encoded[8:12], compressedEnvelopeHeaderBytes)
+	// Bytes 12:16 are reserved flags and must remain zero.
+	binary.BigEndian.PutUint64(encoded[16:24], expandedOutput.used)
+	binary.BigEndian.PutUint64(encoded[24:32], compressedOutput.used)
+	//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash
+	copy(encoded[32:64], hasher.Sum(nil))
+	copy(encoded[compressedEnvelopeHeaderBytes:], compressed.Bytes())
+	return encoded, nil
 }
 
 // ownedSnapshot borrows payloads only from a model that no caller can mutate.
@@ -225,10 +240,10 @@ func (writer *compressedBoundedWriter) Write(data []byte) (int, error) {
 	return written, err
 }
 
-func compressedCanonicalDigest(value any, limit uint64) (Digest, uint64, error) {
+func compressedSnapshotWireDigest(snapshot Snapshot, limit uint64) (Digest, uint64, error) {
 	hasher := sha256.New()
-	writer := &compressedBoundedWriter{writer: hasher, limit: limit, dimension: "compressed-snapshot-canonical-bytes"}
-	if err := canonicaljson.WriteCanonicalJSON(writer, value); err != nil {
+	writer := &compressedBoundedWriter{writer: hasher, limit: limit, dimension: "compressed-snapshot-wire-bytes"}
+	if err := writeCompressedSnapshotWire(writer, snapshot); err != nil {
 		return "", 0, err
 	}
 	//gomad:dynamic reviewed 2026-10-12 receiver is the locally constructed SHA256 or HMAC memory hash

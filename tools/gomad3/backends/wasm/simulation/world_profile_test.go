@@ -1,7 +1,7 @@
 package simulation
 
 import (
-	"encoding/json"
+	"bytes"
 	"strings"
 	"testing"
 
@@ -10,7 +10,7 @@ import (
 	"go.temporal.io/server/tools/gomad3sim"
 )
 
-func TestCompressedWorldEvidenceUsesSharedOwnerPreflight(t *testing.T) {
+func TestBinaryWorldEvidenceUsesSharedOwnerDecoder(t *testing.T) {
 	config := world.Config{Seed: 7, Limits: world.CompressedSnapshotProfile().Limits}
 	b, err := wasi.NewBroker(wasi.BrokerConfig{Nodes: []wasi.BrokerNode{{ID: "a", Incarnation: 1}}, Seed: 7, Limits: config.Limits, WorldProfile: world.CompressedSnapshotSchema})
 	if err != nil {
@@ -40,18 +40,9 @@ func TestCompressedWorldEvidenceUsesSharedOwnerPreflight(t *testing.T) {
 	if err := verifyWorldEvidence(evidence.Execution, "", config); err == nil {
 		t.Fatal("profile discriminator mismatch admitted")
 	}
-	var raw map[string]json.RawMessage
-	if err := json.Unmarshal(evidence.Execution.World, &raw); err != nil {
-		t.Fatal(err)
-	}
-	raw["unknown"] = json.RawMessage("true")
-	changedWorld, err := json.Marshal(raw)
-	if err != nil {
-		t.Fatal(err)
-	}
-	evidence.Execution.World = changedWorld
+	evidence.Execution.World = append(bytes.Clone(evidence.Execution.World), 0)
 	if err := verifyWorldEvidence(evidence.Execution, world.CompressedSnapshotSchema, config); err == nil {
-		t.Fatal("owner-invalid compressed evidence admitted")
+		t.Fatal("owner-invalid binary evidence admitted")
 	}
 }
 

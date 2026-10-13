@@ -17,9 +17,12 @@ func worldCodecConfig() world.Config {
 	return world.Config{Seed: 7, Limits: world.Limits{MaxRequests: 20001, MaxEvents: 20001, MaxQueuedEvents: 1, MaxTransitions: 100000, MaxPayloadBytes: 32 << 20, MaxStringBytes: 1024}}
 }
 
-func TestBrokerWorldUsesCanonicalOwnerCodec(t *testing.T) {
+func TestBrokerWorldUsesBinaryOwnerCodec(t *testing.T) {
 	b, err := wasi.NewBroker(wasi.BrokerConfig{Nodes: []wasi.BrokerNode{{ID: "a", Incarnation: 1}}, Seed: 7, Limits: worldCodecConfig().Limits})
 	if err != nil {
+		t.Fatal(err)
+	}
+	if err := b.Session("a").Finished(); err != nil {
 		t.Fatal(err)
 	}
 	e := &execution{broker: b, limits: gomad3sim.DefaultLimits()}
@@ -28,7 +31,7 @@ func TestBrokerWorldUsesCanonicalOwnerCodec(t *testing.T) {
 		t.Fatal(err)
 	}
 	if _, err := world.DecodeSnapshot(evidence.Execution.World); err != nil {
-		t.Fatalf("broker evidence bypasses existing canonical World codec: %v", err)
+		t.Fatalf("broker evidence bypasses binary World codec: %v", err)
 	}
 }
 

@@ -265,25 +265,15 @@ func verifyWorldEvidence(evidence *gomad3sim.WASMExecutionEvidence, profile stri
 	if evidence == nil || evidence.WorldEncoding != profile {
 		return errors.New("world encoding differs from selected broker profile")
 	}
-	switch profile {
-	case "":
-		snapshot, err := world.DecodeSnapshot(evidence.World)
-		if err != nil {
-			return err
-		}
-		if snapshot.Config != expected {
-			return errors.New("world configuration differs from bound broker configuration")
-		}
-	case world.CompressedSnapshotSchema:
-		summary, err := world.DecodeCompressedSnapshot(evidence.World, world.CompressedSnapshotProfile())
-		if err != nil {
-			return err
-		}
-		if summary.Config != expected {
-			return errors.New("world configuration differs from bound broker configuration")
-		}
-	default:
+	if profile != "" && profile != world.CompressedSnapshotSchema {
 		return errors.New("unsupported World profile")
+	}
+	summary, err := world.DecodeCompressedSnapshot(evidence.World, world.CompressedSnapshotProfile())
+	if err != nil {
+		return err
+	}
+	if summary.Config != expected {
+		return errors.New("world configuration differs from bound broker configuration")
 	}
 	return nil
 }

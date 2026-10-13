@@ -11,7 +11,7 @@ import (
 	"testing"
 )
 
-const frozenWorldWireDigest = "90c7d75020484036034a94e74aabdfbd65aeff7e60c3ef83c55876019bf48730"
+const frozenWorldWireDigest = "f3950cf66b4b75981e1d4bcd12c3a8035bbf6e48ee456ca576ceb07e7cf57dc2"
 
 func populateWorldWireValue(value reflect.Value, text string, numeric, collection int, fields map[string]bool) {
 	switch value.Kind() {
@@ -123,7 +123,7 @@ func TestWorldJSONWireCompatibility(t *testing.T) {
 	for character := range 128 {
 		texts = append(texts, string(rune(character)))
 	}
-	roots := []reflect.Type{reflect.TypeFor[Snapshot](), reflect.TypeFor[ReplayPlan](), reflect.TypeFor[Terminal](), reflect.TypeFor[Transition]()}
+	roots := []reflect.Type{reflect.TypeFor[ReplayPlan](), reflect.TypeFor[Terminal](), reflect.TypeFor[Transition]()}
 	for _, root := range roots {
 		for textIndex, text := range texts {
 			for numeric := range 3 {
@@ -161,11 +161,11 @@ func TestWorldJSONWireCompatibility(t *testing.T) {
 	compare("min-logical-time-encoding-only", LogicalTime(-1<<63))
 	assertWorldModelWire(t, texts[:7], compare)
 
-	if count != 5029 {
-		t.Fatalf("wire comparison count = %d, want 5029", count)
+	if count != 3751 {
+		t.Fatalf("wire comparison count = %d, want 3751", count)
 	}
-	if len(fields) != 76 {
-		t.Fatalf("covered serialized fields = %d, want 76", len(fields))
+	if len(fields) != 46 {
+		t.Fatalf("covered serialized fields = %d, want 46", len(fields))
 	}
 	if got := fmt.Sprintf("%x", digest.Sum(nil)); got != frozenWorldWireDigest {
 		t.Fatalf("World wire digest = %s, want %s", got, frozenWorldWireDigest)
@@ -179,16 +179,15 @@ func assertWorldModelWire(t *testing.T, texts []string, compare func(string, any
 		initial := model.Snapshot()
 		checkSnapshot := func(label string) {
 			snapshot := model.Snapshot()
-			want := compare(fmt.Sprintf("model%d/snapshot/%s", textIndex, label), snapshot)
 			got, err := EncodeSnapshot(snapshot)
-			if err != nil || !bytes.Equal(got, want) {
-				t.Fatalf("snapshot %s = %s, %v; want %s", label, got, err, want)
+			if err != nil {
+				t.Fatalf("snapshot %s: %v", label, err)
 			}
-			if _, err := DecodeSnapshot(want); err != nil {
+			if _, err := DecodeSnapshot(got); err != nil {
 				t.Fatalf("decode snapshot %s: %v", label, err)
 			}
-			if !bytes.HasPrefix(want, []byte(`{"config":`)) {
-				t.Fatalf("snapshot %s is not config-first", label)
+			if !bytes.HasPrefix(got, compressedEnvelopeMagic[:]) {
+				t.Fatalf("snapshot %s is not a binary envelope", label)
 			}
 		}
 		checkSnapshot("initial")
@@ -258,8 +257,16 @@ func assertWorldModelWire(t *testing.T, texts []string, compare func(string, any
 			t.Fatal(err)
 		}
 		wantRecording := append([]byte(nil), recordingMagic[:]...)
-		for index, value := range []any{recording.Initial, recording.Final, recording.Terminal} {
-			part := compare(fmt.Sprintf("model%d/recording-part%d", textIndex, index), value)
+		initialPart, err := EncodeSnapshot(recording.Initial)
+		if err != nil {
+			t.Fatal(err)
+		}
+		finalPart, err := EncodeSnapshot(recording.Final)
+		if err != nil {
+			t.Fatal(err)
+		}
+		terminalPart := compare(fmt.Sprintf("model%d/recording-terminal", textIndex), recording.Terminal)
+		for _, part := range [][]byte{initialPart, finalPart, terminalPart} {
 			wantRecording = binary.BigEndian.AppendUint64(wantRecording, uint64(len(part)))
 			wantRecording = append(wantRecording, part...)
 		}

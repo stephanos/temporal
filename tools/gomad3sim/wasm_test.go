@@ -8,12 +8,12 @@ import (
 	"testing"
 )
 
-func TestWASMWorldEncodingAdmissionAndAbsentBytes(t *testing.T) {
+func TestWASMWorldEncodingAdmissionAndOpaqueBytes(t *testing.T) {
 	identity := strings.Repeat("a", 64)
-	evidence := WASMExecutionEvidence{ConfigurationSHA256: "sha256:" + identity, World: []byte("{}"), Incarnations: []WASMIncarnationEvidence{{Handle: NodeHandle{Node: "a", Incarnation: 1}, ModuleSHA256: identity, HelperSHA256: identity, EnvironmentIdentity: identity, ChoiceTape: []byte{1}, WASISHA256: "sha256:" + identity, NetworkSHA256: "sha256:" + identity, StorageSHA256: "sha256:" + identity}}}
+	evidence := WASMExecutionEvidence{ConfigurationSHA256: "sha256:" + identity, World: []byte("GMWORLD2\x00"), Incarnations: []WASMIncarnationEvidence{{Handle: NodeHandle{Node: "a", Incarnation: 1}, ModuleSHA256: identity, HelperSHA256: identity, EnvironmentIdentity: identity, ChoiceTape: []byte{1}, WASISHA256: "sha256:" + identity, NetworkSHA256: "sha256:" + identity, StorageSHA256: "sha256:" + identity}}}
 	encoded, err := json.Marshal(evidence)
 	if err != nil || strings.Contains(string(encoded), "world_encoding") {
-		t.Fatalf("absent encoding changed legacy record bytes: %v", err)
+		t.Fatalf("absent encoding changed record bytes: %v", err)
 	}
 	if err := validateWASMExecution(&evidence, BackendWASM); err != nil {
 		t.Fatal(err)

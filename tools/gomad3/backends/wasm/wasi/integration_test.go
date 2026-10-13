@@ -4607,7 +4607,7 @@ func TestHelperFailingSuiteDiagnosticProfile(t *testing.T) {
 }
 
 func TestDiagnosticCompiledIdentityOwners(t *testing.T) {
-	owners := map[string]string{"wasi": ImplementationSHA256(), "volume": volume.ImplementationSHA256(), "network": netmodel.ImplementationSHA256(), "interrupted_replay": choice.InterruptedReplayImplementationSHA256(), "runner_clock": runner.SimulationClockImplementationSHA256(), "world_including_canonicaljson": world.ImplementationSHA256()}
+	owners := map[string]string{"wasi": ImplementationSHA256(), "volume": volume.ImplementationSHA256(), "network": netmodel.ImplementationSHA256(), "interrupted_replay": choice.InterruptedReplayImplementationSHA256(), "runner_clock": runner.SimulationClockImplementationSHA256(), "world_binary_snapshot": world.ImplementationSHA256()}
 	for name, identity := range owners {
 		if !strings.HasPrefix(identity, "sha256:") || len(identity) != len("sha256:")+64 {
 			t.Fatalf("missing compiled owner identity: %s=%q", name, identity)

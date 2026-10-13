@@ -1,9 +1,7 @@
 package gomad3sim
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"sort"
@@ -49,7 +47,7 @@ type WASMEvidence struct {
 }
 
 // WASMWorldCompressedSnapshotEncoding names the World-owned bounded profile.
-const WASMWorldCompressedSnapshotEncoding = "gomad3/world/compressed-snapshot/v1"
+const WASMWorldCompressedSnapshotEncoding = "gomad3/world/compressed-snapshot/v2"
 
 // WASMExecutionEvidence retains guest-local control independently from the
 // cluster lifecycle tape. Payloads are detached bytes from their existing owners.
@@ -99,14 +97,6 @@ func validateWASMExecution(evidence *WASMExecutionEvidence, backend Backend) err
 	}
 	if evidence.WorldEncoding != "" && evidence.WorldEncoding != WASMWorldCompressedSnapshotEncoding {
 		return errors.New("unsupported WASM World encoding")
-	}
-	var world json.RawMessage
-	if err := json.Unmarshal(evidence.World, &world); err != nil {
-		return fmt.Errorf("WASM World evidence: %w", err)
-	}
-	canonical, err := json.Marshal(world)
-	if err != nil || !bytes.Equal(canonical, evidence.World) {
-		return errors.New("noncanonical WASM World evidence")
 	}
 	for i, n := range evidence.Incarnations {
 		if n.Handle.Node == "" || n.Handle.Incarnation == 0 || i > 0 && (evidence.Incarnations[i-1].Handle.Node > n.Handle.Node || evidence.Incarnations[i-1].Handle.Node == n.Handle.Node && evidence.Incarnations[i-1].Handle.Incarnation >= n.Handle.Incarnation) {

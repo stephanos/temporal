@@ -565,36 +565,23 @@ func testProviderIndependentGuestsLifecycleReplay(t *testing.T, profile string) 
 				t.Fatal(err)
 			}
 		}},
-		{"raw-noncanonical-world", func(b *retainedExecution) {
+		{"trailing-world-byte", func(b *retainedExecution) {
 			mutateRetainedWorld(t, b, func(data []byte) []byte {
-				var snapshot world.Snapshot
-				if err := json.Unmarshal(data, &snapshot); err != nil {
-					t.Fatal(err)
-				}
-				encoded, err := json.Marshal(snapshot)
-				if err != nil {
-					t.Fatal(err)
-				}
-				return encoded
+				return append(bytes.Clone(data), 0)
 			})
 		}},
-		{"unknown-world-field", func(b *retainedExecution) {
+		{"invalid-world-header", func(b *retainedExecution) {
 			mutateRetainedWorld(t, b, func(data []byte) []byte {
-				return append(append(bytes.Clone(data[:len(data)-1]), []byte(`,"unknown":true`)...), '}')
+				changed := bytes.Clone(data)
+				changed[0] ^= 1
+				return changed
 			})
 		}},
-		{"corrupt-world-state", func(b *retainedExecution) {
+		{"corrupt-world-digest", func(b *retainedExecution) {
 			mutateRetainedWorld(t, b, func(data []byte) []byte {
-				var snapshot map[string]json.RawMessage
-				if err := json.Unmarshal(data, &snapshot); err != nil {
-					t.Fatal(err)
-				}
-				snapshot["stateDigest"] = json.RawMessage(`"` + strings.Repeat("0", 64) + `"`)
-				encoded, err := json.Marshal(snapshot)
-				if err != nil {
-					t.Fatal(err)
-				}
-				return encoded
+				changed := bytes.Clone(data)
+				changed[32] ^= 1
+				return changed
 			})
 		}},
 		{"changed-runtime-binding", func(b *retainedExecution) {
