@@ -3,6 +3,8 @@ mod cache;
 #[cfg(feature = "diagnostic-profile")]
 mod diagnostic;
 mod engine;
+#[cfg(feature = "guest-profile")]
+mod guest_profile;
 mod metrics;
 mod model;
 mod protocol;

@@ -270,7 +270,15 @@ impl State {
         self.callback_input(protocol::CallbackInput::Json { op, input: &input })
     }
 }
-pub(crate) const CONFIGURATION_REVISION: &str = "cranelift-fuel-nan-canonical-nounwind-v2";
+pub(crate) const CONFIGURATION_REVISION: &str = match (
+    cfg!(feature = "guest-profile"),
+    cfg!(feature = "diagnostic-fuel-off"),
+) {
+    (false, false) => "cranelift-fuel-nan-canonical-nounwind-v2",
+    (true, false) => "cranelift-fuel-nan-canonical-nounwind-v2-guest-profile",
+    (false, true) => "cranelift-fuel-nan-canonical-nounwind-v2-fuel-off",
+    (true, true) => "cranelift-fuel-nan-canonical-nounwind-v2-guest-profile-fuel-off",
+};
 
 pub fn execute() -> Result<()> {
     let mut input: Box<dyn BufRead + Send> = Box::new(BufReader::new(std::io::stdin()));
@@ -360,7 +368,18 @@ pub fn execute() -> Result<()> {
         },
     );
     store.limiter(|state| &mut state.limits);
+    #[cfg(not(feature = "diagnostic-fuel-off"))]
     store.set_fuel(request.fuel)?;
+    #[cfg(feature = "guest-profile")]
+    let guest_profile = request
+        .guest_profile
+        .as_ref()
+        .map(|config| crate::guest_profile::Session::start(&mut store, &module, config))
+        .transpose()?;
+    #[cfg(feature = "guest-profile")]
+    if guest_profile.is_none() {
+        store.set_epoch_deadline(u64::MAX);
+    }
     let mut linker = Linker::new(&engine);
     let mut defined = HashSet::new();
     for import in module.imports() {
@@ -412,7 +431,14 @@ pub fn execute() -> Result<()> {
             }
             Err(error) => execution_failure(error, store.data().limits.failure),
         });
-    outcome.fuel_remaining = store.get_fuel()?;
+    #[cfg(not(feature = "diagnostic-fuel-off"))]
+    {
+        outcome.fuel_remaining = store.get_fuel()?;
+    }
+    #[cfg(feature = "diagnostic-fuel-off")]
+    {
+        outcome.fuel_remaining = request.fuel;
+    }
     outcome.peak_memory_bytes = store.data().limits.peak;
     outcome.output_bytes = store.data().output_bytes;
     let state = store.data_mut();
@@ -424,6 +450,12 @@ pub fn execute() -> Result<()> {
     metrics.sample_process();
     outcome.metrics = Some(Box::new(metrics));
     let sent = protocol::send_frame(&mut store.data_mut().output, &outcome);
+    #[cfg(feature = "guest-profile")]
+    if let Some(profile) = guest_profile
+        && let Err(error) = profile.finish()
+    {
+        eprintln!("gomad-wasm-guest-profile warning: {error:#}");
+    }
     // Keep the exit workaround until the no-unwind configuration has measured
     // Temporal success and post-load error exits within 1 s on darwin/arm64.
     std::mem::forget((store, linker, module, engine));
@@ -457,12 +489,14 @@ fn prepare(
     let diagnostic_phase = crate::diagnostic::PhaseSpan::new(crate::diagnostic::Phase::EngineInit);
     let mut config = Config::new();
     config
-        .consume_fuel(true)
+        .consume_fuel(!cfg!(feature = "diagnostic-fuel-off"))
         .native_unwind_info(false)
         .cranelift_nan_canonicalization(true)
         .wasm_relaxed_simd(false)
         .wasm_memory64(false)
         .wasm_multi_memory(false);
+    #[cfg(feature = "guest-profile")]
+    config.epoch_interruption(true);
     let engine = Engine::new(&config)
         .map_err(|error| Outcome::new("infrastructure", format!("{error:#}")))?;
     #[cfg(feature = "diagnostic-profile")]

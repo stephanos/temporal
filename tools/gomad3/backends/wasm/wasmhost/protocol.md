@@ -261,6 +261,38 @@ and immutable helper path; never install it over a qualification helper. Source
 metadata can change a rebuilt default binary's digest even with hooks excluded;
 hash each actual artifact rather than assuming historical byte identity.
 
+`guest-profile` implies `diagnostic-profile` and enables Wasmtime's pinned
+`profiling` and `call-hook` features only in that diagnostic build. Build it with
+`cargo +1.94.1 build --release --locked --features guest-profile --target-dir /tmp/gomad-wasmhost-guestprof`.
+It adds the optional execute field
+`"guest_profile":{"path":"/absolute/profile.json","interval_micros":1000,"max_samples":10000}`.
+The interval must be 1–1,000,000 microseconds and the sample bound 1–100,000.
+Default helpers reject this unknown field before loading the module. The
+profile file is created exclusively, with mode 0600 on Unix; existing files
+are preserved. Wasmtime's GuestProfiler writes Firefox processed-profile JSON,
+with `meta.gomadGuestProfile` recording `intervalMicros`, `maxSamples`, `samples`,
+`truncated` and `markersTruncated`. Reaching the sample limit stops the ticker;
+host markers are independently bounded to twice the sample limit. JSON remains
+complete when either bound is reached. Profile output failure emits one
+`gomad-wasm-guest-profile warning:` stderr line after the terminal frame and
+does not change its outcome or the helper exit status. The phase report retains
+its separate 16 KiB contract below.
+
+The sampler uses epoch interruption and Wasmtime guest-stack symbolization;
+call hooks identify host work. Returning from a host call resets the epoch
+deadline and sample time, discarding ticks and elapsed time inside that call.
+Guest clocks and evidence contain no sample inputs. Profiled timings are not
+baseline or A/B measurements.
+
+`diagnostic-fuel-off` also implies `diagnostic-profile`; build it with
+`--features diagnostic-fuel-off --target-dir /tmp/gomad-wasmhost-nofuel`.
+It disables engine fuel instrumentation and reports the offered fuel unchanged
+in `fuel_remaining`. The configuration revision gains `-guest-profile`,
+`-fuel-off`, or `-guest-profile-fuel-off` when both features are enabled. These
+revisions bind `started`, authorization and the compile-cache identity. Go
+accepts them only through a private test request opt-in; normal requests and
+release installations keep the pinned no-unwind configuration.
+
 A diagnostic helper writes exactly one LF-terminated stderr line prefixed
 `gomad-wasm-profile-v1 `, followed by JSON schema `gomad3.wasm-profile/v1`. The
 whole line is strictly smaller than 16 KiB. It adds no stdout protocol frame,

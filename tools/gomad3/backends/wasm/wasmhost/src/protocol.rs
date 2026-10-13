@@ -299,9 +299,16 @@ pub struct Execute {
     pub compile_cache: Option<String>,
     #[serde(default)]
     pub local_model: Option<crate::model::Config>,
+    #[cfg(feature = "guest-profile")]
+    #[serde(default)]
+    pub guest_profile: Option<crate::guest_profile::Config>,
 }
 impl Execute {
     pub fn validate(&self) -> Result<()> {
+        #[cfg(feature = "guest-profile")]
+        if let Some(profile) = &self.guest_profile {
+            profile.validate()?;
+        }
         if let Some(model) = &self.local_model {
             model.validate()?;
         }

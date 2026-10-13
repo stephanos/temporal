@@ -6,14 +6,29 @@ use std::process::{Command, Stdio};
 use std::sync::atomic::{AtomicU64, Ordering};
 
 fn run(wat: &str, change: Value, reply: impl FnMut(&Value) -> Value) -> Vec<Value> {
-    run_authorized(wat, change, reply, false)
+    run_authorized(wat, change, reply, AuthorizationMismatch::None)
+}
+#[derive(Clone, Copy)]
+enum AuthorizationMismatch {
+    None,
+    Module,
+    Configuration,
 }
 fn run_authorized(
     wat: &str,
     change: Value,
-    mut reply: impl FnMut(&Value) -> Value,
-    mismatch: bool,
+    reply: impl FnMut(&Value) -> Value,
+    mismatch: AuthorizationMismatch,
 ) -> Vec<Value> {
+    run_captured(wat, change, reply, mismatch).0
+}
+fn run_captured(
+    wat: &str,
+    change: Value,
+    mut reply: impl FnMut(&Value) -> Value,
+    mismatch: AuthorizationMismatch,
+) -> (Vec<Value>, String) {
+    use std::io::Read;
     static NEXT: AtomicU64 = AtomicU64::new(0);
     let path = std::env::temp_dir().join(format!(
         "gomad3-wasmhost-{}-{}.wat",
@@ -28,7 +43,7 @@ fn run_authorized(
     let mut child = Command::new(env!("CARGO_BIN_EXE_gomad3-wasmhost"))
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
-        .stderr(Stdio::inherit())
+        .stderr(Stdio::piped())
         .spawn()
         .unwrap();
     let mut input = child.stdin.take().unwrap();
@@ -37,28 +52,202 @@ fn run_authorized(
     for line in BufReader::new(child.stdout.take().unwrap()).lines() {
         let frame: Value = serde_json::from_str(&line.unwrap()).unwrap();
         if frame["type"] == "started" {
-            let configuration = if mismatch {
+            let configuration = if matches!(mismatch, AuthorizationMismatch::Configuration) {
                 // Build the previous revision without preserving a live identity literal.
                 Value::String(["cranelift-fuel-nan-canonical", "v1"].join("-"))
             } else {
                 frame["engine"]["configuration"].clone()
             };
-            writeln!(input, "{}",json!({"type":"authorize","module_sha256":frame["module_sha256"],"configuration":configuration})).unwrap();
+            let module = if matches!(mismatch, AuthorizationMismatch::Module) {
+                json!("bad")
+            } else {
+                frame["module_sha256"].clone()
+            };
+            writeln!(
+                input,
+                "{}",
+                json!({"type":"authorize","module_sha256":module,"configuration":configuration})
+            )
+            .unwrap();
         }
         if frame["type"] == "call" {
             writeln!(input, "{}", reply(&frame)).unwrap();
         }
         frames.push(frame);
     }
-    assert!(child.wait().unwrap().success());
+    let mut stderr = String::new();
+    child
+        .stderr
+        .take()
+        .unwrap()
+        .read_to_string(&mut stderr)
+        .unwrap();
+    assert!(child.wait().unwrap().success(), "{stderr}");
     std::fs::remove_file(path).unwrap();
-    frames
+    (frames, stderr)
 }
 fn deny(call: &Value) -> Value {
     json!({"type":"reply", "id":call["id"], "errno":0, "output":{}, "unsupported":true, "message":"not modeled"})
 }
 fn termination(frames: &[Value]) -> &str {
     frames.last().unwrap()["termination"].as_str().unwrap()
+}
+
+#[cfg(not(feature = "guest-profile"))]
+#[test]
+fn release_refuses_guest_profile_before_loading_or_execution() {
+    let frames = run(
+        "(module (memory (export \"memory\") 1) (func (export \"_start\") unreachable))",
+        json!({"guest_profile":{"path":"/tmp/unused-gomad-profile.json","interval_micros":1000,"max_samples":1}}),
+        deny,
+    );
+    assert_eq!(termination(&frames), "invalid");
+    assert_eq!(frames.len(), 1);
+    assert!(
+        frames[0]["message"]
+            .as_str()
+            .unwrap()
+            .contains("guest_profile")
+    );
+}
+
+#[cfg(feature = "diagnostic-fuel-off")]
+#[test]
+fn diagnostic_fuel_off_reports_distinct_revision_and_preserves_offered_fuel() {
+    let frames = run(
+        "(module (memory (export \"memory\") 1) (func (export \"_start\")))",
+        json!({"fuel":1}),
+        deny,
+    );
+    assert_eq!(termination(&frames), "exit");
+    assert_eq!(frames.last().unwrap()["fuel_remaining"], 1);
+    assert!(
+        frames[0]["engine"]["configuration"]
+            .as_str()
+            .unwrap()
+            .ends_with("-fuel-off")
+    );
+}
+
+#[cfg(feature = "guest-profile")]
+#[test]
+fn guest_profile_is_symbolized_bounded_and_preserves_evidence_on_write_failure() {
+    let directory =
+        std::env::temp_dir().join(format!("gomad-guest-profile-{}", std::process::id()));
+    std::fs::create_dir(&directory).unwrap();
+    let path = directory.join("profile.json");
+    let mut decision = [0u8; 192];
+    decision[..4].copy_from_slice(&1u32.to_be_bytes());
+    decision[4..8].copy_from_slice(&1u32.to_be_bytes());
+    decision[20..24].copy_from_slice(&2u32.to_be_bytes());
+    decision[32..64].fill(1);
+    decision[64..96].fill(2);
+    let literal: String = decision
+        .iter()
+        .map(|byte| format!("\\{byte:02x}"))
+        .collect();
+    let guest = format!(
+        "(module (import \"gomad_wasm_v1\" \"config\" (func $config (param i32 i32) (result i32))) (import \"gomad_wasm_v1\" \"decision\" (func $decision (param i32 i32) (result i32))) (import \"wasi_snapshot_preview1\" \"clock_time_get\" (func $clock (param i32 i64 i32) (result i32))) (memory (export \"memory\") 1) (data (i32.const 32) \"{literal}\") (func $hot (local $n i32) i32.const 10000000 local.set $n (loop $work local.get $n i32.const 1 i32.sub local.tee $n br_if $work)) (func (export \"_start\") i32.const 0 i32.const 16 call $config drop i32.const 32 i32.const 192 call $decision drop i32.const 1 i64.const 0 i32.const 256 call $clock drop call $hot))"
+    );
+    let model = json!({"seed":7,"mode":1,"limit":4096,"diagnostics":true,"epoch_nanos":1000,"read_step_nanos":0,"now":1,"limits":{"calls":100,"transcript_bytes":65536,"pending_events":16}});
+    let baseline = run(&guest, json!({"fuel":1000000000,"local_model":model}), deny);
+    assert!(
+        baseline
+            .iter()
+            .any(|frame| frame["type"] == "evidence" && frame["stream"] == "choice")
+    );
+    assert!(
+        baseline
+            .iter()
+            .any(|frame| frame["type"] == "evidence" && frame["stream"] == "transcript")
+    );
+    let config = json!({"path":path,"interval_micros":1,"max_samples":1});
+    let sampled = run(
+        &guest,
+        json!({"fuel":1000000000,"local_model":model,"guest_profile":config}),
+        deny,
+    );
+    assert_eq!(termination(&sampled), "exit");
+    assert!(
+        sampled[0]["engine"]["configuration"]
+            .as_str()
+            .unwrap()
+            .contains("-guest-profile")
+    );
+    let profile: Value = serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
+    let metadata = &profile["meta"]["gomadGuestProfile"];
+    assert_eq!(metadata["samples"], 1);
+    assert_eq!(metadata["maxSamples"], 1);
+    assert_eq!(metadata["truncated"], true);
+    assert_eq!(
+        profile["threads"][0]["samples"]["stack"]
+            .as_array()
+            .unwrap()
+            .len(),
+        1
+    );
+    assert!(profile.to_string().contains("hot"), "{profile}");
+    // Existing files must not be overwritten, even though profiling succeeds.
+    let (failed, stderr) = run_captured(
+        &guest,
+        json!({"fuel":1000000000,"local_model":model,"guest_profile":config}),
+        deny,
+        AuthorizationMismatch::None,
+    );
+    assert!(
+        stderr.contains("gomad-wasm-guest-profile warning:"),
+        "{stderr}"
+    );
+    for frames in [&sampled, &failed] {
+        for (expected, actual) in baseline.iter().zip(frames.iter()) {
+            let mut expected = expected.clone();
+            let mut actual = actual.clone();
+            expected.as_object_mut().unwrap().remove("metrics");
+            actual.as_object_mut().unwrap().remove("metrics");
+            assert_eq!(expected, actual);
+        }
+        assert_eq!(baseline.len(), frames.len());
+    }
+    assert_eq!(
+        serde_json::from_slice::<Value>(&std::fs::read(&path).unwrap()).unwrap(),
+        profile
+    );
+    std::fs::remove_dir_all(directory).unwrap();
+}
+
+#[cfg(feature = "guest-profile")]
+#[test]
+fn guest_profile_drops_epochs_elapsed_inside_host_calls() {
+    let path = std::env::temp_dir().join(format!("gomad-host-gap-{}.json", std::process::id()));
+    let frames = run(
+        "(module (import \"wasi_snapshot_preview1\" \"sched_yield\" (func $yield (result i32))) (memory (export \"memory\") 1) (func (export \"_start\") call $yield drop))",
+        json!({"guest_profile":{"path":path,"interval_micros":1000,"max_samples":100}}),
+        |call| {
+            std::thread::sleep(std::time::Duration::from_millis(30));
+            json!({"type":"reply","id":call["id"],"errno":0,"output":{}})
+        },
+    );
+    assert_eq!(termination(&frames), "exit");
+    let profile: Value = serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
+    assert_eq!(profile["meta"]["gomadGuestProfile"]["samples"], 0);
+    std::fs::remove_file(path).unwrap();
+}
+
+#[cfg(feature = "guest-profile")]
+#[test]
+fn guest_profile_rejects_invalid_bounds_and_unknown_fields() {
+    for config in [
+        json!({"path":"relative","interval_micros":1000,"max_samples":1}),
+        json!({"path":"/tmp/profile.json","interval_micros":0,"max_samples":1}),
+        json!({"path":"/tmp/profile.json","interval_micros":1000001,"max_samples":1}),
+        json!({"path":"/tmp/profile.json","interval_micros":1,"max_samples":100001}),
+        json!({"path":"/tmp/profile.json","interval_micros":1,"max_samples":0}),
+        json!({"path":"/tmp/profile.json","interval_micros":1,"max_samples":1,"unknown":true}),
+    ] {
+        let frames = run("(module)", json!({"guest_profile":config}), deny);
+        assert_eq!(termination(&frames), "invalid");
+        assert_eq!(frames.len(), 1);
+    }
 }
 
 #[cfg(feature = "diagnostic-profile")]
@@ -282,7 +471,11 @@ fn typed_interrupt_stops_before_syscall_resume_and_flushes_actual_state() {
             assert_eq!(result["message"], "modeled interruption: fault");
             assert_eq!(result["peak_memory_bytes"], 65536);
             let fuel = result["fuel_remaining"].as_u64().unwrap();
-            assert!(fuel > 0 && fuel < 1000000);
+            if cfg!(feature = "diagnostic-fuel-off") {
+                assert_eq!(fuel, 1000000);
+            } else {
+                assert!(fuel > 0 && fuel < 1000000);
+            }
             assert!(result["metrics"]["instantiate_nanos"].as_u64().unwrap() > 0);
             assert!(result["metrics"]["execute_nanos"].as_u64().unwrap() > 0);
             if local {
@@ -589,6 +782,7 @@ fn cache_identity_uses_running_inode_after_atomic_helper_replacement() {
     assert_eq!(manifest["helper_sha256"], original);
     std::fs::remove_dir_all(cache).unwrap();
 }
+#[cfg(not(feature = "diagnostic-fuel-off"))]
 #[test]
 fn bounds_infinite_loop_with_fuel() {
     let frames = run(
@@ -741,13 +935,18 @@ fn enforces_output_limit_before_delivery() {
 #[test]
 fn rejects_authorization_before_guest_start_section() {
     let guest = "(module (import \"wasi_snapshot_preview1\" \"sched_yield\" (func $yield (result i32))) (memory (export \"memory\") 1) (func $init call $yield drop) (start $init) (func (export \"_start\")))";
-    let frames = run_authorized(guest, json!({}), deny, true);
-    assert_eq!(termination(&frames), "invalid");
-    assert_eq!(
-        frames.len(),
-        2,
-        "guest code ran before authorization: {frames:?}"
-    );
+    for mismatch in [
+        AuthorizationMismatch::Module,
+        AuthorizationMismatch::Configuration,
+    ] {
+        let frames = run_authorized(guest, json!({}), deny, mismatch);
+        assert_eq!(termination(&frames), "invalid");
+        assert_eq!(
+            frames.len(),
+            2,
+            "guest code ran before authorization: {frames:?}"
+        );
+    }
 }
 
 fn checked_call(

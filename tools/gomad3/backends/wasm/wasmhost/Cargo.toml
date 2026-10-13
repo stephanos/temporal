@@ -6,6 +6,8 @@ rust-version = "1.94"
 
 [features]
 diagnostic-profile = []
+guest-profile = ["diagnostic-profile", "wasmtime/profiling", "wasmtime/call-hook"]
+diagnostic-fuel-off = ["diagnostic-profile"]
 
 [dependencies]
 wasmtime = { version = "=47.0.3", default-features = false, features = ["cranelift", "runtime", "std", "wat", "reexport-wasmparser"] }
