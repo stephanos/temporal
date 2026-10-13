@@ -5,11 +5,23 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"math"
+	"os"
 	"testing"
 
 	netmodel "go.temporal.io/server/tools/gomad3/simulation/network"
 	"go.temporal.io/server/tools/gomad3/world"
 )
+
+func TestNetworkV2RustOwnerPinIsCurrent(t *testing.T) {
+	const path = "../wasmhost/src/network/PINNED_GO_NETWORK_SHA256"
+	pin, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := netmodel.ImplementationSHA256() + "\n"; !bytes.Equal(pin, []byte(want)) {
+		t.Fatalf("update the Rust network owner and regenerate its corpus before updating %s: got %q, want %q", path, pin, want)
+	}
+}
 
 func streamConfig() *NetworkModelV2 {
 	return &NetworkModelV2{Profile: NetworkStreamProfile, Limits: netmodel.Limits{Listeners: 128, Connections: 128, Bytes: 8 << 20, ConnectionBytes: 4 << 20, StallNanos: 10_000_000_000, Transitions: 8192}}
