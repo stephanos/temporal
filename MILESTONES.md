@@ -223,10 +223,10 @@ Owner decision (2026-10-12): these deferred specs change owners the WASM backend
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-166.6](.flow/tasks/fn-166-gomad-readable-package-structure-and.6.md) | 🚧 In progress | Final owner renames and facade retirement; integrated qualification remains |
-| [fn-166.7](.flow/tasks/fn-166-gomad-readable-package-structure-and.7.md) | 🚧 In progress | Inspection/library retirement source joined; integrated checks and full grouping remain |
+| [fn-166.6](.flow/tasks/fn-166-gomad-readable-package-structure-and.6.md) | 🚧 In progress | Owner renames and facade retirement joined; final review and qualification remain |
+| [fn-166.7](.flow/tasks/fn-166-gomad-readable-package-structure-and.7.md) | 🚧 In progress | Six-group tree joined; Runner exports 151 → 75; final review and qualification remain |
 | [fn-166.8](.flow/tasks/fn-166-gomad-readable-package-structure-and.8.md) | 🚧 In progress | Retire network v1 and choice v1; retain diagnostic profile; integrated gates remain |
-| [fn-166.10](.flow/tasks/fn-166-gomad-readable-package-structure-and.10.md) | 🚧 In progress | Move simulation into internal/model/cluster with lower codec ownership |
+| [fn-166.10](.flow/tasks/fn-166-gomad-readable-package-structure-and.10.md) | 🚧 In progress | Cluster API and lower history/wire split joined; final qualification remains |
 | [fn-166.11](.flow/tasks/fn-166-gomad-readable-package-structure-and.11.md) | ⬜ Todo | Rename the gomad3 module and tree to gomad after the rotation batch |
 
 <a id="canonical-json-publication-cleanup-fn-153"></a>
@@ -349,7 +349,7 @@ Owner decision (2026-10-13): fn-179 starts now, in parallel with the shared-owne
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-179.1](.flow/tasks/fn-179-gomad-temporal-server-consistency.1.md) | 🚧 In progress | Implement soft-assertion oracle alongside shared-owner cleanup |
+| [fn-179.1](.flow/tasks/fn-179-gomad-temporal-server-consistency.1.md) | 🚧 In progress | Real single/cluster oracle and replay tests pass in source lane; root integration remains |
 
 <a id="replay-instrumentation"></a>
 
