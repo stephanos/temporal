@@ -239,7 +239,7 @@ Owner decision (2026-10-12): these deferred specs change owners the WASM backend
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-154.2](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.2.md) | ⬜ Todo | Propagate limits and admit held/timeout vocabulary in the generated network codec |
+| [fn-154.2](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.2.md) | 🚧 In progress | Propagate limits and admit held/timeout vocabulary in the generated network codec |
 | [fn-154.3](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.3.md) | 🚧 In progress | Preserve persistent stall timeout identity through local and process adapters |
 | [fn-154.4](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.4.md) | ⬜ Todo | Unify local connection mechanics behind a byte-bounded queue owner |
 | [fn-154.5](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.5.md) | ⬜ Todo | Hold partitioned bytes and release FIFO through effective topology changes |

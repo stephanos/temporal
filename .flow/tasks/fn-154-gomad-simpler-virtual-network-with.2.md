@@ -4,40 +4,33 @@ satisfies: [R6, R7, R11]
 # fn-154-gomad-simpler-virtual-network-with.2 Propagate limits and admit held/timeout vocabulary in the generated network codec
 
 ## Description
-Propagate explicit limits through the admitted generated network codec (R6, R11). This task owns the named surface; root owns admission, integration and lifecycle.
+Propagate explicit limits and admit held/timeout vocabulary through fn109.14's single generated network codec (R6, R7, R11). Root owns integration and lifecycle.
 
 **Size:** M
-**Files:** `tools/gomad3/simulation/schema/**`, `tools/gomad3/internal/gomadtool/generation/protocol/protocol.go`, `tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/simulation_network.go`, `tools/gomad3sim/runtime_network_wire.go`, `tools/gomad3sim/runtime_network_wire_test.go`, `tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/simulation_wire.go`, `tools/gomad3sim/types.go`, `tools/gomad3sim/record.go`, `tools/gomad3sim/record_test.go`
-**Touches:** [tools/gomad3/simulation/schema/**, tools/gomad3/runner/internal/execution/simulation_model_wire_generated.go, tools/gomad3/toolchain/runtime/overlay/src/internal/gomadsim/model_transport_generated.go, tools/gomad3/toolchain/runtime/overlay/src/internal/gomadmodelwire/**, tools/gomad3/internal/gomadtool/generation/protocol/**, tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/simulation_network.go, tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/simulation_wire.go, tools/gomad3sim/runtime_network_wire*, tools/gomad3sim/types.go, tools/gomad3sim/record.go, tools/gomad3sim/record_test.go]
+**Files:** `tools/gomad3/simulation/schema/networkwire.json`, `tools/gomad3/simulation/schema/networkwire.go.tmpl`, `tools/gomad3/backends/native/generation/protocol/network.go`, `tools/gomad3/backends/native/generation/protocol/*test.go`, `tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadio/simulation_network.go`, `tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadio/simulation_wire.go`, `tools/gomad3sim/runtime_network_wire.go`, `tools/gomad3sim/runtime_network_wire_test.go`, `tools/gomad3sim/types.go`, `tools/gomad3sim/record.go`, `tools/gomad3sim/record_test.go` and existing activation/config callers needed to supply the two explicit limits.
+**Touches:** [tools/gomad3/simulation/schema/networkwire*, tools/gomad3/backends/native/generation/protocol/**, tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadio/simulation_network*, tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadio/simulation_wire.go, tools/gomad3/backends/native/toolchain/runtime/overlay/src/internal/gomadio/bootstrap*, tools/gomad3sim/runtime_network*, tools/gomad3sim/types.go, tools/gomad3sim/record*, tools/gomad3sim/runtime.go, tools/gomad3sim/runtime_backend.go, tools/gomad3/simulation/network/**]
 
 ### Approach
 
-- Admission gate: root must retain source acceptance of fn-109.14's single generated semantic codec, substitute its exact schema/template/outputs into Files and Touches, and bind that inventory before worker dispatch. Flow cannot encode this narrow cross-spec task edge; do not add a whole-fn-109 dependency or write another codec.
-- Modify the admitted config schema/template and generator inventory, then regenerate every declared host/overlay consumer. Today's handwritten wire files are investigation anchors, not a license to keep them as separate format owners.
-- Consume integrated public limits from .1 and stable timeout transport from .3. Propagate fields through both activation paths. Admit additive held-write/timeout outcome and connection-reset kind, endpoint requirements, matched host/overlay lanes and the admitted codec's vectors/version before .5/.6 producers. Round-trip synthetic valid records and reject unknown/malformed variants. Preserve every still-produced delivery shape until .8. Keep IPC transport identity distinct from semantic network versions.
-- Retain host/overlay golden equality and malformed/old-version/overflow negatives. Inventory generated fan-out and serialize generation with other owners.
-
-### Investigation targets
-
-**Required:**
-
-- `tools/gomad3/internal/gomadtool/generation/protocol/protocol.go:446`
-- `tools/gomad3/toolchain/runtime/overlay/src/internal/gomadio/simulation_network.go:139`
-- `tools/gomad3sim/types.go:124`
-- `tools/gomad3sim/record.go:1078`
-- `tools/gomad3sim/record_test.go:271`
-- `tools/gomad3sim/runtime_network_wire_test.go`
-- `.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.14.md`
+- The narrow fn109.14 admission gate is satisfied: Flow reports done, integrated commit 0b0971431c owns the single semantic definition, paired codecs, cross-consumer malformed vectors, drift tests and source review. Exact inputs are networkwire.json/networkwire.go.tmpl plus generation/protocol/network.go; outputs are gomad3sim/runtime_network_wire.go and native overlay internal/gomadio/simulation_wire.go. Do not write a second codec or add a whole-fn109 dependency.
+- Consume fn154.1 public limits and fn154.3 stable timeout error transport. Propagate NetworkConnectionBytes and NetworkStallNanos through both activation paths. Reject absent/zero/invalid/overflowing values and old config identity before activation; serialize changes to generated outputs.
+- Admit additive held-write and timeout outcomes, connection-reset kind and exact endpoint/lane validation in matched host/overlay consumers before runtime producers. Preserve every currently produced delivery shape until task8. Keep semantic network identity distinct from IPC transport identity.
+- Retain host/overlay golden equality, synthetic valid records, malformed/unknown variants, old-version and overflow negatives. Regenerate the shared network projection from accepted native inputs; its output is not another format owner.
+- Bind discovered activation call sites before editing if outside the declared inventory. Do not implement partition timing, expiry, queue simplification or destructive delivery/hash removal in this task.
 
 ### Quick commands
 
 ```bash
 make -C tools/gomad3 generate validate
 go test -tags test_dep ./tools/gomad3sim -run 'TestRuntimeNetwork|TestClusterRecord|TestDecodeClusterRecord'
+(cd tools/gomad3 && go test -tags test_dep ./backends/native/generation/protocol ./simulation/network ./simulation/network/generate)
 ```
 
-Patched-runtime selectors require the supported candidate and documented toolchain setup. New selectors named in acceptance are deliverables, not existing-test claims. Keep a missing required gate open; bind each result to the tested source and tool inputs.
+Use stock Go1.27.1 for portable source checks on linux/arm64. Native execution remains deferred to fn128/fn149; no portable result substitutes for it. Final current-candidate WASM acceptance belongs to the coherent rotation batch.
 
+### Revival trigger (2026-10-13)
+
+The WASM shared-owner rotation batch has accepted fn109.14's generated semantic codec and fn154.1's explicit limits; fn154.3 timeout propagation is integrated and undergoing source review. Work the declared generated config/vocabulary surface next, consuming those interfaces and preserving existing delivery producers until task8. This revives source implementation only, with no native qualification, CI, PR or push authority.
 ## Acceptance
 - [ ] Fn-109.14 source acceptance and exact generated input/output inventory are retained before dispatch.
 - [ ] Both activation paths receive identical byte/stall configuration, and additive held/timeout synthetic records pass matched endpoint/lane validation before their runtime producers land.
