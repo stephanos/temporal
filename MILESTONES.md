@@ -238,7 +238,7 @@ These fn-109 tasks change Runner, artifact, choice-exploration and simulation ow
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-153.17](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.17.md) | ⬜ Todo | Regenerate final-input approvals, packs, goldens and identity outputs |
+| [fn-153.17](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.17.md) | 🚧 In progress | Regenerate final-input approvals, packs, goldens and identity outputs |
 | [fn-153.18](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.18.md) | ⬜ Todo | Reconcile contracts and verify the integrated cleanup |
 
 <a id="virtual-network-stalling-fn-154"></a>

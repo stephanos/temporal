@@ -8,7 +8,7 @@ Implements R2 for this owner; see the parent Architecture and Delivery sections.
 
 **Size:** M
 **Files:** Bounded generator/output owner. Core orchestration/tests are existing authoring/generated checks; wider mechanical outputs include 12 request/report/pack triples, generation manifest, six capability-review goldens and affected protocol/manifest values. No semantic policy edits.
-**Touches:** [tools/gomad3/internal/compatibilitypack/requests/**, tools/gomad3/internal/compatibilitypack/reports/**, tools/gomad3/internal/compatibilitypack/packs/**, tools/gomad3/internal/compatibilitypack/generation.json, tools/gomad3/internal/compatibilitypack/packs_generated_test.go, tools/gomad3/target/testdata/capability-review/**, tools/gomad3/target/internal/livecap/protocol_generated.go, tools/gomad3/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go, tools/gomad3/qualification/*.json, tools/gomad3/qualification/soak/*.json]
+**Touches:** [tools/gomad3/backends/native/compatibilitypack/requests/**, tools/gomad3/backends/native/compatibilitypack/reports/**, tools/gomad3/backends/native/compatibilitypack/packs/**, tools/gomad3/backends/native/compatibilitypack/generation.json, tools/gomad3/backends/native/compatibilitypack/packs_generated_test.go, tools/gomad3/backends/native/build/testdata/capability-review/**, tools/gomad3/backends/native/build/internal/livecap/protocol_generated.go, tools/gomad3/backends/native/toolchain/runtime/overlay/src/cmd/internal/gomadcap/protocol_generated.go, tools/gomad3/backends/native/qualification/*.json, tools/gomad3/qualification/*.json]
 
 ### Approach
 
@@ -24,12 +24,12 @@ Implements R2 for this owner; see the parent Architecture and Delivery sections.
 
 **Required** (read before coding):
 
-- `tools/gomad3/internal/compatibilitypack/authoring/generate.go:249`
-- `tools/gomad3/internal/compatibilitypack/authoring/request.go:194`
-- `tools/gomad3/internal/compatibilitypack/packs_generated_test.go`
-- `tools/gomad3/internal/compatibilitypack/generation.json`
-- `tools/gomad3/target/capability_golden_test.go:24`
-- `tools/gomad3/internal/gomadtool/generation/protocol/protocol.go:564`
+- `tools/gomad3/backends/native/compatibilitypack/authoring/generate.go:249`
+- `tools/gomad3/backends/native/compatibilitypack/authoring/request.go:194`
+- `tools/gomad3/backends/native/compatibilitypack/packs_generated_test.go`
+- `tools/gomad3/backends/native/compatibilitypack/generation.json`
+- `tools/gomad3/backends/native/build/capability_golden_test.go:24`
+- `tools/gomad3/backends/native/generation/protocol/protocol.go:564`
 - `tools/gomad3/Makefile:166`
 
 ### Verification
@@ -49,3 +49,7 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+## Revival trigger (2026-10-13)
+
+All fn153 source migrations are now complete through fn153.16 and fn153.19, including deletion of the generic canonicaljson owner and SHIP implementation reviews. The integrated final source tree is frozen for this task, and aggregate validation reaches the expected stale `golang-x-sys-v047-darwin-arm64` approval first. fn166.5 and fn166.9 moved the compatibility, build, toolchain and qualification owners to their live `backends/native` paths reflected above. Reinventory every generated or identity-bound output before editing and declare any additional mechanical output path to the conductor; semantic policy changes remain out of scope. The future fn166.11 module rename is a separate Todo after the structural rotation batch and must not be performed here. Native supported-host qualification remains deferred and must not be inferred from source regeneration.
