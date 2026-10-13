@@ -50,3 +50,7 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+## Revival trigger (2026-10-13)
+
+Revived after fn153.12 completed with a SHIP implementation review, satisfying the last dependency and freezing the final replay, minimizer, corpus, and shared Runner migrations that architecture fixtures could still name. Because fn165 retired the old analyzer and moved retained host/dynamic fixture coverage, this task must first inventory the current tree and prove whether any live or synthetic canonical-JSON ownership remains; it should make only the smallest fixture correction still required and may close as a verified no-op if fn165 already satisfies every retained acceptance point. It must not revive Native production work, delete meaningful negative controls, or alter final generated approvals owned by fn153.17. The forced local claim is required only because Flow chain admission still sees completed parent work on an unpushed remote branch; pushing remains outside the requested scope.
