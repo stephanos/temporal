@@ -231,7 +231,7 @@ Owner decision (2026-10-12): these deferred specs change owners the WASM backend
 | Name / ID | Status | Description |
 | --- | --- | --- |
 | [fn-153.18](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.18.md) | 🚧 In progress | Reconcile contracts and verify the integrated cleanup |
-| [fn-153.20](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.20.md) | 🚧 In progress | Replace the remaining WASM strict JSON scanners with the shared decoder |
+| [fn-153.20](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.20.md) | 🚧 In progress | Shared decoder source reviewed; final integrated WASM gates remain open |
 
 <a id="virtual-network-stalling-fn-154"></a>
 
@@ -239,11 +239,11 @@ Owner decision (2026-10-12): these deferred specs change owners the WASM backend
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-154.2](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.2.md) | 🚧 In progress | Propagate limits and admit held/timeout vocabulary in the generated network codec |
+| [fn-154.2](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.2.md) | 🚧 In progress | Generated limits/timeout codec source reviewed; integrated acceptance remains open |
 | [fn-154.3](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.3.md) | 🚧 In progress | Timeout propagation source reviewed; patched-native adapter execution remains open |
-| [fn-154.4](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.4.md) | 🚧 In progress | Unify local connection mechanics behind a byte-bounded queue owner |
-| [fn-154.5](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.5.md) | 🚧 In progress | Hold partitioned bytes and release FIFO through effective topology changes |
-| [fn-154.6](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.6.md) | 🚧 In progress | Expire stalled connections through autonomous virtual-time work |
+| [fn-154.4](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.4.md) | 🚧 In progress | Shared byte-bounded connection checkpoint integrated; batch/native acceptance open |
+| [fn-154.5](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.5.md) | 🚧 In progress | Held FIFO and atomic reservation checkpoint integrated; batch/native acceptance open |
+| [fn-154.6](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.6.md) | 🚧 In progress | Autonomous expiry checkpoint integrated; batch/native acceptance open |
 | [fn-154.7](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.7.md) | 🚧 In progress | Bound pending partitioned dials with independent virtual stall intervals |
 | [fn-154.8](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.8.md) | 🚧 In progress | Remove delivery history and hashes with coherent record and codec migration |
 | [fn-154.9](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.9.md) | ⬜ Todo | Pin shared-connection and in-process fault conformance |

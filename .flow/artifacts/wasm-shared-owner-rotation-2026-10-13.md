@@ -69,7 +69,7 @@ definitions; no independent native process JSON decoder exists.
   generated/compatibility validation and scoped lint passed (exit 0).
   Combined source review on frozen `a23880029f` finalized NEEDS_WORK at
   `/tmp/wasm-json-network-config-source-review-20261013.json` (gpt-6.1-sol/high,
-  same-family three-axis review). Four distinct introduced findings remain:
+  same-family three-axis review). Four distinct introduced findings were recorded:
   effective broker limits bypass, timeout-dial source-port overflow,
   malformed-overdepth refusal precedence, and installation typed/unknown-field
   versus trailing-data precedence. The existing JSON and network workers own
@@ -86,7 +86,13 @@ definitions; no independent native process JSON decoder exists.
   `/tmp/wasm-json-precedence-integrated-20261013.log`. The frozen source-review
   candidate `6ff6a117b2` pins `sha256:0b9d0091a80b036be2eec7a2d271bd4ca1ce9bc134965621c5e582a9d25ff444`;
   its depth/reader/identity controls and all-platform architecture/purity pass.
-  Final single-session review remains pending. Main's `955fdd2f20` pin is
+  Final single-session review returned SHIP on `6ff6a117b2`, with all four
+  findings fixed and no new blockers. Its receipt retains the scoped source
+  requirement coverage; full native and final WASM qualification stay open.
+  All-platform architecture/purity, generated validation and affected lint
+  exit 0; logs `/tmp/wasm-json-network-review-fixes-architecture-20261013.log`,
+  `/tmp/wasm-json-network-review-fixes-validate-20261013.log`, and
+  `/tmp/fn153-20-reviewfix-lint.log`. Main's `955fdd2f20` pin is
   historical after the subsequent expiry source checkpoint, not final identity.
 - `49e4f12d5b` integrates fn154.4's shared byte-bounded local connection owner.
   Exact-source projected public-operation equivalence controls and full
@@ -117,6 +123,8 @@ definitions; no independent native process JSON decoder exists.
   multi-pair replay, overflow and close controls pass in full protocol/network/
   projection suites; log `/tmp/wasm-connection-expiry-integrated-20261013.log`.
   Patched native public/process execution is not supplied by those harnesses.
+  The complete unchanged shared clock suite passes (exit 0); log
+  `/tmp/wasm-connection-expiry-clock-preservation-20261013.log`.
   Pending-dial, registration and history-removal work continues in the same
   worker. The combined source pin and final batch gates remain pending.
 - `852d7cd652` reconciles the next structural rotation's exact six groups:

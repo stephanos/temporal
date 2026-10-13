@@ -33,6 +33,12 @@ Use stock Go1.27.1 for portable source checks on linux/arm64. Native execution r
 ### Revival trigger (2026-10-13)
 
 The WASM shared-owner rotation batch has accepted fn109.14's generated semantic codec and fn154.1's explicit limits; fn154.3 timeout propagation is integrated and undergoing source review. Work the declared generated config/vocabulary surface next, consuming those interfaces and preserving existing delivery producers until task8. This revives source implementation only, with no native qualification, CI, PR or push authority.
+
+### Integrated source review (2026-10-13)
+
+Combined JSON/config scope reviewed at frozen `6ff6a117b2`, based on `603d168023`. Receipt `/tmp/wasm-json-network-config-source-review-20261013.json` now reports SHIP after all four merged findings were fixed and same-session re-review found no blockers. Model pin on that frozen source is `sha256:0b9d0091a80b036be2eec7a2d271bd4ca1ce9bc134965621c5e582a9d25ff444`. Main integrates the same fixes but newer connection/holding/expiry work is outside this review. Full reader, architecture/purity, generated validation and scoped lint checks pass; logs and task/R-ID scope are retained in the shared rotation handover. This is source acceptance only: final current-source WASM qualification, exact native requirements, task dependencies and other acceptance remain open. Do not mark the task done from this source verdict.
+
+stage: impl-review - ran (model: gpt-6.1-sol/high, same-family; first round three axes, one single-session re-review)
 ## Acceptance
 - [ ] Fn-109.14 source acceptance and exact generated input/output inventory are retained before dispatch.
 - [ ] Both activation paths receive identical byte/stall configuration, and additive held/timeout synthetic records pass matched endpoint/lane validation before their runtime producers land.
