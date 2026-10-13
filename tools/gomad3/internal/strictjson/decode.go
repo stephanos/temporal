@@ -26,8 +26,10 @@ var (
 	reportErrorsWithLegacySemantics = jsonv1.ReportErrorsWithLegacySemantics
 	rejectUnknownMembers            = json.RejectUnknownMembers
 	newTextDecoder                  = jsontext.NewDecoder
+	peekKind                        = (*jsontext.Decoder).PeekKind
 	readToken                       = (*jsontext.Decoder).ReadToken
 	stackDepth                      = (*jsontext.Decoder).StackDepth
+	stackIndex                      = (*jsontext.Decoder).StackIndex
 	tokenKind                       = jsontext.Token.Kind
 )
 
@@ -68,6 +70,9 @@ func CheckSyntax(data []byte, maximumDepth int) error {
 	}
 	//gomad:dynamic reviewed 2026-10-13 pinned JSON tokenizer reports only its in-memory stack
 	for stackDepth(decoder) != 0 {
+		if nextValueExceedsDepth(decoder, maximumDepth) {
+			return ErrNestingLimit
+		}
 		//gomad:dynamic reviewed 2026-10-13 pinned JSON tokenizer operates only on caller memory
 		token, err := readToken(decoder)
 		if err != nil {
@@ -100,12 +105,32 @@ func checkTokenDepth(decoder *jsontext.Decoder, token jsontext.Token, maximumDep
 	switch tokenKind(token) {
 	case jsontext.KindBeginObject, jsontext.KindBeginArray:
 		depth--
-	case jsontext.KindEndObject, jsontext.KindEndArray:
-		return nil
-	case jsontext.KindInvalid, jsontext.KindNull, jsontext.KindFalse, jsontext.KindTrue, jsontext.KindString, jsontext.KindNumber:
-	}
-	if depth > maximumDepth {
-		return ErrNestingLimit
+		if depth > maximumDepth {
+			return ErrNestingLimit
+		}
+	case jsontext.KindInvalid, jsontext.KindNull, jsontext.KindFalse, jsontext.KindTrue, jsontext.KindString, jsontext.KindNumber, jsontext.KindEndObject, jsontext.KindEndArray:
 	}
 	return nil
+}
+
+func nextValueExceedsDepth(decoder *jsontext.Decoder, maximumDepth int) bool {
+	if maximumDepth <= 0 {
+		return false
+	}
+	//gomad:dynamic reviewed 2026-10-13 pinned JSON tokenizer reports only its in-memory stack
+	depth := stackDepth(decoder)
+	if depth <= maximumDepth {
+		return false
+	}
+	//gomad:dynamic reviewed 2026-10-13 pinned JSON tokenizer reports only its in-memory stack
+	kind, length := stackIndex(decoder, depth)
+	switch kind {
+	case jsontext.KindBeginArray:
+		//gomad:dynamic reviewed 2026-10-13 pinned JSON tokenizer peeks only at caller memory
+		return peekKind(decoder) != jsontext.KindEndArray
+	case jsontext.KindBeginObject:
+		return length%2 != 0
+	default:
+		return false
+	}
 }

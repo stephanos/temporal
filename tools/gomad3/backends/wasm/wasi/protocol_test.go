@@ -37,7 +37,7 @@ func TestTransportInputValidationPrecedenceAndMutation(t *testing.T) {
 		{name: "full-frame-depth-edge", op: "unsupported", input: `{"x":` + strings.Repeat("[", 30) + "0" + strings.Repeat("]", 30) + `}`},
 		{name: "full-frame-empty-container-depth-edge", op: "unsupported", input: `{"x":` + strings.Repeat("[", 31) + strings.Repeat("]", 31) + `}`},
 		{name: "full-frame-depth-overflow", op: "unsupported", input: `{"x":` + strings.Repeat("[", 31) + "0" + strings.Repeat("]", 31) + `}`, transportError: "WASI invalid: JSON nesting", publicError: "accepted"},
-		{name: "full-frame-malformed-depth-overflow", op: "unsupported", input: `{"x":` + strings.Repeat("[", 31) + "|" + strings.Repeat("]", 31) + `}`, transportError: "WASI invalid: JSON nesting", publicError: "WASI invalid: malformed JSON"},
+		{name: "full-frame-malformed-depth-overflow", op: "unsupported", input: `{"x":` + strings.Repeat("[", 31) + "|" + strings.Repeat("]", 31) + `}`, transportError: "WASI invalid: JSON nesting", publicError: "WASI invalid: callback JSON"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			config := testConfig()
