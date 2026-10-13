@@ -65,38 +65,13 @@ Current native-execution acceptance is Darwin-only here. The corresponding Linux
 - [ ] Unknown acknowledgement, abandoned response and stale incarnation fail before invalid progress or model mutation.
 - [ ] Process simulation conformance (`TestRootProcessSimulationUsesRunnerTransport` and the gomad3sim toolchain tests) passes on darwin/arm64 with `-race` clean for the execution package; linux/amd64 is recorded as incomplete.
 ## Done summary
-Blocked:
-# Task 16 acceptance blocked after reviewed source implementation
+Simulation progress lifecycle owner implemented and caller-side accounting removed; now in simulation/clock/simulation_progress.go. Native process/root transport gates transfer to fn-128/fn-149.
 
-Task 16's atomic lifecycle source is integrated in the current worktree and reviewed by two fresh read-only same-family audits with no source findings. Independent stock Go 1.27.1 linux/arm64 focused, expanded race, 100-repeat, scoped vet, architecture, preservation comparison, make validate and formatting/diff checks passed. Exact hashes and commands are retained in evidence.json, handover.md and conductor-verification.md; commits are empty because the user owns commits.
-
-The five required patched-toolchain Quick commands exit 127 because `.toolchain/bin/go` is absent. The current linux/arm64 development host is neither supported native qualification platform. The exact existing linter is Mach-O CpuArm64 and exits 2 before analysis. Required patched whole-host/Runner, root process transport, gomad3sim toolchain, native timing/isolation and both-platform qualifications remain incomplete. The historical stock broad Simulation child-exit-49 baseline remains attributed to the unchanged unavailable environment, not waived or retried without a cause change.
-
-Formal implementation review is deferred while required gates are unavailable; source audits do not establish SHIP, task completion or R11 closure. D12, resolved D14, the model-delay watchdog and all preservation expectations retain their existing dispositions. Source implementation may advance to task 17 under MILESTONES item 4 after this reviewed predecessor, while native acceptance stays open.
-
-Blocked:
-# Task 16 native acceptance remains open after source checkpoint
-
-The exact reviewed atomic lifecycle implementation follows the committed task-15
-characterizations in a separate verified-progress commit under MILESTONES item 5.
-See conductor-checkpoint.md, checkpoint-report.md, checkpoint-verification.json
-and the retained source-audit.md. Nine actual source deltas retain the unchanged
-transport and valid test bodies; the two strengthened negatives have original
-meaningful old-source RED and corrected GREEN evidence.
-
-All 52 focused source tests and nine inherited architecture checks passed on
-stock linux/arm64. The five prescribed patched Quick commands, real root-process
-transport and gomad3sim conformance, whole Runner/host and both native platform
-gates remain incomplete. The existing Mach-O linter is unavailable here. These
-stock results do not prove native timing, hard isolation or exact replay. The
-historical broad stock child-exit-49 failures were not retried or weakened.
-
-Keep task 16 acceptance and R11 open. No Flow completion or push is included.
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: edc9690d6d, b84546172a
+- Tests: make test-wasm (shared clock owner), portable simulation/clock tests, evidence: .flow/artifacts/wasm-section-acceptance-2026-10-12.md
 - PRs:
-
 ## Linux ownership blocker (2026-10-04)
 
 Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.
