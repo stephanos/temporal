@@ -43,13 +43,13 @@ Capture the frozen behavior pin named above, run focused negative controls and f
 - [ ] A 12-approved-request batch succeeds only after every staged approval matches its new review digest; one stale/mismatched request prevents live publication, and original live preimages remain unchanged on preparation/check failure.
 - [ ] Both source sets validate; no native discovery/qualification/CI is claimed, and no malformed/stale approval can be accepted through regeneration.
 ## Done summary
-TBD
+Regenerated all 12 retained compatibility-pack request/report/pack triples and the generation manifest against the final fn153 sources. Preserved every reviewed semantic projection and platform/module/source pin while rotating only derived approval, request, report, pack and manifest identities. Stale and mismatched approval controls failed before live publication; aggregate implementation review returned SHIP on correctness, contracts and integration.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 0d3c046011ef2b1f4c669ae17ba00a829009ddcc, 93bd086316436b852d88429688a675c4eab85088
+- Tests: make -C tools/gomad3 validate, 12 semantic preimage comparisons after removing only expected derived digest fields, one-at-a-time stale approval and mismatched approval negative controls; live outputs unchanged
 - PRs:
-
 ## Revival trigger (2026-10-13)
 
 All fn153 source migrations are now complete through fn153.16 and fn153.19, including deletion of the generic canonicaljson owner and SHIP implementation reviews. The integrated final source tree is frozen for this task, and aggregate validation reaches the expected stale `golang-x-sys-v047-darwin-arm64` approval first. fn166.5 and fn166.9 moved the compatibility, build, toolchain and qualification owners to their live `backends/native` paths reflected above. Reinventory every generated or identity-bound output before editing and declare any additional mechanical output path to the conductor; semantic policy changes remain out of scope. The future fn166.11 module rename is a separate Todo after the structural rotation batch and must not be performed here. Native supported-host qualification remains deferred and must not be inferred from source regeneration.
