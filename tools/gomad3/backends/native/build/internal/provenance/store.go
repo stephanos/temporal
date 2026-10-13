@@ -1,17 +1,18 @@
 package provenance
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"os"
 
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
+	"go.temporal.io/server/tools/gomad3/internal/strictjson"
 )
 
 func Store(path string, value any) ([]byte, error) {
-	encoded, err := canonicaljson.CanonicalJSON(value)
+	encoded, err := json.Marshal(value)
 	if err != nil {
 		return nil, fmt.Errorf("encode provenance: %w", err)
 	}
@@ -54,7 +55,7 @@ func Load(path string, maximum uint64, destination any) (_ []byte, retErr error)
 	if uint64(len(encoded)) > maximum {
 		return nil, fmt.Errorf("provenance file exceeds %d bytes", maximum)
 	}
-	if err := canonicaljson.DecodeCanonicalJSON(encoded, destination); err != nil {
+	if err := strictjson.Decode(encoded, destination); err != nil {
 		return nil, err
 	}
 	return encoded, nil

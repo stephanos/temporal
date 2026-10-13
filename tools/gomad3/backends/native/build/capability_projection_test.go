@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	compatibility "go.temporal.io/server/tools/gomad3/backends/native/compatibilitypack"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 )
 
 func TestCompatibilityPackProjectionPreservesCompleteEvidence(t *testing.T) {
@@ -24,17 +23,6 @@ func TestCompatibilityPackProjectionPreservesCompleteEvidence(t *testing.T) {
 		if string(data) != want {
 			t.Fatalf("complete evidence changed: %s", data)
 		}
-	}
-	oldCanonical, err := canonicaljson.CanonicalJSON(value)
-	if err != nil {
-		t.Fatal(err)
-	}
-	newCanonical, err := canonicaljson.CanonicalJSON(projected)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !bytes.Equal(oldCanonical, newCanonical) {
-		t.Fatalf("canonical report changed: %s -> %s", oldCanonical, newCanonical)
 	}
 }
 

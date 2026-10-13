@@ -10,6 +10,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"reflect"
 	"runtime"
 	"runtime/debug"
 	"sort"
@@ -21,7 +22,6 @@ import (
 	"go.temporal.io/server/tools/gomad3/backends/native/build/internal/livecap"
 	targetprovenance "go.temporal.io/server/tools/gomad3/backends/native/build/internal/provenance"
 	"go.temporal.io/server/tools/gomad3/backends/native/toolchain/installation"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/target"
@@ -420,15 +420,7 @@ func prepareExec(ctx context.Context, spec target.Spec, identity pinnedToolchain
 		return preparation{}, err
 	}
 	actualBuildInfo := ProjectBuildInfo(info)
-	recordedBuildInfo, err := canonicaljson.CanonicalJSON(provenance.BuildInfo)
-	if err != nil {
-		return preparation{}, fmt.Errorf("encode provenance build info: %w", err)
-	}
-	actualBuildInfoBytes, err := canonicaljson.CanonicalJSON(actualBuildInfo)
-	if err != nil {
-		return preparation{}, fmt.Errorf("encode exec target build info: %w", err)
-	}
-	if actualBuildInfo.GoVersion != targetbuild.BinaryGoVersion(provenance.GoVersion) || string(actualBuildInfoBytes) != string(recordedBuildInfo) {
+	if actualBuildInfo.GoVersion != targetbuild.BinaryGoVersion(provenance.GoVersion) || !reflect.DeepEqual(actualBuildInfo, provenance.BuildInfo) {
 		return preparation{}, errors.New("exec target build info does not match provenance")
 	}
 	if err := writePreparedFile(filepath.Join(filepath.Dir(targetPath), "provenance.json"), provenanceBytes, 0o400); err != nil {

@@ -14,7 +14,7 @@ import (
 	"testing"
 )
 
-func TestEncodeCanonicalRecord(t *testing.T) {
+func TestEncodeRecordPreservesPayloadLayout(t *testing.T) {
 	buildKey := strings.Repeat("a", 64)
 	record, err := Encode(Input{
 		GOARCH:            "arm64",
@@ -23,8 +23,8 @@ func TestEncodeCanonicalRecord(t *testing.T) {
 		ToolchainBuildKey: buildKey,
 		Facts: []Fact{
 			{Kind: FactKindCapability, OwnerPackage: "example.com/p", OwnerSymbol: "second", Capability: "import:syscall"},
-			{Kind: FactKindCapability, OwnerPackage: "example.com/p", OwnerSymbol: "first", Capability: "import:syscall"},
-			{Kind: FactKindCapability, OwnerPackage: "example.com/p", OwnerSymbol: "first", Capability: "import:syscall"},
+			{Kind: FactKindCapability, OwnerPackage: "example.com/p", OwnerSymbol: "<first>", Capability: "import:syscall"},
+			{Kind: FactKindCapability, OwnerPackage: "example.com/p", OwnerSymbol: "<first>", Capability: "import:syscall"},
 		},
 	})
 	if err != nil {
@@ -62,6 +62,17 @@ func TestEncodeCanonicalRecord(t *testing.T) {
 	if !bytes.Equal(record[104:HeaderBytes], make([]byte, HeaderBytes-104)) {
 		t.Fatal("reserved header bytes are nonzero")
 	}
+	wantPayload := fmt.Sprintf(
+		`{"capability_universe_sha256":%q,"facts":[{"capability":"import:syscall","kind":"capability","owner_package":"example.com/p","owner_symbol":"<first>"},{"capability":"import:syscall","kind":"capability","owner_package":"example.com/p","owner_symbol":"second"}],"go_version":"go1.26.4","goarch":"arm64","goos":"darwin","guard_implementation_sha256":%q,"limits":{"facts":100000,"owner_facts":4096,"payload_bytes":16777216,"string_bytes":4096},"producer_implementation_sha256":%q,"schema":%q,"toolchain_build_key":%q}`,
+		CapabilityUniverseSHA256,
+		GuardImplementationSHA256,
+		ProducerImplementationSHA256,
+		ManifestSchema,
+		buildKey,
+	)
+	if got := string(record[HeaderBytes:]); got != wantPayload {
+		t.Fatalf("payload = %s, want %s", got, wantPayload)
+	}
 
 	var manifest Manifest
 	if err := json.Unmarshal(record[HeaderBytes:], &manifest); err != nil {
@@ -70,7 +81,7 @@ func TestEncodeCanonicalRecord(t *testing.T) {
 	if manifest.ToolchainBuildKey != buildKey || manifest.GOOS != "darwin" || manifest.GOARCH != "arm64" {
 		t.Fatalf("manifest identity = %#v", manifest)
 	}
-	if len(manifest.Facts) != 2 || manifest.Facts[0].OwnerSymbol != "first" || manifest.Facts[1].OwnerSymbol != "second" {
+	if len(manifest.Facts) != 2 || manifest.Facts[0].OwnerSymbol != "<first>" || manifest.Facts[1].OwnerSymbol != "second" {
 		t.Fatalf("facts = %#v, want sorted unique facts", manifest.Facts)
 	}
 }

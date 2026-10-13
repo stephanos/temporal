@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"strings"
 
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+	"go.temporal.io/server/tools/gomad3/internal/strictjson"
 	"go.temporal.io/server/tools/gomad3/record"
 )
 
@@ -76,7 +76,7 @@ func Decode(data []byte, expected Expectation) (Record, error) {
 		return Record{}, errors.New("live capability payload SHA-256 does not match its header")
 	}
 	var manifest Manifest
-	if err := canonicaljson.DecodeCanonicalJSON(payload, &manifest); err != nil {
+	if err := strictjson.Decode(payload, &manifest); err != nil {
 		return Record{}, fmt.Errorf("decode live capability manifest: %w", err)
 	}
 	if err := validateManifest(manifest, expected, factCount, payloadBytes); err != nil {

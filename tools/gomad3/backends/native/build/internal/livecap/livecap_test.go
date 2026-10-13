@@ -6,10 +6,10 @@ import (
 	"debug/elf"
 	"debug/macho"
 	"encoding/binary"
+	"encoding/json"
 	"strings"
 	"testing"
 
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 )
 
@@ -108,7 +108,7 @@ func TestExtractELFRecordRequiresOneReadOnlyAllocatedSection(t *testing.T) {
 	}
 }
 
-func TestDecodeValidatesCanonicalManifestAndHeaderIdentity(t *testing.T) {
+func TestDecodeValidatesManifestAndHeaderIdentity(t *testing.T) {
 	expected := Expectation{
 		GoVersion: "go1.26.4", ToolchainBuildKey: strings.Repeat("1", 64), GOOS: "darwin", GOARCH: "arm64",
 	}
@@ -124,7 +124,7 @@ func TestDecodeValidatesCanonicalManifestAndHeaderIdentity(t *testing.T) {
 		ProducerImplementationSHA256: ProducerImplementationSHA256,
 		Schema:                       ManifestSchema, ToolchainBuildKey: expected.ToolchainBuildKey,
 	}
-	payload, err := canonicaljson.CanonicalJSON(manifest)
+	payload, err := json.Marshal(manifest)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -136,11 +136,77 @@ func TestDecodeValidatesCanonicalManifestAndHeaderIdentity(t *testing.T) {
 	if string(decoded.Payload) != string(payload) || decoded.Manifest.Facts[0] != manifest.Facts[0] || decoded.SHA256 != record.HashBytes(payload) {
 		t.Fatalf("Decode() = %#v", decoded)
 	}
+	var indented bytes.Buffer
+	if err := json.Indent(&indented, payload, "", "  "); err != nil {
+		t.Fatal(err)
+	}
+	indented.WriteByte('\n')
+	decoded, err = Decode(liveCapabilityRecord(indented.Bytes(), uint64(len(manifest.Facts))), expected)
+	if err != nil {
+		t.Fatalf("Decode(indented ordinary JSON): %v", err)
+	}
+	if decoded.Manifest.Facts[0] != manifest.Facts[0] {
+		t.Fatalf("Decode(indented ordinary JSON) = %#v", decoded.Manifest)
+	}
 
 	mutated := append([]byte(nil), recordBytes...)
 	mutated[len(mutated)-1] ^= 1
 	if _, err := Decode(mutated, expected); err == nil || !strings.Contains(err.Error(), "payload SHA-256") {
 		t.Fatalf("Decode(mutated payload) error = %v", err)
+	}
+}
+
+func TestDecodeRejectsStrictJSONSyntax(t *testing.T) {
+	expected := Expectation{
+		GoVersion: "go1.26.4", ToolchainBuildKey: strings.Repeat("1", 64), GOOS: "darwin", GOARCH: "arm64",
+	}
+	manifest := Manifest{
+		CapabilityUniverseSHA256: CapabilityUniverseSHA256,
+		Facts: []Fact{{
+			Capability: "import:syscall", Kind: FactKindCapability, OwnerPackage: "example.test/dependency",
+			OwnerSource: "dependency.go", OwnerSymbol: "example.test/dependency.Live",
+		}},
+		GoVersion: expected.GoVersion, GOARCH: expected.GOARCH, GOOS: expected.GOOS,
+		GuardImplementationSHA256:    GuardImplementationSHA256,
+		Limits:                       Limits{Facts: MaximumFacts, OwnerFacts: MaximumOwnerFacts, PayloadBytes: MaximumPayloadBytes, StringBytes: MaximumStringBytes},
+		ProducerImplementationSHA256: ProducerImplementationSHA256,
+		Schema:                       ManifestSchema, ToolchainBuildKey: expected.ToolchainBuildKey,
+	}
+	payload, err := json.Marshal(manifest)
+	if err != nil {
+		t.Fatal(err)
+	}
+	invalidUTF8 := bytes.Replace(payload, []byte("dependency.go"), append([]byte{0xff}, []byte("ependency.go")...), 1)
+	for name, invalid := range map[string][]byte{
+		"duplicate":     append([]byte(`{"schema":"gomad/live-capability/v1",`), payload[1:]...),
+		"unknown":       append(append([]byte(nil), payload[:len(payload)-1]...), []byte(`,"unknown":true}`)...),
+		"trailing":      append(append([]byte(nil), payload...), []byte(` {}`)...),
+		"invalid UTF-8": invalidUTF8,
+	} {
+		t.Run(name, func(t *testing.T) {
+			if _, err := Decode(liveCapabilityRecord(invalid, uint64(len(manifest.Facts))), expected); err == nil {
+				t.Fatal("Decode() succeeded")
+			}
+		})
+	}
+}
+
+func TestDecodeAuthenticatesHeaderAndRawPayloadBeforeManifest(t *testing.T) {
+	expected := Expectation{
+		GoVersion: "go1.26.4", ToolchainBuildKey: strings.Repeat("1", 64), GOOS: "darwin", GOARCH: "arm64",
+	}
+	recordBytes := liveCapabilityRecord([]byte("{"), 0)
+	recordBytes[72] ^= 1
+	if _, err := Decode(recordBytes, expected); err == nil || !strings.Contains(err.Error(), "header producer identity") {
+		t.Fatalf("Decode(mismatched producer) error = %v", err)
+	}
+	recordBytes = liveCapabilityRecord([]byte("{"), 0)
+	recordBytes[len(recordBytes)-1] = '}'
+	if _, err := Decode(recordBytes, expected); err == nil || !strings.Contains(err.Error(), "payload SHA-256") {
+		t.Fatalf("Decode(mismatched payload) error = %v", err)
+	}
+	if _, err := Decode(liveCapabilityRecord([]byte("{"), 0), expected); err == nil || !strings.Contains(err.Error(), "decode live capability manifest") {
+		t.Fatalf("Decode(authenticated malformed manifest) error = %v", err)
 	}
 }
 
@@ -158,7 +224,7 @@ func TestDecodeRejectsUnsortedFactsAndHeaderCountMismatch(t *testing.T) {
 		ProducerImplementationSHA256: ProducerImplementationSHA256,
 		Schema:                       ManifestSchema, ToolchainBuildKey: expected.ToolchainBuildKey,
 	}
-	payload, err := canonicaljson.CanonicalJSON(manifest)
+	payload, err := json.Marshal(manifest)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -166,7 +232,7 @@ func TestDecodeRejectsUnsortedFactsAndHeaderCountMismatch(t *testing.T) {
 		t.Fatalf("Decode(unsorted facts) error = %v", err)
 	}
 	manifest.Facts[0], manifest.Facts[1] = manifest.Facts[1], manifest.Facts[0]
-	payload, err = canonicaljson.CanonicalJSON(manifest)
+	payload, err = json.Marshal(manifest)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -189,7 +255,7 @@ func TestDecodeValidatesGuardFactsAndIdentity(t *testing.T) {
 		ProducerImplementationSHA256: ProducerImplementationSHA256,
 		Schema:                       ManifestSchema, ToolchainBuildKey: expected.ToolchainBuildKey,
 	}
-	payload, err := canonicaljson.CanonicalJSON(manifest)
+	payload, err := json.Marshal(manifest)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -199,7 +265,7 @@ func TestDecodeValidatesGuardFactsAndIdentity(t *testing.T) {
 
 	manifest.Facts[0].Capability = "network.udp-listen"
 	manifest.Facts[0].ReferencedSymbol = "net.ListenUDP"
-	payload, err = canonicaljson.CanonicalJSON(manifest)
+	payload, err = json.Marshal(manifest)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -207,7 +273,7 @@ func TestDecodeValidatesGuardFactsAndIdentity(t *testing.T) {
 		t.Fatalf("Decode(guarded denied boundary): %v", err)
 	}
 	manifest.Facts[0].Capability = "unknown.boundary"
-	payload, err = canonicaljson.CanonicalJSON(manifest)
+	payload, err = json.Marshal(manifest)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -217,7 +283,7 @@ func TestDecodeValidatesGuardFactsAndIdentity(t *testing.T) {
 	manifest.Facts[0].Capability = "network.udp-listen"
 
 	manifest.GuardImplementationSHA256 = "sha256:" + strings.Repeat("0", 64)
-	payload, err = canonicaljson.CanonicalJSON(manifest)
+	payload, err = json.Marshal(manifest)
 	if err != nil {
 		t.Fatal(err)
 	}

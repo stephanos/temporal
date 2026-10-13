@@ -1,15 +1,16 @@
 package build
 
 import (
-	"bytes"
 	"cmp"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"maps"
 	"os"
 	"path/filepath"
+	"reflect"
 	"slices"
 	"sort"
 	"strings"
@@ -17,8 +18,8 @@ import (
 
 	targetbuild "go.temporal.io/server/tools/gomad3/backends/native/build/internal/build"
 	"go.temporal.io/server/tools/gomad3/backends/native/toolchain/installation"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/internal/hostfs"
+	"go.temporal.io/server/tools/gomad3/internal/strictjson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/target"
 )
@@ -105,7 +106,7 @@ func openPreparedTargetCache(spec target.Spec, tags []string, toolchain pinnedTo
 	if err != nil {
 		return nil, err
 	}
-	encoded, err := canonicaljson.CanonicalJSON(identity)
+	encoded, err := json.Marshal(identity)
 	if err != nil {
 		return nil, fmt.Errorf("encode prepared target identity: %w", err)
 	}
@@ -118,7 +119,7 @@ func openPreparedTargetCache(spec target.Spec, tags []string, toolchain pinnedTo
 }
 
 func newPreparedTargetIdentity(spec target.Spec, tags []string, toolchain target.ToolchainIdentity, commandDirectory, packageArgument string, review target.CapabilityReview, packages []listedPackage) (preparedTargetIdentity, error) {
-	closure, err := canonicaljson.CanonicalJSON(review.Closure)
+	closure, err := json.Marshal(review.Closure)
 	if err != nil {
 		return preparedTargetIdentity{}, fmt.Errorf("encode reviewed closure: %w", err)
 	}
@@ -285,18 +286,10 @@ func (cache *preparedTargetCache) restore(targetPath string) (bool, error) {
 		return false, cache.discard(fmt.Errorf("read prepared target record: %w", err))
 	}
 	var retained preparedTargetRecord
-	if err := canonicaljson.StrictDecode(bytes.TrimSuffix(contents, []byte{'\n'}), &retained); err != nil {
+	if err := strictjson.Decode(contents, &retained); err != nil {
 		return false, cache.discard(fmt.Errorf("decode prepared target record: %w", err))
 	}
-	recordedIdentity, err := canonicaljson.CanonicalJSON(retained.Identity)
-	if err != nil {
-		return false, cache.discard(err)
-	}
-	expectedIdentity, err := canonicaljson.CanonicalJSON(cache.identity)
-	if err != nil {
-		return false, err
-	}
-	if retained.Schema != preparedTargetSchema || !bytes.Equal(recordedIdentity, expectedIdentity) {
+	if retained.Schema != preparedTargetSchema || !reflect.DeepEqual(retained.Identity, cache.identity) {
 		return false, cache.discard(errors.New("prepared target record does not describe this identity"))
 	}
 	if err := copyRegularFile(filepath.Join(entry, "target"), targetPath); err != nil {
@@ -345,7 +338,7 @@ func (cache *preparedTargetCache) publish(targetPath string) (retErr error) {
 	if err := os.Chmod(filepath.Join(staging, "target"), 0o500); err != nil {
 		return fmt.Errorf("stage prepared target: %w", err)
 	}
-	encoded, err := canonicaljson.CanonicalJSON(preparedTargetRecord{Schema: preparedTargetSchema, Identity: cache.identity, SHA256: hash, Size: record.Uint64String(size)})
+	encoded, err := json.Marshal(preparedTargetRecord{Schema: preparedTargetSchema, Identity: cache.identity, SHA256: hash, Size: record.Uint64String(size)})
 	if err != nil {
 		return fmt.Errorf("encode prepared target record: %w", err)
 	}

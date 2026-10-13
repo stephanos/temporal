@@ -16,7 +16,6 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/backends/native/build/internal/gocommand"
 	"go.temporal.io/server/tools/gomad3/backends/native/build/internal/livecap"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/internal/hostexec"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/target"
@@ -24,7 +23,10 @@ import (
 
 func sourceLinkedObject(t *testing.T, key string) []byte {
 	t.Helper()
-	payload, err := canonicaljson.CanonicalJSON(livecap.Manifest{
+	var payload bytes.Buffer
+	encoder := json.NewEncoder(&payload)
+	encoder.SetEscapeHTML(false)
+	err := encoder.Encode(livecap.Manifest{
 		Schema: livecap.ManifestSchema, GoVersion: "go1.27.1", ToolchainBuildKey: key, GOOS: runtime.GOOS, GOARCH: runtime.GOARCH,
 		ProducerImplementationSHA256: livecap.ProducerImplementationSHA256, GuardImplementationSHA256: livecap.GuardImplementationSHA256,
 		CapabilityUniverseSHA256: livecap.CapabilityUniverseSHA256, Facts: []livecap.Fact{},
@@ -33,12 +35,13 @@ func sourceLinkedObject(t *testing.T, key string) []byte {
 	if err != nil {
 		t.Fatal(err)
 	}
+	payloadBytes := bytes.TrimSuffix(payload.Bytes(), []byte{'\n'})
 	header := make([]byte, livecap.HeaderBytes)
 	copy(header, livecap.HeaderMagic[:])
 	binary.LittleEndian.PutUint32(header[16:], livecap.ProtocolVersion)
 	binary.LittleEndian.PutUint32(header[20:], livecap.HeaderBytes)
-	binary.LittleEndian.PutUint64(header[24:], uint64(len(payload)))
-	digest, err := record.HashBytes(payload).Bytes()
+	binary.LittleEndian.PutUint64(header[24:], uint64(len(payloadBytes)))
+	digest, err := record.HashBytes(payloadBytes).Bytes()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -52,7 +55,7 @@ func sourceLinkedObject(t *testing.T, key string) []byte {
 		t.Fatal(err)
 	}
 	copy(header[72:], producerBytes[:])
-	data := append(header, payload...)
+	data := append(header, payloadBytes...)
 	stringsTable := []byte("\x00" + livecap.ReservedSymbol + "\x00")
 	var symbols bytes.Buffer
 	for _, symbol := range []elf.Sym64{{}, {Name: 1, Info: byte(elf.STB_GLOBAL)<<4 | byte(elf.STT_OBJECT), Shndx: 1, Value: 0x1000, Size: uint64(len(data))}} {

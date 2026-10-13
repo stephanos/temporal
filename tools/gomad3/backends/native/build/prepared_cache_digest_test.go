@@ -1,14 +1,95 @@
 package build
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
 
+	"go.temporal.io/server/tools/gomad3/internal/hostfs"
 	"go.temporal.io/server/tools/gomad3/record"
 )
+
+func TestPreparedTargetCacheUsesOrdinaryStrictRecordJSON(t *testing.T) {
+	root := t.TempDir()
+	cache := &preparedTargetCache{
+		root: root, digest: "entry",
+		identity: preparedTargetIdentity{Schema: preparedTargetSchema, Package: "<ordinary>", Embedded: []embeddedSource{}, Modules: []moduleSource{}},
+	}
+	targetPath := filepath.Join(t.TempDir(), "target")
+	writeFile(t, targetPath, "prepared target")
+	requireTestNoError(t, os.Chmod(targetPath, 0o700))
+	requireTestNoError(t, cache.publish(targetPath))
+	recordPath := filepath.Join(cache.entry(), "record.json")
+	compact, err := os.ReadFile(recordPath)
+	requireTestNoError(t, err)
+	if !bytes.Contains(compact, []byte(`"package":"\u003cordinary\u003e"`)) {
+		t.Fatalf("prepared target record does not use ordinary encoding/json HTML escaping: %s", compact)
+	}
+
+	ordinary := bytes.ReplaceAll(compact, []byte(`\u003cordinary\u003e`), []byte(`<ordinary>`))
+	var indented bytes.Buffer
+	requireTestNoError(t, json.Indent(&indented, bytes.TrimSpace(ordinary), "", "  "))
+	indented.WriteByte('\n')
+	requireTestNoError(t, os.Chmod(recordPath, 0o600))
+	requireTestNoError(t, os.WriteFile(recordPath, indented.Bytes(), 0o600))
+	restoredPath := filepath.Join(t.TempDir(), "restored")
+	restored, err := cache.restore(restoredPath)
+	requireTestNoError(t, err)
+	if !restored {
+		t.Fatal("restore() reported a cache miss for ordinary JSON")
+	}
+	gotHash, gotSize, err := hostfs.HashExecutable(restoredPath)
+	requireTestNoError(t, err)
+	wantHash, wantSize, err := hostfs.HashExecutable(targetPath)
+	requireTestNoError(t, err)
+	if gotHash != wantHash || gotSize != wantSize {
+		t.Fatalf("restored target = (%s, %d), want (%s, %d)", gotHash, gotSize, wantHash, wantSize)
+	}
+	requireTestNoError(t, os.Chmod(filepath.Join(cache.entry(), "target"), 0o700))
+	requireTestNoError(t, os.WriteFile(filepath.Join(cache.entry(), "target"), []byte("poisoned target"), 0o700))
+	poisonedDestination := filepath.Join(t.TempDir(), "restored")
+	restored, err = cache.restore(poisonedDestination)
+	requireTestNoError(t, err)
+	if restored {
+		t.Fatal("restore() trusted a cached target that did not hash to its record")
+	}
+	if _, err := os.Stat(cache.entry()); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("corrupted cache entry was not discarded: %v", err)
+	}
+	if _, err := os.Stat(poisonedDestination); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("corrupted cache entry left a restored target: %v", err)
+	}
+
+	for name, invalid := range map[string][]byte{
+		"duplicate":     append([]byte(`{"schema":"gomad3.prepared-target/v2",`), compact[1:]...),
+		"unknown":       append(append([]byte(nil), bytes.TrimSpace(compact)[:len(bytes.TrimSpace(compact))-1]...), []byte(`,"unknown":true}`)...),
+		"trailing":      append(append([]byte(nil), compact...), []byte(` {}`)...),
+		"invalid UTF-8": bytes.Replace(compact, []byte("prepared-target"), append([]byte{0xff}, []byte("repared-target")...), 1),
+	} {
+		t.Run(name, func(t *testing.T) {
+			requireTestNoError(t, os.RemoveAll(cache.entry()))
+			requireTestNoError(t, cache.publish(targetPath))
+			requireTestNoError(t, os.Chmod(recordPath, 0o600))
+			requireTestNoError(t, os.WriteFile(recordPath, invalid, 0o600))
+			destination := filepath.Join(t.TempDir(), "restored")
+			restored, err := cache.restore(destination)
+			requireTestNoError(t, err)
+			if restored {
+				t.Fatal("restore() trusted an invalid record")
+			}
+			if _, err := os.Stat(cache.entry()); !errors.Is(err, os.ErrNotExist) {
+				t.Fatalf("invalid cache entry was not discarded: %v", err)
+			}
+			if _, err := os.Stat(destination); !errors.Is(err, os.ErrNotExist) {
+				t.Fatalf("invalid cache record published a target: %v", err)
+			}
+		})
+	}
+}
 
 func TestPreparedCacheDigestOverlayEmpty(t *testing.T) {
 	directory := t.TempDir()

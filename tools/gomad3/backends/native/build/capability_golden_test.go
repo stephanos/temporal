@@ -1,28 +1,29 @@
 package build
 
 import (
-	"bytes"
 	"crypto/sha256"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/backends/native/build/internal/livecap"
 	compatibility "go.temporal.io/server/tools/gomad3/backends/native/compatibilitypack"
 	"go.temporal.io/server/tools/gomad3/backends/native/sourceinventory"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
+	"go.temporal.io/server/tools/gomad3/internal/strictjson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
-// TestCapabilityReviewGoldenCanonicalBytes pins the canonical bytes of
-// reviews over fixed evidence: ordered closure findings, linked and guarded
+// TestCapabilityReviewGoldenSemantics pins the complete typed reviews over
+// fixed evidence: ordered closure findings, linked and guarded
 // projections with live, guarded and eliminated blockers, recorded closures,
 // and adapter replacement inventories. The goldens were captured before
 // collection, evaluation and linked projection were separated.
-func TestCapabilityReviewGoldenCanonicalBytes(t *testing.T) {
+func TestCapabilityReviewGoldenSemantics(t *testing.T) {
 	findings := goldenFindingsReview(t)
 	sources := goldenSourcesReview(t)
 	recorded, err := evaluateGoldenRecordedClosure(sources.Closure)
@@ -39,12 +40,16 @@ func TestCapabilityReviewGoldenCanonicalBytes(t *testing.T) {
 		{name: "recorded-closure", review: recorded},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			got, err := canonicaljson.CanonicalJSON(test.review)
+			encoded, err := os.ReadFile(filepath.Join("testdata", "capability-review", test.name+".json"))
 			requireTestNoError(t, err)
-			want, err := os.ReadFile(filepath.Join("testdata", "capability-review", test.name+".json"))
+			var want any
+			requireTestNoError(t, strictjson.Decode(encoded, &want))
+			gotBytes, err := json.Marshal(test.review)
 			requireTestNoError(t, err)
-			if !bytes.Equal(got, bytes.TrimSuffix(want, []byte("\n"))) {
-				t.Fatalf("canonical review differs from golden:\n got %s\nwant %s", got, want)
+			var got any
+			requireTestNoError(t, strictjson.Decode(gotBytes, &got))
+			if !reflect.DeepEqual(got, want) {
+				t.Fatalf("review differs from golden:\n got %s\nwant %s", gotBytes, encoded)
 			}
 		})
 	}

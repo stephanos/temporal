@@ -3,6 +3,7 @@ package build
 import (
 	"context"
 	"debug/buildinfo"
+	"encoding/json"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -10,7 +11,6 @@ import (
 	"testing"
 
 	targetbuild "go.temporal.io/server/tools/gomad3/backends/native/build/internal/build"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/target"
 )
@@ -65,7 +65,7 @@ func TestPinnedCoverageBuildSettingsRejectInstrumentation(t *testing.T) {
 			}
 			wire := provenanceWire{Schema: provenanceSchema, SchemaVersion: 3, GoVersion: identity.GoVersion, BuildKey: identity.BuildKey, TargetGOOS: identity.TargetGOOS, TargetGOARCH: identity.TargetGOARCH, BinarySHA256: string(record.HashBytes(contents)), BinarySize: record.Uint64String(len(contents)), BuildInfo: projected, CapabilityClosure: validCapabilityClosure(), CapabilityMode: target.CapabilityModeClosure}
 			if test.covered {
-				encoded, err := canonicaljson.CanonicalJSON(wire)
+				encoded, err := json.Marshal(wire)
 				if err != nil {
 					t.Fatal(err)
 				}
