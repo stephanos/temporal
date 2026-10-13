@@ -231,12 +231,6 @@ These fn-109 tasks change Runner, artifact, choice-exploration and simulation ow
 | --- | --- | --- |
 | [fn-109.14](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.14.md) | 🚧 In progress | Typed commands done; generated network/volume/process codecs run with the rotation batch |
 
-### Runner append-log storage — [fn-152](.flow/specs/fn-152-gomad-runner-storage-on-one-append-only.md)
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-152.9](.flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.9.md) | 🚧 In progress | Retain integrated crash evidence and update current storage contracts; WASM built-CLI crash proof and final source matrix underway |
-
 <a id="canonical-json-publication-cleanup-fn-153"></a>
 
 ### JSON and file-publication cleanup - [fn-153](.flow/specs/fn-153-gomad-retire-canonical-json-and-private.md)
