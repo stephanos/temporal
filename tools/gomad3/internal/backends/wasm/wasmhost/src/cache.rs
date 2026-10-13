@@ -270,9 +270,10 @@ pub fn module(
                 let diagnostic_phase =
                     crate::diagnostic::PhaseSpan::new(crate::diagnostic::Phase::CacheRead);
                 let before = private::validate(&file, &entry)?;
-                let size = usize::try_from(before.len()).map_err(|_| capacity())?;
+                let size = usize::try_from(before.len())
+                    .map_err(|_| corrupt(&entry, "entry length does not fit host"))?;
                 if size > HEADER + MAX_MANIFEST + MAX_ARTIFACT {
-                    return Err(capacity());
+                    return Err(corrupt(&entry, "entry length exceeds limit"));
                 }
                 let mut envelope = Vec::new();
                 envelope.try_reserve_exact(size).map_err(|_| capacity())?;
@@ -296,7 +297,7 @@ pub fn module(
                 let manifest_len = u32::from_le_bytes(envelope[8..12].try_into().unwrap()) as usize;
                 let artifact_len = u64::from_le_bytes(envelope[12..20].try_into().unwrap());
                 if manifest_len > MAX_MANIFEST || artifact_len > MAX_ARTIFACT as u64 {
-                    return Err(capacity());
+                    return Err(corrupt(&entry, "envelope length exceeds limit"));
                 }
                 if HEADER + manifest_len + artifact_len as usize != size
                     || envelope[HEADER..HEADER + manifest_len] != manifest
@@ -611,6 +612,77 @@ mod tests {
             );
             // Fail closed: the corrupt entry is neither replaced nor removed.
             assert_eq!(std::fs::read(&entry).unwrap(), envelope);
+        }
+
+        #[test]
+        fn oversized_entry_lengths_fail_closed_without_loading_or_mutation() {
+            use std::io::{Seek, SeekFrom};
+            for case in ["file", "manifest", "artifact", "overflow"] {
+                let fixture = Fixture::new(case);
+                assert!(fixture.run().0.is_ok());
+                let entry = fixture.entry();
+                let mut envelope = std::fs::read(&entry).unwrap();
+                match case {
+                    "file" => {
+                        let mut file = std::fs::OpenOptions::new()
+                            .write(true)
+                            .open(&entry)
+                            .unwrap();
+                        file.set_len((HEADER + MAX_MANIFEST + MAX_ARTIFACT + 1) as u64)
+                            .unwrap();
+                        file.seek(SeekFrom::End(-1)).unwrap();
+                        file.write_all(b"!").unwrap();
+                    }
+                    "manifest" => {
+                        envelope[8..12].copy_from_slice(&((MAX_MANIFEST + 1) as u32).to_le_bytes());
+                        std::fs::write(&entry, &envelope).unwrap();
+                    }
+                    "artifact" => {
+                        envelope[12..20]
+                            .copy_from_slice(&((MAX_ARTIFACT + 1) as u64).to_le_bytes());
+                        std::fs::write(&entry, &envelope).unwrap();
+                    }
+                    "overflow" => {
+                        envelope[8..12].copy_from_slice(&u32::MAX.to_le_bytes());
+                        envelope[12..20].copy_from_slice(&u64::MAX.to_le_bytes());
+                        std::fs::write(&entry, &envelope).unwrap();
+                    }
+                    _ => unreachable!(),
+                }
+                let before = std::fs::metadata(&entry).unwrap();
+                let mut metrics = Metrics::default();
+                let outcome = module(
+                    &fixture.engine,
+                    || panic!("corrupt {case} entry loaded source bytes"),
+                    fixture.directory.to_str().unwrap(),
+                    &fixture.digest,
+                    &mut metrics,
+                )
+                .err()
+                .unwrap();
+                assert_eq!(outcome.termination, "infrastructure", "{}", outcome.message);
+                assert!(
+                    outcome
+                        .message
+                        .contains(&format!("corrupt entry {}", entry.display())),
+                    "{}",
+                    outcome.message
+                );
+                assert_eq!(metrics.compile_nanos, 0);
+                assert_eq!(metrics.cache_write_nanos, 0);
+                assert!(!metrics.cache_hit);
+                let mut file = File::open(&entry).unwrap();
+                assert!(same_file(&before, &file.metadata().unwrap()));
+                let mut retained = vec![0; envelope.len()];
+                file.read_exact(&mut retained).unwrap();
+                assert_eq!(retained, envelope);
+                if case == "file" {
+                    file.seek(SeekFrom::End(-1)).unwrap();
+                    let mut tail = [0];
+                    file.read_exact(&mut tail).unwrap();
+                    assert_eq!(tail, *b"!");
+                }
+            }
         }
 
         #[test]

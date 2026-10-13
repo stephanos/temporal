@@ -42,6 +42,9 @@ This is the existing replay owner (the earlier replay.go discovery path does not
 
 **Released provenance Touches:** [tools/gomad3/backends/wasm/backend/provider.go, tools/gomad3/backends/wasm/backend/provider_test.go]
 fn153.21 source is integrated at eb13e65f85/e986f971c3; checkpoint oracle work and merge the current root candidate before the exact report-only provenance/preparation/validation follow-up. Preserve shared staging, strict decoding and transaction failure behavior. No overlapping retained-bundle edits are needed.
+
+**Automatic-oracle retained admission Touches:** [tools/gomad3/backends/wasm/simulation/retained.go, tools/gomad3/backends/wasm/simulation/retained_admission_test.go]
+The actual default cluster fixture exposed the existing sealed-plan guard rejecting automatic soft-assertion evidence. Permit this evidence without an explicit user oracle plan only when all oracles are the automatically-derived typed soft-assertion results bound to authenticated guest output, instance and current detector semantics. Preserve generic and mixed-oracle sealed-plan refusal, strict decoding and all existing retained identities. Add forged/mismatched automatic-evidence and generic-oracle negative controls; this is no schema migration or broad oracle exemption.
 ## Acceptance
 - [ ] A fixture whose guest logs a soft assertion and then passes its test fails the Gomad run with a soft-assertion classification and the static message as signature (single-process and cluster).
 - [ ] An assertion logged after the guest test reported success still fails the run.

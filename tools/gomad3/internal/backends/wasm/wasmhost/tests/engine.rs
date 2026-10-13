@@ -678,6 +678,9 @@ fn cache_rejects_poison_stale_links_and_permissive_storage() {
         "truncated",
         "magic",
         "length",
+        "manifest_oversized",
+        "artifact_oversized",
+        "length_overflow",
         "symlink",
         "permissive",
         "hardlink",
@@ -722,6 +725,16 @@ fn cache_rejects_poison_stale_links_and_permissive_storage() {
                 bytes[12..20].copy_from_slice(&0u64.to_le_bytes());
                 std::fs::write(&entry, bytes).unwrap();
             }
+            "manifest_oversized" | "artifact_oversized" | "length_overflow" => {
+                let mut bytes = std::fs::read(&entry).unwrap();
+                if case != "artifact_oversized" {
+                    bytes[8..12].copy_from_slice(&u32::MAX.to_le_bytes());
+                }
+                if case != "manifest_oversized" {
+                    bytes[12..20].copy_from_slice(&u64::MAX.to_le_bytes());
+                }
+                std::fs::write(&entry, bytes).unwrap();
+            }
             "symlink" => {
                 std::fs::rename(&entry, &other).unwrap();
                 symlink(&other, &entry).unwrap();
@@ -748,11 +761,7 @@ fn cache_rejects_poison_stale_links_and_permissive_storage() {
         let frames = run(guest, json!({"compile_cache":requested}), deny);
         assert_eq!(
             termination(&frames),
-            if case == "oversized" {
-                "capacity"
-            } else {
-                "infrastructure"
-            },
+            "infrastructure",
             "case {case}: {frames:?}"
         );
         if matches!(
@@ -762,6 +771,10 @@ fn cache_rejects_poison_stale_links_and_permissive_storage() {
                 | "truncated"
                 | "magic"
                 | "length"
+                | "manifest_oversized"
+                | "artifact_oversized"
+                | "length_overflow"
+                | "oversized"
                 | "symlink"
                 | "permissive"
                 | "hardlink"
