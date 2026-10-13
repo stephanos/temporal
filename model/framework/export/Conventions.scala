@@ -2,7 +2,6 @@ package framework.`export`
 
 import scala.collection.mutable
 import java.nio.file.{Files, Path}
-import scala.jdk.CollectionConverters.*
 
 final private[`export`] class GapAnnotations(val index: Index):
   val quotes: index.quotes.type = index.quotes
@@ -177,7 +176,7 @@ final private[`export`] class Conventions(index: Index):
   private val finite = Symbol.requiredClass("framework.Finite")
   private val sourceText = mutable.Map.empty[String, String]
   private val importedRefusals = mutable.Set.empty[(String, String, String)]
-  private val temporalRoot = Path.of("model/temporal").toAbsolutePath.normalize
+  private val plugin = Plugin.installed
 
   private def packageOf(s: Symbol): String =
     Iterator
@@ -200,16 +199,10 @@ final private[`export`] class Conventions(index: Index):
 
   private def moduleOf(t: Tree, owner: Symbol): String =
     val file = fileOf(t)
-    val path = Path.of(file).toAbsolutePath.normalize
-    if file.endsWith(".test.scala") && path.startsWith(temporalRoot) then
-      ("temporal" +: temporalRoot
-        .relativize(path.getParent)
-        .iterator
-        .asScala
-        .map(_.toString)
-        .filter(_.nonEmpty)
-        .toList).mkString(".")
-    else packageOf(owner)
+    Option
+      .when(file.endsWith(".test.scala"))(Path.of(file))
+      .flatMap(plugin.testModule)
+      .getOrElse(packageOf(owner))
 
   private def refuse(t: Tree, rule: String, message: String): Unit =
     val path = fileOf(t)
@@ -341,94 +334,40 @@ final private[`export`] class Conventions(index: Index):
   private def within(pkg: String, parent: String): Boolean =
     pkg == parent || pkg.startsWith(parent + ".")
 
-  // The tools beside the Models, each with a framework half and a Temporal half: the lifter
+  // The tools beside the Models, each with a framework half and a system's half: the lifter
   // (export), the checks and the migration harness.
   private val tools = Seq("export", "check", "migrate")
   private def toolOf(pkg: String): String =
     tools
-      .find(t => within(pkg, s"framework.$t") || within(pkg, s"temporal.$t"))
+      .find(t =>
+        within(pkg, s"framework.$t") || (plugin.root.nonEmpty && within(pkg, s"${plugin.root}.$t"))
+      )
       .getOrElse("")
   private def tool(pkg: String): Boolean = toolOf(pkg).nonEmpty
+  private def system(pkg: String): Boolean = plugin.root.nonEmpty && within(pkg, plugin.root)
 
-  private def category(pkg: String): String =
-    pkg.split('.').lift(1).getOrElse("")
-  private def feature(pkg: String): String =
-    pkg.split('.').take(3).mkString(".")
-  private def form(pkg: String): Option[String] =
-    pkg.split('.').lift(3).filter(Structure.formFolders)
-
-  // A feature's layers, which depend one way, realization -> protocol -> product (fn-160 R9).
-  private def layer(pkg: String): Option[Int] =
-    pkg.split('.').collectFirst {
-      case "product"             => 0
-      case "protocol" | "system" => 1
-      case "realization"         => 2
-    }
-
-  // A package always reads itself, as the code `derives` writes into it does. Within a feature, a
-  // layer imports only the layers below it, and only the realization layer reads the Temporal API.
+  // A package always reads itself, as the code `derives` writes into it does. A tool reads no
+  // Model; the framework reads only itself and libraries; the system's plug-in holds its own Models
+  // to its module map (Plugin.scala).
   private def permitted(from: String, to: String, test: Boolean): Boolean =
     if to == from then true
     else if to == "umpire.paths" then true
-    else if from == "umpire.paths" &&
-      (within(to, "framework") || within(to, "temporal") || within(to, "umpire"))
-    then false
+    else if from == "umpire.paths" && (within(to, "framework") || within(to, "umpire")) then false
     else if tool(from) then
-      // A tool reads no Model: it imports tools, the IR and libraries. The framework's tools import
-      // no system's, and outside its tests the checks do not import the lifter.
+      // A tool imports tools, the IR and libraries. The framework's tools import no system's, and
+      // outside its tests the checks do not import the lifter.
       if tool(to) then
-        !(within(from, "framework") && within(to, "temporal")) &&
+        !(within(from, "framework") && system(to)) &&
         (test || !(toolOf(from) == "check" && toolOf(to) == "export"))
-      else !within(to, "framework") && !within(to, "temporal")
-    else if !test && within(from, "temporal.features") && layer(from).forall(
-        _ < 2
-      ) &&
-      (within(to, "io.temporal.api") || within(to, "temporal.server.api"))
-    then false
-    else if !test && within(from, "temporal.features") && feature(
-        to
-      ) == feature(from) &&
-      layer(from).exists(f => layer(to).exists(_ > f))
-    then false
-    else if within(to, "temporal.server.api") then !within(from, "framework")
-    else if within(from, "framework") && within(to, "io.temporal") then false
-    else if within(from, "temporal") && within(
-        to,
-        "io.temporal.server.api.umpire"
-      )
-    then false
-    else if !(within(to, "framework") || within(to, "temporal") || within(
-        to,
-        "umpire"
-      ))
-    then true
-    else if within(from, "framework") then within(to, "framework")
-    else if within(from, "temporal") then
-      if within(to, "framework") then true
-      else if !within(to, "temporal") then false
-      else if test then true
-      else
-        category(from) match
-          case "capabilities" | "realize" =>
-            category(to) == category(
-              from
-            ) || to == "temporal"
-          case "actors" | "foundations" =>
-            feature(to) == feature(
-              from
-            ) || to == "temporal"
-          case "features" =>
-            Set("capabilities", "realize", "actors", "foundations")(
-              category(to)
-            ) ||
-            to == "temporal" || (feature(to) == feature(
-              from
-            ) &&
-              (form(to).isEmpty || form(to) == form(
-                from
-              )))
-          case _ => to == "temporal"
-    else true
+      else !within(to, "framework") && !system(to)
+    else
+      plugin
+        .permitted(from, to, test)
+        .getOrElse(
+          if !(within(to, "framework") || system(to) || within(to, "umpire")) then true
+          else if within(from, "framework") then within(to, "framework")
+          else true
+        )
 
   private val levelTypes = Set("Phase", "Fact", "State")
   private def levelOwner(pkg: String): Option[String] =

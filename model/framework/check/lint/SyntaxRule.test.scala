@@ -145,7 +145,7 @@ class SyntaxRuleSuite extends munit.FunSuite:
         |
         |extension [A](value: A) def in(xs: A*): Boolean = xs.contains(value)
         |""".stripMargin
-    val temporal =
+    val feature =
       """package temporal.features.activity.standalone
         |
         |extension (m: Machine)
@@ -164,7 +164,7 @@ class SyntaxRuleSuite extends munit.FunSuite:
         |""".stripMargin
     val found = findings(
       "model/framework/dsl/Steps.scala" -> framework,
-      "model/temporal/features/activity/standalone/StandaloneActivity.scala" -> temporal,
+      "model/temporal/features/activity/standalone/StandaloneActivity.scala" -> feature,
       "model/framework/export/Matching.scala" -> lifter
     )
     assertEquals(

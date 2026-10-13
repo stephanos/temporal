@@ -854,6 +854,17 @@ lint-model-check:
 	@printf $(COLOR) "Linting the check..."
 	@$(MODEL_SCALAFIX) --check $(MODEL_CHECK)
 
+# The framework's boundary (fn-169.1): model/framework names no Temporal package and takes no
+# Temporal jar or source (model/framework/check/lint/Boundary.scala), and its core and each of its
+# tools compile on their own, with no Temporal API, Models or tools on their classpath.
+.PHONY: check-model-boundary
+check-model-boundary: $(MODEL_BUILD)/ir-scalapb.jar
+	@printf $(COLOR) "Checking the framework's boundary..."
+	@$(MODEL_GATE) --check-boundary
+	@$(MODEL_CLI) compile --server=false --test $(MODEL_ROOT)/framework/dsl $(MODEL_ROOT)/framework/realize
+	@$(MODEL_CLI) compile --server=false --test $(MODEL_ROOT)/framework/export
+	@$(MODEL_CLI) compile --server=false --test $(MODEL_ROOT)/framework/check
+
 # Sugar is defined only in a Syntax.scala, each definition documented with its `Core form:`, and no
 # core file of the framework or the IR generator imports or names it. Comments are `//` lines in
 # every Scala file of model/, its tests and fixtures too. Temporal rule blocks use canonical braces.

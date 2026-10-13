@@ -199,6 +199,7 @@ object Coverage extends Registry:
     // The checks' suites. The repository rules read the framework's, the lifter's and every
     // feature's sources; the coverage suite reads this file and every module's suites.
     "framework.check.lint.BlockFormRuleSuite" -> check,
+    "framework.check.lint.BoundarySuite" -> check,
     "temporal.check.CapabilityVocabularySuite" -> check.and(Area.Framework, Area.Lifter),
     "framework.check.lint.CommentRuleSuite" ->
       check.and(Area.Framework, Area.Shared, Area.Lifter).everyFeature,
@@ -208,7 +209,8 @@ object Coverage extends Registry:
     "framework.check.equivalence.EquivalenceSuite" -> check,
     "temporal.check.GateEquivalenceOutputsSuite" -> check,
     "temporal.check.GateSuite" -> check,
-    "temporal.check.GateLintSuite" -> check,
+    // It also holds the repository's framework to its boundary.
+    "temporal.check.GateLintSuite" -> check.and(Area.Framework, Area.Lifter, Area.Migrate),
     "temporal.check.MakeFeaturesSuite" -> check.and(Area.Make),
     "framework.check.ModelSourcesSuite" -> check,
     "temporal.check.lint.ProtoLiteralsSuite" -> check,

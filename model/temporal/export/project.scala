@@ -6,3 +6,5 @@
 //> using jar ../../build/api-scalapb.jar
 //> using file ../../framework/check/Registry.scala
 //> using file ../check/Coverage.scala
+// Temporal's plug-in to the lifter (TemporalPlugin.scala), registered as a Java service.
+//> using resourceDir resources

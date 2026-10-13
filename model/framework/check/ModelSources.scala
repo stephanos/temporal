@@ -5,8 +5,8 @@ import scala.jdk.CollectionConverters.*
 import umpire.paths.OutputPaths
 
 final class ModelSources(root: Path, selection: Option[String]):
-  private val temporal = root.resolve("model/temporal")
-  private val featureRoot = temporal.resolve("features")
+  private val models = root.resolve("model/temporal")
+  private val featureRoot = models.resolve("features")
   private def children(path: Path): Vector[Path] =
     if !Files.isDirectory(path) then Vector.empty
     else
@@ -62,8 +62,8 @@ final class ModelSources(root: Path, selection: Option[String]):
       Files.isDirectory(p) && !p.getFileName.toString.startsWith(".") && !discovered
         .exists(f => featureRoot.resolve(f).equals(p))
     )
-  private val modelPaths = scalaFiles(temporal) ++
-    Seq("foundations", "actors", "capabilities", "realize").map(temporal.resolve(_)) ++
+  private val modelPaths = scalaFiles(models) ++
+    Seq("foundations", "actors", "capabilities", "realize").map(models.resolve(_)) ++
     ancestors.flatMap(scalaFiles) ++ shared ++ selectedPaths
   val sources: Seq[String] = ModelSources.framework ++
     modelPaths.distinct.map(root.relativize(_).toString)
@@ -116,3 +116,7 @@ object ModelSources:
   // generic realization core, not the tools beside them (export, check, migrate).
   val framework: Seq[String] =
     Seq("model/project.scala", "model/framework/dsl", "model/framework/realize")
+
+  // The framework's core, which builds on its own (framework/dsl/project.scala), with no system's
+  // API or Models on its classpath.
+  val frameworkCore: Seq[String] = Seq("model/framework/dsl", "model/framework/realize")

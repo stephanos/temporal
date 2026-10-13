@@ -754,11 +754,12 @@ class GateSuite extends munit.FunSuite:
     assertEquals(answer.status, 1)
     assert(answer.err.startsWith("gate: scala-cli printed an error and exited 0 in "), answer.err)
     assert(answer.err.contains("[error] ./model/framework/Machine.scala:71:3"), answer.err)
-    // The framework alone compiled; the test of the Models was the last build run.
+    // The framework's core alone compiled, without the Temporal API; the test of the Models was the
+    // last build run.
     assertEquals(
       repository.ran.filter(_.startsWith("scala-cli ")).takeRight(2),
       Seq(
-        "scala-cli compile model/project.scala model/framework/dsl model/framework/realize --suppress-outdated-dependency-warning",
+        "scala-cli compile model/framework/dsl model/framework/realize --suppress-outdated-dependency-warning",
         "scala-cli test --server=false model/project.scala model/framework/dsl model/framework/realize model/temporal/foundations model/temporal/actors model/temporal/capabilities model/temporal/realize --suppress-outdated-dependency-warning"
       )
     )

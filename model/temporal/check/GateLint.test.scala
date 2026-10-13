@@ -3,6 +3,7 @@ package temporal.check
 import java.io.{ByteArrayOutputStream, PrintStream}
 import java.nio.file.{Files, Path}
 import framework.check.{GateError, Scratch, Tools}
+import framework.check.lint.Boundary
 
 // The gate's own runs of the framework's source rules and of its settlement of selected outputs: what
 // each command line reads and prints. The rules themselves are tested beside them
@@ -143,3 +144,36 @@ class GateLintSuite extends munit.FunSuite:
     Gate.settle(tree, produced, root, update = false, selected = true)
     val failure = intercept[GateError](Gate.settle(tree, produced, root, update = false))
     assert(failure.getMessage.contains("unlisted.json"))
+
+  test("the gate's --check-boundary holds model/framework to Temporal's packages and prints each finding"):
+    def run(root: Path): (Int, String) =
+      val (out, err) = (ByteArrayOutputStream(), ByteArrayOutputStream())
+      val status =
+        Gate.main(Seq("--check-boundary"), Tools(root, Map.empty), PrintStream(out), PrintStream(err))
+      assertEquals(out.toString, "")
+      (status, err.toString)
+    val (failed, printed) = run(
+      repository(
+        "model/framework/export/Lift.scala" ->
+          "package framework.`export`\n\nimport temporal.realize.Kit\n",
+        "model/framework/dsl/Gaps.test.scala" ->
+          "package framework.dsl\n\nval e = io.temporal.api.enums.v1.EventType.EVENT_TYPE_UNSPECIFIED\n"
+      )
+    )
+    assertEquals(failed, 1)
+    assertEquals(
+      printed.linesIterator.map(_.takeWhile(_ != ' ')).toVector,
+      Vector("model/framework/dsl/Gaps.test.scala:3:", "model/framework/export/Lift.scala:3:")
+    )
+    assertEquals(
+      run(
+        repository(
+          "model/framework/export/Lift.scala" ->
+            "package framework.`export`\n\nimport io.temporal.server.api.umpire.v1 as ir\n"
+        )
+      ),
+      (0, "")
+    )
+
+  test("the repository's framework keeps to its boundary"):
+    assertEquals(Boundary.findings(Tools.here.directory, Gate.systemPackages), Vector.empty)

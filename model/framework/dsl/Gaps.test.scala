@@ -31,7 +31,7 @@ class GapsSuite extends munit.FunSuite:
       unreadObservation(Observation(on = Entity())),
       unreachableBinding(move()),
       mustNotPinned(move, in = Phase.ready),
-      unmapped(io.temporal.api.enums.v1.EventType.EVENT_TYPE_UNSPECIFIED),
+      unmapped(com.google.protobuf.struct.NullValue.NULL_VALUE),
       explicitWait()
     )
     assertEquals(

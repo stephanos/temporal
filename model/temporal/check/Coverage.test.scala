@@ -57,6 +57,7 @@ class CoverageSuite extends munit.FunSuite:
         "temporal.check.CapabilityVocabularySuite",
         "framework.check.lint.CommentRuleSuite",
         "temporal.check.CoverageSuite",
+        "temporal.check.GateLintSuite",
         "framework.check.lint.SyntaxRuleSuite"
       )
     )

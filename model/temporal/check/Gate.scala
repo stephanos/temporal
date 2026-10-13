@@ -20,6 +20,9 @@
 //   scala-cli run model/temporal/check -- --check-comments
 //       hold every Scala file of model/ to `//` comments (CommentRule.scala); make lint-model runs
 //       it
+//   scala-cli run model/temporal/check -- --check-boundary
+//       hold model/framework to its boundary: it names no Temporal package and takes no Temporal
+//       jar or source (Boundary.scala); make check-model-boundary runs it
 //   scala-cli run model/temporal/check -- --check-block-form
 //       hold every rule of model/temporal to the block form, `on(...) { ... }`
 //       (BlockFormRule.scala)
@@ -962,7 +965,7 @@ final class Gate(tools: Tools, log: PrintStream):
             .findings(
               root,
               selection.includes
-            )
+            ) ++ Boundary.findings(root, Gate.systemPackages)
         if findings.nonEmpty then throw GateError(findings.mkString("\n"))
     step("compare selected IR with checked-in outputs"):
       tools
@@ -1061,10 +1064,12 @@ final class Gate(tools: Tools, log: PrintStream):
       step("generate the linked API's classes when their inputs changed"):
         generateApi(ifStale = true)
 
-    // The framework must build without the Temporal Models, so nothing in framework/ reaches into them.
+    // The framework must build without the Temporal Models or the Temporal API, so nothing in
+    // framework/ reaches into them (Boundary.scala); `make check-model-boundary` builds its tools
+    // alone too.
     if !fast then
       step("compile the framework alone"):
-        tools.scalaCli("compile" +: dsl).orFail()
+        tools.scalaCli("compile" +: ModelSources.frameworkCore).orFail()
 
     step("compile each selected feature independently"):
       val failures = selection.features.flatMap: feature =>
@@ -1151,6 +1156,10 @@ final class Gate(tools: Tools, log: PrintStream):
     report(fixtures :+ modelLifts)
 
 object Gate:
+  // Temporal's package roots, which the framework names nowhere (Boundary.scala): the Temporal
+  // Models and the tools' Temporal halves, and the Temporal API.
+  val systemPackages: Seq[String] = Seq("temporal", "io.temporal.api")
+
   def settleFeatures(root: Path, produced: Path, features: Seq[String], update: Boolean): Unit =
     val selected = features.map(_.replace('/', '-').replace('_', '-'))
     val expected = selected.map(_ + ".json").toSet
@@ -1199,6 +1208,7 @@ object Gate:
   val usage =
     "usage: gate [--update] [--skip-go-checks] | gate --generate-ir|--generate-api [--if-stale]" +
       " | gate --check-syntax | gate --check-comments | gate --check-block-form" +
+      " | gate --check-boundary" +
       " | gate --capture-baseline <dir> [--dumper <path>]" +
       " | gate --check-equivalence <dir> <map> [--steps-only] [--dumper <path>]"
 
@@ -1387,7 +1397,8 @@ object Gate:
       "--if-stale",
       "--check-syntax",
       "--check-comments",
-      "--check-block-form"
+      "--check-block-form",
+      "--check-boundary"
     )
     val flags = arguments.toSet
     val generate = flags("--generate-ir") || flags("--generate-api")
@@ -1404,6 +1415,7 @@ object Gate:
          flags == Set(
            "--check-block-form"
          )
+       else if flags("--check-boundary") then flags == Set("--check-boundary")
        else if generate then
          !flags("--update") && !flags("--skip-go-checks") &&
          !(flags("--generate-ir") && flags("--generate-api"))
@@ -1415,7 +1427,7 @@ object Gate:
       try
         if flags("--check-syntax") || flags("--check-comments") || flags(
             "--check-block-form"
-          )
+          ) || flags("--check-boundary")
         then
           // A finding is a line of its own, `file:line: reason`, so an editor opens it.
           val selection = ModelSources(tools.directory, tools.modelFeatures)
@@ -1423,6 +1435,8 @@ object Gate:
             if flags("--check-syntax") then SyntaxRule.findings(tools.directory, selection.includes)
             else if flags("--check-comments") then
               CommentRule.findings(tools.directory, selection.includes)
+            else if flags("--check-boundary") then
+              Boundary.findings(tools.directory, Gate.systemPackages)
             else BlockFormRule.findings(tools.directory, selection.includes)
           findings.foreach(err.println)
           if findings.isEmpty then 0 else 1
