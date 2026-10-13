@@ -25,7 +25,7 @@ func Owner(module, importPath string) string {
 		"backends/native/conformance": "developer", "backends/native/generation": "developer",
 		"backends/native/qualification": "qualification", "backends/native/preparation": "preparation",
 		"captured": "captured", "volume": "volume", "internal/iowire": "iowire",
-		"backends/native/compatibilitypack": "compatibility", "internal/canonicaljson": "canonicaljson", "internal/strictjson": "strictjson", "internal/hostexec": "hostexec", "hostexec": "hostexec", "internal/hostfs": "hostfs", "hostfs": "hostfs", "backends/native/sourceinventory": "sourceinventory",
+		"backends/native/compatibilitypack": "compatibility", "internal/strictjson": "strictjson", "internal/hostexec": "hostexec", "hostexec": "hostexec", "internal/hostfs": "hostfs", "hostfs": "hostfs", "backends/native/sourceinventory": "sourceinventory",
 	} {
 		if Within(relative, path) {
 			return owner
@@ -58,14 +58,14 @@ func OwnerMayImport(modulePath, owner, importedOwner, importing, imported string
 		return imported == modulePath+"/hostfs"
 	}
 	allowed := map[string][]string{
-		"native": {"runner", "target", "record", "artifact", "choice", "deterministicio", "captured", "volume", "iowire", "preparation", "world", "canonicaljson", "strictjson", "hostexec", "hostfs", "simulation"},
-		"cli":    {"runner", "qualification", "target", "record", "artifact", "deterministicio", "captured", "volume", "iowire", "preparation", "toolchain", "canonicaljson", "strictjson"}, "developer": {"choice", "compatibility", "qualification", "simulation", "toolchain", "upgrade", "hostexec", "hostfs", "runtimesemantics"},
-		"runner": {"target", "record", "artifact", "choice", "deterministicio", "captured", "volume", "iowire", "preparation", "world", "canonicaljson", "strictjson", "hostexec", "hostfs"}, "qualification": {"runner", "target", "record", "artifact", "choice", "deterministicio", "captured", "volume", "iowire", "preparation", "canonicaljson", "strictjson", "hostexec", "hostfs"},
-		"target": {"compatibility", "record", "toolchain", "canonicaljson", "strictjson", "hostexec", "hostfs", "sourceinventory"}, "record": {"canonicaljson", "strictjson"}, "world": {"canonicaljson", "strictjson"}, "simulation": {"record", "canonicaljson", "strictjson"},
-		"artifact": {"choice", "deterministicio", "captured", "volume", "iowire", "target", "record", "hostfs"}, "compatibility": {"target", "record", "canonicaljson", "strictjson", "hostfs"},
-		"deterministicio": {"target", "record", "toolchain", "canonicaljson", "strictjson", "hostfs", "sourceinventory", "captured", "volume", "iowire"}, "captured": {"record", "canonicaljson", "strictjson", "iowire"}, "volume": {"iowire"},
-		"preparation": {"target", "deterministicio", "captured", "volume", "iowire", "record"}, "toolchain": {"canonicaljson", "strictjson", "hostexec", "hostfs", "runtimesemantics"},
-		"upgrade": {"qualification", "toolchain", "deterministicio", "captured", "volume", "iowire", "compatibility", "canonicaljson", "strictjson", "hostexec", "hostfs"}, "sourceinventory": {"hostfs"}, "runtimesemantics": {"hostfs"},
+		"native": {"runner", "target", "record", "artifact", "choice", "deterministicio", "captured", "volume", "iowire", "preparation", "world", "strictjson", "hostexec", "hostfs", "simulation"},
+		"cli":    {"runner", "qualification", "target", "record", "artifact", "deterministicio", "captured", "volume", "iowire", "preparation", "toolchain", "strictjson"}, "developer": {"choice", "compatibility", "qualification", "simulation", "toolchain", "upgrade", "hostexec", "hostfs", "runtimesemantics"},
+		"runner": {"target", "record", "artifact", "choice", "deterministicio", "captured", "volume", "iowire", "preparation", "world", "strictjson", "hostexec", "hostfs"}, "qualification": {"runner", "target", "record", "artifact", "choice", "deterministicio", "captured", "volume", "iowire", "preparation", "strictjson", "hostexec", "hostfs"},
+		"target": {"compatibility", "record", "toolchain", "strictjson", "hostexec", "hostfs", "sourceinventory"}, "record": {"strictjson"}, "world": {"strictjson"}, "simulation": {"record", "strictjson"},
+		"artifact": {"choice", "deterministicio", "captured", "volume", "iowire", "target", "record", "hostfs"}, "compatibility": {"target", "record", "strictjson", "hostfs"},
+		"deterministicio": {"target", "record", "toolchain", "strictjson", "hostfs", "sourceinventory", "captured", "volume", "iowire"}, "captured": {"record", "strictjson", "iowire"}, "volume": {"iowire"},
+		"preparation": {"target", "deterministicio", "captured", "volume", "iowire", "record"}, "toolchain": {"strictjson", "hostexec", "hostfs", "runtimesemantics"},
+		"upgrade": {"qualification", "toolchain", "deterministicio", "captured", "volume", "iowire", "compatibility", "strictjson", "hostexec", "hostfs"}, "sourceinventory": {"hostfs"}, "runtimesemantics": {"hostfs"},
 	}
 	if !slices.Contains(allowed[owner], importedOwner) {
 		return false
@@ -73,9 +73,8 @@ func OwnerMayImport(modulePath, owner, importedOwner, importing, imported string
 	if (owner == "target" || owner == "deterministicio") && importedOwner == "toolchain" {
 		return imported == modulePath+"/backends/native/toolchain/version" || imported == modulePath+"/backends/native/toolchain/installation"
 	}
-	if owner == "upgrade" && slices.Contains([]string{"compatibility", "deterministicio", "captured", "volume", "iowire", "canonicaljson"}, importedOwner) {
-		return importing == modulePath+"/backends/native/upgrade/pinimpact" || importing == modulePath+"/backends/native/upgrade/adapterregen" ||
-			(importing == modulePath+"/backends/native/upgrade" && importedOwner == "canonicaljson")
+	if owner == "upgrade" && slices.Contains([]string{"compatibility", "deterministicio", "captured", "volume", "iowire"}, importedOwner) {
+		return importing == modulePath+"/backends/native/upgrade/pinimpact" || importing == modulePath+"/backends/native/upgrade/adapterregen"
 	}
 	return true
 }

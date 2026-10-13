@@ -262,7 +262,7 @@ func TestPackageArchitecture(t *testing.T) {
 	if !owners[logstore] {
 		t.Errorf("shared log owner %s is missing", logstore)
 	}
-	for imported, allowed := range map[string]bool{modulePath + "/internal/hostfs": true, modulePath + "/internal/canonicaljson": false, modulePath + "/runner/internal/campaign": false, modulePath + "/runner/internal/corpus": false, modulePath + "/record": false} {
+	for imported, allowed := range map[string]bool{modulePath + "/internal/hostfs": true, modulePath + "/internal/strictjson": false, modulePath + "/runner/internal/campaign": false, modulePath + "/runner/internal/corpus": false, modulePath + "/record": false} {
 		if moduleMayImport(logstore, imported) != allowed {
 			t.Errorf("shared log owner edge to %s admitted = %t", imported, !allowed)
 		}
@@ -270,7 +270,7 @@ func TestPackageArchitecture(t *testing.T) {
 	if moduleMayImport(modulePath+"/runner/internal/exploration", logstore) {
 		t.Error("pure exploration engines may import the shared log owner")
 	}
-	for _, owner := range []string{"cli", "developer", "runner", "qualification", "target", "record", "artifact", "choice", "deterministicio", "world", "toolchain", "upgrade", "compatibility", "canonicaljson", "strictjson", "hostexec", "hostfs", "sourceinventory"} {
+	for _, owner := range []string{"cli", "developer", "runner", "qualification", "target", "record", "artifact", "choice", "deterministicio", "world", "toolchain", "upgrade", "compatibility", "strictjson", "hostexec", "hostfs", "sourceinventory"} {
 		if !owners[owner] {
 			t.Errorf("architectural owner %s has no package", owner)
 		}
@@ -739,7 +739,6 @@ var pureDependencyFiles = []string{
 	"choice/limits.go", "choice/internal/wire/wire_generated.go",
 	"backends/native/compatibilitypack/evaluation.go", "backends/native/compatibilitypack/selection_pure.go",
 	"backends/native/compatibilitypack/schema.go",
-	"internal/canonicaljson/canonical.go", "internal/canonicaljson/implementation.go", "internal/canonicaljson/streaming.go",
 	"internal/strictjson/decode.go",
 }
 
