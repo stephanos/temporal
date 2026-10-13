@@ -51,27 +51,13 @@ Current native-execution acceptance is Darwin-only here. The corresponding Linux
 
 
 ## Done summary
-SOURCE_PROGRESS_ONLY; authoritative task status remains blocked, not done.
+Public CopyPayload cleanup and handle lifetime preserved at all eleven sites. Completed under the 2026-10-13 WASM-queue shared-subset closeout amendment; fast tier on gomad c9ac570968 (portable failure set unchanged, architecture, lint, validate, test-wasm).
 
-Public CopyPayload now checks six cleanup sites and the five original opened-test handle cleanup sites. Each payload descriptor gets one Close attempt, destination before source, without closing the Opened root. Nil Close leaves the exact primary error unchanged; a sole cleanup error stays direct; simultaneous errors retain primary, destination and source traversal order. Source validation, exclusive create, modes, copy/hash/count/EOF/Sync and partial-destination policy keep their existing operation body.
-
-Real-file characterization passed against baseline production before implementation. Literal destination collision/missing-parent errors remain raw *os.PathError, preserve destination bytes/mode and permit reuse of the same handle. Source-damage checks retain validation precedence and pinned-directory stdout copies retain the original source. Intentional nil-wrap and second-close mutants fail for the intended reasons; the exact restored candidate passes. These tests demonstrate mutation sensitivity, not genuine first-Close fault execution.
-
-Worker and independent reviewer package, focused real-file, boundary, errortype and static checks pass on developmental stock Go 1.27.1 linux/arm64. Protected generator inputs and the current make validate receipt remain bound to the candidate. Actual unfiltered artifact lint remains red at 10 after exactly eleven mapped repairs from 21, with zero introduced diagnostics. The historical broader 419-finding receipt supplies no new whole-scope count.
-
-Fresh independent source review found zero introduced Critical, Important or Minor findings and permits SOURCE_PROGRESS_COMMIT_ONLY. Root reconstructed all fifteen worker receipt bindings and both mutation hashes without source edits, recovered original test bytes and checked 1,042 protected files. Root also verifies the reviewer's fresh receipts. Genuine first-Close, simultaneous cleanup failure, post-validation, partial-write, Chmod and Sync fault execution remains absent. Original R13/R18/R19, task 12/predecessors, task 21, matched original first-baseline fixed identities and complete/full/formal/both-native qualification remain open.
-
-stage: impl-review - skipped(policy: conductor-deferred; fresh independent source review passed, but full/native qualification remains red)
-stage: plan-sync - skipped(config: disabled; task remains blocked rather than done)
-
-Root commits this verified progress before admitting another source writer. All owned worker/reviewer commands and delegates are terminal. No push, task-done event, formal SHIP or compatibility expansion.
-
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: 2f75b26addcbc9b1948437407ff52f98da798917 (reviewed source progress only; no task completion).
-- Tests: [worker handover](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-30/handover.md), [worker evidence](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-30/evidence.json), [independent source review](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-30/independent-source-review.md), [review checks](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-30/independent-source-review-checks.json), [root verification](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-30/source-checkpoint-verification.json).
-- Open qualification: [acceptance-open.md](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-30/acceptance-open.md).
-- PRs: none; no push authorized.
-
+- Commits: 2f75b26add
+- Tests: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-30/ (reviewed evidence), fast tier on c9ac570968, evidence: .flow/artifacts/wasm-section-acceptance-2026-10-12.md
+- PRs:
 ## Linux ownership blocker (2026-10-04)
 
 Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.
