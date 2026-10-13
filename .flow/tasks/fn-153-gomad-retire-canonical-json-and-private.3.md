@@ -42,13 +42,13 @@ Capture the frozen behavior pin named above, run focused negative controls and f
 - [ ] Global record schema, independent I/O inventory/bootstrap bytes and reviewed adapter scope remain unchanged; affected derived values are inventoried for regeneration.
 
 ## Done summary
-TBD
+Migrated execution records, captured mount descriptors, and native adapter approvals from canonicaljson to domain-owned stdlib encoding with strict typed decoding, preserved opaque I/O inventory authentication, regenerated affected downstream identities, and added exhaustive semantic projection controls.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: bf8f20ce429a756e3c6d8b8b4f59dd2a78f3dc23, 5e96dd37d187362d4973780ae019601a90c1af85, 361e23848626cbb0eab071dbf61fedca8ebff87d
+- Tests: go -C tools/gomad3 test -tags test_dep -count=1 ./artifact ./record ./captured ./runner/internal/corpus, go -C tools/gomad3 test -tags test_dep -count=1 -run '^(TestVersionReferencesNeverMatchInsideAnotherModulePath|TestAdapterRegenerationApprovalRejectsInvalidOriginalStrings)$' ./backends/native/transcript, go -C tools/gomad3 test -tags test_dep -count=1 -run '^(TestExternalBackendTransportPreservesPortableNativeRecordSemantics|TestDiagnosticsOffPreservesExistingCanonicalIdentities)$' ./runner, go -C tools/gomad3 test -tags test_dep -count=1 -run '^TestPreMoveWASMArtifactIsRefusedAsUnsupportedStorageFormat$' ./backends/wasm/backend, go -C tools/gomad3 test -race -tags test_dep -count=1 ./record ./captured ./artifact ./runner/internal/corpus, go -C tools/gomad3 test -tags test_dep -count=1 ./internal/archcheck, make -C tools/gomad3 validate
 - PRs:
-
 ## Revival trigger (2026-10-13)
 
 Revived after fn153.1 completed with a SHIP implementation review and its integrated strict-decoder, architecture and validation gates green. This consumer migration is disjoint from the in-flight fn153.2 hostfs/publication owner. The forced local claim is only needed because Flow chain admission requires the completed fn152 parent on an unpushed remote branch; pushing remains outside the user's requested scope.
