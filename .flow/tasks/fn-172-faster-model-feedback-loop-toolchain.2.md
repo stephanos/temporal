@@ -17,11 +17,14 @@ Required: `model/framework/check/{Samples,Tools}.scala`, their co-located tests,
 `mise exec -- scala-cli fmt --scalafmt-conf model/.scalafmt.conf --check model/framework/check/Samples.scala model/framework/check/Samples.test.scala model/framework/check/Tools.scala model/framework/check/Tools.test.scala model/temporal/check/MakeFeatures.test.scala`
 
 Run `make model-check-changed BASE=<task-base>` once after implementation; batch-end full gates remain conductor-owned. Measure the jar/classpath stage before and after serially. Compare all six raw sample IRs and complete Go Reports against retained `.flow/tmp/fn172-r1/resume-after` artifacts; preserve progress roots. Verify a real Make jar/classpath with transitive Scala/API dependencies and refusal on compiler failure.
+
+### Review scope and evidence
+The owner committed the tested R2 source/test/docs subset in mixed WIP commit `173a04fc798c8ad92ccd9dae95c7b223efeed674`. Preserve that commit. Review R2 only against base `d71fb7f5a41ebf3d7244a70947e2f04f313561d2`, restricted to the seven implementation paths in **Touches:** and this task's own planning/receipt files. Other Flow specs/tasks, fn173 planning, MILESTONES.md and model/design are owner work outside this task and outside its review. The R2 subset matches the tested edits; Model inputs and the Go checker remain unchanged. Read `.flow/tmp/fn172-r2/task.diff` and `.flow/tmp/fn172-r2/verification.md` for the scoped code diff and actual evidence, including the initial scoped gate timeout and separate remaining-module continuation. Review the scoped implementation without treating unrelated owner planning as task changes.
 ## Acceptance
-- [ ] R2: Samples.check and the Make model jar recipe compile each input set once, emitting the library jar and authoritative classpath together, with no second source compilation or guessed/stale metadata.
-- [ ] The classpath retains transitive dependencies and paths containing spaces; lifter roots, IR bytes, identities and complete sample Reports stay unchanged.
-- [ ] Samples retains compiler-diagnostic rejection even when the warm compiler exits zero. Make Model compilation retains --server=false and leaves the prior jar/classpath intact on compiler failure.
-- [ ] Focused regressions are observed red then green; real sample lifting/checking and Make jar use pass. Record paired stage wall times and six-sample byte parity.
+- [x] R2: Samples.check and the Make model jar recipe compile each input set once, emitting the library jar and authoritative classpath together, with no second source compilation or guessed/stale metadata.
+- [x] The classpath retains transitive dependencies and paths containing spaces; lifter roots, IR bytes, identities and complete sample Reports stay unchanged.
+- [x] Samples retains compiler-diagnostic rejection even when the warm compiler exits zero. Make Model compilation retains --server=false and leaves the prior jar/classpath intact on compiler failure.
+- [x] Focused regressions are observed red then green; real sample lifting/checking and Make jar use pass. Record paired stage wall times and six-sample byte parity.
 ## Done summary
 TBD
 

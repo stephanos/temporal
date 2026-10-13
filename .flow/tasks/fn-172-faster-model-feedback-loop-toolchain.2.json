@@ -12,5 +12,5 @@
   "spec_path": ".flow/tasks/fn-172-faster-model-feedback-loop-toolchain.2.md",
   "status": "todo",
   "title": "Compile each set of inputs once: take the classpath from the package step instead of compiling again (Samples.scala, Makefile model jar)",
-  "updated_at": "2026-10-13T19:11:27.709669Z"
+  "updated_at": "2026-10-13T19:49:35.472742Z"
 }
