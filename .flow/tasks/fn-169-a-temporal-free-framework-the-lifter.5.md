@@ -1,3 +1,7 @@
+---
+satisfies: [R8]
+---
+
 # fn-169-a-temporal-free-framework-the-lifter.5 framework/samples: one-file sample Models (Kettle, Bank, TwoPhaseCommit) comparable with P and Quint
 
 ## Description
