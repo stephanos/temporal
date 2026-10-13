@@ -52,41 +52,166 @@ func TestApprovalSHA256BindsCompleteReviewedRequest(t *testing.T) {
 		t.Fatalf("approval field changed digest: got %q, want %q", withApproval, digest)
 	}
 
-	mutations := map[string]func(*Request){
-		"request ID":       func(request *Request) { request.ID = "another-pack" },
-		"target kind":      func(request *Request) { request.Target.Kind = target.KindGoRun },
-		"target package":   func(request *Request) { request.Target.Package = "./another-fixture" },
-		"target argument":  func(request *Request) { request.Target.TestArguments[1] = "^TestAnother$" },
-		"target build tag": func(request *Request) { request.Target.BuildTags[0] = "another_tag" },
-		"expected module":  func(request *Request) { request.Target.ExpectedModule = "example.com/another" },
-		"activation module": func(request *Request) {
-			request.Activation[0].Evidence.Version = "v1.2.4"
-			request.Packages[0].Evidence.Module.Version = "v1.2.4"
-		},
-		"owner":         func(request *Request) { request.Owner = "another-team" },
-		"review time":   func(request *Request) { request.ReviewedAt = "2026-08-16T00:00:00Z" },
-		"justification": func(request *Request) { request.Justification += " Additional reason." },
-		"workload":      func(request *Request) { request.Workloads[0] = "another-workload" },
-		"platform":      func(request *Request) { request.Platforms[0] = "linux/amd64" },
-		"source": func(request *Request) {
-			request.Packages[0].Evidence.GoSources[0].SHA256 = "sha256:" + strings.Repeat("e", 64)
-			request.Packages[0].Evidence.SourceSetSHA256 = "sha256:226df64c94c787464495fbef20913adac635ce6817e582562d1b9aa0c7e333f2"
-		},
-		"fact disposition": func(request *Request) { request.Packages[0].Facts[0].Disposition = DispositionDeny },
+	type mutation struct {
+		name    string
+		request func(*testing.T) Request
+		mutate  func(*Request)
 	}
-	for name, mutate := range mutations {
-		t.Run(name, func(t *testing.T) {
-			changed := validRequest()
-			mutate(&changed)
-			changedDigest, err := ApprovalSHA256(changed)
+	fromFixture := func(name string) func(*testing.T) Request {
+		return func(t *testing.T) Request { return retainedRequest(t, name) }
+	}
+	base := func(*testing.T) Request { return validRequest() }
+	mutations := []mutation{
+		{"request ID", base, func(request *Request) { request.ID = "another-pack" }},
+		{"target kind", base, func(request *Request) { request.Target.Kind = target.KindGoRun }},
+		{"target package", base, func(request *Request) { request.Target.Package = "./another-fixture" }},
+		{"target argument", base, func(request *Request) { request.Target.TestArguments[1] = "^TestAnother$" }},
+		{"target build tag", base, func(request *Request) { request.Target.BuildTags[0] = "another_tag" }},
+		{"expected module", base, func(request *Request) { request.Target.ExpectedModule = "example.com/another" }},
+		{"activation path", base, func(request *Request) {
+			request.Activation[0].Path = "example.com/another-dependency"
+			request.Activation[0].Evidence.Path = request.Activation[0].Path
+		}},
+		{"activation version", base, func(request *Request) { request.Activation[0].Evidence.Version = "v1.2.4" }},
+		{"activation sum", base, func(request *Request) { request.Activation[0].Evidence.Sum = moduleSum("B") }},
+		{"package identity", base, func(request *Request) {
+			request.Packages[0].ImportPath = "example.com/dependency/internal/another"
+			request.Packages[0].Evidence.ImportPath = request.Packages[0].ImportPath
+		}},
+		{"package module path", base, func(request *Request) { request.Packages[0].Evidence.Module.Path = "example.com/another-dependency" }},
+		{"package module version", base, func(request *Request) { request.Packages[0].Evidence.Module.Version = "v1.2.4" }},
+		{"package module sum", base, func(request *Request) { request.Packages[0].Evidence.Module.Sum = moduleSum("B") }},
+		{"Go source name", base, func(request *Request) {
+			request.Packages[0].Evidence.GoSources[0].Name = "another.go"
+			refreshSourceSet(request, 0)
+		}},
+		{"Go source identity", base, func(request *Request) {
+			request.Packages[0].Evidence.GoSources[0].SHA256 = digestOf("e")
+			refreshSourceSet(request, 0)
+		}},
+		{"capability fact", base, func(request *Request) { request.Packages[0].Facts[0].Capability = "import:reflect" }},
+		{"fact disposition", base, func(request *Request) { request.Packages[0].Facts[0].Disposition = DispositionDeny }},
+		{"owner", base, func(request *Request) { request.Owner = "another-team" }},
+		{"review time", base, func(request *Request) { request.ReviewedAt = "2026-08-16T00:00:00Z" }},
+		{"justification", base, func(request *Request) { request.Justification += " Additional reason." }},
+		{"workload", base, func(request *Request) { request.Workloads[0] = "another-workload" }},
+		{"platform", base, func(request *Request) { request.Platforms[0] = "linux/amd64" }},
+
+		{"foreign source kind", fromFixture("modernc-libc-xsys-v047-linux-amd64"), func(request *Request) {
+			pkg, source := firstForeignSource(request)
+			source.Kind = "assembler"
+			refreshSourceSet(request, pkg)
+		}},
+		{"foreign source name", fromFixture("modernc-libc-xsys-v047-linux-amd64"), func(request *Request) {
+			pkg, source := firstForeignSource(request)
+			source.Name = "another.s"
+			refreshSourceSet(request, pkg)
+		}},
+		{"foreign source identity", fromFixture("modernc-libc-xsys-v047-linux-amd64"), func(request *Request) {
+			pkg, source := firstForeignSource(request)
+			source.SHA256 = digestOf("e")
+			refreshSourceSet(request, pkg)
+		}},
+
+		{"linkname source", fromFixture("modernc-libc-xsys-v047-linux-amd64"), func(request *Request) { firstLinknameFact(request).Source = "another.go" }},
+		{"linkname source identity", fromFixture("modernc-libc-xsys-v047-linux-amd64"), func(request *Request) { firstLinknameFact(request).SHA256 = digestOf("e") }},
+		{"linkname directives", fromFixture("modernc-libc-xsys-v047-linux-amd64"), func(request *Request) { firstLinknameFact(request).Directives[0] = "local another.symbol" }},
+		{"linkname disposition", fromFixture("modernc-libc-xsys-v047-linux-amd64"), func(request *Request) { firstLinknameFact(request).Disposition = DispositionDeny }},
+
+		{"adapter profile", fromFixture("modernc-libc-xsys-v041"), func(request *Request) { firstAdapter(request).ProfileName = "another-profile/v1" }},
+		{"adapter implementation", fromFixture("modernc-libc-xsys-v041"), func(request *Request) { firstAdapter(request).ProfileImplementationSHA256 = digestOf("e") }},
+		{"adapter module", fromFixture("modernc-libc-xsys-v041"), func(request *Request) { firstAdapter(request).Module = "example.com/adapter" }},
+		{"adapter version", fromFixture("modernc-libc-xsys-v041"), func(request *Request) { firstAdapter(request).Version = "v1.72.4" }},
+		{"adapter sum", fromFixture("modernc-libc-xsys-v041"), func(request *Request) { firstAdapter(request).Sum = moduleSum("B") }},
+		{"adapter original inventory", fromFixture("modernc-libc-xsys-v041"), func(request *Request) { firstAdapter(request).OriginalSourceInventorySHA256 = digestOf("e") }},
+		{"adapter replacement inventory", fromFixture("modernc-libc-xsys-v041"), func(request *Request) { firstAdapter(request).ReplacementSourceInventorySHA256 = digestOf("e") }},
+		{"adapter prepared source set", fromFixture("modernc-libc-xsys-v041"), func(request *Request) { firstAdapter(request).PreparedSourceSetSHA256 = digestOf("e") }},
+	}
+	for _, test := range mutations {
+		t.Run(test.name, func(t *testing.T) {
+			request := test.request(t)
+			digest, err := ApprovalSHA256(request)
 			if err != nil {
 				t.Fatal(err)
+			}
+			test.mutate(&request)
+			changedDigest, err := ApprovalSHA256(request)
+			if err != nil {
+				t.Fatalf("mutation is not a valid reviewed request: %v", err)
 			}
 			if changedDigest == digest {
 				t.Fatalf("mutation did not change approval digest: %q", changedDigest)
 			}
 		})
 	}
+}
+
+func retainedRequest(t *testing.T, name string) Request {
+	t.Helper()
+	data, err := os.ReadFile(filepath.Join("..", "requests", name+".json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	request, err := DecodeRequest(data)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return request
+}
+
+func firstForeignSource(request *Request) (int, *compatibility.PackForeignSource) {
+	for index := range request.Packages {
+		if len(request.Packages[index].Evidence.ForeignSources) != 0 {
+			return index, &request.Packages[index].Evidence.ForeignSources[0]
+		}
+	}
+	panic("request has no foreign source")
+}
+
+func firstLinknameFact(request *Request) *Fact {
+	for packageIndex := range request.Packages {
+		for factIndex := range request.Packages[packageIndex].Facts {
+			fact := &request.Packages[packageIndex].Facts[factIndex]
+			if fact.Kind == FactLinkname {
+				return fact
+			}
+		}
+	}
+	panic("request has no linkname fact")
+}
+
+func firstAdapter(request *Request) *compatibility.PackAdapter {
+	for index := range request.Activation {
+		if adapter := request.Activation[index].Evidence.Replacement.Adapter; adapter != nil {
+			return adapter
+		}
+	}
+	for index := range request.Packages {
+		if adapter := request.Packages[index].Evidence.Module.Replacement.Adapter; adapter != nil {
+			return adapter
+		}
+	}
+	panic("request has no adapter")
+}
+
+func refreshSourceSet(request *Request, packageIndex int) {
+	rule := &request.Packages[packageIndex].Evidence
+	sources := make([]compatibility.Source, 0, len(rule.GoSources)+len(rule.ForeignSources))
+	for _, source := range rule.GoSources {
+		sources = append(sources, compatibility.Source(source))
+	}
+	for _, source := range rule.ForeignSources {
+		sources = append(sources, compatibility.Source{Name: source.Kind + ":" + source.Name, SHA256: source.SHA256})
+	}
+	rule.SourceSetSHA256 = compatibility.DigestSources(sources)
+}
+
+func digestOf(character string) string {
+	return "sha256:" + strings.Repeat(character, 64)
+}
+
+func moduleSum(character string) string {
+	return "h1:" + strings.Repeat(character, 43) + "="
 }
 
 func TestStdlibEncodingDerivedCompatibilityIdentities(t *testing.T) {

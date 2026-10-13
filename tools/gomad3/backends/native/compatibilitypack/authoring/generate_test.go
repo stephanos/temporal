@@ -46,8 +46,8 @@ func TestGenerateRequiresExactApprovalAndCheckDetectsDrift(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := Generate(root, request, "sha256:0000000000000000000000000000000000000000000000000000000000000000"); err == nil {
-		t.Fatal("Generate() accepted the wrong approval")
+	if err := Generate(root, request, "sha256:0000000000000000000000000000000000000000000000000000000000000000"); err == nil || err.Error() != "compatibility-pack generation approval does not match the canonical review" {
+		t.Fatalf("Generate() wrong-approval error = %v", err)
 	}
 	if _, err := os.Stat(filepath.Join(root, "packs", "example-pack.json")); !os.IsNotExist(err) {
 		t.Fatalf("rejected generation published a pack: %v", err)

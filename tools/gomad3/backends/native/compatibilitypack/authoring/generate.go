@@ -40,7 +40,7 @@ func Generate(root string, request Request, approval string) error {
 		return err
 	}
 	if approval != wantApproval || request.ApprovalSHA256 != "" && request.ApprovalSHA256 != approval {
-		return errors.New("compatibility-pack generation approval does not match the review")
+		return errors.New("compatibility-pack generation approval does not match the canonical review")
 	}
 	request.ApprovalSHA256 = approval
 	requests, err := loadRequests(root, true)
