@@ -237,11 +237,11 @@ These fn-109 tasks change Runner, artifact, choice-exploration and simulation ow
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-153.6](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.6.md) | ⬜ Todo | Migrate compatibility authoring without changing approvals' meaning |
-| [fn-153.7](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.7.md) | ⬜ Todo | Migrate qualification evidence and shared report publication |
+| [fn-153.6](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.6.md) | 🚧 In progress | Migrate compatibility authoring without changing approvals' meaning |
+| [fn-153.7](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.7.md) | 🚧 In progress | Migrate qualification evidence and shared report publication |
 | [fn-153.8](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.8.md) | ⬜ Todo | Migrate qualification sets and generated manifest inputs |
 | [fn-153.9](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.9.md) | ⬜ Todo | Migrate CLI JSON delivery and retain the public upgrade facade |
-| [fn-153.10](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.10.md) | ⬜ Todo | Migrate choice exploration and Runner identity projections |
+| [fn-153.10](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.10.md) | 🚧 In progress | Migrate choice exploration and Runner identity projections |
 | [fn-153.11](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.11.md) | ⬜ Todo | Migrate simulation identities while preserving paired target formulas |
 | [fn-153.12](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.12.md) | ⬜ Todo | Migrate replay composition, minimizer checkpoints and corpus semantics |
 | [fn-153.13](.flow/tasks/fn-153-gomad-retire-canonical-json-and-private.13.md) | ⬜ Todo | Move streamed archive and validated patch publication to hostfs |

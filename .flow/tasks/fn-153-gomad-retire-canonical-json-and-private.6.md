@@ -47,3 +47,7 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+## Revival trigger (2026-10-13)
+
+Revived after fn153.1 and fn153.2 completed with SHIP implementation reviews. The compatibility-authoring owner is disjoint from the concurrent qualification and Runner identity owners; retained generated packs remain assigned to fn153.17. The forced local claim is required only because Flow chain admission still sees the completed fn152 parent on an unpushed remote branch; pushing remains outside the requested scope.

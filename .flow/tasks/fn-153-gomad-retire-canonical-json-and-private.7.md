@@ -46,3 +46,7 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+## Revival trigger (2026-10-13)
+
+Revived after fn153.1, fn153.2 and fn153.3 completed with SHIP implementation reviews. Qualification report and soak publication now consume the integrated hostfs staging and record identity seams; general qualification ownership is disjoint from the concurrent compatibility and Runner migrations. The forced local claim is required only because Flow chain admission still sees the completed fn152 parent on an unpushed remote branch; pushing remains outside the requested scope.

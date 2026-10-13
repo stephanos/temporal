@@ -46,3 +46,7 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+## Revival trigger (2026-10-13)
+
+Revived after fn153.1, fn153.3 and fn153.4 completed with SHIP implementation reviews and after fn153.2 stabilized portable-plan publication. This task owns only choice exploration and Runner identity projections; fn152 storage is retained and simulation identities remain with fn153.11. The forced local claim is required only because Flow chain admission still sees the completed fn152 parent on an unpushed remote branch; pushing remains outside the requested scope.
