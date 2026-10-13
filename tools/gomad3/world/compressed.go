@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"hash"
 	"io"
+	"math"
 	"sort"
 	"sync"
 )
@@ -29,7 +30,7 @@ func CompressedSnapshotProfile() ProfileLimits {
 	return ProfileLimits{
 		MaxExpandedBytes: 384 << 20, MaxCompressedBytes: 64 << 20,
 		Limits: Limits{MaxRequests: 2 << 20, MaxEvents: 2 << 20, MaxQueuedEvents: 250000,
-			MaxTransitions: 8 << 20, MaxPayloadBytes: 64 << 20, MaxStringBytes: 64 << 20},
+			MaxTransitions: 8 << 20, MaxPayloadBytes: 64 << 20, MaxStringBytes: math.MaxUint32},
 	}
 }
 

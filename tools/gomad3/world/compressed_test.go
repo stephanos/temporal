@@ -7,6 +7,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"io"
+	"math"
 	"reflect"
 	"strings"
 	"sync"
@@ -93,7 +94,7 @@ func TestCompressedSnapshotRoundTripSummary(t *testing.T) {
 
 func TestSnapshotRoundTripsConfiguredLongString(t *testing.T) {
 	limits := testLimits()
-	limits.MaxStringBytes = 1 << 16
+	limits.MaxStringBytes = math.MaxUint32
 	w, err := New(Config{Seed: 17, Limits: limits})
 	if err != nil {
 		t.Fatal(err)
@@ -320,7 +321,7 @@ func TestCompressedSnapshotConfiguredCapsRejectBeforeTransfer(t *testing.T) {
 	for name, raise := range map[string]func(*Limits){
 		"requests": func(l *Limits) { l.MaxRequests++ }, "events": func(l *Limits) { l.MaxEvents++ },
 		"queued": func(l *Limits) { l.MaxQueuedEvents++; l.MaxEvents++ }, "transitions": func(l *Limits) { l.MaxTransitions++ },
-		"payload": func(l *Limits) { l.MaxPayloadBytes++ }, "strings": func(l *Limits) { l.MaxStringBytes++ },
+		"payload": func(l *Limits) { l.MaxPayloadBytes++ },
 	} {
 		t.Run(name, func(t *testing.T) {
 			limits := CompressedSnapshotProfile()
