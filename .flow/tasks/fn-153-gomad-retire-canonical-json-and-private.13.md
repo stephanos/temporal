@@ -46,3 +46,7 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
+## Revival trigger (2026-10-13)
+
+Revived after fn153.2 completed with a SHIP implementation review. That task's review fixes already migrated the current native toolchain source and patch publishers to the shared hostfs staging owner, so this task is an audit-and-gap pass against the moved `backends/native/toolchain/**` paths: preserve the task-specific streaming, validation, publication-disposition, cleanup, and error-identity controls without redoing the migration. The owner is disjoint from the returned qualification and Runner identity candidates, and final generated outputs remain assigned to fn153.17. The forced local claim is required only because Flow chain admission still sees the completed fn152 parent on an unpushed remote branch; pushing remains outside the requested scope.
