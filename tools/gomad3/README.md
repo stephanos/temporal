@@ -888,6 +888,11 @@ form. Record and failure identity remains an explicit projection: host
 paths and timestamps are excluded deliberately, while every semantic input is
 retained.
 
+Older standard-library readers for Artifact storage envelopes, Campaign log
+payloads, and native installation manifests retain their unknown-field and
+single-value checks. They were outside this migration and do not inherit the
+shared decoder's duplicate-name or raw UTF-8 rejection.
+
 The JSON rule does not redefine domain wire formats. The Campaign append log
 uses a binary `GMLG` frame and CRCs around its typed JSON record payload. Live
 capability evidence authenticates its original JSON payload bytes under a
