@@ -5,9 +5,9 @@ application-neutral Gomad v3 module: the bounded representative Temporal
 manifest, the generated `./tests` manifest, and the smoke and determinism soak
 selections. The tests of the `set` package beside them check their schema and
 that the smoke suites copy the representative ones. The `test_dep` wrapper
-fixture and the outside-in tests of the root Make targets stay in the root
-module, in `tools/gomad3integration`, because `make gomad3-test` runs in the
-root module.
+fixture and the outside-in tests of the root Make targets live here under
+`testdata/tagged` and `integration_test.go`. The tagged fixture runs in the
+Gomad module through the root wrapper's Go-command override.
 
 Run the wrapper contract and representative qualification with:
 

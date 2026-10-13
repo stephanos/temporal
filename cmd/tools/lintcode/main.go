@@ -209,7 +209,7 @@ func lintScopes(ctx context.Context, root, tags string, selected, changedDirs ma
 func moduleScopes(ctx context.Context, root, owner, tags string, sources []source) ([]lintScope, error) {
 	var ordinary, integration []source
 	for _, entry := range sources {
-		if owner == "." && filepath.ToSlash(filepath.Dir(entry.path)) == "tools/gomad3integration" {
+		if owner == gomadModule && entry.path == gomadModule+"/backends/native/qualification/integration_test.go" {
 			integration = append(integration, entry)
 		} else {
 			ordinary = append(ordinary, entry)
@@ -416,7 +416,7 @@ func (p ownership) classify(path string, modules []string) (source, error) {
 		entry.disposition = "retained evidence"
 	case within(path, "tools/gomad3sim/testdata/simulation_exploration"):
 		entry.disposition = "simulation fixture"
-	case within(path, "tools/gomad3integration/testdata/tagged"):
+	case within(path, gomadModule+"/backends/native/qualification/testdata/tagged"):
 		entry.disposition = "integration fixture"
 	case within(path, wasmBackend+"/testdata/environment"):
 		entry.disposition = "WASM environment fixture"

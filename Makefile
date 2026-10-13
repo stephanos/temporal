@@ -129,7 +129,7 @@ DB_TOOL_INTEGRATION_TEST_ROOT := ./tools/tests
 INTEGRATION_TEST_DIRS := $(DB_INTEGRATION_TEST_ROOT) $(DB_TOOL_INTEGRATION_TEST_ROOT) ./temporaltest
 TESTCORE_UNITTESTS := ./tests/testcore
 ifeq ($(UNIT_TEST_DIRS),)
-UNIT_TEST_DIRS := $(filter-out $(FUNCTIONAL_TEST_ROOT)% $(FUNCTIONAL_TEST_XDC_ROOT)% $(FUNCTIONAL_TEST_NDC_ROOT)% $(MIXED_BRAIN_TEST_ROOT)% $(DB_INTEGRATION_TEST_ROOT)% $(DB_TOOL_INTEGRATION_TEST_ROOT)% ./temporaltest% ./tools/gomad3integration%,$(TEST_DIRS))
+UNIT_TEST_DIRS := $(filter-out $(FUNCTIONAL_TEST_ROOT)% $(FUNCTIONAL_TEST_XDC_ROOT)% $(FUNCTIONAL_TEST_NDC_ROOT)% $(MIXED_BRAIN_TEST_ROOT)% $(DB_INTEGRATION_TEST_ROOT)% $(DB_TOOL_INTEGRATION_TEST_ROOT)% ./temporaltest%,$(TEST_DIRS))
 
 # Testcore unit tests are filtered out by the FUNCTIONAL_TEST_ROOT pattern, need to add them back manually.
 UNIT_TEST_DIRS += $(TESTCORE_UNITTESTS)
@@ -187,7 +187,7 @@ gomad3-test:
 		$(GOMAD3_GO) test -exec "$(ROOT)/tools/gomad3/backends/native/conformance/scripts/exec.sh" -count=1 -tags test_dep $(GOMAD3_PACKAGES) $(GOMAD3_ARGS)
 
 gomad3-integration-test: gomad3-runner
-	@go test -tags test_dep,gomad3_integration -count=1 ./tools/gomad3integration
+	@cd tools/gomad3 && GOWORK=off go test -tags test_dep,gomad3_integration -count=1 ./backends/native/qualification
 	@cd tools/gomad3 && GOWORK=off go test -tags test_dep -count=1 \
 		-run '^(TestQualificationManifestsUsePortableV3|TestSmokeSuitesMatchRepresentativeSuites)$$' ./backends/native/qualification/set
 

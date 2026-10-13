@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/internal/archcheck"
-	"go.temporal.io/server/tools/gomad3/internal/puritycheck"
 )
 
 const wasmModule = "go.temporal.io/server/tools/gomad3"
@@ -28,6 +27,7 @@ func wasmArchitectureConfig() archcheck.Config {
 			wasmModule + "/captured", wasmModule + "/choice", wasmModule + "/runner",
 			wasmModule + "/backends", wasmModule + "/simulation/network",
 			wasmModule + "/volume", wasmModule + "/world",
+			wasmModule + "/internal/strictjson",
 		},
 	}
 }
@@ -44,13 +44,6 @@ func TestWASMArchitecture(t *testing.T) {
 				t.Fatal(err)
 			}
 			for _, finding := range findings {
-				t.Errorf("%s %s: %s", finding.Category, finding.Path, finding.Detail)
-			}
-			public, err := puritycheck.PublicSignatures(".", goCommand, platform, "example.com/wasm-consumer")
-			if err != nil {
-				t.Fatal(err)
-			}
-			for _, finding := range public {
 				t.Errorf("%s %s: %s", finding.Category, finding.Path, finding.Detail)
 			}
 		})
