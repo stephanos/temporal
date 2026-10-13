@@ -3,7 +3,7 @@
 The current state of Umpire work: what is being built, what is left, and what is not being done.
 Flow (`.flow/`, `flowctl`) is the record for specs and tasks; this page is the overview across them.
 
-As of 2026-10-12.
+As of 2026-10-13.
 
 **Current goal (owner, 2026-10-12): complete the mini Scala DSL, then propagate its IR and Go changes end to end.**
 The source phase covers all remaining non-held work under Open: Scala DSL work, including fn-167's
@@ -479,7 +479,7 @@ is deleted once applied; the harness in `framework/migrate` is permanent (owner,
 | fn-169.2 | ⬜ todo | Plug-in seam: layout conventions, kit lifting and API descriptors supplied by `temporal/export`; generic proto support with a registered API (proto lint, gate proto stage, realization lifting); after fn-141.8 |
 | fn-169.5 | ⬜ todo | `framework/samples/`: one-file Temporal-free sample Models (Kettle, Bank, TwoPhaseCommit) comparable with P and Quint; after .1 |
 | fn-169.6 | ⬜ todo | Port the Python interpreter-table comparator (`model/testdata/table-pins`) to Scala in `framework/check/equivalence`; pins to `temporal/check`; no Python under `model/`; after .1 |
-| fn-169.3 | ⏸️ deferred (sweep) | IR schema to an Umpire-owned namespace (`umpire.ir.v1`) |
+| fn-169.3 | ⏸️ deferred (sweep) | A Temporal-free Umpire IR: Umpire namespace, generic realization layer, Temporal vocabulary (activations, instructions, causes, settlements, history evidence) as an extension schema (owner, 2026-10-13) |
 | fn-169.4 | ⏸️ deferred (Go) | Go consumers follow the `framework.dsl` IR type names (Testpilot separation moved to fn-171, `tools/umpire` layout to fn-170.2) |
 
 ### fn-141: Shrink the IR generator: one description of each DSL construct
