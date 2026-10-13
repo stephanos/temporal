@@ -25,9 +25,38 @@ New lint/shared-reader directories are options, not a prescribed layout. Keep mo
 - R16: before/after source counts and category baseline, the shared-reader choice, affected tests, and deferred gates are recorded in the done summary.
 
 ## Done summary
-TBD
+Model authors retain the same refusals and lifted IR while declaration-order, structure, convention and marker checks now live in `model/framework/lint`. The gate reports source lint, IR lifting and marker checking from one inspector invocation, and the existing direct lift entry point runs the same checks before writing any files.
 
+baseline: green via the preceding fn-169.6 source checkpoint, `.flow/tmp/checks/20261012-235203/record.md` (472 tests), reused under the activated task's owner-approved baseline policy.
+Tier: session (jev-unavailable(no_key))
+stage: impl-review - skipped(config: REVIEW_MODE=none)
+
+The shared reader is `framework.inspect.Index`, extracted from Context with the positioned LiftError type. Export and lint depend on that leaf. Lint owns admission; Order runs the structure and convention checks. Export passes the existing Java service plug-in through lint's ModulePolicy; the service name and Temporal registration stay intact. Markers takes the shared index, a lifted Model, ordered declaration identities and enabled-rule action IDs. The last input preserves the disabled-fault behavior. Marker checks run after all files are lifted and before publishing IR or waivers; negative-control refutations still aggregate across the run. Model declaration names are unique within a lift under the existing distinctModelName check.
+
+The order and structure tests were split from Fixtures.test.scala beside their checks. Admission, Conventions, EligibleWitness, LayoutFiles, PropertyGroups and QualifiedPhases suites moved beside the lint code and their coverage entries moved with them. MarkersFixtures now asserts every marker refusal against the existing pinned refusal contract through both direct and checked routes. The original 226-line rejection golden and all expected IR remain unchanged. Fixture source inputs remain under export/testdata so their authored file names and positions remain stable. SourcePositionsFixtures stays beside Context because it also tests export positions.
+
+The new LintStagesSuite was run red before implementation. Its assertion failed because the checked-lift entry point did not exist. It now checks the three stages in order and proves that a source refusal stops before lifting and creates no output directory. MarkersFixtures also proves a post-lift marker refusal writes no IR through the gate entry point.
+
+Source census for fn-141.14 follows exact whole-file buckets, excluding test sources and project.scala directives. These buckets identify the current homes of the work; refusal handling overlaps every bucket.
+
+| Source category | Before | After | Files |
+| --- | ---: | ---: | --- |
+| Declaration and DSL re-parsing | 3,570 | 3,570 | Declarations, Claims, Compositions, Roles |
+| Sugar matching | 2,837 | 2,837 | Syntax, Capabilities |
+| Realization-kit matching | 2,711 | 2,711 | Realizations |
+| Function-body and type lifting | 1,162 | 1,162 | Expressions, Types |
+| Lints and their refusals | 2,824 | 2,885 | Order, Structure, Conventions, ConventionsLint, Markers; new ModulePolicy |
+| Reader, orchestration and other plumbing | 2,121 | 2,174 | Admission, Constants, Context, Equality, Gaps, Lift, Lifting, Plugin, Switches; shared Index/LiftError and compatibility adapters |
+| Total | 15,225 | 15,339 | Export, lint and inspect |
+
+Exporter production sources alone fell from 15,225 to 12,249 lines, a reduction of 2,976. Lint owns 2,995 lines and inspect owns 95. The combined 114-line addition covers the shared-reader boundary, policy/stage/marker adapters, imports and formatting. The original Order/Structure/Markers subset was 2,227 lines. Its current lint home is 2,264 lines. Textual `fail(`, `refuse(` and `LiftError(` occurrences, including definitions, remain 706 across the production sources; this is a lexical cross-cutting count, not the future refusal ledger.
+
+Focused verification passed 43 extraction tests, 27 remaining boundary/lint tests and 61 check/gate/coverage tests. The lint module compiled on its own with no exporter or system sources. Targeted scalafmt checking passed. The authoritative task check passed once in 458.9 seconds with 278 lifter tests and 154 check tests (432 total). Its command was `make model-check-changed BASE=1935e54127`, with its scope, test counts, exit codes and mini step-table equivalence recorded at `.flow/tmp/checks/20261013-023527/record.md`.
+
+The strict model-mini comparison, regeneration, real-feature checks, production Go reader/lint/Case-lowering gates, broad Model/lifter scalafix lint, live runs and independent review remain deferred under the activated task contract. Makefile and Go changes are outside this task; their broader module-map/formatting reconciliation remains with the conductor at the batch boundary.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 048e23e2733d1581e806b7ab461e70f6ed44c710
+- Tests: make model-check-changed BASE=1935e54127, mise exec -- scala-cli compile model/framework/lint, mise exec -- scala-cli run --test model/framework/export model/temporal/export --main-class org.junit.runner.JUnitCore -- framework.export.LintStagesSuite framework.lint.OrderFixtures framework.lint.StructureFixtures framework.lint.MarkersFixtures framework.lint.ConventionsFixtures framework.lint.AdmissionSuite, mise exec -- scala-cli run --test model/framework/export model/temporal/export --main-class org.junit.runner.JUnitCore -- framework.export.LintStagesSuite framework.lint.MarkersFixtures framework.lint.LayoutFilesFixtures framework.lint.PropertyGroupsFixtures framework.lint.QualifiedPhasesTest framework.lint.EligibleWitnessFixtures framework.export.GapsSuite framework.export.SourcePositionsFixtures, mise exec -- scala-cli run --test model/framework/check model/temporal/check --main-class org.junit.runner.JUnitCore -- temporal.check.CoverageSuite temporal.check.GateSuite temporal.check.GateLintSuite, mise exec -- scala-cli fmt --scalafmt-conf model/.scalafmt.conf --check model/framework/inspect model/framework/lint model/framework/export/Lift.scala model/framework/export/LiftError.scala model/framework/export/LintStages.test.scala model/framework/export/Context.scala model/framework/export/Lifting.scala model/framework/export/Gaps.scala model/framework/export/Gaps.test.scala model/framework/export/ConventionsLint.scala model/framework/export/Plugin.scala model/framework/export/ModelBuild.test.scala model/framework/export/SourcePositions.test.scala model/temporal/check/Coverage.scala model/temporal/export/TemporalPlugin.scala model/temporal/export/SuiteCoverage.test.scala
 - PRs:
