@@ -488,6 +488,8 @@ func GenerateProtocols(root string, check bool) error {
 		return err
 	}
 	modelOutputs := []output{
+		{Package: "network", Template: "netstream_status.go.tmpl", Path: "internal/model/network/stream_status_generated.go"},
+		{Package: "net", Template: "netstream_status.go.tmpl", Path: "internal/backends/wasm/toolchain/net_stream_status_generated.go.txt"},
 		{Package: "gomadmodelwire", Template: "modelwire.go.tmpl", Path: "internal/backends/native/toolchain/runtime/overlay/src/internal/gomadmodelwire/wire_generated.go"},
 		{Package: "gomadmodelwire", Template: "modelwire_test.go.tmpl", Path: "internal/backends/native/toolchain/runtime/overlay/src/internal/gomadmodelwire/wire_generated_test.go"},
 		{Package: "execution", Template: "modeltransport.go.tmpl", Path: "internal/backends/native/execution/simulation_model_wire_generated.go"},

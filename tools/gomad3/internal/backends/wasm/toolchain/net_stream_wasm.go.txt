@@ -192,6 +192,8 @@ func gomadStreamDo(ctx context.Context, buffer []byte, block bool) error {
 		return nil
 	case syscall.EBADF:
 		return ErrClosed
+	case gomadStreamStallTimeout:
+		return syscall.ETIMEDOUT
 	case syscall.ETIMEDOUT:
 		return os.ErrDeadlineExceeded
 	case syscall.ECANCELED:

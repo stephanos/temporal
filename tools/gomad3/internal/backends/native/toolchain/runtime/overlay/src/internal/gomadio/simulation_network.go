@@ -791,6 +791,14 @@ func (network *simulationNetwork) changeLink(from, to, kind string, enabled bool
 }
 
 func (network *simulationNetwork) changeGroup(left, right []string, enabled bool) error {
+	kind := "partition"
+	if enabled {
+		kind = "heal"
+	}
+	return network.changeLinkGroup(left, right, kind, enabled, 0, true)
+}
+
+func (network *simulationNetwork) changeLinkGroup(left, right []string, kind string, enabled bool, delayNanos uint64, symmetric bool) error {
 	network.Lock()
 	defer network.Unlock()
 	if network.finished || !validSimulationNodeGroup(left) || !validSimulationNodeGroup(right) {
@@ -807,23 +815,34 @@ func (network *simulationNetwork) changeGroup(left, right []string, enabled bool
 			if _, ok := network.links[simulationLinkKey(leftNode, rightNode)]; !ok {
 				return ErrUnsupported
 			}
-			if _, ok := network.links[simulationLinkKey(rightNode, leftNode)]; !ok {
-				return ErrUnsupported
+			if symmetric {
+				if _, ok := network.links[simulationLinkKey(rightNode, leftNode)]; !ok {
+					return ErrUnsupported
+				}
 			}
 		}
 	}
-	kind := "partition"
-	if enabled {
-		kind = "heal"
+	switch kind {
+	case "partition", "heal", "delay", "disconnect", "reconnect", "directional_delay":
+	default:
+		return ErrUnsupported
 	}
 	var transitions []simulationTransition
 	changes := make(map[string]simulationLink)
 	for _, leftNode := range left {
 		for _, rightNode := range right {
-			transitions = append(transitions, simulationTransition{Kind: kind, Source: simulationEndpoint{Node: leftNode, Address: network.nodes[leftNode].address}, Destination: simulationEndpoint{Node: rightNode, Address: network.nodes[rightNode].address}, Count: 2, Outcome: "ok"})
-			for _, key := range []string{simulationLinkKey(leftNode, rightNode), simulationLinkKey(rightNode, leftNode)} {
+			keys := []string{simulationLinkKey(leftNode, rightNode)}
+			if symmetric {
+				keys = append(keys, simulationLinkKey(rightNode, leftNode))
+			}
+			transitions = append(transitions, simulationTransition{Kind: kind, Source: simulationEndpoint{Node: leftNode, Address: network.nodes[leftNode].address}, Destination: simulationEndpoint{Node: rightNode, Address: network.nodes[rightNode].address}, Count: uint64(len(keys)), DelayNanos: delayNanos, Outcome: "ok"})
+			for _, key := range keys {
 				link := network.links[key]
-				link.Enabled = enabled
+				if kind == "delay" || kind == "directional_delay" {
+					link.DelayNanos = delayNanos
+				} else {
+					link.Enabled = enabled
+				}
 				changes[key] = link
 			}
 		}

@@ -434,13 +434,45 @@ func (m *Model) ready() []uint64 {
 func (m *Model) Advance(now uint64) ([]uint64, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+	return m.advance(now)
+}
+
+// AdvanceBefore positions the clock after settling only strictly earlier events.
+func (m *Model) AdvanceBefore(now uint64) ([]uint64, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	if m.network.finished {
 		return nil, syscall.ESTALE
 	}
 	if now > math.MaxInt64 || now < uint64(m.network.now.UnixNano()) {
 		return nil, errors.New("network clock moved backwards or overflowed")
 	}
+	var ids []uint64
+	if now > uint64(m.network.now.UnixNano()) {
+		var err error
+		ids, err = m.advance(now - 1)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return ids, m.position(now)
+}
+
+func (m *Model) position(now uint64) error {
+	if m.network.finished {
+		return syscall.ESTALE
+	}
+	if now > math.MaxInt64 || now < uint64(m.network.now.UnixNano()) {
+		return errors.New("network clock moved backwards or overflowed")
+	}
 	m.network.now = time.Unix(0, int64(now))
+	return nil
+}
+
+func (m *Model) advance(now uint64) ([]uint64, error) {
+	if err := m.position(now); err != nil {
+		return nil, err
+	}
 	m.network.Lock()
 	dials := make([]*simulationDial, 0, len(m.network.pendingDials))
 	for pending := range m.network.pendingDials {
@@ -539,6 +571,34 @@ func (m *Model) Partition(left, right string, symmetric bool) error {
 		return m.network.changePair(left, right, "partition", false, 0)
 	}
 	return m.network.changeLink(left, right, "disconnect", false, 0)
+}
+
+func (m *Model) ChangeGroup(left, right []string, action string, nanos uint64, symmetric bool) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	kind, enabled := action, action != "partition"
+	switch action {
+	case "partition":
+		nanos = 0
+		if !symmetric {
+			kind = "disconnect"
+		}
+	case "heal":
+		nanos = 0
+		if !symmetric {
+			kind = "reconnect"
+		}
+	case "delay":
+		if nanos > math.MaxInt64 {
+			return ErrUnsupported
+		}
+		if !symmetric {
+			kind = "directional_delay"
+		}
+	default:
+		return ErrUnsupported
+	}
+	return m.network.changeLinkGroup(left, right, kind, enabled, nanos, symmetric)
 }
 func (m *Model) Heal(left, right string, symmetric bool) error {
 	m.mu.Lock()

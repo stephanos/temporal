@@ -240,6 +240,8 @@ func networkV2Errno(message string) uint32 {
 		return 0
 	case "context canceled":
 		return 11
+	case "connection timed out":
+		return netmodel.StreamStallTimeout
 	case "context deadline exceeded", "i/o timeout", "file closing", "deadline exceeded":
 		return 73
 	case netmodel.ErrConnectionRefused.Error():
@@ -275,7 +277,9 @@ func (e *Environment) networkV2Advance(now uint64) error {
 	}
 	for n.fault < len(n.config.Faults) && n.config.Faults[n.fault].AtNanos <= now {
 		f := n.config.Faults[n.fault]
-		n.fault++
+		if _, err := n.model.AdvanceBefore(f.AtNanos); err != nil {
+			return err
+		}
 		var err error
 		switch f.Action {
 		case "partition":
@@ -303,6 +307,7 @@ func (e *Environment) networkV2Advance(now uint64) error {
 		if err != nil {
 			return err
 		}
+		n.fault++
 		if err = n.appendLog(e, struct {
 			Fault NetworkFaultV2 `json:"fault"`
 		}{f}); err != nil {

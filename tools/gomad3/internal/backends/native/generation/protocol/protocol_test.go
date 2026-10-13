@@ -339,6 +339,7 @@ func TestRunGeneratesAndChecksEveryEndpoint(t *testing.T) {
 		"internal/backends/native/transcript/schema/iowire_test.go.tmpl",
 		"internal/model/schema/modelwire.go.tmpl",
 		"internal/model/schema/modelwire.json",
+		"internal/model/schema/netstream_status.go.tmpl",
 		"internal/model/schema/modelwire_test.go.tmpl",
 		"internal/model/schema/modeltransport.go.tmpl",
 		"internal/model/schema/timewire.json",
@@ -373,6 +374,8 @@ func TestRunGeneratesAndChecksEveryEndpoint(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, relative := range []string{
+		"internal/model/network/stream_status_generated.go",
+		"internal/backends/wasm/toolchain/net_stream_status_generated.go.txt",
 		"internal/model/cluster/internal/wire/process.go",
 		"internal/model/cluster/internal/wire/process_generated_test.go",
 		"internal/model/cluster/internal/wire/network.go",
@@ -409,6 +412,8 @@ func TestRunGeneratesAndChecksEveryEndpoint(t *testing.T) {
 		}
 	}
 	for _, relative := range []string{
+		"internal/model/network/stream_status_generated.go",
+		"internal/backends/wasm/toolchain/net_stream_status_generated.go.txt",
 		"internal/model/cluster/internal/wire/process.go",
 		"internal/model/cluster/internal/wire/process_generated_test.go",
 		"internal/model/cluster/internal/wire/network.go",

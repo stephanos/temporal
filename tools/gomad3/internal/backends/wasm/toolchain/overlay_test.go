@@ -7,6 +7,10 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
+	"go/ast"
+	"go/format"
+	"go/parser"
+	"go/token"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -16,6 +20,67 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/internal/backends/wasm/internal/stockgo"
 )
+
+func TestSelectedGuestStallTimeoutRemainsDistinctFromDeadline(t *testing.T) {
+	file, err := parser.ParseFile(token.NewFileSet(), "net_stream_wasm.go.txt", netStreamGlue, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var resultSwitch *ast.SwitchStmt
+	ast.Inspect(file, func(node ast.Node) bool {
+		statement, ok := node.(*ast.SwitchStmt)
+		if !ok {
+			return true
+		}
+		if name, ok := statement.Tag.(*ast.Ident); ok && name.Name == "errno" {
+			resultSwitch = statement
+		}
+		return true
+	})
+	if resultSwitch == nil {
+		t.Fatal("selected guest error decoder is missing")
+	}
+	var decoder bytes.Buffer
+	if err := format.Node(&decoder, token.NewFileSet(), resultSwitch); err != nil {
+		t.Fatal(err)
+	}
+	status, err := parser.ParseFile(token.NewFileSet(), "status.go", netStreamStatusGlue, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var statusDeclaration bytes.Buffer
+	for _, declaration := range status.Decls {
+		if err := format.Node(&statusDeclaration, token.NewFileSet(), declaration); err != nil {
+			t.Fatal(err)
+		}
+	}
+	source := `package guestcontrol
+import ("context"; "errors"; "os"; "syscall"; "testing")
+var ErrClosed = os.ErrClosed
+var errCanceled = context.Canceled
+` + statusDeclaration.String() + `
+func decode(errno syscall.Errno) error {` + decoder.String() + `}
+func TestTimeoutIdentity(t *testing.T) {
+ stall := decode(65558)
+ deadline := decode(syscall.ETIMEDOUT)
+ if !errors.Is(stall, syscall.ETIMEDOUT) || errors.Is(stall, os.ErrDeadlineExceeded) {
+  t.Fatalf("terminal timeout identity lost: %v", stall)
+ }
+ timeout, ok := stall.(interface { Timeout() bool })
+ if !ok || !timeout.Timeout() { t.Fatalf("stall is not a timeout: %v", stall) }
+ if !errors.Is(deadline, os.ErrDeadlineExceeded) { t.Fatalf("caller deadline changed: %v", deadline) }
+}`
+	directory := t.TempDir()
+	if err := os.WriteFile(filepath.Join(directory, "decoder_test.go"), []byte(source), 0600); err != nil {
+		t.Fatal(err)
+	}
+	command := exec.Command(filepath.Join(stockRoot(t), "bin/go"), "test", "-count=1", "decoder_test.go")
+	command.Dir = directory
+	command.Env = append(os.Environ(), "GOROOT=", "GOTOOLCHAIN=local", "GOWORK=off", "GOENV=off", "GOFLAGS=")
+	if output, err := command.CombinedOutput(); err != nil {
+		t.Fatalf("selected guest error control: %v\n%s", err, output)
+	}
+}
 
 func TestImplementationIdentityBindsCompiledBuilderAndGlue(t *testing.T) {
 	builder, err := os.ReadFile("overlay.go")
@@ -30,8 +95,12 @@ func TestImplementationIdentityBindsCompiledBuilderAndGlue(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	netStreamStatusGlue, err := os.ReadFile("net_stream_status_generated.go.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
 	input := []byte("gomad-wasm-runtime-implementation/v1\x00")
-	for _, source := range [][]byte{builder, glue, netStreamGlue} {
+	for _, source := range [][]byte{builder, glue, netStreamGlue, netStreamStatusGlue} {
 		var size [8]byte
 		binary.BigEndian.PutUint64(size[:], uint64(len(source)))
 		input = append(input, size[:]...)

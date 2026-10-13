@@ -172,21 +172,11 @@ func (n *brokerNetwork) deadline() uint64 {
 func (n *brokerNetwork) advance(now uint64) error {
 	for n.fault < len(n.faults) && n.faults[n.fault].AtNanos <= now {
 		f := n.faults[n.fault]
-		for _, left := range []string{f.From + ".client", f.From + ".server"} {
-			for _, right := range []string{f.To + ".client", f.To + ".server"} {
-				var err error
-				switch f.Action {
-				case "partition":
-					err = n.model.Partition(left, right, f.Symmetric)
-				case "heal":
-					err = n.model.Heal(left, right, f.Symmetric)
-				case "delay":
-					err = n.model.Delay(left, right, f.DelayNanos, f.Symmetric)
-				}
-				if err != nil {
-					return err
-				}
-			}
+		if _, err := n.model.AdvanceBefore(f.AtNanos); err != nil {
+			return err
+		}
+		if err := n.changeLink(f.Action, f.From, f.To, f.DelayNanos, f.Symmetric); err != nil {
+			return err
 		}
 		n.fault++
 	}
@@ -227,23 +217,14 @@ func (b *Broker) ChangeLink(action, from, to string, delay uint64, symmetric boo
 	if b.network == nil || b.network.addresses[from] == "" || b.network.addresses[to] == "" || from == to {
 		return invalid("broker link")
 	}
-	for _, left := range []string{from + ".client", from + ".server"} {
-		for _, right := range []string{to + ".client", to + ".server"} {
-			var err error
-			switch action {
-			case "partition":
-				err = b.network.model.Partition(left, right, symmetric)
-			case "heal":
-				err = b.network.model.Heal(left, right, symmetric)
-			case "delay":
-				err = b.network.model.Delay(left, right, delay, symmetric)
-			default:
-				return invalid("broker link action")
-			}
-			if err != nil {
-				return err
-			}
-		}
+	return b.network.changeLink(action, from, to, delay, symmetric)
+}
+
+func (n *brokerNetwork) changeLink(action, from, to string, delay uint64, symmetric bool) error {
+	switch action {
+	case "partition", "heal", "delay":
+	default:
+		return invalid("broker link action")
 	}
-	return nil
+	return n.model.ChangeGroup([]string{from + ".client", from + ".server"}, []string{to + ".client", to + ".server"}, action, delay, symmetric)
 }

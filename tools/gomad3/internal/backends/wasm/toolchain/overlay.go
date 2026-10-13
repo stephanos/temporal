@@ -25,12 +25,15 @@ var runtimeGlue []byte
 //go:embed net_stream_wasm.go.txt
 var netStreamGlue []byte
 
+//go:embed net_stream_status_generated.go.txt
+var netStreamStatusGlue []byte
+
 //go:embed overlay.go
 var overlayImplementation []byte
 
 func ImplementationSHA256() string {
 	input := []byte("gomad-wasm-runtime-implementation/v1\x00")
-	for _, source := range [][]byte{overlayImplementation, runtimeGlue, netStreamGlue} {
+	for _, source := range [][]byte{overlayImplementation, runtimeGlue, netStreamGlue, netStreamStatusGlue} {
 		var size [8]byte
 		binary.BigEndian.PutUint64(size[:], uint64(len(source)))
 		input = append(input, size[:]...)
@@ -74,7 +77,7 @@ func BuildOverlay(stockRoot, semanticsRoot, outputRoot string) (overlayPath, ide
 	if err != nil {
 		return "", "", err
 	}
-	inputs := map[string][]byte{"VERSION": version, "wasm-glue": runtimeGlue, "wasm-net-stream-glue": netStreamGlue}
+	inputs := map[string][]byte{"VERSION": version, "wasm-glue": runtimeGlue, "wasm-net-stream-glue": netStreamGlue, "wasm-net-stream-status": netStreamStatusGlue}
 	for name, data := range sources {
 		inputs["semantics/"+name] = data
 	}
@@ -110,7 +113,11 @@ func BuildOverlay(stockRoot, semanticsRoot, outputRoot string) (overlayPath, ide
 	if err != nil {
 		return "", "", fmt.Errorf("format WASM network stream glue: %w", err)
 	}
-	for _, name := range []string{"gomad_wasm.go", "gomad_semantics.go", "gomad_choicewire_generated.go", "net/gomad_wasm_net_stream.go"} {
+	outputs["net/gomad_wasm_net_stream_status.go"], err = format.Source(netStreamStatusGlue)
+	if err != nil {
+		return "", "", fmt.Errorf("format WASM network stream status: %w", err)
+	}
+	for _, name := range []string{"gomad_wasm.go", "gomad_semantics.go", "gomad_choicewire_generated.go", "net/gomad_wasm_net_stream.go", "net/gomad_wasm_net_stream_status.go"} {
 		if _, err := os.Lstat(filepath.Join(stockRoot, sourcePath(name))); err == nil || !os.IsNotExist(err) {
 			return "", "", fmt.Errorf("WASM runtime overlay collides with stock file %s", name)
 		}
