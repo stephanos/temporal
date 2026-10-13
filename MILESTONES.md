@@ -246,7 +246,6 @@ These fn-109 tasks change Runner, artifact, choice-exploration and simulation ow
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-154.1](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.1.md) | 🚧 In progress | Add explicit per-direction byte and virtual stall limits |
 | [fn-154.2](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.2.md) | ⬜ Todo | Propagate limits and admit held/timeout vocabulary in the generated network codec |
 | [fn-154.3](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.3.md) | 🚧 In progress | Preserve persistent stall timeout identity through local and process adapters |
 | [fn-154.4](.flow/tasks/fn-154-gomad-simpler-virtual-network-with.4.md) | ⬜ Todo | Unify local connection mechanics behind a byte-bounded queue owner |
