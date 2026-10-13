@@ -39,6 +39,10 @@ go test -tags test_dep ./tools/gomad3sim -run 'TestClusterRecord|Test.*Fault'
 ```
 
 Patched-runtime selectors require the supported candidate and documented toolchain setup. New selectors named in acceptance are deliverables, not existing-test claims. Keep a missing required gate open; bind each result to the tested source and tool inputs.
+
+### Provisional disjoint fixture admission (2026-10-13)
+
+The owner batch-first strategy admits only the new network_framed_toolchain_test.go and backends/native/execution/simulation_replay_toolchain_test.go fixture surface while task8 migrates history. Existing consumers, record/fault tests and Runner/Make registrations remain serialized with the network worker/root. Develop against the approved R8/R10 behavior and stable public connection/profile interface; re-anchor and validate against final source before acceptance. Compile/source evidence never replaces actual supported-native execution. The full task scope, dependencies, both-backend framing, divided replay guarantees and all execution gates remain open.
 ## Acceptance
 - [ ] New TestNetworkFramedPartition cases run in both backends and yield complete frames or timeout, never a partition-created stream-gap error.
 - [ ] Composed-profile payload mismatch still rejects at the retained generic-I/O ordinal/bound; direct network-only waiver is explicit and tested.
