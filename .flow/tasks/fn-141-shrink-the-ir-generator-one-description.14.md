@@ -24,6 +24,14 @@ Remove what no path reaches, say what holds now, and report the size.
 - `model/README.md` (Writing a Model; Counting a Query's total, which explains why TASTy is read)
 - `.plans/DSL_OPERATORS.md` rule 5 and `.plans/SCALA.md`
 
+
+**Size by category (owner, 2026-10-13).** Report the lifter's lines before fn-141 (capture this at fn-141.1's start, from the tree as fn-169.1 leaves it) and after, split by category:
+- declaration and DSL surface re-parsing;
+- sugar matching;
+- realization-kit matching;
+- function-body and type lifting;
+- lints and refusals.
+The goal is that the first three categories are essentially gone. Anything left in them is listed with the reason.
 ## Acceptance
 - [ ] The lifter holds function-body lifting, type lifting, the sugar expansion and the span lookup, and nothing that evaluates a declaration.
 - [ ] No lifter or exporter file names a sugar; the lint has no exemption.
@@ -32,6 +40,7 @@ Remove what no path reaches, say what holds now, and report the size.
 - [ ] The size report and the list of Model edits are in the done summary.
 - [ ] `make umpire-check-model`, `make lint-model` and the Go suite pass; `make umpire-gen-model` leaves `model/ir`, `model/cases` and the lifter fixtures' expected IR byte-identical (R11); any difference stops the task until it is traced.
 
+- Before/after lifter line counts by category recorded; residual declaration/sugar/kit matching listed with reasons.
 ## Done summary
 TBD
 

@@ -26,6 +26,10 @@ Part A, second half. The claim patterns and the sticky monitors are compositions
 - `model/umpire/Syntax.scala` (`Once`, `Never`, `Stays`, `sticky`) and `model/umpire/Claims.scala`
 - `model/check/SyntaxRule.scala` (`sugarNames`, the three rules) and its test
 
+
+**Author-time liftable-subset check (owner, 2026-10-13).** Beyond holding the lifter to core constructs, the syntax lint (now under `framework/check/lint` after fn-169.1) refuses non-liftable Scala in step functions and predicates while they are written, not only at lift. The check covers tree forms outside the subset and library operations outside the allowlist, and it names the construct and points to the subset table. It runs in `make model-check-changed`.
+
+**One documented subset (owner, 2026-10-13).** `model/SEMANTICS.md` gets one table of the liftable subset: each supported tree form and each allowed library operation (today `contains`, `copy`, `map`, `find`, `min`, `max`, `++`, `toList`, `toVector`, ...), with its IR lowering. Each row has one fixture. Adding an operation means adding a row and a fixture, so growth is a visible decision. The lint and the lifter read the same allowlist.
 ## Acceptance
 - [ ] No lifter code names a claim pattern or a sticky monitor.
 - [ ] The sugar fixture's pattern and monitor pairs lift to the same IR as before, function names included.
@@ -34,6 +38,8 @@ Part A, second half. The claim patterns and the sticky monitors are compositions
 - [ ] `scala-cli test model/irgen`, `make lint-model` and `make umpire-check-model` pass; `make umpire-gen-model` leaves `model/ir`, `model/cases` and the lifter fixtures' expected IR byte-identical (R11); any difference stops the task until it is traced.
 - [ ] Line counts before and after Part A are in the done summary.
 
+- The lint refuses a non-liftable construct in a step function at author time, naming it; the lint and the lifter share one allowlist.
+- SEMANTICS has the liftable-subset table, with one fixture per row.
 ## Done summary
 TBD
 

@@ -25,6 +25,8 @@ Part C. Three files of the lifter (1,479 lines on 2026-10-06) emit no IR. Give t
 - `model/check/Gate.scala` (the steps that compile and run the lifter) and `model/irgen/project.scala`
 - `model/irgen/test/Fixtures.test.scala` (the lint fixture tests)
 
+
+**Baseline for fn-141.14 (owner, 2026-10-13):** before any change, record the lifter's line counts by category (declaration/DSL surface re-parsing, sugar matching, realization-kit matching, function-body and type lifting, lints and refusals) in the receipt.
 ## Acceptance
 - [ ] `model/irgen` holds no lint: `Order.scala`, `Structure.scala` and `Markers.scala` are gone from it.
 - [ ] Every lint and marker reject fixture refuses with the same text at the same position from its new home.

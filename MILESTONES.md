@@ -489,6 +489,11 @@ fn-166.11-.13 and fn-169.1 (so it works in the framework's final homes), before 
 "spellings no Model uses" recount (fn-141.2) counts the current mini and shared code only, and must
 keep any spelling an open spec in this batch is about to use. As each task rewrites a construct, it splits that
 construct's tests out of `Fixtures.test.scala` to sit beside the construct's code (owner, 2026-10-12).
+To keep the lifter from being overfitted to Scala syntax (owner, 2026-10-13): fn-141.4 adds an author-time
+lint that refuses non-liftable Scala in step functions, and one documented liftable-subset table in
+SEMANTICS (tree forms and allowed library operations, one fixture each, sharing one allowlist with the
+lifter). fn-141.1 records, and fn-141.14 reports, the lifter's lines by category, so it shows whether the
+re-parsing of declarations, sugar and kit syntax is gone.
 Because its tasks were planned against the earlier tree, each re-reads its files and recounts first.
 Tasks follow Flow's branching dependencies. Tasks 1 and 2 have overlapping declared files and run
 serially; after both finish, 3, 6 and 7 are disjoint parallel candidates. Task 5 is the proof for the

@@ -10,5 +10,5 @@
   "spec_path": ".flow/tasks/fn-141-shrink-the-ir-generator-one-description.1.md",
   "status": "todo",
   "title": "Move the order lint, the structure lint and the marker checks out of model/irgen",
-  "updated_at": "2026-10-06T19:17:45.418231Z"
+  "updated_at": "2026-10-13T00:10:05.571342Z"
 }
