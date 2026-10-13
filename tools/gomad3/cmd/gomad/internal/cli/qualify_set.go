@@ -2,13 +2,13 @@ package cli
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
 	"io"
 
 	qualificationset "go.temporal.io/server/tools/gomad3/backends/native/qualification/set"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 )
 
 type qualifySetDependencies struct {
@@ -65,7 +65,7 @@ func runQualifySetWith(arguments []string, stdout, stderr io.Writer, dependencie
 	}
 	if *check {
 		if *format == "json" {
-			encoded, encodeErr := canonicaljson.CanonicalJSON(struct {
+			encoded, encodeErr := json.Marshal(struct {
 				Schema    string `json:"schema"`
 				Name      string `json:"name"`
 				Workloads uint64 `json:"workloads"`
@@ -169,7 +169,7 @@ func classifyQualificationSetError(report qualificationset.Report, runErr error)
 
 func writeQualificationSetResult(output io.Writer, format string, report qualificationset.Report) error {
 	if format == "json" {
-		encoded, err := canonicaljson.CanonicalJSON(report)
+		encoded, err := json.Marshal(report)
 		if err != nil {
 			return err
 		}

@@ -12,7 +12,6 @@ import (
 	"testing"
 
 	"go.temporal.io/server/tools/gomad3/backends/native/upgrade/pinimpact"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 )
 
 func withoutZipSum(t *testing.T, files pinimpact.ModuleFiles, required requirement) pinimpact.ModuleFiles {
@@ -213,7 +212,7 @@ func TestPackRuleExclusionWinsOverUnknownActivation(t *testing.T) {
 	pack := loadPack(t, xxhashPack)
 	pack.Activation = pack.Activation[1:]
 	pack.Rules = pack.Rules[:1]
-	encoded, err := canonicaljson.CanonicalJSON(pack)
+	encoded, err := json.Marshal(pack)
 	if err != nil {
 		t.Fatal(err)
 	}

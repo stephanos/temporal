@@ -3,6 +3,7 @@ package upgrade
 import (
 	"context"
 	"crypto/sha256"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -10,10 +11,10 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"unicode/utf8"
 
 	"go.temporal.io/server/tools/gomad3/backends/native/upgrade/adapterregen"
 	"go.temporal.io/server/tools/gomad3/backends/native/upgrade/pinimpact"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 )
 
 // RegenerateAdapter keeps the original upgrade entry point while the adapter
@@ -90,7 +91,19 @@ func (report PinImpact) Invalidated() bool {
 	return false
 }
 
-func (report PinImpact) CanonicalJSON() ([]byte, error) { return canonicaljson.CanonicalJSON(report) }
+func (report PinImpact) CanonicalJSON() ([]byte, error) {
+	values := []string{report.Schema, report.CandidateSHA256, report.BaselineSHA256}
+	for _, pin := range report.Pins {
+		values = append(values, pin.Class, pin.ID, pin.Module, pin.Version, pin.Sum, pin.SourceSetSHA256, pin.Status, pin.Reason)
+		values = append(values, pin.Platforms...)
+	}
+	for _, value := range values {
+		if !utf8.ValidString(value) {
+			return nil, errors.New("JSON string is not valid UTF-8")
+		}
+	}
+	return json.Marshal(report)
+}
 
 // ReadPinImpact preserves the original file-based entry point and uses the
 // graph-aware evaluator that the command uses for indirect dependencies.

@@ -72,6 +72,17 @@ func TestRunCompareSupportMapsReviewAndIncomparableStatuses(t *testing.T) {
 	if status != 1 || stderr.Len() != 0 || !strings.Contains(stdout.String(), `"review_required":true`) {
 		t.Fatalf("status=%d stdout=%q stderr=%q", status, stdout.String(), stderr.String())
 	}
+	want, err := supportcomparison.Compare(supportcomparison.Input{Baseline: baseline, Candidate: candidate})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var decoded supportcomparison.Result
+	if err := json.Unmarshal(stdout.Bytes(), &decoded); err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(decoded, want) {
+		t.Fatalf("decoded comparison = %#v, want %#v", decoded, want)
+	}
 
 	baseline.Dimensions.PortableV3 = false
 	dependencies.open = func(path string) (qualificationset.Report, error) {
@@ -84,6 +95,56 @@ func TestRunCompareSupportMapsReviewAndIncomparableStatuses(t *testing.T) {
 	status = runCompareSupportWith([]string{"--baseline", "/baseline.json", "--candidate", "/candidate.json"}, &stdout, &stderr, dependencies)
 	if status != 2 || !strings.Contains(stdout.String(), "incomparable") {
 		t.Fatalf("status=%d stdout=%q stderr=%q", status, stdout.String(), stderr.String())
+	}
+}
+
+func TestJSONReportDeliveryPreservesSemanticsAndFailures(t *testing.T) {
+	analysis := capabilityanalysis.Report{
+		Schema: capabilityanalysis.AnalysisSchema, Classification: capabilityanalysis.ClassificationSupported,
+		Packs: []target.CompatibilityPackEvidence{}, Requirements: []transcript.Requirement{}, Blockers: []capabilityanalysis.Blocker{},
+		GuardedBlockers: []capabilityanalysis.Blocker{}, EliminatedBlockers: []capabilityanalysis.Blocker{},
+	}
+	var stdout, stderr bytes.Buffer
+	if status := writeAnalysis(&stdout, &stderr, "json", analysis); status != 0 || stderr.Len() != 0 {
+		t.Fatalf("analysis status=%d stdout=%q stderr=%q", status, stdout.String(), stderr.String())
+	}
+	var decodedAnalysis capabilityanalysis.Report
+	if err := json.Unmarshal(stdout.Bytes(), &decodedAnalysis); err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(decodedAnalysis, analysis) {
+		t.Fatalf("decoded analysis = %#v, want %#v", decodedAnalysis, analysis)
+	}
+	stderr.Reset()
+	if status := writeAnalysis(failingWriter{}, &stderr, "json", analysis); status != 3 || !strings.Contains(stderr.String(), "write capability analysis") {
+		t.Fatalf("analysis delivery status=%d stderr=%q", status, stderr.String())
+	}
+	cyclicModule := &target.CapabilityModule{}
+	cyclicModule.Replacement = cyclicModule
+	analysis.Blockers = []capabilityanalysis.Blocker{{CapabilityFinding: target.CapabilityFinding{Module: cyclicModule}}}
+	stderr.Reset()
+	if status := writeAnalysis(io.Discard, &stderr, "json", analysis); status != 3 || !strings.Contains(stderr.String(), "encode capability analysis") {
+		t.Fatalf("analysis encoding status=%d stderr=%q", status, stderr.String())
+	}
+
+	report := publicSetReport()
+	stdout.Reset()
+	if err := writeQualificationSetResult(&stdout, "json", report); err != nil {
+		t.Fatal(err)
+	}
+	var decodedReport qualificationset.Report
+	if err := json.Unmarshal(stdout.Bytes(), &decodedReport); err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(decodedReport, report) {
+		t.Fatalf("decoded qualification set = %#v, want %#v", decodedReport, report)
+	}
+	if err := writeQualificationSetResult(failingWriter{}, "json", report); err == nil {
+		t.Fatal("writeQualificationSetResult() accepted a delivery failure")
+	}
+	report.Workloads = []qualificationset.WorkloadReport{{Analysis: &analysis}}
+	if err := writeQualificationSetResult(io.Discard, "json", report); err == nil || !strings.Contains(err.Error(), "encountered a cycle") {
+		t.Fatalf("writeQualificationSetResult() encoding error = %v", err)
 	}
 }
 

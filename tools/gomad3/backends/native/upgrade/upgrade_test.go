@@ -19,7 +19,6 @@ import (
 	capabilityanalysis "go.temporal.io/server/tools/gomad3/backends/native/qualification/analysis"
 	qualificationset "go.temporal.io/server/tools/gomad3/backends/native/qualification/set"
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/qualification"
 	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/target"
@@ -552,7 +551,7 @@ func writeQualifiedCorpus(t *testing.T, root, name string) string {
 						DependencyPath:    []target.CapabilityPackageReference{{ImportPath: "example.com/corpus/pkg", Name: "pkg"}, {ImportPath: "example.com/escape", Name: "escape"}},
 					}},
 				}
-				encoded, encodeErr := canonicaljson.CanonicalJSON(analysis)
+				encoded, encodeErr := json.Marshal(analysis)
 				if encodeErr != nil {
 					t.Fatal(encodeErr)
 				}

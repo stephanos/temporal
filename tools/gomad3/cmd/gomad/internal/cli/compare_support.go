@@ -1,13 +1,13 @@
 package cli
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"io"
 
 	supportcomparison "go.temporal.io/server/tools/gomad3/backends/native/qualification/comparison"
 	qualificationset "go.temporal.io/server/tools/gomad3/backends/native/qualification/set"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/record"
 )
 
@@ -62,7 +62,7 @@ func runCompareSupportWith(arguments []string, stdout, stderr io.Writer, depende
 		return writeCommandError(stderr, 2, "compare support reports: %v\n", err)
 	}
 	if *format == "json" {
-		encoded, encodeErr := canonicaljson.CanonicalJSON(result)
+		encoded, encodeErr := json.Marshal(result)
 		if encodeErr != nil {
 			return writeCommandError(stderr, 3, "encode support comparison: %v\n", encodeErr)
 		}

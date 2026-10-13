@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -13,7 +14,6 @@ import (
 	"go.temporal.io/server/tools/gomad3/backends/native/preparation"
 	capabilityanalysis "go.temporal.io/server/tools/gomad3/backends/native/qualification/analysis"
 	"go.temporal.io/server/tools/gomad3/backends/native/transcript"
-	"go.temporal.io/server/tools/gomad3/internal/canonicaljson"
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
@@ -218,7 +218,7 @@ func reportAnalyzeError(stderr io.Writer, err error) int {
 
 func writeAnalysis(stdout, stderr io.Writer, format string, report capabilityanalysis.Report) int {
 	if format == "json" {
-		encoded, err := canonicaljson.CanonicalJSON(report)
+		encoded, err := json.Marshal(report)
 		if err != nil {
 			return writeCommandError(stderr, 3, "encode capability analysis: %v\n", err)
 		}
