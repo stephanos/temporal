@@ -19,6 +19,7 @@
     "fn-153-gomad-retire-canonical-json-and-private.14": 0,
     "fn-153-gomad-retire-canonical-json-and-private.15": 0,
     "fn-153-gomad-retire-canonical-json-and-private.16": 0,
+    "fn-153-gomad-retire-canonical-json-and-private.17": 0,
     "fn-153-gomad-retire-canonical-json-and-private.19": 0,
     "fn-153-gomad-retire-canonical-json-and-private.2": 0,
     "fn-153-gomad-retire-canonical-json-and-private.3": 0,
@@ -1566,6 +1567,41 @@
       "task": "fn-153-gomad-retire-canonical-json-and-private.16",
       "timestamp": "2026-10-13T15:24:13.754283Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "61a7a64329caaff29d078e851da2f09eb0840da1500da0008127f0ed840dfd8b",
+      "backend": "codex",
+      "base_sha": "6a65b5a39f9dbbd70efe80d1b58bee84bc55ea9c",
+      "counter_kind": "impl",
+      "effort": "xhigh",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "0d3c046011ef2b1f4c669ae17ba00a829009ddcc",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "e456b132f98f4dccb05de1b9e2189783",
+      "round_consumed": true,
+      "scope": "impl:fn-153-gomad-retire-canonical-json-and-private.17",
+      "superseded_by": null,
+      "task": "fn-153-gomad-retire-canonical-json-and-private.17",
+      "timestamp": "2026-10-13T15:45:20.270079Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -1577,6 +1613,7 @@
     "impl:fn-153-gomad-retire-canonical-json-and-private.14": 1,
     "impl:fn-153-gomad-retire-canonical-json-and-private.15": 1,
     "impl:fn-153-gomad-retire-canonical-json-and-private.16": 1,
+    "impl:fn-153-gomad-retire-canonical-json-and-private.17": 1,
     "impl:fn-153-gomad-retire-canonical-json-and-private.19": 1,
     "impl:fn-153-gomad-retire-canonical-json-and-private.2": 1,
     "impl:fn-153-gomad-retire-canonical-json-and-private.3": 1,
@@ -1600,6 +1637,7 @@
     "impl:fn-153-gomad-retire-canonical-json-and-private.14": 0,
     "impl:fn-153-gomad-retire-canonical-json-and-private.15": 0,
     "impl:fn-153-gomad-retire-canonical-json-and-private.16": 0,
+    "impl:fn-153-gomad-retire-canonical-json-and-private.17": 0,
     "impl:fn-153-gomad-retire-canonical-json-and-private.19": 0,
     "impl:fn-153-gomad-retire-canonical-json-and-private.2": 0,
     "impl:fn-153-gomad-retire-canonical-json-and-private.3": 0,
@@ -1625,5 +1663,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-13T15:24:13.761624Z"
+  "updated_at": "2026-10-13T15:45:20.276749Z"
 }
