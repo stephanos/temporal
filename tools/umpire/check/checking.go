@@ -271,13 +271,12 @@ type Report struct {
 
 // Check admits a Model, interprets it within the scope, and checks every refinement, composition,
 // Query and progress claim it declares with its private checker (internal/engine), whose algorithms it adds
-// nothing to. Every witness is replayed against a second interpretation before its receipt is given.
+// nothing to. Every witness is replayed against the interpreted Model before its receipt is given.
 func Check(m *umpirespb.Model, scope Scope) *Report {
 	return check(m, scope, m)
 }
 
-// check is Check with the Model its witnesses are replayed against, which Check gives the Model
-// itself, interpreted afresh.
+// check is Check with the Model its witnesses are replayed against.
 func check(m *umpirespb.Model, scope Scope, replay *umpirespb.Model) *Report {
 	return checkWithBinding(m, scope, replay, nil)
 }
@@ -342,8 +341,8 @@ func receipt(subject Subject, key ClaimKey, at *umpirespb.Position) Receipt {
 	return Receipt{Subject: subject, Key: key, Position: interp.Where(at), Loop: -1}
 }
 
-// checker gives one Model's receipts: first is the interpretation its checks read, and again a
-// second one of the replay Model, made when the first witness needs it.
+// checker gives one Model's receipts: first is the interpretation its checks read, shared with
+// replay of the same Model. A different replay Model is bound when the first witness needs it.
 type checker struct {
 	scope  Scope
 	first  *binding
@@ -368,6 +367,9 @@ func newCheckerWithBinding(first *binding, replay *umpirespb.Model) *checker {
 }
 
 func (c *checker) again() *binding {
+	if c.replay == c.first.model {
+		return c.first
+	}
 	if c.fresh == nil {
 		c.fresh = bind(c.replay, c.scope)
 	}
@@ -463,7 +465,7 @@ func (c *checker) unrefined(r Receipt, e *unrefined) Receipt {
 	return c.replayed(r, err)
 }
 
-// replays replays a witness against a subject's table of the second interpretation.
+// replays replays a witness against a subject's table of the replay binding.
 func (c *checker) replays(name string, witness *Trace) error {
 	s := c.again().subject(name)
 	if s.err != nil {
@@ -674,7 +676,7 @@ func (c *checker) query(q *umpirespb.Query) Receipt {
 }
 
 // replayQuery replays an answer's witness, and the path to each hole it explored, against the same
-// Query declared over a second interpretation.
+// Query declared over the replay binding.
 func (c *checker) replayQuery(q *umpirespb.Query, a Answer) error {
 	bound, err := c.again().query(q)
 	if err != nil {
@@ -750,7 +752,7 @@ func (c *checker) progress(p *umpirespb.Progress) []Receipt {
 }
 
 // replayPaths replays the path a progress check took to each hole it read against the machine's table
-// of a second interpretation.
+// of the replay binding.
 func (c *checker) replayPaths(p *umpirespb.Progress, unknown []UnknownReach) error {
 	var err error
 	for _, u := range unknown {
@@ -759,8 +761,7 @@ func (c *checker) replayPaths(p *umpirespb.Progress, unknown []UnknownReach) err
 	return err
 }
 
-// replayProgress replays a violation's witness against the claim declared over a second
-// interpretation.
+// replayProgress replays a violation's witness against the claim declared over the replay binding.
 func (c *checker) replayProgress(p *umpirespb.Progress, kind ProgressKind, verdict ProgressVerdict) error {
 	claim, s, err := c.again().progress(p)
 	if err != nil {
