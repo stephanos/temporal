@@ -11,6 +11,7 @@ import (
 	"net"
 	"os"
 	"runtime"
+	"strings"
 	"syscall"
 	"testing"
 	"time"
@@ -68,6 +69,7 @@ func TestProcessNetworkHandleShortReadsAndHalfClose(t *testing.T) { runProcessNe
 func TestProcessNetworkHandleEmptyIO(t *testing.T)                { runProcessNetworkHandleCase(t, 3) }
 func TestProcessNetworkHandleDeadlines(t *testing.T)              { runProcessNetworkHandleCase(t, 4) }
 func TestProcessNetworkHandlePartialWrite(t *testing.T)           { runProcessNetworkHandleCase(t, 5) }
+func TestProcessNetworkHandleRefusedDial(t *testing.T)            { runProcessNetworkHandleCase(t, 6) }
 func runProcessNetworkHandleCase(t *testing.T, index int) {
 	t.Helper()
 	if !processBackendAvailable() {
@@ -153,6 +155,14 @@ func runNetworkHandleCase(t *testing.T, backend Backend, index int) {
 		return result
 	}
 	first := run(spec)
+	if test.name == "refused-dial-preserves-stream" {
+		require.Equal(t, uint64(2), first.Network.Snapshot.NextConnection)
+		for _, node := range first.Network.Snapshot.Nodes {
+			if node.Node == "client" {
+				require.Equal(t, uint64(40002), node.NextClientPort)
+			}
+		}
+	}
 	plan, err := ReplayPlanFor(first.Record)
 	require.NoError(t, err)
 	spec.Replay = &plan
@@ -345,7 +355,14 @@ func networkHandleCases() []networkHandleCase {
 			_, err = conn.Write([]byte{'z'})
 			return err
 		}},
-		{"partial-write-deadline-closure", func(_ *net.TCPListener, conn *net.TCPConn, _ bool) error {
+		{"partial-write-deadline-tail-reuse-closure", func(_ *net.TCPListener, conn *net.TCPConn, _ bool) error {
+			if _, err := conn.Write([]byte{'r'}); err != nil {
+				return err
+			}
+			<-time.After(10 * time.Millisecond)
+			if n, err := conn.Read(make([]byte, 1)); n != 1 || err != nil {
+				return fmt.Errorf("partial-write short read=%d,%v", n, err)
+			}
 			if _, err := conn.Write([]byte{'r'}); err != nil {
 				return err
 			}
@@ -363,6 +380,12 @@ func networkHandleCases() []networkHandleCase {
 			if n != 64*(64<<10) || !errors.Is(err, os.ErrDeadlineExceeded) {
 				return fmt.Errorf("partial write=%d,%v", n, err)
 			}
+			if _, err := io.ReadFull(conn, buffer); err != nil || buffer[0] != 'r' {
+				return fmt.Errorf("partial-write short-read acknowledgement=%q,%v", buffer, err)
+			}
+			if n, err := conn.Write([]byte("xy")); n != 1 || !errors.Is(err, os.ErrDeadlineExceeded) {
+				return fmt.Errorf("partial-write unread tail stays charged=%d,%v", n, err)
+			}
 			if err := conn.SetWriteDeadline(time.Time{}); err != nil {
 				return err
 			}
@@ -371,7 +394,142 @@ func networkHandleCases() []networkHandleCase {
 			}
 			return nil
 		}},
+		{"refused-dial-preserves-stream", func(_ *net.TCPListener, conn *net.TCPConn, _ bool) error {
+			buffer := make([]byte, 1)
+			if _, err := io.ReadFull(conn, buffer); err != nil || buffer[0] != 'x' {
+				return fmt.Errorf("request after refused dial=%q,%v", buffer, err)
+			}
+			_, err := conn.Write(buffer)
+			return err
+		}, func(conn *net.TCPConn) error {
+			address := *conn.RemoteAddr().(*net.TCPAddr)
+			address.Port = 7234
+			refused, err := net.DialTCP("tcp4", nil, &address)
+			if refused != nil {
+				return errors.Join(fmt.Errorf("dial without listener succeeded"), refused.Close())
+			}
+			if err == nil || !strings.Contains(err.Error(), "connection refused") {
+				return fmt.Errorf("refused dial=%v", err)
+			}
+			if _, err := conn.Write([]byte{'x'}); err != nil {
+				return err
+			}
+			buffer := make([]byte, 1)
+			if _, err := io.ReadFull(conn, buffer); err != nil || buffer[0] != 'x' {
+				return fmt.Errorf("reply after refused dial=%q,%v", buffer, err)
+			}
+			return nil
+		}},
 	}
+}
+
+func TestNetworkHandleByteBoundaries(t *testing.T) {
+	runNetworkHandleByteBoundaries(t, BackendInProcess)
+}
+
+func TestProcessNetworkHandleByteBoundaries(t *testing.T) {
+	if !processBackendAvailable() {
+		t.Skip("Runner simulation transport is unavailable")
+	}
+	runNetworkHandleByteBoundaries(t, BackendProcess)
+}
+
+func runNetworkHandleByteBoundaries(t *testing.T, backend Backend) {
+	t.Helper()
+	t.Run("short-read-tail-deadline-and-reuse", func(t *testing.T) {
+		runNetworkStallPair(t, backend, "short-read-tail", func(spec *Spec) {
+			spec.Limits.NetworkConnectionBytes = 4
+		}, func(conn net.Conn) error {
+			<-time.After(2 * time.Millisecond)
+			buffer := make([]byte, 1)
+			if n, err := conn.Read(buffer); n != 1 || err != nil || buffer[0] != 'a' {
+				return fmt.Errorf("short read=%d,%v,%q", n, err, buffer)
+			}
+			if _, err := conn.Write([]byte{'r'}); err != nil {
+				return err
+			}
+			<-time.After(3 * time.Millisecond)
+			tail := make([]byte, 4)
+			if _, err := io.ReadFull(conn, tail); err != nil || string(tail) != "bcdx" {
+				return fmt.Errorf("retained tail=%q,%v", tail, err)
+			}
+			if _, err := io.ReadFull(conn, buffer); err != nil || buffer[0] != 'z' {
+				return fmt.Errorf("reused direction=%q,%v", buffer, err)
+			}
+			_, err := conn.Write([]byte{'d'})
+			return err
+		}, func(conn net.Conn) error {
+			if n, err := conn.Write([]byte("abcd")); n != 4 || err != nil {
+				return fmt.Errorf("fill direction=%d,%v", n, err)
+			}
+			buffer := make([]byte, 1)
+			if _, err := io.ReadFull(conn, buffer); err != nil || buffer[0] != 'r' {
+				return fmt.Errorf("short-read acknowledgement=%q,%v", buffer, err)
+			}
+			if err := conn.SetWriteDeadline(time.Now().Add(-time.Second)); err != nil {
+				return err
+			}
+			if n, err := conn.Write([]byte("xy")); n != 1 || !errors.Is(err, os.ErrDeadlineExceeded) {
+				return fmt.Errorf("charged tail partial write=%d,%v", n, err)
+			}
+			if err := conn.SetWriteDeadline(time.Now().Add(time.Millisecond)); err != nil {
+				return err
+			}
+			if n, err := conn.Write([]byte{'z'}); n != 0 || !errors.Is(err, os.ErrDeadlineExceeded) {
+				return fmt.Errorf("full direction deadline=%d,%v", n, err)
+			}
+			if err := conn.SetWriteDeadline(time.Time{}); err != nil {
+				return err
+			}
+			if n, err := conn.Write([]byte{'z'}); n != 1 || err != nil {
+				return fmt.Errorf("deadline reuse=%d,%v", n, err)
+			}
+			if _, err := io.ReadFull(conn, buffer); err != nil || buffer[0] != 'd' {
+				return fmt.Errorf("reuse acknowledgement=%q,%v", buffer, err)
+			}
+			return nil
+		}, func(context.Context, Cluster, NodeHandle, NodeHandle) error { return nil })
+	})
+	t.Run("global-byte-error-keeps-prefix-and-releases-tail", func(t *testing.T) {
+		const chunk = 64 << 10
+		runNetworkStallPair(t, backend, "global-byte-prefix", func(spec *Spec) {
+			spec.Limits.NetworkBytes = chunk
+			spec.Limits.NetworkConnectionBytes = chunk + 1
+		}, func(conn net.Conn) error {
+			<-time.After(5 * time.Millisecond)
+			prefix := make([]byte, chunk)
+			if _, err := io.ReadFull(conn, prefix); err != nil || !bytes.Equal(prefix, bytes.Repeat([]byte{'x'}, chunk)) {
+				return fmt.Errorf("accepted global prefix length=%d,%v", len(prefix), err)
+			}
+			if _, err := conn.Write([]byte{'r'}); err != nil {
+				return err
+			}
+			buffer := make([]byte, 1)
+			if _, err := io.ReadFull(conn, buffer); err != nil || buffer[0] != 'z' {
+				return fmt.Errorf("reclaimed global budget=%q,%v", buffer, err)
+			}
+			_, err := conn.Write([]byte{'d'})
+			return err
+		}, func(conn net.Conn) error {
+			if n, err := conn.Write(bytes.Repeat([]byte{'x'}, chunk+1)); n != chunk || err == nil || !strings.Contains(err.Error(), "network resources exhausted") {
+				return fmt.Errorf("global accepted prefix=%d,%v", n, err)
+			}
+			if n, err := conn.Write([]byte{'y'}); n != 0 || err == nil || !strings.Contains(err.Error(), "network resources exhausted") {
+				return fmt.Errorf("unread prefix stays charged=%d,%v", n, err)
+			}
+			buffer := make([]byte, 1)
+			if _, err := io.ReadFull(conn, buffer); err != nil || buffer[0] != 'r' {
+				return fmt.Errorf("global prefix acknowledgement=%q,%v", buffer, err)
+			}
+			if n, err := conn.Write([]byte{'z'}); n != 1 || err != nil {
+				return fmt.Errorf("reclaimed global write=%d,%v", n, err)
+			}
+			if _, err := io.ReadFull(conn, buffer); err != nil || buffer[0] != 'd' {
+				return fmt.Errorf("global reuse acknowledgement=%q,%v", buffer, err)
+			}
+			return nil
+		}, func(context.Context, Cluster, NodeHandle, NodeHandle) error { return nil })
+	})
 }
 func networkHandleEmptyIO(conn *net.TCPConn) error {
 	if err := conn.Close(); err != nil {

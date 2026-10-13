@@ -14,8 +14,19 @@ import (
 )
 
 func TestFaultPlanPartitionRestartEvidenceAndExactReplay(t *testing.T) {
+	runFaultPlanPartitionRestartEvidenceAndExactReplay(t, BackendInProcess)
+}
+
+func runFaultPlanPartitionRestartEvidenceAndExactReplay(t *testing.T, backend Backend) {
+	t.Helper()
 	boot := uniqueBootID("fault-plan-node")
-	require.NoError(t, RegisterBoot(boot, func(context.Context, NodeContext) error { return nil }))
+	require.NoError(t, RegisterBoot(boot, func(ctx context.Context, _ NodeContext) error {
+		if backend == BackendProcess {
+			<-ctx.Done()
+			return ctx.Err()
+		}
+		return nil
+	}))
 	plan, err := NewFaultPlan([]FaultAction{
 		{ID: "isolate-client", Kind: FaultPartition, Left: []NodeID{"client"}, Right: []NodeID{"server-a", "server-b"}},
 		{ID: "heal-client", Kind: FaultHeal, Left: []NodeID{"client"}, Right: []NodeID{"server-a", "server-b"}},
@@ -24,6 +35,10 @@ func TestFaultPlanPartitionRestartEvidenceAndExactReplay(t *testing.T) {
 	})
 	require.NoError(t, err)
 	spec := threeNodeFaultSpec(boot, plan)
+	spec.Backend = backend
+	if backend == BackendProcess {
+		spec.Fidelity = FidelityHardIsolation
+	}
 	scenario := Scenario(func(ctx context.Context, cluster Cluster) error {
 		for _, node := range []NodeID{"client", "server-a", "server-b"} {
 			if _, err := cluster.Start(ctx, node); err != nil {
@@ -74,6 +89,11 @@ func TestFaultPlanPartitionRestartEvidenceAndExactReplay(t *testing.T) {
 }
 
 func TestFaultReplayRejectsUnusedExtraReorderedAndChangedActions(t *testing.T) {
+	runFaultReplayRejectsUnusedExtraReorderedAndChangedActions(t, BackendInProcess)
+}
+
+func runFaultReplayRejectsUnusedExtraReorderedAndChangedActions(t *testing.T, backend Backend) {
+	t.Helper()
 	boot := uniqueBootID("fault-divergence-node")
 	require.NoError(t, RegisterBoot(boot, func(context.Context, NodeContext) error { return nil }))
 	plan, err := NewFaultPlan([]FaultAction{
@@ -82,6 +102,10 @@ func TestFaultReplayRejectsUnusedExtraReorderedAndChangedActions(t *testing.T) {
 	})
 	require.NoError(t, err)
 	spec := threeNodeFaultSpec(boot, plan)
+	spec.Backend = backend
+	if backend == BackendProcess {
+		spec.Fidelity = FidelityHardIsolation
+	}
 	recordScenario := func(ctx context.Context, cluster Cluster) error {
 		for _, action := range plan.Actions {
 			if _, err := cluster.ApplyFault(ctx, action); err != nil {
@@ -136,6 +160,11 @@ func TestFaultReplayRejectsUnusedExtraReorderedAndChangedActions(t *testing.T) {
 }
 
 func TestFaultControllerMatchesStableFieldsAndOwnsOccurrence(t *testing.T) {
+	runFaultControllerMatchesStableFieldsAndOwnsOccurrence(t, BackendInProcess)
+}
+
+func runFaultControllerMatchesStableFieldsAndOwnsOccurrence(t *testing.T, backend Backend) {
+	t.Helper()
 	boot := uniqueBootID("fault-match-node")
 	require.NoError(t, RegisterBoot(boot, func(context.Context, NodeContext) error { return nil }))
 	match := FaultMatch{Model: "network", Resource: "rpc", Operation: "deliver", Occurrence: 2, Phase: "replication", Equivalence: "history-peer"}
@@ -144,6 +173,10 @@ func TestFaultControllerMatchesStableFieldsAndOwnsOccurrence(t *testing.T) {
 	}})
 	require.NoError(t, err)
 	spec := threeNodeFaultSpec(boot, plan)
+	spec.Backend = backend
+	if backend == BackendProcess {
+		spec.Fidelity = FidelityHardIsolation
+	}
 	event := match
 	event.Occurrence = 0
 	scenario := func(ctx context.Context, cluster Cluster) error {
@@ -215,6 +248,11 @@ func TestMatchedFaultCannotBypassControllerMatching(t *testing.T) {
 }
 
 func TestGroupedPartitionCapacityRejectsBeforeTopologyMutation(t *testing.T) {
+	runGroupedPartitionCapacityRejectsBeforeTopologyMutation(t, BackendInProcess)
+}
+
+func runGroupedPartitionCapacityRejectsBeforeTopologyMutation(t *testing.T, backend Backend) {
+	t.Helper()
 	boot := uniqueBootID("fault-group-capacity-node")
 	require.NoError(t, RegisterBoot(boot, func(context.Context, NodeContext) error { return nil }))
 	plan, err := NewFaultPlan([]FaultAction{{
@@ -222,6 +260,10 @@ func TestGroupedPartitionCapacityRejectsBeforeTopologyMutation(t *testing.T) {
 	}})
 	require.NoError(t, err)
 	spec := threeNodeFaultSpec(boot, plan)
+	spec.Backend = backend
+	if backend == BackendProcess {
+		spec.Fidelity = FidelityHardIsolation
+	}
 	spec.Limits.NetworkTransitions = 1
 	result, err := Run(context.Background(), spec, func(ctx context.Context, cluster Cluster) error {
 		_, applyErr := cluster.ApplyFault(ctx, plan.Actions[0])
