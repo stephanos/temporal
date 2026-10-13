@@ -17,7 +17,7 @@ class SamplesSuite extends munit.FunSuite:
         "scala-cli",
         s"""printf 'scala-cli %s\n' "$$*" >> '$calls'
            |if [ -f '$root/reject' ] && [ "$$1" = compile ]; then
-           |  printf '[error] source rejected\n' >&2; exit 0
+           |  printf '[error] source rejected\n'; exit 0
            |fi
            |case "$$1" in
            |  version) if [ -f '$root/version' ]; then while IFS= read -r line; do printf '%s\n' "$$line"; done < '$root/version'; fi ;;
