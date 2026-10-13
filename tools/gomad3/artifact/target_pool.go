@@ -172,7 +172,7 @@ func hardLinksUnavailable(err error) bool {
 }
 
 func createPoolEntry(ctx context.Context, pool, entry string, payload Payload) (retErr error) {
-	if err := os.MkdirAll(pool, 0o700); err != nil {
+	if err := makeDurableDirectory(ctx, pool); err != nil {
 		return fmt.Errorf("create shared target pool: %w", err)
 	}
 	if err := os.Chmod(pool, 0o700); err != nil {

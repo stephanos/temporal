@@ -532,7 +532,7 @@ capacity. Add `--json` to use the same stable campaign event stream as
 | --- | --- | --- | --- |
 | 0 | All selected or remaining Executions succeeded. | Every repetition succeeded with identical evidence. | Verification-only succeeded, or replay matched a retained success. |
 | 1 | A target failure, watchdog observation, or ordinary or World replay divergence was retained. | Evidence diverged, a target failed, a required probe was absent, or replay diverged. | Replay matched a retained failure or watchdog observation, or diverged; inspect `reproduced=true|false`. |
-| 2 | Input is invalid, the target is unsupported, or the resume journal is incompatible. | Input was invalid or the unsupported boundary was retained. | Input or artifact compatibility validation failed. |
+| 2 | Input is invalid, the target is unsupported, or the resume journal is incompatible. | Input was invalid or the unsupported boundary was retained. | Input or artifact compatibility validation failed, including an artifact of an unsupported storage format. |
 | 3 | Runner or host infrastructure failed, or a Choice Exploration forced-prefix candidate diverged. | Qualification or report infrastructure failed. | Replay infrastructure failed. |
 
 Choice Exploration forced-prefix candidate divergence returns status 3, including

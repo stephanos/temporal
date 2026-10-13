@@ -484,15 +484,17 @@ func TestReplayRejectsChangedArtifactIdentityBeforeGuest(t *testing.T) {
 					t.Fatal(err)
 				}
 			}
-			data, err := os.ReadFile(filepath.Join(campaign.Artifacts[0], "manifest.json"))
-			if err != nil {
-				t.Fatal(err)
-			}
-			if err := os.WriteFile(filepath.Join(copyRoot, "manifest.json"), data, 0600); err != nil {
-				t.Fatal(err)
+			for _, reserved := range []string{"storage.json", "manifest.json"} {
+				data, err := os.ReadFile(filepath.Join(campaign.Artifacts[0], reserved))
+				if err != nil {
+					t.Fatal(err)
+				}
+				if err := os.WriteFile(filepath.Join(copyRoot, reserved), data, 0600); err != nil {
+					t.Fatal(err)
+				}
 			}
 			corrupted := filepath.Join(copyRoot, filepath.FromSlash(file))
-			data, err = os.ReadFile(corrupted)
+			data, err := os.ReadFile(corrupted)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -501,8 +503,8 @@ func TestReplayRejectsChangedArtifactIdentityBeforeGuest(t *testing.T) {
 				t.Fatal(err)
 			}
 			counted := &countedProvider{Provider: provider}
-			if _, err := runner.Replay(t.Context(), runner.ReplaySpec{Backend: counted, ArtifactPath: copyRoot}); err == nil {
-				t.Fatal("corrupt payload accepted")
+			if _, err := runner.Replay(t.Context(), runner.ReplaySpec{Backend: counted, ArtifactPath: copyRoot}); err == nil || errors.Is(err, artifact.ErrUnsupportedFormat) {
+				t.Fatalf("corrupt payload accepted or refused for its lineage instead: %v", err)
 			}
 			if counted.calls != 0 {
 				t.Fatal("corruption reached guest")

@@ -63,7 +63,9 @@ type Artifact struct {
 	Path     string
 	Manifest record.ExecutionRecord
 	// StoredBytes counts the manifest and every listed file, the target
-	// included, whether or not the store shares that target. RetainedBytes
+	// included, whether or not the store shares that target. The fixed-size
+	// storage envelope is not counted, so artifact capacities and recorded
+	// byte counts keep their meaning across the lineage change. RetainedBytes
 	// states the rule and sums artifacts that are kept together.
 	StoredBytes uint64
 	// TargetSharing is set by publication and is empty on an opened artifact.
@@ -79,6 +81,14 @@ func (err *CapacityError) Error() string {
 	return fmt.Sprintf("artifact requires %d bytes, exceeding the %d-byte capacity", err.Required, err.Maximum)
 }
 
+// PublishArtifact durably publishes an artifact before it returns a reference
+// to it. Every payload, the storage envelope and the manifest are synced,
+// then every directory of the staging tree, then the no-replace rename into
+// the store, then the store root (and each directory publication created
+// above it). A caller records the returned reference in its own durable state
+// only after this returns, so a crash at any step leaves at most an
+// unreferenced artifact or staging directory that SweepOwnedRoot reclaims. A
+// reused existing artifact is validated and its store synced the same way.
 func (store Store) PublishArtifact(publication Publication) (_ Artifact, retErr error) {
 	ctx := store.Context
 	if ctx == nil {
@@ -99,7 +109,7 @@ func (store Store) PublishArtifact(publication Publication) (_ Artifact, retErr 
 	if err := validatePublicationPayloads(publication.Payloads); err != nil {
 		return Artifact{}, err
 	}
-	if err := os.MkdirAll(store.Root, 0o700); err != nil {
+	if err := makeDurableDirectory(ctx, store.Root); err != nil {
 		return Artifact{}, fmt.Errorf("create artifact store: %w", err)
 	}
 	if err := os.Chmod(store.Root, 0o700); err != nil {
@@ -140,6 +150,9 @@ func (store Store) PublishArtifact(publication Publication) (_ Artifact, retErr 
 	if err := syncPayloadDirectories(ctx, staging, publication.Payloads); err != nil {
 		return Artifact{}, err
 	}
+	if err := publicationCheckpoint(stepPayloadsDurable); err != nil {
+		return Artifact{}, err
+	}
 	sort.Slice(files, func(i, j int) bool { return files[i].Path < files[j].Path })
 	manifest.Files = files
 	manifest, manifestBytes, err := record.FinalizeExecutionRecord(manifest)
@@ -153,11 +166,23 @@ func (store Store) PublishArtifact(publication Publication) (_ Artifact, retErr 
 	if store.MaximumBytes != 0 && storedBytes > store.MaximumBytes {
 		return Artifact{}, &CapacityError{Required: storedBytes, Maximum: store.MaximumBytes}
 	}
+	if _, err := writePayload(ctx, filepath.Join(staging, storageEnvelopeFile), storageEnvelopeFile, storageEnvelopeBytes, 0o600); err != nil {
+		return Artifact{}, err
+	}
+	if err := publicationCheckpoint(stepEnvelopeDurable); err != nil {
+		return Artifact{}, err
+	}
 	if _, err := writePayload(ctx, filepath.Join(staging, "manifest.json"), "manifest.json", manifestBytes, 0o600); err != nil {
+		return Artifact{}, err
+	}
+	if err := publicationCheckpoint(stepManifestDurable); err != nil {
 		return Artifact{}, err
 	}
 	if err := syncDirectoryContext(ctx, staging); err != nil {
 		return Artifact{}, fmt.Errorf("sync artifact staging directory: %w", err)
+	}
+	if err := publicationCheckpoint(stepStagingDurable); err != nil {
+		return Artifact{}, err
 	}
 
 	identity, err := storeIdentity(store.Key, manifest)
@@ -213,6 +238,11 @@ func (store Store) PublishArtifact(publication Publication) (_ Artifact, retErr 
 			if removeErr := os.RemoveAll(staging); removeErr != nil {
 				return Artifact{}, fmt.Errorf("remove redundant artifact staging directory: %w", removeErr)
 			}
+			// The publisher of the existing artifact may have stopped between
+			// its rename and its store sync.
+			if err := syncDirectoryContext(ctx, store.Root); err != nil {
+				return Artifact{}, fmt.Errorf("sync artifact store: %w", err)
+			}
 			return identity, nil
 		}
 		if closeErr := existing.Close(); closeErr != nil {
@@ -224,8 +254,14 @@ func (store Store) PublishArtifact(publication Publication) (_ Artifact, retErr 
 		}
 		finalPath = completePath
 	}
+	if err := publicationCheckpoint(stepRenamed); err != nil {
+		return Artifact{}, err
+	}
 	if err := syncDirectoryContext(ctx, store.Root); err != nil {
 		return Artifact{}, fmt.Errorf("sync artifact store: %w", err)
+	}
+	if err := publicationCheckpoint(stepStoreDurable); err != nil {
+		return Artifact{}, err
 	}
 	return Artifact{Path: finalPath, Manifest: manifest, StoredBytes: storedBytes, TargetSharing: sharing}, nil
 }
@@ -252,7 +288,7 @@ func placePayload(ctx context.Context, payload Payload, destination string) (rec
 func validatePublicationPayloads(payloads []Payload) error {
 	seen := make(map[string]struct{}, len(payloads))
 	for _, payload := range payloads {
-		if payload.Path == "" || payload.Path == "manifest.json" || path.Clean(payload.Path) != payload.Path || filepath.IsAbs(filepath.FromSlash(payload.Path)) || strings.Contains(payload.Path, `\`) {
+		if payload.Path == "" || reservedArtifactFile(payload.Path) || path.Clean(payload.Path) != payload.Path || filepath.IsAbs(filepath.FromSlash(payload.Path)) || strings.Contains(payload.Path, `\`) {
 			return fmt.Errorf("invalid artifact payload path %q", payload.Path)
 		}
 		if _, duplicate := seen[payload.Path]; duplicate {
@@ -482,6 +518,55 @@ func formatMode(mode os.FileMode) string {
 	return fmt.Sprintf("%04o", mode.Perm())
 }
 
+// publicationStep names a durability point of PublishArtifact.
+type publicationStep string
+
+const (
+	stepPayloadsDurable publicationStep = "payloads-durable"
+	stepEnvelopeDurable publicationStep = "envelope-durable"
+	stepManifestDurable publicationStep = "manifest-durable"
+	stepStagingDurable  publicationStep = "staging-durable"
+	stepRenamed         publicationStep = "renamed"
+	stepStoreDurable    publicationStep = "store-durable"
+)
+
+// publicationCheckpoint runs after each durability point of a publication.
+// Tests replace it to stop a publication at that point, as a crash would.
+var publicationCheckpoint = func(publicationStep) error { return nil }
+
+// syncObserver, when set, sees each path a successful sync made durable.
+// Tests use it to check the publication's durability order.
+var syncObserver func(path string)
+
+// makeDurableDirectory creates directory and any missing parents with private
+// modes and syncs the parent of each directory it created, so the new
+// directory entries survive a crash before anything below them is published.
+func makeDurableDirectory(ctx context.Context, directory string) error {
+	var created []string
+	for current := filepath.Clean(directory); ; {
+		if _, err := os.Lstat(current); err == nil {
+			break
+		} else if !errors.Is(err, os.ErrNotExist) {
+			return err
+		}
+		created = append(created, current)
+		parent := filepath.Dir(current)
+		if parent == current {
+			break
+		}
+		current = parent
+	}
+	if err := os.MkdirAll(directory, 0o700); err != nil {
+		return err
+	}
+	for _, directory := range created {
+		if err := syncDirectoryContext(ctx, filepath.Dir(directory)); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func syncDirectory(path string) (operationErr, closeErr error) {
 	directory, err := os.Open(path)
 	if err != nil {
@@ -498,6 +583,9 @@ func syncDirectoryContext(ctx context.Context, path string) error {
 		return err
 	}
 	err, closeErr := syncDirectory(path)
+	if err == nil && syncObserver != nil {
+		syncObserver(path)
+	}
 	if err == nil {
 		err = ctx.Err()
 	}
@@ -516,6 +604,9 @@ func syncFileContext(ctx context.Context, file *os.File) error {
 	}
 	if err := file.Sync(); err != nil {
 		return err
+	}
+	if syncObserver != nil {
+		syncObserver(file.Name())
 	}
 	return ctx.Err()
 }

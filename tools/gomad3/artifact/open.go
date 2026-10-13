@@ -29,7 +29,10 @@ type Opened struct {
 }
 
 // OpenArtifact validates the artifact directory at path against its manifest
-// and returns a handle pinned to that directory.
+// and returns a handle pinned to that directory. It checks the storage
+// lineage before it reads the manifest: an artifact of another storage format,
+// including every artifact of an earlier Gomad, fails with an
+// UnsupportedFormatError and its manifest is not decoded.
 func OpenArtifact(path string) (*Opened, error) {
 	rootInfo, err := os.Lstat(path)
 	if err != nil {
@@ -49,6 +52,9 @@ func OpenArtifact(path string) (*Opened, error) {
 	if err != nil || !os.SameFile(rootInfo, pinnedInfo) {
 		return nil, errors.Join(fmt.Errorf("artifact directory changed while opening"), err, root.Close())
 	}
+	if err := checkStorageLineage(root); err != nil {
+		return nil, errors.Join(err, root.Close())
+	}
 	manifestBytes, err := readValidatedFile(root, "manifest.json", 0o600, maximumManifestBytes)
 	if err != nil {
 		return nil, errors.Join(fmt.Errorf("read artifact manifest: %w", err), root.Close())
@@ -61,6 +67,9 @@ func OpenArtifact(path string) (*Opened, error) {
 	for _, file := range manifest.Files {
 		if file.Path == "manifest.json" {
 			return nil, errors.Join(fmt.Errorf("manifest cannot list itself"), root.Close())
+		}
+		if file.Path == storageEnvelopeFile {
+			return nil, errors.Join(fmt.Errorf("manifest cannot list the storage envelope"), root.Close())
 		}
 		expected[filepath.FromSlash(file.Path)] = file
 	}
@@ -183,7 +192,7 @@ func validateDirectory(root *os.Root, directory string, expected map[string]reco
 			relative = filepath.ToSlash(filepath.Join(directory, relative))
 		}
 		if entry.Type()&os.ModeSymlink != 0 {
-			if relative != "manifest.json" {
+			if !reservedArtifactFile(relative) {
 				if _, listed := expected[filepath.FromSlash(relative)]; !listed {
 					return fmt.Errorf("artifact contains unlisted file %s", relative)
 				}
@@ -203,7 +212,7 @@ func validateDirectory(root *os.Root, directory string, expected map[string]reco
 			}
 			continue
 		}
-		if relative == "manifest.json" {
+		if reservedArtifactFile(relative) {
 			continue
 		}
 		file, listed := expected[filepath.FromSlash(relative)]
@@ -224,6 +233,12 @@ func validateDirectory(root *os.Root, directory string, expected map[string]reco
 		seen[filepath.FromSlash(relative)] = true
 	}
 	return nil
+}
+
+// reservedArtifactFile reports the top-level files that every artifact holds
+// besides the files its manifest lists.
+func reservedArtifactFile(relative string) bool {
+	return relative == "manifest.json" || relative == storageEnvelopeFile
 }
 
 func listedDirectory(directory string, expected map[string]record.File) bool {

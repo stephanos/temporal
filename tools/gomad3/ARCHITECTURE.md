@@ -514,10 +514,43 @@ I/O. Artifacts emitted with the deterministic-I/O identity retain their schema
 and identity compatibility.
 
 Artifact publication uses private staging, bounded files, content hashes,
-durability operations, and a no-replace rename. A manifest is written last.
-Interrupted work may leave explicit partial diagnostics but can never appear as
-a complete replayable artifact. Existing content-addressed artifacts are reused
-only after complete validation.
+durability operations, and a no-replace rename. Every payload, then the
+storage envelope `storage.json`, then the manifest is written and synced; then
+each staging directory, the rename, and the store root (and any directory
+publication created above it). `PublishArtifact` returns a reference only
+after all of them, so an owner records a reference in its durable state only
+after the artifact is durable; a crash at any step leaves at most an
+unreferenced artifact or staging directory. Interrupted work may leave
+explicit partial diagnostics but can never appear as a complete replayable
+artifact. Existing content-addressed artifacts are reused only after complete
+validation and a store sync.
+
+Artifact storage lineage is separate from the execution record. The storage
+envelope declares `gomad3.artifact-storage/v1`; `OpenArtifact` checks it before
+reading or decoding the manifest, which keeps `record.SchemaVersion`,
+`RecordContract` and the runtime choice/World/I/O/simulation encodings
+unchanged. An artifact of an earlier Gomad has no envelope and is refused as
+the unsupported format `pre-lineage`; a malformed envelope or another declared
+format is refused the same way (`artifact.UnsupportedFormatError`, matching
+`artifact.ErrUnsupportedFormat`). Nothing decodes or migrates older artifacts.
+`gomad inspect`, `replay` and `minimize` report the refusal as invalid input
+with status 2. The envelope is reserved like the manifest; it is not counted
+in an artifact's stored bytes, so artifact capacities and recorded byte counts
+keep their meaning.
+
+Cleanup is owned. `artifact.SweepOwnedRoot` takes one payload root its caller
+exclusively owns (holding the owner's lock) and the references the owner's
+final committed state still requires: artifacts, execution-owned files such as
+diagnostic sidecars and pending-result payloads, and borrowed artifacts that
+another owner holds. It validates every reference first; a missing or corrupt
+one is an `artifact.ReferenceError` (`artifact.ErrCorruptReference`) and nothing
+is removed. It then removes only unreferenced artifact directories, staging
+directories, and single-link regular files. A target pool, a pool entry, a
+file with other links, a symbolic link or any other entry fails the sweep
+before any removal: pools are pruned only by `PruneTargetPool`, and borrowed
+shard evidence only by its own owner. Removal failures keep their error
+identity. `artifact.PublishOwnedFile` publishes an execution-owned file durably
+before the caller references it.
 
 `artifact.Artifact` is a detached reference (`EVIDENCE.ARTIFACT`), including a
 manifest snapshot and publication accounting. `OpenArtifact` returns an owned
