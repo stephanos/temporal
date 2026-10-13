@@ -1,4 +1,6 @@
-package framework.`export`
+package framework.lint
+
+import framework.inspect.{Index, LiftError}
 
 import scala.annotation.tailrec
 import scala.collection.mutable
@@ -51,7 +53,11 @@ import scala.collection.mutable
 // holds specimens of other refusals, a val read before it is declared among them, and is left to
 // those refusals.
 // `admitted` are the sources a lift admits (Admission.scala): only those are read, every one by default.
-final private[`export`] class Order(index: Index, admitted: String => Boolean = _ => true):
+final private[framework] class Order(
+    index: Index,
+    admitted: String => Boolean = _ => true,
+    policy: ModulePolicy = ModulePolicy.Generic
+):
   import index.quotes.reflect.*
   import index.given
 
@@ -69,7 +75,7 @@ final private[`export`] class Order(index: Index, admitted: String => Boolean = 
     refused ++= Structure(index).refusals(
       exempt
     ) // R20, the folders and sections of a feature
-    refused ++= Conventions(index).refusals(exempt)
+    refused ++= Conventions(index, policy).refusals(exempt)
     refused.toSeq
       .sortBy((file, line, e) => (file, line, e.message))
       .map(_._3)
@@ -89,7 +95,9 @@ final private[`export`] class Order(index: Index, admitted: String => Boolean = 
     refused += ((fileOf(t), lineOf(t), LiftError(at(t), message)))
 
   private def exempt(file: String): Boolean =
-    !admitted(file) || (file.startsWith("model/framework/export/testdata/") && file.endsWith("Rejects.scala"))
+    !admitted(file) || (file.startsWith("model/framework/export/testdata/") && file.endsWith(
+      "Rejects.scala"
+    ))
 
   // R5 is about authored declarations and their semantic readers, not generated IR names.
   // Resolve the actual typed symbols, and compare every input of the selected tail class.
@@ -599,11 +607,11 @@ final private[`export`] class Order(index: Index, admitted: String => Boolean = 
             one(Kind.Watch)
           case "framework.dsl.Machine" | "framework.dsl.Composition" =>
             one(Kind.Machine)
-          case "framework.dsl.Property"                    => one(Kind.Claim)
-          case "framework.dsl.Progress"                    => one(Kind.Progress)
-          case "framework.dsl.Scenario"                    => one(Kind.Scenario)
+          case "framework.dsl.Property"                        => one(Kind.Claim)
+          case "framework.dsl.Progress"                        => one(Kind.Progress)
+          case "framework.dsl.Scenario"                        => one(Kind.Scenario)
           case "framework.dsl.Query" | "framework.dsl.Witness" => one(Kind.Query)
-          case "framework.dsl.IrFile"                      => one(Kind.File)
+          case "framework.dsl.IrFile"                          => one(Kind.File)
           case _ if w.baseClasses.exists(_.fullName == "framework.dsl.CapabilityOf") =>
             one(Kind.Capability)
           case _ if w.baseClasses.exists(_.fullName == "framework.dsl.Property") =>
@@ -871,7 +879,7 @@ final private[`export`] class Order(index: Index, admitted: String => Boolean = 
         // An assumption no machine makes of its own, which a derivation adds with `assuming` or
         // a progress claim names with `under`, is the feature's: it sits in the signature.
         case None if typed(d, Set("framework.dsl.Assumption")) => ()
-        case None                                          =>
+        case None                                              =>
           for k <- kindOf(d) do
             refuse(
               d,

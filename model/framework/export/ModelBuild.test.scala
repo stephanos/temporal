@@ -13,7 +13,7 @@ import framework.check.{Scratch, Tools}
 // What each suite reads of the Models is its coverage (fn-166.11): a fixture suite reads its own
 // fixture and the shared code it reaches; `Mini` suites also lift `features/activity_mini`; a test
 // that needs a real feature is held for the owner's sweep (`SweepHeld`) rather than deleted.
-private[`export`] object ModelBuild:
+private[framework] object ModelBuild:
   private val tools = Tools.here
   val directory: Path = tools.directory.resolve("model/build")
   val jar: Path = directory.resolve("model-scala.jar")
@@ -93,7 +93,7 @@ private[`export`] object ModelBuild:
 // A test held for the owner's sweep (fn-166.11): it reads a real feature, which the mini-only scope
 // leaves behind, so it is reported as ignored under its name, the feature it reads and this tag, and
 // kept, assertions and all, for the sweep to restore by dropping the hold.
-private[`export`] object SweepHeld:
+private[framework] object SweepHeld:
   val tag = munit.Tag("sweep-held")
 
   def apply(name: String, reads: String)(using munit.Location): munit.TestOptions =

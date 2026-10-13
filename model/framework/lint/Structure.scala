@@ -1,4 +1,6 @@
-package framework.`export`
+package framework.lint
+
+import framework.inspect.{Index, LiftError}
 
 import java.nio.file.{Files, Path}
 import scala.collection.mutable
@@ -53,7 +55,7 @@ import scala.jdk.CollectionConverters.*
 // Every feature of the Temporal Models (model/temporal/) is held to these rules, whatever its
 // folders. The lifter's fixtures, single-file features of their own rules, are held only where they
 // have a `product/` or `system/` folder, as the template and the refusal fixtures do.
-final private[`export`] class Structure(index: Index):
+final private[framework] class Structure(index: Index):
   import index.quotes.reflect.*
   import index.given
 
@@ -90,7 +92,8 @@ final private[`export`] class Structure(index: Index):
       .Try(t.pos.sourceFile.path)
       .map(p => index.sourceRoots.getOrElse(p, "") + p)
       .getOrElse("")
-  private def lineOf(t: Tree): Int = scala.util.Try(index.sourceLine(fileOf(t), t.pos.start)).getOrElse(0)
+  private def lineOf(t: Tree): Int =
+    scala.util.Try(index.sourceLine(fileOf(t), t.pos.start)).getOrElse(0)
   private def refuse(t: Tree, message: String): Unit =
     refuse(fileOf(t), lineOf(t), message)
   private def refuse(path: String, line: Int, message: String): Unit =
@@ -119,12 +122,13 @@ final private[`export`] class Structure(index: Index):
     def mirrors: Boolean =
       val folders = folder.split('/').filter(_.nonEmpty).toList
       val packages = feature.split('.').toList
-      val logical = packages.drop(packages.indexWhere(Set("features", "foundations", "actors")) + 1) ++ sub
+      val logical =
+        packages.drop(packages.indexWhere(Set("features", "foundations", "actors")) + 1) ++ sub
       val flat = logical match
         case kind :: form :: rest if Structure.formFolders(form) => (kind + "_" + form) :: rest
-        case _ => logical
+        case _                                                   => logical
       folders.takeRight(sub.size + 1) == (packages.last :: sub) ||
-        folders.takeRight(flat.size) == flat
+      folders.takeRight(flat.size) == flat
 
   private def source(path: String, trees: List[Tree]): Option[Source] =
     val top = topLevel(trees)
@@ -293,8 +297,8 @@ final private[`export`] class Structure(index: Index):
       case Inlined(_, Nil, value) => unwrapped(value)
       case _                      => t
     def arguments(t: Tree): List[Term] = t match
-      case Apply(fn, values) => arguments(fn) ++ values
-      case TypeApply(fn, _)  => arguments(fn)
+      case Apply(fn, values)  => arguments(fn) ++ values
+      case TypeApply(fn, _)   => arguments(fn)
       case Block(stats, last) =>
         stats.collect { case v: ValDef => v.rhs.toList }.flatten ++ arguments(last)
       case _ => Nil
@@ -361,7 +365,10 @@ final private[`export`] class Structure(index: Index):
                 s"name it after what it runs, ${names.distinct.mkString(" or ")}"
             )
           else if s.file != s"$name.scala" then
-            refuse(c, s"$name is declared in ${s.path}: a realization sits in a file named after it")
+            refuse(
+              c,
+              s"$name is declared in ${s.path}: a realization sits in a file named after it"
+            )
       if inRealization && s.file != "Kit.scala" && !s.objects.exists(c => realization(c.symbol))
       then
         refuse(
@@ -407,7 +414,8 @@ final private[`export`] class Structure(index: Index):
           val machines = o.objects.filter(c => form(c.symbol)).map(c => plain(c.name))
           machines.find(_.endsWith(levelName)).orElse(machines.headOption)
         }
-      val prefixes = (Seq(levelName) ++ primary ++ nearest("FacetName") ++ nearest("FamilyName")).distinct
+      val prefixes =
+        (Seq(levelName) ++ primary ++ nearest("FacetName") ++ nearest("FamilyName")).distinct
       val stem = s.file.stripSuffix(".scala")
       def starts(prefix: String) =
         stem == prefix || (stem.startsWith(prefix) && stem.charAt(prefix.length).isUpper)
@@ -513,8 +521,9 @@ final private[`export`] class Structure(index: Index):
     val kindLevels = general && hasProduct
     val inheritedLevels = inherited.nonEmpty && sources.exists(_.sub.headOption.contains(lower))
     val flatForm = name.split('_').toSeq
-    val productOnly = (kindForm || (flatForm.sizeIs == 2 && Structure.formFolders(flatForm.last))) &&
-      hasProduct && sources.forall(s => s.sub.isEmpty || s.sub == List("product"))
+    val productOnly =
+      (kindForm || (flatForm.sizeIs == 2 && Structure.formFolders(flatForm.last))) &&
+        hasProduct && sources.forall(s => s.sub.isEmpty || s.sub == List("product"))
     val twoLevels = pairs.nonEmpty || hasLevelFiles || kindLevels || inheritedLevels || productOnly
     if inheritedLevels && !sources.exists(_.path == systemPath)
     then
@@ -566,7 +575,7 @@ final private[`export`] class Structure(index: Index):
         for level <- required if !sources.exists(_.path == level)
         do refuse(refinement, s"$two; $level is missing")
       case None if hasLevelFiles || kindLevels || inheritedLevels || productOnly => ()
-      case None                                                   =>
+      case None                                                                  =>
         for s <- sources if s.sub.nonEmpty; first <- s.top.headOption do
           refuse(
             first,

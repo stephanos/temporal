@@ -10,7 +10,7 @@ import java.nio.file.Path
 // A system's lifter build registers its plug-in as a Java service, in a resource
 // `META-INF/services/framework.export.Plugin` that names its class; the lifter reads the first one
 // on its classpath, or the generic one, which knows no system.
-trait Plugin:
+trait Plugin extends framework.lint.ModulePolicy:
   // The package root of the system's Models and of its tools' halves (`temporal`).
   def root: String
 

@@ -38,6 +38,8 @@ object Coverage extends Registry:
     "**/.bsp/**" -> Area.Outside,
     "**/*.md" -> Area.Docs,
     "model/framework/export/**" -> Area.Lifter,
+    "model/framework/lint/**" -> Area.Lifter,
+    "model/framework/inspect/**" -> Area.Lifter,
     "model/temporal/export/**" -> Area.Lifter,
     "model/temporal/check/baselines/**" -> Area.Baselines,
     "model/framework/check/**" -> Area.Check,
@@ -81,7 +83,8 @@ object Coverage extends Registry:
       skipped = tooling.map(t => s"model/temporal/$t")
     )
   ) ++ Seq("lifter" -> "export", "check" -> "check", "migrate" -> "migrate").map((name, t) =>
-    val halves = Seq(s"model/framework/$t", s"model/temporal/$t")
+    val halves = Seq(s"model/framework/$t", s"model/temporal/$t") ++
+      (if t == "export" then Seq("model/framework/lint", "model/framework/inspect") else Nil)
     Module(name, halves, halves)
   )
 
@@ -159,16 +162,16 @@ object Coverage extends Registry:
     // The lifter's suites (fn-166.11): each builds its own fixtures under testdata against the
     // packaged Models, admitting only what the fixture's roots reach; these also lift or import the
     // mini feature. A test of a real feature inside them is held for the sweep (`SweepHeld`).
-    "framework.export.AdmissionSuite" -> lifter,
+    "framework.lint.AdmissionSuite" -> lifter,
     "framework.export.BoundedIntegersTest" -> lifter,
     "framework.export.BoundsTest" -> lifter.reading(mini),
     "framework.export.CapabilityNamesTest" -> lifter.reading(mini),
-    "framework.export.ConventionsFixtures" -> lifter.reading(mini),
+    "framework.lint.ConventionsFixtures" -> lifter.reading(mini),
     "framework.export.InputDeadlinePresetsTest" -> lifter.reading(mini),
     "framework.export.DeadlinePresetsSuite" -> lifter.reading(mini),
     "framework.export.DefaultEndsSuite" -> lifter,
     "framework.export.DerivedIds" -> lifter,
-    "framework.export.EligibleWitnessFixtures" -> lifter,
+    "framework.lint.EligibleWitnessFixtures" -> lifter,
     "framework.export.EnteringTest" -> lifter,
     "framework.export.FacetAdmissionTest" -> lifter.reading(mini),
     "framework.export.FacetsTest" -> lifter,
@@ -181,16 +184,20 @@ object Coverage extends Registry:
     "framework.export.ActivityHeartbeatFixtures" -> lifter,
     "framework.export.ExpectationFixtures" -> lifter,
     "framework.export.Fixtures" -> lifter.reading(mini),
+    "framework.export.LintStagesSuite" -> lifter.reading(mini),
+    "framework.lint.OrderFixtures" -> lifter,
+    "framework.lint.StructureFixtures" -> lifter,
+    "framework.lint.MarkersFixtures" -> lifter,
     "framework.export.GapResolutionSuite" -> lifter,
     "framework.export.GapsSuite" -> lifter,
     "framework.export.InputDefaultsTest" -> lifter,
-    "framework.export.LayoutFilesFixtures" -> lifter,
+    "framework.lint.LayoutFilesFixtures" -> lifter,
     "framework.export.ObservationsTest" -> lifter,
     "framework.export.Overlap" -> lifter,
     "framework.export.PhaseCapabilitiesSuite" -> lifter,
-    "framework.export.PropertyGroupsFixtures" -> lifter,
+    "framework.lint.PropertyGroupsFixtures" -> lifter,
     "framework.export.QualifiedNames" -> lifter.reading(mini),
-    "framework.export.QualifiedPhasesTest" -> lifter,
+    "framework.lint.QualifiedPhasesTest" -> lifter,
     "framework.export.QualifiedRulesTest" -> lifter,
     "framework.export.RolesSuite" -> lifter,
     "framework.export.SourcePositionsFixtures" -> lifter,

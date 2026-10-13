@@ -1,5 +1,7 @@
 package framework.`export`
 
+import framework.lint.Structure
+
 // The concerns of one lift over its context. They call one another, so each is a trait of its own
 // file and this class is where they meet.
 final private[`export`] class Lifting(val ctx: Context)
@@ -13,7 +15,6 @@ final private[`export`] class Lifting(val ctx: Context)
       Capabilities,
       Gaps,
       Syntax,
-      Markers,
       PhaseRoles:
   import ctx.*
   import ctx.quotes.reflect.*
@@ -171,8 +172,14 @@ final private[`export`] class Lifting(val ctx: Context)
             Some((s"$root.$form", s"$kind-$form", true))
           case _ :: feature :: _ =>
             val flat = feature.split('_').toSeq
-            Some((root, feature.replace('_', '-'), flat.sizeIs == 2 && Structure.formFolders(flat.last)))
-          case _                 => None
+            Some(
+              (
+                root,
+                feature.replace('_', '-'),
+                flat.sizeIs == 2 && Structure.formFolders(flat.last)
+              )
+            )
+          case _ => None
     def progress(v: ValDef) =
       val owner = v.symbol.maybeOwner
       isNamed(v.tpt.tpe, "framework.dsl.Progress") &&

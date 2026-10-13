@@ -266,7 +266,7 @@ The header:
 - `entity` is derived from the actions' `on`/`creates` and is written only where that is ambiguous;
   `unobservable` lists timers whose step records nothing a Run can read.
 
-The sections are objects named for what they hold and come in the order above; the IR generator's
+The sections are objects named for what they hold and come in the order above; the source checks'
 declaration-order lint refuses any other order and any section nested elsewhere. The two designated
 claim groups are the exception: `safety` and `liveness` sit directly inside `properties`. Inside the
 object `State` names the state type and `property`, `scenario` name the machine implicitly.
@@ -811,12 +811,14 @@ object ProtocolMember extends Derived(ActivityProtocol.unmonitored)
 A derived object adds only its own `states`, `properties`, `capabilities` and `queries`, and mixes
 in no `Phased` of its own: it reads its source's.
 
-**Markers.** `NegativeControl` marks a deliberately wrong design the checks must refute; the IR
-generator refuses one no lifted Query can refute (a `verify`, or a Run expected violated), one that
+**Markers.** `NegativeControl` marks a deliberately wrong design the checks must refute; the marker
+check refuses one no lifted Query can refute (a `verify`, or a Run expected violated), one that
 something refines, or one that declares a refinement. `FailureModel` marks the real design under a
 fault the environment can cause; it must bind a fault (an action of the actor `fault`) and not every
 Query of it may expect violation. A machine that binds a fault and is marked neither is refused.
 Markers change no name, ID, table or answer.
+The checks in `model/framework/lint` read the shared typed-tree index and the lifted Models after
+lifting and before any file is written, through the gate and the direct lift entry point alike.
 
 ## 15. Facets
 
@@ -1181,7 +1183,8 @@ assumptions it relies on and the work it took.
 | --- | --- |
 | the compiler | a step bound to an action of other inputs, a value of the wrong type, two levels' types compared, a `choose` of one, a `Recorded` case without status, a capability over another machine's types |
 | the framework, as objects construct | overlapping rules, a bare rule target, two facets binding one action, an input token not the action's, a phase writer that does not write the projection, a role with no case |
-| the IR generator, at the Scala line | unsupported constructs, wrong levels, unnamed branching, declaration order, section and file structure, a lambda where a def is required, names that would collide, negative controls nothing refutes, totals that are no literal, every realization form it can see |
+| the source checks, at the Scala line | declaration order, section and file structure, typed conventions and marker requirements, including negative controls nothing refutes; a refusal writes no IR |
+| the IR generator, at the Scala line | unsupported constructs, wrong levels, unnamed branching, a lambda where a def is required, names that would collide, totals that are no literal, every realization form it can see |
 | the reader, at admission | the IR-level rules above: catalogs, channels, Limits, totals, keys, recursion, realization consistency |
 | the reader, as it checks | holes, refinements, counterexamples, limits |
 

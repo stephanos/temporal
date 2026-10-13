@@ -500,6 +500,8 @@ by id.
 | `model/framework/dsl` | The DSL, package `framework.dsl`: what an author writes a Model with (`import framework.dsl.*`). It names no Temporal concept |
 | `model/framework/realize` | The generic realization core: the declarations any system needs, the open traits a system's kit extends, the script helpers and the protobuf authoring sugar (`field`, `proto`, `read`) |
 | `model/framework/export` | The IR generator (the lifter), package ``framework.`export` ``, with its suites beside it. `testdata` holds Models it must lift and Models it must refuse |
+| `model/framework/inspect` | The shared typed-tree index and positioned refusal type. One index reads each run's TASTy; lint and export share it |
+| `model/framework/lint` | Declaration-order, structure and typed convention checks before lifting, and marker checks after lifting. Its fixture suites sit beside their checks; fixture inputs stay under `export/testdata` to preserve authored positions |
 | `model/framework/check` | The checks' generic half: the one runner of tools, the change-scoped check (`ChangeCheck.scala`) over a system's coverage registry, `lint/` (comment, block-form, syntax, boundary rules and the literal scanner) and `equivalence/` (step tables, rename maps, ledgers, the lift comparison) |
 | `model/framework/migrate` | The migration harness, `prove.sh` ([README](framework/migrate/README.md)) |
 | `model/temporal` | The Models: `features`, grouped by kind (`nexus`, `activity`) and form (`workflow`, `standalone`), with one general file per kind and the form's feature file below it; `foundations/taskqueue`, the task queue features compose; `actors`, the shared worker and client; `Bounds.scala`, every Query bound; `capabilities`, shared capability Properties; and `realize`, Temporal's realization vocabulary (`Realize.scala`) and shared kit modules |
@@ -531,6 +533,15 @@ a framework source that declares, imports or names a Temporal package, or a fram
 takes a Temporal jar or source, and `make check-model-boundary` also compiles the framework's core,
 lifter and checks on their own. Temporal reaches the lifter through its plug-in
 (`framework/export/Plugin.scala`, a Java service `temporal/export` registers).
+
+The gate invokes `framework.export.checkAndLift` once. That run reports its source-lint,
+IR-lift and lifted-marker steps in order, sharing one `inspect.Index`; only after all three
+succeed does it write IR or waiver files. The direct `framework.export.lift` entry point runs
+the same checks. `lint` depends on `inspect`, TASTy and the generated IR types, never on
+`export`; `export` supplies the plug-in's `lint.ModulePolicy`. The marker interface takes the
+index, a lifted Model, its ordered declaration identities and its enabled-rule action IDs,
+so disabled fault bindings keep their existing meaning. Negative controls are checked against
+the Queries of the whole run before anything is written.
 
 #### Residual Temporal coupling (fn-169.2)
 
@@ -1501,7 +1512,7 @@ through that refinement; a Property of an unrelated machine is refused at the Qu
 A Scala object initializes its `val`s in the order they are written, and an object read while
 another initializes is initialized then. A feature file read top to bottom is therefore held to its
 order by a lint, which the IR generator runs over every source it reads before it lifts anything, in
-the gate and in each of its own fixture tests (`model/framework/export/Order.scala`). It refuses, each at its
+the gate and in each of its own fixture tests (`model/framework/lint/Order.scala`). It refuses, each at its
 line, as `lift: <file>:<line>: …`:
 
 | Kind | Refused | Fix |
@@ -1604,7 +1615,7 @@ it, following `model/framework/export/testdata/layout/kinds/`. An optional kind 
 each form's Protocol then refines that Product and keeps its own `protocol/Protocol.scala`. The three
 kind-layout refusal specimens are in `model/framework/export/testdata/layout/r4/`, each pinned at its source
 line by the fixture tests.
-The structure lint (`model/framework/export/Structure.scala`, fn-126 R20) refuses any other layout, and an
+The structure lint (`model/framework/lint/Structure.scala`, fn-126 R20) refuses any other layout, and an
 object in a machine object named other than `states`, `refinement`, `effects`, `monitors`, `rules`,
 `syncs`, `properties`, `capabilities` or `queries`; its refusal fixtures are under
 `model/framework/export/testdata/layoutRefusals/`. It holds every feature under `model/temporal/`, and a lifter

@@ -28,10 +28,8 @@ import scala.tasty.inspector.*
 import io.temporal.server.api.umpire.v1 as ir
 import org.json4s.jackson.JsonMethods
 import scalapb.json4s.Printer
-
-// A construct the IR cannot express, at the position the author wrote it.
-final case class LiftError(position: String, message: String)
-    extends Exception(s"$position: $message")
+import framework.inspect.Index
+import framework.lint.{unrefuted, Admission, GapAnnotations, Markers, Order, Refutation}
 
 // What one lifter run lifts: the roots named on its command line, or IR files a Model declares.
 enum Target:
@@ -45,7 +43,8 @@ enum Target:
 class Lifter(
     target: Target,
     prefixes: Map[String, String],
-    specs: () => SpecRegistry = () => SpecRegistry.flow(Path.of(""))
+    specs: () => SpecRegistry = () => SpecRegistry.flow(Path.of("")),
+    stage: String => Unit = _ => ()
 ) extends Inspector:
   // The Model of each IR file lifted, by the file's name; a lift of roots has one, named "".
   val models = mutable.LinkedHashMap.empty[String, ir.Model]
@@ -74,6 +73,10 @@ class Lifter(
 
   // What each negative control of every file lifted asks of the run's Queries.
   private val refutations = mutable.ArrayBuffer.empty[Refutation]
+  private val markerInputs = mutable.LinkedHashMap.empty[
+    String,
+    (Seq[(String, String)], Map[String, Set[String]])
+  ]
 
   // A lift error is kept rather than thrown through the compiler, which would report it as a crash.
   def inspect(using Quotes)(tastys: List[Tasty[quotes.type]]): Unit =
@@ -96,9 +99,11 @@ class Lifter(
             case _ => admission.all
       // The declaration-order lint reads every admitted source first: a Model it refuses would
       // be null or half made where it runs, so nothing of it is lifted.
-      val order = Order(index, admitted).refusals
+      stage("lint admitted sources")
+      val order = Order(index, admitted, Plugin.installed).refusals
       if order.nonEmpty then errors ++= order.map("" -> _)
       else
+        stage("lift IR")
         target match
           case Target.Roots(roots)  => liftFile(index, "", roots)
           case Target.IrFiles(only) =>
@@ -121,6 +126,13 @@ class Lifter(
               for (name, roots) <- chosen.sortBy(_._1) do liftFile(index, name, roots)
               // A gap on a declaration no IR file lifts declares nothing the lint reads.
               if only.isEmpty && errors.isEmpty then errors ++= unplaced(index).map("" -> _)
+        stage("check lifted markers")
+        val markers = Markers(index)
+        for (file, model) <- models do
+          val (declarations, ruled) = markerInputs(file)
+          val (marked, asked) = markers.refusals(model, declarations, ruled, file.nonEmpty)
+          errors ++= marked.map(file -> _)
+          refutations ++= asked
         errors ++= unrefuted(refutations.toSeq).map("" -> _)
         errors ++= derivedIdTwins(models.toSeq).map("" -> _)
     catch case e: LiftError => errors += "" -> e
@@ -150,12 +162,6 @@ class Lifter(
           errors += file -> e
           lifting.clear()
 
-    // What a machine is for, as its markers say, is held to what this file lifted with it, and a
-    // negative control to the Queries of the whole run.
-    val (marked, asked) = concerns.markerRefusals(everyLifted = file.nonEmpty)
-    errors ++= marked.map(file -> _)
-    refutations ++= asked
-
     errors ++= duplicateProperties(functions, properties.values.toSeq).map(file -> _)
 
     def sorted[K: Ordering, V](m: collection.Map[K, V]): Seq[V] = m.toSeq.sortBy(_._1).map(_._2)
@@ -175,6 +181,11 @@ class Lifter(
       queries = sorted(queries),
       progress = sorted(progress),
       realizations = sorted(realizations)
+    )
+    markerInputs(file) = (
+      machines.toSeq.map((key, m) => key -> m.name) ++
+        compositions.toSeq.map((key, c) => key -> c.name),
+      concerns.rulesOf.toMap.view.mapValues(_.keySet).toMap
     )
     phases ++= concerns.phases
     for stated <- sectionWaivers(ctx) do waivers(file) = stated
@@ -253,6 +264,15 @@ private[`export`] def derivedIdTwins(models: Seq[(String, ir.Model)]): Seq[LiftE
   val status = LiftRun.run(args, System.err, Switches.fromEnvironment)
   if status != 0 then sys.exit(status)
 
+@main def checkAndLift(args: String*): Unit =
+  val status = LiftRun.run(
+    args,
+    System.err,
+    Switches.fromEnvironment,
+    stage => System.err.println(s"== $stage")
+  )
+  if status != 0 then sys.exit(status)
+
 object LiftRun:
   // A lift's end before it writes anything, with the exit status `lift` ends its JVM with.
   final private class Ended(val status: Int) extends Exception(null, null, false, false)
@@ -261,13 +281,18 @@ object LiftRun:
   // `err`, and its exit status is returned rather than ending the JVM, so the lifter's tests lift
   // in-process. `rules` are the switched lifter rules turned on (Switches). Its scratch is deleted
   // when it returns.
-  def run(args: Seq[String], err: java.io.PrintStream, rules: Set[String]): Int =
+  def run(
+      args: Seq[String],
+      err: java.io.PrintStream,
+      rules: Set[String],
+      stage: String => Unit = _ => ()
+  ): Int =
     try
-      Switches.within(rules)(lifting(args, err))
+      Switches.within(rules)(lifting(args, err, stage))
       0
     catch case e: Ended => e.status
 
-  private def lifting(args: Seq[String], err: java.io.PrintStream): Unit =
+  private def lifting(args: Seq[String], err: java.io.PrintStream, stage: String => Unit): Unit =
     def usage(): Nothing =
       err.println(
         "usage: lift <jar=prefix>,... <classpath file> <out.json> <root>...\n" +
@@ -315,7 +340,7 @@ object LiftRun:
         .trim
         .split(java.io.File.pathSeparator)
         .toList
-      val lifter = Lifter(target, prefixes.toMap)
+      val lifter = Lifter(target, prefixes.toMap, stage = stage)
       TastyInspector.inspectAllTastyFiles(tastys, Nil, classpath)(lifter): Unit
       if lifter.errors.nonEmpty then
         if sys.env.contains("LIFT_DEBUG") then lifter.errors.foreach(_._2.printStackTrace())

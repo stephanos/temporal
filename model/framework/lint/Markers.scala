@@ -1,4 +1,6 @@
-package framework.`export`
+package framework.lint
+
+import framework.inspect.{Index, LiftError}
 
 import io.temporal.server.api.umpire.v1 as ir
 
@@ -25,10 +27,10 @@ import io.temporal.server.api.umpire.v1 as ir
 // A fault an action is bound to is one some state enables: an action `disabled` binds no fault.
 // A negative control's call on a run's Queries: its name, where its object is, and whether a Query
 // of one lift can refute it.
-final private[`export`] case class Refutation(control: String, at: String, refuted: Boolean)
+final private[framework] case class Refutation(control: String, at: String, refuted: Boolean)
 
 // The refusal of each negative control nothing the run checks can refute, once.
-private[`export`] def unrefuted(all: Seq[Refutation]): Seq[LiftError] =
+private[framework] def unrefuted(all: Seq[Refutation]): Seq[LiftError] =
   all
     .groupBy(_.control)
     .toSeq
@@ -43,18 +45,38 @@ private[`export`] def unrefuted(all: Seq[Refutation]): Seq[LiftError] =
         )
     }
 
-private[`export`] trait Markers:
-  self: Lifting =>
-  import ctx.*
-  import Equality.given
-  import ctx.quotes.reflect.*
+final private[framework] class Markers(index: Index):
+  import index.quotes.reflect.*
+  import index.given
+  given CanEqual[ir.RunExpectation.Outcome, ir.RunExpectation.Outcome] = CanEqual.derived
+  given CanEqual[ir.Query.Form, ir.Query.Form] = CanEqual.derived
+
+  private val machineClass = Symbol.requiredClass("framework.dsl.Machine")
+  private val compositionClass = Symbol.requiredClass("framework.dsl.Composition")
+  private val failureModelClass = Symbol.requiredClass("framework.dsl.FailureModel")
+  private val negativeControlClass = Symbol.requiredClass("framework.dsl.NegativeControl")
+
+  private def moduleClassOf(sym: Symbol): Symbol =
+    if sym.isClassDef then sym
+    else if sym.flags.is(Flags.Module) then sym.moduleClass
+    else Symbol.noSymbol
+
+  private def objectForm(sym: Symbol): Boolean =
+    val cls = moduleClassOf(sym)
+    !cls.isNoSymbol && cls.flags.is(Flags.Module) &&
+    (cls.typeRef.derivesFrom(machineClass) || cls.typeRef.derivesFrom(compositionClass))
 
   // Each refusal of the markers of what this lift lifted, at the declaring object's position, and
   // what each negative control asks of the run's Queries: whether a Query this lift lifted can
   // refute it. A run holds the whole run's Queries to it (Lift.scala): the gate's, every negative
   // control any IR file lifts; a lift of roots, the ones its Queries ask about, since a fixture may
   // lift a control as a composition's member alone.
-  def markerRefusals(everyLifted: Boolean): (Seq[LiftError], Seq[Refutation]) =
+  def refusals(
+      model: ir.Model,
+      declarations: Seq[(String, String)],
+      rulesOf: Map[String, Set[String]],
+      everyLifted: Boolean
+  ): (Seq[LiftError], Seq[Refutation]) =
     val refused = Seq.newBuilder[LiftError]
     val refutations = Seq.newBuilder[Refutation]
     def refuse(at: Option[ir.Position], message: String): Unit =
@@ -63,25 +85,26 @@ private[`export`] trait Markers:
 
     // The object each lifted machine and composition is declared by, where it is one.
     def objectOf(key: String): Option[Symbol] =
-      defs.keys
+      index.defs.keys
         .find(s => s.fullName == key && objectForm(s))
         .map(moduleClassOf)
     def marked(cls: Option[Symbol], marker: Symbol): Boolean =
       cls.exists(_.typeRef.derivesFrom(marker))
 
-    val faults = faultActions
+    val actions = model.actions.map(a => a.id -> a).toMap
+    val faults = model.actions.filter(_.actor == "fault").map(_.id).toSet
     // The actions a machine binds that some state enables: its rules' actions, or, where it binds
     // by step functions, every one.
     def fired(m: ir.Machine): Seq[String] =
       val bound = m.steps.map(_.action)
       rulesOf.get(m.name).fold(bound)(ruled => bound.filter(ruled.contains))
     def faultsOf(m: ir.Machine): Seq[String] = fired(m).filter(faults).distinct
-    val byName = machines.values.map(m => m.name -> m).toMap
+    val byName = model.machines.map(m => m.name -> m).toMap
     def compositionFaults(c: ir.Composition): Seq[String] =
       c.members.flatMap(member => byName.get(member.machine).toSeq.flatMap(faultsOf)).distinct
 
     def over(name: String): Seq[ir.Query] =
-      queries.values
+      model.queries
         .filter(_.getScenario.machine == name)
         .toSeq
     def violated(q: ir.Query): Boolean =
@@ -102,7 +125,7 @@ private[`export`] trait Markers:
         val p = at.getOrElse(ir.Position())
         val refuted = refinementChecked || over(name).exists(refutable)
         refutations += Refutation(name, s"${p.file}:${p.line}", refuted)
-      for m <- machines.values if m.refines.exists(_.product == name)
+      for m <- model.machines if m.refines.exists(_.product == name)
       do
         refuse(
           at,
@@ -111,7 +134,11 @@ private[`export`] trait Markers:
         )
       for c <- cls; tree <- scala.util.Try(c.tree).toOption do
         tree match
-          case body: ClassDef if sectionOf(body, "refinement").nonEmpty =>
+          case body: ClassDef if body.body.exists {
+                case s: ClassDef =>
+                  s.symbol.flags.is(Flags.Module) && s.name.stripSuffix("$") == "refinement"
+                case _ => false
+              } =>
             refuse(
               at,
               s"$name is a negative control, and declares a refinement of its own, as a feature's " +
@@ -135,8 +162,8 @@ private[`export`] trait Markers:
             "refuse is a negative control"
         )
 
-    for (key, m) <- machines do
-      val cls = objectOf(key)
+    for m <- model.machines.sortBy(m => declarations.indexWhere(_._2 == m.name)) do
+      val cls = declarations.find(_._2 == m.name).flatMap((key, _) => objectOf(key))
       val failure = marked(cls, failureModelClass)
       val negative = marked(cls, negativeControlClass)
       if failure && negative then
@@ -150,8 +177,8 @@ private[`export`] trait Markers:
             "marked neither a FailureModel, the real design under the fault, nor a " +
             "NegativeControl, a deliberately wrong one: mix in the one it is"
         )
-    for (key, c) <- compositions do
-      val cls = objectOf(key)
+    for c <- model.compositions.sortBy(c => declarations.indexWhere(_._2 == c.name)) do
+      val cls = declarations.find(_._2 == c.name).flatMap((key, _) => objectOf(key))
       val failure = marked(cls, failureModelClass)
       val negative = marked(cls, negativeControlClass)
       if failure && negative then
@@ -168,10 +195,3 @@ private[`export`] trait Markers:
             "wrong one: mix in the one it is"
         )
     (refused.result(), refutations.result())
-
-  // The Definition IDs of the faults: the actions the actor `fault` takes.
-  private def faultActions: Set[String] =
-    actions.values
-      .filter(_.actor == "fault")
-      .map(_.id)
-      .toSet

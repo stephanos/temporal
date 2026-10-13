@@ -1,5 +1,7 @@
 package framework.`export`
 
+import framework.lint.GapAnnotations
+
 import java.nio.file.{Files, Path}
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.*

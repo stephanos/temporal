@@ -106,7 +106,7 @@ final class ModelSources(root: Path, selection: Option[String]):
 object ModelSources:
   // The tools beside the Models, under model/framework and model/temporal: the lifter (export), the
   // checks and the migration harness. They are no Model source, so the Models' rules skip them.
-  val tools: Seq[String] = Seq("export", "check", "migrate")
+  val tools: Seq[String] = Seq("export", "lint", "inspect", "check", "migrate")
 
   // Whether a path, relative to the repository, is in one of the tools' directories.
   def tool(path: String): Boolean =

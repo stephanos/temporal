@@ -1,4 +1,6 @@
-package framework.`export`
+package framework.lint
+
+import framework.`export`.*
 
 import java.nio.file.Files
 import scala.concurrent.duration.*
@@ -91,12 +93,21 @@ class LayoutFilesFixtures extends munit.FunSuite with RetainedScratch:
     )
     // Accepted: a family prefix (BoilDry), a facet's (HeatingSlow), the level's (ProtocolMember),
     // the main run named after the feature (UrnRun), a subject's run (BoilDryRun) and the kit.
-    for accepted <- Seq("BoilDry.scala", "HeatingSlow.scala", "ProtocolMember.scala", "UrnRun", "BoilDryRun", "Kit.scala")
+    for accepted <- Seq(
+        "BoilDry.scala",
+        "HeatingSlow.scala",
+        "ProtocolMember.scala",
+        "UrnRun",
+        "BoilDryRun",
+        "Kit.scala"
+      )
     do assert(!refused.exists(_.contains(s"/$accepted")), accepted)
 
   // R13 on the kind fixture (layout/kinds): a form's root feature file is `<Form><Kind>.scala`, and
   // what two forms share sits under the kind's `shared/`, never beside the forms.
-  test("a misnamed form root and a shared Product beside the forms are refused, naming their files"):
+  test(
+    "a misnamed form root and a shared Product beside the forms are refused, naming their files"
+  ):
     val scratch = retained(build.resolve("history"), "layout-kinds.")
     val modelJar = build.resolve("model-scala.jar")
     def variant(name: String)(change: java.nio.file.Path => Unit) =
@@ -109,8 +120,18 @@ class LayoutFilesFixtures extends munit.FunSuite with RetainedScratch:
       change(tree)
       val jar = scratch.resolve(s"$name.jar")
       tools
-        .buildFixture(Seq("--power", "package", "--server=false", "--library", tree.toString, "-f", "-o",
-          jar.toString))
+        .buildFixture(
+          Seq(
+            "--power",
+            "package",
+            "--server=false",
+            "--library",
+            tree.toString,
+            "-f",
+            "-o",
+            jar.toString
+          )
+        )
         .orFail(): Unit
       val result = InProcess.lift(
         tools.directory,
@@ -148,16 +169,20 @@ class LayoutFilesFixtures extends munit.FunSuite with RetainedScratch:
         stream.iterator.asScala.filter(_.toString.endsWith(".scala")).foreach { file =>
           Files.writeString(
             file,
-            Files.readString(file).replace("relay.shared.product", "relay.product")
+            Files
+              .readString(file)
+              .replace("relay.shared.product", "relay.product")
               .replace("package shared\npackage product", "package product")
           ): Unit
         }
       finally stream.close()
     }
     assert(
-      besideRefusals.exists(_.contains(
-        s"$beside/relay/product/Product.scala is in $beside/relay/product/, which is no level " +
-          "folder of relay: a kind keeps its sources in its general file, shared/product/ and named forms"
-      )),
+      besideRefusals.exists(
+        _.contains(
+          s"$beside/relay/product/Product.scala is in $beside/relay/product/, which is no level " +
+            "folder of relay: a kind keeps its sources in its general file, shared/product/ and named forms"
+        )
+      ),
       besideRefusals.mkString("\n")
     )

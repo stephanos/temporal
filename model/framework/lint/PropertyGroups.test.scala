@@ -1,4 +1,6 @@
-package framework.`export`
+package framework.lint
+
+import framework.`export`.*
 
 import java.nio.file.{Files, Path}
 import scala.jdk.CollectionConverters.*

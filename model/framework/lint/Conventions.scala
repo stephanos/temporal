@@ -1,9 +1,11 @@
-package framework.`export`
+package framework.lint
+
+import framework.inspect.{Index, LiftError}
 
 import scala.collection.mutable
 import java.nio.file.{Files, Path}
 
-final private[`export`] class GapAnnotations(val index: Index):
+final private[framework] class GapAnnotations(val index: Index):
   val quotes: index.quotes.type = index.quotes
   import quotes.reflect.*
   import index.given
@@ -166,7 +168,10 @@ final private[`export`] class GapAnnotations(val index: Index):
       .getOrElse(d.at.startLine + 1)
     s"$path:$line"
 
-final private[`export`] class Conventions(index: Index):
+final private[framework] class Conventions(
+    index: Index,
+    plugin: ModulePolicy = ModulePolicy.Generic
+):
   import index.quotes.reflect.*
   import index.given
 
@@ -176,7 +181,6 @@ final private[`export`] class Conventions(index: Index):
   private val finite = Symbol.requiredClass("framework.dsl.Finite")
   private val sourceText = mutable.Map.empty[String, String]
   private val importedRefusals = mutable.Set.empty[(String, String, String)]
-  private val plugin = Plugin.installed
 
   private def packageOf(s: Symbol): String =
     Iterator

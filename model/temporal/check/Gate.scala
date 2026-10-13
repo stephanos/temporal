@@ -1138,12 +1138,12 @@ final class Gate(tools: Tools, log: PrintStream):
               .orFail()
             ""
         )
-    val modelLifts = beside("lift each selected feature's IR"):
+    val modelLifts = beside("lint sources, lift each selected feature's IR and check its markers"):
       // One lifter run reads the Models' TASTy once and writes one IR file per feature, collected
       // from its package, each lifted apart; its refusals name the file they were lifting.
       val arguments = ("run" +: lifter) ++ Seq(
         "--main-class",
-        "framework.export.lift",
+        "framework.export.checkAndLift",
         "--",
         "--ir",
         s"$modelJar=model/",
@@ -1151,6 +1151,7 @@ final class Gate(tools: Tools, log: PrintStream):
         lifted.toString
       ) ++ selection.features.map(_.replace('/', '-').replace('_', '-'))
       val ran = tools.scalaCli(arguments)
+      ran.output.linesIterator.filter(_.startsWith("== ")).foreach(log.println)
       if ran.failed then
         throw GateError(
           s"the Models' IR files did not lift:\n${ran.diagnostics}"

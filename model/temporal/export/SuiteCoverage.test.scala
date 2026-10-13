@@ -10,7 +10,7 @@ import temporal.check.Coverage
 // features/activity_mini: they assert on its lift, or build fixtures that import it. A test of a real
 // feature is held for the sweep (`SweepHeld`), not listed.
 class LifterCoverageSuite extends munit.FunSuite:
-  private val lifter = Seq("framework.export.", "temporal.export.")
+  private val lifter = Seq("framework.export.", "framework.lint.", "temporal.export.")
 
   test("every lifter suite the coverage registry names is a suite of the lifter's tests"):
     val mini = Coverage.suites.collect {

@@ -1,5 +1,9 @@
 package framework.`export`
 
+import framework.lint.{Order, Structure}
+
+import framework.inspect.Index
+
 import java.nio.file.Files
 import java.util.zip.ZipFile
 import scala.collection.mutable

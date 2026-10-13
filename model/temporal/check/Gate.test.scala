@@ -1309,11 +1309,11 @@ class GateSuite extends munit.FunSuite:
     for feature <- ModelSources(repository.root, None).features do
       assert(answer.out.contains(s"feature $feature: behind"), answer.out)
     // Positional IR names scope the lifter without naming Model declaration roots.
-    val lifts = repository.ran.filter(_.contains("--main-class framework.export.lift"))
+    val lifts = repository.ran.filter(_.contains("--main-class framework.export.checkAndLift"))
     assertEquals(lifts.size, 1, lifts.mkString("\n"))
     assert(
       lifts.head.matches(
-        """scala-cli run model/framework/export model/temporal/export --main-class framework.export.lift .*-- --ir \S+=model/ \S+ \S+ bell door lamp"""
+        """scala-cli run model/framework/export model/temporal/export --main-class framework.export.checkAndLift .*-- --ir \S+=model/ \S+ \S+ bell door lamp"""
       ),
       lifts.head
     )
@@ -1330,7 +1330,7 @@ class GateSuite extends munit.FunSuite:
     assert(answer.err.contains("generated/answer.case.json is stale"), answer.err)
     // The lifts beside it ended and were reported before the Cases.
     assert(
-      answer.out.indexOf("== lift each selected feature's IR") <
+      answer.out.indexOf("== lint sources, lift each selected feature's IR and check its markers") <
         answer.out.indexOf("== check every lowered Case"),
       answer.out
     )

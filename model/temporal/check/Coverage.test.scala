@@ -47,7 +47,7 @@ class CoverageSuite extends munit.FunSuite:
     assert(selected("framework.export.MiniLayoutFixtures"))
     assert(selected("framework.dsl.AnswerEnteringTest"))
     assert(selected("temporal.migrate.QueueAliasTest"))
-    assert(!selected("framework.export.AdmissionSuite"))
+    assert(!selected("framework.lint.AdmissionSuite"))
     assert(!selected("framework.dsl.RulesTest"))
     assert(!selected("temporal.check.GateSuite"))
 
@@ -92,6 +92,8 @@ class CoverageSuite extends munit.FunSuite:
 
   test("the fn-169 homes of the lifter, the checks and the harness keep their areas"):
     assertEquals(Coverage.area("model/framework/export/Lift.scala"), Area.Lifter)
+    assertEquals(Coverage.area("model/framework/lint/Order.scala"), Area.Lifter)
+    assertEquals(Coverage.area("model/framework/inspect/Index.scala"), Area.Lifter)
     assertEquals(Coverage.area("model/temporal/export/Realizations.scala"), Area.Lifter)
     assertEquals(Coverage.area("model/framework/check/Gate.scala"), Area.Check)
     assertEquals(Coverage.area("model/temporal/check/Gate.scala"), Area.Check)

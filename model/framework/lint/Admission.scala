@@ -1,4 +1,6 @@
-package framework.`export`
+package framework.lint
+
+import framework.inspect.Index
 
 import scala.collection.mutable
 
@@ -18,7 +20,7 @@ import scala.collection.mutable
 //
 // A lift of every IR file its sources declare admits every source, as before: the full-feature lift
 // holds each source to the lints whether or not a root reaches it.
-final private[`export`] class Admission(index: Index):
+final private[framework] class Admission(index: Index):
   import index.quotes.reflect.*
   import index.given
 

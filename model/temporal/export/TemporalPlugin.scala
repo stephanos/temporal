@@ -2,7 +2,8 @@ package temporal.`export`
 
 import java.nio.file.Path
 import scala.jdk.CollectionConverters.*
-import framework.`export`.{Plugin, Structure}
+import framework.`export`.Plugin
+import framework.lint.Structure
 
 // Temporal's plug-in to the generic lifter (framework/export/Plugin.scala): the module map of the
 // Temporal Models, which the lifter's import lint holds them to (R4, Conventions.scala), and the
