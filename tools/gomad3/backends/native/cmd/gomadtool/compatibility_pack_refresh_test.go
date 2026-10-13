@@ -1,12 +1,15 @@
 package main
 
 import (
+	"archive/zip"
 	"bytes"
 	"context"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -16,11 +19,13 @@ import (
 	"syscall"
 	"testing"
 
+	nativebuild "go.temporal.io/server/tools/gomad3/backends/native/build"
 	compatibility "go.temporal.io/server/tools/gomad3/backends/native/compatibilitypack"
 	"go.temporal.io/server/tools/gomad3/backends/native/compatibilitypack/authoring"
 	"go.temporal.io/server/tools/gomad3/backends/native/upgrade/pinimpact"
 	"go.temporal.io/server/tools/gomad3/target"
 	"golang.org/x/mod/module"
+	"golang.org/x/mod/sumdb/dirhash"
 )
 
 const refreshDependency = "example.test/refreshdependency"
@@ -490,5 +495,505 @@ func TestSavedReportCannotSuppressAnotherMappedModule(t *testing.T) {
 	saved.savedIdentity.candidateCombined = "sha256:stale-candidate"
 	if _, err := mergeSavedPackImpact(live, saved, directories); !pinimpact.IsInputError(err) {
 		t.Fatalf("stale report error = %v, want invalid input", err)
+	}
+}
+
+type resolvedRefreshFixture struct {
+	t           *testing.T
+	root        string
+	packRoot    string
+	goCommand   string
+	goRoot      string
+	directories map[string]string
+	reviewed    map[string]target.CapabilityReview
+	approvals   map[string]string
+}
+
+func newResolvedRefreshFixture(t *testing.T) *resolvedRefreshFixture {
+	t.Helper()
+	root, err := filepath.Abs("../../../..")
+	if err != nil {
+		t.Fatal(err)
+	}
+	goCommand, goRoot := refreshSourceGo(t)
+	fixture := &resolvedRefreshFixture{t: t, root: root, packRoot: filepath.Join(t.TempDir(), "packs"), goCommand: goCommand, goRoot: goRoot, directories: map[string]string{}, reviewed: map[string]target.CapabilityReview{}, approvals: map[string]string{}}
+	proxy := t.TempDir()
+	proxyVersions := filepath.Join(proxy, refreshDependency, "@v")
+	if err := os.MkdirAll(proxyVersions, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	for _, version := range []string{"v1.0.0", "v1.1.0", "v1.2.0", "v1.3.0"} {
+		goMod := "module " + refreshDependency + "\n\ngo 1.21\n"
+		source := "package runtime\n\nimport \"syscall\"\n\nvar Err = syscall.EINVAL\nconst Version = " + fmt.Sprintf("%q", version) + "\n"
+		if version == "v1.3.0" {
+			source = "package runtime\n\nconst Version = \"v1.3.0\"\n"
+		}
+		var archive bytes.Buffer
+		writer := zip.NewWriter(&archive)
+		for _, file := range []struct{ name, contents string }{{"go.mod", goMod}, {"runtime/runtime.go", source}} {
+			entry, err := writer.Create(refreshDependency + "@" + version + "/" + file.name)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if _, err := entry.Write([]byte(file.contents)); err != nil {
+				t.Fatal(err)
+			}
+		}
+		if err := writer.Close(); err != nil {
+			t.Fatal(err)
+		}
+		for name, contents := range map[string][]byte{version + ".mod": []byte(goMod), version + ".info": fmt.Appendf(nil, `{"Version":%q,"Time":"2026-01-01T00:00:00Z"}`, version), version + ".zip": archive.Bytes()} {
+			if err := os.WriteFile(filepath.Join(proxyVersions, name), contents, 0o600); err != nil {
+				t.Fatal(err)
+			}
+		}
+		if sum, err := dirhash.HashZip(filepath.Join(proxyVersions, version+".zip"), dirhash.Hash1); err != nil {
+			t.Fatal(err)
+		} else {
+			t.Logf("proxy %s@%s zip %s", refreshDependency, version, sum)
+		}
+	}
+	t.Setenv("GOPROXY", "file://"+filepath.ToSlash(proxy))
+	t.Setenv("GOSUMDB", "off")
+	t.Setenv("GOMODCACHE", t.TempDir())
+	t.Setenv(compatibility.ExternalPacksEnvironment, "")
+	platform := runtime.GOOS + "/" + runtime.GOARCH
+	for _, id := range []string{"pack-a", "pack-b"} {
+		directory := filepath.Join(filepath.Dir(fixture.packRoot), id)
+		if err := os.MkdirAll(directory, 0o700); err != nil {
+			t.Fatal(err)
+		}
+		fixture.directories[id] = directory
+		fixture.candidate(id, "v1.0.0")
+		draft := authoring.Request{
+			Schema: authoring.RequestSchema, ID: id,
+			Target:     authoring.Target{Kind: target.KindGoRun, Package: ".", ExpectedModule: "example.test/" + id, TestArguments: []string{}, BuildTags: []string{"test_dep"}},
+			Activation: []authoring.Activation{{Path: refreshDependency}},
+			Packages:   []authoring.Package{{ImportPath: refreshDependency + "/runtime", Facts: []authoring.Fact{{Kind: authoring.FactCapability, Capability: "import:syscall", Disposition: authoring.DispositionAllow, Directives: []string{}}}}},
+			Owner:      "runtime-team", ReviewedAt: "2026-10-08T00:00:00Z", Justification: "Resolved refresh source fixture.", Workloads: []string{"refresh-fixture"}, Platforms: []string{platform},
+		}
+		review, err := fixture.review(t.Context(), draft, directory)
+		if err != nil {
+			t.Fatal(err)
+		}
+		request, digest, err := authoring.Discover(draft, review)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := authoring.Generate(fixture.packRoot, request, digest); err != nil {
+			t.Fatal(err)
+		}
+		fixture.approvals[id] = digest
+	}
+	fixture.table(`{"directory":"../pack-a","request":"pack-a"},{"directory":"../pack-b","request":"pack-b"}`)
+	runGit(t, filepath.Dir(fixture.packRoot), "init", "-q")
+	runGit(t, filepath.Dir(fixture.packRoot), "add", ".")
+	runGit(t, filepath.Dir(fixture.packRoot), "commit", "-q", "-m", "baseline")
+	previous := compatibilityPackReviewer
+	compatibilityPackReviewer = func(string) authoring.Reviewer { return fixture.review }
+	t.Cleanup(func() { compatibilityPackReviewer = previous })
+	fixture.reviewed = map[string]target.CapabilityReview{}
+	return fixture
+}
+
+func (fixture *resolvedRefreshFixture) candidate(id, version string) {
+	fixture.t.Helper()
+	directory := fixture.directories[id]
+	for name, contents := range map[string]string{
+		"go.mod":  fmt.Sprintf("module example.test/%s\n\ngo 1.27.1\n\nrequire %s %s\n", id, refreshDependency, version),
+		"main.go": "package main\n\nimport dependency \"" + refreshDependency + "/runtime\"\n\nfunc main() { println(dependency.Version) }\n",
+	} {
+		if err := os.WriteFile(filepath.Join(directory, name), []byte(contents), 0o600); err != nil {
+			fixture.t.Fatal(err)
+		}
+	}
+	command := exec.CommandContext(fixture.t.Context(), fixture.goCommand, "mod", "download", "-modcacherw", refreshDependency+"@"+version)
+	command.Dir = directory
+	if output, err := command.CombinedOutput(); err != nil {
+		fixture.t.Fatalf("resolve %s@%s: %v\n%s", id, version, err, output)
+	}
+}
+
+func (fixture *resolvedRefreshFixture) review(ctx context.Context, request authoring.Request, directory string) (target.CapabilityReview, error) {
+	spec := request.ReviewSpec(directory, fixture.goRoot)
+	review, err := nativebuild.ReviewCapabilities(ctx, spec)
+	if err == nil {
+		fixture.reviewed[request.ID] = review
+	}
+	return review, err
+}
+
+func (fixture *resolvedRefreshFixture) table(entries string) {
+	fixture.t.Helper()
+	contents := `{"requests":[` + entries + `],"schema":"` + authoring.WorkingDirectoriesSchema + `"}` + "\n"
+	if err := os.WriteFile(filepath.Join(fixture.packRoot, authoring.WorkingDirectoriesFile), []byte(contents), 0o600); err != nil {
+		fixture.t.Fatal(err)
+	}
+}
+
+func (fixture *resolvedRefreshFixture) request(id string) authoring.Request {
+	fixture.t.Helper()
+	contents, err := os.ReadFile(filepath.Join(fixture.packRoot, "requests", id+".json"))
+	if err != nil {
+		fixture.t.Fatal(err)
+	}
+	request, err := authoring.DecodeRequest(contents)
+	if err != nil {
+		fixture.t.Fatal(err)
+	}
+	return request
+}
+
+func (fixture *resolvedRefreshFixture) files() map[string]string {
+	fixture.t.Helper()
+	files := map[string]string{}
+	if err := filepath.WalkDir(fixture.packRoot, func(path string, entry os.DirEntry, err error) error {
+		if err != nil || entry.IsDir() {
+			return err
+		}
+		contents, err := os.ReadFile(path)
+		files[path] = string(contents)
+		return err
+	}); err != nil {
+		fixture.t.Fatal(err)
+	}
+	return files
+}
+
+func (fixture *resolvedRefreshFixture) refresh(extra ...string) string {
+	fixture.t.Helper()
+	arguments := append([]string{"compatibility-pack", "refresh", "--root=" + fixture.root, "--compatibility-root=" + fixture.packRoot, "--go=" + fixture.goCommand}, extra...)
+	var stdout, stderr bytes.Buffer
+	if status := run(arguments, &stdout, &stderr); status != 1 || stderr.Len() != 0 {
+		fixture.t.Fatalf("refresh status = %d, stdout = %s, stderr = %s", status, &stdout, &stderr)
+	}
+	return stdout.String()
+}
+
+func TestRunCompatibilityPackRefreshResolvesTwoModulesAndKeepsPartialApproval(t *testing.T) {
+	fixture := newResolvedRefreshFixture(t)
+	fixture.candidate("pack-a", "v1.1.0")
+	fixture.candidate("pack-b", "v1.2.0")
+	for name, entries := range map[string]string{
+		"unmapped":       `{"directory":"../pack-a","request":"pack-a"}`,
+		"absolute":       `{"directory":"/pack-a","request":"pack-a"},{"directory":"../pack-b","request":"pack-b"}`,
+		"missing module": `{"directory":"../missing","request":"pack-a"},{"directory":"../pack-b","request":"pack-b"}`,
+	} {
+		t.Run(name, func(t *testing.T) {
+			fixture.table(entries)
+			before := fixture.files()
+			var stdout, stderr bytes.Buffer
+			status := run([]string{"compatibility-pack", "refresh", "--root=" + fixture.root, "--compatibility-root=" + fixture.packRoot, "--go=" + fixture.goCommand}, &stdout, &stderr)
+			if status != 2 || stdout.Len() != 0 || stderr.Len() == 0 || !maps.Equal(before, fixture.files()) || len(fixture.reviewed) != 0 {
+				t.Fatalf("invalid mapping status = %d, stdout = %s, stderr = %s, reviewed = %v", status, &stdout, &stderr, fixture.reviewed)
+			}
+		})
+	}
+	fixture.table(`{"directory":"../pack-a","request":"pack-a"},{"directory":"../pack-b","request":"pack-b"}`)
+	output := fixture.refresh()
+	digests := map[string]string{}
+	for id, version := range map[string]string{"pack-a": "v1.1.0", "pack-b": "v1.2.0"} {
+		matches := regexp.MustCompile(`(?m)^awaiting-approval ` + id + ` (sha256:[0-9a-f]{64}) \(invalidated .*` + regexp.QuoteMeta(version) + `.*\)$`).FindStringSubmatch(output)
+		if len(matches) != 2 {
+			t.Fatalf("missing resolved %s candidate %s in %s", id, version, output)
+		}
+		digests[id] = matches[1]
+		request := fixture.request(id)
+		if request.ApprovalSHA256 != "" || request.Activation[0].Evidence.Version != version || request.Packages[0].Evidence.Module.Version != version {
+			t.Fatalf("candidate %s request = %+v", id, request)
+		}
+		var resolved bool
+		for _, pkg := range fixture.reviewed[id].Closure.Packages {
+			if pkg.ImportPath == refreshDependency+"/runtime" && pkg.Module.Version == version && pkg.Module.Sum == request.Activation[0].Evidence.Sum && len(pkg.Sources) == 1 && pkg.Sources[0].SHA256 == request.Packages[0].Evidence.GoSources[0].SHA256 {
+				resolved = true
+			}
+		}
+		if !resolved {
+			t.Fatalf("stock closure did not resolve %s in %s", version, fixture.directories[id])
+		}
+		t.Logf("stock Go %s command %s root %s reviewed %s in %s; actual candidate %s@%s sum %s source %s fresh approval %s", runtime.Version(), fixture.goCommand, fixture.goRoot, id, fixture.directories[id], refreshDependency, version, request.Activation[0].Evidence.Sum, request.Packages[0].Evidence.GoSources[0].SHA256, digests[id])
+	}
+	before := fixture.files()
+	var stdout, stderr bytes.Buffer
+	generate := []string{"compatibility-pack", "generate", "--root=" + fixture.root, "--compatibility-root=" + fixture.packRoot, "--request=requests/pack-a.json"}
+	if status := run(append(generate, "--approve-review="+fixture.approvals["pack-a"]), &stdout, &stderr); status != 1 || !maps.Equal(before, fixture.files()) {
+		t.Fatalf("older approval status = %d, stdout = %s, stderr = %s", status, &stdout, &stderr)
+	}
+	stdout.Reset()
+	stderr.Reset()
+	if status := run(append(generate, "--approve-review="+digests["pack-a"]), &stdout, &stderr); status != 0 {
+		t.Fatalf("approve fresh request status = %d, stderr = %s", status, &stderr)
+	}
+	approved := fixture.files()
+	fixture.reviewed = map[string]target.CapabilityReview{}
+	output = fixture.refresh()
+	if !strings.Contains(output, ": 1 requests selected\n") || !strings.Contains(output, "awaiting-approval pack-b "+digests["pack-b"]) || len(fixture.reviewed) != 1 || fixture.reviewed["pack-b"].Schema != target.CapabilityReviewSchema || fixture.request("pack-a").ApprovalSHA256 != digests["pack-a"] || !maps.Equal(approved, fixture.files()) {
+		t.Fatalf("partial-approval rerun = %s", output)
+	}
+	if err := authoring.Check(fixture.packRoot); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func refreshSourceGo(t *testing.T) (string, string) {
+	t.Helper()
+	command, err := exec.LookPath("go")
+	if err != nil {
+		t.Fatal(err)
+	}
+	output, err := exec.CommandContext(t.Context(), command, "env", "GOROOT").CombinedOutput()
+	if err != nil {
+		t.Fatalf("resolve stock Go root: %v\n%s", err, output)
+	}
+	root := strings.TrimSpace(string(output))
+	if !filepath.IsAbs(root) {
+		t.Fatalf("stock Go root is not absolute: %q", root)
+	}
+	return command, root
+}
+
+func TestRunCompatibilityPackRefreshContinuesAfterActualDiscoveryFailure(t *testing.T) {
+	fixture := newResolvedRefreshFixture(t)
+	fixture.candidate("pack-a", "v1.3.0")
+	fixture.candidate("pack-b", "v1.2.0")
+	before := fixture.request("pack-a")
+	artifacts := fixture.files()
+	output := fixture.refresh()
+	if !strings.Contains(output, "failed pack-a: discover compatibility-pack facts for "+refreshDependency+"/runtime: requested capability import:syscall is absent") || !strings.Contains(output, "awaiting-approval pack-b") || fixture.request("pack-a").ApprovalSHA256 != before.ApprovalSHA256 || fixture.request("pack-b").ApprovalSHA256 != "" {
+		t.Fatalf("discovery failure/continuation = %s", output)
+	}
+	encodedBefore, err := json.Marshal(before)
+	if err != nil {
+		t.Fatal(err)
+	}
+	encodedAfter, err := json.Marshal(fixture.request("pack-a"))
+	if err != nil || !bytes.Equal(encodedBefore, encodedAfter) {
+		t.Fatalf("failed request changed: %v", err)
+	}
+	after := fixture.files()
+	for _, relative := range []string{"requests/pack-a.json", "reports/pack-a.md", "packs/pack-a.json"} {
+		path := filepath.Join(fixture.packRoot, relative)
+		if artifacts[path] == "" || artifacts[path] != after[path] {
+			t.Fatalf("failed request artifact changed: %s", relative)
+		}
+	}
+	if len(fixture.reviewed) != 2 {
+		t.Fatalf("both actual stock closures must execute, got %v", fixture.reviewed)
+	}
+	t.Logf("actual %s discovery lacked syscall and failed; %s continued to fresh approval", fixture.request("pack-a").ID, fixture.request("pack-b").ID)
+}
+
+func TestRunCompatibilityPackRefreshDiagnosticsPreservePrimaryStatus(t *testing.T) {
+	root, err := filepath.Abs("../../../..")
+	if err != nil {
+		t.Fatal(err)
+	}
+	goCommand, _ := refreshSourceGo(t)
+	for _, name := range []string{"usage", "authoring root", "missing table", "missing requests", "missing Go", "live impact", "saved impact", "authoring refresh"} {
+		t.Run(name, func(t *testing.T) {
+			packRoot := t.TempDir()
+			maintainerWrite(t, packRoot, authoring.WorkingDirectoriesFile, `{"requests":[],"schema":"`+authoring.WorkingDirectoriesSchema+`"}`+"\n")
+			requests := filepath.Join(packRoot, "requests")
+			if err := os.Mkdir(requests, 0o700); err != nil {
+				t.Fatal(err)
+			}
+			arguments := []string{"compatibility-pack", "refresh", "--root=" + root, "--compatibility-root=" + packRoot, "--go=" + goCommand}
+			status, diagnostic := 2, ""
+			switch name {
+			case "usage":
+				arguments, diagnostic = []string{"compatibility-pack", "refresh"}, compatibilityPackRefreshUsage+"\n"
+			case "authoring root":
+				arguments = []string{"compatibility-pack", "refresh", "--root=" + root, "--compatibility-root=relative"}
+				diagnostic = "--compatibility-root \"relative\" must be an absolute, clean path\n"
+			case "missing table":
+				if err := os.Remove(filepath.Join(packRoot, authoring.WorkingDirectoriesFile)); err != nil {
+					t.Fatal(err)
+				}
+				diagnostic = "compatibility-pack working-directory table working-directories.json is not a bounded regular file\n"
+			case "missing requests":
+				if err := os.Remove(requests); err != nil {
+					t.Fatal(err)
+				}
+				_, readErr := os.ReadDir(requests)
+				if !errors.Is(readErr, os.ErrNotExist) {
+					t.Fatalf("request directory refusal = %v", readErr)
+				}
+				status, diagnostic = 3, fmt.Sprintf("read compatibility-pack requests: %v\n", readErr)
+			case "missing Go":
+				missing := filepath.Join(packRoot, "missing-go")
+				arguments = append(arguments, "--go="+missing)
+				_, pathErr := exec.LookPath(missing)
+				if !errors.Is(pathErr, os.ErrNotExist) {
+					t.Fatalf("Go executable refusal = %v", pathErr)
+				}
+				status, diagnostic = 3, fmt.Sprintf("compatibility-pack refresh requires a go command; set GOMAD3_BOOTSTRAP_GO or pass --go: %v\n", pathErr)
+			case "live impact":
+				fixture := newResolvedRefreshFixture(t)
+				packRoot = fixture.packRoot
+				fixture.table(`{"directory":"../missing","request":"pack-a"},{"directory":"../pack-b","request":"pack-b"}`)
+				arguments = []string{"compatibility-pack", "refresh", "--root=" + root, "--compatibility-root=" + packRoot, "--go=" + goCommand}
+				_, readErr := os.ReadFile(filepath.Join(filepath.Dir(packRoot), "missing", "go.mod"))
+				if !errors.Is(readErr, os.ErrNotExist) {
+					t.Fatalf("live module refusal = %v", readErr)
+				}
+				diagnostic = fmt.Sprintf("read module file: %v\n", readErr)
+			case "saved impact":
+				path := filepath.Join(packRoot, "invalid-impact.json")
+				maintainerWrite(t, packRoot, "invalid-impact.json", "invalid JSON")
+				arguments = append(arguments, "--impact-report="+path)
+				diagnostic = "invalid pin-impact report\n"
+			case "authoring refresh":
+				previous := compatibilityPackReviewer
+				compatibilityPackReviewer = func(string) authoring.Reviewer {
+					if err := os.Remove(requests); err != nil {
+						t.Fatal(err)
+					}
+					return func(context.Context, authoring.Request, string) (authoring.CapabilityReview, error) {
+						t.Fatal("missing request directory must refuse before discovery")
+						return authoring.CapabilityReview{}, nil
+					}
+				}
+				t.Cleanup(func() { compatibilityPackReviewer = previous })
+				status = 3
+				diagnostic = fmt.Sprintf("read compatibility-pack requests: %v\n", &os.PathError{Op: "open", Path: requests, Err: syscall.ENOENT})
+			}
+			before := maintainerSnapshot(t, packRoot)
+			for _, failed := range []bool{false, true} {
+				if name == "authoring refresh" && failed {
+					if err := os.Mkdir(requests, 0o700); err != nil {
+						t.Fatal(err)
+					}
+				}
+				var stdout, stderr bytes.Buffer
+				actual := 0
+				if failed {
+					writer := newRefreshOutput(t, 0)
+					actual = run(arguments, &stdout, writer)
+					if !errors.Is(writer.err, syscall.EBADF) {
+						t.Fatalf("diagnostic write error = %v, want actual EBADF", writer.err)
+					}
+					t.Log("diagnostic write executed and returned EBADF")
+				} else {
+					actual = run(arguments, &stdout, &stderr)
+					if stderr.String() != diagnostic {
+						t.Fatalf("healthy diagnostic = %q, want %q", &stderr, diagnostic)
+					}
+					t.Logf("healthy status %d diagnostic %q", actual, &stderr)
+				}
+				if actual != status || stdout.Len() != 0 || !maps.Equal(before, maintainerSnapshot(t, packRoot)) {
+					t.Fatalf("failed=%t primary status=%d stdout=%q, want %d and preserved files", failed, actual, &stdout, status)
+				}
+			}
+		})
+	}
+	t.Run("absolute root", func(t *testing.T) {
+		directory := t.TempDir()
+		t.Chdir(directory)
+		t.Setenv("PWD", "")
+		if err := os.Remove(directory); err != nil {
+			t.Fatal(err)
+		}
+		_, workingDirectoryError := os.Getwd()
+		if !errors.Is(workingDirectoryError, os.ErrNotExist) {
+			t.Fatalf("deleted working directory error = %v", workingDirectoryError)
+		}
+		arguments := []string{"compatibility-pack", "refresh", "--root=."}
+		var stdout, stderr bytes.Buffer
+		if status := run(arguments, &stdout, &stderr); status != 2 || stderr.String() != workingDirectoryError.Error()+"\n" || stdout.Len() != 0 {
+			t.Fatalf("healthy absolute-root refusal status=%d stdout=%q stderr=%q", status, &stdout, &stderr)
+		}
+		diagnostics := newRefreshOutput(t, 0)
+		if status := run(arguments, &stdout, diagnostics); status != 2 || !errors.Is(diagnostics.err, syscall.EBADF) || stdout.Len() != 0 {
+			t.Fatalf("failed absolute-root diagnostic status=%d error=%v", status, diagnostics.err)
+		}
+		t.Logf("healthy status 2 diagnostic %q; failed diagnostic executed actual EBADF", &stderr)
+	})
+}
+
+type refreshOutput struct {
+	bytes.Buffer
+	file      *os.File
+	remaining int
+	err       error
+}
+
+func (output *refreshOutput) Write(contents []byte) (int, error) {
+	if output.remaining > 0 {
+		output.remaining--
+		return output.Buffer.Write(contents)
+	}
+	written, err := output.file.Write(contents)
+	output.err = err
+	return written, err
+}
+
+func newRefreshOutput(t *testing.T, successfulWrites int) *refreshOutput {
+	t.Helper()
+	path := filepath.Join(t.TempDir(), "stdout")
+	if err := os.WriteFile(path, nil, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	file, err := os.Open(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		if err := file.Close(); err != nil {
+			t.Error(err)
+		}
+	})
+	return &refreshOutput{file: file, remaining: successfulWrites}
+}
+
+func TestRunCompatibilityPackRefreshOutputFailure(t *testing.T) {
+	root, err := filepath.Abs("../../../..")
+	if err != nil {
+		t.Fatal(err)
+	}
+	goCommand, err := exec.LookPath("go")
+	if err != nil {
+		t.Fatal(err)
+	}
+	packRoot := t.TempDir()
+	if err := os.Mkdir(filepath.Join(packRoot, "requests"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+	table := []byte("{\"requests\":[],\"schema\":\"gomad3.compatibility-pack-working-directories/v1\"}\n")
+	if err := os.WriteFile(filepath.Join(packRoot, authoring.WorkingDirectoriesFile), table, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	arguments := []string{"compatibility-pack", "refresh", "--root=" + root, "--compatibility-root=" + packRoot, "--go=" + goCommand}
+	var stdout, stderr bytes.Buffer
+	if status := run(arguments, &stdout, &stderr); status != 0 {
+		t.Fatalf("empty refresh status = %d, stderr = %s", status, &stderr)
+	}
+	want := fmt.Sprintf("gomad3 compatibility-pack refresh on %s/%s: 0 requests selected\n", runtime.GOOS, runtime.GOARCH)
+	if stdout.String() != want || stderr.Len() != 0 {
+		t.Fatalf("empty refresh stdout = %q, stderr = %q", &stdout, &stderr)
+	}
+	for _, test := range []struct {
+		name      string
+		arguments []string
+		status    int
+	}{
+		{name: "invalid input", arguments: []string{"compatibility-pack", "refresh"}, status: 2},
+		{name: "missing go", arguments: append(arguments, "--go="+filepath.Join(t.TempDir(), "missing-go")), status: 3},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			output := newRefreshOutput(t, 0)
+			var stderr bytes.Buffer
+			if status := run(test.arguments, output, &stderr); status != test.status || output.err != nil || stderr.Len() == 0 {
+				t.Fatalf("status = %d, stdout write error = %v, stderr = %q", status, output.err, &stderr)
+			}
+		})
+	}
+	output := newRefreshOutput(t, 0)
+	status := run(arguments, output, &stderr)
+	if !errors.Is(output.err, syscall.EBADF) {
+		t.Fatalf("stdout write error = %v, want EBADF", output.err)
+	}
+	t.Logf("stdout write observed EBADF after 0 successful writes")
+	if status != 3 || stderr.Len() != 0 {
+		t.Fatalf("stdout failure status = %d, stderr = %q", status, &stderr)
 	}
 }
