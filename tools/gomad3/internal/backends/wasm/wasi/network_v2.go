@@ -314,6 +314,9 @@ func (e *Environment) networkV2Advance(now uint64) error {
 			return err
 		}
 	}
+	if _, err := n.model.AdvanceBefore(now); err != nil {
+		return err
+	}
 	ids, err := n.model.Advance(now)
 	if err != nil {
 		return err

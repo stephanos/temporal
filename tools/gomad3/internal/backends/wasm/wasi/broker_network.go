@@ -180,6 +180,9 @@ func (n *brokerNetwork) advance(now uint64) error {
 		}
 		n.fault++
 	}
+	if _, err := n.model.AdvanceBefore(now); err != nil {
+		return err
+	}
 	_, err := n.model.Advance(now)
 	return err
 }

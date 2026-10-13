@@ -448,6 +448,13 @@ func (m *Model) AdvanceBefore(now uint64) ([]uint64, error) {
 		return nil, errors.New("network clock moved backwards or overflowed")
 	}
 	var ids []uint64
+	for next := m.nextDeadline(); next != 0 && next < now; next = m.nextDeadline() {
+		var err error
+		ids, err = m.advance(max(next, uint64(m.network.now.UnixNano())))
+		if err != nil {
+			return nil, err
+		}
+	}
 	if now > uint64(m.network.now.UnixNano()) {
 		var err error
 		ids, err = m.advance(now - 1)
@@ -509,6 +516,10 @@ func (m *Model) advance(now uint64) ([]uint64, error) {
 func (m *Model) NextDeadline() uint64 {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+	return m.nextDeadline()
+}
+
+func (m *Model) nextDeadline() uint64 {
 	if m.network.finished {
 		return 0
 	}

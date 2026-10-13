@@ -77,6 +77,71 @@ func TestNetworkV2PendingDialTimeoutAndCallerDeadlineStatuses(t *testing.T) {
 	}
 }
 
+func TestNetworkV2ClockPollLeapPreservesEarlierDialDeadline(t *testing.T) {
+	for _, scheduledHeal := range []bool{false, true} {
+		t.Run(strconv.FormatBool(scheduledHeal), func(t *testing.T) {
+			config := streamConfig()
+			config.Limits.StallNanos = 10
+			if scheduledHeal {
+				config.Faults = []NetworkFaultV2{{Name: "heal", Action: "heal", AtNanos: 100}}
+			}
+			e := streamEnvironment(t, config)
+			l := streamCall(t, e, streamFrame(1, 1, 0, 0, 0, 0, nil))
+			if err := e.networkV2.model.Partition(e.networkV2.client.Node, e.networkV2.server.Node, true); err != nil {
+				t.Fatal(err)
+			}
+			r := streamCall(t, e, streamFrame(2, 2, 0, 5, binary.BigEndian.Uint32(l[48:]), 0, nil))
+			if binary.BigEndian.Uint32(r[40:]) != 1 {
+				t.Fatal("disabled-link dial did not wait")
+			}
+			clock := call(t, e, "poll_oneoff", `{"subscriptions":[{"userdata":1,"type":0,"clock_id":1,"timeout":100,"precision":0,"flags":1}]}`)
+			if clock.Errno != 0 || e.now != 100 {
+				t.Fatalf("cooperative poll leap failed: errno=%d now=%d", clock.Errno, e.now)
+			}
+			r = streamCall(t, e, streamFrame(12, 2, 0, 0, 0, 0, nil))
+			if got := binary.BigEndian.Uint32(r[44:]); got != 73 {
+				t.Fatalf("later stall overtook earlier caller deadline: status=%d want=73", got)
+			}
+		})
+	}
+}
+
+func TestBrokerLeapPreservesEarlierDialDeadline(t *testing.T) {
+	for _, scheduledHeal := range []bool{false, true} {
+		t.Run(strconv.FormatBool(scheduledHeal), func(t *testing.T) {
+			config := brokerTestConfig()
+			config.Network = streamConfig()
+			config.Network.Limits.StallNanos = 10
+			if scheduledHeal {
+				config.Faults = []BrokerNetworkFault{{Name: "heal", Action: "heal", From: "a", To: "b", AtNanos: 100, Symmetric: true}}
+			}
+			b, err := NewBroker(config)
+			if err != nil {
+				t.Fatal(err)
+			}
+			client, _ := b.network.domains(b.Session("a"))
+			_, server := b.network.domains(b.Session("b"))
+			m := b.network.model
+			l := m.Dispatch(netmodel.Request{Domain: server, Op: "listen", RequestID: 1})
+			if l.Error != "" {
+				t.Fatal(l)
+			}
+			if err := b.ChangeLink("partition", "a", "b", 0, true); err != nil {
+				t.Fatal(err)
+			}
+			if r := m.Dispatch(netmodel.Request{Domain: client, Op: "dial", Host: server.Address, Port: l.Local.Port, Deadline: 5, RequestID: 2}); r.State != "pending" {
+				t.Fatal(r)
+			}
+			if err := b.network.advance(100); err != nil {
+				t.Fatal(err)
+			}
+			if r := m.Dispatch(netmodel.Request{Domain: client, Op: "poll", RequestID: 2}); r.Error != "context deadline exceeded" {
+				t.Fatalf("later stall overtook earlier caller deadline: %+v", r)
+			}
+		})
+	}
+}
+
 func TestNetworkV2ScheduledPartitionUsesFaultTime(t *testing.T) {
 	config := streamConfig()
 	config.Limits.StallNanos = 10
