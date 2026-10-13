@@ -40,6 +40,9 @@ Root owns Flow, MILESTONES, review and integration. fn153.21 owns archcheck edge
 
 **Tagged-relocation consumer Touches:** [cmd/tools/lintcode/main.go, cmd/tools/lintcode/main_test.go, .github/workflows/gomad3-smoke.yml]
 Limit changes to removing obsolete integration-module routing and preserving relocated tagged qualification selection; default lint behavior and actual qualification gates stay unchanged. Root coordinates the exact native qualification testdata fixture prefix with fn153.21's inventory.go owner.
+
+**Surviving-check consumer Touches:** [tools/gomad3/backends/wasm/architecture_test.go, .github/workflows/gomad3.yml]
+Remove only the WASM public-signature branch and obsolete gomad3integration path triggers; retain actual WASM purity assertions and qualification selections. The replacement native qualification paths are already covered by tools/gomad3 triggers.
 ## Acceptance
 The module top level holds only cmd, internal and testdata, and internal/ holds runner, backends, evidence, model, host and archcheck; Git renames preserve history; full WASM gate set passes on the integrated candidate.
 
