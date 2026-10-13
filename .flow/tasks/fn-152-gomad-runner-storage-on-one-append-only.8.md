@@ -40,13 +40,41 @@ Follow the parent spec's Delivery and verification section. Retain exact selecto
 - [ ] R9: public projections retain classified outcomes, replay evidence and existing byte/count/novelty/lifecycle fields whose semantics survive the storage rewrite.
 
 ## Done summary
-TBD
+Implemented read-only append-only inspection for campaign, merged-campaign, and direct corpus stores, migrated active consumers to log-backed projections, and added stable human/JSON invalid-store diagnostics under `gomad3.inspect/v8`. Inspection takes one replay snapshot, never acquires a writer lock or repairs state, reports torn tails without mutation, and separates corruption encoded in the log from failures in external borrowed evidence.
 
+### Design report
+
+- Campaign, merged-campaign, and corpus inspection project committed state from append-only replay reports, including lineage, validated bytes/records, snapshot bytes, tail state, lifecycle/frontier state, source provenance, and applicable count/byte limits.
+- Recognized malformed or semantically invalid current-format stores return `InvalidStoreError` with a structured report; the CLI renders that report alone on stderr and returns status 2. Unsupported lineage remains distinct, while healthy and observed torn-tail snapshots return status 0 without repair.
+- Merged-log envelope and embedded-source semantic defects carry a dedicated corruption marker. Pure embedded-state validation runs before external artifact resolution, so missing/corrupt borrowed files retain ordinary external-error behavior.
+- The public inspection schema is `gomad3.inspect/v8`. The corresponding README reference remains assigned to documentation task `.9` and was deliberately excluded from this task's implementation range.
+
+### Acceptance-to-test mapping
+
+- R9 campaign/merged/corpus human and JSON projection: `TestInspectReportsAGuidedCorpusFromItsLog`, `TestMergedCampaignInspectionReportsTheShardsCombinedTotals`, `TestRunInspectReportsAGuidedCorpusDirectory`, and `TestPrintInspectionReportsCommittedStateRoundsAndMergedSources`.
+- R9 structured corruption, stderr/status handling, delivery failure, and validated prefix: `TestInspectDiagnosesADamagedLogAsAnInvalidStore`, `TestInspectClassifiesInvalidCurrentCorpusHeadersAsCorruption`, `TestRunInspectDiagnosesAnInvalidStoreOnStderrOnly`, plus the merged relative-path and missing-publication subtests in `TestMergedCampaignInspectionReportsTheShardsCombinedTotals`.
+- R1/R9 torn-tail and concurrent read-only behavior: `TestInspectObservesATornCampaignTailWithoutRepairingIt`, `TestInspectReportsCampaignLogStateWhileAWriterAppends`, and `TestInspectCampaignStoreReadsALiveLogWithoutRepairingIt`.
+- R1/R8 metadata and lineage guards: `TestInspectRejectsANonPrivateCorpusRootWithoutMutation`, `TestReadLogRefusesARootThatIsNotADirectory`, and the current-format corpus identity/admission corruption cases.
+- R2/R8/R9 consumer and public-projection compatibility: `TestCreateCampaignPlanPublishesCanonicalPreparedTargetBundle`, the CLI projection tests above, the architecture/purity checks, and the external runner-consumer conformance build exercised by the WASM/validation gates.
+
+### Verification
+
+- Baseline and final Quick: `go -C tools/gomad3 test -tags test_dep -count=1 ./runner/internal/logstore ./runner/internal/corpus` — green.
+- Stock Go 1.27.1 WASM gate: `make -C tools/gomad3 test-wasm GOMAD3_STOCK_GO=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go` — green; WASI completed in 290.090s.
+- All task-focused inspection tests, including merged semantic corruption, repeated with `-count=5` — green.
+- `go -C tools/gomad3 test -tags test_dep -race -count=1 ./runner/internal/...` — green.
+- `make -C tools/gomad3 validate` and `GOMAD3_ARCH_ALL_PLATFORMS=1 go -C tools/gomad3 test -tags test_dep -count=1 ./internal/archcheck ./internal/puritycheck` — green.
+- Task-scoped Gomad lint with stock Go 1.27.1 and repository linters — green. A whole-repository fast-lint probe exposed only the pre-existing `cmd/tools/lintcode/main.go` cyclomatic finding outside this task and is not counted as task evidence.
+- The broad portable `./runner` package is not reported as a gate: on this linux/arm64 host it includes known native-host/toolchain cases that are outside the parent Quick command. The required portable-focused, race, validation, architecture, and supported WASM surfaces are green.
+
+stage: impl-review - ran [2026-10-13T06:08Z..2026-10-13T06:45Z] (SHIP, bounded three-round fix loop)
+Tier: session (jev-unavailable(no_key))
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: d344601348cd0a2a0e12ef951fef5bb0fd135c9e, b8857c437807b6f828f81b2f3a31b0f86e81ac18, 992bba73fd25b75aea3f375e95f5f43aea2ce782
+- Tests: go -C tools/gomad3 test -tags test_dep -count=1 ./runner/internal/logstore ./runner/internal/corpus, make -C tools/gomad3 test-wasm GOMAD3_STOCK_GO=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin/go, go -C tools/gomad3 test -tags test_dep -run '^(TestInspectReportsCampaignLogStateWhileAWriterAppends|TestInspectObservesATornCampaignTailWithoutRepairingIt|TestInspectDiagnosesADamagedLogAsAnInvalidStore|TestInspectClassifiesInvalidCurrentCorpusHeadersAsCorruption|TestInspectRejectsANonPrivateCorpusRootWithoutMutation|TestAppendOnlyStoreInspectionUsesVersionedSchema|TestInspectReportsAGuidedCorpusFromItsLog|TestMergedCampaignInspectionReportsTheShardsCombinedTotals)$' -count=5 ./runner, go -C tools/gomad3 test -tags test_dep -run '^TestInspectCampaignStoreReadsALiveLogWithoutRepairingIt$' -count=5 ./runner/internal/campaign, go -C tools/gomad3 test -tags test_dep -run '^TestReadLogRefusesARootThatIsNotADirectory$' -count=5 ./runner/internal/corpus, go -C tools/gomad3 test -tags test_dep -run '^(TestRunInspectDiagnosesAnInvalidStoreOnStderrOnly|TestRunInspectReportsATornTailWithoutRepairingIt|TestRunInspectReportsAGuidedCorpusDirectory|TestPrintInspectionReportsCommittedStateRoundsAndMergedSources)$' -count=5 ./cmd/gomad/internal/cli, go -C tools/gomad3 test -tags test_dep -race -count=1 ./runner/internal/..., make -C tools/gomad3 validate, GOMAD3_ARCH_ALL_PLATFORMS=1 go -C tools/gomad3 test -tags test_dep -count=1 ./internal/archcheck ./internal/puritycheck, PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:$PATH make GOLANGCI_LINT_BASE_REV=cbee7a6f8fd7a28d2c1f23acd7a3f9b9faf61692 GOLANGCI_LINT_FIX=false GOLANGCI_LINT=.flow/tmp/fn152-8-linux-tools/golangci-lint ERRORTYPE=.flow/tmp/fn152-8-linux-tools/errortype lint-code-gomad3
 - PRs:
-
 ## Progress (2026-10-13, aborted before acceptance)
 
 Implementation committed, unmerged: `08bff5e6a1` on branch `fn152-inspect` (worktree `/tmp/fn156-final/fn152g-wt`, base `31c34a520d`): "inspect campaign, merged and corpus logs through one read-only replay", 29 files, +1486/−235.
