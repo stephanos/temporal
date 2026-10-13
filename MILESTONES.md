@@ -235,7 +235,6 @@ These fn-109 tasks change Runner, artifact, choice-exploration and simulation ow
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-152.2](.flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.2.md) | ⬜ Todo | Gate artifact lineage and owned live-reference cleanup |
 | [fn-152.3](.flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.3.md) | ⬜ Todo | Replace campaign lifecycle, recovery and resume files with one log |
 | [fn-152.4](.flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.4.md) | ⬜ Todo | Integrate durable seed outcomes, scheduling and resume |
 | [fn-152.5](.flow/tasks/fn-152-gomad-runner-storage-on-one-append-only.5.md) | ⬜ Todo | Commit both exploration strategies through one atomic round owner |
