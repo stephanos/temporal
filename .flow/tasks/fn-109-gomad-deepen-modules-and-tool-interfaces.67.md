@@ -22,9 +22,10 @@ Configured lint is the meaningful failing check. Baseline and successor bounded 
 
 
 ## Done summary
-TBD
+Spin lint corrected while preserving busy host workloads. Completed under the 2026-10-13 WASM-queue shared-subset closeout amendment; fast tier on gomad c9ac570968 (portable failure set unchanged, architecture, lint, validate, test-wasm).
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 41727a2ce2
+- Tests: .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-67/ (reviewed evidence), fast tier on c9ac570968, evidence: .flow/artifacts/wasm-section-acceptance-2026-10-12.md
 - PRs:
