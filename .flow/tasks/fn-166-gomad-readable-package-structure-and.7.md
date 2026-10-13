@@ -29,6 +29,14 @@ These additional exact consumers may receive import/type/call migration only, wi
 **Move-bound lint policy Touches:** [.github/.golangci.yml, cmd/tools/lintcode/lint_policy_test.go]
 
 The preserved impossible validated-choice-kind panic may receive one new exclusion at its relocated exact runner/inspect/inspect.go path, matching only the existing source line and forbidigo message. Bind the path/source and lookalike/mutated-message negatives in lint policy tests; no generic panic exception is approved. Existing rule inventory changes only for this one relocation.
+
+### Public-library retirement source lane (2026-10-13)
+
+Revival: complete the approved R7/R9 tool-only end state alongside fn153 audit corrections. This lane retires public signature/type-alias/forwarding-alias and external-consumer contract checks, preserving actual ownership, import, effect/purity, CI and selection guards. Remove obsolete gomad3integration wrappers but move tagged qualification fixtures to the native qualification owner before removal. No replacement public facades. Full six-group relocation and task acceptance remain in the rotation batch.
+
+**Library-retirement Touches:** [tools/gomad3/internal/archcheck/architecture_test.go, tools/gomad3/internal/puritycheck/signatures.go, tools/gomad3/internal/puritycheck/check_test.go, tools/gomad3/runner/integration_test.go, tools/gomad3/runner/testdata/runnerconsumer/**, tools/gomad3/backends/native/conformance/testdata/runner_external/**, tools/gomad3/backends/native/qualification/**, tools/gomad3integration/**, Makefile, tools/gomad3/Makefile]
+
+Root owns Flow, MILESTONES, review and integration. fn153.21 owns archcheck edges.go/inventory.go; this lane must not edit them. Inventory native external fixture users before removal; preserve unrelated fixture assertions. Ask for exact additional consumer paths before edits. Intermediate architecture public-signature red is expected until approved retirement; no ownership/purity rule weakening is authorized.
 ## Acceptance
 The module top level holds only cmd, internal and testdata, and internal/ holds runner, backends, evidence, model, host and archcheck; Git renames preserve history; full WASM gate set passes on the integrated candidate.
 
