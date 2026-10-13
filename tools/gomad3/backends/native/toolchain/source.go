@@ -251,72 +251,47 @@ func download(ctx context.Context, client *http.Client, config SourceSpec, archi
 	if response.StatusCode < http.StatusOK || response.StatusCode >= http.StatusMultipleChoices {
 		return fmt.Errorf("request source archive: HTTP status %s", response.Status)
 	}
-	temporary, err := os.CreateTemp(config.CacheDir, ".source-archive-*")
+	digest := sha256.New()
+	var fillErr error
+	var readErr error
+	staged, err := hostfs.StageContext(ctx, config.CacheDir, ".source-archive-*", 0o644, func(ctx context.Context, writer io.Writer) error {
+		written, err := copyWithContext(ctx, io.MultiWriter(writer, digest), io.LimitReader(response.Body, maximumDownloadBytes+1))
+		if err != nil {
+			readErr = err
+			fillErr = err
+			return fillErr
+		}
+		if written > maximumDownloadBytes {
+			fillErr = fmt.Errorf("source archive download exceeds %d bytes", maximumDownloadBytes)
+			return fillErr
+		}
+		actual := fmt.Sprintf("%x", digest.Sum(nil))
+		if actual != config.SHA256 {
+			fillErr = fmt.Errorf("source archive checksum mismatch: got %s, want %s", actual, config.SHA256)
+			return fillErr
+		}
+		return nil
+	})
 	if err != nil {
-		return fmt.Errorf("create source archive download: %w", err)
+		reportedFillErr := fillErr
+		if readErr != nil {
+			reportedFillErr = fmt.Errorf("download source archive: %w", readErr)
+		}
+		return preserveStagedFillError(err, fillErr, reportedFillErr)
 	}
-	temporaryPath := temporary.Name()
-	published := false
 	defer func() {
-		if err := os.Remove(temporaryPath); err != nil && (!published || !errors.Is(err, os.ErrNotExist)) {
-			if retErr == nil {
-				retErr = err
-			} else {
-				retErr = errors.Join(retErr, err)
-			}
+		if err := staged.Cleanup(); err != nil {
+			retErr = errors.Join(retErr, err)
 		}
 	}()
-	digest := sha256.New()
-	written, copyErr := copyWithContext(ctx, io.MultiWriter(temporary, digest), io.LimitReader(response.Body, maximumDownloadBytes+1))
-	if copyErr != nil {
-		closeErr := temporary.Close()
-		retErr = fmt.Errorf("download source archive: %w", copyErr)
-		if closeErr != nil {
-			retErr = errors.Join(retErr, closeErr)
-		}
-		return retErr
+	published, err := staged.PublishContext(ctx, archivePath)
+	if err == nil {
+		return nil
 	}
-	if written > maximumDownloadBytes {
-		closeErr := temporary.Close()
-		retErr = fmt.Errorf("source archive download exceeds %d bytes", maximumDownloadBytes)
-		if closeErr != nil {
-			retErr = errors.Join(retErr, closeErr)
-		}
-		return retErr
+	if published {
+		return stagedPublicationCause(err)
 	}
-	actual := fmt.Sprintf("%x", digest.Sum(nil))
-	if actual != config.SHA256 {
-		closeErr := temporary.Close()
-		retErr = fmt.Errorf("source archive checksum mismatch: got %s, want %s", actual, config.SHA256)
-		if closeErr != nil {
-			retErr = errors.Join(retErr, closeErr)
-		}
-		return retErr
-	}
-	if err := temporary.Chmod(0o644); err != nil {
-		closeErr := temporary.Close()
-		retErr = fmt.Errorf("set source archive mode: %w", err)
-		if closeErr != nil {
-			retErr = errors.Join(retErr, closeErr)
-		}
-		return retErr
-	}
-	if err := temporary.Sync(); err != nil {
-		closeErr := temporary.Close()
-		retErr = fmt.Errorf("sync source archive download: %w", err)
-		if closeErr != nil {
-			retErr = errors.Join(retErr, closeErr)
-		}
-		return retErr
-	}
-	if err := temporary.Close(); err != nil {
-		return fmt.Errorf("close source archive download: %w", err)
-	}
-	if err := os.Rename(temporaryPath, archivePath); err != nil {
-		return fmt.Errorf("publish source archive download: %w", err)
-	}
-	published = true
-	return syncSourceDirectory(filepath.Dir(archivePath))
+	return fmt.Errorf("publish source archive download: %w", stagedPublicationCause(err))
 }
 
 func prepareDestination(destination string) error {
@@ -391,8 +366,4 @@ func copyWithContext(ctx context.Context, destination io.Writer, source io.Reade
 			return total, readErr
 		}
 	}
-}
-
-func syncSourceDirectory(directory string) error {
-	return hostfs.SyncDirectory(directory)
 }

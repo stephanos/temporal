@@ -18,6 +18,14 @@ type stagedHandle interface {
 	Close() error
 }
 
+type stagedOperationError struct {
+	operation string
+	err       error
+}
+
+func (err *stagedOperationError) Error() string { return err.operation + ": " + err.err.Error() }
+func (err *stagedOperationError) Unwrap() error { return err.err }
+
 type publicationOperations struct {
 	createTemp      func(string, string) (stagedHandle, error)
 	rename          func(string, string) error
@@ -75,9 +83,13 @@ func stageContext(ctx context.Context, directory, pattern string, mode os.FileMo
 		}
 		if !closed {
 			closed = true
-			retErr = errors.Join(retErr, temporary.Close())
+			if err := temporary.Close(); err != nil {
+				retErr = errors.Join(retErr, err)
+			}
 		}
-		retErr = errors.Join(retErr, staged.Cleanup())
+		if err := staged.Cleanup(); err != nil {
+			retErr = errors.Join(retErr, err)
+		}
 	}()
 	if err := temporary.Chmod(mode); err != nil {
 		return nil, fmt.Errorf("set staged file mode: %w", err)
@@ -86,7 +98,7 @@ func stageContext(ctx context.Context, directory, pattern string, mode os.FileMo
 		return nil, errors.New("staged file fill is required")
 	}
 	if err := fill(ctx, temporary); err != nil {
-		return nil, fmt.Errorf("fill staged file: %w", err)
+		return nil, &stagedOperationError{operation: "fill staged file", err: err}
 	}
 	if err := ctx.Err(); err != nil {
 		return nil, err
@@ -148,6 +160,16 @@ func (staged *StagedFile) publishContext(ctx context.Context, destination string
 
 // Cleanup removes an unpublished stage. It is safe to call repeatedly.
 func (staged *StagedFile) Cleanup() error {
+	return staged.cleanup(false)
+}
+
+// CleanupAndSync removes an unpublished stage and flushes that removal before
+// returning. It is safe to call repeatedly.
+func (staged *StagedFile) CleanupAndSync() error {
+	return staged.cleanup(true)
+}
+
+func (staged *StagedFile) cleanup(syncDirectory bool) error {
 	if staged == nil {
 		return nil
 	}
@@ -156,12 +178,22 @@ func (staged *StagedFile) Cleanup() error {
 	if staged.path == "" {
 		return nil
 	}
+	directory := filepath.Dir(staged.path)
 	err := staged.operations.remove(staged.path)
-	if err == nil || errors.Is(err, os.ErrNotExist) {
+	if err == nil {
 		staged.path = ""
+		if syncDirectory {
+			if err := staged.operations.syncDirectory(directory); err != nil {
+				return err
+			}
+		}
 		return nil
 	}
-	return fmt.Errorf("remove staged file: %w", err)
+	if errors.Is(err, os.ErrNotExist) {
+		staged.path = ""
+		return err
+	}
+	return err
 }
 
 func Replace(path string, contents []byte, mode os.FileMode) (retErr error) {
@@ -187,7 +219,9 @@ func ReplaceContext(ctx context.Context, path string, contents []byte, mode os.F
 		return err
 	}
 	defer func() {
-		retErr = errors.Join(retErr, staged.Cleanup())
+		if err := staged.Cleanup(); err != nil {
+			retErr = errors.Join(retErr, err)
+		}
 	}()
 	_, err = staged.PublishContext(ctx, path)
 	return err

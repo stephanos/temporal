@@ -71,3 +71,12 @@ func (staged *StagedFile) Cleanup() error {
 	}
 	return staged.staged.Cleanup()
 }
+
+// CleanupAndSync removes an unpublished stage and flushes that removal. It is
+// safe to call repeatedly.
+func (staged *StagedFile) CleanupAndSync() error {
+	if staged == nil {
+		return nil
+	}
+	return staged.staged.CleanupAndSync()
+}

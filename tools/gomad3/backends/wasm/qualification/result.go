@@ -238,7 +238,11 @@ func publishQualificationBytes(root, name string, encoded []byte, limit int) (pa
 		return "", err
 	}
 	defer func() {
-		retErr = errors.Join(retErr, staged.Cleanup())
+		if staged != nil {
+			if err := staged.Cleanup(); err != nil {
+				retErr = errors.Join(retErr, err)
+			}
+		}
 	}()
 	published, err := staged.PublishNoReplaceContext(context.Background(), path)
 	if err != nil {
@@ -251,6 +255,10 @@ func publishQualificationBytes(root, name string, encoded []byte, limit int) (pa
 		if err := awaitCompletePublication(path, encoded, uint64(limit)); err != nil {
 			return "", err
 		}
+		if err := staged.CleanupAndSync(); err != nil {
+			return path, err
+		}
+		staged = nil
 	}
 	return path, nil
 }

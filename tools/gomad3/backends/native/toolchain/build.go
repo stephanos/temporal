@@ -595,100 +595,68 @@ func publishStable(layout installation.Layout, key string, config BuildSpec) (re
 		"build_key=$(cat \"$toolchain_dir/build-key\") || exit\n" +
 		"unset GOROOT\n" +
 		"exec \"$toolchain_dir/builds/$build_key/bin/go\" \"$@\"\n")
-	launcherTemporary, err := temporaryFile(binRoot, ".go.next-*", launcher, 0o755)
+	launcherStaged, err := hostfs.StageContext(context.Background(), binRoot, ".go.next-*", 0o755, func(_ context.Context, writer io.Writer) error {
+		_, err := writer.Write(launcher)
+		return err
+	})
 	if err != nil {
 		return err
 	}
-	launcherPublished := false
-	defer func(path string) {
-		if err := os.Remove(path); err != nil && (!launcherPublished || !errors.Is(err, os.ErrNotExist)) {
-			if retErr == nil {
-				retErr = err
-			} else {
-				retErr = errors.Join(retErr, err)
-			}
+	defer func() {
+		if err := launcherStaged.Cleanup(); err != nil {
+			retErr = errors.Join(retErr, err)
 		}
-	}(launcherTemporary)
-	stampTemporary, err := temporaryFile(toolchainRoot, ".build-key.next-*", []byte(key+"\n"), 0o644)
+	}()
+	stampStaged, err := hostfs.StageContext(context.Background(), toolchainRoot, ".build-key.next-*", 0o644, func(_ context.Context, writer io.Writer) error {
+		_, err := io.WriteString(writer, key+"\n")
+		return err
+	})
 	if err != nil {
 		return err
 	}
-	stampPublished := false
-	defer func(path string) {
-		if err := os.Remove(path); err != nil && (!stampPublished || !errors.Is(err, os.ErrNotExist)) {
-			if retErr == nil {
-				retErr = err
-			} else {
-				retErr = errors.Join(retErr, err)
-			}
+	defer func() {
+		if err := stampStaged.Cleanup(); err != nil {
+			retErr = errors.Join(retErr, err)
 		}
-	}(stampTemporary)
-	if err := os.Rename(stampTemporary, layout.BuildKeyFile()); err != nil {
-		return fmt.Errorf("publish gomad3 build key: %w", err)
-	}
-	stampPublished = true
-	if err := hostfs.SyncDirectory(toolchainRoot); err != nil {
-		return err
+	}()
+	if published, err := stampStaged.PublishContext(context.Background(), layout.BuildKeyFile()); err != nil {
+		if published {
+			return stagedPublicationCause(err)
+		}
+		return fmt.Errorf("publish gomad3 build key: %w", stagedPublicationCause(err))
 	}
 	if err := inject(config, "after-stamp-publish"); err != nil {
 		return err
 	}
-	if err := os.Rename(launcherTemporary, layout.GoCommand()); err != nil {
-		return fmt.Errorf("publish gomad3 launcher: %w", err)
-	}
-	launcherPublished = true
-	if err := hostfs.SyncDirectory(binRoot); err != nil {
-		return err
+	if published, err := launcherStaged.PublishContext(context.Background(), layout.GoCommand()); err != nil {
+		if published {
+			return stagedPublicationCause(err)
+		}
+		return fmt.Errorf("publish gomad3 launcher: %w", stagedPublicationCause(err))
 	}
 	return inject(config, "after-launcher-publish")
 }
 
-func temporaryFile(root, pattern string, contents []byte, mode os.FileMode) (string, error) {
-	file, err := os.CreateTemp(root, pattern)
-	if err != nil {
-		return "", err
+func stagedPublicationCause(err error) error {
+	if cause := errors.Unwrap(err); cause != nil {
+		return cause
 	}
-	name := file.Name()
-	if err := file.Chmod(mode); err != nil {
-		closeErr := file.Close()
-		removeErr := os.Remove(name)
-		if closeErr != nil {
-			err = errors.Join(err, closeErr)
-		}
-		if removeErr != nil {
-			err = errors.Join(err, removeErr)
-		}
-		return "", err
+	return err
+}
+
+func preserveStagedFillError(stageErr, stagedFillErr, reportedFillErr error) error {
+	if stagedFillErr == nil || !errors.Is(stageErr, stagedFillErr) {
+		return stageErr
 	}
-	if _, err := file.Write(contents); err != nil {
-		closeErr := file.Close()
-		removeErr := os.Remove(name)
-		if closeErr != nil {
-			err = errors.Join(err, closeErr)
-		}
-		if removeErr != nil {
-			err = errors.Join(err, removeErr)
-		}
-		return "", err
+	joined, ok := stageErr.(interface{ Unwrap() []error })
+	if !ok {
+		return reportedFillErr
 	}
-	if err := file.Sync(); err != nil {
-		closeErr := file.Close()
-		removeErr := os.Remove(name)
-		if closeErr != nil {
-			err = errors.Join(err, closeErr)
-		}
-		if removeErr != nil {
-			err = errors.Join(err, removeErr)
-		}
-		return "", err
+	causes := append([]error(nil), joined.Unwrap()...)
+	if len(causes) != 0 && errors.Is(causes[0], stagedFillErr) {
+		causes[0] = reportedFillErr
 	}
-	if err := file.Close(); err != nil {
-		if removeErr := os.Remove(name); removeErr != nil {
-			err = errors.Join(err, removeErr)
-		}
-		return "", err
-	}
-	return name, nil
+	return errors.Join(causes...)
 }
 
 func runCommand(ctx context.Context, run func(context.Context, hostexec.Request) (hostexec.Result, error), request hostexec.Request) (hostexec.Result, error) {

@@ -243,6 +243,47 @@ func TestStagedFileNoReplacePublicationPreservesImmutableDestination(t *testing.
 	}
 }
 
+func TestStagedFileCleanupAndSyncFlushesRemovalAndReportsSyncFailure(t *testing.T) {
+	directory := t.TempDir()
+	syncFailure := errors.New("directory sync failed")
+	operations := defaultPublicationOperations
+	removed := false
+	remove := operations.remove
+	operations.remove = func(path string) error {
+		if err := remove(path); err != nil {
+			return err
+		}
+		removed = true
+		return nil
+	}
+	operations.syncDirectory = func(path string) error {
+		if path != directory || !removed {
+			t.Fatalf("syncDirectory(%q) before removal", path)
+		}
+		return syncFailure
+	}
+	staged, err := stageContext(context.Background(), directory, ".stage-*", 0o600, func(_ context.Context, writer io.Writer) error {
+		_, err := io.WriteString(writer, "candidate")
+		return err
+	}, operations)
+	if err != nil {
+		t.Fatal(err)
+	}
+	path := staged.Path()
+	if err := staged.CleanupAndSync(); !errors.Is(err, syncFailure) {
+		t.Fatalf("CleanupAndSync() error = %v", err)
+	}
+	if staged.Path() != "" {
+		t.Fatalf("CleanupAndSync() retained path %q", staged.Path())
+	}
+	if _, err := os.Stat(path); !errors.Is(err, os.ErrNotExist) {
+		t.Fatalf("CleanupAndSync() retained stage: %v", err)
+	}
+	if err := staged.CleanupAndSync(); err != nil {
+		t.Fatalf("second CleanupAndSync() = %v", err)
+	}
+}
+
 func TestReplacePublishesFileWithRequestedMode(t *testing.T) {
 	directory := filepath.Join(t.TempDir(), "generated")
 	path := filepath.Join(directory, "artifact.go")

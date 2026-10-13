@@ -104,42 +104,6 @@ func TestBuildCleanupSnapshotPrimaryFailures(t *testing.T) {
 	}
 }
 
-func TestBuildCleanupTemporaryFile(t *testing.T) {
-	for _, mode := range []os.FileMode{0o644, 0o755} {
-		t.Run(fmt.Sprintf("%o", mode), func(t *testing.T) {
-			root := t.TempDir()
-			path, err := temporaryFile(root, ".next-*", []byte("literal\x00bytes\n"), mode)
-			if err != nil {
-				t.Fatal(err)
-			}
-			contents, err := os.ReadFile(path)
-			if err != nil || string(contents) != "literal\x00bytes\n" {
-				t.Fatalf("temporary bytes = %q, %v", contents, err)
-			}
-			info, err := os.Stat(path)
-			if err != nil || info.Mode().Perm() != mode {
-				t.Fatalf("temporary mode = %v, %v; want %o", info, err, mode)
-			}
-			if err := os.Rename(path, filepath.Join(root, "usable")); err != nil {
-				t.Fatal(err)
-			}
-			if err := os.Remove(filepath.Join(root, "usable")); err != nil {
-				t.Fatal(err)
-			}
-		})
-	}
-	root := t.TempDir()
-	path, err := temporaryFile(filepath.Join(root, "missing"), ".next-*", nil, 0o644)
-	var cause *os.PathError
-	if path != "" || !errors.As(err, &cause) || err != cause || !errors.Is(err, os.ErrNotExist) {
-		t.Fatalf("invalid destination = %q, %v", path, err)
-	}
-	entries, err := os.ReadDir(root)
-	if err != nil || len(entries) != 0 {
-		t.Fatalf("invalid destination debris = %v, %v", entries, err)
-	}
-}
-
 func TestBuildCleanupRepeatedPublication(t *testing.T) {
 	layout, err := installation.At(t.TempDir())
 	if err != nil {

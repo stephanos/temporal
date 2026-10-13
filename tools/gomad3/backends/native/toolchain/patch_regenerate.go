@@ -298,57 +298,31 @@ func publishRegeneratedPatch(ctx context.Context, root, pristineRoot, output str
 	if err := os.MkdirAll(directory, 0o755); err != nil {
 		return fmt.Errorf("create regenerated patch directory: %w", err)
 	}
-	temporary, err := os.CreateTemp(directory, ".gomad3-patch-*")
+	staged, err := hostfs.StageContext(context.Background(), directory, ".gomad3-patch-*", 0o644, func(_ context.Context, writer io.Writer) error {
+		_, err := writer.Write(patch)
+		return err
+	})
 	if err != nil {
-		return fmt.Errorf("create regenerated patch: %w", err)
+		return fmt.Errorf("stage regenerated patch: %w", err)
 	}
-	temporaryPath := temporary.Name()
-	published := false
 	defer func() {
-		if err := os.Remove(temporaryPath); err != nil && (!published || !errors.Is(err, os.ErrNotExist)) {
-			if retErr == nil {
-				retErr = err
-			} else {
-				retErr = errors.Join(retErr, err)
-			}
+		if err := staged.Cleanup(); err != nil {
+			retErr = errors.Join(retErr, err)
 		}
 	}()
-	if err := temporary.Chmod(0o644); err != nil {
-		closeErr := temporary.Close()
-		retErr = fmt.Errorf("set regenerated patch mode: %w", err)
-		if closeErr != nil {
-			retErr = errors.Join(retErr, closeErr)
-		}
-		return retErr
-	}
-	if _, err := temporary.Write(patch); err != nil {
-		closeErr := temporary.Close()
-		retErr = fmt.Errorf("write regenerated patch: %w", err)
-		if closeErr != nil {
-			retErr = errors.Join(retErr, closeErr)
-		}
-		return retErr
-	}
-	if err := temporary.Sync(); err != nil {
-		closeErr := temporary.Close()
-		retErr = fmt.Errorf("sync regenerated patch: %w", err)
-		if closeErr != nil {
-			retErr = errors.Join(retErr, closeErr)
-		}
-		return retErr
-	}
-	if err := temporary.Close(); err != nil {
-		return fmt.Errorf("close regenerated patch: %w", err)
-	}
+	temporaryPath := staged.Path()
 	if _, err := validatePatch(root, temporaryPath, descriptor); err != nil {
 		return fmt.Errorf("validate regenerated patch: %w", err)
 	}
 	if _, err := runPatchCommand(ctx, pristineRoot, []string{"git", "apply", "--cached", "--check", temporaryPath}, nil); err != nil {
 		return fmt.Errorf("verify regenerated patch against pristine source: %w", err)
 	}
-	if err := os.Rename(temporaryPath, output); err != nil {
-		return fmt.Errorf("publish regenerated patch: %w", err)
+	published, err := staged.PublishContext(ctx, output)
+	if err == nil {
+		return nil
 	}
-	published = true
-	return hostfs.SyncDirectory(directory)
+	if published {
+		return stagedPublicationCause(err)
+	}
+	return fmt.Errorf("publish regenerated patch: %w", stagedPublicationCause(err))
 }
