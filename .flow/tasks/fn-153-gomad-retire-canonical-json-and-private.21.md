@@ -21,6 +21,13 @@ Close two demonstrated gaps in the existing fn153 requirements, found by the com
 ### Quick commands
 
 From tools/gomad3 with stock Go 1.27.1 and tags test_dep: focused provider publication/preparation tests, full ./world tests, shared ./internal/hostfs tests, affected architecture selection and scoped canonical lint. Root owns final integrated identity refresh, review, generated validation, WASM qualification and Flow completion. Required supported-native gates remain under their existing owners.
+
+### Integration-discovered shared-decoder correction (2026-10-13)
+
+**Additional Touches:** [tools/gomad3/internal/strictjson/decode.go, tools/gomad3/internal/strictjson/decode_test.go]
+Restore the standard-library numeric time.Duration representation using the pinned library's FormatDurationAsNano option, after inspecting its implementation; the retained bundle's existing Request.Timeout exposed this missing v1 compatibility. No local retained shim, scanner, encoding change or unrelated option change. Add duration bounds/type/null regressions and rerun shared strictness controls; root refreshes all affected identities on the integrated candidate.
+
+The exact native qualification testdata fixture prefix in archcheck/inventory.go is admitted for fn166's tagged fixture relocation. The fn166 worker owns architecture_test.go for library retirement and exact backend internal-hostfs import controls; this worker must not edit that shared file.
 ## Acceptance
 - [ ] WASM mutable module/receipt replacement uses shared staged publication with exact staged validation and preserved module-before-receipt transaction, modes, bounds, cancellation, cleanup and error/disposition controls.
 - [ ] World replay raw syntax is library-owned without a redundant UTF-8 scan; malformed/duplicate/raw-invalid UTF-8, semantic and wire negative controls pass and typed/binary validators remain.
