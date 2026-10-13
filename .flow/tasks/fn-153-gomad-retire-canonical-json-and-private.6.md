@@ -41,13 +41,13 @@ Capture the frozen behavior pin named above, run focused negative controls and f
 - [ ] Schema, bounded rules, allowed/denied facts, modules/sums, owner/date/workload/platform and exact admission semantics remain unchanged.
 - [ ] Source tests separate spelling-only failure from policy/error behavior; all retained output updates are explicitly assigned to task17 rather than silently omitted.
 ## Done summary
-TBD
+Migrated compatibility-pack schema and authoring to strict typed decoding plus stdlib encoding while preserving complete approval projections, governance and admission semantics, stale-approval refusal, shared publication, and the exact public mismatch diagnostic. Added independent field-level approval identity pins across target, module, source, fact, adapter, and governance inputs. Retained requests, packs, reports, tests, and generation state remain assigned to fn153.17; their expected stale-approval validation failure is recorded. Focused, race, hostfs/world, and architecture gates pass, and the implementation re-review is SHIP.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: aaa1f4e8f9b87aa63616f3cbc42075c9f01d4c8e, c287ea44e3de5a3d99abf487422f250103388cb1, 2a63359a0e477bb35ad287fdf02881df454c3237
+- Tests: go -C tools/gomad3 test -tags test_dep -count=1 ./backends/native/compatibilitypack ./backends/native/compatibilitypack/authoring: PASS, go -C tools/gomad3 test -tags test_dep -race -count=1 ./backends/native/compatibilitypack ./backends/native/compatibilitypack/authoring: PASS, go -C tools/gomad3 test -tags test_dep -count=1 ./internal/hostfs ./world: PASS, go -C tools/gomad3 test -tags test_dep -count=1 ./internal/archcheck: PASS, make -C tools/gomad3 validate: EXPECTED FN153.17-OWNED DRIFT (compatibility-pack request golang-x-sys-v047-darwin-arm64 approval is stale), flowctl codex impl-review re-review: SHIP, both prior findings fixed and no new findings
 - PRs:
-
 ## Revival trigger (2026-10-13)
 
 Revived after fn153.1 and fn153.2 completed with SHIP implementation reviews. The compatibility-authoring owner is disjoint from the concurrent qualification and Runner identity owners; retained generated packs remain assigned to fn153.17. The forced local claim is required only because Flow chain admission still sees the completed fn152 parent on an unpushed remote branch; pushing remains outside the requested scope.
