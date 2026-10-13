@@ -147,6 +147,32 @@ func TestReadConfigPreservesOpenMapKeysAndRejectsInvalidText(t *testing.T) {
 	}
 }
 
+func TestReadConfigPreservesFirstValueErrorsBeforeTrailingData(t *testing.T) {
+	for _, test := range []struct {
+		name, input string
+	}{
+		{name: "type", input: `{"Profile":1} {}`},
+		{name: "unknown", input: `{"UnknownOwned":true} {}`},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			var legacy wasi.Config
+			decoder := json.NewDecoder(strings.NewReader(test.input))
+			decoder.DisallowUnknownFields()
+			want := decoder.Decode(&legacy)
+			if want == nil {
+				t.Fatal("legacy first-value decoder accepted invalid input")
+			}
+			path := filepath.Join(t.TempDir(), "config.json")
+			if err := os.WriteFile(path, []byte(test.input), 0600); err != nil {
+				t.Fatal(err)
+			}
+			if _, got := ReadConfig(path); got == nil || got.Error() != want.Error() {
+				t.Fatalf("ReadConfig() error = %v, want legacy first-value error %v", got, want)
+			}
+		})
+	}
+}
+
 func TestInstallationRejectsUnqualifiedModelsBeforePreparation(t *testing.T) {
 	stock, _ := installedManifest(t)
 	options := stock.Options
