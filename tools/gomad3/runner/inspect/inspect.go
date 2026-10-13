@@ -374,6 +374,7 @@ type ExecutionJournalInspection struct {
 }
 
 type ExecutionInspection struct {
+	SoftAssertions              *record.SoftAssertions     `json:"soft_assertions,omitempty"`
 	Strategy                    string                     `json:"strategy,omitempty"`
 	Round                       *uint64                    `json:"round,omitempty"`
 	CandidateSHA256             record.SHA256              `json:"candidate_sha256,omitempty"`
@@ -568,7 +569,7 @@ func projectCampaignPlan(opened campaign.OpenedPortablePlan) CampaignPlanInspect
 	result := CampaignPlanInspection{
 		Schema: campaign.PortablePlanSchema, Storage: campaign.PortablePlanStorage, SHA256: opened.Identity, BundlePath: opened.Path + campaign.PortablePlanBundleSuffix, Mapping: campaign.PortablePlanMapping, Strategy: plan.Strategy, Selection: plan.Selection, SelectionCount: uint64(plan.SelectionCount), Parallel: uint64(plan.Parallel),
 		RunnerBuild: plan.RunnerBuild, Toolchain: plan.Toolchain,
-		Target:      TargetReport{Kind: target.Kind, Source: target.Source, SHA256: target.SHA256, Size: uint64(target.Size), Argv: append([]string(nil), target.Argv...), BuildTags: append([]string(nil), target.BuildTags...), Adapters: append([]record.TargetAdapter(nil), target.Adapters...), Compatibility: append([]record.CompatibilityPack(nil), target.Compatibility...), BuildInfo: target.BuildInfo, CapabilityMode: target.CapabilityMode, CapabilityManifest: cloneTargetCapabilityEvidence(target.CapabilityManifest)},
+		Target:      TargetReport{SoftAssertionReportOnly: target.SoftAssertionReportOnly, Kind: target.Kind, Source: target.Source, SHA256: target.SHA256, Size: uint64(target.Size), Argv: append([]string(nil), target.Argv...), BuildTags: append([]string(nil), target.BuildTags...), Adapters: append([]record.TargetAdapter(nil), target.Adapters...), Compatibility: append([]record.CompatibilityPack(nil), target.Compatibility...), BuildInfo: target.BuildInfo, CapabilityMode: target.CapabilityMode, CapabilityManifest: cloneTargetCapabilityEvidence(target.CapabilityManifest)},
 		Environment: append([]record.Environment(nil), plan.Environment...), ReadOnlyMounts: append([]string(nil), plan.IOROMounts...),
 	}
 	if plan.Journal != nil {
@@ -852,7 +853,8 @@ func projectCampaign(opened campaign.Campaign) (CampaignInspection, error) {
 	seenArtifacts := make(map[string]struct{})
 	for _, run := range opened.Executions {
 		projected := ExecutionInspection{
-			Divergence: run.Divergence, Strategy: run.Strategy, CandidateSHA256: run.CandidateSHA256, ParentCandidateSHA256: run.ParentCandidateSHA256, PrefixSHA256: run.PrefixSHA256, OutcomeSHA256: run.OutcomeSHA256,
+			SoftAssertions: campaign.CloneSoftAssertionReport(run.SoftAssertions),
+			Divergence:     run.Divergence, Strategy: run.Strategy, CandidateSHA256: run.CandidateSHA256, ParentCandidateSHA256: run.ParentCandidateSHA256, PrefixSHA256: run.PrefixSHA256, OutcomeSHA256: run.OutcomeSHA256,
 			SelectionOrdinal: uint64(run.SelectionOrdinal), Seed: uint64(run.Seed), Domain: run.Domain, Reason: run.Reason,
 			Termination: run.Termination, ElapsedNanos: uint64(run.ElapsedNanos), FailureSignature: run.FailureSignature, Artifact: run.Artifact,
 			TranscriptSHA256:  run.IOTranscriptSHA256,

@@ -83,6 +83,9 @@ func (p *Provider) Execute(ctx context.Context, request backends.ExecutionReques
 	}
 	result, err := backends.ProjectObservedResult(converted, observed, request.StdoutHead, request.StderrHead)
 	if err != nil {
+		if failure, ok := err.(*backends.FailureError); ok && observed.Termination == backends.Capacity && observed.Message == "output capacity" {
+			failure.SoftAssertions = observeSoftAssertions(backends.ExecutionResult{Stdout: backends.Output{Bytes: observed.Stdout}, Stderr: backends.Output{Bytes: observed.Stderr}}, request.Target.SoftAssertionReportOnly)
+		}
 		return backends.ExecutionResult{}, err
 	}
 	result.SoftAssertions = observeSoftAssertions(result, request.Target.SoftAssertionReportOnly)

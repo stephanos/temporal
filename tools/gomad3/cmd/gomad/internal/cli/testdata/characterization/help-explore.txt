@@ -79,6 +79,8 @@ Usage of gomad explore:
     	required semantic probe (requires --coverage=semantic)
   -seeds string
     	seed set or inclusive ranges (default "1")
+  -soft-assertion-report-only
+    	report soft assertions without failing a supported Go test workload
   -strategy string
     	seed, choice-exploration, or simulation-exploration (default "seed")
   -success-bytes value

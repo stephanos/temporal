@@ -152,6 +152,7 @@ func TestExecutionIdentityRetainsNilEmptyAndPointerPresence(t *testing.T) {
 
 func fullIdentityManifest() ExecutionRecord {
 	manifest := manifestFixture()
+	manifest.Outcome.SoftAssertions = &SoftAssertions{Messages: []string{"static assertion"}}
 	manifest.Target.Backend = &BackendMetadata{
 		Name: "native", ReplayMode: "exact",
 		Provenance: BackendPayload{Schema: "provenance/v1", File: "backend/provenance.json", SHA256: HashBytes([]byte("provenance")), Bytes: 10},

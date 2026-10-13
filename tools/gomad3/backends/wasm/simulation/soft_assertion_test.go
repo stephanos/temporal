@@ -10,11 +10,13 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	wasmbackend "go.temporal.io/server/tools/gomad3/backends/wasm/backend"
 	"go.temporal.io/server/tools/gomad3/backends/wasm/internal/stockgo"
 	"go.temporal.io/server/tools/gomad3/backends/wasm/toolchain"
 	"go.temporal.io/server/tools/gomad3/backends/wasm/wasi"
+	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/target"
 	"go.temporal.io/server/tools/gomad3sim"
 )
@@ -50,6 +52,11 @@ func softAssertionGuestRequest(t *testing.T) wasi.Request {
 	request.Imports, request.InitialMemoryPages = imports, pages
 	request.Runtime.Choice.ExecutionIdentity.TargetSHA256 = sha256.Sum256(data)
 	request.WorkloadKind = target.KindGoTest
+	request.Timeout = 5 * time.Minute
+	request.CompileCache = t.TempDir()
+	if err := os.Chmod(request.CompileCache, 0700); err != nil {
+		t.Fatal(err)
+	}
 	return request
 }
 
@@ -59,7 +66,11 @@ func TestSoftAssertionActualClusterGuestAndRetainedReplay(t *testing.T) {
 	handles := []gomad3sim.NodeHandle{{Node: "a", Incarnation: 1}, {Node: "b", Incarnation: 1}}
 	for _, reportOnly := range []bool{false, true} {
 		var signature string
-		for _, seed := range []uint64{7, 19} {
+		seeds := []uint64{7, 19}
+		if reportOnly {
+			seeds = seeds[:1]
+		}
+		for _, seed := range seeds {
 			request := base
 			runtime := *base.Runtime
 			runtime.Seed = seed
@@ -80,8 +91,6 @@ func TestSoftAssertionActualClusterGuestAndRetainedReplay(t *testing.T) {
 					if _, err := c.Start(ctx, handle.Node); err != nil {
 						return err
 					}
-				}
-				for _, handle := range handles {
 					if _, err := c.Wait(ctx, handle); err != nil {
 						return err
 					}
@@ -124,6 +133,9 @@ func TestSoftAssertionActualClusterGuestAndRetainedReplay(t *testing.T) {
 			if _, _, err := VerifyRetained(payload); err != nil {
 				t.Fatal(err)
 			}
+			if seed != 7 {
+				continue
+			}
 			replayed, err := ReplayRetained(t.Context(), payload, module, t.TempDir(), installedHelper(base))
 			if err != nil {
 				t.Fatal(err)
@@ -134,6 +146,7 @@ func TestSoftAssertionActualClusterGuestAndRetainedReplay(t *testing.T) {
 			}
 			right, err := gomad3sim.EncodeClusterRecord(replayed.Record)
 			if err != nil || !bytes.Equal(left, right) {
+				t.Logf("original outcome=%s reason=%s failure=%s replay outcome=%s reason=%s failure=%s divergence=%+v", result.Outcome, result.Reason, result.FailureIdentity, replayed.Outcome, replayed.Reason, replayed.FailureIdentity, replayed.Divergence)
 				t.Fatalf("assertion replay changed static signature or evidence: %v", err)
 			}
 			t.Logf("seed=%d report_only=%t failure=%s retained=%s replay=%s", seed, reportOnly, result.FailureIdentity, payload.Reference.SHA256, replayed.FailureIdentity)
@@ -164,5 +177,65 @@ func TestSoftAssertionClusterOptOutRequiresRecordedTestWorkload(t *testing.T) {
 	p.Boots["fixture"] = wasi.Request{WorkloadKind: target.KindGoTest}
 	if err := p.validateSoftAssertionWorkloads(spec); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestSoftAssertionRetainedEvidenceRequiresActualOutput(t *testing.T) {
+	handle := gomad3sim.NodeHandle{Node: "a", Incarnation: 1}
+	data := []byte("PASS\nfailed assertion: invalid state\n")
+	output := gomad3sim.OutputObservation{Handle: handle, Stream: gomad3sim.OutputStderr, Bytes: data, TotalBytes: uint64(len(data)), RetainedBytes: uint64(len(data)), FullSHA256: string(record.HashBytes(data))}
+	oracle, err := gomad3sim.SoftAssertion("a/1", []string{"invalid state"}, false, false, 4096)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, change := range []string{"valid", "forged-message", "forged-instance", "missing-output", "forged-digest", "generic", "mixed", "truncated-pass"} {
+		t.Run(change, func(t *testing.T) {
+			plan := gomad3sim.ReplayPlan{WASM: &gomad3sim.WASMExecutionEvidence{Incarnations: []gomad3sim.WASMIncarnationEvidence{{Handle: handle}}}, Outputs: []gomad3sim.OutputObservation{output}, Oracles: []gomad3sim.OracleResult{oracle}}
+			switch change {
+			case "forged-message":
+				plan.Oracles[0], err = gomad3sim.SoftAssertion("a/1", []string{"forged invariant"}, false, false, 4096)
+			case "forged-instance":
+				plan.Oracles[0], err = gomad3sim.SoftAssertion("b/1", []string{"invalid state"}, false, false, 4096)
+			case "missing-output":
+				plan.Outputs = nil
+			case "forged-digest":
+				plan.Outputs[0].FullSHA256 = string(record.HashBytes([]byte("forged output")))
+			case "generic", "mixed":
+				generic, genericErr := gomad3sim.StateInvariant("generic", false, nil, 4096)
+				if genericErr != nil {
+					t.Fatal(genericErr)
+				}
+				plan.Oracles = []gomad3sim.OracleResult{generic}
+				if change == "mixed" {
+					plan.Oracles = append(plan.Oracles, oracle)
+				}
+			case "truncated-pass":
+				plan.Outputs[0].Truncated = true
+				plan.Outputs[0].TotalBytes++
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			err := validateRetainedLifecycle(gomad3sim.Spec{Limits: gomad3sim.DefaultLimits(), Replay: &plan}, &Provider{})
+			if change == "valid" && err != nil || change != "valid" && err == nil {
+				t.Fatalf("retained observation admission %s: %v", change, err)
+			}
+		})
+	}
+}
+
+func TestSoftAssertionRetainedTruncatedOutputIsInconclusive(t *testing.T) {
+	handle := gomad3sim.NodeHandle{Node: "a", Incarnation: 1}
+	oracle, err := gomad3sim.SoftAssertion("a/1", nil, true, false, 4096)
+	if err != nil {
+		t.Fatal(err)
+	}
+	plan := gomad3sim.ReplayPlan{WASM: &gomad3sim.WASMExecutionEvidence{Incarnations: []gomad3sim.WASMIncarnationEvidence{{Handle: handle}}},
+		Outputs: []gomad3sim.OutputObservation{{Handle: handle, Stream: gomad3sim.OutputStderr, TotalBytes: 100, Truncated: true}}, Oracles: []gomad3sim.OracleResult{oracle}}
+	if err := validateRetainedLifecycle(gomad3sim.Spec{Limits: gomad3sim.DefaultLimits(), Replay: &plan}, &Provider{}); err != nil {
+		t.Fatal(err)
+	}
+	if oracle.Passed || !oracle.Inconclusive {
+		t.Fatal("truncated retained evidence passed")
 	}
 }

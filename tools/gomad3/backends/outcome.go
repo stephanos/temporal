@@ -9,14 +9,14 @@ import (
 
 type Classification struct {
 	SoftAssertions *record.SoftAssertions
-	Domain       string
-	Reason       string
-	Termination  string
-	ExitCode     *record.Uint64String
-	Signal       *string
-	Deadline     *string
-	ArtifactKind string
-	ReplayMode   string
+	Domain         string
+	Reason         string
+	Termination    string
+	ExitCode       *record.Uint64String
+	Signal         *string
+	Deadline       *string
+	ArtifactKind   string
+	ReplayMode     string
 }
 
 func Classify(result ExecutionResult, cancelled bool, terminal record.WorldTerminal) Classification {

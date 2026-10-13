@@ -40,7 +40,7 @@ type WASMTerminal struct {
 	Termination string
 }
 type WASMEvidence struct {
-	Oracles []OracleResult
+	Oracles   []OracleResult
 	Outputs   []OutputObservation
 	Network   NetworkRecord
 	Volumes   VolumeRecord

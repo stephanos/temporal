@@ -168,8 +168,9 @@ func run(ctx context.Context, spec Spec, scenario Scenario, wasm WASMExecution) 
 		}
 	}
 	scenarioErr := scenario(ctx, cluster)
-	controllerErr := cluster.finishControllers()
-	scenarioErr = errors.Join(scenarioErr, controllerErr)
+	if wasm == nil {
+		scenarioErr = errors.Join(scenarioErr, cluster.finishControllers())
+	}
 	cleanupErr := cluster.shutdown(ctx)
 	modelBrokerErr := stopProcessModelBroker()
 	var volumes VolumeRecord
@@ -189,6 +190,7 @@ func run(ctx context.Context, spec Spec, scenario Scenario, wasm WASMExecution) 
 				}
 			}
 		}
+		scenarioErr = errors.Join(scenarioErr, cluster.finishControllers())
 	} else {
 		volumes, volumeFinishErr = runtimeVolumeFinish(cluster.runtimeRun)
 		network, networkFinishErr = runtimeNetworkFinish(cluster.runtimeRun)

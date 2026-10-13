@@ -104,6 +104,23 @@ preparation cache have been removed. Moving the helper changes its path, which
 can be updated while preserving its digest; changing helper bytes is rejected.
 Evidence portability beyond the pinned engine and host remains unqualified.
 
+Guest stdout and stderr are checked for Temporal soft assertions after execution,
+including assertions logged after a test prints `PASS`. A detected assertion is
+classified as `soft_assertion`; its signature uses the static message, with the
+instance added for clusters. Dynamic log fields remain in the evidence.
+Unreadable or truncated output makes the oracle inconclusive. If an output bound
+terminates execution, the capacity error remains authoritative and reports that
+the oracle is inconclusive; it does not claim complete replay evidence.
+
+For a WASM `go-test` workload that deliberately triggers assertions, pass
+`--soft-assertion-report-only` explicitly. The option is part of target identity,
+is restored by replay and resume, and reports observed assertions after each
+committed execution without failing otherwise successful execution. Reports are
+also kept in campaign inspection, even when successful artifacts are not retained.
+Other target kinds and native
+providers refuse it before preparation. Cluster callers bind per-incarnation
+report-only policies in the sealed `OraclePlan` and declare a Go test boot kind.
+
 ## Minimize a compatible retained failure
 
 The existing shared minimizer accepts a standalone cooperative target-failure

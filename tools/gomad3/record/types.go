@@ -218,20 +218,20 @@ type Toolchain struct {
 }
 
 type Target struct {
-	SoftAssertionReportOnly bool `json:"soft_assertion_report_only,omitempty"`
-	Backend            *BackendMetadata          `json:"backend,omitempty"`
-	Kind               string                    `json:"kind"`
-	Source             string                    `json:"source"`
-	File               string                    `json:"file"`
-	SHA256             SHA256                    `json:"sha256"`
-	Size               Uint64String              `json:"size"`
-	Argv               []string                  `json:"argv"`
-	BuildTags          []string                  `json:"build_tags"`
-	Adapters           []TargetAdapter           `json:"adapters"`
-	Compatibility      []CompatibilityPack       `json:"compatibility"`
-	BuildInfo          BuildInfo                 `json:"build_info"`
-	CapabilityMode     string                    `json:"capability_mode,omitempty"`
-	CapabilityManifest *TargetCapabilityManifest `json:"capability_manifest,omitempty"`
+	SoftAssertionReportOnly bool                      `json:"soft_assertion_report_only,omitempty"`
+	Backend                 *BackendMetadata          `json:"backend,omitempty"`
+	Kind                    string                    `json:"kind"`
+	Source                  string                    `json:"source"`
+	File                    string                    `json:"file"`
+	SHA256                  SHA256                    `json:"sha256"`
+	Size                    Uint64String              `json:"size"`
+	Argv                    []string                  `json:"argv"`
+	BuildTags               []string                  `json:"build_tags"`
+	Adapters                []TargetAdapter           `json:"adapters"`
+	Compatibility           []CompatibilityPack       `json:"compatibility"`
+	BuildInfo               BuildInfo                 `json:"build_info"`
+	CapabilityMode          string                    `json:"capability_mode,omitempty"`
+	CapabilityManifest      *TargetCapabilityManifest `json:"capability_manifest,omitempty"`
 }
 
 type BackendMetadata struct {
@@ -339,14 +339,14 @@ type WorldPayloads struct {
 
 type Outcome struct {
 	SoftAssertions   *SoftAssertions `json:"soft_assertions,omitempty"`
-	Domain           string        `json:"domain"`
-	Reason           string        `json:"reason"`
-	Termination      string        `json:"termination"`
-	ExitCode         *Uint64String `json:"exit_code"`
-	Signal           *string       `json:"signal"`
-	Deadline         *string       `json:"deadline"`
-	FailureSignature SHA256        `json:"failure_signature"`
-	ReplayMatch      *bool         `json:"replay_match"`
+	Domain           string          `json:"domain"`
+	Reason           string          `json:"reason"`
+	Termination      string          `json:"termination"`
+	ExitCode         *Uint64String   `json:"exit_code"`
+	Signal           *string         `json:"signal"`
+	Deadline         *string         `json:"deadline"`
+	FailureSignature SHA256          `json:"failure_signature"`
+	ReplayMatch      *bool           `json:"replay_match"`
 }
 
 type SoftAssertions struct {

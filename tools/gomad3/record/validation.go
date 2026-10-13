@@ -94,6 +94,9 @@ func validateManifest(manifest ExecutionRecord, requireIdentities bool) error {
 		return fmt.Errorf("outcome reason and termination are required")
 	}
 	if assertions := manifest.Outcome.SoftAssertions; assertions != nil {
+		if manifest.Outcome.Domain == "success" && (assertions.Inconclusive || len(assertions.Messages) != 0 && !assertions.ReportOnly) {
+			return errors.New("successful outcome has a failing soft assertion observation")
+		}
 		if assertions.ReportOnly != manifest.Target.SoftAssertionReportOnly {
 			return errors.New("soft assertion observation differs from recorded policy")
 		}

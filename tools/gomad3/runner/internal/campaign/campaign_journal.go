@@ -52,6 +52,7 @@ type CampaignSummary struct {
 }
 
 type ExecutionRecord struct {
+	SoftAssertions              *record.SoftAssertions     `json:"soft_assertions,omitempty"`
 	Strategy                    string                     `json:"strategy,omitempty"`
 	Round                       *record.Uint64String       `json:"round,omitempty"`
 	CandidateSHA256             record.SHA256              `json:"candidate_sha256,omitempty"`
@@ -82,6 +83,31 @@ type ExecutionRecord struct {
 	SuccessArtifactBytes        *record.Uint64String       `json:"success_artifact_bytes,omitempty"`
 	NovelSemanticProbes         []string                   `json:"novel_semantic_probes,omitempty"`
 	NovelChoiceFeatures         []string                   `json:"novel_choice_features,omitempty"`
+}
+
+func CloneSoftAssertionReport(assertions *record.SoftAssertions) *record.SoftAssertions {
+	if assertions == nil {
+		return nil
+	}
+	cloned := *assertions
+	cloned.Messages = append([]string(nil), assertions.Messages...)
+	return &cloned
+}
+
+func (state *campaignState) validateSoftAssertionReport(run ExecutionRecord) error {
+	assertions := run.SoftAssertions
+	if assertions == nil {
+		return nil
+	}
+	if state.plan == nil || !state.plan.Prepared.Target.SoftAssertionReportOnly || state.plan.Prepared.Target.Kind != "go-test" || state.plan.Prepared.Target.Backend == nil || state.plan.Prepared.Target.Backend.Name != "wasm" || !assertions.ReportOnly || run.Domain == "success" && assertions.Inconclusive {
+		return errors.New("soft assertion report does not match the campaign target policy")
+	}
+	for index, message := range assertions.Messages {
+		if message == "" || len(message) > 4096 || !utf8.ValidString(message) || index > 0 && assertions.Messages[index-1] >= message {
+			return errors.New("invalid static soft assertion report messages")
+		}
+	}
+	return nil
 }
 
 type CampaignRecord struct {

@@ -531,6 +531,9 @@ func (state *campaignState) checkExecutions(runs []ExecutionRecord) ([]uint64, e
 // checkExecutionSize bounds one execution's encoded bytes by the campaign's
 // per-execution payload bound.
 func (state *campaignState) checkExecutionSize(run ExecutionRecord) (uint64, error) {
+	if err := state.validateSoftAssertionReport(run); err != nil {
+		return 0, err
+	}
 	encoded, err := json.Marshal(run)
 	if err != nil {
 		return 0, err

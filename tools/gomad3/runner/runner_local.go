@@ -447,6 +447,9 @@ func (local *localCampaign) observe(attempt *seedAttempt, completion runCompleti
 		return failure
 	}
 	attempt.observation = observation
+	if assertions := assessed.outcome.SoftAssertions; assertions != nil && assertions.ReportOnly {
+		observation.run.SoftAssertions = campaign.CloneSoftAssertionReport(assertions)
+	}
 	if observation.successErr == nil {
 		if err := local.recordReceipt(observation); err != nil {
 			return &seedHostFailure{reason: "runs_append", cause: err}

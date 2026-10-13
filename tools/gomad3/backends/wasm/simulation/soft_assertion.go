@@ -3,8 +3,12 @@ package simulation
 import (
 	"errors"
 	"fmt"
+	"reflect"
 	"slices"
+	"strings"
 
+	"go.temporal.io/server/tools/gomad3/backends/wasm/wasi"
+	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/record/softassert"
 	"go.temporal.io/server/tools/gomad3/target"
 	"go.temporal.io/server/tools/gomad3sim"
@@ -107,9 +111,55 @@ func (e *execution) softAssertionOracles() ([]gomad3sim.OracleResult, error) {
 		}
 		oracles = append(oracles, oracle)
 	}
+	slices.SortFunc(oracles, func(a, b gomad3sim.OracleResult) int {
+		return strings.Compare(a.Name, b.Name)
+	})
 	return oracles, nil
 }
 
 func validWorkloadKind(kind target.Kind) bool {
 	return kind == "" || kind == target.KindGoRun || kind == target.KindGoTest || kind == target.KindExec
+}
+
+func validateRetainedSoftAssertions(spec gomad3sim.Spec, provider *Provider) (int, error) {
+	plan := spec.Replay
+	results := make(map[gomad3sim.NodeHandle]wasi.Result)
+	if plan.WASM != nil {
+		for _, incarnation := range plan.WASM.Incarnations {
+			results[incarnation.Handle] = wasi.Result{Reaped: true}
+		}
+	}
+	for _, output := range plan.Outputs {
+		if output.TotalBytes == uint64(len(output.Bytes)) && output.FullSHA256 != string(record.HashBytes(output.Bytes)) {
+			return 0, errors.New("retained soft assertion output digest mismatch")
+		}
+		result, known := results[output.Handle]
+		if !known {
+			return 0, errors.New("retained soft assertion output lacks a bound incarnation")
+		}
+		result.OfferedOutputBytes += output.TotalBytes
+		result.Cancelled = result.Cancelled || output.Truncated
+		switch output.Stream {
+		case gomad3sim.OutputStdout:
+			result.Stdout = append(result.Stdout, output.Bytes...)
+		case gomad3sim.OutputStderr:
+			result.Stderr = append(result.Stderr, output.Bytes...)
+		}
+		results[output.Handle] = result
+	}
+	execution := execution{provider: Provider{Oracles: provider.Oracles}, results: results, limits: spec.Limits}
+	expected, err := execution.softAssertionOracles()
+	if err != nil {
+		return 0, err
+	}
+	var actual []gomad3sim.OracleResult
+	for _, oracle := range plan.Oracles {
+		if oracle.SoftAssertion {
+			actual = append(actual, oracle)
+		}
+	}
+	if !reflect.DeepEqual(actual, expected) {
+		return 0, errors.New("retained soft assertion evidence differs from authenticated guest output or policy")
+	}
+	return len(expected), nil
 }

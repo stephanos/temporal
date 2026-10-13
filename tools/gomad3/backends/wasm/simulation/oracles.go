@@ -20,12 +20,12 @@ const SoftAssertionObservationSchema = "gomad.wasm.soft-assertion-observation/v1
 // never supplies an already observed oracle result as the replay expectation.
 type OraclePlan struct {
 	SoftAssertions []SoftAssertionPolicy `json:"soft_assertions,omitempty"`
-	Schema       string               `json:"schema"`
-	Prefix       string               `json:"prefix"`
-	MaximumBytes uint64               `json:"maximum_bytes"`
-	Histories    []HistoryComparison  `json:"histories"`
-	Convergence  []HistoryConvergence `json:"convergence"`
-	SQLite       []SQLiteComparison   `json:"sqlite,omitempty"`
+	Schema         string                `json:"schema"`
+	Prefix         string                `json:"prefix"`
+	MaximumBytes   uint64                `json:"maximum_bytes"`
+	Histories      []HistoryComparison   `json:"histories"`
+	Convergence    []HistoryConvergence  `json:"convergence"`
+	SQLite         []SQLiteComparison    `json:"sqlite,omitempty"`
 }
 type SQLiteComparison struct {
 	Name              string               `json:"name"`

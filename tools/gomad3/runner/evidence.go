@@ -12,12 +12,12 @@ const ExecutionEvidenceSchema = "gomad3.execution-evidence/v1"
 
 type OutcomeEvidence struct {
 	SoftAssertions *record.SoftAssertions `json:"soft_assertions,omitempty"`
-	Domain      string               `json:"domain"`
-	Reason      string               `json:"reason"`
-	Termination string               `json:"termination"`
-	ExitCode    *record.Uint64String `json:"exit_code,omitempty"`
-	Signal      *string              `json:"signal,omitempty"`
-	Deadline    *string              `json:"deadline,omitempty"`
+	Domain         string                 `json:"domain"`
+	Reason         string                 `json:"reason"`
+	Termination    string                 `json:"termination"`
+	ExitCode       *record.Uint64String   `json:"exit_code,omitempty"`
+	Signal         *string                `json:"signal,omitempty"`
+	Deadline       *string                `json:"deadline,omitempty"`
 }
 
 type ExecutionLimitsEvidence struct {
@@ -111,7 +111,7 @@ func executionEvidence(
 		},
 		Outcome: OutcomeEvidence{
 			SoftAssertions: outcome.SoftAssertions,
-			Domain: outcome.Domain, Reason: outcome.Reason, Termination: outcome.Termination,
+			Domain:         outcome.Domain, Reason: outcome.Reason, Termination: outcome.Termination,
 			ExitCode: cloneUint64String(outcome.ExitCode), Signal: cloneString(outcome.Signal), Deadline: cloneString(outcome.Deadline),
 		},
 		GroupGone:               completion.result.GroupGone,

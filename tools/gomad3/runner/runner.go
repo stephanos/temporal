@@ -83,6 +83,8 @@ const (
 )
 
 type CampaignEvent struct {
+	SoftAssertions        *record.SoftAssertions `json:"soft_assertions,omitempty"`
+	ExecutionSeed         *uint64                `json:"execution_seed,omitempty"`
 	Phase                 CampaignPhase
 	CampaignPath          string `json:"campaign_path"`
 	Selected              uint64

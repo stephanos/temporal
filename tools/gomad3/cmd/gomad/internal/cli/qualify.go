@@ -150,7 +150,7 @@ func runQualifyWith(arguments []string, stdout, stderr io.Writer, dependencies q
 		Coverage:    coverage, RequiredSemanticProbes: requiredSemanticProbes, CollectExecutionEvidence: true,
 		Target: target.Spec{
 			SoftAssertionReportOnly: *softAssertionReportOnly,
-			Kind: parsedTarget.kind, Source: parsedTarget.source, Provenance: parsedTarget.provenance, Args: parsedTarget.arguments,
+			Kind:                    parsedTarget.kind, Source: parsedTarget.source, Provenance: parsedTarget.provenance, Args: parsedTarget.arguments,
 			BuildTags: buildTags, WorkingDir: workingDirectory, ToolchainRoot: installed.toolchainRoot, CapabilityMode: resolvedCapabilityMode,
 		},
 	}

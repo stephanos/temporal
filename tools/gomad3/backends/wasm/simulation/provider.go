@@ -15,8 +15,8 @@ import (
 	"go.temporal.io/server/tools/gomad3/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad3/choice"
 	"go.temporal.io/server/tools/gomad3/hostexec"
-	"go.temporal.io/server/tools/gomad3/target"
 	netmodel "go.temporal.io/server/tools/gomad3/simulation/network"
+	"go.temporal.io/server/tools/gomad3/target"
 	"go.temporal.io/server/tools/gomad3/volume"
 	"go.temporal.io/server/tools/gomad3/world"
 	"go.temporal.io/server/tools/gomad3sim"
@@ -216,7 +216,7 @@ func (p *Provider) CompletedResults() []IncarnationResult {
 }
 
 type bootIdentity struct {
-	WorkloadKind target.Kind `json:",omitempty"`
+	WorkloadKind                  target.Kind `json:",omitempty"`
 	Module, Helper, Environment   string
 	Implementation                string
 	Engine                        wasi.EngineIdentity

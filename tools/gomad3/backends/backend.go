@@ -7,6 +7,7 @@ import (
 
 	"go.temporal.io/server/tools/gomad3/artifact"
 	"go.temporal.io/server/tools/gomad3/choice"
+	"go.temporal.io/server/tools/gomad3/record"
 	"go.temporal.io/server/tools/gomad3/target"
 )
 
@@ -74,13 +75,18 @@ type Result struct {
 type Termination string
 
 type FailureError struct {
+	SoftAssertions   *record.SoftAssertions
 	Termination      Termination
 	Message          string
 	ChoiceDivergence *choice.Divergence
 }
 
 func (failure *FailureError) Error() string {
-	return "backend " + string(failure.Termination) + ": " + failure.Message
+	message := "backend " + string(failure.Termination) + ": " + failure.Message
+	if failure.SoftAssertions != nil && failure.SoftAssertions.Inconclusive {
+		message += "; soft assertion oracle inconclusive"
+	}
+	return message
 }
 
 const (
