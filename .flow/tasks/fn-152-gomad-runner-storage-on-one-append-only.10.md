@@ -51,9 +51,10 @@ Follow the parent Delivery and verification contract. Use deterministic transiti
 
 
 ## Done summary
-TBD
+Bounded admission and terminal receipts persisted (admission and receipt records; outcome records carry refill and stop); the frontier stays within parallel, refills incrementally and resumes exactly; the atomic stop group freezes admission and keeps actual drain outcomes; pending payloads stay live until adopted or retired. Faults across 163 cases and three policies resume to the uninterrupted outcomes.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 022f53bd56
+- Tests: TestFrontier* in runner/internal/campaign, TestPolicyStopIsTheControllersStopDecision, evidence: .flow/artifacts/wasm-section-acceptance-2026-10-12.md
 - PRs:
