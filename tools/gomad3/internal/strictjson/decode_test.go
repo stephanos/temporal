@@ -72,6 +72,18 @@ func TestDecodeAcceptsOrdinaryJSONSpellingAndCaseAliases(t *testing.T) {
 	}
 }
 
+func TestDecodeAcceptsStdlibByteArrayEncoding(t *testing.T) {
+	var got struct {
+		Digest [4]byte `json:"digest"`
+	}
+	if err := Decode([]byte(`{"digest":[0,1,254,255]}`), &got); err != nil {
+		t.Fatal(err)
+	}
+	if got.Digest != [4]byte{0, 1, 254, 255} {
+		t.Fatalf("Decode() digest = %v", got.Digest)
+	}
+}
+
 func TestDecodeRetainsTypedNumericBounds(t *testing.T) {
 	var got decodeDocument
 	if err := Decode([]byte(`{"limit":256}`), &got); err == nil {
