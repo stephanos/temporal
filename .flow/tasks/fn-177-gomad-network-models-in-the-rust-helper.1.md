@@ -39,9 +39,18 @@ The owning task's explicit start gate is satisfied: fn154.7 pending-dial control
 - [ ] Drift pin test fails when the Go projection digest changes without a Rust pin update.
 
 ## Done summary
-TBD
+Implemented the post-fn154 network operation corpus in 5d4a6c88ef and corrected mutable input retention in 5a2fe5b544. All 114 compact scripts (48 named, two multi-pair broker, 64 seeded) retain per-step results/state and final Record/error, with explicit creation-refusal cases. Inputs own domain, request and payload values. Every serialized script is replayed against the Go owner; fixture and Rust implementation pins fail on drift. No network production semantics or helper integration changed.
 
+Fresh root stock Go 1.27.1 checks passed for ./simulation/network/... and TestNetworkV2RustOwnerPinIsCurrent. The worker ran all owner/generator checks twice, independent aliasing regressions failed before and passed after the correction, and deliberate fixture/pin corruption failed before restoration. Canonical Linux lint passed both source sets; the correction used an isolated TMPDIR to avoid the concurrent lint lock. Logs are named in .flow/artifacts/wasm-rotation-continuation-2026-10-13.md and /tmp/gomad-fn177-corpus.84vutL/lint-correction-isolated.log.
+
+stage: implementation - ran (isolated corpus worker)
+stage: source-review - ran (fresh independent reviewer; initial P1, corrected and re-reviewed YES)
+stage: final-layout-resync - skipped(policy: belongs to the later fn166 identity rotation; currency and pin must rerun after that source change)
+
+fn177.2/.3 still own the Rust consumer and full differential model acceptance. No Darwin/native qualification, final WASM guest acceptance, PR or push is claimed.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 5d4a6c88ef, 5a2fe5b544
+- Tests: stock Go 1.27.1: go test -tags test_dep -count=1 ./simulation/network/... (exit 0), stock Go 1.27.1: go test -tags test_dep -count=1 -run '^TestNetworkV2RustOwnerPinIsCurrent$' ./backends/wasm/wasi (exit 0), isolated worker: go test -tags test_dep -count=2 ./simulation/network/... (exit 0; all 114 serialized scripts), canonical Linux make lint-code-fast with GOLANGCI_LINT_BASE_REV=a1f0be7e96 and explicit Linux golangci-lint/errortype (exit 0), isolated correction canonical make lint-code-fast with GOLANGCI_LINT_BASE_REV=73dfb87be3, private TMPDIR and explicit Linux tools (exit 0), independent corpus correction re-review: source readiness YES
 - PRs:

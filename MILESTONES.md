@@ -277,9 +277,9 @@ Owner decision (2026-10-13): move per-call and per-run hot paths into the Rust h
 | Name / ID | Status | Description |
 | --- | --- | --- |
 | [fn-173.1](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.1.md) | 🚧 In progress | No-unwind engine checkpoint integrated; required Darwin exit proof remains open |
-| [fn-173.2](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.2.md) | ⬜ Todo | Skip module bytes on compile-cache hits and verify inside the miss path |
-| [fn-173.3](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.3.md) | ⬜ Todo | Drop the Go adapter's per-run module hash |
-| [fn-173.4](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.4.md) | ⬜ Todo | Compiled-artifact envelope v3 with a CRC-32 integrity check |
+| [fn-173.2](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.2.md) | ⬜ Todo | Miss-only verification source joined; Darwin prerequisite and final gates remain |
+| [fn-173.3](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.3.md) | ⬜ Todo | Per-run module hash removed in source; prerequisite and final gates remain |
+| [fn-173.4](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.4.md) | ⬜ Todo | CRC v3 source joined; corruption review fix and Darwin throughput remain |
 | [fn-173.5](.flow/tasks/fn-173-gomad-wasm-helper-per-run-preparation.5.md) | ⬜ Todo | Measure warm preparation and evidence equality on the Temporal module |
 
 #### Local host-call fast path — [fn-174](.flow/specs/fn-174-gomad-wasm-helper-local-host-call-fast.md) — waits for fn-153
@@ -320,7 +320,6 @@ Owner decision (2026-10-13): move per-call and per-run hot paths into the Rust h
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-177.1](.flow/tasks/fn-177-gomad-network-models-in-the-rust-helper.1.md) | 🚧 In progress | Build operation corpus against integrated fn-154 source; currency and drift pins |
 | [fn-177.2](.flow/tasks/fn-177-gomad-network-models-in-the-rust-helper.2.md) | ⬜ Todo | Rust network owner: connections, FIFO queues, topology and history |
 | [fn-177.3](.flow/tasks/fn-177-gomad-network-models-in-the-rust-helper.3.md) | ⬜ Todo | Rust network owner: stall expiry, dial stall and history reservations |
 
