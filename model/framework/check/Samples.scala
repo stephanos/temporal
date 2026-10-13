@@ -17,6 +17,31 @@ final case class Sample(
 )
 
 object Samples:
+  // Each sample owns an independent namespace. Keep its lift and temporary Go adaptation together
+  // in one JVM, publishing each successful sample before starting the next.
+  // The held Go IR consumer still names Step before the DSL package move. Keep the exported IR
+  // current, and adapt only the temporary input that consumer reads until its regeneration.
+  private val lifter =
+    """import framework.`export`.{LiftRun, Switches}
+      |import java.nio.file.{Files, Path}
+      |
+      |@main def liftSamples(jar: String, classpath: String, args: String*): Unit =
+      |  def lift(pending: List[String]): Unit = pending match
+      |    case out :: count :: remaining =>
+      |      val (roots, tail) = remaining.splitAt(count.toInt)
+      |      val status = LiftRun.run(Seq(jar, classpath, out) ++ roots, System.err, Switches.fromEnvironment)
+      |      if status != 0 then sys.exit(status)
+      |      val ir = Path.of(out)
+      |      if !Files.isRegularFile(ir) then
+      |        throw java.io.IOException(s"the lift of ${ir.getFileName.toString.stripSuffix(".json")} wrote no $ir")
+      |      val checked = ir.resolveSibling(ir.getFileName.toString.stripSuffix(".json") + ".check.json")
+      |      Files.writeString(checked, Files.readString(ir).replace("\"framework.dsl.Step\"", "\"framework.Step\"")): Unit
+      |      lift(tail)
+      |    case Nil => ()
+      |    case _ => throw IllegalArgumentException("incomplete sample lift arguments")
+      |  lift(args.toList)
+      |""".stripMargin
+
   private val checker =
     """package main
       |
@@ -139,31 +164,31 @@ object Samples:
       )
       .orFail()
     Files.writeString(classpath, compiled.output): Unit
-    for sample <- samples do
-      tools
-        .scalaCli(
+    val liftRunner = output.resolve("lift-samples.scala")
+    Files.writeString(liftRunner, lifter): Unit
+    tools
+      .scalaCli(
+        Seq(
+          "run",
+          "model/framework/export",
+          liftRunner.toString,
+          "--main-class",
+          "liftSamples",
+          "--",
+          s"$jar=model/",
+          classpath.toString
+        ) ++ samples.flatMap(sample =>
           Seq(
-            "run",
-            "model/framework/export",
-            "--main-class",
-            "framework.export.lift",
-            "--",
-            s"$jar=model/",
-            classpath.toString,
             sample.ir.toString,
+            (sample.progress.size + 1).toString,
             sample.root
           ) ++ sample.progress
         )
-        .orFail(): Unit
+      )
+      .orFail(): Unit
+    for sample <- samples do
       if !Files.isRegularFile(sample.ir) then
         throw GateError(s"the lift of ${sample.name} wrote no ${sample.ir}")
-      // The held Go IR consumer still names Step before the DSL package move. Keep the exported IR
-      // current, and adapt only the temporary input that consumer reads until its regeneration.
-      val checked = output.resolve(sample.name + ".check.json")
-      Files.writeString(
-        checked,
-        Files.readString(sample.ir).replace("\"framework.dsl.Step\"", "\"framework.Step\"")
-      ): Unit
     val runner = output.resolve("check-samples.go")
     val module = "go." + "tem" + "poral.io/server"
     Files.writeString(runner, checker.replace("MODULE", module)): Unit
