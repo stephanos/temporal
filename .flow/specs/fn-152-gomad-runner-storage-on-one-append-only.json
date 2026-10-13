@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-152-gomad-runner-storage-on-one-append-only",
   "completion_review_status": "ship",
-  "completion_reviewed_at": "2026-10-13T08:02:37.058378Z",
+  "completion_reviewed_at": "2026-10-13T08:24:43.591994Z",
   "created_at": "2026-10-09T23:27:40.316878Z",
   "default_impl": null,
   "default_review": null,
@@ -590,13 +590,57 @@
       "task": null,
       "timestamp": "2026-10-13T08:02:37.047521Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "b8eb74ab59a0b78b546bf9618f12eaa82917d8684d649a0bd1177b1a1c6c2590",
+      "backend": "codex",
+      "base_sha": "c5d07e5f0ee5469e653e459846e7aaecd7fbd767",
+      "counter_kind": "plan",
+      "effort": "xhigh",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-819617d0eef4159746e5dfe6f79960ba",
+            "classification": "introduced",
+            "findingId": "finding-819617d0eef4159746e5dfe6f79960ba",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "2f8dc87830b58ee02d5395370273aceb0dbf768d",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 4928,
+      "output_sha256": "502748ad885c0f14d02ca25b886a9f4286de548309bfb5c065eeb7dde0632ccd",
+      "reservation_id": "bee377d888e442af8b92bc0d8abb4325",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-13T08:24:43.584785Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-152-gomad-runner-storage-on-one-append-only.8": 1,
     "impl:fn-152-gomad-runner-storage-on-one-append-only.9": 1,
     "plan": 1,
-    "plan#completion": 1
+    "plan#completion": 2
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -620,5 +664,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-13T08:02:37.059811Z"
+  "updated_at": "2026-10-13T08:24:43.593365Z"
 }
