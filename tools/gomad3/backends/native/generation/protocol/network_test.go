@@ -229,6 +229,9 @@ func TestHeldTimeoutAndLegacySemanticsMatch(t *testing.T) {
  } {invalid:=reset;mutate(&invalid);check(invalid,false)}
  held:=valid[0];held.Bytes=0;check(held,false)
  dial:=valid[4];dial.Connection=1;check(dial,false)
+ dial=valid[4];dial.Source.Port=65536;check(dial,false)
+ dial=valid[4];dial.Source.Port=0;check(dial,true)
+ dial=valid[4];dial.Source.Port=65535;check(dial,true)
 }
 
 func TestFinishAndIdentityCrossConsumer(t *testing.T) {

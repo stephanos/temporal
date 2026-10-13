@@ -359,6 +359,9 @@ func (p *Provider) Open(ctx context.Context, spec gomad3sim.Spec) (gomad3sim.WAS
 			config.Network = request.Config.NetworkV2
 		}
 	}
+	if err := validateBootNetworkLimits(config.Network, spec.Limits); err != nil {
+		return nil, err
+	}
 	semanticConfig := config
 	semanticConfig.Diagnostics = false
 	bindings := append([]IncarnationBoot(nil), p.IncarnationBoots...)

@@ -100,6 +100,8 @@ func TestProviderBindsEverySelectedBootNetworkLimit(t *testing.T) {
 		networkFree     bool
 		restartMismatch bool
 		unusedMismatch  bool
+		brokerOverride  bool
+		brokerMismatch  bool
 	}{
 		{name: "matching", mismatch: -1},
 		{name: "network free", mismatch: -1, networkFree: true},
@@ -110,6 +112,9 @@ func TestProviderBindsEverySelectedBootNetworkLimit(t *testing.T) {
 		{name: "restart byte mismatch", mismatch: -1, restartMismatch: true},
 		{name: "restart stall mismatch", mismatch: -1, stallMismatch: true, restartMismatch: true},
 		{name: "unused mismatch", mismatch: -1, unusedMismatch: true},
+		{name: "matching explicit broker", mismatch: -1, brokerOverride: true},
+		{name: "broker byte mismatch", mismatch: -1, brokerOverride: true, brokerMismatch: true},
+		{name: "broker stall mismatch", mismatch: -1, brokerOverride: true, brokerMismatch: true, stallMismatch: true},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			spec := gomad3sim.Spec{Schema: gomad3sim.SpecSchema, Backend: gomad3sim.BackendWASM, Fidelity: gomad3sim.FidelityHardIsolation, Seed: 17, Limits: gomad3sim.DefaultLimits()}
@@ -153,13 +158,29 @@ func TestProviderBindsEverySelectedBootNetworkLimit(t *testing.T) {
 					provider.IncarnationBoots = []IncarnationBoot{{Handle: gomad3sim.NodeHandle{Node: "a", Incarnation: 2}, Boot: "extra"}}
 				}
 			}
+			if test.brokerOverride {
+				model := *provider.Boots["a"].Config.NetworkV2
+				if test.brokerMismatch {
+					if test.stallMismatch {
+						model.Limits.StallNanos++
+					} else {
+						model.Limits.ConnectionBytes++
+					}
+				}
+				provider.Broker.Network = &model
+			}
 			_, err := provider.Open(t.Context(), spec)
-			if test.mismatch >= 0 || test.restartMismatch {
+			if test.mismatch >= 0 || test.restartMismatch || test.brokerMismatch {
 				if err == nil || !strings.Contains(err.Error(), "network limits") {
 					t.Fatalf("identity-bound mismatch admitted: %v", err)
 				}
 			} else if err != nil {
 				t.Fatal(err)
+			}
+			if test.brokerMismatch {
+				if test.stallMismatch && provider.Broker.Network.Limits.StallNanos != 457 || !test.stallMismatch && provider.Broker.Network.Limits.ConnectionBytes != 124 {
+					t.Fatal("broker identity-bound inputs overwritten")
+				}
 			}
 		})
 	}

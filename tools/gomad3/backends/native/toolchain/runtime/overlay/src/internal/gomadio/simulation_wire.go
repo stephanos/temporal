@@ -248,7 +248,7 @@ func validSimulationTransition(transition simulationTransition) bool {
 		}
 	}
 	if transition.Outcome == "timeout" && transition.Kind != "write" && transition.Kind != "reset" {
-		if transition.Kind != "dial" || transition.Connection != 0 || transition.Delivery != 0 ||
+		if transition.Kind != "dial" || transition.Connection != 0 || transition.Delivery != 0 || transition.Source.Port > 65535 ||
 			!validSimulationWireEndpoint(transition.Destination, false) || transition.Source.Node == transition.Destination.Node || transition.Destination.Port == 0 || transition.Destination.Port > 65535 {
 			return false
 		}
